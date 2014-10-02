@@ -1,7 +1,6 @@
-/* global AppWindowManager, AppWindow, homescreenLauncher,
-          HomescreenWindow, MocksHelper,
-          MockSettingsListener, System, HomescreenLauncher,
-          MockRocketbar, rocketbar */
+/* global AppWindowManager, AppWindow, HomescreenWindowManager,
+          HomescreenWindow, MocksHelper, MockSettingsListener, System,
+          MockRocketbar, rocketbar, homescreenWindowManager */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -15,7 +14,7 @@ requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
-requireApp('system/test/unit/mock_homescreen_launcher.js');
+requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_nfc_handler.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/js/system.js');
@@ -23,7 +22,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppWindowManager = new MocksHelper([
   'OrientationManager', 'ActivityWindow',
-  'Applications', 'SettingsListener', 'HomescreenLauncher',
+  'Applications', 'SettingsListener', 'HomescreenWindowManager',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
   'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System', 'NfcHandler'
 ]).init();
@@ -48,13 +47,9 @@ suite('system/AppWindowManager', function() {
     window.mediaRecording = { isRecording: false };
 
     home = new HomescreenWindow('fakeHome');
-    window.homescreenLauncher = new HomescreenLauncher();
-    window.homescreenLauncher.start();
-    homescreenLauncher.mFeedFixtures({
-      mHomescreenWindow: home,
-      mOrigin: 'fakeOrigin',
-      mReady: true
-    });
+    window.homescreenWindowManager = new HomescreenWindowManager();
+    window.homescreenWindowManager.start();
+    window.homescreenWindowManager.mHomescreenWindow = home;
 
     window.rocketbar = new MockRocketbar();
 
@@ -77,11 +72,7 @@ suite('system/AppWindowManager', function() {
     AppWindowManager.uninit();
     delete window.layoutManager;
     delete window.mediaRecording;
-
-    // MockHelper won't invoke mTeardown() for us
-    // since MockHomescreenLauncher is instantiable now
-    window.homescreenLauncher.mTeardown();
-    delete window.homescreenLauncher;
+    delete window.homescreenWindowManager;
     stubById.restore();
   });
 
@@ -272,11 +263,15 @@ suite('system/AppWindowManager', function() {
 
     test('Press home on home displayed', function() {
       injectRunningApps(home);
-      var stubEnsure = this.sinon.stub(home, 'ensure');
-      AppWindowManager._activeApp = homescreenLauncher.mHomescreenWindow;
-      AppWindowManager.displayedApp = homescreenLauncher.origin;
+      var stubGetHomescreen = this.sinon.stub(homescreenWindowManager,
+                                              'getHomescreen');
+      AppWindowManager._activeApp = homescreenWindowManager.mHomescreenWindow;
       AppWindowManager.handleEvent({ type: 'home' });
-      assert.isTrue(stubEnsure.called);
+      assert.isTrue(stubGetHomescreen.called,
+        'press home on home displayed should still call getHomescreen()');
+      // check the first argument of first call.
+      assert.isTrue(stubGetHomescreen.calledWith(true),
+        'getHomescreen should be called with true as argument in this case.');
     });
 
     test('Press home on home not displayed', function() {
@@ -322,11 +317,9 @@ suite('system/AppWindowManager', function() {
       System.locked = true;
       injectRunningApps();
       var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
-      var stubSetVisible = this.sinon.stub(home, 'setVisible');
 
       AppWindowManager.handleEvent({ type: 'ftuskip' });
       assert.isFalse(stubDisplay.calledWith());
-      assert.isTrue(stubSetVisible.calledWith(false));
       System.locked = false;
     });
 
@@ -731,7 +724,7 @@ suite('system/AppWindowManager', function() {
       injectRunningApps(home, app1);
       AppWindowManager._activeApp = app1;
       var stubGetHomescreen =
-        this.sinon.stub(homescreenLauncher, 'getHomescreen');
+        this.sinon.stub(homescreenWindowManager, 'getHomescreen');
       stubGetHomescreen.returns(home);
       var stubReady = this.sinon.stub(home, 'ready');
 
@@ -873,7 +866,7 @@ suite('system/AppWindowManager', function() {
 
     setup(function() {
       // we fake getHomescreen as app2
-      this.sinon.stub(homescreenLauncher, 'getHomescreen').returns(app2);
+      this.sinon.stub(homescreenWindowManager, 'getHomescreen').returns(app2);
     });
 
     test('Whatever caller is, we would go back to original app',
@@ -887,7 +880,7 @@ suite('system/AppWindowManager', function() {
 
         assert.deepEqual(app2.calleeWindow, app7);
         assert.deepEqual(app7.callerWindow, app2);
-        assert.isFalse(homescreenLauncher.getHomescreen.called);
+        assert.isFalse(homescreenWindowManager.getHomescreen.called);
     });
 
     test('If there is a direct circular activity, ' +

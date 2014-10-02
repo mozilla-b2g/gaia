@@ -1,4 +1,4 @@
-/* global SettingsListener, homescreenLauncher, KeyboardManager,
+/* global SettingsListener, homescreenWindowManager, KeyboardManager,
           layoutManager, System, NfcHandler, rocketbar */
 'use strict';
 
@@ -42,8 +42,9 @@
      * @return {AppWindow} The app is active.
      */
     getActiveApp: function awm_getActiveApp() {
-      return this._activeApp || (exports.homescreenLauncher ?
-        exports.homescreenLauncher.getHomescreen() : null);
+      return this._activeApp ||
+             (window.homescreenWindowManager ?
+              window.homescreenWindowManager.getHomescreen() : null);
     },
 
     /**
@@ -103,12 +104,14 @@
      * @param {AppWindow} newApp The new app window instance.
      * @param {String} [openAnimation] The open animation for opening app.
      * @param {String} [closeAnimation] The close animation for closing app.
+     * @param {String} [eventType] The event type of displaying app.
      * @memberOf module:AppWindowManager
      */
-    display: function awm_display(newApp, openAnimation, closeAnimation) {
+    display: function awm_display(newApp, openAnimation, closeAnimation,
+                                  eventType) {
       this._dumpAllWindows();
       var appCurrent = this._activeApp, appNext = newApp ||
-        homescreenLauncher.getHomescreen(true);
+        homescreenWindowManager.getHomescreen('home' === eventType);
 
       if (!appNext) {
         this.debug('no next app.');
@@ -193,13 +196,13 @@
           } else {
             // Homescreen might be dead due to OOM, we should ensure its opening
             // before updateActiveApp.
-            appNext = homescreenLauncher.getHomescreen();
+            appNext = homescreenWindowManager.getHomescreen();
             appNext.ensure(true);
           }
         }
         this.debug('ready to open/close' + switching);
         if (switching) {
-          homescreenLauncher.getHomescreen().fadeOut();
+          this.publish('appswitching');
         }
         this._updateActiveApp(appNext.instanceID);
 
@@ -242,7 +245,7 @@
      * 3. Homescreen is ready.
      * 4. Bootstrap tells FTULauncher to fetch FTU(First Time Use app) info.
      * 5. FTU app is skipped or done.
-     * 6. AppWindowManager open homescreen app via HomescreenLauncher.
+     * 6. AppWindowManager open homescreen app via homescreenWindowManager.
      *
      * @memberOf module:AppWindowManager
      */
@@ -425,13 +428,8 @@
           break;
 
         case 'ftuskip':
-          // XXX: There's a race between lockscreenWindow and homescreenWindow.
-          // If lockscreenWindow is instantiated before homescreenWindow,
-          // we should not display the homescreen here.
           if (!System.locked) {
             this.display();
-          } else {
-            homescreenLauncher.getHomescreen().setVisible(false);
           }
           break;
 
@@ -518,24 +516,11 @@
         // be included in index.html before this one, so they can register their
         // event handlers before we do.
         case 'home':
-          if (!homescreenLauncher.ready ||
+          if (!homescreenWindowManager.ready ||
               (window.taskManager && window.taskManager.isActive())) {
             return;
           }
-
-          if (activeApp && !activeApp.isHomescreen) {
-            // Make sure this happens before activity frame is removed.
-            // Because we will be asked by a 'activity-done' event from gecko
-            // to relaunch to activity caller, and this is the only way to
-            // determine if we are going to homescreen or the original app.
-
-            this.debug('back to home.');
-            this.display();
-          } else {
-            // dispatch event to close activity.
-            this.debug('ensure home.');
-            homescreenLauncher.getHomescreen().ensure(true);
-          }
+          this.display(null, null, null, 'home');
           break;
 
         case 'launchapp':
@@ -664,11 +649,7 @@
         if (config.isActivity && this._activeApp) {
           this.linkWindowActivity(config);
         }
-        if (config.origin == homescreenLauncher.origin) {
-          this.display();
-        } else {
-          this.display(this.getApp(config.origin));
-        }
+        this.display(this.getApp(config.origin));
       }
     },
 
@@ -793,7 +774,8 @@
       // homescreen related methods, this should not be moved out to
       // be a method of AWM.
       var launchHomescreen = () => {
-        var home = homescreenLauncher.getHomescreen(true); // jshint ignore:line
+        // jshint ignore:line
+        var home = homescreenWindowManager.getHomescreen();
         if (home) {
           if (home.isActive()) {
             home.setVisible(true);
@@ -810,7 +792,7 @@
       // detail object with switch cases.
       var { activity, notificationId } = detail;
       if (activity || notificationId) {
-        if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
+        if (activeApp && !activeApp.isHomescreen) {
           activeApp.setVisible(true);
           if (activity) {
             this.fireActivity(activity);
@@ -826,7 +808,7 @@
           }
         }
       } else {  // it don't have the detail we can handle.
-        if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
+        if (activeApp && !activeApp.isHomescreen) {
           activeApp.setVisible(true);
         } else {
           launchHomescreen();
