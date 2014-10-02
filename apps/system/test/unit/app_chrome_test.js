@@ -173,6 +173,8 @@ suite('system/AppChrome', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
       var stubReload = this.sinon.stub(app, 'reload');
+      assert.equal(chrome.reloadButton.getAttribute('data-l10n-id'),
+        'reload-button');
       chrome.handleEvent({ type: 'click', target: chrome.reloadButton });
       assert.isTrue(stubReload.called);
     });
@@ -181,6 +183,8 @@ suite('system/AppChrome', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
       var stubStop = this.sinon.stub(app, 'stop');
+      assert.equal(chrome.stopButton.getAttribute('data-l10n-id'),
+        'stop-button');
       chrome.handleEvent({ type: 'click', target: chrome.stopButton });
       assert.isTrue(stubStop.called);
     });
