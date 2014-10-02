@@ -1,7 +1,6 @@
 /* global Promise, LazyLoader */
 'use strict';
 
-//require('/shared/js/lazy_loader.js');
 /*
  * builtInRingtones is an object that provides access to the system-provided
  * ringtones on the device. It has the following methods:
