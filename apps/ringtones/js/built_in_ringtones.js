@@ -1,7 +1,7 @@
 /* global Promise, LazyLoader */
 'use strict';
 
-require('/shared/js/lazy_loader.js');
+//require('/shared/js/lazy_loader.js');
 /*
  * builtInRingtones is an object that provides access to the system-provided
  * ringtones on the device. It has the following methods:
@@ -206,14 +206,13 @@ window.builtInRingtones = (function() {
       return Promise.resolve(toneDefsCache[toneType]);
     }
    
-    return LazyLoader.getJSON(BASE_URLS[toneType]+'list.json').then(function(json) {
-      toneDefsCache[toneType] = json;
-      return toneDefsCache[toneType]
-      }, function() {
-        var err = new Error('Could not read sounds list for ' + toneType +
-                            ' (status: ' + xhr.status + ')');
-        console.error(err);
-        return err;
+    return LazyLoader.getJSON(BASE_URLS[toneType]+'list.json')
+	    .then(function(json) {
+      		toneDefsCache[toneType] = json;
+      		return toneDefsCache[toneType];
+      }, function(error) {
+        console.error(error);
+        return error;
      });  
   }
 
