@@ -1,8 +1,9 @@
-/* global assert, require, suite, test, LazyLoader */
+/* global assert, require, suite, test */
 'use strict';
 
 require('/js/built_in_ringtones.js');
 
+require('/shared/js/lazy_loader.js');
 suite('built-in ringtones', function() {
   var toneTypes = ['ringtone', 'alerttone'];
   var baseURLs = {
