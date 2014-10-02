@@ -164,7 +164,7 @@ App.prototype.bindEvents = function() {
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('storage:checked:healthy', this.geolocationWatch);
   this.on('busy', this.onBusy);
-  this.on('ready', this.clearLoading);
+  this.on('ready', this.onReady);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
 
@@ -392,6 +392,27 @@ App.prototype.clearLoading = function() {
 App.prototype.onBusy = function(type) {
   var delay = this.settings.loadingScreen.get(type);
   if (delay) { this.showLoading(delay); }
+
+  clearTimeout(this.busyTimeout);
+  this.doc.body.classList.add('busy');
+};
+
+/**
+ * When the camera indicates it's ready,
+ * we re-enable pointer-events after a
+ * short delay to prevent incoming clicks
+ * while the camera is busy.
+ *
+ * @param  {String} type
+ * @private
+ */
+App.prototype.onReady = function() {
+  this.clearLoading();
+
+  var self = this;
+  this.busyTimeout = setTimeout(function() {
+    self.doc.body.classList.remove('busy');
+  }, 500);
 };
 
 /**
