@@ -30,11 +30,25 @@ window.onload = function() {
     activity = request;
     blob = activity.source.data.blobs[0];
     url = URL.createObjectURL(blob);
+    getImageSize(blob, success, error);
+    
+    function success(metadata) {
+      var scalex = window.innerWidth / metadata.width;
+      var scaley = window.innerHeight / metadata.height;
+      scale = Math.max(scalex, scaley);
+      var sampleSize = Downsample.areaNoMoreThan(scale);
+      previewImage.src = url + sampleSize;
+    }
+
+    function error(msg) {
+      console.log(msg);
+    }
+
 
     previewImage.onload = function() {
       var scalex = window.innerWidth / previewImage.width;
       var scaley = window.innerHeight / previewImage.height;
-
+      previewImage.hidden = false;
       scale = Math.max(scalex, scaley);
 
       // The width is unsigned long. When assigning to width, we need to round
@@ -52,8 +66,6 @@ window.onload = function() {
       setButton.addEventListener('click', scaleImage);
       previewImage.addEventListener('pan', moveBackground);
     };
-
-    previewImage.src = url;
   }
 
   function moveBackground(evt) {
