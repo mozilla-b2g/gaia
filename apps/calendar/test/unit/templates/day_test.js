@@ -1,15 +1,15 @@
-requireLib('template.js');
-requireLib('templates/date_span.js');
-requireLib('templates/day.js');
+define(function(require) {
+'use strict';
+
+var Calc = require('calc');
+var Day = require('templates/day');
 
 suite('Templates.Day', function() {
-  'use strict';
-
   var subject;
   var dynamicClass = 'happy-class';
 
   setup(function() {
-    subject = Calendar.Templates.Day;
+    subject = Day;
   });
 
   function a() {
@@ -38,7 +38,7 @@ suite('Templates.Day', function() {
 
   test('> all day', function() {
     var result = renderHTML('hour', {
-      hour: Calendar.Calc.ALLDAY,
+      hour: Calc.ALLDAY,
       items: a()
     });
 
@@ -78,4 +78,6 @@ suite('Templates.Day', function() {
     assert.ok(result);
     assert.include(result, dynamicClass);
   });
+});
+
 });

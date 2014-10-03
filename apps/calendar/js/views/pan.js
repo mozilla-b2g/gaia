@@ -1,13 +1,10 @@
-Calendar.ns('Views').Pan = (function() {
+// this module is responsible for the touch/panning of MultiDay views
+define(function(require, exports, module) {
 'use strict';
 
-// this module is responsible for the touch/panning of MultiDay views
-
-var mout = Calendar.Utils.mout;
-
-var clamp = mout.clamp;
-var lerp = mout.lerp;
-var norm = mout.norm;
+var clamp = require('utils/mout').clamp;
+var lerp = require('utils/mout').lerp;
+var norm = require('utils/mout').norm;
 
 function Pan(options) {
   this.eventTarget = options.eventTarget;
@@ -39,9 +36,9 @@ function Pan(options) {
   this._tick = this._tick.bind(this);
   this._onTweenEnd = null;
 }
+module.exports = Pan;
 
 Pan.prototype = {
-
   TRANSITION_DURATION: 800,
 
   setup: function() {
@@ -213,6 +210,4 @@ function ease(t) {
   return (t >= 0.999) ? 1 : 1.001 * (-Math.pow(2, -10 * t) + 1);
 }
 
-return Pan;
-
-}());
+});

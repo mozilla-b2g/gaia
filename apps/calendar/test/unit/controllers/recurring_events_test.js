@@ -1,13 +1,13 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireLib('models/account.js');
-requireLib('provider/abstract.js');
-requireLib('provider/local.js');
-requireLib('provider/caldav.js');
+var Factory = require('test/support/factory');
+var RecurringEvents = require('controllers/recurring_events');
+var Responder = require('responder');
+var nextTick = require('next_tick');
+var providerFactory = require('provider/provider_factory');
 
-suiteGroup('Controllers.RecurringEvents', function() {
-  'use strict';
-
+suite('Controllers.RecurringEvents', function() {
   var subject;
   var app;
   var timeController;
@@ -17,7 +17,7 @@ suiteGroup('Controllers.RecurringEvents', function() {
     app = testSupport.calendar.app();
     db = app.db;
 
-    subject = new Calendar.Controllers.RecurringEvents(app);
+    subject = new RecurringEvents(app);
     timeController = app.timeController;
     db.open(done);
   });
@@ -37,7 +37,7 @@ suiteGroup('Controllers.RecurringEvents', function() {
 
   test('initialization', function() {
     assert.equal(subject.app, app, 'sets app');
-    assert.instanceOf(subject, Calendar.Responder);
+    assert.instanceOf(subject, Responder);
   });
 
   test('#observe', function() {
@@ -136,14 +136,14 @@ suiteGroup('Controllers.RecurringEvents', function() {
 
       subject.expand = function(date, cb) {
         dates.push(date);
-        Calendar.nextTick(cb);
+        nextTick(cb);
       };
 
       // should actually trigger because its the first
       // item in the queue...
       subject.queueExpand(new Date(2012, 1, 1));
 
-      Calendar.nextTick(function() {
+      nextTick(function() {
         subject.queueExpand(new Date(2012, 7, 7));
       });
 
@@ -157,7 +157,7 @@ suiteGroup('Controllers.RecurringEvents', function() {
       // should be skipped its less then others
       subject.queueExpand(new Date(2012, 1, 2));
 
-      Calendar.nextTick(function() {
+      nextTick(function() {
         // after the second expansion this fires
         // so should the final expansion this tests
         // some complicated async ordering.
@@ -205,7 +205,7 @@ suiteGroup('Controllers.RecurringEvents', function() {
           _id: type
         });
 
-        provider = app.provider(type);
+        provider = providerFactory.get(type);
         app.store('Account').persist(account, done);
       });
     }
@@ -286,7 +286,7 @@ suiteGroup('Controllers.RecurringEvents', function() {
 
       test('expand beyond maximum', function(done) {
         spyHandler = function(cb) {
-          Calendar.nextTick(cb.bind(this, null, true));
+          nextTick(cb.bind(this, null, true));
         };
 
         subject.expand(expandDate, function() {
@@ -297,4 +297,6 @@ suiteGroup('Controllers.RecurringEvents', function() {
       });
     });
   });
+});
+
 });
