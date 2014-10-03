@@ -10,10 +10,6 @@ class TestSliderVisibilityAccessibility(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # make accessibility settings visible
-        self.data_layer.set_setting(
-            'accessibility.screenreader-show-settings', True)
-
         self.settings = Settings(self.marionette)
         self.settings.launch()
 
