@@ -17,7 +17,7 @@
    * @module AppWindowManager
    */
   var AppWindowManager = {
-    DEBUG: false,
+    DEBUG: true,
     CLASS_NAME: 'AppWindowManager',
     continuousTransition: false,
 
@@ -125,6 +125,7 @@
 
       if (appCurrent && appCurrent.instanceID == appNext.instanceID) {
         // Do nothing.
+        appCurrent.setVisible(true);
         this.debug('the app has been displayed.');
         return;
       }
@@ -138,7 +139,7 @@
       var switching = appCurrent && !appCurrent.isHomescreen &&
                       !appNext.isHomescreen;
 
-      this._updateActiveApp(appNext.instanceID);
+      this._updateActiveApp(appNext.instanceID, 'beforedisplay');
 
       var that = this;
       if (appCurrent && layoutManager.keyboardEnabled) {
@@ -188,7 +189,7 @@
           if (!appNext.isHomescreen) {
             // The app was killed while we were opening it,
             // let's not switch to a dead app!
-            this._updateActiveApp(appCurrent.instanceID);
+            this._updateActiveApp(appCurrent.instanceID, 'nextappdead');
             return;
           } else {
             // Homescreen might be dead due to OOM, we should ensure its opening
@@ -201,7 +202,7 @@
         if (switching) {
           homescreenLauncher.getHomescreen().fadeOut();
         }
-        this._updateActiveApp(appNext.instanceID);
+        this._updateActiveApp(appNext.instanceID, 'beforeopen');
 
         var immediateTranstion = false;
         if (appNext.rotatingDegree === 90 || appNext.rotatingDegree === 270) {
@@ -228,7 +229,16 @@
           appCurrent.close(immediateTranstion ? 'immediate' :
             ((switching === true) ? 'invoking' : closeAnimation));
         } else {
-          this.debug('No current running app!');
+
+          console.trace();
+          if (!appCurrent) {
+            this.debug('no running app');
+          } else {
+            this.debug('next is the same as current');
+            this.appCurrent.setVisible(true);
+            this.debug('current:', appCurrent.name);
+            this.debug('next:', appNext.name);
+          }
         }
       }.bind(this));
     },
@@ -295,6 +305,7 @@
       window.addEventListener('localized', this);
 
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('volumedown', this);
 
       this._settingsObserveHandler = {
         // continuous transition controlling
@@ -364,6 +375,7 @@
       window.removeEventListener('appopening', this);
       window.removeEventListener('localized', this);
       window.removeEventListener('mozChromeEvent', this);
+      window.removeEventListener('volumedown', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -380,6 +392,9 @@
       var activeApp = this._activeApp;
       var detail = evt.detail;
       switch (evt.type) {
+        case 'volumedown':
+          activeApp && activeApp.setVisible(true);
+          break;
         case 'permissiondialoghide':
           activeApp && activeApp.broadcast('focus');
           break;
@@ -440,7 +455,7 @@
         case 'homescreenopened':
           // Someone else may open the app,
           // so we need to update active app.
-          this._updateActiveApp(evt.detail.instanceID);
+          this._updateActiveApp(evt.detail.instanceID, evt.type);
           break;
 
         case 'homescreencreated':
@@ -724,7 +739,7 @@
       window.dispatchEvent(evt);
     },
 
-    _updateActiveApp: function awm__changeActiveApp(instanceID) {
+    _updateActiveApp: function awm__changeActiveApp(instanceID, reason) {
       var appHasChanged = (this._activeApp !== this._apps[instanceID]);
 
       this._activeApp = this._apps[instanceID];
@@ -747,7 +762,7 @@
       }
 
       this.debug('=== Active app now is: ',
-        (this._activeApp.name || this._activeApp.origin), '===');
+        (this._activeApp.name || this._activeApp.origin), '===by' + reason);
     },
 
     /**
