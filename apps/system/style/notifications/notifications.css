@@ -183,9 +183,9 @@
 }
 
 #notification-bar .title-container {
-  line-height: 4.5rem;
   margin-left: .7rem;
   float: left;
+  font: italic 300 1.8rem/4.2rem auto;
 }
 
 #notification-bar button {
