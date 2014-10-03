@@ -17,10 +17,7 @@ class TestBrowserNavigation(GaiaImageCompareTestCase):
         self.data_layer.connect_to_wifi()
         self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
-        if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
-            self.test_url = self.marionette.absolute_url('mozilla.html')
-        else:
-            self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
+        self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
 
     def test_browser_back_button(self):
         search = Search(self.marionette)
