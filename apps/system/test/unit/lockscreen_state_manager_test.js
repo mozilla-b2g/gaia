@@ -59,16 +59,14 @@ suite('system/LockScreenStateManager', function() {
   });
 
   suite('transfer while states matched', function() {
-    test('When it activate to unlock, show the passcode pad with animation',
+    test('With passcode enabled, when it activate to unlock, ' +
+         'show the passcode pad with animation',
     function() {
       var stubTransferTo = this.sinon.stub(
-        subject.states.keypadRising, 'transferTo', function() {
-          return new Promise((resolve, rejected) => {
-            resolve();
-          });
-        });
+        subject.states.keypadRising, 'transferTo').returns(Promise.resolve());
       var states = {
         passcodeEnabled: true,
+        passcodeTimeout: true,
         screenOn: true,
         activateUnlock: true
       };
@@ -80,14 +78,47 @@ suite('system/LockScreenStateManager', function() {
         'the state wasn\'t transferred from slideShow to keypadRising');
     });
 
-    test('Resume from screen off',
+    test('With passcode disabled, when it activate to unlock, ' +
+         'unlock directly',
     function() {
       var stubTransferTo = this.sinon.stub(
-        subject.states.slideShow, 'transferTo', function() {
-          return new Promise((resolve, rejected) => {
-            resolve();
-          });
-        });
+        subject.states.slideHide, 'transferTo').returns(Promise.resolve());
+      var states = {
+        passcodeEnabled: false,
+        screenOn: true,
+        activateUnlock: true
+      };
+      subject.previousState = {
+        type: 'slideShow'
+      };
+      subject.transfer(states);
+      assert.isTrue(stubTransferTo.called,
+        'the state wasn\'t transferred from slideShow to slideHide');
+    });
+
+    test('With passcode enabled but not expired, when it activate to unlock, ' +
+         'unlock directly',
+    function() {
+      var stubTransferTo = this.sinon.stub(
+        subject.states.slideHide, 'transferTo').returns(Promise.resolve());
+      var states = {
+        passcodeEnabled: true,
+        passcodeTimeout: false,
+        screenOn: true,
+        activateUnlock: true
+      };
+      subject.previousState = {
+        type: 'slideShow'
+      };
+      subject.transfer(states);
+      assert.isTrue(stubTransferTo.called,
+        'the state wasn\'t transferred from slideShow to slideHide');
+    });
+
+    test('Resume from screen off (from panelHide)',
+    function() {
+      var stubTransferTo = this.sinon.stub(
+        subject.states.slideShow, 'transferTo').returns(Promise.resolve());
       var states = {
         screenOn: true,
         unlocking: false
@@ -100,14 +131,26 @@ suite('system/LockScreenStateManager', function() {
         'the state wasn\'t transferred from panelHide to slideShow');
     });
 
+    test('Resume from screen off (from slideHide)',
+    function() {
+      var stubTransferTo = this.sinon.stub(
+        subject.states.slideShow, 'transferTo').returns(Promise.resolve());
+      var states = {
+        screenOn: true,
+        unlocking: false
+      };
+      subject.previousState = {
+        type: 'slideHide'
+      };
+      subject.transfer(states);
+      assert.isTrue(stubTransferTo.called,
+        'the state wasn\'t transferred from slideHide to slideShow');
+    });
+
     test('When press homekey, show the slide with animation.',
     function() {
       var stubTransferTo = this.sinon.stub(
-        subject.states.keypadHiding, 'transferTo', function() {
-          return new Promise((resolve, rejected) => {
-            resolve();
-          });
-        });
+        subject.states.keypadHiding, 'transferTo').returns(Promise.resolve());
       var states = {
         passcodeEnabled: true,
         screenOn: true,
@@ -125,11 +168,7 @@ suite('system/LockScreenStateManager', function() {
     'to the homekey pressing.',
     function() {
       var stubTransferTo = this.sinon.stub(
-        subject.states.slideShow, 'transferTo', function() {
-          return new Promise((resolve, rejected) => {
-            resolve();
-          });
-        });
+        subject.states.slideShow, 'transferTo').returns(Promise.resolve());
       var states = {
         passcodeEnabled: true,
         screenOn: true,
@@ -147,11 +186,7 @@ suite('system/LockScreenStateManager', function() {
     test('When the screen is off, the slide should show as cache.',
     function() {
       var stubTransferTo = this.sinon.stub(
-        subject.states.slideShow, 'transferTo', function() {
-          return new Promise((resolve, rejected) => {
-            resolve();
-          });
-        });
+        subject.states.slideShow, 'transferTo').returns(Promise.resolve());
       var states = {
         screenOn: false
       };
@@ -166,11 +201,7 @@ suite('system/LockScreenStateManager', function() {
     test('When it unlock with passcode, hide all panel with animation.',
     function() {
       var stubTransferTo = this.sinon.stub(
-        subject.states.keypadHiding, 'transferTo', function() {
-          return new Promise((resolve, rejected) => {
-            resolve();
-          });
-        });
+        subject.states.keypadHiding, 'transferTo').returns(Promise.resolve());
       var states = {
         passcodeEnabled: true,
         screenOn: true,
@@ -187,11 +218,7 @@ suite('system/LockScreenStateManager', function() {
     test('When the animation done, show no panel for unlocking.',
     function() {
       var stubTransferTo = this.sinon.stub(
-        subject.states.panelHide, 'transferTo', function() {
-          return new Promise((resolve, rejected) => {
-            resolve();
-          });
-        });
+        subject.states.panelHide, 'transferTo').returns(Promise.resolve());
       var states = {
         passcodeEnabled: true,
         screenOn: true,
@@ -209,11 +236,7 @@ suite('system/LockScreenStateManager', function() {
     test('When user input the correct key code, hide the pad.',
     function() {
       var stubTransferTo = this.sinon.stub(
-        subject.states.keypadHiding, 'transferTo', function() {
-          return new Promise((resolve, rejected) => {
-            resolve();
-          });
-        });
+        subject.states.keypadHiding, 'transferTo').returns(Promise.resolve());
       var states = {
         keypadInput: 'c'
       };

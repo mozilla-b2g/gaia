@@ -160,6 +160,16 @@
 
     this.registerRule({
       passcodeEnabled: true,
+      passcodeTimeout: false,
+      screenOn: true,
+      unlocking: true
+    },
+    ['slideShow'],
+    this.states.slideHide,
+    'When it activate to unlock with unexpired passcode, unlock and animates.');
+
+    this.registerRule({
+      passcodeEnabled: true,
       passcodeTimeout: true,
       screenOn: true,
       activateUnlock: true
@@ -208,7 +218,7 @@
     this.registerRule({
       passcodeEnabled: true,
       screenOn: true,
-      unlocking: true,
+      unlocking: true
     },
     ['keypadShow'],
     this.states.keypadHiding,
@@ -409,8 +419,9 @@
 
   LockScreenStateManager.prototype.onActivateUnlock =
   function lssm_onActivateUnlock() {
+    this.lockScreenStates.passcodeTimeout =
+      this.lockScreen.checkPassCodeTimeout();
     var inputs = this.extend(this.lockScreenStates, {
-      passcodeTimeout: this.lockScreen.checkPassCodeTimeout(),
       activateUnlock: true
     });
     this.transfer(inputs);
