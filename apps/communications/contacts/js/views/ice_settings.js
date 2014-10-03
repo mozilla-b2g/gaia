@@ -1,5 +1,5 @@
 /* global Contacts */
-/* global ICEData */
+/* global ICEData, ConfirmDialog */
 
 
 /**
@@ -157,8 +157,50 @@ contacts.ICE = (function() {
    * @param id (string) contact id
    */
   function selectICEHandler(id) {
-    contacts.List.toggleICEGroup(true);
-    setICEContact(id, currentICETarget, true, goBack);
+    checkContact(id).then(function() {
+      contacts.List.toggleICEGroup(true);
+      setICEContact(id, currentICETarget, true, goBack);
+    }, function error(l10nId) {
+      var dismiss = {
+        title: 'ok',
+        callback: function() {
+          ConfirmDialog.hide();
+        }
+      };
+      Contacts.confirmDialog(null, navigator.mozL10n.get(l10nId), dismiss);
+    });
+  }
+
+  /**
+   * Will perform a series of checks to validate the selected
+   * contact as a valid ICE contact
+   * @param id (string) contact id
+   * @return (Promise) fulfilled if contact is valid
+   */
+  function checkContact(id) {
+    return ICEData.load().then(function() {
+      return contactNoPhone(id);
+    });
+  }
+
+  /**
+   * Filter to avoid selecting contacts as ICE if they
+   * don't have a phone number
+   * @param id (String) contact id
+   * @returns (Promise) Fulfilled if contact has phone
+   */
+  function contactNoPhone(id) {
+    return new Promise(function(resolve, reject) {
+      contacts.List.getContactById(id, function(contact) {
+        if(Array.isArray(contact.tel) && contact.tel[0] &&
+         contact.tel[0].value && contact.tel[0].value.trim()) {
+          resolve(id);
+        }
+        else {
+          reject('no_contact_phones');
+        }
+      });
+    });
   }
 
   /**
