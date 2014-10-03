@@ -160,14 +160,15 @@ contacts.ICE = (function() {
     checkContact(id).then(function() {
       contacts.List.toggleICEGroup(true);
       setICEContact(id, currentICETarget, true, goBack);
-    }, function error(l10nId) {
+    }, function error(l10n, params) {
       var dismiss = {
         title: 'ok',
         callback: function() {
           ConfirmDialog.hide();
         }
       };
-      Contacts.confirmDialog(null, navigator.mozL10n.get(l10nId), dismiss);
+      var msg =  navigator.mozL10n.get(l10n.msg, l10n.params);
+      Contacts.confirmDialog(null, msg, dismiss);
     });
   }
 
@@ -179,7 +180,7 @@ contacts.ICE = (function() {
    */
   function checkContact(id) {
     return ICEData.load().then(function() {
-      return contactNoPhone(id);
+      return contactNotICE(id).then(contactNoPhone);
     });
   }
 
@@ -197,9 +198,36 @@ contacts.ICE = (function() {
           resolve(id);
         }
         else {
-          reject('no_contact_phones');
+          reject({
+            msg: 'no_contact_phones'
+          });
         }
       });
+    });
+  }
+
+   /**
+   * Checks if a contacts is already set as ICE
+   * @param id (string) contact id
+   * @return (Promise) fulfilled if contact is not repeated,
+   *  rejected otherwise
+   */
+  function contactNotICE(id) {
+    return new Promise(function(resolve, reject) {
+      var isICE = ICEData.iceContacts.some(function(x) {
+        return x.id === id;
+      });
+
+      if (isICE) {
+        reject({
+          msg: 'error1',
+          params: {
+            from: ': duplicated ICE Contact'
+          }
+        });
+      } else {
+        resolve(id);
+      }
     });
   }
 
