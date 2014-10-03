@@ -244,6 +244,7 @@
       this.app.reviveBrowser();
       this.app.launchTime = Date.now();
       this.app.fadeIn();
+      this.app.debug('visibility manager online?:' + window.visibilityManager);
       this.app.requestForeground();
 
       // TODO:

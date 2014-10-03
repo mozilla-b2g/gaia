@@ -10,7 +10,7 @@
 
 (function(exports) {
   // Turn on this flag to debug all windows.
-  var DEBUG = false;
+  var DEBUG = true;
   // Turn on this flag to print all trace in debugging function.
   var TRACE = false;
   var _id = 0;
@@ -203,6 +203,7 @@
   AppWindow.prototype.setVisible =
     function aw_setVisible(visible) {
       this.debug('set visibility -> ', visible);
+      console.trace();
       this.setVisibleForScreenReader(visible);
       if (visible) {
         // If this window is not the lockscreen, and the screen is locked,
@@ -1612,6 +1613,7 @@
    * @fires AppWindow#apprequestopen
    */
   AppWindow.prototype.requestOpen = function aw_requestOpen() {
+    console.trace();
     /**
      * Fired once we'd like to be opened.
      * The one who makes decision to call open() would be AppWindowManager.

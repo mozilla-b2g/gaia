@@ -45,7 +45,7 @@
    * Debug flag.
    * @type {Boolean}
    */
-  VisibilityManager.prototype.DEBUG = false;
+  VisibilityManager.prototype.DEBUG = true;
   VisibilityManager.prototype.CLASS_NAME = 'VisibilityManager';
 
   /**
@@ -76,6 +76,10 @@
         if (!System.locked &&
             !attentionWindowManager.hasActiveWindow()) {
           evt.detail.setVisible(true);
+        } else {
+          this.debug(evt.name +
+            'is requesting to be foreground but failed; lock state=' +
+            System.locked);
         }
         break;
       // XXX: See Bug 999318.
