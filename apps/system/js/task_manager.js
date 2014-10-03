@@ -312,7 +312,10 @@
       case 'browser-only':
         this.stack =
           this.unfilteredStack
-              .filter(function(app) { return app.isBrowser(); });
+              .filter(function(app) {
+                return app.isBrowser() ||
+                  (app.manifest && app.manifest.role === 'search');
+              });
         navigator.mozL10n.setAttributes(noRecentWindows,
                                         'no-recent-browser-windows');
         break;

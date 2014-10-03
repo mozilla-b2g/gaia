@@ -199,6 +199,27 @@ suite('system/TaskManager >', function() {
         },
         origin: 'http://game4.gaiamobile.org',
         blur: function() {}
+      }),
+      'search': new AppWindow({
+        name: 'search',
+        element: document.createElement('div'),
+        frame: document.createElement('div'),
+        iframe: document.createElement('iframe'),
+        rotatingDegree: 0,
+        isBrowser: function() {
+          return true;
+        },
+        requestScreenshotURL: function() {
+          return null;
+        },
+        getScreenshot: function(callback) {
+          callback();
+        },
+        origin: 'http://search.gaiamobile.org/',
+        manifest: {
+          role: 'search'
+        },
+        blur: function() {}
       })
     };
 
@@ -1177,6 +1198,23 @@ suite('system/TaskManager >', function() {
         }, failOnReject);
 
       taskManager.show(_filterName);
+    });
+  });
+
+  suite('filtering > /w search role', function() {
+    setup(function() {
+      MockAppWindowManager.mRunningApps = apps;
+      MockAppWindowManager.mActiveApp = apps.search;
+      MockStackManager.mCurrent = 0;
+      MockStackManager.mStack = [
+        apps.search
+      ];
+      var _filterName = 'browser-only';
+      taskManager.show(_filterName);
+    });
+    test('filter includes search app', function() {
+      assert.equal(taskManager.stack.length, 1);
+      assert.equal(taskManager.currentPosition, 0);
     });
   });
 
