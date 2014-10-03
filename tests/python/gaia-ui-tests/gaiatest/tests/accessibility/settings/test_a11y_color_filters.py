@@ -11,7 +11,7 @@ class TestColorFiltersAccessibility(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # make accessibility settings visible
+        # set initial state, including colors disabled
         self.data_layer.set_setting('accessibility.colors.enabled', False)
         self.data_layer.set_setting('accessibility.colors.invert', False)
         self.data_layer.set_setting('accessibility.colors.grayscale', False)
