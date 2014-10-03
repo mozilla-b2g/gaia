@@ -68,7 +68,13 @@ suite('AlternativesCharMenuManager', function() {
         };
       },
       hideAlternativesCharMenu: this.sinon.stub(),
-      targetObjDomMap: new WeakMap()
+      targetObjDomMap: new WeakMap(),
+      setDomElemTargetObject: function(elem, obj){
+        this.targetObjDomMap.set(obj, elem);
+      },
+      getDomElemFromTargetObject: function(obj){
+        return this.targetObjDomMap.get(obj);
+      }
     };
     this.sinon.spy(window.IMERender, 'showAlternativesCharMenu');
 
@@ -106,7 +112,7 @@ suite('AlternativesCharMenuManager', function() {
       uppercaseValue: 'X'
     };
 
-    IMERender.targetObjDomMap.set(target, targetElem);
+    IMERender.setDomElemTargetObject(targetElem, target);
 
     // Show an alternatives chars menu
     manager = new AlternativesCharMenuManager(app);
@@ -212,7 +218,7 @@ suite('AlternativesCharMenuManager', function() {
       var stubMapGet;
 
       setup(function() {
-        stubMapGet = this.sinon.stub(IMERender.targetObjDomMap, 'get');
+        stubMapGet = this.sinon.stub(IMERender, 'getDomElemFromTargetObject');
       });
 
       test('true', function() {

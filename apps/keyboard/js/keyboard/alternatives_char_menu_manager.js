@@ -38,7 +38,7 @@ AlternativesCharMenuManager.prototype.show = function(target) {
 
   // Get the targetRect before menu is shown.
   var targetRect =
-    IMERender.targetObjDomMap.get(target).getBoundingClientRect();
+    IMERender.getDomElemFromTargetObject(target).getBoundingClientRect();
 
   // XXX: Remove reference to IMERender in the global in the future.
   this._currentMenuView = IMERender.showAlternativesCharMenu(target,
@@ -120,7 +120,7 @@ AlternativesCharMenuManager.prototype.isMenuTarget = function(target) {
     return false;
   }
 
-  return (IMERender.targetObjDomMap.get(target).parentNode ===
+  return (IMERender.getDomElemFromTargetObject(target).parentNode ===
           this._currentMenuView.getMenuContainer());
 };
 

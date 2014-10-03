@@ -20,6 +20,7 @@ var IMERender = (function() {
   var alternativesCharMenu = null;
   var _menuKey = null;
   var renderingManager = null;
+  var currentDrawnKeyboardClass = null;
 
   // a WeakMap to map target key object onto the DOM element it's associated
   // with; essentially the revrse mapping of |renderingManager._domObjectMap|.
@@ -135,6 +136,8 @@ var IMERender = (function() {
       ('' + flags.uppercase).substr(0, 1),
       supportsSwitching
     ].join('-');
+
+    currentDrawnKeyboardClass = keyboardClass;
 
     // lets see if we have this keyboard somewhere already...
     var container = document.getElementsByClassName(keyboardClass)[0];
@@ -308,7 +311,7 @@ var IMERender = (function() {
 
   // Highlight the key according to the case.
   var highlightKey = function kr_updateKeyHighlight(key, options) {
-    var keyElem = targetObjDomMap.get(key);
+    var keyElem = getDomElemFromTargetObject(key);
 
     options = options || {};
 
@@ -322,7 +325,7 @@ var IMERender = (function() {
 
   // Unhighlight a key
   var unHighlightKey = function kr_unHighlightKey(key) {
-    var keyElem = targetObjDomMap.get(key);
+    var keyElem = getDomElemFromTargetObject(key);
     keyElem.classList.remove('highlighted');
     keyElem.classList.remove('lowercase');
   };
@@ -610,7 +613,7 @@ var IMERender = (function() {
                                                         altChars,
                                                         renderer);
     alternativesCharMenu.show(key);
-    targetObjDomMap.get(key).classList.add('kbr-menu-on');
+    getDomElemFromTargetObject(key).classList.add('kbr-menu-on');
     _menuKey = key;
 
     return alternativesCharMenu;
@@ -619,7 +622,7 @@ var IMERender = (function() {
   // Hide the alternative menu
   var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {
     alternativesCharMenu.hide();
-    targetObjDomMap.get(_menuKey).classList.remove('kbr-menu-on');
+    getDomElemFromTargetObject(_menuKey).classList.remove('kbr-menu-on');
   };
 
   var _keyArray = []; // To calculate proximity info for predictive text
@@ -913,7 +916,17 @@ var IMERender = (function() {
   // ideally this should only be used with views (renderer & alt_char_menu.js).
   var setDomElemTargetObject = function setDomElemTargetObject(elem, obj) {
     renderingManager.domObjectMap.set(elem, obj);
-    targetObjDomMap.set(obj, elem);
+    var domElemDict = targetObjDomMap.get(obj) || {};
+    domElemDict[currentDrawnKeyboardClass] = elem;
+    targetObjDomMap.set(obj, domElemDict);
+  };
+
+  // a helper function to set both rendering manager's forward map,
+  // and renderer's reverse map.
+  // ideally this should only be used with views (render.js & ./js/views/*).
+  var getDomElemFromTargetObject = function getDomElemFromTargetObject(obj) {
+    var domElemDict = targetObjDomMap.get(obj) || {};
+    return domElemDict[currentDrawnKeyboardClass];
   };
 
   // Measure the width of the element, and return the scale that
@@ -986,6 +999,7 @@ var IMERender = (function() {
     'getKeyHeight': getKeyHeight,
     'getScale': getScale,
     'setDomElemTargetObject': setDomElemTargetObject,
+    'getDomElemFromTargetObject': getDomElemFromTargetObject,
     'showMoreCandidates': showMoreCandidates,
     'toggleCandidatePanel': toggleCandidatePanel,
     'isFullCandidataPanelShown': isFullCandidataPanelShown,
@@ -999,9 +1013,6 @@ var IMERender = (function() {
     },
     get candidatePanel() {
       return activeIme && activeIme.querySelector('.keyboard-candidate-panel');
-    },
-    get targetObjDomMap() {
-      return targetObjDomMap;
     },
     setCachedWindowSize: function(width, height) {
       cachedWindowWidth = width;
