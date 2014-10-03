@@ -151,7 +151,7 @@
     },
 
     _setCallerIdPreference: function(conn, callerIdPreference, callback) {
-      if (!conn.hasOwnProperty('setCallingLineIdRestriction')) {
+      if (!conn.setCallingLineIdRestriction) {
         if (callback) {
           callback();
         }
