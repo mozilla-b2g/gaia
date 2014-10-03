@@ -205,6 +205,11 @@ ifdef NODE_MODULES_GIT_URL
 NODE_MODULES_SRC := git-gaia-node-modules
 endif
 
+# Used for installing zmq for device testing
+ZMQ_NAME = zeromq-4.0.4
+ZMQ_DOWNLOAD_URL = http://download.zeromq.org/$(ZMQ_NAME).tar.gz
+ZMQ_INSTALL_DIR = $(GAIA_DIR)/zeromq
+
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
 # The profile folder content depends on different rules:                      #
@@ -712,6 +717,22 @@ else
 	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
 endif
 	npm install && npm rebuild
+ifneq "$(BUILDAPP)" "desktop"
+# install libzmq for running gaia-integration tests
+ifneq ($(shell pkg-config libzmq --exists && echo 0), 0)
+ifeq ($(wildcard $(ZMQ_INSTALL_DIR)/.*),)
+	@echo "Installing zmq"
+	$(DOWNLOAD_CMD) $(ZMQ_DOWNLOAD_URL)
+	if [ ! -d $(ZMQ_NAME) ]; then mkdir $(ZMQ_NAME); fi
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(ZMQ_NAME).tar.gz -C $(ZMQ_NAME)
+	pushd $(ZMQ_NAME) && ./configure --prefix=$(ZMQ_INSTALL_DIR) && $(MAKE) && $(MAKE) install && popd
+	if [ -d $(ZMQ_NAME) ]; then rm -rf $(ZMQ_NAME); fi
+	if [ -f $(ZMQ_NAME).tar.gz ]; then rm $(ZMQ_NAME).tar.gz; fi
+endif
+endif
+	npm install marionette-socket-host
+	npm install mocha-socket-reporter
+endif
 	@echo "node_modules installed."
 	touch -c $@
 
@@ -752,11 +773,14 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
 test-integration-test:
+ifneq "$(BUILDAPP)" "desktop"
+	@$(ADB) forward tcp:2828 tcp:2828
+endif
 	./bin/gaia-marionette \
-		--host $(MARIONETTE_RUNNER_HOST) \
-		--manifest $(TEST_MANIFEST) \
-		--reporter $(REPORTER) \
-		--buildapp $(BUILDAPP)
+	--host $(MARIONETTE_RUNNER_HOST) \
+	--manifest $(TEST_MANIFEST) \
+	--reporter $(REPORTER) \
+	--buildapp $(BUILDAPP)
 
 .PHONY: caldav-server-install
 caldav-server-install:
