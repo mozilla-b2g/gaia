@@ -139,6 +139,7 @@ Alarm.prototype = {
     var url = this.displayURL + busytime._id;
 
     debug('send notification', title, description);
+    notification.app = this.app;
     notification.send(title, description, url, callback);
   },
 
