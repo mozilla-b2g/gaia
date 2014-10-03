@@ -31,26 +31,25 @@ class TestBrowserNavigation(GaiaImageCompareTestCase):
         self.verify_home_page()
 
         Wait(self.marionette).until(lambda m: m.title == 'Mozilla')
-        self.invoke_screen_capture()
+        self.invoke_screen_capture(frame='chrome')
+        browser.switch_to_content()
         community_link = self.marionette.find_element(*self._community_link_locator)
         # TODO: remove the explicit scroll once bug 833370 is fixed
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [community_link])
         community_link.tap()
 
         self.verify_community_page()
-        self.invoke_screen_capture()
-        browser.switch_to_chrome()
+        self.invoke_screen_capture(frame='chrome')
         browser.tap_back_button()
 
         browser.switch_to_content()
         self.verify_home_page()
-        self.invoke_screen_capture()
-        browser.switch_to_chrome()
+        self.invoke_screen_capture(frame='chrome')
         browser.tap_forward_button()
 
         browser.switch_to_content()
         self.verify_community_page()
-        self.invoke_screen_capture()
+        self.invoke_screen_capture(frame='chrome')
 
     def verify_home_page(self):
         self.wait_for_element_present(*self._community_link_locator)

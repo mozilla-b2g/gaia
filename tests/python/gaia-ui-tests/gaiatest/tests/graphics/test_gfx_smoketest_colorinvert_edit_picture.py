@@ -11,6 +11,7 @@ class TestGalleryEditPhotoColorInvert(GalleryEditPhotoBase):
         GaiaImageCompareTestCase.setUp(self)
 
     def test_gallery_edit_photo_invert(self):
+        self.invert(True)
         self.gallery_edit_photo()
 
     def tearDown(self):

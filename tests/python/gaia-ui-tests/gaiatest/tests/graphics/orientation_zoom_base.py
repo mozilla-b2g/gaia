@@ -5,7 +5,7 @@
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.apps.gallery.app import Gallery
 from marionette.marionette import Actions
-from gaiatest.apps.browser.app import Browser
+from gaiatest.apps.search.app import Search
 import time
 from marionette import By
 
@@ -17,7 +17,7 @@ class OrientationZoomBase(GaiaImageCompareTestCase):
     _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"]')
 
     def orientation_zoom_check(self):
-
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
         self.push_resource(self.images, count=self.image_count)
 
         # flick image, change orientation, pinch zoom, change orientation
@@ -82,20 +82,22 @@ class OrientationZoomBase(GaiaImageCompareTestCase):
 
         # Kill gallery, launch browser.  Go to Mozilla FirefoxOS site
         # Scroll up/down, change orientation, scroll up/down
-        browser = Browser(self.marionette)
-        browser.launch()
+        search = Search(self.marionette)
+        search.launch()
+        browser = search.go_to_url('http://mozilla.org/firefoxos')
+        browser.switch_to_content()
 
-        browser.go_to_url('http://mozilla.org/firefoxos')
         time.sleep(15)
-        self.scroll(browser._main_screen_locator,'up',7)
-        self.invoke_screen_capture()
-        self.scroll(browser._main_screen_locator,'up',1)
-        self.invoke_screen_capture()
+        self.invoke_screen_capture(frame='chrome')
+        self.scroll(browser._browser_frame_locator,'up',7)
+        self.invoke_screen_capture(frame='chrome')
+        self.scroll(browser._browser_frame_locator,'up',1)
+        self.invoke_screen_capture(frame='chrome')
         self.change_orientation('landscape-primary')
-        self.scroll(browser._main_screen_locator,'down',4,distance=100)
-        self.invoke_screen_capture()
-        self.scroll(browser._main_screen_locator,'down',4)
-        self.invoke_screen_capture()
+        self.scroll(browser._browser_frame_locator,'down',4,distance=100)
+        self.invoke_screen_capture(frame='chrome')
+        self.scroll(browser._browser_frame_locator,'down',4)
+        self.invoke_screen_capture(frame='chrome')
 
     # take screenshot and pause, otherwise there will be a collision
     def change_orientation(self, orientation,wait=2):
