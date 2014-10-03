@@ -159,14 +159,10 @@
     parent.appendChild(ul);
   }
 
-  function updateIcon(visit, iconWrapper) {
-    var iconDom = iconWrapper.querySelector('img');
+  function updateIcon(visit, iconDom) {
     IconsHelper.getIcon(visit.url, null, visit).then((icon) => {
       if (icon && iconDom) {
-        iconDom.onload = function () {
-          iconWrapper.classList.remove('empty');
-          iconDom.style.display = 'block';
-        };
+        iconDom.classList.remove('empty');
         iconDom.src = icon;
       }
     });

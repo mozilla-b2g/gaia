@@ -1,4 +1,5 @@
 'use strict';
+/* global UrlHelper */
 
 /**
  * Base Provider class
@@ -63,9 +64,7 @@ Provider.prototype = {
     //<div class="result" data-url="mozilla.com" role="link"
     //  aria-label="My Urlasljd alskdja lsdjka sldjk"
     //  aria-describedby="description-0">
-    //  <div class="icon">
-    //    <img role="presentation" src="..." />
-    //  </div>
+    //  <img role="presentation" class="icon" src="..." />
     //  <div class="urlwrapper">
     //    <span class="title">My Urlasljd <span class="highlight">alskd</span>
     //      ja lsdjka sldjk</span>
@@ -78,15 +77,13 @@ Provider.prototype = {
     results.forEach(function(config, index) {
 
       var result = document.createElement('div');
-      var iconWrapper = document.createElement('div');
       var icon = document.createElement('img');
       var description = document.createElement('div');
       var title = document.createElement('span');
       var meta = document.createElement('small');
 
       result.classList.add('result');
-      iconWrapper.classList.add('icon');
-      iconWrapper.classList.add('empty');
+      icon.classList.add('icon');
       description.classList.add('description');
       title.classList.add('title');
       meta.classList.add('meta');
@@ -94,6 +91,16 @@ Provider.prototype = {
       for (var i in config.dataset) {
         result.dataset[i] = config.dataset[i];
       }
+
+      if (config.icon && UrlHelper.hasScheme(config.icon)) {
+        icon.src = config.icon;
+      } else if (config.icon) {
+        icon.src = window.URL.createObjectURL(config.icon);
+        icon.onload = function() { window.URL.revokeObjectURL(icon.src); };
+      } else {
+        icon.classList.add('empty');
+      }
+      icon.setAttribute('role', 'presentation');
 
       title.innerHTML = config.title || config.url;
       if (config.meta) {
@@ -106,16 +113,13 @@ Provider.prototype = {
         }
       }
 
-      icon.setAttribute('role', 'presentation');
-
       result.setAttribute('role', 'link');
       // Either use an explicit label or, if not present, title.
       result.setAttribute('aria-label', config.label || config.title);
 
       description.appendChild(title);
       description.appendChild(meta);
-      iconWrapper.appendChild(icon);
-      result.appendChild(iconWrapper);
+      result.appendChild(icon);
       result.appendChild(description);
       frag.appendChild(result);
     }, this);
