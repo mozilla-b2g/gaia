@@ -311,6 +311,23 @@ suite('Settings Test Suite >', function() {
         Settings.initialize();
       });
 
+      test('Atypical values', function(done) {
+        setupPrepaidMode();
+        sinon.stub(Settings, 'updateUI', function() {
+          initDataLimitDialog();
+
+          // bug 1073340 - 0.07 produces a decimal multiplication overflow
+          dataLimitInput.value = '0.07';
+          dataLimitInput.dispatchEvent(evtInput);
+          assertDataLimitInputValid();
+
+          triggerEvent(dataLimitCancelButton, 'click');
+          Settings.updateUI.restore();
+          done();
+        });
+        Settings.initialize();
+      });
+
       test('Numbers without significant digits', function(done) {
         setupPrepaidMode();
         sinon.stub(Settings, 'updateUI', function() {
