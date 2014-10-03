@@ -13,6 +13,7 @@
    "app.update.url": "",
    "app.update.battery-threshold.unplugged": 25,
    "app.update.battery-threshold.plugged": 25,
+   "app.update.wifi-prioritized": true,
    "apz.force-enable": true,
    "apz.overscroll.enabled": true,
    "audio.volume.alarm": 8,
