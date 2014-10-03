@@ -245,16 +245,37 @@ suite('system/AppTransitionController', function() {
   });
 
   suite('Opened', function() {
+    var app1, acn1, stubRequestForeground, stubSetOrientation, stubShow;
+    setup(function() {
+      app1 = new MockAppWindow(fakeAppConfig1);
+      acn1 = new AppTransitionController(app1);
+      stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
+      stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
+      stubShow = this.sinon.stub(app1, 'show');
+    });
     test('Handle opened', function() {
-      var app1 = new MockAppWindow(fakeAppConfig1);
-      var acn1 = new AppTransitionController(app1);
-      var stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
-      var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
-      var stubShow = this.sinon.stub(app1, 'show');
       acn1.handle_opened();
       assert.isTrue(stubRequestForeground.calledOnce);
       assert.isTrue(stubShow.called);
       assert.isTrue(stubSetOrientation.called);
+    });
+
+    test('Handle opened if the new window is attentionWindow', function() {
+      app1.isAttentionWindow = true;
+      acn1.handle_opened();
+      assert.isTrue(stubRequestForeground.calledOnce);
+      assert.isTrue(stubShow.called);
+      assert.isFalse(stubSetOrientation.called);
+      app1.element.classList.remove('attentionWindow');
+    });
+
+    test('Handle opened if the new window is callscreenWindow', function() {
+      app1.isCallscreenWindow = true;
+      acn1.handle_opened();
+      assert.isTrue(stubRequestForeground.calledOnce);
+      assert.isTrue(stubShow.called);
+      assert.isFalse(stubSetOrientation.called);
+      app1.element.classList.remove('callscreenWindow');
     });
   });
 
@@ -275,7 +296,7 @@ suite('system/AppTransitionController', function() {
   test('Do not send to background in closed handler for attention windows',
     function() {
       var app1 = new MockAppWindow(fakeAppConfig1);
-      app1.CLASS_NAME = 'AttentionWindow';
+      app1.isAttentionWindow = true;
       var acn1 = new AppTransitionController(app1);
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
       acn1.handle_closed();
