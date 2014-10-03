@@ -93,7 +93,7 @@ return View.extend({
         '<div class="media-frame js-media-frame"></div>' +
       '</div>' +
       '<div class="preview-menu js-preview-menu">' +
-        '<gaia-header class="js-header" action="back" skin="dark">' +
+        '<gaia-header class="js-header" action="back">' +
           '<h1 data-l10n-id="preview">Preview</h1>' +
           '<button class="preview-share-icon js-share"' +
             'name="share" data-icon="share"></button>' +
