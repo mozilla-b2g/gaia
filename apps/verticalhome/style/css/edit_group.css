@@ -9,10 +9,6 @@
 }
 
 #edit-group form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   /* 5rem is the height of the header */
   height: calc(100% - 5rem);
   padding: 0 1.5rem;
@@ -20,4 +16,5 @@
 
 #edit-group form p {
   width: 100%;
+  margin-top: 10rem;
 }
