@@ -1,8 +1,0 @@
-{
-  "browser": {
-    "src": ["apps/browser/js/**/*.js"],
-    "options": {
-      "destination": "docs/browser"
-    }
-  }
-}

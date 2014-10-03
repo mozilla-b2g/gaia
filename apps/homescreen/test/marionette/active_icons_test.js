@@ -20,7 +20,7 @@ marionette('Active icons', function() {
   });
 
   suite(' Click one icon > ', function() {
-    test(' Icon is not active ', function() {
+    test.skip(' Icon is not active ', function() {
       var smsIcon = homescreen.getAppIcon('sms');
       homescreen.tap(smsIcon);
 
@@ -29,7 +29,7 @@ marionette('Active icons', function() {
   });
 
   suite(' Click two icons > ', function() {
-    test(' Icons are not active ', function() {
+    test.skip(' Icons are not active ', function() {
       var smsIcon = homescreen.getAppIcon('sms');
       homescreen.tap(smsIcon);
 
