@@ -40,6 +40,34 @@ suite('Cost Control Common >', function() {
 
     realMozApps = window.navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
+
+    MockNavigatormozApps.mApps = [{
+      manifestURL: 'url1',
+      origin: 'app://app1',
+      manifest: {
+        name: 'App 1',
+        locales: {
+          'en-US': {
+            name: 'Localized App 1'
+          }
+        },
+        icons: {
+          '84': '/path/to/icon_84.png',
+          '126': '/path/to/icon_126.png',
+          '142': '/path/to/icon_142.png',
+          '189': '/path/to/icon_189.png',
+          '284': '/path/to/icon_284.png'
+        }
+      }
+    }, {
+      manifestURL: 'url2',
+      origin: 'app://app2',
+      manifest: {
+        name: 'App 2'
+      }
+    }];
+
+    document.documentElement.lang = 'en-US';
   });
 
   suiteTeardown(function() {
@@ -88,12 +116,6 @@ suite('Cost Control Common >', function() {
   });
 
   test('loadApps correctly', function(done) {
-    MockNavigatormozApps.mApps = [{
-      manifestURL: 'url1'
-    }, {
-      manifestURL: 'url2'
-    }];
-
     assert.isFalse(Common.allAppsLoaded);
     Common.loadApps().then(function(apps) {
       assert.isTrue(Common.allAppsLoaded);
@@ -102,6 +124,45 @@ suite('Cost Control Common >', function() {
       assert.equal(apps[1].manifestURL, 'url2');
       done();
     });
+  });
+
+  test('getApp by manifestURL correctly', function() {
+    var app1 = Common.getApp('url1');
+    var app2 = Common.getApp('url2');
+    assert.equal(app1, MockNavigatormozApps.mApps[0]);
+    assert.equal(app2, MockNavigatormozApps.mApps[1]);
+  });
+
+  test('getAppManifest by app correctly', function() {
+    var app1 = Common.getApp('url1');
+    var app2 = Common.getApp('url2');
+    var appManifest1 = Common.getAppManifest(app1);
+    var appManifest2 = Common.getAppManifest(app2);
+    assert.equal(appManifest1, app1.manifest);
+    assert.equal(appManifest2, app2.manifest);
+  });
+
+  test('getLocalizedAppName by app correctly', function() {
+    var app1 = Common.getApp('url1');
+    var app2 = Common.getApp('url2');
+    var localizedAppName1 = Common.getLocalizedAppName(app1);
+    var localizedAppName2 = Common.getLocalizedAppName(app2);
+    assert.equal(localizedAppName1, 'Localized App 1');
+
+    // Should fallback to un-localized app name in the app
+    // manifest if a localized name is not available.
+    assert.equal(localizedAppName2, 'App 2');
+  });
+
+  test('getAppIcon by app correctly', function() {
+    var app1 = Common.getApp('url1');
+    var app2 = Common.getApp('url2');
+    var appIcon1 = Common.getAppIcon(app1);
+    var appIcon2 = Common.getAppIcon(app2);
+    assert.equal(appIcon1, 'app://app1/path/to/icon_84.png');
+
+    // Should fallback to generic app icon if one is not available.
+    assert.equal(appIcon2, '../style/images/app/icons/default.png');
   });
 
   suite('Reset Data>', function() {
