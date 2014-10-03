@@ -23,6 +23,7 @@ System.Selector = Object.freeze({
   appChromeReloadButton: '.appWindow.active .controls .reload-button',
   appChromeWindowsButton: '.appWindow.active .controls .windows-button',
   browserWindow: '.appWindow.browser',
+  softwareButtons: '#software-buttons',
   softwareHome: '#software-home-button',
   softwareHomeFullscreen: '#fullscreen-software-home-button',
   softwareHomeFullscreenLayout: '#software-buttons-fullscreen-layout',
@@ -91,6 +92,10 @@ System.prototype = {
   get appChromeReloadButton() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeReloadButton);
+  },
+
+  get softwareButtons() {
+    return this.client.findElement(System.Selector.softwareButtons);
   },
 
   get softwareHome() {
