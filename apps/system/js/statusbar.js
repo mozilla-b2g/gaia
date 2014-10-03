@@ -66,6 +66,9 @@ var StatusBar = {
   /* Whether or not status bar is actively updating or not */
   active: true,
 
+  /* Whether or not the lockscreen is displayed */
+  _inLockScreenMode: false,
+
   /* Some values that sync from mozSettings */
   settingValues: {},
 
@@ -319,10 +322,12 @@ var StatusBar = {
         this.toggleTimeLabel(false);
         this._updateIconVisibility();
         this.setAppearance(evt.detail);
+        this._inLockScreenMode = true;
         break;
 
       case 'lockscreen-appclosing':
         // Display the clock in the statusbar when screen is unlocked
+        this._inLockScreenMode = false;
         this.toggleTimeLabel(true);
         this._updateIconVisibility();
         this.setAppearance(AppWindowManager.getActiveApp());
@@ -518,7 +523,7 @@ var StatusBar = {
   setAppearance: function(app) {
     // Avoid any attempt to update the statusbar when
     // the phone is locked
-    if (this.isLocked()) {
+    if (this._inLockScreenMode) {
       return;
     }
 
