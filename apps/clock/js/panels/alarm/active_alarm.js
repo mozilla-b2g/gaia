@@ -29,6 +29,50 @@ define(function(require) {
     this.ringView = PostMessageProxy.create(null, 'ringView');
   }
 
+  function logForAlarmDebugging() {
+    // The following logs are included for debugging reported
+    // problems with alarm firing times: <https://bugzil.la/1052245>
+    console.log('[Clock] =====================================\n');
+    console.log('[Clock] Alarm Debug:', JSON.stringify({
+      'now': new Date().toJSON(),
+      'tz': new Date().getTimezoneOffset()
+    }));
+
+    alarmDatabase.getAll().then((alarms) => {
+      console.log('[Clock] ===== Raw IndexedDB Alarm Data: =====\n');
+      // Logging in a loop to ensure we don't overrun the line buffer:
+      alarms.forEach(function(a) {
+        console.log('[Clock]   ', JSON.stringify(a.toJSON()));
+      });
+      console.log('[Clock] -------------------------------------\n');
+    });
+
+    var request = navigator.mozAlarms.getAll();
+    request.onsuccess = function() {
+      console.log('[Clock] ======= Remaining mozAlarms: ========\n');
+
+      if (!request.result) {
+        console.log('[Clock] mozAlarm API invariant failure?');
+      } else {
+        request.result.forEach(function(alarm) {
+          console.log('[Clock]   ', JSON.stringify(alarm));
+        });
+      }
+
+      console.log('[Clock] -------------------------------------\n');
+    };
+
+    request.onerror = function() {
+      console.error('[Clock] Failed to get list of mozAlarms:', this.error);
+    };
+  }
+
+  // Log at startup.
+  logForAlarmDebugging();
+
+  // Log periodically when the Clock app is running.
+  setInterval(logForAlarmDebugging, 10 * 60 * 1000);
+
   ActiveAlarm.prototype = {
 
     /**
@@ -39,6 +83,11 @@ define(function(require) {
     onMozAlarm: function(message) {
       var data = message.data || message.detail;
       data.date = message.date || new Date();
+
+      console.log('[Clock] ### ALARM FIRED! ### Details:',
+                  JSON.stringify(message));
+
+      logForAlarmDebugging(message);
 
       Utils.safeWakeLock({ timeoutMs: 30000 }, (done) => {
         switch (data.type) {
