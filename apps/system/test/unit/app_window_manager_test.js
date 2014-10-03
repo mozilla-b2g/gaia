@@ -866,6 +866,27 @@ suite('system/AppWindowManager', function() {
       MockSettingsListener.mCallbacks['continuous-transition.enabled'](true);
       assert.isTrue(AppWindowManager.continuousTransition);
     });
+
+    test('nfc.enabled', function() {
+      assert.isNull(AppWindowManager._nfcHandler,
+                    '_nfcHandler should be null when NFC disabled');
+
+      // enable NFC to instantiate _nfcHandler before stubbing its methods
+      MockSettingsListener.mCallbacks['nfc.enabled'](true);
+      assert.isTrue(AppWindowManager._nfcHandler !== null,
+                    '_nfcHandler should not be null after enabling NFC');
+
+      var stubNfcStart = this.sinon.stub(AppWindowManager._nfcHandler, 'start');
+      var stubNfcStop = this.sinon.stub(AppWindowManager._nfcHandler, 'stop');
+
+      MockSettingsListener.mCallbacks['nfc.enabled'](false);
+      assert.isTrue(stubNfcStop.calledOnce,
+                    '_nfcHandler.stop() should be called');
+
+      MockSettingsListener.mCallbacks['nfc.enabled'](true);
+      assert.isTrue(stubNfcStart.calledOnce,
+                    '_nfcHandler.start() should be called');
+    });
   });
 
   suite('linkWindowActivity', function() {
