@@ -180,7 +180,7 @@ ol, ul {
 }
 
 .log-item .retry-count {
-  margin-left: 0.5rem;
+  -moz-margin-start: 0.5rem;
 }
 
 .log-item .additional-info {
@@ -194,7 +194,7 @@ ol, ul {
 }
 
 .log-item .call-time {
-  margin-left: 0.5rem;
+  -moz-margin-start: 0.5rem;
 }
 
 .log-item .pack-checkbox {
@@ -248,7 +248,7 @@ ol, ul {
 }
 
 #no-result-message > p {
-  text-align: left;
+  text-align: start;
   line-height: 3rem;
   font-size: 2.2rem;
   font-weight: 300;
@@ -274,4 +274,17 @@ ol, ul {
 
 .filter .groupFiltered {
   display: none;
+}
+
+/* RTL View */
+html[dir="rtl"] .icon-container {
+  float: right;
+}
+
+html[dir="rtl"] .recents-edit .pack-checkbox.call-log-selection {
+  transform: translateX(-5rem);
+}
+
+html[dir="rtl"] .recents-edit .log-item a {
+  transform: translateX(-3rem);
 }
