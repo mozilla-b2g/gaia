@@ -7,7 +7,6 @@ requireApp('settings/shared/test/unit/load_body_html_helper.js');
 suite('Browsing Privacy >', function() {
   var browsingPrivacyPanel;
   var MockBrowsingPrivacy = {
-    clearBookmarksData: sinon.spy(),
     clearPrivateData: sinon.spy(),
     clearHistory: sinon.spy()
   };
@@ -60,14 +59,6 @@ suite('Browsing Privacy >', function() {
       makeClickButtonTest(
         '.clear-private-data-button',
         'clearPrivateData'
-      )
-    );
-
-    test(
-      'clear bookmarks dialog sets setting after confirm',
-      makeClickButtonTest(
-        '.clear-bookmarks-data-button',
-        'clearBookmarksData'
       )
     );
   });

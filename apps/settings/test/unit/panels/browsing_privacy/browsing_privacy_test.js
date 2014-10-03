@@ -42,14 +42,6 @@ suite('Browsing Privacy >', function() {
       );
     });
 
-    test('clear history dialog sets setting', function() {
-      browsingPrivacy.clearBookmarksData();
-      assert.isTrue(
-        navigator.mozSettings.mSettings['clear.browser.bookmarks'],
-        'clear browser bookmarks settings should be set'
-      );
-    });
-
     teardown(function() {
       navigator.mozSettings.mTeardown();
     });
