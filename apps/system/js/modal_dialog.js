@@ -4,7 +4,6 @@
 'use strict';
 
 /* global StatusBar */
-/* global KeyboardManager */
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
 // Blocking the current app and then show cutom modal dialog
@@ -131,12 +130,11 @@ var ModalDialog = {
           return;
         }
 
-        this.setHeight(window.innerHeight - StatusBar.height);
+        this.updateHeight();
         break;
 
       case 'keyboardchange':
-        var keyboardHeight = KeyboardManager.getHeight();
-        this.setHeight(window.innerHeight - keyboardHeight - StatusBar.height);
+        this.updateHeight();
         break;
     }
   },
@@ -154,8 +152,9 @@ var ModalDialog = {
     delete this.currentEvents[this.currentOrigin];
   },
 
-  setHeight: function md_setHeight(height) {
+  updateHeight: function sd_updateHeight() {
     if (this.isVisible()) {
+      var height = window.layoutManager.height - StatusBar.height;
       this.overlay.style.height = height + 'px';
     }
   },
@@ -242,7 +241,7 @@ var ModalDialog = {
         break;
     }
 
-    this.setHeight(window.innerHeight - StatusBar.height);
+    this.updateHeight();
   },
 
   hide: function md_hide() {
