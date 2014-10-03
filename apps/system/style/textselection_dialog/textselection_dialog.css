@@ -5,18 +5,26 @@
   z-index: 10;
 }
 
-.appWindow > .textselection-dialog,
 #TextSelectionDialogRoot > .textselection-dialog {
-  height: auto;
+  display: none;
+  height: 5.2rem;
   width: auto;
   position: absolute;
   background-color: #696b6e;
   box-shadow: 0.2rem 0.2rem 0.4rem 0 rgba(0, 0, 0, 0.4);
-  display: none;
   border-radius: 0.2rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.appWindow > .textselection-dialog div,
+#TextSelectionDialogRoot > .textselection-dialog.visible {
+  opacity: 1;
+}
+
+#TextSelectionDialogRoot > .textselection-dialog.active {
+  display: block;
+}
+
 #TextSelectionDialogRoot > .textselection-dialog div {
   background-repeat: no-repeat;
   background-position: center;
@@ -26,52 +34,45 @@
   display: inline-block;
 }
 
-.appWindow > .textselection-dialog div.hidden,
 #TextSelectionDialogRoot > .textselection-dialog div.hidden {
   display: none;
 }
 
-.appWindow > .textselection-dialog div:active,
 #TextSelectionDialogRoot > .textselection-dialog div:active {
   background-color: #4e595c;
+  border-radius: 0.2rem;
 }
 
-.appWindow > .textselection-dialog div:after,
 #TextSelectionDialogRoot > .textselection-dialog div:after {
   content: '';
   background-color: #596466;
   width: 0.1rem;
-  height: 4.6rem;
+  height: 4.4rem;
   margin-top: 0.4rem;
   display: none;
 }
 
-.appWindow > .textselection-dialog > div:not(.last-option):after,
 #TextSelectionDialogRoot > .textselection-dialog > div:not(.last-option):after {
   display: block;
 }
 
-.appWindow > .textselection-dialog.visible,
-#TextSelectionDialogRoot > .textselection-dialog.visible {
-  display: block;
+#TextSelectionDialogRoot > .textselection-dialog div:active:after,
+#TextSelectionDialogRoot > .textselection-dialog div:active + div:after{
+  display: none;
 }
 
-.appWindow .textselection-dialog-copy,
 #TextSelectionDialogRoot .textselection-dialog-copy {
   background-image: url('images/textselection_copy.png');
 }
 
-.appWindow .textselection-dialog-cut,
 #TextSelectionDialogRoot .textselection-dialog-cut {
   background-image: url('images/textselection_cut.png');
 }
 
-.appWindow .textselection-dialog-paste,
 #TextSelectionDialogRoot .textselection-dialog-paste {
   background-image: url('images/textselection_paste.png');
 }
 
-.appWindow .textselection-dialog-selectall,
 #TextSelectionDialogRoot .textselection-dialog-selectall{
   background-image: url('images/textselection_select_all.png');
 }
