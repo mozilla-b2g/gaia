@@ -1362,9 +1362,6 @@
     localize: function localize(element, id, args) {
       return localizeElement.call(navigator.mozL10n, element, id, args);
     },
-    translate: function () {
-      // XXX: Remove after removing obsolete calls. Bugs 992473 and 1020136
-    },
     translateFragment: function (fragment) {
       return translateFragment.call(navigator.mozL10n, fragment);
     },

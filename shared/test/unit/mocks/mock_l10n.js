@@ -7,9 +7,6 @@
 
     get: stringify,
 
-    // XXX Remove in https://bugzil.la/1020136
-    translate: function() {},
-
     translateFragment: function() {},
 
     // XXX Remove in https://bugzil.la/1020137
