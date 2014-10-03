@@ -1,5 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global System */
 'use strict';
 
 (function(exports) {
@@ -258,8 +259,10 @@
   LockScreenWindowManager.prototype.openApp =
     function lwm_openApp() {
       if (!this.states.enabled) {
+        System.debug('lockscreen is disabled, do not open lockscreen window.');
         return;
       }
+      System.debug('lockscreen is enabled, creating lockscreen window.');
       if (!this.states.instance) {
         this.createWindow();
       } else {
@@ -322,6 +325,7 @@
         return false;
       }
       this.states.windowCreating = true;
+      System._dump();
       var app = new window.LockScreenWindow();
       app.open();
       this.states.windowCreating = false;
@@ -342,9 +346,11 @@
       req.onsuccess = () => {
         if (true === req.result['lockscreen.enabled'] ||
            'true' === req.result['lockscreen.enabled']) {
+          System.debug('lockscreen is enabled');
           this.states.enabled = true;
         } else if (false === req.result['lockscreen.enabled'] ||
                    'false' === req.result['lockscreen.enabled']) {
+          System.debug('lockscreen is disabled');
           this.states.enabled = false;
         }
         this.openApp();
