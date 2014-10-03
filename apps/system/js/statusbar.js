@@ -280,6 +280,7 @@ var StatusBar = {
 
     window.addEventListener('appopening', this);
     window.addEventListener('appopened', this);
+    window.addEventListener('activityopened', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
     window.addEventListener('sheets-gesture-begin', this);
@@ -507,6 +508,7 @@ var StatusBar = {
       case 'apptitlestatechanged':
       case 'appopened':
       case 'homescreenopened':
+      case 'activityopened':
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
         break;
@@ -520,8 +522,10 @@ var StatusBar = {
       return;
     }
 
+    // Fetch top-most window to figure out color theming.
+    var top = app.getTopMostWindow();
     this.element.classList.toggle('light',
-      !!(app.appChrome && app.appChrome.useLightTheming())
+      !!(top.appChrome && top.appChrome.useLightTheming())
     );
 
     this.element.classList.toggle('maximized', app.isHomescreen ||
