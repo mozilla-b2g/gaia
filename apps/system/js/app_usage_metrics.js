@@ -24,9 +24,9 @@
  * start time when the absolute time is changed. This can only be
  * done for fresh batches of metrics that we start ourselves--if we've
  * loaded a persisted batch of metrics, then the start time is from a
- * previous boot of the device and we cannot adjust it. The entire
- * idea of adjusting the batch start time should be unnecessary and
- * hopefully we can eventually remove the code that does that.
+ * previous boot of the device and we cannot adjust it. Perhaps when
+ * bug 1069863 is fixed we will not have these dramatic time changes when
+ * we start up and we can remove the workaround.
  *
  * Known issues:
  *
@@ -478,6 +478,8 @@
         // This shouldn't really be necessary but we are seeing some
         // time changes on reboot where the time changes by more than
         // a day when the phone first starts up and connects to a network.
+        // This may be caused by bug 1069863, and when that bug is fixed
+        // we can consider removing this moztimechange handling code.
         var deltaT = performance.now() - this.metrics.relativeStartTime;
         var oldStartTime = this.metrics.data.start;
         var newStartTime = Date.now() - Math.round(deltaT);
