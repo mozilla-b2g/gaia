@@ -131,7 +131,7 @@ Music.prototype = {
   },
 
   switchToSongsView: function() {
-    this.songsTab.click();
+    this.songsTab.tap();
   },
 
   playFirstSong: function() {
