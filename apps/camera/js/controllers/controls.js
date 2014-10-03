@@ -219,7 +219,7 @@ ControlsController.prototype.captureHighlightOff = function() {
  * @private
  */
 ControlsController.prototype.onSwitchButtonClick = function() {
-  this.view.disable();
+  this.app.emit('busy');
   this.app.settings.mode.next();
 };
 
