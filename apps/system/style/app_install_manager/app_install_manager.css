@@ -11,6 +11,27 @@
   pointer-events: none;
 }
 
+/* Shift the bottom of the prompt to account for the height of the
+   software home button */
+#screen.software-button-enabled #setup-installed-app-dialog,
+#screen.software-button-enabled #ime-layout-dialog,
+#screen.software-button-enabled #app-install-dialog,
+#screen.software-button-enabled #app-install-cancel-dialog,
+#screen.software-button-enabled #app-download-cancel-dialog {
+  bottom: var(--software-home-button-height);
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #setup-installed-app-dialog,
+  #screen.software-button-enabled #ime-layout-dialog,
+  #screen.software-button-enabled #app-install-dialog,
+  #screen.software-button-enabled #app-install-cancel-dialog,
+  #screen.software-button-enabled #app-download-cancel-dialog {
+    bottom: 0;
+    right: var(--software-home-button-height);
+  }
+}
+
 #setup-installed-app-dialog.visible,
 #ime-layout-dialog.visible,
 #app-install-dialog.visible,

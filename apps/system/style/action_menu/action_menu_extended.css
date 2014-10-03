@@ -11,6 +11,12 @@
   #screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="action"] {
     height: calc(100% - 7rem);
   }
+
+  #screen.software-button-enabled [role="dialog"][data-type="object"],
+  #screen.software-button-enabled [role="dialog"][data-type="action"] {
+    bottom: 0;
+    right: var(--software-home-button-height);
+  }
 }
 
 /* Extending action menu with icon capability & transition*/
