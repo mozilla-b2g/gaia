@@ -33,7 +33,7 @@ var DEFAULT_STYLE_TAG =
   ' overflow: hidden; padding: 0; margin: 0; }\n' +
   // pre messes up wrapping very badly if left to its own devices
   'pre { white-space: pre-wrap; word-wrap: break-word; }\n' +
-  '.moz-external-link { color: blue; cursor: pointer; }\n' +
+  '.moz-external-link { color: #00aac5; cursor: pointer; }\n' +
   '</style>';
 
 /**
