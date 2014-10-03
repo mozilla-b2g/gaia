@@ -50,6 +50,12 @@ suite('Recipients', function() {
     return (candidate.name === value || candidate.number === value);
   }
 
+  function assertDeepEqual(test, expected) {
+    for (var key in expected) {
+      assert.deepEqual(test[key], expected[key]);
+    }
+  }
+
   setup(function() {
     this.sinon.useFakeTimers();
 
@@ -135,7 +141,7 @@ suite('Recipients', function() {
 
       recipients.add(fixture);
       recipient = recipients.list[0];
-      assert.deepEqual(recipient, fixture);
+      assertDeepEqual(recipient, fixture);
     });
 
     test('recipients.add() 2 ', function() {
@@ -189,7 +195,7 @@ suite('Recipients', function() {
       recipients.add(fixtureEmail);
       recipient = recipients.list[0];
 
-      assert.deepEqual(recipient, fixtureEmail);
+      assertDeepEqual(recipient, fixtureEmail);
     });
 
     test('recipients.remove(recipient) ', function() {
@@ -198,7 +204,7 @@ suite('Recipients', function() {
       recipients.add(fixture);
       recipient = recipients.list[0];
 
-      assert.deepEqual(recipient, fixture);
+      assertDeepEqual(recipient, fixture);
       assert.ok(isValid(recipient, '999'));
 
       recipients.remove(recipient);
@@ -230,7 +236,7 @@ suite('Recipients', function() {
       recipients.add(fixtureEmail);
       recipient = recipients.list[0];
 
-      assert.deepEqual(recipient, fixtureEmail);
+      assertDeepEqual(recipient, fixtureEmail);
       assert.ok(isValid(recipient, 'a@b.com'));
 
       recipients.remove(recipient);
