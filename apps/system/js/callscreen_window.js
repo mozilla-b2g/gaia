@@ -53,6 +53,7 @@
       url: CSORIGIN + 'index.html',
       origin: CSORIGIN
     };
+    this.isCallscreenWindow = true;
     this.reConfig(this.config);
     this.render();
     if (this._DEBUG) {
