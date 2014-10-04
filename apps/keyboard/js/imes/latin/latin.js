@@ -105,6 +105,7 @@
   var COMMA = 44;
   var COLON = 58;
   var SEMICOLON = 59;
+  var ATPERSAND = 64;
 
   // all whitespace characters
   // U+FFFC place holder is added to white space
@@ -416,7 +417,7 @@
       updateSuggestions(repeat);
 
       // Exit symbol layout mode after space or return key is pressed.
-      if (keyCode === SPACE || keyCode === RETURN) {
+      if (keyCode === SPACE || keyCode === RETURN || keyCode === ATPERSAND) {
         keyboard.setLayoutPage(PAGE_INDEX_DEFAULT);
       }
 
