@@ -776,19 +776,15 @@
     this.overlay.classList.toggle('no-transition', instant);
 
     var nextPaint = function() {
+      if (this.locked) {
+        return;
+      }
       this.dispatchEvent('will-unlock', detail);
       this.dispatchEvent('secure-modeoff');
       this.overlay.classList.add('unlocked');
 
-      // If we don't unlock instantly here,
-      // these are run in transitioned callback.
-      if (instant) {
-        this.switchPanel();
-        this.overlay.hidden = true;
-        this.dispatchEvent('unlock', detail);
-      } else {
-        this.unlockDetail = detail;
-      }
+      this.unlockDetail = detail;
+      this.switchPanel();
     }.bind(this);
     if (app) {
       app.ready(nextPaint);

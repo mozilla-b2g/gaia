@@ -66,7 +66,7 @@ marionette('Find My Device lock >', function() {
 
     // now unlock the screen and re-lock it, the message should disappear
     client.executeScript(function() {
-      window.wrappedJSObject.lockScreen.unlock();
+      window.wrappedJSObject.lockScreenWindowManager.closeApp();
       window.wrappedJSObject.lockScreen.lock();
     });
 

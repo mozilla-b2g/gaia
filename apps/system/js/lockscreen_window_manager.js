@@ -35,7 +35,8 @@
       FTUOccurs: false,
       enabled: true,
       unlockDetail: null,
-      instance: null
+      instance: null,
+      unlocking: false
     },
 
     /**
@@ -45,7 +46,7 @@
       listens: ['will-unlock',
                 'lockscreen-appcreated',
                 'lockscreen-appterminated',
-                'lockscreen-appclose',
+                'lockscreen-appclosed',
                 'screenchange',
                 'ftuopen',
                 'ftudone',
@@ -110,6 +111,7 @@
         case 'will-unlock':
           this.states.unlockDetail = evt.detail;
           this.closeApp();
+          this.unlocking = true;
           break;
         case 'lockscreen-appcreated':
           app = evt.detail;
@@ -119,20 +121,34 @@
           app = evt.detail;
           this.unregisterApp(app);
           break;
-        case 'lockscreen-appclose':
+        case 'lockscreen-appclosed':
           window.dispatchEvent(
             new CustomEvent('unlock', this.states.unlockDetail));
           this.states.unlockDetail = null;
+          this.unlocking = false;
           break;
         case 'screenchange':
           // The screenchange may be invoked by proximity sensor,
           // or the power button. If it's caused by the proximity sensor,
           // we should not open the LockScreen, because the user may stay
           // in another app, not the LockScreen.
-          if ('proximity' !== evt.detail.screenOffBy &&
-              !this.states.FTUOccurs) {
+          if ('proximity' === evt.detail.screenOffBy ||
+              this.states.FTUOccurs) {
+            return;
+          }
+          if (evt.detail.screenEnabled) {
             // The app would be inactive while screen off.
             this.openApp();
+          } else if (!evt.detail.screenEnabled) {
+            // If user turn off the screen while we're unlocking
+            // (animation performaing), close it immediately,
+            // and set the flag back.
+            if (this.unlocking) {
+              this.unlocking = false;
+              this.closeApp(true);
+            } else {
+              this.closeApp();
+            }
           }
           break;
         case 'home':
@@ -234,7 +250,7 @@
    */
   LockScreenWindowManager.prototype.closeApp =
     function lwm_closeApp(instant) {
-      if (!this.states.enabled) {
+      if (!this.states.enabled || !this.states.instance) {
         return;
       }
       this.states.instance.close(instant ? 'immediate': undefined);
