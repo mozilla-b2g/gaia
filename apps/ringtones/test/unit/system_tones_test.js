@@ -1,10 +1,11 @@
 /* global assert, MockNavigatorSettings, Promise, require, setup, suite,
-   teardown, test */
+   teardown, test, LazyLoader */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/js/built_in_ringtones.js');
 require('/js/system_tones.js');
+require('/shared/js/lazy_loader.js');
 
 function DummyTone(name, id, blob) {
   this.name = name;
