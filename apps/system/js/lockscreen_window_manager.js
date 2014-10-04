@@ -358,15 +358,7 @@
   LockScreenWindowManager.prototype.responseUnlock =
     function lwm_responseUnlock(detail) {
       var forcibly = (detail && detail.forcibly) ? true : false;
-      // Only when the background app is ready,
-      // we close the window.
-      var activeApp = window.AppWindowManager ?
-            window.AppWindowManager.getActiveApp() : null;
-      if (!activeApp) {
-        this.closeApp(forcibly);
-      } else {
-        activeApp.ready(this.closeApp.bind(this, forcibly));
-      }
+      this.closeApp(forcibly);
     };
 
   LockScreenWindowManager.prototype.responseLock =
