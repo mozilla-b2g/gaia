@@ -1,11 +1,9 @@
-requireLib('models/account.js');
-requireLib('models/calendar.js');
-requireLib('store/abstract.js');
-requireLib('store/setting.js');
+define(function(require) {
+'use strict';
+
+var Abstract = require('store/abstract');
 
 suite('store/setting', function() {
-  'use strict';
-
   var subject;
   var db;
   var app;
@@ -34,7 +32,7 @@ suite('store/setting', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.Store.Abstract);
+    assert.instanceOf(subject, Abstract);
     assert.equal(subject.db, db);
     assert.deepEqual(subject._cached, {});
   });
@@ -95,7 +93,6 @@ suite('store/setting', function() {
     });
 
     suite('with value', function() {
-
       setup(function(done) {
         subject.set('syncFrequency', 200, done);
       });
@@ -115,7 +112,6 @@ suite('store/setting', function() {
   });
 
   suite('Bug #855782 - Settings were not being cached', function() {
-
     test('getting, then seting a value will overwrite cache', function(done) {
       var key = 'someFooBar';
 
@@ -139,5 +135,6 @@ suite('store/setting', function() {
       });
     });
   });
+});
 
 });

@@ -19,6 +19,9 @@ System.Selector = Object.freeze({
   appChromeContextMenuNewWindow: '.appWindow.active [data-id=new-window]',
   appChromeContextMenuBookmark: '.appWindow.active [data-id=add-to-homescreen]',
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
+  appChromeReloadButton: '.appWindow.active .controls .reload-button',
+  appChromeWindowsButton: '.appWindow.active .controls .windows-button',
+  browserWindow: '.appWindow.browser',
   softwareHome: '#software-home-button',
   statusbar: '#statusbar',
   statusbarLabel: '#statusbar-label',
@@ -33,6 +36,10 @@ System.prototype = {
 
   getAppWindows: function() {
     return this.client.findElements(System.Selector.appWindow);
+  },
+
+  getBrowserWindows: function() {
+    return this.client.findElements(System.Selector.browserWindow);
   },
 
   get appTitlebar() {
@@ -76,6 +83,11 @@ System.prototype = {
   get appChromeContextMenuShare() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeContextMenuShare);
+  },
+
+  get appChromeReloadButton() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeReloadButton);
   },
 
   get softwareHome() {

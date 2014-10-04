@@ -39,6 +39,7 @@ suite('system/TextSelectionDialog', function() {
         document.body.appendChild(fragment);
         td = new TextSelectionDialog();
         fragment.innerHTML = td.view();
+        td._isCommandSendable = true;
         done();
       }
     );
@@ -99,14 +100,14 @@ suite('system/TextSelectionDialog', function() {
       true, 'last-option class should be added to the last element of array');
   }
 
-  function emitMouseDownEvent(ele) {
+  function emitClickEvent(ele) {
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('mousedown', true, false, null);
+    evt.initCustomEvent('click', true, false, null);
     ele.dispatchEvent(evt);
   }
 
   test('_doCommand', function(done) {
-    this.sinon.stub(td, 'hide');
+    this.sinon.stub(td, 'close');
     window.addEventListener('mozContentEvent',
       function onReceiveMozContentEvent(evt) {
         window.removeEventListener('mozContentEvent', onReceiveMozContentEvent);
@@ -118,8 +119,27 @@ suite('system/TextSelectionDialog', function() {
       });
 
     td._doCommand(fakeTextSelectInAppEvent, 'testCommand');
-    assert.isTrue(td.hide.calledOnce,
-      'should callhide when trigger _doCommand');
+    assert.isTrue(td.close.calledOnce,
+      'should call close when trigger _doCommand');
+  });
+
+  test('_doCommand, when _isCommandSendable is false', function() {
+    this.sinon.stub(td, 'close');
+    td._isCommandSendable = false;
+    td._doCommand();
+    assert.isFalse(td.close.calledOnce,
+      'should not call close');
+  });
+
+  test('when user press a button and move finger out of it', function() {
+    td.render();
+    td._isCommandSendable = false;
+    td.elements.cut.dispatchEvent(new CustomEvent('mousedown'));
+    assert.isTrue(td._isCommandSendable, 'should set _isCommandSendable true' +
+      ' when mousedown');
+    td.elements.cut.dispatchEvent(new CustomEvent('mouseout'));
+    assert.isFalse(td._isCommandSendable, 'should set _isCommandSendable' +
+      ' false when mouseleave');
   });
 
   test('copyHandler', function() {
@@ -153,24 +173,24 @@ suite('system/TextSelectionDialog', function() {
   });
 
   test('close', function() {
+    td._transitionState = 'opened';
     td.render();
     var stubHide = this.sinon.stub(td, 'hide');
-    td._isShowed = true;
     this.sinon.stub(td.element, 'blur');
     td.close();
     assert.isTrue(stubHide.calledOnce);
-    assert.isFalse(td._isShowed);
   });
 
   test('updateDialogPosition', function() {
     td.element = document.createElement('div');
+    var stubChangeTransitionState = this.sinon.stub(td,
+      '_changeTransitionState');
     this.sinon.stub(td, 'calculateDialogPostion').returns(
       {top: 123, left: 321});
     td.updateDialogPosition(123, 321);
     assert.equal(td.element.style.top, '123px');
     assert.equal(td.element.style.left, '321px');
-    assert.isTrue(td.element.classList.contains('visible'));
-    assert.isTrue(td._isShowed);
+    assert.isTrue(stubChangeTransitionState.calledWith('opened'));
   });
 
   test('_resetCutOrCopiedTimer', function() {
@@ -332,7 +352,7 @@ suite('system/TextSelectionDialog', function() {
         'updateDialogPosition');
       td._previousOffsetX = 23;
       td._previousOffsetY = 21;
-      td._isShowed = true;
+      td._transitionState = 'opened';
       fakeTextSelectInAppEvent.detail = {
         type: 'scrollviewchange',
         detail: {
@@ -347,6 +367,75 @@ suite('system/TextSelectionDialog', function() {
 
       assert.equal(td._previousOffsetX, 0);
       assert.equal(td._previousOffsetY, 0);
+    });
+  });
+
+  suite('_elementEventHandler', function() {
+    test('on mousedown', function() {
+      var stubPreventDefault = this.sinon.stub(fakeTextSelectInAppEvent,
+        'preventDefault');
+      td._isCommandSendable = false;
+      fakeTextSelectInAppEvent.type = 'mousedown';
+      td._elementEventHandler(fakeTextSelectInAppEvent);
+      assert.isTrue(td._isCommandSendable);
+      assert.isTrue(stubPreventDefault.calledOnce);
+      delete fakeTextSelectInAppEvent.type;
+    });
+
+    test('on transitionend', function() {
+      var stubChangeTransitionState = this.sinon.stub(td,
+        '_changeTransitionState');
+      td._transitionState = 'closing';
+      td._elementEventHandler({ type: 'transitionend' });
+      assert.isTrue(stubChangeTransitionState.calledWith('closed'));
+    });
+
+    test('on click', function() {
+      var fakeEvt = {
+        type: 'click',
+        target: {
+          dataset: {
+            action: 'cut'
+          }
+        }
+      };
+      var stubCutHandler = this.sinon.stub(td,
+        'cutHandler');
+      td._elementEventHandler(fakeEvt);
+      assert.isTrue(stubCutHandler.calledWith(fakeEvt));
+    });
+
+    test('on mouseout', function() {
+      td._isCommandSendable = true;
+      td._elementEventHandler({ type: 'mouseout' });
+      assert.isFalse(td._isCommandSendable);
+    });
+  });
+
+  suite('_changeTransitionState', function() {
+    setup(function() {
+      td.element = document.createElement('div');
+    });
+
+    test('change state to opened', function() {
+      td._changeTransitionState('opened');
+      assert.isTrue(td.element.classList.contains('active'));
+      assert.isTrue(td.element.classList.contains('visible'));
+      assert.equal(td._transitionState, 'opened');
+    });
+
+    test('change state to opened', function() {
+      td.element.classList.add('visible');
+      td._changeTransitionState('closing');
+      assert.isFalse(td.element.classList.contains('visible'));
+      assert.equal(td._transitionState, 'closing');
+    });
+
+    test('change state to opened', function() {
+      td.element.classList.add('active');
+      td._changeTransitionState('closed');
+      assert.isFalse(td.element.classList.contains('active'));
+      assert.equal(td._transitionState, 'closed');
     });
   });
 
@@ -409,7 +498,7 @@ suite('system/TextSelectionDialog', function() {
         'Cut': true,
         'SelectAll': true
       });
-      emitMouseDownEvent(td.elements.selectall);
+      emitClickEvent(td.elements.selectall);
       assert.equal(stubDoCommand.getCall(0).args[1], 'selectall');
     });
 
@@ -421,7 +510,7 @@ suite('system/TextSelectionDialog', function() {
         'SelectAll': true
       });
 
-      emitMouseDownEvent(td.elements.paste);
+      emitClickEvent(td.elements.paste);
       assert.equal(stubDoCommand.getCall(0).args[1], 'paste');
     });
 
@@ -433,7 +522,7 @@ suite('system/TextSelectionDialog', function() {
         'SelectAll': true
       });
 
-      emitMouseDownEvent(td.elements.cut);
+      emitClickEvent(td.elements.cut);
       assert.equal(stubDoCommand.getCall(0).args[1], 'cut');
     });
 
@@ -445,7 +534,7 @@ suite('system/TextSelectionDialog', function() {
         'SelectAll': true
       });
 
-      emitMouseDownEvent(td.elements.copy);
+      emitClickEvent(td.elements.copy);
       assert.equal(stubDoCommand.getCall(0).args[1], 'copy');
     });
   });

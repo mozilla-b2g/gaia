@@ -831,6 +831,13 @@ Cards = {
       return;
     }
 
+    // If the active element is one that can have focus, blur it so that the
+    // keyboard goes away.
+    var activeElement = document.activeElement;
+    if (activeElement && activeElement.blur) {
+      activeElement.blur();
+    }
+
     if (cardIndex > this._cardStack.length - 1) {
       // Some cards were removed, adjust.
       cardIndex = this._cardStack.length - 1;

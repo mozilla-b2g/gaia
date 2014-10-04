@@ -1,4 +1,3 @@
-/* global uuid */
 /**
  * EventMutations are a simple wrapper for a
  * set of idb transactions that span multiple
@@ -42,13 +41,11 @@
  *
  *
  */
-(function(exports) {
+define(function(require, exports) {
 'use strict';
 
-/**
- * Module dependencies
- */
-var Calc = Calendar.Calc;
+var Calc = require('calc');
+var uuid = require('ext/uuid');
 
 /**
  * Create a single instance busytime for the given event object.
@@ -77,12 +74,13 @@ function Create(options) {
 
 Create.prototype = {
   commit: function(callback) {
-    var alarmStore = Calendar.App.store('Alarm');
-    var eventStore = Calendar.App.store('Event');
-    var busytimeStore = Calendar.App.store('Busytime');
-    var componentStore = Calendar.App.store('IcalComponent');
+    var app = exports.app;
+    var alarmStore = app.store('Alarm');
+    var eventStore = app.store('Event');
+    var busytimeStore = app.store('Busytime');
+    var componentStore = app.store('IcalComponent');
 
-    var controller = Calendar.App.timeController;
+    var controller = app.timeController;
 
     var trans = eventStore.db.transaction(
       eventStore._dependentStores,
@@ -154,7 +152,8 @@ function Update() {
 
 Update.prototype = {
   commit: function(callback) {
-    var busytimeStore = Calendar.App.store('Busytime');
+    var app = exports.app;
+    var busytimeStore = app.store('Busytime');
 
     var self = this;
 
@@ -171,6 +170,11 @@ Update.prototype = {
   }
 };
 
+/**
+ * Will be injected...
+ */
+exports.app = null;
+
 exports.create = function createMutation(option) {
   return new Create(option);
 };
@@ -179,4 +183,4 @@ exports.update = function updateMutation(option) {
   return new Update(option);
 };
 
-}(Calendar.EventMutations = {}));
+});

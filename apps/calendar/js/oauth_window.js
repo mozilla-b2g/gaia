@@ -1,11 +1,10 @@
-Calendar.OAuthWindow = (function() {
+define(function(require, exports, module) {
 'use strict';
 
-/**
- * Module dependencies
- */
-var QueryString = Calendar.QueryString;
-var View = Calendar.View;
+var QueryString = require('querystring');
+var View = require('view');
+
+require('dom!oauth2');
 
 /**
  * Creates a oAuth dialog given a set of parameters.
@@ -56,6 +55,7 @@ function OAuthWindow(container, server, params) {
   this._handleUserTriggeredClose =
     this._handleUserTriggeredClose.bind(this);
 }
+module.exports = OAuthWindow;
 
 OAuthWindow.prototype = {
   __proto__: View.prototype,
@@ -176,6 +176,4 @@ OAuthWindow.prototype = {
   }
 };
 
-return OAuthWindow;
-
-}());
+});

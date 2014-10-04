@@ -1,33 +1,27 @@
+define(function(require, exports, module) {
 'use strict';
 
-if (typeof(Calendar) === 'undefined') {
-  /*global Calendar:true */
-  Calendar = {};
-}
+var Responder = require('responder');
+var debug = require('debug')('worker/thread');
 
-/*jshint -W040 */
-if (typeof(window) === 'undefined') {
-  this.window = this;
-}
-
-Calendar.Thread = function Thread(worker) {
-  Calendar.Responder.call(this);
+function Thread(worker) {
+  Responder.call(this);
   this.worker = worker;
   this.roles = {};
 
   this._initEvents();
-};
+}
+module.exports = Thread;
 
-Calendar.Thread.prototype = {
-
-  __proto__: Calendar.Responder.prototype,
+Thread.prototype = {
+  __proto__: Responder.prototype,
 
   send: function() {
     this.worker.postMessage(Array.prototype.slice.call(arguments));
   },
 
   addRole: function(name) {
-    this.roles[name] = new Calendar.Responder();
+    this.roles[name] = new Responder();
   },
 
   _remoteEmitter: function(id) {
@@ -43,15 +37,13 @@ Calendar.Thread.prototype = {
   _initEvents: function() {
     var self = this;
 
-    this.worker.addEventListener('message', function(e) {
-      self.respond(e.data);
-    }, false);
-
+    debug('Will listen for messages from the main thread...');
     this.on('_dispatch', function(data) {
       // data.id
       // data.type
       // data.role
       // data.payload
+      debug('Received message from mt with data:', data);
 
       var callback = self._requestCallback.bind(
         self, data.id
@@ -71,10 +63,8 @@ Calendar.Thread.prototype = {
             );
           }
         } else {
-          //TODO: respond with error
-          console.log(
-            'ERORR: ' + data.role + ' is not available.'
-          );
+          // TODO: respond with error
+          debug('ERROR: ' + data.role + ' is not available.');
         }
       } else {
         self.respond(data.payload, callback);
@@ -113,34 +103,15 @@ Calendar.Thread.prototype = {
   },
 
   console: function console(name) {
-
-    var TIME_REGEX = /\?time\=(\d+)/g;
-
     return {
-
       log: function() {
-        // create stack
-        var stack;
-
-        try {
-          throw new Error();
-        } catch (e) {
-          stack = e.stack.replace(TIME_REGEX, '');
-        }
-
-        var parts = stack.split('\n');
-        parts.shift();
-
-        var event = {
-          stack: parts,
+        return postMessage(['log', {
           name: name,
-          message: Calendar.format.apply(this, arguments)
-        };
-
-        postMessage(['log', event]);
+          message: Array.prototype.slice.call(arguments).join(', ')
+        }]);
       }
-
     };
   }
-
 };
+
+});

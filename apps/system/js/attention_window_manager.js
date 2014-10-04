@@ -168,6 +168,9 @@
           });
           this._topMostWindow = attention;
           attention.ready(function() {
+            if (document.mozFullScreen) {
+              document.mozCancelFullScreen();
+            }
             this._openedInstances.forEach(function(opened) {
               if (opened !== attention) {
                 opened.demote();

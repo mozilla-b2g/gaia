@@ -43,18 +43,13 @@
  *
  * TODO: Implement self-balancing and real tree mutations.
  */
-Calendar.IntervalTree = (function(exports) {
+define(function(require, exports, module) {
 'use strict';
 
-/**
- * Module dependencies
- */
-var binsearch = Calendar.binsearch;
-var compare = Calendar.compare;
+var binsearch = require('binsearch');
+var compare = require('compare');
+var debug = require('debug')('interval_tree');
 
-/**
- * Constants
- */
 const START = '_startDateMS';
 const END = '_endDateMS';
 
@@ -207,6 +202,7 @@ function IntervalTree(list) {
   this.byId = Object.create(null);
   this.synced = false;
 }
+module.exports = IntervalTree;
 
 IntervalTree.prototype = {
 
@@ -306,12 +302,7 @@ IntervalTree.prototype = {
     }
 
     if (!item[START] || !item[END]) {
-      console.trace();
-      console.log(
-        '(Calendar interval tree) invalid input skipping record',
-        JSON.stringify(item)
-      );
-      return;
+      return debug('Invalid input skipping record: ', item);
     }
 
     var idx = binsearch.insert(
@@ -594,6 +585,4 @@ function addOrdered(item, array) {
   array.splice(idx, 0, item);
 }
 
-return IntervalTree;
-
-}(Calendar));
+});

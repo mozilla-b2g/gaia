@@ -299,6 +299,11 @@
   background-color: inherit;
 }
 
+/* Bug 1071235: Workaround for bug 1076783 */
+.browser-container:-moz-full-screen-ancestor > .screenshot-overlay {
+  visibility: hidden;
+}
+
 .appWindow.collapsible:not(.active) .screenshot-overlay {
   margin-top: 4.6rem;
 }

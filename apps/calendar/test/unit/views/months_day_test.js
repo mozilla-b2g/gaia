@@ -1,10 +1,11 @@
-requireLib('template.js');
-requireLib('templates/date_span.js');
-requireLib('timespan.js');
+define(function(require) {
+'use strict';
 
-suiteGroup('Views.MonthsDay', function() {
-  'use strict';
+var DayChild = require('views/day_child');
+var DayTemplate = require('templates/day');
+var MonthsDay = require('views/months_day');
 
+suite('Views.MonthsDay', function() {
   var subject,
       app,
       controller,
@@ -32,16 +33,12 @@ suiteGroup('Views.MonthsDay', function() {
     controller = app.timeController;
     events = app.store('Event');
     busytimes = app.store('Busytime');
-
-    subject = new Calendar.Views.MonthsDay({
-      app: app
-    });
-
-    template = Calendar.Templates.Day;
+    subject = new MonthsDay({ app: app });
+    template = DayTemplate;
   });
 
   test('initializer', function() {
-    assert.instanceOf(subject, Calendar.Views.DayChild);
+    assert.instanceOf(subject, DayChild);
   });
 
   test('bug 803934', function() {
@@ -117,5 +114,6 @@ suiteGroup('Views.MonthsDay', function() {
     assert.include(html, date.toLocaleFormat('%A'));
   });
 */
+});
 
 });

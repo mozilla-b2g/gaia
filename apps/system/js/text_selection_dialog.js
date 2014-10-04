@@ -14,7 +14,8 @@
     this._injected = false;
     this._hasCutOrCopied = false;
     this._ignoreSelectionChange = false;
-    this._isShowed = false;
+    this._isCommandSendable = false;
+    this._transitionState = 'closed';
 
     this._previousOffsetX = 0;
     this._previousOffsetY = 0;
@@ -67,7 +68,7 @@
   };
 
   TextSelectionDialog.prototype.handleEvent = function tsd_handleEvent(evt) {
-    switch(evt.type) {
+    switch (evt.type) {
       case 'home':
       case 'activeappchanged':
         this.close();
@@ -91,7 +92,7 @@
               this._previousOffsetY = evt.detail.detail.scrollY;
               this.hide();
             } else if (evt.detail.detail.state === 'stopped' &&
-                       this._isShowed === true) {
+                       this._transitionState === 'opened') {
               this.updateDialogPosition(
                 evt.detail.detail.scrollX - this._previousOffsetX,
                 evt.detail.detail.scrollY - this._previousOffsetY
@@ -171,7 +172,9 @@
             this.close();
           }.bind(this), this.SHORTCUT_TIMEOUT);
         }
+        return;
       }
+      this.close();
     };
 
   TextSelectionDialog.prototype._fetchElements = function tsd__fetchElements() {
@@ -196,16 +199,67 @@
   TextSelectionDialog.prototype._registerEvents =
     function tsd__registerEvents() {
       var elements = this.elements;
-      elements.copy.addEventListener('mousedown', this.copyHandler.bind(this));
-      elements.cut.addEventListener('mousedown', this.cutHandler.bind(this));
-      elements.paste.addEventListener('mousedown',
-        this.pasteHandler.bind(this));
-      elements.selectall.addEventListener('mousedown',
-        this.selectallHandler.bind(this));
-  };
+      for (var ele in elements) {
+        elements[ele].addEventListener('mousedown',
+          this._elementEventHandler.bind(this));
+
+        // We should not send command to gecko if user move their finger out of
+        // the original button.
+        elements[ele].addEventListener('mouseout',
+          this._elementEventHandler.bind(this));
+        elements[ele].addEventListener('click',
+          this._elementEventHandler.bind(this));
+      }
+
+      this.element.addEventListener('transitionend',
+        this._elementEventHandler.bind(this));
+    };
+
+  TextSelectionDialog.prototype._elementEventHandler =
+    function tsd__elementEventHandler(evt) {
+      switch (evt.type) {
+        case 'mousedown':
+          this._isCommandSendable = true;
+          evt.preventDefault();
+          break;
+        case 'transitionend':
+          if (this._transitionState === 'closing') {
+            this._changeTransitionState('closed');
+          }
+          break;
+        case 'click':
+          this[evt.target.dataset.action + 'Handler'] &&
+            this[evt.target.dataset.action + 'Handler'](evt);
+          break;
+        case 'mouseout':
+          this._isCommandSendable = false;
+          break;
+      }
+    };
+
+  TextSelectionDialog.prototype._changeTransitionState =
+    function tsd__changeTransitionState(state) {
+      switch (state) {
+        case 'opened':
+          this.element.classList.add('active');
+          this.element.classList.add('visible');
+          break;
+        case 'closing':
+          this.element.classList.remove('visible');
+          break;
+        case 'closed':
+          this.element.classList.remove('active');
+          break;
+      }
+
+      this._transitionState = state;
+    };
 
   TextSelectionDialog.prototype._doCommand =
     function tsd_doCommand(evt, cmd) {
+      if (!this._isCommandSendable) {
+        return;
+      }
       var props = {
         detail: {
           type: 'do-command',
@@ -213,11 +267,12 @@
         }
       };
       this.debug(JSON.stringify(props));
+
       window.dispatchEvent(
         new CustomEvent('mozContentEvent', props));
-      this.hide();
+      this.close();
       evt.preventDefault();
-  };
+    };
 
   TextSelectionDialog.prototype.copyHandler =
     function tsd_copyHandler(evt) {
@@ -246,12 +301,14 @@
   };
 
   TextSelectionDialog.prototype.view = function tsd_view() {
-    var temp = '<div class="textselection-dialog"' +
-            ' id="' + this.ID_NAME + '">' +
-              '<div class="textselection-dialog-selectall"></div>' +
-              '<div class="textselection-dialog-cut"></div>' +
-              '<div class="textselection-dialog-copy"></div>' +
-              '<div class="textselection-dialog-paste"></div>' +
+    var temp = '<div class="textselection-dialog" id="' + this.ID_NAME + '">' +
+              '<div data-action="selectall" ' +
+                'class="textselection-dialog-selectall"></div>' +
+              '<div data-action="cut" class="textselection-dialog-cut"></div>' +
+              '<div data-action="copy" class="textselection-dialog-copy">' +
+                '</div>' +
+              '<div data-action="paste" class="textselection-dialog-paste">' +
+                '</div>' +
             '</div>';
     return temp;
   };
@@ -300,8 +357,7 @@
       this.debug(pos);
       this.element.style.top = pos.top + 'px';
       this.element.style.left = pos.left + 'px';
-      this.element.classList.add('visible');
-      this._isShowed = true;
+      this._changeTransitionState('opened');
     };
 
   TextSelectionDialog.prototype.calculateDialogPostion =
@@ -367,17 +423,16 @@
     if (!this.element) {
       return;
     }
-    this.element.classList.remove('visible');
+    this._changeTransitionState('closing');
   };
 
   TextSelectionDialog.prototype.close = function tsd_close() {
-    if (!this._isShowed) {
+    if (this._transitionState !== 'opened') {
       return;
     }
-    this.element.blur();
     this.hide();
+    this.element.blur();
     this.textualmenuDetail = null;
-    this._isShowed = false;
     clearTimeout(this._hideTimeout);
   };
 

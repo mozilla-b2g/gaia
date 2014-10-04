@@ -116,6 +116,15 @@ suite('system/AppWindow', function() {
     origin: 'app://www.fake4'
   };
 
+  var fakeSearchAppConfig = {
+    url: 'app://search.gaiamobile.org/newtab.html',
+    manifest: {
+      role: 'search'
+    },
+    manifestURL: 'app://search.gaiamobile.org/ManifestURL',
+    origin: 'app://search.gaiamobile.org'
+  };
+
   var fakeWrapperConfig = {
     url: 'http://www.fake5/index.html',
     origin: 'http://www.fake5',
@@ -1914,8 +1923,10 @@ suite('system/AppWindow', function() {
     var popup = new AppWindow(fakeAppConfig2);
     var url = 'http://changed.url';
 
+    this.sinon.stub(app1, 'reConfig');
     app1.navigate(url);
     assert.isTrue(app1.browser.element.src.indexOf(url) < 0);
+    assert.isTrue(app1.reConfig.notCalled);
 
     app2.navigate(url);
     assert.isTrue(app2.browser.element.src.indexOf(url) !== -1);
@@ -1923,6 +1934,17 @@ suite('system/AppWindow', function() {
     app2.frontWindow = popup;
     app2.navigate(url);
     assert.isNull(app2.frontWindow);
+  });
+
+  test('navigate app -> browser', function() {
+    var app1 = new AppWindow(fakeSearchAppConfig);
+    var url = 'http://changed.url';
+
+    this.sinon.stub(app1, 'reConfig');
+    app1.navigate(url);
+
+    assert.ok(app1.reConfig.calledOnce);
+    assert.ok(app1.element.classList.contains('browser'));
   });
 
   suite('fadeOut', function() {

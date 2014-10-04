@@ -1,336 +1,338 @@
-(function(window) {
-  'use strict';
+define(function(require, exports, module) {
+'use strict';
 
-  var Calc = Calendar.Calc,
-      debug = Calendar.debug('month child'),
-      /*performance = Calendar.performance,*/
-      template = Calendar.Templates.Month;
+var Calc = require('calc');
+var View = require('view');
+var debug = require('debug')('views/month_child');
+var nextTick = require('next_tick');
+var performance = require('performance');
+var template = require('templates/month');
 
-  // horrible hack to clear cache when we re-localize
-  window.addEventListener('localized', function clearHeaderCache() {
-    Child._dayHeaders = null;
-  });
+// horrible hack to clear cache when we re-localize
+window.addEventListener('localized', function clearHeaderCache() {
+  Child._dayHeaders = null;
+});
 
-  function Child() {
-    Calendar.View.apply(this, arguments);
+function Child() {
+  View.apply(this, arguments);
 
-    this.id = this.date.valueOf();
-    this.controller = this.app.timeController;
+  this.id = this.date.valueOf();
+  this.controller = this.app.timeController;
 
-    this._days = Object.create(null);
-    this._dayToBusyCount = Object.create(null);
-    this.timespan = Calc.spanOfMonth(this.date);
-  }
+  this._days = Object.create(null);
+  this._dayToBusyCount = Object.create(null);
+  this.timespan = Calc.spanOfMonth(this.date);
+}
+module.exports = Child;
 
-  Child.prototype = {
-    __proto__: Calendar.View.prototype,
+Child.prototype = {
+  __proto__: View.prototype,
 
-    ACTIVE: 'active',
+  ACTIVE: 'active',
 
-    hasBeenActive: false,
+  hasBeenActive: false,
 
-    //Override parent view...
-    get element() {
-      return this._element;
-    },
+  //Override parent view...
+  get element() {
+    return this._element;
+  },
 
-    set element(val) {
-      this._element = val;
-      return val;
-    },
+  set element(val) {
+    this._element = val;
+    return val;
+  },
 
-    _dayId: function(date) {
-      if (date instanceof Date) {
-        date = Calc.getDayId(date);
-      }
+  _dayId: function(date) {
+    if (date instanceof Date) {
+      date = Calc.getDayId(date);
+    }
 
-      return 'month-view-' + this.id + '-' + date;
-    },
+    return 'month-view-' + this.id + '-' + date;
+  },
 
-    _initEvents: function() {
-      this.controller.observeTime(this.timespan, this);
-    },
+  _initEvents: function() {
+    this.controller.observeTime(this.timespan, this);
+  },
 
-    _destroyEvents: function() {
-      this.controller.removeTimeObserver(this.timespan, this);
-    },
+  _destroyEvents: function() {
+    this.controller.removeTimeObserver(this.timespan, this);
+  },
 
-    handleEvent: function(event) {
-      var added = [], removed = [];
-      switch (event.type) {
-        case 'add':
-          added.push(event.data);
-          break;
-        case 'remove':
-          removed.push(event.data);
-          break;
-      }
+  handleEvent: function(event) {
+    var added = [], removed = [];
+    switch (event.type) {
+      case 'add':
+        added.push(event.data);
+        break;
+      case 'remove':
+        removed.push(event.data);
+        break;
+    }
 
-      this._updateBusytimes({ added: added, removed: removed });
-    },
+    this._updateBusytimes({ added: added, removed: removed });
+  },
 
-    _updateBusytimes: function(options) {
-      if ('added' in options) {
-        options.added.forEach(function(busytime) {
-          this._updateBusyCount(busytime, 1);
-        }, this);
-      }
-
-      if ('removed' in options) {
-        options.removed.forEach(function(busytime) {
-          this._updateBusyCount(busytime, -1);
-        }, this);
-      }
-    },
-
-    _updateBusyCount: function(busytime, difference) {
-      var endDate = busytime.endDate;
-      var dates = [];
-      // Use the last second of previous day as the base for endDate
-      // (e.g., 1991-09-14T23:59:59 insteads of 1991-09-15T00:00:00).
-      if (endDate.getHours() === 0 &&
-          endDate.getMinutes() === 0 &&
-          endDate.getSeconds() === 0) {
-        endDate = new Date(endDate.getTime() - 1000);
-      }
-
-      dates = Calc.daysBetween(
-        busytime.startDate,
-        endDate
-      );
-
-      dates.forEach(function(date) {
-        var dayId = Calc.getDayId(date);
-        var count = this._dayToBusyCount[dayId];
-        this._setBusyCount(dayId, count + difference);
+  _updateBusytimes: function(options) {
+    if ('added' in options) {
+      options.added.forEach(function(busytime) {
+        this._updateBusyCount(busytime, 1);
       }, this);
-    },
+    }
 
-    _setBusyCount: function(dayId, count) {
-      this._dayToBusyCount[dayId] = count;
+    if ('removed' in options) {
+      options.removed.forEach(function(busytime) {
+        this._updateBusyCount(busytime, -1);
+      }, this);
+    }
+  },
 
-      // Now redraw the busytime dots.
-      var element = this._busyElement(dayId);
-      if (!element) {
-        return debug('Could not find container for ' + dayId + '!');
+  _updateBusyCount: function(busytime, difference) {
+    var endDate = busytime.endDate;
+    var dates = [];
+    // Use the last second of previous day as the base for endDate
+    // (e.g., 1991-09-14T23:59:59 insteads of 1991-09-15T00:00:00).
+    if (endDate.getHours() === 0 &&
+        endDate.getMinutes() === 0 &&
+        endDate.getSeconds() === 0) {
+      endDate = new Date(endDate.getTime() - 1000);
+    }
+
+    dates = Calc.daysBetween(
+      busytime.startDate,
+      endDate
+    );
+
+    dates.forEach(function(date) {
+      var dayId = Calc.getDayId(date);
+      var count = this._dayToBusyCount[dayId];
+      this._setBusyCount(dayId, count + difference);
+    }, this);
+  },
+
+  _setBusyCount: function(dayId, count) {
+    this._dayToBusyCount[dayId] = count;
+
+    // Now redraw the busytime dots.
+    var element = this._busyElement(dayId);
+    if (!element) {
+      return debug('Could not find container for ' + dayId + '!');
+    }
+
+    var difference = Math.min(3, count) - element.childNodes.length;
+
+    if (difference === 0) {
+      return;
+    }
+
+    var i = 0;
+    if (difference > 0) {
+      var dot;
+      for (; i < difference; i++) {
+        dot = document.createElement('div');
+        dot.className = 'gaia-icon icon-calendar-dot';
+        element.appendChild(dot);
       }
 
-      var difference = Math.min(3, count) - element.childNodes.length;
+      return;
+    }
 
-      if (difference === 0) {
-        return;
-      }
+    // difference < 0
+    for (; i > difference; i--) {
+      element.removeChild(element.firstChild);
+    }
+  },
 
+  /**
+   * Finds day element busytime container.
+   * Caches over time.
+   *
+   * @param {String} dayId date id.
+   */
+  _busyElement: function(dayId) {
+    var id = this._dayId(dayId);
+    var found = this.element.querySelector('#' + id + ' .busy-indicator');
+    this._days[dayId] = found;
+    return found;
+  },
+
+
+  /**
+   * Renders out a day with busy times.
+   *
+   * @param {Date} date representing a date.
+   */
+  _renderDay: function _renderDay(date) {
+    var id = Calc.getDayId(date);
+    var state = Calc.relativeState(
+      date,
+      this.date
+    );
+
+    // register instance in map
+    this._days[id] = null;
+    this._dayToBusyCount[id] = 0;
+
+    return template.day.render({
+      id: this._dayId(id),
+      dateString: id,
+      state: state,
+      date: date.getDate()
+    });
+  },
+
+  /**
+   * Renders a week from weekdays Array
+   *
+   */
+  _renderWeek: function _renderWeek(days) {
+    var output = '';
+
+    for (var i = 0, iLen = days.length; i < iLen; i++) {
+      output += this._renderDay(days[i]);
+    }
+
+    return template.week.render(output);
+  },
+
+  /**
+   * Renders out the calendar headers.
+   *
+   * @return {String} returns a list of headers.
+   */
+  _renderDayHeaders: function _renderDayHeaders() {
+    if (!Child._dayHeaders) {
       var i = 0;
-      if (difference > 0) {
-        var dot;
-        for (; i < difference; i++) {
-          dot = document.createElement('div');
-          dot.className = 'gaia-icon icon-calendar-dot';
-          element.appendChild(dot);
-        }
-
-        return;
-      }
-
-      // difference < 0
-      for (; i > difference; i--) {
-        element.removeChild(element.firstChild);
-      }
-    },
-
-    /**
-     * Finds day element busytime container.
-     * Caches over time.
-     *
-     * @param {String} dayId date id.
-     */
-    _busyElement: function(dayId) {
-      var id = this._dayId(dayId);
-      var found = this.element.querySelector('#' + id + ' .busy-indicator');
-      this._days[dayId] = found;
-      return found;
-    },
-
-
-    /**
-     * Renders out a day with busy times.
-     *
-     * @param {Date} date representing a date.
-     */
-    _renderDay: function _renderDay(date) {
-      var id = Calc.getDayId(date);
-      var state = Calc.relativeState(
-        date,
-        this.date
-      );
-
-      // register instance in map
-      this._days[id] = null;
-      this._dayToBusyCount[id] = 0;
-
-      return template.day.render({
-        id: this._dayId(id),
-        dateString: id,
-        state: state,
-        date: date.getDate()
-      });
-    },
-
-    /**
-     * Renders a week from weekdays Array
-     *
-     */
-    _renderWeek: function _renderWeek(days) {
-      var output = '';
-
-      for (var i = 0, iLen = days.length; i < iLen; i++) {
-        output += this._renderDay(days[i]);
-      }
-
-      return template.week.render(output);
-    },
-
-    /**
-     * Renders out the calendar headers.
-     *
-     * @return {String} returns a list of headers.
-     */
-    _renderDayHeaders: function _renderDayHeaders() {
-      if (!Child._dayHeaders) {
-        var i = 0;
-        var days = 7;
-        var name;
-        var html = '';
-
-        for (; i < days; i++) {
-          var day = i;
-          // localization updates this value
-          if (Calendar.Calc.startsOnMonday) {
-            // 0 is monday which is 1 in l10n (based on js engine's getDay)
-            day += 1;
-
-            // 6th day of the week which Sunday (and 0 in js engine).
-            if (day === 7) {
-              day = 0;
-            }
-          }
-          var l10n = 'weekday-' + day + '-single-char';
-
-          name = navigator.mozL10n.get(l10n);
-          html += template.weekDaysHeaderDay.render({
-            l10n: l10n,
-            dayName: name
-          });
-        }
-
-        Child._dayHeaders = template.weekDaysHeader.render(html);
-        return Child._dayHeaders;
-      }
-
-      return Child._dayHeaders;
-    },
-
-    /**
-     * Renders out an entire month.
-     *
-     * @param {Date} date date which month resides in.
-     * @return {String} return value.
-     */
-    _renderMonth: function _renderMonth() {
-      var week = 0;
-      var slice;
-      var days = this.timespan.daysBetween();
-      var daysInWeek = Calc.daysInWeek();
-      var numberOfWeeks = days.length / daysInWeek;
+      var days = 7;
+      var name;
       var html = '';
 
-      this.weeks = numberOfWeeks;
+      for (; i < days; i++) {
+        var day = i;
+        // localization updates this value
+        if (Calc.startsOnMonday) {
+          // 0 is monday which is 1 in l10n (based on js engine's getDay)
+          day += 1;
 
-      for (week; week <= numberOfWeeks; week++) {
-        slice = days.splice(
-          0,
-          daysInWeek
-        );
-
-        if (slice.length) {
-          html += this._renderWeek(slice);
+          // 6th day of the week which Sunday (and 0 in js engine).
+          if (day === 7) {
+            day = 0;
+          }
         }
+        var l10n = 'weekday-' + day + '-single-char';
+
+        name = navigator.mozL10n.get(l10n);
+        html += template.weekDaysHeaderDay.render({
+          l10n: l10n,
+          dayName: name
+        });
       }
 
-      return this._renderDayHeaders() + html;
-    },
+      Child._dayHeaders = template.weekDaysHeader.render(html);
+      return Child._dayHeaders;
+    }
 
-    /**
-     * Activate this child view visually.
-     */
-    activate: function() {
-      this.element.classList.add(this.ACTIVE);
+    return Child._dayHeaders;
+  },
 
-      /**
-       * The first time we "activate" a view we initialize its
-       * events and query th cache for related records.
-       * We do this async so to minimally effect swipes.
-       */
-      if (this.hasBeenActive) {
-        return;
+  /**
+   * Renders out an entire month.
+   *
+   * @param {Date} date date which month resides in.
+   * @return {String} return value.
+   */
+  _renderMonth: function _renderMonth() {
+    var week = 0;
+    var slice;
+    var days = Calc.daysBetween(this.timespan);
+    var daysInWeek = Calc.daysInWeek();
+    var numberOfWeeks = days.length / daysInWeek;
+    var html = '';
+
+    this.weeks = numberOfWeeks;
+
+    for (week; week <= numberOfWeeks; week++) {
+      slice = days.splice(
+        0,
+        daysInWeek
+      );
+
+      if (slice.length) {
+        html += this._renderWeek(slice);
       }
+    }
 
-      Calendar.nextTick(function() {
-        var busytimes = this.controller.queryCache(this.timespan);
-        this._updateBusytimes({ added: busytimes });
-        this._initEvents();
-        // at this point the month view should be ready
-        Calendar.performance.monthReady();
-      }.bind(this));
+    return this._renderDayHeaders() + html;
+  },
 
-      this.hasBeenActive = true;
-    },
-
-    /**
-     * Deactivate this child view visually.
-     */
-    deactivate: function() {
-      this.element.classList.remove(this.ACTIVE);
-    },
+  /**
+   * Activate this child view visually.
+   */
+  activate: function() {
+    this.element.classList.add(this.ACTIVE);
 
     /**
-     * Attaches child view to dom node
-     * or object that has a .element.
-     *
-     * Sets the .element
-     *
-     * @return {DOMElement} inserted dom node.
+     * The first time we "activate" a view we initialize its
+     * events and query th cache for related records.
+     * We do this async so to minimally effect swipes.
      */
-    create: function() {
-      var html = this._renderMonth();
-      var element = document.createElement('section');
+    if (this.hasBeenActive) {
+      return;
+    }
 
-      element.classList.add('month');
-      element.setAttribute('role', 'grid');
-      element.setAttribute('aria-readonly', true);
-      element.innerHTML = html;
+    nextTick(function() {
+      var busytimes = this.controller.queryCache(this.timespan);
+      this._updateBusytimes({ added: busytimes });
+      this._initEvents();
+      // at this point the month view should be ready
+      performance.monthReady();
+    }.bind(this));
 
-      this.element = element;
+    this.hasBeenActive = true;
+  },
 
-      return element;
-    },
+  /**
+   * Deactivate this child view visually.
+   */
+  deactivate: function() {
+    this.element.classList.remove(this.ACTIVE);
+  },
 
-    destroy: function() {
-      this._destroyEvents();
-      this._days = Object.create(null);
-      this._dayToBusyCount = Object.create(null);
+  /**
+   * Attaches child view to dom node
+   * or object that has a .element.
+   *
+   * Sets the .element
+   *
+   * @return {DOMElement} inserted dom node.
+   */
+  create: function() {
+    var html = this._renderMonth();
+    var element = document.createElement('section');
 
-      if (this.element && this.element.parentNode) {
-        this.element.parentNode.removeChild(this.element);
-        this.element = undefined;
-      }
-    },
+    element.classList.add('month');
+    element.setAttribute('role', 'grid');
+    element.setAttribute('aria-readonly', true);
+    element.innerHTML = html;
 
-    getScrollTop: function() {},
+    this.element = element;
 
-    setScrollTop: function(scrollTop) {}
-  };
+    return element;
+  },
 
-  Calendar.ns('Views').MonthChild = Child;
-}(this));
+  destroy: function() {
+    this._destroyEvents();
+    this._days = Object.create(null);
+    this._dayToBusyCount = Object.create(null);
+
+    if (this.element && this.element.parentNode) {
+      this.element.parentNode.removeChild(this.element);
+      this.element = undefined;
+    }
+  },
+
+  getScrollTop: function() {},
+
+  setScrollTop: function(scrollTop) {}
+};
+
+});
