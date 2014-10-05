@@ -13,3 +13,6 @@ task:
   extra:
     treeherder:
       symbol: Li
+      groupName: unknown
+      groupSymbol: ?
+
