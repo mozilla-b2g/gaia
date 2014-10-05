@@ -7,9 +7,14 @@ task:
   provisionerId: '{{provisionerId}}'
 
   payload:
+    env:
+      REPORTER: 'mocha-tbpl-reporter'
+
     command:
       - entrypoint
-      - ./bin/ci run build_tests
+      - ./bin/ci run build_unit
   extra:
     treeherder:
-      symbol: GB
+      groupSymbol: GB
+      groupName: "Gaia build tests"
+      symbol: GBU
