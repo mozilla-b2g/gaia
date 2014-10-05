@@ -358,10 +358,15 @@ var UtilityTray = {
     this.validateCachedSizes();
     var alreadyHidden = !this.shown;
     var style = this.overlay.style;
+
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
+
+    var notificationClipOffset =
+      this.notifications.offsetTop + this.statusbar.clientHeight;
     this.notifications.style.transition = instant ? '' : 'clip 0.2s linear';
     this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px, 0, 0)';
+      'rect(0, ' + this.screenWidth + 'px,' + (-notificationClipOffset) +
+      'px, 0)';
 
     // If the transition has not started yet there won't be any transitionend
     // event so let's not wait in order to remove the utility-tray class.
