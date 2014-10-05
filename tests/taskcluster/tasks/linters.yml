@@ -12,7 +12,4 @@ task:
       - ./bin/ci run linters
   extra:
     treeherder:
-      symbol: Li
-      groupName: unknown
-      groupSymbol: ?
-
+      symbol: LINT
