@@ -12,6 +12,7 @@ task:
     env:
       THIS_CHUNK: '{{chunk}}'
       TOTAL_CHUNKS: '{{totalChunks}}'
+      REPORTER: 'mocha-tbpl-reporter'
 
     command:
       - entrypoint

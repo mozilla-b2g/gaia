@@ -1,3 +1,4 @@
 #! /bin/bash -vex
 
-TEST_MANIFEST=./shared/test/integration/travis-manifest.json REPORTER=spec make test-integration
+export TEST_MANIFEST=./shared/test/integration/travis-manifest.json
+make test-integration
