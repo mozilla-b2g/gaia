@@ -1982,9 +1982,8 @@ suite('system/Statusbar', function() {
       var timeIcon = StatusBar.icons.time;
       timeIcon.hidden = false;
 
-      assert.isNull(StatusBar.PRIORITIES[iconIndex][1]);
       assert.equal(StatusBar._getIconWidth(StatusBar.PRIORITIES[iconIndex]),
-        timeIcon.clientWidth);
+        timeIcon.offsetWidth);
     });
   });
 
