@@ -271,11 +271,13 @@ suite('system/AppWindow', function() {
     test('resize to bottom most and top most window', function() {
       var popups = openPopups(5);
       var stubTopResize = this.sinon.stub(popups[4], 'resize');
+      var stubTopRearResize = this.sinon.stub(popups[3], '_resize');
       var stubBottomRealResize = this.sinon.stub(popups[0], '_resize');
       var stubAppIsActive = this.sinon.stub(popups[0], 'isActive');
       stubAppIsActive.returns(true);
       popups[1].resize();
       assert.isTrue(stubTopResize.called);
+      assert.isTrue(stubTopRearResize.called);
       assert.isTrue(stubBottomRealResize.called);
     });
   });
