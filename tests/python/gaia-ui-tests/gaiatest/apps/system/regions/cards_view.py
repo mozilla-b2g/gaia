@@ -29,11 +29,12 @@ class CardsView(Base):
         return self.is_element_displayed(*self._cards_view_locator)
 
     def wait_for_card_ready(self, app):
-        current_frame = self.apps.displayed_app.frame
-        card = self.marionette.find_element(*self._app_card_locator(app))
-        self.wait_for_condition(lambda m: current_frame.size['width'] - card.size['width'] == 2 * card.location['x'])
+        self.wait_for_condition(lambda m: self.is_closebutton_displayed(app))
         # TODO: Remove sleep when we find a better wait
         time.sleep(0.2)
+
+    def is_closebutton_displayed(self, app):
+        return self.is_element_displayed(*self._close_button_locator(app))
 
     def is_app_displayed(self, app):
         return self.is_element_displayed(*self._app_card_locator(app))

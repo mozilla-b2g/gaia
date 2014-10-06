@@ -1151,11 +1151,11 @@ suite('system/TaskManager >', function() {
     });
 
     test('when exitToApp is passed no app', function(done) {
-      var activeApp = MockAppWindowManager.mActiveApp;
-      var stub = this.sinon.stub(activeApp, 'open');
+      // See bug 1071852, in v2.1 'home' button should always open homescreen
+      var stub = this.sinon.stub(apps.home, 'open');
 
       waitForEvent(window, 'cardviewclosed').then(function() {
-        assert.isTrue(stub.calledOnce, 'active app open method was called');
+        assert.isTrue(stub.calledOnce, 'homescreen open method was called');
       }, failOnReject)
       .then(function() { done(); }, done);
 

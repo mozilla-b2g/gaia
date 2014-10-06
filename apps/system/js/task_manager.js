@@ -584,18 +584,19 @@
   TaskManager.prototype.exitToApp = function(app,
                                              openAnimation) {
     // Tell all applications we're about to leave task manager.
-    this.unfilteredStack.forEach(function(app) {
+    this.unfilteredStack && this.unfilteredStack.forEach(function(app) {
       app.leaveTaskManager();
     });
 
     if (!app) {
-      // return if possible to previous app.
-      // else homescreen
-      app = StackManager.getCurrent() ||
-            homescreenLauncher.getHomescreen(true);
+      // bug 1071852
+      app = homescreenLauncher.getHomescreen(true);
     }
+
+    // to know if position has changed we need index into original stack,
     var position = this.unfilteredStack ? this.unfilteredStack.indexOf(app) :
-                                          StackManager.position;
+                                          -1;
+
     if (position !== StackManager.position) {
       this.newStackPosition = position;
     }
@@ -612,14 +613,7 @@
    */
   TaskManager.prototype.closeApp = function cs_closeApp(card,
                                                         removeImmediately) {
-    var wasActive = AppWindowManager.getActiveApp() === card.app;
     card.killApp();
-
-    // if we killed the active app, make homescreen active
-    if (wasActive) {
-      AppWindowManager._updateActiveApp(homescreenLauncher
-                                          .getHomescreen().instanceID);
-    }
   };
 
   /**
