@@ -235,6 +235,12 @@ var StatusBar = {
     window.addEventListener('attentionopened', this);
     window.addEventListener('attentionclosed', this);
 
+    window.addEventListener('sheets-gesture-begin', this);
+    window.addEventListener('sheets-gesture-end', this);
+    window.addEventListener('utilitytraywillshow', this);
+    window.addEventListener('utilitytraywillhide', this);
+    window.addEventListener('utility-tray-overlayopened', this);
+    window.addEventListener('utility-tray-overlayclosed', this);
     window.addEventListener('cardviewshown', this);
     window.addEventListener('cardviewclosed', this);
 
@@ -340,10 +346,20 @@ var StatusBar = {
         this.toggleTimeLabel(!this.isLocked());
         break;
 
+      case 'sheets-gesture-begin':
+        this.element.classList.add('hidden');
+        this.pauseUpdate();
+        break;
+
+      case 'utilitytraywillshow':
+      case 'utilitytraywillhide':
       case 'cardviewshown':
         this.pauseUpdate();
         break;
 
+      case 'sheets-gesture-end':
+      case 'utility-tray-overlayopened':
+      case 'utility-tray-overlayclosed':
       case 'cardviewclosed':
         this.resumeUpdate();
         break;
@@ -503,7 +519,6 @@ var StatusBar = {
 
       case 'homescreenopening':
       case 'appopening':
-      case 'sheets-gesture-begin':
         this.element.classList.add('hidden');
         break;
 
@@ -567,17 +582,22 @@ var StatusBar = {
     return window.innerWidth - window.innerWidth * 0.682 + 80 * 0.682 - 5 - 3;
   },
 
+  _paused: 0,
   pauseUpdate: function sb_pauseUpdate() {
-    this._paused = true;
+    this._paused++;
   },
 
   resumeUpdate: function sb_resumeUpdate() {
-    this._paused = false;
+    this._paused--;
     this._updateIconVisibility();
   },
 
+  isPaused: function sb_isPaused() {
+    return this._paused > 0;
+  },
+
   _updateIconVisibility: function sb_updateIconVisibility() {
-    if (this._paused) {
+    if (this._paused !== 0) {
       return;
     }
 
