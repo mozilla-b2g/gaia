@@ -76,7 +76,7 @@ suite('Views > AlternativesCharMenuView', function() {
 
       childObjs = [];
 
-      // insert 6 keys for 1 row
+      // insert 3 keys for 1 row
       for (var i = 0; i < 3; i++) {
         var child = document.createElement('div');
         child.style.display = 'inline-block';

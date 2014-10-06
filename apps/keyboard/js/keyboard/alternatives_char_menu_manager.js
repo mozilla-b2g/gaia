@@ -15,7 +15,6 @@ var AlternativesCharMenuManager = function(app) {
   this.isShown = false;
 
   this._originalTarget = null;
-  this._hasMovedAwayFromOriginalTarget = false;
   this._menuAreaTop =
     this._menuAreaLeft =
     this._menuAreaRight =
@@ -46,7 +45,6 @@ AlternativesCharMenuManager.prototype.show = function(target) {
   this.isShown = true;
 
   this._originalTarget = target;
-  this._hasMovedAwayFromOriginalTarget = false;
 
   // XXX: We probably introduced a sync reflow here.
   var menuRect = this._currentMenuView.getBoundingClientRect();
@@ -107,7 +105,6 @@ AlternativesCharMenuManager.prototype.hide = function() {
   this.isShown = false;
 
   this._originalTarget = null;
-  this._hasMovedAwayFromOriginalTarget = false;
   this._menuAreaTop =
     this._menuAreaLeft =
     this._menuAreaRight =
@@ -129,19 +126,6 @@ AlternativesCharMenuManager.prototype.getMenuTarget = function(press) {
     throw new Error('AlternativesCharMenuManager: ' +
       'getMenuTarget called but menu is not shown');
   }
-
-  var menuContainer = this._currentMenuView.getMenuContainer();
-  var children = menuContainer.children;
-  // If the press.target is still the original target, we should always
-  // return the first alternative (the one on top of the key).
-  if (!this._hasMovedAwayFromOriginalTarget &&
-      press.target === this._originalTarget) {
-    // Return the alternative right on the top of the target key.
-    // The alternative should always be the first element in the DOM.
-    return this.app.layoutRenderingManager.getTargetObject(children[0]);
-  }
-
-  this._hasMovedAwayFromOriginalTarget = true;
 
   return this._currentMenuView.getMenuTarget(press.clientX, press.clientY);
 };
