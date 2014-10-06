@@ -5,7 +5,7 @@
 #      running as it does in travis.
 
 # test suite root for all travis ci hook style tests...
-suite_root="tests/travis_ci"
+suite_root="tests/ci"
 
 usage() {
   echo
