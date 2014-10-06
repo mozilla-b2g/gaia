@@ -1,12 +1,15 @@
+/* globals ScreenManager, MocksHelper, MockLockScreen, MockMozPower,
+           MockSettingsListener, MocksleepMenu */
+
 'use strict';
 
-requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_lock_screen.js');
-requireApp('system/test/unit/mock_statusbar.js');
-requireApp('system/test/unit/mock_bluetooth.js');
-requireApp('system/test/unit/mock_navigator_moz_power.js');
-requireApp('system/test/unit/mock_sleep_menu.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+require('/test/unit/mock_app_window_manager.js');
+require('/test/unit/mock_lock_screen.js');
+require('/test/unit/mock_statusbar.js');
+require('/test/unit/mock_bluetooth.js');
+require('/test/unit/mock_navigator_moz_power.js');
+require('/test/unit/mock_sleep_menu.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 function switchProperty(originObject, prop, stub, reals, useDefineProperty) {
   if (!useDefineProperty) {
@@ -125,7 +128,7 @@ suite('system/ScreenManager', function() {
     test('Testing SettingsListener.observe for screen.timeout', function() {
       ScreenManager._firstOn = false;
       ScreenManager.turnScreenOn.reset();
-      SettingsListener.observe.withArgs('screen.timeout')
+      MockSettingsListener.observe.withArgs('screen.timeout')
           .callsArgWith(2, 50);
 
       ScreenManager.init();
@@ -136,8 +139,8 @@ suite('system/ScreenManager', function() {
 
     test('Testing SettingsListener.observe for ' +
           'screen.automatic-brightness', function() {
-      SettingsListener.observe.reset();
-      SettingsListener.observe.withArgs('screen.automatic-brightness')
+      MockSettingsListener.observe.reset();
+      MockSettingsListener.observe.withArgs('screen.automatic-brightness')
         .callsArgWith(2, true);
       this.sinon.stub(ScreenManager, 'setDeviceLightEnabled');
 
@@ -295,8 +298,7 @@ suite('system/ScreenManager', function() {
     });
 
     suite('Testing callschanged event', function() {
-      var stubTelephony, stubCpuWakeLock, stubDialerAgent,
-        stubTurnOn, stubRemoveListener;
+      var stubTelephony, stubCpuWakeLock, stubTurnOn, stubRemoveListener;
 
       setup(function() {
         stubTelephony = {};
@@ -333,7 +335,7 @@ suite('system/ScreenManager', function() {
         stubTelephony.conferenceGroup = {calls: []};
         ScreenManager._screenOffBy = '';
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isFalse(stubTurnOn.called);
+        assert.isTrue(stubTurnOn.called);
       });
 
       test('with a call', function() {

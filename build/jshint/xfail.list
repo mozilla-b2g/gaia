@@ -325,7 +325,6 @@ apps/system/js/operator_variant/operator_variant.js
 apps/system/js/operator_variant/operator_variant_iccs.js
 apps/system/js/orientation_manager.js
 apps/system/js/payment.js
-apps/system/js/screen_manager.js
 apps/system/js/sheets_transition.js
 apps/system/js/sim_lock.js
 apps/system/js/storage_watcher.js
@@ -410,7 +409,6 @@ apps/system/test/unit/mock_utility_tray.js
 apps/system/test/unit/mock_wifi_manager.js
 apps/system/test/unit/operator_variant_helper_test.js
 apps/system/test/unit/orientation_manager_test.js
-apps/system/test/unit/screen_manager_test.js
 apps/system/test/unit/settings_helper_test.js
 apps/system/test/unit/spin_date_picker_test.js
 apps/system/test/unit/storage_watcher_test.js
