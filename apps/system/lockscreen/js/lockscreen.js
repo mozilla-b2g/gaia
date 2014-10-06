@@ -538,8 +538,10 @@
     this.refreshClock(new Date());
 
     // mobile connection state on lock screen.
-    // It needs L10n too.
-    if (window.navigator.mozMobileConnections) {
+    // It needs L10n too. But it's not a re-entrable function,
+    // so we need to check if it's already initialized.
+    if (window.navigator.mozMobileConnections &&
+        !this._lockscreenConnInfoManager) {
       this._lockscreenConnInfoManager =
         new window.LockScreenConnInfoManager(this.connStates);
     }
