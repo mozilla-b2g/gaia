@@ -6,7 +6,7 @@
     </gaia-header>
 
     <div>
-      <ul>
+      <ul class="carrier-info" hidden>
         <li>
           <span data-l10n-id="dataNetwork">Carrier</span>
           <small id="dataNetwork-desc"></small>
@@ -19,7 +19,7 @@
       <ul>
         <li id="menuItem-enableDataCall" aria-disabled="true">
           <label class="pack-switch">
-            <input type="checkbox" name="ril.data.enabled" class="uninit">
+            <input type="checkbox" name="ril.data.enabled">
             <span data-l10n-id="dataConnection">Data Connection</span>
             <small id="dataConnection-desc"></small>
           </label>
@@ -34,19 +34,41 @@
         <li id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden></li>
       </ul>
 
-      <header>
-        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
-      </header>
-      <ul>
-        <li>
-          <button class="icon icon-view" data-href="#carrier-operatorSettings"
-            data-l10n-id="networkOperator"> Network Operator </button>
-        </li>
-        <li>
-          <button class="icon icon-view" data-href="#apn-settings"
-            data-l10n-id="apnSettings">APN Settings</button>
-        </li>
-      </ul>
+      <div class="carrier-advancedSettings" hidden>
+        <header>
+          <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+        </header>
+        <ul>
+          <li>
+            <button class="icon icon-view" data-href="#carrier-operatorSettings"
+              data-l10n-id="networkOperator"> Network Operator </button>
+          </li>
+          <li>
+            <button class="icon icon-view" data-href="#apn-settings"
+              data-l10n-id="apnSettings">APN Settings</button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="carrier-simSettings" hidden>
+        <header>
+          <h2 data-l10n-id="simSettings">SIM Settings</h2>
+        </header>
+        <ul>
+          <li id="menuItem-carrier-sim1" aria-disabled="true">
+            <a data-href="#carrier-detail">
+              <span data-l10n-id="sim1">SIM 1</span>
+              <small></small>
+            </a>
+          </li>
+          <li id="menuItem-carrier-sim2" aria-disabled="true">
+            <a data-href="#carrier-detail">
+              <span data-l10n-id="sim2">SIM 2</span>
+              <small></small>
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <script src="shared/js/apn_helper.js"></script>

@@ -73,6 +73,13 @@ define(function(require) {
         _rootElement = rootElement;
         var apnBtns = rootElement.querySelectorAll('button[data-apn-type]');
         var resetBtn = rootElement.querySelector('button.reset-apn');
+        var header = rootElement.querySelector('gaia-header');
+
+        if (DsdsSettings.getNumberOfIccSlots() > 1) {
+          header.dataset.href = '#carrier-detail';
+        } else {
+          header.dataset.href = '#carrier';
+        }
 
         Array.prototype.forEach.call(apnBtns, function(btn) {
           btn.onclick = _browseApnItems.bind(null, btn.dataset.apnType);
