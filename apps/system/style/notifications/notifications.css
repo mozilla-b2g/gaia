@@ -117,13 +117,12 @@
   height: .2rem;
   width: 100%;
   opacity: 0;
-  background-color: #00BCE2;
+  background-color: #00D3FF;
   transform: translateY(-.2rem);
   transition: opacity .5s ease .5s, transform 0s ease 1s, background-color 0s ease 1s;
 }
 
-#notification-toaster.displayed:after,
-#ambient-indicator:after {
+#notification-toaster.displayed:after {
   position: absolute;
   right: 0;
   left: 0;
@@ -149,27 +148,9 @@
 }
 
 #ambient-indicator.unread {
-  background-color: #006e86;
   transform: translateY(0);
   transition: background-color .3s ease .3s;
   opacity: 1;
-}
-
-#ambient-indicator.small:after {
-  width: 8.6rem;
-}
-
-#ambient-indicator.medium:after {
-  width: 16.8rem;
-}
-
-#ambient-indicator.big:after {
-  width: 24.8rem;
-}
-
-#ambient-indicator.full:after {
-  width: 100%;
-  background-color: white;
 }
 
 #notification-bar {
