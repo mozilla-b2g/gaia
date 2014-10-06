@@ -346,6 +346,7 @@ suite('Cost Control Service Hub Suite >', function() {
           assert.equal(result.status, 'success');
           assert.equal(result.data.wifi.total, 112123944);
           assert.equal(result.data.mobile.total, 4800543137);
+          assert.equal(Object.keys(result.data.mobile.apps).length, 0);
           SimManager.requestDataSimIcc.restore();
           done();
         });
