@@ -140,7 +140,8 @@ marionette('check root panel settings', function() {
         assert.ok(rootPanel.isSimSecurityItemVisible);
       });
 
-      test('ensure sim manager item invisible', function() {
+      // Intermittent failure, http://bugzil.la/1078133.
+      test.skip('ensure sim manager item invisible', function() {
         assert.ok(!rootPanel.isSimManagerItemVisible);
       });
     });
