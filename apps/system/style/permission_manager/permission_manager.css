@@ -20,6 +20,12 @@
   }
 }
 
+@media (orientation: portrait) {
+  #screen.software-button-enabled #permission-screen .generic-dialog[role="dialog"] {
+    bottom: 0;
+  }
+}
+
 #screen:-moz-full-screen-ancestor > #permission-screen,
 #screen.fullscreen-app #permission-screen,
 #screen.lockscreen-camera #permission-screen {
@@ -41,7 +47,7 @@
   margin-top: var(--statusbar-height);
 }
 
-@media not all and (-moz-physical-home-button) {
+@media all and (orientation: portrait) {
   #screen:not(.software-button-disabled) #permission-screen {
     height: calc(100% - var(--software-home-button-height));
   }
