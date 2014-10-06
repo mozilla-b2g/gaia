@@ -3,7 +3,6 @@ apps/pdfjs/test/**
 apps/email/build/**
 apps/email/built/**
 apps/email/js/ext/**
-apps/calendar/build/**
 apps/calendar/js/ext/**
 apps/camera/js/vendor/**
 apps/camera/test/**

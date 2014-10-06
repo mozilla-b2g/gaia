@@ -1,16 +1,23 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var Calc = require('calc');
-var DayBased = require('views/day_based');
-var Factory = require('test/support/factory');
-var OrderedMap = require('utils/ordered_map');
-var Overlap = require('utils/overlap');
-var QueryString = require('querystring');
-var Timespan = require('timespan');
-var View = require('view');
+requireLib('querystring.js');
+requireLib('timespan.js');
+requireLib('utils/overlap.js');
+requireLib('utils/ordered_map.js');
+requireLib('template.js');
+requireLib('templates/date_span.js');
+requireLib('templates/day.js');
+requireLib('views/day_based.js');
 
-suite('Views.DayBased', function() {
+suiteGroup('Views.DayBased', function() {
+  'use strict';
+
+  var OrderedMap;
+
+  suiteSetup(function() {
+    OrderedMap = Calendar.Utils.OrderedMap;
+  });
+
   var subject;
   var app;
   var date = new Date(2012, 1, 5);
@@ -24,7 +31,10 @@ suite('Views.DayBased', function() {
     app = testSupport.calendar.app();
     controller = app.timeController;
 
-    subject = new DayBased({ date: date, app: app });
+    subject = new Calendar.Views.DayBased({
+      date: date,
+      app: app
+    });
 
     template = subject.template;
 
@@ -41,15 +51,15 @@ suite('Views.DayBased', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, View);
+    assert.instanceOf(subject, Calendar.View);
     assert.equal(subject.app, app);
-    assert.instanceOf(subject.timespan, Timespan);
+    assert.instanceOf(subject.timespan, Calendar.Timespan);
 
-    var expectedSpan = Calc.spanOfDay(date);
+    var expectedSpan = Calendar.Calc.spanOfDay(date);
     assert.deepEqual(subject.timespan, expectedSpan);
 
     assert.instanceOf(subject.hours, OrderedMap);
-    assert.instanceOf(subject.overlaps, Overlap);
+    assert.instanceOf(subject.overlaps, Calendar.Utils.Overlap);
   });
 
   suite('#_loadRecords', function() {
@@ -167,7 +177,7 @@ suite('Views.DayBased', function() {
 
     test('from clean state', function() {
       assert.equal(subject._changeToken, 0);
-      var day = Calc.createDay(startTime);
+      var day = Calendar.Calc.createDay(startTime);
 
       assert.ok(!subject.element.dataset.date, 'does not have a date');
       subject.changeDate(startTime, true);
@@ -187,7 +197,7 @@ suite('Views.DayBased', function() {
 
       assert.deepEqual(
         subject.timespan,
-        Calc.spanOfDay(day)
+        Calendar.Calc.spanOfDay(day)
       );
 
       var eventIdx = controller.findTimeObserver(
@@ -343,7 +353,7 @@ suite('Views.DayBased', function() {
     });
 
     test('all day events', function() {
-      var type = Calc.ALLDAY;
+      var type = Calendar.Calc.ALLDAY;
 
       event = Factory('event');
       busytime = Factory('busytime');
@@ -608,7 +618,7 @@ suite('Views.DayBased', function() {
       list.push(item[1].element);
     });
 
-    var displayedHours = Calc.hoursOfOccurence(
+    var displayedHours = Calendar.Calc.hoursOfOccurence(
       subject.date,
       busytime.startDate,
       busytime.endDate
@@ -626,14 +636,17 @@ suite('Views.DayBased', function() {
     var date = new Date(2012, 1, 1);
     var calledWith;
 
-    var subject = new DayBased({ app: app, date: date });
+    var subject = new Calendar.Views.DayBased({
+      app: app,
+      date: date
+    });
 
     // stub out the db interaction...
     subject._loadRecords = function() {};
 
     subject.changeDate = function() {
       calledWith = arguments;
-      DayBased.prototype.changeDate.apply(
+      Calendar.Views.DayBased.prototype.changeDate.apply(
         this,
         arguments
       );
@@ -714,7 +727,7 @@ suite('Views.DayBased', function() {
       var expectation =
         this.sinon.mock(subject.app)
           .expects('go')
-          .withArgs('/event/add/?' + QueryString.stringify({
+          .withArgs('/event/add/?' + Calendar.QueryString.stringify({
             isAllDay: true,
             startDate: startDate.toString(),
             endDate: endDate.toString()
@@ -723,7 +736,7 @@ suite('Views.DayBased', function() {
 
       subject._onHourClick({}, {
         getAttribute: function(key) {
-          return Calc.ALLDAY;
+          return Calendar.Calc.ALLDAY;
         }
       });
 
@@ -739,7 +752,7 @@ suite('Views.DayBased', function() {
       var expectation =
         this.sinon.mock(subject.app)
           .expects('go')
-          .withArgs('/event/add/?' + QueryString.stringify({
+          .withArgs('/event/add/?' + Calendar.QueryString.stringify({
             startDate: startDate.toString(),
             endDate: endDate.toString()
           }));
@@ -875,6 +888,4 @@ suite('Views.DayBased', function() {
       }, 10);
     }
   });
-});
-
 });

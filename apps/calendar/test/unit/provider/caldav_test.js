@@ -1,18 +1,14 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var AbstractProvider = require('provider/abstract');
-var CaldavProvider = require('provider/caldav');
-var CaldavPullEvents = require('provider/caldav_pull_events');
-var CalendarError = require('error');
-var Calc = require('calc');
-var Factory = require('test/support/factory');
-var ICAL = require('ext/ical');
-var Responder = require('responder');
-var ServiceSupport = require('test/service/helper');
-var nextTick = require('next_tick');
+requireLib('ext/ical.js');
+requireApp('calendar/test/unit/service/helper.js');
+requireApp('calendar/test/unit/provider/mock_stream.js');
+requireLib('models/account.js');
+requireLib('models/calendar.js');
 
-suite('provider/caldav', function() {
+suiteGroup('Provider.Caldav', function() {
+  'use strict';
+
   var subject;
   var app;
   var controller;
@@ -28,7 +24,9 @@ suite('provider/caldav', function() {
     controller = app.serviceController;
     db = app.db;
 
-    subject = new CaldavProvider({ app: app });
+    subject = new Calendar.Provider.Caldav({
+      app: app
+    });
 
     calendarStore = app.store('Calendar');
     accountStore = app.store('Account');
@@ -78,7 +76,7 @@ suite('provider/caldav', function() {
   test('initialization', function() {
     assert.instanceOf(
       subject,
-      AbstractProvider
+      Calendar.Provider.Abstract
     );
 
     assert.equal(
@@ -141,7 +139,7 @@ suite('provider/caldav', function() {
         var expectedClass;
 
         setup(function(done) {
-          expectedClass = CalendarError[error.expect];
+          expectedClass = Calendar.Error[error.expect];
 
           givenErr = { name: error.input };
           result = subject._handleServiceError(
@@ -184,7 +182,7 @@ suite('provider/caldav', function() {
         { account: account }
       );
 
-      assert.instanceOf(result, CalendarError);
+      assert.instanceOf(result, Calendar.Error);
     });
 
     test('new account', function() {
@@ -194,7 +192,7 @@ suite('provider/caldav', function() {
         { account: account }
       );
 
-      assert.instanceOf(result, CalendarError);
+      assert.instanceOf(result, Calendar.Error);
     });
   });
 
@@ -291,7 +289,7 @@ suite('provider/caldav', function() {
       function next() {
         --pending;
         if (pending === 0) {
-          nextTick(done);
+          Calendar.nextTick(done);
         }
       }
 
@@ -794,7 +792,7 @@ suite('provider/caldav', function() {
         }
 
         calledWith = args;
-        var stream = new Responder();
+        var stream = new Calendar.Responder();
         stream.request = function(callback) {
           setTimeout(callback, 0, error);
         };
@@ -807,7 +805,7 @@ suite('provider/caldav', function() {
 
       function oncomplete(cbErr) {
         done(function() {
-          assert.instanceOf(cbErr, CalendarError.Authentication);
+          assert.instanceOf(cbErr, Calendar.Error.Authentication);
           assert.deepEqual(cbErr.detail, {
             account: account,
             calendar: calendar
@@ -867,7 +865,7 @@ suite('provider/caldav', function() {
 
           assert.instanceOf(
             pull,
-            CaldavPullEvents
+            Calendar.Provider.CaldavPullEvents
           );
 
           assert.equal(pull.account, account);
@@ -895,7 +893,7 @@ suite('provider/caldav', function() {
     });
 
     test('without first sync date', function(done) {
-      var syncDate = Calc.createDay(new Date());
+      var syncDate = Calendar.Calc.createDay(new Date());
       var expectedSyncDate = new Date(syncDate.valueOf());
 
       syncDate.setDate(syncDate.getDate() - subject.daysToSyncInPast);
@@ -999,7 +997,7 @@ suite('provider/caldav', function() {
           eventId: eventId,
           ical: ical.recurringEvent,
           iterator: {},
-          lastRecurrenceId: Calc.dateToTransport(
+          lastRecurrenceId: Calendar.Calc.dateToTransport(
             givenLastRecur
           )
         });
@@ -1046,7 +1044,7 @@ suite('provider/caldav', function() {
           assert.ok(results.busytimes.length, 1);
 
           var comp = results.icalComponents[0];
-          var lastRecur = Calc.dateFromTransport(
+          var lastRecur = Calendar.Calc.dateFromTransport(
             comp.lastRecurrenceId
           );
 
@@ -1075,7 +1073,6 @@ suite('provider/caldav', function() {
         }
       });
     });
-  });
-});
 
+  });
 });

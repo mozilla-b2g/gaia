@@ -1,16 +1,14 @@
-define(function(require, exports, module) {
+Calendar.ns('Views').MultiDay = (function() {
 'use strict';
 
-var Calc = require('calc');
-var CurrentTime = require('./current_time');
-var DateSpan = require('templates/date_span');
-var HourDoubleTap = require('./hour_double_tap');
-var Pan = require('./pan');
-var SingleDay = require('./single_day');
-var Timespan = require('timespan');
-var View = require('view');
-var createDay = require('calc').createDay;
-var throttle = require('utils/mout').throttle;
+var HourDoubleTap = Calendar.Views.HourDoubleTap;
+var Pan = Calendar.Views.Pan;
+var SingleDay = Calendar.Views.SingleDay;
+var Timespan = Calendar.Timespan;
+var View = Calendar.View;
+var DateSpan = Calendar.Templates.DateSpan;
+var createDay = Calendar.Calc.createDay;
+var throttle = Calendar.Utils.mout.throttle;
 
 function MultiDay(opts) {
   this.app = opts.app;
@@ -18,7 +16,6 @@ function MultiDay(opts) {
   this.children = [];
   this._render = throttle(this._render, 200);
 }
-module.exports = MultiDay;
 
 MultiDay.prototype = {
 
@@ -145,7 +142,7 @@ MultiDay.prototype = {
   },
 
   _setupCurrentTime: function() {
-    this._currentTime = new CurrentTime({
+    this._currentTime = new Calendar.Views.CurrentTime({
       container: this.element.querySelector('.main-content'),
       sticky: this.alldaysHolder
     });
@@ -243,7 +240,7 @@ MultiDay.prototype = {
   },
 
   _getPendingDates: function(range) {
-    var dates = Calc.daysBetween(range);
+    var dates = range.daysBetween();
     if (this._prevRange) {
       dates = dates.filter(date => {
         return !this._prevRange.contains(date);
@@ -333,4 +330,5 @@ function createDayDiff(date, diff) {
   return createDay(date, date.getDate() + diff);
 }
 
-});
+return MultiDay;
+}());

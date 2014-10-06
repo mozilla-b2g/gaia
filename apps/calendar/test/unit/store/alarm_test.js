@@ -1,12 +1,13 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var Abstract = require('store/abstract');
-var Calc = require('calc');
-var Factory = require('test/support/factory');
-var Responder = require('responder');
+requireLib('calc.js');
+requireLib('db.js');
+requireLib('store/abstract.js');
+requireLib('store/alarm.js');
 
 suite('store/alarm', function() {
+  'use strict';
+
   var subject;
   var db;
   var app;
@@ -18,7 +19,6 @@ suite('store/alarm', function() {
     db = app.db;
     controller = app.alarmController;
     subject = db.getStore('Alarm');
-    subject.app = app;
 
     db.open(function(err) {
       assert.ok(!err);
@@ -148,7 +148,7 @@ suite('store/alarm', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Abstract);
+    assert.instanceOf(subject, Calendar.Store.Abstract);
     assert.equal(subject.db, db);
     assert.deepEqual(subject._cached, {});
   });
@@ -163,7 +163,7 @@ suite('store/alarm', function() {
 
       if (floating) {
         record.startDate.offset = 0;
-        record.startDate.tzid = Calc.FLOATING;
+        record.startDate.tzid = Calendar.Calc.FLOATING;
       }
 
       subject.persist(record, done);
@@ -180,7 +180,7 @@ suite('store/alarm', function() {
     var mockApi = {
 
       getAll: function() {
-        var req = new Responder();
+        var req = new Calendar.Responder();
 
         setTimeout(function() {
           req.result = getAllResults.concat([]);
@@ -201,7 +201,7 @@ suite('store/alarm', function() {
 
       add: function(date, tz, data) {
         added.push(Array.prototype.slice.call(arguments));
-        var req = new Responder();
+        var req = new Calendar.Responder();
 
         setTimeout(function() {
           lastId++;
@@ -422,6 +422,5 @@ suite('store/alarm', function() {
     });
 
   });
-});
 
 });

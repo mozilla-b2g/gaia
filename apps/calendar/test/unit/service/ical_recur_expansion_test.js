@@ -1,11 +1,14 @@
-define(function(require) {
 'use strict';
 
-var CaldavService = require('service/caldav');
-var ICAL = require('ext/ical');
-var IcalRecurExpansion = require('service/ical_recur_expansion');
-var Responder = require('responder');
-var ServiceSupport = require('test/service/helper');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('ext/ical.js');
+  requireLib('ext/caldav.js');
+  requireApp('calendar/test/unit/service/helper.js');
+  requireLib('service/ical_recur_expansion.js');
+
+  // indirect dep we use this for testing only...
+  requireLib('service/caldav.js');
+});
 
 suite('service/ical_recur_expansion', function() {
   var fixtures;
@@ -14,7 +17,7 @@ suite('service/ical_recur_expansion', function() {
   var forEachLimit = 30;
 
   suiteSetup(function() {
-    subject = IcalRecurExpansion;
+    subject = Calendar.Service.IcalRecurExpansion;
 
     // replace the maximum iterators with a smaller
     // number suitable for tests.
@@ -31,7 +34,10 @@ suite('service/ical_recur_expansion', function() {
     fixtures.load('recurring_event');
     fixtures.onready = done;
 
-    var service = new CaldavService(new Responder());
+    var service = new Calendar.Service.Caldav(
+      new Calendar.Responder()
+    );
+
     parseEvent = service.parseEvent.bind(service);
   });
 
@@ -270,6 +276,4 @@ suite('service/ical_recur_expansion', function() {
       verifyBounds();
     });
   });
-});
-
 });

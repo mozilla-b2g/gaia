@@ -1,18 +1,16 @@
-/* global suiteTemplate */
-define(function(require) {
-'use strict';
+requireLib('provider/abstract.js');
+requireLib('provider/local.js');
+requireLib('template.js');
+requireLib('templates/date_span.js');
+requireLib('templates/alarm.js');
+requireElements('calendar/elements/show_event.html');
 
-var EventBase = require('views/event_base');
-var View = require('view');
-var ViewEvent = require('views/view_event');
-var providerFactory = require('provider/provider_factory');
-var app = require('app');
+suiteGroup('Views.ViewEvent', function() {
+  'use strict';
 
-require('dom!show_event');
-
-suite('Views.ViewEvent', function() {
   var subject;
   var controller;
+  var app;
 
   var event;
   var account;
@@ -43,8 +41,8 @@ suite('Views.ViewEvent', function() {
   var realGo;
 
   teardown(function() {
-    app.go = realGo;
-    delete providerFactory.providers.Test;
+    Calendar.App.go = realGo;
+    delete app._providers.Test;
   });
 
   suiteTemplate('show-event', {
@@ -52,17 +50,17 @@ suite('Views.ViewEvent', function() {
   });
 
   setup(function(done) {
-    realGo = app.go;
+    realGo = Calendar.App.go;
     app = testSupport.calendar.app();
 
     eventStore = app.store('Event');
     accountStore = app.store('Account');
     calendarStore = app.store('Calendar');
-    provider = providerFactory.get('Mock');
+    provider = app.provider('Mock');
 
     controller = app.timeController;
 
-    subject = new ViewEvent({
+    subject = new Calendar.Views.ViewEvent({
       app: app
     });
 
@@ -103,8 +101,8 @@ suite('Views.ViewEvent', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, View);
-    assert.instanceOf(subject, EventBase);
+    assert.instanceOf(subject, Calendar.View);
+    assert.instanceOf(subject, Calendar.Views.EventBase);
     assert.equal(subject._changeToken, 0);
 
     assert.ok(subject._els, 'has elements');
@@ -306,6 +304,4 @@ suite('Views.ViewEvent', function() {
       triggerEvent(subject.primaryButton, 'click');
     });
   });
-});
-
 });

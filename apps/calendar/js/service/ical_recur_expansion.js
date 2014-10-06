@@ -1,9 +1,7 @@
-define(function(require, exports, module) {
+/* global ICAL */
 'use strict';
 
-var ICAL = require('ext/ical');
-
-module.exports = {
+Calendar.ns('Service').IcalRecurExpansion = {
   /**
    * Maximum iterations must be > 0 && < Infinity.
    * Lower values are probably better as we can show progress
@@ -52,7 +50,10 @@ module.exports = {
     try {
       iter = this._resumeIteration(event, iterator, each, min, max);
     } catch (e) {
-      console.error('Iteration Error: ' + e.toString());
+      console.log(
+        'Iteration Error: ' +
+        e.toString()
+      );
       iter = this._beginIteration(event, each, min, max);
     }
 
@@ -97,5 +98,3 @@ module.exports = {
     } while (!this._isDone(current, sent, max));
   }
 };
-
-});
