@@ -130,6 +130,16 @@ suite('system/VisibilityManager', function() {
       assert.isTrue(stubPublish.calledWith('showwindowforscreenreader'));
     });
 
+    test('utilitytraywillshow', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'utilitytraywillshow'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('hidewindowforscreenreader'));
+    });
+
     test('utility-tray-overlayopened', function() {
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
@@ -144,6 +154,26 @@ suite('system/VisibilityManager', function() {
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
         type: 'utility-tray-overlayclosed'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('showwindowforscreenreader'));
+    });
+
+    test('sheets-gesture-begin', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'sheets-gesture-begin'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('hidewindowforscreenreader'));
+    });
+
+    test('sheets-gesture-end', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'sheets-gesture-end'
       });
 
       assert.isTrue(stubPublish.called);
