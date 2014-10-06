@@ -18,7 +18,6 @@ var DataUsageTab = (function() {
   var wifiLayer, mobileLayer, warningLayer, limitsLayer;
   var wifiOverview, mobileOverview;
   var wifiToggle, mobileToggle;
-  var wifiItem, mobileItem;
 
   var costcontrol, initialized, model;
 
@@ -40,8 +39,6 @@ var DataUsageTab = (function() {
       graphicPattern = document.getElementById('graphic-pattern');
       wifiLayer = document.getElementById('wifi-layer');
       mobileLayer = document.getElementById('mobile-layer');
-      mobileItem = document.getElementById('mobileItem');
-      wifiItem = document.getElementById('wifiItem');
       wifiOverview = document.getElementById('wifiOverview');
       mobileOverview = document.getElementById('mobileOverview');
       wifiToggle = document.getElementById('wifiCheck');
@@ -398,7 +395,6 @@ var DataUsageTab = (function() {
   function toggleWifi() {
     var isChecked = wifiToggle.checked;
     wifiLayer.setAttribute('aria-hidden', !isChecked);
-    wifiItem.setAttribute('aria-disabled', !isChecked);
     // save wifi toggled state
     ConfigManager.setOption({ isWifiChartVisible: isChecked });
 
@@ -413,7 +409,6 @@ var DataUsageTab = (function() {
     mobileLayer.setAttribute('aria-hidden', !isChecked);
     warningLayer.setAttribute('aria-hidden', !isChecked);
     limitsLayer.setAttribute('aria-hidden', !isChecked);
-    mobileItem.setAttribute('aria-disabled', !isChecked);
     // save wifi toggled state
     ConfigManager.setOption({ isMobileChartVisible: isChecked });
 
