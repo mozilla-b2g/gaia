@@ -86,6 +86,17 @@ suite('system/AttentionToaster', function() {
       assert.equal(at1._currentToasterState, 'closing');
     });
 
+  test('Enter opening state if being at closed state for 30sec.',
+    function() {
+      var app1 = new MockAppWindow(fakeAppConfig1);
+      var at1 = new AttentionToaster(app1);
+      at1.start();
+      at1._currentToasterState = 'closing';
+      at1._enter_closed('complete');
+      this.sinon.clock.tick(at1.RESPAWN_TIMEOUT);
+      assert.equal(at1._currentToasterState, 'opening');
+    });
+
   test('Enter closed state while the attention window transition ends.',
     function() {
       var app1 = new MockAppWindow(fakeAppConfig1);
