@@ -760,7 +760,7 @@ test-integration-test:
 
 .PHONY: caldav-server-install
 caldav-server-install:
-	source tests/travis_ci/venv.sh; \
+	source tests/ci/venv.sh; \
 				export LC_ALL=en_US.UTF-8; \
 				export LANG=en_US.UTF-8; \
 				pip install radicale;

@@ -5,7 +5,7 @@
 # we run specfic marionette tests for 30 times on Travis.                     #
 ###############################################################################
 
-MARIONETTE_TEST_FILE_NAMES=$(node tests/travis_ci/marionette_js_stable_check/pull-request-marionette-test)
+MARIONETTE_TEST_FILE_NAMES=$(node tests/ci/marionette_js_stable_check/pull-request-marionette-test)
 
 if [ ${#MARIONETTE_TEST_FILE_NAMES} -gt 0 ]; then
   TEST_RESULT=0

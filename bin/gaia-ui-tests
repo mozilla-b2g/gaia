@@ -36,7 +36,7 @@ gaiatest="$root/cli.py"
 echo "Using b2g: $b2g"
 
 # Enter the virtual env.
-source ./tests/travis_ci/venv.sh &&
+source ./tests/ci/venv.sh &&
 # CD into the directory to install python libs.
 cd $root/../ && \
 # Ensure all dependencies are set.
