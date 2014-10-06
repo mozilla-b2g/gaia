@@ -2184,6 +2184,8 @@ suite('system/Statusbar', function() {
   suite('handle events', function() {
     var app;
     var setAppearanceStub;
+    var resumeUpdateStub;
+    var pauseUpdateStub;
 
     function testEventThatHides(event) {
       var evt = new CustomEvent(event);
@@ -2202,10 +2204,29 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
     }
 
+    function testEventThatPause(event) {
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+      assert.isTrue(pauseUpdateStub.called);
+
+      StatusBar.resumeUpdate();
+    }
+
+    function testEventThatResume(event) {
+      StatusBar.pauseUpdate();
+
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+      assert.isTrue(resumeUpdateStub.called);
+      assert.isFalse(StatusBar.isPaused());
+    }
+
     setup(function() {
       app = {};
       MockSystem.currentApp = app;
       setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+      pauseUpdateStub = this.sinon.stub(StatusBar, 'pauseUpdate');
+      resumeUpdateStub = this.sinon.stub(StatusBar, 'resumeUpdate');
     });
 
     test('stackchanged', function() {
@@ -2252,6 +2273,38 @@ suite('system/Statusbar', function() {
 
     test('activityopened', function() {
       testEventThatShows.bind(this)('activityopened');
+    });
+
+    test('utilitytraywillshow', function() {
+      testEventThatPause.bind(this)('utilitytraywillshow');
+    });
+
+    test('utilitytraywillhide', function() {
+      testEventThatPause.bind(this)('utilitytraywillhide');
+    });
+
+    test('cardviewshown', function() {
+      testEventThatPause.bind(this)('cardviewshown');
+    });
+
+    test('sheets-gesture-begin', function() {
+      testEventThatPause.bind(this)('sheets-gesture-begin');
+    });
+
+    test('sheets-gesture-end', function() {
+      testEventThatResume.bind(this)('sheets-gesture-end');
+    });
+
+    test('utility-tray-overlayopened', function() {
+      testEventThatResume.bind(this)('utility-tray-overlayopened');
+    });
+
+    test('utility-tray-overlayclosed', function() {
+      testEventThatResume.bind(this)('utility-tray-overlayclosed');
+    });
+
+    test('cardviewclosed', function() {
+      testEventThatResume.bind(this)('cardviewclosed');
     });
   });
 
