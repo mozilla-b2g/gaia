@@ -12,9 +12,6 @@ var UtilityTray = {
 
   notifications: document.getElementById('utility-tray-notifications'),
 
-  notificationsPlaceholder:
-    document.getElementById('notifications-placeholder'),
-
   statusbar: document.getElementById('statusbar'),
 
   statusbarIcons: document.getElementById('statusbar-icons'),
@@ -89,7 +86,6 @@ var UtilityTray = {
   screenWidth: 0,
   screenHeight: 0,
   grippyHeight: 0,
-  placeholderHeight: 0,
 
   handleEvent: function ut_handleEvent(evt) {
     var target = evt.target;
@@ -218,14 +214,11 @@ var UtilityTray = {
       case 'transitionend':
         if (!this.shown) {
           this.screen.classList.remove('utility-tray');
-          this.notifications.classList.remove('visible');
         }
         break;
 
       case 'resize':
         this.validateCachedSizes(true);
-        if (this.shown)
-          this.updateSize();
         break;
 
       case 'mozChromeEvent':
@@ -261,11 +254,6 @@ var UtilityTray = {
 
     if (refresh || !this.grippyHeight) {
       this.grippyHeight = this.grippy.clientHeight || 0;
-    }
-
-    if (refresh || !this.placeholderHeight) {
-      this.placeholderHeight = this.notificationsPlaceholder.clientHeight || 0;
-      this.notifications.style.height = this.placeholderHeight + 'px';
     }
   },
 
@@ -308,7 +296,6 @@ var UtilityTray = {
     if (dy > 5) {
       this.isTap = false;
       this.screen.classList.add('utility-tray');
-      this.notifications.classList.add('visible');
     }
 
     if (this.shown) {
@@ -321,9 +308,8 @@ var UtilityTray = {
     style.MozTransform = 'translateY(' + dy + 'px)';
 
     this.notifications.style.transition = '';
-    var notificationBottom = Math.max(0, dy - this.grippyHeight);
-    this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
+    this.notifications.style.transform =
+      'translateY(' + (window.innerHeight - dy - 30 /* StatusBar */) + 'px)';
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {
@@ -359,18 +345,16 @@ var UtilityTray = {
     var alreadyHidden = !this.shown;
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-    this.notifications.style.transition = instant ? '' : 'clip 0.2s linear';
-    this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px, 0, 0)';
+    this.notifications.style.transition = style.MozTransition;
 
     // If the transition has not started yet there won't be any transitionend
     // event so let's not wait in order to remove the utility-tray class.
     if (instant || style.MozTransform === '') {
       this.screen.classList.remove('utility-tray');
-      this.notifications.classList.remove('visible');
     }
 
     style.MozTransform = '';
+    this.notifications.style.transform = 'translateY(100%)';
     this.shown = false;
     window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
 
@@ -381,18 +365,18 @@ var UtilityTray = {
     }
   },
 
-  show: function ut_show(dy) {
+  show: function ut_show(instant) {
     this.validateCachedSizes();
-    this.updateSize();
     var alreadyShown = this.shown;
     var style = this.overlay.style;
-    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(100%)';
+    this.notifications.style.transition =
+      instant ? '' : 'transform 0.2s linear';
+    this.notifications.style.transform = '';
 
     this.shown = true;
     this.screen.classList.add('utility-tray');
-    this.notifications.classList.add('visible');
-    this.notifications.style.transition = 'clip 0.2s linear';
     window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
 
     if (!alreadyShown) {
@@ -408,13 +392,6 @@ var UtilityTray = {
       'statusbarNotifications', {
         n: count
       });
-  },
-
-  updateSize: function ut_updateSize() {
-    this.notifications.style.height = this.placeholderHeight + 'px';
-    var notificationBottom = Math.max(0, this.screenHeight - this.grippyHeight);
-    this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
   },
 
   _pdIMESwitcherShow: function ut_pdIMESwitcherShow(evt) {
