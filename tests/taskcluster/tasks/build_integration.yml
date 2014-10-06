@@ -1,6 +1,6 @@
 task:
   metadata:
-    name: Gaia build tests
+    name: Gaia build tests {{chunk}}
     description: Runs entire gaia build system through all known variants.
 
   workerType: '{{workerType}}'
@@ -9,12 +9,15 @@ task:
   payload:
     env:
       REPORTER: 'mocha-tbpl-reporter'
+      THIS_CHUNK: '{{chunk}}'
+      TOTAL_CHUNKS: '{{totalChunks}}'
 
     command:
       - entrypoint
       - ./bin/ci run build_integration
+
   extra:
     treeherder:
       groupSymbol: GB
       groupName: "Gaia build tests"
-      symbol: GBI
+      symbol: GBI{{chunk}}

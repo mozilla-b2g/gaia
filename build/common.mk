@@ -6,15 +6,6 @@ endif
 
 export APP_DIR
 
-define run-build-test
-  node_modules/.bin/mocha \
-    --harmony \
-    --reporter $(REPORTER) \
-    --ui tdd \
-    --timeout 300000 \
-    $(strip $1)
-endef
-
 define run-build-coverage
   TEST_FILES_DIR=$1 node --harmony node_modules/istanbul/lib/cli.js \
   cover build/test/coverage-checker.js
