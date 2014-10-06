@@ -3,7 +3,7 @@
 /* global Suggestions */
 
 require('/shared/test/unit/mocks/mock_collections_database.js');
-requireApp('collection/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForSuggestions = new MocksHelper([
   'CollectionsDatabase'
@@ -35,6 +35,8 @@ suite('suggestions > ', function() {
   });
 
   test('populates options from collections database', function(done) {
+    this.sinon.stub(navigator.mozL10n, 'get').returns('');
+
     var stubCategories = [
       {categoryId: 'cat1', query: 'Mocked Collections', locale: 'en_US'},
       {categoryId: 'cat2', query: 'Mozilla', locale: 'en_US'}
@@ -53,9 +55,9 @@ suite('suggestions > ', function() {
   });
 
   test('l10n logic', function(done) {
-    // set l10n items
-    navigator.mozL10n.set('collection-categoryId-1', 'fromL10nFile');
-    navigator.mozL10n.set('collection-categoryId-2', 'fromL10nFile');
+    var getStub = this.sinon.stub(navigator.mozL10n, 'get').returns('');
+    getStub.withArgs('collection-categoryId-1').returns('fromL10nFile');
+    getStub.withArgs('collection-categoryId-2').returns('fromL10nFile');
 
     var stubCategories = [
       // will be found by l10n, and queries will be overwritten

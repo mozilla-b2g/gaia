@@ -5,7 +5,6 @@
 (function(exports) {
 
   const l10nKey = 'collection-categoryId-';
-  var _ = navigator.mozL10n.get;
   var map = Array.prototype.map;
 
   function Suggestions() {
@@ -34,7 +33,7 @@
         categories.forEach(function each(category) {
           var id = category.categoryId;
 
-          var localeName = _(l10nKey + id);
+          var localeName = navigator.mozL10n.get(l10nKey + id);
           if (!localeName) {
             var categoryLocale = this.toLocaleCode(category.locale);
             if (categoryLocale === deviceLocale) {
@@ -68,7 +67,7 @@
 
         this.el.appendChild(frag);
         if (localeCategories.length < 1) {
-          alert(_('no-available-collections'));
+          alert(navigator.mozL10n.get('no-available-collections'));
           this.hide();
           this.reject('cancelled');
         } else {
