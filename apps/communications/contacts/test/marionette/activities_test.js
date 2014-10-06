@@ -5,6 +5,7 @@ var Contacts = require('./lib/contacts');
 var Dialer = require('../../../dialer/test/marionette/lib/dialer');
 var Sms = require('./lib/sms');
 var assert = require('assert');
+var fs = require('fs');
 
 marionette('Contacts > Activities', function() {
   var client = marionette.client(Contacts.config);
@@ -25,6 +26,60 @@ marionette('Contacts > Activities', function() {
 
     smsSubject = new Sms(client);
     smsSelectors = Sms.Selectors;
+  });
+
+  suite('open text/vcard activity', function() {
+    var testObject = {};
+
+    function assertFormData() {
+      for (var key in testObject) {
+        var value = client.findElement(key).getAttribute('value');
+        assert.equal(value, testObject[key]);
+      }
+    }
+
+    setup(function() {
+      var selectorsArray = [
+        selectors.formGivenName, 
+        selectors.formFamilyName, 
+        selectors.formOrg, 
+        selectors.formTel,
+        selectors.formEmailFirst
+      ];
+
+      var dataArray = [
+        'Forrest',
+        'Gump',
+        'Bubba Gump Shrimp Co.',
+        '+1-111-555-1212',
+        'forrestgump@example.com'
+      ];
+
+      for (var i = 0, len = dataArray.length; i < len; i++) {
+        testObject[selectorsArray[i]] = dataArray[i];
+      }
+    });
+
+    test('open text/vcard activity opens form filled', function() {
+      smsSubject.launch(); // We open some app to start a Marionette session.
+
+      client.executeScript(function(vCardFile) {
+        new MozActivity({
+          name: 'open',
+          data: {
+            type: 'text/vcard',
+            filename: 'vcard_4.vcf',
+            blob: new Blob([vCardFile], {type: 'text/vcard'})
+          }
+        });
+      }, [fs.readFileSync(__dirname + '/data/vcard_4.vcf', 'utf8')]);
+
+      client.switchToFrame();
+      client.apps.switchToApp(Contacts.URL, 'contacts');
+      client.helper.waitForElement(selectors.form);
+
+      assertFormData();
+    });
   });
 
   suite('webcontacts/contact activity', function() {
