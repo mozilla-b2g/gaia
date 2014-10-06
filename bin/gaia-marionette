@@ -14,6 +14,7 @@ SHARED=$DIR/../shared/test/integration
 
 # Go to the isolated Python environment if we already setup the virtualenv.
 VIRTUALENV=$(which virtualenv)
+GI_VENV="$DIR/../gi_venv"
 CI_VENV=$(find $DIR/.. -path "*/ci_venv")
 if [ -x "$VIRTUALENV" -a -x "$CI_VENV" ]; then
   source ./ci_venv/bin/activate
@@ -120,6 +121,32 @@ fi
 # start runner-service if we're testing against device/emulator
 SPAWNED_PID=""
 if [ "$BUILDAPP" != "desktop" ]; then
+  LANG="en_US.UTF-8"
+  if [ ! -z "$GI_VENV" ]; then
+    #create virtualenv for gaia-integration
+    if [ ! -x "$VIRTUALENV" ]; then
+      which pip
+      if [ $? != 0 ]; then
+        which easy_install
+        if [ $? != 0 ]; then
+          echo "Neither pip nor easy_install is found in your path"
+          echo "Please install pip directly using: http://pip.readthedocs.org/en/latest/installing.html#install-or-upgrade-pip"
+          exit 1
+        fi
+        echo "This script requires sudo access to install pip and/or virtualenv "
+        echo "on your system.  Please enter your sudo password if prompted. "
+        echo "If you don't have sudo access, you will need a system administrator "
+        echo "to install pip and virtualenv for you."
+        sudo easy_install pip || { echo 'error installing pip' ; exit 1; }
+      fi
+    fi
+    virtualenv --no-site-packages $GI_VENV || { echo 'error creating virtualenv' ; exit 1; }
+  fi
+  source $GI_VENV/bin/activate
+  which python
+  cd $DIR/../tests/python/runner-service/
+  python setup.py develop
+  cd -
   ADDITIONAL_OPTS=""
   if [ "$B2G_HOME" ]; then
     ADDITIONAL_OPTS="--b2g-home $B2G_HOME"
@@ -132,7 +159,7 @@ if [ "$BUILDAPP" != "desktop" ]; then
   fi
   gaia-integration --buildapp $BUILDAPP $ADDITIONAL_OPTS &
   SPAWNED_PID=$!
-  trap "kill $SPAWNED_PID" SIGINT SIGKILL SIGTERM
+  trap "deactivate && kill $SPAWNED_PID" SIGINT SIGKILL SIGTERM
   echo "spawned PID: $SPAWNED_PID"
 fi
 
@@ -157,10 +184,13 @@ PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
   $TEST_FILES \
   $@
 
-if [ $SPAWNED_PID ]; then
-  ps ux | grep $SPAWNED_PID | grep -v grep
-  if [ $? -eq 0 ]; then
-    echo "killing $SPAWNED_PID"
-    kill $SPAWNED_PID
+if [ "$BUILDAPP" == "desktop" ]; then
+  deactivate
+  if [ $SPAWNED_PID ]; then
+    ps ux | grep $SPAWNED_PID | grep -v grep
+    if [ $? -eq 0 ]; then
+      echo "killing $SPAWNED_PID"
+      kill $SPAWNED_PID
+    fi
   fi
 fi
