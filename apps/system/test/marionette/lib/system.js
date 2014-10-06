@@ -9,6 +9,7 @@ module.exports = System;
 System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 
 System.Selector = Object.freeze({
+  activeHomescreenFrame: '#homescreen.appWindow.active',
   appWindow: '.appWindow',
   appTitlebar: '.appWindow.active .titlebar',
   appUrlbar: '.appWindow.active .title',
@@ -23,6 +24,8 @@ System.Selector = Object.freeze({
   appChromeWindowsButton: '.appWindow.active .controls .windows-button',
   browserWindow: '.appWindow.browser',
   softwareHome: '#software-home-button',
+  softwareHomeFullscreen: '#fullscreen-software-home-button',
+  softwareHomeFullscreenLayout: '#software-buttons-fullscreen-layout',
   statusbar: '#statusbar',
   statusbarLabel: '#statusbar-label',
   topPanel: '#top-panel',
@@ -94,6 +97,15 @@ System.prototype = {
     return this.client.findElement(System.Selector.softwareHome);
   },
 
+  get softwareHomeFullscreen() {
+    return this.client.findElement(System.Selector.softwareHomeFullscreen);
+  },
+
+  get softwareHomeFullscreenLayout() {
+    return this.client.findElement(
+      System.Selector.softwareHomeFullscreenLayout);
+  },
+
   get statusbar() {
     return this.client.findElement(System.Selector.statusbar);
   },
@@ -120,6 +132,19 @@ System.prototype = {
 
   getAppIframe: function(url) {
     return this.client.findElement('iframe[src*="' + url + '"]');
+  },
+
+  /**
+   * Clicks the bottom of the screen, where we expect the software home button
+   * to exist. There are several different variations in the same spot, this
+   * allows us to try to click all of them.
+   */
+  clickSoftwareHomeButton: function() {
+    var body = client.findElement('body');
+    var screenSize = body.scriptWith(function(el) {
+      return el.getBoundingClientRect();
+    });
+    body.tap(screenSize.width / 2, screenSize.height - 10);
   },
 
   gotoBrowser: function(url) {
