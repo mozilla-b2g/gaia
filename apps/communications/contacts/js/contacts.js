@@ -112,12 +112,15 @@ var Contacts = (function() {
         break;
       case 'view-contact-form':
         initForm(function onInitForm() {
-          if (params == -1 || !('id' in params)) {
+          if (params.mozContactParam) {
+            contactsForm.render(ActivityHandler.mozContactParam, goToForm);
+            ActivityHandler.mozContactParam = null;
+          } else if (params == -1 || !(params.id)) {
             contactsForm.render(params, goToForm);
             showApp();
           } else {
             // Editing existing contact
-            if ('id' in params) {
+            if (params.id) {
               var id = params.id;
               cList.getContactById(id, function onSuccess(savedContact) {
                 currentContact = savedContact;

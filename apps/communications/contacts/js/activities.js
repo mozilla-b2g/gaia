@@ -1,4 +1,5 @@
-/* globals ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu */
+/* globals ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu,
+   VCardReader */
 /* exported ActivityHandler */
 
 'use strict';
@@ -7,6 +8,8 @@ var ActivityHandler = {
   _currentActivity: null,
 
   _launchedAsInlineActivity: (window.location.search == '?pick'),
+
+  mozContactParam: null,
 
   get currentlyHandling() {
     return !!this._currentActivity;
@@ -90,7 +93,17 @@ var ActivityHandler = {
         this.launch_activity(activity, 'view-contact-form');
         break;
       case 'open':
-        this.launch_activity(activity, 'view-contact-details');
+        if (this.isvCardActivity(activity)) {
+          var self = this;
+          var dependency =
+                         '/shared/js/contacts/import/utilities/vcard_reader.js';
+          LazyLoader.load(dependency, function() {
+            self.getvCardReader(activity.source.data.blob,
+                                           self.readvCard.bind(self, activity));
+          });
+        } else {
+          this.launch_activity(activity, 'view-contact-details');
+        }
         break;
       case 'update':
         this.launch_activity(activity, 'add-parameters');
@@ -107,6 +120,70 @@ var ActivityHandler = {
         break;
     }
 
+  },
+
+  renderOneContact: function(contact, activity) {
+    this.mozContactParam = contact;
+    activity.source.data.params = {'mozContactParam': true};
+    this.launch_activity(activity, 'view-contact-form');
+  },
+
+  // This variable has no use once we support vCards with multiple contacts.
+  renderingMultipleContacts: false,
+
+  renderContact: function(contact, activity) {
+    // We don't support importing multiple contacts from vCard activity yet.
+    if (!this.renderingMultipleContacts) {
+      alert(navigator.mozL10n.get('notEnabledYet'));
+      this.launch_activity(activity, 'view-contact-list');
+      this.renderingMultipleContacts = true;
+    }
+  },
+
+  getvCardReader: function ah_getvCardReader(blob, callback) {
+    var fileReader = new FileReader();
+    fileReader.readAsBinaryString(blob);
+    fileReader.onloadend = function() {
+      var reader = new VCardReader(fileReader.result);
+      if(typeof callback === 'function') {
+        callback(reader);
+      }
+    };
+  },
+
+  readvCard: function ah_readvCard(activity, vCardReader) {
+    var firstContact;
+    var firstContactRendered = false;
+    var self = this;
+    var cursor = vCardReader.getAll();
+    cursor.onsuccess = function(event) {
+      var contact = event.target.result;
+      // We check if there is only one contact to know what function
+      // we should call. If not, we render the contacts one by one.
+      if (contact) {
+        if (!firstContact && !firstContactRendered) {
+          firstContact = contact;
+        } else if (!firstContactRendered) {
+          self.renderContact(firstContact, activity);
+          self.renderContact(contact, activity);
+          firstContactRendered = true;
+          firstContact = null;
+        } else {
+          self.renderContact(contact, activity);
+        }
+        cursor.continue();
+      } else if (firstContact) {
+        self.renderOneContact(firstContact, activity);
+      }
+    };
+  },
+
+  isvCardActivity: function ah_isvCardActivity(activity) {
+    return !!(activity.source &&
+              activity.source.data &&
+              !activity.source.data.params &&
+              activity.source.data.type === 'text/vcard' &&
+              activity.source.data.blob);
   },
 
   importContactsFromFile: function ah_importContactFromVcard(activity) {
