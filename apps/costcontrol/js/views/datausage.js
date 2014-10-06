@@ -97,7 +97,7 @@ var DataUsageTab = (function() {
 
           function finishInit() {
             initialized = true;
-            requestDataUsage();
+            updateDataUsage();
           }
 
           Common.loadApps()
@@ -116,7 +116,6 @@ var DataUsageTab = (function() {
       drawTodayLayer(model);
       drawAxisLayer(model);
       drawLimits(model);
-      // updateUI();
     }
   }
 
@@ -172,51 +171,81 @@ var DataUsageTab = (function() {
   // On visibility change
   function updateWhenVisible(evt) {
     if (!document.hidden) {
-      requestDataUsage();
+      updateDataUsage();
     }
   }
 
-  function requestDataUsage() {
-    SimManager.requestDataSimIcc(function(dataSimIcc) {
-      ConfigManager.requestSettings(dataSimIcc.iccId,
-                                    function _onSettings(settings) {
+  function requestDataUsage(perApp) {
+    return new Promise(function(resolve) {
+      SimManager.requestDataSimIcc(function(dataSimIcc) {
+        ConfigManager.requestSettings(dataSimIcc.iccId,
+                                      function _onSettings(settings) {
 
-        var manifestURLs = Common.allApps.map(function(app) {
-          return app.manifestURL;
+          var request = { type: 'datausage' };
+          if (perApp) {
+            request.apps = Common.allApps.map(function(app) {
+              return app.manifestURL;
+            });
+          }
+
+          costcontrol.request(request, resolve);
         });
-        var requestObj = { type: 'datausage', apps: manifestURLs };
-        costcontrol.request(requestObj, updateCharts);
       });
     });
   }
 
+  function maybeRequestPerAppUsage() {
+    if (!model || !mobileToggle.checked) {
+      return;
+    }
+
+    if (!model.data.mobile.total) {
+      return;
+    }
+
+    // Bug 1064491: request per-app data usage on the next tick of
+    // the main loop to avoid performance regression in startup
+    setTimeout(function() {
+      requestDataUsage(true).then(updateApps);
+    }, 0);
+  }
+
   function updateCharts(result) {
-    if (result.status === 'success') {
-      SimManager.requestDataSimIcc(function(dataSimIcc) {
-        ConfigManager.requestSettings(dataSimIcc.iccId,
-                                      function _onSettings(settings) {
-          debug('Updating model');
-          var modelData = result.data;
-          model.data.wifi.samples = modelData.wifi.samples;
-          model.data.wifi.total = modelData.wifi.total;
-          model.data.wifi.apps = modelData.wifi.apps;
+    return new Promise(function(resolve, reject) {
+      if (result.status === 'success') {
+        SimManager.requestDataSimIcc(function(dataSimIcc) {
+          ConfigManager.requestSettings(dataSimIcc.iccId,
+                                        function _onSettings(settings) {
+            var modelData = result.data;
+            model.data.wifi.samples = modelData.wifi.samples;
+            model.data.wifi.total = modelData.wifi.total;
 
-          model.data.mobile.samples = modelData.mobile.samples;
-          model.data.mobile.total = modelData.mobile.total;
-          model.data.mobile.apps = modelData.mobile.apps;
+            model.data.mobile.samples = modelData.mobile.samples;
+            model.data.mobile.total = modelData.mobile.total;
 
-          model.limits.enabled = settings.dataLimit;
-          model.limits.value = getLimitInBytes(settings);
-          model.axis.X.upper = calculateUpperDate(settings);
-          model.axis.X.lower = calculateLowerDate(settings);
-          expandModel(model);
+            model.limits.enabled = settings.dataLimit;
+            model.limits.value = getLimitInBytes(settings);
+            model.axis.X.upper = calculateUpperDate(settings);
+            model.axis.X.lower = calculateLowerDate(settings);
+            expandModel(model);
+            resolve();
 
-          debug('Rendering');
-          updateUI();
+            debug('Rendering');
+            drawCharts();
+          });
         });
-      });
-    } else {
-      console.error('Error requesting data usage. This should not happen.');
+      } else {
+        reject(new Error(
+          'Error requesting data usage. This should not happen.'));
+      }
+    });
+  }
+
+  function updateApps(result) {
+    if (result.status === 'success') {
+      model.data.wifi.apps = result.data.wifi.apps;
+      model.data.mobile.apps = result.data.mobile.apps;
+      drawApps(model);
     }
   }
 
@@ -233,18 +262,20 @@ var DataUsageTab = (function() {
   function setDataLimit(value, old, key, settings) {
     model.limits.value = getLimitInBytes(settings);
     expandModel(model);
-    updateUI();
+    drawCharts();
   }
 
-  function updateDataUsage(value) {
-    requestDataUsage();
+  function updateDataUsage() {
+    requestDataUsage()
+      .then(updateCharts)
+      .then(maybeRequestPerAppUsage);
   }
 
   function changeNextReset(value, old, key, settings) {
     model.axis.X.upper = calculateUpperDate(settings);
     model.axis.X.lower = calculateLowerDate(settings);
     expandModel(model);
-    updateUI();
+    drawCharts();
   }
 
   function calculateUpperDate(settings) {
@@ -439,7 +470,7 @@ var DataUsageTab = (function() {
     base.limits.warningValue = base.limits.value * base.limits.warning;
   }
 
-  function updateUI() {
+  function drawCharts() {
     // Update overview
     var wifiData = Formatting.roundData(model.data.wifi.total);
     var mobileData = Formatting.roundData(model.data.mobile.total);
@@ -454,7 +485,6 @@ var DataUsageTab = (function() {
     drawMobileGraphic(model);
     drawWarningOverlay(model);
     drawLimits(model);
-    drawApps(model);
   }
 
   function drawBackgroundLayer(model) {
@@ -927,7 +957,7 @@ var DataUsageTab = (function() {
     var manifests = Object.keys(mobileApps);
     var noData = document.getElementById('app-usage-no-data');
     if (manifests.length === 0) {
-      noData.style.display = 'inline';
+      noData.style.display = 'block';
     } else {
       noData.style.display = 'none';
     }
@@ -992,6 +1022,11 @@ var DataUsageTab = (function() {
       var app = Common.allApps.find(function(app) {
         return app.manifestURL === manifestURL;
       });
+
+      if (!app) {
+        debug('No app with manifest URL: ' + manifestURL);
+        return;
+      }
 
       var appTotal = mobileApps[manifestURL].total;
       var appItem = cachedAppItems[manifestURL];
