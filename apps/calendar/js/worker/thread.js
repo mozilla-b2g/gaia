@@ -1,27 +1,33 @@
-define(function(require, exports, module) {
 'use strict';
 
-var Responder = require('responder');
-var debug = require('debug')('worker/thread');
+if (typeof(Calendar) === 'undefined') {
+  /*global Calendar:true */
+  Calendar = {};
+}
 
-function Thread(worker) {
-  Responder.call(this);
+/*jshint -W040 */
+if (typeof(window) === 'undefined') {
+  this.window = this;
+}
+
+Calendar.Thread = function Thread(worker) {
+  Calendar.Responder.call(this);
   this.worker = worker;
   this.roles = {};
 
   this._initEvents();
-}
-module.exports = Thread;
+};
 
-Thread.prototype = {
-  __proto__: Responder.prototype,
+Calendar.Thread.prototype = {
+
+  __proto__: Calendar.Responder.prototype,
 
   send: function() {
     this.worker.postMessage(Array.prototype.slice.call(arguments));
   },
 
   addRole: function(name) {
-    this.roles[name] = new Responder();
+    this.roles[name] = new Calendar.Responder();
   },
 
   _remoteEmitter: function(id) {
@@ -37,13 +43,15 @@ Thread.prototype = {
   _initEvents: function() {
     var self = this;
 
-    debug('Will listen for messages from the main thread...');
+    this.worker.addEventListener('message', function(e) {
+      self.respond(e.data);
+    }, false);
+
     this.on('_dispatch', function(data) {
       // data.id
       // data.type
       // data.role
       // data.payload
-      debug('Received message from mt with data:', data);
 
       var callback = self._requestCallback.bind(
         self, data.id
@@ -63,8 +71,10 @@ Thread.prototype = {
             );
           }
         } else {
-          // TODO: respond with error
-          debug('ERROR: ' + data.role + ' is not available.');
+          //TODO: respond with error
+          console.log(
+            'ERORR: ' + data.role + ' is not available.'
+          );
         }
       } else {
         self.respond(data.payload, callback);
@@ -103,15 +113,34 @@ Thread.prototype = {
   },
 
   console: function console(name) {
+
+    var TIME_REGEX = /\?time\=(\d+)/g;
+
     return {
+
       log: function() {
-        return postMessage(['log', {
+        // create stack
+        var stack;
+
+        try {
+          throw new Error();
+        } catch (e) {
+          stack = e.stack.replace(TIME_REGEX, '');
+        }
+
+        var parts = stack.split('\n');
+        parts.shift();
+
+        var event = {
+          stack: parts,
           name: name,
-          message: Array.prototype.slice.call(arguments).join(', ')
-        }]);
+          message: Calendar.format.apply(this, arguments)
+        };
+
+        postMessage(['log', event]);
       }
+
     };
   }
-};
 
-});
+};

@@ -1,24 +1,15 @@
-/* global suiteTemplate */
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var CalendarError = require('error');
-var EventBase = require('views/event_base');
-var Factory = require('test/support/factory');
-var InputParser = require('shared/input_parser');
-var ModifyEvent = require('views/modify_event');
-var QueryString = require('querystring');
-var Template = require('template');
-var View = require('view');
-var nextTick = require('next_tick');
-var providerFactory = require('provider/provider_factory');
+requireLib('provider/abstract.js');
+requireLib('template.js');
+requireLib('querystring.js');
+requireElements('calendar/elements/modify_event.html');
+requireElements('calendar/elements/show_event.html');
 
-require('dom!modify_event');
-require('dom!show_event');
-
-suite('views/modify_event', function() {
+suiteGroup('Views.ModifyEvent', function() {
+  /*jshint -W027 */
+  'use strict';
   /** disabled because of intermittent failures see bug 917537 */
-  /* jshint -W027 */
   return;
 
   var subject;
@@ -55,7 +46,7 @@ suite('views/modify_event', function() {
   }
 
   function escapeHTML(html) {
-    var template = new Template(function() {
+    var template = new Calendar.Template(function() {
       return this.h('value');
     });
 
@@ -70,7 +61,7 @@ suite('views/modify_event', function() {
   var realGo;
 
   teardown(function() {
-    app.go = realGo;
+    Calendar.App.go = realGo;
   });
 
   suiteTemplate('show-event', {
@@ -89,14 +80,14 @@ suite('views/modify_event', function() {
     accountStore = app.store('Account');
     calendarStore = app.store('Calendar');
     settingStore = app.store('Setting');
-    provider = providerFactory.get('Mock');
+    provider = app.provider('Mock');
 
     fmt = navigator.mozL10n.DateTimeFormat();
 
     controller = app.timeController;
 
     app.db.open(done);
-    subject = new ModifyEvent({
+    subject = new Calendar.Views.ModifyEvent({
       app: app
     });
   });
@@ -141,8 +132,8 @@ suite('views/modify_event', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, View);
-    assert.instanceOf(subject, EventBase);
+    assert.instanceOf(subject, Calendar.View);
+    assert.instanceOf(subject, Calendar.Views.EventBase);
     assert.equal(subject._changeToken, 0);
 
     assert.ok(subject._els, 'has fields');
@@ -426,7 +417,7 @@ suite('views/modify_event', function() {
         endDate: endDate.toString()
       };
 
-      search = '?' + QueryString.stringify(queryString);
+      search = '?' + Calendar.QueryString.stringify(queryString);
       subject.useModel(this.busytime, this.event, done);
     });
 
@@ -596,7 +587,7 @@ suite('views/modify_event', function() {
     });
 
     test('with an error', function(done) {
-      var err = new CalendarError.Authentication();
+      var err = new Calendar.Error.Authentication();
       subject.showErrors = function(givenErr) {
         done(function() {
           assert.equal(err, givenErr);
@@ -604,7 +595,7 @@ suite('views/modify_event', function() {
       };
 
       provider.deleteEvent = function(model, callback) {
-        nextTick(callback.bind(null, err));
+        Calendar.nextTick(callback.bind(null, err));
       };
 
       subject.deleteRecord();
@@ -641,7 +632,7 @@ suite('views/modify_event', function() {
 
     function haltsOnError(providerMethod) {
       test('does not persist record when provider fails', function(done) {
-        var err = new CalendarError.Authentication();
+        var err = new Calendar.Error.Authentication();
         subject.showErrors = function(gotErr) {
           done(function() {
             assert.equal(err, gotErr, 'dispatches error');
@@ -651,7 +642,7 @@ suite('views/modify_event', function() {
         provider[providerMethod] = function() {
           var args = Array.slice(arguments);
           var cb = args.pop();
-          nextTick(cb.bind(null, err));
+          Calendar.nextTick(cb.bind(null, err));
         };
 
         subject.primary();
@@ -1203,6 +1194,5 @@ suite('views/modify_event', function() {
       };
     });
   });
-});
 
 });

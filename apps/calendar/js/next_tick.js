@@ -1,15 +1,21 @@
-define(function(require, exports, module) {
+(function(exports) {
 'use strict';
 
+/**
+ * Constants
+ */
 var NEXT_TICK = 'calendar-next-tick';
 
+/**
+ * Private state
+ */
 var nextTickStack = [];
 
 /**
  * Very similar to node's nextTick.
  * Much faster then setTimeout.
  */
-module.exports = function(callback) {
+exports.nextTick = function(callback) {
   nextTickStack.push(callback);
   window.postMessage(NEXT_TICK, '*');
 };
@@ -26,4 +32,4 @@ window.addEventListener('message', (event) => {
   }
 });
 
-});
+}(Calendar));

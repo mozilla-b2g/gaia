@@ -1,11 +1,18 @@
-define(function(require) {
-'use strict';
+requireLib('template.js');
+requireLib('templates/date_span.js');
+requireLib('templates/months_day.js');
 
-var MonthsDay = require('templates/months_day');
+suiteGroup('Templates.MonthsDay', function() {
+  'use strict';
 
-suite('templates/months_day', function() {
+  var subject;
+
+  suiteSetup(function() {
+    subject = Calendar.Templates.MonthsDay;
+  });
+
   function renderHTML(type, options) {
-    return MonthsDay[type].render(options);
+    return subject[type].render(options);
   }
 
   suite('#event', function() {
@@ -54,6 +61,5 @@ suite('templates/months_day', function() {
       assert.ok(result.indexOf('16:56') === -1, 'include end time');
     });
   });
-});
 
 });

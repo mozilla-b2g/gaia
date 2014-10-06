@@ -1,9 +1,16 @@
-define(function(require, exports) {
+(function(exports) {
 'use strict';
 
-var Timespan = require('timespan');
-var compare = require('compare');
+/**
+ * Module dependencies
+ */
+/*var Timespan = Calendar.Timespan;*/
+var compare = Calendar.compare;
+/*var localeFormat = Calendar.App.dateFormat.localeFormat;*/
 
+/**
+ * Constants
+ */
 const SECOND = 1000;
 const MINUTE = (SECOND * 60);
 const HOUR = MINUTE * 60;
@@ -203,7 +210,7 @@ exports.spanOfDay = function(date, includeTime) {
 
   var end = exports.createDay(date);
   end.setDate(end.getDate() + 1);
-  return new Timespan(date, end);
+  return new Calendar.Timespan(date, end);
 };
 
 /**
@@ -229,7 +236,7 @@ exports.spanOfMonth = function(month) {
 
   endDay.setMilliseconds(-1);
   endDay = exports.getWeekEndDate(endDay);
-  return new Timespan(startDay, endDay);
+  return new Calendar.Timespan(startDay, endDay);
 };
 
 /**
@@ -462,15 +469,6 @@ exports.getWeekEndDate = function(date) {
  * @param {Boolean} includeTime include times start/end ?
  */
 exports.daysBetween = function(start, end, includeTime) {
-  if (start instanceof Timespan) {
-    if (end) {
-      includeTime = end;
-    }
-
-    end = new Date(start.end);
-    start = new Date(start.start);
-  }
-
   if (start > end) {
     var tmp = end;
     end = start;
@@ -657,6 +655,7 @@ exports.relativeTime = function(date) {
 
 window.addEventListener('localized', function changeStartDay() {
   var startDay = navigator.mozL10n.get('weekStartsOnMonday');
+
   if (startDay && parseInt(startDay, 10)) {
     exports.startsOnMonday = true;
   } else {
@@ -664,4 +663,4 @@ window.addEventListener('localized', function changeStartDay() {
   }
 });
 
-});
+}(Calendar.Calc = {}));

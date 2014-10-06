@@ -1,31 +1,33 @@
 'use strict';
 
-require.config({
-  baseUrl: '/js',
-  paths: {
-    shared: '/shared/js'
-  },
-  shim: {
-    'ext/caldav': {
-      deps: ['worker/initialize'],
-      exports: 'Caldav'
-    },
-    'ext/ical': {
-      deps: ['worker/initialize'],
-      exports: 'ICAL'
-    }
-  }
+[
+ 'calendar',
+ 'log',
+ 'ns',
+ 'extend',
+ 'responder',
+ 'inspect',
+ 'presets',
+ 'worker/thread',
+ 'ext/ical',
+ 'ext/caldav',
+ 'ext/uuid',
+ 'service/ical_recur_expansion',
+ 'service/caldav'
+].forEach(function(script) {
+   // ?time= is for cache busting in development...
+   // there have been cases where nightly would not
+   // clear the cache of the worker.
+   importScripts('./' + script + '.js?time=' + Date.now());
 });
 
-self.addEventListener('message', function onMessage(msg) {
-  if (typeof(caldav) !== 'undefined') {
-    return self.thread.respond(msg.data);
-  }
+var thread = new Calendar.Thread(window);
+window.console = new thread.console('caldav worker');
 
-  // Try again in a little bit since the worker may not be ready...
-  setTimeout(function() {
-    onMessage(msg);
-  }, 10);
-});
+thread.addRole('caldav');
 
-require(['worker/initialize'], initialize => initialize());
+/*jshint unused:true */
+/*exported caldav */
+var caldav = new Calendar.Service.Caldav(
+  thread.roles.caldav
+);

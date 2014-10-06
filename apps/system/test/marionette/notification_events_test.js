@@ -5,6 +5,8 @@
 var assert = require('assert'),
     fs = require('fs');
 
+var CALENDAR_APP = 'app://calendar.gaiamobile.org';
+var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 var EMAIL_APP = 'app://email.gaiamobile.org';
 var EMAIL_APP_MANIFEST = EMAIL_APP + '/manifest.webapp';
 
@@ -27,8 +29,8 @@ marionette('Notification events', function() {
     var notificationTitle = 'Title:' + Date.now();
 
     // switch to calendar app and send notification
-    client.apps.launch(EMAIL_APP);
-    client.apps.switchToApp(EMAIL_APP);
+    client.apps.launch(CALENDAR_APP);
+    client.apps.switchToApp(CALENDAR_APP);
     var error = client.executeAsyncScript(function(title) {
       var notification = new Notification(title);
       notification.addEventListener('show', function() {
@@ -39,7 +41,7 @@ marionette('Notification events', function() {
 
     // close app
     client.switchToFrame();
-    client.apps.close(EMAIL_APP);
+    client.apps.close(CALENDAR_APP);
 
     // switch to system app, make sure we have one notification
     client.switchToFrame();
@@ -53,7 +55,7 @@ marionette('Notification events', function() {
         marionetteScriptFinished('no node to query');
       }
       marionetteScriptFinished(false);
-    }, [EMAIL_APP_MANIFEST]);
+    }, [CALENDAR_APP_MANIFEST]);
     assert.equal(error, false, 'Error checking notifications: ' + error);
 
     // switch to system app, wait for event
@@ -80,7 +82,7 @@ marionette('Notification events', function() {
         id: node.dataset.notificationId
       });
       window.dispatchEvent(event);
-    }, [EMAIL_APP_MANIFEST, EMAIL_APP + '/index.html']);
+    }, [CALENDAR_APP_MANIFEST, CALENDAR_APP + '/index.html']);
     assert.equal(error, false, 'Error clicking on notification: ' + error);
     done();
   });
@@ -89,8 +91,8 @@ marionette('Notification events', function() {
     var notificationTitle = 'Title:' + Date.now();
 
     // switch to calendar app and send notification
-    client.apps.launch(EMAIL_APP);
-    client.apps.switchToApp(EMAIL_APP);
+    client.apps.launch(CALENDAR_APP);
+    client.apps.switchToApp(CALENDAR_APP);
     var error = client.executeAsyncScript(function(title) {
       var notification = new Notification(title);
       notification.addEventListener('show', function() {
@@ -118,11 +120,11 @@ marionette('Notification events', function() {
         window.dispatchEvent(event);
       }
       marionetteScriptFinished(false);
-    }, [EMAIL_APP_MANIFEST]);
+    }, [CALENDAR_APP_MANIFEST]);
     assert.equal(error, false, 'desktop-notification-close error: ' + error);
 
     // switch back to calendar, and fetch notifications
-    client.apps.switchToApp(EMAIL_APP);
+    client.apps.switchToApp(CALENDAR_APP);
     error = client.executeAsyncScript(function() {
       var promise = Notification.get();
       promise.then(function(notifications) {
@@ -140,8 +142,8 @@ marionette('Notification events', function() {
   });
 
   test('closing notification invokes close handler', function() {
-    client.apps.launch(EMAIL_APP);
-    client.apps.switchToApp(EMAIL_APP);
+    client.apps.launch(CALENDAR_APP);
+    client.apps.switchToApp(CALENDAR_APP);
     // Note: this will timeout on failure
     client.executeAsyncScript(function() {
       var notification = new Notification('Title');
@@ -156,8 +158,8 @@ marionette('Notification events', function() {
     var notificationTitle = 'Title:' + Date.now();
 
     // switch to calendar app and send notification
-    client.apps.launch(EMAIL_APP);
-    client.apps.switchToApp(EMAIL_APP);
+    client.apps.launch(CALENDAR_APP);
+    client.apps.switchToApp(CALENDAR_APP);
     var error = client.executeAsyncScript(function(title) {
       var notification = new Notification(title);
       notification.addEventListener('show', function() {
@@ -168,7 +170,7 @@ marionette('Notification events', function() {
 
     // close app
     client.switchToFrame();
-    client.apps.close(EMAIL_APP);
+    client.apps.close(CALENDAR_APP);
 
     // switch to system app, remove from tray and trigger resending
     client.switchToFrame();
@@ -203,7 +205,7 @@ marionette('Notification events', function() {
 
       // then perform resend
       navigator.mozChromeNotifications.mozResendAllNotifications(resendCb);
-    }, [EMAIL_APP_MANIFEST]);
+    }, [CALENDAR_APP_MANIFEST]);
     assert.equal(error, false, 'Error on resending after removing: ' + error);
 
     var applicationLaunched = false;
@@ -214,7 +216,7 @@ marionette('Notification events', function() {
 
       // If the app's iframe is here, it means the "show" event launched it, and
       // it's wrong
-      faster.findElement('iframe[src*="' + EMAIL_APP + '"]');
+      faster.findElement('iframe[src*="' + CALENDAR_APP + '"]');
       applicationLaunched = true;
     } catch(e) {}
 
@@ -251,7 +253,7 @@ marionette('Notification events', function() {
       });
 
       window.dispatchEvent(event);
-    }, [EMAIL_APP_MANIFEST, EMAIL_APP + '/index.html']);
+    }, [CALENDAR_APP_MANIFEST, CALENDAR_APP + '/index.html']);
     assert.equal(error, false, 'Error after clicking on resent: ' + error);
     done();
   });
@@ -260,8 +262,8 @@ marionette('Notification events', function() {
     var notificationTitle = 'Title:' + Date.now();
 
     // switch to calendar app and send notification
-    client.apps.launch(EMAIL_APP);
-    client.apps.switchToApp(EMAIL_APP);
+    client.apps.launch(CALENDAR_APP);
+    client.apps.switchToApp(CALENDAR_APP);
     var error = client.executeAsyncScript(function(title) {
       var notification = new Notification(title);
       notification.addEventListener('show', function() {
@@ -272,7 +274,7 @@ marionette('Notification events', function() {
 
     // close app
     client.switchToFrame();
-    client.apps.close(EMAIL_APP);
+    client.apps.close(CALENDAR_APP);
 
     // switch to system app and trigger resending
     client.switchToFrame();
@@ -296,7 +298,7 @@ marionette('Notification events', function() {
         marionetteScriptFinished(false);
       }).bind(this);
       navigator.mozChromeNotifications.mozResendAllNotifications(resendCb);
-    }, [EMAIL_APP_MANIFEST]);
+    }, [CALENDAR_APP_MANIFEST]);
     assert.equal(error, false, 'Error on resending: ' + error);
 
     // switch to system app and send desktop-notification-close
@@ -318,12 +320,12 @@ marionette('Notification events', function() {
         window.dispatchEvent(event);
       }
       marionetteScriptFinished(false);
-    }, [EMAIL_APP_MANIFEST]);
+    }, [CALENDAR_APP_MANIFEST]);
     assert.equal(error, false, 'Error on sending close event: ' + error);
 
     // switch back to calendar, and fetch notifications
-    client.apps.launch(EMAIL_APP);
-    client.apps.switchToApp(EMAIL_APP);
+    client.apps.launch(CALENDAR_APP);
+    client.apps.switchToApp(CALENDAR_APP);
     error = client.executeAsyncScript(function() {
       var promise = Notification.get();
       promise.then(function(notifications) {

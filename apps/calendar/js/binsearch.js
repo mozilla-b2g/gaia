@@ -1,7 +1,8 @@
 /**
- * Binary search utilities taken /w permission from :asuth
+ * Binary search utilities taken /w permission
+ * from :asuth
  */
-define(function(require, exports) {
+(function(exports) {
 'use strict';
 
 exports.find = function(list, seekVal, cmpfunc, aLow, aHigh) {
@@ -54,4 +55,4 @@ exports.insert = function(list, seekVal, cmpfunc) {
   }
 };
 
-});
+}(Calendar.binsearch = {}));

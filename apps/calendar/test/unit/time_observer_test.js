@@ -1,19 +1,18 @@
-define(function(require) {
-'use strict';
-
-var Timespan = require('timespan');
-var TimeObserver = require('time_observer');
+requireLib('timespan.js');
+requireLib('time_observer.js');
 
 suite('time_observer', function() {
+  'use strict';
+
   var subject;
   var SubjectClass;
 
   suiteSetup(function() {
     SubjectClass = function() {
-      TimeObserver.call(this);
+      Calendar.TimeObserver.call(this);
     };
 
-    TimeObserver.enhance(
+    Calendar.TimeObserver.enhance(
       SubjectClass.prototype
     );
   });
@@ -24,7 +23,7 @@ suite('time_observer', function() {
 
   test('#findTimeObserver', function() {
     var cb = {};
-    var range = new Timespan(
+    var range = new Calendar.Timespan(
       new Date(),
       new Date()
     );
@@ -46,11 +45,11 @@ suite('time_observer', function() {
     test('when given non-timespan', function() {
       assert.throws(function() {
         subject.observeTime('foo', function() {});
-      }, /Timespan/);
+      }, /Calendar\.Timespan/);
     });
 
     test('success', function() {
-      var span = new Timespan(
+      var span = new Calendar.Timespan(
         new Date(),
         new Date()
       );
@@ -76,7 +75,7 @@ suite('time_observer', function() {
     var span, object;
 
     setup(function() {
-      span = new Timespan(
+      span = new Calendar.Timespan(
         new Date(),
         new Date()
       );
@@ -118,7 +117,7 @@ suite('time_observer', function() {
       startDate = new Date(2011, 12, 31);
       endDate = new Date(2012, 1, 15);
 
-      span = new Timespan(
+      span = new Calendar.Timespan(
         new Date(2012, 1, 1),
         new Date(2012, 12, 1)
       );
@@ -175,6 +174,5 @@ suite('time_observer', function() {
       );
     });
   });
-});
 
 });
