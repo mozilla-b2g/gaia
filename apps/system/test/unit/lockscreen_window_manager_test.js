@@ -156,6 +156,14 @@ suite('system/LockScreenWindowManager', function() {
       window.lockScreenWindowManager.unregisterApp(appFake);
     });
 
+    test('When FTU occurs, try to close the app', function() {
+      var stubCloseApp = this.sinon.stub(window.lockScreenWindowManager,
+        'closeApp');
+      window.lockScreenWindowManager.handleEvent({ type: 'ftuopen' });
+      assert.isTrue(stubCloseApp.called,
+        'the LockScreenWindowManager doesn\'t call the closeApp');
+    });
+
     test('When FTU occurs, the window should not be instantiated', function() {
       var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
         'openApp');

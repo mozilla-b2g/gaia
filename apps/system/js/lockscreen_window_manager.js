@@ -72,7 +72,6 @@
   };
 
   /**
-   * @listens will-unlock - means to close remain apps.
    * @listens lockscreen-appcreated - when a lockscreen app got created, it
    *                                  would fire this event.
    * @listens lockscreen-appterminated - when a lockscreen app got really
@@ -100,9 +99,6 @@
           break;
         case 'ftuopen':
           this.states.FTUOccurs = true;
-          if (this.isActive()) {
-            return;
-          }
           // Need immediatly unlocking (hide window).
           this.closeApp(true);
           break;
