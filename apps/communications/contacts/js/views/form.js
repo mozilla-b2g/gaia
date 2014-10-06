@@ -188,6 +188,7 @@ contacts.Form = (function() {
           carrierField.parentNode.classList.add(INVALID_CLASS);
 
           textFieldsCache.clear();
+          deletedTelNumber = true;
         }
         input.value = '';
         checkDisableButton();
@@ -426,6 +427,8 @@ contacts.Form = (function() {
     var value = telInput.value;
 
     if (!value || !value.trim()) {
+      deletedTelNumber = true;
+
       // If it was not previously filled then it will be disabled
       if (!telInput.dataset.wasFilled) {
         carrierInput.setAttribute('disabled', 'disabled');
@@ -437,6 +440,8 @@ contacts.Form = (function() {
       }
     }
     else {
+      deletedTelNumber = false;
+
       // Marked as filled
       telInput.dataset.wasFilled = true;
       // Enabling and marking as valid
@@ -656,7 +661,11 @@ contacts.Form = (function() {
       isIceContact(currentContact, function(result) {
         if (result === true) {
           var msgId = 'ICEContactDelTel';
-          if (counters.tel === 0) {
+          var phoneNumberInput = document.getElementById('number_0');
+          var phoneNumberValue = phoneNumberInput &&
+                                                phoneNumberInput.value.trim();
+
+          if (counters.tel === 0 || (counters.tel === 1 && !phoneNumberValue)) {
             msgId = 'ICEContactDelTelAll';
             ICEData.removeICEContact(currentContact.id);
           }
