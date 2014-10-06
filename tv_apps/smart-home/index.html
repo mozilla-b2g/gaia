@@ -10,8 +10,16 @@
 
     <!-- Helper libraries -->
     <script defer src="js/vendor/evt.js"></script>
-
+    <script defer src="js/utils.js"></script>
+    <script defer src="js/piped_promise.js"></script>
     <!-- Specific code -->
+    <script defer src="js/card.js"></script>
+    <script defer src="js/application.js"></script>
+    <script defer src="js/deck.js"></script>
+    <!-- XXX: we should remove fake_deck once we have real decks -->
+    <script defer src="js/fake_deck.js"></script>
+    <script defer src="js/card_store.js"></script>
+    <script defer src="js/card_manager.js"></script>
     <script defer src="js/selection_border.js"></script>
     <script defer src="js/scrollable.js"></script>
     <script defer src="js/spatial_navigator.js"></script>
@@ -40,42 +48,6 @@
       <section id="card-viewer">
         <div id="card-list-frame">
           <div id="card-list" data-default-item="2">
-            <div class="card">
-              <div class="card-thumbnail"></div>
-              <div class="card-description">This is a card</div>
-            </div>
-            <div class="card">
-              <div class="card-thumbnail"></div>
-              <div class="card-description">This is a card</div>
-            </div>
-            <div class="card">
-              <div class="card-thumbnail"></div>
-              <div class="card-description">This is a card</div>
-            </div>
-            <div class="card">
-              <div class="card-thumbnail"></div>
-              <div class="card-description">This is a card</div>
-            </div>
-            <div class="card">
-              <div class="card-thumbnail"></div>
-              <div class="card-description">This is a card</div>
-            </div>
-            <div class="card">
-              <div class="card-thumbnail"></div>
-              <div class="card-description">This is a card</div>
-            </div>
-            <div class="card">
-              <div class="card-thumbnail"></div>
-              <div class="card-description">This is a card</div>
-            </div>
-            <div class="card">
-              <div class="card-thumbnail"></div>
-              <div class="card-description">This is a card</div>
-            </div>
-            <div class="card">
-              <div class="card-thumbnail"></div>
-              <div class="card-description">This is a card</div>
-            </div>
           </div>
         </div>
       </section>

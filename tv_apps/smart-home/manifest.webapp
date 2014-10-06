@@ -2,6 +2,8 @@
   "name": "Home",
   "description": "Smart Screen Home App",
   "launch_path": "/index.html",
+  "type": "certified",
+  "role": "homescreen",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -15,5 +17,16 @@
   "default_locale": "en-US",
   "icons": {
     "128": "/style/icons/Blank.png"
+  },
+  "permissions": {
+    "webapps-manage": {},
+    "open-remote-window":{},
+    "systemXHR":{}
+  },
+  "datastores-owned": {
+    "home_cards": {
+      "access": "readwrite",
+      "description": "Stores all type of cards/decks/apps"
+    }
   }
 }
