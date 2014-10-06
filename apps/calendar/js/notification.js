@@ -66,10 +66,8 @@ function getApp(callback) {
 
 function launchApp(url) {
   getApp(function(err, app) {
-    app.go(url);
-    if (app) {
-      app.launch();
-    }
+    exports.app.go(url);
+    return app && app.launch();
   });
 }
 
@@ -96,5 +94,8 @@ function sendNotification(title, desc, url, callback) {
   });
 }
 exports.send = sendNotification;
+
+// Gets injected.
+exports.app = null;
 
 });

@@ -69,6 +69,7 @@ ErrorController.prototype = {
       navigator.mozL10n.get('notification-error-sync-description');
 
     var url = this.accountErrorUrl + account._id;
+    notification.app = this.app;
     notification.send(title, description, url, () => {
       callback && callback();
       lock.unlock();
