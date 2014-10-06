@@ -40,7 +40,7 @@ suite('Views > AlternativesCharMenuView', function() {
     IMERender.init(fakeLayoutRenderingManager);
 
     var keyElem = document.createElement('button');
-    IMERender.targetObjDomMap.set(key, keyElem);
+    IMERender.setDomElemTargetObject(keyElem, key);
   });
 
   suite('basic show/hide testing', function() {
@@ -109,7 +109,7 @@ suite('Views > AlternativesCharMenuView', function() {
       menu.getLineHeight.returns(KEY_HEIGHT);
 
       var keyElem = document.createElement('button');
-      IMERender.targetObjDomMap.set(key, keyElem);
+      IMERender.setDomElemTargetObject(keyElem, key);
     });
 
     teardown(function() {
@@ -188,7 +188,7 @@ suite('Views > AlternativesCharMenuView', function() {
       menu.getLineHeight.returns(KEY_HEIGHT);
 
       var keyElem = document.createElement('button');
-      IMERender.targetObjDomMap.set(key, keyElem);
+      IMERender.setDomElemTargetObject(keyElem, key);
     });
 
     teardown(function() {
@@ -271,7 +271,7 @@ suite('Views > AlternativesCharMenuView', function() {
       menu.getLineHeight.returns(KEY_HEIGHT);
 
       var keyElem = document.createElement('button');
-      IMERender.targetObjDomMap.set(key, keyElem);
+      IMERender.setDomElemTargetObject(keyElem, key);
     });
 
     teardown(function() {
