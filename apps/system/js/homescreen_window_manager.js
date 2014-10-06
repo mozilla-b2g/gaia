@@ -45,8 +45,8 @@
     start: function hwm_start() {
       window.addEventListener('appswitching', this);
       window.addEventListener('ftuskip', this);
-      window.addEventListener('open-app', this, true);
-      window.addEventListener('webapps-launch', this, true);
+      window.addEventListener('open-app', this);
+      window.addEventListener('webapps-launch', this);
     },
 
     /**
@@ -57,8 +57,8 @@
     stop: function hwm_stop() {
       window.removeEventListener('appswitching', this);
       window.removeEventListener('ftuskip', this);
-      window.removeEventListener('open-app', this, true);
-      window.removeEventListener('webapps-launch', this, true);
+      window.removeEventListener('open-app', this);
+      window.removeEventListener('webapps-launch', this);
     },
 
     handleEvent: function hwm_handleEvent(evt) {

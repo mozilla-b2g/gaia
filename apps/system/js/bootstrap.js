@@ -63,9 +63,6 @@ window.addEventListener('load', function startup() {
     // when the screen is locked.
     window.AppWindowManager.init();
 
-    window.homescreenWindowManager = new HomescreenWindowManager();
-    window.homescreenWindowManager.start();
-
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
   }
@@ -117,6 +114,11 @@ window.addEventListener('load', function startup() {
 
   Shortcuts.init();
   ScreenManager.turnScreenOn();
+
+  // To make sure homescreen window manager can intercept webapps-launch event,
+  // we need to move the code here.
+  window.homescreenWindowManager = new HomescreenWindowManager();
+  window.homescreenWindowManager.start();
 
   // Please sort it alphabetically
   window.activities = new Activities();
