@@ -196,8 +196,6 @@ var UtilityTray = {
           return;
         }
 
-        this.active = false;
-
         this.onTouchEnd(touch);
         break;
 
@@ -258,6 +256,10 @@ var UtilityTray = {
   },
 
   onTouchStart: function ut_onTouchStart(touch) {
+    if (this.active) {
+      return;
+    }
+
     this.validateCachedSizes();
     this.active = true;
     this.startY = touch.pageY;
@@ -277,6 +279,12 @@ var UtilityTray = {
     this.isTap = true;
 
     window.dispatchEvent(new CustomEvent('utility-tray-overlayopening'));
+
+    if (this.shown) {
+      window.dispatchEvent(new CustomEvent('utilitytraywillhide'));
+    } else {
+      window.dispatchEvent(new CustomEvent('utilitytraywillshow'));
+    }
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
@@ -335,12 +343,17 @@ var UtilityTray = {
       });
     }
 
+    this.active = false;
     this.startY = undefined;
     this.lastDelta = undefined;
     this.isTap = false;
   },
 
   hide: function ut_hide(instant) {
+    if (!this.active) {
+      window.dispatchEvent(new CustomEvent('utilitytraywillhide'));
+    }
+
     this.validateCachedSizes();
     var alreadyHidden = !this.shown;
     var style = this.overlay.style;
