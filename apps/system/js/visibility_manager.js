@@ -29,8 +29,11 @@
       'homescreenopened',
       'rocketbar-overlayopened',
       'rocketbar-overlayclosed',
-      'utility-tray-overlayopened',
-      'utility-tray-overlayclosed',
+      'utilitytraywillshow',
+      'utilitytray-tray-overlayopened',
+      'utilitytray-tray-overlayclosed',
+      'sheets-gesture-begin',
+      'sheets-gesture-end',
       'system-dialog-show',
       'system-dialog-hide',
       'searchrequestforeground',
@@ -133,12 +136,15 @@
           this.publish('hidewindow', { type: evt.type });
         }
         break;
+      case 'sheets-gesture-begin':
+      case 'utilitytraywillshow':
       case 'rocketbar-overlayopened':
       case 'utility-tray-overlayopened':
       case 'cardviewshown':
       case 'system-dialog-show':
         this.publish('hidewindowforscreenreader');
         break;
+      case 'sheets-gesture-end':
       case 'rocketbar-overlayclosed':
       case 'utility-tray-overlayclosed':
       case 'cardviewclosed':

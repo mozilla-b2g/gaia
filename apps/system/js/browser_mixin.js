@@ -164,6 +164,14 @@
       }
     },
 
+    _setActive: function bm__setActive(active) {
+      if (this.browser && this.browser.element &&
+          'setActive' in this.browser.element) {
+        this.debug('setActive on browser element:' + active);
+        this.browser.element.setActive(active);
+      }
+    },
+
     /**
      * Set aria-hidden attribute on browser's element to handle its screen
      * reader visibility.
