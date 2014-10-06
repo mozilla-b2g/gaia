@@ -228,6 +228,7 @@
    */
   AppWindow.prototype.setVisibleForScreenReader =
     function aw_setVisibleForScreenReader(visible) {
+      this._setActive(visible);
       this.element.setAttribute('aria-hidden', !visible);
     };
 
