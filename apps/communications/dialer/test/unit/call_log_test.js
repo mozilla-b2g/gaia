@@ -1,11 +1,10 @@
 'use strict';
 
 /* global CallHandler, CallLog, CallLogDBManager, Contacts, KeypadManager,
-          MockMozL10n, MockNavigatorMozIccManager, MockNotification,
+          MockMozL10n, MockNavigatorMozIccManager,
           MocksHelper, MockSimSettingsHelper, Notification,
-          CallGroupMenu, Utils */
+          CallGroupMenu, Utils, MockMozContacts */
 
-require('/dialer/js/call_log.js');
 require('/shared/js/dialer/utils.js');
 
 require('/dialer/test/unit/mock_call_log_db_manager.js');
@@ -28,6 +27,7 @@ require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_image.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
@@ -38,6 +38,7 @@ var mocksHelperForCallLog = new MocksHelper([
   'PerformanceTestingHelper',
   'LazyLoader',
   'LazyL10n',
+  'Notification',
   'StickyHeader',
   'CallHandler',
   'KeypadManager',
@@ -46,28 +47,26 @@ var mocksHelperForCallLog = new MocksHelper([
 
 suite('dialer/call_log', function() {
   var realL10n;
-  var realCallLogL10n;
-  var realNotification;
   var realMozIccManager;
+  var realMozContacts;
 
   mocksHelperForCallLog.attachTestHelpers();
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
-    realCallLogL10n = CallLog._;
-    CallLog._ = MockMozL10n.get;
-    realNotification = window.Notification;
-    window.Notification = MockNotification;
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
+    realMozContacts = navigator.mozContacts;
+    navigator.mozContacts = MockMozContacts;
+
+    require('/dialer/js/call_log.js', done);
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
-    CallLog._ = realCallLogL10n;
-    window.Notification = realNotification;
     navigator.mozIccManager = realMozIccManager;
+    navigator.mozContacts = realMozContacts;
   });
 
   var noResult;
@@ -648,13 +647,13 @@ suite('dialer/call_log', function() {
         };
       };
       this.sinon.stub(Notification, 'get', notificationGetStub);
-      this.sinon.spy(MockNotification.prototype, 'close');
+      this.sinon.spy(Notification.prototype, 'close');
     });
 
     test('notifications are closed when opening the call log', function() {
       CallLog._initialized = false;
       CallLog.init();
-      sinon.assert.callCount(MockNotification.prototype.close, 2);
+      sinon.assert.callCount(Notification.prototype.close, 2);
     });
 
     test('notifications should not be closed when keypad becomes visible',
@@ -662,7 +661,7 @@ suite('dialer/call_log', function() {
       window.location.hash = '#keyboard-view';
       var visibilityEvent = new CustomEvent('visibilitychange');
       document.dispatchEvent(visibilityEvent);
-      sinon.assert.notCalled(MockNotification.prototype.close);
+      sinon.assert.notCalled(Notification.prototype.close);
     });
   });
 
