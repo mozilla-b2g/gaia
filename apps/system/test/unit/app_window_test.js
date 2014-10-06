@@ -1122,16 +1122,24 @@ suite('system/AppWindow', function() {
     test('setVisibleForScreenReader: false', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
+      var spy = this.sinon.spy(app1, '_setActive');
 
       app1.setVisibleForScreenReader(false);
+
       assert.equal(app1.element.getAttribute('aria-hidden'), 'true');
+      assert.isTrue(spy.calledOnce);
+      assert.isTrue(spy.calledWith(false));
     });
     test('setVisibleForScreenReader: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
+      var spy = this.sinon.spy(app1, '_setActive');
 
       app1.setVisibleForScreenReader(true);
+
       assert.equal(app1.element.getAttribute('aria-hidden'), 'false');
+      assert.isTrue(spy.calledOnce);
+      assert.isTrue(spy.calledWith(true));
     });
   });
 
