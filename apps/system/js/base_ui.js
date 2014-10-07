@@ -26,6 +26,11 @@
     this.containerElement.insertAdjacentHTML('afterbegin', this.view());
     this._fetchElements();
     this._registerEvents();
+    if (this.element) {
+      // Force a style flush so that if the UI is immediately shown, any
+      // transition associated with the visible class will play.
+      this.element.clientTop;
+    }
     this.publish('rendered');
   };
 
