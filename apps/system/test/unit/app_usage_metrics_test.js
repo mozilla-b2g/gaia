@@ -145,8 +145,10 @@ suite('AppUsageMetrics:', function() {
       recordStuff(data1);
       recordStuff(data2);
 
-      // They should be equal
-      assert.deepEqual(data1, data2);
+      // They should be equal.
+      // They will have different relativeStartTime properties, so we
+      // only compare the data part of the two objects.
+      assert.deepEqual(data1.data, data2.data);
 
       // Change the clock and create a new data structure
       clock.tick(100);
@@ -157,11 +159,11 @@ suite('AppUsageMetrics:', function() {
       recordStuff(data3);
 
       // They're not equal now
-      assert.notDeepEqual(data1, data2);
+      assert.notDeepEqual(data1.data, data2.data);
 
       // Merge data 3 into data2 and they should be equal again
       data2.merge(data3);
-      assert.deepEqual(data1, data2);
+      assert.deepEqual(data1.data, data2.data);
 
       // merging with an empty object is a no-op
       var copy1 = JSON.parse(JSON.stringify(data1.data));
@@ -176,7 +178,7 @@ suite('AppUsageMetrics:', function() {
       data1.save();
       clock.tick(100000);
       UsageData.load(function(data2) {
-        done(assert.deepEqual(data1, data2));
+        done(assert.deepEqual(data1.data, data2.data));
       });
     });
   });
@@ -184,11 +186,13 @@ suite('AppUsageMetrics:', function() {
   /*
    * This second suite follows up on the first. It tests that window management
    * events produce the expected calls to the record functions of the UsageData
-   * class.
+   * class. In this suite we used fake timers, so we have to also fake
+   * performance.now in order to get away with that.
    */
   suite('event handling:', function() {
     var aum;
     var realSettingsListener;
+    var realPerformanceNow;
     var installSpy, uninstallSpy, invocationSpy, activitySpy;
     var clock;
 
@@ -199,6 +203,9 @@ suite('AppUsageMetrics:', function() {
         observe: function() {},
         unobserve: function() {}
       };
+
+      realPerformanceNow = window.performance.now;
+      window.performance.now = function() { return Date.now(); };
 
       // Monitor UsageData calls
       var proto = AppUsageMetrics.UsageData.prototype;
@@ -220,6 +227,7 @@ suite('AppUsageMetrics:', function() {
 
     teardown(function() {
       window.SettingsListener = realSettingsListener;
+      window.performance.now = realPerformanceNow;
       aum.stop();
     });
 
