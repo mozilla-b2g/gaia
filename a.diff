@@ -1,0 +1,14 @@
+diff --cc tests/python/gaia-ui-tests/gaiatest/tests/functional/marketplace/manifest.ini
+index 9bf18b2,34a0409..0000000
+--- a/tests/python/gaia-ui-tests/gaiatest/tests/functional/marketplace/manifest.ini
++++ b/tests/python/gaia-ui-tests/gaiatest/tests/functional/marketplace/manifest.ini
+@@@ -6,3 -6,6 +6,9 @@@ smoketest = fals
+  
+  [test_marketplace_launch.py]
+  smoketest = true
+++<<<<<<< HEAD
+++=======
++ 
++ [test_marketplace_packaged_app.py]
++ smoketest = true
+++>>>>>>> dd13ec5... Bug 989562 - Write a test to install & launch a packaged app

@@ -10,8 +10,6 @@ from gaiatest.apps.marketplace.app import Marketplace
 
 class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
 
-    MARKETPLACE_NAME = 'Marketplace'
-
     APP_INSTALLED = False
 
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
@@ -29,7 +27,7 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
     def test_search_and_install_app(self):
         self.app_name = 'Calculator'
 
-        marketplace = Marketplace(self.marionette, self.MARKETPLACE_NAME)
+        marketplace = Marketplace(self.marionette, 'Marketplace')
         marketplace.launch()
 
         iframe = self.marionette.find_element(*self._marketplace_iframe_locator)
