@@ -190,13 +190,15 @@ function shareSingleItem() {
     cropResizeRotate(currentFrame.imageblob, null,
                      maxsize || null, null, metadata,
                      function(error, rotatedBlob) {
-                       hideSpinner();
-                       button.classList.remove('disabled');
                        if (error) {
                          console.error('Error while rotating image: ', error);
                          rotatedBlob = currentFrame.imageblob;
                        }
-                       share([rotatedBlob], currentFrame.imageblob.name);
+                       ensureFileBackedBlob(rotatedBlob, function(file) {
+                         hideSpinner();
+                         button.classList.remove('disabled');
+                         share([file], currentFrame.imageblob.name);
+                       });
                      });
   }
 }
