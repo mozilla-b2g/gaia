@@ -73,10 +73,6 @@ var UtilityTray = {
 
     window.addEventListener('software-button-enabled', this);
     window.addEventListener('software-button-disabled', this);
-
-    if (window.navigator.mozMobileConnections) {
-      window.LazyLoader.load('js/cost_control.js');
-    }
   },
 
   addHomeListener: function ut_addHomeListener() {

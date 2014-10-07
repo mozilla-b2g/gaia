@@ -183,78 +183,11 @@ var UpdateManager = {
   },
 
   promptOrDownload: function um_promptOrDownload() {
-    var self = this;
-
-    if (self._wifiAvailable()) {
-      self._startedDownloadUsingDataConnection = false;
-      self.startDownloads();
+    if (!this._wifiAvailable()) {
       return;
     }
-
-    var wifiPrioritized = self.getWifiPrioritized();
-    var update2GEnabled = self.getUpdate2GEnabled();
-
-    // We can download the update only if the current connection
-    // is not forbidden for download
-    var conns = window.navigator.mozMobileConnections;
-    if (!conns) {
-      console.error('mozMobileConnections is not available we can ' +
-                    'not update the phone.');
-      self.showForbiddenDownload();
-      return;
-    }
-
-    var dataType;
-    // In DualSim only one of them will have data active
-    for (var i = 0; i < conns.length && !dataType; i++) {
-      dataType = conns[i].data.type;
-    }
-    if (!dataType) {
-      console.error('There are not wifi connection nor data ' +
-                    'connection. We can not download update');
-      self.showForbiddenDownload();
-      return;
-    }
-
-    if (self.DATA_TYPES_NO_ALLOWED.indexOf(dataType) >= 0) {
-      self.connection2G = true;
-    } else {
-      self.connection2G = false;
-    }
-
-    // If it's not connected to a wifi we need to verify what kind of
-    // connection it has
-    Promise.all([wifiPrioritized, update2GEnabled]).then(function(values) {
-      var prioritized = values[0];
-      var update2G = values[1];
-      // If update 2G is available we don't need to know what kind
-      // of connection the phone has
-      if (update2G) {
-        if (prioritized) {
-          self.showPromptWifiPrioritized();
-        } else {
-          self.showPrompt3GAdditionalCostIfNeeded();
-        }
-        return;
-      }
-
-      //2G connection
-      if (self.connection2G) {
-        if (prioritized) {
-          self.showPromptWifiPrioritized(self.showForbiddenDownload);
-        } else {
-          self.showForbiddenDownload();
-        }
-        return;
-      }
-
-      //3G connection
-      if (prioritized) {
-        self.showPromptWifiPrioritized();
-      } else {
-        self.showPrompt3GAdditionalCostIfNeeded();
-      }
-    });
+    this._startedDownloadUsingDataConnection = false;
+    this.startDownloads();
   },
 
   containerClicked: function um_containerClicker() {
@@ -774,39 +707,7 @@ var UpdateManager = {
   },
 
   _openDownloadViaDataDialog: function um_downloadViaDataDialog() {
-    var _ = navigator.mozL10n.setAttributes;
-    var connections = window.navigator.mozMobileConnections;
-    var dataType;
-    var sim;
-
-    if (!connections) {
-      this.showForbiddenDownload();
-      return;
-    }
-    // In DualSim only one of them will have data active
-    for (var i = 0; i < connections.length && !dataType; i++) {
-      dataType = connections[i].data.type;
-      sim = connections[i];
-    }
-
-    if (!dataType) {
-      //No connection available
-      self.showForbiddenDownload();
-      return;
-    }
-    var dataRoamingSettingPromise = this._getDataRoamingSetting();
-    dataRoamingSettingPromise.then(function(roaming) {
-      if (roaming && sim.data.roaming) {
-        _(this.downloadViaDataConnectionTitle,
-          'downloadUpdatesViaDataRoamingConnection');
-        _(this.downloadViaDataConnectionMessage,
-          'downloadUpdatesViaDataRoamingConnectionMessage');
-        this.downloadViaDataConnectionDialog.classList.add('visible');
-        return;
-      }
-      this._startedDownloadUsingDataConnection = true;
-      this.startDownloads();
-    }.bind(this));
+    this.showForbiddenDownload();
   },
 
   _getDataRoamingSetting: function um_getDataRoamingSetting() {

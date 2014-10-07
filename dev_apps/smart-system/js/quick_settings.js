@@ -95,71 +95,7 @@
      * @memberof QuickSettings.prototype
      */
     monitorDataChange: function() {
-      var conns = window.navigator.mozMobileConnection ||
-        window.navigator.mozMobileConnections;
-
-      if (!conns) {
-        // hide data icon without mozMobileConnection object
-        this.overlay.classList.add('non-mobile');
-      } else {
-        var LABEL_TO_ICON = {
-          '4G': '4g',
-          'H+': 'hspa-plus',
-          'H': 'hspa',
-          '3G': '3g',
-          'E': 'edge',
-          '2G': '2g',
-          'undefined': 'data'
-        };
-        var label = {
-          'lte': '4G', // 4G LTE
-          'ehrpd': '4G', // 4G CDMA
-          'hspa+': 'H+', // 3.5G HSPA+
-          'hsdpa': 'H',
-          'hsupa': 'H',
-          'hspa': 'H', // 3.5G HSDPA
-          // 3G CDMA
-          'evdo0': '3G',
-          'evdoa': '3G',
-          'evdob': '3G',
-          '1xrtt': '3G',
-          'umts': '3G', // 3G
-          'edge': 'E', // EDGE
-          'is95a': '2G',
-          'is95b': '2G', // 2G CDMA
-          'gprs': '2G'
-        };
-
-        for (var i = 0; i < conns.length; i++) {
-          var conn = conns[i];
-          conn.addEventListener('datachange', function qs_onDataChange() {
-            var dataType;
-            // if there is any data connection got established,
-            // we would just use that
-            for (var j = 0; j < conns.length; j++) {
-              dataType = label[conns[j].data.type] || dataType;
-            }
-            this.data.dataset.network = dataType;
-            this.data.dataset.icon = LABEL_TO_ICON[String(dataType)];
-            this.setAccessibilityAttributes(this.data, 'dataButton', dataType);
-          }.bind(this));
-        }
-
-        /*
-         * monitor data setting
-         * TODO prevent quickly tapping on it
-         * @memberof QuickSettings.prototype
-         */
-        SettingsListener.observe('ril.data.enabled', true, function(value) {
-          if (value) {
-            this.data.dataset.enabled = 'true';
-          } else {
-            delete this.data.dataset.enabled;
-          }
-          this.setAccessibilityAttributes(this.data, 'dataButton',
-            this.data.dataset.network);
-        }.bind(this));
-      }
+      this.overlay.classList.add('non-mobile');
     },
 
     /**
@@ -316,9 +252,6 @@
                   var cset = {};
                   cset[this.DATA_KEY] = !enabled;
                   this.setMozSettings(cset);
-                } else {
-                  //Data is not active we want to enable it
-                  this.showDataRoamingEnabledPromptIfNeeded();
                 }
               }
               break;
@@ -493,82 +426,6 @@
           resolve(reqSetting.result[self.DATA_ROAMING_KEY]);
         };
       });
-    },
-
-    /**
-     * Prompts the user if they are requesting to enable data roaming.
-     * @memberof QuickSettings.prototype
-     */
-    showDataRoamingEnabledPromptIfNeeded:
-      function qs_showDataRoamingEnabledPromptIfNeeded() {
-      var dialog = document.querySelector('#quick-setting-data-enabled-dialog'),
-        enableBtn = document.querySelector('.quick-setting-data-ok-btn'),
-        cancelBtn = document.querySelector('.quick-setting-data-cancel-btn');
-      var self = this;
-      var connections = window.navigator.mozMobileConnections;
-      var dataType;
-      var sim;
-
-      if (!connections) {
-        return;
-      }
-      // In DualSim only one of them will have data active
-      for (var i = 0; i < connections.length && !dataType; i++) {
-        dataType = connections[i].data.type;
-        sim = connections[i];
-      }
-      if (!dataType) {
-        //No connection available
-        return;
-      }
-
-      this.checkDataRoaming().then(function(roaming) {
-        if (!roaming && sim.data.roaming) {
-          disabledDefaultDialogIfNeeded();
-        } else {
-          var cset = {};
-          cset[self.DATA_KEY] = true;
-          self.setMozSettings(cset);
-          return;
-        }
-      });
-
-      // Hides the warning dialog to prevent to show it in settings app again
-      var disabledDefaultDialogIfNeeded = function() {
-        self.getDataRoamingWarning().then(function(warningEnabled) {
-          if (warningEnabled === null || warningEnabled) {
-            var cset = {};
-            cset[self.WARNING_DIALOG_ENABLED_KEY] = false;
-            self.setMozSettings(cset);
-          }
-          enableDialog(true);
-        });
-      };
-
-      var enableSetting = function() {
-        var cset = {};
-        cset[self.DATA_KEY] = true;
-        cset[self.DATA_ROAMING_KEY] = true;
-        self.setMozSettings(cset);
-        enableDialog(false);
-      };
-
-      var cancel = function() {
-        enableDialog(false);
-      };
-
-      function enableDialog(enabled) {
-        if (enabled) {
-          UtilityTray.hide();
-          enableBtn.addEventListener('click', enableSetting);
-          cancelBtn.addEventListener('click', cancel);
-          dialog.classList.add('visible');
-        } else {
-          enableBtn.removeEventListener('click', enableSetting);
-          cancelBtn.removeEventListener('click', cancel);
-          dialog.classList.remove('visible');
-        }
-      }
     },
 
     /**
