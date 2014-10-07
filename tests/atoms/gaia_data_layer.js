@@ -3,6 +3,10 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 'use strict';
+/* global marionetteScriptFinished, pair, device:true, mozContact, i */
+/* global waitFor, SpecialPowers, adapter:true, aContacts */
+/* exported pair, discovery, GaiaDataLayer */
+/* jshint -W083 */
 
 var GaiaDataLayer = {
 
@@ -10,14 +14,16 @@ var GaiaDataLayer = {
     var req = window.navigator.mozBluetooth.getDefaultAdapter();
     req.onsuccess = function() {
       var adapter = req.result;
+      var discovery;
       adapter.ondevicefound = function(aEvent) {
         device = aEvent.device;
+        var pair;
         if (device.name === aDeviceName) {
-          var pair = adapter.pair(device.address);
+          pair = adapter.pair(device.address);
           marionetteScriptFinished(true);
         }
       };
-      var discovery = adapter.startDiscovery();
+      discovery = adapter.startDiscovery();
     };
   },
 
@@ -28,8 +34,9 @@ var GaiaDataLayer = {
       var req = adapter.getPairedDevices();
       req.onsuccess = function() {
         var total = req.result.slice().length;
+        var up;
         for (var i = total; i > 0; i--) {
-          var up = adapter.unpair(req.result.slice()[i - 1].address);
+          up = adapter.unpair(req.result.slice()[i - 1].address);
         }
       };
     };
@@ -95,7 +102,6 @@ var GaiaDataLayer = {
   },
 
   insertSIMContact: function(aType, aContact) {
-    var contact = new mozContact(aContact);
 
     // Get 1st SIM
     var iccId = window.navigator.mozIccManager.iccIds[0];
@@ -176,15 +182,16 @@ var GaiaDataLayer = {
   removeContact: function(aContact, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     SpecialPowers.addPermission('contacts-write', true, document);
-    console.log("removing contact with id '" + aContact.id + "'");
+    console.log('removing contact with id \'' + aContact.id + '\'');
     var req = window.navigator.mozContacts.remove(aContact);
     req.onsuccess = function() {
-      console.log("success removing contact with id '" + aContact.id + "'");
+      console.log('success removing contact with id \'' + aContact.id + '\'');
       SpecialPowers.removePermission('contacts-write', document);
       callback(true);
     };
     req.onerror = function() {
-      console.error("error removing contact with id '" + aContacts[i].id + "'");
+      console.error('error removing contact with id \'' +
+                      aContacts[i].id + '\'');
       SpecialPowers.removePermission('contacts-write', document);
       callback(false);
     };
@@ -231,8 +238,8 @@ var GaiaDataLayer = {
     var manager = window.navigator.mozWifiManager;
 
     if (this.isWiFiConnected(aNetwork)) {
-      console.log("already connected to network with ssid '" +
-                  aNetwork.ssid + "'");
+      console.log('already connected to network with ssid \'' +
+                  aNetwork.ssid + '\'');
       callback(true);
     }
     else {
@@ -244,11 +251,11 @@ var GaiaDataLayer = {
       }
 
       req.onsuccess = function() {
-        console.log("waiting for connection status 'connected'");
+        console.log('waiting for connection status \'connected\'');
         waitFor(
           function() {
-            console.log("success connecting to network with ssid '" +
-                        aNetwork.ssid + "'");
+            console.log('success connecting to network with ssid \'' +
+                        aNetwork.ssid + '\'');
             callback(true);
           },
           function() {
@@ -344,11 +351,11 @@ var GaiaDataLayer = {
     var req = manager.forget(aNetwork);
 
     req.onsuccess = function() {
-      console.log("success forgetting network with ssid '" +
-                  aNetwork.ssid + "'");
+      console.log('success forgetting network with ssid \'' +
+                  aNetwork.ssid + '\'');
       if (waitForStatus !== false) {
-        console.log("waiting for connection status '" +
-                    waitForStatus + "'");
+        console.log('waiting for connection status \'' +
+                    waitForStatus + '\'');
         waitFor(
           function() { callback(true); },
           function() {
@@ -363,8 +370,8 @@ var GaiaDataLayer = {
     };
 
     req.onerror = function() {
-      console.log("error forgetting network with ssid '" + aNetwork.ssid + "' " +
-                  req.error.name);
+      console.log('error forgetting network with ssid \'' +
+                    aNetwork.ssid + '\' ' + req.error.name);
       callback(false);
     };
   },
@@ -519,7 +526,7 @@ var GaiaDataLayer = {
     SpecialPowers.setBoolPref('dom.sms.enabled', true);
     let sms = window.navigator.mozMobileMessage;
 
-    let msgList = new Array();
+    let msgList = [];
     let cursor = sms.getMessages(null, false);
 
     cursor.onsuccess = function(event) {
@@ -555,7 +562,7 @@ var GaiaDataLayer = {
     SpecialPowers.setBoolPref('dom.sms.enabled', true);
     let sms = window.navigator.mozMobileMessage;
 
-    let msgList = new Array();
+    let msgList = [];
     let cursor = sms.getMessages(null, false);
 
     cursor.onsuccess = function(event) {
@@ -622,7 +629,7 @@ var GaiaDataLayer = {
 
   bluetoothSetDeviceName: function(device_name, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    console.log("Setting device's bluetooth name to '%s'" % device_name);
+    console.log('Setting device\'s bluetooth name to \'%s\'' % device_name);
 
     var req = window.navigator.mozBluetooth.getDefaultAdapter();
     req.onsuccess = function() {
@@ -646,7 +653,7 @@ var GaiaDataLayer = {
 
   bluetoothSetDeviceDiscoverableMode: function(discoverable, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    if (discoverable == true) {
+    if (discoverable === true) {
       console.log('Making the device discoverable via bluetooth');
     } else {
       console.log('Turning device bluetooth discoverable mode OFF');
@@ -675,43 +682,9 @@ var GaiaDataLayer = {
   deleteAllAlarms: function() {
     window.wrappedJSObject.AlarmManager.getAlarmList(function(aList) {
       aList.forEach(function(aAlarm) {
-         console.log("Deleting alarm with id  '" + aAlarm.id + "'");
+         console.log('Deleting alarm with id  \'' + aAlarm.id + '\'');
          window.wrappedJSObject.AlarmManager.delete(aAlarm);
       });
-    });
-  },
-
-  // FIXME: Bug 1011000: will make use of SoundManager instead
-  waitForChromeEvent: function(aEventName, aCallback) {
-    window.addEventListener('mozChromeEvent', function gsm_chromeEvent(evt) {
-      window.removeEventListener('mozChromeEvent', gsm_chromeEvent);
-      waitFor(
-        function() {
-          console.log("mozChromeEvent: " + evt.detail.type);
-          if (evt.detail.type === aEventName) {
-            aCallback(evt.detail);
-          }
-        },
-        function() {
-          return true;
-        }
-      );
-    });
-  },
-
-  // FIXME: Bug 1011000: will make use of SoundManager instead
-  waitForAudioChannelChanged: function(aCallback) {
-    var callback = aCallback || marionetteScriptFinished;
-    this.waitForChromeEvent('audio-channel-changed', function(details) {
-      callback(details.channel);
-    });
-  },
-
-  // FIXME: Bug 1011000: will make use of SoundManager instead
-  waitForVisibleAudioChannelChanged: function(aCallback) {
-    var callback = aCallback || marionetteScriptFinished;
-    this.waitForChromeEvent('visible-audio-channel-changed', function(details) {
-      callback(details.channel);
     });
   }
 };

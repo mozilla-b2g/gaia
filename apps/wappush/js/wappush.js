@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global CpScreenHelper, DUMP, Notification, NotificationHelper,
-          ParsedMessage, Promise, SiSlScreenHelper, WhiteList */
+          ParsedMessage, Promise, SiSlScreenHelper, WhiteList, Utils */
 
 /* exported WapPushManager */
 
@@ -19,9 +19,7 @@
     displayWapPushMessage: wpm_displayWapPushMessage,
     onVisibilityChange: wpm_onVisibilityChange,
     onWapPushReceived: wpm_onWapPushReceived,
-    setOnCloseCallback: wpm_setOnCloseCallback,
-    clearNotifications: wpm_clearNotifications,
-    enableAcceptButton: wpm_enableAcceptButton
+    clearNotifications: wpm_clearNotifications
   };
 
   /** Settings key for enabling/disabling WAP Push messages */
@@ -32,16 +30,6 @@
 
   /** A reference to the app's object */
   var app;
-
-  /** Accept button node */
-  var acceptButton;
-
-  /** Header node - which has the close button */
-  var header;
-
-  /** Callback function to be invoqued when closing the app from either mode
-    * CP or SI/SL */
-  var onCloseCallback;
 
   /** Timer used to schedule a close operation */
   var closeTimeout;
@@ -99,16 +87,11 @@
     // Reset the internal state to default values.
     wapPushEnabled = true;
     app = null;
-    onCloseCallback = null;
     closeTimeout = null;
     pendingMessages = 0;
 
     // Listen to settings changes right away
     navigator.mozSettings.addObserver(wapPushEnableKey, wpm_onSettingsChange);
-
-    // Retrieve the various page elements
-    acceptButton = document.getElementById('accept');
-    header = document.getElementById('header');
 
     // Get the app object and configuration
     var promise = Promise.all([
@@ -124,7 +107,6 @@
       CpScreenHelper.init();
 
       // Register event and message handlers only after initialization is done
-      header.addEventListener('action', wpm_onClose);
       document.addEventListener('visibilitychange', wpm_onVisibilityChange);
       window.navigator.mozSetMessageHandler('notification', wpm_onNotification);
       window.navigator.mozSetMessageHandler('wappush-received',
@@ -159,16 +141,6 @@
       window.clearTimeout(closeTimeout);
       closeTimeout = null;
     }
-  }
-
-  /**
-   * Show/hide the accept button.
-   *
-   * @param {Boolean} enabled Shows the accept button when true, hides it
-   *        otherwise.
-   */
-  function wpm_enableAcceptButton(enabled) {
-    acceptButton.classList.toggle('hidden', !enabled);
   }
 
   /**
@@ -219,20 +191,7 @@
       text += message.href;
     }
 
-    // Build the title, this is normally the sender's number
-    var title = message.sender;
-
-    /* If the phone has more than one SIM prepend the number of the SIM on
-     * which this message was received */
-    if (navigator.mozIccManager &&
-        navigator.mozIccManager.iccIds.length > 1) {
-      var simName = _('sim', { id: +message.serviceId + 1 });
-
-      title = _(
-        'dsds-notification-title-with-sim',
-         { sim: simName, title: title }
-      );
-    }
+    var title = Utils.prepareMessageTitle(message);
 
     var options = {
       icon: iconURL,
@@ -407,27 +366,6 @@
       closeTimeout = null;
       window.close();
     }, 100);
-  }
-
-  /**
-   * Invoque the callback function that handles the applicaton flow in the
-   * different mode (SI/SL or CP) and close the app.
-   */
-  function wpm_onClose() {
-    if (onCloseCallback && (typeof onCloseCallback === 'function')) {
-      onCloseCallback();
-    }
-  }
-
-  /**
-   * Set the callback function that handles the applicaton flow in the different
-   * mode (SI/SL or CP) when the user tries to close the application with the
-   * close button.
-   *
-   * @param {function} callback The callback function.
-   */
-  function wpm_setOnCloseCallback(callback) {
-    onCloseCallback = callback;
   }
 
   exports.WapPushManager = WapPushManager;

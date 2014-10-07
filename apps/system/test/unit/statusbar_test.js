@@ -2196,4 +2196,55 @@ suite('system/Statusbar', function() {
       testEventThatShows.bind(this)('activityopened');
     });
   });
+
+  suite('Label icon width', function() {
+    var labelIndex;
+    var realClientWidth;
+
+    setup(function() {
+      StatusBar.PRIORITIES.some(function(iconObj, index) {
+        if (iconObj[0] === 'label') {
+          labelIndex = index;
+          return true;
+        }
+
+        return false;
+      });
+      realClientWidth = Object.getOwnPropertyDescriptor(fakeIcons.label,
+        'clientWidth');
+    });
+
+    teardown(function() {
+      if (realClientWidth) {
+        Object.defineProperty(fakeIcons.label, 'clientWidth', realClientWidth);
+      } else {
+        delete fakeIcons.label.clientWidth;
+      }
+    });
+
+    test('should be cached after initialisation', function() {
+      assert.isNotNull(StatusBar.PRIORITIES[labelIndex][1]);
+      assert.isNumber(StatusBar.PRIORITIES[labelIndex][1]);
+    });
+
+    test('should have the cache invalidated when width changes', function() {
+      var label = fakeIcons.label;
+
+      Object.defineProperty(label, 'clientWidth', {
+        configurable: true,
+        get: function() { return 10; }
+      });
+      StatusBar.update.time.call(StatusBar, '*');
+
+      var originalWidth = StatusBar.PRIORITIES[labelIndex][1];
+
+      Object.defineProperty(label, 'clientWidth', {
+        configurable: true,
+        get: function() { return 20; }
+      });
+      StatusBar.update.time.call(StatusBar, '***');
+
+      assert.notEqual(originalWidth, StatusBar.PRIORITIES[labelIndex][1]);
+    });
+  });
 });

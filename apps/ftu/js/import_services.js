@@ -114,12 +114,12 @@ var ImportIntegration = {
   },
 
   updateContactsNumber: function fb_ucn(cb) {
-    this.fbImportFeedback.textContent = _('fb-checking');
+    this.fbImportFeedback.setAttribute('data-l10n-id', 'fb-checking');
 
     var self = this;
     var fbUpdateTotals = function fbUpdateTotals(imported, total) {
       if (total == null) {
-        self.fbImportFeedback.textContent = _('notImportedYet');
+        self.fbImportFeedback.setAttribute('data-l10n-id', 'notImportedYet');
       } else {
         self.fbImportFeedback.textContent = _('facebook-import-msg', {
           'imported': imported,

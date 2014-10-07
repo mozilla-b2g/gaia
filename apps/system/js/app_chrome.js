@@ -51,6 +51,23 @@
       this.setFreshTitle(this.app.name);
     }
 
+    this.reConfig();
+  };
+
+  AppChrome.prototype = Object.create(window.BaseUI.prototype);
+
+  AppChrome.prototype.CLASS_NAME = 'AppChrome';
+
+  AppChrome.prototype.EVENT_PREFIX = 'chrome';
+
+  AppChrome.prototype.FRESH_TITLE = 500;
+
+  AppChrome.prototype.LOCATION_COALESCE = 250;
+
+  AppChrome.prototype._DEBUG = false;
+
+  AppChrome.prototype.reConfig = function() {
+    var chrome = this.app.config.chrome;
     if (!chrome) {
       return;
     }
@@ -58,6 +75,8 @@
     if (this.isSearchApp()) {
       this.app.element.classList.add('search-app');
       this.title.textContent = _('search-or-enter-address');
+    } else {
+      this.app.element.classList.remove('search-app');
     }
 
     if (chrome.bar) {
@@ -80,18 +99,6 @@
     }
   };
 
-  AppChrome.prototype = Object.create(window.BaseUI.prototype);
-
-  AppChrome.prototype.CLASS_NAME = 'AppChrome';
-
-  AppChrome.prototype.EVENT_PREFIX = 'chrome';
-
-  AppChrome.prototype.FRESH_TITLE = 500;
-
-  AppChrome.prototype.LOCATION_COALESCE = 250;
-
-  AppChrome.prototype._DEBUG = false;
-
   AppChrome.prototype.combinedView = function an_combinedView() {
     var className = this.CLASS_NAME + this.instanceID;
 
@@ -102,8 +109,10 @@
                 <button type="button" class="forward-button" disabled></button>
                 <div class="urlbar">
                   <div class="title" data-ssl=""></div>
-                  <button type="button" class="reload-button"></button>
-                  <button type="button" class="stop-button"></button>
+                  <button type="button" class="reload-button"
+                          data-l10n-id="reload-button"></button>
+                  <button type="button" class="stop-button"
+                          data-l10n-id="stop-button"></button>
                 </div>
                 <button type="button" class="menu-button" alt="Menu"></button>
                 <button type="button" class="windows-button"></button>

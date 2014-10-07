@@ -5,3 +5,4 @@
 function MockNfcHandler() {}
 
 MockNfcHandler.prototype.start = function() {};
+MockNfcHandler.prototype.stop = function() {};

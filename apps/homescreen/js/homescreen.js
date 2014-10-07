@@ -95,7 +95,6 @@ var Homescreen = (function() {
                          contextMenuEl,
                          'js/contextmenu.js'
                          ], function callContextMenu() {
-                          navigator.mozL10n.translate(contextMenuEl);
                           ContextMenuDialog.show();
                         }
         );

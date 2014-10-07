@@ -21,9 +21,6 @@ class TestDSDSCellData(GaiaTestCase):
         # Open cell data settings
         cell_and_data_settings = settings.open_cell_and_data_settings()
 
-        # Go into SIM 1
-        cell_and_data_settings.select_sim(1)
-
         # verify that a carrier is displayed
         self.assertTrue(len(cell_and_data_settings.carrier_name) > 0)
 

@@ -3,6 +3,7 @@
           MockActivityWindow, MockPopupWindow, MockSettingsListener */
 /* jshint nonew: false */
 
+require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
@@ -12,7 +13,7 @@ requireApp('system/test/unit/mock_activity.js');
 
 var mocksForChildWindowFactory = new MocksHelper([
   'MozActivity', 'AppWindow', 'ActivityWindow', 'PopupWindow',
-  'SettingsListener', 'AttentionWindow'
+  'SettingsListener', 'AttentionWindow', 'System'
 ]).init();
 
 suite('system/ChildWindowFactory', function() {
@@ -334,4 +335,25 @@ suite('system/ChildWindowFactory', function() {
     assert.isTrue(stubSetOrientation.called);
     assert.isTrue(stubRequestForeground.called);
   });
+
+  suite('runningFTU', function() {
+    setup(function() {
+      window.System.runningFTU = true;
+    });
+    teardown(function() {
+      window.System.runningFTU = false;
+    });
+
+    test('> _blank', function() {
+      var app1 = new MockAppWindow(fakeAppConfig1);
+      var cwf = new ChildWindowFactory(app1);
+      var stubCreatePopupWindow = this.sinon.stub(cwf, 'createPopupWindow');
+      var testEvt = (new CustomEvent('mozbrowseropenwindow', {
+        detail: fakeWindowOpenBlank
+      }));
+      cwf.handleEvent(testEvt);
+      assert.isTrue(stubCreatePopupWindow.calledOnce);
+    });
+  });
+
 });

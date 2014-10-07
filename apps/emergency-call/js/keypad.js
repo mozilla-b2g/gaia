@@ -416,14 +416,6 @@ var KeypadManager = {
           self._updatePhoneNumberView();
         }, 400, this);
       }
-
-      // Voicemail long press (needs to be longer since it actually dials)
-      if (event.target.dataset.voicemail) {
-        this._holdTimer = setTimeout(function vm_call(self) {
-          self._longPress = true;
-          self._callVoicemail();
-        }, 3000, this);
-      }
     } else if (event.type == 'mouseup') {
       // If it was a long press our work is already done
       if (this._longPress) {

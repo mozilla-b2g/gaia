@@ -13,6 +13,12 @@ var mocksHelperForThreadsTest = new MocksHelper([
   'Drafts'
 ]).init();
 
+function assertDeepEqual(test, expected) {
+  for (var key in expected) {
+    assert.deepEqual(test[key], expected[key]);
+  }
+} 
+
 suite('Threads', function() {
 
   mocksHelperForThreadsTest.attachTestHelpers();
@@ -97,7 +103,7 @@ suite('Threads', function() {
         type: 'sms'
       });
 
-      assert.deepEqual(thread, {
+      assertDeepEqual(thread, {
         // id was used
         id: 1,
         participants: ['555'],
@@ -122,7 +128,7 @@ suite('Threads', function() {
         type: 'sms'
       });
 
-      assert.deepEqual(thread, {
+      assertDeepEqual(thread, {
         // threadId was used
         id: 44,
         participants: ['555'],
@@ -151,7 +157,7 @@ suite('Threads', function() {
 
     test('Threads.set(key, val)', function() {
       Threads.set(1, {});
-      assert.deepEqual(Threads.get(1), {
+      assertDeepEqual(Threads.get(1), {
         body: undefined,
         id: undefined,
         lastMessageSubject: undefined,
@@ -211,7 +217,7 @@ suite('Threads', function() {
       Threads.set(5, {});
       Threads.currentId = 5;
 
-      assert.deepEqual(Threads.active, { body: undefined,
+      assertDeepEqual(Threads.active, { body: undefined,
         id: undefined,
         lastMessageSubject: undefined,
         lastMessageType: undefined,
@@ -250,14 +256,14 @@ suite('Thread', function() {
 
   test('Thread', function() {
     assert.ok(Thread);
-    assert.equal(typeof Thread.prototype.drafts, 'object');
-    assert.equal(typeof Thread.prototype.hasDrafts, 'boolean');
+    assert.typeOf(Thread.prototype.drafts, 'object');
+    assert.typeOf(Thread.prototype.hasDrafts, 'boolean');
   });
 
   test('Thread object', function() {
     var thread = new Thread(fixture);
 
-    assert.deepEqual(thread, {
+    assertDeepEqual(thread, {
       id: 1,
       participants: ['555'],
       lastMessageSubject: undefined,

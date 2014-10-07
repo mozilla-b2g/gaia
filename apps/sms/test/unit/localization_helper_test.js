@@ -118,11 +118,19 @@ suite('LocalizationHelper >', function() {
       test('correctly formats node content', function() {
         var timestamp = Date.now();
 
-        function assertChange(format) {
-          assert.equal(
-            node.textContent,
-            Utils.date.format.localeFormat(new Date(timestamp), format)
-          );
+        function assertChange(format, doNotFormat) {
+          // In case of time format change date-only elements aren't updated
+          if (doNotFormat) {
+            assert.equal(
+              node.textContent, '', 'Date-only elements should not be updated'
+            );
+          } else {
+            assert.equal(
+              node.textContent,
+              Utils.date.format.localeFormat(new Date(timestamp), format)
+            );
+          }
+
           assert.isFalse(node.hasAttribute('data-l10n-id'));
           assert.isFalse(node.hasAttribute('data-l10n-args'));
         }
@@ -131,14 +139,7 @@ suite('LocalizationHelper >', function() {
         node.dataset.l10nDateFormat = 'format';
 
         // In case of time format change date-only elements shouldn't be updated
-        if(forceUpdateMethod()) {
-          assert.throws(
-            () => assertChange(node.dataset.l10nDateFormat),
-            'Date-only elements should not be updated'
-          );
-        } else {
-          assertChange(node.dataset.l10nDateFormat);
-        }
+        assertChange(node.dataset.l10nDateFormat, forceUpdateMethod());
 
         node.dataset.l10nDateFormat12 = 'format12';
         node.dataset.l10nDateFormat24 = 'format24';
@@ -157,13 +158,21 @@ suite('LocalizationHelper >', function() {
       test('correctly formats node l10n attributes', function() {
         var timestamp = Date.now();
 
-        function assertChange(format) {
+        function assertChange(format, doNotFormat) {
           var l10nAttributes = navigator.mozL10n.getAttributes(node);
+          // In case of time format change date-only elements aren't updated
+          if (doNotFormat) {
+            assert.deepEqual(l10nAttributes.args, {
+              data: 'custom'
+            }, 'Date-only elements should not be updated');
+          } else {
+            assert.deepEqual(l10nAttributes.args, {
+              data: 'custom',
+              date: Utils.date.format.localeFormat(new Date(timestamp), format)
+            });
+          }
+
           assert.equal(l10nAttributes.id, 'custom');
-          assert.deepEqual(l10nAttributes.args, {
-            data: 'custom',
-            date: Utils.date.format.localeFormat(new Date(timestamp), format)
-          });
           assert.equal(node.textContent, 'not-changed-content');
         }
 
@@ -175,14 +184,7 @@ suite('LocalizationHelper >', function() {
         node.textContent = 'not-changed-content';
 
         // In case of time format change date-only elements shouldn't be updated
-        if(forceUpdateMethod()) {
-          assert.throws(
-            () => assertChange(node.dataset.l10nDateFormat),
-            'Date-only elements should not be updated'
-          );
-        } else {
-          assertChange(node.dataset.l10nDateFormat);
-        }
+        assertChange(node.dataset.l10nDateFormat, forceUpdateMethod());
 
         node.dataset.l10nDateFormat12 = 'format12';
         node.dataset.l10nDateFormat24 = 'format24';

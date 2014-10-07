@@ -616,9 +616,13 @@ body .utility-tray .statusbar > .sb-start {
 .sb-hide-playing .sb-icon-playing,
 .sb-hide-bluetooth-transferring .sb-icon-bluetooth-transferring,
 .sb-hide-alarm .sb-icon-alarm,
-.sb-hide-sms .sb-icon-sms,
-.sb-hide-label .sb-icon-label {
+.sb-hide-sms .sb-icon-sms {
   display: none;
+}
+
+/* Using visibility for label so that the element width is known at all time. */
+.utility-tray .sb-hide-label .statusbar > .sb-icon-label {
+  visibility: hidden;
 }
 
 /* RTL View */

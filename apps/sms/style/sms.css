@@ -107,9 +107,46 @@ form[role="dialog"][data-type="edit"] > menu {
   background-color: #fff;
 }
 
-#threads-container[data-type="list"] aside.empty {
+.threadlist-item-picture {
   display: none;
 }
+
+.threadlist-item-picture.has-picture {
+  display: block;
+}
+
+.threadlist-item .default-picture > span[data-type=img],
+.threadlist-item .group-picture > span[data-type=img] {
+  /* Please keep this image in sync with what is used in JS/ThreadListUI */
+  background-image: url('images/default_contact_image.png');
+  background-position: top left;
+}
+
+.threadlist-item:nth-child(even) .default-picture > span[data-type=img],
+.threadlist-item:nth-child(even) .group-picture > span[data-type=img] {
+  background-position: bottom right;
+}
+
+.threadlist-item:nth-child(3n+1) .default-picture > span[data-type=img],
+.threadlist-item:nth-child(3n+1) .group-picture > span[data-type=img] {
+  background-position: top right;
+}
+
+.threadlist-item:nth-child(4n+4) .default-picture > span[data-type=img],
+.threadlist-item:nth-child(4n+4) .group-picture > span[data-type=img] {
+  background-position: center center;
+}
+
+.threadlist-item-picture.group-picture > span[data-type=img] {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #fff;
+  font-size: 2.5rem;
+}
+
 
 /**
  * Bug 967878, 979018 -[Messages] Background doesn't
@@ -196,8 +233,8 @@ form[role="dialog"][data-type="edit"] > menu {
   margin-right: 3.4rem;
 }
 
-.edit [data-type="list"] li[data-photo-url*="blob:"] > a > p {
-  margin-right: 10rem;
+.edit #threads-container aside.pack-end {
+  margin-left: 4rem;
 }
 
 .edit #threads-container[data-type="list"] aside.pack-end span {

@@ -1,0 +1,17 @@
+task:
+  metadata:
+    name: Gaia JSHint
+    description: JSHint
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+
+  payload:
+    command:
+      - entrypoint
+      - ./bin/ci run jshint
+  extra:
+    treeherder:
+      symbol: JSHint
+      groupSymbol: LINT
+      groupName: Linters

@@ -81,6 +81,43 @@ suite('system/AttentionWindowManager', function() {
     });
   });
 
+  suite('fullscreen mode', function() {
+    var realFullScreen;
+
+    setup(function() {
+      realFullScreen = document.mozFullScreen;
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        get: function() { return true; }
+      });
+      window.attentionWindowManager = new AttentionWindowManager();
+      window.attentionWindowManager.start();
+    });
+
+    teardown(function() {
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        get: function() { return realFullScreen; }
+      });
+      window.attentionWindowManager.stop();
+      window.attentionWindowManager = null;
+    });
+
+    test('should exit fullscreen when opening attention',
+    function() {
+      var cancelSpy = this.sinon.spy(document, 'mozCancelFullScreen');
+      attentionWindowManager._openedInstances =
+        new Map();
+      attentionWindowManager._topMostWindow = null;
+      var spyReadyForAtt1 = this.sinon.stub(att1, 'ready');
+      window.dispatchEvent(new CustomEvent('attentionrequestopen', {
+        detail: att1
+      }));
+      spyReadyForAtt1.getCall(0).args[0]();
+      sinon.assert.calledOnce(cancelSpy);
+    });
+  });
+
   suite('Handle events', function() {
     setup(function() {
       window.attentionWindowManager = new AttentionWindowManager();

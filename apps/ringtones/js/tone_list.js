@@ -53,7 +53,6 @@ var ToneList = (function() {
     var dummyDiv = document.createElement('div');
     dummyDiv.innerHTML = htmlText;
     var element = dummyDiv.firstElementChild;
-    navigator.mozL10n.translate(element);
 
     return element;
   }

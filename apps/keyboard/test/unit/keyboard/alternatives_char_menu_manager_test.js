@@ -68,7 +68,13 @@ suite('AlternativesCharMenuManager', function() {
         };
       },
       hideAlternativesCharMenu: this.sinon.stub(),
-      targetObjDomMap: new WeakMap()
+      targetObjDomMap: new WeakMap(),
+      setDomElemTargetObject: function(elem, obj){
+        this.targetObjDomMap.set(obj, elem);
+      },
+      getDomElemFromTargetObject: function(obj){
+        return this.targetObjDomMap.get(obj);
+      }
     };
     this.sinon.spy(window.IMERender, 'showAlternativesCharMenu');
 
@@ -106,7 +112,7 @@ suite('AlternativesCharMenuManager', function() {
       uppercaseValue: 'X'
     };
 
-    IMERender.targetObjDomMap.set(target, targetElem);
+    IMERender.setDomElemTargetObject(targetElem, target);
 
     // Show an alternatives chars menu
     manager = new AlternativesCharMenuManager(app);
@@ -212,7 +218,7 @@ suite('AlternativesCharMenuManager', function() {
       var stubMapGet;
 
       setup(function() {
-        stubMapGet = this.sinon.stub(IMERender.targetObjDomMap, 'get');
+        stubMapGet = this.sinon.stub(IMERender, 'getDomElemFromTargetObject');
       });
 
       test('true', function() {
@@ -323,29 +329,7 @@ suite('AlternativesCharMenuManager', function() {
     });
 
     suite('getMenuTarget', function() {
-      test('on top of the key', function() {
-        var press = {
-          target: target,
-          clientX: 15,
-          clientY: 55
-        };
-
-        manager.app.layoutRenderingManager.getTargetObject.returns(
-          dummyObjForChild1
-        );
-
-        var retrievedTarget = manager.getMenuTarget(press);
-
-        assert.isTrue(
-          manager.app.layoutRenderingManager.getTargetObject.calledWith(
-            container.children[0]
-          )
-        );
-
-        assert.deepEqual(retrievedTarget, dummyObjForChild1);
-      });
-
-      test('under 2nd key', function() {
+      test('will invoke menuView.getMenuTarget', function() {
         var press = {
           target: {},
           clientX: 35,
@@ -353,46 +337,6 @@ suite('AlternativesCharMenuManager', function() {
         };
 
         assert.deepEqual(manager.getMenuTarget(press), dummyObjForChild2);
-      });
-
-      test('under 2nd key but haven\'t moved away from target', function() {
-        var press = {
-          target: target,
-          clientX: 35,
-          clientY: 55
-        };
-
-        manager.app.layoutRenderingManager.getTargetObject.returns(
-          dummyObjForChild1
-        );
-
-        var retrievedTarget = manager.getMenuTarget(press);
-
-        assert.isTrue(
-          manager.app.layoutRenderingManager.getTargetObject.calledWith(
-            container.children[0]
-          )
-        );
-
-        assert.deepEqual(retrievedTarget, dummyObjForChild1);
-      });
-
-      test('under 2nd key, had moved away from target', function() {
-        var press = {
-          target: {},
-          clientX: 45,
-          clientY: 55
-        };
-
-        assert.deepEqual(manager.getMenuTarget(press), dummyObjForChild2);
-
-        var press2 = {
-          target: target,
-          clientX: 35,
-          clientY: 55
-        };
-
-        assert.deepEqual(manager.getMenuTarget(press2), dummyObjForChild2);
       });
     });
   });

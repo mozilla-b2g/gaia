@@ -1,0 +1,33 @@
+# Chunking task for marionette js tests...
+---
+task:
+  metadata:
+    name: 'Marionette JS tests chunk {{chunk}}'
+    description: Run entire suite of marionette js tests
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+
+  payload:
+    # Chunking logic is actually in the Makefile here which may make it
+    # confusing to figure out who calls what this should be improved.
+    env:
+      PART: '{{chunk}}'
+      NBPARTS: '{{totalChunks}}'
+      REPORTER: 'mocha-tbpl-reporter'
+
+    command:
+      - entrypoint
+      - mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log
+
+    artifacts:
+      'public/marionette_js_tests':
+        type: directory
+        path: '{{gaia}}/artifacts/'
+        expires: '{{nextYear}}'
+
+  extra:
+    treeherder:
+      groupName: "Gaia javascript integration tests"
+      groupSymbol: Gij
+      symbol: Gij{{chunk}}

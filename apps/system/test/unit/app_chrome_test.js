@@ -173,6 +173,8 @@ suite('system/AppChrome', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
       var stubReload = this.sinon.stub(app, 'reload');
+      assert.equal(chrome.reloadButton.getAttribute('data-l10n-id'),
+        'reload-button');
       chrome.handleEvent({ type: 'click', target: chrome.reloadButton });
       assert.isTrue(stubReload.called);
     });
@@ -181,6 +183,8 @@ suite('system/AppChrome', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
       var stubStop = this.sinon.stub(app, 'stop');
+      assert.equal(chrome.stopButton.getAttribute('data-l10n-id'),
+        'stop-button');
       chrome.handleEvent({ type: 'click', target: chrome.stopButton });
       assert.isTrue(stubStop.called);
     });
@@ -608,6 +612,17 @@ suite('system/AppChrome', function() {
       chrome.setThemeColor('');
       assert.isTrue(appPublishStub.called);
       assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
+    });
+  });
+
+  suite('reConfig', function() {
+    test('removes the search-app class if not the search app', function() {
+      var app = new AppWindow(fakeSearchApp);
+      var chrome = new AppChrome(app);
+      assert.isTrue(chrome.app.element.classList.contains('search-app'));
+      chrome.app.config.manifest = null;
+      chrome.reConfig();
+      assert.isFalse(chrome.app.element.classList.contains('search-app'));
     });
   });
 });

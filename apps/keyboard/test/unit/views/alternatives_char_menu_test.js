@@ -40,7 +40,7 @@ suite('Views > AlternativesCharMenuView', function() {
     IMERender.init(fakeLayoutRenderingManager);
 
     var keyElem = document.createElement('button');
-    IMERender.targetObjDomMap.set(key, keyElem);
+    IMERender.setDomElemTargetObject(keyElem, key);
   });
 
   suite('basic show/hide testing', function() {
@@ -76,7 +76,7 @@ suite('Views > AlternativesCharMenuView', function() {
 
       childObjs = [];
 
-      // insert 6 keys for 1 row
+      // insert 3 keys for 1 row
       for (var i = 0; i < 3; i++) {
         var child = document.createElement('div');
         child.style.display = 'inline-block';
@@ -109,7 +109,7 @@ suite('Views > AlternativesCharMenuView', function() {
       menu.getLineHeight.returns(KEY_HEIGHT);
 
       var keyElem = document.createElement('button');
-      IMERender.targetObjDomMap.set(key, keyElem);
+      IMERender.setDomElemTargetObject(keyElem, key);
     });
 
     teardown(function() {
@@ -188,7 +188,7 @@ suite('Views > AlternativesCharMenuView', function() {
       menu.getLineHeight.returns(KEY_HEIGHT);
 
       var keyElem = document.createElement('button');
-      IMERender.targetObjDomMap.set(key, keyElem);
+      IMERender.setDomElemTargetObject(keyElem, key);
     });
 
     teardown(function() {
@@ -271,7 +271,7 @@ suite('Views > AlternativesCharMenuView', function() {
       menu.getLineHeight.returns(KEY_HEIGHT);
 
       var keyElem = document.createElement('button');
-      IMERender.targetObjDomMap.set(key, keyElem);
+      IMERender.setDomElemTargetObject(keyElem, key);
     });
 
     teardown(function() {

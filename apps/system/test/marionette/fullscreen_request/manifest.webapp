@@ -1,0 +1,5 @@
+{
+  "name": "fullscreen request without manifest value",
+  "launch_path": "/index.html",
+  "fullscreen": true
+}

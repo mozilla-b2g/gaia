@@ -1,0 +1,18 @@
+task:
+  metadata:
+    name: Gaia GJSLint
+    description: GJSLint
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+
+  payload:
+    command:
+      - entrypoint
+      - ./bin/ci run gjslint
+  extra:
+    treeherder:
+      symbol: GJSLint
+      groupSymbol: LINT
+      groupName: Linters
+

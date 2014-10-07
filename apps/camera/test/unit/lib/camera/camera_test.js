@@ -764,7 +764,7 @@ suite('lib/camera/camera', function() {
       navigator.mozCameras.getCamera.callsArgWith(2, this.mozCamera);
       this.camera.mozCamera = this.mozCamera;
       this.camera.selectedCamera = 'back';
-      this.clock = sinon.useFakeTimers();
+      this.clock = this.sandbox.useFakeTimers();
     });
 
     test('Should emit a \'busy\', then \'ready\' event', function() {
@@ -854,11 +854,7 @@ suite('lib/camera/camera', function() {
       this.sandbox.stub(this.camera, 'previewSize');
       this.sandbox.spy(this.camera, 'saveBootConfig');
       this.camera.previewSize.returns({ width: 400, height: 300 });
-      this.clock = sinon.useFakeTimers();
-    });
-
-    teardown(function() {
-      this.clock.restore();
+      this.clock = this.sandbox.useFakeTimers();
     });
 
     test('Should call `mozCamera.setConfiguration` with expected config', function() {
@@ -1391,7 +1387,7 @@ suite('lib/camera/camera', function() {
 
   suite('Camera#ready()', function() {
     setup(function() {
-      this.clock = sinon.useFakeTimers();
+      this.clock = this.sandbox.useFakeTimers();
     });
 
     test('It is debounced in case busy fires shortly after', function() {

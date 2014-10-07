@@ -1,20 +1,13 @@
 'use strict';
-/* global BookmarksDatabase, BrowserSettings, MockNavigatormozApps,
+/* global BrowserSettings, MockNavigatormozApps,
    MockNavigatorSettings, MockPlaces */
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_places.js');
 
-// Only mock clear because test assumes clear() will be the only method used
-var MockBookmarksDatabase = {
-  clear: function() {
-  }
-};
-
 suite('system/BrowserSettings', function() {
   var realNavigatorSettings;
-  var realBookmarksDatabase;
   var realNavigatormozApps;
   var realPlaces;
   var browserSettings;
@@ -25,9 +18,6 @@ suite('system/BrowserSettings', function() {
 
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-
-    realBookmarksDatabase = window.BookmarksDatabase;
-    window.BookmarksDatabase = MockBookmarksDatabase;
 
     realPlaces = window.places;
     window.places = new MockPlaces();
@@ -45,9 +35,6 @@ suite('system/BrowserSettings', function() {
 
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;
-
-    window.BookmarksDatabase = realBookmarksDatabase;
-    realBookmarksDatabase = null;
 
     window.places = realPlaces;
     realPlaces = null;
@@ -82,19 +69,6 @@ suite('system/BrowserSettings', function() {
 
         assert.isTrue(called,
                       'Browser data clear should be requested');
-      }
-    );
-
-    test('setting clear.browser.bookmarks should clear bookmarks database',
-      function() {
-        var clearBookmarksStub = sinon.stub(BookmarksDatabase, 'clear');
-
-        navigator.mozSettings.createLock().set({
-          'clear.browser.bookmarks': true
-        });
-        assert.isTrue(clearBookmarksStub.called,
-                      'BookmarksDatabase.clear() should be requested');
-        clearBookmarksStub.restore();
       }
     );
   });
