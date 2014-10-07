@@ -171,7 +171,8 @@ contacts.Search = (function() {
       });
 
       newTerms.forEach(function replaceWithHighlight(term) {
-        node.innerHTML = node.innerHTML.replace(
+        var nodeContactText = node.querySelector('p.contact-text');
+        nodeContactText.innerHTML = nodeContactText.innerHTML.replace(
           new RegExp('(' + term + ')(?=[^>]*<)', 'gi'),
           '<span class="' + highlightClass + '">$1</span>');
       });
