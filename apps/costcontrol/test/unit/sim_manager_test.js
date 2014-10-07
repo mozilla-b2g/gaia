@@ -90,7 +90,7 @@ suite('Cost Control SimManager >', function() {
       assert.isFalse(SimManager.isMultiSim());
 
       SimManager.requestDataSimIcc(function(dataSim) {
-        done(function() {
+        done(() => {
           assert.isTrue(dataSim.initialized);
           assert.equal(dataSim.iccId,
                        MockAllNetworkInterfaces[1].id);
@@ -106,7 +106,7 @@ suite('Cost Control SimManager >', function() {
       this.sinon.spy(console, 'error');
       SimManager.requestDataSimIcc(
         () => done(new Error('Should not call success')),
-        function _onError() {
+        function onerror() {
           done(() => {
             sinon.assert.calledWith(
               console.error,
@@ -123,7 +123,7 @@ suite('Cost Control SimManager >', function() {
       MockNavigatorMozMobileConnections[0] = {
         iccId: MockAllNetworkInterfaces[1].id
       };
-      this.sinon.spy(console, 'error');
+
       SimManager.requestDataSimIcc(
         () => done(new Error('Should not call success')),
         () => done()
@@ -167,15 +167,16 @@ suite('Cost Control SimManager >', function() {
 
         assert.isTrue(SimManager.isMultiSim());
 
-        SimManager.requestDataSimIcc(function(dataSim) {
-          done(() => {
-            assert.equal(dataSim.iccId, MockAllNetworkInterfaces[1].id);
-          });
-        }, function _onError() {
-          done(
-            new Error('requestDataSimIcc should not report an error')
-          );
-        });
+        SimManager.requestDataSimIcc(
+          function onsuccess(dataSim) {
+            done(() => {
+              assert.equal(dataSim.iccId, MockAllNetworkInterfaces[1].id);
+            });
+          },
+          function onerror() {
+            done(new Error('requestDataSimIcc should not report an error'));
+          }
+        );
       }
     );
 
@@ -249,7 +250,7 @@ suite('Cost Control SimManager >', function() {
       assert.isTrue(SimManager.isMultiSim());
 
       SimManager.requestDataSimIcc(
-        function(dataSim) {
+        function onsuccess(dataSim) {
           done(() => {
             assert.isTrue(dataSim.initialized);
             assert.isTrue(dataSim.dirty);
@@ -271,7 +272,7 @@ suite('Cost Control SimManager >', function() {
 
         assert.isTrue(SimManager.isMultiSim());
         SimManager.requestTelephonySimIcc(
-          function _onSuccess(telephonySim) {
+          function onsuccess(telephonySim) {
             done(() => {
               assert.equal(telephonySim.iccId, MockAllNetworkInterfaces[1].id);
             });
@@ -293,8 +294,8 @@ suite('Cost Control SimManager >', function() {
 
         this.sinon.spy(console, 'warn');
         SimManager.requestDataSimIcc(
-          () => { done(new Error('Should not call success')); },
-          function _onError() {
+          function onsuccess() { done(new Error('Should not call success')); },
+          function onerror() {
             done(() => {
               sinon.assert.calledTwice(console.warn);
               sinon.assert.calledWith(
@@ -352,17 +353,25 @@ suite('Cost Control SimManager >', function() {
       window.addEventListener('dataSlotChange', function _onSMInit() {
         window.removeEventListener('dataSlotChange', _onSMInit);
 
-        SimManager.requestDataSimIcc(function(dataSim) {
-          done(() => { assert.equal(dataSim.slotId, newDataSlotId); });
-        }, function _onError() {
-          done(new Error('requestDataSimIcc should not report an error'));
-        });
+        SimManager.requestDataSimIcc(
+          function onsuccess(dataSim) {
+            done(() => { assert.equal(dataSim.slotId, newDataSlotId); });
+          },
+          function onerror() {
+            done(new Error('requestDataSimIcc should not report an error'));
+          }
+        );
       });
 
-      SimManager.requestDataSimIcc(function _onsuccess(dataSim) {
-        assert.equal(dataSim.slotId, defaultDataSlotId);
-        MockSettingsListener.mTriggerCallback(dataSlot, newDataSlotId);
-      }, function _onerror() { assert.ok(false); });
+      SimManager.requestDataSimIcc(
+        function onsuccess(dataSim) {
+          assert.equal(dataSim.slotId, defaultDataSlotId);
+          MockSettingsListener.mTriggerCallback(dataSlot, newDataSlotId);
+        },
+        function onerror() {
+          done(new Error('requestDataSimIcc should not report an error'));
+        }
+      );
     });
 
     test('getTelephonyConnection() works fine, without settings',
