@@ -3,7 +3,7 @@ Keyboards['pt-PT'] = {
   shortLabel: 'Pt',
   menuLabel: 'Português (Europeu)',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'pt_pt',
   alt: {
     a: 'áàãâäåāæª',
@@ -18,7 +18,7 @@ Keyboards['pt-PT'] = {
     l: 'ł£',
     y: 'ÿ¥',
     z: 'žźż',
-    '.': ',?!;:'
+    '.': ',?!;:…'
   },
   keys: [
     [
@@ -39,9 +39,9 @@ Keyboards['pt-PT'] = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
-	  '1': ['1º', '1ª', '¹'],
+      '1': ['1º', '1ª', '¹'],
       '2': ['2º', '2ª', '²'],
       '3': ['3º', '3ª', '³'],
       '4': ['4º', '4ª', '⁴'],
@@ -52,8 +52,11 @@ Keyboards['pt-PT'] = {
       '9': ['9º', '9ª', '⁹'],
       '0': ['º', '⁰'],
       '€': ['$', '£', '¥', '¢', '₠'],
+      '"': ['“', '”'],
+      '\'':['‘', '’'],
       '?': ['¿'],
-      '!': ['¡']
+      '!': ['¡'],
+      '+': ['-', '×', '÷', '±']
     },
     keys: [
       [
@@ -67,8 +70,9 @@ Keyboards['pt-PT'] = {
         { value: '(' }, { value: ')' }
       ], [
         { value: 'Alt', ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
         },
         { value: '+',
           supportsSwitching: {
@@ -82,5 +86,5 @@ Keyboards['pt-PT'] = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };
