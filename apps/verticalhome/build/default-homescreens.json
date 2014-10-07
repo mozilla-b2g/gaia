@@ -8,6 +8,8 @@
       ["apps", "marketplace.firefox.com"],
       ["apps", "camera"]
     ], [
+      ["shelf", "picture"]
+    ], [
       ["apps/collection/collections", "social"],
       ["apps/collection/collections", "games"],
       ["apps/collection/collections", "music"]

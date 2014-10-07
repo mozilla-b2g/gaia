@@ -143,6 +143,15 @@ function getAppMetadata(config, directory, appName, entryPoint) {
 
   var manifest = getCollectionManifest(config, directory, appName);
   if (!manifest) {
+    // In case the app is a shelf
+    if (directory === 'shelf') {
+      return {
+        role: 'shelf',
+        shelf: appName,
+        id: appName
+      };
+    }
+
     if (!config.webappsMapping[appName]) {
       dump('Warning: Can not find application ' + appName +
            ' at ' + directory + '\n');
