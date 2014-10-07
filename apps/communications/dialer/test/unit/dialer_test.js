@@ -641,7 +641,7 @@ suite('navigation bar', function() {
         test('should call getGroupAtPosition with correct position',
         function() {
           sinon.assert.calledWith(
-            getGroupAtPositionStub, 3, 'lastEntryDate', true);
+            getGroupAtPositionStub, 3, 'lastEntryDate', true, 'dialing');
         });
 
         [0, 1].forEach(function(serviceId) {
