@@ -10,8 +10,10 @@ function humanBytes(bytes) {
 }
 
 var gStorageType;
+var gStorageTypes = ['pictures', 'sdcard', 'videos', 'music']
 var gDefaultStorage;
 var gVolumeStorages;
+var gListenerStorages;
 
 function ds_getStorageType() {
   var typeElt = document.getElementById('ds.type');
@@ -19,7 +21,8 @@ function ds_getStorageType() {
   return typeElt.options[typeIdx].value;
 }
 
-function ds_changeHandler(label, e) {
+function ds_changeHandler(storageType, storageName, e) {
+  var label = storageType + '/' + storageName;
   switch (e.reason) {
     case 'created':
     case 'modified':
@@ -43,16 +46,24 @@ function ds_defaultStorageChanged(setting) {
 }
 
 function AddListeners() {
-  for (i = 0; i < gVolumeStorages.length; i++) {
-    gVolumeStorages[i].addEventListener('change',
-      ds_changeHandler.bind(this, gVolumeStorages[i].storageName));
+  gListenerStorages = [];
+  for (st = 0; st < gStorageTypes.length; st++) {
+    var storageType = gStorageTypes[st];
+    storages = navigator.getDeviceStorages(storageType);
+    for (i = 0; i < storages.length; i++) {
+      var storage = storages[i];
+      gListenerStorages.push(storage);
+      log('Adding listener for ' + storageType + '/' + storage.storageName);
+      storage.addEventListener('change',
+        ds_changeHandler.bind(this, storageType, storage.storageName));
+    }
   }
   navigator.mozSettings.addObserver('device.storage.writable.name', ds_defaultStorageChanged);
 }
 
 function RemoveListeners() {
-  for (i = 0; i < gVolumeStorages.length; i++) {
-    gVolumeStorages[i].removeEventListener('change', ds_changeHandler);
+  for (i = 0; i < gListenerStorages.length; i++) {
+    gListenerStorages[i].removeEventListener('change', ds_changeHandler);
   }
   navigator.mozSettings.removeObserver('device.storage.writable.name', ds_defaultStorageChanged);
 }
@@ -284,7 +295,7 @@ Enumerate.prototype = {
     return this.storage.enumerate(this.dir);
   },
   onnext: function enumerate_next(e) {
-     log('  ' + e.target.result.name);
+     log('  ' + e.target.result.name + ' ' + e.target.result.type);
      this.fileCount += 1;
   },
   onnextdone: function enumerate_onnextdone() {
