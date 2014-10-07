@@ -430,6 +430,7 @@
         case 'video':
         case 'audio':
         case 'text':
+        case 'application':
           return mainPart;
         default:
           return null;
