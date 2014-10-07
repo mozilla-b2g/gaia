@@ -658,6 +658,12 @@ body.pick-activity #thumbnails-bottom {
   display: none !important; /* 1 */
 }
 
+/* add 2rem padding to move options
+   touch area. See Bug 1076158 */
+body:not(.pick-activity) #options {
+  padding: 0 2rem !important; /* 1 */
+}
+
 #two-column-spearator {
   display: none;
 }
