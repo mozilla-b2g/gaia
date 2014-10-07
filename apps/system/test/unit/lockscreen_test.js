@@ -177,7 +177,7 @@ suite('system/LockScreen >', function() {
         subject.handleEvent({type: 'screenchange', detail: {}});
         assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
               function(e) {
-                return e.type === 'secure-killapps';
+                return e.type === 'secure-closeapps';
               })),
           'the event was not fired');
         stubDispatch.restore();
