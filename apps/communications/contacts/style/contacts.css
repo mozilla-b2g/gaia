@@ -910,3 +910,10 @@ form[role="combobox"] span[data-field="type"] {
   margin: 1rem;
   width: calc(100% - 2rem);
 }
+
+/* We need this rule because these views are going to be in the bottom */
+/* This will avoid a repainting and a flash to the user when we fade-out */
+/* particulary in the flow: settings -> back() -> contact list */
+#view-settings.fade-in, #view-contact-form.fade-in {
+  transform: translateY(0);
+}

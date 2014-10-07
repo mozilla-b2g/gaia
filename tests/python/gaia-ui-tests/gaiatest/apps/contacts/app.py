@@ -1,6 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# file, You can obtain one at http://mozilla.org/MPL/2.0/. 
 
 from marionette.by import By
 from marionette.errors import JavascriptException
@@ -66,6 +66,7 @@ class Contacts(Base):
 
     def tap_settings(self):
         self.marionette.find_element(*self._settings_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._settings_button_locator)
         from gaiatest.apps.contacts.regions.settings_form import SettingsForm
         return SettingsForm(self.marionette)
 
