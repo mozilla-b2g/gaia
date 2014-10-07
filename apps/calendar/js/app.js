@@ -403,6 +403,18 @@ Calendar.App = (function(window) {
       }.bind(this), 0);
     },
 
+    _setPresentDate: function() {
+      var id = Calendar.Calc.getDayId(new Date());
+      var presentDate = document.querySelector(
+        '#month-view [data-date="' + id + '"]'
+      );
+      var previousDate = document.querySelector('#month-view .present');
+
+      previousDate.classList.remove('present');
+      previousDate.classList.add('past');
+      presentDate.classList.add('present');
+    },
+
     _showTodayDate: function() {
       document.querySelector('#today .icon-calendar-today').innerHTML =
         new Date().getDate();
@@ -417,6 +429,7 @@ Calendar.App = (function(window) {
       var timeout = midnight.getTime() - now.getTime();
 
       setTimeout(function() {
+        this._setPresentDate();
         this._showTodayDate();
         this._syncTodayDate();
       }.bind(this), timeout);
