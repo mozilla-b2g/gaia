@@ -11,7 +11,7 @@
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
-         LockScreenPasscodeValidator, NfcManager,
+         NfcManager,
          ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
          CellBroadcastSystem, EdgeSwipeDetector, QuickSettings */
@@ -55,16 +55,7 @@ window.addEventListener('load', function startup() {
     window.systemDialogManager = window.systemDialogManager ||
       new SystemDialogManager();
 
-    /** @global */
-    window.lockScreenWindowManager = new window.LockScreenWindowManager();
-    window.lockScreenWindowManager.start();
-
-    // To initilaize it after LockScreenWindowManager to block home button
-    // when the screen is locked.
     window.AppWindowManager.init();
-
-    window.homescreenWindowManager = new HomescreenWindowManager();
-    window.homescreenWindowManager.start();
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
@@ -118,6 +109,11 @@ window.addEventListener('load', function startup() {
   Shortcuts.init();
   ScreenManager.turnScreenOn();
 
+  // To make sure homescreen window manager can intercept webapps-launch event,
+  // we need to move the code here.
+  window.homescreenWindowManager = new HomescreenWindowManager();
+  window.homescreenWindowManager.start();
+
   // Please sort it alphabetically
   window.activities = new Activities();
   window.accessibility = new Accessibility();
@@ -153,8 +149,6 @@ window.addEventListener('load', function startup() {
   }
   window.internetSharing = new InternetSharing();
   window.internetSharing.start();
-  window.lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
-  window.lockScreenPasscodeValidator.start();
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
   window.nfcUtils = new NfcUtils();

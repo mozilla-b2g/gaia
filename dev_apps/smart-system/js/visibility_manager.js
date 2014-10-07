@@ -20,7 +20,6 @@
     this.overlayEvents = [
       'cardviewshown',
       'cardviewclosed',
-      'lockscreen-appopened',
       'lockscreen-request-unlock',
       'attention-inactive',
       'attentionopened',
@@ -90,10 +89,6 @@
         this._normalAudioChannelActive = false;
         break;
       case 'attention-inactive':
-        if (window.System.locked) {
-          this.publish('showlockscreenwindow');
-          return;
-        }
         this.publish('showwindow', { type: evt.type });
         this._resetDeviceLockedTimer();
         break;
@@ -112,18 +107,6 @@
             activity: activity,  // Trigger activity opening in AWM
             notificationId: notificationId
           });
-        }
-        this._resetDeviceLockedTimer();
-        break;
-      case 'lockscreen-appopened':
-        // If the audio is active, the app should not set non-visible
-        // otherwise it will be muted.
-        // TODO: Remove this hack.
-        this.debug('locking, hide the whole windows',
-          this._normalAudioChannelActive);
-        if (!this._normalAudioChannelActive) {
-          this.publish('hidewindow',
-            { screenshoting: false, type: evt.type });
         }
         this._resetDeviceLockedTimer();
         break;

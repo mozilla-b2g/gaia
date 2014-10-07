@@ -81,12 +81,7 @@
     },
 
     get locked() {
-      // Someone ask this state too early.
-      if ('undefined' === typeof window.lockScreenWindowManager) {
-        return false;
-      } else {
-        return window.lockScreenWindowManager.isActive();
-      }
+      return false;
     },
 
     get manifestURL() {

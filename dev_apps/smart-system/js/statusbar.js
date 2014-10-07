@@ -269,11 +269,9 @@ var StatusBar = {
     // Listen to 'timeformatchange'
     window.addEventListener('timeformatchange', this);
 
-    // Listen to 'lockscreen-appopened', 'lockscreen-appclosing', and
+    // Listen to 
     // 'lockpanelchange' in order to correctly set the visibility of
     // the statusbar clock depending on the active lockscreen panel
-    window.addEventListener('lockscreen-appopened', this);
-    window.addEventListener('lockscreen-appclosing', this);
     window.addEventListener('lockpanelchange', this);
 
     window.addEventListener('simpinshow', this);
@@ -311,24 +309,6 @@ var StatusBar = {
     switch (evt.type) {
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
-        break;
-
-      case 'lockscreen-appopened':
-        // Hide the clock in the statusbar when screen is locked
-        //
-        // It seems no need to detect the locked value because
-        // when the lockscreen lock itself, the value must be true,
-        // or we have some bugs.
-        this.toggleTimeLabel(false);
-        this._updateIconVisibility();
-        this.setAppearance(evt.detail);
-        break;
-
-      case 'lockscreen-appclosing':
-        // Display the clock in the statusbar when screen is unlocked
-        this.toggleTimeLabel(true);
-        this._updateIconVisibility();
-        this.setAppearance(AppWindowManager.getActiveApp());
         break;
 
       case 'attentionopened':

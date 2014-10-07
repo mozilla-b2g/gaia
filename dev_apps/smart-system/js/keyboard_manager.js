@@ -105,7 +105,6 @@ var KeyboardManager = {
     window.addEventListener('applicationsetupdialogshow', this);
     window.addEventListener('mozmemorypressure', this);
     window.addEventListener('sheets-gesture-begin', this);
-    window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('screenchange', this);
 
     // To handle keyboard layout switching
@@ -298,8 +297,6 @@ var KeyboardManager = {
           this._debug('mozmemorypressure event; keyboard removed');
         }
         break;
-      case 'lockscreen-appopened':
-        /* falls through */
       case 'sheets-gesture-begin':
         if (this._hasActiveKeyboard) {
           // Instead of hideKeyboard(), we should removeFocus() here.

@@ -108,8 +108,6 @@
      * @memberof UsbStorage.prototype
      */
     start: function() {
-      window.addEventListener('lockscreen-appopened', this);
-      window.addEventListener('lockscreen-appclosed', this);
       SettingsListener.observe(this.umsEnabled, false,
         this.bindUsbStorageChanged);
     },
@@ -120,8 +118,6 @@
      */
     stop: function() {
       System.locked = false;
-      window.removeEventListener('lockscreen-appopened', this);
-      window.removeEventListener('lockscreen-appclosed', this);
       SettingsListener.unobserve(this.umsEnabled,
         this.bindUsbStorageChanged);
     },
@@ -213,22 +209,6 @@
      * @param  {DOMEvent} evt The event.
      */
     handleEvent: function(e) {
-      switch (e.type) {
-        case 'lockscreen-appopened':
-          // Setting mode due to screen locked
-          this._setMode(this.automounterDisableWhenUnplugged);
-          break;
-        case 'lockscreen-appclosed':
-          if (typeof(this._mode) == 'undefined') {
-            return;
-          }
-
-          // Setting mode due to screen unlocked
-          this._setMode(this._mode);
-          break;
-        default:
-          return;
-      }
     }
   };
 

@@ -185,7 +185,6 @@
 
   TaskManager.prototype._registerShowingEvents = function() {
     window.addEventListener('home', this);
-    window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('attentionopened', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appterminated', this);
@@ -199,7 +198,6 @@
 
   TaskManager.prototype._unregisterShowingEvents = function() {
     window.removeEventListener('home', this);
-    window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('attentionopened', this);
     window.removeEventListener('appopen', this);
     window.removeEventListener('appterminated', this);
@@ -574,7 +572,6 @@
         this.exitToApp();
         break;
 
-      case 'lockscreen-appopened':
       case 'attentionopened':
         this.hide();
         this.exitToApp();

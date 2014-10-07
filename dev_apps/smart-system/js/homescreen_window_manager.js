@@ -84,9 +84,6 @@
           this.getHomescreen().fadeOut();
           break;
         case 'ftuskip':
-          // XXX: There's a race between lockscreenWindow and homescreenWindow.
-          // If lockscreenWindow is instantiated before homescreenWindow,
-          // we should not display the homescreen here.
           this.getHomescreen().setVisible(!System.locked);
           break;
         case 'open-app':

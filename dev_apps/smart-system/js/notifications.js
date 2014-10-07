@@ -19,7 +19,6 @@ var NotificationScreen = {
   _isTap: false,
   _toasterTimeout: null,
 
-  lockscreenPreview: true,
   silent: false,
   vibrates: true,
   isResending: false,
@@ -45,25 +44,12 @@ var NotificationScreen = {
       '/manifest.webapp'
   ],
 
-  getLockScreenContainer: function ns_getLockScreenContainer() {
-    // XXX: Bug 1057198 add this as a workaround before we truly
-    // make LockScreen as an app.
-    if (window.lockScreenWindowManager &&
-         window.lockScreenWindowManager.getInstance() &&
-         window.lockScreenWindowManager.getInstance()
-          .getNotificationContainer()) {
-      return window.lockScreenWindowManager
-        .getInstance().getNotificationContainer();
-    }
-  },
-
   init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
     this.notificationsContainer =
       document.getElementById('notifications-container');
     this.container =
       document.getElementById('desktop-notifications-container');
-    this.lockScreenContainer = this.getLockScreenContainer();
     this.toaster = document.getElementById('notification-toaster');
     this.ambientIndicator = document.getElementById('ambient-indicator');
     this.toasterIcon = document.getElementById('toaster-icon');
@@ -86,7 +72,6 @@ var NotificationScreen = {
 
     window.addEventListener('utilitytrayshow', this);
     // Since UI expect there is a slight delay for the opened notification.
-    window.addEventListener('lockscreen-appclosed', this);
     window.addEventListener('visibilitychange', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
@@ -183,13 +168,6 @@ var NotificationScreen = {
         if (this.resendExpecting) {
           this.isResending = true;
         }
-        break;
-      case 'lockscreen-appclosed':
-        // UX require to delay to clear notifications from
-        // LockScreen for the actionable LockScreen notifications.
-        setTimeout((function() {
-          this.clearLockScreen();
-        }).bind(this), 400);
         break;
     }
   },
@@ -399,8 +377,6 @@ var NotificationScreen = {
   },
 
   addNotification: function ns_addNotification(detail) {
-    // LockScreen window may not opened while this singleton got initialized.
-    this.lockScreenContainer = this.getLockScreenContainer();
 
     var manifestURL = detail.manifestURL || '';
     var behavior = detail.mozbehavior || {};
@@ -513,25 +489,16 @@ var NotificationScreen = {
     // Notification toaster
     if (notify) {
       this.updateToaster(detail, type, dir);
-      if (this.lockscreenPreview || !window.System.locked) {
-        this.toaster.classList.add('displayed');
+      this.toaster.classList.add('displayed');
 
-        if (this._toasterTimeout) {
-          clearTimeout(this._toasterTimeout);
-        }
-
-        this._toasterTimeout = setTimeout((function() {
-          this.closeToast();
-          this._toasterTimeout = null;
-        }).bind(this), this.TOASTER_TIMEOUT);
+      if (this._toasterTimeout) {
+        clearTimeout(this._toasterTimeout);
       }
-    }
 
-    // Adding it to the lockscreen if locked and the privacy setting
-    // does not prevent it.
-    if (System.locked && this.lockscreenPreview) {
-      this.addLockScreenNotification(detail.id,
-        notificationNode.cloneNode(true));
+      this._toasterTimeout = setTimeout((function() {
+        this.closeToast();
+        this._toasterTimeout = null;
+      }).bind(this), this.TOASTER_TIMEOUT);
     }
 
     if (notify && !this.isResending) {
@@ -582,19 +549,6 @@ var NotificationScreen = {
     this.clearAllButton.disabled = false;
 
     return notificationNode;
-  },
-
-  /**
-   * Give a notification node and add it to LockScreen via event.
-   */
-  addLockScreenNotification: function ns_addLockScreenNotification(id, node) {
-    window.dispatchEvent(
-      new window.CustomEvent('lockscreen-notification-request-append', { detail:
-        {
-          id: id,
-          node: node
-        }
-      }));
   },
 
   swipeCloseNotification: function ns_swipeCloseNotification() {
@@ -679,25 +633,6 @@ var NotificationScreen = {
     this.removeNotification(notificationId);
   },
 
-  removeLockScreenNotification:
-  function ns_removeLockScreenNotification(notificationId) {
-    var notifSelector = '[data-notification-id="' + notificationId + '"]';
-    this.lockScreenContainer = this.getLockScreenContainer();
-    if (this.lockScreenContainer) {
-      var lockScreenNotificationNode =
-          this.lockScreenContainer.querySelector(notifSelector);
-    }
-
-    if (lockScreenNotificationNode) {
-      var lockScreenNotificationParentNode =
-        lockScreenNotificationNode.parentNode;
-      lockScreenNotificationParentNode.removeChild(lockScreenNotificationNode);
-      window.dispatchEvent(
-        new window.CustomEvent('lockscreen-notification-request-remove', {
-          containerEmpty: !lockScreenNotificationParentNode.firstElementChild
-        }));
-    }
-  },
 
   removeNotification: function ns_removeNotification(notificationId) {
     var notifSelector = '[data-notification-id="' + notificationId + '"]';
@@ -711,11 +646,6 @@ var NotificationScreen = {
       id: notificationId
     });
     window.dispatchEvent(event);
-    // UX require to give a tiny delay for actionable notification on
-    // LockScreen.
-    setTimeout((function() {
-      this.removeLockScreenNotification(notificationId);
-    }).bind(this), 400);
 
     this.removeUnreadNotification(notificationId);
     if (!this.container.querySelector('.notification')) {
@@ -733,21 +663,6 @@ var NotificationScreen = {
       this.closeNotification(notification);
     }
   },
-
-  clearLockScreen: function ns_clearLockScreen() {
-    // The LockScreenWindow may not be instantiated yet.
-    if (!this.lockScreenContainer) {
-      return;
-    }
-    while (this.lockScreenContainer.firstElementChild) {
-      var element = this.lockScreenContainer.firstElementChild;
-      this.lockScreenContainer.removeChild(element);
-    }
-    window.dispatchEvent(
-      new window.CustomEvent('lockscreen-notification-request-clear'));
-  }
-
-
 };
 
 function getIndicatorSize(count) {
@@ -789,12 +704,6 @@ window.addEventListener('load', function() {
 });
 
 NotificationScreen.init();
-
-SettingsListener.observe(
-    'lockscreen.notifications-preview.enabled', true, function(value) {
-
-  NotificationScreen.lockscreenPreview = value;
-});
 
 SettingsListener.observe('audio.volume.notification', 7, function(value) {
   NotificationScreen.silent = (value == 0);

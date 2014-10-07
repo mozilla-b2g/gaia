@@ -205,14 +205,6 @@
     <script defer src="js/icc_worker.js"></script>
     <script defer src="js/icc.js"></script>
 
-    <!-- LockScreen -->
-    <script defer src="js/lockscreen_agent.js"></script>
-    <script defer src="/shared/js/lockscreen_slide.js"></script>
-    <script defer src="/shared/js/lockscreen_connection_info_manager.js"></script>
-
-    <script defer src="js/lockscreen_passcode_validator.js"></script>
-    <script defer src="js/lockscreen_notification_builder.js"></script>
-
     <!-- Airplane Mode -->
     <script defer src="js/airplane_mode.js"></script>
     <link rel="stylesheet" type="text/css" href="style/textselection_dialog/textselection_dialog.css">
@@ -321,7 +313,6 @@
     <link rel="localization" href="/shared/locales/permissions/permissions.{locale}.properties">
     <link rel="localization" href="/shared/locales/download/download.{locale}.properties">
     <link rel="localization" href="/shared/locales/voicemail/voicemail.{locale}.properties">
-    <link rel="localization" href="/shared/locales/lockscreen/lockscreen.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
 
     <!-- Payment -->
@@ -395,8 +386,6 @@
     <script defer src="js/system_simcard_dialog.js"></script>
     <script defer src="js/system_nfc_connect_dialog.js"></script>
     <script defer src="js/fxa_dialog.js"></script>
-    <script defer src="js/lockscreen_window.js"></script>
-    <script defer src="js/lockscreen_window_manager.js"></script>
     <script defer src="js/visibility_manager.js"></script>
     <script defer src="js/layout_manager.js"></script>
     <script defer src="js/suspending_app_priority_manager.js"></script>
@@ -631,9 +620,6 @@
       <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
       </div>
-
-      <!-- XXX: Before we can make LockScree as a iframe or app, we need this to split LockScreen and System part in this way (Bug 1057198) -->
-      <div id="lockscreen-frame-placeholder"></div>
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <!-- Unlock SIM Pin dialog -->

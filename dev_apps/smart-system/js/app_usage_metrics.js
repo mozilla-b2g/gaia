@@ -37,8 +37,6 @@
   const APPOPENED = 'appopened';
   const HOMESCREEN = 'homescreenopened';
   const ACTIVITY = 'activitycreated';
-  const LOCKED = 'lockscreen-appopened';    // In 2.0, use 'locked'
-  const UNLOCKED = 'lockscreen-appclosed';  // In 2.0, use 'unlocked'
   const SCREENCHANGE = 'screenchange';      // sleep or wake
   const INSTALL = 'applicationinstall';
   const UNINSTALL = 'applicationuninstall';
@@ -52,8 +50,6 @@
     APPOPENED,
     HOMESCREEN,
     ACTIVITY,
-    LOCKED,
-    UNLOCKED,
     SCREENCHANGE,
     INSTALL,
     UNINSTALL,
@@ -364,42 +360,6 @@
       // about which apps use which other apps. Note that we do not track
       // the amount of time the user spends in the activity handler.
       this.metrics.recordActivity(this.currentApp, e.detail.url);
-      break;
-
-    case LOCKED:
-      // Record the time we ran the app, but keep the app the same
-      // because we'll be back to it when the lockscreen is unlocked.
-      // Note that if the lockscreen is disabled we won't get this event
-      // and will just go straight to the screenchange event. In that
-      // case we have to record the invocation when we get that event
-      this.metrics.recordInvocation(this.currentApp,
-                                    now - this.currentAppStartTime);
-      this.currentAppStartTime = now;
-
-      // Remember that the lockscreen is active. When we wake up again
-      // we need to know this to know whether the user is at the lockscreen
-      // or at the current app.
-      this.locked = true;
-
-      // In version 2.1 we use lockscreen-appopened events and get a real URL
-      // In 2.0 and before we just use a locked event and don't get the url
-      this.lockscreenURL = (e.detail && e.detail.manifestURL) || 'lockscreen';
-      break;
-
-    case UNLOCKED:
-      // If the lockscreen was started when the phone went to sleep, then
-      // when we wake up we note the time and when we get this event, we
-      // record the time spent on the lockscreen.
-      if (this.locked && this.lockscreenURL) {
-        this.metrics.recordInvocation(this.lockscreenURL,
-                                      now - this.currentAppStartTime);
-
-        // We left the currentApp unchanged when the phone went to sleep
-        // so now that we're leaving the lock screen we will be back at whatever
-        // app or homescreen we left. We just have to start timing again
-        this.currentAppStartTime = now;
-      }
-      this.locked = false;
       break;
 
     case SCREENCHANGE:

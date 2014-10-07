@@ -149,7 +149,6 @@
       window.addEventListener('apploading', this);
       window.addEventListener('appforeground', this);
       window.addEventListener('apptitlechange', this);
-      window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('appopened', this);
       window.addEventListener('launchapp', this);
       window.addEventListener('home', this);
@@ -214,9 +213,6 @@
         case 'appopened':
           this.hideResults();
           this.deactivate();
-          break;
-        case 'lockscreen-appopened':
-          this.handleLock(e);
           break;
         case 'focus':
           this.handleFocus(e);

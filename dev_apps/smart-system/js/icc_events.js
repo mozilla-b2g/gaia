@@ -172,15 +172,6 @@ var icc_events = {
         };
         navigator.addIdleObserver(stkUserActivity);
         break;
-      case icc._iccManager.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
-        DUMP('icc_events_register - Idle screen available event');
-        window.addEventListener('lockscreen-appopened',
-          function register_icc_event_idlescreen() {
-            icc_events.handleIdleScreenAvailableEvent(message);
-            window.removeEventListener('lockscreen-appopened',
-              register_icc_event_idlescreen);
-          });
-        break;
       case icc._iccManager.STK_EVENT_TYPE_CARD_READER_STATUS:
         DUMP('icc_events_register - TODO event: ', eventList[evt]);
         break;

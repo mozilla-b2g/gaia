@@ -64,8 +64,6 @@
       window.addEventListener('emergencyalert', this);
       window.addEventListener('launchapp', this);
       window.addEventListener('system-resize', this);
-      window.addEventListener('lockscreen-appclosed', this);
-      window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('rocketbar-overlayopened', this);
     },
 
@@ -88,8 +86,6 @@
       window.removeEventListener('emergencyalert', this);
       window.removeEventListener('launchapp', this);
       window.removeEventListener('system-resize', this);
-      window.removeEventListener('lockscreen-appclosed', this);
-      window.removeEventListener('lockscreen-appopened', this);
       window.removeEventListener('rocketbar-overlayopened', this);
     },
 
@@ -230,13 +226,6 @@
             this._topMostWindow.resize();
             evt.stopImmediatePropagation();
           }
-          break;
-
-        case 'lockscreen-appclosed':
-        case 'lockscreen-appopened':
-          this._instances.forEach(function(instance) {
-            instance.broadcast(evt.type);
-          });
           break;
       }
     },

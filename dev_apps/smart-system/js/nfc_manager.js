@@ -92,8 +92,6 @@
         (msg) => this._handleTechLost(msg));
 
       window.addEventListener('screenchange', this);
-      window.addEventListener('lockscreen-appopened', this);
-      window.addEventListener('lockscreen-appclosed', this);
 
       this._onSettingsChanged = (enabled) => this._nfcSettingsChanged(enabled);
       SettingsListener.observe('nfc.enabled', false, this._onSettingsChanged);
@@ -115,8 +113,6 @@
       window.navigator.mozSetMessageHandler('nfc-manager-tech-lost', null);
 
       window.removeEventListener('screenchange', this);
-      window.removeEventListener('lockscreen-appopened', this);
-      window.removeEventListener('lockscreen-appclosed', this);
 
       SettingsListener.unobserve('nfc.enabled', this._onSettingsChanged);
       SettingsListener.unobserve('nfc.debugging.enabled', this._onDebugChanged);
@@ -200,8 +196,8 @@
     },
 
     /**
-     * Default event handler. Always listens for lockscreen-appopened,
-     * lockscreen-appclosed, screenchange. During P2P sharing flow it
+     * Default event handler. Always listens for screenchange.
+     * During P2P sharing flow it
      * listens for shrinking-sent event dispatched from ShrinkingUI
      * @memberof NfcManager.prototype
      * @param {Event} event
@@ -209,8 +205,6 @@
     handleEvent: function nm_handleEvent(evt) {
       var state;
       switch (evt.type) {
-        case 'lockscreen-appopened': // Fall through
-        case 'lockscreen-appclosed':
         case 'screenchange':
           if (this._hwState === this.NFC_HW_STATE.OFF) {
             return;
