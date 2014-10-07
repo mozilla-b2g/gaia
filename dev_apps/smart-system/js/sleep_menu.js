@@ -25,7 +25,7 @@
   SleepMenu.prototype = {
 
     /**
-     * Indicate setting status of ril.radio.disabled
+     * Indicate setting status of airplane mode
      * @memberof SleepMenu.prototype
      * @type {Boolean}
      */
@@ -96,11 +96,9 @@
       window.addEventListener('attentionopened', this);
       this.elements.cancel.addEventListener('click', this);
 
-      var self = this;
-      SettingsListener.observe('ril.radio.disabled', false, function(value) {
-        self.isFlightModeEnabled = value;
-      });
+      window.addEventListener('airplanemodechanged', this);
 
+      var self = this;
       SettingsListener.observe('developer.menu.enabled', false,
         function(value) {
         self.isDeveloperMenuEnabled = value;
@@ -136,14 +134,6 @@
           label: _('airplaneOff'),
           value: 'airplane'
         },
-        silent: {
-          label: _('silent'),
-          value: 'silent'
-        },
-        silentOff: {
-          label: _('normal'),
-          value: 'silentOff'
-        },
         restart: {
           label: _('restart'),
           value: 'restart'
@@ -158,14 +148,6 @@
         items.push(options.airplaneOff);
       } else {
         items.push(options.airplane);
-      }
-
-      if (navigator.mozTelephony) {
-        if (!this.isSilentModeEnabled) {
-          items.push(options.silent);
-        } else {
-          items.push(options.silentOff);
-        }
       }
 
       items.push(options.restart);
@@ -270,6 +252,9 @@
           }
           break;
 
+        case 'airplanemodechanged':
+          this.isFlightModeEnabled = evt.detail.enabled;
+          break;
         default:
           break;
       }
@@ -286,8 +271,6 @@
           this.hide();
           // Airplane mode should turn off
           //
-          // Radio ('ril.radio.disabled'`)
-          // Data ('ril.data.enabled'`)
           // Wifi
           // Bluetooth
           // Geolocation
@@ -295,25 +278,6 @@
           // It should also save the status of the latter 4 items so when
           // leaving the airplane mode we could know which one to turn on.
           AirplaneMode.enabled = !this.isFlightModeEnabled;
-          break;
-
-        // About silent and silentOff
-        // * Turn on silent mode will cause:
-        //   send a custom event 'mute' to sound manager
-        // * Turn off silent mode will cause:
-        //   send a custom event 'unmute' to sound manager
-        case 'silent':
-          this.hide();
-          window.dispatchEvent(new Event('mute'));
-          this.isSilentModeEnabled = true;
-
-          break;
-
-        case 'silentOff':
-          this.hide();
-          window.dispatchEvent(new Event('unmute'));
-          this.isSilentModeEnabled = false;
-
           break;
 
         case 'restart':

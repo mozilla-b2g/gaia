@@ -14,6 +14,8 @@
   const FTU_PING_ACTIVATION = 'ftu.pingActivation';
   const FTU_PING_ENABLED = 'ftu.pingEnabled';
   const FTU_PING_ID = 'ftu.pingID';
+  // We use these two variables for ping retrying count. In phone version, we
+  // use it for waiting for mobile connection.
   const FTU_PING_MAX_NETWORK_FAILS = 'ftu.pingMaxNetworkFails';
   const FTU_PING_NETWORK_FAIL_COUNT = 'ftu.pingNetworkFailCount';
   const FTU_PING_URL = 'ftu.pingURL';
@@ -41,10 +43,6 @@
   }
 
   FtuPing.prototype = {
-    // whether or not required properties have been loaded
-    _pingReady: false,
-    _pingReadyCallback: null,
-
     // interval timer for first time ping
     _pingTimer: null,
 
@@ -78,8 +76,6 @@
     },
 
     reset: function fp_reset() {
-      this._pingReady = false;
-      this._pingReadyCallback = null;
       this._pingTimer = null;
       this._tryInterval = DEFAULT_TRY_INTERVAL;
       this._pingTimeout = DEFAULT_PING_TIMEOUT;
@@ -217,77 +213,11 @@
       this._pingTimer = setInterval(this.tryPing.bind(this), this._tryInterval);
     },
 
-    maybeThrowNetworkFailure: function fp_maybeThrowNetworkFailure(message) {
-        this._networkFailCount++;
-        window.asyncStorage.setItem(FTU_PING_NETWORK_FAIL_COUNT,
-                                    this._networkFailCount);
-
-        if (this._networkFailCount < this._maxNetworkFails) {
-          throw message + ' (' + this._networkFailCount + ' of ' +
-                this._maxNetworkFails + ' failures)';
-        } else {
-          this.debug('Warning: ' + message);
-        }
-    },
-
-    checkMobileNetwork: function fp_checkMobileNetwork() {
-      // Wait until we have a valid network connection
-      if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
-        this.maybeThrowNetworkFailure('No SIM cards connected to a network');
-      }
-
-      var conns = window.navigator.mozMobileConnections;
-      if (!conns || conns.length === 0) {
-        this.maybeThrowNetworkFailure('No mobile connections');
-        return;
-      }
-
-      var slots = SIMSlotManager.getSlots().filter(function(slot) {
-        return !slot.isAbsent() && !slot.isLocked();
-      });
-
-      if (slots.length === 0) {
-        this.maybeThrowNetworkFailure('No unlocked or active SIM cards found');
-        return;
-      }
-
-      var conn = slots[0].conn;
-      var iccObj = navigator.mozIccManager.getIccById(conn.iccId);
-      var iccInfo = iccObj ? iccObj.iccInfo : null;
-      var voiceNetwork = conn.voice ? conn.voice.network : null;
-
-      if (!iccInfo && !voiceNetwork) {
-        this.maybeThrowNetworkFailure('No voice network or ICC info');
-        return;
-      }
-
-      this._pingData.network = MobileOperator.userFacingInfo(conn);
-      if (voiceNetwork) {
-        this._pingData.network.mnc = voiceNetwork.mnc;
-        this._pingData.network.mcc = voiceNetwork.mcc;
-      }
-
-      if (iccInfo) {
-        this._pingData.icc = {
-          mnc: iccInfo.mnc,
-          mcc: iccInfo.mcc,
-          spn: iccInfo.spn
-        };
-      }
-    },
-
     tryPing: function fp_tryPing() {
       try {
-        this.checkMobileNetwork();
         if (this._networkFailCount >= this._maxNetworkFails) {
           this.debug('Max voice network failures reached, pinging anyway!');
-          if (this._pingData.network === undefined) {
-            this._pingData.network = null;
-          }
-
-          if (this._pingData.icc === undefined) {
-            this._pingData.icc = null;
-          }
+          return false;
         }
 
         if (!this._pingData['deviceinfo.os']) {
@@ -371,6 +301,9 @@
 
     pingError: function fp_pingError(message) {
       this.debug('Ping error: ' + message);
+      this._networkFailCount++;
+      window.asyncStorage.setItem(FTU_PING_NETWORK_FAIL_COUNT,
+                                  this._networkFailCount);
     },
 
     isEnabled: function fp_isEnabled() {

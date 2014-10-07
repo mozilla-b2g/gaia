@@ -96,20 +96,7 @@
       var wifiManager = window.navigator.mozWifiManager;
       var nfc = window.navigator.mozNfc;
 
-      // Radio is a special service (might not exist e.g. tablet)
-      // if value is true,
-      // it means Radio.enabled is false
-      if (window.Radio) {
-        window.Radio.enabled = !value;
-      }
-
       if (value) {
-
-        // Turn off mobile data:
-        // we toggle the mozSettings value here just for the sake of UI,
-        // platform RIL disconnects mobile data when
-        // 'ril.radio.disabled' is true.
-        this._suspend('ril.data');
 
         // Turn off Bluetooth.
         if (bluetooth) {
@@ -135,11 +122,6 @@
         // Note that we don't restore Wifi tethering when leaving airplane mode
         // because Wifi tethering can't be switched on before data connection is
         // established.
-
-        // Don't attempt to turn on mobile data if it's already on
-        if (!this._settings['ril.data.enabled']) {
-          this._restore('ril.data');
-        }
 
         // Don't attempt to turn on Bluetooth if it's already on
         if (bluetooth && !bluetooth.enabled) {
@@ -189,10 +171,6 @@
       bluetooth: {
         enabled: 'bluetooth-adapter-added',
         disabled: 'bluetooth-disabled'
-      },
-      radio: {
-        enabled: 'radio-enabled',
-        disabled: 'radio-disabled'
       }
     },
 
@@ -244,7 +222,17 @@
 
         // tell services to do their own operations
         this._serviceHelper.updateStatus(value);
+        this.publish('airplanemodechanged', {enabled: value});
       }
+    },
+
+    publish: function publish(event, detail) {
+      var evt = new CustomEvent(event,
+                  {
+                    bubbles: true,
+                    detail: detail || this
+                  });
+      window.dispatchEvent(evt);
     },
 
     /*
@@ -271,12 +259,7 @@
       if (areAllActionsDone) {
         SettingsListener.getSettingsLock().set({
           'airplaneMode.enabled': self._enabled,
-          'airplaneMode.status': self._enabled ? 'enabled' : 'disabled',
-          // NOTE
-          // this is for backward compatibility,
-          // because we will update this value only when airplane mode
-          // is on / off, it will not affect apps using this value
-          'ril.radio.disabled': self._enabled
+          'airplaneMode.status': self._enabled ? 'enabled' : 'disabled'
         });
       } else {
         // keep updating the status to reflect current status
@@ -298,11 +281,6 @@
       var checkedActions = {};
 
       if (value === true) {
-        // check connection
-        if (window.Radio) {
-          checkedActions.radio = false;
-        }
-
         // check bluetooth
         if (this._serviceHelper.isEnabled('bluetooth')) {
           checkedActions.bluetooth = false;
@@ -313,11 +291,6 @@
           checkedActions.wifi = false;
         }
       } else {
-        // check connection
-        if (window.Radio) {
-          checkedActions.radio = false;
-        }
-
         // check bluetooth
         if (this._serviceHelper.isSuspended('bluetooth')) {
           checkedActions.bluetooth = false;
@@ -359,18 +332,6 @@
       SettingsListener.observe('airplaneMode.enabled', false, function(value) {
         self.enabled = value;
       });
-
-      /*
-       * If we are in airplane mode and the user just dial out an
-       * emergency call, we have to exit airplane mode.
-       */
-      if (window.Radio) {
-        window.Radio.addEventListener('radiostatechange', function(state) {
-          if (state === 'enabled' && this._enabled === true) {
-            this.enabled = false;
-          }
-        }.bind(this));
-      }
     }
   };
 

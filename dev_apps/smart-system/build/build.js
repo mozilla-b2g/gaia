@@ -27,37 +27,9 @@ SystemAppBuilder.prototype.addCustomizeFiles = function() {
   });
 };
 
-SystemAppBuilder.prototype.initConfigJsons = function() {
-  var iccDefault = {
-    'defaultURL': 'http://www.mozilla.org/en-US/firefoxos/'
-  };
-  var wapuaprofDefault = {
-  };
-  var euRoamingDefault = {
-  };
-  var iccFile = utils.getFile(this.stageDir.path, 'resources', 'icc.json');
-  var wapFile = utils.getFile(this.stageDir.path, 'resources',
-    'wapuaprof.json');
-  var euRoamingFile = utils.getFile(this.stageDir.path, 'resources',
-    'eu-roaming.json');
-
-  utils.writeContent(iccFile,
-    utils.getDistributionFileContent('icc', iccDefault, this.distDirPath));
-
-  utils.writeContent(wapFile,
-    utils.getDistributionFileContent('wapuaprof',
-      wapuaprofDefault, this.distDirPath));
-
-  utils.writeContent(euRoamingFile,
-    utils.getDistributionFileContent('eu-roaming',
-      euRoamingDefault, this.distDirPath));
-
-};
-
 SystemAppBuilder.prototype.execute = function(options) {
   utils.copyToStage(options);
   this.setOptions(options);
-  this.initConfigJsons();
   if (this.distDirPath) {
     this.addCustomizeFiles();
   }
