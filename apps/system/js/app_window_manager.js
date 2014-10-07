@@ -570,8 +570,6 @@
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
-          // All app window instances need to be aware of this so they can show
-          // the screenshot overlay.
           this.broadcastMessage('sheetsgesturebegin');
           break;
 
