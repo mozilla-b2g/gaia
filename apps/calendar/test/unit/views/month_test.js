@@ -151,6 +151,25 @@ suite('Views.Month', function() {
     );
   });
 
+  test('#_onwheel', function() {
+    var date = new Date(2012, 4, 10);
+    var expected = new Date(2012, 5, 1);
+    subject.date = date;
+
+    subject._onwheel({
+      deltaMode: window.WheelEvent.DOM_DELTA_PAGE,
+      DOM_DELTA_PAGE: window.WheelEvent.DOM_DELTA_PAGE,
+      deltaX: 1,
+      deltaY: 0
+    });
+
+    assert.deepEqual(
+      subject.controller.selectedDay,
+      expected,
+      'selects first day of month'
+    );
+  });
+
   test('#_createChild', function() {
     var time = new Date(2012, 1, 1);
     var child = subject._createChild(time);
@@ -204,6 +223,7 @@ suite('Views.Month', function() {
       dayEl = dayEl[0];
 
       assert.ok(dayEl.id, 'should have id');
+      assert.equal(dayEl.getAttribute('aria-selected'), 'true');
       assert.include(dayEl.id, Calc.getDayId(
         select
       ));
@@ -215,10 +235,11 @@ suite('Views.Month', function() {
 
       var el = subject.element.querySelector('li');
       el.classList.add('selected');
+      el.setAttribute('aria-selected', true);
 
       assert.lengthOf(selected(), 1);
       subject._clearSelectedDay();
-
+      assert.isNull(el.getAttribute('aria-selected'));
       assert.lengthOf(selected(), 0);
     });
 

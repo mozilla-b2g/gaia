@@ -35,12 +35,21 @@ module.exports = create({
   },
 
   day: function() {
-    return '<li role="gridcell" id="' + this.s('id') +
-                '" data-date="' + this.s('dateString') +
-                '" class="' + this.s('state') + '">' +
-        '<span class="day">' + this.h('date') + '</span>' +
-        '<div class="busy-indicator"></div>' +
-      '</li>';
+    var date = this.h('date');
+    var dateString = this.s('dateString');
+    var id = this.s('id');
+    var l10nStateId = this.l10nId('state');
+    var state = this.s('state');
+
+    return `<li role="gridcell" tabindex="0" id="${id}"
+      aria-describedby="${id}-busy-indicator ${id}-description"
+      data-date="${dateString}" class="${state}">
+        <span class="day" role="button">${date}</span>
+        <div id="${id}-busy-indicator"
+          class="busy-indicator" aria-hidden="true"></div>
+        <span id="${id}-description" aria-hidden="true"
+          data-l10n-id="${l10nStateId}"></span>
+      </li>`;
   }
 });
 

@@ -72,6 +72,10 @@ Template.prototype = {
     return navigator.mozL10n.get(value);
   },
 
+  l10nId: function(a) {
+    return this.s(a).replace(/\s/g, '-');
+  },
+
   /**
    * Renders template with given slots.
    *

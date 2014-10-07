@@ -186,6 +186,13 @@ suite('calendar/template', function() {
       assert.equal(output, '');
     });
 
+    test('l10nId', function() {
+      var tpl = new Template(function() {
+        return this.l10nId('state');
+      });
+      assert.equal(tpl.render({state: 'past other-month'}), 'past-other-month');
+    });
+
     suite('l10n', function() {
       var realL10n;
       var lookup = {
