@@ -1,3 +1,5 @@
+'use strict';
+
 function System(client) {
   this.client = client.scope({
     searchTimeout: 20000
@@ -29,6 +31,7 @@ System.Selector = Object.freeze({
   softwareHomeFullscreenLayout: '#software-buttons-fullscreen-layout',
   statusbar: '#statusbar',
   statusbarLabel: '#statusbar-label',
+  systemBanner: '.banner.generic-dialog',
   topPanel: '#top-panel',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
@@ -119,6 +122,10 @@ System.prototype = {
     return this.client.findElement(System.Selector.statusbarLabel);
   },
 
+  get systemBanner() {
+    return this.client.helper.waitForElement(System.Selector.systemBanner);
+  },
+
   get utilityTray() {
     return this.client.findElement(System.Selector.utilityTray);
   },
@@ -145,7 +152,7 @@ System.prototype = {
    * allows us to try to click all of them.
    */
   clickSoftwareHomeButton: function() {
-    var body = client.findElement('body');
+    var body = this.client.findElement('body');
     var screenSize = body.scriptWith(function(el) {
       return el.getBoundingClientRect();
     });
