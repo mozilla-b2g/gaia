@@ -1,6 +1,6 @@
 apps/system
 apps/settings
-apps/homescreen
+tv_apps/smart-home
 apps/bluetooth
 apps/calendar
 apps/camera
