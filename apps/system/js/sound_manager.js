@@ -515,6 +515,10 @@
         }
         state = 'OFF';
       }
+      // Notify the user vibration is enabled when volume is 0.
+      if (volume === 0 && vibrationEnabled) {
+        notifyByVibrating();
+      }
 
       return state;
     } else {
@@ -525,6 +529,15 @@
       }
     }
   }
+
+  /**
+   * Notify the user vibration is on.
+   *
+   * @memberOf SoundManager.prototype
+   */
+  function notifyByVibrating() {
+    window.navigator.vibrate(200);
+  };
 
   function enterSilentMode(channel) {
     if (!channel)
