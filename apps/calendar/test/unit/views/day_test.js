@@ -1,11 +1,12 @@
-define(function(require) {
-'use strict';
+requireLib('template.js');
+requireLib('templates/date_span.js');
+requireCommon('test/synthetic_gestures.js');
+requireApp('calendar/shared/js/gesture_detector.js');
+requireLib('timespan.js');
 
-var Calc = require('calc');
-var Day = require('views/day');
-var TimeParent = require('views/time_parent');
+suiteGroup('Views.Day', function() {
+  'use strict';
 
-suite('Views.Day', function() {
   var subject,
       app,
       controller,
@@ -34,7 +35,9 @@ suite('Views.Day', function() {
     controller = app.timeController;
     controller.move(new Date());
 
-    subject = new Day({ app: app });
+    subject = new Calendar.Views.Day({
+      app: app
+    });
 
     // we need to mock the DayChild constructor to avoid problems with the
     // CurrentTime and keep the tests isolated
@@ -51,7 +54,7 @@ suite('Views.Day', function() {
   });
 
   test('#initialize', function() {
-    assert.instanceOf(subject, TimeParent);
+    assert.instanceOf(subject, Calendar.Views.TimeParent);
   });
 
   suite('#handleEvent', function() {
@@ -189,7 +192,7 @@ suite('Views.Day', function() {
       subject.onactive();
 
       assert.isFalse(
-        Calc.isSameDate(selDate, controller.day),
+        Calendar.Calc.isSameDate(selDate, controller.day),
         'should not move controller'
       );
 
@@ -254,12 +257,12 @@ suite('Views.Day', function() {
 
   suite('#changeDate', function() {
     setup(function() {
-      sinon.stub(TimeParent.prototype, 'changeDate');
+      sinon.stub(Calendar.Views.TimeParent.prototype, 'changeDate');
       subject.currentFrame = new subject.childClass();
     });
 
     teardown(function() {
-      TimeParent.prototype.changeDate.restore();
+      Calendar.Views.TimeParent.prototype.changeDate.restore();
       subject._getDestinationScrollTop.restore();
       subject.currentFrame = null;
     });
@@ -366,6 +369,5 @@ suite('Views.Day', function() {
   test('#onfirstseen', function() {
     assert.equal(subject.onfirstseen, subject.render);
   });
-});
 
 });

@@ -14,12 +14,12 @@ var CallsHandler = (function callsHandler() {
   var CDMA_CALLS_LIMIT = 2;
 
   var handledCalls = [];
+  var exitCallScreenTimeout = null;
 
   var toneInterval = null; // Timer used to play the waiting tone
   var telephony = window.navigator.mozTelephony;
   telephony.oncallschanged = onCallsChanged;
 
-  var displayed = false;
   // Setting up the SimplePhoneMatcher
   // XXX: check bug-926169
   // this is used to keep all tests passing while introducing multi-sim APIs
@@ -124,11 +124,9 @@ var CallsHandler = (function callsHandler() {
         CallScreen.showPlaceNewCallButton();
       }
     }
-    if (handledCalls.length === 0) {
-      exitCallScreen(false);
-    } else if (!displayed) {
-      toggleScreen();
-    }
+
+    CallScreen.toggle();
+    exitCallScreenIfNoCalls();
   }
 
   function addCall(call) {
@@ -195,7 +193,6 @@ var CallsHandler = (function callsHandler() {
     handledCalls.splice(index, 1);
 
     if (handledCalls.length === 0) {
-      exitCallScreen(true);
       return;
     }
 
@@ -288,30 +285,24 @@ var CallsHandler = (function callsHandler() {
     playWaitingTone(call);
   }
 
-  /* === Call Screen === */
-  function toggleScreen() {
-    displayed = !displayed;
-
-    CallScreen.toggle(function transitionend() {
-      // We did animate the call screen off the viewport
-      // now closing the window.
-      if (!displayed) {
-        closeWindow();
+  /**
+   * Checks now and also in CallScreen.callEndPromptTime seconds if there
+   * are no currently handled calls, and if not, exits the app. Resets
+   * this timer on each successive invocation.
+   */
+  function exitCallScreenIfNoCalls() {
+    if (handledCalls.length === 0) {
+      if (exitCallScreenTimeout !== null) {
+        clearTimeout(exitCallScreenTimeout);
+        exitCallScreenTimeout = null;
       }
-    });
-  }
-
-  function exitCallScreen(animate) {
-    // If the screen is not displayed yet we close the window directly
-    if (animate && displayed) {
-      toggleScreen();
-    } else {
-      closeWindow();
+      exitCallScreenTimeout = setTimeout(function(evt) {
+        if (handledCalls.length === 0) {
+          window.close();
+        }
+        exitCallScreenTimeout = null;
+      }, CallScreen.callEndPromptTime);
     }
-  }
-
-  function closeWindow() {
-    window.close();
   }
 
   function updateAllPhoneNumberDisplays() {
@@ -609,7 +600,6 @@ var CallsHandler = (function callsHandler() {
 
     // If not we're rejecting the last incoming call
     if (!handledCalls.length) {
-      exitCallScreen(true);
       return;
     }
 
@@ -635,7 +625,7 @@ var CallsHandler = (function callsHandler() {
       telephony.speakerEnabled = false;
     }
 
-    if (!doNotConnect && displayed) {
+    if (!doNotConnect && telephony.active && !document.hidden) {
       // add a btHelper.isConnected() check before calling disconnectSco
       // once bug 929376 lands.
       btHelper.connectSco();
@@ -824,6 +814,7 @@ var CallsHandler = (function callsHandler() {
     mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
     updateAllPhoneNumberDisplays: updateAllPhoneNumberDisplays,
     updatePlaceNewCall: updatePlaceNewCall,
+    exitCallScreenIfNoCalls: exitCallScreenIfNoCalls,
 
     get activeCall() {
       return activeCall();

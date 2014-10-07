@@ -1,27 +1,22 @@
-define(function(require, exports, module) {
+/* global AccessibilityHelper, LazyLoader, NotAmd, page */
+Calendar.App = (function(window) {
 'use strict';
 
-var AccessibilityHelper = require('shared/accessibility_helper');
-var AlarmController = require('controllers/alarm');
-var DateL10n = require('date_l10n');
-var Db = require('db');
-var ErrorController = require('controllers/error');
-var PendingManager = require('pending_manager');
-var RecurringEventsController = require('controllers/recurring_events');
-var Router = require('router');
-var ServiceController = require('controllers/service');
-var SyncController = require('controllers/sync');
-var TimeController = require('controllers/time');
-var Views = {};
-var dayObserver = require('day_observer');
-var debug = require('debug')('app');
-var nextTick = require('next_tick');
-var page = require('ext/page');
-var performance = require('performance');
-var providerFactory = require('provider/provider_factory');
-var snakeCase = require('snake_case');
-
-var pendingClass = 'pending-operation';
+/**
+ * Module dependencies
+ */
+var Controllers = Calendar.ns('Controllers');
+var DateL10n = Calendar.dateL10n;
+var Db = Calendar.Db;
+/*var LoadConfig = Calendar.LoadConfig;*/
+var PendingManager = Calendar.PendingManager;
+var Provider = Calendar.Provider;
+var Router = Calendar.Router;
+var Views = Calendar.ns('Views');
+var dayObserver = Calendar.dayObserver;
+var debug = Calendar.debug('App');
+var nextTick = Calendar.nextTick;
+var performance = Calendar.performance;
 
 /**
  * Focal point for state management
@@ -30,8 +25,21 @@ var pendingClass = 'pending-operation';
  * Contains tools for routing and central
  * location to reference database.
  */
-module.exports = {
+var App = {
+  PendingManager: PendingManager,
+
+  DateL10n: DateL10n,
+
+  dateFormat: navigator.mozL10n.DateTimeFormat(),
+
+  // XXX: always assumes that app is never lazy loaded
+  startingURL: window.location.href,
+
+  _location: window.location,
+
   _mozTimeRefreshTimeout: 3000,
+
+  pendingClass: 'pending-operation',
 
   /**
    * Entry point for application
@@ -42,28 +50,27 @@ module.exports = {
     debug('Configure calendar with db and router.');
     this.db = db;
     this.router = router;
-    this.router.app = this;
 
-    providerFactory.app = this;
-
+    this._providers = Object.create(null);
     this._views = Object.create(null);
     this._routeViewFn = Object.create(null);
     this._pendingManager = new PendingManager();
 
+    var self = this;
     this._pendingManager.oncomplete = function onpending() {
-      document.body.classList.remove(pendingClass);
+      document.body.classList.remove(self.pendingClass);
       performance.pendingReady();
     };
 
     this._pendingManager.onpending = function oncomplete() {
-      document.body.classList.add(pendingClass);
+      document.body.classList.add(self.pendingClass);
     };
 
-    this.timeController = new TimeController(this);
-    this.syncController = new SyncController(this);
-    this.serviceController = new ServiceController(this);
-    this.alarmController = new AlarmController(this);
-    this.errorController = new ErrorController(this);
+    this.timeController = new Controllers.Time(this);
+    this.syncController = new Controllers.Sync(this);
+    this.serviceController = new Controllers.Service(this);
+    this.alarmController = new Controllers.Alarm(this);
+    this.errorController = new Controllers.Error(this);
 
     dayObserver.timeController = this.timeController;
     dayObserver.calendarStore = this.store('Calendar');
@@ -126,6 +133,43 @@ module.exports = {
 
   isPending: function() {
     return this._pendingManager.isPending();
+  },
+
+  loadObject: function initializeLoadObject(name, callback) {
+    function loadObject(name, callback) {
+      /*jshint validthis:true */
+      this._loader.load('group', name, callback);
+    }
+
+    debug('Queue load for', name);
+    if (!this._pendingObjects) {
+      this._pendingObjects = [[name, callback]];
+    } else {
+      this._pendingObjects.push([name, callback]);
+      return;
+    }
+
+    // Loading NotAnd and the load config is not really needed
+    // for the initial load so we lazily load them the first time we
+    // need to load a file...
+    var self = this;
+
+    function next() {
+      // initialize loader
+      NotAmd.nextTick = nextTick;
+      self._loader = NotAmd(Calendar.LoadConfig);
+      self.loadObject = loadObject;
+
+      // begin processing existing requests
+      self._pendingObjects.forEach(function(pair) {
+        // ['ObjectName', function() { ... }]
+        loadObject.call(self, pair[0], pair[1]);
+      });
+
+      delete self._pendingObjects;
+    }
+
+    LazyLoader.load(['/js/ext/notamd.js', '/js/load_config.js'], next);
   },
 
   /**
@@ -250,10 +294,13 @@ module.exports = {
 
     this._routes();
 
-    var recurringEventsController = new RecurringEventsController(this);
-    this.observePendingObject(recurringEventsController);
-    recurringEventsController.observe();
-    this.recurringEventsController = recurringEventsController;
+    //lazy load recurring event expander so as not to impact initial load.
+    this.loadObject('Controllers.RecurringEvents', () => {
+      var recurringEventsController = new Controllers.RecurringEvents(this);
+      this.observePendingObject(recurringEventsController);
+      recurringEventsController.observe();
+      this.recurringEventsController = recurringEventsController;
+    });
 
     // go ahead and show the first time use view if necessary
     this.view('FirstTimeUse', (ftu) => ftu.doFirstTime());
@@ -284,7 +331,7 @@ module.exports = {
    * Primary code for app can go here.
    */
   init: function() {
-    debug('Will initialize calendar app...');
+    debug('Will initialize calendar app.');
     var self = this;
     var pending = 2;
 
@@ -296,7 +343,7 @@ module.exports = {
     }
 
     if (!this.db) {
-      this.configure(new Db('b2g-calendar', this), new Router(page));
+      this.configure(new Db('b2g-calendar'), new Router(page));
     }
 
     // start the workers
@@ -305,6 +352,17 @@ module.exports = {
     var l10n = navigator.mozL10n;
     l10n.once(next);
     this.db.load(next);
+  },
+
+  /**
+   * Initializes a provider.
+   */
+  provider: function(name) {
+    if (!(name in this._providers)) {
+      this._providers[name] = new Provider[name]({ app: this });
+    }
+
+    return this._providers[name];
   },
 
   _initView: function(name) {
@@ -342,16 +400,14 @@ module.exports = {
     }
 
     if (name in Views) {
-      debug('Must initialize view', name);
+      debug('Must initialize view ', name);
       this._initView(name);
       return this.view(name, cb);
     }
 
-    var snake = snakeCase(name);
-    debug('Will try to load view', name);
-    require([ 'views/' + snake ], (aView) => {
+    debug('Will try to load view ', name);
+    this.loadObject('Views.' + name, () => {
       debug('Loaded view', name);
-      Views[name] = aView;
       return this.view(name, cb);
     });
   },
@@ -375,4 +431,27 @@ module.exports = {
   }
 };
 
+// Restart the calendar when the timezone changes.
+// We do this on a timer because this event may fire
+// many times. Refreshing the url of the calendar frequently
+// can result in crashes so we attempt to do this only after
+// the user has completed their selection.
+var _changeTimerId;
+window.addEventListener('moztimechange', function onMozTimeChange() {
+  clearTimeout(_changeTimerId);
+
+  _changeTimerId = setTimeout(function() {
+    App.forceRestart();
+  }, App._mozTimeRefreshTimeout);
 });
+
+debug('Will register load handler.');
+window.addEventListener('load', function onLoad() {
+  debug('Received load event.');
+  window.removeEventListener('load', onLoad);
+  App.init();
+});
+
+return App;
+
+}(this));

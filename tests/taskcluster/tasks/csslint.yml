@@ -1,0 +1,18 @@
+task:
+  metadata:
+    name: Gaia CSS Lint
+    description: CSS linter
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+
+  payload:
+    command:
+      - entrypoint
+      - ./bin/ci run csslint
+  extra:
+    treeherder:
+      symbol: CSS
+      groupSymbol: LINT
+      groupName: Linters
+

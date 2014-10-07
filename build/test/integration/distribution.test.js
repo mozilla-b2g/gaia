@@ -3,6 +3,7 @@
 /* global require, process, suite, setup, test, teardown */
 /* jshint -W101 */
 var rmrf = require('rimraf').sync;
+var vm = require('vm');
 var AdmZip = require('adm-zip');
 var helper = require('./helper');
 var path = require('path');
@@ -167,6 +168,20 @@ suite('Distribution mechanism', function() {
         'mobizilla_expected_bookmarks.json'));
   }
 
+  function validateCalendar() {
+    var calZip = new AdmZip(path.join(process.cwd(), 'profile',
+      'webapps', 'calendar.gaiamobile.org', 'application.zip'));
+    var presetsContent = calZip.readAsText(calZip.getEntry('js/presets.js'));
+    assert.isNotNull(presetsContent, 'js/presets.js should exist');
+    var sandbox = { Calendar: { Presets: null } };
+    vm.runInNewContext(presetsContent, sandbox);
+
+    var expectedCalendarData = JSON.parse(fs.readFileSync(
+      path.join(cusDir, 'calendar.json')));
+
+    helper.checkSettings(sandbox.Calendar.Presets, expectedCalendarData);
+  }
+
   function validateWappush() {
     var wappushZipPath = path.join(process.cwd(), 'profile',
       'webapps', 'wappush.gaiamobile.org', 'application.zip');
@@ -320,6 +335,7 @@ suite('Distribution mechanism', function() {
       validatePreloadSettingDB();
       validateSettings();
       validateOperatorVariant();
+      validateCalendar();
       validateWappush();
       validateSystem();
       validateGallery();

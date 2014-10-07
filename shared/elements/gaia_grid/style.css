@@ -241,24 +241,35 @@
 }
 
 .group .header .title {
-  top: 0.9rem;
   left: 1.4rem;
   /* This is full width - gripper - toggle - padding */
   width: calc(100% - 2.7rem - 2.7rem - 2.8rem);
+  height: 4rem;
 
   text-align: left;
+  vertical-align: middle;
   color: white;
   font-size: 1.6rem;
   font-style: italic;
   font-weight: 300;
+  text-shadow: 0 0 0.6rem rgba(0, 0, 0, 0.45);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   pointer-events: none;
 }
 
+.group .header .title.empty {
+  opacity: 0;
+  color: #989898;
+}
+
 .edit-mode .header .title {
   transform: translate(3.3rem, 0);
+}
+
+.edit-mode .header .title.empty {
+  opacity: 1;
 }
 
 .group .header .toggle {

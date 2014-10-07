@@ -6,6 +6,28 @@
  * Data is only collected and transmitted if the user opts in to telemetry
  * in the FTU or Settings app.
  *
+ * A note about time: Date.now() returns absolute time. It changes if the user
+ * sets the time in the Settings app, and also can change via the NTP protocol
+ * when the device connects to the internet. To avoid having changes in clock
+ * time affect our app usage timing data we use performance.now() which
+ * returns a relative time whose values do not change when the absolute time
+ * changes. However, the batches of metrics we submit do include absolute
+ * start and end times. For these times, we do need to use Date.now(), and for
+ * values that are compared to the batch start time, we obviously have to
+ * use absolute time as well. Note that only absolute time can be persisted
+ * since the relative time epoch restarts each time the phone is rebooted.
+ *
+ * Sometimes on system startup, we see changes to the absolute time of
+ * more than a day when we connect to the internet and adjust the time
+ * with NTP. These large time changes can skew the batch start times
+ * that we report and so this module includes code to adjust the batch
+ * start time when the absolute time is changed. This can only be
+ * done for fresh batches of metrics that we start ourselves--if we've
+ * loaded a persisted batch of metrics, then the start time is from a
+ * previous boot of the device and we cannot adjust it. Perhaps when
+ * bug 1069863 is fixed we will not have these dramatic time changes when
+ * we start up and we can remove the workaround.
+ *
  * Known issues:
  *
  *  The lockscreen does not generate any events when the user launches the
@@ -17,7 +39,7 @@
  *  normal app termination from abnormal and I can't figure out any way
  *  to tell when an app has crashed.
  */
-/* global asyncStorage, SettingsListener */
+/* global asyncStorage, SettingsListener, performance */
 (function(exports) {
   'use strict';
 
@@ -44,6 +66,7 @@
   const UNINSTALL = 'applicationuninstall';
   const ONLINE = 'online';
   const OFFLINE = 'offline';
+  const TIMECHANGE = 'moztimechange';
   const IDLE = 'idle';
   const ACTIVE = 'active';
 
@@ -58,7 +81,8 @@
     INSTALL,
     UNINSTALL,
     ONLINE,
-    OFFLINE
+    OFFLINE,
+    TIMECHANGE
   ];
 
 
@@ -204,7 +228,7 @@
     this.currentApp = null;
 
     // When did the currently running app start?
-    this.currentAppStartTime = 0;
+    this.currentAppStartTime = performance.now();
   };
 
   // Start collecting app usage data. This function is only called if the
@@ -342,7 +366,7 @@
   // 3) transmits app usage data at appropriate times
   //
   AUM.prototype.handleEvent = function handleEvent(e) {
-    var now = Date.now();
+    var now = performance.now();
 
     switch (e.type) {
 
@@ -446,6 +470,26 @@
     case OFFLINE:
       this.online = false;
       break;
+
+    case TIMECHANGE:
+      if (this.metrics.relativeStartTime !== undefined) {
+        // If we have a relative time recorded for this batch then we
+        // can adjust the batch start time on NTP or user time changes.
+        // This shouldn't really be necessary but we are seeing some
+        // time changes on reboot where the time changes by more than
+        // a day when the phone first starts up and connects to a network.
+        // This may be caused by bug 1069863, and when that bug is fixed
+        // we can consider removing this moztimechange handling code.
+        var deltaT = performance.now() - this.metrics.relativeStartTime;
+        var oldStartTime = this.metrics.data.start;
+        var newStartTime = Date.now() - Math.round(deltaT);
+        this.metrics.data.start = newStartTime;
+        this.metrics.save(true);
+        debug('System time change; converted batch start time from:',
+              new Date(oldStartTime).toString(), 'to:',
+              new Date(newStartTime).toString());
+      }
+      break;
     }
 
     /*
@@ -460,17 +504,18 @@
 
     // Is there data to be sent and is this an okay time to send it?
     if (!this.metrics.isEmpty() && this.idle && this.online) {
+      var absoluteTime = Date.now();
       // Have we tried and failed to send it before?
       if (this.lastFailedTransmission > this.metrics.startTime()) {
 
         // If so, then send it if the retry interval has elapsed
-        if (now - this.lastFailedTransmission > AUM.RETRY_INTERVAL) {
+        if (absoluteTime - this.lastFailedTransmission > AUM.RETRY_INTERVAL) {
           this.transmit();
         }
       }
       // Otherwise, if we have not failed to transmit, then send it if the
       // reporting interval has elapsed.
-      else if (now - this.metrics.startTime() > AUM.REPORT_INTERVAL) {
+      else if (absoluteTime - this.metrics.startTime() > AUM.REPORT_INTERVAL) {
         this.transmit();
       }
     }
@@ -548,6 +593,8 @@
         // the time of this failure so we don't try sending again too soon.
         debug('App usage metrics transmission failure:', e.type);
 
+        // We use absolute time here because we will be comparing to
+        // the absolute batch start time.
         self.lastFailedTransmission = Date.now();
         oldMetrics.merge(self.metrics);
         self.metrics = oldMetrics;
@@ -565,6 +612,9 @@
       apps: {} // Maps app URLs to usage data
     };
     this.needsSave = false;
+    // Record the relative start time, which we can use to adjust
+    // this.data.start if we get a moztimechange event.
+    this.relativeStartTime = performance.now();
   }
 
   UsageData.prototype.getAppUsage = function(app) {
@@ -690,6 +740,9 @@
       var usage = new UsageData();
       if (data) {
         usage.data = data;
+        // If we loaded persisted data, then the absolute start time can
+        // and should no longer be adjusted. So remove the relative time.
+        delete usage.relativeStartTime;
       }
       callback(usage);
     });

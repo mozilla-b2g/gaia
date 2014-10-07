@@ -1,7 +1,7 @@
-define(function(require, exports, module) {
+(function(exports) {
 'use strict';
 
-module.exports = function(target, input) {
+exports.extend = function(target, input) {
   for (var key in input) {
     if (hasOwnProperty.call(input, key)) {
       target[key] = input[key];
@@ -11,4 +11,4 @@ module.exports = function(target, input) {
   return target;
 };
 
-});
+}(Calendar));

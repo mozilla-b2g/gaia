@@ -5,8 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var convertFaceToPixels = require('lib/convert-face-to-pixel-coordinates');
-var calculateFocusArea = require('lib/calculate-focus-area');
+var cameraCoordinates = require('lib/camera-coordinates');
 var debug = require('debug')('controller:viewfinder');
 var ViewfinderView = require('views/viewfinder');
 var FocusView = require('views/focus');
@@ -217,19 +216,32 @@ ViewfinderController.prototype.onFocusConfigured = function(config) {
 };
 
 ViewfinderController.prototype.onFacesDetected = function(faces) {
-  var faceInPixels;
-  var facesInPixels = [];
+  var self = this;
+  var faceCircles = [];
   var viewfinderSize =  this.views.viewfinder.getSize();
   var viewportHeight = viewfinderSize.height;
   var viewportWidth = viewfinderSize.width;
+  var sensorAngle = this.camera.getSensorAngle();
+  var camera = this.app.settings.cameras.selected('key');
+  var isFrontCamera = camera === 'front';
 
   faces.forEach(function(face, index) {
     // Face comes in camera coordinates from gecko
-    faceInPixels = convertFaceToPixels(face, viewportWidth, viewportHeight);
-    facesInPixels.push(faceInPixels);
+    var faceInPixels = cameraCoordinates.faceToPixels(
+      face.bounds, viewportWidth, viewportHeight, sensorAngle, isFrontCamera);
+    var faceCircle = self.calculateFaceCircle(faceInPixels);
+    faceCircles.push(faceCircle);
   });
   this.views.faces.show();
-  this.views.faces.render(facesInPixels);
+  this.views.faces.render(faceCircles);
+};
+
+ViewfinderController.prototype.calculateFaceCircle = function(face) {
+  return {
+    x: face.left,
+    y: face.top,
+    diameter: Math.max(face.width, face.height)
+  };
 };
 
 /**
@@ -340,16 +352,36 @@ ViewfinderController.prototype.onViewfinderClicked = function(e) {
   if (!this.touchFocusEnabled || this.app.get('timerActive')) {
     return;
   }
-  var focusPoint = {
-    x: e.pageX,
-    y: e.pageY
-  };
   this.views.faces.hide();
-  focusPoint.area = calculateFocusArea(
-    focusPoint.x, focusPoint.y,
-    this.views.viewfinder.el.clientWidth,
-    this.views.viewfinder.el.clientHeight);
-  this.views.focus.setPosition(focusPoint.x, focusPoint.y);
+  this.changeFocusPoint(e.pageX, e.pageY);
+};
+
+ViewfinderController.prototype.changeFocusPoint = function(x, y) {
+  var viewfinderSize =  this.views.viewfinder.getSize();
+  var viewportHeight = viewfinderSize.height;
+  var viewportWidth = viewfinderSize.width;
+  var sensorAngle = this.camera.getSensorAngle();
+  var focusAreaSize = 10;
+  var focusAreaHalfSide = Math.round(focusAreaSize / 2);
+  // Top Left corner of the area and its size
+  var focusAreaPixels = {
+    left: x - focusAreaHalfSide,
+    top: y - focusAreaHalfSide,
+    right: x + focusAreaHalfSide,
+    bottom: y + focusAreaHalfSide,
+    width: focusAreaSize,
+    height: focusAreaSize
+  };
+  var camera = this.app.settings.cameras.selected('key');
+  var isFrontCamera = camera === 'front';
+  var focusArea = cameraCoordinates.faceToCamera(
+    focusAreaPixels, viewportWidth, viewportHeight, sensorAngle, isFrontCamera);
+  var focusPoint = {
+    x: x,
+    y: y,
+    area: focusArea
+  };
+  this.views.focus.setPosition(x, y);
   this.app.emit('viewfinder:focuspointchanged', focusPoint);
 };
 

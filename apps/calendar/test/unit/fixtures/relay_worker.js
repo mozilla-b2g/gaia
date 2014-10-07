@@ -1,45 +1,59 @@
 addEventListener('message', function prepare(e) {
-'use strict';
+  'use strict';
 
-requirejs(['worker/thread'], (Thread) => {
+  removeEventListener('message', prepare);
 
-var thread = new Thread(this);
-this.console = new thread.console('W1');
-thread.addRole('test');
+  var url = e.data.url;
 
-thread.roles.test.on('relay', function() {
-  var args = Array.prototype.slice.call(arguments);
-  var callback = args.pop();
+  function require() {
+    var args = Array.prototype.slice.call(arguments);
 
-  callback.apply(this, args);
-});
-
-thread.roles.test.on('error', function(callback) {
-  var err;
-  try {
-    throw new Error('message');
-  } catch (e) {
-    err = e;
+    args.forEach(function(script) {
+      // ?time= is for cache busting in development...
+      // there have been cases where nightly would not
+      // clear the cache of the worker.
+      importScripts(url + '/js/' + script + '.js?time=' + Date.now());
+    });
   }
-  callback(err);
-});
 
-thread.roles.test.on('stream', function(data, stream, callback) {
-  var args = Array.prototype.slice.call(arguments);
-  args.pop();
-  args.pop();
+  require('calendar', 'responder', 'inspect', 'worker/thread');
 
-  setTimeout(function() {
-    callback(args);
-  }, 0);
+  var thread = new Calendar.Thread(this);
+  this.console = new thread.console('W1');
 
-  stream.emit('data', 1);
-  stream.emit('data', 2);
-  stream.emit('error', 'err');
-});
+  thread.addRole('test');
 
-thread.send('ready');
+  thread.roles.test.on('relay', function() {
+    var args = Array.prototype.slice.call(arguments);
+    var callback = args.pop();
 
-});
+    callback.apply(this, args);
+  });
+
+  thread.roles.test.on('error', function(callback) {
+    var err;
+    try {
+      throw new Error('message');
+    } catch (e) {
+      err = e;
+    }
+    callback(err);
+  });
+
+  thread.roles.test.on('stream', function(data, stream, callback) {
+    var args = Array.prototype.slice.call(arguments);
+    args.pop();
+    args.pop();
+
+    setTimeout(function() {
+      callback(args);
+    }, 0);
+
+    stream.emit('data', 1);
+    stream.emit('data', 2);
+    stream.emit('error', 'err');
+  });
+
+  thread.send('ready');
 
 });

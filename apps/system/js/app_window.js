@@ -1408,10 +1408,9 @@
     if (!bottom.isActive() || this.isTransitioning()) {
       return;
     }
-    var top = this.getTopMostWindow();
-    if (top.instanceID != this.instanceID) {
-      bottom._resize();
-      top.resize();
+    if (this.frontWindow) {
+      this._resize();
+      this.frontWindow.resize();
     } else {
       // resize myself if no child.
       this.debug(' will resize... ');

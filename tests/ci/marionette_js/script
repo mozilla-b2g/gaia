@@ -1,0 +1,4 @@
+#! /bin/bash -vex
+
+export TEST_MANIFEST=./shared/test/integration/travis-manifest.json
+make test-integration

@@ -1,12 +1,11 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var CalendarError = require('error');
-var Factory = require('test/support/factory');
-var SyncController = require('controllers/sync');
-var nextTick = require('next_tick');
+requireLib('models/calendar.js');
+requireLib('models/account.js');
 
-suite('Controllers.Sync', function() {
+suiteGroup('Controllers.Sync', function() {
+  'use strict';
+
   var account;
   var calendar;
   var event;
@@ -21,14 +20,14 @@ suite('Controllers.Sync', function() {
     account.sync = function() {
       var args = Array.slice(arguments);
       var cb = args.pop();
-      nextTick(cb.bind(this, err));
+      Calendar.nextTick(cb.bind(this, err));
     };
   }
 
   setup(function(done) {
     app = testSupport.calendar.app();
     db = app.db;
-    subject = new SyncController(app);
+    subject = new Calendar.Controllers.Sync(app);
 
     calendar = app.store('Calendar');
     account = app.store('Account');
@@ -187,7 +186,7 @@ suite('Controllers.Sync', function() {
           });
         };
 
-        var err = new CalendarError();
+        var err = new Calendar.Error();
         stageAccountSyncError(err);
         subject.account(accModel);
         assert.equal(subject.pending, 1);
@@ -219,7 +218,7 @@ suite('Controllers.Sync', function() {
           assert.equal(accModel._id, acc._id);
           assert.equal(calendar.accountId, acc._id);
 
-          nextTick(function() {
+          Calendar.nextTick(function() {
             callback();
             if (!--pendingCalendarSync) {
               assert.notEqual(lastCalendar._id, calendar._id);
@@ -297,6 +296,5 @@ suite('Controllers.Sync', function() {
       });
     });
   });
-});
 
 });

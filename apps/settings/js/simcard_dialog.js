@@ -7,6 +7,7 @@
 function SimPinDialog(dialog) {
   var icc;
   var _localize = navigator.mozL10n.setAttributes;
+  var translate = navigator.mozL10n.get;
 
   if (!window.navigator.mozMobileConnections) {
     return;
@@ -259,6 +260,11 @@ function SimPinDialog(dialog) {
         case 'SimPuk2':
           _action = initUI('unlock_puk2');
           pukInput.focus();
+          break;
+        case 'NoFreeRecordFound':
+          alert(translate('fdnNoFDNFreeRecord'));
+          _oncancel(_fdnContactInfo);
+          close();
           break;
         default:
           _oncancel(_fdnContactInfo);

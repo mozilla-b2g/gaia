@@ -1,10 +1,6 @@
-define(function(require) {
-'use strict';
+suiteGroup('Views.CalendarColors', function() {
+  'use strict';
 
-var CalendarColors = require('views/calendar_colors');
-var Factory = require('test/support/factory');
-
-suite('Views.CalendarColors', function() {
   var subject;
   var model;
   var app;
@@ -13,7 +9,7 @@ suite('Views.CalendarColors', function() {
   setup(function(done) {
     app = testSupport.calendar.app();
     store = app.store('Calendar');
-    subject = new CalendarColors();
+    subject = new Calendar.Views.CalendarColors();
 
     model = Factory.create('calendar', {
       _id: '1xx',
@@ -281,6 +277,5 @@ suite('Views.CalendarColors', function() {
     verify(keepOne, 0, 3);
     verify(keepTwo, 3, 6);
   });
-});
 
 });

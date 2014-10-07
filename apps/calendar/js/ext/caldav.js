@@ -124,7 +124,12 @@ SAXParser.prototype =
   , close: function () { return this.write(null) }
   }
 
-var Stream = function () {}
+try {
+  var Stream = require("stream").Stream
+} catch (ex) {
+  var Stream = function () {}
+}
+
 
 var streamWraps = sax.EVENTS.filter(function (ev) {
   return ev !== "error" && ev !== "end"

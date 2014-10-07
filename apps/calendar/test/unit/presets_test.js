@@ -1,10 +1,10 @@
-define(function(require) {
-'use strict';
+requireLib('presets.js');
+requireLib('provider/local.js');
 
-var presets = require('presets');
+suite('presets', function() {
+  'use strict';
 
-test('list', function() {
-  assert.instanceOf(presets, Object);
-});
-
+  test('list', function() {
+    assert.instanceOf(Calendar.Presets, Object);
+  });
 });

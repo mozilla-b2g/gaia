@@ -1,10 +1,14 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var Factory = require('test/support/factory');
-var Timespan = require('timespan');
+requireLib('responder.js');
+requireLib('timespan.js');
+requireLib('store/event.js');
+requireLib('store/busytime.js');
+requireLib('store/alarm.js');
 
 suite('store/busytime', function() {
+  'use strict';
+
   var app;
   var subject;
   var db;
@@ -105,7 +109,7 @@ suite('store/busytime', function() {
 
     setup(function() {
       list = Object.create(null);
-      span = new Timespan(
+      span = new Calendar.Timespan(
         new Date(2012, 1, 5),
         new Date(2012, 1, 10)
       );
@@ -282,6 +286,4 @@ suite('store/busytime', function() {
       });
     });
   });
-});
-
 });

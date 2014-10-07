@@ -1,10 +1,10 @@
 {
   "extends": "../../../.jshintrc",
   "predef": [
+    "Calendar",
     "IDBKeyRange",
-    "define",
     "dump",
-    "postMessage",
-    "require"
+    "module",
+    "postMessage"
   ]
 }

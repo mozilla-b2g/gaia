@@ -1,10 +1,12 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var Abstract = require('store/abstract');
-var Factory = require('test/support/factory');
+requireLib('db.js');
+requireLib('store/abstract.js');
+requireLib('store/ical_component.js');
 
 suite('store/ical_component', function() {
+  'use strict';
+
   var subject;
   var db;
   var app;
@@ -33,7 +35,7 @@ suite('store/ical_component', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Abstract);
+    assert.instanceOf(subject, Calendar.Store.Abstract);
     assert.equal(subject.db, db);
     assert.deepEqual(subject._cached, {});
   });
@@ -91,6 +93,5 @@ suite('store/ical_component', function() {
       });
     });
   });
-});
 
 });

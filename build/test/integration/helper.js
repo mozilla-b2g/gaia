@@ -4,6 +4,7 @@ var assert = require('chai').assert;
 var fs = require('fs');
 var AdmZip = require('adm-zip');
 var childProcess = require('child_process');
+var rmrf = require('rimraf').sync;
 
 function getPrefsSandbox() {
   var sandbox = {
@@ -109,6 +110,14 @@ function emptyJsonFile(filePath) {
   return restoreFunc;
 }
 
+function cleanupWorkspace() {
+  rmrf('profile');
+  rmrf('profile-debug');
+  rmrf('build_stage');
+  rmrf(exports.localesDir);
+}
+
+exports.localesDir = 'tmplocales';
 exports.getPrefsSandbox = getPrefsSandbox;
 exports.checkError = checkError;
 exports.checkSettings = checkSettings;
@@ -119,3 +128,4 @@ exports.checkFileContentInZip = checkFileContentInZip;
 exports.checkFileContentByPathInZip = checkFileContentByPathInZip;
 exports.emptyJsonFile = emptyJsonFile;
 exports.exec = exec;
+exports.cleanupWorkspace = cleanupWorkspace;

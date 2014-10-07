@@ -55,9 +55,9 @@ var StatusBar = {
     ['mute', 16 + 4],
     ['call-forwardings', null], // Width can change
     ['playing', 16 + 4],
-    ['headphones', 16 + 4]
-    //['sms' 16 + 4], // Not currently implemented.
-    //['label' 16 + 4], // Only visible in the maximized status bar.
+    ['headphones', 16 + 4],
+    //['sms', 16 + 4], // Not currently implemented.
+    ['label', null] // Only visible in the maximized status bar.
   ],
 
   /* Timeout for 'recently active' indicators */
@@ -622,17 +622,23 @@ var StatusBar = {
     }.bind(this));
   },
 
-  _getIconWidth: function(iconObj) {
+  _getIconWidth: function sb_getIconWidth(iconObj) {
     var iconWidth = iconObj[1];
 
     if (!iconWidth) {
       // The width of this icon is not static.
       var icon = this.icons[this.toCamelCase(iconObj[0])];
-      var style = window.getComputedStyle(icon);
-      iconWidth = icon.clientWidth +
-        parseInt(style.marginLeft, 10) +
-        parseInt(style.marginRight, 10);
+      iconWidth = this._getWidthFromDomElementWidth(icon);
     }
+
+    return iconWidth;
+  },
+
+  _getWidthFromDomElementWidth: function sb_getWidthFromDomElementWidth(icon) {
+    var style = window.getComputedStyle(icon);
+    var iconWidth = icon.clientWidth +
+      parseInt(style.marginLeft, 10) +
+      parseInt(style.marginRight, 10);
 
     return iconWidth;
   },
@@ -916,7 +922,9 @@ var StatusBar = {
         conn = conns[0];
       }
 
+      var self = this;
       var label = this.icons.label;
+      var previousLabelContent = label.textContent;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
 
       if (!conn || !conn.voice || !conn.voice.connected ||
@@ -926,6 +934,10 @@ var StatusBar = {
 
         label.dataset.l10nId = '';
         label.textContent = l10nArgs.date;
+
+        if (previousLabelContent !== label.textContent) {
+          updateLabelWidth();
+        }
 
         return;
       }
@@ -941,6 +953,22 @@ var StatusBar = {
 
       label.dataset.l10nId = 'statusbarLabel';
       label.textContent = navigator.mozL10n.get('statusbarLabel', l10nArgs);
+
+      if (previousLabelContent !== label.textContent) {
+        updateLabelWidth();
+      }
+
+      // Update the width of the date element. Called when the content changed.
+      function updateLabelWidth() {
+        self.PRIORITIES.some(function(iconObj) {
+          if (iconObj[0] === 'label') {
+            iconObj[1] = self._getWidthFromDomElementWidth(label);
+            return true;
+          }
+
+          return false;
+        });
+      }
     },
 
     time: function sb_updateTime(now) {

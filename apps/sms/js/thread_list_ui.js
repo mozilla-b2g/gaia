@@ -9,6 +9,8 @@
 (function(exports) {
 'use strict';
 
+const privateMembers = new WeakMap();
+
 var ThreadListUI = {
   draftLinks: null,
   draftRegistry: null,
@@ -43,8 +45,6 @@ var ThreadListUI = {
 
     this.mainWrapper = document.getElementById('main-wrapper');
     this.composerButton = document.getElementById('icon-add');
-
-    this.delNumList = [];
 
     // TODO this should probably move to a "WrapperView" class
     this.composerButton.addEventListener(
@@ -89,6 +89,13 @@ var ThreadListUI = {
     MessageManager.on('message-sending', this.onMessageSending.bind(this));
     MessageManager.on('message-received', this.onMessageReceived.bind(this));
     MessageManager.on('threads-deleted', this.onThreadsDeleted.bind(this));
+
+    privateMembers.set(this, {
+      // Very approximate number of letters that can fit into title for the
+      // group thread, "100" is for all paddings, image width and so on,
+      // 10 is approximate English char width for current 18px font size
+      groupThreadTitleMaxLength: (window.innerWidth - 100) / 10
+    });
   },
 
   beforeLeave: function thlui_beforeLeave() {
@@ -118,70 +125,104 @@ var ThreadListUI = {
   },
 
   setContact: function thlui_setContact(node) {
-    var thread = Threads.get(node.dataset.threadId);
-    var draft = Drafts.get(node.dataset.threadId);
-    var number, others;
+    // TODO Bug 1014226 will introduce a draftId instead of threadId for
+    // drafts, this will allow removing the test with is-draft here.
+    var threadOrDraft = node.classList.contains('is-draft') ?
+      Drafts.get(node.dataset.threadId) :
+      Threads.get(node.dataset.threadId);
 
-    if (thread) {
-      number = thread.participants[0];
-      others = thread.participants.length - 1;
-    } else if (draft) {
-      number = draft.recipients[0];
-      others = draft.recipients.length - 1;
-    } else {
-      console.error(
-        'This node does not look like a displayed list item: ',
-        node.dataset.threadId
+    if (!threadOrDraft) {
+      throw new Error('Thread node is invalid!');
+    }
+
+    var threadNumbers = threadOrDraft.participants || threadOrDraft.recipients;
+
+    var name = node.querySelector('.name');
+    var picture = node.querySelector('.threadlist-item-picture');
+
+    if (!threadNumbers || !threadNumbers.length) {
+      name.setAttribute('data-l10n-id', 'no-recipient');
+      return;
+    }
+
+    function* updateThreadNode(number) {
+      var contact = yield ThreadListUI.findContact(number, { photoURL: true });
+      var isContact = !!contact.isContact;
+
+      picture.classList.toggle('has-picture', isContact);
+      picture.classList.toggle(
+        'default-picture', isContact && !contact.photoURL
       );
-      return;
-    }
 
-    if (!number) {
-      node.querySelector('.name').setAttribute('data-l10n-id', 'no-recipient');
-      return;
-    }
-
-    Contacts.findByAddress(number, function gotContact(contacts) {
-      var name = node.getElementsByClassName('name')[0];
-      var photo = node.querySelector('span[data-type=img]');
-      var title, src, details;
-
-      if (contacts && contacts.length) {
-        details = Utils.getContactDetails(number, contacts[0], {
-          photoURL: true
-        });
-        title = details.title || number;
-        src = details.photoURL || '';
-      } else {
-        title = number;
-        src = '';
-        Contacts.addUnknown(title);
-      }
+      name.textContent = contact.title || number;
 
       var photoUrl = node.dataset.photoUrl;
       if (photoUrl) {
         window.URL.revokeObjectURL(photoUrl);
       }
 
-      if (src) {
-        node.dataset.photoUrl = src;
+      if (contact.photoURL) {
+        node.dataset.photoUrl = contact.photoURL;
       } else if (photoUrl) {
         node.dataset.photoUrl = '';
       }
 
-      navigator.mozL10n.setAttributes(name, 'thread-header-text', {
-        name: title,
-        n: others
-      });
-
-      if (src === '') {
-        photo.style.backgroundImage = null;
-        photo.parentNode.classList.add('empty');
+      if (contact.photoURL) {
+        // Use multiple image background to display default image until real
+        // contact image thumbnail is decoded by Gecko. Difference is especially
+        // noticeable on slow devices. Please keep default image in sync with
+        // what defined in CSS (sms.css/.threadlist-item-picture)
+        picture.firstElementChild.style.backgroundImage = [
+          'url(' + contact.photoURL + ')',
+          'url(style/images/default_contact_image.png)'
+        ].join(', ');
       } else {
-        photo.style.backgroundImage = 'url(' + src + ')';
-        photo.parentNode.classList.remove('empty');
+        picture.firstElementChild.style.backgroundImage = null;
       }
+    }
+
+    function* updateGroupThreadNode(numbers, titleMaxLength) {
+      var contactTitle, number;
+      var threadTitle = '';
+      var i = 0;
+
+      picture.firstElementChild.textContent = numbers.length;
+      picture.classList.add('has-picture', 'group-picture');
+
+      while (i < numbers.length && threadTitle.length < titleMaxLength) {
+        number = numbers[i++];
+
+        contactTitle = (yield ThreadListUI.findContact(number)).title || number;
+
+        threadTitle += threadTitle ? ', ' + contactTitle : contactTitle;
+      }
+
+      name.textContent = threadTitle;
+    }
+
+    if (threadNumbers.length === 1) {
+      return Utils.Promise.async(updateThreadNode)(threadNumbers[0]);
+    }
+
+    return Utils.Promise.async(updateGroupThreadNode)(
+      threadNumbers, privateMembers.get(this).groupThreadTitleMaxLength
+    );
+  },
+
+  findContact: function(number, options) {
+    var defer = Utils.Promise.defer();
+
+    Contacts.findByAddress(number, function(contacts) {
+      var details = Utils.getContactDetails(number, contacts, options);
+
+      if (!details.isContact) {
+        Contacts.addUnknown(number);
+      }
+
+      defer.resolve(details);
     });
+
+    return defer.promise;
   },
 
   handleEvent: function thlui_handleEvent(event) {
@@ -262,7 +303,6 @@ var ThreadListUI = {
       inputs[i].checked = false;
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
-    this.delNumList = [];
     this.checkInputs();
   },
 
@@ -816,6 +856,7 @@ var ThreadListUI = {
     if (!threadFound) {
       threadsContainer.appendChild(node);
     }
+
     if (this.inEditMode) {
       this.checkInputs();
     }

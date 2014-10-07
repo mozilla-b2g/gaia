@@ -84,7 +84,7 @@ var Voicemail = {
 
     serviceId = serviceId || 0;
 
-    if (SIMSlotManager.isMultiSIM()) {
+    if (!SIMSlotManager.hasOnlyOneSIMCardDetected()) {
       var _ = window.navigator.mozL10n.get;
       title =
         _('voicemailNotificationMultiSim', { n: serviceId + 1, title: title });

@@ -1,10 +1,14 @@
-define(function(require) {
-'use strict';
-
-var Factory = require('test/support/factory');
-var dayObserver = require('day_observer');
+requireLib('calendar.js');
+requireLib('ext/eventemitter2.js');
+requireLib('utils/mout.js');
+requireLib('calc.js');
+requireLib('timespan.js');
+requireLib('controller/time.js');
+requireLib('day_observer.js');
 
 suite('day_observer', function() {
+  'use strict';
+
   var app;
   var calendarStore;
   var delay;
@@ -19,7 +23,7 @@ suite('day_observer', function() {
   setup(function() {
     // load the required sub-objects..
     app = testSupport.calendar.app();
-    subject = dayObserver;
+    subject = Calendar.dayObserver;
     delay = subject.DISPATCH_DELAY + 5;
     timeController = app.timeController;
     findAssociated = timeController.findAssociated;
@@ -207,6 +211,5 @@ suite('day_observer', function() {
       done();
     });
   });
-});
 
 });

@@ -1,7 +1,10 @@
-/* jshint loopfunc: true */
-define(function(require, exports, module) {
+/*jshint loopfunc: true */
+Calendar.Router = (function() {
 'use strict';
 
+/**
+ * Constants
+ */
 var COPY_METHODS = ['start', 'stop', 'show'];
 
 function Router(page) {
@@ -17,7 +20,6 @@ function Router(page) {
 
   this._lastState = this._lastState.bind(this);
 }
-module.exports = Router;
 
 Router.prototype = {
 
@@ -108,7 +110,7 @@ Router.prototype = {
 
       /*jshint loopfunc: true */
       for (i = 0; i < numViews; i++) {
-        self.app.view(views[i], function(view) {
+        Calendar.App.view(views[i], function(view) {
           viewObjs.push(view);
           len--;
 
@@ -172,4 +174,6 @@ Router.prototype = {
   }
 };
 
-});
+return Router;
+
+}());

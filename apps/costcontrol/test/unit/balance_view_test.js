@@ -84,8 +84,8 @@ suite(
         var isUpdating = true;
         balanceResult.timestamp = now;
         balanceView.update(balanceResult, isUpdating);
-        assert.equal(timestampLabel.setAttribute('data-l10n-id',
-          'updating-ellipsis'));
+        assert.equal(timestampLabel.getAttribute('data-l10n-id'),
+          'updating-ellipsis');
       }
     );
 
@@ -93,8 +93,8 @@ suite(
       'Balance not available',
       function() {
         balanceView.update(undefined);
-        assert.equal(balanceLabel.setAttribute('data-l10n-id',
-          'not-available'));
+        assert.equal(balanceLabel.getAttribute('data-l10n-id'),
+          'not-available');
         assert.equal(timestampLabel.innerHTML, '');
       }
     );
