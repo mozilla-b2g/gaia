@@ -51,6 +51,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_airplane_mode_helper': {
         exports: 'MockAirplaneModeHelper'
       },
+      'unit/mock_apps_cache': {
+        exports: 'MockAppsCache'
+      },
       'shared_mocks/mock_navigator_moz_settings': {
         exports: 'MockNavigatorSettings'
       },
