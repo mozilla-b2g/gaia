@@ -1,8 +1,10 @@
 'use strict';
+/* global CarrierInfoNotifier */
+/* global MobileOperator */
 
 var CellBroadcastSystem = {
 
-  _settingsDisabled: null,
+  _settingsDisabled: [],
   _settingsKey: 'ril.cellbroadcast.disabled',
 
   init: function cbs_init() {
@@ -17,32 +19,25 @@ var CellBroadcastSystem = {
       self._settingsDisabled = req.result[self._settingsKey];
     };
 
-    settings.addObserver(this._settingsKey,
-                         this.settingsChangedHandler.bind(this));
+    settings.addObserver(
+      this._settingsKey, this.settingsChangedHandler.bind(this));
   },
 
   settingsChangedHandler: function cbs_settingsChangedHandler(event) {
     this._settingsDisabled = event.settingValue;
 
-    if (this._settingsDisabled) {
+    if (this._hasCBSDisabled()) {
       var evt = new CustomEvent('cellbroadcastmsgchanged', { detail: null });
       window.dispatchEvent(evt);
     }
   },
 
   show: function cbs_show(event) {
-
     // XXX: check bug-926169
     // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
-
     var msg = event.message;
-
-    if (this._settingsDisabled) {
-      return;
-    }
+    var serviceId = event.serviceId || 0;
+    var conn = window.navigator.mozMobileConnections[serviceId];
 
     if (conn &&
         conn.voice.network.mcc === MobileOperator.BRAZIL_MCC &&
@@ -63,6 +58,12 @@ var CellBroadcastSystem = {
 
     CarrierInfoNotifier.show(body,
       navigator.mozL10n.get('cb-channel', { channel: msg.messageId }));
+  },
+
+  _hasCBSDisabled: function cbs__hasCBSDisabled() {
+    var index =
+      this._settingsDisabled.findIndex(disabled => (disabled === true));
+    return (index >= 0);
   }
 };
 
