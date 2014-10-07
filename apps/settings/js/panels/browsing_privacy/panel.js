@@ -7,7 +7,7 @@ define(function(require) {
   var browsingPrivacy = BrowsingPrivacy();
 
   var clearDialog, clearDialogOk, clearDialogCancel, clearDialogMessage;
-  var clearHistoryButton, clearPrivateDataButton, clearBookmarksDataButton;
+  var clearHistoryButton, clearPrivateDataButton;
 
   function onInit(panel) {
     clearDialog = panel.querySelector('.clear-dialog');
@@ -17,15 +17,11 @@ define(function(require) {
 
     clearHistoryButton = panel.querySelector('.clear-history-button');
     clearPrivateDataButton = panel.querySelector('.clear-private-data-button');
-    clearBookmarksDataButton =
-      panel.querySelector('.clear-bookmarks-data-button');
 
     clearHistoryButton.addEventListener('click',
       handleClearHistoryClick);
     clearPrivateDataButton.addEventListener('click',
       handleClearPrivateDataClick);
-    clearBookmarksDataButton.addEventListener('click',
-      handleClearBookmarksDataClick);
   }
 
   /**
@@ -42,14 +38,6 @@ define(function(require) {
   function handleClearPrivateDataClick() {
     showClearDialog('confirm-clear-cookies-and-stored-data',
                     browsingPrivacy.clearPrivateData);
-  }
-
-  /**
-   * Handle clear bookmarks data button click.
-   */
-  function handleClearBookmarksDataClick() {
-    showClearDialog('confirmClearBookmarkAppsDataDesc',
-                    browsingPrivacy.clearBookmarksData);
   }
 
   function showClearDialog(description, callback) {
@@ -83,8 +71,6 @@ define(function(require) {
       handleClearHistoryClick);
     clearPrivateDataButton.removeEventListener('click',
       handleClearPrivateDataClick);
-    clearBookmarksDataButton.removeEventListener('click',
-      handleClearBookmarksDataClick);
   }
 
   return function() {

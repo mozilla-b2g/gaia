@@ -1,4 +1,3 @@
-/* global BookmarksDatabase */
 
 (function(exports) {
   'use strict';
@@ -33,13 +32,6 @@
   };
 
   BrowserSettings.prototype.start = function() {
-    this.addRemoteRequestSetting(
-      'clear.browser.bookmarks',
-      function clearBrowserBookmarks() {
-        return BookmarksDatabase.clear();
-      }
-    );
-
     this.addRemoteRequestSetting(
       'clear.browser.history',
       function clearHistory() {
