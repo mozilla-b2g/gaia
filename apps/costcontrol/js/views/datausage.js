@@ -311,11 +311,19 @@ var DataUsageTab = (function() {
 
   function getAppName(app) {
     var manifest = getAppManifest(app);
+    var manifestURL = app.manifestURL || '';
     var userLang = document.documentElement.lang;
     var locales = manifest.locales;
     var localized = locales && locales[userLang] && locales[userLang].name;
+    localized = localized || manifest.name;
 
-    return localized || manifest.name;
+    // XXX: Bug 1078671 - [Usage][Cost Control] Rename "System" data activity
+    // into "System & Web" (as a short term fix)
+    if (manifestURL.indexOf('app://system.') === 0) {
+      return localized + '/' + navigator.mozL10n.get('browserBrandShortName');
+    }
+
+    return localized;
   }
 
   function getAppIcon(app) {
