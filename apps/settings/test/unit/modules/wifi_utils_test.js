@@ -137,7 +137,7 @@ suite('WifiUtils', function() {
       assert.equal(certificate.parentNode.parentNode.style.display, 'block');
       assert.equal(description.style.display, 'block');
     });
-    
+
     test('panel is wifi-auth, security is none', function() {
       wifiUtils.changeDisplay(dialog, 'none');
       assert.equal(identity.parentNode.style.display, 'none');
@@ -163,6 +163,134 @@ suite('WifiUtils', function() {
     // and we would add three options back based on the number of our fake
     // certificates
     assert.isTrue(selectDOM.add.calledThrice);
+  });
+
+  suite('newListItem', function() {
+    test('WPA-PSK network - not configured, in range', function() {
+      var testNetwork = {
+        ssid: 'Dummy network',
+        security: ['WPA-PSK'],
+        relSignalStrength: 40,
+        known: false,
+      };
+      var l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+
+      var listItem = wifiUtils.newListItem(testNetwork, null);
+
+      var icon = listItem.querySelector('aside');
+      assert.ok(icon.classList.contains('secured'));
+
+      var a = listItem.querySelector('a');
+      var ssid = a.querySelector('span');
+      assert.equal(ssid.textContent, testNetwork.ssid);
+
+      var small = a.querySelector('small');
+      assert.ok(l10nSpy.calledWith(small, 'securedBy',
+        {capabilities: 'WPA-PSK'}));
+    });
+
+    test('WPA-PSK network - configured, in range', function() {
+      var testNetwork = {
+        ssid: 'Dummy network',
+        security: ['WPA-PSK'],
+        relSignalStrength: 40,
+        known: true,
+      };
+      var l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+
+      var listItem = wifiUtils.newListItem(testNetwork, null);
+
+      var icon = listItem.querySelector('aside');
+      assert.ok(icon.classList.contains('secured'));
+
+      var a = listItem.querySelector('a');
+      var ssid = a.querySelector('span');
+      assert.equal(ssid.textContent, testNetwork.ssid);
+
+      var small = a.querySelector('small');
+      assert.ok(l10nSpy.calledWith(small, 'securedBy',
+        {capabilities: 'WPA-PSK'}));
+    });
+
+    test('WPA-PSK network - configured, not in range', function() {
+      var testNetwork = {
+        ssid: 'Dummy network',
+        security: ['WPA-PSK'],
+        relSignalStrength: 0,
+        known: true,
+      };
+      var listItem = wifiUtils.newListItem(testNetwork, null);
+
+      var icon = listItem.querySelector('aside');
+      assert.ok(icon.classList.contains('secured'));
+
+      var a = listItem.querySelector('a');
+      var ssid = a.querySelector('span');
+      assert.equal(ssid.textContent, testNetwork.ssid);
+
+      var small = a.querySelector('small');
+      assert.equal(small.getAttribute('data-l10n-id'), 'notInRange');
+    });
+
+    test('Open network - not configured, in range', function() {
+      var testNetwork = {
+        ssid: 'Dummy network',
+        security: [],
+        relSignalStrength: 40,
+        known: false,
+      };
+      var listItem = wifiUtils.newListItem(testNetwork, null);
+
+      var icon = listItem.querySelector('aside');
+      assert.ok(!icon.classList.contains('secured'));
+
+      var a = listItem.querySelector('a');
+      var ssid = a.querySelector('span');
+      assert.equal(ssid.textContent, testNetwork.ssid);
+
+      var small = a.querySelector('small');
+      assert.equal(small.getAttribute('data-l10n-id'), 'securityOpen');
+    });
+
+    test('OPEN network - configured, in range', function() {
+      var testNetwork = {
+        ssid: 'Dummy network',
+        security: [],
+        relSignalStrength: 40,
+        known: true,
+      };
+      var listItem = wifiUtils.newListItem(testNetwork, null);
+
+      var icon = listItem.querySelector('aside');
+      assert.ok(!icon.classList.contains('secured'));
+
+      var a = listItem.querySelector('a');
+      var ssid = a.querySelector('span');
+      assert.equal(ssid.textContent, testNetwork.ssid);
+
+      var small = a.querySelector('small');
+      assert.equal(small.getAttribute('data-l10n-id'), 'securityOpen');
+    });
+
+    test('OPEN network - configured, not in range', function() {
+      var testNetwork = {
+        ssid: 'Dummy network',
+        security: [],
+        relSignalStrength: 0,
+        known: true,
+      };
+      var listItem = wifiUtils.newListItem(testNetwork, null);
+
+      var icon = listItem.querySelector('aside');
+      assert.ok(!icon.classList.contains('secured'));
+
+      var a = listItem.querySelector('a');
+      var ssid = a.querySelector('span');
+      assert.equal(ssid.textContent, testNetwork.ssid);
+
+      var small = a.querySelector('small');
+      assert.equal(small.getAttribute('data-l10n-id'), 'notInRange');
+    });
   });
 
   function createOption(value) {

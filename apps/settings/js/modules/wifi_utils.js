@@ -58,13 +58,22 @@ define(function(require) {
       // supported authentication methods
       var small = document.createElement('small');
       var keys = WifiHelper.getSecurity(network);
-      if (keys && keys.length) {
-        navigator.mozL10n.setAttributes(small,
-                                        'securedBy',
-                                        { capabilities: keys.join(', ') });
+      var networkNotInRange = (network.known && level === 0);
+      var hasSecurity = (keys && keys.length);
+      if (hasSecurity) {
+        if (networkNotInRange) {
+          small.setAttribute('data-l10n-id', 'notInRange');
+        } else {
+          navigator.mozL10n.setAttributes(small, 'securedBy',
+            { capabilities: keys.join(', ') });
+        }
         icon.classList.add('secured');
       } else {
-        small.setAttribute('data-l10n-id', 'securityOpen');
+        if (networkNotInRange) {
+          small.setAttribute('data-l10n-id', 'notInRange');
+        } else {
+          small.setAttribute('data-l10n-id', 'securityOpen');
+        }
       }
 
       var a = document.createElement('a');
@@ -187,7 +196,7 @@ define(function(require) {
       identity.oninput = checkPassword;
       checkPassword();
     },
-    
+
     /**
      * This is an inner function that used to inject certificates options
      * into select element.
