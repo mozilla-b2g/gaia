@@ -192,14 +192,14 @@ var StatusBar = {
   addConnectionsListeners: function() {
     var conns = window.navigator.mozMobileConnections;
     if (conns) {
-      Array.from(conns).forEach(
-        (conn) => {
-          conn.addEventListener('voicechange', this);
-          conn.addEventListener('datachange', this);
-          this.update.signal.call(this);
-          this.update.data.call(this);
-        }
-      );
+      // Array.from(conns).forEach(
+      //   (conn) => {
+      //     conn.addEventListener('voicechange', this);
+      //     conn.addEventListener('datachange', this);
+      //     this.update.signal.call(this);
+      //     this.update.data.call(this);
+      //   }
+      // );
     }
   },
 
@@ -209,12 +209,12 @@ var StatusBar = {
   removeConnectionsListeners: function() {
     var conns = window.navigator.mozMobileConnections;
     if (conns) {
-      Array.from(conns).forEach(
-        (conn) => {
-          conn.removeEventListener('voicechange', this);
-          conn.removeEventListener('datachange', this);
-        }
-      );
+      // Array.from(conns).forEach(
+      //   (conn) => {
+      //     conn.removeEventListener('voicechange', this);
+      //     conn.removeEventListener('datachange', this);
+      //   }
+      // );
     }
   },
 
@@ -893,7 +893,7 @@ var StatusBar = {
 
       // Do not show carrier's name if there are multiple sim cards.
       if (conns && conns.length == 1) {
-        conn = conns[0];
+        // conn = conns[0];
       }
 
       var label = this.icons.label;
@@ -910,17 +910,17 @@ var StatusBar = {
         return;
       }
 
-      var operatorInfos = MobileOperator.userFacingInfo(conn);
-      l10nArgs.operator = operatorInfos.operator;
+      // var operatorInfos = MobileOperator.userFacingInfo(conn);
+      // l10nArgs.operator = operatorInfos.operator;
 
-      if (operatorInfos.region) {
-        l10nArgs.operator += ' ' + operatorInfos.region;
-      }
+      // if (operatorInfos.region) {
+      //   l10nArgs.operator += ' ' + operatorInfos.region;
+      // }
 
-      label.dataset.l10nArgs = JSON.stringify(l10nArgs);
+      // label.dataset.l10nArgs = JSON.stringify(l10nArgs);
 
-      label.dataset.l10nId = 'statusbarLabel';
-      label.textContent = navigator.mozL10n.get('statusbarLabel', l10nArgs);
+      // label.dataset.l10nId = 'statusbarLabel';
+      // label.textContent = navigator.mozL10n.get('statusbarLabel', l10nArgs);
     },
 
     time: function sb_updateTime(now) {
@@ -991,129 +991,129 @@ var StatusBar = {
     },
 
     signal: function sb_updateSignal() {
-      var self = this;
-      var simSlots = SIMSlotManager.getSlots();
-      for (var index = 0; index < simSlots.length; index++) {
-        var simslot = simSlots[index];
-        var conn = simslot.conn;
-        var voice = conn.voice;
-        var data = conn.data;
-        var icon = self.icons.signals[index];
-        var roaming = self.icons.roaming[index];
+      // var self = this;
+      // var simSlots = SIMSlotManager.getSlots();
+      // for (var index = 0; index < simSlots.length; index++) {
+      //   var simslot = simSlots[index];
+      //   var conn = simslot.conn;
+      //   var voice = conn.voice;
+      //   var data = conn.data;
+      //   var icon = self.icons.signals[index];
+      //   var roaming = self.icons.roaming[index];
 
-        var _ = navigator.mozL10n.get;
+      //   var _ = navigator.mozL10n.get;
 
-        if (!voice) {
-          continue;
-        }
+      //   if (!voice) {
+      //     continue;
+      //   }
 
-        if (self.settingValues['ril.radio.disabled']) {
-          icon.hidden = true;
-          continue;
-        }
+      //   if (self.settingValues['ril.radio.disabled']) {
+      //     icon.hidden = true;
+      //     continue;
+      //   }
 
-        icon.hidden = false;
-        icon.dataset.inactive = false;
+      //   icon.hidden = false;
+      //   icon.dataset.inactive = false;
 
-        if (simslot.isAbsent()) {
-          // no SIM
-          delete icon.dataset.level;
-          delete icon.dataset.searching;
-          roaming.hidden = true;
-          icon.hidden = true;
-          icon.dataset.inactive = true;
+      //   if (simslot.isAbsent()) {
+      //     // no SIM
+      //     delete icon.dataset.level;
+      //     delete icon.dataset.searching;
+      //     roaming.hidden = true;
+      //     icon.hidden = true;
+      //     icon.dataset.inactive = true;
 
-          icon.setAttribute('aria-label', _('noSimCard'));
-        } else if (data && data.connected && data.type.startsWith('evdo')) {
-          // "Carrier" / "Carrier (Roaming)" (EVDO)
-          // Show signal strength of data call as EVDO only supports data call.
-          this.updateSignalIcon(icon, data);
-        } else if (voice.connected || self.hasActiveCall() &&
-            navigator.mozTelephony.active.serviceId === index) {
-          // "Carrier" / "Carrier (Roaming)"
-          // If voice.connected is false but there is an active call, we should
-          // check whether the service id of that call equals the current index
-          // of the target sim card. If yes, that means the user is making an
-          // emergency call using the target sim card. In such case we should
-          // also display the signal bar as the normal cases.
-          this.updateSignalIcon(icon, voice);
-        } else if (simslot.isLocked()) {
-          // SIM locked
-          // We check if the sim card is locked after checking hasActiveCall
-          // because we still need to show the siganl bars in the case of
-          // making emergency calls when the sim card is locked.
-          icon.hidden = true;
-        } else {
-          // "No Network" / "Emergency Calls Only (REASON)" / trying to connect
-          icon.dataset.level = -1;
-          // emergencyCallsOnly is always true if voice.connected is false. Show
-          // searching icon if the device is searching. Or show the signal bars
-          // with a red "x", which stands for emergency calls only.
-          icon.dataset.searching = (voice.state === 'searching');
-          roaming.hidden = true;
-          icon.setAttribute('aria-label', _(icon.dataset.searching ?
-            'statusbarSignalNoneSearching' : 'emergencyCallsOnly'));
-        }
-      }
+      //     icon.setAttribute('aria-label', _('noSimCard'));
+      //   } else if (data && data.connected && data.type.startsWith('evdo')) {
+      //     // "Carrier" / "Carrier (Roaming)" (EVDO)
+      //     // Show signal strength of data call as EVDO only supports data call.
+      //     this.updateSignalIcon(icon, data);
+      //   } else if (voice.connected || self.hasActiveCall() &&
+      //       navigator.mozTelephony.active.serviceId === index) {
+      //     // "Carrier" / "Carrier (Roaming)"
+      //     // If voice.connected is false but there is an active call, we should
+      //     // check whether the service id of that call equals the current index
+      //     // of the target sim card. If yes, that means the user is making an
+      //     // emergency call using the target sim card. In such case we should
+      //     // also display the signal bar as the normal cases.
+      //     this.updateSignalIcon(icon, voice);
+      //   } else if (simslot.isLocked()) {
+      //     // SIM locked
+      //     // We check if the sim card is locked after checking hasActiveCall
+      //     // because we still need to show the siganl bars in the case of
+      //     // making emergency calls when the sim card is locked.
+      //     icon.hidden = true;
+      //   } else {
+      //     // "No Network" / "Emergency Calls Only (REASON)" / trying to connect
+      //     icon.dataset.level = -1;
+      //     // emergencyCallsOnly is always true if voice.connected is false. Show
+      //     // searching icon if the device is searching. Or show the signal bars
+      //     // with a red "x", which stands for emergency calls only.
+      //     icon.dataset.searching = (voice.state === 'searching');
+      //     roaming.hidden = true;
+      //     icon.setAttribute('aria-label', _(icon.dataset.searching ?
+      //       'statusbarSignalNoneSearching' : 'emergencyCallsOnly'));
+      //   }
+      // }
 
-      this.updateConnectionsVisibility();
-      this.refreshCallListener();
+      // this.updateConnectionsVisibility();
+      // this.refreshCallListener();
 
-      this._updateIconVisibility();
+      // this._updateIconVisibility();
     },
 
     data: function sb_updateSignal() {
       var conns = window.navigator.mozMobileConnections;
-      if (!conns) {
+      // if (!conns) {
         this.updateConnectionsVisibility();
-        return;
-      }
+      //   return;
+      // }
 
-      var self = this;
-      for (var index = 0; index < conns.length; index++) {
-        var conn = conns[index];
-        var data = conn.data;
-        var icon = self.icons.data[index];
+      // var self = this;
+      // for (var index = 0; index < conns.length; index++) {
+      //   var conn = conns[index];
+      //   var data = conn.data;
+      //   var icon = self.icons.data[index];
 
-        if (!data) {
-          continue;
-        }
+      //   if (!data) {
+      //     continue;
+      //   }
 
-        if (self.settingValues['ril.radio.disabled'] ||
-            !self.settingValues['ril.data.enabled'] ||
-            !self.icons.wifi.hidden || !data.connected) {
-          icon.hidden = true;
-          continue;
-        }
+      //   if (self.settingValues['ril.radio.disabled'] ||
+      //       !self.settingValues['ril.data.enabled'] ||
+      //       !self.icons.wifi.hidden || !data.connected) {
+      //     icon.hidden = true;
+      //     continue;
+      //   }
 
-        var type = self.mobileDataIconTypes[data.type];
-        icon.hidden = false;
-        icon.textContent = '';
-        icon.classList.remove('sb-icon-data-circle');
-        if (type) {
-          if (self.dataExclusiveCDMATypes[data.type]) {
-            // If the current data connection is CDMA types, we need to check
-            // if there exist any calls. If yes, we have to set the status
-            // text to empty.
-            var telephony = window.navigator.mozTelephony;
-            if (telephony.calls && telephony.calls.length > 0) {
-              icon.textContent = '';
-            } else {
-              icon.textContent = type;
-            }
-          } else {
-            icon.textContent = type;
-          }
-        } else {
-          icon.classList.add('sb-icon-data-circle');
-        }
-        icon.setAttribute('aria-hidden', !!icon.textContent);
-      }
+      //   var type = self.mobileDataIconTypes[data.type];
+      //   icon.hidden = false;
+      //   icon.textContent = '';
+      //   icon.classList.remove('sb-icon-data-circle');
+      //   if (type) {
+      //     if (self.dataExclusiveCDMATypes[data.type]) {
+      //       // If the current data connection is CDMA types, we need to check
+      //       // if there exist any calls. If yes, we have to set the status
+      //       // text to empty.
+      //       var telephony = window.navigator.mozTelephony;
+      //       if (telephony.calls && telephony.calls.length > 0) {
+      //         icon.textContent = '';
+      //       } else {
+      //         icon.textContent = type;
+      //       }
+      //     } else {
+      //       icon.textContent = type;
+      //     }
+      //   } else {
+      //     icon.classList.add('sb-icon-data-circle');
+      //   }
+      //   icon.setAttribute('aria-hidden', !!icon.textContent);
+      // }
 
-      this.updateConnectionsVisibility();
-      this.refreshCallListener();
+      // this.updateConnectionsVisibility();
+      // this.refreshCallListener();
 
-      this._updateIconVisibility();
+      // this._updateIconVisibility();
     },
 
     wifi: function sb_updateWifi() {
@@ -1340,25 +1340,25 @@ var StatusBar = {
   updateConnectionsVisibility: function sb_updateConnectionsVisibility() {
     // Iterate through connections children and only show one icon
     // in case no SIM card is inserted
-    var conns = window.navigator.mozMobileConnections;
+    // var conns = window.navigator.mozMobileConnections;
 
-    if (!conns) {
-      return;
-    }
+    // if (!conns) {
+    //   return;
+    // }
 
-    var icons = this.icons;
-    icons.connections.hidden = false;
-    icons.connections.dataset.multiple = (conns.length > 1);
+    // var icons = this.icons;
+    // icons.connections.hidden = false;
+    // icons.connections.dataset.multiple = (conns.length > 1);
 
-    for (var index = 0; index < conns.length; index++) {
-      if (icons.signals[index].dataset.inactive === 'false') {
-        return;
-      }
-    }
+    // for (var index = 0; index < conns.length; index++) {
+    //   if (icons.signals[index].dataset.inactive === 'false') {
+    //     return;
+    //   }
+    // }
 
-    // No SIM cards inserted
-    icons.connections.dataset.multiple = false;
-    icons.signals[0].hidden = false;
+    // // No SIM cards inserted
+    // icons.connections.dataset.multiple = false;
+    // icons.signals[0].hidden = false;
   },
 
   updateCallForwardingsVisibility: function sb_updateCallFwdingsVisibility() {
@@ -1413,26 +1413,26 @@ var StatusBar = {
   refreshCallListener: function sb_refreshCallListener() {
     // Listen to callschanged only when connected to CDMA networks and emergency
     // calls.
-    var conns = window.navigator.mozMobileConnections;
-    if (!conns) {
-      return;
-    }
+    // var conns = window.navigator.mozMobileConnections;
+    // if (!conns) {
+    //   return;
+    // }
 
-    var emergencyCallsOnly = false;
-    var cdmaConnection = false;
-    var self = this;
-    Array.prototype.slice.call(conns).forEach(function(conn) {
-      emergencyCallsOnly = emergencyCallsOnly ||
-        (conn && conn.voice && conn.voice.emergencyCallsOnly);
-      cdmaConnection = cdmaConnection ||
-        (conn && conn.data && !!self.dataExclusiveCDMATypes[conn.data.type]);
-    });
+    // var emergencyCallsOnly = false;
+    // var cdmaConnection = false;
+    // var self = this;
+    // Array.prototype.slice.call(conns).forEach(function(conn) {
+    //   emergencyCallsOnly = emergencyCallsOnly ||
+    //     (conn && conn.voice && conn.voice.emergencyCallsOnly);
+    //   cdmaConnection = cdmaConnection ||
+    //     (conn && conn.data && !!self.dataExclusiveCDMATypes[conn.data.type]);
+    // });
 
-    if (emergencyCallsOnly || cdmaConnection) {
-      this.addCallListener();
-    } else {
-      this.removeCallListener();
-    }
+    // if (emergencyCallsOnly || cdmaConnection) {
+    //   this.addCallListener();
+    // } else {
+    //   this.removeCallListener();
+    // }
   },
 
   addCallListener: function sb_addCallListener() {
@@ -1490,44 +1490,44 @@ var StatusBar = {
       return;
     }
 
-    var conns = window.navigator.mozMobileConnections;
-    if (conns) {
-      var multipleSims = SIMSlotManager.isMultiSIM();
+    // var conns = window.navigator.mozMobileConnections;
+    // if (conns) {
+    //   var multipleSims = SIMSlotManager.isMultiSIM();
 
-      // Create signal elements based on the number of SIM slots.
-      this.icons.connections.dataset.multiple = multipleSims;
-      this.icons.signals = {};
-      this.icons.data = {};
-      this.icons.roaming = {};
-      for (var i = conns.length - 1; i >= 0; i--) {
-        var signal = document.createElement('div');
-        var data = document.createElement('div');
-        var roaming = document.createElement('div');
-        signal.className = 'sb-icon sb-icon-signal statusbar-signal';
-        signal.dataset.level = '5';
-        if (multipleSims) {
-          signal.dataset.index = i + 1;
-        }
-        signal.setAttribute('role', 'listitem');
-        signal.hidden = true;
-        data.setAttribute('role', 'listitem');
-        data.className = 'sb-icon statusbar-data';
-        data.hidden = true;
+    //   // Create signal elements based on the number of SIM slots.
+    //   this.icons.connections.dataset.multiple = multipleSims;
+    //   this.icons.signals = {};
+    //   this.icons.data = {};
+    //   this.icons.roaming = {};
+    //   for (var i = conns.length - 1; i >= 0; i--) {
+    //     var signal = document.createElement('div');
+    //     var data = document.createElement('div');
+    //     var roaming = document.createElement('div');
+    //     signal.className = 'sb-icon sb-icon-signal statusbar-signal';
+    //     signal.dataset.level = '5';
+    //     if (multipleSims) {
+    //       signal.dataset.index = i + 1;
+    //     }
+    //     signal.setAttribute('role', 'listitem');
+    //     signal.hidden = true;
+    //     data.setAttribute('role', 'listitem');
+    //     data.className = 'sb-icon statusbar-data';
+    //     data.hidden = true;
 
-        roaming.setAttribute('role', 'listitem');
-        roaming.className = 'sb-icon sb-icon-roaming';
-        roaming.hidden = true;
+    //     roaming.setAttribute('role', 'listitem');
+    //     roaming.className = 'sb-icon sb-icon-roaming';
+    //     roaming.hidden = true;
 
-        signal.appendChild(data);
-        this.icons.connections.appendChild(signal);
-        this.icons.connections.appendChild(roaming);
-        this.icons.signals[i] = signal;
-        this.icons.data[i] = data;
-        this.icons.roaming[i] = roaming;
-      }
+    //     signal.appendChild(data);
+    //     this.icons.connections.appendChild(signal);
+    //     this.icons.connections.appendChild(roaming);
+    //     this.icons.signals[i] = signal;
+    //     this.icons.data[i] = data;
+    //     this.icons.roaming[i] = roaming;
+    //   }
 
-      this.updateConnectionsVisibility();
-    }
+    //   this.updateConnectionsVisibility();
+    // }
   },
 
   createCallForwardingsElements: function sb_createCallForwardingsElements() {
@@ -1537,27 +1537,27 @@ var StatusBar = {
 
     var conns = window.navigator.mozMobileConnections;
     if (conns) {
-      var multipleSims = SIMSlotManager.isMultiSIM();
+      // var multipleSims = SIMSlotManager.isMultiSIM();
 
-      // Create call forwarding icons
-      var sbCallForwardings =
-        document.getElementById('statusbar-call-forwardings');
-      sbCallForwardings.dataset.multiple = multipleSims;
-      this.icons.callForwardingsElements = {};
-      for (var idx = conns.length - 1; idx >= 0; idx--) {
-        var callForwarding = document.createElement('div');
-        callForwarding.className = 'sb-icon sb-icon-call-forwarding';
-        if (multipleSims) {
-          callForwarding.dataset.index = idx + 1;
-        }
-        callForwarding.setAttribute('role', 'listitem');
-        callForwarding.setAttribute('aria-label', 'statusbarForwarding');
-        callForwarding.hidden = true;
-        this.icons.callForwardings.appendChild(callForwarding);
-        this.icons.callForwardingsElements[idx] = callForwarding;
-      }
+      // // Create call forwarding icons
+      // var sbCallForwardings =
+      //   document.getElementById('statusbar-call-forwardings');
+      // sbCallForwardings.dataset.multiple = multipleSims;
+      // this.icons.callForwardingsElements = {};
+      // for (var idx = conns.length - 1; idx >= 0; idx--) {
+      //   var callForwarding = document.createElement('div');
+      //   callForwarding.className = 'sb-icon sb-icon-call-forwarding';
+      //   if (multipleSims) {
+      //     callForwarding.dataset.index = idx + 1;
+      //   }
+      //   callForwarding.setAttribute('role', 'listitem');
+      //   callForwarding.setAttribute('aria-label', 'statusbarForwarding');
+      //   callForwarding.hidden = true;
+      //   this.icons.callForwardings.appendChild(callForwarding);
+      //   this.icons.callForwardingsElements[idx] = callForwarding;
+      // }
 
-      this.updateCallForwardingsVisibility();
+      // this.updateCallForwardingsVisibility();
     }
   },
 

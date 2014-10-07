@@ -5,15 +5,15 @@
          SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         VisibilityManager, UsbStorage, InternetSharing, TaskManager,
-         TelephonySettings, SuspendingAppPriorityManager, TTLView,
+         VisibilityManager, UsbStorage, TaskManager,
+        SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
-         TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
+         TextSelectionDialog, SleepMenu, AppUsageMetrics,
          NfcManager,
          ExternalStorageMonitor,
-         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
+         BrowserSettings, AppMigrator, SettingsMigrator, ,
          CellBroadcastSystem, EdgeSwipeDetector, QuickSettings */
 'use strict';
 
@@ -135,8 +135,6 @@ window.addEventListener('load', function startup() {
   window.dialerAgent.start();
   window.edgeSwipeDetector = new EdgeSwipeDetector();
   window.edgeSwipeDetector.start();
-  window.euRoamingManager = new EuRoamingManager();
-  window.euRoamingManager.start();
   window.externalStorageMonitor = new ExternalStorageMonitor();
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
@@ -147,8 +145,6 @@ window.addEventListener('load', function startup() {
     // here.
     window.homescreenLauncher = new HomescreenLauncher();
   }
-  window.internetSharing = new InternetSharing();
-  window.internetSharing.start();
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
   window.nfcUtils = new NfcUtils();
@@ -169,8 +165,6 @@ window.addEventListener('load', function startup() {
   window.sourceView = new SourceView();
   window.taskManager = new TaskManager();
   window.taskManager.start();
-  window.telephonySettings = new TelephonySettings();
-  window.telephonySettings.start();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager();
   window.visibilityManager.start();

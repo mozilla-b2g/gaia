@@ -24,7 +24,6 @@
     <script defer src="shared/js/manifest_helper.js"></script>
     <!-- We need this before we can show the boot animation -->
     <script src="shared/js/settings_helper.js"></script>
-    <script defer src="shared/js/icc_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/settings_url.js"></script>
     <script defer src="shared/js/advanced_timer.js"></script>
@@ -49,12 +48,6 @@
     <script defer src="shared/js/keyboard_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
     -->
-
-    <!-- SIMSlot -->
-    <script type="text/javascript" defer src="shared/js/simslot.js"></script>
-    <script type="text/javascript" defer src="shared/js/simslot_manager.js"></script>
-    <script type="text/javascript" defer src="js/sim_settings_helper.js"></script>
-
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -198,13 +191,6 @@
     <script defer src="/shared/js/basket_client.js"></script>
     <script defer src="js/newsletter_manager.js"></script>
 
-    <!-- ICC/STK -->
-    <!-- This depends on ftu_launcher.js, please load it in order ;) -->
-    <link rel="stylesheet" type="text/css" href="style/icc.css">
-    <script defer src="js/icc_events.js"></script>
-    <script defer src="js/icc_worker.js"></script>
-    <script defer src="js/icc.js"></script>
-
     <!-- Airplane Mode -->
     <script defer src="js/airplane_mode.js"></script>
     <link rel="stylesheet" type="text/css" href="style/textselection_dialog/textselection_dialog.css">
@@ -241,9 +227,6 @@
     <!-- App Install -->
     <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
     <script defer src="js/app_install_manager.js"></script>
-
-    <!-- Cost Control -->
-    <link rel="stylesheet" type="text/css" href="style/cost_control/cost_control.css">
 
     <!-- Quick Settings -->
     <link rel="stylesheet" type="text/css" href="style/quick_settings/quick_settings.css">
@@ -287,9 +270,6 @@
     <!-- Wifi -->
     <script defer src="js/wifi.js"></script>
 
-    <!-- Radio  -->
-    <script defer src="js/radio.js"></script>
-
     <!-- Update Manager -->
     <script defer src="js/updatable.js"></script>
     <script defer src="js/update_manager.js"></script>
@@ -320,11 +300,6 @@
 
     <!-- Identity -->
     <script defer src="js/identity.js"></script>
-
-    <!-- Operator Variant Mechanism -->
-    <script defer src="shared/js/operator_variant_helper.js"></script>
-    <script defer src="js/operator_variant/operator_variant.js"></script>
-    <script defer src="js/operator_variant/operator_variant_iccs.js"></script>
 
     <!-- Voicemail -->
     <script defer src="js/voicemail.js"></script>
@@ -383,7 +358,6 @@
     <script defer src="js/secure_window_manager.js"></script>
     <script defer src="js/system_dialog.js"></script>
     <script defer src="js/system_dialog_manager.js"></script>
-    <script defer src="js/system_simcard_dialog.js"></script>
     <script defer src="js/system_nfc_connect_dialog.js"></script>
     <script defer src="js/fxa_dialog.js"></script>
     <script defer src="js/visibility_manager.js"></script>
@@ -406,18 +380,6 @@
     <script defer src="js/devtools/developer_hud.js"></script>
     <link rel="stylesheet" type="text/css" href="style/devtools/developer_hud.css">
 
-    <!-- Call Forwarding  -->
-    <script defer src="js/call_forwarding.js"></script>
-
-    <!-- Telephony Settings  -->
-    <script defer src="js/telephony_settings.js"></script>
-
-    <!-- EU Roaming -->
-    <script defer src="js/eu_roaming_manager.js"></script>
-
-    <!-- Internet Sharing  -->
-    <script defer src="js/internet_sharing.js"></script>
-
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
@@ -432,11 +394,6 @@
     <script defer src="shared/js/url_helper.js"></script>
     <link rel="stylesheet" type="text/css" href="style/rocketbar/rocketbar.css">
     <!-- <script defer src="shared/js/icons_helper.js"></script> -->
-
-    <!-- PIN Unlocking -->
-    <script defer src="js/sim_lock.js"></script>
-    <link rel="stylesheet" type="text/css" href="style/simcard.css">
-    <script defer src="js/simcard_dialog.js"></script>
 
     <!-- Bluetooth Connect via NFC -->
     <link rel="stylesheet" type="text/css" href="style/nfcconnect.css">
@@ -601,9 +558,6 @@
             </div>
           </div>
 
-          <!-- Credit module -->
-          <div id="cost-control-widget"></div>
-
           <!-- Quick settings -->
           <div id="quick-settings" role="toolbar">
             <li>
@@ -622,9 +576,6 @@
       </div>
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
-        <!-- Unlock SIM Pin dialog -->
-        <!-- Add the dialog via SystemDialog dynamically. -->
-        <!-- <div id="system-dialog" role="dialog" class="generic-dialog" data-z-index-level="simpin-dialog" hidden></div> -->
 
         <!-- Crash reporter -->
         <div id="crash-dialog">
@@ -1088,66 +1039,6 @@
       <div id="cards-view" data-z-index-level="cards-view">
         <ul id="cards-list"></ul>
         <span id="cards-no-recent-windows" class="no-recent-apps" data-l10n-id="no-recent-app-windows">No recent windows</span>
-      </div>
-
-      <!-- icc / stk -->
-      <div id="icc-view" class="generic-dialog" data-z-index-level="icc-view" role="dialog">
-        <section role="region" class="skin-organic" id="icc-alert">
-          <gaia-header>
-            <h1 id="icc-alert-maintitle">STK Message</h1>
-          </gaia-header>
-          <gaia-subheader skin="organic"><span id="icc-alert-subtitle"></span></gaia-subheader>
-          <p id="icc-alert-msg"></p>
-          <menu>
-            <button type="button" data-l10n-id="close" id="icc-alert-btn" class="recommend full">Close</button>
-          </menu>
-        </section>
-        <section role="region" class="skin-organic" id="icc-confirm">
-          <gaia-header>
-            <a href="#"><span class="icon icon-back" id="icc-confirm-btn_back">back</span></a>
-            <h1 id="icc-confirm-maintitle">STK Query</h1>
-          </gaia-header>
-          <gaia-subheader><span id="icc-confirm-subtitle"></span></gaia-subheader>
-          <p id="icc-confirm-msg"></p>
-          <menu data-items="2">
-            <button type="button" data-l10n-id="close" id="icc-confirm-btn_close">Close</button>
-            <button type="button" data-l10n-id="ok" id="icc-confirm-btn" class="recommend">OK</button>
-          </menu>
-        </section>
-        <section role="region" class="skin-organic" id="icc-asyncconfirm">
-          <gaia-header>
-            <h1 id="icc-asyncconfirm-maintitle">STK Query</h1>
-          </gaia-header>
-          <gaia-subheader skin="organic">
-            <span id="icc-asyncconfirm-subtitle"></span>
-          </gaia-subheader>
-          <p id="icc-asyncconfirm-msg"></p>
-          <menu data-items="2">
-            <button type="button" data-l10n-id="no" id="icc-asyncconfirm-btn-no">No</button>
-            <button type="button" data-l10n-id="yes" id="icc-asyncconfirm-btn-yes" class="recommend">Yes</button>
-          </menu>
-        </section>
-        <section role="region" class="skin-organic" id="icc-input">
-          <gaia-header id="icc-input-header" action="back">
-            <h1 id="icc-input-maintitle">STK Query</h1>
-            <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
-          </gaia-header>
-          <gaia-subheader skin="organic"><span id="icc-input-subtitle"></span></gaia-subheader>
-          <form>
-            <p id="icc-input-msg"></p>
-            <input id="icc-input-box" required="" type="text" dir="auto"></input>
-          </form>
-          <menu>
-            <button type="button" data-l10n-id="close" id="icc-input-btn_close">Close</button>
-            <span class="yesnodisabled">
-              <button type="button" data-l10n-id="ok" id="icc-input-btn" class="recommend">OK</button>
-            </span>
-            <span class="yesnoenabled">
-              <button type="button" data-l10n-id="no" id="icc-input-btn_no">No</button>
-              <button type="button" data-l10n-id="yes" id="icc-input-btn_yes" class="recommend">Yes</button>
-            </span>
-          </menu>
-        </section>
       </div>
 
       <div id="sleep-menu" data-z-index-level="sleep-menu">
