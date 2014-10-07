@@ -72,6 +72,10 @@ var KeypadManager = {
 
   _keypadSoundIsEnabled: false,
   _shortTone: false,
+  _vibrationEnabled: false,
+
+  // Keep in sync with Lockscreen and keyboard vibration
+  kVibrationDuration: 50, // ms
 
   onValueChanged: null,
 
@@ -381,6 +385,10 @@ var KeypadManager = {
         // We do not support long press if not on a call
         TonePlayer.start(
           gTonesFrequencies[key], !this._onCall || this._shortTone);
+      }
+
+      if (this._vibrationEnabled) {
+        navigator.vibrate(this.kVibrationDuration);
       }
 
       this._playDtmfTone(key);
@@ -709,6 +717,10 @@ var KeypadManager = {
 
       SettingsListener.observe('phone.dtmf.type', false, function(value) {
         self._shortTone = (value === 'short');
+      });
+
+      SettingsListener.observe('keyboard.vibration', false, function(value) {
+        self._vibrationEnabled = !!value;
       });
     });
   }
