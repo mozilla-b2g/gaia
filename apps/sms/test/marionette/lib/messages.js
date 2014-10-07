@@ -20,6 +20,7 @@
 
     Composer: {
       recipientsInput: '#messages-to-field [contenteditable=true]',
+      recipient: '#messages-recipients-list .recipient[contenteditable=false]',
       messageInput: '#messages-input',
       subjectInput: '.subject-composer-input',
       sendButton: '#messages-send-button',
@@ -35,6 +36,10 @@
     Thread: {
       message: '.message .bubble',
       headerTitle: '#messages-header-text'
+    },
+
+    Message: {
+      content: '.message-content > p:first-child'
     },
 
     ThreadList: {
@@ -60,6 +65,10 @@
             return client.helper.waitForElement(
               SELECTORS.Composer.recipientsInput
             );
+          },
+
+          get recipients() {
+            return client.findElements(SELECTORS.Composer.recipient);
           },
 
           get messageInput() {
@@ -118,6 +127,12 @@
 
           get headerTitle() {
             return client.helper.waitForElement(SELECTORS.Thread.headerTitle);
+          },
+
+          getMessageContent: function(message) {
+            return client.helper.waitForElement(
+              message.findElement(SELECTORS.Message.content)
+            );
           }
         },
 

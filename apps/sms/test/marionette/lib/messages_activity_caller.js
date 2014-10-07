@@ -5,7 +5,8 @@
   var SELECTORS = Object.freeze({
     shareMenu: 'form[data-z-index-level="action-menu"]',
     shareImageButton: '#share-image',
-    pickImageButton: '#pick-image'
+    pickImageButton: '#pick-image',
+    sendMessageButton: '#send-message'
   });
 
   var ORIGIN = 'messages.activity.gaiamobile.org';
@@ -52,6 +53,19 @@
 
         pickImage: function() {
           client.helper.waitForElement(SELECTORS.pickImageButton).tap();
+        },
+
+        sendMessage: function(number, body) {
+          var button = client.helper.waitForElement(
+            SELECTORS.sendMessageButton
+          );
+
+          button.scriptWith(function(element, number, body) {
+            element.dataset.number = number;
+            element.dataset.body = body;
+          }, [number, body]);
+
+          button.tap();
         }
       };
     }
