@@ -1,6 +1,9 @@
 /* global LockScreenStateKeypadHiding */
 
 'use strict';
+
+// Must mock dependencies here.
+window.LockScreenBaseState = function() {};
 requireApp('system/lockscreen/js/lockscreen_state_keypadhiding.js');
 suite('sytem/LockScreenStateKeypadHiding', function() {
   var subject;

@@ -1,6 +1,9 @@
 /* global LockScreenStateKeypadRising */
 
 'use strict';
+
+// Must mock dependencies here.
+window.LockScreenBaseState = function() {};
 requireApp('system/lockscreen/js/lockscreen_state_keypadrising.js');
 suite('sytem/LockScreenStateKeypadRising', function() {
   var subject;
