@@ -18,6 +18,7 @@ var MockHomescreenWindow = function(value) {
   this.fadeIn = function() {};
   this.fadeOut = function() {};
   this.setOrientation = function() {};
+  this.lockOrientation = function() {};
   this.focus = function() {};
   this.blur = function() {};
   this.debug = function() {};

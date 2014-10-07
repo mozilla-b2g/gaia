@@ -78,5 +78,13 @@ suite('system/OrientationManager >', function() {
 
       assert.isTrue(stubPublish.withArgs('reset-orientation').calledOnce);
     });
+
+    test('cardviewshown', function() {
+      this.sinon.spy(screen, 'mozUnlockOrientation');
+      OrientationManager.handleEvent({
+        type: 'cardviewshown'
+      });
+      sinon.assert.calledOnce(screen.mozUnlockOrientation);
+    });
   });
 });

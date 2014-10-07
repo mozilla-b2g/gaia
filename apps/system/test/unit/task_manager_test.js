@@ -127,6 +127,7 @@ suite('system/TaskManager >', function() {
         requestScreenshotURL: function() {
           return null;
         },
+        lockOrientation: function() {},
         killable: function() {
           return true;
         },
@@ -149,6 +150,7 @@ suite('system/TaskManager >', function() {
         requestScreenshotURL: function() {
           return null;
         },
+        lockOrientation: function() {},
         getScreenshot: function(callback) {
           callback();
         },
@@ -168,6 +170,7 @@ suite('system/TaskManager >', function() {
         requestScreenshotURL: function() {
           return null;
         },
+        lockOrientation: function() {},
         getScreenshot: function(callback) {
           callback();
         },
@@ -187,6 +190,7 @@ suite('system/TaskManager >', function() {
         requestScreenshotURL: function() {
           return null;
         },
+        lockOrientation: function() {},
         getScreenshot: function(callback) {
           callback();
         },
@@ -205,6 +209,7 @@ suite('system/TaskManager >', function() {
         requestScreenshotURL: function() {
           return null;
         },
+        lockOrientation: function() {},
         getScreenshot: function(callback) {
           callback();
         },
@@ -223,6 +228,7 @@ suite('system/TaskManager >', function() {
         requestScreenshotURL: function() {
           return null;
         },
+        lockOrientation: function() {},
         getScreenshot: function(callback) {
           callback();
         },
@@ -249,6 +255,7 @@ suite('system/TaskManager >', function() {
       requestScreenshotURL: function() {
         return null;
       },
+      lockOrientation: function() {},
       getScreenshot: function(callback) {
         callback();
       },
@@ -270,6 +277,7 @@ suite('system/TaskManager >', function() {
       requestScreenshotURL: function() {
         return null;
       },
+      lockOrientation: function() {},
       getScreenshot: function(callback) {
         callback();
       },
@@ -291,6 +299,7 @@ suite('system/TaskManager >', function() {
       requestScreenshotURL: function() {
         return null;
       },
+      lockOrientation: function() {},
       getScreenshot: function(callback) {
         callback();
       },
@@ -1020,12 +1029,15 @@ suite('system/TaskManager >', function() {
         showTaskManager(this.sinon.clock);
       });
 
-      test('selected app is opened', function(done) {
+      test('selected app is opened in correct orientation', function(done) {
         var targetApp = apps['http://game.gaiamobile.org'];
-        var stub = this.sinon.stub(targetApp, 'open');
+        this.sinon.stub(targetApp, 'open');
+        this.sinon.stub(targetApp, 'lockOrientation');
 
         waitForEvent(window, 'cardviewclosed').then(function() {
-          assert.isTrue(stub.calledOnce, 'selected app open method was called');
+          sinon.assert.calledOnce(targetApp.open);
+          sinon.assert.calledOnce(targetApp.lockOrientation);
+          sinon.assert.callOrder(targetApp.lockOrientation, targetApp.open);
         }, failOnReject)
         .then(function() { done(); }, done);
 
@@ -1034,10 +1046,13 @@ suite('system/TaskManager >', function() {
       });
 
       test('home should go back home', function(done) {
-        var stub = this.sinon.stub(home, 'open');
+        this.sinon.stub(home, 'open');
+        this.sinon.stub(home, 'lockOrientation');
 
         waitForEvent(window, 'cardviewclosed').then(function() {
-          assert.isTrue(stub.calledOnce, 'home was opened');
+          sinon.assert.calledOnce(home.lockOrientation);
+          sinon.assert.calledOnce(home.open);
+          sinon.assert.callOrder(home.lockOrientation, home.open);
         }, failOnReject)
         .then(function() { done(); }, done);
 
@@ -1055,12 +1070,15 @@ suite('system/TaskManager >', function() {
         showTaskManager(this.sinon.clock);
       });
 
-      test('selected app is opened', function(done) {
+      test('selected app is opened in correct orientation', function(done) {
         var targetApp = apps['http://game.gaiamobile.org'];
-        var stub = this.sinon.stub(targetApp, 'open');
+        this.sinon.stub(targetApp, 'open');
+        this.sinon.stub(targetApp, 'lockOrientation');
 
         waitForEvent(window, 'cardviewclosed').then(function() {
-          assert.isTrue(stub.calledOnce, 'selected app open method was called');
+          sinon.assert.calledOnce(targetApp.open);
+          sinon.assert.calledOnce(targetApp.lockOrientation);
+          sinon.assert.callOrder(targetApp.lockOrientation, targetApp.open);
         }, failOnReject)
         .then(function() { done(); }, done);
 
