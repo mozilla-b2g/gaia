@@ -41,6 +41,7 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
         self.APP_INSTALLED = True
 
         # Press Home button
+        # test
         self.device.touch_home_button()
 
         # Check that the icon of the app is on the homescreen
