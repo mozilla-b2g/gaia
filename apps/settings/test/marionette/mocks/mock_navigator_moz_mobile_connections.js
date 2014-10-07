@@ -9,7 +9,7 @@ Services.obs.addObserver(function(document) {
   }
 
   var window = document.defaultView.wrappedJSObject;
-  var _mobileConnections = [{}];
+  var _mobileConnections = new document.defaultView.Array({});
 
   Object.defineProperty(window.navigator, 'mozMobileConnections', {
     configurable: false,

@@ -1,7 +1,7 @@
-define(function(require, exports, module) {
+(function(exports) {
 'use strict';
 
-module.exports = function(a, b) {
+exports.compare = function(a, b) {
   if (a > b) {
     return 1;
   }
@@ -13,4 +13,4 @@ module.exports = function(a, b) {
   return 0;
 };
 
-});
+}(Calendar));

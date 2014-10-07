@@ -147,6 +147,7 @@ suite('compose_test.js', function() {
       loadBodyHTML('/index.html');
       // this needs a proper DOM
       ThreadUI.initRecipients();
+      Settings.supportEmailRecipient = true;
       Compose.init('messages-compose-form');
       message = document.getElementById('messages-input');
       sendButton = document.getElementById('messages-send-button');
@@ -916,6 +917,19 @@ suite('compose_test.js', function() {
 
         sinon.assert.calledTwice(typeChangeStub);
         assert.equal(Compose.type, 'sms');
+      });
+
+      test('Message switches type when there is an e-mail among the recipients',
+      function() {
+        ThreadUI.recipients.add({
+          number: 'foo@bar.com',
+          isEmail: true
+        });
+
+        ThreadUI.on.withArgs('recipientschange').yield();
+
+        sinon.assert.calledOnce(typeChangeStub);
+        assert.equal(Compose.type, 'mms');
       });
     });
 

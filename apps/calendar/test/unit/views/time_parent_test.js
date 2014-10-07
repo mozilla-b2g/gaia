@@ -1,17 +1,15 @@
-define(function(require) {
-'use strict';
+require('/shared/js/gesture_detector.js');
+requireLib('timespan.js');
 
-var OrderedMap = require('utils/ordered_map');
-var TimeParent = require('views/time_parent');
-var Timespan = require('timespan');
-var View = require('view');
+suiteGroup('Views.TimeParent', function() {
+  'use strict';
 
-suite('Views.TimeParent', function() {
   var testEl;
   var app;
   var subject;
   var id;
   var controller;
+  var TimeParent;
 
   function ChildView(options) {
     this.date = options.date;
@@ -50,6 +48,10 @@ suite('Views.TimeParent', function() {
       this.scrollTop = scrollTop;
     }
   };
+
+  suiteSetup(function() {
+    TimeParent = Calendar.Views.TimeParent;
+  });
 
   setup(function() {
     id = 0;
@@ -103,8 +105,8 @@ suite('Views.TimeParent', function() {
 
   test('initializer', function() {
     assert.instanceOf(subject, TimeParent);
-    assert.instanceOf(subject, View);
-    assert.instanceOf(subject.frames, OrderedMap);
+    assert.instanceOf(subject, Calendar.View);
+    assert.instanceOf(subject.frames, Calendar.Utils.OrderedMap);
 
     assert.equal(subject.element.id, 'test');
   });
@@ -263,7 +265,7 @@ suite('Views.TimeParent', function() {
 
   suite('#handleEvent', function() {
     test('event: purge', function() {
-      var span = new Timespan(new Date(), new Date());
+      var span = new Calendar.Timespan(new Date(), new Date());
       var calledWith;
       subject.purgeFrames = function() {
         calledWith = arguments;
@@ -279,14 +281,14 @@ suite('Views.TimeParent', function() {
     var items;
 
     function span(start, end) {
-      return new Timespan(
+      return new Calendar.Timespan(
         new Date(2012, 1, start),
         new Date(2012, 1, end)
       );
     }
 
     setup(function() {
-      purgeSpan = new Timespan(
+      purgeSpan = new Calendar.Timespan(
         new Date(2012, 1, 5),
         new Date(2012, 1, 10)
       );
@@ -378,7 +380,6 @@ suite('Views.TimeParent', function() {
         'when'
       );
     });
-  });
-});
 
+  });
 });

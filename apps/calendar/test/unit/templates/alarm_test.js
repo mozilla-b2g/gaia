@@ -1,15 +1,15 @@
-define(function(require) {
-'use strict';
+requireLib('template.js');
+requireLib('templates/alarm.js');
 
-var Alarm = require('templates/alarm');
+suiteGroup('Templates.Alarm', function() {
+  'use strict';
 
-suite('Templates.Alarm', function() {
   var subject;
   var app;
 
   suiteSetup(function() {
     app = testSupport.calendar.app();
-    subject = Alarm;
+    subject = Calendar.Templates.Alarm;
   });
 
   function renderOption(value, layout, selected) {
@@ -116,6 +116,4 @@ suite('Templates.Alarm', function() {
       });
     });
   });
-});
-
 });

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # All options are passed to `./node_modules/.bin/marionette-mocha` so
 # you can also use mocha commands like `--grep`, `--timeout` see `--help`
@@ -12,15 +12,23 @@ DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
 # where all gaia specific customizations for mocha-marionette live.
 SHARED=$DIR/../shared/test/integration
 
+safe_which() {
+  if [ "$(which $1)" ];
+  then
+    which $1
+  fi
+}
+
 # Go to the isolated Python environment if we already setup the virtualenv.
-VIRTUALENV=$(which virtualenv)
+VIRTUALENV=$(safe_which virtualenv)
+
 CI_VENV=$(find $DIR/.. -path "*/ci_venv")
 if [ -x "$VIRTUALENV" -a -x "$CI_VENV" ]; then
   source ./ci_venv/bin/activate
 fi
 
 # We skip the related tests if the Radicale CalDAV server is not installed.
-if [ ! -x "$VIRTUALENV" -o ! -x "$CI_VENV" -o ! -x "$(which radicale)" ]; then
+if [ ! -x "$VIRTUALENV" -o ! -x "$CI_VENV" -o ! -x "$(safe_which radicale)" ]; then
   echo -e "The Radicale CalDAV server is not installed in the virtualenv, we will skip the CalDAV tests.\n \
            \rIf you want to run the CalDAV tests, please run |make caldav-server-install| first."
   CALDAV_RELATED_TESTS="apps/calendar/test/marionette/caldav_test.js apps/calendar/test/marionette/server_test.js"

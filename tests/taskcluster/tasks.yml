@@ -14,12 +14,19 @@ params:
 
 # All task definitions
 definitions:
-  build_tests:
+  build_unit:
+  build_integration:
 
   gaia_ui_tests:
     chunks: 30
 
-  linters:
+  csslint:
+
+  jsonlint:
+
+  gjslint:
+
+  jshint:
 
   marionette_js_tests:
     chunks: 30

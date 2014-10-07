@@ -1,17 +1,20 @@
-define(function(require) {
-'use strict';
-
-var Template = require('template');
-var format = require('format');
+requireLib('format.js');
+requireLib('template.js');
 
 suite('calendar/template', function() {
-  var subject,
+  'use strict';
+
+  var Template, subject,
       tplStr = '%s foo %h',
       support;
 
 
-  setup(function() {
+  suiteSetup(function() {
     support = testSupport.calendar;
+  });
+
+  suiteSetup(function() {
+    Template = Calendar.Template;
   });
 
   suite('Template.create', function() {
@@ -256,7 +259,7 @@ suite('calendar/template', function() {
         },
 
         format: function() {
-          format(tpl, 'Sahaja', 'Lal');
+          Calendar.format(tpl, 'Sahaja', 'Lal');
         }
       });
 
@@ -309,7 +312,8 @@ suite('calendar/template', function() {
 
       container.parentNode.removeChild(container);
     });
+
   });
-});
 
 });
+

@@ -35,7 +35,7 @@ function getLocalizedLink(key) {
   var linkRef = refs[key];
   for (var prop in linkRef) {
     if (prop == 'l10nId') {
-      link.textContent = navigator.mozL10n.get(linkRef.l10nId);
+      link.setAttribute('data-l10n-id', linkRef.l10nId);
     } else {
       link[prop] = linkRef[prop];
     }

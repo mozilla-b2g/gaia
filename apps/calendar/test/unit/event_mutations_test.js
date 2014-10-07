@@ -1,12 +1,11 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var Calc = require('calc');
-var EventMutations = require('event_mutations');
-var Factory = require('test/support/factory');
-var Timespan = require('timespan');
+// Timespan is always loaded but not in the test
+requireLib('timespan.js');
 
-suite('EventMutations', function() {
+suiteGroup('EventMutations', function() {
+  'use strict';
+
   var subject;
   var app;
   var db;
@@ -20,9 +19,8 @@ suite('EventMutations', function() {
   var shouldDisplay;
 
   setup(function(done) {
-    subject = EventMutations;
+    subject = Calendar.EventMutations;
     app = testSupport.calendar.app();
-    subject.app = app;
     db = app.db;
     controller = app.timeController;
     shouldDisplay = controller._shouldDisplayBusytime;
@@ -64,7 +62,10 @@ suite('EventMutations', function() {
     addEvent = null;
     removeTime = null;
 
-    var span = new Timespan(0, Infinity);
+    var span = new Calendar.Timespan(
+      0, Infinity
+    );
+
     controller.observe();
     controller.observeTime(span, function(e) {
       switch (e.type) {
@@ -92,12 +93,12 @@ suite('EventMutations', function() {
       });
 
       // Set the event to start and end in the past
-      event.remote.start = Calc.dateToTransport(
+      event.remote.start = Calendar.Calc.dateToTransport(
         new Date(Date.now() - 2 * 60 * 60 * 1000)
       );
 
       // Ending one hour in the future
-      event.remote.end = Calc.dateToTransport(
+      event.remote.end = Calendar.Calc.dateToTransport(
         new Date(Date.now() - 1 * 60 * 60 * 1000)
       );
 
@@ -185,12 +186,12 @@ suite('EventMutations', function() {
       event.remote.foo = true;
 
       // Starting one hour in the past
-      event.remote.start = Calc.dateToTransport(
+      event.remote.start = Calendar.Calc.dateToTransport(
         new Date(Date.now() - 1 * 60 * 60 * 1000)
       );
 
       // Ending one hour in the future
-      event.remote.end = Calc.dateToTransport(
+      event.remote.end = Calendar.Calc.dateToTransport(
         new Date(Date.now() + 1 * 60 * 60 * 1000)
       );
 
@@ -279,6 +280,5 @@ suite('EventMutations', function() {
       });
     });
   });
-});
 
 });

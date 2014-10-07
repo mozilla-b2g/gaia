@@ -117,9 +117,9 @@
       // Create the title span
       span = document.createElement('span');
       span.className = 'title';
-      span.textContent = this.name;
       this.headerSpanElement.appendChild(span);
       this.titleElement = span;
+      this.updateTitle();
 
       // Create the expand/collapse toggle
       span = document.createElement('span');
@@ -271,6 +271,25 @@
       // This needs to be called last, or the grid will skip rendering this
       // group and the collapse won't cause the icons below to shift position
       GaiaGrid.GridItem.prototype.setActive.call(this, active);
+    },
+
+    updateTitle: function() {
+      var titleElement = this.titleElement;
+      if (!titleElement) {
+        return;
+      }
+
+      if (this.name && this.name.trim() !== '') {
+        titleElement.classList.remove('empty');
+        titleElement.removeAttribute('data-l10n-id');
+        titleElement.textContent = this.name;
+        return;
+      }
+
+      titleElement.classList.add('empty');
+      titleElement.textContent = 'Enter a group name';
+      titleElement.setAttribute('data-l10n-id',
+                                     'gaia-grid-enter-group-name');
     },
 
     collapse: function() {

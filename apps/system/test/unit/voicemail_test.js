@@ -74,6 +74,10 @@ suite('voicemail notification', function() {
 
   setup(function(done) {
     setupSpy = this.sinon.spy(Voicemail, 'setupNotifications');
+    this.sinon.stub(MockSIMSlotManager, 'hasOnlyOneSIMCardDetected',
+      function() {
+        return false;
+    });
     Voicemail.init().then(function() {
       done();
     }, done);
@@ -195,8 +199,13 @@ suite('voicemail notification', function() {
         });
     });
 
-    test('showNotification should create a notification',
+    test('showNotification should create a notification with a single SIM',
       function() {
+        MockSIMSlotManager.hasOnlyOneSIMCardDetected.restore();
+        this.sinon.stub(MockSIMSlotManager, 'hasOnlyOneSIMCardDetected',
+          function() {
+            return true;
+          });
         Voicemail.showNotification('title', 'text', '111');
         sinon.assert.calledWith(notificationSpy, 'title');
     });
@@ -289,6 +298,13 @@ suite('voicemail notification', function() {
               MockNavigatorMozVoicemail.mNumbers = this.voiceNumbers;
               MockNavigatorMozVoicemail.mHasMessages = true;
               sinon.spy(Voicemail, 'showNotification');
+              if (!this.isMultiSIM) {
+                MockSIMSlotManager.hasOnlyOneSIMCardDetected.restore();
+                this.sinon.stub(MockSIMSlotManager,
+                  'hasOnlyOneSIMCardDetected', function() {
+                    return true;
+                  });
+              }
             });
 
             teardown(function() {

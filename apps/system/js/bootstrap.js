@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ActivityWindowManager, SecureWindowFactory,
-         SecureWindowManager, HomescreenLauncher,
+         SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage, InternetSharing, TaskManager,
@@ -62,6 +62,9 @@ window.addEventListener('load', function startup() {
     // To initilaize it after LockScreenWindowManager to block home button
     // when the screen is locked.
     window.AppWindowManager.init();
+
+    window.homescreenWindowManager = new HomescreenWindowManager();
+    window.homescreenWindowManager.start();
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();

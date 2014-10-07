@@ -3,7 +3,6 @@ apps/pdfjs/test/**
 apps/email/build/**
 apps/email/built/**
 apps/email/js/ext/**
-apps/calendar/build/**
 apps/calendar/js/ext/**
 apps/camera/js/vendor/**
 apps/camera/test/**
@@ -65,8 +64,6 @@ tests/browser_sms_conversation.js
 tests/browser_sms_new.js
 tests/head.js
 tests/atoms/gaia_apps.js
-tests/atoms/gaia_data_layer.js
-tests/atoms/reflow.js
 tests/atoms/remote_date.js
 tests/atoms/screenshot.js
 tests/js-marionette/helper.js

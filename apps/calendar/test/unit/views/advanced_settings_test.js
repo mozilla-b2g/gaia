@@ -1,14 +1,13 @@
-/* global suiteTemplate */
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var AccountTemplate = require('templates/account');
-var AdvancedSettings = require('views/advanced_settings');
-var Factory = require('test/support/factory');
+requireLib('models/account.js');
+requireLib('presets.js');
+requireLib('store/setting.js');
+requireElements('calendar/elements/advanced_settings.html');
 
-require('dom!advanced_settings');
+suiteGroup('Views.AdvancedSettings', function() {
+  'use strict';
 
-suite('Views.AdvancedSettings', function() {
   var subject;
   var template;
   var app;
@@ -19,6 +18,15 @@ suite('Views.AdvancedSettings', function() {
 
   suiteSetup(function() {
     triggerEvent = testSupport.calendar.triggerEvent;
+  });
+
+  [
+    'Provider.Caldav',
+    'Provider.Local'
+  ].forEach(function(klass) {
+    suiteSetup(function(done) {
+      Calendar.App.loadObject(klass, done);
+    });
   });
 
   setup(function() {
@@ -56,8 +64,10 @@ suite('Views.AdvancedSettings', function() {
     app = testSupport.calendar.app();
     db = app.db;
 
-    template = AccountTemplate;
-    subject = new AdvancedSettings({ app: app });
+    template = Calendar.Templates.Account;
+    subject = new Calendar.Views.AdvancedSettings({
+      app: app
+    });
 
     accountStore = app.store('Account');
     settings = app.store('Setting');
@@ -324,6 +334,5 @@ suite('Views.AdvancedSettings', function() {
       );
     });
   });
-});
 
 });

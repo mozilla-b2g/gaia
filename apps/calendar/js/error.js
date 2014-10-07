@@ -1,4 +1,4 @@
-define(function(require, exports, module) {
+Calendar.Error = (function() {
 'use strict';
 
 /**
@@ -10,7 +10,6 @@ function Base(name, detail) {
   this.name = name;
   this.detail = detail;
 }
-module.exports = Base;
 
 Base.prototype = Object.create(Error.prototype);
 
@@ -34,4 +33,6 @@ Base.Authentication = errorFactory('authentication', 'unauthenticated');
 Base.InvalidServer = errorFactory('invalid-server', 'internal-server-error');
 Base.ServerFailure = errorFactory('server-failure', 'internal-server-error');
 
-});
+return Base;
+
+}());

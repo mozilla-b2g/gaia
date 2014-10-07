@@ -302,6 +302,7 @@ suite('thread_list_ui', function() {
       this.sinon.spy(Threads, 'set');
       this.sinon.spy(ThreadListUI, 'removeThread');
       this.sinon.spy(ThreadListUI, 'appendThread');
+      this.sinon.stub(ThreadListUI, 'setContact');
       this.sinon.spy(ThreadListUI, 'mark');
       this.sinon.spy(ThreadListUI, 'setEmpty');
       this.sinon.spy(ThreadListUI.sticky, 'refresh');
@@ -987,6 +988,7 @@ suite('thread_list_ui', function() {
 
     setup(function() {
       this.sinon.spy(ThreadListUI, 'updateThread');
+      this.sinon.stub(ThreadListUI, 'setContact');
 
       firstMessage = MockMessages.sms({
         id: 100,
@@ -1043,6 +1045,7 @@ suite('thread_list_ui', function() {
 
     setup(function() {
       this.sinon.spy(ThreadListUI, 'updateThread');
+      this.sinon.stub(ThreadListUI, 'setContact');
 
       firstMessage = MockMessages.sms({
         id: 100,
@@ -1438,13 +1441,20 @@ suite('thread_list_ui', function() {
   });
 
   suite('setContact', function() {
-    var node, pictureContainer;
+    var thread,
+        groupThread,
+        realWindowInnerHeight;
 
     setup(function() {
       this.sinon.stub(Contacts, 'findByAddress');
+      this.sinon.spy(Contacts, 'addUnknown');
       this.sinon.stub(window.URL, 'revokeObjectURL');
 
-      var thread = {
+      realWindowInnerHeight = Object.getOwnPropertyDescriptor(
+        window, 'innerWidth'
+      );
+
+      var oneToOneThread = {
         id: 1,
         participants: ['555'],
         lastMessageType: 'sms',
@@ -1453,68 +1463,195 @@ suite('thread_list_ui', function() {
         unreadCount: 0
       };
 
-      Threads.set(1, thread);
-      node = ThreadListUI.createThread(thread);
-      pictureContainer = node.querySelector('.pack-end');
+      var oneToManyThread = {
+        id: 2,
+        participants: ['555', '666'],
+        lastMessageType: 'mms',
+        body: 'Hello 555',
+        timestamp: Date.now(),
+        unreadCount: 0
+      };
+      Threads.set(oneToOneThread.id, oneToOneThread);
+      Threads.set(oneToManyThread.id, oneToManyThread);
 
-      ThreadListUI.setContact(node);
+      var node = ThreadListUI.createThread(oneToOneThread);
+      thread = {
+        node: node,
+        pictureContainer: node.querySelector('.threadlist-item-picture'),
+        picture: node.querySelector('[data-type=img]')
+      };
+
+      node = ThreadListUI.createThread(oneToManyThread);
+      groupThread = {
+        node: node,
+        pictureContainer: node.querySelector('.threadlist-item-picture'),
+        picture: node.querySelector('[data-type=img]')
+      };
     });
 
     teardown(function() {
       ThreadListUI.container.textContent = '';
+      Object.defineProperty(window, 'innerWidth', realWindowInnerHeight);
     });
 
-    test('display the picture of a contact', function() {
-      pictureContainer.classList.add('empty');
-
+    test('display the picture of a contact', function(done) {
       var contactInfo = MockContact.list();
       contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
-      Contacts.findByAddress.yield(contactInfo);
+      Contacts.findByAddress.yields(contactInfo);
 
-      var photo = node.querySelector('span[data-type=img]');
-      assert.include(photo.style.backgroundImage, 'blob:');
-      assert.isFalse(pictureContainer.classList.contains('empty'));
-      assert.include(node.dataset.photoUrl, 'blob:');
+      ThreadListUI.setContact(thread.node).then(() => {
+        assert.include(thread.node.dataset.photoUrl, 'blob:');
+        assert.isFalse(
+          thread.pictureContainer.classList.contains('default-picture')
+        );
+        assert.isTrue(
+          thread.pictureContainer.classList.contains('has-picture')
+        );
+        var backgroundImages = thread.picture.style.backgroundImage.split(', ');
+        assert.equal(
+          backgroundImages.length,
+          2,
+          'Multiple background images should be used'
+        );
+        assert.include(backgroundImages[0], thread.node.dataset.photoUrl);
+        assert.include(backgroundImages[1], 'default_contact_image.png');
+
+        sinon.assert.notCalled(Contacts.addUnknown);
+      }).then(done, done);
     });
 
-    test('display correctly a contact without a picture', function() {
-      var contactInfo = MockContact.list();
-      Contacts.findByAddress.yield(contactInfo);
+    test('display correctly a contact without a picture', function(done) {
+      Contacts.findByAddress.yields(MockContact.list());
 
-      var photo = node.querySelector('span[data-type=img]');
-      assert.isFalse(photo.style.backgroundImage.contains('blob:'));
-      assert.isTrue(pictureContainer.classList.contains('empty'));
+      ThreadListUI.setContact(thread.node).then(() => {
+        assert.isTrue(
+          thread.pictureContainer.classList.contains('default-picture')
+        );
+        assert.isTrue(
+          thread.pictureContainer.classList.contains('has-picture')
+        );
+        assert.equal(thread.picture.style.backgroundImage, '');
+        sinon.assert.notCalled(Contacts.addUnknown);
+      }).then(done, done);
     });
+    
+    test('correctly revokes old contact image blob URL', function(done) {
+      Contacts.findByAddress.yields(MockContact.list());
 
-    test('correctly revokes old contact image blob URL', function() {
       // Doesn't revoke anything if nothing to revoke
-      node.dataset.photoUrl = '';
-      Contacts.findByAddress.yield(MockContact.list());
+      thread.node.dataset.photoUrl = '';
+      ThreadListUI.setContact(thread.node).then(() => {
+        sinon.assert.notCalled(window.URL.revokeObjectURL);
 
-      sinon.assert.notCalled(window.URL.revokeObjectURL);
+        // Call revoke if we had image before and now contact also has image
+        thread.node.dataset.photoUrl = 'blob://data#1';
+        var contactInfo = MockContact.list();
+        contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
+        Contacts.findByAddress.yields(contactInfo);
 
-      // Call revoke if we had image before and now contact also has image
-      node.dataset.photoUrl = 'blob://data#1';
-      var contactInfo = MockContact.list();
-      contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
-      Contacts.findByAddress.yield(contactInfo);
+        return ThreadListUI.setContact(thread.node);
+      }).then(() => {
+        sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob://data#1');
 
-      sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob://data#1');
+        // Call revoke if we had image before, but don't have it now
+        thread.node.dataset.photoUrl = 'blob://data#2';
+        Contacts.findByAddress.yields(MockContact.list());
 
-      // Call revoke if we had image before, but don't have it now
-      node.dataset.photoUrl = 'blob://data#2';
-      Contacts.findByAddress.yield(MockContact.list());
+        return ThreadListUI.setContact(thread.node);
+      }).then(() => {
+        sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob://data#2');
+        assert.equal(thread.node.dataset.photoUrl, '');
+      }).then(done, done);
+    });
 
-      sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob://data#2');
-      assert.equal(node.dataset.photoUrl, '');
+    test('display correctly an unknown number', function(done) {
+      Contacts.findByAddress.yields([]);
+
+      ThreadListUI.setContact(thread.node).then(() => {
+        assert.equal(thread.picture.style.backgroundImage, '');
+        assert.isFalse(
+          thread.pictureContainer.classList.contains('default-picture')
+        );
+        assert.isFalse(
+          thread.pictureContainer.classList.contains('has-picture')
+        );
+        sinon.assert.calledWith(Contacts.addUnknown, '555');
+      }).then(done, done);
+    });
+
+    test('display correctly a group MMS thread', function(done) {
+      var threadTitleNode = groupThread.node.querySelector('.name');
+
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        get: () => 400 }
+      );
+      ThreadListUI.init();
+
+      Contacts.findByAddress.withArgs('555').yields(MockContact.list([{
+        givenName: ['James'],
+        familyName: ['Bond']
+      }]));
+
+      Contacts.findByAddress.withArgs('666').yields(MockContact.list([{
+        givenName: ['Bond'],
+        familyName: ['James']
+      }]));
+
+      ThreadListUI.setContact(groupThread.node).then(() => {
+        assert.isFalse(
+          groupThread.picture.style.backgroundImage.contains('blob:')
+        );
+        assert.isTrue(
+          groupThread.pictureContainer.classList.contains('group-picture')
+        );
+        assert.isTrue(
+          groupThread.pictureContainer.classList.contains('has-picture')
+        );
+        assert.equal(groupThread.picture.textContent, '2');
+        assert.equal(threadTitleNode.textContent, 'James Bond, Bond James');
+      }).then(done, done);
+    });
+
+    test('display correctly a group MMS thread with lots of participants',
+    function(done) {
+      var threadTitleNode = groupThread.node.querySelector('.name');
+
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        get: () => 200 }
+      );
+      ThreadListUI.init();
+
+      Contacts.findByAddress.withArgs('555').yields(MockContact.list([{
+        givenName: ['James'],
+        familyName: ['Bond']
+      }]));
+
+      ThreadListUI.setContact(groupThread.node).then(() => {
+        sinon.assert.calledOnce(Contacts.findByAddress);
+        sinon.assert.calledWith(Contacts.findByAddress, '555');
+        assert.isFalse(
+          groupThread.picture.style.backgroundImage.contains('blob:')
+        );
+        assert.isTrue(
+          groupThread.pictureContainer.classList.contains('group-picture')
+        );
+        assert.isTrue(
+          groupThread.pictureContainer.classList.contains('has-picture')
+        );
+        assert.equal(groupThread.picture.textContent, '2');
+        assert.equal(threadTitleNode.textContent, 'James Bond');
+      }).then(done, done);
     });
   });
 
   suite('[Email]setContact', function() {
-    var node, pictureContainer;
+    var node, pictureContainer, picture;
 
     setup(function() {
       this.sinon.stub(Contacts, 'findByAddress');
+      this.sinon.spy(Utils.Promise, 'defer');
       var thread = {
         id: 1,
         participants: ['a@b.com'],
@@ -1526,37 +1663,47 @@ suite('thread_list_ui', function() {
 
       Threads.set(1, thread);
       node = ThreadListUI.createThread(thread);
-      pictureContainer = node.querySelector('.pack-end');
-
-      ThreadListUI.setContact(node);
+      pictureContainer = node.querySelector('.threadlist-item-picture');
+      picture = node.querySelector('[data-type=img]');
     });
 
     teardown(function() {
       ThreadListUI.container.textContent = '';
     });
 
-    test('[Email]display the picture of a contact', function() {
+    test('[Email]display the picture of a contact', function(done) {
       MockSettings.supportEmailRecipient = true;
-      pictureContainer.classList.add('empty');
 
       var contactInfo = MockContact.list();
       contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
-      Contacts.findByAddress.yield(contactInfo);
+      Contacts.findByAddress.yields(contactInfo);
 
-      var photo = node.querySelector('span[data-type=img]');
-      assert.include(photo.style.backgroundImage, 'blob:');
-      assert.isFalse(pictureContainer.classList.contains('empty'));
-      assert.include(node.dataset.photoUrl, 'blob:');
+      ThreadListUI.setContact(node).then(() => {
+        assert.include(node.dataset.photoUrl, 'blob:');
+        assert.isFalse(pictureContainer.classList.contains('default-picture'));
+        assert.isTrue(pictureContainer.classList.contains('has-picture'));
+        var backgroundImages = picture.style.backgroundImage.split(', ');
+        assert.equal(
+          backgroundImages.length,
+          2,
+          'Multiple background images should be used'
+        );
+        assert.include(backgroundImages[0], node.dataset.photoUrl);
+        assert.include(backgroundImages[1], 'default_contact_image.png');
+      }).then(done, done);
     });
 
-    test('[Email]display correctly a contact without a picture', function() {
+    test('[Email]display correctly a contact without a picture',
+    function(done) {
       MockSettings.supportEmailRecipient = true;
       var contactInfo = MockContact.list();
-      Contacts.findByAddress.yield(contactInfo);
+      Contacts.findByAddress.yields(contactInfo);
 
-      var photo = node.querySelector('span[data-type=img]');
-      assert.isFalse(photo.style.backgroundImage.contains('blob:'));
-      assert.isTrue(pictureContainer.classList.contains('empty'));
+      ThreadListUI.setContact(node).then(() => {
+        assert.isTrue(pictureContainer.classList.contains('default-picture'));
+        assert.isTrue(pictureContainer.classList.contains('has-picture'));
+        assert.equal(picture.style.backgroundImage, '');
+      }).then(done, done);
     });
   });
 

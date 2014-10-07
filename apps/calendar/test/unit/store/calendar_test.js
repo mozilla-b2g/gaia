@@ -1,16 +1,17 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var Abstract = require('store/abstract');
-var AccountModel = require('models/account');
-var CalendarError = require('error');
-var CalendarModel = require('models/calendar');
-var CalendarStore = require('store/calendar');
-var Factory = require('test/support/factory');
-var Local = require('provider/local');
-var providerFactory = require('provider/provider_factory');
+requireLib('responder.js');
+requireLib('db.js');
+
+requireLib('models/calendar.js');
+requireLib('models/account.js');
+
+requireLib('store/abstract.js');
+requireLib('store/calendar.js');
 
 suite('store/calendar', function() {
+  'use strict';
+
   var subject;
   var db;
   var model;
@@ -29,12 +30,15 @@ suite('store/calendar', function() {
     });
 
     db.open(function(err) {
-      assert.ok(!err);
       done();
     });
   });
 
   testSupport.calendar.accountEnvironment();
+  testSupport.calendar.loadObjects(
+    'Provider.Local',
+    'Provider.Caldav'
+  );
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
@@ -49,7 +53,7 @@ suite('store/calendar', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Abstract);
+    assert.instanceOf(subject, Calendar.Store.Abstract);
     assert.equal(subject._store, 'calendars');
     assert.equal(subject.db, db);
   });
@@ -78,7 +82,7 @@ suite('store/calendar', function() {
     });
 
     test('success', function(done) {
-      var err = new CalendarError.Authentication();
+      var err = new Calendar.Error.Authentication();
       subject.markWithError(calendar, err, function(markErr) {
         assert.ok(!markErr);
         subject.get(calendar._id, function(getErr, result) {
@@ -123,7 +127,7 @@ suite('store/calendar', function() {
 
       assert.equal(result.remote, remote);
       assert.equal(result._id, 'id');
-      assert.instanceOf(result, CalendarModel);
+      assert.instanceOf(result, Calendar.Models.Calendar);
     });
 
     test('without id', function() {
@@ -201,7 +205,9 @@ suite('store/calendar', function() {
    var account, calendar;
 
     setup(function() {
-      account = Factory('account', { providerType: 'Local' });
+      account = Factory('account', {
+        providerType: 'Local'
+      });
 
       calendar = Factory('calendar', {
         _id: 1,
@@ -298,14 +304,15 @@ suite('store/calendar', function() {
 
     test('given an id', function(done) {
       var id = this.calendar._id;
-      subject.ownersOf(id, (err, owners) => {
-        done(() => {
-          assert.instanceOf(owners.account, AccountModel);
-          assert.instanceOf(owners.calendar, CalendarModel);
-          assert.equal(owners.account._id, this.account._id, 'account id');
+      subject.ownersOf(id, function(err, owners) {
+        done(function() {
+          assert.instanceOf(owners.calendar, Calendar.Models.Calendar);
+          assert.instanceOf(owners.account, Calendar.Models.Account);
+
           assert.equal(owners.calendar._id, this.calendar._id, 'calendar id');
-        });
-      });
+          assert.equal(owners.account._id, this.account._id, 'account id');
+        }.bind(this));
+      }.bind(this));
     });
 
   });
@@ -314,13 +321,13 @@ suite('store/calendar', function() {
   test('#providerFor', function(done) {
     subject.providerFor(this.calendar, function(err, provider) {
       done(function() {
-        assert.equal(provider, providerFactory.get('Mock'));
+        assert.equal(provider, app.provider('Mock'));
       });
     });
   });
 
   suite('#_updateCalendarColor', function(done) {
-    var palette = CalendarStore.REMOTE_COLORS;
+    var palette = Calendar.Store.Calendar.REMOTE_COLORS;
 
     function resetUsedColors() {
       subject._usedColors.length = 0;
@@ -332,12 +339,12 @@ suite('store/calendar', function() {
     test('> local calendar', function() {
       var calendar = Factory('calendar', {
         color: '#BADA55',
-        _id: Local.calendarId
+        _id: Calendar.Provider.Local.calendarId
       });
       subject._updateCalendarColor(calendar);
       assert.equal(
         calendar.color,
-        CalendarStore.LOCAL_COLOR,
+        Calendar.Store.Calendar.LOCAL_COLOR,
         'should use local calendar color'
       );
     });
@@ -457,6 +464,4 @@ suite('store/calendar', function() {
       });
     });
   });
-});
-
 });

@@ -1,16 +1,13 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var Calc = require('calc');
-var Factory = require('test/support/factory');
-var IntervalTree = require('interval_tree');
-var Responder = require('responder');
-var TimeController = require('controllers/time');
-var Timespan = require('timespan');
+requireLib('timespan.js');
+requireLib('interval_tree.js');
 
 window.page = window.page || {};
 
 suite('Controllers.Time', function() {
+  'use strict';
+
   var subject;
   var app;
   var busytimeStore;
@@ -18,7 +15,7 @@ suite('Controllers.Time', function() {
 
   setup(function(done) {
     app = testSupport.calendar.app();
-    subject = new TimeController(app);
+    subject = new Calendar.Controllers.Time(app);
 
     subject.calendarStore = {
       shouldDisplayCalendar: function(id) {
@@ -49,8 +46,8 @@ suite('Controllers.Time', function() {
 
   test('initialize', function() {
     assert.equal(subject.app, app);
-    assert.instanceOf(subject, Responder);
-    assert.instanceOf(subject._collection, IntervalTree);
+    assert.instanceOf(subject, Calendar.Responder);
+    assert.instanceOf(subject._collection, Calendar.IntervalTree);
     assert.ok(!subject.pending);
 
     assert.deepEqual(subject._timespans, []);
@@ -150,7 +147,7 @@ suite('Controllers.Time', function() {
     var event;
 
     setup(function() {
-      span = new Timespan(0, Infinity);
+      span = new Calendar.Timespan(0, Infinity);
       busy = Factory('busytime');
       event = null;
 
@@ -467,7 +464,7 @@ suite('Controllers.Time', function() {
     subject.move(date);
 
     subject.move = function() {
-      TimeController.prototype.move.apply(this, arguments);
+      Calendar.Controllers.Time.prototype.move.apply(this, arguments);
       calledMove = arguments;
     };
 
@@ -732,7 +729,7 @@ suite('Controllers.Time', function() {
       };
 
       store = app.store('Busytime');
-      span = new Timespan(
+      span = new Calendar.Timespan(
         new Date(2012, 1, 1),
         new Date(2012, 1, 5)
       );
@@ -798,7 +795,7 @@ suite('Controllers.Time', function() {
     });
 
     test('#queryCache', function() {
-      var span = new Timespan(
+      var span = new Calendar.Timespan(
         new Date(2000, 1, 1),
         new Date(2015, 1, 1)
       );
@@ -957,7 +954,7 @@ suite('Controllers.Time', function() {
     });
 
     test('load', function() {
-      var span = new Timespan(
+      var span = new Calendar.Timespan(
         0,
         Infinity
       );
@@ -989,7 +986,7 @@ suite('Controllers.Time', function() {
     var loaded;
 
     suiteSetup(function() {
-      spanOfMonth = Calc.spanOfMonth;
+      spanOfMonth = Calendar.Calc.spanOfMonth;
     });
 
     function monthSpan(date) {
@@ -1172,6 +1169,5 @@ suite('Controllers.Time', function() {
     });
 
   });
-});
 
 });

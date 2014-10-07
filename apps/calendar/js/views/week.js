@@ -1,15 +1,12 @@
-define(function(require, exports, module) {
+Calendar.ns('Views').Week = (function() {
 'use strict';
 
-var Calc = require('calc');
-var MultiDay = require('./multi_day');
-
-require('dom!week-view');
+var Calc = Calendar.Calc;
+var MultiDay = Calendar.Views.MultiDay;
 
 function WeekView(opts) {
   MultiDay.apply(this, arguments);
 }
-module.exports = WeekView;
 
 WeekView.prototype = {
   __proto__: MultiDay.prototype,
@@ -29,6 +26,8 @@ WeekView.prototype = {
     }
     return date;
   }
+
 };
 
-});
+return WeekView;
+}());

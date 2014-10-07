@@ -1,11 +1,6 @@
-define(function(require) {
-'use strict';
+suiteGroup('Views.CreateAccount', function() {
+  'use strict';
 
-var AccountTemplate = require('templates/account');
-var CreateAccount = require('views/create_account');
-var Presets = require('presets');
-
-suite('Views.CreateAccount', function() {
   var subject;
   var template;
   var app;
@@ -31,8 +26,11 @@ suite('Views.CreateAccount', function() {
 
     app = testSupport.calendar.app();
 
-    template = AccountTemplate;
-    subject = new CreateAccount({ app: app });
+    template = Calendar.Templates.Account;
+    subject = new Calendar.Views.CreateAccount({
+      app: app
+    });
+
     app.db.open(done);
   });
 
@@ -86,6 +84,8 @@ suite('Views.CreateAccount', function() {
 
       assert.equal(renderCalled, true);
     });
+
+
   });
 
   suite('#render', function() {
@@ -97,7 +97,7 @@ suite('Views.CreateAccount', function() {
       var presets;
 
       setup(function(done) {
-        presets = Object.keys(Presets);
+        presets = Object.keys(Calendar.Presets);
         subject.render();
         subject.onrender = done;
       });
@@ -152,7 +152,7 @@ suite('Views.CreateAccount', function() {
         );
       });
     });
+
   });
-});
 
 });

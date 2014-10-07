@@ -76,6 +76,7 @@ class NewMessage(Messages):
 
     @property
     def first_recipient_name(self):
+        self.wait_for_element_displayed(*self._receiver_input_locator)
         return self.marionette.find_element(*self._receiver_input_locator).text
 
     @property

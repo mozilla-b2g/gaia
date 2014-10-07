@@ -1,15 +1,18 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var AccountModel = require('models/account');
-var CalendarModel = require('models/calendar');
-var CaldavPullEvents = require('provider/caldav_pull_events');
-var CaldavService = require('service/caldav');
-var Responder = require('responder');
-var Factory = require('test/support/factory');
-var ServiceSupport = require('test/service/helper');
+requireApp('calendar/test/unit/provider/mock_stream.js');
+requireApp('calendar/test/unit/service/helper.js');
+requireLib('ext/ical.js');
+requireLib('ext/caldav.js');
+requireLib('ext/uuid.js');
+requireLib('service/caldav.js');
+requireLib('service/ical_recur_expansion.js');
+requireLib('models/account.js');
+requireLib('models/calendar.js');
 
-suite('Provider.CaldavPullEvents', function() {
+suiteGroup('Provider.CaldavPullEvents', function() {
+  'use strict';
+
   var fixtures;
   var ical;
   var subject;
@@ -32,14 +35,17 @@ suite('Provider.CaldavPullEvents', function() {
       options.account = account;
     }
 
-    stream = new Responder();
+    stream = new Calendar.Responder();
 
     options.app = app;
 
-    return new CaldavPullEvents(stream, options);
+    return new Calendar.Provider.CaldavPullEvents(
+      stream,
+      options
+    );
   }
 
-  setup(function(done) {
+  suiteSetup(function(done) {
     ical = new ServiceSupport.Fixtures('ical');
     ical.load('single_event');
     ical.load('daily_event');
@@ -49,10 +55,12 @@ suite('Provider.CaldavPullEvents', function() {
 
     ServiceSupport.setExpansionLimit(10);
 
-    service = new CaldavService(new Responder());
+    service = new Calendar.Service.Caldav(
+      new Calendar.Responder()
+    );
   });
 
-  teardown(function() {
+  suiteTeardown(function() {
     ServiceSupport.resetExpansionLimit();
   });
 
@@ -125,8 +133,8 @@ suite('Provider.CaldavPullEvents', function() {
   test('initializer', function() {
     var subject = createSubject();
 
-    assert.instanceOf(subject.account, AccountModel, '.account');
-    assert.instanceOf(subject.calendar, CalendarModel, '.calendar');
+    assert.instanceOf(subject.calendar, Calendar.Models.Calendar, '.calendar');
+    assert.instanceOf(subject.account, Calendar.Models.Account, '.account');
     assert.equal(subject.app, app);
   });
 
@@ -216,7 +224,7 @@ suite('Provider.CaldavPullEvents', function() {
         times.length = 0;
 
         event = serviceEvent(name);
-        var stream = new Responder();
+        var stream = new Calendar.Responder();
 
         stream.on('occurrence', function(item) {
           times.push(item);
@@ -528,7 +536,7 @@ suite('Provider.CaldavPullEvents', function() {
         addedTimes.push(given);
       };
 
-      var stream = new Responder();
+      var stream = new Calendar.Responder();
 
       stream.on('occurrence', function(item) {
         times.push(item);
@@ -717,7 +725,7 @@ suite('Provider.CaldavPullEvents', function() {
         [subject.formatEvent(event)]
       );
     });
+
   });
-});
 
 });

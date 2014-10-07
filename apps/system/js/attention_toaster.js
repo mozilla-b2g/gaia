@@ -26,6 +26,8 @@
 
     TOASTER_TIMEOUT: 5000,
 
+    RESPAWN_TIMEOUT: 45000,
+
     start: function() {
       this.app.element.addEventListener('_closed', this);
       this.app.element.addEventListener('_requestopen', this);
@@ -123,6 +125,9 @@
         }.bind(this));
       } else if (evt == 'complete') {
         this.app && this.app.setVisible(false);
+        this.respawnTimer = window.setTimeout(function() {
+          this.processStateChange('open', 'respawn');
+        }.bind(this), this.RESPAWN_TIMEOUT);
       }
     },
 
@@ -146,6 +151,8 @@
         return;
       }
 
+      window.clearTimeout(this.respawnTimer);
+      this.respawnTimer = null;
       this.app.setVisible(true);
       this.app.element.classList.add('displayed');
     },

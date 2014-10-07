@@ -1,15 +1,12 @@
-define(function(require) {
-'use strict';
+suiteGroup('Provider.Abstract', function() {
+  'use strict';
 
-var Abstract = require('provider/abstract');
-
-suite('Provider.Abstract', function() {
   var subject;
   var app;
 
   setup(function() {
     app = testSupport.calendar.app();
-    subject = new Abstract({ app: app });
+    subject = new Calendar.Provider.Abstract({ app: app });
   });
 
   test('initializer', function() {
@@ -29,6 +26,5 @@ suite('Provider.Abstract', function() {
       });
     });
   });
-});
 
 });

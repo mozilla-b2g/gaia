@@ -1,17 +1,16 @@
-define(function(require) {
-'use strict';
-
-var Manager = require('worker/manager');
+requireLib('worker/manager.js');
 
 /**
- * This test should cover the basics of
+ * This test should over the basics of
  * both the manager and the thread.
  */
 suite('worker/manager', function() {
+  'use strict';
+
   var subject;
 
   function MockWorker(handler) {
-    return function WorkerLike(url) {
+    return function(url) {
       this.url = url;
       this.onerror = this.onmessage = this.terminate = Math.min;
       this.sent = [];
@@ -36,7 +35,7 @@ suite('worker/manager', function() {
   }
 
   setup(function() {
-    subject = new Manager();
+    subject = new Calendar.Worker.Manager();
     subject.Worker = MockWorker(Math.min);
   });
 
@@ -44,6 +43,7 @@ suite('worker/manager', function() {
   });
 
   suite('#add', function() {
+
     test('single role', function() {
       subject.add('test', 'foo.js');
 
@@ -158,6 +158,4 @@ suite('worker/manager', function() {
       });
     });
   });
-});
-
 });

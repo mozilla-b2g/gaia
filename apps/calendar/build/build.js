@@ -1,42 +1,76 @@
 'use strict';
 
-var r = require('r-wrapper');
+/* global require, exports */
+
 var utils = require('utils');
 
-function createPresetsFile(options) {
-  var presetsFile = utils.getFile(options.APP_DIR, 'js', 'presets.js');
+function execute(config) {
+  utils.copyToStage(config);
+  var distDir = config.GAIA_DISTRIBUTION_DIR;
 
-  var config = JSON.parse(
-    utils.getFileContent(
-      utils.getFile(options.APP_DIR, 'build', 'config.json')
-    )
-  );
+  // Calendar Config
+  var init = utils.getFile(config.STAGE_APP_DIR, 'js', 'presets.js');
+  var content = {
+    'google': {
+      providerType: 'Caldav',
+      group: 'remote',
+      authenticationType: 'oauth2',
+      apiCredentials: {
+        tokenUrl: 'https://accounts.google.com/o/oauth2/token',
+        authorizationUrl: 'https://accounts.google.com/o/oauth2/auth',
+        user_info: {
+          url: 'https://www.googleapis.com/oauth2/v3/userinfo',
+          field: 'email'
+        },
+        client_secret: 'jQTKlOhF-RclGaGJot3HIcVf',
+        client_id: '605300196874-1ki833poa7uqabmh3hq' +
+                   '6u1onlqlsi54h.apps.googleusercontent.com',
+        scope: 'https://www.googleapis.com/auth/calendar ' +
+               'https://www.googleapis.com/auth/userinfo.email',
+        redirect_uri: 'https://oauth.gaiamobile.org/authenticated'
+      },
+      options: {
+        domain: 'https://apidata.googleusercontent.com',
+        entrypoint: '/caldav/v2/',
+        providerType: 'Caldav'
+      }
+    },
 
-  var presets = utils.getDistributionFileContent(
-    'calendar',
-    config,
-    options.GAIA_DISTRIBUTION_DIR
-  );
+    'yahoo': {
+      providerType: 'Caldav',
+      group: 'remote',
+      options: {
+        domain: 'https://caldav.calendar.yahoo.com',
+        entrypoint: '/',
+        providerType: 'Caldav',
+        user: '@yahoo.com',
+        usernameType: 'email'
+      }
+    },
 
-  utils.writeContent(presetsFile, 'define(' + presets + ');');
+    'caldav': {
+      providerType: 'Caldav',
+      group: 'remote',
+      options: {
+        domain: '',
+        entrypoint: '',
+        providerType: 'Caldav'
+      }
+    },
+
+    'local': {
+      singleUse: true,
+      providerType: 'Local',
+      group: 'local',
+      options: {
+        providerType: 'Local'
+      }
+    }
+  };
+
+  utils.writeContent(init, 'Calendar.Presets = ' +
+               utils.getDistributionFileContent('calendar', content, distDir) +
+               ';');
 }
 
-exports.execute = function(options) {
-  var config = utils.getFile(options.APP_DIR, 'build', 'calendar.build.js');
-  var requirejs = r.get(options.GAIA_DIR);
-
-  createPresetsFile(options);
-  utils.ensureFolderExists(utils.getFile(options.STAGE_APP_DIR));
-
-  dump('Will run rjs optimizer...\n');
-  var optimize = new Promise((accept, reject) => {
-    requirejs.optimize([config.path], accept, reject);
-  });
-
-  optimize.then(() => {
-    dump('[OK] rjs optimize\n');
-  })
-  .catch((err) => {
-    dump(err + '\n');
-  });
-};
+exports.execute = execute;

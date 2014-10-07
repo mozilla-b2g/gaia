@@ -109,8 +109,10 @@
                 <button type="button" class="forward-button" disabled></button>
                 <div class="urlbar">
                   <div class="title" data-ssl=""></div>
-                  <button type="button" class="reload-button"></button>
-                  <button type="button" class="stop-button"></button>
+                  <button type="button" class="reload-button"
+                          data-l10n-id="reload-button"></button>
+                  <button type="button" class="stop-button"
+                          data-l10n-id="stop-button"></button>
                 </div>
                 <button type="button" class="menu-button" alt="Menu"></button>
                 <button type="button" class="windows-button"></button>

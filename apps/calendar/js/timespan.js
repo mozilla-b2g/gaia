@@ -1,13 +1,31 @@
-define(function(require, exports, module) {
+Calendar.Timespan = (function() {
 'use strict';
+
+/**
+ * Module dependencies
+ */
+var Calc = Calendar.Calc;
 
 function Timespan(startDate, endDate) {
   this.start = startDate.valueOf();
   this.end = endDate.valueOf();
 }
-module.exports = Timespan;
 
 Timespan.prototype = {
+
+  /**
+   * Returns all dates between the start and
+   * end of the timespan. Shortcut for Calc.daysBetween
+   *
+   * @return {Array[Date]} array of dates in order.
+   */
+  daysBetween: function() {
+    var start = new Date(this.start);
+    var end = new Date(this.end);
+
+    return Calc.daysBetween(start, end);
+  },
+
   isEqual: function(inputSpan) {
     return (
       this.start === inputSpan.start &&
@@ -111,4 +129,6 @@ Timespan.prototype = {
   }
 };
 
-});
+return Timespan;
+
+}());

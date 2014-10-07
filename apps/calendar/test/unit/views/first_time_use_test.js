@@ -1,9 +1,12 @@
-define(function(require) {
-'use strict';
-
-var FirstTimeUse = require('views/first_time_use');
+requireLib('db.js');
+requireLib('store/abstract.js');
+requireLib('store/setting.js');
+requireLib('views/first_time_use.js');
+requireLib('app.js');
 
 suite('Views.FirstTimeUse', function() {
+  'use strict';
+
   var app,
       store,
       subject;
@@ -17,7 +20,7 @@ suite('Views.FirstTimeUse', function() {
   });
 
   setup(function(done) {
-    subject = new FirstTimeUse({ app: app });
+    subject = new Calendar.Views.FirstTimeUse({ app: app });
 
     var div = document.createElement('div');
     div.id = 'test';
@@ -104,6 +107,5 @@ suite('Views.FirstTimeUse', function() {
       });
     });
   });
-});
 
 });

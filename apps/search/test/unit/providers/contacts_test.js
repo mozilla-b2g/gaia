@@ -84,7 +84,7 @@ suite('search/providers/contacts', function() {
         assert.equal(contact.querySelector('.title').innerHTML, 'Pepito A');
         assert.equal(contact.getAttribute('aria-label'), 'Pepito A');
         assert.equal(contact.getAttribute('role'), 'link');
-        assert.equal(contact.querySelector('.icon').getAttribute('role'),
+        assert.equal(contact.querySelector('.icon img').getAttribute('role'),
           'presentation');
         done();
       });
