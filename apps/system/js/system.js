@@ -100,7 +100,7 @@
      * @param {object} detailContent
      * @return {Promise}
      */
-    request(action, detailContent) {
+    request: function(action, detailContent) {
       switch (action) {
         case 'lock':
         case 'unlock':
