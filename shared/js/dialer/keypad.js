@@ -373,10 +373,8 @@ var KeypadManager = {
    * sets up the necessary timers to react to long presses.
    *
    * @param {String} key The key that was hit by this touchstart event.
-   * @param {Boolean} [voicemail] If present and true indicates that the
-   *        pressed key corresponded with the button used for voicemail.
    */
-  _touchStart: function kh_touchStart(key, voicemail) {
+  _touchStart: function kh_touchStart(key) {
     this._longPress = false;
     this._lastPressedKey = key;
 
@@ -415,15 +413,15 @@ var KeypadManager = {
       }, 400, this);
     }
 
-    // Voicemail long press (needs to be longer since it actually dials)
-    if (voicemail) {
+    // Voicemail long press (only if first digit pressed)
+    if (key === '1' && this._phoneNumber === '') {
       this._holdTimer = setTimeout(function vm_call(self) {
         self._longPress = true;
         self._callVoicemail();
 
-        self._phoneNumber = self._phoneNumber.slice(0, -1);
+        self._phoneNumber = '';
         self._updatePhoneNumberView('begin', false);
-      }, 1500, this);
+      }, 400, this);
     }
 
     if (key == 'delete') {
@@ -526,7 +524,7 @@ var KeypadManager = {
     switch (event.type) {
       case 'touchstart':
         event.target.classList.add('active');
-        this._touchStart(key, event.target.dataset.voicemail);
+        this._touchStart(key);
         break;
       case 'touchmove':
         this._touchMove(event.touches[0]);

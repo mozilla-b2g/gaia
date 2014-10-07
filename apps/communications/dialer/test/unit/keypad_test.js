@@ -532,6 +532,9 @@ suite('dialer/keypad', function() {
 
       setup(function() {
         fakeVoicemail = '888';
+        KeypadManager._phoneNumber = '';
+
+        doLongPress = doLongPress.bind(this);
 
         this.sinon.spy(CallHandler, 'call');
 
@@ -542,10 +545,11 @@ suite('dialer/keypad', function() {
         MockMozActivity.mTeardown();
       });
 
-      var doLongPress = function() {
-        subject._touchStart('1', true);
-        this.sinon.clock.tick(1500);
-        subject._touchEnd('1');
+      var doLongPress = function(digit, time) {
+        time = time || 400;
+        subject._touchStart(digit);
+        this.sinon.clock.tick(time);
+        subject._touchEnd(digit);
       };
 
       var shouldRemove1FromPhoneNumber = function() {
@@ -571,7 +575,7 @@ suite('dialer/keypad', function() {
           navigator.mozIccManager.iccIds[0] = 0;
           MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
 
-          doLongPress.bind(this)();
+          doLongPress('1');
 
           MockNavigatorSettings.mReplyToRequests();
         });
@@ -587,7 +591,7 @@ suite('dialer/keypad', function() {
           var showSpy = this.sinon.spy(CustomDialog, 'show');
           MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = '';
 
-          doLongPress.bind(this)();
+          doLongPress('1');
           MockNavigatorSettings.mReplyToRequests();
 
           var expectedVoicemailDialog = {
@@ -625,7 +629,7 @@ suite('dialer/keypad', function() {
           MockNavigatorSettings.mSettings['ril.voicemail.defaultServiceId'] = 1;
 
           this.sinon.spy(SimPicker, 'getOrPick');
-          doLongPress.bind(this)();
+          doLongPress('1');
 
           MockNavigatorSettings.mReplyToRequests();
         });
@@ -650,6 +654,29 @@ suite('dialer/keypad', function() {
 
         test('should open settings app with MozActivity when no voicemail set',
              shouldOpenSettingsAppWithMozActivity);
+      });
+
+      test('pressing less than 400ms should not call', function() {
+        navigator.mozIccManager.iccIds[0] = 0;
+        MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
+
+        doLongPress('1', 399);
+        MockNavigatorSettings.mReplyToRequests();
+
+        sinon.assert.notCalled(CallHandler.call);
+      });
+
+      test('pressing after another digit should not call', function() {
+        navigator.mozIccManager.iccIds[0] = 0;
+        MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
+
+        doLongPress('2');
+        MockNavigatorSettings.mReplyToRequests();
+
+        doLongPress('1');
+        MockNavigatorSettings.mReplyToRequests();
+
+        sinon.assert.notCalled(CallHandler.call);
       });
     });
   });
