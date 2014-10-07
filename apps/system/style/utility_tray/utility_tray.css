@@ -31,22 +31,16 @@
   }
 }
 
-#notifications-placeholder {
+#notifications {
   height: calc(100% - 2rem);
+  overflow: hidden;
 }
 
 #utility-tray-notifications {
-  position: fixed;
   width: 100%;
-  top: 3rem;
-  visibility: hidden;
-  clip: rect(0, 0, 0, 0);
+  height: 100%;
   display: flex;
   flex-direction: column;
-}
-
-#utility-tray-notifications.visible {
-  visibility: visible;
 }
 
 #utility-tray-footer {
