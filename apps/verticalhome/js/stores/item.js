@@ -5,13 +5,12 @@
 /* global configurator */
 /* global dispatchEvent */
 /* global GaiaGrid */
-/* global ShelfSource */
 
 (function(exports) {
 
   const DB_VERSION = 1;
 
-  const DB_NAME = 'verticalhome29';
+  const DB_NAME = 'verticalhome23';
 
   const DB_ITEM_STORE = 'items';
   const DB_SV_APP_STORE_NAME = 'svAppsInstalled';
@@ -130,7 +129,6 @@
   }
 
   function loadTable(table, indexName, iterator, aNext) {
-    console.log('Doing loadtable for:', table)
     newTxn(table, 'readonly', function(txn, store) {
       var index = store.index(indexName);
       index.openCursor().onsuccess = function onsuccess(event) {
@@ -166,10 +164,9 @@
     this.applicationSource = new ApplicationSource(this);
     this.bookmarkSource = new BookmarkSource(this);
     this.collectionSource = new CollectionSource(this);
-    this.shelfSource = new ShelfSource(this);
 
     this.sources = [this.applicationSource, this.bookmarkSource,
-                    this.collectionSource, this.shelfSource];
+                    this.collectionSource];
 
     this.ready = false;
 
@@ -199,7 +196,7 @@
     request.onsuccess = function _onsuccess() {
       onsuccess && onsuccess(isEmpty);
       db = request.result;
-      console.log('Got request finish. Calling fetch.')
+
       var cb = self.fetch.bind(self, self.synchronize.bind(self));
 
       if (isEmpty) {
@@ -295,10 +292,9 @@
       var args = Array.slice(arguments);
 
       if (this._renderedOnce) {
-        console.log("Got this._renderedOnce!!", this._renderedOnce)
         return this.save.apply(this, args);
       }
-console.log('Set deferred save args.')
+
       this._deferredSaveArgs = args;
     },
 
@@ -306,7 +302,6 @@ console.log('Set deferred save args.')
      * Saves all icons to the database.
      */
     save: function(entries, aNext) {
-      console.log('Got real save!')
       entries = sort(entries, this.gridOrder);
       this.gridOrder = null;
       // The initial config is simply the list of apps
@@ -325,7 +320,6 @@ console.log('Set deferred save args.')
      * @param {Function} callback A function to call after fetching all items.
      */
     fetch: function(callback) {
-      console.log("FETCHING!!")
       var cached = {};
       var collected = [];
 
@@ -428,7 +422,6 @@ console.log('Set deferred save args.')
      */
     populate: function(callback) {
       this.initSources(function(entries) {
-        console.log("Calling deferred save!!!")
         this.deferredSave(entries, callback);
       }.bind(this));
     },
