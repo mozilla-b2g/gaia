@@ -167,7 +167,7 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "sq": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+        {"layoutId": "sq", "app": ["apps", "keyboard"]}
     ],
     "sr": [
         {"layoutId": "sr-Cyrl", "app": ["apps", "keyboard"]},
