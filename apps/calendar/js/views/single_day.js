@@ -1,10 +1,12 @@
-Calendar.ns('Views').SingleDay = (function() {
+define(function(require, exports, module) {
 'use strict';
 
-var dayObserver = Calendar.dayObserver;
-var isAllDay = Calendar.Calc.isAllDay;
-var relativeDuration = Calendar.Calc.relativeDuration;
-var relativeOffset = Calendar.Calc.relativeOffset;
+var Overlap = require('utils/overlap');
+var dateFormat = require('date_format');
+var dayObserver = require('day_observer');
+var isAllDay = require('calc').isAllDay;
+var relativeDuration = require('calc').relativeDuration;
+var relativeOffset = require('calc').relativeOffset;
 
 function SingleDay(config) {
   this.date = config.date;
@@ -12,11 +14,11 @@ function SingleDay(config) {
   this._daysHolder = config.daysHolder;
   this._alldaysHolder = config.alldaysHolder;
   this._render = this._render.bind(this);
-  this.overlaps = new Calendar.Utils.Overlap();
+  this.overlaps = new Overlap();
 }
+module.exports = SingleDay;
 
 SingleDay.prototype = {
-
   _isActive: false,
   _borderWidth: 0.1,
   _attached: false,
@@ -46,7 +48,7 @@ SingleDay.prototype = {
   _updateDayName: function() {
     // we can't use [data-l10n-date-format] because format might change
     var format = window.navigator.mozL10n.get('week-day');
-    this._dayName.textContent = Calendar.App.dateFormat.localeFormat(
+    this._dayName.textContent = dateFormat.localeFormat(
       this.date,
       format
     );
@@ -190,9 +192,6 @@ SingleDay.prototype = {
     window.removeEventListener('localized', this);
     this._isActive = false;
   }
-
 };
 
-return SingleDay;
-
-}());
+});

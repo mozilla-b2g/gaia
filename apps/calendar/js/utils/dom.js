@@ -1,4 +1,4 @@
-(function(exports){
+define(function(require, exports) {
 'use strict';
 
 /**
@@ -35,4 +35,4 @@ function matches(el, selector) {
     el.mozMatchesSelector(selector);
 }
 
-}(Calendar.ns('Utils').dom = {}));
+});
