@@ -456,8 +456,17 @@ suite('app', function() {
       clock = sinon.useFakeTimers(baseTimestamp);
 
       container = document.createElement('div');
-      container.innerHTML = '<a id="today" href="#today">' +
-        '<span class="icon-calendar-today">7</span></a>';
+      container.innerHTML = [
+        '<section id="month-view">',
+          '<ol>',
+            '<li class="present" data-date="d-1991-9-7">7</li>',
+            '<li class="future" data-date="d-1991-9-8">8</li>',
+          '</ol>',
+        '</section>',
+        '<a id="today" href="#today">',
+          '<span class="icon-calendar-today">7</span>',
+        '</a>'
+      ].join('');
       document.body.appendChild(container);
     });
 
@@ -471,6 +480,15 @@ suite('app', function() {
       clock.tick(1500);
       assert.equal(
         document.querySelector('#today .icon-calendar-today').innerHTML,
+        8
+      );
+    });
+
+    test('Set present date in month view after midnight', function() {
+      subject._syncTodayDate();
+      clock.tick(1500);
+      assert.equal(
+        document.querySelector('#month-view .present').innerHTML,
         8
       );
     });

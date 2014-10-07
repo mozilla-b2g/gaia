@@ -6,6 +6,7 @@ Calendar.App = (function(window) {
  * Module dependencies
  */
 var Controllers = Calendar.ns('Controllers');
+var Calc = Calendar.Calc;
 var DateL10n = Calendar.dateL10n;
 var Db = Calendar.Db;
 /*var LoadConfig = Calendar.LoadConfig;*/
@@ -308,6 +309,18 @@ var App = {
     nextTick(() => this.view('Errors'));
   },
 
+  _setPresentDate: function() {
+    var id = Calc.getDayId(new Date());
+    var presentDate = document.querySelector(
+      '#month-view [data-date="' + id + '"]'
+    );
+    var previousDate = document.querySelector('#month-view .present');
+
+    previousDate.classList.remove('present');
+    previousDate.classList.add('past');
+    presentDate.classList.add('present');
+  },
+
   _showTodayDate: function() {
     var element = document.querySelector('#today .icon-calendar-today');
     element.innerHTML = new Date().getDate();
@@ -323,6 +336,7 @@ var App = {
     var timeout = midnight.getTime() - now.getTime();
     setTimeout(() => {
       this._showTodayDate();
+      this._setPresentDate();
       this._syncTodayDate();
     }, timeout);
   },
