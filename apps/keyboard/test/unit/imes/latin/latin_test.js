@@ -373,7 +373,7 @@ suite('latin input method capitalization and punctuation', function() {
       });
 
       // will clear the suggestions since cursor changed
-      sinon.assert.calledTwice(keyboardGlue.sendCandidates);
+      sinon.assert.calledThrice(keyboardGlue.sendCandidates);
     });
 
     test('Do nothing if selectionchange is due to our own action', function() {

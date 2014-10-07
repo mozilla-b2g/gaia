@@ -687,6 +687,9 @@
       // Mark the auto-correction so the renderer can highlight it
       words[0] = '*' + words[0];
     }
+    else {
+      autoCorrection = null;
+    }
 
     keyboard.sendCandidates(words);
   }
@@ -1028,6 +1031,7 @@
       selection = 0;
     }
 
+    dismissSuggestions();
     updateSuggestions();
   }
 
