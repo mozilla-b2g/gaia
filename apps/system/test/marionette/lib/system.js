@@ -22,6 +22,7 @@ System.Selector = Object.freeze({
   appChromeReloadButton: '.appWindow.active .controls .reload-button',
   appChromeWindowsButton: '.appWindow.active .controls .windows-button',
   browserWindow: '.appWindow.browser',
+  sleepMenuContainer: '#sleep-menu-container',
   statusbar: '#statusbar',
   statusbarLabel: '#statusbar-label',
   topPanel: '#top-panel',
@@ -87,6 +88,11 @@ System.prototype = {
   get appChromeReloadButton() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeReloadButton);
+  },
+
+  get sleepMenuContainer() {
+    return this.client.helper.waitForElement(
+      System.Selector.sleepMenuContainer);
   },
 
   get statusbar() {

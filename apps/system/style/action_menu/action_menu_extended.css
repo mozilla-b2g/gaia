@@ -1,5 +1,5 @@
-#screen.software-button-enabled [role="dialog"][data-type="action"],
-#screen.software-button-enabled [role="dialog"][data-type="object"] {
+#screen:not(.locked).software-button-enabled [role="dialog"][data-type="action"],
+#screen:not(.locked).software-button-enabled [role="dialog"][data-type="object"] {
   bottom: var(--software-home-button-height);
 }
 
