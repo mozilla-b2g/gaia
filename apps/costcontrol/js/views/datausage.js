@@ -929,10 +929,14 @@ var DataUsageTab = (function() {
     var appList = document.getElementById('app-usage-list');
     appList.innerHTML = '';
 
-    var manifests = Object.keys(mobileApps);
+    // Filter out apps that have not used any data yet.
+    var manifests = Object.keys(mobileApps).filter(function(key) {
+      return mobileApps[key].total > 0;
+    });
+
     var noData = document.getElementById('app-usage-no-data');
     if (manifests.length === 0) {
-      noData.style.display = 'inline';
+      noData.style.display = 'block';
     } else {
       noData.style.display = 'none';
     }
