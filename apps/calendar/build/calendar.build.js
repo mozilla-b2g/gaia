@@ -17,8 +17,9 @@
 
   modules: [
     {
-      name: 'main',
+      name: 'ext/alameda',
       include: [
+        'main',
         'app',
         'debug',
         'next_tick'
@@ -43,9 +44,6 @@
         'ext/caldav',
         'ext/ical'
       ]
-    },
-    {
-      name: 'ext/alameda'
     },
     {
       name: 'ext/caldav'
