@@ -99,7 +99,7 @@
 
     handleEvent: function awf_handleEvent(evt) {
       var detail = evt.detail;
-      if (!detail.url) {
+      if (!detail.url && !detail.manifestURL) {
         return;
       }
 
