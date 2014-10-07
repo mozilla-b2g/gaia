@@ -20,7 +20,7 @@ var IMERender = (function() {
   var alternativesCharMenu = null;
   var _menuKey = null;
   var renderingManager = null;
-  var currentDrawnKeyboardClass = null;
+  var currentDisplayedKeyboardClass = null;
 
   // a WeakMap to map target key object onto the DOM element it's associated
   // with; essentially the revrse mapping of |renderingManager._domObjectMap|.
@@ -137,7 +137,7 @@ var IMERender = (function() {
       supportsSwitching
     ].join('-');
 
-    currentDrawnKeyboardClass = keyboardClass;
+    currentDisplayedKeyboardClass = keyboardClass;
 
     // lets see if we have this keyboard somewhere already...
     var container = document.getElementsByClassName(keyboardClass)[0];
@@ -325,9 +325,22 @@ var IMERender = (function() {
 
   // Unhighlight a key
   var unHighlightKey = function kr_unHighlightKey(key) {
-    var keyElem = getDomElemFromTargetObject(key);
-    keyElem.classList.remove('highlighted');
-    keyElem.classList.remove('lowercase');
+    var _unHighlightKeyElem = function kr_unHighlightKeyElem(keyElem) {
+      keyElem.classList.remove('highlighted');
+      keyElem.classList.remove('lowercase');
+    };
+
+    // if it's a page-switching key, then we need to bypass
+    // currentDisplayedKeyboardClass and try unhighlight all keys mapped from
+    // this key object, since the page is already switched
+    if (KeyEvent.DOM_VK_ALT === key.keyCode) {
+      var keyElemMap = getAllDomElemFromTargetObject(key);
+      Object.keys(keyElemMap).forEach(function(keyboardClass) {
+        _unHighlightKeyElem(keyElemMap[keyboardClass]);
+      });
+    } else {
+      _unHighlightKeyElem(getDomElemFromTargetObject(key));
+    }
   };
 
   var toggleCandidatePanel = function(expand) {
@@ -913,20 +926,25 @@ var IMERender = (function() {
 
   // a helper function to set both rendering manager's forward map,
   // and renderer's reverse map.
-  // ideally this should only be used with views (renderer & alt_char_menu.js).
+  // ideally this should only be used with views (render.js & ./js/views/*).
   var setDomElemTargetObject = function setDomElemTargetObject(elem, obj) {
     renderingManager.domObjectMap.set(elem, obj);
     var domElemDict = targetObjDomMap.get(obj) || {};
-    domElemDict[currentDrawnKeyboardClass] = elem;
+    domElemDict[currentDisplayedKeyboardClass] = elem;
     targetObjDomMap.set(obj, domElemDict);
   };
 
-  // a helper function to set both rendering manager's forward map,
-  // and renderer's reverse map.
-  // ideally this should only be used with views (render.js & ./js/views/*).
   var getDomElemFromTargetObject = function getDomElemFromTargetObject(obj) {
     var domElemDict = targetObjDomMap.get(obj) || {};
-    return domElemDict[currentDrawnKeyboardClass];
+    return domElemDict[currentDisplayedKeyboardClass];
+  };
+
+  // to work around look-up failures between page switches, introduced by
+  // currentDisplayedKeyboardClass; this is intended to be used when we want to
+  // do something to a dom object after we switch pages.
+  var getAllDomElemFromTargetObject =
+    function getAllDomElemFromTargetObject(obj) {
+    return targetObjDomMap.get(obj) || {};
   };
 
   // Measure the width of the element, and return the scale that
@@ -1014,9 +1032,13 @@ var IMERender = (function() {
     get candidatePanel() {
       return activeIme && activeIme.querySelector('.keyboard-candidate-panel');
     },
+    // for tests
     setCachedWindowSize: function(width, height) {
       cachedWindowWidth = width;
       cachedWindowHeight = height;
+    },
+    setCurrentDisplayedKeyboardClass: function(cls) {
+      currentDisplayedKeyboardClass = cls;
     }
   };
 })();
