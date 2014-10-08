@@ -5,6 +5,9 @@ var listedFactory = function(list, entry) {
 module.exports = {
   isWhitelisted: listedFactory,
   isBlacklisted: listedFactory,
+  isDeviceHost: function() {
+    return config.runnerHost === 'marionette-device-host';
+  },
   configure: function(config) {
     // If the any of the environment variables defined in the config file
     // have values set, override the config with them
