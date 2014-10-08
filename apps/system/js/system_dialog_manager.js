@@ -59,10 +59,35 @@
                 'system-dialog-show',
                 'system-dialog-hide',
                 'system-resize',
+                'system-dialog-requestfocus',
                 'home',
                 'holdhome',
                 'mozChromeEvent']
     }
+  };
+
+  SystemDialogManager.prototype.isActive = function() {
+    return !!this.states.activeDialog;
+  };
+
+  SystemDialogManager.prototype.setHierarchy = function(active) {
+    if (!this.states.activeDialog) {
+      return;
+    }
+    if (active) {
+      this.states.activeDialog.focus();
+    }
+    this.states.activeDialog._setVisibleForScreenReader(active);
+  };
+
+  SystemDialogManager.prototype.name = 'SystemDialogManager';
+  SystemDialogManager.prototype.EVENT_PREFIX = 'systemdialogmanager';
+
+  SystemDialogManager.prototype.publish = function(evtName) {
+    this.debug('publishing ' + evtName);
+    window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + evtName, {
+      detail: this
+    }));
   };
 
   /**
@@ -80,6 +105,12 @@
   SystemDialogManager.prototype.handleEvent = function sdm_handleEvent(evt) {
     var dialog = null;
     switch (evt.type) {
+      case 'system-dialog-requestfocus':
+        if (evt.detail !== this.states.activeDialog) {
+          return;
+        }
+        System.request('focus', this);
+        break;
       case 'system-dialog-created':
         dialog = evt.detail;
         this.registerDialog(dialog);
@@ -153,6 +184,7 @@
     this.configs.listens.forEach((function _initEvent(type) {
       self.addEventListener(type, this);
     }).bind(this));
+    System.request('registerHierarchy', this);
   };
 
   /**
@@ -197,7 +229,10 @@
       this.states.activeDialog = dialog;
 
       // Activate dialog on screen element.
-      this.elements.screen.classList.add('dialog');
+      if (!this.elements.screen.classList.contains('dialog')) {
+        this.elements.screen.classList.add('dialog');
+        this.publish('-activated');
+      }
     };
 
   /**
@@ -224,6 +259,7 @@
 
         // Clear activeDialog
         this.states.activeDialog = null;
+        this.publish('-deactivated');
       } else { // The dialog is not active.
         // Just hide itself, no need to disturb other active dialog.
         // Since the dialog is hidden already, do nothing here.

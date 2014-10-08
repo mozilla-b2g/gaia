@@ -36,6 +36,30 @@
   }
 
   Rocketbar.prototype = {
+    EVENT_PREFIX: 'rocketbar',
+    name: 'Rocketbar',
+
+    publish: function(name) {
+      window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + name, {
+        detail: this
+      }));
+    },
+
+    isActive: function() {
+      return this.active;
+    },
+
+    getActiveWindow: function() {
+      return this.isActive() ? this.searchWindow : null;
+    },
+
+    setHierarchy: function(active) {
+      if (active) {
+        this.focus();
+      }
+      this.searchWindow &&
+      this.searchWindow.setVisibleForScreenReader(active);
+    },
 
     /**
      * Starts Rocketbar.
@@ -44,6 +68,7 @@
     start: function() {
       this.addEventListeners();
       this.enabled = true;
+      System.request('registerHierarchy', this);
     },
 
     /**
@@ -73,9 +98,13 @@
       // before moving on (and triggering the callback).
       var searchLoaded = false;
       var transitionEnded = false;
+      var self = this;
       var waitOver = function() {
-        if (searchLoaded && transitionEnded && callback) {
-          callback();
+        if (searchLoaded && transitionEnded) {
+          if (callback) {
+            callback();
+          }
+          self.publish('-activated');
         }
       };
 
@@ -100,6 +129,7 @@
         searchLoaded = true;
         waitOver();
       });
+      this.publish('-activating');
     },
 
     /**
@@ -118,6 +148,7 @@
 
       var backdrop = this.backdrop;
       var finishTimeout;
+      var self = this;
       var finish = (function() {
         clearTimeout(finishTimeout);
         this.form.classList.add('hidden');
@@ -129,6 +160,7 @@
         backdrop.addEventListener('transitionend', function trWait() {
           backdrop.removeEventListener('transitionend', trWait);
           window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
+          self.publish('-deactivated');
         });
       }).bind(this);
 
@@ -143,6 +175,7 @@
       } else {
         finish();
       }
+      this.publish('-deactivating');
     },
 
     /**

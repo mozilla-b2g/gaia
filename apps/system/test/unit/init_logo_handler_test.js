@@ -1,9 +1,11 @@
-/* global CustomLogoPath, MockSettingsHelper, SettingsHelper */
+/* global CustomLogoPath, MockSettingsHelper, SettingsHelper,
+          InitLogoHandler, System, LogoLoader */
 
 'use strict';
 
 requireApp('system/test/unit/mock_logo_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
+requireApp('system/js/system.js');
 requireApp('system/js/init_logo_handler.js');
 
 suite('init_logo_handler_test.js >', function() {
@@ -110,6 +112,49 @@ suite('init_logo_handler_test.js >', function() {
       CustomLogoPath.init();
       this.sinon.clock.tick(TINY_TIMEOUT);
       assertCustomLogoPathValues(testCase.expecValSet);
+    });
+  });
+
+  suite('Hierarchy functions', function() {
+    setup(function() {
+      this.sinon.stub(document, 'getElementById')
+          .returns(document.createElement('div'));
+    });
+
+    teardown(function() {
+      InitLogoHandler.animated = false;
+      InitLogoHandler.ready = false;
+      InitLogoHandler.readyCallBack = null;
+      InitLogoHandler.logoLoader = null;
+    });
+
+    test('Should request addHierarchy in init', function() {
+      this.sinon.stub(System, 'request');
+      InitLogoHandler.init(new LogoLoader(CustomLogoPath.poweron));
+      assert.isTrue(System.request.calledWith('registerHierarchy'));
+    });
+
+    test('isActive', function() {
+      InitLogoHandler.init(new LogoLoader(CustomLogoPath.poweron));
+      InitLogoHandler._setReady();
+      assert.isTrue(InitLogoHandler.isActive());
+      InitLogoHandler.animate();
+      assert.isFalse(InitLogoHandler.isActive());
+    });
+
+    test('activated', function() {
+      this.sinon.stub(InitLogoHandler, 'publish');
+      InitLogoHandler.init(new LogoLoader(CustomLogoPath.poweron));
+      InitLogoHandler._setReady();
+      assert.isTrue(InitLogoHandler.publish.calledWith('-activated'));
+    });
+
+    test('deactivated', function() {
+      InitLogoHandler.init(new LogoLoader(CustomLogoPath.poweron));
+      InitLogoHandler._setReady();
+      this.sinon.stub(InitLogoHandler, 'publish');
+      InitLogoHandler.animate();
+      assert.isTrue(InitLogoHandler.publish.calledWith('-deactivated'));
     });
   });
 });

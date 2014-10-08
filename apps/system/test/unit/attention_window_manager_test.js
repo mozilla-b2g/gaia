@@ -46,6 +46,38 @@ suite('system/AttentionWindowManager', function() {
     origin: 'app://www.fakef'
   };
 
+  suite('Hierarchy functions', function() {
+    setup(function() {
+      this.sinon.stub(MockSystem, 'request');
+      window.attentionWindowManager = new AttentionWindowManager();
+      window.attentionWindowManager.start();
+    });
+    teardown(function() {
+      window.attentionWindowManager.stop();
+      window.attentionWindowManager = null;
+    });
+    test('Should be active if there is an opened window', function() {
+      window.dispatchEvent(new CustomEvent('attentionopened', {
+        detail: att1
+      }));
+      assert.isTrue(attentionWindowManager.isActive());
+    });
+    test('Should not be active if there is no opened window', function() {
+      assert.isFalse(attentionWindowManager.isActive());
+    });
+    test('start should register hierarchy', function() {
+      assert.isTrue(
+        MockSystem.request.calledWith('registerHierarchy',
+          attentionWindowManager));
+    });
+    test('stop should unregister hierarchy', function() {
+      attentionWindowManager.stop();
+      assert.isTrue(
+        MockSystem.request.calledWith('unregisterHierarchy',
+          attentionWindowManager));
+    });
+  });
+
   suite('Maintain attention indicator', function() {
     setup(function() {
       window.attentionWindowManager = new AttentionWindowManager();
@@ -278,13 +310,15 @@ suite('system/AttentionWindowManager', function() {
           assert.isTrue(stubDemoteForAtt1.called);
         });
 
-      test('should publish attention-inactive if no opened instances',
+      test('should publish deactivated if no opened instances',
         function() {
           var caught = false;
-          window.addEventListener('attention-inactive', function inactive() {
-            window.removeEventListener('attention-inactive', inactive);
-            caught = true;
-          });
+          window.addEventListener('attentionwindowmanager-deactivated',
+            function inactive() {
+              window.removeEventListener('attentionwindowmanager-deactivated',
+                inactive);
+              caught = true;
+            });
           attentionWindowManager._openedInstances =
             new Map([[att1, att1], [att2, att2]]);
           window.dispatchEvent(new CustomEvent('attentionclosed', {

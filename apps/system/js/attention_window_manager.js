@@ -7,18 +7,20 @@
   AttentionWindowManager.prototype = {
     DEBUG: false,
     TRACE: false,
-    CLASS_NAME: 'AttentionWindowManager',
+    name: 'AttentionWindowManager',
     _openedInstances: null,
+    EVENT_PREFIX: 'attentionwindowmanager',
 
     publish: function vm_publish(eventName, detail) {
       this.debug('publishing: ', eventName);
-      var evt = new CustomEvent(eventName, { detail: detail });
+      var evt = new CustomEvent(this.EVENT_PREFIX + eventName,
+        { detail: detail });
       window.dispatchEvent(evt);
     },
 
     debug: function aw_debug() {
       if (this.DEBUG) {
-        console.log('[' + this.CLASS_NAME + ']' +
+        console.log('[' + this.name + ']' +
           '[' + System.currentTime() + '] ' +
           Array.slice(arguments).concat());
         if (this.TRACE) {
@@ -27,8 +29,16 @@
       }
     },
 
+    isActive: function() {
+      return this.hasActiveWindow();
+    },
+
     hasActiveWindow: function attwm_hasActiveWindow() {
       return (this._openedInstances.size !== 0);
+    },
+
+    getActiveWindow: function() {
+      return this.getTopMostWindow();
     },
 
     getTopMostWindow: function attwm_hasActiveWindow() {
@@ -67,13 +77,16 @@
       window.addEventListener('lockscreen-appclosed', this);
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('rocketbar-overlayopened', this);
+      System.request('registerHierarchy', this);
     },
 
     stop: function attwm_stop() {
       this._instances = null;
       this._openedInstances = null;
-      this.attentionIndicator.stop();
-      this.attentionIndicator = null;
+      if (this.attentionIndicator) {
+        this.attentionIndicator.stop();
+        this.attentionIndicator = null;
+      }
       window.removeEventListener('attentioncreated', this);
       window.removeEventListener('attentionterminated', this);
       window.removeEventListener('attentionshow', this);
@@ -91,6 +104,7 @@
       window.removeEventListener('lockscreen-appclosed', this);
       window.removeEventListener('lockscreen-appopened', this);
       window.removeEventListener('rocketbar-overlayopened', this);
+      System.request('unregisterHierarchy', this);
     },
 
     handleEvent: function attwm_handleEvent(evt) {
@@ -105,6 +119,7 @@
         case 'attentionopened':
           this._openedInstances.set(attention, attention);
           this.updateAttentionIndicator();
+          this.publish('-activated');
           break;
 
         case 'attentionrequestclose':
@@ -149,7 +164,7 @@
           }
           attention.demote();
           if (this._openedInstances.size === 0) {
-            this.publish('attention-inactive');
+            this.publish('-deactivated');
           }
           this.updateAttentionIndicator();
           break;

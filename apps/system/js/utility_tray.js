@@ -2,9 +2,11 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
-/* global CostControl, softwareButtonManager */
+/* global CostControl, softwareButtonManager, System */
 
 var UtilityTray = {
+  name: 'UtilityTray',
+
   shown: false,
 
   active: false,
@@ -26,6 +28,21 @@ var UtilityTray = {
   notificationTitle: document.getElementById('notification-some'),
 
   screen: document.getElementById('screen'),
+
+  EVENT_PREFIX: 'utilitytray',
+
+  publish: function(evtName) {
+    window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + evtName, {
+      detail: this
+    }));
+  },
+
+  isActive: function() {
+    return this.shown;
+  },
+
+  focus: function() {},
+  blur: function() {},
 
   init: function ut_init() {
     var touchEvents = ['touchstart', 'touchmove', 'touchend'];
@@ -79,6 +96,8 @@ var UtilityTray = {
         this.costControl.start();
       }.bind(this));
     }
+
+    System.request('registerHierarchy', this);
   },
 
   addHomeListener: function ut_addHomeListener() {
@@ -388,6 +407,7 @@ var UtilityTray = {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('utilitytrayhide', true, true, null);
       window.dispatchEvent(evt);
+      this.publish('-deactivated');
     }
   },
 
@@ -409,6 +429,7 @@ var UtilityTray = {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('utilitytrayshow', true, true, null);
       window.dispatchEvent(evt);
+      this.publish('-activated');
     }
   },
 

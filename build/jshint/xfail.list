@@ -271,7 +271,6 @@ apps/system/js/storage_watcher.js
 apps/system/js/trusted_ui.js
 apps/system/js/updatable.js
 apps/system/js/update_manager.js
-apps/system/js/utility_tray.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_picker.js
 apps/system/js/wifi.js

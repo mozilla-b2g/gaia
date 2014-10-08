@@ -36,6 +36,7 @@ suite('system/Core', function() {
     var core;
     setup(function() {
       core = new BaseModule.instantiate('Core');
+      core.constructor.SUB_MODULES = [];
     });
 
     teardown(function() {

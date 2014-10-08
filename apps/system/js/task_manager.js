@@ -62,6 +62,9 @@
     }
   });
 
+  TaskManager.prototype.EVENT_PREFIX = 'taskmanager';
+  TaskManager.prototype.name = 'TaskManager';
+
   /**
    * initialize
    * @memberOf TaskManager.prototype
@@ -69,10 +72,12 @@
   TaskManager.prototype.start = function() {
     this._fetchElements();
     this._registerEvents();
+    System.request('registerHierarchy', this);
   };
 
   TaskManager.prototype.stop = function() {
     this._unregisterEvents();
+    System.request('unregisterHierarchy', this);
   };
 
   TaskManager.prototype._fetchElements = function() {
@@ -243,6 +248,11 @@
       return;
     }
     this._active = active;
+    if (active) {
+      this.publish(this.EVENT_PREFIX + '-activated');
+    } else {
+      this.publish(this.EVENT_PREFIX + '-deactivated');
+    }
     this.element.classList.toggle('active', active);
     this.element.classList.toggle('empty', !this.stack.length && active);
 
