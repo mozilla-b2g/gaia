@@ -405,7 +405,22 @@
     // Homescreen fades (shows its fade-overlay) on cardviewbeforeshow events
     this.fireCardViewBeforeShow();
 
-    this.screenElement.classList.add('cards-view');
+    var activeApp = AppWindowManager.getActiveApp();
+
+    if (!activeApp) {
+      this.screenElement.classList.add('cards-view');
+    } else if (activeApp.isHomescreen) {
+      // Ensure the homescreen is in a closed state, as the user may choose
+      // one of the app.
+      activeApp.close();
+      this.screenElement.classList.add('cards-view');
+    } else {
+      window.addEventListener('appclosed', function finish() {
+        window.removeEventListener('appclosed', finish);
+        this.screenElement.classList.add('cards-view');
+      }.bind(this));
+    }
+
     if (this.isTaskStrip) {
       this.screenElement.classList.add('task-manager');
     }

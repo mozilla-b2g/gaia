@@ -545,7 +545,36 @@ suite('system/TaskManager >', function() {
         assert.equal(taskManager.screenElement, screenNode);
       });
 
-      test('cardsview should be active', function() {
+      test('cardsview should be active after receiving appclosed', function() {
+        window.dispatchEvent(new CustomEvent('appclosed'));
+        assert.isTrue(taskManager.isShown(), 'taskManager.isShown');
+        assert.isTrue(screenNode.classList.contains('cards-view'));
+      });
+
+      test('cardsview should be active when active app is null', function() {
+        MockAppWindowManager.mActiveApp = null;
+        taskManager.show();
+        assert.isTrue(taskManager.isShown(), 'taskManager.isShown');
+        assert.isTrue(screenNode.classList.contains('cards-view'));
+      });
+
+      test('cardsview should be active when active app is null', function() {
+        MockAppWindowManager.mActiveApp = null;
+        taskManager.show();
+        assert.isTrue(taskManager.isShown(), 'taskManager.isShown');
+        assert.isTrue(screenNode.classList.contains('cards-view'));
+      });
+
+      test('cardsview should be active, close homescreen if active app ' +
+           'is homescreen', function() {
+        MockAppWindowManager.mActiveApp = {
+          isHomescreen: true,
+          close: function() {}
+        };
+        var stubClose = this.sinon.stub(MockAppWindowManager.mActiveApp,
+          'close');
+        taskManager.show();
+        assert.isTrue(stubClose.calledOnce);
         assert.isTrue(taskManager.isShown(), 'taskManager.isShown');
         assert.isTrue(screenNode.classList.contains('cards-view'));
       });
