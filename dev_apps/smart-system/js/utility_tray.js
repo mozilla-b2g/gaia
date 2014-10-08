@@ -120,10 +120,9 @@ var UtilityTray = {
       case 'launchapp':
         // we don't want background apps to trigger this event, otherwise,
         // utility tray will be closed accidentally.
-        var findMyDevice =
-          window.location.origin.replace('system', 'findmydevice');
-
-        var blacklist = [findMyDevice];
+        // In phone version, we put findmydevice in black list. But in smart
+        // screen, we don't have it. Keep the mechanism here.
+        var blacklist = [];
 
         var isBlockedApp = blacklist.some(function(blockedApp) {
           return blockedApp === detail.origin;
