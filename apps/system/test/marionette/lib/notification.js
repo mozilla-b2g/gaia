@@ -147,7 +147,7 @@ NotificationList.prototype = {
 
   // perform a tap action on the notification list
   tap: function(notificationDetails) {
-    this.client.findElement(notificationDetails.query).tap(1, 1);
+    this.client.helper.waitForElement(notificationDetails.query).tap(1, 1);
   },
 
   // make sure we have an item with given title and body
