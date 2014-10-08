@@ -12,7 +12,6 @@ require(
   '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-require('/shared/test/unit/mocks/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_system.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
@@ -2283,6 +2282,46 @@ suite('system/Statusbar', function() {
       StatusBar.update.time.call(StatusBar, '***');
 
       assert.notEqual(originalWidth, StatusBar.PRIORITIES[labelIndex][1]);
+    });
+  });
+
+  suite.only('Geolocation and recording', function() {
+    var updateIconSpy;
+    var cloneStatusbarSpy;
+
+    function StatusBarHandleEvent(type, active) {
+      StatusBar.handleEvent({
+        type: type[0],
+        detail: {
+          type: type[1],
+          active: active
+        }
+      });
+    }
+
+    setup(function() {
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+      cloneStatusbarSpy = this.sinon.spy(StatusBar, 'cloneStatusbar');
+    });
+
+    test('should reprioritise icons only once per call', function() {
+      var updateIconCallCount = 0;
+      var cloneStatusbarCallCount = 0;
+      [
+        ['mozChromeEvent', 'geolocation-status'],
+        ['recordingEvent', 'recording-state-changed']
+      ].forEach(function(type) {
+          StatusBarHandleEvent(type, true);
+          updateIconCallCount++;
+          cloneStatusbarCallCount++;
+          assert.equal(updateIconSpy.callCount, updateIconCallCount);
+          assert.equal(cloneStatusbarSpy.callCount, cloneStatusbarCallCount);
+
+          StatusBarHandleEvent(type, false);
+          cloneStatusbarCallCount++;
+          assert.equal(updateIconSpy.callCount, updateIconCallCount);
+          assert.equal(cloneStatusbarSpy.callCount, cloneStatusbarCallCount);
+        }.bind(this));
     });
   });
 });
