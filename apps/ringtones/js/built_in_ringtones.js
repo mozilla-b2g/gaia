@@ -205,13 +205,13 @@ window.builtInRingtones = (function() {
       return Promise.resolve(toneDefsCache[toneType]);
     }
    
-    return LazyLoader.getJSON(BASE_URLS[toneType]+'list.json')
-	    .then(function(json) {
-      		toneDefsCache[toneType] = json;
-      		return toneDefsCache[toneType];
+    return LazyLoader.getJSON(BASE_URLS[toneType] + 'list.json')
+	     .then(function(json) {
+      	    toneDefsCache[toneType] = json;
+      	    return toneDefsCache[toneType];
       }, function(error) {
-        console.error(error);
-        return error;
+            console.error(error);
+            return error;
      });  
   }
 
