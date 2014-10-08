@@ -18,7 +18,7 @@
 /*global TouchForwarder, FtuLauncher */
 /*global MobileOperator, SIMSlotManager, System */
 /*global Bluetooth */
-/*global UtilityTray, nfcManager */
+/*global UtilityTray */
 
 'use strict';
 
@@ -806,7 +806,7 @@ var StatusBar = {
     this.setActiveBattery(active);
 
     if (active) {
-      this.setActiveNfc(nfcManager.isActive());
+      this.setActiveNfc(false);
 
       this.addConnectionsListeners();
 

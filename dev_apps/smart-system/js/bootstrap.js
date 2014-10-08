@@ -9,9 +9,8 @@
         SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
+         SoftwareButtonManager, Accessibility, ShrinkingUI,
          TextSelectionDialog, SleepMenu, AppUsageMetrics,
-         NfcManager,
          ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator, ,
          EdgeSwipeDetector, QuickSettings */
@@ -145,9 +144,6 @@ window.addEventListener('load', function startup() {
   }
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
-  window.nfcUtils = new NfcUtils();
-  window.nfcManager = new NfcManager();
-  window.nfcManager.start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.places = new Places();
