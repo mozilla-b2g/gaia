@@ -135,7 +135,6 @@ var PowerSaveHandler = (function PowerSaveHandler() {
   var _powerSaveEnabled = false;
   var _states = {
     'wifi.enabled' : false,
-    'ril.data.enabled' : false,
     'bluetooth.enabled' : false,
     'geolocation.enabled' : false
   };
@@ -183,8 +182,6 @@ var PowerSaveHandler = (function PowerSaveHandler() {
     var settingsToSet = {
       // Turn off Wifi
       'wifi.enabled' : false,
-      // Turn off Data
-      'ril.data.enabled' : false,
       // Turn off Bluetooth
       'bluetooth.enabled' : false,
       // Turn off Geolocation

@@ -85,7 +85,7 @@
       return this._settings[key + '.suspended'];
     },
     init: function() {
-      ['ril.data', 'bluetooth', 'wifi', 'geolocation'].forEach(
+      ['bluetooth', 'wifi', 'geolocation'].forEach(
         this._initSetting.bind(this)
       );
     },

@@ -19,19 +19,10 @@ var UpdateManager = {
   _errorTimeout: null,
   _wifiLock: null,
   _systemUpdateDisplayed: false,
-  _dataConnectionWarningEnabled: true,
-  _startedDownloadUsingDataConnection: false,
   _settings: null,
   UPDATE_NOTIF_ID: 'update-notification',
   NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
   TOASTER_TIMEOUT: 1200,
-  UPDATE_2G_SETT: 'update.2g.enabled',
-  UPDATE_2G: false,
-  ROAMING_SETTING_KEY: 'ril.data.roaming_enabled',
-  DATA_TYPES_NO_ALLOWED: ['edge', 'gprs', '1xrtt', 'is95a', 'is95b'],
-  WIFI_PRIORITIZED: true,
-  WIFI_PRIORITIZED_KEY: 'app.update.wifi-prioritized',
-  connection2G: false,
 
   container: null,
   message: null,
@@ -40,11 +31,7 @@ var UpdateManager = {
   laterButton: null,
   notnowButton: null,
   downloadButton: null,
-  downloadViaDataConnectionButton: null,
   downloadDialog: null,
-  downloadViaDataConnectionTitle: null,
-  downloadViaDataConnectionDialog: null,
-  downloadViaDataConnectionMessage: null,
   downloadDialogTitle: null,
   downloadDialogList: null,
   lastUpdatesAvailable: 0,
@@ -78,29 +65,15 @@ var UpdateManager = {
     this.toasterMessage = this.toaster.querySelector('.message');
 
     this.laterButton = document.getElementById('updates-later-button');
-    this.notnowButton =
-      document.getElementById('updates-viaDataConnection-notnow-button');
     this.downloadButton = document.getElementById('updates-download-button');
-    this.downloadViaDataConnectionButton =
-      document.getElementById('updates-viaDataConnection-download-button');
     this.downloadDialog = document.getElementById('updates-download-dialog');
     this.downloadDialogTitle = this.downloadDialog.querySelector('h1');
     this.downloadDialogList = this.downloadDialog.querySelector('ul');
-    this.downloadViaDataConnectionDialog =
-      document.getElementById('updates-viaDataConnection-dialog');
-    this.downloadViaDataConnectionMessage =
-      this.downloadViaDataConnectionDialog.querySelector('p');
-    this.downloadViaDataConnectionTitle =
-      this.downloadViaDataConnectionDialog.querySelector('h1');
 
     this.container.onclick = this.containerClicked.bind(this);
     this.laterButton.onclick = this.cancelPrompt.bind(this);
     this.downloadButton.onclick = this.requestDownloads.bind(this);
     this.downloadDialogList.onchange = this.updateDownloadButton.bind(this);
-    this.notnowButton.onclick =
-      this.cancelDataConnectionUpdatesPrompt.bind(this);
-    this.downloadViaDataConnectionButton.onclick =
-      this.requestDownloads.bind(this);
 
     window.addEventListener('mozChromeEvent', this);
     window.addEventListener('applicationinstall', this);
@@ -117,24 +90,15 @@ var UpdateManager = {
     this.updateWifiStatus();
     this.updateOnlineStatus();
 
-    // Always display the warning after users reboot the phone.
-    this._dataConnectionWarningEnabled = true;
-    this.downloadDialog.dataset.dataConnectionInlineWarning = false;
   },
 
   requestDownloads: function um_requestDownloads(evt) {
     evt.preventDefault();
-    if (evt.target == this.downloadViaDataConnectionButton) {
-      this._startedDownloadUsingDataConnection = true;
-      this.startDownloads();
-    } else {
-      this.promptOrDownload();
-    }
+    this.promptOrDownload();
   },
 
   startDownloads: function um_startDownloads() {
     this.downloadDialog.classList.remove('visible');
-    this.downloadViaDataConnectionDialog.classList.remove('visible');
     UtilityTray.show();
 
     var checkValues = {};
@@ -186,7 +150,6 @@ var UpdateManager = {
     if (!this._wifiAvailable()) {
       return;
     }
-    this._startedDownloadUsingDataConnection = false;
     this.startDownloads();
   },
 
@@ -219,21 +182,6 @@ var UpdateManager = {
     }
 
     UtilityTray.hide();
-  },
-
-  showForbiddenDownload: function um_showForbiddenDownload() {
-    //Close any dialog if there is any open
-    CustomDialog.hide();
-    var ok = {
-      title: 'ok',
-      callback: this.cancelPrompt.bind(this)
-    };
-
-    var screen = document.getElementById('screen');
-
-    CustomDialog
-      .show('systemUpdate', 'downloadUpdatesVia2GForbidden3', ok, null, screen)
-      .setAttribute('data-z-index-level', 'system-dialog');
   },
 
   showDownloadPrompt: function um_showDownloadPrompt() {
@@ -333,91 +281,6 @@ var UpdateManager = {
     this.downloadDialog.classList.remove('visible');
   },
 
-  cancelDataConnectionUpdatesPrompt: function um_cancelDCUpdatesPrompt() {
-    CustomDialog.hide();
-    this.downloadViaDataConnectionDialog.classList.remove('visible');
-    this.downloadDialog.classList.remove('visible');
-  },
-
-  getWifiPrioritized: function um_getWifiPrioritized() {
-    var wifiPrioritized = this.WIFI_PRIORITIZED;
-    var settings = window.navigator.mozSettings;
-    var self = this;
-    var getRequest = settings.createLock().get(this.WIFI_PRIORITIZED_KEY);
-
-    return new Promise(function(resolve, reject) {
-      getRequest.onerror = function() {
-        resolve(wifiPrioritized);
-      };
-      getRequest.onsuccess = function() {
-        var prioritized = getRequest.result[self.WIFI_PRIORITIZED_KEY];
-        if (typeof prioritized !== 'boolean') {
-          prioritized = wifiPrioritized;
-        }
-        resolve(prioritized);
-      };
-    });
-  },
-
-  getUpdate2GEnabled: function um_getUpdate2GEnabled() {
-    var update2G = this.UPDATE_2G;
-    var settings = window.navigator.mozSettings;
-    var self = this;
-    var getRequest = settings.createLock().get(this.UPDATE_2G_SETT);
-
-    return new Promise(function(resolve, reject) {
-      getRequest.onerror = function() {
-        resolve(update2G);
-      };
-      getRequest.onsuccess = function() {
-        var setting = getRequest.result[self.UPDATE_2G_SETT];
-        if (typeof setting !== 'boolean') {
-          setting = update2G;
-        }
-        resolve(setting);
-      };
-    });
-  },
-
-  showPrompt3GAdditionalCostIfNeeded:
-    function um_showPrompt3GAdditionalCostIfNeeded() {
-    this._openDownloadViaDataDialog();
-    CustomDialog.hide();
-  },
-
-  showPromptWifiPrioritized:
-    function um_showPromptWifiPrioritized(downloadCallback) {
-    if (!downloadCallback) {
-      downloadCallback = this.showPrompt3GAdditionalCostIfNeeded;
-    }
-    var notNow = {
-      title: 'notNow',
-      callback: this.cancelPrompt.bind(this)
-    };
-
-    var download = {
-      title: 'download',
-      recommend: true,
-      callback: downloadCallback.bind(this)
-    };
-
-    var messageL10n = this.connection2G ? 'downloadWifiPrioritizedUsing2G' :
-      'downloadWifiPrioritized3';
-
-    this.downloadDialog.classList.remove('visible');
-
-    var screen = document.getElementById('screen');
-
-    UtilityTray.hide();
-    CustomDialog.show(
-      'systemUpdate',
-      messageL10n,
-      notNow,
-      download,
-      screen
-    ).setAttribute('data-z-index-level', 'system-dialog');
-  },
-
   downloadProgressed: function um_downloadProgress(bytes) {
     if (bytes > 0) {
       this._downloadedBytes += bytes;
@@ -426,11 +289,7 @@ var UpdateManager = {
   },
 
   downloaded: function um_downloaded(udatable) {
-    if (this._startedDownloadUsingDataConnection) {
-      this._startedDownloadUsingDataConnection = false;
-      this._dataConnectionWarningEnabled = false;
-      this.downloadDialog.dataset.dataConnectionInlineWarning = true;
-    }
+
   },
 
   startedUncompressing: function um_startedUncompressing() {
@@ -704,29 +563,6 @@ var UpdateManager = {
     lock.set({
       'gaia.system.checkForUpdates': false
     });
-  },
-
-  _openDownloadViaDataDialog: function um_downloadViaDataDialog() {
-    this.showForbiddenDownload();
-  },
-
-  _getDataRoamingSetting: function um_getDataRoamingSetting() {
-    var lock = this._settings.createLock();
-    var reqDataRoaming = lock.get(this.ROAMING_SETTING_KEY);
-    var dataRoamingSettingPromise;
-    var self = this;
-
-    dataRoamingSettingPromise = new Promise(function(resolve, reject) {
-      reqDataRoaming.onsuccess = function() {
-        resolve(reqDataRoaming.result[self.ROAMING_SETTING_KEY]);
-      };
-
-      reqDataRoaming.onerror = function() {
-        resolve(false);
-      };
-    });
-
-    return dataRoamingSettingPromise;
   },
 
   _dispatchEvent: function um_dispatchEvent(type, result) {

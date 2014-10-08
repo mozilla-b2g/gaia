@@ -27,30 +27,9 @@
      * ID of elements to create references
      * @memberof QuickSettings.prototype
      * @type {Array}
+     * ** data is for mozMobileConnection, we should remove it in the future.
      */
     ELEMENTS: ['wifi', 'data', 'bluetooth', 'airplane-mode', 'full-app'],
-
-    /**
-     * Setting key for the roaming dialog.
-     * @memberof QuickSettings.prototype
-     * @type {String}
-     */
-    WARNING_DIALOG_ENABLED_KEY:
-      'ril.data.roaming_enabled.warningDialog.enabled',
-
-    /**
-     * Setting key for data enabled.
-     * @memberof QuickSettings.prototype
-     * @type {String}
-     */
-    DATA_KEY: 'ril.data.enabled',
-
-    /**
-     * Setting key for data roaming enabled.
-     * @memberof QuickSettings.prototype
-     * @type {String}
-     */
-    DATA_ROAMING_KEY: 'ril.data.roaming_enabled',
 
     /**
      * Starts listening for events.
@@ -245,15 +224,7 @@
               break;
 
             case this.data:
-              if (this.data.dataset.airplaneMode !== 'true') {
-                // TODO should ignore the action if initialization isn't done
-                enabled = !!this.data.dataset.enabled;
-                if (enabled) {
-                  var cset = {};
-                  cset[this.DATA_KEY] = !enabled;
-                  this.setMozSettings(cset);
-                }
-              }
+              // keep ui but the logs should be removed
               break;
 
             case this.bluetooth:
@@ -410,45 +381,6 @@
         });
       }
     },
-
-    /**
-     * Checks if we are currently roaming or not.
-     * @memberof QuickSettings.prototype
-     */
-    checkDataRoaming: function qs_checkDataRoaming() {
-      var lock = SettingsListener.getSettingsLock();
-      var reqSetting = lock.get(this.DATA_ROAMING_KEY);
-      var self = this;
-      return new Promise(function(resolve, reject) {
-        reqSetting.onerror = function() {
-          resolve(true);
-        };
-        reqSetting.onsuccess = function() {
-          resolve(reqSetting.result[self.DATA_ROAMING_KEY]);
-        };
-      });
-    },
-
-    /**
-     * Checks whether or not we should prompt the user when enabling
-     * data roaming.
-     * @memberof QuickSettings.prototype
-     */
-    getDataRoamingWarning: function qs_getDataRoamingWarning() {
-      var lock = SettingsListener.getSettingsLock();
-      var reqSetting = lock.get(this.WARNING_DIALOG_ENABLED_KEY);
-      var self = this;
-
-      return new Promise(function(resolve, reject) {
-        reqSetting.onerror = function() {
-          resolve(true);
-        };
-
-        reqSetting.onsuccess = function() {
-          resolve(reqSetting.result[self.WARNING_DIALOG_ENABLED_KEY]);
-        };
-      });
-    }
   };
 
   exports.QuickSettings = QuickSettings;
