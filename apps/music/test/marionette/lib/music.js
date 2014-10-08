@@ -20,6 +20,16 @@ Music.Selector = Object.freeze({
   songsTab: '#tabs-songs',
   albumsTab: '#tabs-albums',
 
+  // search fields
+  searchTiles: '#views-tiles-search',
+  searchTilesField: '#views-tiles-search-input',
+  searchList: '#views-list-search',
+  searchListField: '#views-list-search-input',
+  // search results
+  searchArtists: '#views-search-artists',
+  searchAlbums: '#views-search-albums',
+  searchTitles: '#views-search-titles',
+
   viewsList: '#views-list-anchor',
   viewsSublist: '#views-sublist-anchor',
   firstSong: '.list-item',
@@ -163,6 +173,18 @@ Music.prototype = {
     var display = this.playerIcon.cssProperty('display');
     var result = (display !== 'none');
     assert.equal(shouldBeShown, result);
+  },
+
+  searchTiles: function(searchTerm) {
+    this.client.helper.waitForElement(Music.Selector.searchTiles);
+
+    var input = this.client.helper.waitForElement(
+      Music.Selector.searchTilesField);
+    assert.ok(input);
+
+    input.clear();
+    this.client.waitFor(input.displayed.bind(input));
+    input.sendKeys(searchTerm);
   },
 
   switchToSongsView: function() {
