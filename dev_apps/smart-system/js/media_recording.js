@@ -30,8 +30,6 @@
      * @memberof MediaRecording.prototype
      */
     start: function mr_start() {
-      this.container = document.getElementById('media-recording-status-list');
-
       window.addEventListener('mozChromeEvent', this);
     },
 
@@ -42,7 +40,6 @@
     stop: function mr_stop() {
       this.isRecording = false;
       this.messages = [];
-      this.container = null;
 
       window.removeEventListener('mozChromeEvent', this);
     },
@@ -140,54 +137,6 @@
     addMessage: function mr_addMessage(detail) {
       var item = this.createItem(detail);
       this.messages.push(item);
-
-      // attach panel
-      var _ = navigator.mozL10n.get;
-      var panelElement, iconElement, titleContainerElement, originElement,
-          messageElement, timerElement;
-      /* create panel
-       <div class="media-recording-status fake-notification" role="listitem">
-         <div data-icon="video"></div>
-         <div class="title-container">
-           <div class="origin"></div>
-           <div class="timestamp"></div>
-         </div>
-         <div class="message"></div>
-       </div>
-      */
-      panelElement = document.createElement('div');
-      panelElement.className = 'media-recording-status fake-notification';
-      panelElement.setAttribute('role', 'listitem');
-
-      iconElement = document.createElement('div');
-      iconElement.dataset.icon = item.icon;
-      iconElement.className = 'alert';
-      panelElement.appendChild(iconElement);
-
-      titleContainerElement = document.createElement('div');
-      titleContainerElement.className = 'title-container';
-      panelElement.appendChild(titleContainerElement);
-
-      originElement = document.createElement('div');
-      originElement.className = 'title';
-      originElement.textContent = item.origin;
-      titleContainerElement.appendChild(originElement);
-
-      timerElement = document.createElement('div');
-      timerElement.className = 'timestamp';
-      timerElement.dataset.timestamp = item.timestamp;
-      titleContainerElement.appendChild(timerElement);
-      panelElement.appendChild(titleContainerElement);
-
-      messageElement = document.createElement('div');
-      messageElement.className = 'message detail';
-      messageElement.textContent = _(item.message);
-      panelElement.appendChild(messageElement);
-
-      // remember element in item
-      item.element = panelElement;
-
-      this.container.appendChild(panelElement);
       this.updateRecordingStatus();
     },
 
@@ -202,9 +151,6 @@
         if (message.requestURL === detail.requestURL &&
             message.isApp === detail.isApp) {
           self.messages.splice(index, 1);
-          if (message.element) { // remove element
-            message.element.parentNode.removeChild(message.element);
-          }
           self.updateRecordingStatus();
           return true;
         }
@@ -216,17 +162,7 @@
      * @memberof MediaRecording.prototype
      */
     updateRecordingStatus: function mr_updateRecordingStatus() {
-      if (this.messages.length) { // show
-        if (!this.container.classList.contains('displayed')) {
-          this.container.classList.add('displayed');
-        }
-      } else { // hide
-        this.isRecording = false;
-        if (this.container.classList.contains('displayed')) {
-          this.container.classList.remove('displayed');
-        }
-      }
-
+      this.isRecording = this.messages.length > 0;
       // update statusbar status via custom event
       var event = new CustomEvent('recordingEvent', {
         detail: {
@@ -235,22 +171,6 @@
         }
       });
       window.dispatchEvent(event);
-    },
-
-    /**
-     * Return the formatted time string
-     * @memberof MediaRecording.prototype
-     * @param {Date} now The date/time where we receive the object.
-     * @returns {String}
-     */
-    getFormattedTimeString: function mr_getFormattedTimeString(now) {
-      var _ = navigator.mozL10n.get;
-      var f = new navigator.mozL10n.DateTimeFormat();
-      var timeFormat = window.navigator.mozHour12 ?
-        _('shortTimeFormat12') : _('shortTimeFormat24');
-      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
-      var formatted = f.localeFormat(now, timeFormat);
-      return formatted;
     }
   };
 
