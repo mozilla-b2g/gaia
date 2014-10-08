@@ -216,7 +216,7 @@
 
       this.resetTransition();
       /* The AttentionToaster will take care of that for AttentionWindows */
-      if (!this.app.isAttentionWindow && !this.app.isCallscreenWindow) {
+      if (!this.app.isAttentionWindow) {
         this.app.setVisible(false);
       }
 
@@ -266,7 +266,7 @@
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.
-      if (!this.app.isAttentionWindow && !this.app.isCallscreenWindow) {
+      if (!this.app.isAttentionWindow) {
         this.app.setOrientation();
       }
       this.focusApp();

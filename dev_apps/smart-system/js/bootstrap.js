@@ -4,7 +4,7 @@
 /*global ActivityWindowManager, SecureWindowFactory,
          SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
-         DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
+         DeveloperHUD, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage, TaskManager,
         SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
@@ -123,8 +123,6 @@ window.addEventListener('load', function startup() {
   /** @global */
   window.attentionWindowManager = new window.AttentionWindowManager();
   window.attentionWindowManager.start();
-  window.dialerAgent = new DialerAgent();
-  window.dialerAgent.start();
   window.edgeSwipeDetector = new EdgeSwipeDetector();
   window.edgeSwipeDetector.start();
   window.externalStorageMonitor = new ExternalStorageMonitor();

@@ -241,7 +241,7 @@
   border: 0;
 }
 
-.appWindow.attentionWindow.callscreenWindow,
+.appWindow.attentionWindow,
 .appWindow.attentionWindow[transition-state="closed"] {
   transform: translateY(calc(-100%));
   opacity: 1;

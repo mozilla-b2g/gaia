@@ -179,7 +179,6 @@
           }.bind(this));
           break;
 
-        // For callscreen window.
         case 'attentionshown':
           if (this._instances.indexOf(attention) < 0) {
             this._instances.push(attention);
