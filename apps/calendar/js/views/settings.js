@@ -31,6 +31,11 @@
     _localUpdate: false,
 
     /**
+     * used to signal if transitionEnd was triggered by a "hide" action
+     */
+    _hiding: false,
+
+    /**
      * Name of the class that will be applied to the
      * body element when sync is in progress.
      */
@@ -312,7 +317,7 @@
 
     _onDrawerTransitionEnd: function(e) {
       this._updateDrawerAnimState('done');
-      if (!document.body.classList.contains('settings-drawer-visible')) {
+      if (this._hiding) {
         this.app.resetState();
       }
     },
@@ -325,11 +330,13 @@
     },
 
     _hideSettings: function() {
+      this._hiding = true;
       this._updateDrawerAnimState('animating');
       document.body.classList.remove('settings-drawer-visible');
     },
 
     _animateDrawer: function() {
+      this._hiding = false;
       // Wait for both _rendered and _activated before triggering
       // the animation, so that it is smooth, without jank due to
       // changes in style/layout from activating or rendering.
@@ -349,7 +356,7 @@
       // onactive can be called more times than oninactive, since
       // settings can overlay over and not trigger an inactive state,
       // so only bind these listeners and do the drawer animation once.
-      if (!document.body.classList.contains('settings-drawer-visible')) {
+      if (!this._activated) {
         this._activated = true;
         this._animateDrawer();
 
