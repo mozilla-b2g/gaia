@@ -94,10 +94,6 @@
      { "notification": "/index.html" }
   ],
   "connections": {
-    "mediacomms": {
-      "description": "Communication with media apps for now playing info",
-      "rules": {}
-    },
     "search-results": {
       "description": "Communicate between search results and search app",
       "rules": {}
