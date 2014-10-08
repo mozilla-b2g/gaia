@@ -48,7 +48,7 @@ suite('VCardReader', function() {
     };
 
     realRest = window.Rest;
-    window.Rest = MockRest;  
+    window.Rest = MockRest;
     window.Rest.configure({
       'http://www.example.com/dir_photos/my_photo.gif':
         VCardReader.b64toBlob(b64Photo, 'image/bmp'),
@@ -74,19 +74,28 @@ suite('VCardReader', function() {
 
     test('should be calling onsuccess after reading the first', function(done) {
       var cursor = reader.getAll();
+
       cursor.onsuccess = function(evt) {
-        cursor.continue();
-        done();
+        done(function() {
+          var contact = evt.target.result;
+          assert.isTrue(typeof contact !== 'undefined' && contact !== null);
+        });
       };
     });
 
-    test('should be calling onfinished when done', function(done) {
+    test('should be calling with no result when done', function(done) {
       var cursor = reader.getAll();
+
       cursor.onsuccess = function(evt) {
-        cursor.continue();
-      };
-      cursor.onfinished = function() {
-        done();
+        console.log('On success called');
+        if (evt.target.result) {
+          cursor.continue();
+        }
+        else {
+          done(function() {
+            assert.ok('ok');
+          });
+        }
       };
     });
 
@@ -94,41 +103,41 @@ suite('VCardReader', function() {
       var cursor = reader.getAll();
       cursor.onsuccess = function(evt) {
         var contact = evt.target.result;
-        assert.strictEqual('Gump Fórrest', contact.name[0]);
-        assert.strictEqual('Fórrest', contact.givenName[0]);
-        assert.strictEqual('Bóbba Gump Shrimp Co.', contact.org[0]);
-        assert.strictEqual('Shrómp Man', contact.jobTitle[0]);
+        done(function() {
+          assert.strictEqual('Gump Fórrest', contact.name[0]);
+          assert.strictEqual('Fórrest', contact.givenName[0]);
+          assert.strictEqual('Bóbba Gump Shrimp Co.', contact.org[0]);
+          assert.strictEqual('Shrómp Man', contact.jobTitle[0]);
 
-        assert.strictEqual('work', contact.tel[0].type[0]);
-        assert.strictEqual('(111) 555-1212', contact.tel[0].value);
-        assert.strictEqual('home', contact.tel[1].type[0]);
-        assert.strictEqual('(404) 555-1212', contact.tel[1].value);
-        assert.strictEqual('WORK', contact.adr[0].type[0]);
+          assert.strictEqual('work', contact.tel[0].type[0]);
+          assert.strictEqual('(111) 555-1212', contact.tel[0].value);
+          assert.strictEqual('home', contact.tel[1].type[0]);
+          assert.strictEqual('(404) 555-1212', contact.tel[1].value);
+          assert.strictEqual('WORK', contact.adr[0].type[0]);
 
-        assert.strictEqual('100 Wáters Edge', contact.adr[0].streetAddress);
-        assert.strictEqual('Baytown', contact.adr[0].locality);
-        assert.strictEqual('LA', contact.adr[0].region);
-        assert.strictEqual('30314', contact.adr[0].postalCode);
-        assert.strictEqual('United States of America',
-          contact.adr[0].countryName);
+          assert.strictEqual('100 Wáters Edge', contact.adr[0].streetAddress);
+          assert.strictEqual('Baytown', contact.adr[0].locality);
+          assert.strictEqual('LA', contact.adr[0].region);
+          assert.strictEqual('30314', contact.adr[0].postalCode);
+          assert.strictEqual('United States of America',
+            contact.adr[0].countryName);
 
-        assert.strictEqual('HOME', contact.adr[1].type[0]);
-        assert.strictEqual('42 Plantation St.', contact.adr[1].streetAddress);
-        assert.strictEqual('Baytown', contact.adr[1].locality);
-        assert.strictEqual('LA', contact.adr[1].region);
-        assert.strictEqual('30314', contact.adr[1].postalCode);
-        assert.strictEqual('United States of America',
-          contact.adr[1].countryName);
+          assert.strictEqual('HOME', contact.adr[1].type[0]);
+          assert.strictEqual('42 Plantation St.', contact.adr[1].streetAddress);
+          assert.strictEqual('Baytown', contact.adr[1].locality);
+          assert.strictEqual('LA', contact.adr[1].region);
+          assert.strictEqual('30314', contact.adr[1].postalCode);
+          assert.strictEqual('United States of America',
+            contact.adr[1].countryName);
 
-        assert.strictEqual('forrestgump@example.com', contact.email[0].value);
-        assert.strictEqual('internet', contact.email[0].type[0]);
+          assert.strictEqual('forrestgump@example.com', contact.email[0].value);
+          assert.strictEqual('internet', contact.email[0].type[0]);
 
-        assert.equal(new Date(Date.UTC(1975, 4, 20)).toISOString(),
-                     contact.bday.toISOString());
-        assert.equal(new Date(Date.UTC(2004, 0, 20)).toISOString(),
-                      contact.anniversary.toISOString());
-
-        done();
+          assert.equal(new Date(Date.UTC(1975, 4, 20)).toISOString(),
+                       contact.bday.toISOString());
+          assert.equal(new Date(Date.UTC(2004, 0, 20)).toISOString(),
+                        contact.anniversary.toISOString());
+        });
       };
     });
   });
@@ -147,13 +156,16 @@ suite('VCardReader', function() {
     test('cursor onsuccess is called 6 times', function(done) {
       var contactCount = 0;
       var cursor = reader.getAll();
-      cursor.onsuccess = function() {
-        contactCount++;
-        cursor.continue();
-      };
-      cursor.onfinished = function() {
-        assert.strictEqual(contactCount, 6);
-        done();
+      cursor.onsuccess = function(evt) {
+        if (evt.target.result) {
+          contactCount++;
+          cursor.continue();
+        }
+        else {
+          done(function() {
+             assert.strictEqual(contactCount, 6);
+          });
+        }
       };
     });
 
@@ -167,31 +179,36 @@ suite('VCardReader', function() {
       contacts = [];
       initializeVCardReader('vcard_21_photo.vcf', function(reader) {
         var cursor = reader.getAll();
+        var count = 0;
         cursor.onsuccess = function(evt) {
-          contacts[evt.target.count] = evt.target.result;
-          cursor.continue();
-        };
-        cursor.onfinished = function() {
-          done();
+          if (evt.target.result) {
+            contacts[count++] = evt.target.result;
+            cursor.continue();
+          }
+          else {
+            done();
+          }
         };
       });
     });
 
     test('contact with embedded photo', function(done) {
       toDataUri(contacts[0].photo[0], function(r) {
-        assert.strictEqual(b64Photo,
-         VCardReader.parseDataUri(r.result).value);
-        assert.strictEqual('image/bmp', contacts[0].photo[0].type);
-        done();
+        done(function() {
+          assert.strictEqual(b64Photo,
+                              VCardReader.parseDataUri(r.result).value);
+          assert.strictEqual('image/bmp', contacts[0].photo[0].type);
+        });
       });
     });
 
     test('contact with URL photo', function(done) {
       toDataUri(contacts[1].photo[0], function(r) {
-        assert.strictEqual(b64Photo,
-         VCardReader.parseDataUri(r.result).value);
-        assert.strictEqual('image/bmp', contacts[1].photo[0].type);
-        done();
+        done(function() {
+          assert.strictEqual(b64Photo,
+                            VCardReader.parseDataUri(r.result).value);
+          assert.strictEqual('image/bmp', contacts[1].photo[0].type);
+        });
       });
     });
 
@@ -199,7 +216,7 @@ suite('VCardReader', function() {
       assert.ok(typeof contacts[2].photo, 'undefined');
     });
   });
-  
+
   suite('reading a VCard 2.1 file with quoted printable', function() {
 
     var reader;
@@ -212,26 +229,28 @@ suite('VCardReader', function() {
     });
 
     test('contact data should be properly parsed', function(done) {
-      var contactNum = 0;
+      var contacts = [];
       var cursor = reader.getAll();
+
       cursor.onsuccess = function(evt) {
         var contact = evt.target.result;
-        contactNum++;
-        if (contactNum === 1) {
-          assert.strictEqual('Tanja Tanzbein', contact.name[0]);
-          assert.strictEqual('Tanja', contact.givenName[0]);
-          assert.strictEqual('work', contact.tel[0].type[0]);
-          assert.strictEqual('+3434269362248', contact.tel[0].value);
-        } else if (contactNum === 2) {
-          assert.strictEqual('Thomas Rücker', contact.name[0]);
-          assert.strictEqual('Thomas', contact.givenName[0]);
-          assert.strictEqual('mobile', contact.tel[0].type[0]);
-          assert.strictEqual('+72682252873', contact.tel[0].value);
+        if (contact) {
+          contacts.push(contact);
+          cursor.continue();
         }
-        cursor.continue();
-      };
-      cursor.onfinished = function() {
-        done();
+        else {
+          done(function() {
+            assert.strictEqual('Tanja Tanzbein', contacts[0].name[0]);
+            assert.strictEqual('Tanja', contacts[0].givenName[0]);
+            assert.strictEqual('work', contacts[0].tel[0].type[0]);
+            assert.strictEqual('+3434269362248', contacts[0].tel[0].value);
+
+            assert.strictEqual('Thomas Rücker', contacts[1].name[0]);
+            assert.strictEqual('Thomas', contacts[1].givenName[0]);
+            assert.strictEqual('mobile', contacts[1].tel[0].type[0]);
+            assert.strictEqual('+72682252873', contacts[1].tel[0].value);
+          });
+        }
       };
     });
   });
@@ -249,9 +268,11 @@ suite('VCardReader', function() {
       var cursor = reader.getAll();
       cursor.onsuccess = function(evt) {
         var contact = evt.target.result;
-        assert.strictEqual(
-          'Freunde und Förderer TU Dresden', contact.org[0]);
-        done();         
+
+        done(function() {
+          assert.strictEqual(
+                        'Freunde und Förderer TU Dresden', contact.org[0]);
+        });
       };
     });
 
@@ -270,44 +291,48 @@ suite('VCardReader', function() {
       var cursor = reader.getAll();
       cursor.onsuccess = function(evt) {
         var contact = evt.target.result;
-        assert.strictEqual('Forrest Gump', contact.name[0]);
-        assert.strictEqual('Forrest', contact.givenName[0]);
-        assert.strictEqual('Bubba Gump Shrimp Co.', contact.org[0]);
-        assert.strictEqual('Shrimp Man', contact.jobTitle[0]);
-
-        assert.strictEqual('work', contact.tel[0].type[0]);
-        assert.strictEqual('(111) 555-1212', contact.tel[0].value);
-        assert.strictEqual('home', contact.tel[1].type[0]);
-        assert.strictEqual('(404) 555-1212', contact.tel[1].value);
-
-        assert.strictEqual('WORK', contact.adr[0].type[0]);
-        assert.strictEqual('100 Waters Edge', contact.adr[0].streetAddress);
-        assert.strictEqual('Baytown', contact.adr[0].locality);
-        assert.strictEqual('LA', contact.adr[0].region);
-        assert.strictEqual('30314', contact.adr[0].postalCode);
-        assert.strictEqual('United States of America',
-          contact.adr[0].countryName);
-
-        assert.strictEqual('HOME', contact.adr[1].type[0]);
-        assert.strictEqual('42 Plantation St.', contact.adr[1].streetAddress);
-        assert.strictEqual('Baytown', contact.adr[1].locality);
-        assert.strictEqual('LA', contact.adr[1].region);
-        assert.strictEqual('30314', contact.adr[1].postalCode);
-        assert.strictEqual('United States of America',
-          contact.adr[1].countryName);
-
-        assert.strictEqual('forrestgump@example.com', contact.email[0].value);
-        assert.strictEqual('internet', contact.email[0].type[0]);
 
         toDataUri(contact.photo[0], function(r) {
-          assert.strictEqual(b64Photo,
-           VCardReader.parseDataUri(r.result).value);
-          assert.strictEqual('image/bmp', contact.photo[0].type);
-          done();
+          done(function() {
+            assert.strictEqual('Forrest Gump', contact.name[0]);
+            assert.strictEqual('Forrest', contact.givenName[0]);
+            assert.strictEqual('Bubba Gump Shrimp Co.', contact.org[0]);
+            assert.strictEqual('Shrimp Man', contact.jobTitle[0]);
+
+            assert.strictEqual('work', contact.tel[0].type[0]);
+            assert.strictEqual('(111) 555-1212', contact.tel[0].value);
+            assert.strictEqual('home', contact.tel[1].type[0]);
+            assert.strictEqual('(404) 555-1212', contact.tel[1].value);
+
+            assert.strictEqual('WORK', contact.adr[0].type[0]);
+            assert.strictEqual('100 Waters Edge', contact.adr[0].streetAddress);
+            assert.strictEqual('Baytown', contact.adr[0].locality);
+            assert.strictEqual('LA', contact.adr[0].region);
+            assert.strictEqual('30314', contact.adr[0].postalCode);
+            assert.strictEqual('United States of America',
+              contact.adr[0].countryName);
+
+            assert.strictEqual('HOME', contact.adr[1].type[0]);
+            assert.strictEqual('42 Plantation St.',
+                               contact.adr[1].streetAddress);
+            assert.strictEqual('Baytown', contact.adr[1].locality);
+            assert.strictEqual('LA', contact.adr[1].region);
+            assert.strictEqual('30314', contact.adr[1].postalCode);
+            assert.strictEqual('United States of America',
+              contact.adr[1].countryName);
+
+            assert.strictEqual('forrestgump@example.com',
+                               contact.email[0].value);
+            assert.strictEqual('internet', contact.email[0].type[0]);
+
+            assert.strictEqual(b64Photo,
+                                VCardReader.parseDataUri(r.result).value);
+
+            assert.strictEqual('image/bmp', contact.photo[0].type);
+          });
         });
       };
     });
-
   });
 
   suite('reading a VCard 3.0 file with utf8 characters', function(done) {
@@ -323,17 +348,19 @@ suite('VCardReader', function() {
       var cursor = reader.getAll();
       cursor.onsuccess = function(evt) {
         var contact = evt.target.result;
-        assert.strictEqual('Foo Bar', contact.name[0]);
-        assert.strictEqual('Foo', contact.givenName[0]);
-        assert.ok(contact.tel[0].type.indexOf('mobile') > -1);
-        assert.ok(contact.tel[1].type.indexOf('work') > -1);
-        assert.strictEqual(true, contact.tel[0].pref);
-        assert.strictEqual('(123) 456-7890', contact.tel[0].value);
-        assert.strictEqual('(123) 666-7890', contact.tel[1].value);
-        assert.ok(!contact.org[0]);
-        assert.strictEqual('home', contact.email[0].type[0]);
-        assert.strictEqual('example@example.org', contact.email[0].value);
-        done();
+
+        done(function() {
+          assert.strictEqual('Foo Bar', contact.name[0]);
+          assert.strictEqual('Foo', contact.givenName[0]);
+          assert.ok(contact.tel[0].type.indexOf('mobile') > -1);
+          assert.ok(contact.tel[1].type.indexOf('work') > -1);
+          assert.strictEqual(true, contact.tel[0].pref);
+          assert.strictEqual('(123) 456-7890', contact.tel[0].value);
+          assert.strictEqual('(123) 666-7890', contact.tel[1].value);
+          assert.ok(!contact.org[0]);
+          assert.strictEqual('home', contact.email[0].type[0]);
+          assert.strictEqual('example@example.org', contact.email[0].value);
+        });
       };
     });
   });
@@ -351,38 +378,42 @@ suite('VCardReader', function() {
       var cursor = reader.getAll();
       cursor.onsuccess = function(evt) {
         var contact = evt.target.result;
-        assert.strictEqual('Forrest Gump', contact.name[0]);
-        assert.strictEqual('Forrest', contact.givenName[0]);
-        assert.strictEqual('Bubba Gump Shrimp Co.', contact.org[0]);
-        assert.strictEqual('Shrimp Man', contact.jobTitle[0]);
 
-        assert.strictEqual('work', contact.tel[0].type[0]);
-        assert.strictEqual('+1-111-555-1212', contact.tel[0].value);
-        assert.strictEqual('home', contact.tel[1].type[0]);
-        assert.strictEqual('+1-404-555-1212', contact.tel[1].value);
-
-        assert.strictEqual('work', contact.adr[0].type[0]);
-
-        assert.strictEqual('100 Waters Edge', contact.adr[0].streetAddress);
-        assert.strictEqual('Baytown', contact.adr[0].locality);
-        assert.strictEqual('LA', contact.adr[0].region);
-        assert.strictEqual('30314', contact.adr[0].postalCode);
-        assert.strictEqual('United States of America',
-          contact.adr[0].countryName);
-        assert.strictEqual('home', contact.adr[1].type[0]);
-        assert.strictEqual('42 Plantation St.', contact.adr[1].streetAddress);
-        assert.strictEqual('Baytown', contact.adr[1].locality);
-        assert.strictEqual('LA', contact.adr[1].region);
-        assert.strictEqual('30314', contact.adr[1].postalCode);
-        assert.strictEqual('United States of America',
-          contact.adr[1].countryName);
-
-        assert.strictEqual('forrestgump@example.com', contact.email[0].value);
         toDataUri(contact.photo[0], function(r) {
-          assert.strictEqual(b64Photo,
-           VCardReader.parseDataUri(r.result).value);
-          assert.strictEqual('image/bmp', contact.photo[0].type);
-          done();
+          done(function() {
+            assert.strictEqual('Forrest Gump', contact.name[0]);
+            assert.strictEqual('Forrest', contact.givenName[0]);
+            assert.strictEqual('Bubba Gump Shrimp Co.', contact.org[0]);
+            assert.strictEqual('Shrimp Man', contact.jobTitle[0]);
+
+            assert.strictEqual('work', contact.tel[0].type[0]);
+            assert.strictEqual('+1-111-555-1212', contact.tel[0].value);
+            assert.strictEqual('home', contact.tel[1].type[0]);
+            assert.strictEqual('+1-404-555-1212', contact.tel[1].value);
+
+            assert.strictEqual('work', contact.adr[0].type[0]);
+
+            assert.strictEqual('100 Waters Edge', contact.adr[0].streetAddress);
+            assert.strictEqual('Baytown', contact.adr[0].locality);
+            assert.strictEqual('LA', contact.adr[0].region);
+            assert.strictEqual('30314', contact.adr[0].postalCode);
+            assert.strictEqual('United States of America',
+              contact.adr[0].countryName);
+            assert.strictEqual('home', contact.adr[1].type[0]);
+            assert.strictEqual('42 Plantation St.',
+                               contact.adr[1].streetAddress);
+            assert.strictEqual('Baytown', contact.adr[1].locality);
+            assert.strictEqual('LA', contact.adr[1].region);
+            assert.strictEqual('30314', contact.adr[1].postalCode);
+            assert.strictEqual('United States of America',
+              contact.adr[1].countryName);
+
+            assert.strictEqual('forrestgump@example.com',
+                               contact.email[0].value);
+            assert.strictEqual(b64Photo,
+                                VCardReader.parseDataUri(r.result).value);
+            assert.strictEqual('image/bmp', contact.photo[0].type);
+          });
         });
       };
     });

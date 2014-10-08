@@ -4,7 +4,196 @@
 (function() {
 
   'use strict';
-  
+
+  /**
+   *  VCardReader object. It allows to read sequentially a set of
+   *  vCard objects present on a vCard File.
+   *
+   *  Example of use:
+   *
+   *  var reader = new VCardReader(vcardData);
+   *  var cursor = reader.getAll();
+   *
+   *  cursor.onsuccess = function(evt) {
+   *    var contact = evt.target.result;
+   *    if(contact) {
+   *      // do something
+   *      cursor.continue();
+   *     }
+   *     else {
+   *      // We've just finished
+   *     }
+   *  }
+   *
+   */
+  window.VCardReader = function VCardReader(data) {
+    var content = data.replace(/\r\n|\r|\n/g, '\n');
+    var currentIndex = 0;
+
+    this.getAll = function() {
+      return new Cursor();
+    };
+
+    function Cursor() {
+      var self = this;
+
+      this._doRead = function() {
+        LazyLoader.load(dependencies, function() {
+          _readNext(function(contact) {
+            self.result = contact;
+            self.callback({
+              target: self
+            });
+          });
+        });
+      };
+
+      Object.defineProperty(this, 'onsuccess', {
+        set: function(cb) {
+          self.callback = cb;
+          self._doRead();
+        }
+      });
+
+      this.continue = function() {
+        // If there was no previous result. do nothing
+        if (this.result) {
+          this._doRead();
+        }
+      };
+    }
+
+    function _getCardLines() {
+      var currentLine = '';
+      var inLabel = false;
+      var multiline = false;
+
+      var lines = [];
+
+      // We start at the last cursor position
+      var i = currentIndex;
+
+      for (var l = content.length; i < l; i++) {
+        currentIndex = i;
+        var ch = content[i];
+        if (ch === '"') {
+          inLabel = !inLabel;
+          currentLine += ch;
+          continue;
+        }
+
+        // Ignore beginning whitespace that indicates multiline field.
+        if (multiline === true) {
+          if ((/[\r\t\s\n]/).test(ch)) {
+            continue;
+          } else {
+            //currentLine += '\n'
+            multiline = false;
+          }
+        }
+
+        var next = content[i + 1];
+        if (inLabel || (ch !== '\n' && ch !== '\r')) {
+          // If we have a quoted-printable sign for multiline (/=\n/) AND
+          // we are not in a data URI field, ignore the character.
+          if (!(/^PHOTO/i).test(currentLine) && ch === '=' && next &&
+              next.search(/(\r|\n)/) !== -1) {
+            multiline = true;
+            continue;
+          }
+          currentLine += ch;
+
+          // Continue only if this is not the last char in the string
+          if (i !== l - 1) {
+            continue;
+          }
+        }
+
+        // If the field is a photo, the field could be multiline, to know if the
+        // following line is part of the photo, we must check if the first char
+        // of the following line is a space.
+        var firstCharNextLine = content[i + 2];
+        if ((firstCharNextLine === WHITE_SPACE) && (/[\r\t\s\n]/).test(next) &&
+          (/^PHOTO/i).test(currentLine)) {
+            multiline = true;
+            continue;
+        }
+
+        // At this point, we know that ch is a newline, and in the vcard format,
+        // if we have a space after a newline, it indicates multiline field.
+        if (next && (next === WHITE_SPACE || next === '\t')) {
+          multiline = true;
+          continue;
+        }
+
+        if (reBeginCard.test(currentLine)) {
+          currentLine = '';
+          continue;
+        }
+
+        // If the current line indicates the end of a card,
+        if (reEndCard.test(currentLine)) {
+          break;
+        }
+
+        if (currentLine && !reVersion.test(currentLine)) {
+          lines.push(currentLine);
+        }
+        currentLine = '';
+      }
+
+      currentIndex++;
+      return lines;
+    }
+
+    // look if there is more cards to read
+    function _checkFinished() {
+      return !content.substr(currentIndex).match(/end:vcard/gi);
+    }
+
+    function _readNext(cb) {
+      var fields = {};
+      var lines;
+      var line;
+      var parsedLine;
+
+      if (_checkFinished()) {
+        cb();
+        return;
+      }
+
+      lines = _getCardLines();
+
+      for (var i = 0; i < lines.length; i++) {
+        line = lines[i];
+        parsedLine = _parseLine(line);
+
+        if (parsedLine) {
+          if (!fields[parsedLine.key]) {
+            fields[parsedLine.key] = [];
+          }
+          fields[parsedLine.key].push(parsedLine.data);
+        }
+      }
+
+      // If there isn't either a First Name (fn) or a Name (n) this card is not
+      // a valid one, ignore and try to parse the next one.
+      if (!fields.fn && !fields.n) {
+        console.warn('Invalid vCard found. skipping');
+
+        if (_checkFinished()) {
+          cb();
+        } else {
+          _readNext(function(contact) {
+            cb(contact);
+          });
+        }
+      } else {
+        vcardToContact(fields, cb);
+      }
+    }
+  };   // End of VCardReader
+
   function parseDataUri(str) {
     var re = /^data:(.+);(charset=([^;]+))?;?base64,(.*)$/;
     var matches = re.exec(str);
@@ -114,177 +303,6 @@
     '/shared/js/contacts/import/utilities/misc.js',
     '/shared/js/contacts/utilities/http_rest.js'
   ];
-
-  window.VCardReader = function VCardReader(data) {
-    var content = data.replace(/\r\n|\r|\n/g, '\n');
-    var currentIndex = 0;
-    var contactCount = 0;
-    var finished = false;
-
-    this.getAll = function() {
-      var self = this;
-      var cursor = {
-        continue: function() {
-          readNext.call(self, cursor); 
-        }
-      };
-      setTimeout(function() {
-        cursor.continue();
-      }, 0);
-      return cursor;
-    };
-
-    function readNext(cursor) {
-      if (_checkFinished()) {
-        if (!finished && cursor.onfinished) {
-          cursor.onfinished(); 
-        }
-        finished = true;
-      } else {
-        LazyLoader.load(dependencies, function() {
-          _readNext(function (contact) {
-            if (contact) {
-              contactCount++;
-              if (cursor.onsuccess) {
-                var evt = {
-                  target: { result: contact, count: contactCount-1 }
-                };
-                cursor.onsuccess(evt); 
-              }
-            }
-          });
-        });
-      }
-    }
-
-    function _getCardLines() {
-      var currentLine = '';
-      var inLabel = false;
-      var multiline = false;
-
-      var lines = [];
-
-      // We start at the last cursor position
-      var i = currentIndex;
-
-      for (var l = content.length; i < l; i++) {
-        currentIndex = i;
-        var ch = content[i];
-        if (ch === '"') {
-          inLabel = !inLabel;
-          currentLine += ch;
-          continue;
-        }
-
-        // Ignore beginning whitespace that indicates multiline field.
-        if (multiline === true) {
-          if ((/[\r\t\s\n]/).test(ch)) {
-            continue;
-          } else {
-            //currentLine += '\n'
-            multiline = false;
-          }
-        }
-
-        var next = content[i + 1];
-        if (inLabel || (ch !== '\n' && ch !== '\r')) {
-          // If we have a quoted-printable sign for multiline (/=\n/) AND
-          // we are not in a data URI field, ignore the character.
-          if (!(/^PHOTO/i).test(currentLine) && ch === '=' && next &&
-              next.search(/(\r|\n)/) !== -1) {
-            multiline = true;
-            continue;
-          }
-          currentLine += ch;
-
-          // Continue only if this is not the last char in the string
-          if (i !== l - 1) {
-            continue;
-          }
-        }
-
-        // If the field is a photo, the field could be multiline, to know if the
-        // following line is part of the photo, we must check if the first char
-        // of the following line is a space.
-        var firstCharNextLine = content[i + 2];
-        if ((firstCharNextLine === WHITE_SPACE) && (/[\r\t\s\n]/).test(next) &&
-          (/^PHOTO/i).test(currentLine)) {
-            multiline = true;
-            continue;
-        }
-
-        // At this point, we know that ch is a newline, and in the vcard format,
-        // if we have a space after a newline, it indicates multiline field.
-        if (next && (next === WHITE_SPACE || next === '\t')) {
-          multiline = true;
-          continue;
-        }
-
-        if (reBeginCard.test(currentLine)) {
-          currentLine = '';
-          continue;
-        }
-
-        // If the current line indicates the end of a card,
-        if (reEndCard.test(currentLine)) {
-          break;
-        }
-
-        if (currentLine && !reVersion.test(currentLine)) {
-          lines.push(currentLine);
-        }
-        currentLine = '';
-      }
-
-      currentIndex++;
-      return lines;
-    }
-
-    // look if there is more cards to read
-    function _checkFinished() {
-      return !content.substr(currentIndex).match(/end:vcard/gi);
-    }
-
-    function _readNext(cb) {
-      var fields = {};
-      var lines;
-      var line;
-      var parsedLine;
-
-      if (_checkFinished()) {
-        cb();
-      }
-
-      lines = _getCardLines();
-
-      for (var i = 0; i < lines.length; i++) {
-        line = lines[i];
-        parsedLine = _parseLine(line);
-
-        if (parsedLine) {
-          if (!fields[parsedLine.key]) {
-            fields[parsedLine.key] = [];
-          }
-          fields[parsedLine.key].push(parsedLine.data);
-        }
-      }
-
-      // If there isn't either a First Name (fn) or a Name (n) this card is not
-      // a valid one, ignore and try to parse the next one.
-      if (!fields.fn && !fields.n) {
-        if (_checkFinished()) {
-          cb();
-        } else {
-          _readNext(function(contact) {
-            cb(contact);
-          });
-        }
-      } else {
-        vcardToContact(fields, cb);
-      }
-    }
-
-  };
 
   /**
    * Parses a line and creates an object with the line type (name), its meta
@@ -711,4 +729,3 @@
   window.VCardReader.parseDataUri = parseDataUri;
 
 })();
-
