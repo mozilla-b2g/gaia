@@ -145,6 +145,9 @@
     "pt-BR": [
         {"layoutId": "pt-BR", "app": ["apps", "keyboard"]}
     ],
+    "pt-PT": [
+        {"layoutId": "pt-PT", "app": ["apps", "keyboard"]}
+    ],
     "qps-ploc": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
