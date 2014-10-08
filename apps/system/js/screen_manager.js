@@ -77,7 +77,7 @@ var ScreenManager = {
    * When brightening or dimming the screen, this is how much we adjust
    * the brightness value at a time.
    */
-  BRIGHTNESS_ADJUST_STEP: 0.01,
+  BRIGHTNESS_ADJUST_STEP: 0.001,
 
   /*
    * Wait for _dimNotice milliseconds during idle-screen-off
