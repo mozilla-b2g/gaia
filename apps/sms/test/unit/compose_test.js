@@ -888,20 +888,36 @@ suite('compose_test.js', function() {
     });
 
     suite('Compose fromMessage', function() {
+      var xssString = '<img src="/" onerror="delete window.Compose;" />';
+      var escapedXssString =
+        '&lt;img src="/" onerror="delete window.Compose;" /&gt;';
+
       setup(function() {
         this.sinon.spy(Compose, 'append');
         this.sinon.spy(HTMLElement.prototype, 'focus');
         this.sinon.stub(SMIL, 'parse');
       });
+
       test('from sms', function() {
-        Compose.fromMessage({type: 'sms', body: 'test'});
+        var body = 'It\'s http:\\mozilla.org' + xssString;
+
+        Compose.fromMessage({type: 'sms', body: body });
+
         sinon.assert.called(Compose.append);
         sinon.assert.notCalled(message.focus);
+        assert.isDefined(Compose, 'XSS should not be successful');
+        assert.equal(message.textContent, body);
+        assert.equal(
+          message.innerHTML,
+          'It\'s http:\\mozilla.org' + escapedXssString + '<br>'
+        );
       });
 
       test('from mms', function() {
-        var testString = ['test\nstring 1\nin slide 1',
-                          'test\nstring 2\nin slide 2'];
+        var testString = [
+          'test\nstring 1\nin slide 1' + xssString,
+          'It\'s test\nstring 2\nin slide 2'
+        ];
         Compose.fromMessage({type: 'mms'});
 
         // Should not be focused before parse complete.
@@ -912,6 +928,16 @@ suite('compose_test.js', function() {
         sinon.assert.called(Compose.append);
         sinon.assert.notCalled(message.focus);
         assert.isFalse(message.classList.contains('ignoreEvents'));
+        assert.isDefined(Compose, 'XSS should not be successful');
+        assert.equal(
+          message.textContent,
+          testString.join('').replace(/\n/g, '')
+        );
+        assert.equal(
+          message.innerHTML,
+          'test<br>string 1<br>in slide 1' + escapedXssString +
+          'It\'s test<br>string 2<br>in slide 2<br>'
+        );
       });
 
       test('empty body', function() {
