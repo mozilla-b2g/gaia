@@ -55,7 +55,9 @@
       }
 
       // <a href="" target="_blank"> should never be part of the app
+      // except while FTU is running: windows must be closable & parented by FTU
       if (evt.detail.name == '_blank' &&
+          !window.System.runningFTU &&
           evt.detail.features !== 'attention') {
         this.createNewWindow(evt);
         evt.stopPropagation();
