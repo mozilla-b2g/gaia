@@ -77,7 +77,7 @@ suite('webapp-optimize.js', function() {
         },
         path: filePath,
         get leafName() {
-          return filePath;
+          return filePath.substr(filePath.lastIndexOf('/') + 1);
         },
         children: fileChildren,
         getCurrentPath: function() {
@@ -101,7 +101,7 @@ suite('webapp-optimize.js', function() {
 
     mockUtils.ls = function(files, recursiveFlag, exclusive) {
       files = files.children ?
-        (files.children[files.leafName] || []) : files;
+        (files.children[files.getCurrentPath()] || []) : files;
       return files.filter(function(file) {
         if (exclusive) {
           return !exclusive.test(file.leafName);
@@ -313,11 +313,11 @@ suite('webapp-optimize.js', function() {
       webappOptimize.writeDictionaries();
       assert.equal(writeFileContent, '{"testId":"testIdContent"}',
         'should write locale content');
-      assert.equal(writeFile.leafName, 'build_stage/locales-obj/en-test.json',
+      assert.equal(writeFile.leafName, 'en-test.json',
         'should write locale content to this path');
       assert.deepEqual(removedFilePath,
-        ['en-test.json', 'build_stage/locales', 'build_stage/shared/locales'],
-        'should remove locale.json and locales folder');
+        ['build_stage/locales', 'build_stage/shared/locales'],
+        'should have cleaned locale folder in build_stage');
     });
 
     test('execute, main function of webappOptimize', function() {
