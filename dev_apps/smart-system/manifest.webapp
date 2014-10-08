@@ -105,12 +105,6 @@
     "bluetoothTransfercomms": {
       "description": "Communication with bluetooth apps for sending files info",
       "rules": {}
-    },
-    "fxa-mgmt": {
-      "description": "Firefox Accounts management API",
-      "rules": {
-        "minimumAccessLevel": "certified"
-      }
     }
   },
   "datastores-owned": {
