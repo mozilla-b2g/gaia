@@ -1,5 +1,5 @@
 'use strict';
-/* globals applications, VersionHelper, dump, FtuPing */
+/* globals applications, dump, FtuPing */
 /* This module deals with FTU stuff.
    FTU is known as First Time Usage,
    which is the first app the users would use, to configure their phone. */
@@ -116,9 +116,6 @@ var FtuLauncher = {
     this._isRunningFirstTime = false;
     this._isUpgrading = false;
     window.asyncStorage.setItem('ftu.enabled', false);
-    // update the previous_os setting (asyn)
-    // so we dont try and handle upgrade again
-    VersionHelper.updatePrevious();
     // Done with FTU, letting everyone know
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('ftudone',
@@ -177,26 +174,14 @@ var FtuLauncher = {
     }
 
     this._ftuPing.ensurePing();
-
-    // launch FTU when a version upgrade is detected
-    VersionHelper.getVersionInfo().then(function(versionInfo) {
-      if (versionInfo.isUpgrade()) {
-        self._isUpgrading = true;
+    window.asyncStorage.getItem('ftu.enabled', function getItem(shouldFTU) {
+      self._isUpgrading = false;
+      // launch full FTU when enabled
+      if (shouldFTU !== false) {
         self.launch();
       } else {
-        window.asyncStorage.getItem('ftu.enabled', function getItem(shouldFTU) {
-          self._isUpgrading = false;
-          // launch full FTU when enabled
-          if (shouldFTU !== false) {
-            self.launch();
-          } else {
-            self.skip();
-          }
-        });
+        self.skip();
       }
-    }, function(err) {
-      dump('VersionHelper failed to lookup version settings, skipping.\n');
-      self.skip();
     });
   }
 };
