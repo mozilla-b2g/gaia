@@ -397,7 +397,8 @@ var CallHandler = (function callHandler() {
     // Dialing from the call log
     // ATD>3 means we have to call the 3rd recent number.
     var position = isAtd ? parseInt(command.substring(4), 10) : 1;
-    CallLogDBManager.getGroupAtPosition(position, 'lastEntryDate', true, null,
+    CallLogDBManager.getGroupAtPosition(
+      position, 'lastEntryDate', true, 'dialing',
     function(result) {
       if (result && (typeof result === 'object') && result.number) {
         LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
