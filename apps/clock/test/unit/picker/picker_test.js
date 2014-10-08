@@ -15,8 +15,8 @@ suite('Picker', function() {
 
   test('shape:prototype ', function() {
     assert.ok(Picker);
-    assert.typeOf(Picker.prototype.reset, 'function');
-    assert.typeOf(Picker.prototype.value, 'null');
+    assert.include(Picker.prototype, 'reset');
+    assert.include(Picker.prototype, 'value');
     assert.isNull(Picker.prototype.value);
   });
 
@@ -42,15 +42,15 @@ suite('Picker', function() {
   });
 
   test('shape:instance ', function() {
-    assert.typeOf(picker.nodes, 'object');
-    assert.typeOf(picker.spinners, 'object');
-    assert.typeOf(picker.pickers, 'Array');
+    assert.include(picker, 'nodes');
+    assert.include(picker, 'spinners');
+    assert.include(picker, 'pickers');
 
-    assert.notEqual(typeof picker.nodes.hours, 'undefined');
-    assert.notEqual(typeof picker.nodes.minutes, 'undefined');
+    assert.include(picker.nodes, 'hours');
+    assert.include(picker.nodes, 'minutes');
 
-    assert.notEqual(typeof picker.spinners.hours, 'undefined');
-    assert.notEqual(typeof picker.spinners.hours, 'undefined');
+    assert.include(picker.spinners, 'hours');
+    assert.include(picker.spinners, 'minutes');
 
     assert.deepEqual(picker.pickers, ['hours', 'minutes']);
   });
