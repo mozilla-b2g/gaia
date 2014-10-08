@@ -72,7 +72,7 @@
 }
 
 [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] button,
-[role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a[role="button"] {
+[role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a.bb-button {
   width: calc((100% - 2rem) / 2);
   margin: 0 0.5rem;
 }
@@ -136,7 +136,7 @@
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) button:last-child,
-  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:last-child {
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a.bb-button:last-child {
     margin-left: 4rem;
     font-size: 2.3rem;
     font-weight: 400;
@@ -145,14 +145,14 @@
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) button,
-  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"],
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a.bb-button,
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) button:first-child,
-  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:first-child {
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a.bb-button:first-child {
     margin-left: calc(50% - 9rem);
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] button:first-child,
-  [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a[role="button"]:first-child {
+  [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a.bb-button:first-child {
     margin-left: calc(50% - 20rem);
     font-size: 2.3rem;
     font-weight: 400;

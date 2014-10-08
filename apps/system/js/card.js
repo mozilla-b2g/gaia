@@ -70,7 +70,8 @@
    * @memberOf Card.prototype
    */
   Card.prototype._template =
-    '<div class="screenshotView" data-l10n-id="openCard" role="button"></div>' +
+    '<div class="screenshotView bb-button" data-l10n-id="openCard" ' +
+    '  role="button"></div>' +
     '<div class="appIconView" style="background-image:{iconValue}"></div>' +
     '' +
     '<div class="titles">' +
@@ -82,11 +83,11 @@
     ' <button class="appIcon" data-l10n-id="openCard" ' +
     '   data-button-action="select"></button>' +
     ' <menu class="buttonbar">' +
-    '   <button class="close-button" data-l10n-id="closeCard" ' +
+    '   <button class="close-button bb-button" data-l10n-id="closeCard" ' +
     '     data-button-action="close" role="button" ' +
     '     style="visibility: {closeButtonVisibility}"></button>' +
-    '  <button class="favorite-button" data-button-action="favorite" ' +
-    '    role="button" ' +
+    '  <button class="favorite-button bb-button" ' +
+    '    data-button-action="favorite" role="button" ' +
     '    style="visibility: {favoriteButtonVisibility}"></button>' +
     ' </menu>' +
     '</footer>';
