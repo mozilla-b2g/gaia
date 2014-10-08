@@ -220,6 +220,7 @@
 
         this.homeButtons.forEach(function sbm_addTouchListeners(b) {
           b.addEventListener('touchstart', this);
+          b.addEventListener('mousedown', this);
           b.addEventListener('touchend', this);
         }.bind(this));
         window.addEventListener('mozfullscreenchange', this);
@@ -229,6 +230,7 @@
 
         this.homeButtons.forEach(function sbm_removeTouchListeners(b) {
           b.removeEventListener('touchstart', this);
+          b.removeEventListener('mousedown', this);
           b.removeEventListener('touchend', this);
         }.bind(this));
         window.removeEventListener('mozfullscreenchange', this);
@@ -242,6 +244,10 @@
      */
     handleEvent: function(evt) {
       switch (evt.type) {
+        case 'mousedown':
+          // Prevent the button from receving focus.
+          evt.preventDefault();
+          break;
         case 'touchstart':
           this.press();
           break;
