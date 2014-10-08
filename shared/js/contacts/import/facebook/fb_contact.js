@@ -534,17 +534,7 @@ fb.Contact = function(deviceContact, cid) {
 
   // Reset givenName and familyName if it is needed after unlinking
   function resetNames(dContact) {
-    if (fb.isPropagated('givenName', dContact)) {
-      dContact.givenName = [''];
-      fb.removePropagatedFlag('givenName', dContact);
-    }
-
-    if (fb.isPropagated('familyName', dContact)) {
-      dContact.familyName = [''];
-      fb.removePropagatedFlag('familyName', dContact);
-    }
-
-    dContact.name = [dContact.givenName[0] + ' ' + dContact.familyName[0]];
+    fb.resetNames(dContact);
   }
 
   function doUnlink(dContact, out, type) {
