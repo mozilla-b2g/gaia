@@ -35,6 +35,8 @@
     ready: false,
 
     init: function ssm_init() {
+      console.log('!!!!!!!!!!!!!!!!!', navigator.mozIccManager,
+        navigator.mozMobileConnections);
       if (!IccManager) {
         return;
       }
