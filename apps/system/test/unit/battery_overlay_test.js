@@ -1,4 +1,8 @@
 'use strict';
+/* global BatteryOverlay */
+/* global MocksHelper */
+/* global MockL10n */
+/* global MockNavigatorBattery */
 
 requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -6,9 +10,10 @@ requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/js/battery_manager.js');
+requireApp('system/js/power_save.js');
+requireApp('system/js/battery_overlay.js');
 
-var mocksForBatteryManager = new MocksHelper([
+var mocksForBatteryOverlay = new MocksHelper([
   'SettingsListener',
   'sleepMenu',
   'GestureDetector'
@@ -20,22 +25,24 @@ suite('battery manager >', function() {
   var tinyTimeout = 10;
 
   var realL10n;
+  var subject;
 
-  mocksForBatteryManager.attachTestHelpers();
+  mocksForBatteryOverlay.attachTestHelpers();
   suiteSetup(function() {
-    realBattery = BatteryManager._battery;
-    BatteryManager._battery = MockNavigatorBattery;
+    subject = window.batteryOverlay = new BatteryOverlay();
+    realBattery = subject._battery;
+    subject._battery = MockNavigatorBattery;
 
-    // must be big enough, otherwise the BatteryManager timeout occurs
+    // must be big enough, otherwise the BatteryOverlay timeout occurs
     // before the different suites execute.
-    BatteryManager.TOASTER_TIMEOUT = tinyTimeout;
-    // for PowerSaveHandler
+    subject.TOASTER_TIMEOUT = tinyTimeout;
+    // for PowerSave
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    BatteryManager._battery = realBattery;
+    subject._battery = realBattery;
     realBattery = null;
 
     navigator.mozL10n = realL10n;
@@ -66,8 +73,7 @@ suite('battery manager >', function() {
     notifNode = document.getElementById('battery');
 
     MockNavigatorBattery.level = 1;
-    PowerSaveHandler.init();
-    BatteryManager.init();
+    subject.start();
   });
 
   teardown(function() {
@@ -111,7 +117,7 @@ suite('battery manager >', function() {
     suite('init >', function() {
       setup(function() {
         MockNavigatorBattery.level = 0.02;
-        BatteryManager.init();
+        subject.start();
       });
 
       test('display notification', function() {
@@ -120,7 +126,7 @@ suite('battery manager >', function() {
 
       test('should send batteryshutdown when battery is below threshold',
       function() {
-        var dispatchEventStub = this.sinon.stub(window, 'dispatchEvent');
+        this.sinon.stub(window, 'dispatchEvent');
         sendLevelChange(0.00);
         sinon.assert.calledWithMatch(window.dispatchEvent,
                                      { type: 'batteryshutdown' });

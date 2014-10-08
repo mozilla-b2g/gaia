@@ -26,6 +26,8 @@ requireApp('system/js/airplane_mode.js');
 requireApp('system/js/app_migrator.js');
 requireApp('system/js/app_usage_metrics.js');
 requireApp('system/js/app_window_factory.js');
+requireApp('system/js/power_save.js');
+requireApp('system/js/battery_overlay.js');
 requireApp('system/js/browser_settings.js');
 requireApp('system/js/cell_broadcast_system.js');
 requireApp('system/js/devtools/developer_hud.js');

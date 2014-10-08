@@ -304,7 +304,6 @@ apps/system/js/airplane_mode.js
 apps/system/js/app_modal_dialog.js
 apps/system/js/attention_screen.js
 apps/system/js/base_ui.js
-apps/system/js/battery_manager.js
 apps/system/js/bluetooth.js
 apps/system/js/bluetooth_transfer.js
 apps/system/js/browser_config_helper.js
@@ -346,7 +345,6 @@ apps/system/test/marionette/net_error_test.js
 apps/system/test/marionette/notification_launch_app_test.js
 apps/system/test/marionette/notification_test.js
 apps/system/test/unit/app_install_manager_test.js
-apps/system/test/unit/battery_manager_test.js
 apps/system/test/unit/bluetooth_transfer_test.js
 apps/system/test/unit/date_picker_test.js
 apps/system/test/unit/download_manager_test.js
