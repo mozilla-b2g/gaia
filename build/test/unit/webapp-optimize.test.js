@@ -61,9 +61,6 @@ suite('webapp-optimize.js', function() {
         clone: function() {
           return getFile(filePath);
         },
-        get parent() {
-          return getFile(filePath.substr(0, filePath.lastIndexOf('/')));
-        },
         append: function(subPath) {
           filePath += '/' + subPath;
         },
@@ -358,6 +355,7 @@ suite('webapp-optimize.js', function() {
     var writeAggregatedConfig;
     setup(function() {
       var htmlFile = mockUtils.getFile('test-index.html');
+      htmlFile.parent = mockUtils.getFile('test-parent-index.html');
       htmlOptimizer = new app.HTMLOptimizer({
         htmlFile: htmlFile,
         webapp: {
@@ -555,10 +553,9 @@ suite('webapp-optimize.js', function() {
 
     test('getFileByRelativePath', function() {
       isSubjectToBranding = true;
-      var path = '/test/foo.html';
+      var path = '/test';
       var result = htmlOptimizer.getFileByRelativePath(path);
-      assert.equal(result.file.getCurrentPath(),
-                   'build_stage/test/official/foo.html');
+      assert.equal(result.file.getCurrentPath(), 'build_stage/test/official');
     });
   });
 });
