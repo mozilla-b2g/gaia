@@ -255,7 +255,9 @@
       switch (evt.type) {
         case 'attentionopened':
         case 'attentionopening':
-          this.discardPermissionRequest();
+          if (this.currentOrigin !== evt.detail.origin) {
+            this.discardPermissionRequest();
+          }
           break;
       }
     },

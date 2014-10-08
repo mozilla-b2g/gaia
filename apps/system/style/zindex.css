@@ -122,6 +122,10 @@
 
 
 /* Level 4: Attention window */
+#screen > [data-z-index-level="permission-screen"] {
+  z-index: 8194;
+}
+
 #screen > [data-z-index-level="app"] > .appWindow.attentionWindow.active.top-most {
   z-index: 8193;
 }
@@ -130,12 +134,8 @@
   z-index: 8192;
 }
 
-/* Level 5: Activity menu, context menu, value selector, and permissions */
+/* Level 5: Activity menu, context menu, value selector */
 #screen > [data-z-index-level="action-menu"] {
-  z-index: 4096;
-}
-
-#screen > [data-z-index-level="permission-screen"] {
   z-index: 4096;
 }
 
