@@ -2004,7 +2004,7 @@ suite('system/Statusbar', function() {
             isMaximized: function isMaximized() {
               return true;
             }
-          },
+          }
         },
         appChrome: {
           isMaximized: function isMaximized() {
@@ -2049,23 +2049,61 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
     });
+  });
 
-    test('should do nothing if the phone is locked', function() {
-      System.locked = true;
-      StatusBar.setAppearance({
-        appChrome: {
-          useLightTheming: function useLightTheming() {
-            return true;
-          },
-          isMaximized: function isMaximized() {
-            return true;
-          }
-        }
+  suite('lockscreen support', function() {
+    var lockscreenApp, app;
+
+    setup(function() {
+      lockscreenApp = getApp(true, true);
+      app = getApp(false, false);
+      var evt = new CustomEvent('lockscreen-appopened', {
+        detail: lockscreenApp
       });
+      this.sinon.stub(AppWindowManager, 'getActiveApp', function() {
+        return app;
+      });
+      StatusBar.handleEvent(evt);
+    });
+
+    teardown(function() {
+      var evt = new CustomEvent('lockscreen-appclosing');
+      StatusBar.handleEvent(evt);
+    });
+
+    test('should set the lockscreen icons color', function() {
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('should do nothing when is locked', function() {
+      StatusBar.setAppearance(app);
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('should set the active app color when closing', function() {
+      var evt = new CustomEvent('lockscreen-appclosing');
+      StatusBar.handleEvent(evt);
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isFalse(StatusBar.element.classList.contains('maximized'));
-      System.locked = false;
     });
+
+    function getApp(light, maximized) {
+      return {
+        getTopMostWindow: function() {
+          return this;
+        },
+        appChrome: {
+          useLightTheming: function useLightTheming() {
+            return light;
+          },
+          isMaximized: function isMaximized() {
+            return maximized;
+          }
+        }
+      };
+    }
   });
 
   suite('updateSignalIcon', function() {
