@@ -36,7 +36,7 @@ var Contacts = (function() {
 
   var goToForm = function edit() {
     var transition = ActivityHandler.currentlyHandling ?
-                                                  'activity-popup' : 'fade-in';
+     'activity-popup' : 'popup';
 
     navigation.go('view-contact-form', transition);
   };
@@ -694,7 +694,7 @@ var Contacts = (function() {
     initSettings(function onSettingsReady() {
       // The number of FB Friends has to be recalculated
       contacts.Settings.refresh();
-      navigation.go('view-settings', 'fade-in');
+      navigation.go('view-settings', 'popup');
     });
   };
 
