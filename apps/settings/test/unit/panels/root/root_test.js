@@ -11,7 +11,7 @@ suite('Root', function() {
     }
   };
   var modules = [
-    'unit/mock_l10n',
+    'shared_mocks/mock_l10n',
     'panels/root/root',
     'MockLazyLoader'
   ];

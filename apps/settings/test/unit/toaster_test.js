@@ -6,7 +6,7 @@
 'use strict';
 
 require('/shared/js/toaster.js');
-requireApp('settings/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var ToasterTestHelper = {
   thereShouldBeNoToastShowed: function tth_thereShouldBeNoToastShowed(elem) {

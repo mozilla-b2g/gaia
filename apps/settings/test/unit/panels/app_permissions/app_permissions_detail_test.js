@@ -79,7 +79,7 @@ suite('app permission detail > ', function() {
 
   suiteSetup(function(done) {
     var modules = [
-      'unit/mock_l10n',
+      'shared_mocks/mock_l10n',
       'panels/app_permissions_detail/app_permissions_detail'
     ];
 

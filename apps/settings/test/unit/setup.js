@@ -27,9 +27,6 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'shared/tz_select': {
         exports: 'tzSelect'
       },
-      'unit/mock_l10n': {
-        exports: 'MockL10n'
-      },
       'unit/mock_async_storage': {
         exports: 'MockAsyncStorage'
       },
@@ -56,6 +53,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       },
       'shared_mocks/mock_navigator_moz_settings': {
         exports: 'MockNavigatorSettings'
+      },
+      'shared_mocks/mock_l10n': {
+        exports: 'MockL10n'
       },
       'shared_mocks/mock_language_list': {
         exports: 'MockLanguageList'

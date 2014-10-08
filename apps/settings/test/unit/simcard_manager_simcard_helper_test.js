@@ -2,7 +2,7 @@
           setup, MockL10n, SimUIModel, assert, test */
 'use strict';
 
-requireApp('settings/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('SimUIModel', function() {
   var realL10n;
