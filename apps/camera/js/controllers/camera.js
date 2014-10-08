@@ -27,6 +27,7 @@ function CameraController(app) {
   this.settings = app.settings;
   this.activity = app.activity;
   this.hdrDisabled = this.settings.hdr.get('disabled');
+  this.notification = app.views.notification;
   this.l10nGet = app.l10nGet;
   this.configure();
   this.bindEvents();
@@ -209,6 +210,7 @@ CameraController.prototype.showSizeLimitAlert = function() {
 CameraController.prototype.setMode = function(mode) {
   debug('set mode: %s', mode);
   var self = this;
+  var html;
 
   // Abort if didn't change.
   //
@@ -222,6 +224,14 @@ CameraController.prototype.setMode = function(mode) {
     debug('mode didn\'t change');
     return;
   }
+
+  if (mode == 'video') {
+    html = this.l10nGet('Video-Mode');
+  }
+  else {
+    html = this.l10nGet('Photo-Mode');
+  }
+  this.notification.display({ text: html });
 
   this.setFlashMode();
   this.app.emit('camera:willchange');
