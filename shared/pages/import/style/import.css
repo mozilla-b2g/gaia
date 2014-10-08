@@ -46,6 +46,7 @@ form[role="dialog"].no-overlay button {
   left: 0;
 }
 
+[data-type="list"].selecting aside span[data-type="img"],
 [data-type="list"].import-list aside span[data-type="img"],
 [data-type="list"].link-list aside span[data-type="img"] {
   box-shadow: none;
