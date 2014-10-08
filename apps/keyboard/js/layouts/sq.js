@@ -3,6 +3,7 @@ Keyboards.sq = {
   shortLabel: 'Sq',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
+  autoCorrectLanguage: 'sq',
   menuLabel: 'Shqip',
   width: 11,
   alt: {
