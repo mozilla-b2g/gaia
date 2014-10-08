@@ -20,7 +20,7 @@
 }
 
 #shrinking-tip-arrow {
-  background-image: url('/style/shrinking_ui/images/sending_arrow.png');
+  background-image: url(shrinking_ui/images/sending_arrow.png);
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 2rem;

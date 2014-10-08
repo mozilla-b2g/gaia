@@ -9,7 +9,7 @@
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
+         SoftwareButtonManager, Accessibility, NfcUtils,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor,
@@ -177,8 +177,6 @@ window.addEventListener('load', function startup() {
   window.places.start();
   window.remoteDebugger = new RemoteDebugger();
   window.rocketbar = new Rocketbar();
-  window.shrinkingUI = new ShrinkingUI();
-  window.shrinkingUI.start();
   window.sleepMenu = new SleepMenu();
   window.sleepMenu.start();
   window.softwareButtonManager = new SoftwareButtonManager();

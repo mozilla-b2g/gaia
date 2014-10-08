@@ -1,4 +1,4 @@
-/* global appWindowManager, AppWindow, HomescreenWindowManager,
+/* global appWindowManager, AppWindow, HomescreenWindowManager, MockShrinkingUI,
           HomescreenWindow, MocksHelper, MockSettingsListener, System,
           MockRocketbar, rocketbar, homescreenWindowManager */
 'use strict';
@@ -18,10 +18,11 @@ requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_nfc_handler.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/js/system.js');
+requireApp('system/shared/test/unit/mocks/mock_shrinking_ui.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppWindowManager = new MocksHelper([
-  'OrientationManager', 'ActivityWindow',
+  'OrientationManager', 'ActivityWindow', 'ShrinkingUI',
   'Applications', 'SettingsListener', 'HomescreenWindowManager',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
   'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System', 'NfcHandler'
@@ -228,17 +229,24 @@ suite('system/AppWindowManager', function() {
         appWindowManager.handleEvent({
           type: 'shrinking-start'
         });
-        assert.isTrue(stubFocus.calledWith('blur'));
+        assert.deepEqual(appWindowManager.shrinkingUI.elements
+          .foregroundElement, app1.getBottomMostWindow().element);
+        assert.deepEqual(appWindowManager.shrinkingUI.elements
+          .backgroundElement, app1.getBottomMostWindow().element.parentNode);
+        assert.isTrue(appWindowManager.shrinkingUI.mStarted);
+        assert.isTrue(stubFocus.calledWith('shrinkingstart'));
       });
 
     test('When receiving shrinking-stop, we need to focus the active app',
       function() {
         var stubFocus = this.sinon.stub(app1, 'broadcast');
         appWindowManager._activeApp = app1;
+        appWindowManager.shrinkingUI = new MockShrinkingUI();
+        appWindowManager.shrinkingUI.mActive = true;
         appWindowManager.handleEvent({
           type: 'shrinking-stop'
         });
-        assert.isTrue(stubFocus.calledWith('focus'));
+        assert.isTrue(stubFocus.calledWith('shrinkingstop'));
       });
 
     test('When permission dialog is closed, we need to focus the active app',
@@ -622,10 +630,14 @@ suite('system/AppWindowManager', function() {
     test('update', function() {
       var spyPublish= this.sinon.spy(appWindowManager, 'publish');
       injectRunningApps(app1, app2, app3, app4);
+      appWindowManager.shrinkingUI = new MockShrinkingUI();
+      var stubStart = this.sinon.stub(appWindowManager.shrinkingUI, 'start');
+      appWindowManager.shrinkingUI.mActive = true;
       appWindowManager._activeApp = app2;
       appWindowManager._updateActiveApp(app1.instanceID);
       assert.equal(spyPublish.firstCall.args[0], 'activeappchanged');
       assert.deepEqual(appWindowManager._activeApp, app1);
+      assert.isFalse(stubStart.calledOnce);
     });
 
     test('should not publish activeappchanged if activeApp is the same',

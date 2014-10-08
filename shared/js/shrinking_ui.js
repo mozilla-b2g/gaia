@@ -25,10 +25,11 @@
  *
  */
 
-/* globals dump, Promise, System */
+/* globals dump, Promise */
 (function(exports) {
-  var ShrinkingUI = function() {
-    this._clearPreviousTilting = false;
+  var ShrinkingUI = function(foregroundElement, backgroundElement) {
+    this.elements.foregroundElement = foregroundElement;
+    this.elements.backgroundElement = backgroundElement;
   };
 
   ShrinkingUI.prototype = {
@@ -48,41 +49,14 @@
         prevY: -1
       },
       slideTransitionCb: null, // Last slide transition
-      tiltTransitionCb: null, // Last tilt transition
-      activeApp: null
+      tiltTransitionCb: null // Last tilt transition
     },
+    elements: {},
     configs: {
       degreeLandscape: '2.7deg',
       degreePortrait: '0.65deg',
       overDegreeLandscape: '2.9deg',
       overDegreePortrait: '0.9deg'
-    },
-
-    get current() {
-      if (!this._clearPreviousTilting || !this.state.activeApp) {
-        var currentApp = System.currentApp;
-        if (!currentApp) {
-          return null;
-        }
-        this.state.activeApp = currentApp.getTopMostWindow();
-      }
-      return this.state.activeApp;
-    },
-
-    get element() {
-      var currentApp = this.current;
-      if (!currentApp) {
-        return null;
-      }
-      return currentApp.getBottomMostWindow().element;
-    },
-
-    get wrapper() {
-      var currentApp = this.current;
-      if (!currentApp) {
-        return null;
-      }
-      return currentApp.getBottomMostWindow().element.parentNode;
     },
 
     tip: null,
@@ -107,12 +81,8 @@
   ShrinkingUI.prototype.start = function su_start() {
     window.addEventListener('home', this);
     window.addEventListener('holdhome', this);
-    window.addEventListener('activeappchanged', this);
-    window.addEventListener('shrinking-start', this);
-    window.addEventListener('shrinking-stop', this);
     window.addEventListener('shrinking-receiving', this);
-    window.addEventListener('check-p2p-registration-for-active-app', this);
-    window.addEventListener('dispatch-p2p-user-response-on-active-app', this);
+    this.startTilt();
   };
 
   /**
@@ -121,15 +91,12 @@
    * @this {ShrinkingUI}
    */
   ShrinkingUI.prototype.stop = function su_stop() {
+    if (this.isActive()) {
+      this.stopTilt();
+    }
     window.removeEventListener('home', this);
     window.removeEventListener('holdhome', this);
-    window.removeEventListener('activeappchanged', this);
-    window.removeEventListener('shrinking-start', this);
-    window.removeEventListener('shrinking-stop', this);
     window.removeEventListener('shrinking-receiving', this);
-    window.removeEventListener('check-p2p-registration-for-active-app', this);
-    window.removeEventListener('dispatch-p2p-user-response-on-active-app',
-      this);
   };
 
   /**
@@ -139,7 +106,6 @@
    * @this {ShrinkingUI}
    */
   ShrinkingUI.prototype.handleEvent = function su_handleEvent(evt) {
-      var currentApp;
       switch (evt.type) {
         // Mimic what the lockscreen does: stop home key event
         // be passed to the AppWindowManager, which would fade out
@@ -149,43 +115,14 @@
         // the AppWindowManager.
         case 'home':
         case 'holdhome':
-          if (this._state()) {
+          if (this.isActive()) {
             evt.stopImmediatePropagation();
           }
-          break;
-        case 'activeappchanged':
-          if (this._state()) {
-            this._clearPreviousTilting = true;
-            this.stopTilt();
-          }
-          break;
-        case 'shrinking-start':
-          this.startTilt();
-          break;
-        case 'shrinking-stop':
-          // OrientationManager listen this event to
-          // publish 'reset-orientation' event
-          // even when orientation is locked
-          this.stopTilt();
           break;
         case 'shrinking-receiving':
           // It should be launched, then received.
           // So we'll get a new app.
           this._receivingEffects();
-          break;
-        case 'check-p2p-registration-for-active-app':
-          if (evt.detail && evt.detail.checkP2PRegistration) {
-            currentApp = this.current;
-            evt.detail.checkP2PRegistration(currentApp.manifestURL ||
-              window.System.manifestURL);
-          }
-          break;
-        case 'dispatch-p2p-user-response-on-active-app':
-          if (evt.detail && evt.detail.dispatchP2PUserResponse) {
-            currentApp = this.current;
-            evt.detail.dispatchP2PUserResponse(currentApp.manifestURL ||
-              window.System.manifestURL);
-          }
           break;
         case 'touchstart':
           this._handleSendingStart(evt);
@@ -206,20 +143,18 @@
    */
   ShrinkingUI.prototype.startTilt = function su_startTilt() {
     // Already shrunk.
-    if (this._state()) {
+    if (this.isActive()) {
       return;
     }
 
-    if (!this.wrapper || !this.element) {
+    if (!this.elements.backgroundElement || !this.elements.foregroundElement) {
       return;
     }
-    this._clearPreviousTilting = false;
-    var currentApp = this.current;
     this.state.shrinking = true;
     this.state.tilting = true;
     var afterTilt = () => {
       // After it tilted done, turn it to the screenshot mode.
-      currentApp.broadcast('shrinkingstart');
+      this.elements.foregroundElement.classList.add('hidden');
       this.state.tilting = false;
     };
 
@@ -236,10 +171,10 @@
    * @this {ShrinkingTilt}
    */
   ShrinkingUI.prototype._setTip = function su_setTip() {
-    var wrapper = this.wrapper;
+    var backgroundElement = this.elements.backgroundElement;
     if (!this.tip) {
       this.tip = this._slidingTip();
-      wrapper.appendChild(this.tip);
+      backgroundElement.appendChild(this.tip);
     }
     this.tip.classList.remove('hide');
   };
@@ -257,31 +192,29 @@
     if (this.state.tilting) {
       this.state.tilting = false;
     }
-    var currentApp = this.current;
+
     this.state.shrinking = false;
     this.state.ending = true;
     var afterTiltBack = (() => {
       // Turn off the screenshot mode.
-      currentApp.broadcast('shrinkingstop');
+      this.elements.foregroundElement.classList.remove('hidden');
       this._cleanEffects().then(() => {
         this.state.ending = false;
-        this._clearPreviousTilting = false;
       });
-    }).bind(this);
+    });
     this.tip.remove();
     this.tip = null;
     this._shrinkingTiltBack(true, afterTiltBack);
   };
 
   /**
-   * Private gettter: prevent DOM manipulation goes everywhere.
-   * Outside caller should observe the attribute as the setter mentioned.
+   * Indicate shrinking UI is active.
    *
    * @return {boolean} The frame is shrinked or not.
    * @see _setState
    * @this {ShrinkingUI}
    */
-  ShrinkingUI.prototype._state = function su_state() {
+  ShrinkingUI.prototype.isActive = function su_isActive() {
     if (this.state.shrinking || this.state.tilting || this.state.ending) {
       return true;
     }
@@ -299,8 +232,8 @@
   ShrinkingUI.prototype._setState = function su_shrinking(state) {
     // TODO: Call AppWindow.setState and AppWindow.getState instead of
     // setting/getting the attribute directly in shrinking UI.
-    var element = this.element;
-    element.setAttribute('data-shrinking-state',
+    var foregroundElement = this.elements.foregroundElement;
+    foregroundElement.setAttribute('data-shrinking-state',
       state.toString());
     this.debug('Setting shrink state to: ' + state);
   };
@@ -326,9 +259,9 @@
    */
   ShrinkingUI.prototype._updateTiltTransition =
     function su_updateTiltTransition(cb) {
-      var element = this.element;
-      if (element && this.state.tiltTransitionCb) {
-        element.removeEventListener('transitionend',
+      var foregroundElement = this.elements.foregroundElement;
+      if (foregroundElement && this.state.tiltTransitionCb) {
+        foregroundElement.removeEventListener('transitionend',
           this.state.tiltTransitionCb);
       }
       this.state.tiltTransitionCb = cb;
@@ -342,13 +275,13 @@
   ShrinkingUI.prototype._receivingEffects = function su_receivingEffects() {
     // Hide it before we move it.
     // Visibility won't work.
-    var element = this.element;
-    element.style.opacity = '0';
+    var foregroundElement = this.elements.foregroundElement;
+    foregroundElement.style.opacity = '0';
 
     var afterTop = (function() {
       // Restore the display to let it fly in.
-      element.style.opacity = '';
-      element.style.transition = 'transform 0.5s ease';
+      foregroundElement.style.opacity = '';
+      foregroundElement.style.transition = 'transform 0.5s ease';
 
       // 2. Slide to the BOTTOM.
       // 3. Tilt back and display it as normal apps.
@@ -362,7 +295,7 @@
     var afterTilt = (function() {
       // Make it fly to top immediately (can't set to zero or the
       // callback won't work).
-      element.style.transition = 'transform 0.05s ease';
+      foregroundElement.style.transition = 'transform 0.05s ease';
       this._sendingSlideTo('TOP', afterTop);
     }).bind(this);
 
@@ -380,9 +313,9 @@
    */
   ShrinkingUI.prototype._sendingSlideTo =
     function su_sendingSlideTo(y, callback) {
-      var element = this.element;
+      var foregroundElement = this.elements.foregroundElement;
       if ('TOP' === y) {
-        y = element.parentElement.clientHeight;
+        y = foregroundElement.parentElement.clientHeight;
       } else if ('BOTTOM' === y) {
         y = 0;
       }
@@ -391,14 +324,14 @@
       }
 
       var cbDone = (function on_cbDone(evt) {
-        element.removeEventListener('transitionend', cbDone);
+        foregroundElement.removeEventListener('transitionend', cbDone);
         if ('undefined' !== typeof callback) {
           callback();
         }
       }).bind(this);
-      element.addEventListener('transitionend', cbDone);
+      foregroundElement.addEventListener('transitionend', cbDone);
       this._updateTiltTransition(cbDone);
-      element.style.transform =
+      foregroundElement.style.transform =
         'rotateX(' + this._getTiltingDegree() + ') ' +
         'translateY(-' + y + 'px)';
     };
@@ -466,8 +399,8 @@
    */
   ShrinkingUI.prototype._shrinkingTilt =
     function su_shrinkingTilt(cb) {
-      var element = this.element;
-      var wrapper = this.wrapper;
+      var foregroundElement = this.elements.foregroundElement;
+      var backgroundElement = this.elements.backgroundElement;
       // If start then do some effect would tilt the window again,
       // would generate two cover which should be unique.
       if (null === this.cover) {
@@ -475,46 +408,47 @@
         // TODO: Call AppWindow.inject(DOM) instead of changing the DOM
         // directly in Shrinking UI.
         this.cover = this._slidingCover();
-        var anchor = element.firstElementChild;
-        element.insertBefore(this.cover,
+        var anchor = foregroundElement.firstElementChild;
+        foregroundElement.insertBefore(this.cover,
           anchor);
       }
-      wrapper.classList.add('shrinking-wrapper');
-      element.style.transition = 'transform 0.5s ease';
+      backgroundElement.classList.add('shrinking-wrapper');
+      foregroundElement.style.transition = 'transform 0.5s ease';
 
       // Add a little bouncing back animation.
       // Nested callbacks: first animation is for sinking down,
       // and the second one is for bouncing back.
       var bounceBack = (function on_bounceBack(evt) {
-        if (evt.target !== element) {
+        if (evt.target !== foregroundElement) {
           return;
         }
-        element.removeEventListener('transitionend', bounceBack);
-        element.addEventListener('transitionend', bounceBackEnd);
+        foregroundElement.removeEventListener('transitionend', bounceBack);
+        foregroundElement.addEventListener('transitionend', bounceBackEnd);
         this._updateTiltTransition(bounceBackEnd);
-        element.style.transition = 'transform 0.3s ease';
-        element.style.transform =
+        foregroundElement.style.transition = 'transform 0.3s ease';
+        foregroundElement.style.transform =
           'rotateX(' + this._getTiltingDegree() + ') ';
       }).bind(this);
 
       var bounceBackEnd = (function on_bounceBackEnd(evt) {
-        if (evt.target !== element) {
+        if (evt.target !== foregroundElement) {
           return;
         }
-        element.removeEventListener('transitionend',
+        foregroundElement.removeEventListener('transitionend',
           bounceBackEnd);
-        element.style.transition = 'transform 0.5s ease 0s';
+        foregroundElement.style.transition = 'transform 0.5s ease 0s';
         if (cb) {
           cb();
         }
       }).bind(this);
 
-      element.addEventListener('transitionend', bounceBack);
+      foregroundElement.addEventListener('transitionend', bounceBack);
       this._updateTiltTransition(bounceBack);
 
       // After set up, trigger the transition.
-      element.style.transformOrigin = '50% 100% 0';
-      element.style.transform = 'rotateX(' + this._getOverTiltingDegree() + ')';
+      foregroundElement.style.transformOrigin = '50% 100% 0';
+      foregroundElement.style.transform =
+        'rotateX(' + this._getOverTiltingDegree() + ')';
     };
 
   /**
@@ -530,22 +464,22 @@
    */
   ShrinkingUI.prototype._shrinkingTiltBack =
     function su_shrinkingTiltBack(instant, callback) {
-      var element = this.element;
+      var foregroundElement = this.elements.foregroundElement;
       // Setup the rotating animation.
       if (!instant) {
         var tsEnd = (function _tsEnd(evt) {
-          element.removeEventListener('transitionend', tsEnd);
+          foregroundElement.removeEventListener('transitionend', tsEnd);
             if (callback) {
               callback();
             }
         }).bind(this);
-        element.style.transition = 'transform 0.3s ease';
-        element.addEventListener('transitionend', tsEnd);
+        foregroundElement.style.transition = 'transform 0.3s ease';
+        foregroundElement.addEventListener('transitionend', tsEnd);
         this._updateTiltTransition(tsEnd);
-        element.style.transform = 'rotateX(0.0deg)';
+        foregroundElement.style.transform = 'rotateX(0.0deg)';
       } else {
-        element.style.transition = '';
-        element.style.transform = 'rotateX(0.0deg)';
+        foregroundElement.style.transition = '';
+        foregroundElement.style.transform = 'rotateX(0.0deg)';
         if (callback) {
           callback();
         }
@@ -560,7 +494,7 @@
    */
   ShrinkingUI.prototype._handleSendingStart =
     function su_handleSendingStart(evt) {
-      this.debug('_handleSendingStart(): ', this._state());
+      this.debug('_handleSendingStart(): ', this.isActive());
       // Stop the touch event to affect the inner elements.
       evt.stopImmediatePropagation();
 
@@ -584,7 +518,7 @@
   ShrinkingUI.prototype._handleSendingSlide =
     function su_handleSendingSlide(evt) {
       var pgy = evt.touches[0].pageY;
-      var slideY = this.current.element.parentElement.clientHeight - pgy;
+      var slideY = this.elements.backgroundElement.clientHeight - pgy;
       if ('undefined' === typeof this.state.touch.initY) {
         this.state.touch.initY = slideY;
       }
@@ -622,7 +556,7 @@
    */
   ShrinkingUI.prototype._handleSendingOut =
     function su_handleSendingOut(evt) {
-      this.debug('_handleSendingOut(): ', this._state());
+      this.debug('_handleSendingOut(): ', this.isActive());
       // Clear the last sliding timeout callback to force
       // it slide to TOP or BOTTOM.
       clearTimeout(this.state.delaySlidingID);
@@ -652,23 +586,23 @@
    * @this {ShrinkingUI}
    */
   ShrinkingUI.prototype._cleanEffects = function su_cleanEffects() {
-    var element = this.element;
-    var wrapper = this.wrapper;
+    var foregroundElement = this.elements.foregroundElement;
+    var backgroundElement = this.elements.backgroundElement;
     return new Promise((resolve, rejected) => {
-      this.debug('_cleanEffects(): ', this._state());
+      this.debug('_cleanEffects(): ', this.isActive());
       this._disableSlidingCover();
       window.clearTimeout(this.state.delaySlidingID);
       this.state.suspended = false;
-      element.style.transition = '';
-      element.style.transform = '';
-      element.style.transformOrigin = '50% 50% 0';
+      foregroundElement.style.transition = '';
+      foregroundElement.style.transform = '';
+      foregroundElement.style.transformOrigin = '50% 50% 0';
       this._setState(false);
 
       // Clear the 'transitionend' animation listener callbacks
       this._updateTiltTransition(null);
       this._updateSlideTransition(null);
 
-      wrapper.classList.remove('shrinking-wrapper');
+      backgroundElement.classList.remove('shrinking-wrapper');
       this.cover.remove();
       this.cover = null;
       resolve();
@@ -676,18 +610,22 @@
   };
 
   ShrinkingUI.prototype._getTiltingDegree = function su_getTiltingDegree() {
-    return window.OrientationManager.fetchCurrentOrientation()
-      .indexOf('landscape') !== -1 ?
-      this.configs.degreeLandscape :
-      this.configs.degreePortrait;
+    return (window.OrientationManager ?
+            window.OrientationManager.fetchCurrentOrientation()
+              .indexOf('landscape') !== -1 :
+            window.innerHeight < window.innerWidth) ?
+            this.configs.degreeLandscape :
+            this.configs.degreePortrait;
   };
 
   ShrinkingUI.prototype._getOverTiltingDegree =
     function su_getOverTiltingDegree() {
-      return window.OrientationManager.fetchCurrentOrientation()
-        .indexOf('landscape') !== -1 ?
-        this.configs.overDegreeLandscape :
-        this.configs.overDegreePortrait;
+      return (window.OrientationManager ?
+              window.OrientationManager.fetchCurrentOrientation()
+                .indexOf('landscape') !== -1 :
+              window.innerHeight < window.innerWidth) ?
+              this.configs.overDegreeLandscape :
+              this.configs.overDegreePortrait;
     };
 
   exports.ShrinkingUI = ShrinkingUI;
