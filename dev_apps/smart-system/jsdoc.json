@@ -7,7 +7,6 @@
             "!apps/system/js/app_usage_metrics.js",
             "!apps/system/js/app_window_manager.js",
             "!apps/system/js/devtools/logshake.js",
-            "!apps/system/js/migrators/browser_migrator.js",
             "!apps/system/js/notifications.js",
             "!apps/system/js/places.js",
             "!apps/system/js/statusbar.js",
