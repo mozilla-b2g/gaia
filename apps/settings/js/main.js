@@ -21,6 +21,8 @@ require(['config/require'], function() {
     var LazyLoader = require('shared/lazy_loader');
     var ScreenLayout = require('shared/screen_layout');
     var Settings = require('settings');
+    var Connectivity = require('connectivity');
+    var PrivacyPanel = require('privacy_panel');
 
     function isInitialPanel(panel) {
       var isTabletAndLandscape = Settings.isTabletAndLandscape();
@@ -61,6 +63,9 @@ require(['config/require'], function() {
      *      in one column layout.
      */
     SettingsService.init('root');
+
+    // Initialize custom Privacy Panel link when the Settings app is launched.
+    PrivacyPanel.init();
 
     var options = {
       SettingsUtils: SettingsUtils,

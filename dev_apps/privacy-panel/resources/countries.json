@@ -1,0 +1,631 @@
+{
+  "africa": {
+   "abidjan":           { "lat": 0,           "lon": 0},
+   "accra":             { "lat": 0,           "lon": 0},
+   "addis-ababa":       { "lat": 0,           "lon": 0},
+   "algiers":           { "lat": 0,           "lon": 0},
+   "asmara":            { "lat": 0,           "lon": 0},
+   "bamako":            { "lat": 0,           "lon": 0},
+   "bangui":            { "lat": 0,           "lon": 0},
+   "banjul":            { "lat": 0,           "lon": 0},
+   "bissau":            { "lat": 0,           "lon": 0},
+   "blantyre":          { "lat": 0,           "lon": 0},
+   "blantyre":          { "lat": 0,           "lon": 0},
+   "brazzaville":       { "lat": 0,           "lon": 0},
+   "bujumbura":         { "lat": 0,           "lon": 0},
+   "cairo":             { "lat": 0,           "lon": 0},
+   "casablanca":        { "lat": 0,           "lon": 0},
+   "ceuta":             { "lat": 0,           "lon": 0},
+   "conakry":           { "lat": 0,           "lon": 0},
+   "dakar":             { "lat": 0,           "lon": 0},
+   "dar-es-salaam":     { "lat": 0,           "lon": 0},
+   "djibouti":          { "lat": 0,           "lon": 0},
+   "douala":            { "lat": 0,           "lon": 0},
+   "el-aaiun":          { "lat": 0,           "lon": 0},
+   "freetown":          { "lat": 0,           "lon": 0},
+   "gaborone":          { "lat": 0,           "lon": 0},
+   "harare":            { "lat": 0,           "lon": 0},
+   "johannesburg":      { "lat": 0,           "lon": 0},
+   "juba":              { "lat": 0,           "lon": 0},
+   "kampala":           { "lat": 0,           "lon": 0},
+   "khartoum":          { "lat": 0,           "lon": 0},
+   "kigali":            { "lat": 0,           "lon": 0},
+   "kinshasa":          { "lat": 0,           "lon": 0},
+   "lagos":             { "lat": 0,           "lon": 0},
+   "libreville":        { "lat": 0,           "lon": 0},
+   "lome":              { "lat": 0,           "lon": 0},
+   "luanda":            { "lat": 0,           "lon": 0},
+   "lubumbashi":        { "lat": 0,           "lon": 0},
+   "lusaka":            { "lat": 0,           "lon": 0},
+   "malabo":            { "lat": 0,           "lon": 0},
+   "maputo":            { "lat": 0,           "lon": 0},
+   "maseru":            { "lat": 0,           "lon": 0},
+   "mbabane":           { "lat": 0,           "lon": 0},
+   "mogadishu":         { "lat": 0,           "lon": 0},
+   "monrovia":          { "lat": 0,           "lon": 0},
+   "nairobi":           { "lat": 0,           "lon": 0},
+   "ndjamena":          { "lat": 0,           "lon": 0},
+   "nouakchott":        { "lat": 0,           "lon": 0},
+   "ouagadougou":       { "lat": 0,           "lon": 0},
+   "porto-novo":        { "lat": 0,           "lon": 0},
+   "sao-tome":          { "lat": 0,           "lon": 0},
+   "timbuktu":          { "lat": 0,           "lon": 0},
+   "tripoli":           { "lat": 0,           "lon": 0},
+   "tunis":             { "lat": 0,           "lon": 0},
+   "windhoek":          { "lat": 0,           "lon": 0}
+ },
+ "america": {
+   "adak":              { "lat": 0,           "lon": 0},
+   "anchorage":         { "lat": 0,           "lon": 0},
+   "anguilla":          { "lat": 0,           "lon": 0},
+   "antigua":           { "lat": 0,           "lon": 0},
+   "araguaina":         { "lat": 0,           "lon": 0},
+   "aruba":             { "lat": 0,           "lon": 0},
+   "asuncion":          { "lat": 0,           "lon": 0},
+   "atikokan":          { "lat": 0,           "lon": 0},
+   "atka":              { "lat": 0,           "lon": 0},
+   "bahia":             { "lat": 0,           "lon": 0},
+   "bahia-banderas":    { "lat": 0,           "lon": 0},
+   "barbados":          { "lat": 0,           "lon": 0},
+   "belem":             { "lat": 0,           "lon": 0},
+   "belize":            { "lat": 0,           "lon": 0},
+   "blanc-sablon":      { "lat": 0,           "lon": 0},
+   "boa-vista":         { "lat": 0,           "lon": 0},
+   "bogota":            { "lat": 0,           "lon": 0},
+   "boise":             { "lat": 0,           "lon": 0},
+   "brasilia":          { "lat": 0,           "lon": 0},
+   "buelah":            { "lat": 0,           "lon": 0},
+   "buenos-aires":      { "lat": 0,           "lon": 0},
+   "caamaraca":         { "lat": 0,           "lon": 0},
+   "cambridge-bay":     { "lat": 0,           "lon": 0},
+   "cambo-grande":      { "lat": 0,           "lon": 0},
+   "cancun":            { "lat": 0,           "lon": 0},
+   "caracas":           { "lat": 0,           "lon": 0},
+   "cayenne":           { "lat": 0,           "lon": 0},
+   "chicago":           { "lat": 0,           "lon": 0},
+   "chihuahua":         { "lat": 0,           "lon": 0},
+   "comodoro-rivadavia":{ "lat": 0,           "lon": 0},
+   "coral-harbour":     { "lat": 0,           "lon": 0},
+   "cordoba":           { "lat": 0,           "lon": 0},
+   "costa-rica":        { "lat": 0,           "lon": 0},
+   "creston":           { "lat": 0,           "lon": 0},
+   "creston":           { "lat": 0,           "lon": 0},
+   "cuiaba":            { "lat": 0,           "lon": 0},
+   "curacao":           { "lat": 0,           "lon": 0},
+   "danmarkshavn":      { "lat": 0,           "lon": 0},
+   "dawson":            { "lat": 0,           "lon": 0},
+   "dawson-creek":      { "lat": 0,           "lon": 0},
+   "denver":            { "lat": 0,           "lon": 0},
+   "detroit":           { "lat": 0,           "lon": 0},
+   "dominica":          { "lat": 0,           "lon": 0},
+   "edmonton":          { "lat": 0,           "lon": 0},
+   "eirunepe":          { "lat": 0,           "lon": 0},
+   "el-salvador":       { "lat": 0,           "lon": 0},
+   "ensenada":          { "lat": 0,           "lon": 0},
+   "fort-wayne":        { "lat": 0,           "lon": 0},
+   "fortaleza":         { "lat": 0,           "lon": 0},
+   "glace-bay":         { "lat": 0,           "lon": 0},
+   "godthab":           { "lat": 0,           "lon": 0},
+   "goose-bay":         { "lat": 0,           "lon": 0},
+   "grand-turk":        { "lat": 0,           "lon": 0},
+   "grenada":           { "lat": 0,           "lon": 0},
+   "guadeloupe":        { "lat": 0,           "lon": 0},
+   "guatemala":         { "lat": 0,           "lon": 0},
+   "guayaquil":         { "lat": 0,           "lon": 0},
+   "guyana":            { "lat": 0,           "lon": 0},
+   "halifax":           { "lat": 0,           "lon": 0},
+   "havana":            { "lat": 0,           "lon": 0},
+   "hermosillo":        { "lat": 0,           "lon": 0},
+   "indianapolis":      { "lat": 0,           "lon": 0},
+   "inuvik":            { "lat": 0,           "lon": 0},
+   "iqaluit":           { "lat": 0,           "lon": 0},
+   "jamaica":           { "lat": 0,           "lon": 0},
+   "jujuy":             { "lat": 0,           "lon": 0},
+   "juneau":            { "lat": 0,           "lon": 0},
+   "knox":              { "lat": 0,           "lon": 0},
+   "kralendijk":        { "lat": 0,           "lon": 0},
+   "la-paz":            { "lat": 0,           "lon": 0},
+   "la-rioja":          { "lat": 0,           "lon": 0},
+   "lima":              { "lat": 0,           "lon": 0},
+   "los-angeles":       { "lat": 0,           "lon": 0},
+   "louisville":        { "lat": 0,           "lon": 0},
+   "lower-princes":     { "lat": 0,           "lon": 0},
+   "maceio":            { "lat": 0,           "lon": 0},
+   "managua":           { "lat": 0,           "lon": 0},
+   "manaus":            { "lat": 0,           "lon": 0},
+   "marigot":           { "lat": 0,           "lon": 0},
+   "martinique":        { "lat": 0,           "lon": 0},
+   "matamoros":         { "lat": 0,           "lon": 0},
+   "mazatlan":          { "lat": 0,           "lon": 0},
+   "mendoza":           { "lat": 0,           "lon": 0},
+   "menominee":         { "lat": 0,           "lon": 0},
+   "merida":            { "lat": 0,           "lon": 0},
+   "metlakatla":        { "lat": 0,           "lon": 0},
+   "mexico-city":       { "lat": 0,           "lon": 0},
+   "marengo":           { "lat": 0,           "lon": 0},
+   "miquelon":          { "lat": 0,           "lon": 0},
+   "moncton":           { "lat": 0,           "lon": 0},
+   "monterrey":         { "lat": 0,           "lon": 0},
+   "montevideo":        { "lat": 0,           "lon": 0},
+   "monticello":        { "lat": 0,           "lon": 0},
+   "montreal":          { "lat": 0,           "lon": 0},
+   "montserrat":        { "lat": 0,           "lon": 0},
+   "nassau":            { "lat": 0,           "lon": 0},
+   "new-salem":         { "lat": 0,           "lon": 0},
+   "new-york":          { "lat": 0,           "lon": 0},
+   "nipigon":           { "lat": 0,           "lon": 0},
+   "nome":              { "lat": 0,           "lon": 0},
+   "noronha":           { "lat": 0,           "lon": 0},
+   "ojinaga":           { "lat": 0,           "lon": 0},
+   "panama":            { "lat": 0,           "lon": 0},
+   "pangnirtung":       { "lat": 0,           "lon": 0},
+   "paramaribo":        { "lat": 0,           "lon": 0},
+   "petersburg":        { "lat": 0,           "lon": 0},
+   "phoenix":           { "lat": 0,           "lon": 0},
+   "port-of-spain":     { "lat": 0,           "lon": 0},
+   "port-au-prince":    { "lat": 0,           "lon": 0},
+   "porto-acre":        { "lat": 0,           "lon": 0},
+   "porto-velho":       { "lat": 0,           "lon": 0},
+   "perto-rico":        { "lat": 0,           "lon": 0},
+   "quito":             { "lat": 0,           "lon": 0},
+   "rainy-river":       { "lat": 0,           "lon": 0},
+   "rankin-inlet":      { "lat": 0,           "lon": 0},
+   "recife":            { "lat": 0,           "lon": 0},
+   "regina":            { "lat": 0,           "lon": 0},
+   "resolute":          { "lat": 0,           "lon": 0},
+   "rio-branco":        { "lat": 0,           "lon": 0},
+   "rio-gallegos":      { "lat": 0,           "lon": 0},
+   "rosario":           { "lat": 0,           "lon": 0},
+   "salta":             { "lat": 0,           "lon": 0},
+   "san-juan":          { "lat": 0,           "lon": 0},
+   "san-luis":          { "lat": 0,           "lon": 0},
+   "santa-isabel":      { "lat": 0,           "lon": 0},
+   "santarem":          { "lat": 0,           "lon": 0},
+   "santiago":          { "lat": 0,           "lon": 0},
+   "santo-domingo":     { "lat": 0,           "lon": 0},
+   "scoresbysund":      { "lat": 0,           "lon": 0},
+   "shiprock":          { "lat": 0,           "lon": 0},
+   "shiprock":          { "lat": 0,           "lon": 0},
+   "sitka":             { "lat": 0,           "lon": 0},
+   "st-barthelemy":     { "lat": 0,           "lon": 0},
+   "st-johns":          { "lat": 0,           "lon": 0},
+   "st-kitts":          { "lat": 0,           "lon": 0},
+   "st-lucia":          { "lat": 0,           "lon": 0},
+   "st-thomas":         { "lat": 0,           "lon": 0},
+   "st-vincent":        { "lat": 0,           "lon": 0},
+   "swift-current":     { "lat": 0,           "lon": 0},
+   "sao-paulo":         { "lat": 0,           "lon": 0},
+   "tell-city":         { "lat": 0,           "lon": 0},
+   "tegucigalpa":       { "lat": 0,           "lon": 0},
+   "thule":             { "lat": 0,           "lon": 0},
+   "thunder-bay":       { "lat": 0,           "lon": 0},
+   "tucuman":           { "lat": 0,           "lon": 0},
+   "tijuana":           { "lat": 0,           "lon": 0},
+   "toronto":           { "lat": 0,           "lon": 0},
+   "tortola":           { "lat": 0,           "lon": 0},
+   "ushuaia":           { "lat": 0,           "lon": 0},
+   "vancouver":         { "lat": 0,           "lon": 0},
+   "vevay":             { "lat": 0,           "lon": 0},
+   "vincennes":         { "lat": 0,           "lon": 0},
+   "virgin":            { "lat": 0,           "lon": 0},
+   "whitehorse":        { "lat": 0,           "lon": 0},
+   "winamac":           { "lat": 0,           "lon": 0},
+   "winnipeg":          { "lat": 0,           "lon": 0},
+   "yakutat":           { "lat": 0,           "lon": 0},
+   "yellowknife":       { "lat": 0,           "lon": 0}
+ },
+ "antarctica": {
+   "casey":             { "lat": 0,           "lon": 0},
+   "davis":             { "lat": 0,           "lon": 0},
+   "dumont-d-urville":  { "lat": 0,           "lon": 0},
+   "macquarie":         { "lat": 0,           "lon": 0},
+   "mawson":            { "lat": 0,           "lon": 0},
+   "mcmudo":            { "lat": 0,           "lon": 0},
+   "palmer":            { "lat": 0,           "lon": 0},
+   "rothera":           { "lat": 0,           "lon": 0},
+   "south-pole":        { "lat": 0,           "lon": 0},
+   "syowa":             { "lat": 0,           "lon": 0},
+   "vostok":            { "lat": 0,           "lon": 0}
+ },
+ "asia": {
+   "aden":              { "lat": 0,           "lon": 0},
+   "almaty":            { "lat": 0,           "lon": 0},
+   "amman":             { "lat": 0,           "lon": 0},
+   "anadyr":            { "lat": 0,           "lon": 0},
+   "aqtau":             { "lat": 0,           "lon": 0},
+   "aqtobe":            { "lat": 0,           "lon": 0},
+   "ashgabat":          { "lat": 0,           "lon": 0},
+   "ashkhabad":         { "lat": 0,           "lon": 0},
+   "baghdad":           { "lat": 0,           "lon": 0},
+   "bahrain":           { "lat": 0,           "lon": 0},
+   "baku":              { "lat": 0,           "lon": 0},
+   "bangkok":           { "lat": 0,           "lon": 0},
+   "beirut":            { "lat": 0,           "lon": 0},
+   "bishkek":           { "lat": 0,           "lon": 0},
+   "brunei":            { "lat": 0,           "lon": 0},
+   "choibalsan":        { "lat": 0,           "lon": 0},
+   "chongqing":         { "lat": 0,           "lon": 0},
+   "colombo":           { "lat": 0,           "lon": 0},
+   "damascus":          { "lat": 0,           "lon": 0},
+   "dhaka":             { "lat": 0,           "lon": 0},
+   "dili":              { "lat": 0,           "lon": 0},
+   "dubai":             { "lat": 0,           "lon": 0},
+   "sushanbe":          { "lat": 0,           "lon": 0},
+   "gaza":              { "lat": 0,           "lon": 0},
+   "harbin":            { "lat": 0,           "lon": 0},
+   "herbon":            { "lat": 0,           "lon": 0},
+   "ho-chi-minh":       { "lat": 0,           "lon": 0},
+   "hong-kong":         { "lat": 0,           "lon": 0},
+   "hovd":              { "lat": 0,           "lon": 0},
+   "irkutsk":           { "lat": 0,           "lon": 0},
+   "istanbul":          { "lat": 0,           "lon": 0},
+   "jakarta":           { "lat": 0,           "lon": 0},
+   "jayapura":          { "lat": 0,           "lon": 0},
+   "jerusalem":         { "lat": 0,           "lon": 0},
+   "kabul":             { "lat": 0,           "lon": 0},
+   "kamchatka":         { "lat": 0,           "lon": 0},
+   "karachi":           { "lat": 0,           "lon": 0},
+   "kashgar":           { "lat": 0,           "lon": 0},
+   "kathmandu":         { "lat": 0,           "lon": 0},
+   "kolkata":           { "lat": 0,           "lon": 0},
+   "krasnoyarsk":       { "lat": 0,           "lon": 0},
+   "kuala-lumpur":      { "lat": 0,           "lon": 0},
+   "kuching":           { "lat": 0,           "lon": 0},
+   "kuwait":            { "lat": 0,           "lon": 0},
+   "macau":             { "lat": 0,           "lon": 0},
+   "magadan":           { "lat": 0,           "lon": 0},
+   "makassar":          { "lat": 0,           "lon": 0},
+   "manila":            { "lat": 0,           "lon": 0},
+   "muscat":            { "lat": 0,           "lon": 0},
+   "nicosia":           { "lat": 0,           "lon": 0},
+   "novokuznetsk":      { "lat": 0,           "lon": 0},
+   "novosibirsk":       { "lat": 0,           "lon": 0},
+   "omsk":              { "lat": 0,           "lon": 0},
+   "oral":              { "lat": 0,           "lon": 0},
+   "phnom-penh":        { "lat": 0,           "lon": 0},
+   "pontianak":         { "lat": 0,           "lon": 0},
+   "pyongyang":         { "lat": 0,           "lon": 0},
+   "qatar":             { "lat": 0,           "lon": 0},
+   "qyzylorda":         { "lat": 0,           "lon": 0},
+   "rangoon":           { "lat": 0,           "lon": 0},
+   "riyadh":            { "lat": 0,           "lon": 0},
+   "riyadh":            { "lat": 0,           "lon": 0},
+   "saigon":            { "lat": 0,           "lon": 0},
+   "sakhalin":          { "lat": 0,           "lon": 0},
+   "samarkand":         { "lat": 0,           "lon": 0},
+   "seoul":             { "lat": 0,           "lon": 0},
+   "shanghai":          { "lat": 0,           "lon": 0},
+   "singapore":         { "lat": 0,           "lon": 0},
+   "taipei":            { "lat": 0,           "lon": 0},
+   "tashkent":          { "lat": 0,           "lon": 0},
+   "tbilisi":           { "lat": 0,           "lon": 0},
+   "tehran":            { "lat": 0,           "lon": 0},
+   "tel-aviv":          { "lat": 0,           "lon": 0},
+   "thimphu":           { "lat": 0,           "lon": 0},
+   "tokyo":             { "lat": 0,           "lon": 0},
+   "ulan-bator":        { "lat": 0,           "lon": 0},
+   "urumqi":            { "lat": 0,           "lon": 0},
+   "vientiane":         { "lat": 0,           "lon": 0},
+   "vladivostok":       { "lat": 0,           "lon": 0},
+   "yakutsk":           { "lat": 0,           "lon": 0},
+   "yekaterinburg":     { "lat": 0,           "lon": 0},
+   "yerevan":           { "lat": 0,           "lon": 0}
+ },
+ "atlantic-ocean": {
+   "azores":            { "lat": 0,           "lon": 0},
+   "bermuda":           { "lat": 0,           "lon": 0},
+   "canary":            { "lat": 0,           "lon": 0},
+   "cape-verde":        { "lat": 0,           "lon": 0},
+   "faroe-islands":     { "lat": 0,           "lon": 0},
+   "jan-mayen":         { "lat": 0,           "lon": 0},
+   "madeira":           { "lat": 0,           "lon": 0},
+   "reykjavik":         { "lat": 0,           "lon": 0},
+   "south-georgia":     { "lat": 0,           "lon": 0},
+   "st-helena":         { "lat": 0,           "lon": 0},
+   "stanley":           { "lat": 0,           "lon": 0}
+ },
+ "australia": {
+   "adelaide":          { "lat": 0,           "lon": 0},
+   "brisbane":          { "lat": 0,           "lon": 0},
+   "broken-hill":       { "lat": 0,           "lon": 0},
+   "currie":            { "lat": 0,           "lon": 0},
+   "darwin":            { "lat": 0,           "lon": 0},
+   "eucla":             { "lat": 0,           "lon": 0},
+   "hobart":            { "lat": 0,           "lon": 0},
+   "lindeman":          { "lat": 0,           "lon": 0},
+   "lord-howe":         { "lat": 0,           "lon": 0},
+   "melbourne":         { "lat": 0,           "lon": 0},
+   "perth":             { "lat": 0,           "lon": 0},
+   "sydney":            { "lat": 0,           "lon": 0}
+ },
+ "europe": {
+    "amsterdam": {
+      "lat": 52.3702157,
+      "lon": 4.895167900000001
+    },
+    "andorra": {
+      "lat": 42.506285,
+      "lon": 1.521801
+    },
+    "athens": {
+      "lat": 37.983917,
+      "lon": 23.7293599
+    },
+    "belfast": {
+      "lat": 54.59728500000001,
+      "lon": -5.93012
+    },
+    "belgrade": {
+      "lat": 44.816667,
+      "lon": 20.466667
+    },
+    "berlin": {
+      "lat": 52.52000659999999,
+      "lon": 13.404954
+    },
+    "bratislava": {
+      "lat": 48.1458923,
+      "lon": 17.1071373
+    },
+    "brussels": {
+      "lat": 50.8503396,
+      "lon": 4.3517103
+    },
+    "bucharest": {
+      "lat": 44.4325,
+      "lon": 26.103889
+    },
+    "budapest": {
+      "lat": 47.497912,
+      "lon": 19.040235
+    },
+    "chisinau": {
+      "lat": 47,
+      "lon": 28.916667
+    },
+    "copenhagen": {
+      "lat": 55.6760968,
+      "lon": 12.5683371
+    },
+    "dublin": {
+      "lat": 53.3498053,
+      "lon": -6.2603097
+    },
+    "gilbraltar": {
+      "lat": 36.140751,
+      "lon": -5.353585
+    },
+    "guerney": {
+      "lat": 46.472778,
+      "lon": -90.508333
+    },
+    "helsinki": {
+      "lat": 60.17332440000001,
+      "lon": 24.9410248
+    },
+    "isle-of-man": {
+      "lat": 54.236107,
+      "lon": -4.548056
+    },
+    "istanbul": {
+      "lat": 41.00527,
+      "lon": 28.97696
+    },
+    "jersey": {
+      "lat": 49.214439,
+      "lon": -2.13125
+    },
+    "kaliningrad": {
+      "lat": 54.716667,
+      "lon": 20.516667
+    },
+    "kiev": {
+      "lat": 50.4501,
+      "lon": 30.5234
+    },
+    "lisbon": {
+      "lat": 38.7222524,
+      "lon": -9.1393366
+    },
+    "ljubljana": {
+      "lat": 46.0569465,
+      "lon": 14.5057515
+    },
+    "london": {
+      "lat": 51.5073509,
+      "lon": -0.1277583
+    },
+    "luxembourg": {
+      "lat": 49.815273,
+      "lon": 6.129582999999999
+    },
+    "madrid": {
+      "lat": 40.4167754,
+      "lon": -3.7037902
+    },
+    "malta": {
+      "lat": 35.937496,
+      "lon": 14.375416
+    },
+    "mariehamn": {
+      "lat": 60.0970945,
+      "lon": 19.9348339
+    },
+    "minsk": {
+      "lat": 53.9,
+      "lon": 27.566667
+    },
+    "monaco": {
+      "lat": 43.73841760000001,
+      "lon": 7.424615799999999
+    },
+    "moscow": {
+      "lat": 55.755826,
+      "lon": 37.6173
+    },
+    "nicosia": {
+      "lat": 35.166667,
+      "lon": 33.366667
+    },
+    "oslo": {
+      "lat": 59.9138688,
+      "lon": 10.7522454
+    },
+    "paris": {
+      "lat": 48.856614,
+      "lon": 2.3522219
+    },
+    "podgorica": {
+      "lat": 42.441286,
+      "lon": 19.262892
+    },
+    "prague": {
+      "lat": 50.0755381,
+      "lon": 14.4378005
+    },
+    "riga": {
+      "lat": 56.9496487,
+      "lon": 24.1051864
+    },
+    "rome": {
+      "lat": 41.8723889,
+      "lon": 12.4801802
+    },
+    "samara": {
+      "lat": 53.202778,
+      "lon": 50.140833
+    },
+    "san-marino": {
+      "lat": 43.94236,
+      "lon": 12.457777
+    },
+    "sarajevo": {
+      "lat": 43.8562586,
+      "lon": 18.4130763
+    },
+    "simferopol": {
+      "lat": 44.952117,
+      "lon": 34.102417
+    },
+    "skopje": {
+      "lat": 41.9973462,
+      "lon": 21.4279956
+    },
+    "sofia": {
+      "lat": 42.6977082,
+      "lon": 23.3218675
+    },
+    "stockholm": {
+      "lat": 59.32932349999999,
+      "lon": 18.0685808
+    },
+    "tallinn": {
+      "lat": 59.43696079999999,
+      "lon": 24.7535746
+    },
+    "tirane": {
+      "lat": 41.3275459,
+      "lon": 19.8186982
+    },
+    "tiraspol": {
+      "lat": 46.85,
+      "lon": 29.633333
+    },
+    "uzhgorod": {
+      "lat": 48.6208,
+      "lon": 22.287883
+    },
+    "vaduz": {
+      "lat": 47.14136999999999,
+      "lon": 9.5207
+    },
+    "vatican": {
+      "lat": 41.902916,
+      "lon": 12.453389
+    },
+    "vienna": {
+      "lat": 48.2081743,
+      "lon": 16.3738189
+    },
+    "vilnius": {
+      "lat": 54.6871555,
+      "lon": 25.2796514
+    },
+    "volgograd": {
+      "lat": 48.7,
+      "lon": 44.516667
+    },
+    "warsaw": {
+      "lat": 52.2296756,
+      "lon": 21.0122287
+    },
+    "zagreb": {
+      "lat": 45.8150108,
+      "lon": 15.981919
+    },
+    "zaporozhye": {
+      "lat": 47.8388,
+      "lon": 35.139567
+    },
+    "zurich": {
+      "lat": 47.3686498,
+      "lon": 8.539182499999999
+    }
+  },
+ "indian-ocean": {
+   "antonanarivo":      { "lat": 0,           "lon": 0},
+   "chagos":            { "lat": 0,           "lon": 0},
+   "christmas":         { "lat": 0,           "lon": 0},
+   "cocos":             { "lat": 0,           "lon": 0},
+   "comoro":            { "lat": 0,           "lon": 0},
+   "kerguelen":         { "lat": 0,           "lon": 0},
+   "mahe":              { "lat": 0,           "lon": 0},
+   "maldives":          { "lat": 0,           "lon": 0},
+   "mauritius":         { "lat": 0,           "lon": 0},
+   "mayotte":           { "lat": 0,           "lon": 0},
+   "reunion":           { "lat": 0,           "lon": 0}
+ },
+ "pacific-ocean": {
+   "apia":              { "lat": 0,           "lon": 0},
+   "auckland":          { "lat": 0,           "lon": 0},
+   "chatham":           { "lat": 0,           "lon": 0},
+   "chuuk-lagoon":      { "lat": 0,           "lon": 0},
+   "eester":            { "lat": 0,           "lon": 0},
+   "efate":             { "lat": 0,           "lon": 0},
+   "enderbury":         { "lat": 0,           "lon": 0},
+   "fakaofo":           { "lat": 0,           "lon": 0},
+   "fiji":              { "lat": 0,           "lon": 0},
+   "funafuti":          { "lat": 0,           "lon": 0},
+   "galapagos":         { "lat": 0,           "lon": 0},
+   "gambier":           { "lat": 0,           "lon": 0},
+   "guadalcanal":       { "lat": 0,           "lon": 0},
+   "guam":              { "lat": 0,           "lon": 0},
+   "honolulu":          { "lat": 0,           "lon": 0},
+   "johnston":          { "lat": 0,           "lon": 0},
+   "kritimati":         { "lat": 0,           "lon": 0},
+   "kosrae":            { "lat": 0,           "lon": 0},
+   "kwajalein":         { "lat": 0,           "lon": 0},
+   "majuro":            { "lat": 0,           "lon": 0},
+   "marquesas":         { "lat": 0,           "lon": 0},
+   "midway":            { "lat": 0,           "lon": 0},
+   "nauru":             { "lat": 0,           "lon": 0},
+   "niue":              { "lat": 0,           "lon": 0},
+   "norfolk":           { "lat": 0,           "lon": 0},
+   "noumea":            { "lat": 0,           "lon": 0},
+   "pago-pago":         { "lat": 0,           "lon": 0},
+   "palau":             { "lat": 0,           "lon": 0},
+   "pitcairn":          { "lat": 0,           "lon": 0},
+   "pohnpei":           { "lat": 0,           "lon": 0},
+   "ponape":            { "lat": 0,           "lon": 0},
+   "port-moresby":      { "lat": 0,           "lon": 0},
+   "rarotonga":         { "lat": 0,           "lon": 0},
+   "saipan":            { "lat": 0,           "lon": 0},
+   "samoa":             { "lat": 0,           "lon": 0},
+   "tahiti":            { "lat": 0,           "lon": 0},
+   "tarawa":            { "lat": 0,           "lon": 0},
+   "tongatapu":         { "lat": 0,           "lon": 0},
+   "wake":              { "lat": 0,           "lon": 0},
+   "wallis":            { "lat": 0,           "lon": 0},
+   "yap":               { "lat": 0,           "lon": 0}
+ }
+}
