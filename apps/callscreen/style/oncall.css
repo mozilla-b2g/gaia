@@ -184,18 +184,6 @@
     z-index: 100;
   }
 
-  /* This transition is needed to trigger a transitionend event in */
-  /* call_screen.js */
-  #call-screen:not([data-layout="incoming-locked"]) {
-    transform: translateY(-100%);
-    transition: transform 0.5s ease 1.5s;
-  }
-
-  #call-screen:not([data-layout="incoming-locked"]).displayed {
-    transform: translateY(0);
-    transition: transform 0.5s ease 0s;
-  }
-
   #main-container {
     position: absolute;
     top: 0;
@@ -873,12 +861,7 @@
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    opacity: 0;
     transition: opacity 0.3s linear;
-  }
-
-  #contact-background.ready {
-    opacity: 1;
   }
 
   #bluetooth-menu {

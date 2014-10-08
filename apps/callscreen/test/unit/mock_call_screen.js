@@ -12,11 +12,6 @@ var MockCallScreen = {
 
   insertCall: function() {},
   moveToGroup: function() {},
-  toggle: function(cb) {
-    if (typeof(cb) == 'function') {
-      cb();
-    }
-  },
   enablePlaceNewCall: function() {
     this.mEnablePlaceNewCallCalled = true;
   },

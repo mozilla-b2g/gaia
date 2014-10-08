@@ -125,7 +125,7 @@ var CallsHandler = (function callsHandler() {
       }
     }
 
-    CallScreen.toggle();
+    CallScreen.setCallerContactImage();
     exitCallScreenIfNoCalls();
   }
 
