@@ -246,6 +246,10 @@ form[role="search"] button[type="submit"]:after {
   -moz-user-select: none; /* without this, tapping on the element selects its content */
 }
 
+.messages-attach-container {
+  display: flex;
+}
+
 #messages-send-button {
   height: 4rem;
   overflow: visible;
