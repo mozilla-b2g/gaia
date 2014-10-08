@@ -36,6 +36,7 @@ suite('day_observer', function() {
       setTimeout(function() {
         callback(null, busytimes.map((busy) => _records.get(busy)));
       });
+      this.called = true;
     };
 
     subject.timeController = timeController;
@@ -120,15 +121,15 @@ suite('day_observer', function() {
     });
 
     test('not cached', function(done) {
-      // we should call the handler even if no records because events might be
-      // deleted while the view is not active. that way we use the same code
-      // path for all cases (first render and updates)
       timeController.cacheBusytime(busyToday1);
-      subject.on(yesterday, function(records) {
-        assert.deepEqual(records, [], 'no records');
-        done();
+      subject.on(yesterday, function() {
+        done(new Error('this should not execute!!!'));
       });
       clock.tick(delay);
+      assert.ok(
+        !timeController.findAssociated.called, 'don\'t call findAssociated'
+      );
+      done();
     });
 
     test('add more', function(done) {

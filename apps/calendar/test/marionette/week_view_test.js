@@ -306,29 +306,6 @@ marionette('week view', function() {
     });
   });
 
-  test('delete', function() {
-    app.createEvent({
-      title: 'Foo',
-      location: 'Bar'
-    });
-    client.waitFor(function() {
-      return app.week.events.length === 1;
-    }, { timeout: 2000 });
-
-    app.openMonthView();
-    app.monthDay.events[0].click();
-    app.readEvent.waitForDisplay();
-    app.readEvent.edit();
-    app.editEvent.waitForDisplay();
-    app.editEvent.delete();
-    app.month.waitForDisplay();
-    app.openWeekView();
-
-    client.waitFor(function() {
-      return app.week.events.length === 0;
-    }, { timeout: 2000 });
-  });
-
   function pad(n) {
     return n < 10 ? '0' + n : String(n);
   }
