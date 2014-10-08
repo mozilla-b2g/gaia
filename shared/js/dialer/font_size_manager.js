@@ -131,6 +131,10 @@ var FontSizeManager = (function fontSizeManager() {
                             (maxFontSize - fontSize) / 2 + 'px';
   }
 
+  function resetFixedBaseline(view) {
+    view.style.removeProperty('line-height');
+  }
+
   return {
     DIAL_PAD: DIAL_PAD,
     SINGLE_CALL: SINGLE_CALL,
@@ -138,6 +142,7 @@ var FontSizeManager = (function fontSizeManager() {
     STATUS_BAR: STATUS_BAR,
     SECOND_INCOMING_CALL: SECOND_INCOMING_CALL,
     adaptToSpace: adaptToSpace,
-    ensureFixedBaseline: ensureFixedBaseline
+    ensureFixedBaseline: ensureFixedBaseline,
+    resetFixedBaseline: resetFixedBaseline
   };
 })();

@@ -207,4 +207,21 @@ suite('font size manager', function() {
       assert.equal(view.style.lineHeight, '1px');
     });
   });
+
+  suite('resetFixedBaseline', function() {
+    var originalInnerHTML;
+
+    setup(function() {
+      originalInnerHTML = document.body.innerHTML;
+      view = document.createElement('div');
+      view.textContent = 'foobar';
+      view.style.lineHeight = '12px';
+      document.body.appendChild(view);
+    });
+
+    test('resets line heights', function() {
+      FontSizeManager.resetFixedBaseline(view);
+      assert.equal(view.style.lineHeight, '');
+    });
+  });
 });

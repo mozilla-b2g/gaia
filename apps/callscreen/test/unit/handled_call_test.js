@@ -683,12 +683,13 @@ suite('dialer/handled_call', function() {
       );
     });
 
-    test('should not ensureFixedBaseline without a contact', function() {
+    test('should call resetFixedBaseline without a contact', function() {
       mockCall = new MockCall('111', 'dialing');
       subject = new HandledCall(mockCall);
-      this.sinon.spy(FontSizeManager, 'ensureFixedBaseline');
+      this.sinon.spy(FontSizeManager, 'resetFixedBaseline');
       subject.formatPhoneNumber('end');
-      sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
+      sinon.assert.calledWith(
+        FontSizeManager.resetFixedBaseline, subject.numberNode);
     });
 
     test('check replace number', function() {

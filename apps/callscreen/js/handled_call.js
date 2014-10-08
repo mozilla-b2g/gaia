@@ -266,6 +266,8 @@ HandledCall.prototype.formatPhoneNumber =
       scenario, this.numberNode, false, ellipsisSide);
     if (this.node.classList.contains('additionalInfo')) {
       FontSizeManager.ensureFixedBaseline(scenario, this.numberNode);
+    } else {
+      FontSizeManager.resetFixedBaseline(this.numberNode);
     }
 };
 
