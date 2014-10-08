@@ -146,32 +146,75 @@
       // link the iccid with current internet state for future restoring.
       var type = (evt.settingName.indexOf('wifi') > -1) ? 'wifi' : 'usb';
       var cardId = (IccHelper.iccInfo && IccHelper.iccInfo.iccid) || 'absent';
+      var conns = window.navigator.mozMobileConnections;
 
-      if ('wifi' === type) {
-        var title;
-        var buttonText;
-        var message;
+      if (!conns) {
+        return;
+      }
 
+      var _ = navigator.mozL10n.get;
+      var settingL10n = (type == 'wifi') ? _('wifi-hotspot') :
+        _('usb-tethering');
+      var settingKey = 'tethering.' + type + '.enabled';
+      var cset = {};
+      cset[settingKey] = false;
+      var title;
+      var buttonText;
+      var message = {id: null, args: {setting: settingL10n}};
+
+      var dataConnected;
+      // In DualSim only one of them will have data active
+      for (var i = 0; i < conns.length && !dataConnected; i++) {
+        dataConnected = conns[i].data.connected;
+      }
+
+      this.getDUNConnection().then(function(DUNConnection) {
         if (AirplaneMode.enabled && true === evt.settingValue) {
           title = 'apmActivated';
           buttonText = 'ok';
-          message = 'noHopspotWhenAPMisOn';
+          message.id ='noHopspotWhenAPMisOn';
 
           ModalDialog.alert(title, message, { title: buttonText });
-          settings.createLock().set({'tethering.wifi.enabled': false});
-          return;
+          settings.createLock().set(cset);
         } else if ('absent' === cardId && true === evt.settingValue) {
           title = 'noSimCard';
           buttonText = 'ok';
-          message = 'noSIMCardInHotspot';
+          message.id = 'noSIMCardInHotspot';
 
           ModalDialog.alert(title, message, { title: buttonText });
-          settings.createLock().set({'tethering.wifi.enabled': false});
-          return;
+          settings.createLock().set(cset);
+        } else if (!DUNConnection && !dataConnected &&
+          true === evt.settingValue) {
+          title = 'noConnectivityHead';
+          buttonText = 'ok';
+          message.id = 'noConnectivityMessage';
+
+          ModalDialog.alert(title, message, { title: buttonText });
+          settings.createLock().set(cset);
         }
-      }
-      asyncStorage.setItem('tethering.' + type + '.simstate.card-' + cardId,
-                           evt.settingValue);
+
+        asyncStorage.setItem('tethering.' + type + '.simstate.card-' + cardId,
+          evt.settingValue);
+      });
+    },
+
+    getDUNConnection: function() {
+      var lock = settings.createLock();
+      var request = lock.get('ro.tethering.dun_required');
+      var DUNConnection;
+      return new Promise(function(resolve, reject) {
+        request.onsuccess = function() {
+          DUNConnection = request.result['ro.tethering.dun_required'];
+          if (typeof(DUNConnection) === 'undefined') {
+            DUNConnection = false;
+          }
+          resolve(DUNConnection);
+        };
+
+        request.onerror = function() {
+          resolve(false);
+        };
+      });
     },
 
     /**
