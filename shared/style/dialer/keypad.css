@@ -25,6 +25,7 @@
 }
 
 #phone-number-view-container .phone-number-view-wrapper-input {
+  flex: 1;
   width: 100%;
   margin-bottom: 4.5rem;
   display: flex;
@@ -59,7 +60,8 @@
 }
 
 #keypad-delete {
-  margin-bottom: 4.5rem;
+  width: 6rem;
+  margin: 0 0 4.5rem;
   padding: 0 2.5rem 0 0;
   visibility: hidden;
   text-align: right;
@@ -76,6 +78,7 @@
 
 #keypad-delete:active {
   opacity: 0.6;
+  background: none;
 }
 
 #keyboard-container {
@@ -194,6 +197,7 @@
   overflow: hidden;
   height: 4rem;
   text-align: center;
+  margin: 0;
 }
 
 .keypad-callbar-button.cancel {
@@ -210,7 +214,7 @@
 #keypad-callbar-call-action {
   display: flex;
   position: relative;
-  flex-grow: 1;
+  flex: 1;
   align-items: center;
   flex-direction: row-reverse;
   background-image: url("keypad/images/keypad/actionicon_activecall_pickup.png");
@@ -219,7 +223,7 @@
   background-position: center;
   background-size: 4rem 4rem;
   border-radius: 2rem;
-  margin-left: 1rem;
+  margin: 0 0 0 1rem;
   height: 4rem;
 }
 

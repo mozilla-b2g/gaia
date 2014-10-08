@@ -254,7 +254,7 @@
                        '/dialer/js/telephony_helper.js',
                        '/shared/style/contacts/contacts_buttons.css',
                        '/shared/style/contacts.css',
-                       '/dialer/style/buttons.css'], function() {
+                       '/shared/style/buttons.css'], function() {
         if (!self._initialised) {
           self._initialised = true;
           initListeners();
