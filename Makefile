@@ -531,7 +531,7 @@ export BUILD_CONFIG
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): profile-dir pre-app post-app test-agent-config offline contacts extensions b2g_sdk .git/hooks/pre-commit
+$(PROFILE_FOLDER): profile-dir app test-agent-config contacts extensions b2g_sdk .git/hooks/pre-commit
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -541,30 +541,22 @@ $(STAGE_DIR):
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
-.PHONY: pre-app
-pre-app: b2g_sdk $(STAGE_DIR)
-	@$(call run-js-command,pre-app)
-
 .PHONY: app
-app: $(XULRUNNER_BASE_DIRECTORY) pre-app | $(STAGE_DIR)
+app: b2g_sdk profile-dir $(STAGE_DIR)
 	@$(call run-js-command,app)
-
-.PHONY: post-app
-post-app: app pre-app b2g_sdk
-	@$(call run-js-command,post-app)
 
 # Keep old targets just for people/scripts still using it
 .PHONY: post-manifest
-post-manifest: post-app
+post-manifest: app
 
 .PHONY: copy-build-stage-data
-copy-build-stage-data: post-app
+copy-build-stage-data: app
 
 .PHONY: webapp-optimize
-webapp-optimize: post-app
+webapp-optimize: app
 
 .PHONY: webapp-zip
-webapp-zip: post-app
+webapp-zip: app
 
 # Get additional extensions
 $(STAGE_DIR)/additional-extensions/downloaded.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
@@ -590,7 +582,7 @@ endif
 endif
 
 # Create webapps
-offline: app post-app
+offline: app
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -998,7 +990,7 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
-$(PROFILE_FOLDER)/settings.json: b2g_sdk profile-dir pre-app post-app
+$(PROFILE_FOLDER)/settings.json: b2g_sdk profile-dir app
 
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
 install-default-data: $(PROFILE_FOLDER)/settings.json contacts
