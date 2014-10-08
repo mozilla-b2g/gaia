@@ -108,7 +108,8 @@
       transitionEnd: false,
       unlocking: false,
       keypadInput: '',
-      forciblyUnlock: false
+      forciblyUnlock: false,
+      inputpad: null
     };
     Object.freeze(this.lockScreenDefaultStates);
 
@@ -191,7 +192,7 @@
     this.registerRule({
       passcodeEnabled: true,
       screenOn: true,
-      transitionEnd: true,
+      inputpad: 'close',
       unlocking: false
     },
     ['keypadHiding'],
@@ -209,7 +210,7 @@
     this.registerRule({
       passcodeEnabled: true,
       screenOn: true,
-      transitionEnd: true
+      inputpad: 'open'
     },
     ['keypadRising'],
     this.states.keypadShow,
@@ -227,7 +228,7 @@
     this.registerRule({
       passcodeEnabled: true,
       screenOn: true,
-      transitionEnd: true,
+      inputpad: 'close',
       unlocking: true
     },
     ['keypadHiding'],

@@ -105,6 +105,8 @@ suite('system/LockScreenWindowManager', function() {
 
     test('Initialize when screenchange', function() {
       var originalCreateWindow = window.lockScreenWindowManager.createWindow;
+      var originalLockScreenInputWindow = window.LockScreenInputWindow;
+      window.LockScreenInputWindow = function() {};
       var stubCreateWindow =
       this.sinon.stub(window.lockScreenWindowManager, 'createWindow',
         function() {
@@ -121,6 +123,8 @@ suite('system/LockScreenWindowManager', function() {
         window.lockScreenWindowManager.unregisterApp(app);
       }
       window.lockScreenWindowManager.stopEventListeners();
+      window.LockScreenInputWindow = originalLockScreenInputWindow =
+        originalLockScreenInputWindow;
     });
 
     test('Screenchange by proximity sensor, should not open the LockScreen app',
@@ -235,6 +239,18 @@ suite('system/LockScreenWindowManager', function() {
       assert.isTrue(stubOpen.called,
         'the manager didn\'t open the app when requested');
       window.lockScreenWindowManager.unregisterApp(appFake);
+    });
+
+    test('onInputpadOpen would open the window and call resize', function() {
+      window.lockScreenWindowManager.states.instance = appFake;
+      appFake.inputWindow = {
+        open: this.sinon.stub(),
+        close: this.sinon.stub()
+      };
+      var stubResize = this.sinon.stub(appFake, 'resize');
+      window.lockScreenWindowManager.onInputpadClose();
+      assert.isTrue(appFake.inputWindow.close.called, 'called no |open|');
+      assert.isTrue(stubResize.called, 'called no |resize|');
     });
   });
 });

@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
-/* global System, LockScreenWindow */
+/* global System, LockScreenWindow, LockScreenInputWindow */
 
 (function(exports) {
   /**
@@ -46,6 +46,13 @@
      * @memberof LockScreenWindowManager#
      */
     this.configs = {
+      inputWindow: {
+        // Before we put things inside an iframe, do not resize LW.
+        resizeMode: false,
+        get height() {
+          return 300;
+        }
+      },
       listens: ['lockscreen-request-unlock',
                 'lockscreen-appcreated',
                 'lockscreen-appterminated',
@@ -55,7 +62,9 @@
                 'ftudone',
                 'overlaystart',
                 'showlockscreenwindow',
-                'home'
+                'home',
+                'lockscreen-request-inputpad-open',
+                'lockscreen-request-inputpad-close'
                ]
     };
   };
@@ -142,6 +151,12 @@
               new CustomEvent('lockscreen-notify-homepressed'));
             evt.stopImmediatePropagation();
           }
+          break;
+        case 'lockscreen-request-inputpad-open':
+          this.onInputpadOpen();
+          break;
+        case 'lockscreen-request-inputpad-close':
+          this.onInputpadClose();
           break;
       }
     };
@@ -322,6 +337,9 @@
       }
       this.states.windowCreating = true;
       var app = new LockScreenWindow();
+      // XXX: Before we can use real InputWindow and InputWindowManager,
+      // we need this to 
+      app.inputWindow = new LockScreenInputWindow();
       this.states.windowCreating = false;
       return app;
     };
@@ -397,6 +415,18 @@
       } else {
         return this.states.instance.isActive();
       }
+    };
+
+  LockScreenWindowManager.prototype.onInputpadOpen =
+    function lwm_onInputpadOpen() {
+      this.states.instance.inputWindow.open();
+      this.states.instance.resize();
+    };
+
+  LockScreenWindowManager.prototype.onInputpadClose =
+    function lwm_onInputpadClose() {
+      this.states.instance.inputWindow.close();
+      this.states.instance.resize();
     };
 
   /** @exports LockScreenWindowManager */

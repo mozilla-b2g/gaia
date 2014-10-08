@@ -186,47 +186,6 @@ suite('system/LockScreen >', function() {
     delete subject._lockscreenConnInfoManager;
   });
 
-  test('Emergency call: should disable when has no telephony', function() {
-    navigator.mozTelephony = null;
-    var stubGetAll = this.sinon.stub(subject, 'getAllElements',
-                      mockGetAllElements);
-    var spyEmergencyCallEvents = this.sinon.spy(subject,
-                                  'initEmergencyCallEvents');
-    subject.init();
-    assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
-    assert.isFalse(spyEmergencyCallEvents.calledOnce);
-  });
-
-  test('Emergency call: should enable when has telephony', function() {
-    var stubGetAll = this.sinon.stub(subject, 'getAllElements',
-                      mockGetAllElements);
-    var spyEmergencyCallEvents = this.sinon.spy(subject,
-                                  'initEmergencyCallEvents');
-    subject.init();
-    assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
-    assert.isTrue(spyEmergencyCallEvents.calledOnce);
-  });
-
-  test('Emergency call: should disable emergency-call button',
-    function() {
-      var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
-      navigator.mozTelephony.calls = {length: 1};
-      var evt = {type: 'callschanged'};
-      subject.handleEvent(evt);
-      assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
-      stubSwitchPanel.restore();
-  });
-
-  test('Emergency call: should enable emergency-call button',
-    function() {
-      var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
-      navigator.mozTelephony.calls = {length: 0};
-      var evt = {type: 'callschanged'};
-      subject.handleEvent(evt);
-      assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
-      stubSwitchPanel.restore();
-  });
-
   test('Lock: can actually lock', function() {
     subject.overlay = domOverlay;
     subject.lock();
@@ -241,8 +200,7 @@ suite('system/LockScreen >', function() {
 
   test('Passcode: enter passcode should fire the validation event', function() {
     var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-    subject.passCodeEntered = 'foobar';
-    subject.checkPassCode();
+    subject.checkPassCode('foobar');
     assert.isTrue(stubDispatchEvent.calledWithMatch(function(event) {
       return 'lockscreen-request-passcode-validate' === event.type &&
         'foobar' === event.detail.passcode;

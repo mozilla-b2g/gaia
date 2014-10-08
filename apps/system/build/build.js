@@ -75,6 +75,30 @@ SystemAppBuilder.prototype.integrateLockScreen = function(options) {
   utils.writeContent(systemIndexFile, replacedIndexContent);
 };
 
+/**
+ * XXX: Before we can pull LockScreenInputpad out, we need this to split
+ * LockScreenInputpad and LockScreen while still merge them into one file.
+ * (Bug 1053680).
+ */
+SystemAppBuilder.prototype.integrateLockScreenInputpad = function(options) {
+  var stagePath = options.STAGE_APP_DIR;
+  var lockscreenInputpadFrameElement =
+    '<div id="lockscreen-inputpad-frame-placeholder"></div>';
+  // Paths must indicate to the files in build stage directory.
+  var lockscreenInputpadFramePath =
+    [stagePath, 'lockscreen', 'lockscreen_inputpad_frame.html'];
+  var systemIndexPath = [stagePath, 'index.html'];
+  var systemIndexFile = utils.getFile.apply(utils, systemIndexPath);
+  var lockscreenInputpadContent = utils.getFileContent(
+      utils.getFile.apply(utils, lockscreenInputpadFramePath));
+  var systemIndexContent = utils.getFileContent(
+      systemIndexFile);
+  var replacedIndexContent = systemIndexContent.replace(
+      lockscreenInputpadFrameElement,
+      lockscreenInputpadContent);
+  utils.writeContent(systemIndexFile, replacedIndexContent);
+};
+
 SystemAppBuilder.prototype.execute = function(options) {
   utils.copyToStage(options);
   this.setOptions(options);
@@ -83,6 +107,7 @@ SystemAppBuilder.prototype.execute = function(options) {
     this.addCustomizeFiles();
   }
   this.integrateLockScreen(options);
+  this.integrateLockScreenInputpad(options);
 };
 
 exports.execute = function(options) {

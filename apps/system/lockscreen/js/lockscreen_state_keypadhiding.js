@@ -33,27 +33,18 @@
   LockScreenStateKeypadHiding.prototype.transferTo =
   function lsskh_transferTo() {
     return new Promise((resolve, reject) => {
-      var transitionEnd = (evt) => {
-        // XXX: keyboard animation would affect panel, but the target would
-        // not be 'this.lockScreen.overlay'.
-        if (evt.target.classList.contains('lockscreen-panel')) {
-          this.lockScreen.passcodePad.style.transitionDelay = '';
-          this.lockScreen.passcodeCode.style.transitionDelay = '';
-          window.removeEventListener('transitionend', transitionEnd);
-          // We must map this native event to avoid listen 'transitionend'
-          // in the manager cause racing problem (the event and transferring
-          // done event).
-          resolve( {'transitionEnd': true} );
-        }
-      };
       // Copy from the original switching method.
       this.lockScreen.overlay.classList.remove('no-transition');
-      window.addEventListener('transitionend', transitionEnd);
-      // Must delay the animation to let the final dot shows.
-      this.lockScreen.passcodePad.style.transitionDelay = '0.1s';
-      this.lockScreen.passcodeCode.style.transitionDelay = '0.1s';
       // Trigger the transition.
       this.lockScreen.overlay.dataset.panel = 'main';
+      window.dispatchEvent(
+        new CustomEvent('lockscreen-request-inputpad-close'));
+      // XXX: We need a overall refactoring about panel and
+      // panel styling in the future.
+      this.lockScreen.overlay.classList.remove('passcode-unlocking');
+      // XXX: We assume this is sync in order. But if we use real
+      // input window this would be broken.
+      resolve({'inputpad': 'close'});
     });
   };
   exports.LockScreenStateKeypadHiding = LockScreenStateKeypadHiding;

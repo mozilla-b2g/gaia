@@ -74,3 +74,56 @@
 #keyboard-show-ime-list > .fake-notification > .detail {
   margin-left: 3.7rem;
 }
+
+.lockScreenInputWindow.slide-from-bottom {
+  animation: slideFromBottom 0.4s both ease;
+}
+
+.lockScreenInputWindow.slide-to-bottom {
+  animation: slideToBottom 0.4s both ease-in;
+}
+
+@keyframes slideFromBottom {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(100%));
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideToBottom {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(100%));
+  }
+}
+
+.lockScreenInputWindow {
+  transform: translateY(calc(100%));
+}
+
+.lockScreenInputWindow #lockscreen-inputpad-frame {
+  position: absolute;
+  bottom: 0;
+
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.lockScreenInputWindow #lockscreen-inputpad-frame.hide {
+  transform: translateY(calc(100%));
+}
