@@ -349,7 +349,7 @@ contacts.Search = (function() {
     }
   };
 
-  function fillInitialSearchPage() {
+  function fillInitialSearchPage(done) {
     hideProgressResults();
 
     var startContact = source.getFirstNode();
@@ -370,6 +370,10 @@ contacts.Search = (function() {
     }
 
     fillIdentityResults(startContact, numToFill);
+
+    if (typeof done === 'function') {
+      done();
+    }
 
     imgLoader.reload();
   }
@@ -525,7 +529,7 @@ contacts.Search = (function() {
 
     if (thisSearchText.length === 0) {
       resetState();
-      window.setTimeout(fillInitialSearchPage, 0);
+      window.setTimeout(fillInitialSearchPage, 0, searchDoneCb);
     }
     else {
       showProgress();
