@@ -82,8 +82,6 @@ gaia-header [data-icon]:before {
   top: 9.3rem;
   background: #f4f4f4;
   transform: translate(0, 0);
-  transition: transform 0.5s ease,
-              opacity 0.2s ease;
 }
 
 #balance-tab,
@@ -191,4 +189,3 @@ section.content {
 #reset-data-usage {
   margin-top: 1rem;
 }
-
