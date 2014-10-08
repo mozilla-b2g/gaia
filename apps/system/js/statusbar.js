@@ -1291,24 +1291,29 @@ var StatusBar = {
     },
 
     recording: function sb_updateRecording() {
-      window.clearTimeout(this.recordingTimer);
+      clearTimeout(this.recordingTimer);
 
       var icon = this.icons.recording;
       icon.dataset.active = this.recordingActive;
 
       if (this.recordingActive) {
-        // Geolocation is currently active, show the active icon.
+        // Recording is currently active, show the active icon.
         icon.hidden = false;
+        this._updateIconVisibility();
         return;
       }
 
-      // Geolocation is currently inactive.
+      // Recording is currently inactive.
       // Show the inactive icon and hide it after kActiveIndicatorTimeout
-      this.recordingTimer = window.setTimeout(function hideGeoIcon() {
+      this.recordingTimer = setTimeout(function hideRecordingIcon() {
         icon.hidden = true;
-      }, this.kActiveIndicatorTimeout);
+        this._updateIconVisibility();
+      }.bind(this), this.kActiveIndicatorTimeout);
 
-      this._updateIconVisibility();
+      // The icon active state may have changed (visually indicated by its
+      // opacity) in the maximised status bar, so we still need this call to
+      // refresh the minimised status bar so that it looks like the maximised.
+      this.cloneStatusbar();
     },
 
     sms: function sb_updateSms() {
@@ -1321,7 +1326,7 @@ var StatusBar = {
     },
 
     geolocation: function sb_updateGeolocation() {
-      window.clearTimeout(this.geolocationTimer);
+      clearTimeout(this.geolocationTimer);
 
       var icon = this.icons.geolocation;
       icon.dataset.active = this.geolocationActive;
@@ -1329,16 +1334,21 @@ var StatusBar = {
       if (this.geolocationActive) {
         // Geolocation is currently active, show the active icon.
         icon.hidden = false;
+        this._updateIconVisibility();
         return;
       }
 
       // Geolocation is currently inactive.
       // Show the inactive icon and hide it after kActiveIndicatorTimeout
-      this.geolocationTimer = window.setTimeout(function hideGeoIcon() {
+      this.geolocationTimer = setTimeout(function hideGeolocationIcon() {
         icon.hidden = true;
-      }, this.kActiveIndicatorTimeout);
+        this._updateIconVisibility();
+      }.bind(this), this.kActiveIndicatorTimeout);
 
-      this._updateIconVisibility();
+      // The icon active state may have changed (visually indicated by its
+      // opacity) in the maximised status bar, so we still need this call to
+      // refresh the minimised status bar so that it looks like the maximised.
+      this.cloneStatusbar();
     },
 
     usb: function sb_updateUsb() {
