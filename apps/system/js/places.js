@@ -209,7 +209,7 @@
     setVisits: function(url, visits) {
       return this.editPlace(url, (place, cb) => {
         place.visits = place.visits || [];
-        place.visits.concat(visits);
+        place.visits = place.visits.concat(visits);
         place.visits.sort((a, b) => { return b - a; });
         cb(place);
       });
