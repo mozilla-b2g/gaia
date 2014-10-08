@@ -16,6 +16,7 @@
     this._ignoreSelectionChange = false;
     this._isCommandSendable = false;
     this._transitionState = 'closed';
+    this._scrolling = false;
 
     this._previousOffsetX = 0;
     this._previousOffsetY = 0;
@@ -87,12 +88,15 @@
           case 'scrollviewchange':
             this.debug('scrollviewchange');
             this.debug(JSON.stringify(evt.detail.detail));
-            if (evt.detail.detail.state === 'started') {
+            if (evt.detail.detail.state === 'started' &&
+                this._transitionState === 'opened') {
               this._previousOffsetX = evt.detail.detail.scrollX;
               this._previousOffsetY = evt.detail.detail.scrollY;
-              this.hide();
+              this._changeTransitionState('closed');
+              this._scrolling = true;
             } else if (evt.detail.detail.state === 'stopped' &&
-                       this._transitionState === 'opened') {
+                       this._scrolling === true) {
+              this._scrolling = false;
               this.updateDialogPosition(
                 evt.detail.detail.scrollX - this._previousOffsetX,
                 evt.detail.detail.scrollY - this._previousOffsetY
@@ -100,6 +104,10 @@
               this._previousOffsetX = 0;
               this._previousOffsetY = 0;
             }
+            break;
+          case 'touchcarettap':
+            this.show(this.textualmenuDetail);
+            this._triggerShortcutTimeout();
             break;
         }
     }
@@ -117,6 +125,7 @@
       if (!detail) {
         return;
       }
+      this.debug('on receive selection change event');
       this.debug(JSON.stringify(detail));
       var rect = detail.rect;
       var reasons = detail.reasons;
@@ -128,7 +137,8 @@
 
       // In collapsed mode, only paste option will be displaed if we have copied
       // or cut before.
-      if (isTempShortcut) {
+      if (isCollapsed && reasons.indexOf('mouseup') !== -1) {
+        this.textualmenuDetail = detail;
         commands.canSelectAll = false;
       }
 
@@ -168,13 +178,19 @@
 
         this.show(detail);
         if (isTempShortcut) {
-          this._hideTimeout = window.setTimeout(function() {
-            this.close();
-          }.bind(this), this.SHORTCUT_TIMEOUT);
+          this._triggerShortcutTimeout();
         }
         return;
       }
-      this.close();
+      this.hide();
+    };
+
+  TextSelectionDialog.prototype._triggerShortcutTimeout =
+    function tsd__triggerShortcutTimeout() {
+      window.clearTimeout(this._hideTimeout);
+      this._hideTimeout = window.setTimeout(function() {
+        this.close();
+      }.bind(this), this.SHORTCUT_TIMEOUT);
     };
 
   TextSelectionDialog.prototype._fetchElements = function tsd__fetchElements() {
@@ -239,6 +255,9 @@
 
   TextSelectionDialog.prototype._changeTransitionState =
     function tsd__changeTransitionState(state) {
+      if (!this.element) {
+        return;
+      }
       switch (state) {
         case 'opened':
           this.element.classList.add('active');
@@ -323,7 +342,6 @@
 
 
   TextSelectionDialog.prototype.show = function tsd_show(detail) {
-    this.debug(JSON.stringify(detail));
 
     clearTimeout(this._hideTimeout);
     var numOfSelectOptions = 0;
