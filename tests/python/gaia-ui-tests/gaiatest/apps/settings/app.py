@@ -19,7 +19,7 @@ class Settings(Base):
     _usb_storage_text_locator = (By.CSS_SELECTOR, '.usb-desc')
     _screen_lock_text_locator = (By.CSS_SELECTOR, '.screenLock-desc')
     _language_text_locator = (By.ID, 'language-desc')
-    _bluetooth_text_locator = (By.CSS_SELECTOR, '.bluetooth-desc')
+    _bluetooth_text_locator = (By.ID, 'bluetooth-desc')
 
     _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
     _airplane_switch_locator = (By.XPATH, "//input[contains(@class, 'airplaneMode-input')]/..")
@@ -28,7 +28,7 @@ class Settings(Base):
     _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
     _accessibility_menu_item_locator = (By.ID, 'menuItem-accessibility')
     _cell_data_menu_item_locator = (By.ID, 'menuItem-cellularAndData')
-    _bluetooth_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-bluetooth')
+    _bluetooth_menu_item_locator = (By.ID, 'menuItem-bluetooth')
     _keyboard_menu_item_locator = (By.ID, "menuItem-keyboard")
     _language_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-languageAndRegion')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')

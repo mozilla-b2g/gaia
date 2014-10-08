@@ -97,16 +97,19 @@ var Settings = {
     this.SettingsService = options.SettingsService;
     this.PageTransitions = options.PageTransitions;
     this.ScreenLayout = options.ScreenLayout;
+    this.Connectivity = options.Connectivity;
 
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
     this.currentPanel = '#root';
 
+    // init connectivity when we get a chance
     navigator.mozL10n.once(function loadWhenIdle() {
       var idleObserver = {
         time: 3,
         onidle: function() {
+          this.Connectivity.init();
           navigator.removeIdleObserver(idleObserver);
         }.bind(this)
       };
