@@ -5,7 +5,7 @@ mocha.globals(['MockL10n']);
 suite('BluetoothItem', function() {
   var realL10n;
   var modules = [
-    'unit/mock_l10n',
+    'shared_mocks/mock_l10n',
     'panels/root/bluetooth_item'
   ];
   var map = {
