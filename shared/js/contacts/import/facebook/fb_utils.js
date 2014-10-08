@@ -418,8 +418,17 @@ window.fb = fb;
           var number = idx;
           var req, fbContact;
           if (fb.isFbLinked(contact)) {
-            fbContact = new fb.Contact(contact);
-            req = fbContact.unlink('hard');
+            if (mustUpdate) {
+              fbContact = new fb.Contact(contact);
+              req = fbContact.unlink('hard');
+            }
+            else {
+              // Here we only need to mark this contact as unlinked
+              // as the FB Data would have been already removed
+              fb.unlinkClearAll(contact);
+              req = navigator.mozContacts.save(
+                                              utils.misc.toMozContact(contact));
+            }
           }
           else {
             if (mustUpdate) {
