@@ -1919,8 +1919,11 @@ suite('compose_test.js', function() {
       document.getElementById('messages-attach-button').click();
       sinon.assert.calledThrice(onInteractStub);
 
-      SubjectComposer.prototype.on.withArgs('focus').yield();
+      document.querySelector('.js-content-composer').click();
       assert.equal(onInteractStub.callCount, 4);
+
+      SubjectComposer.prototype.on.withArgs('focus').yield();
+      assert.equal(onInteractStub.callCount, 5);
     });
   });
 });
