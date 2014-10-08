@@ -204,10 +204,6 @@
     // batches can be linked together into larger time periods
     this.deviceID = null;
 
-    // Are we online? Initialized in startCollecting() and updated in
-    // handleEvent() based on online and offline events
-    this.online = false;
-
     // Is the user idle? Updated in handleEvent() based on an idle observer
     this.idle = false;
 
@@ -463,14 +459,6 @@
       this.idle = false;
       break;
 
-    case ONLINE:
-      this.online = true;
-      break;
-
-    case OFFLINE:
-      this.online = false;
-      break;
-
     case TIMECHANGE:
       if (this.metrics.relativeStartTime !== undefined) {
         // If we have a relative time recorded for this batch then we
@@ -503,7 +491,7 @@
     }
 
     // Is there data to be sent and is this an okay time to send it?
-    if (!this.metrics.isEmpty() && this.idle && this.online) {
+    if (!this.metrics.isEmpty() && this.idle && navigator.onLine) {
       var absoluteTime = Date.now();
       // Have we tried and failed to send it before?
       if (this.lastFailedTransmission > this.metrics.startTime()) {

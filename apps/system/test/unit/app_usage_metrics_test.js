@@ -19,7 +19,16 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
  *    retries are handled correctly after a transmission failure.
  */
 suite('AppUsageMetrics:', function() {
-  var realMozSettings;
+  var realMozSettings, realOnLine;
+  var isOnLine = true;
+
+  function navigatorOnLine() {
+    return isOnLine;
+  }
+
+  function setNavigatorOnLine(value) {
+    isOnLine = value;
+  }
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
@@ -33,6 +42,13 @@ suite('AppUsageMetrics:', function() {
     };
     navigator.removeIdleObserver = function() {};
 
+    realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
+    Object.defineProperty(navigator, 'onLine', {
+      configurable: true,
+      get: navigatorOnLine,
+      set: setNavigatorOnLine
+    });
+
     AppUsageMetrics.DEBUG = false; // Shut up console output in test logs
   });
 
@@ -42,6 +58,12 @@ suite('AppUsageMetrics:', function() {
 
     delete navigator.addIdleObserver;
     delete navigator.removeIdleObserver;
+
+    if (realOnLine) {
+      Object.defineProperty(navigator, 'onLine', realOnLine);
+    } else {
+      delete navigator.onLine;
+    }
   });
 
   /*
@@ -560,7 +582,7 @@ suite('AppUsageMetrics:', function() {
       transmit = this.sinon.spy(AppUsageMetrics.prototype, 'transmit');
 
       aum.idle = true;
-      aum.online = true;
+      isOnLine = true;
       clock.tick(); // to make the start call complete
     });
 
@@ -615,7 +637,7 @@ suite('AppUsageMetrics:', function() {
     test('Don\'t transmit if offline', function() {
       // Record some data
       aum.metrics.recordInvocation('app1', 10000);
-
+      isOnLine = false;
       dispatch('offline');
 
       // Exceed the reporting interval
