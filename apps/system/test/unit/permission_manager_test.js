@@ -115,27 +115,49 @@ suite('system/permission manager', function() {
   suite('attentionopening Handler', function() {
     setup(function() {
       this.sinon.stub(permissionManager, 'discardPermissionRequest');
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('attentionopening', true, true, {origin: ''});
-      window.dispatchEvent(evt);
     });
 
     test('discardPermissionRequest is called', function() {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('attentionopening', true, true, {origin: ''});
+      permissionManager.currentOrigin = 'app://fakecall.com';
+      window.dispatchEvent(evt);
       assert.isTrue(permissionManager.discardPermissionRequest.called);
     });
+
+    test('discardPermissionRequest should not be called' +
+      'not be called if it comes from the same origin', function() {
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('attentionopening', true, true,
+          {origin: 'app://fakecall.com'});
+        permissionManager.currentOrigin = 'app://fakecall.com';
+        window.dispatchEvent(evt);
+        assert.isFalse(permissionManager.discardPermissionRequest.called);
+      });
   });
 
   suite('attentionopened Handler', function() {
     setup(function() {
       this.sinon.stub(permissionManager, 'discardPermissionRequest');
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('attentionopened', true, true, {origin: ''});
-      window.dispatchEvent(evt);
     });
 
     test('discardPermissionRequest is called', function() {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('attentionopened', true, true, {origin: ''});
+      permissionManager.currentOrigin = 'app://fakecall.com';
+      window.dispatchEvent(evt);
       assert.isTrue(permissionManager.discardPermissionRequest.called);
     });
+
+    test('discardPermissionRequest should not be called' +
+      ' if it comes from the same origin', function() {
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('attentionopened', true, true,
+          {origin: 'app://fakecall.com'});
+        permissionManager.currentOrigin = 'app://fakecall.com';
+        window.dispatchEvent(evt);
+        assert.isFalse(permissionManager.discardPermissionRequest.called);
+      });
   });
 
   suite('fullscreenoriginchange Handler', function() {
