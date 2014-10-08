@@ -228,7 +228,6 @@ suite('dialer/voicemail', function() {
 
       test('call the voicemail number via SIM 1', function(done) {
         var serviceId = 0;
-
         Voicemail.check(VOICEMAIL_NUMBER_SIM_1, serviceId).then(
         function(isVoicemailNumber) {
           scenario.assertionWhenCallingVoicemailNumber(isVoicemailNumber);
@@ -268,5 +267,17 @@ suite('dialer/voicemail', function() {
         }).then(done, done);
       });
     });
+  });
+
+  test('Blank number is not voicemail', function(done) {
+    this.sinon.stub(navigator.mozVoicemail, 'getNumber').returns('');
+    MockNavigatorSettings.createLock().set({'ril.iccInfo.mbdn': ''});
+
+    Voicemail.check('', 0).then(
+    function(isVoicemailNumber) {
+      assert.isFalse(isVoicemailNumber);
+    }, function(reason) {
+      assert.fail('should not reject promise: ' + reason);
+    }).then(done, done);
   });
 });

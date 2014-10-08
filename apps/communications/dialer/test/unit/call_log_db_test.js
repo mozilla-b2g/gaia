@@ -591,6 +591,21 @@ suite('dialer/call_log_db', function() {
       });
     });
 
+    // bug 1078663
+    test('Add a voicemail call with no number', function(done) {
+      var oldVoicemailCallNumber = voicemailCall.number;
+      voicemailCall.number = '';
+
+      CallLogDBManager.add(voicemailCall, function(res) {
+        CallLogDBManager.getGroupList(function(groups) {
+          assert.isFalse(groups[2].voicemail);
+          done();
+        }, null, true);
+      });
+
+      voicemailCall.number = oldVoicemailCallNumber;
+    });
+
     suiteTeardown(function(done) {
       CallLogDBManager.deleteAll(function() {
         done();
