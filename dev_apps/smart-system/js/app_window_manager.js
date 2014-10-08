@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenWindowManager, KeyboardManager,
-          layoutManager, System, NfcHandler, rocketbar */
+          layoutManager, System, rocketbar */
 'use strict';
 
 (function(exports) {
@@ -99,13 +99,6 @@
     // store all callback functions in order to unobserve them when uninit.
     _settingsObserveHandler: null,
 
-    /**
-     * Handles system browser URL sharing via NFC. Starts listening for
-     * peerready events once NFC is enabled in settings
-     * @type {Object}
-     * @memberOf module:AppWindowManager
-     */
-    _nfcHandler: null,
 
     /**
      * Switch to a different app
@@ -325,21 +318,6 @@
             }
           }.bind(this)
         },
-
-        'nfc.enabled': {
-          defaultValue: false,
-          callback: (value) => {
-            if (!this._nfcHandler) {
-              this._nfcHandler = new NfcHandler(this);
-            }
-
-            if (value) {
-              this._nfcHandler.start();
-            } else {
-              this._nfcHandler.stop();
-            }
-          }
-        }
       };
 
       for (var name in this._settingsObserveHandler) {

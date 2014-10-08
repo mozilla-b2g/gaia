@@ -36,7 +36,6 @@
       window.addEventListener('attentionclosed', this);
       window.addEventListener('sleepmenuhide', this);
       window.addEventListener('trusteduiclose', this);
-      window.addEventListener('shrinking-stop', this);
       window.addEventListener('searchclosing', this);
     },
 
@@ -55,9 +54,6 @@
          * Fired when the orientation needs to be locked/unlocked again.
          * @event module:OrientationManager#reset-orientation
          */
-          this.publish('reset-orientation');
-          break;
-        case 'shrinking-stop':
           this.publish('reset-orientation');
           break;
       }

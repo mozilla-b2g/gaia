@@ -42,8 +42,6 @@
     "audio-channel-ringer":{},
     "cellbroadcast":{},
     "input-manage":{},
-    "nfc":{ "access": "readwrite" },
-    "nfc-manager":{},
     "downloads":{},
     "systemXHR":{},
     "feature-detection": {}
@@ -92,11 +90,6 @@
      { "bluetooth-opp-update-progress": "/index.html" },
      { "bluetooth-opp-receiving-file-confirmation": "/index.html" },
      { "bluetooth-opp-transfer-start": "/index.html" },
-     { "icc-stkcommand": "/index.html" },
-     { "cdma-info-rec-received": "/index.html" },
-     { "nfc-manager-tech-discovered": "/index.html" },
-     { "nfc-manager-tech-lost": "/index.html" },
-     { "nfc-manager-send-file": "/index.html" },
      { "bluetooth-pairing-request": "/index.html" },
      { "notification": "/index.html" }
   ],

@@ -128,8 +128,6 @@
       window.addEventListener('appopening', this);
       window.addEventListener('appopened', this);
       window.addEventListener('keyboardchange', this);
-      window.addEventListener('shrinking-start', this);
-      window.addEventListener('shrinking-stop', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
     },
@@ -153,8 +151,6 @@
       window.removeEventListener('trusteduihide', this);
       window.removeEventListener('trusteduishow', this);
       window.removeEventListener('applicationready', this._onAppReady);
-      window.removeEventListener('shrinking-start', this);
-      window.removeEventListener('shrinking-stop', this);
       window.removeEventListener('software-button-enabled', this);
       window.removeEventListener('software-button-disabled', this);
       this._started = false;
@@ -192,15 +188,6 @@
           // Fade out the homescreen, so that it won't be seen when showing/
           // hiding/switching keyboard.
           this.getHomescreen().fadeOut();
-          break;
-        case 'shrinking-start':
-          // To hide the homescreen overlay while we set the background behind
-          // it due to the shrinking UI.
-          this.getHomescreen().hideFadeOverlay();
-          break;
-        case 'shrinking-stop':
-          // To resume the homescreen after shrinking UI is over.
-          this.getHomescreen().showFadeOverlay();
           break;
         case 'software-button-enabled':
         case 'software-button-disabled':

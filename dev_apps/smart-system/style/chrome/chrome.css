@@ -11,11 +11,6 @@
   color: white;
 }
 
-:not(.browser).appWindow[data-shrinking-state="true"] > .chrome {
-  height: calc(var(--statusbar-height) / var(--rocketbar-scale));
-  transform: scaleY(var(--rocketbar-scale)) translateY(0);
-}
-
 .appWindow.light > .chrome {
   background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05));
   background-color: white;

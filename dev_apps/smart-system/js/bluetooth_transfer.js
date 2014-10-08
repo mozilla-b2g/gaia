@@ -130,14 +130,6 @@ var BluetoothTransfer = {
   },
 
   onReceivingFileConfirmation: function bt_onReceivingFileConfirmation(evt) {
-    if (NfcHandoverManager.isHandoverInProgress()) {
-      // Bypassing confirm dialog while incoming file transfer via NFC Handover
-      this.debug('Incoming file via NFC Handover. Bypassing confirm dialog');
-      NfcHandoverManager.transferStarted();
-      this.acceptReceive(evt);
-      return;
-    }
-
     // Prompt appears when a transfer request from a paired device is received.
     var _ = navigator.mozL10n.get;
 
@@ -479,12 +471,6 @@ var BluetoothTransfer = {
 
     // Have a report notification for sending multiple files.
     this.summarizeSentFilesReport(transferInfo);
-
-    // Inform NfcHandoverManager that the transfer completed
-    var details = {received: transferInfo.received,
-                   success: transferInfo.success,
-                   viaHandover: viaHandover};
-    NfcHandoverManager.transferComplete(details);
   },
 
   summarizeSentFilesReport: function bt_summarizeSentFilesReport(transferInfo) {

@@ -22,7 +22,7 @@
           }
         });
       // init and observe the corresponding mozSettings
-      // for Data connection, Bluetooth, Wifi, GPS, and NFC
+      // for Bluetooth, Wifi, and GPS.
       SettingsListener.observe(settingEnabledID, false,
         function(value) {
           self._settings[settingEnabledID] = value;
@@ -85,7 +85,7 @@
       return this._settings[key + '.suspended'];
     },
     init: function() {
-      ['ril.data', 'bluetooth', 'wifi', 'geolocation', 'nfc'].forEach(
+      ['ril.data', 'bluetooth', 'wifi', 'geolocation'].forEach(
         this._initSetting.bind(this)
       );
     },
@@ -94,7 +94,6 @@
       // this in Gecko instead, please check bug 997064.
       var bluetooth = window.navigator.mozBluetooth;
       var wifiManager = window.navigator.mozWifiManager;
-      var nfc = window.navigator.mozNfc;
 
       if (value) {
 
@@ -114,10 +113,6 @@
         // Turn off Geolocation.
         this._suspend('geolocation');
 
-        // Turn off NFC
-        if (nfc) {
-          this._suspend('nfc');
-        }
       } else {
         // Note that we don't restore Wifi tethering when leaving airplane mode
         // because Wifi tethering can't be switched on before data connection is
@@ -136,11 +131,6 @@
         // Don't attempt to turn on Geolocation if it's already on
         if (!this._settings['geolocation.enabled']) {
           this._restore('geolocation');
-        }
-
-        // Don't attempt to turn on NFC if it's already on
-        if (nfc && !this._settings['nfc.enabled']) {
-          this._restore('nfc');
         }
       }
     }

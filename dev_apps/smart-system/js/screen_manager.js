@@ -108,8 +108,6 @@ var ScreenManager = {
     window.addEventListener('attentionopened', this);
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
-    window.addEventListener('nfc-tech-discovered', this);
-    window.addEventListener('nfc-tech-lost', this);
     window.addEventListener('requestshutdown', this);
 
     // User is unlocking by sliding or other methods.
@@ -226,15 +224,6 @@ var ScreenManager = {
 
       case 'accessibility-action':
         this._reconfigScreenTimeout();
-        break;
-
-      case 'nfc-tech-discovered':
-      case 'nfc-tech-lost':
-        if (this._inTransition) {
-          this.turnScreenOn();
-        } else {
-          this._reconfigScreenTimeout();
-        }
         break;
 
       case 'unlocking-start':

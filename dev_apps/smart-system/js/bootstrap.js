@@ -9,7 +9,7 @@
         SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         SoftwareButtonManager, Accessibility, ShrinkingUI,
+         SoftwareButtonManager, Accessibility,
          TextSelectionDialog, SleepMenu, AppUsageMetrics,
          ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator, ,
@@ -150,8 +150,6 @@ window.addEventListener('load', function startup() {
   window.places.start();
   window.remoteDebugger = new RemoteDebugger();
   window.rocketbar = new Rocketbar();
-  window.shrinkingUI = new ShrinkingUI();
-  window.shrinkingUI.start();
   window.sleepMenu = new SleepMenu();
   window.sleepMenu.start();
   window.softwareButtonManager = new SoftwareButtonManager();
