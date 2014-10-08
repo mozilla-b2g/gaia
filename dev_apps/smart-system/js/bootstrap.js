@@ -12,7 +12,7 @@
          SoftwareButtonManager, Accessibility,
          TextSelectionDialog, SleepMenu, AppUsageMetrics,
          ExternalStorageMonitor,
-         BrowserSettings, AppMigrator, SettingsMigrator, ,
+         BrowserSettings,
          EdgeSwipeDetector, QuickSettings */
 'use strict';
 
@@ -96,9 +96,6 @@ window.addEventListener('load', function startup() {
     lock.set({
       'gaia.system.checkForUpdates': true
     });
-    // make sure new key is available in system
-    window.settingsMigrator = new SettingsMigrator();
-    window.settingsMigrator.start();
   }
 
   window.addEventListener('ftudone', doneWithFTU);
@@ -117,8 +114,6 @@ window.addEventListener('load', function startup() {
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
-  window.appMigrator = new AppMigrator();
-  window.appMigrator.start();
   window.appUsageMetrics = new AppUsageMetrics();
   window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
