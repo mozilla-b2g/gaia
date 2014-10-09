@@ -10,6 +10,7 @@ var NotificationScreen = {
   TAP_THRESHOLD: 10,
   SCROLL_THRESHOLD: 10,
 
+  _notifications: {},
   _notification: null,
   _containerWidth: null,
   _touchStartX: 0,
@@ -51,11 +52,9 @@ var NotificationScreen = {
     this.container =
       document.getElementById('desktop-notifications-container');
     this.toaster = document.getElementById('notification-toaster');
-    this.ambientIndicator = document.getElementById('ambient-indicator');
     this.toasterIcon = document.getElementById('toaster-icon');
     this.toasterTitle = document.getElementById('toaster-title');
     this.toasterDetail = document.getElementById('toaster-detail');
-    this.clearAllButton = document.getElementById('notification-clear');
 
     ['tap', 'touchstart', 'touchmove', 'touchend', 'touchcancel', 'wheel'].
       forEach(function(evt) {
@@ -63,12 +62,9 @@ var NotificationScreen = {
         this.toaster.addEventListener(evt, this);
       }, this);
 
-    this.clearAllButton.addEventListener('click', this.clearAll.bind(this));
-
     // will hold the count of external contributors to the notification
     // screen
     this.externalNotificationsCount = 0;
-    this.unreadNotifications = [];
 
     window.addEventListener('utilitytrayshow', this);
     // Since UI expect there is a slight delay for the opened notification.
@@ -128,7 +124,6 @@ var NotificationScreen = {
         this.wheel(evt);
       case 'utilitytrayshow':
         this.updateTimestamps();
-        this.hideNotificationIndicator();
         break;
       case 'visibilitychange':
         //update timestamps in lockscreen notifications
@@ -336,7 +331,7 @@ var NotificationScreen = {
     return date;
   },
 
-  updateToaster: function ns_updateToaster(detail, type, dir) {
+  updateToaster: function ns_updateToaster(detail) {
     if (detail.icon) {
       this.toasterIcon.src = detail.icon;
       this.toasterIcon.hidden = false;
@@ -345,112 +340,100 @@ var NotificationScreen = {
     }
 
     this.toaster.dataset.notificationId = detail.id;
-    this.toaster.dataset.type = type;
+    this.toaster.dataset.type = detail.type;
     this.toasterTitle.textContent = detail.title;
     this.toasterTitle.lang = detail.lang;
-    this.toasterTitle.dir = dir;
+    this.toasterTitle.dir = detail.dir;
 
     this.toasterDetail.textContent = detail.text;
     this.toasterDetail.lang = detail.lang;
-    this.toasterDetail.dir = dir;
+    this.toasterDetail.dir = detail.dir;
+  },
+
+  showToast: function ns_showToast(notification) {
+    this.updateToaster(notification);
+    this.toaster.classList.add('displayed');
+
+    if (this._toasterTimeout) {
+      clearTimeout(this._toasterTimeout);
+    }
+
+    this._toasterTimeout = setTimeout((function() {
+      this.closeToast();
+      this._toasterTimeout = null;
+      // We remove notification when toast is hidden. This may need more
+      // UX/Visual spec to define the proper way to show notification.
+      this.removeNotification(notification.id);
+    }).bind(this), this.TOASTER_TIMEOUT);
+  },
+
+  playSound: function ns_playSound(behavior) {
+    var ringtonePlayer = new Audio();
+    ringtonePlayer.src = behavior.soundFile || this._sound;
+    ringtonePlayer.mozAudioChannelType = 'notification';
+    ringtonePlayer.play();
+    window.setTimeout(function smsRingtoneEnder() {
+      ringtonePlayer.pause();
+      ringtonePlayer.removeAttribute('src');
+      ringtonePlayer.load();
+    }, 2000);
+  },
+
+  vibrate: function ns_vibrate(behavior) {
+    var pattern = [200, 200, 200];
+    if (behavior.vibrationPattern && behavior.vibrationPattern.length &&
+        behavior.vibrationPattern[0] > 0) {
+      pattern = behavior.vibrationPattern;
+    }
+
+    if (document.hidden) {
+      // bug 1030310: disable vibration for the email app when asleep
+      // bug 1050023: disable vibration for downloads when asleep
+      if (type.indexOf('download-notification-downloading') === -1 &&
+          manifestURL.indexOf('email.gaiamobile.org') === -1) {
+        window.addEventListener('visibilitychange', function waitOn() {
+          window.removeEventListener('visibilitychange', waitOn);
+          navigator.vibrate(pattern);
+        });
+      }
+    } else {
+      navigator.vibrate(pattern);
+    }
   },
 
   addNotification: function ns_addNotification(detail) {
-
-    var manifestURL = detail.manifestURL || '';
-    var behavior = detail.mozbehavior || {};
-    var isPriorityNotification =
-      this.PRIORITY_APPLICATIONS.indexOf(manifestURL) !== -1;
-
-    var notificationContainer =
-      (isPriorityNotification) ?
-      this.container.querySelector('.priority-notifications') :
-      this.container.querySelector('.other-notifications');
-
-    // We need to animate the ambient indicator when the toast
-    // timesout, so we skip updating it here, by passing a skip bool
-    this.addUnreadNotification(detail.id, true);
-
-    var notificationNode = document.createElement('div');
-    notificationNode.classList.add('notification');
-    notificationNode.setAttribute('role', 'link');
-
-    notificationNode.dataset.notificationId = detail.id;
-    notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
-
-    notificationNode.dataset.obsoleteAPI = 'false';
-    if (typeof detail.id === 'string' &&
-        detail.id.indexOf('app-notif-') === 0) {
-      notificationNode.dataset.obsoleteAPI = 'true';
+    var behavior = detail.mozbehavior;
+    // keep the notification structure for future implementation.
+    var notification = {
+      'id': detail.id,
+      'manifestURL': detail.manifestURL,
+      'behavior': {
+        'noclear': behavior.noclear,
+        'noscreen': behavior.noscreen,
+        'soundFile': behavior.soundFile,
+        'vibrationPattern': behavior.vibrationPattern
+      },
+      'noNotify': detail.noNotify,
+      'priority': this.PRIORITY_APPLICATIONS.indexOf(detail.manifestURL)
+                  !== -1,
+      'obsoleteAPI': typeof detail.id === 'string' &&
+                     detail.id.indexOf('app-notif-') === 0,
+      'type': detail.type || 'desktop-notification',
+      'icon': detail.icon,
+      'dir': (detail.bidi === 'ltr' || detail.bidi === 'rtl') ?
+             detail.bidi : 'auto',
+      'lang': detail.lang,
+      'title': detail.title,
+      'timestamp': detail.timestamp ? new Date(detail.timestamp) : new Date(),
+      'text': detail.text
     }
-    var type = detail.type || 'desktop-notification';
-    notificationNode.dataset.type = type;
-    notificationNode.dataset.manifestURL = manifestURL;
+    this._notifications[notification.id] = notification;
 
-    if (detail.icon) {
-      var icon = document.createElement('img');
-      icon.src = detail.icon;
-      icon.setAttribute('role', 'presentation');
-      notificationNode.appendChild(icon);
-    }
-
-    var dir = (detail.bidi === 'ltr' ||
-               detail.bidi === 'rtl') ?
-          detail.bidi : 'auto';
-
-    var titleContainer = document.createElement('div');
-    titleContainer.classList.add('title-container');
-    titleContainer.lang = detail.lang;
-    titleContainer.dir = dir;
-
-    var title = document.createElement('div');
-    title.classList.add('title');
-    title.textContent = detail.title;
-    title.lang = detail.lang;
-    title.dir = dir;
-    titleContainer.appendChild(title);
-
-    var time = document.createElement('span');
-    var timestamp = detail.timestamp ? new Date(detail.timestamp) : new Date();
-    time.classList.add('timestamp');
-    time.dataset.timestamp = timestamp;
-    time.textContent = this.prettyDate(timestamp);
-    titleContainer.appendChild(time);
-
-    notificationNode.appendChild(titleContainer);
-
-    var message = document.createElement('div');
-    message.classList.add('detail');
-    message.textContent = detail.text;
-    message.lang = detail.lang;
-    message.dir = dir;
-    notificationNode.appendChild(message);
-
-    var notifSelector = '[data-notification-id="' + detail.id + '"]';
-    var oldNotif = notificationContainer.querySelector(notifSelector);
-    if (oldNotif) {
-      // The whole node cannot be replaced because CSS animations are re-started
-      oldNotif.replaceChild(titleContainer,
-        oldNotif.querySelector('.title-container'));
-      oldNotif.replaceChild(message, oldNotif.querySelector('.detail'));
-      var oldIcon = oldNotif.querySelector('img');
-      if (icon) {
-        oldIcon ? oldIcon.src = icon.src : oldNotif.insertBefore(icon,
-                                                           oldNotif.firstChild);
-      } else if (oldIcon) {
-        oldNotif.removeChild(oldIcon);
-      }
-      oldNotif.dataset.type = type;
-      notificationNode = oldNotif;
-    } else {
-      notificationContainer.insertBefore(notificationNode,
-          notificationContainer.firstElementChild);
-    }
-
+    // Tell gecko that we already show the notification.
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentNotificationEvent', true, true, {
       type: 'desktop-notification-show',
-      id: detail.id
+      id: notification.id
     });
     window.dispatchEvent(event);
 
@@ -461,71 +444,29 @@ var NotificationScreen = {
       ScreenManager.turnScreenOn();
     }
 
-    var notify = !('noNotify' in detail) &&
+    var notify = !(notification.noNotify) &&
       // don't notify for network-alerts notifications
-      (this.SILENT_APPLICATIONS.indexOf(manifestURL) === -1);
+      (this.SILENT_APPLICATIONS.indexOf(notification.manifestURL) === -1);
+
+    // We don't need to show toast, play sould or vibrate when no need to
+    // notify.
+    if (!notify) {
+      return;
+    }
 
     // Notification toaster
-    if (notify) {
-      this.updateToaster(detail, type, dir);
-      this.toaster.classList.add('displayed');
+    this.showToast(notification);
 
-      if (this._toasterTimeout) {
-        clearTimeout(this._toasterTimeout);
-      }
-
-      this._toasterTimeout = setTimeout((function() {
-        this.closeToast();
-        this._toasterTimeout = null;
-      }).bind(this), this.TOASTER_TIMEOUT);
-    }
-
-    if (notify && !this.isResending) {
+    if (!this.isResending) {
+      // play sound
       if (!this.silent) {
-        var ringtonePlayer = new Audio();
-        var telephony = window.navigator.mozTelephony;
-
-        ringtonePlayer.src = behavior.soundFile || this._sound;
-
-        if (telephony && telephony.active) {
-          ringtonePlayer.mozAudioChannelType = 'telephony';
-          ringtonePlayer.volume = 0.3;
-        } else {
-          ringtonePlayer.mozAudioChannelType = 'notification';
-        }
-        ringtonePlayer.play();
-        window.setTimeout(function smsRingtoneEnder() {
-          ringtonePlayer.pause();
-          ringtonePlayer.removeAttribute('src');
-          ringtonePlayer.load();
-        }, 2000);
+        this.playSound(behavior);
       }
-
+      // vibrate
       if (this.vibrates) {
-        var pattern = [200, 200, 200];
-        if (behavior.vibrationPattern && behavior.vibrationPattern.length &&
-            behavior.vibrationPattern[0] > 0) {
-          pattern = behavior.vibrationPattern;
-        }
-
-        if (document.hidden) {
-          // bug 1030310: disable vibration for the email app when asleep
-          // bug 1050023: disable vibration for downloads when asleep
-          if (type.indexOf('download-notification-downloading') === -1 &&
-              manifestURL.indexOf('email.gaiamobile.org') === -1) {
-            window.addEventListener('visibilitychange', function waitOn() {
-              window.removeEventListener('visibilitychange', waitOn);
-              navigator.vibrate(pattern);
-            });
-          }
-        } else {
-          navigator.vibrate(pattern);
-        }
+        this.vibrate(behavior);
       }
     }
-
-    // must be at least one notification now
-    this.clearAllButton.disabled = false;
 
     return notificationNode;
   },
@@ -563,99 +504,20 @@ var NotificationScreen = {
     notification.style.transform = '';
   },
 
-  addUnreadNotification: function ns_addUnreadNotification(id, skipUpdate) {
-    if (UtilityTray.shown) {
-      return;
-    }
-    this.unreadNotifications.push(id);
-    if (!skipUpdate) {
-      this.updateNotificationIndicator();
-    }
-  },
-
-  removeUnreadNotification: function ns_removeUnreadNotification(id) {
-    var notifIndex = this.unreadNotifications.indexOf(id);
-    if (notifIndex > -1) {
-      this.unreadNotifications.splice(notifIndex, 1);
-    }
-    this.updateNotificationIndicator();
-  },
-
-  hideNotificationIndicator: function ns_hideNotificationIndicator() {
-    if (this.unreadNotifications.length > 0) {
-      this.unreadNotifications = [];
-    }
-    this.updateNotificationIndicator();
-  },
-
-  updateNotificationIndicator: function ns_updateNotificationIndicator() {
-    if (this.unreadNotifications.length) {
-      var indicatorSize = getIndicatorSize(this.unreadNotifications.length);
-      this.ambientIndicator.className = 'unread ' + indicatorSize;
-      this.ambientIndicator.setAttribute('aria-label', navigator.mozL10n.get(
-        'statusbarNotifications-unread', {n: this.unreadNotifications.length}));
-    } else {
-      this.ambientIndicator.classList.remove('unread');
-      this.ambientIndicator.removeAttribute('aria-label');
-    }
-
-    UtilityTray.updateNotificationCount();
-  },
-
   closeToast: function ns_closeToast() {
     this.toaster.classList.remove('displayed');
-    this.updateNotificationIndicator();
   },
-
-  closeNotification: function ns_closeNotification(notificationNode) {
-    var notificationId = notificationNode.dataset.notificationId;
-    this.removeNotification(notificationId);
-  },
-
 
   removeNotification: function ns_removeNotification(notificationId) {
-    var notifSelector = '[data-notification-id="' + notificationId + '"]';
-    var notificationNode = this.container.querySelector(notifSelector);
-    if (notificationNode) {
-      notificationNode.remove();
-    }
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentNotificationEvent', true, true, {
       type: 'desktop-notification-close',
       id: notificationId
     });
     window.dispatchEvent(event);
-
-    this.removeUnreadNotification(notificationId);
-    if (!this.container.querySelector('.notification')) {
-      // no notifications left
-      this.clearAllButton.disabled = true;
-    }
-  },
-
-  clearAll: function ns_clearAll() {
-    var notifications = this.container.querySelectorAll('.notification');
-    for (var notification of notifications) {
-      if (notification.dataset.noClear === 'true') {
-        continue;
-      }
-      this.closeNotification(notification);
-    }
-  },
+    delete this._notifications[notificationId];
+  }
 };
-
-function getIndicatorSize(count) {
-  if (!count || count <= 2)
-    return 'small';
-
-  if (count <= 4)
-    return 'medium';
-
-  if (count <= 6)
-    return 'big';
-
-  return 'full';
-}
 
 window.addEventListener('load', function() {
   window.removeEventListener('load', this);
