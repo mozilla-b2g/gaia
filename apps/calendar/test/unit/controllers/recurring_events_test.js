@@ -198,11 +198,11 @@ suiteGroup('Controllers.RecurringEvents', function() {
       expectedDate.setDate(expectedDate.getDate() + subject.paddingInDays);
     });
 
-    function setupProvider(type) {
+    function setupProvider(type, id) {
       setup(function(done) {
         account = Factory('account', {
           providerType: type,
-          _id: type
+          _id: id || type
         });
 
         provider = app.provider(type);
@@ -227,7 +227,9 @@ suiteGroup('Controllers.RecurringEvents', function() {
     });
 
     suite('provider that can expand', function() {
-      setupProvider('Caldav');
+      // two caldav accounts to catch duplicate busytimes error (Bug 1018833)
+      setupProvider('Caldav', 1);
+      setupProvider('Caldav', 2);
 
       // custom helper to allow each test
       // to inject specific logic while sharing the

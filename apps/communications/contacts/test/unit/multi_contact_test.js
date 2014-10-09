@@ -53,6 +53,16 @@ suite('Getting MultiContact Data', function() {
     ]
   };
 
+  var onlyMozContactEntry = {
+    id: globalEntryId,
+    entryData: [
+      {
+        origin: CONTACTS_APP,
+        uid: 'abcdef'
+      }
+    ]
+  };
+
   var ds1Records = Object.create(null);
   ds1Records[ds1Id] = {
     id: ds1Id,
@@ -122,6 +132,25 @@ suite('Getting MultiContact Data', function() {
         assert.equal(data.givenName[0], 'Jose');
         assert.equal(data.tel.length, 1);
         assert.equal(data.email.length, 1);
+      });
+    }, function error(err) {
+        done(function() {
+          assert.fail('Error while getting data');
+        });
+    });
+  });
+
+  test('Getting data only from mozContacts', function(done) {
+    MultiContact.getData(onlyMozContactEntry).then(function success(data) {
+      done(function() {
+        assert.equal(data.id, globalEntryId);
+
+        assert.equal(data.familyName[0], aMozTestContact.familyName[0]);
+        assert.equal(data.givenName[0], aMozTestContact.givenName[0]);
+        assert.equal(JSON.stringify(data.tel),
+                     JSON.stringify(aMozTestContact.tel));
+        assert.equal(JSON.stringify(data.email),
+                     JSON.stringify(aMozTestContact.email));
       });
     }, function error(err) {
         done(function() {

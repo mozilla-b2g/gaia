@@ -114,10 +114,13 @@ Calendar.ns('Controllers').RecurringEvents = (function() {
      *
      */
     _expandProvider: function(expandDate, provider, callback) {
+      debug('_expandProvider', expandDate);
+
       var tries = 0;
       var max = this.maximumExpansions;
 
       function attemptCompleteExpand() {
+        debug('_expandProvider::attemptCompleteExpand', 'tries:', tries);
         if (tries >= max) {
           return callback(new Error(
             'could not complete expansion after "' + tries + '"'
@@ -126,6 +129,12 @@ Calendar.ns('Controllers').RecurringEvents = (function() {
 
         provider.ensureRecurrencesExpanded(expandDate,
                                            function(err, didExpand) {
+
+          debug(
+            '_expandProvider::ensureRecurrencesExpanded',
+            'didExpand:', didExpand
+          );
+
           if (err) {
             return callback(err);
           }
@@ -150,6 +159,8 @@ Calendar.ns('Controllers').RecurringEvents = (function() {
      * any dates in the stack it will be discarded.
      */
     queueExpand: function(expandTo) {
+      debug('queueExpand', expandTo);
+
       if (this.pending) {
         if (!this._next) {
           this._next = expandTo;
@@ -196,16 +207,8 @@ Calendar.ns('Controllers').RecurringEvents = (function() {
      */
     expand: function(expandTo, callback) {
       debug('expand', expandTo);
-      // we need to look through all available accounts
-      var pending = 0;
 
-      function next() {
-        if (!(--pending)) {
-          callback();
-        }
-      }
-
-      this.accounts.all(function(err, list) {
+      this.accounts.all((err, accounts) => {
         if (err) {
           return callback(err);
         }
@@ -214,22 +217,37 @@ Calendar.ns('Controllers').RecurringEvents = (function() {
         var expandDate = new Date(expandTo.valueOf());
         expandDate.setDate(expandDate.getDate() + this.paddingInDays);
 
-        for (var key in list) {
-          pending++;
-          var provider = this.app.provider(list[key].providerType);
-          if (provider && provider.canExpandRecurringEvents) {
-            this._expandProvider(expandDate, provider, next);
-          } else {
-            Calendar.nextTick(next);
-          }
-        }
+        var providers = this._getExpandableProviders(accounts);
+        var pending = providers.length;
 
-        // if there are no accounts we need to fire the callback.
-        if (!pending) {
+        if (pending) {
+          providers.forEach(provider => {
+            this._expandProvider(expandDate, provider, () => {
+              if (--pending <= 0) {
+                callback();
+              }
+            });
+          });
+        } else {
           Calendar.nextTick(callback);
         }
+      });
+    },
 
-      }.bind(this));
+    // we only need a single caldav provider for all caldav accounts otherwise
+    // we get duplicate busytimes. (events are expanded twice)
+    _getExpandableProviders: function(accounts) {
+      var providers = [];
+
+      for (var key in accounts) {
+        var provider = this.app.provider(accounts[key].providerType);
+        if (provider && provider.canExpandRecurringEvents &&
+            providers.indexOf(provider) === -1) {
+           providers.push(provider);
+        }
+      }
+
+      return providers;
     }
   };
 

@@ -2,7 +2,7 @@
 'use strict';
 
 exports.ACTIVE = 'active';
-exports.DEBUG = 'debug';
+exports.DEBUG = false;
 exports.ERROR = 'error';
 
 }(this.Calendar = {}));

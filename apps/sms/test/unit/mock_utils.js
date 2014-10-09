@@ -30,6 +30,5 @@ var MockUtils = {
   closeNotificationsForThread: () => Promise.resolve(),
   imageToDataUrl: Utils.imageToDataUrl,
   debounce: Utils.debounce,
-  Promise: Utils.Promise,
-  cloneBlob: Utils.cloneBlob
+  Promise: Utils.Promise
 };

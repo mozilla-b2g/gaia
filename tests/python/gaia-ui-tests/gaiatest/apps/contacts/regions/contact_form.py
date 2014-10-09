@@ -2,8 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
-
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -202,7 +200,7 @@ class NewContact(ContactForm):
             from gaiatest.apps.contacts.app import Contacts
             return Contacts(self.marionette)
         else:
-            # Bug 947317 Marionette exception after tap closes a frame
-            time.sleep(2)
+            from gaiatest.apps.contacts.app import Contacts
+            self.wait_for_condition(lambda m: self.apps.displayed_app.name != Contacts.name)
             # Fall back to the underlying app
             self.apps.switch_to_displayed_app()

@@ -1,5 +1,7 @@
-require('/shared/js/dialer/voicemail.js');
+/* global MockMozVoicemail, MockNavigatorSettings, Voicemail */
+'use strict';
 
+require('/shared/js/dialer/voicemail.js');
 require('/dialer/test/unit/mock_mozVoicemail.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
@@ -20,116 +22,250 @@ suite('dialer/voicemail', function() {
     navigator.mozSettings = realMozSettings;
   });
 
-  suite('SIM card and mozSettings have voicemail number', function() {
-    setup(function() {
-      MockMozVoicemail._number = '123';
-      MockNavigatorSettings.createLock().set(
-        { 'ril.iccInfo.mbdn': ['123'] }
-      );
-    });
-
-    teardown(function() {
-      MockMozVoicemail._number = null;
-      MockNavigatorSettings.mTeardown();
-    });
-
-    test('call the voicemail number', function(done) {
-      Voicemail.check('123', function(isVoicemailNumber) {
-        assert.ok(isVoicemailNumber);
-        done();
-      });
-    });
-
-    test('call a number is not the voicemail number', function(done) {
-      Voicemail.check('1234567890', function(isVoicemailNumber) {
+  var VOICEMAIL_NUMBER_SIM_1 = '123';
+  var VOICEMAIL_NUMBER_SIM_2 = '777';
+  var NON_VOICEMAIL_NUMBER = '1234567890';
+  // We have two sources of voicemail number: mozVoicemailNumber and
+  // 'ril.iccInfo.mbdn' in mozSettings. Since we support dual SIM now,
+  // each of them could have 0, 1, or 2 voicemail numbers. All the
+  // combinations of voicemail number sources are covered in array 'scenarios'.
+  var scenarios = [
+    {
+      name: 'mozVoicemail has voicemail number of SIM 1',
+      mozVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1],
+      mozSettingsVoicemailNumber: null,
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
         assert.isFalse(isVoicemailNumber);
-        done();
-      });
-    });
-  });
-
-  suite('SIM card has voicemail number but ' +
-        'mozSettings does not have' , function() {
-    setup(function() {
-      MockMozVoicemail._number = null;
-      MockNavigatorSettings.createLock().set(
-        { 'ril.iccInfo.mbdn': ['123'] }
-      );
-    });
-
-    teardown(function() {
-      MockMozVoicemail._number = null;
-      MockNavigatorSettings.mTeardown();
-    });
-
-    test('call the voicemail number', function(done) {
-      Voicemail.check('123', function(isVoicemailNumber) {
-        assert.ok(isVoicemailNumber);
-        done();
-      });
-    });
-
-    test('call a number is not the voicemail number', function(done) {
-      Voicemail.check('1234567890', function(isVoicemailNumber) {
+      }
+    },
+    {
+      name: 'mozVoicemail has voicemail number of SIM 2',
+      mozVoicemailNumber: [undefined, VOICEMAIL_NUMBER_SIM_2],
+      mozSettingsVoicemailNumber: null,
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
         assert.isFalse(isVoicemailNumber);
-        done();
-      });
-    });
-  });
-
-
-  suite('SIM card has no voicemail number but mozSettings has' , function() {
-    setup(function() {
-      MockMozVoicemail._number = null;
-      MockNavigatorSettings.createLock().set(
-        { 'ril.iccInfo.mbdn': ['123'] }
-      );
-    });
-
-    teardown(function() {
-      MockMozVoicemail._number = null;
-      MockNavigatorSettings.mTeardown();
-    });
-
-    test('call the voicemail number', function(done) {
-      Voicemail.check('123', function(isVoicemailNumber) {
-        assert.ok(isVoicemailNumber);
-        done();
-      });
-    });
-
-    test('call a number is not the voicemail number', function(done) {
-      Voicemail.check('1234567890', function(isVoicemailNumber) {
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    },
+    {
+      name: 'mozSettings has voicemail number of SIM 1',
+      mozVoicemailNumber: null,
+      mozSettingsVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
         assert.isFalse(isVoicemailNumber);
-        done();
-      });
-    });
-  });
-
-  suite('SIM card and mozSettings have no voicemail number' , function() {
-    setup(function() {
-      MockMozVoicemail._number = null;
-      MockNavigatorSettings.createLock().set(
-        { 'ril.iccInfo.mbdn': null }
-      );
-    });
-
-    teardown(function() {
-      MockMozVoicemail._number = null;
-      MockNavigatorSettings.mTeardown();
-    });
-
-    test('call the voicemail number', function(done) {
-      Voicemail.check('123', function(isVoicemailNumber) {
+      }
+    },
+    {
+      name: 'mozSettings has voicemail number of SIM 2',
+      mozVoicemailNumber: null,
+      mozSettingsVoicemailNumber: [undefined, VOICEMAIL_NUMBER_SIM_2],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
         assert.isFalse(isVoicemailNumber);
-        done();
-      });
-    });
-
-    test('call a number is not the voicemail number', function(done) {
-      Voicemail.check('1234567890', function(isVoicemailNumber) {
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    },
+    {
+      name: 'mozVoicemail has voicemail number of SIM 1 and SIM 2',
+      mozVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1, VOICEMAIL_NUMBER_SIM_2],
+      mozSettingsVoicemailNumber: null,
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    },
+    {
+      name: 'mozVoicemail and mozSettings have voicemail number of SIM 1',
+      mozVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1],
+      mozSettingsVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
         assert.isFalse(isVoicemailNumber);
-        done();
+      }
+    },
+    {
+      name: 'mozVoicemail has voicemail number of SIM 1 and ' +
+        'mozSettings has voicemail number of SIM 2',
+      mozVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1],
+      mozSettingsVoicemailNumber: [undefined, VOICEMAIL_NUMBER_SIM_2],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    },
+    {
+      name: 'mozVoicemail has voicemail number of SIM 2 and ' +
+        'mozSettings has voicemail number of SIM 1',
+      mozVoicemailNumber: [undefined, VOICEMAIL_NUMBER_SIM_2],
+      mozSettingsVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    },
+    {
+      name: 'mozVoicemail and mozSettings have voicemail number of SIM card 2',
+      mozVoicemailNumber: [undefined, VOICEMAIL_NUMBER_SIM_2],
+      mozSettingsVoicemailNumber: [undefined, VOICEMAIL_NUMBER_SIM_2],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isFalse(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    },
+    {
+      name: 'mozSettings has both voicemail number of SIM 1 and SIM 2',
+      mozVoicemailNumber: null,
+      mozSettingsVoicemailNumber: [
+        VOICEMAIL_NUMBER_SIM_1, VOICEMAIL_NUMBER_SIM_2
+      ],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    },
+    {
+      name: 'mozVoicemail has voicemail number of SIM 1 and SIM 2 and ' +
+        'mozSettings has voicemail number of SIM 1',
+      mozVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1, VOICEMAIL_NUMBER_SIM_2],
+      mozSettingsVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    },
+    {
+      name: 'mozVoicemail has voicemail number of SIM 1 and SIM 2 and ' +
+        'mozSettings has voicemail number of SIM 2',
+      mozVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1, VOICEMAIL_NUMBER_SIM_2],
+      mozSettingsVoicemailNumber: [undefined, VOICEMAIL_NUMBER_SIM_2],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    },
+    {
+      name: 'mozVoicemail has voicemail number of SIM 1 and ' +
+        'mozSettings has voicemail number of SIM 1 and SIM 2',
+      mozVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1],
+      mozSettingsVoicemailNumber: [
+        VOICEMAIL_NUMBER_SIM_1, VOICEMAIL_NUMBER_SIM_2
+      ],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    },
+    {
+      name: 'mozVoicemail has voicemail number of SIM 2 and ' +
+        'mozSettings has voicemail number of SIM 1 and SIM 2',
+      mozVoicemailNumber: [undefined, VOICEMAIL_NUMBER_SIM_2],
+      mozSettingsVoicemailNumber: [
+        VOICEMAIL_NUMBER_SIM_1, VOICEMAIL_NUMBER_SIM_2
+      ],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    },
+    {
+      name: 'mozVoicemail and mozSettings have voicemail number of ' +
+        'SIM 1 and SIM 2',
+      mozVoicemailNumber: [VOICEMAIL_NUMBER_SIM_1, VOICEMAIL_NUMBER_SIM_2],
+      mozSettingsVoicemailNumber: [
+        VOICEMAIL_NUMBER_SIM_1, VOICEMAIL_NUMBER_SIM_2
+      ],
+      assertionWhenCallingVoicemailNumber: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      },
+      assertionWhenCallingVoicemailNumber2: function(isVoicemailNumber) {
+        assert.isTrue(isVoicemailNumber);
+      }
+    }
+  ];
+
+  scenarios.forEach(function(scenario) {
+    suite(scenario.name, function() {
+      setup(function() {
+        this.sinon.stub(
+          navigator.mozVoicemail, 'getNumber', function(cardId) {
+            return scenario.mozVoicemailNumber &&
+              scenario.mozVoicemailNumber[cardId];
+          });
+
+        MockNavigatorSettings.createLock().set({
+          'ril.iccInfo.mbdn': scenario.mozSettingsVoicemailNumber
+        });
+      });
+
+      test('call the voicemail number via SIM 1', function(done) {
+        var serviceId = 0;
+
+        Voicemail.check(VOICEMAIL_NUMBER_SIM_1, serviceId).then(
+        function(isVoicemailNumber) {
+          scenario.assertionWhenCallingVoicemailNumber(isVoicemailNumber);
+        }, function(reason) {
+          assert.fail('should not reject promise: ' + reason);
+        }).then(done, done);
+      });
+
+      test('call the voicemail number via SIM 2', function(done) {
+        var serviceId = 1; // serviceId 1 means SIM 2
+        Voicemail.check(VOICEMAIL_NUMBER_SIM_2, serviceId).then(
+        function(isVoicemailNumber) {
+          scenario.assertionWhenCallingVoicemailNumber2(isVoicemailNumber);
+        }, function(reason) {
+          assert.fail('should not reject promise: ' + reason);
+        }).then(done, done);
+      });
+
+      test('call a number is not the voicemail number', function(done) {
+        var serviceId = 0;
+        Voicemail.check(NON_VOICEMAIL_NUMBER, serviceId).then(
+        function(isVoicemailNumber) {
+          assert.isFalse(isVoicemailNumber);
+        }, function(reason) {
+          assert.fail('should not reject promise: ' + reason);
+        }).then(done, done);
+      });
+
+      test('call a number that is not the voicemail number of SIM 2 ' +
+        'via SIM 2', function(done) {
+        var serviceId = 1;
+        Voicemail.check(NON_VOICEMAIL_NUMBER, serviceId).then(
+        function(isVoicemailNumber) {
+          assert.isFalse(isVoicemailNumber);
+        }, function(reason) {
+          assert.fail('should not reject promise: ' + reason);
+        }).then(done, done);
       });
     });
   });

@@ -142,7 +142,8 @@ suite('suggestion Bar', function() {
     domSuggestionItem.id = 'contact-in-overlay-template';
     domSuggestionItem.setAttribute('role', 'button');
     domSuggestionItem.setAttribute('is', 'contact-in-overlay');
-    domSuggestionItem.classList.add('js-suggestion-item', 'contact-item');
+    domSuggestionItem.classList.add('js-suggestion-item', 'contact-item',
+      'bb-button');
     domSuggestionItem.hidden = true;
     document.body.appendChild(domSuggestionItem);
     domSuggestionItem.innerHTML = suggestionItemTemplate;

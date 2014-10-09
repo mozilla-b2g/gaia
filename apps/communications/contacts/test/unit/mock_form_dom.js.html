@@ -33,7 +33,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '      <dl class="setbox fillflow-row">';
     MockFormDom += '        <dt class="setbox-title">';
     MockFormDom += '          <a data-taglist="email-type" name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</a>';
-    MockFormDom += '          <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>';
+    MockFormDom += '          <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon bb-button">Expand</span>';
     MockFormDom += '        </dt>';
     MockFormDom += '        <dd class="setbox-body">';
     MockFormDom += '          <p class="setbox-item">';
@@ -49,7 +49,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '      <dl class="setbox fillflow-row">';
     MockFormDom += '        <dt class="setbox-title">';
     MockFormDom += '          <a data-taglist="address-type" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</a>';
-    MockFormDom += '          <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>';
+    MockFormDom += '          <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon bb-button">Expand</span>';
     MockFormDom += '        </dt>';
     MockFormDom += '        <dd class="setbox-body">';
     MockFormDom += '          <p class="setbox-item">';
@@ -110,9 +110,9 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '          <fieldset class="item first">';
     MockFormDom += '            <legend class="hide" data-l10n-id="legendTitleMain">Main information</legend>';
     MockFormDom += '            <div id="thumbnail-action" href="#" class="item-media fillflow-media">';
-    MockFormDom += '              <div role="button" id="photo-button">';
+    MockFormDom += '              <div role="button" id="photo-button" class="bb-button">';
     MockFormDom += '                <p>';
-    MockFormDom += '                  <span role="button" class="icon-addimage"></span>';
+    MockFormDom += '                  <span role="button" class="icon-addimage bb-button"></span>';
     MockFormDom += '                  <em data-l10n-id="addPhoto"> Add photo</em>';
     MockFormDom += '                </p>';
     MockFormDom += '                <img id="thumbnail-photo" alt="">';
@@ -141,7 +141,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '          </fieldset>';
 
     MockFormDom += '          <button id="add-new-phone" class="fillflow-row action action-add">';
-    MockFormDom += '            <span role="button" class="icon-add"></span>';
+    MockFormDom += '            <span role="button" class="icon-add bb-button"></span>';
     MockFormDom += '            <b data-l10n-id="addPhone">Add phone number</b>';
     MockFormDom += '          </button>';
 
@@ -153,7 +153,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '          </fieldset>';
 
     MockFormDom += '          <button id="add-new-email" class="fillflow-row action action-add">';
-    MockFormDom += '            <span role="button" class="icon-add"></span>';
+    MockFormDom += '            <span role="button" class="icon-add bb-button"></span>';
     MockFormDom += '            <b data-l10n-id="addEmail">Add email address</b>';
     MockFormDom += '          </button>';
 
@@ -165,7 +165,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '          </fieldset>';
 
     MockFormDom += '          <button id="add-new-address" class="fillflow-row action action-add">';
-    MockFormDom += '            <span role="button" class="icon-add"></span>';
+    MockFormDom += '            <span role="button" class="icon-add bb-button"></span>';
     MockFormDom += '            <b data-l10n-id="addAddress">Add new address</b>';
     MockFormDom += '          </button>';
 
@@ -187,7 +187,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '          </fieldset>';
 
     MockFormDom += '          <button id="add-new-note" class="fillflow-row action action-add">';
-    MockFormDom += '            <span role="button" class="icon-add"></span>';
+    MockFormDom += '            <span role="button" class="icon-add bb-button"></span>';
     MockFormDom += '            <b data-l10n-id="addComment">Add comment</b>';
     MockFormDom += '          </button>';
 

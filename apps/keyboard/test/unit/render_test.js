@@ -1,4 +1,5 @@
-/*global requireApp suite test assert setup teardown IMERender sinon */
+'use strict';
+/* global IMERender */
 
 requireApp('keyboard/js/render.js');
 
@@ -26,6 +27,17 @@ suite('Renderer', function() {
       },
       domObjectMap: new WeakMap()
     };
+
+    // Tests in CI do not necessarily run at the same resolution as a device.
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      get: () => 320 }
+    );
+
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      get: () => 480 }
+    );
 
     stubRequestAnimationFrame =
       this.sinon.stub(window, 'requestAnimationFrame');
@@ -699,131 +711,6 @@ suite('Renderer', function() {
         assert.equal(comp.marginTop, '0px');
         assert.equal(comp.borderTopWidth, '1px');
         next();
-      });
-    });
-
-
-    suite('Switching to different inputTypes/showCandidatePanel/uppercase/' +
-          'supportsSwitching,and switching back,' +
-          'the target object mapping should work.', function() {
-      var layout = {
-        layoutName: 'some',
-        width: 2,
-        pageIndex: 0,
-        keys: [
-          [{ value: 'a' }, { value: 'b' }],
-          [{ value: 'c' }, { value: 'd' }],
-          [{ value: 'e' }, { value: 'f' }]
-        ]
-      };
-
-      var targetKey = layout.keys[0][0];
-      var oldMozInputMethod;
-      var defaultFlags;
-
-      setup(function() {
-        oldMozInputMethod = navigator.mozInputMethod;
-        navigator.mozInputMethod = {
-          mgmt: {
-            supportsSwitching: this.sinon.stub().returns(false)
-          }
-        };
-
-        defaultFlags = {
-          inputType: 'some-type',
-          showCandidatePanel: false,
-          uppercase: false
-        };
-      });
-
-      teardown(function() {
-        navigator.mozInputMethod = oldMozInputMethod;
-      });
-
-      test('input types', function() {
-        defaultFlags.inputType = 'some-type';
-        IMERender.draw(layout, defaultFlags);
-
-        defaultFlags.inputType = 'another-type';
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-a-f-f-false'),
-          'Should map into another-type\'s DOM element'
-        );
-
-        defaultFlags.inputType = 'some-type';
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-f-false'),
-          'Should map into one-type\'s DOM element'
-        );
-      });
-
-      test('showCandidatePanel', function() {
-        defaultFlags.showCandidatePanel = true;
-        IMERender.draw(layout, defaultFlags);
-
-        defaultFlags.showCandidatePanel = false;
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-f-false'),
-          'Should map into false-showCandidatePanel\'s DOM element'
-        );
-
-        defaultFlags.showCandidatePanel = true;
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-t-f-false'),
-          'Should map into true-showCandidatePanel\'s DOM element'
-        );
-      });
-
-      test('uppercase', function() {
-        defaultFlags.uppercase = true;
-        IMERender.draw(layout, defaultFlags);
-
-        defaultFlags.uppercase = false;
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-f-false'),
-          'Should map into false-uppercase\'s DOM element'
-        );
-
-        defaultFlags.uppercase = true;
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-t-false'),
-          'Should map into true-uppercase\'s DOM element'
-        );
-      });
-
-      test('supportsSwitching', function() {
-        navigator.mozInputMethod.mgmt.supportsSwitching.returns(true);
-        IMERender.draw(layout, defaultFlags);
-
-        navigator.mozInputMethod.mgmt.supportsSwitching.returns(false);
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-f-false'),
-          'Should map into false-supportsSwitching\'s DOM element'
-        );
-
-        navigator.mozInputMethod.mgmt.supportsSwitching.returns(true);
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-f-true'),
-          'Should map into true-supportsSwitching\'s DOM element'
-        );
-
-        navigator.mozInputMethod = oldMozInputMethod;
       });
     });
   });

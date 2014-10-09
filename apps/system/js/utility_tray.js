@@ -2,6 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
+/* global CostControl */
 
 var UtilityTray = {
   shown: false,
@@ -75,7 +76,10 @@ var UtilityTray = {
     window.addEventListener('software-button-disabled', this);
 
     if (window.navigator.mozMobileConnections) {
-      window.LazyLoader.load('js/cost_control.js');
+      window.LazyLoader.load('js/cost_control.js', function() {
+        this.costControl = new CostControl();
+        this.costControl.start();
+      }.bind(this));
     }
   },
 

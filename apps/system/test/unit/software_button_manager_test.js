@@ -221,6 +221,11 @@ suite('enable/disable software home button', function() {
     subject.homeButtons.forEach(function(b) {
       assert.isTrue(b.classList.contains('active'));
     });
+
+    var mousedownEvt =
+      { type: 'mousedown', preventDefault: this.sinon.stub() };
+    subject.handleEvent(mousedownEvt);
+    assert.isTrue(mousedownEvt.preventDefault.calledOnce);
   });
 
   test('release home button', function() {

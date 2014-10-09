@@ -70,7 +70,9 @@ Services.obs.addObserver(function(document) {
   }
 
   function createMessage(parameters) {
-    var thread = getOrCreateThreadForRecipient(parameters.receivers[0]);
+    var thread = getOrCreateThreadForRecipient(
+        parameters.receiver || parameters.receivers[0]
+    );
 
     var message = {
       id: ++messageIdUniqueCounter,
@@ -78,7 +80,8 @@ Services.obs.addObserver(function(document) {
       threadId: thread.id,
       sender: null,
       receivers: parameters.receivers,
-      type: 'mms',
+      receiver: parameters.receiver,
+      type: parameters.type,
       delivery: 'sending',
       deliveryInfo: [{
         receiver: null,
@@ -87,6 +90,7 @@ Services.obs.addObserver(function(document) {
       }],
       subject: parameters.subject,
       smil: parameters.smil,
+      body: parameters.body,
       attachments: parameters.attachments,
       timestamp: Date.now(),
       sentTimestamp: Date.now(),
@@ -138,12 +142,41 @@ Services.obs.addObserver(function(document) {
             target: { result: null }
           }));
         }
+
+        parameters.type = 'mms';
+
         callEventHandlers('sending', exposeObject({
           message: createMessage(parameters, options)
         }));
       }, delayMs);
 
       return request;
+    },
+
+    send: function(recipients, content, options) {
+      var requests = recipients.map(() => exposeObject({
+        onsuccess: null,
+        onerror: null
+      }, 'wr'));
+
+      requests.forEach((request, index) => {
+        window.setTimeout(function() {
+          if (typeof request.onsuccess === 'function') {
+            request.onsuccess.call(request, exposeObject({
+              target: { result: null }
+            }));
+          }
+          callEventHandlers('sending', exposeObject({
+            message: createMessage({
+              type: 'sms',
+              body: content,
+              receiver: recipients[index]
+            }, options)
+          }));
+        }, delayMs);
+      });
+
+      return requests;
     },
 
     getThreads: function() {
