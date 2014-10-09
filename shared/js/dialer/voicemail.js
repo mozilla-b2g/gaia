@@ -27,6 +27,11 @@
      */
     check: function vm_check(number, cardIndex) {
       return new Promise(function(resolve, reject) {
+        if (!number) {
+          resolve(false);
+          return;
+        }
+
         var serviceId = cardIndex;
         // check the voicemail number if the number is in the sim card
         var voicemail = navigator.mozVoicemail;
