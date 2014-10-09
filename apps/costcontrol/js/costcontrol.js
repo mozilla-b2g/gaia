@@ -575,7 +575,8 @@ var CostControl = (function() {
         var result = request.result;
         var data = adaptData(result);
         var manifestURL = request.result.appManifestURL;
-        if (manifestURL) {
+        // ignore the 'null' manifestURL
+        if (manifestURL && manifestURL !== 'null') {
           network.apps[manifestURL] = {
             samples: data[0],
             total: data[1]
