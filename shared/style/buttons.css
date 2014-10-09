@@ -58,6 +58,29 @@ button:active,
   color: #fff;
 }
 
+/* Icons */
+button[data-icon],
+.bb-button[data-icon],
+.button[data-icon] {
+  position: relative;
+}
+
+button[data-icon]:before,
+.bb-button[data-icon]:before,
+.button[data-icon]:before {
+  position: absolute;
+  top: 50%;
+  margin-top: -1.5rem;
+  right: 1.5rem;
+  line-height: 3rem;
+}
+
+button[data-icon]:active:before,
+.bb-button[data-icon]:active:before,
+.button[data-icon]:active:before {
+  color: #fff;
+}
+
 /* Pressed with dark skin */
 .skin-dark button:active,
 .skin-dark .bb-button:active,
@@ -173,14 +196,42 @@ li .button.icon:before {
 }
 
 li button.icon-view:active,
-li .bb-button.icon-view:active {
+li .bb-button.icon-view:active,
+li .button.icon-view:active {
   background-color: #b2f2ff;
 }
 
 li button.icon-view:before,
-li .bb-button.icon-view:before {
+li .bb-button.icon-view:before,
+li .button.icon-view:before {
   background-image: url(buttons/images/next.png);
   right: 0;
+}
+
+li button[data-icon]:before,
+li .bb-button[data-icon]:before,
+li .button[data-icon]:before {
+  right: 1rem;
+}
+
+li button[data-icon="expand"]:before,
+li .bb-button[data-icon="expand"]:before,
+li .button[data-icon="expand"]:before {
+  color: #00aac5;
+  top: unset;
+  bottom: 0;
+}
+
+li button[data-icon="expand"][disabled]:before,
+li .bb-button[data-icon="expand"][aria-disabled="true"]:before,
+li .button[data-icon="expand"][aria-disabled="true"]:before {
+  color: #A9A9A9;
+}
+
+li button[data-icon="forward"]:before,
+li .bb-button[data-icon="forward"]:before,
+li .button[data-icon="forward"]:before {
+  color: #686f72;
 }
 
 /* Getting more space for text, as icon is shorter */
@@ -225,11 +276,13 @@ li .button[aria-disabled="true"].icon-dialog:before {
 }
 
 .skin-dark li button:active,
+.skin-dark li .button:active,
 .skin-dark li .bb-button:active {
   background-color: #00aacc;
 }
 
 .skin-dark li button.icon-view:active,
+.skin-dark li .button.icon-view:active,
 .skin-dark li .bb-button.icon-view:active {
   background-color: #00aacc;
 }
@@ -249,6 +302,7 @@ li .button[aria-disabled="true"].icon-dialog:before {
 
 /* Inputs inside of .button */
 .button input,
+body[role="application"] .bb-button input,
 body[role="application"] .button input {
   border: 0;
   background: none;
@@ -289,7 +343,10 @@ select:-moz-focusring {
 }
 
 /* Hides dropdown arrow until bug #649849 is fixed */
-.button.icon select {
+.bb-button.icon select,
+.button.icon select,
+.bb-button[data-icon] select,
+.button[data-icon] select {
   position: absolute;
   top: -0.6rem;
   left: 0;
@@ -310,15 +367,26 @@ select:-moz-focusring {
   background: none;
 }
 
-.button.icon select option {
+.bb-button.icon select option,
+.button.icon select option,
+.bb-button[data-icon] select option,
+.button[data-icon] select option {
   color: #000;
   border: 0;
   padding: 0.6rem 1.3rem;
   text-shadow: 0 0 0 rgba(0,0,0,0);
 }
 
+.bb-button.icon-dialog,
 .button.icon-dialog {
   overflow: hidden;
+}
+
+.skin-dark .bb-button.icon select,
+.skin-dark .button.icon select,
+.skin-dark .bb-button[data-icon] select,
+.skin-dark .button[data-icon] select {
+  text-shadow: 1rem 0.5rem 0 #fff;
 }
 
 /******************************************************************************
@@ -326,15 +394,29 @@ select:-moz-focusring {
  */
 
 html[dir="rtl"] li button,
-html[dir="rtl"] li a.bb-button,
+html[dir="rtl"] li .bb-button,
 html[dir="rtl"] li .button {
   text-align: right;
 }
 
 html[dir="rtl"] li button.icon,
-html[dir="rtl"] li .icon.bb-button,
+html[dir="rtl"] li .bb-button.icon,
 html[dir="rtl"] li .button.icon {
   padding: 1rem 1.3rem 1rem 4rem;
+}
+
+html[dir="rtl"] button[data-icon]:before,
+html[dir="rtl"] .bb-button[data-icon]:before,
+html[dir="rtl"] .button[data-icon]:before {
+  right: unset;
+  left: 1.5rem;
+  transform: scale(-1, 1);
+}
+
+html[dir="rtl"] li button[data-icon]:before,
+html[dir="rtl"] li .bb-button[data-icon]:before,
+html[dir="rtl"] li .button[data-icon]:before {
+  left: 1rem;
 }
 
 html[dir="rtl"] li button.icon:before,
@@ -351,14 +433,15 @@ html[dir="rtl"] li .button.icon-dialog {
 }
 
 html[dir="rtl"] li button.icon-view:before,
-html[dir="rtl"] li .icon-view.bb-button:before {
+html[dir="rtl"] li .bb-button.icon-view:before,
+html[dir="rtl"] li .button.icon-view:before {
   left: 0;
   right: auto;
   transform: rotate(180deg);
 }
 
 html[dir="rtl"] li button.icon-dialog:before,
-html[dir="rtl"] li .icon-dialog.bb-button:before,
+html[dir="rtl"] li .bb-button.icon-dialog:before,
 html[dir="rtl"] li .button.icon-dialog:before {
   left: 0.8rem;
   right: auto;
@@ -371,7 +454,10 @@ html[dir="rtl"] select {
 }
 
 /* Hides dropdown arrow until bug #649849 is fixed */
-html[dir="rtl"] .button.icon-dialog select {
+html[dir="rtl"] .bb-button.icon-dialog select,
+html[dir="rtl"] .button.icon-dialog select,
+html[dir="rtl"] .bb-button[data-icon] select,
+html[dir="rtl"] .button[data-icon] select {
   left: auto;
   right: 0.3rem; /* .3rem space because of italic */
   text-indent: 1rem;
