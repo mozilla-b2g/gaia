@@ -1,4 +1,4 @@
-/* globals Rest */
+/* globals Rest, LazyLoader, ContactsDatastore, utils */
 
 /* exported GmailConnector */
 
@@ -31,6 +31,51 @@ var GmailConnector = (function GmailConnector() {
 
   // In some cases we will need the access token, cache a copy
   var accessToken = null;
+
+  var createGmailImporter = function createGmailImporter(clist, access_token) {
+    /* jshint validthis:true */
+    var out = new window.ContactsImporter(clist, access_token, this);
+
+    out.persist = persistGmailData;
+
+    return out;
+  };
+
+  var gmailContacts;
+
+  function gmailContactsStore() {
+    return new Promise(function(resolve, reject) {
+      if (gmailContacts) {
+        gmailContacts.getStore().then(resolve, reject);
+        return;
+      }
+
+      LazyLoader.load('/shared/js/contacts/contacts_datastore.js', function() {
+        gmailContacts = new ContactsDatastore('gmail');
+        gmailContacts.getStore().then(resolve, reject);
+      });
+    });
+  }
+
+  function persistGmailData(data, successCb, errorCb, options) {
+    saveToMozContact(data).then(function() {
+      return gmailContactsStore();
+    }).then(function(store) {
+        return store.put(data, data.uid);
+    }).then(successCb).catch (errorCb);
+  }
+
+  function saveToMozContact(data) {
+    return new Promise(function(resolve, reject) {
+      var req = navigator.mozContacts.save(
+                                      utils.misc.toMozContact(data));
+
+      req.onsuccess = resolve;
+      req.onerror = function() {
+        reject(req.error);
+      };
+    });
+  }
 
   // We have a xml response from Google, all the entries in an array,
   // no matter if they are xml entries.
@@ -149,7 +194,7 @@ var GmailConnector = (function GmailConnector() {
   };
 
   var getImporter = function getImporter(contactsList, access_token) {
-    return new window.ContactsImporter(contactsList, access_token, this);
+    return createGmailImporter.bind(this)(contactsList, access_token);
   };
 
   var cleanContacts = function cleanContacts(contactsList, mode, cb) {
