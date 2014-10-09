@@ -1573,5 +1573,26 @@ suite('system/AppInstallManager >', function() {
 
       sinon.assert.calledOnce(KeyboardHelper.saveToSettings);
     });
+
+    test('IME setup dialog should be hidden after pressing home', function() {
+      AppInstallManager.handleInstallSuccess(mockApp);
+      assert.isTrue(AppInstallManager.
+                      setupInstalledAppDialog.classList.contains('visible'));
+
+      AppInstallManager.handleHomeButtonPressed();
+      assert.isFalse(AppInstallManager.
+                      setupInstalledAppDialog.classList.contains('visible'));
+    });
+
+    test('IME list should be hidden after pressing home', function() {
+      AppInstallManager.handleInstallSuccess(mockAppTwo);
+      AppInstallManager.setupConfirmButton.click();
+      assert.isTrue(AppInstallManager.
+                      imeLayoutDialog.classList.contains('visible'));
+
+      AppInstallManager.handleHomeButtonPressed();
+      assert.isFalse(AppInstallManager.
+                      imeLayoutDialog.classList.contains('visible'));
+    });
   });
 });
