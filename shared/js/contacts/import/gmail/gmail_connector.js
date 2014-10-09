@@ -1,4 +1,4 @@
-/* globals Rest, LazyLoader, ContactsDatastore, utils */
+/* globals Rest, ContactsDatastore, utils */
 
 /* exported GmailConnector */
 
@@ -32,6 +32,9 @@ var GmailConnector = (function GmailConnector() {
   // In some cases we will need the access token, cache a copy
   var accessToken = null;
 
+  // The datastore of the provider
+  var gmailContacts;
+
   var createGmailImporter = function createGmailImporter(clist, access_token) {
     /* jshint validthis:true */
     var out = new window.ContactsImporter(clist, access_token, this);
@@ -41,31 +44,34 @@ var GmailConnector = (function GmailConnector() {
     return out;
   };
 
-  var gmailContacts;
-
-  function gmailContactsStore() {
-    return new Promise(function(resolve, reject) {
-      if (gmailContacts) {
-        gmailContacts.getStore().then(resolve, reject);
-        return;
-      }
-
-      LazyLoader.load('/shared/js/contacts/contacts_datastore.js', function() {
-        gmailContacts = new ContactsDatastore('gmail');
-        gmailContacts.getStore().then(resolve, reject);
-      });
-    });
-  }
-
   function persistGmailData(data, successCb, errorCb, options) {
-    saveToMozContact(data).then(function() {
+    saveMozContact(data).then(function() {
       return gmailContactsStore();
     }).then(function(store) {
         return store.put(data, data.uid);
     }).then(successCb).catch (errorCb);
   }
 
-  function saveToMozContact(data) {
+  var createGmailCleaner = function createGmailCleaner(contactsList, mode) {
+    var cleaner = new window.ContactsCleaner(contactsList);
+
+    cleaner.performClean = removeGmailData;
+
+    return cleaner;
+  };
+
+  function removeGmailData(contact, number, cbs) {
+    removeMozContact(contact).then(function() {
+      return gmailContactsStore();
+    }).then(function(store) {
+        return store.remove(getContactUid(contact));
+    }).then(cbs.success.bind(null, {
+          target: {
+          number: number
+    }})).catch (cbs.error);
+  }
+
+  function saveMozContact(data) {
     return new Promise(function(resolve, reject) {
       var req = navigator.mozContacts.save(
                                       utils.misc.toMozContact(data));
@@ -74,6 +80,28 @@ var GmailConnector = (function GmailConnector() {
       req.onerror = function() {
         reject(req.error);
       };
+    });
+  }
+
+  function removeMozContact(contact) {
+    return new Promise(function(resolve, reject) {
+      var req = navigator.mozContacts.remove(
+                                      utils.misc.toMozContact(contact));
+
+      req.onsuccess = resolve;
+      req.onerror = function() {
+        reject(req.error);
+      };
+    });
+  }
+
+  function gmailContactsStore() {
+    return new Promise(function(resolve, reject) {
+      if (!gmailContacts) {
+        gmailContacts = new ContactsDatastore('gmail');
+      }
+
+      gmailContacts.getStore().then(resolve, reject);
     });
   }
 
@@ -198,11 +226,14 @@ var GmailConnector = (function GmailConnector() {
   };
 
   var cleanContacts = function cleanContacts(contactsList, mode, cb) {
-    var cleaner = new window.ContactsCleaner(contactsList);
+    var cleaner = createGmailCleaner(contactsList, mode);
+
     window.setTimeout(cleaner.start, 0);
     if (cb) {
       cb(cleaner);
     }
+
+    return cleaner;
   };
 
   var getValueForNode = function getValueForNode(doc, name, def) {

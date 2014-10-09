@@ -37,7 +37,8 @@
       });
     },
     'gmail': function gmailLoader(cb) {
-      LazyLoader.load('/shared/js/contacts/import/gmail/gmail_connector.js',
+      LazyLoader.load(['/shared/js/contacts/import/gmail/gmail_connector.js',
+                       '/shared/js/contacts/contacts_datastore.js'],
         function onLoad() {
           cb(GmailConnector);
       });

@@ -277,4 +277,35 @@ suite('Gmail Connector', function() {
         result.url[0].value);
     });
   });
+
+  suite('Saving', function() {
+    var realContactsImporter = window.ContactsImporter,
+        realContactsCleaner = window.ContactsCleaner;
+
+    suiteSetup(function() {
+      window.ContactsImporter = function() {};
+      window.ContactsCleaner = function() {
+        this.start = function() {};
+      };
+    });
+
+    suiteTeardown(function() {
+      window.ContactsImporter = realContactsImporter;
+      window.ContactsCleaner = realContactsCleaner;
+    });
+
+    test('It provides an importer with a custom persist function', function() {
+      var importer = subject.getImporter();
+
+      assert.isTrue(importer.persist.toString().indexOf('put') !== -1);
+    });
+
+     test('It provides a cleaner with a custom clean function', function() {
+      var cleaner = subject.cleanContacts();
+
+      assert.isTrue(cleaner.performClean.toString().
+                                              indexOf('store.remove') !== -1);
+    });
+  });
+
 });

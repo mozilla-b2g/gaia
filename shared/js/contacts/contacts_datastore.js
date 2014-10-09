@@ -62,8 +62,6 @@ ContactsDatastore.prototype = {
         var targetOwner = 'app://' + self.provider + self._ORIGIN_TRAIL;
 
         for (var j = 0; j < stores.length; j++) {
-          console.log('Store: ', stores[j].owner);
-
           if (stores[j].owner === targetOwner) {
             self.datastore = stores[j];
             break;
