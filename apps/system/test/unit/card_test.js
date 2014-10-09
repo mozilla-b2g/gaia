@@ -265,6 +265,20 @@ suite('system/Card', function() {
                 '.appIconView element has backgroundImage value');
     });
 
+    test('card with browser window preview calls getScreenshot when necessary',
+    function() {
+      var card = this.card;
+      var app = card.app;
+      var manager = card.manager;
+      manager.useAppScreenshotPreviews = true;
+
+      var spy = this.sinon.stub(app, 'getScreenshot');
+
+      card.element.dispatchEvent(new CustomEvent('onviewport'));
+      assert.isTrue(spy.calledOnce);
+      spy.restore();
+    });
+
   });
 
 });

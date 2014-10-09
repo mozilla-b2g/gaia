@@ -175,6 +175,7 @@
 }
 
 #cards-view.filtered .card .screenshotView {
+  background-color: rgb(244, 244, 244);
   border-left: solid 1px rgba(133, 133, 133, 0.8);
   border-top:  solid 1px rgba(133, 133, 133, 0.8);
   border-right: solid 1px rgba(133, 133, 133, 0.8);

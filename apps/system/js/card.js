@@ -316,12 +316,16 @@
       screenshotView.style.top = ((width - height) / 2) + 'px';
     }
 
-    // If we have a cached screenshot, use that first
-    var cachedLayer = app.requestScreenshotURL();
-
-    if (cachedLayer) {
+    // Local helper function used both for immediate and callback.
+    function setScreenshotBackground() {
+      var cachedLayer = app.requestScreenshotURL();
+      if (!cachedLayer) {
+        return false;
+      }
       screenshotView.style.backgroundImage = 'url(' + cachedLayer + ')';
+      return true;
     }
+
 
     //
     // We used to try and forcibly refresh the screenshot for the current
@@ -329,7 +333,24 @@
     // app window itself will always have a fresh screenshot for use as
     // we transition from displaying the app to displaying the cards view.
     //
-    return;
+    // However still do it in *one* case... Browser Windows! These windows only
+    // have a screenshot when the page is completed loading which can take a
+    // little bit and leave the user with a blank screenshot until they drag
+    // the card around.
+    //
+    // The underlying mozbrowser element waits for the content to be loaded
+    // before actually taking the screenshot and invoking the callback.
+    //
+
+    // If we have a cached screenshot, use that first
+    if (setScreenshotBackground()) {
+      // We had one or this is not a browser window, we're done here.
+      return;
+    }
+
+    app.getScreenshot(function gotScreenshot() {
+      setScreenshotBackground();
+    });
   };
 
   /**
