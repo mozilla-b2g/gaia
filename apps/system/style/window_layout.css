@@ -50,7 +50,8 @@
   background-position: center center;
 }
 
-#screen.software-button-enabled #windows > .appWindow:not(.lockScreenWindow) {
+#screen.software-button-enabled #windows > .appWindow:not(.lockScreenWindow),
+#screen.software-button-enabled.fullscreen-layout-app .activityWindow.inline-activity {
   height: calc(100% - var(--software-home-button-height));
 }
 
