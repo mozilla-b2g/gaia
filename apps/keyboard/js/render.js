@@ -912,8 +912,15 @@ var IMERender = (function() {
   // and renderer's reverse map.
   // ideally this should only be used with views (renderer & alt_char_menu.js).
   var setDomElemTargetObject = function setDomElemTargetObject(elem, obj) {
-    renderingManager.domObjectMap.set(elem, obj);
-    targetObjDomMap.set(obj, elem);
+    // since a target object of one layout may map to multiple rendered DOM
+    // layouts (by different |keyboardClass|'es above), we need to create a
+    // "reference stub" of the target object; each rendered DOM layout key
+    // has a reference stub unique from that key of another rendered DOM layout.
+    // So, a DOM element may forward map to a target object, and then reverse
+    // map back to the DOM element correctly.
+    var objRef = Object.freeze(Object.create(obj));
+    renderingManager.domObjectMap.set(elem, objRef);
+    targetObjDomMap.set(objRef, elem);
   };
 
   // Measure the width of the element, and return the scale that
