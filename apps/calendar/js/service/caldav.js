@@ -154,8 +154,6 @@ Service.prototype = {
     debug('Fetching account from:', url);
 
     var connection = this._createConnection(account);
-    debug('Creating connection:', connection);
-
     var request = this._requestHome(connection, url);
     debug('Will issue calendar home request.');
     return request.send(function(err, data) {

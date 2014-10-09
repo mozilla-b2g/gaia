@@ -224,7 +224,6 @@ Manager.prototype = {
       callback: callback
     });
 
-    debug('Will dispatch message to worker with data', data);
     worker.instance.postMessage(['_dispatch', data]);
   },
 

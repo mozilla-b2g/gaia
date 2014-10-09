@@ -204,7 +204,7 @@ RecurringEvents.prototype = {
   expand: function(expandTo, callback) {
     debug('expand', expandTo);
 
-    this.accounts.all((err, list) => {
+    this.accounts.all((err, accounts) => {
       if (err) {
         return callback(err);
       }
@@ -228,6 +228,21 @@ RecurringEvents.prototype = {
         });
       });
     });
+  },
+
+  _getExpandableProviders: function(accounts) {
+    var providers = [];
+    Object.keys(accounts).forEach(key => {
+      var account = accounts[key];
+      var provider = providerFactory.get(account.providerType);
+      if (provider &&
+          provider.canExpandRecurringEvents &&
+          providers.indexOf(provider) === -1) {
+        providers.push(provider);
+      }
+    });
+
+    return providers;
   }
 };
 

@@ -43,8 +43,6 @@ Thread.prototype = {
       // data.type
       // data.role
       // data.payload
-      debug('Received message from mt with data:', data);
-
       var callback = self._requestCallback.bind(
         self, data.id
       );
