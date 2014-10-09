@@ -1,5 +1,5 @@
 /* globals CallscreenWindow, MocksHelper, MockApplications,
-           System, MockL10n */
+           System, MockL10n, LayoutManager */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -108,6 +108,17 @@ suite('system/CallscreenWindow', function() {
     });
 
   suite('> Call screen ensure', function() {
+    var _layoutManager;
+
+    setup(function() {
+      _layoutManager = window.layoutManager;
+      window.layoutManager = new LayoutManager();
+    });
+
+    teardown(function() {
+      window.layoutManager = _layoutManager;
+    });
+
     suite('> When the lockscreen is unlocked', function() {
       test('it should open the call screen and force a hashchange',
       function() {
