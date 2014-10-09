@@ -278,7 +278,7 @@ var CallHandler = (function callHandler() {
         sendNotification(number, data.serviceId);
       }
 
-      Voicemail.check(number, function(isVoicemailNumber) {
+      Voicemail.check(number, data.serviceId).then(function(isVoicemailNumber) {
         var entry = {
           date: Date.now() - parseInt(data.duration),
           duration: data.duration,
