@@ -71,7 +71,7 @@
    */
   Card.prototype._template =
     '<div class="screenshotView bb-button" data-l10n-id="openCard" ' +
-    '  role="button"></div>' +
+    '  role="link"></div>' +
     '<div class="appIconView" style="background-image:{iconValue}"></div>' +
     '' +
     '<div class="titles">' +
@@ -81,7 +81,7 @@
     '' +
     '<footer class="card-tray">'+
     ' <button class="appIcon" data-l10n-id="openCard" ' +
-    '   data-button-action="select"></button>' +
+    '   data-button-action="select" aria-hidden="true"></button>' +
     ' <menu class="buttonbar">' +
     '   <button class="close-button bb-button" data-l10n-id="closeCard" ' +
     '     data-button-action="close" role="button" ' +
@@ -335,4 +335,3 @@
   return (exports.Card = Card);
 
 })(window);
-
