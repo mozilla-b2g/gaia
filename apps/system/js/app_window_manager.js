@@ -799,8 +799,6 @@
         if (home) {
           if (home.isActive()) {
             home.setVisible(true);
-          } else {
-            this.display();
           }
         }
       };
