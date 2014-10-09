@@ -207,12 +207,12 @@ window.builtInRingtones = (function() {
    
     return LazyLoader.getJSON(BASE_URLS[toneType] + 'list.json')
 	              .then(function(json) {
-        toneDefsCache[toneType] = json;
-        return toneDefsCache[toneType];
-      }, function(error) {
-        console.error(error);
-        return error;
-     });  
+      toneDefsCache[toneType] = json;
+      return toneDefsCache[toneType];
+    }, function(error) {
+      console.error(error);
+      return error;
+    });  
   }
 
   function list(toneType) {
