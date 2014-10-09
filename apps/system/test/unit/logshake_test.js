@@ -17,6 +17,7 @@ suite('system/LogShake', function() {
   var realNotification;
 
   var logshake;
+  var logTag = 'logshake';
 
   setup(function() {
     // XXX: Use screenshot's hack until system2 rolls around
@@ -62,6 +63,8 @@ suite('system/LogShake', function() {
       'logsSaved');
     assert.equal(notificationSpy.firstCall.args[1].body,
       logPrefix);
+    assert.equal(notificationSpy.firstCall.args[1].tag,
+      logTag);
     /* XXX: Cannot test without firing click event on notification
     var mockDeviceStorage = MockNavigatorGetDeviceStorage();
     var deviceStorageSpy = this.sinon.spy(navigator, 'getDeviceStorage');
@@ -90,5 +93,22 @@ suite('system/LogShake', function() {
       'logsFailed');
     assert.equal(notificationSpy.firstCall.args[1].body,
       errorMessage);
+    assert.equal(notificationSpy.firstCall.args[1].tag,
+      logTag);
+  });
+
+  test('Create notification after capture-logs-start event', function() {
+    var notificationSpy = this.sinon.spy(window, 'Notification');
+
+    window.dispatchEvent(new CustomEvent('capture-logs-start', { detail: {} }));
+
+    // LogShake should dispatch a notification of some kind
+    assert.isTrue(notificationSpy.calledOnce, 'Notification should be called');
+    assert.isTrue(notificationSpy.calledWithNew(),
+      'Notification should be called with new');
+    assert.equal(notificationSpy.firstCall.args[0],
+      'logsStart');
+    assert.equal(notificationSpy.firstCall.args[1].tag,
+      logTag);
   });
 });

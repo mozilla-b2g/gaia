@@ -28,27 +28,40 @@
 
     startCaptureLogsListener: function() {
       debug('starting captureLogs listener');
+      window.addEventListener('capture-logs-start', this);
       window.addEventListener('capture-logs-success', this);
       window.addEventListener('capture-logs-error', this);
     },
 
     stopCaptureLogsListener: function() {
       debug('stopping captureLogs listener');
+      window.removeEventListener('capture-logs-start', this);
       window.removeEventListener('capture-logs-success', this);
       window.removeEventListener('capture-logs-error', this);
     },
 
     /**
-     * Handle a capture-logs-success or capture-logs-error event, dispatching
-     * to the appropriate handler
+     * Handle a capture-logs-start, capture-logs-success or capture-logs-error
+     * event, dispatching to the appropriate handler
      */
     handleEvent: function(event) {
       debug('handling event ' + event.type);
-      if (event.type === 'capture-logs-success') {
-        this.handleCaptureLogsSuccess(event);
-      } else if (event.type === 'capture-logs-error') {
-        this.handleCaptureLogsError(event);
+      switch(event.type) {
+        case 'capture-logs-start':
+          this.handleCaptureLogsStart(event);
+          break;
+        case 'capture-logs-success':
+          this.handleCaptureLogsSuccess(event);
+          break;
+        case 'capture-logs-error':
+          this.handleCaptureLogsError(event);
+          break;
       }
+    },
+
+    handleCaptureLogsStart: function(event) {
+      debug('handling capture-logs-start');
+      this._notify('logsStart', '');
     },
 
     /**
@@ -115,7 +128,8 @@
 
     _notify: function(titleId, body, onclick) {
       var title = navigator.mozL10n.get(titleId) || titleId;
-      var notification = new window.Notification(title, {body: body});
+      var notification =
+        new window.Notification(title, {body: body, tag: 'logshake'});
       if (onclick) {
         notification.onclick = onclick;
       }
