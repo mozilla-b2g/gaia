@@ -415,10 +415,11 @@
       activeApp.close();
       this.screenElement.classList.add('cards-view');
     } else {
-      window.addEventListener('appclosed', function finish() {
+      var finish = function() {
         window.removeEventListener('appclosed', finish);
         this.screenElement.classList.add('cards-view');
-      }.bind(this));
+      }.bind(this);
+      window.addEventListener('appclosed', finish);
     }
 
     if (this.isTaskStrip) {
