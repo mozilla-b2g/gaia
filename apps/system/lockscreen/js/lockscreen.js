@@ -143,6 +143,11 @@
     */
     HANDLE_MAX: 70,
 
+    _passcodePadVibrationEnabled: false,
+
+    // Keep in sync with Dialer and Keyboard vibration
+    _passcodePadVibrationDuration: 50,
+
     /**
      * Object used for handling the clock UI element, wraps all related timers
      */
@@ -475,6 +480,11 @@
       this.setLockMessage(value);
     }).bind(this));
 
+    window.SettingsListener.observe('keyboard.vibration',
+      false, (function(value) {
+      this._passcodePadVibrationEnabled = !!value;
+    }).bind(this));
+
     // FIXME(ggp) this is currently used by Find My Device
     // to force locking. Should be replaced by a proper IAC API in
     // bug 992277. We don't need to use SettingsListener because
@@ -538,8 +548,10 @@
     this.refreshClock(new Date());
 
     // mobile connection state on lock screen.
-    // It needs L10n too.
-    if (window.navigator.mozMobileConnections) {
+    // It needs L10n too. But it's not a re-entrable function,
+    // so we need to check if it's already initialized.
+    if (window.navigator.mozMobileConnections &&
+        !this._lockscreenConnInfoManager) {
       this._lockscreenConnInfoManager =
         new window.LockScreenConnInfoManager(this.connStates);
     }
@@ -712,6 +724,10 @@
 
         this.passCodeEntered += key;
         this.updatePassCodeUI();
+
+        if (this._passcodePadVibrationEnabled) {
+          navigator.vibrate(this._passcodePadVibrationDuration);
+        }
 
         if (this.passCodeEntered.length === 4) {
           this.checkPassCode();

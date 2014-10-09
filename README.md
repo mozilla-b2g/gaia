@@ -1,4 +1,4 @@
-# Gaia [![Build Status](https://travis-ci.org/mozilla-b2g/gaia.svg)](https://travis-ci.org/mozilla-b2g/gaia)
+# Gaia
 
 Gaia is Mozilla's Phone UX for the Boot to Gecko (B2G) project.
 
@@ -231,4 +231,3 @@ You could generate single app doc with this:
 ```sh
 $ grunt jsdoc:system
 ```
-

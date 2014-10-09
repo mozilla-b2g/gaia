@@ -30,7 +30,7 @@ requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_icc_helper.js');
-requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/js/utilities/icc_handler.js');
@@ -185,8 +185,8 @@ suite('Contacts settings >', function() {
       assert.isNotNull(importButton1);
 
       // We test as well that the l10NIds are correctly set
-      assert.equal(spyL10n.args[0][1], 'simCardNumber');
-      assert.equal(spyL10n.args[1][1], 'simCardNumber');
+      assert.equal(spyL10n.args[0][1], 'simNumber');
+      assert.equal(spyL10n.args[1][1], 'simNumber');
     });
 
     test('Check number of export buttons appearing', function() {

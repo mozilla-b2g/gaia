@@ -1,3 +1,5 @@
+'use strict';
+
 function System(client) {
   this.client = client.scope({
     searchTimeout: 20000
@@ -9,6 +11,7 @@ module.exports = System;
 System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 
 System.Selector = Object.freeze({
+  activeHomescreenFrame: '#homescreen.appWindow.active',
   appWindow: '.appWindow',
   appTitlebar: '.appWindow.active .titlebar',
   appUrlbar: '.appWindow.active .title',
@@ -19,9 +22,17 @@ System.Selector = Object.freeze({
   appChromeContextMenuNewWindow: '.appWindow.active [data-id=new-window]',
   appChromeContextMenuBookmark: '.appWindow.active [data-id=add-to-homescreen]',
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
+  appChromeReloadButton: '.appWindow.active .controls .reload-button',
+  appChromeWindowsButton: '.appWindow.active .controls .windows-button',
+  browserWindow: '.appWindow.browser',
+  sleepMenuContainer: '#sleep-menu-container',
+  softwareButtons: '#software-buttons',
   softwareHome: '#software-home-button',
+  softwareHomeFullscreen: '#fullscreen-software-home-button',
+  softwareHomeFullscreenLayout: '#software-buttons-fullscreen-layout',
   statusbar: '#statusbar',
   statusbarLabel: '#statusbar-label',
+  systemBanner: '.banner.generic-dialog',
   topPanel: '#top-panel',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
@@ -33,6 +44,10 @@ System.prototype = {
 
   getAppWindows: function() {
     return this.client.findElements(System.Selector.appWindow);
+  },
+
+  getBrowserWindows: function() {
+    return this.client.findElements(System.Selector.browserWindow);
   },
 
   get appTitlebar() {
@@ -78,8 +93,31 @@ System.prototype = {
       System.Selector.appChromeContextMenuShare);
   },
 
+  get appChromeReloadButton() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeReloadButton);
+  },
+
+  get sleepMenuContainer() {
+    return this.client.helper.waitForElement(
+      System.Selector.sleepMenuContainer);
+  },
+
+  get softwareButtons() {
+    return this.client.findElement(System.Selector.softwareButtons);
+  },
+
   get softwareHome() {
     return this.client.findElement(System.Selector.softwareHome);
+  },
+
+  get softwareHomeFullscreen() {
+    return this.client.findElement(System.Selector.softwareHomeFullscreen);
+  },
+
+  get softwareHomeFullscreenLayout() {
+    return this.client.findElement(
+      System.Selector.softwareHomeFullscreenLayout);
   },
 
   get statusbar() {
@@ -88,6 +126,10 @@ System.prototype = {
 
   get statusbarLabel() {
     return this.client.findElement(System.Selector.statusbarLabel);
+  },
+
+  get systemBanner() {
+    return this.client.helper.waitForElement(System.Selector.systemBanner);
   },
 
   get utilityTray() {
@@ -108,6 +150,19 @@ System.prototype = {
 
   getAppIframe: function(url) {
     return this.client.findElement('iframe[src*="' + url + '"]');
+  },
+
+  /**
+   * Clicks the bottom of the screen, where we expect the software home button
+   * to exist. There are several different variations in the same spot, this
+   * allows us to try to click all of them.
+   */
+  clickSoftwareHomeButton: function() {
+    var body = this.client.findElement('body');
+    var screenSize = body.scriptWith(function(el) {
+      return el.getBoundingClientRect();
+    });
+    body.tap(screenSize.width / 2, screenSize.height - 10);
   },
 
   gotoBrowser: function(url) {

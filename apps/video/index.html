@@ -35,7 +35,7 @@
     <!-- Web Components -->
     <script defer src="shared/elements/config.js"></script>
     <script defer src="shared/elements/gaia-header/dist/script.js"></script>
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/style.css" />
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" />
 
     <script defer src="js/metadata.js"></script>
@@ -84,10 +84,9 @@
         <section role="region">
           <gaia-header id="player-header" action="back">
             <h1 id="video-title"></h1>
-            <a id="options" data-icon="more"></a>
-            <button id="picker-done">Done</button>
+            <button id="options" data-icon="more"></button>
+            <button id="picker-done" data-l10n-id="done">Done</button>
           </gaia-header>
-          </header>
           <footer id="videoBar">
             <div id="timeSlider">
               <span id="elapsed-text"></span>

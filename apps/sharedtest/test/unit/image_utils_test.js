@@ -503,55 +503,54 @@ suite('ImageUtils', function() {
       });
 
       suite('#-moz-samplesize', function() {
+        var spy;
         setup(function() {
-          this.spy = sinon.spy(ImageUtils.Downsample, 'sizeNoMoreThan');
+          spy = sinon.spy(ImageUtils.Downsample, 'sizeNoMoreThan');
         });
         teardown(function() {
-          this.spy.restore();
+          spy.restore();
         });
 
+        function checkResolve(promise, checkValue) {
+          return promise.then(
+            function resolve(outputBlob) {
+              sinon.assert.calledOnce(spy);
+              assert.equal(spy.returnValues[0].toString(), checkValue);
+            }, 
+            function reject(outputBlob) {
+              throw Error('Must be resolved');
+            }
+          );
+        }
+
         if (inputImageType === 'image/jpeg') {
-          test('uses it at half size', function() {
-            ImageUtils.resizeAndCropToCover(this.inputBlob, W / 2, H / 2)
-              .then(function resolve(outputBlob) {
-                assert.okay(this.spy.calledOnce);
-                assert.equal(this.spy.returnValues[0].toString(),
-                             '#-moz-samplesize=2');
-              });
+          test('uses it at half size', function(done) {
+            checkResolve(ImageUtils.resizeAndCropToCover(
+              this.inputBlob, W / 2, H / 2),
+              '#-moz-samplesize=2').then(done, done);
           });
 
-          test('uses it at third size', function() {
-            ImageUtils.resizeAndCropToCover(this.inputBlob, W / 3, H / 3)
-              .then(function resolve(outputBlob) {
-                assert.okay(this.spy.calledOnce);
-                assert.equal(this.spy.returnValues[0].toString(),
-                             '#-moz-samplesize=3');
-              });
+          test('uses it at third size', function(done) {
+            checkResolve(ImageUtils.resizeAndCropToCover(
+              this.inputBlob, W / 3, H / 3),
+              '#-moz-samplesize=3').then(done, done);
           });
-          test('uses it at fifth size', function() {
-            ImageUtils.resizeAndCropToCover(this.inputBlob, W / 5, H / 5)
-              .then(function resolve(outputBlob) {
-                assert.okay(this.spy.calledOnce);
-                assert.equal(this.spy.returnValues[0].toString(),
-                             '#-moz-samplesize=4');
-              });
+          test('uses it at fifth size', function(done) {
+            checkResolve(ImageUtils.resizeAndCropToCover(
+              this.inputBlob, W / 5, H / 5),
+              '#-moz-samplesize=4').then(done, done);
           });
 
-          test('does not use at three quarters size', function() {
-            ImageUtils.resizeAndCropToCover(this.inputBlob, W * 0.75, H * 0.75)
-              .then(function resolve(outputBlob) {
-                assert.okay(this.spy.calledOnce);
-                assert.equal(this.spy.returnValues[0].toString(),
-                             '');
-              });
+          test('does not use at three quarters size', function(done) {
+            checkResolve(ImageUtils.resizeAndCropToCover(
+              this.inputBlob, W * 0.75, H * 0.75),
+              '').then(done, done);
           });
         }
         else {
-          test('does not use for non-jpeg', function() {
+          test('does not use for non-jpeg', function(done) {
             ImageUtils.resizeAndCropToCover(this.inputBlob, W / 2, H / 2)
-              .then(function resolve(outputBlob) {
-                assert.okay(this.spy.notCalled);
-              });
+              .then(() => sinon.assert.notCalled(spy)).then(done, done);
           });
         }
       });

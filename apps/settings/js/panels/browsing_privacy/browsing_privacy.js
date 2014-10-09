@@ -19,13 +19,6 @@ define(function(require) {
     });
   };
 
-  /**
-   * Clear bookmarks data
-   */
-  BrowsingPrivacy.prototype.clearBookmarksData = function() {
-    navigator.mozSettings.createLock().set({'clear.browser.bookmarks': true});
-  };
-
   return function() {
     return new BrowsingPrivacy();
   };

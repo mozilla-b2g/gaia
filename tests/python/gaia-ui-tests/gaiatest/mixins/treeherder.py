@@ -13,7 +13,8 @@ import uuid
 
 import boto
 from mozdevice import ADBDevice
-from mozlog.structured.handlers import StreamHandler
+from mozlog.structured.formatters import TbplFormatter
+from mozlog.structured.handlers import LogLevelFilter, StreamHandler
 import mozversion
 import requests
 from thclient import TreeherderRequest, TreeherderJobCollection
@@ -97,7 +98,7 @@ class TreeherderTestRunnerMixin(object):
                               'version: %s. Unable to determine Treeherder '
                               'group. Supported devices: %s'
                               % (device, device_firmware_version_release,
-                                 ['%s: %s' %(k, [fw for fw in v.keys()])
+                                 ['%s: %s' % (k, [fw for fw in v.keys()])
                                   for k, v in DEVICE_GROUP_MAP.iteritems()]))
             return
 
@@ -210,11 +211,11 @@ class TreeherderTestRunnerMixin(object):
                     'value': filename,
                     'content_type': 'link',
                     'title': 'Log:'})
-                # TODO: Bug 1049723 - Add log reference
-                # if type(handler.formatter) is TbplFormatter or \
-                #         type(handler.formatter) is LogLevelFilter and \
-                #         type(handler.formatter.inner) is TbplFormatter:
-                #     job.add_log_reference(filename, url)
+                # Add log reference
+                if type(handler.formatter) is TbplFormatter or \
+                        type(handler.formatter) is LogLevelFilter and \
+                        type(handler.formatter.inner) is TbplFormatter:
+                    job.add_log_reference(filename, url)
             except S3UploadError:
                 job_details.append({
                     'value': 'Failed to upload %s' % filename,
@@ -223,19 +224,20 @@ class TreeherderTestRunnerMixin(object):
 
         # Attach reports
         for report in [self.html_output, self.xml_output]:
-            filename = os.path.split(report)[-1]
-            try:
-                url = self.upload_to_s3(report)
-                job_details.append({
-                    'url': url,
-                    'value': filename,
-                    'content_type': 'link',
-                    'title': 'Report:'})
-            except S3UploadError:
-                job_details.append({
-                    'value': 'Failed to upload %s' % filename,
-                    'content_type': 'text',
-                    'title': 'Error:'})
+            if report is not None:
+                filename = os.path.split(report)[-1]
+                try:
+                    url = self.upload_to_s3(report)
+                    job_details.append({
+                        'url': url,
+                        'value': filename,
+                        'content_type': 'link',
+                        'title': 'Report:'})
+                except S3UploadError:
+                    job_details.append({
+                        'value': 'Failed to upload %s' % filename,
+                        'content_type': 'text',
+                        'title': 'Error:'})
 
         if job_details:
             job.add_artifact('Job Info', 'json', {'job_details': job_details})
@@ -265,8 +267,12 @@ class TreeherderTestRunnerMixin(object):
                 self.logger.debug('Connecting to S3')
                 conn = boto.connect_s3()
                 bucket = os.environ.get('S3_UPLOAD_BUCKET', 'gaiatest')
-                self.logger.debug('Creating bucket: %s' % bucket)
-                self._s3_bucket = conn.create_bucket(bucket)
+                if conn.lookup(bucket):
+                    self.logger.debug('Getting bucket: %s' % bucket)
+                    self._s3_bucket = conn.get_bucket(bucket)
+                else:
+                    self.logger.debug('Creating bucket: %s' % bucket)
+                    self._s3_bucket = conn.create_bucket(bucket)
                 self._s3_bucket.set_acl('public-read')
             except boto.exception.NoAuthHandlerFound:
                 self.logger.info(

@@ -99,15 +99,6 @@ a abbr {
   cursor: pointer;
 }
 
-/* Icons */
-span[role="button"] {
-  font-style: normal;
-}
-
-span[role="button"] + b, span[role="button"] + span {
-  vertical-align: middle;
-}
-
 /* Tables */
 table {
   border-collapse: collapse;

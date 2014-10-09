@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ActivityWindowManager, SecureWindowFactory,
-         SecureWindowManager, HomescreenLauncher,
+         SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage, InternetSharing, TaskManager,
@@ -14,7 +14,8 @@
          LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
-         CellBroadcastSystem, EdgeSwipeDetector, QuickSettings */
+         CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
+         BatteryOverlay, BaseModule */
 'use strict';
 
 
@@ -115,6 +116,11 @@ window.addEventListener('load', function startup() {
   Shortcuts.init();
   ScreenManager.turnScreenOn();
 
+  // To make sure homescreen window manager can intercept webapps-launch event,
+  // we need to move the code here.
+  window.homescreenWindowManager = new HomescreenWindowManager();
+  window.homescreenWindowManager.start();
+
   // Please sort it alphabetically
   window.activities = new Activities();
   window.accessibility = new Accessibility();
@@ -125,6 +131,8 @@ window.addEventListener('load', function startup() {
   window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
   window.appWindowFactory.start();
+  window.batteryOverlay = new BatteryOverlay();
+  window.batteryOverlay.start();
   window.cellBroadcastSystem = new CellBroadcastSystem();
   window.cellBroadcastSystem.start();
   window.developerHUD = new DeveloperHUD();
@@ -204,6 +212,9 @@ window.addEventListener('load', function startup() {
       { bubbles: true, cancelable: false,
         detail: { type: 'system-message-listener-ready' } });
   window.dispatchEvent(evt);
+
+  window.core = BaseModule.instantiate('Core');
+  window.core && window.core.start();
 });
 
 window.usbStorage = new UsbStorage();

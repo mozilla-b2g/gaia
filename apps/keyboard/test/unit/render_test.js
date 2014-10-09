@@ -1,4 +1,6 @@
-/*global requireApp suite test assert setup teardown IMERender sinon */
+'use strict';
+/* global IMERender */
+
 requireApp('keyboard/js/render.js');
 
 mocha.globals(['perfTimer']);
@@ -25,6 +27,17 @@ suite('Renderer', function() {
       },
       domObjectMap: new WeakMap()
     };
+
+    // Tests in CI do not necessarily run at the same resolution as a device.
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      get: () => 320 }
+    );
+
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      get: () => 480 }
+    );
 
     stubRequestAnimationFrame =
       this.sinon.stub(window, 'requestAnimationFrame');

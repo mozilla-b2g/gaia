@@ -133,8 +133,8 @@ var BackspaceTargetHandler = function(target, app) {
 BackspaceTargetHandler.prototype =
   Object.create(DefaultTargetHandler.prototype);
 // Backspace repeat delay and repeat rate
-BackspaceTargetHandler.prototype.REPEAT_RATE = 75;
-BackspaceTargetHandler.prototype.REPEAT_TIMEOUT = 700;
+BackspaceTargetHandler.prototype.REPEAT_RATE = 50;
+BackspaceTargetHandler.prototype.REPEAT_TIMEOUT = 500;
 
 // Sends a delete code to remove last character
 // The argument specifies whether this is an auto repeat or not.

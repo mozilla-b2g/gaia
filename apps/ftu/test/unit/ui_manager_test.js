@@ -3,12 +3,12 @@
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('ftu/js/ui.js');
 requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
 
-requireApp('ftu/test/unit/mock_l10n.js');
 requireApp('ftu/test/unit/mock_tutorial.js');
 requireApp('ftu/test/unit/mock_mozapps.js');
 requireApp('ftu/test/unit/mock_time_manager.js');
@@ -108,7 +108,7 @@ suite('UI Manager > ', function() {
         cityLabel = document.getElementById('tz-city-label');
         timeLabel = document.getElementById('time-configuration-label');
 
-        localizeSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+        localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
         localeFormatSpy =
           this.sinon.spy(navigator.mozL10n.DateTimeFormat.prototype,
                         'localeFormat');
@@ -162,12 +162,12 @@ suite('UI Manager > ', function() {
     });
 
     setup(function() {
-      localizeSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+      localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
       nextButton = document.getElementById('forward');
     });
 
     teardown(function() {
-      navigator.mozL10n.localize.restore();
+      navigator.mozL10n.setAttributes.restore();
     });
 
     suite('Verified Firefox Account login', function() {

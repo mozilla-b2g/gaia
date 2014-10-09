@@ -6,7 +6,7 @@ suite('LanguageItem', function() {
   var realL10n;
   var realLanguageList;
   var modules = [
-    'unit/mock_l10n',
+    'shared_mocks/mock_l10n',
     'shared_mocks/mock_language_list',
     'panels/root/language_item',
   ];

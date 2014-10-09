@@ -1,6 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
+/* global System, LockScreenWindow */
 
 (function(exports) {
   /**
@@ -45,7 +46,6 @@
      */
     this.configs = {
       listens: ['lockscreen-request-unlock',
-                'lockscreen-request-lock',
                 'lockscreen-appcreated',
                 'lockscreen-appterminated',
                 'lockscreen-appclose',
@@ -69,10 +69,11 @@
     this.startObserveSettings();
     this.initElements();
     this.initWindow();
+    System.register('unlock', this);
+    System.register('lock', this);
   };
 
   /**
-   * @listens will-unlock - means to close remain apps.
    * @listens lockscreen-appcreated - when a lockscreen app got created, it
    *                                  would fire this event.
    * @listens lockscreen-appterminated - when a lockscreen app got really
@@ -100,9 +101,6 @@
           break;
         case 'ftuopen':
           this.states.FTUOccurs = true;
-          if (this.isActive()) {
-            return;
-          }
           // Need immediatly unlocking (hide window).
           this.closeApp(true);
           break;
@@ -111,9 +109,6 @@
           break;
         case 'lockscreen-request-unlock':
           this.responseUnlock(evt.detail);
-          break;
-        case 'lockscreen-request-lock':
-          this.responseLock(evt.detail);
           break;
         case 'lockscreen-appcreated':
           app = evt.detail;
@@ -281,14 +276,11 @@
    * @memberof LockScreenWindowManager
    */
   LockScreenWindowManager.prototype.publish =
-    function lwm_publish(ne, source) {
+    function lwm_publish(ne, detail) {
       if ('string' === typeof ne) {
-        ne = new CustomEvent(ne);
+        ne = new CustomEvent(ne, { detail: detail });
       }
-      if (!source) {
-        source = window;
-      }
-      source.dispatchEvent(ne);
+      window.dispatchEvent(ne);
     };
 
   /**
@@ -326,7 +318,7 @@
         return false;
       }
       this.states.windowCreating = true;
-      var app = new window.LockScreenWindow();
+      var app = new LockScreenWindow();
       this.states.windowCreating = false;
       return app;
     };
@@ -355,22 +347,37 @@
       };
     };
 
+  LockScreenWindowManager.prototype.unlock =
+    function lwm_unlock(detail) {
+      // XXX: 
+      // There is a self-routing here:
+      // System.request('unlock') ->
+      // LockscreenWindowManager#unlock ->
+      // ['lockscreen-request-unlock'] ->
+      // LockscreenWindowManager#responseUnlock |
+      // VisibilityManager#firing showwindow
+      //
+      // We should just call responseUnlock here,
+      // but VisibilityManager needs this event to notify
+      // AppWindowManager to showwindow correctly;
+      // The reason not using lockscreen-appclosing/lockscreen-appclosed
+      // is the race of mozActivity launch coming from lockscreen
+      // and homescreen will race to be opened and cause performance issue.
+      // 
+      // We should adjust LockScreenWindow to use lockscreen-appclosing/closed
+      // to have the activitiy/notification info hence we could change
+      // VisibilityManager later to avoid this workaround.
+      this.publish('lockscreen-request-unlock', detail);
+    };
+
   LockScreenWindowManager.prototype.responseUnlock =
     function lwm_responseUnlock(detail) {
       var forcibly = (detail && detail.forcibly) ? true : false;
-      // Only when the background app is ready,
-      // we close the window.
-      var activeApp = window.AppWindowManager ?
-            window.AppWindowManager.getActiveApp() : null;
-      if (!activeApp) {
-        this.closeApp(forcibly);
-      } else {
-        activeApp.ready(this.closeApp.bind(this, forcibly));
-      }
+      this.closeApp(forcibly);
     };
 
-  LockScreenWindowManager.prototype.responseLock =
-    function lwm_responseLock(detail) {
+  LockScreenWindowManager.prototype.lock =
+    function lwm_lock(detail) {
       this.openApp();
     };
 

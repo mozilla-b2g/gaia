@@ -147,6 +147,7 @@ suite('compose_test.js', function() {
       loadBodyHTML('/index.html');
       // this needs a proper DOM
       ThreadUI.initRecipients();
+      Settings.supportEmailRecipient = true;
       Compose.init('messages-compose-form');
       message = document.getElementById('messages-input');
       sendButton = document.getElementById('messages-send-button');
@@ -591,17 +592,6 @@ suite('compose_test.js', function() {
     });
 
     suite('requestAttachment', function() {
-      var originalLimit;
-
-      setup(function() {
-        this.sinon.spy(Utils, 'cloneBlob');
-        originalLimit = Settings.mmsSizeLimitation;
-      });
-
-      teardown(function() {
-        Settings.mmsSizeLimitation = originalLimit;
-      });
-
       test('correctly invokes the "pick" MozActivity', function() {
         Compose.requestAttachment();
         assert.equal(MockMozActivity.calls.length, 1);
@@ -611,98 +601,29 @@ suite('compose_test.js', function() {
         assert.isArray(call.data.type);
         assert.include(call.data.type, 'image/*');
       });
-
-      test('Invokes "onsuccess" handler with image attachment instance ' +
-        'which need copy for image size not over the limit)', function(done) {
+      test('Invokes the provided "onsuccess" handler with an appropriate ' +
+        'Attachment instance', function(done) {
         var req = Compose.requestAttachment();
         req.onsuccess = function(attachment) {
-          done(function() {
-            assert.instanceOf(attachment, Attachment);
+          assert.instanceOf(attachment, Attachment);
 
-            // TODO: Move these assertions to a higher-level test suite that
-            // concerns interactions between disparate units.
-            // See: Bug 868056
-            assert.equal(attachment.name, activity.result.name);
+          // TODO: Move these assertions to a higher-level test suite that
+          // concerns interactions between disparate units.
+          // See: Bug 868056
+          assert.equal(attachment.name, activity.result.name);
+          assert.equal(attachment.blob, activity.result.blob);
 
-            // The blob in the attachment may be a copy of the blob in the
-            // activity result, but the size and type must be the same.
-            sinon.assert.calledWith(Utils.cloneBlob, activity.result.blob);
-            assert.equal(attachment.blob.type, activity.result.blob.type);
-            assert.equal(attachment.blob.size, activity.result.blob.size);
-          });
+          done();
         };
 
         // Simulate a successful 'pick' MozActivity
         var activity = MockMozActivity.instances[0];
         activity.result = {
           name: 'test',
-          blob: new Blob(['fake jpeg'], { type: 'image/jpeg' })
+          blob: new Blob()
         };
         activity.onsuccess();
       });
-
-      test('Invokes "onsuccess" handler with image attachment instance ' +
-        'which does not need copy for size over limit)', function(done) {
-        var req = Compose.requestAttachment();
-        req.onsuccess = function(attachment) {
-          done(function() {
-            assert.instanceOf(attachment, Attachment);
-
-            // TODO: Move these assertions to a higher-level test suite that
-            // concerns interactions between disparate units.
-            // See: Bug 868056
-            assert.equal(attachment.name, activity.result.name);
-
-            // The image blob in the attachment doesn't need a copy of the blob
-            // if it need resize later.
-            sinon.assert.notCalled(Utils.cloneBlob);
-            assert.equal(attachment.blob, activity.result.blob);
-          });
-        };
-
-        Settings.mmsSizeLimitation = 1;
-
-        // Simulate a successful 'pick' MozActivity
-        var activity = MockMozActivity.instances[0];
-        activity.result = {
-          name: 'test',
-          blob: new Blob(['fake jpeg'], { type: 'image/jpeg' })
-        };
-        activity.onsuccess();
-      });
-
-      test('Invokes "onsuccess" handler with non-image attachment instance ',
-        function(done) {
-
-        var req = Compose.requestAttachment();
-        req.onsuccess = function(attachment) {
-          done(function() {
-            assert.instanceOf(attachment, Attachment);
-
-            // TODO: Move these assertions to a higher-level test suite that
-            // concerns interactions between disparate units.
-            // See: Bug 868056
-            assert.equal(attachment.name, activity.result.name);
-
-            // The  blob in the attachment doesn't need a copy of the blob
-            // if it's not image.
-            sinon.assert.notCalled(Utils.cloneBlob);
-            assert.equal(attachment.blob, activity.result.blob);
-          });
-        };
-
-        // Simulate a successful 'pick' MozActivity
-        var activity = MockMozActivity.instances[0];
-        activity.result = {
-          name: 'test',
-          blob: {
-            size: 100,
-            type: 'video/mp4'
-          }
-        };
-        activity.onsuccess();
-      });
-
       test('Invokes the provided "failure" handler when the MozActivity fails',
         function(done) {
         var req = Compose.requestAttachment();
@@ -917,6 +838,19 @@ suite('compose_test.js', function() {
         sinon.assert.calledTwice(typeChangeStub);
         assert.equal(Compose.type, 'sms');
       });
+
+      test('Message switches type when there is an e-mail among the recipients',
+      function() {
+        ThreadUI.recipients.add({
+          number: 'foo@bar.com',
+          isEmail: true
+        });
+
+        ThreadUI.on.withArgs('recipientschange').yield();
+
+        sinon.assert.calledOnce(typeChangeStub);
+        assert.equal(Compose.type, 'mms');
+      });
     });
 
     suite('changing inputmode and message type', function() {
@@ -954,20 +888,36 @@ suite('compose_test.js', function() {
     });
 
     suite('Compose fromMessage', function() {
+      var xssString = '<img src="/" onerror="delete window.Compose;" />';
+      var escapedXssString =
+        '&lt;img src="/" onerror="delete window.Compose;" /&gt;';
+
       setup(function() {
         this.sinon.spy(Compose, 'append');
         this.sinon.spy(HTMLElement.prototype, 'focus');
         this.sinon.stub(SMIL, 'parse');
       });
+
       test('from sms', function() {
-        Compose.fromMessage({type: 'sms', body: 'test'});
+        var body = 'It\'s http:\\mozilla.org' + xssString;
+
+        Compose.fromMessage({type: 'sms', body: body });
+
         sinon.assert.called(Compose.append);
         sinon.assert.notCalled(message.focus);
+        assert.isDefined(Compose, 'XSS should not be successful');
+        assert.equal(message.textContent, body);
+        assert.equal(
+          message.innerHTML,
+          'It\'s http:\\mozilla.org' + escapedXssString + '<br>'
+        );
       });
 
       test('from mms', function() {
-        var testString = ['test\nstring 1\nin slide 1',
-                          'test\nstring 2\nin slide 2'];
+        var testString = [
+          'test\nstring 1\nin slide 1' + xssString,
+          'It\'s test\nstring 2\nin slide 2'
+        ];
         Compose.fromMessage({type: 'mms'});
 
         // Should not be focused before parse complete.
@@ -978,6 +928,16 @@ suite('compose_test.js', function() {
         sinon.assert.called(Compose.append);
         sinon.assert.notCalled(message.focus);
         assert.isFalse(message.classList.contains('ignoreEvents'));
+        assert.isDefined(Compose, 'XSS should not be successful');
+        assert.equal(
+          message.textContent,
+          testString.join('').replace(/\n/g, '')
+        );
+        assert.equal(
+          message.innerHTML,
+          'test<br>string 1<br>in slide 1' + escapedXssString +
+          'It\'s test<br>string 2<br>in slide 2<br>'
+        );
       });
 
       test('empty body', function() {

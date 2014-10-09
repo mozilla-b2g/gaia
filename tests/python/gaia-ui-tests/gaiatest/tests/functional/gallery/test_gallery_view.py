@@ -26,6 +26,9 @@ class TestGallery(GaiaTestCase):
         image = gallery.tap_first_gallery_item()
         self.assertIsNotNone(image.current_image_source)
 
+        # Check that there are 5 options displayed beneath the picture
+        self.assertEqual(len(image.photo_toolbar_options), 5)
+
         #  Verify that the screen orientation is in portrait mode
         self.assertTrue(image.is_photo_toolbar_displayed)
         self.assertEqual('portrait-primary', self.device.screen_orientation)

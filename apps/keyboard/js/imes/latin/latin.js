@@ -105,6 +105,7 @@
   var COMMA = 44;
   var COLON = 58;
   var SEMICOLON = 59;
+  var ATPERSAND = 64;
 
   // all whitespace characters
   // U+FFFC place holder is added to white space
@@ -416,7 +417,7 @@
       updateSuggestions(repeat);
 
       // Exit symbol layout mode after space or return key is pressed.
-      if (keyCode === SPACE || keyCode === RETURN) {
+      if (keyCode === SPACE || keyCode === RETURN || keyCode === ATPERSAND) {
         keyboard.setLayoutPage(PAGE_INDEX_DEFAULT);
       }
 
@@ -707,6 +708,9 @@
       autoCorrection = words[0];
       // Mark the auto-correction so the renderer can highlight it
       words[0] = '*' + words[0];
+    }
+    else {
+      autoCorrection = null;
     }
 
     keyboard.sendCandidates(words);
@@ -1052,6 +1056,7 @@
       selection = 0;
     }
 
+    dismissSuggestions();
     updateSuggestions();
   }
 

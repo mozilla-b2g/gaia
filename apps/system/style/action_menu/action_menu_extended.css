@@ -1,5 +1,5 @@
-#screen.software-button-enabled [role="dialog"][data-type="action"],
-#screen.software-button-enabled [role="dialog"][data-type="object"] {
+#screen:not(.locked).software-button-enabled [role="dialog"][data-type="action"],
+#screen:not(.locked).software-button-enabled [role="dialog"][data-type="object"] {
   bottom: var(--software-home-button-height);
 }
 
@@ -10,6 +10,12 @@
 @media (orientation: landscape) {
   #screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="action"] {
     height: calc(100% - 7rem);
+  }
+
+  #screen.software-button-enabled [role="dialog"][data-type="object"],
+  #screen.software-button-enabled [role="dialog"][data-type="action"] {
+    bottom: 0;
+    right: var(--software-home-button-height);
   }
 }
 
@@ -32,15 +38,20 @@ form[role="dialog"][data-type="object"] > menu > button.tail-icon {
 
 form[role="dialog"][data-type="action"],
 form[role="dialog"][data-type="object"] {
-	visibility: hidden;
-	transform: translateY(100%);
-	transition: transform ease-in-out .3s, visibility .3s;
+  /* Forcing position absolute when hidden in order to avoid
+  unwanted scroll events due to Bug 1077474 */
+  position: absolute;
+
+  visibility: hidden;
+  transform: translateY(100%);
+  transition: transform ease-in-out .3s, visibility .3s;
 }
 
 form[role="dialog"][data-type="action"].visible,
 form[role="dialog"][data-type="object"].visible {
-	visibility: visible;
-	transform: translateY(0);
+  position: fixed;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 @media (min-width: 768px) {

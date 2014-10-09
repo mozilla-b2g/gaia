@@ -269,16 +269,16 @@ var CallHandler = (function callHandler() {
 
   function callEnded(data) {
     var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
-    var number = data.id ? data.id.number : data.number;
+    var number = data.number;
     var incoming = data.direction === 'incoming';
 
     NavbarManager.ensureResources(function() {
       // Missed call when not rejected by user
-      if(incoming && !data.duration && !data.hangUpLocal) {
+      if (incoming && !data.duration && !data.hangUpLocal) {
         sendNotification(number, data.serviceId);
       }
 
-      Voicemail.check(number, function(isVoicemailNumber) {
+      Voicemail.check(number, data.serviceId).then(function(isVoicemailNumber) {
         var entry = {
           date: Date.now() - parseInt(data.duration),
           duration: data.duration,
@@ -296,7 +296,7 @@ var CallHandler = (function callHandler() {
 
           // A CDMA call can contain two calls. If it only has one call,
           // we have nothing left to do and release the lock.
-          if(!data.secondNumber) {
+          if (!data.secondNumber) {
             highPriorityWakeLock.unlock();
             return;
           }
@@ -397,7 +397,8 @@ var CallHandler = (function callHandler() {
     // Dialing from the call log
     // ATD>3 means we have to call the 3rd recent number.
     var position = isAtd ? parseInt(command.substring(4), 10) : 1;
-    CallLogDBManager.getGroupAtPosition(position, 'lastEntryDate', true, null,
+    CallLogDBManager.getGroupAtPosition(
+      position, 'lastEntryDate', true, 'dialing',
     function(result) {
       if (result && (typeof result === 'object') && result.number) {
         LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {

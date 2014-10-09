@@ -918,7 +918,10 @@
     }
 
     var rv = {};
-    for (var key in node) {
+    var keys = Object.keys(node);
+
+    /* jshint boss:true */
+    for (var i = 0, key; key = keys[i]; i++) {
       if (key === '_index') {
         rv[key] = node[key];
       } else {
@@ -1361,9 +1364,6 @@
     },
     localize: function localize(element, id, args) {
       return localizeElement.call(navigator.mozL10n, element, id, args);
-    },
-    translate: function () {
-      // XXX: Remove after removing obsolete calls. Bugs 992473 and 1020136
     },
     translateFragment: function (fragment) {
       return translateFragment.call(navigator.mozL10n, fragment);

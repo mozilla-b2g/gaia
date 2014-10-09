@@ -10,6 +10,7 @@ var VibrationFeedback = function(app) {
   this.settings = null;
 };
 
+// Keep in sync with Dialer and Lockscreen keypad vibration
 VibrationFeedback.prototype.VIBRATE_MS = 50;
 
 VibrationFeedback.prototype.start = function() {

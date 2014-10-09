@@ -1020,11 +1020,13 @@ function cropPickedImage(fileinfo) {
 }
 
 function endPick(blob) {
-  pendingPick.postResult({
-    type: blob.type,
-    blob: blob
+  ensureFileBackedBlob(blob, function(file) {
+    pendingPick.postResult({
+      type: blob.type,
+      blob: file
+    });
+    cleanupPick();
   });
-  cleanupPick();
 }
 
 function cancelPick() {

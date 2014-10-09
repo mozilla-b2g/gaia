@@ -1135,22 +1135,94 @@ suite('Utils', function() {
         deferred.reject(rejectResult);
       });
     });
-  });
 
-  suite('Utils.cloneBlob', function() {
-    test('return blob copy while success', function(done) {
-      var testBlob = new Blob(['test blob'], { type: 'text/plain' });
+    suite('async()', function() {
+      test('passes all arguments to initial generator correctly',
+      function(done) {
+        var stub = sinon.stub();
 
-      Utils.cloneBlob(testBlob).then(function(blob) {
-        assert.equal(testBlob.size, blob.size);
-        assert.equal(testBlob.type, blob.type);
-      }).then(done, done);
-    });
+        var asyncFunction = Utils.Promise.async(function* (a, b, c) {
+          yield new Promise((resolve) => {
+            stub(a, b, c);
+            resolve();
+          });
+        });
 
-    test('return error while failed to make a copy', function(done) {
-      Utils.cloneBlob('invalid blob').catch(function(error) {
-        assert.instanceOf(error, Error);
-      }).then(done, done);
+        asyncFunction('a', 'b', 'c').
+          then(() => sinon.assert.calledWith(stub, 'a', 'b', 'c')).
+          then(done, done);
+      });
+
+      test('resolved only when all yielded promises are resolved',
+      function(done) {
+        var firstStub = sinon.stub();
+        var secondStub = sinon.stub();
+        var thirdStub = sinon.stub();
+
+        var asyncFunction = Utils.Promise.async(function* () {
+          yield new Promise((resolve) => resolve()).then(firstStub);
+          yield new Promise((resolve) => resolve()).then(secondStub);
+          thirdStub();
+        });
+
+        asyncFunction().
+          then(() => sinon.assert.callOrder(firstStub, secondStub, thirdStub)).
+          then(done, done);
+      });
+
+      test('handles rejected promise correctly', function(done) {
+        var firstStub = sinon.stub();
+        var secondStub = sinon.stub();
+        var thirdStub = sinon.stub();
+
+        var rejectionError = new Error('Rejected!');
+
+        var asyncFunction = Utils.Promise.async(function* () {
+          try {
+            yield new Promise(() => { throw rejectionError; });
+          } catch(e) {
+            firstStub(e);
+          }
+          yield new Promise((resolve) => resolve()).then(secondStub);
+          thirdStub();
+        });
+
+        asyncFunction().
+          then(() => {
+            sinon.assert.callOrder(firstStub, secondStub, thirdStub);
+            sinon.assert.calledWith(firstStub, rejectionError);
+          }).
+          then(done, done);
+      });
+
+      test('handles non-promise results correctly', function(done) {
+        var stub = sinon.stub();
+        var asyncFunction = Utils.Promise.async(function* () {
+          stub(yield 3);
+        });
+
+        asyncFunction().
+          then(() => sinon.assert.calledWith(stub, 3)).
+          then(done, done);
+      });
+
+      test('handles non-promise exceptions correctly', function(done) {
+        var exception = new Error('Exception!');
+
+        var asyncFunction = Utils.Promise.async(function* (error) {
+          if (error) {
+            throw error;
+          }
+          yield -1;
+        });
+
+        asyncFunction(exception).
+          then(
+            () => { throw new Error('Success callback is not expected!'); },
+            (e) => assert.equal(exception, e)
+          ).
+          then(done, done);
+      });
     });
   });
 });

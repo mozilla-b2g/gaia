@@ -130,25 +130,33 @@
   }
 
   body.showKeypad #keyboard-container {
-    height: 35rem;
-    background: rgba(255,255,255,0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: calc(100% - 16rem);
+    background: rgba(255, 255, 255, 0.85);
     position: absolute;
     bottom: 0;
+  }
+
+  body.showKeypad.single-line #keyboard-container {
+    height: calc(100% - 10rem);
   }
 
   body.showKeypad #keypad {
     height: 28rem;
   }
 
-  body.showKeypad .duration {
-    transition: visibility 0.3s ease;
-    visibility: hidden;
+  body.showKeypad .duration,
+  body.showKeypad .sim  {
+    transition: opacity 0.3s ease;
+    opacity: 0;
   }
 
   body.showKeypad #call-options {
-    transition: transform 0.3s ease, visibility 0.3s;
+    transition: transform 0.3s ease, opacity 0.3s;
     transform: translateY(16rem);
-    visibility: hidden;
+    opacity: 0;
   }
 
   body.showKeypad #group-show {
@@ -447,15 +455,15 @@
     font-style: italic;
   }
 
-  #calls:not(.single-line) > section .numberWrapper .number {
+  body:not(.single-line) #calls > section .numberWrapper .number {
     height: 2rem;
   }
 
-  #calls:not(.single-line) > section:not(.held) .numberWrapper .number {
+  body:not(.single-line) #calls > section:not(.held) .numberWrapper .number {
     color: #fff;
   }
 
-  #calls:not(.single-line) > section.ended .numberWrapper .number {
+  body:not(.single-line) #calls > section.ended .numberWrapper .number {
     color: rgba(255, 255, 255, 0.6);
   }
 
@@ -469,7 +477,7 @@
     color: #b90000;
   }
 
-  #calls:not(.single-line) > section:not(.additionalInfo) .numberWrapper .number {
+  body:not(.single-line) #calls > section:not(.additionalInfo) .numberWrapper .number {
     height: 8rem;
     line-height: 8rem;
     padding: 0;
@@ -501,21 +509,20 @@
     color: #333;
   }
 
-  #calls:not(.single-line) > section .additionalContactInfo {
+  body:not(.single-line) #calls > section .additionalContactInfo {
     height: 3.75rem;
     padding: 0 7rem 0 4rem;
   }
 
-
-  #calls:not(.single-line) > section:not(.held) .additionalContactInfo {
+  body:not(.single-line) #calls > section:not(.held) .additionalContactInfo {
     color: #033b37;
   }
 
-  #calls:not(.single-line) > section.ended .additionalContactInfo {
+  body:not(.single-line) #calls > section.ended .additionalContactInfo {
     color: rgba(255, 255, 255, 0.6);
   }
 
-  #calls:not(.single-line) > section:not(.held) .isTimer {
+  body:not(.single-line) #calls > section:not(.held) .isTimer {
     color: #fff;
   }
 
@@ -624,6 +631,10 @@
   #calls > section .numberWrapper {
     display: flex;
     white-space: nowrap;
+  }
+
+  body.single-line #calls > section.additionalInfo .numberWrapper {
+    height: 6rem;
   }
 
   #calls > section.held:not(.ended) .duration {
@@ -981,8 +992,8 @@
     display: none;
   }
 
-  #calls:not(.single-line) .handled-call.held .merge-button,
-  #calls:not(.single-line) #group-call.held .merge-button {
+  body:not(.single-line) #calls .handled-call.held .merge-button,
+  body:not(.single-line) #calls #group-call.held .merge-button {
     display: block;
     position: absolute;
     width: 6rem;
@@ -995,7 +1006,7 @@
     font-size: 0;
   }
 
-  #calls:not(.single-line) .handled-call.ended.held .merge-button {
+  body:not(.single-line) #calls .handled-call.ended.held .merge-button {
     display: none;
   }
 

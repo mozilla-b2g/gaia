@@ -8,13 +8,19 @@ marionette('Hour format', function() {
 
   setup(function() {
     actions.launch('alarm');
+    // Make sure navigator.mozHour12 is initialized.
+    $.client.waitFor(function() {
+      return $.client.executeScript(function() {
+        return window.wrappedJSObject.navigator.mozHour12 != null;
+      });
+    });
   });
 
   suite('12 hour format', function() {
     test('Fire an alarm', function() {
-      alarm.create();
-      alarm.fire(0, function() {
-        var expectedDatetime = format12Datetime(new Date());
+      var alarmInfo = alarm.create();
+      alarm.fire(0, alarmInfo.time, function() {
+        var expectedDatetime = format12Datetime(alarmInfo.time);
         assert.equal($('#ring-clock-time').text(), expectedDatetime);
       });
     });
@@ -27,9 +33,9 @@ marionette('Hour format', function() {
     });
 
     test('Fire an alarm', function() {
-      alarm.create();
-      alarm.fire(0, function() {
-        var expectedDatetime = format24Datetime(new Date());
+      var alarmInfo = alarm.create();
+      alarm.fire(0, alarmInfo.time, function() {
+        var expectedDatetime = format24Datetime(alarmInfo.time);
         assert.equal($('#ring-clock-time').text(), expectedDatetime);
       });
     });
@@ -39,10 +45,13 @@ marionette('Hour format', function() {
     var minutes = date.getMinutes();
     minutes = minutes < 10 ? (0 + String(minutes)) : minutes;
     var hours = date.getHours();
-    var AmPm = hours > 12 ? 'PM' : 'AM';
-    hours = hours === 0 ? 12 : hours;
-    hours = hours > 12 ? hours - 12 : hours;
-    return hours + ':' + minutes + ' ' + AmPm;
+    var amPm = hours >= 12 ? 'PM' : 'AM';
+    if (hours === 0) {
+      hours = 12;
+    } else if (hours > 12) {
+      hours = hours - 12;
+    }
+    return hours + ':' + minutes + ' ' + amPm;
   }
 
   function format24Datetime(date) {

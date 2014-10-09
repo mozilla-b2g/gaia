@@ -3,9 +3,11 @@
 /* global MocksHelper */
 /* global ModalDialog */
 /* global MockL10n */
+/* global MockLayoutManager */
 
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_layout_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/js/modal_dialog.js');
 
@@ -41,6 +43,8 @@ suite('system/ModalDialog >', function() {
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    window.layoutManager = new MockLayoutManager();
 
     stubById = sinon.stub(document, 'getElementById', function() {
       return document.createElement('div');

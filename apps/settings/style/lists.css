@@ -209,7 +209,7 @@ ul li > label.pack-checkbox > .memory-item:before {
  */
 
 ul li button,
-ul li a[role="button"] {
+ul li a.bb-button {
   display: inline-block;
   margin: 1rem 0;
 }

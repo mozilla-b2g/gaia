@@ -9,13 +9,175 @@
    */
   exports.System = {
     /**
+     * Stores the servers by the server name.
+     * @type {Map}
+     */
+    _providers: new Map(),
+
+    /**
+     * Stores the services by the services name.
+     * @type {Map}
+     */
+    _services: new Map(),
+
+    /**
+     * Stores the awaiting consumers by the service name.
+     * @type {Map}
+     */
+    _requestsByService: new Map(),
+
+    /**
+     * Stores the awaiting consumers by the server name.
+     * @type {Map}
+     */
+    _requestsByProvider: new Map(),
+
+    /**
+     * Request a service to System and get a promise.
+     * The service name may include the name of server or not if it is unique.
+     * @example
+     * System.request('locked').then(function() {});
+     * System.request('addObserver', 'test.enabled', this).then(function() {});
+     * System.request('StatusBar:height').then(function() {});
+     *
+     * @param  {String} service Service name
+     * @return {Promise}
+     */
+    request: function(service) {
+      var requestItems = service.split(':');
+      var args = Array.prototype.slice.call(arguments, 1);
+      var self = this;
+      this.debug(requestItems);
+      if (requestItems.length > 1) {
+        var serverName = requestItems[0];
+        var serviceName = requestItems[1];
+        if (this._providers.get(serverName)) {
+          this.debug('service: ' + serviceName +
+            ' is online, perform the request with ' + args.concat());
+          return new Promise(function(resolve) {
+            resolve(self._providers.get(serverName)[serviceName].apply(
+              self._providers.get(serverName), args));
+          });
+        } else {
+          return new Promise(function(resolve, reject) {
+            self.debug('service: ' + service + ' is offline, queue the task.');
+            if (!self._requestsByProvider.has(serverName)) {
+              self._requestsByProvider.set(serverName, []);
+            }
+            self._requestsByProvider.get(serverName).push({
+              service: serviceName,
+              resolve: resolve,
+              args: args
+            });
+          });
+        }
+        return;
+      }
+      if (this._services.has(service)) {
+        var server = this._services.get(service);
+        this.debug('service [' + service +
+          '] provider [' + server.name + '] is online, perform the task.');
+        return new Promise(function(resolve, reject) {
+          resolve(server[service].apply(server, args));
+        });
+      } else {
+        this.debug('service: ' + service + ' is offline, queue the task.');
+        var promise = new Promise(function(resolve) {
+          self.debug('storing the requests...');
+          if (!self._requestsByService.has(service)) {
+            self._requestsByService.set(service, []);
+          }
+          self._requestsByService.get(service).push({
+            service: service,
+            args: args,
+            resolve: resolve
+          });
+        });
+        return promise;
+      }
+    },
+
+    /**
+     * Register a service to System.
+     * If there is any client awaiting this service, they will be executed after
+     * registration.
+     * @param  {String} service Service name
+     * @param  {Object} server  The server object which has the service.
+     */
+    register: function(service, server) {
+      var self = this;
+      if (!this._providers.has(server.name)) {
+        this._providers.set(server.name, server);
+      }
+      this.debug((server.name || '(Anonymous)') +
+        ' is registering service: [' + service + ']');
+
+      this.debug('checking awaiting requests by server..');
+      if (this._requestsByProvider.has(server.name)) {
+        this._requestsByProvider.get(server.name).forEach(function(request) {
+          self.debug('resolving..', server,
+            server.name, request.service, request.args);
+          var result = (typeof(server[request.service]) === 'function') ?
+            server[request.service].apply(server, request.args) :
+            server[request.service];
+
+          request.resolve(result);
+        });
+        this._requestsByProvider.delete(server.name);
+      }
+
+      if (!this._services.has(service)) {
+        this._services.set(service, server);
+      } else {
+        console.warn('the service [' + service + '] has already been ' +
+          'registered by other server.');
+        return;
+      }
+
+      this.debug('checking awaiting requests by service..');
+      if (this._requestsByService.has(service)) {
+        this._requestsByService.get(service).forEach(function(request) {
+          self.debug('resolving..', server, request.service);
+          request.resolve(server[request.service].apply(server, request.args));
+        });
+        this._requestsByService.delete(service);
+      }
+    },
+
+    /**
+     * Unregister a service to System
+     * @param  {String} service The name of the service
+     * @param  {Object} server  The server
+     */
+    unregister: function(service, server) {
+      this._providers.delete(server.name);
+      var se = this._services.get(service);
+      if (se && server === se) {
+        this._services.delete(service);
+      }
+    },
+
+    /**
+     * XXX: applications should register a service
+     * for ready check by System.register('ready', applications).
+     */
+    get applicationReady() {
+      return window.applications && window.applications.ready;
+    },
+
+    /**
      * Indicates the system is busy doing something.
      * Now it stands for the foreground app is not loaded yet.
+     *
+     * XXX: AppWindowManager should register a service
+     * for isBusyLoading query by
+     * System.register('isBusyLoading', appWindowManager).
      */
     isBusyLoading: function() {
       var app = window.AppWindowManager.getActiveApp();
       return app && !app.loaded;
     },
+
     /**
      * Record the start time of the system for later debugging usage.
      * @access private
@@ -72,6 +234,9 @@
       window.dispatchEvent(evt);
     },
 
+    /**
+     * XXX: FtuLauncher should register 'isFtuRunning' service.
+     */
     get runningFTU() {
       if ('undefined' === typeof window.FtuLauncher) {
         return false;
@@ -80,6 +245,9 @@
       }
     },
 
+    /**
+     * XXX: LockscreenWindowManager should register 'locked' service.
+     */
     get locked() {
       // Someone ask this state too early.
       if ('undefined' === typeof window.lockScreenWindowManager) {
@@ -91,26 +259,6 @@
 
     get manifestURL() {
       return window.location.href.replace('index.html', 'manifest.webapp');
-    },
-
-    /**
-     * To request some actions of whole system.
-     *
-     * @param {string} action
-     * @param {object} detailContent
-     * @return {Promise}
-     */
-    request(action, detailContent) {
-      switch (action) {
-        case 'lock':
-        case 'unlock':
-          window.dispatchEvent(
-            new CustomEvent('lockscreen-request-' + action, {
-              detail: detailContent
-            })
-          );
-          break;
-      }
     }
   };
 })(window);

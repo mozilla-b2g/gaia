@@ -357,6 +357,10 @@ var Compose = (function() {
       ThreadUI.on('recipientschange', this.updateSendButton.bind(this));
       // Bug 1026384: call updateType as well when the recipients change
 
+      if (Settings.supportEmailRecipient) {
+        ThreadUI.on('recipientschange', this.updateType.bind(this));
+      }
+
       var onInteracted = this.emit.bind(this, 'interact');
 
       dom.message.addEventListener('click', onInteracted);
@@ -618,17 +622,17 @@ var Compose = (function() {
     updateType: function() {
       var isTextTooLong =
         state.segmentInfo.segments > Settings.maxConcatenatedMessages;
-      /* Bug 1026384: if a recipient is a mail, the type must be MMS
-       * Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
+
+      /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
        * property
+       */
       var hasEmailRecipient = ThreadUI.recipients.list.some(
         function(recipient) { return recipient.isEmail; }
       );
-      */
 
       /* Note: in the future, we'll maybe want to force 'mms' from the UI */
       var newType =
-        hasAttachment() || hasSubject() || isTextTooLong ?
+        hasAttachment() || hasSubject() || hasEmailRecipient || isTextTooLong ?
         'mms' : 'sms';
 
       if (newType !== state.type) {
@@ -790,19 +794,10 @@ var Compose = (function() {
 
       activity.onsuccess = function() {
         var result = activity.result;
-        var originalBlob = result.blob;
-        var exceedLimit = Settings.mmsSizeLimitation &&
-          originalBlob.size > Settings.mmsSizeLimitation;
-        var isImage = Utils.typeFromMimeType(originalBlob.type) === 'img';
 
-        function newAttachment(blob) {
-          return new Attachment(blob, {
-            name: result.name,
-            isDraft: true
-          });
-        }
-
-        if (exceedLimit && !isImage) {
+        if (Settings.mmsSizeLimitation &&
+          result.blob.size > Settings.mmsSizeLimitation &&
+          Utils.typeFromMimeType(result.blob.type) !== 'img') {
           if (typeof requestProxy.onerror === 'function') {
             requestProxy.onerror('file too large');
           }
@@ -810,22 +805,10 @@ var Compose = (function() {
         }
 
         if (typeof requestProxy.onsuccess === 'function') {
-          // We ought to just be able to call the onsuccess function now.
-          // But to workaround bug 944276, if we get a blob that is not a File
-          // and is not a big image that we are going to resize we need to
-          // make a private copy of it. Otherwise, it won't work if we
-          // pass it to another activity. Need to remove this part once
-          // bug 990123 fixed.
-          if (!(originalBlob instanceof Blob) || (isImage && exceedLimit)) {
-            requestProxy.onsuccess(newAttachment(originalBlob));
-          } else {
-            Utils.cloneBlob(originalBlob).then(function(newBlob) {
-              requestProxy.onsuccess(newAttachment(newBlob));
-            }).catch(function(error) {
-              console.error('Blob clone error :', error);
-              requestProxy.onsuccess(newAttachment(originalBlob));
-            });
-          }
+          requestProxy.onsuccess(new Attachment(result.blob, {
+            name: result.name,
+            isDraft: true
+          }));
         }
       };
 

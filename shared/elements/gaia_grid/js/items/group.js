@@ -88,13 +88,19 @@
      */
     _createElement: function() {
       var group = this.element = document.createElement('div');
-      group.className = 'divider group';
+      group.className = 'divider group newly-created';
 
       // Create the background (only seen in edit mode)
       var span = document.createElement('span');
       span.className = 'background';
       group.appendChild(span);
       this.backgroundSpanElement = span;
+
+      // Create an element for a drop-shadow (only seen when active)
+      span = document.createElement('span');
+      span.className = 'shadow';
+      group.appendChild(span);
+      this.shadowSpanElement = span;
 
       // Create the header (container for the move gripper, title and
       // expand/collapse toggle)
@@ -111,9 +117,9 @@
       // Create the title span
       span = document.createElement('span');
       span.className = 'title';
-      span.textContent = this.name;
       this.headerSpanElement.appendChild(span);
       this.titleElement = span;
+      this.updateTitle();
 
       // Create the expand/collapse toggle
       span = document.createElement('span');
@@ -126,6 +132,10 @@
       span.className = 'separator';
       group.appendChild(span);
       this.dividerSpanElement = span;
+
+      // Create a child span for the separator to act as the indicator for
+      // dropping icons/groups during editing.
+      this.dividerSpanElement.appendChild(document.createElement('span'));
 
       this.grid.element.appendChild(group);
       this.separatorHeight = this.dividerSpanElement.clientHeight;
@@ -163,16 +173,16 @@
           var itemVisible = (i - (index - nApps)) < COLLAPSED_GROUP_SIZE;
           if (!itemVisible) {
             item.setCoordinates(x - width, y);
-            item.render();
-            item.element.classList.add('hidden');
-            continue;
+          } else {
+            item.setCoordinates(x, y);
+            x += width;
           }
 
-          item.setCoordinates(x, y);
           item.render();
           item.element.classList.add('collapsed');
-
-          x += width;
+          if (!itemVisible) {
+            item.element.classList.add('hidden');
+          }
         }
       }
     },
@@ -219,6 +229,11 @@
       this.backgroundSpanElement.style.transform =
         'translate(0px, ' + y + 'px) scale(1, ' + this.backgroundHeight + ')';
 
+      // Place and size the shadow span element
+      this.shadowSpanElement.style.transform =
+        'translateY(' + y + 'px)';
+      this.shadowSpanElement.style.height = this.backgroundHeight + 'px';
+
       // Place the divider after this point
       this.dividerSpanElement.style.transform =
         'translate(0px, ' + (y + this.backgroundHeight) + 'px)';
@@ -228,10 +243,9 @@
 
       // Fade in newly-created groups
       if (createdElements) {
-        this.element.style.opacity = 0;
-        // Force a reflow on the group so the initial fade animation plays.
+        // Force a reflow to make sure the transform transition doesn't play
         this.element.clientTop;
-        this.element.style.opacity = '';
+        this.element.classList.remove('newly-created');
       }
     },
 
@@ -244,7 +258,8 @@
     },
 
     setActive: function(active) {
-      GaiaGrid.GridItem.prototype.setActive.call(this, active);
+      // Make sure we're collapsed
+      this.collapse();
 
       // Mark our child items as active/inactive with us so they pick up the
       // right style when dragged.
@@ -252,6 +267,29 @@
         function(item) { item.element.classList.add('active'); } :
         function(item) { item.element.classList.remove('active'); };
       this.forEachItem(callback);
+
+      // This needs to be called last, or the grid will skip rendering this
+      // group and the collapse won't cause the icons below to shift position
+      GaiaGrid.GridItem.prototype.setActive.call(this, active);
+    },
+
+    updateTitle: function() {
+      var titleElement = this.titleElement;
+      if (!titleElement) {
+        return;
+      }
+
+      if (this.name && this.name.trim() !== '') {
+        titleElement.classList.remove('empty');
+        titleElement.removeAttribute('data-l10n-id');
+        titleElement.textContent = this.name;
+        return;
+      }
+
+      titleElement.classList.add('empty');
+      titleElement.textContent = 'Enter a group name';
+      titleElement.setAttribute('data-l10n-id',
+                                     'gaia-grid-enter-group-name');
     },
 
     collapse: function() {
@@ -295,16 +333,12 @@
 
     launch: function(target) {
       var inEditMode = this.grid.dragdrop && this.grid.dragdrop.inEditMode;
-      if ((target === this.toggleElement) ||
-          (target === this.headerSpanElement && !inEditMode) ||
-          (target === this.backgroundSpanElement && this.detail.collapsed)) {
-        if (this.detail.collapsed) {
-          this.expand();
-        } else {
-          this.collapse();
-        }
-      } else if (target === this.headerSpanElement && inEditMode) {
+      if (inEditMode && target === this.headerSpanElement) {
         this.edit();
+      } else if (this.detail.collapsed) {
+        this.expand();
+      } else if (target === this.toggleElement) {
+        this.collapse();
       }
     },
 
@@ -324,7 +358,7 @@
     },
 
     isDraggable: function() {
-      return this.detail.collapsed;
+      return true;
     }
   };
 

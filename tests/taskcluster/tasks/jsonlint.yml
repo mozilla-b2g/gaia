@@ -1,0 +1,19 @@
+task:
+  metadata:
+    name: Gaia JSON Lint
+    description: JSON linter
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+
+  payload:
+    command:
+      - entrypoint
+      - ./bin/ci run jsonlint
+  extra:
+    treeherder:
+      symbol: JSON
+      groupSymbol: LINT
+      groupName: Linters
+
+

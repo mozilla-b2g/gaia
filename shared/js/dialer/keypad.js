@@ -72,6 +72,10 @@ var KeypadManager = {
 
   _keypadSoundIsEnabled: false,
   _shortTone: false,
+  _vibrationEnabled: false,
+
+  // Keep in sync with Lockscreen and keyboard vibration
+  kVibrationDuration: 50, // ms
 
   onValueChanged: null,
 
@@ -261,8 +265,7 @@ var KeypadManager = {
     if (layoutType == 'oncall') {
       if (CallsHandler.activeCall) {
         var activeCall = CallsHandler.activeCall.call;
-        this._phoneNumber =
-          activeCall.id ? activeCall.id.number : activeCall.number;
+        this._phoneNumber = activeCall.id.number;
       }
       this._isKeypadClicked = false;
       this.phoneNumberViewContainer.classList.add('keypad-visible');
@@ -370,10 +373,8 @@ var KeypadManager = {
    * sets up the necessary timers to react to long presses.
    *
    * @param {String} key The key that was hit by this touchstart event.
-   * @param {Boolean} [voicemail] If present and true indicates that the
-   *        pressed key corresponded with the button used for voicemail.
    */
-  _touchStart: function kh_touchStart(key, voicemail) {
+  _touchStart: function kh_touchStart(key) {
     this._longPress = false;
     this._lastPressedKey = key;
 
@@ -382,6 +383,10 @@ var KeypadManager = {
         // We do not support long press if not on a call
         TonePlayer.start(
           gTonesFrequencies[key], !this._onCall || this._shortTone);
+      }
+
+      if (this._vibrationEnabled) {
+        navigator.vibrate(this.kVibrationDuration);
       }
 
       this._playDtmfTone(key);
@@ -408,15 +413,15 @@ var KeypadManager = {
       }, 400, this);
     }
 
-    // Voicemail long press (needs to be longer since it actually dials)
-    if (voicemail) {
+    // Voicemail long press (only if first digit pressed)
+    if (key === '1' && this._phoneNumber === '') {
       this._holdTimer = setTimeout(function vm_call(self) {
         self._longPress = true;
         self._callVoicemail();
 
-        self._phoneNumber = self._phoneNumber.slice(0, -1);
+        self._phoneNumber = '';
         self._updatePhoneNumberView('begin', false);
-      }, 1500, this);
+      }, 400, this);
     }
 
     if (key == 'delete') {
@@ -519,7 +524,7 @@ var KeypadManager = {
     switch (event.type) {
       case 'touchstart':
         event.target.classList.add('active');
-        this._touchStart(key, event.target.dataset.voicemail);
+        this._touchStart(key);
         break;
       case 'touchmove':
         this._touchMove(event.touches[0]);
@@ -649,7 +654,7 @@ var KeypadManager = {
       }
       var voicemail = navigator.mozVoicemail;
       if (!number && voicemail) {
-        number = voicemail.getNumber();
+        number = voicemail.getNumber(cardIndex);
       }
       if (number) {
         CallHandler.call(number, cardIndex);
@@ -710,6 +715,10 @@ var KeypadManager = {
 
       SettingsListener.observe('phone.dtmf.type', false, function(value) {
         self._shortTone = (value === 'short');
+      });
+
+      SettingsListener.observe('keyboard.vibration', false, function(value) {
+        self._vibrationEnabled = !!value;
       });
     });
   }

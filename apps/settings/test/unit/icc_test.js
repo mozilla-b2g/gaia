@@ -3,7 +3,6 @@
 var MockNavigatorSettings, MockNavigatorMozIccManager, MockL10n, MockDump,
     MocksHelper, HtmlImports;
 
-requireApp('settings/test/unit/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 requireApp('settings/test/unit/mock_navigator_settings.js');
 requireApp('settings/test/unit/mock_settings.js');
@@ -11,6 +10,7 @@ require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/html_imports.js');
 require('/shared/test/unit/mocks_helper.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForIccApp = ['Settings'];
 

@@ -71,6 +71,7 @@ class Email(Base):
         setup.type_smtp_port(imap['smtp_port'])
 
         setup.tap_next()
+        setup.check_for_emails_interval('20000')
 
         setup.tap_account_prefs_next()
 

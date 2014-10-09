@@ -96,13 +96,19 @@
 
       this.hoverItem = null;
       this.rearrangeDelay = null;
+      this.doRearrange = null;
       this.enterEditMode();
       this.container.classList.add('dragging');
       this.icon.scale = ACTIVE_SCALE;
       this.icon.setActive(true);
 
-      this.xAdjust = e.pageX - this.icon.x;
-      this.yAdjust = e.pageY - this.icon.y;
+      // Work around e.pageX/e.pageY being null (to make it easier to work with
+      // injected events, or old versions of Marionette)
+      var pageX = (typeof e.pageX === 'undefined') ? this.icon.x : e.pageX;
+      var pageY = (typeof e.pageY === 'undefined') ? this.icon.y : e.pageY;
+
+      this.xAdjust = pageX - this.icon.x;
+      this.yAdjust = pageY - this.icon.y;
 
       var items = this.gridView.items;
       var lastElement = items[items.length - 1];
@@ -110,7 +116,7 @@
                        (this.icon.pixelHeight * ACTIVE_SCALE);
 
       // Redraw the icon at the new position and scale
-      this.positionIcon(e.pageX, e.pageY);
+      this.positionIcon(pageX, pageY);
     },
 
     finish: function(e) {
@@ -120,8 +126,10 @@
       this.icon.element.addEventListener('transitionend', this);
       this.currentTouch = null;
 
-      if (this.rearrangeDelay !== null) {
-        clearTimeout(this.rearrangeDelay);
+      if (this.doRearrange !== null) {
+        if (this.rearrangeDelay) {
+          clearTimeout(this.rearrangeDelay);
+        }
         if (this.hoverItem && this.hoverItem.detail.type === 'collection') {
           // The user has dropped into a collection
           window.dispatchEvent(new CustomEvent(
@@ -186,6 +194,7 @@
       // Hand back responsibility to Grid view to render the dragged item.
       this.icon.scale = 1;
       this.icon.setActive(false);
+      this.icon.element.classList.remove('hovering');
 
       this.gridView.render();
 
@@ -311,30 +320,22 @@
       this.icon.render();
       this.icon.setCoordinates(oldX, oldY);
 
-      // If we're a divider being dragged, manually check if the y-coordinate
-      // has strayed far enough from the center of the row to initiate a
-      // movement.
-      if (iconIsDivider) {
-        if (Math.abs(pageY - this.icon.y) <=
-            this.gridView.layout.gridItemHeight / 2) {
-          return;
-        }
-      }
-
       // Reposition in the icons array if necessary.
       // Find the icon with the closest X/Y position of the move,
       // and insert ours before it.
+      var foundIndex = 0;
+      var insertDividerAtTop = !iconIsDivider;
       pageX += this.gridView.layout.gridItemWidth / 2;
       pageY += this.icon.pixelHeight / 2;
-      var foundIndex =
-        this.gridView.getNearestItemIndex(pageX, pageY, iconIsDivider);
-      if (foundIndex === null) {
-        return;
+      if (pageY >= 0) {
+        insertDividerAtTop = false;
+        foundIndex =
+          this.gridView.getNearestItemIndex(pageX, pageY, iconIsDivider);
       }
-      var foundItem = this.gridView.items[foundIndex];
 
-      // Clear the rearrange delay and hover item if we aren't hovering over
+      // Clear the rearrange callback and hover item if we aren't hovering over
       // anything.
+      this.doRearrange = null;
       if (this.rearrangeDelay) {
         clearTimeout(this.rearrangeDelay);
         this.rearrangeDelay = null;
@@ -344,72 +345,73 @@
         this.hoverItem = null;
       }
 
-      if (foundIndex !== this.icon.detail.index) {
-        // Collections and groups should not trigger a hover
-        if (this.icon.detail.type !== 'collection' && !iconIsDivider) {
-          this.hoverItem = foundItem;
-          this.hoverItem.element.classList.add('hovered');
-        }
-        // Add another divider when hovering over a divider
-        if (!iconIsDivider && foundItem.detail.type === 'divider') {
-          this.doRearrange = this.createNewDivider.bind(this, foundItem);
-        } else {
-          this.doRearrange = this.rearrange.bind(this, foundItem);
-        }
-        this.rearrangeDelay =
-          setTimeout(this.doRearrange.bind(this),
-            this.hoverItem && this.hoverItem.detail.type === 'collection' ?
-              REARRANGE_COLLECTION_DELAY : REARRANGE_DELAY);
+      // Add the 'hovering' class to the dragged icon.
+      if (foundIndex !== null) {
+        this.icon.element.classList.add('hovering');
       }
-    },
 
-    /**
-     * Returns the number of items between the given index and the divider
-     * before it that aren't placeholders and aren't active.
-     */
-    countItemsBeforeIndex: function(index) {
-      var size = 0;
-      for (var i = index - 1, items = this.gridView.items;
-           i >= 0 && items[i].detail.type !== 'divider'; i--) {
-        if (items[i].detail.type !== 'placeholder' && !items[i].active) {
-          size++;
+      // Nothing to do if we find the dragged icon or no icon
+      if (foundIndex === null ||
+          (!insertDividerAtTop && foundIndex === this.icon.detail.index)) {
+        return;
+      }
+      var foundItem = this.gridView.items[foundIndex];
+
+      // If we're a divider being dragged, only allow dropping on either the
+      // first item or another divider.
+      if (iconIsDivider &&
+          foundIndex > 0 &&
+          foundItem.detail.type !== 'divider') {
+        // Remove the hovering class from a group if it's not hovering over
+        // a valid drop position or itself.
+        this.icon.element.classList.remove('hovering');
+        return;
+      }
+
+      // Collections and groups should not trigger a hover over collections
+      if (foundItem.detail.type !== 'collection' ||
+          (this.icon.detail.type !== 'collection' && !iconIsDivider)) {
+        this.hoverItem = foundItem;
+        this.hoverItem.element.classList.add('hovered');
+      }
+
+      // Add another divider when hovering over a divider with an icon or
+      // dragging an icon to the very top of the grid
+      if (insertDividerAtTop ||
+          (!iconIsDivider && (foundItem.detail.type === 'divider'))) {
+        this.doRearrange =
+          this.createNewDivider.bind(this,
+                                     insertDividerAtTop ?  null : foundItem);
+      } else {
+        this.doRearrange = this.rearrange.bind(this, foundItem);
+
+        // Delay rearranging when we're dragging groups to when they're dropped
+        if (!iconIsDivider) {
+          this.rearrangeDelay =
+            setTimeout(this.doRearrange.bind(this),
+              this.hoverItem && this.hoverItem.detail.type === 'collection' ?
+                REARRANGE_COLLECTION_DELAY : REARRANGE_DELAY);
         }
       }
-      return size;
     },
 
     /**
      * Creates a new divider in GridView.items and rearranges the currently
      * dragged icon into the newly created section.
-     * @param {Object} tDivider The divider after which to place a new divider
+     * @param {Object} tDivider The divider after which to place a new divider,
+     *   or null to insert a divider at the beginning on the grid.
      */
     createNewDivider: function(tDivider) {
       var items = this.gridView.items;
-      var tIndex = items.indexOf(tDivider);
-
-      // Only create a new divider if the divider doesn't end an empty section
-      // and the next divider doesn't end an empty section. We don't count the
-      // active icon to avoid creating infinite groups.
-      if (this.countItemsBeforeIndex(tIndex) === 0) {
-        return;
-      }
-      for (var nIndex = tIndex + 1, len = items.length;
-           nIndex < len; nIndex++) {
-        if (items[nIndex].detail.type === 'divider') {
-          if (this.countItemsBeforeIndex(nIndex) === 0) {
-            return;
-          }
-          break;
-        }
-      }
+      var tIndex = tDivider ? items.indexOf(tDivider) + 1 : 0;
 
       // Create the new divider
       var newDivider = new GaiaGrid.Divider();
-      items.splice(tIndex + 1, 0, newDivider);
+      items.splice(tIndex, 0, newDivider);
 
       // Place the dragged item into the new empty section
       var sIndex = items.indexOf(this.icon);
-      this.rearrange(sIndex > tIndex ? newDivider : tDivider);
+      this.rearrange(sIndex >= tIndex ? newDivider : tDivider);
     },
 
     /**
@@ -417,6 +419,9 @@
      * @param {Object} tItem The item to position the dragged icon at.
      */
     rearrange: function(tItem) {
+      // Clear the rearrange callback
+      this.doRearrange = null;
+      this.rearrangeDelay = null;
 
       // We get a reference to the position of this.icon within the items
       // array. Because placeholders are shifting around while we are dragging,
@@ -435,26 +440,10 @@
 
         // Modify the tIndex to make sure we're inserting immediately after
         // another divider or at the start of the container.
-        var gridLength = this.gridView.items.length;
-        if (tIndex !== 0 && tIndex !== gridLength - 1) {
-          if (tIndex > sIndex) {
-            for (; tIndex < gridLength - 1 &&
-                 this.gridView.items[tIndex - 1].detail.type !== 'divider';
-                 tIndex++) {}
-          } else {
-            for (; tIndex > 0 &&
-                 this.gridView.items[tIndex - 1].detail.type !== 'divider';
-                 tIndex--) {}
-          }
-
-          // Don't allow the user to rearrange with a divider unless it's
-          // visible.
-          var otherDivider = this.gridView.items[tIndex];
-          if ((otherDivider.y < this.scrollable.scrollTop) ||
-              (otherDivider.y + otherDivider.pixelHeight >
-               this.scrollable.scrollTop + this.scrollable.clientHeight)) {
-            return;
-          }
+        if (this.gridView.items[tIndex].detail.type === 'divider') {
+          tIndex++;
+        } else {
+          tIndex = 0;
         }
 
         if (sIndex === tIndex) {
@@ -473,7 +462,8 @@
       var toInsert = this.gridView.items.splice(sIndex, lastItemOffset + 1);
 
       // Craft the parameter list to reinsert the items at the correct place
-      toInsert.unshift(this.gridView.items.indexOf(tItem), 0);
+      toInsert.unshift(tItem ? this.gridView.items.indexOf(tItem) :
+                               this.gridView.items.length, 0);
 
       // Reinsert items
       this.rearrangeDelay = null;

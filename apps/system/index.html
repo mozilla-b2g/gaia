@@ -50,6 +50,11 @@
     <script defer src="shared/js/template.js"></script>
     -->
 
+    <!-- Battery Overlay -->
+    <link rel="stylesheet" type="text/css" href="style/battery_overlay/battery_overlay.css">
+    <script defer src="js/power_save.js"></script>
+    <script defer src="js/battery_overlay.js"></script>
+
     <!-- SIMSlot -->
     <script type="text/javascript" defer src="shared/js/simslot.js"></script>
     <script type="text/javascript" defer src="shared/js/simslot_manager.js"></script>
@@ -85,7 +90,7 @@
 
     <!-- Include shared web components -->
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia_progress/style/external.css">
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css">
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/style.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css">
 
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
@@ -117,6 +122,9 @@
     <script src="js/logo_loader.js"></script>
     <script src="js/init_logo_handler.js"></script>
 
+    <script defer src="js/base_module.js"></script>
+    <script defer src="js/core.js"></script>
+
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/activities.js"></script>
     <script defer src="js/usb_storage.js"></script>
@@ -147,10 +155,6 @@
     <!-- Sleep Menu -->
     <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
     <script defer src="js/sleep_menu.js"></script>
-
-    <!-- Battery Manager -->
-    <link rel="stylesheet" type="text/css" href="style/battery_manager/battery_manager.css">
-    <script defer src="js/battery_manager.js"></script>
 
     <!-- Keyboard -->
     <script defer src="js/input_transition.js"></script>
@@ -377,6 +381,7 @@
     <script defer src="js/wrapper_factory.js"></script>
     <script defer src="js/homescreen_window.js"></script>
     <script defer src="js/homescreen_launcher.js"></script>
+    <script defer src="js/homescreen_window_manager.js"></script>
     <script defer src="js/activity_window.js"></script>
     <script defer src="js/activity_window_manager.js"></script>
     <script defer src="js/app_window_factory.js"></script>
@@ -617,11 +622,11 @@
           <!-- Quick settings -->
           <div id="quick-settings" role="toolbar">
             <li>
-              <ul><a href="#" id="quick-settings-wifi" class="icon" data-icon="wifi-4" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-airplane-mode" class="icon" data-icon="airplane" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-bluetooth" class="icon" data-icon="bluetooth" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-data" class="icon" data-icon="data" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-full-app" class="icon" data-icon="settings" data-enabled="false" role="button" data-l10n-id="settingsButton"></a></ul>
+              <ul><a href="#" id="quick-settings-wifi" class="icon bb-button" data-icon="wifi-4" data-enabled="false" role="button"></a></ul>
+              <ul><a href="#" id="quick-settings-airplane-mode" class="icon bb-button" data-icon="airplane" data-enabled="false" role="button"></a></ul>
+              <ul><a href="#" id="quick-settings-bluetooth" class="icon bb-button" data-icon="bluetooth" data-enabled="false" role="button"></a></ul>
+              <ul><a href="#" id="quick-settings-data" class="icon bb-button" data-icon="data" data-enabled="false" role="button"></a></ul>
+              <ul><a href="#" id="quick-settings-full-app" class="icon bb-button" data-icon="settings" data-enabled="false" role="button" data-l10n-id="settingsButton"></a></ul>
             </li>
           </div>
         </div>
@@ -979,13 +984,13 @@
           <h1 data-l10n-id="downloadUpdatesViaDataConnection">
             Download updates via data connection?
           </h1>
-          <p data-l10n-id="downloadUpdatesViaDataConnectionMessage2">
+          <p data-l10n-id="downloadUpdatesViaDataConnectionMessage3">
             Updates are downloaded via data connection when Wi-Fi is not available. When using data connection, phone calls may be blocked and additional charges may also apply.
           </p>
         </section>
         <menu>
           <button id="updates-viaDataConnection-notnow-button" type="reset" data-l10n-id="notNow">Not Now</button>
-          <button id="updates-viaDataConnection-download-button" type="submit" data-l10n-id="download">Download</button>
+          <button id="updates-viaDataConnection-download-button" class="recommend" type="submit" data-l10n-id="download">Download</button>
         </menu>
       </form>
 
@@ -1078,8 +1083,8 @@
             <ol class="value-selector-options-container ime-menu-list" aria-multiselectable="false" role="listbox">
             </ol>
           </section>
-          <menu class="value-selector-select-options-buttons">
-            <button class="value-selector-cancel full" data-type="cancel" data-action="cancel" data-l10n-id="cancel">${cancelLabel}</button>
+          <menu class="ime-menu-button-container">
+            <button class="ime-menu-button" data-type="cancel" data-action="cancel" data-l10n-id="cancel">${cancelLabel}</button>
           </menu>
         </div>
         -->

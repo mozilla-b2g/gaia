@@ -643,16 +643,19 @@ contacts.Settings = (function() {
     }
   }
 
+
   function doFbUnlink() {
     var progressBar = Contacts.showOverlay('cleaningFbData', 'progressBar');
     var wakeLock = navigator.requestWakeLock('cpu');
 
+    fb.markFbCleaningInProgress(1);
     var req = fb.utils.clearFbData();
 
     req.onsuccess = function() {
       var cleaner = req.result;
       progressBar.setTotal(cleaner.lcontacts.length);
       cleaner.onsuccess = function() {
+        fb.markFbCleaningInProgress(0);
         document.dispatchEvent(new CustomEvent('fb_cleaned'));
 
         Contacts.showOverlay('loggingOutFb', 'activityBar');

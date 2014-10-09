@@ -1,12 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper,
-           FileReader,
-           Notification,
-           Promise,
-           Settings,
-           Threads */
+/* globals ContactPhotoHelper, Notification, Promise, Threads, Settings */
 
 (function(exports) {
   'use strict';
@@ -640,27 +635,39 @@
         });
 
         return deferred;
-      }
-    },
+      },
 
-    /**
-     * Make a local copy of data to prevent any possible access violation while
-     * using the data returning from other activity.
-     * @param {Blob} blob Target blob which we want to make a clone in local.
-     * @returns {Promise}
-     */
-    cloneBlob: function(blob) {
-      return new Promise(function(resolve, reject) {
-        var reader = new FileReader();
+      /**
+       * Wraps a generator function that yields Promises in a way that generator
+       * flow is paused until yielded Promise is resolved, so that consumer gets
+       * Promise result instead of Promise instance itself.
+       * See https://www.promisejs.org/generators/ as the reference.
+       * @param {function*} generatorFunction Generator function that yields
+       * Promises.
+       * @return {function}
+       */
+      async: function(generatorFunction) {
+        return function asyncGenerator() {
+          var generator = generatorFunction.apply(this, arguments);
 
-        reader.onload = function() {
-          resolve(new Blob([reader.result], { type: blob.type }));
+          function handle(result) {
+            if (result.done) {
+              return Promise.resolve(result.value);
+            }
+
+            return Promise.resolve(result.value).then(
+              (result) => handle(generator.next(result)),
+              (error) => handle(generator.throw(error))
+            );
+          }
+
+          try {
+            return handle(generator.next());
+          } catch (error) {
+            return Promise.reject(error);
+          }
         };
-
-        reader.onerror = reject;
-
-        reader.readAsArrayBuffer(blob);
-      });
+      }
     }
   };
 

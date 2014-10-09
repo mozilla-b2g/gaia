@@ -1,8 +1,8 @@
 'use strict';
 /* global MockInputMethod, MockInputContext, Promise */
 
-requireApp('keyboard/shared/test/unit/mocks/mock_event_target.js');
-requireApp('keyboard/shared/test/unit/mocks/mock_navigator_input_method.js');
+require('/shared/test/unit/mocks/mock_event_target.js');
+require('/shared/test/unit/mocks/mock_navigator_input_method.js');
 
 suite('MockInputMethod', function() {
   suite('new MockInputMethod()', function() {

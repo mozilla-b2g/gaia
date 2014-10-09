@@ -1,8 +1,11 @@
 'use strict';
 
-var MockMozVoicemail = {
-  _number: null,
-  getNumber: function() {
-    return this._number;
-  }
-};
+(function(exports) {
+  var MockMozVoicemail = {
+    _number: null,
+    getNumber: function(serviceId) {
+      return this._number;
+    }
+  };
+  exports.MockMozVoicemail = MockMozVoicemail;
+}(window));

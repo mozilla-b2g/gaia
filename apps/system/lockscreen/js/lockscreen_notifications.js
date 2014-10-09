@@ -117,12 +117,19 @@
     var top, bottom;
     var topBoundary, bottomBoundary;
     if (node) {
+      // If we're in HVGA resolution, the too small notification container
+      // would lead second and following up notifications overlap the boundary
+      // by several pixels.
+      var HVGATolerance = 0;
+      if (this._getWindowInnerDimension().height <= 480) {
+        HVGATolerance = 1;
+      }
       topBoundary = this.container.getBoundingClientRect().top;
       bottomBoundary = this.container.getBoundingClientRect().bottom;
       top = node.getBoundingClientRect().top;
       bottom = node.getBoundingClientRect().bottom;
       if (top < topBoundary ||
-          bottom > bottomBoundary) {
+          bottom > bottomBoundary + HVGATolerance) {
         return true;
       } else {
         return false;

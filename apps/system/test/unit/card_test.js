@@ -83,6 +83,13 @@ suite('system/Card', function() {
       assert.ok(header.id, 'h1.id');
     });
 
+    test('has expected aria values', function(){
+      var card = this.card;
+
+      assert.equal(card.screenshotView.getAttribute('role'), 'link');
+      assert.strictEqual(card.iconButton.getAttribute('aria-hidden'), 'true');
+    });
+
     test('adds browser class for browser windows', function(){
       var app = makeApp({ name: 'browserwindow' });
       this.sinon.stub(app, 'isBrowser', function() {

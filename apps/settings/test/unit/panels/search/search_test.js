@@ -11,7 +11,7 @@ suite('Search >', function() {
 
   suiteSetup(function(done) {
     var modules = [
-      'unit/mock_l10n',
+      'shared_mocks/mock_l10n',
       'shared_mocks/mock_navigator_moz_settings',
       'unit/mock_settings_cache',
       'panels/search/search'

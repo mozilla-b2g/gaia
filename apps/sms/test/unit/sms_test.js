@@ -192,7 +192,6 @@ suite('SMS App Unit-Test', function() {
     // Setup. We need an async. way due to threads are rendered
     // async.
     setup(function(done) {
-      this.sinon.spy(navigator.mozL10n, 'setAttributes');
       ThreadListUI.renderThreads(done);
       _tci = ThreadListUI.checkInputs;
     });
@@ -270,21 +269,22 @@ suite('SMS App Unit-Test', function() {
         assertNumOfElementsByClass(ThreadListUI.container, 1, 'unread');
       });
 
-      test('Update thread with contact name localized', function() {
+      test('Update thread with contact name', function() {
         // Given a number, we should retrieve the contact and update the info
         var threadWithContact = document.getElementById('thread-1');
-        var contactName = threadWithContact.getElementsByClassName('name')[0];
-        sinon.assert.calledWith(
-          navigator.mozL10n.setAttributes,
-          contactName,
-          'thread-header-text',
-          { name: 'Pepito O\'Hare', n: 0 }
+        assert.equal(
+          threadWithContact.querySelector('.name').textContent,
+          'Pepito O\'Hare'
         );
       });
     });
 
     // Review the edit-mode functionality and markup
     suite('Threads-list edit mode', function() {
+
+      setup(function() {
+        this.sinon.stub(ThreadListUI, 'setContact');
+      });
 
       test('Check edit mode form', function() {
         var container = ThreadListUI.container;
@@ -441,6 +441,7 @@ suite('SMS App Unit-Test', function() {
       // Setup for getting all messages rendered before every test
       setup(function(done) {
         this.sinon.spy(ThreadUI, 'checkInputs');
+        this.sinon.stub(ThreadListUI, 'setContact');
         ThreadUI.renderMessages(1, function() {
           done();
         });

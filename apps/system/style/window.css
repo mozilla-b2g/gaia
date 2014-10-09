@@ -116,10 +116,6 @@
          transform: scale(2.0);
          opacity: 0.0;
       }
-  50% {
-         transform: scale(1.5);
-         opacity: 0.5;
-      }
   100% {
          transform: scale(1.0);
          opacity: 1.0;
@@ -131,10 +127,6 @@
   0%  {
          transform: scale(1.0);
          opacity: 1.0;
-      }
-  50% {
-         transform: scale(1.5);
-         opacity: 0.5;
       }
   100% {
          transform: scale(2);
@@ -297,6 +289,11 @@
 
 .appWindow.collapsible .screenshot-overlay {
   background-color: inherit;
+}
+
+/* Bug 1071235: Workaround for bug 1076783 */
+.browser-container:-moz-full-screen-ancestor > .screenshot-overlay {
+  visibility: hidden;
 }
 
 .appWindow.collapsible:not(.active) .screenshot-overlay {
