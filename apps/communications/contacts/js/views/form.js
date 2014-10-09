@@ -970,18 +970,25 @@ contacts.Form = (function() {
     throbber.classList.add('hide');
   };
 
-  var createName = function createName(myContact) {
-    var givenName = Array.isArray(myContact.givenName) ?
-                    myContact.givenName[0] : '';
+  /**
+   * Creates a complete name from the received contact's `givenName` and
+   * `familyName` fields.
+   *
+   * @param {object} contact MozContactObject to process
+   */
+  var createName = function createName(contact) {
+    var givenName = '', familyName = '';
 
-    var familyName = Array.isArray(myContact.familyName) ?
-                     myContact.familyName[0] : '';
+    if (Array.isArray(contact.givenName)) {
+      givenName = contact.givenName[0].trim();
+    }
 
-    var completeName = givenName && familyName ?
-                       givenName + ' ' + familyName :
-                       givenName || familyName;
+    if (Array.isArray(contact.familyName)) {
+      familyName = contact.familyName[0].trim();
+    }
 
-    myContact.name = completeName ? [completeName] : [];
+    var completeName = (givenName + ' ' + familyName).trim();
+    contact.name = completeName ? [completeName] : [];
   };
 
   var setPropagatedFlag = function setPropagatedFlag(field, value, contact) {
