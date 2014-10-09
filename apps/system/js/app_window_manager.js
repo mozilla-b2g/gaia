@@ -270,6 +270,7 @@
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('ftuskip', this);
+      window.addEventListener('ftudone', this);
       window.addEventListener('appopened', this);
       window.addEventListener('apprequestopen', this);
       window.addEventListener('apprequestclose', this);
@@ -362,6 +363,7 @@
       window.removeEventListener('appcreated', this);
       window.removeEventListener('appterminated', this);
       window.removeEventListener('ftuskip', this);
+      window.removeEventListener('ftudone', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('apprequestopen', this);
       window.removeEventListener('apprequestclose', this);
@@ -447,8 +449,13 @@
           }
           break;
 
+        case 'ftudone':
+          this._ftuFinished = true;
+          break;
+
         case 'ftuskip':
           if (!System.locked) {
+            this._ftuFinished = true;
             this.display();
           }
           break;
@@ -799,7 +806,7 @@
         if (home) {
           if (home.isActive()) {
             home.setVisible(true);
-          } else {
+          } else if (this._ftuFinished) {
             this.display();
           }
         }
