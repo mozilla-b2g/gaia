@@ -59,6 +59,7 @@
       window.addEventListener('open-app', this);
       window.addEventListener('webapps-launch', this);
       window.addEventListener('appopened', this);
+      window.addEventListener('activityopened', this);
       window.addEventListener('homescreenopened', this);
       window.addEventListener('landingappopened', this);
     },
@@ -73,6 +74,7 @@
       window.removeEventListener('appswitching', this);
       window.removeEventListener('ftuskip', this);
       window.removeEventListener('open-app', this);
+      window.removeEventListener('activityopened', this);
       window.removeEventListener('webapps-launch', this);
       window.removeEventListener('appopened', this);
     },
@@ -84,12 +86,13 @@
           this.getHomescreen().fadeOut();
           break;
         case 'ftuskip':
-          this.getHomescreen().setVisible(!System.locked);
+          if (this.ready) {
+            this.getHomescreen().setVisible(!System.locked);
+          }
           break;
         case 'open-app':
         case 'webapps-launch':
           var detail = evt.detail;
-          console.log('trying to ' + evt.type + ': ' + detail.manifestURL);
           if (detail.manifestURL === homescreenLauncher.manifestURL ||
               detail.manifestURL === this.landingAppLauncher.manifestURL) {
             this.launchHomescreen(evt, detail.manifestURL);
@@ -112,6 +115,10 @@
               this._activeHome = null;
             }
           }
+          break;
+        case 'activityopened':
+          // when an activity is opened, we should just go back to normal home.
+          this._activeHome = null;
           break;
         case 'homescreenopened':
           if (exports.homescreenLauncher) {
