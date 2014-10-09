@@ -5,65 +5,52 @@
 from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
-from gaiatest.apps.marketplace.app import Marketplace
-
+from gaiatest.apps.marketplace.app import MarketplaceDev
+from gaiatest.apps.system.app import System
 
 class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
 
     APP_INSTALLED = False
 
-    _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
-
-    # System app confirmation button to confirm installing an app
-    _yes_button_locator = (By.ID, 'app-install-install-button')
-
     # Installed app
-    _result_box_locator = (By.ID, 'rezultat')
+    _app_root = (By.CSS_SELECTOR, ':root')
+
+    app_search = ':packaged'
 
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_network()
 
     def test_search_and_install_app(self):
-        self.app_name = 'Calculator'
+        marketplace = MarketplaceDev(self.marionette, 'Marketplace')
+        system = System(self.marionette)
 
-        marketplace = Marketplace(self.marionette, 'Marketplace')
-        marketplace.launch()
-
-        iframe = self.marionette.find_element(*self._marketplace_iframe_locator)
-        self.marionette.switch_to_frame(iframe)
-
-        results = marketplace.search(self.app_name)
+        results = marketplace.search(self.app_search)
         first_result = results.search_results[0]
+        app_name = first_result.get_app_name()
         first_result.tap_install_button()
 
-        self.confirm_installation()
-        self.APP_INSTALLED = True
+        system.confirm_install()
 
         # Press Home button
-        # test
         self.device.touch_home_button()
 
         # Check that the icon of the app is on the homescreen
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
 
-        self.assertTrue(homescreen.is_app_installed(self.app_name))
+        self.assertTrue(homescreen.is_app_installed(app_name))
 
-        installed_app = homescreen.installed_app(self.app_name)
+        installed_app = homescreen.installed_app(app_name)
         installed_app.tap_icon()
         self.apps.switch_to_displayed_app()
 
-        self.wait_for_element_displayed(*self._result_box_locator)
+        self.wait_for_element_displayed(*self._app_root)
 
-    def confirm_installation(self):
-        # TODO add this to the system app object when we have one
-        self.wait_for_element_displayed(*self._yes_button_locator)
-        self.marionette.find_element(*self._yes_button_locator).tap()
-        self.wait_for_element_not_displayed(*self._yes_button_locator)
+        self.apps.uninstall(app_name)
+        system.confirm_uninstall()
+
+        self.assertFalse(homescreen.is_app_installed(app_name))
 
     def tearDown(self):
-        if self.APP_INSTALLED:
-            self.apps.uninstall(self.app_name)
-
         GaiaTestCase.tearDown(self)

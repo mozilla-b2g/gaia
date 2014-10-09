@@ -21,6 +21,12 @@ class System(Base):
 
     _software_home_button_locator = (By.ID, 'software-home-button')
 
+
+    # System app confirmation button to confirm installing an app
+    _yes_button_locator = (By.ID, 'app-install-install-button')
+    # System app delete button to confirm uninstalling an app
+    _delete_button_locator = (By.CSS_SELECTOR, 'button[class="confirm danger"]')
+
     def wait_for_status_bar_displayed(self):
         self.wait_for_element_displayed(*self._status_bar_locator)
 
@@ -65,3 +71,13 @@ class System(Base):
 
     def wait_for_airplane_mode_icon_displayed(self):
         self.wait_for_element_displayed(*self._airplane_mode_statusbar_locator)
+
+    def confirm_install(self):
+        self.wait_for_element_displayed(*self._yes_button_locator)
+        self.marionette.find_element(*self._yes_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._yes_button_locator)
+
+    def confirm_uninstall(self):
+        self.wait_for_element_displayed(*self._delete_button_locator)
+        self.marionette.find_element(*self._delete_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._delete_button_locator)

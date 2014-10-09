@@ -7,12 +7,13 @@ from marionette.keys import Keys
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
+class MarketplaceDev(Base):
 
-class Marketplace(Base):
-
-    _loading_fragment_locator = (By.CSS_SELECTOR, 'div.loading-fragment')
+    _loading_fragment_locator = (By.ID, 'splash-overlay')
 
     _search_locator = (By.ID, 'search-q')
+
+    _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
 
     def __init__(self, marionette, app_name=False):
         Base.__init__(self, marionette)
@@ -24,9 +25,15 @@ class Marketplace(Base):
         self.wait_for_element_not_displayed(*self._loading_fragment_locator)
 
     def search(self, term):
+        self.launch()
+
+        iframe = self.marionette.find_element(*self._marketplace_iframe_locator)
+        self.marionette.switch_to_frame(iframe)
+
         self.wait_for_element_displayed(*self._search_locator)
         search_box = self.marionette.find_element(*self._search_locator)
 
+        search_box.click()
         # search for the app
         search_box.send_keys(term)
 
@@ -51,7 +58,11 @@ class SearchResults(Base):
 class Result(PageRegion):
 
     _install_button_locator = (By.CSS_SELECTOR, '.button.product.install')
+    _name_locator = (By.CSS_SELECTOR, 'h3[itemprop="name"]')
 
     def tap_install_button(self):
         self.root_element.find_element(*self._install_button_locator).tap()
         self.marionette.switch_to_frame()
+
+    def get_app_name(self):
+        return self.root_element.find_element(*self._name_locator).text
