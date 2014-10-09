@@ -217,5 +217,23 @@ suite('attachment_test.js', function() {
       });
     });
   });
+
+  suite('clone()', function() {
+    var attachment, clone;
+
+    setup(function() {
+      attachment = new Attachment(new Blob());
+      clone = attachment.clone();
+    });
+
+    test('properties have the same values', function() {
+      assert.deepEqual(clone, attachment);
+    });
+
+    test('modifying the clone does not modify the source', function() {
+      clone.blob = new Blob();
+      assert.notEqual(clone.blob, attachment.blob);
+    });
+  });
 });
 
