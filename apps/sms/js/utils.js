@@ -268,27 +268,19 @@
     // to be applied here for size checking. Parameters could be:
     // (blob, callback) : Resizing image to default limit 295k.
     // (blob, limit, callback) : Resizing image to given limitation.
-    getResizedImgBlob: function ut_getResizedImgBlob(blob, limit, callback) {
+    getResizedImgBlob: function ut_getResizedImgBlob(blob, limit) {
       var defaultLimit = 295 * 1024;
-      if (typeof limit === 'function') {
-        callback = limit;
-        limit = defaultLimit;
-      }
-      limit = limit === 0 ? defaultLimit : Math.min(limit, defaultLimit);
+      limit = limit || Math.min(limit, defaultLimit);
 
       if (blob.size < limit) {
-        setTimeout(function blobCb() {
-          callback(blob);
-        });
-        return;
+        return Promise.resolve(blob);
       }
 
       var ratio = Math.sqrt(blob.size / limit);
-      Utils._resizeImageBlobWithRatio({
+      return Utils._resizeImageBlobWithRatio({
         blob: blob,
         limit: limit,
-        ratio: ratio,
-        callback: callback
+        ratio: ratio
       });
     },
 
@@ -300,8 +292,16 @@
     //  than 8 will be rounded to the closest bigger integer.
     //
     _resizeImageBlobWithRatio: function ut_resizeImageBlobWithRatio(obj) {
+      function loadImage(src) {
+        var img = document.createElement('img');
+        img.src = src;
+        return new Promise((resolve, reject) => {
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+        });
+      }
+
       var blob = obj.blob;
-      var callback = obj.callback;
       var limit = obj.limit;
       var ratio = Math.ceil(obj.ratio);
       var qualities = [0.65, 0.5, 0.25];
@@ -310,10 +310,7 @@
       var sampleSizeHash = '';
 
       if (blob.size < limit || ratio <= 1) {
-        setTimeout(function blobCb() {
-          callback(blob);
-        });
-        return;
+        return Promise.resolve(blob);
       }
 
       if (blob.type === 'image/jpeg') {
@@ -326,11 +323,8 @@
         sampleSizeHash = '#-moz-samplesize=' + sampleSize;
       }
 
-      var img = document.createElement('img');
       var url = window.URL.createObjectURL(blob);
-      img.src = url + sampleSizeHash;
-
-      img.onload = function onBlobLoaded() {
+      return loadImage(url + sampleSizeHash).then(function onBlobLoaded(img) {
         window.URL.revokeObjectURL(url);
         var targetWidth = img.width * sampleSize / ratio;
         var targetHeight = img.height * sampleSize / ratio;
@@ -354,42 +348,47 @@
           canvas = null;
         }
 
+        function toBlob(canvas, type, opts) {
+          return new Promise((resolve) => canvas.toBlob(resolve, type, opts));
+        }
+
         function ensureSizeLimit(resizedBlob) {
           if (resizedBlob.size < limit) {
             cleanup();
 
             // using a setTimeout so that used objects can be garbage collected
             // right now
-            setTimeout(callback.bind(null, resizedBlob));
-          } else {
-            resizedBlob = null; // we don't need it anymore
-            // Reduce image quality for match limitation. Here we set quality
-            // to 0.65, 0.5 and 0.25 for image blob resizing.
-            // (Default image quality is 0.92 for jpeg)
-            if (level < qualities.length) {
-              canvas.toBlob(ensureSizeLimit, 'image/jpeg',
-                qualities[level++]);
-            } else {
-              // We will resize the blob if image quality = 0.25 still exceed
-              // size limitation.
-              cleanup();
+            return resizedBlob;
+          }
 
-              // using a setTimeout so that used objects can be garbage
-              // collected right now
-              setTimeout(
-                Utils._resizeImageBlobWithRatio.bind(Utils, {
-                  blob: blob,
-                  limit: limit,
-                  ratio: ratio * 2,
-                  callback: callback
-                })
-              );
-            }
+          resizedBlob = null; // we don't need it anymore
+
+          // Reduce image quality for match limitation. Here we set quality
+          // to 0.65, 0.5 and 0.25 for image blob resizing.
+          // (Default image quality is 0.92 for jpeg)
+          if (level < qualities.length) {
+            return toBlob(
+              canvas, 'image/jpeg', qualities[level++]
+            ).then(ensureSizeLimit);
+          } else {
+            // We will resize the blob if image quality = 0.25 still exceed
+            // size limitation.
+            cleanup();
+
+            // using an async operation so that used objects can be garbage
+            // collected right now
+            return Promise.resolve().then(
+              () => Utils._resizeImageBlobWithRatio({
+                blob: blob,
+                limit: limit,
+                ratio: ratio * 2
+              })
+            );
           }
         }
 
-        canvas.toBlob(ensureSizeLimit, blob.type);
-      };
+        return toBlob(canvas, blob.type).then(ensureSizeLimit);
+      });
     },
 
     getClosestSampleSize: function ut_getClosestSampleSize(ratio) {

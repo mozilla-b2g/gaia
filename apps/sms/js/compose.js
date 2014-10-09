@@ -220,14 +220,11 @@ var Compose = (function() {
     }
 
     var nodes = dom.message.querySelectorAll('iframe');
-    var imgNodes = [];
     var done = 0;
-    Array.prototype.forEach.call(nodes, function findImgNodes(node) {
-      var item = attachments.get(node);
-      if (item.type === 'img') {
-        imgNodes.push(node);
-      }
-    });
+    var imgNodes = Array.prototype.filter.call(
+      nodes,
+      (node) => attachments.get(node).type === 'img'
+    );
 
     // Total number of images < 3
     //   => Set max image size to 2/5 message size limitation.
