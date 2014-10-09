@@ -15,7 +15,7 @@
          ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
          CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
-         BatteryOverlay */
+         BatteryOverlay, BaseModule */
 'use strict';
 
 
@@ -212,6 +212,9 @@ window.addEventListener('load', function startup() {
       { bubbles: true, cancelable: false,
         detail: { type: 'system-message-listener-ready' } });
   window.dispatchEvent(evt);
+
+  window.core = BaseModule.instantiate('Core');
+  window.core && window.core.start();
 });
 
 window.usbStorage = new UsbStorage();

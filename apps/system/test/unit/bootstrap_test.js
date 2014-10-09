@@ -66,6 +66,7 @@ requireApp('system/js/visibility_manager.js');
 requireApp('system/js/wallpaper_manager.js');
 requireApp('system/js/attention_window_manager.js');
 requireApp('system/js/attention_indicator.js');
+requireApp('system/js/system.js');
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_attention_window.js');
@@ -80,6 +81,7 @@ requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_version_helper.js');
+requireApp('system/js/base_module.js');
 
 var mocksForBootstrap = new MocksHelper([
   'AirplaneMode',

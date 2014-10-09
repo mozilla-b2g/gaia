@@ -1,6 +1,14 @@
 /* exported MockSystem */
 'use strict';
 var MockSystem = {
+  lowerCapital: function() {
+    return 'a';
+  },
+  lazyLoad: function() {},
+  register: function() {},
+  unregister: function() {},
+  request: function() {},
+  query: function() {},
   mPublishEvents: {},
   isBusyLoading: function() {
     return false;

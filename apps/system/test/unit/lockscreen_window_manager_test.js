@@ -1,8 +1,11 @@
+/* global MockSystem */
+
 (function() {
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
 requireApp('system/js/lockscreen_window_manager.js');
@@ -10,7 +13,7 @@ requireApp('system/js/lockscreen_window_manager.js');
 mocha.globals(['MozActivity', 'AppWindowManager', 'SettingsListener']);
 
 var mocksForLockScreenWindowManager = new window.MocksHelper([
-  'LockScreen', 'LockScreenWindow'
+  'LockScreen', 'LockScreenWindow', 'System'
 ]).init();
 
 suite('system/LockScreenWindowManager', function() {
@@ -79,6 +82,25 @@ suite('system/LockScreenWindowManager', function() {
     window.MockNavigatorSettings.mTeardown();
     stubById.restore();
   });
+
+  test('Should register unlock/lock request to System', function() {
+    var stubRegister = this.sinon.stub(MockSystem, 'register');
+    window.lockScreenWindowManager.start();
+    assert.isTrue(stubRegister.calledWith('lock',
+      window.lockScreenWindowManager));
+    assert.isTrue(stubRegister.calledWith('unlock',
+      window.lockScreenWindowManager));
+  });
+
+  test('Should bypass lockscreen-request-unlock when unlock is called',
+    function() {
+      var stubPublish =
+        this.sinon.stub(window.lockScreenWindowManager, 'publish');
+      var detail = {};
+      window.lockScreenWindowManager.unlock(detail);
+      assert.isTrue(
+        stubPublish.calledWith('lockscreen-request-unlock', detail));
+    });
 
   suite('Handle events', function() {
     test('It should stop home event to propagate', function() {
