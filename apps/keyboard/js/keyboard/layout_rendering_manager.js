@@ -120,13 +120,10 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
 
   var currentPage = this._currentRenderingPage =
     this.app.layoutManager.currentPage;
-  var currentIMEngine = this.app.inputMethodManager.currentIMEngine;
 
   // Determine if the candidate panel for word suggestion is needed
   var needsCandidatePanel = !!(
-    (currentPage.autoCorrectLanguage || currentPage.needsCandidatePanel) &&
-    ((typeof currentIMEngine.displaysCandidates !== 'function') ||
-      currentIMEngine.displaysCandidates()));
+    currentPage.autoCorrectLanguage || currentPage.needsCandidatePanel);
 
   // Rule of thumb: always render uppercase, unless secondLayout has been
   // specified (for e.g. arabic, then depending on shift key)
