@@ -47,34 +47,17 @@ var NotificationScreen = {
 
   init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
-    this.notificationsContainer =
-      document.getElementById('notifications-container');
-    this.container =
-      document.getElementById('desktop-notifications-container');
     this.toaster = document.getElementById('notification-toaster');
     this.toasterIcon = document.getElementById('toaster-icon');
     this.toasterTitle = document.getElementById('toaster-title');
     this.toasterDetail = document.getElementById('toaster-detail');
 
-    ['tap', 'touchstart', 'touchmove', 'touchend', 'touchcancel', 'wheel'].
-      forEach(function(evt) {
-        this.container.addEventListener(evt, this);
-        this.toaster.addEventListener(evt, this);
-      }, this);
+    ['click', 'wheel'].forEach(function(evt) {
+      this.toaster.addEventListener(evt, this);
+    }, this);
 
-    // will hold the count of external contributors to the notification
-    // screen
-    this.externalNotificationsCount = 0;
-
-    window.addEventListener('utilitytrayshow', this);
-    // Since UI expect there is a slight delay for the opened notification.
-    window.addEventListener('visibilitychange', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
-    window.addEventListener('appforeground',
-      this.clearDesktopNotifications.bind(this));
-    window.addEventListener('appopened',
-      this.clearDesktopNotifications.bind(this));
     window.addEventListener('desktop-notification-resend', this);
 
     this._sound = 'style/notifications/ringtones/notifier_firefox.opus';
@@ -104,38 +87,14 @@ var NotificationScreen = {
             break;
         }
         break;
-      case 'tap':
-        var target = evt.target;
-        this.tap(target);
-        break;
-      case 'touchstart':
-        this.touchstart(evt);
-        break;
-      case 'touchmove':
-        this.touchmove(evt);
-        break;
-      case 'touchend':
-        this.touchend(evt);
-        break;
-      case 'touchcancel':
-        this.touchcancel(evt);
-        break;
-      case 'wheel':
-        this.wheel(evt);
-      case 'utilitytrayshow':
-        this.updateTimestamps();
-        break;
-      case 'visibilitychange':
-        //update timestamps in lockscreen notifications
-        if (!document.hidden) {
-          this.updateTimestamps();
-        }
+      case 'click':
+        this.click();
         break;
       case 'ftuopen':
-        this.toaster.removeEventListener('tap', this);
+        this.toaster.removeEventListener('click', this);
         break;
       case 'ftudone':
-        this.toaster.addEventListener('tap', this);
+        this.toaster.addEventListener('click', this);
         break;
       case 'desktop-notification-resend':
         this.resendExpecting = evt.detail.number;
@@ -146,189 +105,41 @@ var NotificationScreen = {
     }
   },
 
-  // TODO: Remove this when we ditch mozNotification (bug 952453)
-  clearDesktopNotifications: function ns_handleAppopen(evt) {
-    var manifestURL = evt.detail.manifestURL,
-        selector = '[data-manifest-u-r-l="' + manifestURL + '"]';
-
-    var nodes = this.container.querySelectorAll(selector);
-
-    for (var i = nodes.length - 1; i >= 0; i--) {
-      if (nodes[i].dataset.obsoleteAPI === 'true') {
-        this.closeNotification(nodes[i]);
-      }
-    }
-  },
-
-  cancelSwipe: function ns_cancelSwipe() {
-    var notification = this._notification;
-    this._notification = null;
-
-    // If the notification has been moved, animate it back to its original
-    // position.
-    if (this._touchPosX) {
-      notification.addEventListener('transitionend',
-        function trListener() {
-          notification.removeEventListener('transitionend', trListener);
-          notification.classList.remove('snapback');
-        });
-      notification.classList.add('snapback');
-    }
-
-    notification.style.transform = '';
-  },
-
-  // Swipe handling
-  touchstart: function ns_touchstart(evt) {
-    if (evt.touches.length !== 1) {
-      if (this._touching) {
-        this._touching = false;
-        this.cancelSwipe();
-      }
+  click: function ns_click() {
+    // we use displayed class as the flag of showing of toaster
+    if (!this.toaster.classList.contains('displayed')) {
       return;
     }
-
-    var target = evt.touches[0].target;
-    if (!target.dataset.notificationId)
+    var notification = this._notifications[this.toaster.dataset.notificationId];
+    if (!notification) {
       return;
+    }
+    // we sends the click to gecko and others
+    this.clickNotification(notification.id);
 
-    this._notification = target;
-    this._containerWidth = this.container.clientWidth;
-    this._touchStartX = evt.touches[0].pageX;
-    this._touchStartY = evt.touches[0].pageY;
-    this._touchPosX = 0;
-    this._touching = true;
-    this._isTap = true;
+    // Desktop notifications are removed when they are clicked (see bug 890440)
+    if (notification.type === 'desktop-notification' &&
+        notification.obsoleteAPI === 'true') {
+      this.removeNotification(notification.id);
+    }
+    // we only have toast now, so, try to close the toast.
+    this.closeToast();
   },
 
-  touchmove: function ns_touchmove(evt) {
-    if (!this._touching) {
-      return;
-    }
-
-    var touchDiffY = evt.touches[0].pageY - this._touchStartY;
-
-    // The notification being touched is the toast
-    if (this._notification.classList.contains('displayed')) {
-      this._touching = false;
-      if (touchDiffY < 0)
-        this.closeToast();
-      return;
-    }
-
-    if (evt.touches.length !== 1 ||
-        (this._isTap && Math.abs(touchDiffY) >= this.SCROLL_THRESHOLD)) {
-      this._touching = false;
-      this.cancelSwipe();
-      return;
-    }
-
-    evt.preventDefault();
-
-    this._touchPosX = evt.touches[0].pageX - this._touchStartX;
-    if (Math.abs(this._touchPosX) >= this.TAP_THRESHOLD) {
-      this._isTap = false;
-    }
-    if (!this._isTap) {
-      this._notification.style.transform =
-        'translateX(' + this._touchPosX + 'px)';
-    }
-  },
-
-  touchend: function ns_touchend(evt) {
-    if (!this._touching) {
-      return;
-    }
-
-    evt.preventDefault();
-    this._touching = false;
-
-    if (this._isTap) {
-      var event = new CustomEvent('tap', {
-        bubbles: true,
-        cancelable: true
-      });
-      this._notification.dispatchEvent(event);
-      this._notification = null;
-      return;
-    }
-
-    if (Math.abs(this._touchPosX) >
-        this._containerWidth * this.TRANSITION_FRACTION) {
-      if (this._touchPosX < 0) {
-        this._notification.classList.add('left');
-      }
-      this.swipeCloseNotification();
-    } else {
-      this.cancelSwipe();
-    }
-  },
-
-  touchcancel: function ns_touchcancel(evt) {
-    if (this._touching) {
-      evt.preventDefault();
-      this._touching = false;
-      this.cancelSwipe();
-    }
-  },
-
-  wheel: function ns_wheel(evt) {
-    if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaX) {
-      this._notification = evt.target;
-      this.swipeCloseNotification();
-    }
-  },
-
-  tap: function ns_tap(node) {
-    var notificationId = node.dataset.notificationId;
-    var notificationNode = this.container.querySelector(
-      '[data-notification-id="' + notificationId + '"]');
-
+  clickNotification: function ns_clickNotification(id) {
+    // event for gecko
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentNotificationEvent', true, true, {
       type: 'desktop-notification-click',
-      id: notificationId
+      id: id
     });
     window.dispatchEvent(event);
-
+    // event for gaia
     window.dispatchEvent(new CustomEvent('notification-clicked', {
       detail: {
-        id: notificationId
+        id: id
       }
     }));
-
-    // Desktop notifications are removed when they are clicked (see bug 890440)
-    if (notificationNode.dataset.type === 'desktop-notification' &&
-        notificationNode.dataset.obsoleteAPI === 'true') {
-      this.closeNotification(notificationNode);
-    }
-
-    if (node == this.toaster) {
-      this.closeToast();
-    } else {
-      UtilityTray.hide();
-    }
-  },
-
-  updateTimestamps: function ns_updateTimestamps() {
-    var timestamps = document.getElementsByClassName('timestamp');
-    for (var i = 0, l = timestamps.length; i < l; i++) {
-      timestamps[i].textContent =
-        this.prettyDate(new Date(timestamps[i].dataset.timestamp));
-    }
-  },
-
-  /**
-   * Display a human-readable relative timestamp.
-   */
-  prettyDate: function prettyDate(time) {
-    var date;
-    if (navigator.mozL10n) {
-      date = navigator.mozL10n.DateTimeFormat().fromNow(time, true);
-    } else {
-      date = time.toLocaleFormat();
-    }
-    return date;
   },
 
   updateToaster: function ns_updateToaster(detail) {
@@ -467,41 +278,6 @@ var NotificationScreen = {
         this.vibrate(behavior);
       }
     }
-
-    return notificationNode;
-  },
-
-  swipeCloseNotification: function ns_swipeCloseNotification() {
-    var notification = this._notification;
-    this._notification = null;
-
-    var toaster = this.toaster;
-    var self = this;
-    notification.addEventListener('transitionend', function trListener() {
-      notification.removeEventListener('transitionend', trListener);
-
-      self.closeNotification(notification);
-
-      if (notification != toaster) {
-        return;
-      }
-
-      // Putting back the toaster in a clean state for the next notification
-      toaster.style.display = 'none';
-      setTimeout(function nextLoop() {
-        toaster.style.MozTransition = '';
-        toaster.style.MozTransform = '';
-        toaster.classList.remove('displayed');
-        toaster.classList.remove('disappearing');
-
-        setTimeout(function nextLoop() {
-          toaster.style.display = 'block';
-        });
-      });
-    });
-
-    notification.classList.add('disappearing');
-    notification.style.transform = '';
   },
 
   closeToast: function ns_closeToast() {
