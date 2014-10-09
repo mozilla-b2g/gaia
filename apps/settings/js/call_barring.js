@@ -4,8 +4,10 @@
 'use strict';
 
 var CallBarring = (function() {
+
   var _mobileConnection = null,
-      _voiceServiceClassMask = null;
+      _voiceServiceClassMask = null,
+      _taskScheduler = null;
 
   var _cbAction = {
     CALL_BARRING_BAOC: 0,     // BAOC: Barring All Outgoing Calls
@@ -23,6 +25,7 @@ var CallBarring = (function() {
     'li-cb-baic': _cbAction.CALL_BARRING_BAIC,
     'li-cb-baic-r': _cbAction.CALL_BARRING_BAICr
   };
+
   /**
    * Enable all the elements of the Call Barring screen.
    * @param description Message to show after enabling.
@@ -134,21 +137,23 @@ var CallBarring = (function() {
     // disable tap on all inputs while we deal with server
     _disableAllCallBarring('callSettingsQuery');
 
-    TaskScheduler.enqueue('CALL_BARRING', function(done) {
+    console.log('CB SET > updating ' + id +
+                'with options ' + JSON.stringify(options));
+
+    _taskScheduler.enqueue('CALL_BARRING', function(done) {
       // Send the request
       var request = _mobileConnection.setCallBarringOption(options);
       request.onsuccess = function() {
-        // console.log('CB SET > SUCCESS!');
-        // console.log('CB SET > RESULT: ' + JSON.stringify(request.result));
+        console.log('CB SET > SUCCESS!');
+        console.log('CB SET > RESULT: ' + JSON.stringify(request.result));
         _enableAllCallBarring();
-
         done();
       };
       request.onerror = function() {
         /* request.error = { name, message } */
-        // console.log('CB SET > ERROR!');
-        // console.log('CB SET > e.name =  ' + request.error.name);
-        // console.log('CB SET > e.message = ' + request.error.message);
+        console.log('CB SET > ERROR!');
+        console.log('CB SET > e.name =  ' + request.error.name);
+        console.log('CB SET > e.message = ' + request.error.message);
 
         // revert visual changes
         _updateCallBarringItem(document.getElementById(id),
@@ -156,7 +161,6 @@ var CallBarring = (function() {
 
         // and enable all again
         _enableAllCallBarring();
-
         done();
       };
     });
@@ -168,14 +172,13 @@ var CallBarring = (function() {
    * @param id of the service we want to request the state of
    * @returns result object or Error object.
    * {
-   *   'id: [string], name of the service requested
+   *   'id': [string], name of the service requested
    *   'checked': [true|false] current state of the service
    * }
    */
   function _getCallBarring(id) {
     var options = {
       'program': _cbServiceMapper[id],
-      // 'password': '0000', // optional
       'serviceClass': _voiceServiceClassMask
     };
 
@@ -205,101 +208,19 @@ var CallBarring = (function() {
   }
 
   /**
-   * Initialize the Call Barring panel.
-   * BAOC: Barring All Outgoing Calls
-   * BOIC: Barring Outgoing International Calls
-   * BOICexHC: Barring Outgoing International Calls Except to Home Country
-   * BAIC: Barring All Incoming Calls
-   * BAICr: Barring All Incoming Calls in Roaming
+   * Makes a RIL request to change the passcode.
+   * @param data info related to the PIN code. In the form:
+   * {
+   *    'pin':    // current passcode
+   *    'newPin': // new passcode
+   * }
    */
-  function cs_initCallBarring(options) {
-    if (!options) {
-      console.error('options is empty');
-      return;
-    }
-
-    _mobileConnection = options.mobileConnection;
-    _voiceServiceClassMask = options.voiceServiceClassMask;
-
-    var inputBaoc =
-      document.querySelector('#li-cb-baoc .checkbox-label input');
-    var inputBoic =
-      document.querySelector('#li-cb-boic .checkbox-label input');
-    var inputBoicExhc =
-      document.querySelector('#li-cb-boic-exhc .checkbox-label input');
-    var inputBaic =
-      document.querySelector('#li-cb-baic .checkbox-label input');
-    var inputBaicR =
-      document.querySelector('#li-cb-baic-r .checkbox-label input');
-
-    var changePassword = document.getElementById('li-cb-pswd');
-
-    var callBarringClick = function(event) {
-      var input = event.target;
-
-      // Show password screen
-      CallServicesPasswordScreen.show().then(
-        // password screen confirmed
-        function confirmed(password) {
-          var inputID = input.parentNode.parentNode.id;
-          // Create the options object
-          var options = {
-            'program': _cbServiceMapper[inputID],
-            'enabled': input.checked,
-            'password': password,
-            'serviceClass': _voiceServiceClassMask
-          };
-
-          _setCallBarring(inputID, options);
-        },
-        // password screen canceled
-        function canceled() {
-          // revert visual changes
-          input.checked = !input.checked;
-        }
-      );
-    };
-
-    inputBaoc.addEventListener('change', callBarringClick);
-    inputBoic.addEventListener('change', callBarringClick);
-    inputBoicExhc.addEventListener('change', callBarringClick);
-    inputBaic.addEventListener('change', callBarringClick);
-    inputBaicR.addEventListener('change', callBarringClick);
-
-    changePassword.addEventListener('click', function () {
-      PasscodeChange.launch().then(cs_changeCallBarringPassword)
-      .then(function success() {
-        // password changed correctly
-        console.log('> PASSCODE CHANGE SUCCESS');
-        // status with message
-      }).catch(function error(err) {
-        // error during the process
-        console.log('> PASSCODE CHANGE ERROR > ' + JSON.stringify(err));
-      }).then(function doAnyway() {
-        // close spinner
-        console.log('> PASSCODE END > closing spinner');
-      });
-
-      // PasscodeChange.launch().then(function success(info) {
-      //   // call API
-      //   console.log('> PASSCODE SUCCESS > ' + JSON.stringify(info));
-      //   cs_changeCallBarringPassword(info);
-      // }).catch(function error(err) {
-      //   // show error
-      //   console.log('> PASSCODE ERROR > ' + JSON.stringify(err));
-      // }).then(function doAnyway() {
-      //   // close spinner
-      //   console.log('> PASSCODE END > closing spinner');
-      // });
-    });
-  }
-
-  function cs_changeCallBarringPassword(data) {
+  function _changeCallBarringPasscode(pinData) {
     return new Promise(function finished(resolve, reject) {
       console.log('> PASSCODE UPDATE');
       _disableAllCallBarring('changePasswordQuery');
-      TaskScheduler.enqueue('CALL_BARRING', function(done) {
-        var request = _mobileConnection.changeCallBarringPassword(data);
+      _taskScheduler.enqueue('CALL_BARRING', function(done) {
+        var request = _mobileConnection.changeCallBarringPassword(pinData);
         request.onsuccess = function() {
           console.log('> PASSCODE UPDATE > success');
           _enableAllCallBarring();
@@ -315,24 +236,116 @@ var CallBarring = (function() {
 
           _enableAllCallBarring();
           done();
-          reject();
+          reject(request.error);
         };
       }); // end enqeue
     }); // end promise
   }
 
   /**
+   * Triggers the passcode change screen
+   */
+  function _launchPasscodeChange() {
+    PasscodeChange.launch().then(
+      _changeCallBarringPasscode
+    ).then(function success() {
+      // password changed correctly
+      console.log('> PASSCODE CHANGE SUCCESS');
+      // status with message
+    }).catch(function error(err) {
+      // error during the process
+      console.log('> PASSCODE CHANGE ERROR > ' + JSON.stringify(err));
+    }).then(function doAnyway() {
+      // close spinner
+      console.log('> PASSCODE END > closing spinner');
+    });
+  }
+
+  /**
+   * Shows the passcode input screen for the user to introduce the PIN
+   * needed to activate/deactivate a service
+   */
+  function _callBarringClick(evt) {
+    var input = evt.target;
+
+    // Show password screen
+    CallServicesPasswordScreen.show().then(
+      // password screen confirmed
+      function confirmed(password) {
+        var inputID = input.parentNode.parentNode.id;
+        // Create the options object
+        var options = {
+          'program': _cbServiceMapper[inputID],
+          'enabled': input.checked,
+          'password': password,
+          'serviceClass': _voiceServiceClassMask
+        };
+
+        _setCallBarring(inputID, options);
+      },
+      // password screen canceled
+      function canceled() {
+        // revert visual changes
+        input.checked = !input.checked;
+      }
+    );
+  }
+
+
+  /**
+   * Initialize the Call Barring panel.
+   * BAOC: Barring All Outgoing Calls
+   * BOIC: Barring Outgoing International Calls
+   * BOICexHC: Barring Outgoing International Calls Except to Home Country
+   * BAIC: Barring All Incoming Calls
+   * BAICr: Barring All Incoming Calls in Roaming
+   */
+  function _initCallBarring(options) {
+    if (!options) {
+      console.error('options is empty');
+      return;
+    }
+
+    _mobileConnection = options.mobileConnection;
+    _voiceServiceClassMask = options.voiceServiceClassMask;
+    _taskScheduler = TaskScheduler();
+
+    var inputBaoc =
+      document.querySelector('#li-cb-baoc .checkbox-label input');
+    var inputBoic =
+      document.querySelector('#li-cb-boic .checkbox-label input');
+    var inputBoicExhc =
+      document.querySelector('#li-cb-boic-exhc .checkbox-label input');
+    var inputBaic =
+      document.querySelector('#li-cb-baic .checkbox-label input');
+    var inputBaicR =
+      document.querySelector('#li-cb-baic-r .checkbox-label input');
+
+    var changePassword = document.getElementById('li-cb-pswd');
+
+
+    inputBaoc.addEventListener('change', _callBarringClick);
+    inputBoic.addEventListener('change', _callBarringClick);
+    inputBoicExhc.addEventListener('change', _callBarringClick);
+    inputBaic.addEventListener('change', _callBarringClick);
+    inputBaicR.addEventListener('change', _callBarringClick);
+
+    changePassword.addEventListener('click', _launchPasscodeChange);
+  }
+
+  /**
    * Update the state of all the Call Barring subpanels
    */
-  function cs_updateCallBarringSubpanels() {
+  function _updateCallBarringSubpanels() {
     // disable all, change description to 'requesting network info'
     _disableAllCallBarring('callSettingsQuery');
 
     // make the request for each one
     var cbOptions = [];
     var currentID = '';
-    console.log('REQUESTING INITIAL VALUES');
-    TaskScheduler.enqueue('CALL_BARRING', function(done) {
+    console.log('>> REQUESTING INITIAL VALUES');
+    console.log('_taskScheduler = ' + _taskScheduler);
+    _taskScheduler.enqueue('CALL_BARRING', function(done) {
       currentID = 'li-cb-baoc';
       _getCallBarring(currentID).then(function gotValue(baoc) {
         cbOptions.push(baoc);
@@ -352,9 +365,9 @@ var CallBarring = (function() {
         return _getCallBarring(currentID);
       }).then(function gotValue(baicR) {
         cbOptions.push(baicR);
-        // console.log('>>> everything OK');
+        console.log('>> InVal OK');
         // console.log('>>> UPDATING CALL BARRING ITEMS');
-        // console.log('>>> updating with: ' + JSON.stringify(cbOptions));
+        console.log('>>> updating items with: ' + JSON.stringify(cbOptions));
 
         cbOptions.forEach(function updateItem(listItem) {
           var item = document.getElementById(listItem.id);
@@ -362,9 +375,9 @@ var CallBarring = (function() {
         });
 
       }).catch(function errorWhileProcessing(err) {
-        console.log('>>> sequence error: ' + JSON.stringify(err));
+        console.log('>> InVal sequence error: ' + JSON.stringify(err));
       }).then(function afterEverythingDone() {
-        console.log('>>>>> FINISHED');
+        console.log('>> InVal FINISHED');
         console.log('>>>>> enabling inputs');
         _enableAllCallBarring();
 
@@ -374,7 +387,7 @@ var CallBarring = (function() {
   }
 
   return {
-    init: cs_initCallBarring,
-    updateSubPanels: cs_updateCallBarringSubpanels
+    init: _initCallBarring,
+    updateSubpanels: _updateCallBarringSubpanels
   };
 })();

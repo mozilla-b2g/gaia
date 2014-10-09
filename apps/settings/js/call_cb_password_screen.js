@@ -1,8 +1,8 @@
-'use strict';
-
-/* exports CallServicesPaswordScreen,
-           PasscodeChange
+/* exported CallServicesPaswordScreen,
+            PasscodeChange
 */
+
+'use strict';
 
 var CallServicesPasswordScreen = (function() {
   const PIN_SIZE = 4;
@@ -45,6 +45,8 @@ var CallServicesPasswordScreen = (function() {
         delete _passcodeDigits[i].dataset.dot;
       }
     }
+
+    btnOK.disabled = _passcodeBuffer.length === PIN_SIZE ? false : true;
   }
 
   function _init() {
@@ -117,9 +119,8 @@ navigator.mozL10n.once(function loadWhenIdle() {
  * Modified to our specific needs (only 'edit' and 'new' passcode situations).
  * We should unify it in one shared file and reuse it for different screens
  * following the same pattern, but for the moment is not possible.
- * Panel VS subscreen
  */
-var PasscodeChange = (function () {
+var PasscodeChange = (function() {
   /**
    * edit    : when the user presses edit passcode button
    * new     : when the user is editing passcode

@@ -3,7 +3,8 @@
 'use strict';
 
 require([
-  'modules/settings_cache'
+  'modules/settings_cache',
+  'call_barring'
 ], function(exports, SettingsCache) {
   /**
    * Singleton object that handles some call settings.
