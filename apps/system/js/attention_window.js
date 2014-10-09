@@ -56,6 +56,7 @@
    * @event AttentionWindow#attentionrendered
    */
   var AttentionWindow = function AttentionWindow(config) {
+    this.isAttentionWindow = true;
     this.reConfig(config);
     this.render();
     if (this._DEBUG) {
