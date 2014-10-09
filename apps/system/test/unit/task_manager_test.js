@@ -551,6 +551,18 @@ suite('system/TaskManager >', function() {
         assert.isTrue(screenNode.classList.contains('cards-view'));
       });
 
+      // Bug 1080362
+      test('cardsview class not present after multiple appclosed', function() {
+        window.dispatchEvent(new CustomEvent('appclosed'));
+        assert.isTrue(screenNode.classList.contains('cards-view'));
+
+        taskManager.hide(true);
+        assert.isFalse(screenNode.classList.contains('cards-view'));
+
+        window.dispatchEvent(new CustomEvent('appclosed'));
+        assert.isFalse(screenNode.classList.contains('cards-view'));
+      });
+
       test('cardsview should be active when active app is null', function() {
         MockAppWindowManager.mActiveApp = null;
         taskManager.show();
