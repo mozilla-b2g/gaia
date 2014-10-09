@@ -1,5 +1,5 @@
 /* global assert, MockNavigatorSettings, Promise, require, setup, suite,
-   teardown, test, LazyLoader*/
+   teardown, test, LazyLoader */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
