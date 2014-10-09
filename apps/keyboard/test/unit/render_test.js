@@ -720,11 +720,16 @@ suite('Renderer', function() {
       dummy: 'dummy'
     };
 
+    setup(function() {
+      IMERender.init(fakeRenderingManager);
+    });
+
     test('Highlight a key with uppercase', function() {
       var keyElem = document.createElement('div');
 
       IMERender.setDomElemTargetObject(keyElem, dummyKey);
-      IMERender.highlightKey(dummyKey, { showUpperCase: true });
+      IMERender.highlightKey(fakeRenderingManager.getTargetObject(keyElem),
+                             { showUpperCase: true });
 
       assert.isTrue(keyElem.classList.contains('highlighted'));
       assert.isFalse(keyElem.classList.contains('lowercase'));
@@ -734,7 +739,8 @@ suite('Renderer', function() {
       var keyElem = document.createElement('div');
 
       IMERender.setDomElemTargetObject(keyElem, dummyKey);
-      IMERender.highlightKey(dummyKey, { showUpperCase: false });
+      IMERender.highlightKey(fakeRenderingManager.getTargetObject(keyElem),
+                             { showUpperCase: false });
 
       assert.isTrue(keyElem.classList.contains('highlighted'));
       assert.isTrue(keyElem.classList.contains('lowercase'));

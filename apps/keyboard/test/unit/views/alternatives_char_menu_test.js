@@ -91,7 +91,7 @@ suite('Views > AlternativesCharMenuView', function() {
 
         IMERender.setDomElemTargetObject(child, childObj);
 
-        childObjs.push(childObj);
+        childObjs.push(fakeLayoutRenderingManager.getTargetObject(child));
       }
 
       rootElement.appendChild(fakeMenu);
@@ -170,7 +170,7 @@ suite('Views > AlternativesCharMenuView', function() {
 
         IMERender.setDomElemTargetObject(child, childObj);
 
-        childObjs.push(childObj);
+        childObjs.push(fakeLayoutRenderingManager.getTargetObject(child));
       }
 
       rootElement.appendChild(fakeMenu);
@@ -253,7 +253,7 @@ suite('Views > AlternativesCharMenuView', function() {
 
         IMERender.setDomElemTargetObject(child, childObj);
 
-        childObjs.push(childObj);
+        childObjs.push(fakeLayoutRenderingManager.getTargetObject(child));
       }
 
       rootElement.appendChild(fakeMenu);
