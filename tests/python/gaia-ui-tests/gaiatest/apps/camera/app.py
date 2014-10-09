@@ -23,7 +23,7 @@ class Camera(Base):
     _switch_button_locator = (By.CSS_SELECTOR, '.test-switch')
     _capture_button_locator = (By.CSS_SELECTOR, '.test-capture')
     _gallery_button_locator = (By.CSS_SELECTOR, '.test-gallery')
-    _thumbnail_button_locator = (By.CSS_SELECTOR, '.test-thumbnail')
+    _thumbnail_button_locator = (By.CSS_SELECTOR, 'img.test-thumbnail')
 
     _cancel_pick_button_locator = (By.CSS_SELECTOR, '.test-cancel-pick')
     _video_timer_locator = (By.CSS_SELECTOR, '.recording-timer')
@@ -89,7 +89,10 @@ class Camera(Base):
         self.wait_for_capture_ready()
 
     def tap_toggle_flash_button(self):
+        initial_flash_mode = self.current_flash_mode
+        self.wait_for_condition(lambda m: m.find_element(*self._toggle_flash_button_locator).is_enabled())
         self.marionette.find_element(*self._toggle_flash_button_locator).tap()
+        self.wait_for_condition(lambda m: self.current_flash_mode != initial_flash_mode)
 
     def wait_for_select_button_enabled(self):
         self.wait_for_condition(lambda m: self.marionette.find_element(*self._select_button_locator).is_enabled())
@@ -164,6 +167,14 @@ class Camera(Base):
     @property
     def is_flash_text_visible(self):
         return self.is_element_present(*self._flash_text_visible_locator)
+
+    @property
+    def current_image_src(self):
+        return self.marionette.find_element(*self._thumbnail_button_locator).get_attribute('src')
+
+    def wait_for_picture_to_change(self, image_src):
+        self.wait_for_condition(lambda m: self.current_image_src != image_src)
+
 
 class ImagePreview(Base):
 
