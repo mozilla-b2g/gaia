@@ -1,4 +1,4 @@
-/* global TaskScheduler, CallServicesPasswordScreen, PasscodeChange */
+/* global TaskScheduler, IntroducePasscodeScreen, PasscodeChangeScreen */
 /* exported CallBarring */
 
 'use strict';
@@ -246,7 +246,7 @@ var CallBarring = (function() {
    * Triggers the passcode change screen
    */
   function _launchPasscodeChange() {
-    PasscodeChange.launch().then(
+    PasscodeChangeScreen.launch().then(
       _changeCallBarringPasscode
     ).then(function success() {
       // password changed correctly
@@ -269,7 +269,7 @@ var CallBarring = (function() {
     var input = evt.target;
 
     // Show password screen
-    CallServicesPasswordScreen.show().then(
+    IntroducePasscodeScreen.show().then(
       // password screen confirmed
       function confirmed(password) {
         var inputID = input.parentNode.parentNode.id;

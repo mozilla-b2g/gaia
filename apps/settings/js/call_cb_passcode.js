@@ -1,10 +1,17 @@
 /* exported CallServicesPaswordScreen,
-            PasscodeChange
+            PasscodeChangeScreen
 */
 
 'use strict';
 
-var CallServicesPasswordScreen = (function() {
+/**
+ * Code blatantly ripped from panels/screen_lock_passcode, both for
+ * IntroducePasscodeScreen and PasscodeChange
+ * Modified to our specific needs (only 'edit' and 'new' passcode situations).
+ * We should unify it in one shared file and reuse it for different screens
+ * following the same pattern, but for the moment is not possible.
+ */
+var IntroducePasscodeScreen = (function() {
   const PIN_SIZE = 4;
 
   var panel,
@@ -108,19 +115,15 @@ navigator.mozL10n.once(function loadWhenIdle() {
     time: 3,
     onidle: function() {
       navigator.removeIdleObserver(idleObserver);
-      CallServicesPasswordScreen.init();
+      IntroducePasscodeScreen.init();
     }
   };
   navigator.addIdleObserver(idleObserver);
 });
 
-/**
- * Code blatantly ripped from panels/screen_lock_passcode.
- * Modified to our specific needs (only 'edit' and 'new' passcode situations).
- * We should unify it in one shared file and reuse it for different screens
- * following the same pattern, but for the moment is not possible.
- */
-var PasscodeChange = (function() {
+
+
+var PasscodeChangeScreen = (function() {
   /**
    * edit    : when the user presses edit passcode button
    * new     : when the user is editing passcode
@@ -306,5 +309,3 @@ var PasscodeChange = (function() {
     launch: _init
   };
 })();
-
-

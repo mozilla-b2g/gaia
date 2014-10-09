@@ -126,7 +126,7 @@ require([
         switch (e.detail.current) {
           case '#call':
             // No need to refresh the call settings items if navigated from
-            // panels not manipulating call settings.
+            // panels not manipulating the displayed settings.
             if (e.detail.previous === '#call-cfSettings' ||
                 e.detail.previous === '#call-cbSettings' ||
                 e.detail.previous === '#call-voiceMailSettings') {
@@ -137,15 +137,19 @@ require([
             cs_refreshCallSettingItems();
             break;
           case '#call-cfSettings':
+            // No need to refresh the call forwarding general settings
+            // if navigated from panels not manipulating them.
+            if (e.detail.previous.startsWith('#call-cf-')) {
+              return;
+            }
             cs_updateCallForwardingSubpanels();
             break;
           case '#call-cbSettings':
-            // No need to refresh the call barring settings items if navigated
-            // from panels not manipulating displayed settings.
+            // No need to refresh the call barring settings items if
+            // navigated from changing the passcode.
             if (e.detail.previous === '#call-cb-passcode') {
               return;
             }
-
             CallBarring.updateSubpanels();
             break;
         }
@@ -153,13 +157,27 @@ require([
 
       // We need to refresh call setting items as they can be changed in dialer.
       document.addEventListener('visibilitychange', function() {
-        if (!document.hidden && Settings.currentPanel === '#call') {
-          cs_updateNetworkTypeLimitedItemsVisibility(
-            _mobileConnection.voice && _mobileConnection.voice.type);
-          cs_refreshCallSettingItems();
+        if (document.hidden) {
+          return;
+        }
+
+        switch (Settings.currentPanel) {
+          case '#call':
+            cs_updateNetworkTypeLimitedItemsVisibility(
+              _mobileConnection.voice && _mobileConnection.voice.type
+            );
+            cs_refreshCallSettingItems();
+            break;
+          case '#call-cfSettings':
+            cs_updateCallForwardingSubpanels();
+            break;
+          case '#call-cbSettings':
+            CallBarring.updateSubpanels();
+            break;
         }
       });
 
+      // Refresh on init
       cs_refreshCallSettingItems();
     }
 
@@ -1058,14 +1076,6 @@ require([
 
         var fdnSettingsBlocked = document.querySelector('#fdnSettingsBlocked');
         fdnSettingsBlocked.hidden = !enabled;
-
-        //TODO change for header, menuItem for callForwarding
-        // var callForwardingOptions = document.querySelectorAll(
-        //   '#li-cfu-desc, #li-cfmb-desc, #li-cfnrep-desc, #li-cfnrea-desc');
-        // for (var i = 0, l = callForwardingOptions.length; i < l; i++) {
-        //   callForwardingOptions[i].hidden = enabled;
-        // }
-        //TODO add callBarring
       };
     }
 
