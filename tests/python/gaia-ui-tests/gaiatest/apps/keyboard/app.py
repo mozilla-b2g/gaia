@@ -249,6 +249,10 @@ class Keyboard(Base):
                 self._switch_to_correct_layout(val)
                 self._tap(val)
 
+                # when we tap on '@' the layout switches to the default keyboard - Bug 996332
+                if val == '@':
+                    self.wait_for_condition(lambda m: self._layout_page == 0)
+
         self.apps.switch_to_displayed_app()
 
     # Switch keyboard language
