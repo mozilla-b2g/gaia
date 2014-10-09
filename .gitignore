@@ -4,6 +4,7 @@
 *.swp
 *.swn
 *.swo
+*.diff
 .svn
 *~
 manifest.appcache
@@ -73,3 +74,4 @@ mozilla-b2g-gaia-node-modules-*
 venv/
 travis_venv/
 
+/tests/python/gaia-ui-tests/gaiatest/testvars.json
