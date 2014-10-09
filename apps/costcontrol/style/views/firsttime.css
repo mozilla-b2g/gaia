@@ -3,6 +3,7 @@
 #firsttime-view, #firsttime-view .view {
   top: 0;
   transform: translate(0, 0);
+  transition: none;
 }
 
 #firsttime-view .view[data-viewport="right"] {
