@@ -18,6 +18,7 @@ var DataUsageTab = (function() {
   var wifiLayer, mobileLayer, warningLayer, limitsLayer;
   var wifiOverview, mobileOverview;
   var wifiToggle, mobileToggle;
+  var appList, noData;
 
   var costcontrol, initialized, model;
 
@@ -45,6 +46,8 @@ var DataUsageTab = (function() {
       mobileToggle = document.getElementById('mobileCheck');
       warningLayer = document.getElementById('warning-layer');
       limitsLayer = document.getElementById('limits-layer');
+      appList = document.getElementById('app-usage-list');
+      noData = document.getElementById('app-usage-no-data');
 
       window.addEventListener('localized', localize);
 
@@ -195,19 +198,24 @@ var DataUsageTab = (function() {
   }
 
   function maybeRequestPerAppUsage() {
-    if (!model || !mobileToggle.checked) {
+    if (!model) {
       return;
     }
 
     if (!model.data.mobile.total) {
-      return;
-    }
+      noData.hidden = false;
+      appList.hidden = true;
 
-    // Bug 1064491: request per-app data usage on the next tick of
-    // the main loop to avoid performance regression in startup
-    setTimeout(function() {
-      requestDataUsage(true).then(updateApps);
-    }, 0);
+    } else {
+      noData.hidden = true;
+      appList.hidden = false;
+
+      // Bug 1064491: request per-app data usage on the next tick of
+      // the main loop to avoid performance regression in startup
+      setTimeout(function() {
+        requestDataUsage(true).then(updateApps);
+      }, 0);
+    }
   }
 
   function updateCharts(result) {
@@ -416,7 +424,6 @@ var DataUsageTab = (function() {
       drawBackgroundLayer(model);
       drawAxisLayer(model);
       drawLimits(model);
-      drawApps(model);
     }
   }
 
@@ -945,26 +952,6 @@ var DataUsageTab = (function() {
 
   var cachedAppItems = {};
   function drawApps(model) {
-    var mobileTotal = model.data.mobile.total;
-    var mobileApps = model.data.mobile.apps;
-    if (!mobileToggle.checked || !mobileApps) {
-      return;
-    }
-
-    var appList = document.getElementById('app-usage-list');
-    appList.innerHTML = '';
-
-    // Filter out apps that have not used any data yet.
-    var manifests = Object.keys(mobileApps).filter(function(key) {
-      return mobileApps[key].total > 0;
-    });
-
-    var noData = document.getElementById('app-usage-no-data');
-    if (manifests.length === 0) {
-      noData.style.display = 'block';
-    } else {
-      noData.style.display = 'none';
-    }
 
     function createAppItem(app) {
       var appElement = document.createElement('li');
@@ -1016,6 +1003,21 @@ var DataUsageTab = (function() {
         Formatting.roundData(total));
     }
 
+    var mobileTotal = model.data.mobile.total;
+    var mobileApps = model.data.mobile.apps;
+    if (!mobileApps) {
+      return;
+    }
+
+    // Filter out apps that have not used any data yet.
+    var manifests = Object.keys(mobileApps).filter(function(key) {
+      return mobileApps[key].total > 0;
+    });
+
+    if (manifests.length === 0) {
+      return;
+    }
+
     // Sort by total data usage, descending
     manifests.sort(function(a, b) {
       return mobileApps[b].total - mobileApps[a].total;
@@ -1042,6 +1044,7 @@ var DataUsageTab = (function() {
       fragment.appendChild(appItem);
     });
 
+    appList.innerHTML = '';
     appList.appendChild(fragment);
   }
 
