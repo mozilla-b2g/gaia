@@ -248,12 +248,12 @@
       }
       this.state.shrinking = true;
       this.state.tilting = true;
-      var afterTilt = (function() {
+      var afterTilt = (() => {
         // After it tilted done, turn it to the screenshot mode.
         var currentWindow = this.apps[this.current.instanceID];
-        currentWindow.setVisible(false, true);
+        currentWindow.broadcast('shrinkingstart');
         this.state.tilting = false;
-      }).bind(this);
+      });
 
       this._setTip();
       this._setState(true);
@@ -296,7 +296,7 @@
       var afterTiltBack = (() => {
         // Turn off the screenshot mode.
         var currentWindow = this.apps[this.current.instanceID];
-        currentWindow.setVisible(true);
+        currentWindow.broadcast('shrinkingstop');
         this._cleanEffects().then(() => {
           this.state.ending = false;
         });

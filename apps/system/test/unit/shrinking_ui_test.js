@@ -323,7 +323,7 @@ suite('system/ShrinkingUI', function() {
     var oldURL = ShrinkingUI.currentAppURL;
     var oldApps = ShrinkingUI.apps;
     var testApp = {
-      setVisible: this.sinon.spy()
+      broadcast: this.sinon.spy()
     };
     ShrinkingUI.apps = {
       'instanceIDofTestApp': testApp
@@ -338,7 +338,7 @@ suite('system/ShrinkingUI', function() {
         assert.isTrue(stubState.called);
         assert.isTrue(stubSetState.calledWith(true));
         assert.isTrue(stubShrinkingTilt.called);
-        assert.isTrue(testApp.setVisible.calledWith(false, true));
+        assert.isTrue(testApp.broadcast.calledWith('shrinkingstart'));
 
         ShrinkingUI.currentAppURL = oldURL;
         ShrinkingUI.apps = oldApps;
@@ -415,7 +415,7 @@ suite('system/ShrinkingUI', function() {
     var oldApps = ShrinkingUI.apps;
     var oldTip = ShrinkingUI.current.tip;
     var testApp = {
-      setVisible: this.sinon.spy()
+      broadcast: this.sinon.spy()
     };
     var fakeTip = {
       remove: this.sinon.spy()
@@ -442,7 +442,7 @@ suite('system/ShrinkingUI', function() {
         cb();
         assert.isTrue(fakeTip.remove.called);
         assert.isNull(this.current.tip);
-        assert.isTrue(testApp.setVisible.calledWith(true));
+        assert.isTrue(testApp.broadcast.calledWith('shrinkingstop'));
 
         stubCleanEffects.restore(); // this one is for gjslinter happy
 
