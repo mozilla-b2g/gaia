@@ -474,11 +474,11 @@
           break;
 
         case 'hidewindowforscreenreader':
-          activeApp.setVisibleForScreenReader(false);
+          activeApp && activeApp.setVisibleForScreenReader(false);
           break;
 
         case 'showwindowforscreenreader':
-          activeApp.setVisibleForScreenReader(true);
+          activeApp && activeApp.setVisibleForScreenReader(true);
           break;
 
         case 'showwindow':
