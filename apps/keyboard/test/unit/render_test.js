@@ -865,5 +865,31 @@ suite('Renderer', function() {
       assert.isTrue(keyElem.classList.contains('lowercase'));
     });
   });
+
+  suite('Unhighlight Keys', function() {
+    var dummyKey = {
+      dummy: 'dummy',
+      keyCode: KeyEvent.DOM_VK_ALT
+    };
+
+    test('Unhighlight a page switching key should touch all DOM structures ' +
+         'of different keyboardClasses', function() {
+      var keyElemPage0 = document.createElement('div');
+      var keyElemPage1 = document.createElement('div');
+
+      IMERender.setCurrentDisplayedKeyboardClass('cls0');
+      IMERender.setDomElemTargetObject(keyElemPage0, dummyKey);
+      IMERender.highlightKey(dummyKey);
+
+      IMERender.setCurrentDisplayedKeyboardClass('cls1');
+      IMERender.setDomElemTargetObject(keyElemPage1, dummyKey);
+      IMERender.highlightKey(dummyKey);
+
+      IMERender.unHighlightKey(dummyKey);
+
+      assert.isFalse(keyElemPage0.classList.contains('highlighted'));
+      assert.isFalse(keyElemPage1.classList.contains('highlighted'));
+    });
+  });
 });
 
