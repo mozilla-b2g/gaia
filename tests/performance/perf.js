@@ -36,14 +36,6 @@ if (appManifest == null) {
   handleExcludedApp();
 }
 
-if (appManifest.role) {
-  if (config.verbose) {
-    console.error('Found role "%s". Skipping %s', appManifest.role, appPath);
-  }
-
-  handleExcludedApp();
-}
-
 if (config.verbose) {
   console.error('testing "%s"', appPath);
 }

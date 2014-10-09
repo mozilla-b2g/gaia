@@ -7,7 +7,8 @@ var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 var perfUtils = require('./perf-utils');
 var appPath = config.appPath;
 
-if (perfUtils.isWhitelisted(config.whitelists.mozLaunch, appPath)) {
+if (perfUtils.isWhitelisted(config.whitelists.mozLaunch, appPath) ||
+    perfUtils.isBlacklisted(config.blacklists.legacyLaunch, appPath)) {
   return;
 }
 

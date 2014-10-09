@@ -215,6 +215,8 @@ window.addEventListener('load', function startup() {
 
   window.core = BaseModule.instantiate('Core');
   window.core && window.core.start();
+
+  window.mozPerformance.timing.mozSystemLoadEnd = Date.now();
 });
 
 window.usbStorage = new UsbStorage();

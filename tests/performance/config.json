@@ -39,15 +39,39 @@
   },
   "blacklists": {
     "global": [
+      "bluetooth",
+      "bookmark",
+      "callscreen",
+      "collection",
+      "communications",
       "communications/facebook",
       "communications/gmail",
       "communications/import",
       "communications/live",
-      "communications",
+      "download",
+      "emergency-call",
       "email/shared",
-      "template",
+      "findmydevice",
+      "fl",
+      "ftu",
+      "homescreen",
+      "keyboard",
+      "network-alerts",
+      "operatorvariant",
+      "pdfjs",
+      "ringtones",
+      "search",
+      "sharedtest",
+      "system/fxa",
       "system/test/marionette/fullscreen-app",
-      "system/camera"
+      "system/camera",
+      "template",
+      "verticalhome",
+      "wallpaper",
+      "wappush"
+    ],
+    "legacyLaunch": [
+      "system"
     ]
   }
 }

@@ -72,13 +72,22 @@ esac
 # All echo calls help create a JSON array
 echo '[' >&3
 SHARED_PERF=`find tests/performance -name "*_test.js" -type f`
+OLD_RESTART_B2G="$RESTART_B2G"
 for app in $APPS; do
   if [ -z "$FIRST_LOOP_ITERATION" ]; then
     FIRST_LOOP_ITERATION=done
   else
     echo ',' >&3
   fi
-  FILES_PERF=`test -d apps/$app/test/performance && find apps/$app/test/performance -name "*_test.js" -type f`
+  if [[ "$app" == "system" ]] && [[ "$TEST_BOOT" -eq 2 ]] ; then
+    # The system boot test manually manages the reboot/restart lifecycle
+    # Using the TEST_BOOT=2 flag forces an opt-in to manually run this test
+    FILES_PERF=`test -d apps/$app/test/performance && find apps/$app/test/performance -name "*_test.js" -type f`
+    export RESTART_B2G=0
+  else
+    FILES_PERF=`test -d apps/$app/test/performance && find apps/$app/test/performance -name "*_test.js" \( ! -name "system_startup_test.js" \) -type f`
+    export RESTART_B2G=$OLD_RESTART_B2G
+  fi
   # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
   # xpcshell in available for email fake servers.
   export CURRENT_APP="$app"
