@@ -4,7 +4,9 @@
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
-         PerformanceTestingHelper, StickyHeader, Navigation, Dialog */
+         PerformanceTestingHelper, StickyHeader, Navigation, Dialog,
+         InterInstanceEventDispatcher
+*/
 /*exported ThreadListUI */
 (function(exports) {
 'use strict';
@@ -89,6 +91,11 @@ var ThreadListUI = {
     MessageManager.on('message-sending', this.onMessageSending.bind(this));
     MessageManager.on('message-received', this.onMessageReceived.bind(this));
     MessageManager.on('threads-deleted', this.onThreadsDeleted.bind(this));
+
+    InterInstanceEventDispatcher.on(
+      'drafts-changed',
+      this.renderDrafts.bind(this, true /* force update */)
+    );
 
     privateMembers.set(this, {
       // Very approximate number of letters that can fit into title for the
@@ -502,7 +509,7 @@ var ThreadListUI = {
     this.mainWrapper.classList.remove('edit');
   },
 
-  renderDrafts: function thlui_renderDrafts() {
+  renderDrafts: function thlui_renderDrafts(force) {
     // Request and render all threads with drafts
     // or thread-less drafts.
     Drafts.request(function() {
@@ -529,7 +536,7 @@ var ThreadListUI = {
       }, this);
 
       this.sticky.refresh();
-    }.bind(this));
+    }.bind(this), force);
   },
 
   prepareRendering: function thlui_prepareRendering() {

@@ -1,14 +1,22 @@
-/*global Drafts, Draft, asyncStorage, MocksHelper */
+/*global asyncStorage,
+         Drafts,
+         Draft,
+         InterInstanceEventDispatcher,
+         MocksHelper
+*/
+
 'use strict';
 
 require('/js/drafts.js');
 require('/js/utils.js');
 
 require('/shared/test/unit/mocks/mock_async_storage.js');
+require('/test/unit/mock_inter_instance_event_dispatcher.js');
 
 
 var MocksHelperForDraftsTest = new MocksHelper([
-  'asyncStorage'
+  'asyncStorage',
+  'InterInstanceEventDispatcher'
 ]).init();
 
 suite('Drafts', function() {
@@ -452,6 +460,7 @@ suite('Drafts', function() {
     setup(function() {
       Drafts.clear();
       this.sinon.spy(Drafts, 'store');
+      this.sinon.useFakeTimers();
     });
 
     test('Store fresh drafts', function() {
@@ -535,6 +544,63 @@ suite('Drafts', function() {
       Drafts.request(function() {
         assert.equal(Drafts.size, 0);
         done();
+      });
+    });
+
+    test('signals to InterInstanceEventDispatcher when drafts are stored',
+    function() {
+      this.sinon.spy(InterInstanceEventDispatcher, 'emit');
+      this.sinon.stub(asyncStorage, 'setItem');
+
+      Drafts.store();
+      sinon.assert.notCalled(
+        InterInstanceEventDispatcher.emit,
+        'Should not be called until drafts are really saved'
+      );
+
+      asyncStorage.setItem.yield();
+
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit, 'drafts-changed'
+      );
+    });
+
+    suite('drafts index cache >', function() {
+      var requestCallbackStub;
+
+      setup(function() {
+        requestCallbackStub = sinon.stub();
+
+        this.sinon.stub(asyncStorage, 'getItem').
+          withArgs('draft index').
+          yields(null);
+      });
+
+      test('is properly populated', function() {
+        Drafts.request(requestCallbackStub);
+
+        sinon.assert.calledOnce(requestCallbackStub);
+        sinon.assert.calledOnce(asyncStorage.getItem);
+
+        Drafts.request(requestCallbackStub);
+        this.sinon.clock.tick();
+
+        sinon.assert.calledTwice(requestCallbackStub);
+        sinon.assert.calledOnce(asyncStorage.getItem);
+      });
+
+      test('is properly refreshed with force parameter', function() {
+        Drafts.request(requestCallbackStub);
+
+        sinon.assert.calledOnce(requestCallbackStub);
+        sinon.assert.calledOnce(asyncStorage.getItem);
+
+        // "Force" parameter should re-request data from asyncStorage even if
+        // it's already cached
+        Drafts.request(requestCallbackStub, true);
+
+        sinon.assert.calledTwice(requestCallbackStub);
+        sinon.assert.calledTwice(asyncStorage.getItem);
       });
     });
   });
