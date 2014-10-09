@@ -24,7 +24,9 @@ ContactsDatastore.prototype = {
     if (!this.datastore) {
       this._datastoreLoading = false;
       this._datastoreLoaded = false;
-      reject('DatastoreNotFound');
+      reject({
+        name: 'DatastoreNotFound'
+      });
     }
     else {
       this._datastoreLoading = false;
