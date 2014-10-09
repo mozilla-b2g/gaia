@@ -222,5 +222,17 @@ System.prototype = {
     this.client.executeScript(function() {
       window.wrappedJSObject.developerHUD.stop();
     });
+  },
+
+  // It looks for an activity menu, and returns the first
+  // button element which includes with str
+  getActivityOptionMatching: function(str) {
+    var activityMenuSelector = '#screen > form.visible button.icon';
+    var options = this.client.findElements(activityMenuSelector);
+    for (var i = 0; i < options.length; i++) {
+      if (options[i].getAttribute('style').indexOf(str) > 1) {
+        return options[i];
+      }
+    }
   }
 };
