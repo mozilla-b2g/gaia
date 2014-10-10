@@ -96,6 +96,19 @@
   display: none;
 }
 
+#screen.software-button-enabled #updates-viaDataConnection-dialog,
+#screen.software-button-enabled #updates-download-dialog {
+  bottom: var(--software-home-button-height);
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #updates-viaDataConnection-dialog,
+  #screen.software-button-enabled #updates-download-dialog {
+    bottom: 0;
+    right: var(--software-home-button-height);
+  }
+}
+
 #updates-viaDataConnection-dialog.visible,
 #updates-download-dialog.visible {
   display: inline-block;

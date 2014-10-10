@@ -75,12 +75,25 @@
 .quick-settings-airplane-mode {
   opacity: 0.5;
 }
+
 #quick-setting-data-enabled-dialog {
   /* Increasing padding size form 1.5 to 3.5rem for confirm dialogs with statusbar active */
   padding-top: 3.5rem;
   display: none;
 }
+
 #quick-setting-data-enabled-dialog.visible {
   display: inline-block;
   pointer-events: auto;
+}
+
+#screen.software-button-enabled #quick-setting-data-enabled-dialog {
+  bottom: var(--software-home-button-height);
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #quick-setting-data-enabled-dialog {
+    bottom: 0;
+    right: var(--software-home-button-height);
+  }
 }
