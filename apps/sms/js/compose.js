@@ -248,13 +248,18 @@ var Compose = (function() {
       if (item.blob.size < limit) {
         imageSized();
       } else {
-        Utils.getResizedImgBlob(item.blob, limit, function(resizedBlob) {
+        Utils.getResizedImgBlob(item.blob, limit).then(function(resizedBlob) {
           // trigger recalc when resized
           state.size = null;
 
-          item.blob = resizedBlob;
-          var newNode = item.render();
-          attachments.set(newNode, item);
+          var newItem = item.clone();
+          newItem.blob = resizedBlob;
+
+          console.log('>>> old is', item.blob.size);
+          console.log('>>> new is', resizedBlob.size);
+
+          var newNode = newItem.render();
+          attachments.set(newNode, newItem);
           if (dom.message.contains(node)) {
             dom.message.insertBefore(newNode, node);
             dom.message.removeChild(node);
