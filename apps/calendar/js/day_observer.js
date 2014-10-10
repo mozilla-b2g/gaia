@@ -1,5 +1,4 @@
-/*global EventEmitter2*/
-(function(exports){
+define(function(require, exports) {
 'use strict';
 
 // Listen for changes on all busytimes inside a given day
@@ -21,22 +20,16 @@
 // instead of knowing how to handle months/weeks. This should increase the
 // flexibility and simplify the development process A LOT.
 
-/**
- * Constants
- */
+
+var Calc = require('calc');
+var EventEmitter2 = require('ext/eventemitter2');
+var debounce = require('utils/mout').debounce;
+
 exports.DISPATCH_DELAY = 50;
 
-/**
- * Module dependencies
- */
-var Calc = Calendar.Calc;
-var debounce = Calendar.Utils.mout.debounce;
 // injected later to avoid circular dependencies
 exports.timeController = null;
 
-/**
- * Module state
- */
 var cachedRecords = {};
 var debouncedEmit = {};
 // emitter is exposed to make testing/mocking easier
@@ -111,4 +104,4 @@ function getBusytimes(date) {
   return exports.timeController.queryCache(timespan);
 }
 
-}(Calendar.dayObserver = {}));
+});

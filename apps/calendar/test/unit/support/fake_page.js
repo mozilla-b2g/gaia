@@ -1,23 +1,23 @@
-Calendar.ns('Test').FakePage = (function() {
-  'use strict';
+define(function(require, exports, module) {
+'use strict';
 
-  var page = function() {
-    page.routes.push(Array.prototype.slice.call(arguments));
-  };
+function page() {
+  page.routes.push(Array.prototype.slice.call(arguments));
+}
+module.exports = page;
 
-  page.routes = [];
+page.routes = [];
 
-  page.show = function(item) {
-    this.shown = item;
-  };
+page.show = function(item) {
+  this.shown = item;
+};
 
-  page.start = function() {
-    this.started = true;
-  };
+page.start = function() {
+  this.started = true;
+};
 
-  page.stop = function() {
-    this.started = false;
-  };
+page.stop = function() {
+  this.started = false;
+};
 
-  return page;
-}());
+});

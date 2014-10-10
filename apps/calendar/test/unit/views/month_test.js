@@ -1,18 +1,14 @@
+define(function(require) {
+'use strict';
+
+var Calc = require('calc');
+var Month = require('views/month');
+var MonthChild = require('views/month_child');
+var TimeParent = require('views/time_parent');
+
 requireCommon('test/synthetic_gestures.js');
-require('/shared/js/gesture_detector.js');
-requireLib('timespan.js');
 
-/*
-requireLib('utils/ordered_map.js');
-requireLib('templates/month.js');
-requireLib('views/time_parent.js');
-requireLib('views/month_child.js');
-requireLib('views/month.js');
-*/
-
-suiteGroup('Views.Month', function() {
-  'use strict';
-
+suite('Views.Month', function() {
   var subject,
       app,
       controller,
@@ -47,14 +43,11 @@ suiteGroup('Views.Month', function() {
 
     busytimes = app.store('Busytime');
 
-    subject = new Calendar.Views.Month({
-      app: app
-    });
-
+    subject = new Month({ app: app });
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.Views.TimeParent);
+    assert.instanceOf(subject, TimeParent);
     assert.equal(subject.controller, controller);
     assert.equal(subject.element, document.querySelector('#month-view'));
   });
@@ -69,7 +62,7 @@ suiteGroup('Views.Month', function() {
         '[data-date]'
       );
 
-      var date = Calendar.Calc.dateFromId(
+      var date = Calc.dateFromId(
         el.dataset.date
       );
 
@@ -162,7 +155,7 @@ suiteGroup('Views.Month', function() {
     var time = new Date(2012, 1, 1);
     var child = subject._createChild(time);
 
-    assert.instanceOf(child, Calendar.Views.MonthChild);
+    assert.instanceOf(child, MonthChild);
     assert.deepEqual(child.date, time);
   });
 
@@ -211,7 +204,7 @@ suiteGroup('Views.Month', function() {
       dayEl = dayEl[0];
 
       assert.ok(dayEl.id, 'should have id');
-      assert.include(dayEl.id, Calendar.Calc.getDayId(
+      assert.include(dayEl.id, Calc.getDayId(
         select
       ));
     });
@@ -236,5 +229,6 @@ suiteGroup('Views.Month', function() {
     controller.move(time);
     subject.render();
   });
+});
 
 });

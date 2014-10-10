@@ -1,141 +1,64 @@
 <!DOCTYPE HTML>
 <html class="ltr">
 <head>
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
-  <meta charset="utf-8">
-  <meta name="theme-color" content="#ff7d14">
-  <title>Calendar</title>
-  <link rel="stylesheet" type="text/css" href="/shared/style/toolbars.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/icons.css">
-  <link rel="stylesheet" type="text/css" href="/style/calendar.css">
-  <link rel="stylesheet" type="text/css" href="/style/ui.css">
-  <link rel="stylesheet" type="text/css" href="/style/day_views.css">
-  <link rel="stylesheet" type="text/css" href="/style/multi_day.css">
-  <link rel="stylesheet" type="text/css" href="/style/month.css">
-  <link rel="stylesheet" type="text/css" href="/style/building_blocks.css">
-  <link rel="stylesheet" type="text/css" href="/style/first_time_use.css">
 
-  <!-- localization -->
-  <link rel="manifest" href="manifest.webapp">
-  <link rel="localization" href="locales/calendar.{locale}.properties">
-  <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+<meta charset="utf-8">
+<meta name="theme-color" content="#ff7d14">
+<title>Calendar</title>
 
-  <!--- shared scripts -->
-  <script defer src="/shared/js/l10n.js"></script>
-  <script defer src="/shared/js/accessibility_helper.js"></script>
-  <script defer src="/shared/js/gesture_detector.js"></script>
-  <script defer src="/shared/js/lazy_loader.js"></script>
-  <script defer src="/shared/js/l10n_date.js"></script>
-  <script defer src="/shared/js/date_time_helper.js"></script>
-  <script defer src="/shared/js/notification_helper.js"></script>
-  <script defer src='/shared/js/performance_testing_helper.js'></script>
-  <!-- Lazily Loaded
-  <script defer src="/shared/js/input_parser.js"></script>
-  -->
+<!-- stylesheets -->
+<link rel="stylesheet" type="text/css" href="/shared/style/toolbars.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
+<link rel="stylesheet" type="text/css" href="/shared/style/icons.css">
+<link rel="stylesheet" type="text/css" href="/style/calendar.css">
+<link rel="stylesheet" type="text/css" href="/style/ui.css">
+<link rel="stylesheet" type="text/css" href="/style/day_views.css">
+<link rel="stylesheet" type="text/css" href="/style/multi_day.css">
+<link rel="stylesheet" type="text/css" href="/style/month.css">
+<link rel="stylesheet" type="text/css" href="/style/building_blocks.css">
+<link rel="stylesheet" type="text/css" href="/style/first_time_use.css">
 
-  <!-- Web Components -->
-  <script defer src="shared/js/component_utils.js"></script>
-  <script defer src="shared/elements/gaia_subheader/script.js"></script>
-  <script defer src="shared/elements/config.js"></script>
-  <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
-  <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
-  <!-- Icons are lazyloaded by gaia-header -->
-  <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" /> -->
+<!-- localization -->
+<link rel="manifest" href="manifest.webapp">
+<link rel="localization" href="locales/calendar.{locale}.properties">
+<link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+<script defer src="/shared/js/date_time_helper.js"></script>
+<script defer src="/shared/js/l10n.js"></script>
+<script defer src="/shared/js/l10n_date.js"></script>
 
-  <script defer src="/js/ext/page.js"></script>
-  <script defer src="/js/ext/uuid.js"></script>
+<!-- The following scripts are lazy loaded but left here to ensure
+     they get copied over from shared during the build -->
+<!-- <script defer src="/shared/js/accessibility_helper.js"></script> -->
+<!-- <script defer src="/shared/js/gesture_detector.js"></script> -->
+<!-- <script defer src="/shared/js/input_parser.js"></script> -->
+<!-- <script defer src="/shared/js/lazy_loader.js"></script> -->
+<!-- <script defer src="/shared/js/notification_helper.js"></script> -->
+<!-- <script defer src="/shared/js/performance_testing_helper.js"></script> -->
 
-  <!-- lib root must load before anything else -->
-  <script defer src="/js/calendar.js"></script>
-  <script defer src="/js/log.js"></script>
-  <script defer src="/js/ns.js"></script>
-  <script defer src="/js/binsearch.js"></script>
-  <script defer src="/js/compare.js"></script>
-  <script defer src="/js/date_l10n.js"></script>
-  <script defer src="/js/extend.js"></script>
-  <script defer src="/js/next_tick.js"></script>
-  <script defer src="/js/object.js"></script>
-  <script defer src="/js/pending_manager.js"></script>
-  <script defer src="/js/probably_parse_int.js"></script>
-  <script defer src="/js/retry.js"></script>
+<!-- Web Components -->
+<script defer src="shared/js/component_utils.js"></script>
+<script defer src="shared/elements/gaia_subheader/script.js"></script>
+<script defer src="shared/elements/config.js"></script>
+<link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
+<script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+<link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/style.css" />
+<!-- Icons are lazy loaded by gaia-header -->
+<!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" /> -->
 
-  <!--- utils -->
-  <script defer src="/js/ext/lodash.js"></script>
-  <script defer src="/js/promise.js"></script>
-  <script defer src="/js/presets.js"></script>
-  <script defer src="/js/error.js"></script>
-  <script defer src="/js/calc.js"></script>
-  <script defer src="/js/template.js"></script>
-  <script defer src="/js/responder.js"></script>
-  <script defer src="/js/view.js"></script>
-  <script defer src="/js/router.js"></script>
-  <script defer src="/js/db.js"></script>
-  <script defer src="/js/timespan.js"></script>
-  <script defer src="/js/time_observer.js"></script>
-  <script defer src="/js/interval_tree.js"></script>
+<script defer src="/js/ext/alameda.js" data-main="/js/main.js"></script>
 
-  <!--- providers -->
-  <script defer src="/js/provider/abstract.js"></script>
-  <script defer src="/js/provider/local.js"></script>
-  <script defer src="/js/provider/caldav.js"></script>
-  <script defer src="/js/provider/caldav_pull_events.js"></script>
+<link rel="import" href="/elements/errors.html">
+<link rel="import" href="/elements/lazy_styles.html">
+<link rel="import" href="/elements/advanced_settings.html">
+<link rel="import" href="/elements/create_account.html">
+<link rel="import" href="/elements/modify_account.html">
+<link rel="import" href="/elements/modify_event.html">
+<link rel="import" href="/elements/oauth.html">
+<link rel="import" href="/elements/settings.html">
+<link rel="import" href="/elements/show_event.html">
+<link rel="import" href="/elements/multi_day.html">
 
-  <!-- It's possible to lazy load these, but we include them here to reduce flickering -->
-  <script defer src="/js/views/calendar_colors.js"></script>
-  <script defer src="/js/views/time_header.js"></script>
-  <script defer src="/js/templates/date_span.js"></script>
-  <script defer src="/js/templates/month.js"></script>
-  <script defer src="/js/templates/day.js"></script>
-  <script defer src="/js/views/month_child.js"></script>
-  <script defer src="/js/utils/ordered_map.js"></script>
-  <script defer src="/js/utils/overlap.js"></script>
-  <script defer src="/js/views/time_parent.js"></script>
-  <script defer src="/js/views/day_based.js"></script>
-  <script defer src="/js/views/month.js"></script>
-  <script defer src="/js/views/day_child.js"></script>
-  <script defer src="/js/templates/months_day.js"></script>
-  <script defer src="/js/views/months_day.js"></script>
-
-  <!--- store -->
-  <script defer src="/js/store/abstract.js"></script>
-  <script defer src="/js/store/busytime.js"></script>
-  <script defer src="/js/store/account.js"></script>
-  <script defer src="/js/store/calendar.js"></script>
-  <script defer src="/js/store/event.js"></script>
-  <script defer src="/js/store/setting.js"></script>
-  <script defer src="/js/store/alarm.js"></script>
-  <script defer src="/js/store/ical_component.js"></script>
-  <script defer src="/js/event_mutations.js"></script>
-
-  <!--- models -->
-  <script defer src="/js/models/account.js"></script>
-  <script defer src="/js/models/calendar.js"></script>
-  <script defer src="/js/models/event.js"></script>
-
-  <!-- workers / main / controller -->
-  <script defer src="/js/worker/manager.js"></script>
-  <script defer src="/js/controllers/service.js"></script>
-  <script defer src="/js/controllers/error.js"></script>
-  <script defer src="/js/controllers/time.js"></script>
-  <script defer src="/js/controllers/sync.js"></script>
-  <script defer src="/js/controllers/alarm.js"></script>
-  <script defer src="/js/performance.js"></script>
-  <script defer src="/js/ext/eventemitter2.js"></script>
-  <script defer src="/js/utils/mout.js"></script>
-  <script defer src="/js/day_observer.js"></script>
-  <script defer src="/js/app.js"></script>
-
-  <link rel="import" href="/elements/errors.html">
-  <link rel="import" href="/elements/lazy_styles.html">
-  <link rel="import" href="/elements/advanced_settings.html">
-  <link rel="import" href="/elements/create_account.html">
-  <link rel="import" href="/elements/modify_account.html">
-  <link rel="import" href="/elements/modify_event.html">
-  <link rel="import" href="/elements/oauth.html">
-  <link rel="import" href="/elements/settings.html">
-  <link rel="import" href="/elements/show_event.html">
-  <link rel="import" href="/elements/multi_day.html">
 </head>
 
 <body role="application" class="loading theme-productivity">
@@ -146,8 +69,7 @@
 
 <section id="time-views" role="region">
   <gaia-header id="time-header" action="menu">
-    <h1 id="current-month-year">
-    </h1>
+    <h1 id="current-month-year"></h1>
     <a href="/event/add/" data-icon="add">
       <span data-l10n-id="new-event">Add Event</span>
     </a>
@@ -165,8 +87,7 @@
     <div class="hint-swipe-image"></div>
   </div>
 
-  <section id="month-view" role="tabpanel" aria-labelledby="month">
-  </section>
+  <section id="month-view" role="tabpanel" aria-labelledby="month"></section>
 
   <!---
   When a day is selected you have
@@ -202,4 +123,3 @@
 
 </body>
 </html>
-
