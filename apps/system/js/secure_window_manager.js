@@ -86,7 +86,7 @@
           break;
         case 'secure-closeapps':
           if (0 !== Object.keys(this.states.runningApps).length) {
-            this.killApps();
+            this.softKillApps();
           }
           break;
         case 'secure-appcreated':
@@ -169,6 +169,21 @@
     function swm_killApps() {
       for (var origin in this.states.runningApps) {
         this.states.runningApps[origin].kill();
+      }
+    };
+
+  /**
+   * Soft kill all running secure apps. This allows the secure apps
+   * enough time to gracefully shutdown before being killed.
+   *
+   * @private
+   * @this {SecureWindowManager}
+   * @memberof SecureWindowManager
+   */
+  SecureWindowManager.prototype.softKillApps =
+    function swm_softKillApps() {
+      for (var origin in this.states.runningApps) {
+        this.states.runningApps[origin].softKill();
       }
     };
 

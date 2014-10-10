@@ -141,7 +141,10 @@
     function(url, manifestURL) {
       var config = new self.BrowserConfigHelper(url, manifestURL);
       for (var instanceID in this.states.apps) {
-        if (config.origin === this.states.apps[instanceID].origin) {
+        var secureWindow = this.states.apps[instanceID];
+        if (config.manifestURL === secureWindow.manifestURL) {
+          secureWindow.cancelSoftKill();
+          secureWindow.open();
           return;  // Already created.
         }
       }
