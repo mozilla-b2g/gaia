@@ -598,24 +598,27 @@ suite('system/AppWindow', function() {
   });
 
   suite('ScreenshotOverlay State Control', function() {
-    test('when sheets-gesture-begin and end are received', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
+    var app1;
+    setup(function() {
+      app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
+    });
 
-      app1.element.dispatchEvent(new CustomEvent('_sheetsgesturebegin'));
+    test('show overlay when revealed by an edge swipe', function() {
+      app1.screenshotOverlay.classList.remove('visible');
+      app1.element.dispatchEvent(new CustomEvent('_sheetdisplayed'));
       assert.isTrue(app1.screenshotOverlay.classList.contains('visible'),
-                    'Overlay should be visible after _sheets-gesture-begin');
+                    'Overlay should be visible after sheetdisplayed');
+    });
 
+    test('hide overlay when a sheet gesture ends', function() {
+      app1.screenshotOverlay.classList.add('visible');
       app1.element.dispatchEvent(new CustomEvent('_sheetsgestureend'));
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
     });
 
     test('showScreenshotOverlay', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      // Inject mozBrowser API to app iframe
-      injectFakeMozBrowserAPI(app1.browser.element);
-
       var stubRequestScreenshotURL =
         this.sinon.stub(app1, 'requestScreenshotURL');
       app1._showScreenshotOverlay();
@@ -624,10 +627,6 @@ suite('system/AppWindow', function() {
     });
 
     test('hideScreenshotOverlay', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      // Inject mozBrowser API to app iframe
-      injectFakeMozBrowserAPI(app1.browser.element);
-
       app1.screenshotOverlay.classList.add('visible');
       app1.identificationOverlay.classList.add('visible');
       app1._hideScreenshotOverlay();
@@ -640,10 +639,6 @@ suite('system/AppWindow', function() {
 
     test('hideScreenshotOverlay noop when the screenshot is not displayed',
     function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      // Inject mozBrowser API to app iframe
-      injectFakeMozBrowserAPI(app1.browser.element);
-
       app1._screenshotOverlayState = 'none';
       app1.screenshotOverlay.classList.remove('visible');
       app1.identificationOverlay.classList.add('visible');
@@ -654,7 +649,6 @@ suite('system/AppWindow', function() {
     });
 
     test('Request screenshotURL', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
       assert.isNull(app1.requestScreenshotURL());
       var stubCreateObjectURL = this.sinon.stub(URL, 'createObjectURL');
       var stubRevokeObjectURL = this.sinon.stub(URL, 'revokeObjectURL');
@@ -670,9 +664,6 @@ suite('system/AppWindow', function() {
     });
 
     test('Show identification overlay when showing screenshot', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      // Inject mozBrowser API to app iframe
-      injectFakeMozBrowserAPI(app1.browser.element);
       app1._showScreenshotOverlay();
       assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
     });
