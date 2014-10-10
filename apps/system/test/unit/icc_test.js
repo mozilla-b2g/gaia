@@ -174,6 +174,22 @@ suite('STK (icc) >', function() {
     });
   });
 
+  test('hide views when home button pressed and visible', function() {
+    this.sinon.stub(icc, 'hideViews');
+    icc.icc_view.classList.add('visible');
+    var event = new CustomEvent('home');
+    icc.handleEvent(event);
+    assert.isTrue(icc.hideViews.called);
+    icc.icc_view.classList.remove('visible');
+  });
+
+  test('does not hide when home and not visible', function() {
+    this.sinon.stub(icc, 'hideViews');
+    var event = new CustomEvent('home');
+    icc.handleEvent(event);
+    assert.isFalse(icc.hideViews.called);
+  });
+
   test('responseSTKCommand', function(done) {
     window.icc.getIcc('1010011010').sendStkResponse = function(msg, res) {
       assert.equal(res, 'dummy');
