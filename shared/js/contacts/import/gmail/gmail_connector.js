@@ -1,4 +1,4 @@
-/* globals Rest */
+/* globals Rest, ContactsDatastore, utils */
 
 /* exported GmailConnector */
 
@@ -31,6 +31,79 @@ var GmailConnector = (function GmailConnector() {
 
   // In some cases we will need the access token, cache a copy
   var accessToken = null;
+
+  // The datastore of the provider
+  var gmailContacts;
+
+  var createGmailImporter = function createGmailImporter(clist, access_token) {
+    /* jshint validthis:true */
+    var out = new window.ContactsImporter(clist, access_token, this);
+
+    out.persist = persistGmailData;
+
+    return out;
+  };
+
+  function persistGmailData(data, successCb, errorCb, options) {
+    saveMozContact(data).then(function() {
+      return gmailContactsStore();
+    }).then(function(store) {
+        return store.put(data, data.uid);
+    }).then(successCb).catch (errorCb);
+  }
+
+  var createGmailCleaner = function createGmailCleaner(contactsList, mode) {
+    var cleaner = new window.ContactsCleaner(contactsList);
+
+    cleaner.performClean = removeGmailData;
+
+    return cleaner;
+  };
+
+  function removeGmailData(contact, number, cbs) {
+    removeMozContact(contact).then(function() {
+      return gmailContactsStore();
+    }).then(function(store) {
+        return store.remove(getContactUid(contact));
+    }).then(cbs.success.bind(null, {
+          target: {
+          number: number
+    }})).catch (cbs.error);
+  }
+
+  function saveMozContact(data) {
+    return new Promise(function(resolve, reject) {
+      var req = navigator.mozContacts.save(
+                                      utils.misc.toMozContact(data));
+
+      req.onsuccess = resolve;
+      req.onerror = function() {
+        reject(req.error);
+      };
+    });
+  }
+
+  function removeMozContact(contact) {
+    return new Promise(function(resolve, reject) {
+      var req = navigator.mozContacts.remove(
+                                      utils.misc.toMozContact(contact));
+
+      req.onsuccess = resolve;
+      req.onerror = function() {
+        reject(req.error);
+      };
+    });
+  }
+
+  function gmailContactsStore() {
+    return new Promise(function(resolve, reject) {
+      if (!gmailContacts) {
+        gmailContacts = new ContactsDatastore('gmail');
+      }
+
+      gmailContacts.getStore().then(resolve, reject);
+    });
+  }
 
   // We have a xml response from Google, all the entries in an array,
   // no matter if they are xml entries.
@@ -149,15 +222,18 @@ var GmailConnector = (function GmailConnector() {
   };
 
   var getImporter = function getImporter(contactsList, access_token) {
-    return new window.ContactsImporter(contactsList, access_token, this);
+    return createGmailImporter.bind(this)(contactsList, access_token);
   };
 
   var cleanContacts = function cleanContacts(contactsList, mode, cb) {
-    var cleaner = new window.ContactsCleaner(contactsList);
+    var cleaner = createGmailCleaner(contactsList, mode);
+
     window.setTimeout(cleaner.start, 0);
     if (cb) {
       cb(cleaner);
     }
+
+    return cleaner;
   };
 
   var getValueForNode = function getValueForNode(doc, name, def) {

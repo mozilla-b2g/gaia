@@ -1,0 +1,19 @@
+{
+  "name": "Google Contacts Provider",
+  "type": "certified",
+  "role": "system",
+  "launch_path": "/index.html",
+
+  "datastores-owned": {
+    "contacts": {
+      "access": "readwrite",
+      "description": "Gmail Contacts"
+    }
+  },
+
+  "permissions": {
+    "systemXHR": {
+      "description": "This permission is require to contact Google servers"
+    }
+  }
+}
