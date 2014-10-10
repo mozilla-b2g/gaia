@@ -86,6 +86,13 @@
         attachmentContainer.src = 'about:blank';
 
         return deferred.promise;
+      },
+
+      /**
+       * Returns the inner DOM node.
+       */
+      getContentNode: function(attachmentContainer) {
+        return attachmentContainer.contentDocument.documentElement;
       }
     },
 
@@ -98,6 +105,10 @@
         attachmentContainer.innerHTML = baseMarkup;
 
         return Promise.resolve(attachmentContainer);
+      },
+
+      getContentNode: function(attachmentContainer) {
+        return attachmentContainer;
       }
     }
   };
@@ -187,6 +198,21 @@
       }.bind(this));
   };
 
+  AttachmentRenderer.prototype.updateFileSize = function() {
+    var attachmentContainer = this.getAttachmentContainer();
+    var contentNode = this._renderer.getContentNode(attachmentContainer);
+    var sizeIndicator = contentNode.querySelector('.js-size-indicator');
+    if (!sizeIndicator) {
+      throw new Error('updateFileSize should be called after a render().');
+    }
+
+    var sizeL10n = getSizeForL10n(this._attachment.size);
+    navigator.mozL10n.setAttributes(
+      sizeIndicator, sizeL10n.l10nId, sizeL10n.l10nArgs
+    );
+    navigator.mozL10n.translateFragment(sizeIndicator);
+  };
+
   /**
    * Extracts thumbnail for the image.
    * TODO: As we started to use mozSampleSize for thumbnail generation we need
@@ -230,7 +256,7 @@
    */
   AttachmentRenderer.prototype._getBaseMarkup = function(templateId, hasError) {
     // interpolate the #attachment-[no]preview-tmpl template
-    var sizeL10n = getSizeForL10n(this._attachment.blob.size);
+    var sizeL10n = getSizeForL10n(this._attachment.size);
     return Template(templateId).interpolate({
       type: this._attachment.type,
       errorClass: hasError ? 'corrupted' : '',

@@ -256,12 +256,8 @@ var Compose = (function() {
           state.size = null;
 
           item.blob = resizedBlob;
-          var newNode = item.render();
-          attachments.set(newNode, item);
-          if (dom.message.contains(node)) {
-            dom.message.insertBefore(newNode, node);
-            dom.message.removeChild(node);
-          }
+          item.updateFileSize();
+
           imageSized();
         });
       }
