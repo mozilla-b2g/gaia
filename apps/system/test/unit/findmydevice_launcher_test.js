@@ -147,16 +147,26 @@ suite('FindMyDevice Launcher >', function(done) {
   });
 
   test('clear lockscreen message when the lockscreen unlocks', function() {
-    window.dispatchEvent(new CustomEvent('lockscreen-appclosing'));
+    window.dispatchEvent(new CustomEvent('lockscreen-request-unlock'));
     assert.equal(
       MockSettingsHelper.instances['lockscreen.lock-message'].value, '');
   });
 
   test('fmd is awoken with LOCKSCREEN_CLOSED on lockscreen unlock', function() {
-    window.dispatchEvent(new CustomEvent('lockscreen-appclosing'));
+    window.dispatchEvent(new CustomEvent('lockscreen-request-unlock'));
     sinon.assert.calledWith(window.wakeUpFindMyDevice,
       IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED);
   });
+
+  test('fmd is not awoken with LOCKSCREEN_CLOSED on lockscreen camera launch',
+    function() {
+      window.dispatchEvent(
+        new CustomEvent('lockscreen-request-unlock',
+        {detail: {activity: {name: 'record'}}}));
+      sinon.assert.notCalled(window.wakeUpFindMyDevice,
+        IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED);
+    }
+  );
 
   test('send LOGIN wakeup message on FxA login', function() {
     window.dispatchEvent(
