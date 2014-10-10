@@ -34,11 +34,17 @@ class TestCardsViewTwoApps(GaiaTestCase):
 
         # Close the current apps from the cards view
         self.cards_view.close_app(self._test_apps[1])
-        self.cards_view.close_app(self._test_apps[0])
 
-        # If successfully killed, the apps should no longer appear in the cards view and the "No recent apps" message should be displayed
+        # If successfully killed, the app should no longer appear in the cards view
         self.assertFalse(self.cards_view.is_app_present(self._test_apps[1]),
                          "Killed app not expected to appear in cards view")
+
+        self.assertTrue(self.cards_view.is_app_present(self._test_apps[0]),
+                         "2nd card remains after first is killed")
+
+        # If the last app is successfully killed, the cards view should hide
+        self.cards_view.close_app(self._test_apps[0])
+        self.cards_view.wait_for_cards_view_not_displayed()
 
         self.assertFalse(self.cards_view.is_app_present(self._test_apps[0]),
                          "Killed app not expected to appear in cards view")
