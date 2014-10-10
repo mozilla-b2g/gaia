@@ -222,16 +222,6 @@ Calendar.ns('Views').EventBase = (function() {
      * @return {Calendar.Models.Model} new model.
      */
     _createModel: function(time) {
-      var now = new Date();
-
-      if (time < now) {
-        time = now;
-        now.setHours(now.getHours() + 1);
-        now.setMinutes(0);
-        now.setSeconds(0);
-        now.setMilliseconds(0);
-      }
-
       var model = new Calendar.Models.Event();
       model.startDate = time;
 
