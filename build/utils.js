@@ -46,7 +46,7 @@ function isSubjectToBranding(path) {
  * @return {bool}
  */
 function isSubjectToDeviceType(path) {
-  return /locales[\/\\]?[a-zA-Z\/]*[\/\\]?device_type$/.test(path);
+  return /(apps|locales)[a-zA-Z-_\/\\]+device_type/.test(path);
 }
 
 /**

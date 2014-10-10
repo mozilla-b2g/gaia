@@ -10,7 +10,12 @@ suite('utils.js', function() {
   });
 
   test('isSubjectToDeviceType', function () {
-    var path = 'locales/device_type';
+    var path = 'apps/settings/locales/device_type/phone/device.properties';
+    assert.isTrue(utils.isSubjectToDeviceType(path));
+  });
+
+  test('isSubjectToDeviceType', function () {
+    var path = 'gaia-l10n/fr/apps/settings/device_type/phone/device.properties';
     assert.isTrue(utils.isSubjectToDeviceType(path));
   });
 });
