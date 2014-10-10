@@ -4,7 +4,6 @@ var assert = require('assert');
 
 var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
-var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
 var manifestPath, entryPoint;
 
@@ -17,7 +16,8 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
   var app;
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
   // Do nothing on script timeout. Bug 987383
@@ -36,8 +36,6 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
     this.timeout(100000);
     // Marionnette timeout for each command sent to the device
     client.setScriptTimeout(10000);
-
-    MarionetteHelper.unlockScreen(client);
   });
 
   test('startup time', function() {
