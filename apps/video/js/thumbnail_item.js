@@ -190,7 +190,6 @@ ThumbnailItem.prototype.updateTitleText = function() {
   this.titleNode.textContent = VideoUtils.getTruncated(this.data.metadata.title,
                                         {
                                           node: this.titleNode,
-                                          maxLine: ThumbnailItem.titleMaxLines,
-                                          ellipsisIndex: 0
+                                          maxLine: ThumbnailItem.titleMaxLines
                                         });
 };
