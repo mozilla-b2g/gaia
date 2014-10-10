@@ -22,6 +22,10 @@ System.Selector = Object.freeze({
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
   appChromeReloadButton: '.appWindow.active .controls .reload-button',
   appChromeWindowsButton: '.appWindow.active .controls .windows-button',
+  softwareButtons: '#software-buttons',
+  softwareHome: '#software-home-button',
+  softwareHomeFullscreen: '#fullscreen-software-home-button',
+  softwareHomeFullscreenLayout: '#software-buttons-fullscreen-layout',
   browserWindow: '.appWindow.browser',
   sleepMenuContainer: '#sleep-menu-container',
   softwareHome: '#software-home-button',
@@ -97,6 +101,14 @@ System.prototype = {
   get sleepMenuContainer() {
     return this.client.helper.waitForElement(
       System.Selector.sleepMenuContainer);
+  },
+
+  get softwareButtons() {
+    return this.client.findElement(System.Selector.softwareButtons);
+  },
+
+  get softwareHome() {
+    return this.client.findElement(System.Selector.softwareHome);
   },
 
   get softwareHomeFullscreen() {
