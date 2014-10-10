@@ -26,7 +26,8 @@ define(['exports'], function(exports) {
  * potential memory leaks is not currently provided, but could be.
  */
 exports.allbackMaker = function allbackMaker(names, allDoneCallback) {
-  var aggrData = {}, callbacks = {}, waitingFor = names.concat();
+  var aggrData = Object.create(null), callbacks = {},
+      waitingFor = names.concat();
 
   names.forEach(function(name) {
     // (build a consistent shape for aggrData regardless of callback ordering)
@@ -92,7 +93,8 @@ exports.allbackMaker = function allbackMaker(names, allDoneCallback) {
 exports.latch = function() {
   var ready = false;
   var deferred = {};
-  var results = {};
+  // Avoid Object.prototype and any for-enumerations getting tripped up
+  var results = Object.create(null);
   var count = 0;
 
   deferred.promise = new Promise(function(resolve, reject) {
@@ -139,9 +141,37 @@ exports.latch = function() {
   };
 };
 
+/**
+ * Given the results object from an allback.latch() where named callbacks were
+ * used (or else we won't save the result!) and the callbacks use the form of
+ * callback(errIfAny, ...), find and return the first error object, or return
+ * null if none was found.
+ *
+ * Important notes:
+ * - Use this for callback-based idioms in the node style
+ * - You MUST use latch.defer(name), not latch.defer()!
+ * - Because of JS object property ordering, we actually will return the result
+ *   of the first callback that fired with an error value, but you probably
+ *   do not want to be depending on this too much.
+ */
+exports.extractErrFromCallbackArgs = function(results) {
+  // If there are any errors, find and propagate.
+  var anyErr = null;
+  for (var key in results) {
+    var args = results[key];
+    var errIfAny = args[0];
+    if (errIfAny) {
+      anyErr = errIfAny;
+      break;
+    }
+  }
+  return anyErr;
+};
+
 exports.latchedWithRejections = function(namedPromises) {
   return new Promise(function(resolve, reject) {
-    var results = {};
+    // Avoid Object.prototype
+    var results = Object.create(null);
     var pending = 0;
     Object.keys(namedPromises).forEach(function(name) {
       pending++;
