@@ -24,7 +24,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
         __dirname + '/fullscreen_layout'
     }
   });
-  var home, system, actions;
+  var home, system, actions, screenSize, shbSize;
 
   setup(function() {
     home = new Home(client);
@@ -36,6 +36,9 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     client.apps.launch(appUrl);
     client.apps.switchToApp(appUrl);
     client.switchToFrame();
+    screenSize = client.findElement('#screen').size();
+    var shbSelector = '#software-buttons-fullscreen-layout';
+    shbSize = client.findElement(shbSelector).size();
   });
 
   test('Hides after a mozRequestFullscreen request', function() {
@@ -65,21 +68,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
   test('Is shown in an inline activity', function() {
     var frame = system.waitForLaunch(appUrl);
     client.switchToFrame(frame);
-    client.executeScript(function() {
-      var a = new window.wrappedJSObject.MozActivity({
-        name: 'share',
-        data: {
-          type: 'video/*',
-          number: 1,
-          blobs: ['blobs'],
-          filenames: ['names'],
-          filepaths: ['fullpaths']
-        }
-      });
-      a.onerror = function() {
-        console.log('Activity error');
-      };
-    });
+    newShareActivity();
     client.switchToFrame();
     var bluetooth = system.getActivityOptionMatching('bluetooth');
     actions.tap(bluetooth).perform();
@@ -95,4 +84,31 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     var shbHeight = client.findElement(shbSelector).size().height;
     assert.ok(bluetoothHeight === ((screenHeight - shbHeight) + 'px'));
   });
+
+  test('activities menu', function() {
+    var frame = system.waitForLaunch(appUrl);
+    client.switchToFrame(frame);
+    newShareActivity();
+    client.switchToFrame();
+    var menuHeight = system.visibleForm.size().height;
+    assert.ok(menuHeight === (screenSize.height - shbSize.height));
+  });
+
+  function newShareActivity() {
+    client.executeScript(function() {
+      var a = new window.wrappedJSObject.MozActivity({
+        name: 'share',
+        data: {
+          type: 'video/*',
+          number: 1,
+          blobs: ['blobs'],
+          filenames: ['names'],
+          filepaths: ['fullpaths']
+        }
+      });
+      a.onerror = function() {
+        console.log('Activity error');
+      };
+    });
+  }
 });

@@ -36,7 +36,8 @@ System.Selector = Object.freeze({
   topPanel: '#top-panel',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
-  utilityTray: '#utility-tray'
+  utilityTray: '#utility-tray',
+  visibleForm: '#screen > form.visible'
 });
 
 System.prototype = {
@@ -148,6 +149,10 @@ System.prototype = {
     return this.client.findElement(System.Selector.rightPanel);
   },
 
+  get visibleForm() {
+    return this.client.findElement(System.Selector.visibleForm);
+  },
+
   getAppIframe: function(url) {
     return this.client.findElement('iframe[src*="' + url + '"]');
   },
@@ -227,7 +232,7 @@ System.prototype = {
   // It looks for an activity menu, and returns the first
   // button element which includes with str
   getActivityOptionMatching: function(str) {
-    var activityMenuSelector = '#screen > form.visible button.icon';
+    var activityMenuSelector = System.Selector.visibleForm + ' button.icon';
     var options = this.client.findElements(activityMenuSelector);
     for (var i = 0; i < options.length; i++) {
       if (options[i].getAttribute('style').indexOf(str) > 1) {
