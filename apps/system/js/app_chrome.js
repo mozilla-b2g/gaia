@@ -309,15 +309,28 @@
     // XXX Open a bug since I wonder if there is scrollgrab rounding issue
     // somewhere. While panning from the bottom to the top, there is often
     // a scrollTop position of scrollTopMax - 1, which triggers the transition!
+    var publishEvent;
     if (this.scrollable.scrollTop >= this.scrollable.scrollTopMax - 1) {
+      publishEvent = 'collapsed';
       this.element.classList.remove('maximized');
     } else {
+      publishEvent = 'expanded';
       this.element.classList.add('maximized');
     }
 
     if (this.app.isActive()) {
       this.app.publish('titlestatechanged');
     }
+
+    clearTimeout(this.lastScrollSafetyTimeout);
+    var finish = function() {
+      clearTimeout(this.lastScrollSafetyTimeout);
+      this.element.removeEventListener('transitionend', finish);
+      this.app.publish('chrome' + publishEvent);
+    }.bind(this);
+
+    this.element.addEventListener('transitionend', finish);
+    this.lastScrollSafetyTimeout = setTimeout(finish, 250);
   };
 
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
