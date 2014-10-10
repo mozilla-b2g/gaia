@@ -1,5 +1,4 @@
 'use strict';
-/* global System */
 
 (function(exports) {
   var _id = 0;
@@ -114,7 +113,7 @@
    * @memberof AppAuthenticationDialog.prototype
    */
   AppAuthenticationDialog.prototype.handleEvent = function(evt) {
-    System.debug(' AAD>> got event: ' + evt.type);
+    this.debug(' AAD>> got event: ' + evt.type);
     evt.preventDefault();
     evt.stopPropagation();
     this._event = evt;
@@ -156,7 +155,7 @@
     var evt = this._event;
     var elements = this.elements;
     this.element.classList.add('visible');
-    System.debug(' AAD>> showing');
+    this.debug(' AAD>> showing');
     navigator.mozL10n.setAttributes(
       elements.httpAuthenticationMessage,
       'http-authentication-message2',
@@ -174,7 +173,7 @@
     this.elements.httpUsernameInput.blur();
     this.elements.httpPasswordInput.blur();
     this.element.classList.remove('visible');
-    System.debug(' AAD>> hided');
+    this.debug(' AAD>> hided');
   };
 
   /**

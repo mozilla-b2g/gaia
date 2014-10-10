@@ -9,7 +9,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_custom_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
@@ -25,7 +25,7 @@ var mocksForSoundManager = new MocksHelper([
   'FtuLauncher',
   'ScreenManager',
   'SettingsListener',
-  'System'
+  'Service'
 ]).init();
 
 suite('system/sound manager', function() {

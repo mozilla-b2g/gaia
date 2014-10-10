@@ -1,8 +1,8 @@
 'use strict';
-/* global System */
 /* global FtuLauncher */
 /* global layoutManager */
 /* global SettingsListener */
+/* global Service */
 /* global SheetsTransition */
 /* global softwareButtonManager */
 /* global StackManager */
@@ -344,8 +344,8 @@
       // but we still want to redispatch touch events to the "overlayed"
       // software home button
       var softwareButtonOverlayed =
-        System.currentApp &&
-        System.currentApp.isFullScreenLayout();
+        Service.currentApp &&
+        Service.currentApp.isFullScreenLayout();
       if (softwareButtonOverlayed) {
         return x > (layoutManager.width - softwareButtonManager.width) ||
             y > (layoutManager.height - softwareButtonManager.height);

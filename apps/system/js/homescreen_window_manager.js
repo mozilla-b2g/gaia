@@ -1,4 +1,4 @@
-/* global homescreenLauncher, System */
+/* global homescreenLauncher, Service */
 
 'use strict';
 (function(exports) {
@@ -8,7 +8,7 @@
    *
    * @class HomescreenWindowManager
    * @requires HomescreenLauncher
-   * @requires System
+   * @requires Service
    */
   function HomescreenWindowManager() {}
 
@@ -32,7 +32,7 @@
     debug: function hwm_debug() {
       if (this.DEBUG) {
         console.log('[' + this.CLASS_NAME + ']' +
-          '[' + System.currentTime() + ']' +
+          '[' + Service.currentTime() + ']' +
           Array.slice(arguments).concat());
       }
     },
@@ -70,7 +70,7 @@
           // XXX: There's a race between lockscreenWindow and homescreenWindow.
           // If lockscreenWindow is instantiated before homescreenWindow,
           // we should not display the homescreen here.
-          if (System.locked) {
+          if (Service.locked) {
             this.getHomescreen().setVisible(false);
           }
           break;

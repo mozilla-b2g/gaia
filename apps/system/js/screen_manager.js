@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals SettingsListener, Bluetooth, StatusBar, System,
+/* globals SettingsListener, Bluetooth, StatusBar, Service,
            ScreenBrightnessTransition, ScreenWakeLockManager */
 
 var ScreenManager = {
@@ -474,12 +474,12 @@ var ScreenManager = {
   _reconfigScreenTimeout: function scm_reconfigScreenTimeout() {
     // Remove idle timer if screen wake lock is acquired or
     // if no app has been displayed yet.
-    if (this._wakeLockManager.isHeld || !System.currentApp) {
+    if (this._wakeLockManager.isHeld || !Service.currentApp) {
       this._setIdleTimeout(0);
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
     } else if (!this._unlocking) {
-      if (window.System.locked && !window.secureWindowManager.isActive()) {
+      if (window.Service.locked && !window.secureWindowManager.isActive()) {
         this._setIdleTimeout(this.LOCKING_TIMEOUT, true);
         window.addEventListener('lockscreen-appclosing', this);
         window.addEventListener('lockpanelchange', this);

@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global System, ImageUtils, LazyLoader */
+/* global ImageUtils, LazyLoader */
 
 'use strict';
 
@@ -335,7 +335,12 @@
       this._blobURL = URL.createObjectURL(blob);
 
       // And tell the system about it.
-      System.publish('wallpaperchange', { url: this._blobURL });
+      var evt = new CustomEvent('wallpaperchange', {
+        bubbles: true,
+        cancelable: false,
+        detail: { url: this._blobURL }
+      });
+      window.dispatchEvent(evt);
     }
   };
 

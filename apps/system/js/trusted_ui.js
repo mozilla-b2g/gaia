@@ -178,10 +178,10 @@ var TrustedUIManager = {
     var frame = appWindowManager.getApp(origin).frame;
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
-    if (!System.currentApp.isHomescreen) {
+    if (!Service.currentApp.isHomescreen) {
       this.publish('trusteduihide', { origin: origin });
     }
-    if (System.currentApp.origin == origin) {
+    if (Service.currentApp.origin == origin) {
       frame.classList.add('restored');
       frame.addEventListener('transitionend', function removeRestored() {
         frame.removeEventListener('transitionend', removeRestored);

@@ -81,9 +81,9 @@
    * var m = new MyModule();
    * m.start();
    * // other module
-   * System.request('MyModule:unlock').then(function(result) {
+   * Service.request('MyModule:unlock').then(function(result) {
    * });
-   * System.request('unlock').then(function(result) {
+   * Service.request('unlock').then(function(result) {
    *   // if the request is registered by only one module.
    * });
    */
@@ -103,9 +103,9 @@
    * var m = new MyModule();
    * m.start();
    * // other module
-   * console.log(System.query('MyModule:isActive'));
+   * console.log(Service.query('MyModule:isActive'));
    * // if the method name is unique.
-   * console.log(System.query('isActive'));
+   * console.log(Service.query('isActive'));
    * @type {Array}
    */
   BaseModule.STATES = [];
@@ -405,7 +405,7 @@
   /**
    * A helper function to lowercase only the capital character.
    * @example
-   * System.lowerCapital('AppWindowManager');
+   * Service.lowerCapital('AppWindowManager');
    * // appWindowManager
    * @param  {String} str String to be lowercased on capital
    * @return {String}     Captital lowerred string
@@ -418,7 +418,7 @@
    * A helper function to transform object name to file name
    * @example
    * var modules = ['AppWindowManager', 'HomescreenLauncher'];
-   * System.object2fileName(modules);
+   * Service.object2fileName(modules);
    * // ['js/app_window_manager.js', 'js/homescreen_launcher.js']
    *
    * @param  {Array} strings Array of module names
@@ -444,7 +444,7 @@
   };
 
   BaseModule.prototype = {
-    service: window.System,
+    service: window.Service,
 
     DEBUG: false,
 

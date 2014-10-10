@@ -26,7 +26,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 
 var mocksForNotificationScreen = new MocksHelper([
@@ -39,7 +39,7 @@ var mocksForNotificationScreen = new MocksHelper([
   'SettingsListener',
   'SettingsURL',
   'UtilityTray',
-  'System',
+  'Service',
   'VersionHelper'
 ]).init();
 

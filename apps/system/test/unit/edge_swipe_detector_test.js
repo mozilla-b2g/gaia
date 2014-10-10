@@ -8,7 +8,7 @@
 /* global MockSheetsTransition */
 /* global MockTouchForwarder */
 /* global MockLayoutManager, layoutManager */
-/* global MockSystem */
+/* global MockService */
 /* global MockSoftwareButtonManager, softwareButtonManager */
 
 requireApp('system/js/edge_swipe_detector.js');
@@ -20,7 +20,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_layout_manager.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 
 var mocksForEdgeSwipeDetector = new MocksHelper([
@@ -28,7 +28,7 @@ var mocksForEdgeSwipeDetector = new MocksHelper([
   'StackManager',
   'SettingsListener',
   'SoftwareButtonManager',
-  'System',
+  'Service',
   'TouchForwarder',
   'HomescreenLauncher',
   'FtuLauncher',
@@ -66,7 +66,7 @@ suite('system/EdgeSwipeDetector >', function() {
     window.homescreenLauncher = undefined;
     window.layoutManager = undefined;
     window.softwareButtonManager = undefined;
-    MockSystem.currentApp = null;
+    MockService.currentApp = null;
   });
 
   var dialer = {
@@ -731,7 +731,7 @@ suite('system/EdgeSwipeDetector >', function() {
 
         suite('if the app is fullscreen_layout', function() {
           setup(function() {
-            MockSystem.currentApp = {
+            MockService.currentApp = {
               isFullScreenLayout: function() {
                 return true;
               }

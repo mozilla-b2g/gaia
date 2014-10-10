@@ -4,7 +4,7 @@
 
 requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-requireApp('system/js/system.js');
+requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/radio.js');
 

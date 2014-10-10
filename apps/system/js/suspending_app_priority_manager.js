@@ -78,7 +78,7 @@
   SuspendingAppPriorityManager.prototype.debug = function() {
     if (this._DEBUG) {
       console.log('[SuspendingAppPriorityManager]' +
-        '[' + self.System.currentTime() + '] ' +
+        '[' + self.Service.currentTime() + '] ' +
         Array.slice(arguments).concat());
     }
   };

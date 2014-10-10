@@ -1,5 +1,5 @@
 /* global Card, SettingsListener,
-          System, homescreenLauncher, StackManager */
+          Service, homescreenLauncher, StackManager */
 
 (function(exports) {
   'use strict';
@@ -72,12 +72,12 @@
   TaskManager.prototype.start = function() {
     this._fetchElements();
     this._registerEvents();
-    System.request('registerHierarchy', this);
+    Service.request('registerHierarchy', this);
   };
 
   TaskManager.prototype.stop = function() {
     this._unregisterEvents();
-    System.request('unregisterHierarchy', this);
+    Service.request('unregisterHierarchy', this);
   };
 
   TaskManager.prototype._fetchElements = function() {
@@ -149,7 +149,7 @@
     this.setActive(true);
 
     var screenElement = this.screenElement;
-    var activeApp = System.currentApp;
+    var activeApp = Service.currentApp;
     if (!activeApp) {
       screenElement.classList.add('cards-view');
       return;
@@ -595,7 +595,7 @@
 
       case 'taskmanagershow':
       case 'holdhome':
-        if (System.locked || this.isShown()) {
+        if (Service.locked || this.isShown()) {
           return;
         }
 
@@ -604,7 +604,7 @@
           filter = (evt.detail && evt.detail.filter) || null;
         }
 
-        app = System.currentApp;
+        app = Service.currentApp;
         if (app && !app.isHomescreen) {
           app.getScreenshot(function onGettingRealtimeScreenshot() {
             this.show(filter);

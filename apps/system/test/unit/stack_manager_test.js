@@ -1,10 +1,10 @@
 /* global StackManager, AppWindow, MockAppWindowManager, Event, MocksHelper,
-          MockSystem, HomescreenLauncher, MockSheetsTransition */
+          MockService, HomescreenLauncher, MockSheetsTransition */
 'use strict';
 
 requireApp('system/js/stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_layout_manager.js');
@@ -13,7 +13,7 @@ requireApp('system/test/unit/mock_sheets_transition.js');
 var mocksForStackManager = new MocksHelper([
   'AppWindow', 'AppWindowManager',
   'HomescreenLauncher', 'LayoutManager',
-  'SheetsTransition', 'System'
+  'SheetsTransition', 'Service'
 ]).init();
 
 suite('system/StackManager >', function() {
@@ -126,7 +126,7 @@ suite('system/StackManager >', function() {
     this.sinon.clock.tick(800); // Making sure everything got broadcasted
     window.homescreenLauncher = undefined;
     StackManager.__clearAll();
-    MockSystem.currentApp = null;
+    MockService.currentApp = null;
   });
 
   function appLaunch(app, warm) {
@@ -203,7 +203,7 @@ suite('system/StackManager >', function() {
       setup(function() {
         appLaunch(settings);
         appLaunch(operatorVariant);
-        MockSystem.currentApp = operatorVariant;
+        MockService.currentApp = operatorVariant;
 
         this.sinon.stub(settings, 'getActiveWindow').returns(null);
       });

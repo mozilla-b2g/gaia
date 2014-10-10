@@ -1,4 +1,4 @@
-/* global LazyLoader, System, applications, ManifestHelper*/
+/* global LazyLoader, Service, applications, ManifestHelper*/
 /* global Template*/
 'use strict';
 (function(exports) {
@@ -311,7 +311,7 @@
         this.cancelRequest(this.fullscreenRequest);
         this.fullscreenRequest = undefined;
       }
-      if (detail.fullscreenorigin !== System.currentApp.origin) {
+      if (detail.fullscreenorigin !== Service.currentApp.origin) {
         var _ = navigator.mozL10n.get;
         // The message to be displayed on the approval UI.
         var message =

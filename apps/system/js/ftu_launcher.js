@@ -1,5 +1,5 @@
 'use strict';
-/* globals applications, VersionHelper, dump, FtuPing, System */
+/* globals applications, VersionHelper, dump, FtuPing, Service */
 /* This module deals with FTU stuff.
    FTU is known as First Time Usage,
    which is the first app the users would use, to configure their phone. */
@@ -65,8 +65,8 @@ var FtuLauncher = {
     // to unlock lockscreen if we are running FTU at first time
     window.addEventListener('appopened', this);
 
-    System.registerState('isFtuUpgrading', this);
-    System.registerState('isFtuRunning', this);
+    Service.registerState('isFtuUpgrading', this);
+    Service.registerState('isFtuRunning', this);
   },
 
   handleEvent: function fl_init(evt) {

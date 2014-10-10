@@ -15,7 +15,7 @@
 */
 
 /*global Clock, SettingsListener, TouchForwarder, FtuLauncher, MobileOperator,
-         SIMSlotManager, System, Bluetooth, UtilityTray, nfcManager,
+         SIMSlotManager, Service, Bluetooth, UtilityTray, nfcManager,
          layoutManager */
 
 'use strict';
@@ -151,8 +151,8 @@ var StatusBar = {
   /* For other modules to acquire */
   get height() {
     if (document.mozFullScreen ||
-               (System.currentApp &&
-                System.currentApp.isFullScreen())) {
+               (Service.currentApp &&
+                Service.currentApp.isFullScreen())) {
       return 0;
     } else {
       return this._cacheHeight ||
@@ -352,7 +352,7 @@ var StatusBar = {
         this._inLockScreenMode = false;
         this.toggleTimeLabel(true);
         this._updateIconVisibility();
-        this.setAppearance(System.currentApp);
+        this.setAppearance(Service.currentApp);
         break;
 
       case 'attentionopened':
@@ -551,7 +551,7 @@ var StatusBar = {
         break;
 
       case 'stackchanged':
-        this.setAppearance(System.currentApp);
+        this.setAppearance(Service.currentApp);
         this.element.classList.remove('hidden');
         break;
 
@@ -659,7 +659,7 @@ var StatusBar = {
   },
 
   _updateMinimizedStatusBarWidth: function sb_updateMinimizedStatusBarWidth() {
-    var app = System.currentApp;
+    var app = Service.currentApp;
     app = app && app.getTopMostWindow();
 
     // Get the actual width of the rocketbar, and determine the remaining
@@ -772,7 +772,7 @@ var StatusBar = {
   },
 
   panelHandler: function sb_panelHandler(evt) {
-    var app = System.currentApp.getTopMostWindow();
+    var app = Service.currentApp.getTopMostWindow();
     var chromeBar = app.element.querySelector('.chrome');
     var titleBar = app.element.querySelector('.titlebar');
 
@@ -1833,7 +1833,7 @@ var StatusBar = {
 
   // To reduce the duplicated code
   isLocked: function() {
-    return System.locked;
+    return Service.locked;
   },
 
   toCamelCase: function sb_toCamelCase(str) {

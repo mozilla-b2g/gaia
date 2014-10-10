@@ -25,7 +25,7 @@ suite('system/BluetoothCore', function() {
     window.BluetoothTransfer = { init: function() {} };
     window.NfcHandoverManager = { init: function() {} };
 
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/bluetooth_core.js', done);
   });
 

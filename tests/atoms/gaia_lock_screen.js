@@ -10,47 +10,47 @@ var GaiaLockScreen = {
 
   unlock: function(forcibly) {
     let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
-    let system = window.wrappedJSObject.System;
+    let service = window.wrappedJSObject.Service;
     let obj = {'screen.timeout': 0};
     setlock.set(obj);
 
     waitFor(
       function() {
-        system.request('unlock', { forcibly: forcibly });
+        service.request('unlock', { forcibly: forcibly });
         waitFor(
           function() {
-            finish(system.locked);
+            finish(service.locked);
           },
           function() {
-            return !system.locked;
+            return !service.locked;
           }
         );
       },
       function() {
-        return !!system;
+        return !!service;
       }
     );
   },
 
   lock: function(forcibly) {
-    let system = window.wrappedJSObject.System;
+    let service = window.wrappedJSObject.Service;
     let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
     let obj = {'screen.timeout': 0};
     setlock.set(obj);
     waitFor(
       function() {
-      system.request('lock', { forcibly: forcibly });
+      service.request('lock', { forcibly: forcibly });
         waitFor(
           function() {
-            finish(!system.locked);
+            finish(!service.locked);
           },
           function() {
-            return system.locked;
+            return service.locked;
           }
         );
       },
       function() {
-        return !!system;
+        return !!service;
       }
     );
   }

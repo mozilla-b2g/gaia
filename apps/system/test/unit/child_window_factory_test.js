@@ -3,7 +3,7 @@
           MockActivityWindow, MockPopupWindow, MockSettingsListener */
 /* jshint nonew: false */
 
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
@@ -13,7 +13,7 @@ requireApp('system/test/unit/mock_activity.js');
 
 var mocksForChildWindowFactory = new MocksHelper([
   'MozActivity', 'AppWindow', 'ActivityWindow', 'PopupWindow',
-  'SettingsListener', 'AttentionWindow', 'System'
+  'SettingsListener', 'AttentionWindow', 'Service'
 ]).init();
 
 suite('system/ChildWindowFactory', function() {
@@ -338,10 +338,10 @@ suite('system/ChildWindowFactory', function() {
 
   suite('runningFTU', function() {
     setup(function() {
-      window.System.runningFTU = true;
+      window.Service.runningFTU = true;
     });
     teardown(function() {
-      window.System.runningFTU = false;
+      window.Service.runningFTU = false;
     });
 
     test('> _blank', function() {

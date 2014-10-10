@@ -1,7 +1,7 @@
 'use strict';
 /* global MocksHelper, MockSettingsListener, UsbStorage */
 
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/usb_storage.js');
@@ -9,7 +9,7 @@ requireApp('system/js/usb_storage.js');
 var mocksForStorage = new MocksHelper([
   'NavigatorSettings',
   'SettingsListener',
-  'System'
+  'Service'
 ]).init();
 
 suite('system/USB Storage', function() {
@@ -44,7 +44,7 @@ suite('system/USB Storage', function() {
 
     test('sets ums mode when locked', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.System.locked = true;
+      window.Service.locked = true;
       subject = new UsbStorage();
       subject._protocol = '0';
       subject._enabled = true;
@@ -54,7 +54,7 @@ suite('system/USB Storage', function() {
 
     test('sets mtp mode when locked', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.System.locked = true;
+      window.Service.locked = true;
       subject = new UsbStorage();
       subject._protocol = '1';
       subject._enabled = true;
@@ -64,7 +64,7 @@ suite('system/USB Storage', function() {
 
     test('sets current mtp mode', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.System.locked = false;
+      window.Service.locked = false;
       subject = new UsbStorage();
       subject._protocol = '1';
       subject._enabled = true;
@@ -74,7 +74,7 @@ suite('system/USB Storage', function() {
 
     test('sets current ums mode', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.System.locked = false;
+      window.Service.locked = false;
       subject = new UsbStorage();
       subject._protocol = '0';
       subject._enabled = true;

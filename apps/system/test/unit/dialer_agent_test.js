@@ -41,8 +41,8 @@ suite('system/DialerAgent', function() {
     realTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
     realVibrate = navigator.vibrate;
-    realSystem = window.System;
-    window.System = {locked: false};
+    realSystem = window.Service;
+    window.Service = {locked: false};
     realVersionHelper = window.VersionHelper;
     window.VersionHelper = MockVersionHelper(false);
   });
@@ -50,7 +50,7 @@ suite('system/DialerAgent', function() {
   suiteTeardown(function() {
     navigator.mozTelephony = realTelephony;
     navigator.vibrate = realVibrate;
-    window.System = realSystem;
+    window.Service = realSystem;
     window.applications = realApplications;
   });
 

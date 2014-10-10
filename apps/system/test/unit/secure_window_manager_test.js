@@ -1,15 +1,15 @@
-/* global MockSystem, MockSecureWindow */
+/* global MockService, MockSecureWindow */
 (function() {
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_secure_window.js');
 requireApp('system/test/unit/mock_secure_window_factory.js');
 requireApp('system/js/secure_window_manager.js');
 
 var mocksForSecureWindowManager = new window.MocksHelper([
-  'SecureWindow', 'SecureWindowFactory', 'System'
+  'SecureWindow', 'SecureWindowFactory', 'Service'
 ]).init();
 
 suite('system/SecureWindowManager', function() {
@@ -25,7 +25,7 @@ suite('system/SecureWindowManager', function() {
       };
 
   setup(function() {
-    this.sinon.stub(MockSystem, 'request');
+    this.sinon.stub(MockService, 'request');
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     appFake = new window.SecureWindow(configFake);
@@ -38,7 +38,7 @@ suite('system/SecureWindowManager', function() {
 
   suite('Hierarchy functions', function() {
     test('Should register hierarchy when instantiated', function() {
-      assert.isTrue(MockSystem.request.calledWith('registerHierarchy',
+      assert.isTrue(MockService.request.calledWith('registerHierarchy',
         window.secureWindowManager));
     });
 

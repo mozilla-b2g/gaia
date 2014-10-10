@@ -2,7 +2,7 @@
 /* global MocksHelper, MockSettingsHelper, BaseModule */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
-requireApp('system/js/system.js');
+requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/telephony_settings.js');
 

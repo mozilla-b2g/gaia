@@ -1,17 +1,17 @@
-/* global System */
+/* global Service */
 
 (function() {
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
 requireApp('system/js/lockscreen_window_manager.js');
 
 var mocksForLockScreenWindowManager = new window.MocksHelper([
-  'LockScreen', 'LockScreenWindow', 'System'
+  'LockScreen', 'LockScreenWindow', 'Service'
 ]).init();
 
 suite('system/LockScreenWindowManager', function() {
@@ -68,9 +68,9 @@ suite('system/LockScreenWindowManager', function() {
         document.createElement('div');
     });
     test('Should register hierarchy on start', function() {
-      this.sinon.stub(System, 'request');
+      this.sinon.stub(Service, 'request');
       subject.start();
-      assert.isTrue(System.request.calledWith('registerHierarchy'));
+      assert.isTrue(Service.request.calledWith('registerHierarchy'));
     });
 
     test('Should activate when openApp is called', function() {

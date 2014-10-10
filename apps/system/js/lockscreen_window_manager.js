@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
-/* global System, LockScreenWindow, LockScreenInputWindow */
+/* global Service, LockScreenWindow, LockScreenInputWindow */
 /* global secureWindowManager */
 
 (function(exports) {
@@ -91,9 +91,9 @@
     this.startObserveSettings();
     this.initElements();
     this.initWindow();
-    System.register('unlock', this);
-    System.register('lock', this);
-    System.request('registerHierarchy', this);
+    Service.register('unlock', this);
+    Service.register('lock', this);
+    Service.request('registerHierarchy', this);
   };
 
   /**
@@ -405,7 +405,7 @@
     function lwm_unlock(detail) {
       // XXX: 
       // There is a self-routing here:
-      // System.request('unlock') ->
+      // Service.request('unlock') ->
       // LockscreenWindowManager#unlock ->
       // ['lockscreen-request-unlock'] ->
       // LockscreenWindowManager#responseUnlock |

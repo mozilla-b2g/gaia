@@ -1,11 +1,11 @@
 /* global CustomLogoPath, MockSettingsHelper, SettingsHelper,
-          InitLogoHandler, System, LogoLoader */
+          InitLogoHandler, Service, LogoLoader */
 
 'use strict';
 
 requireApp('system/test/unit/mock_logo_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
-requireApp('system/js/system.js');
+requireApp('system/js/service.js');
 requireApp('system/js/init_logo_handler.js');
 
 suite('init_logo_handler_test.js >', function() {
@@ -129,9 +129,9 @@ suite('init_logo_handler_test.js >', function() {
     });
 
     test('Should request addHierarchy in init', function() {
-      this.sinon.stub(System, 'request');
+      this.sinon.stub(Service, 'request');
       InitLogoHandler.init(new LogoLoader(CustomLogoPath.poweron));
-      assert.isTrue(System.request.calledWith('registerHierarchy'));
+      assert.isTrue(Service.request.calledWith('registerHierarchy'));
     });
 
     test('isActive', function() {

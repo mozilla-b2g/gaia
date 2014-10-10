@@ -264,7 +264,7 @@ var icc_worker = {
     }
 
     // Check if device is idle or settings
-    var activeApp = System.currentApp;
+    var activeApp = Service.currentApp;
     var settingsOrigin = window.location.origin.replace('system', 'settings');
     if (!options.isHighPriority && activeApp && !activeApp.isHomescreen &&
         activeApp.origin !== settingsOrigin) {

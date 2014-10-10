@@ -2,7 +2,7 @@
 /* global asyncStorage */
 /* global IccHelper */
 /* global ModalDialog */
-/* global System */
+/* global Service */
 
 (function(exports) {
 
@@ -167,7 +167,7 @@
 
       this.getDUNConnection().then(function(DUNConnection) {
         if (type == 'wifi') {
-          if (System.query('AirplaneMode.isActive') &&
+          if (Service.query('AirplaneMode.isActive') &&
               true === evt.settingValue) {
             title = 'apmActivated';
             buttonText = 'ok';
@@ -192,7 +192,7 @@
             settings.createLock().set(cset);
           }
         } else {
-          if (System.query('AirplaneMode.isActive') &&
+          if (Service.query('AirplaneMode.isActive') &&
               true === evt.settingValue) {
             title = 'apmActivated';
             buttonText = 'ok';

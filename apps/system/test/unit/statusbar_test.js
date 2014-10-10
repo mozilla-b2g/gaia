@@ -1,10 +1,9 @@
 /* globals FtuLauncher, MockL10n, MockMobileOperator, MockLayoutManager,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           MockSystem, MockTouchForwarder, StatusBar, System,
+           MockService, MockTouchForwarder, StatusBar, Service,
            MockNfcManager, MockMobileconnection, MockAppWindowManager,
            MockNavigatorBattery, UtilityTray */
-
 'use strict';
 
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -14,7 +13,7 @@ require(
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -111,7 +110,7 @@ suite('system/Statusbar', function() {
   setup(function(done) {
     this.sinon.useFakeTimers();
 
-    window.System = MockSystem;
+    window.Service = MockService;
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     realMozMobileConnections = navigator.mozMobileConnections;
@@ -190,8 +189,8 @@ suite('system/Statusbar', function() {
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozMobileConnections.mTeardown();
     MockNavigatorBattery.mTeardown();
-    System.locked = false;
-    System.currentApp = null;
+    Service.locked = false;
+    Service.currentApp = null;
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
@@ -332,7 +331,7 @@ suite('system/Statusbar', function() {
         element: document.createElement('div')
       };
 
-      System.currentApp = app;
+      Service.currentApp = app;
       StatusBar.screen = document.createElement('div');
     });
     teardown(function() {
@@ -393,7 +392,7 @@ suite('system/Statusbar', function() {
           return app;
         }
       };
-      System.currentApp = app;
+      Service.currentApp = app;
       StatusBar.clock.stop();
       StatusBar.screen = document.createElement('div');
     });
@@ -401,14 +400,14 @@ suite('system/Statusbar', function() {
       StatusBar.screen = null;
     });
     test('first launch', function() {
-      System.locked = true;
+      Service.locked = true;
       StatusBar.init();
       StatusBar.finishInit();
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('lock', function() {
-      System.locked = true;
+      Service.locked = true;
       var currentApp = {};
       var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       var evt = new CustomEvent('lockscreen-appopened', {detail: currentApp});
@@ -435,7 +434,7 @@ suite('system/Statusbar', function() {
     });
     test('attentionsceen hide', function() {
       // Test this when lockscreen is off.
-      System.locked = false;
+      Service.locked = false;
       var evt = new CustomEvent('attentionclosed');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
@@ -453,7 +452,7 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('moztime change while lockscreen is unlocked', function() {
-      System.locked = false;
+      Service.locked = false;
       var evt = new CustomEvent('moztimechange');
       StatusBar.handleEvent(evt);
       this.sinon.clock.tick();
@@ -475,7 +474,7 @@ suite('system/Statusbar', function() {
           screenEnabled: true
         }
       });
-      System.locked = false;
+      Service.locked = false;
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
@@ -486,7 +485,7 @@ suite('system/Statusbar', function() {
           screenEnabled: true
         }
       });
-      System.locked = true;
+      Service.locked = true;
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
@@ -1576,7 +1575,7 @@ suite('system/Statusbar', function() {
         }
       };
 
-      System.currentApp = app;
+      Service.currentApp = app;
       this.sinon.stub(StatusBar.element, 'getBoundingClientRect').returns({
         height: 10
       });
@@ -1589,7 +1588,7 @@ suite('system/Statusbar', function() {
       var element;
       setup(function() {
         StatusBar._cacheHeight = 24;
-        element = System.currentApp.element
+        element = Service.currentApp.element
                                                  .querySelector('.titlebar');
         transitionEndSpy = this.sinon.spy(element, 'addEventListener');
       });
@@ -1666,7 +1665,7 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 100);
 
-        var titleEl = System.currentApp.element
+        var titleEl = Service.currentApp.element
                                        .querySelector('.titlebar');
         assert.equal(titleEl.style.transform, '');
         FtuLauncher.mIsRunning = false;
@@ -1677,7 +1676,7 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 100);
 
-        var titleEl = System.currentApp.element
+        var titleEl = Service.currentApp.element
                                        .querySelector('.titlebar');
         assert.equal(titleEl.style.transform, '');
         UtilityTray.active = false;
@@ -1706,7 +1705,7 @@ suite('system/Statusbar', function() {
           });
 
           test('it should not hide it right away', function() {
-            var titleEl = System.currentApp.element
+            var titleEl = Service.currentApp.element
                                           .querySelector('.titlebar');
             assert.equal(titleEl.style.transform, '');
             assert.equal(titleEl.style.transition, '');
@@ -2177,14 +2176,14 @@ suite('system/Statusbar', function() {
       var evt = new CustomEvent('lockscreen-appopened', {
         detail: lockscreenApp
       });
-      MockSystem.currentApp = app;
+      MockService.currentApp = app;
       StatusBar.handleEvent(evt);
     });
 
     teardown(function() {
       var evt = new CustomEvent('lockscreen-appclosing');
       StatusBar.handleEvent(evt);
-      MockSystem.currentApp = null;
+      MockService.currentApp = null;
     });
 
     test('should set the lockscreen icons color', function() {
@@ -2296,7 +2295,7 @@ suite('system/Statusbar', function() {
           return this._topWindow;
         }
       };
-      System.currentApp = currentApp;
+      Service.currentApp = currentApp;
       var evt = new CustomEvent(event, {detail: currentApp});
       StatusBar.element.classList.add('hidden');
       StatusBar.handleEvent(evt);
@@ -2324,7 +2323,7 @@ suite('system/Statusbar', function() {
 
     setup(function() {
       app = {};
-      MockSystem.currentApp = app;
+      MockService.currentApp = app;
       setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       pauseUpdateStub = this.sinon.stub(StatusBar, 'pauseUpdate');
       resumeUpdateStub = this.sinon.stub(StatusBar, 'resumeUpdate');

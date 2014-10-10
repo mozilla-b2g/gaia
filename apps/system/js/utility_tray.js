@@ -1,5 +1,5 @@
 'use strict';
-/* global System */
+/* global Service */
 
 var UtilityTray = {
   name: 'UtilityTray',
@@ -89,10 +89,10 @@ var UtilityTray = {
     window.addEventListener('software-button-enabled', this);
     window.addEventListener('software-button-disabled', this);
 
-    System.request('registerHierarchy', this);
+    Service.request('registerHierarchy', this);
 
-    System.register('makeAmbientIndicatorActive', this);
-    System.register('makeAmbientIndicatorInactive', this);
+    Service.register('makeAmbientIndicatorActive', this);
+    Service.register('makeAmbientIndicatorInactive', this);
   },
 
   addHomeListener: function ut_addHomeListener() {
@@ -180,7 +180,7 @@ var UtilityTray = {
         break;
 
       case 'touchstart':
-        if (window.System.locked || window.System.runningFTU) {
+        if (window.Service.locked || window.Service.runningFTU) {
           return;
         }
 
@@ -297,7 +297,7 @@ var UtilityTray = {
       // If the active app was tracking touches it won't get any more events
       // because of the pointer-events:none we're adding.
       // Sending a touchcancel accordingly.
-      var app = System.currentApp;
+      var app = Service.currentApp;
       if (app && app.config && app.config.oop) {
         app.iframe.sendTouchEvent('touchcancel', [touch.identifier],
                                   [touch.pageX], [touch.pageY],
@@ -355,7 +355,7 @@ var UtilityTray = {
 
   onTouchEnd: function ut_onTouchEnd(touch) {
     // Prevent utility tray shows while the screen got black out.
-    if (window.System.locked) {
+    if (window.Service.locked) {
       this.hide(true);
     } else {
       var significant = (Math.abs(this.lastDelta) > (this.screenHeight / 5));

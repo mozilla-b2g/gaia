@@ -1,4 +1,4 @@
-/* global KeyboardManager, softwareButtonManager, System */
+/* global KeyboardManager, softwareButtonManager, Service */
 'use strict';
 
 (function(exports) {
@@ -24,7 +24,7 @@
    * @requires KeyboardManager
    * @requires SoftwareButtonManager
    * @requires StatusBar
-   * @requires System
+   * @requires Service
    */
   var LayoutManager = function LayoutManager() {};
 
@@ -48,9 +48,9 @@
      * @memberOf LayoutManager
      */
     get height() {
-      var activeApp = System.currentApp;
+      var activeApp = Service.currentApp;
       var isFullScreenLayout = activeApp && activeApp.isFullScreenLayout();
-      var softwareButtonHeight = System.locked || isFullScreenLayout ?
+      var softwareButtonHeight = Service.locked || isFullScreenLayout ?
         0 : softwareButtonManager.height;
       var keyboardHeight = this.keyboardEnabled ?
         KeyboardManager.getHeight() : 0;
@@ -73,8 +73,8 @@
      */
     get width() {
       return window.innerWidth -
-        ((System.currentApp &&
-          System.currentApp.isFullScreenLayout()) ?
+        ((Service.currentApp &&
+          Service.currentApp.isFullScreenLayout()) ?
           0 : softwareButtonManager.width);
     },
 
@@ -159,7 +159,7 @@
     debug: function lm_debug() {
       if (this.DEBUG) {
         console.log('[' + this.CLASS_NAME + ']' +
-          '[' + System.currentTime() + '] ' +
+          '[' + Service.currentTime() + '] ' +
           Array.slice(arguments).concat());
       }
     }

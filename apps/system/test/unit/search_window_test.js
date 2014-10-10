@@ -35,7 +35,7 @@ suite('system/SearchWindow', function() {
     stubById = this.sinon.stub(document, 'getElementById')
                           .returns(fakeElement.cloneNode(true));
 
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window.js');
     requireApp('system/js/search_window.js', done);

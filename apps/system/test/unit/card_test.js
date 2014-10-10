@@ -45,7 +45,7 @@ suite('system/Card', function() {
     document.body.appendChild(cardsList);
     mockManager.cardsList = cardsList;
 
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/cards_helper.js');
     requireApp('system/js/card.js', done);

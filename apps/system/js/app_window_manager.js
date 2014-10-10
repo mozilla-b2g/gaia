@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenWindowManager, KeyboardManager,
-          layoutManager, System, NfcHandler, rocketbar, ShrinkingUI */
+          layoutManager, Service, NfcHandler, rocketbar, ShrinkingUI */
 'use strict';
 
 (function(exports) {
@@ -20,6 +20,14 @@
     name: 'AppWindowManager',
     EVENT_PREFIX: 'appwindowmanager',
     continuousTransition: false,
+
+    /**
+     * Enable slow transition or not for debugging.
+     * Note: Turn on this would make app opening/closing durations become 3s.
+     * @type {Boolean}
+     * @memberOf AppWindowManager
+     */
+    slowTransition: false,
 
     element: document.getElementById('windows'),
     screen: document.getElementById('screen'),
@@ -291,7 +299,7 @@
      * @memberOf module:AppWindowManager
      */
     start: function awm_start() {
-      if (System.slowTransition) {
+      if (this.slowTransition) {
         this.element.classList.add('slow-transition');
       } else {
         this.element.classList.remove('slow-transition');
@@ -384,7 +392,7 @@
           this._settingsObserveHandler[name].callback
         );
       }
-      System.request('registerHierarchy', this);
+      Service.request('registerHierarchy', this);
     },
 
     /**
@@ -434,7 +442,7 @@
       }
 
       this._settingsObserveHandler = null;
-      System.request('unregisterHierarchy', this);
+      Service.request('unregisterHierarchy', this);
     },
 
     handleEvent: function awm_handleEvent(evt) {
@@ -503,7 +511,7 @@
           break;
 
         case 'ftuskip':
-          if (!System.locked) {
+          if (!Service.locked) {
             this.display();
           }
           break;
@@ -743,7 +751,7 @@
     debug: function awm_debug() {
       if (this.DEBUG) {
         console.log('[' + this.name + ']' +
-          '[' + System.currentTime() + ']' +
+          '[' + Service.currentTime() + ']' +
           Array.slice(arguments).concat());
       }
     },

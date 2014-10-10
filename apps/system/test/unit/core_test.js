@@ -3,7 +3,7 @@
 
 
 requireApp('system/shared/test/unit/mocks/mock_promise.js');
-requireApp('system/js/system.js');
+requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/core.js');
 

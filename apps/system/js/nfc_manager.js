@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/* globals CustomEvent, MozActivity, System, SettingsListener,
+/* globals CustomEvent, MozActivity, Service, SettingsListener,
    NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
 
 'use strict';
@@ -31,7 +31,7 @@
    * detects NFC Handover requests and passes them to NfcHandoverManager for
    * handling.
    * @class NfcManager
-   * @requires System
+   * @requires Service
    * @requires SettingsListener
    * @requires ScreenManager
    * @requires MozActivity
@@ -208,7 +208,7 @@
           if (this._hwState === this.NFC_HW_STATE.OFF) {
             return;
           }
-          state = (ScreenManager.screenEnabled && !System.locked) ?
+          state = (ScreenManager.screenEnabled && !Service.locked) ?
                     this.NFC_HW_STATE.ENABLE_DISCOVERY :
                     this.NFC_HW_STATE.DISABLE_DISCOVERY;
           if (state === this._hwState) {
@@ -235,7 +235,7 @@
      */
     _nfcSettingsChanged: function nm_nfcSettingsChanged(enabled) {
       var state = !enabled ? this.NFC_HW_STATE.OFF :
-        (System.locked ? this.NFC_HW_STATE.DISABLE_DISCOVERY :
+        (Service.locked ? this.NFC_HW_STATE.DISABLE_DISCOVERY :
                          this.NFC_HW_STATE.ON);
       this._changeHardwareState(state);
     },
@@ -336,9 +336,9 @@
       if (!nfcdom) {
         return;
       }
-      var activeApp = window.System.currentApp;
+      var activeApp = window.Service.currentApp;
       var manifestURL = activeApp.getTopMostWindow().manifestURL ||
-        window.System.manifestURL;
+        window.Service.manifestURL;
 
       var status = nfcdom.checkP2PRegistration(manifestURL);
       status.onsuccess = () => {
@@ -370,9 +370,9 @@
       if (!nfcdom) {
         return;
       }
-      var activeApp = window.System.currentApp;
+      var activeApp = window.Service.currentApp;
       var manifestURL = activeApp.getTopMostWindow().manifestURL ||
-        window.System.manifestURL;
+        window.Service.manifestURL;
       nfcdom.notifyUserAcceptedP2P(manifestURL);
     },
 

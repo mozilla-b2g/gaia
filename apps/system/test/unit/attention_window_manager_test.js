@@ -1,4 +1,4 @@
-/* globals attentionWindowManager, AttentionWindowManager, MockSystem,
+/* globals attentionWindowManager, AttentionWindowManager, MockService,
             MockAttentionWindow, MocksHelper, MockHomescreenWindow,
             MockHomescreenLauncher, MockAppWindow, homescreenLauncher */
 'use strict';
@@ -8,10 +8,10 @@ requireApp('system/test/unit/mock_attention_window.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_attention_indicator.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 var mocksForAttentionWindowManager = new MocksHelper([
-  'AttentionWindow', 'System', 'HomescreenLauncher',
+  'AttentionWindow', 'Service', 'HomescreenLauncher',
   'HomescreenWindow'
 ]).init();
 
@@ -35,7 +35,7 @@ suite('system/AttentionWindowManager', function() {
 
   teardown(function() {
     window.homescreenLauncher = realHomescreenLauncher;
-    MockSystem.currentApp = null;
+    MockService.currentApp = null;
     stubById.restore();
   });
 
@@ -48,7 +48,7 @@ suite('system/AttentionWindowManager', function() {
 
   suite('Hierarchy functions', function() {
     setup(function() {
-      this.sinon.stub(MockSystem, 'request');
+      this.sinon.stub(MockService, 'request');
       window.attentionWindowManager = new AttentionWindowManager();
       window.attentionWindowManager.start();
     });
@@ -67,13 +67,13 @@ suite('system/AttentionWindowManager', function() {
     });
     test('start should register hierarchy', function() {
       assert.isTrue(
-        MockSystem.request.calledWith('registerHierarchy',
+        MockService.request.calledWith('registerHierarchy',
           attentionWindowManager));
     });
     test('stop should unregister hierarchy', function() {
       attentionWindowManager.stop();
       assert.isTrue(
-        MockSystem.request.calledWith('unregisterHierarchy',
+        MockService.request.calledWith('unregisterHierarchy',
           attentionWindowManager));
     });
   });
@@ -83,7 +83,7 @@ suite('system/AttentionWindowManager', function() {
     setup(function() {
       window.attentionWindowManager = new AttentionWindowManager();
       window.attentionWindowManager.start();
-      sytemStub = this.sinon.stub(MockSystem, 'request');
+      sytemStub = this.sinon.stub(MockService, 'request');
     });
     teardown(function() {
       window.attentionWindowManager.stop();
@@ -344,7 +344,7 @@ suite('system/AttentionWindowManager', function() {
         attentionWindowManager._topMostWindow = att1;
         var stubClose = this.sinon.stub(att1, 'close');
         var spyReadyForApp = this.sinon.stub(app, 'ready');
-        MockSystem.currentApp = app;
+        MockService.currentApp = app;
         window.dispatchEvent(new CustomEvent('attentionrequestclose', {
           detail: att1
         }));

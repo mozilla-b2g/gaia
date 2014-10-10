@@ -10,7 +10,7 @@ require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 requireApp('system/test/unit/mock_operator_variant_handler.js');
-requireApp('system/js/system.js');
+requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/operator_variant_manager.js');
 

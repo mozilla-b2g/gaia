@@ -5,7 +5,7 @@
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_attention_window.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('system/js/system.js');
+requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/hierarchy_manager.js');
 

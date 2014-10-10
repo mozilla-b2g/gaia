@@ -4,12 +4,12 @@
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_attention_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForVisibilityManager = new MocksHelper([
-  'AttentionWindowManager', 'System', 'AppWindow'
+  'AttentionWindowManager', 'Service', 'AppWindow'
 ]).init();
 
 suite('system/VisibilityManager', function() {
@@ -89,7 +89,7 @@ suite('system/VisibilityManager', function() {
     });
 
     test('attention window is opened', function() {
-      window.System.locked = false;
+      window.Service.locked = false;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
         type: 'attentionopened'
@@ -100,7 +100,7 @@ suite('system/VisibilityManager', function() {
     });
 
     test('show lockscreen when screen is on.', function() {
-      window.System.locked = true;
+      window.Service.locked = true;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
         type: 'attentionwindowmanager-deactivated'
@@ -142,7 +142,7 @@ suite('system/VisibilityManager', function() {
     });
 
     test('move app to foreground', function () {
-      window.System.locked = false;
+      window.Service.locked = false;
       this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
           .returns(false);
       var app = new MockAppWindow();
@@ -185,7 +185,7 @@ suite('system/VisibilityManager', function() {
     });
 
     test('dont foreground app when attentionscreen visible', function () {
-      window.System.locked = false;
+      window.Service.locked = false;
       this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
           .returns(true);
       var app = new MockAppWindow();
@@ -199,7 +199,7 @@ suite('system/VisibilityManager', function() {
     });
 
     test('dont foreground app when locked', function () {
-      window.System.locked = true;
+      window.Service.locked = true;
       this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
           .returns(false);
       var app = new MockAppWindow();

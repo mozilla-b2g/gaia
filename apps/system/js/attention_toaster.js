@@ -1,4 +1,4 @@
-/* global System */
+/* global Service */
 'use strict';
 
 (function(exports) {
@@ -106,7 +106,7 @@
     },
 
     _enter_closing: function() {
-      if (!this.app || !this.app.element || (System && System.locked)) {
+      if (!this.app || !this.app.element || (Service && Service.locked)) {
         return;
       }
 
@@ -138,7 +138,7 @@
 
       this.app && this.app.setVisible(true);
       this._toasterTimer = window.setTimeout(function() {
-        if (System && System.locked) {
+        if (Service && Service.locked) {
           return;
         }
 

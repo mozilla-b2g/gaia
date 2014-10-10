@@ -1,5 +1,5 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockContextMenu, layoutManager, System,
+      LayoutManager, MocksHelper, MockContextMenu, layoutManager, Service,
       MockAppTransitionController, MockPermissionSettings, DocumentFragment */
 'use strict';
 
@@ -57,7 +57,7 @@ suite('system/AppWindow', function() {
     function() {
       return document.createElement('div');
     });
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/app_window.js');
@@ -1484,7 +1484,7 @@ suite('system/AppWindow', function() {
       app1.isHomescreen = true;
       var app2 = new AppWindow(fakeAppConfig2);
 
-      this.sinon.stub(System, 'isBusyLoading').returns(true);
+      this.sinon.stub(Service, 'isBusyLoading').returns(true);
       injectFakeMozBrowserAPI(app1.browser.element);
       injectFakeMozBrowserAPI(app2.browser.element);
       var stubScreenshot = this.sinon.stub(app1.browser.element,

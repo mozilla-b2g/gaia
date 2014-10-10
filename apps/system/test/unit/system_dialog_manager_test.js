@@ -4,7 +4,7 @@
 requireApp('system/test/unit/mock_system_dialog.js');
 requireApp('system/test/unit/mock_system_simcard_dialog.js');
 requireApp('system/js/system_dialog_manager.js');
-requireApp('system/js/system.js');
+requireApp('system/js/service.js');
 
 var mocksForSystemDialogManager = new window.MocksHelper([
   'SystemDialog',

@@ -1,5 +1,5 @@
 /* global AppWindow, AppChrome, MocksHelper, MockL10n,
-          MockModalDialog, MockSystem */
+          MockModalDialog, MockService */
 /* exported MockBookmarksDatabase */
 'use strict';
 
@@ -7,7 +7,7 @@ require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_progress/script.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
@@ -20,7 +20,7 @@ var MockBookmarksDatabase = {
 
 var mocksForAppChrome = new MocksHelper([
   'AppWindow', 'ModalDialog', 'PopupWindow', 'BookmarksDatabase',
-  'System', 'LazyLoader'
+  'Service', 'LazyLoader'
 ]).init();
 
 suite('system/AppChrome', function() {
@@ -576,7 +576,7 @@ suite('system/AppChrome', function() {
         window.removeEventListener('global-search-request', search);
         caught = true;
       });
-      MockSystem.locked = false;
+      MockService.locked = false;
       var app = new AppWindow(fakeAppWithName);
       var chrome = new AppChrome(app);
       chrome.title.dispatchEvent(new CustomEvent('click'));
@@ -589,7 +589,7 @@ suite('system/AppChrome', function() {
         window.removeEventListener('global-search-request', search);
         caught = true;
       });
-      MockSystem.locked = true;
+      MockService.locked = true;
       var app = new AppWindow(fakeAppWithName);
       var chrome = new AppChrome(app);
       chrome.title.dispatchEvent(new CustomEvent('click'));
