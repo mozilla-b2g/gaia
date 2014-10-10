@@ -404,6 +404,72 @@ suite('AppUsageMetrics:', function() {
       assert.equal(installSpy.callCount, 0);
       assert.equal(uninstallSpy.callCount, 0);
     });
+
+    test('attention windows', function() {
+      // Test for multiple attention windows on top of the currently running
+      // application
+      dispatch('appopened', { manifestURL: 'app1' });
+      clock.tick(1000);
+
+      dispatch('attentionopened', { manifestURL: 'callscreen' });
+      assert.ok(invocationSpy.calledWith('app1', 1000));
+
+      clock.tick(2000);
+      dispatch('attentionopened', { manifestURL: 'attention1' });
+      assert.ok(invocationSpy.calledWith('callscreen', 2000));
+
+      clock.tick(3000);
+      dispatch('attentionclosed', { manifestURL: 'attention1' });
+      assert.ok(invocationSpy.calledWith('attention1', 3000));
+
+      clock.tick(4000);
+      dispatch('attentionclosed', { manifestURL: 'callscreen' });
+      assert.ok(invocationSpy.calledWith('callscreen', 4000));
+
+      clock.tick(5000);
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
+      assert.ok(invocationSpy.calledWith('app1', 5000));
+    });
+
+    test('proximity screenchange', function() {
+      // Test to make sure proximity sensor based screen changes don't stop
+      // collecting metrics for the currently running app / attention window
+      dispatch('appopened', { manifestURL: 'app1' });
+      clock.tick(1000);
+
+      dispatch('attentionopened', { manifestURL: 'callscreen' });
+      assert.ok(invocationSpy.calledWith('app1', 1000));
+
+      var lastCallCount = invocationSpy.callCount;
+      dispatch('screenchange', {
+        screenEnabled: false,
+        screenOffBy: 'proximity'
+      });
+      assert.equal(invocationSpy.callCount, lastCallCount);
+
+      clock.tick(2000);
+      dispatch('screenchange', {
+        screenEnabled: true,
+        screenOffBy: 'proximity'
+      });
+      assert.equal(invocationSpy.callCount, lastCallCount);
+
+      clock.tick(3000);
+
+      dispatch('screenchange', {
+        screenEnabled: false,
+        screenOffBy: 'lockscreen'
+      });
+      assert.ok(invocationSpy.calledWith('callscreen', 5000));
+      lastCallCount = invocationSpy.callCount;
+
+      clock.tick(4000);
+      dispatch('screenchange', {
+        screenEnabled: true,
+        screenOffBy: 'lockscreen'
+      });
+      assert.equal(invocationSpy.callCount, lastCallCount);
+    });
   });
 
   /*
