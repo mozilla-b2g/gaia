@@ -165,6 +165,12 @@ suite('interval_tree', function() {
         ]
       );
     });
+
+    test('yahoo recurring allday', function() {
+      var allday = factory(555, 1000, 1000);
+      subject.add(allday);
+      assert.deepEqual(subject.items, [allday, items.after]);
+    });
   });
 
 
@@ -469,6 +475,9 @@ suite('interval_tree', function() {
         orderedAdd(add(10300, 10500), expected);
         orderedAdd(add(10400, 10500), expected);
         orderedAdd(add(10000, 10800), expected);
+
+        // yahoo recurring all day events have same start/end dates
+        orderedAdd(add(10000, 10000), expected);
 
         // create some out of range in upper bounds
         for (i = 0; i < 1021; i++) {

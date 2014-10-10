@@ -431,6 +431,28 @@ suite('Views.MonthChild', function() {
     });
   });
 
+  suite('#_updateBusyCount: same date', function() {
+    // yahoo recurring all day events have same value for start/end date
+    var busytime = {
+      startDate: new Date(2014, 9, 9),
+      endDate: new Date(2014, 9, 9)
+    };
+    var stub;
+
+    setup(function() {
+      stub = sinon.stub(subject, '_setBusyCount');
+    });
+
+    teardown(function() {
+      stub.restore();
+    });
+
+    test('should update appropriate day', function() {
+      subject._updateBusyCount(busytime, 1);
+      sinon.assert.calledOnce(stub);
+    });
+  });
+
   suite('#_setBusyCount', function() {
     var dayId = Calc.getDayId(new Date('January 17, 1998'));
     var mock;

@@ -87,11 +87,13 @@ Child.prototype = {
   },
 
   _updateBusyCount: function(busytime, difference) {
-    var endDate = busytime.endDate;
+    var {startDate, endDate} = busytime;
     var dates = [];
     // Use the last second of previous day as the base for endDate
     // (e.g., 1991-09-14T23:59:59 insteads of 1991-09-15T00:00:00).
-    if (endDate.getHours() === 0 &&
+    // IMPORTANT: yahoo uses same start/end date for recurring all day events!
+    if (Number(startDate) !== Number(endDate) &&
+        endDate.getHours() === 0 &&
         endDate.getMinutes() === 0 &&
         endDate.getSeconds() === 0) {
       endDate = new Date(endDate.getTime() - 1000);

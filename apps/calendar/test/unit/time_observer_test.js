@@ -174,6 +174,23 @@ suite('time_observer', function() {
         obj
       );
     });
+
+    test('same date', function(done) {
+      // yahoo calendar sets endDate and startDate as same value when creating
+      // an all day recurring event
+      startDate = new Date(2012, 5, 5);
+      endDate = new Date(2012, 5, 5);
+
+      subject.observeTime(span, function(e) {
+        done(function() {
+          assert.equal(e.time, true);
+          assert.equal(e.type, 'add');
+          assert.equal(e.data, obj);
+        });
+      });
+      fireSuccess();
+    });
+
   });
 });
 
