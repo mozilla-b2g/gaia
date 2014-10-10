@@ -436,6 +436,8 @@ var CallLogDBManager = {
                 }
                 if (matchingTel.carrier) {
                   group.contactMatchingTelCarrier = String(matchingTel.carrier);
+                } else {
+                  group.contactMatchingTelCarrier = '';
                 }
               }
             }
