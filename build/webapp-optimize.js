@@ -550,9 +550,8 @@ HTMLOptimizer.prototype.getFileByRelativePath = function(relativePath) {
     file.append(name);
   }, this);
 
-  var dirName = utils.dirname(relativePath);
-  var fileName = utils.basename(relativePath);
-
+  var dirName = file.parent.path;
+  var fileName = file.leafName;
   if (utils.isSubjectToBranding(dirName)) {
     file = file.parent;
     file.append((this.config.OFFICIAL === '1') ? 'official' : 'unofficial');
