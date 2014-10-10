@@ -679,14 +679,15 @@
         aCallback(null, response);
       };
 
-      xhr.ontimeout = xhr.onerror = function() {
-        var error = new Error('Error getting command URL');
+      xhr.ontimeout = xhr.onerror = function(evt) {
+        var error = new Error('Command URL ' + evt.type + ' for command ' +
+                              aCommand + ' at baseUrl ' + this.baseUrl);
         console.error(error);
         if (conn.onmessage)
-          conn.onmessage(aCommand, 'timeout', xhr, params, aExtraHeaders,
+          conn.onmessage(aCommand, evt.type, xhr, params, aExtraHeaders,
                          aData, null);
         aCallback(error);
-      };
+      }.bind(this);
 
       xhr.responseType = 'arraybuffer';
       xhr.send(aData);
