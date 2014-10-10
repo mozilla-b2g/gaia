@@ -1,3 +1,5 @@
+apps/bluetooth/js/deviceList.js
+apps/bluetooth/js/transfer.js
 apps/pdfjs/content/**
 apps/pdfjs/test/**
 apps/email/build/**
