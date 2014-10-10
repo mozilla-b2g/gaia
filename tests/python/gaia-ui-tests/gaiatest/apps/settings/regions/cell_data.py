@@ -9,7 +9,7 @@ from gaiatest.apps.settings.regions.cell_data_prompt import CellDataPrompt
 
 class CellData(Base):
 
-    _carrier_name_locator = (By.ID, 'dataNetwork-desc')
+    _carrier_name_locator = (By.CSS_SELECTOR, '#menuItem-carrier-sim1 small')
     _cell_data_enabled_input_locator = (By.XPATH, "//input[@name='ril.data.enabled']")
     _cell_data_enabled_label_locator = (By.XPATH, "//input[@name='ril.data.enabled']/..")
     _menuItem_carrier_sim1_locator = (By.ID, "menuItem-carrier-sim1")
