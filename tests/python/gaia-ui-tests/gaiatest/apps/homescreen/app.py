@@ -19,6 +19,7 @@ class Homescreen(Base):
     _edit_mode_locator = (By.CSS_SELECTOR, 'body.edit-mode')
     _search_bar_icon_locator = (By.ID, 'search-input')
     _landing_page_locator = (By.ID, 'icons')
+    _bookmark_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .bookmark')
 
     def launch(self):
         Base.launch(self)
@@ -42,6 +43,9 @@ class Homescreen(Base):
 
     def wait_for_app_icon_not_present(self, app_name):
         self.wait_for_condition(lambda m: self.installed_app(app_name) is None)
+
+    def wait_for_bookmark_icon_not_present(self, bookmark_title):
+        self.wait_for_condition(lambda m: self.bookmark(bookmark_title) is None)
 
     def is_app_installed(self, app_name):
         """Checks whether app is installed"""
@@ -120,6 +124,11 @@ class Homescreen(Base):
     def installed_app(self, app_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
             if root_el.text == app_name:
+                return self.InstalledApp(self.marionette, root_el)
+
+    def bookmark(self, bookmark_title):
+        for root_el in self.marionette.find_elements(*self._bookmark_icons_locator):
+            if root_el.text == bookmark_title:
                 return self.InstalledApp(self.marionette, root_el)
 
     class InstalledApp(PageRegion):
