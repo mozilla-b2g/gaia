@@ -296,7 +296,7 @@ suite('FtuPing', function() {
       this.sinon.stub(MockSIMSlotManager, 'noSIMCardConnectedToNetwork')
           .returns(false);
       assert.throw(function() { FtuPing.checkMobileNetwork(); },
-                   /No mobile connections/);
+                   /No unlocked or active SIM cards found/);
       assert.equal(FtuPing.getNetworkFailCount(), 1);
       MockSIMSlotManager.noSIMCardConnectedToNetwork.restore();
     });
@@ -306,7 +306,7 @@ suite('FtuPing', function() {
           .returns(false);
       MockNavigatorMozMobileConnections.mAddMobileConnection();
       assert.throw(function() { FtuPing.checkMobileNetwork(); },
-                   /No mobile connections/);
+                   /No unlocked or active SIM cards found/);
       MockSIMSlotManager.noSIMCardConnectedToNetwork.restore();
     });
 
