@@ -33,6 +33,8 @@ marionette(config.appPath + ' >', function() {
       lastEvent: lastEvent
     });
 
+    performanceHelper.disableScreenTimeout();
+
     function sendOverfill() {
       window.wrappedJSObject.mozRequestOverfill(function result(aOverfill) {
         marionetteScriptFinished(aOverfill);

@@ -129,98 +129,98 @@ PerformanceHelper.reportGoal = function(goals) {
 };
 
 PerformanceHelper.prototype = {
-    // startValue is the name of the start event.
-    // By default it is 'start'
-    reportRunDurations: function(runResults, startValue) {
+  // startValue is the name of the start event.
+  // By default it is 'start'
+  reportRunDurations: function(runResults, startValue) {
 
-      startValue = startValue || 'start';
+    startValue = startValue || 'start';
 
-      var start = runResults[startValue] || 0;
-      delete runResults[startValue];
+    var start = runResults[startValue] || 0;
+    delete runResults[startValue];
 
-      for (var name in runResults) {
-        var value = runResults[name] - start;
-        // Sometime we start from an event that happen later.
-        // Ignore the one that occur before - ie negative values.
-        if (value >= 0) {
-          this.results[name] = this.results[name] || [];
-          this.results[name].push(value);
-        }
+    for (var name in runResults) {
+      var value = runResults[name] - start;
+      // Sometime we start from an event that happen later.
+      // Ignore the one that occur before - ie negative values.
+      if (value >= 0) {
+        this.results[name] = this.results[name] || [];
+        this.results[name].push(value);
+      }
+    }
+
+  },
+
+  finish: function() {
+    for (var name in this.results) {
+      PerformanceHelper.reportDuration(this.results[name], name);
+    }
+  },
+
+  /**
+   * Repeat the task 'fn' with a delay.
+   * Call 'callback' if exist.
+   *
+   *    perf.repeatWithDelay(function(app, next) {
+   *      app.launch();
+   *      app.close();
+   *    });
+   *
+   */
+  repeatWithDelay: function(fn, callback) {
+
+    callback = callback || this.app.defaultCallback;
+
+    var pending = this.runs;
+
+    function nextTask(err) {
+      if (err) {
+        return callback(err);
       }
 
-    },
-
-    finish: function() {
-      for (var name in this.results) {
-        PerformanceHelper.reportDuration(this.results[name], name);
+      if (!--pending) {
+        callback();
+      } else {
+        trigger();
       }
-    },
+    }
 
-    /**
-     * Repeat the task 'fn' with a delay.
-     * Call 'callback' if exist.
-     *
-     *    perf.repeatWithDelay(function(app, next) {
-     *      app.launch();
-     *      app.close();
-     *    });
-     *
-     */
-    repeatWithDelay: function(fn, callback) {
+    var self = this;
+    function trigger() {
+      self.delay(function() {
+        self.task(fn, nextTask);
+      });
+    }
 
-      callback = callback || this.app.defaultCallback;
+    trigger();
+  },
 
-      var pending = this.runs;
+  /*
+   * Run a task 'fn', and then chain on the 'next' task.
+   */
+  task: function(fn, next) {
+    var app = this.app;
+    next = next || app.defaultCallback;
 
-      function nextTask(err) {
-        if (err) {
-          return callback(err);
-        }
+    fn(app);
+    next();
+  },
 
-        if (!--pending) {
-          callback();
-        } else {
-          trigger();
-        }
-      }
+  delay: function(givenCallback) {
+    givenCallback = givenCallback || client.defaultCallback;
+    var interval = this.opts.spawnInterval;
 
-      var self = this;
-      function trigger() {
-        self.delay(function() {
-          self.task(fn, nextTask);
-        });
-      }
+    MarionetteHelper.delay(this.app.client, interval, givenCallback);
+  },
 
-      trigger();
-    },
+  waitForPerfEvent: function(callback) {
+    this.app.waitForPerfEvents(this.opts.lastEvent, callback);
+  },
 
-    /*
-     * Run a task 'fn', and then chain on the 'next' task.
-     */
-    task: function(fn, next) {
-      var app = this.app;
-      next = next || app.defaultCallback;
-
-      fn(app);
-      next();
-    },
-
-    delay: function(givenCallback) {
-      givenCallback = givenCallback || client.defaultCallback;
-      var interval = this.opts.spawnInterval;
-
-      MarionetteHelper.delay(this.app.client, interval, givenCallback);
-    },
-
-    waitForPerfEvent: function(callback) {
-      this.app.waitForPerfEvents(this.opts.lastEvent, callback);
-    },
-
-    /*
-     * Get the memory stats for the specified app
-     * as well as the main b2g.
-     * See bug 917717.
-     */
+  /*
+   * Get the memory stats for the specified app
+   * as well as the main b2g.
+   * See bug 917717.
+   */
   getMemoryUsage: function(app) {
     var appName = GetAppName(app);
     var meminfo = MemInfo.meminfo();
@@ -255,6 +255,20 @@ PerformanceHelper.prototype = {
         vsize: parseFloat(system.VSIZE)
       }
     };
+  },
+
+  /*
+   * Keep the device from "going to sleep" by disabling the screen from
+   * dimming and shutting off
+   */
+  disableScreenTimeout: function() {
+    this.app.client.executeScript(function() {
+      window.wrappedJSObject.SettingsListener
+        .getSettingsLock()
+        .set({
+          'screen.timeout': 0
+        });
+      });
   }
 };
 
