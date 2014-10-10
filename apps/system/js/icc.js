@@ -32,7 +32,7 @@ var icc = {
           }
         });
     });
-
+    window.addEventListener('home', this);
     this.hideViews();
     this.protectForms();
     this.getIccInfo();
@@ -159,6 +159,15 @@ var icc = {
     DUMP('STK Command not recognized ! - ', message);
   },
 
+  handleEvent: function icc_handleEvent(evt) {
+    switch (evt.type) {
+      case 'home':
+        if (this.icc_view.classList.contains('visible')) {
+          this.hideViews();
+        }
+        break;
+    }
+  },
 
   /**
    * Response ICC Command
