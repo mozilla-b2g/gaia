@@ -84,7 +84,10 @@ if (!window.LiveConnector) {
         out.uid = source.user_id || source.id;
         out.givenName = [source.first_name || ''];
         out.familyName = [source.last_name || ''];
-        out.email1 = source.emails.account || '';
+        out.email1 = source.emails.account ||
+         source.emails.preferred ||
+         source.emails.personal ||
+         '';
 
         out.contactPictureUri = [LIVE_ENDPOINT, out.uid,
                                  PICTURE_RESOURCE, '?type=medium'].join('');
