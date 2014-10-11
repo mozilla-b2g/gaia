@@ -33,7 +33,7 @@ function _registerListener(document) {
 
     debug('got', evtName);
 
-    perfMeasurements[evtName] = window.performance.now();
+    perfMeasurements[evtName] = Date.now();
     checkFinish();
   }
 
@@ -60,7 +60,7 @@ function _registerListener(document) {
     }
     debug('registering');
     perfMeasurements = Object.create(null);
-    perfMeasurements.start = window.performance.now();
+    perfMeasurements.start = Date.now();
     window.epochEnd = Date.now();
 
     window.addEventListener(PERF_EVENT_NAME, handlePerfEvent);

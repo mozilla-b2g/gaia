@@ -1,8 +1,6 @@
 'use strict';
 
-var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
-var PerformanceHelper =
-  requireGaia('/tests/performance/performance_helper.js');
+var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
 var SettingsIntegration = require('./integration.js');
 var Actions = require('marionette-client').Actions;
 
@@ -10,7 +8,8 @@ marionette(mozTestInfo.appPath + ' >', function() {
   var app;
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
 
@@ -19,19 +18,14 @@ marionette(mozTestInfo.appPath + ' >', function() {
   app = new SettingsIntegration(client, mozTestInfo.appPath);
 
   setup(function() {
-    // It affects the first run otherwise
     this.timeout(500000);
     client.setScriptTimeout(50000);
-
-    // inject perf event listener
     PerformanceHelper.injectHelperAtom(client);
-
-    MarionetteHelper.unlockScreen(client);
   });
 
   test('Overfill Settings Scroll >', function() {
     var results = [];
-    var lastEvent = 'startup-path-done';
+    var lastEvent = 'moz-app-loaded';
 
     var performanceHelper = new PerformanceHelper({
       app: app,

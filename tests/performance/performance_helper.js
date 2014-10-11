@@ -84,6 +84,9 @@ PerformanceHelper.injectHelperAtom = function(client) {
       client.executeScript(removeListener);
     },
 
+    // This method listens for the loadtime event so we know when the test has
+    // loaded the app, and can capture the timestamp emitted by AppWindow during
+    // the loadtime event
     registerTimestamp: function(client) {
       client
         .executeScript(function registerListener() {
@@ -94,6 +97,8 @@ PerformanceHelper.injectHelperAtom = function(client) {
         });
     },
 
+    // This method fetches a timestamp that is stored on the window when
+    // the 'apploadtime' event is hit. See this.registerTimestamp
     getEpochStart: function(client) {
       client.switchToFrame();
 
@@ -101,12 +106,6 @@ PerformanceHelper.injectHelperAtom = function(client) {
         .executeScript(function() {
           return window.wrappedJSObject.epochStart;
         });
-    },
-
-    getEpochEnd: function(client) {
-      return client.executeScript(function() {
-        return document.defaultView.wrappedJSObject.epochEnd;
-      });
     },
 
     getLoadTimes: function(client) {
@@ -130,16 +129,15 @@ PerformanceHelper.injectHelperAtom = function(client) {
 PerformanceHelper.prototype = {
     // startValue is the name of the start event.
     // By default it is 'start'
-    reportRunDurations: function(runResults, startValue, delta) {
+    reportRunDurations: function(runResults, startValue) {
 
       startValue = startValue || 'start';
-      delta = delta || 0;
 
       var start = runResults[startValue] || 0;
       delete runResults[startValue];
 
       for (var name in runResults) {
-        var value = runResults[name] - start + delta;
+        var value = runResults[name] - start;
         // Sometime we start from an event that happen later.
         // Ignore the one that occur before - ie negative values.
         if (value >= 0) {

@@ -8,11 +8,13 @@
     }
 
     var now = window.performance.now();
+    var epoch = Date.now();
 
     setTimeout(function() {
       var detail = {
         name: name,
-        timestamp: now
+        timestamp: now,
+        epoch: epoch
       };
       var event = new CustomEvent('x-moz-perf', { detail: detail });
 
