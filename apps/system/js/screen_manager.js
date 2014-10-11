@@ -1,6 +1,7 @@
 'use strict';
 
-/* globals SettingsListener, Bluetooth, StatusBar, System */
+/* globals SettingsListener, Bluetooth, StatusBar, System,
+           ScreenBrightnessTransition */
 
 var ScreenManager = {
   /*
@@ -68,16 +69,12 @@ var ScreenManager = {
   AUTO_BRIGHTNESS_CONSTANT: 0.27,
 
   /*
-   * When we change brightness we animate it smoothly.
-   * This constant is the number of milliseconds between adjustments
+   * This property will host a ScreenBrightnessTransition instance
+   * and control the brightness transition for us.
+   * Eventually we want to move all brightness controls
+   * (including auto-brightness toggle and calculation) out of this module.
    */
-  BRIGHTNESS_ADJUST_INTERVAL: 20,
-
-  /*
-   * When brightening or dimming the screen, this is how much we adjust
-   * the brightness value at a time.
-   */
-  BRIGHTNESS_ADJUST_STEP: 0.01,
+  _screenBrightnessTransition: null,
 
   /*
    * Wait for _dimNotice milliseconds during idle-screen-off
@@ -120,6 +117,8 @@ var ScreenManager = {
     window.addEventListener('accessibility-action', this);
 
     this.screen = document.getElementById('screen');
+
+    this._screenBrightnessTransition = new ScreenBrightnessTransition();
 
     var self = this;
     var power = navigator.mozPower;
@@ -512,10 +511,9 @@ var ScreenManager = {
       return;
     }
 
-    // Make sure we don't have another brightness change scheduled
-    if (this._transitionBrightnessTimer) {
-      clearTimeout(this._transitionBrightnessTimer);
-      this._transitionBrightnessTimer = null;
+    // Stop the current transition
+    if (this._screenBrightnessTransition.isRunning) {
+      this._screenBrightnessTransition.abort();
     }
 
     if (typeof instant !== 'boolean') {
@@ -527,35 +525,7 @@ var ScreenManager = {
       return;
     }
 
-    // transitionBrightness() is a looping function that will
-    // gracefully tune the brightness to _targetBrightness for us.
-    this.transitionBrightness();
-  },
-
-  transitionBrightness: function scm_transitionBrightness() {
-    var self = this;
-    var power = navigator.mozPower;
-    var screenBrightness = power.screenBrightness;
-    var delta = this.BRIGHTNESS_ADJUST_STEP;
-
-    // Is this the last time adjustment we need to make?
-    if (Math.abs(this._targetBrightness - screenBrightness) <= delta) {
-      power.screenBrightness = this._targetBrightness;
-      this._transitionBrightnessTimer = null;
-      return;
-    }
-
-    if (screenBrightness > this._targetBrightness) {
-      delta *= -1;
-    }
-
-    screenBrightness += delta;
-    power.screenBrightness = screenBrightness;
-
-    this._transitionBrightnessTimer =
-      setTimeout(function transitionBrightnessTimeout() {
-        self.transitionBrightness();
-      }, this.BRIGHTNESS_ADJUST_INTERVAL);
+    this._screenBrightnessTransition.transitionTo(this._targetBrightness);
   },
 
   setDeviceLightEnabled: function scm_setDeviceLightEnabled(enabled) {

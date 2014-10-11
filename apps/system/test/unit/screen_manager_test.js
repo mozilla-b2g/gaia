@@ -1,4 +1,5 @@
-/* globals ScreenManager, MocksHelper, MockLockScreen, MockMozPower,
+/* globals ScreenManager, ScreenBrightnessTransition,
+           MocksHelper, MockLockScreen, MockMozPower,
            MockSettingsListener, MocksleepMenu */
 
 'use strict';
@@ -40,14 +41,23 @@ var mocksForScreenManager = new MocksHelper([
   'System'
 ]).init();
 
+require('/js/screen_brightness_transition.js');
+
 suite('system/ScreenManager', function() {
   var reals = {};
   mocksForScreenManager.attachTestHelpers();
+
+  var stubScreenBrightnessTransition;
 
   setup(function(done) {
     window.lockScreen = MockLockScreen;
     switchProperty(navigator, 'mozPower', MockMozPower, reals, true);
     this.sinon.useFakeTimers();
+
+    stubScreenBrightnessTransition =
+      this.sinon.stub(ScreenBrightnessTransition.prototype);
+    this.sinon.stub(window, 'ScreenBrightnessTransition')
+      .returns(stubScreenBrightnessTransition);
 
     // We make sure fake timers are in place before we require the app
     requireApp('system/js/screen_manager.js', done);
@@ -587,49 +597,14 @@ suite('system/ScreenManager', function() {
   });
 
   suite('setScreenBrightness()', function() {
-    var stubClearTimeout, stubTransBrightness;
-
-    setup(function() {
-      stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
-      stubTransBrightness = this.sinon.stub(ScreenManager,
-                                            'transitionBrightness');
-    });
-
     test('set brightness with instant argument', function() {
       ScreenManager.setScreenBrightness(0.5, true);
-      assert.isFalse(stubTransBrightness.called);
       assert.equal(MockMozPower.screenBrightness, 0.5);
     });
 
     test('set brightness without instant argument', function() {
       ScreenManager.setScreenBrightness(0.5, false);
-      assert.isTrue(stubTransBrightness.called);
-    });
-  });
-
-  suite('transitionBrightness()', function() {
-    test('same brightness', function() {
-      ScreenManager._transitionBrightnessTimer = 'not null';
-      ScreenManager._targetBrightness = 0.5;
-      MockMozPower.screenBrightness = 0.5;
-      ScreenManager.transitionBrightness();
-      assert.isNull(ScreenManager._transitionBrightnessTimer);
-    });
-
-    test('brightness from 0.9 to 0.4', function() {
-      MockMozPower.screenBrightness = 0.9;
-      ScreenManager._targetBrightness = 0.4;
-      ScreenManager.transitionBrightness();
-      assert.equal(MockMozPower.screenBrightness,
-          0.9 - ScreenManager.BRIGHTNESS_ADJUST_STEP);
-    });
-
-    test('brightness from 0.4 to 0.9', function() {
-      MockMozPower.screenBrightness = 0.4;
-      ScreenManager._targetBrightness = 0.9;
-      ScreenManager.transitionBrightness();
-      assert.equal(MockMozPower.screenBrightness,
-        0.4 + ScreenManager.BRIGHTNESS_ADJUST_STEP);
+      assert.isTrue(stubScreenBrightnessTransition.transitionTo.called);
     });
   });
 
