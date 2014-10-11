@@ -288,6 +288,7 @@ var StatusBar = {
     window.addEventListener('appopening', this);
     window.addEventListener('appopened', this);
     window.addEventListener('activityopened', this);
+    window.addEventListener('activityterminated', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
     window.addEventListener('sheets-gesture-begin', this);
@@ -528,24 +529,35 @@ var StatusBar = {
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
         break;
+      case 'activityterminated':
+        // In this particular case, we want to restore the original color of
+        // the bottom window as it will *become* the shown window.
+        this.setAppearance(evt.detail, true);
+        this.element.classList.remove('hidden');
+        break;
     }
   },
 
-  setAppearance: function(app) {
+  setAppearance: function(app, useBottomWindow) {
     // Avoid any attempt to update the statusbar when
     // the phone is locked
     if (this._inLockScreenMode) {
       return;
     }
 
-    // Fetch top-most window to figure out color theming.
-    var top = app.getTopMostWindow();
+    // Fetch top-most (or bottom-most) window to figure out color theming.
+    var themeWindow =
+      useBottomWindow ? app.getBottomMostWindow() : app.getTopMostWindow();
+
     this.element.classList.toggle('light',
-      !!(top.appChrome && top.appChrome.useLightTheming())
+      !!(themeWindow.appChrome && themeWindow.appChrome.useLightTheming())
     );
 
-    this.element.classList.toggle('maximized', app.isHomescreen ||
-      !!(app.appChrome && app.appChrome.isMaximized())
+    // Maximized state must be based on the bottom window if we're using it but
+    // use the currently showing window for other cases.
+    var maximizedWindow = useBottomWindow ? themeWindow : app;
+    this.element.classList.toggle('maximized', maximizedWindow.isHomescreen ||
+      !!(maximizedWindow.appChrome && maximizedWindow.appChrome.isMaximized())
     );
   },
 
