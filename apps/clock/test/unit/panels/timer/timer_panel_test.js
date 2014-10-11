@@ -155,6 +155,50 @@ suite('Timer.Panel', function() {
     fakeTick(panel);
     assert.equal(panel.nodes.time.textContent, '00:59:55');
   });
+ 
+  test('Create button is disabled when picker is set to 0:00', function() {
+    var panel = new Timer.Panel(document.createElement('div'));
+    var create = panel.nodes.create;
+    var nodes = panel.picker.nodes;
+
+    create = {
+      setAttribute: function() {},
+      removeAttribute: function() {}
+    };
+    
+    this.sinon.spy(create, 'removeAttribute');
+    this.sinon.spy(create, 'setAttribute');
+
+    assert.isTrue(panel.nodes.create.disabled);
+
+    panel.picker.value = '3:00';
+    nodes.hours.dispatchEvent(
+      new CustomEvent('transitionend')
+    );
+    
+    assert.isFalse(panel.nodes.create.disabled);
+
+    panel.picker.value = '0:00';
+    nodes.hours.dispatchEvent(
+      new CustomEvent('transitionend')
+    );
+
+    assert.isTrue(panel.nodes.create.disabled);
+
+    panel.picker.value = '0:15';
+    nodes.minutes.dispatchEvent(
+      new CustomEvent('transitionend')
+    );
+    
+    assert.isFalse(panel.nodes.create.disabled);
+
+    panel.picker.value = '0:00';
+    nodes.minutes.dispatchEvent(
+      new CustomEvent('transitionend')
+    );
+
+    assert.isTrue(panel.nodes.create.disabled);
+  });
 
   suite('Timer.Panel, Events', function() {
     var panel;
@@ -208,8 +252,13 @@ suite('Timer.Panel', function() {
       assert.ok(timer.cancel.called);
     });
 
-    test('click: create ', function() {
-      panel.picker = { value: '0:60' };
+    test('click: create', function() {
+      panel.picker.value = '1:00';
+
+      panel.picker.nodes.hours.dispatchEvent(
+        new CustomEvent('transitionend')
+      );
+
       panel.nodes.create.dispatchEvent(
         new CustomEvent('click')
       );
