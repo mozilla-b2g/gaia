@@ -80,7 +80,6 @@ tests/browser_sms_new.js
 tests/head.js
 tests/atoms/remote_date.js
 tests/atoms/screenshot.js
-tests/performance/app.js
 tests/performance/exec-sync.js
 tests/performance/getappname.js
 tests/performance/getappname_atom.js
