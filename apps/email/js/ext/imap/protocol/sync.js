@@ -1,10 +1,12 @@
 define(
   [
     '../imapchew',
+    '../../allback',
     'exports'
   ],
   function(
     $imapchew,
+    allback,
     exports
   ) {
 
@@ -115,50 +117,30 @@ Sync.prototype = {
   },
 
   _beginSync: function() {
-    // pending operations
-    var pending = 1;
-    var self = this;
-
-    function next() {
-      if (!--pending) {
-        self.storage.runAfterDeferredCalls(function() {
-          if (!self.oncomplete)
-            return;
-
-          // Need a timeout here because we batch slices in SliceBridgeProxy and
-          // only want to call oncomplete after all those slices have been sent
-          // to keep the order the same.
-          window.setZeroTimeout(
-            function() {
-              self.oncomplete(
-                self.newUIDs.length,
-                self.knownUIDs.length
-              );
-            }
-          );
-        });
-      }
-    }
+    var latch = allback.latch();
 
     if (this.newUIDs.length) {
-      pending++;
-      this._handleNewUids(next);
+      this._handleNewUids(latch.defer('new'));
     }
 
     if (this.knownUIDs.length) {
-      pending++;
-      this._handleKnownUids(next);
+      this._handleKnownUids(latch.defer('known'));
     }
 
-    window.setZeroTimeout(next);
+    latch.then(function() {
+      if (!this.oncomplete) {
+        return;
+      }
+
+      this.oncomplete(this.newUIDs.length, this.knownUIDs.length);
+    }.bind(this));
   },
 
   _handleNewUids: function(callback) {
     var pendingSnippets = [];
     var self = this;
 
-
-   this.connection.listMessages(
+    this.connection.listMessages(
       this.newUIDs,
       INITIAL_FETCH_PARAMS,
       { byUid: true },
@@ -172,6 +154,7 @@ Sync.prototype = {
           return;
         }
 
+        var latch = allback.latch();
         messages.forEach(function(msg) {
           // Filter out the \Recent flag; our old imap library didn't
           // pass it along (complaining about it being useless), so we
@@ -198,8 +181,10 @@ Sync.prototype = {
 
             // flush our body/header information ? should we do some sorting,
             // etc.. here or just let the UI update ASAP?
-            self.storage.addMessageHeader(chewRep.header, chewRep.bodyInfo);
-            self.storage.addMessageBody(chewRep.header, chewRep.bodyInfo);
+            self.storage.addMessageHeader(
+              chewRep.header, chewRep.bodyInfo, latch.defer());
+            self.storage.addMessageBody(
+              chewRep.header, chewRep.bodyInfo, latch.defer());
           }
           catch (ex) {
             // it's fine for us to not add bad messages to the database
@@ -209,7 +194,7 @@ Sync.prototype = {
           }
         }.bind(this));
 
-        callback();
+        latch.then(callback); // our caller doesn't care about its args
       }.bind(this));
   },
 
@@ -226,6 +211,7 @@ Sync.prototype = {
           return;
         }
 
+        var latch = allback.latch();
         messages.forEach(function(msg, i) {
           console.log('FETCHED', i, 'known id', self.knownHeaders[i].id,
                       'known srvid', self.knownHeaders[i].srvid,
@@ -270,8 +256,9 @@ Sync.prototype = {
             console.warn('  FLAGS: "' + header.flags.toString() + '" VS "' +
                          msg.flags.toString() + '"');
             header.flags = msg.flags;
-            self.storage.updateMessageHeader(header.date, header.id, true,
-                                             header, /* body hint */ null);
+            self.storage.updateMessageHeader(
+              header.date, header.id, true, header, /* body hint */ null,
+              latch.defer());
           }
           else {
             self.storage.unchangedMessageHeader(header);
@@ -282,7 +269,7 @@ Sync.prototype = {
         self._updateProgress(KNOWN_HEADERS_AGGR_COST +
                              KNOWN_HEADERS_PER_COST * self.knownUIDs.length);
 
-        callback();
+        latch.then(callback); // our caller doesn't care about its args
       }.bind(this));
   }
 
