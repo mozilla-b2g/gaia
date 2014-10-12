@@ -1,9 +1,6 @@
-echo $step
-#! /bin/bash
+#! /bin/bash -e
 
-## NOTICE that -e is not set be extra careful about error handling!
-
-cmd_help() {
+buildbot_step_help() {
   echo "Run a command and wrap it in buildbot step format"
   echo "  $0 - <buildbot step> [bash args...]"
 }
@@ -28,21 +25,38 @@ bb_line() {
   bb_echo "$type $step (results: $code, elapsed: $duration secs) (at $time)"
 }
 
-if [ $# -lt 2 ];
+# Intentionally the full name of this executable so sourcing this file also
+# works as expected...
+buildbot_step() {
+  local step=$1
+  local command=${@:2}
+  local start_time=$(date +%s)
+  local exit_code=0
+
+  bb_line "Started" "$step" 0 0
+  if eval "$command";
+  then
+    exit_code=$?
+  else
+    exit_code=$?
+  fi
+
+  local end_time=$(date +%s)
+  local duration=$(($end_time-$start_time))
+
+  bb_line "Finished" "$step" $exit_code $duration
+  return $exit_code
+}
+
+
+# When this script is not being sourced invoke command directly.
+if [ "$(basename $0)" == "buildbot_step" ];
 then
-  cmd_help
-  exit 1
+  if [ $# -lt 2 ];
+  then
+    buildbot_step_help
+    exit 1
+  fi
+  buildbot_step "$@"
+  exit $?
 fi
-
-step=$1
-command=${@:2}
-start_time=$(date +%s)
-
-bb_line "Started" "$step" 0 0
-eval $command
-exit_code=$?
-end_time=$(date +%s)
-duration=$(($end_time-$start_time))
-
-bb_line "Finished" "$step" $? $duration
-exit $exit_code
