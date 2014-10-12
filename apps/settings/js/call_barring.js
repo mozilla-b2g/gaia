@@ -1,4 +1,4 @@
-/* global TaskScheduler, IntroducePasscodeScreen, PasscodeChangeScreen */
+/* global TaskScheduler, InputPasscodeScreen, ChangePasscodeScreen */
 /* exported CallBarring */
 
 'use strict';
@@ -29,8 +29,9 @@ var CallBarring = (function() {
   /**
    * Enable all the elements of the Call Barring screen.
    * @param description Message to show after enabling.
+   * @param callback In case it's needed to know when the process ends.
    */
-  function _enableAllCallBarring(description) {
+  function _enableAllCallBarring(description, callback) {
     [].forEach.call(
       document.querySelectorAll('#call-cbSettings li'),
       function enable(item) {
@@ -58,13 +59,16 @@ var CallBarring = (function() {
     if (baic.querySelector('input').checked) {
       _updateCallBarringItem(baicR, {'disabled': true});
     }
+
+    callback();
   }
 
   /**
    * Disable all the elements of the Call Barring screen.
    * @param description Message to show while disabled.
+   * @param callback In case it's needed to know when the process ends.
    */
-  function _disableAllCallBarring(description) {
+  function _disableAllCallBarring(description, callback) {
     [].forEach.call(
       document.querySelectorAll('#call-cbSettings li'),
       function disable(item) {
@@ -75,6 +79,9 @@ var CallBarring = (function() {
         _updateCallBarringItem(item, newStatus);
       }
     );
+    if (typeof callback === 'function') {
+      callback();
+    }
   }
 
   /**
@@ -88,15 +95,11 @@ var CallBarring = (function() {
    * }
    */
   function _updateCallBarringItem(item, newStatus) {
-    // console.log('>> UPDATING ITEM');
-    // console.log('>> item: ' + item.id);
-    // console.log('>> values: ' + JSON.stringify(newStatus));
-
     var descText = item.querySelector('small');
     var input = item.querySelector('input');
 
     // disable the item
-    if (typeof newStatus.disabled === 'boolean') {
+    if (newStatus.disabled && typeof newStatus.disabled === 'boolean') {
       newStatus.disabled ?
         item.setAttribute('aria-disabled', true) :
         item.removeAttribute('aria-disabled');
@@ -146,8 +149,9 @@ var CallBarring = (function() {
       request.onsuccess = function() {
         console.log('CB SET > SUCCESS!');
         console.log('CB SET > RESULT: ' + JSON.stringify(request.result));
-        _enableAllCallBarring();
-        done();
+        _enableAllCallBarring(null, function finished() {
+          done();
+        });
       };
       request.onerror = function() {
         /* request.error = { name, message } */
@@ -160,8 +164,10 @@ var CallBarring = (function() {
                                {'checked': !options.enabled});
 
         // and enable all again
-        _enableAllCallBarring();
-        done();
+        _enableAllCallBarring(null, function finished() {
+          done();
+        });
+
       };
     });
   }
@@ -182,25 +188,25 @@ var CallBarring = (function() {
       'serviceClass': _voiceServiceClassMask
     };
 
-    // console.log('CB GET > promise started');
-    // console.log('CB GET > ID = ' + id);
-    // console.log('CB GET > options =  ' + JSON.stringify(options));
+    console.log('CB GET > promise started');
+    console.log('CB GET > ID = ' + id);
+    console.log('CB GET > options =  ' + JSON.stringify(options));
     return new Promise(function (resolve, reject) {
       // Send the request
       var request = _mobileConnection.getCallBarringOption(options);
       // var request = MockCallBarring.getCallBarringOption(options);
 
       request.onsuccess = function() {
-        // console.log('CB GET > SUCCESS for ID = ' + id);
-        // console.log('CB GET > RESULT: ' + JSON.stringify(request.result));
+        console.log('CB GET > SUCCESS for ID = ' + id);
+        console.log('CB GET > RESULT: ' + JSON.stringify(request.result));
 
         resolve({'id': id, 'checked': request.result.enabled});
       };
       request.onerror = function() {
         /* request.error = { name, message } */
-        // console.log('CB GET > ERROR for ID = ' + id);
-        // console.log('CB GET > e.name =  ' + request.error.name);
-        // console.log('CB GET > e.message = ' + request.error.message);
+        console.log('CB GET > ERROR for ID = ' + id);
+        console.log('CB GET > e.name =  ' + request.error.name);
+        console.log('CB GET > e.message = ' + request.error.message);
 
         reject(request.error);
       };
@@ -223,9 +229,10 @@ var CallBarring = (function() {
         var request = _mobileConnection.changeCallBarringPassword(pinData);
         request.onsuccess = function() {
           console.log('> PASSCODE UPDATE > success');
-          _enableAllCallBarring();
-          done();
-          resolve();
+          _enableAllCallBarring(null, function finished() {
+            done();
+            resolve();
+          });
         };
         request.onerror = function() {
           /* request.error = { name, message } */
@@ -234,9 +241,10 @@ var CallBarring = (function() {
           console.log('> PASSCODE UPDATE > e.message = ' +
             request.error.message);
 
-          _enableAllCallBarring();
-          done();
-          reject(request.error);
+          _enableAllCallBarring(null, function finished() {
+            done();
+            reject(request.error);
+          });
         };
       }); // end enqeue
     }); // end promise
@@ -246,7 +254,7 @@ var CallBarring = (function() {
    * Triggers the passcode change screen
    */
   function _launchPasscodeChange() {
-    PasscodeChangeScreen.launch().then(
+    ChangePasscodeScreen.launch().then(
       _changeCallBarringPasscode
     ).then(function success() {
       // password changed correctly
@@ -269,7 +277,7 @@ var CallBarring = (function() {
     var input = evt.target;
 
     // Show password screen
-    IntroducePasscodeScreen.show().then(
+    InputPasscodeScreen.show().then(
       // password screen confirmed
       function confirmed(password) {
         var inputID = input.parentNode.parentNode.id;
@@ -336,7 +344,8 @@ var CallBarring = (function() {
   /**
    * Update the state of all the Call Barring subpanels
    */
-  function _updateCallBarringSubpanels() {
+  function _updateCallBarringSubpanels(callback) {
+    var error;
     // disable all, change description to 'requesting network info'
     _disableAllCallBarring('callSettingsQuery');
 
@@ -370,18 +379,21 @@ var CallBarring = (function() {
         console.log('>>> updating items with: ' + JSON.stringify(cbOptions));
 
         cbOptions.forEach(function updateItem(listItem) {
+          console.log('> UPDATING ITEM: ' + JSON.stringify(listItem));
           var item = document.getElementById(listItem.id);
           _updateCallBarringItem(item, {'checked': listItem.checked});
         });
 
       }).catch(function errorWhileProcessing(err) {
         console.log('>> InVal sequence error: ' + JSON.stringify(err));
+        error = err;
       }).then(function afterEverythingDone() {
         console.log('>> InVal FINISHED');
-        console.log('>>>>> enabling inputs');
-        _enableAllCallBarring();
-
-        done();
+        _enableAllCallBarring(null, function finished() {
+          console.log('>>>>> all inputs enabled');
+          done();
+          callback(error);
+        });
       });
     });
   }
