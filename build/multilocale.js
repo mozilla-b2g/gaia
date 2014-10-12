@@ -196,7 +196,7 @@ function L10nManager(gaiaDir, localesFilePath, localeBasedir, subject) {
     // So /gaia/apps/system/locales/system.en-US.properties
     // maps to /gaia-l10n/en-US/system/system.properties
     function removeLocale(str, locale) {
-      return str.replace('.' + locale, '').replace(/locales[\\\/]/, '');
+      return str.replace('.' + locale + '.', '.').replace(/locales[\\\/]/, '');
     }
 
     var sharedDir = utils.joinPath(webapp.buildDirectoryFile.path, 'shared');
