@@ -10,11 +10,11 @@ require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
+require('/shared/test/unit/mocks/mock_voicemail.js');
 require('/dialer/test/unit/mock_call_log.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
-require('/dialer/test/unit/mock_voicemail.js');
 require('/dialer/test/unit/mock_suggestion_bar.js');
 
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
@@ -207,16 +207,17 @@ suite('navigation bar', function() {
         });
 
         test('should check if the number if a voicemail', function() {
-          sinon.assert.calledWith(MockVoicemail.check, '12345');
+          sinon.assert.calledWith(MockVoicemail.check, '12345',
+                                  sysMsg.serviceId);
         });
 
         test('should flag the entry as voicemail if it is', function() {
-          MockVoicemail.check.yield(true);
+          MockVoicemail.mResolvePromise(true);
           sinon.assert.calledWithMatch(addStub, {voicemail: true});
         });
 
         test('should not flag the entry if it is not', function() {
-          MockVoicemail.check.yield(false);
+          MockVoicemail.mResolvePromise(false);
           sinon.assert.calledWithMatch(addStub, {voicemail: false});
         });
       });
@@ -225,6 +226,7 @@ suite('navigation bar', function() {
         test('should be set to now minus the call duration', function() {
           this.sinon.useFakeTimers(4200);
           triggerSysMsg(sysMsg);
+          MockVoicemail.mResolvePromise(false);
           sinon.assert.calledWithMatch(addStub, {date: 3000});
         });
       });
@@ -233,24 +235,28 @@ suite('navigation bar', function() {
         test('should be incoming for incoming calls', function() {
           sysMsg.direction = 'incoming';
           triggerSysMsg(sysMsg);
+          MockVoicemail.mResolvePromise(false);
           sinon.assert.calledWithMatch(addStub, {type: 'incoming'});
         });
 
         test('should be alerting for outgoing calls', function() {
           sysMsg.direction = 'outgoing';
           triggerSysMsg(sysMsg);
+          MockVoicemail.mResolvePromise(false);
           sinon.assert.calledWithMatch(addStub, {type: 'dialing'});
         });
       });
 
       test('should set the phone number', function() {
         triggerSysMsg(sysMsg);
+        MockVoicemail.mResolvePromise(false);
         sinon.assert.calledWithMatch(addStub, {number: '12345'});
       });
 
       test('should set cdma call waiting number', function() {
         sysMsg.secondNumber = '23456';
         triggerSysMsg(sysMsg);
+        MockVoicemail.mResolvePromise(false);
         sinon.assert.calledWithMatch(addStub, {number: '12345'});
         addStub.yield();
         sinon.assert.calledWithMatch(addStub, {number: '23456'});
@@ -258,6 +264,7 @@ suite('navigation bar', function() {
 
       test('should set the serviceId', function() {
         triggerSysMsg(sysMsg);
+        MockVoicemail.mResolvePromise(false);
         sinon.assert.calledWithMatch(addStub, {serviceId: 1});
       });
 
@@ -265,12 +272,14 @@ suite('navigation bar', function() {
         test('should flag the entry as emergency if it is', function() {
           sysMsg.emergency = true;
           triggerSysMsg(sysMsg);
+          MockVoicemail.mResolvePromise(false);
           sinon.assert.calledWithMatch(addStub, {emergency: true});
         });
 
         test('should not flag the entry if it is not', function() {
           sysMsg.emergency = null;
           triggerSysMsg(sysMsg);
+          MockVoicemail.mResolvePromise(false);
           sinon.assert.calledWithMatch(addStub, {emergency: false});
         });
       });
@@ -279,11 +288,13 @@ suite('navigation bar', function() {
         test('should be connected for incoming connected calls', function() {
           sysMsg.direction = 'incoming';
           triggerSysMsg(sysMsg);
+          MockVoicemail.mResolvePromise(false);
           sinon.assert.calledWithMatch(addStub, {status: 'connected'});
         });
 
         test('should be null otherwise', function() {
           triggerSysMsg(sysMsg);
+          MockVoicemail.mResolvePromise(false);
           sinon.assert.calledWithMatch(addStub, {status: null});
         });
       });
@@ -294,6 +305,7 @@ suite('navigation bar', function() {
         var appendSpy = this.sinon.spy(MockCallLog, 'appendGroup');
 
         triggerSysMsg(sysMsg);
+        MockVoicemail.mResolvePromise(false);
         addStub.yield(fakeGroup);
 
         sinon.assert.calledWith(appendSpy, fakeGroup);
@@ -307,6 +319,7 @@ suite('navigation bar', function() {
         sysMsg.secondNumber = '34567';
 
         triggerSysMsg(sysMsg);
+        MockVoicemail.mResolvePromise(false);
         addStub.yield(fakeGroup);
         assert.equal(MockNavigatorWakeLock.mLastWakeLock.mUnlockCount, 0);
         addStub.yield(fakeGroupCdma);
@@ -317,6 +330,7 @@ suite('navigation bar', function() {
 
       test('should release the wake lock', function() {
         triggerSysMsg(sysMsg);
+        MockVoicemail.mResolvePromise(false);
         addStub.yield();
         var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
         assert.isTrue(wakeLock.released);
@@ -326,6 +340,7 @@ suite('navigation bar', function() {
       function() {
         sysMsg.secondNumber = '45678';
         triggerSysMsg(sysMsg);
+        MockVoicemail.mResolvePromise(false);
         var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
         addStub.yield();
         assert.equal(wakeLock.mUnlockCount, 0);
