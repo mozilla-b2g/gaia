@@ -4,8 +4,7 @@ Keyboards.br = {
   menuLabel: 'Brezhoneg', 
   imEngine: 'latin', 
   types: ['text', 'url', 'email', 'password'],
-  autoCorrectLanguage: 'br', 
-  autoCorrectPunctuation: false,
+  autoCorrectPunctuation: true,
   alt: {  
     e:'éè',
 	n: 'ñ',
