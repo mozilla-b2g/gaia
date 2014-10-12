@@ -7,7 +7,7 @@ Keyboards.br = {
   autoCorrectPunctuation: true,
   alt: {  
     e:'éè',
-	n: 'ñ',
+    n: 'ñ',
     u:'ù',
    '.':',?!;:…'
   },
