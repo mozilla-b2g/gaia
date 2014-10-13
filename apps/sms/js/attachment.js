@@ -52,6 +52,10 @@
       return attachmentRenderer.getAttachmentContainer();
     },
 
+    clone: function() {
+      return new Attachment(this.blob, this);
+    },
+
     view: function(options) {
       // Make sure media is openable and savable even if:
       //   - Blob mimetype is unsupported but file extension is valid.

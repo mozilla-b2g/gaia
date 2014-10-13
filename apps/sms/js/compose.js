@@ -220,14 +220,11 @@ var Compose = (function() {
     }
 
     var nodes = dom.message.querySelectorAll('iframe');
-    var imgNodes = [];
     var done = 0;
-    Array.prototype.forEach.call(nodes, function findImgNodes(node) {
-      var item = attachments.get(node);
-      if (item.type === 'img') {
-        imgNodes.push(node);
-      }
-    });
+    var imgNodes = Array.prototype.filter.call(
+      nodes,
+      (node) => attachments.get(node).type === 'img'
+    );
 
     // Total number of images < 3
     //   => Set max image size to 2/5 message size limitation.
@@ -251,13 +248,18 @@ var Compose = (function() {
       if (item.blob.size < limit) {
         imageSized();
       } else {
-        Utils.getResizedImgBlob(item.blob, limit, function(resizedBlob) {
+        Utils.getResizedImgBlob(item.blob, limit).then(function(resizedBlob) {
           // trigger recalc when resized
           state.size = null;
 
-          item.blob = resizedBlob;
-          var newNode = item.render();
-          attachments.set(newNode, item);
+          var newItem = item.clone();
+          newItem.blob = resizedBlob;
+
+          console.log('>>> old is', item.blob.size);
+          console.log('>>> new is', resizedBlob.size);
+
+          var newNode = newItem.render();
+          attachments.set(newNode, newItem);
           if (dom.message.contains(node)) {
             dom.message.insertBefore(newNode, node);
             dom.message.removeChild(node);

@@ -23,5 +23,8 @@ MockAttachment.prototype = {
     this.mNextRender.className = 'attachment-container';
     return this.mNextRender;
   },
-  view: function() {}
+  view: function() {},
+  clone: function() {
+    return new MockAttachment(this.blob, this);
+  }
 };

@@ -793,14 +793,12 @@ suite('Utils', function() {
         // half the image size, or 100k, whichever is smaller
         var limit = Math.min(100000, (blob.size / 2));
 
-        Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
-          done(function() {
-            assert.isTrue(resizedBlob.size < limit,
-              'resizedBlob is smaller than ' + limit);
+        Utils.getResizedImgBlob(blob, limit).then(function(resizedBlob) {
+          assert.isTrue(resizedBlob.size < limit,
+            'resizedBlob is smaller than ' + limit);
 
-            assertCreatedBlobUrlsAreRevoked();
-          });
-        });
+          assertCreatedBlobUrlsAreRevoked();
+        }).then(done, done);
       });
     });
 
@@ -809,14 +807,12 @@ suite('Utils', function() {
       var limit = blob.size * 2;
       this.sinon.spy(Utils, '_resizeImageBlobWithRatio');
 
-      Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
-        done(function() {
-          assert.equal(resizedBlob, blob,
-            'resizedBlob and blob should be the same');
-          sinon.assert.notCalled(Utils._resizeImageBlobWithRatio);
-          assertCreatedBlobUrlsAreRevoked();
-        });
-      });
+      Utils.getResizedImgBlob(blob, limit).then(function(resizedBlob) {
+        assert.equal(resizedBlob, blob,
+          'resizedBlob and blob should be the same');
+        sinon.assert.notCalled(Utils._resizeImageBlobWithRatio);
+        assertCreatedBlobUrlsAreRevoked();
+      }).then(done, done);
     });
 
     test('Resize low quality image', function(done) {
@@ -836,20 +832,18 @@ suite('Utils', function() {
           }
       });
 
-      Utils.getResizedImgBlob(blob, limit, function(result) {
-        done(function() {
-          assert.isTrue(
-            result.size < limit,
-            'result blob is smaller than ' + limit
-          );
+      Utils.getResizedImgBlob(blob, limit).then(function(result) {
+        assert.isTrue(
+          result.size < limit,
+          'result blob is smaller than ' + limit
+        );
 
-          sinon.assert.calledTwice(toBlobStub);
+        sinon.assert.calledTwice(toBlobStub);
 
-          assert.equal(toBlobStub.args[0][2], undefined);
-          assert.equal(toBlobStub.args[1][2], 0.65);
-          assertCreatedBlobUrlsAreRevoked();
-        });
-      });
+        assert.equal(toBlobStub.args[0][2], undefined);
+        assert.equal(toBlobStub.args[1][2], 0.65);
+        assertCreatedBlobUrlsAreRevoked();
+      }).then(done, done);
     });
 
     test('Decrease image quality not working', function(done) {
@@ -873,29 +867,30 @@ suite('Utils', function() {
         }
       );
 
-      Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
-        done(function() {
-          assert.isTrue(resizedBlob.size < limit,
-            'resizedBlob is smaller than ' + limit);
-          var toBlobSpy = HTMLCanvasElement.prototype.toBlob;
+      Utils.getResizedImgBlob(blob, limit).then(function(resizedBlob) {
+        assert.isTrue(
+          resizedBlob.size < limit,
+          'resizedBlob should be smaller than ' + limit + ': ' +
+            'but it\'s really ' + resizedBlob.size
+        );
+        var toBlobSpy = HTMLCanvasElement.prototype.toBlob;
 
-          // Image quality testing should go down 3 quality level first
-          // than force the image rescale to smaller size.
-          assert.equal(toBlobSpy.callCount, 5);
-          assert.equal(toBlobSpy.args[0][2], undefined);
-          assert.equal(toBlobSpy.args[1][2], 0.65);
-          assert.equal(toBlobSpy.args[2][2], 0.5);
-          assert.equal(toBlobSpy.args[3][2], 0.25);
-          assert.equal(toBlobSpy.args[4][2], undefined);
+        // Image quality testing should go down 3 quality level first
+        // than force the image rescale to smaller size.
+        assert.equal(toBlobSpy.callCount, 5);
+        assert.equal(toBlobSpy.args[0][2], undefined);
+        assert.equal(toBlobSpy.args[1][2], 0.65);
+        assert.equal(toBlobSpy.args[2][2], 0.5);
+        assert.equal(toBlobSpy.args[3][2], 0.25);
+        assert.equal(toBlobSpy.args[4][2], undefined);
 
-          // Verify getResizedImgBlob is called twice and resize ratio
-          // parameter is changed in the second call
-          sinon.assert.calledTwice(Utils._resizeImageBlobWithRatio);
-          assert.ok(resizeSpy.firstCall.args[0].ratio <
-            resizeSpy.lastCall.args[0].ratio);
-          assertCreatedBlobUrlsAreRevoked();
-        });
-      });
+        // Verify getResizedImgBlob is called twice and resize ratio
+        // parameter is changed in the second call
+        sinon.assert.calledTwice(Utils._resizeImageBlobWithRatio);
+        assert.ok(resizeSpy.firstCall.args[0].ratio <
+          resizeSpy.lastCall.args[0].ratio);
+        assertCreatedBlobUrlsAreRevoked();
+      }).then(done, done);
     });
   });
 
