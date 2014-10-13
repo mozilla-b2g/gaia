@@ -3,13 +3,6 @@
 
 'use strict';
 
-var GEO_ENABLED = 'geolocation.enabled';
-var GEO_TYPE = 'geolocation.type';
-var GEO_APPROX_DISTANCE = 'geolocation.approx_distance';
-var GEO_FIXED_COORDS = 'geolocation.fixed_coords';
-var GEO_APP_SETTINGS = 'geolocation.app_settings';
-var GEO_ALWAYS_PRECISE = 'geolocation.always_precise';
-
 var app = app || {};
 
 (function() {

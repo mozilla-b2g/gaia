@@ -126,7 +126,7 @@ var RemotePrivacyProtection = (function() {
     },
 
     toggleModalBox: function(value) {
-      var modal = this.elements.$content.querySelector('.overlay');;
+      var modal = this.elements.$content.querySelector('.overlay');
 
       if ( ! this.lockScreenEnabled || ! this.lockScreenPasswordEnabled) {
         modal.removeAttribute('hidden');

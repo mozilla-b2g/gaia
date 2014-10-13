@@ -45,14 +45,22 @@ define(function(require){
      */
     _observeSettings: function() {
       SettingsListener.observe('devtools.ala_dev.enabled', false,
-        function(value) {
-          if (value) {
-            this.element.removeAttribute('hidden')
-          } else {
-            this.element.setAttribute('hidden', 'hidden');
-          }
-        }.bind(this)
+        this._toggleVisibility.bind(this)
       );
+    },
+
+    /**
+     * Toggles elements visibility
+     *
+     * @method  _toggleVisibility
+     * @param  {Boolean} value
+     */
+    _toggleVisibility: function(value) {
+      if (value) {
+        this.element.removeAttribute('hidden');
+      } else {
+        this.element.setAttribute('hidden', 'hidden');
+      }
     },
 
     /**

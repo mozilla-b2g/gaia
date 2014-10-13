@@ -122,13 +122,13 @@ section[role="region"] > div.gt-box {
   line-height: 2rem;
   display: block;
   margin: 0;
-  padding: 1.4rem 1rem 0rem 1rem;
+  padding: 1.4rem 1rem 0 1rem;
   font-weight: 300;
 }
 
 .gt-description p {
   line-height: 1.5rem;
-  font-size: 1.2rem;
+  font-size: 1rem;
   text-align: center;
   color: #585858;
   padding: 0 2rem;
