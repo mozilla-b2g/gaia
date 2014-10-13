@@ -7,10 +7,12 @@
 /* global MockL10n */
 /* global MocksHelper */
 /* global MockNavigatorSettings */
+/* global MockNavigatorMozMobileConnections */
+/* global MockModalDialog */
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp(
-  'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
+  'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_airplane_mode.js');
@@ -36,8 +38,10 @@ suite('internet sharing > ', function() {
   const TEST_ABSENT = 'absent';
   const TEST_ICCID1 = 'iccid-1';
   const TEST_ICCID2 = 'iccid-2';
+  const MOBILE_CONNECTION_COUNT = 2;
 
-  var realSettings, realL10n, subject;
+  var realSettings, realL10n, subject, realMozMobileConnections;
+  var getDUNConnectionSpy;
 
   suiteSetup(function() {
     // Unfortunately, for asyncStorage scoping reasons, we can't simply
@@ -48,14 +52,29 @@ suite('internet sharing > ', function() {
     navigator.mozSettings = MockNavigatorSettings;
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    realMozMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+    MockNavigatorMozMobileConnections.mAddMobileConnection();
+    for (var i = 0; i < MOBILE_CONNECTION_COUNT; i++) {
+      MockNavigatorMozMobileConnections[i].data = {
+        connected: !i,
+        type: (!i ? 'evdo0' : undefined)
+      };
+    }
     subject = new InternetSharing();
     subject.start();
+  });
+
+  setup(function() {
+    getDUNConnectionSpy = this.sinon.spy(subject, 'getDUNConnection');
   });
 
   suiteTeardown(function() {
     mocksForInternetSharing.suiteTeardown();
     navigator.mozSettings = realSettings;
     navigator.mozL10n = realL10n;
+    MockNavigatorMozMobileConnections.mTeardown();
+    navigator.mozMobileConnections = realMozMobileConnections;
   });
   // helper function for batch assertion of asyncStorage
   function assertAynscStorageEquals(testSet) {
@@ -121,7 +140,7 @@ suite('internet sharing > ', function() {
         mObservers[KEY_WIFI_HOTSPOT].length > 0);
     });
     // card state from unknown to pinRequired
-    test('sim1 pinRequired no settings', function() {
+    test('sim1 pinRequired no settings', function(done) {
       changeCardState('pinRequired', null);
 
       var mEventListeners = MockIccHelper.mEventListeners;
@@ -135,10 +154,12 @@ suite('internet sharing > ', function() {
 
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
-      assertSettingsEquals(testSet);
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertSettingsEquals(testSet);
+      }).then(done, done);
     });
     // user typed pin, enter ready state
-    test('sim1 ready no settings', function() {
+    test('sim1 ready no settings', function(done) {
       // use null iccid for initialization test.
       changeCardState('ready', null);
 
@@ -161,37 +182,45 @@ suite('internet sharing > ', function() {
 
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
-      assertSettingsEquals(testSet);
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertSettingsEquals(testSet);
+      }).then(done, done);
     });
     // user change usb tethering to true
-    test('sim1 ready, usb tethering enable', function() {
+    test('sim1 ready, usb tethering enable', function(done) {
       changeSettings(KEY_USB_TETHERING, true);
       var testSet = [
         {'key': PREFIX_ASYNC_STORAGE_USB + TEST_ICCID1, 'result': true},
         {'key': PREFIX_ASYNC_STORAGE_WIFI + TEST_ICCID1, 'result': false},
         {'key': PREFIX_ASYNC_STORAGE_USB + TEST_ICCID2, 'result': null},
         {'key': PREFIX_ASYNC_STORAGE_WIFI + TEST_ICCID2, 'result': null}];
-      assertAynscStorageEquals(testSet);
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertAynscStorageEquals(testSet);
+      }).then(done, done);
     });
     // user remove sim 1
-    test('sim1 removed', function() {
+    test('sim1 removed', function(done) {
       changeCardState(null, null);
       IccHelper.mProps.cardState = null;
       IccHelper.mProps.iccInfo = {};
       IccHelper.mTriggerEventListeners('cardstatechange', {});
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
-      assertSettingsEquals(testSet);
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertSettingsEquals(testSet);
+      }).then(done, done);
     });
     // sim 1 inserted, usb tethering should be enabled
-    test('sim1 inserted, usb tethering enabled', function() {
+    test('sim1 inserted, usb tethering enabled', function(done) {
       changeCardState('ready', TEST_ICCID1);
       var testSet = [{'key': KEY_USB_TETHERING, 'result': true},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
-      assertSettingsEquals(testSet);
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertSettingsEquals(testSet);
+      }).then(done, done);
     });
-    // sim 1 inserted, disable usb tethering, re-insert sim 1.
-    test('disable usb tethering, sim1 re-insert', function() {
+    // sim 1 removed, disable usb tethering.
+    test('disable usb tethering, sim1 removed', function(done) {
 
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
@@ -199,12 +228,22 @@ suite('internet sharing > ', function() {
       changeSettings(KEY_USB_TETHERING, false);
       // remove sim 1
       changeCardState(null, null);
-      // everything is disblaed
-      assertSettingsEquals(testSet);
-      // insert sim 1
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertSettingsEquals(testSet);
+      }).then(done, done);
+    });
+    // sim 1 re-inserted, disable usb tethering.
+    test('disable usb tethering, sim1 re-insert', function(done) {
+
+      var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
+                     {'key': KEY_WIFI_HOTSPOT, 'result': false}];
+      // disable usb
+      changeSettings(KEY_USB_TETHERING, false);
+      // remove sim 1
       changeCardState('ready', TEST_ICCID1);
-      // everything is disabled
-      assertSettingsEquals(testSet);
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertSettingsEquals(testSet);
+      }).then(done, done);
     });
   });
   // switching test for 2 sim and no sim
@@ -245,74 +284,154 @@ suite('internet sharing > ', function() {
       assertAynscStorageEquals(testSet);
     });
     // switch to sim1
-    test('switch to sim1, test state', function() {
+    test('switch to sim1, test state', function(done) {
       changeCardState('ready', TEST_ICCID1);
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
                      {'key': KEY_WIFI_HOTSPOT, 'result': true}];
-      assertSettingsEquals(testSet);
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertSettingsEquals(testSet);
+      }).then(done, done);
     });
     // switch to sim2
-    test('switch to sim2, test state', function() {
+    test('switch to sim2, test state', function(done) {
       changeCardState('ready', TEST_ICCID2);
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
-      assertSettingsEquals(testSet);
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertSettingsEquals(testSet);
+      }).then(done, done);
     });
     // switch to no sim
-    test('switch to no sim, test state', function() {
+    test('switch to no sim, test state', function(done) {
       changeCardState(null, null);
       var testSet = [{'key': KEY_USB_TETHERING, 'result': true},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
-      assertSettingsEquals(testSet);
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertSettingsEquals(testSet);
+      }).then(done, done);
     });
     // switch back to sim1
-    test('switch back to sim1, test state', function() {
+    test('switch back to sim1, test state', function(done) {
       changeCardState('ready', TEST_ICCID1);
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
                      {'key': KEY_WIFI_HOTSPOT, 'result': true}];
-      assertSettingsEquals(testSet);
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertSettingsEquals(testSet);
+      }).then(done, done);
     });
     // other locked states with sim1
-    test('test locked state with sim1', function() {
-      var lockedCardState = ['pinRequired',
-                             'pukRequired',
-                             'networkLocked',
-                             'corporateLocked',
-                             'serviceProviderLocked',
-                             'network1Locked',
-                             'network2Locked',
-                             'hrpdNetworkLocked',
-                             'ruimCorporateLocked',
-                             'ruimServiceProviderLocked'];
-      // all states linked with null simcard.
-      var testSet = [{'key': KEY_USB_TETHERING, 'result': true},
-                     {'key': KEY_WIFI_HOTSPOT, 'result': false}];
-      lockedCardState.forEach(function(state) {
+    var lockedCardState = ['pinRequired',
+                           'pukRequired',
+                           'networkLocked',
+                           'corporateLocked',
+                           'serviceProviderLocked',
+                           'network1Locked',
+                           'network2Locked',
+                           'hrpdNetworkLocked',
+                           'ruimCorporateLocked',
+                           'ruimServiceProviderLocked'];
+    // all states linked with null simcard.
+    var testSet = [{'key': KEY_USB_TETHERING, 'result': true},
+                   {'key': KEY_WIFI_HOTSPOT, 'result': false}];
+    lockedCardState.forEach(function(state) {
+      test('test locked state with sim1 '+ state, function(done) {
         changeCardState(state, TEST_ICCID1);
-        assertSettingsEquals(testSet);
+        getDUNConnectionSpy.lastCall.returnValue.then(function() {
+          assertSettingsEquals(testSet);
+        }).then(done, done);
       });
     });
   });
 
   suite('wifi hotspot', function() {
     var testSet = [{'key': KEY_WIFI_HOTSPOT, 'result': false}];
-    test('can\'t turn on hotspot when APM is on', function() {
+    test('can\'t turn on hotspot when APM is on', function(done) {
       AirplaneMode.enabled = true;
       subject.internetSharingSettingsChangeHanlder({
         settingName: 'wifi',
         settingValue: true
       });
-      assertSettingsEquals(testSet);
+      getDUNConnectionSpy.lastCall.returnValue.then(function() {
+        assertSettingsEquals(testSet);
+      }).then(done, done);
     });
 
     test('can\'t turn on hotspot when there is no sim (APM is off)',
-      function() {
+      function(done) {
         AirplaneMode.enabled = false;
         subject.internetSharingSettingsChangeHanlder({
           settingName: 'wifi',
           settingValue: true
         });
-        assertSettingsEquals(testSet);
+        getDUNConnectionSpy.lastCall.returnValue.then(function() {
+          assertSettingsEquals(testSet);
+        }).then(done, done);
+    });
+
+    suite('no data connection', function() {
+      var modalDialogSpy;
+      setup(function() {
+        MockNavigatorMozMobileConnections[0].data = {
+          connected: false,
+          type: 'gprs'
+        };
+        changeSettings(KEY_USB_TETHERING, true);
+        changeSettings(KEY_WIFI_HOTSPOT, true);
+        AirplaneMode.enabled = false;
+        modalDialogSpy = this.sinon.spy(MockModalDialog, 'alert');
+      });
+
+      test('can\'t turn on hotspot when there is no data connection',
+        function(done) {
+          subject.internetSharingSettingsChangeHanlder({
+            settingName: 'wifi',
+            settingValue: true
+          });
+          getDUNConnectionSpy.lastCall.returnValue.then(function() {
+            assertSettingsEquals(testSet);
+          }).then(done, done);
+      });
+
+      test('should open the modal dialog', function(done) {
+        var _ = navigator.mozL10n.get;
+        var title = _('noConnectivityHead');
+        var buttonText = _('ok');
+        var message = _('noConnectivityMessageWifiHotspot');
+        subject.internetSharingSettingsChangeHanlder({
+          settingName: 'wifi',
+          settingValue: true
+        });
+        getDUNConnectionSpy.lastCall.returnValue.then(function() {
+          assert.isTrue(modalDialogSpy.calledWith(title,
+            message, { title: buttonText }));
+        }).then(done, done);
+      });
+
+      test('can\'t turn on hotspot when there is no data connection',
+        function(done) {
+          subject.internetSharingSettingsChangeHanlder({
+            settingName: 'usb',
+            settingValue: true
+          });
+          getDUNConnectionSpy.lastCall.returnValue.then(function() {
+            assertSettingsEquals(testSet);
+          }).then(done, done);
+      });
+
+      test('should open the modal dialog', function(done) {
+        var _ = navigator.mozL10n.get;
+        var title = _('noConnectivityHead');
+        var buttonText = _('ok');
+        var message = _('noConnectivityMessageUsbHotspot');
+        subject.internetSharingSettingsChangeHanlder({
+          settingName: 'usb',
+          settingValue: true
+        });
+        getDUNConnectionSpy.lastCall.returnValue.then(function() {
+          assert.isTrue(modalDialogSpy.calledWith(title,
+            message, { title: buttonText }));
+        }).then(done, done);
+      });
     });
   });
 });
