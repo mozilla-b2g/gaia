@@ -75,8 +75,6 @@
               this.click.bind(this)
             );
 
-            // Return actual content container node to allow postprocessing of
-            // DOM content without dealing with iframe structure.
             deferred.resolve();
           } catch(e) {
             deferred.reject(e);
@@ -168,31 +166,32 @@
         template: 'attachment-preview-tmpl',
         cssClass: 'preview'
       };
+      this._hasThumbnail = true;
     } else {
       renderingInfo = {
         template: 'attachment-nopreview-tmpl',
         cssClass: 'nopreview'
       };
+      this._hasThumbnail = false;
     }
 
-    return Promise.resolve(renderingInfo)
-    .then((data) => {
-      attachmentContainer.classList.add(data.cssClass);
+    attachmentContainer.classList.add(renderingInfo.cssClass);
 
-      var markup = this._getBaseMarkup(data.template);
-      return this._renderer.renderTo(markup, attachmentContainer)
-      .then(() => data);
-    })
-    .then((data) => {
-      var contentContainer =
-        this._renderer.getContentContainer(attachmentContainer);
-      // Since content container may differ from attachment container
-      // (e.g. content container is "body" element inside iframe),
-      // preview class should be applied to both to have effect.
-      contentContainer.classList.add(data.cssClass);
+    var markup = this._getBaseMarkup(renderingInfo.template);
+    this._renderingPromise = this._renderer.renderTo(
+      markup, attachmentContainer
+    ).then(
+      () => {
+        var contentContainer =
+          this._renderer.getContentContainer(attachmentContainer);
+        // Since content container may differ from attachment container
+        // (e.g. content container is "body" element inside iframe),
+        // preview class should be applied to both to have effect.
+        contentContainer.classList.add(renderingInfo.cssClass);
+      }
+    );
 
-      return this.updateThumbnail();
-    });
+    return this._renderingPromise;
   };
 
   AttachmentRenderer.prototype.updateFileSize = function() {
@@ -200,7 +199,8 @@
     var contentNode = this._renderer.getContentContainer(attachmentContainer);
     var sizeIndicator = contentNode.querySelector('.js-size-indicator');
     if (!sizeIndicator) {
-      throw new Error('updateFileSize should be called after a render().');
+      console.error('updateFileSize called, but render has not run yet.');
+      return;
     }
 
     var sizeL10n = getSizeForL10n(this._attachment.size);
@@ -210,20 +210,32 @@
     navigator.mozL10n.translateFragment(sizeIndicator);
   };
 
-  AttachmentRenderer.prototype.updateThumbnail = function(url) {
+  AttachmentRenderer.prototype.updateThumbnail = function() {
+    if (!this._hasThumbnail) {
+      return Promise.resolve();
+    }
+
     var attachmentContainer = this.getAttachmentContainer();
     var contentNode = this._renderer.getContentContainer(attachmentContainer);
     var thumbnailNode = contentNode.querySelector('.thumbnail');
     var attachmentNode = contentNode.querySelector('.attachment');
 
     if (!thumbnailNode) {
-      return Promise.resolve();
+      if (!this._renderingPromise) {
+        return Promise.reject(
+          new Error('updateThumbnail() needs to be called after a render().')
+        );
+      }
+
+      // looks like render has not finished yet
+      return this._renderingPromise.then(() => this.updateThumbnail());
     }
 
     return this.getThumbnail().then((url) => {
       thumbnailNode.style.backgroundImage = 'url("' + url + '")';
     })
-    .catch(() => {
+    .catch((e) => {
+      console.log('Error while getting a thumbnail', e);
       contentNode.classList.add('nopreview');
       contentNode.classList.remove('preview');
       attachmentNode.classList.add('corrupted');
@@ -238,6 +250,12 @@
    * @returns {Promise}
    */
   AttachmentRenderer.prototype.getThumbnail = function() {
+    if (!this._hasThumbnail) {
+      return Promise.reject(
+        new Error('We do not show a thumbnail for this attachment.')
+      );
+    }
+
     // The thumbnail format matches the blob format.
     var blob = this._attachment.blob;
 
