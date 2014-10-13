@@ -1,4 +1,4 @@
-/* globals FtuLauncher, MockL10n, MockMobileOperator,
+/* globals FtuLauncher, MockL10n, MockMobileOperator, MockOrientationManager,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockSystem, MockTouchForwarder, StatusBar, System,
@@ -24,6 +24,7 @@ require('/test/unit/mock_nfc_manager.js');
 require('/test/unit/mock_touch_forwarder.js');
 require('/test/unit/mock_sim_pin_dialog.js');
 require('/test/unit/mock_utility_tray.js');
+require('/test/unit/mock_orientation_manager.js');
 
 var mocksForStatusBar = new MocksHelper([
   'FtuLauncher',
@@ -33,7 +34,8 @@ var mocksForStatusBar = new MocksHelper([
   'AppWindowManager',
   'TouchForwarder',
   'SimPinDialog',
-  'UtilityTray'
+  'UtilityTray',
+  'OrientationManager'
 ]).init();
 
 suite('system/Statusbar', function() {
@@ -1892,6 +1894,42 @@ suite('system/Statusbar', function() {
       StatusBar._updateIconVisibility();
       assert.isTrue(spyGetMaximizedStatusBarWidth.called);
       assert.isTrue(spyGetMinimizedStatusBarWidth.called);
+    });
+
+    suite('software home button', function() {
+      setup(function() {
+        MockSettingsListener.mCallbacks['software-button.enabled'](false);
+      });
+
+      test('should not change the status bar width on portrait', function() {
+        MockOrientationManager._currentOrientation = 'portrait-primary';
+
+        var maxSBWidthWithoutSHB = StatusBar._getMaximizedStatusBarWidth();
+        var minSBWidthWithoutSHB = StatusBar._getMinimizedStatusBarWidth();
+
+        MockSettingsListener.mCallbacks['software-button.enabled'](true);
+
+        var maxSBWidthWithSHB = StatusBar._getMaximizedStatusBarWidth();
+        var minSBWidthWithSHB = StatusBar._getMinimizedStatusBarWidth();
+
+        assert.equal(maxSBWidthWithoutSHB, maxSBWidthWithSHB);
+        assert.equal(minSBWidthWithoutSHB, minSBWidthWithSHB);
+      });
+
+      test('should change the status bar width on landscape', function() {
+        MockOrientationManager._currentOrientation = 'landscape-primary';
+
+        var maxSBWidthWithoutSHB = StatusBar._getMaximizedStatusBarWidth();
+        var minSBWidthWithoutSHB = StatusBar._getMinimizedStatusBarWidth();
+
+        MockSettingsListener.mCallbacks['software-button.enabled'](true);
+
+        var maxSBWidthWithSHB = StatusBar._getMaximizedStatusBarWidth();
+        var minSBWidthWithSHB = StatusBar._getMinimizedStatusBarWidth();
+
+        assert.isTrue(maxSBWidthWithoutSHB > maxSBWidthWithSHB);
+        assert.isTrue(minSBWidthWithoutSHB > minSBWidthWithSHB);
+      });
     });
 
     suite('when only 2 icons fit in the maximized status bar', function() {

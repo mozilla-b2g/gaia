@@ -1,8 +1,14 @@
+/* exported MockOrientationManager */
+
+'use strict';
+
 var MockOrientationManager = {
   globalOrientation: 'portrait-primary',
 
   // Fetch the default orientation once the module is loaded.
   defaultOrientation: 'portrait-primary',
+
+  _currentOrientation: 'portrait-primary',
 
   isDefaultPortrait: function() {
     return (this.defaultOrientation == 'portrait-primary');
@@ -17,10 +23,12 @@ var MockOrientationManager = {
   },
 
   fetchCurrentOrientation: function sl_fetchDefaultOrientation() {
+    return this._currentOrientation;
   },
 
   mTeardown: function mom_mTeardown() {
     this.globalOrientation = 'portrait-primary';
     this.defaultOrientation = 'portrait-primary';
+    this._currentOrientation = 'portrait-primary';
   }
 };
