@@ -184,16 +184,24 @@
         template: 'attachment-preview-tmpl',
         cssClass: 'preview'
       };
+      this._hasThumbnail = true;
     } else {
       renderingInfo = {
         template: 'attachment-nopreview-tmpl',
         cssClass: 'nopreview'
       };
+      this._hasThumbnail = false;
     }
 
     renderingInfo.markup = this._getBaseMarkup(renderingInfo.template);
-    return this._renderer.renderTo(renderingInfo, attachmentContainer)
-      .then(() => this.updateThumbnail());
+
+    this._renderingPromise = this._renderer.renderTo(
+      renderingInfo, attachmentContainer
+    ).then(
+      () => this.updateThumbnail()
+    );
+
+    return this._renderingPromise;
   };
 
   AttachmentRenderer.prototype.updateFileSize = function() {
@@ -202,7 +210,8 @@
       (contentNode) => {
         var sizeIndicator = contentNode.querySelector('.js-size-indicator');
         if (!sizeIndicator) {
-          throw new Error('updateFileSize should be called after a render().');
+          console.error('updateFileSize should be called after a render().');
+          return;
         }
 
         var sizeL10n = Utils.getSizeForL10n(this._attachment.size);
@@ -214,6 +223,10 @@
   };
 
   AttachmentRenderer.prototype.updateThumbnail = function() {
+    if (!this._hasThumbnail) {
+      return Promise.resolve();
+    }
+
     var attachmentContainer = this.getAttachmentContainer();
     var contentNode = this._renderer.getContentContainer(attachmentContainer);
     var thumbnailNode = contentNode.querySelector('.thumbnail');
@@ -221,7 +234,14 @@
     var fileNode = contentNode.querySelector('.file-name');
 
     if (!thumbnailNode) {
-      return Promise.resolve();
+      if (this._renderingPromise) {
+        // looks like render has not finished yet
+        return this._renderingPromise.then(() => this.updateThumbnail());
+      }
+
+      return Promise.reject(
+        new Error('updateThumbnail() needs to be called after a render().')
+      );
     }
 
     return this.getThumbnail().then(
@@ -241,13 +261,13 @@
         } else {
           fileNode.setAttribute('data-l10n-id', 'unnamed-attachment');
         }
-      },
-      () => {
-        contentNode.classList.add('nopreview');
-        contentNode.classList.remove('preview');
-        attachmentNode.classList.add('corrupted');
       }
-    );
+    ).catch((e) => {
+      console.log('Error while getting a thumbnail', e);
+      contentNode.classList.add('nopreview');
+      contentNode.classList.remove('preview');
+      attachmentNode.classList.add('corrupted');
+    });
   };
 
   /**
@@ -258,6 +278,12 @@
    * @returns {Promise}
    */
   AttachmentRenderer.prototype.getThumbnail = function() {
+    if (!this._hasThumbnail) {
+      return Promise.reject(
+        new Error('We do not show a thumbnail for this attachment.')
+      );
+    }
+
     // The thumbnail format matches the blob format.
     var blob = this._attachment.blob;
 
