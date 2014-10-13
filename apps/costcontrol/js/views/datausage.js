@@ -205,6 +205,9 @@ var DataUsageTab = (function() {
     if (!model.data.mobile.total) {
       noData.hidden = false;
       appList.hidden = true;
+      // Repeated here to not rely on the deferred `updateApps()` call which
+      // would add an annoying delay until clearing the data.
+      clearAppList();
 
     } else {
       noData.hidden = true;
@@ -1003,6 +1006,8 @@ var DataUsageTab = (function() {
         Formatting.roundData(total));
     }
 
+    clearAppList();
+
     var mobileTotal = model.data.mobile.total;
     var mobileApps = model.data.mobile.apps;
     if (!mobileApps) {
@@ -1044,8 +1049,11 @@ var DataUsageTab = (function() {
       fragment.appendChild(appItem);
     });
 
-    appList.innerHTML = '';
     appList.appendChild(fragment);
+  }
+
+  function clearAppList() {
+    appList.innerHTML = '';
   }
 
   return {
