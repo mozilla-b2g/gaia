@@ -9,11 +9,13 @@
   background-position: 1.4rem center;
 }
 
+<<<<<<< HEAD
 .menu-item[data-icon] {
   padding-left: 5.5rem;
 }
 
-a.menu-item:after  {
+a.menu-item:after,
+a.submenu-item::after {
   font-family: "gaia-icons";
   content: "forward-light";
   position: absolute;
