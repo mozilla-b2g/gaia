@@ -12,9 +12,10 @@
   "strict": true,
   "trailing": true,
   "maxlen": 80,
+  "moz": true,
 
   "eqnull": true,
-  "esnext": true,
+  "esnext": false,
   "expr": true,
   "globalstrict": true,
 
