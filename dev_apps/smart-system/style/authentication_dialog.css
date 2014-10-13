@@ -1,21 +1,21 @@
 .authentication-dialog {
   display: block;
   position: absolute;
-  top: var(--statusbar-height);
+  top: 0;
   left: 0;
   width: 100%;
-  height: calc(100% - var(--statusbar-height));
+  height: 100%;
   background-color: #EEEEEE;
   font-weight: normal;
 }
 
 #screen.fullscreen-layout-app.software-button-enabled .authentication-dialog {
-  height: calc(100% - var(--statusbar-height) - var(--software-home-button-height));
+  height: 100%;
 }
 
 @media (orientation: landscape) {
   #screen.fullscreen-layout-app.software-button-enabled .authentication-dialog {
-    height: calc(100% - var(--statusbar-height));
+    height: 100%;
   }
 }
 

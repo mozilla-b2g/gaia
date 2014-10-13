@@ -1,8 +1,8 @@
 .appWindow:not(.bar) > .chrome {
   pointer-events: none;
   top: 0;
-  height: calc(var(--statusbar-height) + 4.4rem);
-  transform: scaleY(var(--rocketbar-scale)) translateY(calc(var(--statusbar-height) * -1));
+  height: calc(4.4rem);
+  transform: scaleY(var(--rocketbar-scale)) translateY(0);
   transform-origin: top left;
   transition: transform 0.2s ease-in-out, background-color 0.5s ease;
 
@@ -22,7 +22,7 @@
 }
 
 .appWindow.fullscreen-app:not(.bar) > .chrome:not(.maximized) {
-  height: var(--statusbar-height);
+  height: 0;
   top: 0;
 }
 

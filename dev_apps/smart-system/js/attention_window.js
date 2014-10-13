@@ -90,8 +90,6 @@
     return '<div class="' + this.CLASS_LIST +
             '" id="' + this.instanceID + '">' +
             '<div class="titlebar">' +
-              ' <div class="statusbar-shadow titlebar-maximized"></div>' +
-              ' <div class="statusbar-shadow titlebar-minimized"></div>' +
             '</div>' +
             '<div class="browser-container"></div>' +
             '<div class="screenshot-overlay"></div>' +

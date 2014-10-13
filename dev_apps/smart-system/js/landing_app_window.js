@@ -168,8 +168,6 @@
     return '<div class="appWindow homescreen landing-app" id="landing-app">' +
               '<div class="titlebar">' +
               ' <div class="notifications-shadow"></div>' +
-              ' <div class="statusbar-shadow titlebar-maximized"></div>' +
-              ' <div class="statusbar-shadow titlebar-minimized"></div>' +
               '</div>' +
               '<div class="fade-overlay"></div>' +
               '<div class="browser-container"></div>' +

@@ -504,8 +504,6 @@
             '" transition-state="closed">' +
               '<div class="titlebar">' +
               ' <div class="notifications-shadow"></div>' +
-              ' <div class="statusbar-shadow titlebar-maximized"></div>' +
-              ' <div class="statusbar-shadow titlebar-minimized"></div>' +
               '</div>' +
               '<div class="identification-overlay">' +
                 '<div>' +
@@ -1289,33 +1287,23 @@
     };
 
   /**
-   * Detect whether this is a full screen app by its manifest.
+   * All apps in TV are fullscreen. We keep this function for future extension.
    * @return {Boolean} We're a fullscreen app or not.
    */
   AppWindow.prototype.isFullScreen = function aw_isFullScreen() {
-    if (typeof(this._fullScreen) !== 'undefined') {
-      return this._fullScreen;
-    }
-    // Fullscreen
-    this._fullScreen = !!(this.manifest &&
-      ('fullscreen' in this.manifest ? this.manifest.fullscreen : false)) ||
-      this.isFullScreenLayout();
-    return this._fullScreen;
+    return true;
   };
 
   /**
    * Detect whether this app is resized 100% width and height by its manifest.
+   * The difference between fullscreen and fullscreen_layout is the software
+   * home button. And we don't have it in TV. So, we just make them are all
+   * fullscreen and fullscreen_layout. There is another difference between them
+   * that fullscreen_layout is used for the mozRequestFullScreen.
    * @return {Boolean} We're a fullscreen_layout app or not.
    */
   AppWindow.prototype.isFullScreenLayout = function aw_isFullScreenLayout() {
-    if (typeof(this._fullScreenLayout) !== 'undefined') {
-      return this._fullScreenLayout;
-    }
-    // Fullscreen
-    this._fullScreenLayout = !!(this.manifest &&
-      ('fullscreen_layout' in this.manifest ? this.manifest.fullscreen_layout :
-        false));
-    return this._fullScreenLayout;
+    return true;
   };
 
   AppWindow.prototype._defaultOrientation = null;

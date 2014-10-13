@@ -244,7 +244,7 @@ body {
   position: absolute;
   top: 0;
   width: 100%;
-  height: var(--statusbar-height);
+  height: 0;
 
   background: rgba(0, 0, 0, .15);
   content: '';
@@ -267,17 +267,17 @@ body {
 
 #dialog-overlay {
   position: absolute;
-  top: var(--statusbar-height);
+  top: 0;
   left: 0;
   width: 100%;
-  height: calc(100% - var(--statusbar-height));
+  height: 100%;
   visibility: hidden;
   pointer-events: none;
 }
 
 #screen.software-button-enabled #windows + #dialog-overlay {
-  bottom: var(--software-home-button-height);
-  height: calc(100% - var(--statusbar-height) - var(--software-home-button-height));
+  bottom: 0;
+  height: 100%;
 }
 
 #screen.active-statusbar #dialog-overlay,
@@ -338,7 +338,7 @@ body {
 
 /* Banner should be offset when software home button is enabled */
 #screen.software-button-enabled .generic-dialog.banner {
-  bottom: var(--software-home-button-height);
+  bottom: 0;
 }
 
 .generic-dialog.banner.visible {

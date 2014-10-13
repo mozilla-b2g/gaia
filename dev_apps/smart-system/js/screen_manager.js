@@ -234,26 +234,6 @@ var ScreenManager = {
         this._resetUnlocking();
         break;
 
-      case 'userproximity':
-        var telephony = window.navigator.mozTelephony;
-        if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) ||
-            telephony.speakerEnabled ||
-            StatusBar.headphonesActive) {
-            // XXX: Remove this hack in Bug 868348
-            // We shouldn't access headset status from statusbar.
-          if (this._screenOffBy == 'proximity') {
-            this.turnScreenOn();
-          }
-          break;
-        }
-
-        if (evt.near) {
-          this.turnScreenOff(true, 'proximity');
-        } else {
-          this.turnScreenOn();
-        }
-        break;
-
       case 'callschanged':
         var telephony = window.navigator.mozTelephony;
         if (!telephony.calls.length &&
@@ -263,8 +243,6 @@ var ScreenManager = {
           if (this._screenOffBy == 'proximity') {
             this.turnScreenOn();
           }
-
-          window.removeEventListener('userproximity', this);
 
           if (this._cpuWakeLock) {
            this._cpuWakeLock.unlock();
@@ -297,7 +275,6 @@ var ScreenManager = {
         call.removeEventListener('statechange', this);
 
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
-        window.addEventListener('userproximity', this);
         break;
       case 'lockscreen-appclosing' :
       case 'lockpanelchange' :
@@ -340,7 +317,6 @@ var ScreenManager = {
     // Remove the cpuWakeLock and listening of proximity event, if screen is
     // turned off by power key.
     if (this._cpuWakeLock != null && this._screenOffBy == 'powerkey') {
-      window.removeEventListener('userproximity', this);
       this._cpuWakeLock.unlock();
       this._cpuWakeLock = null;
     }
@@ -420,7 +396,6 @@ var ScreenManager = {
 
       if (connected || ongoingConference) {
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
-        window.addEventListener('userproximity', this);
       }
     }
 

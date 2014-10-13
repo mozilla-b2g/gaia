@@ -358,7 +358,6 @@ var UpdateManager = {
 
     if (this.downloadsQueue.length === 1) {
       this._downloading = true;
-      StatusBar.incSystemDownloads();
       this._wifiLock = navigator.requestWakeLock('wifi');
 
       this.render();
@@ -374,7 +373,6 @@ var UpdateManager = {
 
     if (this.downloadsQueue.length === 0) {
       this._downloading = false;
-      StatusBar.decSystemDownloads();
       this._downloadedBytes = 0;
       this.checkStatuses();
 

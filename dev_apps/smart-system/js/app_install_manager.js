@@ -6,7 +6,6 @@
 /* global LazyLoader */
 /* global ManifestHelper */
 /* global ModalDialog */
-/* global StatusBar */
 /* global SystemBanner */
 /* global Template */
 /* global applications */
@@ -14,7 +13,6 @@
 'use strict';
 /* global ModalDialog */
 /* global SystemBanner */
-/* global StatusBar */
 /* global KeyboardManager */
 /* global LazyLoader */
 /* global ManifestHelper */
@@ -453,7 +451,6 @@ var AppInstallManager = {
         appInfo = this.appInfos[manifestURL];
     if (!appInfo.isDownloading) {
       appInfo.isDownloading = true;
-      StatusBar.incSystemDownloads();
       this.requestWifiLock(app);
     }
   },
@@ -462,7 +459,6 @@ var AppInstallManager = {
     var manifestURL = app.manifestURL,
         appInfo = this.appInfos[manifestURL];
     if (appInfo.isDownloading) {
-      StatusBar.decSystemDownloads();
       this.releaseWifiLock(app);
       appInfo.isDownloading = false;
     }

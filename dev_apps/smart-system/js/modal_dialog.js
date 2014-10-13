@@ -3,7 +3,6 @@
 
 'use strict';
 
-/* global StatusBar */
 /* global KeyboardManager */
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
@@ -131,12 +130,12 @@ var ModalDialog = {
           return;
         }
 
-        this.setHeight(window.innerHeight - StatusBar.height);
+        this.setHeight(window.innerHeight);
         break;
 
       case 'keyboardchange':
         var keyboardHeight = KeyboardManager.getHeight();
-        this.setHeight(window.innerHeight - keyboardHeight - StatusBar.height);
+        this.setHeight(window.innerHeight - keyboardHeight);
         break;
     }
   },
@@ -242,7 +241,7 @@ var ModalDialog = {
         break;
     }
 
-    this.setHeight(window.innerHeight - StatusBar.height);
+    this.setHeight(window.innerHeight);
   },
 
   hide: function md_hide() {

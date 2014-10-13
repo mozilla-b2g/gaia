@@ -38,7 +38,7 @@
 }
 
 #screen:not(.fullscreen-app):not(.fullscreen-layout-app) #permission-dialog > div.inner {
-  margin-top: var(--statusbar-height);
+  margin-top: 0;
 }
 
 @media not all and (-moz-physical-home-button) {

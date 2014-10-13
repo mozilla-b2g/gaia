@@ -27,8 +27,6 @@ var TrustedUIManager = {
 
   screen: document.getElementById('screen'),
 
-  loadingIcon: document.getElementById('statusbar-loading'),
-
   throbber: document.getElementById('trustedui-throbber'),
 
   header: document.getElementById('trustedui-header'),
@@ -420,10 +418,10 @@ var TrustedUIManager = {
         break;
       case 'keyboardchange':
         var keyboardHeight = KeyboardManager.getHeight();
-        this._setHeight(window.innerHeight - StatusBar.height - keyboardHeight);
+        this._setHeight(window.innerHeight - keyboardHeight);
         break;
       case 'keyboardhide':
-        this._setHeight(window.innerHeight - StatusBar.height);
+        this._setHeight(window.innerHeight);
         break;
     }
   },

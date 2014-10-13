@@ -1,4 +1,3 @@
-/* global StatusBar */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
@@ -173,7 +172,7 @@
   SystemDialog.prototype.updateHeight = function sd_updateHeight() {
     // The LayoutManager is already taking care of the keyboard height,
     // so we don't need to worry about that here.
-    var height = window.layoutManager.height - StatusBar.height;
+    var height = window.layoutManager.height;
     this.containerElement.style.height = height + 'px';
     this.debug('updateHeight: new height = ' + height);
     // Scroll up so as to show simpin input box

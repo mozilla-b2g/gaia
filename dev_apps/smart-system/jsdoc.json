@@ -9,7 +9,6 @@
             "!apps/system/js/devtools/logshake.js",
             "!apps/system/js/notifications.js",
             "!apps/system/js/places.js",
-            "!apps/system/js/statusbar.js",
             "!apps/system/js/wallpaper_manager.js",
             "!apps/system/js/browser_context_menu.js",
             "!apps/system/js/input_layouts.js"],
