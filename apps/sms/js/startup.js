@@ -75,7 +75,8 @@ var Startup = {
   },
 
   init: function() {
-    window.addEventListener('DOMContentLoaded', function() {
+    var loaded = function() {
+      window.removeEventListener('DOMContentLoaded', loaded);
       window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
       MessageManager.init();
@@ -89,7 +90,9 @@ var Startup = {
       // dispatch chrome-interactive when thread list related modules
       // initialized
       window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
-    }.bind(this));
+    }.bind(this);
+
+    window.addEventListener('DOMContentLoaded', loaded);
   }
 };
 
