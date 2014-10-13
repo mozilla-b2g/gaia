@@ -3,7 +3,7 @@
 
 'use strict';
 
-require('/dialer/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');

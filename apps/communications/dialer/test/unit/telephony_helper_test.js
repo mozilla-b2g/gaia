@@ -5,8 +5,8 @@
 'use strict';
 
 
-require('/dialer/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
