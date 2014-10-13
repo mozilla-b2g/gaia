@@ -1,61 +1,45 @@
 'use strict';
 
-/* global LayoutLoader, LayoutNormalizer */
+/* global LayoutLoader, MocksHelper, MockLayoutNormalizer */
 
-require('/js/keyboard/layout_normalizer.js');
+require('/test/unit/keyboard/mocks/mock_layout_normalizer.js');
 require('/js/keyboard/layout_loader.js');
 
+var mocksForLayoutLoader = new MocksHelper([
+  'LayoutNormalizer'
+]).init();
+
 suite('LayoutLoader', function() {
+  mocksForLayoutLoader.attachTestHelpers();
+
   var realKeyboards;
 
   var expectedFooLayout = {
-    pages: [
-      {
-        keys: [
-          [
-            { value: 'foo' }
-          ]
-        ],
-        alt: {},
-        upperCase: {}
-      }
+    keys: [
+      [
+        { value: 'foo' }
+      ]
     ]
   };
 
   var expectedFoo2Layout = {
-    pages: [
-      {
-        keys: [
-          [
-            { value: 'foo2' }
-          ]
-        ],
-        alt: {},
-        upperCase: {}
-      }
+    keys: [
+      [
+        { value: 'foo2' }
+      ]
     ]
   };
 
   var expectedFoo3Layout = {
-    pages: [
-      {
-        keys: [
-          [
-            { value: 'foo3' }
-          ]
-        ],
-        alt: {},
-        upperCase: {}
-      }
+    keys: [
+      [
+        { value: 'foo3' }
+      ]
     ]
   };
 
-  // because LayoutLoader.start calls LayoutLoader.initLayouts which uses its
-  // instantiated _normalizer, we can't stub the instance after we call start().
-  var stubLayoutNormalizer;
   setup(function() {
-    stubLayoutNormalizer = this.sinon.stub(LayoutNormalizer.prototype);
-    this.sinon.stub(window, 'LayoutNormalizer').returns(stubLayoutNormalizer);
+    MockLayoutNormalizer.setup();
   });
 
   suiteSetup(function() {
@@ -86,34 +70,20 @@ suite('LayoutLoader', function() {
     var p = loader.getLayoutAsync('preloaded');
     p.then(function(layout) {
       assert.isTrue(true, 'loaded');
+      // the loader instantiates normalizer by using its getLayout
+      // so testing this would test getLayout at the same time
+      // (same for following tests)
       assert.deepEqual(
-        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[0],
+        MockLayoutNormalizer.instances[0]._layout,
         {
           keys: [
             [
-              { value: 'preloaded' }
+             { value: 'preloaded' }
             ]
-          ],
-          alt: {},
-          upperCase: {}
+          ]
         },
-        'normalizer argument "page" incorrect'
-      );
-      assert.equal(
-        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[1].pages.length,
-        1,
         'normalizer argument "layout" incorrect'
       );
-      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: {},
-        upperCase: {}
-      } ] }, 'preloaded loaded');
-      assert.equal(layout, loader.getLayout('preloaded'));
     }, function(e) {
       if (e) {
         throw (e);
@@ -132,26 +102,11 @@ suite('LayoutLoader', function() {
     var p = loader.getLayoutAsync('foo');
     p.then(function(layout) {
       assert.deepEqual(
-        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[0],
-        {
-          keys: [
-            [
-              { value: 'foo' }
-            ]
-          ],
-          alt: {},
-          upperCase: {}
-        },
-        'normalizer argument "page" incorrect'
-      );
-      assert.equal(
-        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[1].pages.length,
-        1,
+        MockLayoutNormalizer.instances[0]._layout,
+        expectedFooLayout,
         'normalizer argument "layout" incorrect'
       );
       assert.isTrue(true, 'loaded');
-      assert.deepEqual(
-        loader.getLayout('foo'), expectedFooLayout, 'foo loaded');
       assert.equal(layout, loader.getLayout('foo'));
     }, function(e) {
       if (e) {
@@ -172,48 +127,17 @@ suite('LayoutLoader', function() {
     p.then(function(layout) {
       assert.isTrue(true, 'loaded');
       assert.deepEqual(
-        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[0],
-        {
-          keys: [
-            [
-              { value: 'foo2' }
-            ]
-          ],
-          alt: {},
-          upperCase: {}
-        },
-        'normalizer argument "page" incorrect'
-      );
-      assert.equal(
-        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[1].pages.length,
-        1,
+        MockLayoutNormalizer.instances[0]._layout,
+        expectedFoo2Layout,
         'normalizer argument "layout" incorrect'
       );
       assert.deepEqual(
-        stubLayoutNormalizer.normalizePageKeys.getCall(1).args[0],
-        {
-          keys: [
-            [
-              { value: 'foo3' }
-            ]
-          ],
-          alt: {},
-          upperCase: {}
-        },
-        'normalizer argument "page" incorrect'
-      );
-      assert.equal(
-        stubLayoutNormalizer.normalizePageKeys.getCall(1).args[1].pages.length,
-        1,
+        MockLayoutNormalizer.instances[1]._layout,
+        expectedFoo3Layout,
         'normalizer argument "layout" incorrect'
       );
-      assert.deepEqual(
-        loader.getLayout('foo2'), expectedFoo2Layout, 'foo2 loaded');
-      assert.equal(layout, loader.getLayout('foo2'));
       assert.deepEqual(window.Keyboards, {});
 
-      assert.deepEqual(
-        loader.getLayout('foo3'), expectedFoo3Layout, 'foo3 loaded');
       var p2 = loader.getLayoutAsync('foo3');
 
       return p2;
@@ -290,284 +214,6 @@ suite('LayoutLoader', function() {
       assert.isTrue(true, 'loaded');
       assert.deepEqual(
         loader.getLayout('foo'), expectedFooLayout, 'foo loaded');
-    }, function(e) {
-      if (e) {
-        throw (e);
-      }
-      assert.isTrue(false, 'should not reject');
-    }).then(done, done);
-  });
-
-  test('normalize alt menu (single char keys)', function(done) {
-    window.Keyboards = {
-      'preloaded': {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: {
-          'a': 'áàâäåãāæ'
-        }
-      }
-    };
-
-    var loader = new LayoutLoader();
-    loader.start();
-
-    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
-    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
-
-    var p = loader.getLayoutAsync('preloaded');
-    p.then(function(layout) {
-      assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: { 'a': [ 'á', 'à', 'â', 'ä', 'å', 'ã', 'ā', 'æ' ],
-               'A': [ 'Á', 'À', 'Â', 'Ä', 'Å', 'Ã', 'Ā', 'Æ' ] },
-        upperCase: {}
-      } ] }, 'preloaded loaded');
-      assert.equal(layout, loader.getLayout('preloaded'));
-    }, function(e) {
-      if (e) {
-        throw (e);
-      }
-      assert.isTrue(false, 'should not reject');
-    }).then(done, done);
-  });
-
-  test('normalize alt menu of multiple pages', function(done) {
-    window.Keyboards = {
-      'preloaded': {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        pages: [ undefined, {
-          keys: [
-            [
-              { value: 'preloaded-alternateLayout' }
-            ]
-          ],
-          alt: {
-            'a': 'áàâäåãāæ'
-          }
-        } ]
-      }
-    };
-
-    var loader = new LayoutLoader();
-    loader.start();
-
-    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
-    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
-
-    var p = loader.getLayoutAsync('preloaded');
-    p.then(function(layout) {
-      assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: {},
-        upperCase: {}
-      }, {
-        keys: [
-          [
-            { value: 'preloaded-alternateLayout' }
-          ]
-        ],
-        alt: { 'a': [ 'á', 'à', 'â', 'ä', 'å', 'ã', 'ā', 'æ' ],
-               'A': [ 'Á', 'À', 'Â', 'Ä', 'Å', 'Ã', 'Ā', 'Æ' ] },
-        upperCase: {}
-      } ] }, 'preloaded loaded');
-      assert.equal(layout, loader.getLayout('preloaded'));
-    }, function(e) {
-      if (e) {
-        throw (e);
-      }
-      assert.isTrue(false, 'should not reject');
-    }).then(done, done);
-  });
-
-  test('normalize alt menu (with multi-char keys)', function(done) {
-    window.Keyboards = {
-      'preloaded': {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: {
-          'a': 'á à â A$'
-        }
-      }
-    };
-
-    var loader = new LayoutLoader();
-    loader.start();
-
-    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
-    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
-
-    var p = loader.getLayoutAsync('preloaded');
-    p.then(function(layout) {
-      assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: { 'a': [ 'á', 'à', 'â', 'A$' ],
-               'A': [ 'Á', 'À', 'Â', 'A$' ] },
-        upperCase: {}
-      } ] }, 'preloaded loaded');
-      assert.equal(layout, loader.getLayout('preloaded'));
-    }, function(e) {
-      if (e) {
-        throw (e);
-      }
-      assert.isTrue(false, 'should not reject');
-    }).then(done, done);
-  });
-
-  test('normalize alt menu (with one multi-char keys)', function(done) {
-    window.Keyboards = {
-      'preloaded': {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: {
-          'a': 'A$ '
-        }
-      }
-    };
-
-    var loader = new LayoutLoader();
-    loader.start();
-
-    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
-    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
-
-    var p = loader.getLayoutAsync('preloaded');
-    p.then(function(layout) {
-      assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: { 'a': [ 'A$' ],
-               'A': [ 'A$' ] },
-        upperCase: {}
-      } ] }, 'preloaded loaded');
-      assert.equal(layout, loader.getLayout('preloaded'));
-    }, function(e) {
-      if (e) {
-        throw (e);
-      }
-      assert.isTrue(false, 'should not reject');
-    }).then(done, done);
-  });
-
-  test('normalize alt menu (with Turkish \'i\' key)', function(done) {
-    window.Keyboards = {
-      'preloaded': {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: {
-          'i': 'ß'
-        },
-        upperCase: {
-          'i': 'İ'
-        }
-      }
-    };
-
-    var loader = new LayoutLoader();
-    loader.start();
-
-    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
-    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
-
-    var p = loader.getLayoutAsync('preloaded');
-    p.then(function(layout) {
-      assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: { 'i': [ 'ß' ],
-               'İ': [ 'ß' ] },
-        upperCase: {
-          'i': 'İ'
-        }
-      } ] }, 'preloaded loaded');
-      assert.equal(layout, loader.getLayout('preloaded'));
-    }, function(e) {
-      if (e) {
-        throw (e);
-      }
-      assert.isTrue(false, 'should not reject');
-    }).then(done, done);
-  });
-
-  test('normalize alt menu (with Catalan \'l·l\' key)', function(done) {
-    window.Keyboards = {
-      'preloaded': {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: {
-          'l': 'l·l ł £'
-        }
-      }
-    };
-
-    var loader = new LayoutLoader();
-    loader.start();
-
-    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
-    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
-
-    var expectedLayout = {
-      pages: [ {
-        keys: [
-          [
-            { value: 'preloaded' }
-          ]
-        ],
-        alt: { 'l': [ 'l·l', 'ł', '£' ],
-               'L': [ 'L·l', 'Ł', '£' ] },
-        upperCase: {}
-      } ]
-    };
-    expectedLayout.pages[0].alt.L.upperCaseLocked = [ 'L·L', 'Ł', '£' ];
-
-    var p = loader.getLayoutAsync('preloaded');
-    p.then(function(layout) {
-      assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), expectedLayout,
-        'preloaded loaded');
-      assert.equal(layout, loader.getLayout('preloaded'));
     }, function(e) {
       if (e) {
         throw (e);
