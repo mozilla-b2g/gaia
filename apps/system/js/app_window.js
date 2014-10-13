@@ -690,7 +690,7 @@
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
-     '_orientationchange', '_focus', '_hidewindow', '_sheetdisplayed',
+     '_orientationchange', '_focus', '_blur', '_hidewindow', '_sheetdisplayed',
      '_sheetsgestureend', '_closed', '_shrinkingstart', '_shrinkingstop'];
 
   AppWindow.SUB_COMPONENTS = {
@@ -2041,6 +2041,14 @@
     if (this.contextmenu) {
       this.contextmenu.hide();
     }
+  };
+
+  AppWindow.prototype._handle__blur = function() {
+    var win = this;
+    while (win.frontWindow && win.frontWindow.isActive()) {
+      win = win.frontWindow;
+    }
+    win.blur();
   };
 
   AppWindow.prototype._handle__focus = function() {
