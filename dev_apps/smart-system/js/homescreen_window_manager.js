@@ -49,16 +49,12 @@
      * @memberOf HomescreenWindowManager.prototype
      */
     start: function hwm_start() {
-      var self = this;
-      LazyLoader.load([LANDING_APP_WINDOW_URL, LANDING_APP_LAUNCHER_URL],
-        function() {
-          self.landingAppLauncher = new window.LandingAppLauncher();
-          self.landingAppLauncher.start();
-          self._activeHome = self.landingAppLauncher;
-          if (self._ftuSkipped) {
-            self.landingAppLauncher.getHomescreen().setVisible(true);
-          }
-        });
+      this.landingAppLauncher = new LandingAppLauncher();
+      this.landingAppLauncher.start();
+      this._activeHome = this.landingAppLauncher;
+      if (this._ftuSkipped) {
+        this.landingAppLauncher.getHomescreen().setVisible(true);
+      }
       window.addEventListener('appswitching', this);
       window.addEventListener('ftuskip', this);
       window.addEventListener('open-app', this);
@@ -188,9 +184,10 @@
     getHomescreen: function getHomescreen(isHomeEvent) {
       if (!exports.homescreenLauncher || !exports.homescreenLauncher.ready ||
           !this.landingAppLauncher || !this.landingAppLauncher.ready) {
+        console.log('get home when it is not ready' + new Error().stack);
         return null;
       }
-
+      console.log('get home');
       if (this.landingAppLauncher.hasLandingApp) {
 
         // use landing app launcher as first home launcher
