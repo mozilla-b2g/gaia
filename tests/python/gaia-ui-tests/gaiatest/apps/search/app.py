@@ -15,7 +15,8 @@ class Search(Base):
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name,
+                                message='Displayed app was %s' % self.apps.displayed_app.name)
         self.wait_for_element_displayed(*self._url_bar_locator)
 
     def go_to_url(self, url):
