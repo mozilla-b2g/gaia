@@ -114,10 +114,6 @@
     }
   },
   "datastores-access": {
-    "Basket_Newsletter": {
-      "readonly": false,
-      "description": "Email address for sending newsletter"
-    },
     "bookmarks_store": {
       "readonly": false,
       "description": "View and modify bookmarks"
