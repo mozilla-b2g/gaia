@@ -433,10 +433,6 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
   // dataPromise is the one we previously created with updateInputContextData()
   var dataPromise = this._inputContextData;
 
-  // Unset the used promise so it will get filled when
-  // updateInputContextData() is called.
-  this._inputContextData = null;
-
   if (!dataPromise && imEngineName !== 'default') {
     console.warn('InputMethodManager: switchCurrentIMEngine() called ' +
       'without calling updateInputContextData() first.');
@@ -463,7 +459,8 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
   .then(function(values) {
     if (switchStateId !== this._switchStateId) {
       console.warn('InputMethodManager: ' +
-        'Promise is resolved after another switchCurrentIMEngine() call.');
+        'Promise is resolved after another switchCurrentIMEngine() call. id: ' +
+        switchStateId);
 
       return Promise.reject();
     }
@@ -500,6 +497,8 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
     }
     this.currentIMEngine = imEngine;
     this.app.console.timeEnd('switchCurrentIMEngine' + switchStateId);
+
+    this._inputContextData = null;
   }.bind(this));
 
   return p;

@@ -32,7 +32,7 @@ KeyboardConsole.prototype.start = function() {
  * production too so warn() and error() is not implemented here.
  *
  */
-KeyboardConsole.prototype.LOG_LEVEL = 0;
+KeyboardConsole.prototype.LOG_LEVEL = 3;
 
 KeyboardConsole.prototype.trace = function() {
   if (this.LOG_LEVEL < 3) {
