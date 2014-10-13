@@ -1,4 +1,4 @@
-.fake-notification {
+#lockscreen .fake-notification {
   height: 6rem;
   padding: 0 1.5rem;
   font: 1.8rem/1.8rem auto;
@@ -8,7 +8,7 @@
   border-bottom: .1rem solid rgba(255, 255, 255, .05);
 }
 
-.fake-notification [data-icon] {
+#lockscreen .fake-notification [data-icon] {
   float: left;
   width: 3rem;
   height: 3rem;
@@ -16,7 +16,7 @@
 }
 
 /* alert icon: white on red background */
-[data-icon].alert {
+#lockscreen [data-icon].alert {
   color: #fff;
   background-color: #b90000;
   border-radius: 50%;
@@ -25,7 +25,7 @@
   margin: 1.8rem 0;
 }
 
-[data-icon].alert:before {
+#lockscreen [data-icon].alert:before {
   overflow: hidden;
   display: block;
   border-radius: 50%;
@@ -34,13 +34,13 @@
   text-align: center;
 }
 
-.fake-notification .title-container {
+#lockscreen .fake-notification .title-container {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.fake-notification .detail {
+#lockscreen .fake-notification .detail {
   color: #858585;
   font-size: 1.4rem;
   overflow: hidden;
