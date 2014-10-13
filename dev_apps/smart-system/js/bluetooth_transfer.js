@@ -15,12 +15,6 @@ var BluetoothTransfer = {
   _deviceStorage: navigator.getDeviceStorage('sdcard'),
   _debug: false,
 
-  get transferStatusList() {
-    delete this.transferStatusList;
-    return this.transferStatusList =
-      document.getElementById('bluetooth-transfer-status-list');
-  },
-
   init: function bt_init() {
     // Bind message handler for sending files from Bluetooth app
     window.addEventListener('iac-bluetoothTransfercomms',
@@ -311,77 +305,13 @@ var BluetoothTransfer = {
   onUpdateProgress: function bt_onUpdateProgress(mode, evt) {
     switch (mode) {
       case 'start':
-        var transferInfo = evt.detail.transferInfo;
-        this.initProgress(transferInfo);
+        this.debug('transfer start');
         break;
 
       case 'progress':
-        var address = evt.address;
-        var processedLength = evt.processedLength;
-        var fileLength = evt.fileLength;
-        var progress = 0;
-        if (fileLength == 0) {
-          //XXX: May need to handle unknow progress
-        } else if (processedLength > fileLength) {
-          // According Bluetooth spec.,
-          // the processed length is a referenced value only.
-          // XXX: If processed length is bigger than file length,
-          //      show an unknown progress
-        } else {
-          progress = processedLength / fileLength;
-        }
-        this.updateProgress(progress, evt);
+      this.debug('transfer progress: ' + progress);
         break;
     }
-  },
-
-  initProgress: function bt_initProgress(evt) {
-    var _ = navigator.mozL10n.get;
-    // Create progress dynamically in notification center
-    var address = evt.address;
-    var transferMode =
-      (evt.received == true) ?
-      _('bluetooth-receiving-progress') : _('bluetooth-sending-progress');
-    var content =
-      '<div data-icon="bluetooth-transfer-circle"></div>' +
-      '<div class="title-container">' + transferMode + '</div>' +
-      // XXX: Bug 804533 - [Bluetooth]
-      // Need sending/receiving icon for Bluetooth file transfer
-      '<progress value="0" max="1"></progress>';
-
-    var transferTask = document.createElement('div');
-    transferTask.id = 'bluetooth-transfer-status';
-    transferTask.className = 'fake-notification';
-    transferTask.setAttribute('data-id', address);
-    transferTask.setAttribute('role', 'link');
-    transferTask.innerHTML = content;
-    transferTask.addEventListener('click',
-                                  this.onCancelTransferTask.bind(this));
-    this.transferStatusList.appendChild(transferTask);
-  },
-
-  updateProgress: function bt_updateProgress(value, evt) {
-    var address = evt.address;
-    var id = 'div[data-id="' + address + '"] progress';
-    var progressEl = this.transferStatusList.querySelector(id);
-    progressEl.value = value;
-  },
-
-  removeProgress: function bt_removeProgress(evt) {
-    var address = evt.address;
-    var id = 'div[data-id="' + address + '"]';
-    var finishedTask = this.transferStatusList.querySelector(id);
-    // If we decline receiving file, Bluetooth won't callback
-    // 'bluetooth-opp-transfer-start', 'bluetooth-opp-update-progress' event.
-    // So that there is no progress element which was created on notification.
-    // There is only 'bluetooth-opp-transfer-complete' event to notify Gaia the
-    // transferring request in failed case.
-    if (finishedTask == null)
-      return;
-
-    finishedTask.removeEventListener('click',
-                                     this.onCancelTransferTask.bind(this));
-    this.transferStatusList.removeChild(finishedTask);
   },
 
   onCancelTransferTask: function bt_onCancelTransferTask(evt) {
@@ -434,8 +364,6 @@ var BluetoothTransfer = {
   onTransferComplete: function bt_onTransferComplete(evt) {
     var transferInfo = evt.detail.transferInfo;
     var _ = navigator.mozL10n.get;
-    // Remove transferring progress
-    this.removeProgress(transferInfo);
     var fileName =
       (transferInfo.fileName) ? transferInfo.fileName : _('unknown-file');
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
