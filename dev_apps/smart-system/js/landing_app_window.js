@@ -197,8 +197,8 @@
         this.frontWindow.kill();
       } else {
         this.browser.element.src = this.browser_config.url.indexOf('#') > -1 ?
-                                   this.browser_config.url + '#' + Date.now() :
-                                   this.browser_config.url + Date.now();
+                                   this.browser_config.url + Date.now() :
+                                   this.browser_config.url + '#' + Date.now();
       }
     }
 
