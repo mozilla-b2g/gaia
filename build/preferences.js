@@ -137,7 +137,7 @@ PreferencesBuilder.prototype.preparePref = function() {
 
   this.userPrefs['b2g.system_startup_url'] = this.system;
 
-  this.domains = [this.config.GAIA_DOMAIN];
+  this.domains = [this.config.GAIA_DOMAIN, 'theme.' + this.config.GAIA_DOMAIN];
   this.config.GAIA_ALLAPPDIRS.split(' ').forEach(function(appdir) {
     this.domains.push(utils.getFile(appdir).leafName + '.' +
       this.config.GAIA_DOMAIN);
