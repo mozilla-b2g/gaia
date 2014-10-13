@@ -2,7 +2,8 @@
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockSystem, MockTouchForwarder, StatusBar, System,
-           MockNfcManager, MockMobileconnection, MockAppWindowManager */
+           MockNfcManager, MockMobileconnection, MockAppWindowManager,
+           UtilityTray */
 
 'use strict';
 
@@ -1624,10 +1625,25 @@ suite('system/Statusbar', function() {
       test('it should not reveal when ftu is running', function() {
         FtuLauncher.mIsRunning = true;
         fakeDispatch('touchstart', 100, 0);
-        fakeDispatch('touchmove', 100, 5);
-        assert.equal(StatusBar.element.style.transform, '');
+        fakeDispatch('touchmove', 100, 100);
+
+        var titleEl = System.currentApp.element
+                                       .querySelector('.titlebar');
+        assert.equal(titleEl.style.transform, '');
         FtuLauncher.mIsRunning = false;
       });
+
+      test('it should not forward events when the tray is opened', function() {
+        UtilityTray.active = true;
+        fakeDispatch('touchstart', 100, 0);
+        fakeDispatch('touchmove', 100, 100);
+
+        var titleEl = System.currentApp.element
+                                       .querySelector('.titlebar');
+        assert.equal(titleEl.style.transform, '');
+        UtilityTray.active = false;
+      });
+
 
       suite('after the gesture', function() {
         suite('when the StatusBar is not fully displayed', function() {

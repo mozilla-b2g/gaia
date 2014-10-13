@@ -668,6 +668,11 @@ var StatusBar = {
       return;
     }
 
+    // Do not forward events is utility-tray is active
+    if (UtilityTray.active) {
+      return;
+    }
+
     if (this._dontStopEvent) {
       return;
     }
