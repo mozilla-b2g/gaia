@@ -232,8 +232,18 @@ suite('system/NotificationScreen >', function() {
   });
 
   suite('updateNotificationIndicator >', function() {
+    var transitionEnd;
+
     setup(function() {
+      sinon.stub(UtilityTray.overlay, 'addEventListener',
+        function(eventName, callback) {
+          transitionEnd = callback;
+        });
       NotificationScreen.updateNotificationIndicator();
+    });
+
+    teardown(function() {
+      UtilityTray.overlay.addEventListener.restore();
     });
 
     function localizeAmbientIndicatorLabel(n) {
@@ -245,8 +255,7 @@ suite('system/NotificationScreen >', function() {
       assert.equal(NotificationScreen.unreadNotifications.length, 2);
       assert.equal(NotificationScreen.ambientIndicator.getAttribute(
         'aria-label'), localizeAmbientIndicatorLabel(2));
-      var event = new CustomEvent('utilitytrayshow');
-      window.dispatchEvent(event);
+      UtilityTray.show();
       assert.equal(document.body.getElementsByClassName('unread').length, 0);
       assert.equal(NotificationScreen.unreadNotifications.length, 0);
       assert.isNull(NotificationScreen.ambientIndicator.getAttribute(

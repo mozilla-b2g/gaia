@@ -717,7 +717,7 @@ suite('system/Updatable', function() {
     testSystemApplyPromptBatteryOk();
 
     test('utility tray hidden', function() {
-      assert.isFalse(MockUtilityTray.mShown);
+      assert.isFalse(MockUtilityTray.shown);
     });
 
     test('apply prompt cancel callback', function() {
