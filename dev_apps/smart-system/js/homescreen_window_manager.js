@@ -52,7 +52,6 @@
       var self = this;
       LazyLoader.load([LANDING_APP_WINDOW_URL, LANDING_APP_LAUNCHER_URL],
         function() {
-          console.log('trying to start landingAppLauncher');
           self.landingAppLauncher = new window.LandingAppLauncher();
           self.landingAppLauncher.start();
           self._activeHome = self.landingAppLauncher;
@@ -94,7 +93,7 @@
         case 'ftuskip':
           this._ftuSkipped = true;
           if (this.ready) {
-            this.getHomescreen().setVisible(!System.locked);
+            this.getHomescreen().setVisible(true);
           }
           break;
         case 'open-app':
