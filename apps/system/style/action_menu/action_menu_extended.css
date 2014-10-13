@@ -91,14 +91,12 @@ form[role="dialog"][data-type="object"].visible {
   form[role="dialog"][data-type="object"] > menu {
     top: calc(50% - 24rem + 7rem);
     left: calc(50% - 34rem);
-    width: 55.8rem; /* 68 - 12 - 0.2(border compensate)*/
+    width: 56rem; /* 68 - 12 */
     height: 31rem; /* 38 - 7 */
     padding: 0 6rem;
     font-size: 2.2rem;
-    background-color: #333333;
-    box-shadow: 0 0 1rem #222222;
-    border: 0.1rem solid #282828;
-    border-top: none;
+    background-color: #4d4d4d;
+    border: none;
     z-index:1;
   }
 

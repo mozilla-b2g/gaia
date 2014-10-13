@@ -66,14 +66,18 @@
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem 1rem;
-  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
-  background: #2d2d2d;
+  background-color: #4d4d4d;
   display: block;
   overflow: hidden;
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+[role="dialog"].generic-dialog menu:not([type="toolbar"]) button,
+[role="dialog"].generic-dialog menu:not([type="toolbar"]) a.bb-button {
+  margin-bottom: 0;
 }
 
 [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] button,
