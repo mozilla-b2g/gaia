@@ -13,6 +13,8 @@ var UtilityTray = {
 
   notifications: document.getElementById('utility-tray-notifications'),
 
+  ambientIndicator: document.getElementById('ambient-indicator'),
+
   notificationsPlaceholder:
     document.getElementById('notifications-placeholder'),
 
@@ -93,6 +95,8 @@ var UtilityTray = {
   screenWidth: 0,
   screenHeight: 0,
   grippyHeight: 0,
+  statusbarHeight: 0,
+  ambientHeight: 0,
   placeholderHeight: 0,
 
   handleEvent: function ut_handleEvent(evt) {
@@ -267,9 +271,17 @@ var UtilityTray = {
       this.grippyHeight = this.grippy.clientHeight || 0;
     }
 
+    if (refresh || !this.statusbarHeight) {
+      this.statusbarHeight = this.statusbar.clientHeight || 0;
+    }
+
+    if (refresh || !this.ambientHeight) {
+      this.ambientHeight = this.ambientIndicator.clientHeight || 0;
+    }
+
     if (refresh || !this.placeholderHeight) {
       this.placeholderHeight = this.notificationsPlaceholder.clientHeight || 0;
-      this.notifications.style.height = this.placeholderHeight + 'px';
+      this.notifications.style.height = '100%';
     }
   },
 
@@ -321,11 +333,18 @@ var UtilityTray = {
     dy = Math.min(screenHeight, dy);
 
     var style = this.overlay.style;
+    var ambientStyle = this.ambientIndicator.style;
     style.MozTransition = '';
     style.MozTransform = 'translateY(' + dy + 'px)';
 
+    if (dy >= this.ambientHeight) {
+      var transform = 'translateY(' + (dy - this.ambientHeight) + 'px)';
+      ambientStyle.transform = transform;
+      ambientStyle.transition = '';
+    }
+
     this.notifications.style.transition = '';
-    var notificationBottom = Math.max(0, dy - this.grippyHeight);
+    var notificationBottom = Math.max(0, dy);
     this.notifications.style.clip =
       'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
   },
@@ -363,7 +382,9 @@ var UtilityTray = {
     var alreadyHidden = !this.shown;
     var style = this.overlay.style;
 
-    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
+    var transition = instant ? '' : '-moz-transform 0.2s linear';
+    style.MozTransition = transition;
+    this.ambientIndicator.style.transition = transition;
 
     var notificationClipOffset =
       this.notifications.offsetTop + this.statusbar.clientHeight;
@@ -380,6 +401,7 @@ var UtilityTray = {
     }
 
     style.MozTransform = '';
+    this.ambientIndicator.style.transform = 'translateY(0)';
     this.shown = false;
     window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
 
@@ -397,11 +419,14 @@ var UtilityTray = {
     var style = this.overlay.style;
     style.MozTransition = '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(100%)';
+    var ambientOffset = this.screenHeight - this.ambientHeight;
+    var transform = 'translateY(' + ambientOffset + 'px)';
+    this.ambientIndicator.style.transform = transform;
 
     this.shown = true;
     this.screen.classList.add('utility-tray');
     this.notifications.classList.add('visible');
-    this.notifications.style.transition = 'clip 0.2s linear';
+    this.notifications.style.transition = 'clip 0.1s linear';
     window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
 
     if (!alreadyShown) {
@@ -420,7 +445,7 @@ var UtilityTray = {
   },
 
   updateSize: function ut_updateSize() {
-    this.notifications.style.height = this.placeholderHeight + 'px';
+    this.notifications.style.height = '100%';
     var notificationBottom = Math.max(0, this.screenHeight - this.grippyHeight);
     this.notifications.style.clip =
       'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
