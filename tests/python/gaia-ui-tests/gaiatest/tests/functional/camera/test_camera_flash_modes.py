@@ -22,7 +22,6 @@ class TestCameraFlashModes(GaiaTestCase):
 
         # Toggle flash mode to "on"
         self.camera.tap_toggle_flash_button()
-        self.camera.wait_for_flash_enabled()
         self.assertEqual(self.camera.current_flash_mode, 'on')
 
         # Take a photo
@@ -37,11 +36,12 @@ class TestCameraFlashModes(GaiaTestCase):
 
         # Toggle flash mode to "off"
         self.camera.tap_toggle_flash_button()
-        self.camera.wait_for_flash_disabled()
         self.assertEqual(self.camera.current_flash_mode, 'off')
 
+        first_image_src = self.camera.current_image_src
         # Take a photo
         self.camera.take_photo()
+        self.camera.wait_for_picture_to_change(first_image_src)
 
         # Check that Filmstrip is visible
         self.assertTrue(self.camera.is_thumbnail_visible)
@@ -54,8 +54,10 @@ class TestCameraFlashModes(GaiaTestCase):
         self.camera.tap_toggle_flash_button()
         self.assertEqual(self.camera.current_flash_mode, 'auto')
 
+        second_image_src = self.camera.current_image_src
         # Take a photo
         self.camera.take_photo()
+        self.camera.wait_for_picture_to_change(second_image_src)
 
         # Check that Filmstrip is visible
         self.assertTrue(self.camera.is_thumbnail_visible)
