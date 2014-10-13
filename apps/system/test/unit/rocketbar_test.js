@@ -1,20 +1,20 @@
 'use strict';
 /* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow,
-   MockAppWindowManager */
+   MockSystem */
 
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_search_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_iac_handler.js');
 
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
-  'AppWindowManager',
   'SearchWindow',
   'SettingsListener',
   'SettingsURL',
+  'System',
   'IACPort'
 ]).init();
 
@@ -45,6 +45,7 @@ suite('system/Rocketbar', function() {
     stubById.restore();
     MockIACPort.mTearDown();
     subject._port = null;
+    MockSystem.currentApp = null;
   });
 
   test('start()', function() {
@@ -355,7 +356,7 @@ suite('system/Rocketbar', function() {
       config: {url: 'app.url'},
       isBrowser: function() {}
     };
-    this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(activeApp);
+    MockSystem.currentApp = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate');
@@ -370,7 +371,7 @@ suite('system/Rocketbar', function() {
       config: {url: 'app.url'},
       isBrowser: function() {}
     };
-    this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(activeApp);
+    MockSystem.currentApp = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(false);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate');

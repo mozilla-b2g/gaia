@@ -1,10 +1,10 @@
 /* global MocksHelper,
    AppWindowFactory,
    MockApplications,
-   MockAppWindowManager,
    AppWindow,
    HomescreenLauncher,
-   appWindowFactory
+   appWindowFactory,
+   MockAppWindowManager
  */
 
 'use strict';
@@ -135,6 +135,7 @@ suite('system/AppWindowFactory', function() {
     window.homescreenLauncher = new HomescreenLauncher();
     window.homescreenLauncher.start();
 
+    window.appWindowManager = new MockAppWindowManager();
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window_factory.js', function() {
@@ -341,7 +342,7 @@ suite('system/AppWindowFactory', function() {
     });
 
     test('launch an already-running app', function() {
-      var spy = this.sinon.stub(MockAppWindowManager, 'getApp');
+      var spy = this.sinon.stub(window.appWindowManager, 'getApp');
       var app = new AppWindow();
       var stubReviveBrowser = this.sinon.stub(app, 'reviveBrowser');
       spy.returns(app);

@@ -25,7 +25,7 @@
  *
  */
 
-/* globals dump, Promise, AppWindowManager */
+/* globals dump, Promise, System */
 (function(exports) {
   var ShrinkingUI = function() {
     this._clearPreviousTilting = false;
@@ -60,7 +60,7 @@
 
     get current() {
       if (!this._clearPreviousTilting || !this.state.activeApp) {
-        var currentApp = AppWindowManager && AppWindowManager.getActiveApp();
+        var currentApp = System.currentApp;
         if (!currentApp) {
           return null;
         }

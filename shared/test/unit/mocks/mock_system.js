@@ -21,5 +21,6 @@ var MockSystem = {
   },
   locked: false,
   runningFTU: false,
-  manifestURL: 'app://system.gaiamobile.org/manifest.webapp'
+  manifestURL: 'app://system.gaiamobile.org/manifest.webapp',
+  currentApp: null
 };

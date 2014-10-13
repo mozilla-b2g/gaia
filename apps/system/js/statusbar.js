@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/*global Clock, AppWindowManager, SettingsListener */
+/*global Clock, SettingsListener */
 /*global TouchForwarder, FtuLauncher */
 /*global MobileOperator, SIMSlotManager, System */
 /*global Bluetooth */
@@ -148,8 +148,8 @@ var StatusBar = {
   /* For other modules to acquire */
   get height() {
     if (document.mozFullScreen ||
-               (AppWindowManager.getActiveApp() &&
-                AppWindowManager.getActiveApp().isFullScreen())) {
+               (System.currentApp &&
+                System.currentApp.isFullScreen())) {
       return 0;
     } else {
       return this._cacheHeight ||
@@ -333,7 +333,7 @@ var StatusBar = {
         this._inLockScreenMode = false;
         this.toggleTimeLabel(true);
         this._updateIconVisibility();
-        this.setAppearance(AppWindowManager.getActiveApp());
+        this.setAppearance(System.currentApp);
         break;
 
       case 'attentionopened':
@@ -517,7 +517,7 @@ var StatusBar = {
         break;
 
       case 'stackchanged':
-        this.setAppearance(AppWindowManager.getActiveApp());
+        this.setAppearance(System.currentApp);
         this.element.classList.remove('hidden');
         break;
 
@@ -659,7 +659,7 @@ var StatusBar = {
   },
 
   panelHandler: function sb_panelHandler(evt) {
-    var app = AppWindowManager.getActiveApp().getTopMostWindow();
+    var app = System.currentApp.getTopMostWindow();
     var chromeBar = app.element.querySelector('.chrome');
     var titleBar = app.element.querySelector('.titlebar');
 

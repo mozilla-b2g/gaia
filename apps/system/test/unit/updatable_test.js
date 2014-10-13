@@ -10,6 +10,7 @@ requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_navigator_battery.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/shared/test/unit/mocks/mock_custom_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -20,7 +21,8 @@ var mocksHelperForUpdatable = new MocksHelper([
   'AppWindowManager',
   'UtilityTray',
   'ManifestHelper',
-  'asyncStorage'
+  'asyncStorage',
+  'System'
 ]).init();
 
 suite('system/Updatable', function() {
@@ -70,6 +72,7 @@ suite('system/Updatable', function() {
     mockApp = new MockApp();
     subject = new AppUpdatable(mockApp);
 
+    window.appWindowManager = new MockAppWindowManager();
     MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_UNPLUGGED] = 25;
     MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_PLUGGED] = 10;
 
@@ -89,6 +92,7 @@ suite('system/Updatable', function() {
 
     subject._dispatchEvent = realDispatchEvent;
     lastDispatchedEvent = null;
+    MockSystem.currentApp = null;
   });
 
   function downloadAvailableSuite(name, setupFunc) {
@@ -157,7 +161,7 @@ suite('system/Updatable', function() {
       });
 
       test('should kill the app if downloaded', function() {
-        assert.equal(MockAppWindowManager.mLastKilledOrigin, mockApp.origin);
+        assert.equal(window.appWindowManager.mLastKilledOrigin, mockApp.origin);
       });
     });
 
@@ -357,7 +361,7 @@ suite('system/Updatable', function() {
         suite('application of the download', function() {
           test('should apply if the app is not in foreground', function() {
             mockApp.mTriggerDownloadAvailable();
-            MockAppWindowManager.mActiveApp = { origin: 'homescreen' };
+            MockSystem.currentApp = { origin: 'homescreen' };
             mockApp.mTriggerDownloadSuccess();
             assert.isNotNull(MockAppsMgmt.mLastAppApplied);
             assert.equal(MockAppsMgmt.mLastAppApplied.mId, mockApp.mId);
@@ -366,7 +370,7 @@ suite('system/Updatable', function() {
           test('should wait for appwillclose if it is', function() {
             var origin = 'http://testapp.gaiamobile.org';
             mockApp.origin = origin;
-            MockAppWindowManager.mActiveApp = mockApp;
+            MockSystem.currentApp = mockApp;
 
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
@@ -382,10 +386,11 @@ suite('system/Updatable', function() {
           });
 
           test('should kill the app before applying the update', function() {
+            MockSystem.currentApp = { origin: 'test' };
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
-            assert.equal('http://testapp.gaiamobile.org',
-                         MockAppWindowManager.mLastKilledOrigin);
+            assert.equal('https://testapp.gaiamobile.org',
+                         appWindowManager.mLastKilledOrigin);
           });
         });
       });
@@ -773,7 +778,6 @@ suite('system/Updatable', function() {
           MockNavigatorBattery.charging = true;
           subject.getBatteryPercentageThreshold().then(
             function(threshold) {
-              console.log('ok');
               assert.equal(
                 threshold,
                 MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_PLUGGED]

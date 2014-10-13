@@ -4,13 +4,14 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
 requireApp('system/js/lockscreen_window_manager.js');
 
-mocha.globals(['MozActivity', 'AppWindowManager', 'SettingsListener']);
+mocha.globals(['MozActivity', 'System', 'SettingsListener']);
 
 var mocksForLockScreenWindowManager = new window.MocksHelper([
   'LockScreen', 'LockScreenWindow', 'System'
@@ -20,7 +21,6 @@ suite('system/LockScreenWindowManager', function() {
   var stubById;
   var appFake;
   var originalSettingsListener;
-  var originalAppWindowManager;
   var originalMozActivity;
   var originalMozSettings;
 
@@ -32,7 +32,6 @@ suite('system/LockScreenWindowManager', function() {
     appFake = new window.LockScreenWindow();
 
     originalSettingsListener = window.SettingsListener;
-    originalAppWindowManager = window.AppWindowManager;
     originalMozActivity = window.MozActivity;
     window.SettingsListener = {
       observe: function(name, bool, cb) {},
@@ -43,9 +42,6 @@ suite('system/LockScreenWindowManager', function() {
           }
         }};
       }
-    };
-    window.AppWindowManager = {
-      getActiveApp: function() {}
     };
     window.MozActivity = function() {};
 
@@ -77,7 +73,6 @@ suite('system/LockScreenWindowManager', function() {
   teardown(function() {
     window.SettingsListener = originalSettingsListener;
     window.MozActivity = originalMozActivity;
-    window.AppWindowManager = originalAppWindowManager;
     window.navigator.mozSettings = originalMozSettings;
     window.MockNavigatorSettings.mTeardown();
     stubById.restore();
@@ -234,9 +229,6 @@ suite('system/LockScreenWindowManager', function() {
       var evt = { type: 'lockscreen-request-unlock' },
           stubCloseApp = this.sinon.stub(window.lockScreenWindowManager,
             'closeApp');
-      this.sinon.stub(window.AppWindowManager, 'getActiveApp', function() {
-        return null;
-      });
       window.lockScreenWindowManager.handleEvent(evt);
       assert.isTrue(stubCloseApp.called,
         'it did\'t close the window while unlock request arrive');

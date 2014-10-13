@@ -3,7 +3,7 @@
 /* global ScreenLayout */
 /* global SettingsListener */
 /* global OrientationManager */
-/* global AppWindowManager */
+/* global System */
 
 (function(exports) {
 
@@ -96,7 +96,7 @@
     _buttonRect: null,
     _updateButtonRect: function() {
       var isFullscreen = !!document.mozFullScreenElement;
-      var activeApp = AppWindowManager.getActiveApp();
+      var activeApp = System.currentApp;
       var isFullscreenLayout =  activeApp && activeApp.isFullScreenLayout();
 
       var button;

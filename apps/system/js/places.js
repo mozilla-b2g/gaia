@@ -1,5 +1,5 @@
 'use strict';
-/* globals Promise, AppWindowManager, asyncStorage */
+/* globals Promise, appWindowManager, asyncStorage */
 /* exported Places */
 
 (function(exports) {
@@ -142,7 +142,7 @@
      * @memberof Places.prototype
      */
     screenshotRequested: function(url) {
-      var app = AppWindowManager.getAppByURL(url);
+      var app = appWindowManager.getAppByURL(url);
       if (!app || app.loading) {
         this.screenshotQueue[url] = setTimeout(() => {
           this.takeScreenshot(url);
@@ -158,7 +158,7 @@
         delete this.screenshotQueue[url];
       }
 
-      var app = AppWindowManager.getAppByURL(url);
+      var app = appWindowManager.getAppByURL(url);
       if (!app) {
         console.error('Couldnt find app for:', url);
         return false;

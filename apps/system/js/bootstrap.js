@@ -15,7 +15,7 @@
          ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
          CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
-         BatteryOverlay, BaseModule */
+         BatteryOverlay, BaseModule, AppWindowManager */
 'use strict';
 
 
@@ -41,8 +41,8 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
+    /** @global */
     window.activityWindowManager = new ActivityWindowManager();
-    window.activityWindowManager.start();
     /** @global */
     window.secureWindowManager = window.secureWindowManager ||
       new SecureWindowManager();
@@ -62,7 +62,7 @@ window.addEventListener('load', function startup() {
 
     // To initilaize it after LockScreenWindowManager to block home button
     // when the screen is locked.
-    window.AppWindowManager.init();
+    window.activityWindowManager.start();
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
@@ -122,6 +122,8 @@ window.addEventListener('load', function startup() {
   window.homescreenWindowManager.start();
 
   // Please sort it alphabetically
+  window.appWindowManager = new AppWindowManager();
+  window.appWindowManager.start();
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
