@@ -17,6 +17,8 @@
 
   TVHomescreenWindowManager.prototype = {
     DEBUG: false,
+    _ftuDone: false,
+    _activityCount: 0,
     CLASS_NAME: 'HomescreenWindowManager',
 
     /**
@@ -53,12 +55,17 @@
           console.log('trying to start landingAppLauncher');
           self.landingAppLauncher = new window.LandingAppLauncher();
           self.landingAppLauncher.start();
+          self._activeHome = self.landingAppLauncher;
+          if (self._ftuSkipped) {
+            self.landingAppLauncher.getHomescreen().setVisible(true);
+          }
         });
       window.addEventListener('appswitching', this);
       window.addEventListener('ftuskip', this);
       window.addEventListener('open-app', this);
       window.addEventListener('webapps-launch', this);
       window.addEventListener('appopened', this);
+      window.addEventListener('activityopened', this);
       window.addEventListener('homescreenopened', this);
       window.addEventListener('landingappopened', this);
     },
@@ -75,6 +82,7 @@
       window.removeEventListener('open-app', this);
       window.removeEventListener('webapps-launch', this);
       window.removeEventListener('appopened', this);
+      window.removeEventListener('activityopened', this);
     },
 
     handleEvent: function hwm_handleEvent(evt) {
@@ -84,7 +92,10 @@
           this.getHomescreen().fadeOut();
           break;
         case 'ftuskip':
-          this.getHomescreen().setVisible(!System.locked);
+          this._ftuSkipped = true;
+          if (this.ready) {
+            this.getHomescreen().setVisible(!System.locked);
+          }
           break;
         case 'open-app':
         case 'webapps-launch':
@@ -107,6 +118,7 @@
             // If we don't have _activeHome that means ftu is opened, we need to
             // make sure landing app is the one after ftu.
             if (this._activeHome) {
+              this._activeHome.getHomescreen().ensure(true);
               this._activeHome.getHomescreen().setVisible(false);
               this._activeHome.getHomescreen().close('immediate');
               this._activeHome = null;
@@ -114,19 +126,23 @@
           }
           break;
         case 'homescreenopened':
-          if (exports.homescreenLauncher) {
+          var detail = evt.detail;
+          if (detail.CLASS_NAME === 'LandingAppWindow') {
+            homescreenLauncher.getHomescreen().ensure(true);
             homescreenLauncher.getHomescreen().showFadeOverlay();
-          }
-          if (this.landingAppLauncher) {
+          } else {
+            this.landingAppLauncher.getHomescreen().ensure(true);
             this.landingAppLauncher.getHomescreen().hideFadeOverlay();
           }
           break;
-        case 'landingappopened':
-          if (exports.homescreenLauncher) {
-            homescreenLauncher.getHomescreen().hideFadeOverlay();
+        case 'activityopened':
+          if (this._activeHome) {
+            this._activityCount++;
           }
-          if (this.landingAppLauncher) {
-            this.landingAppLauncher.getHomescreen().showFadeOverlay();
+          break;
+        case 'activityclosed':
+          if (this._activeHome) {
+            this._activityCount--;
           }
           break;
       }
@@ -149,19 +165,15 @@
       }
 
       if (this._activeHome) {
-        console.log('currently in home: ' + this._activeHome.manifestURL);
         if (this._activeHome.manifestURL !== manifestURL) {
-          console.log('switch to : ' + manifestURL);
           // in homeA trying to switch to homeB
           
           this.publish('home');
         } else {
-          console.log('ensure self : ' + manifestURL);
           // cal getHomescreen to ensure it.
           this.getHomescreen();
         }
       } else if (homescreenLauncher.manifestURL === manifestURL) {
-        console.log('app to origin home : ' + manifestURL);
         // in appX trying to switch to home
         this.publish('home');
       }
@@ -186,18 +198,22 @@
         if (!this._activeHome) {
           // If this._activeHome is null, the active app is normal app. We need
           // to show normal homescreen app.
-          //
-          // If this._activeHome is undefined, the active app is FTU/lockscreen
-          // or other visible but not normal app. We need to show landing app.
-          this._activeHome = this._activeHome === null ? homescreenLauncher :
-                                                        this.landingAppLauncher;
+          this._activeHome = homescreenLauncher;
         } else if (isHomeEvent) {
           // If press home when one home app active, we need to swap the
           // launcher.
+          if (this._activityCount > 0) {
+            // If we have activity on top of home, we need to ensure it to close
+            // all of them.
+            this._activeHome.getHomescreen().ensure(true);
+          }
           this._activeHome.getHomescreen().setVisible(false);
           this._activeHome.getHomescreen().close('immediate');
-          this._activeHome = this._activeHome === this.landingAppLauncher ?
-                             homescreenLauncher : this.landingAppLauncher;
+          // If we have activity on top of home, we always normal home
+          this._activeHome = this._activityCount > 0 || 
+                             this._activeHome === this.landingAppLauncher ?
+                                   homescreenLauncher : this.landingAppLauncher;
+          this._activityCount = 0;
         }
       } else if (!this._activeHome) {
         // If we don't have landing app, we need to initialize active home as

@@ -176,7 +176,7 @@
            '</div>';
   };
 
-  LandingAppWindow.prototype.eventPrefix = 'landingapp';
+  LandingAppWindow.prototype.eventPrefix = 'homescreen';
 
   LandingAppWindow.prototype.toggle = function hw_toggle(visible) {
     this.ensure();
@@ -196,7 +196,9 @@
         // Just kill front window but not switch to the first page.
         this.frontWindow.kill();
       } else {
-        this.browser.element.src = this.browser_config.url + Date.now();
+        this.browser.element.src = this.browser_config.url.indexOf('#') > -1 ?
+                                   this.browser_config.url + '#' + Date.now() :
+                                   this.browser_config.url + Date.now();
       }
     }
 
