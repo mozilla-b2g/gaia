@@ -1,6 +1,6 @@
 'use strict';
 
-/* global SettingsListener, IMESwitcher, InputAppsTransitionManager, ImeMenu,
+/* global SettingsListener, InputAppsTransitionManager, ImeMenu,
           InputFrameManager, InputLayouts, LazyLoader, KeyboardHelper */
 
 // If we get a inputmethod-contextchange chrome event for an element with
@@ -83,10 +83,6 @@ var KeyboardManager = {
     }
 
     this.keyboardFrameContainer = document.getElementById('keyboards');
-
-    this.imeSwitcher = new IMESwitcher();
-    this.imeSwitcher.ontap = this._showImeMenu.bind(this);
-    this.imeSwitcher.start();
 
     // For Bug 812115: hide the keyboard when the app is closed here,
     // since it would take a longer round-trip to receive focuschange
@@ -190,7 +186,6 @@ var KeyboardManager = {
 
     evt.stopPropagation();
 
-    this._showIMESwitcher();
   },
 
   // Decide the keyboard layout for the specific group and show it
@@ -253,7 +248,6 @@ var KeyboardManager = {
     if ('blur' === type) {
       this._debug('get blur event');
       this.hideKeyboard();
-      this.imeSwitcher.hide();
     } else {
       // display the keyboard for that group decided by input type
       // fallback to text for default if no group is found
@@ -376,22 +370,6 @@ var KeyboardManager = {
     }
 
     this.inputFrameManager.setupFrame(layout);
-  },
-
-  /**
-   * A half-permanent notification should display after the keyboard got
-   * activated, and only hides after the keyboard got deactivated.
-   */
-  _showIMESwitcher: function km_showIMESwitcher() {
-    var showed = this._showingLayoutInfo;
-    if (!this.inputLayouts.layouts[showed.group]) {
-      return;
-    }
-
-    // Need to make the message in spec: "FirefoxOS - English"...
-    var current = this.inputLayouts.layouts[showed.group][showed.index];
-
-    this.imeSwitcher.show(current.appName, current.name);
   },
 
   // Reset the current keyboard frame

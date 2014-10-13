@@ -50,9 +50,6 @@ var UtilityTray = {
     // Listen for screen reader edge gestures
     window.addEventListener('mozChromeEvent', this);
 
-    // Firing when the keyboard and the IME switcher shows/hides.
-    window.addEventListener('keyboardimeswitchershow', this);
-    window.addEventListener('keyboardimeswitcherhide', this);
     window.addEventListener('imemenushow', this);
 
     window.addEventListener('simpinshow', this);
@@ -133,20 +130,6 @@ var UtilityTray = {
 
       case 'imemenushow':
         this.hide();
-        break;
-
-      // When IME switcher shows, prevent the keyboard's focus getting changed.
-      case 'keyboardimeswitchershow':
-        this.overlay.addEventListener('mousedown', this._pdIMESwitcherShow);
-        this.statusbar.addEventListener('mousedown', this._pdIMESwitcherShow);
-        this.topPanel.addEventListener('mousedown', this._pdIMESwitcherShow);
-        break;
-
-      case 'keyboardimeswitcherhide':
-        this.overlay.removeEventListener('mousedown', this._pdIMESwitcherShow);
-        this.statusbar.removeEventListener('mousedown',
-                                           this._pdIMESwitcherShow);
-        this.topPanel.removeEventListener('mousedown', this._pdIMESwitcherShow);
         break;
 
       case 'screenchange':
