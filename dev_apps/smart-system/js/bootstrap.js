@@ -161,8 +161,6 @@ window.addEventListener('load', function startup() {
     navigator.mozL10n.once(function l10n_ready() {
       window.mediaRecording = new MediaRecording();
       window.mediaRecording.start();
-      window.quickSettings = new QuickSettings();
-      window.quickSettings.start();
     });
   }
 

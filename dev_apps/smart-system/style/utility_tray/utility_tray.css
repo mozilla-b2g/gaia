@@ -49,10 +49,6 @@
   visibility: visible;
 }
 
-#utility-tray-footer {
-  background: hsla(0, 0%, 100%, .05);
-}
-
 #utility-tray > #utility-tray-grippy {
   width: 100%;
   height: 2rem;

@@ -216,10 +216,6 @@
     <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
     <script defer src="js/app_install_manager.js"></script>
 
-    <!-- Quick Settings -->
-    <link rel="stylesheet" type="text/css" href="style/quick_settings/quick_settings.css">
-    <script defer src="js/quick_settings.js"></script>
-
     <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
     <script defer src="js/notifications.js"></script>
@@ -480,16 +476,6 @@
         </div>
 
         <div id="utility-tray-footer">
-          <!-- Quick settings -->
-          <div id="quick-settings" role="toolbar">
-            <li>
-              <ul><a href="#" id="quick-settings-wifi" class="icon" data-icon="wifi-4" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-airplane-mode" class="icon" data-icon="airplane" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-bluetooth" class="icon" data-icon="bluetooth" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-data" class="icon" data-icon="data" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-full-app" class="icon" data-icon="settings" data-enabled="false" role="button" data-l10n-id="settingsButton"></a></ul>
-            </li>
-          </div>
         </div>
       </div>
 
@@ -846,18 +832,6 @@
           </menu>
         </section>
       </form>
-
-      <form data-type="confirm" role="dialog" id="quick-setting-data-enabled-dialog" class="generic-dialog" data-z-index-level="quick-setting-data-enabled-dialog">
-        <section>
-          <h1 data-l10n-id="data-roaming-enabled-title"></h1>
-          <p data-l10n-id="data-roaming-enabled-warning"></p>
-        </section>
-        <menu>
-          <button type="button" class="quick-setting-data-cancel-btn recommend" data-l10n-id="notNow">Not now</button>
-          <button type="button" class="quick-setting-data-ok-btn" data-l10n-id="turnOn">Turn ON</button>
-        </menu>
-      </form>
-
 
       <div id="update-manager-toaster" data-z-index-level="notification-toaster" aria-live="assertive" aria-atomic="true">
         <div class="icon">
