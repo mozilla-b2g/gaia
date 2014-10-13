@@ -19,7 +19,6 @@
   pointer-events: none;
 }
 
-.statusbar > div,
 .statusbar > img {
   pointer-events: auto;
 }
