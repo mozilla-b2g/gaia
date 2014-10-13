@@ -1,6 +1,6 @@
 /* globals CallHandler, CallLogDBManager, FontSizeManager, gTonesFrequencies,
-           KeypadManager, MockCall, MockCallsHandler, MockDialerIndexHtml,
-           MockIccManager, MockNavigatorMozTelephony, MockNavigatorSettings,
+           KeypadManager, MockCall, MockCallsHandler, MockIccManager,
+           MockNavigatorMozTelephony, MockNavigatorSettings,
            MockSettingsListener, MocksHelper, MockTonePlayer, SimPicker,
            telephonyAddCall, MockMultiSimActionButtonSingleton, MockMozL10n,
            CustomDialog, MockMozActivity
@@ -8,13 +8,14 @@
 
 'use strict';
 
+require('/shared/js/dialer/dtmf_tone.js');
 require('/shared/js/dialer/keypad.js');
 
-require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_call_handler.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -29,7 +30,6 @@ require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/mock_custom_dialog.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
-require('/dialer/test/unit/mock_dialer_index.html.js');
 
 var mocksHelperForKeypad = new MocksHelper([
   'LazyL10n',
@@ -50,7 +50,6 @@ var mocksHelperForKeypad = new MocksHelper([
 
 suite('dialer/keypad', function() {
   var subject;
-  var previousBody;
   var realMozActivity;
   var realMozIccManager;
   var realMozL10n;
@@ -73,8 +72,8 @@ suite('dialer/keypad', function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
-    previousBody = document.body.innerHTML;
-    document.body.innerHTML = MockDialerIndexHtml;
+    loadBodyHTML('/dialer/test/unit/mock_dialer_index.html');
+
     subject = KeypadManager;
     subject.init(false);
   });
@@ -86,8 +85,6 @@ suite('dialer/keypad', function() {
     MockNavigatorSettings.mSyncRepliesOnly = false;
     MockNavigatorMozTelephony.mSuiteTeardown();
     navigator.mozTelephony = realMozTelephony;
-
-    document.body.innerHTML = previousBody;
   });
 
   setup(function() {
