@@ -1,0 +1,60 @@
+<element name="call-cbSettings" extends="section">
+  <template>
+
+    <header>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+      <h1 data-l10n-id="callBarring-header"> Call barring </h1>
+    </header>
+
+    <div>
+      <header id="header-cb-outgoing">
+        <h2 data-l10n-id="callBarring-outgoing"> Outgoing calls </h2>
+      </header>
+      <ul id="list-callBarring-outgoing">
+        <li id="li-cb-baoc" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="callBarring-baoc">All</span>
+            <small id="baoc-desc"></small>
+          </label>
+        </li>
+        <li id="li-cb-boic" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="callBarring-boic">International</span>
+            <small id="boic-desc"></small>
+          </label>
+        </li>
+        <li id="li-cb-boic-exhc" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="callBarring-boic-exhc">International except Home Country</span>
+            <small id="boic-exhc-desc"></small>
+          </label>
+        </li>
+      </ul>
+
+      <header id="header-cb-incoming">
+        <h2 data-l10n-id="callBarring-incoming"> Incoming calls </h2>
+      </header>
+      <ul id="list-callBarring-incoming">
+        <li id="li-cb-baic" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="callBarring-baic">All</span>
+            <small id="baic-desc"></small>
+          </label>
+        </li>
+        <li id="li-cb-baic-r" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="callBarring-baic-r">All while roaming</span>
+            <small id="bair-r-desc"></small>
+          </label>
+        </li>
+      </ul>
+
+    </div>
+
+  </template>
+</element>
