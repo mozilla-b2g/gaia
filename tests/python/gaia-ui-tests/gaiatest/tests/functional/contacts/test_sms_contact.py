@@ -20,7 +20,10 @@ class TestContacts(GaiaTestCase):
         self.data_layer.insert_contact(self.contact)
 
     def test_sms_contact(self):
-        """https://moztrap.mozilla.org/manage/case/1314/"""
+        """
+        https://moztrap.mozilla.org/manage/case/1314/
+        https://moztrap.mozilla.org/manage/case/1293/
+        """
         # Setup a text message from a contact.
 
         text_message_content = "Automated Test %s" % str(time.time())
@@ -41,6 +44,11 @@ class TestContacts(GaiaTestCase):
         # Name and phone number have been passed in correctly.
         self.assertEqual(new_message.first_recipient_name, expected_name)
         self.assertEqual(new_message.first_recipient_number_attribute, expected_tel)
+
+        # check that the keyboard is open by default
+        self.marionette.switch_to_frame()
+        self.assertTrue(new_message.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
         new_message.type_message(text_message_content)
         message_thread = new_message.tap_send()
