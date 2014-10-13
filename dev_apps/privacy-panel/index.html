@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+
+    <!-- Common style -->
+    <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+
+    <!-- Specific style -->
+    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+    <link rel="stylesheet" type="text/css" href="style/lists.css">
+    <link rel="stylesheet" type="text/css" href="style/icons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
+    <link rel="stylesheet" type="text/css" href="style/settings.css">
+    <link rel="stylesheet" type="text/css" href="style/settings_large.css" data-device-type="tablet">
+
+    <!-- Components -->
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" />
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+
+    <!-- Custom styles for Privacy Panel -->
+    <link rel="stylesheet" type="text/css" href="/style/custom.css" />
+
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/tz.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/sounds.ini">
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+
+    <link rel="import" href="/templates/remote_privacy_protection.html">
+
+    <link rel="import" href="/templates/guided_tour/welcome.html">
+    <link rel="import" href="/templates/guided_tour/la_explain.html">
+    <link rel="import" href="/templates/guided_tour/la_blur.html">
+    <link rel="import" href="/templates/guided_tour/la_custom.html">
+    <link rel="import" href="/templates/guided_tour/la_exceptions.html">
+    <link rel="import" href="/templates/guided_tour/rpp_explain.html">
+    <link rel="import" href="/templates/guided_tour/rpp_passphrase.html">
+    <link rel="import" href="/templates/guided_tour/rpp_locate.html">
+    <link rel="import" href="/templates/guided_tour/rpp_ring.html">
+    <link rel="import" href="/templates/guided_tour/rpp_lock.html">
+
+    <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/dump.js"></script>
+    <script src="shared/js/crypto.js"></script>
+    <script src="js/custom_location_panel.js"></script>
+    <script src="js/settings-app.js"></script>
+    <script src="js/app_list.js"></script>
+    <script src="js/custom_location_panel.js"></script>
+    <script defer src="js/commands.js"></script>
+    <script defer src="js/settings.js"></script>
+    <script defer src="js/privacy-panel.js"></script>
+    <script defer src="shared/js/l10n_date.js"></script>
+    <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/settings_helper.js"></script>
+    <script defer src="shared/js/settings_url.js"></script>
+    <script src="shared/js/lazy_loader.js"></script>
+    <script src="js/load_helper.js"></script>
+
+    <title>Privacy Panel</title>
+  </head>
+
+  <body class="skin-organic theme-settings" data-ready="true">
+    <!-- main view with menu -->
+    <section role="region" id="root" class="current" data-rendered="true">
+      <header>
+        <a id="back" href="#"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="privacy-panel">Privacy Panel</h1>
+      </header>
+      <div>
+        <ul>
+          <li>
+            <a id="menu-item-ala" class="menu-item icon-ala" href="#location-accuracy">
+              <span data-l10n-id="location-accuracy">Location Accuracy</span>
+            </a>
+          </li>
+          <li>
+            <a id="menu-item-rpp" class="menu-item icon-rpp" href="#remote-privacy-protection">
+              <span data-l10n-id="remote-privacy-protection">Remote Privacy Protection</span>
+            </a>
+          </li>
+          <li>
+            <a id="menu-item-gt" class="menu-item icon-gt" href="#guided-tour">
+              <span data-l10n-id="guided-tour">Guided Tour</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Location Accuracy -->
+    <section role="region" id="ala" class="current" data-rendered="true" style="display: none;">
+      <header>
+        <a href="#" id="ala-back">
+          <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="ala-panel">Location Accuracy</h1>
+      </header>
+
+      <div>
+        <ul>
+          <li>
+            <label class="pack-switch">
+              <input id="geolocation-switch" type="checkbox" class="uninit">
+              <span data-l10n-id="use-geolocation">Use geolocation</span>
+            </label>
+          </li>
+        </ul>
+        <ul id="geolocation-box" class="settings-disabled">
+          <li class="description">
+            <label class="pack-switch">
+              <input id="settings-switch" type="checkbox" class="uninit">
+              <span data-l10n-id="use-location-blur">Use location accuracy</span>
+            </label>
+            <p class="location-blur-information">
+              <small data-l10n-id="location-blur-information">Remember: Location Adjustment influences the GPS coordinates. It will not affect your IP-address or locale settings, so some services might still use your exact position.</small>
+            </p>
+          </li>
+
+          <li class="setting-box description">
+            <p>
+              <small data-l10n-id="location-blur-description">Adjust the global accuracy level of your current location for all apps, define and set a permanent fixed location and add exceptions for single apps.</small>
+            </p>
+          </li>
+          <li class="setting-box">
+            <p></p>
+            <span class="button icon icon-dialog">
+              <select id="ala-type">
+                <option value="blur" data-l10n-id="type-blur">Adjust location Accuracy</option>
+                <option value="user-defined" data-l10n-id="type-user-defined">Custom Location</option>
+                <option value="no-location" data-l10n-id="type-no-location" selected>No Location</option>
+                <option value="precise" data-l10n-id="type-precise">Precise</option>
+              </select>
+            </span>
+          </li>
+
+          <li id="type-blur" class="type-box setting-box disabled">
+            <label>
+              <p id="blur-label"></p>
+              <input id="blur-slider" class="blur-slider" step="1" min="1" max="12" type="range" >
+            </label>
+          </li>
+
+          <li id="type-custom-location" class="type-box setting-box disabled">
+            <a class="menu-item" data-icon="notifications" href="#set-custom-location">
+              <span data-l10n-id="set-custom-location">Set custom location</span>
+            </a>
+          </li>
+
+          <li class="setting-box add-exception-box">
+            <a id="add-exception" class="menu-item" data-icon="notifications" href="#add-exception">
+              <span data-l10n-id="add-exception">Add exceptions</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div id="custom-location-alert" class="overlay" hidden>
+        <div class="modal modal-alert">
+          <h1 data-l10n-id="attention">Attention!</h1>
+          <p data-l10n-id="ala-custom-location-alert">You haven't set a custom location yet. Please set this before working on other settings!</p>
+          <button class="btn btn-blue">Set custom location</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Exceptions -->
+    <section role="region" id="exceptions-panel" class="current" data-rendered="true" style="display: none;">
+      <header>
+        <a href="#location-accuracy" id="exceptions-back">
+          <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="ala-panel">Location Accuracy</h1>
+      </header>
+
+      <div>
+        <ul id="app-list">
+          <li class="description">
+            <p>
+              <small data-l10n-id="app-list-descritpion">This list shows all the apps, which are allowed to use your location.</small>
+            </p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Location Accuracy Application Panel -->
+    <section role="region" id="app-panel" class="current" data-rendered="true" style="display: none;">
+      <header>
+        <a href="#add-exception" id="app-back">
+          <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="ala-panel">Location Accuracy</h1>
+      </header>
+
+      <div>
+        <ul>
+          <li class="description">
+            <p>
+              <small data-l10n-id="exceptions-application-descritpion">Adjust the custom location accuracy level of the following app:</small>
+            </p>
+          </li>
+          <li class="app-info app-element">
+            <a class="menu-item">
+              <img src="">
+              <span></span>
+            </a>
+          </li>
+          <li>
+            <p></p>
+            <span class="button icon icon-dialog">
+              <select id="app-type">
+                <option value="system-settings" data-l10n-id="type-system-settings">Global Settings</option>
+                <option value="blur" data-l10n-id="type-blur">Adjust Location Accuracy</option>
+                <option value="user-defined" data-l10n-id="type-user-defined">Custom Location</option>
+                <option value="no-location" data-l10n-id="type-no-location">No Location</option>
+                <option value="precise" data-l10n-id="type-precise">Precise</option>
+              </select>
+            </span>
+          </li>
+
+          <li id="app-type-blur" class="type-box disabled">
+            <label>
+              <p id="app-blur-label"></p>
+              <input id="app-blur-slider" class="blur-slider" step="1" min="1" max="12" type="range" >
+            </label>
+          </li>
+
+          <li id="app-type-custom-location" class="type-box disabled">
+            <a class="menu-item" data-icon="notifications" href="#set-custom-location">
+              <span data-l10n-id="set-custom-location">Set custom location</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div id="app-custom-location-alert" class="overlay" hidden>
+        <div class="modal modal-alert">
+          <h1 data-l10n-id="attention">Attention!</h1>
+          <p data-l10n-id="ala-custom-location-alert">You haven't set a custom location yet. Please set this before working on other settings!</p>
+          <button class="btn btn-blue" data-l10n-id="set-custom-location">Set custom location</button>
+        </div>
+      </div>
+    </section>
+
+    <section role="region" id="dcl" class="current" data-rendered="true" style="display: none;">
+      <header>
+        <a href="#" id="dcl-back"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="define-custom-location">Define custom loaction</h1>
+      </header>
+
+      <div class="current">
+        <ul>
+          <li>
+            <label for="dcl-type-cc" class="pack-radio">
+              <input type="radio" name="dcl.type" id="dcl-type-cc" value="cc">
+              <span data-l10n-id="dcl-type-cc">Choose a country/city</span>
+            </label>
+          </li>
+          <li id="dcl-cc-country">
+            <p data-l10n-id="dcl-country">Country</p>
+            <span class="button icon icon-dialog">
+              <select id="dcl-country" name="dcl.country" data-value-type="string">
+              </select>
+            </span>
+          </li>
+          <li id="dcl-cc-city">
+            <p data-l10n-id="dcl-city">City</p>
+            <span class="button icon icon-dialog">
+              <select id="dcl-city" name="dcl.city" data-value-type="string">
+              </select>
+            </span>
+          </li>
+          <li>
+            <label for="dcl-type-gps" class="pack-radio">
+              <input type="radio" name="dcl.type" id="dcl-type-gps" value="gps">
+              <span data-l10n-id="dcl-type-gps">Enter GPS Coordinates</span>
+            </label>
+          </li>
+          <li id="dcl-gps-area">
+            <p class="description" data-l10n-id="dcl-type-gps-description">
+              Please enter the GPS coordinates for longitude from -180.0 to 180 and latitude from -90.0 to 90.0 degree with a dot to separate full degrees lower values.
+            </p>
+            <p data-l10n-id="dcl-latitude-description">
+              Latitude
+            </p>
+            <input id="dcl-latitude" type="number" min="-90.0" max="90.0" step="0.0001" value="0" placeholder="Latitude">
+            <p data-l10n-id="dcl-longitude-description">
+              Longitude
+            </p>
+            <input id="dcl-longitude" type="number" min="-180.0" max="180.0" step="0.0001" value="0" placeholder="Longitude">
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section is="remote-privacy-protection" class="current" role="region" id="remote-privacy-protection" data-section="rpp" data-rendered="true" style="display: none;"></section>
+
+    <section is="welcome" class="current" role="region" id="welcome" data-section="gt" data-rendered="true" style="display: none;"></section>
+    <section is="la-explain" class="current" role="region" id="la-explain" data-section="gt" data-rendered="true" style="display: none;"></section>
+    <section is="la-blur" class="current" role="region" id="la-blur" data-section="gt" data-rendered="true" style="display: none;"></section>
+    <section is="la-custom" class="current" role="region" id="la-custom" data-section="gt" data-rendered="true" style="display: none;"></section>
+    <section is="la-exceptions" class="current" role="region" id="la-exceptions" data-section="gt" data-rendered="true" style="display: none;"></section>
+    <section is="rpp-explain" class="current" role="region" id="rpp-explain" data-section="gt" data-rendered="true" style="display: none;"></section>
+    <section is="rpp-passphrase" class="current" role="region" id="rpp-passphrase" data-section="gt" data-rendered="true" style="display: none;"></section>
+    <section is="rpp-locate" class="current" role="region" id="rpp-locate" data-section="gt" data-rendered="true" style="display: none;"></section>
+    <section is="rpp-ring" class="current" role="region" id="rpp-ring" data-section="gt" data-rendered="true" style="display: none;"></section>
+    <section is="rpp-lock" class="current" role="region" id="rpp-lock" data-section="gt" data-rendered="true" style="display: none;"></section>
+
+    <script src="js/main.js"></script>
+    <script src="js/remote_privacy_protection.js"></script>
+    <script src="js/guided_tour.js"></script>
+  </body>
+</html>

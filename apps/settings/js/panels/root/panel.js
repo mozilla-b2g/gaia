@@ -15,6 +15,7 @@ define(function(require) {
   var SimSecurityItem = require('panels/root/sim_security_item');
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
   var ThemesItem = require('panels/root/themes_item');
+  var PrivacyPanelItem = require('panels/root/privacy_panel_item');
 
   return function ctor_root_panel() {
     var root = Root();
@@ -30,6 +31,7 @@ define(function(require) {
     var simSecurityItem;
     var airplaneModeItem;
     var themesItem;
+    var privacyPanelItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
@@ -61,6 +63,8 @@ define(function(require) {
           SimSecurityItem(panel.querySelector('.simCardLock-desc'));
         themesItem =
           ThemesItem(panel.querySelector('.themes-section'));
+        privacyPanelItem =
+          PrivacyPanelItem(panel.querySelector('#privacyPanel-settings'));
       },
       onBeforeShow: function rp_onBeforeShow() {
         bluetoothItem.enabled = true;
