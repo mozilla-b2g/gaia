@@ -122,6 +122,12 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
     this.app.layoutManager.currentPage;
   var currentIMEngine = this.app.inputMethodManager.currentIMEngine;
 
+  this.app.console.console.log('needsCandidatePanel',
+    currentPage.autoCorrectLanguage, currentPage.needsCandidatePanel,
+    typeof currentIMEngine.displaysCandidates !== 'function',
+    (currentIMEngine.displaysCandidates &&
+      currentIMEngine.displaysCandidates()));
+
   // Determine if the candidate panel for word suggestion is needed
   var needsCandidatePanel = !!(
     (currentPage.autoCorrectLanguage || currentPage.needsCandidatePanel) &&

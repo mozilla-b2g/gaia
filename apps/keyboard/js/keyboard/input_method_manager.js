@@ -363,8 +363,6 @@ InputMethodManager.prototype.start = function() {
   });
 
   this.currentIMEngine = this.loader.getInputMethod('default');
-
-  this._switchStateId = 0;
   this._inputContextData = null;
 };
 
@@ -427,9 +425,6 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
   this.app.console.log(
     'InputMethodManager.switchCurrentIMEngine()', imEngineName);
 
-  var switchStateId = ++this._switchStateId;
-  this.app.console.time('switchCurrentIMEngine' + switchStateId);
-
   // dataPromise is the one we previously created with updateInputContextData()
   var dataPromise = this._inputContextData;
 
@@ -461,13 +456,6 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
 
   var p = Promise.all([loaderPromise, dataPromise, settingsPromise])
   .then(function(values) {
-    if (switchStateId !== this._switchStateId) {
-      console.warn('InputMethodManager: ' +
-        'Promise is resolved after another switchCurrentIMEngine() call.');
-
-      return Promise.reject();
-    }
-
     var imEngine = values[0];
     if (typeof imEngine.activate === 'function') {
       var dataValues = values[1];
@@ -499,7 +487,6 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
       this.app.inputContext.addEventListener('surroundingtextchange', this);
     }
     this.currentIMEngine = imEngine;
-    this.app.console.timeEnd('switchCurrentIMEngine' + switchStateId);
   }.bind(this));
 
   return p;
