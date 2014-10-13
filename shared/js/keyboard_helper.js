@@ -894,7 +894,10 @@ var KeyboardHelper = exports.KeyboardHelper = {
       id: id,
       manifestURL: manifestURL
     };
-    this.saveToSettings();
+
+    var toSet = {};
+    toSet[SETTINGS_KEYS.CURRENT_ACTIVE] = currentSettings.currentActiveLayouts;
+    window.navigator.mozSettings.createLock().set(toSet);
   }
 };
 
