@@ -10,8 +10,6 @@ var UtilityTray = {
 
   overlay: document.getElementById('utility-tray'),
 
-  notifications: document.getElementById('utility-tray-notifications'),
-
   notificationsPlaceholder:
     document.getElementById('notifications-placeholder'),
 
@@ -194,14 +192,11 @@ var UtilityTray = {
       case 'transitionend':
         if (!this.shown) {
           this.screen.classList.remove('utility-tray');
-          this.notifications.classList.remove('visible');
         }
         break;
 
       case 'resize':
         this.validateCachedSizes(true);
-        if (this.shown)
-          this.updateSize();
         break;
 
       case 'mozChromeEvent':
@@ -239,10 +234,6 @@ var UtilityTray = {
       this.grippyHeight = this.grippy.clientHeight || 0;
     }
 
-    if (refresh || !this.placeholderHeight) {
-      this.placeholderHeight = this.notificationsPlaceholder.clientHeight || 0;
-      this.notifications.style.height = this.placeholderHeight + 'px';
-    }
   },
 
   onTouchStart: function ut_onTouchStart(touch) {
@@ -284,7 +275,6 @@ var UtilityTray = {
     if (dy > 5) {
       this.isTap = false;
       this.screen.classList.add('utility-tray');
-      this.notifications.classList.add('visible');
     }
 
     if (this.shown) {
@@ -295,11 +285,6 @@ var UtilityTray = {
     var style = this.overlay.style;
     style.MozTransition = '';
     style.MozTransform = 'translateY(' + dy + 'px)';
-
-    this.notifications.style.transition = '';
-    var notificationBottom = Math.max(0, dy - this.grippyHeight);
-    this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {
@@ -335,15 +320,11 @@ var UtilityTray = {
     var alreadyHidden = !this.shown;
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-    this.notifications.style.transition = instant ? '' : 'clip 0.2s linear';
-    this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px, 0, 0)';
 
     // If the transition has not started yet there won't be any transitionend
     // event so let's not wait in order to remove the utility-tray class.
     if (instant || style.MozTransform === '') {
       this.screen.classList.remove('utility-tray');
-      this.notifications.classList.remove('visible');
     }
 
     style.MozTransform = '';
@@ -359,7 +340,6 @@ var UtilityTray = {
 
   show: function ut_show(dy) {
     this.validateCachedSizes();
-    this.updateSize();
     var alreadyShown = this.shown;
     var style = this.overlay.style;
     style.MozTransition = '-moz-transform 0.2s linear';
@@ -367,8 +347,6 @@ var UtilityTray = {
 
     this.shown = true;
     this.screen.classList.add('utility-tray');
-    this.notifications.classList.add('visible');
-    this.notifications.style.transition = 'clip 0.2s linear';
     window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
 
     if (!alreadyShown) {
@@ -376,13 +354,6 @@ var UtilityTray = {
       evt.initCustomEvent('utilitytrayshow', true, true, null);
       window.dispatchEvent(evt);
     }
-  },
-
-  updateSize: function ut_updateSize() {
-    this.notifications.style.height = this.placeholderHeight + 'px';
-    var notificationBottom = Math.max(0, this.screenHeight - this.grippyHeight);
-    this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
   },
 
   _pdIMESwitcherShow: function ut_pdIMESwitcherShow(evt) {
