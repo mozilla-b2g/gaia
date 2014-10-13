@@ -585,6 +585,7 @@
     // Launched as background: set visibility and overlay screenshot.
     // homescreen is launched at background under FTU/lockscreen too.
     if (this.config.stayBackground || this.isHomescreen) {
+      this._visibilityState = 'background';
       this.setVisible(false);
     }
 
@@ -806,6 +807,7 @@
   AppWindow.prototype._handle_mozbrowservisibilitychange =
     function aw__handle_mozbrowservisibilitychange(evt) {
       var type = evt.detail.visible ? 'foreground' : 'background';
+      this._visibilityState = type;
       this.publish(type);
     };
 
