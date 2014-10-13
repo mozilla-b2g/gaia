@@ -261,7 +261,6 @@ SystemUpdatable.prototype.showApplyPromptBatteryNok = function(minBattery) {
 
   var screen = document.getElementById('screen');
 
-  UtilityTray.hide();
   CustomDialog.show(
     'systemUpdateReady',
     { id: 'systemUpdateLowBatteryThreshold', args: { threshold: minBattery } },
@@ -291,7 +290,6 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
 
   var screen = document.getElementById('screen');
 
-  UtilityTray.hide();
   CustomDialog.show(
     'systemUpdateReady',
     'wantToInstallNow',

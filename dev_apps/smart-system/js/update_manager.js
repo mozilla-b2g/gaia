@@ -95,7 +95,6 @@ var UpdateManager = {
 
   startDownloads: function um_startDownloads() {
     this.downloadDialog.classList.remove('visible');
-    UtilityTray.show();
 
     var checkValues = {};
     var dialog = this.downloadDialogList;

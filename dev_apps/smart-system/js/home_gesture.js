@@ -96,13 +96,9 @@
 
       if (enable) {
         this.publish('homegesture-enabled');
-        window.addEventListener('utilitytrayshow', this);
-        window.addEventListener('utilitytrayhide', this);
         this.homeBar.classList.add('visible');
       } else {
         this.publish('homegesture-disabled');
-        window.removeEventListener('utilitytrayshow', this);
-        window.removeEventListener('utilitytrayhide', this);
         this.homeBar.classList.remove('visible');
       }
       this.enabled = enable;
@@ -135,13 +131,6 @@
           }
           this._multiTouch = false;
           this._moving = false;
-          break;
-        // hide gesture function when utilitytray display
-        case 'utilitytrayshow':
-          this.homeBar.classList.remove('visible');
-          break;
-        case 'utilitytrayhide':
-          this.homeBar.classList.add('visible');
           break;
         case 'software-button-disabled':
           // at least one of software home button or gesture is enabled

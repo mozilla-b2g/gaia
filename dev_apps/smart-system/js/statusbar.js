@@ -18,7 +18,6 @@
 /*global TouchForwarder, FtuLauncher */
 /*global MobileOperator, SIMSlotManager, System */
 /*global Bluetooth */
-/*global UtilityTray */
 
 'use strict';
 
@@ -302,7 +301,6 @@ var StatusBar = {
     this.systemDownloadsCount = 0;
     this.setActive(true);
 
-    UtilityTray.init();
   },
 
   handleEvent: function sb_handleEvent(evt) {

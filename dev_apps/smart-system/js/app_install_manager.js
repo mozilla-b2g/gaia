@@ -9,7 +9,6 @@
 /* global StatusBar */
 /* global SystemBanner */
 /* global Template */
-/* global UtilityTray */
 /* global applications */
 
 'use strict';
@@ -22,7 +21,6 @@
 /* global FtuLauncher */
 /* global Template */
 /* global KeyboardHelper */
-/* global UtilityTray */
 /* global applications */
 
 var AppInstallManager = {

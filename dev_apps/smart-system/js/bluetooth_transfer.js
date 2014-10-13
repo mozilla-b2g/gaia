@@ -110,10 +110,7 @@ var BluetoothTransfer = {
     var icon = 'style/bluetooth_transfer/images/transfer.png';
     NotificationHelper.send(_('transfer-has-started-title'),
                             _('transfer-has-started-description'),
-                            icon,
-                            function() {
-                              UtilityTray.show();
-                            });
+                            icon);
 
     // Push sending files request in queue
     var sendingFilesSchedule = evt.detail;
@@ -139,7 +136,6 @@ var BluetoothTransfer = {
                               _('transfer-confirmation-description'),
                               icon,
                               function() {
-                                UtilityTray.hide();
                                 self.showReceivePrompt(evt);
                               });
     });
@@ -317,7 +313,6 @@ var BluetoothTransfer = {
   onCancelTransferTask: function bt_onCancelTransferTask(evt) {
     var id = evt.target.dataset.id;
     // Show confirm dialog for user to cancel transferring task
-    UtilityTray.hide();
     this.showCancelTransferPrompt(id);
   },
 
@@ -491,7 +486,6 @@ var BluetoothTransfer = {
         self.debug(msg);
         switch (a.error.name) {
         case 'NO_PROVIDER':
-          UtilityTray.hide();
           // Cannot identify MIMETYPE
           // So, show cannot open file dialog with unknow media type
           self.showUnknownMediaPrompt(fileName);
