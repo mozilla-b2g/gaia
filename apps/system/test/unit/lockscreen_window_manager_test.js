@@ -1,11 +1,8 @@
-/* global MockSystem */
-
 (function() {
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
 requireApp('system/js/lockscreen_window_manager.js');
@@ -13,7 +10,7 @@ requireApp('system/js/lockscreen_window_manager.js');
 mocha.globals(['MozActivity', 'AppWindowManager', 'SettingsListener']);
 
 var mocksForLockScreenWindowManager = new window.MocksHelper([
-  'LockScreen', 'LockScreenWindow', 'System'
+  'LockScreen', 'LockScreenWindow'
 ]).init();
 
 suite('system/LockScreenWindowManager', function() {
@@ -83,25 +80,6 @@ suite('system/LockScreenWindowManager', function() {
     stubById.restore();
   });
 
-  test('Should register unlock/lock request to System', function() {
-    var stubRegister = this.sinon.stub(MockSystem, 'register');
-    window.lockScreenWindowManager.start();
-    assert.isTrue(stubRegister.calledWith('lock',
-      window.lockScreenWindowManager));
-    assert.isTrue(stubRegister.calledWith('unlock',
-      window.lockScreenWindowManager));
-  });
-
-  test('Should bypass lockscreen-request-unlock when unlock is called',
-    function() {
-      var stubPublish =
-        this.sinon.stub(window.lockScreenWindowManager, 'publish');
-      var detail = {};
-      window.lockScreenWindowManager.unlock(detail);
-      assert.isTrue(
-        stubPublish.calledWith('lockscreen-request-unlock', detail));
-    });
-
   suite('Handle events', function() {
     test('It should stop home event to propagate', function() {
       var evt = {
@@ -139,6 +117,7 @@ suite('system/LockScreenWindowManager', function() {
         function() {
           return originalCreateWindow.bind(this).call();
         });
+      window.lockScreenWindowManager.states.ready = true;
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
@@ -155,6 +134,7 @@ suite('system/LockScreenWindowManager', function() {
     function() {
       var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
         'openApp');
+      window.lockScreenWindowManager.states.ready = true;
       window.lockScreenWindowManager.handleEvent(
         {
           type: 'screenchange',
@@ -170,6 +150,7 @@ suite('system/LockScreenWindowManager', function() {
     test('Open the app when screen is turned on', function() {
       window.lockScreenWindowManager.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');
+      window.lockScreenWindowManager.states.ready = true;
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
@@ -189,7 +170,20 @@ suite('system/LockScreenWindowManager', function() {
     test('When FTU occurs, the window should not be instantiated', function() {
       var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
         'openApp');
+      window.lockScreenWindowManager.states.ready = true;
       window.lockScreenWindowManager.handleEvent({ type: 'ftuopen' });
+      window.lockScreenWindowManager.handleEvent(
+        { type: 'screenchange',
+          detail: { screenEnabled: true } });
+      assert.isFalse(stubOpenApp.called,
+        'the LockScreenWindow still be instantiated while the FTU is opened');
+    });
+
+    test('When the lockscreen settings is not ready, ' +
+          'the window should not be instantiated', function() {
+      var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
+        'openApp');
+      window.lockScreenWindowManager.states.ready = false;
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
@@ -202,6 +196,7 @@ suite('system/LockScreenWindowManager', function() {
         'openApp');
       window.lockScreenWindowManager.handleEvent({ type: 'ftuopen' });
       window.lockScreenWindowManager.handleEvent({ type: 'ftudone' });
+      window.lockScreenWindowManager.states.ready = true;
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
