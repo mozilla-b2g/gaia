@@ -21,7 +21,6 @@ class System(Base):
 
     _software_home_button_locator = (By.ID, 'software-home-button')
 
-
     # System app confirmation button to confirm installing an app
     _yes_button_locator = (By.ID, 'app-install-install-button')
     # System app delete button to confirm uninstalling an app

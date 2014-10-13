@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
 from marionette.by import By
 from marionette.keys import Keys
 from gaiatest.apps.base import Base
