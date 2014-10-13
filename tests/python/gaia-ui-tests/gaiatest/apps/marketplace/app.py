@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
 from marionette.by import By
 from marionette.keys import Keys
 from gaiatest.apps.base import Base
@@ -33,10 +34,8 @@ class MarketplaceDev(Base):
         self.wait_for_element_displayed(*self._search_locator)
         search_box = self.marionette.find_element(*self._search_locator)
 
-        search_box.click()
         # search for the app
         search_box.send_keys(term)
-
         search_box.send_keys(Keys.RETURN)
         return SearchResults(self.marionette)
 
