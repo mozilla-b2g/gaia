@@ -8,7 +8,8 @@ var TARGET_APP_MANIFEST = TARGET_APP + '/manifest.webapp';
 marionette('launch an app via notification click', function() {
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
   var notificationList = new NotificationList(client);
@@ -37,7 +38,7 @@ marionette('launch an app via notification click', function() {
   test('clicking notification launches app', function() {
     // show utility tray
     client.executeScript(function() {
-      window.wrappedJSObject.UtilityTray.show();
+      window.wrappedJSObject.UtilityTray.show(true);
     });
 
     // make sure we have our notification to click

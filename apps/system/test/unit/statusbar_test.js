@@ -2,7 +2,8 @@
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockSystem, MockTouchForwarder, StatusBar, System,
-           MockNfcManager, MockMobileconnection, MockAppWindowManager */
+           MockNfcManager, MockMobileconnection, MockAppWindowManager,
+           UtilityTray */
 
 'use strict';
 
@@ -1624,10 +1625,25 @@ suite('system/Statusbar', function() {
       test('it should not reveal when ftu is running', function() {
         FtuLauncher.mIsRunning = true;
         fakeDispatch('touchstart', 100, 0);
-        fakeDispatch('touchmove', 100, 5);
-        assert.equal(StatusBar.element.style.transform, '');
+        fakeDispatch('touchmove', 100, 100);
+
+        var titleEl = System.currentApp.element
+                                       .querySelector('.titlebar');
+        assert.equal(titleEl.style.transform, '');
         FtuLauncher.mIsRunning = false;
       });
+
+      test('it should not forward events when the tray is opened', function() {
+        UtilityTray.active = true;
+        fakeDispatch('touchstart', 100, 0);
+        fakeDispatch('touchmove', 100, 100);
+
+        var titleEl = System.currentApp.element
+                                       .querySelector('.titlebar');
+        assert.equal(titleEl.style.transform, '');
+        UtilityTray.active = false;
+      });
+
 
       suite('after the gesture', function() {
         suite('when the StatusBar is not fully displayed', function() {
@@ -2168,6 +2184,8 @@ suite('system/Statusbar', function() {
   suite('handle events', function() {
     var app;
     var setAppearanceStub;
+    var resumeUpdateStub;
+    var pauseUpdateStub;
 
     function testEventThatHides(event) {
       var evt = new CustomEvent(event);
@@ -2186,10 +2204,29 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
     }
 
+    function testEventThatPause(event) {
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+      assert.isTrue(pauseUpdateStub.called);
+
+      StatusBar.resumeUpdate();
+    }
+
+    function testEventThatResume(event) {
+      StatusBar.pauseUpdate();
+
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+      assert.isTrue(resumeUpdateStub.called);
+      assert.isFalse(StatusBar.isPaused());
+    }
+
     setup(function() {
       app = {};
       MockSystem.currentApp = app;
       setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+      pauseUpdateStub = this.sinon.stub(StatusBar, 'pauseUpdate');
+      resumeUpdateStub = this.sinon.stub(StatusBar, 'resumeUpdate');
     });
 
     test('stackchanged', function() {
@@ -2236,6 +2273,38 @@ suite('system/Statusbar', function() {
 
     test('activityopened', function() {
       testEventThatShows.bind(this)('activityopened');
+    });
+
+    test('utilitytraywillshow', function() {
+      testEventThatPause.bind(this)('utilitytraywillshow');
+    });
+
+    test('utilitytraywillhide', function() {
+      testEventThatPause.bind(this)('utilitytraywillhide');
+    });
+
+    test('cardviewshown', function() {
+      testEventThatPause.bind(this)('cardviewshown');
+    });
+
+    test('sheets-gesture-begin', function() {
+      testEventThatPause.bind(this)('sheets-gesture-begin');
+    });
+
+    test('sheets-gesture-end', function() {
+      testEventThatResume.bind(this)('sheets-gesture-end');
+    });
+
+    test('utility-tray-overlayopened', function() {
+      testEventThatResume.bind(this)('utility-tray-overlayopened');
+    });
+
+    test('utility-tray-overlayclosed', function() {
+      testEventThatResume.bind(this)('utility-tray-overlayclosed');
+    });
+
+    test('cardviewclosed', function() {
+      testEventThatResume.bind(this)('cardviewclosed');
     });
   });
 
