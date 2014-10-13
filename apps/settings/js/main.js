@@ -38,7 +38,6 @@ require(['config/require'], function() {
 
       // The loading of the first panel denotes that we are ready for display
       // and ready for user interaction
-      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
       window.dispatchEvent(new CustomEvent('moz-content-interactive'));
     }, false);
 

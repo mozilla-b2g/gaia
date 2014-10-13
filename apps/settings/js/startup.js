@@ -9,6 +9,10 @@
       // Since the settings app has no functional chrome, we can fire the
       // interactive event now because there are no events to bind
       window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+
+      // The root panel exists in the DOM by default so we can also fire the
+      // visually complete event here
+      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
     });
 
     var scriptNode = document.createElement('script');
