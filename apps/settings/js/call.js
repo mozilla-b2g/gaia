@@ -1,7 +1,10 @@
+/* global CallBarring */
+
 'use strict';
 
 require([
-  'modules/settings_cache'
+  'modules/settings_cache',
+  'call_barring'
 ], function(exports, SettingsCache) {
   /**
    * Singleton object that handles some call settings.
@@ -104,6 +107,11 @@ require([
       cs_initCallForwarding();
       window.setTimeout(cs_initCallForwardingObservers, 500);
 
+      CallBarring.init({
+        mobileConnection: _mobileConnection,
+        voiceServiceClassMask: _voiceServiceClassMask
+      });
+
       // Update items in the call settings panel.
       window.addEventListener('panelready', function(e) {
         // Get the mozMobileConnection instace for this ICC card.
@@ -119,6 +127,7 @@ require([
             // No need to refresh the call settings items if navigated from
             // panels not manipulating call settings.
             if (e.detail.previous === '#call-cfSettings' ||
+                e.detail.previous === '#call-cbSettings' ||
                 e.detail.previous === '#call-voiceMailSettings') {
               return;
             }
@@ -188,13 +197,18 @@ require([
       // The following features are limited to GSM types.
       var callForwardingItem =
           document.getElementById('menuItem-callForwarding');
+      var callBarringItem =
+          document.getElementById('menuItem-callBarring');
       var callWaitingItem = document.getElementById('menuItem-callWaiting');
       var callerIdItem = document.getElementById('menuItem-callerId');
       // The following feature is limited to CDMA types.
       var voicePrivacyItem =
         document.getElementById('menuItem-voicePrivacyMode');
 
-      callForwardingItem.hidden = callWaitingItem.hidden = callerIdItem.hidden =
+      callForwardingItem.hidden =
+        callBarringItem.hidden =
+        callWaitingItem.hidden =
+        callerIdItem.hidden =
         (_networkTypeCategory[voiceType] !== 'gsm');
 
       voicePrivacyItem.hidden =
@@ -510,6 +524,7 @@ require([
             cs_enableTapOnCallWaitingItem(false);
             cs_enableTapOnCallForwardingItems(false);
             cs_updateCallForwardingSubpanels();
+            cs_enableTapOnCallBarringItem(false);
             return;
           }
           mozMobileCFInfo['number'] = textInput.value;
@@ -522,7 +537,7 @@ require([
           cs_enableTapOnCallerIdItem(false);
           cs_enableTapOnCallWaitingItem(false);
           cs_enableTapOnCallForwardingItems(false);
-          cs_displayInfoForAll('callSettingsQuery');
+          cs_enableTapOnCallBarringItem(false);
 
           req.onsuccess = function() {
             cs_updateCallForwardingSubpanels(null,
@@ -603,6 +618,7 @@ require([
             cs_enableTapOnCallWaitingItem(true);
             //  If the query is a success enable call forwarding items.
             cs_enableTapOnCallForwardingItems(_getCallForwardingOptionSuccess);
+            cs_enableTapOnCallBarringItem(true);
           } else {
             cs_displayInfoForAll('callSettingsQueryError');
             _getCallForwardingOptionSuccess = false;
@@ -610,6 +626,7 @@ require([
             cs_enableTapOnCallWaitingItem(true);
             //  If the query is an error disable call forwarding items.
             cs_enableTapOnCallForwardingItems(_getCallForwardingOptionSuccess);
+            cs_enableTapOnCallBarringItem(true);
           }
           if (callback) {
             callback(null);
@@ -660,6 +677,7 @@ require([
         cs_enableTapOnCallerIdItem(false);
         cs_enableTapOnCallWaitingItem(false);
         cs_enableTapOnCallForwardingItems(false);
+        cs_enableTapOnCallBarringItem(false);
 
         var req = _mobileConnection.getCallingLineIdRestriction();
         req.onsuccess = function() {
@@ -725,6 +743,7 @@ require([
         cs_enableTapOnCallerIdItem(false);
         cs_enableTapOnCallWaitingItem(false);
         cs_enableTapOnCallForwardingItems(false);
+        cs_enableTapOnCallBarringItem(false);
 
         SettingsCache.getSettings(function(results) {
           var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
@@ -767,6 +786,7 @@ require([
           cs_enableTapOnCallerIdItem(true);
           cs_enableTapOnCallWaitingItem(true);
           cs_enableTapOnCallForwardingItems(true);
+          cs_enableTapOnCallBarringItem(true);
         });
       };
 
@@ -859,6 +879,15 @@ require([
       });
     }
 
+    function cs_enableTapOnCallBarringItem(enable) {
+      var element = document.getElementById('menuItem-callBarring');
+      if (enable) {
+        element.removeAttribute('aria-disabled');
+      } else {
+        element.setAttribute('aria-disabled', true);
+      }
+    }
+
     /**
      *
      */
@@ -879,12 +908,14 @@ require([
             cs_enableTapOnCallWaitingItem(true);
             // Keep the state of call forwarding items.
             cs_enableTapOnCallForwardingItems(_getCallForwardingOptionSuccess);
+            cs_enableTapOnCallBarringItem(true);
           });
           alertPanel.hidden = true;
         };
         cs_enableTapOnCallerIdItem(false);
         cs_enableTapOnCallWaitingItem(false);
         cs_enableTapOnCallForwardingItems(false);
+        cs_enableTapOnCallBarringItem(false);
         var confirmInput =
           alertPanel.querySelector('.cw-alert-checkbox-label input');
         var req = _mobileConnection.setCallWaitingOption(confirmInput.checked);
@@ -906,11 +937,13 @@ require([
             cs_enableTapOnCallWaitingItem(true);
             // Keep the state of call forwarding items.
             cs_enableTapOnCallForwardingItems(_getCallForwardingOptionSuccess);
+            cs_enableTapOnCallBarringItem(true);
           });
         };
         cs_enableTapOnCallerIdItem(false);
         cs_enableTapOnCallWaitingItem(false);
         cs_enableTapOnCallForwardingItems(false);
+        cs_enableTapOnCallBarringItem(false);
         var req = _mobileConnection.setCallWaitingOption(input.checked);
         req.onsuccess = req.onerror = handleSetCallWaiting;
       });
