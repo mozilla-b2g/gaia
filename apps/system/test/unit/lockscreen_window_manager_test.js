@@ -114,6 +114,7 @@ suite('system/LockScreenWindowManager', function() {
         function() {
           return originalCreateWindow.bind(this).call();
         });
+      window.lockScreenWindowManager.states.ready = true;
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
@@ -130,6 +131,7 @@ suite('system/LockScreenWindowManager', function() {
     function() {
       var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
         'openApp');
+      window.lockScreenWindowManager.states.ready = true;
       window.lockScreenWindowManager.handleEvent(
         {
           type: 'screenchange',
@@ -146,6 +148,7 @@ suite('system/LockScreenWindowManager', function() {
       window.lockScreenWindowManager.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');
       var stubResize = this.sinon.stub(appFake, 'resize');
+      window.lockScreenWindowManager.states.ready = true;
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
@@ -160,6 +163,19 @@ suite('system/LockScreenWindowManager', function() {
       var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
         'openApp');
       window.lockScreenWindowManager.handleEvent( { type: 'ftuopen' } );
+      window.lockScreenWindowManager.states.ready = true;
+      window.lockScreenWindowManager.handleEvent(
+        { type: 'screenchange',
+          detail: { screenEnabled: true } });
+      assert.isFalse(stubOpenApp.called,
+        'the LockScreenWindow still be instantiated while the FTU is opened');
+    });
+
+    test('When the lockscreen settings is not ready, ' +
+          'the window should not be instantiated', function() {
+      var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
+        'openApp');
+      window.lockScreenWindowManager.states.ready = false;
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
@@ -172,6 +188,7 @@ suite('system/LockScreenWindowManager', function() {
         'openApp');
       window.lockScreenWindowManager.handleEvent( { type: 'ftuopen' } );
       window.lockScreenWindowManager.handleEvent( { type: 'ftudone' } );
+      window.lockScreenWindowManager.states.ready = true;
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });

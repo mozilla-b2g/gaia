@@ -32,6 +32,7 @@
      * @memberof LockScreenWindowManager#
      */
     states: {
+      ready: false,
       FTUOccurs: false,
       enabled: true,
       instance: null,
@@ -129,7 +130,8 @@
           // we should not open the LockScreen, because the user may stay
           // in another app, not the LockScreen.
           if ('proximity' !== evt.detail.screenOffBy &&
-              !this.states.FTUOccurs) {
+              !this.states.FTUOccurs &&
+              this.states.ready) {
             // The app would be inactive while screen off.
             this.openApp();
           }
@@ -175,9 +177,11 @@
       var enabledListener = (val) => {
         if ('false' === val ||
             false   === val) {
+          this.states.ready = true;
           this.states.enabled = false;
         } else if('true' === val ||
                   true   === val) {
+          this.states.ready = true;
           this.states.enabled = true;
         }
       };
@@ -342,9 +346,11 @@
       req.onsuccess = () => {
         if (true === req.result['lockscreen.enabled'] ||
            'true' === req.result['lockscreen.enabled']) {
+          this.states.ready = true;
           this.states.enabled = true;
         } else if (false === req.result['lockscreen.enabled'] ||
                    'false' === req.result['lockscreen.enabled']) {
+          this.states.ready = true;
           this.states.enabled = false;
         }
         this.openApp();
