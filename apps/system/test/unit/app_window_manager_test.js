@@ -221,6 +221,26 @@ suite('system/AppWindowManager', function() {
           'inputmethod-contextchange', detail));
       });
 
+    test('When receiving shrinking-start, we need to blur the active app',
+      function() {
+        var stubFocus = this.sinon.stub(app1, 'broadcast');
+        appWindowManager._activeApp = app1;
+        appWindowManager.handleEvent({
+          type: 'shrinking-start'
+        });
+        assert.isTrue(stubFocus.calledWith('blur'));
+      });
+
+    test('When receiving shrinking-stop, we need to focus the active app',
+      function() {
+        var stubFocus = this.sinon.stub(app1, 'broadcast');
+        appWindowManager._activeApp = app1;
+        appWindowManager.handleEvent({
+          type: 'shrinking-stop'
+        });
+        assert.isTrue(stubFocus.calledWith('focus'));
+      });
+
     test('When permission dialog is closed, we need to focus the active app',
       function() {
         var stubFocus = this.sinon.stub(app1, 'broadcast');

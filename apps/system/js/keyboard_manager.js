@@ -106,7 +106,6 @@ var KeyboardManager = {
     window.addEventListener('mozmemorypressure', this);
     window.addEventListener('sheets-gesture-begin', this);
     window.addEventListener('lockscreen-appopened', this);
-    window.addEventListener('screenchange', this);
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', this);
@@ -277,11 +276,6 @@ var KeyboardManager = {
       case 'activityopening':
       case 'activityclosing':
         this.hideKeyboardImmediately();
-        break;
-      case 'screenchange':
-        if (!evt.detail.screenEnabled) {
-          this.hideKeyboardImmediately();
-        }
         break;
       case 'mozbrowsererror': // OOM
         this.removeKeyboard(evt.target.dataset.frameManifestURL, true);
