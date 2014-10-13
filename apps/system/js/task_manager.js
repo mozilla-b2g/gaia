@@ -864,7 +864,10 @@
           this.show();
         } else {
           app = AppWindowManager.getActiveApp();
-          if (app) {
+          // The homescreen never requires a screenshot and browser windows
+          // will display the screenshot when it's available (which typically
+          // takes quite a bit longer than 400ms if it is still loading content)
+          if (app && !app.isHomescreen && !app.isBrowser()) {
             app.getScreenshot(function onGettingRealtimeScreenshot() {
               this.show();
             }.bind(this));

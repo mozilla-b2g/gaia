@@ -79,6 +79,7 @@
 }
 
 #cards-view .screenshotView {
+  background-color: #f4f4f4;
   background-size: cover;
   background-position: left top;
   background-repeat: no-repeat;
@@ -135,7 +136,7 @@
 }
 
 #cards-view .card.appIconPreview {
-  background-color: rgba(255, 255, 255, 1);
+  background-color: #fff;
 }
 
 #cards-view .card > .appIconView {

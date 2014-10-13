@@ -736,7 +736,14 @@ suite('system/TaskManager >', function() {
 
     suite('display cardsview via holdhome >', function() {
       setup(function(done) {
+        var sms = apps['http://sms.gaiamobile.org'];
+        MockStackManager.mStack = [sms];
+        MockStackManager.mCurrent = 0;
+        MockAppWindowManager.mActiveApp = sms;
+
         assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
+        this.sinon.spy(sms, 'getScreenshot');
+
         waitForEvent(window, 'cardviewshown')
           .then(function() { done(); }, failOnReject);
         sendHoldhome();
@@ -749,6 +756,33 @@ suite('system/TaskManager >', function() {
       test('cardsview should be active', function() {
         assert.isTrue(cardsView.classList.contains('active'));
         assert.isTrue(taskManager.isShown());
+      });
+      test('non-browser app had its getScreenshot method called', function() {
+        assert.isTrue(MockAppWindowManager.mActiveApp.getScreenshot.called);
+      });
+    });
+
+    suite('display browser in cardsview via holdhome >', function() {
+      setup(function(done) {
+        var browser = apps.search;
+        MockStackManager.mStack = [browser];
+        MockStackManager.mCurrent = 0;
+        MockAppWindowManager.mActiveApp = browser;
+
+        assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
+        this.sinon.spy(browser, 'getScreenshot');
+        this.sinon.stub(taskManager, 'show', function() {
+          done();
+        });
+        sendHoldhome();
+      });
+
+      teardown(function() {
+        taskManager.hide(true);
+      });
+
+      test('browser sheet didnt have getScreenshot method called', function() {
+        assert.isFalse(MockAppWindowManager.mActiveApp.getScreenshot.called);
       });
     });
 
