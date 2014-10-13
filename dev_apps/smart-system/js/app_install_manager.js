@@ -6,7 +6,6 @@
 /* global LazyLoader */
 /* global ManifestHelper */
 /* global ModalDialog */
-/* global NotificationScreen */
 /* global StatusBar */
 /* global SystemBanner */
 /* global Template */
@@ -22,7 +21,6 @@
 /* global ManifestHelper */
 /* global FtuLauncher */
 /* global Template */
-/* global NotificationScreen */
 /* global KeyboardHelper */
 /* global UtilityTray */
 /* global applications */
@@ -71,8 +69,6 @@ var AppInstallManager = {
 
     this.resumeButton = document.getElementById('app-install-resume-button');
 
-    this.notifContainer =
-            document.getElementById('install-manager-notification-container');
     this.appInfos = {};
     this.setupQueue = [];
     this.isSetupInProgress = false;
@@ -96,7 +92,6 @@ var AppInstallManager = {
     this.cancelButton.onclick = this.showInstallCancelDialog.bind(this);
     this.confirmCancelButton.onclick = this.handleInstallCancel.bind(this);
     this.resumeButton.onclick = this.hideInstallCancelDialog.bind(this);
-    this.notifContainer.onclick = this.showDownloadCancelDialog.bind(this);
 
     this.downloadCancelDialog.querySelector('.confirm').onclick =
       this.handleConfirmDownloadCancel.bind(this);
@@ -456,18 +451,22 @@ var AppInstallManager = {
   },
 
   onDownloadStart: function ai_onDownloadStart(app) {
-    if (! this.hasNotification(app)) {
+    var manifestURL = app.manifestURL,
+        appInfo = this.appInfos[manifestURL];
+    if (!appInfo.isDownloading) {
+      appInfo.isDownloading = true;
       StatusBar.incSystemDownloads();
-      this.addNotification(app);
       this.requestWifiLock(app);
     }
   },
 
   onDownloadStop: function ai_onDownloadStop(app) {
-    if (this.hasNotification(app)) {
+    var manifestURL = app.manifestURL,
+        appInfo = this.appInfos[manifestURL];
+    if (appInfo.isDownloading) {
       StatusBar.decSystemDownloads();
-      this.removeNotification(app);
       this.releaseWifiLock(app);
+      appInfo.isDownloading = false;
     }
   },
 
@@ -493,96 +492,11 @@ var AppInstallManager = {
     }
   },
 
-  addNotification: function ai_addNotification(app) {
-    // should be unique (this is used already in applications.js)
-    var manifestURL = app.manifestURL,
-        appInfo = this.appInfos[manifestURL];
-
-    if (appInfo.installNotification) {
-      return;
-    }
-
-    var newNotif =
-      '<div class="fake-notification" role="link">' +
-        '<div data-icon="rocket" class="alert"></div>' +
-        '<div class="title-container"></div>' +
-        '<progress></progress>' +
-      '</div>';
-
-    this.notifContainer.insertAdjacentHTML('afterbegin', newNotif);
-
-    var newNode = this.notifContainer.firstElementChild;
-    newNode.dataset.manifest = manifestURL;
-
-    var _ = navigator.mozL10n.get;
-
-    var manifest = app.manifest || app.updateManifest;
-    var message = _('downloadingAppMessage', {
-      appName: new ManifestHelper(manifest).name
-    });
-
-    newNode.querySelector('.title-container').textContent = message;
-
-    var progressNode = newNode.querySelector('progress');
-    if (app.updateManifest && app.updateManifest.size) {
-      progressNode.max = app.updateManifest.size;
-      appInfo.hasMax = true;
-    }
-
-    appInfo.installNotification = newNode;
-    NotificationScreen.addUnreadNotification(manifestURL);
-  },
-
-  getNotificationProgressNode: function ai_getNotificationProgressNode(app) {
-    var appInfo = this.appInfos[app.manifestURL];
-    var progressNode = appInfo &&
-      appInfo.installNotification &&
-      appInfo.installNotification.querySelector('progress');
-    return progressNode || null;
-  },
-
   handleProgress: function ai_handleProgress(evt) {
     var app = evt.application,
         appInfo = this.appInfos[app.manifestURL];
 
     this.onDownloadStart(app);
-
-
-    var progressNode = this.getNotificationProgressNode(app);
-    var message;
-    var _ = navigator.mozL10n.get;
-
-    if (isNaN(app.progress) || app.progress == null) {
-      // now we get NaN if there is no progress information but let's
-      // handle the null and undefined cases as well
-      message = _('downloadingAppProgressIndeterminate');
-      progressNode.removeAttribute('value'); // switch to indeterminate state
-    } else if (appInfo.hasMax) {
-      message = _('downloadingAppProgress',
-        {
-          progress: this.humanizeSize(app.progress),
-          max: this.humanizeSize(progressNode.max)
-        });
-      progressNode.value = app.progress;
-    } else {
-      message = _('downloadingAppProgressNoMax',
-                 { progress: this.humanizeSize(app.progress) });
-    }
-    progressNode.textContent = message;
-  },
-
-  removeNotification: function ai_removeNotification(app) {
-    var manifestURL = app.manifestURL,
-        appInfo = this.appInfos[manifestURL],
-        node = appInfo.installNotification;
-
-    if (!node) {
-      return;
-    }
-
-    node.parentNode.removeChild(node);
-    delete appInfo.installNotification;
-    NotificationScreen.removeUnreadNotification(manifestURL);
   },
 
   requestWifiLock: function ai_requestWifiLock(app) {
@@ -646,30 +560,6 @@ var AppInstallManager = {
     }
     this.dialog.classList.add('visible');
     this.installCancelDialog.classList.remove('visible');
-  },
-
-  showDownloadCancelDialog: function ai_showDownloadCancelDialog(e) {
-    var currentNode = e.target;
-
-    if (!currentNode.classList.contains('fake-notification')) {
-      // tapped outside of a notification
-      return;
-    }
-
-    var manifestURL = currentNode.dataset.manifest,
-        app = applications.getByManifestURL(manifestURL),
-        manifest = app.manifest || app.updateManifest,
-        dialog = this.downloadCancelDialog;
-
-    var title = dialog.querySelector('h1');
-
-    title.textContent = navigator.mozL10n.get('stopDownloading', {
-      app: new ManifestHelper(manifest).name
-    });
-
-    dialog.classList.add('visible');
-    dialog.dataset.manifest = manifestURL;
-    UtilityTray.hide();
   },
 
   handleInstallCancel: function ai_handleInstallCancel() {

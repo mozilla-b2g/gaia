@@ -50,41 +50,6 @@
 
 /* ... end of dialog */
 
-/* notification */
-#install-manager-notification-container > .fake-notification {
-  position: relative;
-  border-bottom: none;
-}
-
-#install-manager-notification-container > .fake-notification > * {
-  pointer-events: none;
-}
-
-#install-manager-notification-container [data-icon] {
-  color: #9ab0c0;
-  background-color: #edf1f4;
-}
-
-#install-manager-notification-container .title-container {
-  margin: 1.4rem 0 0 3.7rem;
-  line-height: 3rem;
-}
-
-#install-manager-notification-container progress {
-  position: absolute;
-  width: 100%;
-  height: 0.4rem;
-  left: 0;
-  top: 5.6rem;
-  border: none;
-}
-
-#install-manager-notification-container progress::-moz-progress-bar {
-  background: url(../shared/progress.gif) repeat-x;
-}
-
-/* ... end of notification */
-
 /* ... start of keyboard layout */
 ul#ime-list {
   padding-left: 1.5rem;
