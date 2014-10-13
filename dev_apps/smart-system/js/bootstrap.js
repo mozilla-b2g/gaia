@@ -8,8 +8,7 @@
          VisibilityManager, UsbStorage, TaskManager,
         SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
-         applications, LayoutManager, PermissionManager,
-         SoftwareButtonManager, Accessibility,
+         applications, LayoutManager, PermissionManager, Accessibility,
          TextSelectionDialog, SleepMenu, AppUsageMetrics,
          ExternalStorageMonitor,
          BrowserSettings, QuickSettings */
@@ -141,8 +140,6 @@ window.addEventListener('load', function startup() {
   window.remoteDebugger = new RemoteDebugger();
   window.sleepMenu = new SleepMenu();
   window.sleepMenu.start();
-  window.softwareButtonManager = new SoftwareButtonManager();
-  window.softwareButtonManager.start();
   window.sourceView = new SourceView();
   window.taskManager = new TaskManager();
   window.taskManager.start();
