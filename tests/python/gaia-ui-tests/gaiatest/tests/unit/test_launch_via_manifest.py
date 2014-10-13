@@ -9,8 +9,8 @@ from marionette.wait import Wait
 class TestLaunchViaManifest(GaiaTestCase):
 
     def test_launch_manifest(self):
-        browser_manifest_url = 'app://browser.gaiamobile.org/manifest.webapp'
+        browser_manifest_url = 'app://search.gaiamobile.org/manifest.webapp'
 
         app = self.apps.launch('Browser', manifest_url=browser_manifest_url)
         self.assertTrue(app.frame)
-        Wait(self.marionette).until(lambda m: 'browser' in m.get_url())
+        Wait(self.marionette).until(lambda m: 'search' in m.get_url())
