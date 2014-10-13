@@ -36,6 +36,10 @@ var FtuLauncher = {
     return this._ftuOrigin;
   },
 
+  getFtuManifestURL: function fl_getFtuManifestURL() {
+    return this._ftuManifestURL;
+  },
+
   getFtuPing: function fl_getFtuPing() {
     return this._ftuPing;
   },

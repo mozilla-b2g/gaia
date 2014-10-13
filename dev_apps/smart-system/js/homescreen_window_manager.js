@@ -63,6 +63,8 @@
       window.addEventListener('activityopened', this);
       window.addEventListener('homescreenopened', this);
       window.addEventListener('landingappopened', this);
+      window.addEventListener('homescreen-ready', this);
+      window.addEventListener('landing-app-ready', this);
     },
 
     /**
@@ -78,6 +80,8 @@
       window.removeEventListener('webapps-launch', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('activityopened', this);
+      window.removeEventListener('homescreen-ready', this);
+      window.removeEventListener('landing-app-ready', this);
     },
 
     handleEvent: function hwm_handleEvent(evt) {
@@ -106,7 +110,10 @@
           break;
         case 'appopened':
           var detail = evt.detail;
-          if (detail.isHomescreen) {
+          if (detail.manifestURL === FtuLauncher.getFtuManifestURL()) {
+            // we don't need to set activeHome as anything if it is ftu.
+            break;
+          } else if (detail.isHomescreen) {
             this._activeHome = ('LandingAppWindow' === detail.CLASS_NAME) ?
                                  this.landingAppLauncher : homescreenLauncher;
           } else {
@@ -140,6 +147,12 @@
             this._activityCount--;
           }
           break;
+        case 'landing-app-ready':
+        case 'homescreen-ready':
+          if (this.ready) {
+            this.publish('homescreenwindowmanager-ready');
+          }
+          break;
       }
     },
 
@@ -152,7 +165,6 @@
     },
 
     launchHomescreen: function launchHomescreen(evt, manifestURL) {
-      console.log('trying to launch home: ' + manifestURL);
       if (!this.landingAppLauncher.hasLandingApp) {
         // cal getHomescreen to ensure it.
         this.getHomescreen();
@@ -206,10 +218,9 @@
     getHomescreen: function getHomescreen(isHomeEvent) {
       if (!exports.homescreenLauncher || !exports.homescreenLauncher.ready ||
           !this.landingAppLauncher || !this.landingAppLauncher.ready) {
-        console.log('get home when it is not ready' + new Error().stack);
         return null;
       }
-      console.log('get home');
+
       if (this.landingAppLauncher.hasLandingApp) {
 
         // use landing app launcher as first home launcher

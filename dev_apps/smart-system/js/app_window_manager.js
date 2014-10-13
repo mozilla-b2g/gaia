@@ -420,7 +420,16 @@
           break;
 
         case 'ftuskip':
-          if (!System.locked) {
+          if (!homescreenWindowManager.ready) {
+            var self = this;
+            window.addEventListener('homescreenwindowmanager-ready',
+              function _handleReady(){
+                window.removeEventListener('homescreenwindowmanager-ready',
+                                           _handleReady);
+                self.display();
+              });
+            return;
+          } else {
             this.display();
           }
           break;

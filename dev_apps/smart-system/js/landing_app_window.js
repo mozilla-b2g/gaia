@@ -80,7 +80,6 @@
    */
   LandingAppWindow.prototype.setBrowserConfig =
     function hw_setBrowserConfig(manifestURL) {
-      console.log('manifestURL: ', manifestURL);
       var app = window.applications.getByManifestURL(manifestURL);
       this.origin = app.origin;
       this.manifestURL = app.manifestURL;

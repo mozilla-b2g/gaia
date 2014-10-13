@@ -88,6 +88,8 @@
               that._instance.kill();
               that._instance = new LandingAppWindow(value);
               // Dispatch 'homescreen is changed' event.
+              // Landing app is a kind of homescreen, we use homescreen-changed
+              // event to notify app_window_manager to reload homescreen.
               window.dispatchEvent(new CustomEvent('homescreen-changed'));
             } else {
               that._instance.ensure();
@@ -97,7 +99,7 @@
             console.warn('We enable landing app but without defining it?');
           }
           that._ready = true;
-          window.dispatchEvent(new CustomEvent('homescreen-ready'));
+          window.dispatchEvent(new CustomEvent('landing-app-ready'));
         });
     },
 
