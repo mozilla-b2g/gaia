@@ -175,6 +175,28 @@
       // We don't support appX trying to switch to landing app
     },
 
+    handleHomeEvent: function handleHomeEvent() {
+      // If press home when one home app active, we need to swap the
+      // launcher.
+      if (this._activityCount > 0) {
+        // If we have activity on top of home, we need to ensure it to close
+        // all of them.
+        this._activeHome.getHomescreen().ensure(true);
+        if (this._activeHome === this.landingAppLauncher) {
+          this._activeHome.getHomescreen().setVisible(false);
+          this._activeHome.getHomescreen().close('immediate');
+          this._activeHome = homescreenLauncher;
+        }
+        this._activityCount = 0;
+      } else {
+        this._activeHome.getHomescreen().setVisible(false);
+        this._activeHome.getHomescreen().close('immediate');
+        // If we have activity on top of home, we always normal home
+        this._activeHome = this._activeHome === this.landingAppLauncher ?
+                           homescreenLauncher : this.landingAppLauncher;
+      }
+    },
+
     /**
      * getHomescreen returns the homescreen app window based on if it is
      * triggered by home event.
@@ -196,20 +218,7 @@
           // to show normal homescreen app.
           this._activeHome = homescreenLauncher;
         } else if (isHomeEvent) {
-          // If press home when one home app active, we need to swap the
-          // launcher.
-          if (this._activityCount > 0) {
-            // If we have activity on top of home, we need to ensure it to close
-            // all of them.
-            this._activeHome.getHomescreen().ensure(true);
-          }
-          this._activeHome.getHomescreen().setVisible(false);
-          this._activeHome.getHomescreen().close('immediate');
-          // If we have activity on top of home, we always normal home
-          this._activeHome = this._activityCount > 0 || 
-                             this._activeHome === this.landingAppLauncher ?
-                                   homescreenLauncher : this.landingAppLauncher;
-          this._activityCount = 0;
+          this.handleHomeEvent();
         }
       } else if (!this._activeHome) {
         // If we don't have landing app, we need to initialize active home as
