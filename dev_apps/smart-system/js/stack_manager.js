@@ -1,6 +1,6 @@
 'use strict';
 
-/* global SheetsTransition, AppWindowManager */
+/* global AppWindowManager */
 
 var StackManager = {
   init: function sm_init() {
@@ -326,10 +326,6 @@ var StackManager = {
   _broadcast: function sm_broadcast(close) {
     clearTimeout(this._broadcastTimeout);
     this._broadcastTimeout = null;
-
-    if (SheetsTransition.transitioning) {
-      return;
-    }
 
     // We're back to the same place
     if (this._didntMove) {

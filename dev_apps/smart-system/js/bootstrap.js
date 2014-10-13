@@ -12,8 +12,7 @@
          SoftwareButtonManager, Accessibility,
          TextSelectionDialog, SleepMenu, AppUsageMetrics,
          ExternalStorageMonitor,
-         BrowserSettings,
-         EdgeSwipeDetector, QuickSettings */
+         BrowserSettings, QuickSettings */
 'use strict';
 
 
@@ -123,8 +122,6 @@ window.addEventListener('load', function startup() {
   /** @global */
   window.attentionWindowManager = new window.AttentionWindowManager();
   window.attentionWindowManager.start();
-  window.edgeSwipeDetector = new EdgeSwipeDetector();
-  window.edgeSwipeDetector.start();
   window.externalStorageMonitor = new ExternalStorageMonitor();
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
