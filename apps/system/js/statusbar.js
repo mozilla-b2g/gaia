@@ -14,11 +14,9 @@
   limitations under the License.
 */
 
-/*global Clock, SettingsListener */
-/*global TouchForwarder, FtuLauncher */
-/*global MobileOperator, SIMSlotManager, System */
-/*global Bluetooth */
-/*global UtilityTray, nfcManager */
+/*global Clock, SettingsListener, TouchForwarder, FtuLauncher, MobileOperator,
+         SIMSlotManager, System, Bluetooth, UtilityTray, nfcManager,
+         OrientationManager */
 
 'use strict';
 
@@ -133,6 +131,9 @@ var StatusBar = {
   listeningCallschanged: false,
 
   playingActive: false,
+
+  /* Is the SHB enabled? If so there is less room on landscape mode. */
+  _softwareHome: false,
 
   /**
    * this keeps how many current installs/updates we do
@@ -303,6 +304,11 @@ var StatusBar = {
     }, this);
 
     this.statusbarIcons.addEventListener('wheel', this);
+
+    SettingsListener.observe('software-button.enabled', false, function(value) {
+      this._softwareHome = value;
+      this._updateIconVisibility();
+    }.bind(this));
 
     this.systemDownloadsCount = 0;
     this.setActive(true);
@@ -558,18 +564,40 @@ var StatusBar = {
   _dontStopEvent: false,
 
   _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {
+    var shbWidth = this._getSHBWidth();
     // Let's consider the style of the status bar:
     // * padding: 0 0.3rem;
-    return window.innerWidth - (3 * 2);
+    return Math.round(window.innerWidth - shbWidth - (3 * 2));
   },
 
   _getMinimizedStatusBarWidth: function sb_getMinimizedStatusBarWidth() {
+    var shbWidth = this._getSHBWidth();
     // The rocket bar takes approx. 50% of the total screen width in portrait.
     // This formula reflects the CSS styling applied to #statusbar-minimized.
     // From /apps/system/style/statusbar/statusbar.css:
     // * width: calc(100% - 100% * 0.682 + 8rem * 0.682 - 0.5rem);
-    // * padding: 0 0.3rem 0 0;
-    return window.innerWidth - window.innerWidth * 0.682 + 80 * 0.682 - 5 - 3;
+    // * -moz-padding-start: 0;
+    // * -moz-padding-end: 0.3rem;
+    return Math.round(
+        window.innerWidth - shbWidth -
+        (window.innerWidth - shbWidth) * 0.682 +
+        80 * 0.682 - 5 - 3
+    );
+  },
+
+  /**
+   * Return the width of the software home button if enabled and orientation
+   * is landscape.
+   */
+  _getSHBWidth: function sb_getSHBWidth() {
+    // The software home button width is hardcoded.
+    // From /apps/system/style/definitions.css:
+    // * --software-home-button-height: 4.4rem;
+    var SHB_WIDTH = 44;
+    var orientation = OrientationManager.fetchCurrentOrientation();
+    var isLandscape = (orientation === 'landscape-primary' ||
+      orientation === 'landscape-secondary');
+    return (this._softwareHome && isLandscape) ? SHB_WIDTH : 0;
   },
 
   pauseUpdate: function sb_pauseUpdate() {
