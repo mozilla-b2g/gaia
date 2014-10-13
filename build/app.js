@@ -4,7 +4,7 @@
 
 var utils = require('utils');
 
-exports.execute = function(options) {
+function buildApps(options) {
   var appRegExp;
   try {
     appRegExp = utils.getAppNameRegex(options.BUILD_APP_NAME);
@@ -33,4 +33,30 @@ exports.execute = function(options) {
       }
     }
   });
+}
+
+exports.execute = function(options) {
+  var stageDir = utils.getFile(options.STAGE_DIR);
+  utils.ensureFolderExists(stageDir);
+
+  require('pre-app').execute(options);
+
+  // Wait for all pre app tasks to be done before proceeding.
+  utils.processEvents(function () {
+    return { wait: false };
+  });
+
+  buildApps(options);
+  // Wait for all app build script tasks to be done before proceeding.
+  utils.processEvents(function () {
+    return { wait: false };
+  });
+
+  require('post-app').execute(options);
+  // Wait for post app tasks to be done before quitting.
+  utils.processEvents(function () {
+    return { wait: false };
+  });
 };
+
+exports.buildApps = buildApps;
