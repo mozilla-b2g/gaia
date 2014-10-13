@@ -5,7 +5,7 @@
          SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, RemoteDebugger, HomeGesture,
-         VisibilityManager, UsbStorage, TaskManager,
+         VisibilityManager, UsbStorage,
         SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, LayoutManager, PermissionManager, Accessibility,
@@ -141,8 +141,6 @@ window.addEventListener('load', function startup() {
   window.sleepMenu = new SleepMenu();
   window.sleepMenu.start();
   window.sourceView = new SourceView();
-  window.taskManager = new TaskManager();
-  window.taskManager.start();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager();
   window.visibilityManager.start();

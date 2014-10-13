@@ -508,8 +508,7 @@
         // be included in index.html before this one, so they can register their
         // event handlers before we do.
         case 'home':
-          if (!homescreenWindowManager.ready ||
-              (window.taskManager && window.taskManager.isActive())) {
+          if (!homescreenWindowManager.ready) {
             return;
           }
           this.display(null, null, null, 'home');

@@ -1947,30 +1947,6 @@
   };
 
   /**
-   * Make adjustments to display inside the task manager
-   */
-  AppWindow.prototype.enterTaskManager = function aw_enterTaskManager() {
-    this._dirtyStyleProperties = {};
-    if (this.element && this.transitionController) {
-      this.element.classList.add('in-task-manager');
-      this.close( this.isActive() ? 'to-cardview' : 'immediate' );
-    }
-  };
-
-  /**
-   * Remove adjustments made to display inside the task manager
-   */
-  AppWindow.prototype.leaveTaskManager = function aw_leaveTaskManager() {
-    if (this.element) {
-      this.element.classList.remove('in-task-manager');
-      if (this._dirtyStyleProperties) {
-        this.unapplyStyle(this._dirtyStyleProperties);
-        this._dirtyStyleProperties = null;
-      }
-    }
-  };
-
-  /**
    * Apply a transform to the element
    * @param {Object} nameValues object with transform property names as keys
    *                            and values to apply to the element

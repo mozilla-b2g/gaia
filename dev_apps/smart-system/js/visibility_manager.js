@@ -81,9 +81,6 @@
       // is opened.
       case 'appclosing':
       case 'homescreenopened':
-        if (window.taskManager.isShown()) {
-          this.publish('hidewindowforscreenreader');
-        }
         this._normalAudioChannelActive = false;
         break;
       case 'attention-inactive':

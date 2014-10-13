@@ -206,10 +206,6 @@ var StackManager = {
         }
         break;
       case 'home':
-        // only handle home events if task manager is not visible
-        if (window.taskManager && window.taskManager.isShown()) {
-          return;
-        }
         this._moveToTop(this.position);
         this.position = -1;
         this.commitClose();

@@ -113,7 +113,6 @@
                   <button type="button" class="stop-button"></button>
                 </div>
                 <button type="button" class="menu-button" alt="Menu"></button>
-                <button type="button" class="windows-button"></button>
               </div>
             </div>`;
   };
@@ -168,7 +167,6 @@
     this.stopButton = this.element.querySelector('.stop-button');
     this.backButton = this.element.querySelector('.back-button');
     this.menuButton = this.element.querySelector('.menu-button');
-    this.windowsButton = this.element.querySelector('.windows-button');
     this.title = this.element.querySelector('.title');
 
     this.bar = this.element.querySelector('.bar');
@@ -264,10 +262,6 @@
         this.showOverflowMenu();
         break;
 
-      case this.windowsButton:
-        this.showWindows();
-        break;
-
       case this.newWindowButton:
         evt.stopImmediatePropagation();
         this.onNewWindow();
@@ -328,7 +322,6 @@
       this.title.addEventListener('click', this);
       this.scrollable.addEventListener('scroll', this);
       this.menuButton.addEventListener('click', this);
-      this.windowsButton.addEventListener('click', this);
     } else {
       this.header.addEventListener('action', this);
     }
@@ -350,7 +343,6 @@
     if (this.useCombinedChrome()) {
       this.stopButton.removeEventListener('click', this);
       this.menuButton.removeEventListener('click', this);
-      this.windowsButton.removeEventListener('click', this);
       this.reloadButton.removeEventListener('click', this);
       this.backButton.removeEventListener('click', this);
       this.forwardButton.removeEventListener('click', this);
@@ -683,13 +675,6 @@
     }
 
     ModalDialog.selectOne(data, selected);
-  };
-
-  AppChrome.prototype.showWindows = function ac_showWindows() {
-    window.dispatchEvent(
-      new CustomEvent('taskmanagershow',
-                      { detail: { filter: 'browser-only' }})
-    );
   };
 
   AppChrome.prototype.__defineGetter__('overflowMenu',

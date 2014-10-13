@@ -97,20 +97,13 @@ var TrustedUIManager = {
       // Only one dialog, so transition back to main app.
       var self = this;
       var container = this.popupContainer;
-      if (!taskManager.isShown()) {
-        if (!origin) {
-          this._restoreCallerApp(this._lastDisplayedApp);
-        }
-        container.addEventListener('transitionend', function wait(event) {
-          this.removeEventListener('transitionend', wait);
-          self._closeDialog(chromeEventId, origin);
-        });
-      } else {
-        if (!origin) {
-          this._restoreCallerApp(this._lastDisplayedApp);
-        }
-        this._closeDialog(chromeEventId, origin);
+      if (!origin) {
+        this._restoreCallerApp(this._lastDisplayedApp);
       }
+      container.addEventListener('transitionend', function wait(event) {
+        this.removeEventListener('transitionend', wait);
+        self._closeDialog(chromeEventId, origin);
+      });
 
       // The css transition caused by the removal of the trustedui
       // class by the hide() method will trigger a 'transitionend'
