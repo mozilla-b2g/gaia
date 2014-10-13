@@ -342,10 +342,7 @@
 
     <!-- Rocketbar -->
     <script defer src="js/browser.js"></script>
-    <script defer src="js/rocketbar.js"></script>
-    <script defer src="js/search_window.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
-    <link rel="stylesheet" type="text/css" href="style/rocketbar/rocketbar.css">
     <!-- <script defer src="shared/js/icons_helper.js"></script> -->
 
   </head>
@@ -357,17 +354,6 @@
       </div>
       <!-- Statusbar -->
       <div id="statusbar" data-z-index-level="statusbar">
-        <!-- Rocketbar-->
-        <div id="rocketbar">
-          <form id="rocketbar-form" class="hidden">
-            <input id="rocketbar-input" type="search" x-inputmode="verbatim" dir="auto"
-              placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
-            </input>
-            <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
-            <button type="button" id="rocketbar-cancel"
-                    data-l10n-id="close">Close</button>
-          </form>
-        </div>
         <!-- Statusbar icons -->
         <div id="statusbar-icons">
           <div id="statusbar-maximized-wrapper">
@@ -412,12 +398,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Rocketbar Results -->
-      <div id="rocketbar-backdrop" class="hidden"
-           data-z-index-level="rocketbar-backdrop">
-      </div>
-      <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
 
       <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->

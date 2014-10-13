@@ -179,10 +179,6 @@
 
   AppChrome.prototype.handleEvent = function ac_handleEvent(evt) {
     switch (evt.type) {
-      case 'rocketbar-overlayopened':
-        this.collapse();
-        break;
-
       case 'click':
         this.handleClickEvent(evt);
         break;
@@ -575,10 +571,6 @@
       // We havent got a name for this location
       this._gotName = false;
 
-      // Make the rocketbar unscrollable until the page resizes to the
-      // appropriate height.
-      this.containerElement.classList.remove('scrollable');
-
       // Expand
       if (!this.isMaximized()) {
         this.element.classList.add('maximized');
@@ -598,7 +590,6 @@
   AppChrome.prototype.maximize = function ac_maximize(callback) {
     var element = this.element;
     element.classList.add('maximized');
-    window.addEventListener('rocketbar-overlayopened', this);
 
     if (!callback) {
       return;
@@ -619,7 +610,6 @@
   };
 
   AppChrome.prototype.collapse = function ac_collapse() {
-    window.removeEventListener('rocketbar-overlayopened', this);
     this.element.classList.remove('maximized');
   };
 

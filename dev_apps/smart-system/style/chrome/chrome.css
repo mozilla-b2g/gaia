@@ -44,11 +44,6 @@
   display: none;
 }
 
-/* Special cases */
-.searchWindow > .chrome {
-  display: none;
-}
-
 [data-manifest-name="FTU"]:not(.bar) > .chrome .controls,
 [data-manifest-name="FTU"]:not(.bar) > .chrome .progress,
 .lockScreenWindow:not(.bar) > .chrome .controls,

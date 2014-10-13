@@ -26,8 +26,6 @@
       'mozChromeEvent',
       'appclosing',
       'homescreenopened',
-      'rocketbar-overlayopened',
-      'rocketbar-overlayclosed',
       'utility-tray-overlayopened',
       'utility-tray-overlayclosed',
       'system-dialog-show',
@@ -116,13 +114,11 @@
           this.publish('hidewindow', { type: evt.type });
         }
         break;
-      case 'rocketbar-overlayopened':
       case 'utility-tray-overlayopened':
       case 'cardviewshown':
       case 'system-dialog-show':
         this.publish('hidewindowforscreenreader');
         break;
-      case 'rocketbar-overlayclosed':
       case 'utility-tray-overlayclosed':
       case 'cardviewclosed':
       case 'system-dialog-hide':

@@ -7,7 +7,7 @@
   pointer-events: none;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow) {
+.appWindow:not(.homescreen) {
   background-color: black;
 }
 
@@ -15,12 +15,12 @@
   background-color: white;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render {
+.appWindow:not(.homescreen).render {
   background-image: none !important;
   background-color: transparent;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).light {
+.appWindow:not(.homescreen).light {
   background-color: #fff;
 }
 
@@ -36,15 +36,15 @@
   background-size: auto 0.3rem;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container {
+.appWindow:not(.homescreen).render > div.browser-container {
   background-color: #fff;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).light.render > div.browser-container {
+.appWindow:not(.homescreen).light.render > div.browser-container {
   background-color: #f2f2f2;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container > iframe {
+.appWindow:not(.homescreen).render > div.browser-container > iframe {
   background-color: #fff;
 }
 
@@ -242,10 +242,6 @@
 
 .appWindow > .contextmenu {
   visibility: visible;
-}
-
-.appWindow.searchWindow {
-  overflow: visible;
 }
 
 .appWindow > .modal-dialog.visible,

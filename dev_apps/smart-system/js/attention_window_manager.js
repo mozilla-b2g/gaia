@@ -64,7 +64,6 @@
       window.addEventListener('emergencyalert', this);
       window.addEventListener('launchapp', this);
       window.addEventListener('system-resize', this);
-      window.addEventListener('rocketbar-overlayopened', this);
     },
 
     stop: function attwm_init() {
@@ -86,7 +85,6 @@
       window.removeEventListener('emergencyalert', this);
       window.removeEventListener('launchapp', this);
       window.removeEventListener('system-resize', this);
-      window.removeEventListener('rocketbar-overlayopened', this);
     },
 
     handleEvent: function attwm_handleEvent(evt) {
@@ -215,7 +213,6 @@
           } // jshint ignore:line
         case 'holdhome':
         case 'emergencyalert':
-        case 'rocketbar-overlayopened':
           this._topMostWindow = null;
           this.closeAllAttentionWindows();
           break;
