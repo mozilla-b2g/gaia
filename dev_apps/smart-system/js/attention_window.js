@@ -62,7 +62,6 @@
     if (this._DEBUG) {
       AttentionWindow[this.instanceID] = this;
     }
-    this.makeNotification();
     this.publish('created');
   };
 
@@ -109,7 +108,7 @@
   AttentionWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
       'mozbrowserloadend', 'mozbrowserloadstart',
-      '_localized', 'click', '_willdestroy'];
+      '_localized', 'click'];
 
   AttentionWindow.prototype.render = function attw_render() {
     this.publish('willrender');
@@ -158,92 +157,16 @@
   // which may be attention window or app window
   // to be repainted, but we don't care it here.
   AttentionWindow.prototype.requestOpen = function() {
-    this.element.classList.remove('fake-notification');
-    this.element.classList.remove('notification-disappearing');
     // XXX: A hack to reset height.
     AppWindow.prototype.requestOpen.apply(this);
   };
 
-  /**
-   * Make a fake notification node inside Utility tray.
-   * XXX: We should make app to create this notification on their own.
-   * XXX: The problem is app is not able to 'launch attention window'
-   * in the click callback of the notification. The workaround
-   * might be using the same name to open the attention window again.
-   * And in child window factory we need to check if current attention
-   * window has the same name as the event detail to reopen it or kill it.
-   */
-  AttentionWindow.prototype.makeNotification = function() {
-    var manifestURL = this.manifestURL;
-    if (this.notification || !manifestURL) {
-      return;
-    }
-
-    var manifest = applications.getByManifestURL(manifestURL).manifest;
-    this.manifest = this.config.manifest = manifest;
-
-    var iconSrc = manifestURL.replace(
-                    '/manifest.webapp',
-                    manifest.icons[Object.keys(manifest.icons)[0]]
-                  );
-
-    // Let's create the fake notification.
-    var notification = document.createElement('div');
-    notification.id = 'notification-' + this.instanceID;
-    notification.classList.add('notification');
-    notification.classList.add('attention-notification');
-
-    var icon = document.createElement('img');
-    icon.src = iconSrc;
-    icon.classList.add('icon');
-    notification.appendChild(icon);
-
-    var message = document.createElement('div');
-    message.appendChild(document.createTextNode(manifest.name));
-    message.classList.add('title-container');
-    notification.appendChild(message);
-
-    var tip = document.createElement('div');
-    var helper = window.navigator.mozL10n.get('attentionScreen-tapToShow');
-    tip.appendChild(document.createTextNode(helper));
-    tip.classList.add('detail');
-    notification.appendChild(tip);
-
-    var container =
-      document.getElementById('attention-window-notifications-container');
-    container.insertBefore(notification, null);
-
-    // Attach an event listener to the fake notification so the
-    // attention screen is shown when the user tap on it.
-    notification.addEventListener('click',
-                                  function(evt) {
-                                    this._handle_click(evt);
-                                  }.bind(this));
-    this.notification = notification;
-
-    // Hide on creating.
-    this.notification.style.display = 'none';
-  };
-
   AttentionWindow.prototype.show = function() {
-    if (this.notification) {
-      this.notification.style.display = 'block';
-    }
     AppWindow.prototype.show.call(this);
   };
 
   AttentionWindow.prototype.hide = function() {
-    if (this.notification) {
-      this.notification.style.display = 'none';
-    }
     AppWindow.prototype.hide.call(this);
-  };
-
-  AttentionWindow.prototype._handle__willdestroy = function() {
-    if (this.notification) {
-      this.notification.parentNode.removeChild(this.notification);
-      this.notification = null;
-    }
   };
 
   AttentionWindow.prototype.promote = function() {
