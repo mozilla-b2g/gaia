@@ -343,10 +343,6 @@
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
-    <!-- Device storage watcher -->
-    <script defer src="js/storage_watcher.js"></script>
-    <link rel="stylesheet" type="text/css" href="style/storage_watcher/storage_watcher.css">
-
     <!-- Rocketbar -->
     <script defer src="js/browser.js"></script>
     <script defer src="js/rocketbar.js"></script>
@@ -445,14 +441,9 @@
         </div>
 
         <div id="notifications-container">
-          <!-- Storage watcher notification -->
-          <div id="storage-watcher-container" class="fake-notification" role="link">
-            <div data-icon="storage-circle"></div>
-            <div class="title-container"></div>
-            <div class="detail"></div>
-          </div>
+          <div type="dummy-remove-this"></div>
           <!-- App install manager notification -->
-          <div id="install-manager-notification-container">
+          <div id="install-manager-notification-container" class="fake-notification" role="link">
           </div>
           <!-- Bluetooth transfer -->
           <div id="bluetooth-transfer-status-list">
