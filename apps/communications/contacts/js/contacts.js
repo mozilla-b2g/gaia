@@ -886,6 +886,7 @@ var Contacts = (function() {
     window.setTimeout(Contacts.onLocalized);
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       LazyLoader.load([SHARED_UTILS_PATH + '/misc.js',
+        SHARED_UTILS_PATH + '/vcard_reader.js',
         SHARED_UTILS_PATH + '/vcard_parser.js'],
        function() {
         var actHandler = ActivityHandler.handle.bind(ActivityHandler);
