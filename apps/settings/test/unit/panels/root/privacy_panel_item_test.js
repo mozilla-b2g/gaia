@@ -4,8 +4,6 @@
 
 'use strict';
 
-
-
 suite('PrivacyPanelItem', function() {
   suiteSetup(function(done) {
     var modules = [
