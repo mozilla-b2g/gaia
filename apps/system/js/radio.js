@@ -1,14 +1,9 @@
 /* exported Radio */
-/* global CustomEvent */
+/* global BaseModule */
 
 'use strict';
 
-(function(exports) {
-
-  if (!window.navigator.mozMobileConnections) {
-    return;
-  }
-
+(function() {
   var Radio = function() {
     /*
      * An internal key used to make sure Radio is
@@ -49,7 +44,7 @@
     this._init();
   };
 
-  Radio.prototype = {
+  BaseModule.create(Radio, {
 
     /*
      * We can use this value to know Radio is enabled or not
@@ -223,7 +218,5 @@
         this._setRadioEnabled(conn, true);
       }
     }
-  };
-
-  window.Radio = new Radio();
-})(window);
+  });
+})();

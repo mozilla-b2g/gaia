@@ -6,18 +6,18 @@
   var MobileConnectionCore = function(mobileConnections) {
     this.mobileConnections = mobileConnections;
   };
-  MobileConnectionCore.IMPORTS = [
-    'shared/js/simslot.js',
-    'shared/js/simslot_manager.js'
-  ];
+  //MobileConnectionCore.IMPORTS = [
+  //  'shared/js/simslot.js',
+  //  'shared/js/simslot_manager.js'
+  //];
   MobileConnectionCore.SUB_MODULES = [
-    'Radio',
-    'CallForwarding',
-    'EmergencyCallbackManager',
-    'EuRoamingManager',
-    'SimLockManager',
-    'TelephonySettings',
-    'OperatorVariantManager'
+    'Radio'
+  //  'CallForwarding',
+  //  'EmergencyCallbackManager',
+  //  'EuRoamingManager',
+  //  'SimLockManager',
+  //  'TelephonySettings',
+  //  'OperatorVariantManager'
   ];
   MobileConnectionCore.EVENTS = [
     'airplanemode-enabled',
