@@ -94,6 +94,11 @@ define(function(require, exports, module) {
      */
     this.visibleOffset = 0;
 
+    /**
+     * The old list size is used for display purposes, to know if new data would
+     * affect the scroll offset or if the total display height needs to be
+     * adjusted.
+     */
     this.oldListSize = 0;
 
     this._lastEventTime = 0;
@@ -458,8 +463,14 @@ define(function(require, exports, module) {
     clearDisplay: function() {
       // Clear the HTML content.
       this.container.innerHTML = '';
-
       this.container.style.height = '0px';
+
+      // Also clear the oldListSize, since it used for height/scroll offset
+      // updates, and now that the container does not have any children, this
+      // property should be reset to zero. If this is not done, it is possible
+      // for an update that matches the same size as the previous data will not
+      // end up showing items. This happened for search in bug 1081403.
+      this.oldListSize = 0;
     },
 
     /**
