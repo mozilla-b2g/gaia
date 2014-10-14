@@ -1770,6 +1770,19 @@ suite('calls handler', function() {
           triggerCommand('CHLD=2');
           sinon.assert.calledOnce(answerSpy);
         });
+
+        test('should not try to hold a CDMA call', function() {
+          MockNavigatorMozMobileConnections[1].voice = {
+            type: 'evdoa'
+          };
+          MockNavigatorMozTelephony.calls = [call1];
+          MockNavigatorMozTelephony.active = call1;
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+          this.sinon.spy(call1, 'hold');
+          triggerCommand('CHLD=2');
+          sinon.assert.notCalled(call1.hold);
+        });
       });
 
       suite('> CHLD=3 conference call', function() {
