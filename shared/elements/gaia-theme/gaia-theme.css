@@ -187,6 +187,7 @@ Gaia theme variables
 
   --header-background: var(--background);
   --header-icon-color: var(--text-color);
+  --header-button-color: var(--highlight-color);
 
   /** Borders
    ---------------------------------------------------------*/
