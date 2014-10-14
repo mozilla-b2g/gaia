@@ -39,17 +39,18 @@
   visibility: hidden;
 }
 
-#screen:not(.cards-view) #statusbar.maximized #statusbar-maximized-wrapper {
+#screen:not(.cards-view):not(.fullscreen-app):not(.fullscreen-layout-app) #statusbar.maximized #statusbar-maximized-wrapper {
   opacity: 1;
   visibility: visible;
 }
 
-#screen:not(.cards-view) #statusbar:not(.maximized) #statusbar-minimized-wrapper {
+#screen:not(.cards-view):not(.fullscreen-app):not(.fullscreen-layout-app) #statusbar:not(.maximized) #statusbar-minimized-wrapper {
   opacity: 1;
   visibility: visible;
 }
 
-#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar {
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar,
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-layout-app #statusbar {
   opacity: 0;
   visibility: hidden;
 }
