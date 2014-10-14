@@ -1006,6 +1006,32 @@ var DataUsageTab = (function() {
         Formatting.roundData(total));
     }
 
+    // Front-end workaround for Bug 1083680: Noticeable difference between by
+    // application breakdown totals and the total displayed in chart and widget.
+    // This method adds the residual traffic (the traffic that cannot be not
+    // allocated to an app) to the System application.
+    function fixResidualTraffic() {
+      var systemManifest = 'app://system.gaiamobile.org/manifest.webapp';
+      var breakdownTotal = 0;
+      if (manifests.length > 0) {
+        breakdownTotal =
+          manifests.reduce(function(accumulatedTraffic, appManifest) {
+            return accumulatedTraffic + mobileApps[appManifest].total;
+          }, 0);
+      }
+      var residualTraffic = mobileTotal - breakdownTotal;
+      // Updating System traffic to add the residual traffic
+      if (residualTraffic > 0) {
+        // Ensure system app exists
+        mobileApps[systemManifest] = mobileApps[systemManifest] || {total: 0};
+        var systemTraffic = mobileApps[systemManifest].total + residualTraffic;
+        mobileApps[systemManifest].total = systemTraffic;
+        if (!manifests[systemManifest]) {
+          manifests.push(systemManifest);
+        }
+      }
+    }
+
     clearAppList();
 
     var mobileTotal = model.data.mobile.total;
@@ -1019,9 +1045,13 @@ var DataUsageTab = (function() {
       return mobileApps[key].total > 0;
     });
 
-    if (manifests.length === 0) {
+    // Note: The second premise (mobileTotal === 0) must be removed when the
+    // fixResidualTraffic method will be eliminated.
+    if (manifests.length === 0 && mobileTotal === 0) {
       return;
     }
+
+    fixResidualTraffic();
 
     // Sort by total data usage, descending
     manifests.sort(function(a, b) {
