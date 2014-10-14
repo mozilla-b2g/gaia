@@ -73,7 +73,7 @@ if [ -z "$TEST_FILES" ]; then
   fi
 fi
 
-PART=1
+PART=2
 NBPARTS=2
 
 if [ -n "$PART" ] ; then
