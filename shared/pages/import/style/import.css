@@ -176,3 +176,7 @@ li[data-uuid]{
 li[data-uuid]:last-child {
   border-bottom: none !important;
 }
+
+#done-search {
+  min-width: 8.2rem;
+}
