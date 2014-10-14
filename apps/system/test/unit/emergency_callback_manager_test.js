@@ -1,21 +1,14 @@
 'use strict';
-/* global MockNavigatorMozMobileConnections, StatusBar, MocksHelper,
-          BaseModule */
+/* global MockNavigatorMozMobileConnections, BaseModule */
 
 requireApp('system/js/system.js');
 requireApp('system/js/base_module.js');
-requireApp('system/js/emergency_callback_subject.js');
-requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/js/emergency_callback_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
-var mocksForEmergencyCbManager = new MocksHelper([
-  'StatusBar'
-]).init();
-
 suite('system/emergency_callback_manager', function() {
   var subject;
-  mocksForEmergencyCbManager.attachTestHelpers();
   suiteSetup(function() {
     loadBodyHTML('/index.html');
   });
@@ -30,12 +23,10 @@ suite('system/emergency_callback_manager', function() {
   });
 
   suite('EmergencyCbManager init', function() {
-    suiteSetup(function() {
+    test('emergencycbmodechange registed while connections exists', function() {
       MockNavigatorMozMobileConnections[0].addEventListener =
         this.sinon.stub();
       subject.start();
-    });
-    test('emergencycbmodechange registed while connections exists', function() {
       assert.ok(subject.notification);
       assert.ok(subject.message);
       assert.ok(subject.toaster);
@@ -43,13 +34,14 @@ suite('system/emergency_callback_manager', function() {
       assert.ok(subject.okButton);
       assert.ok(subject.cancelButton);
       assert.ok(subject.cancelButton);
-      sinon.assert.called(navigator.mozMobileConnections[0].addEventListener);
+      sinon.assert.called(
+        MockNavigatorMozMobileConnections[0].addEventListener);
     });
   });
 
   suite('onEmergencyCbModeChange', function() {
     setup(function() {
-      StatusBar.updateEmergencyCbNotification = this.sinon.stub();
+      subject.publish = this.sinon.stub();
       this.sinon.useFakeTimers();
       subject.start();
     });

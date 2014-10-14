@@ -33,7 +33,7 @@
 
       // XXX: check bug-926169
       // this is used to keep all tests passing while introducing multi-sim APIs
-      this._conn = this.mozMobileConnections;
+      this._conn = this.mozMobileConnections[0];
 
       // Dom elements
       this.notification =
@@ -112,7 +112,7 @@
       if (this.notification.classList.contains('displayed')) {
         this.notification.classList.remove('displayed');
         this.notification.hidden = true;
-        StatusBar.updateEmergencyCbNotification();
+        this.publish('emergencycallbackstatechanged', false);
       }
     },
 
@@ -120,7 +120,7 @@
       if (!this.notification.classList.contains('displayed')) {
         this.notification.classList.add('displayed');
         this.notification.hidden = false;
-        StatusBar.updateEmergencyCbNotification(true);
+        this.publish('emergencycallbackstatechanged', true);
       }
     },
 
@@ -174,4 +174,5 @@
       }
     }
   });
+console.log(BaseModule.instantiate('EmergencyCallbackManager'));
 }());
