@@ -115,8 +115,12 @@
     },
 
     _syncCallerIdPreferenceWithCarrier: function(conn, index, helper) {
+      var that = this;
       this._getCallerIdPreference(conn, function(realValue) {
         helper.get(function got_cid(values) {
+          values = values || that.connections.map(function() {
+            return 0;
+          });
           values[index] = realValue;
           helper.set(values);
         });
