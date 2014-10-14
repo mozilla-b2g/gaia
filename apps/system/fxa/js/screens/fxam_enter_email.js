@@ -62,13 +62,16 @@ var FxaModuleEnterEmail = (function() {
     }
 
     // dynamically construct and localize ToS/PN notice
+    // XXX This relies on the current l10n fallback mechanism which will change
+    // in the future;  a real solution involves DOM overlays:
+    // https://bugzil.la/994357
     var noticeText = _('fxa-notice');
     var tosReplaced = noticeText.replace(
-      '{{tos}}',
+      '{{ tos }}',
       '<a id="fxa-terms" href="' + termsUrl + '">Terms of Service</a>'
     );
     var tosPnReplaced = tosReplaced.replace(
-      '{{pn}}',
+      '{{ pn }}',
       '<a id="fxa-privacy" href="' + privacyUrl + '">Privacy Notice</a>'
     );
     this.fxaNotice.innerHTML = tosPnReplaced;

@@ -1,26 +1,23 @@
-/* global it, assert, describe */
+/* global it, assert:true, describe */
 /* global navigator, process */
 'use strict';
 
-var PropertiesParser;
-
 if (typeof navigator !== 'undefined') {
   var L10n = navigator.mozL10n._getInternalAPI();
-  PropertiesParser = L10n.PropertiesParser;
 } else {
-  PropertiesParser = process.env.L20N_COV ?
-    require('../../build/cov/lib/l20n/parser').PropertiesParser
-    : require('../../lib/l20n/format/properties/parser').PropertiesParser;
+  var assert = require('assert');
+  var L10n = {
+    PropertiesParser: process.env.L20N_COV ?
+      require('../../../build/cov/lib/l20n/parser')
+      : require('../../../lib/l20n/format/properties/parser')
+  };
 }
-
-var propertiesParser = new PropertiesParser();
-var parse = propertiesParser.parse.bind(null, null);
 
 describe('L10n Parser', function() {
 
   it('string value', function() {
-    var ast = parse('id = string');
-    assert.strictEqual(ast.id, 'string');
+    var ast = L10n.PropertiesParser.parse(null, 'id = string');
+    assert.strictEqual(ast[0].$v, 'string');
   });
 
   it('basic errors', function() {
@@ -35,20 +32,21 @@ describe('L10n Parser', function() {
 
     for (var i in strings) {
       if (strings.hasOwnProperty(i)) {
-        var ast = parse(strings[i]);
+        var ast = L10n.PropertiesParser.parse(null, strings[i]);
         assert.equal(Object.keys(ast).length, 0);
       }
     }
   });
 
   it('basic attributes', function() {
-    var ast = parse('id.attr1 = foo');
-    assert.equal(ast.id.attr1, 'foo');
+    var ast = L10n.PropertiesParser.parse(null, 'id.attr1 = foo');
+    assert.equal(ast[0].attr1, 'foo');
   });
 
   it('attribute errors', function() {
     var strings = [
-      'key.foo.bar = foo',
+      ['key.foo.bar = foo', /Nested attributes are not supported./],
+      ['key.$attr = foo', /Attribute can't start/],
     ];
 
     for (var i in strings) {
@@ -56,19 +54,21 @@ describe('L10n Parser', function() {
 
         /* jshint -W083 */
         assert.throws(function() {
-          parse(strings[i]);
-        }, /Nested attributes are not supported./);
+          L10n.PropertiesParser.parse(null, strings[i][0]);
+        }, strings[i][1]);
       }
     }
   });
 
   it('plural macro', function() {
-    var ast = parse('id = {[ plural(m) ]} \nid[one] = foo');
-    assert.ok(ast.id._ instanceof Object);
-    assert.equal(ast.id._.one, 'foo');
-    assert.equal(ast.id._index.length, 2);
-    assert.equal(ast.id._index[0], 'plural');
-    assert.equal(ast.id._index[1], 'm');
+    var ast = L10n.PropertiesParser.parse(null,
+      'id = {[ plural(m) ]} \nid[one] = foo');
+    assert.ok(ast[0].$v instanceof Object);
+    assert.equal(ast[0].$v.one, 'foo');
+    assert.equal(ast[0].$x.length, 2);
+    assert.equal(ast[0].$x[0].t, 'idOrVar');
+    assert.equal(ast[0].$x[0].v, 'plural');
+    assert.equal(ast[0].$x[1], 'm');
   });
 
   it('plural macro errors', function() {
@@ -86,7 +86,7 @@ describe('L10n Parser', function() {
     for (var i in strings) {
       if (strings.hasOwnProperty(i)) {
         try {
-          parse(strings[i]);
+          L10n.PropertiesParser.parse(null, strings[i]);
         } catch (e) {
           errorsThrown += 1;
         }
@@ -96,7 +96,7 @@ describe('L10n Parser', function() {
   });
 
   it('comment', function() {
-    var ast = parse('#test');
+    var ast = L10n.PropertiesParser.parse(null, '#test');
     assert.equal(Object.keys(ast).length, 0);
   });
 
@@ -108,7 +108,7 @@ describe('L10n Parser', function() {
     ];
     for (var i in strings) {
       if (strings.hasOwnProperty(i)) {
-        var ast = parse(strings[i]);
+        var ast = L10n.PropertiesParser.parse(null, strings[i]);
         assert.equal(Object.keys(ast).length, 0);
       }
     }

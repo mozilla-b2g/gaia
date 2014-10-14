@@ -1,17 +1,18 @@
-/* global it, before, beforeEach, assert, describe, requireApp */
+/* global assert:true, it, before, beforeEach, describe, requireApp */
 'use strict';
-var compile;
 
 if (typeof navigator !== 'undefined') {
-  requireApp('sharedtest/test/unit/l10n/lib/compiler/header.js');
+  requireApp('sharedtest/test/unit/l10n/lib/resolver/header.js');
 } else {
-  compile = require('./header.js').compile;
+  var assert = require('assert');
+  var Resolver = require('./header.js').Resolver;
+  var createEntries = require('./header.js').createEntries;
 }
 
 describe('Compiler errors:', function(){
   var source, env;
   beforeEach(function() {
-    env = compile(source);
+    env = createEntries(source);
   });
 
   describe('A complex string referencing an existing entity', function(){
@@ -26,7 +27,8 @@ describe('Compiler errors:', function(){
     });
 
     it('works with the default index', function(){
-      assert.strictEqual(env.prompt.toString({n: 1}), 'One File');
+      assert.strictEqual(
+        Resolver.formatValue(env.prompt, {n: 1}), 'One File');
     });
 
   });
@@ -42,7 +44,7 @@ describe('Compiler errors:', function(){
     });
 
     it('returns the raw string', function(){
-      var value = env.prompt.toString({n: 1});
+      var value = Resolver.formatValue(env.prompt, {n: 1});
       assert.strictEqual(value, 'One {{ file }}');
     });
 
@@ -60,11 +62,12 @@ describe('Compiler errors:', function(){
     });
 
     it('is found', function(){
-      assert.strictEqual(env.prompt.toString({n: 1}), 'One File');
+      assert.strictEqual(
+        Resolver.formatValue(env.prompt, {n: 1}), 'One File');
     });
 
     it('throws an IndexError if n is not defined', function(){
-      var value = env.prompt.toString();
+      var value = Resolver.formatValue(env.prompt);
       assert.strictEqual(value, 'Files');
     });
 
@@ -81,11 +84,12 @@ describe('Compiler errors:', function(){
     });
 
     it('is found', function(){
-      assert.strictEqual(env.prompt.toString({n: 1}), 'One File');
+      assert.strictEqual(
+        Resolver.formatValue(env.prompt, {n: 1}), 'One File');
     });
 
     it('throws an IndexError if n is not defined', function(){
-      var value = env.prompt.toString();
+      var value = Resolver.formatValue(env.prompt);
       assert.strictEqual(value, undefined);
     });
 
