@@ -137,6 +137,9 @@
       if (appCurrent && appCurrent.instanceID == appNext.instanceID) {
         // Do nothing.
         this.debug('the app has been displayed.');
+        if (appCurrent._visibilityState === 'background') {
+          appCurrent.requestForeground();
+        }
         return;
       }
 
