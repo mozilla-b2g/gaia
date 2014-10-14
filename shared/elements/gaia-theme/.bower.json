@@ -1,6 +1,5 @@
 {
   "name": "gaia-theme",
-  "version": "0.4.2",
   "homepage": "https://github.com/gaia-components/gaia-theme",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
@@ -23,13 +22,14 @@
     "gaia-switch": "gaia-components/gaia-switch",
     "gaia-checkbox": "gaia-components/gaia-checkbox"
   },
-  "_release": "0.4.2",
+  "_release": "a0cbd855b9",
   "_resolution": {
-    "type": "version",
-    "tag": "v0.4.2",
-    "commit": "70dd433748f179e9fbdea01eeaf2c5aa1653f4f9"
+    "type": "branch",
+    "branch": "bug_1082135_gaia_theme_media_skin_color",
+    "commit": "a0cbd855b97328eecf609e15143e0ec74ca36481"
   },
-  "_source": "git://github.com/gaia-components/gaia-theme.git",
-  "_target": "~0.4.1",
-  "_originalSource": "gaia-components/gaia-theme"
+  "_source": "git://github.com/KevinGrandon/gaia-theme.git",
+  "_target": "bug_1082135_gaia_theme_media_skin_color",
+  "_originalSource": "KevinGrandon/gaia-theme",
+  "_direct": true
 }
