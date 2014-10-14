@@ -80,6 +80,32 @@ suite('Dialog', function() {
     assert.ok(dialog.form.focus.called);
   });
 
+  test('Redundant shows have no effect', function() {
+    var dialog = new Dialog(params);
+
+    var spy = this.sinon.spy(document.body, 'appendChild');
+
+    dialog.show();
+    dialog.show();
+
+    assert.ok(spy.calledOnce);
+  });
+
+  test('Hiding removes element after transition', function() {
+    var dialog = new Dialog(params);
+
+    dialog.show();
+    assert.notEqual(dialog.form.parentElement, null);
+
+    dialog.hide();
+    assert.notEqual(dialog.form.parentElement, null);
+
+    var transitionend =
+      new CustomEvent('transitionend', { target: dialog.form });
+    dialog.form.dispatchEvent(transitionend);
+    assert.equal(dialog.form.parentElement, null);
+  });
+
   test('Checking the structure. Default.', function() {
     // Now we create the new element
     var dialog = new Dialog(params);

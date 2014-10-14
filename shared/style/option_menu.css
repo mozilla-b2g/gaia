@@ -1,0 +1,17 @@
+/* ----------------------------------
+ * Option menu
+ * ---------------------------------- */
+
+form[role="dialog"][data-type="confirm"],
+form[role="dialog"][data-type="action"] {
+  visibility: hidden;
+  transform: translateY(100%);
+  transition: transform ease-in-out .3s, visibility .3s;
+}
+
+form[role="dialog"][data-type="confirm"].visible,
+form[role="dialog"][data-type="action"].visible {
+  visibility: visible;
+  transform: translateY(0);
+}
+
