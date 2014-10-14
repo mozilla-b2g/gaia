@@ -82,6 +82,9 @@ if [ -z "$TEST_FILES" ]; then
   fi
 fi
 
+PART=2
+NBPARTS=2
+
 if [ -n "$PART" ] ; then
   if [ -z "$NBPARTS" ] ; then
     echo "You need to specify the number of parts using the env variable NBPARTS"
