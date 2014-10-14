@@ -1,7 +1,7 @@
-/* global AppModalDialog, AirplaneMode */
+/* global AppModalDialog, airplaneMode, BaseUI */
 'use strict';
 
-(function(window) {
+(function(exports) {
   var _ = navigator.mozL10n.get;
   var _id = 0;
 
@@ -16,7 +16,7 @@
    *                        where this dialog should popup.
    * @extends BaseUI
    */
-  window.AppModalDialog = function AppModalDialog(app) {
+  exports.AppModalDialog = function AppModalDialog(app) {
     this.app = app;
     this.containerElement = app.element;
     this.events = [];
@@ -27,7 +27,7 @@
     return this;
   };
 
-  AppModalDialog.prototype = Object.create(window.BaseUI.prototype);
+  AppModalDialog.prototype = Object.create(BaseUI.prototype);
 
   AppModalDialog.prototype.CLASS_NAME = 'AppModalDialog';
 
@@ -91,26 +91,6 @@
           elements[id].addEventListener('click', this.cancelHandler.bind(this));
         }
       }
-    }
-  };
-
-  AppModalDialog.prototype.getTitle = function amd_getTitle() {
-    if (AirplaneMode && AirplaneMode.enabled) {
-      return _('airplane-is-on');
-    } else if (!navigator.onLine) {
-      return _('network-connection-unavailable');
-    } else {
-      return _('error-title', { name: this.app.name });
-    }
-  };
-
-  AppModalDialog.prototype.getMessage = function amd_getMessage() {
-    if (AirplaneMode && AirplaneMode.enabled) {
-      return _('airplane-is-turned-on', { name: this.app.name });
-    } else if (!navigator.onLine) {
-      return _('network-error', { name: this.app.name });
-    } else {
-      return _('error-message', { name: this.app.name });
     }
   };
 
@@ -467,4 +447,4 @@
 
       return title;
     };
-}(this));
+}(window));

@@ -1,5 +1,5 @@
 /* jshint loopfunc: true */
-/* global SettingsHelper, SettingsListener, AirplaneMode, applications,
+/* global SettingsHelper, SettingsListener, applications,
           UtilityTray, MozActivity */
 
 'use strict';
@@ -336,7 +336,10 @@
               break;
 
             case this.airplaneMode:
-              AirplaneMode.enabled = !this.airplaneMode.dataset.enabled;
+              var toggle = this.airplaneMode.dataset.enabled ?
+                'request-airplane-mode-disable' :
+                'request-airplane-mode-enable';
+              window.dispatchEvent(new CustomEvent(toggle));
               break;
 
             case this.fullApp:

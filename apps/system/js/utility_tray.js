@@ -56,7 +56,7 @@ var UtilityTray = {
     window.addEventListener('keyboardimeswitcherhide', this);
     window.addEventListener('imemenushow', this);
 
-    window.addEventListener('simpinshow', this);
+    window.addEventListener('simlockshow', this);
 
     // Firing when user selected a new keyboard or canceled it.
     window.addEventListener('keyboardchanged', this);
@@ -72,13 +72,6 @@ var UtilityTray = {
 
     window.addEventListener('software-button-enabled', this);
     window.addEventListener('software-button-disabled', this);
-
-    if (window.navigator.mozMobileConnections) {
-      window.LazyLoader.load('js/cost_control.js', function() {
-        this.costControl = new CostControl();
-        this.costControl.start();
-      }.bind(this));
-    }
   },
 
   addHomeListener: function ut_addHomeListener() {
@@ -115,7 +108,7 @@ var UtilityTray = {
       case 'displayapp':
       case 'keyboardchanged':
       case 'keyboardchangecanceled':
-      case 'simpinshow':
+      case 'simlockshow':
       case 'appopening':
       case 'activityopening':
         if (this.shown) {

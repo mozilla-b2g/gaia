@@ -24,6 +24,45 @@ suite('system/System', function() {
     assert.isTrue(System.isBusyLoading());
   });
 
+  suite('States', function() {
+    var fakeFtuLauncher;
+    setup(function() {
+      fakeFtuLauncher = {
+        _upgrading: false,
+        name: 'FakeFtuLauncher',
+        isFtuRunning: false,
+        isUpgrading: function() {
+          return this._upgrading;
+        }
+      };
+    });
+
+    teardown(function() {
+      System._states.clear();
+      System._statesByState.clear();
+    });
+
+    test('State provider is valid', function() {
+      System.registerState('isFtuRunning', fakeFtuLauncher);
+      System.registerState('isUpgrading', fakeFtuLauncher);
+      assert.equal(System.query('isFtuRunning'), false);
+      assert.equal(System.query('isUpgrading'), false);
+      assert.equal(System.query('FakeFtuLauncher.isFtuRunning'), false);
+      assert.equal(System.query('FakeFtuLauncher.isUpgrading'), false);
+      fakeFtuLauncher.isFtuRunning = true;
+      assert.equal(System.query('isFtuRunning'), true);
+      assert.equal(System.query('FakeFtuLauncher.isFtuRunning'), true);
+      fakeFtuLauncher._upgrading = true;
+      assert.equal(System.query('isUpgrading'), true);
+      assert.equal(System.query('FakeFtuLauncher.isUpgrading'), true);
+    });
+
+    test('State provider is invalid', function() {
+      assert.equal(System.query('isFtuRunning'), undefined);
+      assert.equal(System.query('FakeFtuLauncher.isFtuRunning'), undefined);
+    });
+  });
+
   suite('Services', function() {
     teardown(function() {
       System._services.clear();

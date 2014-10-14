@@ -59,9 +59,12 @@
  *
  */
 (function(exports) {
-
+var id=0;
 var MockPromise = function MockPromise(callback) {
   var p = {
+    id: id++,
+    type: 'MockPromise',
+
     then: sinon.spy(function SpyThen(onFulfilled, onRejected) {
       return new MockPromise();
     }),
@@ -85,7 +88,7 @@ var MockPromise = function MockPromise(callback) {
 
     mFulfillToValue: function mFulfill(value) {
       if (!this.then.called) {
-        throw new Error('MockPromise: cannot fulfill, then() not called.');
+        // throw new Error('MockPromise: cannot fulfill, then() not called.');
       }
 
       return this.then.firstCall.args[0].call(window, value);

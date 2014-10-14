@@ -10,11 +10,31 @@
   var Core = function() {
   };
 
+  Core.SUB_MODULE_PARENT = window;
+
+  Core.SUB_MODULES = [
+    'AirplaneMode'
+  ];
+
+  Core.SERVICES = [
+    'getAPI'
+  ];
+
   BaseModule.create(Core, {
     name: 'Core',
 
     REGISTRY: {
-      'mozSettings': 'SettingsCore'
+      'mozSettings': 'SettingsCore',
+      'mozMobileConnections': 'MobileConnectionCore'
+    },
+
+    getAPI: function(api) {
+      for (var key in this.REGISTRY) {
+        if (api === BaseModule.lowerCapital(key.replace('moz', ''))) {
+          return navigator[key];
+        }
+      }
+      return false;
     },
 
     _start: function() {
@@ -31,18 +51,21 @@
     },
 
     startAPIHandler: function(api, handler) {
-      BaseModule.lazyLoad([handler]).then(function() {
-        var moduleName = BaseModule.lowerCapital(handler);
-        if (window[handler] && typeof(window[handler]) === 'function') {
-          this[moduleName] = new window[handler](navigator[api], this);
-        } else {
-          this[moduleName] =
-            BaseModule.instantiate(handler, navigator[api], this);
-        }
-        if (!this[moduleName]) {
-          return;
-        }
-        this[moduleName].start && this[moduleName].start();
+      return new Promise(function(resolve, reject) {
+        BaseModule.lazyLoad([handler]).then(function() {
+          var moduleName = BaseModule.lowerCapital(handler);
+          if (window[handler] && typeof(window[handler]) === 'function') {
+            this[moduleName] = new window[handler](navigator[api], this);
+          } else {
+            this[moduleName] =
+              BaseModule.instantiate(handler, navigator[api], this);
+          }
+          if (!this[moduleName]) {
+            reject();
+          }
+          this[moduleName].start && this[moduleName].start();
+          resolve();
+        }.bind(this));
       }.bind(this));
     },
 

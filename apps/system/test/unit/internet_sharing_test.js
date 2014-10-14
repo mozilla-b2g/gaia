@@ -2,26 +2,25 @@
 /* global asyncStorage */
 /* global IccHelper */
 /* global InternetSharing */
-/* global AirplaneMode */
 /* global MockIccHelper */
 /* global MockL10n */
 /* global MocksHelper */
 /* global MockNavigatorSettings */
 /* global MockNavigatorMozMobileConnections */
 /* global MockModalDialog */
+/* global System */
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
-requireApp('system/test/unit/mock_airplane_mode.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system/js/system.js');
 requireApp('system/js/internet_sharing.js');
 
 var mocksForInternetSharing = new MocksHelper([
-  'AirplaneMode',
   'ModalDialog',
   'asyncStorage',
   'IccHelper'
@@ -334,7 +333,7 @@ suite('internet sharing > ', function() {
   suite('wifi hotspot', function() {
     var testSet = [{'key': KEY_WIFI_HOTSPOT, 'result': false}];
     test('can\'t turn on hotspot when APM is on', function(done) {
-      AirplaneMode.enabled = true;
+      this.sinon.stub(System, 'query').returns(true);
       subject.internetSharingSettingsChangeHanlder({
         settingName: 'wifi',
         settingValue: true
@@ -346,7 +345,7 @@ suite('internet sharing > ', function() {
 
     test('can\'t turn on hotspot when there is no sim (APM is off)',
       function(done) {
-        AirplaneMode.enabled = false;
+        this.sinon.stub(System, 'query').returns(false);
         subject.internetSharingSettingsChangeHanlder({
           settingName: 'wifi',
           settingValue: true
@@ -365,7 +364,7 @@ suite('internet sharing > ', function() {
         };
         changeSettings(KEY_USB_TETHERING, true);
         changeSettings(KEY_WIFI_HOTSPOT, true);
-        AirplaneMode.enabled = false;
+        this.sinon.stub(System, 'query').returns(false);
         modalDialogSpy = this.sinon.spy(MockModalDialog, 'alert');
       });
 
