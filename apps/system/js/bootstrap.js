@@ -13,7 +13,7 @@
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor,
-         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
+         BrowserSettings, AppMigrator, SettingsMigrator,
          CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
          BatteryOverlay, BaseModule, AppWindowManager */
 'use strict';
@@ -148,8 +148,6 @@ window.addEventListener('load', function startup() {
   window.dialerAgent.start();
   window.edgeSwipeDetector = new EdgeSwipeDetector();
   window.edgeSwipeDetector.start();
-  window.euRoamingManager = new EuRoamingManager();
-  window.euRoamingManager.start();
   window.externalStorageMonitor = new ExternalStorageMonitor();
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();

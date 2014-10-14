@@ -107,6 +107,7 @@
      * @param {Boolean} enabled
      */
     _setRadioEnabled: function(conn, enabled) {
+      this.debug('Conn state: ' + conn.radioState);
       if (conn.radioState !== 'enabling' &&
           conn.radioState !== 'disabling' &&
           conn.radioState !== null) {
@@ -136,7 +137,7 @@
       // Set the expected state so that we can tell whether a radio change
       // results from gaia or gecko.
       this._expectedRadioStates[this.mobileConnections.indexOf(conn)] = enabled;
-
+      this.debug('real operation to toggle radio', enabled, conn);
       var self = this;
       var req = conn.setRadioEnabled(enabled);
 
@@ -171,7 +172,7 @@
         var evtName = enabled ?
           'radio-enabled' : 'radio-disabled';
 
-        window.dispatchEvent(new CustomEvent(evtName));
+        this.publish(evtName);
       }
     },
 
@@ -198,6 +199,7 @@
        * @param {Boolean} value
        */
       set: function(value) {
+        this.debug(this._enabled + ' => ' + value);
         if (value !== this._enabled) {
           this._setRadioOpCount = 0;
           this._isSetRadioOpError = false;

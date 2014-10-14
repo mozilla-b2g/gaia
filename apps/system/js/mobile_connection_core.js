@@ -1,7 +1,7 @@
 /* global BaseModule, SimSettingsHelper, SIMSlotManager */
 'use strict';
 
-(function(exports) {
+(function() {
   // Responsible to load and init the sub system for mobile connections.
   var MobileConnectionCore = function(mobileConnections) {
     this.mobileConnections = mobileConnections;
@@ -11,10 +11,10 @@
   //  'shared/js/simslot_manager.js'
   //];
   MobileConnectionCore.SUB_MODULES = [
-    'Radio'
+    'Radio',
   //  'CallForwarding',
   //  'EmergencyCallbackManager',
-  //  'EuRoamingManager',
+    'EuRoamingManager'
   //  'SimLockManager',
   //  'TelephonySettings',
   //  'OperatorVariantManager'
@@ -26,7 +26,7 @@
   MobileConnectionCore.SERVICES = [
     'isMultiSIM'
   ];
-  BaseModule.create(MobileConnectionCore, {}, {
+  BaseModule.create(MobileConnectionCore, {
     name: 'MobileConnectionCore',
     '_handle_airplanemode-enabled': function() {
       if (this.radio) {
@@ -72,5 +72,4 @@
       }
     }
   });
-  exports.MobileConnectionCore = MobileConnectionCore;
-}(window));
+}());

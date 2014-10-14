@@ -221,6 +221,8 @@
 
           // tell services to do their own operations
           this.airplaneModeServiceHelper.updateStatus(value);
+          this.publish(value ?
+            'airplanemode-enabled' : 'airplanemode-disabled');
         }
       },
 
