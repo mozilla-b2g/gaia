@@ -1,3 +1,14 @@
+#screen.software-button-enabled .ime-menu {
+  bottom: var(--software-home-button-height);
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled .ime-menu {
+    bottom: 0;
+    right: var(--software-home-button-height);
+  }
+}
+
 .ime-menu .item-label {
   font-size: 1.8rem;
   color: #FFF;
