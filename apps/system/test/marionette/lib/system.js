@@ -34,7 +34,8 @@ System.Selector = Object.freeze({
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
   utilityTray: '#utility-tray',
-  visibleForm: '#screen > form.visible'
+  visibleForm: '#screen > form.visible',
+  cancelActivity: 'form.visible button[data-action="cancel"]'
 });
 
 System.prototype = {
@@ -144,6 +145,10 @@ System.prototype = {
 
   get visibleForm() {
     return this.client.findElement(System.Selector.visibleForm);
+  },
+
+  get cancelActivity() {
+    return this.client.findElement(System.Selector.cancelActivity);
   },
 
   getAppIframe: function(url) {
