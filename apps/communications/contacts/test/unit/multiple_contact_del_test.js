@@ -15,6 +15,7 @@ requireApp('communications/contacts/js/contacts_remover.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
+require('/shared/test/unit/mocks/mock_moz_contact.js');
 
 /* jshint ignore:start */
 if (!this._) {
@@ -28,7 +29,8 @@ if (!this.utils) {
 
 var mocksHelperForDelete = new MocksHelper([
   'Contacts',
-  'ConfirmDialog'
+  'ConfirmDialog',
+  'mozContact'
 ]).init();
 
 var subject, fb, real_, realOverlay, realFb, realContacts, realSettings;
