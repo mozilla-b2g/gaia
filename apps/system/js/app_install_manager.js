@@ -123,6 +123,23 @@ var AppInstallManager = {
 
     window.addEventListener('applicationready',
         this.handleApplicationReady);
+
+    window.addEventListener('home', this.handleHomeButtonPressed.bind(this));
+  },
+
+  handleHomeButtonPressed: function ai_handleHomeButtonPressed(e) {
+    this.dialog.classList.remove('visible');
+    this.handleInstallCancel();
+
+    // hide IME setup dialog if presented
+    if (this.setupInstalledAppDialog.classList.contains('visible') ) {
+      this.handleSetupCancelAction();
+    }
+
+    // hide IME layout list if presented
+    if (this.imeLayoutDialog.classList.contains('visible')) {
+      this.hideIMEList();
+    }
   },
 
   handleApplicationReady: function ai_handleApplicationReady(e) {
