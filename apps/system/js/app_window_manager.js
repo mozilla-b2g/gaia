@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenWindowManager, KeyboardManager,
-          layoutManager, System, NfcHandler, rocketbar */
+          layoutManager, System, NfcHandler, rocketbar, AppWindow */
 'use strict';
 
 (function(exports) {
@@ -798,7 +798,7 @@
           if (home.isActive()) {
             home.setVisible(true);
           } else {
-            this.display();
+            throw new Error(AppWindow.LOG);
           }
         }
       };

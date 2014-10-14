@@ -10,9 +10,8 @@
 
 (function(exports) {
   // Turn on this flag to debug all windows.
-  var DEBUG = false;
+  var DEBUG = true;
   // Turn on this flag to print all trace in debugging function.
-  var TRACE = false;
   var _id = 0;
 
   /**
@@ -1033,17 +1032,15 @@
 
   AppWindow.prototype.CLASS_NAME = 'AppWindow';
 
+  AppWindow.LOG = '';
+
   AppWindow.prototype.debug = function aw_debug(msg) {
     if (DEBUG || this._DEBUG) {
-      console.log('[' + this.CLASS_NAME + ']' +
+      AppWindow.LOG += ('[' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
         '[' + this.instanceID + ']' +
         '[' + System.currentTime() + '] ' +
         Array.slice(arguments).concat());
-
-      if (TRACE) {
-        console.trace();
-      }
     }
   };
 
