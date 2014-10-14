@@ -33,7 +33,6 @@
 [role="dialog"][data-type="action"] > header {
   -moz-box-sizing: border-box;
   font-size: 1.6rem;
-  background: url(action_menu/images/ui/alpha.png) repeat 0 0;
   position: absolute;
   top: 0;
   left: 0;
@@ -158,17 +157,6 @@
   position: relative;
 }
 
-[role="dialog"][data-type="action"] > header > button:after,
-[role="dialog"][data-type="action"] > header > a:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top:0;
-  width: 3.2rem;
-  height: 4.9rem;
-  background: url(action_menu/images/ui/separator.png) no-repeat 3rem top / 0.1rem 4.8rem;
-}
-
 [role="dialog"][data-type="action"] > header > button::-moz-focus-inner {
   border: 0;
   padding: 0;
@@ -266,7 +254,7 @@
   content: '';
   position: fixed;
   width: 100%;
-  background: #2D2D2D;
+  background-color: #4d4d4d;
   height: 7rem;
   left: 0;
   bottom: 0;

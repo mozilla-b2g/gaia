@@ -4,9 +4,7 @@
 
 /* Main dialog setup */
 gaia-menu {
-  background:
-    url(images/ui/pattern.png) repeat left top,
-    url(images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background-color: #2d2d2d;
   overflow: hidden;
   position: fixed;
   z-index: 100;
@@ -40,7 +38,6 @@ gaia-menu:before {
 header {
   -moz-box-sizing: border-box;
   font-size: 1.6rem;
-  background: url(images/ui/alpha.png) repeat 0 0;
   position: absolute;
   top: 0;
   left: 0;
@@ -165,17 +162,6 @@ header > a {
   position: relative;
 }
 
-header > button:after,
-header > a:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top:0;
-  width: 3.2rem;
-  height: 4.9rem;
-  background: url(images/ui/separator.png) no-repeat 3rem top / 0.1rem 4.8rem;
-}
-
 header > button::-moz-focus-inner {
   border: 0;
   padding: 0;
@@ -273,7 +259,7 @@ button:last-child:before {
   content: '';
   position: fixed;
   width: 100%;
-  background: url(images/ui/pattern.png) repeat scroll left top #2D2D2D;
+  background: #4d4d4d;
   height: 7rem;
   left: 0;
   bottom: 0;

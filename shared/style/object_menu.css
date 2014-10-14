@@ -4,9 +4,7 @@
 
 /* Main dialog setup */
 [role="dialog"][data-type="object"] {
-  background:
-    url(object_menu/images/ui/pattern.png) repeat left top,
-    url(object_menu/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background-color: #2d2d2d;
   overflow: hidden;
   position: fixed;
   z-index: 100;
@@ -28,7 +26,6 @@
   display: flex;
   align-items: center;
   font-size: 1.6rem;
-  background: url(object_menu/images/ui/alpha.png) repeat 0 0;
   position: absolute;
   top: 0;
   left: 0;
@@ -163,7 +160,7 @@
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  background: #2d2d2d url(confirm/images/ui/pattern.png) repeat left top;
+  background-color: #4d4d4d;
   display: block;
   overflow: hidden;
   position: absolute;
