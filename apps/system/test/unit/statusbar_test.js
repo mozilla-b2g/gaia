@@ -1,4 +1,4 @@
-/* globals FtuLauncher, MockL10n, MockMobileOperator,
+/* globals FtuLauncher, MockL10n, MockMobileOperator, MockLayoutManager,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockSystem, MockTouchForwarder, StatusBar, System,
@@ -24,6 +24,7 @@ require('/test/unit/mock_nfc_manager.js');
 require('/test/unit/mock_touch_forwarder.js');
 require('/test/unit/mock_sim_pin_dialog.js');
 require('/test/unit/mock_utility_tray.js');
+require('/test/unit/mock_layout_manager.js');
 
 var mocksForStatusBar = new MocksHelper([
   'FtuLauncher',
@@ -33,7 +34,8 @@ var mocksForStatusBar = new MocksHelper([
   'AppWindowManager',
   'TouchForwarder',
   'SimPinDialog',
-  'UtilityTray'
+  'UtilityTray',
+  'LayoutManager'
 ]).init();
 
 suite('system/Statusbar', function() {
@@ -44,7 +46,7 @@ suite('system/Statusbar', function() {
       fakeStatusBarConnections, fakeStatusBarCallForwardings, fakeStatusBarTime,
       fakeStatusBarLabel, fakeStatusBarBattery;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [],
-      realNfcManager, realL10n;
+      realNfcManager, realLayoutManager;
 
   function prepareDOM() {
     for (var i = 1; i < mobileConnectionCount; i++) {
@@ -116,8 +118,8 @@ suite('system/Statusbar', function() {
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realLayoutManager = window.layoutManager;
+    window.layoutManager = MockLayoutManager;
 
     realNfcManager = window.nfcManager;
     window.nfcManager = new MockNfcManager();
@@ -187,7 +189,7 @@ suite('system/Statusbar', function() {
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
-    navigator.mozL10n = realL10n;
+    window.layoutManager = realLayoutManager;
     window.nfcManager.isActive.restore();
     window.nfcManager = realNfcManager;
   });
@@ -1896,7 +1898,7 @@ suite('system/Statusbar', function() {
       var spyUpdateIconVisibility =
         this.sinon.spy(StatusBar, '_updateIconVisibility');
 
-      var evt = new CustomEvent('resize');
+      var evt = new CustomEvent('system-resize');
       StatusBar.handleEvent(evt);
       assert.isTrue(spyUpdateIconVisibility.called);
     });
@@ -2270,7 +2272,12 @@ suite('system/Statusbar', function() {
     }
 
     function testEventThatShows(event) {
-      var currentApp = {};
+      var currentApp = {
+        getTopMostWindow: function getTopMostWindow() {
+          return this._topWindow;
+        }
+      };
+      System.currentApp = currentApp;
       var evt = new CustomEvent(event, {detail: currentApp});
       StatusBar.element.classList.add('hidden');
       StatusBar.handleEvent(evt);
