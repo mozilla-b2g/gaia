@@ -1,5 +1,4 @@
 apps/bluetooth/js/deviceList.js
-apps/bluetooth/js/transfer.js
 apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/test/marionette/lib/dialer.js
 apps/communications/dialer/test/marionette/navigation_test.js
