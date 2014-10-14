@@ -1,10 +1,8 @@
-function generatorTest() {
-  waitForExplicitFinish();
-  yield testApp('http://clock.gaiamobile.org/', testTimer);
-  finish();
-}
+'use strict';
+/* global ok, EventUtils, isnot, is */
+/* exported testTimer */
 
-function testTimer(window, document, nextStep) {
+function *testTimer(window, document, nextStep) {
   var timer = window.Timer;
   var actionButton = document.getElementById('timer-action-button');
   ok(actionButton !== null, 'action button defined');
