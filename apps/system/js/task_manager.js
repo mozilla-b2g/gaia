@@ -4,7 +4,6 @@
           GestureDetector, UtilityTray, StackManager, Event */
 
 'use strict';
-
 (function(exports) {
   var DEBUG = false;
   /**
@@ -175,34 +174,34 @@
   };
 
   TaskManager.prototype._registerShowingEvents = function() {
+    window.addEventListener('home', this);
+    window.addEventListener('lockscreen-appopened', this);
+    window.addEventListener('attentionopened', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appterminated', this);
-    if (this.allowSwipeToClose) {
-      this.element.addEventListener('touchstart', this);
-    }
-    window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('tap', this);
     window.addEventListener('wheel', this);
     window.addEventListener('opencurrentcard', this);
+
+    if (this.allowSwipeToClose) {
+      this.element.addEventListener('touchstart', this);
+    }
   };
   TaskManager.prototype._unregisterShowingEvents = function() {
+    window.removeEventListener('home', this);
+    window.removeEventListener('lockscreen-appopened', this);
+    window.removeEventListener('attentionopened', this);
     window.removeEventListener('appopen', this);
     window.removeEventListener('appterminated', this);
-    window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('tap', this);
     window.removeEventListener('wheel', this);
     window.removeEventListener('opencurrentcard', this);
 
     this.element && this.element.removeEventListener('touchstart', this);
-    window.removeEventListener('lockscreen-appopened', this);
-    window.removeEventListener('tap', this);
-    window.removeEventListener('opencurrentcard', this);
   };
 
 
   TaskManager.prototype._registerEvents = function() {
-    window.addEventListener('home', this);
-    window.addEventListener('attentionopened', this);
     window.addEventListener('taskmanagershow', this);
     window.addEventListener('holdhome', this);
 
@@ -216,8 +215,6 @@
   };
 
   TaskManager.prototype._unregisterEvents = function() {
-    window.removeEventListener('home', this);
-    window.removeEventListener('attentionopened', this);
     window.removeEventListener('taskmanagershow', this);
     window.removeEventListener('holdhome', this);
 
@@ -585,6 +582,7 @@
   TaskManager.prototype.exitToApp = function(app,
                                              openAnimation) {
     // Tell all applications we're about to leave task manager.
+    debug('exitToApp: ' + (app ? app.title : 'null'));
     this.unfilteredStack && this.unfilteredStack.forEach(function(app) {
       app.leaveTaskManager();
     });
@@ -601,6 +599,7 @@
     if (position !== StackManager.position) {
       this.newStackPosition = position;
     }
+    debug('exitToApp, opening app: ' + app.title);
     app.open(openAnimation || 'from-cardview');
     this.hide();
   };

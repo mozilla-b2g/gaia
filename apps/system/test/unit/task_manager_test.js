@@ -1135,6 +1135,80 @@ suite('system/TaskManager >', function() {
     });
   });
 
+  suite('event handling while hidden', function() {
+    setup(function() {
+      taskManager.hide(true);
+    });
+    // to listen for while hidden
+    ['holdhome', 'taskmanagershow'].forEach(function(name) {
+      test('ignore ' + name + ' events', function() {
+        this.sinon.spy(taskManager, 'handleEvent');
+        this.sinon.stub(taskManager, 'show');
+        var evt = new CustomEvent(name, { });
+        window.dispatchEvent(evt);
+        assert.isTrue(taskManager.handleEvent.called,
+                      name + ' event wasnt handled');
+        assert.isTrue(taskManager.show.called,
+                      name + ' event didnt trigger taskManager.show');
+      });
+    }, this);
+
+    // to ignore while hidden
+    ['appopen', 'appterminated', 'appopen', 'lockscreen-appopened',
+     'tap', 'wheel', 'opencurrentcard'].forEach(function(name) {
+      test('ignore ' + name + ' events', function() {
+        this.sinon.spy(taskManager, 'handleEvent');
+        this.sinon.stub(taskManager, 'exitToApp');
+        var evt = new CustomEvent(name, { });
+        window.dispatchEvent(evt);
+        assert.isFalse(taskManager.handleEvent.called,
+                       name + ' event was handled');
+        assert.isFalse(taskManager.exitToApp.called,
+                       name + ' caused exitToApp to be called');
+      });
+    }, this);
+  });
+
+  suite('event handling while shown', function() {
+    setup(function(done) {
+      taskManager.hide(true);
+      waitForEvent(window, 'cardviewshown')
+        .then(function() { done(); }, failOnReject);
+      taskManager.isTaskStrip = false;
+      taskManager.show();
+    });
+
+    // exit points while showing
+    [
+      'opencurrentcard',
+      'home',
+      'lockscreen-appopened',
+      'attentionopened'
+    ].forEach(function(name) {
+      test('handle ' + name + ' events', function() {
+        this.sinon.spy(taskManager, 'handleEvent');
+        this.sinon.stub(taskManager, 'exitToApp');
+        var evt = new CustomEvent(name, { });
+        window.dispatchEvent(evt);
+        assert.isTrue(taskManager.handleEvent.called,
+                       name + ' event was handled');
+        assert.isTrue(taskManager.exitToApp.calledOnce,
+                       name + ' caused exitToApp to be called');
+      });
+    }, this);
+
+    // other events we expect to be handled while showing
+    ['appterminated', 'tap', 'wheel'].forEach(function(name) {
+      test('handle ' + name + ' events', function() {
+        this.sinon.stub(taskManager, 'handleEvent');
+        var evt = new CustomEvent(name, { });
+        window.dispatchEvent(evt);
+        assert.isTrue(taskManager.handleEvent.called,
+                       name + ' event was handled');
+      });
+    }, this);
+  });
+
   suite('exit >', function() {
     setup(function(done) {
       taskManager.hide(true);
