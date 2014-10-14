@@ -2,6 +2,9 @@
 
 var Actions = require('marionette-client').Actions;
 var System = require('../../../system/test/marionette/lib/system');
+var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
+var Search = require('../../../../apps/search/test/marionette/lib/search');
+var Bookmark = require('../../../system/test/marionette/lib/bookmark');
 var helper = require('../../../../tests/js-marionette/helper.js');
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
 
@@ -18,7 +21,10 @@ marionette('Statusbar colors', function() {
   });
 
   var system = new System(client);
+  var bookmark = new Bookmark(client);
   var actions = new Actions(client);
+  var search = new Search(client);
+  var rocketbar = new Rocketbar(client);
 
   setup(function() {
     system.waitForStartup();
@@ -50,6 +56,26 @@ marionette('Statusbar colors', function() {
     helper.lockScreen(client);
     waitForColor(false);
     helper.unlockScreen(client);
+    waitForColor(true);
+  });
+
+  test('statusbar icons keep color after add homescreen', function() {
+    waitVisible();
+    helper.unlockScreen(client);
+    bookmark.openAndSave('http://mozilla.com');
+    waitForColor(true);
+  });
+
+  test('statusbar icons keep color after activity', function() {
+    waitVisible();
+    helper.unlockScreen(client);
+    search.removeGeolocationPermission();
+    rocketbar.homescreenFocus();
+    rocketbar.enterText('http://mozilla.com\uE006');
+
+    system.appChromeContextLink.click();
+    system.appChromeContextMenuShare.click();
+    system.cancelActivity.click();
     waitForColor(true);
   });
 
