@@ -248,6 +248,18 @@ suite('system/AppWindowFactory', function() {
       window.appWindowFactory.start();
     });
 
+    test('call event without manifestURL/url', function() {
+      var stubBrowserConfigHelper = this.sinon.stub(window,
+        'BrowserConfigHelper');
+      appWindowFactory.handleEvent({
+        detail: {
+          url: null,
+          manifestURL: null
+        }
+      });
+      assert.isFalse(stubBrowserConfigHelper.calledWithNew());
+    });
+
     test('classic app launch', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       appWindowFactory.handleEvent({
@@ -318,6 +330,17 @@ suite('system/AppWindowFactory', function() {
       assert.equal(stubDispatchEvent.getCall(0).args[0].type, 'launchactivity');
       assert.equal(stubDispatchEvent.getCall(0).args[0].detail.url,
         fakeLaunchConfig4.url);
+    });
+
+    test('webapps-close with search app', function() {
+      var stubPublish = this.sinon.stub(appWindowFactory, 'publish');
+      appWindowFactory.handleEvent({
+        type: 'webapps-close',
+        detail: fakeLaunchConfig5
+      });
+      assert.isTrue(stubPublish.calledOnce);
+      assert.equal(stubPublish.getCall(0).args[0], 'killapp');
+      assert.equal(stubPublish.getCall(0).args[1].url, fakeLaunchConfig5.url);
     });
 
     test('opening a second activity', function() {
