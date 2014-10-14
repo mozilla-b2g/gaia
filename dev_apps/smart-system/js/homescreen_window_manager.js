@@ -2,20 +2,18 @@
 
 'use strict';
 (function(exports) {
-  const LANDING_APP_WINDOW_URL = '/js/landing_app_window.js';
-  const LANDING_APP_LAUNCHER_URL = '/js/landing_app_launcher.js';
-
   /**
-   * TVHomescreenWindowManager manages the show/hide of HomescreenWindow and
-   * HomescreenLauncher instances.
+   * HomescreenWindowManager manages the show/hide of HomescreenWindow,
+   * HomescreenLauncher instances, LandingAppWindow and LandingAppLauncher.
    *
-   * @class TVHomescreenWindowManager
+   * @class HomescreenWindowManager
    * @requires HomescreenLauncher
+   * @requires LandingAppLauncher
    * @requires System
    */
   function TVHomescreenWindowManager() {}
 
-  TVHomescreenWindowManager.prototype = {
+  HomescreenWindowManager.prototype = {
     DEBUG: false,
     _ftuDone: false,
     _activityCount: 0,
@@ -27,7 +25,7 @@
      * ready.
      *
      * @access public
-     * @memberOf TVHomescreenWindowManager.prototype
+     * @memberOf HomescreenWindowManager.prototype
      * @type {boolean}
      */
     get ready() {
@@ -51,10 +49,7 @@
     start: function hwm_start() {
       this.landingAppLauncher = new LandingAppLauncher();
       this.landingAppLauncher.start();
-      this._activeHome = this.landingAppLauncher;
-      if (this._ftuSkipped) {
-        this.landingAppLauncher.getHomescreen().setVisible(true);
-      }
+
       window.addEventListener('appswitching', this);
       window.addEventListener('ftuskip', this);
       window.addEventListener('open-app', this);
@@ -62,7 +57,6 @@
       window.addEventListener('appopened', this);
       window.addEventListener('activityopened', this);
       window.addEventListener('homescreenopened', this);
-      window.addEventListener('landingappopened', this);
       window.addEventListener('homescreen-ready', this);
       window.addEventListener('landing-app-ready', this);
     },
@@ -80,6 +74,7 @@
       window.removeEventListener('webapps-launch', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('activityopened', this);
+      window.removeEventListener('homescreenopened', this);
       window.removeEventListener('homescreen-ready', this);
       window.removeEventListener('landing-app-ready', this);
     },
@@ -132,7 +127,7 @@
           if (detail.CLASS_NAME === 'LandingAppWindow') {
             homescreenLauncher.getHomescreen().ensure(true);
             homescreenLauncher.getHomescreen().showFadeOverlay();
-          } else {
+          } else if (this.landingAppLauncher.hasLandingApp) {
             this.landingAppLauncher.getHomescreen().ensure(true);
             this.landingAppLauncher.getHomescreen().hideFadeOverlay();
           }
@@ -151,6 +146,11 @@
         case 'homescreen-ready':
           if (this.ready) {
             this.publish('homescreenwindowmanager-ready');
+            this._activeHome = this.landingAppLauncher.hasLandingApp ?
+                               this.landingAppLauncher : homescreenLauncher;
+            if (this._ftuSkipped && this.landingAppLauncher.hasLandingApp) {
+              this.landingAppLauncher.getHomescreen().setVisible(true);
+            }
           }
           break;
       }
