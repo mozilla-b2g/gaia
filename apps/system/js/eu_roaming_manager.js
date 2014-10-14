@@ -1,5 +1,5 @@
 /* globals SIMSlotManager, Notification, MozActivity, Promise,
-           LazyLoader */
+           LazyLoader, System */
 'use strict';
 
 (function(exports) {
@@ -11,9 +11,9 @@
    *
    * @class EuRoamingManager
    */
-  function EuRoamingManager() {
+  function EuRoamingManager(core) {
     this._started = false;
-    this._connections = Array.slice(navigator.mozMobileConnections || []);
+    this._connections = Array.slice(core.mobileConnections || []);
 
     this._simMobileCodes = [];
     this._curNetworkMobileCodes = [];
@@ -22,7 +22,8 @@
     this._foreignOperatorList = null;
   }
 
-  EuRoamingManager.prototype = {
+  System.create(EuRoamingManager, {
+    name: 'EuRoamingManager',
     TAG_PREFIX: 'euRoamingNotificaton',
     EU_ROAMING_ENABLED_KEY: 'eu-roaming.enabled',
     EU_ROAMING_NOTIFICATION_STATE_KEY: 'eu-roaming.notification.state',
@@ -37,7 +38,7 @@
      *
      * @memberof EuRoamingManager.prototype
      */
-    start: function() {
+    _start: function() {
       if (this._started || !this._connections.length) {
         return;
       }
@@ -341,7 +342,7 @@
         return Promise.resolve(null);
       });
     }
-  };
+  });
 
   exports.EuRoamingManager = EuRoamingManager;
 
