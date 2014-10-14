@@ -169,11 +169,6 @@ var ScreenManager = {
       self._userBrightness = value;
       self.setScreenBrightness(value, false);
     });
-
-    var telephony = window.navigator.mozTelephony;
-    if (telephony) {
-      telephony.addEventListener('callschanged', this);
-    }
   },
 
   //
@@ -234,48 +229,6 @@ var ScreenManager = {
         this._resetUnlocking();
         break;
 
-      case 'callschanged':
-        var telephony = window.navigator.mozTelephony;
-        if (!telephony.calls.length &&
-            !(telephony.conferenceGroup &&
-              telephony.conferenceGroup.calls.length)) {
-
-          if (this._screenOffBy == 'proximity') {
-            this.turnScreenOn();
-          }
-
-          if (this._cpuWakeLock) {
-           this._cpuWakeLock.unlock();
-           this._cpuWakeLock = null;
-          }
-          break;
-        }
-
-        // If the _cpuWakeLock is already set we are in a multiple
-        // call setup, the user will be notified by a tone.
-        if (this._cpuWakeLock) {
-          break;
-        }
-
-        // Enable the user proximity sensor once the call is connected.
-        var call = telephony.calls[0];
-        call.addEventListener('statechange', this);
-
-        break;
-
-      case 'statechange':
-        var call = evt.target;
-        if (['connected', 'alerting', 'dialing'].indexOf(call.state) === -1) {
-          break;
-        }
-
-        // The call is connected (MT call) or alerting/dialing (MO call).
-        // Remove the statechange listener and enable the user proximity
-        // sensor.
-        call.removeEventListener('statechange', this);
-
-        this._cpuWakeLock = navigator.requestWakeLock('cpu');
-        break;
       case 'lockscreen-appclosing' :
       case 'lockpanelchange' :
         window.removeEventListener('lockscreen-appclosing', this);
@@ -378,26 +331,6 @@ var ScreenManager = {
 
     // Set the brightness before the screen is on.
     this.setScreenBrightness(this._savedBrightness, instant);
-
-    // If we are in a call  or a conference call and there
-    // is no cpuWakeLock, we would get one here.
-    var telephony = window.navigator.mozTelephony;
-    var ongoingConference = telephony && telephony.conferenceGroup &&
-        telephony.conferenceGroup.calls.length;
-    if (!this._cpuWakeLock && telephony &&
-        (telephony.calls.length || ongoingConference)) {
-
-      var connected = telephony.calls.some(function checkCallConnection(call) {
-        if (call.state == 'connected') {
-          return true;
-        }
-        return false;
-      });
-
-      if (connected || ongoingConference) {
-        this._cpuWakeLock = navigator.requestWakeLock('cpu');
-      }
-    }
 
     // Actually turn the screen on.
     var power = navigator.mozPower;
