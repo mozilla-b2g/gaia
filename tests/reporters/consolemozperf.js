@@ -5,10 +5,11 @@
  */
 
 'use strict';
+/* global module, require, process */
 
-var BaseMozPerfReporter = require('./basemozperf.js')
+var BaseMozPerfReporter = require('./basemozperf.js');
 
-exports = module.exports = ConsoleMozPerfReporter;
+module.exports = ConsoleMozPerfReporter;
 
 function ConsoleMozPerfReporter(runner) {
    BaseMozPerfReporter.call(this, runner);
@@ -20,7 +21,8 @@ ConsoleMozPerfReporter.prototype.printResult = function (obj) {
 
   var consoleOut = 'Application: ' + obj.stats.application + '\n\n';
   consoleOut += 'Stats: \n';
-  for (var key in obj.stats) {
+  var key;
+  for (key in obj.stats) {
     if (obj.stats[key] != null) {
       consoleOut += '  ' + key + ': ' + obj.stats[key] + '\n';
     }
@@ -29,11 +31,12 @@ ConsoleMozPerfReporter.prototype.printResult = function (obj) {
   consoleOut += '\nFailures: \n';
 
   var failures = obj.failures;
-  if (failures.length == 0) {
+  var i;
+  if (failures.length === 0) {
     consoleOut += '  No test failed\n\n';
   } else {
-    for (var i = 0; i < failures.length; i++) {
-      for (var key in failures[i]) {
+    for (i = 0; i < failures.length; i++) {
+      for (key in failures[i]) {
         if (failures[i][key] != null) {
           consoleOut += '  ' + key + ': ' + failures[i][key] + '\n';
         }
@@ -46,11 +49,11 @@ ConsoleMozPerfReporter.prototype.printResult = function (obj) {
 
   var passes = obj.passes;
 
-  if (passes.length == 0) {
+  if (passes.length === 0) {
     consoleOut += '  No test passed\n\n';
   } else {
-    for (var i = 0; i < passes.length; i++) {
-      for (var key in passes[i]) {
+    for (i = 0; i < passes.length; i++) {
+      for (key in passes[i]) {
         if (passes[i][key] != null) {
           var datum = passes[i][key];
           consoleOut += '  ' + key + ': ' +
@@ -65,4 +68,4 @@ ConsoleMozPerfReporter.prototype.printResult = function (obj) {
   consoleOut += '-----------------------------------';
 
   process.stdout.write(consoleOut);
-}
+};
