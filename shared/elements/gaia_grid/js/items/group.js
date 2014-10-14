@@ -161,8 +161,7 @@
       var width = Math.round(
         (this.grid.layout.gridItemWidth * this.grid.layout.cols -
          COLLAPSED_GROUP_MARGIN * 2) / COLLAPSED_GROUP_SIZE);
-      var x = COLLAPSED_GROUP_MARGIN +
-        Math.round(Math.max(0, (COLLAPSED_GROUP_SIZE - nApps) * width / 2));
+      var x = COLLAPSED_GROUP_MARGIN;
       y += this.headerHeight;
 
       for (var i = index - nApps; i < index; i++) {
