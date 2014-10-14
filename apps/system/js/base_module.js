@@ -6,7 +6,7 @@
    * Turn of this flag to debug all BaseModule based modules.
    * @type {Boolean}
    */
-  var GLOBAL_DEBUG = false;
+  var GLOBAL_DEBUG = true;
 
   /**
    * This is used to store the constructors which are created
@@ -320,9 +320,12 @@
    */
   BaseModule.instantiate = function(moduleName) {
     if (moduleName in AVAILABLE_MODULES) {
-      var args = Array.prototype.splice(arguments, 1);
-      return new (Function.prototype.bind.apply(
-        AVAILABLE_MODULES[moduleName], args)); // jshint ignore: line
+      var args = Array.prototype.slice.call(arguments, 1);
+      var constructor = function() {
+        AVAILABLE_MODULES[moduleName].apply(this, args);
+      };
+      constructor.prototype = AVAILABLE_MODULES[moduleName].prototype;
+      return new constructor();
     }
     return undefined;
   };

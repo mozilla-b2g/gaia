@@ -1,5 +1,5 @@
 /* jshint loopfunc: true */
-/* global SettingsHelper, SettingsListener, AirplaneMode, applications,
+/* global SettingsHelper, SettingsListener, airplaneMode, applications,
           UtilityTray, MozActivity */
 
 'use strict';
@@ -336,7 +336,7 @@
               break;
 
             case this.airplaneMode:
-              AirplaneMode.enabled = !this.airplaneMode.dataset.enabled;
+              airplaneMode.enabled = !this.airplaneMode.dataset.enabled;
               break;
 
             case this.fullApp:

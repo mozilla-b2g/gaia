@@ -1,4 +1,4 @@
-/* global System, SimSettingsHelper, SIMSlotManager */
+/* global BaseModule, SimSettingsHelper, SIMSlotManager */
 'use strict';
 
 (function(exports) {
@@ -26,7 +26,7 @@
   MobileConnectionCore.SERVICES = [
     'isMultiSIM'
   ];
-  System.create(MobileConnectionCore, {}, {
+  BaseModule.create(MobileConnectionCore, {}, {
     name: 'MobileConnectionCore',
     '_handle_airplanemode-enabled': function() {
       if (this.radio) {
@@ -41,14 +41,15 @@
     _start: function() {
       // we have to make sure we are in DSDS
       if (SIMSlotManager.isMultiSIM()) {
-        System.lazyLoad(['SimSettingsHelper'], function() {
+        BaseModule.lazyLoad(['SimSettingsHelper'], function() {
           this.simSettingsHelper = new SimSettingsHelper(this);
           this.simSettingsHelper.start();
         }.bind(this));
       }
     },
-    onSubModuleInited: function(moduleName) {
-      if (moduleName == 'radio' && window.airplaneMode) {
+    _radio_loaded: function(moduleName) {
+      this.radio.start();
+      if (window.airplaneMode) {
         this.radio.enabled = !window.airplaneMode.enabled;
       }
     },

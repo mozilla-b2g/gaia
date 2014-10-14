@@ -1,7 +1,6 @@
-/* global MockNavigatorSettings, AirplaneMode, MocksHelper,
+/* global MockNavigatorSettings, MocksHelper,
           MockNavigatorMozMobileConnections, MockAirplaneModeServiceHelper,
-          suite, requireApp, test, suiteTeardown, suiteSetup,
-          setup, teardown, assert, sinon, MockLazyLoader, System */
+          MockLazyLoader, BaseModule */
 'use strict';
 
 requireApp(
@@ -35,7 +34,7 @@ suite('system/airplane_mode.js', function() {
     realMobileConnections = window.navigator.mozMobileConnections;
     window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
     var stubLoad = sinon.stub(MockLazyLoader, 'load');
-    subject = new AirplaneMode();
+    subject = BaseModule.instantiate('AirplaneMode');
     window.AirplaneModeServiceHelper = MockAirplaneModeServiceHelper;
     subject.start();
     stubLoad.yield();
@@ -135,20 +134,21 @@ suite('system/airplane_mode.js', function() {
         setup(function() {
           setConnection(0, 'enabled');
           setConnection(1, 'enabled');
+
+          this.sinon.stub(subject, 'writeSetting');
           subject.enabled = true;
         });
         test('all other services are also done, we are in airplaneMode',
           function() {
-            var stubNotifyObserver = this.sinon.stub(System, 'notifyObserver');
             emitEvent('wifi-disabled');
             emitEvent('bluetooth-disabled');
             emitEvent('radio-disabled');
 
-            assert.isTrue(stubNotifyObserver.calledWith({
+            assert.deepEqual(subject.writeSetting.getCall(0).args[0], {
               'airplaneMode.status': 'enabled',
               'airplaneMode.enabled': true,
               'ril.radio.disabled': true
-            }));
+            });
         });
       });
     });

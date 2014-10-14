@@ -10,11 +10,18 @@
   var Core = function() {
   };
 
+  Core.SUB_MODULE_PARENT = window;
+
+  Core.SUB_MODULES = [
+    'AirplaneMode'
+  ];
+
   BaseModule.create(Core, {
     name: 'Core',
 
     REGISTRY: {
-      'mozSettings': 'SettingsCore'
+      'mozSettings': 'SettingsCore',
+      'mozMobileConnections': 'MobileConnectionCore'
     },
 
     _start: function() {
