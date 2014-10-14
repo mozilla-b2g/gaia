@@ -230,6 +230,10 @@ require.config({
     {
       name: 'panels/homescreens/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/sound/panel',
+      exclude: ['main']
     }
   ]
 });
