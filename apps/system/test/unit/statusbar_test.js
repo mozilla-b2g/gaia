@@ -2034,6 +2034,9 @@ suite('system/Statusbar', function() {
         },
         getTopMostWindow: function getTopMostWindow() {
           return this._topWindow;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
         }
       };
       var spyTopUseLightTheming = this.sinon.spy(app._topWindow.appChrome,
@@ -2054,6 +2057,9 @@ suite('system/Statusbar', function() {
       StatusBar.setAppearance({
         getTopMostWindow: function getTopMostWindow() {
           return this;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
         }
       });
       assert.isFalse(StatusBar.element.classList.contains('light'));
@@ -2065,10 +2071,68 @@ suite('system/Statusbar', function() {
         isHomescreen: true,
         getTopMostWindow: function getTopMostWindow() {
           return this;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
         }
       });
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance using bottom window', function() {
+      var app = {
+        _topWindow: {
+          _bottomWindow: null,
+          appChrome: {
+            useLightTheming: function useLightTheming() {
+              return true;
+            },
+            isMaximized: function isMaximized() {
+              return true;
+            },
+          },
+          getBottomMostWindow: function getBottomMostWindow() {
+            return this._bottomWindow;
+          }
+        },
+        appChrome: {
+          useLightTheming: function useLightTheming() {
+            return false;
+          },
+          isMaximized: function isMaximized() {
+            return false;
+          }
+        },
+        getTopMostWindow: function getTopMostWindow() {
+          return this._topWindow;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
+        }
+      };
+
+      app._topWindow._bottomWindow = app;
+
+      StatusBar.element.classList.add('light');
+      StatusBar.element.classList.add('maximized');
+
+      var spyTopUseLightTheming = this.sinon.spy(app._topWindow.appChrome,
+                                                 'useLightTheming');
+      var spyTopIsMaximized = this.sinon.spy(app._topWindow.appChrome,
+                                             'isMaximized');
+      var spyBottomUseLightTheming = this.sinon.spy(app.appChrome,
+                                                    'useLightTheming');
+      var spyBottomIsMaximized = this.sinon.spy(app.appChrome, 'isMaximized');
+
+      StatusBar.setAppearance(app._topWindow, true);
+
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('maximized'));
+      assert.isTrue(spyBottomUseLightTheming.calledOnce);
+      assert.isFalse(spyTopUseLightTheming.called);
+      assert.isTrue(spyBottomIsMaximized.calledOnce);
+      assert.isFalse(spyTopIsMaximized.called);
     });
   });
 
