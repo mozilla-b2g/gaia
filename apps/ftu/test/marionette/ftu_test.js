@@ -26,4 +26,5 @@ marionette('First Time Use >', function() {
     ftu.clickThruPanel('#browser_privacy', '#forward');
     ftu.clickThruPanel('#finish-screen', undefined);
   });
+
 });

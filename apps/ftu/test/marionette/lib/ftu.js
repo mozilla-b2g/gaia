@@ -1,8 +1,11 @@
- 'use strict';
+'use strict';
 /* global module */
+
+var Marionette = require('marionette-client');
 
 function Ftu(client) {
   this.client = client;
+  this.actions = new Marionette.Actions(this.client);
 }
 
 Ftu.clientOptions = {
