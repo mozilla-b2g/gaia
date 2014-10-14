@@ -147,6 +147,42 @@ suite('system/SleepMenu', function() {
     assert.isFalse(subject.visible);
   });
 
+  test('Turn on airplane mode request', function() {
+    subject.start();
+    subject.show();
+    subject.isFlightModeEnabled = false;
+    this.sinon.stub(subject, 'publish');
+
+    subject.handleEvent({
+      type: 'click',
+      target: {
+        dataset: {
+          value: 'airplane'
+        }
+      }
+    });
+
+    assert.isTrue(subject.publish.calledWith('request-airplane-mode-enable'));
+  });
+
+  test('Turn off airplane mode request', function() {
+    subject.start();
+    subject.show();
+    subject.isFlightModeEnabled = true;
+    this.sinon.stub(subject, 'publish');
+
+    subject.handleEvent({
+      type: 'click',
+      target: {
+        dataset: {
+          value: 'airplane'
+        }
+      }
+    });
+
+    assert.isTrue(subject.publish.calledWith('request-airplane-mode-disable'));
+  });
+
   test('poweroff requested', function() {
     subject.start();
     subject.show();

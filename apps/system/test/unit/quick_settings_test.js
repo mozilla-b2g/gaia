@@ -1,6 +1,5 @@
 'use strict';
 /* global MockL10n */
-/* global MockAirplaneMode */
 /* global MockNavigatorMozMobileConnections */
 /* global MockNavigatorSettings */
 /* global MocksHelper */
@@ -12,7 +11,6 @@
 require('/test/unit/mock_activity.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_wifi_manager.js');
-require('/test/unit/mock_airplane_mode.js');
 require('/shared/test/unit/mocks/mock_settings_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -47,8 +45,6 @@ suite('quick settings > ', function() {
     navigator.mozL10n = MockL10n;
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-    realAirplaneMode = window.AirplaneMode;
-    window.AirplaneMode = MockAirplaneMode;
   });
 
   suiteTeardown(function() {
@@ -138,6 +134,7 @@ suite('quick settings > ', function() {
 
   test('system/quick settings/enable airplane mode', function() {
     MockSettingsListener.mCallbacks['airplaneMode.status']('enabled');
+    this.sinon.stub(window, 'dispatchEvent');
     subject.handleEvent({
       type: 'click',
       target: subject.airplaneMode,
@@ -149,10 +146,15 @@ suite('quick settings > ', function() {
     assert.equal(
       subject.data.classList.contains(
         'quick-settings-airplane-mode'), true);
+
+    assert.isTrue(window.dispatchEvent.called);
+    assert.equal(window.dispatchEvent.getCall(0).args[0].type,
+      'request-airplane-mode-disable');
   });
 
   test('system/quick settings/disable airplane mode', function() {
     MockSettingsListener.mCallbacks['airplaneMode.status']('disabled');
+    this.sinon.stub(window, 'dispatchEvent');
     subject.handleEvent({
       type: 'click',
       target: subject.airplaneMode,
@@ -164,36 +166,10 @@ suite('quick settings > ', function() {
     assert.equal(
       subject.data.classList.contains(
         'quick-settings-airplane-mode'), false);
-  });
 
-  test('system/quick settings/disabling airplane mode', function() {
-    MockSettingsListener.mCallbacks['airplaneMode.status']('disabling');
-    subject.handleEvent({
-      type: 'click',
-      target: subject.airplaneMode,
-      preventDefault: function() {}
-    });
-
-    assert.equal(
-      subject.airplaneMode.dataset.disabling, 'true');
-
-    assert.equal(
-      subject.airplaneMode.dataset.enabling, undefined);
-  });
-
-  test('system/quick settings/enabling airplane mode', function() {
-    MockSettingsListener.mCallbacks['airplaneMode.status']('enabling');
-    subject.handleEvent({
-      type: 'click',
-      target: subject.airplaneMode,
-      preventDefault: function() {}
-    });
-
-    assert.equal(
-      subject.airplaneMode.dataset.enabling, 'true');
-
-    assert.equal(
-      subject.airplaneMode.dataset.disabling, undefined);
+    assert.isTrue(window.dispatchEvent.called);
+    assert.equal(window.dispatchEvent.getCall(0).args[0].type,
+      'request-airplane-mode-enable');
   });
 
   suite('datachange > ', function() {

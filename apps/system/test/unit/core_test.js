@@ -1,13 +1,20 @@
-/* global MockPromise, BaseModule */
+/* global BaseModule, MockPromise */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_promise.js');
+
+requireApp('system/shared/test/unit/mocks/mock_promise.js');
+requireApp('system/js/system.js');
+requireApp('system/js/base_module.js');
+requireApp('system/js/core.js');
 
 suite('system/Core', function() {
-  setup(function(done) {
-    requireApp('system/js/base_module.js');
-    requireApp('system/js/system.js');
-    requireApp('system/js/core.js', done);
+  var core;
+  setup(function() {
+    core = new BaseModule.instantiate('Core');
+  });
+
+  teardown(function() {
+    core.stop();
   });
 
   suite('Start handler', function() {
@@ -33,22 +40,12 @@ suite('system/Core', function() {
   });
 
   suite('API handler bootstrap', function() {
-    var core;
+    var realSettings, fakeSettings = {};
     setup(function() {
-      core = new BaseModule.instantiate('Core');
-      core.constructor.SUB_MODULES = [];
-    });
-
-    teardown(function() {
-      core.stop();
-    });
-
-    test('simple launch with Settings API', function() {
-      var realSettings = navigator.mozSettings;
-      var fakePromise = new MockPromise();
-      navigator.mozSettings = {};
-      this.sinon.stub(BaseModule, 'lazyLoad', function() {
-        return fakePromise;
+      realSettings = navigator.mozSettings;
+      navigator.mozSettings = fakeSettings;
+      this.sinon.stub(BaseModule, 'lazyLoad', function(args) {
+        return Promise.resolve();
       });
       var fakeSettingsCore = {
         start: function() {}
@@ -56,20 +53,46 @@ suite('system/Core', function() {
       this.sinon.stub(BaseModule, 'instantiate', function() {
         return fakeSettingsCore;
       });
-      core.start();
-      fakePromise.mFulfillToValue();
-      assert.isDefined(core.settingsCore);
+    });
+    teardown(function() {
       navigator.mozSettings = realSettings;
     });
 
-    test('simple launch without Settings API', function() {
-      var realSettings = navigator.mozSettings;
-      navigator.mozSettings = undefined;
-      var stubLazyLoad = this.sinon.stub(BaseModule, 'lazyLoad');
+    test('simple launch with Settings API', function() {
+      this.sinon.stub(core, 'startAPIHandler');
       core.start();
-      assert.isFalse(stubLazyLoad.called);
-      assert.isUndefined(core.settingsCore);
+      assert.isTrue(
+        core.startAPIHandler.calledWith('mozSettings', 'SettingsCore'));
+    });
+
+    test('Start the API handler for settings', function(done) {
+      core.startAPIHandler('mozSettings', 'SettingsCore').then(function() {
+        assert.isDefined(core.settingsCore);
+        done();
+      });
+    });
+  });
+
+  suite('Launch without API', function() {
+    var realSettings, realMobileConnections;
+    setup(function() {
+      realSettings = navigator.mozSettings;
+      navigator.mozSettings = undefined;
+      realMobileConnections = navigator.mozMobileConnections;
+      navigator.mozMobileConnections = undefined;
+      this.sinon.stub(BaseModule, 'lazyLoad', function(args) {
+        return Promise.resolve();
+      });
+    });
+    teardown(function() {
       navigator.mozSettings = realSettings;
+      navigator.mozMobileConnections = realMobileConnections;
+    });
+    test('simple launch without Settings API', function() {
+      this.sinon.stub(core, 'startAPIHandler');
+      core.start();
+      assert.isFalse(
+        core.startAPIHandler.calledWith('mozSettings', 'SettingsCore'));
     });
   });
 });

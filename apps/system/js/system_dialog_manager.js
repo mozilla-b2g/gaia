@@ -58,6 +58,8 @@
       listens: ['system-dialog-created',
                 'system-dialog-show',
                 'system-dialog-hide',
+                'simlockshow',
+                'simlockhide',
                 'system-resize',
                 'system-dialog-requestfocus',
                 'home',
@@ -115,10 +117,12 @@
         dialog = evt.detail;
         this.registerDialog(dialog);
         break;
+      case 'simlockshow':
       case 'system-dialog-show':
         dialog = evt.detail;
         this.activateDialog(dialog);
         break;
+      case 'simlockhide':
       case 'system-dialog-hide':
         dialog = evt.detail;
         this.deactivateDialog(dialog);

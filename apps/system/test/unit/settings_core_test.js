@@ -16,8 +16,8 @@ suite('system/SettingsCore', function() {
     realSettings = window.navigator.mozSettings;
     window.navigator.mozSettings = MockNavigatorSettings;
     this.sinon.useFakeTimers();
-    requireApp('system/js/base_module.js');
     requireApp('system/js/system.js');
+    requireApp('system/js/base_module.js');
     requireApp('system/js/settings_core.js', done);
   });
 
