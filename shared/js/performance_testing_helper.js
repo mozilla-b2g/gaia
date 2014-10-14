@@ -2,6 +2,12 @@
 
 (function(window) {
 
+  // Placeholder for storing statically generated performance timestamps,
+  // similar to window.performance
+  window.mozPerformance = {
+    timing: {}
+  };
+
   function dispatch(name) {
     if (!window.mozPerfHasListener) {
       return;

@@ -8,6 +8,15 @@ module.exports = {
   isDeviceHost: function() {
     return config.runnerHost === 'marionette-device-host';
   },
+  merge: function(source, destination) {
+    Object
+      .keys(destination)
+      .forEach(function(key) {
+        source[key] = destination[key];
+      });
+
+    return source;
+  },
   configure: function(config) {
     // If the any of the environment variables defined in the config file
     // have values set, override the config with them
