@@ -77,7 +77,6 @@ tests/browser_dialer_keypad_and_dial.js
 tests/browser_dialer_phone_number_sanitizing.js
 tests/browser_sms_conversation.js
 tests/browser_sms_new.js
-tests/head.js
 tests/atoms/remote_date.js
 tests/atoms/screenshot.js
 tests/performance/app.js

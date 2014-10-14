@@ -1,13 +1,9 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-// Like console.log on top of dump()
-function debug() {
-  let s = '';
-  for (var i = 0; i < arguments.length; i++)
-    s += String(arguments[i]) + ' ';
-  dump('***DEBUG: ' + s + '\n');
-}
+'use strict';
+/* global StopIteration, ok, EventUtils, nextStep, content */
+/* exported testApp */
 
 //
 // Swipe from (x0,y0) to (x1,y1) over element e, taking a total of interval ms
@@ -20,7 +16,6 @@ function debug() {
 //
 EventUtils.swipe = function swipe(e, x0, y0, x1, y1, interval, whendone) {
   silentOK(e != null, 'trying to swipe on an inexistant element');
-  var t = 0;  // Start at time 0
 
   // Begin with a mouse down event
   EventUtils.sendMouseEvent({
@@ -37,7 +32,9 @@ EventUtils.swipe = function swipe(e, x0, y0, x1, y1, interval, whendone) {
       clientX: x1,
       clientY: y1
     }, e);
-    if (whendone) whendone();
+    if (whendone) {
+      whendone();
+    }
   }, interval);
 };
 
@@ -57,8 +54,9 @@ function until(condition, callback) {
   var timer = setInterval(check, 50);
 
   function check() {
-    if (!condition())
+    if (!condition()) {
       return;
+    }
     clearInterval(timer);
     callback();
   }
@@ -67,8 +65,9 @@ function until(condition, callback) {
 // Like ok(), but don't print anything and don't count it if the test succeeds.
 // Only generate output for tests that fail.
 function silentOK(condition, message) {
-  if (!condition)
+  if (!condition) {
     ok(condition, message);
+  }
 }
 
 //
@@ -119,13 +118,13 @@ function testApp(url, testfunc) {
     // An about:blank page is loaded first, we keep waiting until
     // the homescreen's readyState is complete
     yield until(
-      function() ((content.wrappedJSObject.document.readyState === 'complete') &&
-                  (content.wrappedJSObject.document.body.children.length > 0)),
-      nextStep);
+      function() (
+        (content.wrappedJSObject.document.readyState === 'complete') &&
+        (content.wrappedJSObject.document.body.children.length > 0)
+        ), nextStep);
 
     let contentWin = content.wrappedJSObject;
     let contentDoc = contentWin.document;
-    let lockscreen = contentDoc.getElementById('lockscreen');
 
     // Make sure the LockScreen module is loaded before we go on
     yield until(function() contentWin.LockScreen, nextStep);
@@ -141,7 +140,9 @@ function testApp(url, testfunc) {
     silentOK(!contentWin.LockScreen.locked, 'screen did not unlock');
 
     // Find all the icons on the homescreen
-    yield until(function() contentDoc.querySelectorAll('#apps > .page > .icon').length > 0, nextStep);
+    yield until(function() 
+      contentDoc.querySelectorAll('#apps > .page > .icon').length > 0,
+      nextStep);
     var icons = contentDoc.querySelectorAll('#apps > .page > .icon');
     silentOK(icons.length > 0, 'no homescreen icons found');
     var icon = null;
@@ -243,7 +244,7 @@ function testApp(url, testfunc) {
       var closebtns = contentDoc.querySelectorAll('#cardsView > ul > li > a');
       silentOK(closebtns.length === 1,
                closebtns.length + ' tasks running; expected 1.');
-      for (var i = 0; i < closebtns.length; i++) {
+      for (i = 0; i < closebtns.length; i++) {
         var btn = closebtns[i];
         EventUtils.sendMouseEvent({type: 'click'}, btn);
       }
