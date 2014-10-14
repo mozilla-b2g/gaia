@@ -1,5 +1,5 @@
 #screen.lockscreen-camera > #utility-tray {
-  display: none;
+  display: inline-block;
 }
 
 #utility-tray {
@@ -11,7 +11,7 @@
   margin: 0;
 
   transform: translateY(-4rem);
-  visibility: hidden;
+  visibility: visible;
 }
 
 .utility-tray #utility-tray {

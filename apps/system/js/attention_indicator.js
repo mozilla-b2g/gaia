@@ -10,7 +10,7 @@
   };
   AttentionIndicator.prototype = {
     start: function() {
-      this.containerElement = document.getElementById('screen');
+      this.containerElement = document.getElementById('utility-tray');
       if (this.element) {
         return;
       } else {
