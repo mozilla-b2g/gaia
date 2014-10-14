@@ -336,7 +336,7 @@ suite('system/ScreenManager', function() {
         stubTelephony.conferenceGroup = {calls: []};
         ScreenManager._screenOffBy = '';
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isTrue(stubTurnOn.called);
+        assert.isFalse(stubTurnOn.called);
       });
 
       test('with a call', function() {
