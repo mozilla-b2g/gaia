@@ -13,7 +13,7 @@
   MobileConnectionCore.SUB_MODULES = [
     'Radio',
   //  'CallForwarding',
-  //  'EmergencyCallbackManager',
+    'EmergencyCallbackManager',
     'EuRoamingManager'
   //  'SimLockManager',
   //  'TelephonySettings',
