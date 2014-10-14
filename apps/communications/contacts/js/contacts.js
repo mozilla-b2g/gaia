@@ -182,6 +182,12 @@ var Contacts = (function() {
           showApp();
         });
         break;
+      case 'multiple-select-view':
+        Contacts.view('multiple_select', () => {
+          navigation.go('multiple-select-view', 'activity-popup');
+        });
+        showApp();
+        break;
       case 'home':
         navigation.home();
         showApp();
@@ -969,6 +975,7 @@ var Contacts = (function() {
     form: 'view-contact-form',
     settings: 'settings-wrapper',
     search: 'search-view',
+    multiple_select: 'multiple-select-view',
     overlay: 'loading-overlay',
     confirm: 'confirmation-message',
     ice: 'ice-view'
