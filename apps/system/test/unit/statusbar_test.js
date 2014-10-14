@@ -367,7 +367,11 @@ suite('system/Statusbar', function() {
   suite('time bar', function() {
     var app;
     setup(function() {
-      app = {};
+      app = {
+        getTopMostWindow: function() {
+          return app;
+        }
+      };
       System.currentApp = app;
       StatusBar.clock.stop();
       StatusBar.screen = document.createElement('div');
@@ -1886,12 +1890,9 @@ suite('system/Statusbar', function() {
     test('visibility update should get the status bars width', function() {
       var spyGetMaximizedStatusBarWidth =
         this.sinon.spy(StatusBar, '_getMaximizedStatusBarWidth');
-      var spyGetMinimizedStatusBarWidth =
-        this.sinon.spy(StatusBar, '_getMinimizedStatusBarWidth');
 
       StatusBar._updateIconVisibility();
       assert.isTrue(spyGetMaximizedStatusBarWidth.called);
-      assert.isTrue(spyGetMinimizedStatusBarWidth.called);
     });
 
     suite('when only 2 icons fit in the maximized status bar', function() {
@@ -1899,7 +1900,6 @@ suite('system/Statusbar', function() {
       var iconWithPriority2;
       var iconWithPriority3;
       var getMaximizedStatusBarWidthStub;
-      var getMinimizedStatusBarWidthStub;
 
       setup(function() {
         // Reset all the icons to be hidden.
@@ -1926,17 +1926,14 @@ suite('system/Statusbar', function() {
               StatusBar._getIconWidth(StatusBar.PRIORITIES[1]);
           });
         // The minimized status bar can only fit the highest priority icon.
-        getMinimizedStatusBarWidthStub = sinon.stub(StatusBar,
-          '_getMinimizedStatusBarWidth', function() {
-            return StatusBar._getIconWidth(StatusBar.PRIORITIES[0]);
-          });
+        StatusBar._minimizedStatusBarWidth = StatusBar._getIconWidth(
+          StatusBar.PRIORITIES[0]);
 
         StatusBar._updateIconVisibility();
       });
 
       teardown(function() {
         getMaximizedStatusBarWidthStub.restore();
-        getMinimizedStatusBarWidthStub.restore();
       });
 
       test('the maximized status bar should hide icon #3', function() {

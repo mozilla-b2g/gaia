@@ -140,6 +140,8 @@ var StatusBar = {
    */
   systemDownloadsCount: 0,
 
+  _minimizedStatusBarWidth: window.innerWidth,
+
   /**
    * Object used for handling the clock UI element, wraps all related timers
    */
@@ -169,6 +171,7 @@ var StatusBar = {
     window.addEventListener('ftuskip', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('apptitlestatechanged', this);
+    window.addEventListener('appchromecollapsed', this);
   },
 
   addSettingsListener: function sb_addSettingsListener(settingKey) {
@@ -535,6 +538,10 @@ var StatusBar = {
         this.element.classList.remove('hidden');
         break;
 
+      case 'appchromecollapsed':
+        this._updateMinimizedStatusBarWidth();
+        break;
+
       case 'apptitlestatechanged':
       case 'appopened':
       case 'homescreenopened':
@@ -588,13 +595,23 @@ var StatusBar = {
     return window.innerWidth - (3 * 2);
   },
 
-  _getMinimizedStatusBarWidth: function sb_getMinimizedStatusBarWidth() {
-    // The rocket bar takes approx. 50% of the total screen width in portrait.
-    // This formula reflects the CSS styling applied to #statusbar-minimized.
-    // From /apps/system/style/statusbar/statusbar.css:
-    // * width: calc(100% - 100% * 0.682 + 8rem * 0.682 - 0.5rem);
-    // * padding: 0 0.3rem 0 0;
-    return window.innerWidth - window.innerWidth * 0.682 + 80 * 0.682 - 5 - 3;
+  _updateMinimizedStatusBarWidth: function sb_getMinimizedStatusBarWidth() {
+    var app = System.currentApp;
+    app = app && app.getTopMostWindow();
+
+    // Get the actual width of the rocketbar, and determine the remaining
+    // width for the minimized statusbar.
+    var innerWidth = window.innerWidth;
+    var element = app && app.appChrome && app.appChrome.element &&
+      app.appChrome.element.querySelector('.urlbar .title');
+
+    if (!element) {
+      this._minimizedStatusBarWidth = innerWidth;
+    }
+
+    this._minimizedStatusBarWidth = innerWidth -
+      element.getBoundingClientRect().width;
+    this._updateIconVisibility();
   },
 
   _paused: 0,
@@ -620,7 +637,7 @@ var StatusBar = {
     this.cloneStatusbar();
 
     var maximizedStatusBarWidth = this._getMaximizedStatusBarWidth();
-    var minimizedStatusBarWidth = this._getMinimizedStatusBarWidth();
+    var minimizedStatusBarWidth = this._minimizedStatusBarWidth;
 
     this.PRIORITIES.forEach(function sb_updateIconVisibilityForEach(iconObj) {
       var iconId = iconObj[0];
