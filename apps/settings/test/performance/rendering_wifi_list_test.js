@@ -32,6 +32,8 @@ marionette(config.appPath + ' >', function() {
       lastEvent: lastEvent
     });
 
+    performanceHelper.disableScreenTimeout();
+
     performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = true;
       app.launch(waitForBody);
