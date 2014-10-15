@@ -99,6 +99,11 @@
         conn.addEventListener('radiostatechange',
           this._onRadioStateChange.bind(this, conn, index));
       }, this);
+      this.service.request('registerNetwork', 'radio', this);
+    },
+
+    _stop: function() {
+      this.service.request('unregisterNetwork', 'radio', this);
     },
 
     /*
@@ -206,7 +211,6 @@
        * @param {Boolean} value
        */
       set: function(value) {
-        console.trace();
         this.debug(this._enabled + ' => ' + value);
         if (value !== this._enabled) {
           this._setRadioOpCount = 0;

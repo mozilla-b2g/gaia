@@ -391,6 +391,8 @@
   };
 
   BaseModule.prototype = {
+    service: System,
+
     DEBUG: false,
 
     TRACE: false,

@@ -16,6 +16,10 @@
   AirplaneMode.SUB_MODULES = [
     'AirplaneModeServiceHelper'
   ];
+  AirplaneMode.SERVICES = [
+    'registerNetwork',
+    'unregisterNetwork'
+  ];
   BaseModule.create(AirplaneMode, {
     name: 'AirplaneMode',
 
@@ -68,6 +72,14 @@
       if (this.enabled === true) {
         this.enabled = false;
       }
+    },
+
+    _start: function() {
+      this._watchList = {};
+    },
+
+    _stop: function() {
+      this._watchList = {};
     },
 
     /*
@@ -134,16 +146,20 @@
       }
     },
 
-    _ready: false,
+    registerNetwork: function(network, handler) {
+      if (this._watchList[network]) {
+        return;
+      }
+      this._watchList[network] = handler;
+      this.debug(network + ' is registered.');
+    },
 
-    ready: function() {
-      var self = this;
-      Promise.all([System.request('getAPI', 'mobileConnections'),
-        System.request('getAPI', 'bluetooth'),
-        System.request('getAPI', 'wifi')]).then(function(p1, p2, p3) {
-          self._ready = true;
-          console.log(p1, p2, p3);
-        });
+    unregisterNetwork: function(network) {
+      if (!this._watchList[network]) {
+        return;
+      }
+      delete this._watchList[network];
+      this.debug(network + ' is unregistered.');
     },
 
     /*
@@ -159,12 +175,9 @@
 
       if (value === true) {
         // check connection
-        System.request('getAPI', 'mobileConnections').then(function(value) {
-          if (!value) {
-            return;
-          }
+        if (this._watchList.radio) {
           checkedActions.radio = false;
-        });
+        }
 
         // check bluetooth
         if (this.airplaneModeServiceHelper.isEnabled('bluetooth')) {
@@ -176,12 +189,10 @@
           checkedActions.wifi = false;
         }
       } else {
-        System.request('getAPI', 'mobileConnections').then(function(value) {
-          if (!value) {
-            return;
-          }
+        // check connection
+        if (this._watchList.radio) {
           checkedActions.radio = false;
-        });
+        }
 
         // check bluetooth
         if (this.airplaneModeServiceHelper.isSuspended('bluetooth')) {
