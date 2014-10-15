@@ -16,7 +16,7 @@
 
     optionMenu: 'body > form[data-type=action] menu',
     systemMenu: 'form[data-z-index-level="action-menu"]',
-    attachmentMenu: '#attachment-options-menu',
+    attachmentMenu: '#attachment-options',
 
     Composer: {
       recipientsInput: '#messages-to-field [contenteditable=true]',
@@ -208,8 +208,8 @@
             var menuOption = menuOptions[i];
             if (menuOption.text().toLowerCase() === text.toLowerCase()) {
               // XXX: Workaround util http://bugzil.la/912873 is fixed.
-              // Wait for 500ms to let the element be clickable
-              client.helper.wait(500);
+              // Wait for 750ms to let the element be clickable
+              client.helper.wait(750);
               menuOption.tap();
               break;
             }

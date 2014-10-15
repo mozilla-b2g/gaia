@@ -30,7 +30,7 @@ gaia-header {
   z-index: 10;
 }
 
-/* Override Building Block [Imput areas] styles */
+/* Override Building Block [Input areas] styles */
 form.bottom[role="search"] {
   z-index: 3;
 }

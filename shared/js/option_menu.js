@@ -140,6 +140,16 @@ var OptionMenu = function(options) {
     event.preventDefault();
   });
 
+  this.form.addEventListener('transitionend', function(event) {
+    if (event.target !== this.form) {
+      return;
+    }
+
+    if (!this.form.classList.contains('visible') && this.form.parentNode) {
+      document.body.removeChild(this.form);
+    }
+  }.bind(this));
+
   menu.addEventListener('click', function(event) {
     var action = handlers.get(event.target);
     var method;
@@ -168,12 +178,18 @@ var OptionMenu = function(options) {
 
 // We prototype functions to show/hide the UI of action-menu
 OptionMenu.prototype.show = function() {
-  document.body.appendChild(this.form);
+  if (!this.form.parentNode) {
+    document.body.appendChild(this.form);
+
+    // Flush style on form so that the show transition plays once we add
+    // the visible class.
+    this.form.clientTop;
+  }
+  this.form.classList.add('visible');
   // Focus form to blur anything triggered keyboard
   this.form.focus();
 };
 
 OptionMenu.prototype.hide = function() {
-  // We remove the element to body
-  document.body.removeChild(this.form);
+  this.form.classList.remove('visible');
 };

@@ -117,6 +117,13 @@ var Dialog = function(params) {
     event.preventDefault();
   });
 
+  this.form.addEventListener('transitionend', function(event) {
+    if (!event.target.classList.contains('visible') &&
+        event.target.parentNode) {
+      document.body.removeChild(event.target);
+    }
+  });
+
   menu.addEventListener('click', function(event) {
     var action = handlers.get(event.target);
 
@@ -140,12 +147,19 @@ var Dialog = function(params) {
 
 // We prototype functions to show/hide the UI of action-menu
 Dialog.prototype.show = function() {
-  document.body.appendChild(this.form);
+  if (!this.form.parentNode) {
+    document.body.appendChild(this.form);
+
+    // Flush style on form so that the show transition plays once we add
+    // the visible class.
+    this.form.clientTop;
+  }
+  this.form.classList.add('visible');
   this.form.focus();
 };
 
 Dialog.prototype.hide = function() {
-  document.body.removeChild(this.form);
+  this.form.classList.remove('visible');
 };
 
 exports.Dialog = Dialog;

@@ -76,13 +76,26 @@ suite('OptionMenu', function() {
         sinon.assert.called(menu.form.focus);
       });
 
+      test('Redundant shows have no effect', function() {
+        sinon.spy(document.body, 'appendChild');
+        menu.show();
+        sinon.assert.notCalled(document.body.appendChild);
+      });
+
       suite('menu.hide()', function() {
         setup(function() {
           menu.hide();
         });
 
-        test('removes element from DOM', function() {
-          assert.equal(menu.parentElement, null);
+        test('hiding is delayed by animation', function() {
+          assert.notEqual(menu.form.parentElement, null);
+        });
+
+        test('removes element from DOM after transitionend', function() {
+          var transitionend =
+            new CustomEvent('transitionend', { target: menu.form });
+          menu.form.dispatchEvent(transitionend);
+          assert.equal(menu.form.parentElement, null);
         });
       });
     });
