@@ -38,8 +38,7 @@
                    'sendStkTimerExpiration', 'sendStkEventDownload'];
     var domRequests = ['getCardLock', 'unlockCardLock', 'setCardLock',
                        'getCardLockRetryCount', 'readContacts',
-                       'updateContact', 'iccOpenChannel', 'iccExchangeAPDU',
-                       'iccCloseChannel'];
+                       'updateContact'];
 
     var getterTemplate = function(name) {
       return function() {
