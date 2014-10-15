@@ -1,3 +1,4 @@
+
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -68,3 +69,13 @@ class System(Base):
 
     def wait_for_airplane_mode_icon_displayed(self):
         self.wait_for_element_displayed(*self._airplane_mode_statusbar_locator)
+
+    def confirm_install(self):
+        self.wait_for_element_displayed(*self._yes_button_locator)
+        self.marionette.find_element(*self._yes_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._yes_button_locator)
+
+    def confirm_uninstall(self):
+        self.wait_for_element_displayed(*self._delete_button_locator)
+        self.marionette.find_element(*self._delete_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._delete_button_locator)
