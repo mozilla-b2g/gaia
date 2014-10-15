@@ -14,6 +14,7 @@ class SimManager(Base):
     _outgoing_data_locator = (By.ID, "sim-manager-outgoing-data-select")
     _back_button_locator = (By.CSS_SELECTOR, '.current header > a') 
     _confirm_suspended_locator = (By.CSS_SELECTOR, '.modal-dialog-confirm-ok')
+    _sim_security_locator = (By.CSS_SELECTOR, 'span[data-l10n-id="simSecurity"]')
 
     def select_outgoing_calls(self, sim):
         self.marionette.find_element(*self._outgoing_call_locator).tap()
@@ -69,4 +70,8 @@ class SimManager(Base):
 
     @property
     def sim_for_data (self):
-        return self.marionette.find_element(*self._outgoing_data_locator).get_attribute('value') 
+        return self.marionette.find_element(*self._outgoing_data_locator).get_attribute('value')
+
+    @property
+    def is_sim_security_displayed(self):
+        return self.marionette.find_element(*self._sim_security_locator).is_displayed() 
