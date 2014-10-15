@@ -391,7 +391,7 @@ suite('latin input method capitalization and punctuation', function() {
       inputContext.dispatchEvent(new Event('selectionchange'));
 
       // will clear the suggestions since cursor changed
-      sinon.assert.calledTwice(keyboardGlue.sendCandidates);
+      sinon.assert.calledThrice(keyboardGlue.sendCandidates);
     });
 
     test('Do nothing if selectionchange wth the same cursor', function() {
@@ -462,7 +462,7 @@ suite('latin input method capitalization and punctuation', function() {
         inputContext.selectionEnd = 0;
         inputContext.dispatchEvent(new Event('selectionchange'));
 
-        sinon.assert.calledThrice(keyboardGlue.sendCandidates);
+        sinon.assert.callCount(keyboardGlue.sendCandidates, 4);
       }).then(done, done);
     });
 
