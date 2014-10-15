@@ -148,13 +148,9 @@ function SimPinDialog(dialog) {
         }
         break;
       default:
-        if (lockType === 'fdn' && typeof count === 'undefined') {
-          showMessage('fdnNotSupported');
-        } else {
-          showMessage('genericLockError');
-          console.error('Error of type ' + name + ' happened coming from an ' +
-                        'IccCardLockError event', lockError);
-        }
+        showMessage('genericLockError');
+        console.error('Error of type ' + name + ' happened coming from an ' +
+                      'IccCardLockError event', lockError);
         skip();
     }
   }
