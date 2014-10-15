@@ -723,11 +723,11 @@ suite('thread_ui.js >', function() {
         assert.isFalse(banner.classList.contains('hide'));
         this.sinon.clock.tick(200000);
         assert.isFalse(banner.classList.contains('hide'));
+        var node = banner.querySelector('p');
+        var l10nAttrs = navigator.mozL10n.getAttributes(node);
 
-        assert.equal(
-          banner.querySelector('p').getAttribute('data-l10n-id'),
-          'message-exceeded-max-length'
-        );
+        assert.equal(l10nAttrs.id, 'multimedia-message-exceeded-max-length');
+        assert.deepEqual(l10nAttrs.args, {mmsSize: '1'});
       });
 
       test('lock is enabled', function() {

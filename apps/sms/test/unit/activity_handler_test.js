@@ -206,7 +206,10 @@ suite('ActivityHandler', function() {
 
       panelPromise.then(function() {
         sinon.assert.notCalled(Compose.append);
-        sinon.assert.calledWith(window.alert, 'files-too-large{"n":5}');
+        sinon.assert.calledWith(
+          window.alert, 
+          'attached-files-too-large{"n":5,"mmsSize":"0"}'
+        );
       }).then(done, done);
     });
 

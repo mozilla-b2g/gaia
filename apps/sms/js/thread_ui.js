@@ -450,11 +450,10 @@ var ThreadUI = {
     }
   },
 
-  showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey) {
+  showMaxLengthNotice: function thui_showMaxLengthNotice(opts) {
     Compose.lock = true;
-    this.maxLengthNotice.querySelector('p').setAttribute(
-      'data-l10n-id',
-      l10nKey
+    navigator.mozL10n.setAttributes(
+      this.maxLengthNotice.querySelector('p'), opts.l10nId, opts.l10nArgs
     );
     this.maxLengthNotice.classList.remove('hide');
   },
@@ -1204,10 +1203,15 @@ var ThreadUI = {
 
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {
-        this.showMaxLengthNotice('message-exceeded-max-length');
+        this.showMaxLengthNotice({
+          l10nId: 'multimedia-message-exceeded-max-length',
+          l10nArgs: { 
+            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+          }
+        });
         return false;
       } else if (Compose.size === Settings.mmsSizeLimitation) {
-        this.showMaxLengthNotice('messages-max-length-text');
+        this.showMaxLengthNotice({ l10nId: 'messages-max-length-text' });
         return true;
       }
     }

@@ -167,8 +167,9 @@ var ActivityHandler = {
         }, 0);
 
         if (size > Settings.mmsSizeLimitation) {
-          alert(navigator.mozL10n.get('files-too-large', {
-            n: activityData.blobs.length
+          alert(navigator.mozL10n.get('attached-files-too-large', {
+            n: activityData.blobs.length,
+            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
           }));
           this.leaveActivity();
           return;
