@@ -65,7 +65,6 @@ apps/camera/bower_components/**
 apps/bluetooth/js/settings.js
 tests/atoms/remote_date.js
 tests/atoms/screenshot.js
-tests/performance/app.js
 tests/performance/exec-sync.js
 tests/performance/getappname.js
 tests/performance/getappname_atom.js
