@@ -75,6 +75,9 @@ suite('Templates.Month', function() {
         dateString: add('dateStr'),
         state: add('active'),
         date: add('date1'),
+        ariaDescribedby: add('aria-describedby'),
+        idBusyIndicator: add('idme-busy-indicator'),
+        idDescription: add('idme-description'),
         busy: a()
       }
     );
@@ -82,6 +85,8 @@ suite('Templates.Month', function() {
     assert.ok(result);
 
     assert.include(result, 'role="gridcell"');
+    assert.include(result, 'role="button"');
+    assert.include(result, 'tabindex="0"');
     data.forEach(function(item) {
       assert.include(result, item);
     });

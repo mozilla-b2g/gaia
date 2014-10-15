@@ -43,6 +43,7 @@ TimeParent.prototype = {
   _initEvents: function() {
     this.app.timeController.on('purge', this);
     this.element.addEventListener('swipe', this);
+    this.element.addEventListener('wheel', this);
 
     this.gd = new GestureDetector(this.element);
     this.gd.startDetecting();
@@ -53,16 +54,28 @@ TimeParent.prototype = {
       return false;
     }
 
-    var dir = data.direction;
+    this._move(data.direction === 'left');
+    return true;
+  },
+
+  _onwheel: function(event) {
+    if (event.deltaMode !== event.DOM_DELTA_PAGE || event.deltaX === 0) {
+      return false;
+    }
+
+    this._move(event.deltaX > 0);
+    return true;
+  },
+
+  _move: function(next) {
     var controller = this.app.timeController;
 
     // TODO: RTL
-    if (dir === 'left') {
+    if (next) {
       controller.move(this._nextTime(this.date));
     } else {
       controller.move(this._previousTime(this.date));
     }
-    return true;
   },
 
   handleEvent: function(e) {
@@ -73,6 +86,9 @@ TimeParent.prototype = {
         break;
       case 'purge':
         this.purgeFrames(e.data[0]);
+        break;
+      case 'wheel':
+        this._onwheel(e);
         break;
     }
   },

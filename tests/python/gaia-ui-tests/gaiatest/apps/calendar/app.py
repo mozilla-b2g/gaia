@@ -22,6 +22,10 @@ class Calendar(Base):
     _day_view_locator = (By.ID, 'day-view')
     _week_view_locator = (By.ID, 'week-view')
 
+    _event_list_date_locator = (By.ID, 'event-list-date')
+
+    _tomorrow_locator = (By.CSS_SELECTOR, '.present + li > .day')
+
     def launch(self):
         Base.launch(self)
         self.wait_for_element_displayed(*self._hint_swipe_to_navigate_locator)
@@ -35,6 +39,10 @@ class Calendar(Base):
     @property
     def current_month_day(self):
         return self.marionette.find_element(*self._current_months_day_locator).get_attribute('data-date')
+
+    @property
+    def event_list_date(self):
+        return self.marionette.find_element(*self._event_list_date_locator).text
 
     def tap_add_event_button(self):
         self.marionette.find_element(*self._add_event_button_locator).tap()
@@ -85,11 +93,24 @@ class Calendar(Base):
     def _get_data_hour(date_time):
         return date_time.hour
 
+    def a11y_click_tomorrow(self):
+        self.accessibility.click(self.marionette.find_element(*self._tomorrow_locator))
+
     def flick_to_next_month(self):
         self._flick_to_month('next')
 
     def flick_to_previous_month(self):
         self._flick_to_month('previous')
+
+    def a11y_wheel_to_next_month(self):
+        self._a11y_wheel_to_month('left')
+
+    def a11y_wheel_to_previous_month(self):
+        self._a11y_wheel_to_month('right')
+
+    def _a11y_wheel_to_month(self, direction):
+        self.accessibility.wheel(self.marionette.find_element(
+            *self._current_monthly_calendar_locator), direction)
 
     def _flick_to_month(self, direction):
         """Flick current monthly calendar to next or previous month.
