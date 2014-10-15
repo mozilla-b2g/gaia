@@ -292,6 +292,32 @@
       });
     },
 
+    /**
+    * Gets localization details for attachment size label.
+    * @param size Attachment blob size in bytes.
+    * @returns {{l10nId: string, l10nArgs: {n: string}}}
+    */
+    getSizeForL10n: function ut_getSizeForL10n(size) {
+      // blob size with unit (B or KB or MB)
+      var sizeKB = size / 1024;
+      var sizeMB = sizeKB / 1024;
+      if (size < 1000) {
+        return {
+          l10nId: 'attachmentSizeB',
+          l10nArgs: { n: size }
+        };
+      } else if (sizeKB < 1000) {
+        return {
+          l10nId: 'attachmentSizeKB',
+          l10nArgs: { n: sizeKB.toFixed(1) }
+        };
+      }
+      return {
+        l10nId: 'attachmentSizeMB',
+        l10nArgs: { n: sizeMB.toFixed(1) }
+      };
+    },
+
     //  resizeImageBlobWithRatio have additional ratio to force image
     //  resize to smaller size to avoid edge case about quality adjustment
     //  not working.
