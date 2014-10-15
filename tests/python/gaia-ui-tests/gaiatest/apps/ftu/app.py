@@ -4,6 +4,7 @@
 
 import re
 from marionette.by import By
+from marionette.errors import FrameSendFailureError
 
 from gaiatest.apps.base import Base
 
@@ -286,7 +287,11 @@ class Ftu(Base):
         self.wait_for_element_displayed(*self._section_finish_locator)
 
     def tap_skip_tour(self):
-        self.marionette.find_element(*self._skip_tour_button_locator).tap()
+        try:
+            self.marionette.find_element(*self._skip_tour_button_locator).tap()
+        except FrameSendFailureError:
+            # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
+            pass
 
     def a11y_click_skip_tour(self):
         self.accessibility.click(self.marionette.find_element(*self._skip_tour_button_locator))
@@ -346,4 +351,8 @@ class Ftu(Base):
         self.wait_for_element_displayed(*self._section_tutorial_finish_locator)
 
     def tap_lets_go_button(self):
-        self.marionette.find_element(*self._lets_go_button_locator).tap()
+        try:
+            self.marionette.find_element(*self._lets_go_button_locator).tap()
+        except FrameSendFailureError:
+            # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
+            pass
