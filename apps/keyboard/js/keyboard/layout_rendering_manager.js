@@ -218,12 +218,17 @@ LayoutRenderingManager.prototype._updateHeight = function() {
 };
 
 LayoutRenderingManager.prototype.getTargetObject = function (elem) {
+  this.app.console.log(
+    'LayoutRenderingManager.getTargetObject()', elem);
   if (!elem) {
     return {};
   }
 
+  var target = this.domObjectMap.get(elem);
+  this.app.console.log('target=', target,
+                       'prototype=', target && Object.getPrototypeOf(target));
   // default to an empty object such that member accessing and 'in' won't fail
-  return this.domObjectMap.get(elem) || {};
+  return target || {};
 };
 
 exports.LayoutRenderingManager = LayoutRenderingManager;

@@ -2,7 +2,7 @@
 /* global MocksHelper, Search */
 
 require('/shared/test/unit/mocks/mock_moz_activity.js');
-requireApp('search/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');

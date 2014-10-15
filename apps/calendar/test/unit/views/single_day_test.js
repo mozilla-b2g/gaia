@@ -1,17 +1,15 @@
+define(function(require) {
 'use strict';
 
-requireLib('timespan.js');
-requireLib('utils/overlap.js');
-requireLib('day_observer.js');
-requireLib('views/single_day.js');
+var Calc = require('calc');
+var SingleDay = require('views/single_day');
+var dayObserver = require('day_observer');
 
-suiteGroup('Views.SingleDay', function() {
-
+suite('Views.SingleDay', function() {
   var alldaysHolder;
   var app;
   var date;
   var dayId;
-  var dayObserver = Calendar.dayObserver;
   var daysHolder;
   var subject;
 
@@ -23,9 +21,9 @@ suiteGroup('Views.SingleDay', function() {
     daysHolder = document.createElement('div');
     alldaysHolder = document.createElement('div');
     date = new Date(2014, 6, 23);
-    dayId = Calendar.Calc.getDayId(date);
+    dayId = Calc.getDayId(date);
 
-    subject = new Calendar.Views.SingleDay({
+    subject = new SingleDay({
       date: date,
       daysHolder: daysHolder,
       alldaysHolder: alldaysHolder,
@@ -301,5 +299,6 @@ suiteGroup('Views.SingleDay', function() {
     endDate.setDate(endDate.getDate() + 1);
     return record;
   }
+});
 
 });

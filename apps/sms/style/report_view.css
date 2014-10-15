@@ -4,7 +4,11 @@
 }
 
 .report-view > div {
-  padding: 1.5rem 1.5rem 0 3rem;
+  padding-top: 1.5rem;
+  -moz-padding-end: 1.5rem;
+  padding-bottom: 0;
+  -moz-padding-start: 3rem;
+
   font-size: 1.8rem;
 }
 
@@ -66,7 +70,7 @@
 .report-view .contact-title {
   color: #6a6a6a;
   font-size: 1.6rem;
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
 }
 
 .report-view > ul.contact-list {
@@ -75,7 +79,7 @@
   position: static;
 
   max-height: 27rem;
-  margin: 0.5rem 0 1.5rem 0;
+  margin: 0.5rem 0 1.5rem;
 
   /* Avoid any pointer event on contact list in report view  */
   pointer-events: none;
@@ -88,7 +92,9 @@
 }
 
 .report-view > ul.contact-list > li {
-  padding: 1.0rem 0 1.0rem 1.5rem;
+  padding: 1rem;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 0;
 }
 
 .report-view > ul.contact-list > li:first-child {

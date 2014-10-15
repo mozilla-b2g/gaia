@@ -6,7 +6,7 @@ requireApp('settings/shared/test/unit/load_body_html_helper.js');
 suite('Date & Time panel > ', function() {
   var realL10n;
   var modules = [
-    'unit/mock_l10n',
+    'shared_mocks/mock_l10n',
     'panels/date_time/panel'
   ];
   var map = {

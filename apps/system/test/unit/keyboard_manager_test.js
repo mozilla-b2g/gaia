@@ -687,22 +687,6 @@ suite('KeyboardManager', function() {
       assert.ok(removeKeyboard.calledWith(fakeManifestURL));
     });
 
-    test('screenchange event', function() {
-      trigger('screenchange', {
-        screenEnabled: true
-      });
-
-      sinon.assert.callCount(hideKeyboardImmediately, 0, 'should not be ' +
-        'called if screen is turned on');
-
-      trigger('screenchange', {
-        screenEnabled: false
-      });
-
-      sinon.assert.callCount(hideKeyboardImmediately, 1, 'should be called ' +
-        'once if screen is turned off');
-    });
-
     test('attentionrequestopen event', function() {
       trigger('attentionrequestopen');
 

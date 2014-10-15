@@ -606,6 +606,7 @@ gaia-header [data-icon] {
   font-size: 1.3rem;
   line-height: 1.9rem;
   color: #858585;
+  margin: 0;
   padding: 0;
 }
 

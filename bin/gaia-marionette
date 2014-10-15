@@ -8,6 +8,7 @@
 SOURCE="${BASH_SOURCE[0]}"
 # Make it an absolute path
 DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
+BUILDAPP=${BUILDAPP:-desktop}
 
 # where all gaia specific customizations for mocha-marionette live.
 SHARED=$DIR/../shared/test/integration

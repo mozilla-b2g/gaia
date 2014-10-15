@@ -4,6 +4,7 @@
 /* global MockContactAllFields */
 /* global MockLinkedContacts */
 /* global MockImportStatusData */
+/* global utils */
 
 var FB_ID = 220439;
 
@@ -341,7 +342,7 @@ Mockfb.utils = (function() {
     },
 
     TOKEN_DATA_KEY: 'tokenData',
-    
+
     SCHEDULE_SYNC_KEY: 'facebookShouldHaveScheduledAt',
 
     setLastUpdate: function(date, callback) {
@@ -400,3 +401,10 @@ Mockfb.contacts = {
 Mockfb.sync = {
   scheduleNextSync: function() {}
 };
+
+Mockfb.markFbCleaningInProgress = function(value) {
+  utils.cookie.update({
+    fbCleaningInProgress: value
+  });
+};
+

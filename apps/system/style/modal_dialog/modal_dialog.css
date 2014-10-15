@@ -51,9 +51,7 @@
 }
 
 #modal-dialog-error {
-  background-color: black;
-  background-image: url(images/error_bk.png);
-  background-size: 32rem;
+  background-color: #2d2d2d;
 }
 
 #modal-dialog-sad-face {

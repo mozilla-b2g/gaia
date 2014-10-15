@@ -1,5 +1,9 @@
 'use strict';
 
+/**
+ * Will provide 1 Mobileconnection by default. call mAddMobileConnection and
+ * mRemoveMobileConnection to add/remove extra connections.
+ */
 (function() {
   function MockMobileconnection() {
     var props = ['voice', 'data', 'iccId', 'radioState', 'iccInfo'];

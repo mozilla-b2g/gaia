@@ -195,7 +195,8 @@
         // Just kill front window but not switch to the first page.
         this.frontWindow.kill();
       } else {
-        this.browser.element.src = this.browser_config.url + Date.now();
+        var urlWithoutHash = this.browser_config.url.split('#')[0];
+        this.browser.element.src = urlWithoutHash + '#' + Date.now();
       }
     }
 

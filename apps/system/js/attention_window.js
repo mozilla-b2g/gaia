@@ -229,6 +229,11 @@
     if (this.notification) {
       this.notification.style.display = 'block';
     }
+
+    // Resize the window to accommodate the presence or absence of the software
+    // home button.
+    this._resize();
+
     AppWindow.prototype.show.call(this);
   };
 

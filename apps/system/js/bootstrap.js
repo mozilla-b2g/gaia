@@ -14,7 +14,8 @@
          LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
-         CellBroadcastSystem, EdgeSwipeDetector, QuickSettings */
+         CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
+         BatteryOverlay, BaseModule, AppWindowManager */
 'use strict';
 
 
@@ -40,8 +41,12 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
+    window.appWindowManager = new AppWindowManager();
+
+    /** @global */
     window.activityWindowManager = new ActivityWindowManager();
     window.activityWindowManager.start();
+
     /** @global */
     window.secureWindowManager = window.secureWindowManager ||
       new SecureWindowManager();
@@ -59,12 +64,9 @@ window.addEventListener('load', function startup() {
     window.lockScreenWindowManager = new window.LockScreenWindowManager();
     window.lockScreenWindowManager.start();
 
-    // To initilaize it after LockScreenWindowManager to block home button
-    // when the screen is locked.
-    window.AppWindowManager.init();
-
-    window.homescreenWindowManager = new HomescreenWindowManager();
-    window.homescreenWindowManager.start();
+    // Let systemDialogManager handle inputmethod-contextchange event before
+    // starting appWindowManager. See bug 1082741.
+    window.appWindowManager.start();
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
@@ -118,6 +120,11 @@ window.addEventListener('load', function startup() {
   Shortcuts.init();
   ScreenManager.turnScreenOn();
 
+  // To make sure homescreen window manager can intercept webapps-launch event,
+  // we need to move the code here.
+  window.homescreenWindowManager = new HomescreenWindowManager();
+  window.homescreenWindowManager.start();
+
   // Please sort it alphabetically
   window.activities = new Activities();
   window.accessibility = new Accessibility();
@@ -128,6 +135,8 @@ window.addEventListener('load', function startup() {
   window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
   window.appWindowFactory.start();
+  window.batteryOverlay = new BatteryOverlay();
+  window.batteryOverlay.start();
   window.cellBroadcastSystem = new CellBroadcastSystem();
   window.cellBroadcastSystem.start();
   window.developerHUD = new DeveloperHUD();
@@ -207,6 +216,11 @@ window.addEventListener('load', function startup() {
       { bubbles: true, cancelable: false,
         detail: { type: 'system-message-listener-ready' } });
   window.dispatchEvent(evt);
+
+  window.core = BaseModule.instantiate('Core');
+  window.core && window.core.start();
+
+  window.mozPerformance.timing.mozSystemLoadEnd = Date.now();
 });
 
 window.usbStorage = new UsbStorage();

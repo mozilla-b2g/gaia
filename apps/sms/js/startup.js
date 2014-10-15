@@ -6,7 +6,8 @@
 /*global ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
          Settings, LazyLoader, TimeHeaders, Information, SilentSms,
          PerformanceTestingHelper, App, Navigation, EventDispatcher,
-         LocalizationHelper
+         LocalizationHelper,
+         InterInstanceEventDispatcher
 */
 
 var Startup = {
@@ -51,6 +52,8 @@ var Startup = {
     LazyLoader.load(this._lazyLoadScripts, function() {
       LocalizationHelper.init();
 
+      InterInstanceEventDispatcher.connect();
+
       // dispatch moz-content-interactive when all the modules initialized
       SilentSms.init();
       ActivityHandler.init();
@@ -71,27 +74,23 @@ var Startup = {
     });
   },
 
-  _initUIApp: function() {
-    Navigation.init();
-    ThreadListUI.init();
-    ThreadListUI.renderThreads(this._lazyLoadInit.bind(this), function() {
-      window.dispatchEvent(new CustomEvent('moz-app-loaded'));
-      App.setReady();
-    });
-
-    // dispatch chrome-interactive when thread list related modules
-    // initialized
-    window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
-  },
-
   init: function() {
-    var initUIApp = this._initUIApp.bind(this);
     window.addEventListener('DOMContentLoaded', function() {
       window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
-      MessageManager.init(initUIApp);
-    });
+
+      MessageManager.init();
+      Navigation.init();
+      ThreadListUI.init();
+      ThreadListUI.renderThreads(this._lazyLoadInit.bind(this), function() {
+        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+        App.setReady();
+      });
+
+      // dispatch chrome-interactive when thread list related modules
+      // initialized
+      window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+    }.bind(this));
   }
 };
 
-EventDispatcher.mixin(Startup);
-Startup.init();
+EventDispatcher.mixin(Startup).init();

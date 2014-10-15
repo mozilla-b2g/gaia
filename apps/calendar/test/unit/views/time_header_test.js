@@ -1,9 +1,12 @@
+define(function(require) {
 'use strict';
 
 requireCommon('test/synthetic_gestures.js');
 
-suiteGroup('Views.TimeHeader', function() {
+var TimeHeader = require('views/time_header');
+var View = require('view');
 
+suite('Views.TimeHeader', function() {
   var subject;
   var app;
   var controller;
@@ -36,9 +39,7 @@ suiteGroup('Views.TimeHeader', function() {
     app = testSupport.calendar.app();
     controller = app.timeController;
 
-    subject = new Calendar.Views.TimeHeader({
-      app: app
-    });
+    subject = new TimeHeader({ app: app });
 
     controller.move(date);
     monthTitle = localeFormat(
@@ -48,7 +49,7 @@ suiteGroup('Views.TimeHeader', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.View);
+    assert.instanceOf(subject, View);
     assert.equal(subject.app, app);
     assert.ok(subject.element);
     assert.equal(
@@ -170,7 +171,7 @@ suiteGroup('Views.TimeHeader', function() {
 
       assert.ok(calledWith);
     });
-
   });
+});
 
 });

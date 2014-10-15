@@ -29,6 +29,11 @@ suite('controllers/camera', function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.camera = sinon.createStubInstance(this.Camera);
     this.app.geolocation = sinon.createStubInstance(this.GeoLocation);
+    this.app.views = {
+      notification: {
+        display: sinon.spy()
+      }
+    }
 
     // Activity
     this.app.activity = {};
@@ -53,6 +58,7 @@ suite('controllers/camera', function() {
 
     // Aliases
     this.settings = this.app.settings;
+    this.notification = this.app.views.notification;
     this.storage = this.app.storage;
     this.camera = this.app.camera;
 
@@ -191,6 +197,7 @@ suite('controllers/camera', function() {
   suite('CameraController#setMode()', function() {
     test('It sets the flash mode', function() {
       this.controller.setMode();
+      sinon.assert.called(this.notification.display);
       sinon.assert.called(this.camera.setFlashMode);
     });
 

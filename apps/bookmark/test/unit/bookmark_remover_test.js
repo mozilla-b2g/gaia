@@ -2,16 +2,17 @@
 
 /* global BookmarkRemover, loadBodyHTML, BookmarksDatabase */
 /* global requireApp, require, suite, suiteTeardown, suiteSetup, test, assert,
-          sinon, teardown, setup */
+          sinon, teardown, setup, MockL10n */
 
 require('/shared/js/bookmarks_database.js');
 require('/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('bookmark/js/bookmark_remover.js');
-requireApp('bookmark/test/unit/mock_l10n.js');
 
 suite('bookmark_remover.js >', function() {
 
   var getStub;
+  var realMozL10n;
 
   var name = 'Mozilla';
   var url = 'http://www.mozilla.org/es-ES/firefox/new/';
@@ -32,10 +33,13 @@ suite('bookmark_remover.js >', function() {
         }
       };
     });
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
   });
 
   suiteTeardown(function() {
     getStub.restore();
+    navigator.mozL10n = realMozL10n;
   });
 
   setup(function() {

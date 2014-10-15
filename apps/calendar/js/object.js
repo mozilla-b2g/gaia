@@ -1,4 +1,4 @@
-(function(exports) {
+define(function(require, exports, module) {
 'use strict';
 
 exports.filter = function(obj, fn, thisArg) {
@@ -33,4 +33,4 @@ exports.values = function(obj) {
   });
 };
 
-}(Calendar.Object = {}));
+});

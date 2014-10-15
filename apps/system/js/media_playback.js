@@ -1,4 +1,4 @@
-/* global Bluetooth, AppWindowManager, IACHandler */
+/* global Bluetooth, IACHandler, appWindowManager */
 
 'use strict';
 
@@ -124,7 +124,7 @@ MediaPlaybackWidget.prototype = {
       var evt = new CustomEvent('displayapp', {
         bubbles: true,
         cancelable: true,
-        detail: AppWindowManager.getApp(this.origin)
+        detail: appWindowManager.getApp(this.origin)
       });
       window.dispatchEvent(evt);
     }

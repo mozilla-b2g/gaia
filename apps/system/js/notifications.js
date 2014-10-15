@@ -657,8 +657,7 @@ var NotificationScreen = {
 
   updateNotificationIndicator: function ns_updateNotificationIndicator() {
     if (this.unreadNotifications.length) {
-      var indicatorSize = getIndicatorSize(this.unreadNotifications.length);
-      this.ambientIndicator.className = 'unread ' + indicatorSize;
+      this.ambientIndicator.className = 'unread';
       this.ambientIndicator.setAttribute('aria-label', navigator.mozL10n.get(
         'statusbarNotifications-unread', {n: this.unreadNotifications.length}));
     } else {
@@ -749,19 +748,6 @@ var NotificationScreen = {
 
 
 };
-
-function getIndicatorSize(count) {
-  if (!count || count <= 2)
-    return 'small';
-
-  if (count <= 4)
-    return 'medium';
-
-  if (count <= 6)
-    return 'big';
-
-  return 'full';
-}
 
 window.addEventListener('load', function() {
   window.removeEventListener('load', this);

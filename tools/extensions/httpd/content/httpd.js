@@ -1455,6 +1455,9 @@ RequestReader.prototype =
 
             if (!file || !file.exists() || !file.isFile()) {
               var applicationName = host.split(".")[0];
+              if (applicationName === 'theme') {
+                applicationName = 'default-theme';
+              }
 
               // find the file path depending on the application name
               var filePath = this._findRealPath(applicationName);

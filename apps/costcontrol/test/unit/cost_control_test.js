@@ -346,6 +346,7 @@ suite('Cost Control Service Hub Suite >', function() {
           assert.equal(result.status, 'success');
           assert.equal(result.data.wifi.total, 112123944);
           assert.equal(result.data.mobile.total, 4800543137);
+          assert.equal(Object.keys(result.data.mobile.apps).length, 0);
           SimManager.requestDataSimIcc.restore();
           done();
         });
@@ -401,8 +402,19 @@ suite('Cost Control Service Hub Suite >', function() {
   test(
     'Get datausage per app',
     function(done) {
+      var expectedLastDataUsage = {
+        mobile: { total: 10000, apps: {} },
+        wifi: { total: 20000, apps: {} }
+      };
+
+      var fakeSettings = { lastDataUsage: expectedLastDataUsage };
+
       sinon.stub(SimManager, 'requestDataSimIcc', function (callback) {
         (typeof callback === 'function') && callback({iccId:'12345'});
+      });
+
+      window.ConfigManager = new MockConfigManager({
+        fakeSettings: fakeSettings
       });
 
       CostControl.getInstance(function(service) {
@@ -419,6 +431,11 @@ suite('Cost Control Service Hub Suite >', function() {
           assert.equal(app1.total, 1047);
           assert.equal(app2.total, 2268);
           assert.equal(result.data.mobile.total, app1.total + app2.total);
+
+          assert.equal(
+            fakeSettings.lastDataUsage.mobile.total,
+            expectedLastDataUsage.mobile.total
+          );
 
           SimManager.requestDataSimIcc.restore();
           done();

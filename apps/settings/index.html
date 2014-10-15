@@ -46,10 +46,10 @@
     -->
 
     <!-- Components -->
-    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" />
-    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
     <script src="shared/elements/config.js"></script>
-    <script src="shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
+    <script src="shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <!-- Localization -->
     <link rel="manifest" href="./manifest.webapp">
@@ -88,6 +88,7 @@
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
     <!--<script defer src="shared/js/async_storage.js"></script>-->
     <!--<script defer src="shared/js/wifi_helper.js"></script>-->
+    <!--<script defer src="shared/js/bluetooth_helper.js"></script>-->
     <!--<script defer src="shared/js/settings_helper.js"></script> -->
     <!--<script defer src="shared/js/settings_listener.js"></script> -->
     <!--<script defer src="shared/js/airplane_mode_helper.js"></script> -->
@@ -443,9 +444,9 @@
             </a>
           </li>
           <li>
-            <a id="menuItem-bluetooth" class="menu-item" data-icon="bluetooth" href="#bluetooth">
+            <a class="menuItem-bluetooth menu-item" data-icon="bluetooth" href="#bluetooth">
               <span data-l10n-id="bluetooth">Bluetooth</span>
-              <small id="bluetooth-desc" class="menu-item-desc"></small>
+              <small class="bluetooth-desc menu-item-desc"></small>
             </a>
           </li>
           <li class="nfc-settings" hidden>
@@ -543,7 +544,7 @@
           <li id="simSecurity-settings" aria-disabled="true">
             <a id="menuItem-simSecurity" class="menu-item" data-icon="sim" href="#simpin">
               <span data-l10n-id="simSecurity">SIM Security</span>
-              <small id="simCardLock-desc" class="menu-item-desc"></small>
+              <small class="menu-item-desc simCardLock-desc"></small>
             </a>
           </li>
           <li>

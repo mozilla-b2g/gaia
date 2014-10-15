@@ -195,7 +195,7 @@
    *
    * When 'cardviewclosed' is received, the screenshotOverlay is hidden.
    *
-   * When 'sheetsgesturebegin' is received, the screenshotOverlay is shown.
+   * When 'sheetdisplayed' is received, the screenshotOverlay is shown.
    *
    * When 'sheetsgestureend' is received the screenshotOverlay is hidden.
    *
@@ -228,6 +228,7 @@
    */
   AppWindow.prototype.setVisibleForScreenReader =
     function aw_setVisibleForScreenReader(visible) {
+      this._setActive(visible);
       this.element.setAttribute('aria-hidden', !visible);
     };
 
@@ -691,7 +692,7 @@
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
-     '_orientationchange', '_focus', '_hidewindow', '_sheetsgesturebegin',
+     '_orientationchange', '_focus', '_blur',  '_hidewindow', '_sheetdisplayed',
      '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
      '_closed', '_shrinkingstart', '_shrinkingstop'];
 
@@ -1765,16 +1766,16 @@
     }
   };
 
-  AppWindow.prototype._handle__sheetsgesturebegin = function aw_sgbegin() {
+  AppWindow.prototype._handle__sheetdisplayed = function aw_sheetdisplayed() {
     // If we're the active we shouldn't do anything at this point. We'll get
     // our frame hidden on swipeout.
     if (this.isActive()) {
-      this.debug('no screenshot for active app during sheetsgesturebegin');
+      this.debug('no screenshot for active app during sheetdisplayed');
       return;
     }
 
     // For inactive apps we'll already have a screenshot blob ready for use.
-    this.debug('showing screenshot during sheetsgesturebegin');
+    this.debug('showing screenshot during sheetdisplayed');
     this._showScreenshotOverlay();
   };
 
@@ -2053,6 +2054,14 @@
     if (this.contextmenu) {
       this.contextmenu.hide();
     }
+  };
+
+  AppWindow.prototype._handle__blur = function() {
+    var win = this;
+    while (win.frontWindow && win.frontWindow.isActive()) {
+      win = win.frontWindow;
+    }
+    win.blur();
   };
 
   AppWindow.prototype._handle__focus = function() {

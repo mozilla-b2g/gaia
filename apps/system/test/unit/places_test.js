@@ -1,5 +1,5 @@
 /* global MocksHelper, MockNavigatorDatastore, MockDatastore, Places */
-/* global asyncStorage */
+/* global asyncStorage, MockAppWindowManager */
 
 'use strict';
 
@@ -35,9 +35,11 @@ suite('system/Places', function() {
 
     subject = new Places();
     subject.start().then(done);
+    window.appWindowManager = new MockAppWindowManager();
   });
 
   suiteTeardown(function() {
+    window.appWindowManager = null;
     navigator.getDataStores = realDatastores;
   });
 
@@ -206,6 +208,16 @@ suite('system/Places', function() {
       sendEvent('apptitlechange', url1);
       this.sinon.clock.tick(10000);
     });
+
+    test('Correctly set visits', function(done) {
+      var url = 'http://example.org';
+      MockDatastore.addEventListener('change', function() {
+        assert.equal(MockDatastore._records[url].visits.length, 3);
+        done();
+      });
+      subject.setVisits(url, [1, 2, 3]);
+    });
+
   });
 
 });

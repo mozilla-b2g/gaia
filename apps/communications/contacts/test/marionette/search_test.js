@@ -32,6 +32,21 @@ marionette('Contacts > Search', function() {
       var listView = client.helper.waitForElement(selectors.list);
       assert.ok(listView.displayed(), 'List view is shown.');
     });
+
+    test('Search text is displayed correctly', function() {
+      var details = details || {
+        givenName: 'A%%&'
+      };
+
+      subject.addContact(details);
+      client.helper.waitForElement(selectors.searchLabel).click();
+
+      client.helper.waitForElement(selectors.searchInput).sendKeys('a');
+      client.helper.waitForElement(selectors.searchResultFirst).text(
+        function(error, textContent) {
+          assert.equal('A%%&', textContent);
+      });
+    });
   });
 
 });

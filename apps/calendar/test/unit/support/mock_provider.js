@@ -1,217 +1,213 @@
-Calendar.ns('Provider').Mock = (function() {
-  'use strict';
+define(function(require, exports, module) {
+'use strict';
 
-  var Parent = Calendar.Provider.Abstract;
+var Parent = require('provider/abstract');
+var nextTick = require('next_tick');
 
-  function accountGeneric(mockName) {
-    return function(account, callback) {
-      // next tick is scheduled before _resolveStage intentionally
-      Calendar.nextTick(function() {
-        callback.apply(
-          null,
-          this._resolveStaged(mockName, account) || [null, {}]
-        );
-      }.bind(this));
-    };
-  }
-
-  function accountStaging(mockName) {
-    return function() {
-      var args = Array.slice(arguments);
-      var user = args.shift();
-
-      function matcher(object) {
-        return object.user === user;
-      }
-
-      return this._stage(mockName, matcher, args);
-    };
-  }
-
-  var stageEvents = {
-    onbefore: function() {},
-    onafter: function() {}
+function accountGeneric(mockName) {
+  return function(account, callback) {
+    // next tick is scheduled before _resolveStage intentionally
+    nextTick(function() {
+      callback.apply(
+        null,
+        this._resolveStaged(mockName, account) || [null, {}]
+      );
+    }.bind(this));
   };
+}
 
-  function Mock() {
-    Parent.apply(this, arguments);
+function accountStaging(mockName) {
+  return function() {
+    var args = Array.slice(arguments);
+    var user = args.shift();
 
-    // mock call storage
-    this._stageObjects = Object.create(null);
-  }
+    function matcher(object) {
+      return object.user === user;
+    }
 
-  Mock.prototype = {
-    __proto__: Parent.prototype,
+    return this._stage(mockName, matcher, args);
+  };
+}
 
-    // opt-into sync by default
-    canSync: true,
+var stageEvents = {
+  onbefore: function() {},
+  onafter: function() {}
+};
 
-    _stage: function(name, matcher, args) {
-      if (!(this._stageObjects[name])) {
-        this._stageObjects[name] = [];
-      }
+function Mock() {
+  Parent.apply(this, arguments);
 
-      var handler = Object.create(stageEvents);
+  // mock call storage
+  this._stageObjects = Object.create(null);
+}
+module.exports = Mock;
 
-      this._stageObjects[name].push({
-        matches: matcher,
-        args: args,
-        handler: handler
-      });
+Mock.prototype = {
+  __proto__: Parent.prototype,
 
-      return handler;
-    },
+  // opt-into sync by default
+  canSync: true,
 
-    /**
-     * Used to find staged objects.
-     * The found object must be saved as
-     * this method will also remove any found item.
-     *
-     * Stops at first found item that matches condition.
-     *
-     *    var stagedValue = this._resolveStaged('type', input) || someDefault;
-     *
-     */
-    _resolveStaged: function(name, input) {
-      var list = this._stageObjects[name];
-      if (!list) {
-        return null;
-      }
+  _stage: function(name, matcher, args) {
+    if (!(this._stageObjects[name])) {
+      this._stageObjects[name] = [];
+    }
 
-      var i = 0;
-      var len = list.length;
+    var handler = Object.create(stageEvents);
 
-      for (; i < len; i++) {
-        if (list[i].matches(input)) {
-          // remove and return args
-          var item = list.splice(i, 1)[0];
-          var args = item.args;
-          var handler = item.handler;
+    this._stageObjects[name].push({
+      matches: matcher,
+      args: args,
+      handler: handler
+    });
 
-          handler.onbefore(args);
+    return handler;
+  },
 
-          Calendar.nextTick(
-            handler.onafter.bind(null, args)
-          );
-
-          return args;
-        }
-      }
-
+  /**
+   * Used to find staged objects.
+   * The found object must be saved as
+   * this method will also remove any found item.
+   *
+   * Stops at first found item that matches condition.
+   *
+   *    var stagedValue = this._resolveStaged('type', input) || someDefault;
+   *
+   */
+  _resolveStaged: function(name, input) {
+    var list = this._stageObjects[name];
+    if (!list) {
       return null;
-    },
+    }
 
-    /**
-     * Stage a getAccount call.
-     *
-     * @param {String} user name to stage information for.
-     * @param {Object|Null} err given to callback.
-     * @param {Object|Null} object given to callback.
-     */
-    stageGetAccount: accountStaging('getAccount'),
-    stageFindCalendars: accountStaging('findCalendars'),
+    var i = 0;
+    var len = list.length;
 
-    stageSyncEvents: function(user, calendarRemoteId, err) {
-      err = err || null;
+    for (; i < len; i++) {
+      if (list[i].matches(input)) {
+        // remove and return args
+        var item = list.splice(i, 1)[0];
+        var args = item.args;
+        var handler = item.handler;
 
-      function matcher(args) {
-        return (
-          args[0].user === user &&
-          args[1].remote.id === calendarRemoteId
-        );
+        handler.onbefore(args);
+        nextTick(handler.onafter.bind(null, args));
+        return args;
       }
+    }
 
-      return this._stage('syncEvents', matcher, err);
-    },
+    return null;
+  },
 
-    stageEventCapabilities: function() {
-      var args = Array.slice(arguments);
-      var id = args.shift();
+  /**
+   * Stage a getAccount call.
+   *
+   * @param {String} user name to stage information for.
+   * @param {Object|Null} err given to callback.
+   * @param {Object|Null} object given to callback.
+   */
+  stageGetAccount: accountStaging('getAccount'),
+  stageFindCalendars: accountStaging('findCalendars'),
 
-      function matcher(event) {
-        return event._id === id;
-      }
+  stageSyncEvents: function(user, calendarRemoteId, err) {
+    err = err || null;
 
-      return this._stage('eventCapabilities', matcher, args);
-    },
+    function matcher(args) {
+      return (
+        args[0].user === user &&
+        args[1].remote.id === calendarRemoteId
+      );
+    }
 
-    stageCalendarCapabilities: function() {
-      var args = Array.slice(arguments);
-      var id = args.shift();
+    return this._stage('syncEvents', matcher, err);
+  },
 
-      function matcher(calendar) {
-        return calendar._id === id;
-      }
+  stageEventCapabilities: function() {
+    var args = Array.slice(arguments);
+    var id = args.shift();
 
-      return this._stage('calendarCapabilities', matcher, args);
-    },
+    function matcher(event) {
+      return event._id === id;
+    }
 
-    /**
-     * Stage findCalendars call.
-     *
-     *
-     * provider.stageFindCalendars(
-     *  accountModel.user,
-     *  err || null,
-     *  {
-     *    remoteId: { id: 'remoteId', ... },
-     *    ...
-     *  }
-     * );
-     */
-    findCalendars: accountGeneric('findCalendars'),
+    return this._stage('eventCapabilities', matcher, args);
+  },
 
-    getAccount: accountGeneric('getAccount'),
+  stageCalendarCapabilities: function() {
+    var args = Array.slice(arguments);
+    var id = args.shift();
 
-    syncEvents: function(account, calendar, callback) {
-      // first so this tick is scheduled first
-      Calendar.nextTick(function() {
-        callback(
-          this._resolveStaged('syncEvents', [account, calendar])
-        );
-      }.bind(this));
-    },
+    function matcher(calendar) {
+      return calendar._id === id;
+    }
 
-    calendarCapabilities: function(calendar) {
-      var defaults = {
-        canUpdateEvent: true,
-        canCreateEvent: true,
-        canDeleteEvent: true
-      };
+    return this._stage('calendarCapabilities', matcher, args);
+  },
 
-      var args =
-        this._resolveStaged('calendarCapabilities', calendar) || [];
+  /**
+   * Stage findCalendars call.
+   *
+   *
+   * provider.stageFindCalendars(
+   *  accountModel.user,
+   *  err || null,
+   *  {
+   *    remoteId: { id: 'remoteId', ... },
+   *    ...
+   *  }
+   * );
+   */
+  findCalendars: accountGeneric('findCalendars'),
 
-      var overrides = args[0] || {};
+  getAccount: accountGeneric('getAccount'),
+
+  syncEvents: function(account, calendar, callback) {
+    // first so this tick is scheduled first
+    nextTick(function() {
+      callback(
+        this._resolveStaged('syncEvents', [account, calendar])
+      );
+    }.bind(this));
+  },
+
+  calendarCapabilities: function(calendar) {
+    var defaults = {
+      canUpdateEvent: true,
+      canCreateEvent: true,
+      canDeleteEvent: true
+    };
+
+    var args =
+      this._resolveStaged('calendarCapabilities', calendar) || [];
+
+    var overrides = args[0] || {};
+
+    for (var key in overrides) {
+      defaults[key] = overrides[key];
+    }
+
+    return defaults;
+  },
+
+  eventCapabilities: function(event, callback) {
+    var defaults = {
+      canUpdate: true,
+      canCreate: true,
+      canDelete: true
+    };
+
+    nextTick(function() {
+      var args = this._resolveStaged('eventCapabilities', event) || [];
+      var err = args[0] || null;
+      var overrides = args[1] || {};
 
       for (var key in overrides) {
         defaults[key] = overrides[key];
       }
 
-      return defaults;
-    },
+      callback(err, defaults);
+    }.bind(this));
+  }
+};
 
-    eventCapabilities: function(event, callback) {
-      var defaults = {
-        canUpdate: true,
-        canCreate: true,
-        canDelete: true
-      };
-
-      Calendar.nextTick(function() {
-        var args = this._resolveStaged('eventCapabilities', event) || [];
-        var err = args[0] || null;
-        var overrides = args[1] || {};
-
-        for (var key in overrides) {
-          defaults[key] = overrides[key];
-        }
-
-        callback(err, defaults);
-      }.bind(this));
-    }
-  };
-
-  return Mock;
-
-}());
+});

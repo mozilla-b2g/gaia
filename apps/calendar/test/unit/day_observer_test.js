@@ -1,14 +1,10 @@
-requireLib('calendar.js');
-requireLib('ext/eventemitter2.js');
-requireLib('utils/mout.js');
-requireLib('calc.js');
-requireLib('timespan.js');
-requireLib('controller/time.js');
-requireLib('day_observer.js');
+define(function(require) {
+'use strict';
+
+var Factory = require('test/support/factory');
+var dayObserver = require('day_observer');
 
 suite('day_observer', function() {
-  'use strict';
-
   var app;
   var calendarStore;
   var delay;
@@ -23,7 +19,7 @@ suite('day_observer', function() {
   setup(function() {
     // load the required sub-objects..
     app = testSupport.calendar.app();
-    subject = Calendar.dayObserver;
+    subject = dayObserver;
     delay = subject.DISPATCH_DELAY + 5;
     timeController = app.timeController;
     findAssociated = timeController.findAssociated;
@@ -36,7 +32,6 @@ suite('day_observer', function() {
       setTimeout(function() {
         callback(null, busytimes.map((busy) => _records.get(busy)));
       });
-      this.called = true;
     };
 
     subject.timeController = timeController;
@@ -121,15 +116,15 @@ suite('day_observer', function() {
     });
 
     test('not cached', function(done) {
+      // we should call the handler even if no records because events might be
+      // deleted while the view is not active. that way we use the same code
+      // path for all cases (first render and updates)
       timeController.cacheBusytime(busyToday1);
-      subject.on(yesterday, function() {
-        done(new Error('this should not execute!!!'));
+      subject.on(yesterday, function(records) {
+        assert.deepEqual(records, [], 'no records');
+        done();
       });
       clock.tick(delay);
-      assert.ok(
-        !timeController.findAssociated.called, 'don\'t call findAssociated'
-      );
-      done();
     });
 
     test('add more', function(done) {
@@ -187,8 +182,11 @@ suite('day_observer', function() {
         startDate: today
       });
 
-      subject.on(today, callback);
+      // it's very important to mock clock BEFORE adding listener!!! otherwise
+      // we might get an intermittent race condition (easier to reproduce on
+      // gaia-try and also when running these tests multiple times in a row)
       clock = sinon.useFakeTimers();
+      subject.on(today, callback);
     });
 
     teardown(function() {
@@ -211,5 +209,6 @@ suite('day_observer', function() {
       done();
     });
   });
+});
 
 });

@@ -1,23 +1,26 @@
+/* global MockSystem */
+
 (function() {
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
 requireApp('system/js/lockscreen_window_manager.js');
 
-mocha.globals(['MozActivity', 'AppWindowManager', 'SettingsListener']);
+mocha.globals(['MozActivity', 'System', 'SettingsListener']);
 
 var mocksForLockScreenWindowManager = new window.MocksHelper([
-  'LockScreen', 'LockScreenWindow'
+  'LockScreen', 'LockScreenWindow', 'System'
 ]).init();
 
 suite('system/LockScreenWindowManager', function() {
   var stubById;
   var appFake;
   var originalSettingsListener;
-  var originalAppWindowManager;
   var originalMozActivity;
   var originalMozSettings;
 
@@ -29,7 +32,6 @@ suite('system/LockScreenWindowManager', function() {
     appFake = new window.LockScreenWindow();
 
     originalSettingsListener = window.SettingsListener;
-    originalAppWindowManager = window.AppWindowManager;
     originalMozActivity = window.MozActivity;
     window.SettingsListener = {
       observe: function(name, bool, cb) {},
@@ -40,9 +42,6 @@ suite('system/LockScreenWindowManager', function() {
           }
         }};
       }
-    };
-    window.AppWindowManager = {
-      getActiveApp: function() {}
     };
     window.MozActivity = function() {};
 
@@ -74,11 +73,29 @@ suite('system/LockScreenWindowManager', function() {
   teardown(function() {
     window.SettingsListener = originalSettingsListener;
     window.MozActivity = originalMozActivity;
-    window.AppWindowManager = originalAppWindowManager;
     window.navigator.mozSettings = originalMozSettings;
     window.MockNavigatorSettings.mTeardown();
     stubById.restore();
   });
+
+  test('Should register unlock/lock request to System', function() {
+    var stubRegister = this.sinon.stub(MockSystem, 'register');
+    window.lockScreenWindowManager.start();
+    assert.isTrue(stubRegister.calledWith('lock',
+      window.lockScreenWindowManager));
+    assert.isTrue(stubRegister.calledWith('unlock',
+      window.lockScreenWindowManager));
+  });
+
+  test('Should bypass lockscreen-request-unlock when unlock is called',
+    function() {
+      var stubPublish =
+        this.sinon.stub(window.lockScreenWindowManager, 'publish');
+      var detail = {};
+      window.lockScreenWindowManager.unlock(detail);
+      assert.isTrue(
+        stubPublish.calledWith('lockscreen-request-unlock', detail));
+    });
 
   suite('Handle events', function() {
     test('It should stop home event to propagate', function() {
@@ -212,9 +229,6 @@ suite('system/LockScreenWindowManager', function() {
       var evt = { type: 'lockscreen-request-unlock' },
           stubCloseApp = this.sinon.stub(window.lockScreenWindowManager,
             'closeApp');
-      this.sinon.stub(window.AppWindowManager, 'getActiveApp', function() {
-        return null;
-      });
       window.lockScreenWindowManager.handleEvent(evt);
       assert.isTrue(stubCloseApp.called,
         'it did\'t close the window while unlock request arrive');

@@ -154,7 +154,8 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     return;
   }
 
-  Voicemail.check(number, function(isVoicemailNumber) {
+  Voicemail.check(number, this.call.serviceId).then(
+  function(isVoicemailNumber) {
     if (isVoicemailNumber) {
       LazyL10n.get(function localized(_) {
         node.textContent = _('voiceMail');
@@ -266,6 +267,8 @@ HandledCall.prototype.formatPhoneNumber =
       scenario, this.numberNode, false, ellipsisSide);
     if (this.node.classList.contains('additionalInfo')) {
       FontSizeManager.ensureFixedBaseline(scenario, this.numberNode);
+    } else {
+      FontSizeManager.resetFixedBaseline(this.numberNode);
     }
 };
 

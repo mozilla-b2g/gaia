@@ -2,12 +2,12 @@
           MockNavigatorMozTelephony, AboutMoreInfo */
 'use strict';
 
-requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mocks_helper.js');
 requireApp('settings/js/about_more_info.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('about >', function() {
   var realL10n, realMobileConnections, realTelephony;

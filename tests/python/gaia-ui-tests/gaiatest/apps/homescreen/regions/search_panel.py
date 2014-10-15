@@ -6,6 +6,7 @@ from marionette.by import By
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
+import urllib
 
 
 class SearchPanel(Base):
@@ -35,7 +36,7 @@ class SearchPanel(Base):
 
         self.wait_for_condition(lambda m: self.keyboard.is_keyboard_displayed)
         self.keyboard.tap_enter()
-        self.wait_for_condition(lambda m: url in self.apps.displayed_app.name)
+        self.wait_for_condition(lambda m: urllib.quote(url, safe=':/?=') in self.apps.displayed_app.name)
 
         from gaiatest.apps.search.regions.browser import Browser
         return Browser(self.marionette)

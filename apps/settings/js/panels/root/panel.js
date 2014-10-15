@@ -3,6 +3,7 @@ define(function(require) {
 
   var SettingsPanel = require('modules/settings_panel');
   var Root = require('panels/root/root');
+  var BluetoothItem = require('panels/root/bluetooth_item');
   var NFCItem = require('panels/root/nfc_item');
   var LanguageItem = require('panels/root/language_item');
   var BatteryItem = require('panels/root/battery_item');
@@ -11,10 +12,12 @@ define(function(require) {
   var StorageAppItem = require('panels/root/storage_app_item');
   var WifiItem = require('panels/root/wifi_item');
   var ScreenLockItem = require('panels/root/screen_lock_item');
+  var SimSecurityItem = require('panels/root/sim_security_item');
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
 
   return function ctor_root_panel() {
     var root = Root();
+    var bluetoothItem;
     var nfcItem;
     var languageItem;
     var batteryItem;
@@ -23,11 +26,13 @@ define(function(require) {
     var storageAppItem;
     var wifiItem;
     var screenLockItem;
+    var simSecurityItem;
     var airplaneModeItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
         root.init();
+        bluetoothItem = BluetoothItem(panel.querySelector('.bluetooth-desc'));
         nfcItem = NFCItem(panel.querySelector('.nfc-settings'));
         languageItem = LanguageItem(panel.querySelector('.language-desc'));
         batteryItem = BatteryItem(panel.querySelector('.battery-desc'));
@@ -50,8 +55,11 @@ define(function(require) {
           ScreenLockItem(panel.querySelector('.screenLock-desc'));
         airplaneModeItem =
           AirplaneModeItem(panel.querySelector('.airplaneMode-input'));
+        simSecurityItem =
+          SimSecurityItem(panel.querySelector('.simCardLock-desc'));
       },
       onBeforeShow: function rp_onBeforeShow() {
+        bluetoothItem.enabled = true;
         languageItem.enabled = true;
         batteryItem.enabled = true;
         findMyDeviceItem.enabled = true;
@@ -59,6 +67,7 @@ define(function(require) {
         storageAppItem.enabled = true;
         wifiItem.enabled = true;
         screenLockItem.enabled = true;
+        simSecurityItem.enabled = true;
         airplaneModeItem.enabled = true;
       },
       onShow: function rp_onShow() {
@@ -69,6 +78,7 @@ define(function(require) {
         document.body.dataset.ready = true;
       },
       onHide: function rp_onHide() {
+        bluetoothItem.enabled = false;
         languageItem.enabled = false;
         batteryItem.enabled = false;
         findMyDeviceItem.enabled = false;
@@ -76,6 +86,7 @@ define(function(require) {
         storageAppItem.enabled = false;
         wifiItem.enabled = false;
         screenLockItem.enabled = false;
+        simSecurityItem.enabled = false;
         airplaneModeItem.enabled = false;
       }
     });

@@ -1,7 +1,7 @@
 /* globals CallsHandler, FontSizeManager, HandledCall, MockCall, MockCallScreen,
            MockCallsHandler, MockContactPhotoHelper, MockContacts,
            MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
-           MockNavigatorSettings, MocksHelper, MockUtils, Voicemail,
+           MockNavigatorSettings, MocksHelper, MockUtils, MockVoicemail,
            AudioCompetingHelper, MockTonePlayer */
 
 'use strict';
@@ -19,10 +19,10 @@ require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
+require('/shared/test/unit/mocks/mock_voicemail.js');
 
 require('/js/audio_competing_helper.js');
 require('/js/handled_call.js');
-require('/shared/js/dialer/voicemail.js');
 
 var mocksHelperForHandledCall = new MocksHelper([
   'Audio',
@@ -35,7 +35,8 @@ var mocksHelperForHandledCall = new MocksHelper([
   'LazyL10n',
   'ContactPhotoHelper',
   'TonePlayer',
-  'FontSizeManager'
+  'FontSizeManager',
+  'Voicemail'
 ]).init();
 
 suite('dialer/handled_call', function() {
@@ -68,14 +69,6 @@ suite('dialer/handled_call', function() {
 
     phoneNumber = Math.floor(Math.random() * 10000);
 
-    sinon.stub(Voicemail, 'check', function(number, callback) {
-      var isVoicemailNumber = false;
-      if (number === VOICEMAIL_NUMBER) {
-        isVoicemailNumber = true;
-      }
-      callback(isVoicemailNumber);
-    });
-
     templates = document.createElement('div');
     templates.innerHTML = '<section id="handled-call-template" hidden>' +
                             '<div class="numberWrapper">' +
@@ -100,7 +93,6 @@ suite('dialer/handled_call', function() {
 
   suiteTeardown(function() {
     templates.parentNode.removeChild(templates);
-    Voicemail.check.restore();
     navigator.mozSettings = realNavigatorSettings;
     navigator.mozIccManager = realMozIccManager;
     navigator.mozL10n = realMozL10n;
@@ -118,6 +110,7 @@ suite('dialer/handled_call', function() {
 
     mockCall = new MockCall(String(phoneNumber), 'dialing');
     subject = new HandledCall(mockCall);
+    MockVoicemail.mResolvePromise(false);
 
     AudioCompetingHelper.init('test');
     document.body.appendChild(subject.node);
@@ -258,6 +251,7 @@ suite('dialer/handled_call', function() {
         contactLookupSpy = this.sinon.spy(MockContacts, 'findByNumber');
         mockCall = new MockCall(String(phoneNumber), 'dialing');
         subject = new HandledCall(mockCall);
+        MockVoicemail.mResolvePromise(false);
       });
 
       test('should display the icc call message', function() {
@@ -549,6 +543,7 @@ suite('dialer/handled_call', function() {
   test('should display contact name', function() {
     mockCall = new MockCall('888', 'incoming');
     subject = new HandledCall(mockCall);
+    MockVoicemail.mResolvePromise(false);
 
     assert.equal(subject.numberNode.textContent, 'test name');
   });
@@ -591,8 +586,9 @@ suite('dialer/handled_call', function() {
   });
 
   test('should display voicemail label', function() {
-    mockCall = new MockCall('123', 'dialing');
+    mockCall = new MockCall(VOICEMAIL_NUMBER, 'dialing');
     subject = new HandledCall(mockCall);
+    MockVoicemail.mResolvePromise(true);
 
     assert.equal(subject.numberNode.textContent, 'voiceMail');
   });
@@ -601,6 +597,7 @@ suite('dialer/handled_call', function() {
     test('check additional info updated', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
+      MockVoicemail.mResolvePromise(false);
       assert.equal(subject.additionalInfoNode.textContent, 'type, 888');
     });
 
@@ -674,6 +671,7 @@ suite('dialer/handled_call', function() {
     test('should ensureFixedBaseline with a contact', function() {
       mockCall = new MockCall('888', 'dialing');
       subject = new HandledCall(mockCall);
+      MockVoicemail.mResolvePromise(false);
       this.sinon.spy(FontSizeManager, 'ensureFixedBaseline');
       subject.formatPhoneNumber('end');
       sinon.assert.calledWith(
@@ -683,12 +681,13 @@ suite('dialer/handled_call', function() {
       );
     });
 
-    test('should not ensureFixedBaseline without a contact', function() {
+    test('should call resetFixedBaseline without a contact', function() {
       mockCall = new MockCall('111', 'dialing');
       subject = new HandledCall(mockCall);
-      this.sinon.spy(FontSizeManager, 'ensureFixedBaseline');
+      this.sinon.spy(FontSizeManager, 'resetFixedBaseline');
       subject.formatPhoneNumber('end');
-      sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
+      sinon.assert.calledWith(
+        FontSizeManager.resetFixedBaseline, subject.numberNode);
     });
 
     test('check replace number', function() {
@@ -702,6 +701,7 @@ suite('dialer/handled_call', function() {
     test('check restore number', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
+      MockVoicemail.mResolvePromise(false);
 
       subject.replacePhoneNumber('12345678');
       subject.restorePhoneNumber();
@@ -717,8 +717,9 @@ suite('dialer/handled_call', function() {
     });
 
    test('check restore voicemail number', function() {
-      mockCall = new MockCall('123', 'incoming');
+      mockCall = new MockCall(VOICEMAIL_NUMBER, 'incoming');
       subject = new HandledCall(mockCall);
+      MockVoicemail.mResolvePromise(true);
 
       subject.restorePhoneNumber();
       assert.equal(subject.numberNode.textContent, 'voiceMail');

@@ -6,7 +6,7 @@ suite('Languages > ', function() {
   var realL10n;
 
   var modules = [
-    'unit/mock_l10n',
+    'shared_mocks/mock_l10n',
     'shared_mocks/mock_keyboard_helper',
     'panels/languages/languages'
   ];

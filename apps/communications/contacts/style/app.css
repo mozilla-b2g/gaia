@@ -434,6 +434,7 @@ li button.icon-find-and-merge:before {
   border: 1px solid #c7c7c7;
   background-color: #fff;
   border-radius: 7rem;
+  -moz-box-sizing: border-box;
 }
 
 .fillflow-media:active {
@@ -449,10 +450,11 @@ li button.icon-find-and-merge:before {
   position: absolute;
   margin:0;
   padding:0;
-  left:0;
+  left: -1.5rem;
   top: 2rem;
   text-align: center;
   z-index: -1;
+  width: 10rem;
 }
 
 .fillflow-media p em {
@@ -462,6 +464,8 @@ li button.icon-find-and-merge:before {
   font-weight: normal;
   font-style: italic;
   margin-top: 1.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .fillflow-media .edit-photo {
@@ -487,7 +491,6 @@ li button.icon-find-and-merge:before {
   width: 100%;
   height: 100%;
   background: none;
-  margin: inherit;
   line-height: inherit;
   padding: 0;
 }
@@ -502,6 +505,10 @@ li button.icon-find-and-merge:before {
 /* We don't need a delete button on the first section */
 .fillflow-media .img-delete-button {
   display: none;
+}
+
+#thumbnail-action {
+  margin: 0 1.5rem 0.5rem 1.5rem;
 }
 
 /* JUMPER */

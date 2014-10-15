@@ -2,6 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
+/* global CostControl, softwareButtonManager */
 
 var UtilityTray = {
   shown: false,
@@ -11,9 +12,6 @@ var UtilityTray = {
   overlay: document.getElementById('utility-tray'),
 
   notifications: document.getElementById('utility-tray-notifications'),
-
-  notificationsPlaceholder:
-    document.getElementById('notifications-placeholder'),
 
   statusbar: document.getElementById('statusbar'),
 
@@ -75,7 +73,10 @@ var UtilityTray = {
     window.addEventListener('software-button-disabled', this);
 
     if (window.navigator.mozMobileConnections) {
-      window.LazyLoader.load('js/cost_control.js');
+      window.LazyLoader.load('js/cost_control.js', function() {
+        this.costControl = new CostControl();
+        this.costControl.start();
+      }.bind(this));
     }
   },
 
@@ -89,7 +90,6 @@ var UtilityTray = {
   screenWidth: 0,
   screenHeight: 0,
   grippyHeight: 0,
-  placeholderHeight: 0,
 
   handleEvent: function ut_handleEvent(evt) {
     var target = evt.target;
@@ -200,8 +200,6 @@ var UtilityTray = {
           return;
         }
 
-        this.active = false;
-
         this.onTouchEnd(touch);
         break;
 
@@ -218,14 +216,11 @@ var UtilityTray = {
       case 'transitionend':
         if (!this.shown) {
           this.screen.classList.remove('utility-tray');
-          this.notifications.classList.remove('visible');
         }
         break;
 
       case 'resize':
         this.validateCachedSizes(true);
-        if (this.shown)
-          this.updateSize();
         break;
 
       case 'mozChromeEvent':
@@ -262,14 +257,13 @@ var UtilityTray = {
     if (refresh || !this.grippyHeight) {
       this.grippyHeight = this.grippy.clientHeight || 0;
     }
-
-    if (refresh || !this.placeholderHeight) {
-      this.placeholderHeight = this.notificationsPlaceholder.clientHeight || 0;
-      this.notifications.style.height = this.placeholderHeight + 'px';
-    }
   },
 
   onTouchStart: function ut_onTouchStart(touch) {
+    if (this.active) {
+      return;
+    }
+
     this.validateCachedSizes();
     this.active = true;
     this.startY = touch.pageY;
@@ -277,7 +271,7 @@ var UtilityTray = {
       // If the active app was tracking touches it won't get any more events
       // because of the pointer-events:none we're adding.
       // Sending a touchcancel accordingly.
-      var app = AppWindowManager.getActiveApp();
+      var app = System.currentApp;
       if (app && app.config && app.config.oop) {
         app.iframe.sendTouchEvent('touchcancel', [touch.identifier],
                                   [touch.pageX], [touch.pageY],
@@ -289,6 +283,12 @@ var UtilityTray = {
     this.isTap = true;
 
     window.dispatchEvent(new CustomEvent('utility-tray-overlayopening'));
+
+    if (this.shown) {
+      window.dispatchEvent(new CustomEvent('utilitytraywillhide'));
+    } else {
+      window.dispatchEvent(new CustomEvent('utilitytraywillshow'));
+    }
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
@@ -308,7 +308,6 @@ var UtilityTray = {
     if (dy > 5) {
       this.isTap = false;
       this.screen.classList.add('utility-tray');
-      this.notifications.classList.add('visible');
     }
 
     if (this.shown) {
@@ -321,9 +320,9 @@ var UtilityTray = {
     style.MozTransform = 'translateY(' + dy + 'px)';
 
     this.notifications.style.transition = '';
-    var notificationBottom = Math.max(0, dy - this.grippyHeight);
-    this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
+    this.notifications.style.transform =
+      'translateY(' + (window.innerHeight - dy - 30 /* StatusBar */ -
+      softwareButtonManager.height) + 'px)';
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {
@@ -349,33 +348,32 @@ var UtilityTray = {
       });
     }
 
+    this.active = false;
     this.startY = undefined;
     this.lastDelta = undefined;
     this.isTap = false;
   },
 
   hide: function ut_hide(instant) {
+    if (!this.active) {
+      window.dispatchEvent(new CustomEvent('utilitytraywillhide'));
+    }
+
     this.validateCachedSizes();
     var alreadyHidden = !this.shown;
     var style = this.overlay.style;
 
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-
-    var notificationClipOffset =
-      this.notifications.offsetTop + this.statusbar.clientHeight;
-    this.notifications.style.transition = instant ? '' : 'clip 0.2s linear';
-    this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px,' + (-notificationClipOffset) +
-      'px, 0)';
+    this.notifications.style.transition = style.MozTransition;
 
     // If the transition has not started yet there won't be any transitionend
     // event so let's not wait in order to remove the utility-tray class.
     if (instant || style.MozTransform === '') {
       this.screen.classList.remove('utility-tray');
-      this.notifications.classList.remove('visible');
     }
 
     style.MozTransform = '';
+    this.notifications.style.transform = 'translateY(100%)';
     this.shown = false;
     window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
 
@@ -386,18 +384,18 @@ var UtilityTray = {
     }
   },
 
-  show: function ut_show(dy) {
+  show: function ut_show(instant) {
     this.validateCachedSizes();
-    this.updateSize();
     var alreadyShown = this.shown;
     var style = this.overlay.style;
-    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(100%)';
+    this.notifications.style.transition =
+      instant ? '' : 'transform 0.2s linear';
+    this.notifications.style.transform = '';
 
     this.shown = true;
     this.screen.classList.add('utility-tray');
-    this.notifications.classList.add('visible');
-    this.notifications.style.transition = 'clip 0.2s linear';
     window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
 
     if (!alreadyShown) {
@@ -413,13 +411,6 @@ var UtilityTray = {
       'statusbarNotifications', {
         n: count
       });
-  },
-
-  updateSize: function ut_updateSize() {
-    this.notifications.style.height = this.placeholderHeight + 'px';
-    var notificationBottom = Math.max(0, this.screenHeight - this.grippyHeight);
-    this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
   },
 
   _pdIMESwitcherShow: function ut_pdIMESwitcherShow(evt) {

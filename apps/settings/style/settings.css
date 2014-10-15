@@ -105,16 +105,7 @@ section[role="region"] > div {
 
 gaia-header a:first-child,
 gaia-header button:first-child {
-  color: var(--header-nav-button-color) !important;
-}
-
-/**
- * :active
- */
-
-gaia-header a:first-child:active,
-gaia-header button:first-child:active {
-  color: var(--header-nav-button-color-active) !important;
+  color: var(--header-action-button-color) !important;
 }
 
 /*
@@ -591,7 +582,7 @@ section ul.operate-certificate {
  * Sound settings
  */
 
-#manage-tones-button {
+.manage-tones-button {
   padding-left: 3rem;
 }
 

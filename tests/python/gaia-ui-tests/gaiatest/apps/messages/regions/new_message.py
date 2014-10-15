@@ -32,8 +32,7 @@ class NewMessage(Messages):
     def type_phone_number(self, value):
         # tap on the parent element to activate editable
         self.marionette.find_element(*self._recipient_section_locator).tap()
-        contact_field = self.marionette.find_element(*self._receiver_input_locator)
-        contact_field.send_keys(value)
+        self.keyboard.send(value)
 
     def type_message(self, value):
         # change the focus to the message field to enable the send button
@@ -41,6 +40,11 @@ class NewMessage(Messages):
         message_field = self.marionette.find_element(*self._message_field_locator)
         message_field.tap()
         self.keyboard.send(value)
+
+    def tap_message(self):
+        self.wait_for_element_displayed(*self._message_field_locator)
+        message_field = self.marionette.find_element(*self._message_field_locator)
+        message_field.tap()
 
     def tap_send(self, timeout=120):
         self.wait_for_condition(lambda m: m.find_element(*self._send_message_button_locator).is_enabled())
@@ -78,6 +82,11 @@ class NewMessage(Messages):
     def first_recipient_name(self):
         self.wait_for_element_displayed(*self._receiver_input_locator)
         return self.marionette.find_element(*self._receiver_input_locator).text
+
+    @property
+    def number_of_recipients(self):
+        # we need to subtract one as the last element is the current editable element
+        return len(self.marionette.find_elements(*self._receiver_input_locator)) - 1
 
     @property
     def recipient_css_class(self):

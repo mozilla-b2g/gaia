@@ -1,5 +1,4 @@
-(function(define){'use strict';define(function(require,exports,module){
-/*globals define,exports,module,require*/
+;(function(define){'use strict';define(function(require,exports,module){
 
   /**
    * Utility functions for measuring and manipulating font sizes
@@ -331,7 +330,7 @@
 
   module.exports = GaiaHeaderFontFit;
 
-});})((function(n,w){'use strict';return typeof define=='function'&&define.amd?
-define:typeof module=='object'?function(c){c(require,exports,module);}:
-function(c){var m={exports:{}},r=function(n){return w[n];};
-w[n]=c(r,m.exports,m)||m.exports;};})('./lib/font-fit',this));
+});})(typeof define=='function'&&define.amd?define
+:(function(n,w){'use strict';return typeof module=='object'?function(c){
+c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
+return w[n];},m.exports,m);w[n]=m.exports;};})('./lib/font-fit',this));

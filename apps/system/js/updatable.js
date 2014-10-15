@@ -75,8 +75,8 @@ AppUpdatable.prototype.availableCallBack = function() {
 
 AppUpdatable.prototype.successCallBack = function() {
   var app = this.app;
-  if (AppWindowManager.getActiveApp() &&
-      AppWindowManager.getActiveApp().origin !== app.origin) {
+  if (System.currentApp &&
+      System.currentApp.origin !== app.origin) {
     this.applyUpdate();
   } else {
     var self = this;
@@ -92,7 +92,7 @@ AppUpdatable.prototype.successCallBack = function() {
 };
 
 AppUpdatable.prototype.applyUpdate = function() {
-  AppWindowManager.kill(this.app.origin);
+  appWindowManager.kill(this.app.origin);
   this._mgmt.applyDownload(this.app);
 };
 
@@ -328,6 +328,20 @@ SystemUpdatable.prototype.declineInstallWait = function() {
 
 SystemUpdatable.prototype.acceptInstall = function() {
   CustomDialog.hide();
+
+  // Display a splash-screen so the user knows an update is being applied
+  var splash = document.createElement('form');
+  splash.id = 'system-update-splash';
+  ['label', 'divider', 'icon'].forEach(function(name) {
+    var child = document.createElement('div');
+    child.id = name;
+    splash.appendChild(child);
+  });
+  splash.firstChild.setAttribute('data-l10n-id', 'systemUpdate');
+
+  var screen = document.getElementById('screen');
+  screen.appendChild(splash);
+
   this._dispatchEvent('update-prompt-apply-result', 'restart');
 };
 

@@ -1,16 +1,13 @@
-/*
-requireLib('utils/ordered_map.js');
-requireLib('templates/day.js');
-requireLib('views/day_based.js');
-requireLib('views/day_child.js');
-*/
-requireLib('template.js');
-requireLib('templates/date_span.js');
-requireLib('timespan.js');
+define(function(require) {
+'use strict';
 
-suiteGroup('Views.DayChild', function() {
-  'use strict';
+var DayBased = require('views/day_based');
+var DayChild = require('views/day_child');
+var DayTemplate = require('templates/day');
+var Factory = require('test/support/factory');
+var View = require('view');
 
+suite('Views.DayChild', function() {
   var subject;
   var app;
   var db;
@@ -24,19 +21,14 @@ suiteGroup('Views.DayChild', function() {
     db = app.db;
     controller = app.timeController;
     events = app.store('Event');
-
-    subject = new Calendar.Views.DayChild({
-      app: app,
-      date: viewDate
-    });
-
-    template = Calendar.Templates.Day;
+    subject = new DayChild({ app: app, date: viewDate });
+    template = DayTemplate;
   });
 
   test('initialization', function() {
     assert.equal(subject.controller, controller);
-    assert.instanceOf(subject, Calendar.View);
-    assert.instanceOf(subject, Calendar.Views.DayBased);
+    assert.instanceOf(subject, View);
+    assert.instanceOf(subject, DayBased);
     assert.equal(subject._changeToken, 0);
   });
 
@@ -91,7 +83,6 @@ suiteGroup('Views.DayChild', function() {
 
     var result = subject._renderEvent(busytime, event);
     assert.ok(result);
-
     assert.ok(result.indexOf('icon-calendar-alarm') === -1);
   });
 
@@ -107,7 +98,8 @@ suiteGroup('Views.DayChild', function() {
 
     var result = subject._renderEvent(busytime, event);
     assert.ok(result);
-
     assert.include(result, '|rendercheck|');
   });
+});
+
 });

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Home</title>
+
+    <link rel="stylesheet" type="text/css" href="style/home.css">
+
+    <script src="shared/js/l10n.js"></script>
+
+    <!-- L10n properties -->
+    <link rel="manifest" href="manifest.webapp"/>
+    <link rel="localization" href="locales/home.{locale}.properties"/>
+    <link rel="localization" href="shared/locales/date/date.{locale}.properties"/>
+  </head>
+
+  <body>
+    <article role="region" class="skin-dark" id="main-section">
+      <section id="clock">
+        <span id="time">10:30</span><span id="day-period" data-l10n-id="time_am">am</span>
+      </section>
+      <section id="search">
+        <div id="search-container" role="button">
+          <input id="search-input" type="text" role="presentation" placeholder="I'm thinking of..."></input>
+        </div>
+      </section>
+
+      <section id="card-viewer">
+        <div id="card-list-frame">
+          <div id="card-list">
+            <div class="card">
+              <div class="card-thumbnail"></div>
+              <div class="card-description">This is a card</div>
+            </div>
+            <div class="card">
+              <div class="card-thumbnail"></div>
+              <div class="card-description">This is a card</div>
+            </div>
+            <div class="card">
+              <div class="card-thumbnail"></div>
+              <div class="card-description">This is a card</div>
+            </div>
+            <div class="card">
+              <div class="card-thumbnail"></div>
+              <div class="card-description">This is a card</div>
+            </div>
+            <div class="card">
+              <div class="card-thumbnail"></div>
+              <div class="card-description">This is a card</div>
+            </div>
+            <div class="card">
+              <div class="card-thumbnail"></div>
+              <div class="card-description">This is a card</div>
+            </div>
+            <div class="card">
+              <div class="card-thumbnail"></div>
+              <div class="card-description">This is a card</div>
+            </div>
+            <div class="card">
+              <div class="card-thumbnail"></div>
+              <div class="card-description">This is a card</div>
+            </div>
+            <div class="card">
+              <div class="card-thumbnail"></div>
+              <div class="card-description">This is a card</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="filter-tab-container">
+        <div class="filter-tab" data-l10n-id="all">all</div>
+        <div class="filter-tab" data-l10n-id="dash">dash</div>
+        <div class="filter-tab" data-l10n-id="tv">tv</div>
+        <div class="filter-tab" data-l10n-id="device">device</div>
+        <div class="filter-tab" data-l10n-id="app">app</div>
+      </section>
+      <section id="commands">
+        <div class="command-button" data-l10n-id="edit">edit</div>
+        <div class="command-button" data-l10n-id="settings">settings</div>
+      </section>
+    </article>
+  </body>
+
+</html>

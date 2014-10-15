@@ -1,3 +1,5 @@
+'use strict';
+
 function System(client) {
   this.client = client.scope({
     searchTimeout: 20000
@@ -23,16 +25,19 @@ System.Selector = Object.freeze({
   appChromeReloadButton: '.appWindow.active .controls .reload-button',
   appChromeWindowsButton: '.appWindow.active .controls .windows-button',
   browserWindow: '.appWindow.browser',
+  sleepMenuContainer: '#sleep-menu-container',
   softwareButtons: '#software-buttons',
   softwareHome: '#software-home-button',
   softwareHomeFullscreen: '#fullscreen-software-home-button',
   softwareHomeFullscreenLayout: '#software-buttons-fullscreen-layout',
   statusbar: '#statusbar',
   statusbarLabel: '#statusbar-label',
+  systemBanner: '.banner.generic-dialog',
   topPanel: '#top-panel',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
-  utilityTray: '#utility-tray'
+  utilityTray: '#utility-tray',
+  visibleForm: '#screen > form.visible'
 });
 
 System.prototype = {
@@ -94,6 +99,11 @@ System.prototype = {
       System.Selector.appChromeReloadButton);
   },
 
+  get sleepMenuContainer() {
+    return this.client.helper.waitForElement(
+      System.Selector.sleepMenuContainer);
+  },
+
   get softwareButtons() {
     return this.client.findElement(System.Selector.softwareButtons);
   },
@@ -119,6 +129,10 @@ System.prototype = {
     return this.client.findElement(System.Selector.statusbarLabel);
   },
 
+  get systemBanner() {
+    return this.client.helper.waitForElement(System.Selector.systemBanner);
+  },
+
   get utilityTray() {
     return this.client.findElement(System.Selector.utilityTray);
   },
@@ -135,6 +149,10 @@ System.prototype = {
     return this.client.findElement(System.Selector.rightPanel);
   },
 
+  get visibleForm() {
+    return this.client.findElement(System.Selector.visibleForm);
+  },
+
   getAppIframe: function(url) {
     return this.client.findElement('iframe[src*="' + url + '"]');
   },
@@ -145,7 +163,7 @@ System.prototype = {
    * allows us to try to click all of them.
    */
   clickSoftwareHomeButton: function() {
-    var body = client.findElement('body');
+    var body = this.client.findElement('body');
     var screenSize = body.scriptWith(function(el) {
       return el.getBoundingClientRect();
     });
@@ -209,5 +227,17 @@ System.prototype = {
     this.client.executeScript(function() {
       window.wrappedJSObject.developerHUD.stop();
     });
+  },
+
+  // It looks for an activity menu, and returns the first
+  // button element which includes with str
+  getActivityOptionMatching: function(str) {
+    var activityMenuSelector = System.Selector.visibleForm + ' button.icon';
+    var options = this.client.findElements(activityMenuSelector);
+    for (var i = 0; i < options.length; i++) {
+      if (options[i].getAttribute('style').indexOf(str) > 1) {
+        return options[i];
+      }
+    }
   }
 };

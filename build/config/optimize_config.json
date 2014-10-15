@@ -3,7 +3,6 @@
     "pdfjs": "*"
   },
   "JS_AGGREGATION_BLACKLIST": {
-    "system": "*"
   },
   "INLINE_GLOBAL_VAR_WHITELIST": {
     "system": [ "net_error.html" ]

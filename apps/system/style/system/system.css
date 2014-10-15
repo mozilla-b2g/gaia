@@ -275,11 +275,6 @@ body {
   pointer-events: none;
 }
 
-#screen.software-button-enabled #windows + #dialog-overlay {
-  bottom: var(--software-home-button-height);
-  height: calc(100% - var(--statusbar-height) - var(--software-home-button-height));
-}
-
 #screen.active-statusbar #dialog-overlay,
 #screen.active-statusbar.fullscreen-app #dialog-overlay {
   top: 4rem;

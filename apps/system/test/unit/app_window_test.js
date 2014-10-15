@@ -598,11 +598,14 @@ suite('system/AppWindow', function() {
   });
 
   suite('ScreenshotOverlay State Control', function() {
-    test('when cards view is shown and hidden', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
+    var app1;
+    setup(function() {
+      app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
+    });
 
+    test('when cards view is shown and hidden', function() {
       app1.element.dispatchEvent(new CustomEvent('_cardviewbeforeshow'));
       assert.isTrue(app1.screenshotOverlay.classList.contains('visible'),
                     'Overlay should be visible after beforeshow is received');
@@ -612,24 +615,20 @@ suite('system/AppWindow', function() {
                      'Overlay should be hidden after closed is received');
     });
 
-    test('when sheets-gesture-begin and end are received', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      // Inject mozBrowser API to app iframe
-      injectFakeMozBrowserAPI(app1.browser.element);
-
-      app1.element.dispatchEvent(new CustomEvent('_sheetsgesturebegin'));
+    test('show overlay when revealed by an edge swipe', function() {
+      app1.screenshotOverlay.classList.remove('visible');
+      app1.element.dispatchEvent(new CustomEvent('_sheetdisplayed'));
       assert.isTrue(app1.screenshotOverlay.classList.contains('visible'),
-                    'Overlay should be visible after _sheets-gesture-begin');
+                    'Overlay should be visible after sheetdisplayed');
+    });
 
+    test('hide overlay when a sheet gesture ends', function() {
+      app1.screenshotOverlay.classList.add('visible');
       app1.element.dispatchEvent(new CustomEvent('_sheetsgestureend'));
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
     });
 
     test('showScreenshotOverlay', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      // Inject mozBrowser API to app iframe
-      injectFakeMozBrowserAPI(app1.browser.element);
-
       var stubRequestScreenshotURL =
         this.sinon.stub(app1, 'requestScreenshotURL');
       app1._showScreenshotOverlay();
@@ -638,10 +637,6 @@ suite('system/AppWindow', function() {
     });
 
     test('hideScreenshotOverlay', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      // Inject mozBrowser API to app iframe
-      injectFakeMozBrowserAPI(app1.browser.element);
-
       app1.screenshotOverlay.classList.add('visible');
       app1.identificationOverlay.classList.add('visible');
       app1._hideScreenshotOverlay();
@@ -654,10 +649,6 @@ suite('system/AppWindow', function() {
 
     test('hideScreenshotOverlay noop when the screenshot is not displayed',
     function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      // Inject mozBrowser API to app iframe
-      injectFakeMozBrowserAPI(app1.browser.element);
-
       app1._screenshotOverlayState = 'none';
       app1.screenshotOverlay.classList.remove('visible');
       app1.identificationOverlay.classList.add('visible');
@@ -668,7 +659,6 @@ suite('system/AppWindow', function() {
     });
 
     test('Request screenshotURL', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
       assert.isNull(app1.requestScreenshotURL());
       var stubCreateObjectURL = this.sinon.stub(URL, 'createObjectURL');
       var stubRevokeObjectURL = this.sinon.stub(URL, 'revokeObjectURL');
@@ -684,9 +674,6 @@ suite('system/AppWindow', function() {
     });
 
     test('Show identification overlay when showing screenshot', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      // Inject mozBrowser API to app iframe
-      injectFakeMozBrowserAPI(app1.browser.element);
       app1._showScreenshotOverlay();
       assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
     });
@@ -1135,16 +1122,24 @@ suite('system/AppWindow', function() {
     test('setVisibleForScreenReader: false', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
+      var spy = this.sinon.spy(app1, '_setActive');
 
       app1.setVisibleForScreenReader(false);
+
       assert.equal(app1.element.getAttribute('aria-hidden'), 'true');
+      assert.isTrue(spy.calledOnce);
+      assert.isTrue(spy.calledWith(false));
     });
     test('setVisibleForScreenReader: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
+      var spy = this.sinon.spy(app1, '_setActive');
 
       app1.setVisibleForScreenReader(true);
+
       assert.equal(app1.element.getAttribute('aria-hidden'), 'false');
+      assert.isTrue(spy.calledOnce);
+      assert.isTrue(spy.calledWith(true));
     });
   });
 
@@ -1602,6 +1597,28 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
       assert.isTrue(stubPublish.calledWithExactly('namechanged'));
       assert.equal(app1.identificationTitle.textContent, 'Mon Application');
+    });
+
+    test('focus event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubFocus = this.sinon.stub(app1, 'focus');
+
+      app1.handleEvent({
+        type: '_focus'
+      });
+
+      assert.isTrue(stubFocus.calledOnce);
+    });
+
+    test('blur event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubBlur = this.sinon.stub(app1, 'blur');
+
+      app1.handleEvent({
+        type: '_blur'
+      });
+
+      assert.isTrue(stubBlur.calledOnce);
     });
 
     test('Titilechange event', function() {

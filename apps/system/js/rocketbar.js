@@ -1,5 +1,5 @@
 'use strict';
-/* global AppWindowManager, SearchWindow, places */
+/* global System, SearchWindow, places */
 
 (function(exports) {
 
@@ -260,7 +260,7 @@
         case 'global-search-request':
           // XXX: fix the WindowManager coupling
           // but currently the transition sequence is crucial for performance
-          var app = AppWindowManager.getActiveApp();
+          var app = System.currentApp;
 
           // If the app is not a browser, retain the search value and activate.
           if (app && !app.isBrowser()) {

@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals NfcUtils, AppWindowManager, MockNfc, MocksHelper */
+/* globals NfcUtils, MockAppWindowManager, MockNfc, MocksHelper */
 require('/shared/js/utilities.js');
 require('/shared/js/nfc_utils.js');
 require('/shared/test/unit/mocks/mock_system.js');
@@ -25,8 +25,9 @@ suite('System Browser Nfc Handler tests', function() {
     nfcUtils = new NfcUtils();
     realMozNfc = window.navigator.mozNfc;
     window.navigator.mozNfc = MockNfc;
+    window.appWindowManager = new MockAppWindowManager();
     requireApp('system/js/nfc_handler.js', function() {
-      nfcHandler = new window.NfcHandler(AppWindowManager);
+      nfcHandler = new window.NfcHandler(window.appWindowManager);
       nfcHandler.start();
       done();
     });
@@ -37,7 +38,7 @@ suite('System Browser Nfc Handler tests', function() {
   });
 
   test('on peer ready', function() {
-    AppWindowManager.mActiveApp = {
+    window.appWindowManager.mActiveApp = {
       config: { url: 'www.test.com' },
       isBrowser: function() {
         return true;

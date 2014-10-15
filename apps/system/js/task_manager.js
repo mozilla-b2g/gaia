@@ -1,4 +1,4 @@
-/* global Card, AppWindowManager, SettingsListener,
+/* global Card, SettingsListener,
           System, homescreenLauncher, StackManager */
 
 (function(exports) {
@@ -141,7 +141,7 @@
     this.setActive(true);
 
     var screenElement = this.screenElement;
-    var activeApp = AppWindowManager.getActiveApp();
+    var activeApp = System.currentApp;
     if (!activeApp) {
       screenElement.classList.add('cards-view');
       return;
@@ -591,7 +591,7 @@
           filter = (evt.detail && evt.detail.filter) || null;
         }
 
-        app = AppWindowManager.getActiveApp();
+        app = System.currentApp;
         if (app && !app.isHomescreen) {
           app.getScreenshot(function onGettingRealtimeScreenshot() {
             this.show(filter);

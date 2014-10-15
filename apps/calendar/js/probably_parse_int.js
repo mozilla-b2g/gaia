@@ -1,15 +1,12 @@
-(function(exports) {
+define(function(require, exports, module) {
 'use strict';
 
-/**
- * Constants
- */
 var NUMERIC = /^[0-9]+$/;
 
 /**
  * @param {number|string} id Some id.
  */
-exports.probablyParseInt = function(id) {
+module.exports = function(id) {
   // by an unfortunate decision we have both
   // string ids and number ids.. based on the
   // input we run parseInt
@@ -20,4 +17,4 @@ exports.probablyParseInt = function(id) {
   return id;
 };
 
-}(Calendar));
+});

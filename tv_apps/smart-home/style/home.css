@@ -1,0 +1,145 @@
+html {
+  font-size: 10px;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+}
+
+#main-section {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+a {
+  outline: 0;
+}
+
+a:hover, a:active, a:focus {
+  outline: 0;
+}
+
+section {
+  font-size: 1.6rem;
+}
+
+#time {
+  font-size: 4rem;
+}
+
+#clock {
+  position: absolute;
+  left: 2rem;
+  top: 2rem;
+}
+
+#search {
+  position: absolute;
+  width: 100%;
+  top: calc(30% - 4rem);
+  height: 4rem;
+}
+
+#search-input {
+  border: 0;
+  background: none;
+  line-height: 3rem;
+  padding-left: 1rem;
+}
+
+#search-container {
+  border-radius: 2rem;
+  height: 3rem;
+  margin-left: calc(50% - 15rem);
+  margin-right: calc(50% - 15rem);
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  width: 30rem;
+  background: url(images/search.png) no-repeat right 0.5rem center / 2rem,
+              RGBA(0, 0, 0, 0.4);
+
+}
+
+/* Card list */
+#card-viewer {
+  position: absolute;
+  width: 100%;
+  top: 30%;
+  height: 40%;
+  background: RGBA(0, 0, 0, 0.7);
+}
+
+#card-list-frame {
+  position: absolute;
+  top: calc(50% - 12rem);
+  overflow: hidden;
+  width: 100%;
+  height: 24rem;
+}
+
+#card-list {
+  position: relative;
+/* XXX: set width to 1000% for now to verify whether user
+        interface is what we expected */
+  width: 1000%;
+  height: 100%;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+
+.card {
+  float: left;
+  height: 24rem;
+  width: 24rem;
+  margin: 0rem 2rem 0 2rem;
+}
+
+.card-thumbnail {
+  position: absolute;
+  background: white;
+  border-radius: 10rem;
+  width: 20rem;
+  height: 20rem;
+}
+
+.card-description {
+  position: absolute;
+  width: 18rem;
+  bottom: 0;
+  height: 4rem;
+  line-height: 4rem;
+  color: white;
+  text-align: center;
+}
+
+/* Filter tab */
+#filter-tab-container {
+  position: absolute;
+  left: 3rem;
+  bottom: 3rem;
+}
+
+#commands {
+  position: absolute;
+  right: 3rem;
+  bottom: 3rem;
+}
+
+.filter-tab, .command-button {
+  background: #bbb;
+  min-width: 7rem;
+  height: 3rem;
+  border-radius: 3rem;
+  margin-right: 0.5rem;
+  line-height: 3rem;
+  text-align: center;
+  display: inline-block;
+}

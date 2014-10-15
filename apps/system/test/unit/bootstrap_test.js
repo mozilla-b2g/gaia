@@ -3,6 +3,7 @@
          MockApplications, Applications, MockNavigatormozSetMessageHandler,
          MockGetDeviceStorages, MockVersionHelper */
 
+requireApp('system/shared/js/performance_testing_helper.js');
 requireApp('system/shared/js/async_storage.js');
 requireApp('system/shared/js/lazy_loader.js');
 requireApp('system/shared/js/screen_layout.js');
@@ -26,6 +27,8 @@ requireApp('system/js/airplane_mode.js');
 requireApp('system/js/app_migrator.js');
 requireApp('system/js/app_usage_metrics.js');
 requireApp('system/js/app_window_factory.js');
+requireApp('system/js/power_save.js');
+requireApp('system/js/battery_overlay.js');
 requireApp('system/js/browser_settings.js');
 requireApp('system/js/cell_broadcast_system.js');
 requireApp('system/js/devtools/developer_hud.js');
@@ -64,6 +67,7 @@ requireApp('system/js/visibility_manager.js');
 requireApp('system/js/wallpaper_manager.js');
 requireApp('system/js/attention_window_manager.js');
 requireApp('system/js/attention_indicator.js');
+requireApp('system/js/system.js');
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_attention_window.js');
@@ -78,6 +82,7 @@ requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_version_helper.js');
+requireApp('system/js/base_module.js');
 
 var mocksForBootstrap = new MocksHelper([
   'AirplaneMode',

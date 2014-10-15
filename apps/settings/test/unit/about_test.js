@@ -4,13 +4,13 @@
 
 'use strict';
 
-requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mock_navigator_settings.js');
 requireApp('settings/test/unit/mock_settings.js');
 requireApp('settings/test/unit/mocks_helper.js');
 requireApp('settings/js/about.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForAbout = [
   'Settings',

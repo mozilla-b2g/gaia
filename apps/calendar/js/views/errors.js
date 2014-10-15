@@ -1,27 +1,32 @@
-Calendar.ns('Views').Errors = (function() {
-  'use strict';
+define(function(require, exports, module) {
+'use strict';
 
-  function Errors() {
-    Calendar.View.apply(this, arguments);
-    this.app.syncController.on('offline', this);
-  }
+var View = require('view');
 
-  Errors.prototype = {
-    __proto__: Calendar.View.prototype,
+require('dom!errors');
+require('dom!lazy-styles');
 
-    selectors: {
-      status: '*[role="application"] > section[role="status"]',
-      errors: '*[role="application"] > section > .errors'
-    },
+function Errors() {
+  View.apply(this, arguments);
+  this.app.syncController.on('offline', this);
+}
+module.exports = Errors;
 
-    handleEvent: function(event) {
-      switch (event.type) {
-        case 'offline':
-          this.showErrors([{name: 'offline'}]);
-          break;
-      }
+Errors.prototype = {
+  __proto__: View.prototype,
+
+  selectors: {
+    status: '*[role="application"] > section[role="status"]',
+    errors: '*[role="application"] > section > .errors'
+  },
+
+  handleEvent: function(event) {
+    switch (event.type) {
+      case 'offline':
+        this.showErrors([{name: 'offline'}]);
+        break;
     }
-  };
+  }
+};
 
-  return Errors;
-}());
+});

@@ -1,10 +1,10 @@
 /* global MocksHelper,
    AppWindowFactory,
    MockApplications,
-   MockAppWindowManager,
    AppWindow,
    HomescreenLauncher,
-   appWindowFactory
+   appWindowFactory,
+   MockAppWindowManager
  */
 
 'use strict';
@@ -135,6 +135,7 @@ suite('system/AppWindowFactory', function() {
     window.homescreenLauncher = new HomescreenLauncher();
     window.homescreenLauncher.start();
 
+    window.appWindowManager = new MockAppWindowManager();
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window_factory.js', function() {
@@ -247,6 +248,18 @@ suite('system/AppWindowFactory', function() {
       window.appWindowFactory.start();
     });
 
+    test('call event without manifestURL/url', function() {
+      var stubBrowserConfigHelper = this.sinon.stub(window,
+        'BrowserConfigHelper');
+      appWindowFactory.handleEvent({
+        detail: {
+          url: null,
+          manifestURL: null
+        }
+      });
+      assert.isFalse(stubBrowserConfigHelper.calledWithNew());
+    });
+
     test('classic app launch', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       appWindowFactory.handleEvent({
@@ -319,6 +332,17 @@ suite('system/AppWindowFactory', function() {
         fakeLaunchConfig4.url);
     });
 
+    test('webapps-close with search app', function() {
+      var stubPublish = this.sinon.stub(appWindowFactory, 'publish');
+      appWindowFactory.handleEvent({
+        type: 'webapps-close',
+        detail: fakeLaunchConfig5
+      });
+      assert.isTrue(stubPublish.calledOnce);
+      assert.equal(stubPublish.getCall(0).args[0], 'killapp');
+      assert.equal(stubPublish.getCall(0).args[1].url, fakeLaunchConfig5.url);
+    });
+
     test('opening a second activity', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       appWindowFactory.handleEvent({
@@ -341,7 +365,7 @@ suite('system/AppWindowFactory', function() {
     });
 
     test('launch an already-running app', function() {
-      var spy = this.sinon.stub(MockAppWindowManager, 'getApp');
+      var spy = this.sinon.stub(window.appWindowManager, 'getApp');
       var app = new AppWindow();
       var stubReviveBrowser = this.sinon.stub(app, 'reviveBrowser');
       spy.returns(app);

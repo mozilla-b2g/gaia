@@ -1,5 +1,4 @@
-/*global EventEmitter2*/
-(function(exports){
+define(function(require, exports) {
 'use strict';
 
 // Listen for changes on all busytimes inside a given day
@@ -21,22 +20,16 @@
 // instead of knowing how to handle months/weeks. This should increase the
 // flexibility and simplify the development process A LOT.
 
-/**
- * Constants
- */
+
+var Calc = require('calc');
+var EventEmitter2 = require('ext/eventemitter2');
+var debounce = require('utils/mout').debounce;
+
 exports.DISPATCH_DELAY = 50;
 
-/**
- * Module dependencies
- */
-var Calc = Calendar.Calc;
-var debounce = Calendar.Utils.mout.debounce;
 // injected later to avoid circular dependencies
 exports.timeController = null;
 
-/**
- * Module state
- */
 var cachedRecords = {};
 var debouncedEmit = {};
 // emitter is exposed to make testing/mocking easier
@@ -57,13 +50,9 @@ exports.on = function(date, callback) {
       exports.DISPATCH_DELAY
     );
     exports.timeController.observeTime(Calc.spanOfDay(date), dispatch);
-
-    // if there is some busytime cached on the time controller we dispatch
-    // an update to all the listeners
-    var busytimes = getBusytimes(date);
-    if (busytimes.length) {
-      dispatch();
-    }
+    // we need to trigger callbacks to re-render the views if needed,
+    // cachedRecords is only built after first dispatch
+    dispatch();
   } else if (dayId in cachedRecords) {
     // if it is not the first listener and we have some records in memory we
     // should also call the callback
@@ -87,6 +76,9 @@ function stopListening(dayId) {
     Calc.spanOfDay(date),
     debouncedEmit[dayId]
   );
+  // we need to cancel the dispatch otherwise we might trigger a db query
+  // without need (causes error on unit tests)
+  debouncedEmit[dayId].cancel();
   delete debouncedEmit[dayId];
   delete cachedRecords[dayId];
 }
@@ -112,4 +104,4 @@ function getBusytimes(date) {
   return exports.timeController.queryCache(timespan);
 }
 
-}(Calendar.dayObserver = {}));
+});

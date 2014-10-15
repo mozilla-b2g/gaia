@@ -1,9 +1,6 @@
-Calendar.View = (function() {
+define(function(require, exports, module) {
 'use strict';
 
-/**
- * Constants
- */
 var DEFAULT_ERROR_ID = 'error-default';
 const INVALID_CSS = /([^a-zA-Z\-\_0-9])/g;
 
@@ -43,6 +40,7 @@ function View(options) {
 
   this.hideErrors = this.hideErrors.bind(this);
 }
+module.exports = View;
 
 View.ACTIVE = 'active';
 
@@ -246,6 +244,4 @@ View.prototype = {
   onfirstseen: function() {}
 };
 
-return View;
-
-}());
+});

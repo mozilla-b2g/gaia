@@ -398,7 +398,6 @@ var CpScreenHelper = (function() {
   function cpsh_onQuit(evt) {
     evt.preventDefault();
 
-    quitAppConfirmDialog.hidden = true;
     WapPushManager.clearNotifications(messageTag);
     MessageDB.deleteByTimestamp(messageTag).then(function() {
       WapPushManager.close();
@@ -423,7 +422,6 @@ var CpScreenHelper = (function() {
    */
   function cpsh_onCancelInstallCfg(evt) {
     evt.preventDefault();
-    installCfgConfirmDialog.hidden = true;
     WapPushManager.close();
   }
 
@@ -520,7 +518,6 @@ var CpScreenHelper = (function() {
    */
   function cpsh_onFinish(evt) {
     evt.preventDefault();
-    finishConfirmDialog.hidden = true;
     WapPushManager.close();
   }
 

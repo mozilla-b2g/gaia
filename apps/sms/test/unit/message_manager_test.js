@@ -49,8 +49,6 @@ suite('message_manager.js >', function() {
     navigator.mozMobileMessage = realMozMobileMessage;
 
     MessageManager.offAll();
-
-    MessageManager.initialized = false;
   });
 
   suite('sendSMS() >', function() {

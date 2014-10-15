@@ -24,7 +24,7 @@ body[role="application"] [role="dialog"] .calendar:after {
 }
 
 body[role="application"] [role="dialog"] .calendar > button,
-body[role="application"] [role="dialog"] .calendar > a[role="button"] {
+body[role="application"] [role="dialog"] .calendar > a.bb-button {
   float: none;
   width: auto;
   text-overflow: none;
@@ -39,13 +39,13 @@ body[role="application"] [role="dialog"] .calendar > a[role="button"] {
 }
 
 body[role="application"] [role="dialog"] .calendar > button:first-of-type,
-body[role="application"] [role="dialog"] .calendar > a[role="button"]:first-of-type {
+body[role="application"] [role="dialog"] .calendar > a.bb-button:first-of-type {
   left: 0;
   background-image: url(images/icons/prev.png);
 }
 
 body[role="application"] [role="dialog"] .calendar > button:last-of-type,
-body[role="application"] [role="dialog"] .calendar > a[role="button"]:last-of-type {
+body[role="application"] [role="dialog"] .calendar > a.bb-button:last-of-type {
   right: 0;
   background-image: url(images/icons/next.png);
 }

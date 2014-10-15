@@ -32,7 +32,9 @@ suite('search/providers/webresults', function() {
 
   suite('search', function() {
     function promise() {
-      return new Promise(function done() {});
+      return new Promise(function(resolve) {
+        resolve();
+      });
     }
 
     setup(function() {
@@ -45,11 +47,11 @@ suite('search/providers/webresults', function() {
       };
     });
 
-    test('make api call', function() {
-      var stub = this.sinon.stub(eme.api.Apps, 'search');
-      stub.returns(promise());
+    test('make api call', function(done) {
+      eme.api.Apps.search = function() {
+        done();
+      };
       subject.search();
-      assert.ok(stub.calledOnce);
     });
 
   });

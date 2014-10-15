@@ -19,7 +19,16 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
  *    retries are handled correctly after a transmission failure.
  */
 suite('AppUsageMetrics:', function() {
-  var realMozSettings;
+  var realMozSettings, realOnLine;
+  var isOnLine = true;
+
+  function navigatorOnLine() {
+    return isOnLine;
+  }
+
+  function setNavigatorOnLine(value) {
+    isOnLine = value;
+  }
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
@@ -33,6 +42,13 @@ suite('AppUsageMetrics:', function() {
     };
     navigator.removeIdleObserver = function() {};
 
+    realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
+    Object.defineProperty(navigator, 'onLine', {
+      configurable: true,
+      get: navigatorOnLine,
+      set: setNavigatorOnLine
+    });
+
     AppUsageMetrics.DEBUG = false; // Shut up console output in test logs
   });
 
@@ -42,6 +58,12 @@ suite('AppUsageMetrics:', function() {
 
     delete navigator.addIdleObserver;
     delete navigator.removeIdleObserver;
+
+    if (realOnLine) {
+      Object.defineProperty(navigator, 'onLine', realOnLine);
+    } else {
+      delete navigator.onLine;
+    }
   });
 
   /*
@@ -382,6 +404,72 @@ suite('AppUsageMetrics:', function() {
       assert.equal(installSpy.callCount, 0);
       assert.equal(uninstallSpy.callCount, 0);
     });
+
+    test('attention windows', function() {
+      // Test for multiple attention windows on top of the currently running
+      // application
+      dispatch('appopened', { manifestURL: 'app1' });
+      clock.tick(1000);
+
+      dispatch('attentionopened', { manifestURL: 'callscreen' });
+      assert.ok(invocationSpy.calledWith('app1', 1000));
+
+      clock.tick(2000);
+      dispatch('attentionopened', { manifestURL: 'attention1' });
+      assert.ok(invocationSpy.calledWith('callscreen', 2000));
+
+      clock.tick(3000);
+      dispatch('attentionclosed', { manifestURL: 'attention1' });
+      assert.ok(invocationSpy.calledWith('attention1', 3000));
+
+      clock.tick(4000);
+      dispatch('attentionclosed', { manifestURL: 'callscreen' });
+      assert.ok(invocationSpy.calledWith('callscreen', 4000));
+
+      clock.tick(5000);
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
+      assert.ok(invocationSpy.calledWith('app1', 5000));
+    });
+
+    test('proximity screenchange', function() {
+      // Test to make sure proximity sensor based screen changes don't stop
+      // collecting metrics for the currently running app / attention window
+      dispatch('appopened', { manifestURL: 'app1' });
+      clock.tick(1000);
+
+      dispatch('attentionopened', { manifestURL: 'callscreen' });
+      assert.ok(invocationSpy.calledWith('app1', 1000));
+
+      var lastCallCount = invocationSpy.callCount;
+      dispatch('screenchange', {
+        screenEnabled: false,
+        screenOffBy: 'proximity'
+      });
+      assert.equal(invocationSpy.callCount, lastCallCount);
+
+      clock.tick(2000);
+      dispatch('screenchange', {
+        screenEnabled: true,
+        screenOffBy: 'proximity'
+      });
+      assert.equal(invocationSpy.callCount, lastCallCount);
+
+      clock.tick(3000);
+
+      dispatch('screenchange', {
+        screenEnabled: false,
+        screenOffBy: 'lockscreen'
+      });
+      assert.ok(invocationSpy.calledWith('callscreen', 5000));
+      lastCallCount = invocationSpy.callCount;
+
+      clock.tick(4000);
+      dispatch('screenchange', {
+        screenEnabled: true,
+        screenOffBy: 'lockscreen'
+      });
+      assert.equal(invocationSpy.callCount, lastCallCount);
+    });
   });
 
   /*
@@ -560,7 +648,7 @@ suite('AppUsageMetrics:', function() {
       transmit = this.sinon.spy(AppUsageMetrics.prototype, 'transmit');
 
       aum.idle = true;
-      aum.online = true;
+      isOnLine = true;
       clock.tick(); // to make the start call complete
     });
 
@@ -615,7 +703,7 @@ suite('AppUsageMetrics:', function() {
     test('Don\'t transmit if offline', function() {
       // Record some data
       aum.metrics.recordInvocation('app1', 10000);
-
+      isOnLine = false;
       dispatch('offline');
 
       // Exceed the reporting interval

@@ -9,7 +9,7 @@ require('/shared/js/html_imports.js');
 // mocks and globals
 require('mock_fx_accounts_iac_helper.js');
 require('/shared/js/text_normalizer.js');
-requireApp('settings/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 // source the code we care about
 requireApp('settings/js/firefox_accounts/menu.js');

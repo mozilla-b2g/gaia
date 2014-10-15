@@ -10,10 +10,10 @@ requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mock_template.js');
 requireApp('settings/test/unit/mock_sim_pin_dialog.js');
 requireApp('settings/test/unit/mock_toaster.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForSimPinLock = new MocksHelper(['Toaster']).init();
 
@@ -74,6 +74,9 @@ suite('SimPinLock > ', function() {
   setup(function() {
     this.sinon.stub(window.navigator.mozL10n, 'setAttributes');
     this.sinon.stub(document, 'getElementById', function() {
+      return document.createElement('div');
+    });
+    this.sinon.stub(document, 'querySelector', function() {
       return document.createElement('div');
     });
   });

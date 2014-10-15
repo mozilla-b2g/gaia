@@ -133,6 +133,59 @@ suite('system/LockScreen >', function() {
     subject.lock();
   });
 
+  test('L10n initialization: it should NOT init the conn info manager if ' +
+       'there is already one', function() {
+    var stubConnInfoManager = this.sinon.stub(window,
+      'LockScreenConnInfoManager');
+    var originalMozl10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = {
+      get: function() { return ''; }
+    };
+    var originalMozMobileConnections = window.navigator.mozMobileConnections;
+    window.navigator.mozMobileConnections = {};
+    subject._lockscreenConnInfoManager = {};
+    assert.isTrue(!!(window.navigator.mozMobileConnections),
+                  'the first condition is not satisfied: ' +
+                   !!(window.navigator.mozMobileConnections));
+    assert.isTrue(!!(subject._lockscreenConnInfoManager),
+                  'the second condition is not satisfied: ' +
+                  !!(subject._lockscreenConnInfoManager));
+    this.sinon.stub(subject, 'refreshClock');
+    subject.l10nInit();
+    assert.isFalse(stubConnInfoManager.called,
+      'the l10nInit still instantiate the conn info manager even it\'s NOT' +
+      'undefined');
+    window.navigator.mozMobileConnections = originalMozMobileConnections;
+    window.navigator.mozL10n = originalMozl10n;
+    delete subject._lockscreenConnInfoManager;
+  });
+
+  test('L10n initialization: it should init the conn info manager if it\'s' +
+       ' undefined', function() {
+    var stubConnInfoManager = this.sinon.stub(window,
+      'LockScreenConnInfoManager');
+    var originalMozl10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = {
+      get: function() { return ''; }
+    };
+    var originalMozMobileConnections = window.navigator.mozMobileConnections;
+    window.navigator.mozMobileConnections = {};
+    assert.isTrue(!!(window.navigator.mozMobileConnections),
+                  'the first condition is not satisfied: ' +
+                   !!(window.navigator.mozMobileConnections));
+    assert.isTrue(!subject._lockscreenConnInfoManager,
+                  'the second condition is not satisfied: ' +
+                  !(subject._lockscreenConnInfoManager));
+    this.sinon.stub(subject, 'refreshClock');
+    subject.l10nInit();
+    assert.isTrue(stubConnInfoManager.called,
+       'the l10nInit doesn\'t instantiate the conn info manager even it\'s ' +
+       'undefined');
+    window.navigator.mozMobileConnections = originalMozMobileConnections;
+    window.navigator.mozL10n = originalMozl10n;
+    delete subject._lockscreenConnInfoManager;
+  });
+
   test('Emergency call: should disable when has no telephony', function() {
     navigator.mozTelephony = null;
     var stubGetAll = this.sinon.stub(subject, 'getAllElements',

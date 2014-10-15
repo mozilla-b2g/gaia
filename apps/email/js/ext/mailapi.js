@@ -2633,7 +2633,7 @@ MailAPI.prototype = {
       this._liveBodies[msg.handle] = body;
     }
 
-    req.callback.call(null, body);
+    req.callback.call(null, body, req.suid);
 
     return true;
   },

@@ -5,7 +5,7 @@ mocha.globals(['MockL10n']);
 suite('BatteryItem', function() {
   var realL10n;
   var modules = [
-    'unit/mock_l10n',
+    'shared_mocks/mock_l10n',
     'panels/root/battery_item',
   ];
   var map = {

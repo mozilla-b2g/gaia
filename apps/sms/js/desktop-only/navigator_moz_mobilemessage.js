@@ -679,7 +679,7 @@
       },
       {
         id: 5,
-        participants: ['14886783487'],
+        participants: ['+14886783487'],
         lastMessageType: 'sms',
         body: 'Hello world!',
         timestamp: now - 600000000,
@@ -750,7 +750,7 @@
   for (i = 0; i < 150; i++) {
     messagesDb.messages.push({
       threadId: 5,
-      sender: '14886783487',
+      sender: '+14886783487',
       read: i < 147 ? true : false,
       body: 'Hello world!',
       delivery: 'received',

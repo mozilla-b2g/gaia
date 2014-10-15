@@ -40,7 +40,7 @@ suite('app.js', function() {
 
   test('BUILD_APP_NAME = *', function() {
     options.BUILD_APP_NAME = '*';
-    app.execute(options);
+    app.buildApps(options);
 
     applist.forEach(function(appName, i) {
       var baseIdx = i * applist.length;
@@ -57,7 +57,7 @@ suite('app.js', function() {
   test('BUILD_APP_NAME = app1', function() {
     var appName = 'app1';
     options.BUILD_APP_NAME = appName;
-    app.execute(options);
+    app.buildApps(options);
     assert.equal(files[0].path, '/path/to/' + appName,
       '1st file which access in app.js should be app absolute dir');
     assert.equal(files[1].path, stageDir + '/' + appName,

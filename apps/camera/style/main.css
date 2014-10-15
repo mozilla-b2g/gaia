@@ -3,8 +3,8 @@
  * External
  */
 
-@import url("../bower_components/gaia-icons/style.css");
-@import url("../bower_components/gaia-theme/style.css");
+@import url("../bower_components/gaia-icons/gaia-icons.css");
+@import url("../bower_components/gaia-theme/gaia-theme.css");
 @import url("../shared/style/progress_activity.css");
 @import url("../shared/style/action_menu.css");
 @import url("../shared/style/confirm.css");

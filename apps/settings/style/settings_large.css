@@ -159,7 +159,7 @@
   section[role="region"]:not([id='root']) ul li button,
   section[role="region"]:not([id='root']) ul li div.button,
   section[role="region"]:not([id='root']) ul li span.button,
-  section[role="region"]:not([id='root']) ul li a[role='button'] {
+  section[role="region"]:not([id='root']) ul li a.bb-button {
     width: 20rem;
     left: calc(100% - 20rem);
     height: 3.5rem;

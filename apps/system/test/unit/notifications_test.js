@@ -253,34 +253,6 @@ suite('system/NotificationScreen >', function() {
         'aria-label'));
     });
 
-    test('should show a small ambient indicator', function() {
-      incrementNotications(2);
-      assert.equal(document.body.getElementsByClassName('small').length, 1);
-      assert.equal(NotificationScreen.ambientIndicator.getAttribute(
-        'aria-label'), localizeAmbientIndicatorLabel(2));
-    });
-
-    test('should show a medium ambient indicator', function() {
-      incrementNotications(4);
-      assert.equal(document.body.getElementsByClassName('medium').length, 1);
-      assert.equal(NotificationScreen.ambientIndicator.getAttribute(
-        'aria-label'), localizeAmbientIndicatorLabel(4));
-    });
-
-    test('should show a big ambient indicator', function() {
-      incrementNotications(6);
-      assert.equal(document.body.getElementsByClassName('big').length, 1);
-      assert.equal(NotificationScreen.ambientIndicator.getAttribute(
-        'aria-label'), localizeAmbientIndicatorLabel(6));
-    });
-
-    test('should show a full ambient indicator', function() {
-      incrementNotications(7);
-      assert.equal(document.body.getElementsByClassName('full').length, 1);
-      assert.equal(NotificationScreen.ambientIndicator.getAttribute(
-        'aria-label'), localizeAmbientIndicatorLabel(7));
-    });
-
     test('should change the read status', function() {
       incrementNotications(1);
       assert.equal(document.body.getElementsByClassName('unread').length, 1);

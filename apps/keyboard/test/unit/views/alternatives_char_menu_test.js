@@ -40,7 +40,7 @@ suite('Views > AlternativesCharMenuView', function() {
     IMERender.init(fakeLayoutRenderingManager);
 
     var keyElem = document.createElement('button');
-    IMERender.setDomElemTargetObject(keyElem, key);
+    IMERender.targetObjDomMap.set(key, keyElem);
   });
 
   suite('basic show/hide testing', function() {
@@ -91,7 +91,7 @@ suite('Views > AlternativesCharMenuView', function() {
 
         IMERender.setDomElemTargetObject(child, childObj);
 
-        childObjs.push(childObj);
+        childObjs.push(fakeLayoutRenderingManager.getTargetObject(child));
       }
 
       rootElement.appendChild(fakeMenu);
@@ -109,7 +109,7 @@ suite('Views > AlternativesCharMenuView', function() {
       menu.getLineHeight.returns(KEY_HEIGHT);
 
       var keyElem = document.createElement('button');
-      IMERender.setDomElemTargetObject(keyElem, key);
+      IMERender.targetObjDomMap.set(key, keyElem);
     });
 
     teardown(function() {
@@ -119,7 +119,8 @@ suite('Views > AlternativesCharMenuView', function() {
     test('the first element', function() {
       menu.show(key);
 
-      var target = menu.getMenuTarget(0, 0);
+      var rect = fakeMenu.getBoundingClientRect();
+      var target = menu.getMenuTarget(rect.left, rect.top);
       var expectedTarget = childObjs[0];
 
       assert.equal(target, expectedTarget, 'Should map to the first element');
@@ -128,7 +129,9 @@ suite('Views > AlternativesCharMenuView', function() {
     test('the second element', function() {
       menu.show(key);
 
-      var target = menu.getMenuTarget(fakeMenu.offsetLeft + KEY_WIDTH, 0);
+      var rect = fakeMenu.getBoundingClientRect();
+      var target = menu.getMenuTarget(fakeMenu.offsetLeft + KEY_WIDTH +
+        rect.left, rect.top);
       var expectedTarget = childObjs[1];
 
       assert.equal(target, expectedTarget, 'Should map to the second element');
@@ -137,8 +140,10 @@ suite('Views > AlternativesCharMenuView', function() {
     test('the last element', function() {
       menu.show(key);
 
+      var rect = fakeMenu.getBoundingClientRect();
       var target = menu.getMenuTarget(fakeMenu.offsetLeft +
-                                      fakeMenu.offsetWidth, 0);
+                                      fakeMenu.offsetWidth +
+                                      rect.left, rect.top);
       var expectedTarget = childObjs[2];
 
       assert.equal(target, expectedTarget, 'Should map to the last element');
@@ -170,7 +175,7 @@ suite('Views > AlternativesCharMenuView', function() {
 
         IMERender.setDomElemTargetObject(child, childObj);
 
-        childObjs.push(childObj);
+        childObjs.push(fakeLayoutRenderingManager.getTargetObject(child));
       }
 
       rootElement.appendChild(fakeMenu);
@@ -188,7 +193,7 @@ suite('Views > AlternativesCharMenuView', function() {
       menu.getLineHeight.returns(KEY_HEIGHT);
 
       var keyElem = document.createElement('button');
-      IMERender.setDomElemTargetObject(keyElem, key);
+      IMERender.targetObjDomMap.set(key, keyElem);
     });
 
     teardown(function() {
@@ -198,8 +203,11 @@ suite('Views > AlternativesCharMenuView', function() {
     test('2 row - the first element', function() {
       menu.show(key);
 
-      var target = menu.getMenuTarget(0, fakeMenu.offsetTop +
-                                         fakeMenu.offsetHeight);
+      var rect = fakeMenu.getBoundingClientRect();
+
+      var target = menu.getMenuTarget(rect.left, fakeMenu.offsetTop +
+                                         fakeMenu.offsetHeight +
+                                         rect.top);
       var expectedTarget = childObjs[0];
 
       assert.equal(target, expectedTarget, 'Should map to the first element');
@@ -208,9 +216,12 @@ suite('Views > AlternativesCharMenuView', function() {
     test('2 row - the second element', function() {
       menu.show(key);
 
-      var target = menu.getMenuTarget(fakeMenu.offsetLeft + KEY_WIDTH,
+      var rect = fakeMenu.getBoundingClientRect();
+      var target = menu.getMenuTarget(fakeMenu.offsetLeft + KEY_WIDTH +
+                                      rect.left,
                                       fakeMenu.offsetTop +
-                                      fakeMenu.offsetHeight);
+                                      fakeMenu.offsetHeight +
+                                      rect.top);
 
       var expectedTarget = childObjs[1];
 
@@ -220,7 +231,8 @@ suite('Views > AlternativesCharMenuView', function() {
     test('2 row - the 4th element in the upper row', function() {
       menu.show(key);
 
-      var target = menu.getMenuTarget(0, 0);
+      var rect = fakeMenu.getBoundingClientRect();
+      var target = menu.getMenuTarget(rect.left, rect.top);
       var expectedTarget = childObjs[3];
 
       assert.equal(target, expectedTarget, 'Should map to the 4th element');
@@ -253,7 +265,7 @@ suite('Views > AlternativesCharMenuView', function() {
 
         IMERender.setDomElemTargetObject(child, childObj);
 
-        childObjs.push(childObj);
+        childObjs.push(fakeLayoutRenderingManager.getTargetObject(child));
       }
 
       rootElement.appendChild(fakeMenu);
@@ -271,7 +283,7 @@ suite('Views > AlternativesCharMenuView', function() {
       menu.getLineHeight.returns(KEY_HEIGHT);
 
       var keyElem = document.createElement('button');
-      IMERender.setDomElemTargetObject(keyElem, key);
+      IMERender.targetObjDomMap.set(key, keyElem);
     });
 
     teardown(function() {
@@ -281,7 +293,9 @@ suite('Views > AlternativesCharMenuView', function() {
     test('2 row - the empty element', function() {
       menu.show(key);
 
-      var target = menu.getMenuTarget(fakeMenu.offsetLeft + KEY_WIDTH * 2, 0);
+      var rect = fakeMenu.getBoundingClientRect();
+      var target = menu.getMenuTarget(fakeMenu.offsetLeft + rect.left +
+        KEY_WIDTH * 2, rect.top);
       var expectedTarget = childObjs[4];
 
       assert.equal(target, expectedTarget, 'Should map to the last element');

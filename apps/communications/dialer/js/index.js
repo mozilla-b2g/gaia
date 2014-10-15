@@ -41,7 +41,7 @@ window.addEventListener('load', function dialerSetup() {
         '/shared/style/confirm.css',
         '/shared/js/confirm.js',
         '/shared/elements/config.js',
-        '/shared/elements/gaia-header/dist/script.js',
+        '/shared/elements/gaia-header/dist/gaia-header.js',
         '/shared/style/edit_mode.css'
       ], function fileSetLoaded() {
         window.dispatchEvent(new CustomEvent('moz-app-loaded'));

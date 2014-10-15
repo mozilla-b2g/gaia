@@ -1,11 +1,9 @@
-/* globals attentionWindowManager, AttentionWindowManager,
+/* globals attentionWindowManager, AttentionWindowManager, MockSystem,
             MockAttentionWindow, MocksHelper, MockHomescreenWindow,
-            MockHomescreenLauncher, MockAppWindowManager,
-            MockAppWindow, homescreenLauncher */
+            MockHomescreenLauncher, MockAppWindow, homescreenLauncher */
 'use strict';
 
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_attention_window.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
@@ -14,7 +12,7 @@ requireApp('system/shared/test/unit/mocks/mock_system.js');
 
 var mocksForAttentionWindowManager = new MocksHelper([
   'AttentionWindow', 'System', 'HomescreenLauncher',
-  'HomescreenWindow', 'AppWindowManager', 'AttentionIndicator'
+  'HomescreenWindow', 'AttentionIndicator'
 ]).init();
 
 suite('system/AttentionWindowManager', function() {
@@ -37,6 +35,7 @@ suite('system/AttentionWindowManager', function() {
 
   teardown(function() {
     window.homescreenLauncher = realHomescreenLauncher;
+    MockSystem.currentApp = null;
     stubById.restore();
   });
 
@@ -303,7 +302,6 @@ suite('system/AttentionWindowManager', function() {
       test('No other opened instances and no active app window', function() {
         attentionWindowManager._openedInstances = new Map([[att1, att1]]);
         var stubClose = this.sinon.stub(att1, 'close');
-        this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(null);
         window.dispatchEvent(new CustomEvent('attentionrequestclose', {
           detail: att1
         }));
@@ -316,7 +314,7 @@ suite('system/AttentionWindowManager', function() {
         attentionWindowManager._topMostWindow = att1;
         var stubClose = this.sinon.stub(att1, 'close');
         var spyReadyForApp = this.sinon.stub(app, 'ready');
-        this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+        MockSystem.currentApp = app;
         window.dispatchEvent(new CustomEvent('attentionrequestclose', {
           detail: att1
         }));

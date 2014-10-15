@@ -1,8 +1,9 @@
-/* globals FtuLauncher, MockAppWindowManager, MockL10n, MockMobileOperator,
+/* globals FtuLauncher, MockL10n, MockMobileOperator,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockSystem, MockTouchForwarder, StatusBar, System,
-           AppWindowManager, MockNfcManager */
+           MockNfcManager, MockMobileconnection, MockAppWindowManager,
+           UtilityTray */
 
 'use strict';
 
@@ -12,11 +13,11 @@ require(
   '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-require('/shared/test/unit/mocks/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_system.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_ftu_launcher.js');
 require('/test/unit/mock_nfc_manager.js');
@@ -43,7 +44,7 @@ suite('system/Statusbar', function() {
       fakeStatusBarConnections, fakeStatusBarCallForwardings, fakeStatusBarTime,
       fakeStatusBarLabel, fakeStatusBarBattery;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [],
-      realNfcManager;
+      realNfcManager, realL10n;
 
   function prepareDOM() {
     for (var i = 1; i < mobileConnectionCount; i++) {
@@ -115,10 +116,13 @@ suite('system/Statusbar', function() {
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     realNfcManager = window.nfcManager;
     window.nfcManager = new MockNfcManager();
     sinon.spy(window.nfcManager, 'isActive');
+    window.appWindowManager = new MockAppWindowManager();
 
     prepareDOM();
 
@@ -179,9 +183,11 @@ suite('system/Statusbar', function() {
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozMobileConnections.mTeardown();
     System.locked = false;
+    System.currentApp = null;
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
+    navigator.mozL10n = realL10n;
     window.nfcManager.isActive.restore();
     window.nfcManager = realNfcManager;
   });
@@ -305,7 +311,7 @@ suite('system/Statusbar', function() {
         element: document.createElement('div')
       };
 
-      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      System.currentApp = app;
       StatusBar.screen = document.createElement('div');
     });
     teardown(function() {
@@ -361,8 +367,12 @@ suite('system/Statusbar', function() {
   suite('time bar', function() {
     var app;
     setup(function() {
-      app = {};
-      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      app = {
+        getTopMostWindow: function() {
+          return app;
+        }
+      };
+      System.currentApp = app;
       StatusBar.clock.stop();
       StatusBar.screen = document.createElement('div');
     });
@@ -1531,7 +1541,7 @@ suite('system/Statusbar', function() {
         }
       };
 
-      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      System.currentApp = app;
       this.sinon.stub(StatusBar.element, 'getBoundingClientRect').returns({
         height: 10
       });
@@ -1544,7 +1554,7 @@ suite('system/Statusbar', function() {
       var element;
       setup(function() {
         StatusBar._cacheHeight = 24;
-        element = AppWindowManager.getActiveApp().element
+        element = System.currentApp.element
                                                  .querySelector('.titlebar');
         transitionEndSpy = this.sinon.spy(element, 'addEventListener');
       });
@@ -1619,10 +1629,25 @@ suite('system/Statusbar', function() {
       test('it should not reveal when ftu is running', function() {
         FtuLauncher.mIsRunning = true;
         fakeDispatch('touchstart', 100, 0);
-        fakeDispatch('touchmove', 100, 5);
-        assert.equal(StatusBar.element.style.transform, '');
+        fakeDispatch('touchmove', 100, 100);
+
+        var titleEl = System.currentApp.element
+                                       .querySelector('.titlebar');
+        assert.equal(titleEl.style.transform, '');
         FtuLauncher.mIsRunning = false;
       });
+
+      test('it should not forward events when the tray is opened', function() {
+        UtilityTray.active = true;
+        fakeDispatch('touchstart', 100, 0);
+        fakeDispatch('touchmove', 100, 100);
+
+        var titleEl = System.currentApp.element
+                                       .querySelector('.titlebar');
+        assert.equal(titleEl.style.transform, '');
+        UtilityTray.active = false;
+      });
+
 
       suite('after the gesture', function() {
         suite('when the StatusBar is not fully displayed', function() {
@@ -1646,7 +1671,7 @@ suite('system/Statusbar', function() {
           });
 
           test('it should not hide it right away', function() {
-            var titleEl = AppWindowManager.getActiveApp().element
+            var titleEl = System.currentApp.element
                                           .querySelector('.titlebar');
             assert.equal(titleEl.style.transform, '');
             assert.equal(titleEl.style.transition, '');
@@ -1865,12 +1890,9 @@ suite('system/Statusbar', function() {
     test('visibility update should get the status bars width', function() {
       var spyGetMaximizedStatusBarWidth =
         this.sinon.spy(StatusBar, '_getMaximizedStatusBarWidth');
-      var spyGetMinimizedStatusBarWidth =
-        this.sinon.spy(StatusBar, '_getMinimizedStatusBarWidth');
 
       StatusBar._updateIconVisibility();
       assert.isTrue(spyGetMaximizedStatusBarWidth.called);
-      assert.isTrue(spyGetMinimizedStatusBarWidth.called);
     });
 
     suite('when only 2 icons fit in the maximized status bar', function() {
@@ -1878,7 +1900,6 @@ suite('system/Statusbar', function() {
       var iconWithPriority2;
       var iconWithPriority3;
       var getMaximizedStatusBarWidthStub;
-      var getMinimizedStatusBarWidthStub;
 
       setup(function() {
         // Reset all the icons to be hidden.
@@ -1905,17 +1926,14 @@ suite('system/Statusbar', function() {
               StatusBar._getIconWidth(StatusBar.PRIORITIES[1]);
           });
         // The minimized status bar can only fit the highest priority icon.
-        getMinimizedStatusBarWidthStub = sinon.stub(StatusBar,
-          '_getMinimizedStatusBarWidth', function() {
-            return StatusBar._getIconWidth(StatusBar.PRIORITIES[0]);
-          });
+        StatusBar._minimizedStatusBarWidth = StatusBar._getIconWidth(
+          StatusBar.PRIORITIES[0]);
 
         StatusBar._updateIconVisibility();
       });
 
       teardown(function() {
         getMaximizedStatusBarWidthStub.restore();
-        getMinimizedStatusBarWidthStub.restore();
       });
 
       test('the maximized status bar should hide icon #3', function() {
@@ -2004,7 +2022,7 @@ suite('system/Statusbar', function() {
             isMaximized: function isMaximized() {
               return true;
             }
-          },
+          }
         },
         appChrome: {
           isMaximized: function isMaximized() {
@@ -2013,6 +2031,9 @@ suite('system/Statusbar', function() {
         },
         getTopMostWindow: function getTopMostWindow() {
           return this._topWindow;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
         }
       };
       var spyTopUseLightTheming = this.sinon.spy(app._topWindow.appChrome,
@@ -2033,6 +2054,9 @@ suite('system/Statusbar', function() {
       StatusBar.setAppearance({
         getTopMostWindow: function getTopMostWindow() {
           return this;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
         }
       });
       assert.isFalse(StatusBar.element.classList.contains('light'));
@@ -2044,28 +2068,123 @@ suite('system/Statusbar', function() {
         isHomescreen: true,
         getTopMostWindow: function getTopMostWindow() {
           return this;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
         }
       });
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
     });
 
-    test('should do nothing if the phone is locked', function() {
-      System.locked = true;
-      StatusBar.setAppearance({
+    test('setAppearance using bottom window', function() {
+      var app = {
+        _topWindow: {
+          _bottomWindow: null,
+          appChrome: {
+            useLightTheming: function useLightTheming() {
+              return true;
+            },
+            isMaximized: function isMaximized() {
+              return true;
+            },
+          },
+          getBottomMostWindow: function getBottomMostWindow() {
+            return this._bottomWindow;
+          }
+        },
         appChrome: {
           useLightTheming: function useLightTheming() {
-            return true;
+            return false;
           },
           isMaximized: function isMaximized() {
-            return true;
+            return false;
           }
+        },
+        getTopMostWindow: function getTopMostWindow() {
+          return this._topWindow;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
         }
-      });
+      };
+
+      app._topWindow._bottomWindow = app;
+
+      StatusBar.element.classList.add('light');
+      StatusBar.element.classList.add('maximized');
+
+      var spyTopUseLightTheming = this.sinon.spy(app._topWindow.appChrome,
+                                                 'useLightTheming');
+      var spyTopIsMaximized = this.sinon.spy(app._topWindow.appChrome,
+                                             'isMaximized');
+      var spyBottomUseLightTheming = this.sinon.spy(app.appChrome,
+                                                    'useLightTheming');
+      var spyBottomIsMaximized = this.sinon.spy(app.appChrome, 'isMaximized');
+
+      StatusBar.setAppearance(app._topWindow, true);
+
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isFalse(StatusBar.element.classList.contains('maximized'));
-      System.locked = false;
+      assert.isTrue(spyBottomUseLightTheming.calledOnce);
+      assert.isFalse(spyTopUseLightTheming.called);
+      assert.isTrue(spyBottomIsMaximized.calledOnce);
+      assert.isFalse(spyTopIsMaximized.called);
     });
+  });
+
+  suite('lockscreen support', function() {
+    var lockscreenApp, app;
+
+    setup(function() {
+      lockscreenApp = getApp(true, true);
+      app = getApp(false, false);
+      var evt = new CustomEvent('lockscreen-appopened', {
+        detail: lockscreenApp
+      });
+      MockSystem.currentApp = app;
+      StatusBar.handleEvent(evt);
+    });
+
+    teardown(function() {
+      var evt = new CustomEvent('lockscreen-appclosing');
+      StatusBar.handleEvent(evt);
+      MockSystem.currentApp = null;
+    });
+
+    test('should set the lockscreen icons color', function() {
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('should do nothing when is locked', function() {
+      StatusBar.setAppearance(app);
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('should set the active app color when closing', function() {
+      var evt = new CustomEvent('lockscreen-appclosing');
+      StatusBar.handleEvent(evt);
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('maximized'));
+    });
+
+    function getApp(light, maximized) {
+      return {
+        getTopMostWindow: function() {
+          return this;
+        },
+        appChrome: {
+          useLightTheming: function useLightTheming() {
+            return light;
+          },
+          isMaximized: function isMaximized() {
+            return maximized;
+          }
+        }
+      };
+    }
   });
 
   suite('updateSignalIcon', function() {
@@ -2126,6 +2245,8 @@ suite('system/Statusbar', function() {
   suite('handle events', function() {
     var app;
     var setAppearanceStub;
+    var resumeUpdateStub;
+    var pauseUpdateStub;
 
     function testEventThatHides(event) {
       var evt = new CustomEvent(event);
@@ -2144,10 +2265,29 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
     }
 
+    function testEventThatPause(event) {
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+      assert.isTrue(pauseUpdateStub.called);
+
+      StatusBar.resumeUpdate();
+    }
+
+    function testEventThatResume(event) {
+      StatusBar.pauseUpdate();
+
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+      assert.isTrue(resumeUpdateStub.called);
+      assert.isFalse(StatusBar.isPaused());
+    }
+
     setup(function() {
       app = {};
-      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      MockSystem.currentApp = app;
       setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+      pauseUpdateStub = this.sinon.stub(StatusBar, 'pauseUpdate');
+      resumeUpdateStub = this.sinon.stub(StatusBar, 'resumeUpdate');
     });
 
     test('stackchanged', function() {
@@ -2194,6 +2334,38 @@ suite('system/Statusbar', function() {
 
     test('activityopened', function() {
       testEventThatShows.bind(this)('activityopened');
+    });
+
+    test('utilitytraywillshow', function() {
+      testEventThatPause.bind(this)('utilitytraywillshow');
+    });
+
+    test('utilitytraywillhide', function() {
+      testEventThatPause.bind(this)('utilitytraywillhide');
+    });
+
+    test('cardviewshown', function() {
+      testEventThatPause.bind(this)('cardviewshown');
+    });
+
+    test('sheets-gesture-begin', function() {
+      testEventThatPause.bind(this)('sheets-gesture-begin');
+    });
+
+    test('sheets-gesture-end', function() {
+      testEventThatResume.bind(this)('sheets-gesture-end');
+    });
+
+    test('utility-tray-overlayopened', function() {
+      testEventThatResume.bind(this)('utility-tray-overlayopened');
+    });
+
+    test('utility-tray-overlayclosed', function() {
+      testEventThatResume.bind(this)('utility-tray-overlayclosed');
+    });
+
+    test('cardviewclosed', function() {
+      testEventThatResume.bind(this)('cardviewclosed');
     });
   });
 
@@ -2245,6 +2417,151 @@ suite('system/Statusbar', function() {
       StatusBar.update.time.call(StatusBar, '***');
 
       assert.notEqual(originalWidth, StatusBar.PRIORITIES[labelIndex][1]);
+    });
+  });
+
+  suite('Geolocation and recording', function() {
+    var updateIconSpy;
+    var cloneStatusbarSpy;
+
+    function StatusBarHandleEvent(type, active) {
+      StatusBar.handleEvent({
+        type: type[0],
+        detail: {
+          type: type[1],
+          active: active
+        }
+      });
+    }
+
+    setup(function() {
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+      cloneStatusbarSpy = this.sinon.spy(StatusBar, 'cloneStatusbar');
+    });
+
+    test('should reprioritise icons only once per call', function() {
+      var updateIconCallCount = 0;
+      var cloneStatusbarCallCount = 0;
+      [
+        ['mozChromeEvent', 'geolocation-status'],
+        ['recordingEvent', 'recording-state-changed']
+      ].forEach(function(type) {
+          StatusBarHandleEvent(type, true);
+          updateIconCallCount++;
+          cloneStatusbarCallCount++;
+          assert.equal(updateIconSpy.callCount, updateIconCallCount);
+          assert.equal(cloneStatusbarSpy.callCount, cloneStatusbarCallCount);
+
+          StatusBarHandleEvent(type, false);
+          cloneStatusbarCallCount++;
+          assert.equal(updateIconSpy.callCount, updateIconCallCount);
+          assert.equal(cloneStatusbarSpy.callCount, cloneStatusbarCallCount);
+        }.bind(this));
+    });
+  });
+
+  suite('Signal icons', function() {
+    var slots;
+    var mockMobileConnection;
+    var updateIconSpy;
+
+    setup(function() {
+      mockMobileConnection = MockMobileconnection();
+      mockMobileConnection.voice = {
+        network: {
+          mcc: 123
+        }
+      };
+      mockMobileConnection.simCard = {
+        cardState: 'ready',
+        iccInfo: {
+          iccid: 'iccid1'
+        }
+      };
+      slots = [new MockSIMSlot(mockMobileConnection, 0)];
+      MockSIMSlotManager.mInstances = slots;
+
+      StatusBar.settingValues['ril.radio.disabled'] = false;
+      StatusBar.update.signal.call(StatusBar);
+
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+    });
+
+    teardown(function() {
+      MockSIMSlotManager.mTeardown();
+    });
+
+    test('should call reprioritise function when changed', function() {
+      StatusBar.settingValues['ril.radio.disabled'] = true;
+      StatusBar.update.signal.call(StatusBar);
+
+      assert.isTrue(updateIconSpy.called);
+    });
+
+    test('should not call reprioritise function when not changed', function() {
+      StatusBar.settingValues['ril.radio.disabled'] = false;
+      StatusBar.update.signal.call(StatusBar);
+
+      assert.isFalse(updateIconSpy.called);
+    });
+  });
+
+  suite('Data icons', function() {
+    var updateIconSpy;
+
+    setup(function() {
+      MockNavigatorMozMobileConnections[0].data = {
+        connected: true,
+        type: 'lte'
+      };
+
+      StatusBar.settingValues['ril.radio.disabled'] = false;
+      StatusBar.settingValues['ril.data.enabled'] = true;
+      StatusBar.icons.wifi.hidden = true;
+      StatusBar.update.data.call(StatusBar);
+
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+    });
+
+    test('should call reprioritise function when changed', function() {
+      StatusBar.settingValues['ril.data.enabled'] = false;
+      StatusBar.update.data.call(StatusBar);
+
+      assert.isTrue(updateIconSpy.called);
+    });
+
+    test('should not call reprioritise function when not changed', function() {
+      StatusBar.settingValues['ril.data.enabled'] = true;
+      StatusBar.update.data.call(StatusBar);
+
+      assert.isFalse(updateIconSpy.called);
+    });
+  });
+
+  suite('Network activity icons', function() {
+    var updateIconSpy;
+    var clock;
+
+    setup(function() {
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+      clock = sinon.useFakeTimers();
+    });
+
+    teardown(function() {
+      clock.restore();
+    });
+
+    test('should call reprioritise function when changed', function() {
+      StatusBar.update.networkActivity.call(StatusBar);
+
+      assert.isTrue(updateIconSpy.called);
+    });
+
+    test('should call reprioritise function after 500ms', function() {
+      StatusBar.update.networkActivity.call(StatusBar);
+      clock.tick(510);
+
+      assert.equal(updateIconSpy.callCount, 2);
     });
   });
 });
