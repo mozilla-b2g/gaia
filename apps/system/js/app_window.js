@@ -612,7 +612,7 @@
      'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus', '_sheetsgesturebegin', '_sheetsgestureend',
-     '_closed'];
+     '_closed', '_shrinkingstart', '_shrinkingstop'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -1672,6 +1672,27 @@
     if (this.suspended) {
       this.kill();
     }
+  };
+
+  /**
+   * Handles shrinkingstart event broadcasted from ShrinkingUI. Gets the current
+   * screenshot, once it's available shows screenshot overlay and hides itself.
+   * @memberOf AppWindow.prototype
+   */
+  AppWindow.prototype._handle__shrinkingstart = function aw_shrinkingstart() {
+    this.getScreenshot(() => {
+      this._showScreenshotOverlay();
+      this.setVisible(false);
+    });
+  };
+
+  /**
+   * Handles shrinkingstop event broadcasted from ShrinkingUI.
+   * Shows itself automatically hiding screenshot overlay.
+   * @memberOf AppWindow.prototype
+   */
+  AppWindow.prototype._handle__shrinkingstop = function aw_shrinkingstop() {
+    this.setVisible(true);
   };
 
   /**
