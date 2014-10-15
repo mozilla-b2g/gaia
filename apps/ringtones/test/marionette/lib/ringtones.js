@@ -113,8 +113,13 @@ ManageSound.prototype = Object.create(BaseSound.prototype);
 ManageSound.prototype.constructor = ManageSound;
 
 ManageSound.Selectors = Object.freeze({
+  description: 'div.desc',
   actionsButton: 'a.actions-button'
 });
+
+ManageSound.prototype.tap = function() {
+  this.element.findElement(ManageSound.Selectors.description).tap(20, 20);
+};
 
 ManageSound.prototype.openActions = function() {
   this.element.findElement(ManageSound.Selectors.actionsButton).tap();
@@ -122,6 +127,12 @@ ManageSound.prototype.openActions = function() {
   actionsMenu.waitUntilOpened();
   return actionsMenu;
 };
+
+Object.defineProperty(ManageSound.prototype, 'playing', {
+  get: function() {
+    return this.element.getAttribute('data-playing') === 'true';
+  }
+});
 
 function PickSound(client, element) {
   BaseSound.call(this, client, element);
