@@ -370,6 +370,13 @@ li.sup-manual-account-type-container .button {
   text-align: center;
 }
 
+/* When card is not the center, but has a progress spinner, hide it, to avoid
+   the animation taking cycles away from activities like typing. Bug 1083288 */
+.before .sup-progress-container progress,
+.after .sup-progress-container progress {
+  display: none;
+}
+
 .card-setup-oauth2 .scrollregion-below-header {
   overflow: hidden;
   will-change: auto;
