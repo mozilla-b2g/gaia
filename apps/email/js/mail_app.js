@@ -61,11 +61,11 @@ define('mail_app', function(require, exports, module) {
 var appMessages = require('app_messages'),
     htmlCache = require('html_cache'),
     mozL10n = require('l10n!'),
-    common = require('mail_common'),
+    cards = require('cards'),
+    ConfirmDialog = require('confirm_dialog'),
     evt = require('evt'),
     model = require('model'),
     headerCursor = require('header_cursor').cursor,
-    Cards = common.Cards,
     slice = Array.prototype.slice,
     waitingForCreateAccountPrompt = false,
     activityCallback = null;
@@ -81,26 +81,26 @@ model.latestOnce('api', function(api) {
   api.onbadlogin = function(account, problem, whichSide) {
     switch (problem) {
       case 'bad-user-or-pass':
-        Cards.pushCard('setup_fix_password', 'default', 'animate',
+        cards.pushCard('setup_fix_password', 'animate',
                   { account: account,
                     whichSide: whichSide,
-                    restoreCard: Cards.activeCardIndex },
+                    restoreCard: cards.activeCardIndex },
                   'right');
         break;
       case 'imap-disabled':
       case 'pop3-disabled':
-        Cards.pushCard('setup_fix_gmail', 'default', 'animate',
-                  { account: account, restoreCard: Cards.activeCardIndex },
+        cards.pushCard('setup_fix_gmail', 'animate',
+                  { account: account, restoreCard: cards.activeCardIndex },
                   'right');
         break;
       case 'needs-app-pass':
-        Cards.pushCard('setup_fix_gmail_twofactor', 'default', 'animate',
-                  { account: account, restoreCard: Cards.activeCardIndex },
+        cards.pushCard('setup_fix_gmail_twofactor', 'animate',
+                  { account: account, restoreCard: cards.activeCardIndex },
                   'right');
         break;
       case 'needs-oauth-reauth':
-        Cards.pushCard('setup_fix_oauth2', 'default', 'animate',
-                  { account: account, restoreCard: Cards.activeCardIndex },
+        cards.pushCard('setup_fix_oauth2', 'animate',
+                  { account: account, restoreCard: cards.activeCardIndex },
                   'right');
         break;
     }
@@ -133,9 +133,9 @@ model.latestOnce('api', function(api) {
 
 // Handle cases where a default card is needed for back navigation
 // after a non-default entry point (like an activity) is triggered.
-Cards.pushDefaultCard = function(onPushed) {
+cards.pushDefaultCard = function(onPushed) {
   model.latestOnce('foldersSlice', function() {
-    Cards.pushCard('message_list', 'nonsearch', 'none', {
+    cards.pushCard('message_list', 'none', {
       onPushed: onPushed
     },
     // Default to "before" placement.
@@ -143,12 +143,12 @@ Cards.pushDefaultCard = function(onPushed) {
   });
 };
 
-Cards._init();
+cards._init();
 
 var finalCardStateCallback,
     waitForAppMessage = false,
     startedInBackground = false,
-    cachedNode = Cards._cardsNode.children[0],
+    cachedNode = cards._cardsNode.children[0],
     startCardId = cachedNode && cachedNode.getAttribute('data-type');
 
 function getStartCardArgs(id) {
@@ -158,16 +158,18 @@ function getStartCardArgs(id) {
   // (bug 1031588).
   if (id === 'setup_account_info') {
     return [
-      'setup_account_info', 'default', 'immediate',
+      'setup_account_info', 'immediate',
       {
-        onPushed: function(impl) {
-          htmlCache.delayedSaveFromNode(impl.domNode.cloneNode(true));
+        onPushed: function(cardNode) {
+          var cachedNode = cardNode.cloneNode(true);
+          cachedNode.dataset.cached = 'cached';
+          htmlCache.delayedSaveFromNode(cachedNode);
         }
       }
     ];
   } else if (id === 'message_list') {
     return [
-      'message_list', 'nonsearch', 'immediate', {}
+      'message_list', 'immediate', {}
     ];
   }
 }
@@ -179,16 +181,16 @@ function pushStartCard(id, addedArgs) {
   }
 
   //Add in cached node to use (could be null)
-  args[3].cachedNode = cachedNode;
+  args[2].cachedNode = cachedNode;
 
   // Mix in addedArgs to the args object that is passed to pushCard.
   if (addedArgs) {
     Object.keys(addedArgs).forEach(function(key) {
-      args[3][key] = addedArgs[key];
+      args[2][key] = addedArgs[key];
     });
   }
 
-  return Cards.pushCard.apply(Cards, args);
+  return cards.pushCard.apply(cards, args);
 }
 
 if (appMessages.hasPending('activity') ||
@@ -233,10 +235,10 @@ function resetCards(cardId, args) {
   cachedNode = null;
 
   var startArgs = getStartCardArgs(cardId),
-      query = [startArgs[0], startArgs[1]];
+      query = startArgs[0];
 
-  if (!Cards.hasCard(query)) {
-    Cards.removeAllCards();
+  if (!cards.hasCard(query)) {
+    cards.removeAllCards();
     pushStartCard(cardId, args);
   }
 }
@@ -246,10 +248,8 @@ function resetCards(cardId, args) {
  * card, which is the default kind of card.
  */
 function isCurrentCardMessageList() {
-  var cardType = Cards.getCurrentCardType();
-  return (cardType &&
-          cardType[0] === 'message_list' &&
-          cardType[1] === 'nonsearch');
+  var cardType = cards.getCurrentCardType();
+  return (cardType && cardType === 'message_list');
 }
 
 /**
@@ -287,7 +287,7 @@ document.addEventListener('visibilitychange', function onVisibilityChange() {
 
 // The add account UI flow is requested.
 evt.on('addAccount', function() {
-  Cards.removeAllCards();
+  cards.removeAllCards();
 
   // Show the first setup card again.
   pushStartCard('setup_account_info', {
@@ -301,7 +301,7 @@ function resetApp() {
   waitingForCreateAccountPrompt = false;
   activityCallback = null;
 
-  Cards.removeAllCards();
+  cards.removeAllCards();
   model.init();
 }
 
@@ -326,7 +326,7 @@ evt.on('resetApp', resetApp);
 // A request to show the latest account in the UI.
 // Usually triggered after an account has been added.
 evt.on('showLatestAccount', function() {
-  Cards.removeAllCards();
+  cards.removeAllCards();
 
   model.latestOnce('acctsSlice', function(acctsSlice) {
     var account = acctsSlice.items[acctsSlice.items.length - 1];
@@ -389,7 +389,7 @@ function gateEntry(fn) {
 
 appMessages.on('activity', gateEntry(function(type, data, rawActivity) {
   function initComposer() {
-    Cards.pushCard('compose', 'default', 'immediate', {
+    cards.pushCard('compose', 'immediate', {
       activity: rawActivity,
       composerData: {
         onComposer: function(composer, composeCard) {
@@ -427,7 +427,7 @@ appMessages.on('activity', gateEntry(function(type, data, rawActivity) {
   }
 
   function promptEmptyAccount() {
-    common.ConfirmDialog.show(mozL10n.get('setup-empty-account-prompt'),
+    ConfirmDialog.show(mozL10n.get('setup-empty-account-prompt'),
     function(confirmed) {
       if (!confirmed) {
         rawActivity.postError('cancelled');
@@ -459,7 +459,7 @@ appMessages.on('activity', gateEntry(function(type, data, rawActivity) {
   // known jump point, so do not needlessly wipe that one out
   // if it is the current one.
   if (!isCurrentCardMessageList()) {
-    Cards.removeAllCards();
+    cards.removeAllCards();
   }
 
   if (model.inited) {
@@ -493,7 +493,7 @@ appMessages.on('notificationClosed', gateEntry(function(data) {
   // could also have been awakened by sync or just user action and running in
   // the background, we cannot just close the app. So just make sure there is
   // some usable UI.
-  if (waitForAppMessage && !Cards.getCurrentCardType()) {
+  if (waitForAppMessage && !cards.getCurrentCardType()) {
     resetApp();
   }
 }));
@@ -519,7 +519,7 @@ appMessages.on('notification', gateEntry(function(data) {
       // list is a good known jump point, so do not needlessly
       // wipe that one out if it is the current one.
       if (!isCurrentCardMessageList()) {
-        Cards.removeAllCards();
+        cards.removeAllCards();
       }
 
       if (type === 'message_list') {
@@ -529,7 +529,7 @@ appMessages.on('notification', gateEntry(function(data) {
       } else if (type === 'message_reader') {
         headerCursor.setCurrentMessageBySuid(data.messageSuid);
 
-        Cards.pushCard(type, 'default', 'immediate', {
+        cards.pushCard(type, 'immediate', {
             messageSuid: data.messageSuid,
             onPushed: onPushed
         });

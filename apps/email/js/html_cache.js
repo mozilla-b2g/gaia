@@ -1,7 +1,6 @@
 // HTML_COOKIE_CACHE_VERSION is set in html_cache_restore as a global.
-/*global document, console, setTimeout, HTML_COOKIE_CACHE_VERSION,
-  define: true */
-
+/*global HTML_COOKIE_CACHE_VERSION */
+'use strict';
 define(function(require, exports) {
 
 /**

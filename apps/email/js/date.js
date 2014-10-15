@@ -1,10 +1,16 @@
-/*global define */
+'use strict';
 define(function(require) {
-  // TODO: move common date functions from mail_common into here over time,
-  // and then remove this dependency.
-  var common = require('mail_common');
+  var mozL10n = require('l10n!');
 
   var date = {
+    /**
+     * Display a human-readable relative timestamp.
+     */
+    prettyDate: function(time, useCompactFormat) {
+      var f = new mozL10n.DateTimeFormat();
+      return f.fromNow(time, useCompactFormat);
+    },
+
     /**
      * Given a node, show a pretty date for its contents.
      * @param {Node} node  the DOM node.
@@ -15,7 +21,7 @@ define(function(require) {
       if (timestamp) {
         node.dataset.time = timestamp.valueOf();
         node.dataset.compactFormat = true;
-        node.textContent = common.prettyDate(timestamp, true);
+        node.textContent = date.prettyDate(timestamp, true);
       } else {
         node.textContent = '';
         node.removeAttribute('data-time');

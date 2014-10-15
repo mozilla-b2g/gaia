@@ -18,22 +18,27 @@
      limited ability to provide updated versions of the app or have users
      side-load versions of our certified app.
   -->
-<section class="card-settings-debug card-settings-account-common card skin-organic"
-         role="region">
+<!-- This section element is needed by building blocks, would be nice if
+  bb used a class instead of a section element target -->
+<section class="skin-organic settings-account-common bbshim" role="region">
   <header class="tng-account-header">
-    <a href="#" class="tng-back-btn back-btn header-left-btn">
+    <a data-event="click:onClose"
+       href="#" class="tng-back-btn back-btn header-left-btn">
       <span class="icon icon-back"></span>
     </a>
     <h1 class="header-label">Debug Magic</h1>
   </header>
   <section class="scrollregion-below-header skin-organic" role="region">
-    <button href="#" class="tng-dbg-reset">Reset App</button>
+    <button data-event="click:resetApp"
+            href="#" class="tng-dbg-reset">Reset App</button>
     <header><h2>Logging</h2></header>
     <ul class="tng-list">
       <li class="select-item">
         <label class="list-text">Logging Mode</label>
         <span class="button icon icon-dialog">
-          <select class="tng-dbg-logging">
+          <select data-prop="loggingSelect"
+                  data-event="change:onChangeLogging"
+                  class="tng-dbg-logging">
             <option value="">
               No logging.
             </option>
@@ -50,8 +55,13 @@
         </span>
       </li>
     </ul>
-    <button href="#" class="tng-dbg-dump-storage">Dump circular log buffer to sdcard</button>
+    <button data-event="click:dumpLog"
+            href="#"
+            class="tng-dbg-dump-storage"
+    >Dump circular log buffer to sdcard</button>
     <header><h2>More Settings!</h2></header>
-    <button href="#" class="tng-dbg-fastsync">Enable faster sync options</button>
+    <button data-event="click:fastSync"
+            href="#"
+            class="tng-dbg-fastsync">Enable faster sync options</button>
   </section>
 </section>
