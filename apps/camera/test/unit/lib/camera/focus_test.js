@@ -221,6 +221,7 @@ suite('lib/camera/focus', function() {
   suite('Focus#suspendFaceDetection', function() {
     setup(function() {
       this.clock = sinon.useFakeTimers();
+      this.focus.faceDetection = true;
       this.focus.faceDetectionSuspended = undefined;
       this.focus.faceFocused = true;
     });
@@ -552,7 +553,7 @@ suite('lib/camera/focus', function() {
     setup(function() {
       this.focus.focus = sinon.spy();
       this.focus.stopContinuousFocus = sinon.spy();
-      this.focus.stopFaceDetection = sinon.spy();
+      this.focus.suspendFaceDetection = sinon.spy();
       this.focus.onAutoFocusChanged = sinon.spy();
     });
 
@@ -560,7 +561,7 @@ suite('lib/camera/focus', function() {
       this.focus.touchFocus = false;
       this.focus.updateFocusArea();
       assert.ok(!this.focus.stopContinuousFocus.called);
-      assert.ok(!this.focus.stopFaceDetection.called);
+      assert.ok(!this.focus.suspendFaceDetection.calledWith(10000));
       assert.ok(!this.focus.mozCamera.setFocusAreas.called);
       assert.ok(!this.focus.mozCamera.setMeteringAreas.called);
       assert.ok(!this.focus.focus.called);
@@ -572,7 +573,7 @@ suite('lib/camera/focus', function() {
       this.focus.updateFocusArea();
       assert.ok(this.focus.onAutoFocusChanged.calledWith('focusing'));
       assert.ok(this.focus.stopContinuousFocus.called);
-      assert.ok(this.focus.stopFaceDetection.called);
+      assert.ok(this.focus.suspendFaceDetection.calledWith(10000));
       assert.ok(this.focus.mozCamera.setFocusAreas.called);
       assert.ok(this.focus.mozCamera.setMeteringAreas.called);
       assert.ok(this.focus.focus.called);
