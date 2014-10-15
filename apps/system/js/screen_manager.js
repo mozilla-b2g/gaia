@@ -95,6 +95,7 @@ var ScreenManager = {
    * To track the reason caused screen off?
    */
   _screenOffBy: null,
+  _screenOffTimeout: 0,
 
   /*
    * Request wakelock during in_call state.
@@ -351,7 +352,8 @@ var ScreenManager = {
       self.screenEnabled = false;
       self._inTransition = false;
       self.screen.classList.add('screenoff');
-      setTimeout(function realScreenOff() {
+      clearTimeout(self._screenOffTimeout);
+      self._screenOffTimeout = setTimeout(function realScreenOff() {
         self.setScreenBrightness(0, true);
         // Sometimes the ScreenManager.screenEnabled and mozPower.screenEnabled
         // values are out of sync. Since the rest of the world relies only on
@@ -385,6 +387,7 @@ var ScreenManager = {
   },
 
   turnScreenOn: function scm_turnScreenOn(instant) {
+    clearTimeout(this._screenOffTimeout);
     if (this.screenEnabled) {
       if (this._inTransition) {
         // Cancel the dim out
