@@ -19,10 +19,6 @@
 }
 */
 
-#screen > #system-update-splash {
-  z-index: 65538;
-}
-
 /* Home gesture panel should not be covered by any element of system */
 #screen > #bottom-panel.visible {
   z-index: 2147483647;

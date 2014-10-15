@@ -210,51 +210,6 @@
   visibility: visible;
 }
 
-/* System update splash screen */
-
-#system-update-splash
-{
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background-color: #2d2d2d;
-}
-
-#system-update-splash > div
-{
-  position: absolute;
-}
-
-#system-update-splash > #label
-{
-  top: 23rem;
-  left: 3rem;
-  font-size: 1.6rem;
-  font-weight: 400;
-  color: white;
-}
-
-#system-update-splash > #divider
-{
-  top: 26rem;
-  left: 1.5rem;
-  width: calc(100% - 3rem);
-  height: 0.05rem;
-  background-color: #676767;
-  box-shadow: 0 0 0.1rem rgba(0, 0, 0, 0.5);
-}
-
-#system-update-splash > #icon
-{
-  top: 27rem;
-  width: 100%;
-  height: 7.6rem;
-  background-image: url(images/system_update.png);
-  background-size: 7.6rem;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
 /* RTL View */
 
 html[dir="rtl"] #update-manager-toaster > .icon {

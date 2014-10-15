@@ -328,20 +328,6 @@ SystemUpdatable.prototype.declineInstallWait = function() {
 
 SystemUpdatable.prototype.acceptInstall = function() {
   CustomDialog.hide();
-
-  // Display a splash-screen so the user knows an update is being applied
-  var splash = document.createElement('form');
-  splash.id = 'system-update-splash';
-  ['label', 'divider', 'icon'].forEach(function(name) {
-    var child = document.createElement('div');
-    child.id = name;
-    splash.appendChild(child);
-  });
-  splash.firstChild.setAttribute('data-l10n-id', 'systemUpdate');
-
-  var screen = document.getElementById('screen');
-  screen.appendChild(splash);
-
   this._dispatchEvent('update-prompt-apply-result', 'restart');
 };
 
