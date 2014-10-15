@@ -36,6 +36,7 @@ var BookmarkEditor = {
     this._checkDoneButton();
     this.form = document.getElementById('bookmark-form');
     this.form.addEventListener('input', this._checkDoneButton.bind(this));
+    this.form.addEventListener('submit', this._submit.bind(this));
     var touchstart = 'ontouchstart' in window ? 'touchstart' : 'mousedown';
     this.clearButton = document.getElementById('bookmark-title-clear');
     this.clearButton.addEventListener(touchstart, this._clearTitle.bind(this));
@@ -63,6 +64,15 @@ var BookmarkEditor = {
 
   close: function bookmarkEditor_close() {
     this.oncancelled();
+  },
+
+  /**
+   * Handles the submit case for the form when the user presses the enter key.
+   * @param {Event} event The form submit event.
+   */
+  _submit: function(event) {
+    event.preventDefault();
+    this.save();
   },
 
   _clearTitle: function bookmarkEditor_clearTitle(event) {
