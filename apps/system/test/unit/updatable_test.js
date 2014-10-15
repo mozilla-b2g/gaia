@@ -82,6 +82,10 @@ suite('system/Updatable', function() {
       };
     };
     subject._dispatchEvent = fakeDispatchEvent;
+
+    var fakeScreen = document.createElement('div');
+    fakeScreen.id = 'screen';
+    document.body.appendChild(fakeScreen);
   });
 
   teardown(function() {
