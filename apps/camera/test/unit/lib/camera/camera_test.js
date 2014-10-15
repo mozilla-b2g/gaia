@@ -1005,6 +1005,7 @@ suite('lib/camera/camera', function() {
     setup(function() {
       this.mozCamera.release.callsArgAsync(0);
       this.camera.mozCamera = this.mozCamera;
+      this.camera.focus.stopFaceDetection = sinon.spy();
     });
 
     test('Should flag as `releasing` until released', function(done) {
