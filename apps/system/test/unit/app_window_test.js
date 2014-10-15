@@ -1599,6 +1599,28 @@ suite('system/AppWindow', function() {
       assert.equal(app1.identificationTitle.textContent, 'Mon Application');
     });
 
+    test('focus event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubFocus = this.sinon.stub(app1, 'focus');
+
+      app1.handleEvent({
+        type: '_focus'
+      });
+
+      assert.isTrue(stubFocus.calledOnce);
+    });
+
+    test('blur event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubBlur = this.sinon.stub(app1, 'blur');
+
+      app1.handleEvent({
+        type: '_blur'
+      });
+
+      assert.isTrue(stubBlur.calledOnce);
+    });
+
     test('Titilechange event', function() {
       var app1 = new AppWindow(fakeWrapperConfig);
       var stubPublish = this.sinon.stub(app1, 'publish');
