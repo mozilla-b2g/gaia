@@ -28,6 +28,7 @@
       this.constructor.SETTINGS.forEach(function(name) {
         if (name.indexOf('.enabled') >= 0) {
           this.readSetting(name).then(function(value) {
+            console.log(value + 'is' + name);
             if (value) {
               self._unsuspend(name.replace('enabled', 'suspended'));
             }
@@ -35,12 +36,40 @@
         }
       }, this);
     },
-    '_pre_observe': function(setting, value) {
-      this._settings[setting] = value;
+    '_observe_ril.data.enabled': function(value) {
+      this._settings['ril.data.enabled'] = value;
+    },
+    '_observe_bluetooth.enabled': function(value) {
+      this._settings['bluetooth.enabled'] = value;
+    },
+    '_observe_geolocation.enabled': function(value) {
+      this._settings['geolocation.enabled'] = value;
+    },
+    '_observe_wifi.enabled': function(value) {
+      this._settings['wifi.enabled'] = value;
+    },
+    '_observe_nfc.enabled': function(value) {
+      this._settings['nfc.enabled'] = value;
+    },
+    '_observe_ril.data.suspended': function(value) {
+      this._settings['ril.data.suspended'] = value;
+    },
+    '_observe_bluetooth.suspended': function(value) {
+      this._settings['bluetooth.suspended'] = value;
+    },
+    '_observe_geolocation.suspended': function(value) {
+      this._settings['geolocation.suspended'] = value;
+    },
+    '_observe_wifi.suspended': function(value) {
+      this._settings['wifi.suspended'] = value;
+    },
+    '_observe_nfc.suspended': function(value) {
+      this._settings['nfc.suspended'] = value;
     },
     // turn off the mozSetting corresponding to `key'
     // and remember its initial state by storing it in another setting
     _suspend: function(key) {
+      this.debug('suspending: ' + key);
       var enabled = this._settings[key + '.enabled'];
       var suspended = this._settings[key + '.suspended'];
 
@@ -64,6 +93,7 @@
     // turn on the mozSetting corresponding to `key'
     // if it has been suspended by the airplane mode
     _restore: function(key) {
+      this.debug('restoring: ' + key);
       var suspended = this._settings[key + '.suspended'];
 
       // clear the 'suspended' state
@@ -79,6 +109,7 @@
       }
     },
     _unsuspend: function(settingSuspendedID) {
+      this.debug('unsuspending: ' + settingSuspendedID);
       // clear the 'suspended' state
       var sset = {};
       sset[settingSuspendedID] = false;
@@ -98,8 +129,7 @@
       var wifiManager = window.navigator.mozWifiManager;
       var nfc = window.navigator.mozNfc;
 
-      window.dispatchEvent(new CustomEvent(!!value ?
-        'airplanemode-enabled' : 'airplanemode-disabled'));
+      this.publish(value ? 'airplanemode-enabled' : 'airplanemode-disabled');
 
       if (value) {
 

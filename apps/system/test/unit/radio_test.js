@@ -26,7 +26,9 @@ suite('Radio > ', function() {
 
   setup(function() {
     radio = BaseModule.instantiate('Radio',
-      MockNavigatorMozMobileConnections);
+      {
+        mobileConnections: MockNavigatorMozMobileConnections
+      });
     radio.start();
   });
 

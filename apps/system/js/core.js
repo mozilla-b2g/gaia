@@ -16,12 +16,26 @@
     'AirplaneMode'
   ];
 
+  Core.SERVICES = [
+    'getAPI'
+  ];
+
   BaseModule.create(Core, {
     name: 'Core',
 
     REGISTRY: {
       'mozSettings': 'SettingsCore',
       'mozMobileConnections': 'MobileConnectionCore'
+    },
+
+    getAPI: function(api) {
+      for (var key in this.REGISTRY) {
+        if (api === BaseModule.lowerCapital(key.replace('moz', '')) &&
+            navigator[key]) {
+          return true;
+        }
+      }
+      return false;
     },
 
     _start: function() {

@@ -1,7 +1,9 @@
-/* global EuRoamingManager, Promise, Notification, MockSIMSlotManager */
+/* global BaseModule, Promise, Notification, MockSIMSlotManager */
 'use strict';
 
 require('shared/js/lazy_loader.js');
+requireApp('system/js/system.js');
+requireApp('system/js/base_module.js');
 requireApp('system/js/eu_roaming_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 
@@ -14,10 +16,9 @@ suite('system/EuRoamingManager', function() {
       }
     }];
 
-    this.reallMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = this.fakeConnections;
-
-    this.euRoamingManager = new EuRoamingManager();
+    this.euRoamingManager = BaseModule.instantiate('EuRoamingManager', {
+      mozMobileConnections: this.fakeConnections
+    });
   });
 
   teardown(function() {

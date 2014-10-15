@@ -15,7 +15,9 @@ suite('system/emergency_callback_manager', function() {
 
   setup(function() {
     subject = BaseModule.instantiate('EmergencyCallbackManager',
-      MockNavigatorMozMobileConnections);
+      {
+        mobileConnections: MockNavigatorMozMobileConnections
+      });
   });
 
   teardown(function() {

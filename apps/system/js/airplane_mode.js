@@ -134,6 +134,18 @@
       }
     },
 
+    _ready: false,
+
+    ready: function() {
+      var self = this;
+      Promise.all([System.request('getAPI', 'mobileConnections'),
+        System.request('getAPI', 'bluetooth'),
+        System.request('getAPI', 'wifi')]).then(function(p1, p2, p3) {
+          self._ready = true;
+          console.log(p1, p2, p3);
+        });
+    },
+
     /*
      * By default, these three API takes longer time and with success / error
      * callback. we just have to wait for these three items.
@@ -182,7 +194,6 @@
         }
       }
 
-      console.log(value, checkedActions);
       return checkedActions;
     },
 
@@ -213,7 +224,9 @@
        * @param {boolean} value
        */
       set: function(value) {
+        this.debug('current: ' + this._enabled);
         if (value !== this._enabled) {
+          this.debug('turned to ' + value);
           this._enabled = value;
 
           // start watching events
@@ -221,8 +234,6 @@
 
           // tell services to do their own operations
           this.airplaneModeServiceHelper.updateStatus(value);
-          this.publish(value ?
-            'airplanemode-enabled' : 'airplanemode-disabled');
         }
       },
 

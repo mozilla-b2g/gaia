@@ -12,8 +12,8 @@
  *
  */
 
-  var EmergencyCallbackManager = function(mozMobileConnections) {
-    this.mozMobileConnections = mozMobileConnections;
+  var EmergencyCallbackManager = function(core) {
+    this.mozMobileConnections = core.mobileConnections;
   };
   BaseModule.create(EmergencyCallbackManager, {
     name: 'EmergencyCallbackManager',

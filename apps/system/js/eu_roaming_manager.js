@@ -11,9 +11,9 @@
    *
    * @class EuRoamingManager
    */
-  function EuRoamingManager(mobileConnections) {
+  function EuRoamingManager(core) {
     this._started = false;
-    this._connections = Array.slice(mobileConnections || []);
+    this._connections = Array.slice(core.mobileConnections || []);
 
     this._simMobileCodes = [];
     this._curNetworkMobileCodes = [];
