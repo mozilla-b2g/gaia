@@ -1,18 +1,18 @@
-#lockscreen .media-playback-container {
+.media-playback-container {
   height: auto;
   padding: 0 1.8rem;
 }
 
-#lockscreen .media-playback-container.disabled {
+.media-playback-container.disabled {
   opacity: 0.3;
   pointer-events: none;
 }
 
-#lockscreen .media-playback-nowplaying {
+.media-playback-nowplaying {
   height: 2.4rem;
 }
 
-#lockscreen .media-playback-nowplaying > .track {
+.media-playback-nowplaying > .track {
   padding: 1rem 1.5rem 0 1.5rem;
   font: italic 1.4rem/1.4rem auto;
   text-align: center;
@@ -21,7 +21,7 @@
   white-space: nowrap;
 }
 
-#lockscreen .media-playback-controls {
+.media-playback-controls {
   height: 5.6rem;
   width: 100%;
   overflow: hidden;
@@ -29,7 +29,7 @@
   font-size: 0; /* ensure there's no space between the buttons */
 }
 
-#lockscreen .media-playback-controls > [data-icon] {
+.media-playback-controls > [data-icon] {
   width: calc(100% / 3);
   height: 100%;
   padding: 0;
@@ -41,27 +41,27 @@
   background: transparent;
 }
 
-#lockscreen .media-playback-controls > [data-icon]:before {
+.media-playback-controls > [data-icon]:before {
   font-size: 4rem;
   line-height: 5.6rem;
 }
 
-#lockscreen .media-playback-controls > .previous {
+.media-playback-controls > .previous {
   text-align: left;
   padding-left: 1.5rem;
 }
 
-#lockscreen .media-playback-controls > .next {
+.media-playback-controls > .next {
   text-align: right;
   padding-right: 1.5rem;
 }
 
-#lockscreen .media-playback-controls > button {
+.media-playback-controls > button {
   transition: 0s 0.3s; /* Delay transition post tap by some milliseconds. */
 }
 
-[role="dialog"] #lockscreen .media-playback-controls > button:active,
-#lockscreen .media-playback-controls > button:active {
+[role="dialog"] .media-playback-controls > button:active,
+.media-playback-controls > button:active {
   background-color: transparent;
   color: #0ac;
   transition: 0s;
