@@ -41,8 +41,12 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
+    window.appWindowManager = new AppWindowManager();
+
     /** @global */
     window.activityWindowManager = new ActivityWindowManager();
+    window.activityWindowManager.start();
+
     /** @global */
     window.secureWindowManager = window.secureWindowManager ||
       new SecureWindowManager();
@@ -60,9 +64,9 @@ window.addEventListener('load', function startup() {
     window.lockScreenWindowManager = new window.LockScreenWindowManager();
     window.lockScreenWindowManager.start();
 
-    // To initilaize it after LockScreenWindowManager to block home button
-    // when the screen is locked.
-    window.activityWindowManager.start();
+    // Let systemDialogManager handle inputmethod-contextchange event before
+    // starting appWindowManager. See bug 1082741.
+    window.appWindowManager.start();
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
@@ -122,8 +126,6 @@ window.addEventListener('load', function startup() {
   window.homescreenWindowManager.start();
 
   // Please sort it alphabetically
-  window.appWindowManager = new AppWindowManager();
-  window.appWindowManager.start();
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
