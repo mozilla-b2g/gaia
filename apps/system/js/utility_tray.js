@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
-/* global CostControl */
+/* global CostControl, softwareButtonManager */
 
 var UtilityTray = {
   shown: false,
@@ -321,7 +321,8 @@ var UtilityTray = {
 
     this.notifications.style.transition = '';
     this.notifications.style.transform =
-      'translateY(' + (window.innerHeight - dy - 30 /* StatusBar */) + 'px)';
+      'translateY(' + (window.innerHeight - dy - 30 /* StatusBar */ -
+      softwareButtonManager.height) + 'px)';
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {

@@ -70,6 +70,6 @@
 
 @media (orientation: landscape) {
   #screen.software-button-enabled #utility-tray-notifications {
-    width: calc(100% - var(--software-home-button-height));
+    width: calc(100%);
   }
 }
