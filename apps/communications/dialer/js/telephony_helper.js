@@ -83,6 +83,7 @@ var TelephonyHelper = (function() {
       if (((cardState === 'unknown') || (cardState === 'illegal')) &&
            (emergencyOnly === false)) {
         if (onerror) {
+          console.log('Tried to make a call with a card state of: ', cardState);
           onerror();
         }
 
