@@ -122,11 +122,11 @@
         case 'homescreenopened':
           var detail = evt.detail;
           if (detail.CLASS_NAME === 'LandingAppWindow') {
-            homescreenLauncher.getHomescreen().ensure(true);
-            homescreenLauncher.getHomescreen().showFadeOverlay();
+            this.setHomescreenVisible(homescreenLauncher, false);
+            this.setHomescreenVisible(this.landingAppLauncher, true);
           } else if (this.landingAppLauncher.hasLandingApp) {
-            this.landingAppLauncher.getHomescreen().ensure(true);
-            this.landingAppLauncher.getHomescreen().hideFadeOverlay();
+            this.setHomescreenVisible(this.landingAppLauncher, false);
+            this.setHomescreenVisible(homescreenLauncher, true);
           }
           break;
         case 'activityopened':
@@ -150,11 +150,22 @@
             this._activeHome = this.landingAppLauncher.hasLandingApp ?
                                this.landingAppLauncher : homescreenLauncher;
             if (this._ftuSkipped && this.landingAppLauncher.hasLandingApp) {
-              this.landingAppLauncher.getHomescreen().setVisible(true);
+              this.setHomescreenVisible(homescreenLauncher, false);
+              this.setHomescreenVisible(this.landingAppLauncher, true);
             }
           }
           break;
       }
+    },
+
+    setHomescreenVisible: function hwm_hideActiveHome(launcher, visible) {
+      launcher.getHomescreen().ensure(true);
+      if (visible) {
+        launcher.getHomescreen().showFadeOverlay();
+      } else {
+        launcher.getHomescreen().hideFadeOverlay();
+      }
+      launcher.getHomescreen().setVisible(visible);
     },
 
     publish: function awm_publish(event, detail) {

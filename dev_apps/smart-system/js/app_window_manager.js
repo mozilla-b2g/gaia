@@ -441,7 +441,6 @@
 
         case 'appopening':
         case 'appopened':
-        case 'homescreenopened':
           // Someone else may open the app,
           // so we need to update active app.
           this._updateActiveApp(evt.detail.instanceID);
@@ -451,6 +450,7 @@
           this._apps[evt.detail.instanceID] = evt.detail;
           break;
 
+        case 'homescreenopened':
         case 'homescreen-changed':
         case 'landing-app-changed':
           this.display();
