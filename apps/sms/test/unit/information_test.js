@@ -317,7 +317,7 @@ suite('Information view', function() {
         sinon.assert.calledWith(
           navigator.mozL10n.setAttributes,
           reportView.size,
-          'attachmentSize',
+          'attachmentSizeKB',
           sizeContent
         );
       }
