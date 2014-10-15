@@ -11,6 +11,10 @@ window.addEventListener('load', function callSetup(evt) {
   KeypadManager.init(true);
 });
 
+window.addEventListener('unload', function unloadCallScreen(evt) {
+  console.debug('Unloaded callscreen.');
+});
+
 // Don't keep an audio channel open when the callscreen is not displayed
 document.addEventListener('visibilitychange', function visibilitychanged() {
   if (document.hidden) {
