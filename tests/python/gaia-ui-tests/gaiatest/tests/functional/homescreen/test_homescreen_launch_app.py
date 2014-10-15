@@ -68,6 +68,7 @@ class TestLaunchApp(GaiaTestCase):
             self.homescreen.wait_for_app_icon_present(test_data['name'])
 
     def test_launch_app(self):
+        """https://moztrap.mozilla.org/manage/case/6116/"""
         # Verify that the app icon is visible on one of the homescreen pages
         self.assertTrue(
             self.homescreen.is_app_installed(self.test_data['name']),
