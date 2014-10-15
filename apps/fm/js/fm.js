@@ -194,6 +194,13 @@ function updateFrequencyBarUI() {
 
 function updateEnablingState(enablingState) {
   enabling = enablingState;
+
+  if (enablingState) {
+    $('static').play();
+  } else {
+    $('static').pause();
+  }
+
   updatePowerUI();
   updateFrequencyBarUI();
 }
