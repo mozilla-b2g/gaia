@@ -14,7 +14,7 @@
          LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
-         CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
+         CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
          BatteryOverlay, BaseModule, AppWindowManager */
 'use strict';
 
@@ -139,6 +139,8 @@ window.addEventListener('load', function startup() {
   window.batteryOverlay.start();
   window.cellBroadcastSystem = new CellBroadcastSystem();
   window.cellBroadcastSystem.start();
+  window.cpuManager = new CpuManager();
+  window.cpuManager.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
   /** @global */

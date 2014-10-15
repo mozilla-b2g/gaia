@@ -1,7 +1,7 @@
 'use strict';
 
 /* globals SettingsListener, Bluetooth, StatusBar, System,
-           ScreenBrightnessTransition */
+           ScreenBrightnessTransition, ScreenWakeLockManager */
 
 var ScreenManager = {
   /*
@@ -26,11 +26,6 @@ var ScreenManager = {
    *
    */
   _inTransition: false,
-
-  /*
-   * Whether the wake lock is enabled or not
-   */
-  _screenWakeLocked: false,
 
   /*
    * Whether the device light is enabled or not
@@ -123,22 +118,17 @@ var ScreenManager = {
     var self = this;
     var power = navigator.mozPower;
 
-    if (power) {
-      power.addWakeLockListener(function scm_handleWakeLock(topic, state) {
-        if (topic == 'screen') {
-          self._screenWakeLocked = (state == 'locked-foreground');
-
-          if (self._screenWakeLocked) {
-            // Turn screen on if wake lock is acquire
-            self.turnScreenOn();
-          }
-          self._reconfigScreenTimeout();
-        } else if (topic == 'cpu') {
-          power.cpuSleepAllowed = (state != 'locked-foreground' &&
-                                    state != 'locked-background');
-        }
-      });
-    }
+    // Start the screen wake lock manager so it will monitor screen wake lock
+    // for us. We will need to re-config the screen timeout when the lock state
+    // is changed.
+    //
+    // Noted that getting a lock while the screen is off will not
+    // turn on the screen, since no frame is considered visible by Gecko when
+    // the screen is off. See discussion in bug 818840.
+    this._wakeLockManager = new ScreenWakeLockManager();
+    this._wakeLockManager.onwakelockchange =
+      this._reconfigScreenTimeout.bind(this);
+    this._wakeLockManager.start();
 
     this._firstOn = false;
     SettingsListener.observe('screen.timeout', 60,
@@ -469,7 +459,7 @@ var ScreenManager = {
   _reconfigScreenTimeout: function scm_reconfigScreenTimeout() {
     // Remove idle timer if screen wake lock is acquired or
     // if no app has been displayed yet.
-    if (this._screenWakeLocked || !System.currentApp) {
+    if (this._wakeLockManager.isHeld || !System.currentApp) {
       this._setIdleTimeout(0);
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.

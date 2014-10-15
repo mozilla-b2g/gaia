@@ -31,6 +31,7 @@ requireApp('system/js/power_save.js');
 requireApp('system/js/battery_overlay.js');
 requireApp('system/js/browser_settings.js');
 requireApp('system/js/cell_broadcast_system.js');
+requireApp('system/js/cpu_manager.js');
 requireApp('system/js/devtools/developer_hud.js');
 requireApp('system/js/dialer_agent.js');
 requireApp('system/js/eu_roaming_manager.js');
@@ -155,7 +156,7 @@ suite('system/Bootstrap', function() {
 
     realVersionHelper = window.VersionHelper;
     window.VersionHelper = MockVersionHelper(false);
-    
+
     requireApp('system/js/bootstrap.js', done);
   });
 

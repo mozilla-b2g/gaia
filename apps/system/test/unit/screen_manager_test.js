@@ -1,4 +1,5 @@
 /* globals ScreenManager, ScreenBrightnessTransition,
+           ScreenWakeLockManager,
            MocksHelper, MockLockScreen, MockMozPower,
            MockSettingsListener, MocksleepMenu */
 
@@ -42,12 +43,14 @@ var mocksForScreenManager = new MocksHelper([
 ]).init();
 
 require('/js/screen_brightness_transition.js');
+require('/js/wake_lock_manager.js');
 
 suite('system/ScreenManager', function() {
   var reals = {};
   mocksForScreenManager.attachTestHelpers();
 
   var stubScreenBrightnessTransition;
+  var stubScreenWakeLockManager;
 
   setup(function(done) {
     window.lockScreen = MockLockScreen;
@@ -58,6 +61,11 @@ suite('system/ScreenManager', function() {
       this.sinon.stub(ScreenBrightnessTransition.prototype);
     this.sinon.stub(window, 'ScreenBrightnessTransition')
       .returns(stubScreenBrightnessTransition);
+
+    stubScreenWakeLockManager =
+      this.sinon.stub(ScreenWakeLockManager.prototype);
+    this.sinon.stub(window, 'ScreenWakeLockManager')
+      .returns(stubScreenWakeLockManager);
 
     // We make sure fake timers are in place before we require the app
     requireApp('system/js/screen_manager.js', done);
@@ -99,41 +107,12 @@ suite('system/ScreenManager', function() {
       assert.isTrue(eventListenerStub.withArgs('requestshutdown').calledOnce);
     });
 
-    suite('power.addWakeLockListener handling', function() {
-      var wakeLockListenerSpy;
+    test('wake lock handling', function() {
+      ScreenManager.init();
+      assert.isTrue(stubScreenWakeLockManager.start.calledOnce);
 
-      setup(function() {
-        wakeLockListenerSpy = this.sinon.spy(MockMozPower,
-                                             'addWakeLockListener');
-        ScreenManager.init();
-      });
-
-      test('General case', function() {
-        wakeLockListenerSpy.yield('screen', 'locked-foreground');
-        assert.isTrue(ScreenManager._screenWakeLocked);
-        assert.isTrue(ScreenManager.turnScreenOn.called);
-        assert.isTrue(ScreenManager._reconfigScreenTimeout.called);
-      });
-
-      test('Called with topic "screen"', function() {
-        ScreenManager.turnScreenOn.reset();
-        wakeLockListenerSpy.yield('screen', 'locked-background');
-        assert.isFalse(ScreenManager._screenWakeLocked);
-        assert.isFalse(ScreenManager.turnScreenOn.called);
-        assert.isTrue(ScreenManager._reconfigScreenTimeout.called);
-      });
-
-      suite('Called with topic topic "cpu"', function() {
-        test('state is "another-state"', function() {
-          wakeLockListenerSpy.yield('cpu', 'another-state');
-          assert.isTrue(MockMozPower.cpuSleepAllowed);
-        });
-
-        test('state is "locked-background"', function() {
-          wakeLockListenerSpy.yield('cpu', 'locked-background');
-          assert.isFalse(MockMozPower.cpuSleepAllowed);
-        });
-      });
+      stubScreenWakeLockManager.onwakelockchange(true);
+      assert.isTrue(ScreenManager._reconfigScreenTimeout.called);
     });
 
     test('Testing SettingsListener.observe for screen.timeout', function() {
