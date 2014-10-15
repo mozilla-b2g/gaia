@@ -256,6 +256,7 @@
       window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
+      window.addEventListener('homescreenterminated', this);
       window.addEventListener('ftuskip', this);
       window.addEventListener('appopened', this);
       window.addEventListener('apprequestopen', this);
@@ -264,6 +265,7 @@
       window.addEventListener('reset-orientation', this);
       window.addEventListener('homescreencreated', this);
       window.addEventListener('homescreen-changed', this);
+      window.addEventListener('landing-app-changed', this);
       // Watch chrome event that order to close an app
       window.addEventListener('killapp', this);
       // Watch for event to bring a currently-open app to the foreground.
@@ -333,6 +335,7 @@
       window.removeEventListener('home', this);
       window.removeEventListener('appcreated', this);
       window.removeEventListener('appterminated', this);
+      window.removeEventListener('homescreenterminated', this);
       window.removeEventListener('ftuskip', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('apprequestopen', this);
@@ -341,6 +344,7 @@
       window.removeEventListener('reset-orientation', this);
       window.removeEventListener('homescreencreated', this);
       window.removeEventListener('homescreen-changed', this);
+      window.removeEventListener('landing-app-changed', this);
       window.removeEventListener('killapp', this);
       window.removeEventListener('displayapp', this);
       window.removeEventListener('applicationuninstall', this);
@@ -404,6 +408,7 @@
           this._apps[evt.detail.instanceID] = app;
           break;
 
+        case 'homescreenterminated':
         case 'appterminated':
           var app = evt.detail; // jshint ignore:line
           var instanceID = evt.detail.instanceID;
@@ -447,6 +452,7 @@
           break;
 
         case 'homescreen-changed':
+        case 'landing-app-changed':
           this.display();
           break;
 

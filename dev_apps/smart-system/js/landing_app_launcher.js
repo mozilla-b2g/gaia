@@ -41,7 +41,7 @@
             // Dispatch 'homescreen is changed' event.
             // Landing app is a kind of homescreen, we use homescreen-changed
             // event to notify app_window_manager to reload homescreen.
-            window.dispatchEvent(new CustomEvent('homescreen-changed'));
+            window.dispatchEvent(new CustomEvent('landing-app-changed'));
           } else {
             that._instance.ensure();
           }

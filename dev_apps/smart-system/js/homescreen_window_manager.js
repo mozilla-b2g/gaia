@@ -11,7 +11,7 @@
    * @requires LandingAppLauncher
    * @requires System
    */
-  function TVHomescreenWindowManager() {}
+  function HomescreenWindowManager() {}
 
   HomescreenWindowManager.prototype = {
     DEBUG: false,
@@ -75,8 +75,6 @@
       window.removeEventListener('appopened', this);
       window.removeEventListener('activityopened', this);
       window.removeEventListener('homescreenopened', this);
-      window.removeEventListener('homescreen-ready', this);
-      window.removeEventListener('landing-app-ready', this);
     },
 
     handleEvent: function hwm_handleEvent(evt) {
@@ -94,7 +92,6 @@
         case 'open-app':
         case 'webapps-launch':
           var detail = evt.detail;
-          console.log('trying to ' + evt.type + ': ' + detail.manifestURL);
           if (detail.manifestURL === homescreenLauncher.manifestURL ||
               detail.manifestURL === this.landingAppLauncher.manifestURL) {
             this.launchHomescreen(evt, detail.manifestURL);
@@ -145,6 +142,10 @@
         case 'landing-app-ready':
         case 'homescreen-ready':
           if (this.ready) {
+            // remove ready listener when we are ready.
+            window.removeEventListener('homescreen-ready', this);
+            window.removeEventListener('landing-app-ready', this);
+
             this.publish('homescreenwindowmanager-ready');
             this._activeHome = this.landingAppLauncher.hasLandingApp ?
                                this.landingAppLauncher : homescreenLauncher;
@@ -245,5 +246,5 @@
     }
   };
 
-  exports.HomescreenWindowManager = TVHomescreenWindowManager;
+  exports.HomescreenWindowManager = HomescreenWindowManager;
 }(window));
