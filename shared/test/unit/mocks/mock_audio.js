@@ -3,7 +3,7 @@
 function MockAudio(src) {
   MockAudio.instances.push(this);
   this.src = src;
-  this.readyState = 2;
+  this.readyState = 1;
   this.paused = true;
 }
 
@@ -18,7 +18,6 @@ MockAudio.mTeardown = function() {
 };
 
 MockAudio.prototype.HAVE_NOTHING = 0;
-MockAudio.prototype.HAVE_METADATA = 1;
 
 MockAudio.prototype.play = function() {
   // FIXME can we replace playing with paused?

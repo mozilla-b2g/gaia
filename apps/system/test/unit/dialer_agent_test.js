@@ -193,15 +193,12 @@ suite('system/DialerAgent', function() {
         assert.isTrue(mockAudio.pause.calledOnce);
       });
 
-      suite('no audio source loaded, pressing sleep button', function() {
-        test('no audio loaded at all', function() {
-          mockAudio.readyState = MockAudio.HAVE_NOTHING;
-          window.dispatchEvent(new CustomEvent('sleep'));
-          assert.isTrue(mockAudio.pause.notCalled);
+      suite('but we have no audio source loaded', function() {
+        setup(function() {
+          mockAudio.readyState = 0;
         });
 
-        test('only metadata loaded', function() {
-          mockAudio.readyState = MockAudio.HAVE_METADATA;
+        test('pressing the sleep button should not do anything', function() {
           window.dispatchEvent(new CustomEvent('sleep'));
           assert.isTrue(mockAudio.pause.notCalled);
         });

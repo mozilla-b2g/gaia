@@ -205,7 +205,7 @@
     var player = this._player;
 
     this._alerting = false;
-    if (player && player.readyState > player.HAVE_METADATA) {
+    if (player && player.readyState > player.HAVE_NOTHING) {
       player.pause();
       player.currentTime = 0;
     }
