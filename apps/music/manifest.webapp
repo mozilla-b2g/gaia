@@ -11,6 +11,7 @@
     "themeable":{},
     "storage":{},
     "device-storage:music":{ "access": "readwrite" },
+    "device-storage:pictures":{ "access": "readwrite" },
     "settings":{ "access": "readonly" },
     "bluetooth":{},
     "audio-channel-content":{},
