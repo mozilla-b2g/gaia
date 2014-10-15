@@ -50,7 +50,8 @@
     get height() {
       var activeApp = System.currentApp;
       var isFullScreenLayout = activeApp && activeApp.isFullScreenLayout();
-      var softwareButtonHeight = System.locked || isFullScreenLayout ?
+      var skipSHB = System.locked || isFullScreenLayout;
+      var softwareButtonHeight = skipSHB && !activeApp.isHomescreen ?
         0 : softwareButtonManager.height;
       var keyboardHeight = this.keyboardEnabled ?
         KeyboardManager.getHeight() : 0;
