@@ -330,6 +330,24 @@ suite('ActivityHandler', function() {
       });
     });
 
+    suite('null sms received', function() {
+      var sendSpy;
+
+      setup(function(done) {
+        message.body = null;
+        var checkSilentPromise = Promise.resolve(false);
+
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+        checkSilentPromise.then(() => done());
+        sendSpy = this.sinon.spy(window, 'Notification');
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+      
+      test('null notification', function() {
+        sinon.assert.calledWithMatch(sendSpy, 'Pepito O\'Hare', { body: '' });
+      });
+    });
+    
     suite('contact without name (after getSelf)', function() {
       var phoneNumber = '+1111111111';
       var sendSpy;

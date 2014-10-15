@@ -468,9 +468,8 @@ var ActivityHandler = {
             contact[0].name.length && contact[0].name[0]) {
             sender = contact[0].name[0];
           }
-
           if (message.type === 'sms') {
-            continueWithNotification(sender, message.body);
+            continueWithNotification(sender, message.body || '');
           } else { // mms
             getTitleFromMms(function textCallback(text) {
               continueWithNotification(sender, text);
