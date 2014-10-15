@@ -17,7 +17,7 @@ suite('system/EuRoamingManager', function() {
     }];
 
     this.euRoamingManager = BaseModule.instantiate('EuRoamingManager', {
-      mozMobileConnections: this.fakeConnections
+      mobileConnections: this.fakeConnections
     });
   });
 
@@ -29,20 +29,6 @@ suite('system/EuRoamingManager', function() {
     setup(function() {
       this.sinon.stub(this.euRoamingManager, '_clearNotifications');
       this.sinon.stub(this.euRoamingManager, '_init');
-    });
-
-    test('should early return when the module has been started', function() {
-      this.euRoamingManager._started = true;
-
-      this.euRoamingManager.start();
-      sinon.assert.notCalled(this.euRoamingManager._clearNotifications);
-    });
-
-    test('should early return when there is no mobile connection', function() {
-      this.euRoamingManager._connections = [];
-
-      this.euRoamingManager.start();
-      sinon.assert.notCalled(this.euRoamingManager._clearNotifications);
     });
 
     test('should clear notifications and init the module', function() {

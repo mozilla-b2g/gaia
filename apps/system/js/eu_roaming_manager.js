@@ -12,8 +12,8 @@
    * @class EuRoamingManager
    */
   function EuRoamingManager(core) {
-    this._started = false;
     this._connections = Array.slice(core.mobileConnections || []);
+    console.log(this._connections);
 
     this._simMobileCodes = [];
     this._curNetworkMobileCodes = [];
@@ -39,11 +39,6 @@
      * @memberof EuRoamingManager.prototype
      */
     _start: function() {
-      if (this._started || !this._connections.length) {
-        return;
-      }
-      this._started = true;
-
       // Clear existing notifications.
       this._clearNotifications();
       this._init();
