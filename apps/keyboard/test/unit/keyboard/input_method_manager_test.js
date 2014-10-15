@@ -429,8 +429,8 @@ suite('InputMethodManager', function() {
     assert.isTrue(app.inputContext.getText.calledOnce);
 
     manager.updateInputContextData();
-    assert.isTrue(app.inputContext.getText.calledOnce,
-      'Should not getText() twice if we have already do so.');
+    assert.isTrue(app.inputContext.getText.calledTwice,
+      'Should getText() twice when calling updateInputContextData again.');
 
     var p = manager.switchCurrentIMEngine('foo');
     p.then(function() {
@@ -562,9 +562,23 @@ suite('InputMethodManager', function() {
     }).then(function() {
       assert.isTrue(true, 'resolved');
       assert.isTrue(!!manager.loader.getInputMethod('foo'), 'foo loaded');
-      assert.equal(manager.currentIMEngine,
-        manager.loader.getInputMethod('foo'),
+
+      var imEngine = manager.loader.getInputMethod('foo');
+      assert.equal(manager.currentIMEngine, imEngine,
         'currentIMEngine is set');
+
+      var activateStub = imEngine.activate;
+      assert.isTrue(activateStub.calledWithExactly('xx-XX', {
+        type: 'text',
+        inputmode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        value: 'foobar'
+      }, {
+        suggest: true,
+        correct: true,
+        correctPunctuation: true
+      }));
     }, function(e) {
       if (e) {
         throw e;
