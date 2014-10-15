@@ -14,9 +14,9 @@
     'Radio',
     'CallForwarding',
     'EmergencyCallbackManager',
-    'EuRoamingManager'
+    'EuRoamingManager',
   //  'SimLockManager',
-  //  'TelephonySettings',
+    'TelephonySettings'
   //  'OperatorVariantManager'
   ];
   MobileConnectionCore.EVENTS = [
