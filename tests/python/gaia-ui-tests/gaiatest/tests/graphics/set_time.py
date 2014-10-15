@@ -7,7 +7,7 @@ from gaiatest.apps.system.regions.time_picker import TimePicker
 from gaiatest.apps.system.regions.date_picker import DatePicker
 from marionette.by import By
 from gaiatest.apps.base import Base
-import pdb
+
 class SetTime(Base):
 
     _dateandtime_menu_item_locator = (By.ID, 'menuItem-dateAndTime')
