@@ -4,19 +4,8 @@
 /* global GridLayout */
 /* global GridZoom */
 /* global LazyLoader */
-/* global performance */
 
 (function(exports) {
-
-  // This constant is the delay between the last scroll event and the moment we
-  // listen to touchstart events again.
-  const PREVENT_TAP_TIMEOUT = 300;
-
-  // If the delta move from touchstart to touchend is greater than this, we'll
-  // ignore the touchend event to launch an app.
-  // "20" comes from Gecko, and we also try to have a greater value for devices
-  // with more pixels.
-  var SCROLL_THRESHOLD = 20 * window.devicePixelRatio;
 
   /**
    * GridView is a generic class to render and display a grid of items.
@@ -25,12 +14,8 @@
    */
   function GridView(config) {
     this.config = config;
-    this.onTouchStart = this.onTouchStart.bind(this);
-    this.onTouchEnd = this.onTouchEnd.bind(this);
-    this.onScroll = this.onScroll.bind(this);
-    this.onContextMenu = this.onContextMenu.bind(this);
+    this.clickIcon = this.clickIcon.bind(this);
     this.onVisibilityChange = this.onVisibilityChange.bind(this);
-    this.lastScrollTime = 0;
 
     if (config.features.zoom) {
       this.zoom = new GridZoom(this);
@@ -169,74 +154,13 @@
     },
 
     start: function() {
-      this.element.addEventListener('touchstart', this.onTouchStart);
-      this.element.addEventListener('touchend', this.onTouchEnd);
-      this.element.addEventListener('contextmenu', this.onContextMenu);
-      window.addEventListener('scroll', this.onScroll, true);
+      this.element.addEventListener('click', this.clickIcon);
       window.addEventListener('visibilitychange', this.onVisibilityChange);
-      this.lastTouchStart = null;
     },
 
     stop: function() {
-      this.element.removeEventListener('touchstart', this.onTouchStart);
-      this.element.removeEventListener('touchend', this.onTouchEnd);
-      this.element.removeEventListener('contextmenu', this.onContextMenu);
-      window.removeEventListener('scroll', this.onScroll, true);
+      this.element.removeEventListener('click', this.clickIcon);
       window.removeEventListener('visibilitychange', this.onVisibilityChange);
-      this.lastTouchStart = null;
-    },
-
-    onContextMenu: function(e) {
-      setTimeout(function() {
-        if (e.defaultPrevented) {
-          this.lastTouchStart = null;
-        }
-      }.bind(this));
-    },
-
-    // bug 1015000
-    onScroll: function() {
-      this.lastScrollTime = performance.now();
-    },
-
-    onTouchStart: function(e) {
-      // we track the last touchstart
-      this.lastTouchStart = e.changedTouches[0];
-    },
-
-    // click = last touchstart, then touchend for same finger happening not too
-    // far
-    // Gecko does that automatically but since we want to use touch events for
-    // more responsiveness, we also need to replicate that behavior.
-    onTouchEnd: function(e) {
-      var lastScrollTime = this.lastScrollTime;
-      this.lastScrollTime = 0;
-      var diff = performance.now() - lastScrollTime;
-      if (diff > 0 && diff < PREVENT_TAP_TIMEOUT) {
-        return;
-      }
-
-      var lastTouchStart = this.lastTouchStart;
-
-      if (!lastTouchStart) {
-        // This variable is deleted once a contextmenu event is received
-        return;
-      }
-
-      var touch = e.changedTouches.identifiedTouch(lastTouchStart.identifier);
-      if (!touch) {
-        return;
-      }
-
-      var deltaX = lastTouchStart.clientX - touch.clientX;
-      var deltaY = lastTouchStart.clientY - touch.clientY;
-
-      this.lastTouchStart = null;
-
-      var move = Math.hypot(deltaX, deltaY);
-      if (move < SCROLL_THRESHOLD) {
-        this.clickIcon(e);
-      }
     },
 
     findItemFromElement: function(element) {
