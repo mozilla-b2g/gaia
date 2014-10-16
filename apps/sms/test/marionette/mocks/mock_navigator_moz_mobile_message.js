@@ -1,7 +1,8 @@
 /* global Components, Services */
 'use strict';
 
-Components.utils.import('resource://gre/modules/Services.jsm');
+var Cu = Components.utils;
+Cu.import('resource://gre/modules/Services.jsm');
 
 Services.obs.addObserver(function(document) {
   if (!document || !document.location) {
@@ -272,6 +273,9 @@ Services.obs.addObserver(function(document) {
   };
 
   window.navigator.__defineGetter__('mozMobileMessage', function() {
-    return exposeObject(MobileMessage);
+    return Cu.cloneInto(
+      MobileMessage,
+      window,
+      {cloneFunctions: true});
   });
 }, 'document-element-inserted', false);
