@@ -16,27 +16,20 @@ suite('LayoutManager', function() {
           [
             { value: 'foo' }
           ]
-        ],
-        alt: {},
-        upperCase: {}
+        ]
       }
     ]
   };
 
   suiteSetup(function() {
     realKeyboards = window.Keyboards;
+    // for skae of simplicity, we by pass these two normalizations
+    LayoutNormalizer.prototype._normalizePageKeys = function() {};
+    LayoutNormalizer.prototype._normalizePageAltKeys = function() {};
   });
 
   suiteTeardown(function() {
     window.Keyboards = realKeyboards;
-  });
-
-  // because LayoutLoader.start calls LayoutLoader.initLayouts which uses its
-  // instantiated _normalizer, we can't stub the instance after we call
-  // LayoutManager.start() (which directly calls LayoutLoader.start()).
-  setup(function() {
-    var stubLayoutNormalizer = this.sinon.stub(LayoutNormalizer.prototype);
-    this.sinon.stub(window, 'LayoutNormalizer').returns(stubLayoutNormalizer);
   });
 
   // since bug 1035619, enter key's layout properties will always come
@@ -1128,9 +1121,7 @@ suite('LayoutManager', function() {
                       ariaLabel: 'alternateLayoutKey',
                       className: 'page-switch-key',
                       targetPage: 1 },
-                    { value: '!', ratio: 1, keyCode: 33, keyCodeUpper: 33,
-                      lowercaseValue: '!', uppercaseValue: '!',
-                      isSpecialKey: false },
+                    '!',
                     { value: '&nbsp', ratio: 4, keyCode: 32 },
                     { value: '.', ratio: 1, keyCode: 46, keyCodeUpper: 46,
                       lowercaseValue: '.', uppercaseValue: '.',
@@ -1393,14 +1384,6 @@ suite('LayoutManager', function() {
         assert.equal(manager.currentPage.__proto__,
           supportsSwitchingLayout.pages[0],
           'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[0][0].__proto__,
-          supportsSwitchingLayout.pages[0].keys[0][0].supportsSwitching,
-          'proto is set correctly for supportsSwitching key.');
-
-        assert.equal(manager.currentPage.keys[0][1].__proto__,
-          supportsSwitchingLayout.pages[0].keys[0][1].supportsSwitching,
-          'proto is set correctly for supportsSwitching key.');
 
         assert.equal(manager.currentPage.keys[1][2].__proto__,
           supportsSwitchingLayout.pages[0].keys[1][0],
