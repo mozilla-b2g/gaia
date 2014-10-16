@@ -870,7 +870,7 @@ contacts.List = (function() {
       return;
     }
 
-    forceICEGroupToBeHidden = !(!!show); 
+    forceICEGroupToBeHidden = !(!!show);
     forceICEGroupToBeHidden ? hideICEGroup() : showICEGroup();
   }
 
@@ -1220,7 +1220,7 @@ contacts.List = (function() {
       successCb();
       return;
     }
-    
+
     var options = {
       filterBy: ['id'],
       filterOp: 'equals',
@@ -1464,6 +1464,8 @@ contacts.List = (function() {
     toggleNoContactsScreen(showNoContacts);
 
     delete selectedContacts[id];
+    currentlySelected = countSelectedContacts();
+    updateSelectCount(currentlySelected);
   };
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact, display) {
@@ -1665,7 +1667,6 @@ contacts.List = (function() {
     ones are selected.
   */
   var selectAction = function selectAction(action) {
-    updateSelectCount(0);
     if (action == null) {
       exitSelectMode();
       return;
