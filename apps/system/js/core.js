@@ -30,9 +30,8 @@
 
     getAPI: function(api) {
       for (var key in this.REGISTRY) {
-        if (api === BaseModule.lowerCapital(key.replace('moz', '')) &&
-            navigator[key]) {
-          return true;
+        if (api === BaseModule.lowerCapital(key.replace('moz', ''))) {
+          return navigator[key];
         }
       }
       return false;

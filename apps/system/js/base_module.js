@@ -304,6 +304,8 @@
       BaseModule.mixin(constructor.prototype, prototype);
       if (prototype.name) {
         AVAILABLE_MODULES[prototype.name] = constructor;
+      } else {
+        console.warn('No name give, impossible to instantiate without name.');
       }
     }
     return constructor;

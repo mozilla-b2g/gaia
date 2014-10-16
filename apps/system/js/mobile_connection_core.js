@@ -3,8 +3,10 @@
 
 (function() {
   // Responsible to load and init the sub system for mobile connections.
-  var MobileConnectionCore = function(mobileConnections) {
+  var MobileConnectionCore = function(mobileConnections, core) {
+    this.core = core;
     this.mobileConnections = mobileConnections;
+    this.iccManager = core.getAPI('iccManager');
   };
   //MobileConnectionCore.IMPORTS = [
   //  'shared/js/simslot.js',
@@ -16,8 +18,8 @@
     'EmergencyCallbackManager',
     'EuRoamingManager',
   //  'SimLockManager',
-    'TelephonySettings'
-  //  'OperatorVariantManager'
+    'TelephonySettings',
+    'OperatorVariantManager'
   ];
   MobileConnectionCore.EVENTS = [
     'airplanemode-enabled',

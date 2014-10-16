@@ -1,7 +1,4 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-/* globals ApnHelper, LazyLoader */
+/* globals ApnHelper, LazyLoader, OperatorVariantHelper */
 
 (function(exports) {
   'use strict';
@@ -44,7 +41,7 @@
     /**
      * Init function.
      */
-    init: function ovh_init() {
+    start: function ovh_start() {
       var settings = window.navigator.mozSettings;
       var deviceInfoOsGetRequest =
         settings.createLock().get(DEVICE_INFO_OS_KEY);
@@ -655,25 +652,5 @@
       transaction.set({'wap.UAProf.url': urlValue});
     }
   };
-
-  /**
-   * Handle some carrier-specific settings on the ICC card whose id  we pass as
-   * parameter.
-   *
-   * @param {String} iccId The iccId code form the ICC card.
-   * @param {Numeric} iccCardIndex Index of the ICC card on the
-   *                               mozMobileConnections array.
-   *
-   * @return {Object} A OperatorVariantHandler object.
-   */
-  OperatorVariantHandler.handleICCCard =
-    function ovh_handleICCCard(iccId, iccCardIndex) {
-    var obj = new OperatorVariantHandler(iccId, iccCardIndex);
-    obj.init();
-
-    return obj;
-  };
-
-
   exports.OperatorVariantHandler = OperatorVariantHandler;
 })(window);
