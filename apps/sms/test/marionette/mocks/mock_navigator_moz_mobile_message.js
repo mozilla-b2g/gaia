@@ -117,9 +117,9 @@ Services.obs.addObserver(function(document) {
 
         parameters.type = 'mms';
 
-        callEventHandlers('sending', {
+        callEventHandlers('sending', Cu.waiveXrays(Cu.cloneInto({
           message: createMessage(parameters, options)
-        });
+        }, window)));
       }, delayMs);
 
       return request;
