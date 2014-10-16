@@ -1,4 +1,4 @@
-/* global CallBarring */
+/* global CallBarring, TaskScheduler */
 
 'use strict';
 
@@ -143,6 +143,9 @@ require([
             }
             cs_updateCallForwardingSubpanels();
             break;
+          case '#call-cbSettings':
+            CallBarring.updateSubpanels();
+            break;
         }
       });
 
@@ -161,6 +164,9 @@ require([
             break;
           case '#call-cfSettings':
             cs_updateCallForwardingSubpanels();
+            break;
+          case '#call-cbSettings':
+            CallBarring.updateSubpanels();
             break;
         }
       });
@@ -1100,51 +1106,6 @@ require([
       init: cs_init
     };
   })(this, document);
-
-  /**
-   * TaskScheduler helps manage tasks and ensures they are executed in
-   * sequential order. When a task of a certain type is enqueued, all pending
-   * tasks of the same type in the queue are removed. This avoids redundant
-   * queries and improves user perceived performance.
-   */
-  var TaskScheduler = function() {
-    return {
-      _isLocked: false,
-      _tasks: [],
-      _lock: function() {
-        this._isLocked = true;
-      },
-      _unlock: function() {
-        this._isLocked = false;
-        this._executeNextTask();
-      },
-      _removeRedundantTasks: function(type) {
-        return this._tasks.filter(function(task) {
-          return task.type !== type;
-        });
-      },
-      _executeNextTask: function() {
-        if (this._isLocked) {
-          return;
-        }
-        var nextTask = this._tasks.shift();
-        if (nextTask) {
-          this._lock();
-          nextTask.func(function() {
-            this._unlock();
-          }.bind(this));
-        }
-      },
-      enqueue: function(type, func) {
-        this._tasks = this._removeRedundantTasks(type);
-        this._tasks.push({
-          type: type,
-          func: func
-        });
-        this._executeNextTask();
-      }
-    };
-  };
 
   /**
    * Startup.

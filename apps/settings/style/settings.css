@@ -466,6 +466,30 @@ section ul.operate-certificate {
   pointer-events: none;
 }
 
+/** Call barring password **/
+#cb-passcode section {
+  padding: 0;
+}
+#cb-passcode-title {
+  border-top: 0;
+  border-bottom: 0.1rem solid #686868;
+  padding: 1.5rem 3.5rem;
+  margin-bottom: 2rem;
+  font-size: 1.7rem;
+}
+#cb-passcode-pseudo-input {
+  width: 80%;
+}
+#cb-passcode-def {
+  display: block;
+  border: 0;
+  padding-left: 3.5rem;
+  line-height: 2rem;
+  font-size: 1.4rem;
+  font-weight: lighter;
+  color: #CBCBCB;
+}
+
 /******************************************************************************
  * APN settings
  */

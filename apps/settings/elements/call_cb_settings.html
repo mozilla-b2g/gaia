@@ -53,8 +53,29 @@
           </label>
         </li>
       </ul>
-
     </div>
+
+    <form data-type="confirm" role="dialog" id="cb-passcode" hidden>
+      <input type="number" x-inputmode="digit" class="passcode-input" />
+      <div class="passcode-container">
+        <h1 id="cb-passcode-title" data-l10n-id="callBarring-passcode-enter">Enter passcode</h1>
+        <div class="passcode" id="cb-passcode-pseudo-input">
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+        </div>
+        <p id="cb-passcode-def">
+          In case you don't know your passcode, please contact your carrier
+        </p>
+      </div>
+      <menu>
+        <button id="cb-passcode-cancel-btn" data-l10n-id="cancel">Cancel</button>
+        <button id="cb-passcode-ok-btn" data-l10n-id="ok" class="recommend" disabled>OK</button>
+      </menu>
+    </form>
+
+    <script src="js/call_cb_passcode.js"></script>
 
   </template>
 </element>
