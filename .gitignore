@@ -7,7 +7,6 @@
 .svn
 *~
 manifest.appcache
-gecko.log
 
 /apps/calendar/js/presets.js
 /apps/camera/js/config.js
