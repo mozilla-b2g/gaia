@@ -1,3 +1,4 @@
+
 <header>
   <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
   <h1 data-l10n-id="callBarring-header"> Call barring </h1>
@@ -50,6 +51,15 @@
       </label>
     </li>
   </ul>
+
+  <header id="header-cb-passcode">
+    <h2 data-l10n-id="callBarring-passcode"> Passcode </h2>
+  </header>
+  <ul id="list-callBarring-passcode">
+    <li id="li-cb-pswd">
+      <a class="bb-button" data-href="#call-cb-passcode" data-l10n-id="callBarring-change-passcode">Change passcode</a>
+    </li>
+  </ul>
 </div>
 
 <form data-type="confirm" role="dialog" id="cb-passcode" hidden>
@@ -70,5 +80,4 @@
     <button id="cb-passcode-cancel-btn" data-l10n-id="cancel">Cancel</button>
     <button id="cb-passcode-ok-btn" data-l10n-id="ok" class="recommend" disabled>OK</button>
   </menu>
-
 </form>

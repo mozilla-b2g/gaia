@@ -1,4 +1,4 @@
-/* global TaskScheduler, InputPasscodeScreen */
+/* global TaskScheduler, InputPasscodeScreen, ChangePasscodeScreen */
 /* exported CallBarring */
 
 'use strict';
@@ -192,8 +192,6 @@ var CallBarring = (function() {
     return new Promise(function (resolve, reject) {
       // Send the request
       var request = _mobileConnection.getCallBarringOption(options);
-      // var request = MockCallBarring.getCallBarringOption(options);
-
       request.onsuccess = function() {
         resolve({'id': id, 'checked': request.result.enabled});
       };
@@ -201,6 +199,69 @@ var CallBarring = (function() {
         /* request.error = { name, message } */
         reject(request.error);
       };
+    });
+  }
+
+  /**
+   * Makes a RIL request to change the passcode.
+   * @param data info related to the PIN code. In the form:
+   * {
+   *    'pin':    // current passcode
+   *    'newPin': // new passcode
+   * }
+   */
+  function _changeCallBarringPasscode(pinData) {
+    return new Promise(function finished(resolve, reject) {
+      _disableAllCallBarring('changePasswordQuery');
+      _taskScheduler.enqueue('CALL_BARRING', function(done) {
+        var request = _mobileConnection.changeCallBarringPassword(pinData);
+        request.onsuccess = function() {
+          _enableAllCallBarring(null, function finished() {
+            done();
+            resolve();
+          });
+        };
+        request.onerror = function() {
+          /* request.error = { name, message } */
+          _enableAllCallBarring(null, function finished() {
+            done();
+            reject(request.error);
+          });
+        };
+      }); // end enqeue
+    }); // end promise
+  }
+
+  /**
+   * Triggers the passcode change screen
+   */
+  function _launchPasscodeChange() {
+    var toast = null;
+    require(['shared/toaster'], function(Toaster) {
+      ChangePasscodeScreen.launch().then(
+        _changeCallBarringPasscode
+      ).then(function success() {
+        // password changed correctly
+        toast = {
+          messageL10nId: 'callBarring-change-passcode-success',
+          latency: 2000,
+          useTransition: true
+        };
+      }).catch(function error(err) {
+        // error during the process
+        if (err) {
+          toast = {
+            messageL10nId: 'callBarring-change-passcode-error',
+            messageL10nArgs: {'error': err.name},
+            latency: 4000,
+            useTransition: true
+          };
+        }
+      }).then(function doAnyway() {
+        if (toast) {
+          Toaster.showToast(toast);
+        }
+      });
     });
   }
 
@@ -264,18 +325,23 @@ var CallBarring = (function() {
     var inputBaicR =
       document.querySelector('#li-cb-baic-r .checkbox-label input');
 
+    var changePassword = document.getElementById('li-cb-pswd');
+
+
     inputBaoc.addEventListener('change', _callBarringClick);
     inputBoic.addEventListener('change', _callBarringClick);
     inputBoicExhc.addEventListener('change', _callBarringClick);
     inputBaic.addEventListener('change', _callBarringClick);
     inputBaicR.addEventListener('change', _callBarringClick);
+
+    changePassword.addEventListener('click', _launchPasscodeChange);
   }
 
   /**
    * Update the state of all the Call Barring subpanels
    */
   function _updateCallBarringSubpanels(callback) {
-    var error;
+    var error = null;
     // disable all, change description to 'requesting network info'
     _disableAllCallBarring('callSettingsQuery');
 
