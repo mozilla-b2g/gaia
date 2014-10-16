@@ -115,10 +115,11 @@ MultiDay.prototype = {
       targets: [
         this.alldaysHolder,
         this.daysHolder
-      ],
-      onDragRelease: this._updateBaseDateAfterScroll.bind(this)
+      ]
     });
     this._pan.setup();
+    this._pan.on('start', () => this._hourDoubleTap.removeAddEventLink());
+    this._pan.on('release', obj => this._updateBaseDateAfterScroll(obj.diff));
   },
 
   _setupHours: function() {

@@ -5,7 +5,6 @@ define(function(require, exports, module) {
 // too much to do in a single patch, so for now we do a simple double tap
 // without any visual feedback (similar to the old day view behavior)
 
-var GestureDetector = require('shared/gesture_detector');
 var QueryString = require('querystring');
 var absoluteOffsetTop = require('utils/dom').absoluteOffsetTop;
 var closest = require('utils/dom').closest;
@@ -18,50 +17,47 @@ function HourDoubleTap(options) {
   this.alldaysHolder = options.alldaysHolder;
   this.hourHeight = options.hourHeight;
 
-  this._onDayDoubleTap = this._onDayDoubleTap.bind(this);
-  this._onAllDayDoubleTap = this._onAllDayDoubleTap.bind(this);
+  this._onDayTap = this._onDayTap.bind(this);
+  this._onAllDayTap = this._onAllDayTap.bind(this);
+  this.removeAddEventLink = this.removeAddEventLink.bind(this);
 }
 module.exports = HourDoubleTap;
 
 HourDoubleTap.prototype = {
+
   _isActive: false,
+
+  _addEventLink: null,
 
   setup: function() {
     this._mainOffset = absoluteOffsetTop(this.main);
-
-    this._hourGd = new GestureDetector(this.daysHolder);
-    this._hourGd.startDetecting();
-    this.daysHolder.addEventListener('dbltap', this._onDayDoubleTap);
-
-    this._alldayGd = new GestureDetector(this.alldaysHolder);
-    this._alldayGd.startDetecting();
-    this.alldaysHolder.addEventListener('dbltap', this._onAllDayDoubleTap);
+    this.daysHolder.addEventListener('click', this._onDayTap);
+    this.alldaysHolder.addEventListener('click', this._onAllDayTap);
   },
 
   destroy: function() {
-    this._hourGd.stopDetecting();
-    this._alldayGd.stopDetecting();
-    this.daysHolder.removeEventListener('dbltap', this._onDayDoubleTap);
-    this.alldaysHolder.removeEventListener('dbltap', this._onAllDayDoubleTap);
+    this.removeAddEventLink();
+    this.daysHolder.removeEventListener('click', this._onDayTap);
+    this.alldaysHolder.removeEventListener('click', this._onAllDayTap);
   },
 
-  _onDayDoubleTap: function(evt) {
+  _onDayTap: function(evt) {
     var target = evt.target;
     if (!target.classList.contains('md__day')) {
       return;
     }
 
-    var y = evt.detail.clientY + this.main.scrollTop - this._mainOffset;
+    var y = evt.clientY + this.main.scrollTop - this._mainOffset;
     var hour = Math.floor(y / this.hourHeight);
     var baseDate = new Date(target.dataset.date);
 
-    this._addEvent({
+    this._onTap(target, {
       startDate: addHours(baseDate, hour).toString(),
       endDate: addHours(baseDate, hour + 1).toString()
-    });
+    }, hour);
   },
 
-  _onAllDayDoubleTap: function(evt) {
+  _onAllDayTap: function(evt) {
     var target = evt.target;
     if (!target.classList.contains('md__allday-events')) {
       return;
@@ -69,20 +65,56 @@ HourDoubleTap.prototype = {
 
     var startDate = new Date(closest(target, '.md__allday').dataset.date);
 
-    this._addEvent({
+    this._onTap(target, {
       isAllDay: true,
       startDate: startDate.toString(),
       endDate: createDay(startDate, startDate.getDate() + 1).toString()
     });
   },
 
-  _addEvent: function(data) {
-    // timeout is to avoid second click triggering the <select> inside
-    // the ModifyEvent view (calendar/reminders/date/time)
+  _onTap: function(container, data, hour) {
+    hour = hour || 0;
+
+    if (this._addEventLink) {
+      this.removeAddEventLink();
+      return;
+    }
+
+    var link = document.createElement('a');
+    link.href = '/event/add/?' + QueryString.stringify(data);
+    link.className = 'md__add-event gaia-icon icon-newadd';
+    link.dataset.l10nId = 'multi-day-new-event-link';
+    link.style.top = (hour * this.hourHeight) + 'px';
+    link.style.opacity = 0;
+
+    link.addEventListener('click', this.removeAddEventLink);
+
+    container.appendChild(link);
+    this._addEventLink = link;
+
+    // opacity will trigger transition, needs to happen after nextTick
     setTimeout(() => {
-      this.app.go('/event/add/?' + QueryString.stringify(data));
-    }, 50);
+      this._addEventLink && (this._addEventLink.style.opacity = 1);
+    });
+  },
+
+  removeAddEventLink: function() {
+    var link = this._addEventLink;
+    if (!link) {
+      return;
+    }
+
+    link.removeEventListener('click', this.removeAddEventLink);
+
+    link.addEventListener('transitionend', function onTransitionEnd() {
+      link.removeEventListener('transitionend', onTransitionEnd);
+      link.parentNode && link.parentNode.removeChild(link);
+    });
+    link.style.opacity = 0;
+
+    this._addEventLink = null;
   }
+
 };
 
 function addHours(date, hourDiff) {

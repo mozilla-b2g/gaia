@@ -71,6 +71,7 @@
   border-top: 0.1rem solid #e2e2e2;
   height: 5rem;
   width: 100%;
+  position: relative;
   overflow-x: hidden;
   overflow-y: scroll;
   background-color: #f8f8f8;
@@ -209,6 +210,12 @@
   width: 100%;
   overflow: hidden;
   padding: 0.6rem 0.3rem 0.6rem 0.6rem;
+}
+
+.md__event:active,
+.md__event:focus {
+  border-left-style: solid;
+  border-left-width: 0.4rem;
 }
 
 .day-view .md__event {
@@ -435,4 +442,39 @@
 .day-view .md__current-time:after {
   width: calc(100% - 7rem);
   left: 7rem;
+}
+
+
+/* double tap */
+
+.md__add-event {
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 5rem;
+  background-color: #00caf2;
+  transition-property: opacity;
+  transition-duration: 100ms;
+  /* top is overwritten with JS */
+  top: 0;
+}
+
+.md__allday-events .md__add-event {
+  /* on weekview we need to set height as 100% to avoid scrollbar */
+  height: 100%;
+}
+
+.md__add-event:active,
+.md__add-event:focus {
+  background-color: #b2f2ff;
+  outline: none;
+}
+
+.md__add-event:before {
+  color: #fff;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* reset text-indent to show the "+" icon */
+  text-indent: 0;
 }
