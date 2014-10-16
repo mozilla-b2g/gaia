@@ -336,10 +336,6 @@ form[role="dialog"][data-type="edit"] {
   transform: translateY(0);
 }
 
-.edit .undo-candidate {
-  display: none;
-}
-
 /*
   Styles for new message
 */
