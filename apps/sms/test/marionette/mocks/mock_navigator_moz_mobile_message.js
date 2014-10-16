@@ -1,14 +1,15 @@
 /* global Components, Services */
 'use strict';
 
-Components.utils.import('resource://gre/modules/Services.jsm');
+const Cu = Components.utils;
+Cu.import('resource://gre/modules/Services.jsm');
 
 Services.obs.addObserver(function(document) {
   if (!document || !document.location) {
     return;
   }
 
-  var window = document.defaultView.wrappedJSObject;
+  var window = document.defaultView;
 
   var delayMs = 100,
       eventHandlers = new Map(),
@@ -21,7 +22,7 @@ Services.obs.addObserver(function(document) {
 
     if (handlers) {
       handlers.forEach(function(handler) {
-        handler.call(null, exposeObject(parameters));
+        handler.call(null, parameters);
       });
     }
   }
@@ -38,35 +39,6 @@ Services.obs.addObserver(function(document) {
     }
 
     return threads.get(threadId);
-  }
-
-  function exposeObject(object, permission) {
-    if (!object || typeof object !== 'object') {
-      return object;
-    }
-
-    if (Array.isArray(object)) {
-      object.forEach(function(item) {
-        exposeObject(item, permission);
-      });
-      return object;
-    }
-
-    try {
-      object.__exposedProps__ = Object.keys(object).reduce(
-        function(props, key) {
-          props[key] = permission || 'r';
-
-          exposeObject(object[key]);
-
-          return props;
-        }, {}
-      );
-    } catch(e) {
-      window.console.error(e);
-    }
-
-    return object;
   }
 
   function createMessage(parameters) {
@@ -104,10 +76,10 @@ Services.obs.addObserver(function(document) {
 
   var MobileMessage = {
     getSegmentInfoForText: function(text) {
-      var request = exposeObject({
+      var request = Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null
-      }, 'wr');
+      }, window));
 
       window.setTimeout(function() {
         var length = text.length;
@@ -115,7 +87,7 @@ Services.obs.addObserver(function(document) {
         var charsUsedInLastSegment = (length % segmentLength);
         var segments = Math.ceil(length / segmentLength);
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(request, exposeObject({
+          request.onsuccess.call(request, Cu.cloneInto({
             target: {
               result: {
                 segments: segments,
@@ -123,7 +95,7 @@ Services.obs.addObserver(function(document) {
                   segmentLength - charsUsedInLastSegment : 0
               }
             }
-          }));
+          }, window));
         }
       }, delayMs);
 
@@ -131,48 +103,48 @@ Services.obs.addObserver(function(document) {
     },
 
     sendMMS: function(parameters, options) {
-      var request = exposeObject({
+      var request = Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null
-      }, 'wr');
+      }, window));
 
       window.setTimeout(function() {
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(request, exposeObject({
+          request.onsuccess.call(request, Cu.cloneInto({
             target: { result: null }
-          }));
+          }, window));
         }
 
         parameters.type = 'mms';
 
-        callEventHandlers('sending', exposeObject({
+        callEventHandlers('sending', Cu.cloneInto({
           message: createMessage(parameters, options)
-        }));
+        }, window));
       }, delayMs);
 
       return request;
     },
 
     send: function(recipients, content, options) {
-      var requests = recipients.map(() => exposeObject({
+      var requests = recipients.map(() => Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null
-      }, 'wr'));
+      }, window)));
 
       requests.forEach((request, index) => {
         window.setTimeout(function() {
           if (typeof request.onsuccess === 'function') {
-            request.onsuccess.call(request, exposeObject({
+            request.onsuccess.call(request, Cu.cloneInto({
               target: { result: null }
-            }));
+            }, window));
           }
-          callEventHandlers('sending', exposeObject({
+          callEventHandlers('sending', Cu.cloneInto({
             message: createMessage({
               type: 'sms',
               body: content,
               receiver: recipients[index]
             }, options)
-          }));
+          }, window));
         }, delayMs);
       });
 
@@ -180,10 +152,10 @@ Services.obs.addObserver(function(document) {
     },
 
     getThreads: function() {
-      var cursor = exposeObject({
+      var cursor = Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null
-      }, 'wr');
+      }, window));
 
       window.setTimeout(function() {
         if (typeof cursor.onsuccess === 'function') {
@@ -195,13 +167,13 @@ Services.obs.addObserver(function(document) {
     },
 
     getMessages: function(filter) {
-      var cursor = exposeObject({
+      var cursor = Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null,
         result: null,
         continue: null,
         done: false
-      }, 'wr');
+      }, window));
 
       window.setTimeout(function() {
         if (typeof cursor.onsuccess === 'function') {
@@ -227,11 +199,11 @@ Services.obs.addObserver(function(document) {
     },
 
     getMessage: function(id) {
-      var request = exposeObject({
+      var request = Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null,
         result: null
-      }, 'wr');
+      }, window));
 
       window.setTimeout(function() {
         if (typeof request.onsuccess === 'function') {
@@ -250,10 +222,10 @@ Services.obs.addObserver(function(document) {
     },
 
     markMessageRead: function() {
-      var request = exposeObject({
+      var request = Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null
-      }, 'wr');
+      }, window));
 
       window.setTimeout(function() {
         if (typeof request.onsuccess === 'function') {
@@ -271,7 +243,9 @@ Services.obs.addObserver(function(document) {
     }
   };
 
-  window.navigator.__defineGetter__('mozMobileMessage', function() {
-    return exposeObject(MobileMessage);
+  Object.defineProperty(window.wrappedJSObject.navigator, 'mozMobileMessage', {
+    configurable: false,
+    writable: false,
+    value: Cu.cloneInto(MobileMessage, window, {cloneFunctions: true})
   });
 }, 'document-element-inserted', false);
