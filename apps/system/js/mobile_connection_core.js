@@ -16,7 +16,7 @@
     'CallForwarding',
     'EmergencyCallbackManager',
     'EuRoamingManager',
-  //  'SimLockManager',
+    'SimLockManager',
     'TelephonySettings',
     'OperatorVariantManager'
   ];

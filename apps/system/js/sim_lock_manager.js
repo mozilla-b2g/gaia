@@ -1,11 +1,13 @@
-/* global VersionHelper, SIMSlotManager, System, FtuLauncher */
+/* global VersionHelper, SIMSlotManager, System, FtuLauncher,
+          BaseModule */
 'use strict';
 
 (function(exports) {
-  var SimLock = function(core) {
+  var SimLockManager = function(core) {
     this.mobileConnections = core.mobileConnections;
   };
-  SimLock.EVENTS = [
+  SimLockManager.EVENTS = [
+    'simslotready',
     'ftuopen',
     'appopened',
     'lockscreen-request-unlock',
@@ -17,15 +19,20 @@
     'simpinback',
     'simpinrequestclose'
   ];
-  SimLock.SUB_MODULES = [
+  SimLockManager.SUB_MODULES = [
     'SimLockSystemDialog'
   ];
-  System.create(SimLock, {}, {
+  BaseModule.create(SimLockManager, {
     name: 'SimLockManager',
     _duringCall: false,
     _showPrevented: false,
+    _alreadyShown: false,
 
-    _onSubModuleInited: function() {
+    _handle_simslotready: function() {
+      this.showIfLocked();
+    },
+
+    _sim_lock_system_dialog_loaded: function() {
       this.showIfLocked();
     },
 
@@ -154,6 +161,10 @@
     },
 
     showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
+      if (!SIMSlotManager.ready) {
+        return false;
+      }
+
       if (!this.simLockSystemDialog) {
         this.debug('Dialog not ready.');
         return false;
@@ -192,6 +203,17 @@
           return false;
         }
 
+        // Only render if not already displaying, or
+        // displaying and skipping
+        if (this.simLockSystemDialog.hidden ? !skipped : skipped) {
+          return false;
+        }
+
+        // Always showing the first slot first.
+        if (!this._alreadyShown && index > 1) {
+          return false;
+        }
+
         switch (slot.simCard.cardState) {
           // do nothing in either unknown or null card states
           case null:
@@ -219,6 +241,5 @@
       }, this);
     }
   });
-  exports.SimLock = SimLock;
-}(window));
+}());
 
