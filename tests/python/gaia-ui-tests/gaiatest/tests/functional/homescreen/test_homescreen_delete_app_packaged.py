@@ -30,7 +30,7 @@ class TestDeleteApp(GaiaTestCase):
 
         # Install app so we can delete it
         self.marionette.execute_script(
-            'navigator.mozApps.install("%s")' % self.test_data['url'])
+            'navigator.mozApps.installPackage("%s")' % self.test_data['url'])
 
         # Confirm the installation and wait for the app icon to be present
         confirm_install = ConfirmInstall(self.marionette)
