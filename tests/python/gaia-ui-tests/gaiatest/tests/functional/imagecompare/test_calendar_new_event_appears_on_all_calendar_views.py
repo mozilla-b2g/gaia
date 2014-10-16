@@ -14,6 +14,7 @@ class TestCalendar(GaiaTestCase):
 
     _week_event_link_locator = (By.CLASS_NAME, 'event calendar-id-local-first calendar-display calendar-bg-color calendar-border-color')
     _day_event_link_locator = (By.CLASS_NAME, 'event calendar-id-local-first calendar-display calendar-bg-color')
+    _seconds_since_epoch = 1357043430
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -21,6 +22,9 @@ class TestCalendar(GaiaTestCase):
         current_module = str(sys.modules[__name__])
         self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
         self.graphics = ImageCompareUtil(self.marionette,self.apps, '.')
+
+        # set the system date to an expected date, and timezone to UTC
+        self.data_layer.set_time(self._seconds_since_epoch * 1000)
 
     def test_that_new_event_appears_on_all_calendar_views(self):
         """https://moztrap.mozilla.org/manage/case/6118/"""
@@ -58,7 +62,7 @@ class TestCalendar(GaiaTestCase):
         calendar.tap_day_display_button()
         self.assertIn(event_title, calendar.displayed_events_in_day_view(event_start_date_time))
         self.assertIn(event_location, calendar.displayed_events_in_day_view(event_start_date_time))
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
     def tearDown(self):
 
