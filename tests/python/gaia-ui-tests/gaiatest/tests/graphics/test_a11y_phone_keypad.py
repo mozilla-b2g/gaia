@@ -27,7 +27,7 @@ class TestAccessibilityPhoneKeypad(GaiaImageCompareTestCase):
 
         self.invoke_screen_capture()
 
-        number_to_verify = self.contact['tel']['value']
+        number_to_verify = '1234567890'
 
         # Screen reader dial number
         self.phone.keypad.a11y_dial_phone_number(number_to_verify)
