@@ -81,8 +81,7 @@ void function() {
 
         elTitle.setAttribute('role', 'presentation');
         elTitle.innerHTML = '<input type="text" ' +
-                                    'autocorrect="off" ' +
-                                    'x-inputmode="verbatim" />' +
+                                    'autocorrect="off" />' +
                             '<button class="done" data-l10n-id="evme-done">' +
                             '</button>';
 
