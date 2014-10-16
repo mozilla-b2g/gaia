@@ -113,50 +113,53 @@ suite('Sound > SliderHandler', function() {
     });
   });
 
-  suite('_playTone with channelType: content', function() {
-    var fakeBlob = new Blob([], {type: 'audio/ogg'});
+  suite('_playTone', function() {
+    var fakeBlob;
+
     setup(function() {
-      this.sinon.stub(sliderHandler._player, 'load');
-      this.sinon.stub(sliderHandler._player, 'play');
+      fakeBlob = new Blob([], {type: 'audio/ogg'});
       this.sinon.stub(URL, 'createObjectURL');
-      sliderHandler._playTone(fakeBlob);
+      sliderHandler._player = {
+        load: sinon.stub(),
+        play: sinon.stub(),
+        mozAudioChannelType: 'fakeChannelType'
+      };
     });
 
-    test('we would call player operations', function() {
-      assert.ok(URL.createObjectURL.calledWith(fakeBlob));
-      assert.ok(sliderHandler._player.load.called);
-      assert.ok(sliderHandler._player.play.called);
-      assert.equal(sliderHandler._player.loop, true);
-    });
+    suite('_playTone with channelType: content', function() {
+      setup(function() {
+        sliderHandler._channelType = 'content';
+      });
 
-    test('we would not change play mozAudioChannelType', function() {
-      assert.equal(sliderHandler._player.mozAudioChannelType,
-        'normal');
-    });
-  });
+      test('we would call player operations', function() {
+        sliderHandler._playTone(fakeBlob);
+        assert.ok(URL.createObjectURL.calledWith(fakeBlob));
+        assert.ok(sliderHandler._player.load.called);
+        assert.ok(sliderHandler._player.play.called);
+        assert.equal(sliderHandler._player.loop, true);
+      });
 
-  /* cannot pass tree herder
-  suite('_playTone with channelType: alarm', function() {
-    var fakeBlob = new Blob([], {type: 'audio/ogg'});
-    setup(function() {
-      this.sinon.stub(sliderHandler._player, 'load');
-      this.sinon.stub(sliderHandler._player, 'play');
-      this.sinon.stub(URL, 'createObjectURL');
-      sliderHandler._channelType = 'alarm';
-      sliderHandler._playTone(fakeBlob);
-    });
-
-    teardown(function() {
-      sliderHandler._channelType = 'alarm';
-    });
-
-    test('we would change play mozAudioChannelType when ' +
-      'channelType is not content', function() {
+      test('we would not change play mozAudioChannelType', function() {
+        var originalChannelType = sliderHandler._player.mozAudioChannelType;
+        sliderHandler._playTone(fakeBlob);
         assert.equal(sliderHandler._player.mozAudioChannelType,
-          sliderHandler._channelType);
+          originalChannelType);
+      });
+    });
+
+    suite('_playTone with channelType: alarm', function() {
+      setup(function() {
+        sliderHandler._channelType = 'alarm';
+        sliderHandler._playTone(fakeBlob);
+      });
+
+      test('we would change play mozAudioChannelType when ' +
+        'channelType is not content', function() {
+          assert.equal(sliderHandler._player.mozAudioChannelType,
+            sliderHandler._channelType);
+      });
     });
   });
-  */
 
   suite('_touchStartHandler', function() {
     setup(function() {
