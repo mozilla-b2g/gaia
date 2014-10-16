@@ -17,6 +17,7 @@ Music.DEFAULT_ORIGIN = 'music.gaiamobile.org';
 Music.Selector = Object.freeze({
   messageOverlay: '#overlay',
   firstTile: '.tile',
+  artistsTab: '#tabs-artists',
   songsTab: '#tabs-songs',
   albumsTab: '#tabs-albums',
   coverImage: '#player-cover-image',
@@ -52,6 +53,10 @@ Music.prototype = {
 
   get firstTile() {
     return this.client.findElement(Music.Selector.firstTile);
+  },
+
+  get artistsTab() {
+    return this.client.helper.waitForElement(Music.Selector.artistsTab);
   },
 
   get songsTab() {
@@ -176,16 +181,29 @@ Music.prototype = {
     assert.equal(shouldBeShown, result);
   },
 
-  searchTiles: function(searchTerm) {
-    this.client.helper.waitForElement(Music.Selector.searchTiles);
+  searchArtists: function(searchTerm) {
+    this.search(Music.Selector.searchList,
+                Music.Selector.searchListField, searchTerm);
+  },
 
-    var input = this.client.helper.waitForElement(
-      Music.Selector.searchTilesField);
+  searchTiles: function(searchTerm) {
+    this.search(Music.Selector.searchTiles,
+                Music.Selector.searchTilesField, searchTerm);
+  },
+
+  search: function(viewSelector, fieldSelector, searchTerm) {
+    this.client.helper.waitForElement(viewSelector);
+
+    var input = this.client.helper.waitForElement(fieldSelector);
     assert.ok(input);
 
     input.clear();
     this.client.waitFor(input.displayed.bind(input));
     input.sendKeys(searchTerm);
+  },
+
+  switchToArtistsView: function() {
+    this.artistsTab.tap();
   },
 
   switchToSongsView: function() {

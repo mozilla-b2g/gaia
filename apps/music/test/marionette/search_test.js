@@ -73,6 +73,32 @@ marionette('Music player search', function() {
     ]);
   });
 
+  function testSearchResults(viewSelector, expectedCount) {
+    var view = client.helper.waitForElement(viewSelector);
+    assert.ok(view);
+
+    // wait for the results to be displayed.
+    // XXX this mostly assume we populate before showing the div.
+    client.waitFor(function() {
+      return view.displayed();
+    });
+
+    // since we display the count, just get it.
+    var count = view.findElement('.search-result-count').text();
+    var results = view.findElement('.search-results');
+    assert.ok(results);
+
+    var resultsList = results.findElements('li.list-item', 'css selector');
+    assert.ok(resultsList);
+
+    // detect inconsistency.
+    assert.equal(resultsList.length, count);
+    // check what we expect.
+    assert.equal(count, expectedCount);
+
+    return resultsList;
+  }
+
   suite('Search tests', function () {
 
     setup(function() {
@@ -82,33 +108,6 @@ marionette('Music player search', function() {
       music.searchTiles('the');
     });
 
-
-
-    function testSearchResults(viewSelector, expectedCount) {
-      var view = client.helper.waitForElement(viewSelector);
-      assert.ok(view);
-
-      // wait for the results to be displayed.
-      // XXX this mostly assume we populate before showing the div.
-      client.waitFor(function() {
-        return view.displayed();
-      });
-
-      // since we display the count, just get it.
-      var count = view.findElement('.search-result-count').text();
-      var results = view.findElement('.search-results');
-      assert.ok(results);
-
-      var resultsList = results.findElements('li.list-item', 'css selector');
-      assert.ok(resultsList);
-
-      // detect inconsistency.
-      assert.equal(resultsList.length, count);
-      // check what we expect.
-      assert.equal(count, expectedCount);
-
-      return resultsList;
-    }
 
     test('Check simple search results in artists.', function() {
       // check for the results in "artists"
@@ -132,4 +131,26 @@ marionette('Music player search', function() {
 
   });
 
+  suite('Search context tests', function () {
+
+    setup(function() {
+      music.launch();
+      music.waitForFirstTile();
+    });
+
+    // Tiles mode is already tested above.
+
+    test('Check the context for artists', function() {
+      music.switchToArtistsView();
+      music.searchTiles('the');
+
+      var resultsList = testSearchResults(Music.Selector.searchArtists, 2);
+
+      assert.equal(resultsList[1].findElement('.list-single-title').text(),
+                   'The NSA');
+      assert.equal(resultsList[1].findElement('.search-highlight').text(),
+                   'The');
+    });
+
+  });
 });
