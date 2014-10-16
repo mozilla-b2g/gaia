@@ -40,6 +40,36 @@ marionette('Browser test', function() {
     });
   });
 
+  test.skip('Large Icon', function() {
+
+    var url = server.url('largeicon.html');
+
+    home.waitForLaunch();
+    home.focusRocketBar();
+    search.triggerFirstRun(rocketbar);
+
+    // Input a url and press enter to visit
+    rocketbar.enterText(url + '\uE006');
+    rocketbar.switchToBrowserFrame(url);
+
+    client.switchToFrame();
+    home.pressHomeButton();
+
+    client.apps.launch(Search.URL);
+    client.apps.switchToApp(Search.URL);
+
+    client.waitFor(function() {
+      return search.getHistoryResults().length == 1;
+    });
+
+    var width = client.executeScript(function() {
+      var icon = document.querySelector('#history .icon');
+      return icon.clientWidth;
+    });
+
+    assert.equal(width, 16);
+  });
+
   test.skip('Ensure fallback to url when no place title', function() {
 
     var url = server.url('notitle.html');

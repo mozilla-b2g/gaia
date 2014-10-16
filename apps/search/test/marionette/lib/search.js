@@ -25,7 +25,8 @@ Search.Selectors = {
   firstPlace: '#places div .title',
   firstPlaceContainer: '#places',
   firstRunConfirm: '#suggestions-notice-confirm',
-  topSites: '.top-site'
+  topSites: '.top-site',
+  historyResults: '#history .result'
 };
 
 Search.prototype = {
@@ -53,6 +54,10 @@ Search.prototype = {
   getResult: function(identifier) {
     var selector = '.icon[data-identifier="' + identifier + '"]';
     return this.client.findElements(selector);
+  },
+
+  getHistoryResults: function() {
+    return this.client.findElements(Search.Selectors.historyResults);
   },
 
   getTopSites: function() {
