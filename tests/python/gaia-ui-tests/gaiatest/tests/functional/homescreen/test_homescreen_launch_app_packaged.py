@@ -23,33 +23,32 @@ class TestLaunchApp(GaiaTestCase):
         self.apps.switch_to_displayed_app()
 
         self.test_data = {
-            'name': 'Mozilla QA WebRT Tester',
-            'url': 'http://mozqa.com/data/webapps/mozqa.com/manifest.webapp',
-            'title': 'Index of /data'}
+            'name': 'packagedapp1',
+            'url': 'http://mozqa.com/data/webapps/packaged1/manifest.webapp',
+            'title': 'Packaged app1'}
 
         if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
             self.test_data['url'] = self.marionette.absolute_url(
-                'webapps/mozqa.com/manifest.webapp')
-            self.test_data['title'] = 'Directory listing for /'
+                'webapps/packaged1/manifest.webapp')
 
-        if not self.apps.is_app_installed(self.test_data['name']):
-            # Install app
-            self.marionette.execute_script(
-                'navigator.mozApps.install("%s")' % self.test_data['url'])
+        # Install app
+        self.marionette.execute_script(
+            'navigator.mozApps.installPackage("%s")' % self.test_data['url'])
 
-            # Confirm the installation and wait for the app icon to be present
-            confirm_install = ConfirmInstall(self.marionette)
-            confirm_install.tap_confirm()
+        # Confirm the installation and wait for the app icon to be present
+        confirm_install = ConfirmInstall(self.marionette)
+        confirm_install.tap_confirm()
 
-            # Wait for the notification to disappear
-            system = System(self.marionette)
-            system.wait_for_system_banner_displayed()
-            system.wait_for_system_banner_not_displayed()
+        # Wait for the notification to disappear
+        system = System(self.marionette)
+        system.wait_for_system_banner_displayed()
+        system.wait_for_system_banner_not_displayed()
 
         self.apps.switch_to_displayed_app()
         self.homescreen.wait_for_app_icon_present(self.test_data['name'])
 
     def test_launch_app(self):
+        """https://moztrap.mozilla.org/manage/case/6116/"""
         # Verify that the app icon is visible on one of the homescreen pages
         self.assertTrue(
             self.homescreen.is_app_installed(self.test_data['name']),
