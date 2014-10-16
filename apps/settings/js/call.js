@@ -144,6 +144,11 @@ require([
             cs_updateCallForwardingSubpanels();
             break;
           case '#call-cbSettings':
+            // No need to refresh the call barring settings items if
+            // navigated from changing the passcode.
+            if (e.detail.previous === '#call-cb-passcode') {
+              return;
+            }
             CallBarring.updateSubpanels();
             break;
         }
