@@ -9,7 +9,8 @@
          Thread, MultiSimActionButton, LazyLoader, Navigation, Promise,
          Dialog, SharedComponents,
          Errors,
-         EventDispatcher
+         EventDispatcher,
+         Selection
 */
 /*exported ThreadUI */
 
@@ -75,6 +76,12 @@ var ThreadUI = {
   shouldChangePanelNextEvent: false,
   showErrorInFailedEvent: '',
   previousSegment: 0,
+  selected: new Map(),
+  // L10n id for edit mode title
+  EDIT_MODE_TITLE: {
+    selected: 'selected-messages',
+    unselected: 'deleteMessages-title'
+  },
 
   timeouts: {
     update: null,
@@ -109,6 +116,9 @@ var ThreadUI = {
 
     this.mainWrapper = document.getElementById('main-wrapper');
     this.threadMessages = document.getElementById('thread-messages');
+
+    // Selection controll mixin
+    Utils.extend(this, Selection);
 
     window.addEventListener('resize', this.resizeHandler.bind(this));
 
@@ -176,6 +186,11 @@ var ThreadUI = {
     this.container.addEventListener(
       'click', this.handleEvent.bind(this)
     );
+
+    this.container.addEventListener(
+      'click', this.onSelected.bind(this)
+    );
+
     this.container.addEventListener(
       'contextmenu', this.handleEvent.bind(this)
     );
@@ -412,16 +427,6 @@ var ThreadUI = {
     if (this.container) {
       return Array.prototype.slice.call(
         this.container.querySelectorAll('input[type=checkbox]')
-      );
-    } else {
-      return [];
-    }
-  },
-
-  getSelectedInputs: function thui_getSelectedInputs() {
-    if (this.container) {
-      return Array.prototype.slice.call(
-        this.container.querySelectorAll('input[type=checkbox]:checked')
       );
     } else {
       return [];
@@ -1621,7 +1626,7 @@ var ThreadUI = {
     var messageContainer = this.getMessageContainer(timestamp, hidden);
     this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
 
-    if (this.mainWrapper.classList.contains('edit')) {
+    if (this.inEditMode) {
       this.checkInputs();
     }
   },
@@ -1669,35 +1674,6 @@ var ThreadUI = {
         TimeHeaders.update(element);
       }
     }
-  },
-
-  cleanForm: function thui_cleanForm() {
-    // Reset all inputs
-    var inputs = this.allInputs;
-    for (var i = 0; i < inputs.length; i++) {
-      inputs[i].checked = false;
-      inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
-    }
-    // Reset vars for deleting methods
-    this.checkInputs();
-  },
-
-  // if no message or few are checked : select all the messages
-  // and if all messages are checked : deselect them all.
-  toggleCheckedAll: function thui_select() {
-    var selected = this.selectedInputs;
-    var allInputs = this.allInputs;
-    var allSelected = (selected.length === allInputs.length);
-    var inputs = this.container.querySelectorAll(
-      'input[type="checkbox"]' +
-      (!allSelected ? ':not(:checked)' : ':checked')
-    );
-    var length = inputs.length;
-    for (var i = 0; i < length; i++) {
-      inputs[i].checked = !allSelected;
-      this.chooseMessage(inputs[i]);
-    }
-    this.checkInputs();
   },
 
   showOptions: function thui_showOptions() {
@@ -1798,11 +1774,11 @@ var ThreadUI = {
     function performDeletion() {
       WaitingScreen.show();
       var delNumList = [];
-      var inputs = ThreadUI.selectedInputs;
-      var length = inputs.length;
-      for (var i = 0; i < length; i++) {
-        delNumList.push(+inputs[i].value);
-      }
+      var inputMap = ThreadUI.selected;
+      inputMap.forEach((value, key) => {
+        delNumList.push(+key);
+      });
+
       // Complete deletion in DB and in UI
       MessageManager.deleteMessages(delNumList,
         function onDeletionDone() {
@@ -1844,36 +1820,6 @@ var ThreadUI = {
     if (this.inEditMode) {
       this.inEditMode = false;
       this.mainWrapper.classList.remove('edit');
-    }
-  },
-
-  chooseMessage: function thui_chooseMessage(target) {
-    // Toggling red bubble
-    // TODO: Can we replace that 'parentNode.parentNode' with something more
-    // readable?
-    target.parentNode.parentNode.classList.toggle('selected', target.checked);
-  },
-
-  checkInputs: function thui_checkInputs() {
-    var selected = this.selectedInputs;
-    var allInputs = this.allInputs;
-
-    var isAnySelected = selected.length > 0;
-
-    // Manage buttons enabled\disabled state
-    if (selected.length === allInputs.length) {
-      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
-    } else {
-      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'select-all');
-    }
-
-    if (isAnySelected) {
-      this.deleteButton.disabled = false;
-      navigator.mozL10n.setAttributes(this.editMode, 'selected-messages',
-        {n: selected.length});
-    } else {
-      this.deleteButton.disabled = true;
-      navigator.mozL10n.setAttributes(this.editMode, 'deleteMessages-title');
     }
   },
 
@@ -1963,11 +1909,6 @@ var ThreadUI = {
     switch (evt.type) {
       case 'click':
         if (this.inEditMode) {
-          var input = evt.target.parentNode.querySelector('input');
-          if (input) {
-            this.chooseMessage(input);
-            this.checkInputs();
-          }
           return;
         }
 
@@ -2907,12 +2848,6 @@ var ThreadUI = {
 Object.defineProperty(ThreadUI, 'allInputs', {
   get: function() {
     return this.getAllInputs();
-  }
-});
-
-Object.defineProperty(ThreadUI, 'selectedInputs', {
-  get: function() {
-    return this.getSelectedInputs();
   }
 });
 

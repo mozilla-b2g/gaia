@@ -5,7 +5,8 @@
          WaitingScreen, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
          PerformanceTestingHelper, StickyHeader, Navigation, Dialog,
-         InterInstanceEventDispatcher
+         InterInstanceEventDispatcher,
+         Selection
 */
 /*exported ThreadListUI */
 (function(exports) {
@@ -29,6 +30,12 @@ var ThreadListUI = {
 
   // Set to |true| when in edit mode
   inEditMode: false,
+  selected: new Map(),
+  // L10n id for edit mode title
+  EDIT_MODE_TITLE: {
+    selected: 'selected-threads',
+    unselected: 'selectThreads-title'
+  },
 
   init: function thlui_init() {
     this.tmpl = {
@@ -47,6 +54,9 @@ var ThreadListUI = {
 
     this.mainWrapper = document.getElementById('main-wrapper');
     this.composerButton = document.getElementById('icon-add');
+
+    // Selection controll mixin
+    Utils.extend(this, Selection);
 
     // TODO this should probably move to a "WrapperView" class
     this.composerButton.addEventListener(
@@ -71,6 +81,10 @@ var ThreadListUI = {
 
     this.container.addEventListener(
       'click', this
+    );
+
+    this.container.addEventListener(
+      'click', this.onSelected.bind(this)
     );
 
     this.editForm.addEventListener(
@@ -115,16 +129,6 @@ var ThreadListUI = {
     if (this.container) {
       return Array.prototype.slice.call(
         this.container.querySelectorAll('input[type=checkbox]')
-      );
-    } else {
-      return [];
-    }
-  },
-
-  getSelectedInputs: function thlui_getSelectedInputs() {
-    if (this.container) {
-      return Array.prototype.slice.call(
-        this.container.querySelectorAll('input[type=checkbox]:checked')
       );
     } else {
       return [];
@@ -237,14 +241,8 @@ var ThreadListUI = {
 
     switch (event.type) {
       case 'click':
-        // Duck type determination; if the click event occurred on
-        // a target with a |type| property, then assume it could've
-        // been a checkbox and proceed w/ validation condition
-        if (event.target.type && event.target.type === 'checkbox') {
-          this.checkInputs();
-        }
-
-        if (event.target.nodeName === 'LABEL') {
+        // Handle selection in selection module
+        if (this.inEditMode) {
           return;
         }
 
@@ -282,51 +280,6 @@ var ThreadListUI = {
     // prevent following the link, see also bug 1014219
     e.preventDefault();
     Navigation.toPanel('composer');
-  },
-
-  checkInputs: function thlui_checkInputs() {
-    var selected = ThreadListUI.selectedInputs.length;
-
-    if (selected === ThreadListUI.allInputs.length) {
-      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
-    } else {
-      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'select-all');
-    }
-    if (selected) {
-      this.deleteButton.disabled = false;
-      navigator.mozL10n.setAttributes(this.editMode, 'selected-threads', {
-        n: selected
-      });
-    } else {
-      this.deleteButton.disabled = true;
-      navigator.mozL10n.setAttributes(this.editMode, 'selectThreads-title');
-    }
-  },
-
-  cleanForm: function thlui_cleanForm() {
-    var inputs = this.allInputs;
-    var length = inputs.length;
-    for (var i = 0; i < length; i++) {
-      inputs[i].checked = false;
-      inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
-    }
-    this.checkInputs();
-  },
-
-  // if no thread or few are checked : select all the threads
-  // and if all threads are checked : deselect them all.
-  toggleCheckedAll: function thlui_select() {
-    var selected = ThreadListUI.selectedInputs.length;
-    var allSelected = (selected === ThreadListUI.allInputs.length);
-    var inputs = this.container.querySelectorAll(
-      'input[type="checkbox"]' +
-      (!allSelected ? ':not(:checked)' : ':checked')
-    );
-    var length = inputs.length;
-    for (var i = 0; i < length; i++) {
-      inputs[i].checked = !allSelected;
-    }
-    this.checkInputs();
   },
 
   removeThread: function thlui_removeThread(threadId) {
@@ -375,7 +328,7 @@ var ThreadListUI = {
       var threadIdsToDelete = [],
           messageIdsToDelete = [],
           threadCountToDelete = 0,
-          selectedInputs = this.getSelectedInputs();
+          selected = this.selected;
 
       function exitEditMode() {
         ThreadListUI.cancelEdit();
@@ -403,23 +356,19 @@ var ThreadListUI = {
 
       WaitingScreen.show();
 
-      threadIdsToDelete = selectedInputs.reduce(function(list, input) {
-        // Coerce the threadId back to a number MobileMessageFilter and all
-        // other platform APIs expect this value to be a number.
-        var threadId = +input.value;
+      selected.forEach((input, key) => {
+        var threadId = +key;
 
         if (input.dataset.mode === 'drafts') {
           Drafts.delete(Drafts.get(threadId));
           ThreadListUI.removeThread(threadId);
         } else {
-          list.push(threadId);
+          threadIdsToDelete.push(threadId);
         }
-
-        return list;
-      }, []);
+      });
 
       // That means that we've just removed some drafts
-      if (threadIdsToDelete.length !== selectedInputs.length) {
+      if (threadIdsToDelete.length !== selected.size) {
         Drafts.store();
       }
 
@@ -942,12 +891,6 @@ var ThreadListUI = {
 Object.defineProperty(ThreadListUI, 'allInputs', {
   get: function() {
     return this.getAllInputs();
-  }
-});
-
-Object.defineProperty(ThreadListUI, 'selectedInputs', {
-  get: function() {
-    return this.getSelectedInputs();
   }
 });
 
