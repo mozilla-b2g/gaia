@@ -1,6 +1,6 @@
-/* global SimLock, MockL10n, MocksHelper, SimPinDialog, System */
-/* global MockSIMSlotManager, MockVersionHelper, FtuLauncher */
-/* global preInit, VersionHelper:true */
+/* global MocksHelper, System, MockSimLockSystemDialog */
+/* global MockSIMSlotManager, MockVersionHelper, FtuLauncher, BaseModule */
+/* global VersionHelper:true */
 
 'use strict';
 
@@ -9,18 +9,23 @@ requireApp('system/test/unit/mock_simcard_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_version_helper.js');
+requireApp('system/test/unit/mock_sim_lock_system_dialog.js');
 requireApp('system/js/ftu_launcher.js');
+requireApp('/shared/js/lazy_loader.js');
+requireApp('system/js/system.js');
+requireApp('system/js/base_module.js');
+requireApp('system/js/sim_lock_manager.js');
 
-var mocksHelperForSimLock = new MocksHelper([
-  'SimPinDialog',
+var mocksHelperForSimLockManager = new MocksHelper([
   'SIMSlotManager',
   'System',
   'VersionHelper'
 ]).init();
 
-suite('SimLock', function() {
+suite('SimLockManager', function() {
+  var subject;
   var realMozL10n;
-  mocksHelperForSimLock.attachTestHelpers();
+  mocksHelperForSimLockManager.attachTestHelpers();
 
   function addSimSlot() {
     MockSIMSlotManager.mInstances.push({
@@ -36,16 +41,6 @@ suite('SimLock', function() {
     MockSIMSlotManager.mInstances.pop();
   }
 
-  suiteSetup(function(done) {
-    // load this later
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-    requireApp('system/js/sim_lock.js', function() {
-      preInit();
-      done();
-    });
-  });
-
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
   });
@@ -53,38 +48,33 @@ suite('SimLock', function() {
   setup(function() {
     // inject one instance
     addSimSlot();
-    this.sinon.stub(SimPinDialog, 'show', function() {
-      SimPinDialog.visible = true;
+    subject = BaseModule.instantiate('SimLockManager', {
+      mobileConnections: []
+    });
+    subject.start();
+    subject.simLockSystemDialog = new MockSimLockSystemDialog();
+    this.sinon.stub(subject.simLockSystemDialog, 'show', function() {
+      subject.simLockSystemDialog.visible = true;
     });
   });
 
   teardown(function() {
-    SimPinDialog.show.restore();
-  });
-
-  suite('SIMSlotManager is not ready', function() {
-    setup(function() {
-      this.sinon.stub(SimLock, 'init');
-    });
-
-    test('simslotready event is registered', function() {
-      window.dispatchEvent(new window.CustomEvent('simslotready'));
-      assert.isTrue(SimLock.init.called);
-    });
+    subject.stop();
+    subject.simLockSystemDialog.show.restore();
   });
 
   suite('when we are in ftu on first use', function() {
     var simLockSpy;
 
     setup(function() {
-      this.sinon.stub(SimPinDialog, 'close', function() {
-        SimPinDialog.visible = false;
+      this.sinon.stub(subject.simLockSystemDialog, 'close', function() {
+        subject.simLockSystemDialog.visible = false;
       });
-      simLockSpy = this.sinon.spy(SimLock, 'showIfLocked');
+      simLockSpy = this.sinon.spy(subject, 'showIfLocked');
       this.sinon.stub(FtuLauncher, 'isFtuRunning', function() {
         return true;
       });
-      SimLock.init();
+      subject._start();
     });
 
     teardown(function() {
@@ -99,7 +89,7 @@ suite('SimLock', function() {
                                 return false;
                               }
                             });
-      assert.isTrue(SimPinDialog.close.called);
+      assert.isTrue(subject.simLockSystemDialog.close.called);
       assert.isFalse(simLockSpy.lastCall.returnValue);
     });
 
@@ -112,7 +102,7 @@ suite('SimLock', function() {
                               }
                             });
       //On updgrade, system will send an appopned event so we need to check it
-      SimLock.handleEvent({
+      subject.handleEvent({
         type: 'appopened',
         detail: {
           url: 'app://ftu.gaiamobile.org/index.html',
@@ -125,7 +115,7 @@ suite('SimLock', function() {
           origin: 'app://ftu.gaiamobile.org'
         }
       });
-      assert.isTrue(SimPinDialog.close.called);
+      assert.isTrue(subject.simLockSystemDialog.close.called);
       assert.isFalse(simLockSpy.lastCall.returnValue);
     });
   });
@@ -133,8 +123,8 @@ suite('SimLock', function() {
   suite('to test events', function() {
     test('when unlocking request comes, to check if it\'s for Camera',
       function() {
-        var stubShowIfLocked = this.sinon.stub(SimLock, 'showIfLocked');
-        SimLock.handleEvent('lockscreen-request-unlock');
+        var stubShowIfLocked = this.sinon.stub(subject, 'showIfLocked');
+        subject.handleEvent('lockscreen-request-unlock');
         assert.isFalse(stubShowIfLocked.called,
           'should not show the dialog');
       });
@@ -142,42 +132,41 @@ suite('SimLock', function() {
 
   suite('showIfLocked', function() {
     setup(function() {
-      SimLock.init();
-      SimPinDialog.show.reset();
-      SimPinDialog.visible = false;
+      subject.simLockSystemDialog.show.reset();
+      subject.simLockSystemDialog.visible = false;
     });
 
     teardown(function() {
     });
 
     test('should paint the first simslot on first render', function() {
-      assert.isFalse(SimLock._alreadyShown);
-      SimLock.showIfLocked();
-      assert.isTrue(SimPinDialog.show.called);
-      assert.isTrue(SimLock._alreadyShown);
+      assert.isFalse(subject._alreadyShown);
+      subject.showIfLocked();
+      assert.isTrue(subject.simLockSystemDialog.show.called);
+      assert.isTrue(subject._alreadyShown);
     });
 
     test('should not show if locked', function() {
       System.locked = true;
-      SimLock.showIfLocked();
-      assert.isFalse(SimPinDialog.show.called);
+      subject.showIfLocked();
+      assert.isFalse(subject.simLockSystemDialog.show.called);
       System.locked = false;
     });
 
     test('should not show on Ftu', function() {
       sinon.stub(FtuLauncher, 'isFtuRunning').returns(true);
       sinon.stub(FtuLauncher, 'isFtuUpgrading').returns(false);
-      SimLock.showIfLocked();
-      assert.isFalse(SimPinDialog.show.called);
+      subject.showIfLocked();
+      assert.isFalse(subject.simLockSystemDialog.show.called);
       FtuLauncher.isFtuUpgrading.restore();
       FtuLauncher.isFtuRunning.restore();
     });
 
     test('should not show during a call', function() {
-      SimLock._duringCall = true;
-      SimLock.showIfLocked();
-      assert.isFalse(SimPinDialog.show.called);
-      SimLock._duringCall = false;
+      subject._duringCall = true;
+      subject.showIfLocked();
+      assert.isFalse(subject.simLockSystemDialog.show.called);
+      subject._duringCall = false;
     });
 
     suite('Multisim handling', function() {
@@ -190,20 +179,20 @@ suite('SimLock', function() {
       });
 
       test('should not show the second dialog after first', function() {
-        SimLock.showIfLocked();
-        assert.equal(SimPinDialog.show.callCount, 1);
+        subject.showIfLocked();
+        assert.equal(subject.simLockSystemDialog.show.callCount, 1);
       });
 
       test('should not render if alreadyShown and not skipping', function() {
-        SimLock.showIfLocked();
-        SimLock.showIfLocked();
-        assert.equal(SimPinDialog.show.callCount, 1);
+        subject.showIfLocked();
+        subject.showIfLocked();
+        assert.equal(subject.simLockSystemDialog.show.callCount, 1);
       });
 
       test('should render if alreadyShown and skipping', function() {
-        SimLock.showIfLocked();
-        SimLock.showIfLocked(1, true);
-        assert.equal(SimPinDialog.show.callCount, 2);
+        subject.showIfLocked();
+        subject.showIfLocked(1, true);
+        assert.equal(subject.simLockSystemDialog.show.callCount, 2);
       });
     });
   });
@@ -211,11 +200,11 @@ suite('SimLock', function() {
   suite('lockscreen request to unlock', function() {
     var stubShowIfLocked;
     setup(function() {
-      stubShowIfLocked = this.sinon.stub(SimLock, 'showIfLocked');
+      stubShowIfLocked = this.sinon.stub(subject, 'showIfLocked');
     });
 
     teardown(function() {
-      SimPinDialog.visible = false;
+      subject.simLockSystemDialog.visible = false;
     });
 
     test('launch camera from lockscreen', function() {
@@ -227,17 +216,18 @@ suite('SimLock', function() {
           }
         }
       };
-      SimLock.handleEvent(requestUnlockEvent);
+      subject.handleEvent(requestUnlockEvent);
       assert.isFalse(stubShowIfLocked.called,
         'should not call showIfLocked');
     });
 
 
     test('when unlocking request comes, to check if it\'s for Camera, ' +
-         'and SimPinDialog is visible',
+         'and subject.simLockSystemDialog is visible',
       function() {
-        var stubSimPinDialogClose = this.sinon.stub(SimPinDialog, 'close');
-        SimPinDialog.visible = true;
+        var stubDialogClose =
+          this.sinon.stub(subject.simLockSystemDialog, 'close');
+        subject.simLockSystemDialog.visible = true;
         var requestUnlockEvent = {
           type: 'lockscreen-request-unlock',
           detail: {
@@ -246,15 +236,15 @@ suite('SimLock', function() {
             }
           }
         };
-        SimLock.handleEvent(requestUnlockEvent);
-        assert.isTrue(stubSimPinDialogClose.called,
-          'should close SimPinDialog');
+        subject.handleEvent(requestUnlockEvent);
+        assert.isTrue(stubDialogClose.called,
+          'should close subject.simLockSystemDialog');
         assert.isFalse(stubShowIfLocked.called,
           'should not show the dialog');
       });
 
     test('unlock normally', function() {
-      SimLock.handleEvent({
+      subject.handleEvent({
         type: 'lockscreen-request-unlock'
       });
       assert.isFalse(stubShowIfLocked.called,
@@ -265,22 +255,22 @@ suite('SimLock', function() {
     });
 
     test('callscreen window opening event', function() {
-      SimLock.handleEvent(new CustomEvent('attentionopening', {
+      subject.handleEvent(new CustomEvent('attentionopening', {
         detail: {
           CLASS_NAME: 'CallscreenWindow'
         }
       }));
-      assert.isTrue(SimLock._duringCall);
+      assert.isTrue(subject._duringCall);
     });
 
 
     test('callscreen window ending event', function() {
-      SimLock.handleEvent(new CustomEvent('attentionterminated', {
+      subject.handleEvent(new CustomEvent('attentionterminated', {
         detail: {
           CLASS_NAME: 'CallscreenWindow'
         }
       }));
-      assert.isFalse(SimLock._duringCall);
+      assert.isFalse(subject._duringCall);
     });
   });
 });

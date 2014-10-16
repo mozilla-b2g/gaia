@@ -11,7 +11,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
 require('/shared/js/operator_variant_helper.js');
 require('/shared/js/apn_helper.js');
-requireApp('system/js/operator_variant/operator_variant.js');
+requireApp('system/js/operator_variant_handler.js');
 
 suite('Operator variant', function() {
   const FAKE_ICC_ID = '8934071100276980483';
@@ -204,7 +204,8 @@ suite('Operator variant', function() {
 
     MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
       EXPECTED_ICC_INFO;
-    OperatorVariantHandler.handleICCCard(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+    var o = new OperatorVariantHandler(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+    o.start();
   });
 
   test('Apply default operator variant for undefined types', function(done) {
@@ -235,7 +236,8 @@ suite('Operator variant', function() {
 
     MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
       EXPECTED_ICC_INFO2;
-    OperatorVariantHandler.handleICCCard(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+    var o = new OperatorVariantHandler(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+    o.start();
   });
 
   test('operator variant apply once per boot', function() {
@@ -266,7 +268,8 @@ suite('Operator variant', function() {
     // Testing apply once per boot requires *real* mcc/mnc information.
     MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
       T_MOBILE_160_US_ICC_INFO;
-    OperatorVariantHandler.handleICCCard(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+    var o = new OperatorVariantHandler(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+    o.start();
     MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).triggerEventListeners(
       'iccinfochange', {}
     );

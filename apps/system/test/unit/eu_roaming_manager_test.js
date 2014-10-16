@@ -1,7 +1,9 @@
-/* global EuRoamingManager, Promise, Notification, MockSIMSlotManager */
+/* global BaseModule, Promise, Notification, MockSIMSlotManager */
 'use strict';
 
 require('shared/js/lazy_loader.js');
+requireApp('system/js/system.js');
+requireApp('system/js/base_module.js');
 requireApp('system/js/eu_roaming_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 
@@ -14,10 +16,9 @@ suite('system/EuRoamingManager', function() {
       }
     }];
 
-    this.reallMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = this.fakeConnections;
-
-    this.euRoamingManager = new EuRoamingManager();
+    this.euRoamingManager = BaseModule.instantiate('EuRoamingManager', {
+      mobileConnections: this.fakeConnections
+    });
   });
 
   teardown(function() {
@@ -28,20 +29,6 @@ suite('system/EuRoamingManager', function() {
     setup(function() {
       this.sinon.stub(this.euRoamingManager, '_clearNotifications');
       this.sinon.stub(this.euRoamingManager, '_init');
-    });
-
-    test('should early return when the module has been started', function() {
-      this.euRoamingManager._started = true;
-
-      this.euRoamingManager.start();
-      sinon.assert.notCalled(this.euRoamingManager._clearNotifications);
-    });
-
-    test('should early return when there is no mobile connection', function() {
-      this.euRoamingManager._connections = [];
-
-      this.euRoamingManager.start();
-      sinon.assert.notCalled(this.euRoamingManager._clearNotifications);
     });
 
     test('should clear notifications and init the module', function() {

@@ -10,11 +10,31 @@
   var Core = function() {
   };
 
+  Core.SUB_MODULE_PARENT = window;
+
+  Core.SUB_MODULES = [
+    'AirplaneMode'
+  ];
+
+  Core.SERVICES = [
+    'getAPI'
+  ];
+
   BaseModule.create(Core, {
     name: 'Core',
 
     REGISTRY: {
-      'mozSettings': 'SettingsCore'
+      'mozSettings': 'SettingsCore',
+      'mozMobileConnections': 'MobileConnectionCore'
+    },
+
+    getAPI: function(api) {
+      for (var key in this.REGISTRY) {
+        if (api === BaseModule.lowerCapital(key.replace('moz', ''))) {
+          return navigator[key];
+        }
+      }
+      return false;
     },
 
     _start: function() {

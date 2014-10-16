@@ -1,15 +1,10 @@
 /* exported Radio */
-/* global CustomEvent */
+/* global BaseModule */
 
 'use strict';
 
-(function(exports) {
-
-  if (!window.navigator.mozMobileConnections) {
-    return;
-  }
-
-  var Radio = function() {
+(function() {
+  var Radio = function(core) {
     /*
      * An internal key used to make sure Radio is
      * enabled or not.
@@ -44,49 +39,11 @@
     /*
      * An internal variable to cache mozMobileConnections
      */
-    this._mozMobileConnections = null;
-
-    this._init();
+    this._mobileConnections = core.mobileConnections || null;
   };
 
-  Radio.prototype = {
-
-    /*
-     * We can use this value to know Radio is enabled or not
-     *
-     * @return {Boolean}
-     */
-    get enabled() {
-      return this._enabled;
-    },
-
-    /*
-     * An internal helper to make mobileConnections iterable
-     */
-    get mobileConnections() {
-      if (!this._mozMobileConnections) {
-        this._mozMobileConnections =
-          Array.prototype.slice.call(window.navigator.mozMobileConnections);
-      }
-      return this._mozMobileConnections;
-    },
-
-    /*
-     * We can set this value to tell Radio service turn on / off
-     * radio.
-     *
-     * @param {Boolean} value
-     */
-    set enabled(value) {
-      if (value !== this._enabled) {
-        this._setRadioOpCount = 0;
-        this._isSetRadioOpError = false;
-
-        this.mobileConnections.forEach(function(conn, index) {
-          this._setRadioEnabled(conn, value);
-        }, this);
-      }
-    },
+  BaseModule.create(Radio, {
+    name: 'Radio',
 
     /*
      * We can addEventListener on conn with this helper.
@@ -102,6 +59,7 @@
     addEventListener: function(key, callback) {
       if (key === 'radiostatechange') {
         this.mobileConnections.forEach(function(conn, index) {
+          this.debug('init connstate:' + conn.radioState);
           conn.addEventListener(key, function() {
             var connState = conn.radioState;
             callback(connState);
@@ -115,6 +73,7 @@
      * radio when necessary.
      */
     _onRadioStateChange: function(conn, index) {
+      this.debug('radiostatechange: [' + index + '] ' + conn.radioState);
       if (this._expectedRadioStates[index] !== null) {
         // we are expecting radio state changes
         if (this._expectedRadioStates[index] &&
@@ -134,12 +93,17 @@
      * An internal function used to make sure current radioState
      * is ok to do following operations.
      */
-    _init: function() {
+    _start: function() {
       this.mobileConnections.forEach(function(conn, index) {
         this._expectedRadioStates.push(null);
         conn.addEventListener('radiostatechange',
           this._onRadioStateChange.bind(this, conn, index));
       }, this);
+      this.service.request('registerNetwork', 'radio', this);
+    },
+
+    _stop: function() {
+      this.service.request('unregisterNetwork', 'radio', this);
     },
 
     /*
@@ -149,11 +113,12 @@
      * @param {MozMobileConnection} conn
      * @param {Boolean} enabled
      */
-    _setRadioEnabled: function(conn, enabled) {
+    _setRadioEnabled: function(conn, enabled, index) {
+      this.debug(conn.radioState + ' ======> ' + enabled);
       if (conn.radioState !== 'enabling' &&
           conn.radioState !== 'disabling' &&
           conn.radioState !== null) {
-        this._doSetRadioEnabled(conn, enabled);
+        this._doSetRadioEnabled(conn, enabled, index);
       } else {
         var radioStateChangeHandler = (function onchange() {
           if (conn.radioState == 'enabling' ||
@@ -163,7 +128,7 @@
           }
           conn.removeEventListener('radiostatechange',
             radioStateChangeHandler);
-          this._doSetRadioEnabled(conn, enabled);
+          this._doSetRadioEnabled(conn, enabled, index);
         }).bind(this);
         conn.addEventListener('radiostatechange', radioStateChangeHandler);
       }
@@ -175,24 +140,28 @@
      * @param {MozMobileConnection} conn
      * @param {Boolean} enabled
      */
-    _doSetRadioEnabled: function(conn, enabled) {
+    _doSetRadioEnabled: function(conn, enabled, index) {
       // Set the expected state so that we can tell whether a radio change
       // results from gaia or gecko.
       this._expectedRadioStates[this.mobileConnections.indexOf(conn)] = enabled;
-
+      this.debug('Real operation to turn ' + (enabled ? 'on' : 'off') +
+        ' for ' + index + ' connection.');
       var self = this;
-      var req = conn.setRadioEnabled(enabled);
+      (function() {
+        var req = conn.setRadioEnabled(enabled);
 
-      req.onsuccess = function() {
-        self._setRadioOpCount++;
-        self._setRadioAfterReqsCalled(enabled);
-      };
+        req.onsuccess = function() {
+          self._setRadioOpCount++;
+          self._setRadioAfterReqsCalled(enabled);
+        };
 
-      req.onerror = function() {
-        self._isSetRadioOpError = true;
-        self._setRadioOpCount++;
-        self._setRadioAfterReqsCalled(enabled);
-      };
+        req.onerror = function() {
+          self.debug('toggle connection ' + index + ' error.');
+          self._isSetRadioOpError = true;
+          self._setRadioOpCount++;
+          self._setRadioAfterReqsCalled(enabled);
+        };
+      }());
     },
 
     /*
@@ -208,13 +177,14 @@
       }
 
       if (this._setRadioOpCount !== this.mobileConnections.length) {
+        this.debug('operation not completed yet.', this._setRadioOpCount);
         return;
       } else {
         this._enabled = enabled;
         var evtName = enabled ?
           'radio-enabled' : 'radio-disabled';
 
-        window.dispatchEvent(new CustomEvent(evtName));
+        this.publish(evtName);
       }
     },
 
@@ -223,7 +193,48 @@
         this._setRadioEnabled(conn, true);
       }
     }
-  };
+  }, {
+    /*
+     * We can use this value to know Radio is enabled or not
+     *
+     * @return {Boolean}
+     */
+    enabled: {
+      congfigurable: false,
+      get: function() {
+        return this._enabled;
+      },
+      /*
+       * We can set this value to tell Radio service turn on / off
+       * radio.
+       *
+       * @param {Boolean} value
+       */
+      set: function(value) {
+        this.debug(this._enabled + ' => ' + value);
+        if (value !== this._enabled) {
+          this._setRadioOpCount = 0;
+          this._isSetRadioOpError = false;
 
-  window.Radio = new Radio();
-})(window);
+          this.mobileConnections.forEach(function(conn, index) {
+            this._setRadioEnabled(conn, value, index);
+          }, this);
+        }
+      }
+    },
+
+    /*
+     * An internal helper to make mobileConnections iterable
+     */
+    mobileConnections: {
+      congfigurable: false,
+      get: function() {
+        if (!this._mozMobileConnections) {
+          this._mozMobileConnections =
+            Array.prototype.slice.call(this._mobileConnections);
+        }
+        return this._mozMobileConnections;
+      }
+    }
+  });
+})();

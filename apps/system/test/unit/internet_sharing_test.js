@@ -1,7 +1,7 @@
 'use strict';
 /* global asyncStorage */
 /* global IccHelper */
-/* global InternetSharing */
+/* global BaseModule */
 /* global AirplaneMode */
 /* global MockIccHelper */
 /* global MockL10n */
@@ -16,6 +16,8 @@ requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_airplane_mode.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system/js/system.js');
+requireApp('system/js/base_module.js');
 requireApp('system/js/internet_sharing.js');
 
 var mocksForInternetSharing = new MocksHelper([
@@ -48,7 +50,7 @@ suite('internet sharing > ', function() {
     navigator.mozSettings = MockNavigatorSettings;
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    subject = new InternetSharing();
+    subject = BaseModule.instantiate('InternetSharing');
     subject.start();
   });
 
