@@ -19,6 +19,7 @@ class TestTimeChange(GaiaImageCompareTestCase):
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
+        self.connect_to_network()
 
     def test_gfx_time_set(self):
 
