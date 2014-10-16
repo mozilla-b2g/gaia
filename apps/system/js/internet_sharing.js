@@ -2,9 +2,9 @@
 /* global asyncStorage */
 /* global IccHelper */
 /* global ModalDialog */
-/* global airplaneMode */
+/* global BaseModule */
 
-(function(exports) {
+(function() {
 
   // Local reference to mozSettings
   var settings;
@@ -39,7 +39,8 @@
    */
   function InternetSharing() {}
 
-  InternetSharing.prototype = {
+  BaseModule.create(InternetSharing, {
+    name: 'InternetSharing',
 
     /**
      * Whether or not we have added settings observers.
@@ -152,22 +153,26 @@
         var buttonText;
         var message;
 
-        if (airplaneMode.enabled && true === evt.settingValue) {
-          title = 'apmActivated';
-          buttonText = 'ok';
-          message = 'noHopspotWhenAPMisOn';
+        if (true === evt.settingValue) {
+          this.service.request('AirplaneMode:isActive').then(function(value) {
+            if (value) {
+              title = 'apmActivated';
+              buttonText = 'ok';
+              message = 'noHopspotWhenAPMisOn';
 
-          ModalDialog.alert(title, message, { title: buttonText });
-          settings.createLock().set({'tethering.wifi.enabled': false});
-          return;
-        } else if ('absent' === cardId && true === evt.settingValue) {
-          title = 'noSimCard';
-          buttonText = 'ok';
-          message = 'noSIMCardInHotspot';
+              ModalDialog.alert(title, message, { title: buttonText });
+              settings.createLock().set({'tethering.wifi.enabled': false});
+              return;
+            } else if ('absent' === cardId) {
+              title = 'noSimCard';
+              buttonText = 'ok';
+              message = 'noSIMCardInHotspot';
 
-          ModalDialog.alert(title, message, { title: buttonText });
-          settings.createLock().set({'tethering.wifi.enabled': false});
-          return;
+              ModalDialog.alert(title, message, { title: buttonText });
+              settings.createLock().set({'tethering.wifi.enabled': false});
+              return;
+            }
+          });
         }
       }
       asyncStorage.setItem('tethering.' + type + '.simstate.card-' + cardId,
@@ -189,8 +194,5 @@
       IccHelper.addEventListener('cardstatechange',
         this.checkCardAndInternetSharing.bind(this));
     }
-  };
-
-  exports.InternetSharing = InternetSharing;
-
-}(window));
+  });
+}());

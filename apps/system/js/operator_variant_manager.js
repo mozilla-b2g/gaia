@@ -1,4 +1,4 @@
-/* global BaseModule, OperatorVariantHandler */
+/* global BaseModule, OperatorVariantHandler, SIMSlotManager */
 'use strict';
 
 /**
@@ -8,8 +8,6 @@
  */
 (function() {
   var OperatorVariantManager = function(core) {
-    this._mobileConnections = core.mobileConnections;
-
     /** Array of OperatorVariantHandler objects. */
     this.operatorVariantHandlers = [];
   };
@@ -40,38 +38,16 @@
     },
 
     init: function() {
-      var numberOfICCCards = this._mobileConnections.length;
-      for (var i = 0; i < numberOfICCCards; i++) {
-        var mobileConnection = this._mobileConnections[i];
-        if (!mobileConnection.iccId) {
-          this.operatorVariantHandlers[i] = null;
-          continue;
+      SIMSlotManager.getSlots().forEach(function(slot, index) {
+        if (!slot.simCard) {
+          this.operatorVariantHandlers[index] = null;
+          return;
         }
-        var iccCardIndex = this.getIccCardIndex(mobileConnection.iccId);
-        this.operatorVariantHandlers[i] =
-          new OperatorVariantHandler(mobileConnection.iccId,
-                                    iccCardIndex);
-        this.operatorVariantHandlers[i].start();
-      }
-    },
-
-    /**
-     * Helper function.
-     * Return the index of the ICC card given the ICC code in the
-     * ICC card.
-     * XXX: Use SIMSlotManager.getSlotByIccId
-     *
-     * @param {String} iccId The iccId code form the ICC card.
-     *
-     * @return {Numeric} The index.
-     */
-    getIccCardIndex: function(iccId) {
-      for (var i = 0; i < this._mobileConnections.length; i++) {
-        if (this._mobileConnections[i].iccId === iccId) {
-          return i;
-        }
-      }
-      return -1;
+        this.operatorVariantHandlers[index] =
+          new OperatorVariantHandler(slot.simCard,
+                                     slot.index);
+        this.operatorVariantHandlers[index].start();
+      }, this);
     },
 
     /**

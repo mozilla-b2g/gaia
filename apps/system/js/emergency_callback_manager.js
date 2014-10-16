@@ -13,7 +13,9 @@
  */
 
   var EmergencyCallbackManager = function(core) {
-    this.mozMobileConnections = core.mobileConnections;
+    if (core && core.mobileConnections) {
+      this._conn = core.mobileConnections[0];
+    }
   };
   BaseModule.create(EmergencyCallbackManager, {
     name: 'EmergencyCallbackManager',
@@ -30,11 +32,6 @@
     cancelButton: null,
 
     _start: function ecm_init() {
-
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      this._conn = this.mozMobileConnections[0];
-
       // Dom elements
       this.notification =
         document.getElementById('emergency-callback-notification');
@@ -174,5 +171,4 @@
       }
     }
   });
-console.log(BaseModule.instantiate('EmergencyCallbackManager'));
 }());

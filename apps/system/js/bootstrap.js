@@ -5,12 +5,12 @@
          SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         VisibilityManager, UsbStorage, InternetSharing, TaskManager,
+         VisibilityManager, UsbStorage, TaskManager,
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
-         TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
+         TextSelectionDialog, SleepMenu, AppUsageMetrics,
          LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator,
@@ -158,8 +158,6 @@ window.addEventListener('load', function startup() {
     // here.
     window.homescreenLauncher = new HomescreenLauncher();
   }
-  window.internetSharing = new InternetSharing();
-  window.internetSharing.start();
   window.lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
   window.lockScreenPasscodeValidator.start();
   window.layoutManager = new LayoutManager();
@@ -215,10 +213,15 @@ window.addEventListener('load', function startup() {
         detail: { type: 'system-message-listener-ready' } });
   window.dispatchEvent(evt);
 
-  window.core = BaseModule.instantiate('Core');
-  window.core && window.core.start();
 
   window.mozPerformance.timing.mozSystemLoadEnd = Date.now();
+
+  try {
+    window.core = BaseModule.instantiate('Core');
+    window.core && window.core.start();
+  } catch (e) {
+    console.warn(e);
+  }
 });
 
 window.usbStorage = new UsbStorage();

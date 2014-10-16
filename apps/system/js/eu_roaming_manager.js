@@ -13,7 +13,6 @@
    */
   function EuRoamingManager(core) {
     this._connections = Array.slice(core.mobileConnections || []);
-    console.log(this._connections);
 
     this._simMobileCodes = [];
     this._curNetworkMobileCodes = [];

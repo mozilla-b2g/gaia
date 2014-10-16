@@ -1,22 +1,20 @@
 /* globals MockNavigatorMozMobileConnections, MocksHelper, MockPromise,
-           MockSIMSlot, BaseModule */
+           MockSIMSlot, BaseModule, MockSIMSlotManager */
 
 'use strict';
 
-require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_promise.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
+require('/shared/test/unit/mocks/mock_simslot_manager.js');
 
 requireApp('system/test/unit/mock_operator_variant_handler.js');
-require('/shared/js/operator_variant_helper.js');
-require('/shared/js/apn_helper.js');
 requireApp('system/js/system.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/operator_variant_manager.js');
 
 var mocksForOperatorVariantManager = new MocksHelper([
-  'OperatorVariantHandler'
+  'OperatorVariantHandler', 'SIMSlotManager'
 ]).init();
 
 suite('Operator variant manager', function() {
@@ -28,6 +26,9 @@ suite('Operator variant manager', function() {
       type: 'gsm'
     };
     MockNavigatorMozMobileConnections[0].iccId = 'fake_iccid';
+    MockNavigatorMozMobileConnections[1] = {
+      iccId: null
+    };
     subject = BaseModule.instantiate('OperatorVariantManager',
       {
         mobileConnections: MockNavigatorMozMobileConnections
@@ -79,11 +80,6 @@ suite('Operator variant manager', function() {
     });
   });
 
-  test('getIccCardIndex', function() {
-    assert.equal(subject.getIccCardIndex('fake_iccid'), 0);
-    assert.equal(subject.getIccCardIndex('no_this_iccid'), -1);
-  });
-
   test('handle simslotupdated', function() {
     var spy = this.sinon.spy();
     this.sinon.stub(window, 'OperatorVariantHandler').returns({
@@ -102,6 +98,14 @@ suite('Operator variant manager', function() {
   });
 
   test('init', function() {
+    var fakeSIMSlots = [
+      new MockSIMSlot(MockNavigatorMozMobileConnections[0], 0),
+      new MockSIMSlot(MockNavigatorMozMobileConnections[1], 1)
+    ];
+    this.sinon.stub(MockSIMSlotManager, 'getSlots').returns(
+      fakeSIMSlots
+    );
+    fakeSIMSlots[1].simCard = null;
     var spy = this.sinon.spy();
     this.sinon.stub(window, 'OperatorVariantHandler').returns({
       start: spy
@@ -109,7 +113,7 @@ suite('Operator variant manager', function() {
     subject.init();
     assert.isTrue(window.OperatorVariantHandler.calledWithNew());
     assert.isTrue(window.OperatorVariantHandler.calledWith(
-      MockNavigatorMozMobileConnections[0].iccId, 0));
+      fakeSIMSlots[0].simCard, 0));
     assert.isTrue(spy.called);
   });
 });

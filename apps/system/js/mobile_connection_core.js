@@ -6,7 +6,6 @@
   var MobileConnectionCore = function(mobileConnections, core) {
     this.core = core;
     this.mobileConnections = mobileConnections;
-    this.iccManager = core.getAPI('iccManager');
   };
   //MobileConnectionCore.IMPORTS = [
   //  'shared/js/simslot.js',
