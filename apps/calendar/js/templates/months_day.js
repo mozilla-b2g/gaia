@@ -7,12 +7,8 @@ var create = require('template').create;
 var MonthsDay = create({
   event: function() {
     var calendarId = this.h('calendarId');
-
-    var sectionClassList = [
-      'event',
-      'calendar-id-' + calendarId,
-      this.h('classes')
-    ].join(' ');
+    var busytimeId = this.h('busytimeId');
+    var classes = this.h('classes');
 
     var eventTime = (function() {
       if (this.arg('isAllDay')) {
@@ -25,7 +21,8 @@ var MonthsDay = create({
     }.call(this));
 
     var eventDetails = (function() {
-      var result = '<h5>' + this.h('title') + '</h5>';
+      var title = this.h('title');
+      var result = `<h5 role="presentation">${title}</h5>`;
       var location = this.h('location');
       if (location && location.length > 0) {
         result += `<span class="details">
@@ -35,14 +32,17 @@ var MonthsDay = create({
       return result;
     }.call(this));
 
-    var busytimeId = this.h('busytimeId');
-
-    return `<section class="${sectionClassList}" data-id="${busytimeId}">
+    return `<section class="event calendar-id-${calendarId} ${classes}"
+      role="option" data-id="${busytimeId}"
+      aria-describedby="${busytimeId}-icon-calendar-alarm">
       <div class="container calendar-id-${calendarId}">
-        <div class="gaia-icon icon-calendar-dot calendar-text-color"></div>
+        <div class="gaia-icon icon-calendar-dot calendar-text-color"
+          aria-hidden="true"></div>
         <div class="event-time">${eventTime}</div>
         <div class="event-details">${eventDetails}</div>
-        <div class="gaia-icon icon-calendar-alarm calendar-text-color"></div>
+        <div id="${busytimeId}-icon-calendar-alarm" aria-hidden="true"
+          class="gaia-icon icon-calendar-alarm calendar-text-color"
+          data-l10n-id="icon-calendar-alarm"></div>
       </div>
       </section>`;
   }

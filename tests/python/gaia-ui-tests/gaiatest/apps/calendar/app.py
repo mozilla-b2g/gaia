@@ -5,6 +5,7 @@
 from marionette.by import By
 from marionette.marionette import Actions
 from gaiatest.apps.base import Base
+from gaiatest.apps.base import PageRegion
 
 
 class Calendar(Base):
@@ -23,7 +24,7 @@ class Calendar(Base):
     _week_view_locator = (By.ID, 'week-view')
 
     _event_list_date_locator = (By.ID, 'event-list-date')
-
+    _event_locator = (By.CLASS_NAME, 'event')
     _tomorrow_locator = (By.CSS_SELECTOR, '.present + li > .day')
 
     def launch(self):
@@ -43,6 +44,28 @@ class Calendar(Base):
     @property
     def event_list_date(self):
         return self.marionette.find_element(*self._event_list_date_locator).text
+
+    @property
+    def events(self):
+        return [self.Event(marionette=self.marionette, element=event)
+                for event in self.marionette.find_elements(*self._event_locator)]
+
+    def wait_for_events(self, number_to_wait_for=1):
+        self.wait_for_condition(
+            lambda m: len(m.find_elements(*self._event_locator)) == number_to_wait_for)
+
+    def event(self, title):
+        for event in self.events:
+            if event.title == title:
+                return event
+
+    def a11y_click_add_event_button(self):
+        self.accessibility.click(self.marionette.find_element(*self._add_event_button_locator))
+
+        from gaiatest.apps.calendar.regions.event import NewEvent
+        new_event = NewEvent(self.marionette)
+        new_event.wait_for_panel_to_load()
+        return new_event
 
     def tap_add_event_button(self):
         self.marionette.find_element(*self._add_event_button_locator).tap()
@@ -132,3 +155,24 @@ class Calendar(Base):
 
         self.wait_for_condition(
             lambda m: self.current_month_year != month_year)
+
+    class Event(PageRegion):
+
+        _title_locator = (By.TAG_NAME, 'h5')
+        _location_locator = (By.CLASS_NAME, 'location')
+        _event_view_locator = (By.ID, 'event-view')
+
+        @property
+        def title(self):
+            return self.root_element.find_element(*self._title_locator).text
+
+        @property
+        def location(self):
+            return self.root_element.find_element(*self._location_locator).text
+
+        def a11y_click(self):
+            self.accessibility.click(self.root_element)
+            self.wait_for_condition(lambda m: self.marionette.find_element(
+                *self._event_view_locator).is_displayed())
+            from gaiatest.apps.calendar.regions.event_details import EventDetails
+            return EventDetails(self.marionette)
