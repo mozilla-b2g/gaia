@@ -87,6 +87,15 @@ suite('Sound > SliderHandler', function() {
       assert.ok(dom.addEventListener.calledWith('input'));
       assert.ok(dom.addEventListener.calledWith('touchend'));
     });
+
+    test('we would get correct previous value', function() {
+      sliderHandler.init(dom, 'content');
+      sliderHandler._setSliderValue(4);
+      assert.equal(sliderHandler._previous, 4);
+
+      sliderHandler._setSliderValue(8);
+      assert.equal(sliderHandler._previous, 4);
+    });
   });
 
   suite('_stopTone', function() {
