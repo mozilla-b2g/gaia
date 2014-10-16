@@ -120,6 +120,14 @@ Child.prototype = {
 
     var difference = Math.min(3, count) - element.childNodes.length;
 
+    if (count > 0) {
+      element.setAttribute('aria-label', navigator.mozL10n.get('busy', {
+        n: count
+      }));
+    } else {
+      element.removeAttribute('aria-label');
+    }
+
     if (difference === 0) {
       return;
     }
@@ -311,6 +319,7 @@ Child.prototype = {
 
     element.classList.add('month');
     element.setAttribute('role', 'grid');
+    element.setAttribute('aria-labelledby', 'current-month-year');
     element.setAttribute('aria-readonly', true);
     element.innerHTML = html;
 

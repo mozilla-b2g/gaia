@@ -35,6 +35,9 @@ function TonePlayer() {
       ));
     }
   }.bind(this));
+  this._player.addEventListener('ended', function() {
+    this._firePlayingCallback(false);
+  }.bind(this));
 
   window.addEventListener('visibilitychange', function() {
     if (document.hidden) {
@@ -54,14 +57,20 @@ TonePlayer.prototype = {
    * silence, since it stops it, but you'd expect it to replay the tone.
    *
    * @param {Object} tone The tone to select and preview.
+   * @param {Function} [callback] The callback to call when the playback status
+   *   of the tone changes; takes a boolean value to indicate if the tone is
+   *   currently playing.
    */
-  setTone: function(tone) {
+  setTone: function(tone, callback) {
     if (tone !== this._currentTone) {
+      this._firePlayingCallback(false);
       this._currentTone = tone;
+      this._playingCallback = callback;
       if (tone && tone.url) {
         this._isValid = undefined;
         this._player.src = tone.url;
         this._player.play();
+        this._firePlayingCallback(true);
         this._setExclusiveMode(true);
       } else {
         this._isValid = true;
@@ -75,9 +84,11 @@ TonePlayer.prototype = {
       if (this._player.paused || this._player.ended) {
         this._player.currentTime = 0;
         this._player.play();
+        this._firePlayingCallback(true);
         this._setExclusiveMode(true);
       } else {
         this._player.pause();
+        this._firePlayingCallback(false);
       }
     }
   },
@@ -89,6 +100,7 @@ TonePlayer.prototype = {
     this._player.pause();
     this._player.removeAttribute('src');
     this._player.load();
+    this._firePlayingCallback(false);
   },
 
   /**
@@ -114,6 +126,12 @@ TonePlayer.prototype = {
       this.removeEventListener('validated', validated);
       callback(event.detail);
     });
+  },
+
+  _firePlayingCallback: function(playing) {
+    if (this._playingCallback) {
+      this._playingCallback(playing);
+    }
   },
 
   /**

@@ -125,7 +125,7 @@ suite('Views.MonthChild', function() {
       assert.equal(keys[0], id);
 
       assert.include(
-        result, '<div class="busy-indicator"></div>',
+        result, 'class="busy-indicator" aria-hidden="true"></div>',
         'has no indicators'
       );
     });
@@ -270,12 +270,19 @@ suite('Views.MonthChild', function() {
       var result,
           expected = subject._renderMonth();
 
+      function cleanExtraWhitespace(str) {
+        // Repalce multiple whitespaces with a single one.
+        return str.replace(/\s+/g, ' ');
+      }
+
       result = subject.create();
       assert.equal(subject.element, result);
       assert.equal(subject.element.getAttribute('role'), 'grid');
+      assert.equal(subject.element.getAttribute('aria-labelledby'),
+        'current-month-year');
       assert.equal(subject.element.getAttribute('aria-readonly'), 'true');
       assert.equal(
-        result.innerHTML, expected,
+        cleanExtraWhitespace(result.innerHTML), cleanExtraWhitespace(expected),
         'should render month'
       );
     });
@@ -437,7 +444,9 @@ suite('Views.MonthChild', function() {
       var element = {
         childNodes: [1, 2],
         appendChild: function() {},
-        removeChild: function() {}
+        removeChild: function() {},
+        setAttribute: function() {},
+        removeAttribute: function() {}
       };
       mock = sinon.mock(element);
       sinon
@@ -458,6 +467,10 @@ suite('Views.MonthChild', function() {
       mock
         .expects('removeChild')
         .never();
+      mock
+        .expects('setAttribute')
+        .once()
+        .withArgs('aria-label');
       subject._setBusyCount(dayId, 2);
       mock.verify();
     });
@@ -469,6 +482,10 @@ suite('Views.MonthChild', function() {
       mock
         .expects('removeChild')
         .twice();
+      mock
+        .expects('removeAttribute')
+        .once()
+        .withArgs('aria-label');
       subject._setBusyCount(dayId, 0);
       mock.verify();
     });

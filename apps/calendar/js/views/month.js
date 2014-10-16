@@ -35,6 +35,15 @@ Month.prototype = {
     }
   },
 
+  _onwheel: function() {
+    var didWheel = Parent.prototype._onwheel.apply(this, arguments);
+
+    // If we changed months, set the selected day to the 1st
+    if (didWheel) {
+      this.controller.selectedDay = this.date;
+    }
+  },
+
   _clearSelectedDay: function() {
     var day = this.element.querySelector(
       this.selectors.selectedDay
@@ -42,6 +51,7 @@ Month.prototype = {
 
     if (day) {
       day.classList.remove(this.SELECTED);
+      day.removeAttribute('aria-selected');
     }
   },
 
@@ -56,6 +66,9 @@ Month.prototype = {
 
     if (el) {
       el.classList.add(this.SELECTED);
+      el.setAttribute('aria-selected', true);
+      // Put the screen reader cursor onto the selected day.
+      el.focus();
       this._selectedDay = date;
     }
   },

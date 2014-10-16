@@ -108,6 +108,9 @@ Focus.prototype.clearFaceDetection = function() {
 };
 
 Focus.prototype.suspendFaceDetection = function(ms, delay) {
+  if (!this.faceDetection) {
+    return;
+  }
   var self = this;
   delay = delay || 0;
   clearTimeout(this.faceDetectionSuspended);
@@ -303,7 +306,7 @@ Focus.prototype.updateFocusArea = function(rect, done) {
   }
   this.updateFocusState('focusing');
   this.stopContinuousFocus();
-  this.stopFaceDetection();
+  this.suspendFaceDetection(10000);
   this.mozCamera.setFocusAreas([rect]);
   this.mozCamera.setMeteringAreas([rect]);
   // Call auto focus to focus on focus area.

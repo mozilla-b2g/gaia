@@ -272,6 +272,48 @@ suite('Views.TimeParent', function() {
       subject.app.timeController.emit('purge', span);
       assert.equal(calledWith[0], span);
     });
+
+    function fakeWheelEvent(deltaX, deltaY) {
+      return {
+        type: 'wheel',
+        deltaMode: window.WheelEvent.DOM_DELTA_PAGE,
+        DOM_DELTA_PAGE: window.WheelEvent.DOM_DELTA_PAGE,
+        deltaX: deltaX,
+        deltaY: deltaY
+      };
+    }
+
+    test('event: wheel', function() {
+      var evt = new CustomEvent('wheel');
+      var onWheelStub = this.sinon.stub(subject, '_onwheel');
+
+      subject.element.dispatchEvent(evt);
+      assert.isTrue(onWheelStub.called);
+      assert.isTrue(onWheelStub.calledWith(evt));
+    });
+
+    test('event: wheel up/down', function() {
+      var moveStub = this.sinon.stub(subject, '_move');
+
+      subject.handleEvent(fakeWheelEvent(0, 1));
+      sinon.assert.notCalled(moveStub);
+    });
+
+    test('event: wheel left', function() {
+      var moveStub = this.sinon.stub(subject, '_move');
+
+      subject.handleEvent(fakeWheelEvent(1, 0));
+      assert.isTrue(moveStub.called);
+      assert.isTrue(moveStub.calledWith(true));
+    });
+
+    test('event: wheel right', function() {
+      var moveStub = this.sinon.stub(subject, '_move');
+
+      subject.handleEvent(fakeWheelEvent(-1, 0));
+      assert.isTrue(moveStub.called);
+      assert.isTrue(moveStub.calledWith(false));
+    });
   });
 
   suite('#purgeFrames', function() {
