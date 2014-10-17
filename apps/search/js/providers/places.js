@@ -344,30 +344,15 @@
 
     saveSites: function(sites) {
       return Promise.all(sites.map(site => {
-        site.frecency = 0;
+        site.frecency = -2;
         return this.persistStore.addPlace(site);
       }));
     },
 
     preloadTopSites: function() {
-
-      var TOPSITE_KEY = 'operatorResources.data.topsites';
-
-      // Switch the existing format of sim topsites into the current format
-      return new Promise(resolve => {
-        // Attempt to load top sites from sim variant data
-        var request = navigator.mozSettings.createLock().get(TOPSITE_KEY);
-        request.onsuccess = () => {
-          var result = request.result[TOPSITE_KEY];
-          if (result && result.topSites) {
-            return this.saveSites(result.topSites).then(resolve);
-          }
-
-          // No sim variant data found, load default build top sites
-          return LazyLoader.getJSON('/js/inittopsites.json').then(sites => {
-            return this.saveSites(sites).then(resolve);
-          });
-        };
+      // load default build top sites
+      return LazyLoader.getJSON('/js/inittopsites.json').then(sites => {
+        return this.saveSites(sites);
       });
     },
 
