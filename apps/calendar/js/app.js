@@ -2,7 +2,6 @@ define(function(require, exports, module) {
 'use strict';
 
 var AccessibilityHelper = require('shared/accessibility_helper');
-var AlarmController = require('controllers/alarm');
 var Calc = require('calc');
 var DateL10n = require('date_l10n');
 var Db = require('db');
@@ -16,7 +15,10 @@ var TimeController = require('controllers/time');
 var Views = {};
 var dayObserver = require('day_observer');
 var debug = require('debug')('app');
+var messageHandler = require('message_handler');
 var nextTick = require('next_tick');
+var notificationsController = require('controllers/notifications');
+var periodicSyncController = require('controllers/periodic_sync');
 var page = require('ext/page');
 var performance = require('performance');
 var providerFactory = require('provider/provider_factory');
@@ -60,11 +62,13 @@ module.exports = {
       document.body.classList.add(pendingClass);
     };
 
+    messageHandler.app = this;
     this.timeController = new TimeController(this);
     this.syncController = new SyncController(this);
     this.serviceController = new ServiceController(this);
-    this.alarmController = new AlarmController(this);
     this.errorController = new ErrorController(this);
+    notificationsController.app = this;
+    periodicSyncController.app = this;
 
     dayObserver.timeController = this.timeController;
     dayObserver.calendarStore = this.store('Calendar');
@@ -231,7 +235,8 @@ module.exports = {
     this.observeDateLocalization();
 
     this.timeController.observe();
-    this.alarmController.observe();
+    notificationsController.observe();
+    periodicSyncController.observe();
 
     // turn on the auto queue this means that when
     // alarms are added to the database we manage them

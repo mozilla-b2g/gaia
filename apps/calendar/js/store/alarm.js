@@ -5,6 +5,7 @@ var Abstract = require('./abstract');
 var Calc = require('calc');
 var debug = require('debug')('store/alarm');
 var denodeifyAll = require('promise').denodeifyAll;
+var notificationsController = require('controllers/notifications');
 
 /**
  * The alarm store can be thought of as a big queue.
@@ -126,16 +127,13 @@ Alarm.prototype = {
       }
     }
 
-    // XXX: sad we need to use app here...
-    var controller = this.app.alarmController;
-
     function addAlarm(data) {
       var date = Calc.dateFromTransport(data.trigger);
 
       // if trigger is in the past we need to send
       // the data directly to the controller not to mozAlarms.
       if (date < new Date()) {
-        return controller.handleAlarm(data);
+        return notificationsController.onAlarm(data);
       }
 
       pending++;
