@@ -10,6 +10,7 @@ from gaiatest.apps.calendar.app import Calendar
 class NewEvent(Calendar):
 
     _modify_event_view_locator = (By.ID, 'modify-event-view')
+    _modify_event_header_locator = (By.ID, 'modify-event-header')
     _event_title_input_locator = (By.XPATH, "//input[@data-l10n-id='event-title']")
     _event_location_input_locator = (By.XPATH, "//input[@data-l10n-id='event-location']")
     _event_start_time_value_locator = (By.ID, "start-time-locale")
@@ -39,6 +40,11 @@ class NewEvent(Calendar):
         self.marionette.find_element(*self._event_location_input_locator).tap()
         self.keyboard.send(location)
         self.keyboard.dismiss()
+
+    def a11y_click_close_button(self):
+        self.marionette.execute_async_script(
+            "Accessibility.click(arguments[0].shadowRoot.querySelector('button.icon-close'));",
+            [self.marionette.find_element(*self._modify_event_header_locator)], special_powers=True)
 
     def a11y_click_save_event(self):
         event_start_time = self.marionette.find_element(*self._event_start_time_value_locator).text

@@ -51,6 +51,17 @@ ol.link-list li:only-child a {
   transform: translateX(-52%);
 }
 
+#time-views {
+  visibility: hidden;
+}
+
+body[data-path="/month/"] #time-views,
+body[data-path="/week/"] #time-views,
+body[data-path="/day/"] #time-views,
+body[data-path="/settings/"] #time-views {
+  visibility: visible;
+}
+
 #view-selector > .today {
   border-right: 0.1rem solid #F2F2F2;
 }
@@ -166,6 +177,14 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   to {
     transform: translate(0, -4.8rem);
   }
+}
+
+#advanced-settings-view {
+  visibility: hidden;
+}
+
+body[data-path="/advanced-settings/"] #advanced-settings-view {
+  visibility: visible;
 }
 
 #advanced-settings-view section.content {
@@ -291,6 +310,10 @@ section[role="status"].active {
 /* Hide on initial render to prevent flashing */
 #settings {
   visibility: hidden;
+}
+
+body[data-path^='/settings'] #settings {
+  visibility: visible;
 }
 
 /* these settings avoid conflicts with the shared icons */

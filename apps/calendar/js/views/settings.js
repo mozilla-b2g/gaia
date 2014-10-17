@@ -65,7 +65,11 @@ Settings.prototype = {
     drawer: '#settings .settings-drawer',
 
     advancedSettingsButton: '#settings .settings',
-    syncButton: '#settings .sync'
+    syncButton: '#settings .sync',
+
+    // A view that settings overlays. Still needs to be active/visible but
+    // hidden from the screen reader.
+    timeViews: '#time-views'
   },
 
   get calendars() {
@@ -102,6 +106,10 @@ Settings.prototype = {
 
   get syncButton() {
     return this._findElement('syncButton');
+  },
+
+  get timeViews() {
+    return this._findElement('timeViews');
   },
 
   _observeUI: function() {
@@ -368,7 +376,7 @@ Settings.prototype = {
       // explicit close button.
       this.header.addEventListener('action', this._hideSettings);
       this.shield.addEventListener('click', this._hideSettings);
-
+      this.timeViews.setAttribute('aria-hidden', true);
       this.drawer.addEventListener('transitionend',
                                    this._onDrawerTransitionEnd);
     })
@@ -383,6 +391,7 @@ Settings.prototype = {
     this._activated = false;
     this.header.removeEventListener('action', this._hideSettings);
     this.shield.removeEventListener('click', this._hideSettings);
+    this.timeViews.removeAttribute('aria-hidden');
     this.drawer.removeEventListener('transitionend',
                                  this._onDrawerTransitionEnd);
   }
