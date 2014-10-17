@@ -1484,6 +1484,23 @@ suite('system/AppWindow', function() {
       assert.ok(destroyStub.calledOnce);
     });
 
+    test('Destroy active window directly when the bottom app is not Active',
+      function() {
+        var app = new AppWindow(fakeAppConfig1);
+
+        // Ensure that the closed event does not trigger the destroy method.
+        this.sinon.stub(app, 'getBottomMostWindow').returns({
+          isActive: function() {
+            return false;
+          }
+        });
+
+        var destroyStub = this.sinon.stub(app, 'destroy');
+
+        app.kill();
+        assert.ok(destroyStub.calledOnce);
+      });
+
     test('Load event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
 
