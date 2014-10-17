@@ -10,7 +10,8 @@
   background-position: 1.4rem center;
 }
 
-a.menu-item:after  {
+a.menu-item:after,
+a.submenu-item::after  {
   font-family: "gaia-icons";
   content: "forward";
   position: absolute;
