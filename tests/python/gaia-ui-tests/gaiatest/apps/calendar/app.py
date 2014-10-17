@@ -30,11 +30,8 @@ class Calendar(Base):
     _time_header_locator = (By.ID, 'time-header')
 
     _settings_locator = (By.ID, 'settings')
-    _settings_header_locator = (By.ID, 'settings-header')
-    _settings_drawer_locator = (By.CLASS_NAME, 'settings-drawer')
 
     _advanced_settings_view_locator = (By.ID, 'advanced-settings-view')
-    _advanced_settings_button_locator = (By.CSS_SELECTOR, '#settings .settings')
     _advanced_settings_done_button_locator = (By.XPATH, "//a[@href='/settings/']")
 
     _event_list_date_locator = (By.ID, 'event-list-date')
@@ -73,6 +70,11 @@ class Calendar(Base):
         for event in self.events:
             if event.title == title:
                 return event
+
+    @property
+    def settings(self):
+        return self.Settings(marionette=self.marionette,
+                             element=self.marionette.find_elements(*self._settings_locator))
 
     def wait_for_new_event(self):
         from gaiatest.apps.calendar.regions.event import NewEvent
@@ -162,7 +164,7 @@ class Calendar(Base):
     def wait_fot_settings_drawer_animation(self):
         self.wait_for_condition(
             lambda m: m.find_element(
-                *self._settings_drawer_locator).get_attribute('data-animstate') == 'done')
+                *self.settings._settings_drawer_locator).get_attribute('data-animstate') == 'done')
 
     def a11y_click_settings(self):
         self.a11y_click_header(self.marionette.find_element(*self._time_header_locator),
@@ -170,8 +172,8 @@ class Calendar(Base):
         self.wait_fot_settings_drawer_animation()
 
     def a11y_click_close_settings(self):
-        self.a11y_click_header(self.marionette.find_element(*self._settings_header_locator),
-                               'button.icon-menu')
+        self.a11y_click_header(self.marionette.find_element(
+            *self.settings._settings_header_locator), 'button.icon-menu')
         self.wait_fot_settings_drawer_animation()
 
     def flick_to_next_month(self):
@@ -210,6 +212,15 @@ class Calendar(Base):
 
         self.wait_for_condition(
             lambda m: self.current_month_year != month_year)
+
+    class Settings(PageRegion):
+
+        _calendar_local_locator = (By.CSS_SELECTOR, '#calendar-local-first .pack-checkbox')
+        _calendar_local_checkbox_locator = (By.CSS_SELECTOR,
+                                            '#calendar-local-first input[type="checkbox"]')
+        _advanced_settings_button_locator = (By.CSS_SELECTOR, '.settings')
+        _settings_header_locator = (By.ID, 'settings-header')
+        _settings_drawer_locator = (By.CLASS_NAME, 'settings-drawer')
 
     class Event(PageRegion):
 

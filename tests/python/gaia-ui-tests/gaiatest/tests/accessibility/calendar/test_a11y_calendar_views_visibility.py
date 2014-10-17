@@ -54,7 +54,7 @@ class TestCalendarViewsVisibilityAccessibility(GaiaTestCase):
 
         # Advanced settings
         self.accessibility.click(self.marionette.find_element(
-            *self.calendar._advanced_settings_button_locator))
+            *self.calendar.settings._advanced_settings_button_locator))
         test_a11y_visible('advanced_settings')
 
         # Settings
