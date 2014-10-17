@@ -40,7 +40,7 @@ class TestDeleteApp(GaiaTestCase):
         self.homescreen.wait_for_app_icon_present(self.test_data['name'])
 
     def test_delete_app(self):
-
+        """https://moztrap.mozilla.org/manage/case/6117/"""
         # Verify that the app is installed i.e. the app icon is visible on one of the homescreen pages
         self.assertTrue(
             self.homescreen.is_app_installed(self.test_data['name']),
