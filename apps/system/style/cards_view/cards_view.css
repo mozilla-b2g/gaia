@@ -79,6 +79,7 @@
 }
 
 #cards-view .screenshotView {
+  background-color: rgb(244, 244, 244);
   background-size: cover;
   background-position: left top;
   background-repeat: no-repeat;
