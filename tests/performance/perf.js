@@ -1,3 +1,6 @@
+'use strict';
+/* global global */
+
 var perfUtils = require('./perf-utils');
 
 global.config = perfUtils.configure( require('./config.json') );
