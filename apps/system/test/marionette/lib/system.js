@@ -11,6 +11,7 @@ module.exports = System;
 System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 
 System.Selector = Object.freeze({
+  screen: '#screen',
   activeHomescreenFrame: '#homescreen.appWindow.active',
   appWindow: '.appWindow',
   appTitlebar: '.appWindow.active .titlebar',
@@ -171,6 +172,10 @@ System.prototype = {
 
   get cancelActivity() {
     return this.client.findElement(System.Selector.cancelActivity);
+  },
+
+  get screenSize() {
+    return this.client.findElement(System.Selector.screen).size();
   },
 
   getAppIframe: function(url) {
