@@ -14,12 +14,7 @@ var MonthsDay = create({
       this.h('classes')
     ].join(' ');
 
-    var containerClassList = [
-      'container',
-      'calendar-id-' + calendarId
-    ].join(' ');
-
-    this.eventTime = function() {
+    var eventTime = (function() {
       if (this.arg('isAllDay')) {
         return '<div class="all-day" data-l10n-id="hour-allday"></div>';
       }
@@ -27,33 +22,29 @@ var MonthsDay = create({
       var endTime = formatTime(this.arg('endTime'));
       return `<div class="start-time">${startTime}</div>
               <div class="end-time">${endTime}</div>`;
-    };
+    }.call(this));
 
-    this.eventDetails = function() {
+    var eventDetails = (function() {
       var result = '<h5>' + this.h('title') + '</h5>';
       var location = this.h('location');
       if (location && location.length > 0) {
-        result += '<span class="details">';
-        result += '<span class="location">';
-        result += location;
-        result += '</span>';
-        result += '</span>';
+        result += `<span class="details">
+          <span class="location">${location}</span>
+        </span>`;
       }
-
       return result;
-    };
+    }.call(this));
 
-    return '<section class="' + sectionClassList + '" ' +
-                    'data-id="' + this.h('busytimeId') + '">' +
-           '<div class="' + containerClassList + '">' +
-             '<div class="gaia-icon icon-calendar-dot calendar-text-color">' +
-             '</div>' +
-             '<div class="event-time">' + this.eventTime() + '</div>' +
-             '<div class="event-details">' + this.eventDetails() + '</div>' +
-             '<div class="gaia-icon icon-calendar-alarm ' +
-               'calendar-text-color"></div>' +
-           '</div>' +
-           '</section>';
+    var busytimeId = this.h('busytimeId');
+
+    return `<section class="${sectionClassList}" data-id="${busytimeId}">
+      <div class="container calendar-id-${calendarId}">
+        <div class="gaia-icon icon-calendar-dot calendar-text-color"></div>
+        <div class="event-time">${eventTime}</div>
+        <div class="event-details">${eventDetails}</div>
+        <div class="gaia-icon icon-calendar-alarm calendar-text-color"></div>
+      </div>
+      </section>`;
   }
 });
 module.exports = MonthsDay;

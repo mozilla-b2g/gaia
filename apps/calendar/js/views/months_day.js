@@ -46,11 +46,19 @@ MonthsDay.prototype = {
 
   changeDate: function(date) {
     Parent.prototype.changeDate.apply(this, arguments);
-    this.currentDate.innerHTML = dateFormat.localeFormat(
+    var formatId = 'months-day-view-header-format';
+    this.currentDate.textContent = dateFormat.localeFormat(
       date,
-      navigator.mozL10n.get('months-day-view-header-format')
+      navigator.mozL10n.get(formatId)
     );
+    // we need to set the [data-date] and [data-l10n-date-format] because
+    // locale might change while the app is still open
+    this.currentDate.dataset.date = date;
+    this.currentDate.dataset.l10nDateFormat = formatId;
+    this._toggleEmptyMessage();
+  },
 
+  _toggleEmptyMessage: function() {
     var children = this.events.children;
     this.emptyMessage.classList.toggle(
       'active',
@@ -108,20 +116,12 @@ MonthsDay.prototype = {
 
   add: function() {
     Parent.prototype.add.apply(this, arguments);
-
-    // If we were showing "No Events" before,
-    // we should remove it now.
-    this.emptyMessage.classList.remove('active');
+    this._toggleEmptyMessage();
   },
 
   remove: function() {
     Parent.prototype.remove.apply(this, arguments);
-    // If the only event today was just removed,
-    // we should add the "No Events" label.
-    var children = this.events.children;
-    if (!children || children.length === 0) {
-      this.emptyMessage.classList.add('active');
-    }
+    this._toggleEmptyMessage();
   },
 
   render: function() {
