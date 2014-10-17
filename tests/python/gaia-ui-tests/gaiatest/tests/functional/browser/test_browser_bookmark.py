@@ -3,7 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-import urllib2
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
