@@ -693,7 +693,8 @@ gaia-header [data-icon] {
 
 #groups-container {
   height: 100%;
-  overflow: scroll;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 /* Bug 967274 - Background doesn't scroll with the contacts causing

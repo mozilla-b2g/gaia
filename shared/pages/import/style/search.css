@@ -150,3 +150,7 @@ form.search button[type="submit"] {
 span.highlight {
   background-color: #b2f2ff;
 }
+
+#groups-list-search {
+  overflow-x: hidden;
+}
