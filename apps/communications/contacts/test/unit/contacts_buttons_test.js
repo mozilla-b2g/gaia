@@ -142,36 +142,6 @@ suite('Render contact', function() {
         -1, listDetails.innerHTML.indexOf('phone-details-template-2'));
       assertCarrierWrapperVisibility(true);
     });
-
-    test('highlight phone number', function() {
-      var contact = new MockContactAllFields(true);
-      contact.tel = [
-        {
-          value: '+48225363636',
-          type: ['Personal']
-        }
-      ];
-      subject.renderPhones(contact);
-      subject.reMark('tel', contact.tel[0].value);
-      var phoneButton = container.querySelector('#call-or-pick-0');
-      assert.isTrue(phoneButton.classList.contains('remark'));
-    });
-
-    test('highlight phone number as missed', function() {
-
-      var contact = new MockContactAllFields(true);
-      contact.tel = [
-        {
-          value: '+48225363636',
-          type: ['Personal']
-        }
-      ];
-      subject.renderPhones(contact);
-      subject.reMark('tel', contact.tel[0].value, 'remark-missed');
-      var phoneButton = container.querySelector('#call-or-pick-0');
-      assert.isTrue(phoneButton.classList.contains('remark-missed'));
-
-    });
   });
 
   suite('Render emails', function() {
