@@ -68,19 +68,33 @@ var ChartUtils = (function() {
 
     if (trackingPeriod === 'weekly') {
       lowerDate.setTime(nextReset.getTime() - (7 * DAY));
-
     } else if (trackingPeriod === 'monthly') {
-      var newMonth = nextReset.getMonth() - 1;
-      var newYear = nextReset.getFullYear();
-      if (newMonth < 0) {
-        newMonth = 11;
-        newYear--;
+      var monthDate = settings.resetTime;
+      var isFirstDayOfPeriod = today.getDate() == monthDate;
+      var isAfterFirstDayOfPeriod = today.getDate() > monthDate;
+      if (isAfterFirstDayOfPeriod) {
+        // lowerDate is in the current month
+        lowerDate.setDate(monthDate);
+      } else if (!isFirstDayOfPeriod) {
+        // lowerDate is on the previous month
+        var LAST_DAY_OF_PREVIOUS_MONTH = 0;
+        var newMonth = today.getMonth() - 1;
+        var newYear = today.getFullYear();
+        if (newMonth < 0) {
+          newMonth = 11;
+          newYear--;
+        }
+
+        lowerDate = Toolkit.toMidnight(new Date(newYear, newMonth, monthDate));
+        // The day of the month of lowerDate is different to settings.resetTime
+        // value when the resetTime day doesn't exists this month, (eg. 30th
+        // February), on this case, the lowerDate must be the last day of the
+        // previous month
+        if (lowerDate.getDate() != monthDate) {
+          lowerDate = Toolkit.toMidnight(new Date());
+          lowerDate.setDate(LAST_DAY_OF_PREVIOUS_MONTH);
+        }
       }
-
-      lowerDate.setDate(nextReset.getDate());
-      lowerDate.setMonth(newMonth);
-      lowerDate.setYear(newYear);
-
     } else {
       var lastReset = settings.lastCompleteDataReset || lowerDate;
       lowerDate = lastReset;
