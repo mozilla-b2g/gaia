@@ -57,6 +57,7 @@ class ContactDetails(Base):
     def tap_edit(self):
         self.wait_for_element_displayed(*self._edit_contact_button_locator)
         self.marionette.find_element(*self._edit_contact_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._edit_contact_button_locator)
         from gaiatest.apps.contacts.regions.contact_form import EditContact
         return EditContact(self.marionette)
 
