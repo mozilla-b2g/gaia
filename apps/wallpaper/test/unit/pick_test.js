@@ -1,3 +1,6 @@
+'use strict';
+/* global Wallpaper */
+
 require('/shared/js/lazy_loader.js');
 require('/shared/js/media/downsample.js');
 requireApp('wallpaper/js/pick.js');
@@ -16,7 +19,6 @@ suite('wallpaper/pick', function() {
   });
 
   test('generateWallpaperList', function(done) {
-    var prefix =
     Wallpaper.wallpapersUrl = '/test/unit/list_test.json';
     Wallpaper.init();
     Wallpaper.generateWallpaperList(function() {

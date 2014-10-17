@@ -429,9 +429,6 @@ apps/video/test/unit/thumbnail_item_test.js
 apps/video/test/unit/thumbnail_list_test.js
 apps/video/test/unit/video_test.js
 apps/video/test/unit/video_utils_test.js
-apps/wallpaper/js/pick.js
-apps/wallpaper/js/share.js
-apps/wallpaper/test/unit/pick_test.js
 shared/js/blobview.js
 shared/js/dialer/contacts.js
 shared/js/fb/fb_data_reader.js
