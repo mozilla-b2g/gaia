@@ -6,6 +6,8 @@ define(function(require) {
   var ListView = require('modules/mvvm/list_view');
   var template = require('./layout_template');
   var THEME_SELECTED = 'theme.selected';
+  var WALLPAPER_LIST = '/wallpaper.json';
+  var WALLPAPER_KEY = 'wallpaper.image';
 
   var Themes = function ctor_themes() {
     return {
@@ -13,6 +15,7 @@ define(function(require) {
       _settings: null,
       _selectedTheme: null,
       _themes: null,
+      _config: {},
 
       onInit: function th_onInit(panel) {
         this._container = panel.querySelector('.theme-list');
@@ -21,7 +24,7 @@ define(function(require) {
 
       onBeforeShow: function th_onBeforeShow() {
         this._themes = [];
-        this.getInstalledThemes(this.setTheme);
+        this.getInstalledThemes((this.setTheme));
       },
 
       getInstalledThemes: function th_getInstalledThemes(callback) {
@@ -71,7 +74,75 @@ define(function(require) {
         }
         var setting = {};
         setting[THEME_SELECTED] = this._selectedTheme = theme;
-        this._settings.createLock().set(setting);
+        this._settings.createLock().set(setting)
+          .onsuccess = (function() {
+            this.getWallpaperPath().
+              then((this.loadWallpaper).bind(this)).
+              then((this.setWallpaper).bind(this));
+          }).bind(this);
+      },
+
+      /**
+       *  Given the current them set, we get the path for the
+       *  image set as background.
+       *  @returns {Promise} fulfilled with the path to the wallpaper
+       */
+      getWallpaperPath: function th_getWallpaper() {
+        var url = this._selectedTheme
+          .substring(0, this._selectedTheme.lastIndexOf('/')) + WALLPAPER_LIST;
+
+        var xhr = new XMLHttpRequest({ mozSystem: true });
+        xhr.open('GET', url, true);
+        xhr.responseType = 'json';
+        return new Promise(function(resolve, reject) {
+          xhr.onload = function successGettingWallpaperList() {
+            if (xhr.status !== 200) {
+              reject(xhr.status);
+              return;
+            }
+            var filename = xhr.response.homescreen;
+            resolve(filename);
+          };
+          xhr.send(null);
+        });
+      },
+
+      /**
+       *  Load an image {blob} from another app via XHR.
+       *  @params filename {String} path to the wallpaper on current theme.
+       *  @returns {Promise} fulfilled with the blob.
+       */
+      loadWallpaper: function th_loadWallpaper(filename) {
+        var url = this._selectedTheme.substring(0, this._selectedTheme
+          .lastIndexOf('/')) + filename;
+
+        var xhr = new XMLHttpRequest({ mozSystem: true });
+        xhr.open('GET', url, true);
+        xhr.responseType = 'blob';
+        return new Promise(function(resolve, reject) {
+          xhr.onload = function() {
+            if (xhr.status !== 200) {
+              reject(xhr.status);
+              return;
+            }
+            resolve(xhr.response);
+          };
+          xhr.send(null);
+        });
+      },
+
+      /**
+       *  Saves current wallpaper configuration.
+       *  @returns {Promise} fulfilled when config is saved.
+       */
+      setWallpaper: function th_setWallpaper(blob) {
+        this._config[WALLPAPER_KEY] = blob;
+        var self = this;
+        return new Promise(function(resolve, reject) {
+          var request = self._settings.createLock().set(self._config);
+          request.onerror = reject;
+          request.onsuccess = resolve;
+        });
       }
     };
   };

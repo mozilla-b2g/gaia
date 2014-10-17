@@ -58,6 +58,15 @@ suite('Themes > ', function() {
     manifestURL: 'app5ManifestUrl'
   };
 
+  var mock_app6 = {
+    manifest: {
+      name: 'My Theme',
+      type: 'privileged',
+      role: 'theme'
+    },
+    manifestURL: 'app://mythemeapp/manifest.webapp'
+  };
+
   var modules = [
     'panels/themes/themes'
   ];
@@ -142,6 +151,58 @@ suite('Themes > ', function() {
       themes.setTheme(refapps[0].manifestURL);
       assert.equal(MockNavigatorSettings.mSettings['theme.selected'],
         refapps[0].manifestURL);
+    });
+  });
+
+  suite('Themes wallpaper >', function() {
+    var realXHR = window.XMLHttpRequest;
+    var currentResponse;
+    var lastXHRCall;
+    var wallpaper = {
+      'homescreen': '/path/to/wallpaper.png'
+    };
+
+    suiteSetup(function() {
+      window.XMLHttpRequest = function(){
+        this.status = 0;
+      };
+      window.XMLHttpRequest.prototype.send = function() {
+        this.status = 200;
+        this.response = currentResponse;
+        this.onload();
+      };
+      window.XMLHttpRequest.prototype.open = function(method, url) {
+        lastXHRCall = url;
+      };
+
+      themes._selectedTheme = mock_app6.manifestURL;
+    });
+
+    suiteTeardown(function() {
+      window.XMLHttpRequest = realXHR;
+    });
+
+    test('Getting a wallpaper path', function(done) {
+      currentResponse = wallpaper;
+      themes.getWallpaperPath().then(function(path) {
+        assert.equal(lastXHRCall, 'app://mythemeapp/wallpaper.json');
+        assert.equal(path, currentResponse.homescreen);
+      }, function() {}).then(done, done);
+    });
+
+    test('Getting wallpaper blob', function(done) {
+      currentResponse = 'FAKEBLOB';
+      themes.loadWallpaper(wallpaper.homescreen).then(function(blob) {
+        assert.equal('FAKEBLOB', blob);
+        assert.equal(lastXHRCall, 'app://mythemeapp/path/to/wallpaper.png');
+      }, function() {}).then(done, done);
+    });
+
+    test('Setting wallpaper', function(done) {
+      themes.setWallpaper('BLOB').then(function() {
+        assert.equal(MockNavigatorSettings.mSettings['wallpaper.image'],
+          'BLOB');
+      }, function() {}).then(done, done);
     });
   });
 });
