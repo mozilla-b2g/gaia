@@ -225,6 +225,7 @@
           case 'pukRequired':
           case 'pinRequired':
             this.simLockSystemDialog.show(slot, skipped);
+            this._alreadyShown = true;
             return true;
           case 'networkLocked':
           case 'corporateLocked':
@@ -234,8 +235,8 @@
           case 'hrpdNetworkLocked':
           case 'ruimCorporateLocked':
           case 'ruimServiceProviderLocked':
-            this._alreadyShown = true;
             this.simLockSystemDialog.show(slot, skipped);
+            this._alreadyShown = true;
             return true;
           default:
             this.warn('SIM slot ' + (index + 1) + ' is not locked, skipping');

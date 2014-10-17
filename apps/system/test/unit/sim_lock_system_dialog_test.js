@@ -36,6 +36,8 @@ suite('sim lock dialog', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     MockSIMSlotManager.mInstances = [new MockSIMSlot(null, 0)];
+    SimLockSystemDialog.prototype.containerElement =
+      document.createElement('div');
     subject = new SimLockSystemDialog();
   });
 

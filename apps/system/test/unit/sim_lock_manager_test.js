@@ -173,12 +173,6 @@ suite('SimLockManager', function() {
         subject.showIfLocked();
         assert.equal(subject.simLockSystemDialog.show.callCount, 1);
       });
-
-      test('should render if alreadyShown and skipping', function() {
-        subject.showIfLocked();
-        subject.showIfLocked(1, true);
-        assert.equal(subject.simLockSystemDialog.show.callCount, 2);
-      });
     });
   });
 
@@ -247,7 +241,6 @@ suite('SimLockManager', function() {
       }));
       assert.isTrue(subject._duringCall);
     });
-
 
     test('callscreen window ending event', function() {
       subject.handleEvent(new CustomEvent('attentionterminated', {
