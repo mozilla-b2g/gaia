@@ -66,8 +66,6 @@
     TECH_PRIORITY: {
       P2P: 1,
       NDEF: 2,
-      NDEF_WRITEABLE: 3,
-      NDEF_FORMATABLE: 4,
       Unsupported: 20
     },
 
@@ -169,12 +167,7 @@
           }
           break;
         case 'NDEF':
-        case 'NDEF_WRITEABLE':
           this._fireNDEFDiscovered(msg, tech);
-          break;
-        case 'NDEF_FORMATABLE':
-          // not moving to default for readability
-          this._fireTagDiscovered(msg, tech);
           break;
         default:
           this._debug('Tag tech: ' + tech + ', fire Tag-Discovered.');
