@@ -9,12 +9,22 @@ KeyboardTests.ORIGIN = 'app://keyboardtestapp.gaiamobile.org';
 
 KeyboardTests.Selector = Object.freeze({
   textInput: '#textInput',
+  textInput2: '#textInput2',
+  textInput3: '#textInput3',
   nonInputArea: '#nonInput'
 });
 
 KeyboardTests.prototype = {
   get textInput() {
     return this.client.findElement(KeyboardTests.Selector.textInput);
+  },
+
+  get textInput2() {
+    return this.client.findElement(KeyboardTests.Selector.textInput2);
+  },
+
+  get textInput3() {
+    return this.client.findElement(KeyboardTests.Selector.textInput3);
   },
 
   get nonInputArea() {
