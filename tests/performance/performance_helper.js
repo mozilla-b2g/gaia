@@ -51,174 +51,174 @@ function PerformanceHelper(opts) {
 PerformanceHelper.injectHelperAtom = function(client) {
   client.contentScript.inject(
     GAIA_DIR + '/tests/performance/performance_helper_atom.js');
-}
+};
 
 
-  extend(PerformanceHelper, {
-    // FIXME encapsulate this in a nice object like PerformanceHelperAtom
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=844032
-    registerLoadTimeListener: function(client) {
-      var registerListener =
-        'var w = global.wrappedJSObject;' +
-        'w.loadTimes = [];' +
-        'if (w.onapplicationloaded) {' +
-        /* We've been here before, let's clean ! */
-        '  w.removeEventListener("apploadtime", w.onapplicationloaded);' +
-        '}' +
-        'w.onapplicationloaded = function(e) {' +
-        '  var data = e.detail;' +
-        /* So that it is backward compatible with the older gaia. */
-        '  data.src = data.src || e.target.src;' +
-        '  w.loadTimes.push(data);' +
-        '};' +
-        'w.addEventListener("apploadtime", w.onapplicationloaded);';
+extend(PerformanceHelper, {
+  // FIXME encapsulate this in a nice object like PerformanceHelperAtom
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=844032
+  registerLoadTimeListener: function(client) {
+    var registerListener =
+      'var w = global.wrappedJSObject;' +
+      'w.loadTimes = [];' +
+      'if (w.onapplicationloaded) {' +
+      /* We've been here before, let's clean ! */
+      '  w.removeEventListener("apploadtime", w.onapplicationloaded);' +
+      '}' +
+      'w.onapplicationloaded = function(e) {' +
+      '  var data = e.detail;' +
+      /* So that it is backward compatible with the older gaia. */
+      '  data.src = data.src || e.target.src;' +
+      '  w.loadTimes.push(data);' +
+      '};' +
+      'w.addEventListener("apploadtime", w.onapplicationloaded);';
 
-      client.executeScript(registerListener);
-    },
+    client.executeScript(registerListener);
+  },
 
-    unregisterLoadTimeListener: function(client) {
-      var removeListener =
-        'var w = global.wrappedJSObject;' +
-        'w.removeEventListener("apploadtime", w.onapplicationloaded);';
+  unregisterLoadTimeListener: function(client) {
+    var removeListener =
+      'var w = global.wrappedJSObject;' +
+      'w.removeEventListener("apploadtime", w.onapplicationloaded);';
 
-      client.executeScript(removeListener);
-    },
+    client.executeScript(removeListener);
+  },
 
-    // This method listens for the loadtime event so we know when the test has
-    // loaded the app, and can capture the timestamp emitted by AppWindow during
-    // the loadtime event
-    registerTimestamp: function(client) {
-      client
-        .executeScript(function registerListener() {
-          window.addEventListener('apploadtime', function loadtimeHandler(e) {
-            window.removeEventListener('apploadtime', loadtimeHandler);
-            window.wrappedJSObject.epochStart = e.detail.timestamp;
-          });
+  // This method listens for the loadtime event so we know when the test has
+  // loaded the app, and can capture the timestamp emitted by AppWindow during
+  // the loadtime event
+  registerTimestamp: function(client) {
+    client
+      .executeScript(function registerListener() {
+        window.addEventListener('apploadtime', function loadtimeHandler(e) {
+          window.removeEventListener('apploadtime', loadtimeHandler);
+          window.wrappedJSObject.epochStart = e.detail.timestamp;
         });
-    },
+      });
+  },
 
-    // This method fetches a timestamp that is stored on the window when
-    // the 'apploadtime' event is hit. See this.registerTimestamp
-    getEpochStart: function(client) {
-      client.switchToFrame();
+  // This method fetches a timestamp that is stored on the window when
+  // the 'apploadtime' event is hit. See this.registerTimestamp
+  getEpochStart: function(client) {
+    client.switchToFrame();
 
-      return client
-        .executeScript(function() {
-          return window.wrappedJSObject.epochStart;
-        });
-    },
+    return client
+      .executeScript(function() {
+        return window.wrappedJSObject.epochStart;
+      });
+  },
 
-    getLoadTimes: function(client) {
-      var getResults = 'return global.wrappedJSObject.loadTimes;';
-      return client.executeScript(getResults);
-    },
+  getLoadTimes: function(client) {
+    var getResults = 'return global.wrappedJSObject.loadTimes;';
+    return client.executeScript(getResults);
+  },
 
-    reportDuration: function(values, title) {
-      title = title || '';
-      sendResults('mozPerfDuration', { title: title, values: values });
-    },
+  reportDuration: function(values, title) {
+    title = title || '';
+    sendResults('mozPerfDuration', { title: title, values: values });
+  },
 
-    reportMemory: function(values, title) {
-      title = title || '';
-      var mozPerfMemory = {};
-      mozPerfMemory[title] = values;
-      sendResults('mozPerfMemory', mozPerfMemory);
-    }
-  });
+  reportMemory: function(values, title) {
+    title = title || '';
+    var mozPerfMemory = {};
+    mozPerfMemory[title] = values;
+    sendResults('mozPerfMemory', mozPerfMemory);
+  }
+});
 
 PerformanceHelper.prototype = {
-    // startValue is the name of the start event.
-    // By default it is 'start'
-    reportRunDurations: function(runResults, startValue) {
+  // startValue is the name of the start event.
+  // By default it is 'start'
+  reportRunDurations: function(runResults, startValue) {
 
-      startValue = startValue || 'start';
+    startValue = startValue || 'start';
 
-      var start = runResults[startValue] || 0;
-      delete runResults[startValue];
+    var start = runResults[startValue] || 0;
+    delete runResults[startValue];
 
-      for (var name in runResults) {
-        var value = runResults[name] - start;
-        // Sometime we start from an event that happen later.
-        // Ignore the one that occur before - ie negative values.
-        if (value >= 0) {
-          this.results[name] = this.results[name] || [];
-          this.results[name].push(value);
-        }
+    for (var name in runResults) {
+      var value = runResults[name] - start;
+      // Sometime we start from an event that happen later.
+      // Ignore the one that occur before - ie negative values.
+      if (value >= 0) {
+        this.results[name] = this.results[name] || [];
+        this.results[name].push(value);
+      }
+    }
+
+  },
+
+  finish: function() {
+    for (var name in this.results) {
+      PerformanceHelper.reportDuration(this.results[name], name);
+    }
+  },
+
+  /**
+   * Repeat the task 'fn' with a delay.
+   * Call 'callback' if exist.
+   *
+   *    perf.repeatWithDelay(function(app, next) {
+   *      app.launch();
+   *      app.close();
+   *    });
+   *
+   */
+  repeatWithDelay: function(fn, callback) {
+
+    callback = callback || this.app.defaultCallback;
+
+    var pending = this.runs;
+
+    function nextTask(err) {
+      if (err) {
+        return callback(err);
       }
 
-    },
-
-    finish: function() {
-      for (var name in this.results) {
-        PerformanceHelper.reportDuration(this.results[name], name);
+      if (!--pending) {
+        callback();
+      } else {
+        trigger();
       }
-    },
+    }
 
-    /**
-     * Repeat the task 'fn' with a delay.
-     * Call 'callback' if exist.
-     *
-     *    perf.repeatWithDelay(function(app, next) {
-     *      app.launch();
-     *      app.close();
-     *    });
-     *
-     */
-    repeatWithDelay: function(fn, callback) {
+    var self = this;
+    function trigger() {
+      self.delay(function() {
+        self.task(fn, nextTask);
+      });
+    }
 
-      callback = callback || this.app.defaultCallback;
+    trigger();
+  },
 
-      var pending = this.runs;
+  /*
+   * Run a task 'fn', and then chain on the 'next' task.
+   */
+  task: function(fn, next) {
+    var app = this.app;
+    next = next || app.defaultCallback;
 
-      function nextTask(err) {
-        if (err) {
-          return callback(err);
-        }
+    fn(app);
+    next();
+  },
 
-        if (!--pending) {
-          callback();
-        } else {
-          trigger();
-        }
-      }
+  delay: function(givenCallback) {
+    givenCallback = givenCallback || client.defaultCallback;
+    var interval = this.opts.spawnInterval;
 
-      var self = this;
-      function trigger() {
-        self.delay(function() {
-          self.task(fn, nextTask);
-        });
-      }
+    MarionetteHelper.delay(this.app.client, interval, givenCallback);
+  },
 
-      trigger();
-    },
+  waitForPerfEvent: function(callback) {
+    this.app.waitForPerfEvents(this.opts.lastEvent, callback);
+  },
 
-    /*
-     * Run a task 'fn', and then chain on the 'next' task.
-     */
-    task: function(fn, next) {
-      var app = this.app;
-      next = next || app.defaultCallback;
-
-      fn(app);
-      next();
-    },
-
-    delay: function(givenCallback) {
-      givenCallback = givenCallback || client.defaultCallback;
-      var interval = this.opts.spawnInterval;
-
-      MarionetteHelper.delay(this.app.client, interval, givenCallback);
-    },
-
-    waitForPerfEvent: function(callback) {
-      this.app.waitForPerfEvents(this.opts.lastEvent, callback);
-    },
-
-    /*
-     * Get the memory stats for the specified app
-     * as well as the main b2g.
-     * See bug 917717.
-     */
+  /*
+   * Get the memory stats for the specified app
+   * as well as the main b2g.
+   * See bug 917717.
+   */
   getMemoryUsage: function(app) {
     var appName = GetAppName(app);
     var meminfo = MemInfo.meminfo();
@@ -253,6 +253,20 @@ PerformanceHelper.prototype = {
         vsize: parseFloat(system.VSIZE)
       }
     };
+  },
+
+  /*
+   * Keep the device from "going to sleep" by disabling the screen from
+   * dimming and shutting off
+   */
+  disableScreenTimeout: function() {
+    this.app.client.executeScript(function() {
+      window.wrappedJSObject.SettingsListener
+        .getSettingsLock()
+        .set({
+          'screen.timeout': 0
+        });
+    });
   }
 };
 

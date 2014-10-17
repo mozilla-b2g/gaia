@@ -79,6 +79,7 @@ marionette('startup event test > ' + appPath + ' >', function() {
     this.timeout(500000);
     client.setScriptTimeout(50000);
     PerformanceHelper.injectHelperAtom(client);
+    performanceHelper.disableScreenTimeout();
   });
 
   test('startup >', function() {

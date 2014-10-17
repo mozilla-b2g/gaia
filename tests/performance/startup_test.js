@@ -41,6 +41,7 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
   test('startup time', function() {
 
     performanceHelper = new PerformanceHelper({ app: app });
+    performanceHelper.disableScreenTimeout();
 
     PerformanceHelper.registerLoadTimeListener(client);
 
