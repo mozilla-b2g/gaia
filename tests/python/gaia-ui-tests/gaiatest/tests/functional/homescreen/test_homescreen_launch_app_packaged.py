@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import urllib2
 from marionette import Wait
 
 from gaiatest import GaiaTestCase
@@ -27,12 +26,6 @@ class TestLaunchApp(GaiaTestCase):
             'name': 'packagedapp1',
             'url': self.marionette.absolute_url('webapps/packaged1/manifest.webapp'),
             'title': 'Packaged app1'}
-
-        # Check if the page can be reached on the Marionette web server
-        try:
-          response = urllib2.urlopen(self.test_data['url'])
-        except urllib2.URLError as e:
-           raise Exception("Could not get %s: %s" % (self.test_data['url'], e.reason))
 
         # Install app
         self.marionette.execute_script(
