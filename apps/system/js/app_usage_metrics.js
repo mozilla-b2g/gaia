@@ -67,6 +67,8 @@
   const ONLINE = 'online';
   const OFFLINE = 'offline';
   const TIMECHANGE = 'moztimechange';
+  const ATTENTIONOPENED = 'attentionopened';
+  const ATTENTIONCLOSED = 'attentionclosed';
   const IDLE = 'idle';
   const ACTIVE = 'active';
 
@@ -82,7 +84,9 @@
     UNINSTALL,
     ONLINE,
     OFFLINE,
-    TIMECHANGE
+    TIMECHANGE,
+    ATTENTIONOPENED,
+    ATTENTIONCLOSED
   ];
 
 
@@ -213,6 +217,9 @@
     // What is the URL of the lockscreen app?
     this.lockscreenURL = null;
 
+    // A stack of attention window manifest URLs and start times
+    this.attentionWindows = [];
+
     // When was the last time that a transmission attempt failed.
     // This is used along with the retry interval.
     this.lastFailedTransmission = 0;
@@ -225,6 +232,30 @@
 
     // When did the currently running app start?
     this.currentAppStartTime = performance.now();
+  };
+
+  AUM.prototype.getTopAttentionWindow = function getTopAttentionWindow() {
+    return this.attentionWindows ?
+      this.attentionWindows[this.attentionWindows.length - 1] :
+      undefined;
+  };
+
+  AUM.prototype.getCurrentURL = function() {
+    return !this.attentionWindows || this.attentionWindows.length === 0 ?
+      this.currentApp : this.getTopAttentionWindow().manifestURL;
+  };
+
+  AUM.prototype.getCurrentStartTime = function() {
+    return !this.attentionWindows || this.attentionWindows.length === 0 ?
+      this.currentAppStartTime : this.getTopAttentionWindow().startTime;
+  };
+
+  AUM.prototype.setCurrentStartTime = function(time) {
+    if (!this.attentionWindows || this.attentionWindows.length === 0) {
+      this.currentAppStartTime = time;
+    } else {
+      this.getTopAttentionWindow().startTime = time;
+    }
   };
 
   // Start collecting app usage data. This function is only called if the
@@ -371,10 +402,22 @@
       // The user has opened an app, switched apps, or switched to the
       // homescreen. Record data about the app that was running and then
       // update the currently running app.
-      this.metrics.recordInvocation(this.currentApp,
-                                    now - this.currentAppStartTime);
+      this.metrics.recordInvocation(this.getCurrentURL(),
+                                    now - this.getCurrentStartTime());
+      this.attentionWindows = [];
       this.currentApp = e.detail.manifestURL;
       this.currentAppStartTime = now;
+      break;
+
+    case ATTENTIONOPENED:
+      // Push the current attention screen start time onto stack, and use
+      // currentApp / currentAppStartTime when the stack is empty
+      this.metrics.recordInvocation(this.getCurrentURL(),
+                                    now - this.getCurrentStartTime());
+      this.attentionWindows.push({
+        manifestURL: e.detail.manifestURL,
+        startTime: now
+      });
       break;
 
     case ACTIVITY:
@@ -392,9 +435,9 @@
       // Note that if the lockscreen is disabled we won't get this event
       // and will just go straight to the screenchange event. In that
       // case we have to record the invocation when we get that event
-      this.metrics.recordInvocation(this.currentApp,
-                                    now - this.currentAppStartTime);
-      this.currentAppStartTime = now;
+      this.metrics.recordInvocation(this.getCurrentURL(),
+                                    now - this.getCurrentStartTime());
+      this.setCurrentStartTime(now);
 
       // Remember that the lockscreen is active. When we wake up again
       // we need to know this to know whether the user is at the lockscreen
@@ -417,16 +460,21 @@
         // We left the currentApp unchanged when the phone went to sleep
         // so now that we're leaving the lock screen we will be back at whatever
         // app or homescreen we left. We just have to start timing again
-        this.currentAppStartTime = now;
+        this.setCurrentStartTime(now);
       }
       this.locked = false;
       break;
 
     case SCREENCHANGE:
+      if (e.detail.screenOffBy === 'proximity') {
+        // Ignore when the screen state changes because of the proximity sensor
+        return;
+      }
+
       if (e.detail.screenEnabled) {
         // We just woke up. Note the time. This will be used for recording
         // time on the lockscreen if we're locked or time at the old app.
-        this.currentAppStartTime = now;
+        this.setCurrentStartTime(now);
       }
       else {
         // We're going to sleep. If the lockscreen is disabled and we went
@@ -438,9 +486,27 @@
         // if the user wakes the phone up and never unlocks it and then
         // we time out again, we need to record lockscreen time here,
         // not current app time.
-        var appurl = this.locked ? this.lockscreenURL : this.currentApp;
-        this.metrics.recordInvocation(appurl, now - this.currentAppStartTime);
+        var appurl = this.locked ? this.lockscreenURL : this.getCurrentURL();
+        this.metrics.recordInvocation(appurl, now - this.getCurrentStartTime());
       }
+      break;
+
+    case ATTENTIONCLOSED:
+      // The attention window on top of the stack was closed. When there are
+      // other attention windows, we reset the startTime of the top window on
+      // the stack. Otherwise we reset the currentApp's start time when the
+      // stack is empty.
+      var attentionWindow = this.getTopAttentionWindow();
+      if (attentionWindow &&
+          attentionWindow.manifestURL === e.detail.manifestURL) {
+        this.metrics.recordInvocation(e.detail.manifestURL,
+                                      now - attentionWindow.startTime);
+        this.attentionWindows.pop();
+      } else {
+        debug('Unexpected attention window closed! ' + e.detail.manifestURL);
+      }
+
+      this.setCurrentStartTime(now);
       break;
 
     case INSTALL:
