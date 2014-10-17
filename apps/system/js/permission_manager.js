@@ -246,6 +246,7 @@
           break;
         case 'fullscreenoriginchange':
           delete this.overlay.dataset.type;
+          this.cleanDialog();
           this.handleFullscreenOriginChange(detail);
           break;
       }
