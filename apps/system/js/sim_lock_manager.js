@@ -1,4 +1,4 @@
-/* global VersionHelper, SIMSlotManager, System, FtuLauncher,
+/* global SIMSlotManager, System, FtuLauncher,
           BaseModule */
 'use strict';
 
@@ -15,9 +15,9 @@
     'simslot-iccinfochange',
     'attentionopening',
     'attentionterminated',
-    'simpinskip',
-    'simpinback',
-    'simpinrequestclose'
+    'simlockskip',
+    'simlockback',
+    'simlockrequestclose'
   ];
   SimLockManager.SUB_MODULES = [
     'SimLockSystemDialog'
@@ -45,19 +45,19 @@
     },
 
     '_handle_ftuopen': function() {
-      VersionHelper.getVersionInfo().then(function(info) {
-        if (!info.isUpgrade()) {
-          this.simLockSystemDialog.close();
-        }
-      }.bind(this));
+      if (this.service.query('isFtuUpgrading') === false) {
+        this.simLockSystemDialog.close();
+      } else {
+        this.showIfLocked();
+      }
     },
 
-    _handle_simpinback: function(evt) {
+    _handle_simlockback: function(evt) {
       var index = evt.detail._currentSlot.index;
       this.showIfLocked(index - 1);
     },
 
-    _handle_simpinskip: function(evt) {
+    _handle_simlockskip: function(evt) {
       var index = evt.detail._currentSlot.index;
       if (index + 1 >= this.mobileConnections.length - 1) {
         evt.detail.close('skip');
@@ -68,13 +68,13 @@
       }
     },
 
-    _handle_simpinrequestclose: function(evt) {
-      var index = evt.detail.dialog._currentSlot.index;
+    _handle_simlockrequestclose: function(evt) {
+      var index = evt.detail._currentSlot.index;
       if (index + 1 >= this.mobileConnections.length - 1) {
-        evt.detail.dialog.close(evt.detail.reason);
+        evt.detail.close();
       } else {
         if (!this.showIfLocked(index + 1, true)) {
-          evt.detail.dialog.close(evt.detail.reason);
+          evt.detail.close();
         }
       }
     },
@@ -162,33 +162,35 @@
 
     showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
       if (!SIMSlotManager.ready) {
+        this.warn('SIMSlot not ready yet.');
         return false;
       }
 
       if (!this.simLockSystemDialog) {
-        this.debug('Dialog not ready.');
+        this.warn('dialog not ready.');
         return false;
       }
 
       if (System.locked) {
-        this.debug('Lockscreen is on so hidden.');
+        this.warn('Lockscreen is on so hidden.');
         return false;
       }
 
       if (this.simLockSystemDialog.visible) {
-        this.debug('Already displayed.');
+        this.warn('Already displayed.');
         return false;
       }
 
       // FTU has its specific SIM PIN UI
-      if (System.runningFTU && !System.isUpgrading()) {
-        this.debug('Running full ftu.');
+      if (this.service.query('isFtuRunning') &&
+          !this.service.query('isFtuUpgrading')) {
+        this.warn('Running full ftu.');
         this.simLockSystemDialog.close();
         return false;
       }
 
       if (this._duringCall) {
-        this.debug('During call');
+        this.warn('During call');
         this._showPrevented = true;
         return false;
       }
@@ -199,7 +201,7 @@
         }
 
         if (!slot.simCard) {
-          this.debug('No SIM card in slot ' + (index + 1));
+          this.warn('No SIM card in slot ' + (index + 1));
           return false;
         }
 
@@ -218,7 +220,7 @@
           // do nothing in either unknown or null card states
           case null:
           case 'unknown':
-            this.debug('unknown SIM card state for slot ' + (index + 1));
+            this.warn('unknown SIM card state for slot ' + (index + 1));
             break;
           case 'pukRequired':
           case 'pinRequired':
@@ -232,10 +234,11 @@
           case 'hrpdNetworkLocked':
           case 'ruimCorporateLocked':
           case 'ruimServiceProviderLocked':
+            this._alreadyShown = true;
             this.simLockSystemDialog.show(slot, skipped);
             return true;
           default:
-            this.debug('SIM slot ' + (index + 1) + ' is not locked, skipping');
+            this.warn('SIM slot ' + (index + 1) + ' is not locked, skipping');
             return false;
         }
       }, this);

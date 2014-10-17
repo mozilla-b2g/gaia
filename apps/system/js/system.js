@@ -1,7 +1,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   /**
    * Shared some global property.
    * @type {Object}
@@ -98,7 +98,7 @@
     },
 
     /**
-     * Register a service to System.
+     * Register an asynchronous service to System.
      * If there is any client awaiting this service, they will be executed after
      * registration.
      * @param  {String} service Service name
@@ -145,7 +145,7 @@
     },
 
     /**
-     * Unregister a service to System
+     * Unregister an asynchronous service to System
      * @param  {String} service The name of the service
      * @param  {Object} server  The server
      */
@@ -154,6 +154,56 @@
       var se = this._services.get(service);
       if (se && server === se) {
         this._services.delete(service);
+      }
+    },
+
+    _stateMachines: new Map(),
+    _stateMachinesByState: new Map(),
+
+    registerState: function(state, provider) {
+      this._stateMachines.set(provider.name, provider);
+      this._stateMachinesByState.set(state, provider);
+    },
+
+    unregisterState: function(state, provider) {
+      this._stateMachines.delete(provider.name);
+      var machine = this._stateMachinesByState.get(state);
+      if (machine === provider) {
+        this._stateMachinesByState.delete(state);
+      }
+    },
+
+    /**
+     * Synchonously query the state of specific state machine.
+     * If the state machine is not started,
+     * you will get undefined.
+     *
+     * @example
+     * System.query('FtuLauncher.isFtuRunning');
+     * System.query('isFtuRunning');
+     * 
+     * @param  {String} state The machine name and the state name.
+     * @return {String|Boolean|Number}       
+     */
+    query: function(stateString) {
+      this.debug(stateString);
+      var args = stateString.split(':');
+      var state, provider;
+      if (args.length > 1) {
+        provider = this._stateMachine.get(args[0]);
+        state = args[1];
+      } else {
+        state = args[0];
+        provider = this._stateMachinesByState.get(state);
+      }
+      if (!provider) {
+        this.debug('Provider not ready, return undefined state.');
+        return undefined;
+      }
+      if (typeof(provider[state]) === 'function') {
+        return provider[state]();
+      } else {
+        return provider[state];
       }
     },
 

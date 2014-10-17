@@ -1,6 +1,5 @@
 /* global MocksHelper, System, MockSimLockSystemDialog */
-/* global MockSIMSlotManager, MockVersionHelper, FtuLauncher, BaseModule */
-/* global VersionHelper:true */
+/* global MockSIMSlotManager, BaseModule, MockSystem */
 
 'use strict';
 
@@ -10,16 +9,13 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_version_helper.js');
 requireApp('system/test/unit/mock_sim_lock_system_dialog.js');
-requireApp('system/js/ftu_launcher.js');
 requireApp('/shared/js/lazy_loader.js');
-requireApp('system/js/system.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/sim_lock_manager.js');
 
 var mocksHelperForSimLockManager = new MocksHelper([
-  'SIMSlotManager',
   'System',
-  'VersionHelper'
+  'SIMSlotManager'
 ]).init();
 
 suite('SimLockManager', function() {
@@ -51,6 +47,7 @@ suite('SimLockManager', function() {
     subject = BaseModule.instantiate('SimLockManager', {
       mobileConnections: []
     });
+    subject.service = MockSystem;
     subject.start();
     subject.simLockSystemDialog = new MockSimLockSystemDialog();
     this.sinon.stub(subject.simLockSystemDialog, 'show', function() {
@@ -67,14 +64,11 @@ suite('SimLockManager', function() {
     var simLockSpy;
 
     setup(function() {
+      MockSIMSlotManager.ready = true;
       this.sinon.stub(subject.simLockSystemDialog, 'close', function() {
         subject.simLockSystemDialog.visible = false;
       });
       simLockSpy = this.sinon.spy(subject, 'showIfLocked');
-      this.sinon.stub(FtuLauncher, 'isFtuRunning', function() {
-        return true;
-      });
-      subject._start();
     });
 
     teardown(function() {
@@ -82,41 +76,27 @@ suite('SimLockManager', function() {
     });
 
     test('no simpin dialog would show up on first run', function() {
-      VersionHelper = MockVersionHelper(false);
+      this.sinon.stub(subject.service, 'query', function(state) {
+        if (state === 'isFtuRunning') {
+          return true;
+        } else if (state === 'isFtuUpgrading') {
+          return false;
+        }
+      });
       window.dispatchEvent(new window.CustomEvent('ftuopen'));
-      VersionHelper.getVersionInfo();
-      VersionHelper.resolve({ isUpgrade: function() {
-                                return false;
-                              }
-                            });
       assert.isTrue(subject.simLockSystemDialog.close.called);
-      assert.isFalse(simLockSpy.lastCall.returnValue);
     });
 
     test('simpin dialog would show up on upgrade', function() {
-      VersionHelper = MockVersionHelper(true);
-      window.dispatchEvent(new window.CustomEvent('ftuopen'));
-      VersionHelper.getVersionInfo();
-      VersionHelper.resolve({ isUpgrade: function() {
-                                return true;
-                              }
-                            });
-      //On updgrade, system will send an appopned event so we need to check it
-      subject.handleEvent({
-        type: 'appopened',
-        detail: {
-          url: 'app://ftu.gaiamobile.org/index.html',
-          manifestURL: 'app://ftu.gaiamobile.org/manifest.webapp',
-          manifest: {
-            permissions: {
-              telephony: {access: 'readwrite'}
-            }
-          },
-          origin: 'app://ftu.gaiamobile.org'
+      this.sinon.stub(subject.service, 'query', function(state) {
+        if (state === 'isFtuRunning') {
+          return true;
+        } else if (state === 'isFtuUpgrading') {
+          return true;
         }
       });
-      assert.isTrue(subject.simLockSystemDialog.close.called);
-      assert.isFalse(simLockSpy.lastCall.returnValue);
+      window.dispatchEvent(new CustomEvent('ftuopen'));
+      assert.isTrue(subject.simLockSystemDialog.show.called);
     });
   });
 
@@ -132,6 +112,7 @@ suite('SimLockManager', function() {
 
   suite('showIfLocked', function() {
     setup(function() {
+      MockSIMSlotManager.ready = true;
       subject.simLockSystemDialog.show.reset();
       subject.simLockSystemDialog.visible = false;
     });
@@ -154,12 +135,15 @@ suite('SimLockManager', function() {
     });
 
     test('should not show on Ftu', function() {
-      sinon.stub(FtuLauncher, 'isFtuRunning').returns(true);
-      sinon.stub(FtuLauncher, 'isFtuUpgrading').returns(false);
+      this.sinon.stub(subject.service, 'query', function(state) {
+        if (state === 'isFtuRunning') {
+          return true;
+        } else if (state === 'isFtuUpgrading') {
+          return false;
+        }
+      });
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);
-      FtuLauncher.isFtuUpgrading.restore();
-      FtuLauncher.isFtuRunning.restore();
     });
 
     test('should not show during a call', function() {
@@ -171,6 +155,7 @@ suite('SimLockManager', function() {
 
     suite('Multisim handling', function() {
       setup(function() {
+        MockSIMSlotManager.ready = true;
         addSimSlot();
       });
 

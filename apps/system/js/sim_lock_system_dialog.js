@@ -8,6 +8,7 @@
    * @extends SystemDialog
    */
   var SimLockSystemDialog = function(controller) {
+    this.instanceID = 'simlock-dialog';
     this.controller = controller;
     this.options = {};
     /**
@@ -44,11 +45,11 @@
 
   SimLockSystemDialog.prototype.customID = 'simlock-dialog';
 
-  SimLockSystemDialog.prototype.DEBUG = false;
+  SimLockSystemDialog.prototype.DEBUG = true;
 
   SimLockSystemDialog.prototype.name = 'SimLockSystemDialog';
 
-  SimLockSystemDialog.prototype.EVENT_PREFIX = 'simpin';
+  SimLockSystemDialog.prototype.EVENT_PREFIX = 'simlock';
 
   SimLockSystemDialog.prototype.view = function spd_view() {
     return '<div id="' + this.instanceID + '" role="dialog" ' +
@@ -363,10 +364,10 @@
     return false;
   };
 
-  SimLockSystemDialog.prototype.onHide = function(reason) {
+  SimLockSystemDialog.prototype.onHide = function() {
     this.clear();
     if (this.onclose) {
-      this.onclose(reason);
+      this.onclose();
     }
   };
 
@@ -413,18 +414,13 @@
     }
   };
 
-  SimLockSystemDialog.prototype.requestClose = function(reason) {
-    window.dispatchEvent(new CustomEvent('simpinrequestclose', {
-      detail: {
-        dialog: this,
-        reason: reason
-      }
-    }));
+  SimLockSystemDialog.prototype.requestClose = function() {
+    this.publish('requestclose');
   };
 
-  SimLockSystemDialog.prototype.close = function(reason) {
+  SimLockSystemDialog.prototype.close = function() {
     this.publish('close');
-    this.hide(reason);
+    this.hide();
     this._visible = false;
   };
 

@@ -176,8 +176,8 @@
     var height = window.layoutManager.height - StatusBar.height;
     this.containerElement.style.height = height + 'px';
     this.debug('updateHeight: new height = ' + height);
-    // Scroll up so as to show simpin input box
-    if (this.instanceID === 'simpin-dialog') {
+    // Scroll up so as to show sim lock input box
+    if (this.instanceID === 'sim-lock-dialog') {
       document.activeElement.scrollIntoView(false);
     }
   };

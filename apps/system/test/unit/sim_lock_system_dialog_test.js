@@ -1,48 +1,42 @@
 /* globals MockL10n, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           SimPinDialog */
+           SimLockSystemDialog */
+
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot_manager.js');
 
-var mocksForSIMPINDialog = new MocksHelper([
+requireApp('system/js/base_ui.js');
+requireApp('system/js/system_dialog.js');
+requireApp('system/js/sim_lock_system_dialog.js');
+
+
+var mocksForSimLockSystemDialog = new MocksHelper([
   'SIMSlotManager'
 ]).init();
 
-suite('simcard dialog', function() {
+suite('sim lock dialog', function() {
   var realL10n = window.navigator.mozL10n;
   var stubByQuery, stubById;
+  var subject;
 
-  mocksForSIMPINDialog.attachTestHelpers();
-
-  var MockSimPinSystemDialog = function(id, options) {
-    return {
-      show: function() {},
-      hide: function() {}
-    };
-  };
-
+  mocksForSimLockSystemDialog.attachTestHelpers();
   suiteSetup(function() {
     window.navigator.mozL10n = MockL10n;
-    window.SimPinSystemDialog = MockSimPinSystemDialog;
   });
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
-    window.SimPinSystemDialog = null;
   });
 
-  setup(function(callback) {
+  setup(function() {
     stubByQuery = this.sinon.stub(document, 'querySelector');
     stubByQuery.returns(document.createElement('div'));
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     MockSIMSlotManager.mInstances = [new MockSIMSlot(null, 0)];
-    requireApp('system/js/simcard_dialog.js', function() {
-      SimPinDialog.init();
-      callback();
-    });
+    subject = new SimLockSystemDialog();
   });
 
   teardown(function() {
@@ -54,15 +48,15 @@ suite('simcard dialog', function() {
     var slot = new MockSIMSlot(null, 0);
     slot.simCard.cardState = 'pinRequired';
     var stubUnlockCardLock = this.sinon.stub(slot, 'unlockCardLock');
-    var stubRequestClose = this.sinon.stub(SimPinDialog, 'requestClose');
-    var stubHandleError = this.sinon.stub(SimPinDialog, 'handleError');
+    var stubRequestClose = this.sinon.stub(subject, 'requestClose');
+    var stubHandleError = this.sinon.stub(subject, 'handleError');
     var domreq = {
       onsuccess: function() {},
       onerror: function() {}
     };
     stubUnlockCardLock.returns(domreq);
-    SimPinDialog._currentSlot = slot;
-    SimPinDialog.unlockCardLock();
+    subject._currentSlot = slot;
+    subject.unlockCardLock();
     assert.isTrue(stubUnlockCardLock.called);
     domreq.onsuccess();
     assert.isTrue(stubRequestClose.calledWith('success'));
@@ -71,10 +65,10 @@ suite('simcard dialog', function() {
   });
 
   test('unlockPin', function() {
-    var stubUnlockCardLock = this.sinon.stub(SimPinDialog, 'unlockCardLock');
-    var stubClear = this.sinon.stub(SimPinDialog, 'clear');
-    SimPinDialog.pinInput.value = '0000';
-    SimPinDialog.unlockPin();
+    var stubUnlockCardLock = this.sinon.stub(subject, 'unlockCardLock');
+    var stubClear = this.sinon.stub(subject, 'clear');
+    subject.pinInput.value = '0000';
+    subject.unlockPin();
     assert.isTrue(stubClear.called);
     assert.deepEqual(stubUnlockCardLock.getCall(0).args[0], {
       lockType: 'pin',
@@ -83,21 +77,21 @@ suite('simcard dialog', function() {
   });
 
   test('unlockPuk', function() {
-    this.sinon.stub(SimPinDialog, 'unlockCardLock');
-    var stubClear = this.sinon.stub(SimPinDialog, 'clear');
-    SimPinDialog.pukInput.value = '0000';
-    SimPinDialog.newPinInput.value = '1111';
-    SimPinDialog.confirmPinInput.value = '1111';
-    SimPinDialog.unlockPuk();
+    this.sinon.stub(subject, 'unlockCardLock');
+    var stubClear = this.sinon.stub(subject, 'clear');
+    subject.pukInput.value = '0000';
+    subject.newPinInput.value = '1111';
+    subject.confirmPinInput.value = '1111';
+    subject.unlockPuk();
     assert.isTrue(stubClear.called);
   });
 
   test('unlockXck', function() {
-    var stubUnlockCardLock = this.sinon.stub(SimPinDialog, 'unlockCardLock');
-    var stubClear = this.sinon.stub(SimPinDialog, 'clear');
-    SimPinDialog.xckInput.value = '0000';
-    SimPinDialog.lockType = 'xxxx';
-    SimPinDialog.unlockXck();
+    var stubUnlockCardLock = this.sinon.stub(subject, 'unlockCardLock');
+    var stubClear = this.sinon.stub(subject, 'clear');
+    subject.xckInput.value = '0000';
+    subject.lockType = 'xxxx';
+    subject.unlockXck();
     assert.isTrue(stubClear.called);
     assert.deepEqual(stubUnlockCardLock.getCall(0).args[0], {
       lockType: 'xxxx',
@@ -107,20 +101,20 @@ suite('simcard dialog', function() {
 
   suite('error handling', function() {
     test('retry', function() {
-      var stubShowErrorMsg = this.sinon.stub(SimPinDialog, 'showErrorMsg');
-      SimPinDialog.handleError({
+      var stubShowErrorMsg = this.sinon.stub(subject, 'showErrorMsg');
+      subject.handleError({
         retryCount: 1,
         lockType: 'pin'
       });
       assert.isTrue(stubShowErrorMsg.calledWith(1, 'pin'));
 
-      SimPinDialog.handleError({
+      subject.handleError({
         retryCount: 1,
         lockType: 'puk'
       });
       assert.isTrue(stubShowErrorMsg.calledWith(1, 'puk'));
 
-      SimPinDialog.handleError({
+      subject.handleError({
         retryCount: 1,
         lockType: 'xck'
       });
@@ -131,7 +125,7 @@ suite('simcard dialog', function() {
       var stub_ = this.sinon.stub(MockL10n, 'setAttributes');
       var count = 0;
       stub_.returns(count++);
-      SimPinDialog.showErrorMsg(1, 'pin');
+      subject.showErrorMsg(1, 'pin');
       assert.deepEqual(stub_.getCall(0).args[2], { n: 1 });
       assert.deepEqual(stub_.getCall(1).args[1], 'pinErrorMsg');
       assert.deepEqual(stub_.getCall(2).args[1], 'pinLastChanceMsg');
@@ -145,54 +139,54 @@ suite('simcard dialog', function() {
     test('null', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: null
       };
-      var stubSkip = this.sinon.stub(SimPinDialog, 'skip');
-      SimPinDialog.handleCardState();
+      var stubSkip = this.sinon.stub(subject, 'skip');
+      subject.handleCardState();
       assert.isTrue(stubSkip.called);
     });
 
     test('unknown', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'unknown'
       };
-      SimPinDialog.handleCardState();
+      subject.handleCardState();
 
-      var stubSkip = this.sinon.stub(SimPinDialog, 'skip');
-      SimPinDialog.handleCardState();
+      var stubSkip = this.sinon.stub(subject, 'skip');
+      subject.handleCardState();
       assert.isTrue(stubSkip.called);
     });
 
     test('ready', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'ready'
       };
-      SimPinDialog.handleCardState();
+      subject.handleCardState();
 
-      var stubSkip = this.sinon.stub(SimPinDialog, 'skip');
-      SimPinDialog.handleCardState();
+      var stubSkip = this.sinon.stub(subject, 'skip');
+      subject.handleCardState();
       assert.isTrue(stubSkip.called);
     });
 
     test('pin required', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'pinRequired'
       };
 
       var stubInputFieldControl =
-        this.sinon.stub(SimPinDialog, 'inputFieldControl');
-      SimPinDialog.handleCardState();
+        this.sinon.stub(subject, 'inputFieldControl');
+      subject.handleCardState();
       assert.isTrue(
         stubInputFieldControl.calledWith(true, false, false, false));
     });
@@ -200,14 +194,14 @@ suite('simcard dialog', function() {
     test('puk required', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'pukRequired'
       };
 
       var stubInputFieldControl =
-        this.sinon.stub(SimPinDialog, 'inputFieldControl');
-      SimPinDialog.handleCardState();
+        this.sinon.stub(subject, 'inputFieldControl');
+      subject.handleCardState();
       assert.isTrue(
         stubInputFieldControl.calledWith(false, true, false, true));
     });
@@ -215,14 +209,14 @@ suite('simcard dialog', function() {
     test('network locked', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'networkLocked'
       };
 
       var stubInputFieldControl =
-        this.sinon.stub(SimPinDialog, 'inputFieldControl');
-      SimPinDialog.handleCardState();
+        this.sinon.stub(subject, 'inputFieldControl');
+      subject.handleCardState();
       assert.isTrue(
         stubInputFieldControl.calledWith(false, false, true, false));
     });
@@ -230,14 +224,14 @@ suite('simcard dialog', function() {
     test('corporate locked', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'corporateLocked'
       };
 
       var stubInputFieldControl =
-        this.sinon.stub(SimPinDialog, 'inputFieldControl');
-      SimPinDialog.handleCardState();
+        this.sinon.stub(subject, 'inputFieldControl');
+      subject.handleCardState();
       assert.isTrue(
         stubInputFieldControl.calledWith(false, false, true, false));
     });
@@ -245,14 +239,14 @@ suite('simcard dialog', function() {
     test('service provider locked', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'serviceProviderLocked'
       };
 
       var stubInputFieldControl =
-        this.sinon.stub(SimPinDialog, 'inputFieldControl');
-      SimPinDialog.handleCardState();
+        this.sinon.stub(subject, 'inputFieldControl');
+      subject.handleCardState();
       assert.isTrue(
         stubInputFieldControl.calledWith(false, false, true, false));
     });
@@ -260,14 +254,14 @@ suite('simcard dialog', function() {
     test('network1 locked', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'network1Locked'
       };
 
       var stubInputFieldControl =
-        this.sinon.stub(SimPinDialog, 'inputFieldControl');
-      SimPinDialog.handleCardState();
+        this.sinon.stub(subject, 'inputFieldControl');
+      subject.handleCardState();
       assert.isTrue(
         stubInputFieldControl.calledWith(false, false, true, false));
     });
@@ -275,14 +269,14 @@ suite('simcard dialog', function() {
     test('network2 locked', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'network2Locked'
       };
 
       var stubInputFieldControl =
-        this.sinon.stub(SimPinDialog, 'inputFieldControl');
-      SimPinDialog.handleCardState();
+        this.sinon.stub(subject, 'inputFieldControl');
+      subject.handleCardState();
       assert.isTrue(
         stubInputFieldControl.calledWith(false, false, true, false));
     });
@@ -290,14 +284,14 @@ suite('simcard dialog', function() {
     test('hrpd network locked', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'hrpdNetworkLocked'
       };
 
       var stubInputFieldControl =
-        this.sinon.stub(SimPinDialog, 'inputFieldControl');
-      SimPinDialog.handleCardState();
+        this.sinon.stub(subject, 'inputFieldControl');
+      subject.handleCardState();
       assert.isTrue(
         stubInputFieldControl.calledWith(false, false, true, false));
     });
@@ -305,14 +299,14 @@ suite('simcard dialog', function() {
     test('ruim corporate locked', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'ruimCorporateLocked'
       };
 
       var stubInputFieldControl =
-        this.sinon.stub(SimPinDialog, 'inputFieldControl');
-      SimPinDialog.handleCardState();
+        this.sinon.stub(subject, 'inputFieldControl');
+      subject.handleCardState();
       assert.isTrue(
         stubInputFieldControl.calledWith(false, false, true, false));
     });
@@ -320,14 +314,14 @@ suite('simcard dialog', function() {
     test('ruim service provider locked', function() {
       var slot = new MockSIMSlot(null, 0);
       slot.simCard.cardState = 'pinRequired';
-      SimPinDialog._currentSlot = slot;
+      subject._currentSlot = slot;
       slot.simCard = {
         cardState: 'ruimServiceProviderLocked'
       };
 
       var stubInputFieldControl =
-        this.sinon.stub(SimPinDialog, 'inputFieldControl');
-      SimPinDialog.handleCardState();
+        this.sinon.stub(subject, 'inputFieldControl');
+      subject.handleCardState();
       assert.isTrue(
         stubInputFieldControl.calledWith(false, false, true, false));
     });

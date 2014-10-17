@@ -7,6 +7,8 @@ var MockSystem = {
   lazyLoad: function() {},
   register: function() {},
   unregister: function() {},
+  registerState: function() {},
+  unregisterState: function() {},
   request: function() {},
   query: function() {},
   mPublishEvents: {},
