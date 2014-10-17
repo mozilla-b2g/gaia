@@ -164,6 +164,7 @@
 }
 
 #notification-bar .title-container {
+  padding-right: 0.2rem;
   margin-left: .7rem;
   float: left;
   font: italic 300 1.8rem/4.2rem auto;
