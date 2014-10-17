@@ -50,7 +50,8 @@ System.Selector = Object.freeze({
   rightPanel: '#right-panel',
   utilityTray: '#utility-tray',
   visibleForm: '#screen > form.visible',
-  cancelActivity: 'form.visible button[data-action="cancel"]'
+  cancelActivity: 'form.visible button[data-action="cancel"]',
+  nfcIcon: '#statusbar-nfc'
 });
 
 System.prototype = {
@@ -203,6 +204,10 @@ System.prototype = {
 
   get screenSize() {
     return this.client.findElement(System.Selector.screen).size();
+  },
+
+  get nfcIcon() {
+    return this.client.findElement(System.Selector.nfcIcon);
   },
 
   getAppIframe: function(url) {
