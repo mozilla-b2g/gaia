@@ -20,6 +20,12 @@
     bottom: 0;
     right: var(--software-home-button-height);
   }
+
+  #screen.software-button-enabled [role="dialog"][data-type="object"],
+  #screen.software-button-enabled [role="dialog"][data-type="action"] {
+    bottom: 0;
+    right: var(--software-home-button-height);
+  }
 }
 
 /* Extending action menu with icon capability & transition*/
