@@ -84,9 +84,7 @@ suite('SettingsPanel', function() {
 
         settingsCacheRemoveEventListenerSpy.restore();
         panelRemoveEventListenerSpy.restore();
-
-        done();
-      }.bind(this));
+      }.bind(this)).then(done, done);
     });
 
     test('beforeShow()', function(done) {
@@ -116,9 +114,7 @@ suite('SettingsPanel', function() {
         presetSpy.restore();
         settingsCacheAddEventListenerSpy.restore();
         panelAddEventListenerSpy.restore();
-
-        done();
-      }.bind(this));
+      }.bind(this)).then(done, done);
     });
 
     test('show()', function(done) {
@@ -130,8 +126,7 @@ suite('SettingsPanel', function() {
       .then(function() {
         // init should be called when show is called at the first time.
         sinon.assert.calledWith(initSpy, panelElement, options);
-        done();
-      });
+      }).then(done, done);
     });
 
     test('hide()', function(done) {
@@ -154,8 +149,7 @@ suite('SettingsPanel', function() {
 
         settingsCacheRemoveEventListenerSpy.restore();
         panelRemoveEventListenerSpy.restore();
-        done();
-      }.bind(this));
+      }.bind(this)).then(done, done);
     });
   });
 
@@ -193,8 +187,7 @@ suite('SettingsPanel', function() {
             .resolve(panel[funcName](panelElement, options))
             .then(function() {
               sinon.assert.calledWith(spy, panelElement, options);
-              done();
-            });
+            }).then(done, done);
       });
     });
 
@@ -210,8 +203,7 @@ suite('SettingsPanel', function() {
             .resolve(panel[funcName]())
             .then(function() {
               sinon.assert.calledOnce(spy);
-              done();
-            });
+            }).then(done, done);
       });
     });
 
@@ -224,8 +216,7 @@ suite('SettingsPanel', function() {
         .then(function() {
           panel.uninit();
           sinon.assert.calledOnce(spy);
-          done();
-        });
+        }).then(done, done);
     });
 
     test('onInit should be called only once', function(done) {
@@ -237,8 +228,7 @@ suite('SettingsPanel', function() {
       .then(panel.init(panelElement))
       .then(function() {
         sinon.assert.calledOnce(spy);
-        done();
-      });
+      }).then(done, done);
     });
 
     test('onUninit should not be called if it is not initialized', function() {
