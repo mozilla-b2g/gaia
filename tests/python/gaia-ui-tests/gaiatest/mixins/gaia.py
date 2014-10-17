@@ -8,6 +8,15 @@ import textwrap
 import time
 
 
+def environment(version):
+    environment = {
+        'Gaia date': version.get('gaia_date') and
+        time.strftime('%d %b %Y %H:%M:%S', time.localtime(
+            int(version.get('gaia_date')))),
+        'Gaia revision': version.get('gaia_changeset')[:12]}
+    return environment
+
+
 class GaiaOptionsMixin(object):
 
     def __init__(self, **kwargs):
@@ -23,6 +32,8 @@ class GaiaOptionsMixin(object):
 class GaiaTestRunnerMixin(object):
 
     def __init__(self, **kwargs):
+        self.mixin_environment.append(environment)
+
         width = 80
         if not (self.testvars.get('acknowledged_risks') is True or os.environ.get('GAIATEST_ACKNOWLEDGED_RISKS')):
             url = 'http://gaiatest.readthedocs.org/en/latest/testrunner.html#risks'
@@ -54,4 +65,3 @@ class GaiaTestRunnerMixin(object):
                 print '\nTest run aborted by user.'
                 sys.exit(1)
             print 'Continuing with test run...\n'
-

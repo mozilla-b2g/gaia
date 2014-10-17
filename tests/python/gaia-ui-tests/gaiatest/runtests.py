@@ -4,9 +4,9 @@
 
 import os
 
-from marionette import BaseMarionetteOptions, HTMLReportingOptionsMixin, \
-    HTMLReportingTestRunnerMixin, EnduranceOptionsMixin, \
-    HTMLReportingTestResultMixin
+from marionette import BaseMarionetteOptions, B2GTestRunnerMixin, \
+    HTMLReportingOptionsMixin, HTMLReportingTestRunnerMixin, \
+    EnduranceOptionsMixin, HTMLReportingTestResultMixin
 from marionette import MarionetteTestResult
 from marionette import MarionetteTextTestRunner
 from marionette import BaseMarionetteTestRunner
@@ -42,8 +42,9 @@ class GaiaTextTestRunner(MarionetteTextTestRunner):
     resultclass = GaiaTestResult
 
 
-class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
-                     HTMLReportingTestRunnerMixin, TreeherderTestRunnerMixin):
+class GaiaTestRunner(BaseMarionetteTestRunner, B2GTestRunnerMixin,
+                     GaiaTestRunnerMixin, HTMLReportingTestRunnerMixin,
+                     TreeherderTestRunnerMixin):
 
     textrunnerclass = GaiaTextTestRunner
 
@@ -53,6 +54,7 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
             kwargs['server_root'] = os.path.abspath(os.path.join(
                 os.path.dirname(__file__), 'resources'))
         BaseMarionetteTestRunner.__init__(self, **kwargs)
+        B2GTestRunnerMixin.__init__(self, **kwargs)
         GaiaTestRunnerMixin.__init__(self, **kwargs)
         HTMLReportingTestRunnerMixin.__init__(self, name=__name__,
                                               version=__version__, **kwargs)
