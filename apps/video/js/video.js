@@ -671,9 +671,10 @@ function updateLoadingSpinner() {
     dom.spinnerOverlay.classList.add('hidden');
     dom.playerView.classList.remove('disabled');
     if (thumbnailList.count) {
-      // Load the first video item to player when we are in tablet and landscape
-      // mode.
-      currentVideo = thumbnailList.itemGroups[0].thumbnails[0].data;
+      // Initialize currentVideo to first video item if it doesn't have a value.
+      currentVideo = currentVideo ||
+                     thumbnailList.itemGroups[0].thumbnails[0].data;
+      // Load current video to player when we are in tablet and landscape.
       if (!isPhone && !isPortrait) {
         showPlayer(currentVideo, false, /* autoPlay */
                                  false, /* enterFullscreen */
