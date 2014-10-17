@@ -467,7 +467,11 @@ var StatusBar = {
             break;
 
           case 'audio-channel-changed':
-            var active = evt.detail.channel === 'content';
+            // The camera recording fires a audio-channel-changed event to kill
+            // existing "content" audio channels, in this case we don't show the
+            // playing icon.
+            var active = evt.detail.channel === 'content' &&
+              !this.recordingActive;
             if (this.playingActive === active) {
               break;
             }
