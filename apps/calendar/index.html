@@ -93,10 +93,10 @@
   When a day is selected you have
   access to the details here
   -->
-  <section id="months-day-view" role="tabpanel" aria-labelledby="today">
+  <section id="months-day-view" role="tabpanel">
     <div id="event-list-date"></div>
     <div id="empty-message" data-l10n-id="no-events" class="active">No Events</div>
-    <section id="event-list" class="day-events">
+    <section id="event-list" class="day-events" role="listbox" aria-labelledby="event-list-date">
     </section>
   </section>
 
@@ -106,7 +106,7 @@
 
   <ul id="view-selector" role="tablist" class="bb-tablist">
     <li class="today" role="presentation">
-      <a id="today" href="#today"><span class="gaia-icon icon-calendar-today"></span></a>
+      <a id="today" href="#today" data-l10n-id="present"><span class="gaia-icon icon-calendar-today"></span></a>
     </li>
     <li class="month" role="presentation"><a role="tab" aria-selected="true" aria-controls="month-view" id="month" data-l10n-id="show-month-view" href="/month/">Month</a></li>
     <li class="week" role="presentation"><a role="tab" aria-selected="false" aria-controls="week-view" id="week" data-l10n-id="show-week-view" href="/week/">Week</a></li>
