@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import urllib2
 from marionette import Wait
 
 from gaiatest import GaiaTestCase
@@ -24,27 +25,27 @@ class TestLaunchApp(GaiaTestCase):
 
         self.test_data = {
             'name': 'Mozilla QA WebRT Tester',
-            'url': 'http://mozqa.com/data/webapps/mozqa.com/manifest.webapp',
-            'title': 'Index of /data'}
+            'url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp'),
+            'title': 'Directory listing for /'}
 
-        if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
-            self.test_data['url'] = self.marionette.absolute_url(
-                'webapps/mozqa.com/manifest.webapp')
-            self.test_data['title'] = 'Directory listing for /'
+        # Check if the page can be reached on the Marionette web server
+        try:
+          response = urllib2.urlopen(self.test_data['url'])
+        except urllib2.URLError as e:
+           raise Exception("Could not get %s: %s" % (self.test_data['url'], e.reason))
 
-        if not self.apps.is_app_installed(self.test_data['name']):
-            # Install app
-            self.marionette.execute_script(
-                'navigator.mozApps.install("%s")' % self.test_data['url'])
+        # Install app
+        self.marionette.execute_script(
+            'navigator.mozApps.install("%s")' % self.test_data['url'])
 
-            # Confirm the installation and wait for the app icon to be present
-            confirm_install = ConfirmInstall(self.marionette)
-            confirm_install.tap_confirm()
+        # Confirm the installation and wait for the app icon to be present
+        confirm_install = ConfirmInstall(self.marionette)
+        confirm_install.tap_confirm()
 
-            # Wait for the notification to disappear
-            system = System(self.marionette)
-            system.wait_for_system_banner_displayed()
-            system.wait_for_system_banner_not_displayed()
+        # Wait for the notification to disappear
+        system = System(self.marionette)
+        system.wait_for_system_banner_displayed()
+        system.wait_for_system_banner_not_displayed()
 
         self.apps.switch_to_displayed_app()
         self.homescreen.wait_for_app_icon_present(self.test_data['name'])
