@@ -6,6 +6,8 @@ define(function(require) {
   var ListView = require('modules/mvvm/list_view');
   var template = require('./layout_template');
   var THEME_SELECTED = 'theme.selected';
+  var WALLPAPER_LIST = '/wallpaper.json';
+  var WALLPAPER_KEY = 'wallpaper.image';
 
   var Themes = function ctor_themes() {
     return {
@@ -71,7 +73,43 @@ define(function(require) {
         }
         var setting = {};
         setting[THEME_SELECTED] = this._selectedTheme = theme;
-        this._settings.createLock().set(setting);
+        this._settings.createLock().set(setting)
+          .onsuccess = this.getWallpaper.bind(this);
+      },
+
+      getWallpaper: function th_getWallpaper() {
+        var url = this._selectedTheme
+          .substring(0, this._selectedTheme.lastIndexOf('/')) + WALLPAPER_LIST;
+
+        var xhr = new XMLHttpRequest({ mozSystem: true });
+        xhr.open('GET', url, true);
+        xhr.responseType = 'json';
+        xhr.onload = function successGettingWallpaperList() {
+          var filename = xhr.response.homescreen;
+          this.loadWallpaper(filename);
+        }.bind(this);
+        xhr.send(null);
+      },
+
+      loadWallpaper: function th_loadWallpaper(filename) {
+        var url = this._selectedTheme.substring(0, this._selectedTheme
+          .lastIndexOf('/')) + filename;
+
+        var xhr = new XMLHttpRequest({ mozSystem: true });
+        xhr.open('GET', url, true);
+        xhr.responseType = 'blob';
+        xhr.send(null);
+        xhr.onload = function successGettingWallpaper() {
+          var config = {};
+          config[WALLPAPER_KEY] = xhr.response;
+          var request = navigator.mozSettings.createLock().set(config);
+          request.onerror = function() {
+            console.warn('Error setting wallpaper.image:', request.error);
+          };
+          request.onsuccess = function() {
+            console.log('Wallpapper successfully set');
+          };
+        }.bind(this);
       }
     };
   };
