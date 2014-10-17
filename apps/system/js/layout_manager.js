@@ -110,6 +110,7 @@
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
       window.addEventListener('attention-inactive', this);
+      window.addEventListener('lockscreen-appclosed', this);
     },
 
     handleEvent: function lm_handleEvent(evt) {
@@ -129,6 +130,13 @@
         case 'resize':
           this.publish('system-resize');
           this.publish('orientationchange');
+          break;
+        case 'lockscreen-appclosed':
+          // If the software button is enabled it will be un-hidden when
+          // the lockscreen is closed and trigger a system level resize.
+          if (softwareButtonManager.enabled) {
+            this.publish('system-resize');
+          }
           break;
         default:
           if (evt.type === 'keyboardhide') {
