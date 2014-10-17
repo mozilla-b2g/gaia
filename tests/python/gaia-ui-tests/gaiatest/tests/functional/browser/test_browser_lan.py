@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import urllib2
 from marionette import Wait
 
 from gaiatest import GaiaTestCase
@@ -15,10 +16,13 @@ class TestBrowserLAN(GaiaTestCase):
         self.connect_to_local_area_network()
         self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
-        if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
-            self.test_url = self.marionette.absolute_url('mozilla.html')
-        else:
-            self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
+        self.test_url = self.marionette.absolute_url('mozilla.html')
+
+        # Check if the page can be reached on the Marionette web server
+        try:
+          response = urllib2.urlopen(self.test_url)
+        except urllib2.URLError as e:
+           raise Exception("Could not get %s: %s" % (self.test_url, e.reason))
 
     def test_browser_lan(self):
         """https://moztrap.mozilla.org/manage/case/1327/"""

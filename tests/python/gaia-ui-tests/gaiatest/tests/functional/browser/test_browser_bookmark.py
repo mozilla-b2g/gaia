@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
+import urllib2
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
@@ -18,10 +19,13 @@ class TestBrowserBookmark(GaiaTestCase):
         self.connect_to_network()
         self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
-        if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
-            self.test_url = self.marionette.absolute_url('mozilla.html')
-        else:
-            self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
+        self.test_url = self.marionette.absolute_url('mozilla.html')
+
+        # Check if the page can be reached on the Marionette web server
+        try:
+          response = urllib2.urlopen(self.test_url)
+        except urllib2.URLError as e:
+           raise Exception("Could not get %s: %s" % (self.test_url, e.reason))
 
         curr_time = repr(time.time()).replace('.', '')
         self.bookmark_title = 'gaia%s' % curr_time[10:]
