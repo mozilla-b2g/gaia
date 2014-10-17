@@ -21,12 +21,6 @@ class TestBrowserBookmark(GaiaTestCase):
 
         self.test_url = self.marionette.absolute_url('mozilla.html')
 
-        # Check if the page can be reached on the Marionette web server
-        try:
-          response = urllib2.urlopen(self.test_url)
-        except urllib2.URLError as e:
-           raise Exception("Could not get %s: %s" % (self.test_url, e.reason))
-
         curr_time = repr(time.time()).replace('.', '')
         self.bookmark_title = 'gaia%s' % curr_time[10:]
 
