@@ -31,6 +31,8 @@ System.Selector = Object.freeze({
   softwareHomeFullscreen: '#fullscreen-software-home-button',
   softwareHomeFullscreenLayout: '#software-buttons-fullscreen-layout',
   statusbar: '#statusbar',
+  statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',
+  statusbarMinimizedWrapper: '#statusbar-minimized-wrapper',
   statusbarLabel: '#statusbar-label',
   systemBanner: '.banner.generic-dialog',
   topPanel: '#top-panel',
@@ -129,6 +131,14 @@ System.prototype = {
 
   get statusbar() {
     return this.client.findElement(System.Selector.statusbar);
+  },
+
+  get statusbarMaximizedWrapper() {
+    return this.client.findElement(System.Selector.statusbarMaximizedWrapper);
+  },
+
+  get statusbarMinimizedWrapper() {
+    return this.client.findElement(System.Selector.statusbarMinimizedWrapper);
   },
 
   get statusbarLabel() {
