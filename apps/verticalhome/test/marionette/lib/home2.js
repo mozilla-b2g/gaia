@@ -32,7 +32,8 @@ Home2.clientOptions = {
     'dom.w3c_touch_events.enabled': 1
   },
   settings: {
-    'homescreen.manifestURL': Home2.URL,
+    'homescreen.manifestURL':
+      'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
     'lockscreen.enabled': false
   }
@@ -67,9 +68,7 @@ Home2.Selectors = {
   groupHeader: '#icons .group .header',
   groupTitle: '#icons .group .header .title',
   dividers: '#icons section.divider',
-  collections: '#icons .icon.collection',
   contextmenu: '#contextmenu-dialog',
-  removeCollectionConfirm: 'gaia-confirm',
   themeColor: 'head meta[name="theme-color"]'
 };
 
@@ -83,23 +82,7 @@ Home2.prototype = {
   },
 
   get numDividers() {
-    return this.deviders.length;
-  },
-
-  get dividers() {
-    return this.client.findElements(Home2.Selectors.dividers);
-  },
-
-  get contextMenu() {
-    return this.client.findElement(Home2.Selectors.contextmenu);
-  },
-
-  get collections() {
-    return this.client.findElements(Home2.Selectors.collections);
-  },
-
-  get removeCollectionConfirm() {
-    return this.client.findElement(Home2.Selectors.removeCollectionConfirm);
+    return this.client.findElements(Home2.Selectors.dividers).length;
   },
 
   /**

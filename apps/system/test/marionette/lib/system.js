@@ -55,11 +55,6 @@ System.prototype = {
     return this.client.findElements(System.Selector.browserWindow);
   },
 
-  get activeHomescreenFrame() {
-    var homescreen = System.Selector.activeHomescreenFrame;
-    return this.client.helper.waitForElement(homescreen);
-  },
-
   get appTitlebar() {
     return this.client.helper.waitForElement(System.Selector.appTitlebar);
   },
