@@ -679,10 +679,7 @@ suite('system/shrinkingUI', function() {
 
     assert.equal(tip.tagName.toLowerCase(), 'div');
     assert.equal(tip.id, 'shrinking-tip');
-    assert.equal(
-      tip.textContent,
-      navigator.mozL10n.get('shrinking-tip') + tipArrow.textContent
-    );
+    assert.equal(tip.getAttribute('data-l10n-id'), 'shrinking-tip');
     assert.equal(tipArrow.tagName.toLowerCase(), 'div');
     assert.equal(tipArrow.id, 'shrinking-tip-arrow');
     assert.equal(tipArrow.textContent, '\u00A0');

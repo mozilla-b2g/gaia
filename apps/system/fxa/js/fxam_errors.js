@@ -44,13 +44,9 @@
 
   function _getError(error) {
     var l10nKeys = Errors[error] || Errors.UNKNOWN;
-    var msg;
-    if (error == 'COPPA_ERROR') {
-      msg = _getCoppaError();
-    }
     return {
-      title: _(l10nKeys.title),
-      message: error == 'COPPA_ERROR' ? _getCoppaError() : _(l10nKeys.message)
+      title: l10nKeys.title,
+      message: error == 'COPPA_ERROR' ? _getCoppaError() : l10nKeys.message
     };
   }
 
@@ -62,7 +58,9 @@
     var learnMorePlaceholder = '{{learnmore}}';
     var learnMoreLink = '<a href="' + coppaLink + '">' + learnMore + '</a>';
     // return as a string. fxam_error_overlay will innerHTML the whole message.
-    return errorText.replace(learnMorePlaceholder, learnMoreLink);
+    return {
+      html: errorText.replace(learnMorePlaceholder, learnMoreLink)
+    };
   }
 
   var FxaModuleErrors = {

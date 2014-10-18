@@ -427,7 +427,7 @@
       tip.id = 'shrinking-tip';
       tipArrow.id = 'shrinking-tip-arrow';
       tipArrow.textContent = '\u00A0';
-      tip.textContent = navigator.mozL10n.get('shrinking-tip');
+      tip.setAttribute('data-l10n-id', 'shrinking-tip');
       tip.appendChild(tipArrow);
       return tip;
     };

@@ -658,8 +658,11 @@ var NotificationScreen = {
   updateNotificationIndicator: function ns_updateNotificationIndicator() {
     if (this.unreadNotifications.length) {
       this.ambientIndicator.className = 'unread';
-      this.ambientIndicator.setAttribute('aria-label', navigator.mozL10n.get(
-        'statusbarNotifications-unread', {n: this.unreadNotifications.length}));
+      navigator.mozL10n.setAttributes(
+        this.ambientIndicator,
+        'statusbarNotifications-unread',
+        {n: this.unreadNotifications.length}
+      );
     } else {
       this.ambientIndicator.classList.remove('unread');
       this.ambientIndicator.removeAttribute('aria-label');
