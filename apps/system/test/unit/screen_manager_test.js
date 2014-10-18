@@ -753,6 +753,26 @@ suite('system/ScreenManager', function() {
     });
   });
 
+  suite('secureapp opened/terminated events', function() {
+    test('secur-appeopend', function() {
+      var evt = { 'type': 'secure-appopened' };
+      var stubReconfigScreenTimeout =
+        this.sinon.stub(ScreenManager, '_reconfigScreenTimeout');
+      ScreenManager.handleEvent(evt);
+      assert.isTrue(stubReconfigScreenTimeout.called,
+        'it doesn\'t reset the timeout while secure appcreated');
+    });
+
+    test('secur-appterminated', function() {
+      var evt = { 'type': 'secure-appterminated' };
+      var stubReconfigScreenTimeout =
+        this.sinon.stub(ScreenManager, '_reconfigScreenTimeout');
+      ScreenManager.handleEvent(evt);
+      assert.isTrue(stubReconfigScreenTimeout.called,
+        'it doesn\'t reset the timeout while secure appterminated');
+    });
+  });
+
   suite('unlocking-start/stop events', function() {
     test('handle unlocking-start event', function() {
       // The public interface is event, so we manually fire and forward it to
