@@ -434,9 +434,6 @@ apps/wallpaper/js/share.js
 apps/wallpaper/test/unit/pick_test.js
 shared/js/blobview.js
 shared/js/dialer/contacts.js
-shared/js/fb/fb_data_reader.js
-shared/js/fb/fb_reader_utils.js
-shared/js/fb/fb_request.js
 shared/js/fxa_iac_client.js
 shared/js/keyboard_helper.js
 shared/js/lockscreen_slide.js

@@ -7,6 +7,15 @@
 var fb = this.fb || {};
 this.fb = fb;
 
+function setDefinedProperties(self, prop) {
+  return self.AuxFb[prop];
+}
+
+function definedProperties(self, prop) {
+  return (setDefinedProperties(self, prop));
+}
+
+
 if (!this.AuxFB) {
   this.AuxFb = (function() {
     var CATEGORY = 'facebook';
@@ -316,9 +325,10 @@ if (!this.AuxFB) {
     }
     else {
       Object.defineProperty(self.fb, prop, {
-        value: (function() {
-          return self.AuxFb[prop];
-        })(), writable: false, enumerable: true, configurable: false
+        value: (definedProperties(self, prop))(),
+          writable: false,
+          enumerable: true,
+          configurable: false
       });
     }
   }
