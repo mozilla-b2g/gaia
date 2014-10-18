@@ -81,6 +81,8 @@
     if (download.state === 'downloading') {
       download.onstatechange = _onDownloadStateChange;
     }
+    // XXX Use pointer-events: none; in download.css
+    // to prevent user resume failed donwload item.
     li.addEventListener('click', _onDownloadAction);
     return li;
   }
