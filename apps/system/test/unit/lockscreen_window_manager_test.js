@@ -31,11 +31,14 @@ suite('system/LockScreenWindowManager', function() {
     window.SettingsListener = {
       observe: function(name, bool, cb) {},
       getSettingsLock: function() {
-        return {get: function(name) {
-          if ('lockscreen.enabled' === name) {
-            return true;
-          }
-        }};
+        return {
+          get: function(name) {
+            if ('lockscreen.enabled' === name) {
+              return true;
+            }
+          },
+          set: function() {}
+        };
       }
     };
     window.MozActivity = function() {};
@@ -251,6 +254,19 @@ suite('system/LockScreenWindowManager', function() {
       window.lockScreenWindowManager.onInputpadClose();
       assert.isTrue(appFake.inputWindow.close.called, 'called no |open|');
       assert.isTrue(stubResize.called, 'called no |resize|');
+    });
+
+    test('Open the app would set the corresponding mozSettings', function() {
+      var originalEnabled = window.lockScreenWindowManager.states.enabled;
+      window.lockScreenWindowManager.states.enabled = true;
+      window.lockScreenWindowManager.registerApp(appFake);
+      var stubToggleSystemSettings = this.sinon.stub(
+        window.lockScreenWindowManager, 'toggleLockedSetting');
+      window.lockScreenWindowManager.openApp();
+      assert.isTrue(stubToggleSystemSettings.calledWith(true),
+        'the manager didn\'t set the mozSettings value');
+      window.lockScreenWindowManager.unregisterApp(appFake);
+      window.lockScreenWindowManager.states.enabled = originalEnabled;
     });
   });
 });

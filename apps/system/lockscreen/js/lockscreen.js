@@ -357,7 +357,6 @@
       document.getElementById('notifications-lockscreen-container');
 
     this.lockIfEnabled(true);
-    this.writeSetting(this.enabled);
     this.initUnlockerEvents();
 
     /* Status changes */
@@ -674,8 +673,6 @@
       return;
     }
 
-    this.writeSetting(false);
-
     if (this.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
       unlockAudio.play();
@@ -719,7 +716,6 @@
       // Any changes made to this,
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('secure-modeon');
-      this.writeSetting(true);
 
       if(this._checkGenerateMaskedBackgroundColor()){
         this._generateMaskedBackgroundColor();
@@ -1020,17 +1016,6 @@
       'detail': detail
     });
     window.dispatchEvent(evt);
-  };
-
-  LockScreen.prototype.writeSetting =
-  function ls_writeSetting(value) {
-    if (!window.navigator.mozSettings) {
-      return;
-    }
-
-    window.SettingsListener.getSettingsLock().set({
-      'lockscreen.locked': value
-    });
   };
 
   /**
