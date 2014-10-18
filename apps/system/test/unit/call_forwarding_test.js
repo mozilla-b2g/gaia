@@ -260,8 +260,7 @@ suite('system/callForwarding >', function() {
           setup(function() {
             this.event = {
               reason: reason,
-              action: cfAction.CALL_FORWARD_ACTION_ENABLE,
-              success: true
+              action: cfAction.CALL_FORWARD_ACTION_ENABLE
             };
 
             this.callForwarding.start();
@@ -282,22 +281,6 @@ suite('system/callForwarding >', function() {
                 this.event);
               sinon.assert.notCalled(
                 this.callForwarding._callForwardingHelper.get);
-          });
-
-          test('the icon state should remains unchanged when unsuccess',
-            function(done) {
-              var originalValue =
-                MockSettingsHelper.instances['ril.cf.enabled'].value[0];
-              this.event.success = false;
-              this.callForwarding._updateCallForwardingIconState(this.slots[0],
-                this.event);
-              setTimeout(function() {
-                assert.equal(
-                  MockSettingsHelper.instances['ril.cf.enabled'].value[0],
-                  originalValue
-                );
-                done();
-              });
           });
 
           test('should set the icon state to false when erase the setting ' +
@@ -343,18 +326,6 @@ suite('system/callForwarding >', function() {
                 this.event);
               assert.isTrue(
                 MockasyncStorage.mItems['ril.cf.enabled.' + this.iccid]);
-            });
-
-            test('when unsuccess', function() {
-              var originalValue =
-                MockSettingsHelper.instances['ril.cf.enabled.' + this.iccid];
-              this.event.success = false;
-              this.callForwarding._updateCallForwardingIconState(this.slots[0],
-                this.event);
-              assert.equal(
-                MockasyncStorage.mItems['ril.cf.enabled.' + this.iccid],
-                originalValue
-              );
             });
           });
         });
