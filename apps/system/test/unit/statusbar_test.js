@@ -2346,7 +2346,7 @@ suite('system/Statusbar', function() {
     });
   });
 
-  suite.only('Geolocation and recording', function() {
+  suite('Geolocation and recording', function() {
     var updateIconSpy;
     var cloneStatusbarSpy;
 
