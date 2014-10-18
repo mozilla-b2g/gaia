@@ -49,11 +49,18 @@ suite('lib/camera/focus', function() {
       assert.equal(this.mozCamera.focusMode, 'auto');
     });
 
-    test('if user preference don\'t conflict with arguments, the argument sticks', function() {
+    test('continuous-picture selected on picture mode if user pref is set to CAF', function() {
       this.focus.continuousAutoFocus = true;
-      this.focus.configure(this.mozCamera, 'continuous-picture');
+      this.focus.configure(this.mozCamera, 'picture');
       assert.ok(this.focus.configureFocusModes.called);
       assert.equal(this.mozCamera.focusMode, 'continuous-picture');
+    });
+
+    test('continuous-video selected on video mode if user pref is set to CAF', function() {
+      this.focus.continuousAutoFocus = true;
+      this.focus.configure(this.mozCamera, 'video');
+      assert.ok(this.focus.configureFocusModes.called);
+      assert.equal(this.mozCamera.focusMode, 'continuous-video');
     });
 
     test('if not valid focus mode is passed the first available is picked', function() {
@@ -131,22 +138,36 @@ suite('lib/camera/focus', function() {
     test('touch to focus disabled if hardware doesn\'t support it and even if user preferences enable it', function() {
       this.focus.userPreferences.touchFocus = true;
       this.focus.isTouchFocusSupported.returns(false);
-      this.focus.configureFocusModes();
+      this.focus.configureFocusModes('picture');
       assert.equal(this.focus.touchFocus, false);
     });
 
-    test('it does not call startFaceDetection if face detection is disabled', function() {
+    test('face detection is disabled if not supported by HW', function() {
       this.focus.userPreferences.faceDetection = true;
       this.focus.isFaceDetectionSupported.returns(false);
-      this.focus.configureFocusModes();
-      assert.ok(!this.focus.startFaceDetection.called);
+      this.focus.configureFocusModes('picture');
+      assert.ok(!this.focus.faceDetection);
     });
 
-    test('it calls startFaceDetection if face detection is enabled', function() {
+    test('face detection is disabled if disabled in user preferences', function() {
+      this.focus.userPreferences.faceDetection = false;
+      this.focus.isFaceDetectionSupported.returns(true);
+      this.focus.configureFocusModes('picture');
+      assert.ok(!this.focus.faceDetection);
+    });
+
+    test('face detection is disabled in video mode', function() {
       this.focus.userPreferences.faceDetection = true;
       this.focus.isFaceDetectionSupported.returns(true);
-      this.focus.configureFocusModes();
-      assert.ok(this.focus.startFaceDetection.called);
+      this.focus.configureFocusModes('video');
+      assert.ok(!this.focus.faceDetection);
+    });
+
+    test('face detection is enabled in picture mode if supported by HW and enabled in user preferences', function() {
+      this.focus.userPreferences.faceDetection = true;
+      this.focus.isFaceDetectionSupported.returns(true);
+      this.focus.configureFocusModes('picture');
+      assert.ok(this.focus.faceDetection);
     });
 
   });
@@ -184,10 +205,10 @@ suite('lib/camera/focus', function() {
       assert.ok(this.focus.focusOnLargestFace.calledWith([]));
     });
 
-    test('focusOnLargestFace is not called to start face detection if face detection disabled', function() {
+    test('focusOnLargestFace is called with empty list when clearing faces', function() {
       this.focus.faceDetection = false;
       this.focus.clearFaceDetection();
-      assert.ok(!this.focus.focusOnLargestFace.called);
+      assert.ok(this.focus.focusOnLargestFace.calledWith([]));
     });
 
   });
@@ -210,10 +231,10 @@ suite('lib/camera/focus', function() {
     });
 
     test('mozCamera stopFaceDetection is not called if face detection is not available', function() {
-      this.focus.faceDetection = false;
+      this.mozCamera.stopFaceDetection = false;
       this.focus.stopFaceDetection();
       assert.ok(!this.mozCamera.stopFaceDetection.called);
-      assert.ok(!this.focus.clearFaceDetection.called);
+      assert.ok(this.focus.clearFaceDetection.called);
     });
 
   });

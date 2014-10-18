@@ -459,15 +459,7 @@ Camera.prototype.configure = function() {
 };
 
 Camera.prototype.configureFocus = function() {
-  var focusMode;
-  // Determines focus mode based on camera mode
-  // If we're taking still pictures, and C-AF is enabled
-  if (this.mode === 'picture') {
-    focusMode = 'continuous-picture';
-  } else if (this.mode === 'video'){
-    focusMode = 'continuous-video';
-  }
-  this.focus.configure(this.mozCamera, focusMode);
+  this.focus.configure(this.mozCamera, this.mode);
   this.focus.onFacesDetected = this.onFacesDetected;
   this.focus.onAutoFocusChanged = this.onAutoFocusChanged;
 };
