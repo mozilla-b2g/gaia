@@ -20,8 +20,6 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
 require('/js/quick_settings.js');
 
-mocha.globals(['AirplaneMode']);
-
 var mocksForQuickSettings = new MocksHelper([
   'MozActivity',
   'SettingsHelper',

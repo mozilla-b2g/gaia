@@ -6,8 +6,6 @@ requireApp('settings/shared/test/unit/load_body_html_helper.js');
 requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_wifi_manager.js');
 
-mocha.globals(['MockWifiHelper']);
-
 suite('WifiUtils', function() {
   'use strict';
 

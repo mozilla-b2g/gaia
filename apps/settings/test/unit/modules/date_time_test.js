@@ -1,9 +1,5 @@
 'use strict';
 
-mocha.globals([
-  'MockSettingsListener'
-]);
-
 suite('Date & Time > ', function() {
   var realSettings, realTime, realL10n;
   var DateTime;

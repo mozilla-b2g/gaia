@@ -4,8 +4,6 @@ requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_wifi_manager.js');
 
-mocha.globals(['Settings']);
-
 suite('WifiContext', function() {
   'use strict';
 
