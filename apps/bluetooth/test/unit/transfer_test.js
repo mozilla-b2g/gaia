@@ -24,6 +24,7 @@ var mocksForTransferHelper = new MocksHelper([
 
 suite('Bluetooth app > transfer ', function() {
   var realL10n;
+  var mockOnceFunc;
   var realSetMessageHandler;
   var realMozSettings;
   var realMozBluetooth;
@@ -38,6 +39,8 @@ suite('Bluetooth app > transfer ', function() {
   suiteSetup(function(done) {
     realL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = MockL10n;
+    mockOnceFunc = MockL10n.once;
+    MockL10n.once = function(handler) { handler(); };
 
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
@@ -60,6 +63,7 @@ suite('Bluetooth app > transfer ', function() {
     navigator.mozSettings = realMozSettings;
     switchReadOnlyProperty(navigator, 'mozBluetooth', realMozBluetooth);
     window.navigator.mozL10n = realL10n;
+    MockL10n.once = mockOnceFunc;
     document.body.innerHTML = '';
   });
 
