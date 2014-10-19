@@ -1,8 +1,6 @@
 /* globals System, MocksHelper, MockAppWindowManager */
 'use strict';
 
-mocha.globals(['System']);
-
 requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 

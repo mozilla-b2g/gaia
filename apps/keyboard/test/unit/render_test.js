@@ -3,8 +3,6 @@
 
 requireApp('keyboard/js/render.js');
 
-mocha.globals(['perfTimer']);
-
 suite('Renderer', function() {
   suiteSetup(function() {
     window.perfTimer = {

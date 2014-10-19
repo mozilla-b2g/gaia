@@ -1,9 +1,6 @@
 /* global MocksHelper, LayoutManager, TextSelectionDialog */
 'use strict';
 
-mocha.globals(['TextSelectionDialog', 'System', 'BaseUI',
-  'layoutManager']);
-
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 

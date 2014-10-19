@@ -4,8 +4,6 @@
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
-mocha.globals(['PairExpiredDialog']);
-
 suite('Bluetooth app > PairExpiredDialog ', function() {
   var realL10n;
 

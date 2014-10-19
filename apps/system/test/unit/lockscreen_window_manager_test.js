@@ -11,8 +11,6 @@ requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
 requireApp('system/js/lockscreen_window_manager.js');
 
-mocha.globals(['MozActivity', 'System', 'SettingsListener']);
-
 var mocksForLockScreenWindowManager = new window.MocksHelper([
   'LockScreen', 'LockScreenWindow', 'System'
 ]).init();

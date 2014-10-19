@@ -18,16 +18,6 @@ requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/js/async_semaphore.js');
 requireApp('system/js/sound_manager.js');
 
-mocha.globals([
-  'SettingsListener',
-  'Bluetooth',
-  'CustomDialog',
-  'FtuLauncher',
-  'ScreenManager',
-  'SoundManager',
-  'system'
-]);
-
 var mocksForSoundManager = new MocksHelper([
   'asyncStorage',
   'Bluetooth',

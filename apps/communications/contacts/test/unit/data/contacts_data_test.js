@@ -7,8 +7,6 @@ require('/shared/js/text_normalizer.js');
 require('/shared/js/lazy_loader.js');
 requireApp('communications/contacts/data/contacts_data.js');
 
-mocha.globals(['contacts']);
-
 suite('Contacts Data Indexed DB', function() {
   var aContact = {
     id: '1234',
