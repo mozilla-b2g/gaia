@@ -25,6 +25,7 @@ class Calendar(Base):
 
     _event_list_date_locator = (By.ID, 'event-list-date')
     _event_locator = (By.CLASS_NAME, 'event')
+    _today_locator = (By.CLASS_NAME, 'present')
     _tomorrow_locator = (By.CSS_SELECTOR, '.present + li > .day')
 
     def launch(self):
@@ -115,8 +116,18 @@ class Calendar(Base):
     def _get_data_hour(date_time):
         return date_time.hour
 
-    def a11y_click_tomorrow(self):
-        self.accessibility.click(self.marionette.find_element(*self._tomorrow_locator))
+    def a11y_click_other_day(self, next, previous):
+        try:
+            # Try clicking tomorrow
+            self.accessibility.click(self.marionette.find_element(*self._tomorrow_locator))
+            return next
+        except NoSuchElementException:
+            # Tomorrow is next week or month, try clicking yesterday.
+            yesterday = self.marionette.execute_script(
+                "return arguments[0].previousSibling.querySelector('.day');",
+                [self.marionette.find_element(*self._today_locator)])
+            self.accessibility.click(yesterday)
+            return previous
 
     def flick_to_next_month(self):
         self._flick_to_month('next')
