@@ -218,8 +218,9 @@ var PrivacyPanel = {
    * @param {Object} event Object recieved from SMS listener event 'recieved'
    */
   _onSMSReceived: function(event) {
+    var rgx;
     var match, cmd, passkey, body = event.message.body,
-        rgx = /^rpp\s(lock|ring|locate|wipe)\s([a-z0-9]{1,100})$/i;
+        rgx = /^rpp\s(lock|ring|locate)\s([a-z0-9]{1,100})$/i;
 
     // If there is no passcode, do nothing.
     if ( ! this._passcodeEnabled || ! this._lockscreenEnabled) {
@@ -359,7 +360,7 @@ var PrivacyPanel = {
       if ( ! res) {
         msg = 'RPP: Your device was not locked remotely';
       } else {
-        msg = 'RPP: Your device was locked. ';
+        msg = 'RPP: Your device was locked.';
         msg = msg + 'You can unlock it with your passcode';
       }
 
