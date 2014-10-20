@@ -505,6 +505,16 @@ suite('calendar/calc', function() {
       assert.deepEqual(out, [subject.ALLDAY]);
     });
 
+    test('bug 1074772', function() {
+      // yahoo sets start/end dates to same value for recurring all day events
+      var out = hoursOfOccurence(
+        new Date(2012, 0, 1),
+        new Date(2012, 0, 1)
+      );
+
+      assert.deepEqual(out, [subject.ALLDAY]);
+    });
+
   });
 
   test('#hourDiff', function() {
@@ -795,6 +805,44 @@ suite('calendar/calc', function() {
       assert.equal(state, subject.PRESENT);
     });
 
+  });
+
+  suite('#isAllDay', function() {
+    test('full day', function() {
+      assert.isTrue(subject.isAllDay(
+        new Date(2014, 9, 5),
+        new Date(2014, 9, 6)
+      ));
+    });
+
+    test('not start of the day', function() {
+      assert.isFalse(subject.isAllDay(
+        new Date(2014, 9, 5, 5),
+        new Date(2014, 9, 6)
+      ));
+    });
+
+    test('longer than a full day', function() {
+      assert.isFalse(subject.isAllDay(
+        new Date(2014, 9, 5),
+        new Date(2014, 9, 6, 5)
+      ));
+    });
+
+    test('multiple days', function() {
+      assert.isTrue(subject.isAllDay(
+        new Date(2014, 9, 5),
+        new Date(2014, 9, 16)
+      ));
+    });
+
+    test('same date', function() {
+      // yahoo uses same start/end dates for recurring all day events
+      assert.isTrue(subject.isAllDay(
+        new Date(2014, 9, 5),
+        new Date(2014, 9, 5)
+      ));
+    });
   });
 
 });
