@@ -292,6 +292,7 @@ Camera.prototype.requestCamera = function(camera, config) {
    */
   function request() {
     navigator.mozCameras.getCamera(camera, config || {}, onSuccess, onError);
+    self.emit('requesting');
     debug('camera requested', camera, config);
     attempts--;
   }
@@ -320,6 +321,7 @@ Camera.prototype.requestCamera = function(camera, config) {
     // `mozCamera.getCamera()` call, we can
     // fire the 'configured' event now.
     if (self.configured) { self.emit('configured'); }
+
     self.ready();
   }
 
@@ -341,6 +343,7 @@ Camera.prototype.requestCamera = function(camera, config) {
       return;
     }
 
+    self.emit('error', 'request-fail');
     self.ready();
   }
 };

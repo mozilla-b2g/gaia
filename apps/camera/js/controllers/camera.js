@@ -50,12 +50,14 @@ CameraController.prototype.bindEvents = function() {
   camera.on('facesdetected', app.firer('camera:facesdetected'));
   camera.on('willrecord', app.firer('camera:willrecord'));
   camera.on('configured', app.firer('camera:configured'));
+  camera.on('requesting', app.firer('camera:requesting'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
   camera.on('newvideo', app.firer('camera:newvideo'));
   camera.on('shutter', app.firer('camera:shutter'));
   camera.on('loaded', app.firer('camera:loaded'));
+  camera.on('error', app.firer('camera:error'));
   camera.on('ready', app.firer('ready'));
   camera.on('busy', app.firer('busy'));
 
