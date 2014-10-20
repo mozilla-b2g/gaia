@@ -404,7 +404,7 @@ GAIA_APP_CONFIG := /tmp/gaia-apps-temp.list
 $(warning GAIA_APP_SRCDIRS is deprecated, please use GAIA_APP_CONFIG)
 endif
 
-GAIA_ALLAPPDIRS=$(shell find $(GAIA_DIR)$(SEP)apps $(GAIA_DIR)$(SEP)dev_apps $(GAIA_DIR)$(SEP)tv_apps -maxdepth 1 -mindepth 1 -type d  | sed 's@[/\\]@$(SEP_FOR_SED)@g')
+GAIA_ALLAPPDIRS=$(shell find -L $(GAIA_DIR)$(SEP)apps $(GAIA_DIR)$(SEP)dev_apps $(GAIA_DIR)$(SEP)tv_apps -maxdepth 1 -mindepth 1 -type d  | sed 's@[/\\]@$(SEP_FOR_SED)@g')
 
 GAIA_APPDIRS=$(shell while read LINE; do \
   if [ "$${LINE\#$${LINE%?}}" = "*" ]; then \
@@ -798,7 +798,7 @@ ifeq ($(BUILD_APP_NAME),*)
 	do \
 		parent="`dirname $$d`"; \
 		pathlen=`expr $${#parent} + 2`; \
-		find "$$d" -name '*_test.js' -path '*/test/unit/*' | awk '{print substr($$0,'$${pathlen}')}' >> /tmp/test-agent-config; \
+		find -L "$$d" -name '*_test.js' -path '*/test/unit/*' | awk '{print substr($$0,'$${pathlen}')}' >> /tmp/test-agent-config; \
 	done;
 	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
 	@cat /tmp/test-agent-config |  \
@@ -818,7 +818,7 @@ endif
 # Temp make file method until we can switch
 # over everything in test
 ifneq ($(strip $(APP)),)
-APP_TEST_LIST=$(shell find apps/$(APP) dev_apps/$(APP) $(GAIA_DIR)$(SEP)tv_apps -name '*_test.js' 2> /dev/null | grep '/test/unit/')
+APP_TEST_LIST=$(shell find -L apps/$(APP) dev_apps/$(APP) $(GAIA_DIR)$(SEP)tv_apps -name '*_test.js' 2> /dev/null | grep '/test/unit/')
 endif
 .PHONY: test-agent-test
 test-agent-test: node_modules
