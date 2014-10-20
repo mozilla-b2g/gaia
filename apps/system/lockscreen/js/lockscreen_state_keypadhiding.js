@@ -37,8 +37,6 @@
         // XXX: keyboard animation would affect panel, but the target would
         // not be 'this.lockScreen.overlay'.
         if (evt.target.classList.contains('lockscreen-panel')) {
-          this.lockScreen.passcodePad.style.transitionDelay = '';
-          this.lockScreen.passcodeCode.style.transitionDelay = '';
           window.removeEventListener('transitionend', transitionEnd);
           // We must map this native event to avoid listen 'transitionend'
           // in the manager cause racing problem (the event and transferring
@@ -49,9 +47,6 @@
       // Copy from the original switching method.
       this.lockScreen.overlay.classList.remove('no-transition');
       window.addEventListener('transitionend', transitionEnd);
-      // Must delay the animation to let the final dot shows.
-      this.lockScreen.passcodePad.style.transitionDelay = '0.1s';
-      this.lockScreen.passcodeCode.style.transitionDelay = '0.1s';
       // Trigger the transition.
       this.lockScreen.overlay.dataset.panel = 'main';
     });
