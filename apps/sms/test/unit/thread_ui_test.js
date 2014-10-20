@@ -2126,7 +2126,7 @@ suite('thread_ui.js >', function() {
 
   suite('message status update handlers >', function() {
     teardown(function() {
-      document.body.removeChild(this.container);
+      this.container.remove();
     });
     setup(function() {
       this.fakeMessage = {
@@ -2168,6 +2168,7 @@ suite('thread_ui.js >', function() {
           assert.isTrue(this.container.classList.contains('error'));
         });
       });
+
       suite('messages that were previously in the "error" state >',
         function() {
         setup(function() {
@@ -2179,28 +2180,65 @@ suite('thread_ui.js >', function() {
           assert.isTrue(this.container.classList.contains('sending'));
         });
       });
-      suite('Show error dialog while sending failed',
-        function() {
+
+      suite('Show error dialog while sending failed', function() {
         setup(function() {
           this.sinon.spy(ThreadUI, 'showMessageError');
           this.sinon.stub(Settings, 'switchMmsSimHandler')
             .returns(Promise.resolve());
         });
+
         test('does not show dialog if error is not NonActiveSimCardError',
           function() {
           ThreadUI.onMessageFailed(this.fakeMessage);
           sinon.assert.notCalled(ThreadUI.showMessageError);
         });
-        test('Show dialog if error is NonActiveSimCardError',
+
+        suite('Show dialog if error is NonActiveSimCardError,', function() {
+          setup(function() {
+            ThreadUI.showErrorInFailedEvent = 'NonActiveSimCardError';
+          });
+
+
+          test('When the message is displayed', function() {
+            ThreadUI.onMessageFailed(this.fakeMessage);
+
+            sinon.assert.called(ThreadUI.showMessageError);
+            assert.equal(ThreadUI.showErrorInFailedEvent, '');
+            MockErrorDialog.calls[0][1].confirmHandler();
+            assert.isTrue(this.container.classList.contains('sending'));
+            assert.isFalse(this.container.classList.contains('error'));
+            sinon.assert.called(Settings.switchMmsSimHandler);
+          });
+
+          test('When the message is not displayed', function() {
+            this.container.remove();
+
+            ThreadUI.onMessageFailed(this.fakeMessage);
+
+            sinon.assert.called(ThreadUI.showMessageError);
+            assert.equal(ThreadUI.showErrorInFailedEvent, '');
+            MockErrorDialog.calls[0][1].confirmHandler();
+            sinon.assert.called(Settings.switchMmsSimHandler);
+          });
+
+          test('When the message is displayed while the dialog is displayed',
           function() {
-          ThreadUI.showErrorInFailedEvent = 'NonActiveSimCardError';
-          ThreadUI.onMessageFailed(this.fakeMessage);
-          sinon.assert.called(ThreadUI.showMessageError);
-          assert.equal(ThreadUI.showErrorInFailedEvent, '');
-          MockErrorDialog.calls[0][1].confirmHandler();
-          assert.isTrue(this.container.classList.contains('sending'));
-          assert.isFalse(this.container.classList.contains('error'));
-          sinon.assert.called(Settings.switchMmsSimHandler);
+            this.container.remove();
+
+            ThreadUI.onMessageFailed(this.fakeMessage);
+
+            sinon.assert.called(ThreadUI.showMessageError);
+            assert.equal(ThreadUI.showErrorInFailedEvent, '');
+
+            this.container.className = 'error';
+            document.body.appendChild(this.container);
+            MockErrorDialog.calls[0][1].confirmHandler();
+
+            sinon.assert.called(Settings.switchMmsSimHandler);
+            assert.isTrue(this.container.classList.contains('sending'));
+            assert.isFalse(this.container.classList.contains('error'));
+          });
         });
       });
     });
