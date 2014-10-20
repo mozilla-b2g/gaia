@@ -1,6 +1,6 @@
 'use strict';
 
-/* global KeyboardEvent, LayoutLoader, Promise */
+/* global KeyboardEvent, LayoutLoader */
 
 /** @fileoverview These are special keyboard layouts.
  * Language-specific layouts are in individual js files in layouts/ .
@@ -33,8 +33,6 @@ var LayoutManager = function(app) {
 LayoutManager.prototype.start = function() {
   this.loader = new LayoutLoader();
   this.loader.start();
-
-  this._switchStateId = 0;
 };
 
 // Special key codes on special buttons
@@ -55,17 +53,8 @@ LayoutManager.prototype.PAGE_INDEX_DEFAULT = 0;
  *
  */
 LayoutManager.prototype.switchCurrentLayout = function(layoutName) {
-  var switchStateId = ++this._switchStateId;
-
   var loaderPromise = this.loader.getLayoutAsync(layoutName);
   var p = loaderPromise.then(function(layout) {
-    if (switchStateId !== this._switchStateId) {
-      console.log('LayoutManager: ' +
-        'Promise is resolved after another switchCurrentLayout() call.');
-
-      return Promise.reject();
-    }
-
     this._typeGenericLayoutName = layoutName;
     this.currentPageIndex = this.PAGE_INDEX_DEFAULT;
 

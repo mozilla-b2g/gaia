@@ -34,7 +34,7 @@ suite('LayoutManager', function() {
 
   // since bug 1035619, enter key's layout properties will always come
   // from its prototype. lastest chai.js assert.deepEqual take prototype into
-  // consideration, but layout have some property defined in prototype, 
+  // consideration, but layout have some property defined in prototype,
   // so we do the comparison by ourselves with a helper function
   var assertExpectedLayouts = function (test, expected, msg) {
     assert.equal(test.imEngine, expected.imEngine, msg);
@@ -45,7 +45,7 @@ suite('LayoutManager', function() {
         for (var key in test.keys[i][j]) {
           assert.equal(test.keys[i][j][key], expected.keys[i][j][key], msg);
         }
-      }  
+      }
     }
   };
 
@@ -102,45 +102,6 @@ suite('LayoutManager', function() {
       assert.isTrue(false, 'should not resolve');
     }, function() {
       assert.isTrue(true, 'rejected');
-    }).then(done, done);
-  });
-
-  test('switchCurrentLayout (twice)', function(done) {
-    window.Keyboards = {};
-
-    var manager = new LayoutManager({
-      inputContext: {
-        inputMode: ''
-      },
-      getBasicInputType: this.sinon.stub().returns('text'),
-      supportsSwitching: this.sinon.stub().returns(false)
-    });
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-layouts/';
-
-    var p1 = manager.switchCurrentLayout('foo');
-    var p2 = manager.switchCurrentLayout('foo');
-    p1.then(function() {
-      assert.isTrue(false, 'should not resolve');
-
-      return p2;
-    }, function() {
-      assert.isTrue(true, 'rejected');
-
-      return p2;
-    }).then(function() {
-      assert.isTrue(true, 'resolved');
-      var layout = manager.loader.getLayout('foo');
-      assert.deepEqual(layout, expectedFooLayout, 'foo loaded');
-      assert.equal(manager.currentPage.layoutName, 'foo');
-      assert.equal(manager.currentPage.pageIndex, 0,
-        'currentPage is correctly set.');
-      assert.equal(manager.currentPage.__proto__, layout.pages[0]);
-    }, function(e) {
-      if (e) {
-        throw e;
-      }
-      assert.isTrue(false, 'should not reject');
     }).then(done, done);
   });
 
@@ -405,7 +366,7 @@ suite('LayoutManager', function() {
 
       manager.switchCurrentLayout('spaceLayout').then(function() {
         assert.equal(manager.currentPage.layoutName, 'pinLayout');
-        assert.equal(manager.currentPage.pageIndex, 0); 
+        assert.equal(manager.currentPage.pageIndex, 0);
         assert.equal(manager.currentPage.__proto__,
           manager.loader.getLayout('pinLayout').pages[0],
           'proto is set correctly for layout.');
