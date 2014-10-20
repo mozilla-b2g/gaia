@@ -71,6 +71,15 @@
   background-position: 50% 0;
 }
 
+.bb-tablist > li > a[data-icon] {
+  line-height: 0;
+  font-size: 0;
+}
+
+.bb-tablist > li > a[data-icon]:before {
+  line-height: 4.5rem;
+}
+
 .bb-tablist > li > a:active,
 .bb-tablist > li > button:active {
   border-radius: 0;
@@ -116,8 +125,6 @@
   display: none;
 }
 
-.bb-tablist > li:target > a,
-.bb-tablist > li:target > button,
 .bb-tablist > li > a[aria-selected="true"],
 .bb-tablist > li > button[aria-selected="true"] {
   color: #00aacc;
@@ -125,8 +132,6 @@
   background-position: 50% 100%;
 }
 
-.bb-tablist > li:target > a:after,
-.bb-tablist > li:target > button:after,
 .bb-tablist > li > a[aria-selected="true"]:after,
 .bb-tablist > li > button[aria-selected="true"]:after {
   display: inline-block;
@@ -139,16 +144,12 @@
   border-bottom: 0.3rem solid #00aacc;
 }
 
-.bb-tablist > li:target > a:active,
-.bb-tablist > li:target > button:active,
 .bb-tablist > li > a[aria-selected="true"]:active,
 .bb-tablist > li > button[aria-selected="true"]:active {
   color: #5f5f5f;
   background-position: 50% 0;
 }
 
-.bb-tablist.skin-dark > li:target > a:active,
-.bb-tablist.skin-dark > li:target > button:active,
 .bb-tablist.skin-dark > li > a[aria-selected="true"]:active,
 .bb-tablist.skin-dark > li > button[aria-selected="true"]:active {
   background-color: #00aacc;
@@ -192,7 +193,6 @@
   overflow: auto;
 }
 
-.bb-tablist :target .bb-tabpanel,
 .bb-tablist [aria-selected="true"] ~.bb-tabpanel {
   visibility: visible;
 }
@@ -254,8 +254,6 @@
 }
 
 .bb-tablist[data-type="filter"] > li:before,
-.bb-tablist[data-type="filter"] > li:target > a:after,
-.bb-tablist[data-type="filter"] > li:target > button:after,
 .bb-tablist[data-type="filter"] > li > a[aria-selected="true"]:after,
 .bb-tablist[data-type="filter"] > li > button[aria-selected="true"]:after {
   display: none;
@@ -267,8 +265,6 @@
   background-color: #b2f2ff;
 }
 
-.bb-tablist[data-type="filter"] > li:target > a,
-.bb-tablist[data-type="filter"] > li:target > button,
 .bb-tablist[data-type="filter"] > li > a[aria-selected="true"],
 .bb-tablist[data-type="filter"] > li > button[aria-selected="true"] {
   color: #000000;
@@ -276,8 +272,6 @@
   border-bottom: 0.3rem solid #0AC;
 }
 
-.bb-tablist[data-type="filter"] > li:target > a:after,
-.bb-tablist[data-type="filter"] > li:target > button:after,
 .bb-tablist[data-type="filter"] > li > a[aria-selected="true"]:after,
 .bb-tablist[data-type="filter"] > li > button[aria-selected="true"]:after {
   display: none;
