@@ -46,7 +46,7 @@ var RemotePrivacyProtection = (function() {
 
       this.constants = {
         minPassLength: 1,
-        maxPassLength: 10
+        maxPassLength: 100
       };
 
       // get settings
@@ -289,7 +289,7 @@ var RemotePrivacyProtection = (function() {
       } else {
         this.resetNewPasswordForm();
 
-        this.savePasswordToSettings(passHash).bind(this);
+        this.savePasswordToSettings(passHash);
       }
     },
 

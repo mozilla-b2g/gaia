@@ -8,35 +8,16 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "audio-channel-alarm":{},
+    "geolocation-noprompt":{},
     "audio-channel-content": {},
-    "audio-channel-notification":{},
-    "bluetooth":{},
-    "browser": {},
-    "desktop-notification":{},
-    "device-storage:pictures":{ "access": "readonly" },
-    "device-storage:music":{ "access": "readonly" },
-    "device-storage:videos":{ "access": "readonly" },
-    "device-storage:sdcard":{ "access": "readwrite" },
-    "device-storage:apps":{ "access": "readonly" },
-    "downloads":{},
-    "embed-apps": {},
-    "firefox-accounts": {},
-    "geolocation": {},
-    "idle":{},
     "mobileconnection":{},
-    "nfc":{ "access": "readonly" },
     "open-remote-window":{},
-    "permissions":{},
-    "power":{},
     "settings":{ "access": "readwrite" },
+    "embed-apps": {},
+    "webapps-manage":{},
     "sms":{},
-    "storage":{},
     "systemXHR": {},
     "telephony":{},
-    "time":{},
-    "voicemail":{},
-    "webapps-manage":{},
     "wifi-manage":{}
   },
   "activities": {
@@ -54,16 +35,6 @@
           "app://system.gaiamobile.org/manifest.webapp"
         ]
       }
-    }
-  },
-  "datastores-access": {
-    "download_store": {
-      "readonly": false,
-      "description": "Stores download finished"
-    },
-    "vertical_preferences_store": {
-      "readonly": false,
-      "description": "Vertical homescreen preferences"
     }
   },
   "locales": {

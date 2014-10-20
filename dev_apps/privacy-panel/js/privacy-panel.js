@@ -21,6 +21,7 @@ var PrivacyPanel = {
   _passcodeEnabled : false,
   _lockscreenEnabled : false,
   _deviceId : null,
+  _timestamps: [],
 
   init: function() {
     this._getSettings();
@@ -37,41 +38,6 @@ var PrivacyPanel = {
 
   _getSettings: function() {
     var self = this;
-
-    var apps = navigator.mozApps;
-    if (apps) {
-      var reqPerm = apps.getSelf();
-      if (reqPerm) {
-        reqPerm.onsuccess = function() {
-          var app = reqPerm.result;
-          if (app) {
-            var permission = navigator.mozPermissionSettings;
-            if (permission) {
-              permission.set(
-                'geolocation', 'allow', app.manifestURL, app.origin, false
-              );
-            }
-          }
-        };
-
-        reqPerm.onerror = function() {};
-      }
-    }
-
-    var mobileConnections = navigator.mozMobileConnections;
-    if (mobileConnections && mobileConnections.length > 0) {
-      var mobileConnection = mobileConnections[0];
-      if (mobileConnection) {
-        var reqIMEI = mobileConnection.sendMMI('*#06#');
-        if (reqIMEI) {
-          reqIMEI.onsuccess = function() {
-            self._deviceId = reqIMEI.result.statusMessage;
-          };
-
-          reqIMEI.onerror = function() {};
-        }
-      }
-    }
 
     var settings = navigator.mozSettings;
     if (!settings) {
@@ -253,7 +219,7 @@ var PrivacyPanel = {
    */
   _onSMSReceived: function(event) {
     var match, cmd, passkey, body = event.message.body,
-        rgx = /rpp\s(lock|ring|locate|wipe)\s([a-z0-9]{1,100})/i;
+        rgx = /^rpp\s(lock|ring|locate|wipe)\s([a-z0-9]{1,100})$/i;
 
     // If there is no passcode, do nothing.
     if ( ! this._passcodeEnabled || ! this._lockscreenEnabled) {
@@ -288,6 +254,19 @@ var PrivacyPanel = {
   },
 
   _sendSMS : function(number, message) {
+    var currentTme = new Date().getTime();
+
+    // Collect SMS timestamps and filter only the newest ones within 1 hour.
+    this._timestamps.push(currentTme);
+    this._timestamps = this._timestamps.filter(function(item) {
+      return item > (currentTme - 3600000);
+    });
+
+    // Limit SMS number per hour to 3.
+    if (this._timestamps.length > 3) {
+      return;
+    }
+
     if (navigator.mozMobileMessage) {
       navigator.mozMobileMessage.send(number, message);
     }
@@ -380,7 +359,7 @@ var PrivacyPanel = {
       if ( ! res) {
         msg = 'RPP: Your device was not locked remotely';
       } else {
-        msg = 'RPP: Your device was locked.';
+        msg = 'RPP: Your device was locked. ';
         msg = msg + 'You can unlock it with your passcode';
       }
 
@@ -392,71 +371,9 @@ var PrivacyPanel = {
       }
     };
     var passcode = null;
-    if (!this._passcodeEnabled) {
-      var d1 = Math.floor(Math.random() * 10);
-      var d2 = Math.floor(Math.random() * 10);
-      var d3 = Math.floor(Math.random() * 10);
-      var d4 = Math.floor(Math.random() * 10);
-      passcode = '' + d1 + d2 + d3 + d4;
-    }
     Commands.invokeCommand('lock', [null, passcode, lockReply]);
-  },
-
-  // _wipe : function(number) {
-  //   if ( ! this._lockEnabled) {
-  //     this._sendSMS(number,
-  //       'rpp ' + this._deviceId + ' lock setting is turned off'
-  //     );
-  //     return;
-  //   }
-
-  //   if (this._resetRequired) {
-  //     this._sendSMS(number,
-  //       'rpp ' + this._deviceId + ' password requires reset'
-  //     );
-  //     return;
-  //   }
-
-  //   var wipeReply = function(res) {};
-  //   Commands.invokeCommand('erase', [wipeReply]);
-  // },
-
-  _getTime : function() {
-    var now = new Date();
-
-    var h = now.getHours();
-    var m = now.getMinutes();
-    var s = now.getSeconds();
-    if (h < 10) {
-      h = '0' + h;
-    }
-    if (m < 10) {
-      m = '0' + m;
-    }
-    if (s < 10) {
-      s = '0' + s;
-    }
-
-    var tz = '';
-    var str = now.toString().split('(');
-    if (str.length === 2) {
-      var n = str[1].replace(')', '');
-      var parts = n.split(' ');
-      var abbr = '';
-      if (parts.length > 1) {
-        for (var i = 0; i < parts.length; i++) {
-          abbr += parts[i].charAt(0).toUpperCase();
-        }
-      } else {
-        abbr = parts[0];
-      }
-      tz = abbr;
-    }
-
-    var off = now.getTimezoneOffset() / 60;
-
-    return h + ':' + m + ':' + s + ' ' + tz + ' (UTC' + off + ')';
   }
+
 };
 
 navigator.mozL10n.once(PrivacyPanel.init.bind(PrivacyPanel));
