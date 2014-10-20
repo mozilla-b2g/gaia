@@ -505,7 +505,7 @@ suite('navigation bar', function() {
         var callSpy = this.sinon.stub(CallHandler, 'call');
 
         sendCommand('ATD>3');
-        sinon.assert.calledWith(getSpy, 3, 'lastEntryDate', true);
+        sinon.assert.calledWith(getSpy, 3, 'lastEntryDate', true, 'dialing');
         getSpy.yield({number: '333'});
         sinon.assert.calledWith(callSpy, '333');
       });
