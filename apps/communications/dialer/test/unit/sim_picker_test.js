@@ -34,20 +34,15 @@ suite('SIM picker', function() {
   suiteSetup(function() {
     subject = SimPicker;
 
-    loadBody();
-
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
     navigator.mozIccManager.mTeardown();
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
-    navigator.mozL10n.localize = function() {};
 
     realTelephonyHelper = window.TelephonyHelper;
     window.TelephonyHelper = null;
-
-    menu = document.querySelector('menu');
   });
 
   suiteTeardown(function() {
@@ -58,12 +53,18 @@ suite('SIM picker', function() {
   });
 
   setup(function() {
+    this.sinon.spy(navigator.mozL10n, 'ready');
+
+    loadBody();
+    subject._domBuilt = false;
+
     navigator.mozIccManager.addIcc(0, {});
     navigator.mozIccManager.addIcc(1, {});
 
     subject.getOrPick(0, '1111', function() {});
 
     header = document.getElementById('sim-picker-dial-via');
+    menu = document.querySelector('menu');
   });
 
   teardown(function() {
@@ -136,6 +137,11 @@ suite('SIM picker', function() {
       assert.equal(menu.children.length, 3);
     });
 
+    test('should still have 3 buttons after changing language', function() {
+      navigator.mozL10n.ready.yield();
+      assert.equal(menu.children.length, 3);
+    });
+
     test('should mark default SIM', function() {
       for (var i = 0; i < menu.children.length; i++) {
         assert.equal(
@@ -152,10 +158,6 @@ suite('SIM picker', function() {
   });
 
   suite('callbacks and functions', function() {
-    setup(function() {
-      loadBody();
-    });
-
     test('should fire callback when a SIM is selected', function() {
       var callbackStub = this.sinon.stub();
       subject.getOrPick(0, '1111', callbackStub);
@@ -173,6 +175,13 @@ suite('SIM picker', function() {
       menu.children[2].click();
 
       sinon.assert.notCalled(callbackStub);
+      assert.equal(document.getElementById('sim-picker').hidden, true);
+    });
+
+    test('should not show the menu again after changing language', function() {
+      menu.children[2].click();
+      assert.equal(document.getElementById('sim-picker').hidden, true);
+      navigator.mozL10n.ready.yield();
       assert.equal(document.getElementById('sim-picker').hidden, true);
     });
   });
