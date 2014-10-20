@@ -572,7 +572,7 @@ var StatusBar = {
   },
 
   _updateMinimizedStatusBarWidth: function sb_getMinimizedStatusBarWidth() {
-    var app = System.currentApp;
+    var app = AppWindowManager.getActiveApp().getTopMostWindow();
     app = app && app.getTopMostWindow();
 
     // Get the actual width of the rocketbar, and determine the remaining
