@@ -278,8 +278,8 @@ var Contacts = (function() {
     header.removeAttribute('action');
     settingsButton.hidden = false;
     addButton.hidden = false;
-    // Trigger the title to re-run font-fit/centering logic
-    appTitleElement.textContent = appTitleElement.textContent;
+
+    appTitleElement.setAttribute('data-l10n-id', 'contacts');
   }
 
   var lastCustomHeaderCallback;
@@ -298,22 +298,19 @@ var Contacts = (function() {
   };
 
   var checkCancelableActivity = function cancelableActivity() {
+    var selecting = (contactsList && contactsList.isSelecting);
+
     if (ActivityHandler.currentlyHandling) {
-      header.setAttribute('action', 'close');
-      settingsButton.hidden = true;
-      addButton.hidden = true;
-      // Trigger the title to re-run font-fit/centering logic
-      appTitleElement.textContent = appTitleElement.textContent;
       setupCancelableHeader();
+      var activityName = ActivityHandler.activityName;
+      if (activityName === 'pick' || activityName === 'update') {
+        selecting = true;
+      }
     } else {
-      header.removeAttribute('action');
-      settingsButton.hidden = false;
-      addButton.hidden = false;
-      setupActionableHeader();
+        setupActionableHeader();
     }
 
-    var l10nId = (contactsList && contactsList.isSelecting)?
-      'selectContact' : 'contacts';
+    var l10nId =  selecting ? 'selectContact' : 'contacts';
     appTitleElement.setAttribute('data-l10n-id', l10nId);
   };
 

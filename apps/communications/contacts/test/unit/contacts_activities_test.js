@@ -108,6 +108,8 @@ suite('Test Activities', function() {
       };
       ActivityHandler.handle(activity);
       assert.include(document.location.hash, 'add-parameters');
+      assert.isTrue(Contacts.checkCancelableActivity.called,
+                                            'checks for activity UI specifics');
       assert.equal(ActivityHandler._currentActivity, activity);
     });
 
@@ -120,6 +122,8 @@ suite('Test Activities', function() {
         }
       };
       ActivityHandler.handle(activity);
+      assert.isTrue(Contacts.checkCancelableActivity.called,
+                                            'checks for activity UI specifics');
       assert.equal(ActivityHandler._currentActivity, activity);
     });
 

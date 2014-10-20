@@ -100,6 +100,7 @@ var ActivityHandler = {
           return;
         }
         this._currentActivity = activity;
+        Contacts.checkCancelableActivity();
         Contacts.navigation.home();
         break;
       case 'import':
