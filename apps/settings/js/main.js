@@ -23,10 +23,11 @@ require(['config/require'], function() {
     var Settings = require('settings');
 
     function isInitialPanel(panel) {
-      var isTabletAndLandscape = Settings.isTabletAndLandscape();
-
-      return (!isTabletAndLandscape && panel === '#root') ||
-        (isTabletAndLandscape && panel === '#wifi');
+      if (Settings.isTabletAndLandscape()) {
+        return panel === Settings.initialPanelForTablet;
+      } else {
+        return panel === ('#' + window.LaunchContext.initialPanelId);
+      }
     }
 
     window.addEventListener('panelready', function onPanelReady(e) {
@@ -36,9 +37,11 @@ require(['config/require'], function() {
 
       window.removeEventListener('panelready', onPanelReady);
 
+      // Activate the animation and user interaction.
+      document.body.dataset.ready = true;
+
       // The loading of the first panel denotes that we are ready for display
       // and ready for user interaction
-      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
       window.dispatchEvent(new CustomEvent('moz-content-interactive'));
     }, false);
 
@@ -60,7 +63,10 @@ require(['config/require'], function() {
      *      two column layout, so that the root panel will not be deactivated
      *      in one column layout.
      */
-    SettingsService.init('root');
+    SettingsService.init({
+      rootPanelId: 'root',
+      context: window.LaunchContext
+    });
 
     var options = {
       SettingsUtils: SettingsUtils,
