@@ -833,6 +833,33 @@ form[role="combobox"] span[data-field="type"] {
   border-radius: 15px 0 0;
   background-color: #fff;
   border: 1px solid #e7e7e7;
+  overflow: hidden;
+
+}
+
+.field-template.inserted {
+  transition: opacity 0.5s ease-in;
+  opacity: 0;
+}
+
+.field-template.inserted::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height:100%;
+  width: 100%;
+  background-color: white;
+  content: '';
+  transition: transform 0.3s ease-in 0.5s;
+  z-index: 100;
+}
+
+.field-template.inserted.displayed::before {
+  transform: translateY(100%);
+}
+
+.field-template.inserted.displayed {
+  opacity: 1;
 }
 
 /* Add separation between templates */
