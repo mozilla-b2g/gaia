@@ -246,7 +246,6 @@ LayoutManager.prototype._updateCurrentPage = function() {
     var imeSwitchKey = {
       value: '&#x1f310;', // U+1F310 GLOBE WITH MERIDIANS
       uppercaseValue: '&#x1f310;',
-      ratio: 1,
       keyCode: this.KEYCODE_SWITCH_KEYBOARD,
       className: 'switch-key',
       isSpecialKey: true
@@ -287,7 +286,6 @@ LayoutManager.prototype._updateCurrentPage = function() {
   if (!page.typeInsensitive) {
     var periodKey = {
       value: '.',
-      ratio: 1,
       keyCode: 46,
       keyCodeUpper: 46,
       lowercaseValue: '.',
@@ -297,6 +295,7 @@ LayoutManager.prototype._updateCurrentPage = function() {
     if (page.alt && page.alt['.']) {
       periodKey.className = 'alternate-indicator';
     }
+
 
 
     var modifyType = 'default';
@@ -333,7 +332,6 @@ LayoutManager.prototype._updateCurrentPage = function() {
         // Add '/' key when we are at the default page
         spaceKeyRow.splice(spaceKeyCount, 0, {
           value: '/',
-          ratio: 1,
           keyCode: 47,
           keyCodeUpper: 47,
           lowercaseValue: '/',
@@ -352,7 +350,6 @@ LayoutManager.prototype._updateCurrentPage = function() {
         // Add '@' key when we are at the default page
         spaceKeyRow.splice(spaceKeyCount, 0, {
           value: '@',
-          ratio: 1,
           keyCode: 64,
           keyCodeUpper: 64,
           lowercaseValue: '@',
@@ -381,22 +378,20 @@ LayoutManager.prototype._updateCurrentPage = function() {
         // set explicitly.
         if (overwrites[','] !== false &&
             (!needsSwitchingKey || page.needsCommaKey)) {
-          var commaKey = {
-            value: ',',
-            ratio: 1,
-            keyCode: 44,
-            keyCodeUpper: 44,
-            lowercaseValue: ',',
-            uppercaseValue: ',',
-            isSpecialKey: false
-          };
+
+          var commaKey;
 
           if (overwrites[',']) {
-            commaKey.value = overwrites[','];
-            commaKey.keyCode = overwrites[','].charCodeAt(0);
-            commaKey.keyCodeUpper = overwrites[','].charCodeAt(0);
-            commaKey.lowercaseValue = overwrites[','];
-            commaKey.uppercaseValue = overwrites[','];
+            commaKey = overwrites[','];
+          } else {
+            commaKey = {
+              value: ',',
+              keyCode: 44,
+              keyCodeUpper: 44,
+              lowercaseValue: ',',
+              uppercaseValue: ',',
+              isSpecialKey: false
+            };
           }
 
           spaceKeyObject.ratio -= 1;
@@ -407,11 +402,7 @@ LayoutManager.prototype._updateCurrentPage = function() {
         // Only add peroid key if we are asked to.
         if (overwrites['.'] !== false) {
           if (overwrites['.']) {
-            periodKey.value = overwrites['.'];
-            periodKey.keyCode = overwrites['.'].charCodeAt(0);
-            periodKey.keyCodeUpper = overwrites['.'].charCodeAt(0);
-            periodKey.lowercaseValue = overwrites['.'];
-            periodKey.uppercaseValue = overwrites['.'];
+            periodKey = overwrites['.'];
           }
 
           spaceKeyObject.ratio -= 1;
