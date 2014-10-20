@@ -13,6 +13,14 @@ System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 System.Selector = Object.freeze({
   screen: '#screen',
   activeHomescreenFrame: '#homescreen.appWindow.active',
+  appAuthDialog: '.appWindow.active .authentication-dialog.visible',
+  // XXX: Gaia-header covers the back button, so you can't tap on it.
+  // This is a problem with gaia-header, so instead we return the gaia-header,
+  // And manually tap on the expected coordinate.
+  appAuthDialogCancel: '.appWindow.active .authentication-dialog.visible ' +
+    'gaia-header',
+  appAuthDialogLogin: '.appWindow.active .authentication-dialog.visible ' +
+    'button.authentication-dialog-http-authentication-ok',
   appWindow: '.appWindow',
   appTitlebar: '.appWindow.active .titlebar',
   appUrlbar: '.appWindow.active .title',
@@ -59,6 +67,20 @@ System.prototype = {
   get activeHomescreenFrame() {
     var homescreen = System.Selector.activeHomescreenFrame;
     return this.client.helper.waitForElement(homescreen);
+  },
+
+  get appAuthDialog() {
+    return this.client.helper.waitForElement(System.Selector.appAuthDialog);
+  },
+
+  get appAuthDialogCancel() {
+    return this.client.helper.waitForElement(
+      System.Selector.appAuthDialogCancel);
+  },
+
+  get appAuthDialogLogin() {
+    return this.client.helper.waitForElement(
+      System.Selector.appAuthDialogLogin);
   },
 
   get appTitlebar() {
