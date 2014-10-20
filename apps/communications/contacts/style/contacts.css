@@ -850,12 +850,21 @@ form[role="combobox"] span[data-field="type"] {
   width: 100%;
   background-color: white;
   content: '';
-  transition: transform 0.3s ease-in 0.5s;
   z-index: 100;
 }
 
+@keyframes add-field {
+  from {
+    transform: translateY(50%);
+  }
+
+  to {
+    transform: translateY(100%);
+  }
+}
+
 .field-template.inserted.displayed::before {
-  transform: translateY(100%);
+  animation: add-field 1s linear 0.5s 1 normal forwards;
 }
 
 .field-template.inserted.displayed {
