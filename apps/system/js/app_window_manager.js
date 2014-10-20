@@ -293,6 +293,8 @@
       window.addEventListener('permissiondialoghide', this);
       window.addEventListener('appopening', this);
       window.addEventListener('localized', this);
+      window.addEventListener('shrinking-start', this);
+      window.addEventListener('shrinking-stop', this);
 
       window.addEventListener('mozChromeEvent', this);
 
@@ -364,6 +366,8 @@
       window.removeEventListener('appopening', this);
       window.removeEventListener('localized', this);
       window.removeEventListener('mozChromeEvent', this);
+      window.removeEventListener('shrinking-start', this);
+      window.removeEventListener('shrinking-stop', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -380,6 +384,10 @@
       var activeApp = this._activeApp;
       var detail = evt.detail;
       switch (evt.type) {
+        case 'shrinking-start':
+          activeApp && activeApp.broadcast('blur');
+          break;
+        case 'shrinking-stop':
         case 'permissiondialoghide':
           activeApp && activeApp.broadcast('focus');
           break;
