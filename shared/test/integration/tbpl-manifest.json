@@ -33,6 +33,7 @@
     "apps/settings/test/marionette/tests/message_settings_test.js": "",
     "apps/system/test/marionette/app_usage_metrics_test.js": "Bug 1049137 - Intermittent failing test, TEST-UNEXPECTED-FAIL | App Usage Metrics > Uninstalled apps are counted",
     "apps/system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
+    "apps/verticalhome/test/marionette/group_collapse_test.js": "Bug 1085550 - Intermittent failing test, Vertical - Group collapse the first group | AssertionError: false == true",
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon"
   }
 }
