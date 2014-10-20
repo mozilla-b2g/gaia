@@ -9,7 +9,7 @@
   },
   "permissions": {
     "geolocation-noprompt":{},
-    "audio-channel-content": {},
+    "audio-channel-ringer": {},
     "mobileconnection":{},
     "open-remote-window":{},
     "settings":{ "access": "readwrite" },
