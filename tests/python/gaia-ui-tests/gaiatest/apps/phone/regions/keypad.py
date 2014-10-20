@@ -6,6 +6,7 @@ import time
 
 from marionette.by import By
 from marionette.marionette import Actions
+from marionette.wait import Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.phone.app import Phone
@@ -41,16 +42,25 @@ class Keypad(Phone):
     def dial_phone_number(self, value):
         for i in value:
             if i == "+":
-                zero_button = self.marionette.find_element(By.CSS_SELECTOR, 'div.keypad-key[data-value="0"]')
+                zero_button = self._keypad_element(0)
                 Actions(self.marionette).long_press(zero_button, 1.2).perform()
             else:
-                self.marionette.find_element(By.CSS_SELECTOR, 'div.keypad-key[data-value="%s"]' % i).tap()
+                self._keypad_element(i).tap()
                 time.sleep(0.25)
+
+    def call_voicemail(self):
+        one_button = self._keypad_element(1)
+        Actions(self.marionette).long_press(one_button, 2.1).perform()
+        return CallScreen(self.marionette)
+
+    def redial(self):
+        self.tap_call_button(switch_to_call_screen=False)
+        Wait(self.marionette).until(lambda m: self.phone_number != '')
+        return self.tap_call_button()
 
     def a11y_dial_phone_number(self, value):
         for i in value:
-            self.accessibility.click(self.marionette.find_element(
-                By.CSS_SELECTOR, 'div.keypad-key[data-value="%s"]' % i))
+            self.accessibility.click(self._keypad_element(i))
             time.sleep(0.25)
 
     def call_number(self, value):
@@ -93,6 +103,9 @@ class Keypad(Phone):
     def wait_for_phone_number_ready(self):
         # Entering dialer and expecting a phone number there is js that sets the phone value and enables this button
         self.wait_for_condition(lambda m: m.find_element(*self._add_new_contact_button_locator).is_enabled())
+
+    def _keypad_element(self, i):
+        return self.marionette.find_element(By.CSS_SELECTOR, 'div.keypad-key[data-value="%s"]' % i)
 
 
 class AddNewNumber(Base):
