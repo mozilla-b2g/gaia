@@ -30,7 +30,8 @@ DeviceInfoPanel.Selectors = {
   'developerMenuItem': 'li > #menuItem-developer',
   'aboutPanel': '#about',
   'rootPanel': '#root',
-  'header': 'gaia-header'
+  'deviceInfoBackBtn': '#about-moreInfo gaia-header',
+  'openSourceNoticesBackBtn': '#about-licensing gaia-header'
 };
 
 DeviceInfoPanel.prototype = {
@@ -98,7 +99,11 @@ DeviceInfoPanel.prototype = {
     return this.findElement('developerMenuItem').displayed();
   },
 
-  tapBackBtn: function() {
-    this.waitForElement('header').tap(25, 25);
+  tapDeviceInfoBackBtn: function() {
+    this.waitForElement('deviceInfoBackBtn').tap(25, 25);
+  },
+
+  tapOpenSourceNoticesBackBtn: function() {
+    this.waitForElement('openSourceNoticesBackBtn').tap(25, 25);
   }
 };
