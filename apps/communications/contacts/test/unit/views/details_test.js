@@ -404,14 +404,6 @@ suite('Render contact', function() {
                               contactDetails, ActivityHandler);
     });
 
-    test('reMark should call ContactsButtons.reMark', function() {
-      this.sinon.stub(MockContactsButtons, 'reMark');
-      var element = document.createElement('span');
-      subject.reMark(element, '123', 'highlight');
-      sinon.assert.calledWith(MockContactsButtons.reMark,
-                              element, '123', 'highlight');
-    });
-
     test('calls renderPhones', function() {
       sinon.assert.calledWith(MockContactsButtons.renderPhones, mockContact);
     });

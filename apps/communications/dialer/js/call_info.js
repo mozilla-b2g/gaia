@@ -164,9 +164,7 @@
       src += '&tel=' + currentGroup.number;
       // Enable the function of receiving the messages posted from the iframe.
       src += '&back_to_previous_tab=1';
-      // Contacts app needs to know if it's a missed call for different
-      // highlight color of the phone number in contacts details
-      src += '&isMissedCall=' + isMissedCall(currentGroup);
+
       var timestamp = new Date().getTime();
       contactsIframe.src = src + '&timestamp=' + timestamp;
     });

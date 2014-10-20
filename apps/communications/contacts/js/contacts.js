@@ -102,14 +102,7 @@ var Contacts = (function() {
             }
 
             contactsDetails.render(currentContact);
-            if (params.tel) {
 
-              contactsDetails.reMark(
-                'tel',
-                params.tel,
-                JSON.parse(params.isMissedCall) ? 'remark-missed' : 'remark'
-              );
-            }
             navigation.go(sectionId, 'right-left');
             showApp();
           }, function onError() {

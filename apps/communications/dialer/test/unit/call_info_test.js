@@ -536,7 +536,7 @@ suite('Call Info', function(argument) {
         this.sinon.clock.tick();
         var url = 'index.html#view-contact-details?id=' +
         groupReturn.contact.id + '&tel=' + groupReturn.number +
-        '&back_to_previous_tab=1&isMissedCall=true';
+        '&back_to_previous_tab=1';
         assert.include(contactsIframe.src, url);
       });
     });
