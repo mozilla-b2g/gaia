@@ -1,5 +1,5 @@
 'use strict';
-/* global softwareButtonManager, System */
+/* global System */
 
 var UtilityTray = {
   name: 'UtilityTray',
@@ -17,6 +17,8 @@ var UtilityTray = {
   statusbarIcons: document.getElementById('statusbar-icons'),
 
   topPanel: document.getElementById('top-panel'),
+
+  ambientIndicator: document.getElementById('ambient-indicator'),
 
   grippy: document.getElementById('utility-tray-grippy'),
 
@@ -88,6 +90,9 @@ var UtilityTray = {
     window.addEventListener('software-button-disabled', this);
 
     System.request('registerHierarchy', this);
+
+    System.register('makeAmbientIndicatorActive', this);
+    System.register('makeAmbientIndicatorInactive', this);
   },
 
   addHomeListener: function ut_addHomeListener() {
@@ -100,6 +105,7 @@ var UtilityTray = {
   screenWidth: 0,
   screenHeight: 0,
   grippyHeight: 0,
+  ambientHeight: 0,
 
   handleEvent: function ut_handleEvent(evt) {
     var target = evt.target;
@@ -262,12 +268,16 @@ var UtilityTray = {
       screenRect = this.overlay.getBoundingClientRect();
     }
 
+    if (refresh || !this.ambientHeight) {
+      this.ambientHeight = this.ambientIndicator.clientHeight || 0;
+    }
+
     if (refresh || !this.screenWidth) {
       this.screenWidth = screenRect.width || 0;
     }
 
     if (refresh || !this.screenHeight) {
-      this.screenHeight = screenRect.height || 0;
+      this.screenHeight = (screenRect.height - this.ambientHeight) || 0;
     }
 
     if (refresh || !this.grippyHeight) {
@@ -323,12 +333,15 @@ var UtilityTray = {
     // Tap threshold
     if (dy > 5) {
       this.isTap = false;
-      this.screen.classList.add('utility-tray');
     }
+
+    this.screen.classList.add('utility-tray');
 
     if (this.shown) {
       dy += screenHeight;
     }
+
+    dy = Math.max(0, dy);
     dy = Math.min(screenHeight, dy);
 
     var style = this.overlay.style;
@@ -337,8 +350,7 @@ var UtilityTray = {
 
     this.notifications.style.transition = '';
     this.notifications.style.transform =
-      'translateY(' + (window.innerHeight - dy - 30 /* StatusBar */ -
-      softwareButtonManager.height) + 'px)';
+      'translateY(' + (this.screenHeight - dy) + 'px)';
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {
@@ -406,7 +418,8 @@ var UtilityTray = {
     var alreadyShown = this.shown;
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(100%)';
+    var translate = this.ambientHeight + 'px';
+    style.MozTransform = 'translateY(calc(100% - ' + translate + '))';
     this.notifications.style.transition =
       instant ? '' : 'transform 0.2s linear';
     this.notifications.style.transform = '';
@@ -432,6 +445,14 @@ var UtilityTray = {
       'statusbarNotifications', {
         n: count
       });
+  },
+
+  makeAmbientIndicatorActive: function ut_makeAmbientIndicatorActive() {
+    this.ambientIndicator.classList.add('active');
+  },
+
+  makeAmbientIndicatorInactive: function ut_makeAmbientIndicatorInactive() {
+    this.ambientIndicator.classList.remove('active');
   },
 
   _pdIMESwitcherShow: function ut_pdIMESwitcherShow(evt) {

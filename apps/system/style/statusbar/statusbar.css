@@ -90,7 +90,8 @@
 }
 
 #screen.utility-tray #statusbar {
-  background-color: #333;
+  background-color: transparent;
+  top: -3rem;
 }
 
 /* When the utility tray is displayed, the title bar is hidden, so we only show

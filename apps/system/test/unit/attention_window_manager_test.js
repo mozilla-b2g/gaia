@@ -12,7 +12,7 @@ requireApp('system/shared/test/unit/mocks/mock_system.js');
 
 var mocksForAttentionWindowManager = new MocksHelper([
   'AttentionWindow', 'System', 'HomescreenLauncher',
-  'HomescreenWindow', 'AttentionIndicator'
+  'HomescreenWindow'
 ]).init();
 
 suite('system/AttentionWindowManager', function() {
@@ -79,36 +79,32 @@ suite('system/AttentionWindowManager', function() {
   });
 
   suite('Maintain attention indicator', function() {
+    var sytemStub;
     setup(function() {
       window.attentionWindowManager = new AttentionWindowManager();
       window.attentionWindowManager.start();
+      sytemStub = this.sinon.stub(MockSystem, 'request');
     });
     teardown(function() {
       window.attentionWindowManager.stop();
       window.attentionWindowManager = null;
     });
     test('When there is an attention window closed', function() {
-      var ai = attentionWindowManager.attentionIndicator;
-      var stubShow = this.sinon.stub(ai, 'show');
-
       attentionWindowManager._openedInstances = new Map([[att1, att1]]);
       attentionWindowManager._instances = [att1];
       window.dispatchEvent(new CustomEvent('attentionclosed', {
         detail: att1
       }));
-      assert.isTrue(stubShow.called);
+      assert.isTrue(sytemStub.calledWith('makeAmbientIndicatorActive'));
     });
 
     test('When there is an attention window requests to open', function() {
-      var ai = attentionWindowManager.attentionIndicator;
-      var stubHide = this.sinon.stub(ai, 'hide');
-
       attentionWindowManager._openedInstances = new Map();
       attentionWindowManager._instances = [att1];
       window.dispatchEvent(new CustomEvent('attentionopened', {
         detail: att1
       }));
-      assert.isTrue(stubHide.called);
+      assert.isTrue(sytemStub.calledWith('makeAmbientIndicatorInactive'));
     });
   });
 

@@ -657,7 +657,7 @@ var NotificationScreen = {
 
   updateNotificationIndicator: function ns_updateNotificationIndicator() {
     if (this.unreadNotifications.length) {
-      this.ambientIndicator.className = 'unread';
+      this.ambientIndicator.classList.add('unread');
       navigator.mozL10n.setAttributes(
         this.ambientIndicator,
         'statusbarNotifications-unread',

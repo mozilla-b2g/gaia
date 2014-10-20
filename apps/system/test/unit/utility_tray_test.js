@@ -81,6 +81,9 @@ suite('system/UtilityTray', function() {
     var topPanel = document.createElement('div');
     topPanel.style.cssText = 'height: 20px; display: block;';
 
+    var ambientIndicator = document.createElement('div');
+    ambientIndicator.style.cssText = 'height: 2px; display: block;';
+
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       switch (id) {
         case 'statusbar':
@@ -99,6 +102,8 @@ suite('system/UtilityTray', function() {
           return notifications;
         case 'top-panel':
           return topPanel;
+        case 'ambient-indicator':
+          return ambientIndicator;
         default:
           return null;
       }
