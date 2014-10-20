@@ -3428,6 +3428,18 @@ suite('thread_ui.js >', function() {
       assert.isFalse(LinkActionHandler.onClick.calledOnce);
     });
 
+    test(' "long-press" on empty area return null',
+      function() {
+      assert.doesNotThrow(() => {
+        ThreadUI.handleEvent({ 
+          type: 'contextmenu', 
+          target: document.getElementById('messages-container'), 
+          preventDefault: sinon.stub(), 
+          stopPropagation: sinon.stub() 
+        });
+      });
+    });
+
     test(' "long-press" on link-action shows the option menu from the bubble',
       function() {
       // Dispatch custom event for testing long press
