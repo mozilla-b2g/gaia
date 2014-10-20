@@ -278,8 +278,8 @@ var Contacts = (function() {
     header.removeAttribute('action');
     settingsButton.hidden = false;
     addButton.hidden = false;
-    // Trigger the title to re-run font-fit/centering logic
-    appTitleElement.textContent = appTitleElement.textContent;
+
+    appTitleElement.setAttribute('data-l10n-id', 'contacts');
   }
 
   var lastCustomHeaderCallback;
@@ -298,29 +298,19 @@ var Contacts = (function() {
   };
 
   var checkCancelableActivity = function cancelableActivity() {
-    // NOTE: Only set textContent below if necessary to avoid repaints at
-    //       load time.  For more info see bug 725221.
-    var text;
+    var selecting = (contactsList && contactsList.isSelecting);
     if (ActivityHandler.currentlyHandling) {
-      header.setAttribute('action', 'close');
-      settingsButton.hidden = true;
-      addButton.hidden = true;
-      // Trigger the title to re-run font-fit/centering logic
-      appTitleElement.textContent = appTitleElement.textContent;
       setupCancelableHeader();
+      var activityName = ActivityHandler.activityName;
+      if (activityName === 'pick' || activityName === 'update') {
+        selecting = true;
+      }
     } else {
-      header.removeAttribute('action');
-      settingsButton.hidden = false;
-      addButton.hidden = false;
-      setupActionableHeader();
+        setupActionableHeader();
     }
 
-    text = (contactsList && contactsList.isSelecting)?
-          _('selectContact'):_('contacts');
-
-    if (appTitleElement.textContent !== text) {
-      appTitleElement.textContent = text;
-    }
+    var l10nId =  selecting ? 'selectContact' : 'contacts';
+    appTitleElement.setAttribute('data-l10n-id', l10nId);
   };
 
 
