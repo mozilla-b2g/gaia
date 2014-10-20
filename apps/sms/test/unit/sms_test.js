@@ -186,7 +186,6 @@ suite('SMS App Unit-Test', function() {
         callback(MockContact.list());
       }
     });
-
   });
 
   // Let's go with tests!
@@ -197,6 +196,8 @@ suite('SMS App Unit-Test', function() {
     // Setup. We need an async. way due to threads are rendered
     // async.
     setup(function(done) {
+      this.sinon.spy(ThreadListUI, 'setContact');
+
       ThreadListUI.renderThreads(done);
       _tci = ThreadListUI.checkInputs;
     });
@@ -274,13 +275,16 @@ suite('SMS App Unit-Test', function() {
         assertNumOfElementsByClass(ThreadListUI.container, 1, 'unread');
       });
 
-      test('Update thread with contact name', function() {
+      test('Update thread with contact name', function(done) {
         // Given a number, we should retrieve the contact and update the info
         var threadWithContact = document.getElementById('thread-1');
-        assert.equal(
-          threadWithContact.querySelector('.threadlist-item-title').innerHTML,
-          '<bdi>Pepito O\'Hare</bdi>'
-        );
+        var spy = ThreadListUI.setContact.withArgs(threadWithContact);
+        spy.firstCall.returnValue.then(() => {
+          assert.equal(
+            threadWithContact.querySelector('.threadlist-item-title').innerHTML,
+            '<bdi>Pepito O\'Hare</bdi>'
+          );
+        }).then(done, done);
       });
     });
 
@@ -288,6 +292,9 @@ suite('SMS App Unit-Test', function() {
     suite('Threads-list edit mode', function() {
 
       setup(function() {
+        // ThreadListUI.setContact is already a spy, but here we need a stub.
+        // So we restore the original function first, and then create a stub.
+        ThreadListUI.setContact.restore();
         this.sinon.stub(ThreadListUI, 'setContact');
       });
 
