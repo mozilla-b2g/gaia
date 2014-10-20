@@ -213,8 +213,7 @@
   display: none;
 }
 
-#downloadList ul > li[data-state="stopped"] .pack-end,
-#downloadList ul > li[data-state="failed"] .pack-end {
+#downloadList ul > li[data-state="stopped"] .pack-end{
   width: 3rem;
   height: 3rem;
   background: url('images/download_refresh.png');
@@ -222,6 +221,9 @@
   background-position: center;
 }
 
+#downloadList ul > li[data-state="failed"] .pack-end {
+  pointer-events: none;
+}
 /**
  * Setting `direction: ltr;` to every element in the "Downloads" section because
  * downloaded item names are always LTR: elements should stay as they are no
