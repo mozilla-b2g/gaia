@@ -415,7 +415,8 @@
     }
 
     // If the app is the currently displayed app, switch to the homescreen
-    if (this.isActive() && !this.isHomescreen) {
+    if (this.isActive() && this.getBottomMostWindow().isActive() &&
+        !this.isHomescreen) {
 
       var fallbackTimeout;
       var onClosed = function() {
