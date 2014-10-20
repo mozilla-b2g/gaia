@@ -12,7 +12,7 @@ apps/camera/bower_components/gaia-icons/style.css 0 0
 apps/camera/bower_components/gaia-theme/style.css 6 0
 apps/camera/style/notification.css 1 0
 apps/camera/style/overlay.css 0 4
-apps/camera/style/preview-gallery.css 0 1
+apps/camera/style/preview-gallery.css 0 2
 apps/camera/style/setting-options.css 0 1
 apps/clock/style/onring.css 0 1
 apps/clock/style/picker/picker.css 0 1
