@@ -93,10 +93,9 @@ class Calendar(Base):
         return self.marionette.find_element(*self._get_events_locator_in_day_view(date_time)).text
 
     def _get_events_locator_in_day_view(self, date_time):
-        time_slot = self._get_data_hour(date_time)
         data_date = self._get_data_date(date_time)
         return (By.CSS_SELECTOR,
-                "#day-view section.active[data-date*='%s'] section.hour-%d" % (data_date, time_slot))
+                "#day-view .md__day[data-date*='%s'] .md__event" % data_date)
 
     def _get_events_locator_in_month_view(self, date_time):
         time_slot = self._get_data_hour(date_time)
@@ -106,7 +105,7 @@ class Calendar(Base):
     def _get_events_locator_in_week_view(self, date_time):
         data_date = self._get_data_date(date_time)
         return (By.CSS_SELECTOR,
-                "#week-view .day[data-date*='%s'] .event" % data_date)
+                "#week-view .md__day[data-date*='%s'] .md__event" % data_date)
 
     @staticmethod
     def _get_data_date(date_time):

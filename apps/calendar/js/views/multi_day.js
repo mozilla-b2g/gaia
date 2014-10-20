@@ -22,10 +22,12 @@ module.exports = MultiDay;
 
 MultiDay.prototype = {
 
-  // override this on child classes to change the behavior!
+  // override these properties on child classes to change the behavior!
   scale: 'week',
   visibleCells: 5,
   element: null,
+  _hourFormat: 'hour-format',
+  _addAmPmClass: false,
 
   childClass: SingleDay,
   children: null,
@@ -46,23 +48,23 @@ MultiDay.prototype = {
   },
 
   get daysHolder() {
-    return this.element.querySelector('.days');
+    return this.element.querySelector('.md__days');
   },
 
   get alldaysHolder() {
-    return this.element.querySelector('.alldays');
+    return this.element.querySelector('.md__alldays');
   },
 
   get main() {
-    return this.element.querySelector('.main');
+    return this.element.querySelector('.md__main');
   },
 
   get mainContent() {
-    return this.element.querySelector('.main-content');
+    return this.element.querySelector('.md__main-content');
   },
 
   get sidebar() {
-    return this.element.querySelector('.sidebar');
+    return this.element.querySelector('.md__sidebar');
   },
 
   onactive: function() {
@@ -134,19 +136,19 @@ MultiDay.prototype = {
 
   _createHour: function(hour) {
     var el = document.createElement('li');
-    el.className = 'hour hour-' + hour;
+    el.className = 'md__hour md__hour-' + hour;
     el.innerHTML = DateSpan.hour.render({
       hour: hour,
-      format: 'week-hour-format',
-      addAmPmClass: true,
-      className: 'display-hour'
+      format: this._hourFormat,
+      addAmPmClass: this._addAmPmClass,
+      className: 'md__display-hour'
     });
     return el;
   },
 
   _setupCurrentTime: function() {
     this._currentTime = new CurrentTime({
-      container: this.element.querySelector('.main-content'),
+      container: this.element.querySelector('.md__main-content'),
       sticky: this.alldaysHolder
     });
   },

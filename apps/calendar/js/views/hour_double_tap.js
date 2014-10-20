@@ -47,7 +47,7 @@ HourDoubleTap.prototype = {
 
   _onDayDoubleTap: function(evt) {
     var target = evt.target;
-    if (!target.classList.contains('day')) {
+    if (!target.classList.contains('md__day')) {
       return;
     }
 
@@ -63,11 +63,11 @@ HourDoubleTap.prototype = {
 
   _onAllDayDoubleTap: function(evt) {
     var target = evt.target;
-    if (!target.classList.contains('.allday-events')) {
+    if (!target.classList.contains('md__allday-events')) {
       return;
     }
 
-    var startDate = new Date(closest(target, '.allday').dataset.date);
+    var startDate = new Date(closest(target, '.md__allday').dataset.date);
 
     this._addEvent({
       isAllDay: true,

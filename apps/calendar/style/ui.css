@@ -119,10 +119,6 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   opacity: 0;
 }
 
-.display-hour.is-hidden {
-  visibility: hidden;
-}
-
 /* view loading */
 
 .during-progress {

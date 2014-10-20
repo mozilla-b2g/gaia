@@ -13,17 +13,13 @@ module.exports = DayEvent;
 DayEvent.prototype = {
   __proto__: MarionetteElement.prototype,
 
-  get container() {
-    return this.findElement('.container');
-  },
-
   get title() {
-    return this.findElement('.event-title');
+    return this.findElement('.md__event-title');
   },
 
   // Marionette.Element already have a method location()
   get address() {
-    return this.findElement('.event-location');
+    return this.findElement('.md__event-location');
   },
 
   get iconAlarm() {

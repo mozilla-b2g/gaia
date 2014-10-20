@@ -45,8 +45,9 @@ marionette('day view', function() {
         duration: 3
       });
       day.waitForDisplay();
+      day.waitForHourScrollEnd();
       // Scroll to top to make sure we could click the event element.
-      day.scrollTop = 0;
+      day.scrollToTop();
     });
 
     test('click after first hour', function() {
@@ -60,7 +61,7 @@ marionette('day view', function() {
       );
     });
 
-    test('click after event end', function() {
+    test('double tap after event end', function() {
       // we need to actually grab the event position + height to avoid issues
       // with DST (see Bug 981441)
       var event = day.events[0];
@@ -69,7 +70,7 @@ marionette('day view', function() {
       var size = event.size();
 
       app.actions
-        .tap(body, position.x + 20, position.y + size.height + 20)
+        .doubleTap(body, position.x + 20, position.y + size.height + 20)
         .perform();
 
       // there is a delay between tap and view display
@@ -91,7 +92,6 @@ marionette('day view', function() {
     app.createEvent(eventData);
 
     var event = day.events[0];
-    var container = event.container;
 
     assert.equal(
       event.title.text(), eventData.title, 'display event title'
@@ -108,19 +108,19 @@ marionette('day view', function() {
       'should set bg color'
     );
 
-    var borderColor = container.cssProperty('border-left-color');
+    var borderColor = event.cssProperty('border-left-color');
     assert.ok(
       borderColor,
       'should set the border color'
     );
 
     assert.ok(
-      parseFloat(container.cssProperty('border-left-width')) > 0,
+      parseFloat(event.cssProperty('border-left-width')) > 0,
       'should have border'
     );
 
     assert.equal(
-      container.cssProperty('border-left-style'),
+      event.cssProperty('border-left-style'),
       'solid',
       'should have solid border'
     );
@@ -186,11 +186,12 @@ marionette('day view', function() {
   });
 
   test('current-time', function() {
+    day.waitForHourScrollEnd();
+
     var currentTime = day.currentTime;
 
-    assert.include(
-      currentTime.getAttribute('className'),
-      'active',
+    assert.ok(
+      currentTime.displayed(),
       'current-time should be active'
     );
 
@@ -199,19 +200,10 @@ marionette('day view', function() {
       'current time should be inside current hour range'
     );
 
-    var currentDisplayHour = day.currentDisplayHour;
-
-    if (intersect(currentTime, currentDisplayHour)) {
-      assert.ok(
-        !currentDisplayHour.displayed(),
-        'hour should be hidden if overlapping'
-      );
-    } else {
-      assert.ok(
-        currentDisplayHour.displayed(),
-        'hour should be displayed if not overlapping'
-      );
-    }
+    assert.ok(
+      !day.currentDisplayHour.displayed(),
+      'hour should be hidden if overlapping'
+    );
 
     function intersect(el1, el2) {
       var b1 = getBounds(el1);
@@ -230,13 +222,23 @@ marionette('day view', function() {
         return el.getBoundingClientRect();
       });
     }
+
+    // it should hide the currentTime if current day is not visible
+    app.swipeLeft();
+    client.waitFor(function() {
+      return !currentTime.displayed() && day.currentDisplayHour.displayed();
+    });
   });
 
   suite('animated scrolling', function() {
+    setup(function() {
+      day.waitForHourScrollEnd();
+    });
+
     test('today', function() {
       assert.equal(
         day.scrollTop,
-        day.getDistinationScrollTop(new Date().getHours() - 1),
+        day.getDestinationScrollTop(new Date().getHours() - 1),
         'scroll to the previous hour of current time'
       );
     });
@@ -254,9 +256,10 @@ marionette('day view', function() {
       selectedDay.click();
 
       app.openDayView();
+      day.waitForHourScrollEnd();
       assert.equal(
         day.scrollTop,
-        day.getDistinationScrollTop(8),
+        day.getDestinationScrollTop(8),
         'scroll to the 8AM element'
       );
     });
@@ -289,7 +292,7 @@ marionette('day view', function() {
 
       assert.equal(
         day.scrollTop,
-        day.getDistinationScrollTop(new Date().getHours() - 1),
+        day.getDestinationScrollTop(new Date().getHours() - 1),
         'scroll to the 8AM element'
       );
     });
