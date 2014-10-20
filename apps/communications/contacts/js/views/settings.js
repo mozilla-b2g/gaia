@@ -293,7 +293,6 @@ contacts.Settings = (function() {
             null,
             navigationHandler,
             {
-              isDanger: true,
               transitionLevel: DELETE_TRANSITION_LEVEL
             }
           );
