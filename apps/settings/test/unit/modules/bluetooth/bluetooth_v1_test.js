@@ -19,7 +19,7 @@ suite('Bluetooth > ', function() {
     var modules = [
       'shared_mocks/mock_navigator_moz_bluetooth',
       'shared_mocks/mock_bluetooth_helper',
-      'modules/bluetooth'
+      'modules/bluetooth/bluetooth_v1'
     ];
 
     var mockMozBTPath = 'shared_mocks/mock_navigator_moz_bluetooth';

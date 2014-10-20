@@ -91,7 +91,8 @@ require.config({
       exclude: [
         'main',
         'modules/battery',
-        'modules/bluetooth'
+        'modules/bluetooth/bluetooth_v1',
+        'modules/bluetooth/bluetooth'
       ]
     },
     {
