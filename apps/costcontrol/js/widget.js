@@ -45,7 +45,7 @@ var Widget = (function() {
     state = cardState = dataSimIcc.cardState;
 
     // SIM is absent
-    if (!cardState || cardState === 'absent') {
+    if (!cardState || cardState === 'absent' || cardState === 'unknown') {
       debug('There is no SIM');
       Widget.showSimError('no-sim2');
 
