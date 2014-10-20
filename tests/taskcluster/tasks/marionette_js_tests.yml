@@ -16,6 +16,7 @@ task:
       PART: '{{chunk}}'
       NBPARTS: '{{totalChunks}}'
       REPORTER: 'mocha-tbpl-reporter'
+      TEST_MANIFEST: './shared/test/integration/tbpl-manifest.json'
 
     command:
       - entrypoint
