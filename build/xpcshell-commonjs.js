@@ -115,7 +115,7 @@ CommonjsRunner.prototype.run = function() {
     quit(0);
   } catch(e) {
     dump('Exception: ' + e + '\n' + e.stack + '\n');
-    throw(e);
+    quit(1);
   }
 };
 
