@@ -75,13 +75,6 @@ define(function(require) {
         airplaneModeItem.enabled = true;
         themesItem.enabled = true;
       },
-      onShow: function rp_onShow() {
-        // XXX: Set data-ready to true to indicate that the first panel is
-        //      displayed and we are ready to use animations for the later panel
-        //      transitions. This should be moved to startup.js after we handle
-        //      inline activities there.
-        document.body.dataset.ready = true;
-      },
       onHide: function rp_onHide() {
         bluetoothItem.enabled = false;
         languageItem.enabled = false;

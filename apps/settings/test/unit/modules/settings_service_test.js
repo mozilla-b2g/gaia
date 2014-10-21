@@ -148,7 +148,13 @@ suite('SettingsService', function() {
     test('should not deactivate the root panel', function(done) {
       var mockInstances = [];
 
-      this.SettingsService.init('id0');
+      this.SettingsService.init({
+         rootPanelId: 'id0',
+         context: {
+           initialPanelId: 'id0',
+           activityHandler: null
+         }
+      });
 
       mockInstances[0] = sinon.mock(this.mockSettingsPanelInstances[0]);
       // Expect only calls to beforeShow and show of panel0.
