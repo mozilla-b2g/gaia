@@ -123,6 +123,8 @@ var displayingScanProgress = false;
 // to show the correct overlay.
 var reparsingMetadata = false;
 
+var forceRefresh = false;
+
 function init() {
   // We want to exclude some folders that store ringtones so they don't show up
   // in the music app. The regex matches absolute paths starting with a volume
@@ -269,6 +271,47 @@ function init() {
     filesDeletedWhileScanning = 0;
   };
 
+  function forceRefreshView() {
+    forceRefresh = false;
+    if (ModeManager.currentMode === MODE_PLAYER) {
+      // Current mode is player, refresh previous view after mode manager pop
+      switch (ModeManager.previousMode) {
+        case MODE_LIST:
+        case MODE_PICKER:
+          ModeManager.popCallback = function() {
+            ListView.refresh();
+          };
+          break;
+        case MODE_SUBLIST:
+          ModeManager.popCallback = function() {
+            SubListView.refresh();
+          };
+          break;
+        case MODE_SEARCH_FROM_TILES:
+        case MODE_SEARCH_FROM_LIST:
+          ModeManager.popCallback = function() {
+            SearchView.refresh();
+          };
+          break;
+      }
+    } else {
+      // Current mode not player, refresh current view immediately
+      switch (ModeManager.currentMode) {
+        case MODE_LIST:
+        case MODE_PICKER:
+          ListView.refresh();
+          break;
+        case MODE_SUBLIST:
+          SubListView.refresh();
+          break;
+        case MODE_SEARCH_FROM_TILES:
+        case MODE_SEARCH_FROM_LIST:
+          SearchView.refresh();
+          break;
+      }
+    }
+  };
+
   // And hide the throbber when scanning is done
   musicdb.onscanend = function() {
     scanning = false;
@@ -281,6 +324,9 @@ function init() {
       filesFoundBatch = 0;
       filesDeletedWhileScanning = 0;
       showCurrentView();
+    }
+    if (forceRefresh) {
+      forceRefreshView();
     }
 
     // If this was the first scan after startup, tell the performance monitors
@@ -338,10 +384,7 @@ function init() {
   // display music that is no longer available.  But the only way to prevent
   // this is to refuse to display any music until the scan completes.
   musicdb.ondeleted = function(event) {
-    if (ModeManager.currentMode === MODE_PLAYER) {
-      ModeManager.forceRefresh = true;
-    }
-
+    forceRefresh = true;
     if (scanning) {
       // If we get a deletion during a scan, just note it for processing
       // when the scan is over
@@ -537,10 +580,14 @@ var MODE_PICKER = 7;
 var ModeManager = {
   _modeStack: [],
   playerTitle: null,
-  forceRefresh: false,
+  popCallback: null,
 
   get currentMode() {
     return this._modeStack[this._modeStack.length - 1];
+  },
+
+  get previousMode() {
+    return this._modeStack[this._modeStack.length - 2];
   },
 
   start: function(mode, callback) {
@@ -558,7 +605,8 @@ var ModeManager = {
       return;
     }
     this._modeStack.pop();
-    this._updateMode();
+    this._updateMode(this.popCallback);
+    this.popCallback = null;
   },
 
   updateBackArrow: function() {
@@ -619,7 +667,6 @@ var ModeManager = {
 
   _updateMode: function(callback) {
     var mode = this.currentMode;
-    var forceRefresh = this.forceRefresh;
     var playerLoaded = (typeof PlayerView != 'undefined');
 
     this.updateTitle();
@@ -644,15 +691,9 @@ var ModeManager = {
     } else {
       if (mode === MODE_LIST || mode === MODE_PICKER) {
         document.getElementById('views-list').classList.remove('hidden');
-        if (forceRefresh) {
-          ListView.refresh();
-        }
       }
       else if (mode === MODE_SUBLIST) {
         document.getElementById('views-sublist').classList.remove('hidden');
-        if (forceRefresh) {
-          SubListView.refresh();
-        }
       }
       else if (mode === MODE_SEARCH_FROM_TILES ||
                mode === MODE_SEARCH_FROM_LIST) {
@@ -664,9 +705,6 @@ var ModeManager = {
         // so we just hide sublist and player when we are in search mode.
         document.getElementById('views-sublist').classList.add('hidden');
         document.getElementById('views-player').classList.add('hidden');
-        if (forceRefresh) {
-          SearchView.refresh();
-        }
       }
 
       // Disable the NFC sharing when it's in the other modes.
