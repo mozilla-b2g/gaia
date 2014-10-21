@@ -62,15 +62,13 @@ ErrorController.prototype = {
 
     var lock = navigator.requestWakeLock('cpu');
 
-    var title =
-      navigator.mozL10n.get('notification-error-sync-title');
-
-    var description =
-      navigator.mozL10n.get('notification-error-sync-description');
+    var l10n = navigator.mozL10n;
+    var title = l10n.get('notification-error-sync-title');
+    var description = l10n.get('notification-error-sync-description');
 
     var url = this.accountErrorUrl + account._id;
     notification.app = this.app;
-    notification.send(title, description, url, () => {
+    notification.sendNotification(title, description, url).then(() => {
       callback && callback();
       lock.unlock();
     });

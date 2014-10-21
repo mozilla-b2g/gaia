@@ -197,5 +197,6 @@ Responder.prototype = {
 };
 
 Responder.prototype.on = Responder.prototype.addEventListener;
+Responder.prototype.off = Responder.prototype.removeEventListener;
 
 });

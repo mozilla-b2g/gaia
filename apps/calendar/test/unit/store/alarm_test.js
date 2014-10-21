@@ -5,18 +5,16 @@ var Abstract = require('store/abstract');
 var Calc = require('calc');
 var Factory = require('test/support/factory');
 var Responder = require('responder');
+var notificationsController = require('controllers/notifications');
 
 suite('store/alarm', function() {
   var subject;
   var db;
   var app;
-  var controller;
-
 
   setup(function(done) {
     app = testSupport.calendar.app();
     db = app.db;
-    controller = app.alarmController;
     subject = db.getStore('Alarm');
     subject.app = app;
 
@@ -226,17 +224,22 @@ suite('store/alarm', function() {
       navigator.mozAlarms = realApi;
     });
 
-    var handleAlarm;
+    var handleAlarm, onAlarm;
 
     setup(function() {
       handleAlarm = null;
       added.length = 0;
       getAllResults.length = 0;
       navigator.mozAlarms = mockApi;
-
-      controller.handleAlarm = function() {
+      onAlarm = notificationsController.onAlarm;
+      notificationsController.onAlarm = function() {
         handleAlarm = arguments;
       };
+    });
+
+    teardown(function() {
+      // Restore notificationsController.onAlarm
+      notificationsController.onAlarm = onAlarm;
     });
 
     suite('without alarm api', function() {

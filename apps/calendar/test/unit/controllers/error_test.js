@@ -4,9 +4,9 @@ define(function(require) {
 var CalendarError = require('error');
 var ErrorController = require('controllers/error');
 var Factory = require('test/support/factory');
-var Notification = require('notification');
 var Responder = require('responder');
 var nextTick = require('next_tick');
+var notification = require('notification');
 
 suite('controllers/error', function() {
   /**
@@ -114,16 +114,15 @@ suite('controllers/error', function() {
 
     var realSendApi;
     suiteSetup(function() {
-      realSendApi = Notification.send;
-      Notification.send = function() {
+      realSendApi = notification.sendNotification;
+      notification.sendNotification = function() {
         sent = Array.slice(arguments);
-        var cb = sent[sent.length - 1];
-        nextTick(cb);
+        return Promise.resolve();
       };
     });
 
     suiteTeardown(function() {
-      Notification.send = realSendApi;
+      notification.sendNotification = realSendApi;
     });
 
     setup(function() {
