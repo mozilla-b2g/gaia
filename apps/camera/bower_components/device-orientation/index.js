@@ -105,7 +105,13 @@ function handleMotionEvent(e) {
   // changing the orientation. The constant 9.2 is the force of gravity (9.8)
   // times the cosine of 20 degrees. So if the phone is within 20 degrees of
   // horizontal, we will never change the orientation.
-  if (z > 9.2 || z < -9.2) {
+  if (z > 8.3 || z < -8.3) {
+    return;
+  }
+
+  // Do not change the orientation, if the phone slope slightly.
+  var absoluteDiff = Math.abs(x) - Math.abs(y);
+    if (Math.abs(absoluteDiff) < 3) {
     return;
   }
 
