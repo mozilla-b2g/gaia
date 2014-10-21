@@ -377,6 +377,15 @@ class GaiaData(object):
         self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +
                                        "if(telephony.active) telephony.active.hangUp();")
 
+    def kill_conference_call(self):
+        self.marionette.execute_script("""
+        var callsToEnd = window.navigator.mozTelephony.conferenceGroup.calls;
+        for (var i = (callsToEnd.length - 1); i >= 0; i--) {
+            var call = callsToEnd[i];
+            call.hangUp();
+        }
+        """)
+
     @property
     def music_files(self):
         return self.marionette.execute_async_script(
