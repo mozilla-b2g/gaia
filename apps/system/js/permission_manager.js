@@ -74,6 +74,8 @@
       window.addEventListener('mozChromeEvent', this);
       window.addEventListener('attentionopening', this);
       window.addEventListener('attentionopened', this);
+      window.addEventListener('lockscreen-appopened', this);
+
       /* On home/holdhome pressed, discard permission request.
        * XXX: We should make permission dialog be embededd in appWindow
        * Gaia bug is https://bugzilla.mozilla.org/show_bug.cgi?id=853711
@@ -137,8 +139,9 @@
       window.removeEventListener('mozChromeEvent', this);
       window.removeEventListener('attentionopening', this);
       window.removeEventListener('attentionopened', this);
-      window.removeEventListener('home', this);
-      window.removeEventListener('holdhome', this);
+      window.removeEventListener('lockscreen-appopened', this);
+      window.removeEventListener('home', this.discardPermissionRequest);
+      window.removeEventListener('holdhome', this.discardPermissionRequest);
     },
 
     /**
@@ -260,6 +263,11 @@
             this.discardPermissionRequest();
           }
           break;
+        case 'lockscreen-appopened':
+          if (this.currentRequestId == 'fullscreen') {
+            this.discardPermissionRequest();
+          }
+          break;
       }
     },
 
@@ -309,7 +317,7 @@
         var message =
           _('fullscreen-request', { 'origin': detail.fullscreenorigin });
         this.fullscreenRequest =
-          this.requestPermission(detail.id, detail.origin, detail.permission,
+          this.requestPermission('fullscreen', detail.origin, detail.permission,
                                  message, '',
                                               /* yesCallback */ null,
                                               /* noCallback */ function() {
@@ -636,7 +644,16 @@
           this.currentRequestId === null) {
         return;
       }
-      this.dispatchResponse(this.currentRequestId, 'permission-deny', false);
+
+      if (this.currentRequestId == 'fullscreen') {
+        if (this.no.callback) {
+          this.no.callback();
+        }
+        this.fullscreenRequest = undefined;
+      } else {
+        this.dispatchResponse(this.currentRequestId, 'permission-deny', false);
+      }
+
       this.hidePermissionPrompt();
       this.pending = [];
     }
