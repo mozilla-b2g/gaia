@@ -1,17 +1,18 @@
-/* global UrlHelper, AppWindow */
+/* global UrlHelper */
 
 (function() {
 
   'use strict';
 
   function handleOpenUrl(url) {
-    var newApp = new AppWindow({
+    var configObject = {
       oop: true,
       useAsyncPanZoom: true,
       url: url
-    });
-
-    newApp.requestOpen();
+    };
+    window.dispatchEvent(new CustomEvent('openwindow', {
+      detail: configObject
+    }));
   }
 
   function handleActivity(activity) {
