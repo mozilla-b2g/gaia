@@ -22,6 +22,8 @@ dev_apps/test-receiver-2
 dev_apps/test-receiver-inline
 dev_apps/test-wappush
 dev_apps/test-shared-css
+dev_apps/theme-wallpaper-1
+dev_apps/theme-wallpaper-2
 dev_apps/uitest
 dev_apps/uitest-privileged
 dev_apps/test-fxa-client
