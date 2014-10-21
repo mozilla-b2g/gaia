@@ -4,6 +4,7 @@ var Actions = require('marionette-client').Actions;
 var System = require('../../../system/test/marionette/lib/system');
 var helper = require('../../../../tests/js-marionette/helper.js');
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
+var UtilityTray = require('./lib/utility_tray');
 
 marionette('Statusbar colors', function() {
   var client = marionette.client({
@@ -19,6 +20,7 @@ marionette('Statusbar colors', function() {
 
   var system = new System(client);
   var actions = new Actions(client);
+  var utilityTray = new UtilityTray(client);
 
   setup(function() {
     system.waitForStartup();
@@ -54,6 +56,15 @@ marionette('Statusbar colors', function() {
     waitForColor(true);
   });
 
+  test('statusbar icons are dark when utility tray is open', function() {
+    waitVisible();
+    helper.unlockScreen(client);
+    client.apps.launch(SETTINGS_APP);
+    waitForColor(true);
+    utilityTray.open();
+    waitForColor(false);
+  });
+
   function waitForCardsView() {
     client.waitFor(function() {
       var className = client.findElement('#screen').getAttribute('class');
@@ -74,11 +85,11 @@ marionette('Statusbar colors', function() {
 
   function waitForColor(light) {
     client.waitFor(function() {
-      var className = system.statusbar.scriptWith(function(element) {
-        return element.className;
+      var filter = system.statusbar.scriptWith(function(element) {
+        return window.getComputedStyle(element).filter;
       });
-      var index = className.indexOf('light');
-      return light ? index > -1 : index === -1;
+      var index = filter.indexOf('none');
+      return light ? index === -1 : index > -1;
     });
   }
 
