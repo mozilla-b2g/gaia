@@ -4,7 +4,6 @@
 
 from gaiatest.apps.lockscreen.app import LockScreen
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
-import pdb
 
 class TestLockScreen(GaiaImageCompareTestCase):
 
@@ -21,7 +20,6 @@ class TestLockScreen(GaiaImageCompareTestCase):
         self.device.lock()
 
     def test_lock_screen_notification(self):
-        pdb.set_trace()
 
         lock_screen = LockScreen(self.marionette)
         lock_screen.switch_to_frame()

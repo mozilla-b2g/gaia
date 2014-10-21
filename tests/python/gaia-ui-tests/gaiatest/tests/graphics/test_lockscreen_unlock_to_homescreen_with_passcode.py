@@ -5,7 +5,6 @@
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 from gaiatest.apps.homescreen.app import Homescreen
-import pdb
 
 class TestLockScreen(GaiaImageCompareTestCase):
 
