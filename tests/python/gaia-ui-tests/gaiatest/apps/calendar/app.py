@@ -18,10 +18,24 @@ class Calendar(Base):
     _hint_swipe_to_navigate_locator = (By.ID, 'hint-swipe-to-navigate')
     _add_event_button_locator = (By.XPATH, "//a[@href='/event/add/']")
 
+    _month_display_button_locator = (By.XPATH, "//a[@href='/month/']")
     _week_display_button_locator = (By.XPATH, "//a[@href='/week/']")
     _day_display_button_locator = (By.XPATH, "//a[@href='/day/']")
     _day_view_locator = (By.ID, 'day-view')
     _week_view_locator = (By.ID, 'week-view')
+
+    _time_views_locator = (By.ID, 'time-views')
+    _modify_event_view_locator = (By.ID, 'modify-event-view')
+    _event_view_locator = (By.ID, 'event-view')
+    _time_header_locator = (By.ID, 'time-header')
+
+    _settings_locator = (By.ID, 'settings')
+    _settings_header_locator = (By.ID, 'settings-header')
+    _settings_drawer_locator = (By.CLASS_NAME, 'settings-drawer')
+
+    _advanced_settings_view_locator = (By.ID, 'advanced-settings-view')
+    _advanced_settings_button_locator = (By.CSS_SELECTOR, '#settings .settings')
+    _advanced_settings_done_button_locator = (By.XPATH, "//a[@href='/settings/']")
 
     _event_list_date_locator = (By.ID, 'event-list-date')
     _event_locator = (By.CLASS_NAME, 'event')
@@ -60,25 +74,36 @@ class Calendar(Base):
             if event.title == title:
                 return event
 
-    def a11y_click_add_event_button(self):
-        self.accessibility.click(self.marionette.find_element(*self._add_event_button_locator))
-
+    def wait_for_new_event(self):
         from gaiatest.apps.calendar.regions.event import NewEvent
         new_event = NewEvent(self.marionette)
         new_event.wait_for_panel_to_load()
         return new_event
+
+    def a11y_click_add_event_button(self):
+        self.accessibility.click(self.marionette.find_element(*self._add_event_button_locator))
+        return self.wait_for_new_event()
 
     def tap_add_event_button(self):
         self.marionette.find_element(*self._add_event_button_locator).tap()
+        return self.wait_for_new_event()
 
-        from gaiatest.apps.calendar.regions.event import NewEvent
-        new_event = NewEvent(self.marionette)
-        new_event.wait_for_panel_to_load()
-        return new_event
+    def a11y_click_week_display_button(self):
+        self.accessibility.click(self.marionette.find_element(*self._week_display_button_locator))
+        self.wait_for_element_displayed(*self._week_view_locator)
 
     def tap_week_display_button(self):
         self.marionette.find_element(*self._week_display_button_locator).tap()
         self.wait_for_element_displayed(*self._week_view_locator)
+
+    def a11y_click_month_display_button(self):
+        self.accessibility.click(self.marionette.find_element(*self._month_display_button_locator))
+        self.wait_for_element_displayed(*self._current_monthly_calendar_locator)
+        self.wait_for_element_displayed(*self._current_months_day_locator)
+
+    def a11y_click_day_display_button(self):
+        self.accessibility.click(self.marionette.find_element(*self._day_display_button_locator))
+        self.wait_for_element_displayed(*self._day_view_locator)
 
     def tap_day_display_button(self):
         self.marionette.find_element(*self._day_display_button_locator).tap()
@@ -128,6 +153,26 @@ class Calendar(Base):
                 [self.marionette.find_element(*self._today_locator)])
             self.accessibility.click(yesterday)
             return previous
+
+    def a11y_click_header(self, header, selector):
+        self.marionette.execute_async_script(
+            "Accessibility.click(arguments[0].shadowRoot.querySelector('%s'));" % selector,
+            [header], special_powers=True)
+
+    def wait_fot_settings_drawer_animation(self):
+        self.wait_for_condition(
+            lambda m: m.find_element(
+                *self._settings_drawer_locator).get_attribute('data-animstate') == 'done')
+
+    def a11y_click_settings(self):
+        self.a11y_click_header(self.marionette.find_element(*self._time_header_locator),
+                               'button.icon-menu')
+        self.wait_fot_settings_drawer_animation()
+
+    def a11y_click_close_settings(self):
+        self.a11y_click_header(self.marionette.find_element(*self._settings_header_locator),
+                               'button.icon-menu')
+        self.wait_fot_settings_drawer_animation()
 
     def flick_to_next_month(self):
         self._flick_to_month('next')

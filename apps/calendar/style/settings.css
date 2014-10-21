@@ -26,7 +26,6 @@ body[data-path^='/settings'].pending-operation #progress-indicator {
   background-color: transparent;
   width: 100%;
   z-index: 0;
-  visibility: visible;
 }
 
 #settings gaia-header {

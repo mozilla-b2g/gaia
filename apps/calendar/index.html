@@ -64,7 +64,7 @@
 <body role="application" class="loading theme-productivity">
 
 <section is="lazy-styles" id="lazy-styles"></section>
-<section is="errors" id="errors" role="status"></section>
+<section is="errors" id="errors" role="status" aria-live="assertive" aria-atomic="true"></section>
 <section is="settings" id="settings" role="region"></section>
 
 <section id="time-views" role="region">
@@ -80,7 +80,7 @@
   </div>
 
   <div id="hint-swipe-to-navigate" class="hint hide">
-    <div class="hint-swipe-text">
+    <div class="hint-swipe-text" aria-live="assertive" aria-atomic="true">
       <strong data-l10n-id="hint-swipe-action">Swipe</strong>
       <span data-l10n-id="hint-swipe-to-navigate"> to navigate between calendar dates.</span>
     </div>
