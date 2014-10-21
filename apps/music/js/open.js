@@ -52,6 +52,8 @@ function handleOpenActivity(request) {
 
   function playBlob(blob) {
     PlayerView.init();
+    PlayerView.stop();
+
     PlayerView.setSourceType(TYPE_BLOB);
     PlayerView.dataSource = blob;
     PlayerView.play(); // Do we need to play for users?
