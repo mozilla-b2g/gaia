@@ -45,8 +45,7 @@ marionette('Vertical - Group', function() {
     // Collapse group
     var collapse = client.findElements('.group .toggle').pop();
     collapse.scriptWith(scrollIntoView);
-    client.waitFor(function() { return collapse.displayed; });
-    actions.tap(collapse).wait(1).perform();
+    actions.wait(1).tap(collapse).wait(1).perform();
 
     // Retrieve the metrics of the first icon after collapsing
     var rectAfter = icon.scriptWith(getRect);
