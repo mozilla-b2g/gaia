@@ -47,6 +47,10 @@ var AppDetailView = (function() {
         els.usage.querySelector('p[data-l10n-id="data-used-this-week"]');
       els.dataUsedThisMonth =
         els.usage.querySelector('p[data-l10n-id="data-used-this-month"]');
+      els.allowMobileDataUse =
+        els.view.querySelector('input[data-option="allowMobileDataUse"]');
+      els.allowMobileDataUseInfo =
+        els.view.querySelector('p[data-l10n-id="allow-mobile-data-use-info"]');
 
       // Setup the model
       SimManager.requestDataSimIcc(function(dataSimIcc) {
@@ -101,6 +105,14 @@ var AppDetailView = (function() {
         }
       });
 
+      els.allowMobileDataUse.addEventListener('change', function(evt) {
+        if (els.allowMobileDataUse.checked) {
+          navigator.mozApps.mgmt.enableMobileData(app);
+        } else {
+          navigator.mozApps.mgmt.disableMobileData(app);
+        }
+      });
+
       initialized = true;
     });
   }
@@ -115,8 +127,15 @@ var AppDetailView = (function() {
     // Localize app name
     localizedAppName = Common.getLocalizedAppName(app);
 
+    // Update the status of the `allowMobileDataUse` switch
+    els.allowMobileDataUse.checked = app.mobileDataEnabled;
+
     // Update the localized app name throughout the view
     els.headerHeading.textContent = localizedAppName;
+    els.allowMobileDataUseInfo.textContent =
+      _('allow-mobile-data-use-info', {
+        'localized-app-name': localizedAppName
+      });
   }
 
   function updateAppUsageData(app) {

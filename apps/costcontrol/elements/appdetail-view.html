@@ -27,6 +27,26 @@
           {{amount}} of data used this month
         </p>
       </section>
+
+      <section class="gaia-list">
+        <header id="data-control-header">
+          <h2 data-l10n-id="data-control">Data control</h2>
+        </header>
+
+        <ul class="settings">
+          <li class="active">
+            <label class="pack-switch end">
+              <input class="settings-option" data-option="allowMobileDataUse" type="checkbox"/>
+              <span data-l10n-id="allow-mobile-data-use">Allow mobile data use</span>
+            </label>
+          </li>
+          <li>
+            <p data-l10n-id="allow-mobile-data-use-info">
+              Allows {{localized-app-name}} to use data over a mobile connection.
+            </p>
+          </li>
+        </ul>
+      </section>
     </div>
 
     <script type="text/javascript" defer src="js/views/appdetail.js"></script>
