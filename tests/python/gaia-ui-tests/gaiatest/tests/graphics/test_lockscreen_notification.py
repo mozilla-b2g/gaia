@@ -16,7 +16,7 @@ class TestLockScreen(GaiaImageCompareTestCase):
         GaiaImageCompareTestCase.setUp(self)
 
         self.data_layer.set_time(self._seconds_since_epoch * 1000)
-
+        self.data_layer.set_setting('time.timezone', 'Atlantic/Reykjavik')
         # this time we need it locked!
         self.device.lock()
 
