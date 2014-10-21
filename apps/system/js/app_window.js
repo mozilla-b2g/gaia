@@ -1696,6 +1696,9 @@
     if (!this.element) {
       return;
     }
+    if (this._screenshotBlob) {
+      this._showScreenshotOverlay();
+    }
 
     this.debug('requesting to open');
     if (!this.loaded ||
@@ -2142,7 +2145,9 @@
         attention.parentWindow.instanceID === this.instanceID) {
       return;
     }
-
+    if (!this.isActive()) {
+      return;
+    }
     this.setVisible(false);
   };
   exports.AppWindow = AppWindow;
