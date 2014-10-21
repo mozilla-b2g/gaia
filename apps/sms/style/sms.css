@@ -726,6 +726,10 @@ Do not remove.
   width: 100%;
 }
 
+.recipient-suggestions-list {
+  border-bottom: 0.1rem solid #E7E7E7;
+}
+
 #messages-recipient-suggestions li:first-child {
   margin-top: 0;
 }
