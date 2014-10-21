@@ -59,7 +59,7 @@ Keyboards['bn-Probhat'] = {
     '।': '॥',
     'ঞ': 'ঋ',
     '.': ',?!;:…'
-},
+  },
   pages: [undefined, {
     alt: {
       '০': ['0', 'º'],
