@@ -1429,7 +1429,14 @@ function doNotScanInBackgroundHack(photodb) {
       // wait a bit for the log to be flushed, and then close the application
       if (document.hidden && photodb.scanning) {
         console.warn('[Gallery] exiting to avoid background scan.');
-        setTimeout(function() { window.close(); }, 500);
+        setTimeout(function() {
+          if (document.hidden) {
+            window.close();
+          }
+          else {
+            console.warn('[Gallery] now visible again, so not exiting');
+          }
+        }, 500);
       }
     }
   }
