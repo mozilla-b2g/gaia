@@ -20,6 +20,7 @@ class TestCalendar(GaiaImageCompareTestCase):
 
         # set the system date to an expected date, and timezone to UTC
         self.data_layer.set_time(self._seconds_since_epoch * 1000)
+        self.data_layer.set_setting('time.timezone', 'Atlantic/Reykjavik')
 
     def test_that_new_event_appears_on_all_calendar_views(self):
         """https://moztrap.mozilla.org/manage/case/6118/"""

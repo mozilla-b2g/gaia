@@ -4,20 +4,26 @@
 
 from gaiatest.apps.system.regions.cards_view import CardsView
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
-import sys
-
+from gaiatest.apps.search.app import Search
+import time
 class TestCardsView(GaiaImageCompareTestCase):
 
     _test_apps = ['Contacts', 'Gallery']
+    images = 'IMG_0001.jpg'
+    image_count = 4
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
+        self.push_resource(self.images, count=self.image_count)
   
         self.invoke_screen_capture()
 
         # Launch the test apps
         for app in self._test_apps:
             self.apps.launch(app)
+            time.sleep(4)
+            self.device.touch_home_button()
 
         # Switch to top level frame before starting the test
         self.marionette.switch_to_frame()
@@ -28,12 +34,15 @@ class TestCardsView(GaiaImageCompareTestCase):
 
         cards_view = CardsView(self.marionette)
         self.assertFalse(cards_view.is_cards_view_displayed, 'Cards view not expected to be visible')
-        self.invoke_screen_capture()
 
         # Pull up the cards view
         self.device.hold_home_button()
         cards_view.wait_for_cards_view()
         card_frame = self.marionette.get_active_frame()
+        self.invoke_screen_capture(frame='root')
+        self.change_orientation('landscape-primary')
+        self.invoke_screen_capture(frame='root')
+        self.change_orientation('portrait-primary')
         self.invoke_screen_capture(frame='root')
 
         # Wait for first app ready
@@ -55,6 +64,11 @@ class TestCardsView(GaiaImageCompareTestCase):
         self.invoke_screen_capture()
 
         self.assertEqual(self.apps.displayed_app.name, self._test_apps[0])
+
+        # take screenshot and pause, otherwise there will be a collision
+    def change_orientation(self, orientation,wait=2):
+        self.device.change_orientation(orientation)
+        time.sleep(wait)
 
     def tearDown(self):
 

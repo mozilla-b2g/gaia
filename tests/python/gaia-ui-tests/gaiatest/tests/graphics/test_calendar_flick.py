@@ -14,6 +14,7 @@ class TestCalendar(GaiaImageCompareTestCase):
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
         self.data_layer.set_time(self._seconds_since_epoch * 1000)
+        self.data_layer.set_setting('time.timezone', 'Atlantic/Reykjavik')
 
         self.today = datetime.datetime.utcfromtimestamp(self._seconds_since_epoch)
         # Determine the name and the year of the next month
