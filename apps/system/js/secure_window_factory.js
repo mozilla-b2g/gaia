@@ -143,9 +143,12 @@
       for (var instanceID in this.states.apps) {
         var secureWindow = this.states.apps[instanceID];
         if (config.manifestURL === secureWindow.manifestURL) {
+          if (!secureWindow.isSoftKillPending()) {
+            return;  // Already created.
+          }
+
           secureWindow.cancelSoftKill();
-          secureWindow.open();
-          return;  // Already created.
+          secureWindow.destroy();
         }
       }
       var app = new self.SecureWindow(config);

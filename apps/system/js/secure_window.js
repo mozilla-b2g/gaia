@@ -78,16 +78,15 @@
     this.close();
 
     // Schedule the window for killing.
-    var self = this;
     this.softKillTimeout = setTimeout(function() {
-      console.log('[SecureWindow] softKill() - Killing now: ' +
-                  self.manifestURL);
+      this.debug('[SecureWindow] softKill() - Killing now: ' +
+                  this.manifestURL);
 
-      self.kill();
-      delete self.softKillTimeout;
-    }, delay);
+      this.kill();
+      delete this.softKillTimeout;
+    }.bind(this), delay);
 
-    console.log('[SecureWindow] softKill() - Scheduled for kill in ' +
+    this.debug('[SecureWindow] softKill() - Scheduled for kill in ' +
                 delay + 'ms: ' + this.manifestURL);
   };
 
@@ -99,7 +98,7 @@
       clearTimeout(this.softKillTimeout);
       delete this.softKillTimeout;
 
-      console.log('[SecureWindow] cancelSoftKill() - Cancelled kill: ' +
+      this.debug('[SecureWindow] cancelSoftKill() - Cancelled kill: ' +
                   this.manifestURL);
     }
   };
