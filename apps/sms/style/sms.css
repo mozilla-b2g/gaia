@@ -736,6 +736,10 @@ Do not remove.
   width: 100%;
 }
 
+.recipient-suggestions-list {
+  border-bottom: 0.1rem solid #E7E7E7;
+}
+
 .multiline-recipients-mode #messages-recipient-suggestions {
   top: 10.5rem;
 
