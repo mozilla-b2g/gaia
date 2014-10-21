@@ -117,26 +117,36 @@ suite('LayoutNormalizer', function() {
 
     test('Use uppercase from layout', function(){
       var normalizer = new LayoutNormalizer({
-        upperCase: {
-          'a': 'E'
-        }
+        pages: [{
+          upperCase: {
+            'a': 'E'
+          }
+        }]
       });
 
       var key = {
         keyCode: 'a'.charCodeAt(0),
         value: 'a'
       };
-      assert.equal(normalizer._getUpperCaseValue(key), 'E',
-                   'upperCase of "a" should be "E" in this crafted test');
+
+      assert.equal(
+        normalizer._getUpperCaseValue(key, normalizer._layout.pages[0]),
+        'E',
+        'upperCase of "a" should be "E" in this crafted test');
     });
 
     test('Use key.value.toUpperCase()', function(){
-      var normalizer = new LayoutNormalizer({});
+      var normalizer = new LayoutNormalizer({
+        pages: [{}]
+      });
       var key = {
         keyCode: 'a'.charCodeAt(0),
         value: 'a'
       };
-      assert.equal(normalizer._getUpperCaseValue(key), 'A');
+      assert.equal(
+        normalizer._getUpperCaseValue(key, normalizer._layout.pages[0]),
+        'A'
+      );
     });
   });
 
@@ -548,6 +558,33 @@ suite('LayoutNormalizer', function() {
           'normalizePageAltKeys was not called for index = ' + index
         );
       });
+    });
+  });
+
+  suite('Whole-module tests', function() {
+    test('getUpperCase correctly uses moved-to-page0 properties', function(){
+      var normalizer = new LayoutNormalizer({
+        keys: [
+          [{value: 'a'}]
+        ],
+        upperCase: {'a': 'C'}
+      });
+
+      normalizer.normalize();
+
+      console.log(JSON.stringify(normalizer._layout));
+
+      assert.deepEqual(normalizer._layout.pages[0].keys,
+        [
+          [{
+            value: 'a',
+            keyCode: 97,
+            keyCodeUpper: 67,
+            lowercaseValue: 'a',
+            uppercaseValue: 'C',
+            isSpecialKey: false
+          }]
+        ], 'upperCase of "a" should be "C" in this crafted test');
     });
   });
 });
