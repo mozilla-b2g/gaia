@@ -1,4 +1,5 @@
-/* global MocksHelper, UtilityTray, MockAppWindowManager */
+/* global MocksHelper, UtilityTray, MockAppWindowManager,
+          MockSoftwareButtonManager */
 
 'use strict';
 
@@ -6,13 +7,15 @@ requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_software_button_manager.js');
 require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'AppWindowManager',
   'LazyLoader',
   'System',
-  'StatusBar'
+  'StatusBar',
+  'SoftwareButtonManager'
 ]);
 mocksHelperForUtilityTray.init();
 
@@ -21,6 +24,7 @@ suite('system/UtilityTray', function() {
   var fakeEvt;
   var fakeElement;
   var originalLocked;
+  var realSoftwareButtonManager;
   mocksHelperForUtilityTray.attachTestHelpers();
 
   function createEvent(type, bubbles, cancelable, detail) {
@@ -53,6 +57,9 @@ suite('system/UtilityTray', function() {
   }
 
   setup(function(done) {
+    realSoftwareButtonManager = window.softwareButtonManager;
+    window.softwareButtonManager = window.MocksoftwareButtonManager;
+
     var statusbar = document.createElement('div');
     statusbar.style.cssText = 'height: 100px; display: block;';
 
@@ -106,6 +113,8 @@ suite('system/UtilityTray', function() {
   });
 
   teardown(function() {
+    window.softwareButtonManager = realSoftwareButtonManager;
+
     stubById.restore();
     window.System.locked = false;
   });

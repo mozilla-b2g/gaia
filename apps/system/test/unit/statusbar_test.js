@@ -3,7 +3,7 @@
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockSystem, MockTouchForwarder, StatusBar, System,
            AppWindowManager, MockNfcManager, MockMobileconnection,
-           MockLayoutManager, MockNavigatorBattery */
+           UtilityTray, MockLayoutManager, MockNavigatorBattery */
 
 'use strict';
 
@@ -194,6 +194,7 @@ suite('system/Statusbar', function() {
     MockNavigatorMozMobileConnections.mTeardown();
     MockNavigatorBattery.mTeardown();
     System.locked = false;
+    System.currentApp = null;
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
@@ -1567,6 +1568,7 @@ suite('system/Statusbar', function() {
         }
       };
 
+      System.currentApp = app;
       this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
       this.sinon.stub(StatusBar.element, 'getBoundingClientRect').returns({
         height: 10
@@ -1655,10 +1657,25 @@ suite('system/Statusbar', function() {
       test('it should not reveal when ftu is running', function() {
         FtuLauncher.mIsRunning = true;
         fakeDispatch('touchstart', 100, 0);
-        fakeDispatch('touchmove', 100, 5);
-        assert.equal(StatusBar.element.style.transform, '');
+        fakeDispatch('touchmove', 100, 100);
+
+        var titleEl = System.currentApp.element
+                                       .querySelector('.titlebar');
+        assert.equal(titleEl.style.transform, '');
         FtuLauncher.mIsRunning = false;
       });
+
+      test('it should not forward events when the tray is opened', function() {
+        UtilityTray.active = true;
+        fakeDispatch('touchstart', 100, 0);
+        fakeDispatch('touchmove', 100, 100);
+
+        var titleEl = System.currentApp.element
+                                       .querySelector('.titlebar');
+        assert.equal(titleEl.style.transform, '');
+        UtilityTray.active = false;
+      });
+
 
       suite('after the gesture', function() {
         suite('when the StatusBar is not fully displayed', function() {
@@ -2263,6 +2280,8 @@ suite('system/Statusbar', function() {
   suite('handle events', function() {
     var app;
     var setAppearanceStub;
+    var resumeUpdateStub;
+    var pauseUpdateStub;
 
     function testEventThatHides(event) {
       var evt = new CustomEvent(event);
@@ -2281,6 +2300,23 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
     }
 
+    function testEventThatPause(event) {
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+      assert.isTrue(pauseUpdateStub.called);
+
+      StatusBar.resumeUpdate();
+    }
+
+    function testEventThatResume(event) {
+      StatusBar.pauseUpdate();
+
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+      assert.isTrue(resumeUpdateStub.called);
+      assert.isFalse(StatusBar.isPaused());
+    }
+
     setup(function() {
       app = {
         getTopMostWindow: function getTopMostWindow() {
@@ -2289,6 +2325,8 @@ suite('system/Statusbar', function() {
       };
       this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
       setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+      pauseUpdateStub = this.sinon.stub(StatusBar, 'pauseUpdate');
+      resumeUpdateStub = this.sinon.stub(StatusBar, 'resumeUpdate');
     });
 
     test('stackchanged', function() {
@@ -2337,6 +2375,30 @@ suite('system/Statusbar', function() {
       var stub = this.sinon.spy(StatusBar, '_updateMinimizedStatusBarWidth');
       testEventThatShows.bind(this)('activityopened');
       assert.isTrue(stub.calledOnce);
+    });
+
+    test('utilitytraywillshow', function() {
+      testEventThatPause.bind(this)('utilitytraywillshow');
+    });
+
+    test('utilitytraywillhide', function() {
+      testEventThatPause.bind(this)('utilitytraywillhide');
+    });
+
+    test('sheets-gesture-begin', function() {
+      testEventThatPause.bind(this)('sheets-gesture-begin');
+    });
+
+    test('sheets-gesture-end', function() {
+      testEventThatResume.bind(this)('sheets-gesture-end');
+    });
+
+    test('utility-tray-overlayopened', function() {
+      testEventThatResume.bind(this)('utility-tray-overlayopened');
+    });
+
+    test('utility-tray-overlayclosed', function() {
+      testEventThatResume.bind(this)('utility-tray-overlayclosed');
     });
   });
 

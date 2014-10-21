@@ -242,6 +242,13 @@ var StatusBar = {
     window.addEventListener('attentionopened', this);
     window.addEventListener('attentionclosed', this);
 
+    window.addEventListener('sheets-gesture-begin', this);
+    window.addEventListener('sheets-gesture-end', this);
+    window.addEventListener('utilitytraywillshow', this);
+    window.addEventListener('utilitytraywillhide', this);
+    window.addEventListener('utility-tray-overlayopened', this);
+    window.addEventListener('utility-tray-overlayclosed', this);
+
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
@@ -292,8 +299,6 @@ var StatusBar = {
     window.addEventListener('activityterminated', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
-    window.addEventListener('sheets-gesture-begin', this);
-    window.addEventListener('sheets-gesture-end', this);
     window.addEventListener('stackchanged', this);
 
     // Track Downloads via the Downloads API.
@@ -351,6 +356,21 @@ var StatusBar = {
       case 'attentionclosed':
         // Hide the clock in the statusbar when screen is locked
         this.toggleTimeLabel(!this.isLocked());
+        break;
+
+      case 'sheets-gesture-begin':
+        this.element.classList.add('hidden');
+        this.pauseUpdate();
+        break;
+
+      case 'utilitytraywillshow':
+      case 'utilitytraywillhide':
+        this.pauseUpdate();
+        break;
+
+      case 'utility-tray-overlayopened':
+      case 'utility-tray-overlayclosed':
+        this.resumeUpdate();
         break;
 
       case 'lockpanelchange':
@@ -514,12 +534,12 @@ var StatusBar = {
 
       case 'homescreenopening':
       case 'appopening':
-      case 'sheets-gesture-begin':
         this.element.classList.add('hidden');
         break;
 
       case 'sheets-gesture-end':
         this.element.classList.remove('hidden');
+        this.resumeUpdate();
         break;
 
       case 'stackchanged':
@@ -657,7 +677,25 @@ var StatusBar = {
     this._updateIconVisibility();
   },
 
+  _paused: 0,
+  pauseUpdate: function sb_pauseUpdate() {
+    this._paused++;
+  },
+
+  resumeUpdate: function sb_resumeUpdate() {
+    this._paused--;
+    this._updateIconVisibility();
+  },
+
+  isPaused: function sb_isPaused() {
+    return this._paused > 0;
+  },
+
   _updateIconVisibility: function sb_updateIconVisibility() {
+    if (this._paused !== 0) {
+      return;
+    }
+
     // Let's refresh the minimized clone.
     this.cloneStatusbar();
 
@@ -737,6 +775,11 @@ var StatusBar = {
 
     // Do not forward events if FTU is running
     if (FtuLauncher.isFtuRunning()) {
+      return;
+    }
+
+    // Do not forward events is utility-tray is active
+    if (UtilityTray.active) {
       return;
     }
 
