@@ -837,33 +837,6 @@ form[role="combobox"] span[data-field="type"] {
 
 }
 
-.field-template.inserted {
-  transition: opacity 0.5s ease-in;
-  opacity: 0;
-}
-
-.field-template.inserted.displayed {
-  opacity: 1;
-}
-
-.field-template.inserted input[data-field], .field-template.inserted [role="combobox"] {
-  opacity: 0;
-}
-
-@keyframes add-field {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-.field-template.inserted.displayed input[data-field], .field-template.inserted [role="combobox"] {
-  animation: add-field 1s linear 0.5s 1 normal forwards;
-}
-
 /* Add separation between templates */
 .field-template + .field-template {
   margin-top: 1rem;
@@ -946,3 +919,37 @@ form[role="combobox"] span[data-field="type"] {
 #view-settings.fade-in, #view-contact-form.fade-in {
   transform: translateY(0);
 }
+
+
+
+
+.field-template.inserted {
+  opacity: 0;
+}
+
+.field-template.inserted.displayed {
+  animation: add-field 0.25s ease 0s 1 normal forwards;
+}
+
+.field-template.inserted .first-row, .field-template.inserted .second-row {
+  opacity: 0;
+}
+
+@keyframes add-field {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.field-template.inserted.displayed .first-row {
+  animation: add-field 0.20s linear 0.15s 1 normal forwards;
+}
+
+.field-template.inserted.displayed .second-row {
+  animation: add-field 0.20s linear 0.35s 1 normal forwards;
+}
+

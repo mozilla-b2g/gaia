@@ -9,19 +9,19 @@
     <div id='add-phone-#i#' role="listitem" data-template class='phone-template field-template' data-index="#i#">
       <fieldset class="fillflow-row">
         <div class="two_fields">
-          <legend class="action" role="combobox" aria-haspopup="true" aria-labelledby="tel_type_#i#">
+          <legend class="action first-row" role="combobox" aria-haspopup="true" aria-labelledby="tel_type_#i#">
             <span aria-hidden="true" data-taglist="phone-type" name="tel" data-value="#type_value#"
               id="tel_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">
               #type#
             </span>
           </legend>
-          <p class="setbox-item">
+          <p class="setbox-item first-row">
             <input placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel[#i#][carrier]" class="textfield" type="text" x-inputmode="latin-prose" value="#carrier#" id="carrier_#i#" dir="auto">
             <button type="reset">Clear</button>
           </p>
         </div>
         <section>
-          <p class="setbox-item">
+          <p class="setbox-item second-row">
             <input placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel[#i#][value]" class="textfield" type="tel" value="#value#" id="number_#i#">
             <button type="reset">Clear</button>
           </p>
