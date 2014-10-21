@@ -455,8 +455,9 @@ var CallsHandler = (function callsHandler() {
     }
 
     if (telephony.active == telephony.conferenceGroup) {
-      endConferenceCall();
-      CallScreen.hideIncoming();
+      endConferenceCall().then(function() {
+        CallScreen.hideIncoming();
+      }, function() {});
       return;
     }
 
@@ -557,7 +558,7 @@ var CallsHandler = (function callsHandler() {
     }
   }
 
-  // Hang up the held call or the second incomming call
+  // Hang up the held call or the second incoming call
   function hangupWaitingCalls() {
     handledCalls.forEach(function(handledCall) {
       var callState = handledCall.call.state;
@@ -583,12 +584,11 @@ var CallsHandler = (function callsHandler() {
   }
 
   function endConferenceCall() {
-    var callsToEnd = telephony.conferenceGroup.calls;
-    CallScreen.setEndConferenceCall();
-    for (var i = (callsToEnd.length - 1); i >= 0; i--) {
-      var call = callsToEnd[i];
-      call.hangUp();
-    }
+    return telephony.conferenceGroup.hangUp().then(function() {
+      CallScreen.setEndConferenceCall();
+    }, function() {
+      console.error('Failed to hangup Conference Call');
+    });
   }
 
   function end() {
