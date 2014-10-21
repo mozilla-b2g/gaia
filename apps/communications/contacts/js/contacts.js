@@ -20,7 +20,7 @@
 var COMMS_APP_ORIGIN = location.origin;
 
 // Scale ratio for different devices
-var SCALE_RATIO = window.innerWidth / 320;
+var SCALE_RATIO = window.devicePixelRatio || 1;
 
 var Contacts = (function() {
   var SHARED = 'shared';
