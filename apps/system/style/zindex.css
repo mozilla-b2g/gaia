@@ -160,6 +160,13 @@
   z-index: 4098 !important;
 }
 
+/* Need raise zIndex when in normal mode, or the animation would be hidden */
+#screen > [data-z-index-level="app"] > .lockScreenInputWindow
+{
+  /* Or the .appWindow one would be first adopted.*/
+  z-index: 2049 !important;
+}
+
 #screen > [data-z-index-level="app"] > .lockScreenWindow.active
 {
   /* Or the .appWindow one would be first adopted.*/
@@ -247,7 +254,7 @@
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen):not(.attentionWindow),
-#screen > [data-z-index-level="app"] > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow),
+#screen > [data-z-index-level="app"] > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow),
 #screen > [data-z-index-level="app"] > .appWindow.will-become-active {
   z-index: 6;
 }

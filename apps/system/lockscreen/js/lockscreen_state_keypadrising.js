@@ -33,26 +33,20 @@
   LockScreenStateKeypadRising.prototype.transferTo =
   function lsskr_transferTo(inputs) {
     return new Promise((resolve, reject) => {
-      var transitionEnd = (evt) => {
-        // XXX: keyboard animation would affect panel, but the target would
-        // not be 'this.lockScreen.overlay'.
-        if (evt.target.classList.contains('lockscreen-panel')) {
-          window.removeEventListener('transitionend', transitionEnd);
-          // We must map this native event to avoid listen 'transitionend'
-          // in the manager cause racing problem (the event and transferring
-          // done event).
-          resolve( {'transitionEnd': true} );
-        }
-      };
-      // Copy from the original switching method.
-      this.lockScreen.overlay.classList.remove('no-transition');
-      window.addEventListener('transitionend', transitionEnd);
-      // Trigger the transition.
-      this.lockScreen.overlay.dataset.panel = 'passcode';
       // XXX: Because when it's 'success', the keyboard would be hidden.
       // This should be fixed: we should manage the show/hide with other
       // CSS flags.
       this.lockScreen.overlay.dataset.passcodeStatus = '';
+      this.lockScreen.overlay.dataset.panel = 'passcode';
+      // XXX: Before it become a real input window.
+      window.dispatchEvent(
+        new CustomEvent('lockscreen-request-inputpad-open'));
+      // XXX: We need a overall refactoring about panel and
+      // panel styling in the future.
+      this.lockScreen.overlay.classList.add('passcode-unlocking');
+      // XXX: We assume this is sync in order. But if we use real
+      // input window this would be broken.
+      resolve({'inputpad': 'open'});
     });
   };
   exports.LockScreenStateKeypadRising = LockScreenStateKeypadRising;

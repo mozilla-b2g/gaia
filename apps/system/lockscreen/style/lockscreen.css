@@ -116,7 +116,7 @@
   opacity: 0.99;
 }
 
-.lockscreen-panel {
+#lockscreen .lockscreen-panel {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -150,8 +150,6 @@
 
 [data-panel="main"] #lockscreen-panel-main,
 [data-panel="passcode"] #lockscreen-panel-main,
-[data-panel="passcode"] #lockscreen-panel-passcode,
-[data-panel="emergency-call"] #lockscreen-panel-passcode,
 [data-panel="emergency-call"] #lockscreen-panel-emergency-call {
   visibility: inherit;
 }
@@ -161,8 +159,8 @@
   position: absolute;
 }
 
-[data-panel="passcode"] #lockscreen-alt-camera {
-  opacity: 1;
+[data-panel="passcode"] #lockscreen-alt-camera.lockscreen-icon {
+  opacity: 1.0;
 }
 
 #lockscreen-header {
@@ -258,14 +256,14 @@
   z-index: 4;
 }
 
-.lockscreen-icon-area {
+#lockscreen .lockscreen-icon-area {
   height: 10rem;
   position: absolute;
   border-style: none;
   transition: opacity var(--panel-transition-secs) ease;
 }
 
-.lockscreen-icon {
+#lockscreen .lockscreen-icon {
   width: 6rem;
   height: 6rem;
   pointer-events: none;
@@ -276,24 +274,24 @@
   width: calc(100%);
 }
 
-.touched .lockscreen-icon {
+#lockscreen .touched .lockscreen-icon {
   transition: none;
 }
 
-.lockscreen-icon-right {
+#lockscreen .lockscreen-icon-right {
   right: calc(50% - 14rem);
 }
 
-.lockscreen-icon-left {
+#lockscreen .lockscreen-icon-left {
   left: calc(50% - 14rem);
 }
 
 @media (min-width:768px) {
-  .lockscreen-icon-right {
+  #lockscreen .lockscreen-icon-right {
     right: calc(50% - 20.5rem);
   }
 
-  .lockscreen-icon-left {
+  #lockscreen .lockscreen-icon-left {
     left: calc(50% - 20.5rem);
   }
 
@@ -326,13 +324,13 @@ button::-moz-focus-inner {
   margin-top: 1.9rem;
 }
 
-.lockscreen-icon-left, .lockscreen-icon-right {
+#lockscreen .lockscreen-icon-left, .lockscreen-icon-right {
   z-index: 16;
   pointer-events: auto;
 }
 
 /* Compensation for the effects after enabling the pointer-event attribute. */
-.lockscreen-icon-left:active, .lockscreen-icon-right:active {
+#lockscreen .lockscreen-icon-left:active, .lockscreen-icon-right:active {
   background: none;
 }
 
@@ -344,7 +342,7 @@ button::-moz-focus-inner {
   margin-top: 2rem;
 }
 
-#lockscreen-alt-camera {
+#lockscreen-alt-camera.lockscreen-icon {
   border-radius: 2.5rem;
   background-color: rgba(255, 255, 255, 0.25);
   -moz-box-sizing: border-box;
@@ -368,266 +366,9 @@ button::-moz-focus-inner {
   background-size: 3rem;
 }
 
-#lockscreen-panel-passcode {
-  /* > camera, unlock icons > canvas */
-  z-index: 32;
-}
-
 #lockscreen-panel-emergency-call {
   /* > camera, unlock icons > canvas */
   z-index: 32;
-}
-
-#lockscreen-passcode-code {
-  position: absolute;
-  bottom: 20.4rem;
-  height: 7rem;
-  width: 100%;
-  background-color: rgba(51, 51, 51, 0.3);
-  margin: 0;
-  padding: 0 1rem;
-  -moz-box-sizing: border-box;
-  visibility: hidden;
-  transform: translateY(calc(20.4rem + 7.2rem));
-  transition: visibility 0.3s ease, transform 0.3s ease;
-}
-
-[data-passcode-status="success"] #lockscreen-passcode-pad,
-[data-passcode-status="success"] #lockscreen-passcode-code {
-  transform: translateY(calc(20.4rem + 7.2rem)) !important;
-}
-
-[data-panel="passcode"] #lockscreen-passcode-code {
-  visibility: inherit;
-  transform: translateY(0);
-}
-
-[data-panel="emergency-call"] #lockscreen-passcode-code {
-  transition-delay: var(--panel-transition-secs);
-}
-
-#lockscreen-passcode-code > span {
-  -moz-box-sizing: border-box;
-  display: block;
-  float: left;
-  width: calc(25% - 1rem);
-  margin: 1.5rem 0.5rem;
-  height: calc(100% - 3rem);
-  text-align: center;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 0.5rem;
-  position: relative;
-}
-
-[data-passcode-status="error"] #lockscreen-passcode-code > span {
-  border: 0.1rem #B70404 solid;
-}
-
-[data-passcode-status="error"] #lockscreen-passcode-code > span[data-dot]::before {
-  background-color: #B70404;
-}
-
-#lockscreen-passcode-code > span[data-dot]::before {
-  content: '';
-  display: block;
-  position: absolute;
-  width: 1.5rem;
-  height: 1.5rem;
-  background-color: #3e3b39;
-  border-radius: 0.75rem;
-  top: 50%;
-  left: 50%;
-  -moz-margin-start: -0.75rem;
-  margin-top: -0.75rem;
-}
-
-#lockscreen-passcode-pad {
-  -moz-box-sizing: border-box;
-  position: absolute;
-  bottom: 0;
-  height: 20.4rem;
-  width: 100%;
-  background-color: #606b6e;
-  visibility: hidden;
-  transform: translateY(calc(20.4rem + 7em));
-  transition: visibility 0.3s ease, transform 0.3s ease;
-}
-
-[data-panel="passcode"] #lockscreen-passcode-pad {
-  visibility: inherit;
-  transform: translateY(0);
-}
-
-[data-panel="emergency-call"] #lockscreen-passcode-pad {
-  transition-delay: var(--panel-transition-secs);
-}
-
-#lockscreen-passcode-pad > a {
-  -moz-box-sizing: border-box;
-  display: block;
-  float: left;
-  width: 33.333%;
-  height: 5.1rem;
-  outline: none;
-  padding: 0; /* 2rem; */
-  font-size: 3.2rem;
-  font-weight: 400;
-  line-height: 4rem;
-  color: #fff;
-  text-decoration: none;
-}
-
-#lockscreen-passcode-pad > a > div {
-  height: calc(100% - 0.8rem);
-  margin-top: 0.4rem;
-  border-right-width: 0.1rem;
-  border-right-style: solid;
-}
-
-#lockscreen-passcode-pad > a:not(.lockscreen-passcode-pad-func) > div{
-  text-align: center;
-}
-
-#lockscreen-passcode-pad > a[data-key="3"] > div,
-#lockscreen-passcode-pad > a[data-key="6"] > div,
-#lockscreen-passcode-pad > a[data-key="9"] > div,
-#lockscreen-passcode-pad > a[data-key="c"] > div,
-#lockscreen-passcode-pad > a[data-key="b"] > div{
-  border-right: none;
-}
-
-#lockscreen-passcode-pad > a[data-key="b"] > div {
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: #abb0b1;
-  font-family: 'Keyboard Symbols', sans-serif;
-}
-
-#lockscreen-passcode-pad > a.last-row > div {
-  padding-top: 0.4rem;
-  height: calc(100% - 1.2rem);
-}
-
-#lockscreen-passcode-pad > a.last-row[data-key="e"] > div {
-  height: calc(100% - 1rem);
-}
-
-#lockscreen-passcode-pad > a.last-row:not([data-key="0"]) > div {
-  padding-top: 0.2rem;
-}
-
-#lockscreen-passcode-pad > a > div > span {
-  pointer-events: none;
-  font-size: 1.2rem;
-  padding: 0.4rem;
-  font-weight: 400;
-  color: #a6a6a6;
-}
-
-.passcode-entered #lockscreen-passcode-pad > a[data-key="c"] {
-  display: none;
-}
-
-.passcode-entered #lockscreen-passcode-pad > a[data-key="b"] {
-  display: block;
-}
-
-#lockscreen-passcode-pad > a:active {
-  background-color: #4a5255;
-  color: #00caf2;
-  text-shadow: none;
-}
-
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func:active > div > span{
-  color: #00caf2;
-}
-
-#lockscreen-passcode-pad .row1 {
-  background-color: #5b6668;
-}
-
-#lockscreen-passcode-pad .row2 {
-  background-color: #566061;
-}
-
-#lockscreen-passcode-pad .row3 {
-  background-color: #525c5e;
-}
-
-#lockscreen-passcode-pad .row0 > div{
-  border-right-color: #525b5e;
-}
-
-#lockscreen-passcode-pad .row1 > div {
-  border-right-color: #4c5657;
-}
-
-#lockscreen-passcode-pad .row2 > div {
-  border-right-color: #475052;
-}
-
-#lockscreen-passcode-pad .row3 > div {
-  border-right-color: #434b4d;
-}
-
-#lockscreen-passcode-pad > a.row0 > div,
-#lockscreen-passcode-pad > a.row1 > div,
-#lockscreen-passcode-pad > a.row2 > div {
-  margin-top: 0.4rem;
-}
-
-#lockscreen-passcode-pad > a.row0 > div > span,
-#lockscreen-passcode-pad > a.row1 > div > span,
-#lockscreen-passcode-pad > a.row2 > div > span {
-  display: block;
-  margin-top: -2.6rem;
-}
-
-#lockscreen-passcode-pad > a:active > div > span {
-  color: transparent;
-  text-shadow: none;
-}
-
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > div{
-  padding-left: 1rem;
-  padding-right: 1rem;
-  text-align: center;
-}
-
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func:after {
-  display: inline-block;
-  width: 0;
-  height: 100%;
-  overflow: hidden;
-  content: '';
-  vertical-align: middle;
-}
-
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > div > span {
-  display: inline-block;
-  padding: 0;
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 400;
-  line-height: 1.6rem;
-  text-transform: uppercase;
-  vertical-align: middle;
-}
-
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func[data-key="e"] > div > span,
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func[data-key="c"] > div > span {
-  font-size: 1.3rem;
-  line-height: 1.4rem;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-#lockscreen-passcode-pad > a.disabled {
-  pointer-events: none;
-}
-
-#lockscreen-passcode-pad > a.disabled > div > span {
-  color: #4d4d4d;
 }
 
 #lockscreen-panel-emergency-call {
@@ -672,11 +413,11 @@ button::-moz-focus-inner {
   z-index: 5;
 }
 
-.touched #lockscreen-icon-container {
+#lockscreen .touched #lockscreen-icon-container {
   transition: none;
 }
 
-.touched .lockscreen-icon-area {
+#lockscreen .touched .lockscreen-icon-area {
   transition: none;
 }
 

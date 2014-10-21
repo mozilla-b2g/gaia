@@ -4,6 +4,7 @@
            ScreenBrightnessTransition, ScreenWakeLockManager */
 
 var ScreenManager = {
+
   /*
    * return the current screen status
    * Must not mutate directly - use toggleScreen/turnScreenOff/turnScreenOn.
@@ -70,6 +71,11 @@ var ScreenManager = {
    * (including auto-brightness toggle and calculation) out of this module.
    */
   _screenBrightnessTransition: null,
+
+  /**
+   * Timeout to black the screen when locking.
+   */
+  LOCKING_TIMEOUT: 10,
 
   /*
    * Wait for _dimNotice milliseconds during idle-screen-off
@@ -465,7 +471,7 @@ var ScreenManager = {
     // it was never unlocked.
     } else if (!this._unlocking) {
       if (window.System.locked) {
-        this._setIdleTimeout(10, true);
+        this._setIdleTimeout(this.LOCKING_TIMEOUT, true);
         window.addEventListener('lockscreen-appclosing', this);
         window.addEventListener('lockpanelchange', this);
       } else {
