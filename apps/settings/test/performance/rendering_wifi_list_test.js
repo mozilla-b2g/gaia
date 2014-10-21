@@ -32,6 +32,8 @@ marionette(mozTestInfo.appPath + ' >', function() {
       lastEvent: lastEvent
     });
 
+    performanceHelper.unlockScreen();
+
     performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = true;
       app.launch(waitForBody);

@@ -32,7 +32,7 @@ marionette(mozTestInfo.appPath + ' >', function() {
       lastEvent: lastEvent
     });
 
-    performanceHelper.disableScreenTimeout();
+    performanceHelper.unlockScreen();
 
     performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = true;
