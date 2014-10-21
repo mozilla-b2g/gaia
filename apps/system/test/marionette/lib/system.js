@@ -291,5 +291,13 @@ System.prototype = {
         return options[i];
       }
     }
+  },
+
+  sendSystemUpdateNotification: function() {
+    this.client.executeScript(function() {
+      var UpdateManager = window.wrappedJSObject.UpdateManager;
+      UpdateManager.addToUpdatesQueue(UpdateManager.systemUpdatable);
+      UpdateManager.displayNotificationAndToaster();
+    });
   }
 };

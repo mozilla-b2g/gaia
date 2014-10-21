@@ -408,7 +408,10 @@ var UtilityTray = {
   },
 
   updateNotificationCount: function ut_updateNotificationCount() {
-    var count = this.container.querySelectorAll('.notification').length;
+    var count = this.notifications.
+      querySelectorAll('#desktop-notifications-container .notification, ' +
+        '.fake-notification.displayed').length;
+
     navigator.mozL10n.setAttributes(this.notificationTitle,
       'statusbarNotifications', {
         n: count
