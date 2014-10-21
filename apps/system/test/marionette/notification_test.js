@@ -16,7 +16,14 @@ marionette('notification tests', function() {
   var actions = new Marionette.Actions(client);
   var notificationList = new NotificationList(client);
 
+  var lockscreenIsReady = function() {
+    return client.executeScript(function() {
+      return window.wrappedJSObject.lockScreenWindowManager.states.ready;
+    });
+  };
+
   test('fire notification', function() {
+    client.waitFor(lockscreenIsReady);
     // Need to trigger LockScreenWindow manager with screenchange event.
     client.executeScript(function(enabled) {
       window.wrappedJSObject.ScreenManager.turnScreenOff(true);
@@ -53,6 +60,7 @@ marionette('notification tests', function() {
   });
 
   test('system replace notification', function() {
+    client.waitFor(lockscreenIsReady);
     // Need to trigger LockScreenWindow manager with screenchange event
     client.executeScript(function(enabled) {
       window.wrappedJSObject.ScreenManager.turnScreenOff(true);
@@ -95,6 +103,7 @@ marionette('notification tests', function() {
   });
 
   test('close notification', function() {
+    client.waitFor(lockscreenIsReady);
     client.executeScript(function(enabled) {
       window.wrappedJSObject.ScreenManager.turnScreenOff(true);
       window.wrappedJSObject.ScreenManager.turnScreenOn(true);
@@ -140,6 +149,7 @@ marionette('notification tests', function() {
   // see also: bug 916730
   test.skip('email notification should not wake screen', function() {
     client.switchToFrame();
+    client.waitFor(lockscreenIsReady);
     client.executeScript(function() {
       window.wrappedJSObject.ScreenManager.turnScreenOff(true);
     });

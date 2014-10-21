@@ -32,6 +32,7 @@
      * @memberof LockScreenWindowManager#
      */
     states: {
+      ready: false,
       FTUOccurs: false,
       enabled: true,
       instance: null,
@@ -129,7 +130,8 @@
           // we should not open the LockScreen, because the user may stay
           // in another app, not the LockScreen.
           if ('proximity' !== evt.detail.screenOffBy &&
-              !this.states.FTUOccurs) {
+              !this.states.FTUOccurs &&
+              this.states.ready) {
             // The app would be inactive while screen off.
             this.openApp();
           }
@@ -173,6 +175,7 @@
   LockScreenWindowManager.prototype.startObserveSettings =
     function lwm_startObserveSettings() {
       var enabledListener = (val) => {
+        this.states.ready = true;
         if ('false' === val ||
             false   === val) {
           this.states.enabled = false;
@@ -340,6 +343,7 @@
       var req = window.SettingsListener.getSettingsLock()
         .get('lockscreen.enabled');
       req.onsuccess = () => {
+        this.states.ready = true;
         if (true === req.result['lockscreen.enabled'] ||
            'true' === req.result['lockscreen.enabled']) {
           this.states.enabled = true;
