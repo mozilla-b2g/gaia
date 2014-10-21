@@ -102,16 +102,13 @@ var videoControlsAutoHidingMsOverride;
 document.addEventListener('visibilitychange', function visibilityChange() {
   if (document.hidden) {
     stopParsingMetadata();
-    if (playing)
+    if (playing) {
       pause();
-
-    if (playerShowing)
-      releaseVideo();
+    }
   }
   else {
     if (playerShowing) {
       setControlsVisibility(true);
-      restoreVideo();
     } else {
       // We only start parsing metadata when player is not shown.
       startParsingMetadata();
@@ -899,17 +896,28 @@ function handleSliderTouchStart(event) {
 }
 
 function setVideoUrl(player, video, callback) {
+
+  function handleLoadedMetadata() {
+    // We only want the 'loadedmetadata' handler to execute when the video
+    // app explicitly loads a video. To prevent unwanted side affects, for
+    // example, when the video app is sent to the background and then to the
+    // foreground, where gecko sends a 'loadedmetadata' event (among others),
+    // we clear the 'loadedmetadata' event handler after the event fires.
+    dom.player.onloadedmetadata = null;
+    callback();
+  }
+
   if ('name' in video) {
     videodb.getFile(video.name, function(file) {
       var url = URL.createObjectURL(file);
-      player.onloadedmetadata = callback;
+      player.onloadedmetadata = handleLoadedMetadata;
       player.src = url;
 
       if (pendingPick)
         currentVideoBlob = file;
     });
   } else if ('url' in video) {
-    player.onloadedmetadata = callback;
+    player.onloadedmetadata = handleLoadedMetadata;
     player.src = video.url;
   }
 }
@@ -1035,11 +1043,7 @@ function hidePlayer(updateVideoMetadata, callback) {
     playerShowing = false;
     updateDialog();
 
-    // Unload the video. This releases the video decoding hardware
-    // so other apps can use it. Note that any time the video app is hidden
-    // (by switching to another app) we leave player mode, and this
-    // code gets triggered, so if the video app is not visible it should
-    // not be holding on to the video hardware
+    // The video is no longer being played; unload the it.
     dom.player.removeAttribute('src');
     dom.player.load();
 
@@ -1238,54 +1242,6 @@ function handleSliderTouchMove(event) {
 function toCamelCase(str) {
   return str.replace(/\-(.)/g, function replacer(str, p1) {
     return p1.toUpperCase();
-  });
-}
-
-// Call this when the app is hidden
-function releaseVideo() {
-  // readyState = 0: no metadata loaded, we don't need to save the currentTime
-  // of player. It is always 0 and can't be used to restore the state of video.
-  if (dom.player.readyState > 0) {
-    restoreTime = dom.player.currentTime;
-  }
-  dom.player.removeAttribute('src');
-  dom.player.load();
-}
-
-// Call this when the app becomes visible again
-function restoreVideo() {
-  // When restoreVideo is called, we assume we have currentVideo because the
-  // playerShowing is true.
-
-  function doneRestoreSeeking() {
-    dom.player.onseeked = null;
-    dom.player.hidden = false;
-  }
-
-  //hide video player before setVideoUrl
-  dom.player.hidden = true;
-  setVideoUrl(dom.player, currentVideo, function() {
-    VideoUtils.fitContainer(dom.videoContainer, dom.player,
-                            currentVideo.metadata.rotation || 0);
-
-    // Everything is ready, start to restore last playing time.
-    if (restoreTime !== null) {
-      // restore to the last time when we have a valid restoreTime.
-      dom.player.currentTime = restoreTime;
-    } else {
-      // When we don't have valid restoreTime, we need to restore to the last
-      // viewing position from metadata. When user taps on a unwatched video and
-      // presses home quickly, the dom.player may not finish the loading of
-      // video and the restoreTime is null. At the same case, the currentTime of
-      // metadata is still undefined because we haven't updateMetadata.
-      dom.player.currentTime = currentVideo.metadata.currentTime || 0;
-    }
-
-    if (dom.player.seeking) {
-      dom.player.onseeked = doneRestoreSeeking;
-    } else {
-      doneRestoreSeeking();
-    }
   });
 }
 
