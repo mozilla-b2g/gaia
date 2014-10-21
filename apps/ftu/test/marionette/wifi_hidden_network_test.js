@@ -14,7 +14,7 @@ marionette('First Time Use > Wifi Hidden Network Test', function() {
   });
 
   test('Wi-Fi hidden network password 64 characters', function() {
-    client.apps.switchToApp(Ftu.URL);
+    ftu.client.apps.switchToApp(Ftu.URL);
     ftu.clickThruPanel('#languages', '#forward');
     ftu.clickThruPanel('#wifi', '#join-hidden-button');
 
@@ -25,4 +25,29 @@ marionette('First Time Use > Wifi Hidden Network Test', function() {
     password = input.getAttribute('value');
     assert.equal(password.length, 63);
   });
+
+  test('Wi-Fi hidden network show password', function() {
+    ftu.client.apps.switchToApp(Ftu.URL);
+    ftu.clickThruPanel('#languages', '#forward');
+    ftu.clickThruPanel('#wifi', '#join-hidden-button');
+
+    var hiddenWifiPanel = ftu.client.helper
+                          .waitForElement('#hidden-wifi-authentication');
+    var showPassword = ftu.client.findElement('#label_hidden_show_password');
+    var passwordInput = ftu.client.findElement('#hidden-wifi-password');
+
+    assert(hiddenWifiPanel.displayed() &&
+          showPassword.displayed() &&
+          passwordInput.displayed()
+          );
+
+    showPassword.click();
+    ftu.client.helper.waitFor(function() {
+      return passwordInput.getAttribute('type') === 'text';
+    });
+
+    // Make sure input wont get auto-corrected
+    assert.equal(passwordInput.getAttribute('x-inputmode'), 'verbatim');
+  });
+
 });

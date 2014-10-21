@@ -110,7 +110,7 @@ suite('wifi > ', function() {
     '        Password' +
     '      </label>' +
     '      <input type="password" id="hidden-wifi-password" maxlength="63" />' +
-    '      <label id="label_show_password">' +
+    '      <label id="label_hidden_show_password">' +
     '        <input type="checkbox" id="hidden-wifi-show-password" />' +
     '        <span></span>' +
     '        <p>Show Password</p>' +
