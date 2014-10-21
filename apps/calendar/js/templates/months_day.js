@@ -8,7 +8,6 @@ var MonthsDay = create({
   event: function() {
     var calendarId = this.h('calendarId');
     var busytimeId = this.h('busytimeId');
-    var classes = this.h('classes');
 
     var eventTime = (function() {
       if (this.arg('isAllDay')) {
@@ -32,10 +31,12 @@ var MonthsDay = create({
       return result;
     }.call(this));
 
-    return `<section class="event calendar-id-${calendarId} ${classes}"
-      role="option" data-id="${busytimeId}"
-      aria-describedby="${busytimeId}-icon-calendar-alarm">
-      <div class="container calendar-id-${calendarId}">
+    var alarmClass = this.arg('hasAlarms') ? 'has-alarms' : '';
+
+    return `<a href="/event/show/${busytimeId}/"
+      class="event calendar-id-${calendarId} ${alarmClass}"
+      role="option" aria-describedby="${busytimeId}-icon-calendar-alarm">
+      <div class="container">
         <div class="gaia-icon icon-calendar-dot calendar-text-color"
           aria-hidden="true"></div>
         <div class="event-time">${eventTime}</div>
@@ -44,7 +45,7 @@ var MonthsDay = create({
           class="gaia-icon icon-calendar-alarm calendar-text-color"
           data-l10n-id="icon-calendar-alarm"></div>
       </div>
-      </section>`;
+      </a>`;
   }
 });
 module.exports = MonthsDay;
@@ -55,8 +56,5 @@ function formatTime(time) {
     format: 'shortTimeFormat'
   });
 }
-
-MonthsDay.eventSelector = '.event';
-MonthsDay.hourEventsSelector = '.events';
 
 });

@@ -152,11 +152,16 @@ suite('Views.SingleDay', function() {
 
     // notice that we are testing the method indirectly (the important thing to
     // check is if the view updates when the dayObserver emits events)
-    dayObserver.emitter.emit(dayId, [
-      makeRecord('Lorem Ipsum', '5:00', '6:00'),
-      makeRecord('Dolor Amet', '4:00', '6:00', 1),
-      makeAlldayRecord('Curabitur')
-    ]);
+    dayObserver.emitter.emit(dayId, {
+      amount: 3,
+      events: [
+        makeRecord('Dolor Amet', '4:00', '6:00', 1),
+        makeRecord('Lorem Ipsum', '5:00', '6:00')
+      ],
+      allday: [
+        makeAlldayRecord('Curabitur')
+      ]
+    });
 
     // testing the whole markup is enough to check if position and overlaps are
     // handled properly and also makes sure all the data is passed to the
@@ -165,20 +170,20 @@ suite('Views.SingleDay', function() {
     assert.equal(
       daysHolder.innerHTML,
       '<div data-date="' + date.toString() +'" class="md__day">' +
-      '<a style="height: 49.9px; top: 250px; width: 50%; left: 50%;" ' +
-        'class="md__event calendar-id-local-first calendar-border-color ' +
-        'calendar-bg-color has-overlaps" ' +
-        'href="/event/show/Lorem Ipsum-5:00-6:00">' +
-        '<span class="md__event-title">Lorem Ipsum</span>' +
-        '<span class="md__event-location">Mars</span>' +
-      '</a>' +
-      '<a style="height: 99.9px; top: 200px; width: 50%; left: 0%;" ' +
+      '<a style="height: 99.9px; top: 200px; width: 50%; left: 50%;" ' +
         'class="md__event calendar-id-local-first calendar-border-color ' +
         'calendar-bg-color has-alarms has-overlaps" ' +
         'href="/event/show/Dolor Amet-4:00-6:00">' +
         '<span class="md__event-title">Dolor Amet</span>' +
         '<span class="md__event-location">Mars</span>' +
         '<i class="gaia-icon icon-calendar-alarm calendar-text-color"></i>' +
+      '</a>' +
+      '<a style="height: 49.9px; top: 250px; width: 50%; left: 0%;" ' +
+        'class="md__event calendar-id-local-first calendar-border-color ' +
+        'calendar-bg-color has-overlaps" ' +
+        'href="/event/show/Lorem Ipsum-5:00-6:00">' +
+        '<span class="md__event-title">Lorem Ipsum</span>' +
+        '<span class="md__event-location">Mars</span>' +
       '</a></div>',
       'days: first render'
     );
@@ -197,10 +202,14 @@ suite('Views.SingleDay', function() {
     );
 
     // we always send all the events for that day and redraw whole view
-    dayObserver.emitter.emit(dayId, [
-      makeRecord('Lorem Ipsum', '5:00', '6:00'),
-      makeRecord('Maecennas', '6:00', '17:00', 1)
-    ]);
+    dayObserver.emitter.emit(dayId, {
+      amount: 2,
+      events: [
+        makeRecord('Lorem Ipsum', '5:00', '6:00'),
+        makeRecord('Maecennas', '6:00', '17:00', 1)
+      ],
+      allday: []
+    });
 
     assert.equal(
       daysHolder.innerHTML,
@@ -235,12 +244,16 @@ suite('Views.SingleDay', function() {
     subject.setup();
     subject.append();
 
-    dayObserver.emitter.emit(dayId, [
-      makeRecord('Lorem Ipsum', '5:00', '5:15'),
-      makeRecord('Maecennas', '6:00', '6:25'),
-      makeRecord('Dolor', '6:30', '7:00'),
-      makeRecord('Amet', '7:00', '7:50')
-    ]);
+    dayObserver.emitter.emit(dayId, {
+      amount: 4,
+      events: [
+        makeRecord('Lorem Ipsum', '5:00', '5:15'),
+        makeRecord('Maecennas', '6:00', '6:25'),
+        makeRecord('Dolor', '6:30', '7:00'),
+        makeRecord('Amet', '7:00', '7:50')
+      ],
+      allday: []
+    });
 
     assert.include(
       daysHolder.innerHTML,
