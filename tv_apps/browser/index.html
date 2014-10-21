@@ -4,22 +4,22 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Browser</title>
+    <!-- CSS reset -->
+    <link rel="stylesheet" href="style/reset.css">
     <!-- Shared CSS-->
-    <!-- <link rel="stylesheet" href="shared/style/headers.css"> -->
-    <!-- <link rel="stylesheet" href="shared/style/input_areas.css"> -->
-    <!-- <link rel="stylesheet" href="shared/style/status.css"> -->
-    <!-- <link rel="stylesheet" href="shared/style/confirm.css"> -->
-    <!-- <link rel="stylesheet" href="shared/style/buttons.css"> -->
-    <!-- <link rel="stylesheet" href="shared/style/action_menu.css"> -->
-    <!-- <link rel="stylesheet" href="style/modal_dialog/modal_dialog.css"> -->
-    <!-- <link rel="stylesheet" href="style/modal_dialog/prompt.css"> -->
-    <!-- <link rel="stylesheet" href="style/themes/default/core.css"> -->
-    <!-- <link rel="stylesheet" href="style/themes/default/buttons.css"> -->
+    <link rel="stylesheet" href="shared/style/headers.css">
+    <link rel="stylesheet" href="shared/style/input_areas.css">
+    <link rel="stylesheet" href="shared/style/status.css">
+    <link rel="stylesheet" href="shared/style/confirm.css">
+    <link rel="stylesheet" href="shared/style/action_menu.css">
+    <link rel="stylesheet" href="style/modal_dialog/modal_dialog.css">
+    <link rel="stylesheet" href="style/modal_dialog/prompt.css">
+    <link rel="stylesheet" href="style/themes/default/core.css">
 
     <!-- Specific style -->
-    <link rel="stylesheet" href="shared/style/tabs.css" type="text/css">
-    <link rel="stylesheet" href="style/browser.css" type="text/css">
+    <link rel="stylesheet" href="style/layout.css" type="text/css">
     <link rel="stylesheet" href="style/toolbar.css" type="text/css">
+    <link rel="stylesheet" href="style/awesomescreen.css" type="text/css">
 
     <!-- Localization -->
     <link rel="manifest" href="manifest.webapp">
@@ -28,21 +28,19 @@
 
     <!-- Shared code -->
     <script defer src="shared/js/l10n.js"></script>
-    <script defer src="shared/js/lazy_loader.js"></script>
-    <script defer src="shared/js/font_size_utils.js"></script>
+    <!-- <script defer src="shared/js/lazy_loader.js"></script> -->
+    <!-- <script defer src="shared/js/font_size_utils.js"></script> -->
     <script defer src="shared/js/accessibility_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
-    <script defer src="shared/js/nfc_utils.js"></script>
-
-    <!-- <script defer src="shared/js/gesture_detector.js"></script> -->
 
     <!-- Specific code -->
-    <script defer src="js/browser.js"></script>
-    <script defer src="js/nfc.js"></script>
-    <script defer src="js/browser_db.js"></script>
+    <script defer src="js/awesomescreen.js"></script>
     <script defer src="js/toolbar.js"></script>
+    <script defer src="js/settings.js"></script>
+    <script defer src="js/mediator.js"></script>
+    <script defer src="js/main.js"></script>
 
     <!-- Resources -->
     <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
@@ -53,11 +51,15 @@
     <link rel="resource" type="image/png" href="shared/resources/branding/about_logo.png"/>
   </head>
 
-  <body class="page-screen start-page" role="application">
+  <body role="application">
 
-    <div id="main-screen">
+    <div id="main-screen" class="awesomescreen">
 
-      <menu type="toolbar" id="toolbar-start">
+      <div id="toolbar">
+        <button id="back-button" class="icon" disabled="true" alt="Back"></button>
+        <button id="forward-button" class="icon" disabled="true" alt="Forward"></button>
+        <button id="bookmark-button" class="icon" alt="Bookmark" role="button"></button>
+        <button id="zoom-button" class="icon" alt="Zoom" role="button"></button>
         <form id="url-bar" novalidate>
           <input type="image" id="ssl-indicator" value="" />
           <input type="text" id="url-input" placeholder="Search or enter address"
@@ -65,107 +67,123 @@
                  dir="auto" />
           <input type="image" id="url-button" value="" />
         </form>
-        <span id="tabs-badge"> 1&#x203A;</span>
+        <button id="home-button" class="icon" alt="Home" role="button"></button>
+        <button id="tv-button" class="icon" alt="TV" role="button"></button>
+        <button id="pointer-button" class="icon" alt="Pointer" role="button"></button>
+        <button id="tabs-button" class="icon" alt="Tabs" role="button">6</button>
+        <button id="settings-button" class="icon" alt="Settings" role="button"></button>
         <button id="awesomescreen-cancel-button"></button>
         <div id="throbber"></div>
-      </menu>
+      </div>
 
-      <div id="frames">
+      <div id="awesomescreen">
 
-        <div id="startscreen" class="hidden">
-          <h1 data-l10n-id="browser">Browser</h1>
-          <h2 data-l10n-id="top-sites-startPage">Top Sites</h2>
-          <div id="start-screen-top-sites">
-            <ul id="top-site-thumbnails">
-            </ul>
-            <p id="no-top-sites" class="hidden" data-l10n-id="start-browsing">
-              Enter a search term or web address to start browsing.
-            </p>
-          </div>
+        <div id="search-results-panel" class="is-hidden">
         </div>
-
-        <div id="awesomescreen">
-        <!--
-          <nav data-role="tabs" id="tab-headers">
-            <ul role="tablist" class="bb-tablist">
-              <li role="presentation">
-                <a id="top-sites-tab" href="#" class="selected"
-                   data-l10n-id="top-sites-tab" role="tab"
-                   aria-selected="true" aria-controls="top-sites">Top Sites</a>
+        <nav data-role="tabs" id="tab-headers">
+          <ul role="tablist" class="bb-tablist">
+            <li role="presentation">
+              <a id="top-sites-tab" href="#" class="selected"
+                 data-l10n-id="top-sites-tab" role="tab"
+                 aria-selected="true" aria-controls="top-sites-panel">Top Sites</a>
+            </li>
+            <li role="presentation">
+              <a id="bookmarks-tab" href="#"
+                 data-l10n-id="bookmarks" role="tab"
+                 aria-selected="false" aria-controls="bookmarks-panel">Bookmarks</a>
+            </li>
+            <li role="presentation">
+              <a id="history-tab" href="#"
+                 data-l10n-id="history" role="tab"
+                 aria-selected="false" aria-controls="history-panel">History</a>
+            </li>
+            <li role="presentation">
+              <a id="edit-tab" href="#"
+                 data-l10n-id="edit" role="tab"
+                 aria-selected="false" aria-controls="edit">Edit</a>
+            </li>
+          </ul>
+        </nav>
+        <div id="tab-panels">
+          <div id="top-sites-panel" role="tabpanel" class="bb-tabpanel selected"
+            aria-labelledby="top-sites-tab">
+            <ul role="listbox" id="top-site-list">
+              <li class="top-site-item">
+                <a href="http://mozilla.org"></a>
+                <span>Mozilla</span>
               </li>
-              <li role="presentation">
-                <a id="bookmarks-tab" href="#"
-                   data-l10n-id="bookmarks" role="tab"
-                   aria-selected="false" aria-controls="bookmarks">Bookmarks</a>
+              <li class="top-site-item">
+                <a href="http://www.google.com"></a>
+                <span>Google</span>
               </li>
-              <li role="presentation">
-                <a id="history-tab" href="#"
-                   data-l10n-id="history" role="tab"
-                   aria-selected="false" aria-controls="history">History</a>
+              <li class="top-site-item">
+                <a href="http://mozilla.org"></a>
+                <span>Mozilla</span>
+              </li>
+              <li class="top-site-item">
+                <a href="http://mozilla.org"></a>
+                <span>Mozilla</span>
+              </li>
+              <li class="top-site-item">
+                <a href="http://www.google.com"></a>
+                <span>Google</span>
+              </li>
+              <li class="top-site-item">
+                <a href="http://mozilla.org"></a>
+                <span>Mozilla</span>
+              </li>
+              <li class="top-site-item">
+                <a href="http://mozilla.org"></a>
+                <span>Mozilla</span>
+              </li>
+              <li class="top-site-item">
+                <a href="http://www.google.com"></a>
+                <span>Google</span>
+              </li>
+              <li class="top-site-item">
+                <a href="http://mozilla.org"></a>
+                <span>Mozilla</span>
+              </li>
+              <li class="top-site-item">
+                <a href="http://mozilla.org"></a>
+                <span>Mozilla</span>
               </li>
             </ul>
-          </nav>
-          <div id="tab-panels">
-            <section id="top-sites" role="tabpanel" class="bb-tabpanel selected"
-              aria-labelledby="top-sites-tab">
-            </section>
-            <section id="bookmarks" role="tabpanel" class="bb-tabpanel"
-              aria-labelledby="bookmarks-tab">
-            </section>
-            <section id="history" role="tabpanel" class="bb-tabpanel"
-              aria-labelledby="history-tab">
-            </section>
           </div>
-          <section id="results" class="hidden">
-          </section>
-        -->
-        </div>
-
-        <div id="crashscreen">
-        <!--
-          <h3 data-l10n-id="this-is-embarrassing">Well, this is embarrassing.</h3>
-          <img src="style/images/crashed-tab-icon.png" />
-          <p data-l10n-id="not-responding">
-            We tried to display this webpage but it's not responding.
-          </p>
-          <menu type="toolbar">
-            <button data-l10n-id="close-tab" id="close-tab">Close Tab</button>
-            <button data-l10n-id="reload-tab" id="try-reloading">
-              Try Reloading
-              </button>
-          </menu>
-        -->
+          <div id="bookmarks-panel" role="tabpanel" class="bb-tabpanel"
+            aria-labelledby="bookmarks-tab">
+          </div>
+          <div id="history-panel" role="tabpanel" class="bb-tabpanel"
+            aria-labelledby="history-tab">
+          </div>
         </div>
 
       </div>
+
+      <div id="crashscreen">
+      <!--
+        <h3 data-l10n-id="this-is-embarrassing">Well, this is embarrassing.</h3>
+        <img src="style/images/crashed-tab-icon.png" />
+        <p data-l10n-id="not-responding">
+          We tried to display this webpage but it's not responding.
+        </p>
+        <menu type="toolbar">
+          <button data-l10n-id="close-tab" id="close-tab">Close Tab</button>
+          <button data-l10n-id="reload-tab" id="try-reloading">
+            Try Reloading
+            </button>
+        </menu>
+      -->
+      </div>
+
+      <div id="frames">
+      </div>
     </div>
 
-    <ul id="toolbar-end" class="bb-tablist skin-dark">
-      <li role="presentation">
-        <button id="back-button" class="icon" disabled="true" alt="Back"></button>
-      </li>
-      <li role="presentation">
-        <button id="forward-button" class="icon" disabled="true" alt="Forward"></button>
-      </li>
-      <li role="presentation">
-        <button id="bookmark-button" class="icon" alt="Bookmark" role="button"></button>
-      </li>
-      <li role="presentation">
-        <button id="share-button" class="icon" alt="Share" role="button"></button>
-      </li>
+    <ul id="tabs-view" class="tab-list is-hidden">
     </ul>
 
-    <div id="tray">
-      <!--
-      <menu type="toolbar" id="tray-toolbar">
-        <button type="button" id="new-tab-button"></button>
-        <button type="button" id="settings-button"></button>
-      </menu>
-      <div id="tabs-list"></div>
-      -->
-    </div>
-
-    <section id="bookmark-menu" role="dialog" data-type="action" class="hidden">
+    <section id="bookmark-menu" role="dialog" data-type="action" class="is-hidden">
     <!--
       <menu type="toolbar">
         <button id="bookmark-menu-add" data-l10n-id="bookmark">Bookmark</button>
@@ -177,7 +195,7 @@
     -->
     </section>
 
-    <section id="bookmark-entry-sheet" role="region" class="hidden skin-organic">
+    <section id="bookmark-entry-sheet" role="region" class="is-hidden skin-organic">
     <!--
       <header>
         <button id="bookmark-entry-sheet-cancel">
@@ -196,11 +214,11 @@
         <span data-l10n-id="address">Address</span>
         <input type="url" id="bookmark-url"></input>
       </label>
-      <input type="hidden" id="bookmark-previous-url"></input>
+      <input type="is-hidden" id="bookmark-previous-url"></input>
     -->
     </section>
 
-    <section id="http-authentication-dialog" role="region" class="hidden skin-organic">
+    <section id="http-authentication-dialog" role="region" class="is-hidden skin-organic">
     <!--
       <header>
         <button id="http-authentication-cancel">
@@ -287,7 +305,7 @@
     </div>
 
     <section role="region" id="settings" class="skin-organic">
-    <!--
+
       <header id="settings-header">
         <menu type="toolbar">
           <button id="settings-done-button" role="menuitem" data-l10n-id="done">Done</button>
@@ -307,10 +325,10 @@
           data-l10n-id="clear-cookies-and-stored-data">Clear cookies and stored data</button>
         </li>
       </ul>
-      <header id="search-engine-heading" class="hidden">
+      <header id="search-engine-heading" class="is-hidden">
         <h2 data-l10n-id="search-engines">Search Engines</h2>
       </header>
-      <ul id="search-engine-section" class="hidden">
+      <ul id="search-engine-section" class="is-hidden">
         <li>
           <p data-l10n-id="default-search-engine">Default search engine</p>
           <span class="fake-select">
@@ -320,7 +338,7 @@
           </span>
         </li>
       </ul>
-    -->
+
     </section>
 
     <section id="save-media-status" role="status">

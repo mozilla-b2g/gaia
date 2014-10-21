@@ -1,39 +1,17 @@
-#awesomescreen-cancel-button {
-  background: url('./images/close.png') no-repeat 50% 50% / 3rem auto;
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 5rem;
-  height: 5rem;
-}
-
-#awesomescreen-cancel-button:active {
-  background: url('./images/close.png') no-repeat center center,
-              url('./images/close-pressed-bg.png') no-repeat center center;
-  background-size: 3rem auto, auto;
-}
-
-.awesome-screen #awesomescreen-cancel-button {
-  display: block;
-}
-
 nav[data-role="tabs"] {
-  display: block;
   background-color: #CCD6DF;
-  width: 100%;
+  width: 80%;
   height: 3.6rem;
+  margin: 0 auto;
 }
 
 #tab-panels {
+  width: 80%;
   height: 100%;
+  margin: 0 auto;
 }
 
 #tab-headers .bb-tablist {
-  margin: 0;
-  padding: 0;
-  list-style-type: none;
-
   /* override [BB]Tabs */
   display: block;
   position: static;
@@ -54,7 +32,7 @@ nav[data-role="tabs"] {
 
 #tab-headers .bb-tablist li a {
   float: left;
-  max-width: calc(33% - 3.9rem);
+  max-width: calc(25% - 3.9rem);
   height: 3.6rem;
   margin-left: -3rem;
   padding: 0 3rem;
@@ -91,31 +69,22 @@ nav[data-role="tabs"] {
   display: none;
 }
 
-section.bb-tabpanel {
+div.bb-tabpanel {
   padding-top: 0.5rem;
   clear: both;
   background-color: #f3f4f8;
   display: none;
 }
 
-section.bb-tabpanel.selected {
+div.bb-tabpanel.selected {
   display: block;
 }
 
-#results {
+#search-results-panel {
   padding-top: 0.5rem;
   background-color: #f3f4f8;
-  display: block;
-  position: absolute;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-#results.hidden {
-  display: none;
+  width: 70%;
+  margin: 0 auto;
 }
 
 #awesomescreen h3 {
@@ -123,11 +92,6 @@ section.bb-tabpanel.selected {
   margin: 0 1rem;
   color: #FF5F19;
   border-bottom: solid 0.1rem #FF5F19;
-  padding: 0;
-}
-
-ul[role="listbox"] {
-  margin: 0;
   padding: 0;
 }
 
@@ -183,7 +147,7 @@ li[role="listitem"] small {
   text-decoration: underline;
 }
 
-#history, #bookmarks, #top-sites {
+#history-panel, #bookmarks-panel, #top-sites-panel {
   height: calc(100% - 3.6rem);
   overflow-y: auto;
   overflow-x: hidden;
@@ -191,4 +155,45 @@ li[role="listitem"] small {
 
 #history-list {
   -moz-box-flex: 1;
+}
+
+#top-site-list:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.top-site-item {
+  float: left;
+  position: relative;
+  margin: 1rem 0;
+  width: calc(100%/3);
+  text-align: center;
+}
+
+.top-site-item > a {
+  display: block;
+  width: 28rem;
+  height: 20rem;
+  margin: 0 auto;
+  background-color: rgba(0, 0, 0, 0.3);
+  background-size: cover;
+}
+
+.top-site-item > span {
+  display: block;
+  font-size: 2.8rem;
+  width: 28rem;
+  height: 3rem;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background-color: rgba(255, 255, 255, 0.8);
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  margin-left: -14rem;
+  padding: 0.3rem 0;
+  pointer-events: none;
 }
