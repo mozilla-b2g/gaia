@@ -375,18 +375,38 @@
         this.hoverItem.element.classList.add('hovered');
       }
 
-      // Add another divider when hovering over a divider with an icon or
-      // dragging an icon to the very top of the grid
-      if (insertDividerAtTop ||
-          (!iconIsDivider && (foundItem.detail.type === 'divider'))) {
+      // Delay rearranging when we're dragging groups to when they're dropped
+      var rearrangeAfterDelay = !iconIsDivider;
+
+      // Determine if we want to create a new divider. We do this when hovering
+      // over a divider with an icon, or when dragging an icon to the very top
+      // of the grid.
+      var createDivider = insertDividerAtTop;
+      if (!insertDividerAtTop && !iconIsDivider &&
+          (foundItem.detail.type === 'divider')) {
+        // Allow dropping into a collapsed group
+        createDivider = !foundItem.detail.collapsed ||
+          (pageY >= foundItem.y + foundItem.pixelHeight);
+        if (!createDivider) {
+          rearrangeAfterDelay = false;
+          foundItem.element.classList.remove('hovered');
+
+          // When dragging an item forwards, it gets placed after the found
+          // item, adjust to the item before the divider.
+          if (this.icon.detail.index < foundIndex) {
+            foundItem = this.gridView.items[foundIndex - 1];
+          }
+        }
+      }
+
+      if (createDivider) {
         this.doRearrange =
           this.createNewDivider.bind(this,
-                                     insertDividerAtTop ?  null : foundItem);
+                                     insertDividerAtTop ? null : foundItem);
       } else {
         this.doRearrange = this.rearrange.bind(this, foundItem);
 
-        // Delay rearranging when we're dragging groups to when they're dropped
-        if (!iconIsDivider) {
+        if (rearrangeAfterDelay) {
           this.rearrangeDelay =
             setTimeout(this.doRearrange.bind(this),
               this.hoverItem && this.hoverItem.detail.type === 'collection' ?
