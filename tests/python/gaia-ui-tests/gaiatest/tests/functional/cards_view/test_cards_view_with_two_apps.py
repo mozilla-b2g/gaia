@@ -16,6 +16,8 @@ class TestCardsView(GaiaTestCase):
         # Launch the test apps
         for app in self._test_apps:
             self.apps.launch(app)
+            time.sleep(4)
+            self.device.touch_home_button()
 
         # Switch to top level frame before starting the test
         self.marionette.switch_to_frame()
