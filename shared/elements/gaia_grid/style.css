@@ -304,12 +304,26 @@
   background-color: rgba(27, 185, 225, 0.5);
 }
 
-.group.active .shadow {
+.group .shadow {
+  background-color: rgba(255, 255, 255, 0.15);
+  opacity: 0;
+}
+
+.group.odd .shadow {
+  opacity: 1;
+}
+
+.edit-mode .group .shadow {
+  opacity: 0;
+}
+
+.edit-mode .group.active .shadow {
+  background-color: transparent;
   box-shadow: 0 0.9rem 1.2rem rgba(0, 0, 0, 0.63);
+  opacity: 1;
 }
 
 .group .separator {
-  background: rgba(0, 0, 0, 0.1);
   margin: 0;
   height: 0.8rem;
   pointer-events: none;
