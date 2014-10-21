@@ -98,6 +98,11 @@ var IMERender = (function() {
   //   Set isUpperCase to true when uppercase is enabled
   //   Use false on both of these properties when uppercase is disabled
   var setUpperCaseLock = function kr_setUpperCaseLock(state) {
+    // Toggle the entire container in case this layout require different
+    // rendering for upper case state, i.e. |secondLayout = true|.
+    activeIme.classList.toggle('lowercase',
+      !(state.isUpperCaseLocked || state.isUpperCase));
+
     var capsLockKey = activeIme.querySelector(
       'button:not([disabled])' +
       '[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
@@ -132,7 +137,6 @@ var IMERender = (function() {
       layout.pageIndex,
       ('' + flags.inputType).substr(0, 1),
       ('' + flags.showCandidatePanel).substr(0, 1),
-      ('' + flags.uppercase).substr(0, 1),
       supportsSwitching
     ].join('-');
 
@@ -148,6 +152,9 @@ var IMERender = (function() {
       buildKeyboard(container, flags, layout);
       ime.appendChild(container);
     }
+
+    // Make sure the container is switched to the current uppercase state.
+    container.classList.toggle('lowercase', !flags.uppercase);
 
     if (activeIme !== container) {
       if (activeIme) {
@@ -241,8 +248,6 @@ var IMERender = (function() {
         var ratio = key.ratio || 1;
         rowLayoutWidth += ratio;
 
-        var outputChar = flags.uppercase ? key.uppercaseValue : key.value;
-
         var keyWidth = placeHolderWidth * ratio;
 
         if (key.disabled) {
@@ -263,6 +268,12 @@ var IMERender = (function() {
             value: key.ariaLabel || key.value
           });
         }
+
+        // If this layout requires different rendering for uppercase/lowercase
+        // buttons, we will set the outputChar as an array, and buildKey()
+        // would be smart enough to put two label <span>s in the DOM.
+        var outputChar = (!layout.secondLayout) ?
+          key.uppercaseValue : [key.uppercaseValue, key.value];
 
         var keyElement = buildKey(outputChar, className, keyWidth + 'px',
           key, key.longPressValue, attributeList);
@@ -289,6 +300,13 @@ var IMERender = (function() {
       content.appendChild(kbRow);
     }));
 
+    // If this layout does not require different rendering for lowercase state,
+    // we default to uppercase rendering -- this class will tell CSS file to
+    // never toggle button label <span> elements.
+    if (!layout.secondLayout) {
+      container.classList.add('uppercase-only');
+    }
+
     container.innerHTML = '';
 
     container.appendChild(content);
@@ -307,24 +325,16 @@ var IMERender = (function() {
   };
 
   // Highlight the key according to the case.
-  var highlightKey = function kr_updateKeyHighlight(key, options) {
+  var highlightKey = function kr_updateKeyHighlight(key) {
     var keyElem = targetObjDomMap.get(key);
 
-    options = options || {};
-
     keyElem.classList.add('highlighted');
-
-    // Show lowercase pop.
-    if (!options.showUpperCase) {
-      keyElem.classList.add('lowercase');
-    }
   };
 
   // Unhighlight a key
   var unHighlightKey = function kr_unHighlightKey(key) {
     var keyElem = targetObjDomMap.get(key);
     keyElem.classList.remove('highlighted');
-    keyElem.classList.remove('lowercase');
   };
 
   var toggleCandidatePanel = function(expand) {
@@ -829,14 +839,26 @@ var IMERender = (function() {
     var labelNode = document.createElement('span');
     // Using innerHTML here because some labels (so far only the &nbsp; in the
     // space key) can be HTML entities.
-    labelNode.innerHTML = label;
+    labelNode.innerHTML = Array.isArray(label) ? label[0] : label;
     labelNode.className = 'key-element';
-    labelNode.dataset.label = label;
+    labelNode.dataset.label = Array.isArray(label) ? label[0] : label;
     vWrapperNode.appendChild(labelNode);
+
+    // If the |label| argument is an array, that means we need to insert another
+    // DOM element represents the lowercase label so that container styling can
+    // toggle between two.
+    if (Array.isArray(label)) {
+      // Create a lowercase label element
+      var labelNode = document.createElement('span');
+      labelNode.innerHTML = label[1];
+      labelNode.className = 'key-element lowercase';
+      labelNode.dataset.label = label[1];
+      vWrapperNode.appendChild(labelNode);
+    }
 
     // Add uppercase and lowercase pop-up for highlighted key
     labelNode = document.createElement('span');
-    labelNode.innerHTML = label;
+    labelNode.innerHTML = Array.isArray(label) ? label[0] : label;
     labelNode.className = 'uppercase popup';
     vWrapperNode.appendChild(labelNode);
 
