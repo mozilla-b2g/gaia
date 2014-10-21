@@ -135,6 +135,7 @@
    * after the promise is resolved, we need to have an queue for each click,
    * or the key would be sent with a wrong state.
    */
+  var inputSequencePromise = Promise.resolve();
 
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
@@ -356,45 +357,55 @@
    *
    * Update the capitalization state, if we're capitalizing
    */
-  function click(keyCode, repeat) {
-    // If the key is anything other than a backspace, forget about any
-    // previous changes that we would otherwise revert.
-    if (keyCode !== BACKSPACE) {
-      revertTo = revertFrom = '';
-      disableOnRevert = false;
-    }
+  function click(keyCode, upperKeyCode, repeat) {
+    // Wait for the previous keys have been resolved and then handle the next
+    // key.
 
-    var handler;
+    var nextKeyPromise = inputSequencePromise.then(function() {
+      keyCode = keyboard.isCapitalized() && upperKeyCode ? upperKeyCode :
+                                                           keyCode;
 
-    if (selection) {
-      // If there is selected text, don't do anything fancy here.
-      handler = handleKey(keyCode);
-    }
-    else {
-      switch (keyCode) {
-        case SPACE:     // This list of characters matches the WORDSEP regexp
-          case RETURN:
-          case PERIOD:
-          case QUESTION:
-          case EXCLAMATION:
-          case COMMA:
-          case COLON:
-          case SEMICOLON:
-          // These keys may trigger word or punctuation corrections
-          handler = handleCorrections(keyCode);
-        correctionDisabled = false;
-        break;
-
-        case BACKSPACE:
-          handler = handleBackspace(repeat);
-        break;
-
-        default:
-          handler = handleKey(keyCode);
+      // If the key is anything other than a backspace, forget about any
+      // previous changes that we would otherwise revert.
+      if (keyCode !== BACKSPACE) {
+        revertTo = revertFrom = '';
+        disableOnRevert = false;
       }
-    }
 
-    return handler.then(function() {
+      var handler;
+
+      if (selection) {
+        // If there is selected text, don't do anything fancy here.
+        handler = handleKey(keyCode);
+      }
+      else {
+        switch (keyCode) {
+          case SPACE:     // This list of characters matches the WORDSEP regexp
+            case RETURN:
+            case PERIOD:
+            case QUESTION:
+            case EXCLAMATION:
+            case COMMA:
+            case COLON:
+            case SEMICOLON:
+            // These keys may trigger word or punctuation corrections
+            handler = handleCorrections(keyCode);
+          correctionDisabled = false;
+          break;
+
+          case BACKSPACE:
+            handler = handleBackspace(repeat);
+          break;
+
+          default:
+            handler = handleKey(keyCode);
+        }
+      }
+      return handler;
+    });
+
+    // After the next key is resolved, we could update the state here.
+    inputSequencePromise = nextKeyPromise.then(function() {
       // handleCorrections() above or it is now out of date, so clear it
       // so it doesn't get used later
       autoCorrection = null;
@@ -418,6 +429,10 @@
       // Print the error and make sure inputSequencePromise always resolves.
       console.error(e);
     });
+
+    // Need to return the promise, so that the caller could know
+    // what to process next.
+    return inputSequencePromise;
   }
 
   // Handle any key (including backspace) and do the right thing even if

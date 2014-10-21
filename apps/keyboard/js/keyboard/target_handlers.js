@@ -58,16 +58,21 @@ DefaultTargetHandler.prototype.commit = function() {
    * This hack should be removed and the state/input queue should be
    * maintained out of latin.js.
    */
+  var promise;
+  if (this.app.layoutManager.currentPage.imEngine === 'latin') {
+    this.app.console.log('DefaultTargetHandler.commit()::latin::engine.click',
+      keyCode, keyCodeUpper);
+    promise = Promise.resolve(engine.click(keyCode, keyCodeUpper));
+  } else {
+    var code =
+      this.app.upperCaseStateManager.isUpperCase ? keyCodeUpper : keyCode;
+    this.app.console.log('DefaultTargetHandler.commit()::engine.click', code);
+    promise = Promise.resolve(engine.click(code));
+  }
 
-  var code =
-    this.app.upperCaseStateManager.isUpperCase ? keyCodeUpper : keyCode;
-  this.app.console.log('DefaultTargetHandler.commit()::engine.click', code);
-  //the engine should return a promise
-  var promise = engine.click(code);
+  this.app.visualHighlightManager.hide(this.target, promise);
 
-  return promise.then(function() {
-    this.app.visualHighlightManager.hide(this.target);
-  }.bind(this));
+  return promise;
 };
 
 DefaultTargetHandler.prototype.cancel = function() {

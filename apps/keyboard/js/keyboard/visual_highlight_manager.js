@@ -32,14 +32,21 @@ VisualHighlightManager.prototype.show = function(target) {
   IMERender.highlightKey(target, { showUpperCase: showUpperCase });
 };
 
-VisualHighlightManager.prototype.hide = function(target) {
+VisualHighlightManager.prototype.hide = function(target, actionPromise) {
   if (this.highlightDelayTimers.has(target)) {
     clearTimeout(this.highlightDelayTimers.get(target));
   }
 
   var timer = setTimeout(function() {
     this.highlightDelayTimers.delete(target);
-    IMERender.unHighlightKey(target);
+    if (actionPromise) {
+      // Not to unhighlight the key until the action is done.
+      actionPromise.then(function() {
+        IMERender.unHighlightKey(target);
+      });
+    } else {
+      IMERender.unHighlightKey(target);
+    }
   }.bind(this), this.HIGHTLIGHT_DELAY_MS);
 
   this.highlightDelayTimers.set(target, timer);
