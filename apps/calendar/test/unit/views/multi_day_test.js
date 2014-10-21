@@ -20,6 +20,44 @@ suite('Views.MultiDay', function() {
     };
   });
 
+  suite('#onactive', function() {
+    var stubOnFirstSeen;
+    var stubRender;
+    var stubResetScroll;
+    var stubScrollToHour;
+
+    setup(function() {
+      stubOnFirstSeen = sinon.stub(subject, 'onfirstseen');
+      stubRender = sinon.stub(subject, '_render');
+      stubResetScroll = sinon.stub(subject, '_resetScroll');
+      stubScrollToHour = sinon.stub(subject, '_scrollToHour');
+    });
+
+    teardown(function() {
+      stubOnFirstSeen.restore();
+      stubRender.restore();
+      stubResetScroll.restore();
+      stubScrollToHour.restore();
+    });
+
+    test('First time active', function() {
+      subject.onactive();
+      sinon.assert.calledOnce(stubOnFirstSeen);
+      sinon.assert.calledOnce(stubRender);
+      sinon.assert.calledOnce(stubResetScroll);
+      sinon.assert.calledOnce(stubScrollToHour);
+    });
+
+    test('Do not scroll when come back from other screen', function() {
+      subject.baseDate = subject.timeController.position;
+      subject.seen = true;
+      subject.onactive();
+      assert.isFalse(stubOnFirstSeen.called);
+      assert.isFalse(stubResetScroll.called);
+      assert.isFalse(stubScrollToHour.called);
+    });
+  });
+
   test('localized', function() {
     var sidebar = subject.sidebar;
     subject._visibleRange = 123;
