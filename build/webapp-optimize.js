@@ -33,15 +33,13 @@ var HTMLOptimizer = function(options) {
   // When file has done optimized, we call done.
   this.done = options.callback;
   /**
-   * For each HTML file, we retrieve multi-locale dictionary:
-   *
-   *  - fullDict (used with config.GAIA_CONCAT_LOCALES)
-   *    = full set of all l10n strings that are loaded by the HTML document,
-   *    including all strings that are used dynamically from JS;
-   *    it gets merged into webapp.dictionary.
+   * Witconfig.GAIA_CONCAT_LOCALES for each HTML file, we retrieve multi-locale 
+   * ASTs: a full set of all l10n strings that are loaded by the HTML 
+   * document, including all strings that are used dynamically from JS;
+   * it gets merged into webapp.asts.
    */
-  this.fullDict = utils.cloneJSON(this.webapp.dictionary);
-  this.getDictionary = null;
+  this.asts = utils.cloneJSON(this.webapp.asts);
+  this.getAST = null;
 
   // Store all optimized files in this list for further handling, like remove.
   this.files = [];
@@ -51,7 +49,7 @@ HTMLOptimizer.prototype.process = function() {
   var mozL10n = this.win.navigator.mozL10n;
   this.mockWinObj();
 
-  this.getDictionary = mozL10n.getDictionary.bind(mozL10n);
+  this.getAST = mozL10n.getAST.bind(mozL10n);
 
   var ignore = this.optimizeConfig.L10N_OPTIMIZATION_BLACKLIST;
   // If this HTML document uses l10n.js, pre-localize it --
@@ -125,20 +123,20 @@ HTMLOptimizer.prototype._proceedLocales = function() {
     mozL10n.ctx.requestLocales(this.locales[processedLocales]);
 
     // create JSON dicts for the current language for locales-obj/
-    this.fullDict[mozL10n.language.code] = this.getDictionary();
+    this.asts[mozL10n.language.code] = this.getAST();
     processedLocales++;
   }
 
-  for (var lang in this.fullDict)  {
-    // skip to the next language if the dictionary is null
-    if (!this.fullDict[lang]) {
+  for (var lang in this.asts)  {
+    // skip to the next language if the AST is null
+    if (!this.asts[lang]) {
       continue;
     }
-    if (!this.webapp.dictionary[lang]) {
-      this.webapp.dictionary[lang] = {};
+    if (!this.webapp.asts[lang]) {
+      this.webapp.asts[lang] = [];
     }
-    for (var id in this.fullDict[lang]) {
-      this.webapp.dictionary[lang][id] = this.fullDict[lang][id];
+    for (var i = 0; i < this.asts[lang].length; i++) {
+      this.webapp.asts[lang].push(this.asts[lang][i]);
     }
   }
 
@@ -231,7 +229,7 @@ HTMLOptimizer.prototype.embededGlobals = function() {
 /**
  * Replaces all external l10n resource nodes by a single link:
  * <link rel="localization" href="/locales-obj/{locale}.json" />,
- * and merge the document dictionary into the webapp dictionary.
+ * and merge the document ASTs into the webapp ASTs.
  */
 HTMLOptimizer.prototype.concatL10nResources = function() {
   var doc = this.win.document;
@@ -270,7 +268,7 @@ HTMLOptimizer.prototype.concatL10nResources = function() {
         break;
       case 'localization':
         // if any l10n link does have a no-fetch
-        // attribute, we will embed the whole l10n dictionary
+        // attribute, we will embed the whole l10n AST
         if (link.hasAttribute('data-no-fetch')) {
           embed = true;
         }
@@ -295,7 +293,7 @@ HTMLOptimizer.prototype.concatL10nResources = function() {
   }
 
   if (embed) {
-    embedL10nResources(this.win.document.head, this.fullDict);
+    embedL10nResources(this.win.document.head, this.asts);
   }
 };
 
@@ -673,12 +671,12 @@ WebappOptimize.prototype.HTMLProcessed = function(files) {
   if (this.numOfFiles !== 0) {
     return;
   }
-  this.writeDictionaries();
+  this.writeASTs();
 };
 
 // all HTML documents in the webapp have been optimized:
 // create one concatenated l10n file per locale for all HTML documents
-WebappOptimize.prototype.writeDictionaries = function() {
+WebappOptimize.prototype.writeASTs = function() {
   function cleanLocaleFiles(stageDir) {
     var localesDir = stageDir.clone();
     localesDir.append('locales');
@@ -708,11 +706,11 @@ WebappOptimize.prototype.writeDictionaries = function() {
   localeObjDir.append('locales-obj');
   utils.ensureFolderExists(localeObjDir);
 
-  // create all JSON dictionaries in /locales-obj
-  for (var lang in this.webapp.dictionary) {
+  // create all JSON ASTs in /locales-obj
+  for (var lang in this.webapp.asts) {
     var file = localeObjDir.clone();
     file.append(lang + '.json');
-    utils.writeContent(file, JSON.stringify(this.webapp.dictionary[lang]));
+    utils.writeContent(file, JSON.stringify(this.webapp.asts[lang]));
     reserved[file.leafName] = true;
   }
 
@@ -736,11 +734,10 @@ WebappOptimize.prototype.execute = function(config) {
     return;
   }
 
-  // Locale dictionaries are created when they're needed in HTMLOptimizer's
+  // Locale ASTs are created when they're needed in HTMLOptimizer's
   // _proceedLocales.  mozL10n controls which languages to create the
-  // dictionaries for (e.g. pseudolanguages don't have JSON dictionaries
-  // associated with them).
-  this.webapp.dictionary = {};
+  // ASTs ior (e.g. pseudolanguages don't have JSON ASTs associated with them).
+  this.webapp.asts = {};
 
   // remove excluded condition /^(shared|tests?)$/)
   var files = utils.ls(this.webapp.buildDirectoryFile, true,
@@ -830,20 +827,20 @@ function getLocales(config) {
 }
 
 /**
- * Embeds a JSON dictionary of l10n resources in a document.
+ * Embeds a JSON AST of l10n resources in a document.
  */
-function embedL10nResources(node, dictionary) {
-  // split the l10n dictionary on a per-locale basis,
+function embedL10nResources(node, asts) {
+  // split the l10n asts on a per-locale basis,
   // and embed it in the HTML document by enclosing it in <script> nodes.
-  for (var lang in dictionary) {
-    // skip to the next language if the dictionary is null
-    if (!dictionary[lang]) {
+  for (var lang in asts) {
+    // skip to the next language if the AST is null
+    if (!asts[lang]) {
       continue;
     }
     var script = node.ownerDocument.createElement('script');
     script.type = 'application/l10n';
     script.lang = lang;
-    script.innerHTML = '\n  ' + JSON.stringify(dictionary[lang]) + '\n';
+    script.innerHTML = '\n  ' + JSON.stringify(asts[lang]) + '\n';
     node.appendChild(script);
   }
 }

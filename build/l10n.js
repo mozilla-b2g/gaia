@@ -67,16 +67,14 @@
   /* API for webapp-optimize */
 
   L10n.Locale.prototype.addAST = function(ast) {
-    if (!this.ast) {
-      this.ast = Object.create(null);
+    if (!this.astById) {
+      this.astById = Object.create(null);
     }
 
-    var keys = Object.keys(ast);
-
-    /* jshint -W084 */
-    for (var i = 0, key; key = keys[i]; i++) {
-      this.entries[key] = ast[key];
-      this.ast[key] = ast[key];
+    /* jshint boss:true */
+    for (var i = 0, node; node = ast[i]; i++) {
+      this.entries[node.$i] = L10n.Resolver.createEntry(node, this.entries);
+      this.astById[node.$i] = node;
     }
   };
 
@@ -97,8 +95,8 @@
         locale.build(null);
       }
 
-      if (locale.ast && id in locale.ast) {
-        return locale.ast[id];
+      if (locale.astById && id in locale.astById) {
+        return locale.astById[id];
       }
 
       var e = new L10n.Error(id + ' not found in ' + loc, id, loc);
@@ -110,13 +108,13 @@
 
   navigator.mozL10n.translateDocument = L10n.translateDocument;
 
-  navigator.mozL10n.getDictionary = function getDictionary() {
+  navigator.mozL10n.getAST = function() {
     // don't do anything for pseudolocales
     if (this.ctx.supportedLocales[0] in this.qps) {
       return null;
     }
 
-    var ast = {};
+    var ast = [];
 
     // en-US is the de facto source locale of Gaia
     var sourceLocale = this.ctx.getLocale('en-US');
@@ -124,8 +122,8 @@
       sourceLocale.build(null);
     }
     // iterate over all strings in en-US
-    for (var id in sourceLocale.ast) {
-      ast[id] = this.ctx.getEntitySource(id);
+    for (var id in sourceLocale.astById) {
+      ast.push(this.ctx.getEntitySource(id));
     }
     flushBuildMessages.call(this, 'compared to en-US');
     return ast;

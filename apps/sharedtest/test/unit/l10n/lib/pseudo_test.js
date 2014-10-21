@@ -1,38 +1,51 @@
-/* global it, assert, describe, before, beforeEach */
+/* global it, assert:true, describe, before, beforeEach */
 /* global navigator, process */
 'use strict';
 
-var propertiesParser;
+var assert;
+var PropertiesParser;
 
 describe('pseudo strategy', function() {
-  var PSEUDO_STRATEGIES, walkContent, strategy, source, ast;
+  var PSEUDO_STRATEGIES, walkContent, strategy, source, ast, walked;
 
   before(function(done) {
     if (typeof navigator !== 'undefined') {
       require('/shared/js/l10n.js', function() {
         PSEUDO_STRATEGIES = navigator.mozL10n.qps;
         var L10n = navigator.mozL10n._getInternalAPI();
+        PropertiesParser = L10n.PropertiesParser;
         walkContent = L10n.walkContent;
-        propertiesParser = new L10n.PropertiesParser();
         done();
       });
     } else {
+      assert = require('assert');
       PSEUDO_STRATEGIES = process.env.L20N_COV ?
         require('../../build/cov/lib/l20n/pseudo').PSEUDO_STRATEGIES
         : require('../../lib/l20n/pseudo').PSEUDO_STRATEGIES;
       walkContent = require('../../lib/l20n/util').walkContent;
 
-      var PropertiesParser = process.env.L20N_COV ?
-        require('../../build/cov/lib/l20n/parser').PropertiesParser
-        : require('../../lib/l20n/format/properties/parser').PropertiesParser;
-      propertiesParser = new PropertiesParser();
+      PropertiesParser = process.env.L20N_COV ?
+        require('../../build/cov/lib/l20n/parser')
+        : require('../../lib/l20n/format/properties/parser');
       done();
     }
   });
 
   beforeEach(function() {
-    ast = propertiesParser.parse(null, source);
+    ast = PropertiesParser.parse(null, source);
+    walked = pseudolocalize(ast, strategy);
   });
+
+  function pseudolocalize(arr, strategy) {
+    var obj = {};
+    arr.forEach(function(val) {
+      obj[val.$i] = walkContent(val, strategy);
+    });
+    return obj;
+  }
+
+  var foo = {t: 'idOrVar', v: 'foo'};
+  var bar = {t: 'idOrVar', v: 'bar'};
 
   describe('accented English', function(){
 
@@ -64,31 +77,32 @@ describe('pseudo strategy', function() {
     });
 
     it('walks the value', function(){
-      var walked = walkContent(ast, strategy);
-      assert.strictEqual(walked.foo, 'Ƒǿǿǿǿ');
+      assert.strictEqual(walked.foo.$v, 'Ƒǿǿǿǿ');
 
-      assert.strictEqual(walked.bar._.one, 'Ǿǿƞḗḗ');
-      assert.strictEqual(walked.bar._.two, 'Ŧẇǿǿ');
-      assert.strictEqual(walked.bar._.few, 'Ƒḗḗẇ');
-      assert.strictEqual(walked.bar._.many, 'Ḿȧȧƞẏ');
-      assert.strictEqual(walked.bar._.other, 'Ǿǿŧħḗḗř');
+      assert.strictEqual(walked.bar.$v.one, 'Ǿǿƞḗḗ');
+      assert.strictEqual(walked.bar.$v.two, 'Ŧẇǿǿ');
+      assert.strictEqual(walked.bar.$v.few, 'Ƒḗḗẇ');
+      assert.strictEqual(walked.bar.$v.many, 'Ḿȧȧƞẏ');
+      assert.strictEqual(walked.bar.$v.other, 'Ǿǿŧħḗḗř');
 
       assert.strictEqual(walked.baz.attr, 'Ȧȧƞ ȧȧŧŧřīīƀŭŭŧḗḗ');
-      assert.strictEqual(walked.baz.attrComplex,
-                         'Ȧȧƞ ȧȧŧŧřīīƀŭŭŧḗḗ řḗḗƒḗḗřḗḗƞƈīīƞɠ {{ foo }}');
+      assert.deepEqual(
+        walked.baz.attrComplex, ['Ȧȧƞ ȧȧŧŧřīīƀŭŭŧḗḗ řḗḗƒḗḗřḗḗƞƈīīƞɠ ', foo]);
 
-      assert.strictEqual(walked.templateVar, '{name} ẇřǿǿŧḗḗ');
-      assert.strictEqual(walked.dateFormat, '%A, %b %Eb');
-      assert.strictEqual(walked.twoPlaceables1, '{{ foo }} {{ bar }}');
-      assert.strictEqual(walked.twoPlaceables2,
-                         'Ƒǿǿǿǿ {{ foo }} ȧȧƞḓ ƀȧȧř {{ bar }}');
-      assert.strictEqual(walked.parens1, '({{ foo }}) {{ bar }}');
-      assert.strictEqual(walked.parens2,
-                         'Ƒǿǿǿǿ ({{foo}}) [ȧȧƞḓ/ǿǿř {{bar}}]');
-      assert.strictEqual(walked.parens3, 'Ƒǿǿǿǿ (ȧȧƞḓ) ƀȧȧř');
-      assert.strictEqual(walked.unicode, 'Ƒǿǿǿǿ ƒǿǿǿǿ ');
-      assert.strictEqual(walked.nonascii,
-                         'Ƞȧȧïṽḗḗ ƈǿǿöƥḗḗřȧȧŧīīǿǿƞ řéşŭŭḿé ḓæḿǿǿƞ ƥħœƞīīẋ');
+      assert.strictEqual(walked.templateVar.$v, '{name} ẇřǿǿŧḗḗ');
+      assert.strictEqual(walked.dateFormat.$v, '%A, %b %Eb');
+      assert.deepEqual(walked.twoPlaceables1.$v, [foo, ' ', bar]);
+      assert.deepEqual(
+        walked.twoPlaceables2.$v, ['Ƒǿǿǿǿ ', foo, ' ȧȧƞḓ ƀȧȧř ', bar]);
+      assert.deepEqual(
+        walked.parens1.$v, ['(', foo, ') ', bar]);
+      assert.deepEqual(
+        walked.parens2.$v, ['Ƒǿǿǿǿ (', foo, ') [ȧȧƞḓ/ǿǿř ', bar, ']']);
+      assert.strictEqual(walked.parens3.$v, 'Ƒǿǿǿǿ (ȧȧƞḓ) ƀȧȧř');
+      assert.strictEqual(walked.unicode.$v, 'Ƒǿǿǿǿ ƒǿǿǿǿ ');
+      assert.strictEqual(
+        walked.nonascii.$v,
+        'Ƞȧȧïṽḗḗ ƈǿǿöƥḗḗřȧȧŧīīǿǿƞ řéşŭŭḿé ḓæḿǿǿƞ ƥħœƞīīẋ');
     });
 
   });
@@ -124,43 +138,51 @@ describe('pseudo strategy', function() {
     });
 
     it('walks the value', function(){
-      var walked = walkContent(ast, strategy);
-      assert.strictEqual(walked.foo, '‮ɟoo‬');
+      assert.strictEqual(walked.foo.$v, '‮ɟoo‬');
 
-      assert.strictEqual(walked.bar._.one, '‮Ouǝ‬');
-      assert.strictEqual(walked.bar._.two, '‮⊥ʍo‬');
-      assert.strictEqual(walked.bar._.few, '‮ɟǝʍ‬');
-      assert.strictEqual(walked.bar._.many, '‮Wɐuʎ‬');
-      assert.strictEqual(walked.bar._.other, '‮Oʇɥǝɹ‬');
+      assert.strictEqual(walked.bar.$v.one, '‮Ouǝ‬');
+      assert.strictEqual(walked.bar.$v.two, '‮⊥ʍo‬');
+      assert.strictEqual(walked.bar.$v.few, '‮ɟǝʍ‬');
+      assert.strictEqual(walked.bar.$v.many, '‮Wɐuʎ‬');
+      assert.strictEqual(walked.bar.$v.other, '‮Oʇɥǝɹ‬');
 
-      assert.strictEqual(walked.baz.attr, '‮∀u‬ ‮ɐʇʇɹıqnʇǝ‬');
-      assert.strictEqual(walked.baz.attrComplex,
-                         '‮∀u‬ ‮ɐʇʇɹıqnʇǝ‬ ' +
-                         '‮ɹǝɟǝɹǝuɔıuƃ‬ {{ foo }}');
+      assert.strictEqual(
+        walked.baz.attr, '‮∀u‬ ‮ɐʇʇɹıqnʇǝ‬');
+      assert.deepEqual(
+        walked.baz.attrComplex,
+        ['‮∀u‬ ‮ɐʇʇɹıqnʇǝ‬ ‮ɹǝɟǝɹǝuɔıuƃ‬ ',
+         foo]);
 
-      assert.strictEqual(walked.templateVar, '{name} ‮ʍɹoʇǝ‬');
-      assert.strictEqual(walked.dateFormat, '%A, %b %Eb');
-      assert.strictEqual(walked.twoPlaceables1, '{{ foo }} {{ bar }}');
-      assert.strictEqual(walked.twoPlaceables2,
-                         '‮ɟoo‬ {{ foo }} ‮ɐup‬ ' +
-                         '‮qɐɹ‬ {{ bar }}');
-      assert.strictEqual(walked.parens1, '({{ foo }}) {{ bar }}');
-      assert.strictEqual(walked.parens2,
-                         '‮ɟoo‬ ({{foo}}) ' +
-                         '[‮ɐup‬/‮oɹ‬ {{bar}}]');
-      assert.strictEqual(walked.parens3,
-                         '‮ɟoo‬ (‮ɐup‬) ‮qɐɹ‬');
-      assert.strictEqual(walked.unicode, '‮ɟoo‬ ‮ɟoo‬ ');
+      assert.strictEqual(walked.templateVar.$v, '{name} ‮ʍɹoʇǝ‬');
+      assert.strictEqual(walked.dateFormat.$v, '%A, %b %Eb');
+      assert.deepEqual(walked.twoPlaceables1.$v, [foo, ' ', bar]);
+      assert.deepEqual(
+        walked.twoPlaceables2.$v,
+        ['‮ɟoo‬ ', foo, ' ‮ɐup‬ ‮qɐɹ‬ ',
+         bar]);
+      assert.deepEqual(
+        walked.parens1.$v, ['(', foo, ') ', bar]);
+      assert.deepEqual(
+        walked.parens2.$v,
+        ['‮ɟoo‬ (', foo, ') [‮ɐup‬/‮oɹ‬ ',
+         bar, ']']);
+      assert.strictEqual(
+        walked.parens3.$v,
+        '‮ɟoo‬ (‮ɐup‬) ‮qɐɹ‬');
+      assert.strictEqual(
+        walked.unicode.$v,
+        '‮ɟoo‬ ‮ɟoo‬ ');
     });
 
     // XXX this requires Unicode support for JavaSript RegExp objects
     // https://bugzil.la/258974
     it.skip('walks the value', function(){
       var walked = walkContent(ast, strategy);
-      assert.strictEqual(walked.nonascii,
-                         '‮Nɐïʌǝ‬ ‮ɔoödǝɹɐʇıou‬ ' +
-                         '‮ɹésnɯé‬ ‮pæɯou‬ ' +
-                         '‮dɥœuıx‬');
+      assert.strictEqual(
+        walked.nonascii,
+       '‮Nɐïʌǝ‬ ‮ɔoödǝɹɐʇıou‬ ' +
+       '‮ɹésnɯé‬ ‮pæɯou‬ ' +
+       '‮dɥœuıx‬');
     });
 
   });

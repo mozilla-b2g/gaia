@@ -1,17 +1,18 @@
-/* global it, before, beforeEach, assert, describe, requireApp */
+/* global assert:true, it, before, beforeEach, describe, requireApp */
 'use strict';
-var compile;
 
 if (typeof navigator !== 'undefined') {
-  requireApp('sharedtest/test/unit/l10n/lib/compiler/header.js');
+  requireApp('sharedtest/test/unit/l10n/lib/resolver/header.js');
 } else {
-  compile = require('./header.js').compile;
+  var assert = require('assert');
+  var Resolver = require('./header.js').Resolver;
+  var createEntries = require('./header.js').createEntries;
 }
 
 describe('Macros', function(){
   var source, ctxdata, env;
   beforeEach(function() {
-    env = compile(source);
+    env = createEntries(source);
   });
 
   describe('referencing macros', function(){
@@ -28,9 +29,10 @@ describe('Macros', function(){
 
     it('throws when resolving (not calling) a macro in a complex ' +
        'string', function() {
-      assert.strictEqual(env.placeMacro.toString(ctxdata), '{{ plural }}');
-      assert.strictEqual(env.placeRealMacro.toString(ctxdata),
-                         '{{ __plural }}');
+      assert.strictEqual(
+        Resolver.formatValue(env.placeMacro, ctxdata), '{{ plural }}');
+      assert.strictEqual(
+        Resolver.formatValue(env.placeRealMacro, ctxdata), '{{ __plural }}');
     });
 
   });
@@ -69,32 +71,32 @@ describe('Macros', function(){
     });
 
     it('throws if an entity is passed', function() {
-      var value = env.passFoo.toString(ctxdata);
+      var value = Resolver.formatValue(env.passFoo, ctxdata);
       assert.strictEqual(value, undefined);
     });
 
     it('throws if a complex entity is passed', function() {
-      var value = env.passUseFoo.toString(ctxdata);
+      var value = Resolver.formatValue(env.passUseFoo, ctxdata);
       assert.strictEqual(value, undefined);
     });
 
     it('throws if a hash entity is passed', function() {
-      var value = env.passBar.toString(ctxdata);
+      var value = Resolver.formatValue(env.passBar, ctxdata);
       assert.strictEqual(value, undefined);
     });
 
     it('throws if a macro is passed', function() {
-      var value = env.passPlural.toString(ctxdata);
+      var value = Resolver.formatValue(env.passPlural, ctxdata);
       assert.strictEqual(value, undefined);
     });
 
     it('throws if a missing entry is passed', function() {
-      var value = env.passMissing.toString(ctxdata);
+      var value = Resolver.formatValue(env.passMissing, ctxdata);
       assert.strictEqual(value, undefined);
     });
 
     it('throws if a native function is passed', function() {
-      var value = env.passWatch.toString(ctxdata);
+      var value = Resolver.formatValue(env.passWatch, ctxdata);
       assert.strictEqual(value, undefined);
     });
 
@@ -105,7 +107,7 @@ describe('A simple plural macro', function(){
   var source, env;
 
   beforeEach(function() {
-    env = compile(source);
+    env = createEntries(source);
     env.__plural = function(n) {
       // a made-up plural rule:
       // [0, 1) -> other
@@ -129,32 +131,32 @@ describe('A simple plural macro', function(){
     });
 
     it('returns zero for 0', function() {
-      var value = env.foo.toString({n: 0});
+      var value = Resolver.formatValue(env.foo, {n: 0});
       assert.strictEqual(value, 'Zero');
     });
 
     it('returns one for 1', function() {
-      var value = env.foo.toString({n: 1});
+      var value = Resolver.formatValue(env.foo, {n: 1});
       assert.strictEqual(value, 'One');
     });
 
     it('returns two for 2', function() {
-      var value = env.foo.toString({n: 2});
+      var value = Resolver.formatValue(env.foo, {n: 2});
       assert.strictEqual(value, 'Two');
     });
 
     it('returns many for 3', function() {
-      var value = env.foo.toString({n: 3});
+      var value = Resolver.formatValue(env.foo, {n: 3});
       assert.strictEqual(value, 'Many');
     });
 
     it('returns many for 5', function() {
-      var value = env.foo.toString({n: 5});
+      var value = Resolver.formatValue(env.foo, {n: 5});
       assert.strictEqual(value, 'Many');
     });
 
     it('returns other for 0.5', function() {
-      var value = env.foo.toString({n: 0.5});
+      var value = Resolver.formatValue(env.foo, {n: 0.5});
       assert.strictEqual(value, 'Other');
     });
 
@@ -171,32 +173,32 @@ describe('A simple plural macro', function(){
     });
 
     it('returns other for 0', function() {
-      var value = env.foo.toString({n: 0});
+      var value = Resolver.formatValue(env.foo, {n: 0});
       assert.strictEqual(value, 'Other');
     });
 
     it('returns many for 1', function() {
-      var value = env.foo.toString({n: 1});
+      var value = Resolver.formatValue(env.foo, {n: 1});
       assert.strictEqual(value, 'Many');
     });
 
     it('returns many for 2', function() {
-      var value = env.foo.toString({n: 2});
+      var value = Resolver.formatValue(env.foo, {n: 2});
       assert.strictEqual(value, 'Many');
     });
 
     it('returns many for 3', function() {
-      var value = env.foo.toString({n: 3});
+      var value = Resolver.formatValue(env.foo, {n: 3});
       assert.strictEqual(value, 'Many');
     });
 
     it('returns many for 5', function() {
-      var value = env.foo.toString({n: 5});
+      var value = Resolver.formatValue(env.foo, {n: 5});
       assert.strictEqual(value, 'Many');
     });
 
     it('returns other for 0.5', function() {
-      var value = env.foo.toString({n: 0.5});
+      var value = Resolver.formatValue(env.foo, {n: 0.5});
       assert.strictEqual(value, 'Other');
     });
 
@@ -212,32 +214,32 @@ describe('A simple plural macro', function(){
     });
 
     it('returns other for 0', function() {
-      var value = env.foo.toString({n: 0});
+      var value = Resolver.formatValue(env.foo, {n: 0});
       assert.strictEqual(value, 'Other');
     });
 
     it('returns other for 1', function() {
-      var value = env.foo.toString({n: 1});
+      var value = Resolver.formatValue(env.foo, {n: 1});
       assert.strictEqual(value, 'Other');
     });
 
     it('returns other for 2', function() {
-      var value = env.foo.toString({n: 2});
+      var value = Resolver.formatValue(env.foo, {n: 2});
       assert.strictEqual(value, 'Other');
     });
 
     it('returns other for 3', function() {
-      var value = env.foo.toString({n: 3});
+      var value = Resolver.formatValue(env.foo, {n: 3});
       assert.strictEqual(value, 'Other');
     });
 
     it('returns other for 5', function() {
-      var value = env.foo.toString({n: 5});
+      var value = Resolver.formatValue(env.foo, {n: 5});
       assert.strictEqual(value, 'Other');
     });
 
     it('returns other for 0.5', function() {
-      var value = env.foo.toString({n: 0.5});
+      var value = Resolver.formatValue(env.foo, {n: 0.5});
       assert.strictEqual(value, 'Other');
     });
 
@@ -254,32 +256,32 @@ describe('A simple plural macro', function(){
     });
 
     it('returns other for 0', function() {
-      var value = env.foo.toString({n: 0});
+      var value = Resolver.formatValue(env.foo, {n: 0});
       assert.strictEqual(value, undefined);
     });
 
     it('returns one for 1', function() {
-      var value = env.foo.toString({n: 1});
+      var value = Resolver.formatValue(env.foo, {n: 1});
       assert.strictEqual(value, 'One');
     });
 
     it('returns other for 2', function() {
-      var value = env.foo.toString({n: 2});
+      var value = Resolver.formatValue(env.foo, {n: 2});
       assert.strictEqual(value, undefined);
     });
 
     it('returns other for 3', function() {
-      var value = env.foo.toString({n: 3});
+      var value = Resolver.formatValue(env.foo, {n: 3});
       assert.strictEqual(value, undefined);
     });
 
     it('returns other for 5', function() {
-      var value = env.foo.toString({n: 5});
+      var value = Resolver.formatValue(env.foo, {n: 5});
       assert.strictEqual(value, undefined);
     });
 
     it('returns other for 0.5', function() {
-      var value = env.foo.toString({n: 0.5});
+      var value = Resolver.formatValue(env.foo, {n: 0.5});
       assert.strictEqual(value, undefined);
     });
 

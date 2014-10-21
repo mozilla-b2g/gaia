@@ -1,17 +1,18 @@
-/* global it, before, beforeEach, assert, describe, requireApp */
+/* global assert:true, it, before, beforeEach, describe, requireApp */
 'use strict';
-var compile;
 
 if (typeof navigator !== 'undefined') {
-  requireApp('sharedtest/test/unit/l10n/lib/compiler/header.js');
+  requireApp('sharedtest/test/unit/l10n/lib/resolver/header.js');
 } else {
-  compile = require('./header.js').compile;
+  var assert = require('assert');
+  var Resolver = require('./header.js').Resolver;
+  var createEntries = require('./header.js').createEntries;
 }
 
 describe('Primitives:', function(){
   var source, env;
   beforeEach(function() {
-    env = compile(source);
+    env = createEntries(source);
   });
 
   describe('Simple string value', function(){
@@ -23,7 +24,7 @@ describe('Primitives:', function(){
     });
 
     it('returns the value', function(){
-      assert.strictEqual(env.foo.toString(), 'Foo');
+      assert.strictEqual(Resolver.formatValue(env.foo), 'Foo');
     });
 
   });
@@ -40,13 +41,13 @@ describe('Primitives:', function(){
     });
 
     it('returns the value', function(){
-      var value = env.bar.toString();
+      var value = Resolver.formatValue(env.bar);
       assert.strictEqual(value, 'Foo Bar');
     });
 
     it('returns the raw string if the referenced entity is ' +
        'not found', function(){
-      var value = env.baz.toString();
+      var value = Resolver.formatValue(env.baz);
       assert.strictEqual(value, '{{ missing }}');
     });
 
@@ -62,18 +63,18 @@ describe('Primitives:', function(){
     });
 
     it('returns the null value', function(){
-      var entity = env.foo.valueOf();
+      var entity = Resolver.formatEntity(env.foo);
       assert.strictEqual(entity.value, null);
     });
 
     it('returns the attribute', function(){
-      var entity = env.foo.valueOf();
-      assert.strictEqual(entity.attributes.attr, 'Foo');
+      var entity = Resolver.formatEntity(env.foo);
+      assert.strictEqual(entity.attrs.attr, 'Foo');
     });
 
     it('returns the raw string when the referenced entity has ' +
        'null value', function(){
-      var value = env.bar.toString();
+      var value = Resolver.formatValue(env.bar);
       assert.strictEqual(value, '{{ foo }} Bar');
     });
 
@@ -89,7 +90,7 @@ describe('Primitives:', function(){
     });
 
     it('returns the raw string', function(){
-      var value = env.foo.toString();
+      var value = Resolver.formatValue(env.foo);
       assert.strictEqual(value, '{{ foo }}');
     });
 
@@ -104,7 +105,7 @@ describe('Primitives:', function(){
     });
 
     it('returns the raw string', function(){
-      var value = env.foo.toString();
+      var value = Resolver.formatValue(env.foo);
       assert.strictEqual(value, '{{ foo }}');
     });
 
@@ -122,12 +123,12 @@ describe('Primitives:', function(){
     });
 
     it('returns the raw string', function(){
-      var value = env.foo.toString({n: 1});
+      var value = Resolver.formatValue(env.foo, {n: 1});
       assert.strictEqual(value, '{{ foo }}');
     });
 
     it('returns the valid value if requested directly', function(){
-      var value = env.bar.toString({n: 2});
+      var value = Resolver.formatValue(env.bar, {n: 2});
       assert.strictEqual(value, 'Bar');
     });
   });

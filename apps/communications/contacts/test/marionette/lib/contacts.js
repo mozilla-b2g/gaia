@@ -119,7 +119,7 @@ Contacts.prototype = {
    * @param {String} key of the string to lookup.
    */
   l10n: function(file, key) {
-    var string = this.client.executeScript(function(file, key) {
+    var ast = this.client.executeScript(function(file, key) {
       var xhr = new XMLHttpRequest();
       var data;
       xhr.open('GET', file, false); // Intentional sync
@@ -130,7 +130,11 @@ Contacts.prototype = {
       return data;
     }, [file, key]);
 
-    return string[key];
+    for (var i = 0; i < ast.length; i++) {
+      if (ast[i].$i === key) {
+        return ast[i].$v;
+      }
+    }
   },
 
   waitSlideLeft: function(elementKey) {

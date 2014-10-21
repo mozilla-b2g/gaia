@@ -46,7 +46,7 @@ suite('Screen: Enter email', function() {
     navigator.mozL10n = MockL10n;
     // we have to special-case the l10n stub for the fxa-notice element
     var l10nStub = sinon.stub(navigator.mozL10n, 'get');
-    var noticeStr = 'By proceeding, I agree to the {{tos}} and {{pn}} of ' +
+    var noticeStr = 'By proceeding, I agree to the {{ tos }} and {{ pn }} ' +
                     'Firefox cloud services';
     l10nStub.withArgs('fxa-notice')
       .returns(noticeStr);

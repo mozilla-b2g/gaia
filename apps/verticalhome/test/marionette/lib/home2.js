@@ -296,12 +296,12 @@ Home2.prototype = {
   },
 
   /**
-   * Returns a localized string from a properties file.
+   * Returns a localized string from a JSON file.
    * @param {String} file to open.
    * @param {String} key of the string to lookup.
    */
   l10n: function(file, key) {
-    var string = this.client.executeAsyncScript(function(file, key) {
+    var ast = this.client.executeAsyncScript(function(file, key) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', file, true);
       xhr.onload = function(o) {
@@ -311,7 +311,11 @@ Home2.prototype = {
       xhr.send(null);
     }, [file, key]);
 
-    return string[key];
+    for (var i = 0; i < ast.length; i++) {
+      if (ast[i].$i === key) {
+        return ast[i].$v;
+      }
+    }
   },
 
   containsClass: function(selector, clazz) {

@@ -171,7 +171,7 @@ suite('Integration tests', function() {
         helper.checkError(error, stdout, stderr);
 
         var expectedScript = '<script type="application/l10n" lang="en-US">\n'+
-                             '  {"entity1":"My Entity"}\n' +
+                             '  [{"$i":"entity1","$v":"My Entity"}]\n' +
                              '</script>';
         var testZip = new AdmZip(path.join(process.cwd(), 'profile',
           'webapps', 'test-l10n-optimize.gaiamobile.org', 'application.zip'));
