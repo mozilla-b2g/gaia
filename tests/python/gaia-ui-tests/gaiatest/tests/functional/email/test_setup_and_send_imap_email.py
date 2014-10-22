@@ -25,6 +25,10 @@ class TestSetupAndSendIMAPEmail(GaiaTestCase):
         self.email.launch()
 
     def test_setup_and_send_imap_email(self):
+        """
+        https://moztrap.mozilla.org/manage/case/6113/
+        https://moztrap.mozilla.org/manage/case/6114/
+        """
         # setup IMAP account
         self.email.setup_IMAP_email(self.account)
 

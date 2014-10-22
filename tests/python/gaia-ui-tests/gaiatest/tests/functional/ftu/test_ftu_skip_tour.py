@@ -27,9 +27,8 @@ class TestFtu(GaiaTestCase):
         Wait(self.marionette).until(lambda m: self.data_layer.is_wifi_enabled)
 
     def test_ftu_skip_tour(self):
-        """https://moztrap.mozilla.org/manage/case/3876/
-
-        https://moztrap.mozilla.org/manage/case/3879/
+        """
+        https://moztrap.mozilla.org/manage/case/6119/
         """
         ssid = self.testvars['wifi']['ssid']
         psk = self.testvars['wifi'].get('psk')

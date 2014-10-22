@@ -25,7 +25,9 @@ class TestCallLogAllCalls(GaiaTestCase):
         self.phone.launch()
 
     def test_call_log_all_calls(self):
-        """https://moztrap.mozilla.org/manage/case/1306/"""
+        """
+        https://moztrap.mozilla.org/manage/case/1306/
+        """
 
         test_phone_number = self.testvars['remote_phone_number']
         plivo_phone_number = self.testvars['plivo']['phone_number']
