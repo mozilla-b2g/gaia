@@ -67,6 +67,8 @@ function loadApp() {
     requirejs([
       'app',
       'db',
+      'ext/chai',
+      'ext/chai-as-promised',
       'provider/provider_factory',
       'router',
       'test/support/fake_page',
@@ -81,6 +83,7 @@ window.testAgentRuntime.testLoader = function(path) {
   return require('/js/ext/alameda.js')
   .then(() => {
     if (!configured) {
+      console.log('Will configure requirejs...');
       configureLoader();
     }
 
@@ -93,6 +96,15 @@ window.testAgentRuntime.testLoader = function(path) {
   .then(() => {
     console.log('Will load app...');
     return loadApp();
+  })
+  .then(() => {
+    console.log('Will override default chai...');
+    var chai = requirejs('ext/chai');
+    var chaiAsPromised = requirejs('ext/chai-as-promised');
+    chai.use(chaiAsPromised);
+    window.assert = chai.assert;
+    window.expect = chai.expect;
+    window.should = chai.Should();
   })
   .then(() => {
     return new Promise((accept) => {
