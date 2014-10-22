@@ -31,6 +31,9 @@
      */
     start: function mr_start() {
       this.container = document.getElementById('media-recording-status-list');
+      // Making sure this looks like a real notification to the eyes of
+      // PositionedEventTargeting.
+      this.container.onclick = function() {};
 
       window.addEventListener('mozChromeEvent', this);
     },
@@ -42,6 +45,7 @@
     stop: function mr_stop() {
       this.isRecording = false;
       this.messages = [];
+      this.container.onclick = null;
       this.container = null;
 
       window.removeEventListener('mozChromeEvent', this);
