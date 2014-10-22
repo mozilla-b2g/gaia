@@ -154,6 +154,17 @@ var KeypadManager = {
 
   multiSimActionButton: null,
 
+  /**
+   * Initializes the keypad manager, registers all the appropriate event
+   * handlers and instances the necessary sound infrastructure so that the
+   * keypad will be fully functional once this method has been called.
+   *
+   * @param oncall {Boolean} True if the keypad manager will be used during a
+   *        call and will play sounds on the "telephony" channel. False if it
+   *        will be used outside of a call and should use the "content" channel
+   *        instead. We should be using the "notification" channel but we can't
+   *        due to bug 1092346.
+   */
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
@@ -224,24 +235,9 @@ var KeypadManager = {
                                                 this.hangUpCallFromKeypad);
     }
 
-    TonePlayer.init('normal');
-    var channel = this._onCall ? 'telephony' : 'normal';
-    window.addEventListener('visibilitychange', (function() {
-      var telephony = navigator.mozTelephony;
-      var callIsActive = telephony.calls.length ||
-            telephony.conferenceGroup.calls.length;
-
-      if (TonePlayer) {
-        // If app is hidden and we are not in the middle of a call, then switch
-        // to normal channel, no matter what channel this app should use
-        if (document.hidden && !callIsActive) {
-          TonePlayer.setChannel('normal');
-        } else {
-          // Otherwise switch to the channel this app is supposed to use
-          TonePlayer.setChannel(channel);
-        }
-      }
-    }).bind(this));
+    /* XXX: We should be using the "notification" channel here instead of the
+     * "content" one but we can't due to bug 1092346. */
+    TonePlayer.init(this._onCall ? 'telephony' : 'content');
 
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',

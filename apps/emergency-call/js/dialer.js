@@ -1,7 +1,7 @@
 'use strict';
 
 /* globals ConfirmDialog, KeypadManager, ICEContacts, LazyLoader,
-           SimSettingsHelper, TonePlayer, SimPicker */
+           SimSettingsHelper, SimPicker */
 /* exported CallHandler */
 
 var CallHandler = {
@@ -154,7 +154,6 @@ var CallHandler = {
     } else if (errorName === 'RadioNotAvailable') {
       this.displayMessage('FlightMode');
     } else if (errorName === 'BusyError') {
-      this.notifyBusyLine();
       this.displayMessage('NumberIsBusy');
     } else if (errorName === 'FDNBlockedError' ||
                errorName === 'FdnCheckFailure') {
@@ -168,27 +167,19 @@ var CallHandler = {
       this.displayMessage('UnableToCall');
     }
   },
-
-  notifyBusyLine: function() {
-    // ANSI call waiting tone for a 6 seconds window.
-    var sequence = [[480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500]];
-
-    TonePlayer.setChannel('telephony');
-    TonePlayer.playSequence(sequence);
-    TonePlayer.setChannel('normal');
-  }
 };
 /** @global CallHandler */
 window.CallHandler = CallHandler;
 
 window.addEventListener('load', function onload() {
+  /* Tell the audio channel manager that we want to adjust the "notification"
+   * channel when the user presses the volumeup/volumedown buttons. */
+  if (navigator.mozAudioChannelManager) {
+    navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+  }
+
   window.removeEventListener('load', onload);
   window.ICEContacts.updateICEContacts();
-  window.KeypadManager.init();
+  window.KeypadManager.init(/* oncall */ false);
   window.CallHandler.init();
 });
