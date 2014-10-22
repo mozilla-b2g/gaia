@@ -24,7 +24,8 @@ suite('L10n', function() {
     'update.innerHTML[other]   = <strong>{{n}} updates available.</strong> \\',
     '                            <span>Tap for more info.</span>',
     'inline-translation-test   = static content provided by inlined JSON',
-    'a11y-label.ariaLabel      = label via ARIA'
+    'a11y-label.ariaLabel      = label via ARIA',
+    'a11y-label.ariaValueText  = valuetext via ARIA'
   ].join('\n');
 
   var inlineL10Props = {
@@ -133,6 +134,12 @@ suite('L10n', function() {
       elem.dataset.l10nId = 'a11y-label';
       _translateFragment(elem);
       assert.equal(elem.getAttribute('aria-label'), 'label via ARIA');
+    });
+
+    test('ARIA valuetext', function() {
+      elem.dataset.l10nId = 'a11y-label';
+      _translateFragment(elem);
+      assert.equal(elem.getAttribute('aria-valuetext'), 'valuetext via ARIA');
     });
   });
 
