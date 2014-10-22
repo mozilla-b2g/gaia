@@ -6,7 +6,7 @@
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
          PerformanceTestingHelper, StickyHeader, Navigation, Dialog,
          InterInstanceEventDispatcher,
-         Selection
+         SelectionHandler
 */
 /*exported ThreadListUI */
 (function(exports) {
@@ -30,12 +30,6 @@ var ThreadListUI = {
 
   // Set to |true| when in edit mode
   inEditMode: false,
-  selected: new Map(),
-  // L10n id for edit mode title
-  EDIT_MODE_TITLE: {
-    selected: 'selected-threads',
-    unselected: 'selectThreads-title'
-  },
 
   init: function thlui_init() {
     this.tmpl = {
@@ -55,16 +49,13 @@ var ThreadListUI = {
     this.mainWrapper = document.getElementById('main-wrapper');
     this.composerButton = document.getElementById('icon-add');
 
-    // Selection controll mixin
-    Utils.extend(this, Selection);
-
     // TODO this should probably move to a "WrapperView" class
     this.composerButton.addEventListener(
       'click', this.launchComposer.bind(this)
     );
 
     this.checkUncheckAllButton.addEventListener(
-      'click', this.toggleCheckedAll.bind(this)
+      'click', this.toggleCheckedAll
     );
 
     this.deleteButton.addEventListener(
@@ -84,7 +75,7 @@ var ThreadListUI = {
     );
 
     this.container.addEventListener(
-      'click', this.onSelected.bind(this)
+      'click', this.onSelected
     );
 
     this.editForm.addEventListener(
@@ -282,6 +273,35 @@ var ThreadListUI = {
     Navigation.toPanel('composer');
   },
 
+  // Update check status of input elements in the container
+  updateInputsUI: function thlui_updateListUI() {
+    var inputs = this.container.querySelectorAll('input[type=checkbox]');
+    var length = inputs.length;
+
+    for (var i = 0; i < length; i++) {
+      inputs[i].checked = this.isSelected(inputs[i].value);
+    }
+  },
+
+  checkInputs: function thlui_checkInputs() {
+    var selected = this.selectedList().length;
+
+    if (selected === ThreadListUI.allInputs.length) {
+      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
+    } else {
+      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'select-all');
+    }
+    if (selected) {
+      this.deleteButton.disabled = false;
+      navigator.mozL10n.setAttributes(this.editMode, 'selected-threads', {
+        n: selected
+      });
+    } else {
+      this.deleteButton.disabled = true;
+      navigator.mozL10n.setAttributes(this.editMode, 'selectThreads-title');
+    }
+  },
+
   removeThread: function thlui_removeThread(threadId) {
     var li = document.getElementById('thread-' + threadId);
     var parent, draftId;
@@ -328,7 +348,7 @@ var ThreadListUI = {
       var threadIdsToDelete = [],
           messageIdsToDelete = [],
           threadCountToDelete = 0,
-          selected = this.selected;
+          selected = this.selectedList();
 
       function exitEditMode() {
         ThreadListUI.cancelEdit();
@@ -356,19 +376,24 @@ var ThreadListUI = {
 
       WaitingScreen.show();
 
-      selected.forEach((input, key) => {
-        var threadId = +key;
+      threadIdsToDelete = selected.reduce(function(list, value) {
+        // Coerce the threadId back to a number MobileMessageFilter and all
+        // other platform APIs expect this value to be a number.
+        var threadId = +value;
+        var isDraft = typeof Threads.get(threadId) === 'undefined';
 
-        if (input.dataset.mode === 'drafts') {
+        if (isDraft) {
           Drafts.delete(Drafts.get(threadId));
           ThreadListUI.removeThread(threadId);
         } else {
-          threadIdsToDelete.push(threadId);
+          list.push(threadId);
         }
-      });
+
+        return list;
+      }, []);
 
       // That means that we've just removed some drafts
-      if (threadIdsToDelete.length !== selected.size) {
+      if (threadIdsToDelete.length !== selected.length) {
         Drafts.store();
       }
 
@@ -894,6 +919,7 @@ Object.defineProperty(ThreadListUI, 'allInputs', {
   }
 });
 
-exports.ThreadListUI = ThreadListUI;
+exports.ThreadListUI = SelectionHandler.mixin(ThreadListUI,
+  ['updateInputsUI', 'checkInputs', 'getAllInputs']);
 
 }(this));

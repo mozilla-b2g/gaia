@@ -4,15 +4,23 @@
 'use strict';
 
 var Selection = {
-  onSelected: function sel_onSelected(event) {
-  	var target = event.target;
-    var value = target.value;
-    var existed = this.selected.has(value);
+  isSelected: function sel_isSelected(value) {
+    return this.selected.indexOf(value) > -1;
+  },
 
-    if (target.checked && !existed) {
-      this.selected.set(value, target);
-    } else if (!target.checked && existed) {
-      this.selected.delete(value);
+  selectedList: function sel_selectedList() {
+    return Array.from(this.selected);
+  },
+
+  onSelected: function sel_onSelected(event) {
+    var target = event.target;
+    var value = target.value;
+    var index = this.selected.indexOf(value);
+
+    if (target.checked && index === -1) {
+      this.selected.push(value);
+    } else if (!target.checked && index > -1) {
+      this.selected.splice(index, 1);
     } else {
       // No selection changes
       return;
@@ -21,33 +29,18 @@ var Selection = {
     this.checkInputs();
   },
 
-  selectAll: function sel_selectAll(allData) {
-    Array.prototype.forEach.call(allData, (data) => {
-      this.selected.set(data.value, data);
-    });
-  },
-
-  // Update check status of input elements in the container
-  updateInputsUI: function sel_updateListUI() {
-    var inputs = this.container.querySelectorAll('input[type=checkbox]');
-    var length = inputs.length;
-
-    for (var i = 0; i < length; i++) {
-      inputs[i].checked = this.selected.has(inputs[i].value);
-    }
-  },
-
   // if no message or few are checked : select all the messages
   // and if all messages are checked : deselect them all.
   toggleCheckedAll: function sel_toggleCheckedAll() {
-    var selected = this.selected.size;
-    var allInputs = this.allInputs;
+    var selected = this.selected.length;
+    var allInputs = this.getAllInputs();
     var allSelected = (selected === allInputs.length);
 
-    if (allSelected) {
-      this.selected.clear();
-    } else {
-      this.selectAll(this.allInputs);
+    this.selected = [];
+    if (!allSelected) {
+      Array.prototype.forEach.call(allInputs, (data) => {
+        this.selected.push(data.value);
+      });
     }
 
     this.updateInputsUI();
@@ -57,40 +50,44 @@ var Selection = {
 
   cleanForm: function sel_cleanForm() {
     // Reset all inputs
-    this.selected.clear();
+    this.selected = [];
     
     this.updateInputsUI();
 
     // Reset vars for deleting methods
     this.checkInputs();
-  },
-
-  checkInputs: function sel_checkInputs() {
-    var selected = this.selected.size;
-    var allInputs = this.allInputs;
-
-    var isAnySelected = selected > 0;
-    var selectedId = this.EDIT_MODE_TITLE.selected;
-    var unselectedId = this.EDIT_MODE_TITLE.unselected;
-
-    // Manage buttons enabled\disabled state
-    if (selected === allInputs.length) {
-      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
-    } else {
-      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'select-all');
-    }
-
-    if (isAnySelected) {
-      this.deleteButton.disabled = false;
-      navigator.mozL10n.setAttributes(this.editMode, selectedId,
-        {n: selected});
-    } else {
-      this.deleteButton.disabled = true;
-      navigator.mozL10n.setAttributes(this.editMode, unselectedId);
-    }
   }
 };
 
-exports.Selection = Selection;
+exports.SelectionHandler = {
+  mixin: function(target, methods) {
+    if (!target || typeof target !== 'object') {
+      throw new Error('Object to mix into should be valid object!');
+    }
+
+    var thisInstance = {
+      selected: []
+    };
+
+    methods.forEach((method) => {
+      if (!target[method]) {
+        throw new Error('Required method does not exist in target!');
+      }
+
+      thisInstance[method] = target[method].bind(target); 
+    });
+
+    Object.keys(Selection).forEach(function(method) {
+      if (typeof target[method] !== 'undefined') {
+        throw new Error(
+          'Object to mix into already has "' + method + '" property defined!'
+        );
+      }
+      target[method] = Selection[method].bind(this);
+    }, thisInstance);
+
+    return target;
+  }
+};
 
 }(this));
