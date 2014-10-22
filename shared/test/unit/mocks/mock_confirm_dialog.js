@@ -1,3 +1,4 @@
+console.time("mock_confirm_dialog.js");
 'use strict';
 
 /* exported MockConfirmDialog */
@@ -20,3 +21,4 @@ var MockConfirmDialog = {
     this.button = null;
   }
 };
+console.timeEnd("mock_confirm_dialog.js");

@@ -1,3 +1,4 @@
+console.time("bookmark.js");
 'use strict';
 /* global GaiaGrid */
 /* global GridIconRenderer */
@@ -126,3 +127,4 @@
   exports.GaiaGrid.Bookmark = Bookmark;
 
 }(window));
+console.timeEnd("bookmark.js");

@@ -1,3 +1,4 @@
+console.time("mock_calls_handler.js");
 'use strict';
 /* exported MockCallsHandler */
 
@@ -39,3 +40,4 @@ var MockCallsHandler = {
     this.mIsFirstCallOnCdmaNetwork = false;
   }
 };
+console.timeEnd("mock_calls_handler.js");

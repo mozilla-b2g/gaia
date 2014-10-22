@@ -1,3 +1,4 @@
+console.time("parent.js");
 'use strict';
 /* global module, __dirname */
 var fork = require('child_process').fork;
@@ -87,3 +88,4 @@ module.exports.setServerURL = function(client, server) {
     };
   }, [server.url + '/{resource}']);
 };
+console.timeEnd("parent.js");

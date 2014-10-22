@@ -1,3 +1,4 @@
+console.time("multi_sim_action_button.js");
 /* globals LazyLoader, SettingsListener, SimPicker */
 /* exported MultiSimActionButton */
 
@@ -167,3 +168,4 @@ MultiSimActionButton.prototype.performAction = function(cardIndex) {
 
   this._callCallback(phoneNumber, cardIndex);
 };
+console.timeEnd("multi_sim_action_button.js");

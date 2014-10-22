@@ -1,3 +1,4 @@
+console.time("divider.js");
 'use strict';
 /* global GaiaGrid */
 
@@ -71,3 +72,4 @@
   exports.GaiaGrid.Divider = Divider;
 
 }(window));
+console.timeEnd("divider.js");

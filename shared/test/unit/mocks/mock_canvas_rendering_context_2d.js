@@ -1,3 +1,4 @@
+console.time("mock_canvas_rendering_context_2d.js");
 'use strict';
 
 (function(exports) {
@@ -16,3 +17,4 @@
 
   exports.MockCanvasRenderingContext2D = MockCanvasRenderingContext2D;
 })(window);
+console.timeEnd("mock_canvas_rendering_context_2d.js");

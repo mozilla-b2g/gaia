@@ -1,3 +1,4 @@
+console.time("image_square.js");
 'use strict';
 
 var utils = window.utils || {};
@@ -39,3 +40,4 @@ if (typeof utils.squareImage === 'undefined') {
     };
   }; // utils.squareImage
 } // if
+console.timeEnd("image_square.js");

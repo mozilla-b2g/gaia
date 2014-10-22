@@ -1,3 +1,4 @@
+console.time("navigator_moz_icc_manager.js");
 (function() {
   'use strict';
 
@@ -9,3 +10,4 @@
     iccIds: []
   };
 })();
+console.timeEnd("navigator_moz_icc_manager.js");

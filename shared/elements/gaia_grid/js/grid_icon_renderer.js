@@ -1,3 +1,4 @@
+console.time("grid_icon_renderer.js");
 'use strict';
 /* global devicePixelRatio */
 /* global Promise */
@@ -154,3 +155,4 @@
   exports.GridIconRenderer = IconRenderer;
 
 }(window));
+console.timeEnd("grid_icon_renderer.js");

@@ -1,3 +1,4 @@
+console.time("airplane_mode_helper.js");
 /* exported AirplaneModeHelper */
 
 /*
@@ -82,6 +83,7 @@
       }.bind(this));
     },
     init: function() {
+console.time("airplane_mode_helper.js: init");
       var self = this;
 
       // init _cachedStatus
@@ -101,6 +103,7 @@
           callback(currentStatus);
         });
       });
+console.timeEnd("airplane_mode_helper.js: init");
     }
   };
 
@@ -110,3 +113,4 @@
   // you include this helper
   AirplaneModeHelper.init();
 })(this);
+console.timeEnd("airplane_mode_helper.js");

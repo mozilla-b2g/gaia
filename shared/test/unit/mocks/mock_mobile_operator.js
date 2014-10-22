@@ -1,3 +1,4 @@
+console.time("mock_mobile_operator.js");
 'use strict';
 /* exported MockMobileOperator */
 
@@ -18,3 +19,4 @@ var MockMobileOperator = {
     this.mOperator = this.mCarrier = this.mRegion = '';
   }
 };
+console.timeEnd("mock_mobile_operator.js");

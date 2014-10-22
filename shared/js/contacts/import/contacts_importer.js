@@ -1,3 +1,4 @@
+console.time("contacts_importer.js");
 'use strict';
 /* global contacts */
 /* global utils */
@@ -211,3 +212,4 @@
     }
   };
 })();
+console.timeEnd("contacts_importer.js");

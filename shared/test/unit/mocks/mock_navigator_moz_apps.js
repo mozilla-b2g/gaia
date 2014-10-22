@@ -1,3 +1,4 @@
+console.time("mock_navigator_moz_apps.js");
 'use strict';
 /* exported MockNavigatormozApps */
 
@@ -67,3 +68,4 @@ var MockNavigatormozApps = {
   }
 };
 
+console.timeEnd("mock_navigator_moz_apps.js");

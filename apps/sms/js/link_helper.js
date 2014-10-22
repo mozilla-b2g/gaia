@@ -1,3 +1,4 @@
+console.time("link_helper.js");
 /*global Utils */
 
 (function() {
@@ -299,3 +300,4 @@ var LinkHelper = window.LinkHelper = {
 };
 
 })();
+console.timeEnd("link_helper.js");

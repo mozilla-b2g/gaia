@@ -1,3 +1,4 @@
+console.time("mock_download.js");
 
 'use strict';
 
@@ -39,3 +40,4 @@ MockDownload.prototype = {
     };
   }
 };
+console.timeEnd("mock_download.js");

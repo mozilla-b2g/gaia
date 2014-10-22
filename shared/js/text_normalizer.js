@@ -1,3 +1,4 @@
+console.time("text_normalizer.js");
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -140,3 +141,4 @@ var Normalizer = {
     return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
   }
 };
+console.timeEnd("text_normalizer.js");

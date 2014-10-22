@@ -1,3 +1,4 @@
+console.time("mock_navigator_battery.js");
 'use strict';
 
 var win = document.defaultView;
@@ -10,3 +11,4 @@ var battery = {
 win.wrappedJSObject.navigator.__defineGetter__('battery', function() {
   return battery;
 });
+console.timeEnd("mock_navigator_battery.js");

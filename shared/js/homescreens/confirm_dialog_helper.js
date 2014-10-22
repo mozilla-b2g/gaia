@@ -1,3 +1,4 @@
+console.time("confirm_dialog_helper.js");
 /* global LazyLoader */
 
 (function(exports) {
@@ -118,3 +119,4 @@
   // This name is intentionally verbose.
   window.ConfirmDialogHelper = ConfirmDialogHelper;
 }(window));
+console.timeEnd("confirm_dialog_helper.js");

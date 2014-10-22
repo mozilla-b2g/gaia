@@ -1,3 +1,4 @@
+console.time("attachment_menu.js");
 /*exported AttachmentMenu */
 
 'use strict';
@@ -8,12 +9,14 @@
 var AttachmentMenu = {
 
   init: function(id) {
+console.time("attachment_menu.js: init");
     this.el = document.getElementById(id).querySelector('#attachment-options');
     ['view', 'remove', 'replace', 'cancel'].forEach(function(button) {
       this[button + 'Button'] =
         this.el.querySelector('#attachment-options-' + button);
     }.bind(this));
     this.header = this.el.querySelector('header');
+console.timeEnd("attachment_menu.js: init");
   },
 
   open: function(attachment) {
@@ -59,3 +62,4 @@ var AttachmentMenu = {
   }
 
 };
+console.timeEnd("attachment_menu.js");

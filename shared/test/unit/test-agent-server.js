@@ -1,3 +1,4 @@
+console.time("test-agent-server.js");
 var fsPath = require('path');
 
 //all require paths must be absolute -- use __dirname
@@ -14,3 +15,4 @@ var Agent = TestAgent,
     });
 
 server.use(Apps.Suite, suite);
+console.timeEnd("test-agent-server.js");

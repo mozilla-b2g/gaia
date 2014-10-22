@@ -1,3 +1,4 @@
+console.time("html_imports.js");
 /* exported HtmlImports */
 'use strict';
 
@@ -60,3 +61,4 @@ var HtmlImports = {
   }
 };
 
+console.timeEnd("html_imports.js");

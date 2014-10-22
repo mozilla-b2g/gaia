@@ -1,3 +1,4 @@
+console.time("mock_navigator_moz_bluetooth.js");
 /* exported MockMozBluetooth, MockBTAdapter */
 
 'use strict';
@@ -66,3 +67,4 @@
   window.MockBTAdapter = MockBTAdapter;
 
 })(window);
+console.timeEnd("mock_navigator_moz_bluetooth.js");

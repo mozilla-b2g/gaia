@@ -1,3 +1,4 @@
+console.time("multi_contact.js");
 'use strict';
 
 /* exported MultiContact */
@@ -180,3 +181,4 @@ var MultiContact = (function() {
     'getData': getData
   };
 })();
+console.timeEnd("multi_contact.js");

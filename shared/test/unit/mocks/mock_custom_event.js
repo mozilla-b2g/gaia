@@ -1,3 +1,4 @@
+console.time("mock_custom_event.js");
 'use strict';
 
 (function(exports) {
@@ -24,3 +25,4 @@
 
   exports.MockCustomEvent = MockCustomEvent;
 }(window));
+console.timeEnd("mock_custom_event.js");

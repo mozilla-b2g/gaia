@@ -1,3 +1,4 @@
+console.time("mock_icons_helper.js");
 'use strict';
 
 /* exported MockIconsHelper */
@@ -14,3 +15,4 @@ var MockIconsHelper = {
 
   }
 };
+console.timeEnd("mock_icons_helper.js");

@@ -1,3 +1,4 @@
+console.time("async_storage.js");
 (function(exports) {
   'use strict';
 
@@ -82,3 +83,4 @@
     }
   });
 })(window);
+console.timeEnd("async_storage.js");

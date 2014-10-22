@@ -1,3 +1,4 @@
+console.time("component_utils.js");
 
 (function(exports) {
   'use strict';
@@ -43,3 +44,4 @@
     }
   };
 }(window));
+console.timeEnd("component_utils.js");

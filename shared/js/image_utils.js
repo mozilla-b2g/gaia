@@ -1,3 +1,4 @@
+console.time("image_utils.js");
 /*
  * This shared module defines a single ImageUtils object in the global scope.
  *
@@ -566,3 +567,4 @@
     };
   }(exports.ImageUtils));
 })(window);
+console.timeEnd("image_utils.js");

@@ -1,3 +1,4 @@
+console.time("mock_navigator_moz_icc_manager.js");
 'use strict';
 (function() {
 
@@ -270,3 +271,4 @@
 
   window.MockNavigatorMozIccManager = MockIccManager;
 })();
+console.timeEnd("mock_navigator_moz_icc_manager.js");

@@ -1,3 +1,4 @@
+console.time("dedupe.js");
 'use strict';
 
 (function(exports) {
@@ -136,3 +137,4 @@
   exports.SearchDedupe = SearchDedupe;
 
 }(window));
+console.timeEnd("dedupe.js");

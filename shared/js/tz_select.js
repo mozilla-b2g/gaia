@@ -1,3 +1,4 @@
+console.time("tz_select.js");
 /* globals IccHelper */
 /* exported tzSelect */
 'use strict';
@@ -272,3 +273,4 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
   newTZObserver();
 }
 
+console.timeEnd("tz_select.js");

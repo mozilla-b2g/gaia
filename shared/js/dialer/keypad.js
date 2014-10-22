@@ -1,3 +1,4 @@
+console.time("keypad.js");
 /* exported KeypadManager */
 
 /* globals AddContactMenu, CallHandler, CallLogDBManager, CallsHandler,
@@ -155,6 +156,7 @@ var KeypadManager = {
   multiSimActionButton: null,
 
   init: function kh_init(oncall) {
+console.time("keypad.js: init");
 
     this._onCall = !!oncall;
 
@@ -248,6 +250,7 @@ var KeypadManager = {
                      '/dialer/js/suggestion_bar.js']);
 
     this._observePreferences();
+console.timeEnd("keypad.js: init");
   },
 
   moveCaretToEnd: function hk_util_moveCaretToEnd(el) {
@@ -723,3 +726,4 @@ var KeypadManager = {
     });
   }
 };
+console.timeEnd("keypad.js");

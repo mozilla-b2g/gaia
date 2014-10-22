@@ -1,3 +1,4 @@
+console.time("mock_navigator_moz_mobile_connections.js");
 'use strict';
 
 /**
@@ -155,3 +156,4 @@
   window.MockMobileconnection = MockMobileconnection;
   window.MockNavigatorMozMobileConnections = MockMobileConnections();
 })();
+console.timeEnd("mock_navigator_moz_mobile_connections.js");

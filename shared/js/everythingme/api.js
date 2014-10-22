@@ -1,3 +1,4 @@
+console.time("api.js");
 'use strict';
 /* global Promise */
 
@@ -195,3 +196,4 @@
   eme.api = new PartnersAPI();
 
 })(window.eme);
+console.timeEnd("api.js");

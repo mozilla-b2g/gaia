@@ -1,3 +1,4 @@
+console.time("event_listeners.js");
 /*jshint loopfunc: true */
 'use strict';
 
@@ -35,3 +36,4 @@ if (!utils.listeners) {
 
   })(document);
 }
+console.timeEnd("event_listeners.js");

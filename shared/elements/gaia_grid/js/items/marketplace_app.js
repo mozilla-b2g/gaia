@@ -1,3 +1,4 @@
+console.time("marketplace_app.js");
 'use strict';
 /* global GaiaGrid */
 /* global GridIconRenderer */
@@ -49,3 +50,4 @@
   exports.GaiaGrid.MarketPlaceApp = MarketPlaceApp;
 
 }(window));
+console.timeEnd("marketplace_app.js");

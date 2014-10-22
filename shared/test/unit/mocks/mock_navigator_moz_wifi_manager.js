@@ -1,3 +1,4 @@
+console.time("mock_navigator_moz_wifi_manager.js");
 /* exported MockNavigatorMozWifiManager */
 'use strict';
 
@@ -95,3 +96,4 @@ var MockNavigatorMozWifiManager = {
     };
   }
 };
+console.timeEnd("mock_navigator_moz_wifi_manager.js");

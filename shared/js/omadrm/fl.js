@@ -1,3 +1,4 @@
+console.time("fl.js");
 /* exported ForwardLock */
 /*
  * This file defines a ForwardLock object with functions for locking and
@@ -255,3 +256,4 @@
     getOrCreateKey: getOrCreateKey
   };
 }(window));
+console.timeEnd("fl.js");

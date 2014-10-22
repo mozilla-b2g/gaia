@@ -1,3 +1,4 @@
+console.time("mock_download_helper.js");
 'use strict';
 /* exported MockDownloadHelper */
 
@@ -25,3 +26,4 @@ var MockDownloadHelper = {
 
   }
 };
+console.timeEnd("mock_download_helper.js");

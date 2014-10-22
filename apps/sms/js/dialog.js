@@ -1,3 +1,4 @@
+console.time("dialog.js");
 /*global WeakMap */
 
 /* exported Dialog */
@@ -167,3 +168,4 @@ exports.Dialog = Dialog;
 // end global closure
 }(this));
 
+console.timeEnd("dialog.js");

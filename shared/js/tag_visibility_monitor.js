@@ -1,3 +1,4 @@
+console.time("tag_visibility_monitor.js");
 /* exported monitorTagVisibility */
 'use strict';
 /*====================================
@@ -583,3 +584,4 @@ function monitorTagVisibility(
     stop: stopMonitoring
   };
 }
+console.timeEnd("tag_visibility_monitor.js");

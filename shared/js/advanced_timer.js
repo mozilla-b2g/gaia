@@ -1,3 +1,4 @@
+console.time("advanced_timer.js");
 /* exported advanced_timer */
 
 'use strict';
@@ -54,3 +55,4 @@ var advanced_timer = {
     return timer.timeout - (new Date().getTime() - timer.timestamp);
   }
 };
+console.timeEnd("advanced_timer.js");

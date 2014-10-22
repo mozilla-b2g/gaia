@@ -1,3 +1,4 @@
+console.time("mock_navigator_moz_set_message_handler.js");
 'use strict';
 
 (function(window) {
@@ -33,3 +34,4 @@ Object.defineProperty(mozSetMessageHandler, 'mMessageHandlers', {
 window.MockNavigatormozSetMessageHandler = mozSetMessageHandler;
 
 })(window);
+console.timeEnd("mock_navigator_moz_set_message_handler.js");

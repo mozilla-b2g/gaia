@@ -1,3 +1,4 @@
+console.time("mock_navigator_input_method.js");
 'use strict';
 
 /* global MockEventTarget, Promise */
@@ -165,3 +166,4 @@
   exports.MockInputMethod = MockInputMethod;
   exports.MockInputContext = MockInputContext;
 }(window));
+console.timeEnd("mock_navigator_input_method.js");

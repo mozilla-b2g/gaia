@@ -1,3 +1,4 @@
+console.time("voicemail.js");
 'use strict';
 
 /* global Promise */
@@ -71,3 +72,4 @@
   };
   exports.Voicemail = Voicemail;
 }(window));
+console.timeEnd("voicemail.js");

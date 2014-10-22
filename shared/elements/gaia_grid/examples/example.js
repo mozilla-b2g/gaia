@@ -1,3 +1,4 @@
+console.time("example.js");
 'use strict';
 /* global GaiaGrid */
 
@@ -63,3 +64,4 @@ document.getElementById('clear').addEventListener('click', function() {
   grid.clear();
 });
 
+console.timeEnd("example.js");

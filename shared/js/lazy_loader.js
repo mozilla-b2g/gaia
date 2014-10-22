@@ -1,3 +1,4 @@
+console.time("lazy_loader.js");
 /* exported LazyLoader */
 /* globals HtmlImports, Promise */
 'use strict';
@@ -138,3 +139,4 @@ var LazyLoader = (function() {
 
   return new LazyLoader();
 }());
+console.timeEnd("lazy_loader.js");

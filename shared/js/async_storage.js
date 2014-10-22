@@ -1,3 +1,4 @@
+console.time("async_storage.js");
 /* globals indexedDB */
 /**
  * This file defines an asynchronous version of the localStorage API, backed by
@@ -178,3 +179,4 @@ this.asyncStorage = (function() {
   };
 }());
 
+console.timeEnd("async_storage.js");

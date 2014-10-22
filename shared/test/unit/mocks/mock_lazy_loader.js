@@ -1,3 +1,4 @@
+console.time("mock_lazy_loader.js");
 'use strict';
 /* exported MockLazyLoader */
 
@@ -8,3 +9,4 @@ var MockLazyLoader = {
     }
   }
 };
+console.timeEnd("mock_lazy_loader.js");

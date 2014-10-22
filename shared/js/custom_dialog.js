@@ -1,3 +1,4 @@
+console.time("custom_dialog.js");
 /* exported CustomDialog */
 //XXX: Waiting for the window.showModalDialog support in B2G
 
@@ -185,3 +186,4 @@ var CustomDialog = (function() {
   };
 }());
 
+console.timeEnd("custom_dialog.js");

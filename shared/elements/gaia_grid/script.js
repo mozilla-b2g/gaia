@@ -1,3 +1,4 @@
+console.time("script.js");
 /* global GaiaGrid */
 /* global GridView */
 
@@ -221,3 +222,4 @@ window.GaiaGrid = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-grid', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

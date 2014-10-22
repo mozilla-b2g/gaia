@@ -1,3 +1,4 @@
+console.time("attachment_renderer.js");
 /*global Promise, Template, Utils,
          ImageUtils
 */
@@ -248,3 +249,4 @@
     }
   };
 }(this));
+console.timeEnd("attachment_renderer.js");

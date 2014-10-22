@@ -1,3 +1,4 @@
+console.time("gaia-theme-selector.js");
 (function(define){'use strict';define(function(require,exports,module){
 /*jshint esnext:true*/
 
@@ -86,3 +87,4 @@ document.registerElement('gaia-theme-selector', { prototype: proto });
 define:typeof module=='object'?function(c){c(require,exports,module);}:
 function(c){var m={exports:{}},r=function(n){return w[n];};
 w[n]=c(r,m.exports,m)||m.exports;};})('gaia-theme-selector',this));
+console.timeEnd("gaia-theme-selector.js");

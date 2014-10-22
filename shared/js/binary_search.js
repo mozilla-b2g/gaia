@@ -1,3 +1,4 @@
+console.time("binary_search.js");
 'use strict';
 /* exported utils */
 var utils = window.utils || {};
@@ -122,3 +123,4 @@ utils.binarySearch = function(target, array, options) {
     });
   }
 };
+console.timeEnd("binary_search.js");

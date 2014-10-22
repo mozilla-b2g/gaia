@@ -1,3 +1,4 @@
+console.time("importer_ui.js");
 /* globals LazyLoader, ConfirmDialog, utils, contacts, oauthflow,
   Curtain, ImageLoader, importer, asyncStorage, FriendListRenderer,
   Rest, oauth2, contactsList, ImportStatusData */
@@ -1035,3 +1036,4 @@ if (typeof window.importer === 'undefined') {
 
   })(document);
 }
+console.timeEnd("importer_ui.js");

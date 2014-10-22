@@ -1,3 +1,4 @@
+console.time("overlay.js");
 'use strict';
 
 var utils = window.utils || {};
@@ -192,3 +193,4 @@ var utils = window.utils || {};
     );
   };
 })();
+console.timeEnd("overlay.js");

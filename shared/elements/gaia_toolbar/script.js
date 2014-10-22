@@ -1,3 +1,4 @@
+console.time("script.js");
 
 window.GaiaToolbar = (function(win) {
   /*global ComponentUtils*/
@@ -29,3 +30,4 @@ window.GaiaToolbar = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-toolbar', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

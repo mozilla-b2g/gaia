@@ -1,3 +1,4 @@
+console.time("mock_wifi_helper.js");
 /* exported MockWifiHelper */
 /* global MockNavigatorMozWifiManager*/
 'use strict';
@@ -44,3 +45,4 @@ var MockWifiHelper = {
     };
   }
 };
+console.timeEnd("mock_wifi_helper.js");

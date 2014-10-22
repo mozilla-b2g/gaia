@@ -1,3 +1,4 @@
+console.time("oauth20.js");
 /* global ImportStatusData, oauthflow, Curtain */
 'use strict';
 
@@ -136,3 +137,4 @@ if (typeof window.oauth2 === 'undefined') {
   }
   )(document);
 }
+console.timeEnd("oauth20.js");

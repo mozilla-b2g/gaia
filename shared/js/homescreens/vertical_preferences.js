@@ -1,3 +1,4 @@
+console.time("vertical_preferences.js");
 
 'use strict';
 
@@ -175,3 +176,4 @@
   };
 
 }(window));
+console.timeEnd("vertical_preferences.js");

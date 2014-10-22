@@ -1,3 +1,4 @@
+console.time("contacts_datastore.js");
 'use strict';
 
 /* exported ContactsDatastore */
@@ -81,3 +82,4 @@ var ContactsDatastore = (function() {
   return  ContactsDatastore;
 
 }());
+console.timeEnd("contacts_datastore.js");

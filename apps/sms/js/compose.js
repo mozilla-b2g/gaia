@@ -1,3 +1,4 @@
+console.time("compose.js");
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -314,6 +315,7 @@ var Compose = (function() {
 
   var compose = {
     init: function composeInit(formId) {
+console.time("compose.js: init");
       dom.form = document.getElementById(formId);
       dom.message = document.getElementById('messages-input');
       dom.sendButton = document.getElementById('messages-send-button');
@@ -368,6 +370,7 @@ var Compose = (function() {
       dom.attachButton.addEventListener('click', onInteracted);
       subject.on('focus', onInteracted);
 
+      console.timeEnd("compose.js: init");
       return this;
     },
 
@@ -878,3 +881,4 @@ var Compose = (function() {
     'subject-change'
   ]);
 }());
+console.timeEnd("compose.js");

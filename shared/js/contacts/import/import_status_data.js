@@ -1,3 +1,4 @@
+console.time("import_status_data.js");
 'use strict';
 
 /* globals Promise */
@@ -93,3 +94,4 @@ if (!window.ImportStatusData) {
 
   })();
 }
+console.timeEnd("import_status_data.js");

@@ -1,3 +1,4 @@
+console.time("accessibility_helper.js");
 'use strict';
 
 (function(exports) {
@@ -21,3 +22,4 @@
   exports.AccessibilityHelper = AccessibilityHelper;
 
 })(window);
+console.timeEnd("accessibility_helper.js");

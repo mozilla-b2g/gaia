@@ -1,3 +1,4 @@
+console.time("script.js");
 window.GaiaDrawer = (function(win) {
   /*global ComponentUtils*/
   /*jshint maxlen:false*/
@@ -136,3 +137,4 @@ window.GaiaDrawer = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-drawer', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

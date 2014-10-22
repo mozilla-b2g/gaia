@@ -1,3 +1,4 @@
+console.time("load_body_html_helper.js");
 (function(global) {
 'use strict';
 
@@ -41,3 +42,4 @@ function loadBodyHTML(filename) {
 global.loadBodyHTML = loadBodyHTML;
 
 }(this));
+console.timeEnd("load_body_html_helper.js");

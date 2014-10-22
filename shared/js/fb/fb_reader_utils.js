@@ -1,3 +1,4 @@
+console.time("fb_reader_utils.js");
 'use strict';
 
 // Includes convenience functions for FB Contact Data
@@ -323,3 +324,4 @@ if (!this.AuxFB) {
     }
   }
 }
+console.timeEnd("fb_reader_utils.js");

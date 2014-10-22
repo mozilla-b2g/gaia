@@ -1,3 +1,4 @@
+console.time("video_player.js");
 'use strict';
 
 //
@@ -484,3 +485,4 @@ VideoPlayer.prototype.show = function() {
   // Call init() to show the poster
   this.controls.style.display = 'block';
 };
+console.timeEnd("video_player.js");

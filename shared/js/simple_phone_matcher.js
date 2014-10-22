@@ -1,3 +1,4 @@
+console.time("simple_phone_matcher.js");
 /* exported SimplePhoneMatcher */
 'use strict';
 
@@ -495,3 +496,4 @@ var SimplePhoneMatcher = {
   }
 };
 
+console.timeEnd("simple_phone_matcher.js");

@@ -1,3 +1,4 @@
+console.time("mock_handled_call.js");
 /* globals HandledCall, MockNavigatorMozTelephony */
 /* exported telephonyAddCall, telephonyAddCdmaCall */
 
@@ -88,3 +89,4 @@ function telephonyAddCdmaCall(number, opt) {
     MockNavigatorMozTelephony.mTriggerCallsChanged();
   }
 }
+console.timeEnd("mock_handled_call.js");

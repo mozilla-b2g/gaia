@@ -1,3 +1,4 @@
+console.time("sdcard.js");
 'use strict';
 
 var utils = window.utils || {};
@@ -192,3 +193,4 @@ if (!utils.sdcard) {
     }
   };
 }
+console.timeEnd("sdcard.js");

@@ -1,3 +1,4 @@
+console.time("attachment.js");
 /** Creates an Attachment object
  * @param {String} type of attachment (image, video, etc).
  * @param {String} uri Location or datauri of image to show.
@@ -86,3 +87,4 @@
 
   exports.Attachment = Attachment;
 }(this));
+console.timeEnd("attachment.js");

@@ -1,3 +1,4 @@
+console.time("video_stats.js");
 'use strict';
 
 //
@@ -103,3 +104,4 @@ var VideoStats = (function() {
     dump: print
   };
 })();
+console.timeEnd("video_stats.js");

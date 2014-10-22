@@ -1,3 +1,4 @@
+console.time("grid_zoom.js");
 'use strict';
 
 (function(exports) {
@@ -158,3 +159,4 @@
   exports.GridZoom = GridZoom;
 
 }(window));
+console.timeEnd("grid_zoom.js");

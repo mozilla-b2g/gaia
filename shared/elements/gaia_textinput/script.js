@@ -1,3 +1,4 @@
+console.time("script.js");
 window.GaiaTextinput = (function(win) {
   'use strict';
 
@@ -69,3 +70,4 @@ window.GaiaTextinput = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-textinput', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

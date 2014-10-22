@@ -1,3 +1,4 @@
+console.time("basket_client.js");
 /* global Promise */
 /* exported Basket */
 'use strict';
@@ -135,3 +136,4 @@ var Basket = {
 
 };
 
+console.timeEnd("basket_client.js");

@@ -1,3 +1,4 @@
+console.time("navigation.js");
 /* global Promise,
       Utils,
       Startup
@@ -68,6 +69,7 @@ var Navigation = window.Navigation = {
   },
 
   init: function n_init() {
+console.time("navigation.js: init");
     this.mainWrapper = document.getElementById('main-wrapper');
     this.transitioning = false;
 
@@ -77,6 +79,7 @@ var Navigation = window.Navigation = {
     }.bind(this));
 
     return this.toPanelFromHash();
+console.timeEnd("navigation.js: init");
   },
 
   /**
@@ -325,3 +328,4 @@ var Navigation = window.Navigation = {
 };
 
 })(window);
+console.timeEnd("navigation.js");

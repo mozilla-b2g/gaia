@@ -1,3 +1,4 @@
+console.time("script.js");
 window.GaiaTabs = (function(win) {
   /* global ComponentUtils */
   'use strict';
@@ -104,3 +105,4 @@ window.GaiaTabs = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-tabs', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

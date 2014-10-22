@@ -1,3 +1,4 @@
+console.time("mock_gesture_detector.js");
 'use strict';
 
 var MockGestureDetector = function() {};
@@ -7,3 +8,4 @@ MockGestureDetector.prototype = {
   stopDetecting: function() {}
 };
 
+console.timeEnd("mock_gesture_detector.js");

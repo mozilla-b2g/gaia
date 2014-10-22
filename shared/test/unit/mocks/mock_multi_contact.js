@@ -1,3 +1,4 @@
+console.time("mock_multi_contact.js");
 'use strict';
 
 /* globals Promise */
@@ -13,3 +14,4 @@ var MockMultiContact = {
     });
   }
 };
+console.timeEnd("mock_multi_contact.js");

@@ -1,3 +1,4 @@
+console.time("contacts_matcher.js");
 'use strict';
 /* global Normalizer */
 /* global SimplePhoneMatcher */
@@ -708,3 +709,4 @@ contacts.MatcherObj = function(pdataProvider) {
 };
 
 contacts.Matcher = new contacts.MatcherObj(navigator.mozContacts);
+console.timeEnd("contacts_matcher.js");

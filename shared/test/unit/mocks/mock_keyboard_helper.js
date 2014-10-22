@@ -1,3 +1,4 @@
+console.time("mock_keyboard_helper.js");
 'use strict';
 
 var MockKeyboardHelper = {
@@ -142,3 +143,4 @@ var MockKeyboardHelper = {
 };
 
 MockKeyboardHelper.mSuiteSetup = MockKeyboardHelper.mSetup;
+console.timeEnd("mock_keyboard_helper.js");

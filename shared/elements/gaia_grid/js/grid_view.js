@@ -1,3 +1,4 @@
+console.time("grid_view.js");
 'use strict';
 /* global GridDragDrop */
 /* global GaiaGrid */
@@ -577,3 +578,4 @@
   exports.GridView = GridView;
 
 }(window));
+console.timeEnd("grid_view.js");

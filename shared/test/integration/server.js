@@ -1,3 +1,4 @@
+console.time("server.js");
 'use strict';
 
 function Server(root, port, child) {
@@ -68,3 +69,4 @@ Server.create = function(root, callback) {
 };
 
 module.exports = Server;
+console.timeEnd("server.js");

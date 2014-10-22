@@ -1,3 +1,4 @@
+console.time("mozapp.js");
 'use strict';
 /* global ConfirmDialogHelper, GaiaGrid */
 
@@ -315,3 +316,4 @@
   exports.GaiaGrid.Mozapp = Mozapp;
 
 }(window));
+console.timeEnd("mozapp.js");

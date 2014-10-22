@@ -1,3 +1,4 @@
+console.time("icc_helper.js");
 'use strict';
 
 /**
@@ -184,3 +185,4 @@
     _iccProxy = _iccManager;
   }
 })(window);
+console.timeEnd("icc_helper.js");

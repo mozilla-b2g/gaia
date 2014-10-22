@@ -1,3 +1,4 @@
+console.time("thread_list_ui.js");
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -31,6 +32,7 @@ var ThreadListUI = {
   inEditMode: false,
 
   init: function thlui_init() {
+console.time("thread_list_ui.js: init");
     this.tmpl = {
       thread: Template('messages-thread-tmpl')
     };
@@ -103,6 +105,7 @@ var ThreadListUI = {
       // 10 is approximate English char width for current 18px font size
       groupThreadTitleMaxLength: (window.innerWidth - 100) / 10
     });
+console.timeEnd("thread_list_ui.js: init");
   },
 
   beforeLeave: function thlui_beforeLeave() {
@@ -954,3 +957,4 @@ Object.defineProperty(ThreadListUI, 'selectedInputs', {
 exports.ThreadListUI = ThreadListUI;
 
 }(this));
+console.timeEnd("thread_list_ui.js");

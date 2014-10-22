@@ -1,3 +1,4 @@
+console.time("image_thumbnail.js");
 'use strict';
 
 var utils = window.utils || {};
@@ -57,3 +58,4 @@ var utils = window.utils || {};
     };
   };
 })(utils);
+console.timeEnd("image_thumbnail.js");

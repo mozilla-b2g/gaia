@@ -1,3 +1,4 @@
+console.time("mock_event_target.js");
 'use strict';
 
 (function(exports) {
@@ -118,3 +119,4 @@
 
   exports.MockEventTarget = MockEventTarget;
 }(window));
+console.timeEnd("mock_event_target.js");

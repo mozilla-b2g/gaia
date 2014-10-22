@@ -1,3 +1,4 @@
+console.time("mock_lazy_l10n.js");
 /* global MockL10n */
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -16,3 +17,4 @@ require('/shared/test/unit/mocks/mock_l10n.js');
   };
 
 })(this);
+console.timeEnd("mock_lazy_l10n.js");

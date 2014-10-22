@@ -1,3 +1,4 @@
+console.time("mock_call.js");
 'use strict';
 
 /* exported MockCall */
@@ -80,3 +81,4 @@ function MockCall(aNumber, aState, aServiceId) {
     });
   };
 }
+console.timeEnd("mock_call.js");

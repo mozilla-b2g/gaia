@@ -1,3 +1,4 @@
+console.time("bookmarks_database.js");
 
 'use strict';
 
@@ -285,3 +286,4 @@
   };
 
 }(window));
+console.timeEnd("bookmarks_database.js");

@@ -1,3 +1,4 @@
+console.time("settings_helper.js");
 (function(exports) {
   'use strict';
   /**
@@ -115,3 +116,4 @@
 
   exports.SettingsHelper = SettingsHelper;
 })(this);
+console.timeEnd("settings_helper.js");

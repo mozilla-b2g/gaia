@@ -1,3 +1,4 @@
+console.time("date_time_helper.js");
 /**
  * Shim for navigator.mozHour12 API.
  * Send `localechanged` event if mozHour12 is changed.
@@ -37,3 +38,4 @@
   // monitor settings changes
   window.navigator.mozSettings.addObserver(_kLocaleTime, _hour12Handler);
 })();
+console.timeEnd("date_time_helper.js");

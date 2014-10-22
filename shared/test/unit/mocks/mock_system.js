@@ -1,3 +1,4 @@
+console.time("mock_system.js");
 /* exported MockSystem */
 'use strict';
 var MockSystem = {
@@ -24,3 +25,4 @@ var MockSystem = {
   manifestURL: 'app://system.gaiamobile.org/manifest.webapp',
   currentApp: null
 };
+console.timeEnd("mock_system.js");

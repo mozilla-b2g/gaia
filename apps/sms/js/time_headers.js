@@ -1,3 +1,4 @@
+console.time("time_headers.js");
 /*global Utils */
 (function(exports) {
   'use strict';
@@ -6,8 +7,10 @@
 
   var TimeHeaders = {
     init: function th_init() {
+console.time("time_headers.js: init");
       onvisibilityChange();
       document.addEventListener('visibilitychange', onvisibilityChange);
+console.timeEnd("time_headers.js: init");
     },
     startScheduler: function th_startScheduler() {
       var now = Date.now(),
@@ -76,3 +79,4 @@
 
   exports.TimeHeaders = TimeHeaders;
 }(this));
+console.timeEnd("time_headers.js");

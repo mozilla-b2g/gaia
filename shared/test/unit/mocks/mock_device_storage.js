@@ -1,3 +1,4 @@
+console.time("mock_device_storage.js");
 'use strict';
 
 function MockDeviceStorage() {
@@ -83,3 +84,4 @@ MockDeviceStorage.prototype.delete = function(name) {
     }
   }
 };
+console.timeEnd("mock_device_storage.js");

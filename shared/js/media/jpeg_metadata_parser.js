@@ -1,3 +1,4 @@
+console.time("jpeg_metadata_parser.js");
 'use strict';
 
 //
@@ -357,3 +358,4 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
     return null;
   }
 }
+console.timeEnd("jpeg_metadata_parser.js");

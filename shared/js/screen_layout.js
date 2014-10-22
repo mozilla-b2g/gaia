@@ -1,3 +1,4 @@
+console.time("screen_layout.js");
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -27,6 +28,7 @@ var ScreenLayout = {
   },
 
   init: function sl_init() {
+console.time("screen_layout.js: init");
     // loop defaultQueries and add window.matchMedia()
     // to this.queries object
     this.queries = (function(qs) {
@@ -36,6 +38,7 @@ var ScreenLayout = {
       }
       return result;
     })(this.defaultQueries);
+console.timeEnd("screen_layout.js: init");
   },
 
   _isOnRealDevice: undefined,
@@ -122,3 +125,4 @@ var ScreenLayout = {
 };
 
 ScreenLayout.init();
+console.timeEnd("screen_layout.js");

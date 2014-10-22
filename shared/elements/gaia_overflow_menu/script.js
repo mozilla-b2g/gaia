@@ -1,3 +1,4 @@
+console.time("script.js");
 'use strict';
 /* global ComponentUtils */
 
@@ -74,3 +75,4 @@ window.GaiaOverflowMenu = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-overflow-menu', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

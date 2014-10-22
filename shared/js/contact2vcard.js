@@ -1,3 +1,4 @@
+console.time("contact2vcard.js");
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -341,3 +342,4 @@
   exports.ContactToVcard = ContactToVcard;
   exports.ContactToVcardBlob = ContactToVcardBlob;
 })(this);
+console.timeEnd("contact2vcard.js");

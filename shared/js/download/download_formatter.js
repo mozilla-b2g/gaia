@@ -1,3 +1,4 @@
+console.time("download_formatter.js");
 /* global LazyLoader */
 
 /**
@@ -84,3 +85,4 @@
   exports.DownloadFormatter = DownloadFormatter;
 
 }(this));
+console.timeEnd("download_formatter.js");

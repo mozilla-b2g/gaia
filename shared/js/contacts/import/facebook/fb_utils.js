@@ -1,3 +1,4 @@
+console.time("fb_utils.js");
 'use strict';
 
 /* global ImportStatusData, oauthflow, utils */
@@ -487,3 +488,4 @@ window.fb = fb;
     }; // FbContactsCleaner
 
   })(document);
+console.timeEnd("fb_utils.js");

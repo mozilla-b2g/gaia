@@ -1,3 +1,4 @@
+console.time("vcard_reader.js");
 /* global LazyLoader, utils, Rest, MimeMapper */
 /* exported VCardReader */
 
@@ -755,3 +756,4 @@
   window.VCardReader.parseDataUri = parseDataUri;
 
 })();
+console.timeEnd("vcard_reader.js");

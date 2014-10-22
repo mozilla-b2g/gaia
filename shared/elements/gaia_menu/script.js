@@ -1,3 +1,4 @@
+console.time("script.js");
 'use strict';
 /* global ComponentUtils */
 
@@ -55,3 +56,4 @@ window.GaiaMenu = (function(win) {
   return document.registerElement('gaia-menu', { prototype: proto });
 
 })(window);
+console.timeEnd("script.js");

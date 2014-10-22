@@ -1,3 +1,4 @@
+console.time("apn_helper.js");
 /**
  * @fileoverview This file provides common helper functions used to manipulate
  *               access point names (APNs)
@@ -82,3 +83,4 @@
 
   exports.ApnHelper = ApnHelper;
 })(this);
+console.timeEnd("apn_helper.js");

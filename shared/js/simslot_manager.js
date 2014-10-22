@@ -1,3 +1,4 @@
+console.time("simslot_manager.js");
 /* global SIMSlot, SIMSlotManager */
 'use strict';
 
@@ -35,6 +36,7 @@
     ready: false,
 
     init: function ssm_init() {
+console.time("simslot_manager.js: init");
       if (!IccManager) {
         return;
       }
@@ -52,6 +54,7 @@
       }, this);
 
       IccManager.addEventListener('iccdetected', this);
+console.timeEnd("simslot_manager.js: init");
     },
 
     /**
@@ -214,3 +217,4 @@
 
   SIMSlotManager.init();
 }(window));
+console.timeEnd("simslot_manager.js");

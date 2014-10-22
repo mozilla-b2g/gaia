@@ -1,3 +1,4 @@
+console.time("iac_handler.js");
 'use strict';
 
 var IACHandler = {
@@ -5,6 +6,7 @@ var IACHandler = {
   _ports: {},
 
   init: function onInit() {
+console.time("iac_handler.js: init");
     var self = this;
 
     window.navigator.mozSetMessageHandler('connection',
@@ -40,6 +42,7 @@ var IACHandler = {
           window.dispatchEvent(iacEvt);
         };
     });
+console.timeEnd("iac_handler.js: init");
   },
 
   getPort: function(keyword) {
@@ -48,3 +51,4 @@ var IACHandler = {
 };
 
 IACHandler.init();
+console.timeEnd("iac_handler.js");

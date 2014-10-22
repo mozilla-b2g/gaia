@@ -1,3 +1,4 @@
+console.time("wifi_helper.js");
 /* exported WifiHelper */
 'use strict';
 
@@ -235,3 +236,4 @@ var WifiHelper = {
     return reqProxy;
   }
 };
+console.timeEnd("wifi_helper.js");

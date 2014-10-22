@@ -1,3 +1,4 @@
+console.time("mock_contact_photo_helper.js");
 'use strict';
 
 /* exported MockContactPhotoHelper */
@@ -19,3 +20,4 @@ var MockContactPhotoHelper =  {
     return contact.photo[0];
   }
 };
+console.timeEnd("mock_contact_photo_helper.js");

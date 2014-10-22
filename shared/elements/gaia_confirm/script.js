@@ -1,3 +1,4 @@
+console.time("script.js");
 'use strict';
 /* global ComponentUtils */
 
@@ -89,3 +90,4 @@ window.GaiaConfirm = (function(win) {
   return document.registerElement('gaia-confirm', { prototype: proto });
 
 })(window);
+console.timeEnd("script.js");

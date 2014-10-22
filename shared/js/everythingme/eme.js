@@ -1,3 +1,4 @@
+console.time("eme.js");
 'use strict';
 /* global eme */
 /* global Promise */
@@ -18,6 +19,7 @@
     },
 
     init: function init() {
+console.time("eme.js: init");
       if (initPromise) {
         return initPromise;
       }
@@ -49,6 +51,7 @@
       };
 
       return initPromise;
+console.timeEnd("eme.js: init");
     },
 
     readSettings: function readSettings() {
@@ -87,3 +90,4 @@
   };
 
 })(window);
+console.timeEnd("eme.js");

@@ -1,3 +1,4 @@
+console.time("sms_integration.js");
 'use strict';
 /* global MozActivity */
 /* exported SmsIntegration */
@@ -18,3 +19,4 @@ var SmsIntegration = {
     }
   }
 };
+console.timeEnd("sms_integration.js");

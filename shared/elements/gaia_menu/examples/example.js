@@ -1,3 +1,4 @@
+console.time("example.js");
 'use strict';
 
 (function() {
@@ -6,3 +7,4 @@
     alert('Cancelled');
   });
 })();
+console.timeEnd("example.js");

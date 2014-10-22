@@ -1,3 +1,4 @@
+console.time("mock_utils.js");
 'use strict';
 /* exported MockUtils */
 
@@ -76,3 +77,4 @@ var MockUtils = {
   prettyDuration: function(node, duration, l10nPrefix) {}
 };
 
+console.timeEnd("mock_utils.js");

@@ -1,3 +1,4 @@
+console.time("threads.js");
 /*global Drafts */
 
 (function(exports) {
@@ -151,3 +152,4 @@
 
   exports.Thread = Thread;
 }(this));
+console.timeEnd("threads.js");

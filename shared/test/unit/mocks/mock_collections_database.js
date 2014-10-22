@@ -1,3 +1,4 @@
+console.time("mock_collections_database.js");
 'use strict';
 /* global Promise */
 
@@ -25,3 +26,4 @@
   };
 
 }(window));
+console.timeEnd("mock_collections_database.js");

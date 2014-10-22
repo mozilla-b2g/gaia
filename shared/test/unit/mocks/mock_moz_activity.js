@@ -1,3 +1,4 @@
+console.time("mock_moz_activity.js");
 'use strict';
 
 /* exported MockMozActivity */
@@ -43,3 +44,4 @@ MockMozActivity.mTeardown = function() {
   delete MockMozActivity.calls;
   delete MockMozActivity.instances;
 };
+console.timeEnd("mock_moz_activity.js");

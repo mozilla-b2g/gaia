@@ -1,3 +1,4 @@
+console.time("media_utils.js");
 'use strict';
 
 /**
@@ -100,3 +101,4 @@ var MediaUtils = {
       return MediaUtils.binarySearch(array, element, comparator, mid + 1, to);
   }
 };
+console.timeEnd("media_utils.js");

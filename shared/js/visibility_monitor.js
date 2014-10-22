@@ -1,3 +1,4 @@
+console.time("visibility_monitor.js");
 /* exported monitorChildVisibility */
 /*
  * visibility_monitor.js
@@ -533,3 +534,4 @@ function monitorChildVisibility(container,
     lastNotifiedOnscreen = lastOnscreen;
   }
 }
+console.timeEnd("visibility_monitor.js");

@@ -1,3 +1,4 @@
+console.time("mock_voicemail.js");
 'use strict';
 
 /* exported MockVoicemail */
@@ -18,3 +19,4 @@ var MockVoicemail = {
     };
   }
 };
+console.timeEnd("mock_voicemail.js");

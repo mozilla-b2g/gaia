@@ -1,3 +1,4 @@
+console.time("subject_composer.js");
 /* global EventDispatcher */
 
 /* exported SubjectComposer */
@@ -176,3 +177,4 @@
 
   exports.SubjectComposer = SubjectComposer;
 })(window);
+console.timeEnd("subject_composer.js");

@@ -1,3 +1,4 @@
+console.time("example.js");
 'use strict';
 
 var toggle = document.getElementById('toggle');
@@ -11,3 +12,4 @@ toggle.addEventListener('click', function() {
     progress2.start();
   }
 });
+console.timeEnd("example.js");

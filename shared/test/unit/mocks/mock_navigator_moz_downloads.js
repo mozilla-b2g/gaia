@@ -1,3 +1,4 @@
+console.time("mock_navigator_moz_downloads.js");
 'use strict';
 /* global MockDownload */
 /* exported MockMozDownloads */
@@ -55,3 +56,4 @@ var MockMozDownloads = {
     };
   }
 };
+console.timeEnd("mock_navigator_moz_downloads.js");

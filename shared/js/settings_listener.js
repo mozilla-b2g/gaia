@@ -1,3 +1,4 @@
+console.time("settings_listener.js");
 /* exported SettingsListener */
 'use strict';
 
@@ -77,3 +78,4 @@ var SettingsListener = {
     });
   }
 };
+console.timeEnd("settings_listener.js");

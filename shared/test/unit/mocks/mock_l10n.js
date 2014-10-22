@@ -1,3 +1,4 @@
+console.time("mock_l10n.js");
 (function(exports) {
   'use strict';
 
@@ -94,3 +95,4 @@
   }
 
 }(this));
+console.timeEnd("mock_l10n.js");

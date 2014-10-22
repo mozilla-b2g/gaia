@@ -1,3 +1,4 @@
+console.time("utilities.js");
 var DateHelper = {
   todayStarted: function dh_todayStarted() {
     var now = (new Date()).valueOf();
@@ -142,3 +143,4 @@ var StringHelper = {
     });
   }
 };
+console.timeEnd("utilities.js");

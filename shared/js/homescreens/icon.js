@@ -1,3 +1,4 @@
+console.time("icon.js");
 'use strict';
 /* global GridIconRenderer, devicePixelRatio, Promise */
 
@@ -113,3 +114,4 @@
   exports.Icon = Icon;
 
 }(window));
+console.timeEnd("icon.js");

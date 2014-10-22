@@ -1,3 +1,4 @@
+console.time("script.js");
 'use strict';
 /* global ComponentUtils */
 
@@ -92,3 +93,4 @@ window.GaiaCheckbox = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-checkbox', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

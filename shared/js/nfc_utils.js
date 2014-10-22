@@ -1,3 +1,4 @@
+console.time("nfc_utils.js");
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -61,6 +62,7 @@
     URIS: [],
 
     init: function ndef_init() {
+console.time("nfc_utils.js: init");
       var nfcUtils = new NfcUtils();
       this.RTD_TEXT = nfcUtils.fromUTF8('T');
       this.RTD_URI = nfcUtils.fromUTF8('U');
@@ -115,6 +117,7 @@
       this.URIS[0x21] = 'urn:epc:raw:';
       this.URIS[0x22] = 'urn:epc:';
       this.URIS[0x23] = 'urn:nfc:';
+console.timeEnd("nfc_utils.js: init");
     },
 
     payload: {
@@ -669,3 +672,4 @@
   exports.NDEF = NDEF;
 
 })(window);
+console.timeEnd("nfc_utils.js");

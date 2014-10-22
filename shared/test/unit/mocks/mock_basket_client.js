@@ -1,3 +1,4 @@
+console.time("mock_basket_client.js");
 /* global Promise */
 /* exported MockBasket */
 
@@ -23,3 +24,4 @@ var MockBasket = {
     });
   }
 };
+console.timeEnd("mock_basket_client.js");

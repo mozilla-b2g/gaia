@@ -1,3 +1,4 @@
+console.time("mock_sim_settings_helper.js");
 /* exported MockSimSettingsHelper */
 
 'use strict';
@@ -35,3 +36,4 @@ var MockSimSettingsHelper = {
   observe: function() { },
   unobserve: function() { }
 };
+console.timeEnd("mock_sim_settings_helper.js");

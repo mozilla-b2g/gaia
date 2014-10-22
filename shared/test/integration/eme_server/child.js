@@ -1,3 +1,4 @@
+console.time("child.js");
 /* global Buffer, process */
 'use strict';
 
@@ -112,3 +113,4 @@ var server = http.createServer(emeServer.requestHandler());
 server.listen(0, function() {
   process.send({ type: 'started', port: server.address().port });
 });
+console.timeEnd("child.js");

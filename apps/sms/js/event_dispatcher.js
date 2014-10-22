@@ -1,3 +1,4 @@
+console.time("event_dispatcher.js");
 /*global Map, Set */
 
 /* exported EventDispatcher */
@@ -154,3 +155,4 @@
     }
   };
 })(window);
+console.timeEnd("event_dispatcher.js");

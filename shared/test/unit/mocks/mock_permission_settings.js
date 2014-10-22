@@ -1,3 +1,4 @@
+console.time("mock_permission_settings.js");
 /* exported MockPermissionSettings */
 
 'use strict';
@@ -24,3 +25,4 @@ var MockPermissionSettings = {
     return !!this.permissions[permission];
   }
 };
+console.timeEnd("mock_permission_settings.js");

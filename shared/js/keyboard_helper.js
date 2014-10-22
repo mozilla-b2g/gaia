@@ -1,3 +1,4 @@
+console.time("keyboard_helper.js");
 'use strict';
 
 /**
@@ -503,6 +504,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
    * Listen for changes in settings or apps and read the deafault settings
    */
   init: function kh_init() {
+console.time("keyboard_helper.js: init");
     watchQueries = [];
     currentApps = undefined;
 
@@ -529,6 +531,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
     window.addEventListener('applicationinstall', this);
     window.addEventListener('applicationinstallsuccess', this);
     window.addEventListener('applicationuninstall', this);
+console.timeEnd("keyboard_helper.js: init");
   },
 
   /**
@@ -904,3 +907,4 @@ var KeyboardHelper = exports.KeyboardHelper = {
 KeyboardHelper.init();
 
 }(window));
+console.timeEnd("keyboard_helper.js");

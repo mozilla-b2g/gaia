@@ -1,3 +1,4 @@
+console.time("friends_list.js");
 'use strict';
 
 /* global Normalizer, utils */
@@ -221,3 +222,4 @@ var FriendListRenderer = (function() {
     'render': render
   };
 })();
+console.timeEnd("friends_list.js");

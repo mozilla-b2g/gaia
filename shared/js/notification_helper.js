@@ -1,3 +1,4 @@
+console.time("notification_helper.js");
 /* exported NotificationHelper */
 'use strict';
 
@@ -69,3 +70,4 @@ var NotificationHelper = {
   }
 };
 
+console.timeEnd("notification_helper.js");

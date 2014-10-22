@@ -1,3 +1,4 @@
+console.time("gmail_connector.js");
 /* globals Rest */
 
 /* exported GmailConnector */
@@ -468,3 +469,4 @@ var GmailConnector = (function GmailConnector() {
   };
 
 })();
+console.timeEnd("gmail_connector.js");

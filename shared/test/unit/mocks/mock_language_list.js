@@ -1,3 +1,4 @@
+console.time("mock_language_list.js");
 (function(exports) {
   'use strict';
 
@@ -14,3 +15,4 @@
   };
 
 }(this));
+console.timeEnd("mock_language_list.js");

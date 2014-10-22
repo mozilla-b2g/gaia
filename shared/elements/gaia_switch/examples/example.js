@@ -1,3 +1,4 @@
+console.time("example.js");
 'use strict';
 
 var result = document.getElementById('result');
@@ -11,3 +12,4 @@ var elements = document.querySelectorAll('gaia-switch');
   });
 
 });
+console.timeEnd("example.js");

@@ -1,3 +1,4 @@
+console.time("config.js");
 'use strict';
 /* global Promise */
 
@@ -84,3 +85,4 @@ if (typeof utils.config === 'undefined') {
     };
   })();
 }
+console.timeEnd("config.js");

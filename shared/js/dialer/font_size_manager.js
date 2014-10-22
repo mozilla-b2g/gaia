@@ -1,3 +1,4 @@
+console.time("font_size_manager.js");
 /* globals FontSizeUtils */
 
 /* exported FontSizeManager */
@@ -146,3 +147,4 @@ var FontSizeManager = (function fontSizeManager() {
     resetFixedBaseline: resetFixedBaseline
   };
 })();
+console.timeEnd("font_size_manager.js");

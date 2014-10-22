@@ -1,3 +1,4 @@
+console.time("mock_settings_helper.js");
 'use strict';
 
 function MockSettingsHelper(aSetting, defaultValue) {
@@ -33,3 +34,4 @@ MockSettingsHelper.mSetup = function() {
 MockSettingsHelper.mTeardown = function() {
   MockSettingsHelper.instances = {};
 };
+console.timeEnd("mock_settings_helper.js");

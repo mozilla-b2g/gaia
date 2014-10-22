@@ -1,3 +1,4 @@
+console.time("mobile_operator.js");
 /* exported MobileInfo, MobileOperator */
 'use strict';
 
@@ -99,3 +100,4 @@ var MobileOperator = {
            null;
   }
 };
+console.timeEnd("mobile_operator.js");

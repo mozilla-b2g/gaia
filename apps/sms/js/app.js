@@ -1,3 +1,4 @@
+console.time("app.js");
 /*global Promise */
 
 (function(exports) {
@@ -60,3 +61,4 @@
 
   exports.App = app;
 })(this);
+console.timeEnd("app.js");

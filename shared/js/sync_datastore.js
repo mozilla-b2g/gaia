@@ -1,3 +1,4 @@
+console.time("sync_datastore.js");
 /* globals Promise */
 
 
@@ -175,3 +176,4 @@
   exports.InMemoryStore = InMemoryStore;
 
 })(window);
+console.timeEnd("sync_datastore.js");

@@ -1,3 +1,4 @@
+console.time("gesture_detector.js");
 /* exported GestureDetector */
 
 'use strict';
@@ -285,6 +286,7 @@ var GestureDetector = (function() {
   var initialState = {
     name: 'initialState',
     init: function(d) {
+console.time("gesture_detector.js: init");
       // When we enter or return to the initial state, clear
       // the detector properties that were tracking gestures
       // Don't clear d.lastTap here, though. We need it for dbltap events
@@ -296,6 +298,7 @@ var GestureDetector = (function() {
       d.startDirection = d.lastDirection = null;
       d.lastMidpoint = null;
       d.scaled = d.rotated = null;
+console.timeEnd("gesture_detector.js: init");
     },
 
     // Switch to the touchstarted state and process the touch event there
@@ -311,6 +314,7 @@ var GestureDetector = (function() {
   var touchStartedState = {
     name: 'touchStartedState',
     init: function(d, e, t) {
+console.time("gesture_detector.js: init");
       // Remember the target of the event
       d.target = e.target;
       // Remember the id of the touch that started
@@ -322,6 +326,7 @@ var GestureDetector = (function() {
       if (d.options.holdEvents) {
         d.startTimer('holdtimeout', GD.HOLD_INTERVAL);
       }
+console.timeEnd("gesture_detector.js: init");
     },
 
     touchstart: function(d, e, t) {
@@ -385,6 +390,7 @@ var GestureDetector = (function() {
   var panStartedState = {
     name: 'panStartedState',
     init: function(d, e, t) {
+console.time("gesture_detector.js: init");
       // Panning doesn't start until the touch has moved more than a
       // certain threshold. But we don't want the pan to have a jerky
       // start where the first event is a big distance. So proceed as
@@ -398,6 +404,7 @@ var GestureDetector = (function() {
       if (e.type === 'touchmove') {
         panStartedState.touchmove(d, e, t);
       }
+console.timeEnd("gesture_detector.js: init");
     },
 
     touchmove: function(d, e, t) {
@@ -497,7 +504,9 @@ var GestureDetector = (function() {
   var holdState = {
     name: 'holdState',
     init: function(d) {
+console.time("gesture_detector.js: init");
       d.emitEvent('holdstart', d.start);
+console.timeEnd("gesture_detector.js: init");
     },
 
     touchmove: function(d, e, t) {
@@ -536,6 +545,7 @@ var GestureDetector = (function() {
   var transformState = {
     name: 'transformState',
     init: function(d, e, t) {
+console.time("gesture_detector.js: init");
       // Remember the id of the second touch
       d.touch2 = t.identifier;
 
@@ -549,6 +559,7 @@ var GestureDetector = (function() {
 
       // Don't start emitting events until we're past a threshold
       d.scaled = d.rotated = false;
+console.timeEnd("gesture_detector.js: init");
     },
 
     touchmove: function(d, e, t) {
@@ -671,3 +682,4 @@ var GestureDetector = (function() {
 
   return GD;
 }());
+console.timeEnd("gesture_detector.js");

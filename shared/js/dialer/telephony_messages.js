@@ -1,3 +1,4 @@
+console.time("telephony_messages.js");
 'use strict';
 
 /* globals ConfirmDialog, LazyLoader, TonePlayer */
@@ -126,3 +127,4 @@ var TelephonyMessages = {
     TonePlayer.setChannel('normal');
   }
 };
+console.timeEnd("telephony_messages.js");

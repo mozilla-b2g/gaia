@@ -1,3 +1,4 @@
+console.time("facebook_connector.js");
 'use strict';
 
 /* global fb, utils, contacts */
@@ -380,3 +381,4 @@ if (!window.FacebookConnector) {
     return self;
   })();
 }
+console.timeEnd("facebook_connector.js");

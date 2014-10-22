@@ -1,3 +1,4 @@
+console.time("fb_contact.js");
 'use strict';
 
 /* global utils */
@@ -658,3 +659,4 @@ fb.Contact = function(deviceContact, cid) {
   };
 
 }; // fb.Contact
+console.timeEnd("fb_contact.js");

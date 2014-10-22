@@ -1,3 +1,4 @@
+console.time("search.js");
 'use strict';
 /* global Contacts */
 /* global fb */
@@ -660,3 +661,4 @@ contacts.Search = (function() {
     }
   };
 })();
+console.timeEnd("search.js");

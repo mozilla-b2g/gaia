@@ -1,3 +1,4 @@
+console.time("script.js");
 'use strict';
 /* global ComponentUtils */
 
@@ -47,3 +48,4 @@ window.GaiaProgress = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-progress', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

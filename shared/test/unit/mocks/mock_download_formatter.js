@@ -1,3 +1,4 @@
+console.time("mock_download_formatter.js");
 'use strict';
 /* exported MockDownloadFormatter */
 
@@ -24,3 +25,4 @@ var MockDownloadFormatter = {
     return download.id;
   }
 };
+console.timeEnd("mock_download_formatter.js");

@@ -1,3 +1,4 @@
+console.time("errors.js");
 /* exported Errors */
 
 (function(exports) {
@@ -79,3 +80,4 @@
     }
   };
 })(window);
+console.timeEnd("errors.js");

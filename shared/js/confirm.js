@@ -1,3 +1,4 @@
+console.time("confirm.js");
 /* exported ConfirmDialog */
 'use strict';
 
@@ -199,3 +200,4 @@ var ConfirmDialog = (function() {
     }
   };
 }());
+console.timeEnd("confirm.js");

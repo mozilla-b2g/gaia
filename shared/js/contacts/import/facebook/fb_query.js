@@ -1,3 +1,4 @@
+console.time("fb_query.js");
 'use strict';
 
 /* global fb */
@@ -161,3 +162,4 @@ fb.utils.getFriendPicture = function(uid, callback, access_token,
 
   xhr.send();
 };
+console.timeEnd("fb_query.js");

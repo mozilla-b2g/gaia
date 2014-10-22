@@ -1,3 +1,4 @@
+console.time("mock_simslot_manager.js");
 /* exported MockSIMSlotManager */
 'use strict';
 var MockSIMSlotManager = {
@@ -22,3 +23,4 @@ var MockSIMSlotManager = {
     this.mInstances = [];
   }
 };
+console.timeEnd("mock_simslot_manager.js");

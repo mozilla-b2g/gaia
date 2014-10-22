@@ -1,3 +1,4 @@
+console.time("mock_moz_nfc.js");
 'use strict';
 
 /* exported MockMozNfc */
@@ -16,3 +17,4 @@ var MockMozNfc = {
     }
   }
 };
+console.timeEnd("mock_moz_nfc.js");

@@ -1,3 +1,4 @@
+console.time("fb_data.js");
 'use strict';
 
 /* global LazyLoader, TelIndexer, SimplePhoneMatcher */
@@ -378,3 +379,4 @@ var fb = window.fb || {};
     };
 
   })();
+console.timeEnd("fb_data.js");

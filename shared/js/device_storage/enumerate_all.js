@@ -1,3 +1,4 @@
+console.time("enumerate_all.js");
 'use strict';
 /* exported enumerateAll */
 
@@ -63,3 +64,4 @@ function enumerateAll(storages, dir, options) {
   enumerateNextStorage();
   return cursor;
 }
+console.timeEnd("enumerate_all.js");

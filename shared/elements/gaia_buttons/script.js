@@ -1,3 +1,4 @@
+console.time("script.js");
 'use strict';
 /* global ComponentUtils */
 
@@ -16,3 +17,4 @@ window.GaiaButtons = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-buttons', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

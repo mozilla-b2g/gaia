@@ -1,3 +1,4 @@
+console.time("uuid.js");
 //     node-uuid/uuid.js
 //
 //     Copyright (c) 2010 Robert Kieffer
@@ -233,3 +234,4 @@
     _global.uuid = uuid;
   }
 }());
+console.timeEnd("uuid.js");

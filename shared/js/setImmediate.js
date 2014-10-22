@@ -1,3 +1,4 @@
+console.time("setImmediate.js");
 // Copyright (c) 2012 Barnesandnoble.com, llc, Donavon West, and Domenic Denicola
 //
 // Permission is hereby granted, free of charge, to any person obtaining
@@ -170,3 +171,4 @@
         attachTo.clearImmediate = tasks.remove;
     }
 }(this));
+console.timeEnd("setImmediate.js");

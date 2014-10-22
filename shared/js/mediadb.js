@@ -1,3 +1,4 @@
+console.time("mediadb.js");
 /* globals indexedDB */
 /* exported MediaDB */
 
@@ -2097,3 +2098,4 @@ var MediaDB = (function() {
   return MediaDB;
 
 }());
+console.timeEnd("mediadb.js");

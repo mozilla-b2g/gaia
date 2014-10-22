@@ -1,3 +1,4 @@
+console.time("custom_elements_helper.js");
 'use strict';
 
 /**
@@ -75,3 +76,4 @@ CustomElementsHelper.prototype = {
     });
   }
 };
+console.timeEnd("custom_elements_helper.js");

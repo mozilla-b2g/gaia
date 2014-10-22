@@ -1,3 +1,4 @@
+console.time("query.js");
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -400,3 +401,4 @@ document.addEventListener('DOMContentLoaded', function onload() {
   document.querySelector('form').oninput = update;
   loadDB(document.querySelector('textarea'), update);
 });
+console.timeEnd("query.js");

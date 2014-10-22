@@ -1,3 +1,4 @@
+console.time("information.js");
 /*global Utils, Template, Threads, ThreadUI, MessageManager, ContactRenderer,
          Contacts, Settings, Navigation */
 /*exported Information */
@@ -209,8 +210,10 @@ var VIEWS = {
     name: 'report',
 
     init: function() {
+console.time("information.js: init");
       this.onDeliverySuccess = this.onDeliverySuccess.bind(this);
       this.onReadSuccess = this.onReadSuccess.bind(this);
+console.timeEnd("information.js: init");
     },
 
     beforeEnter: function() {
@@ -427,3 +430,4 @@ exports.Information = Information;
 // end global closure
 }(this));
 
+console.timeEnd("information.js");

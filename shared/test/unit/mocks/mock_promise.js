@@ -1,3 +1,4 @@
+console.time("mock_promise.js");
 'use strict';
 
 /**
@@ -122,3 +123,4 @@ MockPromise.race = MockPromise;
 exports.MockPromise = MockPromise;
 
 })(window);
+console.timeEnd("mock_promise.js");

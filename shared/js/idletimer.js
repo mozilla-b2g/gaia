@@ -1,3 +1,4 @@
+console.time("idletimer.js");
 /*
   This file implements window.setIdleTimeout() and
   window.clearIdleTimeout(). They look like setTimeout() except the
@@ -119,3 +120,4 @@
   };
 
 })(this);
+console.timeEnd("idletimer.js");

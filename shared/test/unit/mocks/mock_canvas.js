@@ -1,3 +1,4 @@
+console.time("mock_canvas.js");
 'use strict';
 
 (function(exports) {
@@ -14,3 +15,4 @@
 
   exports.MockCanvas = MockCanvas;
 })(window);
+console.timeEnd("mock_canvas.js");

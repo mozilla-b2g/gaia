@@ -1,3 +1,4 @@
+console.time("silent_sms.js");
 /* global asyncStorage, Promise, TaskRunner */
 /* exported SilentSms */
 'use strict';
@@ -163,3 +164,4 @@ var SilentSms = (function () {
     checkSilentModeFor: checkSilentModeFor
   };
 }());
+console.timeEnd("silent_sms.js");

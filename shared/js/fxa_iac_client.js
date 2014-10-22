@@ -1,3 +1,4 @@
+console.time("fxa_iac_client.js");
 /* exported FxAccountsIACHelper */
 'use strict';
 // Firefox Accounts IAC client
@@ -239,3 +240,4 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
   };
 
 }();
+console.timeEnd("fxa_iac_client.js");

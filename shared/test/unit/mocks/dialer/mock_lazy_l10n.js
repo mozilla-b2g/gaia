@@ -1,3 +1,4 @@
+console.time("mock_lazy_l10n.js");
 'use strict';
 
 /* exported MockMozL10n */
@@ -48,3 +49,4 @@ var MockLazyL10n = {
 
   }
 };
+console.timeEnd("mock_lazy_l10n.js");

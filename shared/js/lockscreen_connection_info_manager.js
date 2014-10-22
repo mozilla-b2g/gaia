@@ -1,3 +1,4 @@
+console.time("lockscreen_connection_info_manager.js");
 /* globals MobileOperator, SettingsListener, SIMSlotManager */
 'use strict';
 
@@ -316,3 +317,4 @@
   LockScreenConnInfoManager.prototype = LockScreenConnInfoManagerPrototype;
   exports.LockScreenConnInfoManager = LockScreenConnInfoManager;
 })(window);
+console.timeEnd("lockscreen_connection_info_manager.js");

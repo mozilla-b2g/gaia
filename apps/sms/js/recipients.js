@@ -1,3 +1,4 @@
+console.time("recipients.js");
 /*global GestureDetector, Dialog, Navigation, SharedComponents, Utils,
          Settings */
 
@@ -1117,3 +1118,4 @@
   exports.Recipients = Recipients;
 
 }(this));
+console.timeEnd("recipients.js");

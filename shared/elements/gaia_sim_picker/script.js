@@ -1,3 +1,4 @@
+console.time("script.js");
 'use strict';
 /* global ComponentUtils, LazyLoader */
 
@@ -161,3 +162,4 @@ window.GaiaSimPicker = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-sim-picker', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

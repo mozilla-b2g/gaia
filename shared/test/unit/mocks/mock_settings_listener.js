@@ -1,3 +1,4 @@
+console.time("mock_settings_listener.js");
 'use strict';
 /* global MockNavigatorSettings */
 /* global require */
@@ -54,3 +55,4 @@ var MockSettingsListener = {
     this.mDefaultCallback = null;
   }
 };
+console.timeEnd("mock_settings_listener.js");

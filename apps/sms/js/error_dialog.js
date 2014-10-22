@@ -1,3 +1,4 @@
+console.time("error_dialog.js");
 /*global Dialog, Settings*/
 
 /* exported ErrorDialog */
@@ -93,3 +94,4 @@
 
   exports.ErrorDialog = ErrorDialog;
 }(this));
+console.timeEnd("error_dialog.js");

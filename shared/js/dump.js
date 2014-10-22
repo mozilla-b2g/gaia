@@ -1,3 +1,4 @@
+console.time("dump.js");
 /* globals dump */
 
 (function() {
@@ -31,3 +32,4 @@
     dump_on(event.settingValue ? 'Enabling DUMP' : 'Disabling DUMP');
   });
 }());
+console.timeEnd("dump.js");

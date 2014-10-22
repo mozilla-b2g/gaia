@@ -1,3 +1,4 @@
+console.time("contacts_cleaner.js");
 'use strict';
 /* global utils */
 
@@ -111,3 +112,4 @@ window.ContactsCleaner = function(contacts) {
     }
   } // function
 }; // ContactsCleaner
+console.timeEnd("contacts_cleaner.js");

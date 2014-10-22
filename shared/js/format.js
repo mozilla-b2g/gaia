@@ -1,3 +1,4 @@
+console.time("format.js");
 /* exported Format */
 'use strict';
 
@@ -23,3 +24,4 @@ var Format = {
     return input;
   }
 };
+console.timeEnd("format.js");

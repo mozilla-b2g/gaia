@@ -1,3 +1,4 @@
+console.time("live_connector.js");
 'use strict';
 
 /* global Rest */
@@ -209,3 +210,4 @@ if (!window.LiveConnector) {
     return new LiveConnector();
   })();
 }
+console.timeEnd("live_connector.js");

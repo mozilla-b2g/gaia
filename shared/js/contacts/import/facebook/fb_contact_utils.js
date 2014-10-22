@@ -1,3 +1,4 @@
+console.time("fb_contact_utils.js");
 'use strict';
 
 /* global fb, utils  */
@@ -258,3 +259,4 @@ fb.markFbCleaningInProgress = function(value) {
     fbCleaningInProgress: value
   });
 };
+console.timeEnd("fb_contact_utils.js");

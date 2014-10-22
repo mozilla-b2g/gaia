@@ -1,3 +1,4 @@
+console.time("input_parser.js");
 /* exported InputParser */
 'use strict';
 
@@ -163,3 +164,4 @@ var InputParser = (function() {
 
   return InputParser;
 }());
+console.timeEnd("input_parser.js");

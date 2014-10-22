@@ -1,3 +1,4 @@
+console.time("navigator_moz_settings.js");
 (function() {
   'use strict';
 
@@ -35,3 +36,4 @@
     addObserver: function() {}
   };
 })();
+console.timeEnd("navigator_moz_settings.js");

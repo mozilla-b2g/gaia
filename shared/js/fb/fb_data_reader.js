@@ -1,3 +1,4 @@
+console.time("fb_data_reader.js");
 'use strict';
 
 // Reader Module for FB Data in a Datastore
@@ -428,3 +429,4 @@ this.fb = fb;
     });
   };
 })();
+console.timeEnd("fb_data_reader.js");

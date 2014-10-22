@@ -1,3 +1,4 @@
+console.time("download_store.js");
 'use strict';
 /* jshint moz:true */
 /* global Promise */
@@ -376,3 +377,4 @@ var DownloadStore = (function() {
     remove: remove
   };
 }());
+console.timeEnd("download_store.js");

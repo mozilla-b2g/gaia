@@ -1,3 +1,4 @@
+console.time("status.js");
 /* global LazyLoader */
 'use strict';
 
@@ -77,3 +78,4 @@ utils.status = (function() {
     hide: hideStatus
   };
 })();
+console.timeEnd("status.js");

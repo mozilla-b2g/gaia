@@ -1,3 +1,4 @@
+console.time("import_from_vcard.js");
 /* global Contacts, VCardReader, ConfirmDialog, contacts, LazyLoader, _ */
 'use strict';
 
@@ -182,3 +183,4 @@ utils.importFromVcard = function(file, callback) {
     }
   }
 };
+console.timeEnd("import_from_vcard.js");

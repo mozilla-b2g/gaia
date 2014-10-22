@@ -1,3 +1,4 @@
+console.time("stop_recording_event.js");
 //
 // While the app is visible, listen for magic settings changes that
 // are signals from the system app that we will soon be hidden, and
@@ -72,3 +73,4 @@
   };
 
 }(window));
+console.timeEnd("stop_recording_event.js");

@@ -1,3 +1,4 @@
+console.time("settings.js");
 /*
   Message app settings related value and utilities.
 */
@@ -32,6 +33,7 @@ var Settings = {
   smsServiceId: null, // Default sms service SIM ID
 
   init: function settings_init() {
+console.time("settings.js: init");
     var keyHandlerSet = {
       'dom.mms.operatorSizeLimitation': this.initMmsSizeLimitation.bind(this),
       'operatorResource.sms.maxConcat':
@@ -70,6 +72,7 @@ var Settings = {
     for (var key in keyHandlerSet) {
       setHandlerMap(key);
     }
+console.timeEnd("settings.js: init");
   },
 
   //Set Maximum concatenated number of our SMS
@@ -196,3 +199,4 @@ var Settings = {
     return MobileOperator.userFacingInfo(conn).operator;
   }
 };
+console.timeEnd("settings.js");

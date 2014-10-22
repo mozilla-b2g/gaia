@@ -1,3 +1,4 @@
+console.time("media_frame.js");
 /*
  * media_frame.js:
  *
@@ -740,3 +741,4 @@ MediaFrame.prototype.setMinimumPreviewSize = function(w, h) {
   this.minimumPreviewWidth = w;
   this.minimumPreviewHeight = h;
 };
+console.timeEnd("media_frame.js");

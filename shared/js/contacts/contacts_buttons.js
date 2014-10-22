@@ -1,3 +1,4 @@
+console.time("contacts_buttons.js");
 'use strict';
 
 /* exported ContactsButtons */
@@ -15,9 +16,11 @@ var ContactsButtons = {
   _activityHandler: null,
 
   init: function init(listContainer, contactDetails, activityHandler) {
+console.time("contacts_buttons.js: init");
     this._listContainer = listContainer;
     this._contactDetails = contactDetails;
     this._activityHandler = activityHandler;
+console.timeEnd("contacts_buttons.js: init");
   },
 
   _enableCalls: function enableCalls() {
@@ -183,3 +186,4 @@ var ContactsButtons = {
   }
 };
 
+console.timeEnd("contacts_buttons.js");

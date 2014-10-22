@@ -1,3 +1,4 @@
+console.time("download_helper.js");
 'use strict';
 /* exported DownloadHelper */
 /* global DownloadFormatter */
@@ -656,3 +657,4 @@ var DownloadHelper = (function() {
     getFreeSpace: getFreeSpace
   };
 }());
+console.timeEnd("download_helper.js");

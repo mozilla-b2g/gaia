@@ -1,3 +1,4 @@
+console.time("contacts_shortcuts.js");
 
 'use strict';
 
@@ -229,3 +230,4 @@ if (!utils.alphaScroll) {
 
   })(document);
 }
+console.timeEnd("contacts_shortcuts.js");

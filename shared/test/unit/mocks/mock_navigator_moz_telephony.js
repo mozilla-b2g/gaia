@@ -1,3 +1,4 @@
+console.time("mock_navigator_moz_telephony.js");
 'use strict';
 
 (function() {
@@ -117,3 +118,4 @@
 
   window.MockNavigatorMozTelephony = Mock;
 })();
+console.timeEnd("mock_navigator_moz_telephony.js");

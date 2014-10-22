@@ -1,3 +1,4 @@
+console.time("import_init.js");
 /* globals LazyLoader, LiveConnector, GmailConnector, FacebookConnector,
   utils, importer, contacts*/
 'use strict';
@@ -130,3 +131,4 @@
     data: ''
   }, allowedOrigin);
 })(document);
+console.timeEnd("import_init.js");

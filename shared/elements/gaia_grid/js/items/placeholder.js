@@ -1,3 +1,4 @@
+console.time("placeholder.js");
 'use strict';
 /* global GaiaGrid */
 
@@ -71,3 +72,4 @@
   exports.GaiaGrid.Placeholder = Placeholder;
 
 }(window));
+console.timeEnd("placeholder.js");

@@ -1,3 +1,4 @@
+console.time("get_unused_filename.js");
 'use strict';
 /* exported getUnusedFilename */
 
@@ -35,3 +36,4 @@ function getUnusedFilename(storage, name, callback) {
     getUnusedFilename(storage, newname, callback);
   };
 }
+console.timeEnd("get_unused_filename.js");

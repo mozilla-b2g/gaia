@@ -1,3 +1,4 @@
+console.time("flow.js");
 /* global oauthflow */
 'use strict';
 
@@ -91,3 +92,4 @@ if (typeof window.oauthflow === 'undefined') {
 
   })(document);
 }
+console.timeEnd("flow.js");

@@ -1,3 +1,4 @@
+console.time("mock_dom_request.js");
 'use strict';
 
 /* global MockEventTarget */
@@ -112,3 +113,4 @@
 
   exports.MockDOMRequest = MockDOMRequest;
 }(window));
+console.timeEnd("mock_dom_request.js");

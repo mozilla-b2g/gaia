@@ -1,3 +1,4 @@
+console.time("contact_renderer.js");
 /*global SharedComponents, Template, Utils, Settings */
 
 'use strict';
@@ -298,3 +299,4 @@ ContactRenderer.flavor = function(flavor) {
 };
 
 })(window);
+console.timeEnd("contact_renderer.js");

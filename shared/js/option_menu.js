@@ -1,3 +1,4 @@
+console.time("option_menu.js");
 'use strict';
 
 /*
@@ -193,3 +194,4 @@ OptionMenu.prototype.show = function() {
 OptionMenu.prototype.hide = function() {
   this.form.classList.remove('visible');
 };
+console.timeEnd("option_menu.js");

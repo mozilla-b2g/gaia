@@ -1,3 +1,4 @@
+console.time("mock_navigator_getdevicestorage.js");
 'use strict';
 /* globals MockDOMRequest */
 /* exported MockGetDeviceStorage */
@@ -54,3 +55,4 @@ var MockGetDeviceStorage = function() {
     }
   };
 };
+console.timeEnd("mock_navigator_getdevicestorage.js");

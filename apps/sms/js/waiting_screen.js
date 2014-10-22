@@ -1,3 +1,4 @@
+console.time("waiting_screen.js");
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -21,3 +22,4 @@ var WaitingScreen = {
     this.loading.classList.remove('show-loading');
   }
 };
+console.timeEnd("waiting_screen.js");

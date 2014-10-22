@@ -1,3 +1,4 @@
+console.time("mock_audio.js");
 'use strict';
 
 function MockAudio(src) {
@@ -61,3 +62,4 @@ MockAudioContext.prototype.createBufferSource = function() { return {
 MockAudioContext.prototype.createGain = function() {};
 MockAudioContext.prototype.addEventListener = function() {};
 MockAudioContext.prototype.removeEventListener = function() {};
+console.timeEnd("mock_audio.js");

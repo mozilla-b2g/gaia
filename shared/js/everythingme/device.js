@@ -1,3 +1,4 @@
+console.time("device.js");
 'use strict';
 /* global Promise */
 
@@ -102,6 +103,7 @@
 
   Device.prototype = {
     init: function init(settings) {
+console.time("device.js: init");
       var deviceId = settings['search.deviceId'];
 
       if (!deviceId) {
@@ -118,6 +120,7 @@
       return updatePosition().then(function log() {
         eme.log('device init', JSON.stringify(this));
       }.bind(this));
+console.timeEnd("device.js: init");
     },
 
     // see duplicate in homescreen/everything.me.js
@@ -195,3 +198,4 @@
   eme.device = new Device();
 
 })(window.eme);
+console.timeEnd("device.js");

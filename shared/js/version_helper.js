@@ -1,3 +1,4 @@
+console.time("version_helper.js");
 /* global Promise */
 /* exported VersionHelper */
 'use strict';
@@ -134,3 +135,4 @@
   };
 
 })(window);
+console.timeEnd("version_helper.js");

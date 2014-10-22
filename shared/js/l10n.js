@@ -1,3 +1,4 @@
+try { console.time("l10n.js"); } catch(e) {}
 (function(window, undefined) {
   'use strict';
 
@@ -1775,3 +1776,4 @@
   }
 
 })(this);
+try { console.timeEnd("l10n.js"); } catch(e) {}

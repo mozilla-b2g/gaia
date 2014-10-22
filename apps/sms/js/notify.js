@@ -1,3 +1,4 @@
+console.time("notify.js");
 /*global SettingsURL */
 
 (function(exports) {
@@ -71,3 +72,4 @@
 
   exports.Notify = Notify;
 }(this));
+console.timeEnd("notify.js");

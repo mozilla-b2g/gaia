@@ -1,3 +1,4 @@
+console.time("mock_moz_ndefrecord.js");
 'use strict';
 
 var MockMozNDEFRecord = function(dict) {
@@ -11,3 +12,4 @@ MockMozNDEFRecord.tnf = 'empty';
 MockMozNDEFRecord.type = null;
 MockMozNDEFRecord.id = null;
 MockMozNDEFRecord.payload = null;
+console.timeEnd("mock_moz_ndefrecord.js");

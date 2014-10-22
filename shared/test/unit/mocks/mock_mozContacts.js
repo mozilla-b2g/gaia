@@ -1,3 +1,4 @@
+console.time("mock_mozContacts.js");
 'use strict';
 
 var MockMozContacts;
@@ -132,3 +133,4 @@ MockMozContactsObj.prototype = {
 };
 
 MockMozContacts = new MockMozContactsObj([]);
+console.timeEnd("mock_mozContacts.js");

@@ -1,3 +1,4 @@
+console.time("mocks_helper.js");
 /* global suiteSetup,
     suiteTeardown,
     setup,
@@ -21,12 +22,14 @@ var MocksHelper = function(mocks) {
 MocksHelper.prototype = {
 
   init: function mh_init() {
+console.time("mocks_helper.js: init");
     this.mocks.forEach(function(objName) {
       if (!window[objName]) {
         window[objName] = null;
       }
     });
     return this;
+console.timeEnd("mocks_helper.js: init");
   },
 
   attachTestHelpers: function mh_attachTestHelpers() {
@@ -105,3 +108,4 @@ MocksHelper.prototype = {
   }
 };
 
+console.timeEnd("mocks_helper.js");

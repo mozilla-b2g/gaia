@@ -1,3 +1,4 @@
+console.time("mock_moz_contact.js");
 /* exported MockmozContact */
 
 'use strict';
@@ -11,3 +12,4 @@ var MockmozContact = function(obj) {
     self[k] = obj[k];
   });
 };
+console.timeEnd("mock_moz_contact.js");

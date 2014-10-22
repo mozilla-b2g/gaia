@@ -1,3 +1,4 @@
+console.time("mock_omadrm_fl.js");
 /* global define */
 define(function() {
   'use strict';
@@ -26,3 +27,4 @@ define(function() {
 
   return ctor;
 });
+console.timeEnd("mock_omadrm_fl.js");

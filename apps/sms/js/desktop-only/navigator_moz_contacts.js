@@ -1,3 +1,4 @@
+console.time("navigator_moz_contacts.js");
 /*global Utils, Promise */
 
 'use strict';
@@ -477,3 +478,4 @@
 
 
 }(window));
+console.timeEnd("navigator_moz_contacts.js");

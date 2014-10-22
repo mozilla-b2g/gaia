@@ -1,3 +1,4 @@
+console.time("mock_keypad.js");
 'use strict';
 /* exported MockKeypadManager */
 
@@ -26,3 +27,4 @@ var MockKeypadManager = {
   restorePhoneNumber: function() {},
   restoreAdditionalContactInfo: function() {}
 };
+console.timeEnd("mock_keypad.js");

@@ -1,3 +1,4 @@
+console.time("mock_navigator_vibrate.js");
 /**
  * @fileoverview This script mocks the vibration API
  *      (https://developer.mozilla.org/en-US/docs/Web/Guide/API/Vibration) for
@@ -62,3 +63,4 @@
         return screenEnabled;
     });
 })();
+console.timeEnd("mock_navigator_vibrate.js");

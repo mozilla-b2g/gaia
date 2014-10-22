@@ -1,3 +1,4 @@
+console.time("mock_screen_layout.js");
 'use strict';
 
 var _currentLayout;
@@ -16,3 +17,4 @@ var MockScreenLayout = {
 };
 
 window.ScreenLayout = MockScreenLayout;
+console.timeEnd("mock_screen_layout.js");

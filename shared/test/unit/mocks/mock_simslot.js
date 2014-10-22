@@ -1,3 +1,4 @@
+console.time("mock_simslot.js");
 /* exported MockSIMSlot */
 'use strict';
 
@@ -31,3 +32,4 @@ var MockSIMSlot = function(conn, index) {
       };
     }, this);
 };
+console.timeEnd("mock_simslot.js");

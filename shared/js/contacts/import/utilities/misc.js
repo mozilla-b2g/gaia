@@ -1,3 +1,4 @@
+console.time("misc.js");
 /* global mozContact, oauthflow, ImportStatusData */
 'use strict';
 
@@ -186,3 +187,4 @@ if (!utils.misc) {
         .then(callback);
   };
 }
+console.timeEnd("misc.js");

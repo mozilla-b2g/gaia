@@ -1,3 +1,4 @@
+console.time("mock_custom_dialog.js");
 /* exported MockCustomDialog */
 
 'use strict';
@@ -36,3 +37,4 @@ var MockCustomDialog = {
     this.mShowedScreen = null;
   }
 };
+console.timeEnd("mock_custom_dialog.js");

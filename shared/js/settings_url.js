@@ -1,3 +1,4 @@
+console.time("settings_url.js");
 /* exported SettingsURL */
 'use strict';
 
@@ -31,3 +32,4 @@ SettingsURL.prototype = {
     return this._url;
   }
 };
+console.timeEnd("settings_url.js");

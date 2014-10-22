@@ -1,3 +1,4 @@
+console.time("simslot.js");
 /* globals SIMSlot */
 'use strict';
 
@@ -159,3 +160,4 @@
     return this.constructor.LOCK_TYPES.indexOf(this.simCard.cardState) >= 0;
   };
 }(window));
+console.timeEnd("simslot.js");

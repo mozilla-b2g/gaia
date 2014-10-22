@@ -1,3 +1,4 @@
+console.time("activity_handler.js");
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -26,6 +27,7 @@ var ActivityHandler = {
   _activity: null,
 
   init: function() {
+console.time("activity_handler.js: init");
     if (!window.navigator.mozSetMessageHandler) {
       return;
     }
@@ -46,6 +48,7 @@ var ActivityHandler = {
       window.navigator.mozSetMessageHandler('notification',
         this.onNotification.bind(this));
     }
+console.timeEnd("activity_handler.js: init");
   },
 
   isInActivity: function isInActivity() {
@@ -541,3 +544,4 @@ var ActivityHandler = {
     };
   }
 };
+console.timeEnd("activity_handler.js");

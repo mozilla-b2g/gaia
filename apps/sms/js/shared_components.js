@@ -1,3 +1,4 @@
+console.time("shared_components.js");
 'use strict';
 
 /*global Map, Template*/
@@ -33,3 +34,4 @@
 
   exports.SharedComponents = SharedComponents;
 })(window);
+console.timeEnd("shared_components.js");

@@ -1,3 +1,4 @@
+console.time("mock_telephony_helper.js");
 'use strict';
 
 /* exported MockTelephonyHelper */
@@ -8,3 +9,4 @@ var MockTelephonyHelper = {
   getInUseSim: function() { return this.mInUseSim; },
   mTeardown: function() { this.mInUseSim = null; }
 };
+console.timeEnd("mock_telephony_helper.js");

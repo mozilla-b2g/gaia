@@ -1,3 +1,4 @@
+console.time("mock_navigator_datastore.js");
 'use strict';
 
 /* exports MockDatastore, MockDatastoreObj */
@@ -177,3 +178,4 @@ var MockNavigatorDatastore = {
     });
   }
 };
+console.timeEnd("mock_navigator_datastore.js");

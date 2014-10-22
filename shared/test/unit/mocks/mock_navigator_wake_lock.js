@@ -1,3 +1,4 @@
+console.time("mock_navigator_wake_lock.js");
 'use strict';
 
 (function() {
@@ -41,3 +42,4 @@
   };
 
 })();
+console.timeEnd("mock_navigator_wake_lock.js");

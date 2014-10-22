@@ -1,3 +1,4 @@
+console.time("curtain.js");
 'use strict';
 
 /* exported Curtain */
@@ -241,3 +242,4 @@ var Curtain = (function() {
   };
 
 })();
+console.timeEnd("curtain.js");

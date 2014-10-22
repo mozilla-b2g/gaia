@@ -1,3 +1,4 @@
+console.time("fb_tel_index.js");
 'use strict';
 
 /* globals utils */
@@ -277,3 +278,4 @@ var TelIndexer = {
     }
   }
 };
+console.timeEnd("fb_tel_index.js");

@@ -1,3 +1,4 @@
+console.time("collection.js");
 'use strict';
 /* global GaiaGrid */
 /* global GridIconRenderer */
@@ -128,3 +129,4 @@
   exports.GaiaGrid.Collection = Collection;
 
 }(window));
+console.timeEnd("collection.js");

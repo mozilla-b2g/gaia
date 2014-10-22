@@ -1,3 +1,4 @@
+console.time("localization_helper.js");
 /* global Utils */
 
 /* exported LocalizationHelper */
@@ -77,6 +78,7 @@
 
   exports.LocalizationHelper = {
     init: function () {
+console.time("localization_helper.js: init");
       // This will be called during startup, and every time the language is
       // changed
       navigator.mozL10n.ready(function localized() {
@@ -90,6 +92,8 @@
         'timeformatchange',
         localizeDateTime.bind(null, /* isTimeFormatChanged */ true)
       );
+console.timeEnd("localization_helper.js: init");
     }
   };
 })(window);
+console.timeEnd("localization_helper.js");

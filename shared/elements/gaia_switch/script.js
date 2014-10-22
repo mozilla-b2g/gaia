@@ -1,3 +1,4 @@
+console.time("script.js");
 'use strict';
 /* global ComponentUtils */
 
@@ -82,3 +83,4 @@ window.GaiaSwitch = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-switch', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

@@ -1,3 +1,4 @@
+console.time("gaia-header.js");
 ;(function(define){'use strict';define(function(require,exports,module){
 /*jshint esnext:true*/
 
@@ -511,3 +512,4 @@ module.exports._prototype = proto;
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
+console.timeEnd("gaia-header.js");

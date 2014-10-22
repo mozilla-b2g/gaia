@@ -1,3 +1,4 @@
+console.time("language_list.js");
 'use strict';
 
 /**
@@ -124,3 +125,4 @@ exports.LanguageList = {
 };
 
 }(window));
+console.timeEnd("language_list.js");

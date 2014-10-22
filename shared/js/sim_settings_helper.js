@@ -1,3 +1,4 @@
+console.time("sim_settings_helper.js");
 /* exported SimSettingsHelper */
 
 'use strict';
@@ -162,3 +163,4 @@
 
   exports.SimSettingsHelper = SimSettingsHelper;
 })(window);
+console.timeEnd("sim_settings_helper.js");

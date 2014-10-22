@@ -1,3 +1,4 @@
+console.time("crop_resize_rotate.js");
 /* exported cropResizeRotate */
 /* global getImageSize */
 /* global Downsample */
@@ -525,3 +526,4 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
     }
   }
 }
+console.timeEnd("crop_resize_rotate.js");

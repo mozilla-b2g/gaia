@@ -1,3 +1,4 @@
+console.time("mock_icc_manager.js");
 /* exported MockIccManager */
 'use strict';
 
@@ -6,3 +7,4 @@ var MockIccManager = {
   getIccById: function() {},
   addEventListener: function() {}
 };
+console.timeEnd("mock_icc_manager.js");

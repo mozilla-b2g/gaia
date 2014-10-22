@@ -1,3 +1,4 @@
+console.time("mock_fb_data_reader.js");
 'use strict';
 /* exported MockFbContacts */
 
@@ -50,3 +51,4 @@ MockFbContactsObj.prototype = {
 
 
 var MockFbContacts = new MockFbContactsObj();
+console.timeEnd("mock_fb_data_reader.js");

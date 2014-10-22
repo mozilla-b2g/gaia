@@ -1,3 +1,4 @@
+console.time("fb_request.js");
 'use strict';
 
 var fb = this.fb || {};
@@ -37,3 +38,4 @@ if (typeof fb.utils.Request !== 'function') {
     };
   };
 }
+console.timeEnd("fb_request.js");

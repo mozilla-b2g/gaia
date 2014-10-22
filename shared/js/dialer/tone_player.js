@@ -1,3 +1,4 @@
+console.time("tone_player.js");
 /* globals AudioContext */
 
 /* exported TonePlayer */
@@ -17,12 +18,14 @@ var TonePlayer = {
   _playingNodes: [],
 
   init: function tp_init(channel) {
+console.time("tone_player.js: init");
     if (document.hidden) {
       // We don't create an AudioContext because it will be trashed right away
       this._channel = channel;
     } else {
       this.setChannel(channel);
     }
+console.timeEnd("tone_player.js: init");
   },
 
   ensureAudio: function tp_ensureAudio() {
@@ -177,3 +180,4 @@ var TonePlayer = {
     this.ensureAudio();
   }
 };
+console.timeEnd("tone_player.js");

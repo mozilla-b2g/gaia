@@ -1,3 +1,4 @@
+console.time("mock_option_menu.js");
 'use strict';
 
 function MockOptionMenu(options) {
@@ -21,3 +22,4 @@ MockOptionMenu.mTeardown = function() {
   delete MockOptionMenu.calls;
   delete MockOptionMenu.instances;
 };
+console.timeEnd("mock_option_menu.js");

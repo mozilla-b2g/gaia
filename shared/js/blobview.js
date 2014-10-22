@@ -1,3 +1,4 @@
+console.time("blobview.js");
 /* exported BlobView */
 'use strict';
 
@@ -486,3 +487,4 @@ var BlobView = (function() {
     getFromArrayBuffer: BlobView.getFromArrayBuffer
   };
 }());
+console.timeEnd("blobview.js");

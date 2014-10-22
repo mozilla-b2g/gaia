@@ -1,3 +1,4 @@
+console.time("ice_store.js");
 /* global Promise, Event */
 'use strict';
 
@@ -101,3 +102,4 @@
 
   exports.ICEStore = ICEStore;
 })(window);
+console.timeEnd("ice_store.js");

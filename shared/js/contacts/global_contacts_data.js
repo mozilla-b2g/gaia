@@ -1,3 +1,4 @@
+console.time("global_contacts_data.js");
 'use strict';
 
 /* globals SimplePhoneMatcher, Normalizer, contacts, MultiContact, Promise */
@@ -675,3 +676,4 @@ var GlobalContacts = (function GCDSOps() {
   };
 
 })();
+console.timeEnd("global_contacts_data.js");

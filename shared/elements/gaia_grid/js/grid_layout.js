@@ -1,3 +1,4 @@
+console.time("grid_layout.js");
 'use strict';
 /* global devicePixelRatio */
 /* global verticalPreferences */
@@ -188,3 +189,4 @@
   exports.GridLayout = GridLayout;
 
 }(window));
+console.timeEnd("grid_layout.js");

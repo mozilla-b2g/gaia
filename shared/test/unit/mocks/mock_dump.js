@@ -1,3 +1,4 @@
+console.time("mock_dump.js");
 'use strict';
 
 var MockDump = (function() {
@@ -32,3 +33,4 @@ MockDump.mSuiteSetup = function() {
 MockDump.mSuiteTeardown = function() {
   window.DUMP = realDUMP;
 };
+console.timeEnd("mock_dump.js");

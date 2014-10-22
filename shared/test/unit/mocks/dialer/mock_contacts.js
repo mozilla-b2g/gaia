@@ -1,3 +1,4 @@
+console.time("mock_contacts.js");
 'use strict';
 /* exported MockContacts */
 
@@ -57,3 +58,4 @@ var MockContacts = {
     this.mResult = [];
   }
 };
+console.timeEnd("mock_contacts.js");

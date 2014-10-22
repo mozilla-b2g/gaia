@@ -1,3 +1,4 @@
+console.time("grid_dragdrop.js");
 'use strict';
 /* global GaiaGrid */
 
@@ -599,3 +600,4 @@
   exports.GridDragDrop = DragDrop;
 
 }(window));
+console.timeEnd("grid_dragdrop.js");

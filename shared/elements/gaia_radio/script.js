@@ -1,3 +1,4 @@
+console.time("script.js");
 'use strict';
 /* global ComponentUtils */
 
@@ -111,3 +112,4 @@ window.GaiaRadio = (function(win) {
   // Register and return the constructor
   return document.registerElement('gaia-radio', { prototype: proto });
 })(window);
+console.timeEnd("script.js");

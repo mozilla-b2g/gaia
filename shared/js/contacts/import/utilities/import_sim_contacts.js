@@ -1,3 +1,4 @@
+console.time("import_sim_contacts.js");
 /*jshint loopfunc: true */
 /* global mozContact, LazyLoader, utils, contacts */
 /* exported SimContactsImporter */
@@ -234,3 +235,4 @@ function SimContactsImporter(targetIcc) {
       };
   }
 }
+console.timeEnd("import_sim_contacts.js");

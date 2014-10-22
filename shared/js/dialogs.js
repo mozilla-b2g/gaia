@@ -1,3 +1,4 @@
+console.time("dialogs.js");
 /* jshint unused: true */
 /* global LazyLoader, $, pendingPick */
 /* exported Dialogs */
@@ -162,3 +163,4 @@ var Dialogs = {
   }
 
 };
+console.timeEnd("dialogs.js");

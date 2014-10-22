@@ -1,3 +1,4 @@
+console.time("contacts_merger.js");
 /* globals Promise, SimplePhoneMatcher, utils, ContactPhotoHelper */
 
 'use strict';
@@ -376,3 +377,4 @@ contacts.Merger = (function() {
   };
 
 })();
+console.timeEnd("contacts_merger.js");

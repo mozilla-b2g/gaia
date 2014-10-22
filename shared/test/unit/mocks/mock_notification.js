@@ -1,3 +1,4 @@
+console.time("mock_notification.js");
 'use strict';
 
 var MockNotifications = [];
@@ -46,3 +47,4 @@ MockNotification.mTeardown = function mn_mTeardown() {
 };
 
 MockNotification.requestPermission = function() {};
+console.timeEnd("mock_notification.js");

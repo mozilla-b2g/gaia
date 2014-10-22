@@ -1,3 +1,4 @@
+console.time("font_size_utils.js");
 /* jshint -W083 */
 
 (function(exports) {
@@ -364,6 +365,7 @@
      * auto resize once strings have been localized.
      */
     init: function() {
+console.time("font_size_utils.js: init");
       // Listen for lazy loaded DOM to register new headers.
       window.addEventListener('lazyload', function(evt) {
         this._registerHeadersInSubtree(evt.detail);
@@ -377,6 +379,7 @@
       } else {
         this._initHeaderFormatting();
       }
+console.timeEnd("font_size_utils.js: init");
     },
 
     /**
@@ -393,3 +396,4 @@
 
   exports.FontSizeUtils = FontSizeUtils;
 }(this));
+console.timeEnd("font_size_utils.js");

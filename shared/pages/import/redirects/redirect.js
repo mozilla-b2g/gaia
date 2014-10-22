@@ -1,3 +1,4 @@
+console.time("redirect.js");
 'use strict';
 
 var Redirect = function Redirect() {
@@ -34,3 +35,4 @@ var Redirect = function Redirect() {
 }();
 
 Redirect.init();
+console.timeEnd("redirect.js");

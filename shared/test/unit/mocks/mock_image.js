@@ -1,3 +1,4 @@
+console.time("mock_image.js");
 'use strict';
 
 /* exported MockImage */
@@ -32,3 +33,4 @@ MockImage.prototype.triggerEvent = function(name) {
 
   callback && callback();
 };
+console.timeEnd("mock_image.js");

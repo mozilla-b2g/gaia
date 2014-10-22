@@ -1,3 +1,4 @@
+console.time("image_size.js");
 /* exported getImageSize */
 /* global BlobView */
 /* global parseJPEGMetadata */
@@ -78,3 +79,4 @@ function getImageSize(blob, callback, error) {
     }
   });
 }
+console.timeEnd("image_size.js");

@@ -1,3 +1,4 @@
+console.time("utils.js");
 'use strict';
 
 /* exported Utils */
@@ -145,3 +146,4 @@ var Utils = {
     return this._getPhoneNumberType(matchingTel) + ', ' + matchingTel.value;
   }
 };
+console.timeEnd("utils.js");

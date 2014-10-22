@@ -1,3 +1,4 @@
+console.time("mock_iccmanager.js");
 'use strict';
 
 
@@ -49,3 +50,4 @@ MockReadContactsRequest.prototype = {
     }
   }
 };
+console.timeEnd("mock_iccmanager.js");

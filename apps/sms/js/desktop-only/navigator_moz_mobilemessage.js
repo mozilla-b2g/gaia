@@ -1,3 +1,4 @@
+console.time("navigator_moz_mobilemessage.js");
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -1499,3 +1500,4 @@
   navigator.mozMobileMessage = MockNavigatormozMobileMessage;
 
 }(window));
+console.timeEnd("navigator_moz_mobilemessage.js");

@@ -1,3 +1,4 @@
+console.time("activity_picker.js");
 /*global ActivityHandler, MozActivity */
 
 (function(exports) {
@@ -97,3 +98,4 @@ var ActivityPicker = {
 exports.ActivityPicker = ActivityPicker;
 
 }(this));
+console.timeEnd("activity_picker.js");

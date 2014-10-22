@@ -1,3 +1,4 @@
+console.time("downsample.js");
 // downsample.js
 //
 // This module defines a single global Downsample object with static
@@ -153,3 +154,4 @@
     MAX_AREA_REDUCTION: 1 / fragments[fragments.length - 1].areaScale
   };
 }(window));
+console.timeEnd("downsample.js");

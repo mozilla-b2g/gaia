@@ -1,3 +1,4 @@
+console.time("download_ui.js");
 'use strict';
 /* exported DownloadUI */
 /* global DownloadFormatter */
@@ -360,3 +361,4 @@ var DownloadUI = (function() {
     }
   };
 }());
+console.timeEnd("download_ui.js");

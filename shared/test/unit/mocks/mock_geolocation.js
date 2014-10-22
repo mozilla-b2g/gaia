@@ -1,3 +1,4 @@
+console.time("mock_geolocation.js");
 /* exported MockGeolocation */
 
 'use strict';
@@ -66,3 +67,4 @@ var MockGeolocation = {
     navigator.geolocation.clearWatch = this.realClearWatch;
   }
 };
+console.timeEnd("mock_geolocation.js");

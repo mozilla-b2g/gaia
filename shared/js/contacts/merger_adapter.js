@@ -1,3 +1,4 @@
+console.time("merger_adapter.js");
 'use strict';
 
 var contacts = window.contacts || {};
@@ -22,3 +23,4 @@ contacts.adaptAndMerge = function(incomingContact, matches, callbacks) {
 
   contacts.Merger.merge(masterContact, matchingContacts, callbacks);
 };
+console.timeEnd("merger_adapter.js");

@@ -1,3 +1,4 @@
+console.time("message_manager.js");
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -17,6 +18,7 @@
 (function(exports) {
 var MessageManager = {
   init: function mm_init() {
+console.time("message_manager.js: init");
     this._mozMobileMessage = navigator.mozMobileMessage;
 
     this._mozMobileMessage.addEventListener(
@@ -40,6 +42,7 @@ var MessageManager = {
     this._mozMobileMessage.addEventListener(
       'deleted', this.onDeleted.bind(this)
     );
+console.timeEnd("message_manager.js: init");
   },
 
   onMessageSending: function mm_onMessageSending(e) {
@@ -502,3 +505,4 @@ Object.defineProperty(exports, 'MessageManager', {
 });
 
 })(window);
+console.timeEnd("message_manager.js");

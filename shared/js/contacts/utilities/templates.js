@@ -1,3 +1,4 @@
+console.time("templates.js");
 'use strict';
 
 var utils = window.utils || {};
@@ -259,3 +260,4 @@ if (!utils.templates) {
     };
   }) ();
 } // window.templates
+console.timeEnd("templates.js");

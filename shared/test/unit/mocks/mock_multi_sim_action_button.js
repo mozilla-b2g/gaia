@@ -1,3 +1,4 @@
+console.time("mock_multi_sim_action_button.js");
 /* exported MockMultiSimActionButton */
 
 'use strict';
@@ -20,3 +21,4 @@ var MockMultiSimActionButton =
   return MockMultiSimActionButtonSingleton;
 };
 
+console.timeEnd("mock_multi_sim_action_button.js");

@@ -1,3 +1,4 @@
+console.time("get_storage_if_available.js");
 'use strict';
 /* exported getStorageIfAvailable */
 
@@ -31,3 +32,4 @@ function getStorageIfAvailable(kind, size, success, error) {
     }
   };
 }
+console.timeEnd("get_storage_if_available.js");

@@ -1,3 +1,4 @@
+console.time("oauth_frame.js");
 'use strict';
 
 /* globals Curtain, oauth2 */
@@ -49,3 +50,4 @@ if (typeof window.oauthFrame === 'undefined') {
     });
   })();
 }
+console.timeEnd("oauth_frame.js");

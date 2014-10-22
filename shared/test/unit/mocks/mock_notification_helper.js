@@ -1,3 +1,4 @@
+console.time("mock_notification_helper.js");
 'use strict';
 /* exported MockNotificationHelper */
 
@@ -31,3 +32,4 @@ var MockNotificationHelper = {
     this.mCloseCB = null;
   }
 };
+console.timeEnd("mock_notification_helper.js");

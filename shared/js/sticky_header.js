@@ -1,3 +1,4 @@
+console.time("sticky_header.js");
 /* exported StickyHeader */
 
 function StickyHeader(scrollable, sticky) {
@@ -36,3 +37,4 @@ function StickyHeader(scrollable, sticky) {
 
   scrollable.addEventListener('scroll', this.refresh);
 }
+console.timeEnd("sticky_header.js");

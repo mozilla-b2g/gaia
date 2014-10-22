@@ -1,3 +1,4 @@
+console.time("thread_ui.js");
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -83,6 +84,7 @@ var ThreadUI = {
 
   multiSimActionButton: null,
   init: function thui_init() {
+console.time("thread_ui.js: init");
     var templateIds = [
       'message',
       'message-sim-information',
@@ -267,6 +269,7 @@ var ThreadUI = {
     this.shouldChangePanelNextEvent = false;
 
     this.showErrorInFailedEvent = '';
+    console.timeEnd("thread_ui.js: init");
   },
 
   onVisibilityChange: function thui_onVisibilityChange(e) {
@@ -2927,3 +2930,4 @@ Object.defineProperty(exports, 'ThreadUI', {
   enumerable: true
 });
 }(this));
+console.timeEnd("thread_ui.js");

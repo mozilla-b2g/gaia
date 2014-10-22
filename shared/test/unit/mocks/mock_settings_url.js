@@ -1,3 +1,4 @@
+console.time("mock_settings_url.js");
 'use strict';
 /* exported MockSettingsURL */
 
@@ -20,3 +21,4 @@ MockSettingsURL.prototype = {
     this._url = null;
   }
 };
+console.timeEnd("mock_settings_url.js");

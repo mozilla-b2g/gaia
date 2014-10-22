@@ -1,3 +1,4 @@
+console.time("startup.js");
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -75,6 +76,7 @@ var Startup = {
   },
 
   init: function() {
+console.time("startup.js: init");
     var loaded = function() {
       window.removeEventListener('DOMContentLoaded', loaded);
       window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
@@ -93,7 +95,9 @@ var Startup = {
     }.bind(this);
 
     window.addEventListener('DOMContentLoaded', loaded);
+console.timeEnd("startup.js: init");
   }
 };
 
 EventDispatcher.mixin(Startup).init();
+console.timeEnd("startup.js");

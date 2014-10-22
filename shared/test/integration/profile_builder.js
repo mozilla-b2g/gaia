@@ -1,3 +1,4 @@
+console.time("profile_builder.js");
 'use strict';
 
 /**
@@ -125,3 +126,4 @@ GaiaBuilder.prototype = {
 
 // marionette-mocha expects a single top level class to be the module
 module.exports = GaiaBuilder;
+console.timeEnd("profile_builder.js");

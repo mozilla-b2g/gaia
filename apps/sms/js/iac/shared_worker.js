@@ -1,3 +1,4 @@
+console.time("shared_worker.js");
 (function() {
   'use strict';
 
@@ -90,3 +91,4 @@
     port.start();
   });
 })();
+console.timeEnd("shared_worker.js");

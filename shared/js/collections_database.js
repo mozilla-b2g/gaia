@@ -1,3 +1,4 @@
+console.time("collections_database.js");
 'use strict';
 
 /* global Promise, uuid */
@@ -295,3 +296,4 @@
   };
 
 }(window));
+console.timeEnd("collections_database.js");

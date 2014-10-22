@@ -1,3 +1,4 @@
+console.time("grid_item.js");
 'use strict';
 /* global GridIconRenderer */
 /* global Promise */
@@ -595,3 +596,4 @@
   exports.GaiaGrid.GridItem = GridItem;
 
 }(window));
+console.timeEnd("grid_item.js");

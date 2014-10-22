@@ -1,3 +1,4 @@
+console.time("group.js");
 'use strict';
 /* global GaiaGrid */
 
@@ -374,3 +375,4 @@
   exports.GaiaGrid.Divider = Group; // Override the non-grouping divider
 
 }(window));
+console.timeEnd("group.js");

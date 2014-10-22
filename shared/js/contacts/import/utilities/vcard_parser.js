@@ -1,3 +1,4 @@
+console.time("vcard_parser.js");
 /* global contacts, LazyLoader, utils, Rest, MimeMapper */
 /* exported VCFReader */
 
@@ -871,3 +872,4 @@ var VCFReader = (function _VCFReader() {
 
   return VCFReader;
 })();
+console.timeEnd("vcard_parser.js");

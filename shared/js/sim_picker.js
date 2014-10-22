@@ -1,3 +1,4 @@
+console.time("sim_picker.js");
 /* exported SimPicker */
 
 'use strict';
@@ -99,3 +100,4 @@
   exports.SimPicker = SimPicker;
 
 })(window);
+console.timeEnd("sim_picker.js");

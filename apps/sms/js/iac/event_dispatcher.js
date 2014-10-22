@@ -1,3 +1,4 @@
+console.time("event_dispatcher.js");
 /* global EventDispatcher */
 
 /* exported InterInstanceEventDispatcher */
@@ -87,3 +88,4 @@
 
   exports.InterInstanceEventDispatcher = Dispatcher;
 })(window);
+console.timeEnd("event_dispatcher.js");

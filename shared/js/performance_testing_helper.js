@@ -1,3 +1,4 @@
+console.time("performance_testing_helper.js");
 'use strict';
 
 (function(window) {
@@ -45,3 +46,4 @@
   };
 
 })(window);
+console.timeEnd("performance_testing_helper.js");

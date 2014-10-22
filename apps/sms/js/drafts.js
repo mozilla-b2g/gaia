@@ -1,3 +1,4 @@
+console.time("drafts.js");
 /*global asyncStorage,
          InterInstanceEventDispatcher
 */
@@ -390,3 +391,4 @@
 
   exports.Draft = Draft;
 }(this));
+console.timeEnd("drafts.js");

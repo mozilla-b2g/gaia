@@ -1,3 +1,4 @@
+console.time("mock_font_size_manager.js");
 /* exported MockFontSizeManager */
 
 'use strict';
@@ -16,3 +17,4 @@ var MockFontSizeManager = {
   ensureFixedBaseline: function() {},
   resetFixedBaseline: function() {}
 };
+console.timeEnd("mock_font_size_manager.js");

@@ -1,3 +1,4 @@
+console.time("mock_telephony_messages.js");
 'use strict';
 
 /* exported MockTelephonyMessages */
@@ -11,3 +12,4 @@ var MockTelephonyMessages = {
   handleError: function() {},
   notifyBusyLine: function() {}
 };
+console.timeEnd("mock_telephony_messages.js");

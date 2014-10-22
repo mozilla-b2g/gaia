@@ -1,3 +1,4 @@
+console.time("link_action_handler.js");
 /*global ActivityPicker, ThreadUI */
 
 (function(exports) {
@@ -47,3 +48,4 @@
 
   exports.LinkActionHandler = LinkActionHandler;
 }(this));
+console.timeEnd("link_action_handler.js");

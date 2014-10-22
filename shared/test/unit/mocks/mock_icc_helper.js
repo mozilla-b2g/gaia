@@ -1,3 +1,4 @@
+console.time("mock_icc_helper.js");
 'use strict';
 /* exported MockIccHelper */
 
@@ -74,3 +75,4 @@ var MockIccHelper = {
     return settingsRequest;
   }
 };
+console.timeEnd("mock_icc_helper.js");

@@ -1,3 +1,4 @@
+console.time("dom.js");
 'use strict';
 
 var utils = window.utils || {};
@@ -38,3 +39,4 @@ if (!utils.dom) {
 
   })(document);
 }
+console.timeEnd("dom.js");

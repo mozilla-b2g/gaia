@@ -1,3 +1,4 @@
+console.time("findmydevice_iac_api.js");
 /* exported IAC_API_WAKEUP_REASON_ENABLED_CHANGED */
 /* exported IAC_API_WAKEUP_REASON_TRY_DISABLE */
 /* exported IAC_API_WAKEUP_REASON_LOGIN */
@@ -23,3 +24,4 @@ function wakeUpFindMyDevice(reason) {
     });
   };
 }
+console.timeEnd("findmydevice_iac_api.js");

@@ -1,3 +1,4 @@
+console.time("mock_navigator_moz_settings.js");
 'use strict';
 /*
  * This is a mock for the API navigator.mozSettings. This is supposed to be used
@@ -224,3 +225,4 @@
   };
 
 })(window);
+console.timeEnd("mock_navigator_moz_settings.js");

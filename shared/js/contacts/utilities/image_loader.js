@@ -1,3 +1,4 @@
+console.time("image_loader.js");
 /* exported  ImageLoader */
 'use strict';
 
@@ -205,3 +206,4 @@ if (!window.ImageLoader) {
   };
 
 }
+console.timeEnd("image_loader.js");

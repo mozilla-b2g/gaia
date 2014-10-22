@@ -1,3 +1,4 @@
+console.time("remote_controls.js");
 'use strict';
 
 /**
@@ -433,3 +434,4 @@ MediaRemoteControls.prototype.notifyStatusChanged = function(status) {
   // Now, send it via IAC.
   this._postMessage('status', status);
 };
+console.timeEnd("remote_controls.js");

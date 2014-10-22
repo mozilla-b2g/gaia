@@ -1,3 +1,4 @@
+console.time("lazy_l10n.js");
 /* globals LazyLoader*/
 'use strict';
 
@@ -46,3 +47,4 @@
   };
 
 }());
+console.timeEnd("lazy_l10n.js");

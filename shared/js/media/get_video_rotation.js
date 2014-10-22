@@ -1,3 +1,4 @@
+console.time("get_video_rotation.js");
 'use strict';
 
 //
@@ -141,3 +142,4 @@ function getVideoRotation(blob, rotationCallback) {
     }
   });
 }
+console.timeEnd("get_video_rotation.js");

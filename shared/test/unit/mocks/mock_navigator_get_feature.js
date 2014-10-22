@@ -1,3 +1,4 @@
+console.time("mock_navigator_get_feature.js");
 'use strict';
 /* global Promise */
 window.MockNavigatorGetFeature = function(key) {
@@ -7,3 +8,4 @@ window.MockNavigatorGetFeature = function(key) {
 };
 
 window.MockNavigatorGetFeature._values = {};
+console.timeEnd("mock_navigator_get_feature.js");

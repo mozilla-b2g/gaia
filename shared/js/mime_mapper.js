@@ -1,3 +1,4 @@
+console.time("mime_mapper.js");
 /* exported MimeMapper */
 'use strict';
 
@@ -133,3 +134,4 @@ var MimeMapper = {
     return filename;
   }
 };
+console.timeEnd("mime_mapper.js");

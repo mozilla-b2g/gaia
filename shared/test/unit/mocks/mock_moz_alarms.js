@@ -1,3 +1,4 @@
+console.time("mock_moz_alarms.js");
 // modified from the clock app's mock_moz_alarm.js for bug 1034570
 
 (function(exports) {
@@ -30,9 +31,11 @@
   MockMozAlarmRequest.prototype = {
 
     init: function mar_init(config) {
+console.time("mock_moz_alarms.js: init");
       setTimeout(function() {
         this.fire(config.error, config.result);
       }.bind(this), 0);
+console.timeEnd("mock_moz_alarms.js: init");
     },
 
     fire: function mar_call(error, result) {
@@ -94,3 +97,4 @@
     }
   };
 }(this));
+console.timeEnd("mock_moz_alarms.js");

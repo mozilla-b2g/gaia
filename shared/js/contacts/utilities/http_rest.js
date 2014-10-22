@@ -1,3 +1,4 @@
+console.time("http_rest.js");
 'use strict';
 
 if (!window.Rest) {
@@ -90,3 +91,4 @@ if (!window.Rest) {
     return new Rest();
   })();
 }
+console.timeEnd("http_rest.js");

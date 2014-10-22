@@ -1,3 +1,4 @@
+console.time("server_child.js");
 'use strict';
 
 var http = require('http');
@@ -85,3 +86,4 @@ process.on('message', function(data) {
       break;
   }
 });
+console.timeEnd("server_child.js");

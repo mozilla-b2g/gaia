@@ -1,3 +1,4 @@
+console.time("example.js");
 'use strict';
 
 (function() {
@@ -19,3 +20,4 @@
     }
   };
 })();
+console.timeEnd("example.js");

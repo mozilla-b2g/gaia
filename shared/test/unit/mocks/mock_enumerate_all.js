@@ -1,3 +1,4 @@
+console.time("mock_enumerate_all.js");
 'use strict';
 
 var MockEnumerateAll = function(storages, dir, options) {
@@ -13,3 +14,4 @@ var MockEnumerateAll = function(storages, dir, options) {
 };
 
 MockEnumerateAll.certificateName = 'filename';
+console.timeEnd("mock_enumerate_all.js");

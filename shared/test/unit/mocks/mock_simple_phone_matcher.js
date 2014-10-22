@@ -1,3 +1,4 @@
+console.time("mock_simple_phone_matcher.js");
 'use strict';
 
 var MockSimplePhoneMatcher;
@@ -27,3 +28,4 @@ MockSimplePhoneMatcherObj.prototype =  {
 };
 
 MockSimplePhoneMatcher = new MockSimplePhoneMatcherObj();
+console.timeEnd("mock_simple_phone_matcher.js");

@@ -1,3 +1,4 @@
+console.time("mock_video_stats.js");
 /*exported VideoStats */
 
 'use strict';
@@ -19,3 +20,4 @@ var VideoStats = (function() {
     dump: print
   };
 })();
+console.timeEnd("mock_video_stats.js");

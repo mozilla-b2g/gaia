@@ -1,3 +1,4 @@
+console.time("mock_bluetooth_helper.js");
 /* exported MockBluetoothHelper, MockBluetoothHelperInstance */
 
 'use strict';
@@ -26,3 +27,4 @@ var MockBluetoothHelperInstance = {
 var MockBluetoothHelper = function() {
   return MockBluetoothHelperInstance;
 };
+console.timeEnd("mock_bluetooth_helper.js");

@@ -1,3 +1,4 @@
+console.time("scroll_detector.js");
 /*
  * This helper is used to determine when a scroll action has started or
  * when it is finished.
@@ -49,3 +50,4 @@
   window.addEventListener('scroll', handleScroll, true);
 })();
 
+console.timeEnd("scroll_detector.js");

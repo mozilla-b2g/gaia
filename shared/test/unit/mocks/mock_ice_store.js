@@ -1,3 +1,4 @@
+console.time("mock_ice_store.js");
 /* globals Promise */
 /* exported MockICEStore */
 'use strict';
@@ -12,3 +13,4 @@ var MockICEStore = {
   },
   onChange: function() {}
 };
+console.timeEnd("mock_ice_store.js");

@@ -1,3 +1,4 @@
+console.time("mock_navigator_moz_set_message_handler.js");
 /*global Components, Services*/
 /**
  * @fileoverview This script mocks the mozSetMessageHandler API
@@ -36,3 +37,4 @@ Services.obs.addObserver(function(document) {
     };
   });
 }, 'document-element-inserted', false);
+console.timeEnd("mock_navigator_moz_set_message_handler.js");

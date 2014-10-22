@@ -1,3 +1,4 @@
+console.time("cache.js");
 'use strict';
 /* global Promise*/
 /* global asyncStorage*/
@@ -42,3 +43,4 @@
   eme.Cache = new Cache();
 
 })(window.eme);
+console.timeEnd("cache.js");

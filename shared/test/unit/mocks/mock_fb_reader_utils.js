@@ -1,3 +1,4 @@
+console.time("mock_fb_reader_utils.js");
 'use strict';
 /* exported MockFbReaderUtilsObj */
 
@@ -18,3 +19,4 @@ var MockFbReaderUtilsObj = function() {
     cb({ name: [this.fbContactName], isFbContact: true });
   };
 };
+console.timeEnd("mock_fb_reader_utils.js");

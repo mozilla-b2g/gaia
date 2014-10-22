@@ -1,3 +1,4 @@
+console.time("simple_operator_variant_helper.js");
 /* exported SimpleOperatorVariantHelper */
 'use strict';
 
@@ -40,3 +41,4 @@ var SimpleOperatorVariantHelper = {
     }).bind(this);
   }
 };
+console.timeEnd("simple_operator_variant_helper.js");

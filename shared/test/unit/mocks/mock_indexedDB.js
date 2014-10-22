@@ -1,3 +1,4 @@
+console.time("mock_indexedDB.js");
 'use strict';
 /* global sinon */
 /* exported MockIndexedDB */
@@ -237,3 +238,4 @@ function MockIndexedDB() {
     };
   }
 }
+console.timeEnd("mock_indexedDB.js");

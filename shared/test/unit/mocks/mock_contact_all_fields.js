@@ -1,3 +1,4 @@
+console.time("mock_contact_all_fields.js");
 'use strict';
 /* exported MockContactAllFields */
 
@@ -96,3 +97,4 @@ function b64toBlob(b64Data, contentType, sliceSize) {
 
   return new Blob(byteArrays, {type: contentType});
 }
+console.timeEnd("mock_contact_all_fields.js");

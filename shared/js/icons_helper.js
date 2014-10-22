@@ -1,3 +1,4 @@
+console.time("icons_helper.js");
 /* exported IconsHelper */
 'use strict';
 
@@ -149,3 +150,4 @@
   };
 
 })(window);
+console.timeEnd("icons_helper.js");
