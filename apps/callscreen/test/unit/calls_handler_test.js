@@ -155,12 +155,6 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(toggleSpy.calledOnce);
       });
-
-      test('should not call TonePlayer.setChannel()', function() {
-        var setChannelSpy = this.sinon.spy(MockTonePlayer, 'setChannel');
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(setChannelSpy.notCalled);
-      });
     });
 
     suite('> receiving an extra incoming call', function() {
@@ -1775,6 +1769,27 @@ suite('calls handler', function() {
       AudioCompetingHelper.audioContext.dispatchEvent(evt);
       sinon.assert.calledOnce(AudioCompetingHelper.leaveCompetition);
       sinon.assert.calledTwice(AudioCompetingHelper.compete);
+    });
+  });
+
+  suite('> busy tone', function() {
+    var mockCall;
+
+    setup(function() {
+      this.sinon.spy(MockTonePlayer, 'playSequence');
+      mockCall = new MockCall('12334', 'incoming');
+      MockNavigatorMozTelephony.active = mockCall;
+    });
+
+    test('should play the busy tone if we found the line busy', function() {
+      var sequence = [[480, 620, 500], [0, 0, 500],
+                      [480, 620, 500], [0, 0, 500],
+                      [480, 620, 500], [0, 0, 500]];
+
+      MockNavigatorMozTelephony.mTriggerCallsChanged();
+      mockCall.error = { name: 'BusyError' };
+      mockCall.triggerEvent('error');
+      sinon.assert.calledWith(MockTonePlayer.playSequence, sequence);
     });
   });
 });

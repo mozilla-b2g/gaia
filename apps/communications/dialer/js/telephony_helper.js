@@ -1,6 +1,6 @@
 'use strict';
 
-/* global _, TonePlayer, LazyLoader, IccHelper, ConfirmDialog, LazyL10n */
+/* global _, LazyLoader, IccHelper, ConfirmDialog, LazyL10n */
 /* exported TelephonyHelper */
 
 var TelephonyHelper = (function() {
@@ -47,20 +47,6 @@ var TelephonyHelper = (function() {
     };
     activeCall.hold();
   };
-
-  function notifyBusyLine() {
-    // ANSI call waiting tone for a 6 seconds window.
-    var sequence = [[480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500]];
-    
-    TonePlayer.setChannel('telephony');
-    TonePlayer.playSequence(sequence);
-    TonePlayer.setChannel('normal');
-  }
 
   function startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
                      ondisconnected, onerror) {
@@ -138,7 +124,6 @@ var TelephonyHelper = (function() {
     } else if (errorName === 'RadioNotAvailable') {
       displayMessage('FlightMode');
     } else if (errorName === 'BusyError') {
-      notifyBusyLine();
       displayMessage('NumberIsBusy');
     } else if (errorName === 'FDNBlockedError' ||
                errorName === 'FdnCheckFailure') {

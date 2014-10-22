@@ -73,7 +73,7 @@ suite('dialer/keypad', function() {
     previousBody = document.body.innerHTML;
     document.body.innerHTML = MockDialerIndexHtml;
     subject = KeypadManager;
-    subject.init(false);
+    subject.init(/* oncall */ false);
   });
 
   suiteTeardown(function() {
@@ -91,6 +91,14 @@ suite('dialer/keypad', function() {
   });
 
   suite('Keypad Manager', function() {
+    test('initializates the TonePlayer to use the "content" channel',
+    function() {
+      this.sinon.spy(MockTonePlayer, 'init');
+      KeypadManager.init(/* oncall */ false);
+
+      sinon.assert.calledWith(MockTonePlayer.init, 'content');
+    });
+
     test('sanitizePhoneNumber', function(done) {
       var testCases = {
           '111-111-1111': '111-111-1111',
@@ -282,14 +290,14 @@ suite('dialer/keypad', function() {
 
         this.sinon.stub(document, 'elementFromPoint');
 
-        subject.init(true);
+        subject.init(/* oncall */ true);
         subject.render('oncall');
       });
 
       teardown(function() {
         MockNavigatorMozTelephony.mTeardown();
 
-        subject.init(false);
+        subject.init(/* oncall */ false);
       });
 
       suite('Audible and DTMF tones', function() {
@@ -559,7 +567,7 @@ suite('dialer/keypad', function() {
       addEventListenerSpy = this.sinon.spy(callBarCallActionButton,
                                            'addEventListener');
 
-      subject.init(false);
+      subject.init(/* oncall */ false);
     });
 
     test('Should initialize MultiSimActionButton', function() {
