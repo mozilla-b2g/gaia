@@ -958,3 +958,29 @@ form[role="combobox"] span[data-field="type"] {
 .field-template.inserted.displayed .third-row {
   animation: add-field 0.20s linear 0.35s 1 normal forwards;
 }
+
+.inserted .img-delete-button {
+  background: none;
+}
+
+.inserted .img-delete-button::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
+  background: url('images/Add_button.png') no-repeat scroll 0 0 / 3rem auto transparent;
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
+.inserted.displayed .img-delete-button::after {
+  transform: rotate(45deg);
+  transform-origin: 1.4rem 1.4rem;
+  transition: transform 0.40s ease-in-out;
+}
+
+.inserted.displayed .img-delete-button.rendered::after {
+  transform: rotate(0);
+  background-image: url('images/icon_remove.png');
+  transition: none;
+}
