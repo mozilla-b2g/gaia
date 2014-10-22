@@ -23,13 +23,14 @@ class TestTimeChange(GaiaImageCompareTestCase):
         self.connect_to_network()
         self.data_layer.set_time(self._seconds_since_epoch * 1000)
         self.data_layer.set_setting('time.timezone', 'Atlantic/Reykjavik')
-        
+
     def test_gfx_time_set(self):
 
         self.open_settings()
+        self.set_date('March', '29', '2016')
+
         self.set_time('3','23','AM')
 
-        self.set_date('March','29','2016')
         self.invoke_screen_capture(frame='chrome')
         self.close_settings()
 
