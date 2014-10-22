@@ -242,10 +242,12 @@ var Contacts = (function() {
 
     window.addEventListener('listRendered', loadDeferredActions);
 
-    // Tell audio channel manager that we want to adjust the notification
-    // channel if the user press the volumeup/volumedown buttons in Contacts.
+    /* XXX: Tell the audio channel manager that we want to adjust the "content"
+     * channel when the user presses the volumeup/volumedown buttons. We should
+     * be using the "notification" channel instead but we can't due to bug
+     * 1092346. */
     if (navigator.mozAudioChannelManager) {
-      navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+      navigator.mozAudioChannelManager.volumeControlChannel = 'content';
     }
   };
 

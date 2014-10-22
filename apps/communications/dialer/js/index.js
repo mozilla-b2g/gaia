@@ -1,26 +1,28 @@
 /* globals KeypadManager, NavbarManager, LazyLoader, LazyL10n, CallHandler */
 'use strict';
 
-window.addEventListener('load', function dialerSetup() {
+function onLoadDialer() {
   // Dialer chrome UI and keypad UI is visible and already exists in the DOM
   window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
   window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
 
-  window.removeEventListener('load', dialerSetup);
+  window.removeEventListener('load', onLoadDialer);
 
-  KeypadManager.init();
+  /* XXX: Tell the audio channel manager that we want to adjust the "content"
+   * channel when the user presses the volumeup/volumedown buttons. We should
+   * be using the "notification" channel instead but we can't due to bug
+   * 1092346. */
+  if (navigator.mozAudioChannelManager) {
+    navigator.mozAudioChannelManager.volumeControlChannel = 'content';
+  }
+
+  KeypadManager.init(/* oncall */ false);
   // Keypad (app core content) is now bound
   window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
   NavbarManager.init();
   // Navbar (chrome) events have now been bound
   window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
-
-  // Tell audio channel manager that we want to adjust the notification
-  // channel if the user press the volumeup/volumedown buttons in Dialer.
-  if (navigator.mozAudioChannelManager) {
-    navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
-  }
 
   setTimeout(function nextTick() {
     var lazyPanels = ['confirmation-message',
@@ -48,4 +50,6 @@ window.addEventListener('load', function dialerSetup() {
       });
     });
   });
-});
+}
+
+window.addEventListener('load', onLoadDialer);

@@ -1,4 +1,4 @@
-/* globals gTonesFrequencies, KeypadManager, loadBodyHTML, MockCall,
+/* globals gTonesFrequencies, KeypadManager, loadBodyHTML,
            MockIccManager, MockL10n, MockNavigatorMozTelephony,
            MockNavigatorSettings, MockSettingsListener, MocksHelper,
            MockTonePlayer
@@ -76,6 +76,14 @@ suite('Keypad', function() {
   });
 
   suite('Keypad Manager', function() {
+    test('initializates the TonePlayer to use the "notification" channel',
+    function() {
+      this.sinon.spy(MockTonePlayer, 'init');
+      KeypadManager.init(/* oncall */ false);
+
+      sinon.assert.calledWith(MockTonePlayer.init, 'notification');
+    });
+
     test('sanitizePhoneNumber', function(done) {
       var testCases = {
           '111-111-1111': '111-111-1111',
@@ -179,64 +187,6 @@ suite('Keypad', function() {
 
         subject._touchStart('1');
         sinon.assert.notCalled(navigator.vibrate);
-      });
-    });
-
-    suite('TonePlayer channel management', function() {
-      var realHidden, stubHidden, mockCall;
-
-      setup(function() {
-        realHidden = document.hidden;
-
-        Object.defineProperty(document, 'hidden', {
-          configurable: true,
-          get: function() { return stubHidden; }
-        });
-
-        stubHidden = true;
-
-        this.sinon.spy(MockTonePlayer, 'init');
-        this.sinon.spy(MockTonePlayer, 'setChannel');
-        subject.init(true);
-
-        mockCall = new MockCall('12345', 'connected', 0);
-      });
-
-      teardown(function() {
-        Object.defineProperty(document, 'hidden', {
-          configurable: true,
-          get: function() { return realHidden; }
-        });
-        subject.init(false);
-      });
-
-      test('should be on the normal channel at init', function() {
-        sinon.assert.calledOnce(MockTonePlayer.init);
-        sinon.assert.calledWith(MockTonePlayer.init, 'normal');
-      });
-
-      test('should switch to telephony when it gets displayed', function() {
-        stubHidden = false;
-        window.dispatchEvent(new CustomEvent('visibilitychange'));
-        var lastCall = MockTonePlayer.setChannel.lastCall;
-        assert.equal(lastCall.args[0], 'telephony');
-      });
-
-      test('should switch back to normal when it gets hidden', function() {
-        stubHidden = true;
-        window.dispatchEvent(new CustomEvent('visibilitychange'));
-        var lastCall = MockTonePlayer.setChannel.lastCall;
-        assert.equal(lastCall.args[0], 'normal');
-      });
-
-      test('should stay on the telephony channel if a call is ongoing',
-      function() {
-        MockNavigatorMozTelephony.calls = [mockCall];
-
-        stubHidden = true;
-        window.dispatchEvent(new CustomEvent('visibilitychange'));
-        var lastCall = MockTonePlayer.setChannel.lastCall;
-        assert.equal(lastCall.args[0], 'telephony');
       });
     });
   });
