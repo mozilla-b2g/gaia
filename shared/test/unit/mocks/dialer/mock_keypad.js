@@ -5,6 +5,7 @@ var MockKeypadManager = {
   _phoneNumber: '',
   mOnMakeCall: null,
   lastCalled: '15555555555',
+  init: function() {},
   updatePhoneNumber: function khm_updatePhoneNumber(number) {
     this._phoneNumber = number;
   },
