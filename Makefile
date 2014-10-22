@@ -454,7 +454,7 @@ endif
 # Test agent setup
 TEST_COMMON=dev_apps/test-agent/common
 ifeq ($(strip $(NODEJS)),)
-  NODEJS := `which node`
+  NODEJS := `which nodejs || which node`
 endif
 
 ifeq ($(strip $(NPM)),)
@@ -725,7 +725,7 @@ ifndef APPS
 endif
 
 b2g: node_modules/.bin/mozilla-download
-	DEBUG=* ./node_modules/.bin/mozilla-download \
+	DEBUG=* $(NODEJS) ./node_modules/.bin/mozilla-download \
 	--verbose \
 	--product b2g \
 	--channel tinderbox \
@@ -824,15 +824,15 @@ endif
 test-agent-test: node_modules
 ifneq ($(strip $(APP)),)
 	@echo 'Running tests for $(APP)';
-	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
+	$(NODEJS) ./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
 else
 	@echo 'Running all tests';
-	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
+	$(NODEJS) ./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
 endif
 
 .PHONY: test-agent-server
 test-agent-server: common-install node_modules
-	./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./shared/test/unit/test-agent-server.js --http-path . --growl
+	$(NODEJS) ./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./shared/test/unit/test-agent-server.js --http-path . --growl
 
 .PHONY: marionette
 marionette:
@@ -899,7 +899,7 @@ endif
 
 hint: node_modules/.bin/jshint
 	@echo Running jshint...
-	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
+	@$(NODEJS) ./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
 
 csslint: b2g_sdk
 	@$(call run-js-command,csslint)
@@ -1030,4 +1030,4 @@ docs: $(NPM_INSTALLED_PROGRAMS)
 
 .PHONY: watch
 watch: $(NPM_INSTALLED_PROGRAMS)
-	node build/watcher.js
+	$(NODEJS) build/watcher.js

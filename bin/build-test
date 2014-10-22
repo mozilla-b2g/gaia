@@ -1,6 +1,6 @@
 #! /bin/bash -vex
 
-./node_modules/.bin/mocha \
+$(which nodejs || which node) ./node_modules/.bin/mocha \
   --harmony \
   --reporter ${REPORTER:=spec} \
   --ui tdd \
