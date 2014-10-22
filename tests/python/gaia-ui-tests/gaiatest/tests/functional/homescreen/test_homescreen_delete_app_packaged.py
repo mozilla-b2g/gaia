@@ -7,6 +7,7 @@ from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
 from gaiatest.apps.system.app import System
 
+
 class TestDeleteApp(GaiaTestCase):
 
     def setUp(self):
