@@ -32,16 +32,11 @@ var TonePlayer = {
   },
 
   init: function tp_init(channel) {
-    if (document.hidden) {
-      // We don't create an AudioContext because it will be trashed right away
-      this._channel = channel;
-    } else {
-      this.setChannel(channel);
-    }
+    this._channel = channel;
   },
 
   ensureAudio: function tp_ensureAudio() {
-    if (this._audioContext || !this._channel) {
+    if (this._audioContext || !this._channel || document.hidden) {
       return;
     }
 
