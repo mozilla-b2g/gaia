@@ -24,7 +24,7 @@ class Media(PageRegion):
 
     _media_link_locator = (By.TAG_NAME, 'a')
 
-    def tap_first_album(self):
+    def tap_first_artist(self):
         self.marionette.find_element(*self._media_link_locator).tap()
         return SublistView(self.marionette)
 
