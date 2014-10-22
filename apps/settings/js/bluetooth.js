@@ -804,6 +804,11 @@ navigator.mozL10n.once(function bluetoothSettings() {
       };
       req.onerror = function bt_discoveryFailed() {
         console.error('Can not discover nearby device');
+
+        // reset search button and searching description
+        // when request startDiscovery failed
+        searchAgainBtn.disabled = false;
+        searchingItem.hidden = true;
       };
     }
 
