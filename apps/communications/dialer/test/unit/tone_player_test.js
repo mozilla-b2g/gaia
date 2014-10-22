@@ -44,6 +44,7 @@ suite('shared/dialer/TonePlayer', function() {
 
     test('should instantiate an audio context with the channel', function() {
       TonePlayer.init('telephony');
+      TonePlayer.ensureAudio();
 
       assert.equal(MockAudioContext.instances.length, 1);
       var ctx = MockAudioContext.instances[0];
@@ -54,6 +55,7 @@ suite('shared/dialer/TonePlayer', function() {
       setup(function() {
         stubHidden = true;
         TonePlayer.init('telephony');
+        TonePlayer.ensureAudio();
       });
 
       test('should not instantiate an audio context', function() {
@@ -61,6 +63,7 @@ suite('shared/dialer/TonePlayer', function() {
       });
 
       test('should keep track of the channel for later ensures', function() {
+        stubHidden = false;
         TonePlayer.ensureAudio();
 
         assert.equal(MockAudioContext.instances.length, 1);
@@ -73,6 +76,7 @@ suite('shared/dialer/TonePlayer', function() {
   suite('setChannel', function() {
     setup(function() {
       TonePlayer.init('normal');
+      TonePlayer.ensureAudio();
     });
 
     test('should instantiate a new audio context with the channel',
@@ -109,9 +113,28 @@ suite('shared/dialer/TonePlayer', function() {
     });
   });
 
+  suite('playSequence', function() {
+    setup(function() {
+      TonePlayer.init('normal');
+
+      this.sinon.stub(TonePlayer, 'dummySound');
+    });
+
+    test('should instantiate a new audio context if needed', function() {
+      assert.equal(MockAudioContext.instances.length, 0);
+
+      TonePlayer.playSequence({'1': ['697', 1209]});
+
+      assert.equal(MockAudioContext.instances.length, 1);
+      var ctx = MockAudioContext.instances[0];
+      assert.equal(ctx.mozAudioChannelType, 'normal');
+    });
+  });
+
   suite('trashAudio', function() {
     setup(function() {
       TonePlayer.init('telephony');
+      TonePlayer.ensureAudio();
     });
 
     test('telephony channel released', function() {
