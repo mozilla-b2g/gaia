@@ -370,7 +370,9 @@ var Navigation = {
 
       // if we are navigating backwards, we do not want to
       // show the SIM unlock screens for the data_3g step
+      // and sim info screen should able to show up again
       var skipUnlockScreens = this.currentStep < this.previousStep;
+      SimManager.simInfoScreenShown = false;
       SimManager.handleCardState(check_cardState, skipUnlockScreens);
     }
   }

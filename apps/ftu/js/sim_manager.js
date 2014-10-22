@@ -88,6 +88,7 @@ var SimManager = (function() {
     _ = navigator.mozL10n.get;
 
     this.alreadyImported = false;
+    this.simInfoScreenShown = false;
   },
 
   handleUnlockError: function sm_handleUnlockError(data) {
@@ -210,6 +211,24 @@ var SimManager = (function() {
     }
   },
 
+  addUnlockSuccessCallback: function sm_addUnlockSuccessCallback(callback) {
+    if (callback && typeof callback === 'function') {
+      this.unlockSuccessCallback = callback;
+    }
+    window.addEventListener('iccUnlockSuccess', function() {
+      if (this.unlockSuccessCallback) {
+        this.unlockSuccessCallback();
+      }
+      window.removeEventListener('iccUnlockSuccess',
+                                 this.unlockSuccessCallback);
+    }.bind(this));
+  },
+
+  removeUnlockSuccessCallback: function sm_removeUnlockSuccessCallback() {
+    this.unlockSuccessCallback = null;
+    window.removeEventListener('iccUnlockSuccess', this.unlockSuccessCallback);
+  },
+
   finish: function() {
     this.hideScreen();
     this.hideSIMInfoScreen();
@@ -221,13 +240,18 @@ var SimManager = (function() {
     this.finishCallback && this.finishCallback(showCellData);
   },
 
+  publish: function sm_publish(eventName) {
+    var event = new CustomEvent(eventName);
+    window.dispatchEvent(event);
+  },
+
   shouldShowUnlockScreen: function sm_shouldShowLockScreen(icc) {
     return icc && !icc.skipped && icc.isLocked();
   },
 
   // only show sim info screen if we have two SIMs inserted
   shouldShowSIMInfoScreen: function sm_shouldShowSIMInfoScreen() {
-    return (this.icc0 && this.icc1);
+    return (this.icc0 && this.icc1 && !this.simInfoScreenShown);
   },
 
   showUnlockScreen: function sm_showUnlockScreen(icc) {
@@ -314,6 +338,7 @@ var SimManager = (function() {
   },
 
   showSIMInfoScreen: function sm_showSIMInfoScreen() {
+    this.simInfoScreenShown = true;
     this.updateSIMInfoText(this.icc0);
     this.updateSIMInfoText(this.icc1);
     UIManager.activationScreen.classList.remove('show');
@@ -503,6 +528,7 @@ var SimManager = (function() {
   skip: function sm_skip() {
     if (this._unlockingIcc) {
       this._unlockingIcc.skipped = true;
+      this.removeUnlockSuccessCallback();
     }
     this.resetForm();
     this.hideScreen();
@@ -683,6 +709,7 @@ var SimManager = (function() {
       this.resetForm();
       this.hideScreen();
       this.handleCardState();
+      this.publish('iccUnlockSuccess');
     }).bind(this);
     req.onerror = (function sm_unlockError() {
       this.handleUnlockError(req.error);
