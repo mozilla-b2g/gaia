@@ -15,12 +15,15 @@ class TestTimeChange(GaiaImageCompareTestCase):
     _autotime_enabled_switch_locator = (By.CSS_SELECTOR, '.time-auto label')
     _date_adjuster_locator = (By.CSS_SELECTOR, '.clock-date')
     _time_adjuster_locator = (By.CSS_SELECTOR, '.clock-time')
+    _seconds_since_epoch = 1357043430
     settings = None
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
         self.connect_to_network()
-
+        self.data_layer.set_time(self._seconds_since_epoch * 1000)
+        self.data_layer.set_setting('time.timezone', 'Atlantic/Reykjavik')
+        
     def test_gfx_time_set(self):
 
         self.open_settings()
