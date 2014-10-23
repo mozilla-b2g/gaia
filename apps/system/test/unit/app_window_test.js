@@ -1939,6 +1939,7 @@ suite('system/AppWindow', function() {
     assert.isFalse(app1.suspended);
     assert.isTrue(stub_setVisble.calledWith(false));
     assert.isTrue(stubPublish.calledWith('resumed'));
+    assert.isTrue(app1.browser.element.classList.contains('hidden'));
   });
 
   test('destroy browser', function() {
@@ -1946,6 +1947,7 @@ suite('system/AppWindow', function() {
     var stubPublish = this.sinon.stub(app1, 'publish');
     app1.destroyBrowser();
     assert.isNull(app1.browser);
+    assert.isNull(app1.iframe);
     assert.isTrue(app1.suspended);
     assert.isTrue(stubPublish.calledWith('suspended'));
   });
