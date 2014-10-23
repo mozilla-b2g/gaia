@@ -25,7 +25,10 @@ class TestSetupAndSendActiveSyncEmail(GaiaTestCase):
         self.email.launch()
 
     def test_setup_and_send_active_sync_email(self):
-
+        """
+        https://moztrap.mozilla.org/manage/case/2474/
+        https://moztrap.mozilla.org/manage/case/2475/
+        """
         # setup ActiveSync account
         self.email.setup_active_sync_email(self.account)
 

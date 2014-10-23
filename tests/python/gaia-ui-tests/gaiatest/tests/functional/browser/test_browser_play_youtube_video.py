@@ -23,8 +23,7 @@ class TestYouTube(GaiaTestCase):
         self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
     def test_play_youtube_video(self):
-        """Confirm YouTube video playback
-
+        """
         https://moztrap.mozilla.org/manage/case/6073/
         """
         search = Search(self.marionette)

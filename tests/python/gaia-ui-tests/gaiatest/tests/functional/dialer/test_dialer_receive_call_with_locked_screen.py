@@ -19,7 +19,10 @@ class TestReceiveCallScreenLocked(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
     def test_receive_call_with_locked_screen(self):
-        """Make a phone call from Plivo to the phone."""
+        """
+        Verify that the User can receive a call whilst the device is locked
+        https://moztrap.mozilla.org/manage/case/1300/
+        """
         PLIVO_TIMEOUT = 30
         self.call_uuid = False
 

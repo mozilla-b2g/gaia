@@ -21,7 +21,9 @@ class TestBrowserLAN(GaiaTestCase):
             self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
 
     def test_browser_lan(self):
-        """https://moztrap.mozilla.org/manage/case/1327/"""
+        """
+        https://moztrap.mozilla.org/manage/case/1327/
+        """
         search = Search(self.marionette)
         search.launch()
         browser = search.go_to_url(self.test_url)

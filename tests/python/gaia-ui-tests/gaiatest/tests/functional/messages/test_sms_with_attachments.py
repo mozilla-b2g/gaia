@@ -17,6 +17,9 @@ class TestSmsWithAttachments(GaiaTestCase):
         self.data_layer.connect_to_cell_data()
 
     def test_sms_send(self):
+        """
+        https://moztrap.mozilla.org/manage/case/10743/
+        """
         # launch the app
         messages = Messages(self.marionette)
         messages.launch()
