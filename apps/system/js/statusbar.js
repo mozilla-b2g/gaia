@@ -1751,11 +1751,13 @@ var StatusBar = {
   },
 
   cloneStatusbar: function() {
+    var className = this.statusbarIconsMin.className;
     this.statusbarIcons.removeChild(this.statusbarIconsMin);
     this.statusbarIconsMin = this.statusbarIconsMax.parentNode.cloneNode(true);
     this.statusbarIconsMin.setAttribute('id', 'statusbar-minimized-wrapper');
     this.statusbarIconsMin.firstElementChild.setAttribute('id',
       'statusbar-minimized');
+    this.statusbarIconsMin.className = className;
     this.statusbarIcons.appendChild(this.statusbarIconsMin);
   },
 
