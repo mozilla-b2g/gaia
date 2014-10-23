@@ -8,7 +8,7 @@
 
   var TextSelectionDialog = function () {
     this.containerElement =
-      document.getElementById('TextSelectionDialogRoot');
+      document.getElementById('text-selection-dialog-root');
     this.event = null;
     this._hideTimeout = null;
     this._injected = false;

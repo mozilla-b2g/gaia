@@ -32,7 +32,7 @@ suite('system/TextSelectionDialog', function() {
     requireApp('system/js/text_selection_dialog.js',
       function() {
         fragment = document.createElement('div');
-        fragment.id = 'TextSelectionDialogRoot';
+        fragment.id = 'text-selection-dialog-root';
         document.body.appendChild(fragment);
         td = new TextSelectionDialog();
         fragment.innerHTML = td.view();
