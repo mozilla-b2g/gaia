@@ -87,11 +87,7 @@ suite('webapp-optimize.js', function() {
     mockUtils.getFile = getFile;
 
     mockUtils.gaia = {
-      getInstance: function(config) {
-        return {
-          aggregatePrefix: 'gaia-test-prefix-'
-        };
-      }
+      aggregatePrefix: 'gaia-test-prefix-',
     };
 
     mockUtils.isSubjectToBranding = function(path) {
