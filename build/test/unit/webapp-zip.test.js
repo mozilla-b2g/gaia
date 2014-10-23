@@ -124,9 +124,12 @@ suite('webapp-zip.js', function() {
       var file = mockUtils.getFile('locales');
       isFile = true;
       fileExists = true;
-      webappZip.config = {};
-
-      webappZip.config.GAIA_CONCAT_LOCALES = '1';
+      webappZip.config = {
+        GAIA_CONCAT_LOCALES: '1'
+      };
+      webappZip.webapp = {
+        sourceDirectoryName: 'testSourceDirectory'
+      };
       webappZip.buildDir = mockUtils.getFile('test');
       assert.equal(webappZip.isExcludedFromZip(file), true,
         'Ignore l10n files if they have been inlined or concatenated');

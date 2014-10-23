@@ -34,6 +34,9 @@ exports.psParser = function(content) {
   return content;
 };
 
+exports.setEnv = function() {
+};
+
 exports.getEnvPath = function() {
 };
 
@@ -104,4 +107,19 @@ exports.dirname = function(path) {
 
 exports.basename = function(path) {
   return path.substr(path.lastIndexOf('/')+1);
+};
+
+exports.gaia = {
+  getInstance: function(options) {
+    var rebuildWebapps = options.rebuildAppDirs.map(function(appDir) {
+      return {
+        appDir: {
+          path: appDir
+        }
+      };
+    });
+    return {
+      rebuildWebapps: rebuildWebapps
+    };
+  }
 };

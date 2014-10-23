@@ -89,6 +89,9 @@ DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 
+# Parallel build for multicores CPU
+P?=0
+
 # Alias
 ifdef GAIA_DPPX
 GAIA_DEV_PIXELS_PER_PX=$(GAIA_DPPX)
@@ -536,7 +539,8 @@ define BUILD_CONFIG
   "GAIA_APP_TARGET" : "$(GAIA_APP_TARGET)", \
   "BUILD_DEBUG" : "$(BUILD_DEBUG)", \
   "VARIANT_PATH" : "$(VARIANT_PATH)", \
-  "REBUILD": "$(REBUILD)"
+  "REBUILD": "$(REBUILD)", \
+  "P" : "$(P)"
 }
 endef
 

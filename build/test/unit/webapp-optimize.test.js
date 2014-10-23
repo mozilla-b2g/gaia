@@ -87,11 +87,7 @@ suite('webapp-optimize.js', function() {
     mockUtils.getFile = getFile;
 
     mockUtils.gaia = {
-      getInstance: function(config) {
-        return {
-          aggregatePrefix: 'gaia-test-prefix-'
-        };
-      }
+      aggregatePrefix: 'gaia-test-prefix-',
     };
 
     mockUtils.isSubjectToBranding = function(path) {
@@ -313,9 +309,6 @@ suite('webapp-optimize.js', function() {
         'should write locale content');
       assert.equal(writeFile.leafName, 'en-test.json',
         'should write locale content to this path');
-      assert.deepEqual(removedFilePath,
-        ['build_stage/locales', 'build_stage/shared/locales'],
-        'should have cleaned locale folder in build_stage');
     });
 
     test('execute, main function of webappOptimize', function() {

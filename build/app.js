@@ -1,6 +1,6 @@
 'use strict';
 
-/* global exports, require */
+/* global require, exports */
 
 var utils = require('utils');
 var rebuild = require('rebuild');
@@ -17,8 +17,43 @@ function getAppRegExp(options) {
   return appRegExp;
 }
 
+function spawnProcess(module, appOptions) {
+  let proc = utils.getProcess();
+  let xpcshell = utils.getEnv('XPCSHELLSDK');
+  let args = [
+    '-f', utils.getEnv('GAIA_DIR') + '/build/xpcshell-commonjs.js',
+    '-e', 'run("' + module + '", "' + JSON.stringify(appOptions)
+      .replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '");'
+  ];
+  proc.init(utils.getFile(xpcshell));
+  proc.run(false, args, args.length);
+  return proc;
+}
+
 function buildApps(options) {
-  options.rebuildAppDirs.forEach(function(appDir) {
+  var processes = [];
+  var gaia = utils.gaia.getInstance(options);
+
+  // A workaround for bug 1093267 in order to handle callscreen's l10n broken.
+  // Callscreen will generate incorrect multilocale strings if
+  // build_stage/communications/dialer/locales is removed by webapp-optimize.
+  // After bug 1093267 has been resolved, we're going to get rid of this.
+  var callscreen;
+  var webapps = gaia.rebuildWebapps.filter(function(app) {
+    var path = app.appDir.path;
+    if (path.indexOf('callscreen') !== -1) {
+      callscreen = app;
+      return false;
+    } else {
+      return true;
+    }
+  });
+  if (callscreen) {
+    webapps.push(callscreen);
+  }
+
+  webapps.forEach(function(app) {
+    let appDir = app.appDir.path;
     let appDirFile = utils.getFile(appDir);
     let appOptions = utils.cloneJSON(options);
     let stageAppDir = utils.getFile(options.STAGE_DIR, appDirFile.leafName);
@@ -29,10 +64,26 @@ function buildApps(options) {
     let buildFile = utils.getFile(appDir, 'build', 'build.js');
     if (buildFile.exists()) {
       utils.log('app', 'building ' + appDirFile.leafName + ' app...');
-      require(appDirFile.leafName + '/build').execute(appOptions);
-    } else {
-      utils.copyToStage(appOptions);
+
+      if (parseInt(options.P) > 0) {
+        processes.push(spawnProcess('build-app', appOptions));
+      } else {
+        require('./build-app').execute(appOptions);
+      }
     }
+    // Do not spawn a new process since too many processes will slow it down
+    else {
+      utils.copyToStage(appOptions);
+      require('./post-app').execute(appOptions);
+    }
+  });
+
+  utils.processEvents(function () {
+    return {
+      wait: processes.some(function(proc) {
+        return proc.isRunning;
+      })
+    };
   });
 }
 
@@ -50,7 +101,7 @@ exports.execute = function(options) {
       });
   }
 
-  require('pre-app').execute(options);
+  require('./pre-app').execute(options);
 
   // Wait for all pre app tasks to be done before proceeding.
   utils.processEvents(function () {
@@ -58,16 +109,6 @@ exports.execute = function(options) {
   });
 
   buildApps(options);
-  // Wait for all app build script tasks to be done before proceeding.
-  utils.processEvents(function () {
-    return { wait: false };
-  });
-
-  require('post-app').execute(options);
-  // Wait for post app tasks to be done before quitting.
-  utils.processEvents(function () {
-    return { wait: false };
-  });
 };
 
 exports.buildApps = buildApps;

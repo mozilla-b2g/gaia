@@ -328,6 +328,7 @@ function getWebapp(app, domain, scheme, port, stageDir) {
   }
 
   let webapp = {
+    appDir: appDir,
     manifest: manifestJSON,
     manifestFile: manifest,
     buildManifestFile: manifest,
@@ -392,6 +393,7 @@ function makeWebappsObject(appdirs, domain, scheme, port, stageDir) {
  */
 var gaia = {
   config: {},
+  aggregatePrefix: 'gaia_build_',
   getInstance: function(config) {
     if (JSON.stringify(this.config) !== JSON.stringify(config) ||
       !this.instance) {
@@ -407,7 +409,6 @@ var gaia = {
         rebuildWebapps: makeWebappsObject(this.config.rebuildAppDirs,
           this.config.GAIA_DOMAIN, this.config.GAIA_SCHEME,
           this.config.GAIA_PORT, this.config.STAGE_DIR),
-        aggregatePrefix: 'gaia_build_',
         distributionDir: this.config.GAIA_DISTRIBUTION_DIR
       };
     }
@@ -993,6 +994,12 @@ function getEnv(name) {
   return env.get(name);
 }
 
+function setEnv(name, value) {
+  var env = Cc['@mozilla.org/process/environment;1'].
+            getService(Ci.nsIEnvironment);
+  env.set(name, value);
+}
+
 /**
  * Get PATH of the environment
  * @return {[string]}
@@ -1011,6 +1018,14 @@ function getEnvPath() {
     paths = p.split(':');
   }
   return paths;
+}
+
+/**
+ * Get an new process instance
+ * @return {nsIProcess}
+ */
+function getProcess() {
+  return Cc['@mozilla.org/process/util;1'].createInstance(Ci.nsIProcess);
 }
 
 /**
@@ -1259,6 +1274,8 @@ exports.readZipManifest = readZipManifest;
 exports.log = log;
 exports.killAppByPid = killAppByPid;
 exports.getEnv = getEnv;
+exports.setEnv = setEnv;
+exports.getProcess = getProcess;
 exports.isExternalApp = isExternalApp;
 exports.getDocument = getDocument;
 exports.getWebapp = getWebapp;
