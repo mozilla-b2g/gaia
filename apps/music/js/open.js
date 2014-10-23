@@ -68,6 +68,14 @@ function handleOpenActivity(request) {
   header.addEventListener('action', done);
   saveButton.addEventListener('click', save);
 
+  // Terminate music playback when visibility is changed.
+  window.addEventListener('visibilitychange',
+    function onVisibilityChanged() {
+      if (document.hidden) {
+        done();
+      }
+    });
+
   function done() {
     PlayerView.stop();
     request.postResult({saved: saved});
