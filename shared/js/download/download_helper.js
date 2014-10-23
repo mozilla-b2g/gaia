@@ -333,7 +333,7 @@ var DownloadHelper = (function() {
 
     window.setTimeout(function launching() {
       var state = download.state;
-      if (state === 'succeeded') {
+      if (state === 'succeeded' || state === 'finalized') {
         LazyLoader.load(['shared/js/mime_mapper.js',
                          'shared/js/download/download_formatter.js'],
                         function loaded() {
