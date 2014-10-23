@@ -2387,8 +2387,13 @@ var ThreadUI = global.ThreadUI = {
         {
           confirmHandler: function() {
             // Update messageDOM state to 'sending' while sim switching
-            messageDOM.classList.remove('error');
-            messageDOM.classList.add('sending');
+            // Getting it again because it might be displayed now.
+            // if we're in the new message panel, messageDOM is not displayed
+            var messageDOM = document.getElementById('message-' + message.id);
+            if (messageDOM) {
+              messageDOM.classList.remove('error');
+              messageDOM.classList.add('sending');
+            }
 
             Settings.switchMmsSimHandler(serviceId).then(
               this.resendMessage.bind(this, message.id))
