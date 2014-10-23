@@ -542,7 +542,7 @@ $(STAGE_DIR):
 LANG=POSIX # Avoiding sort order differences between OSes
 
 .PHONY: app
-app: b2g_sdk profile-dir $(STAGE_DIR)
+app: b2g_sdk profile-dir
 	@$(call run-js-command,app)
 
 # Keep old targets just for people/scripts still using it
