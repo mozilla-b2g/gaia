@@ -678,6 +678,9 @@ contacts.Settings = (function() {
 
         logoutReq.onerror = function(e) {
           resetWait(wakeLock);
+          // We need to restore the check on settings in order to show
+          // consistent information to the user
+          fb.utils.getImportChecked(checkFbImported);
           window.console.error('Contacts: Error while FB logout: ',
             e.target.error);
         };
