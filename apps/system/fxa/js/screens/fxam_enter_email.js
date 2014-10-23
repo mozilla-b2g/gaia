@@ -67,11 +67,11 @@ var FxaModuleEnterEmail = (function() {
     // https://bugzil.la/994357
     var noticeText = _('fxa-notice');
     var tosReplaced = noticeText.replace(
-      '{{ tos }}',
+      /{{\s*tos\s*}}/,
       '<a id="fxa-terms" href="' + termsUrl + '">Terms of Service</a>'
     );
     var tosPnReplaced = tosReplaced.replace(
-      '{{ pn }}',
+      /{{\s*pn\s*}}/,
       '<a id="fxa-privacy" href="' + privacyUrl + '">Privacy Notice</a>'
     );
     this.fxaNotice.innerHTML = tosPnReplaced;

@@ -125,7 +125,7 @@ var FxaModuleEnterPassword = (function() {
 
     var helloUserText = _('fxa-hello-user');
     helloUserText = helloUserText.replace(
-      '{{email}}',
+      /{{\s*email\s*}}/,
       '<a id="fxa-known-user-email">' + this.email + '</a>'
     );
     this.fxaHelloKnownUser.innerHTML = helloUserText;

@@ -55,7 +55,7 @@
                     'protecting-consumer-privacy/kids-privacy-coppa';
     var errorText = _('fxa-coppa-failure-error-message');
     var learnMore = _('fxa-learn-more');
-    var learnMorePlaceholder = '{{learnmore}}';
+    var learnMorePlaceholder = /{{\s*learnmore\s*}}/;
     var learnMoreLink = '<a href="' + coppaLink + '">' + learnMore + '</a>';
     // return as a string. fxam_error_overlay will innerHTML the whole message.
     return {
