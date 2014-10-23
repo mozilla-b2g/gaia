@@ -1,0 +1,90 @@
+{
+  "name": "Privacy Panel",
+  "description": "Web app Privacy Panel",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "geolocation-noprompt":{},
+    "audio-channel-ringer": {},
+    "mobileconnection":{},
+    "open-remote-window":{},
+    "settings":{ "access": "readwrite" },
+    "embed-apps": {},
+    "webapps-manage":{},
+    "sms":{},
+    "systemXHR": {},
+    "telephony":{},
+    "wifi-manage":{}
+  },
+  "activities": {
+    "configure": {
+      "filters": {
+        "target": "device"
+       },
+      "disposition": "window"
+    }
+  },
+  "connections": {
+    "privacy-panel-wakeup": {
+      "rules": {
+        "manifestURLs": [
+          "app://system.gaiamobile.org/manifest.webapp"
+        ]
+      }
+    }
+  },
+  "locales": {
+    "ar": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "de": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "el": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "en-US": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "es": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "fr": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "it": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "pt-BR": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "ru": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "tr": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "zh-TW": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/style/icons/privacy-panel.png"
+  }
+}

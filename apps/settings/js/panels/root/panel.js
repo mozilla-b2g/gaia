@@ -16,6 +16,7 @@ define(function(require) {
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
   var ThemesItem = require('panels/root/themes_item');
   var HomescreenItem = require('panels/root/homescreen_item');
+  var PrivacyPanelItem = require('panels/root/privacy_panel_item');
 
   return function ctor_root_panel() {
     var root = Root();
@@ -32,6 +33,7 @@ define(function(require) {
     var airplaneModeItem;
     var themesItem;
     var homescreenItem;
+    var privacyPanelItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
@@ -65,6 +67,8 @@ define(function(require) {
           ThemesItem(panel.querySelector('.themes-section'));
         homescreenItem =
           HomescreenItem(panel.querySelector('#homescreens-section'));
+        privacyPanelItem =
+          PrivacyPanelItem(panel.querySelector('#privacyPanel-settings'));
       },
       onBeforeShow: function rp_onBeforeShow() {
         bluetoothItem.enabled = true;

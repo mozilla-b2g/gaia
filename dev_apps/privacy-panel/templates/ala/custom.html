@@ -1,0 +1,53 @@
+<element name="ala-custom" extends="section">
+  <template>
+    <header>
+      <a class="back" href="#">
+        <span class="icon icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="define-custom-location">Define custom loaction</h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <label for="dcl-type-cc" class="pack-radio">
+            <input type="radio" id="dcl-type-cc" value="cc">
+            <span data-l10n-id="dcl-type-cc">Choose a country/city</span>
+          </label>
+        </li>
+        <li id="dcl-cc-country">
+          <p data-l10n-id="dcl-country">Country</p>
+          <span class="button icon icon-dialog">
+            <select id="dcl-country" name="dcl.country" data-value-type="string">
+            </select>
+          </span>
+        </li>
+        <li id="dcl-cc-city">
+          <p data-l10n-id="dcl-city">City</p>
+          <span class="button icon icon-dialog">
+            <select id="dcl-city" name="dcl.city" data-value-type="string">
+            </select>
+          </span>
+        </li>
+        <li>
+          <label for="dcl-type-gps" class="pack-radio">
+            <input type="radio" id="dcl-type-gps" value="gps">
+            <span data-l10n-id="dcl-type-gps">Enter GPS Coordinates</span>
+          </label>
+        </li>
+        <li id="dcl-gps-area">
+          <p class="description" data-l10n-id="dcl-type-gps-description">
+            Please enter the GPS coordinates for longitude from -180.0 to 180 and latitude from -90.0 to 90.0 degree with a dot to separate full degrees lower values.
+          </p>
+          <p data-l10n-id="dcl-latitude-description">
+            Latitude
+          </p>
+          <input id="dcl-latitude" type="number" min="-90.0" max="90.0" step="0.000001" value="0" placeholder="Latitude">
+          <p data-l10n-id="dcl-longitude-description">
+            Longitude
+          </p>
+          <input id="dcl-longitude" type="number" min="-180.0" max="180.0" step="0.000001" value="0" placeholder="Longitude">
+        </li>
+      </ul>
+    </div>
+  </template>
+</element>
