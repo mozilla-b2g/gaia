@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+
+    <!-- Shared styles -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css">
+
+    <!-- Styles for Privacy Panel -->
+    <link rel="stylesheet" type="text/css" href="style/lists.css">
+    <link rel="stylesheet" type="text/css" href="style/menu.css">
+    <link rel="stylesheet" type="text/css" href="style/main.css">
+    <link rel="stylesheet" type="text/css" href="style/panels.css">
+
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/tz.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/sounds.ini">
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+
+    <!-- Templates: Location Accuracy -->
+    <link rel="import" href="/templates/ala/main.html">
+    <link rel="import" href="/templates/ala/exceptions.html">
+    <link rel="import" href="/templates/ala/exception.html">
+    <link rel="import" href="/templates/ala/custom.html">
+
+    <!-- Templates: Remote Privacy Protection -->
+    <link rel="import" href="/templates/rpp/main.html">
+    <link rel="import" href="/templates/rpp/change_pass.html">
+    <link rel="import" href="/templates/rpp/features.html">
+    <link rel="import" href="/templates/rpp/screenlock.html">
+    <link rel="import" href="/templates/rpp/passcode.html">
+
+    <!-- Templates: Guided Tour -->
+    <link rel="import" href="/templates/gt/main.html">
+    <link rel="import" href="/templates/gt/la_explain.html">
+    <link rel="import" href="/templates/gt/la_blur.html">
+    <link rel="import" href="/templates/gt/la_custom.html">
+    <link rel="import" href="/templates/gt/la_exceptions.html">
+    <link rel="import" href="/templates/gt/rpp_explain.html">
+    <link rel="import" href="/templates/gt/rpp_passphrase.html">
+    <link rel="import" href="/templates/gt/rpp_locate.html">
+    <link rel="import" href="/templates/gt/rpp_ring.html">
+    <link rel="import" href="/templates/gt/rpp_lock.html">
+
+    <!-- Shared JavaScripts -->
+    <script src="shared/js/l10n.js"></script>
+    <!-- <script src="shared/js/settings_listener.js"></script> -->
+    <!-- <script src="shared/js/settings_helper.js"></script> -->
+    <!-- <script src="shared/js/settings_url.js"></script> -->
+    <!-- <script src="shared/js/html_imports.js"></script> -->
+    <!-- <script src="shared/js/lazy_loader.js"></script> -->
+
+    <title>Privacy Panel</title>
+  </head>
+
+  <body class="skin-organic theme-settings">
+
+    <section role="region" id="root" class="current" data-settings="false">
+      <header>
+        <a id="back-to-settings" href="#"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="privacy-panel">Privacy Panel</h1>
+      </header>
+      <ul>
+        <li>
+          <a id="menu-item-ala" class="menu-item pp-link icon-ala" href="#ala-main">
+            <span data-l10n-id="location-accuracy">Location Accuracy</span>
+          </a>
+        </li>
+        <li>
+          <a id="menu-item-rpp" class="menu-item pp-link icon-rpp" href="#rpp-main">
+            <span data-l10n-id="remote-privacy-protection">Remote Privacy Protection</span>
+          </a>
+        </li>
+        <li>
+          <a id="menu-item-gt" class="menu-item pp-link icon-gt" href="#gt-main">
+            <span data-l10n-id="guided-tour">Guided Tour</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+    
+    <!-- Sections: Location Accuracy -->
+    <section is="ala-main" role="region" id="ala-main" data-section="ala"></section>
+    <section is="ala-exceptions" role="region" id="ala-exceptions" data-section="ala"></section>
+    <section is="ala-exception" role="region" id="ala-exception" data-section="ala"></section>
+    <section is="ala-custom" role="region" id="ala-custom" data-section="ala"></section>
+
+    <!-- Sections: Remote Privacy Protection -->
+    <section is="rpp-main" role="region" id="rpp-main" data-section="rpp"></section>
+    <section is="rpp-change-pass" role="region" id="rpp-change-pass" data-section="rpp"></section>
+    <section is="rpp-features" role="region" id="rpp-features" data-section="rpp"></section>
+    <section is="rpp-screenlock" role="region" id="rpp-screenlock" data-section="rpp"></section>
+    <section is="rpp-passcode" role="region" id="rpp-passcode" data-section="rpp"></section>
+
+    <!-- Sections: Guided Tour -->
+    <section is="gt-main" role="region" id="gt-main" data-section="gt"></section>
+    <section is="la-explain" role="region" id="la-explain" data-section="gt"></section>
+    <section is="la-blur" role="region" id="la-blur" data-section="gt"></section>
+    <section is="la-custom" role="region" id="la-custom" data-section="gt"></section>
+    <section is="la-exceptions" role="region" id="la-exceptions" data-section="gt"></section>
+    <section is="rpp-explain" role="region" id="rpp-explain" data-section="gt"></section>
+    <section is="rpp-passphrase" role="region" id="rpp-passphrase" data-section="gt"></section>
+    <section is="rpp-locate" role="region" id="rpp-locate" data-section="gt"></section>
+    <section is="rpp-ring" role="region" id="rpp-ring" data-section="gt"></section>
+    <section is="rpp-lock" role="region" id="rpp-lock" data-section="gt"></section>
+
+    <script data-main="js/app" src="js/vendor/alameda.js"></script>
+  </body>
+</html>

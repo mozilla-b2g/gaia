@@ -20,7 +20,7 @@ define(function(require) {
     this._getApp();
     this._observeSettings();
 
-    this.element.addEventListener('click', this.launch.bind(this));
+    this.element.addEventListener('click', this._launch.bind(this));
   }
 
   PrivacyPanelItem.prototype = {
@@ -86,7 +86,7 @@ define(function(require) {
           'pp.launched.by.settings': true
         });
         flag.onsuccess = function() {
-          this._ppApp.launch()
+          this._ppApp.launch();
         }.bind(this);
       } else {
         alert(navigator.mozL10n.get('no-privacypanel'));
