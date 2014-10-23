@@ -109,12 +109,12 @@ suite('InterInstanceEventDispatcher >', function() {
 
     assert.throws(() => {
       InterInstanceEventDispatcher.emit('something-changed');
-    }, 'Throws if trying to emit unknown event');
+    }, 'Event "something-changed" is not allowed!');
 
     InterInstanceEventDispatcher.disconnect();
     assert.throws(() => {
       InterInstanceEventDispatcher.emit('drafts-changed', { key: 'value' });
-    }, 'Throws if trying to emit event when disconnected');
+    }, 'Worker is not connected!');
     InterInstanceEventDispatcher.connect();
 
     InterInstanceEventDispatcher.emit('drafts-changed', { key: 'value' });
