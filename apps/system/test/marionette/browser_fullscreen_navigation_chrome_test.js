@@ -52,11 +52,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
   }
 
   function expandRocketbar() {
-    actions
-      .press(system.topPanel)
-      .moveByOffset(0, halfScreenHeight)
-      .release()
-      .perform();
+    actions.flick(system.topPanel, 0, 0, 0, halfScreenHeight).perform();
     assert.ok(system.appUrlbar.displayed(), 'Rocketbar is displayed.');
   }
 
