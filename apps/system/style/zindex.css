@@ -57,6 +57,10 @@
   z-index: 65536;
 }
 
+#screen > [data-z-index-level="accessibility-quicknav-menu"] {
+  z-index: 65536;
+}
+
 /* Software home button should have higher z-index than system notification
    banners to keep from being overlaid */
 #screen > [data-z-index-level="software-buttons"] {

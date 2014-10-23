@@ -1,5 +1,6 @@
 'use strict';
 /* global SettingsListener */
+/* global AccessibilityQuicknavMenu */
 
 (function(exports) {
 
@@ -309,6 +310,15 @@
       });
     },
 
+    handleAccessFuControl: function ar_handleAccessFuControls(aDetails) {
+      if (aDetails.eventType === 'quicknav-menu') {
+        if (!this.quicknav) {
+          this.quicknav = new AccessibilityQuicknavMenu();
+        }
+        this.quicknav.show();
+      }
+    },
+
     /**
      * Remove aria-hidden from the screen element to make content accessible to
      * the screen reader.
@@ -335,6 +345,9 @@
           switch (aEvent.detail.type) {
             case 'accessibility-output':
               this.handleAccessFuOutput(JSON.parse(aEvent.detail.details));
+              break;
+            case 'accessibility-control':
+              this.handleAccessFuControl(JSON.parse(aEvent.detail.details));
               break;
             case 'volume-up-button-press':
             case 'volume-down-button-press':
