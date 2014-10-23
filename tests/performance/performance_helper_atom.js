@@ -1,3 +1,6 @@
+'use strict';
+/* global Components, dump, Services */
+
 Components.utils.import('resource://gre/modules/Services.jsm');
 
 function _registerListener(document) {
@@ -109,8 +112,9 @@ function _registerListener(document) {
 }
 
 Services.obs.addObserver(function(document) {
-  if (!document || !document.location)
+  if (!document || !document.location) {
     return;
+  }
 
   _registerListener(document);
 }, 'document-element-inserted', false);

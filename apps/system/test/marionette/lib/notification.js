@@ -71,9 +71,11 @@ function NotificationList(client) {
 NotificationList.Selector = Object.freeze((function() {
   var listSelector = '#desktop-notifications-container';
   var itemsSelector = listSelector + ' .notification';
+  var countSelector = '#notification-some';
 
   return {
-    items: itemsSelector
+    items: itemsSelector,
+    notificationsCount: countSelector
   };
 })());
 
@@ -161,6 +163,23 @@ NotificationList.prototype = {
       }
     }).bind(this));
     return true;
+  },
+
+  waitForNotificationCount: function(expected) {
+    var count;
+    this.client.waitFor(function() {
+      count = this.client.executeScript(
+        this._getNotificationsCountText,
+        [this.selectors.notificationsCount]);
+      return expected === count;
+    }.bind(this));
+    return true;
+  },
+
+  _getNotificationsCountText: function(selector) {
+    var element = document.querySelector(selector);
+    var args = JSON.parse(element.dataset.l10nArgs);
+    return parseInt(args.n);
   }
 };
 

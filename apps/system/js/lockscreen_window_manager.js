@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
-/* global System, LockScreenWindow */
+/* global System, LockScreenWindow, LockScreenInputWindow */
 
 (function(exports) {
   /**
@@ -35,6 +35,7 @@
      * @memberof LockScreenWindowManager#
      */
     this.states = {
+      ready: false,
       FTUOccurs: false,
       enabled: true,
       instance: null,
@@ -45,6 +46,13 @@
      * @memberof LockScreenWindowManager#
      */
     this.configs = {
+      inputWindow: {
+        // Before we put things inside an iframe, do not resize LW.
+        resizeMode: false,
+        get height() {
+          return 300;
+        }
+      },
       listens: ['lockscreen-request-unlock',
                 'lockscreen-appcreated',
                 'lockscreen-appterminated',
@@ -54,7 +62,9 @@
                 'ftudone',
                 'overlaystart',
                 'showlockscreenwindow',
-                'home'
+                'home',
+                'lockscreen-request-inputpad-open',
+                'lockscreen-request-inputpad-close'
                ]
     };
   };
@@ -124,7 +134,8 @@
           // we should not open the LockScreen, because the user may stay
           // in another app, not the LockScreen.
           if ('proximity' !== evt.detail.screenOffBy &&
-              !this.states.FTUOccurs) {
+              !this.states.FTUOccurs &&
+              this.states.ready) {
             // The app would be inactive while screen off.
             this.openApp();
           }
@@ -140,6 +151,12 @@
               new CustomEvent('lockscreen-notify-homepressed'));
             evt.stopImmediatePropagation();
           }
+          break;
+        case 'lockscreen-request-inputpad-open':
+          this.onInputpadOpen();
+          break;
+        case 'lockscreen-request-inputpad-close':
+          this.onInputpadClose();
           break;
       }
     };
@@ -168,6 +185,7 @@
   LockScreenWindowManager.prototype.startObserveSettings =
     function lwm_startObserveSettings() {
       var enabledListener = (val) => {
+        this.states.ready = true;
         if ('false' === val ||
             false   === val) {
           this.states.enabled = false;
@@ -319,6 +337,9 @@
       }
       this.states.windowCreating = true;
       var app = new LockScreenWindow();
+      // XXX: Before we can use real InputWindow and InputWindowManager,
+      // we need this to 
+      app.inputWindow = new LockScreenInputWindow();
       this.states.windowCreating = false;
       return app;
     };
@@ -336,6 +357,7 @@
       var req = window.SettingsListener.getSettingsLock()
         .get('lockscreen.enabled');
       req.onsuccess = () => {
+        this.states.ready = true;
         if (true === req.result['lockscreen.enabled'] ||
            'true' === req.result['lockscreen.enabled']) {
           this.states.enabled = true;
@@ -393,6 +415,18 @@
       } else {
         return this.states.instance.isActive();
       }
+    };
+
+  LockScreenWindowManager.prototype.onInputpadOpen =
+    function lwm_onInputpadOpen() {
+      this.states.instance.inputWindow.open();
+      this.states.instance.resize();
+    };
+
+  LockScreenWindowManager.prototype.onInputpadClose =
+    function lwm_onInputpadClose() {
+      this.states.instance.inputWindow.close();
+      this.states.instance.resize();
     };
 
   /** @exports LockScreenWindowManager */

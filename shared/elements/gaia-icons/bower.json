@@ -1,6 +1,6 @@
 {
   "name": "gaia-icons",
-  "version": "0.7.0",
+  "version": "0.7.3",
   "homepage": "https://github.com/wilsonpage/gaia-icons",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
@@ -9,6 +9,7 @@
   "license": "MIT",
   "ignore": [
     "**/.*",
+    "!.jshintrc",
     "node_modules",
     "bower_components",
     "templates",

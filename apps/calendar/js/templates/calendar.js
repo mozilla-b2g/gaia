@@ -20,11 +20,14 @@ module.exports = create({
     }
 
     var checked = this.bool('localDisplayed', 'checked');
+    var ariaSelected = this.bool('localDisplayed', 'aria-selected="true"');
 
-    return `<li id="calendar-${id}" class="calendar-id-${id}">
-        <div class="gaia-icon icon-calendar-dot calendar-text-color"></div>
-        <label class="pack-checkbox">
-          <input value="${id}" type="checkbox" ${checked} />
+    return `<li id="calendar-${id}" class="calendar-id-${id}"
+                role="presentation">
+        <div class="gaia-icon icon-calendar-dot calendar-text-color"
+             aria-hidden="true"></div>
+        <label class="pack-checkbox" role="option" ${ariaSelected}>
+          <input value="${id}" type="checkbox" ${checked}/>
           <span ${l10n} class="name">${name}</span>
         </label>
       </li>`;

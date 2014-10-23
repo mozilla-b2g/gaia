@@ -360,7 +360,8 @@ suite('system/AppChrome', function() {
         detail: 'Bing'
       });
       chrome.app.element.dispatchEvent(titleEvent);
-      assert.equal(chrome.title.textContent, 'search-or-enter-address');
+      assert.equal(chrome.title.getAttribute('data-l10n-id'),
+        'search-or-enter-address');
     });
 
     test('should expand if collapsed', function() {

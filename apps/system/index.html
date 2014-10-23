@@ -126,6 +126,10 @@
     <script defer src="js/base_module.js"></script>
     <script defer src="js/core.js"></script>
 
+    <!-- wake lock managers, used by ScreenManager/Wifi/CpuManager -->
+    <script defer src="js/wake_lock_manager.js"></script>
+
+    <script defer src="js/cpu_manager.js"></script>
     <script defer src="js/screen_brightness_transition.js"></script>
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/activities.js"></script>
@@ -402,6 +406,7 @@
     <script defer src="js/system_nfc_connect_dialog.js"></script>
     <script defer src="js/fxa_dialog.js"></script>
     <script defer src="js/lockscreen_window.js"></script>
+    <script defer src="js/lockscreen_input_window.js"></script>
     <script defer src="js/lockscreen_window_manager.js"></script>
     <script defer src="js/visibility_manager.js"></script>
     <script defer src="js/layout_manager.js"></script>
@@ -1215,7 +1220,7 @@
         </div>
       </div>
 
-      <div id="TextSelectionDialogRoot" data-z-index-level="text-selection-dialog"></div>
+      <div id="text-selection-dialog-root" data-z-index-level="text-selection-dialog"></div>
 
       <div id="software-buttons" data-z-index-level="software-buttons">
         <button id="software-home-button" data-l10n-id="softwareHomeButton"></button>

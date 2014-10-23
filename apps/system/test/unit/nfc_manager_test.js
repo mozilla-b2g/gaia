@@ -371,14 +371,6 @@ suite('Nfc Manager Functions', function() {
       execNDEFMessageTest.call(this, sampleMsg, 'NDEF');
     });
 
-    // NDEF_WRITABLE is a flag which informs that it's possible to write
-    // NDEF message on a tag, might have NDEF records
-    test('message tech [NDEF_WRITEABLE]', function() {
-      sampleMsg.techList.push('NDEF_WRITEABLE');
-
-      execNDEFMessageTest.call(this, sampleMsg, 'NDEF_WRITEABLE');
-    });
-
     test('message tech [NDEF_FORMATABLE]', function() {
       sampleMsg.techList.push('NDEF_FORMATABLE');
       sampleMsg.records.push = 'propriatary data';
@@ -397,7 +389,6 @@ suite('Nfc Manager Functions', function() {
       var empty = { tnf: NDEF.TNF_EMPTY };
 
       sampleMsg.techList.push('NDEF');
-      sampleMsg.techList.push('NDEF_WRITEABLE');
       sampleMsg.records.push(sampleURIRecord);
       sampleMsg.records.push(empty);
       sampleMsg.records.push(sampleMimeRecord);
@@ -449,10 +440,9 @@ suite('Nfc Manager Functions', function() {
       sampleMsg.techList.shift();
       nfcManager._handleTechDiscovered(sampleMsg);
       assert.deepEqual(MozActivity.lastCall.args[0], {
-        name: 'nfc-ndef-discovered',
+        name: 'nfc-tag-discovered',
         data: {
-          type: 'empty',
-          tech: 'NDEF_WRITEABLE',
+          type: 'Unknown',
           techList: sampleMsg.techList,
           records: sampleMsg.records
         }
@@ -937,9 +927,9 @@ suite('Nfc Manager Functions', function() {
   });
 
   suite('_getPrioritizedTech', function() {
-    var techList1 = ['NDEF_WRITEABLE', 'P2P', 'NDEF', 'NDEF_FORMATABLE'];
-    var techList2 = ['NDEF_WRITEABLE', 'NDEF', 'NDEF_FORMATABLE'];
-    var techList3 = ['NDEF_WRITEABLE', 'NDEF', 'NFC_ISO_DEP'];
+    var techList1 = ['NFC_ISO_DEP','NDEF', 'P2P'];
+    var techList2 = ['NFC_ISO_DEP', 'NDEF'];
+    var techList3 = ['NFC_ISO_DEP'];
     var techList4 = [];
 
     test('techList P2P test', function() {
@@ -954,7 +944,7 @@ suite('Nfc Manager Functions', function() {
 
     test('techList Unsupported technology test', function() {
       var tech = nfcManager._getPrioritizedTech(techList3);
-      assert.equal(tech, 'NDEF');
+      assert.equal(tech, 'NFC_ISO_DEP');
     });
 
     test('techList empty', function() {

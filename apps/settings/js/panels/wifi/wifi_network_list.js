@@ -33,10 +33,9 @@ define(function(require) {
 
         list.dataset.state = addScanningItem ? 'on' : 'off';
       },
-      display: function() {
-        var network =
-          WifiContext.currentNetwork || wifiManager.connection.network;
-        var networkStatus = wifiManager.connection.status;
+      display: function(event) {
+        var network = event ? event.network : null;
+        var networkStatus = event ? event.status : null;
 
         // display a message on the network item matching the ssid
         if (!network) {

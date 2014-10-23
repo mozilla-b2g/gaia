@@ -28,7 +28,7 @@ function restoreProperty(originObject, prop, reals, useDefineProperty) {
 suite('idleTimer', function() {
   var timeoutTime = 100,
       addIdleObserverStub, removeIdleObserverStub, setTimeoutStub,
-      clearTimeoutStub, dateNowStub, idleCallbackStub, activeCallbackStub;
+      clearTimeoutStub, idleCallbackStub, activeCallbackStub;
 
   var reals = {};
 
@@ -46,8 +46,6 @@ suite('idleTimer', function() {
     switchProperty(window, 'setTimeout', setTimeoutStub, reals);
     clearTimeoutStub = this.sinon.stub();
     switchProperty(window, 'clearTimeout', clearTimeoutStub, reals);
-    dateNowStub = this.sinon.stub();
-    switchProperty(Date, 'now', dateNowStub, reals);
   });
 
   teardown(function() {
@@ -55,7 +53,6 @@ suite('idleTimer', function() {
     restoreProperty(navigator, 'removeIdleObserver', reals);
     restoreProperty(window, 'setTimeout', reals);
     restoreProperty(window, 'clearTimeout', reals);
-    restoreProperty(Date, 'now', reals);
   });
 
   test('proper id sequence', function() {
@@ -92,7 +89,6 @@ suite('idleTimer', function() {
       // check that we called proper functions when we created idletimer
       assert.ok(id);
       assert.isTrue(addIdleObserverStub.calledOnce);
-      assert.isTrue(dateNowStub.calledOnce);
 
       // Check that we were passing a proper observer into addIdleObserver
       assert.ok(idleTimerObserver.onactive);
@@ -133,18 +129,14 @@ suite('idleTimer', function() {
     test('executing onactive after onidle', function() {
       idleTimerObserver.onidle();
       assert.isTrue(setTimeoutStub.calledOnce);
-      assert.isTrue(dateNowStub.calledTwice);
 
       idleTimerObserver.onactive();
       assert.isTrue(clearTimeoutStub.calledOnce);
-      assert.isTrue(dateNowStub.calledThrice);
     });
   });
 
   suite('clearIdleTimeout()', function() {
     var testFunc = function(isOnIdleCalled) {
-      var assertFunc = (isOnIdleCalled) ? assert.isTrue: assert.isFalse;
-
       // First we create IdleTimer
       var id = window.setIdleTimeout(idleCallbackStub, activeCallbackStub,
         timeoutTime),
@@ -160,10 +152,10 @@ suite('idleTimer', function() {
 
       // Now let's clear it
       window.clearIdleTimeout(id);
-      // Check that we called removeIdleObserver and clearTimeout
-      // (depending if onIdle was executed prior)
+      // Check that we called removeIdleObserver and clearTimeout whether
+      // onIdle is executed or not.
       assert.isTrue(removeIdleObserverStub.calledOnce);
-      assertFunc(clearTimeoutStub.calledOnce);
+      assert.isTrue(clearTimeoutStub.calledOnce);
       // Check that we were passing a proper observer into removeIdleObserver
       idleTimerObserver = removeIdleObserverStub.getCall(0).args[0];
       assert.ok(idleTimerObserver.onactive);

@@ -79,12 +79,21 @@
 }
 
 /**
- * secure-mode
+ * [secure-mode=true]
+ *
+ * 1. !important is required to over-ride
+ *    strong specificty of <style scoped>
+ *    inside <gaia-header>.
+ *
+ *    When the platform has `::content` (bug 992249)
+ *    and `:host` (bug 992245) selectors, this scoped
+ *    stylesheet will no longer be required and we
+ *    can remove this `!important`.
  */
 
 .preview-gallery[secure-mode=true] .preview-share-icon,
 .preview-gallery[secure-mode=true] .preview-option-icon {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 /** Count Text

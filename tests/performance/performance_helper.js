@@ -105,8 +105,9 @@ PerformanceHelper.getLoadTimes = function(client) {
 };
 
 PerformanceHelper.getGoalData = function(client) {
-  if (config.goals
-      && client.session && client.session.device) {
+  if (config.goals &&
+      client.session &&
+      client.session.device) {
     return config.goals[client.session.device];
   }
   return null;
@@ -269,6 +270,10 @@ PerformanceHelper.prototype = {
           'screen.timeout': 0
         });
       });
+  },
+
+  unlockScreen: function() {
+    MarionetteHelper.unlockScreen(this.app.client);
   }
 };
 

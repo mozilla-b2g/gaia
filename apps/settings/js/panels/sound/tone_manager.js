@@ -94,10 +94,10 @@ define(function(require) {
       if (!l10nId) {
         oldRingtoneName = tone.button.textContent;
       }
-      // If we got a locked ringtone, we have to unlock it first
       tone.button.setAttribute('data-l10n-id', 'saving-tone');
       var promise;
       var self = this;
+      // If we got a locked ringtone, we have to unlock it first
       if (result.blob.type.split('/')[1] === ForwardLock.mimeSubtype) {
         ForwardLock.unlockBlob(secret, result.blob, function(unlocked) {
           promise = self._isPlayableTone(unlocked);
@@ -113,6 +113,8 @@ define(function(require) {
           if (l10nId) {
             tone.button.setAttribute('data-l10n-id', l10nId);
           } else {
+             // remove temp 'saving-tone' l10nId
+            tone.button.removeAttribute('data-l10n-id');
             tone.button.textContent = oldRingtoneName;
           }
           alert(navigator.mozL10n.get('unplayable-ringtone'));

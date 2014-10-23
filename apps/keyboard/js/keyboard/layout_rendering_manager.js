@@ -93,13 +93,6 @@ LayoutRenderingManager.prototype.updateUpperCaseRendering = function() {
     return;
   }
 
-  // When we have secondLayout, we need to force re-render on uppercase switch
-  if (this.app.layoutManager.currentPage.secondLayout) {
-    this.updateLayoutRendering();
-
-    return;
-  }
-
   // Otherwise we can just update only the keys we need...
   // Try to block the event loop as little as possible
   window.requestAnimationFrame(function() {
@@ -122,20 +115,21 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
     this.app.layoutManager.currentPage;
   var currentIMEngine = this.app.inputMethodManager.currentIMEngine;
 
+  this.app.console.log('needsCandidatePanel',
+    currentPage.autoCorrectLanguage, currentPage.needsCandidatePanel,
+    typeof currentIMEngine.displaysCandidates !== 'function',
+    (currentIMEngine.displaysCandidates &&
+      currentIMEngine.displaysCandidates()));
+
   // Determine if the candidate panel for word suggestion is needed
   var needsCandidatePanel = !!(
     (currentPage.autoCorrectLanguage || currentPage.needsCandidatePanel) &&
     ((typeof currentIMEngine.displaysCandidates !== 'function') ||
       currentIMEngine.displaysCandidates()));
 
-  // Rule of thumb: always render uppercase, unless secondLayout has been
-  // specified (for e.g. arabic, then depending on shift key)
-  var needsUpperCase = currentPage.secondLayout ?
-      this.app.upperCaseStateManager.isUpperCase : true;
-
   var p = new Promise(function(resolve) {
     IMERender.draw(currentPage, {
-      uppercase: needsUpperCase,
+      uppercase: this.app.upperCaseStateManager.isUpperCase,
       inputType: this.app.getBasicInputType(),
       showCandidatePanel: needsCandidatePanel
     }, resolve);

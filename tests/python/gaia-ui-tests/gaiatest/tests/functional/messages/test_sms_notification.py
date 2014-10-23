@@ -10,6 +10,9 @@ from gaiatest.apps.system.app import System
 class TestSmsNotification(GaiaTestCase):
 
     def test_sms_notification(self):
+        """
+        https://moztrap.mozilla.org/manage/case/1322/
+        """
 
         _text_message_content = "Automated Test %s" % str(time.time())
 

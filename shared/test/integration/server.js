@@ -47,6 +47,28 @@ Server.prototype = {
       action: 'uncork',
       args: url
     });
+  },
+
+  /**
+   * Protects a URL using HTTP authentication.
+   * @param {String} url to protect
+   */
+  protect: function(url) {
+    this.child.send({
+      action: 'protect',
+      args: url
+    });
+  },
+
+  /**
+   * Stops protecting a URL.
+   * @param {String} url to protect
+   */
+  unprotect: function(url) {
+    this.child.send({
+      action: 'unprotect',
+      args: url
+    });
   }
 };
 

@@ -80,6 +80,13 @@
     },
 
     /**
+     * The width of the grid.
+     */
+    get gridWidth() {
+      return windowWidth;
+    },
+
+    /**
      * The height of each grid item.
      */
     get gridItemHeight() {

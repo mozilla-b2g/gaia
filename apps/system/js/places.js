@@ -383,8 +383,14 @@
         if (edits.visited) {
           place.visited = edits.visited;
         }
+        if (!place.frecency) {
+          place.frecency = 0;
+        }
         place.frecency += edits.frecency;
 
+        if (!place.icons) {
+          place.icons = {};
+        }
         for (var iconUri in edits.icons) {
           place.icons[iconUri] = edits.icons[iconUri];
         }

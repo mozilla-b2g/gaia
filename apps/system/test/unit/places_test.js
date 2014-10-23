@@ -218,6 +218,31 @@ suite('system/Places', function() {
       subject.setVisits(url, [1, 2, 3]);
     });
 
+    test('Ensure place without icon doesnt bail', function(done) {
+      var url = 'http://example.org';
+
+      MockDatastore.put({
+        url: url,
+        tile: 'a tile',
+        frecency: 1
+      }, url);
+
+      MockDatastore.addEventListener('change', function() {
+        assert.equal(MockDatastore._records[url].frecency, 2);
+        done();
+      });
+
+      sendEvent('applocationchange', url);
+      window.dispatchEvent(new CustomEvent('appiconchange', {
+        detail: {
+          isBrowser: function() { return true; },
+          favicons: oneIcon,
+          config: {url: url }
+        }
+      }));
+      this.sinon.clock.tick(10000);
+    });
+
   });
 
 });

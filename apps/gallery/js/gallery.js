@@ -111,7 +111,7 @@ var isInitThumbnail = false;
 var loader = LazyLoader;
 
 // Flag that indicates that we've edited a picture and just saved it
-var hasSaved = false;
+var justSavedEditedImage = false;
 
 // We store the last focused thumbnail so that we can quickly get the
 // selected thumbnails.
@@ -630,13 +630,18 @@ function fileCreated(fileinfo) {
     // might. This call will only make changes if the filename to display
     // in a frame has actually changed.
     if (currentView === LAYOUT_MODE.fullscreen) {
-      if (hasSaved) {
+      if (justSavedEditedImage) {
+        var banner = $('edit-copy-save-banner');
         showFile(0);
+        navigator.mozL10n.setAttributes($('edit-copy-save-status'),
+                                        'edit-copy-saved');
+        banner.hidden = false;
+        setTimeout(function() { banner.hidden = true; }, 3000);
       } else {
         showFile(currentFileIndex);
       }
     }
-    hasSaved = false;
+    justSavedEditedImage = false;
   });
 }
 
@@ -1429,7 +1434,14 @@ function doNotScanInBackgroundHack(photodb) {
       // wait a bit for the log to be flushed, and then close the application
       if (document.hidden && photodb.scanning) {
         console.warn('[Gallery] exiting to avoid background scan.');
-        setTimeout(function() { window.close(); }, 500);
+        setTimeout(function() {
+          if (document.hidden) {
+            window.close();
+          }
+          else {
+            console.warn('[Gallery] now visible again, so not exiting');
+          }
+        }, 500);
       }
     }
   }

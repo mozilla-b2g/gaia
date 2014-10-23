@@ -115,7 +115,8 @@ form.search button[type="submit"] {
 #groups-list-search {
   position: relative;
   text-align: left;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   z-index: 1;
 }
 
@@ -149,4 +150,10 @@ form.search button[type="submit"] {
 
 span.highlight {
   background-color: #b2f2ff;
+}
+
+
+#searchview-container p input::-moz-placeholder,
+#search-container p input::-moz-placeholder {
+  background: none;
 }

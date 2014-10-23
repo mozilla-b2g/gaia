@@ -292,6 +292,7 @@ Camera.prototype.requestCamera = function(camera, config) {
    */
   function request() {
     navigator.mozCameras.getCamera(camera, config || {}, onSuccess, onError);
+    self.emit('requesting');
     debug('camera requested', camera, config);
     attempts--;
   }
@@ -320,6 +321,7 @@ Camera.prototype.requestCamera = function(camera, config) {
     // `mozCamera.getCamera()` call, we can
     // fire the 'configured' event now.
     if (self.configured) { self.emit('configured'); }
+
     self.ready();
   }
 
@@ -341,6 +343,7 @@ Camera.prototype.requestCamera = function(camera, config) {
       return;
     }
 
+    self.emit('error', 'request-fail');
     self.ready();
   }
 };
@@ -459,15 +462,7 @@ Camera.prototype.configure = function() {
 };
 
 Camera.prototype.configureFocus = function() {
-  var focusMode;
-  // Determines focus mode based on camera mode
-  // If we're taking still pictures, and C-AF is enabled
-  if (this.mode === 'picture') {
-    focusMode = 'continuous-picture';
-  } else if (this.mode === 'video'){
-    focusMode = 'continuous-video';
-  }
-  this.focus.configure(this.mozCamera, focusMode);
+  this.focus.configure(this.mozCamera, this.mode);
   this.focus.onFacesDetected = this.onFacesDetected;
   this.focus.onAutoFocusChanged = this.onAutoFocusChanged;
 };

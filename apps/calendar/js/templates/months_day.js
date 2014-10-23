@@ -7,19 +7,10 @@ var create = require('template').create;
 var MonthsDay = create({
   event: function() {
     var calendarId = this.h('calendarId');
+    var busytimeId = this.h('busytimeId');
+    var classes = this.h('classes');
 
-    var sectionClassList = [
-      'event',
-      'calendar-id-' + calendarId,
-      this.h('classes')
-    ].join(' ');
-
-    var containerClassList = [
-      'container',
-      'calendar-id-' + calendarId
-    ].join(' ');
-
-    this.eventTime = function() {
+    var eventTime = (function() {
       if (this.arg('isAllDay')) {
         return '<div class="all-day" data-l10n-id="hour-allday"></div>';
       }
@@ -27,33 +18,33 @@ var MonthsDay = create({
       var endTime = formatTime(this.arg('endTime'));
       return `<div class="start-time">${startTime}</div>
               <div class="end-time">${endTime}</div>`;
-    };
+    }.call(this));
 
-    this.eventDetails = function() {
-      var result = '<h5>' + this.h('title') + '</h5>';
+    var eventDetails = (function() {
+      var title = this.h('title');
+      var result = `<h5 role="presentation">${title}</h5>`;
       var location = this.h('location');
       if (location && location.length > 0) {
-        result += '<span class="details">';
-        result += '<span class="location">';
-        result += location;
-        result += '</span>';
-        result += '</span>';
+        result += `<span class="details">
+          <span class="location">${location}</span>
+        </span>`;
       }
-
       return result;
-    };
+    }.call(this));
 
-    return '<section class="' + sectionClassList + '" ' +
-                    'data-id="' + this.h('busytimeId') + '">' +
-           '<div class="' + containerClassList + '">' +
-             '<div class="gaia-icon icon-calendar-dot calendar-text-color">' +
-             '</div>' +
-             '<div class="event-time">' + this.eventTime() + '</div>' +
-             '<div class="event-details">' + this.eventDetails() + '</div>' +
-             '<div class="gaia-icon icon-calendar-alarm ' +
-               'calendar-text-color"></div>' +
-           '</div>' +
-           '</section>';
+    return `<section class="event calendar-id-${calendarId} ${classes}"
+      role="option" data-id="${busytimeId}"
+      aria-describedby="${busytimeId}-icon-calendar-alarm">
+      <div class="container calendar-id-${calendarId}">
+        <div class="gaia-icon icon-calendar-dot calendar-text-color"
+          aria-hidden="true"></div>
+        <div class="event-time">${eventTime}</div>
+        <div class="event-details">${eventDetails}</div>
+        <div id="${busytimeId}-icon-calendar-alarm" aria-hidden="true"
+          class="gaia-icon icon-calendar-alarm calendar-text-color"
+          data-l10n-id="icon-calendar-alarm"></div>
+      </div>
+      </section>`;
   }
 });
 module.exports = MonthsDay;

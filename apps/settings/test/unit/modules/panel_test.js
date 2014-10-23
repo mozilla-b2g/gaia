@@ -25,8 +25,7 @@ suite('Panel', function() {
       .then(function() {
         // initialized shoule be true after initialized.
         assert.isTrue(this.panel.initialized);
-        done();
-      }.bind(this));
+      }.bind(this)).then(done, done);
     });
 
     test('uninit()', function(done) {
@@ -37,8 +36,7 @@ suite('Panel', function() {
         this.panel.uninit();
         // initialized shoule be false after uninitialized.
         assert.isFalse(this.panel.initialized);
-        done();
-      }.bind(this));
+      }.bind(this)).then(done, done);
     });
 
     test('beforeShow()', function(done) {
@@ -50,8 +48,7 @@ suite('Panel', function() {
       .then(function() {
         // init should be called when beforeShow is called at the first time.
         sinon.assert.calledWith(initSpy, panelElement, options);
-        done();
-      });
+      }).then(done, done);
     });
 
     test('show()', function(done) {
@@ -63,8 +60,7 @@ suite('Panel', function() {
       .then(function() {
         // init should be called when show is called at the first time.
         sinon.assert.calledWith(initSpy, panelElement, options);
-        done();
-      });
+      }).then(done, done);
     });
   });
 
@@ -101,8 +97,7 @@ suite('Panel', function() {
           Promise.resolve(panel[funcName](panelElement, options))
           .then(function() {
             sinon.assert.calledWith(spy, panelElement, options);
-            done();
-          });
+          }).then(done, done);
       });
     });
 
@@ -117,8 +112,7 @@ suite('Panel', function() {
           Promise.resolve(panel[funcName]())
           .then(function() {
             sinon.assert.calledOnce(spy);
-            done();
-          });
+          }).then(done, done);
       });
     });
 
@@ -131,8 +125,7 @@ suite('Panel', function() {
         .then(function() {
           panel.uninit();
           sinon.assert.calledOnce(spy);
-          done();
-        });
+        }).then(done, done);
     });
 
     test('onInit should be called only once', function(done) {
@@ -144,8 +137,7 @@ suite('Panel', function() {
       .then(function() {
         // onInit should be called only once.
         sinon.assert.calledOnce(spy);
-        done();
-      });
+      }).then(done, done);
     });
 
     test('onUninit should not be called if the panel is not initialized',

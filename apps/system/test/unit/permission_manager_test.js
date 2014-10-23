@@ -162,12 +162,13 @@ suite('system/permission manager', function() {
 
   suite('fullscreenoriginchange Handler', function() {
     setup(function() {
-      this.sinon.stub(permissionManager,
-        'handleFullscreenOriginChange');
+      this.sinon.stub(permissionManager, 'cleanDialog');
+      this.sinon.stub(permissionManager, 'handleFullscreenOriginChange');
       sendChromeEvent('fullscreenoriginchange', '');
     });
 
     test('fullscreenoriginchange', function() {
+      assert.isTrue(permissionManager.cleanDialog.called);
       assert.isTrue(permissionManager.handleFullscreenOriginChange.called);
     });
   });

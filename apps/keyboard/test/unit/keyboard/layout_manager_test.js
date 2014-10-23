@@ -16,32 +16,25 @@ suite('LayoutManager', function() {
           [
             { value: 'foo' }
           ]
-        ],
-        alt: {},
-        upperCase: {}
+        ]
       }
     ]
   };
 
   suiteSetup(function() {
     realKeyboards = window.Keyboards;
+    // for skae of simplicity, we bypass these two normalizations
+    sinon.stub(LayoutNormalizer.prototype, '_normalizePageKeys');
+    sinon.stub(LayoutNormalizer.prototype, '_normalizePageAltKeys');
   });
 
   suiteTeardown(function() {
     window.Keyboards = realKeyboards;
   });
 
-  // because LayoutLoader.start calls LayoutLoader.initLayouts which uses its
-  // instantiated _normalizer, we can't stub the instance after we call
-  // LayoutManager.start() (which directly calls LayoutLoader.start()).
-  setup(function() {
-    var stubLayoutNormalizer = this.sinon.stub(LayoutNormalizer.prototype);
-    this.sinon.stub(window, 'LayoutNormalizer').returns(stubLayoutNormalizer);
-  });
-
   // since bug 1035619, enter key's layout properties will always come
   // from its prototype. lastest chai.js assert.deepEqual take prototype into
-  // consideration, but layout have some property defined in prototype, 
+  // consideration, but layout have some property defined in prototype,
   // so we do the comparison by ourselves with a helper function
   var assertExpectedLayouts = function (test, expected, msg) {
     assert.equal(test.imEngine, expected.imEngine, msg);
@@ -52,7 +45,7 @@ suite('LayoutManager', function() {
         for (var key in test.keys[i][j]) {
           assert.equal(test.keys[i][j][key], expected.keys[i][j][key], msg);
         }
-      }  
+      }
     }
   };
 
@@ -109,45 +102,6 @@ suite('LayoutManager', function() {
       assert.isTrue(false, 'should not resolve');
     }, function() {
       assert.isTrue(true, 'rejected');
-    }).then(done, done);
-  });
-
-  test('switchCurrentLayout (twice)', function(done) {
-    window.Keyboards = {};
-
-    var manager = new LayoutManager({
-      inputContext: {
-        inputMode: ''
-      },
-      getBasicInputType: this.sinon.stub().returns('text'),
-      supportsSwitching: this.sinon.stub().returns(false)
-    });
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-layouts/';
-
-    var p1 = manager.switchCurrentLayout('foo');
-    var p2 = manager.switchCurrentLayout('foo');
-    p1.then(function() {
-      assert.isTrue(false, 'should not resolve');
-
-      return p2;
-    }, function() {
-      assert.isTrue(true, 'rejected');
-
-      return p2;
-    }).then(function() {
-      assert.isTrue(true, 'resolved');
-      var layout = manager.loader.getLayout('foo');
-      assert.deepEqual(layout, expectedFooLayout, 'foo loaded');
-      assert.equal(manager.currentPage.layoutName, 'foo');
-      assert.equal(manager.currentPage.pageIndex, 0,
-        'currentPage is correctly set.');
-      assert.equal(manager.currentPage.__proto__, layout.pages[0]);
-    }, function(e) {
-      if (e) {
-        throw e;
-      }
-      assert.isTrue(false, 'should not reject');
     }).then(done, done);
   });
 
@@ -412,7 +366,7 @@ suite('LayoutManager', function() {
 
       manager.switchCurrentLayout('spaceLayout').then(function() {
         assert.equal(manager.currentPage.layoutName, 'pinLayout');
-        assert.equal(manager.currentPage.pageIndex, 0); 
+        assert.equal(manager.currentPage.pageIndex, 0);
         assert.equal(manager.currentPage.__proto__,
           manager.loader.getLayout('pinLayout').pages[0],
           'proto is set correctly for layout.');
@@ -1128,9 +1082,7 @@ suite('LayoutManager', function() {
                       ariaLabel: 'alternateLayoutKey',
                       className: 'page-switch-key',
                       targetPage: 1 },
-                    { value: '!', ratio: 1, keyCode: 33, keyCodeUpper: 33,
-                      lowercaseValue: '!', uppercaseValue: '!',
-                      isSpecialKey: false },
+                    '!',
                     { value: '&nbsp', ratio: 4, keyCode: 32 },
                     { value: '.', ratio: 1, keyCode: 46, keyCodeUpper: 46,
                       lowercaseValue: '.', uppercaseValue: '.',
@@ -1257,9 +1209,7 @@ suite('LayoutManager', function() {
                       lowercaseValue: ',', uppercaseValue: ',',
                       isSpecialKey: false },
                     { value: '&nbsp', ratio: 4, keyCode: 32 },
-                    { value: '*', ratio: 1, keyCode: 42, keyCodeUpper: 42,
-                      lowercaseValue: '*', uppercaseValue: '*',
-                      isSpecialKey: false },
+                    '*',
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
@@ -1393,14 +1343,6 @@ suite('LayoutManager', function() {
         assert.equal(manager.currentPage.__proto__,
           supportsSwitchingLayout.pages[0],
           'proto is set correctly for layout.');
-
-        assert.equal(manager.currentPage.keys[0][0].__proto__,
-          supportsSwitchingLayout.pages[0].keys[0][0].supportsSwitching,
-          'proto is set correctly for supportsSwitching key.');
-
-        assert.equal(manager.currentPage.keys[0][1].__proto__,
-          supportsSwitchingLayout.pages[0].keys[0][1].supportsSwitching,
-          'proto is set correctly for supportsSwitching key.');
 
         assert.equal(manager.currentPage.keys[1][2].__proto__,
           supportsSwitchingLayout.pages[0].keys[1][0],

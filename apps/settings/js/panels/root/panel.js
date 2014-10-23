@@ -14,6 +14,7 @@ define(function(require) {
   var ScreenLockItem = require('panels/root/screen_lock_item');
   var SimSecurityItem = require('panels/root/sim_security_item');
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
+  var ThemesItem = require('panels/root/themes_item');
 
   return function ctor_root_panel() {
     var root = Root();
@@ -28,6 +29,7 @@ define(function(require) {
     var screenLockItem;
     var simSecurityItem;
     var airplaneModeItem;
+    var themesItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
@@ -57,6 +59,8 @@ define(function(require) {
           AirplaneModeItem(panel.querySelector('.airplaneMode-input'));
         simSecurityItem =
           SimSecurityItem(panel.querySelector('.simCardLock-desc'));
+        themesItem =
+          ThemesItem(panel.querySelector('.themes-section'));
       },
       onBeforeShow: function rp_onBeforeShow() {
         bluetoothItem.enabled = true;
@@ -69,13 +73,7 @@ define(function(require) {
         screenLockItem.enabled = true;
         simSecurityItem.enabled = true;
         airplaneModeItem.enabled = true;
-      },
-      onShow: function rp_onShow() {
-        // XXX: Set data-ready to true to indicate that the first panel is
-        //      displayed and we are ready to use animations for the later panel
-        //      transitions. This should be moved to startup.js after we handle
-        //      inline activities there.
-        document.body.dataset.ready = true;
+        themesItem.enabled = true;
       },
       onHide: function rp_onHide() {
         bluetoothItem.enabled = false;
@@ -88,6 +86,7 @@ define(function(require) {
         screenLockItem.enabled = false;
         simSecurityItem.enabled = false;
         airplaneModeItem.enabled = false;
+        themesItem.enabled = false;
       }
     });
   };

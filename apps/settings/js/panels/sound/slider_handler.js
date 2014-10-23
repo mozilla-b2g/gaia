@@ -31,8 +31,7 @@ define(function(require) {
     this._channelKey = '';
     this._toneURL = '';
     this._toneKey = '';
-    // The default volume is 15(MAX).
-    this._previous = 15;
+    this._previous = null;
     this._isTouching = false;
     this._isFirstInput = false;
     this._intervalID = null;
@@ -119,6 +118,12 @@ define(function(require) {
       // once the value is set.
       if (this._element.style.opacity !== 1) {
         this._element.style.opacity = 1;
+      }
+
+      // If it is the first time we set the slider value, we must update the
+      // previous value of this channel type
+      if (this._previous === null) {
+        this._previous = value;
       }
     },
 

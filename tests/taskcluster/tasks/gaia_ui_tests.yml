@@ -1,5 +1,6 @@
 # Chunking task for gaia-ui-tests...
 ---
+reruns: 4
 task:
   metadata:
     name: 'Gaia ui tests {{chunk}}'
@@ -7,8 +8,14 @@ task:
 
   workerType: '{{workerType}}'
   provisionerId: '{{provisionerId}}'
+  scopes:
+    # Source caches contains various sources (including a tarball of gaia source
+    # tree)
+    - docker-worker:cache:gaia-misc-caches
 
   payload:
+    cache:
+      gaia-misc-caches: /home/tester/caches/
     # See: ci/gaia_ui_tests/script for how this ties into the built in
     # chunking functionality for the test scripts...
     env:

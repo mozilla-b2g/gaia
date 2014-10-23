@@ -9,7 +9,9 @@ from gaiatest.apps.settings.app import Settings
 class TestSettingsCellData(GaiaTestCase):
 
     def test_enable_cell_data_via_settings_app(self):
-        """https://moztrap.mozilla.org/manage/case/1373/"""
+        """
+        https://moztrap.mozilla.org/manage/case/1373/
+        """
 
         settings = Settings(self.marionette)
         settings.launch()

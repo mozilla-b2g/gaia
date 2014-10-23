@@ -112,8 +112,9 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
 
             # remove from pending and trigger test complete check.
             if (test_event == 'end'):
-                idx = self.pending_envs.index(test_env)
-                del self.pending_envs[idx]
+                if test_env in self.pending_envs:
+                    idx = self.pending_envs.index(test_env)
+                    del self.pending_envs[idx]
 
                 self.passes += self.envs[test_env].passes
                 self.failures += self.envs[test_env].failures

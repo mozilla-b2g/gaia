@@ -26,9 +26,13 @@ var CrashReporter = (function() {
 
   // This function should only ever be called once.
   function showDialog(crashID, isChrome) {
-    var title = isChrome ? _('crash-dialog-os2') :
-      _('crash-dialog-app', { name: crashedAppName });
-    document.getElementById('crash-dialog-title').textContent = title;
+    var elem = document.getElementById('crash-dialog-title');
+    if (isChrome) {
+      navigator.mozL10n.setAttributes(elem, 'crash-dialog-os2');
+    } else {
+      navigator.mozL10n.setAttributes(elem,
+        'crash-dialog-app', { name: crashedAppName });
+    }
 
     // "Don't Send Report" button in dialog
     var noButton = document.getElementById('dont-send-report');

@@ -17,7 +17,9 @@ class TestGallery(GaiaTestCase):
         self.push_resource('IMG_0001.jpg')
 
     def test_gallery_view(self):
-        """https://moztrap.mozilla.org/manage/case/2476/"""
+        """
+        https://moztrap.mozilla.org/manage/case/14645/
+        """
 
         gallery = Gallery(self.marionette)
         gallery.launch()

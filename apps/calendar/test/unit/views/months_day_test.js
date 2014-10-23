@@ -4,6 +4,7 @@ define(function(require) {
 var DayChild = require('views/day_child');
 var DayTemplate = require('templates/day');
 var MonthsDay = require('views/months_day');
+var dateFormat = require('date_format');
 
 suite('Views.MonthsDay', function() {
   var subject,
@@ -46,6 +47,36 @@ suite('Views.MonthsDay', function() {
     assert.isFalse(subject.renderAllHours);
   });
 
+  test('#changeDate', function() {
+    var currentDate = {
+      textContent: '',
+      dataset: {}
+    };
+    sinon.stub(subject, '_findElement')
+      .withArgs('currentDate')
+      .returns(currentDate);
+
+    subject._toggleEmptyMessage = sinon.spy();
+
+    var now = new Date();
+    var format = 'months-day-view-header-format';
+    subject.changeDate(now);
+
+    assert.deepEqual(currentDate.textContent, dateFormat.localeFormat(
+      now,
+      navigator.mozL10n.get(format)
+    ), 'should set the currentDate textContent');
+
+    assert.deepEqual(currentDate.dataset, {
+      date: now,
+      l10nDateFormat: format
+    }, 'should set l10n dataset');
+
+    assert.ok(
+      subject._toggleEmptyMessage.calledOnce,
+      'should call _toggleEmptyMessage'
+    );
+  });
 
   suite('#handleEvent', function() {
 

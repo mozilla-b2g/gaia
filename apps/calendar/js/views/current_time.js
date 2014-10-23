@@ -23,7 +23,7 @@ CurrentTime.prototype = {
     }
 
     this.element = document.createElement('div');
-    this.element.classList.add('current-time');
+    this.element.classList.add('md__current-time');
     this._container.appendChild(this.element);
   },
 
@@ -135,7 +135,7 @@ CurrentTime.prototype = {
     // we only need to check the current hour (with current design there is
     // no way to overlap previous/next hours)
     var displayHour = this._container.querySelector(
-      '.hour-' + hour + ' .display-hour'
+      `.md__hour-${hour} .md__display-hour`
     );
 
     displayHour.classList.toggle('is-hidden', this._intersect(displayHour));
@@ -166,7 +166,7 @@ CurrentTime.prototype = {
     }
 
     var day = createDay(date);
-    var selector = '.allday[data-date="' + day +'"] .day-name';
+    var selector = `.md__allday[data-date="${day}"] .md__day-name`;
     var header = this._sticky.querySelector(selector);
 
     if (header) {

@@ -54,6 +54,8 @@ function handleOpenActivity(request) {
 
   function playBlob(blob) {
     PlayerView.init();
+    PlayerView.stop();
+
     PlayerView.setSourceType(TYPE_BLOB);
     PlayerView.dataSource = blob;
     PlayerView.play(); // Do we need to play for users?
@@ -67,6 +69,14 @@ function handleOpenActivity(request) {
   // Set up events for close/save in the single player
   header.addEventListener('action', done);
   saveButton.addEventListener('click', save);
+
+  // Terminate music playback when visibility is changed.
+  window.addEventListener('visibilitychange',
+    function onVisibilityChanged() {
+      if (document.hidden) {
+        done();
+      }
+    });
 
   function done() {
     PlayerView.stop();

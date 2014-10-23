@@ -9,9 +9,6 @@ require('/shared/js/contacts/multi_contact.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 
-mocha.globals(['contacts']);
-
-
 suite('Getting MultiContact Data', function() {
 
   var datastore1, datastore2;

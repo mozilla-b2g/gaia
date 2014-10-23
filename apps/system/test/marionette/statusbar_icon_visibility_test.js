@@ -10,7 +10,8 @@ marionette('Statusbar Visibility', function() {
     },
     settings: {
       'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+      'lockscreen.enabled': false,
+      'nfc.enabled': true
     }
   });
 
@@ -38,6 +39,12 @@ marionette('Statusbar Visibility', function() {
         return window.getComputedStyle(element).visibility;
       });
       return (visibility == 'visible');
+    });
+  });
+
+  test('NFC icon is visible', function() {
+    client.helper.waitFor(function() {
+      return system.nfcIcon.displayed();
     });
   });
 

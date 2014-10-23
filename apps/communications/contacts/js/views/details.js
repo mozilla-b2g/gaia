@@ -641,16 +641,11 @@ contacts.Details = (function() {
     cover.dataset.imgHash = '';
   };
 
-  var reMark = function(field, value, remarkClass) {
-    ContactsButtons.reMark(field, value, remarkClass);
-  };
-
   return {
     'init': init,
     'setContact': setContact,
     'toggleFavorite': toggleFavorite,
     'render': render,
-    'reMark': reMark,
     'defaultTelType' : DEFAULT_TEL_TYPE
   };
 })();

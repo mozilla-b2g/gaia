@@ -45,7 +45,7 @@
  * to stop the animation immediately while user turn the screen on and off
  * quickly.
  *
- * The problem this component trys to resolve:
+ * The problems this component trys to resolve:
  *
  * To make LockScreen react with external states change like homekey press or
  * the screen got turned on, and the internal states change like the panel
@@ -108,7 +108,8 @@
       transitionEnd: false,
       unlocking: false,
       keypadInput: '',
-      forciblyUnlock: false
+      forciblyUnlock: false,
+      inputpad: null
     };
     Object.freeze(this.lockScreenDefaultStates);
 
@@ -191,7 +192,7 @@
     this.registerRule({
       passcodeEnabled: true,
       screenOn: true,
-      transitionEnd: true,
+      inputpad: 'close',
       unlocking: false
     },
     ['keypadHiding'],
@@ -209,7 +210,7 @@
     this.registerRule({
       passcodeEnabled: true,
       screenOn: true,
-      transitionEnd: true
+      inputpad: 'open'
     },
     ['keypadRising'],
     this.states.keypadShow,
@@ -227,7 +228,7 @@
     this.registerRule({
       passcodeEnabled: true,
       screenOn: true,
-      transitionEnd: true,
+      inputpad: 'close',
       unlocking: true
     },
     ['keypadHiding'],
@@ -262,7 +263,6 @@
       .debug('Do transfer; input: ', currentStates)
       .debug('Previous state:', this.previousState.type);
 
-
     // Find what rule match the current LockScreen states.
     for (var [conditions, state] of this.rules) {
       this.logger.verbose('Try to match with: ', state.type);
@@ -278,10 +278,15 @@
                    .debug('Reason: ', conditions[':comment']);
         this.logger.transfer(this.previousState.type, state.type, conditions);
         // State would do transfer and output.
-        state.transferTo(currentStates)
-             .then(this.onTransferringDone.bind(this))
-             .catch(this.onTransferringError.bind(this));
-        this.previousState = state;
+        this.previousState.transferOut().then(() => {
+          // Set target state as the previous state immediately,
+          // so the next transferring can be done according to it.
+          this.previousState = state;
+          state.transferTo(currentStates)
+               .then(this.onTransferringDone.bind(this))
+               .catch(this.onTransferringError.bind(this));
+        }).catch(this.onTransferringError.bind(this));
+
         // It should match only one state, but we should keep
         // mistake-proofing in our design.
         return;

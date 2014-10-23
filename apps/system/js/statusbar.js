@@ -14,11 +14,9 @@
   limitations under the License.
 */
 
-/*global Clock, SettingsListener */
-/*global TouchForwarder, FtuLauncher */
-/*global MobileOperator, SIMSlotManager, System */
-/*global Bluetooth */
-/*global UtilityTray, nfcManager */
+/*global Clock, SettingsListener, TouchForwarder, FtuLauncher, MobileOperator,
+         SIMSlotManager, System, Bluetooth, UtilityTray, nfcManager,
+         layoutManager */
 
 'use strict';
 
@@ -291,8 +289,8 @@ var StatusBar = {
     window.addEventListener('simpinshow', this);
     window.addEventListener('simpinclose', this);
 
-    // Listen to orientation change.
-    window.addEventListener('resize', this);
+    // Listen to orientation change and SHB activation/deactivation.
+    window.addEventListener('system-resize', this);
 
     window.addEventListener('appopening', this);
     window.addEventListener('appopened', this);
@@ -467,7 +465,11 @@ var StatusBar = {
             break;
 
           case 'audio-channel-changed':
-            var active = evt.detail.channel === 'content';
+            // The camera recording fires a audio-channel-changed event to kill
+            // existing "content" audio channels, in this case we don't show the
+            // playing icon.
+            var active = evt.detail.channel === 'content' &&
+              !this.recordingActive;
             if (this.playingActive === active) {
               break;
             }
@@ -518,9 +520,11 @@ var StatusBar = {
         }
         break;
 
-      case 'resize':
-        // Reprioritize icons when orientation changes.
-        this._updateIconVisibility();
+      case 'system-resize':
+        // Reprioritize icons when:
+        // * Screen orientation changes
+        // * Software home button is enabled/disabled
+        this._updateMinimizedStatusBarWidth();
         break;
 
       case 'homescreenopening':
@@ -542,8 +546,13 @@ var StatusBar = {
         this._updateMinimizedStatusBarWidth();
         break;
 
-      case 'apptitlestatechanged':
       case 'appopened':
+        this.setAppearance(evt.detail);
+        this.element.classList.remove('hidden');
+        this._updateMinimizedStatusBarWidth();
+        break;
+
+      case 'apptitlestatechanged':
       case 'homescreenopened':
       case 'activityopened':
         this.setAppearance(evt.detail);
@@ -592,25 +601,28 @@ var StatusBar = {
   _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {
     // Let's consider the style of the status bar:
     // * padding: 0 0.3rem;
-    return window.innerWidth - (3 * 2);
+    return Math.round(layoutManager.width - (3 * 2));
   },
 
-  _updateMinimizedStatusBarWidth: function sb_getMinimizedStatusBarWidth() {
+  _updateMinimizedStatusBarWidth: function sb_updateMinimizedStatusBarWidth() {
     var app = System.currentApp;
     app = app && app.getTopMostWindow();
 
     // Get the actual width of the rocketbar, and determine the remaining
     // width for the minimized statusbar.
-    var innerWidth = window.innerWidth;
     var element = app && app.appChrome && app.appChrome.element &&
       app.appChrome.element.querySelector('.urlbar .title');
 
-    if (!element) {
-      this._minimizedStatusBarWidth = innerWidth;
+    if (element) {
+      this._minimizedStatusBarWidth = Math.round(
+          layoutManager.width -
+          element.getBoundingClientRect().width -
+          // Remove padding and margin
+          5 - 3);
+    } else {
+      this._minimizedStatusBarWidth = this._getMaximizedStatusBarWidth();
     }
 
-    this._minimizedStatusBarWidth = innerWidth -
-      element.getBoundingClientRect().width;
     this._updateIconVisibility();
   },
 
@@ -1059,10 +1071,11 @@ var StatusBar = {
       icon.dataset.charging = battery.charging;
       var level = Math.floor(battery.level * 10) * 10;
       icon.dataset.level = level;
-      icon.setAttribute('aria-label', navigator.mozL10n.get(battery.charging ?
-        'statusbarBatteryCharging' : 'statusbarBattery', {
-          level: level
-        }));
+      navigator.mozL10n.setAttributes(
+        icon,
+        battery.charging ? 'statusbarBatteryCharging' : 'statusbarBattery',
+        { level: level }
+      );
     },
 
     networkActivity: function sb_updateNetworkActivity() {

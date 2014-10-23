@@ -8,14 +8,11 @@ Services.obs.addObserver(function(document) {
     return;
   }
 
-  var window = document.defaultView.wrappedJSObject;
+  var window = document.defaultView;
 
-  window.navigator.__defineGetter__('mozIccManager', function() {
-    return {
-      __exposedProps__: {
-        iccIds: 'r'
-      },
-      iccIds: []
-    };
+  Object.defineProperty(window.wrappedJSObject.navigator, 'mozIccManager', {
+    configurable: false,
+    writable: true,
+    value: Components.utils.cloneInto({iccIds: []}, window)
   });
 }, 'document-element-inserted', false);

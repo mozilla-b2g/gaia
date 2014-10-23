@@ -273,8 +273,6 @@ SystemUpdatable.prototype.showApplyPromptBatteryNok = function(minBattery) {
 };
 
 SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
-  var _ = navigator.mozL10n.get;
-
   // Update will be completed after restart
   this.forgetKnownUpdate();
 

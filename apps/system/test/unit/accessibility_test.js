@@ -237,6 +237,15 @@ suite('system/Accessibility', function() {
       assert.isTrue(stubSpeak.calledWith(liveRegionDetails.data, null,
         liveRegionDetails.options));
     });
+
+test('no-move event', function() {
+      var stub_playSound = this.sinon.stub(accessibility,
+        '_playSound');
+      accessibility.handleEvent(getAccessFuOutput({ eventType: 'no-move' }));
+      assert.isTrue(stub_playSound.called);
+      assert.isTrue(stub_playSound.calledWith('noMoveAudio'));
+    });
+
   });
 
 });

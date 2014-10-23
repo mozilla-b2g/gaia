@@ -452,6 +452,7 @@ suite('app', function() {
     });
 
     test('Should clear loadingTimeout', function() {
+      this.app.views.loading = null;
       this.app.showSpinner();
       this.app.onReady();
       this.app.clearSpinner();

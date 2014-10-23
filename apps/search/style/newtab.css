@@ -105,6 +105,8 @@ h2 span {
 
 #history .icon img {
   display: none;
+  width: 100%;
+  height: 100%;
 }
 
 #history .icon.empty {

@@ -12,7 +12,7 @@ MENU_ITEMS_NO_MOBILE = ["Turn on airplane mode", "Restart", "Power off"]
 class TestPowerButton(GaiaTestCase):
 
     def test_power_button_long_press(self):
-        """ Verify Power Button long press menu
+        """
         https://moztrap.mozilla.org/manage/case/1330/
         """
         sleep_menu = SleepScreen(self.marionette)

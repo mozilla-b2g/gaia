@@ -1,6 +1,6 @@
-var fs = require('fs'),
-    util = require('util'),
-    assert = require('assert'),
+'use strict';
+
+var util = require('util'),
     perfUtils = require('./perf-utils');
 
 /* This is a helper to for perftesting apps. */
@@ -18,7 +18,7 @@ function PerfTestApp(client, origin) {
   var arr = config.appPath.split('/');
   var manifestPath = arr[0];
   var entryPoint = arr[1];
-  var origin = util.format('app://%s',
+  origin = util.format('app://%s',
     manifestPath.indexOf('.') !== -1 ?
     manifestPath :
     manifestPath + '.gaiamobile.org');
@@ -66,7 +66,6 @@ PerfTestApp.prototype = {
    * @return {String} css selector.
    */
   selector: function(name) {
-    var selector;
     if (!(name in this.selectors)) {
       throw new Error('unknown element "' + name + '"');
     }
@@ -91,7 +90,6 @@ PerfTestApp.prototype = {
 
   waitForPerfEvents: function(stopEventName, callback) {
     var client = this.client;
-    var self = this;
 
     this.client.executeAsyncScript(
       'window.wrappedJSObject.mozPerfWaitForEvent("' + stopEventName +

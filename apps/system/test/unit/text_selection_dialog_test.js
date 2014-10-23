@@ -1,9 +1,6 @@
 /* global MocksHelper, LayoutManager, TextSelectionDialog */
 'use strict';
 
-mocha.globals(['TextSelectionDialog', 'System', 'BaseUI',
-  'layoutManager']);
-
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 
@@ -35,7 +32,7 @@ suite('system/TextSelectionDialog', function() {
     requireApp('system/js/text_selection_dialog.js',
       function() {
         fragment = document.createElement('div');
-        fragment.id = 'TextSelectionDialogRoot';
+        fragment.id = 'text-selection-dialog-root';
         document.body.appendChild(fragment);
         td = new TextSelectionDialog();
         fragment.innerHTML = td.view();
@@ -203,6 +200,15 @@ suite('system/TextSelectionDialog', function() {
     assert.isFalse(td._hasCutOrCopied);
   });
 
+  test('_triggerShortcutTimeout', function() {
+    var stubClose = this.sinon.stub(td, 'close');
+    var clock = this.sinon.useFakeTimers();
+
+    td._triggerShortcutTimeout();
+    clock.tick(td.SHORTCUT_TIMEOUT);
+    assert.isTrue(stubClose.calledOnce);
+  });
+
   suite('_onSelectionChange', function() {
     var stubClose, stubHide, stubShow, stubRender, stubEvent;
     var testDetail;
@@ -236,13 +242,34 @@ suite('system/TextSelectionDialog', function() {
       td._hasCutOrCopied = false;
     });
 
-    test('tap on text, and user has cut/copied before', function() {
-      td._hasCutOrCopied = true;
-      td._onSelectionChange(fakeTextSelectInAppEvent);
-      assert.isTrue(stubShow.calledWith(testDetail));
-      assert.isFalse(testDetail.commands.canSelectAll);
-      assert.isTrue(stubEvent.calledOnce);
-    });
+    test('tap on other place, and the caret is collapsed',
+      function() {
+        td._onSelectionChange(fakeTextSelectInAppEvent);
+        assert.isFalse(stubShow.calledOnce);
+        assert.isFalse(testDetail.commands.canSelectAll);
+        assert.isTrue(stubEvent.calledOnce);
+        assert.deepEqual(td.textualmenuDetail, testDetail);
+      });
+
+    test('copy some text and tap on other place, and the caret is collapsed',
+      function() {
+        td._hasCutOrCopied = true;
+        td._onSelectionChange(fakeTextSelectInAppEvent);
+        assert.isTrue(stubShow.calledWith(testDetail));
+        assert.isFalse(testDetail.commands.canSelectAll);
+        assert.isTrue(stubEvent.calledOnce);
+        assert.deepEqual(td.textualmenuDetail, testDetail);
+      });
+
+    test('receive event without mouseup nor selectAll, and the caret is ' +
+      'collapsed', function() {
+        testDetail.reasons = [];
+        td._onSelectionChange(fakeTextSelectInAppEvent); 
+        assert.isFalse(stubShow.calledOnce);
+        assert.isTrue(testDetail.commands.canSelectAll);
+        assert.isTrue(stubEvent.calledOnce);
+        assert.equal(td.textualmenuDetail, undefined);
+      });
 
     test('should hide bubble if user call selection.collapseToEnd() by script',
       function() {
@@ -334,6 +361,9 @@ suite('system/TextSelectionDialog', function() {
 
   suite('Scrollviewchange', function() {
     test('scroll start', function() {
+      var stubShangeTransitionState = this.sinon.stub(td,
+        '_changeTransitionState');
+      td._transitionState = 'opened';
       fakeTextSelectInAppEvent.detail = {
         type: 'scrollviewchange',
         detail: {
@@ -345,6 +375,8 @@ suite('system/TextSelectionDialog', function() {
       td.handleEvent(fakeTextSelectInAppEvent);
       assert.equal(td._previousOffsetX, 123);
       assert.equal(td._previousOffsetY, 321);
+      assert.equal(td._scrolling, true);
+      assert.isTrue(stubShangeTransitionState.calledWith('closed'));
     });
 
     test('scroll stop', function() {
@@ -352,7 +384,7 @@ suite('system/TextSelectionDialog', function() {
         'updateDialogPosition');
       td._previousOffsetX = 23;
       td._previousOffsetY = 21;
-      td._transitionState = 'opened';
+      td._scrolling = true;
       fakeTextSelectInAppEvent.detail = {
         type: 'scrollviewchange',
         detail: {
@@ -362,6 +394,7 @@ suite('system/TextSelectionDialog', function() {
         }
       };
       td.handleEvent(fakeTextSelectInAppEvent);
+      assert.isFalse(td._scrolling);
       assert.equal(stubUpdateDialogPosition.getCall(0).args[0], 100);
       assert.equal(stubUpdateDialogPosition.getCall(0).args[1], 300);
 
@@ -463,6 +496,21 @@ suite('system/TextSelectionDialog', function() {
       td.handleEvent(fakeTextSelectInAppEvent);
       assert.isFalse(stubEvent.calledOnce);
     });
+  });
+
+  test('tap on touch caret', function() {
+    td.textualmenuDetail = 'test';
+    var stubTriggerShortcutTimeout = this.sinon.stub(td,
+      '_triggerShortcutTimeout');
+    var stubShow = this.sinon.stub(td, 'show');
+    td.handleEvent({
+      type: 'mozChromeEvent',
+      detail: {
+        type: 'touchcarettap'
+      }
+    });
+    assert.isTrue(stubTriggerShortcutTimeout.calledOnce);
+    assert.isTrue(stubShow.calledWith(td.textualmenuDetail));
   });
 
   suite('check functionality of each button', function() {

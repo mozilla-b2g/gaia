@@ -3,8 +3,6 @@
 
 requireApp('keyboard/js/render.js');
 
-mocha.globals(['perfTimer']);
-
 suite('Renderer', function() {
   suiteSetup(function() {
     window.perfTimer = {
@@ -459,7 +457,8 @@ suite('Renderer', function() {
       assert.equal(keys[1].dataset.keycode, 98);
     });
 
-    test('On uppercase flag, uppercase visually', function() {
+    test('On uppercase flag, uppercase on keys, ' +
+          'no lowercase class on container', function() {
       var layout = {
         width: 2,
         keys: [
@@ -474,13 +473,18 @@ suite('Renderer', function() {
       var keys = document.querySelectorAll('.keyboard-key .key-element');
       assert.equal(keys[0].firstChild.textContent, 'A');
       assert.equal(keys[1].firstChild.textContent, 'B');
+
+      var container = document.querySelector('.keyboard-type-container');
+      assert.isFalse(container.classList.contains('lowercase'));
     });
 
-    test('No uppercase flag, don\'t uppercase visually', function() {
+    test('No uppercase flag, uppercase on keys, ' +
+          'lowercase class on container', function() {
       var layout = {
         width: 2,
         keys: [
-          [{ value: 'a' }, { value: 'b' }]
+          [{ value: 'a', uppercaseValue: 'A' },
+           { value: 'b', uppercaseValue: 'B' }]
         ]
       };
 
@@ -488,8 +492,34 @@ suite('Renderer', function() {
       IMERender.draw(layout, { uppercase: false });
 
       var keys = document.querySelectorAll('.keyboard-key .key-element');
-      assert.equal(keys[0].firstChild.textContent, 'a');
-      assert.equal(keys[1].firstChild.textContent, 'b');
+      assert.equal(keys[0].firstChild.textContent, 'A');
+      assert.equal(keys[1].firstChild.textContent, 'B');
+
+      var container = document.querySelector('.keyboard-type-container');
+      assert.isTrue(container.classList.contains('lowercase'));
+    });
+
+    test('w/ secondLayout, two label DOMs on buttons', function() {
+      var layout = {
+        width: 2,
+        secondLayout: true,
+        keys: [
+          [{ value: 'a', uppercaseValue: 'A' },
+           { value: 'b', uppercaseValue: 'B' }]
+        ]
+      };
+
+      IMERender.init(fakeRenderingManager);
+      IMERender.draw(layout, { uppercase: false });
+
+      var keys = document.querySelectorAll('.keyboard-key .key-element');
+      assert.equal(keys[0].firstChild.textContent, 'A');
+      assert.equal(keys[1].firstChild.textContent, 'a');
+      assert.equal(keys[2].firstChild.textContent, 'B');
+      assert.equal(keys[3].firstChild.textContent, 'b');
+
+      var container = document.querySelector('.keyboard-type-container');
+      assert.isTrue(container.classList.contains('lowercase'));
     });
 
     test('candidate-panel class should be set if flag is set', function() {
@@ -724,26 +754,13 @@ suite('Renderer', function() {
       IMERender.init(fakeRenderingManager);
     });
 
-    test('Highlight a key with uppercase', function() {
+    test('Highlight a key', function() {
       var keyElem = document.createElement('div');
 
       IMERender.setDomElemTargetObject(keyElem, dummyKey);
-      IMERender.highlightKey(fakeRenderingManager.getTargetObject(keyElem),
-                             { showUpperCase: true });
+      IMERender.highlightKey(fakeRenderingManager.getTargetObject(keyElem));
 
       assert.isTrue(keyElem.classList.contains('highlighted'));
-      assert.isFalse(keyElem.classList.contains('lowercase'));
-    });
-
-    test('Highlight a key with lowercase', function() {
-      var keyElem = document.createElement('div');
-
-      IMERender.setDomElemTargetObject(keyElem, dummyKey);
-      IMERender.highlightKey(fakeRenderingManager.getTargetObject(keyElem),
-                             { showUpperCase: false });
-
-      assert.isTrue(keyElem.classList.contains('highlighted'));
-      assert.isTrue(keyElem.classList.contains('lowercase'));
     });
   });
 });

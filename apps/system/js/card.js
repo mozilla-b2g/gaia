@@ -70,14 +70,14 @@
    * @memberOf Card.prototype
    */
   Card.prototype._template =
-    '<div class="screenshotView bb-button" data-l10n-id="openCard" ' +
-    '  role="link"></div>' +
-    '<div class="appIconView" style="background-image:{iconValue}"></div>' +
-    '' +
     '<div class="titles">' +
     ' <h1 id="{titleId}" class="title">{title}</h1>' +
     ' <p class="subtitle">{subTitle}</p>' +
     '</div>' +
+    '' +
+    '<div class="screenshotView bb-button" data-l10n-id="openCard" ' +
+    '  role="link"></div>' +
+    '<div class="appIconView" style="background-image:{iconValue}"></div>' +
     '' +
     '<footer class="card-tray">'+
     ' <button class="appIcon" data-l10n-id="openCard" ' +

@@ -109,7 +109,7 @@
     },
     "open": {
       "filters": {
-        "type": "webcontacts/contact"
+        "type": ["webcontacts/contact", "text/vcard"]
       },
       "disposition": "inline",
       "href": "/contacts/index.html?open",

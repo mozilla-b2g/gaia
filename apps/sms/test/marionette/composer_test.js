@@ -12,6 +12,9 @@ marionette('Messages Composer', function() {
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
 
   var client = marionette.client({
+    prefs: {
+      'focusmanager.testmode': true
+    },
     settings: {
       'lockscreen.enabled': false,
       'ftu.manifestURL': null

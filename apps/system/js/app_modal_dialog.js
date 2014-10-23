@@ -279,7 +279,7 @@
           domElement = document.createElement('button');
           domElement.dataset.buttonIndex = i;
           if (button.messageType === 'builtin') {
-            domElement.textContent = navigator.mozL10n.get(button.message);
+            domElement.setAttribute('data-l10n-id', button.message);
           } else if (button.messageType === 'custom') {
             // For custom button, we assume that the text is already translated
             domElement.textContent = button.message;

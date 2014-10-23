@@ -10,14 +10,16 @@ from gaiatest.apps.phone.app import Phone
 class TestDialer(GaiaTestCase):
 
     def test_dialer_make_call(self):
-        """https://moztrap.mozilla.org/manage/case/1298/"""
+        """
+        https://moztrap.mozilla.org/manage/case/1298/
+        """
 
         test_phone_number = self.testvars['remote_phone_number']
 
         phone = Phone(self.marionette)
         phone.launch()
 
-        self.assertEqual('none', self.data_layer.current_audio_channel)
+        self.assertEqual('normal', self.data_layer.current_audio_channel)
 
         call_screen = phone.keypad.call_number(test_phone_number)
 

@@ -160,14 +160,14 @@ suite('Sound > ToneManager', function() {
             fakeBlob));
       });
 
-      test('_setRingtone is called when tone is playable', function() {
+      test('_setRingtone is called when tone is playable', function(done) {
         toneManager._renderTone(tone, result, secret);
         assert.isTrue(toneManager._isPlayableTone.called);
         toneManager._isPlayableTone(fakeBlob).then(function(value) {
           assert.isTrue(toneManager._setRingtone.calledWith(
             tone.settingsKey, result.l10nID,
             result.name, result.blob, result.id));
-        });
+        }).then(done, done);
       });
     });
 
@@ -178,17 +178,17 @@ suite('Sound > ToneManager', function() {
         });
       });
 
-      test('alert is called when tone is playable', function() {
+      test('alert is called when tone is playable', function(done) {
         toneManager._renderTone(tone, result, secret);
         assert.isTrue(toneManager._isPlayableTone.called);
         toneManager._isPlayableTone(fakeBlob).then(function(value) {
           assert.isTrue(window.alert.called);
           assert.isFalse(toneManager._setRingtone.called);
-        });
+        }).then(done, done);
       });
 
       test('textContent is set to origin name ' +
-        'when data-l10n-id is not found', function() {
+        'when data-l10n-id is not found', function(done) {
           tone.button.textContent = 'test';
           toneManager._renderTone(tone, result, secret);
           toneManager._isPlayableTone(fakeBlob).then(function(value) {
@@ -196,11 +196,11 @@ suite('Sound > ToneManager', function() {
             assert.isFalse(toneManager._setRingtone.called);
             assert.equal(tone.button.getAttribute('data-l10n-id'), null);
             assert.equal(tone.button.textContent, 'test');
-        });
+          }).then(done, done);
       });
 
       test('textContent is set to data-l10n-id ' +
-        'when data-l10n-id is found', function() {
+        'when data-l10n-id is found', function(done) {
           var toneId = 'fake-tone';
           tone.button.textContent = 'test';
           tone.button.setAttribute('data-l10n-id', toneId);
@@ -210,7 +210,7 @@ suite('Sound > ToneManager', function() {
             assert.isFalse(toneManager._setRingtone.called);
             assert.equal(tone.button.getAttribute('data-l10n-id'), toneId);
             assert.equal(tone.button.textContent, 'test');
-        });
+        }).then(done, done);
       });
     });
   });

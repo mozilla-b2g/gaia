@@ -163,6 +163,7 @@ App.prototype.bindEvents = function() {
   // App
   this.once('storage:checked:healthy', this.geolocationWatch);
   this.once('viewfinder:visible', this.onCriticalPathDone);
+  this.once('camera:error', this.onCriticalPathDone);
   this.on('camera:willchange', this.firer('busy'));
   this.on('ready', this.clearSpinner);
   this.on('visible', this.onVisible);
@@ -230,6 +231,7 @@ App.prototype.onClick = function() {
  * @private
  */
 App.prototype.onCriticalPathDone = function() {
+  if (this.criticalPathDone) { return; }
   debug('critical path done');
 
   // PERFORMANCE EVENT (3): moz-app-visually-complete
@@ -382,6 +384,12 @@ App.prototype.l10nGet = function(key) {
  */
 App.prototype.showSpinner = function(key) {
   debug('show loading type: %s', key);
+
+  var view = this.views.loading;
+  if (view) {
+    return;
+  }
+
   var ms = this.settings.spinnerTimeouts.get(key) || 0;
   var self = this;
 

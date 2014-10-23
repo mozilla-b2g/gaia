@@ -51,6 +51,11 @@
     separatorHeight: 0,
 
     /**
+     * The scale used for collapsed icons, taking into account column size.
+     */
+    collapseRatio: COLLAPSE_RATIO,
+
+    /**
      * Height in pixels of the group. When collapsed, this includes the
      * icons associated with the group.
      */
@@ -159,16 +164,20 @@
       var index = this.detail.index;
 
       var width = Math.round(
-        (this.grid.layout.gridItemWidth * this.grid.layout.cols -
-         COLLAPSED_GROUP_MARGIN * 2) / COLLAPSED_GROUP_SIZE);
-      var x = COLLAPSED_GROUP_MARGIN +
-        Math.round(Math.max(0, (COLLAPSED_GROUP_SIZE - nApps) * width / 2));
+        (this.grid.layout.gridWidth - COLLAPSED_GROUP_MARGIN * 2) /
+        COLLAPSED_GROUP_SIZE);
+      var x = COLLAPSED_GROUP_MARGIN;
       y += this.headerHeight;
+
+      var maxGridItemWidth =
+        this.grid.layout.gridWidth / this.grid.layout.minIconsPerRow;
+      this.collapseRatio =
+        (maxGridItemWidth / this.grid.layout.gridItemWidth) * COLLAPSE_RATIO;
 
       for (var i = index - nApps; i < index; i++) {
         var item = this.grid.items[i];
         if (this.detail.collapsed) {
-          item.scale = COLLAPSE_RATIO;
+          item.scale = this.collapseRatio;
 
           var itemVisible = (i - (index - nApps)) < COLLAPSED_GROUP_SIZE;
           if (!itemVisible) {
@@ -218,7 +227,7 @@
       // Calculate the height of the background span
       if (this.detail.collapsed) {
         this.backgroundHeight =
-          Math.round(COLLAPSE_RATIO * this.grid.layout.gridIconSize * 1.5);
+          Math.round(this.collapseRatio * this.grid.layout.gridIconSize * 1.5);
       } else {
         var height = Math.ceil(nApps / this.grid.layout.cols);
         this.backgroundHeight = (height || 1) * this.grid.layout.gridItemHeight;

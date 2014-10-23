@@ -1,6 +1,9 @@
 /* global LockScreenStateKeypadShow */
 
 'use strict';
+
+// Must mock dependencies here.
+window.LockScreenBaseState = function() {};
 requireApp('system/lockscreen/js/lockscreen_state_keypadshow.js');
 suite('sytem/LockScreenStateKeypadShow', function() {
   var subject;

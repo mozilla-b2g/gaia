@@ -35,17 +35,15 @@ var Settings = {
       if (panelsWithCurrentClass.length === 1 &&
         panelsWithCurrentClass[0].id === 'root') {
         // go to default panel
-        Settings.currentPanel = Settings.defaultPanelForTablet;
+        Settings.currentPanel = Settings.initialPanelForTablet;
       }
     }
     Settings._isTabletAndLandscapeLastTime = isTabletAndLandscapeThisTime;
   },
 
-  defaultPanelForTablet: '#wifi',
+  initialPanelForTablet: '#wifi',
 
   _currentPanel: null,
-
-  _currentActivity: null,
 
   get currentPanel() {
     return this._currentPanel;
@@ -57,17 +55,6 @@ var Settings = {
     }
 
     if (hash === this._currentPanel) {
-      return;
-    }
-
-    // If we're handling an activity and the 'back' button is hit,
-    // close the activity if the activity section is different than root panel.
-    // XXX this assumes the 'back' button of the activity panel
-    //     points to the root panel.
-    if (this._currentActivity !== null &&
-          (hash === '#home' ||
-          (hash === '#root' && Settings._currentActivitySection !== 'root'))) {
-      Settings.finishActivityRequest();
       return;
     }
 
@@ -84,11 +71,7 @@ var Settings = {
     this.SettingsService.navigate(panelID);
   },
 
-  _initialized: false,
-
   init: function settings_init(options) {
-    this._initialized = true;
-
     if (!this.mozSettings || !navigator.mozSetMessageHandler) {
       return;
     }
@@ -98,10 +81,10 @@ var Settings = {
     this.PageTransitions = options.PageTransitions;
     this.ScreenLayout = options.ScreenLayout;
 
-    // register web activity handler
-    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
-
-    this.currentPanel = '#root';
+    // XXX: We need to set to currentPanel here although SettingsService already
+    //      knows the default panel id. This line will be removed along with
+    //      "currentPanel" soon.
+    this.currentPanel = window.LaunchContext.initialPanelId;
 
     navigator.mozL10n.once(function loadWhenIdle() {
       var idleObserver = {
@@ -127,118 +110,13 @@ var Settings = {
       // WifiHelper is guaranteed to be loaded in main.js before calling to
       // this line.
       if (this.isTabletAndLandscape()) {
-        self.currentPanel = self.defaultPanelForTablet;
+        self.currentPanel = self.initialPanelForTablet;
       }
 
       window.addEventListener('keydown', this.handleSpecialKeys);
     }).bind(this));
 
     PerformanceTestingHelper.dispatch('startup-path-done');
-  },
-
-  // An activity can be closed either by pressing the 'X' button
-  // or by a visibility change (i.e. home button or app switch).
-  finishActivityRequest: function settings_finishActivityRequest() {
-    // Remove the dialog mark to restore settings status
-    // once the animation from the activity finish.
-    // If we finish the activity pressing home, we will have a
-    // different animation and will be hidden before the animation
-    // ends.
-    if (document.hidden) {
-      this.restoreDOMFromActivty();
-    } else {
-      var self = this;
-      document.addEventListener('visibilitychange', function restore(evt) {
-        if (document.hidden) {
-          document.removeEventListener('visibilitychange', restore);
-          self.restoreDOMFromActivty();
-        }
-      });
-    }
-
-    // Send a result to finish this activity
-    if (Settings._currentActivity !== null) {
-      Settings._currentActivity.postResult(null);
-      Settings._currentActivity = null;
-      Settings._currentActivitySection = null;
-      Settings.SettingsService.navigate('root');
-    }
-  },
-
-  // When we finish an activity we need to leave the DOM
-  // as it was before handling the activity.
-  restoreDOMFromActivty: function settings_restoreDOMFromActivity() {
-    var currentPanel = document.querySelector('[data-dialog]');
-    if (currentPanel !== null) {
-      delete currentPanel.dataset.dialog;
-    }
-    delete document.body.dataset.filterBy;
-
-    // Re-run the header title centering logic
-    var header = document.getElementById('main-header');
-    this.SettingsUtils.runHeaderFontFit(header);
-  },
-
-  visibilityHandler: function settings_visibilityHandler(evt) {
-    if (document.hidden) {
-      Settings.finishActivityRequest();
-      document.removeEventListener('visibilitychange',
-        Settings.visibilityHandler);
-    }
-  },
-
-  webActivityHandler: function settings_handleActivity(activityRequest) {
-    var name = activityRequest.source.name;
-    var section = 'root';
-    var options;
-    Settings._currentActivity = activityRequest;
-    switch (name) {
-      case 'configure':
-        section = Settings._currentActivitySection =
-                  activityRequest.source.data.section;
-        options = activityRequest.source.data.options;
-
-        if (!section) {
-          // If there isn't a section specified,
-          // simply show ourselve without making ourselves a dialog.
-          Settings._currentActivity = null;
-          return;
-        }
-
-        // Validate if the section exists
-        var sectionElement = document.getElementById(section);
-        if (!sectionElement || sectionElement.tagName !== 'SECTION') {
-          var msg = 'Trying to open an non-existent section: ' + section;
-          console.warn(msg);
-          activityRequest.postError(msg);
-          return;
-        } else if (section === 'root') {
-          var filterBy = activityRequest.source.data.filterBy;
-          if (filterBy) {
-            document.body.dataset.filterBy = filterBy;
-            // Re-run the header title centering logic
-            var header = document.getElementById('main-header');
-            Settings.SettingsUtils.runHeaderFontFit(header);
-          }
-        }
-
-        // Go to that section
-        setTimeout(function settings_goToSection() {
-          Settings.SettingsService.navigate(section, options);
-        }.bind(this));
-        break;
-      default:
-        Settings._currentActivity = Settings._currentActivitySection = null;
-        break;
-    }
-
-    // Mark the desired panel as a dialog
-    if (Settings._currentActivity !== null) {
-      var domSection = document.getElementById(section);
-      domSection.dataset.dialog = true;
-      document.addEventListener('visibilitychange',
-        Settings.visibilityHandler);
-    }
   },
 
   /**

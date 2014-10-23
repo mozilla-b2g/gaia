@@ -260,6 +260,10 @@ var ThreadUI = {
     // So we assimilate recipients if user starts to interact with Composer
     Compose.on('interact', this.assimilateRecipients.bind(this));
 
+    this.container.addEventListener(
+      'click', this.assimilateRecipients.bind(this)
+    );
+
     this.multiSimActionButton = null;
 
     this.timeouts.update = null;
@@ -815,11 +819,21 @@ var ThreadUI = {
     TimeHeaders.updateAll('header[data-time-update]');
   },
 
+  isCurrentThread: function thui_isCurrentThread(threadId) {
+    return Navigation.isCurrentPanel('thread', { id: threadId }) ||
+      Navigation.isCurrentPanel('report-view', {
+        threadId: threadId
+      }) ||
+      Navigation.isCurrentPanel('group-view', {
+        id: threadId
+      });
+  },
+
   onMessageReceived: function thui_onMessageReceived(e) {
     var message = e.message;
 
     // If user currently in other thread then there is nothing to do here
-    if (!Navigation.isCurrentPanel('thread', { id: message.threadId })) {
+    if (!this.isCurrentThread(message.threadId)) {
       return;
     }
 
@@ -834,7 +848,7 @@ var ThreadUI = {
 
   onMessageSending: function thui_onMessageReceived(e) {
     var message = e.message;
-    if (Navigation.isCurrentPanel('thread', { id: message.threadId })) {
+    if (this.isCurrentThread(message.threadId)) {
       this.onMessage(message);
       this.forceScrollViewToBottom();
     } else {
@@ -2013,9 +2027,12 @@ var ThreadUI = {
           {
             l10nId: 'view-message-report',
             method: function showMessageReport(messageId) {
-              // Fetch the message by id and display report
+              // Fetch the message by id for displaying corresponding message
+              // report. threadId here is to make sure thread is updatable
+              // when current view report panel.
               Navigation.toPanel('report-view', {
-                id: messageId
+                id: messageId,
+                threadId: Threads.currentId
               });
             },
             params: [messageId]

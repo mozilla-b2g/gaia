@@ -16,6 +16,8 @@ WeekView.prototype = {
 
   scale: 'week',
   visibleCells: 5,
+  _hourFormat: 'week-hour-format',
+  _addAmPmClass: true,
 
   get element() {
     return document.getElementById('week-view');

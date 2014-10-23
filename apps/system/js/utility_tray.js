@@ -44,6 +44,7 @@ var UtilityTray = {
     window.addEventListener('launchapp', this);
     window.addEventListener('displayapp', this);
     window.addEventListener('appopening', this);
+    window.addEventListener('activityopening', this);
     window.addEventListener('resize', this);
     window.addEventListener('cardviewbeforeshow', this);
 
@@ -116,6 +117,7 @@ var UtilityTray = {
       case 'keyboardchangecanceled':
       case 'simpinshow':
       case 'appopening':
+      case 'activityopening':
         if (this.shown) {
           this.hide();
         }
@@ -406,7 +408,10 @@ var UtilityTray = {
   },
 
   updateNotificationCount: function ut_updateNotificationCount() {
-    var count = this.container.querySelectorAll('.notification').length;
+    var count = this.notifications.
+      querySelectorAll('#desktop-notifications-container .notification, ' +
+        '.fake-notification.displayed').length;
+
     navigator.mozL10n.setAttributes(this.notificationTitle,
       'statusbarNotifications', {
         n: count

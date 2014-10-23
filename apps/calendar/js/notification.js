@@ -1,101 +1,64 @@
-/**
- * Notification helper that wraps process of fetching the apps icon and sending
- * app to the given url on click of the notification.
- *
- *
- *    Calendar.Notification.send(
- *      'title', // title
- *      'description', // desc
- *      '/modify-account/1' // (url),
- *      function() {
- *        // notification is sent _not_ clicked here
- *      }
- *    );
- *
- *
- */
-define(function(require, exports) {
+/* global Notification */
+define(function(require, exports, module) {
 'use strict';
 
 var NotificationHelper = require('shared/notification_helper');
 
-// Due to a bug in the platform, multiple requests to
-// mozApps.getSelf() will fail if fired in close succession.
-// So we must make sure to only ever fire a single request to
-// getSelf for all reminders.
-// See: https://bugzilla.mozilla.org/show_bug.cgi?id=987458
-var cachedApp = null;
-var requestInProgress = false;
-var requestQueue = [];
+var cachedSelf;
 
-function fireAppCallbacks(error, app) {
-  while (requestQueue.length > 0) {
-    (requestQueue.shift())(error, app);
-  }
-}
+// Will be injected...
+exports.app = null;
 
-function makeAppRequest() {
-  requestInProgress = true;
-
-  var req = navigator.mozApps.getSelf();
-
-  req.onerror = function() {
-    requestInProgress = false;
-    fireAppCallbacks(new Error('cannot find app'));
-  };
-
-  req.onsuccess = function sendNotification(e) {
-    requestInProgress = false;
-    cachedApp = e.target.result;
-    fireAppCallbacks(null, cachedApp);
-  };
-}
-
-function getApp(callback) {
-  if (cachedApp) {
-    callback(null, cachedApp);
-    return;
-  }
-
-  requestQueue.push(callback);
-
-  if (!requestInProgress) {
-    makeAppRequest();
-  }
-}
-
-function launchApp(url) {
-  getApp(function(err, app) {
-    exports.app.go(url);
-    return app && app.launch();
+exports.sendNotification = function(title, body, url) {
+  return getSelf().then(app => {
+    var icon = NotificationHelper.getIconURI(app);
+    icon += '?';
+    icon += url;
+    var notification = new Notification(title, { body: body, icon: icon });
+    return new Promise((resolve, reject) => {
+      notification.onshow = resolve;
+      notification.onerror = reject;
+      notification.onclick = function() {
+        launch(url);
+      };
+    });
   });
+};
+
+/**
+ * Bug 987458 - Multipe requests to mozApps.getSelf will fail if fired
+ *     in close succession. Therefore we must make sure to only ever fire
+ *     a single request to getSelf.
+ */
+function getSelf() {
+  if (!cachedSelf) {
+    cachedSelf = new Promise((resolve, reject) => {
+      var request = navigator.mozApps.getSelf();
+
+      request.onsuccess = (event) => {
+        resolve(event.target.result);
+      };
+
+      request.onerror = () => {
+        reject(new Error('mozApps.getSelf failed!'));
+      };
+    });
+  }
+
+  return cachedSelf;
 }
 
-function sendNotification(title, desc, url, callback) {
-  getApp(function(err, app) {
-    if (err) {
-      console.error('Error attemping to find app');
-      return callback(err);
+/**
+ * Start the calendar app and open the url.
+ */
+function launch(url) {
+  return getSelf().then(app => {
+    if (app) {
+      app.launch();
     }
 
-    var icon = (app) ?
-      NotificationHelper.getIconURI(app) : '';
-
-    icon += '?' + url;
-
-    NotificationHelper.send(
-      title,
-      desc,
-      icon,
-      launchApp.bind(null, url)
-    );
-
-    callback();
+    exports.app.go(url);
   });
 }
-exports.send = sendNotification;
-
-// Gets injected.
-exports.app = null;
 
 });

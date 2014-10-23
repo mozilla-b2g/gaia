@@ -22,7 +22,9 @@ class KeyboardPage(Base):
         self.marionette.switch_to_frame(keyboard_page_iframe)
 
     def tap_number_input(self):
-        self.marionette.find_element(*self._number_input_locator).tap()
+        number_input = self.marionette.find_element(*self._number_input_locator)
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [number_input])
+        number_input.tap()
         from gaiatest.apps.keyboard.app import Keyboard
 
         return Keyboard(self.marionette)

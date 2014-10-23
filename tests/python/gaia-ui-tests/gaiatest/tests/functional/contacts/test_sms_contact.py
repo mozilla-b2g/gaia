@@ -22,7 +22,6 @@ class TestContacts(GaiaTestCase):
     def test_sms_contact(self):
         """
         https://moztrap.mozilla.org/manage/case/1314/
-        https://moztrap.mozilla.org/manage/case/1293/
         """
         # Setup a text message from a contact.
 

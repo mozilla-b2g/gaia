@@ -11,7 +11,6 @@ suite('webapp-optimize.js', function() {
   var mockConfig;
   var mockJsmin;
   var mockFile;
-  var mockDictionary;
   var isFileRemoved = false;
   var removedFilePath = [];
   var isFileExist = false;
@@ -223,7 +222,7 @@ suite('webapp-optimize.js', function() {
             code: 'testlangcode',
             direction: 'testleft'
           },
-          getDictionary: function() {
+          getAST: function() {
             return function(docElt) {
               return {
                 doc: docElt
@@ -263,7 +262,6 @@ suite('webapp-optimize.js', function() {
     fileChildren = {};
     writeFile = null;
     writeFileContent = null;
-    mockDictionary = null;
     removedFilePath.length = 0;
     createdDOMs.length = 0;
     hasAttributeFlag = true;
@@ -282,10 +280,10 @@ suite('webapp-optimize.js', function() {
 
     test('HTMLProcessed, when all HTMLs have been proceeded ', function() {
       var numOfFiles = webappOptimize.numOfFiles = 10;
-      var writeDictionariesCalled = 0;
+      var writeASTsCalled = 0;
 
-      webappOptimize.writeDictionaries = function() {
-        writeDictionariesCalled++;
+      webappOptimize.writeASTs = function() {
+        writeASTsCalled++;
       };
 
       isFileExist = true;
@@ -293,25 +291,25 @@ suite('webapp-optimize.js', function() {
         webappOptimize.HTMLProcessed([mockFile]);
       }
 
-      assert.equal(writeDictionariesCalled, 1,
+      assert.equal(writeASTsCalled, 1,
         'HTMLProcessed should only be called once');
       // assert.equal(isFileRemoved, true, 'file should be removed');
     });
 
-    test('writeDictionaries', function() {
+    test('writeASTs', function() {
       isFileExist = true;
       webappOptimize.config = mockConfig;
 
       var buildDirectoryFile = mockUtils.getFile('build_stage');
       webappOptimize.webapp = {
         buildDirectoryFile: buildDirectoryFile,
-        dictionary: {'en-test': { testId: 'testIdContent'}}
+        asts: {'en-test': [{ $i: 'testId', $v: 'testIdContent'}]}
       };
       fileChildren[buildDirectoryFile.leafName + '/locales-obj'] = [
         mockUtils.getFile('en-test.json')
       ];
-      webappOptimize.writeDictionaries();
-      assert.equal(writeFileContent, '{"testId":"testIdContent"}',
+      webappOptimize.writeASTs();
+      assert.equal(writeFileContent, '[{"$i":"testId","$v":"testIdContent"}]',
         'should write locale content');
       assert.equal(writeFile.leafName, 'en-test.json',
         'should write locale content to this path');
@@ -341,8 +339,8 @@ suite('webapp-optimize.js', function() {
         },
         locales: ['en-test']
       });
-      assert.deepEqual(webappOptimize.webapp.dictionary, {},
-        'should create an empty dictionary for webapp');
+      assert.deepEqual(webappOptimize.webapp.asts, {},
+        'should create an empty asts for webapp');
       assert.equal(webappOptimize.numOfFiles, 2,
         'should have two file left');
       assert.equal(processFiles[0].leafName, 'test.html',
@@ -359,7 +357,7 @@ suite('webapp-optimize.js', function() {
       htmlOptimizer = new app.HTMLOptimizer({
         htmlFile: htmlFile,
         webapp: {
-          dictionary: {'en-test': {}},
+          asts: {'en-test': []},
           buildDirectoryFile: mockUtils.getFile('build_stage')
         },
         config: mockConfig,
@@ -393,15 +391,15 @@ suite('webapp-optimize.js', function() {
         'should call callback of mozL10n.bootstrap');
     });
 
-    test('_proceedLocales, prepare dictionary files', function() {
-      htmlOptimizer.getDictionary = function(docElt) {
-        return {'test-id': 'testIdContent'};
+    test('_proceedLocales, prepare JSON AST files', function() {
+      htmlOptimizer.getAST = function(docElt) {
+        return [{$i: 'test-id', $v: 'testIdContent'}];
       };
       mockWin.document.documentElement = {};
       htmlOptimizer._proceedLocales();
-      assert.deepEqual(htmlOptimizer.fullDict,
-        {'en-test': {'test-id': 'testIdContent'}});
-      assert.equal(htmlOptimizer.webapp.dictionary['en-test']['test-id'],
+      assert.deepEqual(htmlOptimizer.asts,
+        {'en-test': [{$i: 'test-id', $v: 'testIdContent'}]});
+      assert.equal(htmlOptimizer.webapp.asts['en-test'][0].$v,
         'testIdContent');
     });
 

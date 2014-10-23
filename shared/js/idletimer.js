@@ -30,54 +30,49 @@
   win.setIdleTimeout = function setIdleTimeout(idleCallback,
                                                activeCallback,
                                                ms) {
-    var startTimestamp = Date.now();
     var idleFired = false;
+    var idleTimer = {};
 
-    var idleTimer = {
-      timer: undefined,
-      resetStartTimestamp: function resetStartTimestamp() {
-        startTimestamp = Date.now();
-      }
+    var triggerIdleCallback = function() {
+      // remove the timer
+      idleTimer.clearTimer();
+
+      // set idleFired to true
+      idleFired = true;
+
+      // fire the real idleCallback
+      idleCallback();
     };
 
-    // If the system unix time changes, we would need to update
-    // the number we kept in startTimestamp, or bad things will happen.
-    window.addEventListener('moztimechange', idleTimer.resetStartTimestamp);
+    idleTimer.timer = setTimeout(triggerIdleCallback, ms);
+
+    idleTimer.clearTimer = function clearIdleTimer() {
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = undefined;
+      }
+    };
 
     // Create an idle observer with a very short time as
     // we are not interested in when onidle fires (since it's inaccuate),
     // instead, we need to know when onactive callback calls.
     idleTimer.observer = {
       onidle: function observerReportIdle() {
-        // Once the onidle fires, the next user action will trigger
-        // onactive.
+        // Once the onidle fires, the next user action will trigger onactive.
 
-        // The time it takes for onidle to fire need to be subtracted from
-        // the real time we are going to set to setTimeout()
-        var time = (ms - (Date.now() - startTimestamp));
+        // No need to reset the timer if it has been set in the init stage.
+        if (idleTimer.timer) {
+          return;
+        }
 
-        // Let's start the real count down and wait for that.
-        idleTimer.timer = setTimeout(function idled() {
-          // remove the timer
-          idleTimer.timer = undefined;
-
-          // set idleFired to true
-          idleFired = true;
-
-          // fire the real idleCallback
-          idleCallback();
-        }, time);
+        // The onidle callback will delay 1 second after user stops actions
+        // so reduce 1000ms here to counteract it.
+        var time = ms - 1000;
+        idleTimer.timer = setTimeout(triggerIdleCallback, time < 0 ? 0 : time);
       },
       onactive: function observerReportActive() {
         // Remove the timer set by onidle
-        if (idleTimer.timer) {
-          clearTimeout(idleTimer.timer);
-          idleTimer.timer = undefined;
-        }
-
-        // Reset the timestamp; the next real count down should start
-        // from the time onactive fires
-        startTimestamp = Date.now();
+        idleTimer.clearTimer();
 
         // If idleCallback is not called yet,
         // we should not trigger activeCallback here
@@ -120,10 +115,7 @@
     // Properly clean it up, make sure we will never heard from
     // those callbacks ever again.
     navigator.removeIdleObserver(idleTimer.observer);
-    window.removeEventListener('moztimechange', idleTimer.resetStartTimestamp);
-    if (idleTimer.timer) {
-      clearTimeout(idleTimer.timer);
-    }
+    idleTimer.clearTimer();
   };
 
 })(this);

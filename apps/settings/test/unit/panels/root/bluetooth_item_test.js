@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['MockL10n']);
-
 suite('BluetoothItem', function() {
   var realL10n;
   var modules = [

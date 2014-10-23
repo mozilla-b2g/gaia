@@ -182,7 +182,7 @@ suite('Render contacts list', function() {
     var selectorStr = 'li.contact-item';
 
     var showContact = searchList.querySelectorAll(selectorStr);
-    assert.length(showContact, 1);
+    assert.lengthOf(showContact, 1);
     assert.equal(showContact[0].dataset.uuid, contact.id);
     assert.isTrue(noResults.classList.contains('hide'));
   }
@@ -909,13 +909,13 @@ suite('Render contacts list', function() {
         var lastFav = favList[favList.length - 1];
         doOnscreen(subject, lastFav, function() {
           assert.equal(lastFav.dataset.rendered, 'true',
-                       'contact should be rendered in "favorites" list');
+                     'contact should be rendered in "favorites" list');
 
           var aList = assertGroup(groupA, containerA, names.length);
           var lastA = aList[aList.length - 1];
           doOnscreen(subject, lastA, function() {
             assert.equal(lastA.dataset.rendered, 'true',
-                         'contact should be rendered in "A" list');
+                       'contact should be rendered in "A" list');
             done();
           });
         });
@@ -926,13 +926,14 @@ suite('Render contacts list', function() {
       var newList = new MockContactsList();
       doLoad(subject, newList, function() {
         doLoad(subject, null, function() {
-          assertNoGroup(groupA, containerA);
-          assertNoGroup(groupB, containerB);
-          assertNoGroup(groupC, containerC);
-          assertNoGroup(groupD, containerD);
-          assertNoGroup(groupFav, containerFav);
-          assertNoGroup(groupUnd, containerUnd);
-          done();
+          done(function() {
+            assertNoGroup(groupA, containerA);
+            assertNoGroup(groupB, containerB);
+            assertNoGroup(groupC, containerC);
+            assertNoGroup(groupD, containerD);
+            assertNoGroup(groupFav, containerFav);
+            assertNoGroup(groupUnd, containerUnd);
+          });    
         });
       });
     });
@@ -940,34 +941,37 @@ suite('Render contacts list', function() {
     test('removing one contact', function(done) {
       var newList = new MockContactsList();
       doLoad(subject, newList, function() {
-        var originalNumber = container.querySelectorAll('.contact-item').length;
-        assert.isNotNull(container.querySelector('[data-uuid="2"]'));
+        done(function() {
+          var originalNumber = 
+            container.querySelectorAll('.contact-item').length;
+          assert.isNotNull(container.querySelector('[data-uuid="2"]'));
 
-        subject.remove('2');
+          subject.remove('2');
 
-        var afterDelNumber = container.querySelectorAll('.contact-item').length;
-        assert.equal(originalNumber, afterDelNumber + 1);
-        assert.isNotNull(container.querySelector('[data-uuid="1"]'));
-        assert.isNull(container.querySelector('[data-uuid="2"]'));
-        assert.isNotNull(container.querySelector('[data-uuid="3"]'));
+          var afterDelNumber = 
+            container.querySelectorAll('.contact-item').length;
+          assert.equal(originalNumber, afterDelNumber + 1);
+          assert.isNotNull(container.querySelector('[data-uuid="1"]'));
+          assert.isNull(container.querySelector('[data-uuid="2"]'));
+          assert.isNotNull(container.querySelector('[data-uuid="3"]'));
 
-        // There are contacts on the list so no contacts should be hidden
-        assert.isTrue(noContacts.classList.contains('hide'));
-        assert.isFalse(fastScroll.classList.contains('hide'));
-        assert.isFalse(groupsContainer.classList.contains('hide'));
-
-        done();
+          // There are contacts on the list so no contacts should be hidden
+          assert.isTrue(noContacts.classList.contains('hide'));
+          assert.isFalse(fastScroll.classList.contains('hide'));
+          assert.isFalse(groupsContainer.classList.contains('hide'));
+        });
       });
     });
 
     test('checking no contacts when coming from activity', function(done) {
       ActivityHandler.currentlyHandling = true;
       doLoad(subject, [], function() {
-        assert.isTrue(noContacts.classList.contains('hide'));
-        assertNoGroup(groupFav, containerFav);
-        assertTotal(0, 0);
-        ActivityHandler.currentlyHandling = false;
-        done();
+        done(function() {
+          assert.isTrue(noContacts.classList.contains('hide'));
+          assertNoGroup(groupFav, containerFav);
+          assertTotal(0, 0);
+          ActivityHandler.currentlyHandling = false;
+        });
       });
     });
 
@@ -1060,15 +1064,16 @@ suite('Render contacts list', function() {
       assertTotal(0, 0);
 
       doLoad(subject, [deviceContact], function() {
-        groupT = container.querySelector('#group-T');
-        containerT = container.querySelector('#contacts-list-T');
-        var tContacts = assertGroup(groupT, containerT, 1);
-        assert.isTrue(tContacts[0].querySelector('p').innerHTML.
-                      indexOf('Taylor') > -1);
+        done(function() {
+          groupT = container.querySelector('#group-T');
+          containerT = container.querySelector('#contacts-list-T');
+          var tContacts = assertGroup(groupT, containerT, 1);
+          assert.isTrue(tContacts[0].querySelector('p').innerHTML.
+                        indexOf('Taylor') > -1);
 
-        // Two instances as this contact is a favorite one also
-        assertTotal(2, 2);
-        done();
+          // Two instances as this contact is a favorite one also
+          assertTotal(2, 2);
+        });
       });
     }); // test ends
 
@@ -1079,7 +1084,7 @@ suite('Render contacts list', function() {
                      'search-view');
         assert.equal(window.Contacts.navigation.getCurrentTransition(),
                      'none');
-        });
+      });
     });
 
     test('check empty search', function(done) {
@@ -1090,11 +1095,10 @@ suite('Render contacts list', function() {
         contacts.Search.search(function search_finished() {
           var selectorStr = 'li.contact-item';
           var contacts = searchList.querySelectorAll(selectorStr);
-
-          assert.length(contacts, 0);
-          assert.isFalse(noResults.classList.contains('hide'));
-
-          done();
+          done(function() {
+            assert.lengthOf(contacts, 0);
+            assert.isFalse(noResults.classList.contains('hide'));
+          });     
         });
       });
     });
@@ -1109,9 +1113,10 @@ suite('Render contacts list', function() {
         searchBox.value = contact.givenName[0] + ' ' +
                           contact.familyName[0] + '  ';
         contacts.Search.search(function search_finished() {
-          assertContactFound(contact);
-          contacts.Search.invalidateCache();
-          done();
+          done(function() {
+            assertContactFound(contact);
+            contacts.Search.invalidateCache();
+          });
         });
       });
     });
@@ -1147,9 +1152,10 @@ suite('Render contacts list', function() {
       doLoad(subject, mockContacts, function() {
         searchBox.value = '(';
         contacts.Search.search(function search_finished() {
-          assert.isFalse(noResults.classList.contains('hide'));
-          contacts.Search.invalidateCache();
-          done();
+          done(function() {
+            assert.isFalse(noResults.classList.contains('hide'));
+            contacts.Search.invalidateCache();
+          });
         });
       });
     });
@@ -1165,10 +1171,11 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = '(';
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+            });
           });
         });
       });
@@ -1193,10 +1200,11 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = accentedCharName + ' ' + contact.familyName[0];
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+            });
           });
         });
       });
@@ -1224,10 +1232,11 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = givenName + ' ' + familyName;
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+            });
           });
         });
       });
@@ -1242,10 +1251,11 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = contact.tel[0].value;
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+            });
           });
         });
       });
@@ -1268,11 +1278,12 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = 'noName';
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(empty);
-            contacts.Search.invalidateCache();
-            contacts.Search.exitSearchMode({preventDefault: function() {}});
-            done();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(empty);
+              contacts.Search.invalidateCache();
+              contacts.Search.exitSearchMode({preventDefault: function() {}});
+            });
           });
         });
       });
@@ -1312,9 +1323,10 @@ suite('Render contacts list', function() {
         var firstLetter = contact.givenName[0].charAt(0);
         searchBox.value = firstLetter;
         contacts.Search.search(function search_finished() {
-          assertHighlight(firstLetter);
-          contacts.Search.invalidateCache();
-          done();
+          done(function() { 
+            assertHighlight(firstLetter);
+            contacts.Search.invalidateCache();
+          });
         });
       });
     });
@@ -1329,9 +1341,10 @@ suite('Render contacts list', function() {
         var firstLetter = contact.givenName[0];
         searchBox.value = firstLetter;
         contacts.Search.search(function search_finished() {
-          assertHighlight(firstLetter);
-          contacts.Search.invalidateCache();
-          done();
+          done(function() {
+            assertHighlight(firstLetter);
+            contacts.Search.invalidateCache();
+          });
         });
       });
     });
@@ -1348,9 +1361,10 @@ suite('Render contacts list', function() {
       doLoad(subject, mockContacts, function() {
         searchBox.value = 'ae';
         contacts.Search.search(function search_finished() {
-          assertHighlight('áe');
-          contacts.Search.invalidateCache();
-          done();
+          done(function() {
+            assertHighlight('áe');
+            contacts.Search.invalidateCache();
+          }); 
         });
       });
     });
@@ -1358,29 +1372,29 @@ suite('Render contacts list', function() {
     test('Order string lazy calculated', function(done) {
       mockContacts = new MockContactsList();
       doLoad(subject, mockContacts, function() {
-        // The nodes are there
-        var nodes = list.querySelectorAll('li');
-        assert.length(nodes, 3);
+        done(function() {
+          // The nodes are there
+          var nodes = list.querySelectorAll('li');
+          assert.lengthOf(nodes, 3);
 
-        // But no order strings are rendered initially.  This work is deferred
-        nodes = list.querySelectorAll('li[data-order]');
-        assert.length(nodes, 0);
+          // But no order strings are rendered initially.  This work is deferred
+          nodes = list.querySelectorAll('li[data-order]');
+          assert.lengthOf(nodes, 0);
 
-        // Adding a contact via refresh() should result in the order string
-        // being calculated.
-        var c = new MockContactAllFields();
-        c.id = 99;
-        c.familyName = ['AZ'];
-        c.category = [];
-        doRefreshContact(subject, c);
+          // Adding a contact via refresh() should result in the order string
+          // being calculated.
+          var c = new MockContactAllFields();
+          c.id = 99;
+          c.familyName = ['AZ'];
+          c.category = [];
+          doRefreshContact(subject, c);
 
-        nodes = list.querySelectorAll('li');
-        assert.length(nodes, 4);
+          nodes = list.querySelectorAll('li');
+          assert.lengthOf(nodes, 4);
 
-        nodes = list.querySelectorAll('li[data-order]');
-        assert.length(nodes, 2);
-
-        done();
+          nodes = list.querySelectorAll('li[data-order]');
+          assert.lengthOf(nodes, 2);
+        });
       });
     });
 
@@ -1398,7 +1412,7 @@ suite('Render contacts list', function() {
 
       var nodes = document.querySelectorAll('li[data-order]');
 
-      assert.length(nodes, mockContacts.length);
+      assert.lengthOf(nodes, mockContacts.length);
       for (i = 0; i < nodes.length; i++) {
         var node = nodes[i];
         var mockContact = mockContacts[i];

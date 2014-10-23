@@ -531,7 +531,7 @@ var CallsHandler = (function callsHandler() {
     var openLines = telephony.calls.length +
       (telephony.conferenceGroup.calls.length ? 1 : 0);
 
-    if (openLines !== 1) {
+    if (openLines !== 1 || isFirstCallOnCdmaNetwork()) {
       return;
     }
 

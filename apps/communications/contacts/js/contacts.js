@@ -20,7 +20,7 @@
 var COMMS_APP_ORIGIN = location.origin;
 
 // Scale ratio for different devices
-var SCALE_RATIO = window.innerWidth / 320;
+var SCALE_RATIO = window.devicePixelRatio || 1;
 
 var Contacts = (function() {
   var SHARED = 'shared';
@@ -36,7 +36,7 @@ var Contacts = (function() {
 
   var goToForm = function edit() {
     var transition = ActivityHandler.currentlyHandling ?
-     'activity-popup' : 'popup';
+                                                  'activity-popup' : 'fade-in';
 
     navigation.go('view-contact-form', transition);
   };
@@ -102,14 +102,7 @@ var Contacts = (function() {
             }
 
             contactsDetails.render(currentContact);
-            if (params.tel) {
 
-              contactsDetails.reMark(
-                'tel',
-                params.tel,
-                JSON.parse(params.isMissedCall) ? 'remark-missed' : 'remark'
-              );
-            }
             navigation.go(sectionId, 'right-left');
             showApp();
           }, function onError() {
@@ -119,12 +112,15 @@ var Contacts = (function() {
         break;
       case 'view-contact-form':
         initForm(function onInitForm() {
-          if (params == -1 || !('id' in params)) {
+          if (params.mozContactParam) {
+            contactsForm.render(ActivityHandler.mozContactParam, goToForm);
+            ActivityHandler.mozContactParam = null;
+          } else if (params == -1 || !(params.id)) {
             contactsForm.render(params, goToForm);
             showApp();
           } else {
             // Editing existing contact
-            if ('id' in params) {
+            if (params.id) {
               var id = params.id;
               cList.getContactById(id, function onSuccess(savedContact) {
                 currentContact = savedContact;
@@ -278,8 +274,8 @@ var Contacts = (function() {
     header.removeAttribute('action');
     settingsButton.hidden = false;
     addButton.hidden = false;
-    // Trigger the title to re-run font-fit/centering logic
-    appTitleElement.textContent = appTitleElement.textContent;
+
+    appTitleElement.setAttribute('data-l10n-id', 'contacts');
   }
 
   var lastCustomHeaderCallback;
@@ -298,22 +294,19 @@ var Contacts = (function() {
   };
 
   var checkCancelableActivity = function cancelableActivity() {
+    var selecting = (contactsList && contactsList.isSelecting);
+
     if (ActivityHandler.currentlyHandling) {
-      header.setAttribute('action', 'close');
-      settingsButton.hidden = true;
-      addButton.hidden = true;
-      // Trigger the title to re-run font-fit/centering logic
-      appTitleElement.textContent = appTitleElement.textContent;
       setupCancelableHeader();
+      var activityName = ActivityHandler.activityName;
+      if (activityName === 'pick' || activityName === 'update') {
+        selecting = true;
+      }
     } else {
-      header.removeAttribute('action');
-      settingsButton.hidden = false;
-      addButton.hidden = false;
-      setupActionableHeader();
+        setupActionableHeader();
     }
 
-    var l10nId = (contactsList && contactsList.isSelecting)?
-      'selectContact' : 'contacts';
+    var l10nId =  selecting ? 'selectContact' : 'contacts';
     appTitleElement.setAttribute('data-l10n-id', l10nId);
   };
 
@@ -694,7 +687,7 @@ var Contacts = (function() {
     initSettings(function onSettingsReady() {
       // The number of FB Friends has to be recalculated
       contacts.Settings.refresh();
-      navigation.go('view-settings', 'popup');
+      navigation.go('view-settings', 'fade-in');
     });
   };
 
@@ -886,6 +879,7 @@ var Contacts = (function() {
     window.setTimeout(Contacts.onLocalized);
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       LazyLoader.load([SHARED_UTILS_PATH + '/misc.js',
+        SHARED_UTILS_PATH + '/vcard_reader.js',
         SHARED_UTILS_PATH + '/vcard_parser.js'],
        function() {
         var actHandler = ActivityHandler.handle.bind(ActivityHandler);

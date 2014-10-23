@@ -36,6 +36,14 @@ function navigationStack(currentView) {
       },
       backwards: {}
     },
+    'fade-in': {
+      forwards: {
+        next: 'fade-in'
+      },
+      backwards: {
+        current: 'fade-out'
+      }
+    },
     'go-deeper': {
       forwards: {
         current: 'app-go-deeper-out',

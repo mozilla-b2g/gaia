@@ -14,7 +14,7 @@
   function goBack() {
     this.removeEventListener('action', goBack);
     var activity = new MozActivity({
-      name: 'configure',
+      name: 'moz_configure_window',
       data: {
         target: 'device'
       }

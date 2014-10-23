@@ -5,7 +5,6 @@
 const { Cc, Ci, Cu} = require('chrome');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
-Cu.import('resource://gre/modules/Downloads.jsm');
 Cu.import('resource://gre/modules/Promise.jsm');
 
 var utils = require('./utils');

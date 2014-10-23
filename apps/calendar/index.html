@@ -64,7 +64,7 @@
 <body role="application" class="loading theme-productivity">
 
 <section is="lazy-styles" id="lazy-styles"></section>
-<section is="errors" id="errors" role="status"></section>
+<section is="errors" id="errors" role="status" aria-live="assertive" aria-atomic="true"></section>
 <section is="settings" id="settings" role="region"></section>
 
 <section id="time-views" role="region">
@@ -80,7 +80,7 @@
   </div>
 
   <div id="hint-swipe-to-navigate" class="hint hide">
-    <div class="hint-swipe-text">
+    <div class="hint-swipe-text" aria-live="assertive" aria-atomic="true">
       <strong data-l10n-id="hint-swipe-action">Swipe</strong>
       <span data-l10n-id="hint-swipe-to-navigate"> to navigate between calendar dates.</span>
     </div>
@@ -93,20 +93,20 @@
   When a day is selected you have
   access to the details here
   -->
-  <section id="months-day-view" role="tabpanel" aria-labelledby="today">
+  <section id="months-day-view" role="tabpanel">
     <div id="event-list-date"></div>
     <div id="empty-message" data-l10n-id="no-events" class="active">No Events</div>
-    <section id="event-list" class="day-events">
+    <section id="event-list" class="day-events" role="listbox" aria-labelledby="event-list-date">
     </section>
   </section>
 
-  <section id="day-view" role="tabpanel" aria-labelledby="day"></section>
+  <section is="multi-day" id="day-view" class="multi-day day-view" role="tabpanel" aria-labelledby="day"></section>
 
-  <section is="multi-day" id="week-view" class="multi-day" role="tabpanel" aria-labelledby="week"></section>
+  <section is="multi-day" id="week-view" class="multi-day week-view" role="tabpanel" aria-labelledby="week"></section>
 
   <ul id="view-selector" role="tablist" class="bb-tablist">
     <li class="today" role="presentation">
-      <a id="today" href="#today"><span class="gaia-icon icon-calendar-today"></span></a>
+      <a id="today" href="#today" data-l10n-id="present"><span class="gaia-icon icon-calendar-today"></span></a>
     </li>
     <li class="month" role="presentation"><a role="tab" aria-selected="true" aria-controls="month-view" id="month" data-l10n-id="show-month-view" href="/month/">Month</a></li>
     <li class="week" role="presentation"><a role="tab" aria-selected="false" aria-controls="week-view" id="week" data-l10n-id="show-week-view" href="/week/">Week</a></li>

@@ -1,3 +1,5 @@
+'use strict';
+
 var listedFactory = function(list, entry) {
   return list.indexOf(entry) !== -1;
 };

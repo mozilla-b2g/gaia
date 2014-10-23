@@ -190,6 +190,26 @@ suite('system/TelephonySettings', function() {
         subject.start();
         assert.ok(setStub.notCalled);
     });
+
+    test('_syncCallerIdPreferenceWithCarrier should set a default value when ' +
+      'necessary', function() {
+        MockSettingsHelper.instances['ril.clirMode'] = {
+          value: null
+        };
+
+        var fakeValue = 1;
+        var mockSettingsHelper = MockSettingsHelper('ril.clirMode');
+
+        this.sinon.stub(subject, '_getCallerIdPreference',
+          function(conn, callback) {
+            callback(fakeValue);
+        });
+        this.sinon.stub(mockSettingsHelper, 'set');
+
+        subject._syncCallerIdPreferenceWithCarrier({}, 0, mockSettingsHelper);
+        assert.deepEqual(
+          mockSettingsHelper.set.getCall(0).args[0], [fakeValue]);
+    });
   });
 
   suite('initPreferredNetworkType', function() {

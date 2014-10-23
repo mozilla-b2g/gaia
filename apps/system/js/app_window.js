@@ -415,7 +415,8 @@
     }
 
     // If the app is the currently displayed app, switch to the homescreen
-    if (this.isActive() && !this.isHomescreen) {
+    if (this.isActive() && this.getBottomMostWindow().isActive() &&
+        !this.isHomescreen) {
 
       var fallbackTimeout;
       var onClosed = function() {
@@ -1695,6 +1696,9 @@
     if (!this.element) {
       return;
     }
+    if (this._screenshotBlob) {
+      this._showScreenshotOverlay();
+    }
 
     this.debug('requesting to open');
     if (!this.loaded ||
@@ -2141,7 +2145,9 @@
         attention.parentWindow.instanceID === this.instanceID) {
       return;
     }
-
+    if (!this.isActive()) {
+      return;
+    }
     this.setVisible(false);
   };
   exports.AppWindow = AppWindow;

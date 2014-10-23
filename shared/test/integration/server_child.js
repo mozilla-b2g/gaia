@@ -28,6 +28,11 @@ Server.prototype = {
    */
   corkedUrls: {},
 
+  /**
+   * A map of protected URLs.
+   */
+  authUrls: {},
+
   stop: function() {
     if (this.http) {
       this.http.kill();
@@ -47,6 +52,15 @@ Server.prototype = {
           return;
         }
 
+        // Handle protected URLs.
+        if (server.authUrls[fullUrl]) {
+          res.writeHead(401, {
+            'WWW-Authenticate': 'Basic realm="login required"'
+          });
+          res.end();
+          return;
+        }
+
         // hand off request to node-static
         file.serve(req, res);
       }).resume();
@@ -60,6 +74,14 @@ Server.prototype = {
   uncork: function(url) {
     delete this.corkedUrls[url];
     this.emit('uncorked ' + url);
+  },
+
+  protect: function(url) {
+    this.authUrls[url] = true;
+  },
+
+  unprotect: function(url) {
+    delete this.authUrls[url];
   }
 };
 
@@ -79,6 +101,12 @@ process.on('message', function(data) {
       break;
     case 'uncork':
       server.uncork(data.args);
+      break;
+    case 'protect':
+      server.protect(data.args);
+      break;
+    case 'unprotect':
+      server.unprotect(data.args);
       break;
     case 'stop':
       server.stop();
