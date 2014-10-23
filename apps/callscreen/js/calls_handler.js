@@ -461,21 +461,27 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
-    if (telephony.active) {
+    if (cdmaCallWaiting()) {
+      /* Bug 1096234: connected or held call in CDMA mode. In this mode only a
+       * single call is present and it might be in the 'held' state on certain
+       * RILs thus we can't access it via the telephony.active field which
+       * would be null. */
+      var call = handledCalls[0].call;
+
+      if (call.state === 'held') {
+        call.resume();
+      } else {
+        call.hold();
+      }
+
+      btHelper.answerWaitingCall();
+    } else if (telephony.active) {
       // connected, incoming
       telephony.active.hold(); // the incoming call is answered by gecko
-
-      // Check for CDMA mode before calling bluetooth CDMA-specific functions
-      if (cdmaCallWaiting()) {
-        btHelper.answerWaitingCall();
-      }
     } else if (handledCalls.length >= 2) {
       // held, incoming
       var lastCall = handledCalls[handledCalls.length - 1].call;
       lastCall.answer(); // the previous call is held by gecko
-    } else {
-      // Held call in CDMA mode, hold to answer to the second call
-      handledCalls[0].call.hold();
     }
 
     CallScreen.hideIncoming();
@@ -572,7 +578,15 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
-    telephony.active.hold();
+    if (telephony.active) {
+      telephony.active.hold();
+    } else {
+      /* Bug 1096234: In CDMA call waiting mode only a single call is present
+       * and it might be in the 'held' state on certain RILs thus we can't
+       * access it via the telephony.active field which would be null. */
+      handledCalls[0].call.resume();
+    }
+
     btHelper.toggleCalls();
   }
 
@@ -767,9 +781,7 @@ var CallsHandler = (function callsHandler() {
    * @return {Boolean} Returns true if we're in CDMA call waiting mode.
    */
   function cdmaCallWaiting() {
-    return ((telephony.calls.length == 1) &&
-            (telephony.calls[0].state == 'connected') &&
-            (telephony.calls[0].secondId));
+    return !!((telephony.calls.length === 1) && telephony.calls[0].secondId);
   }
 
   /**
@@ -885,6 +897,7 @@ var CallsHandler = (function callsHandler() {
     switchToSpeaker: switchToSpeaker,
     switchToDefaultOut: switchToDefaultOut,
     holdOrResumeSingleCall: holdOrResumeSingleCall,
+    cdmaCallWaiting: cdmaCallWaiting,
 
     checkCalls: onCallsChanged,
     mergeCalls: mergeCalls,

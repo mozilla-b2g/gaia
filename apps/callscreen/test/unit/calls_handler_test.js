@@ -1575,18 +1575,51 @@ suite('calls handler', function() {
         var mockCall;
 
         setup(function() {
-          mockCall = new MockCall('543552', 'incoming');
+          mockCall = new MockCall('543552', 'connected');
 
-          telephonyAddCall.call(this, mockCall, {trigger: true});
+          telephonyAddCall.call(this, mockCall);
           MockNavigatorMozTelephony.active = mockCall;
           telephonyAddCdmaCall.call(this, '123456');
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
         });
 
         test('should hold the active call and gecko will resume the other one',
         function() {
-          var holdSpy = this.sinon.spy(mockCall, 'hold');
+          this.sinon.spy(mockCall, 'hold');
+          this.sinon.spy(mockCall, 'resume');
+
           CallsHandler.toggleCalls();
-          assert.isTrue(holdSpy.calledOnce);
+          sinon.assert.calledOnce(mockCall.hold);
+          sinon.assert.notCalled(mockCall.resume);
+        });
+
+        test('should inform bluetooth of toggling calls', function() {
+          var btToggleSpy = this.sinon.spy(
+            MockBluetoothHelperInstance, 'toggleCalls');
+          CallsHandler.toggleCalls();
+          assert.isTrue(btToggleSpy.calledOnce);
+        });
+      });
+
+      suite('> toggling between 2 calls in CDMA mode when held', function() {
+        var mockCall;
+
+        setup(function() {
+          mockCall = new MockCall('543552', 'held');
+
+          telephonyAddCall.call(this, mockCall);
+          telephonyAddCdmaCall.call(this, '123456');
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+        });
+
+        test('should resume the active call and gecko will hold the other one',
+        function() {
+          this.sinon.spy(mockCall, 'hold');
+          this.sinon.spy(mockCall, 'resume');
+
+          CallsHandler.toggleCalls();
+          sinon.assert.calledOnce(mockCall.resume);
+          sinon.assert.notCalled(mockCall.hold);
         });
 
         test('should inform bluetooth of toggling calls', function() {
@@ -2201,6 +2234,44 @@ suite('calls handler', function() {
           MockNavigatorMozTelephony.mTriggerCallsChanged();
           assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
         });
+      });
+    });
+
+    suite('> CallsHandler.cdmaCallWaiting()', function() {
+      setup(function() {
+        var mockCall = new MockCall('543552', 'connected');
+
+        telephonyAddCall.call(this, mockCall);
+      });
+
+      test('Not in call waiting mode', function() {
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.isFalse(CallsHandler.cdmaCallWaiting());
+      });
+
+      test('In GSM call waiting mode', function() {
+        telephonyAddCall.call(this, new MockCall('234567', 'connected'));
+        MockNavigatorMozTelephony.calls[0].state = 'held';
+        MockNavigatorMozTelephony.active = MockNavigatorMozTelephony.calls[1];
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.isFalse(CallsHandler.cdmaCallWaiting());
+      });
+
+      test('CDMA call waiting mode with connected call', function() {
+        MockNavigatorMozTelephony.active = MockNavigatorMozTelephony.calls[0];
+        telephonyAddCdmaCall.call(this, '123456', {trigger: true});
+
+        assert.isTrue(CallsHandler.cdmaCallWaiting());
+      });
+
+      test('CDMA call waiting mode with held call', function() {
+        MockNavigatorMozTelephony.calls[0].state = 'held';
+        MockNavigatorMozTelephony.active = null;
+        telephonyAddCdmaCall.call(this, '123456', {trigger: true});
+
+        assert.isTrue(CallsHandler.cdmaCallWaiting());
       });
     });
   });

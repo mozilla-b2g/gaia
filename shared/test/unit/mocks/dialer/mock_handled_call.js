@@ -82,7 +82,6 @@ function telephonyAddCall(mockCall, opt) {
  * added via telephonyAddCall(). */
 function telephonyAddCdmaCall(number, opt) {
   MockNavigatorMozTelephony.calls[0].secondId = { number: number };
-  MockNavigatorMozTelephony.calls[0].state = 'connected';
 
   if (opt && opt.trigger) {
     MockNavigatorMozTelephony.mTriggerCallsChanged();
