@@ -783,6 +783,8 @@ var WindowManager = (function() {
       protocol + 'keyboard.' + domain + '/manifest.webapp';
     var musicManifestUrl =
       protocol + 'music.' + domain + '/manifest.webapp';
+    var clockManifestUrl =
+      protocol + 'clock.' + domain + '/manifest.webapp';
     var outOfProcessBlackList = [
       browserManifestUrl,
       // Requires nested content processes (bug 761935).  This is not
@@ -794,10 +796,12 @@ var WindowManager = (function() {
       // Keyboard Settings page manages it's own life cycle.
       // Make it inproc to prevent Settings app being killed before switching
       // back.
-      musicManifestUrl
+      musicManifestUrl,
       // Music should stay alive while it's playing in the background, to
       // avoid being killed by LMK, put it inproc and the media app agent
       // will manage its life cycle.
+      clockManifestUrl
+      // Clock should always be launched successfully for Alarm.
     ];
 
     if (outOfProcessBlackList.indexOf(manifestURL) === -1) {
