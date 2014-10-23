@@ -272,9 +272,7 @@ var ScreenManager = {
             !(telephony.conferenceGroup &&
               telephony.conferenceGroup.calls.length)) {
 
-          if (this._screenOffBy == 'proximity') {
-            this.turnScreenOn();
-          }
+          this.turnScreenOn();
 
           window.removeEventListener('userproximity', this);
 
