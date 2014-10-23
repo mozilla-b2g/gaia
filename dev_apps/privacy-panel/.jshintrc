@@ -1,0 +1,11 @@
+{
+  "extends": "../../.jshintrc",
+  "predef": [
+    "define",
+    "require",
+    "Promise",
+    "crypto",
+    "TextEncoder",
+    "TextDecoder"
+  ]
+}
