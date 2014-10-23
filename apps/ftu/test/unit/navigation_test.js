@@ -138,6 +138,7 @@ suite('navigation >', function() {
   });
 
   test('navigates backwards', function() {
+    MockIccHelper.setProperty('cardState', 'ready');
     Navigation.simMandatory = true;
     Navigation.totalSteps = numSteps; // explicitly set the total steps
 
