@@ -1252,7 +1252,6 @@
     /* jshint -W084 */
 
     if (!this.isReady) {
-      console.warn('mozL10n: A non-existing entity requested: ' + id);
       throw new L10nError('Context not ready');
     }
 
@@ -1275,6 +1274,7 @@
       return entry;
     }
 
+    console.warn('mozL10n: A non-existing entity requested: ' + id);
     error.call(this, new L10nError(id + ' not found', id));
     return null;
   }
