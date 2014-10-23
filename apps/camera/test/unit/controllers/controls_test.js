@@ -154,6 +154,7 @@ suite('controllers/controls', function() {
   suite('ControlsController.onViewModeChanged()', function() {
     test('It switches to the next mode setting', function() {
       this.controller.onViewModeChanged();
+      sinon.assert.notCalled(this.view.enable);
       sinon.assert.called(this.settings.mode.next);
     });
   });
