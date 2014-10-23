@@ -52,10 +52,6 @@ suite('keyboard-layouts.js', function() {
             [{'layoutId': 'number', 'app': ['apps', 'keyboard']}]
       };
     };
-
-    mockUtils.getFileContent = function() {
-      return '';
-    };
   });
 
   test('Check the generated keyboard_layouts.json', function() {

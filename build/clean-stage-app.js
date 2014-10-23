@@ -17,7 +17,7 @@ exports.execute = function(options) {
     return;
   }
 
-  options.rebuildAppDirs.forEach(function(appdirPath) {
+  options.GAIA_APPDIRS.split(' ').forEach(function(appdirPath) {
     try {
       var appName = utils.getFile(appdirPath).leafName;
       remove(options.STAGE_DIR, appName);

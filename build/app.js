@@ -3,7 +3,6 @@
 /* global exports, require */
 
 var utils = require('utils');
-var rebuild = require('rebuild');
 
 function buildApps(options) {
   var appRegExp;
@@ -15,7 +14,7 @@ function buildApps(options) {
     throw e;
   }
 
-  options.rebuildAppDirs.forEach(function(appDir) {
+  options.GAIA_APPDIRS.split(' ').forEach(function(appDir) {
     let appDirFile = utils.getFile(appDir);
 
     if (appRegExp.test(appDirFile.leafName)) {
@@ -39,12 +38,6 @@ function buildApps(options) {
 exports.execute = function(options) {
   var stageDir = utils.getFile(options.STAGE_DIR);
   utils.ensureFolderExists(stageDir);
-
-  if (options.BUILD_APP_NAME === '*') {
-    options.rebuildAppDirs = rebuild.execute(options);
-  } else {
-    options.rebuildAppDirs = options.GAIA_APPDIRS.split(' ');
-  }
 
   require('pre-app').execute(options);
 
