@@ -50,7 +50,11 @@
     initialPanel.classList.add('current');
     initialPanel.innerHTML = initialPanel.firstChild.textContent;
 
-    window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+    // Fire the visually complete event as soon as the DOM is localized.
+    window.addEventListener('localized', function onInitialPanelLocalized() {
+      window.removeEventListener('localized', onInitialPanelLocalized);
+      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+    });
 
     // Load alameda and the required modules defined in main.js.
     loadAlameda();
