@@ -372,6 +372,10 @@ suite('Latin en_us worker', function() {
       test('As', function(next) {
         prediction('As', ['As', 'Ask', 'Ash'], next);
       });
+
+      test('keyboa', function(next) {
+        prediction('keyboa', ['keyboard', null, null], next);
+      });
     });
 
     suite('Low frequency dictionary words with better suggestion', function() {
