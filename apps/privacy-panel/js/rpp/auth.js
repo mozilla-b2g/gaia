@@ -203,10 +203,10 @@ function(panels, PassPhrase, SettingsListener) {
         return;
       }
 
+      this.clearRegisterForm();
       this.passphrase.change(pass1).then(function() {
         panels.show({ id: 'rpp-features' });
-        this.defineFTU();
-      }.bind(this));
+      });
     },
 
     /**
@@ -241,6 +241,8 @@ function(panels, PassPhrase, SettingsListener) {
           return;
         }
 
+        this.clearLoginForm();
+
         panels.show({ id: 'rpp-features' });
       }.bind(this));
     },
@@ -259,6 +261,55 @@ function(panels, PassPhrase, SettingsListener) {
     },
 
     /**
+     * Validate lockscreen passcode or SIM PIN to be able to change passphrase.
+     *
+     * @method changePassphrase
+     * @param {Object} event JavaScript event
+     */
+    validatePINs: function(pin, callback) {
+      var error;
+
+      // Start with trying to compare pin with passcode.
+      error = this.comparePINs(pin, this.lsPasscode);
+      if (error) {
+
+        if (error !== 'pin-different') {
+          callback(error);
+          return;
+        }
+
+        // If passcode failed, try SIM PIN instead.
+        this.validateSIMPIN(pin, error, callback);
+      } else {
+        callback();
+      }
+    },
+
+    /**
+     * Validate lockscreen passcode or SIM PIN to be able to change passphrase.
+     *
+     * @method changePassphrase
+     * @param {Object} event JavaScript event
+     */
+    validateSIMPIN: function(pin, previous_error, callback) {
+      var icc, unlock, mc = navigator.mozMobileConnections;
+
+      if ( ! mc || mc.length === 0) {
+        callback(previous_error);
+        return;
+      }
+
+      for (var sim in mc) {
+        if (mc.hasOwnProperty(sim) && mc[sim].iccId) {
+          icc = navigator.mozIccManager.getIccById(mc[sim].iccId);
+          unlock = icc.unlockCardLock({ lockType : 'pin', pin: pin });
+          unlock.onsuccess = callback.bind(this, '');
+          unlock.onerror = callback.bind(this, 'sim-invalid');
+        }
+      }
+    },
+
+    /**
      * Change passphrase.
      *
      * @method changePassphrase
@@ -271,28 +322,32 @@ function(panels, PassPhrase, SettingsListener) {
       var pass2   = form.querySelector('.pass2').value;
       var passmsg = form.querySelector('.validation-message');
       var pinmsg  = form.querySelector('.pin-validation-message');
-      var passError, pinError;
 
       event.preventDefault();
 
       passmsg.textContent = '';
       pinmsg.textContent = '';
 
-      pinError = this.comparePINs(pin, this.lsPasscode);
-      if (pinError) {
-        pinmsg.textContent = this.errorMessage(pinError);
-        return;
-      }
+      // Start with trying to compare pin with passcode.
+      this.validatePINs(pin, function(errkey) {
+        var passError;
 
-      passError = this.comparePasswords(pass1, pass2);
-      if (passError) {
-        passmsg.textContent = this.errorMessage(passError);
-        return;
-      }
+        if (errkey) {
+          pinmsg.textContent = this.errorMessage(errkey);
+          return;
+        }
 
-      this.passphrase.change(pass1).then(function() {
-        panels.show({ id: 'rpp-features' });
-      });
+        passError = this.comparePasswords(pass1, pass2);
+        if (passError) {
+          passmsg.textContent = this.errorMessage(passError);
+          return;
+        }
+
+        this.clearChangeForm();
+        this.passphrase.change(pass1).then(function() {
+          panels.show({ id: 'rpp-features' });
+        });
+      }.bind(this));
     },
 
     /**
@@ -328,5 +383,4 @@ function(panels, PassPhrase, SettingsListener) {
   };
 
   return new AuthPanel();
-
 });

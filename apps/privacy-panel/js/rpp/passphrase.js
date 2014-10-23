@@ -5,13 +5,11 @@
  * @return {Object}
  */
 define([
-  'shared/async_storage'
+  'localforage'
 ],
 
-function(asyncStorage) {
+function(localforage) {
   'use strict';
-
-  const SALT_NUM_BYTES = 8;
 
   function PassPhrase(macDest, saltDest) {
     this.macDest = macDest;
@@ -21,59 +19,48 @@ function(asyncStorage) {
   PassPhrase.prototype = {
     buffer: encode('topsecret'),
 
-    _getItem: function(key) {
-      var promise = new Promise(resolve => {
-        asyncStorage.getItem(key, resolve);
-      });
-      return promise;
-    },
-
-    _setItem: function(key, value) {
-      var promise = new Promise(resolve => {
-        asyncStorage.setItem(key, value, () => resolve(value));
-      });
-      return promise;
-    },
-
     exists: function() {
-      return this._mac().then(mac => !!mac);
+      return localforage.getItem(this.macDest).then(function(mac) {
+        return mac;
+      });
     },
 
     verify: function(password) {
-      return this._mac().then(mac => {
+      return this.exists().then(function(mac) {
         if ( ! mac) {
           return false;
         }
 
-        return this._retrieveKey(password).then(key => {
-          return crypto.subtle.verify('HMAC', key, mac, this.buffer);
-        });
-      });
+        return this._retrieveKey(password).then(function(key) {
+          return crypto.subtle.verify('HMAC', key, mac, this.buffer)
+            .then(function(valid) {
+              return valid;
+            });
+        }.bind(this));
+      }.bind(this));
     },
 
     change: function(password) {
-      return this._retrieveKey(password).then(key => {
+      return this._retrieveKey(password).then(function(key) {
         return crypto.subtle.sign('HMAC', key, this.buffer)
-          .then(mac => this._setItem(this.macDest, mac));
-      });
+          .then(function(mac) {
+            return localforage.setItem(this.macDest, mac);
+          }.bind(this));
+      }.bind(this));
     },
 
     clear: function() {
-      return this._setItem(this.macDest, null);
-    },
-
-    _mac: function() {
-      return this._getItem(this.macDest);
+      return localforage.setItem(this.macDest, null);
     },
 
     _salt: function() {
-      return this._getItem(this.saltDest).then(salt => {
+      return localforage.getItem(this.saltDest).then(function(salt) {
         if (salt) {
           return salt;
         }
-        salt = crypto.getRandomValues(new Uint8Array(SALT_NUM_BYTES));
-        return this._setItem(this.saltDest, salt);
-      });
+        salt = crypto.getRandomValues(new Uint8Array(8));
+        return localforage.setItem(this.saltDest, salt);
+      }.bind(this));
     },
 
     _retrievePWKey: function(password) {
@@ -87,11 +74,11 @@ function(asyncStorage) {
         this._retrievePWKey(password), this._salt()
       ]);
 
-      return params.then(values => {
+      return params.then(function(values) {
         var pwKey = values[0];
         var salt = values[1];
         return this._deriveKey(pwKey, salt);
-      });
+      }.bind(this));
     },
 
     _deriveKey: function(pwKey, salt) {
