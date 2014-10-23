@@ -41,6 +41,10 @@
   pointer-events: auto;
 }
 
+#app-uninstall-dialog {
+  position: absolute
+}
+
 #setup-installed-app-dialog section,
 #ime-layout-dialog section,
 #app-install-dialog section,
