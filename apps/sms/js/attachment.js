@@ -13,8 +13,6 @@
   // Path to the folder that stores all saved attachments
   const ATTACHMENT_FOLDER_PATH = 'sms-attachments/';
 
-  const priv = new WeakMap();
-
   /**
   * Gets actual base file name (name.extension) from its path.
   */
@@ -31,18 +29,16 @@
     this.name = blob.name || options.name ||
       navigator.mozL10n.get('unnamed-attachment');
     this.isDraft = !!options.isDraft;
-
-    priv.set(this, {
-      getAttachmentRenderer: function() {
-        var privMembers = priv.get(this);
-        privMembers.renderer = privMembers.renderer ||
-          AttachmentRenderer.for(this);
-        return privMembers.renderer;
-      }.bind(this)
-    });
   }
 
   Attachment.prototype = {
+    /* private methods */
+    _getAttachmentRenderer: function() {
+      this._renderer = this._renderer || AttachmentRenderer.for(this);
+      return this._renderer;
+    },
+
+    /* public properties */
     get size() {
       return this.blob.size;
     },
@@ -51,8 +47,9 @@
       return Utils.typeFromMimeType(this.blob.type);
     },
 
+    /* public methods */
     render: function(readyCallback) {
-      var attachmentRenderer = priv.get(this).getAttachmentRenderer();
+      var attachmentRenderer = this._getAttachmentRenderer();
 
       attachmentRenderer.render().catch(function(e) {
         console.error('Error occurred while rendering attachment.', e);
@@ -64,7 +61,7 @@
     },
 
     updateFileSize: function() {
-      var attachmentRenderer = priv.get(this).getAttachmentRenderer();
+      var attachmentRenderer = this._getAttachmentRenderer();
       attachmentRenderer.updateFileSize();
     },
 

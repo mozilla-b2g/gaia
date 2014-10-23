@@ -210,6 +210,7 @@
     navigator.mozL10n.setAttributes(
       sizeIndicator, sizeL10n.l10nId, sizeL10n.l10nArgs
     );
+    // we may render in an iframe, in that case l10n.js does not see the change
     navigator.mozL10n.translateFragment(sizeIndicator);
   };
 

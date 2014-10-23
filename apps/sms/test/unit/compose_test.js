@@ -712,8 +712,30 @@ suite('compose_test.js', function() {
         Compose.clear();
       });
 
-      test('Attaching one image', function(done) {
+      test('Attaching one small image', function(done) {
         var actualSize;
+        var attachment = mockImgAttachment();
+
+        function onInput() {
+          done(function() {
+            Compose.off('input', onInput);
+            var img = Compose.getContent();
+            assert.equal(img.length, 1, 'One image');
+            assert.notEqual(actualSize, Compose.size,
+              'the size was recalculated');
+          });
+        }
+        Compose.on('input', onInput);
+        Compose.append(attachment);
+        // we store this so we can make sure it's recalculated
+        actualSize = Compose.size;
+      });
+
+      test('Attaching one oversized image', function(done) {
+        var actualSize;
+        var attachment = mockImgAttachment(true);
+        sinon.spy(attachment, 'updateFileSize');
+
         function onInput() {
           if (!Compose.isResizing) {
             done(function() {
@@ -722,13 +744,16 @@ suite('compose_test.js', function() {
               assert.equal(img.length, 1, 'One image');
               assert.notEqual(actualSize, Compose.size,
                 'the size was recalculated after resizing');
+              assert.equal(attachment.blob, smallImageBlob);
+              sinon.assert.called(attachment.updateFileSize);
             });
           }
         }
         Compose.on('input', onInput);
-        Compose.append(mockImgAttachment());
+        Compose.append(attachment);
         // we store this so we can make sure it gets resized
         actualSize = Compose.size;
+        Utils.getResizedImgBlob.lastCall.yield(smallImageBlob);
       });
 
       test('Attaching another oversized image', function(done) {
