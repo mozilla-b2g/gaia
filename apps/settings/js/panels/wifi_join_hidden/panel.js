@@ -67,15 +67,26 @@ define(function(require) {
         WifiHelper.setSecurity(network, [key]);
         WifiUtils.changeDisplay(elements.panel, key);
       },
-      _onSSIDchange: function() {
-        // Make sure ssid length is less then 32 bytes.
+      _onSSIDchange: function(event) {
+        // Bug 1082394, during composition, we should not change the input
+        // value. Otherwise, the input value will be cleared unexpectedly.
+        // Besides, it seems unnecessary to change input value before
+        // composition is committed.
+        if (event.isComposing) {
+          return;
+        }
+        // Make sure ssid length is no more than 32 bytes.
         var str = this.value;
         // Non-ASCII chars in SSID will be encoded by UTF-8, and length of
         // each char might be longer than 1 byte.
         // Use encodeURIComponent() to encode ssid, then calculate correct
         // length.
-        if (encodeURIComponent(str).replace(/%[\w\d]{2}/g, '1').length > 32) {
-          this.value = str.substring(0, str.length - 1);
+        var encoder = new TextEncoder('utf-8');
+        while (encoder.encode(str).length > 32) {
+          str = str.substring(0, str.length - 1);
+        }
+        if (str !== this.value) {
+          this.value = str;
         }
       }
     });
