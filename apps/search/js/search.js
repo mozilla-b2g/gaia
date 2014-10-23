@@ -107,7 +107,10 @@
     resize: function() {
       var grid = document.getElementById('icons');
       if (grid && grid.render) {
-        grid.render({rerender: true});
+        grid.render({
+          rerender: true,
+          skipDivider: true
+        });
       }
     },
 
