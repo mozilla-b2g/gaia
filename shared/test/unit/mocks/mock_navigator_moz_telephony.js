@@ -95,6 +95,7 @@
     dial: function() { return {}; },
     dialEmergency: function() {},
     conferenceGroup: {
+      hangUp: function() { return {}; },
       add: function() {},
       hold: function() {},
       resume: function() {}
