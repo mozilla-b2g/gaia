@@ -38,17 +38,6 @@
   }
 }
 
-#screen.software-button-enabled gaia-confirm {
-  margin-bottom: var(--software-home-button-height);
-}
-
-@media (orientation: landscape) {
-  #screen.software-button-enabled gaia-confirm {
-    margin-bottom: 0;
-    margin-right: var(--software-home-button-height);
-  }
-}
-
 [role="dialog"].generic-dialog:before {
   content: "";
   display: inline-block;
