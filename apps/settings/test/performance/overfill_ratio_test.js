@@ -32,7 +32,7 @@ marionette(mozTestInfo.appPath + ' >', function() {
       lastEvent: lastEvent
     });
 
-    performanceHelper.disableScreenTimeout();
+    performanceHelper.unlockScreen();
 
     function sendOverfill() {
       window.wrappedJSObject.mozRequestOverfill(function result(aOverfill) {
