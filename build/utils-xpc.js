@@ -403,6 +403,9 @@ var gaia = {
         webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
           this.config.GAIA_DOMAIN, this.config.GAIA_SCHEME,
           this.config.GAIA_PORT, this.config.STAGE_DIR),
+        rebuildWebapps: makeWebappsObject(this.config.rebuildAppDirs,
+          this.config.GAIA_DOMAIN, this.config.GAIA_SCHEME,
+          this.config.GAIA_PORT, this.config.STAGE_DIR),
         aggregatePrefix: 'gaia_build_',
         distributionDir: this.config.GAIA_DISTRIBUTION_DIR
       };

@@ -477,7 +477,7 @@ function execute(options) {
       deviceType: options.GAIA_DEVICE_TYPE,
     });
 
-  gaia.webapps.forEach(function(webapp) {
+  gaia.rebuildWebapps.forEach(function(webapp) {
     if (options.BUILD_APP_NAME !== '*' &&
       webapp.sourceDirectoryName != options.BUILD_APP_NAME) {
       return;
