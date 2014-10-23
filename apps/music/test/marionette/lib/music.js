@@ -18,6 +18,10 @@ Music.Selector = Object.freeze({
   messageOverlay: '#overlay',
   firstTile: '.tile',
   songsTab: '#tabs-songs',
+  albumsTab: '#tabs-albums',
+  coverImage: '#player-cover-image',
+  viewsList: '#views-list-anchor',
+  viewsSublist: '#views-sublist-anchor',
   firstSong: '.list-item',
   playButton: '#player-controls-play',
   progressBar: '#player-seek-bar-progress',
@@ -147,11 +151,32 @@ Music.prototype = {
   },
 
   shareWith: function(appName) {
-    var shareButton = this.shareButton;
-    this.client.waitFor(function() {
-      return shareButton.displayed();
+
+    // Allow findElement to fail quickly.
+    var quickly = this.client.scope({
+      searchTimeout: 50
     });
-    shareButton.tap();
+
+    var shareMenu;
+    // Wait until the share menu is displayed.
+    // Try to click the cover image followed by the share button in the case
+    // that it hides before we get a chance to click it.
+    this.client.waitFor(function() {
+      this.client.helper.waitForElement(Music.Selector.coverImage).click();
+      this.shareButton.tap();
+
+      this.client.switchToFrame();
+      try {
+        shareMenu = quickly.findElement(Music.Selector.shareMenu);
+      } catch(e) {
+        this.client.apps.switchToApp(this.origin);
+        return false;
+      }
+
+      var isDisplayed = shareMenu.displayed();
+      this.client.apps.switchToApp(this.origin);
+      return isDisplayed;
+    }.bind(this));
 
     var list = this.shareMenu.findElements('button');
     for (var i = 0; i < list.length; i++) {
