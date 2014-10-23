@@ -424,10 +424,13 @@
     function slidingTip() {
       var tip = document.createElement('div');
       var tipArrow = document.createElement('div');
+      var tipText = document.createElement('div');
       tip.id = 'shrinking-tip';
       tipArrow.id = 'shrinking-tip-arrow';
+      tipText.id = 'shrinking-text';
       tipArrow.textContent = '\u00A0';
-      tip.setAttribute('data-l10n-id', 'shrinking-tip');
+      tipText.setAttribute('data-l10n-id', 'shrinking-tip');
+      tip.appendChild(tipText);
       tip.appendChild(tipArrow);
       return tip;
     };

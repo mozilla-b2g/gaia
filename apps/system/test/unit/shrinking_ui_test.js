@@ -675,11 +675,12 @@ suite('system/shrinkingUI', function() {
     }
 
     var tip = shrinkingUI._slidingTip();
-    var tipArrow = tip.children[0];
+    var tipText = tip.children[0];
+    var tipArrow = tip.children[1];
 
     assert.equal(tip.tagName.toLowerCase(), 'div');
     assert.equal(tip.id, 'shrinking-tip');
-    assert.equal(tip.getAttribute('data-l10n-id'), 'shrinking-tip');
+    assert.equal(tipText.getAttribute('data-l10n-id'), 'shrinking-tip');
     assert.equal(tipArrow.tagName.toLowerCase(), 'div');
     assert.equal(tipArrow.id, 'shrinking-tip-arrow');
     assert.equal(tipArrow.textContent, '\u00A0');
