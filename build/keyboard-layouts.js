@@ -64,17 +64,10 @@ function genDefaultLayouts(config, webappsMapping) {
   });
 
   // Write the result to file
-  let content = JSON.stringify(result);
   let resultFile = utils.resolve(
     utils.joinPath('shared', 'resources', 'keyboard_layouts.json'),
     config.GAIA_DIR);
-  if (resultFile.exists()) {
-    let prev = utils.getFileContent(resultFile);
-    if (prev === content) {
-      return;
-    }
-  }
-  utils.writeContent(resultFile, content);
+  utils.writeContent(resultFile, JSON.stringify(result));
 }
 
 function execute(options) {

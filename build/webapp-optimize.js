@@ -779,7 +779,7 @@ function execute(config) {
 
   var optimizeConfig = loadOptimizeConfig(config);
 
-  gaia.rebuildWebapps.forEach(function(webapp) {
+  gaia.webapps.forEach(function(webapp) {
     (new WebappOptimize()).execute({
       config: config,
       webapp: webapp,
