@@ -6,7 +6,7 @@ var realOnTouchStart;
 realOnTouchStart = window.ontouchstart;
 delete window.ontouchstart;
 
-require('/shared/js/contacts/contacts_shortcuts.js');
+require('/shared/js/alpha_scroll.js');
 
 suite('contacts_shortcuts AKA Alpha Scroller', function() {
 

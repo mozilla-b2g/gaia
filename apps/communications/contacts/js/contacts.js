@@ -741,7 +741,7 @@ var Contacts = (function() {
   var addAsyncScripts = function addAsyncScripts() {
     var lazyLoadFiles = [
       '/shared/js/contacts/utilities/templates.js',
-      '/shared/js/contacts/contacts_shortcuts.js',
+      '/shared/js/alpha_scroll.js',
       '/contacts/js/contacts_tag.js',
       '/contacts/js/tag_options.js',
       '/shared/js/text_normalizer.js',
