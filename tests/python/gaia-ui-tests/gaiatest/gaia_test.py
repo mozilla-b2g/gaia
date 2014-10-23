@@ -91,10 +91,6 @@ class GaiaApps(object):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("GaiaApps.locateWithName('%s')" % app_name)
 
-    def uninstall(self, name):
-        self.marionette.switch_to_frame()
-        self.marionette.execute_async_script("GaiaApps.uninstallWithName('%s')" % name)
-
     def kill(self, app):
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("GaiaApps.kill('%s');" % app.origin)
