@@ -2,15 +2,17 @@
 define(function(require, exports, module) {
 'use strict';
 
+var EventEmitter2 = require('ext/eventemitter2');
 var clamp = require('utils/mout').clamp;
 var lerp = require('utils/mout').lerp;
 var norm = require('utils/mout').norm;
 
 function Pan(options) {
+  EventEmitter2.call(this);
+
   this.eventTarget = options.eventTarget;
   this.targets = options.targets;
   this.overflows = options.overflows || [];
-  this.onDragRelease = options.onDragRelease || Pan.prototype.onDragRelease;
 
   var size = Math.max(options.gridSize || 0, 1);
   var cells = Math.max(options.visibleCells || 0, 1);
@@ -39,6 +41,8 @@ function Pan(options) {
 module.exports = Pan;
 
 Pan.prototype = {
+  __proto__: EventEmitter2.prototype,
+
   TRANSITION_DURATION: 800,
 
   setup: function() {
@@ -84,6 +88,8 @@ Pan.prototype = {
 
       this._isVertical = adx < ady;
       this._lockedAxis = true;
+
+      this.emit('start');
 
       if (this._isVertical) {
         return;
@@ -175,8 +181,9 @@ Pan.prototype = {
     this._onTweenEnd = this._unlockScroll;
     this._updateDestination(snap);
 
-    var diff = Math.round((this._origX - this._destX) / this._gridSize);
-    this.onDragRelease(diff);
+    this.emit('release', {
+      diff: Math.round((this._origX - this._destX) / this._gridSize)
+    });
   },
 
   _set: function(x) {
@@ -199,9 +206,7 @@ Pan.prototype = {
     } else {
       this._set(this._origX);
     }
-  },
-
-  onDragRelease: function() {}
+  }
 
 };
 
