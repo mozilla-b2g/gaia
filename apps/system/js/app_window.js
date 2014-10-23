@@ -338,6 +338,7 @@
     this.suspended = false;
     this.element.classList.remove('suspended');
     // Launch as background by default.
+    this.browser.element.classList.add('hidden');
     this._setVisible(false);
     this.publish('resumed');
   };
@@ -356,6 +357,7 @@
     this.element.classList.add('suspended');
     this.browserContainer.removeChild(this.browser.element);
     this.browser = null;
+    this.iframe = null;
     this.publish('suspended');
   };
 
