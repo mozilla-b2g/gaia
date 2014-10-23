@@ -16,6 +16,7 @@ class EditPhoto(Base):
     _edit_crop_button_locator = (By.ID, 'edit-crop-button')
     _crop_portrait_locator = (By.ID, 'edit-crop-aspect-portrait')
     _save_progress_bar_locator = (By.ID, 'save-progress')
+    _edit_tool_apply_button_locator = (By.ID, 'edit-tool-apply-button')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -30,13 +31,19 @@ class EditPhoto(Base):
         self.marionette.find_element(*self._edit_crop_button_locator).tap()
         self.wait_for_element_displayed(*self._crop_portrait_locator)
 
+    def tap_edit_tool_apply_button(self):
+        self.wait_for_element_displayed(*self._edit_tool_apply_button_locator)
+        self.marionette.find_element(*self._edit_tool_apply_button_locator).tap()
+
     def tap_edit_save_button(self):
+        self.wait_for_element_displayed(*self._edit_save_locator)
         self.marionette.find_element(*self._edit_save_locator).tap()
         self.wait_for_element_not_displayed(*self._save_progress_bar_locator)
         from gaiatest.apps.gallery.app import Gallery
         return Gallery(self.marionette)
 
     def tap_portrait_crop(self):
+        self.wait_for_element_displayed(*self._crop_portrait_locator)
         self.marionette.find_element(*self._crop_portrait_locator).tap()
         self.wait_for_condition(lambda m: 'selected' in m.find_element(
             *self._crop_portrait_locator).get_attribute('class'))
