@@ -21,6 +21,9 @@ var MockMozL10n = {
   ready: function(callback) {
     callback();
   },
+  once: function(callback) {
+    callback();
+  },
   localize: function(node, l10nId, l10nArgs) {
 
   }
