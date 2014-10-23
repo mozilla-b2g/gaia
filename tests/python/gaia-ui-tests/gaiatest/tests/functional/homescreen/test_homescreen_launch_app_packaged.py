@@ -23,13 +23,13 @@ class TestLaunchApp(GaiaTestCase):
         self.apps.switch_to_displayed_app()
 
         self.test_data = {
-            'name': 'Mozilla QA WebRT Tester',
-            'url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp'),
-            'title': 'Directory listing for /'}
+            'name': 'packagedapp1',
+            'url': self.marionette.absolute_url('webapps/packaged1/manifest.webapp'),
+            'title': 'Packaged app1'}
 
         # Install app
         self.marionette.execute_script(
-            'navigator.mozApps.install("%s")' % self.test_data['url'])
+            'navigator.mozApps.installPackage("%s")' % self.test_data['url'])
 
         # Confirm the installation and wait for the app icon to be present
         confirm_install = ConfirmInstall(self.marionette)
@@ -44,6 +44,7 @@ class TestLaunchApp(GaiaTestCase):
         self.homescreen.wait_for_app_icon_present(self.test_data['name'])
 
     def test_launch_app(self):
+        """https://moztrap.mozilla.org/manage/case/6116/"""
         # Verify that the app icon is visible on one of the homescreen pages
         self.assertTrue(
             self.homescreen.is_app_installed(self.test_data['name']),
