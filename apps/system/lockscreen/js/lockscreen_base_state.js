@@ -1,4 +1,4 @@
-/**
+/*
   Copyright 2012, Mozilla Foundation
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,31 +14,27 @@
   limitations under the License.
 */
 
-/* global Promise, LockScreenBaseState */
-
 'use strict';
 
 /**
- * This state would guarantee the LockScreen plays the animation.
+ * This is the basic prototype of LockScreen states.
+ * Extend this prototype to implement your state.
  */
 (function(exports) {
-
-  var LockScreenStateSlideHide = function() {
-    LockScreenBaseState.apply(this, arguments);
-  };
-  LockScreenStateSlideHide.prototype =
-    Object.create(LockScreenBaseState.prototype);
-
-
-  LockScreenStateSlideHide.prototype.start = function lsssh_start(lockScreen) {
-    this.type = 'slideHide';
-    this.lockScreen = lockScreen;
+  var LockScreenBaseState = function() {};
+  LockScreenBaseState.prototype.start = function() {
     return this;
   };
-
-  LockScreenStateSlideHide.prototype.transferTo =
-  function lsssh_transferTo() {
-    return Promise.resolve();
+  LockScreenBaseState.prototype.transferOut = function() {
+    return new Promise((resolve, reject) => {
+      resolve();
+    });
   };
-  exports.LockScreenStateSlideHide = LockScreenStateSlideHide;
+  LockScreenBaseState.prototype.transferTo = function() {
+    return new Promise((resolve, reject) => {
+      resolve();
+    });
+  };
+  exports.LockScreenBaseState = LockScreenBaseState;
 })(window);
+

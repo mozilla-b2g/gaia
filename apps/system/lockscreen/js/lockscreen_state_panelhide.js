@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/* global Promise */
+/* global Promise, LockScreenBaseState */
 
 'use strict';
 
@@ -23,7 +23,12 @@
  */
 (function(exports) {
 
-  var LockScreenStatePanelHide = function() {};
+  var LockScreenStatePanelHide = function() {
+    LockScreenBaseState.apply(this, arguments);
+  };
+  LockScreenStatePanelHide.prototype =
+    Object.create(LockScreenBaseState.prototype);
+
   LockScreenStatePanelHide.prototype.start = function(lockScreen) {
     this.type = 'panelHide';
     this.lockScreen = lockScreen;

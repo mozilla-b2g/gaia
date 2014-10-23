@@ -1,6 +1,9 @@
 /* global LockScreenStatePanelHide */
 
 'use strict';
+
+// Must mock dependencies here.
+window.LockScreenBaseState = function() {};
 requireApp('system/lockscreen/js/lockscreen_state_panelhide.js');
 suite('sytem/LockScreenStatePanelHide', function() {
   var subject;

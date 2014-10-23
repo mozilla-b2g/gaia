@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/* global Promise */
+/* global Promise, LockScreenBaseState */
 
 'use strict';
 
@@ -23,7 +23,12 @@
  */
 (function(exports) {
 
-  var LockScreenStateKeypadShow = function() {};
+  var LockScreenStateKeypadShow = function() {
+    LockScreenBaseState.apply(this, arguments);
+  };
+  LockScreenStateKeypadShow.prototype =
+    Object.create(LockScreenBaseState.prototype);
+
   LockScreenStateKeypadShow.prototype.start = function(lockScreen) {
     this.type = 'keypadShow';
     this.lockScreen = lockScreen;
