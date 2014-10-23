@@ -17,12 +17,7 @@ var TonePlayer = {
   _playingNodes: [],
 
   init: function tp_init(channel) {
-    if (document.hidden) {
-      // We don't create an AudioContext because it will be trashed right away
-      this._channel = channel;
-    } else {
-      this.setChannel(channel);
-    }
+    this._channel = channel;
   },
 
   ensureAudio: function tp_ensureAudio() {
@@ -106,6 +101,7 @@ var TonePlayer = {
   },
 
   start: function tp_start(frequencies, shortPress) {
+    this.ensureAudio();
     this._startAt(frequencies, 0, shortPress ? kShortPressDuration : 0);
   },
 
@@ -174,6 +170,5 @@ var TonePlayer = {
 
     this.trashAudio();
     this._channel = channel;
-    this.ensureAudio();
   }
 };
