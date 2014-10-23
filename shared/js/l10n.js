@@ -1252,6 +1252,7 @@
     /* jshint -W084 */
 
     if (!this.isReady) {
+      console.warn('mozL10n: A non-existing entity requested: ' + id);
       throw new L10nError('Context not ready');
     }
 
