@@ -124,7 +124,7 @@
      * @memberof CallForwarding.prototype
      */
     _updateCallForwardingIconState: function(slot, event) {
-      if (!event || !event.success ||
+      if (!event ||
           (event.reason != _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL &&
            event.reason != _cfReason.CALL_FORWARD_REASON_ALL_CALL_FORWARDING)) {
         return;
