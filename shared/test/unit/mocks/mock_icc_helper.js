@@ -6,7 +6,7 @@ var MockIccHelper = {
 
   mEventListeners: {'cardstatechange': [], 'iccinfochange': []},
 
-  mSuiteSetup: function icch_suite_setup() {
+  mSetup: function icch_suite_setup() {
     this.mProps = {
       'cardState': null,
       'iccInfo': {},
@@ -14,7 +14,10 @@ var MockIccHelper = {
     this.mEventListeners = {'cardstatechange': [], 'iccinfochange': []};
   },
 
-  mSuiteTeardown: function icch_teardown() {},
+  mTeardown: function icch_teardown() {
+    this.mProps = {};
+    this.mEventListeners = {};
+  },
 
   mTriggerEventListeners: function icch_triggerEventListeners(type, evt) {
     if (!this.mEventListeners[type]) {
