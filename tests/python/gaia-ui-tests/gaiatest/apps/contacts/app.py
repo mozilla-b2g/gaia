@@ -22,8 +22,10 @@ class Contacts(Base):
     _export_button_locator = (By.ID, 'select-action')
     _status_message_locator = (By.ID, 'statusMsg')
 
+    _group_container_selector = "#groups-container"
+
     #  contacts
-    _contact_locator = (By.CSS_SELECTOR, 'li.contact-item:not([data-group="ice"])')
+    _contact_locator = (By.CSS_SELECTOR, 'li[data-uuid]:not([data-group="ice"])')
 
     def launch(self):
         Base.launch(self)
@@ -44,6 +46,12 @@ class Contacts(Base):
 
     def wait_for_contacts(self, number_to_wait_for=1):
         self.wait_for_condition(lambda m: len(m.find_elements(*self._contact_locator)) == number_to_wait_for)
+
+        # we need to scroll in order to force the rendering of all the contacts
+        height = self.marionette.execute_script("return document.querySelector('[data-uuid]').clientHeight;")
+        for idx in range(number_to_wait_for):
+            self.marionette.execute_script("document.querySelector('{0}').scrollTop = {1}".
+                                            format(self._group_container_selector, idx * height))
 
     def contact(self, name):
         for contact in self.contacts:
@@ -92,7 +100,7 @@ class Contacts(Base):
     class Contact(PageRegion):
 
         _name_locator = (By.CSS_SELECTOR, 'p > strong')
-        _full_name_locator = (By.CSS_SELECTOR, 'p')
+        _full_name_locator = (By.CSS_SELECTOR, 'p.contact-text')
 
         @property
         def name(self):
