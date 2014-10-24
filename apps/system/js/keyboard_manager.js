@@ -101,6 +101,7 @@ var KeyboardManager = {
     window.addEventListener('attentionopened', this);
     window.addEventListener('attentionclosing', this);
     window.addEventListener('attentionclosed', this);
+    window.addEventListener('notification-clicked', this);
     window.addEventListener('mozbrowsererror', this);
     window.addEventListener('applicationsetupdialogshow', this);
     window.addEventListener('mozmemorypressure', this);
@@ -271,6 +272,7 @@ var KeyboardManager = {
       case 'attentionclosing':
       case 'attentionopened':
       case 'attentionclosed':
+      case 'notification-clicked':
       case 'applicationsetupdialogshow':
       case 'activityrequesting':
       case 'activityopening':
