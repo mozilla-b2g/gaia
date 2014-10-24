@@ -14,7 +14,7 @@ class TestGalleryEditPhotoComboEffect(GalleryEditPhotoBase):
         self.invert(True)
         self.grayscale(True)
         self.contrast("0.5")
-        self.gallery_edit_photo()
+        self.gallery_edit_photo('IMG_0001.jpg')
 
     def tearDown(self):
         # In case the assertion fails this will still kill the call

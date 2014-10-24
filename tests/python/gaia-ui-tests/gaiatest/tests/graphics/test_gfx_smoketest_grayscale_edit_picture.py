@@ -12,7 +12,7 @@ class TestGalleryEditPhotoGrayscale(GalleryEditPhotoBase):
 
     def test_gallery_edit_photo_grayscale(self):
         self.grayscale(True)
-        self.gallery_edit_photo()
+        self.gallery_edit_photo('IMG_0001.jpg')
 
     def tearDown(self):
         # In case the assertion fails this will still kill the call

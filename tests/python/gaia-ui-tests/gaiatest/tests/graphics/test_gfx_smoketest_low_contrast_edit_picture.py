@@ -12,7 +12,7 @@ class TestGalleryEditPhotoLC(GalleryEditPhotoBase):
 
     def test_gallery_edit_photo_low_contrast(self):
         self.contrast("-0.7")
-        self.gallery_edit_photo()
+        self.gallery_edit_photo('IMG_0001.jpg')
 
     def tearDown(self):
         # In case the assertion fails this will still kill the call

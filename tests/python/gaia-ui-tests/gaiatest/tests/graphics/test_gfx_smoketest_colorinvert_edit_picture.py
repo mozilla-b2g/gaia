@@ -12,7 +12,7 @@ class TestGalleryEditPhotoColorInvert(GalleryEditPhotoBase):
 
     def test_gallery_edit_photo_invert(self):
         self.invert(True)
-        self.gallery_edit_photo()
+        self.gallery_edit_photo('IMG_0001.jpg')
 
     def tearDown(self):
         # In case the assertion fails this will still kill the call

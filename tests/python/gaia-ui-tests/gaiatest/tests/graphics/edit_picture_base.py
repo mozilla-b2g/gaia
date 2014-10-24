@@ -23,10 +23,10 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
     _edit_save_locator = (By.ID, 'edit-save-button')
     _exposure_slider_bar = (By.ID, 'sliderthumb')
 
-    def gallery_edit_photo(self):
+    def gallery_edit_photo(self,photo_file):
 
         # add photo to storage
-        self.push_resource('IMG_0001.jpg')
+        self.push_resource(photo_file)
 
         gallery = Gallery(self.marionette)
         gallery.launch()
