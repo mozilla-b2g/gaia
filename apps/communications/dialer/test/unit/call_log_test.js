@@ -3,7 +3,7 @@
 /* global CallHandler, CallLog, CallLogDBManager, Contacts, KeypadManager,
           MockImage, MockMozL10n, MockNavigatorMozIccManager, MockNotification,
           MocksHelper, MockSimSettingsHelper, Notification,
-          PhoneNumberActionMenu */
+          PhoneNumberActionMenu, ConfirmDialog */
 
 require('/dialer/js/call_log.js');
 require('/shared/js/dialer/utils.js');
@@ -13,7 +13,6 @@ require('/dialer/test/unit/mock_performance_testing_helper.js');
 require('/dialer/test/unit/mock_phone_action_menu.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
-require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_l10n.js');
 require('/dialer/test/unit/mock_performance_testing_helper.js');
 require('/dialer/test/unit/mock_call_handler.js');
@@ -29,6 +28,7 @@ require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_image.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/dialer/test/unit/mock_confirm_dialog.js');
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
@@ -43,7 +43,8 @@ var mocksHelperForCallLog = new MocksHelper([
   'StickyHeader',
   'CallHandler',
   'KeypadManager',
-  'SimSettingsHelper'
+  'SimSettingsHelper',
+  'ConfirmDialog'
 ]).init();
 
 suite('dialer/call_log', function() {
@@ -733,6 +734,12 @@ suite('dialer/call_log', function() {
       CallLog.appendGroup(yesterdayGroup);
     });
 
+    test('countMissedCalls should be one', function() {
+      CallLog.appendGroup(missedGroup);
+      var count = CallLog._countMissedCalls();
+      assert.equal(count, 1);
+    });
+
     test('filtering should mark all missedgroups', function() {
       CallLog.filter();
       assert.equal(document.getElementsByClassName('groupFiltered').length, 2);
@@ -742,6 +749,75 @@ suite('dialer/call_log', function() {
       CallLog.filter();
       CallLog.unfilter();
       assert.equal(document.getElementsByClassName('groupFiltered').length, 0);
+    });
+
+    test('filtering should display one missedgroup', function() {
+      CallLog.appendGroup(missedGroup);
+      CallLog.filter();
+      assert.equal(document.getElementsByClassName('groupFiltered').length, 1);
+    });
+  });
+
+  suite('deleteLogGroups', function() {
+    setup(function() {
+      var yesterdayGroup = outgoingGroup;
+      yesterdayGroup.id = 456;
+      CallLog.appendGroup(incomingGroup);
+      CallLog.appendGroup(yesterdayGroup);
+    });
+
+    teardown(function() {
+      ConfirmDialog.hide();
+    });
+
+    test('ConfirmDialog should be shown', function() {
+      CallLog.deleteLogGroups();
+      assert.isTrue(ConfirmDialog.showing);
+    });
+
+    test('ConfirmDialog should be hidden', function() {
+      CallLog.deleteLogGroups();
+      ConfirmDialog.executeNo();
+      assert.isFalse(ConfirmDialog.showing);
+    });
+
+    test('renderEmptyCallLog should not be called when there is missedgroup',
+    function() {
+      this.sinon.spy(CallLog, 'renderEmptyCallLog');
+      CallLog.appendGroup(missedGroup);
+      CallLog.deleteLogGroups();
+      ConfirmDialog.executeYes();
+      sinon.assert.notCalled(CallLog.renderEmptyCallLog);
+    });
+
+    test('renderEmptyCallLog should be called when there is no missedgroup',
+    function() {
+      this.sinon.spy(CallLog, 'renderEmptyCallLog');
+      CallLog.deleteLogGroups();
+      ConfirmDialog.executeYes();
+      sinon.assert.calledOnce(CallLog.renderEmptyCallLog);
+    });
+
+    test('deleteAll should not be called when partial checkbox was checked',
+    function() {
+      this.sinon.spy(CallLogDBManager, 'deleteAll');
+      CallLog.deleteLogGroups();
+      ConfirmDialog.executeYes();
+      sinon.assert.notCalled(CallLogDBManager.deleteAll);
+    });
+
+    test('deleteAll should be called when all checkbox was checked',
+    function() {
+      this.sinon.spy(CallLogDBManager, 'deleteAll');
+      var container = CallLog.callLogContainer;
+      var checkboxes = container.querySelectorAll('input[type="checkbox"]');
+      for (var i = 0; i < checkboxes.length; i++) {
+        var checkbox = checkboxes[i];
+        checkbox.checked = true;
+      }
+      CallLog.deleteLogGroups();
+      ConfirmDialog.executeYes();
+      sinon.assert.calledOnce(CallLogDBManager.deleteAll);
     });
   });
 
