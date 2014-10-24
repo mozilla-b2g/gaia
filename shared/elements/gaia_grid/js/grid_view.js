@@ -480,6 +480,7 @@
                                      onCachedIconRendered);
 
       var nextDivider = null;
+      var oddDivider = true;
       for (var idx = 0; idx <= this.items.length - 1; idx++) {
         var item = this.items[idx];
 
@@ -496,6 +497,7 @@
             for (var i = idx + 1; i < this.items.length; i++) {
               if (this.items[i].detail.type === 'divider') {
                 nextDivider = this.items[i];
+                oddDivider = !oddDivider;
                 break;
               }
             }
@@ -540,6 +542,14 @@
                               this.layout.offsetY);
           if (!item.active) {
             item.render();
+
+            if (item.detail.type === 'divider') {
+              if (oddDivider) {
+                item.element.classList.add('odd');
+              } else {
+                item.element.classList.remove('odd');
+              }
+            }
           }
         }
 
