@@ -271,4 +271,4 @@ function(panels, SettingsListener, SettingsHelper) {
 
   return new ALADefineCustomLocation();
 
-})();
+});

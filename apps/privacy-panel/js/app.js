@@ -3,8 +3,7 @@
 require.config({
   baseUrl: '/js',
   paths: {
-    'shared': '../shared/js',
-    'localforage': 'vendor/localforage'
+    'shared': '../shared/js'
   },
   shim: {
     'shared/lazy_loader': {
@@ -18,6 +17,9 @@ require.config({
     },
     'shared/settings_url': {
       exports: 'SettingsURL'
+    },
+    'shared/async_storage': {
+      exports: 'asyncStorage'
     }
   }
 });

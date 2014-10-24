@@ -13,7 +13,8 @@
     'shared/lazy_loader': 'empty:',
     'shared/settings_listener': 'empty:',
     'shared/settings_url': 'empty:',
-    'shared/settings_helper': 'empty:'
+    'shared/settings_helper': 'empty:',
+    'shared/async_storage': 'empty:'
   },
 
   findNestedDependencies: true,

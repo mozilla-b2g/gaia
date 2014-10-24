@@ -5,10 +5,10 @@
  * @return {Object}
  */
 define([
-  'localforage'
+  'shared/async_storage'
 ],
 
-function(localforage) {
+function(asyncStorage) {
   'use strict';
 
   function PassPhrase(macDest, saltDest) {
@@ -19,8 +19,26 @@ function(localforage) {
   PassPhrase.prototype = {
     buffer: encode('topsecret'),
 
+    _getItem: function(key) {
+      var promise = new Promise(function(resolve) {
+        asyncStorage.getItem(key, function(value) {
+          resolve(value);
+        });
+      });
+      return promise;
+    },
+
+    _setItem: function(key, value) {
+      var promise = new Promise(function(resolve) {
+        asyncStorage.setItem(key, value, function() {
+          resolve(value);
+        });
+      });
+      return promise;
+    },
+
     exists: function() {
-      return localforage.getItem(this.macDest).then(function(mac) {
+      return this._getItem(this.macDest).then(function(mac) {
         return mac;
       });
     },
@@ -44,22 +62,22 @@ function(localforage) {
       return this._retrieveKey(password).then(function(key) {
         return crypto.subtle.sign('HMAC', key, this.buffer)
           .then(function(mac) {
-            return localforage.setItem(this.macDest, mac);
+            return this._setItem(this.macDest, mac);
           }.bind(this));
       }.bind(this));
     },
 
     clear: function() {
-      return localforage.setItem(this.macDest, null);
+      return this._setItem(this.macDest, null);
     },
 
     _salt: function() {
-      return localforage.getItem(this.saltDest).then(function(salt) {
+      return this._getItem(this.saltDest).then(function(salt) {
         if (salt) {
           return salt;
         }
         salt = crypto.getRandomValues(new Uint8Array(8));
-        return localforage.setItem(this.saltDest, salt);
+        return this._setItem(this.saltDest, salt);
       }.bind(this));
     },
 

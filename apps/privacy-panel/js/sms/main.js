@@ -165,10 +165,8 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
     _addListener: function() {
       var mobileMessage = navigator.mozMobileMessage;
       if (mobileMessage) {
-        // TODO: Why this one breaks simulator !
-        // mobileMessage.getThreads();
-        mobileMessage
-          .addEventListener('received', this._onSMSReceived.bind(this));
+        mobileMessage.addEventListener('received',
+          this._onSMSReceived.bind(this));
       }
     },
 
@@ -266,7 +264,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
           'RPP: Your device was locked. ' +
           'You can unlock it with your passcode.'
         );
-      };
+      }.bind(this);
 
       // Lock screen
       this._doLock(number, lockReply);
