@@ -3,7 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette.errors import NoSuchElementException
+from marionette.errors import StaleElementException
 from marionette.marionette import Actions
+from marionette.wait import Wait
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
@@ -221,6 +224,18 @@ class Calendar(Base):
         _advanced_settings_button_locator = (By.CSS_SELECTOR, '.settings')
         _settings_header_locator = (By.ID, 'settings-header')
         _settings_drawer_locator = (By.CLASS_NAME, 'settings-drawer')
+
+        def wait_for_calendar_unchecked(self, timeout=None):
+            Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException,
+                                                               StaleElementException]).until(
+                lambda m: not m.find_element(
+                    *self._calendar_local_checkbox_locator).get_attribute('checked'))
+
+        def wait_for_a11y_calendar_unchecked(self, timeout=None):
+            Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException,
+                                                               StaleElementException]).until(
+                lambda m: not m.find_element(
+                    *self._calendar_local_locator).get_attribute('aria-selected'))
 
     class Event(PageRegion):
 
