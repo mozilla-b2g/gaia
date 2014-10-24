@@ -14,7 +14,7 @@ marionette('Software Home Button - Dialog Lockscreen Resize', function() {
     },
     settings: {
       'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
+      'lockscreen.enabled': true,
       'software-button.enabled': true
     },
     apps: {
@@ -28,7 +28,6 @@ marionette('Software Home Button - Dialog Lockscreen Resize', function() {
     system.waitForStartup();
 
     lockscreen = (new LockScreen()).start(client);
-    lockscreen.relock();
   });
 
   test('Dialog resizes when lockscreen unlocked', function() {
