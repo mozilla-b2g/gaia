@@ -73,13 +73,13 @@ Focus.prototype.configureFocusModes = function(mode) {
   var touchFocusUserEnabled = userPreferences.touchFocus;
   var touchFocusSupported = this.isTouchFocusSupported();
   var faceDetectionUserEnabled = userPreferences.faceDetection;
-  var faceDetectionSupported = this.isFaceDetectionSupported();
+  this.faceDetectionSupported = this.isFaceDetectionSupported();
   this.continuousAutoFocus = continuousAutoFocusUserEnabled;
   // User preferences override defaults
   this.touchFocus = touchFocusUserEnabled && touchFocusSupported;
   // Face detection only enabled on picture mode (disabled on video)
   this.faceDetection =
-    faceDetectionUserEnabled && faceDetectionSupported && mode === 'picture';
+    faceDetectionUserEnabled && this.faceDetectionSupported && mode === 'picture';
   this.mozCamera.onAutoFocusMoving = this.onAutoFocusMoving;
   this.mozCamera.onAutoFocusCompleted = this.onAutoFocusCompleted;
 };
@@ -94,7 +94,7 @@ Focus.prototype.stopFaceDetection = function() {
   // Clear suspenstion timers
   clearTimeout(this.faceDetectionSuspended);
   clearTimeout(this.faceDetectionSuspensionTimer);
-  if (this.mozCamera.stopFaceDetection) {
+  if (this.faceDetectionSupported) {
     this.mozCamera.stopFaceDetection();
   }
   this.clearFaceDetection();

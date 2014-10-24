@@ -216,6 +216,7 @@ suite('lib/camera/focus', function() {
   suite('Focus#stopFaceDetection', function() {
     setup(function() {
       this.focus.faceDetection = true;
+      this.focus.faceDetectionSupported = true;
       this.focus.mozCamera = this.mozCamera;
       this.sandbox.spy(this.focus, 'stopFaceDetection');
       this.sandbox.spy(this.focus, 'clearFaceDetection');
@@ -231,7 +232,7 @@ suite('lib/camera/focus', function() {
     });
 
     test('mozCamera stopFaceDetection is not called if face detection is not available', function() {
-      this.mozCamera.stopFaceDetection = false;
+      this.focus.faceDetectionSupported = false;
       this.focus.stopFaceDetection();
       assert.ok(!this.mozCamera.stopFaceDetection.called);
       assert.ok(this.focus.clearFaceDetection.called);
