@@ -49,21 +49,17 @@
        * for the attachment base HTML markup that allows consumer code to
        * perform post processing DOM operations.
        */
-      renderTo: function(baseMarkup, attachmentContainer) {
+      renderTo: function(data, attachmentContainer) {
+        attachmentContainer.classList.add(data.cssClass);
+
         var deferred = Utils.Promise.defer();
-        // append the source when it's appended to the dom and loaded
+        // do some postprocessing after it's loaded
         attachmentContainer.addEventListener('load', function onload() {
           try {
             this.removeEventListener('load', onload);
+            window.URL.revokeObjectURL(blobUrl);
 
             var documentElement = this.contentDocument.documentElement;
-
-            var template = Template('attachment-draft-tmpl');
-            documentElement.innerHTML = template.interpolate({
-              baseURL: location.protocol + '//' + location.host + '/',
-              baseHTML: baseMarkup
-            }, { safe: ['baseHTML'] });
-
             navigator.mozL10n.translateFragment(documentElement);
 
             // Attach click listeners and fire the callback when rendering is
@@ -83,7 +79,18 @@
           }
         });
 
-        attachmentContainer.src = 'about:blank';
+        var template = Template('attachment-draft-tmpl');
+        var markup = template.interpolate({
+          baseURL: location.protocol + '//' + location.host + '/',
+          baseHTML: data.markup,
+          cssClass: data.cssClass
+        }, { safe: ['baseHTML'] });
+
+
+        var blob = new Blob([markup], { type: 'text/html' });
+        var blobUrl = window.URL.createObjectURL(blob);
+
+        attachmentContainer.src = blobUrl;
 
         return deferred.promise;
       },
@@ -109,8 +116,9 @@
         return document.createElement('div');
       },
 
-      renderTo: function(baseMarkup, attachmentContainer) {
-        attachmentContainer.innerHTML = baseMarkup;
+      renderTo: function(data, attachmentContainer) {
+        attachmentContainer.classList.add(data.cssClass);
+        attachmentContainer.innerHTML = data.markup;
 
         return Promise.resolve(attachmentContainer);
       },
@@ -194,15 +202,8 @@
         };
       }.bind(this)).
       then(function(data) {
-        attachmentContainer.classList.add(data.cssClass);
-
-        return this._renderer.renderTo(data.markup, attachmentContainer).
+        return this._renderer.renderTo(data, attachmentContainer).
           then(function(contentContainer) {
-            // Since content container may differ from attachment container
-            // (e.g. content container is "body" element inside iframe),
-            // preview class should be applied to both to have effect.
-            contentContainer.classList.add(data.cssClass);
-
             var thumbnailNode = contentContainer.querySelector('.thumbnail');
             if (thumbnailNode) {
               thumbnailNode.style.backgroundImage =
