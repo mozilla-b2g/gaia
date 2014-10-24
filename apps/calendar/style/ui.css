@@ -179,14 +179,6 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   }
 }
 
-#advanced-settings-view {
-  visibility: hidden;
-}
-
-body[data-path="/advanced-settings/"] #advanced-settings-view {
-  visibility: visible;
-}
-
 #advanced-settings-view section.content {
   height: calc(100% - 5rem);
   overflow-y: scroll;
@@ -297,6 +289,7 @@ body[data-path="/advanced-settings/"] #advanced-settings-view {
 }
 
 section[role="status"] {
+  pointer-events: none;
   display: none;
 }
 

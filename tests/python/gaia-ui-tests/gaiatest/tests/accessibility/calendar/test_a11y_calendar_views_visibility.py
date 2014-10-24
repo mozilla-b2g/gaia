@@ -26,7 +26,11 @@ class TestCalendarViewsVisibilityAccessibility(GaiaTestCase):
             'advanced_settings': self.marionette.find_element(
                 *self.calendar._advanced_settings_view_locator),
             'modify_event': self.marionette.find_element(*self.calendar._modify_event_view_locator),
-            'event': self.marionette.find_element(*self.calendar._event_view_locator)
+            'event': self.marionette.find_element(*self.calendar._event_view_locator),
+            'create_account': self.marionette.find_element(
+                *self.calendar._create_account_view_locator),
+            'modify_account': self.marionette.find_element(
+                *self.calendar._modify_account_view_locator)
         }
 
         self.event_title = 'title'
@@ -55,6 +59,23 @@ class TestCalendarViewsVisibilityAccessibility(GaiaTestCase):
         # Advanced settings
         self.accessibility.click(self.marionette.find_element(
             *self.calendar.settings._advanced_settings_button_locator))
+        test_a11y_visible('advanced_settings')
+
+        # Create account
+        self.accessibility.click(self.marionette.find_element(
+            *self.calendar._create_account_button_locator))
+        test_a11y_visible('create_account')
+
+        # Modify account
+        self.accessibility.click(self.calendar.account('caldav'))
+        test_a11y_visible('modify_account')
+
+        # Create account
+        self.calendar.a11y_click_modify_account_back()
+        test_a11y_visible('create_account')
+
+        # Advanced settings
+        self.calendar.a11y_click_create_account_back()
         test_a11y_visible('advanced_settings')
 
         # Settings

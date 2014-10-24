@@ -102,11 +102,12 @@ suite('Views.ModifyAccount', function() {
         '<section role="status">',
           '<div class="errors"></div>',
         '</section>',
-        '<form>',
+        '<form class="modify-account-form">',
           '<input name="user" />',
           '<input name="password" />',
           '<input name="fullUrl" />',
         '</form>',
+        '<a role="button" class="delete-record">',
         '<button class="delete-confirm">',
         '<a class="force-oauth2"></a>',
       '</div>',
@@ -180,6 +181,10 @@ suite('Views.ModifyAccount', function() {
     assert.ok(subject.deleteButton);
   });
 
+  test('#deleteRecordButton', function() {
+    assert.ok(subject.deleteRecordButton);
+  });
+
   test('#saveButton', function() {
     assert.ok(subject.saveButton);
   });
@@ -228,12 +233,21 @@ suite('Views.ModifyAccount', function() {
   });
 
   suite('#deleteRecord', function() {
-    var calledShow;
-    var calledRemove;
+    var model;
 
     setup(function() {
+      // assign model to simulate
+      // a record that has been dispatched
+      model = Factory('account');
+      model._id = 'myaccount';
+      subject.model = model;
+    });
 
+    test('with existing model', function() {
+      var calledShow;
+      var calledRemove;
       var store = app.store('Account');
+
       // we don't really need to redirect
       // in the test just confirm that it does
       app.router.show = function() {
@@ -244,16 +258,8 @@ suite('Views.ModifyAccount', function() {
       store.remove = function() {
         calledRemove = Array.slice(arguments);
       };
-    });
 
-    test('with existing model', function() {
-      // assign model to simulate
-      // a record that has been dispatched
-      var model = Factory('account');
-      model._id = 'myaccount';
-      subject.model = model;
       subject.render();
-
       triggerEvent(subject.deleteButton, 'click');
 
       assert.ok(calledRemove, 'called remove');
@@ -263,6 +269,40 @@ suite('Views.ModifyAccount', function() {
         calledShow,
         ['/advanced-settings/']
       );
+    });
+
+    test('#deleteRecordButton click', function() {
+      this.sinon.stub(subject, 'hideHeaderAndForm');
+
+      subject.render();
+      triggerEvent(subject.deleteRecordButton, 'click');
+      assert.isTrue(subject.hideHeaderAndForm.called);
+    });
+
+    test('#hideHeaderAndForm', function() {
+      assert.isFalse(subject.element.classList.contains(
+        subject.removeDialogClass));
+      subject.hideHeaderAndForm();
+      assert.isTrue(subject.element.classList.contains(
+        subject.removeDialogClass));
+    });
+
+    test('#deleteRecordButton click', function() {
+      this.sinon.stub(subject, 'cancelDelete');
+
+      subject.render();
+      triggerEvent(subject.cancelDeleteButton, 'click');
+      assert.isTrue(subject.cancelDelete.called);
+    });
+
+    test('#cancelDelete', function() {
+      subject.element.classList.add(subject.removeDialogClass);
+      this.sinon.stub(subject, 'cancel');
+
+      subject.cancelDelete();
+      assert.isTrue(subject.cancel.called);
+      assert.isFalse(subject.element.classList.contains(
+        subject.removeDialogClass));
     });
   });
 
