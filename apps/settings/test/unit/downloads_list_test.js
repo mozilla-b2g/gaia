@@ -306,6 +306,22 @@ suite('DownloadList', function() {
         // and error attributes
         assert.equal(downloadUI.args[0][0], null);
       });
+
+      suite('Recently download can be open', function() {
+        setup(function(done) {
+          MockDownloadStore.downloads = [new MockDownload({
+            state: 'finalized'
+          })];
+          DownloadsList.init(function() {
+            done();
+          });
+        });
+
+        test(' > a finalized download, but not in datastore', function() {
+          container.firstChild.click();
+          assert.ok(DownloadUI.showActions.calledOnce);
+        });
+      });
     });
 
     suite(' > deletes', function() {

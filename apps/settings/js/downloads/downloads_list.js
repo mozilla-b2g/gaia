@@ -165,6 +165,7 @@
         // paused -> downloading
         _restartDownload(download);
         break;
+      case 'finalized':
       case 'succeeded':
         // launch an app to view the download
         _showDownloadActions(download);
