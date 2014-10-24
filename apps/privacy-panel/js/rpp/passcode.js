@@ -275,7 +275,7 @@ function(panels, SettingsListener) {
     _backToScreenLock: function sld_backToScreenLock() {
       this._passcodeBuffer = '';
       this.passcodeInput.blur();
-      panels.show({ id: 'rpp-screenlock' });
+      panels.show({ id: 'rpp-screenlock', back: true });
     }
 
   };

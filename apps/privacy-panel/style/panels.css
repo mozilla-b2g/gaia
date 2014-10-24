@@ -206,9 +206,54 @@ section[role="region"] > div.gt-box {
   height: 7rem;
   box-sizing: border-box;
   margin-right: 1rem;
-  border-top: 0.1rem solid #e7e7e7;
   background-color: #f4f4f4;
   pointer-events: auto;
+  padding-top: 1rem;
+}
+
+.gt-pager {
+  background: url("images/guided_tour/gt-pager.png") no-repeat center 0;
+  height: 10px;
+  left: 1rem;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.gt-pager.page-2 {
+  background-position: 50% -10px;
+}
+
+.gt-pager.page-3 {
+  background-position: 50% -20px;
+}
+
+.gt-pager.page-4 {
+  background-position: 50% -30px;
+}
+
+.gt-pager.page-5 {
+  background-position: 50% -40px;
+}
+
+.gt-pager.page-6 {
+  background-position: 50% -50px;
+}
+
+.gt-pager.page-7 {
+  background-position: 50% -60px;
+}
+
+.gt-pager.page-8 {
+  background-position: 50% -70px;
+}
+
+.gt-pager.page-9 {
+  background-position: 50% -80px;
+}
+
+.gt-pager.page-10 {
+  background-position: 50% -90px;
 }
 
 .btn {
@@ -410,7 +455,7 @@ section[data-section="gt"] .btn {
 }
 
 #rpp-passcode [data-mode] {
-  display: none !important; /* 1 */
+  display: none;
 }
 
 #rpp-passcode menu[type="toolbar"] {
@@ -426,7 +471,7 @@ section[data-section="gt"] .btn {
 #rpp-passcode[data-mode="confirmLock"] [data-mode*="confirmLock"],
 #rpp-passcode[data-mode="edit"]    [data-mode*="edit"],
 #rpp-passcode[data-mode="new"]     [data-mode*="new"] {
-  display: block !important; /* 1 */
+  display: block;
 }
 
 #passcode-confirm {

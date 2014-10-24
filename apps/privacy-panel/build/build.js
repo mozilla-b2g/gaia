@@ -5,8 +5,6 @@ var utils = require('utils');
 
 var PrivacyPanelAppBuilder = function() {};
 
-PrivacyPanelAppBuilder.prototype.RESOURCES_PATH = 'resources';
-
 PrivacyPanelAppBuilder.prototype.executeRjs = function(options) {
   var optimize = 'optimize=' +
     (options.GAIA_OPTIMIZE === '1' ? 'uglify2' : 'none');

@@ -230,10 +230,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
           return;
         }
 
-        this._sendSMS(number,
-          'RPP: Your device should ring now and was locked. ' +
-          'You can unlock it with your passcode.'
-        );
+        this._sendSMS(number, navigator.mozL10n.get('sms-ring'));
 
         // Lock phone
         setTimeout(function() {
@@ -259,11 +256,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
           console.warn('Error while trying to lock a phone, ' + err);
           return;
         }
-
-         this._sendSMS(number,
-          'RPP: Your device was locked. ' +
-          'You can unlock it with your passcode.'
-        );
+        this._sendSMS(number, navigator.mozL10n.get('sms-lock'));
       }.bind(this);
 
       // Lock screen
@@ -286,10 +279,8 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
         lat = pos.coords.latitude;
         lon = pos.coords.longitude;
 
-        this._sendSMS(number,
-          'RPP: Your device coordinates are @' + lat + ',' + lon + ' and' +
-          'your device was locked. You can unlock it with your passcode.'
-        );
+        this._sendSMS(number, navigator.mozL10n.get('sms-locate-1') + ' ' +
+          lat + ',' + lon + ' ' + navigator.mozL10n.get('sms-locate-2'));
 
         // Lock phone
         setTimeout(function() {

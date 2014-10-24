@@ -17,6 +17,7 @@ function(panels, PassPhrase, SettingsListener) {
     this.passphrase;  
     this.lsPasscode = false;
     this.lsPasscodeEnabled = false;
+    this.simcards = null;
   }
 
   AuthPanel.prototype = {
@@ -38,6 +39,8 @@ function(panels, PassPhrase, SettingsListener) {
 
       // Define first time use to eventualy show register page
       this.defineFTU();
+      this.getSIMCards();
+      this.fillChangeOptions();
 
       this.observers();
       this.events();
@@ -60,6 +63,9 @@ function(panels, PassPhrase, SettingsListener) {
       this.changePanel.addEventListener('pagerendered', function() {
         this.clearChangeForm();
       }.bind(this));
+
+      this.changeForm.querySelector('.pin-type').addEventListener('change',
+        this.onPinTypeChange.bind(this));
     },
 
     observers: function() {
@@ -76,6 +82,7 @@ function(panels, PassPhrase, SettingsListener) {
           // Each time user decides to disable passcode, show him that he can't
           // use rpp features.
           this.toggleAlertBox();
+          this.fillChangeOptions();
         }.bind(this)
       );
     },
@@ -116,6 +123,55 @@ function(panels, PassPhrase, SettingsListener) {
     displayRegisterBox: function() {
       this.mainPanel.querySelector('#rpp-login').style.display = 'none';
       this.mainPanel.querySelector('#rpp-register').style.display = 'block';
+    },
+
+    /**
+     * [getSIMStatus description]
+     * @return {[type]} [description]
+     */
+    getSIMCards: function() {
+      var mc = navigator.mozMobileConnections;
+
+      [].forEach.call(mc, function(connection, key) {
+        var icc, label;
+        if (connection.iccId) {
+          icc = navigator.mozIccManager.getIccById(connection.iccId);
+          if (icc.cardState === 'ready') {
+            label = 'SIM ' + (key + 1);
+            this.simcards = this.simcards ? this.simcards : {};
+            this.simcards[label] = icc;
+          }
+        }
+      }.bind(this));
+    },
+
+    fillChangeOptions: function() {
+      var element, select = this.changePanel.querySelector('.pin-type');
+      select.innerHTML = '';
+
+      for (var simcard in this.simcards) {
+        if (this.simcards.hasOwnProperty(simcard)) {
+          element = document.createElement('option');
+          element.value = simcard;
+          element.textContent = simcard;
+          select.appendChild(element);
+        }
+      }
+
+      if (this.lsPasscodeEnabled) {
+        element = document.createElement('option');
+        element.value = 'passcode';
+        element.setAttribute('data-l10n-id', 'rpp-passcode-type');
+        select.appendChild(element);
+      }
+    },
+
+    onPinTypeChange: function(event) {
+      var value = event.target.value.toString();
+      var input = this.changeForm.querySelector('.pin');
+
+      value = 'enter-' + value.toLowerCase().replace(' ', '');
+      input.setAttribute('data-l10n-id', value);
     },
 
     /**
@@ -173,16 +229,6 @@ function(panels, PassPhrase, SettingsListener) {
     },
 
     /**
-     * Give translated error message.
-     * 
-     * @param  {String} key
-     * @return {String} Error message
-     */
-    errorMessage: function(key) {
-      return navigator.mozL10n.get(key) || key;
-    },
-
-    /**
      * Register new user so he can use all rpp features.
      *
      * @method registerUser
@@ -199,14 +245,14 @@ function(panels, PassPhrase, SettingsListener) {
 
       error = this.comparePasswords(pass1, pass2);
       if (error) {
-        message.textContent = this.errorMessage(error);
+        message.setAttribute('data-l10n-id', error);
         return;
       }
 
-      this.clearRegisterForm();
       this.passphrase.change(pass1).then(function() {
         panels.show({ id: 'rpp-features' });
-      });
+        this.defineFTU();
+      }.bind(this));
     },
 
     /**
@@ -237,11 +283,9 @@ function(panels, PassPhrase, SettingsListener) {
 
       this.passphrase.verify(pass).then(function(status) {
         if ( ! status) {
-          message.textContent = this.errorMessage('passphrase-wrong');
+          message.setAttribute('data-l10n-id', 'passphrase-wrong');
           return;
         }
-
-        this.clearLoginForm();
 
         panels.show({ id: 'rpp-features' });
       }.bind(this));
@@ -261,55 +305,6 @@ function(panels, PassPhrase, SettingsListener) {
     },
 
     /**
-     * Validate lockscreen passcode or SIM PIN to be able to change passphrase.
-     *
-     * @method changePassphrase
-     * @param {Object} event JavaScript event
-     */
-    validatePINs: function(pin, callback) {
-      var error;
-
-      // Start with trying to compare pin with passcode.
-      error = this.comparePINs(pin, this.lsPasscode);
-      if (error) {
-
-        if (error !== 'pin-different') {
-          callback(error);
-          return;
-        }
-
-        // If passcode failed, try SIM PIN instead.
-        this.validateSIMPIN(pin, error, callback);
-      } else {
-        callback();
-      }
-    },
-
-    /**
-     * Validate lockscreen passcode or SIM PIN to be able to change passphrase.
-     *
-     * @method changePassphrase
-     * @param {Object} event JavaScript event
-     */
-    validateSIMPIN: function(pin, previous_error, callback) {
-      var icc, unlock, mc = navigator.mozMobileConnections;
-
-      if ( ! mc || mc.length === 0) {
-        callback(previous_error);
-        return;
-      }
-
-      for (var sim in mc) {
-        if (mc.hasOwnProperty(sim) && mc[sim].iccId) {
-          icc = navigator.mozIccManager.getIccById(mc[sim].iccId);
-          unlock = icc.unlockCardLock({ lockType : 'pin', pin: pin });
-          unlock.onsuccess = callback.bind(this, '');
-          unlock.onerror = callback.bind(this, 'sim-invalid');
-        }
-      }
-    },
-
-    /**
      * Change passphrase.
      *
      * @method changePassphrase
@@ -320,34 +315,51 @@ function(panels, PassPhrase, SettingsListener) {
       var pin     = form.querySelector('.pin').value;
       var pass1   = form.querySelector('.pass1').value;
       var pass2   = form.querySelector('.pass2').value;
+      var type    = form.querySelector('.pin-type').value;
       var passmsg = form.querySelector('.validation-message');
       var pinmsg  = form.querySelector('.pin-validation-message');
+      var passError;
 
       event.preventDefault();
 
       passmsg.textContent = '';
       pinmsg.textContent = '';
 
-      // Start with trying to compare pin with passcode.
-      this.validatePINs(pin, function(errkey) {
-        var passError;
-
-        if (errkey) {
-          pinmsg.textContent = this.errorMessage(errkey);
+      var resultCallback = function(pinError) {
+        if (pinError) {
+          pinmsg.setAttribute('data-l10n-id', pinError);
           return;
         }
 
         passError = this.comparePasswords(pass1, pass2);
         if (passError) {
-          passmsg.textContent = this.errorMessage(passError);
+          passmsg.setAttribute('data-l10n-id', passError);
           return;
         }
 
-        this.clearChangeForm();
         this.passphrase.change(pass1).then(function() {
           panels.show({ id: 'rpp-features' });
         });
-      }.bind(this));
+      }.bind(this);
+
+      if (type === 'passcode') {
+        this.verifyPassCode(pin, resultCallback);
+      } else {
+        this.verifySIMPIN(this.simcards[type], pin, resultCallback);
+      }
+    },
+
+    verifySIMPIN: function(simcard, pin, callback) {
+      var unlock = simcard.unlockCardLock({ lockType : 'pin', pin: pin });
+      unlock.onsuccess = callback.bind(this, '');
+      unlock.onerror = callback.bind(this, 'sim-invalid');
+    },
+
+    verifyPassCode: function(pin, callback) {
+      var status = this.comparePINs(pin, this.lsPasscode);
+      callback = callback || function() {};
+
+      callback(status);
     },
 
     /**
@@ -383,4 +395,5 @@ function(panels, PassPhrase, SettingsListener) {
   };
 
   return new AuthPanel();
+
 });

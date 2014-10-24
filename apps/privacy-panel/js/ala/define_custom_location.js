@@ -38,7 +38,7 @@ function(panels, SettingsListener, SettingsHelper) {
      * @constructor
      */
     init: function() {
-      this.settings = window.navigator.mozSettings;
+      this.settings =   window.navigator.mozSettings;
       this.panel =      document.getElementById('ala-custom');
       this.typeCC =     this.panel.querySelector('.dcl-type-cc');
       this.typeGPS =    this.panel.querySelector('.dcl-type-gps');
@@ -62,8 +62,8 @@ function(panels, SettingsListener, SettingsHelper) {
       SettingsListener.observe('time.timezone.user-selected', '',
         function(value) {
           this.timeZone = {
-            region: value.replace(/\/.*/, ''),
-            city: value.replace(/.*?\//, '')
+            region: value.replace(/\/.*/, '').toLowerCase(),
+            city: value.replace(/.*?\//, '').toLowerCase()
           };
         }.bind(this));
     },
@@ -98,7 +98,6 @@ function(panels, SettingsListener, SettingsHelper) {
       this.context = event.detail || null;
 
       this.config = this.context.getDCLData();
-      this.config.timeZone = this.timeZone;
       this.config.type = this.config.type || 'cc';
 
       this.callback =
@@ -149,7 +148,7 @@ function(panels, SettingsListener, SettingsHelper) {
         if (this.countriesAndCities.hasOwnProperty(countryName)) {
           var option = document.createElement('option');
           option.value = countryName;
-          option.text = navigator.mozL10n.get(countryName) || countryName;
+          option.setAttribute('data-l10n-id', countryName);
           this.countries.add(option);
         }
       }
@@ -184,9 +183,9 @@ function(panels, SettingsListener, SettingsHelper) {
       if ( ! this.countriesAndCities[this.config.country] ||
         this.config.country === undefined) {
         this.config.country =
-          (this.config.timeZone &&
-          this.countriesAndCities.hasOwnProperty(this.config.timeZone.region)) ?
-            this.config.timeZone.region :
+          (this.timeZone &&
+          this.countriesAndCities.hasOwnProperty(this.timeZone.region)) ?
+            this.timeZone.region :
             this.getFirstCountry();
       }
 
@@ -215,7 +214,7 @@ function(panels, SettingsListener, SettingsHelper) {
         if (this.citiesList.hasOwnProperty(cityName)) {
           var option = document.createElement('option');
           option.value = cityName;
-          option.text = navigator.mozL10n.get(cityName) || cityName;
+          option.setAttribute('data-l10n-id', cityName);
           this.cities.add(option);
         }
       }
@@ -225,9 +224,9 @@ function(panels, SettingsListener, SettingsHelper) {
       if (this.config.city === undefined ||
         ! this.citiesList.hasOwnProperty(this.config.city)) {
         this.config.city =
-          (this.config.timeZone &&
-          this.citiesList.hasOwnProperty(this.config.timeZone.city)) ?
-            this.config.timeZone.city :
+          (this.timeZone &&
+          this.citiesList.hasOwnProperty(this.timeZone.city)) ?
+            this.timeZone.city :
             this.getFirstCityFromCountry();
       }
 

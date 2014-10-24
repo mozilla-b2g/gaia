@@ -7,8 +7,6 @@
 define(function(require) {
   'use strict';
 
-  var SettingsListener = require('shared/settings_listener');
-
   function PrivacyPanelItem(element) {
     this.element = element;
     this._ppApp = null;
@@ -18,7 +16,6 @@ define(function(require) {
       (location.port ? (':' + location.port) : '') + '/manifest.webapp';
     
     this._getApp();
-    this._observeSettings();
 
     this.element.addEventListener('click', this._launch.bind(this));
   }
@@ -27,7 +24,6 @@ define(function(require) {
 
     /**
      * Search from privacy-panel app and grab it's instance.
-     * @param 
      * @method _getApp
      */
     _getApp: function pp_getApp() {
@@ -37,36 +33,10 @@ define(function(require) {
           var app = apps[i];
           if (app.manifestURL === this._privacyPanelManifestURL) {
             this._ppApp = app;
-            this.element.removeAttribute('aria-disabled');
+            this._element.removeAttribute('aria-disabled');
           }
         }
       }.bind(this);
-    },
-
-    /**
-     * Observe devtools changes so we can toggle show/hide Privacy Panel
-     * menu item.
-     * 
-     * @method _observeSettings
-     */
-    _observeSettings: function pp_observeSettings() {
-      SettingsListener.observe('devtools.ala_dev.enabled', false,
-        this._toggleVisibility.bind(this)
-      );
-    },
-
-    /**
-     * Toggles elements visibility
-     *
-     * @method _toggleVisibility
-     * @param {Boolean} value
-     */
-    _toggleVisibility: function pp_toggleVisibility(value) {
-      if (value) {
-        this.element.removeAttribute('hidden');
-      } else {
-        this.element.setAttribute('hidden', 'hidden');
-      }
     },
 
     /**
@@ -85,6 +55,9 @@ define(function(require) {
         var flag = navigator.mozSettings.createLock().set({
           'pp.launched.by.settings': true
         });
+	flag.onerror = function() {
+	  console.error('Problem with launching Privacy Panel');
+	};
         flag.onsuccess = function() {
           this._ppApp.launch();
         }.bind(this);

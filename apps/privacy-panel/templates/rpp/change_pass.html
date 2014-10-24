@@ -10,12 +10,13 @@
       <ul>
         <li class="description">
           <p data-l10n-id="rpp-change-password-description">
-            To reset your passphrase please enter Passcode lock/SIM PIN and new passphrase.
+            To reset your passphrase please enter Passcode lock or SIM PIN and new passphrase.
           </p>
         </li>
         <li>
           <form id="rpp-change-pass-form">
-            <input class="pin" type="password" placeholder="Passcode lock/SIM PIN">
+            <select class="pin-type"></select>
+            <input class="pin" x-inputmode="digit" size="4" maxlength="4" type="password" placeholder="Enter SIM 1 Pin Code">
             <div class="pin-validation-message"></div>
             <input class="pass1" type="password" placeholder="New passphrase">
             <input class="pass2" type="password" placeholder="Confirm new passphrase">

@@ -41,7 +41,6 @@ suite('PrivacyPanelItem', function() {
   });
 
   test('show privacy-panel menu item', function() {
-    assert.isTrue(this.element.hidden);
     MockSettingsListener.mCallbacks['devtools.ala_dev.enabled'](true);
     assert.isFalse(this.element.hidden);
   });
