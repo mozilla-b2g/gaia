@@ -19,7 +19,8 @@
     "storage": {},
     "audio-channel-notification":{},
     "webapps-manage":{},
-    "device-storage:apps":{ "access": "readonly" }
+    "device-storage:apps":{ "access": "readonly" },
+    "systemXHR":{}
   },
   "activities": {
     "costcontrol/balance": {
