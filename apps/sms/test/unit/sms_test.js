@@ -24,6 +24,7 @@ require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_inter_instance_event_dispatcher.js');
 
+require('/js/selection_handler.js');
 require('/js/event_dispatcher.js');
 require('/js/navigation.js');
 requireApp('sms/js/link_helper.js');
@@ -303,6 +304,7 @@ suite('SMS App Unit-Test', function() {
         // Activate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
+          ThreadListUI.selectionHandler.select(inputs[i].value);
         }
         var checkUncheckAllButton =
           document.getElementById('threads-check-uncheck-all-button');
@@ -315,6 +317,7 @@ suite('SMS App Unit-Test', function() {
         // Deactivate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = false;
+          ThreadListUI.selectionHandler.unselect(inputs[i].value);
         }
         ThreadListUI.checkInputs();
         assert.equal(
@@ -324,6 +327,7 @@ suite('SMS App Unit-Test', function() {
         assert.isFalse(checkUncheckAllButton.disabled);
         // Activate only one
         inputs[0].checked = true;
+        ThreadListUI.selectionHandler.select(inputs[0].value);
         ThreadListUI.checkInputs();
         assert.equal(
           checkUncheckAllButton.getAttribute('data-l10n-id'),
@@ -334,7 +338,7 @@ suite('SMS App Unit-Test', function() {
 
       test('Select all while receiving new thread', function(done) {
         ThreadListUI.startEdit();
-        ThreadListUI.toggleCheckedAll(true);
+        ThreadListUI.selectionHandler.toggleCheckedAll(true);
 
         var checkboxes =
           ThreadListUI.container.querySelectorAll('input[type=checkbox]');
@@ -447,6 +451,11 @@ suite('SMS App Unit-Test', function() {
         ThreadUI.renderMessages(1, function() {
           done();
         });
+        ThreadUI.startEdit();
+      });
+
+      teardown(function() {
+        ThreadUI.cancelEdit();
       });
 
       test('Check edit mode form', function() {
@@ -459,7 +468,7 @@ suite('SMS App Unit-Test', function() {
         // Activate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
-          ThreadUI.chooseMessage(inputs[i]);
+          ThreadUI.selectionHandler.select(inputs[i].value);
         }
 
         var checkUncheckAllButton =
@@ -471,21 +480,20 @@ suite('SMS App Unit-Test', function() {
         // Deactivate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = false;
-          ThreadUI.chooseMessage(inputs[i]);
+          ThreadUI.selectionHandler.unselect(inputs[i].value);
         }
         ThreadUI.checkInputs();
         assert.isFalse(checkUncheckAllButton.disabled);
 
         // Activate only one
         inputs[0].checked = true;
-        ThreadUI.chooseMessage(inputs[0]);
+        ThreadUI.selectionHandler.select(inputs[0].value);
         ThreadUI.checkInputs();
         assert.isFalse(checkUncheckAllButton.disabled);
       });
 
       test('Select all while receiving new message', function(done) {
-        ThreadUI.startEdit();
-        ThreadUI.toggleCheckedAll(true);
+        ThreadUI.selectionHandler.toggleCheckedAll(true);
 
         var checkboxes =
           ThreadUI.container.querySelectorAll('input[type=checkbox]');

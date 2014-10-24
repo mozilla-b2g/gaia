@@ -19,6 +19,7 @@
 mocha.setup({ globals: ['alert'] });
 
 require('/js/event_dispatcher.js');
+require('/js/selection_handler.js');
 require('/js/subject_composer.js');
 require('/js/compose.js');
 require('/js/drafts.js');
@@ -2345,13 +2346,17 @@ suite('thread_ui.js >', function() {
       }
 
       var message, checkbox;
+
+      ThreadUI.selectionHandler = null;
+      ThreadUI.startEdit();
       for (var i = 0; i < ids.length; i++) {
         message = container.querySelector('#message-' + ids[i]);
         checkbox = message.querySelector('input[type=checkbox]');
-        checkbox.checked = true;
+        checkbox.click();
       }
       ThreadUI.delete();
       MockDialog.triggers.confirm();
+      ThreadUI.cancelEdit();
     };
 
     setup(function() {

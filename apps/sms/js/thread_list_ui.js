@@ -837,6 +837,9 @@ var ThreadListUI = {
     }
 
     if (this.inEditMode) {
+      // Remove the new added thread id from the selection handler
+      this.selectionHandler.unselect(thread.id);
+
       this.checkInputs();
     }
 

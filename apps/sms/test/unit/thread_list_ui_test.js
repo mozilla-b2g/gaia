@@ -13,6 +13,7 @@
 // mocha and when we have that new mocha in test agent
 mocha.setup({ globals: ['alert', 'confirm'] });
 
+require('/js/selection_handler.js');
 requireApp('sms/js/utils.js');
 require('/js/dialog.js');
 requireApp('sms/js/recipients.js');
@@ -622,11 +623,15 @@ suite('thread_list_ui', function() {
 
         assert.isNotNull(document.getElementById('thread-' +thread.id));
       });
+
+      ThreadListUI.selectionHandler = null;
+      ThreadListUI.startEdit();
     });
 
     teardown(function() {
       ThreadListUI.container = '';
       Drafts.clear();
+      ThreadListUI.cancelEdit();
     });
 
     suite('confirm true', function() {
@@ -644,7 +649,7 @@ suite('thread_list_ui', function() {
         threadIds.forEach((threadId) => {
           ThreadListUI.container.querySelector(
             '#thread-' + threadId + ' input[type=checkbox]'
-          ).checked = true;
+          ).click();
         });
 
         Dialog.firstCall.args[0].options.confirm.method();
@@ -1742,13 +1747,19 @@ suite('thread_list_ui', function() {
       thread2 = document.getElementById('thread-2');
     });
 
+    teardown(function() {
+      ThreadListUI.inEditMode = false;
+    });
+
     test('clicking on a list item', function() {
+      ThreadListUI.inEditMode = false;
       thread1.querySelector('a').click();
 
       sinon.assert.calledWith(Navigation.toPanel, 'thread', { id: 1 });
     });
 
     test('clicking on a list item in edit mode', function() {
+      ThreadListUI.inEditMode = true;
       thread1.querySelector('label').click();
 
       sinon.assert.notCalled(Navigation.toPanel);
