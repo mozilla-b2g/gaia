@@ -713,7 +713,7 @@ suite('compose_test.js', function() {
       });
 
       test('Attaching one small image', function(done) {
-        var actualSize;
+        var initialSize;
         var attachment = mockImgAttachment();
 
         function onInput() {
@@ -721,14 +721,15 @@ suite('compose_test.js', function() {
             Compose.off('input', onInput);
             var img = Compose.getContent();
             assert.equal(img.length, 1, 'One image');
-            assert.notEqual(actualSize, Compose.size,
+            assert.notEqual(Compose.size, initialSize,
               'the size was recalculated');
           });
         }
+        // we store this so we can make sure it's recalculated
+        initialSize = Compose.size;
+
         Compose.on('input', onInput);
         Compose.append(attachment);
-        // we store this so we can make sure it's recalculated
-        actualSize = Compose.size;
       });
 
       test('Attaching one oversized image', function(done) {
@@ -742,7 +743,7 @@ suite('compose_test.js', function() {
               Compose.off('input', onInput);
               var img = Compose.getContent();
               assert.equal(img.length, 1, 'One image');
-              assert.notEqual(actualSize, Compose.size,
+              assert.notEqual(Compose.size, actualSize,
                 'the size was recalculated after resizing');
               assert.equal(attachment.blob, smallImageBlob);
               sinon.assert.called(attachment.updateFileSize);
