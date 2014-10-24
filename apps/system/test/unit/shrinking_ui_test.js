@@ -690,31 +690,6 @@ suite('system/shrinkingUI', function() {
     }
   });
 
-  test('Shrinking UI EnableSlidingCover', function() {
-    var oldCover = shrinkingUI.cover;
-
-    var stubHandleSendingStart =
-      this.sinon.stub(shrinkingUI, '_handleSendingStart');
-    var stubHandleSendingSlide =
-      this.sinon.stub(shrinkingUI, '_handleSendingSlide');
-    var stubHandleSendingOut =
-      this.sinon.stub(shrinkingUI, '_handleSendingOut');
-
-    shrinkingUI.cover = document.createElement('div');
-
-    var cover = shrinkingUI._enableSlidingCover();
-
-    cover.dispatchEvent(createTouchEvent('touchstart'));
-    cover.dispatchEvent(createTouchEvent('touchmove'));
-    cover.dispatchEvent(createTouchEvent('touchend'));
-
-    assert.isTrue(stubHandleSendingStart.called);
-    assert.isTrue(stubHandleSendingSlide.called);
-    assert.isTrue(stubHandleSendingOut.called);
-
-    shrinkingUI.cover = oldCover;
-  });
-
   test('Shrinking UI DisableSlidingCover', function() {
     var oldCover = shrinkingUI.cover;
 
@@ -729,22 +704,22 @@ suite('system/shrinkingUI', function() {
 
     shrinkingUI.cover.addEventListener(
       'touchstart',
-      shrinkingUI._handleSendingStart
+      shrinkingUI
     );
     shrinkingUI.cover.addEventListener(
       'touchmove',
-      shrinkingUI._handleSendingSlide
+      shrinkingUI
     );
     shrinkingUI.cover.addEventListener(
       'touchend',
-      shrinkingUI._handleSendingOut
+      shrinkingUI
     );
 
-    var cover = shrinkingUI._disableSlidingCover();
+    shrinkingUI._disableSlidingCover();
 
-    cover.dispatchEvent(createTouchEvent('touchstart'));
-    cover.dispatchEvent(createTouchEvent('touchmove'));
-    cover.dispatchEvent(createTouchEvent('touchend'));
+    shrinkingUI.cover.dispatchEvent(createTouchEvent('touchstart'));
+    shrinkingUI.cover.dispatchEvent(createTouchEvent('touchmove'));
+    shrinkingUI.cover.dispatchEvent(createTouchEvent('touchend'));
 
     assert.isFalse(stubHandleSendingStart.called);
     assert.isFalse(stubHandleSendingSlide.called);
@@ -1259,11 +1234,12 @@ suite('system/shrinkingUI', function() {
       this.sinon.stub(shrinkingUI, '_updateTiltTransition');
     var stubUpdateSlideTransition =
       this.sinon.stub(shrinkingUI, '_updateSlideTransition');
-    var spySlidingCoverRemove = this.sinon.spy();
     var stubDisableSlidingCover =
-      this.sinon.stub(shrinkingUI, '_disableSlidingCover').returns(
-        {remove: spySlidingCoverRemove}
-      );
+      this.sinon.stub(shrinkingUI, '_disableSlidingCover');
+    shrinkingUI.cover = {
+      remove: function() {}
+    };
+    var spySlidingCoverRemove = this.sinon.stub(shrinkingUI.cover, 'remove');
 
     fakeApp._element = document.createElement('div');
     var fakeParent = document.createElement('div');
@@ -1275,6 +1251,7 @@ suite('system/shrinkingUI', function() {
     shrinkingUI._cleanEffects();
     assert.isTrue(stubDebug.called);
     assert.isTrue(stubState.called);
+    assert.isTrue(spySlidingCoverRemove.called);
     assert.equal(fakeApp._element.style.transition, '');
     assert.equal(fakeApp._element.style.transform, '');
     assert.equal(fakeApp._element.style.transformOrigin, '50% 50% 0px');
@@ -1282,8 +1259,6 @@ suite('system/shrinkingUI', function() {
     assert.isTrue(stubUpdateTiltTransition.calledWith(null));
     assert.isTrue(stubUpdateSlideTransition.calledWith(null));
     assert.isTrue(fakeParent.classList.remove.calledWith('shrinking-wrapper'));
-    assert.isTrue(spySlidingCoverRemove.called);
-
     assert.isNull(shrinkingUI.cover);
 
     stubDebug.restore();

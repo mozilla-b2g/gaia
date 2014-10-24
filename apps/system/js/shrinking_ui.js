@@ -187,6 +187,15 @@
               window.System.manifestURL);
           }
           break;
+        case 'touchstart':
+          this._handleSendingStart(evt);
+          break;
+        case 'touchmove':
+          this._handleSendingSlide(evt);
+          break;
+        case 'touchend':
+          this._handleSendingOut(evt);
+          break;
       }
     };
 
@@ -408,9 +417,9 @@
       cover.style.height = '100%';
       cover.style.position = 'relative';
       cover.style.zIndex = '2';
-      cover.addEventListener('touchstart', this._handleSendingStart.bind(this));
-      cover.addEventListener('touchmove', this._handleSendingSlide.bind(this));
-      cover.addEventListener('touchend', this._handleSendingOut.bind(this));
+      cover.addEventListener('touchstart', this);
+      cover.addEventListener('touchmove', this);
+      cover.addEventListener('touchend', this);
       return cover;
     };
 
@@ -441,32 +450,11 @@
    * @return {DOMElement}
    * @this {ShrinkingUI}
    */
-  ShrinkingUI.prototype._enableSlidingCover =
-    function su_enableSlidingCover() {
-      this.cover.addEventListener('touchstart',
-        this._handleSendingStart.bind(this));
-      this.cover.addEventListener('touchmove',
-        this._handleSendingSlide.bind(this));
-      this.cover.addEventListener('touchend',
-        this._handleSendingOut.bind(this));
-      return this.cover;
-    };
-
-  /**
-   * Will return the disabled element to let caller manupulate it.
-   *
-   * @return {DOMElement}
-   * @this {ShrinkingUI}
-   */
   ShrinkingUI.prototype._disableSlidingCover =
     function su_disableSlidingCover() {
-      this.cover.removeEventListener('touchstart',
-        this._handleSendingStart);
-      this.cover.removeEventListener('touchmove',
-        this._handleSendingSlide);
-      this.cover.removeEventListener('touchend',
-        this._handleSendingOut);
-      return this.cover;
+      this.cover.removeEventListener('touchstart', this);
+      this.cover.removeEventListener('touchmove', this);
+      this.cover.removeEventListener('touchend', this);
     };
 
   /**
@@ -668,6 +656,7 @@
     var wrapper = this.wrapper;
     return new Promise((resolve, rejected) => {
       this.debug('_cleanEffects(): ', this._state());
+      this._disableSlidingCover();
       element.style.transition = '';
       element.style.transform = '';
       element.style.transformOrigin = '50% 50% 0';
@@ -678,8 +667,7 @@
       this._updateSlideTransition(null);
 
       wrapper.classList.remove('shrinking-wrapper');
-      this._disableSlidingCover().remove();
-
+      this.cover.remove();
       this.cover = null;
       resolve();
     });
