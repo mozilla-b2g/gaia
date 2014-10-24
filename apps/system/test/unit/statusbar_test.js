@@ -2585,4 +2585,23 @@ suite('system/Statusbar', function() {
       assert.equal(updateIconSpy.callCount, 2);
     });
   });
+
+  suite('cloneStatusbar', function() {
+    test('should create a new DOM element for the status bar', function() {
+      var oldElement = StatusBar.statusbarIconsMin;
+      assert.equal(oldElement, StatusBar.statusbarIconsMin);
+
+      StatusBar.cloneStatusbar();
+      assert.notEqual(oldElement, StatusBar.statusbarIconsMin);
+      assert.deepEqual(oldElement, StatusBar.statusbarIconsMin);
+    });
+
+    test('should conserve the CSS class names applied', function() {
+      var className = 'abc-DEF-' + Math.random();
+      StatusBar.statusbarIconsMin.className = className;
+
+      StatusBar.cloneStatusbar();
+      assert.equal(StatusBar.statusbarIconsMin.className, className);
+    });
+  });
 });
