@@ -573,20 +573,20 @@ contacts.Form = (function() {
 
     if (!transition) {
       rendered.classList.add('inserted');
-    }
 
-    var delButton = rendered.querySelector('.img-delete-button');
-    delButton.addEventListener('transitionend', function deleteRotation() {
-      delButton.removeEventListener('transitionend', deleteRotation);
-      delButton.classList.add('rendered');
-    });
+      var delButton = rendered.querySelector('.' + IMG_DELETE_CLASS);
+      delButton.addEventListener('transitionend', function deleteRotation() {
+        delButton.removeEventListener('transitionend', deleteRotation);
+        delButton.classList.add('rendered');
+      });
+
+      window.setTimeout(function() {
+        rendered.classList.add('displayed');
+      });
+    }
 
     container.classList.remove('empty');
     container.appendChild(rendered);
-
-    window.setTimeout(function() {
-      rendered.classList.add('displayed');
-    });
 
     counters[type]++;
 

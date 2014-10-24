@@ -976,7 +976,15 @@ form[role="combobox"] span[data-field="type"] {
 .inserted.displayed .img-delete-button::after {
   transform: rotate(45deg);
   transform-origin: 1.4rem 1.4rem;
-  transition: transform 0.40s ease-in-out;
+  transition: transform 0.35s ease-in-out;
+}
+
+.inserted.displayed.three-rows .img-delete-button::after {
+  transition-duration: 0.45s;
+}
+
+.inserted.displayed.one-row .img-delete-button::after {
+  transition-duration: 0.25s;
 }
 
 .inserted.displayed .img-delete-button.rendered::after {
