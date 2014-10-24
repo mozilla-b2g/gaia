@@ -93,6 +93,14 @@
        */
       getContentNode: function(attachmentContainer) {
         return attachmentContainer.contentDocument.documentElement;
+      },
+
+      setL10nAttributes: function(element, l10nId, l10nArgs) {
+        navigator.mozL10n.setAttributes(
+          element, l10nId, l10nArgs
+        );
+        // l10n library can't see changes inside iframes yet
+        navigator.mozL10n.translateFragment(element);
       }
     },
 
@@ -109,6 +117,12 @@
 
       getContentNode: function(attachmentContainer) {
         return attachmentContainer;
+      },
+
+      setL10nAttributes: function(element, l10nId, l10nArgs) {
+        navigator.mozL10n.setAttributes(
+          element, l10nId, l10nArgs
+        );
       }
     }
   };
@@ -207,11 +221,9 @@
     }
 
     var sizeL10n = getSizeForL10n(this._attachment.size);
-    navigator.mozL10n.setAttributes(
+    this._renderer.setL10nAttributes(
       sizeIndicator, sizeL10n.l10nId, sizeL10n.l10nArgs
     );
-    // we may render in an iframe, in that case l10n.js does not see the change
-    navigator.mozL10n.translateFragment(sizeIndicator);
   };
 
   /**

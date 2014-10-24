@@ -396,7 +396,7 @@ suite('AttachmentRenderer >', function() {
   });
 
   suite('updateFileSize >', function() {
-     test('updates size in the same container', function(done) {
+    test('updates size in the same container', function(done) {
       var attachment = new Attachment(testImageBlob, {
         name: 'Image attachment'
       });
@@ -414,6 +414,34 @@ suite('AttachmentRenderer >', function() {
         var newFileSize =  sizeInfo.dataset.l10nArgs;
         assert.notEqual(newFileSize, currentFileSize);
       }).then(done, done);
-     });
+    });
+
+    test('updates size in iframes too', function(done) {
+      this.sinon.spy(navigator.mozL10n, 'translateFragment');
+
+      var attachment = new Attachment(testImageBlob, {
+        name: 'Image attachment',
+        isDraft: true
+      });
+
+      var attachmentRenderer = AttachmentRenderer.for(attachment);
+      var attachmentContainer = attachmentRenderer.getAttachmentContainer();
+      document.body.appendChild(attachmentContainer);
+
+      attachmentRenderer.render().then(() => {
+        var node = attachmentContainer.contentDocument.documentElement;
+        var sizeInfo = node.querySelector('.size-indicator');
+        var currentFileSize = sizeInfo.dataset.l10nArgs;
+
+        attachment.blob = testImageBlob_small;
+        attachmentRenderer.updateFileSize();
+
+        var newFileSize =  sizeInfo.dataset.l10nArgs;
+        assert.notEqual(newFileSize, currentFileSize);
+
+        sinon.assert.calledWith(navigator.mozL10n.translateFragment, node);
+      }).then(done, done);
+    });
+
   });
 });
