@@ -1,0 +1,54 @@
+<element name="appdetail-view" extends="section">
+  <template>
+    <gaia-header action="back">
+      <h1>{{localized-app-name}}</h1>
+    </gaia-header>
+
+    <div class="view-scroll">
+      <section class="usage fade">
+        <section id="app-graphic-area" class="graph">
+          <canvas id="app-background-layer"></canvas>
+          <canvas id="app-wifi-layer" aria-hidden="true"></canvas>
+          <canvas id="app-mobile-layer"></canvas>
+          <canvas id="app-axis-layer"></canvas>
+          <canvas id="app-today-layer"></canvas>
+          <canvas id="app-warning-layer"></canvas>
+          <canvas id="app-limits-layer"></canvas>
+          <img aria-hidden="true" alt="" src="./style/images/app/ui/datausage/pattern.png" id="app-graphic-pattern" />
+        </section>
+
+        <p class="info" data-l10n-id="data-used-since" aria-hidden="true">
+          {{amount}} of data used since {{start-date}}
+        </p>
+        <p class="info" data-l10n-id="data-used-this-week" aria-hidden="true">
+          {{amount}} of data used this week
+        </p>
+        <p class="info" data-l10n-id="data-used-this-month" aria-hidden="true">
+          {{amount}} of data used this month
+        </p>
+      </section>
+
+      <section class="gaia-list">
+        <header id="data-control-header">
+          <h2 data-l10n-id="data-control">Data control</h2>
+        </header>
+
+        <ul class="settings">
+          <li class="active">
+            <label class="pack-switch end">
+              <input class="settings-option" data-option="allowMobileDataUse" type="checkbox"/>
+              <span data-l10n-id="allow-mobile-data-use">Allow mobile data use</span>
+            </label>
+          </li>
+          <li>
+            <p data-l10n-id="allow-mobile-data-use-info">
+              Allows {{localized-app-name}} to use data over a mobile connection.
+            </p>
+          </li>
+        </ul>
+      </section>
+    </div>
+
+    <script type="text/javascript" defer src="js/views/appdetail.js"></script>
+  </template>
+</element>

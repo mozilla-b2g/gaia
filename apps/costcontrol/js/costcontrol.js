@@ -46,10 +46,7 @@ var CostControl = (function() {
       costcontrol = {
         iccId: iccId,
         request: request,
-        isBalanceRequestSMS: isBalanceRequestSMS,
-        getDataUsageWarning: function _getDataUsageWarning() {
-          return 0.8;
-        }
+        isBalanceRequestSMS: isBalanceRequestSMS
       };
 
       debug('Cost Control ready!');
