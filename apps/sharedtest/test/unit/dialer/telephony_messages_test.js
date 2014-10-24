@@ -215,6 +215,11 @@ suite('Telephony messages', function() {
       subject.handleError('BadNumberError', '123', subject.EMERGENCY_ONLY);
       sinon.assert.calledWith(subject.displayMessage, 'EmergencyCallOnly');
     });
+
+    test('ModifiedDialError not displayed', function() {
+      subject.handleError('ModifiedDialError');
+      sinon.assert.notCalled(subject.displayMessage);
+    });
   });
 
   suite('Busy tone', function() {
