@@ -757,7 +757,6 @@ suite('calls handler', function() {
       suite('> ending a conference call', function() {
         var firstConfCall;
         var secondConfCall;
-        var mockPromise;
 
         setup(function() {
           firstConfCall = new MockCall('432423', 'incoming');
@@ -771,23 +770,19 @@ suite('calls handler', function() {
 
           MockNavigatorMozTelephony.active =
             MockNavigatorMozTelephony.conferenceGroup;
-
-          mockPromise = Promise.resolve();
-          this.sinon.stub(MockNavigatorMozTelephony.conferenceGroup, 'hangUp')
-                         .returns(mockPromise);
         });
 
         test('should hangup all the calls in the conference group', function() {
+          var firstHangUpSpy = this.sinon.spy(firstConfCall, 'hangUp');
+          var secondHangUpSpy = this.sinon.spy(secondConfCall, 'hangUp');
           CallsHandler.end();
-          sinon.assert.calledOnce(
-            MockNavigatorMozTelephony.conferenceGroup.hangUp);
+          assert.isTrue(firstHangUpSpy.calledOnce);
+          assert.isTrue(secondHangUpSpy.calledOnce);
         });
 
-        test('should call CallScreen.setEndConferenceCall', function(done) {
+        test('should call CallScreen.setEndConferenceCall', function() {
           CallsHandler.end();
-          mockPromise.then(function() {
-            assert.isTrue(MockCallScreen.mSetEndConferenceCall);
-          }).then(done, done);
+          assert.isTrue(MockCallScreen.mSetEndConferenceCall);
         });
       });
 
@@ -1024,11 +1019,11 @@ suite('calls handler', function() {
           telephonyAddCall.call(this, call, {trigger: true});
           MockNavigatorMozTelephony.active = call;
 
-          this.sinon.spy(CallScreen, 'hideIncoming');
-          this.sinon.spy(call, 'hangUp');
+          var hideIncomingSpy = this.sinon.spy(CallScreen, 'hideIncoming');
+          var hangUpSpy = this.sinon.spy(call, 'hangUp');
           CallsHandler.endAndAnswer();
-          sinon.assert.notCalled(CallScreen.hideIncoming);
-          sinon.assert.notCalled(call.hangUp);
+          assert.isTrue(hideIncomingSpy.notCalled);
+          assert.isTrue(hangUpSpy.notCalled);
         });
       });
 
@@ -1047,15 +1042,16 @@ suite('calls handler', function() {
           });
 
           test('should hang up the active call', function() {
-            this.sinon.spy(MockNavigatorMozTelephony.active, 'hangUp');
+            var hangUpSpy =
+              this.sinon.spy(MockNavigatorMozTelephony.active, 'hangUp');
             CallsHandler.endAndAnswer();
-            sinon.assert.calledOnce(MockNavigatorMozTelephony.active.hangUp);
+            assert.isTrue(hangUpSpy.calledOnce);
           });
 
           test('should hide the call waiting UI', function() {
-            this.sinon.spy(MockCallScreen, 'hideIncoming');
+            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
             CallsHandler.endAndAnswer();
-            sinon.assert.calledOnce(MockCallScreen.hideIncoming);
+            assert.isTrue(hideSpy.calledOnce);
           });
       });
 
@@ -1073,15 +1069,15 @@ suite('calls handler', function() {
           });
 
           test('should hang up the held call', function() {
-            this.sinon.spy(heldCall, 'hangUp');
+            var hangUpSpy = this.sinon.spy(heldCall, 'hangUp');
             CallsHandler.endAndAnswer();
-            sinon.assert.calledOnce(heldCall.hangUp);
+            assert.isTrue(hangUpSpy.calledOnce);
           });
 
           test('should hide the call waiting UI', function() {
-            this.sinon.spy(MockCallScreen, 'hideIncoming');
+            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
             CallsHandler.endAndAnswer();
-            sinon.assert.calledOnce(MockCallScreen.hideIncoming);
+            assert.isTrue(hideSpy.calledOnce);
           });
       });
 
@@ -1098,15 +1094,15 @@ suite('calls handler', function() {
           });
 
           test('should invoke hold to answer the second call', function() {
-            this.sinon.spy(mockCall, 'hold');
+            var holdSpy = this.sinon.spy(mockCall, 'hold');
             CallsHandler.endAndAnswer();
-            sinon.assert.calledOnce(mockCall.hold);
+            assert.isTrue(holdSpy.calledOnce);
           });
 
           test('should hide the call waiting UI', function() {
-            this.sinon.spy(MockCallScreen, 'hideIncoming');
+            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
             CallsHandler.endAndAnswer();
-            sinon.assert.calledOnce(MockCallScreen.hideIncoming);
+            assert.isTrue(hideSpy.calledOnce);
           });
 
           test('should enable the CDMA call waiting UI', function() {
@@ -1115,17 +1111,16 @@ suite('calls handler', function() {
           });
 
           test('should inform bluetooth of answering second call', function() {
-            this.sinon.spy(MockBluetoothHelperInstance, 'answerWaitingCall');
+            var switchCallsSpy = this.sinon.spy(
+              MockBluetoothHelperInstance, 'answerWaitingCall');
             CallsHandler.endAndAnswer();
-            sinon.assert.calledOnce(
-              MockBluetoothHelperInstance.answerWaitingCall);
+            assert.equal(switchCallsSpy.calledOnce, true);
           });
       });
 
       suite('when a conference call is active', function() {
         var firstConfCall;
         var secondConfCall;
-        var mockPromise;
 
         setup(function() {
           firstConfCall = new MockCall('432423', 'incoming');
@@ -1142,31 +1137,27 @@ suite('calls handler', function() {
 
           var incomingCall = new MockCall('12334', 'incoming');
           telephonyAddCall.call(this, incomingCall, {trigger: true});
-
-          mockPromise = Promise.resolve();
-          this.sinon.stub(MockNavigatorMozTelephony.conferenceGroup, 'hangUp')
-                         .returns(mockPromise);
         });
 
         test('should hangup all the calls in the conference group', function() {
+          var firstHangUpSpy = this.sinon.spy(firstConfCall, 'hangUp');
+          var secondHangUpSpy = this.sinon.spy(secondConfCall, 'hangUp');
           CallsHandler.endAndAnswer();
-          sinon.assert.calledOnce(
-            MockNavigatorMozTelephony.conferenceGroup.hangUp);
+          assert.isTrue(firstHangUpSpy.calledOnce);
+          assert.isTrue(secondHangUpSpy.calledOnce);
         });
 
-        test('should hide the call waiting UI', function(done) {
+        test('should hide the call waiting UI', function() {
+          var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
           CallsHandler.endAndAnswer();
-          mockPromise.then(function() {
-            assert.isTrue(MockCallScreen.mHideIncomingCalled);
-          }).then(done, done);
+          assert.isTrue(hideSpy.calledOnce);
         });
 
-        test('should call CallScreen.setEndConferenceCall', function(done) {
+        test('should call CallScreen.setEndConferenceCall', function() {
           CallsHandler.endAndAnswer();
-          mockPromise.then(function() {
-            assert.isTrue(MockCallScreen.mSetEndConferenceCall);
-          }).then(done, done);
+          assert.isTrue(MockCallScreen.mSetEndConferenceCall);
         });
+
       });
     });
 
