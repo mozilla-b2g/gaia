@@ -38,7 +38,7 @@
     /**
      * Height in pixels of the header part of the group.
      */
-    headerHeight: 47,
+    headerHeight: 30,
 
     /**
      * Height in pixels of the background of the group.

@@ -208,31 +208,27 @@
 }
 
 .group .header {
-  height: 4rem;
+  height: 2rem;
 }
 
 .group .header span {
   position: absolute;
-  top: 1rem;
-  transition: transform 0.25s, opacity 0.25s;
-}
-
-.group .header .gripper,
-.group .header .toggle {
-  width: 4.7rem;
-  height: 4rem;
+  height: 2rem;
   top: 0;
 
   background-position: center center;
   background-repeat: no-repeat;
   background-size: 100%;
+
+  transition: transform 0.25s, opacity 0.25s;
 }
 
 .group .header .gripper {
-  left: 0;
+  left: 11.8rem;
+  width: 8.4rem;
   background-image: url('images/move_gripper.png');
   opacity: 0;
-  transform: translate(-3.7rem, 0);
+  transform: translate(0, -100%);
 }
 
 .edit-mode .group .header .gripper {
@@ -241,8 +237,10 @@
 }
 
 .group .header .toggle {
+  width: 5.34rem;
   right: 0;
   background-image: url('images/collapse_arrow.png');
+  transform-origin: 50% 1.6rem;
 }
 
 .group.collapsed .header .toggle {
