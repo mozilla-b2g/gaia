@@ -1,9 +1,7 @@
 /* exported PlayerView */
-/* global TitleBar, MusicComms, musicdb, ModeManager, App,
-          getThumbnailURL,
-          generateDefaultThumbnailURL, parseAudioMetadata, getAlbumArtBlob,
-          ListView, ForwardLock, formatTime, MozActivity, asyncStorage,
-          SETTINGS_OPTION_KEY, MODE_PLAYER */
+/* global TitleBar, MusicComms, musicdb, ModeManager, App, AlbumArt,
+          parseAudioMetadata, ListView, ForwardLock, formatTime, MozActivity,
+          asyncStorage, SETTINGS_OPTION_KEY, MODE_PLAYER */
 'use strict';
 
 // We have four types of the playing sources
@@ -250,8 +248,7 @@ var PlayerView = {
     this.offscreenImage.src = '';
     this.coverImage.classList.remove('fadeIn');
 
-    getThumbnailURL(fileinfo, function(url) {
-      url = url || generateDefaultThumbnailURL(fileinfo.metadata);
+    AlbumArt.getCoverURL(fileinfo).then(function(url) {
       this.offscreenImage.addEventListener('load', pv_showImage.bind(this));
       this.offscreenImage.src = url;
     }.bind(this));
@@ -432,7 +429,7 @@ var PlayerView = {
     // picture. If .picture is null, something went wrong and listeners should
     // probably use a blank picture (or their own placeholder).
     if (this.audio.currentTime === 0) {
-      getAlbumArtBlob(fileinfo, function(err, blob) {
+      AlbumArt.getCoverBlob(fileinfo).then(function(blob) {
         if (!err) {
           if (blob) {
             notifyMetadata.picture = blob;
@@ -814,7 +811,7 @@ var PlayerView = {
     }
 
     musicdb.getFile(songData.name, function(file) {
-      getAlbumArtBlob(songData, function(err, pictureBlob) {
+      AlbumArt.getCoverBlob(songData).then(function(pictureBlob) {
         var filename = songData.name,
         name = filename.substring(filename.lastIndexOf('/') + 1);
 
