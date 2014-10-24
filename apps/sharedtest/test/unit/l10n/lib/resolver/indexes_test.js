@@ -36,7 +36,7 @@ describe('Index', function(){
     });
     it('throws when the index is an uncalled macro (resolve)', function() {
       assert.throws(function() {
-        env.indexUncalledMacro.resolve({n: 1});
+        Resolver.format(env.indexUncalledMacro, {n: 1});
       }, 'Macro plural expects 1 argument(s), yet 0 given');
     });
     it('returns undefined when the index is an uncalled macro (toString)',
