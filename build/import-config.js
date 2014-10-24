@@ -75,8 +75,22 @@ function generateConfig (app, destination, gaia) {
   };
   utils.writeContent(configFile,
     utils.getDistributionFileContent(app, defaultConfig, gaia.distributionDir));
+
+  // Images configuration
+  var imageConfigFile = utils.getFile(gaia.stageDir.path, '',
+                                'config-images.json');
+  var defaultImageConfig = {
+    'thumbnail' : {
+      'format': 'image/jpeg',
+      'size': 65,
+      'quality': 1.0
+    }
+  };
+
+  utils.writeContent(imageConfigFile,
+    utils.getDistributionFileContent(app, defaultImageConfig,
+                                     gaia.distributionDir));
 }
 
 exports.generateManifest = generateManifest;
 exports.generateConfig = generateConfig;
-

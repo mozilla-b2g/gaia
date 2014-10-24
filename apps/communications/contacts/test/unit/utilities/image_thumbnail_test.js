@@ -1,8 +1,9 @@
 'use strict';
 
-/* global utils */
+/* global utils, MockLazyLoader */
 
 require('/shared/js/contacts/utilities/image_thumbnail.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 suite('Contacts/utilities/thumbnailImage >', function() {
   var imageData = {
@@ -11,7 +12,35 @@ suite('Contacts/utilities/thumbnailImage >', function() {
     'sadpanda.png': null
   };
 
+  var realLazyLoader, realImageUtils, realConfig, mockUtilsConfig;
+  var spy;
+
   suiteSetup(function(done) {
+    realLazyLoader = window.LazyLoader;
+    realImageUtils = window.ImageUtils;
+
+    window.LazyLoader = MockLazyLoader;
+    window.ImageUtils = {
+      resizeAndCropToCover: function(inputImageBlob,
+                                    outputWidth, outputHeight,
+                                    outputType, encoderOptions) {
+        return Promise.resolve(new Blob(['x'], {type: 'image/jpeg'}));
+      }
+    };
+
+    spy = sinon.spy(window.ImageUtils, 'resizeAndCropToCover');
+
+    realConfig = utils.config;
+    mockUtilsConfig = {
+      load: function() {
+        return Promise.resolve({
+          thumbnail: {
+            'quality': 0.95
+          }
+        });
+      }
+    };
+
     var assetsNeeded = 0;
 
     function loadBlob(filename) {
@@ -36,52 +65,47 @@ suite('Contacts/utilities/thumbnailImage >', function() {
     Object.keys(imageData).forEach(loadBlob, imageData);
   });
 
-  test('should return the image directly if it\'s small enough',
-  function(done) {
-    this.timeout(10000);
-    utils.thumbnailImage(imageData['tiny-gaia.png'], function(thumbnail) {
-      assert.equal(thumbnail, imageData['tiny-gaia.png']);
-      done();
+  suiteTeardown(function() {
+    window.LazyLoader = realLazyLoader;
+    window.ImageUtils = realImageUtils;
+
+    utils.config = realConfig;
+  });
+
+  setup(function() {
+    spy.reset();
+    utils.config = mockUtilsConfig;
+  });
+
+
+  test('should draw the image smaller. Default configuration', function(done) {
+    utils.config = {
+      load: function() {
+        return Promise.reject();
+      }
+    };
+
+    utils.thumbnailImage(imageData['gaia.png'], function(thumbnail) {
+      done(function() {
+        assert.isTrue(spy.calledOnce);
+        var call = spy.getCall(0);
+        assert.equal(call.args[1], 65);
+        assert.equal(call.args[2], 65);
+        assert.equal(call.args[3], 'image/jpeg');
+        assert.equal(call.args[4], 1.0);
+      });
     });
   });
 
-  suite('resizing >', function() {
-    var drawImageSpy;
-
-    setup(function() {
-      var fakeContext = {
-        drawImage: function() {}
-      };
-      drawImageSpy = this.sinon.spy(fakeContext, 'drawImage');
-      this.sinon.stub(HTMLCanvasElement.prototype,
-                      'getContext').returns(fakeContext);
-    });
-
-    test('should draw the image smaller', function(done) {
-      this.timeout(20000);
-      utils.thumbnailImage(imageData['gaia.png'], function(thumbnail) {
-        assert.isTrue(drawImageSpy.calledOnce);
-        var call = drawImageSpy.getCall(0);
-        assert.equal(call.args[1], 0);
-        assert.equal(call.args[2], 0);
-        assert.equal(call.args[3], 60);
-        assert.equal(call.args[4], 60);
-        done();
-      });
-    });
-
-    test('should keep the apsect ratio', function(done) {
-      this.timeout(20000);
-      utils.thumbnailImage(imageData['sadpanda.png'], function(thumbnail) {
-        assert.isTrue(drawImageSpy.calledOnce);
-        var call = drawImageSpy.getCall(0);
-        assert.equal(call.args[1], 0);
-        assert.equal(call.args[2], 0);
-        assert.equal(parseInt(call.args[3]), 60);
-        assert.equal(call.args[4], 90);
-        done();
+  test('should take into account a custom configuration', function(done) {
+    utils.thumbnailImage(imageData['gaia.png'], function(thumbnail) {
+      done(function() {
+        var call = spy.getCall(0);
+        assert.equal(call.args[1], 65);
+        assert.equal(call.args[2], 65);
+        assert.equal(call.args[3], 'image/jpeg');
+        assert.equal(call.args[4], 0.95);
       });
     });
   });
 });
-

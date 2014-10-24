@@ -276,12 +276,14 @@ suite('ImageUtils', function() {
   });
 
 
-  function runResizeAndCropToCoverTests(imageWidth, imageHeight, imageType) {
+  function runResizeAndCropToCoverTests(imageWidth, imageHeight, imageType,
+                                        encoderOptions) {
     var suitename = 'resizeAndCropToCover ' + imageType + ' ' +
       imageWidth + 'x' + imageHeight;
     suite(suitename, function() {
       const W = imageWidth, H = imageHeight;  // The size of the test image
       const inputImageType = imageType;
+      const encoderOptions = encoderOptions;
 
       suiteSetup(function(done) {
         // We begin by creating a special image where each pixel value
@@ -438,8 +440,9 @@ suite('ImageUtils', function() {
           });
       });
 
-      test('jpeg output type', function(done) {
-        ImageUtils.resizeAndCropToCover(this.inputBlob, 10, 10, ImageUtils.JPEG)
+      test('jpeg output type with encondig options', function(done) {
+        ImageUtils.resizeAndCropToCover(this.inputBlob, 10, 10, ImageUtils.JPEG,
+                                        encoderOptions)
           .then(function resolve(outputBlob) {
             assert.equal(outputBlob.type, ImageUtils.JPEG);
             done();
@@ -573,7 +576,7 @@ suite('ImageUtils', function() {
     [180, 240],   // 3x4
     [250, 250]   // square
   ]).forEach(function(size) {
-    runResizeAndCropToCoverTests(size[0], size[1], 'image/jpeg');
+    runResizeAndCropToCoverTests(size[0], size[1], 'image/jpeg', 0.95);
     runResizeAndCropToCoverTests(size[0], size[1], 'image/png');
   });
 });
