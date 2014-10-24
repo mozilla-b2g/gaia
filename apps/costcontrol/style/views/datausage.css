@@ -18,6 +18,7 @@
 }
 
 #datausage-tab .toggle-data li {
+  display: flex;
   padding-right: 2rem;
   padding-left: 3rem;
   height: 3.8rem;
@@ -27,8 +28,14 @@
 #datausage-tab .toggle-data li > span {
   font-size: 1.9rem;
   font-weight: normal;
-  height: 100%;
   line-height: 3.8rem;
+}
+
+#datausage-tab .toggle-data li > span:first-child {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #datausage-tab .toggle-data li label {
@@ -72,9 +79,7 @@
 #datausage-tab .toggle-data li .overview {
   color: #333;
   font-weight: 500;
-  right: 3.4rem;
-  left: auto;
-  position: absolute;
+  padding: 0 1rem;
 }
 
 #datausage-tab .toggle-data li[aria-disabled=true] .overview {
