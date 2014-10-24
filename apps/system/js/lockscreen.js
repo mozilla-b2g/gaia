@@ -185,7 +185,7 @@
         }
         // No matter turn on or off from screen timeout or poweroff,
         // all secure apps would be hidden.
-        this.dispatchEvent('secure-killapps');
+        this.dispatchEvent('secure-closeapps');
         this.lockIfEnabled(true);
         break;
 
