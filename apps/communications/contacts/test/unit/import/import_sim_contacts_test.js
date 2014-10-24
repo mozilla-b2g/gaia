@@ -12,10 +12,11 @@ require('/shared/js/contacts/utilities/image_thumbnail.js');
 require('/shared/js/contacts/merger_adapter.js');
 require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contacts/import/utilities/import_sim_contacts.js');
-
+require('/shared/test/unit/mocks/mock_moz_contact.js');
 
 var mocksHelperForImporter = new MocksHelper([
-  'LazyLoader'
+  'LazyLoader',
+  'mozContact'
 ]).init();
 
 suite('Sim import >', function() {

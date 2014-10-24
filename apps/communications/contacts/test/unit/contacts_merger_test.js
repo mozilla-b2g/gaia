@@ -9,10 +9,12 @@ require('/shared/js/contacts/contacts_merger.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
 requireApp('communications/contacts/test/unit/mock_image_thumbnail.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+require('/shared/test/unit/mocks/mock_moz_contact.js');
 
 
 var mocksHelperForContactsMerger = new MocksHelper([
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'mozContact'
 ]).init();
 
 suite('Contacts Merging Tests', function() {

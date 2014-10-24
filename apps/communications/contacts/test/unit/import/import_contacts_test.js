@@ -14,6 +14,7 @@
 /* global MockNavigatorMozMobileConnections */
 /* global MockSimContactsImporter */
 /* global MockVCFReader */
+/* global MockMozContacts */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
@@ -32,6 +33,7 @@ requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_sim_importer.js');
 
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 
 requireApp('communications/contacts/js/views/settings.js');
 requireApp('communications/contacts/js/utilities/icc_handler.js');
@@ -54,7 +56,8 @@ suite('Import contacts >', function() {
   var real_,
       realUtils,
       realWakeLock,
-      realMozMobileConnections;
+      realMozMobileConnections,
+      realMozContacts;
 
   setup(function() {
     this.sinon.spy(window.utils.overlay, 'showMenu');
@@ -73,6 +76,9 @@ suite('Import contacts >', function() {
 
     realWakeLock = navigator.requestWakeLock;
     navigator.requestWakeLock = MockWakeLock;
+
+    realMozContacts = navigator.mozContacts;
+    navigator.mozContacts = MockMozContacts;
 
     real_ = window._;
     window._ = MockMozL10n.get;
@@ -105,6 +111,7 @@ suite('Import contacts >', function() {
   suiteTeardown(function() {
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.requestWakeLock = realWakeLock;
+    navigator.mozContacts = realMozContacts;
 
     window.utils = realUtils;
     window._ = real_;
