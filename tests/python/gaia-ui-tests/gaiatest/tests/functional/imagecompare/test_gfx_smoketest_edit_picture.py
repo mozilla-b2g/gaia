@@ -35,6 +35,7 @@ class TestGalleryEditPhoto(GaiaTestCase):
         self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
         self.graphics = ImageCompareUtil(self.marionette,self.apps, self,'.')
 
+
     def test_gallery_edit_photo(self):
         gallery = Gallery(self.marionette)
         gallery.launch()

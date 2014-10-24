@@ -159,7 +159,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
 
         if not (err == '0\n' or err == '0'):
             err.replace('\n','')
-            print '\nWARNING: ' + err + ' pixels mismatched between ' + target_img + ' and ' + ref_img
+            print 'WARNING: ' + err + ' pixels mismatched between ' + target_img + ' and ' + ref_img
             #raise self.ImageMismatchError(err, target_img,ref_img) #Enable this line instead if exception is needed
 
     #do batch image compare- pick images with specified module name and compare against ref images

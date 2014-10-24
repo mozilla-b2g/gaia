@@ -5,13 +5,15 @@
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.tests.graphics.edit_picture_base import GalleryEditPhotoBase
 
-class TestGalleryEditPhotoColorInvert(GalleryEditPhotoBase):
+class TestGalleryEditPhotoComboEffect(GalleryEditPhotoBase):
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
 
-    def test_gallery_edit_photo_invert(self):
+    def test_gallery_edit_photo_combo(self):
         self.invert(True)
+        self.grayscale(True)
+        self.contrast("0.5")
         self.gallery_edit_photo('IMG_0001.jpg')
 
     def tearDown(self):

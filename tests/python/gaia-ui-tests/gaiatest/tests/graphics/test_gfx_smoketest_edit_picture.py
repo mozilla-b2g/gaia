@@ -5,14 +5,13 @@
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.tests.graphics.edit_picture_base import GalleryEditPhotoBase
 
-class TestGalleryEditPhotoColorInvert(GalleryEditPhotoBase):
+class TestGalleryEditPhoto(GalleryEditPhotoBase):
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
 
-    def test_gallery_edit_photo_invert(self):
-        self.invert(True)
-        self.gallery_edit_photo('IMG_0001.jpg')
+    def test_gallery_edit_photo(self):
+        self.gallery_edit_photo('smallfile.png')
 
     def tearDown(self):
         # In case the assertion fails this will still kill the call
