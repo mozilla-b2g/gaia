@@ -81,8 +81,10 @@ MultiDay.prototype = {
 
     this.baseDate = this._calcBaseDate(controller.position);
     this._render();
-    this._resetScroll();
-    this._scrollToHour();
+    if (this.isThereNeedToSwipe()) {
+      this._resetScroll();
+      this._scrollToHour();
+    }
 
     // add listeners afterwards to avoid calling render twice
     controller.on('dayChange', this);
@@ -276,6 +278,10 @@ MultiDay.prototype = {
       this.baseDate,
       createDayDiff(this.baseDate, this.visibleCells)
     );
+  },
+
+  isThereNeedToSwipe: function() {
+    return true;
   },
 
   _resetScroll: function() {
