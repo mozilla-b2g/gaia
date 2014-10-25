@@ -31,8 +31,7 @@ function ZoomBarController(app) {
 }
 
 ZoomBarController.prototype.createView = function() {
-  this.view = new ZoomBar();
-  this.setZoom(this.camera.getZoom());
+  this.view = this.app.views.zoombar || new ZoomBar();
   this.view.hide();
   this.view.appendTo(this.app.el);
 };
@@ -55,7 +54,8 @@ ZoomBarController.prototype.onChange = function(value) {
   this.camera.setZoom(zoom);
 };
 
-ZoomBarController.prototype.onZoomConfigured = function() {
+ZoomBarController.prototype.onZoomConfigured = function(zoom) {
+  this.setZoom(zoom);
   this.view.hide();
 };
 

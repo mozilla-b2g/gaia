@@ -692,7 +692,6 @@ Camera.prototype.release = function(done) {
 
   this.busy();
   this.stopRecording();
-  this.focus.stopFaceDetection();
   this.set('focus', 'none');
   this.mozCamera.release(onSuccess, onError);
   this.releasing = true;
@@ -1390,7 +1389,7 @@ Camera.prototype.configureZoom = function() {
   this.set('maxHardwareZoom', maxHardwareZoom);
 
   this.setZoom(this.getMinimumZoom());
-  this.emit('zoomconfigured');
+  this.emit('zoomconfigured', this.getZoom());
   return this;
 };
 
