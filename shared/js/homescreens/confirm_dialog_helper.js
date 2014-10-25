@@ -68,6 +68,8 @@
       if (config.confirm.type) {
         confirm.classList.add(config.confirm.type);
       }
+
+      document.activeElement.blur();
       parent.appendChild(element);
       window.dispatchEvent(new CustomEvent('gaia-confirm-open'));
     },
