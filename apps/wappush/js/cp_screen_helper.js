@@ -300,7 +300,7 @@ var CpScreenHelper = (function() {
     cpsh_createNode(details, 'MMS Proxy', apns[index].mmsproxy);
     cpsh_createNode(details, 'MMS Port', apns[index].mmsport);
     cpsh_createNode(details, 'Authentication Type', apns[index].authType);
-    cpsh_createNode(details, 'APN Type', apns[index].type);
+    cpsh_createNode(details, 'APN Type', apns[index].types);
 
     detailsScreen.classList.remove('right');
     apnScreen.classList.add('left');
