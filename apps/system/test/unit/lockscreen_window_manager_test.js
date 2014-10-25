@@ -141,6 +141,21 @@ suite('system/LockScreenWindowManager', function() {
       window.lockScreenWindowManager.unregisterApp(appFake);
     });
 
+    test('If screen offwhile we\'re unlocking, close app immediately',
+    function() {
+      window.lockScreenWindowManager.registerApp(appFake);
+      var stubCloseApp = this.sinon.stub(window.lockScreenWindowManager,
+        'closeApp');
+      window.lockScreenWindowManager.unlocking = true;
+      window.lockScreenWindowManager.handleEvent(
+        { type: 'screenchange',
+          detail: { screenEnabled: false } });
+      assert.isTrue(stubCloseApp.calledWith(true),
+        'the manager didn\'t close the app immediately');
+      window.lockScreenWindowManager.unregisterApp(appFake);
+      window.lockScreenWindowManager.unlocking = false;
+    });
+
     test('When FTU occurs, the window should not be instantiated', function() {
       var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
         'openApp');
