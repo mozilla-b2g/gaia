@@ -1042,6 +1042,11 @@ suite('lib/camera/camera', function() {
       this.camera.release();
     });
 
+    test('Should not call stopFaceDetection', function() {
+      this.camera.release();
+      sinon.assert.notCalled(this.camera.focus.stopFaceDetection);
+    });
+
     test('Should call the callback with an error argument', function(done) {
       this.mozCamera.release = sinon.stub();
       this.mozCamera.release.callsArgWithAsync(1, 'error');
