@@ -65,7 +65,6 @@
      */
     TECH_PRIORITY: {
       P2P: 1,
-      NDEF: 2,
       Unsupported: 20
     },
 
@@ -166,12 +165,12 @@
             this._fireNDEFDiscovered(msg, tech);
           }
           break;
-        case 'NDEF':
-          this._fireNDEFDiscovered(msg, tech);
-          break;
         default:
-          this._debug('Tag tech: ' + tech + ', fire Tag-Discovered.');
-          this._fireTagDiscovered(msg, tech);
+          if (msg.records.length) {
+            this._fireNDEFDiscovered(msg, tech);
+          } else {
+            this._fireTagDiscovered(msg, tech);
+          }
           break;
       }
     },
@@ -493,12 +492,11 @@
     },
 
     /**
-     * Fires nfc-tag-discovered activity to pass unsupported
-     * or NDEF_FORMATABLE tags to an app which can do some
-     * further processing.
-     * @memberof NfcManager.prototype
+     * Fires nfc-tag-discovered activity. Should be used when NFC tag with no
+     * NDEF content is detected.
      * @param {Object} msg
      * @param {string} type - tech with highest priority; for filtering
+     * @todo consider removing type param
      */
     _fireTagDiscovered: function nm_fireTagDiscovered(msg, type) {
       this._debug('_fireTagDiscovered, type: ' + type + ', msg: ', msg);
@@ -507,10 +505,7 @@
         name: 'nfc-tag-discovered',
         data: {
           type: type,
-          techList: msg.techList,
-          // it might be possible we will have some content
-          // so app might handle it, real world testing needed
-          records: msg.records
+          techList: msg.techList
         }
       });
 
