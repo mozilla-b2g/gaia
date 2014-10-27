@@ -430,13 +430,7 @@ var PlayerView = {
     // probably use a blank picture (or their own placeholder).
     if (this.audio.currentTime === 0) {
       AlbumArt.getCoverBlob(fileinfo).then(function(blob) {
-        if (!err) {
-          if (blob) {
-            notifyMetadata.picture = blob;
-          }
-        } else {
-          notifyMetadata.picture = null;
-        }
+        notifyMetadata.picture = blob;
         MusicComms.notifyMetadataChanged(notifyMetadata);
       });
     }
