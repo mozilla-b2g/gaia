@@ -20,6 +20,40 @@ suite('Templates.Alarm', function() {
     });
   }
 
+  function renderDescription(layout, trigger) {
+    return subject.description.render({
+      layout: layout,
+      trigger: trigger
+    });
+  }
+
+  suite('description', function() {
+    test('minutes', function() {
+      assert.include(renderDescription('allday', -600), 'minutes');
+      assert.include(renderDescription('allday', -600), 'role="listitem"');
+      assert.include(renderDescription('standard', -600), 'role="listitem"');
+    });
+
+    test('hours', function() {
+      assert.include(renderDescription('allday', -6000), 'hour');
+      assert.include(renderDescription('allday', -6000), 'role="listitem"');
+      assert.include(renderDescription('standard', -6000), 'role="listitem"');
+    });
+
+    test('years', function() {
+      assert.include(renderDescription('allday', -6000000), 'months');
+      assert.include(renderDescription('allday', -6000000), 'role="listitem"');
+      assert.include(renderDescription('standard', -6000000),
+        'role="listitem"');
+    });
+
+    test('none', function() {
+      assert.include(renderDescription('allday', 'none'), 'None');
+      assert.include(renderDescription('allday', 'none'), 'role="listitem"');
+      assert.include(renderDescription('standard', 'none'), 'role="listitem"');
+    });
+  });
+
   suite('#option', function() {
     test('minutes', function() {
       assert.include(renderOption(-600), 'minutes');
