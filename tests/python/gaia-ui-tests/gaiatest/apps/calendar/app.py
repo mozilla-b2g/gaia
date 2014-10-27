@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette.errors import NoSuchElementException
 from marionette.marionette import Actions
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
