@@ -779,7 +779,7 @@
   };
 
   AppWindow.prototype._handle__orientationchange = function() {
-    if (this.isActive()) {
+    if (this.isActive() && !this.isHomescreen) {
       // Will be resized by the AppWindowManager
       return;
     }
