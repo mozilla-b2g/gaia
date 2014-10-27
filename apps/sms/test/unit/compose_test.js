@@ -132,6 +132,11 @@ suite('compose_test.js', function() {
     this.sinon.stub(SubjectComposer.prototype, 'on');
     this.sinon.stub(SubjectComposer.prototype, 'isVisible').returns(false);
     this.sinon.stub(SubjectComposer.prototype, 'getValue').returns('');
+
+    loadBodyHTML('/index.html');
+    // this needs a proper DOM
+    ThreadUI.initRecipients();
+    Compose.init('messages-compose-form');
   });
 
   teardown(function() {
@@ -144,11 +149,7 @@ suite('compose_test.js', function() {
     setup(function() {
       this.sinon.stub(ThreadUI, 'on');
 
-      loadBodyHTML('/index.html');
-      // this needs a proper DOM
-      ThreadUI.initRecipients();
       Settings.supportEmailRecipient = true;
-      Compose.init('messages-compose-form');
       message = document.getElementById('messages-input');
       sendButton = document.getElementById('messages-send-button');
       attachButton = document.getElementById('messages-attach-button');
@@ -732,13 +733,14 @@ suite('compose_test.js', function() {
       });
 
       test('Attaching another oversized image', function(done) {
+        Utils.getResizedImgBlob.returns(Promise.resolve(smallImageBlob));
+
         function onInput() {
           if (!Compose.isResizing) {
             var images = message.querySelectorAll('iframe');
 
             if (images.length < 2) {
               Compose.append(mockImgAttachment(true));
-              Utils.getResizedImgBlob.lastCall.yield(smallImageBlob);
             } else {
               done(function() {
                 var content = Compose.getContent();
@@ -763,17 +765,17 @@ suite('compose_test.js', function() {
         Compose.on('input', onInput);
         Compose.append(mockImgAttachment(true));
         Compose.append('append more image');
-        Utils.getResizedImgBlob.lastCall.yield(smallImageBlob);
       });
 
       test('Third image attached, size limitation should changed',
       function(done) {
+        Utils.getResizedImgBlob.returns(Promise.resolve(smallImageBlob));
+
         function onInput() {
           if (!Compose.isResizing) {
             var images = Compose.getContent();
             if (images.length < 3) {
               Compose.append(mockImgAttachment(true));
-              Utils.getResizedImgBlob.lastCall.yield(smallImageBlob);
             } else {
               done(function() {
                 Compose.off('input', onInput);
@@ -1326,9 +1328,10 @@ suite('compose_test.js', function() {
 
         test('disabled while resizing oversized image and ' +
           'enabled when resize complete ',
-          function(done) {
+        function(done) {
 
           this.sinon.stub(Utils, 'getResizedImgBlob');
+          Utils.getResizedImgBlob.returns(Promise.resolve(smallImageBlob));
 
           ThreadUI.recipients.add({
             number: '999'
@@ -1346,7 +1349,6 @@ suite('compose_test.js', function() {
           Compose.on('input', onInput);
           Compose.append(mockImgAttachment(true));
           assert.isTrue(sendButton.disabled);
-          Utils.getResizedImgBlob.yield(smallImageBlob);
         });
       });
     });
@@ -1414,12 +1416,17 @@ suite('compose_test.js', function() {
 
       suite('replace', function() {
         var request;
+        var resizedPromise;
 
         setup(function() {
           this.replacement = mockImgAttachment(true);
+          sinon.spy(this.replacement, 'clone');
+
           request = {};
           this.sinon.stub(Compose, 'requestAttachment').returns(request);
-          this.sinon.stub(Utils, 'getResizedImgBlob');
+
+          resizedPromise = Promise.resolve(smallImageBlob);
+          this.sinon.stub(Utils, 'getResizedImgBlob').returns(resizedPromise);
 
           // trigger click on replace
           document.getElementById('attachment-options-replace').click();
@@ -1430,35 +1437,34 @@ suite('compose_test.js', function() {
             request.onsuccess(this.replacement);
           });
 
-          test('clicking on replace requests an attachment', function() {
-            assert.isTrue(Compose.requestAttachment.called);
-          });
-          test('removes the original attachment', function() {
-            assert.ok(!this.attachment.mNextRender.parentNode);
-          });
-          test('inserts the new attachment', function() {
-            assert.ok(this.replacement.mNextRender.parentNode);
-          });
-          test('closes the menu', function() {
-            assert.isTrue(AttachmentMenu.close.called);
-          });
-          test('recalculates size', function() {
-            assert.notEqual(Compose.size, this.attachmentSize,
-              'Size was recalculated to be the new size');
-          });
-          test('resizes image', function() {
-            assert.ok(Utils.getResizedImgBlob.called);
-          });
-          suite('after resize', function() {
-            var replacementSize;
-            setup(function() {
-              replacementSize = Compose.size;
-              Utils.getResizedImgBlob.yield(smallImageBlob);
-            });
+          test('triggers appropriate behavior', function(done) {
+            sinon.assert.called(AttachmentMenu.close);
 
-            test('recalculates size again', function() {
-              assert.notEqual(Compose.size, replacementSize);
-            });
+            var temporarySize = Compose.size;
+            assert.notEqual(temporarySize, this.attachmentSize,
+              'size was recalculated to be the new size');
+
+            sinon.assert.calledWith(
+              Utils.getResizedImgBlob,
+              this.replacement.blob
+            );
+
+            resizedPromise.then(() => {
+              sinon.assert.called(Compose.requestAttachment);
+              assert.isNull(
+                this.attachment.mNextRender.parentNode,
+                'removes the original attachment'
+              );
+
+              var clonedReplacement = this.replacement.clone.returnValues[0];
+              assert.ok(
+                clonedReplacement.mNextRender.parentNode,
+                'inserts the new attachment'
+              );
+
+              assert.notEqual(Compose.size, temporarySize,
+                'size was recalculated after resizing to be the new size');
+            }).then(done, done);
           });
         });
 
@@ -1492,6 +1498,7 @@ suite('compose_test.js', function() {
       this.sinon.stub(AttachmentMenu, 'open');
       this.sinon.stub(AttachmentMenu, 'close');
       this.sinon.stub(Utils, 'getResizedImgBlob');
+      Utils.getResizedImgBlob.returns(Promise.resolve(smallImageBlob));
     });
     test('click opens menu while resizing and resize complete', function(done) {
       Compose.clear();
@@ -1512,8 +1519,6 @@ suite('compose_test.js', function() {
         AttachmentMenu.open,
         'Menu could not be opened while ressizing'
       );
-
-      Utils.getResizedImgBlob.yield(smallImageBlob);
     });
   });
 
