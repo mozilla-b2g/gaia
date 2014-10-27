@@ -331,7 +331,7 @@ window.SMIL = {
     // handle MMS attachments without SMIL / malformed SMIL
     if (!smil || attachmentsNotFound || !slides.length) {
       // reset slides in the attachments not found case
-      slides = [];
+      slides = Array(attachments.length);
       attachments.forEach(SMIL_parseWithoutSMIL);
     }
     exitPoint();
