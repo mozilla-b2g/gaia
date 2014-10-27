@@ -82,7 +82,7 @@ define(function(require) {
       if (this._ppApp) {
         // Let privacy-panel app know that we launched it from settings
         // so the app can show us a back button pointing to settings app.
-        var flag = navigator.mozSettings.createflag().set({
+        var flag = navigator.mozSettings.createLock().set({
           'pp.launched.by.settings': true
         });
         flag.onsuccess = function() {
