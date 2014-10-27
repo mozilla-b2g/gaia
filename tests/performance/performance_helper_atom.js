@@ -33,7 +33,7 @@ function _registerListener(document) {
 
     debug('got', evtName);
 
-    perfMeasurements[evtName] = Date.now();
+    perfMeasurements[evtName] = e.detail.epoch;
     checkFinish();
   }
 
