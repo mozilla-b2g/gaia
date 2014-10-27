@@ -236,15 +236,21 @@ suite('system/AppWindow', function() {
       assert.isFalse(spy.calledWithNew());
     });
 
-    test('resize to bottom most and top most window', function() {
+    test('resize to bottom window thru top most window', function() {
       var popups = openPopups(5);
-      var stubTopResize = this.sinon.stub(popups[4], 'resize');
-      var stubBottomRealResize = this.sinon.stub(popups[0], '_resize');
+      var stubTop1Resize = this.sinon.stub(popups[4], '_resize');
+      var stubTop2Resize = this.sinon.stub(popups[3], '_resize');
+      var stubTop3Resize = this.sinon.stub(popups[2], '_resize');
+      var stubTop4Resize = this.sinon.stub(popups[1], '_resize');
+      var stubBottomResize = this.sinon.stub(popups[0], '_resize');
       var stubAppIsActive = this.sinon.stub(popups[0], 'isActive');
       stubAppIsActive.returns(true);
-      popups[1].resize();
-      assert.isTrue(stubTopResize.called);
-      assert.isTrue(stubBottomRealResize.called);
+      popups[0].resize();
+      assert.isTrue(stubTop1Resize.called);
+      assert.isTrue(stubTop2Resize.called);
+      assert.isTrue(stubTop3Resize.called);
+      assert.isTrue(stubTop4Resize.called);
+      assert.isTrue(stubBottomResize.called);
     });
   });
 
@@ -1348,6 +1354,23 @@ suite('system/AppWindow', function() {
       this.sinon.clock.tick(fallbackTimeout);
       assert.ok(destroyStub.calledOnce);
     });
+
+    test('Destroy active window directly when the bottom app is not Active',
+      function() {
+        var app = new AppWindow(fakeAppConfig1);
+
+        // Ensure that the closed event does not trigger the destroy method.
+        this.sinon.stub(app, 'getBottomMostWindow').returns({
+          isActive: function() {
+            return false;
+          }
+        });
+
+        var destroyStub = this.sinon.stub(app, 'destroy');
+
+        app.kill();
+        assert.ok(destroyStub.calledOnce);
+      });
 
     test('Load event', function() {
       var app1 = new AppWindow(fakeAppConfig1);

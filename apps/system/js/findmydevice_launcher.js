@@ -65,7 +65,7 @@ navigator.mozSettings.addObserver('geolocation.enabled', function(event) {
   wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_STALE_REGISTRATION);
 });
 
-window.addEventListener('will-unlock', function(event) {
+window.addEventListener('lockscreen-appclosed', function(event) {
   var helper = SettingsHelper('lockscreen.lock-message');
   helper.set('');
 });

@@ -267,6 +267,10 @@ PerformanceHelper.prototype = {
           'screen.timeout': 0
         });
     });
+  },
+
+  unlockScreen: function() {
+    MarionetteHelper.unlockScreen(this.app.client);
   }
 };
 

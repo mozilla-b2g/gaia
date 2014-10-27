@@ -145,13 +145,13 @@ suite('system/SecureWindowManager', function() {
       var evt = {
         type: 'home'
       };
-      var stubKillApps = this.sinon.stub(window.secureWindowManager,
-        'killApps');
+      var stubSoftKillApps = this.sinon.stub(window.secureWindowManager,
+        'softKillApps');
       window.secureWindowManager.registerApp(appFake);
       window.secureWindowManager.handleEvent(evt);
 
-      assert.isTrue(stubKillApps.called,
-          'should shut down secure apps after pressing home');
+      assert.isTrue(stubSoftKillApps.called,
+          'should soft kill secure apps after pressing home');
     });
   });
 });

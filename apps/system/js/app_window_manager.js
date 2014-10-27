@@ -473,7 +473,9 @@
             };
           };
 
-          if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
+          // 'homescren' vs. 'homescreen'
+          if (activeApp && activeApp.manifest.role !==
+              homescreenLauncher.origin) {
             activeApp.setVisible(true);
             // If we need to invoke activity after we show the window.
             if (detail && detail.activity) {

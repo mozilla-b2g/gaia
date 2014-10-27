@@ -119,7 +119,7 @@
           break;
         case 'home':
           if (0 !== Object.keys(this.states.runningApps).length) {
-            this.killApps();
+            this.softKillApps();
           }
           break;
       }

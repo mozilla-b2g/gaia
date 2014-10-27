@@ -13,6 +13,7 @@ if (!utils.alphaScroll) {
     var isScrolling = false;
     var alreadyRendered = false;
     var isDesktop = false;
+    var overlayTimer = null;
 
     // Callback invoked when scrolling is neded
     var P_SCROLLTO_CB = 'scrollToCb';
@@ -29,7 +30,7 @@ if (!utils.alphaScroll) {
 
     var RESET_TRANSITION = '0s';
 
-    var offset = 0, lastY = 0;
+    var offset = 0, firstY = 0, lastY = 0;
 
     var isTouch = 'ontouchstart' in window;
     var touchstart = isTouch ? 'touchstart' : 'mousedown';
@@ -145,6 +146,7 @@ if (!utils.alphaScroll) {
       } else if (dataset.img) {
         overlay.textContent = '';
         var img = new Image();
+        img.alt = '';
         img.src = 'style/images/' + dataset.img;
         overlay.appendChild(img);
       }
@@ -173,6 +175,7 @@ if (!utils.alphaScroll) {
         return;
       }
 
+      firstY = getY(evt);
       offset = offset || jumper.querySelector('[data-anchor]').offsetHeight;
       overlayStyle.MozTransitionDelay = RESET_TRANSITION;
       overlayStyle.MozTransitionDuration = RESET_TRANSITION;
@@ -180,6 +183,13 @@ if (!utils.alphaScroll) {
       isScrolling = true;
 
       scrollTo(evt);
+    }
+
+    function clearOverlay(transitionDelay, transitionDuration) {
+      overlayStyle.MozTransitionDelay = transitionDelay;
+      overlayStyle.MozTransitionDuration = transitionDuration;
+      overlayStyle.opacity = '0';
+      overlay.textContent = null;
     }
 
     function scrollEnd(evt) {
@@ -193,10 +203,20 @@ if (!utils.alphaScroll) {
         transitionDelay = RESET_TRANSITION;
         transitionDuration = RESET_TRANSITION;
       }
-      overlayStyle.MozTransitionDelay = transitionDelay;
-      overlayStyle.MozTransitionDuration = transitionDuration;
-      overlayStyle.opacity = '0';
-      overlay.textContent = null;
+
+      if (Math.abs(lastY - firstY) < offset / 2 && !isDesktop) {
+        // When we get to scrollEnd, it could be scrolling to an index and stop,
+        // or tapping on an index and release. Here we set the offset threshold
+        // and check against to move distance, if move distance is smaller than
+        // threshold, we should clear overlay content after TRANSITION_DURATION
+        // time to prevent empty overlay showing.
+        window.clearTimeout(overlayTimer);
+        overlayTimer = window.setTimeout(function() {
+          clearOverlay(transitionDelay, transitionDuration);
+        }, 200);
+      } else {
+        clearOverlay(transitionDelay, transitionDuration);
+      }
       isScrolling = false;
       lastY = 0;
     }

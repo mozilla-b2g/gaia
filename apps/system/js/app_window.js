@@ -388,7 +388,8 @@
     }
 
     // If the app is the currently displayed app, switch to the homescreen
-    if (this.isActive() && !this.isHomescreen) {
+    if (this.isActive() && this.getBottomMostWindow().isActive() &&
+        !this.isHomescreen) {
 
       var fallbackTimeout;
       var onClosed = function() {
@@ -1275,10 +1276,9 @@
     if (!bottom.isActive() || this.isTransitioning()) {
       return;
     }
-    var top = this.getTopMostWindow();
-    if (top.instanceID != this.instanceID) {
-      bottom._resize();
-      top.resize();
+    if (this.frontWindow) {
+      this._resize();
+      this.frontWindow.resize();
     } else {
       // resize myself if no child.
       this.debug(' will resize... ');
