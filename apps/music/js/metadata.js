@@ -102,22 +102,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var RATED = 'rated';
   var PLAYED = 'played';
 
-  // Map id3v2 frame ids to metadata property names
-  var ID3V2FRAMES = {
-    TIT2: TITLE,
-    TT2: TITLE,
-    TPE1: ARTIST,
-    TP1: ARTIST,
-    TALB: ALBUM,
-    TAL: ALBUM,
-    TRCK: TRACKNUM,
-    TRK: TRACKNUM,
-    TPA: DISCNUM,
-    TPOS: DISCNUM,
-    APIC: IMAGE,
-    PIC: IMAGE
-  };
-
   // Map ogg field names to metadata property names
   var OGGFIELDS = {
     title: TITLE,
@@ -178,8 +162,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   if (filename) {
     var p1 = filename.lastIndexOf('/');
     var p2 = filename.lastIndexOf('.');
-    if (p2 === -1)
+    if (p2 === -1) {
       p2 = filename.length;
+    }
     metadata[TITLE] = filename.substring(p1 + 1, p2);
   }
 
@@ -202,8 +187,12 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
 
       if (magic.substring(0, 3) === 'ID3') {
-        // parse ID3v2 tag in an MP3 file
-        parseID3v2Metadata(header);
+        console.log("HIIIIIII");
+        LazyLoader.load('js/metadata/id3v2.js', function() {
+          ID3v2Metadata.parse(header, metadata).then(
+            handleCoverArt, errorCallback
+          );
+        });
       }
       else if (magic.substring(0, 4) === 'OggS') {
         // parse metadata from an Ogg Vorbis file
@@ -302,14 +291,17 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     var artist = footer.getASCIIText(33, 30);
     var album = footer.getASCIIText(63, 30);
     var p = title.indexOf('\0');
-    if (p !== -1)
+    if (p !== -1) {
       title = title.substring(0, p);
+    }
     p = artist.indexOf('\0');
-    if (p !== -1)
+    if (p !== -1) {
       artist = artist.substring(0, p);
+    }
     p = album.indexOf('\0');
-    if (p !== -1)
+    if (p !== -1) {
       album = album.substring(0, p);
+    }
 
     metadata[TAG_FORMAT] = 'id3v1';
     metadata[TITLE] = title || undefined;
@@ -320,314 +312,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     if (b1 === 0 && b2 !== 0)
       metadata[TRACKNUM] = b2;
     metadataCallback(metadata);
-  }
-
-  //
-  // Format information:
-  //   http://www.id3.org/id3v2.3.0
-  //   http://phoxis.org/2010/05/08/what-are-id3-tags-all-about/
-  //   https://github.com/aadsm/JavaScript-ID3-Reader/
-  //
-  function parseID3v2Metadata(header) {
-
-    // First three bytes are "ID3" or we wouldn't be here
-    header.index = 3;
-    var id3version = header.readUnsignedByte();
-
-    if (id3version > 4) {
-      console.warn('mp3 file with unknown metadata version');
-      metadataCallback(metadata);
-      return;
-    }
-
-    var id3revision = header.readUnsignedByte();
-
-    metadata[TAG_FORMAT] = 'id3v2.' + id3version + '.' + id3revision;
-
-    var id3flags = header.readUnsignedByte();
-    var tag_unsynchronized = ((id3flags & 0x80) !== 0);
-    var has_extended_header = ((id3flags & 0x40) !== 0);
-    var length = header.readID3Uint28BE();
-
-    // Get the entire ID3 data block and pass it to parseID3()
-    // May be async, or sync, depending on whether we read enough
-    // bytes when we read the header
-    header.getMore(header.index, length, parseID3);
-
-    function parseID3(id3) {
-      // In id3v2.3, the "unsynchronized" flag in the tag header applies to
-      // the whole tag (excluding the tag header). In id3v2.4, the flag is just
-      // an indicator that we should expect to see the "unsynchronized" flag
-      // set on all the frames.
-      if (tag_unsynchronized && id3version === 3)
-        id3 = deunsync(id3, length);
-
-      // skip the extended header, if there is one
-      if (has_extended_header) {
-        if (id3version === 4) {
-          var extended_header_size = id3.readID3Uint28BE();
-          // In id3v2.4, the size includes itself, i.e. the rest of the header
-          // is |extended_header_size - 4|.
-          id3.advance(extended_header_size - 4);
-        }
-        else { // id3version === 3
-          var extended_header_size = id3.readUnsignedInt();
-          // In id3v2.3, the size *excludes* itself, i.e. the rest of the header
-          // is |extended_header_size|.
-          id3.advance(extended_header_size);
-        }
-      }
-
-      // If this tag has cover art in an unsynchronized block, we'll store it
-      // here. Otherwise, this will be null.
-      var coverBlob;
-
-      // Now we have a series of frames, each of which is one ID3 field
-      while (id3.index < id3.byteLength) {
-        var frameid, framesize, frameflags, frame_unsynchronized = false;
-
-        // If there is a null byte here, then we've found padding
-        // and we're done
-        if (id3.getUint8(id3.index) === 0)
-          break;
-
-        switch (id3version) {
-        case 2:
-          frameid = id3.readASCIIText(3);
-          framesize = id3.readUint24();
-          frameflags = 0;
-          break;
-        case 3:
-          frameid = id3.readASCIIText(4);
-          framesize = id3.readUnsignedInt();
-          frameflags = id3.readUnsignedShort();
-          break;
-        case 4:
-          frameid = id3.readASCIIText(4);
-          framesize = id3.readID3Uint28BE();
-          frameflags = id3.readUnsignedShort();
-          frame_unsynchronized = ((frameflags & 0x02) !== 0);
-          break;
-        }
-
-        var nextframe = id3.index + framesize;
-        var propname = ID3V2FRAMES[frameid];
-
-        // Skip frames we don't care about
-        if (!propname) {
-          id3.index = nextframe;
-          continue;
-        }
-
-        // Skip compressed, encrypted, or grouped frames that
-        // we can't decode
-        if ((frameflags & 0xFD) !== 0) {
-          console.warn('Skipping', frameid, 'frame with flags', frameflags);
-          id3.index = nextframe;
-          continue;
-        }
-
-        // Wrap it in try so we don't crash the whole thing on one bad frame
-        try {
-          var frameview, framevalue, frametext;
-          var framevalue2, propname2;
-          framevalue2 = null;
-          propname2 = null;
-
-          if (frame_unsynchronized) {
-            frameview = deunsync(id3, framesize);
-            framesize = frameview.sliceLength;
-          }
-          else {
-            frameview = id3;
-          }
-
-          // Now get the frame value
-          switch (frameid) {
-          case 'TIT2':
-          case 'TT2':
-          case 'TPE1':
-          case 'TP1':
-          case 'TALB':
-          case 'TAL':
-            framevalue = readTextFrame(frameview, framesize);
-            break;
-          case 'TRCK':
-          case 'TRK':
-          case 'TPOS':
-          case 'TPA':
-            frametext = readTextFrame(frameview, framesize);
-            framevalue = parseInt(frametext, 10);
-            // in id3 the count is in the second part of the frame
-            // after '/'
-            var idx = frametext.indexOf('/');
-            if (idx != -1) {
-              var s = frametext.substring(idx + 1);
-              framevalue2 = parseInt(s, 10);
-
-              switch (frameid) {
-              case 'TRCK':
-              case 'TRK':
-                propname2 = TRACKCOUNT;
-                break;
-              case 'TPOS':
-              case 'TPA':
-                propname2 = DISCCOUNT;
-                break;
-              }
-            }
-            break;
-          case 'APIC':
-          case 'PIC':
-            framevalue = readPicFrame(frameview, framesize, frameid);
-
-            // If the picture is unsynchronized, we need to grab the slice for
-            // it immediately, before we lose the deunsynced state.
-            if (tag_unsynchronized || frame_unsynchronized) {
-              coverBlob = new Blob(
-                [frameview.buffer.slice(framevalue.start, framevalue.end)],
-                { type: framevalue.type }
-              );
-              framevalue = { flavor: 'unsynced' };
-            }
-            break;
-          }
-
-          if (framevalue !== null)
-            metadata[propname] = framevalue;
-          if (framevalue2 !== null && propname2 !== null)
-            metadata[propname2] = framevalue2;
-        }
-        catch (e) {
-          console.warn('Error parsing mp3 metadata frame', frameid, ':', e);
-        }
-
-        // Make sure we're at the start of the next frame before continuing
-        id3.index = nextframe;
-      }
-
-      handleCoverArt(metadata, coverBlob);
-    }
-
-    /**
-     * Reverse the ID3 unsynchronization so that we get the unescaped data. This
-     * will advance the view to the end of the unsynchronized block so that you
-     * can continue to use the original view once you're finished with the
-     * deunsynced view.
-     *
-     * @param {BlobView} view The original BlobView for the ID3 tag.
-     * @param {Number} framesize The size of the unsynchronized frame.
-     * @return {BlobView} A new BlobView with the deunsynced data.
-     */
-    function deunsync(view, framesize) {
-      // To de-unsychronize a frame, we need to convert all instances of
-      // |0xff 00| to |0xff|.
-      var data = new Uint8Array(framesize), was0xff = false, dataIndex = 0;
-      for (var i = 0; i < framesize; i++) {
-        var b = view.readUnsignedByte();
-        if (was0xff && b === 0x00)
-          continue;
-        was0xff = (b === 0xff);
-        data[dataIndex++] = b;
-      }
-
-      // Create a new BlobView with the de-unsynchronized data.
-      return new BlobView.getFromArrayBuffer(data.buffer, 0, dataIndex,
-                                             view.littleEndian);
-    }
-
-    function readPicFrame(view, size, id) {
-      var start = view.index;
-      var encoding = view.readUnsignedByte();
-      var mimetype;
-      // mimetype is different for old PIC frames and new APIC frames
-      if (id === 'PIC') {
-        mimetype = view.readASCIIText(3);
-        if (mimetype === 'JPG')
-          mimetype = 'image/jpeg';
-        else if (mimetype === 'PNG')
-          mimetype = 'image/png';
-      }
-      else {
-        mimetype = view.readNullTerminatedLatin1Text(size - 1);
-      }
-
-      // We ignore these next two fields
-      var kind = view.readUnsignedByte();
-      var desc = readEncodedText(view, size - (view.index - start), encoding);
-
-      var picstart = view.sliceOffset + view.viewOffset + view.index;
-      var piclength = size - (view.index - start);
-
-      // Now return an object that specifies where to pull the image from
-      // The properties of this object can be passed to blob.slice()
-      return {
-        flavor: 'embedded',
-        start: picstart,
-        end: picstart + piclength,
-        type: mimetype
-      };
-    }
-
-    function readTextFrame(view, size, encoding) {
-      if (encoding === undefined) {
-        encoding = view.readUnsignedByte();
-        size = size - 1;
-      }
-      if (id3version === 4) {
-        // In id3v2.4, all text frames can have multiple values, separated by
-        // the null character. For now, we join them together to make one big
-        // string.
-        return readEncodedTextArray(view, size, encoding);
-      }
-      else {
-        // In id3v2.3, some text frames can have multiple values, separated by
-        // '/', so we don't need to do anything special here. In fact, even if
-        // we start treating multi-value text frames as an array, we probably
-        // shouldn't do anything, since '/' is a bad delimiter.
-        return readEncodedText(view, size, encoding);
-      }
-    }
-
-    function readEncodedTextArray(view, size, encoding) {
-      var text;
-      switch (encoding) {
-      case 0:
-        text = view.readASCIIText(size);
-        break;
-      case 1:
-        text = view.readUTF16Text(size, undefined);
-        break;
-      case 2:
-        text = view.readUTF16Text(size, false);
-        break;
-      case 3:
-        text = view.readUTF8Text(size);
-        break;
-      default:
-        throw Error('unknown text encoding');
-      }
-
-      // Remove any trailing nulls and replace nulls in the middle with ' / '.
-      // XXX: When the database supports arrays of values for each field, we
-      // should split this into a proper array!
-      return text.replace(/\0+$/, '').replace('\0', ' / ');
-    }
-
-    function readEncodedText(view, size, encoding) {
-      switch (encoding) {
-      case 0:
-        return view.readNullTerminatedLatin1Text(size);
-      case 1:
-        return view.readNullTerminatedUTF16Text(size, undefined);
-      case 2:
-        return view.readNullTerminatedUTF16Text(size, false);
-      case 3:
-        return view.readNullTerminatedUTF8Text(size);
-      default:
-        throw Error('unknown text encoding');
-      }
-    }
   }
 
   //
@@ -1058,13 +742,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     });
   }
 
-  function handleCoverArt(metadata, coverBlob) {
+  function handleCoverArt(metadata) {
     // Media files that aren't backed by actual files get the picture as a Blob,
     // since they're just temporary. We also use this in our tests.
     if (!filename) {
-      if (coverBlob) {
-        metadata.picture.blob = coverBlob;
-      } else if (metadata.picture) {
+      if (metadata.picture && !metadata.picture.blob) {
         metadata.picture.blob = blob.slice(
           metadata.picture.start, metadata.picture.end, metadata.picture.type
         );
@@ -1073,37 +755,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       return;
     }
 
-    if (coverBlob) {
-      // We have album art in a separate blob that we need to save somewhere;
-      // generally, this is because we had an unsynced ID3 frame with the art
-      // and needed to de-unsync it.
-      //
-      // First, try to make a unique filename for the image based on the artist,
-      // album, and file size. The file size is essentially a poor man's
-      // checksum to make sure we aren't reusing an inappropriate image, such as
-      // if the user updated the embedded art.
-      var albumKey;
-      if (metadata.artist || metadata.album) {
-        // Don't let the artist or album strings be too long; VFAT has a maximum
-        // of 255 characters for the path, and we need some room for the rest of
-        // it!
-        var artist = (metadata.artist || '').substr(0, 64);
-        var album = (metadata.album || '').substr(0, 64);
-        albumKey = artist + '.' + album;
-      } else {
-        // If there's no album or artist, use the path to the file instead; we
-        // truncate from the end to help ensure uniqueness.
-        albumKey = filename.substr(-128);
-      }
-
-      // coverBlob is always a JPEG or PNG.
-      var extension = coverBlob.type === 'image/jpeg' ? '.jpg' : '.png';
-      var imageFilename = vfatEscape(albumKey) + '.' + coverBlob.size +
-                          extension;
-      checkSaveCover(coverBlob, imageFilename, function() {
-        metadataCallback(metadata);
-      });
-    } else if (!metadata.picture) {
+    if (!metadata.picture) {
       // We don't have any embedded album art; see if there's any external album
       // art in the same directory.
       var lastSlash = filename.lastIndexOf('/');
@@ -1142,6 +794,39 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         };
       };
       tryFetchExternalCover(0);
+    } else if (metadata.picture.blob) {
+      // We have album art in a separate blob that we need to save somewhere;
+      // generally, this is because we had an unsynced ID3 frame with the art
+      // and needed to de-unsync it.
+      //
+      // First, try to make a unique filename for the image based on the artist,
+      // album, and file size. The file size is essentially a poor man's
+      // checksum to make sure we aren't reusing an inappropriate image, such as
+      // if the user updated the embedded art.
+      var albumKey;
+      if (metadata.artist || metadata.album) {
+        // Don't let the artist or album strings be too long; VFAT has a maximum
+        // of 255 characters for the path, and we need some room for the rest of
+        // it!
+        var artist = (metadata.artist || '').substr(0, 64);
+        var album = (metadata.album || '').substr(0, 64);
+        albumKey = artist + '.' + album;
+      } else {
+        // If there's no album or artist, use the path to the file instead; we
+        // truncate from the end to help ensure uniqueness.
+        albumKey = filename.substr(-128);
+      }
+
+      var coverBlob = metadata.picture.blob;
+      delete metadata.picture.blob;
+
+      // coverBlob is always a JPEG or PNG.
+      var extension = coverBlob.type === 'image/jpeg' ? '.jpg' : '.png';
+      var imageFilename = vfatEscape(albumKey) + '.' + coverBlob.size +
+                          extension;
+      checkSaveCover(coverBlob, imageFilename, function() {
+        metadataCallback(metadata);
+      });
     } else {
       // We have embedded album art! All the processing is already done, so we
       // can just return.
