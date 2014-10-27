@@ -1,4 +1,4 @@
-apps/system
+tv_apps/smart-system
 apps/settings
 tv_apps/smart-home
 apps/bluetooth
@@ -15,6 +15,7 @@ apps/pdfjs
 apps/video
 apps/wallpaper
 apps/marketplace.firefox.com
+apps/default_theme
 outoftree_apps/*
 dev_apps/test-agent
 dev_apps/homescreen-stingray
