@@ -83,7 +83,8 @@ gaia-header [data-icon]:before {
   background: #f4f4f4;
   transform: translate(0, 0);
   transition: transform 0.5s ease,
-              opacity 0.2s ease;
+              opacity 0.2s ease,
+              visibility 0.5s;
 }
 
 #balance-tab,
@@ -106,35 +107,37 @@ gaia-header [data-icon]:before {
 }
 
 /* VIEWPORTS */
-.view[data-viewport="behind"] {
-  visibility: hidden;
-}
-
 .view[data-viewport="ethereal"] {
   pointer-events: none;
   opacity: 0;
+  visibility: hidden;
 }
 
 .view[data-viewport="bottom"] {
   transform: translateY(100%);
+  visibility: hidden;
 }
 
 .view[data-viewport="top"] {
   transform: translateY(-100%);
+  visibility: hidden;
 }
 
 .view[data-viewport="left"] {
   transform: translateX(-100%);
+  visibility: hidden;
 }
 
 .view[data-viewport="right"] {
   transform: translateX(100%);
+  visibility: hidden;
 }
 
 .view[data-viewport="inside"] {
   transform: scale(0.3);
   opacity: 0;
   pointer-events: none;
+  visibility: hidden;
 }
 
 #settings-view.view {
