@@ -22,8 +22,8 @@ if (typeof PDFJS === 'undefined') {
   (typeof window !== 'undefined' ? window : this).PDFJS = {};
 }
 
-PDFJS.version = '1.0.524';
-PDFJS.build = 'ad2ea78';
+PDFJS.version = '1.0.954';
+PDFJS.build = '8e6b97e';
 
 (function pdfjsWrapper() {
   // Use strict in our context only - users might not want it
@@ -52,7 +52,7 @@ PDFJS.build = 'ad2ea78';
 
 var globalScope = (typeof window === 'undefined') ? this : window;
 
-var isWorker = (typeof window == 'undefined');
+var isWorker = (typeof window === 'undefined');
 
 var FONT_IDENTITY_MATRIX = [0.001, 0, 0, 0.001, 0, 0];
 
@@ -303,7 +303,7 @@ function combineUrl(baseUrl, url) {
     return url;
   }
   var i;
-  if (url.charAt(0) == '/') {
+  if (url.charAt(0) === '/') {
     // absolute path
     i = baseUrl.indexOf('://');
     if (url.charAt(1) === '/') {
@@ -373,6 +373,7 @@ var PasswordException = (function PasswordExceptionClosure() {
 
   return PasswordException;
 })();
+PDFJS.PasswordException = PasswordException;
 
 var UnknownErrorException = (function UnknownErrorExceptionClosure() {
   function UnknownErrorException(msg, details) {
@@ -386,6 +387,7 @@ var UnknownErrorException = (function UnknownErrorExceptionClosure() {
 
   return UnknownErrorException;
 })();
+PDFJS.UnknownErrorException = UnknownErrorException;
 
 var InvalidPDFException = (function InvalidPDFExceptionClosure() {
   function InvalidPDFException(msg) {
@@ -398,6 +400,7 @@ var InvalidPDFException = (function InvalidPDFExceptionClosure() {
 
   return InvalidPDFException;
 })();
+PDFJS.InvalidPDFException = InvalidPDFException;
 
 var MissingPDFException = (function MissingPDFExceptionClosure() {
   function MissingPDFException(msg) {
@@ -410,6 +413,22 @@ var MissingPDFException = (function MissingPDFExceptionClosure() {
 
   return MissingPDFException;
 })();
+PDFJS.MissingPDFException = MissingPDFException;
+
+var UnexpectedResponseException =
+    (function UnexpectedResponseExceptionClosure() {
+  function UnexpectedResponseException(msg, status) {
+    this.name = 'UnexpectedResponseException';
+    this.message = msg;
+    this.status = status;
+  }
+
+  UnexpectedResponseException.prototype = new Error();
+  UnexpectedResponseException.constructor = UnexpectedResponseException;
+
+  return UnexpectedResponseException;
+})();
+PDFJS.UnexpectedResponseException = UnexpectedResponseException;
 
 var NotImplementedException = (function NotImplementedExceptionClosure() {
   function NotImplementedException(msg) {
@@ -463,15 +482,6 @@ function bytesToString(bytes) {
     strBuf.push(String.fromCharCode.apply(null, chunk));
   }
   return strBuf.join('');
-}
-
-function stringToArray(str) {
-  var length = str.length;
-  var array = [];
-  for (var i = 0; i < length; ++i) {
-    array[i] = str.charCodeAt(i);
-  }
-  return array;
 }
 
 function stringToBytes(str) {
@@ -919,7 +929,7 @@ function isEmptyObj(obj) {
 }
 
 function isBool(v) {
-  return typeof v == 'boolean';
+  return typeof v === 'boolean';
 }
 
 function isInt(v) {
@@ -1071,7 +1081,7 @@ PDFJS.createPromiseCapability = createPromiseCapability;
     pendingRejectionCheck: false,
 
     scheduleHandlers: function scheduleHandlers(promise) {
-      if (promise._status == STATUS_PENDING) {
+      if (promise._status === STATUS_PENDING) {
         return;
       }
 
@@ -1097,10 +1107,10 @@ PDFJS.createPromiseCapability = createPromiseCapability;
 
         try {
           if (nextStatus === STATUS_RESOLVED) {
-            if (typeof(handler.onResolve) == 'function') {
+            if (typeof handler.onResolve === 'function') {
               nextValue = handler.onResolve(nextValue);
             }
-          } else if (typeof(handler.onReject) === 'function') {
+          } else if (typeof handler.onReject === 'function') {
               nextValue = handler.onReject(nextValue);
               nextStatus = STATUS_RESOLVED;
 
@@ -1267,7 +1277,7 @@ PDFJS.createPromiseCapability = createPromiseCapability;
         return;
       }
 
-      if (status == STATUS_RESOLVED &&
+      if (status === STATUS_RESOLVED &&
           Promise.isPromise(value)) {
         value.then(this._updateStatus.bind(this, STATUS_RESOLVED),
                    this._updateStatus.bind(this, STATUS_REJECTED));
@@ -1611,6 +1621,14 @@ PDFJS.disableRange = (PDFJS.disableRange === undefined ?
                       false : PDFJS.disableRange);
 
 /**
+ * Disable streaming of PDF file data. By default PDF.js attempts to load PDF
+ * in chunks. This default behavior can be disabled.
+ * @var {boolean}
+ */
+PDFJS.disableStream = (PDFJS.disableStream === undefined ?
+                       false : PDFJS.disableStream);
+
+/**
  * Disable pre-fetching of PDF file data. When range requests are enabled PDF.js
  * will automatically keep fetching more data even if it isn't needed to display
  * the current page. This default behavior can be disabled.
@@ -1715,6 +1733,11 @@ PDFJS.maxCanvasPixels = (PDFJS.maxCanvasPixels === undefined ?
  * parameters: function that needs to be called with new password and reason
  * (see {PasswordResponses}).
  *
+ * @param {function} progressCallback is optional. It is used to be able to
+ * monitor the loading progress of the PDF file (necessary to implement e.g.
+ * a loading bar). The callback receives an {Object} with the properties:
+ * {number} loaded and {number} total.
+ *
  * @return {Promise} A promise that is resolved with {@link PDFDocumentProxy}
  *   object.
  */
@@ -1803,9 +1826,19 @@ var PDFDocumentProxy = (function PDFDocumentProxyClosure() {
     /**
      * @return {Promise} A promise that is resolved with a lookup table for
      * mapping named destinations to reference numbers.
+     *
+     * This can be slow for large documents: use getDestination instead
      */
     getDestinations: function PDFDocumentProxy_getDestinations() {
       return this.transport.getDestinations();
+    },
+    /**
+     * @param {string} id The named destination to get.
+     * @return {Promise} A promise that is resolved with all information
+     * of the given named destination.
+     */
+    getDestination: function PDFDocumentProxy_getDestination(id) {
+      return this.transport.getDestination(id);
     },
     /**
      * @return {Promise} A promise that is resolved with a lookup table for
@@ -2027,8 +2060,7 @@ var PDFPageProxy = (function PDFPageProxyClosure() {
       // this call to render.
       this.pendingDestroy = false;
 
-      var renderingIntent = ('intent' in params ?
-        (params.intent == 'print' ? 'print' : 'display') : 'display');
+      var renderingIntent = (params.intent === 'print' ? 'print' : 'display');
 
       if (!this.intentStates[renderingIntent]) {
         this.intentStates[renderingIntent] = {};
@@ -2361,6 +2393,12 @@ var WorkerTransport = (function WorkerTransportClosure() {
           });
         });
 
+        pdfDataRangeTransport.addProgressiveReadListener(function(chunk) {
+          messageHandler.send('OnDataRange', {
+            chunk: chunk
+          });
+        });
+
         messageHandler.on('RequestDataRange',
           function transportDataRange(data) {
             pdfDataRangeTransport.requestDataRange(data.begin, data.end);
@@ -2375,40 +2413,56 @@ var WorkerTransport = (function WorkerTransportClosure() {
         this.workerReadyCapability.resolve(pdfDocument);
       }, this);
 
-      messageHandler.on('NeedPassword', function transportPassword(data) {
+      messageHandler.on('NeedPassword',
+                        function transportNeedPassword(exception) {
         if (this.passwordCallback) {
           return this.passwordCallback(updatePassword,
                                        PasswordResponses.NEED_PASSWORD);
         }
-        this.workerReadyCapability.reject(data.exception.message,
-                                          data.exception);
+        this.workerReadyCapability.reject(
+          new PasswordException(exception.message, exception.code));
       }, this);
 
-      messageHandler.on('IncorrectPassword', function transportBadPass(data) {
+      messageHandler.on('IncorrectPassword',
+                        function transportIncorrectPassword(exception) {
         if (this.passwordCallback) {
           return this.passwordCallback(updatePassword,
                                        PasswordResponses.INCORRECT_PASSWORD);
         }
-        this.workerReadyCapability.reject(data.exception.message,
-                                          data.exception);
+        this.workerReadyCapability.reject(
+          new PasswordException(exception.message, exception.code));
       }, this);
 
-      messageHandler.on('InvalidPDF', function transportInvalidPDF(data) {
-        this.workerReadyCapability.reject(data.exception.name, data.exception);
+      messageHandler.on('InvalidPDF', function transportInvalidPDF(exception) {
+        this.workerReadyCapability.reject(
+          new InvalidPDFException(exception.message));
       }, this);
 
-      messageHandler.on('MissingPDF', function transportMissingPDF(data) {
-        this.workerReadyCapability.reject(data.exception.message,
-                                          data.exception);
+      messageHandler.on('MissingPDF', function transportMissingPDF(exception) {
+        this.workerReadyCapability.reject(
+          new MissingPDFException(exception.message));
       }, this);
 
-      messageHandler.on('UnknownError', function transportUnknownError(data) {
-        this.workerReadyCapability.reject(data.exception.message,
-                                          data.exception);
+      messageHandler.on('UnexpectedResponse',
+                        function transportUnexpectedResponse(exception) {
+        this.workerReadyCapability.reject(
+          new UnexpectedResponseException(exception.message, exception.status));
+      }, this);
+
+      messageHandler.on('UnknownError',
+                        function transportUnknownError(exception) {
+        this.workerReadyCapability.reject(
+          new UnknownErrorException(exception.message, exception.details));
       }, this);
 
       messageHandler.on('DataLoaded', function transportPage(data) {
         this.downloadInfoCapability.resolve(data);
+      }, this);
+
+      messageHandler.on('PDFManagerReady', function transportPage(data) {
+        if (this.pdfDataRangeTransport) {
+          this.pdfDataRangeTransport.transportReady();
+        }
       }, this);
 
       messageHandler.on('StartRenderPage', function transportRender(data) {
@@ -2442,7 +2496,7 @@ var WorkerTransport = (function WorkerTransportClosure() {
               this.commonObjs.resolve(id, error);
               break;
             } else {
-              font = new FontFace(exportedData);
+              font = new FontFaceObject(exportedData);
             }
 
             FontLoader.bind(
@@ -2500,14 +2554,10 @@ var WorkerTransport = (function WorkerTransportClosure() {
         }
       }, this);
 
-      messageHandler.on('DocError', function transportDocError(data) {
-        this.workerReadyCapability.reject(data);
-      }, this);
-
       messageHandler.on('PageError', function transportError(data) {
         var page = this.pageCache[data.pageNum - 1];
         var intentState = page.intentStates[data.intent];
-        if (intentState.displayReadyCapability.promise) {
+        if (intentState.displayReadyCapability) {
           intentState.displayReadyCapability.reject(data.error);
         } else {
           error(data.error);
@@ -2517,7 +2567,7 @@ var WorkerTransport = (function WorkerTransportClosure() {
       messageHandler.on('JpegDecode', function(data) {
         var imageUrl = data[0];
         var components = data[1];
-        if (components != 3 && components != 1) {
+        if (components !== 3 && components !== 1) {
           return Promise.reject(
             new Error('Only 3 components or 1 component can be returned'));
         }
@@ -2536,13 +2586,13 @@ var WorkerTransport = (function WorkerTransportClosure() {
             var data = tmpCtx.getImageData(0, 0, width, height).data;
             var i, j;
 
-            if (components == 3) {
+            if (components === 3) {
               for (i = 0, j = 0; i < rgbaLength; i += 4, j += 3) {
                 buf[j] = data[i];
                 buf[j + 1] = data[i + 1];
                 buf[j + 2] = data[i + 2];
               }
-            } else if (components == 1) {
+            } else if (components === 1) {
               for (i = 0, j = 0; i < rgbaLength; i += 4, j++) {
                 buf[j] = data[i];
               }
@@ -2559,6 +2609,7 @@ var WorkerTransport = (function WorkerTransportClosure() {
 
     fetchDocument: function WorkerTransport_fetchDocument(source) {
       source.disableAutoFetch = PDFJS.disableAutoFetch;
+      source.disableStream = PDFJS.disableStream;
       source.chunkedViewerLoading = !!this.pdfDataRangeTransport;
       this.messageHandler.send('GetDocRequest', {
         source: source,
@@ -2608,6 +2659,10 @@ var WorkerTransport = (function WorkerTransportClosure() {
 
     getDestinations: function WorkerTransport_getDestinations() {
       return this.messageHandler.sendWithPromise('GetDestinations', null);
+    },
+
+    getDestination: function WorkerTransport_getDestination(id) {
+      return this.messageHandler.sendWithPromise('GetDestination', { id: id } );
     },
 
     getAttachments: function WorkerTransport_getAttachments() {
@@ -2926,8 +2981,8 @@ var Metadata = PDFJS.Metadata = (function MetadataClosure() {
       var chars = '';
       for (var i = 0; i < bytes.length; i += 2) {
         var code = bytes.charCodeAt(i) * 256 + bytes.charCodeAt(i + 1);
-        chars += code >= 32 && code < 127 && code != 60 && code != 62 &&
-          code != 38 && false ? String.fromCharCode(code) :
+        chars += code >= 32 && code < 127 && code !== 60 && code !== 62 &&
+          code !== 38 && false ? String.fromCharCode(code) :
           '&#x' + (0x10000 + code).toString(16).substring(1) + ';';
       }
       return '>' + chars;
@@ -3002,6 +3057,8 @@ var Metadata = PDFJS.Metadata = (function MetadataClosure() {
 
 // Minimal font size that would be used during canvas fillText operations.
 var MIN_FONT_SIZE = 16;
+// Maximum font size that would be used during canvas fillText operations.
+var MAX_FONT_SIZE = 100;
 var MAX_GROUP_SIZE = 4096;
 
 var COMPILE_TYPE3_GLYPHS = true;
@@ -4202,9 +4259,9 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
       // Keeping the font at minimal size and using the fontSizeScale to change
       // the current transformation matrix before the fillText/strokeText.
       // See https://bugzilla.mozilla.org/show_bug.cgi?id=726227
-      var browserFontSize = size >= MIN_FONT_SIZE ? size : MIN_FONT_SIZE;
-      this.current.fontSizeScale = browserFontSize != MIN_FONT_SIZE ? 1.0 :
-                                   size / MIN_FONT_SIZE;
+      var browserFontSize = size < MIN_FONT_SIZE ? MIN_FONT_SIZE :
+                            size > MAX_FONT_SIZE ? MAX_FONT_SIZE : size;
+      this.current.fontSizeScale = size / browserFontSize;
 
       var rule = italic + ' ' + bold + ' ' + browserFontSize + 'px ' + typeface;
       this.ctx.font = rule;
@@ -4349,7 +4406,7 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
         lineWidth /= scale;
       }
 
-      if (fontSizeScale != 1.0) {
+      if (fontSizeScale !== 1.0) {
         ctx.scale(fontSizeScale, fontSizeScale);
         lineWidth /= fontSizeScale;
       }
@@ -4439,9 +4496,11 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
       var textHScale = current.textHScale * fontDirection;
       var fontMatrix = current.fontMatrix || FONT_IDENTITY_MATRIX;
       var glyphsLength = glyphs.length;
+      var isTextInvisible =
+        current.textRenderingMode === TextRenderingMode.INVISIBLE;
       var i, glyph, width;
 
-      if (fontSize === 0) {
+      if (isTextInvisible || fontSize === 0) {
         return;
       }
 
@@ -4449,7 +4508,7 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
       ctx.transform.apply(ctx, current.textMatrix);
       ctx.translate(current.x, current.y);
 
-      ctx.scale(textHScale, 1);
+      ctx.scale(textHScale, fontDirection);
 
       for (i = 0; i < glyphsLength; ++i) {
         glyph = glyphs[i];
@@ -4479,7 +4538,7 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
         this.restore();
 
         var transformed = Util.applyTransform([glyph.width, 0], fontMatrix);
-        width = ((transformed[0] * fontSize + charSpacing) * fontDirection);
+        width = transformed[0] * fontSize + charSpacing;
 
         ctx.translate(width, 0);
         current.x += width * textHScale;
@@ -5887,7 +5946,7 @@ var TilingPattern = (function TilingPatternClosure() {
     },
 
     clipBbox: function clipBbox(graphics, bbox, x0, y0, x1, y1) {
-      if (bbox && isArray(bbox) && 4 == bbox.length) {
+      if (bbox && isArray(bbox) && bbox.length === 4) {
         var bboxWidth = x1 - x0;
         var bboxHeight = y1 - y0;
         graphics.ctx.rect(x0, y0, bboxWidth, bboxHeight);
@@ -5951,6 +6010,10 @@ var FontLoader = {
     if (styleElement) {
       styleElement.parentNode.removeChild(styleElement);
     }
+    this.nativeFontFaces.forEach(function(nativeFontFace) {
+      document.fonts.delete(nativeFontFace);
+    });
+    this.nativeFontFaces.length = 0;
   },
   get loadTestFont() {
     // This is a CFF font with 1 glyph for '.' that fills its entire width and
@@ -6001,13 +6064,27 @@ var FontLoader = {
       return true;
     }
     // TODO other browsers
+    if (userAgent === 'node') {
+      return true;
+    }
     return false;
   })(),
+
+  nativeFontFaces: [],
+
+  isFontLoadingAPISupported: !isWorker && !!document.fonts,
+
+  addNativeFontFace: function fontLoader_addNativeFontFace(nativeFontFace) {
+    this.nativeFontFaces.push(nativeFontFace);
+    document.fonts.add(nativeFontFace);
+  },
 
   bind: function fontLoaderBind(fonts, callback) {
     assert(!isWorker, 'bind() shall be called from main thread');
 
-    var rules = [], fontsToLoad = [];
+    var rules = [];
+    var fontsToLoad = [];
+    var fontLoadPromises = [];
     for (var i = 0, ii = fonts.length; i < ii; i++) {
       var font = fonts[i];
 
@@ -6018,15 +6095,26 @@ var FontLoader = {
       }
       font.attached = true;
 
-      var rule = font.bindDOM();
-      if (rule) {
-        rules.push(rule);
-        fontsToLoad.push(font);
+      if (this.isFontLoadingAPISupported) {
+        var nativeFontFace = font.createNativeFontFace();
+        if (nativeFontFace) {
+          fontLoadPromises.push(nativeFontFace.loaded);
+        }
+      } else {
+        var rule = font.bindDOM();
+        if (rule) {
+          rules.push(rule);
+          fontsToLoad.push(font);
+        }
       }
     }
 
     var request = FontLoader.queueLoadingCallback(callback);
-    if (rules.length > 0 && !this.isSyncFontLoadingSupported) {
+    if (this.isFontLoadingAPISupported) {
+      Promise.all(fontsToLoad).then(function() {
+        request.complete();
+      });
+    } else if (rules.length > 0 && !this.isSyncFontLoadingSupported) {
       FontLoader.prepareFontLoadEvent(rules, fontsToLoad, request);
     } else {
       request.complete();
@@ -6161,8 +6249,8 @@ var FontLoader = {
   }
 };
 
-var FontFace = (function FontFaceClosure() {
-  function FontFace(name, file, properties) {
+var FontFaceObject = (function FontFaceObjectClosure() {
+  function FontFaceObject(name, file, properties) {
     this.compiledGlyphs = {};
     if (arguments.length === 1) {
       // importing translated data
@@ -6173,8 +6261,29 @@ var FontFace = (function FontFaceClosure() {
       return;
     }
   }
-  FontFace.prototype = {
-    bindDOM: function FontFace_bindDOM() {
+  FontFaceObject.prototype = {
+    createNativeFontFace: function FontFaceObject_createNativeFontFace() {
+      if (!this.data) {
+        return null;
+      }
+
+      if (PDFJS.disableFontFace) {
+        this.disableFontFace = true;
+        return null;
+      }
+
+      var nativeFontFace = new FontFace(this.loadedName, this.data, {});
+
+      FontLoader.addNativeFontFace(nativeFontFace);
+
+      if (PDFJS.pdfBug && 'FontInspector' in globalScope &&
+          globalScope['FontInspector'].enabled) {
+        globalScope['FontInspector'].fontAdded(this);
+      }
+      return nativeFontFace;
+    },
+
+    bindDOM: function FontFaceObject_bindDOM() {
       if (!this.data) {
         return null;
       }
@@ -6201,7 +6310,7 @@ var FontFace = (function FontFaceClosure() {
       return rule;
     },
 
-    getPathGenerator: function (objs, character) {
+    getPathGenerator: function FontLoader_getPathGenerator(objs, character) {
       if (!(character in this.compiledGlyphs)) {
         var js = objs.get(this.loadedName + '_path_' + character);
         /*jshint -W054 */
@@ -6210,7 +6319,7 @@ var FontFace = (function FontFaceClosure() {
       return this.compiledGlyphs[character];
     }
   };
-  return FontFace;
+  return FontFaceObject;
 })();
 
 
@@ -6446,6 +6555,8 @@ var AnnotationUtils = (function AnnotationUtilsClosure() {
   };
 })();
 PDFJS.AnnotationUtils = AnnotationUtils;
+
+
 
 
 }).call((typeof window === 'undefined') ? this : window);
