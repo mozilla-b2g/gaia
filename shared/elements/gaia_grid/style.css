@@ -208,17 +208,17 @@
 }
 
 .group .header {
-  height: 2rem;
+  height: 3rem;
 }
 
 .group .header span {
   position: absolute;
-  height: 2rem;
+  height: 3rem;
   top: 0;
 
-  background-position: center center;
+  background-position: center top;
   background-repeat: no-repeat;
-  background-size: 100%;
+  background-size: 100% 2rem;
 
   transition: transform 0.25s, opacity 0.25s;
 }
@@ -231,7 +231,7 @@
   transform: translate(0, -100%);
 }
 
-.edit-mode .group .header .gripper {
+.edit-mode .group:not(.collapsed) .header .gripper {
   opacity: 1;
   transform: translate(0, 0);
 }
@@ -244,7 +244,7 @@
 }
 
 .group.collapsed .header .toggle {
-  transform: rotateZ(180deg);
+  transform: translateY(2rem) rotateZ(180deg);
 }
 
 .group.active .header .toggle {
@@ -303,7 +303,17 @@
   opacity: 0;
 }
 
-.edit-mode .group .separator {
+.group.odd .separator {
+  opacity: 1;
+}
+
+.group.odd .separator > span {
+  background-color: rgba(255, 255, 255, 0.15);
+  opacity: 1;
+}
+
+.edit-mode .group .separator,
+.edit-mode .group .separator > span {
   opacity: 0;
 }
 

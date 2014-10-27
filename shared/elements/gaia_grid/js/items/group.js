@@ -6,17 +6,18 @@
   /**
    * The relative size of icons when in a collapsed group.
    */
-  const COLLAPSE_RATIO = 0.375;
+  const COLLAPSE_RATIO = 0.33;
 
   /**
    * Maximum number of icons that are visible in a collapsed group.
    */
-  const COLLAPSED_GROUP_SIZE = 8;
+  const COLLAPSED_GROUP_SIZE = 6;
 
   /**
    * Space to be reserved at the sides of collapsed group items, in pixels.
    */
-  const COLLAPSED_GROUP_MARGIN = 4;
+  const COLLAPSED_GROUP_MARGIN_LEFT = 23;
+  const COLLAPSED_GROUP_MARGIN_RIGHT = 53;
 
   /**
    * A replacement for the default Divider class that implements group
@@ -38,7 +39,9 @@
     /**
      * Height in pixels of the header part of the group.
      */
-    headerHeight: 30,
+    get headerHeight() {
+      return this.detail.collapsed ? 20 : 30;
+    },
 
     /**
      * Height in pixels of the background of the group.
@@ -147,9 +150,10 @@
       var index = this.detail.index;
 
       var width = Math.round(
-        (this.grid.layout.gridWidth - COLLAPSED_GROUP_MARGIN * 2) /
+        (this.grid.layout.gridWidth -
+         COLLAPSED_GROUP_MARGIN_LEFT - COLLAPSED_GROUP_MARGIN_RIGHT) /
         COLLAPSED_GROUP_SIZE);
-      var x = COLLAPSED_GROUP_MARGIN;
+      var x = COLLAPSED_GROUP_MARGIN_LEFT;
       y += this.headerHeight;
 
       var maxGridItemWidth =
