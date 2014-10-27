@@ -930,9 +930,10 @@
   }
 
   function resolveSelector(ctxdata, env, expr, index) {
-      var selector = resolveIdentifier(ctxdata, env, index[0].v);
+      var selectorName = index[0].v;
+      var selector = resolveIdentifier(ctxdata, env, selectorName);
       if (selector === undefined) {
-        throw new L10nError('Unknown selector: ' + index[0].v);
+        throw new L10nError('Unknown selector: ' + selectorName);
       }
 
       if (typeof selector !== 'function') {
@@ -942,7 +943,7 @@
 
       var argLength = index.length - 1;
       if (selector.length !== argLength) {
-        throw new L10nError('Macro ' + index[0] + ' expects ' +
+        throw new L10nError('Macro ' + selectorName + ' expects ' +
                             selector.length + ' argument(s), yet ' + argLength +
                             ' given');
       }
