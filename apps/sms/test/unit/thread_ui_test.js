@@ -3903,6 +3903,58 @@ suite('thread_ui.js >', function() {
             assert.equal(items[3].l10nId, 'cancel');
           });
 
+          test('Unknown recipient (email and support for email recipients)',
+          function() {
+            MockSettings.supportEmailRecipient = true;
+
+            this.sinon.spy(ActivityPicker, 'email');
+            this.sinon.spy(ActivityPicker, 'sendMessage');
+
+            ThreadUI.prompt({
+              email: 'a@b.com',
+              isContact: false
+            });
+
+            assert.equal(MockOptionMenu.calls.length, 1);
+
+            var call = MockOptionMenu.calls[0];
+            var items = call.items;
+
+            // Ensures that the OptionMenu was given
+            // the email address to diplay
+            assert.equal(call.header, 'a@b.com');
+
+            // Only known Contact details should appear in the "section"
+            assert.isUndefined(call.section);
+
+            assert.equal(items.length, 5);
+
+            // The first item is a "sendEmail" option
+            assert.equal(items[0].l10nId, 'sendEmail');
+
+            // Trigger the option to ensure that correct Activity is used.
+            items[0].method();
+
+            sinon.assert.called(ActivityPicker.email);
+
+            // The second item is a "sendMMSToEmail" option
+            assert.equal(items[1].l10nId, 'sendMMSToEmail');
+
+            // Trigger the option to ensure that correct Activity is used.
+            items[1].method();
+
+            sinon.assert.called(ActivityPicker.sendMessage);
+
+            // The third item is a "createNewContact" option
+            assert.equal(items[2].l10nId, 'createNewContact');
+
+            // The fourth item is a "addToExistingContact" option
+            assert.equal(items[3].l10nId, 'addToExistingContact');
+
+            // The fifth and last item is a "cancel" option
+            assert.equal(items[4].l10nId, 'cancel');
+          });
+
         });
 
         suite('onHeaderActivation >', function() {
@@ -3935,7 +3987,6 @@ suite('thread_ui.js >', function() {
           });
 
           test('Unknown recipient', function() {
-
             Threads.set(1, {
               participants: ['777']
             });
@@ -3978,7 +4029,7 @@ suite('thread_ui.js >', function() {
               target: calls[0].header
             });
 
-            assert.equal(calls[0].items.length, 3);
+            assert.equal(calls[0].items.length, 4);
             assert.equal(typeof calls[0].complete, 'function');
           });
 
@@ -3998,7 +4049,7 @@ suite('thread_ui.js >', function() {
 
             assert.equal(calls.length, 1);
             assert.equal(calls[0].header, 'a@b');
-            assert.equal(calls[0].items.length, 4);
+            assert.equal(calls[0].items.length, 5);
             assert.equal(typeof calls[0].complete, 'function');
           });
         });

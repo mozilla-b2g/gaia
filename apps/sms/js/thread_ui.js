@@ -2687,6 +2687,15 @@ var ThreadUI = {
         },
         params: [email]
       });
+      if (Settings.supportEmailRecipient) {
+        items.push({
+          l10nId: 'sendMMSToEmail',
+          method: function oMMS(param) {
+            ActivityPicker.sendMessage(param);
+          },
+          params: [email]
+        });
+      }
     } else {
       // Multi-participant activations or in-message numbers
       // will include a "Call" and "Send Message" options in the menu
