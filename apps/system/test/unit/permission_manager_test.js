@@ -1,4 +1,5 @@
-/* global PermissionManager, MocksHelper, MockL10n, MockApplications */
+/* global PermissionManager, MocksHelper, MockL10n, MockApplications,
+          AppWindowManager */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
@@ -6,6 +7,7 @@ require('/shared/js/template.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 
 // to emulate permission events
@@ -37,7 +39,8 @@ function sendMediaEvent(evt_type, evt_permissions, app, isGranted) {
 var mocksForLazyLoader = new MocksHelper([
     'LazyLoader',
     'Applications',
-    'ManifestHelper'
+    'ManifestHelper',
+    'AppWindowManager'
   ]).init();
 
 suite('system/permission manager', function() {
@@ -162,14 +165,59 @@ suite('system/permission manager', function() {
 
   suite('fullscreenoriginchange Handler', function() {
     setup(function() {
+      AppWindowManager.mActiveApp = {
+        origin: ''
+      };
+      permissionManager.fullscreenRequest = undefined;
       this.sinon.stub(permissionManager, 'cleanDialog');
-      this.sinon.stub(permissionManager, 'handleFullscreenOriginChange');
-      sendChromeEvent('fullscreenoriginchange', '');
+      this.sinon.stub(permissionManager, 'cancelRequest');
+      this.sinon.stub(permissionManager, 'requestPermission');
     });
 
     test('fullscreenoriginchange', function() {
+      this.sinon.stub(permissionManager, 'handleFullscreenOriginChange');
+      sendChromeEvent('fullscreenoriginchange', '');
       assert.isTrue(permissionManager.cleanDialog.called);
       assert.isTrue(permissionManager.handleFullscreenOriginChange.called);
+    });
+
+    test('requestPermission sould be called with constant id', function() {
+      sendChromeEvent('fullscreenoriginchange', '');
+      assert.isTrue(permissionManager.requestPermission
+        .calledWith('fullscreen'));
+    });
+
+    test('previous dialog should be cancelled', function() {
+      sendChromeEvent('fullscreenoriginchange', '');
+      assert.isFalse(permissionManager.cancelRequest.called);
+
+      permissionManager.fullscreenRequest = 'fullscreen';
+      sendChromeEvent('fullscreenoriginchange', '');
+      assert.isTrue(permissionManager.cancelRequest.calledWith('fullscreen'));
+    });
+  });
+
+  suite('lockscreen-appopened Handler', function() {
+    setup(function() {
+      this.sinon.stub(permissionManager, 'discardPermissionRequest');
+    });
+
+    test('discardPermissionRequest is called', function() {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('lockscreen-appopened', true, true, {});
+      permissionManager.currentRequestId = 'fullscreen';
+      window.dispatchEvent(evt);
+      assert.isTrue(permissionManager.discardPermissionRequest.called);
+    });
+
+    test('discardPermissionRequest should not be called ' +
+        'if currentRequestId is not \'fullscreen\'', function() {
+
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('lockscreen-appopened', true, true, {});
+      permissionManager.currentRequestId = 123;
+      window.dispatchEvent(evt);
+      assert.isFalse(permissionManager.discardPermissionRequest.called);
     });
   });
 
@@ -190,6 +238,15 @@ suite('system/permission manager', function() {
       permissionManager.discardPermissionRequest();
       assert.isTrue(permissionManager.dispatchResponse.called);
       assert.isTrue(permissionManager.hidePermissionPrompt.called);
+    });
+
+    test('currentRequestId is \'fullscreen\'', function() {
+      permissionManager.currentRequestId = 'fullscreen';
+      permissionManager.fullscreenRequest = 'fullscreen';
+      permissionManager.no.callback = this.sinon.stub();
+      permissionManager.discardPermissionRequest();
+      assert.isTrue(permissionManager.no.callback.called);
+      assert.isUndefined(permissionManager.fullscreenRequest);
     });
   });
 
