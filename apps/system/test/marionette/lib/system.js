@@ -11,6 +11,8 @@ System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 System.Selector = Object.freeze({
   screen: '#screen',
   activeHomescreenFrame: '#homescreen.appWindow.active',
+  appContextMenuSaveLink:
+    '.appWindow.active .contextmenu [data-id="save-link"]',
   appWindow: '.appWindow',
   appTitlebar: '.appWindow.active .titlebar',
   appUrlbar: '.appWindow.active .title',
@@ -28,6 +30,7 @@ System.Selector = Object.freeze({
   appChromeProgressBar: '.appWindow.active .chrome gaia-progress',
   softwareButtons: '#software-buttons',
   browserWindow: '.appWindow.browser',
+  downloadDialog: '#downloadConfirmUI',
   imeMenu: '.ime-menu',
   sleepMenuContainer: '#sleep-menu-container',
   softwareHome: '#software-home-button',
@@ -53,6 +56,11 @@ System.prototype = {
 
   getBrowserWindows: function() {
     return this.client.findElements(System.Selector.browserWindow);
+  },
+
+  get appContextMenuSaveLink() {
+    return this.client.helper.waitForElement(
+      System.Selector.appContextMenuSaveLink);
   },
 
   get appTitlebar() {
@@ -116,6 +124,10 @@ System.prototype = {
   get appChromeProgressBar() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeProgressBar);
+  },
+
+  get downloadDialog() {
+    return this.client.helper.waitForElement(System.Selector.downloadDialog);
   },
 
   get imeMenu() {
