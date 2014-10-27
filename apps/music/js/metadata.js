@@ -102,17 +102,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var RATED = 'rated';
   var PLAYED = 'played';
 
-  // Map ogg field names to metadata property names
-  var OGGFIELDS = {
-    title: TITLE,
-    artist: ARTIST,
-    album: ALBUM,
-    tracknumber: TRACKNUM,
-    tracktotal: TRACKCOUNT,
-    discnumber: DISCNUM,
-    disctotal: DISCCOUNT
-  };
-
   // Map MP4 atom names to metadata property names
   var MP4ATOMS = {
     '\xa9alb': ALBUM,
@@ -183,28 +172,24 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
       if (magic.substring(0, 9) === 'LOCKED 1 ') {
         handleLockedFile(blob);
-        return;
-      }
-
-      if (magic.substring(0, 3) === 'ID3') {
-        console.log("HIIIIIII");
+      } else if (magic.substring(0, 3) === 'ID3') {
         LazyLoader.load('js/metadata/id3v2.js', function() {
           ID3v2Metadata.parse(header, metadata).then(
             handleCoverArt, errorCallback
           );
         });
-      }
-      else if (magic.substring(0, 4) === 'OggS') {
-        // parse metadata from an Ogg Vorbis file
-        parseOggMetadata(header);
-      }
-      else if (magic.substring(4, 8) === 'ftyp') {
+      } else if (magic.substring(0, 4) === 'OggS') {
+        LazyLoader.load('js/metadata/ogg.js', function() {
+          OggMetadata.parse(header, metadata).then(
+            handleCoverArt, errorCallback
+          );
+        });
+      } else if (magic.substring(4, 8) === 'ftyp') {
         // This is an MP4 file
         if (checkMP4Type(header, MP4Types)) {
           // It is a type of MP4 file that we support
           parseMP4Metadata(header);
-        }
-        else {
+        } else {
           // The MP4 file might be a video or it might be some
           // kind of audio that we don't support. We used to treat
           // files like these as unknown files and see (in the code below)
@@ -213,8 +198,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           // And, the <audio> tag was treating videos as playable.
           errorCallback('Unknown MP4 file type');
         }
-      }
-      else if ((header.getUint16(0, false) & 0xFFFE) === 0xFFFA) {
+      } else if ((header.getUint16(0, false) & 0xFFFE) === 0xFFFA) {
         // If this looks like an MP3 file, then look for ID3v1 metadata
         // tag at the end of the file. But even if there is no metadata
         // treat this as a playable file.
@@ -230,8 +214,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
             if (magic === 'TAG') {
               // It is an MP3 file with an ID3v1 tag
               parseID3v1Metadata(footer);
-            }
-            else {
+            } else {
               // It is an MP3 file with no metadata. We return the default
               // metadata object that just contains the filename as the title
               metadataCallback(metadata);
@@ -241,8 +224,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
             errorCallback(e);
           }
         });
-      }
-      else {
+      } else {
         // This is some kind of file that we don't know about.
         // Let's see if we can play it.
         var player = new Audio();
@@ -250,8 +232,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         var canplay = blob.type && player.canPlayType(blob.type);
         if (canplay === 'probably') {
           metadataCallback(metadata);
-        }
-        else {
+        } else {
           var url = URL.createObjectURL(blob);
           player.src = url;
 
@@ -270,8 +251,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           };
         }
       }
-    }
-    catch (e) {
+    } catch (e) {
       console.error('parseAudioMetadata:', e, e.stack);
       errorCallback(e);
     }
@@ -312,107 +292,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     if (b1 === 0 && b2 !== 0)
       metadata[TRACKNUM] = b2;
     metadataCallback(metadata);
-  }
-
-  //
-  // Format information:
-  //   http://en.wikipedia.org/wiki/Ogg
-  //   http://xiph.org/vorbis/doc/Vorbis_I_spec.html
-  //   http://www.xiph.org/vorbis/doc/v-comment.html
-  //   http://wiki.xiph.org/VorbisComment
-  //   http://tools.ietf.org/html/draft-ietf-codec-oggopus-00
-  //
-  function parseOggMetadata(header) {
-    function sum(x, y) { return x + y; } // for Array.reduce() below
-
-    // Ogg metadata is in the second header packet.  We need to read
-    // the first packet to find the start of the second.
-    var p1_num_segments = header.getUint8(26);
-    var p1_segment_lengths = header.getUnsignedByteArray(27, p1_num_segments);
-    var p1_length = Array.reduce(p1_segment_lengths, sum, 0);
-
-    var p2_header = 27 + p1_num_segments + p1_length;
-    var p2_num_segments = header.getUint8(p2_header + 26);
-    var p2_segment_lengths = header.getUnsignedByteArray(p2_header + 27,
-                                                         p2_num_segments);
-    var p2_length = Array.reduce(p2_segment_lengths, sum, 0);
-    var p2_offset = p2_header + 27 + p2_num_segments;
-
-    // Now go fetch page 2
-    header.getMore(p2_offset, p2_length, function(page, error) {
-      if (error) {
-        errorCallback(error);
-        return;
-      }
-
-      // Look for a comment packet from a supported codec
-      var first_byte = page.readByte();
-      var valid = false;
-      switch (first_byte) {
-        case 3:
-          valid = page.readASCIIText(6) === 'vorbis';
-          metadata[TAG_FORMAT] = 'vorbis';
-          break;
-        case 79:
-          valid = page.readASCIIText(7) === 'pusTags';
-          metadata[TAG_FORMAT] = 'opus';
-          break;
-      }
-      if (!valid) {
-        errorCallback('malformed ogg comment packet');
-        return;
-      }
-
-      var vendor_string_length = page.readUnsignedInt(true);
-      page.advance(vendor_string_length); // skip libvorbis vendor string
-
-      var num_comments = page.readUnsignedInt(true);
-      // |metadata| already has some of its values filled in (namely the title
-      // field). To make sure we overwrite the pre-filled metadata, but also
-      // append any repeated fields from the file, we keep track of the fields
-      // we've seen in the file separately.
-      var seen_fields = {};
-      for (var i = 0; i < num_comments; i++) {
-        if (page.remaining() < 4) { // 4 bytes for comment-length variable
-          // TODO: handle metadata that uses multiple pages
-          break;
-        }
-        var comment_length = page.readUnsignedInt(true);
-        if (comment_length > page.remaining()) {
-          // TODO: handle metadata that uses multiple pages
-          break;
-        }
-        var comment = page.readUTF8Text(comment_length);
-        var equal = comment.indexOf('=');
-        if (equal !== -1) {
-          var fieldname = comment.substring(0, equal).toLowerCase()
-                                 .replace(' ', '');
-          var propname = OGGFIELDS[fieldname];
-          if (propname) { // Do we care about this field?
-            var value = comment.substring(equal + 1);
-            if (INTFIELDS.indexOf(propname) !== -1) {
-              value = parseInt(value, 10);
-            }
-            if (seen_fields.hasOwnProperty(propname)) {
-              // If we already have a value, append this new one.
-              metadata[propname] += ' / ' + value;
-            }
-            else {
-              // Otherwise, just save the single value.
-              metadata[propname] = value;
-              seen_fields[propname] = true;
-            }
-          }
-          // XXX
-          // How do we do album art in ogg?
-          // http://wiki.xiph.org/VorbisComment
-          // http://flac.sourceforge.net/format.html#metadata_block_picture
-        }
-      }
-
-      // We've read all the comments, so call the callback
-      handleCoverArt(metadata);
-    });
   }
 
   // MP4 files use 'ftyp' to identify the type of encoding.
@@ -728,16 +607,20 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         // When we're done, add metadata to indicate that this is locked
         // content (so it isn't shared) and to specify the vendor that
         // locked it.
-        parseAudioMetadata(unlocked,
-                           function(metadata) {
-                             metadata.locked = true;
-                             if (unlockedMetadata.vendor)
-                               metadata.vendor = unlockedMetadata.vendor;
-                             if (!metadata[TITLE])
-                               metadata[TITLE] = unlockedMetadata.name;
-                             metadataCallback(metadata);
-                           },
-                           errorCallback);
+        parseAudioMetadata(
+          unlocked,
+          function(metadata) {
+            metadata.locked = true;
+            if (unlockedMetadata.vendor) {
+              metadata.vendor = unlockedMetadata.vendor;
+            }
+            if (!metadata[TITLE]) {
+              metadata[TITLE] = unlockedMetadata.name;
+            }
+            metadataCallback(metadata);
+          },
+          errorCallback
+        );
       }
     });
   }

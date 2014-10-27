@@ -37,7 +37,11 @@ var ID3v2Metadata = (function() {
     }
     metadata[TAG_FORMAT] = header.versionString;
     return new Promise(function(resolve, reject) {
-      blobview.getMore(blobview.index, header.length, function(moreview) {
+      blobview.getMore(blobview.index, header.length, function(moreview, err) {
+        if (err) {
+          reject(err);
+          return;
+        }
         parseFrames(header, moreview, metadata);
         resolve(metadata);
       });
@@ -181,7 +185,6 @@ var ID3v2Metadata = (function() {
       }
 
       if (framevalue !== null) {
-        console.log("PARSED FRAME", propname, framevalue);
         metadata[propname] = framevalue;
       }
     } catch (e) {
