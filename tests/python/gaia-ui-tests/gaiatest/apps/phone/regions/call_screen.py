@@ -28,6 +28,9 @@ class CallScreen(Phone):
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
 
+        self.switch_to_call_screen_frame()
+
+    def switch_to_call_screen_frame(self):
         self.marionette.switch_to_frame()
 
         self.wait_for_element_present(*self._call_screen_locator, timeout=30)
