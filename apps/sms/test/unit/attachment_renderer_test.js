@@ -404,14 +404,15 @@ suite('AttachmentRenderer >', function() {
       var attachmentRenderer = AttachmentRenderer.for(attachment);
       var attachmentContainer = attachmentRenderer.getAttachmentContainer();
 
+      var currentFileSize, sizeInfo;
       attachmentRenderer.render().then(() => {
-        var sizeInfo = attachmentContainer.querySelector('.size-indicator');
-        var currentFileSize = sizeInfo.dataset.l10nArgs;
+        sizeInfo = attachmentContainer.querySelector('.size-indicator');
+        currentFileSize = sizeInfo.dataset.l10nArgs;
 
         attachment.blob = testImageBlob_small;
-        attachmentRenderer.updateFileSize();
-
-        var newFileSize =  sizeInfo.dataset.l10nArgs;
+        return attachmentRenderer.updateFileSize();
+      }).then(() => {
+        var newFileSize = sizeInfo.dataset.l10nArgs;
         assert.notEqual(newFileSize, currentFileSize);
       }).then(done, done);
     });
@@ -428,14 +429,15 @@ suite('AttachmentRenderer >', function() {
       var attachmentContainer = attachmentRenderer.getAttachmentContainer();
       document.body.appendChild(attachmentContainer);
 
+      var currentFileSize, sizeInfo, node;
       attachmentRenderer.render().then(() => {
-        var node = attachmentContainer.contentDocument.documentElement;
-        var sizeInfo = node.querySelector('.size-indicator');
-        var currentFileSize = sizeInfo.dataset.l10nArgs;
+        node = attachmentContainer.contentDocument.documentElement;
+        sizeInfo = node.querySelector('.size-indicator');
+        currentFileSize = sizeInfo.dataset.l10nArgs;
 
         attachment.blob = testImageBlob_small;
-        attachmentRenderer.updateFileSize();
-
+        return attachmentRenderer.updateFileSize();
+      }).then(() => {
         var newFileSize =  sizeInfo.dataset.l10nArgs;
         assert.notEqual(newFileSize, currentFileSize);
 

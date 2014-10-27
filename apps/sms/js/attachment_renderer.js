@@ -1,4 +1,4 @@
-/*global Promise, Template, Utils,
+/*global Promise, Template,
          ImageUtils
 */
 
@@ -52,33 +52,6 @@
       renderTo: function(data, attachmentContainer) {
         attachmentContainer.classList.add(data.cssClass);
 
-        var deferred = Utils.Promise.defer();
-        // do some postprocessing after it's loaded
-        attachmentContainer.addEventListener('load', function onload() {
-          try {
-            this.removeEventListener('load', onload);
-            window.URL.revokeObjectURL(blobUrl);
-
-            var documentElement = this.contentDocument.documentElement;
-            navigator.mozL10n.translateFragment(documentElement);
-
-            // Attach click listeners and fire the callback when rendering is
-            // complete: we can't bind `readyCallback' to the `load' event
-            // listener because it would break our unit tests.
-            // Bubble click events from inside the iframe.
-            this.contentDocument.addEventListener(
-              'click',
-              this.click.bind(this)
-            );
-
-            // Return actual content container node to allow postprocessing of
-            // DOM content without dealing with iframe structure.
-            deferred.resolve(this.contentDocument.body);
-          } catch(e) {
-            deferred.reject(e);
-          }
-        });
-
         var template = Template('attachment-draft-tmpl');
         var markup = template.interpolate({
           baseURL: location.protocol + '//' + location.host + '/',
@@ -86,20 +59,56 @@
           cssClass: data.cssClass
         }, { safe: ['baseHTML'] });
 
-
         var blob = new Blob([markup], { type: 'text/html' });
         var blobUrl = window.URL.createObjectURL(blob);
 
         attachmentContainer.src = blobUrl;
 
-        return deferred.promise;
+        return this._whenLoaded(attachmentContainer).then(function onload() {
+          // do some postprocessing after it's loaded
+          window.URL.revokeObjectURL(blobUrl);
+
+          var contentDocument = attachmentContainer.contentDocument;
+          var documentElement = contentDocument.documentElement;
+          navigator.mozL10n.translateFragment(documentElement);
+
+          // Attach click listeners and fire the callback when rendering is
+          // complete: we can't bind `readyCallback' to the `load' event
+          // listener because it would break our unit tests.
+          // Bubble click events from inside the iframe.
+          contentDocument.addEventListener(
+            'click',
+            () => attachmentContainer.click()
+          );
+
+          // Return actual content container node to allow postprocessing of
+          // DOM content without dealing with iframe structure.
+          return contentDocument.body;
+        });
+      },
+
+      _whenLoaded: function(iframe) {
+        var innerDocument = iframe.contentDocument;
+        if (innerDocument && innerDocument.body &&
+            innerDocument.body.classList.contains('attachment-draft')) {
+          return Promise.resolve();
+        }
+
+        return new Promise((resolve) => {
+          iframe.addEventListener('load', function onload() {
+            this.removeEventListener('load', onload);
+            resolve();
+          });
+        });
       },
 
       /**
        * Returns the inner DOM node.
        */
       getContentNode: function(attachmentContainer) {
-        return attachmentContainer.contentDocument.documentElement;
+        return this._whenLoaded(attachmentContainer).then(
+          () => attachmentContainer.contentDocument.documentElement
+        );
       },
 
       setL10nAttributes: function(element, l10nId, l10nArgs) {
@@ -124,7 +133,7 @@
       },
 
       getContentNode: function(attachmentContainer) {
-        return attachmentContainer;
+        return Promise.resolve(attachmentContainer);
       },
 
       setL10nAttributes: function(element, l10nId, l10nArgs) {
@@ -215,15 +224,18 @@
 
   AttachmentRenderer.prototype.updateFileSize = function() {
     var attachmentContainer = this.getAttachmentContainer();
-    var contentNode = this._renderer.getContentNode(attachmentContainer);
-    var sizeIndicator = contentNode.querySelector('.js-size-indicator');
-    if (!sizeIndicator) {
-      throw new Error('updateFileSize should be called after a render().');
-    }
+    return this._renderer.getContentNode(attachmentContainer).then(
+      (contentNode) => {
+        var sizeIndicator = contentNode.querySelector('.js-size-indicator');
+        if (!sizeIndicator) {
+          throw new Error('updateFileSize should be called after a render().');
+        }
 
-    var sizeL10n = getSizeForL10n(this._attachment.size);
-    this._renderer.setL10nAttributes(
-      sizeIndicator, sizeL10n.l10nId, sizeL10n.l10nArgs
+        var sizeL10n = getSizeForL10n(this._attachment.size);
+        this._renderer.setL10nAttributes(
+          sizeIndicator, sizeL10n.l10nId, sizeL10n.l10nArgs
+        );
+      }
     );
   };
 
