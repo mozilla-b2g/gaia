@@ -30,7 +30,11 @@ define(function(require) {
 
         var tmElements = {
           alertToneSelection: panel.querySelector('.alert-tone-selection'),
+          alertToneSelectionDesc:
+            panel.querySelector('.alert-tone-selection .desc'),
           ringToneSelection: panel.querySelector('.ring-tone-selection'),
+          ringToneSelectionDesc:
+            panel.querySelector('.ring-tone-selection .desc'),
           ringer: panel.querySelector('.ringer'),
           manageTones: panel.querySelector('.manage-tones-button')
         };
