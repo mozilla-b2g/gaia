@@ -6,7 +6,8 @@
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
          PerformanceTestingHelper, StickyHeader, Navigation, Dialog,
          InterInstanceEventDispatcher,
-         SelectionHandler
+         SelectionHandler,
+         LazyLoader
 */
 /*exported ThreadListUI */
 (function(exports) {
@@ -266,7 +267,7 @@ var ThreadListUI = {
   },
 
   checkInputs: function thlui_checkInputs() {
-    var selected = this.selectionHandler.size;
+    var selected = this.selectionHandler.selectedCount;
 
     if (selected === ThreadListUI.allInputs.length) {
       this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
@@ -455,21 +456,29 @@ var ThreadListUI = {
   },
 
   startEdit: function thlui_edit() {
-    if (!this.selectionHandler) {
-      this.selectionHandler = new SelectionHandler({
-        // Elements
-        container: this.container,
-        checkUncheckAllButton: this.checkUncheckAllButton,
-        // Methods
-        checkInputs: this.checkInputs.bind(this),
-        getAllInputs: this.getAllInputs.bind(this),
-        isInEditMode: this.isInEditMode.bind(this)
-      });
+    function editModeSetup() {
+      /*jshint validthis:true */
+      this.inEditMode = true;
+      this.selectionHandler.cleanForm();
+      this.mainWrapper.classList.toggle('edit');
     }
 
-    this.inEditMode = true;
-    this.selectionHandler.cleanForm();
-    this.mainWrapper.classList.toggle('edit');
+    if (!this.selectionHandler) {
+      LazyLoader.load('js/selection_handler.js', () => {
+        this.selectionHandler = new SelectionHandler({
+          // Elements
+          container: this.container,
+          checkUncheckAllButton: this.checkUncheckAllButton,
+          // Methods
+          checkInputs: this.checkInputs.bind(this),
+          getAllInputs: this.getAllInputs.bind(this),
+          isInEditMode: this.isInEditMode.bind(this)
+        });
+        editModeSetup.call(this);
+      });
+    } else {
+      editModeSetup.call(this);
+    }
   },
 
   isInEditMode: function thlui_isInEditMode() {

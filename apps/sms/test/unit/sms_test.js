@@ -23,6 +23,7 @@ require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_inter_instance_event_dispatcher.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 require('/js/selection_handler.js');
 require('/js/event_dispatcher.js');
@@ -54,7 +55,8 @@ var MocksHelperForSmsUnitTest = new MocksHelper([
   'Information',
   'ContactPhotoHelper',
   'Dialog',
-  'InterInstanceEventDispatcher'
+  'InterInstanceEventDispatcher',
+  'LazyLoader'
 ]).init();
 
 suite('SMS App Unit-Test', function() {

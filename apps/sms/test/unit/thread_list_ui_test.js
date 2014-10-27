@@ -13,7 +13,6 @@
 // mocha and when we have that new mocha in test agent
 mocha.setup({ globals: ['alert', 'confirm'] });
 
-require('/js/selection_handler.js');
 requireApp('sms/js/utils.js');
 require('/js/dialog.js');
 requireApp('sms/js/recipients.js');
@@ -40,6 +39,8 @@ require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_inter_instance_event_dispatcher.js');
+require('/test/unit/mock_selection_handler.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',
@@ -55,6 +56,8 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'StickyHeader',
   'Navigation',
   'InterInstanceEventDispatcher',
+  'SelectionHandler',
+  'LazyLoader'
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -646,11 +649,9 @@ suite('thread_list_ui', function() {
       }
 
       function selectThreadsAndDelete(threadIds) {
-        threadIds.forEach((threadId) => {
-          ThreadListUI.container.querySelector(
-            '#thread-' + threadId + ' input[type=checkbox]'
-          ).click();
-        });
+        var selectedIds = threadIds.map(threadId => '' + threadId);
+
+        ThreadListUI.selectionHandler.selected = new Set(selectedIds);
 
         Dialog.firstCall.args[0].options.confirm.method();
       }

@@ -1702,22 +1702,29 @@ var ThreadUI = {
   },
 
   startEdit: function thui_edit() {
-    if (!this.selectionHandler) {
-      this.selectionHandler = new SelectionHandler({
-        // Elements
-        container: this.container,
-        checkUncheckAllButton: this.checkUncheckAllButton,
-        // Methods
-        checkInputs: this.checkInputs.bind(this),
-        getAllInputs: this.getAllInputs.bind(this),
-        isInEditMode: this.isInEditMode.bind(this)
-      });
+    function editModeSetup() {
+      /*jshint validthis:true */
+      this.inEditMode = true;
+      this.selectionHandler.cleanForm();
+      this.mainWrapper.classList.toggle('edit');
     }
 
-    this.inEditMode = true;
-    this.selectionHandler.cleanForm();
-
-    this.mainWrapper.classList.toggle('edit');
+    if (!this.selectionHandler) {
+      LazyLoader.load('js/selection_handler.js', () => {
+        this.selectionHandler = new SelectionHandler({
+          // Elements
+          container: this.container,
+          checkUncheckAllButton: this.checkUncheckAllButton,
+          // Methods
+          checkInputs: this.checkInputs.bind(this),
+          getAllInputs: this.getAllInputs.bind(this),
+          isInEditMode: this.isInEditMode.bind(this)
+        });
+        editModeSetup.call(this);
+      });
+    } else {
+      editModeSetup.call(this);
+    }
   },
 
   isInEditMode: function thui_isInEditMode() {
@@ -1773,13 +1780,9 @@ var ThreadUI = {
       /* jshint validthis: true */
 
       WaitingScreen.show();
-      var delNumList = [];
       var items = this.selectionHandler.selectedList;
-      var length = items.length;
+      var delNumList = items.map(item => +item);
 
-      for (var i = 0; i < length; i++) {
-        delNumList.push(+items[i]);
-      }
       // Complete deletion in DB and in UI
       MessageManager.deleteMessages(delNumList,
         function onDeletionDone() {
@@ -1825,7 +1828,7 @@ var ThreadUI = {
   },
 
   checkInputs: function thui_checkInputs() {
-    var selected = this.selectionHandler.size;
+    var selected = this.selectionHandler.selectedCount;
     var allInputs = this.allInputs;
 
     var isAnySelected = selected > 0;

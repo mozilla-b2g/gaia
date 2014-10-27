@@ -39,7 +39,7 @@ var SelectionHandler = function constructor(options) {
 };
 
 SelectionHandler.prototype = {
-  get size() {
+  get selectedCount() {
     return this.selected.size;
   },
 
@@ -51,7 +51,7 @@ SelectionHandler.prototype = {
     if (!this.isInEditMode()) {
       return;
     }
-  	var target = event.target;
+    var target = event.target;
     var value = target.value;
     var existed = this.selected.has(value);
 
@@ -73,7 +73,7 @@ SelectionHandler.prototype = {
 
   unselect: function sel_unselect(id) {
     this.selected.delete('' + id);
-  },  
+  },
 
   // Update check status of input elements in the container
   updateCheckboxes: function sel_updateCheckboxes() {
@@ -108,7 +108,7 @@ SelectionHandler.prototype = {
   cleanForm: function sel_cleanForm() {
     // Reset all inputs
     this.selected.clear();
-    
+
     this.updateCheckboxes();
 
     // Reset vars for deleting methods
