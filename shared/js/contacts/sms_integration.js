@@ -10,7 +10,7 @@ var SmsIntegration = {
         name: 'new',
         data: {
           type: 'websms/sms',
-          number: number
+          target: number
         }
       });
     } catch (e) {
