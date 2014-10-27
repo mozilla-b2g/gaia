@@ -6,15 +6,16 @@
 
 'use strict';
 
-requireApp('sms/js/attachment.js');
-requireApp('sms/js/attachment_renderer.js');
-requireApp('sms/js/utils.js');
+require('/js/attachment_renderer.js');
+require('/js/utils.js');
 
 require('/shared/js/image_utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('sms/test/unit/mock_utils.js');
+require('/test/unit/mock_attachment.js');
+require('/test/unit/mock_utils.js');
 
 var MocksHelperForAttachment = new MocksHelper([
+  'Attachment',
   'Utils'
 ]).init();
 
@@ -392,5 +393,55 @@ suite('AttachmentRenderer >', function() {
         'allow-same-origin'
       );
     });
+  });
+
+  suite('updateFileSize >', function() {
+    test('updates size in the same container', function(done) {
+      var attachment = new Attachment(testImageBlob, {
+        name: 'Image attachment'
+      });
+
+      var attachmentRenderer = AttachmentRenderer.for(attachment);
+      var attachmentContainer = attachmentRenderer.getAttachmentContainer();
+
+      attachmentRenderer.render().then(() => {
+        var sizeInfo = attachmentContainer.querySelector('.size-indicator');
+        var currentFileSize = sizeInfo.dataset.l10nArgs;
+
+        attachment.blob = testImageBlob_small;
+        attachmentRenderer.updateFileSize();
+
+        var newFileSize =  sizeInfo.dataset.l10nArgs;
+        assert.notEqual(newFileSize, currentFileSize);
+      }).then(done, done);
+    });
+
+    test('updates size in iframes too', function(done) {
+      this.sinon.spy(navigator.mozL10n, 'translateFragment');
+
+      var attachment = new Attachment(testImageBlob, {
+        name: 'Image attachment',
+        isDraft: true
+      });
+
+      var attachmentRenderer = AttachmentRenderer.for(attachment);
+      var attachmentContainer = attachmentRenderer.getAttachmentContainer();
+      document.body.appendChild(attachmentContainer);
+
+      attachmentRenderer.render().then(() => {
+        var node = attachmentContainer.contentDocument.documentElement;
+        var sizeInfo = node.querySelector('.size-indicator');
+        var currentFileSize = sizeInfo.dataset.l10nArgs;
+
+        attachment.blob = testImageBlob_small;
+        attachmentRenderer.updateFileSize();
+
+        var newFileSize =  sizeInfo.dataset.l10nArgs;
+        assert.notEqual(newFileSize, currentFileSize);
+
+        sinon.assert.calledWith(navigator.mozL10n.translateFragment, node);
+      }).then(done, done);
+    });
+
   });
 });
