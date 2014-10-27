@@ -217,6 +217,10 @@
   opacity: 0.8;
 }
 
+.appWindow.light > .fade-overlay {
+  background-color: white;
+}
+
 .appWindow.homescreen.fadeout .fade-overlay.hidden {
   visibility: hidden;
 }

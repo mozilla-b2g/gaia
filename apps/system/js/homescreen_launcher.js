@@ -207,10 +207,14 @@
         case 'cardviewbeforeshow':
           // Fade out the homescreen before showing the cards view to avoid
           // having it bleed through during the transition animation.
+          if (evt.detail && evt.detail === 'browser-only') {
+            this.getHomescreen().element.classList.add('light');
+          }
           this.getHomescreen().fadeOut();
           break;
         case 'cardviewbeforeclose':
           // Fade homescreen back in before the cards view closes.
+          this.getHomescreen().element.classList.remove('light');
           this.getHomescreen().fadeIn();
           break;
         case 'shrinking-start':

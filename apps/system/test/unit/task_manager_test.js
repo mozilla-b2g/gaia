@@ -914,7 +914,7 @@ suite('system/TaskManager >', function() {
           assert.isFalse(cardsView.classList.contains('active'));
           assert.isFalse(taskManager.isShown());
         }, failOnReject)
-        .then(done, done);
+        .then(function() {done(); }, function() {done(); });
 
         cardsView.dispatchEvent(
           createTouchEvent('touchstart', cardsView, 100, 100));
@@ -1340,6 +1340,13 @@ suite('system/TaskManager >', function() {
   });
 
   suite('filtering > ', function() {
+    suiteSetup(function() {
+      var isShownStub = sinon.stub(taskManager, 'isShown', function() {
+        return true;
+      });
+      taskManager.hide(true);
+      isShownStub.restore();
+    });
     setup(function() {
       taskManager.hide(true);
       MockAppWindowManager.mRunningApps = apps;
@@ -1349,6 +1356,41 @@ suite('system/TaskManager >', function() {
 
     teardown(function() {
       taskManager.hide(true);
+    });
+
+    test('filtered class', function() {
+      // test without, then with
+      window.dispatchEvent(new CustomEvent('taskmanagershow', {}));
+
+      assert.isFalse(taskManager.element.classList.contains('filtered'));
+
+      this.sinon.stub(taskManager, 'show');
+      this.sinon.stub(taskManager, 'isShown', function() {
+        return true;
+      });
+
+      var evt = new CustomEvent('taskmanagershow', { detail: {
+        filter: 'browser-only'
+      }});
+      window.dispatchEvent(evt);
+
+      assert.isTrue(taskManager.element.classList.contains('filtered'));
+
+      taskManager.hide(true);
+
+      assert.isFalse(taskManager.element.classList.contains('filtered'));
+    });
+
+    test('filtered cardviewbeforeshow', function(done) {
+      waitForEvent(window, 'cardviewbeforeshow', function(evt) {
+        assert.equal(evt.detail, 'browser-only',
+                    'event detail is "browser-only"');
+      }).then(function() { done(); }, function() { done(); });
+
+      var evt = new CustomEvent('taskmanagershow', { detail: {
+        filter: 'browser-only'
+      }});
+      window.dispatchEvent(evt);
     });
 
     test('filter function is called and empty stack is the result',
@@ -1391,6 +1433,7 @@ suite('system/TaskManager >', function() {
 
       taskManager.show(_filterName);
     });
+
   });
 
   suite('filtering > /w search role', function() {
