@@ -27,13 +27,16 @@ suite('ChartUtils suite >', function() {
     window.navigator.mozL10n = window.MockMozL10n;
 
     realDate = window.Date;
-    now = new realDate(2014, 0, 1); // 2014-01-01
-    window.Date = new window.MockDateFactory(now);
   });
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realMozL10n;
     window.Date = realDate;
+  });
+
+  setup(function() {
+    now = new realDate(2014, 0, 1); // 2014-01-01
+    window.Date = new window.MockDateFactory(now);
   });
 
   test('convert to device pixels', function() {
@@ -91,7 +94,8 @@ suite('ChartUtils suite >', function() {
     var monthlySettings = {
       trackingPeriod: 'monthly',
       lastCompleteDataReset: now,
-      nextReset: new realDate(2014, 1, 1)
+      nextReset: new realDate(2014, 1, 1),
+      resetTime: '1'
     };
     var neverSettings = {
       trackingPeriod: 'never',
@@ -104,6 +108,66 @@ suite('ChartUtils suite >', function() {
       new realDate(now).toUTCString());
     assert.equal(ChartUtils.calculateLowerDate(neverSettings).toUTCString(),
       new realDate(now).toUTCString());
+  });
+
+  test('calculate lower date (monthly -->> resetTime = 31)', function() {
+    // today is 2014-01-01
+    var monthlySettings = {
+      trackingPeriod: 'monthly',
+      nextReset: new realDate(2014, 0, 31),
+      resetTime: '31'
+    };
+    // the lowerDate must be 2013-12-31
+    assert.equal(ChartUtils.calculateLowerDate(monthlySettings).toUTCString(),
+      new realDate(2013, 11, 31).toUTCString(), 'LowerDate must be 2013-12-31');
+
+    // today is 2014-12-31  - First day of the period
+    now = new realDate(2013, 11, 31); // 2013-11-31
+    window.Date = new window.MockDateFactory(now);
+    monthlySettings = {
+      trackingPeriod: 'monthly',
+      nextReset: new realDate(2014, 0, 31),
+      resetTime: '31'
+    };
+
+    assert.equal(ChartUtils.calculateLowerDate(monthlySettings).toUTCString(),
+      new realDate(2013, 11, 31).toUTCString(), 'LowerDate must be 2013-12-31');
+
+    // today is 2014-2-1
+    now = new realDate(2014, 1, 1);
+    window.Date = new window.MockDateFactory(now);
+    monthlySettings = {
+      trackingPeriod: 'monthly',
+      nextReset: new realDate(2014, 1, 28),
+      resetTime: '31'
+    };
+    assert.equal(ChartUtils.calculateLowerDate(monthlySettings).toUTCString(),
+      new realDate(2014, 0, 31).toUTCString(), 'LowerDate must be 2014-1-31');
+
+   // today is 2014-5-1
+    now = new realDate(2014, 4, 1);
+    window.Date = new window.MockDateFactory(now);
+    monthlySettings = {
+      trackingPeriod: 'monthly',
+      nextReset: new realDate(2014, 5, 31),
+      resetTime: '31'
+    };
+    // 2014-4-31 does not exist, then lowerDate must be 2014-5-1
+    assert.equal(ChartUtils.calculateLowerDate(monthlySettings).toUTCString(),
+      new realDate(2014, 4, 1).toUTCString(), 'LowerDate must be 2014-5-1');
+
+    // today is 2014-3-1
+    now = new realDate(2014, 2, 1);
+    window.Date = new window.MockDateFactory(now);
+    monthlySettings = {
+      trackingPeriod: 'monthly',
+      nextReset: new realDate(2014, 2, 31),
+      resetTime: '31'
+    };
+
+    // 2014-2-31 does not exist, then lowerDate must be 2014-3-1
+    assert.equal(ChartUtils.calculateLowerDate(monthlySettings).toUTCString(),
+      new realDate(2014, 2, 1).toUTCString(), 'LowerDate must be 2014-3-1');
   });
 
   test('expand the base model with computed values', function() {

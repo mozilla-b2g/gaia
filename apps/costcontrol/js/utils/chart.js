@@ -70,17 +70,27 @@ var ChartUtils = (function() {
       lowerDate.setTime(nextReset.getTime() - (7 * DAY));
 
     } else if (trackingPeriod === 'monthly') {
-      var newMonth = nextReset.getMonth() - 1;
-      var newYear = nextReset.getFullYear();
-      if (newMonth < 0) {
-        newMonth = 11;
-        newYear--;
+      var monthDate = settings.resetTime;
+      if (lowerDate.getDate() == monthDate) {
+        lowerDate = today;
+      } else {
+        var newMonth = today.getMonth() - 1;
+        var newYear = today.getFullYear();
+        if (newMonth < 0) {
+          newMonth = 11;
+          newYear--;
+        }
+
+        lowerDate = Toolkit.toMidnight(new Date(newYear, newMonth, monthDate));
+        // The day of the month of lowerDate is different to settings.resetTime
+        // value when the resetTime day doesn't exists this month, (eg. 30th
+        // February), on this case, the lowerDate must be the first day of the
+        // current month
+        if (lowerDate.getDate() != monthDate) {
+          lowerDate = today;
+          lowerDate.setDate(1);
+        }
       }
-
-      lowerDate.setDate(nextReset.getDate());
-      lowerDate.setMonth(newMonth);
-      lowerDate.setYear(newYear);
-
     } else {
       var lastReset = settings.lastCompleteDataReset || lowerDate;
       lowerDate = lastReset;
