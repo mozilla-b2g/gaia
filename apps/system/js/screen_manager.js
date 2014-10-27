@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals SettingsListener, Bluetooth, StatusBar, System,
+/* globals SettingsListener, bluetooth, StatusBar, System,
            ScreenBrightnessTransition, ScreenWakeLockManager */
 
 var ScreenManager = {
@@ -260,7 +260,7 @@ var ScreenManager = {
         break;
 
       case 'userproximity':
-        if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) ||
+        if (bluetooth.isProfileConnected(bluetooth.Profiles.SCO) ||
             telephony.speakerEnabled ||
             StatusBar.headphonesActive) {
             // XXX: Remove this hack in Bug 868348

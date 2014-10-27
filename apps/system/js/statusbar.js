@@ -15,7 +15,7 @@
 */
 
 /*global Clock, SettingsListener, TouchForwarder, FtuLauncher, MobileOperator,
-         SIMSlotManager, System, Bluetooth, UtilityTray, nfcManager,
+         SIMSlotManager, System, bluetooth, UtilityTray, nfcManager,
          layoutManager */
 
 'use strict';
@@ -1339,7 +1339,7 @@ var StatusBar = {
       var icon = this.icons.bluetooth;
 
       icon.hidden = !this.settingValues['bluetooth.enabled'];
-      icon.dataset.active = Bluetooth.connected;
+      icon.dataset.active = bluetooth.connected;
       this.updateIconLabel(icon, 'bluetooth', icon.dataset.active);
 
       this._updateIconVisibility();
@@ -1350,10 +1350,10 @@ var StatusBar = {
       var bluetoothTransferringIcon = this.icons.bluetoothTransferring;
 
       bluetoothHeadphoneIcon.hidden =
-        !Bluetooth.isProfileConnected(Bluetooth.Profiles.A2DP);
+        !bluetooth.isProfileConnected(bluetooth.Profiles.A2DP);
 
       bluetoothTransferringIcon.hidden =
-        !Bluetooth.isProfileConnected(Bluetooth.Profiles.OPP);
+        !bluetooth.isProfileConnected(bluetooth.Profiles.OPP);
 
       this._updateIconVisibility();
     },

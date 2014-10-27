@@ -61,6 +61,8 @@ requireApp('system/js/software_button_manager.js');
 requireApp('system/js/source_view.js');
 requireApp('system/js/usb_storage.js');
 requireApp('system/js/system_dialog_manager.js');
+requireApp('system/js/bluetooth.js');
+requireApp('system/js/bluetooth_transfer.js');
 requireApp('system/js/telephony_settings.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/text_selection_dialog.js');

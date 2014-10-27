@@ -1,4 +1,4 @@
-/* global Bluetooth, IACHandler, appWindowManager */
+/* global bluetooth, IACHandler, appWindowManager */
 
 'use strict';
 
@@ -76,7 +76,7 @@ MediaPlaybackWidget.prototype = {
     var name = event.detail.name;
     var connected = event.detail.connected;
 
-    if (name === Bluetooth.Profiles.SCO) {
+    if (name === bluetooth.Profiles.SCO) {
       this.container.classList.toggle('disabled', connected);
     }
   },
