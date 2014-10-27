@@ -75,9 +75,7 @@
               this.click.bind(this)
             );
 
-            // Return actual content container node to allow postprocessing of
-            // DOM content without dealing with iframe structure.
-            deferred.resolve(this.contentDocument.body);
+            deferred.resolve();
           } catch(e) {
             deferred.reject(e);
           }
@@ -86,6 +84,13 @@
         attachmentContainer.src = 'about:blank';
 
         return deferred.promise;
+      },
+
+      /**
+       * Returns the inner DOM node.
+       */
+      getContentContainer: function(attachmentContainer) {
+        return attachmentContainer.contentDocument.body;
       }
     },
 
@@ -96,8 +101,11 @@
 
       renderTo: function(baseMarkup, attachmentContainer) {
         attachmentContainer.innerHTML = baseMarkup;
+        return Promise.resolve();
+      },
 
-        return Promise.resolve(attachmentContainer);
+      getContentContainer: function(attachmentContainer) {
+        return attachmentContainer;
       }
     }
   };
@@ -150,41 +158,88 @@
     // Video type should be revisited with:
     // Bug 924609 - Video thumbnails previews are not showing in MMS when
     // attaching or receiving a video.
-    var thumbnailPromise = this._attachment.type === 'img' &&
-      this._attachment.size < MAX_THUMBNAIL_GENERATION_SIZE ?
-        this.getThumbnail() : Promise.reject();
 
-    return thumbnailPromise.
-      then(function(url) {
-        return {
-          markup: this._getBaseMarkup('attachment-preview-tmpl'),
-          cssClass: 'preview',
-          url: url
-        };
-      }.bind(this)).
-      catch(function(error) {
-        return {
-          markup: this._getBaseMarkup('attachment-nopreview-tmpl', !!error),
-          cssClass: 'nopreview'
-        };
-      }.bind(this)).
-      then(function(data) {
-        attachmentContainer.classList.add(data.cssClass);
+    var renderingInfo;
+    if (this._attachment.type === 'img' &&
+        this._attachment.size < MAX_THUMBNAIL_GENERATION_SIZE) {
+      renderingInfo = {
+        template: 'attachment-preview-tmpl',
+        cssClass: 'preview'
+      };
+      this._hasThumbnail = true;
+    } else {
+      renderingInfo = {
+        template: 'attachment-nopreview-tmpl',
+        cssClass: 'nopreview'
+      };
+      this._hasThumbnail = false;
+    }
 
-        return this._renderer.renderTo(data.markup, attachmentContainer).
-          then(function(contentContainer) {
-            // Since content container may differ from attachment container
-            // (e.g. content container is "body" element inside iframe),
-            // preview class should be applied to both to have effect.
-            contentContainer.classList.add(data.cssClass);
+    attachmentContainer.classList.add(renderingInfo.cssClass);
 
-            var thumbnailNode = contentContainer.querySelector('.thumbnail');
-            if (thumbnailNode) {
-              thumbnailNode.style.backgroundImage =
-                'url("' + data.url + '")';
-            }
-          });
-      }.bind(this));
+    var markup = this._getBaseMarkup(renderingInfo.template);
+    this._renderingPromise = this._renderer.renderTo(
+      markup, attachmentContainer
+    ).then(
+      () => {
+        var contentContainer =
+          this._renderer.getContentContainer(attachmentContainer);
+        // Since content container may differ from attachment container
+        // (e.g. content container is "body" element inside iframe),
+        // preview class should be applied to both to have effect.
+        contentContainer.classList.add(renderingInfo.cssClass);
+      }
+    );
+
+    return this._renderingPromise;
+  };
+
+  AttachmentRenderer.prototype.updateFileSize = function() {
+    var attachmentContainer = this.getAttachmentContainer();
+    var contentNode = this._renderer.getContentContainer(attachmentContainer);
+    var sizeIndicator = contentNode.querySelector('.js-size-indicator');
+    if (!sizeIndicator) {
+      console.error('updateFileSize called, but render has not run yet.');
+      return;
+    }
+
+    var sizeL10n = getSizeForL10n(this._attachment.size);
+    navigator.mozL10n.setAttributes(
+      sizeIndicator, sizeL10n.l10nId, sizeL10n.l10nArgs
+    );
+    navigator.mozL10n.translateFragment(sizeIndicator);
+  };
+
+  AttachmentRenderer.prototype.updateThumbnail = function() {
+    if (!this._hasThumbnail) {
+      return Promise.resolve();
+    }
+
+    var attachmentContainer = this.getAttachmentContainer();
+    var contentNode = this._renderer.getContentContainer(attachmentContainer);
+    var thumbnailNode = contentNode.querySelector('.thumbnail');
+    var attachmentNode = contentNode.querySelector('.attachment');
+
+    if (!thumbnailNode) {
+      if (!this._renderingPromise) {
+        return Promise.reject(
+          new Error('updateThumbnail() needs to be called after a render().')
+        );
+      }
+
+      // looks like render has not finished yet
+      return this._renderingPromise.then(() => this.updateThumbnail());
+    }
+
+    return this.getThumbnail().then((url) => {
+      thumbnailNode.style.backgroundImage = 'url("' + url + '")';
+    })
+    .catch((e) => {
+      console.log('Error while getting a thumbnail', e);
+      contentNode.classList.add('nopreview');
+      contentNode.classList.remove('preview');
+      attachmentNode.classList.add('corrupted');
+    });
   };
 
   /**
@@ -195,6 +250,12 @@
    * @returns {Promise}
    */
   AttachmentRenderer.prototype.getThumbnail = function() {
+    if (!this._hasThumbnail) {
+      return Promise.reject(
+        new Error('We do not show a thumbnail for this attachment.')
+      );
+    }
+
     // The thumbnail format matches the blob format.
     var blob = this._attachment.blob;
 
@@ -228,12 +289,11 @@
    * @param hasError Indicates whether something is wrong with attachment.
    * @returns {string}
    */
-  AttachmentRenderer.prototype._getBaseMarkup = function(templateId, hasError) {
+  AttachmentRenderer.prototype._getBaseMarkup = function(templateId) {
     // interpolate the #attachment-[no]preview-tmpl template
-    var sizeL10n = getSizeForL10n(this._attachment.blob.size);
+    var sizeL10n = getSizeForL10n(this._attachment.size);
     return Template(templateId).interpolate({
       type: this._attachment.type,
-      errorClass: hasError ? 'corrupted' : '',
       fileName: this._attachment.name.slice(
         this._attachment.name.lastIndexOf('/') + 1
       ),

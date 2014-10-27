@@ -13,6 +13,8 @@
   // Path to the folder that stores all saved attachments
   const ATTACHMENT_FOLDER_PATH = 'sms-attachments/';
 
+  const priv = new WeakMap();
+
   /**
   * Gets actual base file name (name.extension) from its path.
   */
@@ -29,6 +31,15 @@
     this.name = blob.name || options.name ||
       navigator.mozL10n.get('unnamed-attachment');
     this.isDraft = !!options.isDraft;
+
+    priv.set(this, {
+      getAttachmentRenderer: function() {
+        var privMembers = priv.get(this);
+        privMembers.renderer = privMembers.renderer ||
+          AttachmentRenderer.for(this);
+        return privMembers.renderer;
+      }.bind(this)
+    });
   }
 
   Attachment.prototype = {
@@ -41,15 +52,28 @@
     },
 
     render: function(readyCallback) {
-      var attachmentRenderer = AttachmentRenderer.for(this);
+      var attachmentRenderer = priv.get(this).getAttachmentRenderer();
 
-      attachmentRenderer.render().catch(function(e) {
-        console.error('Error occurred while rendering attachment.', e);
-      }).then(readyCallback);
+      attachmentRenderer.render()
+        .then(() => this.isDraft || attachmentRenderer.updateThumbnail())
+        .catch(function(e) {
+          console.error('Error occurred while rendering attachment.', e);
+        })
+        .then(readyCallback);
 
       // We still need this for the case where we render a list of attachments
       // and right order is important.
       return attachmentRenderer.getAttachmentContainer();
+    },
+
+    updateFileSize: function() {
+      var attachmentRenderer = priv.get(this).getAttachmentRenderer();
+      attachmentRenderer.updateFileSize();
+    },
+
+    updateThumbnail: function() {
+      var attachmentRenderer = priv.get(this).getAttachmentRenderer();
+      attachmentRenderer.updateThumbnail();
     },
 
     view: function(options) {

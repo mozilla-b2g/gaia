@@ -127,24 +127,34 @@
   display: block;
 }
 
-.thumbnail {
-  width: 100%;
-  height: 100%;
+.thumbnail-container {
+  position: relative;
+}
 
+.thumbnail-container > div {
+  position: absolute;
+}
+
+.thumbnail {
   background: none no-repeat center center / cover;
 }
 
 .thumbnail-placeholder {
-  width: 100%;
-  height: 100%;
-
   background: url('images/attachments.png') no-repeat left top / 10rem;
 }
 
+.thumbnail,
+.thumbnail-placeholder,
+.thumbnail-container {
+  width: 100%;
+  height: 100%;
+}
+
 .attachment-container .thumbnail,
-.attachment-container .thumbnail-placeholder {
+.attachment-container .thumbnail-placeholder,
+.attachment-container .thumbnail-container {
   position: absolute;
-  top: 0
+  top: 0;
 }
 
 .attachment-draft:hover .thumbnail-placeholder,
