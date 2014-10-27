@@ -240,11 +240,7 @@ var UpdateManager = {
 
       //2G connection
       if (self.connection2G) {
-        if (prioritized) {
-          self.showPromptWifiPrioritized(self.showForbiddenDownload);
-        } else {
-          self.showForbiddenDownload();
-        }
+        self.showForbiddenDownload();
         return;
       }
 
