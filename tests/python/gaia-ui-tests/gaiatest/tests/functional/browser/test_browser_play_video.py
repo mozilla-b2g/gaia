@@ -2,28 +2,30 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
 from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
 from gaiatest.apps.search.regions.html5_player import HTML5Player
+from gaiatest.apps.homescreen.regions.permission_dialog import PermissionDialog
 
 
-class TestYouTube(GaiaTestCase):
+class Testvideo(GaiaTestCase):
 
-    video_URL = 'http://m.youtube.com/watch?v=5MzuGWFIfio'
     acceptable_delay = 2.0
 
-    # YouTube video locators
-    _video_container_locator = (By.CSS_SELECTOR, 'div[style^="background-image"]')
+    # Video locator
     _video_element_locator = (By.TAG_NAME, 'video')
 
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_network()
+        self.video_URL = self.marionette.absolute_url('VID_0001.mp4')
         self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
-    def test_play_youtube_video(self):
-        """
+    def test_play_video(self):
+        """Confirm video playback
+
         https://moztrap.mozilla.org/manage/case/6073/
         """
         search = Search(self.marionette)
@@ -32,31 +34,61 @@ class TestYouTube(GaiaTestCase):
         browser.wait_for_page_to_load(180)
         browser.switch_to_content()
 
-        # Tap the video container to load the <video> element and start playing
-        self.wait_for_element_displayed(*self._video_container_locator)
-        self.marionette.find_element(*self._video_container_locator).tap()
-
         # Wait HTML5 player to appear
         self.wait_for_element_displayed(*self._video_element_locator)
         video = self.marionette.find_element(*self._video_element_locator)
         player = HTML5Player(self.marionette, video)
 
+        # Make player loop, so it doesn't accidentally stops playing
+        player.set_loop(True)
+
         # Check that video is playing
         player.wait_for_video_loaded()
         self.assertTrue(player.is_video_playing())
 
+        # Tap on the edge of the video to make the controls appear
+        player.invoke_controls()
         # Pause playback
-        player.pause()
+        player.tap_play(False)
         stopped_at = player.current_timestamp
         self.assertFalse(player.is_video_playing())
 
         # Resume playback
-        player.play()
+        player.tap_play(True)
         resumed_at = player.current_timestamp
         self.assertTrue(player.is_video_playing())
+
+        #After tapping the play button, the controls disappear, make them appear again
+        player.invoke_controls()
+
+        # Tap mute button
+        player.tap_mute(True)
+        player.tap_mute(False)
 
         # Ensure that video resumes to play
         # from the place where it was paused
         delay = resumed_at - stopped_at
         self.assertLessEqual(delay, self.acceptable_delay,
                              'video resumed to play not from place where it was paused')
+        player.tap_full_screen()
+        permission = PermissionDialog(self.marionette)
+        self.marionette.switch_to_default_content()
+        permission.wait_for_permission_dialog_displayed()
+        system_app = permission.tap_to_confirm_permission()
+        browser.switch_to_content()
+
+        # These 2 lines are for some reason necessary, because Marionette on device
+        # lost connection to the element for some reason
+        video = self.marionette.find_element(*self._video_element_locator)
+        player = HTML5Player(self.marionette, video)
+
+        self.wait_for_condition(lambda m: player.is_fullscreen)
+
+        # For some reason on device, the controls are still showing for a short while,
+        # after tapping full screen. Marionette device issue?
+        time.sleep(1)
+
+        # After tapping full screen, the controls disappear, make them appear again
+        player.invoke_controls()
+        player.tap_full_screen()
+        self.wait_for_condition(lambda m: player.is_fullscreen == False)
