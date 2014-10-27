@@ -22,7 +22,7 @@
     show: function(event) {
       this._mockMobile();
       this.client.executeScript(function(event) {
-        window.wrappedJSObject.cellBroadcastSystem.show(event);
+        window.wrappedJSObject.CellBroadcastSystem.show(event);
       }, [event]);
     },
 
