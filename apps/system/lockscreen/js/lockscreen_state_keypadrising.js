@@ -49,9 +49,7 @@
       // XXX: We need a overall refactoring about panel and
       // panel styling in the future.
       this.lockScreen.overlay.classList.add('passcode-unlocking');
-      // XXX: We assume this is sync in order. But if we use real
-      // input window this would be broken.
-      resolve({'inputpad': 'open'});
+      resolve();
     });
   };
   exports.LockScreenStateKeypadRising = LockScreenStateKeypadRising;

@@ -19,36 +19,31 @@
 'use strict';
 
 /**
- * This state would guarantee the LockScreen plays the animation.
+ * If we follow the ordinary unlocking logic, that is, no need to care about
+ * instantly unlock and activity, we need to integrate the unlocking function
+ * call into state to coordinate the relationships between panel switching and
+ * unlocking animation.
  */
 (function(exports) {
 
-  var LockScreenStatePanelHide = function() {
+  var LockScreenStateUnlock = function() {
     LockScreenBaseState.apply(this, arguments);
   };
-  LockScreenStatePanelHide.prototype =
+  LockScreenStateUnlock.prototype =
     Object.create(LockScreenBaseState.prototype);
 
-  LockScreenStatePanelHide.prototype.start = function(lockScreen) {
-    this.type = 'panelHide';
+  LockScreenStateUnlock.prototype.start = function(lockScreen) {
+    this.type = 'unlock';
     this.lockScreen = lockScreen;
     return this;
   };
 
-  LockScreenStatePanelHide.prototype.transferTo =
-  function lssph_transferTo() {
+  LockScreenStateUnlock.prototype.transferTo =
+  function lsskh_transferTo() {
     return new Promise((resolve, reject) => {
-      // Copy from the original switching method.
-      this.lockScreen.overlay.classList.add('no-transition');
-      // XXX: clear the passcode we entered.
-      // To have 'passcodeStatus' would make UI don't update.
-      delete this.lockScreen.overlay.dataset.passcodeStatus;
-      this.lockScreen.passCodeEntered = '';
-      // XXX: even though we set the no-transition, it still do transition.
-      this.lockScreen.overlay.dataset.panel = 'passcode';
-      this.lockScreen.overlay.dataset.passcodeStatus = 'success';
+      this.lockScreen.unlock();
       resolve();
     });
   };
-  exports.LockScreenStatePanelHide = LockScreenStatePanelHide;
+  exports.LockScreenStateUnlock = LockScreenStateUnlock;
 })(window);

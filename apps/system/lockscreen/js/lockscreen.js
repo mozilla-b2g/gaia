@@ -749,7 +749,6 @@
 
         delete this.overlay.dataset.passcodeStatus;
         this.passCodeEntered = '';
-        this.updatePassCodeUI();
         break;
 
       case 'main':
@@ -1097,7 +1096,7 @@
       this.passCodeError = 0;
       this.kPassCodeErrorTimeout = 500;
       this.kPassCodeErrorCounter = 0;
-      this.unlock();
+      // delegate the unlocking function call to panel state.
     };
 
   /** @exports LockScreen */
