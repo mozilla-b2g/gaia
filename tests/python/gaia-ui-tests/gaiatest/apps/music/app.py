@@ -18,6 +18,8 @@ class Music(Base):
     _empty_music_text_locator = (By.ID, 'overlay-text')
     _albums_tab_locator = (By.ID, 'tabs-albums')
     _songs_tab_locator = (By.ID, 'tabs-songs')
+    _grid_tab_locator = (By.ID, 'tabs-mix')
+    _play_circle_locator = (By.ID, 'title-player')
 
     def launch(self):
         Base.launch(self)
