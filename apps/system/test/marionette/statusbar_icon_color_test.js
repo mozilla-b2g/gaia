@@ -7,6 +7,7 @@ var Search = require('../../../../apps/search/test/marionette/lib/search');
 var Bookmark = require('../../../system/test/marionette/lib/bookmark');
 var helper = require('../../../../tests/js-marionette/helper.js');
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
+var Server = require('../../../../shared/test/integration/server');
 var UtilityTray = require('./lib/utility_tray');
 
 marionette('Statusbar colors', function() {
@@ -26,10 +27,22 @@ marionette('Statusbar colors', function() {
   var actions = new Actions(client);
   var search = new Search(client);
   var rocketbar = new Rocketbar(client);
+  var server;
   var utilityTray = new UtilityTray(client);
 
   setup(function() {
     system.waitForStartup();
+  });
+
+  suiteSetup(function(done) {
+    Server.create(__dirname + '/fixtures/', function(err, _server) {
+      server = _server;
+      done();
+    });
+  });
+
+  suiteTeardown(function() {
+    server.stop();
   });
 
   test('statusbar icons are white in the lockscreen', function() {
@@ -64,7 +77,8 @@ marionette('Statusbar colors', function() {
   test('statusbar icons keep color after add homescreen', function() {
     waitVisible();
     helper.unlockScreen(client);
-    bookmark.openAndSave('http://mozilla.com');
+    var url = server.url('sample.html');
+    bookmark.openAndSave(url);
     waitForColor(true);
   });
 
@@ -73,7 +87,12 @@ marionette('Statusbar colors', function() {
     helper.unlockScreen(client);
     search.removeGeolocationPermission();
     rocketbar.homescreenFocus();
-    rocketbar.enterText('http://mozilla.com\uE006');
+    var url = server.url('sample.html');
+    rocketbar.enterText(url + '\uE006');
+
+    // Ensure that the page is loaded.
+    system.gotoBrowser(url);
+    client.switchToFrame();
 
     system.appChromeContextLink.click();
     system.appChromeContextMenuShare.click();
