@@ -2354,7 +2354,9 @@ suite('system/Statusbar', function() {
     });
 
     test('activityopened', function() {
+      var stub = this.sinon.spy(StatusBar, '_updateMinimizedStatusBarWidth');
       testEventThatShows.bind(this)('activityopened');
+      assert.isTrue(stub.calledOnce);
     });
 
     test('utilitytraywillshow', function() {

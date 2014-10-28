@@ -552,9 +552,11 @@ var StatusBar = {
         this._updateMinimizedStatusBarWidth();
         break;
 
+      case 'activityopened':
+        this._updateMinimizedStatusBarWidth();
+        /* falls through */
       case 'apptitlestatechanged':
       case 'homescreenopened':
-      case 'activityopened':
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
         break;
