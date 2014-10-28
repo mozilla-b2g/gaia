@@ -5,7 +5,8 @@
           CandidateSelectionTargetHandler, CompositeTargetHandler,
           PageSwitchingTargetHandler, CapsLockTargetHandler,
           SwitchKeyboardTargetHandler, ToggleCandidatePanelTargetHandler,
-          DismissSuggestionsTargetHandler, BackspaceTargetHandler */
+          DismissSuggestionsTargetHandler, BackspaceTargetHandler,
+          Promise */
 
 (function(exports) {
 
@@ -13,6 +14,7 @@ var TargetHandlersManager = function(app) {
   this.handlers = undefined;
   this.activeTargetsManager = null;
   this.app = app;
+  this.actionQueue = Promise.resolve();
 };
 
 TargetHandlersManager.prototype.start = function() {
@@ -95,7 +97,7 @@ TargetHandlersManager.prototype._callTargetAction = function(action,
     }
   }
 
-  handler[action]();
+  this.actionQueue = this.actionQueue.then(handler[action].bind(handler));
 };
 
 // This method decide which of the TargetHandler is the right one to
