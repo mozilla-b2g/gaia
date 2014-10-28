@@ -103,6 +103,10 @@ label.pack-switch input.uninit ~ span:after {
  * Right-To-Left tweaks
  */
 
+html[dir="rtl"] label.pack-checkbox input ~ span:after,
+html[dir="rtl"] label.pack-radio input ~ span:after {
+  left: unset;
+}
 html[dir="rtl"] label.pack-switch input ~ span:after {
   left: 0;
   right: unset;
