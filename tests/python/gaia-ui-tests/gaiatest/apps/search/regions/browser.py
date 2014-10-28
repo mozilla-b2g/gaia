@@ -13,6 +13,8 @@ class Browser(Base):
 
     _menu_button_locator = (By.CSS_SELECTOR, '.menu-button')
     _add_to_home_button_locator = (By.CSS_SELECTOR, 'button[data-id="add-to-homescreen"]')
+    _share_button_locator = (By.CSS_SELECTOR, 'button[data-id="share"]')
+    _share_to_messages_button_locator = (By.CSS_SELECTOR, 'button[data-value="1"]')
     _browser_menu_locator = (By.CSS_SELECTOR, '.contextmenu-list')
 
     _back_button_locator = (By.CSS_SELECTOR, '.back-button')
@@ -47,6 +49,17 @@ class Browser(Base):
         from gaiatest.apps.homescreen.regions.bookmark_menu import BookmarkMenu
 
         return BookmarkMenu(self.marionette)
+
+    def tap_share(self):
+        self.wait_for_element_displayed(*self._share_button_locator)
+        self._root_element.find_element(*self._share_button_locator).tap()
+
+    def tap_share_to_messages(self):
+        self.wait_for_element_displayed(*self._share_to_messages_button_locator)
+        self.marionette.find_element(*self._share_to_messages_button_locator).tap()
+
+        from gaiatest.apps.messages.regions.new_message import NewMessage
+        return NewMessage(self.marionette)
 
     @property
     def url(self):
