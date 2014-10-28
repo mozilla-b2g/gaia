@@ -75,14 +75,3 @@
 .quick-settings-airplane-mode {
   opacity: 0.5;
 }
-
-#screen.software-button-enabled #quick-setting-data-enabled-dialog {
-  bottom: var(--software-home-button-height);
-}
-
-@media (orientation: landscape) {
-  #screen.software-button-enabled #quick-setting-data-enabled-dialog {
-    bottom: 0;
-    right: var(--software-home-button-height);
-  }
-}
