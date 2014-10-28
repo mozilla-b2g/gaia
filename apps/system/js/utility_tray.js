@@ -18,6 +18,11 @@ var UtilityTray = {
 
   screen: document.getElementById('screen'),
 
+  notifications:
+    document.getElementById('desktop-notifications-container'),
+  notificationsPlaceholder:
+    document.getElementById('desktop-notifications-placeholder'),
+
   init: function ut_init() {
     var touchEvents = ['touchstart', 'touchmove', 'touchend'];
     touchEvents.forEach(function bindEvents(name) {
@@ -171,8 +176,12 @@ var UtilityTray = {
         break;
 
       case 'transitionend':
-        if (!this.shown)
+        if (!this.shown) {
           this.screen.classList.remove('utility-tray');
+          this._hideNotificationsContainer();
+        } else {
+          this._showNotificationsContainer();
+        }
         break;
     }
   },
@@ -196,6 +205,22 @@ var UtilityTray = {
       }
     }
     this.screen.classList.add('utility-tray');
+    this._hideNotificationsContainer();
+  },
+
+  _showNotificationsContainer: function ut_showNotificationsContainer() {
+    this.notifications.classList.add('above');
+    this.notificationsPlaceholder.classList.add('below');
+
+    if (this.notifications && this.notificationsPlaceholder) {
+      var rect = this.notificationsPlaceholder.getBoundingClientRect();
+      this.notifications.style.top = rect.top + 'px';
+    }
+  },
+
+  _hideNotificationsContainer: function ut_hideNotificationsContainer() {
+    this.notifications.classList.remove('above');
+    this.notificationsPlaceholder.classList.remove('below');
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
@@ -236,6 +261,8 @@ var UtilityTray = {
   },
 
   hide: function ut_hide(instant) {
+    this._hideNotificationsContainer();
+
     var alreadyHidden = !this.shown;
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
@@ -259,18 +286,29 @@ var UtilityTray = {
 
   show: function ut_show(dy) {
     var alreadyShown = this.shown;
-    var style = this.overlay.style;
+    var overlay = this.overlay;
+    var style = overlay.style;
     style.MozTransition = '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(100%)';
-    this.shown = true;
-    this.screen.classList.add('utility-tray');
-    window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
-
-    if (!alreadyShown) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('utilitytrayshow', true, true, null);
-      window.dispatchEvent(evt);
+    if (style.MozTransform === 'translateY(100%)') {
+      this._showNotificationsContainer();
+    } else {
+      style.MozTransform = 'translateY(100%)';
     }
+    this.shown = true;
+
+    var screen = this.screen;
+    overlay.addEventListener('transitionend', function trWait() {
+      overlay.removeEventListener('transitionend', trWait);
+
+      screen.classList.add('utility-tray');
+      window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
+
+      if (!alreadyShown) {
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('utilitytrayshow', true, true, null);
+        window.dispatchEvent(evt);
+      }
+    });
   },
 
   _pdIMESwitcherShow: function ut_pdIMESwitcherShow(evt) {

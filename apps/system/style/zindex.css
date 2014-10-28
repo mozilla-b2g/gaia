@@ -117,6 +117,7 @@
   z-index: 4096;
 }
 
+#screen > [data-z-index-level="part-of-utility-tray"].above,
 #screen > [data-z-index-level="utility-tray"] {
   z-index: 4095;
 }
@@ -130,6 +131,7 @@
 #screen.attention:not(.active-statusbar) > [data-z-index-level="statusbar"] {
   z-index: 16386;
 }
+#screen.attention:not(.active-statusbar) > [data-z-index-level="part-of-utility-tray"].above,
 #screen.attention:not(.active-statusbar) > [data-z-index-level="utility-tray"] {
   z-index: 16385;
 }
