@@ -28,8 +28,7 @@
       header: '#messages-header',
       charCounter: '.message-counter',
       moreHeaderButton: '#messages-options-button',
-      mmsLabel: '.content-composer-mms-label',
-      subjectMmsLabel: '.subject-composer-mms-label',
+      mmsLabel: '.mms-label',
       attachment: '#messages-input .attachment-container'
     },
 
@@ -104,10 +103,6 @@
 
           get mmsLabel() {
             return client.findElement(SELECTORS.Composer.mmsLabel);
-          },
-
-          get subjectMmsLabel() {
-            return client.findElement(SELECTORS.Composer.subjectMmsLabel);
           },
 
           get attachment() {
