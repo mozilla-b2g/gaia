@@ -626,4 +626,39 @@ suite('system/AppChrome', function() {
       assert.isFalse(chrome.app.element.classList.contains('search-app'));
     });
   });
+
+  suite('scroll events sequence', function() {
+    var app, chrome;
+    setup(function() {
+      app = new AppWindow(fakeAppMaximized);
+      chrome = new AppChrome(app);
+      this.sinon.stub(app, 'publish');
+      this.sinon.stub(app, 'isActive').returns(true);
+
+      for (var i = 0; i < 10; i++) {
+        chrome.handleEvent({ type: 'scroll' });
+      }
+    });
+
+    test('should not publish when a control transition ends', function() {
+      chrome.reloadButton.dispatchEvent(new CustomEvent('transitionend'));
+      sinon.assert.notCalled(app.publish.withArgs('chromecollapsed'));
+    });
+
+    test('should publish when the element transition ends', function() {
+      chrome.element.dispatchEvent(new CustomEvent('transitionend'));
+      sinon.assert.calledOnce(app.publish.withArgs('chromecollapsed'));
+    });
+
+    test('should publish after a safety timeout', function() {
+      this.sinon.clock.tick(250);
+      sinon.assert.calledOnce(app.publish.withArgs('chromecollapsed'));
+    });
+
+    test('should only publish once', function() {
+      chrome.element.dispatchEvent(new CustomEvent('transitionend'));
+      this.sinon.clock.tick(250);
+      sinon.assert.calledOnce(app.publish.withArgs('chromecollapsed'));
+    });
+  });
 });
