@@ -163,8 +163,12 @@ var SimLock = {
         // although it has 'telephony' permission (Bug 861206)
         var settingsManifestURL =
           'app://settings.gaiamobile.org/manifest.webapp';
-        if (app.manifestURL == settingsManifestURL)
+        if (app.manifestURL == settingsManifestURL) {
+          if (SimPinDialog.visible) {
+            SimPinDialog.close();
+          }
           return;
+        }
 
         // If SIM is locked, cancel app opening in order to display
         // it after the SIM PIN dialog is shown
