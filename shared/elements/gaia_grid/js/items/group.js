@@ -6,17 +6,18 @@
   /**
    * The relative size of icons when in a collapsed group.
    */
-  const COLLAPSE_RATIO = 0.375;
+  const COLLAPSE_RATIO = 0.33;
 
   /**
    * Maximum number of icons that are visible in a collapsed group.
    */
-  const COLLAPSED_GROUP_SIZE = 8;
+  const COLLAPSED_GROUP_SIZE = 6;
 
   /**
    * Space to be reserved at the sides of collapsed group items, in pixels.
    */
-  const COLLAPSED_GROUP_MARGIN = 4;
+  const COLLAPSED_GROUP_MARGIN_LEFT = 23;
+  const COLLAPSED_GROUP_MARGIN_RIGHT = 53;
 
   /**
    * A replacement for the default Divider class that implements group
@@ -38,7 +39,9 @@
     /**
      * Height in pixels of the header part of the group.
      */
-    headerHeight: 47,
+    get headerHeight() {
+      return this.detail.collapsed ? 20 : 30;
+    },
 
     /**
      * Height in pixels of the background of the group.
@@ -63,16 +66,6 @@
       return this.detail.collapsed ?
         this.backgroundHeight :
         this.separatorHeight;
-    },
-
-    get name() {
-      return this.detail.name;
-    },
-
-    set name(value) {
-      this.detail.name = value;
-      this.updateTitle();
-      window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
     },
 
     /**
@@ -107,7 +100,7 @@
       group.appendChild(span);
       this.shadowSpanElement = span;
 
-      // Create the header (container for the move gripper, title and
+      // Create the header (container for the move gripper and
       // expand/collapse toggle)
       span = document.createElement('span');
       span.className = 'header';
@@ -118,13 +111,6 @@
       span = document.createElement('span');
       span.className = 'gripper';
       this.headerSpanElement.appendChild(span);
-
-      // Create the title span
-      span = document.createElement('span');
-      span.className = 'title';
-      this.headerSpanElement.appendChild(span);
-      this.titleElement = span;
-      this.updateTitle();
 
       // Create the expand/collapse toggle
       span = document.createElement('span');
@@ -164,9 +150,10 @@
       var index = this.detail.index;
 
       var width = Math.round(
-        (this.grid.layout.gridWidth - COLLAPSED_GROUP_MARGIN * 2) /
+        (this.grid.layout.gridWidth -
+         COLLAPSED_GROUP_MARGIN_LEFT - COLLAPSED_GROUP_MARGIN_RIGHT) /
         COLLAPSED_GROUP_SIZE);
-      var x = COLLAPSED_GROUP_MARGIN;
+      var x = COLLAPSED_GROUP_MARGIN_LEFT;
       y += this.headerHeight;
 
       var maxGridItemWidth =
@@ -282,25 +269,6 @@
       GaiaGrid.GridItem.prototype.setActive.call(this, active);
     },
 
-    updateTitle: function() {
-      var titleElement = this.titleElement;
-      if (!titleElement) {
-        return;
-      }
-
-      if (this.name && this.name.trim() !== '') {
-        titleElement.classList.remove('empty');
-        titleElement.removeAttribute('data-l10n-id');
-        titleElement.textContent = this.name;
-        return;
-      }
-
-      titleElement.classList.add('empty');
-      titleElement.textContent = 'Enter a group name';
-      titleElement.setAttribute('data-l10n-id',
-                                     'gaia-grid-enter-group-name');
-    },
-
     collapse: function() {
       if (this.detail.collapsed) {
         return;
@@ -341,10 +309,7 @@
     },
 
     launch: function(target) {
-      var inEditMode = this.grid.dragdrop && this.grid.dragdrop.inEditMode;
-      if (inEditMode && target === this.headerSpanElement) {
-        this.edit();
-      } else if (this.detail.collapsed) {
+      if (this.detail.collapsed) {
         this.expand();
       } else if (target === this.toggleElement) {
         this.collapse();
@@ -355,15 +320,6 @@
       if (this.element) {
         this.element.parentNode.removeChild(this.element);
       }
-    },
-
-    /**
-     * It dispatches an edititem event.
-     */
-    edit: function() {
-      this.grid.element.dispatchEvent(new CustomEvent('edititem', {
-        detail: this
-      }));
     },
 
     isDraggable: function() {

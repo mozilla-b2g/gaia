@@ -77,7 +77,6 @@
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
-    <link rel="stylesheet" type="text/css" href="style/sound_manager/sound_manager.css">
     <link rel="stylesheet" type="text/css" href="style/ime_menu.css">
 
     <!-- Include shared building blocks -->
@@ -157,6 +156,7 @@
     <!-- Accessibility -->
     <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
     <script defer src="js/accessibility.js"></script>
+    <script defer src="js/accessibility_quicknav_menu.js"></script>
 
     <!-- Sleep Menu -->
     <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
@@ -611,9 +611,10 @@
                   <div class="track" data-l10n-id="mediaPlaybackTrack"></div>
                 </div>
                 <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
-                  <button data-icon="skip-back" class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
-                  <button data-icon="play" class="play-pause"></button>
-                  <button data-icon="skip-forward" class="next" data-l10n-id="mediaPlaybackNext"></button>
+                  <!-- XXX: These used to be button elements for prev/pause/next buttons but we are not able to receive contextmenu event from them. Change to div elements to make it work and able to fast seek from it (Bug 1017294) -->
+                  <div data-icon="skip-back" class="previous" data-l10n-id="mediaPlaybackPrevious"></div>
+                  <div data-icon="play" class="play-pause"></div>
+                  <div data-icon="skip-forward" class="next" data-l10n-id="mediaPlaybackNext"></div>
                 </div>
               </div>
 
@@ -887,6 +888,9 @@
         </label>
         <span class="device-item">${label}</span>
       -->
+      </div>
+
+      <div id="app-uninstall-dialog" data-z-index-level="app-uninstall-dialog">
       </div>
 
       <form id="app-install-dialog" class='app-install-dialog generic-dialog'
@@ -1198,6 +1202,9 @@
         </div>
 
         <div id="volume" class="vibration">
+          <style scoped>
+            @import url("style/sound_manager/sound_manager.css");
+          </style>
           <span class="channel-type"></span>
           <section>
             <div class="active"></div>

@@ -50,13 +50,14 @@ var Alarm = create({
   },
 
   description: function() {
-    var _ = navigator.mozL10n.get;
-    var l10n = getL10n(this.arg('trigger'), this.arg('layout'));
+    var {id, data} = getL10n(this.arg('trigger'), this.arg('layout'));
+    var args = JSON.stringify(data);
+    var description = navigator.mozL10n.get(id, data);
 
-    return '<div data-l10n-id="' + l10n.id + '"' +
-      ' data-l10n-args=\'' + JSON.stringify(l10n.data) + '\'>' +
-      _(l10n.id, l10n.data) +
-      '</div>';
+    return `<div role="listitem" data-l10n-id="${id}"
+      data-l10n-args=\'${args}\'>
+        ${description}
+      </div>`;
   },
 
   // builds a list of <option>

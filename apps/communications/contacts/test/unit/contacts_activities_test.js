@@ -13,6 +13,7 @@ requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_action_menu.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_moz_contact.js');
 
 if (!window._) {
   window._ = null;
@@ -25,7 +26,8 @@ if (!window.utils) {
 var mocksHelperForActivities = new MocksHelper([
   'Contacts',
   'ConfirmDialog',
-  'LazyLoader'
+  'LazyLoader',
+  'mozContact'
 ]).init();
 
 suite('Test Activities', function() {
@@ -212,7 +214,7 @@ suite('Test Activities', function() {
       contact.tel.pop();
       // we need to create a object from data to compare prototypes
       // check activities.js > function copyContactData
-      var newContact = Object.create(contact);
+      var newContact = contact;
       ActivityHandler.dataPickHandler(newContact);
       assert.isFalse(ConfirmDialog.showing);
       // Check if all the properties are the same

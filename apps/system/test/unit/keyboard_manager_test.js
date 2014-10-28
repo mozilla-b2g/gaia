@@ -719,6 +719,11 @@ suite('KeyboardManager', function() {
       assert.ok(hideKeyboardImmediately.called);
     });
 
+    test('notification clicked event', function() {
+      trigger('notification-clicked');
+      assert.ok(hideKeyboardImmediately.called);
+    });
+
     test('sheets-gesture-begin event: do nothing if no keyboard', function() {
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
       trigger('sheets-gesture-begin');

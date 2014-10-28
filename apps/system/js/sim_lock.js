@@ -22,6 +22,9 @@ var SimLock = {
     // Watch for apps that need a mobile connection
     window.addEventListener('appopened', this);
 
+    // Watch for the home button being pressed
+    window.addEventListener('home', this);
+
     // Display the dialog only after lockscreen is unlocked
     // before the transition.
     // To prevent keyboard being displayed behind it.
@@ -130,6 +133,11 @@ var SimLock = {
               lockscreenOnClosed);
             self.showIfLocked();
           });
+        break;
+      case 'home':
+        if (SimPinDialog.visible) {
+          SimPinDialog.close();
+        }
         break;
       case 'appopened':
         // If an app needs 'telephony' or 'sms' permissions (i.e. mobile

@@ -25,6 +25,8 @@ function ModifyAccount(options) {
   this.deleteRecord = this.deleteRecord.bind(this);
   this.cancel = this.cancel.bind(this);
   this.displayOAuth2 = this.displayOAuth2.bind(this);
+  this.hideHeaderAndForm = this.hideHeaderAndForm.bind(this);
+  this.cancelDelete = this.cancelDelete.bind(this);
 
   this.accountHandler = new AccountCreation(this.app);
   this.accountHandler.on('authorizeError', this);
@@ -41,10 +43,11 @@ ModifyAccount.prototype = {
 
   selectors: {
     element: '#modify-account-view',
-    form: '#modify-account-view form',
+    form: '.modify-account-form',
     fields: '*[name]',
     saveButton: '#modify-account-view .save',
     deleteButton: '#modify-account-view .delete-confirm',
+    deleteRecordButton: '.delete-record',
     cancelDeleteButton: '#modify-account-view .delete-cancel',
     header: '#modify-account-header',
     status: '#modify-account-view section[role="status"]',
@@ -54,6 +57,7 @@ ModifyAccount.prototype = {
   },
 
   progressClass: 'in-progress',
+  removeDialogClass: 'remove-dialog',
 
   get authenticationType() {
     if (this.preset && this.preset.authenticationType) {
@@ -69,6 +73,10 @@ ModifyAccount.prototype = {
 
   get oauth2SignIn() {
     return this._findElement('oauth2SignIn');
+  },
+
+  get deleteRecordButton() {
+    return this._findElement('deleteRecordButton');
   },
 
   get deleteButton() {
@@ -182,6 +190,11 @@ ModifyAccount.prototype = {
     window.history.back();
   },
 
+  cancelDelete: function() {
+    this.element.classList.remove(this.removeDialogClass);
+    this.cancel();
+  },
+
   save: function(options, e) {
 
     if (e) {
@@ -210,6 +223,10 @@ ModifyAccount.prototype = {
         self.app.go(self.completeUrl);
       }
     });
+  },
+
+  hideHeaderAndForm: function() {
+    this.element.classList.add(this.removeDialogClass);
   },
 
   displayOAuth2: function(event) {
@@ -295,11 +312,12 @@ ModifyAccount.prototype = {
     this.form.addEventListener('submit', this._boundSaveUpdateModel);
     this.saveButton.addEventListener('click', this._boundSaveUpdateModel);
     this.header.addEventListener('action', this.cancel);
+    this.deleteRecordButton.addEventListener('click', this.hideHeaderAndForm);
 
     if (this.model._id) {
       this.type = 'update';
       this.deleteButton.addEventListener('click', this.deleteRecord);
-      this.cancelDeleteButton.addEventListener('click', this.cancel);
+      this.cancelDeleteButton.addEventListener('click', this.cancelDelete);
     } else {
       this.type = 'create';
     }
@@ -349,11 +367,12 @@ ModifyAccount.prototype = {
     this._fields = null;
     this.form.reset();
 
+    this.deleteRecordButton.removeEventListener('click',
+      this.hideHeaderAndForm);
     this.oauth2SignIn.removeEventListener('click', this.displayOAuth2);
     this.saveButton.removeEventListener('click', this._boundSaveUpdateModel);
     this.deleteButton.removeEventListener('click', this.deleteRecord);
-    this.cancelDeleteButton.removeEventListener('click',
-                                                this.cancel);
+    this.cancelDeleteButton.removeEventListener('click', this.cancelDelete);
     this.header.removeEventListener('action',
                                     this.cancel);
     this.form.removeEventListener('submit', this._boundSaveUpdateModel);

@@ -71,7 +71,6 @@
       object.setCardLock = function(options) {
         var handlers = {
           error: {
-            lockType: options.lockType,
             retryCount: object.retryCount
           }
         };

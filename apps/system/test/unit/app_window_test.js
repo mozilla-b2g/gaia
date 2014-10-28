@@ -1822,6 +1822,25 @@ suite('system/AppWindow', function() {
       assert.equal(app1.iframe.style.height, '');
     });
 
+    test('Orientation change event on active homescreen app', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      this.sinon.stub(app1, 'isActive').returns(true);
+      app1.isHomescreen = true;
+      app1.width = 320;
+      app1.height = 460;
+      layoutManager.width = 460;
+      layoutManager.height = 320;
+
+      app1.handleEvent({
+        type: '_orientationchange'
+      });
+
+      assert.equal(app1.element.style.width, '460px');
+      assert.equal(app1.element.style.height, '320px');
+      assert.equal(app1.iframe.style.width, '320px');
+      assert.equal(app1.iframe.style.height, '460px');
+    });
+
     test('Orientation change event on fullscreen app', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       this.sinon.stub(app1, 'isActive').returns(false);
@@ -1939,6 +1958,7 @@ suite('system/AppWindow', function() {
     assert.isFalse(app1.suspended);
     assert.isTrue(stub_setVisble.calledWith(false));
     assert.isTrue(stubPublish.calledWith('resumed'));
+    assert.isTrue(app1.browser.element.classList.contains('hidden'));
   });
 
   test('destroy browser', function() {
@@ -1946,6 +1966,7 @@ suite('system/AppWindow', function() {
     var stubPublish = this.sinon.stub(app1, 'publish');
     app1.destroyBrowser();
     assert.isNull(app1.browser);
+    assert.isNull(app1.iframe);
     assert.isTrue(app1.suspended);
     assert.isTrue(stubPublish.calledWith('suspended'));
   });

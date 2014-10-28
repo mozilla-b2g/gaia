@@ -78,8 +78,8 @@ function _getAlternativesForTarget(key) {
 
   if (this.app.upperCaseStateManager.isUpperCaseLocked) {
     origKey = key.uppercaseValue;
-    alternatives = altMap[origKey].upperCaseLocked ||
-                   altMap[origKey];
+    alternatives = altMap[origKey] &&
+      (altMap[origKey].upperCaseLocked || altMap[origKey]);
   } else if (this.app.upperCaseStateManager.isUpperCase) {
     origKey = key.uppercaseValue;
     alternatives = altMap[origKey];

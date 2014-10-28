@@ -28,7 +28,7 @@ label.pack-switch span {
 }
 
 label.pack-switch span:not(:empty) {
-  padding-right: 6rem;
+  -moz-padding-end: 6rem;
 }
 
 label.pack-switch input {
@@ -78,16 +78,17 @@ label.pack-switch input.uninit ~ span:after {
 /******************************************************************************
  * Right-To-Left tweaks
  */
+
+html[dir="rtl"] label.pack-switch span {
+  float: right;
+}
+
 html[dir="rtl"] label.pack-switch input {
-  left: auto;
+  left: unset;
   right: 0;
 }
 
 html[dir="rtl"] label.pack-switch input ~ span:after {
   left: 0;
-  right: auto;
-}
-
-html[dir="rtl"] label.pack-switch input ~ span:after {
-  background-position: 0;
+  right: unset;
 }

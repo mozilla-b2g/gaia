@@ -136,7 +136,7 @@ suite('Application Startup Modes Test Suite >', function() {
     var consoleSpy = sinon.spy(console, 'log');
     window.addEventListener('viewchanged', function _onalert(evt) {
       window.removeEventListener('viewchanged', _onalert);
-      assert.equal(evt.detail, 'non-ready-screen');
+      assert.equal(evt.detail.id, 'non-ready-screen');
       assert.ok(consoleSpy.calledWith(msg));
       consoleSpy.restore();
       done();

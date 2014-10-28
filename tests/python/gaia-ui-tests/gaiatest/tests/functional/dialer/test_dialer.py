@@ -19,7 +19,7 @@ class TestDialer(GaiaTestCase):
         phone = Phone(self.marionette)
         phone.launch()
 
-        self.assertEqual('normal', self.data_layer.current_audio_channel)
+        self.assertEqual('none', self.data_layer.current_audio_channel)
 
         call_screen = phone.keypad.call_number(test_phone_number)
 

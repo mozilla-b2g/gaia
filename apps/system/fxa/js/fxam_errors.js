@@ -4,9 +4,6 @@
 'use strict';
 
 (function(exports) {
-
-  var _ = navigator.mozL10n.get;
-
   var Errors = {
     CONNECTION_ERROR: {
       title: 'fxa-connection-error-title',
@@ -51,6 +48,8 @@
   }
 
   function _getCoppaError() {
+    var _ = navigator.mozL10n.get;
+
     var coppaLink = 'http://www.ftc.gov/news-events/media-resources/' +
                     'protecting-consumer-privacy/kids-privacy-coppa';
     var errorText = _('fxa-coppa-failure-error-message');

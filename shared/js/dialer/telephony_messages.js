@@ -82,6 +82,13 @@ var TelephonyMessages = {
   },
 
   handleError: function(errorName, number, emergencyOptions) {
+    // We ignore this error because some networks generate this with
+    // STK CallControl when calling Voicemail pilots (e.g. TMobile)
+    if (errorName === 'ModifiedDialError') {
+      console.log('ModifiedDialError');
+      return;
+    }
+
     if (errorName === 'BadNumberError') {
       if (emergencyOptions === this.REGULAR_CALL) {
         this.displayMessage('BadNumber');

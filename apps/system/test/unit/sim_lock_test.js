@@ -138,6 +138,25 @@ suite('SimLock', function() {
         assert.isFalse(stubShowIfLocked.called,
           'should not show the dialog');
       });
+
+    test('home press on dialog visible', function() {
+      this.sinon.stub(SimPinDialog, 'close');
+      SimPinDialog.visible = true;
+      SimLock.handleEvent({
+        type: 'home'
+      });
+      assert.isTrue(SimPinDialog.close.called, 'should close the dialog');
+      SimPinDialog.visible = false;
+    });
+
+    test('home press on dialog not visible', function() {
+      var stubSimPinClose = this.sinon.stub(SimPinDialog, 'close');
+      SimPinDialog.visible = false;
+      SimLock.handleEvent({
+        type: 'home'
+      });
+      assert.isFalse(stubSimPinClose.called, 'should close the dialog');
+    });
   });
 
   suite('showIfLocked', function() {

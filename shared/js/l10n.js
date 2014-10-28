@@ -930,9 +930,10 @@
   }
 
   function resolveSelector(ctxdata, env, expr, index) {
-      var selector = resolveIdentifier(ctxdata, env, index[0].v);
+      var selectorName = index[0].v;
+      var selector = resolveIdentifier(ctxdata, env, selectorName);
       if (selector === undefined) {
-        throw new L10nError('Unknown selector: ' + index[0].v);
+        throw new L10nError('Unknown selector: ' + selectorName);
       }
 
       if (typeof selector !== 'function') {
@@ -942,7 +943,7 @@
 
       var argLength = index.length - 1;
       if (selector.length !== argLength) {
-        throw new L10nError('Macro ' + index[0] + ' expects ' +
+        throw new L10nError('Macro ' + selectorName + ' expects ' +
                             selector.length + ' argument(s), yet ' + argLength +
                             ' given');
       }
@@ -1274,6 +1275,7 @@
       return entry;
     }
 
+    console.warn('mozL10n: A non-existing entity requested: ' + id);
     error.call(this, new L10nError(id + ' not found', id));
     return null;
   }
@@ -1436,9 +1438,6 @@
     ctx: new Context(window.document ? document.URL : null),
     get: function get(id, ctxdata) {
       return navigator.mozL10n.ctx.get(id, ctxdata);
-    },
-    localize: function localize(element, id, args) {
-      return localizeElement.call(navigator.mozL10n, element, id, args);
     },
     translateFragment: function (fragment) {
       return translateFragment.call(navigator.mozL10n, fragment);
@@ -1775,21 +1774,10 @@
     return element ? element.querySelectorAll('*[data-l10n-id]') : [];
   }
 
-  function localizeElement(element, id, args) {
-    if (!id) {
-      element.removeAttribute('data-l10n-id');
-      element.removeAttribute('data-l10n-args');
-      setTextContent.call(this, id, element, '');
-      return;
-    }
-
-    element.setAttribute('data-l10n-id', id);
-    if (args && typeof args === 'object') {
-      element.setAttribute('data-l10n-args', JSON.stringify(args));
-    } else {
-      element.removeAttribute('data-l10n-args');
-    }
-  }
+  var allowedHtmlAttrs = {
+    'ariaLabel': 'aria-label',
+    'ariaValueText': 'aria-valuetext'
+  };
 
   function translateElement(element) {
     if (!this.ctx.isReady) {
@@ -1823,8 +1811,8 @@
 
     for (var key in entity.attrs) {
       var attr = entity.attrs[key];
-      if (key === 'ariaLabel') {
-        element.setAttribute('aria-label', attr);
+      if (allowedHtmlAttrs.hasOwnProperty(key)) {
+        element.setAttribute(allowedHtmlAttrs[key], attr);
       } else if (key === 'innerHTML') {
         // XXX: to be removed once bug 994357 lands
         element.innerHTML = attr;

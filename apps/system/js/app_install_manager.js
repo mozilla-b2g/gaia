@@ -275,7 +275,7 @@ var AppInstallManager = {
     }
 
     var dialog = new ConfirmDialogHelper(dialogConfig);
-    dialog.show(document.body);
+    dialog.show(document.getElementById('app-uninstall-dialog'));
   },
 
   prepareForDownload: function ai_prepareForDownload(app) {

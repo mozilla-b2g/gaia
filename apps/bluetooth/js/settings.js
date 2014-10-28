@@ -347,17 +347,13 @@ navigator.mozL10n.once(function bluetoothSettings() {
       var deviceName = document.createElement('span');
       if (device.name !== '') {
         deviceName.textContent = device.name;
-        deviceName.dataset.l10nId = '';
       } else {
-        l10n.localize(deviceName, 'unnamed-device');
+        deviceName.setAttribute('data-l10n-id', 'unnamed-device');
       }
 
       var deviceDesc = document.createElement('small');
       if (descL10nId) {
-        l10n.localize(deviceDesc, descL10nId);
-      } else {
-        deviceDesc.textContent = '';
-        deviceDesc.dataset.l10nId = '';
+        deviceDesc.setAttribute('data-l10n-id', descL10nId);
       }
 
       var a = document.createElement('a');
@@ -490,7 +486,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
             if (device.address === connectingAddress &&
                 device.icon === 'audio-card') {
               var small = aItem.querySelector('small');
-              l10n.localize(small, 'device-status-connecting');
+              small.setAttribute('data-l10n-id', 'device-status-connecting');
               setTimeout(function() {
                 setDeviceConnect(device);
               }, 5000);
@@ -590,7 +586,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
         if (device.name && existingItem) {
           var deviceName = existingItem.querySelector('a > span');
           if (deviceName) {
-            deviceName.dataset.l10nId = '';
+            deviceName.removeAttribute('data-l10n-id');
             deviceName.textContent = device.name;
           }
         }
@@ -606,7 +602,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
           return;
 
         var small = aItem.querySelector('small');
-        l10n.localize(small, 'device-status-pairing');
+        small.setAttribute('data-l10n-id', 'device-status-pairing');
         this.setAttribute('aria-disabled', true);
         stopDiscovery();
 
@@ -663,7 +659,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
           var item = openList.index[workingAddress].item;
           var small = item.querySelector('small');
           item.removeAttribute('aria-disabled');
-          l10n.localize(small, 'device-status-tap-connect');
+          small.setAttribute('data-l10n-id', 'device-status-tap-connect');
         }
       }
       // acquire a new paired list no matter paired or unpaired
@@ -721,8 +717,8 @@ navigator.mozL10n.once(function bluetoothSettings() {
             // Clear the text of connecting status.
             var small =
               pairList.index[connectingAddress].item.querySelector('small');
+            small.removeAttribute('data-l10n-id');
             small.textContent = '';
-            small.dataset.l10nId = '';
             connectingAddress = null;
             window.alert(_('error-connect-msg'));
           }
@@ -741,7 +737,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
         var small =
           pairList.index[connectingAddress].item.querySelector('small');
-        l10n.localize(small, 'device-status-connecting');
+        small.setAttribute('data-l10n-id', 'device-status-connecting');
       };
 
       // disconnect current connected device first
@@ -799,10 +795,10 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
       var small = pairList.index[deviceAddress].item.querySelector('small');
       if (l10nId) {
-        l10n.localize(small, l10nId);
+        small.setAttribute('data-l10n-id', l10nId);
       } else {
+        small.removeAttribute('data-l10n-id');
         small.textContent = '';
-        small.dataset.l10nId = '';
       }
     }
 

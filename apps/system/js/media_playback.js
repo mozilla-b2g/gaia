@@ -13,7 +13,19 @@ function MediaPlaybackWidget(container, options) {
   this.playPauseButton = container.querySelector('.play-pause');
   this.nextButton = container.querySelector('.next');
 
-  this.container.addEventListener('click', this);
+  this.previousButton.addEventListener(
+    'contextmenu', this.handleContextmenu.bind(this)
+  );
+  this.nextButton.addEventListener(
+    'contextmenu', this.handleContextmenu.bind(this)
+  );
+  this.container.addEventListener('touchend', this.handleTouchend.bind(this));
+
+  // When prev/next button releases, we need to know user simply clicking on it
+  // or holding on and perform fastseeking. Keeping this state to know which
+  // command should issue.
+  this.isFastSeeking = false;
+
   window.addEventListener('iac-mediacomms', this.handleMessage.bind(this));
   // When SCO status changes, we need to adjust the ui of the playback controls
   window.addEventListener(
@@ -135,36 +147,61 @@ MediaPlaybackWidget.prototype = {
     }
   },
 
-  handleEvent: function mp_handleEvent(event) {
+  sendCommand: function mp_sendCommand(command) {
     var port = IACHandler.getPort('mediacomms');
-    if (!port) {
-      return;
+    if (port) {
+      port.postMessage({command: command});
     }
+  },
 
-    var target = event.target;
+  handleContextmenu: function mp_handleContextmenu(event) {
     var command = null;
 
-    switch (target) {
+    switch (event.target) {
       case this.previousButton:
-        command = 'prevtrack';
-        break;
-      case this.playPauseButton:
-        // The play/pause indicator will get set once the music app replies with
-        // its "mode" message, but this will make us appear speedier.
-        if (target.dataset.icon === 'play') {
-          target.dataset.icon = 'pause';
-        } else {
-          target.dataset.icon = 'play';
-        }
-        command = 'playpause';
+        command = 'rewindstart';
         break;
       case this.nextButton:
-        command = 'nexttrack';
+        command = 'fastforwardstart';
         break;
     }
 
     if (command) {
-      port.postMessage({command: command});
+      this.isFastSeeking = true;
+      this.sendCommand(command);
+    }
+  },
+
+  handleTouchend: function mp_handleTouchend(event) {
+    var command = null;
+
+    switch (event.target) {
+      case this.previousButton:
+        if (this.isFastSeeking) {
+          this.isFastSeeking = false;
+          command = 'rewindend';
+        } else {
+          command = 'prevtrack';
+        }
+        break;
+      case this.nextButton:
+        if (this.isFastSeeking) {
+          this.isFastSeeking = false;
+          command = 'fastforwardend';
+        } else {
+          command = 'nexttrack';
+        }
+        break;
+      case this.playPauseButton:
+        // The play/pause indicator will get set once the music app replies
+        // with its "mode" message, but this will make us appear speedier.
+        event.target.classList.toggle('is-paused');
+        command = 'playpause';
+        break;
+    }
+
+    if (command) {
+      this.sendCommand(command);
     }
   }
 };

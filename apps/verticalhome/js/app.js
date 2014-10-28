@@ -259,7 +259,7 @@
             return;
           }
 
-          window.scrollTo(0, 0, {behavior: 'smooth'});
+          window.scrollTo({left: 0, top: 0, behavior: 'smooth'});
       }
     }
   };

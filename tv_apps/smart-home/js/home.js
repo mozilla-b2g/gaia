@@ -1,5 +1,5 @@
 'use strict';
-/* global SpatialNavigator, KeyEvent, SelectionBorder */
+/* global SpatialNavigator, KeyEvent, SelectionBorder, XScrollable */
 
 (function(exports) {
 
@@ -7,9 +7,19 @@
 
   Home.prototype = {
     navigableIds: ['search-input'],
-    navigableClasses: ['card-thumbnail', 'filter-tab', 'command-button'],
+    navigableClasses: ['filter-tab', 'command-button'],
+    cardScrollable: new XScrollable({
+            frameElem: 'card-list-frame',
+            listElem: 'card-list',
+            items: 'card-thumbnail'}),
+    folderScrollable: new XScrollable({
+            frameElem: 'folder-list-frame',
+            listElem: 'folder-list',
+            items: 'folder-card-thumbnail'}),
+    navigableScrollable: [],
 
     init: function() {
+      this.navigableScrollable = [this.cardScrollable, this.folderScrollable];
       var collection = this.getNavigateElements();
       this.spatialNavigator = new SpatialNavigator(collection);
       this.selectionBorder = new SelectionBorder({
@@ -19,7 +29,13 @@
 
       window.addEventListener('keydown', this.handleKeyEvent.bind(this));
 
-      this.spatialNavigator.on('focus', this.handleSelection.bind(this));
+      this.spatialNavigator.on('focus', this.handleFocus.bind(this));
+
+      var handleScrollableItemFocusBound =
+                                    this.handleScrollableItemFocus.bind(this);
+      this.navigableScrollable.forEach(function(scrollable) {
+        scrollable.on('focus', handleScrollableItemFocusBound);
+      });
       this.spatialNavigator.focus();
     },
 
@@ -34,6 +50,12 @@
         case 'down':
         case 'left':
         case 'right':
+          var focus = this.spatialNavigator.getFocusedElement();
+          if (focus.CLASS_NAME == 'XScrollable') {
+            if (focus.spatialNavigator.move(key)) {
+              return;
+            }
+          }
           this.spatialNavigator.move(key);
       }
     },
@@ -74,15 +96,22 @@
           elements = elements.concat(Array.prototype.slice.call(elems));
         }
       });
+      elements = elements.concat(this.navigableScrollable);
       return elements;
     },
 
-    handleSelection: function(elem) {
-      if (elem.nodeName) {
+    handleFocus: function(elem) {
+      if (elem.CLASS_NAME == 'XScrollable') {
+        elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
+      } else if (elem.nodeName) {
         this.selectionBorder.select(elem);
       } else {
         this.selectionBorder.selectRect(elem);
       }
+    },
+
+    handleScrollableItemFocus: function(scrollable, elem) {
+      this.selectionBorder.select(elem, scrollable.getItemRect(elem));
     }
   };
 

@@ -148,16 +148,16 @@ var SimPinDialog = {
     }
   },
 
-  handleError: function spl_handleLockError(evt) {
-    var retry = (evt.retryCount) ? evt.retryCount : -1;
-    this.showErrorMsg(retry, evt.lockType);
+  handleError: function spl_handleLockError(lockType, retryCount) {
+    var retry = (retryCount) ? retryCount : -1;
+    this.showErrorMsg(retry, lockType);
     if (retry === -1) {
       this.skip();
       return;
     }
-    if (evt.lockType === 'pin') {
+    if (lockType === 'pin') {
       this.pinInput.focus();
-    } else if (evt.lockType === 'puk') {
+    } else if (lockType === 'puk') {
       this.pukInput.focus();
     } else {
       this.xckInput.focus();
@@ -226,7 +226,7 @@ var SimPinDialog = {
     var req = this._currentSlot.unlockCardLock(options);
     req.onsuccess = this.requestClose.bind(this, 'success');
     req.onerror = (function spl_unlockCardLockError(result) {
-      this.handleError(req.error);
+      this.handleError(options.lockType, req.error.retryCount);
     }).bind(this);
   },
 

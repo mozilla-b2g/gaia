@@ -348,34 +348,26 @@ suite('Nfc Manager Functions', function() {
     });
 
     // P2P shared NDEF received
-    test('message tech [P2P, NDEF], one record', function() {
+    test('message tech [P2P, NFC_A], one NDEF record', function() {
       sampleMsg.techList.push('P2P');
-      sampleMsg.techList.push('NDEF');
+      sampleMsg.techList.push('NFC_A');
       sampleMsg.records.push(sampleMimeRecord);
 
       execNDEFMessageTest.call(this, sampleMsg, 'P2P');
     });
 
-    test('message tech [NDEF], one URI record', function() {
-      sampleMsg.techList.push('NDEF');
+    test('message tech [NFC_A], one NDEF URI record', function() {
+      sampleMsg.techList.push('NFC_A');
       sampleMsg.records.push(sampleURIRecord);
 
-      execNDEFMessageTest.call(this, sampleMsg, 'NDEF');
+      execNDEFMessageTest.call(this, sampleMsg, 'NFC_A');
     });
 
-    // NDEF with no records was previosly treated as a special case
-    // right now it is handled regularly in _fireNDEFDiscovered
-    test('message tech [NDEF], no records', function() {
-      sampleMsg.techList.push('NDEF');
+    // empty NDEF records array, _fireTagDiscovered should be called
+    test('message tech [NFC_A], no NDEF records', function() {
+      sampleMsg.techList.push('NFC_A');
 
-      execNDEFMessageTest.call(this, sampleMsg, 'NDEF');
-    });
-
-    test('message tech [NDEF_FORMATABLE]', function() {
-      sampleMsg.techList.push('NDEF_FORMATABLE');
-      sampleMsg.records.push = 'propriatary data';
-
-      execTagDiscoveredTest.call(this, sampleMsg, 'NDEF_FORMATABLE');
+      execTagDiscoveredTest.call(this, sampleMsg, 'NFC_A');
     });
 
     test('message tech unsupported', function() {
@@ -388,7 +380,7 @@ suite('Nfc Manager Functions', function() {
       // empty record
       var empty = { tnf: NDEF.TNF_EMPTY };
 
-      sampleMsg.techList.push('NDEF');
+      sampleMsg.techList.push('NFC_A');
       sampleMsg.records.push(sampleURIRecord);
       sampleMsg.records.push(empty);
       sampleMsg.records.push(sampleMimeRecord);
@@ -404,7 +396,7 @@ suite('Nfc Manager Functions', function() {
                 url: 'http://mozilla.org',
                 src: 'nfc',
                 records: sampleMsg.records,
-                tech: 'NDEF',
+                tech: 'NFC_A',
                 techList: sampleMsg.techList
         }
       }, 'Uri record');
@@ -415,7 +407,7 @@ suite('Nfc Manager Functions', function() {
         name: 'nfc-ndef-discovered',
         data: {
           type: 'empty',
-          tech: 'NDEF',
+          tech: 'NFC_A',
           techList: sampleMsg.techList,
           records: sampleMsg.records
         }
@@ -430,7 +422,7 @@ suite('Nfc Manager Functions', function() {
           blob: new Blob([nfcUtils.toUTF8(sampleMimeRecord.payload)],
                          {'type': 'text/vcard'}),
           src: 'nfc',
-          tech: 'NDEF',
+          tech: 'NFC_A',
           techList: sampleMsg.techList,
           records: sampleMsg.records
         }
@@ -443,8 +435,7 @@ suite('Nfc Manager Functions', function() {
         name: 'nfc-tag-discovered',
         data: {
           type: 'Unknown',
-          techList: sampleMsg.techList,
-          records: sampleMsg.records
+          techList: sampleMsg.techList
         }
       }, 'no records');
     });
@@ -639,25 +630,23 @@ suite('Nfc Manager Functions', function() {
   suite('_fireTagDiscovered', function() {
     var msg = {
       sessionToken: 'token',
-      techList: ['NDEF_FORMATABLE', 'ISODEP', 'FAKE_TECH'],
+      techList: ['NFC_A', 'ISODEP', 'FAKE_TECH'],
       type: 'techDiscovered',
       records: []
     };
 
-    test('NDEF_FORMATABLE tech type', function() {
+    test('fires activity with proper options', function() {
       this.sinon.stub(window, 'MozActivity');
       var dummyMsg = Object.create(msg);
 
       nfcManager._fireTagDiscovered(dummyMsg, dummyMsg.techList[0]);
-      assert.deepEqual(MozActivity.getCall(0).args[0],
-                       {
-                         name: 'nfc-tag-discovered',
-                         data: {
-                           type: 'NDEF_FORMATABLE',
-                           techList: dummyMsg.techList,
-                           records: dummyMsg.records
-                         }
-                       });
+      assert.deepEqual(MozActivity.getCall(0).args[0], {
+        name: 'nfc-tag-discovered',
+        data: {
+          type: dummyMsg.techList[0],
+          techList: dummyMsg.techList
+        }
+      });
     });
   });
 
@@ -927,28 +916,22 @@ suite('Nfc Manager Functions', function() {
   });
 
   suite('_getPrioritizedTech', function() {
-    var techList1 = ['NFC_ISO_DEP','NDEF', 'P2P'];
-    var techList2 = ['NFC_ISO_DEP', 'NDEF'];
-    var techList3 = ['NFC_ISO_DEP'];
-    var techList4 = [];
+    var techList1 = ['NFC_ISO_DEP','NFC_A', 'P2P'];
+    var techList2 = ['NFC_ISO_DEP', 'NFC_A'];
+    var techList3 = [];
 
     test('techList P2P test', function() {
       var tech = nfcManager._getPrioritizedTech(techList1);
       assert.equal(tech, 'P2P');
     });
 
-    test('techList NDEF test', function() {
-      var tech = nfcManager._getPrioritizedTech(techList2);
-      assert.equal(tech, 'NDEF');
-    });
-
     test('techList Unsupported technology test', function() {
-      var tech = nfcManager._getPrioritizedTech(techList3);
+      var tech = nfcManager._getPrioritizedTech(techList2);
       assert.equal(tech, 'NFC_ISO_DEP');
     });
 
     test('techList empty', function() {
-      var tech = nfcManager._getPrioritizedTech(techList4);
+      var tech = nfcManager._getPrioritizedTech(techList3);
       assert.equal(tech, 'Unknown');
     });
   });

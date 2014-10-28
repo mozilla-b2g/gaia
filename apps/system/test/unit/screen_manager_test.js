@@ -325,7 +325,7 @@ suite('system/ScreenManager', function() {
         stubTelephony.conferenceGroup = {calls: []};
         ScreenManager._screenOffBy = '';
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isFalse(stubTurnOn.called);
+        assert.isTrue(stubTurnOn.called);
       });
 
       test('with a call', function() {
@@ -750,6 +750,26 @@ suite('system/ScreenManager', function() {
       window.dispatchEvent(new CustomEvent('attentionopened'));
       assert.isTrue(stubTurnOn.called);
       stubDispatchEvent.restore();
+    });
+  });
+
+  suite('secureapp opened/terminated events', function() {
+    test('secur-appeopend', function() {
+      var evt = { 'type': 'secure-appopened' };
+      var stubReconfigScreenTimeout =
+        this.sinon.stub(ScreenManager, '_reconfigScreenTimeout');
+      ScreenManager.handleEvent(evt);
+      assert.isTrue(stubReconfigScreenTimeout.called,
+        'it doesn\'t reset the timeout while secure appcreated');
+    });
+
+    test('secur-appterminated', function() {
+      var evt = { 'type': 'secure-appterminated' };
+      var stubReconfigScreenTimeout =
+        this.sinon.stub(ScreenManager, '_reconfigScreenTimeout');
+      ScreenManager.handleEvent(evt);
+      assert.isTrue(stubReconfigScreenTimeout.called,
+        'it doesn\'t reset the timeout while secure appterminated');
     });
   });
 

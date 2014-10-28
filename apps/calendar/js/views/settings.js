@@ -253,7 +253,7 @@ Settings.prototype = {
 
       if (object.error) {
         console.error('Views.Settings error:', object.error);
-        var idx = this.calendars.children.length;
+        var idx = this.calendars.children.length - 1;
         var el = this.calendars.children[idx];
         el.classList.add('error');
       }

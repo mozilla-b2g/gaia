@@ -79,10 +79,15 @@ MultiDay.prototype = {
     controller.scale = this.scale;
     controller.moveToMostRecentDay();
 
+    var previousBaseDate = this.baseDate;
     this.baseDate = this._calcBaseDate(controller.position);
     this._render();
-    this._resetScroll();
-    this._scrollToHour();
+    // Do not scroll when come back from any other screen.
+    if (!(previousBaseDate &&
+          Calc.isSameDate(previousBaseDate, this.baseDate))) {
+      this._resetScroll();
+      this._scrollToHour();
+    }
 
     // add listeners afterwards to avoid calling render twice
     controller.on('dayChange', this);
@@ -115,10 +120,11 @@ MultiDay.prototype = {
       targets: [
         this.alldaysHolder,
         this.daysHolder
-      ],
-      onDragRelease: this._updateBaseDateAfterScroll.bind(this)
+      ]
     });
     this._pan.setup();
+    this._pan.on('start', () => this._hourDoubleTap.removeAddEventLink());
+    this._pan.on('release', obj => this._updateBaseDateAfterScroll(obj.diff));
   },
 
   _setupHours: function() {

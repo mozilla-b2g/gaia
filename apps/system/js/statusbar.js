@@ -552,9 +552,11 @@ var StatusBar = {
         this._updateMinimizedStatusBarWidth();
         break;
 
+      case 'activityopened':
+        this._updateMinimizedStatusBarWidth();
+        /* falls through */
       case 'apptitlestatechanged':
       case 'homescreenopened':
-      case 'activityopened':
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
         break;
@@ -1751,11 +1753,13 @@ var StatusBar = {
   },
 
   cloneStatusbar: function() {
+    var className = this.statusbarIconsMin.className;
     this.statusbarIcons.removeChild(this.statusbarIconsMin);
     this.statusbarIconsMin = this.statusbarIconsMax.parentNode.cloneNode(true);
     this.statusbarIconsMin.setAttribute('id', 'statusbar-minimized-wrapper');
     this.statusbarIconsMin.firstElementChild.setAttribute('id',
       'statusbar-minimized');
+    this.statusbarIconsMin.className = className;
     this.statusbarIcons.appendChild(this.statusbarIconsMin);
   },
 

@@ -29,9 +29,5 @@ class TestCalendarSettingsViewAccessibility(GaiaTestCase):
         self.accessibility.click(self.marionette.find_element(*settings._calendar_local_locator))
 
         # Check that the local calendar is unchecked
-        self.wait_for_condition(
-            lambda m: not m.find_element(
-                *settings._calendar_local_checkbox_locator).get_attribute('checked'))
-        self.wait_for_condition(
-            lambda m: not m.find_element(
-                *settings._calendar_local_locator).get_attribute('aria-selected'))
+        settings.wait_for_calendar_unchecked()
+        settings.wait_for_a11y_calendar_unchecked()

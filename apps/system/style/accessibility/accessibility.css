@@ -23,3 +23,36 @@
   visibility: visible;
   opacity: 0.9;
 }
+
+#accessibility-quicknav {
+  visibility: hidden;
+  position: absolute;
+  padding: 0;
+}
+
+#accessibility-quicknav.visible {
+  visibility: visible;
+}
+
+#accessibility-quicknav-container,
+#accessibility-quicknav-container > section,
+#accessibility-quicknav-container > section > ul {
+  height: 100%;
+  max-height: inherit;
+}
+
+#accessibility-quicknav-container > section > ul {
+  display: flex;
+  flex-direction: column;
+}
+
+#accessibility-quicknav-container > section > ul > li {
+  flex-grow: 1;
+}
+
+#accessibility-quicknav-container > section > ul > li > label {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

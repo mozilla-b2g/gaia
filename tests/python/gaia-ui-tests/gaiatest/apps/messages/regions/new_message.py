@@ -78,6 +78,9 @@ class NewMessage(Messages):
     def wait_for_subject_input_displayed(self):
         self.wait_for_element_displayed(*self._subject_input_locator)
 
+    def wait_for_message_input_displayed(self):
+        self.wait_for_element_displayed(*self._message_field_locator)
+
     @property
     def first_recipient_name(self):
         self.wait_for_element_displayed(*self._receiver_input_locator)
@@ -108,6 +111,10 @@ class NewMessage(Messages):
     @property
     def is_send_button_enabled(self):
         return self.marionette.find_element(*self._send_message_button_locator).is_enabled()
+
+    @property
+    def message(self):
+        return self.marionette.find_element(*self._message_field_locator).text
 
     def tap_recipient_name(self):
         self.marionette.find_element(*self._receiver_input_locator).tap()

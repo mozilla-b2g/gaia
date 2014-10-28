@@ -55,6 +55,7 @@ require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_waiting_screen.js');
 require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_thread_list_ui.js');
+require('/test/unit/mock_selection_handler.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -94,7 +95,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'WaitingScreen',
   'Navigation',
   'Notification',
-  'ThreadListUI'
+  'ThreadListUI',
+  'SelectionHandler'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -2364,14 +2366,14 @@ suite('thread_ui.js >', function() {
         ids = [ids];
       }
 
-      var message, checkbox;
-      for (var i = 0; i < ids.length; i++) {
-        message = container.querySelector('#message-' + ids[i]);
-        checkbox = message.querySelector('input[type=checkbox]');
-        checkbox.checked = true;
-      }
+      var selectedIds = ids.map(id => '' + id);
+
+      ThreadUI.selectionHandler = null;
+      ThreadUI.startEdit();
+      ThreadUI.selectionHandler.selected = new Set(selectedIds);
       ThreadUI.delete();
       MockDialog.triggers.confirm();
+      ThreadUI.cancelEdit();
     };
 
     setup(function() {
