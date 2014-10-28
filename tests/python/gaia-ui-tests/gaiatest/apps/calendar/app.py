@@ -32,6 +32,15 @@ class Calendar(Base):
     _event_view_locator = (By.ID, 'event-view')
     _time_header_locator = (By.ID, 'time-header')
 
+    _create_account_button_locator = (By.CLASS_NAME, 'create-account')
+    _create_account_header_locator = (By.ID, 'create-account-header')
+    _create_account_view_locator = (By.ID, 'create-account-view')
+    _create_account_preset_locator = (By.CSS_SELECTOR,
+                                      '#create-account-presets a')
+
+    _modify_account_header_locator = (By.ID, 'modify-account-header')
+    _modify_account_view_locator = (By.ID, 'modify-account-view')
+
     _settings_locator = (By.ID, 'settings')
 
     _advanced_settings_view_locator = (By.ID, 'advanced-settings-view')
@@ -73,6 +82,16 @@ class Calendar(Base):
         for event in self.events:
             if event.title == title:
                 return event
+
+    @property
+    def accounts(self):
+        return [account for account in self.marionette.find_elements(
+            *self._create_account_preset_locator)]
+
+    def account(self, preset):
+        for account in self.accounts:
+            if account.get_attribute('data-provider') == preset:
+                return account
 
     @property
     def settings(self):
@@ -168,6 +187,16 @@ class Calendar(Base):
         self.wait_for_condition(
             lambda m: m.find_element(
                 *self.settings._settings_drawer_locator).get_attribute('data-animstate') == 'done')
+
+    def a11y_click_create_account_back(self):
+        self.a11y_click_header(self.marionette.find_element(*self._create_account_header_locator),
+                               'button.icon-back')
+        self.wait_for_element_displayed(*self._advanced_settings_view_locator)
+
+    def a11y_click_modify_account_back(self):
+        self.a11y_click_header(self.marionette.find_element(*self._modify_account_header_locator),
+                               'button.icon-back')
+        self.wait_for_element_displayed(*self._create_account_view_locator)
 
     def a11y_click_settings(self):
         self.a11y_click_header(self.marionette.find_element(*self._time_header_locator),

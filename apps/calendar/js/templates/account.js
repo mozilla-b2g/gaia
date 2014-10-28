@@ -6,8 +6,8 @@ var create = require('template').create;
 module.exports = create({
   provider: function() {
     var name = this.h('name');
-    return `<li class="${name}">
-        <a data-l10n-id="preset-${name}"
+    return `<li class="${name}" role="presentation">
+        <a data-l10n-id="preset-${name}" role="option"
            data-provider="${name}" href="/create-account/${name}">
         </a>
       </li>`;
@@ -18,8 +18,8 @@ module.exports = create({
     var preset = this.h('preset');
     var user = this.h('user');
 
-    return `<li id="account-${id}">
-        <a href="/update-account/${id}">
+    return `<li id="account-${id}" role="presentation">
+        <a href="/update-account/${id}" role="option">
           <span class="preset" data-l10n-id="preset-${preset}"></span>
           <span class="user">${user}</span>
         </a>
