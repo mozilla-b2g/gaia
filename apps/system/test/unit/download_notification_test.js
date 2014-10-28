@@ -10,12 +10,10 @@ requireApp('system/test/unit/mock_download_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_activity.js');
-requireApp('system/test/unit/mock_statusbar.js');
 
 requireApp('system/js/download/download_notification.js');
 
 var mocksForDownloadNotification = new MocksHelper([
-  'StatusBar',
   'Download',
   'NotificationScreen',
   'L10n',
@@ -92,8 +90,6 @@ suite('system/DownloadNotification >', function() {
     test('Download notification has been created', function() {
       notification = new DownloadNotification(download);
       assert.isTrue(NotificationScreen.addNotification.called);
-      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
     test('The download starts', function() {
@@ -105,8 +101,6 @@ suite('system/DownloadNotification >', function() {
       sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
         noNotify: true
       });
-      assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
     test('The notification was clicked while downloading > Show download list',
@@ -125,8 +119,6 @@ suite('system/DownloadNotification >', function() {
       };
       download.onstatechange();
       assertUpdatedNotification(download, 'failed');
-      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
       assert.equal(DownloadHelper.methodCalled, 'getFreeSpace');
       assert.isNull(DownloadUI.methodCalled);
     });
@@ -145,8 +137,6 @@ suite('system/DownloadNotification >', function() {
       sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
         noNotify: true
       });
-      assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
     test('Download was stopped by the user', function() {
@@ -154,8 +144,6 @@ suite('system/DownloadNotification >', function() {
       download.state = 'stopped';
       download.onstatechange();
       assertUpdatedNotification(download);
-      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
     test('Stopped notification was clicked > Show confirmation', function() {
@@ -173,8 +161,6 @@ suite('system/DownloadNotification >', function() {
       sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
         noNotify: true
       });
-      assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
     test('The download failed because the SD card is missing', function() {
@@ -187,8 +173,6 @@ suite('system/DownloadNotification >', function() {
       DownloadHelper.bytes = 0;
       download.onstatechange();
       assertUpdatedNotification(download, 'failed');
-      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
       assert.equal(DownloadUI.methodCalled, 'show');
 
       // pretend like the user fixed the issue and move onto the next failure.
@@ -207,8 +191,6 @@ suite('system/DownloadNotification >', function() {
       DownloadHelper.bytes = 0;
       download.onstatechange();
       assertUpdatedNotification(download, 'failed');
-      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
       assert.equal(DownloadUI.methodCalled, 'show');
 
       // pretend like the user fixed the issue and move onto the next failure.
@@ -227,8 +209,6 @@ suite('system/DownloadNotification >', function() {
       DownloadHelper.bytes = 0;
       download.onstatechange();
       assertUpdatedNotification(download, 'failed');
-      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
       assert.equal(DownloadUI.methodCalled, 'show');
     });
 
@@ -242,8 +222,6 @@ suite('system/DownloadNotification >', function() {
       sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
         noNotify: true
       });
-      assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
     test('Download was stopped because the connectivity was lost', function() {
@@ -252,8 +230,6 @@ suite('system/DownloadNotification >', function() {
       navigator.onLine = false;
       download.onstatechange();
       assertUpdatedNotification(download, 'downloading');
-      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
     test('Download finishes', function() {
@@ -262,8 +238,6 @@ suite('system/DownloadNotification >', function() {
       download.onstatechange();
       assertUpdatedNotification(download);
       assert.ok(DownloadStore.add.calledOnce);
-      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
     test('Finished notification was clicked > Open file', function() {
@@ -286,8 +260,6 @@ suite('system/DownloadNotification >', function() {
     test('Download notification has been created ', function() {
       notification = new DownloadNotification(download);
       sinon.assert.called(NotificationScreen.addNotification);
-      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
     test('The download finalizes (download object is dead on the gecko side) ',
