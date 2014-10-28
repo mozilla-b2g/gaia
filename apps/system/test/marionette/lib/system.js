@@ -24,6 +24,7 @@ System.Selector = Object.freeze({
   appWindow: '.appWindow',
   appTitlebar: '.appWindow.active .titlebar',
   appUrlbar: '.appWindow.active .title',
+  appChrome: '.appWindow.active .chrome',
   appChromeBack: '.appWindow.active .back-button',
   appChromeForward: '.appWindow.active .forward-button',
   appChromeContextLink: '.appWindow.active .menu-button',
@@ -32,7 +33,9 @@ System.Selector = Object.freeze({
   appChromeContextMenuBookmark: '.appWindow.active [data-id=add-to-homescreen]',
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
   appChromeReloadButton: '.appWindow.active .controls .reload-button',
+  appChromeStopButton: '.appWindow.active .controls .stop-button',
   appChromeWindowsButton: '.appWindow.active .controls .windows-button',
+  appChromeProgressBar: '.appWindow.active .chrome gaia-progress',
   browserWindow: '.appWindow.browser',
   imeMenu: '.ime-menu',
   sleepMenuContainer: '#sleep-menu-container',
@@ -92,6 +95,11 @@ System.prototype = {
     return this.client.helper.waitForElement(System.Selector.appUrlbar);
   },
 
+  get appChrome() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChrome);
+  },
+
   get appChromeBack() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeBack);
@@ -130,6 +138,16 @@ System.prototype = {
   get appChromeReloadButton() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeReloadButton);
+  },
+
+  get appChromeStopButton() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeStopButton);
+  },
+
+  get appChromeProgressBar() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeProgressBar);
   },
 
   get imeMenu() {
