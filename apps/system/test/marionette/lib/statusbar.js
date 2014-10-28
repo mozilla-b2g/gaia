@@ -113,6 +113,24 @@
     },
 
     /**
+     * Dispatch a `recordingEvent` of type `eventType` with the detail object
+     * `detail` from window.
+     * @param {string} eventType
+     * @param {Object} detail
+     */
+    dispatchRecordingEvent: function(eventType, detail) {
+      detail = (detail !== undefined) ? detail : {};
+      detail.type = eventType;
+
+      this.client.executeScript(function(detail) {
+        var evt = new CustomEvent('recordingEvent', {
+          detail: detail
+        });
+        window.wrappedJSObject.dispatchEvent(evt);
+      }, [detail]);
+    },
+
+    /**
      * Initialize the helpers.
      */
     init: function() {
@@ -129,42 +147,60 @@
       //     wait until the element appears
       // * statusBar.alarm.waitForIconToDisappear()
       //     wait until it disappears
+
+      // Maximised status bar
+      this.minimised = {};
       StatusBar.Icons.forEach(function(iconName) {
         this[iconName] = {
           get icon() {
             return self.client.findElement(StatusBar.Selector[iconName]);
           },
-          show: showIconGenerator(iconName),
-          hide: hideIconGenerator(iconName),
-          waitForIconToAppear: waitForIconToAppearGenerator(iconName),
-          waitForIconToDisappear: waitForIconToDisappearGenerator(iconName)
+          show: showIconGenerator.call(this),
+          hide: hideIconGenerator.call(this),
+          waitForIconToAppear: waitForIconToAppearGenerator.call(this),
+          waitForIconToDisappear: waitForIconToDisappearGenerator.call(this)
+        };
+
+        // Minimised status bar
+        this.minimised[iconName] = {
+          get selector() {
+            return StatusBar.Selector[iconName];
+          },
+          get icon() {
+            return self.client
+              .findElement('#statusbar-minimized ' + this.selector);
+          },
+          show: showIconGenerator.call(this.minimised),
+          hide: hideIconGenerator.call(this.minimised),
+          waitForIconToAppear: waitForIconToAppearGenerator
+            .call(this.minimised),
+          waitForIconToDisappear: waitForIconToDisappearGenerator
+            .call(this.minimised)
         };
       }.bind(this));
 
       // Functions generating helper functions.
-      function showIconGenerator(iconName) {
+      function showIconGenerator() {
         return function() {
-          self.client.executeScript(function(iconName) {
-            var win = window.wrappedJSObject;
-            var statusBar = win.StatusBar;
-            statusBar.icons[iconName].hidden = false;
-          }, [iconName]);
+          var icon = this.icon;
+          self.client.executeScript(function(icon) {
+            icon.hidden = false;
+          }, [icon]);
         };
       }
 
-      function hideIconGenerator(iconName) {
+      function hideIconGenerator() {
         return function() {
-          self.client.executeScript(function(iconName) {
-            var win = window.wrappedJSObject;
-            var statusBar = win.StatusBar;
-            statusBar.icons[iconName].hidden = true;
-          }, [iconName]);
+          var icon = this.icon;
+          self.client.executeScript(function(icon) {
+            icon.hidden = true;
+          }, [icon]);
         };
       }
 
-      function waitForIconToAppearGenerator(iconName) {
+      function waitForIconToAppearGenerator() {
         return function() {
-          var icon = self[iconName].icon;
+          var icon = this.icon;
           self.client.waitFor(function() {
             return icon.displayed();
           });
@@ -172,9 +208,9 @@
         };
       }
 
-      function waitForIconToDisappearGenerator(iconName) {
+      function waitForIconToDisappearGenerator() {
         return function() {
-          var icon = self[iconName].icon;
+          var icon = this.icon;
           self.client.waitFor(function() {
             return !icon.displayed();
           });
