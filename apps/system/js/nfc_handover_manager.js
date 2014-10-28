@@ -3,7 +3,7 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
+/* globals bluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
            NDEF, NfcUtils, NotificationHelper, SettingsListener */
 /* exported NfcHandoverManager */
 'use strict';
@@ -221,7 +221,7 @@ var NfcHandoverManager = {
    */
   _restoreBluetoothStatus: function _restoreBluetoothStatus() {
     if (!this.isHandoverInProgress() &&
-        BluetoothTransfer.isSendFileQueueEmpty) {
+        bluetoothTransfer.isSendFileQueueEmpty) {
       if (this.bluetoothAutoEnabled) {
         this._debug('Disabling Bluetooth');
         this.settings.createLock().set({'bluetooth.enabled': false});
@@ -372,7 +372,7 @@ var NfcHandoverManager = {
     }
     this._debug('Send blob to ' + mac);
     var blob = this.sendFileQueue[0].blob;
-    BluetoothTransfer.sendFileViaHandover(mac, blob);
+    bluetoothTransfer.sendFileViaHandover(mac, blob);
   },
 
   /**
