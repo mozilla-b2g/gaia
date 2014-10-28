@@ -21,6 +21,8 @@ System.Selector = Object.freeze({
     'gaia-header',
   appAuthDialogLogin: '.appWindow.active .authentication-dialog.visible ' +
     'button.authentication-dialog-http-authentication-ok',
+  appContextMenuSaveLink:
+    '.appWindow.active .contextmenu [data-id="save-link"]',
   appWindow: '.appWindow',
   appTitlebar: '.appWindow.active .titlebar',
   appUrlbar: '.appWindow.active .title',
@@ -37,6 +39,7 @@ System.Selector = Object.freeze({
   appChromeWindowsButton: '.appWindow.active .controls .windows-button',
   appChromeProgressBar: '.appWindow.active .chrome gaia-progress',
   browserWindow: '.appWindow.browser',
+  downloadDialog: '#downloadConfirmUI',
   imeMenu: '.ime-menu',
   sleepMenuContainer: '#sleep-menu-container',
   softwareButtons: '#software-buttons',
@@ -85,6 +88,11 @@ System.prototype = {
   get appAuthDialogLogin() {
     return this.client.helper.waitForElement(
       System.Selector.appAuthDialogLogin);
+  },
+
+  get appContextMenuSaveLink() {
+    return this.client.helper.waitForElement(
+      System.Selector.appContextMenuSaveLink);
   },
 
   get appTitlebar() {
@@ -148,6 +156,10 @@ System.prototype = {
   get appChromeProgressBar() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeProgressBar);
+  },
+
+  get downloadDialog() {
+    return this.client.helper.waitForElement(System.Selector.downloadDialog);
   },
 
   get imeMenu() {
