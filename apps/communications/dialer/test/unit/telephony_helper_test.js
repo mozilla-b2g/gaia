@@ -304,6 +304,14 @@ suite('telephony helper', function() {
           }).then(done, done);
         });
 
+        test('ModifiedDialError not displayed', function(done) {
+          subject.call('123', 0);
+          mockPromise.then(function() {
+            mockCall.onerror(createCallError('ModifiedDialError'));
+            sinon.assert.notCalled(spyConfirmShow,'ModifiedDialError');
+          }).then(done, done);
+        });
+
         test('should display the NoNetwork message in emergency mode',
         function(done) {
           MockNavigatorMozMobileConnections[0].voice = {

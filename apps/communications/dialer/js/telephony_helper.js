@@ -140,6 +140,13 @@ var TelephonyHelper = (function() {
       onerror();
     }
 
+    // We ignore this error because some networks generate this with
+    // STK CallControl when calling Voicemail pilots (e.g. TMobile)
+    if (errorName === 'ModifiedDialError') {
+      console.log('ModifiedDialError');
+      return;
+    }
+
     if (errorName === 'BadNumberError') {
       // If the call is rejected for a bad number and we're in emergency
       // only mode, then just tell the user that they're not connected
