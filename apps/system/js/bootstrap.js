@@ -119,6 +119,10 @@ window.addEventListener('load', function startup() {
   window.addEventListener('ftuskip', doneWithFTU);
 
   Shortcuts.init();
+
+  // To make sure ScreenManager can get bluetooth object
+  window.bluetooth = new Bluetooth();
+  window.bluetooth.start();
   ScreenManager.turnScreenOn();
 
   // To make sure homescreen window manager can intercept webapps-launch event,
@@ -136,17 +140,18 @@ window.addEventListener('load', function startup() {
   window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
   window.appWindowFactory.start();
+  window.attentionWindowManager = new window.AttentionWindowManager();
+  window.attentionWindowManager.start();
   window.batteryOverlay = new BatteryOverlay();
   window.batteryOverlay.start();
+  window.bluetoothTransfer = new BluetoothTransfer();
+  window.bluetoothTransfer.start();
   window.cellBroadcastSystem = new CellBroadcastSystem();
   window.cellBroadcastSystem.start();
   window.cpuManager = new CpuManager();
   window.cpuManager.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
-  /** @global */
-  window.attentionWindowManager = new window.AttentionWindowManager();
-  window.attentionWindowManager.start();
   window.dialerAgent = new DialerAgent();
   window.dialerAgent.start();
   window.edgeSwipeDetector = new EdgeSwipeDetector();
@@ -187,10 +192,6 @@ window.addEventListener('load', function startup() {
   window.sourceView = new SourceView();
   window.taskManager = new TaskManager();
   window.taskManager.start();
-  window.bluetooth = new Bluetooth();
-  window.bluetooth.start();
-  window.bluetoothTransfer = new BluetoothTransfer();
-  window.bluetoothTransfer.start();
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();
   window.ttlView = new TTLView();
