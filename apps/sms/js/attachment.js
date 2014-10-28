@@ -32,6 +32,13 @@
   }
 
   Attachment.prototype = {
+    /* private methods */
+    _getAttachmentRenderer: function() {
+      this._renderer = this._renderer || AttachmentRenderer.for(this);
+      return this._renderer;
+    },
+
+    /* public properties */
     get size() {
       return this.blob.size;
     },
@@ -40,8 +47,9 @@
       return Utils.typeFromMimeType(this.blob.type);
     },
 
+    /* public methods */
     render: function(readyCallback) {
-      var attachmentRenderer = AttachmentRenderer.for(this);
+      var attachmentRenderer = this._getAttachmentRenderer();
 
       attachmentRenderer.render().catch(function(e) {
         console.error('Error occurred while rendering attachment.', e);
@@ -50,6 +58,11 @@
       // We still need this for the case where we render a list of attachments
       // and right order is important.
       return attachmentRenderer.getAttachmentContainer();
+    },
+
+    updateFileSize: function() {
+      var attachmentRenderer = this._getAttachmentRenderer();
+      attachmentRenderer.updateFileSize();
     },
 
     view: function(options) {
