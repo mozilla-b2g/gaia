@@ -1,3 +1,33 @@
+#desktop-notifications-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: calc(2rem + 6rem + 4.5rem);
+
+  overflow-x: hidden;
+  overflow-y: scroll;
+
+  pointer-events: none;
+  z-index: -1;
+}
+
+#screen.static #desktop-notifications-container {
+  pointer-events: auto;
+  z-index: 4095;
+}
+
+#app-notifications-container {
+  height: 100%;
+  width: 100%;
+  background: -moz-element(#desktop-notifications-container) no-repeat;
+}
+
+#screen.static #app-notifications-container {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 #notification-toaster {
   position: absolute;
   top: 0;

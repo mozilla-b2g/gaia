@@ -102,6 +102,6 @@
   }
 
   // Listen to utilitytray show
-  window.addEventListener('utilitytrayshow', _showWidget);
+  window.addEventListener('utilitytrayshown', _showWidget);
   window.addEventListener('utilitytrayhide', _hideWidget);
 }());

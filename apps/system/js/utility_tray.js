@@ -171,8 +171,20 @@ var UtilityTray = {
         break;
 
       case 'transitionend':
-        if (!this.shown)
+        if (!this.shown) {
           this.screen.classList.remove('utility-tray');
+          this._hideNotificationsContainer();
+        } else {
+          setTimeout(function(self) {
+            self._showNotificationsContainer();
+            window.dispatchEvent(new CustomEvent('utilitytrayshown', {
+              bubbles: true
+            }));
+          }, 0, this);
+        }
+        break;
+
+      default:
         break;
     }
   },
@@ -196,6 +208,25 @@ var UtilityTray = {
       }
     }
     this.screen.classList.add('utility-tray');
+    this.screen.classList.remove('static');
+    this._hideNotificationsContainer();
+  },
+
+  _showNotificationsContainer: function ut_showNotificationsContainer() {
+    this.screen.classList.add('static');
+
+    var container =
+      document.getElementById('desktop-notifications-container');
+
+    var rectCont = document.getElementById('app-notifications-container');
+    if (container && rectCont) {
+      var rect = rectCont.getBoundingClientRect();
+      container.style.top = rect.top + 'px';
+    }
+  },
+
+  _hideNotificationsContainer: function ut_hideNotificationsContainer() {
+    this.screen.classList.remove('static');
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
@@ -244,6 +275,7 @@ var UtilityTray = {
     // event so let's not wait in order to remove the utility-tray class.
     if (instant || style.MozTransform == '') {
       this.screen.classList.remove('utility-tray');
+      this._hideNotificationsContainer();
     }
 
     style.MozTransform = '';
@@ -261,7 +293,11 @@ var UtilityTray = {
     var alreadyShown = this.shown;
     var style = this.overlay.style;
     style.MozTransition = '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(100%)';
+    if (style.MozTransform === 'translateY(100%)') {
+      this._showNotificationsContainer();
+    } else {
+      style.MozTransform = 'translateY(100%)';
+    }
     this.shown = true;
     this.screen.classList.add('utility-tray');
     window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
