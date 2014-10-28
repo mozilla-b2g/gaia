@@ -44,6 +44,7 @@
     <script defer src="js/thumbnail_item.js"></script>
     <script defer src="js/video_utils.js"></script>
     <script defer src="js/forward_rewind_controller.js"></script>
+    <script defer src="js/video_loading_checker.js"></script>
     <script defer src="js/video.js"></script>
   </head>
   <body role="application" class="skin-dark theme-media">
@@ -195,6 +196,13 @@
         <button id="confirm-cancel"></button>
         <button id="confirm-ok"></button>
       </menu>
+    </form>
+    <!-- display "Cannot load video because it is in use" here -->
+    <form id="in-use-overlay" role="dialog" data-type="confirm" class="hidden">
+      <section id="in-use-overlay-content">
+        <h1 id="in-use-overlay-title"></h1>
+        <p id="in-use-overlay-text"></p>
+      </section>
     </form>
   </body>
 </html>
