@@ -219,4 +219,47 @@ suite('STK (icc_worker) >', function() {
       };
       document.dispatchEvent(new CustomEvent('visibilitychange'));
     });
+
+  suite('Messages queue >', function() {
+    var addPendingMessageSpy;
+    setup(function() {
+      this.sinon.stub(window.icc, 'isViewActive',
+        function() {
+          return true;
+      });
+
+      this.sinon.stub(window.icc, 'canProcessMessage',
+        function(message) {
+          window.icc.addPendingMessage(message);
+          return false;
+      });
+
+      addPendingMessageSpy = this.sinon.spy(window.icc,
+        'addPendingMessage');
+    });
+
+    test('Should add a pending message', function() {
+      var testCommand = stkTestCommands.STK_CMD_DISPLAY_TEXT;
+      launchStkCommand(testCommand);
+      assert.isTrue(addPendingMessageSpy.calledWith(testCommand));
+    });
+
+    test('Should not play tone', function() {
+      var testCommand = stkTestCommands.STK_CMD_PLAY_TONE;
+      launchStkCommand(testCommand);
+      assert.isTrue(addPendingMessageSpy.calledWith(testCommand));
+    });
+
+    test('Should play tone', function(done) {
+      window.icc.onresponse = function(message, response) {
+        assert.equal(response.resultCode,
+          navigator.mozIccManager.STK_RESULT_OK);
+        done();
+      };
+      var testCommand = stkTestCommands.STK_CMD_PLAY_TONE;
+      delete testCommand.command.options.text;
+      launchStkCommand(testCommand);
+      assert.isFalse(addPendingMessageSpy.calledWith(testCommand));
+    });
+  });
 });

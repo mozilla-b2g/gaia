@@ -175,19 +175,19 @@ suite('STK (icc) >', function() {
   });
 
   test('hide views when home button pressed and visible', function() {
-    this.sinon.stub(icc, 'hideViews');
+    this.sinon.stub(icc, 'hideView');
     icc.icc_view.classList.add('visible');
     var event = new CustomEvent('home');
     icc.handleEvent(event);
-    assert.isTrue(icc.hideViews.called);
+    assert.isTrue(icc.hideView.called);
     icc.icc_view.classList.remove('visible');
   });
 
   test('does not hide when home and not visible', function() {
-    this.sinon.stub(icc, 'hideViews');
+    this.sinon.stub(icc, 'hideView');
     var event = new CustomEvent('home');
     icc.handleEvent(event);
-    assert.isFalse(icc.hideViews.called);
+    assert.isFalse(icc.hideView.called);
   });
 
   test('responseSTKCommand', function(done) {
@@ -231,8 +231,8 @@ suite('STK (icc) >', function() {
       navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND, 2), 200);
   });
 
-  test('hideViews', function() {
-    window.icc.hideViews();
+  test('hideView', function() {
+    window.icc.hideView();
     assert.isFalse(document.getElementById('icc-view').classList.contains(
       'visible'));
     var icc_view_boxes = document.getElementById('icc-view').children;
@@ -401,6 +401,7 @@ suite('STK (icc) >', function() {
   });
 
   test('launchStkCommand: STK_CMD_DISPLAY_TEXT', function(done) {
+    icc.hideView();
     window.icc_worker.onmessagereceived = function(message) {
       assert.equal(message, stkTestCommands.STK_CMD_DISPLAY_TEXT);
       done();
@@ -409,6 +410,7 @@ suite('STK (icc) >', function() {
   });
 
   test('launchStkCommand: STK_CMD_GET_INPUT', function(done) {
+    icc.hideView();
     window.icc_worker.onmessagereceived = function(message) {
       assert.equal(message, stkTestCommands.STK_CMD_GET_INPUT);
       done();
@@ -417,6 +419,7 @@ suite('STK (icc) >', function() {
   });
 
   test('launchStkCommand: STK_CMD_SET_UP_IDLE_MODE_TEXT', function(done) {
+    icc.hideView();
     window.icc_worker.onmessagereceived = function(message) {
       assert.equal(message, stkTestCommands.STK_CMD_SET_UP_IDLE_MODE_TEXT);
       done();
@@ -425,10 +428,44 @@ suite('STK (icc) >', function() {
   });
 
   test('launchStkCommand: STK_CMD_REFRESH', function(done) {
+    icc.hideView();
     window.icc_worker.onmessagereceived = function(message) {
       assert.equal(message, stkTestCommands.STK_CMD_REFRESH);
       done();
     };
     launchStkCommand(stkTestCommands.STK_CMD_REFRESH);
+  });
+
+  suite('Messages queue >', function() {
+    setup(function() {
+      icc.hideView();
+      icc._messages_queue = [];
+    });
+
+    test('Should add STK_CMD_DISPLAY_TEXT to the queue', function() {
+      assert.equal(icc._messages_queue.length, 0);
+      icc.addPendingMessage(stkTestCommands.STK_CMD_DISPLAY_TEXT);
+      assert.equal(icc._messages_queue.length, 1);
+      assert.equal(icc._messages_queue[0],
+        stkTestCommands.STK_CMD_DISPLAY_TEXT);
+    });
+
+    test('Should process the next message in the queue', function(done) {
+      window.icc_worker.onmessagereceived = function(message) {
+        assert.equal(message, stkTestCommands.STK_CMD_DISPLAY_TEXT);
+        done();
+      };
+      icc.addPendingMessage(stkTestCommands.STK_CMD_DISPLAY_TEXT);
+      icc.processPendingMessages();
+
+      assert.equal(icc._messages_queue.length, 0);
+    });
+
+    test('Should hide all views, no more pending messages', function() {
+      var stub = this.sinon.stub(icc, 'hideView');
+      icc.processPendingMessages();
+
+      assert.isTrue(stub.calledOnce);
+    });
   });
 });
