@@ -5,7 +5,7 @@ var StatusBar = require('./lib/statusbar');
 var assert = require('assert');
 var APP = 'app://sms.gaiamobile.org';
 
-marionette('Status Bar icons - Geolocation', function() {
+marionette('Status Bar icons - Recording', function() {
 
   var client = marionette.client({
     prefs: {
@@ -31,30 +31,31 @@ marionette('Status Bar icons - Geolocation', function() {
     statusBar = new StatusBar(client);
     system.waitForStartup();
     statusBar.changeDelayValue();
-    statusBar.dispatchMozChromeEvent('geolocation-status', {active: true});
+    statusBar.dispatchRecordingEvent('recording-state-changed', {active: true});
   });
 
   test('should be visible', function() {
-    icon = statusBar.geolocation.waitForIconToAppear();
+    icon = statusBar.recording.waitForIconToAppear();
     // Make sure the icon is completely opaque.
     assert.equal('true', icon.getAttribute('data-active'));
   });
 
   test('should turn translucent after deactivation then disappear', function() {
-    icon = statusBar.geolocation.waitForIconToAppear();
-    statusBar.dispatchMozChromeEvent('geolocation-status', {active: false});
+    icon = statusBar.recording.waitForIconToAppear();
+    statusBar.dispatchRecordingEvent('recording-state-changed',
+      {active: false});
 
     // First, the icon is deactivated...
     assert.equal('false', icon.getAttribute('data-active'));
 
     // ... then it disappears after a little while
-    statusBar.geolocation.waitForIconToDisappear();
+    statusBar.recording.waitForIconToDisappear();
   });
 
   test('should be visible in minimised status bar', function() {
     launchApp();
 
-    icon = statusBar.minimised.geolocation.waitForIconToAppear();
+    icon = statusBar.minimised.recording.waitForIconToAppear();
     // Make sure the icon is completely opaque.
     assert.equal('true', icon.getAttribute('data-active'));
   });
@@ -63,14 +64,15 @@ marionette('Status Bar icons - Geolocation', function() {
   'minimised status bar', function() {
     launchApp();
 
-    statusBar.minimised.geolocation.waitForIconToAppear();
-    statusBar.dispatchMozChromeEvent('geolocation-status', {active: false});
+    statusBar.minimised.recording.waitForIconToAppear();
+    statusBar.dispatchRecordingEvent('recording-state-changed',
+      {active: false});
 
     // First, the icon is deactivated...
-    icon = statusBar.minimised.geolocation.icon; // Refresh the element.
+    icon = statusBar.minimised.recording.icon; // Refresh the element.
     assert.equal('false', icon.getAttribute('data-active'));
 
     // ... then it disappears after a little while
-    statusBar.geolocation.waitForIconToDisappear();
+    statusBar.recording.waitForIconToDisappear();
   });
 });
