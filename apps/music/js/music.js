@@ -848,6 +848,7 @@ var TilesView = {
     this.view.addEventListener('input', this);
     this.view.addEventListener('touchend', this);
     this.searchInput.addEventListener('focus', this);
+    this.searchInput.addEventListener('keypress', this);
   },
 
   clean: function tv_clean() {
@@ -1008,6 +1009,16 @@ var TilesView = {
         }
 
         break;
+
+      case 'keypress':
+          if (target.id === 'views-tiles-search-input') {
+            if (evt.keyCode == KeyEvent.DOM_VK_RETURN) {
+              evt.preventDefault();
+              target.blur();
+            }
+          }
+
+          break;
 
       case 'focus':
         if (target.id === 'views-tiles-search-input') {
@@ -1248,6 +1259,7 @@ var ListView = {
     this.view.addEventListener('touchend', this);
     this.view.addEventListener('scroll', this);
     this.searchInput.addEventListener('focus', this);
+    this.searchInput.addEventListener('keypress', this);
   },
 
   clean: function lv_clean() {
@@ -1605,6 +1617,16 @@ var ListView = {
         }
 
         break;
+
+      case 'keypress':
+          if (target.id === 'views-list-search-input') {
+            if (evt.keyCode == KeyEvent.DOM_VK_RETURN) {
+              evt.preventDefault();
+              target.blur();
+            }
+          }
+
+          break;
 
       case 'focus':
         if (target.id === 'views-list-search-input') {
