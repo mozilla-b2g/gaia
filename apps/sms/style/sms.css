@@ -850,10 +850,10 @@ body[role="application"] form[role="dialog"][data-type="action"] > header:first-
  */
 
 /* Elements related to information view */
-section[role="region"][class$='information'] #messages-options-button,
-section[role="region"][class$='information'] #messages-subheader,
-section[role="region"][class$='information'] #messages-container,
-section[role="region"][class$='information'] #messages-compose-form {
+section[role="region"][class*='information'] #messages-options-button,
+section[role="region"][class*='information'] #messages-subheader,
+section[role="region"][class*='information'] #messages-container,
+section[role="region"][class*='information'] #messages-compose-form {
   display: none !important; /* 1 */
 }
 
