@@ -28,7 +28,9 @@ class TestCallLogAllCalls(GaiaTestCase):
         """https://moztrap.mozilla.org/manage/case/1306/"""
 
         test_phone_number = self.testvars['remote_phone_number']
-        plivo_phone_number = self.testvars['plivo']['phone_number']
+
+        # Remove the first digit (country code) which is not displayed for AT&T/USA - Bug 1088756
+        plivo_phone_number = self.testvars['plivo']['phone_number'][1:]
 
         # Make a call so it will appear in the call log
         self.phone.make_call_and_hang_up(test_phone_number)
@@ -58,8 +60,8 @@ class TestCallLogAllCalls(GaiaTestCase):
         call_log.tap_all_calls_tab()
         self.assertTrue(call_log.is_all_calls_tab_selected)
 
+        self.wait_for_condition(lambda m: len(call_log.call_list) == 2)
         call_list = call_log.call_list
-        self.assertEqual(len(call_list), 2)
 
         # Check that the calls displayed are for the calls we made/received
         self.assertIn(plivo_phone_number, call_list[0].phone_number)
@@ -71,8 +73,8 @@ class TestCallLogAllCalls(GaiaTestCase):
         call_log.tap_missed_calls_tab()
         self.assertTrue(call_log.is_missed_calls_tab_selected)
 
+        self.wait_for_condition(lambda m: len(call_log.call_list) == 1)
         call_list = call_log.call_list
-        self.assertEqual(len(call_list), 1)
 
         # Check that the calls displayed are for the calls we received
         self.assertIn(plivo_phone_number, call_list[0].phone_number)
