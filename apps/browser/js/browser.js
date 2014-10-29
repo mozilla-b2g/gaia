@@ -1275,10 +1275,22 @@ var Browser = {
     li.style.transition = 'height 0.2s ease-in';
     ul.insertBefore(li, ul.childNodes[0]);
 
+    var isTransitionend = false;
     li.addEventListener('transitionend', function() {
       // Pause so the user has time to see the new tab
-      setTimeout(showTabCompleteFun, 100);
+      setTimeout(function() {
+        if (!isTransitionend) {
+          isTransitionend = true;
+          showTabCompleteFun();
+        }
+      }, 100);
     });
+
+    setTimeout(function() {
+      if (!isTransitionend) {
+        showTabCompleteFun();
+      }
+    }, 350);
 
     // Hack to force transition to apply synchronously
     // http://lists.w3.org/Archives/Public/www-style/2011Mar/0729.html
