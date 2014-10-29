@@ -261,4 +261,34 @@ marionette('Sound manager tests', function() {
       soundToast.waitForNotificationVolumeShown(true, true, true);
     });
   });
+
+  suite('React to loud volume in media app', function() {
+    var fakemediaapp;
+
+    setup(function() {
+      fakemediaapp = new FakeMediaApp(client);
+      client.settings.set('audio.volume.content', 10);
+    });
+
+    test('Display loud volume warning', function() {
+      fakemediaapp.launch();
+      fakemediaapp.waitForTitleShown(true);
+
+      // Switch to system then fire volumeup to trigger the warning.
+      client.switchToFrame();
+      client.executeScript(function() {
+        var evt = new CustomEvent('mozChromeEvent', {
+          detail: {
+            type: 'headphones-status-changed',
+            state: 'one'
+          }
+        });
+        window.wrappedJSObject.dispatchEvent(evt);
+
+        window.wrappedJSObject.dispatchEvent(new CustomEvent('volumeup'));
+      });
+
+      soundToast.waitForLoudWarningShown();
+    });
+  });
 });
