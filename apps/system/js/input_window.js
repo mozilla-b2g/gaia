@@ -105,12 +105,16 @@
     evt.stopPropagation();
   };
 
-  // ready is a one-time event and is triggered when the keyboard app
-  // signals its readiness through mozbrowserresize event.
-  // we only listen to this one-time ready event when we're opening the
-  // keyboard app through |setAsActiveInput()|; subsequent mozbrowserresize
-  // events (like keyboard app wants to resize itself) would not trigger this
-  // ready event.
+  /**
+   * ready is a one-time event and is triggered when the keyboard app
+   * signals its readiness through mozbrowserresize event.
+   * we only listen to this one-time ready event when we're opening the
+   * keyboard app through |setAsActiveInput()|; subsequent mozbrowserresize
+   * events (like keyboard app wants to resize itself) would not trigger this
+   * ready event.
+   *
+   * @event InputWindow#_ready
+   */
   InputWindow.prototype._handle__ready =
   function iw_handle__ready(evt) {
     this.element.removeEventListener('_ready', this);
@@ -172,6 +176,19 @@
     }
   };
 
+  /**
+   * Close the input window.
+   *
+   * Also, remove the handler of ready event because our caller might be closing
+   * this input window immediately after it has just called open() on this, and
+   * the ready event (required by the whole opening process) hasn't been
+   * triggered -- In that case, since we're closing, we must ignore that ready
+   * event too.
+   *
+   * @override
+   * @param {String} immediate If the window has to be closed without animation
+   * @memberof InputWindow
+   */
   InputWindow.prototype.close = function iw_close(immediate){
     this.element.removeEventListener('_ready', this);
 
