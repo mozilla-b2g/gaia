@@ -7,6 +7,7 @@ var dayObserver = require('day_observer');
 var isAllDay = require('calc').isAllDay;
 var relativeDuration = require('calc').relativeDuration;
 var relativeOffset = require('calc').relativeOffset;
+var getTimeL10nLabel = require('calc').getTimeL10nLabel;
 
 function SingleDay(config) {
   this.date = config.date;
@@ -34,6 +35,8 @@ SingleDay.prototype = {
 
     this._dayName = document.createElement('h1');
     this._dayName.className = 'md__day-name';
+    this._dayName.setAttribute('aria-level', '2');
+    this._dayName.id = 'md__day-name-' + this.date.getTime();
     this.allday.appendChild(this._dayName);
 
     this._alldayEvents = document.createElement('div');
@@ -84,6 +87,15 @@ SingleDay.prototype = {
     this.day.innerHTML = '';
     this._alldayEvents.innerHTML = '';
     records.forEach(this._renderRecord, this);
+    if (this._alldayEvents.children.length > 0) {
+      this._alldayEvents.setAttribute('role', 'listbox');
+      this._alldayEvents.setAttribute('aria-labelledby', 'md__all-day-icon ' +
+        this._dayName.id);
+    } else {
+      this._alldayEvents.setAttribute('role', 'button');
+      this._alldayEvents.setAttribute('data-l10n-id', 'create-all-day-event');
+      this._alldayEvents.setAttribute('aria-describedby', this._dayName.id);
+    }
   },
 
   _renderRecord: function(record) {
@@ -99,7 +111,22 @@ SingleDay.prototype = {
     var el = this._buildEventElement(record);
 
     var busytime = record.busytime;
-    var {startDate, endDate} = busytime;
+    var {startDate, endDate, _id} = busytime;
+
+    var description = document.createElement('span');
+    description.id = 'md__event-' + _id + '-description';
+    description.setAttribute('aria-hidden', true);
+    description.setAttribute('data-l10n-id', 'event-duration');
+    description.setAttribute('data-l10n-args', JSON.stringify({
+      startTime: dateFormat.localeFormat(startDate, navigator.mozL10n.get(
+        getTimeL10nLabel('shortTimeFormat'))),
+      endTime: dateFormat.localeFormat(endDate, navigator.mozL10n.get(
+        getTimeL10nLabel('shortTimeFormat')))
+    }));
+    var hasAlarm = el.getAttribute('aria-describedby') || '';
+    el.setAttribute('aria-describedby', description.id + ' ' + hasAlarm);
+    el.appendChild(description);
+
     var duration = relativeDuration(this.date, startDate, endDate);
     // we subtract border to keep a margin between consecutive events
     var hei = duration * this._hourHeight - this._borderWidth;
@@ -158,6 +185,10 @@ SingleDay.prototype = {
     if (remote.alarms && remote.alarms.length) {
       var icon = document.createElement('i');
       icon.className = 'gaia-icon icon-calendar-alarm calendar-text-color';
+      icon.setAttribute('aria-hidden', true);
+      icon.id = 'md__event-' + busytime._id + '-icon';
+      icon.setAttribute('data-l10n-id', 'icon-calendar-alarm');
+      el.setAttribute('aria-describedby', icon.id);
       el.appendChild(icon);
       el.classList.add('has-alarms');
     }
@@ -168,6 +199,7 @@ SingleDay.prototype = {
   _renderAlldayEvent: function(record) {
     var el = this._buildEventElement(record);
     el.classList.add('is-allday');
+    el.setAttribute('role', 'option');
     this._alldayEvents.appendChild(el);
   },
 

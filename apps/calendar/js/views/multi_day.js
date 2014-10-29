@@ -106,6 +106,8 @@ MultiDay.prototype = {
     // we keep the localized listener even when view is inactive to avoid
     // rebuilding the hours/dates every time we switch between views
     window.addEventListener('localized', this);
+    // When screen reader is used, scrolling is done using wheel events.
+    this.element.addEventListener('wheel', this);
   },
 
   _setupPan: function() {
@@ -143,6 +145,7 @@ MultiDay.prototype = {
   _createHour: function(hour) {
     var el = document.createElement('li');
     el.className = 'md__hour md__hour-' + hour;
+    el.setAttribute('role', 'option');
     el.innerHTML = DateSpan.hour.render({
       hour: hour,
       format: this._hourFormat,
@@ -178,7 +181,19 @@ MultiDay.prototype = {
       case 'localized':
         this._localize();
         break;
+      case 'wheel':
+        this._onwheel(e);
+        break;
     }
+  },
+
+  _onwheel: function(event) {
+    if (event.deltaMode !== event.DOM_DELTA_PAGE || event.deltaX === 0) {
+      return;
+    }
+    // Update dates based on the number of visible cells after screen reader
+    // wheel.
+    this._updateBaseDateAfterScroll(event.deltaX * this.visibleCells);
   },
 
   _onDayChange: function(date) {

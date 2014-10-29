@@ -184,11 +184,27 @@
 .week-view .md__day,
 .week-view .md__allday {
   width: 6.666%;
+  visibility: visible;
+}
+
+.week-view .md__day:nth-child(-n+5),
+.week-view .md__allday:nth-child(-n+5),
+.week-view .md__day:nth-child(n+11),
+.week-view .md__allday:nth-child(n+11) {
+  visibility: hidden;
 }
 
 .day-view .md__day,
 .day-view .md__allday {
   width: 33.333%;
+  visibility: visible;
+}
+
+.day-view .md__day:first-child,
+.day-view .md__allday:first-child,
+.day-view .md__day:last-child,
+.day-view .md__allday:last-child {
+  visibility: hidden;
 }
 
 .md__day {

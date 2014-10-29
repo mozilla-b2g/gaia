@@ -1,14 +1,14 @@
 <element name="multi-day" extends="section">
   <template>
     <div class="md__sticky">
-      <span class="md__all-day gaia-icon icon-calendar-allday"></span>
+      <span id="md__all-day-icon" class="md__all-day gaia-icon icon-calendar-allday" aria-hidden="true" data-l10n-id="all-day"></span>
       <div class="md__alldays-wrapper">
         <section class="md__alldays"></section>
       </div>
     </div>
     <div class="md__main">
       <div class="md__main-content">
-        <ol class="md__sidebar"></ol>
+        <ol class="md__sidebar" role="listbox"></ol>
         <div class="md__days-wrapper">
           <section class="md__days"></section>
         </div>
