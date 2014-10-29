@@ -273,11 +273,6 @@ PreferencesBuilder.prototype.setDebugPref = function() {
   // Identity debug messages
   this.userPrefs['toolkit.identity.debug'] = true;
 
-  // Disable HTTP caching for now
-  // This makes working with the system app much easier, due to the iframe
-  // caching issue.
-  this.userPrefs['network.http.use-cache'] = false;
-
   // Preferences for httpd
   // (Use JSON.stringify in order to avoid taking care of `\` escaping)
   this.userPrefs['extensions.gaia.dir'] = this.config.GAIA_DIR;
