@@ -64,6 +64,12 @@ suite('system/UtilityTray', function() {
     var screen = document.createElement('div');
     screen.style.cssText = 'height: 100px; display: block;';
 
+    var notifications = document.createElement('div');
+    notifications.style.cssText = 'height: 100px; display: block;';
+
+    var notificationsPlaceholder = document.createElement('div');
+    notificationsPlaceholder.style.cssText = 'height: 100px; display: block;';
+
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       switch (id) {
         case 'statusbar':
@@ -76,6 +82,10 @@ suite('system/UtilityTray', function() {
           return overlay;
         case 'screen':
           return screen;
+        case 'desktop-notifications-container':
+          return notifications;
+        case 'desktop-notifications-placeholder':
+          return notificationsPlaceholder;
         default:
           return null;
       }
@@ -84,6 +94,8 @@ suite('system/UtilityTray', function() {
   });
 
   teardown(function() {
+    // Making sure we don't keep transition listeners around
+    UtilityTray.overlay.dispatchEvent(createEvent('transitionend'));
     stubById.restore();
     window.lockScreen.locked = originalLocked;
   });
@@ -92,6 +104,7 @@ suite('system/UtilityTray', function() {
   suite('show', function() {
     setup(function() {
       UtilityTray.show();
+      UtilityTray.overlay.dispatchEvent(createEvent('transitionend'));
     });
 
     test('shown should be true', function() {
@@ -100,6 +113,14 @@ suite('system/UtilityTray', function() {
 
     test("Test screen element's class list", function() {
       assert.equal(UtilityTray.screen.classList.contains('utility-tray'), true);
+    });
+
+    test('the real notification container is on top', function() {
+      assert.isTrue(UtilityTray.notifications.classList.contains('above'));
+      var placeHolder = UtilityTray.notificationsPlaceholder;
+      var top = placeHolder.getBoundingClientRect().top;
+      assert.isTrue(placeHolder.classList.contains('below'));
+      assert.equal(UtilityTray.notifications.style.top, top + 'px');
     });
   });
 
@@ -121,6 +142,12 @@ suite('system/UtilityTray', function() {
     test("Test screen element's class list", function() {
       assert.equal(UtilityTray.screen.
         classList.contains('utility-tray'), false);
+    });
+
+    test('the real notification container is below', function() {
+      assert.isFalse(UtilityTray.notifications.classList.contains('above'));
+      var placeHolder = UtilityTray.notificationsPlaceholder;
+      assert.isFalse(placeHolder.classList.contains('below'));
     });
   });
 

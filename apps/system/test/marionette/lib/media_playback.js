@@ -142,14 +142,24 @@ MediaPlayback.prototype = {
   },
 
   openUtilityTray: function() {
-    this.client.executeScript(function() {
-      window.wrappedJSObject.UtilityTray.show();
+    this.client.executeAsyncScript(function() {
+      var win = window.wrappedJSObject;
+      win.addEventListener('utility-tray-overlayopened', function wait() {
+        win.removeEventListener('utility-tray-overlayopened', wait);
+        marionetteScriptFinished();
+      });
+      win.UtilityTray.show();
     });
   },
 
   closeUtilityTray: function() {
-    this.client.executeScript(function() {
-      window.wrappedJSObject.UtilityTray.hide();
+    this.client.executeAsyncScript(function() {
+      var win = window.wrappedJSObject;
+      win.addEventListener('utility-tray-overlayclosed', function wait() {
+        win.removeEventListener('utility-tray-overlayclosed', wait);
+        marionetteScriptFinished();
+      });
+      win.UtilityTray.hide();
     });
   },
 

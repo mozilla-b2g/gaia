@@ -1,3 +1,32 @@
+#desktop-notifications-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: calc(2rem + 6rem + 4.5rem);
+
+  overflow-x: hidden;
+  overflow-y: scroll;
+
+  pointer-events: none;
+  z-index: -1;
+}
+
+#desktop-notifications-container.above {
+  pointer-events: auto;
+}
+
+#desktop-notifications-placeholder {
+  height: 100%;
+  width: 100%;
+  background: -moz-element(#desktop-notifications-container) no-repeat;
+}
+
+#desktop-notifications-placeholder.below {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 #notification-toaster {
   position: absolute;
   top: 0;
