@@ -968,14 +968,17 @@ form[role="combobox"] span[data-field="type"] {
   top: 0;
   left: 0;
   content: "";
-  background: url('images/Add_button.png') no-repeat scroll 0 0 / 3rem auto transparent;
-  width: 2.8rem;
-  height: 2.8rem;
+  background: url('images/form_add_remove_buttons.png') no-repeat scroll;
+  background-position: 0 -3rem;
+  background-size: 3rem 6rem;
+  background-color: transparent;
+  width:  3rem;
+  height: 3rem;
 }
 
 .inserted.displayed .img-delete-button::after {
   transform: rotate(45deg);
-  transform-origin: 1.4rem 1.4rem;
+  transform-origin: 1.5rem 1.5rem;
   transition: transform 0.35s ease-in-out;
 }
 
@@ -989,6 +992,6 @@ form[role="combobox"] span[data-field="type"] {
 
 .inserted.displayed .img-delete-button.rendered::after {
   transform: rotate(0);
-  background-image: url('images/icon_remove.png');
+  background-position: 0 0;
   transition: none;
 }
