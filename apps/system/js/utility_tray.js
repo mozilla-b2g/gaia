@@ -193,6 +193,7 @@ var UtilityTray = {
     this.active = true;
     this.startY = touch.pageY;
     if (!this.screen.classList.contains('utility-tray')) {
+      window.dispatchEvent(new CustomEvent('utility-tray-overlayopening'));
       // If the active app was tracking touches it won't get any more events
       // because of the pointer-events:none we're adding.
       // Sending a touchcancel accordingly.

@@ -85,6 +85,13 @@
     }
   }
 
+  function _showWidgetIfLoaded() {
+    if (widgetFrame) {
+      _onNetworkActivity();
+      widgetFrame.setVisible(true);
+    }
+  }
+
   function _showWidget() {
     _ensureWidget();
     // Ensure the widget is updated when is visible
@@ -104,4 +111,5 @@
   // Listen to utilitytray show
   window.addEventListener('utilitytrayshow', _showWidget);
   window.addEventListener('utilitytrayhide', _hideWidget);
+  window.addEventListener('utility-tray-overlayopening', _showWidgetIfLoaded);
 }());
