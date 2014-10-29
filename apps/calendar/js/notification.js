@@ -3,6 +3,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var NotificationHelper = require('shared/notification_helper');
+var debug = require('debug')('notification');
 
 var cachedSelf;
 
@@ -11,6 +12,12 @@ exports.app = null;
 
 exports.sendNotification = function(title, body, url) {
   return getSelf().then(app => {
+    if (!app) {
+      // This is perhaps a test environment?
+      debug('mozApps.getSelf gave us lemons!');
+      return Promise.resolve();
+    }
+
     var icon = NotificationHelper.getIconURI(app);
     icon += '?';
     icon += url;
