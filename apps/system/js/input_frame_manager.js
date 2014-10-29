@@ -252,7 +252,7 @@
       // let the new one show immediately, and this._lastWindow will also be
       // closed immediately after the new one is ready
       this._lastWindow = this._currentWindow;
-      configs.immediate = true;
+      configs.immediateOpen = true;
       nextWindow.open(configs);
     } else {
       // we don't have any displayed InputWindow, just show the new one

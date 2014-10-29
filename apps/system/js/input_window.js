@@ -105,6 +105,23 @@
     evt.stopPropagation();
   };
 
+  // ready is a one-time event and is triggered when the keyboard app
+  // signals its readiness through mozbrowserresize event.
+  // we only listen to this one-time ready event when we're opening the
+  // keyboard app through |setAsActiveInput()|; subsequent mozbrowserresize
+  // events (like keyboard app wants to resize itself) would not trigger this
+  // ready event.
+  InputWindow.prototype._handle__ready =
+  function iw_handle__ready(evt) {
+    this.element.removeEventListener('_ready', this);
+
+    this._setHeight(evt.detail.height);
+
+    AppWindow.prototype.open.call(this,
+                                  this.immediateOpen ? 'immediate' : undefined
+                                 );
+  };
+
   // wrap it so we can mock it for testing
   InputWindow.prototype._getDpx = function iw_getDpx() {
     return window.devicePixelRatio;
@@ -155,6 +172,12 @@
     }
   };
 
+  InputWindow.prototype.close = function iw_close(immediate){
+    this.element.removeEventListener('_ready', this);
+
+    AppWindow.prototype.close.call(this, immediate);
+  };
+
   /**
    * Open the input window, optionally replacing the layout before doing so.
    *
@@ -177,23 +200,9 @@
       hashChanged = true;
     }
 
-    // ready is a one-time event and is triggered when the keyboard app
-    // signals its readiness through mozbrowserresize event.
-    // we only listen to this one-time ready event when we're opening the
-    // keyboard app through |setAsActiveInput()|; subsequent mozbrowserresize
-    // events (like keyboard app wants to resize itself) would not trigger this
-    // ready event.
-    var onready = function iw_onready(evt){
-      this.element.removeEventListener('_ready', onready);
+    this.immediateOpen = configs.immediateOpen;
 
-      this._setHeight(evt.detail.height);
-
-      AppWindow.prototype.open.call(this,
-                                    configs.immediate ? 'immediate' : undefined
-                                   );
-    }.bind(this);
-
-    this.element.addEventListener('_ready', onready);
+    this.element.addEventListener('_ready', this);
 
     this._setAsActiveInput(true);
 
@@ -205,7 +214,7 @@
     // (on top of that, we want to show the keyboard immediately.)
     if (!hashChanged &&
         'closing' === this.transitionController._transitionState){
-      configs.immediate = true;
+      this.immediateOpen = true;
       this.publish('ready');
     }
   };
