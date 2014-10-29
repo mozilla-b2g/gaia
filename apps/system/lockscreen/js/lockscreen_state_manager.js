@@ -20,6 +20,7 @@
 /* global LockScreenStateKeypadHiding, LockScreenStateKeypadRising */
 /* global LockScreenStatePanelHide */
 /* global LockScreenStateUnlock */
+/* global LockScreenStateSlideRestore */
 /* global LockScreenStateLogger */
 
 'use strict';
@@ -86,7 +87,8 @@
         'lockscreen-keypad-input',
         'lockscreen-inputappopening',
         'lockscreen-inputappopened',
-        'lockscreen-inputappclosed'
+        'lockscreen-inputappclosed',
+        'secure-appopened'
       ],
       observers: {
         'lockscreen.passcode-lock.enabled':
@@ -96,6 +98,7 @@
     // The state 'templates'. This component would do transfer among
     // these states.
     this.states = {
+      slideRestore: (new LockScreenStateSlideRestore()).start(this.lockScreen),
       slideShow: (new LockScreenStateSlideShow()).start(this.lockScreen),
       slideHide: (new LockScreenStateSlideHide()).start(this.lockScreen),
       keypadShow: (new LockScreenStateKeypadShow()).start(this.lockScreen),
@@ -112,12 +115,12 @@
       passcodeTimeout: true, // If timeout, do show the keypad
       homePressed: false,
       activateUnlock: false,
-      transitionEnd: false,
       unlocking: false,
       keypadInput: '',
       forciblyUnlock: false,
       inputpad: null,
-      passcodeValidated: false
+      passcodeValidated: false,
+      secureAppOpen: false
     };
     Object.freeze(this.lockScreenDefaultStates);
 
@@ -149,6 +152,17 @@
   LockScreenStateManager.prototype.setupRules =
   function lssm_setupRules() {
     this.rules = new Map();
+    this.registerRule({
+      secureAppOpen: true
+    },
+    ['keypadShow', 'slideShow'],
+    this.states.slideRestore,
+    'Restore the slider when secure app opened');
+
+    this.registerRule({},
+    ['slideRestore'],
+    this.states.slideShow,
+    'Show the slide after restore it');
 
     this.registerRule({
       screenOn: true,
@@ -161,7 +175,7 @@
     this.registerRule({
       passcodeEnabled: false,
       screenOn: true,
-      unlocking: true
+      activateUnlock: true
     },
     ['slideShow'],
     this.states.slideHide,
@@ -171,7 +185,7 @@
       passcodeEnabled: true,
       passcodeTimeout: false,
       screenOn: true,
-      unlocking: true
+      activateUnlock: true
     },
     ['slideShow'],
     this.states.slideHide,
@@ -386,6 +400,9 @@
       case 'lockscreen-notify-passcode-validationsuccess':
         this.onPasscodeValidated();
         break;
+      case 'secure-appopened':
+        this.onSecureAppOpened();
+        break;
     }
   };
 
@@ -467,6 +484,14 @@
   function lssm_onInputAppClosed() {
     var inputs = this.extend(this.lockScreenStates, {
       inputpad: 'close'
+    });
+    this.transfer(inputs);
+  };
+
+  LockScreenStateManager.prototype.onSecureAppOpened =
+  function lssm_onSecureAppOpened() {
+    var inputs = this.extend(this.lockScreenStates, {
+      secureAppOpen: true
     });
     this.transfer(inputs);
   };
