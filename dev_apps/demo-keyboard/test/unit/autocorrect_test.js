@@ -5,13 +5,6 @@
 requireApp('demo-keyboard/js/autocorrect.js');
 requireApp('demo-keyboard/js/suggestions.js');
 
-mocha.setup({
-  globals: [
-    'AutoCorrect',
-    'Suggestions'
-  ]
-});
-
 suite('AutoCorrect', function() {
   function eventTargetSpy() {
     var d = document.createElement('div');

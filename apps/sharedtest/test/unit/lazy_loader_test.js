@@ -1,8 +1,6 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/html_imports.js');
 
-mocha.setup({globals: ['jsCount', 'totalResult']});
-
 suite('lazy loader', function() {
 
   function countStyles() {

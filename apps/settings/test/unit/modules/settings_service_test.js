@@ -1,17 +1,5 @@
 'use strict';
 
-mocha.setup({
-  globals: [
-    'Settings',
-    'LazyLoader',
-    'initLocale',
-    'ScreenLayout',
-    'MockL10n',
-    'MockSettings',
-    'MockNavigatorSettings'
-  ]
-});
-
 suite('SettingsService', function() {
   var realL10n;
 

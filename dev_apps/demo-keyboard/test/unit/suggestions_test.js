@@ -4,12 +4,6 @@
 
 requireApp('demo-keyboard/js/suggestions.js');
 
-mocha.setup({
-  globals: [
-    'Suggestions'
-  ]
-});
-
 suite('Suggestions', function() {
   var autoCorrect, styleEl;
   suiteSetup(function() {
