@@ -28,7 +28,7 @@ var Compose = (function() {
   var placeholderClass = 'placeholder';
   var attachmentClass = 'attachment-container';
 
-  var attachments = new WeakMap();
+  var attachments = new Map();
 
   // will be defined in init
   var dom = {
@@ -64,7 +64,7 @@ var Compose = (function() {
     var node;
 
     for (node = domElement.firstChild; node; node = node.nextSibling) {
-      // hunt for an attachment in the WeakMap and append it
+      // hunt for an attachment in the Map and append it
       var attachment = attachments.get(node);
       if (attachment) {
         content.push(attachment);
@@ -219,15 +219,14 @@ var Compose = (function() {
       return;
     }
 
-    var nodes = dom.message.querySelectorAll('iframe');
     var imgNodes = [];
-    var done = 0;
-    Array.prototype.forEach.call(nodes, function findImgNodes(node) {
-      var item = attachments.get(node);
-      if (item.type === 'img') {
+    attachments.forEach((attachment, node) => {
+      if (attachment.type === 'img') {
         imgNodes.push(node);
       }
     });
+
+    var done = 0;
 
     // Total number of images < 3
     //   => Set max image size to 2/5 message size limitation.
@@ -306,6 +305,14 @@ var Compose = (function() {
       segments: 0,
       charsAvailableInLastSegment: 0
     };
+  }
+
+  function disposeAttachmentNode(attachmentNode) {
+    var thumbnailURL = attachmentNode.dataset.thumbnail;
+    if (thumbnailURL) {
+      window.URL.revokeObjectURL(thumbnailURL);
+    }
+    attachments.delete(attachmentNode);
   }
 
   var compose = {
@@ -583,6 +590,9 @@ var Compose = (function() {
       state.type = 'sms';
       this.onTypeChange();
 
+      // Dispose attachments
+      attachments.forEach((attachment, node) => disposeAttachmentNode(node));
+
       dom.message.innerHTML = '<br>';
 
       subject.reset();
@@ -711,8 +721,9 @@ var Compose = (function() {
           this.currentAttachment.view();
           break;
         case 'attachment-options-remove':
-          attachments.delete(this.currentAttachmentDOM);
           dom.message.removeChild(this.currentAttachmentDOM);
+          disposeAttachmentNode(this.currentAttachmentDOM);
+
           state.size = null;
           onContentChanged();
           AttachmentMenu.close();
@@ -723,7 +734,9 @@ var Compose = (function() {
             var fragment = insert(newAttachment);
 
             dom.message.insertBefore(fragment, this.currentAttachmentDOM);
+
             dom.message.removeChild(this.currentAttachmentDOM);
+            disposeAttachmentNode(this.currentAttachmentDOM);
 
             onContentChanged(newAttachment);
             AttachmentMenu.close();

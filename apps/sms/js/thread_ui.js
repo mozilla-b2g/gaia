@@ -608,6 +608,16 @@ var ThreadUI = {
     // to slide correctly. Bug 1009541
     this.cancelEdit();
 
+    if (Navigation.isCurrentPanel('thread')) {
+      // Revoke thumbnail URL for every image attachment rendered within thread
+      var nodes = this.container.querySelectorAll(
+        '.attachment-container[data-thumbnail]'
+      );
+      Array.from(nodes).forEach((node) => {
+        window.URL.revokeObjectURL(node.dataset.thumbnail);
+      });
+    }
+
     // TODO move most of back() here: Bug 1010223
   },
 

@@ -70,6 +70,7 @@ suite('compose_test.js', function() {
     var attachment = isOversized ?
       new MockAttachment(oversizedImageBlob, { name: 'oversized.jpg' }) :
       new MockAttachment(smallImageBlob, { name: 'small.jpg' });
+    attachment.mNextRender.dataset.thumbnail = 'blob:fake' + Math.random();
     return attachment;
   }
 
@@ -246,6 +247,7 @@ suite('compose_test.js', function() {
         Compose.clear();
 
         this.sinon.stub(SubjectComposer.prototype, 'reset');
+        this.sinon.stub(window.URL, 'revokeObjectURL');
       });
 
       test('Clear removes text', function() {
@@ -258,11 +260,41 @@ suite('compose_test.js', function() {
       });
       test('Clear removes attachment', function() {
         Compose.append(mockAttachment());
-        var txt = Compose.getContent();
-        assert.equal(txt.length, 1, 'One line in txt');
+
+        assert.equal(Compose.getContent().length, 1, 'One line in text');
+
         Compose.clear();
-        txt = Compose.getContent();
-        assert.equal(txt.length, 0, 'No lines in the txt');
+
+        assert.equal(Compose.getContent().length, 0, 'No lines in the text');
+        sinon.assert.notCalled(
+          window.URL.revokeObjectURL,
+          'Should not revoke anything for non-image attachment'
+        );
+      });
+      test('Clear properly revokes thumbnail URLs', function() {
+        var attachments = [
+          mockAttachment(), mockImgAttachment(), mockImgAttachment()
+        ];
+
+        attachments.forEach((attachment) => Compose.append(attachment));
+        assert.equal(Compose.getContent().length, 3, 'Three lines in text');
+
+        // Remove one attachment manually
+        attachments[2].mNextRender.remove();
+
+        Compose.clear();
+
+        assert.equal(Compose.getContent().length, 0, 'No lines in the text');
+        sinon.assert.calledTwice(
+          window.URL.revokeObjectURL,
+          'Should revoke object URL for all image attachments'
+        );
+        attachments.slice(1).forEach((attachment) => {
+          sinon.assert.calledWith(
+            window.URL.revokeObjectURL,
+            attachment.mNextRender.dataset.thumbnail
+          );
+        });
       });
       test('Resets subject', function() {
         Compose.clear();
@@ -1386,6 +1418,7 @@ suite('compose_test.js', function() {
       this.attachmentSize = Compose.size;
       this.sinon.stub(AttachmentMenu, 'open');
       this.sinon.stub(AttachmentMenu, 'close');
+      this.sinon.stub(window.URL, 'revokeObjectURL');
 
       // trigger a click on attachment
       this.attachment.mNextRender.click();
@@ -1416,7 +1449,11 @@ suite('compose_test.js', function() {
           document.getElementById('attachment-options-remove').click();
         });
         test('removes the original attachment', function() {
-          assert.ok(!this.attachment.mNextRender.parentNode);
+          sinon.assert.calledWith(
+            window.URL.revokeObjectURL,
+            this.attachment.mNextRender.dataset.thumbnail
+          );
+          assert.isFalse(document.body.contains(this.attachment.mNextRender));
         });
         test('closes the menu', function() {
           assert.isTrue(AttachmentMenu.close.called);
@@ -1460,7 +1497,11 @@ suite('compose_test.js', function() {
             assert.isTrue(Compose.requestAttachment.called);
           });
           test('removes the original attachment', function() {
-            assert.ok(!this.attachment.mNextRender.parentNode);
+            sinon.assert.calledWith(
+              window.URL.revokeObjectURL,
+              this.attachment.mNextRender.dataset.thumbnail
+            );
+            assert.isFalse(document.body.contains(this.attachment.mNextRender));
           });
           test('inserts the new attachment', function() {
             assert.ok(this.replacement.mNextRender.parentNode);
@@ -1500,6 +1541,11 @@ suite('compose_test.js', function() {
               window.alert,
               'files-too-large{"n":1}'
             );
+          });
+
+          test('does not remove original attachment', function() {
+            sinon.assert.notCalled(window.URL.revokeObjectURL);
+            assert.isTrue(document.body.contains(this.attachment.mNextRender));
           });
 
           test('other errors are logged', function() {

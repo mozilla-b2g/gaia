@@ -41,6 +41,7 @@ suite('AttachmentRenderer >', function() {
     assert.ok(el.classList.contains('nopreview'));
     assert.isFalse(el.classList.contains('preview'));
     assert.isNull(el.querySelector('div.thumbnail'));
+    assert.isFalse(el.hasAttribute('data-thumbnail'));
     var placeholder = el.querySelector('div.thumbnail-placeholder');
     assert.ok(placeholder);
     assert.ok(placeholder.classList.contains(type + '-placeholder'));
@@ -135,6 +136,8 @@ suite('AttachmentRenderer >', function() {
         // image < message limit => thumbnail blob
         assertThumbnailPreview(attachmentContainer);
         assert.isNull(attachmentContainer.querySelector('div.corrupted'));
+        assert.isDefined(attachmentContainer.dataset.thumbnail);
+        assert.include(attachmentContainer.dataset.thumbnail, 'blob:');
       }).then(done, done);
     });
 
@@ -176,6 +179,8 @@ suite('AttachmentRenderer >', function() {
         // image < message limit => thumbnail blob
         assertThumbnailPreview(attachmentContainer);
         assert.isNull(attachmentContainer.querySelector('div.corrupted'));
+        assert.isDefined(attachmentContainer.dataset.thumbnail);
+        assert.include(attachmentContainer.dataset.thumbnail, 'blob:');
       }).then(done, done);
     });
 
@@ -235,6 +240,8 @@ suite('AttachmentRenderer >', function() {
             assert.ok(attachmentNode);
             assert.isNull(attachmentNode.querySelector('div.corrupted'));
             assert.ok(attachmentNode.querySelector('.thumbnail'));
+            assert.isDefined(attachmentContainer.dataset.thumbnail);
+            assert.include(attachmentContainer.dataset.thumbnail, 'blob:');
             var fileNameNode = doc.querySelector('.file-name');
             assert.ok(fileNameNode);
             assert.isNull(fileNameNode.firstElementChild);
@@ -278,9 +285,9 @@ suite('AttachmentRenderer >', function() {
         })
       );
 
-      attachmentRenderer.getThumbnail().then(function(url) {
-        assert.include(url, 'blob:');
-        assert.equal(url.indexOf('#-moz-samplesize='), -1);
+      attachmentRenderer.getThumbnail().then(function(thumbnail) {
+        assert.include(thumbnail.url, 'blob:');
+        assert.equal(thumbnail.fragment.toString(), '');
         sinon.assert.calledWith(
           ImageUtils.Downsample.sizeNoMoreThan,
           sinon.match.number
@@ -302,11 +309,13 @@ suite('AttachmentRenderer >', function() {
         })
       );
 
-      attachmentRenderer.getThumbnail().then(function(url) {
-        assert.include(url, 'blob:');
-        assert.include(url, '#-moz-samplesize=');
-        sinon.assert.calledWith(ImageUtils.Downsample.sizeNoMoreThan,
-                                sinon.match.number);
+      attachmentRenderer.getThumbnail().then(function(thumbnails) {
+        assert.include(thumbnails.url, 'blob:');
+        assert.include(thumbnails.fragment.toString(), '#-moz-samplesize=');
+        sinon.assert.calledWith(
+          ImageUtils.Downsample.sizeNoMoreThan,
+          sinon.match.number
+        );
       }).then(done, done);
     });
 
