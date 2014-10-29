@@ -27,10 +27,11 @@ suite('system/InputWindow', function() {
     requireApp('system/js/browser_mixin.js');
     requireApp('system/js/input_window.js', function(){
       app = new InputWindow({
-        url: 'app://keyboard.gaiamobile.org/index.html',
         manifest: {},
         manifestURL: 'app://keyboard.gaiamobile.org/manifestURL.webapp',
-        origin: 'app://keyboard.gaiamobile.org'
+        origin: 'app://keyboard.gaiamobile.org',
+        path: '/index.html#ime1',
+        id: 'ime1'
       });
 
       done();
@@ -39,6 +40,15 @@ suite('system/InputWindow', function() {
 
   teardown(function() {
     document.body.removeChild(keyboardContainer);
+  });
+
+  test('Constructor', function() {
+    assert.isTrue(app.isInputMethod);
+    assert.equal(app.url, 'app://keyboard.gaiamobile.org/index.html#ime1');
+
+    assert.equal(app.browser.element.dataset.frameManifestURL,
+                 'app://keyboard.gaiamobile.org/manifestURL.webapp');
+    assert.equal(app.browser.element.dataset.frameName, 'ime1');
   });
 
   suite('Event handlings', function() {
@@ -254,7 +264,6 @@ suite('system/InputWindow', function() {
   suite('open', function() {
     setup(function() {
       app.hash = '#ime1';
-      app.origin = 'app://keyboard.gaiamobile.org';
       app.pathInitial = '/index.html';
     });
 
@@ -272,6 +281,9 @@ suite('system/InputWindow', function() {
 
       app.open(configs);
 
+      assert.equal(app.browser.element.src,
+                   'app://keyboard.gaiamobile.org/index.html#ime2');
+      assert.equal(app.browser.element.dataset.frameName, 'ime2');
       assert.isFalse(app.immediateOpen);
       assert.isTrue(stubSetAsActiveInput.calledWith(true));
 
@@ -282,7 +294,6 @@ suite('system/InputWindow', function() {
     suite('hash not changed', function() {
       var stubReadyHandler;
       var configs = {
-        id: 'ime1',
         hash: '#ime1',
         immediateOpen: false
       };
