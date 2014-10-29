@@ -36,7 +36,8 @@ marionette('Vertical - Collection Rename', function() {
     EmeServer.setServerURL(client, server);
   });
 
-  test('rename collection', function() {
+  // Disable the test due to http://bugzil.la/1090756.
+  test.skip('rename collection', function() {
     collection.enterCreateScreen();
     var name = 'Around Me';
     collection.selectNew(name);
