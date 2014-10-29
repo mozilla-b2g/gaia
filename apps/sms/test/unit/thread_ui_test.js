@@ -2580,7 +2580,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -2635,7 +2635,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -2831,7 +2831,7 @@ suite('thread_ui.js >', function() {
       test('message is correct', function() {
         assert.equal(
           notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly'
         );
         assert.equal(

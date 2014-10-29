@@ -1430,7 +1430,7 @@ var ThreadUI = {
   _createNotDownloadedHTML:
   function thui_createNotDownloadedHTML(message, classNames) {
     // default strings:
-    var messageL10nId = 'not-downloaded-attachment';
+    var messageL10nId = 'tobedownloaded-attachment';
     var downloadL10nId = 'download-attachment';
 
     // assuming that incoming message only has one deliveryInfo
