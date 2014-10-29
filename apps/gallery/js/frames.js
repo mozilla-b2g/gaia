@@ -141,9 +141,11 @@ function deleteSingleItem() {
     confirmId: 'delete',
     danger: true
   }, function() { // onSuccess
-    // disable delete and share button to prevent operations while delete item
+    // disable delete, edit and share button to prevent
+    // operations while delete item
     fullscreenButtons.delete.classList.add('disabled');
     fullscreenButtons.share.classList.add('disabled');
+    fullscreenButtons.edit.classList.add('disabled');
 
     deleteFile(currentFileIndex);
     // Enable NFC sharing when done deleting and returns to fullscreen view
