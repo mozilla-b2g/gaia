@@ -68,6 +68,11 @@ var ScreenManager = {
    */
   AUTO_BRIGHTNESS_CONSTANT: .27,
 
+  /**
+   * A hardcoded timeout of LockScreen required by UX.
+   */
+  LOCKING_TIMEOUT: 10,
+
   /*
    * When we change brightness we animate it smoothly.
    * This constant is the number of milliseconds between adjustments
@@ -116,6 +121,11 @@ var ScreenManager = {
     // User is unlocking by sliding or other methods.
     window.addEventListener('unlocking-start', this);
     window.addEventListener('unlocking-stop', this);
+
+    // When secure app is on, do not turn the screen off.
+    // And when it's down, reset the timeout.
+    window.addEventListener('secure-appopened', this);
+    window.addEventListener('secure-appterminated', this);
 
     // User is actively using the screen reader.
     window.addEventListener('accessibility-action', this);
@@ -242,6 +252,12 @@ var ScreenManager = {
         this._setUnlocking();
         break;
 
+      // When secure app is on, do not turn the screen off.
+      // And when it's down, reset the timeout.
+      case 'secure-appopened':
+      case 'secure-appterminated':
+        this._reconfigScreenTimeout();
+        break;
       case 'unlocking-stop':
         this._resetUnlocking();
         break;
@@ -465,8 +481,8 @@ var ScreenManager = {
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
     } else if (!this._unlocking) {
-      if (window.System.locked) {
-        this._setIdleTimeout(10, true);
+      if (window.System.locked && !window.secureWindowManager.isActive()) {
+        this._setIdleTimeout(this.LOCKING_TIMEOUT, true);
         window.addEventListener('lockscreen-appclosing', this);
         window.addEventListener('lockpanelchange', this);
       } else {

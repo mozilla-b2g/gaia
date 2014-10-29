@@ -280,6 +280,15 @@
       return true;
     };
 
+  SecureWindowManager.prototype.isActive =
+    function swm_isActive() {
+      if (!this.states.activeApp) {
+        return false;
+      } else {
+        return this.states.activeApp.isActive();
+      }
+    };
+
   /** @exports SecureWindowManager */
   exports.SecureWindowManager = SecureWindowManager;
 })(window);
