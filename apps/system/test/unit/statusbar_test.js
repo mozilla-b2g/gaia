@@ -2595,7 +2595,6 @@ suite('system/Statusbar', function() {
 
       StatusBar.cloneStatusbar();
       assert.notEqual(oldElement, StatusBar.statusbarIconsMin);
-      assert.deepEqual(oldElement, StatusBar.statusbarIconsMin);
     });
 
     test('should conserve the CSS class names applied', function() {
