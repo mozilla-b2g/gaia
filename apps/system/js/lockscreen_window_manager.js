@@ -247,6 +247,7 @@
       this.states.active = false;
       this.states.instance.close(instant ? 'immediate': undefined);
       this.elements.screen.classList.remove('locked');
+      this.toggleLockedSetting(false);
     };
 
   /**
@@ -271,6 +272,7 @@
       }
       this.elements.screen.classList.add('locked');
       this.states.active = true;
+      this.toggleLockedSetting(true);
     };
 
   /**
@@ -371,6 +373,16 @@
   LockScreenWindowManager.prototype.responseLock =
     function lwm_responseLock(detail) {
       this.openApp();
+    };
+
+  LockScreenWindowManager.prototype.toggleLockedSetting =
+    function lswm_toggleLockedSetting(value) {
+      if (!window.navigator.mozSettings) {
+        return;
+      }
+      window.SettingsListener.getSettingsLock().set({
+        'lockscreen.locked': value
+      });
     };
 
   /** @exports LockScreenWindowManager */
