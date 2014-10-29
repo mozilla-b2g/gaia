@@ -699,4 +699,3 @@ var NfcHandoverManager = {
   }
 };
 
-NfcHandoverManager.init();
