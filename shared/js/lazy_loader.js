@@ -19,35 +19,37 @@ var LazyLoader = (function() {
 
   LazyLoader.prototype = {
 
-    _js: function(file, callback) {
+    _js: function(file) {
       var script = document.createElement('script');
       script.src = file;
       // until bug 916255 lands async is the default so
       // we must disable it so scripts load in the order they where
       // required.
       script.async = false;
-      script.addEventListener('load', callback);
+      var promise = new Promise(function(resolve) {
+        script.addEventListener('load', resolve);
+      });
       document.head.appendChild(script);
-      this._isLoading[file] = script;
+      this._isLoading[file] = promise;
+
+      return promise;
     },
 
-    _css: function(file, callback) {
+    _css: function(file) {
       var style = document.createElement('link');
       style.type = 'text/css';
       style.rel = 'stylesheet';
       style.href = file;
       document.head.appendChild(style);
-      callback();
+      return Promise.resolve();
     },
 
-    _html: function(domNode, callback) {
-
+    _html: function(domNode) {
       // The next few lines are for loading html imports in DEBUG mode
       if (domNode.getAttribute('is')) {
-        this.load(['/shared/js/html_imports.js'], function() {
-          HtmlImports.populate(callback);
-        }.bind(this));
-        return;
+        return this.load(['/shared/js/html_imports.js']).then(
+          () => HtmlImports.populate()
+        );
       }
 
       for (var i = 0; i < domNode.childNodes.length; i++) {
@@ -61,7 +63,7 @@ var LazyLoader = (function() {
         detail: domNode
       }));
 
-      callback();
+      return Promise.resolve();
     },
 
     /**
@@ -98,41 +100,36 @@ var LazyLoader = (function() {
         files = [files];
       }
 
-      var loadsRemaining = files.length, self = this;
-      function perFileCallback(file) {
-        if (self._isLoading[file]) {
-          delete self._isLoading[file];
+      var perFileCallback = (file) => {
+        if (this._isLoading[file]) {
+          delete this._isLoading[file];
         }
-        self._loaded[file] = true;
+        this._loaded[file] = true;
+      };
 
-        if (--loadsRemaining === 0) {
-          if (callback) {
-            callback();
-          }
-        }
-      }
-
-      for (var i = 0; i < files.length; i++) {
-        var file = files[i];
-
-        if (this._loaded[file.id || file]) {
-          perFileCallback(file);
-        } else if (this._isLoading[file]) {
-          this._isLoading[file].addEventListener(
-            'load', perFileCallback.bind(null, file));
-        } else {
-          var method, idx;
-          if (typeof file === 'string') {
-            method = file.match(/\.([^.]+)$/)[1];
-            idx = file;
+      var resultPromise = Promise.all(
+        files.map((file) => {
+          if (this._loaded[file.id || file]) {
+            return Promise.resolve();
+          } else if (this._isLoading[file]) {
+            return this._isLoading[file].then(() => perFileCallback(file));
           } else {
-            method = 'html';
-            idx = file.id;
-          }
+            var method, idx;
+            if (typeof file === 'string') {
+              method = file.match(/\.([^.]+)$/)[1];
+              idx = file;
+            } else {
+              method = 'html';
+              idx = file.id;
+            }
 
-          this['_' + method](file, perFileCallback.bind(null, idx));
-        }
-      }
+            return this['_' + method](file).then(() => perFileCallback(idx));
+          }
+        })
+      ).then(() => {});
+
+      resultPromise.then(callback);
+      return resultPromise;
     }
   };
 

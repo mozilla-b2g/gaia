@@ -266,7 +266,6 @@ apps/sharedtest/test/unit/gesture_detector_test.js
 apps/sharedtest/test/unit/input_parser_test.js
 apps/sharedtest/test/unit/l10n/l10n_test.js
 apps/sharedtest/test/unit/lazy_l10n_test.js
-apps/sharedtest/test/unit/lazy_loader_test.js
 apps/sharedtest/test/unit/mediadb_test.js
 apps/sharedtest/test/unit/mime_mapper_test.js
 apps/sharedtest/test/unit/setImmediate_worker.js
