@@ -131,6 +131,10 @@ class Homescreen(Base):
             if root_el.text == bookmark_title:
                 return self.InstalledApp(self.marionette, root_el)
 
+    @property
+    def number_of_columns(self):
+        return int(self.marionette.find_element(*self._landing_page_locator).get_attribute('cols'))
+
     class InstalledApp(PageRegion):
 
         _delete_app_locator = (By.CSS_SELECTOR, 'span.remove')
