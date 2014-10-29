@@ -38,7 +38,7 @@ marionette('modify event view', function() {
       app = new Calendar(client);
       editEvent = app.editEvent;
 
-      app.launch({ hideSwipeHint: true });
+      app.launch();
       app.openModifyEventView();
       editEvent.startDate = startDate;
       editEvent.startTime = startDate;

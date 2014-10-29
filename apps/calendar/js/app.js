@@ -261,9 +261,6 @@ module.exports = {
     recurringEventsController.observe();
     this.recurringEventsController = recurringEventsController;
 
-    // go ahead and show the first time use view if necessary
-    this.view('FirstTimeUse', (ftu) => ftu.doFirstTime());
-
     nextTick(() => this.view('Errors'));
   },
 

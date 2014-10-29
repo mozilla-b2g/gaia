@@ -22,7 +22,7 @@ marionette('month view', function() {
 
   setup(function() {
     app = new Calendar(client);
-    app.launch({ hideSwipeHint: true });
+    app.launch();
   });
 
   test('#months-day-view scroll', function() {
