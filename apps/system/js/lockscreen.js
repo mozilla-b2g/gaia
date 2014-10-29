@@ -670,7 +670,7 @@
     var url =
           window.location.href.replace('system', name),
         manifestUrl =
-          url.replace(/(\/)*(index.html)*$/, '/manifest.webapp');
+          url.replace(/(\/)*(index.html#?)*$/, '/manifest.webapp');
 
     url += '#secure';
     window.dispatchEvent(new window.CustomEvent('secure-launchapp',
