@@ -13,7 +13,6 @@ require('/test/unit/mock_homescreen_launcher.js');
 require('/test/unit/mock_ime_switcher.js');
 require('/test/unit/mock_input_frame_manager.js');
 require('/test/unit/mock_ime_menu.js');
-require('/js/input_transition.js');
 require('/js/input_layouts.js');
 require('/js/keyboard_manager.js');
 
