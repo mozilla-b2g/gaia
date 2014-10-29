@@ -29,8 +29,17 @@ function MediaPlaybackWidget(container, options) {
   window.addEventListener('iac-mediacomms', this.handleMessage.bind(this));
   // When SCO status changes, we need to adjust the ui of the playback controls
   window.addEventListener(
-    'bluetoothprofileconnectionchange', this.handleSCOChange.bind(this)
+    'bluetoothprofileconnectionchange', this.handleBluetoothChange.bind(this)
   );
+
+  // Listen to the headphoneschange event for monitoring the audio routing.
+  var acm = navigator.mozAudioChannelManager;
+  if (acm) {
+    acm.addEventListener(
+      'headphoneschange', this.handleHeadphonesChange.bind(this)
+    );
+  }
+  this.audioRouting = 'speaker';
 
   if (options && options.nowPlayingAction === 'openapp') {
     this.nowPlaying.addEventListener('click', this.openMediaApp.bind(this));
@@ -72,12 +81,63 @@ MediaPlaybackWidget.prototype = {
     }
   },
 
-  handleSCOChange: function mpw_handleSCOChange(event) {
+  handleHeadphonesChange: function mpw_handleHeadphonesChange(event) {
+    this.handleAudioRouteChange(event, 'wired');
+  },
+
+  handleBluetoothChange: function mpw_handleBluetoothChange(event) {
     var name = event.detail.name;
     var connected = event.detail.connected;
 
     if (name === Bluetooth.Profiles.SCO) {
       this.container.classList.toggle('disabled', connected);
+    } else if (name === Bluetooth.Profiles.A2DP) {
+      this.handleAudioRouteChange(event, 'bluetooth');
+    }
+  },
+
+  // Because currently the mozAudioChannelManager does not provide any api for
+  // querying the active headphones/headset(audio routing), so to fit the ux
+  // requirement, we have to monitor the wired headphones and bluetooth headset
+  // statuses in system, then decide if we want to pause the music player after
+  // one of the headphones/headset is disconnected.
+  // We should move this logic back to shared/js/media/remote_controls.js since
+  // the remote logics should be handled in remote controls module.
+  handleAudioRouteChange: function mpw_handleAudioRouteChange(event, reason) {
+    var isWiredHeadphonesConnected = false;
+    var isBluetoothHeadsetConnected = false;
+
+    if (reason === 'wired') {
+      isWiredHeadphonesConnected = event.target.headphones;
+    } else {
+      isBluetoothHeadsetConnected = event.detail.connected;
+    }
+
+    // Save the audio routing when one of the headphones/headset is connected.
+    if (isWiredHeadphonesConnected || isBluetoothHeadsetConnected) {
+      this.audioRouting = isWiredHeadphonesConnected ? 'wired' : 'bluetooth';
+    } else {
+      // Check if it's disconnecting the active headphones/headset.
+      // If so, then send pause command via IAC to notify the music app.
+      if (reason === this.audioRouting) {
+        this.sendCommand('pause');
+      } else if (reason !== 'wired' && reason !== 'bluetooth') {
+        throw Error('Not audio route changed from wired or bluetooth!');
+      }
+
+      isWiredHeadphonesConnected = navigator.mozAudioChannelManager &&
+        navigator.mozAudioChannelManager.headphones;
+      isBluetoothHeadsetConnected =
+        Bluetooth.isProfileConnected(Bluetooth.Profiles.A2DP);
+
+      // Save the correct audio routing for next unplugged/disconnected event
+      if (isWiredHeadphonesConnected) {
+        this.audioRouting = 'wired';
+      } else if (isBluetoothHeadsetConnected) {
+        this.audioRouting = 'bluetooth';
+      } else {
+        this.audioRouting = 'speaker';
+      }
     }
   },
 
