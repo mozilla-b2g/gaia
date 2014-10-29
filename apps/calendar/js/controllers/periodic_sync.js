@@ -9,7 +9,6 @@
 define(function(require, exports) {
 'use strict';
 
-var Responder = require('responder');
 var debug = require('debug')('controllers/periodic_sync');
 
 /**
@@ -42,55 +41,35 @@ var syncing;
  */
 var scheduling;
 
-var events = new Responder();
-exports.events = events;
-
-var accounts;
-var settings;
-
 // Will be injected...
 exports.app = null;
 
 exports.observe = function() {
   debug('Will start periodic sync controller...');
   var app = exports.app;
-  accounts = app.store('Account');
-  settings = app.store('Setting');
+  var settings = app.store('Setting');
   return Promise.all([
     settings.getValue('syncAlarm'),
     settings.getValue('syncFrequency')
   ])
   .then(values => {
     [syncAlarm, syncFrequency] = values;
-    // Trigger whenever there is a change to the accounts collection
-    // since we need to re-evaluate whether periodic sync is still necessary.
-    accounts.on('persist', onAccountsChange);
-    accounts.on('remove', onAccountsChange);
-    // Listen to the settings collection for a change to sync frequency so that
-    // we can update any alarms we've sent to the alarms api accordingly.
     settings.on('syncFrequencyChange', exports);
     return scheduleSync();
   });
 };
 
 exports.unobserve = function() {
-  syncAlarm = null;
-  prevSyncFrequency = null;
-  syncFrequency = null;
-  syncing = null;
-  scheduling = null;
-  accounts.off('persist', onAccountsChange);
-  accounts.off('remove', onAccountsChange);
+  var app = exports.app;
+  var settings = app.store('Setting');
   settings.off('syncFrequencyChange', exports);
 };
 
 exports.handleEvent = function(event) {
   switch (event.type) {
     case 'sync':
-      // Gets triggered by mozSetMessageHandler alarm event.
       return onSync();
     case 'syncFrequencyChange':
-      // Gets triggered by settings db change to sync frequency.
       return onSyncFrequencyChange(event.data[0]);
   }
 };
@@ -109,31 +88,7 @@ function onSync() {
  * 2. Schedule a periodic sync at the new interval.
  */
 function onSyncFrequencyChange(value) {
-  debug('Sync frequency changed to', value);
-  syncFrequency = value;
-  return maybeScheduleSync();
-}
-
-/**
- * No syncable accounts => revoke any previously scheduled sync alarms.
- * Syncable accounts and no previously scheduled sync => schedule new sync.
- */
-function onAccountsChange() {
-  debug('Looking up syncable accounts...');
-  return accounts.syncableAccounts().then(syncable => {
-    if (!syncable || !syncable.length) {
-      debug('There are no syncable accounts!');
-      events.emit('pause');
-      return revokePreviousAlarm();
-    }
-
-    debug('There are', syncable.length, 'syncable accounts');
-
-    if (!syncAlarmIssued()) {
-      debug('The first syncable account was just added.');
-      return scheduleSync();
-    }
-  });
+  return cacheSyncFrequency(value).then(maybeScheduleSync);
 }
 
 function sync() {
@@ -148,7 +103,6 @@ function sync() {
         debug('Sync complete! Will release cpu and wifi wake locks...');
         cpuLock.unlock();
         wifiLock.unlock();
-        events.emit('sync');
         syncing = null;
         resolve();
       });
@@ -158,34 +112,32 @@ function sync() {
   return syncing;
 }
 
+function cacheSyncFrequency(value) {
+  debug('Will save sync interval:', value);
+  syncFrequency = value;
+  var app = exports.app;
+  var settings = app.store('Setting');
+  return settings.set('syncFrequency', value);
+}
+
 function scheduleSync() {
-  if (scheduling) {
-    return scheduling;
-  }
-
-  scheduling = accounts.syncableAccounts()
-  .then(syncable => {
-    if (!syncable || !syncable.length) {
-      debug('There seem to be no syncable accounts, will defer scheduling...');
-      return Promise.resolve();
-    }
-
+  if (!scheduling) {
     debug('Will schedule periodic sync in:', syncFrequency);
     // Cache the sync interval which we're sending to the alarms api.
     prevSyncFrequency = syncFrequency;
     revokePreviousAlarm();
-
-    return issueSyncAlarm().then(cacheSyncAlarm).then(maybeScheduleSync);
-  })
-  .then(() => {
-    events.emit('schedule');
-    scheduling = null;
-  })
-  .catch(error => {
-    debug('Error scheduling sync:', error);
-    console.error(error.toString());
-    scheduling = null;
-  });
+    scheduling = issueSyncAlarm()
+    .then(cacheSyncAlarm)
+    .then(maybeScheduleSync)
+    .then(() => {
+      scheduling = null;
+    })
+    .catch(error => {
+      debug('Error scheduling sync:', error);
+      console.error(error.toString());
+      scheduling = null;
+    });
+  }
 
   return scheduling;
 }
@@ -193,14 +145,13 @@ function scheduleSync() {
 // TODO: When navigator.mozAlarms.remove (one day) returns a DOMRequest,
 //     we should make this async...
 function revokePreviousAlarm() {
-  if (!syncAlarmIssued()) {
-    debug('No sync alarms issued, nothing to revoke...');
+  if (typeof syncAlarm !== 'object' || !('alarmId' in syncAlarm)) {
+    // No sync alarms previously issued...
     return;
   }
 
-  debug('Will revoke alarm', syncAlarm.alarmId);
   var alarms = navigator.mozAlarms;
-  alarms.remove(syncAlarm.alarmId);
+  alarms.remove(syncAlarm.alarmid);
 }
 
 function issueSyncAlarm() {
@@ -219,11 +170,11 @@ function issueSyncAlarm() {
   var request = alarms.add(end, 'ignoreTimezone', { type: 'sync' });
 
   return new Promise((resolve, reject) => {
-    request.onsuccess = function() {
+    request.onsuccess = () => {
       resolve({ alarmId: this.result, start: start, end: end });
     };
 
-    request.onerror = function() {
+    request.onerror = () => {
       reject(this.error);
     };
   });
@@ -232,13 +183,15 @@ function issueSyncAlarm() {
 function cacheSyncAlarm(alarm) {
   debug('Will save alarm:', alarm);
   syncAlarm = alarm;
+  var app = exports.app;
+  var settings = app.store('Setting');
   return settings.set('syncAlarm', syncAlarm);
 }
 
 function maybeScheduleSync() {
   if (syncFrequency === prevSyncFrequency) {
     // Nothing to do!
-    return Promise.resolve();
+    return scheduling;
   }
 
   if (scheduling) {
@@ -246,10 +199,6 @@ function maybeScheduleSync() {
   }
 
   return scheduleSync();
-}
-
-function syncAlarmIssued() {
-  return syncAlarm && !!syncAlarm.alarmId;
 }
 
 });
