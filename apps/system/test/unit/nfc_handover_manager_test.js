@@ -1,9 +1,8 @@
 'use strict';
 
-/* globals MocksHelper, MockBluetooth, MockNavigatorSettings,
-           NDEF, NfcConnectSystemDialog, MockBluetoothTransfer,
-           MockL10n, NfcHandoverManager, NDEFUtils,
-           MockMozNfc, NfcUtils, MockNavigatormozSetMessageHandler */
+/* globals MocksHelper, MockBluetooth, MockBluetoothTransfer,
+  NDEF, NfcConnectSystemDialog, MockL10n, NfcHandoverManager, NDEFUtils,
+  MockMozNfc, NfcUtils, MockNavigatormozSetMessageHandler */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -32,24 +31,20 @@ var mocksForNfcUtils = new MocksHelper([
 suite('Nfc Handover Manager Functions', function() {
 
   var realMozNfc;
-  var realMozSettings;
-  var realMozBluetooth;
+  var realBluetooth;
   var realMozSetMessageHandler;
   var realL10n;
-  var spyDefaultAdapter;
 
   mocksForNfcUtils.attachTestHelpers();
 
   suiteSetup(function(done) {
     realMozNfc = navigator.mozNfc;
-    realMozSettings = navigator.mozSettings;
-    realMozBluetooth = navigator.mozBluetooth;
+    realBluetooth = window.Bluetooth;
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     realL10n = navigator.mozL10n;
 
+    window.Bluetooth = MockBluetooth;
     navigator.mozNfc = MockMozNfc;
-    navigator.mozSettings = MockNavigatorSettings;
-    navigator.mozBluetooth = MockBluetooth;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     navigator.mozL10n = MockL10n;
 
@@ -66,23 +61,15 @@ suite('Nfc Handover Manager Functions', function() {
   suiteTeardown(function() {
     MockNavigatormozSetMessageHandler.mTeardown();
     navigator.mozNfc = realMozNfc;
-    navigator.mozSettings = realMozSettings;
-    navigator.mozBluetooth = realMozBluetooth;
+    window.Bluetooth = realBluetooth;
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozL10n = realL10n;
   });
 
-  setup(function() {
-    spyDefaultAdapter = this.sinon.spy(MockBluetooth, 'getDefaultAdapter');
-  });
-
-  teardown(function() {
-    spyDefaultAdapter.restore();
-  });
-
+  // needed for promise verion of getAdapter
   var invokeBluetoothGetDefaultAdapter = function() {
-    var adapterRequest = spyDefaultAdapter.firstCall.returnValue;
-    adapterRequest.fireSuccess(MockBluetooth.defaultAdapter);
+    NfcHandoverManager.bluetoothIsEnabled = true;
+    NfcHandoverManager.defaultAdapter = MockBluetooth.getAdapter();
   };
 
   suite('Activity Routing for NfcHandoverManager', function() {
@@ -96,8 +83,8 @@ suite('Nfc Handover Manager Functions', function() {
         type: 'techDiscovered',
         techList: ['NFC_A','NDEF'],
         records: NDEFUtils.encodeHandoverSelect(
-                                    '00:0D:44:E7:95:AB', NDEF.CPS_ACTIVE,
-                                    nfcUtils.fromUTF8('UE MINI BOOM')),
+          '00:0D:44:E7:95:AB', NDEF.CPS_ACTIVE,
+          nfcUtils.fromUTF8('UE MINI BOOM')),
         sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd17}'
       };
 
@@ -127,6 +114,7 @@ suite('Nfc Handover Manager Functions', function() {
       var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
       var spyPairing = this.sinon.spy(NfcHandoverManager, '_doPairing');
 
+      invokeBluetoothGetDefaultAdapter();
       NfcHandoverManager.tryHandover(activityInjection1.records,
                                      activityInjection1.sessionToken);
       assert.isTrue(spyName.withArgs('UE MINI BOOM').calledOnce);
@@ -137,6 +125,7 @@ suite('Nfc Handover Manager Functions', function() {
       var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
       var spyPairing = this.sinon.spy(NfcHandoverManager, '_doPairing');
 
+      invokeBluetoothGetDefaultAdapter();
       NfcHandoverManager.tryHandover(activityInjection2.records,
                                      activityInjection2.sessionToken);
       assert.isTrue(spyName.withArgs('MBH10').calledOnce);
@@ -219,7 +208,7 @@ suite('Nfc Handover Manager Functions', function() {
     var fileRequest;
 
     setup(function() {
-      MockBluetooth.enabled = true;
+      NfcHandoverManager.bluetoothIsEnabled = true;
 
       spySendNDEF = this.sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
 
@@ -234,7 +223,7 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     teardown(function() {
-      MockBluetooth.enabled = false;
+      NfcHandoverManager.bluetoothIsEnabled = false;
 
       spySendNDEF.restore();
       NfcHandoverManager.sendFileQueue = [];
@@ -350,12 +339,12 @@ suite('Nfc Handover Manager Functions', function() {
 
   suite('Action queuing when Bluetooth disabled', function() {
     setup(function() {
-      MockBluetooth.enabled = false;
       NfcHandoverManager.init();
+      NfcHandoverManager.bluetoothIsEnabled = false;
     });
 
     teardown(function() {
-      MockBluetooth.enabled = true;
+      NfcHandoverManager.bluetoothIsEnabled = true;
       NfcHandoverManager.actionQueue.splice(0);
     });
 
@@ -388,7 +377,6 @@ suite('Nfc Handover Manager Functions', function() {
     var realBluetoothTransfer;
     var spySendNDEF;
     var spySendFileViaHandover;
-    var spyBluetoothEnabledObserver;
     var mockFileRequest;
 
     setup(function() {
@@ -402,12 +390,6 @@ suite('Nfc Handover Manager Functions', function() {
           requestId: 'req-id-1'
       };
 
-      spyBluetoothEnabledObserver = sinon.spy(function(event) {
-        MockBluetooth.enabled = event.settingValue;
-      });
-      MockNavigatorSettings.addObserver('bluetooth.enabled',
-                                        spyBluetoothEnabledObserver);
-
       spySendNDEF = sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
       spySendFileViaHandover = sinon.spy(MockBluetoothTransfer,
         'sendFileViaHandover');
@@ -417,7 +399,6 @@ suite('Nfc Handover Manager Functions', function() {
       window.BluetoothTransfer = realBluetoothTransfer;
       spySendNDEF.restore();
       spySendFileViaHandover.restore();
-      MockNavigatorSettings.removeObserver('bluetooth.enabled');
     });
 
     var initiateFileTransfer = function() {
@@ -444,36 +425,29 @@ suite('Nfc Handover Manager Functions', function() {
     test('Send file with BT enabled',
       function() {
 
-      MockBluetooth.enabled = true;
       MockBluetoothTransfer.sendFileQueueEmpty = true;
 
       initiateFileTransfer();
-      assert.isTrue(MockBluetooth.enabled);
       finalizeFileTransfer();
 
-      assert.equal(spyBluetoothEnabledObserver.callCount, 0);
+      assert.equal(NfcHandoverManager.bluetoothIsEnabled, true);
     });
 
     test('Send file with BT disabled and empty send file queue',
       function() {
 
-      MockBluetooth.enabled = false;
       MockBluetoothTransfer.sendFileQueueEmpty = true;
 
       initiateFileTransfer();
       finalizeFileTransfer();
 
-      assert.equal(spyBluetoothEnabledObserver.callCount, 2);
-      assert.isTrue(spyBluetoothEnabledObserver.getCall(0)
-                                                .args[0].settingValue);
-      assert.isFalse(spyBluetoothEnabledObserver.getCall(1)
-                                                .args[0].settingValue);
+      assert.equal(NfcHandoverManager.bluetoothIsEnabled, true);
     });
 
     test('Send file with BT disabled and non-empty send file queue',
       function() {
-
-      MockBluetooth.enabled = false;
+      this.sinon.spy(MockBluetooth, 'disable');
+      NfcHandoverManager.bluetoothIsEnabled = false;
       MockBluetoothTransfer.sendFileQueueEmpty = false;
 
       initiateFileTransfer();
@@ -481,9 +455,7 @@ suite('Nfc Handover Manager Functions', function() {
 
       // BT should still be enabled as there is another file transfer
       // in progress.
-      assert.equal(spyBluetoothEnabledObserver.callCount, 1);
-      assert.isTrue(spyBluetoothEnabledObserver.getCall(0)
-                                               .args[0].settingValue);
+      assert.equal(NfcHandoverManager.bluetoothIsEnabled, true);
 
       // Now finalize the second transfer (the one not initiated
       // via NFC handover)
@@ -493,19 +465,16 @@ suite('Nfc Handover Manager Functions', function() {
                      viaHandover: false};
       NfcHandoverManager.transferComplete(details);
 
-      assert.equal(spyBluetoothEnabledObserver.callCount, 2);
-      assert.isFalse(spyBluetoothEnabledObserver.getCall(1)
-                                                .args[0].settingValue);
+      assert.ok(MockBluetooth.disable.called);
     });
 
     test('Timeout outgoing file transfer', function() {
-      MockBluetooth.enabled = true;
+      NfcHandoverManager.bluetoothIsEnabled = true;
       MockBluetoothTransfer.sendFileQueueEmpty = true;
       var spyCancel = this.sinon.spy(NfcHandoverManager,
                                      '_cancelSendFileTransfer');
 
       initiateFileTransfer();
-      assert.isTrue(MockBluetooth.enabled);
       this.sinon.clock.tick(NfcHandoverManager.responseTimeoutMillis);
       assert.isTrue(spyCancel.calledOnce);
     });
@@ -515,7 +484,7 @@ suite('Nfc Handover Manager Functions', function() {
       var mac = '01:23:45:67:89:AB';
       var session = 'session-1';
       var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
-      MockBluetooth.enabled = true;
+      NfcHandoverManager.bluetoothIsEnabled = true;
       MockBluetoothTransfer.sendFileQueueEmpty = true;
       var spyCancel = sinon.spy(NfcHandoverManager,
                                 '_cancelIncomingFileTransfer');
