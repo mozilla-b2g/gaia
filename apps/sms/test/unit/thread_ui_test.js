@@ -1,4 +1,4 @@
-/*global mocha, MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
+/*global MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
          Contacts, Compose, MockErrorDialog,
          Template, MockSMIL, Utils, MessageManager, LinkActionHandler,
          LinkHelper, Attachment, MockContact, MockOptionMenu,
@@ -15,8 +15,6 @@
 */
 
 'use strict';
-
-mocha.setup({ globals: ['alert'] });
 
 require('/js/event_dispatcher.js');
 require('/js/subject_composer.js');

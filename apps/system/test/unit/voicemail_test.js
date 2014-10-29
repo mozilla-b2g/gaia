@@ -28,10 +28,6 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 
-mocha.setup({
-  globals: ['SIMSlotManager', 'MozActivity']
-});
-
 var mocksForVoicemail = new MocksHelper([
   'ModalDialog'
 ]).init();

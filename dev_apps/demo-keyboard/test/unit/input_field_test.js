@@ -6,12 +6,6 @@ require('/shared/test/unit/mocks/mock_navigator_input_method.js');
 require('/js/input_field.js');
 
 suite('InputField', function() {
-  mocha.setup({
-    globals: [
-      'InputField'
-    ]
-  });
-
   var realMozInputMethod;
 
   suiteSetup(function() {

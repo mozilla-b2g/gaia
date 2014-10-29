@@ -6,10 +6,6 @@
 /* exported PerformanceTestingHelper */
 'use strict';
 
-// XXX: As there are two iframes in the body, Firefox adds two indexed items
-// in the window object referring to those frames. Mocha considers these
-// indices as global leaks so we need to `whitelist` them.
-mocha.setup({ globals: ['0', '1'] });
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/test/unit/mock_debug.js');
 require('/test/unit/mock_common.js');

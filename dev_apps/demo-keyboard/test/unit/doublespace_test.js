@@ -11,12 +11,6 @@ suite('DoubleSpace', function() {
     return d;
   }
 
-  mocha.setup({
-    globals: [
-      'DoubleSpace'
-    ]
-  });
-
   var keyboardTouchHelper, inputField, app, doubleSpace;
 
   suiteSetup(function(next) {
