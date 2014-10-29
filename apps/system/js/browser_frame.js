@@ -70,9 +70,7 @@
 
     if (config.isInputMethod) {
       browser.setAttribute('mozpasspointerevents', 'true');
-      if (config.oop) {
-        browser.setAttribute('ignoreuserfocus', 'true');
-      }
+      browser.setAttribute('ignoreuserfocus', 'true');
     } else {
       browser.setAttribute('mozallowfullscreen', 'true');
     }
