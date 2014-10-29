@@ -23,6 +23,7 @@ define(function(require, exports) {
 
 var Calc = require('calc');
 var EventEmitter2 = require('ext/eventemitter2');
+var isAllDay = require('calc').isAllDay;
 var debounce = require('utils/mout').debounce;
 
 exports.DISPATCH_DELAY = 50;
@@ -71,6 +72,9 @@ exports.off = function(date, callback) {
 };
 
 function stopListening(dayId) {
+  if (!debouncedEmit[dayId]) {
+    return;
+  }
   var date = Calc.dateFromId(dayId);
   exports.timeController.removeTimeObserver(
     Calc.spanOfDay(date),
@@ -94,8 +98,26 @@ function emit(dayId) {
   var date = Calc.dateFromId(dayId);
   var busytimes = getBusytimes(date);
   exports.timeController.findAssociated(busytimes, (err, records) => {
-    emitter.emit(dayId, records);
-    cachedRecords[dayId] = records;
+    var allday = [];
+    var events = [];
+
+    records.forEach(record => {
+      var {startDate, endDate} = record.busytime;
+      var group = isAllDay(startDate, endDate) ? allday : events;
+      group.push(record);
+    });
+
+    events.sort((a, b) => {
+      return a.busytime.startDate - b.busytime.startDate;
+    });
+
+    var result = {
+      amount: records.length,
+      events: events,
+      allday: allday
+    };
+    emitter.emit(dayId, result);
+    cachedRecords[dayId] = result;
   });
 }
 

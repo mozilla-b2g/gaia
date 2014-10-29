@@ -147,7 +147,8 @@ section.month .icon-calendar-dot:before {
   margin-left: calc(50% - 1.8rem);
 }
 
-/* months day view */
+/* months-day-view
+ * =============== */
 
 #months-day-view {
   margin-bottom: 4.5rem;
@@ -183,54 +184,64 @@ section.month .icon-calendar-dot:before {
   width: 100%;
 }
 
-#months-day-view .hour {
-  background: none;
-  border-bottom: none;
-  height: auto;
-  padding: 0;
-}
-
-#months-day-view .hour-header {
-  /* Hide displayed hours on the months day view
-   * since each event will now get its own hour.
-   */
-  display: none;
-}
-
-#months-day-view .events {
-  border-left: none;
-  height: auto;
-  margin: 0;
-  width: 100%;
-}
-
 #months-day-view .event {
-  /* Since the events should not grow and shrink in height */
-  height: 6rem !important;
-  margin: 0 !important;
-  /* Since we want each event to be displayed on its own line */
+  display: block;
+  height: 6rem;
+  margin: 0;
   position: relative;
-  /* Other day based views get width-sized dynamically since
-   * multiple get displayed on each line. Since we do one event
-   * per line, we need to opt out of the left and width stylings.
-   */
-  left: 0 !important;
-  width: 100% !important;
-}
-
-#months-day-view .container {
-  background: none !important;
-  border-bottom: 0.1rem solid #E5E5E5;
-  border-left: none;
-  border-right: none;
-  border-top: none;
-  margin: 0 1.5rem;
   padding: 0 1.5rem;
 }
 
+#months-day-view .event:active,
+#months-day-view .event:focus {
+  outline: none;
+}
+
+#months-day-view .container {
+  height: 100%;
+  padding: 0 1.5rem;
+  border-bottom: 0.1rem solid #E5E5E5;
+}
+
 /* The last month day event doesn't need a bottom border. */
-#months-day-view .hour:last-child .event:last-child > .container {
+#months-day-view .event:last-child > .container {
   border-bottom: none;
+}
+
+#months-day-view .container.has-alarm {
+  padding-right: 3rem;
+}
+
+#months-day-view .icon-calendar-alarm {
+  position: absolute;
+  top: 0.2rem;
+  right: 0;
+  width: 3rem;
+  height: 3rem;
+}
+
+#months-day-view .event-title {
+  min-height: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #333;
+}
+
+#months-day-view .event-location {
+  display: block;
+  top: 2.8rem;
+  min-height: 2.1rem;
+  padding-top: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #707070;
+  font-size: 1.3rem;
+  font-weight: 400;
 }
 
 #months-day-view .icon-calendar-dot {
