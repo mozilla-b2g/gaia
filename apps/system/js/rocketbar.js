@@ -261,30 +261,30 @@
           // XXX: fix the WindowManager coupling
           // but currently the transition sequence is crucial for performance
           var app = System.currentApp;
+          var afterActivate;
 
           // If the app is not a browser, retain the search value and activate.
           if (app && !app.isBrowser()) {
-            this.activate(this.focus.bind(this));
-            return;
+            afterActivate = this.focus.bind(this);
+          } else {
+            // Set the input to be the URL in the case of a browser.
+            this.setInput(app.config.url);
+
+            afterActivate = () => {
+              this.hideResults();
+              setTimeout(() => {
+                this.focus();
+                this.selectAll();
+              });
+            };
           }
-
-          // Set the input to be the URL in the case of a browser.
-          this.setInput(app.config.url);
-
-          var focusAndSelect = () => {
-            this.hideResults();
-            setTimeout(() => {
-              this.focus();
-              this.selectAll();
-            });
-          };
 
           if (app && app.appChrome && !app.appChrome.isMaximized()) {
             app.appChrome.maximize(() => {
-              this.activate(focusAndSelect);
+              this.activate(afterActivate);
             });
           } else {
-            this.activate(focusAndSelect);
+            this.activate(afterActivate);
           }
           break;
       }
