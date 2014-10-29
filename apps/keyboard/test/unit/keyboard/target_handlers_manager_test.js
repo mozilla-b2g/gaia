@@ -99,12 +99,6 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(handlerStub.doubleTap.calledOnce);
     });
 
-    test('New Target activated', function() {
-      activeTargetsManagerStub.onnewtargetwillactivate(target);
-
-      assert.isTrue(handlerStub.newTargetActivate.calledOnce);
-    });
-
     suite('longPress', function() {
       setup(function() {
         activeTargetsManagerStub.ontargetlongpressed(target);
@@ -134,12 +128,6 @@ suite('TargetHandlersManager', function() {
         activeTargetsManagerStub.ontargetdoubletapped(target);
 
         assert.isTrue(handlerStub.doubleTap.calledOnce);
-      });
-
-      test('New target activated', function() {
-        activeTargetsManagerStub.onnewtargetwillactivate(target);
-
-        assert.isTrue(handlerStub.newTargetActivate.calledOnce);
       });
     });
   });
@@ -187,12 +175,6 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(handlerStub.doubleTap.calledOnce);
     });
 
-    test('New target activated', function() {
-      activeTargetsManagerStub.onnewtargetwillactivate(target);
-
-      assert.isTrue(handlerStub.newTargetActivate.calledOnce);
-    });
-
     suite('longPress', function() {
       setup(function() {
         activeTargetsManagerStub.ontargetlongpressed(target);
@@ -222,12 +204,6 @@ suite('TargetHandlersManager', function() {
         activeTargetsManagerStub.ontargetdoubletapped(target);
 
         assert.isTrue(handlerStub.doubleTap.calledOnce);
-      });
-
-      test('New target activated', function() {
-        activeTargetsManagerStub.onnewtargetwillactivate(target);
-
-        assert.isTrue(handlerStub.newTargetActivate.calledOnce);
       });
     });
   });
@@ -284,6 +260,7 @@ suite('TargetHandlersManager', function() {
 
       assert.isTrue(handlerStub.activate.calledOnce);
     });
+
 
     test('SpaceKeyTargetHandler', function() {
       var target = {

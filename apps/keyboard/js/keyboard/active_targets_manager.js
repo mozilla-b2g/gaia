@@ -101,11 +101,11 @@ ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
   }
 
   // Notify current targets about the new touch.
-  if (typeof this.onnewtargetwillactivate === 'function') {
-    this.activeTargets.forEach(function(target, id) {
+  this.activeTargets.forEach(function(target, id) {
+    if (typeof this.onnewtargetwillactivate === 'function') {
       this.onnewtargetwillactivate(target);
-    }, this);
-  }
+    }
+  }, this);
 
   var target = press.target;
   this.activeTargets.set(id, target);

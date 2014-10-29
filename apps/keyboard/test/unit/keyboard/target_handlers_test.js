@@ -131,21 +131,6 @@ suite('target handlers', function() {
         assert.isTrue(app.visualHighlightManager.hide.calledOnce);
       });
 
-      test('new target activated', function() {
-        handler.newTargetActivate();
-
-        assert.isTrue(
-          app.inputMethodManager.currentIMEngine.click.calledWith(99));
-        assert.isTrue(app.inputMethodManager.currentIMEngine.click.calledOnce);
-
-        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
-        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
-
-        handler.commit();
-        // Won't commit again
-        assert.isTrue(app.inputMethodManager.currentIMEngine.click.calledOnce);
-      });
-
       suite('longPress', function() {
         setup(function() {
           handler.longPress();
@@ -737,22 +722,59 @@ suite('target handlers', function() {
     var target;
     setup(function() {
       target = {};
+
       handler = new CapsLockTargetHandler(target, app);
     });
 
     test('activate', function() {
-      handler.activate();
+      setup(function() {
+        handler.activate();
 
-      assert.isTrue(app.upperCaseStateManager.switchUpperCaseState
-                    .calledWith({
-        isUpperCaseLocked: true
-      }));
+        assert.isTrue(app.feedbackManager.triggerFeedback.calledWith(target));
+        assert.isTrue(app.feedbackManager.triggerFeedback.calledOnce);
 
-      assert.isTrue(app.feedbackManager.triggerFeedback.calledWith(target));
-      assert.isTrue(app.feedbackManager.triggerFeedback.calledOnce);
+        assert.isTrue(app.visualHighlightManager.show.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.show.calledOnce);
+      });
 
-      assert.isTrue(app.visualHighlightManager.show.calledWith(target));
-      assert.isTrue(app.visualHighlightManager.show.calledOnce);
+      test('commit', function() {
+        handler.commit();
+
+        assert.isTrue(app.upperCaseStateManager.switchUpperCaseState
+                      .calledWith({
+          isUpperCase: true,
+          isUpperCaseLocked: false
+        }));
+
+        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+      });
+
+      test('moveOut', function() {
+        handler.moveOut();
+
+        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+      });
+
+      test('cancel', function() {
+        handler.cancel();
+
+        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+      });
+
+      test('doubleTap', function() {
+        handler.doubleTap();
+
+        assert.isTrue(app.upperCaseStateManager.switchUpperCaseState
+                      .calledWith({
+          isUpperCaseLocked: true
+        }));
+
+        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+      });
     });
 
     test('longPress', function() {
@@ -775,20 +797,6 @@ suite('target handlers', function() {
 
       assert.isTrue(app.upperCaseStateManager.switchUpperCaseState.calledWith({
         isUpperCase: true,
-        isUpperCaseLocked: false
-      }));
-
-      assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
-      assert.isTrue(app.visualHighlightManager.hide.calledOnce);
-    });
-
-    test('combo key - activate and then with new arget activated', function() {
-      handler.newTargetActivate();
-      handler.commit();
-
-      assert.isTrue(app.upperCaseStateManager.switchUpperCaseState
-                    .calledWith({
-        isUpperCase: false,
         isUpperCaseLocked: false
       }));
 

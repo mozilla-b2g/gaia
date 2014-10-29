@@ -38,7 +38,6 @@ suite('ActiveTargetsManager', function() {
     manager.ontargetcommitted = this.sinon.stub();
     manager.ontargetcancelled = this.sinon.stub();
     manager.ontargetdoubletapped = this.sinon.stub();
-    manager.onnewtargetwillactivate = this.sinon.stub();
     manager.start();
 
     assert.isTrue(window.UserPressManager.calledWithNew());
@@ -453,12 +452,15 @@ suite('ActiveTargetsManager', function() {
         userPressManagerStub.onpressstart(press1, id1);
 
         assert.isTrue(manager.onnewtargetwillactivate.calledWith(press0.target),
-          'onnewtargetwillactivate called.');
+          'Determine commit the first press or not' +
+          ' when the second press starts.');
+        assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
 
-        assert.isTrue(manager.ontargetactivated.calledWith(press1.target));
+        assert.isTrue(
+          manager.ontargetactivated.calledWith(press1.target));
 
-        assert.equal(window.clearTimeout.callCount, 2);
-        assert.equal(window.setTimeout.callCount, 1);
+        assert.equal(window.clearTimeout.callCount, 3);
+        assert.equal(window.setTimeout.callCount, 3);
       });
 
       test('press end second press, and first press', function() {
@@ -469,10 +471,10 @@ suite('ActiveTargetsManager', function() {
         };
         userPressManagerStub.onpressend(pressEnd, id1);
 
-        assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
+        assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice);
         assert.isTrue(
           manager.ontargetcommitted.calledWith(press1.target));
-        assert.equal(window.clearTimeout.callCount, 3);
+        assert.equal(window.clearTimeout.callCount, 4);
 
         var pressEnd2 = {
           target: {
