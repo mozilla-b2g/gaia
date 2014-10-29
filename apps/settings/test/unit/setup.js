@@ -27,6 +27,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'shared/tz_select': {
         exports: 'tzSelect'
       },
+      'shared/template': {
+        exports: 'Template'
+      },
       'unit/mock_async_storage': {
         exports: 'MockAsyncStorage'
       },
@@ -102,6 +105,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       },
       'shared_mocks/mock_mobile_operator': {
         exports: 'MockMobileOperator'
+      },
+      'shared_mocks/mock_sim_settings_helper': {
+        exports: 'MockSimSettingsHelper'
       }
     },
     modules: [

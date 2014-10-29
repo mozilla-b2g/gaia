@@ -23,6 +23,8 @@
     'shared/simslot': 'empty:',
     'shared/simslot_manager': 'empty:',
     'shared/toaster': 'empty:',
+    'shared/template': 'empty:',
+    'shared/sim_settings_helper': 'empty:',
     'utils': 'empty:',
     'shared/settings_url': 'empty:',
     'shared/omadrm/fl': 'empty:',

@@ -26,30 +26,30 @@
 #sim-manager ul li p {
   padding-bottom: 0;
 }
-#sim-card-container .sim-card {
+.sim-card-container .sim-card {
   border-bottom: 1px solid #ccc;
   padding-top: 0;
   padding-bottom: 0;
   height: 8rem;
   display: block;
 }
-#sim-card-container .sim-card:last-child {
+.sim-card-container .sim-card:last-child {
   border-bottom: 0;
 }
-.sim-manager-select-list li {
+.sim-manager-select-list li:not(.sim-manager-security-entry) {
   height: 11.3rem;
 }
-#sim-manager-security-entry {
+.sim-manager-security-entry {
   height: 6rem;
 }
-#sim-manager-security-desc {
+.sim-manager-security-desc {
   color: #6D7374;
 }
-#sim-manager-security-entry[aria-disabled="true"] {
+.sim-manager-security-entry[aria-disabled="true"] {
   opacity: 0.6;
   pointer-events: none;
 }
-#sim-manager-security-entry p[data-href="#simpin"] {
+.sim-manager-security-entry p[data-href="#simpin"] {
   line-height: 3rem;
 }
 .sim-manager-select-list .explanation {
