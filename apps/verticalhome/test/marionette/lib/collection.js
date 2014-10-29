@@ -250,9 +250,6 @@ Collection.prototype = {
    * @param {String} newName
    */
   renameAndPressEnter: function(newName) {
-    this.client.switchToFrame();
-    this.client.apps.switchToApp(Collection.URL);
-
     var title = this.client.helper.waitForElement(
       Collection.Selectors.updateTitle);
     title.clear();
