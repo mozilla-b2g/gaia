@@ -109,7 +109,7 @@ if (typeof Contacts.extServices === 'undefined') {
         var uid = fbContact.uid;
         var profileUrl = 'https://m.facebook.com/' + uid;
 
-        openURL(profileUrl);
+        openURL(fb.utils.getNonCacheableUrl(profileUrl));
       };
 
       req.onerror = function() {

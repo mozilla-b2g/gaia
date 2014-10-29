@@ -359,7 +359,7 @@ suite('Render contact', function() {
 
       subject.render(null, TAG_OPTIONS);
 
-      assertFbButtons(fbButtons, 'present', 'disabled');
+      assertFbButtons(fbButtons, 'present');
     });
 
     test('FB Contact. Device is online', function() {
