@@ -22,7 +22,7 @@ marionette('Statusbar colors', function() {
     }
   });
 
-  var system = new System(client);
+  var system;
   var bookmark = new Bookmark(client);
   var actions = new Actions(client);
   var search = new Search(client);
@@ -31,6 +31,7 @@ marionette('Statusbar colors', function() {
   var utilityTray = new UtilityTray(client);
 
   setup(function() {
+    system = new System(client);
     system.waitForStartup();
   });
 
