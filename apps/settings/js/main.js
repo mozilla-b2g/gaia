@@ -6,19 +6,9 @@ require(['config/require'], function() {
     // at once here. These should be move to the dependency of each panel in the
     // future.
     require('utils');
-    require('shared/async_storage');
     require('shared/settings_listener');
-    // used by wifi.js, wifi_select_certificate_file.js
-    require('shared/wifi_helper');
-    // used by messaging.js
-    require('shared/icc_helper');
-    // used by all header building blocks
-    require('shared/font_size_utils');
 
-    var SettingsUtils = require('modules/settings_utils');
     var SettingsService = require('modules/settings_service');
-    var PageTransitions = require('modules/page_transitions');
-    var LazyLoader = require('shared/lazy_loader');
     var ScreenLayout = require('shared/screen_layout');
     var Settings = require('settings');
 
@@ -35,14 +25,40 @@ require(['config/require'], function() {
         return;
       }
 
+      var bluetoothMenuItem =
+        document.querySelector('#root .menuItem-bluetooth');
+      bluetoothMenuItem.setAttribute('href', '#');
+
+      var initialPanelHandler = window.LaunchContext.initialPanelHandler;
+      if (initialPanelHandler) {
+        initialPanelHandler.release();
+        var pendingTargetPanel = initialPanelHandler.pendingTargetPanel;
+        // XXX: special logic for navigating to bluetooth panels
+        if (pendingTargetPanel === 'bluetooth') {
+          require(['modules/bluetooth/version_detector'], (versionDetector) => {
+            var version = versionDetector.getVersion();
+            if (version === 1) {
+              // navigate old bluetooth panel..
+              SettingsService.navigate('bluetooth');
+            } else if (version === 2) {
+              // navigate new bluetooth panel..
+              SettingsService.navigate('bluetooth_v2');
+            }
+          });
+        } else if (pendingTargetPanel) {
+          SettingsService.navigate(pendingTargetPanel);
+        }
+      }
+
       window.removeEventListener('panelready', onPanelReady);
 
-      // Activate the animation and user interaction.
-      document.body.dataset.ready = true;
+      // XXX: Even the panel has been displayed but the content may still not
+      //      stable yet. This is a estimated timing of visually complete. We
+      //      should implement other mechanism waiting for all content ready.
+      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
 
-      // The loading of the first panel denotes that we are ready for display
-      // and ready for user interaction
-      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+      // Activate the animation.
+      document.body.dataset.ready = true;
     }, false);
 
     window.addEventListener('telephony-settings-loaded',
@@ -69,22 +85,10 @@ require(['config/require'], function() {
     });
 
     var options = {
-      SettingsUtils: SettingsUtils,
       SettingsService: SettingsService,
-      PageTransitions: PageTransitions,
-      LazyLoader: LazyLoader,
       ScreenLayout: ScreenLayout
     };
-
-    if (document && (document.readyState === 'complete' ||
-        document.readyState === 'interactive')) {
-      Settings.init(options);
-    } else {
-      window.addEventListener('load', function onload() {
-        window.removeEventListener('load', onload);
-        Settings.init(options);
-      });
-    }
+    Settings.init(options);
 
     // Tell audio channel manager that we want to adjust the notification
     // channel if the user press the volumeup/volumedown buttons in Settings.

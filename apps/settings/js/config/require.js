@@ -101,10 +101,19 @@ require.config({
       name: 'panels/root/panel',
       exclude: [
         'main',
+        'panels/root/low_priority_items',
+        'modules/apps_cache',
+        'modules/bluetooth/version_detector'
+      ]
+    },
+    {
+      name: 'panels/root/low_priority_items',
+      exclude: [
+        'main',
+        'modules/bluetooth/version_detector',
+        'modules/app_storage',
         'modules/battery',
-        'modules/bluetooth/bluetooth_v1',
-        'modules/bluetooth/bluetooth',
-        'modules/apps_cache'
+        'modules/wifi_context'
       ]
     },
     {
@@ -148,7 +157,10 @@ require.config({
     },
     {
       name: 'panels/screen_lock_passcode/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/settings_utils'
+      ]
     },
     {
       name: 'panels/display/panel',
@@ -188,14 +200,15 @@ require.config({
       name: 'panels/app_storage/panel',
       exclude: [
         'main',
-        'modules/mvvm/observable'
+        'modules/app_storage'
       ]
     },
     {
       name: 'panels/wifi/panel',
       exclude: [
         'main',
-        'modules/dialog_service'
+        'modules/dialog_service',
+        'modules/settings_utils'
       ]
     },
     {
@@ -212,15 +225,24 @@ require.config({
     },
     {
       name: 'panels/wifi_manage_certificates/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/settings_utils'
+      ]
     },
     {
       name: 'panels/wifi_manage_networks/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/settings_utils'
+      ]
     },
     {
       name: 'panels/wifi_select_certificate_file/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/settings_utils'
+      ]
     },
     {
       name: 'panels/wifi_status/panel',
@@ -274,6 +296,22 @@ require.config({
       exclude: [
         'main',
         'modules/mvvm/observable'
+      ]
+    },
+    {
+      name: 'panels/messaging/panel',
+      exclude: [
+        'main',
+        'modules/messaging',
+        'modules/settings_utils'
+      ]
+    },
+    {
+      name: 'panels/messaging_details/panel',
+      exclude: [
+        'main',
+        'modules/messaging',
+        'modules/settings_utils'
       ]
     },
     {

@@ -1,73 +1,79 @@
 define(function(require) {
   'use strict';
 
+  var SettingsService = require('modules/settings_service');
   var SettingsPanel = require('modules/settings_panel');
   var Root = require('panels/root/root');
-  var BluetoothItem = require('panels/root/bluetooth_item');
-  var NFCItem = require('panels/root/nfc_item');
-  var LanguageItem = require('panels/root/language_item');
-  var BatteryItem = require('panels/root/battery_item');
-  var FindMyDeviceItem = require('panels/root/findmydevice_item');
-  var StorageUSBItem = require('panels/root/storage_usb_item');
-  var StorageAppItem = require('panels/root/storage_app_item');
-  var WifiItem = require('panels/root/wifi_item');
-  var ScreenLockItem = require('panels/root/screen_lock_item');
-  var SimSecurityItem = require('panels/root/sim_security_item');
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
   var ThemesItem = require('panels/root/themes_item');
   var HomescreenItem = require('panels/root/homescreen_item');
   var PrivacyPanelItem = require('panels/root/privacy_panel_item');
+  var BTAPIVersionDetector = require('modules/bluetooth/version_detector');
+
+  var queryRootForLowPriorityItems = function(panel) {
+    // This is a map from the module name to the object taken by the constructor
+    // of the module.
+    var storageDialog = document.querySelector('.turn-on-ums-dialog');
+    return {
+      'BluetoothItem': panel.querySelector('.bluetooth-desc'),
+      'NFCItem': {
+        nfcMenuItem: panel.querySelector('.nfc-settings'),
+        nfcCheckBox: panel.querySelector('#nfc-input')
+      },
+      'LanguageItem': panel.querySelector('.language-desc'),
+      'BatteryItem': panel.querySelector('.battery-desc'),
+      'FindMyDeviceItem': panel.querySelector('.findmydevice-desc'),
+      'StorageUSBItem': {
+        mediaStorageDesc: panel.querySelector('.media-storage-desc'),
+        usbEnabledCheckBox: panel.querySelector('.usb-switch'),
+        usbStorage: panel.querySelector('#menuItem-enableStorage'),
+        usbEnabledInfoBlock: panel.querySelector('.usb-desc'),
+        umsWarningDialog: storageDialog,
+        umsConfirmButton: storageDialog.querySelector('.ums-confirm-option'),
+        umsCancelButton: storageDialog.querySelector('.ums-cancel-option'),
+        mediaStorageSection: panel.querySelector('.media-storage-section')
+      },
+      'StorageAppItem': panel.querySelector('.application-storage-desc'),
+      'WifiItem': panel.querySelector('#wifi-desc'),
+      'ScreenLockItem': panel.querySelector('.screenLock-desc'),
+      'SimSecurityItem': panel.querySelector('.simCardLock-desc')
+    };
+  };
 
   return function ctor_root_panel() {
-    var root = Root();
-    var bluetoothItem;
-    var nfcItem;
-    var languageItem;
-    var batteryItem;
-    var findMyDeviceItem;
-    var storageUsbItem;
-    var storageAppItem;
-    var wifiItem;
-    var screenLockItem;
-    var simSecurityItem;
+    var root;
     var airplaneModeItem;
     var themesItem;
     var homescreenItem;
     var privacyPanelItem;
 
+    var lowPriorityRoots = null;
+    var initLowPriorityItemsPromise = null;
+    var initLowPriorityItems = function(rootElements) {
+      if (!initLowPriorityItemsPromise) {
+        initLowPriorityItemsPromise = new Promise(function(resolve) {
+          require(['panels/root/low_priority_items'], resolve);
+        }).then(function(itemCtors) {
+          var result = {};
+          Object.keys(rootElements).forEach(function(name) {
+            var itemCtor = itemCtors[name];
+            if (itemCtor) {
+              result[name] = itemCtor(rootElements[name]);
+            }
+          });
+          return result;
+        });
+      }
+      return initLowPriorityItemsPromise;
+    };
+
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
+        root = Root();
         root.init();
-        bluetoothItem = BluetoothItem(panel.querySelector('.bluetooth-desc'));
-        nfcItem = NFCItem({
-          nfcMenuItem: panel.querySelector('.nfc-settings'),
-          nfcCheckBox: panel.querySelector('#nfc-input')
-        });
-        languageItem = LanguageItem(panel.querySelector('.language-desc'));
-        batteryItem = BatteryItem(panel.querySelector('.battery-desc'));
-        findMyDeviceItem = FindMyDeviceItem(
-          panel.querySelector('.findmydevice-desc'));
 
-        var storageDialog = document.querySelector('.turn-on-ums-dialog');
-        storageUsbItem = StorageUSBItem({
-          mediaStorageDesc: panel.querySelector('.media-storage-desc'),
-          usbEnabledCheckBox: panel.querySelector('.usb-switch'),
-          usbStorage: panel.querySelector('#menuItem-enableStorage'),
-          usbEnabledInfoBlock: panel.querySelector('.usb-desc'),
-          umsWarningDialog: storageDialog,
-          umsConfirmButton: storageDialog.querySelector('.ums-confirm-option'),
-          umsCancelButton: storageDialog.querySelector('.ums-cancel-option'),
-          mediaStorageSection: panel.querySelector('.media-storage-section')
-        });
-        storageAppItem = StorageAppItem(
-          panel.querySelector('.application-storage-desc'));
-        wifiItem = WifiItem(panel.querySelector('#wifi-desc'));
-        screenLockItem =
-          ScreenLockItem(panel.querySelector('.screenLock-desc'));
         airplaneModeItem =
           AirplaneModeItem(panel.querySelector('.airplaneMode-input'));
-        simSecurityItem =
-          SimSecurityItem(panel.querySelector('.simCardLock-desc'));
         themesItem =
           ThemesItem(panel.querySelector('.themes-section'));
         homescreenItem =
@@ -76,38 +82,56 @@ define(function(require) {
           element: panel.querySelector('.privacy-panel-item'),
           link: panel.querySelector('.privacy-panel-item a')
         });
+
+        // The decision of navigation panel will be removed while we are no
+        // longer to use Bluetooth API v1.
+        var bluetoothListItem = panel.querySelector('.menuItem-bluetooth');
+        var BTAPIVersion = BTAPIVersionDetector.getVersion();
+        bluetoothListItem.addEventListener('click', function() {
+          if (BTAPIVersion === 1) {
+            // navigate old bluetooth panel..
+            SettingsService.navigate('bluetooth');
+          } else if (BTAPIVersion === 2) {
+            // navigate new bluetooth panel..
+            SettingsService.navigate('bluetooth_v2');
+          }
+        });
+
+        var idleObserver = {
+          time: 3,
+          onidle: function() {
+            navigator.removeIdleObserver(idleObserver);
+            lowPriorityRoots = queryRootForLowPriorityItems(panel);
+            initLowPriorityItems(lowPriorityRoots).then(function(items) {
+              Object.keys(items).forEach((key) => items[key].enabled = true);
+            });
+          }
+        };
+        navigator.addIdleObserver(idleObserver);
       },
-      onBeforeShow: function rp_onBeforeShow() {
-        bluetoothItem.enabled = true;
-        languageItem.enabled = true;
-        batteryItem.enabled = true;
-        findMyDeviceItem.enabled = true;
-        storageUsbItem.enabled = true;
-        storageAppItem.enabled = true;
-        wifiItem.enabled = true;
-        screenLockItem.enabled = true;
-        simSecurityItem.enabled = true;
+      onShow: function rp_onShow(panel) {
         airplaneModeItem.enabled = true;
         themesItem.enabled = true;
         privacyPanelItem.enabled = true;
-      },
-      onShow: function rp_onShow() {
         homescreenItem.enabled = true;
+
+        if (initLowPriorityItemsPromise) {
+          initLowPriorityItemsPromise.then(function(items) {
+            Object.keys(items).forEach((key) => items[key].enabled = true);
+          });
+        }
       },
       onHide: function rp_onHide() {
-        bluetoothItem.enabled = false;
-        languageItem.enabled = false;
-        batteryItem.enabled = false;
-        findMyDeviceItem.enabled = false;
-        storageUsbItem.enabled = false;
-        storageAppItem.enabled = false;
-        wifiItem.enabled = false;
-        screenLockItem.enabled = false;
-        simSecurityItem.enabled = false;
         airplaneModeItem.enabled = false;
         themesItem.enabled = false;
         homescreenItem.enabled = false;
         privacyPanelItem.enabled = false;
+
+        if (initLowPriorityItemsPromise) {
+          initLowPriorityItemsPromise.then(function(items) {
+            Object.keys(items).forEach((key) => items[key].enabled = false);
+          });
+        }
       }
     });
   };
