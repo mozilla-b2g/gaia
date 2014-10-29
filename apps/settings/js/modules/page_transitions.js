@@ -59,26 +59,19 @@ define(function() {
 
       newPanel.addEventListener('transitionend', function paintWait() {
         newPanel.removeEventListener('transitionend', paintWait);
+        if (oldPanel) {
+          _sendPanelReady('#' + oldPanel.id, '#' + newPanel.id);
 
-        // We need to wait for the next tick otherwise gecko gets confused
-        setTimeout(function nextTick() {
-          if (oldPanel) {
-            _sendPanelReady('#' + oldPanel.id, '#' + newPanel.id);
-
-            // Bug 818056 - When multiple visible panels are present,
-            // they are not painted correctly. This appears to fix the issue.
-            // Only do this after the first load
-            if (oldPanel.className === 'current') {
-              return;
-            }
-          } else {
-            _sendPanelReady(null, '#' + newPanel.id);
+          if (oldPanel.className === 'current') {
+            return;
           }
+        } else {
+          _sendPanelReady(null, '#' + newPanel.id);
+        }
 
-          if (callback) {
-            callback();
-          }
-        });
+        if (callback) {
+          callback();
+        }
       });
     },
 

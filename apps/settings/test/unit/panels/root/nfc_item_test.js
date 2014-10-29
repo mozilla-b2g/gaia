@@ -39,18 +39,6 @@ suite('NFCItem', function() {
     window.navigator.mozNfc = realMozNfc;
   });
 
-  test('is hidden if mozNfc is undefined', function() {
-    delete window.navigator.mozNfc;
-
-    var nfcItem = this.NFCItem({
-      nfcMenuItem: this.div,
-      nfcCheckBox: this.checkbox
-    });
-
-    assert.isTrue(this.div.hidden, 'hidden');
-    assert.isUndefined(nfcItem._checkbox, 'checkbox');
-  });
-
   test('is visible and initialized if mozNfc defined', function() {
     var stubObserver = this.sinon.stub(this.MockSettingsListener, 'observe');
     var stubAddListener = this.sinon.stub(this.checkbox, 'addEventListener');

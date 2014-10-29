@@ -52,6 +52,7 @@ define(function(require) {
         this._enabled = value;
       }
       if (value) { //observe
+        this._elements.usbEnabledCheckBox.disabled = false;
         // ums master switch on root panel
         this._elements.usbEnabledCheckBox.addEventListener('change', this);
 
