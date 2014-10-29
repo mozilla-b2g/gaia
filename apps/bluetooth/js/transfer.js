@@ -10,7 +10,7 @@ navigator.mozL10n.once(function showPanel() {
   var defaultAdapter = null;
   var activity = null;
   var sendingFilesSchedule = {};
-  var _debug = false;
+  var _debug = true;
 
   navigator.mozSetMessageHandler('activity', function handler(activityRequest) {
     activity = activityRequest;
@@ -202,11 +202,13 @@ navigator.mozL10n.once(function showPanel() {
       } else {
         // The blob does not have name,
         // browse the file via filepath from storage again.
-        var filepath = activity.source.data.filepaths[index];
+        // var filepath = activity.source.data.filepaths[index];
+        var filepath = 'Unknown_path';
         var storage = navigator.getDeviceStorage('sdcard');
         var getRequest = storage.get(filepath);
 
         getRequest.onsuccess = function() {
+          console.log('--> sending.. getRequest.result = ' + getRequest.result);
           defaultAdapter.sendFile(targetDevice.address, getRequest.result);
           var msg = 'getFile succeed & file is sending...';
           debug(msg);
@@ -216,6 +218,7 @@ navigator.mozL10n.once(function showPanel() {
         };
 
         getRequest.onerror = function() {
+          console.log('--> sending.. blob = ' + blob + ' without name');
           defaultAdapter.sendFile(targetDevice.address, blob);
           var msg = 'getFile failed so that blob is sending without filename ' +
                     getRequest.error && getRequest.error.name;
