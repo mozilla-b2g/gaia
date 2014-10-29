@@ -17,7 +17,7 @@ var HtmlImports = {
     if (!imports.length) {
       resultPromise = Promise.resolve();
       resultPromise.then(callback);
-      return;
+      return resultPromise;
     }
 
     resultPromise = Promise.all(

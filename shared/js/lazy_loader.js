@@ -110,7 +110,6 @@ var LazyLoader = (function() {
       var resultPromise = Promise.all(
         files.map((file) => {
           if (this._loaded[file.id || file]) {
-            perFileCallback(file);
             return Promise.resolve();
           } else if (this._isLoading[file]) {
             return this._isLoading[file].then(() => perFileCallback(file));

@@ -1,6 +1,4 @@
-/* global
-  LazyLoader
- */
+/* global LazyLoader */
 
 'use strict';
 
