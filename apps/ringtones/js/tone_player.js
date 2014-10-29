@@ -80,12 +80,13 @@ TonePlayer.prototype = {
   },
 
   /**
-   * Stop playing the current tone (if any).
+   * Stop playing the current tone (if any). If we start playing it again,
+   * setTone will reset the current time to 0. Note: even though we're stopping,
+   * we don't want to clear the player's src URL, since we might need that to
+   * restart playback of the same song.
    */
   stop: function() {
     this._player.pause();
-    this._player.removeAttribute('src');
-    this._player.load();
   },
 
   /**
@@ -115,27 +116,25 @@ TonePlayer.prototype = {
 
   /**
    * Creates an AudioContext with "ringer" priority to stop any background audio
-   * from playing once we've started previewing ringtones, or destroy the
+   * from playing once we've started previewing ringtones, or destroys the
    * context.
    *
-   * @param {Boolean} exclusive true to create the AudioContext,
-   *   false to destroy.
+   * @param {Boolean} exclusive true to create the AudioContext, false to
+   *   destroy.
    */
   _setExclusiveMode: function(exclusive) {
     if (exclusive) {
-      // XXX: This is because bug 1043762 (comment 41). Sucesive calls to new
-      // AudioContext() return the same context with the same graph so we do
-      // nothing here instead of creating a new context.
-      if (this._source) {
-        return;
+      if (!this._source) {
+        this._context = new AudioContext('ringer');
+        this._source = this._context.createMediaElementSource(this._player);
+        this._source.connect(this._context.destination);
       }
-      this._context = new AudioContext('ringer');
-      this._source = this._context.createMediaElementSource(this._player);
-      this._source.connect(this._context.destination);
     } else {
-      this._source.disconnect();
-      this._context = null;
-      this._source = null;
+      if (this._source) {
+        this._source.disconnect();
+        this._context = null;
+        this._source = null;
+      }
     }
   }
 };
