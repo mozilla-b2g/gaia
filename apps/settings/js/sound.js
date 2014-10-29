@@ -26,8 +26,7 @@
     Array.prototype.forEach.call(sliders, function(slider, index) {
       var channelType = channelTypes[index];
       var channelKey = 'audio.volume.' + channelType;
-      // The default volume is 15(MAX).
-      var previous = 15;
+      var previous = null;
       var isTouching = false;
       var isFirstInput = false;
       var interval = 500;
@@ -44,6 +43,10 @@
         // once the value is set.
         if (slider.style.opacity !== 1) {
           slider.style.opacity = 1;
+        }
+
+        if (previous === null) {
+          previous = value;
         }
       }
 
