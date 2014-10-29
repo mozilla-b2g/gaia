@@ -195,6 +195,40 @@
     }
   }
 
+  navigator.mozContacts.oncontactchange = function oncontactchange(event) {
+    var reason = event.reason;
+    var options = {
+      filterBy: ['id'],
+      filterOp: 'equals',
+      filterValue: event.contactID
+    };
+
+    if (reason === 'remove') {
+      CallLogDBManager.removeGroupContactInfo(event.contactID, null);
+      return;
+    }
+
+    var request = navigator.mozContacts.find(options);
+    request.onsuccess = function contactRetrieved(e) {
+      if (!e.target.result || e.target.result.length === 0) {
+        console.warn('Call log: No Contact Found: ', event.contactID);
+        return;
+      }
+
+      var contact = e.target.result[0];
+      if (reason === 'update' || reason === 'create') {
+        var matchingTel = contact.tel;
+        matchingTel.forEach(function (phoneNumber){
+          CallLogDBManager.updateGroupContactInfo(contact, phoneNumber);
+        });
+      }
+    };
+
+    request.onerror = function errorHandler(e) {
+      console.error('Error retrieving contact by ID ' + event.contactID);
+    };
+  };
+
   function initListeners() {
     detailsButton = document.getElementById('call-info-details');
     detailsButton.addEventListener('click', viewContact);
@@ -263,6 +297,7 @@
           .then(updateView);
 
         window.addEventListener('CallLogDbNewCall', updateViewIfNeeded);
+        window.addEventListener('CallLogEntryModified', updateViewIfNeeded);
       });
     }
   };

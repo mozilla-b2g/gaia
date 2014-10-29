@@ -43,6 +43,7 @@ var MockContacts = {
   findListByNumber: function cm_getContactData(number, maxitems, callback) {
     callback(this.mResult);
   },
+  find: function() {},
   mId: 'id',
   mPhoto: null,
   mName: null,

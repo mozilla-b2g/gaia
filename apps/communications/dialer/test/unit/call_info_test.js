@@ -1,7 +1,7 @@
 'use strict';
 
 /* globals CallInfo, CallLogDBManager, MockL10n, MocksHelper, Utils, LazyLoader,
-           MockContactsButtons */
+           MockContactsButtons, MockContacts */
 
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -538,6 +538,73 @@ suite('Call Info', function(argument) {
         groupReturn.contact.id + '&tel=' + groupReturn.number +
         '&back_to_previous_tab=1';
         assert.include(contactsIframe.src, url);
+      });
+    });
+  });
+
+  suite('Update a contact', function() {
+    var detailsButton;
+    var addToContactButton;
+    var createContactButton;
+    var realContacts;
+
+    var contact = {
+      id: 'id',
+      name: ['test name'],
+      givenName: ['test givenName'],
+      tel: [{
+        value: '54321',
+        carrier: 'carrier',
+        type: 'type'
+      }],
+      photo: ['test']
+    };
+
+    suiteSetup(function() {
+      realContacts = navigator.mozContacts;
+      navigator.mozContacts = MockContacts;
+    });
+
+    suiteTeardown(function() {
+      navigator.mozContacts = realContacts;
+    });
+
+    setup(function() {
+      this.sinon.stub(navigator.mozContacts, 'find',
+        function mockMozContactsFind() {
+          var req = {
+            set onsuccess(cb) {
+              var evt = {
+                target: {}
+              };
+              evt.target.result = [contact];
+              cb.call(this, evt);
+            },
+            set onerror(cb) {}
+          };
+          return req;
+        });
+
+      detailsButton = document.getElementById('call-info-details');
+      addToContactButton = document.getElementById('call-info-add');
+      createContactButton = document.getElementById('call-info-create');
+      this.sinon.useFakeTimers();
+    });
+
+    ['update', 'create'].forEach(function(reason) {
+      test('update call info with contact ' + reason, function() {
+        var contactEvent = {
+          reason: reason,
+          contactID: contact.id
+        };
+
+        realContacts.oncontactchange(contactEvent);
+
+        var titleElt = document.getElementById('call-info-title');
+        assert.equal(titleElt.textContent, contact.givenName);
+        assert.isFalse(detailsButton.hidden);
+        assert.isTrue(addToContactButton.hidden);
+        assert.isTrue(createContactButton.hidden);
       });
     });
   });
