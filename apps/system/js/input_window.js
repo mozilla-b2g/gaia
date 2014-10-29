@@ -163,6 +163,8 @@
 
     if (this.browser.element.setInputMethodActive) {
       this.browser.element.setInputMethodActive(active);
+    } else {
+      console.warn('setInputMethodActive is not available');
     }
 
     if (active) {
