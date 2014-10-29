@@ -137,7 +137,8 @@
                 data: {
                   type: imgblob.type,
                   filename: filename,
-                  blob: imgblob
+                  blob: imgblob,
+                  exitWhenHidden: true
                 }
               });
             };
