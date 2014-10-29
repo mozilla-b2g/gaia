@@ -7,8 +7,10 @@ from gaiatest.apps.gallery.app import Gallery
 from marionette.marionette import Actions
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 import time
+import pdb
 
 class GalleryEditPhotoBase(GaiaImageCompareTestCase):
+    _edit_exposure_button_locator = (By.ID, 'edit-exposure-button')
     _edit_effect_button_locator = (By.ID, 'edit-effect-button')
     _edit_crop_button = (By.ID, 'edit-crop-button')
     _crop_aspect_landscape_button = (By.ID, 'edit-crop-aspect-landscape')
@@ -27,7 +29,7 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
 
         # add photo to storage
         self.push_resource(photo_file,location)
-
+        pdb.set_trace()
         gallery = Gallery(self.marionette)
         gallery.launch()
         gallery.wait_for_files_to_load(1)
@@ -40,9 +42,15 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
         # Tap on Edit button.
         edit_image = image.tap_edit_button()
 
+        #TODO: select brightness option
+        self.marionette.find_element(*self._edit_exposure_button_locator).tap()
+
         # change brightness and capture
         self.move_slider(self._exposure_slider_bar, 250)
         self.invoke_screen_capture()
+
+        #TODO: Press apply
+        edit_image.tap_edit_tool_apply_button()
 
         # do crop and capture
         self.change_orientation('landscape-primary')
@@ -58,7 +66,9 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
         self.change_orientation('portrait-primary')
         self.marionette.find_element(*self._crop_aspect_square_button).tap()
         self.invoke_screen_capture()
-        self.change_orientation('landscape-primary')
+        self.change_orientation('landscape-primary',4)
+        #TODO: Press apply
+        edit_image.tap_edit_tool_apply_button()
 
         # Tap on Effects button.
         edit_image.tap_edit_effects_button()
@@ -75,6 +85,8 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
         self.marionette.find_element(*self._bluesteel_effect_button).tap()
         self.invoke_screen_capture()
         self.change_orientation('landscape-primary')
+        #TODO: Press apply
+        edit_image.tap_edit_tool_apply_button()
 
         # save the resulting picture
         filelist = edit_image.tap_edit_save_button()
