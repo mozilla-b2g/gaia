@@ -7,7 +7,6 @@ from gaiatest.apps.gallery.app import Gallery
 from marionette.marionette import Actions
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 import time
-import pdb
 
 class GalleryEditPhotoBase(GaiaImageCompareTestCase):
     _edit_exposure_button_locator = (By.ID, 'edit-exposure-button')
@@ -29,7 +28,6 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
 
         # add photo to storage
         self.push_resource(photo_file,location)
-        pdb.set_trace()
         gallery = Gallery(self.marionette)
         gallery.launch()
         gallery.wait_for_files_to_load(1)
