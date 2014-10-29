@@ -48,6 +48,7 @@ module.exports = View.extend({
     /*jshint maxlen:false*/
     return '<form role="dialog" data-type="confirm">' +
       '<section>' +
+        '<div class="overlay-image" data-image="' + (data.image || '') + '"></div>' +
         '<h1 class="overlay-title">' + data.title + '</h1>' +
         '<p id="overlay-text">' + data.body + '</p>' +
       '</section>' +
