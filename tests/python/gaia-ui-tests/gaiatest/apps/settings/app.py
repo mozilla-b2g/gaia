@@ -39,6 +39,7 @@ class Settings(Base):
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
     _battery_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
+    _homescreen_menu_item_locator = (By.ID, 'menuItem-homescreen')
 
     def launch(self):
         Base.launch(self)
@@ -180,6 +181,11 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.sim_manager import SimManager
         self._tap_menu_item(self._sim_manager_menu_item_locator)
         return SimManager(self.marionette)
+
+    def open_homescreen_settings(self):
+        from gaiatest.apps.settings.regions.homescreen_settings import HomescreenSettings
+        self._tap_menu_item(self._homescreen_menu_item_locator)
+        return HomescreenSettings(self.marionette)
 
     def _wait_for_menu_item(self, menu_item_locator):
         menu_item = self.marionette.find_element(*menu_item_locator)
