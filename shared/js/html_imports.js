@@ -12,51 +12,57 @@ var HtmlImports = {
    * parsed by lazy_loader
    */
   populate: function(callback) {
+    var resultPromise;
     var imports = document.querySelectorAll('link[rel="import"]');
     if (!imports.length) {
+      resultPromise = Promise.resolve();
+      resultPromise.then(callback);
       return;
     }
 
-    var pending = imports.length;
+    resultPromise = Promise.all(
+      Array.prototype.map.call(imports, function perImport(eachImport) {
+        return this.getImportContent(eachImport.href).then((content) => {
+          // Mapping of all custom element templates
+          var elementTemplates = {};
+          var elementRoot = document.createElement('div');
+          elementRoot.innerHTML = content;
+          var elements = elementRoot.querySelectorAll('element');
 
-    Array.prototype.forEach.call(imports, function perImport(eachImport) {
-      this.getImportContent(eachImport.href, function gotContent(content) {
-        // Mapping of all custom element templates
-        var elementTemplates = {};
-        var elementRoot = document.createElement('div');
-        elementRoot.innerHTML = content;
-        var elements = elementRoot.querySelectorAll('element');
-
-        for (var i = 0, iLen = elements.length; i < iLen; i++) {
-          var element = elements[i];
-          var template = element.querySelector('template');
-          elementTemplates[element.getAttribute('name')] = template.innerHTML;
-        }
-
-        var replaceableElements = document.querySelectorAll('*[is]');
-        Array.prototype.forEach.call(replaceableElements, function _each(el) {
-          if (elementTemplates[el.getAttribute('is')]) {
-            el.innerHTML = elementTemplates[el.getAttribute('is')];
-            el.removeAttribute('is');
+          for (var i = 0, iLen = elements.length; i < iLen; i++) {
+            var element = elements[i];
+            var template = element.querySelector('template');
+            elementTemplates[element.getAttribute('name')] = template.innerHTML;
           }
+
+          var replaceableElements = document.querySelectorAll('*[is]');
+          Array.prototype.forEach.call(replaceableElements, function _each(el) {
+            if (elementTemplates[el.getAttribute('is')]) {
+              el.innerHTML = elementTemplates[el.getAttribute('is')];
+              el.removeAttribute('is');
+            }
+          });
         });
-        if (!(--pending)) {
-          callback();
-        }
-      });
-    }, this);
+      }, this)
+    ).then(() => {});
+    resultPromise.then(callback);
+    return resultPromise;
   },
 
-  getImportContent: function(path, callback) {
+  getImportContent: function(path) {
     // bail out if the imported resource isn't in the same origin
     var parsedURL = new URL(path, location.href);
     if (parsedURL.origin !== location.origin) { return; }
     var xhr = new XMLHttpRequest();
-    xhr.onload = function(o) {
-      callback(xhr.responseText);
-    };
+    var promise = new Promise(resolve => {
+      xhr.onload = function(o) {
+        resolve(xhr.responseText);
+      };
+    });
     xhr.open('GET', path, true);
     xhr.send();
+
+    return promise;
   }
 };
 
