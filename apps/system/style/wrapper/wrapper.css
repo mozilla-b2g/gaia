@@ -26,7 +26,7 @@
   top: calc(var(--statusbar-height) + 4.4rem);
 }
 
-.chrome.dragged gaia-progress.visible {
+.chrome gaia-progress.visible {
   visibility: visible;
 }
 

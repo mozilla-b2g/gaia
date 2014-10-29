@@ -79,6 +79,13 @@ DefaultTargetHandler.prototype.doubleTap = function() {
   this.app.console.log('DefaultTargetHandler.doubleTap()');
   this.commit();
 };
+DefaultTargetHandler.prototype.newTargetActivate = function() {
+  // According to UX requirement, the current target need to be committed when
+  // there is a new press. We will have to commit ourselves here.
+  this.commit();
+  // Ignore addition calls on commit().
+  this.ignoreCommitActions = true;
+};
 
 var NullTargetHandler = function(target, app) {
   DefaultTargetHandler.apply(this, arguments);
@@ -109,6 +116,12 @@ var CandidateSelectionTargetHandler = function(target, app) {
 CandidateSelectionTargetHandler.prototype =
   Object.create(DefaultTargetHandler.prototype);
 CandidateSelectionTargetHandler.prototype.commit = function() {
+  if (this.ignoreCommitActions) {
+    this.app.console.log(
+      'CandidateSelectionTargetHandler.commit()::return early');
+    return;
+  }
+
   this.app.candidatePanelManager.hideFullPanel();
 
   // We use the target's data instead of target.text because the
@@ -174,6 +187,8 @@ BackspaceTargetHandler.prototype.moveIn = function() {
 
 BackspaceTargetHandler.prototype.commit = function() {
   if (this.ignoreCommitActions) {
+    this.app.console.log(
+      'BackspaceTargetHandler.commit()::return early');
     return;
   }
 
@@ -198,6 +213,12 @@ var CompositeTargetHandler = function(target, app) {
 CompositeTargetHandler.prototype =
   Object.create(DefaultTargetHandler.prototype);
 CompositeTargetHandler.prototype.commit = function() {
+  if (this.ignoreCommitActions) {
+    this.app.console.log(
+      'CompositeTargetHandler.commit()::return early');
+    return;
+  }
+
   // Keys with this attribute set send more than a single character
   // Like ".com" or "2nd" or (in Catalan) "l·l".
   var compositeString = this.target.compositeKey;
@@ -215,6 +236,12 @@ var PageSwitchingTargetHandler = function(target, app) {
 PageSwitchingTargetHandler.prototype =
   Object.create(DefaultTargetHandler.prototype);
 PageSwitchingTargetHandler.prototype.commit = function() {
+  if (this.ignoreCommitActions) {
+    this.app.console.log(
+      'PageSwitchingTargetHandler.commit()::return early');
+    return;
+  }
+
   var page = this.target.targetPage;
 
   this.app.setLayoutPage(page);
@@ -229,13 +256,38 @@ PageSwitchingTargetHandler.prototype.commit = function() {
 
 var CapsLockTargetHandler = function(target, app) {
   DefaultTargetHandler.apply(this, arguments);
+
+  this.isPreviouslyUpperCase = undefined;
 };
 CapsLockTargetHandler.prototype = Object.create(DefaultTargetHandler.prototype);
-CapsLockTargetHandler.prototype.commit = function() {
+CapsLockTargetHandler.prototype.isNewTargetActivated = false;
+CapsLockTargetHandler.prototype.activate = function() {
+  this.isPreviouslyUpperCase = this.app.upperCaseStateManager.isUpperCase;
+
+  // Switch to upperCaseLocked state so all combo presses will be upper caps
   this.app.upperCaseStateManager.switchUpperCaseState({
-    isUpperCase: !this.app.upperCaseStateManager.isUpperCase,
-    isUpperCaseLocked: false
+    isUpperCaseLocked: true
   });
+
+  this.app.feedbackManager.triggerFeedback(this.target);
+  this.app.visualHighlightManager.show(this.target);
+};
+CapsLockTargetHandler.prototype.commit = function() {
+  if (this.isNewTargetActivated) {
+    // If the user have ever tap any other keys (i.e. combo keys),
+    // we should go back to lower case regardless.
+    this.app.upperCaseStateManager.switchUpperCaseState({
+      isUpperCase: false,
+      isUpperCaseLocked: false
+    });
+  } else {
+    // Depend on the previous upper case state, single tap should allow user
+    // switch between upper case and lower case.
+    this.app.upperCaseStateManager.switchUpperCaseState({
+      isUpperCase: !this.isPreviouslyUpperCase,
+      isUpperCaseLocked: false
+    });
+  }
   this.app.visualHighlightManager.hide(this.target);
 };
 CapsLockTargetHandler.prototype.doubleTap = function() {
@@ -243,6 +295,9 @@ CapsLockTargetHandler.prototype.doubleTap = function() {
     isUpperCaseLocked: true
   });
   this.app.visualHighlightManager.hide(this.target);
+};
+CapsLockTargetHandler.prototype.newTargetActivate = function() {
+  this.isNewTargetActivated = true;
 };
 
 var SwitchKeyboardTargetHandler = function(target, app) {
@@ -273,6 +328,12 @@ var ToggleCandidatePanelTargetHandler = function(target, app) {
 ToggleCandidatePanelTargetHandler.prototype =
   Object.create(DefaultTargetHandler.prototype);
 ToggleCandidatePanelTargetHandler.prototype.commit = function() {
+  if (this.ignoreCommitActions) {
+    this.app.console.log(
+      'ToggleCandidatePanelTargetHandler.commit()::return early');
+    return;
+  }
+
   this.app.candidatePanelManager.toggleFullPanel();
 
   this.app.visualHighlightManager.hide(this.target);
@@ -284,6 +345,12 @@ var DismissSuggestionsTargetHandler = function(target, app) {
 DismissSuggestionsTargetHandler.prototype =
   Object.create(DefaultTargetHandler.prototype);
 DismissSuggestionsTargetHandler.prototype.commit = function() {
+  if (this.ignoreCommitActions) {
+    this.app.console.log(
+      'DismissSuggestionsTargetHandler.commit()::return early');
+    return;
+  }
+
   var engine = this.app.inputMethodManager.currentIMEngine;
   if (typeof engine.dismissSuggestions === 'function') {
     engine.dismissSuggestions();

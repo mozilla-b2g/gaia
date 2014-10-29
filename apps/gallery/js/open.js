@@ -46,6 +46,13 @@ navigator.mozL10n.once(function() {
       frame.container.addEventListener('swipe', handleSwipe);
 
       window.addEventListener('resize', frame.resize.bind(frame));
+      if (activityData.exitWhenHidden) {
+        window.addEventListener('visibilitychange', function() {
+          if (document.hidden) {
+            done();
+          }
+        });
+      }
 
       // Report errors if we're passed an invalid image
       frame.onerror = function invalid() {

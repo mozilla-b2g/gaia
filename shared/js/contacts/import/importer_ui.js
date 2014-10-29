@@ -540,6 +540,13 @@ if (typeof window.importer === 'undefined') {
     Importer.friendsReady = function(response) {
       if (typeof response.error === 'undefined') {
         var lmyFriends = response.data;
+
+        if (lmyFriends.length === 0) {
+          showNoFriends(function() {
+            Curtain.hide(UI.end);
+          });
+          return;
+        }
         // Notifying the connector
         if (typeof serviceConnector.oncontactsloaded === 'function') {
           serviceConnector.oncontactsloaded(lmyFriends);
@@ -589,6 +596,34 @@ if (typeof window.importer === 'undefined') {
         } // else
       } // else
     };
+
+    function showNoFriends(callback) {
+      var dialog = parent.document.getElementById('confirmation-message');
+      parent.LazyLoader.load(dialog, function() {
+        LazyLoader.load('/shared/js/confirm.js', function() {
+          ConfirmDialog.show(null, 'emptyAccount',
+          {
+            title: 'ok',
+            isRecommend: true,
+            callback: function() {
+              ConfirmDialog.hide();
+              if(typeof callback === 'function') {
+                callback();
+              }
+            }
+          },
+          null,
+          {
+            zIndex: '10000'
+          });
+          
+          // Only for unit testing purposes
+          if (typeof startCallback === 'function') {
+            window.setTimeout(startCallback, 0);
+          }
+        });
+      }); 
+    }
 
     function cancelImport() {
       cancelled = true;

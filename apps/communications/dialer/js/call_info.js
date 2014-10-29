@@ -1,7 +1,7 @@
 'use strict';
 
 /* global CallLogDBManager, LazyLoader, MozActivity, Utils, ContactsButtons,
-          Contacts */
+          Contacts, SimplePhoneMatcher */
 
 (function(exports) {
   var currentGroup;
@@ -109,10 +109,37 @@
   }
 
   function renderPhones(group, contact) {
-    ContactsButtons.renderPhones(contact);
-    var remark = isMissedCall(group) ? 'remark-missed' : 'remark';
-    ContactsButtons.reMark(
-      'tel', group.number || group.contact.matchingTel.number, remark);
+    var contactTels = contact.tel.map(function(tel) {
+      return tel.value;
+    });
+
+    if (!contactTels.some((tel) => tel != null)) {
+      return;
+    }
+
+    LazyLoader.load(['/shared/js/simple_phone_matcher.js'], function() {
+      ContactsButtons.renderPhones(contact);
+
+      // Highlight the contact number that the call info page was opened for,
+      // with a color depending on whether the call was missed or not.
+      var remark = isMissedCall(group) ? 'remark-missed' : 'remark';
+
+      var groupTel = SimplePhoneMatcher.sanitizedNumber(
+        group.number || group.contact.matchingTel.number);
+      var groupTelVariants = SimplePhoneMatcher.generateVariants(groupTel);
+
+      // SimplePhoneMatch expects a series of contacts, so we pass it an array
+      // containing only the relevant contact.
+      contactTels = [contactTels];
+
+      var matchingTels = SimplePhoneMatcher.bestMatch(groupTelVariants,
+                                                      contactTels);
+      var matchingTel = {value: ''};
+      if (matchingTels.totalMatchNum) {
+        matchingTel = contact.tel[matchingTels.allMatches[0][0]];
+      }
+      ContactsButtons.reMark('tel', matchingTel.value, remark);
+    });
   }
 
   function updateActionButtons(group) {

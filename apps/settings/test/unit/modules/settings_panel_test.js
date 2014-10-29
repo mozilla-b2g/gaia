@@ -1,15 +1,5 @@
 'use strict';
 
-mocha.setup({
-  globals: [
-    'Settings',
-    'Root',
-    'MockL10n',
-    'LazyLoader',
-    'initLocale'
-  ]
-});
-
 suite('SettingsPanel', function() {
   suiteSetup(function(done) {
     testRequire([

@@ -1,25 +1,5 @@
 'use strict';
 
-mocha.setup({
-  globals: [
-    'PerformanceTestingHelper',
-    'asyncStorage',
-    'LazyL10n',
-    'BlobView',
-    'parseJPEGMetadata',
-    'getVideoRotation',
-    'Format',
-    'VideoPlayer',
-    'GestureDetector',
-    'debug',
-    'CONFIG_AVG_JPEG_COMPRESSION_RATIO',
-    'MediaFrame',
-    'confirm',
-    'MozActivity',
-    'CustomDialog'
-  ]
-});
-
 // Shim for non FXOS environments
 if (!navigator.getDeviceStorage) {
   navigator.getDeviceStorage = function() {};

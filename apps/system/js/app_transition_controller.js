@@ -247,7 +247,8 @@
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.
-      if (this.app.isHomescreen) {
+      if (this.app.isHomescreen ||
+          this.app.isCallscreenWindow) {
         this.app.setOrientation();
       }
     };
@@ -266,7 +267,7 @@
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.
-      if (!this.app.isAttentionWindow && !this.app.isCallscreenWindow) {
+      if (!this.app.isCallscreenWindow) {
         this.app.setOrientation();
       }
       this.focusApp();

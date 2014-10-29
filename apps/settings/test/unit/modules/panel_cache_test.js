@@ -1,13 +1,5 @@
 'use strict';
 
-mocha.setup({
-  globals: [
-    'Settings',
-    'LazyLoader',
-    'initLocale'
-  ]
-});
-
 suite('PanelCache', function() {
   suiteSetup(function(done) {
     navigator.addIdleObserver = sinon.spy();

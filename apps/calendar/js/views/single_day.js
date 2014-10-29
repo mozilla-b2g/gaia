@@ -4,7 +4,6 @@ define(function(require, exports, module) {
 var Overlap = require('utils/overlap');
 var dateFormat = require('date_format');
 var dayObserver = require('day_observer');
-var isAllDay = require('calc').isAllDay;
 var relativeDuration = require('calc').relativeDuration;
 var relativeOffset = require('calc').relativeOffset;
 
@@ -80,19 +79,11 @@ SingleDay.prototype = {
   _render: function(records) {
     // we always remove all elements and then again since it's simpler and we
     // should not have that many busytimes on a single day.
+    this._alldayEvents.innerHTML = '';
+    records.allday.forEach(this._renderAlldayEvent, this);
     this.overlaps.reset();
     this.day.innerHTML = '';
-    this._alldayEvents.innerHTML = '';
-    records.forEach(this._renderRecord, this);
-  },
-
-  _renderRecord: function(record) {
-    var {startDate, endDate} = record.busytime;
-    if (isAllDay(startDate, endDate)) {
-      this._renderAlldayEvent(record);
-    } else {
-      this._renderEvent(record);
-    }
+    records.events.forEach(this._renderEvent, this);
   },
 
   _renderEvent: function(record) {

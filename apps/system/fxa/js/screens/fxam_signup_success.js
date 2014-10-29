@@ -20,7 +20,7 @@ var FxaModuleSignupSuccess = (function() {
 
     var willSendText = navigator.mozL10n.get('fxa-will-send-email');
     willSendText = willSendText.replace(
-      '{{email}}',
+      /{{\s*email\s*}}/,
       '<strong>' + options.email + '</strong>'
     );
     this.fxaWillSendEmail.innerHTML = willSendText;

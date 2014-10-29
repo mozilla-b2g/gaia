@@ -1,5 +1,4 @@
 'use strict';
-mocha.setup({ globals: ['GestureDetector'] });
 
 suite('Picker', function() {
   var Picker, Spinner;

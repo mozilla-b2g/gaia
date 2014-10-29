@@ -1,7 +1,8 @@
 'use strict';
 
 /* globals CallInfo, CallLogDBManager, MockL10n, MocksHelper, Utils, LazyLoader,
-           MockContactsButtons */
+           MockContactsButtons, MockSimplePhoneMatcher,
+           MockSimplePhoneMatcherBestMatches */
 
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -10,6 +11,7 @@ require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/contacts/mock_contacts_buttons.js');
+require('/shared/test/unit/mocks/mock_simple_phone_matcher.js');
 
 require('/dialer/js/call_info.js');
 
@@ -19,7 +21,8 @@ var mocksHelperForCallInfoView = new MocksHelper([
   'MozActivity',
   'Utils',
   'ContactsButtons',
-  'Contacts'
+  'Contacts',
+  'SimplePhoneMatcher'
 ]).init();
 
 suite('Call Info', function(argument) {
@@ -31,12 +34,7 @@ suite('Call Info', function(argument) {
   var phoneDetailsHTML;
   var emailDetailsHTML;
 
-  var groupReturn = {
-    number: '12345',
-    date: 1,
-    type: 'incoming',
-  };
-
+  var groupReturn;
   var fakeNumber = '12345';
   var fakeDate = '1';
   var fakeType = 'incoming';
@@ -96,6 +94,12 @@ suite('Call Info', function(argument) {
   });
 
   setup(function() {
+    groupReturn = {
+      number: '12345',
+      date: 1,
+      type: 'incoming',
+    };
+
     this.sinon.stub(CallLogDBManager, 'getGroup').returns({
       then: function(callback) {
         callback(groupReturn);
@@ -192,15 +196,40 @@ suite('Call Info', function(argument) {
         }],
         photo: ['test']
       };
-      var oldContact = groupReturn.contact;
       groupReturn.contact = contact;
       initCallInfo();
-      groupReturn.contact = oldContact;
 
       sinon.assert.calledWith(MockContactsButtons.renderPhones,
                               expectedContact);
       sinon.assert.calledWith(MockContactsButtons.renderEmails,
                               expectedContact);
+    });
+
+    ['+112345', '012345', '12345,,,'].forEach(function(number) {
+      test('with contact, matches phones correctly with number ' + number,
+      function() {
+        fakeNumber = '12345';
+
+        this.sinon.stub(MockSimplePhoneMatcher, 'bestMatch').returns(
+          new MockSimplePhoneMatcherBestMatches());
+
+        var contact = {
+          matchingTel: {
+            number: fakeNumber
+          }
+        };
+
+        this.sinon.spy(MockContactsButtons, 'reMark');
+
+        groupReturn.contact = contact;
+        groupReturn.type = 'outgoing';
+        groupReturn.number = number;
+
+        initCallInfo();
+
+        sinon.assert.calledWith(MockContactsButtons.reMark,
+                                'tel', fakeNumber, 'remark');
+      });
     });
 
     test('clears buttons before each render', function(done) {
@@ -223,12 +252,13 @@ suite('Call Info', function(argument) {
     });
 
     test('should highlight selected number as not missed', function() {
+      this.sinon.stub(MockSimplePhoneMatcher, 'bestMatch').returns(
+        new MockSimplePhoneMatcherBestMatches());
+
       this.sinon.spy(MockContactsButtons, 'reMark');
 
-      var oldType = groupReturn.type;
-      groupReturn.type = 'not-incoming';
+      groupReturn.type = 'outgoing';
       initCallInfo();
-      groupReturn.type = oldType;
 
       sinon.assert.calledWith(MockContactsButtons.reMark,
                               'tel', fakeNumber, 'remark');
@@ -236,30 +266,28 @@ suite('Call Info', function(argument) {
 
     test('should highlight selected and incoming number as not missed',
     function() {
+      this.sinon.stub(MockSimplePhoneMatcher, 'bestMatch').returns(
+        new MockSimplePhoneMatcherBestMatches());
+
       this.sinon.spy(MockContactsButtons, 'reMark');
 
-      var oldType = groupReturn.type;
-      var oldStatus = groupReturn.status;
       groupReturn.type = 'incoming';
       groupReturn.status = 'connected';
       initCallInfo();
-      groupReturn.type = oldType;
-      groupReturn.status = oldStatus;
 
       sinon.assert.calledWith(MockContactsButtons.reMark,
                               'tel', fakeNumber, 'remark');
     });
 
     test('should highlight selected and missed number as missed', function() {
+      this.sinon.stub(MockSimplePhoneMatcher, 'bestMatch').returns(
+        new MockSimplePhoneMatcherBestMatches());
+
       this.sinon.spy(MockContactsButtons, 'reMark');
 
-      var oldType = groupReturn.type;
-      var oldStatus = groupReturn.status;
       groupReturn.type = 'incoming';
-      groupReturn.status = 'not-connected';
+      groupReturn.status = 'connecting';
       initCallInfo();
-      groupReturn.type = oldType;
-      groupReturn.status = oldStatus;
 
       sinon.assert.calledWith(MockContactsButtons.reMark,
                               'tel', fakeNumber, 'remark-missed');
@@ -318,10 +346,6 @@ suite('Call Info', function(argument) {
         CallInfo.show(fakeNumber, fakeDate, fakeType, fakeStatus);
       });
 
-      teardown(function() {
-        groupReturn.emergency = false;
-      });
-
       test('view title is set', function() {
         var callInfoTitle = document.getElementById('call-info-title');
         assert.equal(callInfoTitle.getAttribute('data-l10n-id'),
@@ -338,11 +362,6 @@ suite('Call Info', function(argument) {
         previousType = groupReturn.type;
         previousStatus = groupReturn.status;
         classList = document.getElementById('call-info-direction').classList;
-      });
-
-      teardown(function() {
-        groupReturn.type = previousType;
-        groupReturn.status = previousStatus;
       });
 
       ['dialing', 'alerting'].forEach(function(type) {
@@ -393,10 +412,6 @@ suite('Call Info', function(argument) {
       this.sinon.clock.tick();
     });
 
-    teardown(function() {
-      delete groupReturn.calls;
-    });
-
     test('creates three rows', function() {
       var rows = document.getElementsByClassName('call-duration');
       assert.equal(rows.length, 3);
@@ -424,10 +439,6 @@ suite('Call Info', function(argument) {
 
       setup(function() {
         previousType = groupReturn.type;
-      });
-
-      teardown(function() {
-        groupReturn.type = previousType;
       });
 
       test('canceled calls', function() {
@@ -520,10 +531,6 @@ suite('Call Info', function(argument) {
         this.sinon.useFakeTimers();
       });
 
-      teardown(function() {
-        delete groupReturn.contact;
-      });
-
       test('only contact details is displayed', function() {
         assert.isFalse(detailsButton.hidden);
         assert.isTrue(addToContactButton.hidden);
@@ -551,10 +558,6 @@ suite('Call Info', function(argument) {
       CallInfo.show(fakeNumber, fakeDate, fakeType, fakeStatus);
     });
 
-    teardown(function() {
-      delete groupReturn.contact;
-    });
-
     test('view title is set', function() {
       var callInfoTitle = document.getElementById('call-info-title');
       assert.equal(callInfoTitle.textContent, groupReturn.contact.primaryInfo);
@@ -562,10 +565,6 @@ suite('Call Info', function(argument) {
   });
 
   suite('Updates after call log db updates', function() {
-    teardown(function() {
-      groupReturn.calls = [];
-    });
-
     test('adds a new call', function() {
       groupReturn.calls = [
         {date: 123, duration: 0}

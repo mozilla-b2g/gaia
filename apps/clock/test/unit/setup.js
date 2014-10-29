@@ -33,8 +33,3 @@ requireApp('clock/js/alameda.js', () => {
     }
   });
 });
-
-mocha.setup({
-  globals: ['Template', 'asyncStorage', 'GestureDetector',
-            'PerformanceTestingHelper', 'AccessibilityHelper']
-});

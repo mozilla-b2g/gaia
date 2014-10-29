@@ -1,4 +1,4 @@
-/*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
+/*global MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
          MockOptionMenu, Utils, Contacts, MockContact, Navigation,
@@ -8,10 +8,6 @@
          */
 
 'use strict';
-
-// remove this when https://github.com/visionmedia/mocha/issues/819 is merged in
-// mocha and when we have that new mocha in test agent
-mocha.setup({ globals: ['alert', 'confirm'] });
 
 requireApp('sms/js/utils.js');
 require('/js/dialog.js');
