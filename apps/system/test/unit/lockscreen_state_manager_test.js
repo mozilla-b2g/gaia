@@ -33,12 +33,14 @@ suite('system/LockScreenStateManager', function() {
     window.LockScreenStateSlideShow =
     window.LockScreenStateSlideHide =
     window.LockScreenStatePanelHide =
+    window.LockScreenStateUnlock =
     window.LockScreenStateKeypadShow =
     window.LockScreenStateKeypadHiding =
     window.LockScreenStateKeypadRising = mockState;
 
     window.LockScreenStateSlideShow.type = 'slideShow';
     window.LockScreenStatePanelHide.type = 'panelHide';
+    window.LockScreenStateUnlock.type = 'unlock';
     window.LockScreenStateKeypadShow.type = 'keypadShow';
     window.LockScreenStateKeypadHiding.type = 'keypadHiding';
     window.LockScreenStateKeypadRising.type = 'keypadRising';
@@ -267,27 +269,6 @@ suite('system/LockScreenStateManager', function() {
         'the state wasn\'t transferred from keypadHiding to slideShow');
     });
 
-    test('When it unlock with passcode, hide all panel with animation.',
-    function(done) {
-      this.sinon.stub(subject.states.keypadHiding, 'transferTo',
-        function() {
-          // This would be the next step of 'transferOut'.
-          done();
-        });
-      var states = {
-        passcodeEnabled: true,
-        screenOn: true,
-        unlocking: true
-      };
-      subject.previousState = {
-        transferOut: this.sinon.stub().returns(Promise.resolve()),
-        type: 'keypadShow'
-      };
-      subject.transfer(states);
-      assert.isTrue(subject.previousState.transferOut.called,
-        'the state wasn\'t transferred from keypadShow to keypadHiding');
-    });
-
     test('When the animation done, show no panel for unlocking.',
     function(done) {
       this.sinon.stub(subject.states.panelHide, 'transferTo',
@@ -310,7 +291,29 @@ suite('system/LockScreenStateManager', function() {
         'the state wasn\'t transferred from keypadHiding to panelHide');
     });
 
-    test('When user input the correct key code, hide the pad.',
+    test('When passcode validated, transfer to keypadHide',
+    function(done) {
+      this.sinon.stub(subject.states.keypadHiding, 'transferTo',
+        function() {
+          // This would be the next step of 'transferOut'.
+          done();
+        });
+      var states = {
+        passcodeEnabled: true,
+        passcodeValidated: true,
+        screenOn: true,
+        unlocking: true
+      };
+      subject.previousState = {
+        transferOut: this.sinon.stub().returns(Promise.resolve()),
+        type: 'keypadShow'
+      };
+      subject.transfer(states);
+      assert.isTrue(subject.previousState.transferOut.called,
+        'the state wasn\'t transferred from keypadShow to keypadHiding');
+    });
+
+    test('When user clean key code, hide the pad.',
     function(done) {
       this.sinon.stub(subject.states.keypadHiding, 'transferTo',
         function() {
