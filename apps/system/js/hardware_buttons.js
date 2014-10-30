@@ -126,6 +126,13 @@
 
     window.addEventListener('softwareButtonEvent', this);
 
+    // XXX: This is a workaround to block keydown and mozbrowserkeydown event
+    // of 'Power', 'Exit', and 'Home' until bug 1014418 lands. Otherwise bug
+    // 989198 might got backed out due to issues like 1084187. We should remove
+    // this workaround in bug 1014418.
+    window.addEventListener('mozbrowserbeforekeydown', this);
+    window.addEventListener('keydown', this);
+
     SettingsListener.observe('software-button.enabled', false, function(value) {
       this._softwareHome = value;
     }.bind(this));
@@ -183,13 +190,28 @@
     }
   };
 
+  // XXX: This is a workaround to block keydown and mozbrowserkeydown event
+  // of 'Power', 'Exit', and 'Home' until bug 1014418 lands. Otherwise bug
+  // 989198 might got backed out due to issues like 1084187. We should remove
+  // this workaround in bug 1014418.
+  HardwareButtons.prototype.shouldBlockKeyEvent =
+    function hb_shouldBlockKeyEvent(evt) {
+      var eventType = evt.type;
+      var eventKeyInLowerCase = evt.key && evt.key.toLowerCase();
+      var blockedEventTypes = ['keydown', 'mozbrowserkeydown'];
+      var blockedEventKeys = ['home', 'power', 'exit'];
+
+      return (blockedEventTypes.indexOf(eventType) > -1) &&
+        (blockedEventKeys.indexOf(eventKeyInLowerCase) > -1);
+    };
+
   /**
    * Handle events from Gecko.
    * @memberof HardwareButtons.prototype
    * @param  {Object} evt Event.
    */
   HardwareButtons.prototype.handleEvent = function hb_handleEvent(evt) {
-    var type = evt.detail.type;
+    var type = evt.detail && evt.detail.type;
 
     // When the software home button is displayed we ignore the hardware
     // home button if there is one
@@ -197,6 +219,14 @@
                             type.startsWith('home-button');
     if (this._softwareHome && hardwareHomeEvent) {
       return;
+    }
+
+    // XXX: This is a workaround to block keydown and mozbrowserkeydown event
+    // of 'Power', 'Exit', and 'Home' until bug 1014418 lands. Otherwise bug
+    // 989198 might got backed out due to issues like 1084187. We should remove
+    // this workaround in bug 1014418.
+    if (this.shouldBlockKeyEvent(evt)) {
+      evt.preventDefault();
     }
 
     switch (type) {
