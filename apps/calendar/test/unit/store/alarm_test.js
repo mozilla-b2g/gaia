@@ -18,10 +18,7 @@ suite('store/alarm', function() {
     subject = db.getStore('Alarm');
     subject.app = app;
 
-    db.open(function(err) {
-      assert.ok(!err);
-      done();
-    });
+    db.open(done);
   });
 
   teardown(function(done) {
@@ -40,9 +37,7 @@ suite('store/alarm', function() {
     suite('existing', function() {
       var alarms;
       var busytimeId = 'xfoo';
-      var busytime = {
-        _id: busytimeId
-      };
+      var busytime = { _id: busytimeId };
 
       setup(function(done) {
         alarms = [];
@@ -172,11 +167,10 @@ suite('store/alarm', function() {
     var getAllResults = [];
     var added = [];
     var lastId = 0;
-
     var now = new Date(2018, 0, 1);
     var realApi;
-    var mockApi = {
 
+    var mockApi = {
       getAll: function() {
         var req = new Responder();
 
@@ -191,7 +185,6 @@ suite('store/alarm', function() {
           }
 
           req.emit('success', event);
-
         }, 1);
 
         return req;
@@ -209,7 +202,6 @@ suite('store/alarm', function() {
           }
 
           req.emit('success', lastId);
-
         }, 1);
 
         return req;
@@ -224,9 +216,10 @@ suite('store/alarm', function() {
       navigator.mozAlarms = realApi;
     });
 
-    var handleAlarm, onAlarm;
+    var allAlarms, handleAlarm, onAlarm;
 
     setup(function() {
+      allAlarms = [];
       handleAlarm = null;
       added.length = 0;
       getAllResults.length = 0;
@@ -234,6 +227,7 @@ suite('store/alarm', function() {
       onAlarm = notificationsController.onAlarm;
       notificationsController.onAlarm = function() {
         handleAlarm = arguments;
+        allAlarms.push(handleAlarm);
       };
     });
 
@@ -254,11 +248,16 @@ suite('store/alarm', function() {
     suite('alarm in the past', function() {
       var now = new Date();
       now.setMilliseconds(-1);
-
       add(now, 'busyMe');
 
+      // Bug 857284 - We should only fire one alarm when there are multiple
+      // valid alarms for a single event.
+      var duplicate = new Date();
+      duplicate.setMilliseconds(-61);
+      add(duplicate, 'busyMe');
+
       setup(function(done) {
-        subject.workQueue(done);
+        subject.workQueue(() => done());
       });
 
       test('passing alarm directly to controller', function() {
@@ -266,6 +265,9 @@ suite('store/alarm', function() {
 
         // verify right alarm is sent
         assert.equal(alarm.busytimeId, 'busyMe');
+
+        // verify only one alarm sent
+        assert.lengthOf(allAlarms, 1);
       });
     });
 
@@ -280,7 +282,7 @@ suite('store/alarm', function() {
           })
         });
 
-        subject.workQueue(now, done);
+        subject.workQueue(now, () => done());
       });
 
       test('after', function() {
@@ -295,7 +297,8 @@ suite('store/alarm', function() {
         getAllResults.push({
           data: { _randomField: true }
         });
-        subject.workQueue(now, done);
+
+        subject.workQueue(now, () => done());
       });
 
       test('after complete', function() {
@@ -313,7 +316,7 @@ suite('store/alarm', function() {
       add(new Date(2018, 0, 3), 3);
 
       setup(function(done) {
-        subject.workQueue(now, done);
+        subject.workQueue(now, () => done());
       });
 
       test('after complete', function() {
@@ -324,7 +327,6 @@ suite('store/alarm', function() {
           new Date(2018, 0, 3)
         );
       });
-
     });
 
     suite('initial add', function() {
@@ -340,7 +342,7 @@ suite('store/alarm', function() {
       add(new Date(2018, 0, 3), 3);
 
       setup(function(done) {
-        subject.workQueue(now, done);
+        subject.workQueue(now, () => done());
       });
 
       /*
@@ -423,7 +425,6 @@ suite('store/alarm', function() {
     */
 
     });
-
   });
 });
 
