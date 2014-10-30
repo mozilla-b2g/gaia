@@ -24,10 +24,15 @@ WeekView.prototype = {
   },
 
   _calcBaseDate: function(date) {
-    // show monday as the first day of the grid if date is between Mon-Fri
+    // Don't reset the first day when come back from other screens.
+    if (this.baseDate && Calc.isSameDate(date, this.baseDate)) {
+      return this.baseDate;
+    }
+
+    // Show monday as the first day of the grid if date is between Mon-Fri.
     var index = Calc.dayOfWeekFromMonday(date.getDay());
     if (index < 5) {
-      date = Calc.createDay(date, date.getDate() -index);
+      date = Calc.createDay(date, date.getDate() - index);
     }
     return date;
   }
