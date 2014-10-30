@@ -113,10 +113,14 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
     waitForOffscreen(selector);
     var progressbar = client.findElement(System.Selector.appChromeProgressBar);
-    assert.ok(!progressbar.displayed(), 'Progress not shown.');
+    client.waitFor(function() {
+      return !progressbar.displayed();
+    });
 
     expandRocketbar();
-    assert.ok(progressbar.displayed(), 'Progressbar shown.');
+    client.waitFor(function() {
+      return progressbar.displayed();
+    });
     server.uncork(url);
     client.waitFor(function() {
       return !progressbar.displayed();

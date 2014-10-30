@@ -58,6 +58,8 @@ marionette('Browser - Chrome on browser navigation',
 
     assert.ok(system.appChromeProgressBar.displayed());
     server.uncork(url);
-    assert.ok(!system.appChromeProgressBar.displayed());
+    client.waitFor(function() {
+      return !system.appChromeProgressBar.displayed();
+    });
   });
 });
