@@ -56,10 +56,9 @@ marionette('Browser - Chrome on browser navigation',
       return system.appChrome.displayed();
     });
 
-    assert.ok(system.appChromeProgressBar.displayed());
+    var progressBar = system.appChromeProgressBar;
+    assert.ok(progressBar.displayed());
     server.uncork(url);
-    client.waitFor(function() {
-      return !system.appChromeProgressBar.displayed();
-    });
+    client.helper.waitForElementToDisappear(progressBar);
   });
 });
