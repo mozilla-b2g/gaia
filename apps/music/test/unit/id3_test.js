@@ -2,6 +2,7 @@
 'use strict';
 
 require('/test/unit/metadata_utils.js');
+require('/js/metadata/id3v1.js');
 require('/js/metadata/id3v2.js');
 
 // We have a bunch of otherwise-identical mp3 files using different ID3
