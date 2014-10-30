@@ -3,11 +3,12 @@
 (function(exports) {
   'use strict';
 
-  var Application = function(options) {
+  var Application = function Application(options) {
     this.nativeApp = options.nativeApp;
     this.name = options.name;
     this.cachedIconBlob = undefined;
     this.cachedIconURL = options.cachedIconURL;
+    Card.prototype.constructor.call(this);
   };
 
   Application.prototype = Object.create(Card.prototype);

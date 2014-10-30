@@ -12,6 +12,7 @@
     navigableScrollable: [],
     cardScrollable: undefined,
     folderScrollable: undefined,
+    _focus: undefined,
 
     cardListElem: document.getElementById('card-list'),
     cardManager: undefined,
@@ -81,7 +82,6 @@
               'url("' + URL.createObjectURL(blob) + '")';
             card.cachedIconBlob = blob;
           });
-          cardContainer.dataset.manifestURL = manifestURL;
         } else if (card.cachedIconBlob) {
           cardThumbnailElem.style.backgroundImage =
             'url("' + URL.createObjectURL(card.cachedIconBlob) + '")';
@@ -91,6 +91,7 @@
         }
       }
 
+      cardThumbnailElem.dataset.cardId = card.cardId;
       cardDescriptionElem.textContent = card.name;
       cardContainer.appendChild(cardThumbnailElem);
       cardContainer.appendChild(cardDescriptionElem);
@@ -122,6 +123,14 @@
             }
           }
           this.spatialNavigator.move(key);
+          break;
+        case 'enter':
+          var cardId = this.focusElem.dataset.cardId;
+          var card = this.cardManager.findCardFromCardList({cardId: cardId});
+          if (card) {
+            card.launch();
+          }
+          break;
       }
     },
 
@@ -170,6 +179,7 @@
         elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
       } else if (elem.nodeName) {
         this.selectionBorder.select(elem);
+        this._focus = elem;
       } else {
         this.selectionBorder.selectRect(elem);
       }
@@ -177,6 +187,11 @@
 
     handleScrollableItemFocus: function(scrollable, elem) {
       this.selectionBorder.select(elem, scrollable.getItemRect(elem));
+      this._focus = elem;
+    },
+
+    get focusElem() {
+      return this._focus;
     }
   };
 

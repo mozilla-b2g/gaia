@@ -345,6 +345,17 @@
           resolve(that._cardList);
         }
       });
+    },
+
+    findCardFromCardList: function cm_findCardFromCardList(query) {
+      var found;
+      this._cardList.some(function(card) {
+        if (card.cardId === query.cardId) {
+          found = card;
+          return true;
+        }
+      })
+      return found;
     }
   });
 

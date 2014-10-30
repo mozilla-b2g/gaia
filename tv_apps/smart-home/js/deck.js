@@ -3,10 +3,11 @@
 (function(exports) {
   'use strict';
 
-  var Deck = function(options) {
+  var Deck = function Deck(options) {
     this.nativeApp = options.nativeApp;
     this.name = options.name;
     this.cachedIconURL = options.cachedIconURL;
+    Card.prototype.constructor.call(this);
   };
 
   Deck.prototype = Object.create(Card.prototype);
