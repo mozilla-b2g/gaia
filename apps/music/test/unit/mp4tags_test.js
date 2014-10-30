@@ -1,12 +1,13 @@
 /* global parseMetadata */
 'use strict';
 
-
 require('/test/unit/metadata_utils.js');
+require('/js/metadata/mp4.js');
 
 suite('m4a tags', function() {
   setup(function() {
     this.timeout(1000);
+    window.LazyLoader = MockLazyLoader;
   });
 
   test('m4a tags', function(done) {
