@@ -976,10 +976,30 @@ form[role="combobox"] span[data-field="type"] {
   height: 3rem;
 }
 
+.inserted .img-delete-button::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
+  background: url('images/form_add_remove_buttons.png') no-repeat scroll;
+  background-position: 0 0;
+  background-size: 3rem 6rem;
+  background-color: transparent;
+  width:  3rem;
+  height: 3rem;
+  opacity: 0;
+}
+
 .inserted.displayed .img-delete-button::after {
   transform: rotate(45deg);
   transform-origin: 1.5rem 1.5rem;
   transition: transform 0.35s ease-in-out;
+}
+
+.inserted.displayed .img-delete-button.rendered::before {
+  opacity: 1;
+  transition: opacity 0.50s ease-in-out;
+  z-index: 10000;
 }
 
 .inserted.displayed.three-rows .img-delete-button::after {
@@ -990,8 +1010,8 @@ form[role="combobox"] span[data-field="type"] {
   transition-duration: 0.25s;
 }
 
-.inserted.displayed .img-delete-button.rendered::after {
-  transform: rotate(0);
-  background-position: 0 0;
-  transition: none;
+/* Avoid the activate state on '+ Add xx' buttons */
+li button[data-field-type]:active {
+  background: transparent;
+  color: #5F5F5F;
 }
