@@ -40,7 +40,7 @@ function initDB() {
 
   function metadataParserWrapper(file, onsuccess, onerror) {
     LazyLoader.load('js/metadata_scripts.js', function() {
-      AudioMetadata.parse(file, onsuccess, onerror);
+      AudioMetadata.parse(file).then(onsuccess, onerror);
     });
   }
 

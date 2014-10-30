@@ -355,7 +355,7 @@ var PlayerView = {
   },
 
   getMetadata: function pv_getMetadata(blob, callback) {
-    AudioMetadata.parse(blob, pv_gotMetadata, pv_metadataError.bind(this));
+    AudioMetadata.parse(blob).then(pv_gotMetadata, pv_metadataError.bind(this));
 
     function pv_gotMetadata(metadata) {
       callback(metadata);

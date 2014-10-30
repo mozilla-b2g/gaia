@@ -52,7 +52,7 @@ var AudioMetadata = (function() {
    * Parse the specified blob and pass an object of metadata to the
    * metadataCallback, or invoke the errorCallback with an error message.
    */
-  function parse(blob, metadataCallback, errorCallback) {
+  function parse(blob) {
     var filename = blob.name;
 
     // If blob.name exists, it should be an audio file from system
@@ -63,7 +63,7 @@ var AudioMetadata = (function() {
       // then it is a video, not a music file and we ignore it
       if (filename.slice(0, 5) === 'DCIM/' &&
           filename.slice(-4).toLowerCase() === '.3gp') {
-        errorCallback('skipping 3gp video file');
+        return Promise.reject('skipping 3gp video file');
         return;
       }
 
@@ -71,15 +71,13 @@ var AudioMetadata = (function() {
       // Device Storage should not even return these files to us:
       // see https://bugzilla.mozilla.org/show_bug.cgi?id=826024
       if (filename.slice(-4).toLowerCase() === '.m4v') {
-        errorCallback('skipping m4v video file');
-        return;
+        return Promise.reject('skipping m4v video file');
       }
     }
 
     // If the file is too small to be a music file then ignore it
     if (blob.size < 128) {
-      errorCallback('file is empty or too small');
-      return;
+      return Promise.reject('file is empty or too small');
     }
 
     // These are the property names we use in the returned metadata object
@@ -116,34 +114,32 @@ var AudioMetadata = (function() {
     // Read the start of the file, figure out what kind it is, and call
     // the appropriate parser.  Start off with an 64kb chunk of data.
     // If the metadata is in that initial chunk we won't have to read again.
-    var headersize = Math.min(64 * 1024, blob.size);
-    BlobView.get(blob, 0, headersize, function(header, error) {
-      if (error) {
-        errorCallback(error);
-        return;
-      }
+    return new Promise(function(resolve, reject) {
+      var headersize = Math.min(64 * 1024, blob.size);
+      BlobView.get(blob, 0, headersize, function(header, error) {
+        if (error) {
+          reject(error);
+          return;
+        }
 
-      try {
-        if (header.getASCIIText(0, 9) === 'LOCKED 1 ') {
-          handleLockedFile(blob, metadataCallback, errorCallback);
-        } else {
+        try {
           var parser = MetadataFormats.findParser(header);
           if (parser) {
-            parser.parse(header, metadata).then(function(metadata) {
+            resolve(parser.parse(header, metadata).then(function(metadata) {
               return handleCoverArt(blob, metadata);
-            }).then(metadataCallback, errorCallback);
+            }));
           } else {
             // This is some kind of file that we don't know about.
             // Let's see if we can play it.
-            checkPlayability(blob).then(
-              metadataCallback.bind(null, metadata), errorCallback
-            );
+            resolve(checkPlayability(blob)).then(function() {
+              return metadata;
+            });
           }
+        } catch (e) {
+          console.error('AudioMetadata.parse:', e, e.stack);
+          reject(e);
         }
-      } catch (e) {
-        console.error('parseAudioMetadata:', e, e.stack);
-        errorCallback(e);
-      }
+      });
     });
   }
 
@@ -173,34 +169,6 @@ var AudioMetadata = (function() {
         };
       });
     }
-  }
-
-  function handleLockedFile(locked, metadataCallback, errorCallback) {
-    ForwardLock.getKey(function(secret) {
-      ForwardLock.unlockBlob(secret, locked, callback, errorCallback);
-
-      function callback(unlocked, unlockedMetadata) {
-        // Now that we have the unlocked content of the locked file,
-        // convert it back to a blob and recurse to parse the metadata.
-        // When we're done, add metadata to indicate that this is locked
-        // content (so it isn't shared) and to specify the vendor that
-        // locked it.
-        parse(
-          unlocked,
-          function(metadata) {
-            metadata.locked = true;
-            if (unlockedMetadata.vendor) {
-              metadata.vendor = unlockedMetadata.vendor;
-            }
-            if (!metadata[TITLE]) {
-              metadata[TITLE] = unlockedMetadata.name;
-            }
-            metadataCallback(metadata);
-          },
-          errorCallback
-        );
-      }
-    });
   }
 
   function handleCoverArt(blob, metadata) {

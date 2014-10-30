@@ -6,6 +6,13 @@ var MetadataFormats = (function() {
 
   var formats = [
     {
+      file: 'forward_lock.js',
+      get module() { return ForwardLockMetadata; },
+      match: function(header) {
+        return header.getASCIIText(0, 9) === 'LOCKED 1 ';
+      }
+    },
+    {
       file: 'id3v2.js',
       get module() { return ID3v2Metadata; },
       match: function(header) {
