@@ -47,6 +47,8 @@ suite('internet sharing > ', function() {
     // Unfortunately, for asyncStorage scoping reasons, we can't simply
     // use 'attachTestHelpers' anywhere in the internet sharing tests.
     mocksForInternetSharing.suiteSetup();
+    // we need MockIccHelper properly set
+    mocksForInternetSharing.setup();
 
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
@@ -70,6 +72,8 @@ suite('internet sharing > ', function() {
   });
 
   suiteTeardown(function() {
+    // we need MockIccHelper properly reset
+    mocksForInternetSharing.teardown();
     mocksForInternetSharing.suiteTeardown();
     navigator.mozSettings = realSettings;
     navigator.mozL10n = realL10n;
@@ -105,14 +109,6 @@ suite('internet sharing > ', function() {
   }
   // suite 1 from no sim card to sim card inserted, and re-inserted again.
   suite('from null sim to sim 1 >>', function() {
-
-    suiteSetup(function() {
-      mocksForInternetSharing.setup();
-    });
-
-    suiteTeardown(function() {
-      mocksForInternetSharing.teardown();
-    });
 
     // fresh startup
     test('null sim no settings', function() {
@@ -247,8 +243,6 @@ suite('internet sharing > ', function() {
   // switching test for 2 sim and no sim
   suite('switch between sim1, sim2, and null >>', function() {
     suiteSetup(function() {
-      // we need to keep asyncStorage under this suite.
-      mocksForInternetSharing.setup();
       // setting up:
       // null, pinRequired, pukRequired...(non-ready): usb enabled
       // sim1: wifi hotspot enabled
@@ -266,10 +260,6 @@ suite('internet sharing > ', function() {
       changeSettings(KEY_WIFI_HOTSPOT, false);
     });
 
-    suiteTeardown(function() {
-      // we need to keep asyncStorage under this suite.
-      mocksForInternetSharing.teardown();
-    });
     // test initial state
     test('test asyncStorage', function() {
       var testSet = [
