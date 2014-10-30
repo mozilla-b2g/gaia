@@ -41,5 +41,9 @@
     "auth_id": "",
     "auth_token": "",
     "phone_number": ""
+  },
+  "facebook": {
+    "username": "",
+    "password": ""
   }
 }
