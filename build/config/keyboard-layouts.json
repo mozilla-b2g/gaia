@@ -205,5 +205,8 @@
   },
   "langIndependentLayouts": [
       {"layoutId": "number", "app": ["apps", "keyboard"]}
+  ],
+  "fallbackLayouts": [
+    {"layoutId": "en", "app": ["apps", "keyboard"]}
   ]
 }
