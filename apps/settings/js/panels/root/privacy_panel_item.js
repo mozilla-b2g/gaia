@@ -1,8 +1,8 @@
 /**
-* PrivacyPanelItem provides the transition to Privacy Panel app.
-*
-* @module PrivacyPanelItem
-*/
+ * PrivacyPanelItem provides the transition to Privacy Panel app.
+ *
+ * @module PrivacyPanelItem
+ */
 
 define(function(require) {
   'use strict';
@@ -33,7 +33,7 @@ define(function(require) {
           var app = apps[i];
           if (app.manifestURL === this._privacyPanelManifestURL) {
             this._ppApp = app;
-            this._element.removeAttribute('aria-disabled');
+            this.element.removeAttribute('hidden');
           }
         }
       }.bind(this);
@@ -55,12 +55,12 @@ define(function(require) {
         var flag = navigator.mozSettings.createLock().set({
           'pp.launched.by.settings': true
         });
-	flag.onerror = function() {
-	  console.error('Problem with launching Privacy Panel');
-	};
         flag.onsuccess = function() {
           this._ppApp.launch();
         }.bind(this);
+        flag.onerror = function(){
+          console.error('Problem with launching Privacy Panel');
+        };
       } else {
         alert(navigator.mozL10n.get('no-privacypanel'));
       }
