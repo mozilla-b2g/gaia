@@ -13,16 +13,20 @@ var editOptionButtons =
 var editBgImageButtons =
   Array.slice($('edit-options').querySelectorAll('a.bgimage.button'), 0);
 
+var editAspectMoreButtons =
+   Array.slice($('aspect-ratio-options-view').querySelectorAll('button'), 0);
+
 // Edit mode event handlers
 $('edit-exposure-button').onclick = setEditTool.bind(null, 'exposure');
 $('edit-crop-button').onclick = setEditTool.bind(null, 'crop');
 $('edit-effect-button').onclick = setEditTool.bind(null, 'effect');
 $('edit-enhance-button').onclick = setEditTool.bind(null, 'enhance');
-$('edit-crop-none').onclick = undoCropHandler;
 $('edit-header').addEventListener('action', onCancelButton);
 $('edit-tool-apply-button').onclick = applyEditTool;
 $('edit-save-button').onclick = saveEditedImage;
+
 editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
+editAspectMoreButtons.forEach(function(b) {b.onclick = editAspectMoreHandler;});
 
 // Ensure there is enough space to store an edited copy of photo n
 // and if there is, call editPhoto to do so
@@ -163,6 +167,10 @@ function selectEditOption(radio, selected) {
   radio.setAttribute('aria-checked', selected);
 }
 
+// Stores last selected aspect ratio in crop options. This variable
+// is used to handle cancel in aspect more options view.
+var editCropSelectedAspectRatio;
+
 // Crop and Effect buttons call this
 function editOptionsHandler() {
   // First, unhighlight all buttons in this group and then
@@ -179,6 +187,7 @@ function editOptionsHandler() {
     editSettings.effect.effectId =
       $('edit-effect-options').getElementsByClassName('selected')[0].id;
   } else {
+    editCropSelectedAspectRatio = editSettings.crop.cropModeId;
     editSettings.crop.cropModeId =
       $('edit-crop-options').getElementsByClassName('selected')[0].id;
   }
@@ -191,12 +200,32 @@ function editOptionsHandler() {
     imageEditor.setCropAspectRatio(3, 2);
   else if (this === $('edit-crop-aspect-square'))
     imageEditor.setCropAspectRatio(1, 1);
+  else if (this === $('edit-crop-aspect-more')) {
+    $('aspect-ratio-options-view').classList.remove('hidden');
+  }
   else if (this.dataset.effect) {
     editSettings.effect.matrix =
       ImageProcessor[this.dataset.effect + '_matrix'];
     imageEditor.edit();
   }
   enableSaveAndApplyButtons();
+}
+
+function editAspectMoreHandler() {
+  if (this === $('edit-crop-aspect-3x4'))
+    imageEditor.setCropAspectRatio(3, 4);
+  else if (this === $('edit-crop-aspect-4x3'))
+    imageEditor.setCropAspectRatio(4, 3);
+  else if (this === $('edit-crop-aspect-16x9'))
+    imageEditor.setCropAspectRatio(16, 9);
+  else if (this === $('aspect-ratio-options-cancel')) {
+    // On cancel in aspect more options view, update selected crop mode id
+    // in editSettings object and highlight previous selected option node.
+    selectEditOption($('edit-crop-aspect-more'), false);
+    selectEditOption($(editCropSelectedAspectRatio), true);
+    editSettings.crop.cropModeId = editCropSelectedAspectRatio;
+  }
+  $('aspect-ratio-options-view').classList.add('hidden');
 }
 
 /*
@@ -371,10 +400,15 @@ function setEditTool(editTool) {
       showEditToolView();
       $('edit-crop-options').classList.remove('hidden');
       $('edit-title').setAttribute('data-l10n-id', 'crop');
-      // Show crop overlay on entering crop edit tool
-      imageEditor.edit(function() {
-        imageEditor.showCropOverlay();
-      });
+        // Initialize the source rectangle to full size of the original image
+        imageEditor.resetCropRegion();
+        imageEditor.resetPreview();
+        // Show screen with crop overlay on entering crop edit tool
+        imageEditor.edit(function() {
+          // Use saved crop region in editSettings to show crop overlay
+          imageEditor.showCropOverlay(
+            imageEditor.getCropOverlayRegion(savedEditSettings.crop));
+        });
       break;
     case 'effect':
       showEditToolView();
@@ -405,23 +439,11 @@ function cancelEditTool() {
       selectEditOption($(savedEditSettings.crop.cropModeId), true);
 
       editSettings.crop = savedEditSettings.crop;
-
-      // In crop edit tool, click of back to original button is different
-      // from other aspect ratio buttons. Click of back to original -
-      // (undoCropHandler) set source rectangle crop region to original image
-      // size and generates new preview. If user cancels after clicking back
-      // to original, we need to explicitly reset preview and set source
-      // rectangle crop region to saved values from editSettings.
-      var isCropped = imageEditor.hasBeenCropped();
-      if (!isCropped) {
-        // if crop region is same as original image size,
-        // cancel out by discarding original preview image.
-        imageEditor.resetPreview();
-        // Set source rectangle crop region from editSettings
-        // to go back to previous cropped size preview.
-        imageEditor.forceSetCropRegion();
-      }
-
+      // Set source rectangle size from saved editSettings
+      // to go back to previous cropped size preview.
+      imageEditor.forceSetCropRegion();
+      // Discard changes and revert to previous crop sizes
+      imageEditor.resetPreview();
       break;
     case 'effect':
       // On cancel in Effect Edit Tool, restore effect state
@@ -540,18 +562,6 @@ function hideEditToolView() {
   $('edit-tool-apply-button').hidden = true;
 }
 
-function undoCropHandler() {
-  // Switch to free-form cropping
-  Array.forEach($('edit-crop-options').querySelectorAll('a.radio.button'),
-                function(b) { selectEditOption(b, false); });
-  selectEditOption($('edit-crop-aspect-free'), true);
-  imageEditor.setCropAspectRatio(); // freeform
-  // And revert to full-size image
-  imageEditor.undoCrop();
-  // Update selected cropModeId to default inside settings object
-  editSettings.crop.cropModeId = 'edit-crop-aspect-free';
-}
-
 function exitEdit(saved) {
   // Revoke the blob URL we've been using
   URL.revokeObjectURL(editedPhotoURL);
@@ -610,10 +620,6 @@ function saveEditedImage() {
   if (!imageEditor) {
     return;
   }
-
-  // If we are in crop mode, perform the crop before saving
-  if ($('edit-crop-button').classList.contains('selected'))
-    imageEditor.cropImage();
 
   var progressBar = $('save-progress');
   // Show progressbar when start to save.
@@ -716,7 +722,7 @@ function ImageEditor(imageBlob, container, edits, ready, croponly) {
   // The destination (preview) rectangle of canvas. Device pixels.
   this.dest = {};
   // Region displayed in crop overlay during drags. CSS pixels.
-  this.cropRegion = {};
+  this.cropOverlayRegion = {};
 
   // The canvas that displays the preview
   this.previewCanvas = document.createElement('canvas');
@@ -885,10 +891,10 @@ ImageEditor.prototype.resize = function() {
   var savedCropRegion = {};
   var hadCropOverlay = this.isCropOverlayShown();
   if (hadCropOverlay) {
-    savedCropRegion.left = this.cropRegion.left / this.scale;
-    savedCropRegion.top = this.cropRegion.top / this.scale;
-    savedCropRegion.right = this.cropRegion.right / this.scale;
-    savedCropRegion.bottom = this.cropRegion.bottom / this.scale;
+    savedCropRegion.left = this.cropOverlayRegion.left / this.scale;
+    savedCropRegion.top = this.cropOverlayRegion.top / this.scale;
+    savedCropRegion.right = this.cropOverlayRegion.right / this.scale;
+    savedCropRegion.bottom = this.cropOverlayRegion.bottom / this.scale;
     this.hideCropOverlay();
   }
 
@@ -1114,10 +1120,10 @@ ImageEditor.prototype.isCropOverlayShown = function() {
 // need to call getCroppedRegionBlob().
 ImageEditor.prototype.hasBeenCropped = function() {
   var dpr = window.devicePixelRatio;
-  return (this.cropRegion.left !== 0 ||
-          this.cropRegion.top !== 0 ||
-          this.cropRegion.right < Math.floor(this.dest.width / dpr) ||
-          this.cropRegion.bottom < Math.floor(this.dest.height / dpr));
+  return (this.cropOverlayRegion.left !== 0 ||
+          this.cropOverlayRegion.top !== 0 ||
+          this.cropOverlayRegion.right < Math.floor(this.dest.width / dpr) ||
+          this.cropOverlayRegion.bottom < Math.floor(this.dest.height / dpr));
 };
 
 // Display cropping controls
@@ -1141,18 +1147,18 @@ ImageEditor.prototype.showCropOverlay = function showCropOverlay(newRegion) {
   // Please turn on the followig line when Bug 937529 is fixed. This is an
   // workaround to have active handles drawn.
   // context.lineJoin = 'round';
-  context.strokeStyle = 'rgba(255,255,255,.75)';
+  context.strokeStyle = 'rgba(255,255,255,1)';
 
   // Start off with a crop region that is the one passed in, if it is not null.
   // Otherwise, it should be the entire preview canvas
   if (newRegion) {
-    var region = this.cropRegion;
+    var region = this.cropOverlayRegion;
     region.left = newRegion.left;
     region.top = newRegion.top;
     region.right = newRegion.right;
     region.bottom = newRegion.bottom;
   } else {
-    var region = this.cropRegion;
+    var region = this.cropOverlayRegion;
     var dpr = window.devicePixelRatio;
     region.left = 0;
     region.top = 0;
@@ -1182,13 +1188,12 @@ ImageEditor.prototype.hideCropOverlay = function hideCropOverlay() {
   }
 };
 
-// Force set image to crop sizes in edit settings
+// Force set source size to crop sizes in edit settings
 ImageEditor.prototype.forceSetCropRegion = function forceSetCropRegion() {
   this.source.x = this.edits.crop.x;
   this.source.y = this.edits.crop.y;
   this.source.width = this.edits.crop.w;
   this.source.height = this.edits.crop.h;
-
 };
 
 // Reset image to full original size
@@ -1197,13 +1202,12 @@ ImageEditor.prototype.resetCropRegion = function resetCropRegion() {
   this.source.y = 0;
   this.source.width = this.original.width;
   this.source.height = this.original.height;
-
 };
 
 ImageEditor.prototype.drawCropControls = function(handle) {
   var canvas = this.cropCanvas;
   var context = this.cropContext;
-  var region = this.cropRegion;
+  var region = this.cropOverlayRegion;
   var dpr = window.devicePixelRatio;
   var dest = {
     x: Math.floor(this.dest.x / dpr),
@@ -1235,46 +1239,46 @@ ImageEditor.prototype.drawCropControls = function(handle) {
   context.strokeRect(left, top, width, height);
 
   // Draw the drag handles in the corners of the crop region
-  context.lineWidth = 4;
+  context.lineWidth = 5;
   context.beginPath();
 
   // N
-  context.moveTo(centerX - 23, top - 1);
-  context.lineTo(centerX + 23, top - 1);
+  context.moveTo(centerX - 23, top + 1);
+  context.lineTo(centerX + 23, top + 1);
 
   // E
-  context.moveTo(right + 1, centerY - 23);
-  context.lineTo(right + 1, centerY + 23);
+  context.moveTo(right - 1, centerY - 23);
+  context.lineTo(right - 1, centerY + 23);
 
   // S
-  context.moveTo(centerX - 23, bottom + 1);
-  context.lineTo(centerX + 23, bottom + 1);
+  context.moveTo(centerX - 23, bottom - 1);
+  context.lineTo(centerX + 23, bottom - 1);
 
   // W
-  context.moveTo(left - 1, centerY - 23);
-  context.lineTo(left - 1, centerY + 23);
+  context.moveTo(left + 1, centerY - 23);
+  context.lineTo(left + 1, centerY + 23);
 
   // Don't draw the corner handles if there is an aspect ratio we're maintaining
   if (!this.cropAspectWidth) {
     // NE
-    context.moveTo(right - 23, top - 1);
-    context.lineTo(right + 1, top - 1);
-    context.lineTo(right + 1, top + 23);
+    context.moveTo(right - 23, top + 1);
+    context.lineTo(right - 1, top + 1);
+    context.lineTo(right - 1, top + 23);
 
     // SE
-    context.moveTo(right + 1, bottom - 23);
-    context.lineTo(right + 1, bottom + 1);
-    context.lineTo(right - 23, bottom + 1);
+    context.moveTo(right - 1, bottom - 23);
+    context.lineTo(right - 1, bottom - 1);
+    context.lineTo(right - 23, bottom - 1);
 
     // SW
-    context.moveTo(left + 23, bottom + 1);
-    context.lineTo(left - 1, bottom + 1);
-    context.lineTo(left - 1, bottom - 23);
+    context.moveTo(left + 23, bottom - 1);
+    context.lineTo(left + 1, bottom - 1);
+    context.lineTo(left + 1, bottom - 23);
 
     // NW
-    context.moveTo(left - 1, top + 23);
-    context.lineTo(left - 1, top - 1);
-    context.lineTo(left + 23, top - 1);
+    context.moveTo(left + 1, top + 23);
+    context.lineTo(left + 1, top + 1);
+    context.lineTo(left + 23, top + 1);
   }
 
   // Draw all the handles at once
@@ -1329,7 +1333,7 @@ ImageEditor.prototype.drawCropControls = function(handle) {
 // Called when the first pan event comes in on the crop canvas
 ImageEditor.prototype.cropStart = function(ev) {
   var self = this;
-  var region = this.cropRegion;
+  var region = this.cropOverlayRegion;
   var dpr = window.devicePixelRatio;
   var dest = {
     x: Math.floor(this.dest.x / dpr),
@@ -1534,7 +1538,7 @@ ImageEditor.prototype.cropImage = function(callback) {
     return;
   }
 
-  var region = this.cropRegion;
+  var region = this.cropOverlayRegion;
   var dpr = window.devicePixelRatio;
   var dest = {
     x: Math.floor(this.dest.x / dpr),
@@ -1550,8 +1554,6 @@ ImageEditor.prototype.cropImage = function(callback) {
   var bottom = Math.min(region.bottom / dest.height, 1.0);
 
   // Now convert those fractions to pixels in the original image
-  // Note that the original image may have already been cropped, so we
-  // multiply by the size of the crop region, not the full size
   left = Math.floor(left * this.source.width);
   right = Math.ceil(right * this.source.width);
   top = Math.floor(top * this.source.height);
@@ -1568,34 +1570,13 @@ ImageEditor.prototype.cropImage = function(callback) {
   this.source.height = bottom - top;
 
   this.resetPreview();
-  // Adjust the image
-  var self = this;
-  this.edit(function() {
-    // Hide and reshow the crop overlay to reset it to match the new image size
-    self.hideCropOverlay();
-    self.showCropOverlay();
-    if (callback) {
-      callback();
-    }
-  });
-};
-
-// Restore the image to its full original size
-ImageEditor.prototype.undoCrop = function() {
-  this.resetCropRegion();
-  this.resetPreview();
-  var self = this;
-  this.edit(function() {
-    // Hide and reshow the crop overlay to reset it to match the new image size
-    self.hideCropOverlay();
-    self.showCropOverlay();
-  });
+  this.edit(callback);
 };
 
 // Pass no arguments for freeform 1,1 for square,
 // 2,3 for portrait, 3,2 for landscape.
 ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
-  var region = this.cropRegion;
+  var region = this.cropOverlayRegion;
   var dpr = window.devicePixelRatio;
   var dest = {
     x: Math.floor(this.dest.x / dpr),
@@ -1638,7 +1619,7 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
 // properties. The values of these properties are numbers between 0 and 1
 // representing fractions of the full image width and height.
 ImageEditor.prototype.getCropRegion = function() {
-  var region = this.cropRegion;
+  var region = this.cropOverlayRegion;
   var previewRect = this.dest;
   var dpr = window.devicePixelRatio;
 
@@ -1654,6 +1635,21 @@ ImageEditor.prototype.getCropRegion = function() {
     width: Math.min(right - left, 1.0),
     height: Math.min(bottom - top, 1.0)
   };
+};
+
+// Covert the cropped region in image pixels to object with left, right, top,
+// bottom properties in CSS Pixel to be used to show crop overlay
+ImageEditor.prototype.getCropOverlayRegion = function(cropSettings) {
+  var dpr = window.devicePixelRatio;
+
+  var cropOverlay = {};
+  cropOverlay.left = Math.floor((cropSettings.x * this.scale) / dpr);
+  cropOverlay.top = Math.floor((cropSettings.y * this.scale) / dpr);
+  cropOverlay.right = Math.floor(((cropSettings.x + cropSettings.w) *
+                                 this.scale) / dpr);
+  cropOverlay.bottom = Math.floor(((cropSettings.y + cropSettings.h) *
+                                  this.scale) / dpr);
+  return cropOverlay;
 };
 
 ImageEditor.prototype.autoEnhancement = function(callback) {
