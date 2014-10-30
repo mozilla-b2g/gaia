@@ -2,6 +2,8 @@
 
 (function(exports) {
   var MockInputFrameManager = function() {
+    this._inputWindows = {};
+
     return this;
   };
 
@@ -34,6 +36,7 @@
     },
 
     getLoadedManifestURLs: function mifm_getLoadedManifestURLs() {
+      return [];
     }
 
   };
