@@ -123,8 +123,9 @@ function onAccountsChange() {
   return accounts.syncableAccounts().then(syncable => {
     if (!syncable || !syncable.length) {
       debug('There are no syncable accounts!');
+      revokePreviousAlarm();
       events.emit('pause');
-      return revokePreviousAlarm();
+      return;
     }
 
     debug('There are', syncable.length, 'syncable accounts');
