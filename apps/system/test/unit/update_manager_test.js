@@ -1472,7 +1472,7 @@ suite('system/UpdateManager', function() {
         ],
         update2g: false,
         wifiPrioritized: true,
-        testResult: 'wifiPrioritizedAndForbidden'
+        testResult: 'forbidden'
       },
       {
         title: 'Not WIFI, 2G, no Setting update2G, wifi not prioritized' +
@@ -1570,14 +1570,6 @@ suite('system/UpdateManager', function() {
               checkUpdate2gEnabled.lastCall.returnValue]).then(function() {
               assert.ok(showPromptWifiPrioritizedSpy.calledWith(),
                 'wifi prioritized dialog is shown to the user');
-            }).then(done, done);
-            break;
-          case 'wifiPrioritizedAndForbidden':
-            Promise.all([checkWifiPrioritizedSpy.lastCall.returnValue,
-              checkUpdate2gEnabled.lastCall.returnValue]).then(function() {
-              assert.ok(showPromptWifiPrioritizedSpy.calledWith(
-                UpdateManager.showForbiddenDownload),
-                'wifi prioritized dialog called with a callback');
             }).then(done, done);
             break;
           case 'forbidden':
