@@ -257,6 +257,67 @@ suite('system/LockScreenWindowManager', function() {
       window.lockScreenWindowManager.unregisterApp(appFake);
       window.lockScreenWindowManager.states.enabled = originalEnabled;
     });
+
+    test('When ScreenChange and it\'s enabled, try to lock orientation',
+    function() {
+      var handleEvent =
+        window.LockScreenWindowManager.prototype.handleEvent;
+      var mockSubject = {
+        states: {
+          ready: true,
+          instance: {
+            lockOrientation: this.sinon.stub(),
+            isActive: function() {
+              return true;
+            }
+          }
+        },
+        openApp: function() {}
+      };
+      window.secureWindowManager = {
+        isActive: function() {
+          return false;
+        }
+      };
+      handleEvent.call(mockSubject,
+        {
+          type: 'screenchange',
+          detail: { screenEnabled: true }
+        });
+      assert.isTrue(
+        mockSubject.states.instance.lockOrientation.called,
+        'it doesn\'t lock the orientation while screenchage');
+    });
+
+    test('When secure app get killed, try to lock orientation',
+    function() {
+      var handleEvent =
+        window.LockScreenWindowManager.prototype.handleEvent;
+      var mockSubject = {
+        states: {
+          ready: true,
+          instance: {
+            lockOrientation: this.sinon.stub(),
+            isActive: function() {
+              return true;
+            }
+          }
+        },
+        openApp: function() {}
+      };
+      window.secureWindowManager = {
+        isActive: function() {
+          return false;
+        }
+      };
+      handleEvent.call(mockSubject,
+        {
+          type: 'secure-appclosed'
+        });
+      assert.isTrue(
+        mockSubject.states.instance.lockOrientation.called,
+        'it doesn\'t lock the orientation while secure app closed');
+    });
   });
 });
 
