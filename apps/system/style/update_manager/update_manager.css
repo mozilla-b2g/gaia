@@ -195,21 +195,6 @@
   max-height: calc(100% - 15rem - 3rem);
 }
 
-#updates-download-dialog #updates-download-button[data-online="false"] {
-  visibility: collapse;
-}
-
-#updates-download-dialog #updates-offline-warning,
-#updates-download-dialog #updates-data-connection-warning,
-#updates-download-dialog[data-online="false"] #updates-download-button {
-  visibility: collapse;
-}
-
-#updates-download-dialog[data-online="false"] #updates-offline-warning,
-#updates-download-dialog[data-online="true"][data-nowifi="true"][data-data-connection-inline-warning="true"] #updates-data-connection-warning {
-  visibility: visible;
-}
-
 /* System update splash screen */
 
 #system-update-splash
