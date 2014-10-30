@@ -116,6 +116,9 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     assert.ok(!progressbar.displayed(), 'Progress not shown.');
 
     expandRocketbar();
+    client.waitFor(function() {
+      return progressbar.displayed();
+    });
     assert.ok(progressbar.displayed(), 'Progressbar shown.');
     server.uncork(url);
     client.waitFor(function() {
