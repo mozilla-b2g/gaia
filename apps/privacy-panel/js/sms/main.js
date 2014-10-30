@@ -279,8 +279,9 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
         lat = pos.coords.latitude;
         lon = pos.coords.longitude;
 
-        this._sendSMS(number, navigator.mozL10n.get('sms-locate-1') + ' ' +
-          lat + ',' + lon + ' ' + navigator.mozL10n.get('sms-locate-2'));
+        this._sendSMS(number, navigator.mozL10n.get('sms-locate', {
+          coords: lat + ',' + lon
+        }));
 
         // Lock phone
         setTimeout(function() {
