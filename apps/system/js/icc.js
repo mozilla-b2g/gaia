@@ -8,6 +8,7 @@ var icc = {
   _defaultURL: null,
   _inputTimeout: 40000,
   _toneDefaultTimeout: 5000,
+  _messages_queue: [],
 
   checkPlatformCompatibility: function icc_checkPlatformCompat() {
     // The STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE constant will be added
@@ -32,8 +33,9 @@ var icc = {
           }
         });
     });
+
     window.addEventListener('home', this);
-    this.hideViews();
+    this.hideView();
     this.protectForms();
     this.getIccInfo();
 
@@ -167,7 +169,7 @@ var icc = {
     switch (evt.type) {
       case 'home':
         if (this.icc_view.classList.contains('visible')) {
-          this.hideViews();
+          this.hideView();
         }
         break;
     }
@@ -251,19 +253,6 @@ var icc = {
     return timeout;
   },
 
-  hideViews: function icc_hideViews() {
-    if (!this.icc_view) {
-      this.icc_view = document.getElementById('icc-view');
-    }
-    this.icc_view.classList.remove('visible');
-    var icc_view_boxes = this.icc_view.children;
-    for (var i = 0; i < icc_view_boxes.length; i++) {
-      icc_view_boxes[i].classList.remove('visible');
-    }
-    window.removeEventListener('keyboardchange', this.keyboardChangedEvent);
-    window.removeEventListener('keyboardhide', this.keyboardChangedEvent);
-  },
-
   setupView: function icc_setupView(viewId) {
     // If the view has a form, we should be care of the keyboard changes
     if (viewId.getElementsByTagName('form').length > 0) {
@@ -316,7 +305,7 @@ var icc = {
 
     var self = this;
     this.icc_alert_btn.onclick = function closeICCalert() {
-      self.hideViews();
+      self.hideView('icc-alert');
     };
 
     this.icc_alert_msg.textContent = message;
@@ -358,13 +347,13 @@ var icc = {
     // STK Default response (BACK and CLOSE)
     this.icc_confirm_btn_back.onclick = function() {
       clearTimeout(timeoutId);
-      self.hideViews();
+      self.hideView('icc-confirm');
       self.backResponse(stkMessage);
       callback(null);
     };
     this.icc_confirm_btn_close.onclick = function() {
       clearTimeout(timeoutId);
-      self.hideViews();
+      self.hideView('icc-confirm');
       self.terminateResponse(stkMessage);
       callback(null);
     };
@@ -372,14 +361,14 @@ var icc = {
     // User acceptance
     if (timeout) {
       var timeoutId = setTimeout(function() {
-        self.hideViews();
+        self.hideView('icc-confirm');
         callback(false);
       }, timeout);
     }
 
     this.icc_confirm_btn.onclick = function() {
       clearTimeout(timeoutId);
-      self.hideViews();
+      self.hideView('icc-confirm');
       callback(true);
     };
 
@@ -416,11 +405,11 @@ var icc = {
 
     var self = this;
     this.icc_asyncconfirm_btn_no.onclick = function rejectConfirm() {
-      self.hideViews();
+      self.hideView('icc-asyncconfirm');
       callback(false);
     };
     this.icc_asyncconfirm_btn_yes.onclick = function acceptConfirm() {
-      self.hideViews();
+      self.hideView('icc-asyncconfirm');
       callback(true);
     };
 
@@ -499,7 +488,7 @@ var icc = {
       if (timeout) {
         clearInputTimeout();
         timeoutId = setTimeout(function() {
-          self.hideViews();
+          self.hideView('icc-input');
           callback(false);
         }, timeout);
       }
@@ -567,8 +556,9 @@ var icc = {
       };
       this.icc_input_btn.onclick = function() {
         clearInputTimeout();
-        self.hideViews();
+        self.hideView('icc-input');
         callback(true, self.icc_input_box.value);
+        self.icc_input_header.removeEventListener('action', actionHandler);
       };
       this.icc_input_box.focus();
     } else {
@@ -576,13 +566,15 @@ var icc = {
       this.icc_input_box.type = 'hidden';
       this.icc_input_btn_yes.onclick = function(event) {
         clearInputTimeout();
-        self.hideViews();
+        self.hideView('icc-input');
         callback(true, true);
+        self.icc_input_header.removeEventListener('action', actionHandler);
       };
       this.icc_input_btn_no.onclick = function(event) {
         clearInputTimeout();
-        self.hideViews();
+        self.hideView('icc-input');
         callback(true, false);
+        self.icc_input_header.removeEventListener('action', actionHandler);
       };
     }
 
@@ -591,27 +583,83 @@ var icc = {
     this.icc_input.classList.add('visible');
     this.icc_view.classList.add('visible');
 
-    // STK Default response (BACK, CLOSE and HELP)
-    this.icc_input_header.addEventListener('action', function() {
+    var actionHandler = function() {
       clearInputTimeout();
-      self.hideViews();
+      self.hideView('icc-input');
       self.backResponse(stkMessage);
       callback(null);
-    });
+      self.icc_input_header.removeEventListener('action', actionHandler);
+    };
+
+    // STK Default response (BACK, CLOSE and HELP)
+    this.icc_input_header.addEventListener('action', actionHandler);
     this.icc_input_btn_close.onclick = function() {
       clearInputTimeout();
-      self.hideViews();
+      self.hideView('icc-input');
       self.terminateResponse(stkMessage);
       callback(null);
+      self.icc_input_header.removeEventListener('action', actionHandler);
     };
     this.icc_input_btn_help.onclick = function() {
       clearInputTimeout();
-      self.hideViews();
+      self.hideView('icc-input');
       self.responseSTKCommand(stkMessage, {
         resultCode: self._iccManager.STK_RESULT_HELP_INFO_REQUIRED
       });
       callback(null);
+      self.icc_input_header.removeEventListener('action', actionHandler);
     };
+  },
+
+  isViewActive: function() {
+    var icc_view_boxes = this.icc_view.children;
+    for (var i = 0; i < icc_view_boxes.length; i++) {
+      if (icc_view_boxes[i].classList.contains('visible')) {
+        return true;
+      }
+    }
+
+    return false;
+  },
+
+  hideView: function(view_id) {
+    if (view_id) {
+      var view = document.getElementById(view_id);
+      view.classList.remove('visible');
+      window.removeEventListener('keyboardchange', this.keyboardChangedEvent);
+      window.removeEventListener('keyboardhide', this.keyboardChangedEvent);
+      this.processPendingMessages();
+    } else {
+      if (!this.icc_view) {
+        this.icc_view = document.getElementById('icc-view');
+      }
+      this.icc_view.classList.remove('visible');
+      var icc_view_boxes = this.icc_view.children;
+      for (var i = 0; i < icc_view_boxes.length; i++) {
+        icc_view_boxes[i].classList.remove('visible');
+      }
+    }
+  },
+
+  processPendingMessages: function() {
+    if (this._messages_queue.length == 0) {
+      this.hideView();
+    } else {
+      this.handleSTKCommand(this._messages_queue.shift());
+    }
+  },
+
+  addPendingMessage: function(message) {
+    this._messages_queue.push(message);
+  },
+
+  canProcessMessage: function(message) {
+    if (this.isViewActive()) {
+      this.addPendingMessage(message);
+      return false;
+    }
+
+    return true;
   }
 };
 
