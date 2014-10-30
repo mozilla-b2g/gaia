@@ -175,7 +175,7 @@ var AlbumArt = (function() {
       } else if (picture.filename) {
         // Some audio tracks have an external file for their album art, so we
         // need to grab it from deviceStorage.
-        var getreq = pictureStorage.get(picture.filename);
+        var getreq = AudioMetadata.pictureStorage.get(picture.filename);
         getreq.onsuccess = function() {
           resolve(this.result);
         };

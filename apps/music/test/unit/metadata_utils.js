@@ -1,4 +1,4 @@
-/* global parseAudioMetadata */
+/* global AudioMetadata */
 /* exported parseMetadata, loadPicture */
 
 'use strict';
@@ -29,7 +29,7 @@ function _fetch(url) {
 function parseMetadata(filename) {
   return _fetch(filename).then(function(data) {
     return new Promise(function(resolve, reject) {
-      parseAudioMetadata(
+      AudioMetadata.parse(
         new Blob([data]),
         function(metadata) {
           if (metadata.picture) {

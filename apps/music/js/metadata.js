@@ -1,15 +1,5 @@
 'use strict';
 
-var pictureStorage = navigator.getDeviceStorage('pictures');
-
-// A cache of metadata Picture objects for albums with external cover art. The
-// key is the directory name for the song in question.
-var externalCoverCache = {};
-
-// A cache of filenames for saved cover art (generated from unsycned ID3 tags).
-// The value is the absolute path name.
-var savedCoverCache = new Set();
-
 // XXX We're hiding the fact that these are JSdoc comments because our linter
 // refuses to accept "property" as a valid tag. Grumble grumble.
 
@@ -47,103 +37,115 @@ var savedCoverCache = new Set();
  *   (full-size) picture; only applies when flavor="external" or "unsynced".
  */
 
-/**
- * Parse the specified blob and pass an object of metadata to the
- * metadataCallback, or invoke the errorCallback with an error message.
- */
-function parseAudioMetadata(blob, metadataCallback, errorCallback) {
-  var filename = blob.name;
+var AudioMetadata = (function() {
+  var pictureStorage = navigator.getDeviceStorage('pictures');
 
-  // If blob.name exists, it should be an audio file from system
-  // otherwise it should be an audio blob that probably from network/process
-  // we can still parse it but we don't need to care about the filename
-  if (filename) {
-    // If the file is in the DCIM/ directory and has a .3gp extension
-    // then it is a video, not a music file and we ignore it
-    if (filename.slice(0, 5) === 'DCIM/' &&
-        filename.slice(-4).toLowerCase() === '.3gp') {
-      errorCallback('skipping 3gp video file');
-      return;
-    }
+  // A cache of metadata Picture objects for albums with external cover art. The
+  // key is the directory name for the song in question.
+  var externalCoverCache = {};
 
-    // If the file has a .m4v extension then it is almost certainly a video.
-    // Device Storage should not even return these files to us:
-    // see https://bugzilla.mozilla.org/show_bug.cgi?id=826024
-    if (filename.slice(-4).toLowerCase() === '.m4v') {
-      errorCallback('skipping m4v video file');
-      return;
-    }
-  }
+  // A cache of filenames for saved cover art (generated from unsycned ID3
+  // tags). The value is the absolute path name.
+  var savedCoverCache = new Set();
 
-  // If the file is too small to be a music file then ignore it
-  if (blob.size < 128) {
-    errorCallback('file is empty or too small');
-    return;
-  }
+  /**
+   * Parse the specified blob and pass an object of metadata to the
+   * metadataCallback, or invoke the errorCallback with an error message.
+   */
+  function parse(blob, metadataCallback, errorCallback) {
+    var filename = blob.name;
 
-  // These are the property names we use in the returned metadata object
-  var TAG_FORMAT = 'tag_format';
-  var TITLE = 'title';
-  var ARTIST = 'artist';
-  var ALBUM = 'album';
-  var TRACKNUM = 'tracknum';
-  var TRACKCOUNT = 'trackcount';
-  var DISCNUM = 'discnum';
-  var DISCCOUNT = 'disccount';
-  var IMAGE = 'picture';
-  // These two properties are for playlist functionalities
-  // not originally metadata from the files
-  var RATED = 'rated';
-  var PLAYED = 'played';
-
-  // Start off with some default metadata
-  var metadata = {};
-  metadata[ARTIST] = metadata[ALBUM] = metadata[TITLE] = '';
-  metadata[RATED] = metadata[PLAYED] = 0;
-
-  // If the blob has a name, use that as a default title in case
-  // we can't find one in the file
-  if (filename) {
-    var p1 = filename.lastIndexOf('/');
-    var p2 = filename.lastIndexOf('.');
-    if (p2 === -1) {
-      p2 = filename.length;
-    }
-    metadata[TITLE] = filename.substring(p1 + 1, p2);
-  }
-
-  // Read the start of the file, figure out what kind it is, and call
-  // the appropriate parser.  Start off with an 64kb chunk of data.
-  // If the metadata is in that initial chunk we won't have to read again.
-  var headersize = Math.min(64 * 1024, blob.size);
-  BlobView.get(blob, 0, headersize, function(header, error) {
-    if (error) {
-      errorCallback(error);
-      return;
-    }
-
-    try {
-      if (header.getASCIIText(0, 9) === 'LOCKED 1 ') {
-        handleLockedFile(blob);
-      } else {
-        var parser = MetadataFormats.findParser(header);
-        if (parser) {
-          parser.parse(header, metadata).then(
-            handleCoverArt, errorCallback
-          );
-        } else {
-          // This is some kind of file that we don't know about.
-          // Let's see if we can play it.
-          checkPlayability(blob).then(function() {
-            metadataCallback(metadata);
-          }, errorCallback);
-        }
+    // If blob.name exists, it should be an audio file from system
+    // otherwise it should be an audio blob that probably from network/process
+    // we can still parse it but we don't need to care about the filename
+    if (filename) {
+      // If the file is in the DCIM/ directory and has a .3gp extension
+      // then it is a video, not a music file and we ignore it
+      if (filename.slice(0, 5) === 'DCIM/' &&
+          filename.slice(-4).toLowerCase() === '.3gp') {
+        errorCallback('skipping 3gp video file');
+        return;
       }
-    } catch (e) {
-      console.error('parseAudioMetadata:', e, e.stack);
-      errorCallback(e);
+
+      // If the file has a .m4v extension then it is almost certainly a video.
+      // Device Storage should not even return these files to us:
+      // see https://bugzilla.mozilla.org/show_bug.cgi?id=826024
+      if (filename.slice(-4).toLowerCase() === '.m4v') {
+        errorCallback('skipping m4v video file');
+        return;
+      }
     }
-  });
+
+    // If the file is too small to be a music file then ignore it
+    if (blob.size < 128) {
+      errorCallback('file is empty or too small');
+      return;
+    }
+
+    // These are the property names we use in the returned metadata object
+    var TAG_FORMAT = 'tag_format';
+    var TITLE = 'title';
+    var ARTIST = 'artist';
+    var ALBUM = 'album';
+    var TRACKNUM = 'tracknum';
+    var TRACKCOUNT = 'trackcount';
+    var DISCNUM = 'discnum';
+    var DISCCOUNT = 'disccount';
+    var IMAGE = 'picture';
+    // These two properties are for playlist functionalities
+    // not originally metadata from the files
+    var RATED = 'rated';
+    var PLAYED = 'played';
+
+    // Start off with some default metadata
+    var metadata = {};
+    metadata[ARTIST] = metadata[ALBUM] = metadata[TITLE] = '';
+    metadata[RATED] = metadata[PLAYED] = 0;
+
+    // If the blob has a name, use that as a default title in case
+    // we can't find one in the file
+    if (filename) {
+      var p1 = filename.lastIndexOf('/');
+      var p2 = filename.lastIndexOf('.');
+      if (p2 === -1) {
+        p2 = filename.length;
+      }
+      metadata[TITLE] = filename.substring(p1 + 1, p2);
+    }
+
+    // Read the start of the file, figure out what kind it is, and call
+    // the appropriate parser.  Start off with an 64kb chunk of data.
+    // If the metadata is in that initial chunk we won't have to read again.
+    var headersize = Math.min(64 * 1024, blob.size);
+    BlobView.get(blob, 0, headersize, function(header, error) {
+      if (error) {
+        errorCallback(error);
+        return;
+      }
+
+      try {
+        if (header.getASCIIText(0, 9) === 'LOCKED 1 ') {
+          handleLockedFile(blob, metadataCallback, errorCallback);
+        } else {
+          var parser = MetadataFormats.findParser(header);
+          if (parser) {
+            parser.parse(header, metadata).then(function(metadata) {
+              return handleCoverArt(blob, metadata);
+            }).then(metadataCallback, errorCallback);
+          } else {
+            // This is some kind of file that we don't know about.
+            // Let's see if we can play it.
+            checkPlayability(blob).then(
+              metadataCallback.bind(null, metadata), errorCallback
+            );
+          }
+        }
+      } catch (e) {
+        console.error('parseAudioMetadata:', e, e.stack);
+        errorCallback(e);
+      }
+    });
+  }
 
   function checkPlayability(blob) {
     var player = new Audio();
@@ -173,7 +175,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     }
   }
 
-  function handleLockedFile(locked) {
+  function handleLockedFile(locked, metadataCallback, errorCallback) {
     ForwardLock.getKey(function(secret) {
       ForwardLock.unlockBlob(secret, locked, callback, errorCallback);
 
@@ -183,7 +185,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         // When we're done, add metadata to indicate that this is locked
         // content (so it isn't shared) and to specify the vendor that
         // locked it.
-        parseAudioMetadata(
+        parse(
           unlocked,
           function(metadata) {
             metadata.locked = true;
@@ -201,17 +203,17 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     });
   }
 
-  function handleCoverArt(metadata) {
+  function handleCoverArt(blob, metadata) {
     // Media files that aren't backed by actual files get the picture as a Blob,
     // since they're just temporary. We also use this in our tests.
+    var filename = blob.name;
     if (!filename) {
       if (metadata.picture && !metadata.picture.blob) {
         metadata.picture.blob = blob.slice(
           metadata.picture.start, metadata.picture.end, metadata.picture.type
         );
       }
-      metadataCallback(metadata);
-      return;
+      return Promise.resolve(metadata);
     }
 
     if (!metadata.picture) {
@@ -224,35 +226,36 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       // cached results so we're not going out to the disk more than necessary.
       if (dirName in externalCoverCache) {
         metadata.picture = externalCoverCache[dirName];
-        metadataCallback(metadata);
-        return;
+        return Promise.resolve(metadata);
       }
 
       // Try to find external album art using a handful of common names. The
       // possibilities listed here appear to be the most common, based on a
       // brief survey of what people use in the wild.
-      var possibleFilenames = ['folder.jpg', 'cover.jpg', 'front.jpg'];
-      var tryFetchExternalCover = function(index) {
-        if (index === possibleFilenames.length) {
-          externalCoverCache[dirName] = null;
-          metadataCallback(metadata);
-          return;
-        }
+      return new Promise(function(resolve, reject) {
+        var possibleFilenames = ['folder.jpg', 'cover.jpg', 'front.jpg'];
+        var tryFetchExternalCover = function(index) {
+          if (index === possibleFilenames.length) {
+            externalCoverCache[dirName] = null;
+            resolve(metadata);
+            return;
+          }
 
-        var externalCoverFilename = dirName + possibleFilenames[index];
-        var getcoverrequest = pictureStorage.get(externalCoverFilename);
-        getcoverrequest.onsuccess = function() {
-          metadata.picture = { flavor: 'external',
-                               filename: externalCoverFilename };
-          // Cache the picture object we generated to make things faster.
-          externalCoverCache[dirName] = metadata.picture;
-          metadataCallback(metadata);
+          var externalCoverFilename = dirName + possibleFilenames[index];
+          var getcoverrequest = pictureStorage.get(externalCoverFilename);
+          getcoverrequest.onsuccess = function() {
+            metadata.picture = { flavor: 'external',
+                                 filename: externalCoverFilename };
+            // Cache the picture object we generated to make things faster.
+            externalCoverCache[dirName] = metadata.picture;
+            resolve(metadata);
+          };
+          getcoverrequest.onerror = function() {
+            tryFetchExternalCover(index + 1);
+          };
         };
-        getcoverrequest.onerror = function() {
-          tryFetchExternalCover(index + 1);
-        };
-      };
-      tryFetchExternalCover(0);
+        tryFetchExternalCover(0);
+      });
     } else if (metadata.picture.blob) {
       // We have album art in a separate blob that we need to save somewhere;
       // generally, this is because we had an unsynced ID3 frame with the art
@@ -283,74 +286,77 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       var extension = coverBlob.type === 'image/jpeg' ? '.jpg' : '.png';
       var imageFilename = vfatEscape(albumKey) + '.' + coverBlob.size +
                           extension;
-      checkSaveCover(coverBlob, imageFilename, function() {
-        metadataCallback(metadata);
+      return checkSaveCover(coverBlob, imageFilename).then(function(savedFile) {
+        metadata.picture.filename = savedFile;
+        return metadata;
+      }, function(err) {
+        delete metadata.picture;
+        return metadata;
       });
     } else {
       // We have embedded album art! All the processing is already done, so we
       // can just return.
-      metadataCallback(metadata);
+      return Promise.resolve(metadata);
     }
+  }
 
-    /**
-     * Escape any characters that are illegal on the VFAT filesystem.
-     *
-     * @param {string} str The string to escape.
-     * @return {string} The escaped string.
-     */
-    function vfatEscape(str) {
-      return str.replace(/["*\/:<>?\|]/g, '_');
-    }
+  /**
+   * Escape any characters that are illegal on the VFAT filesystem.
+   *
+   * @param {string} str The string to escape.
+   * @return {string} The escaped string.
+   */
+  function vfatEscape(str) {
+    return str.replace(/["*\/:<>?\|]/g, '_');
+  }
 
-    /**
-     * Check for the existence of an image on the audio file's storage area,
-     * and if it's not present, try to save it.
-     *
-     * @param {Blob} coverBlob The blob for the full-size cover art.
-     * @param {string} imageFilename A relative filename for the image.
-     * @param {function} callback A callback to call when finished.
-     */
-    function checkSaveCover(coverBlob, imageFilename, callback) {
-      var storageName = '';
+  /**
+   * Check for the existence of an image on the audio file's storage area,
+   * and if it's not present, try to save it.
+   *
+   * @param {Blob} coverBlob The blob for the full-size cover art.
+   * @param {string} imageFilename A relative filename for the image.
+   * @return {Promise} A Promise that resolves when finished, providing the
+   *   filename of the saved image.
+   */
+  function checkSaveCover(coverBlob, imageFilename) {
+    var storageName = '';
 
-      // We want to put the image in the same storage area as the audio track
-      // it's for. Since the audio track could be in any storage area, we'll
-      // examine its filename to get the storage name; the storage name is
-      // always the first part of the (absolute) filename, so we'll grab that
-      // and build an absolute path for the image. This will ensure that the
-      // generic deviceStorage we use for pictures ("pictureStorage") puts the
-      // image where we want it.
-      //
-      // Filename is usually a fully qualified name (perhaps something like
-      // /sdcard/Music/file.mp3). On desktop, it's a relative name, but desktop
-      // only has one storage area anyway.
-      if (filename[0] === '/') {
-        var slashIndex = filename.indexOf('/', 1);
-        if (slashIndex < 0) {
-          console.error("handleCoverArt: Bad filename: '" + filename + "'");
-          delete metadata.picture;
-          callback();
-          return;
-        }
-
-        // Get the storage name, e.g. /sdcard/
-        var storageName = filename.substring(0, slashIndex + 1);
+    // We want to put the image in the same storage area as the audio track
+    // it's for. Since the audio track could be in any storage area, we'll
+    // examine its filename to get the storage name; the storage name is
+    // always the first part of the (absolute) filename, so we'll grab that
+    // and build an absolute path for the image. This will ensure that the
+    // generic deviceStorage we use for pictures ("pictureStorage") puts the
+    // image where we want it.
+    //
+    // Filename is usually a fully qualified name (perhaps something like
+    // /sdcard/Music/file.mp3). On desktop, it's a relative name, but desktop
+    // only has one storage area anyway.
+    if (filename[0] === '/') {
+      var slashIndex = filename.indexOf('/', 1);
+      if (slashIndex < 0) {
+        var err = Error("handleCoverArt: Bad filename: '" + filename + "'");
+        console.error(err);
+        return Promise.reject(err);
       }
 
-      var imageAbsPath = storageName + '.music/covers/' + imageFilename;
-      if (savedCoverCache.has(imageAbsPath)) {
-        metadata.picture.filename = imageAbsPath;
-        callback();
-        return;
-      }
+      // Get the storage name, e.g. /sdcard/
+      var storageName = filename.substring(0, slashIndex + 1);
+    }
 
+    var imageAbsPath = storageName + '.music/covers/' + imageFilename;
+    if (savedCoverCache.has(imageAbsPath)) {
+      return Promise.resolve(imageAbsPath);
+    }
+
+    return new Promise(function(resolve, reject) {
       var getrequest = pictureStorage.get(imageAbsPath);
 
       // We already have the image. We're done!
       getrequest.onsuccess = function() {
         savedCoverCache.add(imageAbsPath);
-        metadata.picture.filename = imageAbsPath;
-        callback();
+        resolve(imageAbsPath);
       };
 
       // We don't have the image yet. Let's save it.
@@ -362,9 +368,13 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
         // Don't bother waiting for saving to finish. Just return.
         savedCoverCache.add(imageAbsPath);
-        metadata.picture.filename = imageAbsPath;
-        callback();
+        resolve(imageAbsPath);
       };
-    }
+    });
   }
-}
+
+  return {
+    parse: parse,
+    pictureStorage: pictureStorage
+  };
+})();
