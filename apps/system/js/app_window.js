@@ -1244,6 +1244,10 @@
       this.screenshotOverlay.style.visibility = '';
     }
 
+    if (this.modalDialog && this.modalDialog.isVisible()) {
+      this.modalDialog.updateMaxHeight();
+    }
+
     /**
      * Fired when the app is resized.
      *

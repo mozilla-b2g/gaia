@@ -18,6 +18,22 @@ var clickHandlers = {
   },
   'button23': function() {
     alert(prompt('Hello world:', 'initial value'));
+  },
+  'button31': function() {
+    var msg = 'Hello world!1\n2\n3\n4\n5\n6\n7\n8\n9';
+    msg += '\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n';
+    msg += '\n20\n21\n22\n23\n24\n25\n26\n27\n28\n';
+    alert(msg);
+  },
+  'button32': function() {
+    var msg = 'Hello world!1\n2\n3\n4\n5\n6\n7\n8\n9';
+    msg += '\n10\n11\n12\n13\n14\n15\n16\n17\n18\n';
+    alert(confirm(msg));
+  },
+  'button33': function() {
+    var msg = 'Hello world!1\n2\n3\n4\n5\n6\n7\n8\n9';
+    msg += '\n10\n11\n12\n13\n14\n15\n16\n17\n18\n';
+    alert(prompt(msg));
   }
 };
 
