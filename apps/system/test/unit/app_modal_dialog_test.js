@@ -101,6 +101,17 @@ suite('system/AppModalDialog', function() {
     assert.isDefined(md.instanceID);
   });
 
+  test('Sets visible to false when showing', function() {
+    md.handleEvent(fakeAlertEvent);
+    assert.isTrue(md.isVisible());
+  });
+
+  test('Sets visible to false when hidding', function() {
+    md.handleEvent(fakeAlertEvent);
+    md.hide();
+    assert.isFalse(md.isVisible());
+  });
+
   test('Alert', function() {
     var stubStopPropagation =
       this.sinon.stub(fakeAlertEvent, 'stopPropagation');
