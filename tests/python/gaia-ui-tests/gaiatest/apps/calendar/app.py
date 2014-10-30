@@ -18,7 +18,6 @@ class Calendar(Base):
     _current_month_year_locator = (By.ID, 'current-month-year')
     _current_months_day_locator = (By.ID, 'months-day-view')
     _current_monthly_calendar_locator = (By.ID, 'month-view')
-    _hint_swipe_to_navigate_locator = (By.ID, 'hint-swipe-to-navigate')
     _add_event_button_locator = (By.XPATH, "//a[@href='/event/add/']")
 
     _month_display_button_locator = (By.XPATH, "//a[@href='/month/']")
@@ -47,15 +46,16 @@ class Calendar(Base):
     _advanced_settings_done_button_locator = (By.XPATH, "//a[@href='/settings/']")
 
     _event_list_date_locator = (By.ID, 'event-list-date')
+    _event_list_empty_locator = (By.ID, 'empty-message')
     _event_locator = (By.CLASS_NAME, 'event')
     _today_locator = (By.CLASS_NAME, 'present')
     _tomorrow_locator = (By.CSS_SELECTOR, '.present + li > .day')
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_element_displayed(*self._hint_swipe_to_navigate_locator)
-        self.marionette.find_element(*self._hint_swipe_to_navigate_locator).tap()
-        self.wait_for_element_not_displayed(*self._hint_swipe_to_navigate_locator)
+        # empty message is only displayed after first MonthsDay#render,
+        # so we are sure app is "ready" after that
+        self.wait_for_element_displayed(*self._event_list_empty_locator)
 
     @property
     def current_month_year(self):

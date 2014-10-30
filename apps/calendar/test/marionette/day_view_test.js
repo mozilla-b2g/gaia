@@ -24,7 +24,7 @@ marionette('day view', function() {
 
   setup(function() {
     app = new Calendar(client);
-    app.launch({ hideSwipeHint: true });
+    app.launch();
     app.openDayView();
     day = app.day;
     month = app.month;

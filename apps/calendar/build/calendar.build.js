@@ -76,10 +76,6 @@
       exclude: ['main']
     },
     {
-      name: 'views/first_time_use',
-      exclude: ['main']
-    },
-    {
       name: 'views/modify_account',
       exclude: ['main']
     },
