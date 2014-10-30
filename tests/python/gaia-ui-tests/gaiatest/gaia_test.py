@@ -633,7 +633,7 @@ class GaiaDevice(object):
             mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('class')
             self._dispatch_home_button_event()
             apps.switch_to_displayed_app()
-            if mode == 'edit-mode':
+            if 'edit-mode' in mode:
                 # touching home button will exit edit mode
                 Wait(self.marionette).until(lambda m: m.find_element(
                     By.TAG_NAME, 'body').get_attribute('class') != mode)
