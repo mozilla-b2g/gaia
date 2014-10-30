@@ -107,6 +107,7 @@ class CallScreen(Phone):
         self.wait_for_element_displayed(*self._lockscreen_handle_locator)
         self._handle_incoming_call('reject')
         self.marionette.switch_to_frame()
+        self.wait_for_element_not_displayed(*self._call_screen_locator)
 
     def a11y_click_keypad_visibility_button(self):
         self.accessibility.click(self.marionette.find_element(
