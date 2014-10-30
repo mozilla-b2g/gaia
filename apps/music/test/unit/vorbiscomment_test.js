@@ -2,10 +2,12 @@
 'use strict';
 
 require('/test/unit/metadata_utils.js');
+require('/js/metadata/ogg.js');
 
 suite('vorbis comment', function() {
   setup(function() {
     this.timeout(1000);
+    window.LazyLoader = MockLazyLoader;
   });
 
   test('vorbis comment', function(done) {

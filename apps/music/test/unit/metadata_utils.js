@@ -3,6 +3,7 @@
 
 'use strict';
 
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/js/metadata_scripts.js');
 
 function _fetch(url) {

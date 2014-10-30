@@ -2,6 +2,7 @@
 'use strict';
 
 require('/test/unit/metadata_utils.js');
+require('/js/metadata/id3v2.js');
 
 // We have a bunch of otherwise-identical mp3 files using different ID3
 // versions, covering all valid character encodings. Test them all.
@@ -11,6 +12,7 @@ require('/test/unit/metadata_utils.js');
 
     setup(function() {
       this.timeout(1000);
+      window.LazyLoader = MockLazyLoader;
     });
 
     test('latin1', function(done) {
