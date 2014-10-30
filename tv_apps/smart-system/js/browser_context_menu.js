@@ -22,10 +22,32 @@
     this.instanceID = _id++;
     this._injected = false;
     this.app.element.addEventListener('mozbrowsercontextmenu', this);
+
+    this.spatialNavigator = new SpatialNavigator();
+
+    this.keyNavigationAdapter = new KeyNavigationAdapter();
+    this.keyNavigationAdapter.on('move', function(key) {
+      this.spatialNavigator.move(key);
+    }.bind(this));
+    this.keyNavigationAdapter.on('enter', function() {
+      this.spatialNavigator.getFocusedElement().click();
+    }.bind(this))
+
+    this.spatialNavigator.on('focus', this.handleFocus.bind(this));
     return this;
   };
 
   BrowserContextMenu.prototype = Object.create(window.BaseUI.prototype);
+
+  BrowserContextMenu.prototype.handleFocus = function(elem) {
+    var a = new Error();
+    if (elem.nodeName) {
+      selectionBorder.select(elem);
+    } else {
+      selectionBorder.selectRect(elem);
+    }
+  };
+
   BrowserContextMenu.prototype.CLASS_NAME = 'BrowserContextMenu';
   BrowserContextMenu.prototype.ELEMENT_PREFIX = 'contextmenu-';
 
@@ -83,11 +105,14 @@
   };
 
   BrowserContextMenu.prototype.kill = function() {
+    this.keyNavigationAdapter.uninit();
     this.containerElement.removeChild(this.element);
   };
 
   BrowserContextMenu.prototype.show = function(evt) {
     var detail = evt.detail;
+
+    this.keyNavigationAdapter.init();
 
     var hasContextMenu = detail.contextmenu &&
       detail.contextmenu.items.length > 0;
@@ -125,6 +150,13 @@
     this._injected = true;
     this.buildMenu(menu);
     this.element.classList.add('visible');
+    // XXX: Set a reasonable delay to ensure selectionBorder appears after
+    // animation for displaying context menu is ended.
+    // We will introduce new spec that doesn't need selection_border anymore.
+    // After that we won't have to do hard-coded timeout.
+    setTimeout(function firstfocus(evt) {
+      this.spatialNavigator.focus();
+    }.bind(this), 600);
   },
 
   BrowserContextMenu.prototype.buildMenu = function(items) {
@@ -151,6 +183,8 @@
 
     this.elements.cancel.textContent = _('cancel');
     this.elements.list.appendChild(this.elements.cancel);
+    this.spatialNavigator.setCollection(Array.prototype.slice.call(
+                        this.elements.list.getElementsByTagName('button')));
   };
 
   BrowserContextMenu.prototype._listItems = function(detail) {
@@ -186,6 +220,10 @@
     if (!this.element) {
       return;
     }
+
+    this.keyNavigationAdapter.uninit();
+
+    selectionBorder.deselectAll();
 
     if (evt) {
       evt.preventDefault();
@@ -309,9 +347,6 @@
       var menuData = [];
 
       menuData.push({
-        id: 'new-window',
-        label: _('new-window'),
-        callback: this.newWindow.bind(this, manifest)
       });
 
       BookmarksDatabase.get(config.url).then((result) => {

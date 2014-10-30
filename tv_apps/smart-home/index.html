@@ -35,7 +35,7 @@
   </head>
 
   <body>
-    <article role="region" class="skin-dark" id="main-section">
+    <article role="region" class="skin-dark" id="main-section" contextmenu="mymenu">
       <section id="clock">
         <span id="time">10:30</span><span id="day-period" data-l10n-id="time_am">am</span>
       </section>
@@ -92,6 +92,10 @@
         <div class="command-button" data-l10n-id="edit">edit</div>
         <div class="command-button" data-l10n-id="settings">settings</div>
       </section>
+      <menu type="context" id="mymenu">
+        <menuitem label="Pin to card" id="pin-to-card"></menuitem>
+        <menuitem label="Remove card" id="remove-card"></menuitem>
+      </menu>
     </article>
   </body>
 
