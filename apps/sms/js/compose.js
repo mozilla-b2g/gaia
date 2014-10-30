@@ -67,7 +67,7 @@ var Compose = (function() {
       // hunt for an attachment in the WeakMap and append it
       var attachment = attachments.get(node);
       if (attachment) {
-        content.push(attachment);
+        content.push(attachment.toJSON());
         continue;
       }
 
