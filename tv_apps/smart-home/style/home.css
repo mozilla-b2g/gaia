@@ -104,7 +104,6 @@ section {
 
 .card-thumbnail {
   position: absolute;
-  background-color: white;
   background-position: 50% 50%;
   background-size: 100%;
   border-radius: 10rem;

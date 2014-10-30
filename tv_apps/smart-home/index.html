@@ -8,21 +8,30 @@
     <link rel="stylesheet" type="text/css" href="style/home.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
 
+    <!-- For test purpose on phone only -->
+    <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="tv_shared/js/init_gesture.js"></script>
+
     <!-- Helper libraries -->
     <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="tv_shared/js/shared_utils.js"></script>
     <script defer src="js/piped_promise.js"></script>
+    <!-- Shared TV library for keyboard-based navigating -->
+    <script defer src="tv_shared/js/selection_border.js"></script>
+    <script defer src="tv_shared/js/spatial_navigator.js"></script>
+    <script defer src="tv_shared/js/key_navigation_adapter.js"></script>
     <!-- Specific code -->
     <script defer src="js/card.js"></script>
     <script defer src="js/application.js"></script>
     <script defer src="js/deck.js"></script>
+    <script defer src="js/app_bookmark.js"></script>
     <!-- XXX: we should remove fake_deck once we have real decks -->
     <script defer src="js/fake_deck.js"></script>
     <script defer src="js/card_store.js"></script>
     <script defer src="js/card_manager.js"></script>
-    <script defer src="tv_shared/js/selection_border.js"></script>
     <script defer src="js/scrollable.js"></script>
-    <script defer src="tv_shared/js/spatial_navigator.js"></script>
+    <script defer src="js/context_menu.js"></script>
+    <script defer src="js/message_handler.js"></script>
     <script defer src="js/home.js"></script>
 
     <!-- Shared libraries -->

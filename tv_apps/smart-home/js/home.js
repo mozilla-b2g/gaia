@@ -1,6 +1,6 @@
 'use strict';
 /* global SpatialNavigator, KeyEvent, SelectionBorder, XScrollable */
-/* global CardManager, URL, Home */
+/* global CardManager, URL, Application */
 
 (function(exports) {
 
@@ -13,6 +13,7 @@
     cardScrollable: undefined,
     folderScrollable: undefined,
     _focus: undefined,
+    _focusScrollable: undefined,
 
     cardListElem: document.getElementById('card-list'),
     cardManager: undefined,
@@ -20,28 +21,36 @@
 
     init: function() {
       var that = this;
+
       this.cardManager = new CardManager();
       this.cardManager.init();
-
       this.cardManager.getCardList().then(function(cardList) {
         that._createCardList(cardList);
         that.cardScrollable = new XScrollable({
                 frameElem: 'card-list-frame',
                 listElem: 'card-list',
-                items: 'card-thumbnail'}),
+                itemClassName: 'card-thumbnail'}),
         that.folderScrollable = new XScrollable({
                 frameElem: 'folder-list-frame',
                 listElem: 'folder-list',
-                items: 'folder-card-thumbnail'}),
+                itemClassName: 'folder-card-thumbnail'}),
+
         that.navigableScrollable = [that.cardScrollable, that.folderScrollable];
         var collection = that.getNavigateElements();
+
         that.spatialNavigator = new SpatialNavigator(collection);
+        that.keyNavigatorAdapter = new KeyNavigationAdapter();
+        that.keyNavigatorAdapter.init();
+        that.keyNavigatorAdapter.on('move', that.onMove.bind(that));
+        that.keyNavigatorAdapter.on('enter', that.onEnter.bind(that));
+
         that.selectionBorder = new SelectionBorder({
             multiple: false,
             container: document.getElementById('main-section'),
             forground: true });
 
-        window.addEventListener('keydown', that.handleKeyEvent.bind(that));
+        that.cardManager.on('card-inserted', that.onCardInserted.bind(that));
+        that.cardManager.on('card-removed', that.onCardRemoved.bind(that));
 
         that.spatialNavigator.on('focus', that.handleFocus.bind(that));
         var handleScrollableItemFocusBound =
@@ -58,7 +67,15 @@
       });
     },
 
-    _createCardElement: function(card) {
+    onCardInserted: function(card, idx) {
+      this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx + 1);
+    },
+
+    onCardRemoved: function(card) {
+      this.cardScrollable.removeNode(card);
+    },
+
+    _createCardNode: function(card) {
       // we will create card element like this:
       // <div class="card">
       //   <div class="card-thumbnail"></div>
@@ -105,32 +122,12 @@
     },
 
     _createCardList: function(cardList) {
-      var that = this;
       cardList.forEach(function(card) {
-        that.cardListElem.appendChild(that._createCardElement(card));
-      });
+        this.cardListElem.appendChild(this._createCardNode(card));
+      }.bind(this));
     },
 
-    handleKeyEvent: function(evt) {
-      // XXX : It's better to use KeyEvent.Key and use "ArrowUp", "ArrowDown",
-      // "ArrowLeft", "ArrowRight" for switching after Gecko synced with W3C
-      // KeyboardEvent.Key standard. Here we still use KeyCode and customized
-      // string of "up", "down", "left", "right" for the moment.
-      var key = this.convertKeyToString(evt.keyCode);
-      switch (key) {
-        case 'up':
-        case 'down':
-        case 'left':
-        case 'right':
-          this.handleMove(key)
-          break;
-        case 'enter':
-          this.handleEnter(key);
-          break;
-      }
-    },
-
-    handleMove: function(key) {
+    onMove: function(key) {
       var focus = this.spatialNavigator.getFocusedElement();
       if (focus.CLASS_NAME == 'XScrollable') {
         if (focus.spatialNavigator.move(key)) {
@@ -140,7 +137,7 @@
       this.spatialNavigator.move(key);
     },
 
-    handleEnter: function(key) {
+    onEnter: function() {
       if (this.focusElem === this.settingsButton) {
         this.openSettings();
       } else {
@@ -149,27 +146,6 @@
         if (card) {
           card.launch();
         }
-      }
-    },
-
-    convertKeyToString: function(keyCode) {
-      switch (keyCode) {
-        case KeyEvent.DOM_VK_UP:
-          return 'up';
-        case KeyEvent.DOM_VK_RIGHT:
-          return 'right';
-        case KeyEvent.DOM_VK_DOWN:
-          return 'down';
-        case KeyEvent.DOM_VK_LEFT:
-          return 'left';
-        case KeyEvent.DOM_VK_RETURN:
-          return 'enter';
-        case KeyEvent.DOM_VK_ESCAPE:
-          return 'esc';
-        case KeyEvent.DOM_VK_BACK_SPACE:
-          return 'esc';
-        default:// we don't consume other keys.
-          return null;
       }
     },
 
@@ -194,12 +170,15 @@
 
     handleFocus: function(elem) {
       if (elem.CLASS_NAME == 'XScrollable') {
+        this._focusScrollable = elem;
         elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
       } else if (elem.nodeName) {
         this.selectionBorder.select(elem);
         this._focus = elem;
+        this._focusScrollable = undefined;
       } else {
         this.selectionBorder.selectRect(elem);
+        this._focusScrollable = undefined;
       }
     },
 
@@ -217,6 +196,10 @@
 
     get focusElem() {
       return this._focus;
+    },
+
+    get focusScrollable() {
+      return this._focusScrollable;
     }
   };
 
