@@ -6,14 +6,28 @@
     // such we can compare them with known values
     this._storedConfigs = configs;
 
+    this.height = undefined;
+
     return this;
   };
 
   MockInputWindow.prototype = {
-    start: function mifm_start() {
+    start: function miw_start() {
     },
 
-    stop: function mifm_stop() {
+    stop: function miw_stop() {
+    },
+
+    open: function miw_open() {
+    },
+
+    close: function miw_close() {
+    },
+
+    _setAsActiveInput: function miw_setAsActiveInput() {
+    },
+
+    destroy: function miw_destroy() {
     }
   };
 

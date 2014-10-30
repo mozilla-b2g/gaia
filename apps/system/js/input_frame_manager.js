@@ -255,8 +255,8 @@
       configs.immediateOpen = true;
       nextWindow.open(configs);
     } else {
-      // we don't have any displayed InputWindow, just show the new one
-      // normally.
+      // we don't have any displayed InputWindow, or the currently displayed
+      // one is what we'd like to open, so just show it normally.
       nextWindow.open(configs);
     }
 
@@ -269,7 +269,7 @@
     }
 
     var windowToClose = this._currentWindow;
-    this._currentWindow = undefined;
+    this._currentWindow = null;
     windowToClose.close();
   };
 
@@ -280,7 +280,7 @@
     }
 
     var windowToClose = this._currentWindow;
-    this._currentWindow = undefined;
+    this._currentWindow = null;
 
     // simulate anything we would do in 'closing' event
     this._kbPublish('keyboardhide', undefined);
@@ -297,7 +297,7 @@
   InputFrameManager.prototype._kbPublish = function ifm_kbPublish(type, height){
     var eventInitDict = {
       bubbles: true,
-      cancellable: true,
+      cancelable: true,
       detail: {
         height: height
       }
