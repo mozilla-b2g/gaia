@@ -158,6 +158,11 @@ var UtilityTray = {
           return;
         }
 
+        // Prevent swipe down gesture when already opened.
+        if (target !== this.grippy && this.shown) {
+          return;
+        }
+
         if (target !== this.overlay && target !== this.grippy &&
             evt.currentTarget !== this.statusbarIcons &&
             evt.currentTarget !== this.topPanel) {

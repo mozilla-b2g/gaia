@@ -1,4 +1,3 @@
-
 'use strict';
 (function(module) {
 
@@ -13,11 +12,34 @@
     Selectors: {
       element: '#utility-tray',
       screen: '#screen.utility-tray',
-      notifContainer: '#desktop-notifications-container'
+      notifContainer: '#desktop-notifications-container',
+      grippy: '#utility-tray-grippy'
     },
 
     get visible() {
       return this.client.findElement(this.Selectors.screen);
+    },
+
+    waitForOpened: function() {
+      this.client.waitFor(function() {
+        var element = this.client.findElement(this.Selectors.element);
+        var rect = element.scriptWith(function(el) {
+          return el.getBoundingClientRect();
+        });
+        var expectedTop = 30;
+        return (rect.top === expectedTop);
+      }.bind(this));
+    },
+
+    waitForClosed: function() {
+      this.client.waitFor(function() {
+        var element = this.client.findElement(this.Selectors.element);
+        var rect = element.scriptWith(function(el) {
+          return el.getBoundingClientRect();
+        });
+        var expectedTop = -460;
+        return (rect.top === expectedTop);
+      }.bind(this));
     },
 
     open: function() {
