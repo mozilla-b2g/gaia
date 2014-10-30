@@ -422,7 +422,9 @@ var KeyboardManager = {
         this.hideKeyboardImmediately();
         break;
       case 'screenchange':
-        if (!evt.detail.screenEnabled) {
+        if (!evt.detail.screenEnabled && window.lockScreenWindowManager &&
+            window.lockScreenWindowManager.states.enabled) {
+          navigator.mozInputMethod.removeFocus();
           this.hideKeyboardImmediately();
         }
         break;

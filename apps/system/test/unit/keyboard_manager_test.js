@@ -10,6 +10,7 @@ require('/test/unit/mock_applications.js');
 require('/test/unit/mock_homescreen_launcher.js');
 require('/test/unit/mock_ime_switcher.js');
 require('/test/unit/mock_input_frame_manager.js');
+require('/test/unit/mock_simcard_dialog.js');
 require('/js/input_transition.js');
 require('/js/keyboard_manager.js');
 
@@ -628,6 +629,11 @@ suite('KeyboardManager', function() {
     });
 
     test('screenchange event', function() {
+      window.lockScreenWindowManager = {
+        states: {
+          enabled: true
+        }
+      };
       trigger('screenchange', {
         screenEnabled: true
       });
@@ -641,6 +647,19 @@ suite('KeyboardManager', function() {
 
       sinon.assert.callCount(hideKeyboardImmediately, 1, 'should be called ' +
         'once if screen is turned off');
+
+      window.lockScreenWindowManager = {
+        states: {
+          enabled: false
+        }
+      };
+      trigger('screenchange', {
+        screenEnabled: false
+      });
+
+      sinon.assert.callCount(hideKeyboardImmediately, 1, 'should not be' +
+        ' called once if screen is turned off and lockscreen is disabled');
+      window.lockScreenWindowManager = null;
     });
 
     test('attentionrequestopen event', function() {
