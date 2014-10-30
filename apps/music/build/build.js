@@ -9,7 +9,7 @@ exports.execute = function(options) {
   var paths = [
     [sharedPath, 'js', 'blobview.js'],
     [options.APP_DIR, 'js', 'metadata', 'formats.js'],
-    [options.APP_DIR, 'js', 'metadata.js']
+    [options.APP_DIR, 'js', 'metadata', 'core.js']
   ];
   var targetPath = utils.joinPath(options.STAGE_APP_DIR, 'js',
     'metadata_scripts.js');
