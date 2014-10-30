@@ -79,6 +79,11 @@ var GaiaDataLayer = {
   },
 
   insertContact: function(aContact) {
+    if (aContact.photo) {
+      var blob = GaiaDataLayer.base64ToBlob(aContact.photo, 'image/jpg');
+      aContact.photo = [blob];
+    }
+
     SpecialPowers.addPermission('contacts-create', true, document);
     var contact = new mozContact(aContact);
     var req = window.navigator.mozContacts.save(contact);
@@ -679,5 +684,16 @@ var GaiaDataLayer = {
          window.wrappedJSObject.AlarmManager.delete(aAlarm);
       });
     });
+  },
+
+  base64ToBlob: function(base64, mimeType) {
+      var binary = atob(base64);
+      var len = binary.length;
+      var buffer = new ArrayBuffer(len);
+      var view = new Uint8Array(buffer);
+      for (var i = 0; i < len; i++) {
+        view[i] = binary.charCodeAt(i);
+      }
+      return new Blob([view], {type: mimeType});
   }
 };
