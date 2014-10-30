@@ -76,6 +76,11 @@ class Message(PageRegion):
 
         return True
 
+    def tap_attachment(self):
+        self.root_element.find_element(*self._attachments_locator).tap()
+        from gaiatest.apps.gallery.regions.view_image import ViewImage
+        return ViewImage(self.marionette)
+
     @property
     def id(self):
         return self.root_element.get_attribute('id')
