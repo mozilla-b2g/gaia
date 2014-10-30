@@ -47,7 +47,13 @@ marionette('Desktop Notifications', function() {
     // make sure notification was cleared
     client.switchToFrame();
     client.waitFor(function() {
-      return getNotifications().length === 0;
+      var searchTimeout = client.searchTimeout;
+      client.setSearchTimeout(0);
+
+      var test = getNotifications().length === 0;
+
+      client.setSearchTimeout(searchTimeout);
+      return test;
     });
   });
 });
