@@ -123,59 +123,20 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     }
 
     try {
-      var magic = header.getASCIIText(0, 12);
-
-      if (magic.substring(0, 9) === 'LOCKED 1 ') {
+      if (header.getASCIIText(0, 9) === 'LOCKED 1 ') {
         handleLockedFile(blob);
-      } else if (magic.substring(0, 3) === 'ID3') {
-        LazyLoader.load('js/metadata/id3v2.js', function() {
-          ID3v2Metadata.parse(header, metadata).then(
-            handleCoverArt, errorCallback
-          );
-        });
-      } else if (magic.substring(0, 4) === 'OggS') {
-        LazyLoader.load('js/metadata/ogg.js', function() {
-          OggMetadata.parse(header, metadata).then(
-            handleCoverArt, errorCallback
-          );
-        });
-      } else if (magic.substring(4, 8) === 'ftyp') {
-        LazyLoader.load('js/metadata/mp4.js', function() {
-          MP4Metadata.parse(header, metadata).then(
-            handleCoverArt, errorCallback
-          );
-        });
-      } else if ((header.getUint16(0, false) & 0xFFFE) === 0xFFFA) {
-        LazyLoader.load('js/metadata/id3v1.js', function() {
-          ID3v1Metadata.parse(header, metadata).then(
-            handleCoverArt, errorCallback
-          );
-        });
       } else {
-        // This is some kind of file that we don't know about.
-        // Let's see if we can play it.
-        var player = new Audio();
-        player.mozAudioChannelType = 'content';
-        var canplay = blob.type && player.canPlayType(blob.type);
-        if (canplay === 'probably') {
-          metadataCallback(metadata);
+        var parser = MetadataFormats.findParser(header);
+        if (parser) {
+          parser.parse(header, metadata).then(
+            handleCoverArt, errorCallback
+          );
         } else {
-          var url = URL.createObjectURL(blob);
-          player.src = url;
-
-          player.onerror = function() {
-            URL.revokeObjectURL(url);
-            player.removeAttribute('src');
-            player.load();
-            errorCallback('Unplayable music file');
-          };
-
-          player.oncanplay = function() {
-            URL.revokeObjectURL(url);
-            player.removeAttribute('src');
-            player.load();
+          // This is some kind of file that we don't know about.
+          // Let's see if we can play it.
+          checkPlayability(blob).then(function() {
             metadataCallback(metadata);
-          };
+          }, errorCallback);
         }
       }
     } catch (e) {
@@ -183,6 +144,34 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       errorCallback(e);
     }
   });
+
+  function checkPlayability(blob) {
+    var player = new Audio();
+    player.mozAudioChannelType = 'content';
+    var canplay = blob.type && player.canPlayType(blob.type);
+    if (canplay === 'probably') {
+      Promise.resolve();
+    } else {
+      return new Promise(function(resolve, reject) {
+        var url = URL.createObjectURL(blob);
+        player.src = url;
+
+        player.onerror = function() {
+          URL.revokeObjectURL(url);
+          player.removeAttribute('src');
+          player.load();
+          reject('Unplayable music file');
+        };
+
+        player.oncanplay = function() {
+          URL.revokeObjectURL(url);
+          player.removeAttribute('src');
+          player.load();
+          resolve();
+        };
+      });
+    }
+  }
 
   function handleLockedFile(locked) {
     ForwardLock.getKey(function(secret) {
