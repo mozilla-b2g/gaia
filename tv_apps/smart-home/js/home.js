@@ -1,6 +1,6 @@
 'use strict';
 /* global SpatialNavigator, KeyEvent, SelectionBorder, XScrollable */
-/* global CardManager, URL, Home */
+/* global CardManager, URL, Application */
 
 (function(exports) {
 
@@ -13,46 +13,63 @@
     cardScrollable: undefined,
     folderScrollable: undefined,
     _focus: undefined,
+    _focusScrollable: undefined,
 
     cardListElem: document.getElementById('card-list'),
     cardManager: undefined,
 
     init: function() {
-      var that = this;
+      window.initGesture();
+
       this.cardManager = new CardManager();
       this.cardManager.init();
-
       this.cardManager.getCardList().then(function(cardList) {
-        that._createCardList(cardList);
-        that.cardScrollable = new XScrollable({
+        this._createCardList(cardList);
+        this.cardScrollable = new XScrollable({
                 frameElem: 'card-list-frame',
                 listElem: 'card-list',
-                items: 'card-thumbnail'}),
-        that.folderScrollable = new XScrollable({
+                itemClassName: 'card-thumbnail'}),
+        this.folderScrollable = new XScrollable({
                 frameElem: 'folder-list-frame',
                 listElem: 'folder-list',
-                items: 'folder-card-thumbnail'}),
-        that.navigableScrollable = [that.cardScrollable, that.folderScrollable];
-        var collection = that.getNavigateElements();
-        that.spatialNavigator = new SpatialNavigator(collection);
-        that.selectionBorder = new SelectionBorder({
+                itemClassName: 'folder-card-thumbnail'}),
+
+        this.navigableScrollable = [this.cardScrollable, this.folderScrollable];
+        var collection = this.getNavigateElements();
+
+        this.spatialNavigator = new SpatialNavigator(collection);
+        this.keyNavigatorAdapter = new KeyNavigationAdapter();
+        this.keyNavigatorAdapter.init();
+        this.keyNavigatorAdapter.on('move', this.onMove.bind(this));
+        this.keyNavigatorAdapter.on('enter', this.onEnter.bind(this));
+
+        this.selectionBorder = new SelectionBorder({
             multiple: false,
             container: document.getElementById('main-section'),
             forground: true });
 
-        window.addEventListener('keydown', that.handleKeyEvent.bind(that));
+        this.cardManager.on('cardinserted', this.onCardInserted.bind(this));
+        this.cardManager.on('cardremoved', this.onCardRemoved.bind(this));
 
-        that.spatialNavigator.on('focus', that.handleFocus.bind(that));
+        this.spatialNavigator.on('focus', this.handleFocus.bind(this));
         var handleScrollableItemFocusBound =
-                                    that.handleScrollableItemFocus.bind(that);
-        that.navigableScrollable.forEach(function(scrollable) {
+                                    this.handleScrollableItemFocus.bind(this);
+        this.navigableScrollable.forEach(function(scrollable) {
           scrollable.on('focus', handleScrollableItemFocusBound);
         });
-        that.spatialNavigator.focus();
-      });
+        this.spatialNavigator.focus();
+      }.bind(this));
     },
 
-    _createCardElement: function(card) {
+    onCardInserted: function(card, idx) {
+      this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx + 1);
+    },
+
+    onCardRemoved: function(card) {
+      this.cardScrollable.removeNode(card);
+    },
+
+    _createCardNode: function(card) {
       // we will create card element like this:
       // <div class="card">
       //   <div class="card-thumbnail"></div>
@@ -99,59 +116,26 @@
     },
 
     _createCardList: function(cardList) {
-      var that = this;
       cardList.forEach(function(card) {
-        that.cardListElem.appendChild(that._createCardElement(card));
-      });
+        this.cardListElem.appendChild(this._createCardNode(card));
+      }.bind(this));
     },
 
-    handleKeyEvent: function(evt) {
-      // XXX : It's better to use KeyEvent.Key and use "ArrowUp", "ArrowDown",
-      // "ArrowLeft", "ArrowRight" for switching after Gecko synced with W3C
-      // KeyboardEvent.Key standard. Here we still use KeyCode and customized
-      // string of "up", "down", "left", "right" for the moment.
-      var key = this.convertKeyToString(evt.keyCode);
-      switch (key) {
-        case 'up':
-        case 'down':
-        case 'left':
-        case 'right':
-          var focus = this.spatialNavigator.getFocusedElement();
-          if (focus.CLASS_NAME == 'XScrollable') {
-            if (focus.spatialNavigator.move(key)) {
-              return;
-            }
-          }
-          this.spatialNavigator.move(key);
-          break;
-        case 'enter':
-          var cardId = this.focusElem.dataset.cardId;
-          var card = this.cardManager.findCardFromCardList({cardId: cardId});
-          if (card) {
-            card.launch();
-          }
-          break;
+    onMove: function(key) {
+      var focus = this.spatialNavigator.getFocusedElement();
+      if (focus.CLASS_NAME == 'XScrollable') {
+        if (focus.spatialNavigator.move(key)) {
+          return;
+        }
       }
+      this.spatialNavigator.move(key);
     },
 
-    convertKeyToString: function(keyCode) {
-      switch (keyCode) {
-        case KeyEvent.DOM_VK_UP:
-          return 'up';
-        case KeyEvent.DOM_VK_RIGHT:
-          return 'right';
-        case KeyEvent.DOM_VK_DOWN:
-          return 'down';
-        case KeyEvent.DOM_VK_LEFT:
-          return 'left';
-        case KeyEvent.DOM_VK_RETURN:
-          return 'enter';
-        case KeyEvent.DOM_VK_ESCAPE:
-          return 'esc';
-        case KeyEvent.DOM_VK_BACK_SPACE:
-          return 'esc';
-        default:// we don't consume other keys.
-          return null;
+    onEnter: function() {
+      var cardId = this.focusElem.dataset.cardId;
+      var card = this.cardManager.findCardFromCardList({cardId: cardId});
+      if (card) {
+        card.launch();
       }
     },
 
@@ -176,12 +160,15 @@
 
     handleFocus: function(elem) {
       if (elem.CLASS_NAME == 'XScrollable') {
+        this._focusScrollable = elem;
         elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
       } else if (elem.nodeName) {
         this.selectionBorder.select(elem);
         this._focus = elem;
+        this._focusScrollable = undefined;
       } else {
         this.selectionBorder.selectRect(elem);
+        this._focusScrollable = undefined;
       }
     },
 
@@ -192,6 +179,10 @@
 
     get focusElem() {
       return this._focus;
+    },
+
+    get focusScrollable() {
+      return this._focusScrollable;
     }
   };
 

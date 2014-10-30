@@ -1,4 +1,5 @@
-/* global evt, addMixin, Promise, PipedPromise, Application, CardStore */
+/* global evt, addMixin, Promise, PipedPromise, Application, CardStore,
+          Deck, AppBookmark */
 
 (function(exports) {
   'use strict';
@@ -36,7 +37,16 @@
     // this method do the job of serializing
     _serializeCard: function cm_serializeCard(card) {
       var cardEntry;
-      if (card instanceof Application) {
+      if (card instanceof AppBookmark) {
+        cardEntry = {
+          manifestURL: card.nativeApp.manifestURL,
+          name: card.name,
+          thumbnail: card.thumbnail,
+          launchURL: card.launchURL,
+          type: 'AppBookmark'
+        };
+      }
+      else if (card instanceof Application) {
         cardEntry = {
           manifestURL: card.nativeApp.manifestURL,
           name: card.name,
@@ -70,6 +80,13 @@
             cachedIconURL: cardEntry.cachedIconURL
           });
           break;
+        case 'AppBookmark':
+          cardInstance = new AppBookmark({
+            nativeApp: this.installedApps[cardEntry.manifestURL],
+            name: cardEntry.name,
+            thumbnail: cardEntry.thumbnail,
+            launchURL: cardEntry.launchURL
+          });
       }
       return cardInstance;
     },
@@ -82,12 +99,14 @@
           that._loadFile({
             url: defaultCardListFile,
             responseType: 'json'
+
           }).then(function onFulfill(config) {
             that._cardList =
               config.card_list.map(that._deserializeCardEntry.bind(that));
             that._cardStore.saveData('cardList',
               that._cardList.map(that._serializeCard.bind(that)));
             resolve();
+
           }, function onReject(error) {
             var reason ='request ' + defaultCardListFile +
               ' got reject ' + error;
@@ -221,6 +240,36 @@
         delete this.installedApps[app.manifestURL];
         this.fire('uninstall', this.getAppEntries(app.manifestURL));
       }
+    },
+
+    insertCard: function cm_addCard(options) {
+      var card = this._deserializeCardEntry(options);
+
+      // TODO: If the given card belongs to an app, we assume the app spans a
+      // pseudo group with all its bookmarks following app icon itself, and the
+      // given card should be put at the end of the group.
+
+      // add card to the end of the list
+      this._cardList.push(card);
+      this._cardStore.saveData('cardList',
+              this._cardList.map(this._serializeCard.bind(this)));
+
+      this.fire('cardinserted', card, this._cardList.length - 1);
+    },
+
+    removeCard: function cm_removeCard(item) {
+      var idx;
+      if(typeof item === 'number') {
+        idx = item;
+        this._cardList.splice(item, 1);
+      } else {
+        idx = this._cardList.indexOf(item);
+        this._cardList.splice(idx, 1);
+      }
+      this._cardStore.saveData('cardList',
+              this._cardList.map(this._serializeCard.bind(this)));
+
+      this.fire('cardremoved', idx);
     },
 
     init: function cm_init() {
