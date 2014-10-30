@@ -1,0 +1,4 @@
+--require test/test-helper.js
+--reporter spec
+--timeout 10s
+--ui tdd

@@ -1,0 +1,29 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+  <title>Serve the tests</title>
+  <link rel="stylesheet" href="/node_modules/test-agent/test-agent.css" type="text/css" charset="utf-8">
+  <style type="text/css" media="all">
+    body > iframe  {
+      width: 100%;
+      height: 100%;
+      visibility: visible; 
+      border: 1px solid white;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Test Agent UI will be loaded in here -->
+<div id="test-agent-ui">
+</div>
+
+<!-- Load the bare minimum to get the ui and runner working -->
+<script src="/node_modules/test-agent/test-agent.js" type="text/javascript" charset="utf-8"></script>
+<script src="./index.js" type="text/javascript" charset="utf-8"></script>
+
+</body>
+</html>
+

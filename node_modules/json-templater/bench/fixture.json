@@ -1,0 +1,34 @@
+{
+    "version": "0.2.0",
+    "provisionerId": "aws-provisioner",
+    "workerType": "ami-1ad0bc2a",
+    "routing": "task-testing.task-creator",
+    "retries": 5,
+    "priority": 5,
+    "created": "2014-03-03T15:49:40.701Z",
+    "deadline": "2014-03-04T15:49:40.701Z",
+    "parameters": {
+      "xfoo": "wat"
+    },
+    "payload": {
+        "image": "ubuntu",
+        "command": [
+            "/bin/bash",
+            "-c",
+            "echo 'Hello World'"
+        ],
+        "features": {
+            "azureLivelog": true,
+            "bufferLog": false
+        }
+    },
+    "metadata": {
+        "name": "A _custom_ {{xfoo}} {{xfoo}} {{xfoo}} {{xfoo}} {{xfoo}} {{xfoo}} {{xfoo}} {{xfoo}} {{xfoo}}  task",
+        "description": "A **super** quick test task from task creator tool.",
+        "owner": "jlal@mozilla.com",
+        "source": "http://docs.taskcluster.net/tools/task-creator/"
+    },
+    "tags": {
+        "kind": "one-time-task"
+    }
+}

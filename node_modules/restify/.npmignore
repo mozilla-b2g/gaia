@@ -1,0 +1,9 @@
+.dir-locals.el
+.gitmodules
+.travis.yml
+Makefile
+deps
+docs
+examples
+test
+tools

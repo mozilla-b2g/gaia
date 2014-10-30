@@ -1,0 +1,66 @@
+#!/usr/bin/env coco
+fs     = require 'fs'
+path   = require 'path'
+Seq    = require 'seq'
+mkdirp = require 'mkdirp'
+
+{removeAsync, removeSync} = require 'remove'
+
+
+touch = (f, cb) ->
+    return cb null if path.existsSync f
+    fs.writeFile f, '', 'utf8', cb
+
+setup_tests = (cb) ->
+    Seq()
+        .seq mkdirp, 'tmp/d1', 8r755, Seq
+        .set <[ tmp/f1 tmp/f2 tmp/d1/f3 tmp/d1/f4 ]>
+        .parEach -> touch it, this
+        .seq mkdirp, 'tmp/d2/d3', 8r755, Seq
+        .set <[ tmp/d2/f5 tmp/d2/f6 tmp/d2/d3/f7 tmp/d2/d3/f8 ]>
+        .parEach -> touch it, this
+        .seq mkdirp, 'tmp/d4/d5/d6', 8r755, Seq
+        .set <[ tmp/d4/d5/d6/f9 tmp/d4/d5/d6/f10 tmp/d4/d5/d6/f11 tmp/d4/d5/d6/f12 ]>
+        .parEach -> touch it, this
+        .seq mkdirp, 'tmp/d7', 8r755, Seq
+        .seq -> cb()
+
+
+###
+
+console.log '\n### removeSync Tests ###'
+<- setup_tests
+
+console.log "\nremoveSync <[ tmp/f1 tmp/d1 tmp/f2 ]>"
+removeSync <[ tmp/f1 tmp/d1 tmp/f2 ]>, {+verbose}
+
+console.log "\nremoveSync 'tmp/d2'"
+removeSync 'tmp/d2', {+verbose}
+
+console.log "\nremoveSync <[ tmp/d4 tmp/d7 ]>"
+removeSync <[ tmp/d4 tmp/d7 ]>, {+verbose}
+
+contents <- fs.readdir 'tmp'
+throw new Error("Failed to remove all files: #{contents.join ', '}") if contents?.length
+
+
+###
+
+console.log '\n### removeAsync Tests ###'
+<- setup_tests
+
+console.log "\nremoveAsync <[ tmp/f1 tmp/d1 tmp/f2 ]>"
+err <- removeAsync <[ tmp/f1 tmp/d1 tmp/f2 ]>, {+verbose}
+throw err if err
+
+console.log "\nremoveAsync 'tmp/d2'"
+err <- removeAsync 'tmp/d2', {+verbose}
+throw err if err
+
+console.log "\nremoveAsync <[ tmp/d4 tmp/d7 ]>"
+err <- removeAsync <[ tmp/d4 tmp/d7 ]>, {+verbose}
+throw err if err
+
+contents <- fs.readdir 'tmp'
+throw new Error("Failed to remove all files: #{contents.join ', '}") if contents?.length
+
