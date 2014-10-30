@@ -305,5 +305,21 @@ suite('ScreenLockPasscode > ', function() {
         });
       });
     });
+
+    suite('Disable buttons', function() {
+      setup(function() {
+        screenLockPasscode.createPasscodeButton.disabled = false;
+        screenLockPasscode.changePasscodeButton.disabled = false;
+      });
+      test('we would enable and disabled the buttons', function() {
+        screenLockPasscode._disablePasscodeButtons(true);
+        assert.isTrue(screenLockPasscode.createPasscodeButton.disabled);
+        assert.isTrue(screenLockPasscode.changePasscodeButton.disabled);
+
+        screenLockPasscode._disablePasscodeButtons(false);
+        assert.isFalse(screenLockPasscode.createPasscodeButton.disabled);
+        assert.isFalse(screenLockPasscode.changePasscodeButton.disabled);
+      });
+    });
   });
 });
