@@ -15,6 +15,7 @@ define(function(require) {
   var SimSecurityItem = require('panels/root/sim_security_item');
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
   var ThemesItem = require('panels/root/themes_item');
+  var HomescreenItem = require('panels/root/homescreen_item');
 
   return function ctor_root_panel() {
     var root = Root();
@@ -30,6 +31,7 @@ define(function(require) {
     var simSecurityItem;
     var airplaneModeItem;
     var themesItem;
+    var homescreenItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
@@ -61,6 +63,8 @@ define(function(require) {
           SimSecurityItem(panel.querySelector('.simCardLock-desc'));
         themesItem =
           ThemesItem(panel.querySelector('.themes-section'));
+        homescreenItem =
+          HomescreenItem(panel.querySelector('#homescreens-section'));
       },
       onBeforeShow: function rp_onBeforeShow() {
         bluetoothItem.enabled = true;
@@ -75,6 +79,9 @@ define(function(require) {
         airplaneModeItem.enabled = true;
         themesItem.enabled = true;
       },
+      onShow: function rp_onShow() {
+        homescreenItem.enabled = true;
+      },
       onHide: function rp_onHide() {
         bluetoothItem.enabled = false;
         languageItem.enabled = false;
@@ -87,6 +94,7 @@ define(function(require) {
         simSecurityItem.enabled = false;
         airplaneModeItem.enabled = false;
         themesItem.enabled = false;
+        homescreenItem.enabled = false;
       }
     });
   };
