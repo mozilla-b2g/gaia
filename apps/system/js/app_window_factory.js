@@ -1,6 +1,5 @@
 'use strict';
-/* global applications, BrowserConfigHelper, AppWindowManager,
-          homescreenLauncher, AppWindow */
+/* global applications, BrowserConfigHelper, AppWindowManager, AppWindow */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -188,10 +187,10 @@
           app.browser.element.src = config.url;
         }
         app.reviveBrowser();
-      } else if (config.origin !== homescreenLauncher.origin) {
+      } else {
+        // homescreenWindowManager already listens webapps-launch and open-app.
+        // We don't need to check if the launched app is homescreen.
         new AppWindow(config);
-      } else if (config.origin == homescreenLauncher.origin) {
-        homescreenLauncher.getHomescreen(true);
       }
       this.publish('launchapp', config);
     },
