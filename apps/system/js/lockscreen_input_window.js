@@ -38,6 +38,7 @@
     };
     this.iframe = this.createFrame();
     AppWindow.call(this, configs);
+    this.element.setAttribute('aria-hidden', true);
     window.dispatchEvent(
       new CustomEvent('lockscreen-inputpad-frame-bootstrap'));
   };
