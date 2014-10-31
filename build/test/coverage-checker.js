@@ -2,7 +2,7 @@
 'use strict';
 
 var Mocha = require('mocha');
-var walk_dir = require('./libs/walk_dir');
+var dive = require('diveSync');
 
 var mocha = new Mocha({
   harmony: true,
@@ -11,22 +11,21 @@ var mocha = new Mocha({
   timeout: 0
 });
 
-function valid_file(file) {
+function validFile(file, dir) {
+  if (dir) {
+    return true;
+  }
   return (file.indexOf('.test.js') !== -1);
 }
 
 function run(callback) {
-  walk_dir.walk(process.env.TEST_FILES_DIR, valid_file, function(err, files) {
+  dive(process.env.TEST_FILES_DIR, { filter: validFile }, function(err, file) {
     if (err) {
       return callback(err);
     }
-
-    files.forEach(function(file) {
-      mocha.addFile(file);
-    });
-
-    callback();
+    mocha.addFile(file);
   });
+  callback();
 }
 
 run(function(err) {

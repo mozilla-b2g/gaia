@@ -2,7 +2,6 @@ var assert = require('chai').assert;
 var fs = require('fs');
 var path = require('path');
 var AdmZip = require('adm-zip');
-var dive = require('dive');
 var helper = require('./helper');
 
 suite('Integration tests', function() {

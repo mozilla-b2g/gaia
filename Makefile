@@ -59,6 +59,19 @@
 # Eliminate use of the built-in implicit rules to get faster.
 MAKEFLAGS=-r
 
+# Rebuild when user specifying these config. If following config are specified,
+# build system considers it will load exteranl resources and force rebuilding.
+REBUILD?=0
+ifdef GAIA_DISTRIBUTION_DIR
+	REBUILD=1
+endif
+ifdef LOCALE_BASEDIR
+	REBUILD=1
+endif
+ifdef LOCALES_FILE
+	REBUILD=1
+endif
+
 -include local.mk
 
 # Headless bot does not need the full output of wget
@@ -522,7 +535,8 @@ define BUILD_CONFIG
   "STAGE_DIR" : "$(STAGE_DIR)", \
   "GAIA_APP_TARGET" : "$(GAIA_APP_TARGET)", \
   "BUILD_DEBUG" : "$(BUILD_DEBUG)", \
-  "VARIANT_PATH" : "$(VARIANT_PATH)" \
+  "VARIANT_PATH" : "$(VARIANT_PATH)", \
+  "REBUILD": "$(REBUILD)"
 }
 endef
 
@@ -542,7 +556,7 @@ $(STAGE_DIR):
 LANG=POSIX # Avoiding sort order differences between OSes
 
 .PHONY: app
-app: b2g_sdk profile-dir $(STAGE_DIR)
+app: b2g_sdk profile-dir
 	@$(call run-js-command,app)
 
 # Keep old targets just for people/scripts still using it

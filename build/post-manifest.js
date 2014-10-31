@@ -35,7 +35,7 @@ function execute(options) {
 
   var gaia = utils.gaia.getInstance(options);
   var webappsBaseDir = gaia.stageDir;
-  gaia.webapps.forEach(function(app) {
+  gaia.rebuildWebapps.forEach(function(app) {
     if (utils.isExternalApp(app)) {
       return;
     }
