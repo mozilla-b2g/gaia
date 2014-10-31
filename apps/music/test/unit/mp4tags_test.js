@@ -5,9 +5,24 @@ require('/test/unit/metadata_utils.js');
 require('/js/metadata/mp4.js');
 
 suite('m4a tags', function() {
-  setup(function() {
+  var RealLazyLoader, RealGetDeviceStorage;
+
+  setup(function(done) {
     this.timeout(1000);
+    RealLazyLoader = window.LazyLoader;
     window.LazyLoader = MockLazyLoader;
+
+    RealGetDeviceStorage = navigator.getDeviceStorage;
+    navigator.getDeviceStorage = MockGetDeviceStorage;
+
+    require('/js/metadata_scripts.js', function() {
+      done();
+    });
+  });
+
+  teardown(function() {
+    window.LazyLoader = RealLazyLoader;
+    navigator.getDeviceStorage = RealGetDeviceStorage;
   });
 
   test('m4a tags', function(done) {
