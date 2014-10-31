@@ -1836,6 +1836,7 @@
    * @memberOf AppWindow.prototype
    */
   AppWindow.prototype._handle__shrinkingstart = function aw_shrinkingstart() {
+    this.broadcast('blur');
     this.getScreenshot(() => {
       this._showScreenshotOverlay();
       this.setVisible(false);
@@ -1849,6 +1850,7 @@
    */
   AppWindow.prototype._handle__shrinkingstop = function aw_shrinkingstop() {
     this.setVisible(true);
+    this.broadcast('focus');
   };
 
   /**
