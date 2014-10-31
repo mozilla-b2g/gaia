@@ -61,6 +61,9 @@
         }
         return;
       }
+
+      window.addEventListener('system-resize', this, true);
+
       this.active = true;
       this.rocketbar.classList.add('active');
       this.form.classList.remove('hidden');
@@ -110,6 +113,8 @@
         return;
       }
       this.active = false;
+
+      window.removeEventListener('system-resize', this, true);
 
       var backdrop = this.backdrop;
       var finishTimeout;
@@ -255,6 +260,11 @@
         case 'permissiondialoghide':
           if (this.active) {
             this.focus();
+          }
+          break;
+        case 'system-resize':
+          if (this.searchWindow.frontWindow) {
+            this.searchWindow.frontWindow.resize();
           }
           break;
         case 'global-search-request':
