@@ -132,6 +132,10 @@ function(panels, PassPhrase, SettingsListener) {
     getSIMCards: function() {
       var mc = navigator.mozMobileConnections;
 
+      if ( ! mc) {
+        return;
+      }
+
       [].forEach.call(mc, function(connection, key) {
         var icc, label;
         if (connection.iccId) {
