@@ -329,15 +329,20 @@ var ThreadListUI = {
       this.deleteThread(threadId);
 
       if (--count === 0) {
-        this.cancelEdit();
         Drafts.store();
-        WaitingScreen.hide();
+
+        completeDeletion();
       }
     }
 
     function deleteMessage(message) {
       MessageManager.deleteMessages(message.id);
       return true;
+    }
+
+    function completeDeletion() {
+      ThreadListUI.cancelEdit();
+      WaitingScreen.hide();
     }
 
     function performDeletion() {
@@ -359,24 +364,21 @@ var ThreadListUI = {
         }
 
         Drafts.store();
-
-        // In cases where no threads are being deleted,
-        // reset and restore the UI from edit mode and
-        // exit immediately.
-        if (list.threads.length === 0) {
-          this.cancelEdit();
-          WaitingScreen.hide();
-          return;
-        }
       }
 
       count = list.threads.length;
+
+      // In cases where no threads are being deleted, reset and restore the UI
+      // from edit mode and exit immediately.
+      if (count === 0) {
+        completeDeletion();
+        return;
+      }
 
       // Remove and coerce the threadId back to a number
       // MobileMessageFilter and all other platform APIs
       // expect this value to be a number.
       while ((threadId = +list.threads.pop())) {
-
         // Filter and request all messages with this threadId
         filter = { threadId: threadId };
 
