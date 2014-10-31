@@ -218,8 +218,8 @@ function init() {
     // TabBar should be set to "mix" to sync with the tab selection.
     if (!pendingPick) {
       TabBar.option = 'mix';
-      ModeManager.start(MODE_TILES);
       TilesView.hideSearch();
+      ModeManager.start(MODE_TILES);
     }
   };
 
