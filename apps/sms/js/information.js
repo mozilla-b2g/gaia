@@ -118,19 +118,23 @@ function createReportDiv(reports) {
     console.error('Invalid message report status: ' + deliveryStatus);
     return reportDiv;    
   }
-
-  data.titleL10n = 'report-status-' + status;
   reportDiv.dataset.deliveryStatus = status;
 
-  if (status === 'delivered') {
-    data.timestamp = '' + reports.deliveryTimestamp;
-    data.reportDateL10n = completeLocaleFormat(reports.deliveryTimestamp);
-  } else if (status === 'read') {
-    data.timestamp = '' + reports.readTimestamp;
-    data.reportDateL10n = completeLocaleFormat(reports.readTimestamp);
+  switch (status) {
+    case 'not-applicable':
+      return reportDiv;
+    case 'delivered':
+      data.timestamp = '' + reports.deliveryTimestamp;
+      data.reportDateL10n = completeLocaleFormat(reports.deliveryTimestamp);
+      break;
+    case 'read':
+      data.timestamp = '' + reports.readTimestamp;
+      data.reportDateL10n = completeLocaleFormat(reports.readTimestamp);
+      break;
   }
-
+  data.titleL10n = 'report-status-' + status;
   reportDiv.innerHTML = TMPL.report.interpolate(data);
+
   return reportDiv;
 }
 
@@ -270,9 +274,10 @@ var VIEWS = {
       request.onsuccess = (function() {
         var message = request.result;
         var type = message.type;
+        var delivery = message.delivery;
 
-        var isIncoming = message.delivery === 'received' ||
-            message.delivery === 'not-downloaded';
+        var isIncoming = delivery === 'received' ||
+            delivery === 'not-downloaded';
 
         // Fill in the description/status/size
         if (type === 'sms') {
@@ -294,7 +299,7 @@ var VIEWS = {
             this.sizeBlock.classList.remove('hide');
           }
         }
-        this.container.dataset.delivery = message.delivery;
+        this.container.dataset.delivery = delivery;
 
         // If incoming message is migrated from the database where sentTimestamp
         // hadn't been supported yet then we won't have valid value for it.
@@ -313,8 +318,12 @@ var VIEWS = {
           l10nContainsDateSetup(this.sentTimestamp, message.sentTimestamp);
           setL10nAttributes(this.sentTitle, 'message-sent');
         } else {
-          l10nContainsDateSetup(this.sentTimestamp, message.timestamp);
-          setL10nAttributes(this.sentTitle, 'message-' + message.delivery);
+          if (delivery === 'sending' || delivery === 'sent') {
+            setL10nAttributes(this.sentTitle, 'message-' + delivery);
+          }
+          if (delivery === 'error' || delivery === 'sent') {
+            l10nContainsDateSetup(this.sentTimestamp, message.timestamp);
+          }
         }
 
         //show sim information for dual sim device
