@@ -1,10 +1,10 @@
-/* global parseMetadata */
+/* global parseMetadata, MockLazyLoader, MockGetDeviceStorage */
 'use strict';
 
-require('/test/unit/metadata_utils.js');
-require('/js/metadata/mp4.js');
+require('/test/unit/metadata/utils.js');
+require('/js/metadata/ogg.js');
 
-suite('m4a tags', function() {
+suite('ogg tags', function() {
   var RealLazyLoader, RealGetDeviceStorage;
 
   setup(function(done) {
@@ -25,15 +25,15 @@ suite('m4a tags', function() {
     navigator.getDeviceStorage = RealGetDeviceStorage;
   });
 
-  test('m4a tags', function(done) {
-    parseMetadata('/test-data/aac-tags.m4a').then(function(metadata) {
+  test('vorbis comment', function(done) {
+    parseMetadata('/test-data/vorbis-c.ogg').then(function(metadata) {
       done(function() {
-        assert.strictEqual(metadata.tag_format, 'mp4');
-        assert.strictEqual(metadata.artist, 'The Tragically Hip');
-        assert.strictEqual(metadata.album, 'Trouble At The Henhouse');
-        assert.strictEqual(metadata.title, 'Giftshop');
-        assert.strictEqual(metadata.tracknum, 1);
-        assert.strictEqual(metadata.trackcount, 12);
+        assert.strictEqual(metadata.tag_format, 'vorbis');
+        assert.strictEqual(metadata.artist, 'Angra');
+        assert.strictEqual(metadata.album, 'Holy Land');
+        assert.strictEqual(metadata.title, 'Carolina IV');
+        assert.strictEqual(metadata.tracknum, 4);
+        assert.strictEqual(metadata.trackcount, 10);
         assert.strictEqual(metadata.discnum, 1);
         assert.strictEqual(metadata.disccount, 1);
       });

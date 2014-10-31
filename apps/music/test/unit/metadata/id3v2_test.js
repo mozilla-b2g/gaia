@@ -1,13 +1,10 @@
-/* global parseMetadata, loadPicture */
+/* global parseMetadata, loadPicture, MockLazyLoader, MockGetDeviceStorage */
 'use strict';
 
-require('/test/unit/metadata_utils.js');
-require('/js/metadata/id3v1.js');
+require('/test/unit/metadata/utils.js');
 require('/js/metadata/id3v2.js');
 
-// We have a bunch of otherwise-identical mp3 files using different ID3
-// versions, covering all valid character encodings. Test them all.
-suite('id3 tags', function() {
+suite('id3v2 tags', function() {
 
   var RealLazyLoader, RealGetDeviceStorage;
 
@@ -29,6 +26,8 @@ suite('id3 tags', function() {
     navigator.getDeviceStorage = RealGetDeviceStorage;
   });
 
+  // We have a bunch of otherwise-identical mp3 files using different ID3
+  // versions, covering all valid character encodings. Test them all.
   [2, 3, 4].forEach(function(version) {
     var tag_format = 'id3v2.' + version + '.0';
     suite('simple id3v2.' + version, function() {
@@ -102,22 +101,9 @@ suite('id3 tags', function() {
 
   });
 
-  suite('simple id3v1', function() {
+  suite('simple id3v1+2', function() {
 
-    test('id3v1', function(done) {
-      parseMetadata('/test-data/id3v1-simple.mp3').then(function(metadata) {
-        done(function() {
-          assert.strictEqual(metadata.tag_format, 'id3v1');
-          assert.strictEqual(metadata.artist, 'AC/DC');
-          assert.strictEqual(metadata.album, 'Dirty Deeds Done Dirt Cheap');
-          assert.strictEqual(metadata.title, 'Problem Child');
-          assert.strictEqual(metadata.tracknum, 5);
-          assert.strictEqual(metadata.trackcount, undefined);
-        });
-      });
-    });
-
-    test('id3 v1+v2', function(done) {
+    test('id3v1+2', function(done) {
       parseMetadata('/test-data/id3v1+2-simple.mp3').then(function(metadata) {
         done(function() {
           // Here we should have the v2 tag content.
