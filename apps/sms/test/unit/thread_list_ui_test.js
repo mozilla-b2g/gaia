@@ -587,6 +587,23 @@ suite('thread_list_ui', function() {
       this.sinon.stub(MessageManager, 'getMessages');
     });
 
+    test('confirm true when threads were unselected in the meantime',
+    function() {
+      this.sinon.stub(WaitingScreen, 'show');
+      this.sinon.stub(WaitingScreen, 'hide');
+      this.sinon.spy(ThreadListUI, 'cancelEdit');
+
+      ThreadListUI.delete();
+
+      this.selectedInputs = [];
+
+      MockDialog.triggers.confirm();
+
+      sinon.assert.callOrder(WaitingScreen.show, WaitingScreen.hide);
+      sinon.assert.called(ThreadListUI.cancelEdit);
+      sinon.assert.notCalled(MessageManager.getMessages);
+    });
+
     suite('confirm true', function() {
       setup(function() {
         this.sinon.stub(WaitingScreen, 'show');
