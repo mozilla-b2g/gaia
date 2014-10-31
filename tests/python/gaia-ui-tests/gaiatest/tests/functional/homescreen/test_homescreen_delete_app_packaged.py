@@ -12,7 +12,7 @@ class TestDeleteApp(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.connect_to_network()
+        self.connect_to_local_area_network()
 
         # Turn off geolocation prompt for smart collections
         self.apps.set_permission('Smart Collections', 'geolocation', 'deny')

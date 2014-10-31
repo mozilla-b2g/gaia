@@ -876,18 +876,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             else:
                 self.data_layer.set_char_pref(name, value)
 
-    def connect_to_network(self):
-        if not self.device.is_online:
-            try:
-                self.connect_to_local_area_network()
-            except:
-                self.marionette.log('Failed to connect to wifi, trying cell data instead.')
-                if self.device.has_mobile_connection:
-                    self.data_layer.connect_to_cell_data()
-                else:
-                    raise Exception('Unable to connect to network')
-        assert self.device.is_online
-
     def connect_to_local_area_network(self):
         if not self.device.is_online:
             if self.testvars.get('wifi') and self.device.has_wifi:
