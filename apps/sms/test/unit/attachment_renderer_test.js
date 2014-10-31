@@ -143,7 +143,7 @@ suite('AttachmentRenderer >', function() {
 
     test('HUGE (fake) image attachment', function(done) {
       var attachment = new Attachment({
-        size: 3 * 1024 * 1024,
+        size: 5 * 1024 * 1024,
         type: 'image/jpeg'
       }, {
         name: 'Image attachment'

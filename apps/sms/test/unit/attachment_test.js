@@ -62,6 +62,17 @@ suite('attachment_test.js', function() {
     assert.typeOf(attachment.name, 'string');
   });
 
+  test('correct enumerable properties', function() {
+    var expectedProperties = ['name', 'blob', 'isDraft'];
+    var attachment = new Attachment(new Blob());
+    attachment.render();
+
+    expectedProperties.forEach((prop) => assert.ok(prop in attachment));
+
+    var keys = Object.keys(attachment);
+    assert.equal(keys.length, expectedProperties.length);
+  });
+
   suite('render attachment', function() {
     var attachmentRendererMock;
 
