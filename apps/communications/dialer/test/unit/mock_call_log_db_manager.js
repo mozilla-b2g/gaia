@@ -51,6 +51,11 @@ var MockCallLogDBManager = {
     });
     callback(callsMatched);
   },
+  deleteGroupList: function(logGroupsToDelete, callback) {
+    if (callback) {
+      callback();
+    }
+  },
   removeGroupContactInfo: function(contactId, group, callback) {
     var callsMatched = 0;
     for (var i=0; i < this._calls.length; i++) {

@@ -689,12 +689,7 @@ var CallLog = {
     }
   },
 
-  filter: function cl_filter() {
-    this.callLogContainer.classList.add('filter');
-    AccessibilityHelper.setAriaSelected(this.missedFilter.firstElementChild, [
-      this.allFilter.firstElementChild, this.missedFilter.firstElementChild]);
-    this.callLogContainer.setAttribute('aria-labelledby', 'missed-filter-tab');
-
+  _countMissedCalls: function cl_countMissedCalls() {
     var containers = this.callLogContainer.getElementsByTagName('ol');
     var totalMissedCalls = 0;
     for (var i = 0, l = containers.length; i < l; i++) {
@@ -704,8 +699,17 @@ var CallLog = {
       }
       totalMissedCalls += noMissedCalls.length;
     }
-    // If there are no missed calls to display, show appropriate empty call log,
-    // otherwise hide the empty call log message and enable edit mode
+
+    return totalMissedCalls;
+  },
+
+  filter: function cl_filter() {
+    this.callLogContainer.classList.add('filter');
+    AccessibilityHelper.setAriaSelected(this.missedFilter.firstElementChild, [
+      this.allFilter.firstElementChild, this.missedFilter.firstElementChild]);
+    this.callLogContainer.setAttribute('aria-labelledby', 'missed-filter-tab');
+
+    var totalMissedCalls = this._countMissedCalls();
     if (totalMissedCalls === 0) {
       this.renderEmptyCallLog(true);
     } else {
@@ -838,6 +842,13 @@ var CallLog = {
           logGroupsToDelete.push(toDelete);
         }
 
+        var totalMissedCalls = self._countMissedCalls();
+        // If there are no missed calls to display,
+        // show appropriate empty call log,
+        // otherwise hide the empty call log message and enable edit mode
+        if (totalMissedCalls === 0) {
+          self.renderEmptyCallLog(true);
+        }
         CallLogDBManager.deleteGroupList(logGroupsToDelete, function() {
           document.body.classList.remove('recents-edit');
         });
