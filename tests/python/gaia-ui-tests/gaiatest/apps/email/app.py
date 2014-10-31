@@ -250,8 +250,6 @@ class Message(PageRegion):
 
     def tap_subject(self):
         el = self.root_element.find_element(*self._subject_locator)
-        # TODO: Remove scrollIntoView when bug #877163 is fixed
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [el])
         self.wait_for_element_displayed(*self._subject_locator)
         self.root_element.find_element(*self._subject_locator).tap()
         from gaiatest.apps.email.regions.read_email import ReadEmail

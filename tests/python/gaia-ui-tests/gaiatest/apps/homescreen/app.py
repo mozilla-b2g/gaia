@@ -112,8 +112,6 @@ class Homescreen(Base):
     def tap_collection(self, collection_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
             if root_el.text == collection_name:
-                self.marionette.execute_script(
-                    'arguments[0].scrollIntoView(false);', [root_el])
                 # TODO bug 1043293 introduced a timing/tap race issue here
                 time.sleep(0.5)
                 root_el.tap()
@@ -170,10 +168,6 @@ class Homescreen(Base):
 
         def tap_icon(self):
             expected_name = self.name
-
-            #TODO remove scroll after Bug 937053 is resolved
-            self.marionette.execute_script(
-                'arguments[0].scrollIntoView(false);', [self.root_element])
 
             # TODO bug 1043293 introduced a timing/tap race issue here
             time.sleep(0.5)

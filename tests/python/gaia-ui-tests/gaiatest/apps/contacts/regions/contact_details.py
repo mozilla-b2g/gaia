@@ -79,7 +79,6 @@ class ContactDetails(Base):
 
     def tap_add_remove_favorite(self):
         button = self.marionette.find_element(*self._add_remove_favorite_button_locator)
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [button])
         button.tap()
 
     @property

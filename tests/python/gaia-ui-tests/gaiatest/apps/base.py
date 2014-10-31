@@ -85,11 +85,10 @@ class Base(object):
         time.sleep(0.2)
 
         li = self.wait_for_element_present(*_list_item_locator)
-
-       # TODO Remove scrollintoView upon resolution of bug 877651
+        # We need to keep this because the Ok button may hang over the element and stop
+        # Marionette from scrolling the element entirely into view
         self.marionette.execute_script(
             'arguments[0].scrollIntoView(false);', [li])
-
         return li
 
     def wait_for_select_closed(self, by, locator):

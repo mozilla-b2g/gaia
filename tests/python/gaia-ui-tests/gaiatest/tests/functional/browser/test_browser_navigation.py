@@ -26,9 +26,6 @@ class TestBrowserNavigation(GaiaTestCase):
         browser.switch_to_content()
         Wait(self.marionette).until(lambda m: m.title == 'Mozilla')
         link = self.marionette.find_element(By.CSS_SELECTOR, '#community a')
-        # TODO: remove the explicit scroll once bug 833370 is fixed
-        self.marionette.execute_script(
-            'arguments[0].scrollIntoView(false);', [link])
         link.tap()
         Wait(self.marionette).until(lambda m: m.title == 'Mozilla Community')
 
