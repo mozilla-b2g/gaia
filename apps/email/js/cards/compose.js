@@ -608,7 +608,46 @@ ComposeCard.prototype = {
     this.validateAddresses();
   },
 
+  toggleBCC: function(evt) {
+    var target = evt.target;
+    var list = this.domNode.querySelectorAll('.cmp-combo');
+    for (var item of list) {
+      if (item.children.item(0).classList.contains('cmp-bcc-label')) {
+        var bccElement = item;
+      }
+      if (item.children.item(0).classList.contains('cmp-to-label')) {
+        var height = item.getBoundingClientRect().height;
+      }
+    }
+    var parentElement = target.parentElement;
+    if (parentElement.className === 'cmp-to-container cmp-addr-container')
+    {
+      this.domNode.querySelector('.cmp-cc-label').textContent = 'cc/bcc';
+      this.domNode.querySelector('.cmp-bcc-add').style.visibility = 'hidden';
+      this.domNode.querySelector('.cmp-cc-add').style.visibility = 'hidden';
+
+      bccElement.style.zIndex = -1;
+      bccElement.style.transform = 'translatey(-' + height + 'px)';
+
+      setTimeout(function() {
+        bccElement.style.height = '0px';
+      }.bind(this), 100);
+    }
+
+    if (parentElement.className === 'cmp-cc-container cmp-addr-container')
+    {
+      bccElement.style.transform = 'translatey(+' + 0 + 'px)';
+      bccElement.style.zIndex = 0;
+      bccElement.style.height = height + 'px';
+
+      this.domNode.querySelector('.cmp-cc-label').textContent = 'cc';
+      this.domNode.querySelector('.cmp-bcc-add').style.visibility = 'visible';
+      this.domNode.querySelector('.cmp-cc-add').style.visibility = 'visible';
+    }
+  },
+
   onContainerClick: function(evt) {
+    this.toggleBCC(evt);
     var target = evt.target;
     // Popup the context menu if clicked target is peer bubble.
     if (target.classList.contains('cmp-peep-bubble')) {
