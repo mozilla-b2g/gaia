@@ -245,18 +245,10 @@ IMEngineSettings.prototype.KEYS = [
 IMEngineSettings.prototype.PROPERTIES = [
   'suggestionsEnabled', 'correctionsEnabled'];
 
-var HandwritingPadSettings = function() { };
-HandwritingPadSettings.prototype = new SettingsManagerBase();
-HandwritingPadSettings.prototype.KEYS = [
-  'keyboard.handwriting.strokeWidth', 'keyboard.handwriting.responseTime'];
-HandwritingPadSettings.prototype.PROPERTIES= [
-  'strokeWidth', 'responseTime'];
-
 exports.SettingsPromiseManager = SettingsPromiseManager;
 exports.SettingsManagerBase = SettingsManagerBase;
 exports.SoundFeedbackSettings = SoundFeedbackSettings;
 exports.VibrationFeedbackSettings = VibrationFeedbackSettings;
 exports.IMEngineSettings = IMEngineSettings;
-exports.HandwritingPadSettings = HandwritingPadSettings;
 
 })(window);

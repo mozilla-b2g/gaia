@@ -1,8 +1,7 @@
 (function() {
   // Get the settings, and then show the panel afterwards
   var panel = document.querySelector('#general-settings');
-
-  getGeneralSettings(panel, function() {
+  getSettings(panel, function() {
     panel.style.display = 'block';
   });
 
@@ -26,9 +25,9 @@
   document.getElementById('header').addEventListener('action', goBack);
 
   /**
-   * Gets the general settings based on information from the dom
+   * Gets the settings based on information from the dom
    */
-  function getGeneralSettings(section, callback) {
+  function getSettings(section, callback) {
     if (!navigator.mozSettings) {
       return callback();
     }

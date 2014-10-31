@@ -1,6 +1,6 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global AlternativesCharMenuView, HandwritingPadView */
+/* global AlternativesCharMenuView */
 
 'use strict';
 
@@ -20,7 +20,6 @@ var IMERender = (function() {
   var alternativesCharMenu = null;
   var _menuKey = null;
   var renderingManager = null;
-  var viewMap = null;
 
   // a WeakMap to map target key object onto the DOM element it's associated
   // with; essentially the revrse mapping of |renderingManager._domObjectMap|.
@@ -73,7 +72,6 @@ var IMERender = (function() {
     cachedWindowWidth = window.innerWidth;
 
     targetObjDomMap = new WeakMap();
-    viewMap = new WeakMap();
   };
 
   var setInputMethodName = function(name) {
@@ -185,18 +183,6 @@ var IMERender = (function() {
     }
   };
 
-  var drawHandwritingPad = function kr_drawHandwritingPad(press,
-                                                          start,
-                                                          strokeWidth) {
-    var handwritingPadView = viewMap.get(press.target);
-    return handwritingPadView.drawHandwritingPad(press, start, strokeWidth);
-  };
-
-  var clearHandwritingPad = function kr_clearHandwritingPad(target) {
-    var handwritingPadView = viewMap.get(target);
-    return handwritingPadView.clearHandwritingPad();
-  };
-
   /**
    * Build keyboard HTML structure
    * Pass a container element
@@ -216,20 +202,6 @@ var IMERender = (function() {
     layout.upperCase = layout.upperCase || {};
 
     var content = document.createDocumentFragment();
-
-    // Create canvas for handwriting.
-    if ('handwritingPadOptions' in layout) {
-      var handwritingPadView = new HandwritingPadView();
-      var canvas = handwritingPadView.getHandwritingPad();
-      content.appendChild(canvas);
-
-      var target = {
-        isHandwritingPad: true
-      };
-
-      setDomElemViewTargetObject(canvas, target, handwritingPadView);
-    }
-
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
       var kbRow = document.createElement('div');
       var rowLayoutWidth = 0;
@@ -322,11 +294,6 @@ var IMERender = (function() {
 
         setDomElemTargetObject(keyElement, key);
       }));
-
-      if ('handwritingPadOptions' in layout &&
-          nrow < layout.handwritingPadOptions.rowspan) {
-        rowLayoutWidth += layout.handwritingPadOptions.ratio;
-      }
 
       kbRow.dataset.layoutWidth = rowLayoutWidth;
 
@@ -781,21 +748,6 @@ var IMERender = (function() {
     var rows = activeIme.querySelectorAll('.keyboard-row');
 
     setKeyWidth();
-
-    // Set width and height for handwriting pad.
-    if ('handwritingPadOptions' in layout) {
-      var canvas = activeIme.querySelectorAll('.handwriting-pad')[0];
-
-      var width = Math.floor(placeHolderWidth *
-                             layout.handwritingPadOptions.ratio);
-      canvas.width = width * window.devicePixelRatio;
-      canvas.style.width = width + 'px';
-
-      var rowHeight = rows[0].clientHeight;
-      var height = Math.floor(rowHeight * layout.handwritingPadOptions.rowspan);
-      canvas.height = height * window.devicePixelRatio;
-      canvas.style.height = height + 'px';
-    }
   };
 
   //
@@ -993,13 +945,6 @@ var IMERender = (function() {
     targetObjDomMap.set(objRef, elem);
   };
 
-  var setDomElemViewTargetObject =
-    function setDomElemViewTargetObject(elem, obj, view) {
-      var objRef = Object.freeze(Object.create(obj));
-      renderingManager.domObjectMap.set(elem, objRef);
-      viewMap.set(objRef, view);
-    };
-
   // Measure the width of the element, and return the scale that
   // we can use to make it fit in the container. The return values
   // are restricted to a set that matches the standard font sizes
@@ -1053,8 +998,6 @@ var IMERender = (function() {
     'init': init,
     'setInputMethodName': setInputMethodName,
     'draw': draw,
-    'drawHandwritingPad': drawHandwritingPad,
-    'clearHandwritingPad': clearHandwritingPad,
     get ime() {
       return ime;
     },
