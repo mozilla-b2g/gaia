@@ -1,17 +1,74 @@
+'use strict';
+/* global require, suite, process, test, suiteSetup, teardown */
+/* jshint -W101 */
 var assert = require('chai').assert;
 var fs = require('fs');
 var path = require('path');
 var vm = require('vm');
 var helper = require('./helper');
-var dive = require('dive');
+var dive = require('diveSync');
 var AdmZip = require('adm-zip');
 
 const MAX_PROFILE_SIZE_MB = 65;
 const MAX_PROFILE_SIZE = MAX_PROFILE_SIZE_MB * 1024 * 1024;
+const REBUILD_TEST_FILE = path.join(
+  process.cwd() + '/apps/system/rebuild_test.txt');
+const WEBAPPS_DIR = path.join(process.cwd() + '/profile/webapps');
 
-suite('make', function() {
+suite('Make and remake tests', function() {
   suiteSetup(helper.cleanupWorkspace);
-  teardown(helper.cleanupWorkspace);
+  teardown(function() {
+    helper.cleanupWorkspace();
+    cleanTestFiles();
+  });
+
+  var ignoredApps = getCustomizedBuildApp();
+
+  function cleanTestFiles() {
+    if (fs.existsSync(REBUILD_TEST_FILE)) {
+      fs.unlinkSync(REBUILD_TEST_FILE);
+    }
+  }
+
+  function getTimestamp(dirPath, filter) {
+    var timestamp = {};
+    dive(dirPath, { filter: filter }, function(err, file) {
+      if (err) {
+        throw err;
+      }
+      timestamp[file] = fs.statSync(file).mtime.getTime();
+    });
+    return timestamp;
+  }
+
+  function getWebapps() {
+    var file = fs.readFileSync(
+      WEBAPPS_DIR + '/webapps.json', { encoding: 'utf8' });
+    return Object.keys(JSON.parse(file)).filter(function(app) {
+      return (/\{.+\}/.test(app) === -1);
+    });
+  }
+
+  function getCustomizedBuildApp() {
+    var cwd = process.cwd();
+    var apps = [];
+    var filter = function(file, dir) {
+      if (dir) {
+        return true;
+      }
+      var pattern = new RegExp(
+          '(' + cwd + '/apps|' + cwd + '/dev_apps)\\S+/build/build.js$');
+      return pattern.test(file);
+    };
+    dive(cwd, { filter: filter }, function(err, file) {
+      if (err) {
+        throw err;
+      }
+      var domain = '.gaiamobile.org';
+      apps.push(file.match(/(\S+)\/(\S+)\/build\/build\.js/)[2] + domain);
+    });
+    return apps;
+  }
 
   test('make without rule & variable', function(done) {
     helper.exec('make', function(error, stdout, stderr) {
@@ -155,24 +212,131 @@ suite('make', function() {
         'gallery', 'js', 'metadata_scripts.js');
       assert.ok(fs.existsSync(galleryMetadataScriptPath),
         'metadata_scripts.js should exist');
-      var galleryFrameScriptPath = path.join(process.cwd(), 'build_stage',
-        'gallery', 'js', 'frame_scripts.js');
       assert.ok(fs.existsSync(galleryMetadataScriptPath),
         'frame_scripts.js should exist');
 
       var profileSize = 0;
-      dive(path.join(process.cwd(), 'profile'), {recursive: true},
-        function action(err, file) {
-          profileSize += fs.statSync(file).size;
-        },
-        function complete() {
-          assert(profileSize < MAX_PROFILE_SIZE,
-            'profile size should be less than ' + MAX_PROFILE_SIZE_MB +
-            'MB, current is ' + (profileSize / 1024 / 1024).toFixed(2) + 'MB');
-          done();
+      dive(path.join(process.cwd(), 'profile'), function(err, file) {
+        if (err) {
+          throw err;
         }
-      );
+        profileSize += fs.statSync(file).size;
+      });
+      assert(profileSize < MAX_PROFILE_SIZE,
+        'profile size should be less than ' + MAX_PROFILE_SIZE_MB +
+        'MB, current is ' + (profileSize / 1024 / 1024).toFixed(2) + 'MB');
+      done();
     });
   });
 
+  test('make twice without modifying anything', function(done) {
+    var previousOtherAppsTime;
+    var currentOtherAppsTime;
+    var previousUUIDAppsTime;
+    var currentUUIDAppsTime;
+    var previousWebapps;
+    var currentWebapps;
+    var options = {
+      maxBuffer: 400 * 1024,
+      env: {
+        PATH: process.env.PATH,
+        HOME: process.env.HOME
+      }
+    };
+
+    var filterOtherApps = function(file, dir) {
+      if (dir) {
+        return true;
+      }
+      var hasCustomizedBuild = ignoredApps.some(function(domain) {
+        return file.indexOf(domain) !== -1;
+      });
+      return !hasCustomizedBuild && !/(\{.+\}|webapps\.json)/.test(file);
+    };
+
+    var filterUUIDApps = function(file, dir) {
+      if (dir) {
+        return true;
+      }
+      return /\{.+\}/.test(file);
+    };
+
+    helper.exec('make', options, function(error, stdout, stderr) {
+      helper.checkError(error, stdout, stderr);
+      previousOtherAppsTime = getTimestamp(WEBAPPS_DIR, filterOtherApps);
+      previousUUIDAppsTime = getTimestamp(WEBAPPS_DIR, filterUUIDApps);
+      previousWebapps = getWebapps();
+
+      helper.exec('make', options, function(error, stdout, stderr) {
+        var webapps = JSON.parse(fs.readFileSync(path.join(process.cwd(),
+          'profile', 'webapps', 'webapps.json')));
+        helper.checkError(error, stdout, stderr);
+        helper.checkWebappsScheme(webapps);
+        currentOtherAppsTime = getTimestamp(WEBAPPS_DIR, filterOtherApps);
+        currentUUIDAppsTime = getTimestamp(WEBAPPS_DIR, filterUUIDApps);
+        currentWebapps = getWebapps();
+        assert.deepEqual(previousOtherAppsTime, currentOtherAppsTime);
+        assert.sameMembers(previousWebapps, currentWebapps);
+        assert.equal(Object.keys(previousUUIDAppsTime).length,
+          Object.keys(currentUUIDAppsTime).length);
+        done();
+      });
+    });
+  });
+
+  test('make twice with adding a file', function(done) {
+    var previousSystemTime;
+    var currentSystemTime;
+    var previousOtherAppsTime;
+    var currentOtherAppsTime;
+    var previousWebapps;
+    var currentWebapps;
+    var options = {
+      maxBuffer: 400 * 1024,
+      env: {
+        PATH: process.env.PATH,
+        HOME: process.env.HOME
+      }
+    };
+
+    var systemAppfilter = function(file, dir) {
+      if (dir) {
+        return true;
+      }
+      return (file.indexOf('system.gaiamobile.org') !== -1);
+    };
+
+    var otherAppsFilter = function(file, dir) {
+      if (dir) {
+        return true;
+      }
+      var hasCustomizedBuild = ignoredApps.some(function(domain) {
+        return file.indexOf(domain) !== -1;
+      });
+      return !hasCustomizedBuild &&
+        /(\{.+\}|system\.gaiamobile\.org|webapps\.json)/.test(file) === false;
+    };
+
+    helper.exec('make', options, function(error, stdout, stderr) {
+      helper.checkError(error, stdout, stderr);
+      previousSystemTime = getTimestamp(WEBAPPS_DIR, systemAppfilter);
+      previousOtherAppsTime = getTimestamp(WEBAPPS_DIR, otherAppsFilter);
+      previousWebapps = getWebapps();
+      fs.writeFileSync(REBUILD_TEST_FILE, 'test');
+
+      helper.exec('make', options, function(error, stdout, stderr) {
+        var webapps = JSON.parse(fs.readFileSync(path.join(process.cwd(),
+          'profile', 'webapps', 'webapps.json')));
+        helper.checkError(error, stdout, stderr);
+        helper.checkWebappsScheme(webapps);
+        currentSystemTime = getTimestamp(WEBAPPS_DIR, systemAppfilter);
+        currentOtherAppsTime = getTimestamp(WEBAPPS_DIR, otherAppsFilter);
+        currentWebapps = getWebapps();
+        assert.notDeepEqual(previousSystemTime, currentSystemTime);
+        assert.deepEqual(previousOtherAppsTime, currentOtherAppsTime);
+        assert.sameMembers(previousWebapps, currentWebapps);
+        done();
+      });
+    });
+  });
 });

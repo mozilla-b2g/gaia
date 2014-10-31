@@ -3,9 +3,9 @@ var fs = require('fs');
 var path = require('path');
 var vm = require('vm');
 var helper = require('./helper');
-var dive = require('dive');
+var dive = require('diveSync');
 
-suite('DEBUG=1', function() {
+suite('Make with DEBUG=1', function() {
   suiteSetup(helper.cleanupWorkspace);
   teardown(helper.cleanupWorkspace);
 
@@ -102,25 +102,23 @@ suite('DEBUG=1', function() {
       vm.runInNewContext(userjs, sandbox);
 
       var zipCount = 0;
-      dive(path.join(process.cwd(), 'profile-debug'), {recursive: true},
-        function action(err, file) {
-          if (file.indexOf('application.zip') !== -1) {
-            zipCount++;
-          }
-        },
-        function complete() {
-          assert.ok(fs.existsSync(installedExtsPath));
-          helper.checkSettings(settings, expectedSettings);
-          helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
-          // only expect one zip file for marketplace.
-          assert.equal(zipCount, 3, 'we should have three zip files in ' +
-            'profile-debug directory');
-
-          restoreFunc();
-          done();
+      dive(path.join(process.cwd(), 'profile-debug'), function(err, file) {
+        if (err) {
+          throw err;
         }
-      );
+        if (file.indexOf('application.zip') !== -1) {
+          zipCount++;
+        }
+      });
+      assert.ok(fs.existsSync(installedExtsPath));
+      helper.checkSettings(settings, expectedSettings);
+      helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
+      // only expect one zip file for marketplace.
+      assert.equal(zipCount, 3, 'we should have three zip files in ' +
+        'profile-debug directory');
+
+      restoreFunc();
+      done();
     });
   });
-
 });
