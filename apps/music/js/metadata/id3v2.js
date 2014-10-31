@@ -1,4 +1,5 @@
 /* global BlobView */
+/* exported ID3v2Metadata */
 'use strict';
 
 var ID3v2Metadata = (function() {
@@ -13,20 +14,19 @@ var ID3v2Metadata = (function() {
   var DISCCOUNT = 'disccount';
   var IMAGE = 'picture';
 
-  // Map id3v2 frame ids to metadata property names
+  // Map id3v2 frame ids to metadata property names. Each line has two mappings:
+  // one for id3v2.3+ and one for id3v2.2.
   var ID3V2FRAMES = {
-    TPE1: ARTIST,
-    TP1:  ARTIST,
-    TALB: ALBUM,
-    TAL:  ALBUM,
-    TIT2: TITLE,
-    TT2:  TITLE,
-    TRCK: TRACKNUM,
-    TRK:  TRACKNUM,
-    TPA:  DISCNUM,
-    TPOS: DISCNUM,
-    APIC: IMAGE,
-    PIC:  IMAGE
+    TPE1: ARTIST, TP1: ARTIST,
+    TALB: ALBUM, TAL: ALBUM,
+    TIT2: TITLE, TT2: TITLE,
+    TRCK: TRACKNUM, TRK: TRACKNUM,
+    TPOS: DISCNUM, TPA: DISCNUM,
+    APIC: IMAGE, PIC: IMAGE
+  };
+  var ID3V2SECONDARYFRAMES = {
+    TRCK: TRACKCOUNT, TRK: TRACKCOUNT,
+    TPOS: DISCCOUNT, TPA: DISCCOUNT
   };
 
   function parse(blobview, metadata) {
@@ -164,16 +164,10 @@ var ID3v2Metadata = (function() {
         framevalue = readTextFrame(header, frameview, framesize);
         break;
       case 'TRCK': case 'TRK': // track
-        framevalue = readNumericPairFrame(header, frameview, framesize);
-        if (framevalue[1] !== null) {
-          metadata[TRACKCOUNT] = framevalue[1];
-        }
-        framevalue = framevalue[0];
-        break;
       case 'TPOS': case 'TPA': // disc
         framevalue = readNumericPairFrame(header, frameview, framesize);
         if (framevalue[1] !== null) {
-          metadata[DISCCOUNT] = framevalue[1];
+          metadata[ID3V2SECONDARYFRAMES[frameid]] = framevalue[1];
         }
         framevalue = framevalue[0];
         break;
