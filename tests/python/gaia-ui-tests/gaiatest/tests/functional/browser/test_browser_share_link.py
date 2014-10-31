@@ -10,13 +10,10 @@ class TestBrowserShareToMessages(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.connect_to_network()
+        self.connect_to_local_area_network()
         self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
-        if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
-            self.test_url = self.marionette.absolute_url('mozilla.html')
-        else:
-            self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
+        self.test_url = self.marionette.absolute_url('mozilla.html')
 
     def test_browser_share_to_messages(self):
         """ https://moztrap.mozilla.org/manage/case/2027/ """
