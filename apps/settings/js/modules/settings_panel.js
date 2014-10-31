@@ -55,14 +55,6 @@ define(function(require) {
           _settingsChangeHandler);
         panel.addEventListener('change', PanelUtils.onInputChange);
         panel.addEventListener('click', PanelUtils.onLinkClick);
-
-        // We block all form click events to avoid refreshing.
-        var forms = panel.querySelectorAll('form');
-        Array.prototype.forEach.call(forms, function(form) {
-          form.addEventListener('click', function(event) {
-            event.preventDefault();
-          });
-        });
       };
 
       /**
