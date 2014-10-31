@@ -24,6 +24,9 @@ class TestBrowserSaveImage(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/6889/
         """
 
+        # Check that there are no images on sdcard
+        self.assertEqual(0, len(self.data_layer.sdcard_files('.jpeg')))
+
         search = Search(self.marionette)
         search.launch()
 
@@ -39,9 +42,6 @@ class TestBrowserSaveImage(GaiaTestCase):
             wait(1).\
             perform()
 
-        # Check that there are no images on sdcard before saving
-        self.assertEqual(0, len(self.data_layer.sdcard_files()))
-
         context_menu = ContextMenu(self.marionette)
         context_menu.tap_save_image()
 
@@ -49,4 +49,5 @@ class TestBrowserSaveImage(GaiaTestCase):
         system.wait_for_notification_toaster_displayed()
         system.wait_for_notification_toaster_not_displayed()
 
-        self.assertEqual(1, len(self.data_layer.sdcard_files()))
+        # Check that there is one image on sdcard
+        self.assertEqual(1, len(self.data_layer.sdcard_files('.jpeg')))
