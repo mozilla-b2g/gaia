@@ -130,7 +130,8 @@ var icc = {
   handleSTKCommand: function icc_handleSTKCommand(message) {
     // Protection to bad formed messages
     if (!message || !message.iccId || !message.command ||
-        !message.command.typeOfCommand || !message.command.options) {
+        !message.command.typeOfCommand ||
+        message.command.options === undefined) {
       return DUMP('STK Proactive Command bad formed: ', message);
     }
 
