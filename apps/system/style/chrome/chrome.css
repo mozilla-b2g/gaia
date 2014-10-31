@@ -283,6 +283,7 @@
   top: -0.2rem;
 }
 
+.controls .reload-button[disabled],
 .loading .controls .reload-button {
   visibility: hidden;
   pointer-events: none;

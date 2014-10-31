@@ -367,18 +367,71 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleEvent() - global-search-request: non app', function() {
+    var fakeTimer = this.sinon.useFakeTimers();
     var activeApp = {
       config: {url: 'app.url'},
-      isBrowser: function() {}
+      isBrowser: function() {
+        return true;
+      },
+      appChrome: {
+        maximize: function() {},
+        isMaximized: function() {}
+      }
     };
     MockSystem.currentApp = activeApp;
-    this.sinon.stub(activeApp, 'isBrowser').returns(false);
-    var setInputStub = this.sinon.stub(subject, 'setInput');
-    var activateStub = this.sinon.stub(subject, 'activate');
+    var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
+    this.sinon.stub(subject, 'activate', function(cb) {
+      cb();
+    });
+    this.sinon.spy(subject, 'hideResults');
+    this.sinon.spy(subject, 'focus');
+    this.sinon.spy(subject, 'selectAll');
+    this.sinon.spy(subject, 'setInput');
+
     var event = {type: 'global-search-request'};
     subject.handleEvent(event);
-    assert.isFalse(setInputStub.called);
-    assert.ok(activateStub.calledOnce);
+    maximize.getCall(0).args[0]();
+    this.sinon.clock.tick();
+
+    sinon.assert.callOrder(
+      subject.setInput,
+      activeApp.appChrome.maximize,
+      subject.activate,
+      subject.hideResults,
+      subject.focus,
+      subject.selectAll);
+    fakeTimer.restore();
+  });
+
+  test('handleEvent() - global-search-request: ' +
+    'appChrome.maximize is called for apps', function() {
+    var activeApp = {
+      config: {url: 'app.url'},
+      isBrowser: function() {
+        return false;
+      },
+      appChrome: {
+        maximize: function() {},
+        isMaximized: function() {}
+      }
+    };
+    MockSystem.currentApp = activeApp;
+
+    var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
+    this.sinon.stub(subject, 'activate', function(cb) {
+      cb();
+    });
+    this.sinon.spy(subject, 'focus');
+
+    var event = {type: 'global-search-request'};
+    subject.handleEvent(event);
+
+    maximize.getCall(0).args[0]();
+
+    sinon.assert.callOrder(
+      activeApp.appChrome.maximize,
+      subject.activate,
+      subject.focus);
   });
 
   test('handleHome()', function() {
