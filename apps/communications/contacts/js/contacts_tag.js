@@ -24,26 +24,16 @@ var ContactsTag = (function() {
     }
   };
 
-  var unMarkTag = function unMarkTag(tag) {
-    if (tag) {
-      tag.classList.remove('icon');
-      tag.classList.remove('icon-selected');
-
-      tag.removeAttribute('aria-selected');
-    }
-  };
-
-   var markTag = function markTag(tag) {
-    if (tag) {
-      tag.classList.add('icon');
-      tag.classList.add('icon-selected');
-
-      tag.setAttribute('aria-selected', true);
+  var unMarkTag = function unMarkTag() {
+    var tag = 
+      document.querySelector('[type="radio"][name="contact-radio"]:checked');
+    if(tag) {
+      tag.checked = false;
     }
   };
 
   var touchCustomTag = function touchCustomTag(callback) {
-    unMarkTag(selectedTag);
+    unMarkTag();
 
     selectedTag = null;
 
@@ -59,21 +49,25 @@ var ContactsTag = (function() {
     var selectedLink;
     /* jshint loopfunc:true */
     for (var option in options) {
-      var tagLink = document.createElement('button');
-      tagLink.dataset.index = option;
-      tagLink.setAttribute('data-l10n-id', options[option].type);
-      tagLink.setAttribute('data-value', options[option].type);
-      tagLink.setAttribute('role', 'option');
-      tagLink.classList.add('tagItem');
+      var tagLink = document.createElement('label');
 
-      tagLink.addEventListener('click', function(event) {
-        var tag = event.target;
-        selectTag(tag);
-        event.preventDefault();
-      });
+      var tagLinkRadio = document.createElement('input');
+      tagLinkRadio.setAttribute('type', 'radio');
+      tagLinkRadio.setAttribute('name', 'contact-radio');
+      tagLinkRadio.dataset.index = option;
+      tagLinkRadio.setAttribute('data-l10n-id', options[option].type);
+      tagLinkRadio.setAttribute('data-value', options[option].type);
+      tagLinkRadio.setAttribute('role', 'option');
+      tagLink.appendChild(tagLinkRadio);
+
+      var tagLinkSpan = document.createElement('span');
+      tagLinkSpan.setAttribute('data-icon', 'tick');
+      var tagLinkSpanText = document.createTextNode(options[option].value);
+      tagLinkSpan.appendChild(tagLinkSpanText);
+      tagLink.appendChild(tagLinkSpan);
 
       if (originalTag.dataset.value == options[option].type) {
-        selectedLink = tagLink;
+        selectedLink = tagLinkRadio;
       }
 
       var tagItem = document.createElement('li');
@@ -83,8 +77,8 @@ var ContactsTag = (function() {
     }
 
     customTag.value = '';
-    if (!selectedLink && originalTag.textContent) {
-      customTag.value = originalTag.textContent;
+    if (!selectedLink && originalTag.dataset.value) {
+      customTag.value = originalTag.dataset.value;
     }
     selectTag(selectedLink);
   };
@@ -93,20 +87,18 @@ var ContactsTag = (function() {
     if (tag == null) {
       return;
     }
-
+    tag.setAttribute('checked', '');
     //Clean any trace of the custom tag
     customTag.value = '';
-
-    unMarkTag(selectedTag);
-
-    markTag(tag);
     
     selectedTag = tag;
   };
 
   var clickDone = function clickDone(callback) {
+    var selectedTag = 
+      document.querySelector('[type="radio"][name="contact-radio"]:checked');
     if (selectedTag) {
-      originalTag.textContent = selectedTag.textContent;
+      originalTag.textContent = selectedTag.dataset.value;
       originalTag.dataset.l10nId = selectedTag.dataset.l10nId;
       originalTag.dataset.value = selectedTag.dataset.value;
     } else if (customTag.value.length > 0) {

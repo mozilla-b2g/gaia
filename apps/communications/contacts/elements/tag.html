@@ -1,19 +1,23 @@
 <element name="view-select-tag" extends="section">
   <template>
-    <gaia-header id="settings-header" action="back">
-      <h1 data-l10n-id="label">Label</h1>
-      <button id="settings-done" data-l10n-id="done">Done</button>
-    </gaia-header>
-
-    <article class="view-body">
-      <form class="view-body-inner">
-        <ul id="tags-list" class="selection-list compact" role="listbox">
+    <form class="view-body-inner" role="dialog" data-type="object">
+      <header data-l10n-id="label">Label</header>
+      <section>
+        <ul id="tags-list" role="listbox" class="bb-radio">
         </ul>
-        <p>
-          <input class="textfield tagItem" type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="customTag" dir="auto">
-          <button id="custom-tag-reset" type="reset">Clear</button>
-        </p>
-      </form>
-    </article>
+        <ul>
+          <li class="input">
+            <p>
+              <input type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="customTag" dir="auto">
+              <button id="custom-tag-reset" type="reset">Clear</button>
+            </p>
+          </li>
+        </ul>
+      </section>
+      <menu>
+        <button id="button-cancel" data-l10n-id="cancel">Cancel</button>
+        <button id="button-done" class="recommend" data-l10n-id="done">Done</button>
+      </menu>
+    </form>
   </template>
 </element>
