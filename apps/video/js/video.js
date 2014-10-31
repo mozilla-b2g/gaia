@@ -451,6 +451,15 @@ function hideSelectView() {
 }
 
 function showOptionsView() {
+  // If the user is about to share a video we should stop playing it because
+  // sometimes we won't go to the background when the activity starts and
+  // we keep playing. This will cause problems if the receiving app also tries
+  // to play it. Similarly, if the user is going to delete the video there is
+  // no point in continuing to play it. And if they care enough about it to
+  // look for more info about it, they probably don't want to miss anything.
+  if (playing) {
+    pause();
+  }
   dom.optionsView.classList.remove('hidden');
 }
 
@@ -1298,3 +1307,26 @@ function hideThrobber() {
   dom.throbber.classList.add('hidden');
   dom.throbber.classList.remove('throb');
 }
+
+//
+// Bug 1088456: when the view activity is launched by the bluetooth transfer
+// app (when the user taps on a downloaded file in the notification tray) the
+// view.html file can be launched while index.html is still running as the
+// foreground app. Since the video app does not get sent to the background in
+// this case, the currently playing video (if there is one) is not
+// unloaded. And so, in the case of videos that require decoder hardware, the
+// view activity cannot play the video. For this workaround, we have view.js
+// set a localStorage property when it starts. And here we listen for changes
+// to that property. When we see a change we unload the video so that the view
+// activity can play its video. We intentionally do not make any effort to
+// automatically restart the video.
+//
+window.addEventListener('storage', function(e) {
+  if (e.key === 'view-activity-wants-to-use-hardware' && e.newValue &&
+      playing && !document.hidden) {
+    console.log('The video app view activity needs to play a video.');
+    console.log('Pausing the video and returning to the thumbnails.');
+    console.log('See bug 1088456.');
+    handleCloseButtonClick();
+  }
+});
