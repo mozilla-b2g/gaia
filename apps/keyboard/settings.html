@@ -24,7 +24,10 @@
     <gaia-header id="header" action="back">
       <h1 data-l10n-id="settingsPageTitle">Built-in Keyboard</h1>
     </gaia-header>
-    <div>
+    <!-- Don't change the div.id attribute below, if you want to modify it,
+         you should modify build/settings-config.js to keep consistence.
+         Handwriting settings will be added at the end of it. -->
+    <div id="container">
       <section data-type="list" id="general-settings">
         <ul>
           <li data-setting="keyboard.vibration">
@@ -68,6 +71,7 @@
           </li>
         </ul>
       </section>
+      <!-- Handwriting settings section will be added here. -->
     </div>
   </section>
 </body>

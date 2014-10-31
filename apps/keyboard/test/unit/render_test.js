@@ -2,6 +2,7 @@
 /* global IMERender */
 
 requireApp('keyboard/js/render.js');
+require('/js/views/handwriting_pad_view.js');
 
 suite('Renderer', function() {
   suiteSetup(function() {
@@ -543,6 +544,29 @@ suite('Renderer', function() {
       };
       IMERender.draw(layout);
       assert.equal(ime.classList.contains('candidate-panel'), false);
+    });
+
+    test('create keyboard with handwriting pad', function() {
+      var layout = {
+        handwritingPadOptions: {
+          ratio: 8.5,
+          rowspan: 3
+        },
+        keys: [
+          [
+            { value: 'a', ratio: 1.5 }
+          ], [
+            { value: 'b', ratio: 1.5 }
+          ], [
+            { value: 'c', ratio: 1.5 }
+          ], [
+            { value: 'd', ratio: 10 }
+          ]
+        ]
+      };
+      IMERender.draw(layout);
+      var pads = document.querySelectorAll('.handwriting-pad');
+      assert.equal(pads.length, 1);
     });
 
     suite('CSS classes on activeIme', function() {
