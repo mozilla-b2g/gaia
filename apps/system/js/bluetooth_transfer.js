@@ -178,14 +178,14 @@ var BluetoothTransfer = {
 
     var deviceName = '';
     var acceptFileTransfer = _('acceptFileTransfer');
+    var wantToReceiveFile = _('wantToReceiveFile', {
+      deviceName: deviceName,
+      fileName: fileName,
+      fileSize: fileSize
+    });
     var screen = document.getElementById('screen');
     this.getPairedDevice(function getPairedDeviceComplete() {
       deviceName = this.getDeviceName(address);
-      var wantToReceiveFile = _('wantToReceiveFile', {
-        deviceName: deviceName,
-        fileName: fileName,
-        fileSize: fileSize
-      });
       CustomDialog
         .show(acceptFileTransfer, wantToReceiveFile, cancel, confirm, screen)
         .setAttribute('data-z-index-level', 'system-dialog');

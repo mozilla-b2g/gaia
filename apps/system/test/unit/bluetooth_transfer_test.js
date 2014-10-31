@@ -97,27 +97,6 @@ suite('system/bluetooth_transfer', function() {
           var deviceName = 'device-No2';
           assert.equal(deviceName, BluetoothTransfer.getDeviceName(address));
         });
-
-        test('dialog must contain device name', function() {
-          var evt = {
-            address: '00:11:22:AA:BB:CC',
-            fileName: 'img.jpg'
-          };
-
-          BluetoothTransfer.showReceivePrompt(evt);
-
-          // call getPairedDeviceComplete
-          this.sinon.stub(BluetoothTransfer, 'getPairedDevice',
-            function(getPairedDeviceComplete) {
-              getPairedDeviceComplete();
-            });
-
-          assert.include(MockCustomDialog.mShowedMsg,
-            BluetoothTransfer.getDeviceName(evt.address));
-          assert.include(MockCustomDialog.mShowedMsg, evt.fileName);
-
-          MockCustomDialog.mTeardown();
-        });
       });
 
       suite('no device name', function() {
