@@ -29,6 +29,10 @@
     this.name = blob.name || options.name ||
       navigator.mozL10n.get('unnamed-attachment');
     this.isDraft = !!options.isDraft;
+
+    // force the _renderer property to be non enumerable so that we don't try to
+    // store it in IndexedDB
+    Object.defineProperty(this, '_renderer', { writable: true });
   }
 
   Attachment.prototype = {

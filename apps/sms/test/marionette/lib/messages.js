@@ -43,6 +43,7 @@
     },
 
     ThreadList: {
+      firstThread: '.threadlist-item',
       navigateToComposerHeaderButton: '#icon-add'
     },
 
@@ -137,6 +138,12 @@
         },
 
         ThreadList: {
+          get firstThread() {
+            return client.helper.waitForElement(
+              SELECTORS.ThreadList.firstThread
+            );
+          },
+
           navigateToComposer: function() {
             client.helper.waitForElement(
               SELECTORS.ThreadList.navigateToComposerHeaderButton
