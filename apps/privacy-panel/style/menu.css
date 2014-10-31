@@ -1,0 +1,76 @@
+
+/******************************************************************************
+ * Setting icons
+ */
+
+.menu-item {
+  position: static;
+  padding-left: 5.5rem;
+  background-repeat: no-repeat;
+  background-position: 1.4rem center;
+  background-size: 3rem 3rem;
+}
+
+a.menu-item:after  {
+  font-family: "gaia-icons";
+  content: "forward";
+  position: absolute;
+  top: 0;
+  right: 0.3rem;
+  font-size: 2.5rem;
+  line-height: 6rem;
+  color: #657073;
+}
+
+.menu-item::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3rem;
+  height: 100%;
+  text-align: center;
+  line-height: 6rem;
+  color: #657073;
+}
+
+label > .menu-item::before {
+  left: 1.5rem;
+}
+
+label > .menu-item + small {
+  margin: 0 0 0 4rem;
+  padding: 0;
+}
+
+.menu-item-desc {
+  left: 4rem;
+}
+
+/******************************************************************************
+ * Right-To-Left layout
+ */
+html[dir="rtl"] .menu-item {
+  padding-left: 0;
+  padding-right: 5.5rem;
+}
+
+html[dir="rtl"] a.menu-item::after  {
+  right: auto;
+  left: -0.5rem;
+  transform: rotate(180deg);
+}
+
+html[dir="rtl"] .menu-item-desc {
+  left: auto;
+  right: 4rem;
+}
+
+html[dir="rtl"] .menu-item::before {
+  left: auto;
+  right: calc((2.5rem - 2.8rem) / 2);
+}
+
+html[dir="rtl"] label > .menu-item::before {
+  right: 1.5rem;
+  left: auto;
+}
