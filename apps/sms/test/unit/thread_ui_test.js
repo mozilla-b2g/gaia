@@ -11,7 +11,8 @@
          DocumentFragment,
          Errors,
          MockCompose,
-         AssetsHelper
+         AssetsHelper,
+         SMIL
 */
 
 'use strict';
@@ -2578,7 +2579,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -2633,7 +2634,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -2829,7 +2830,7 @@ suite('thread_ui.js >', function() {
       test('message is correct', function() {
         assert.equal(
           notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly'
         );
         assert.equal(
@@ -3722,12 +3723,18 @@ suite('thread_ui.js >', function() {
     });
 
     suite('after rendering a MMS', function() {
+      var inputArray = [{
+        name: 'imageTest.jpg',
+        blob: testImageBlob
+      }];
+
       setup(function() {
         this.sinon.spy(Attachment.prototype, 'render');
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
         this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
+        this.sinon.stub(SMIL, 'parse');
 
         // fake content so that there is something to scroll
         container.innerHTML = ThreadUI.tmpl.message.interpolate({
@@ -3735,11 +3742,8 @@ suite('thread_ui.js >', function() {
           bodyHTML: 'test #1'
         });
 
-        var inputArray = [{
-          name: 'imageTest.jpg',
-          blob: testImageBlob
-        }];
-        ThreadUI.createMmsContent(inputArray);
+        var message = MockMessages.mms();
+        ThreadUI.buildMessageDOM(message);
       });
 
       teardown(function() {
@@ -3748,20 +3752,20 @@ suite('thread_ui.js >', function() {
 
       test('should scroll when the view is scrolled to the bottom', function() {
         ThreadUI.isScrolledManually = false;
-        Attachment.prototype.render.yield();
+        SMIL.parse.yield(inputArray);
         sinon.assert.called(HTMLElement.prototype.scrollIntoView);
       });
 
       test('should not scroll when the user scrolled up the view', function() {
         ThreadUI.isScrolledManually = true;
-        Attachment.prototype.render.yield();
+        SMIL.parse.yield(inputArray);
         sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
       });
 
       test('should not scroll if not in the right panel', function() {
         Navigation.isCurrentPanel.withArgs('thread').returns(false);
         ThreadUI.isScrolledManually = false;
-        Attachment.prototype.render.yield();
+        SMIL.parse.yield(inputArray);
         sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
       });
     });

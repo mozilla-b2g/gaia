@@ -124,6 +124,10 @@
   background-color: rgba(204,204,204,0.2);
 }
 
+.appWindow.light.collapsible .controls .urlbar {
+  background-color: rgb(242, 242, 242); /* 255 * 0.95 */
+}
+
 .appWindow.light .maximized .controls .urlbar {
   background-color: rgba(204,204,204,0.4);
 }
@@ -196,6 +200,10 @@
   transform: scaleX(var(--rocketbar-scale)) translateY(0.1rem);
   transform-origin: top left;
   transition: transform 0.2s ease-in-out;
+}
+
+.appWindow.collapsible.active .urlbar {
+  will-change: transform;
 }
 
 .appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {

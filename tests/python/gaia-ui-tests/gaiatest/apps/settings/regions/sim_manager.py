@@ -41,10 +41,6 @@ class SimManager(Base):
         time.sleep(0.2)
 
         li = self.wait_for_element_present(*_list_item_locator)
-
-        # TODO Remove scrollintoView upon resolution of bug 877651
-        self.marionette.execute_script(
-            'arguments[0].scrollIntoView(false);', [li])
         li.tap()
         # no close button for this selection, select on an item brings to 
         # confirmation directly

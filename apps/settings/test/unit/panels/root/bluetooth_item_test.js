@@ -8,21 +8,54 @@ suite('BluetoothItem', function() {
   ];
   var map = {
     '*': {
-      'modules/bluetooth': 'MockBluetooth'
+      'modules/bluetooth/version_detector': 'MockVersionDetector',
+      'modules/settings_service': 'MockSettingsService',
+      'modules/bluetooth/bluetooth_v1': 'MockBluetooth_v1',
+      'modules/bluetooth/bluetooth': 'MockBluetooth_v2'
     }
   };
 
   suiteSetup(function(done) {
-    this.MockBluetooth = {
+    this.MockVersionDetector = {
+      _mVersion: 1,
+      getVersion: function() {return this._mVersion;}
+    };
+
+    this.MockSettingsService = {
+      navigate: function() {}
+    };
+
+    this.MockBluetooth_v1 = {
       enabled: false,
       numberOfPairedDevices: 0,
+      firstPairedDeviceName: null,
+      observe: function() {},
+      unobserve: function() {}
+    };
+
+    this.MockBluetooth_v2 = {
+      enabled: false,
+      numberOfPairedDevices: 0,
+      firstPairedDeviceName: null,
       observe: function() {},
       unobserve: function() {}
     };
 
     var requireCtx = testRequire([], map, function() {});
-    define('MockBluetooth', function() {
-      return this.MockBluetooth;
+    define('MockVersionDetector', function() {
+      return this.MockVersionDetector;
+    }.bind(this));
+
+    define('MockSettingsService', function() {
+      return this.MockSettingsService;
+    }.bind(this));
+
+    define('MockBluetooth_v1', function() {
+      return this.MockBluetooth_v1;
+    }.bind(this));
+
+    define('MockBluetooth_v2', function() {
+      return this.MockBluetooth_v2;
     }.bind(this));
 
     requireCtx(modules, function(MockL10n, BluetoothItem) {
@@ -40,55 +73,87 @@ suite('BluetoothItem', function() {
   });
 
   setup(function() {
+    this.liElement = document.createElement('li');
     this.element = document.createElement('div');
+    this.liElement.appendChild(this.element);
     this.subject = this.BluetoothItem(this.element);
   });
 
-  test('when enabled = true', function() {
-    this.sinon.stub(this.MockBluetooth, 'observe');
+  test('when enabled = true', function(done) {
+    this.sinon.stub(this.MockBluetooth_v1, 'observe');
     this.sinon.stub(this.subject, '_boundRefreshMenuDescription');
-    this.subject.enabled = true;
+    var mockPromise = new Promise(function(resolve) {
+      resolve(this.MockBluetooth_v1);
+    }.bind(this));
+    this.sinon.stub(this.subject, '_getBluetooth').returns(mockPromise);
 
-    sinon.assert.called(this.subject._boundRefreshMenuDescription);
-    sinon.assert.calledTwice(this.MockBluetooth.observe);
-    assert.equal(this.MockBluetooth.observe.args[0][0], 'enabled');
-    assert.equal(this.MockBluetooth.observe.args[0][1],
-      this.subject._boundRefreshMenuDescription);
-    assert.equal(this.MockBluetooth.observe.args[1][0],
-      'numberOfPairedDevices');
-    assert.equal(this.MockBluetooth.observe.args[1][1],
-      this.subject._boundRefreshMenuDescription);
+    this.subject.enabled = true;
+    mockPromise.then(function() {
+      sinon.assert.called(this.subject._boundRefreshMenuDescription);
+      sinon.assert.calledTwice(this.MockBluetooth_v1.observe);
+      assert.equal(this.MockBluetooth_v1.observe.args[0][0], 'enabled');
+      assert.equal(this.MockBluetooth_v1.observe.args[0][1],
+        this.subject._boundRefreshMenuDescription);
+      assert.equal(this.MockBluetooth_v1.observe.args[1][0],
+        'numberOfPairedDevices');
+      assert.equal(this.MockBluetooth_v1.observe.args[1][1],
+        this.subject._boundRefreshMenuDescription);
+    }.bind(this), function() {
+      // should not reject here..
+      assert.ok(false);
+    }).then(done, done);
   });
 
-  test('when enabled = false', function() {
-    this.sinon.stub(this.MockBluetooth, 'unobserve');
+  test('when enabled = false', function(done) {
+    this.sinon.stub(this.MockBluetooth_v1, 'unobserve');
     this.sinon.stub(this.subject, '_boundRefreshMenuDescription');
     // The default enabled value is false. Set to true first.
     this.subject.enabled = true;
-    this.subject.enabled = false;
 
-    sinon.assert.calledTwice(this.MockBluetooth.unobserve);
-    assert.equal(this.MockBluetooth.unobserve.args[0][0], 'enabled');
-    assert.equal(this.MockBluetooth.unobserve.args[0][1],
-      this.subject._boundRefreshMenuDescription);
-    assert.equal(this.MockBluetooth.unobserve.args[1][0],
-      'numberOfPairedDevices');
-    assert.equal(this.MockBluetooth.unobserve.args[1][1],
-      this.subject._boundRefreshMenuDescription);
+    var mockPromise = new Promise(function(resolve) {
+      resolve(this.MockBluetooth_v1);
+    }.bind(this));
+    this.sinon.stub(this.subject, '_getBluetooth').returns(mockPromise);
+
+    this.subject.enabled = false;
+    mockPromise.then(function() {
+      sinon.assert.calledTwice(this.MockBluetooth_v1.unobserve);
+      assert.equal(this.MockBluetooth_v1.unobserve.args[0][0], 'enabled');
+      assert.equal(this.MockBluetooth_v1.unobserve.args[0][1],
+        this.subject._boundRefreshMenuDescription);
+      assert.equal(this.MockBluetooth_v1.unobserve.args[1][0],
+        'numberOfPairedDevices');
+      assert.equal(this.MockBluetooth_v1.unobserve.args[1][1],
+        this.subject._boundRefreshMenuDescription);
+    }.bind(this), function() {
+      // should not reject here..
+      assert.ok(false);
+    }).then(done, done);
   });
 
   suite('_boundRefreshMenuDescription > ', function() {
+    var mockPromise;
+
     suite('when Bluetooth module enabled = true, ' +
       'numberOfPairedDevices = 0', function() {
       setup(function() {
-        this.MockBluetooth.enabled = true;
-        this.MockBluetooth.numberOfPairedDevices = 0;
+        this.MockBluetooth_v1.enabled = true;
+        this.MockBluetooth_v1.numberOfPairedDevices = 0;
+        mockPromise = new Promise(function(resolve) {
+          resolve(this.MockBluetooth_v1);
+        }.bind(this));
+        this.sinon.stub(this.subject, '_getBluetooth').returns(mockPromise);
       });
 
-      test('should call to localize correctly', function() {
+      test('should call to localize correctly', function(done) {
         this.subject._boundRefreshMenuDescription();
-        assert.equal(this.element.getAttribute('data-l10n-id'),
-          'bt-status-nopaired');
+        mockPromise.then(function() {
+          assert.equal(this.element.getAttribute('data-l10n-id'),
+            'bt-status-nopaired');
+        }.bind(this), function() {
+          // should not reject here..
+          assert.ok(false);
+        }).then(done, done);
       });
     });
 
@@ -96,32 +161,120 @@ suite('BluetoothItem', function() {
       'numberOfPairedDevices = 3', function() {
       var resultObj;
       setup(function() {
-        this.MockBluetooth.enabled = true;
-        this.MockBluetooth.numberOfPairedDevices = 3;
-        this.MockBluetooth.firstPairedDeviceName = 'device-A1';
+        this.MockBluetooth_v1.enabled = true;
+        this.MockBluetooth_v1.numberOfPairedDevices = 3;
+        this.MockBluetooth_v1.firstPairedDeviceName = 'device-A1';
         resultObj = {
-          name: this.MockBluetooth.firstPairedDeviceName,
-          n: this.MockBluetooth.numberOfPairedDevices - 1
+          name: this.MockBluetooth_v1.firstPairedDeviceName,
+          n: this.MockBluetooth_v1.numberOfPairedDevices - 1
         };
+        mockPromise = new Promise(function(resolve) {
+          resolve(this.MockBluetooth_v1);
+        }.bind(this));
+        this.sinon.stub(this.subject, '_getBluetooth').returns(mockPromise);
       });
 
-      test('should call to localize correctly', function() {
+      test('should call to localize correctly', function(done) {
         this.sinon.stub(this.MockL10n, 'setAttributes');
         this.subject._boundRefreshMenuDescription();
-        sinon.assert.calledWith(this.MockL10n.setAttributes, this.element,
-          'bt-status-paired', sinon.match(resultObj));
+        mockPromise.then(function() {
+          sinon.assert.calledWith(this.MockL10n.setAttributes, this.element,
+            'bt-status-paired', sinon.match(resultObj));
+        }.bind(this), function() {
+          // should not reject here..
+          assert.ok(false);
+        }).then(done, done);
       });
     });
 
     suite('when Bluetooth module enabled = false', function() {
       setup(function() {
-        this.MockBluetooth.enabled = false;
+        this.MockBluetooth_v1.enabled = false;
+        mockPromise = new Promise(function(resolve) {
+          resolve(this.MockBluetooth_v1);
+        }.bind(this));
+        this.sinon.stub(this.subject, '_getBluetooth').returns(mockPromise);
       });
 
-      test('should call to localize correctly', function() {
+      test('should call to localize correctly', function(done) {
         this.subject._boundRefreshMenuDescription();
-        assert.equal(this.element.getAttribute('data-l10n-id'),
-          'bt-status-turnoff');
+        mockPromise.then(function() {
+          assert.equal(this.element.getAttribute('data-l10n-id'),
+            'bt-status-turnoff');
+        }.bind(this), function() {
+          // should not reject here..
+          assert.ok(false);
+        }).then(done, done);
+      });
+    });
+  });
+
+  suite('_getBluetooth() > ', function() {
+    var mockPromise;
+
+    suite('already requested get Bluetooth with promise > ', function() {
+      mockPromise = new Promise(function() {});
+
+      setup(function() {
+        this.subject._getBluetoothPromise = mockPromise;
+      });
+
+      test('should return the requested promise..', function() {
+        assert.equal(this.subject._getBluetooth(), mockPromise);
+      });
+    });
+
+    suite('have not requested _getBluetooth() with promise > ', function() {
+      setup(function() {
+        this.subject._getBluetoothPromise = null;
+      });
+
+      test('should return a new promise, require bluetooth_v1..', function() {
+        this.subject._getBluetooth().then(function(bluetooth) {
+          assert.ok(this.subject._getBluetooth);
+          assert.equal(bluetooth, this.MockBluetooth_v1);
+        }.bind(this));
+      });
+    });
+
+    suite('have not requested _getBluetooth() with promise > ', function() {
+      setup(function() {
+        this.subject._getBluetoothPromise = null;
+        this.sinon.stub(this.subject, '_APIVersion').returns(2);
+      });
+
+      test('should return a new promise, require bluetooth_v2..', function() {
+        this.subject._getBluetooth().then(function(bluetooth) {
+          assert.ok(this.subject._getBluetooth);
+          assert.equal(bluetooth, this.MockBluetooth_v2);
+        }.bind(this));
+      });
+    });
+  });
+
+  suite('_navigatePanelWithVersionCheck > ', function() {
+    suite('API version 1 > ', function() {
+      setup(function() {
+        this.sinon.stub(this.subject, '_APIVersion').returns(1);
+        this.sinon.stub(this.MockSettingsService, 'navigate');
+      });
+
+      test('should navigate old bluetooth panel..', function() {
+        this.subject._navigatePanelWithVersionCheck();
+        sinon.assert.calledWith(this.MockSettingsService.navigate, 'bluetooth');
+      });
+    });
+
+    suite('API version 2 > ', function() {
+      setup(function() {
+        this.sinon.stub(this.subject, '_APIVersion').returns(2);
+        this.sinon.stub(this.MockSettingsService, 'navigate');
+      });
+
+      test('should navigate new bluetooth panel..', function() {
+        this.subject._navigatePanelWithVersionCheck();
+        sinon.assert.calledWith(this.MockSettingsService.navigate,
+          'bluetooth_v2');
       });
     });
   });

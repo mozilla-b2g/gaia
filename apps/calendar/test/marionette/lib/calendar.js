@@ -33,7 +33,7 @@ module.exports = Calendar;
 Calendar.ORIGIN = 'app://calendar.gaiamobile.org';
 
 Calendar.prototype = {
-  launch: function(opts) {
+  launch: function() {
     var client = this.client;
 
     client.apps.launch(Calendar.ORIGIN);
@@ -41,14 +41,6 @@ Calendar.prototype = {
 
     // Wait for the document body to know we're really 'launched'.
     this.client.helper.waitForElement('body');
-
-    if (opts) {
-      if (opts.hideSwipeHint) {
-        this.client.helper
-          .waitForElement('#hint-swipe-to-navigate')
-          .click();
-      }
-    }
   },
 
   get addEventButton() {

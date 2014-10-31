@@ -30,7 +30,7 @@ marionette('alarm', function() {
         '/mock_navigator_mozalarms.js');
       client.contentScript.inject(SHARED_PATH +
         '/mock_navigator_moz_set_message_handler.js');
-      app.launch({ hideSwipeHint: true });
+      app.launch();
     });
 
     suite('create event with a single reminder', function() {
@@ -75,7 +75,7 @@ marionette('alarm', function() {
   suite('> without alarm mocks', function() {
     setup(function() {
       app = new Calendar(client);
-      app.launch({ hideSwipeHint: true });
+      app.launch();
     });
 
     suite('create two events with simultaneous reminders', function() {

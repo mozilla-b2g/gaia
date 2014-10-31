@@ -190,9 +190,20 @@ var AboutMoreInfo = {
   },
 
   loadBluetoothAddress: function about_loadBluetoothAddress() {
-    require(['modules/bluetooth'], function(Bluetooth) {
-      Bluetooth.observe('address', this._refreshBluetoothAddress.bind(this));
-    }.bind(this));
+    require(['modules/bluetooth/version_detector'],
+      function(BluetoothAPIVersionDetector) {
+        var bluetoothModulePath;
+        if (BluetoothAPIVersionDetector.version === 1) {
+          bluetoothModulePath = 'modules/bluetooth/bluetooth_v1';
+        } else if (BluetoothAPIVersionDetector.version === 2) {
+          bluetoothModulePath = 'modules/bluetooth/bluetooth';
+        }
+
+        require([bluetoothModulePath], function(Bluetooth) {
+          Bluetooth.observe('address',
+                            this._refreshBluetoothAddress.bind(this));
+        }.bind(this));
+      }.bind(this));
   },
 
   // Private method for refreshing the address field only.

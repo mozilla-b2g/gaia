@@ -11,7 +11,7 @@ class TestEverythingMeLaunchLink(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.apps.set_permission_by_url('app://search.gaiamobile.org/manifest.webapp', 'geolocation', 'deny')
-        self.connect_to_network()
+        self.connect_to_local_area_network()
 
     def test_launch_everything_me_link(self):
         search_string = 'Facebook'

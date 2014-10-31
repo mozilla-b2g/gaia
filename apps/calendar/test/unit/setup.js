@@ -102,6 +102,33 @@ window.testAgentRuntime.testLoader = function(path) {
     var chai = requirejs('ext/chai');
     var chaiAsPromised = requirejs('ext/chai-as-promised');
     chai.use(chaiAsPromised);
+
+    /* chai extensions */
+
+    // XXX: this is a lame way to do this
+    // in reality we need to fix the above upstream
+    // and leverage new chai 1x methods
+    chai.assert.hasProperties = function (given, props, msg) {
+      msg = (typeof(msg) === 'undefined') ? '' : msg + ': ';
+
+      if (props instanceof Array) {
+        props.forEach(function(prop) {
+          assert.ok(
+            (prop in given),
+            msg + 'given should have "' + prop + '" property'
+          );
+        });
+      } else {
+        for (var key in props) {
+          assert.deepEqual(
+            given[key],
+            props[key],
+            msg + ' property equality for (' + key + ') '
+          );
+        }
+      }
+    };
+
     window.assert = chai.assert;
     window.expect = chai.expect;
     window.should = chai.Should();
@@ -359,32 +386,6 @@ window.testSupport.calendar = {
     });
 
     return object;
-  }
-};
-
-/* chai extensions */
-
-// XXX: this is a lame way to do this
-// in reality we need to fix the above upstream
-// and leverage new chai 1x methods
-assert.hasProperties = function chai_hasProperties(given, props, msg) {
-  msg = (typeof(msg) === 'undefined') ? '' : msg + ': ';
-
-  if (props instanceof Array) {
-    props.forEach(function(prop) {
-      assert.ok(
-        (prop in given),
-        msg + 'given should have "' + prop + '" property'
-      );
-    });
-  } else {
-    for (var key in props) {
-      assert.deepEqual(
-        given[key],
-        props[key],
-        msg + ' property equality for (' + key + ') '
-      );
-    }
   }
 };
 

@@ -527,9 +527,11 @@ function exitEdit(saved) {
   URL.revokeObjectURL(editedPhotoURL);
   editedPhotoURL = null;
 
-  // close the editor object
-  imageEditor.destroy();
-  imageEditor = null;
+  // Check for imageEditor and close the editor object
+  if (imageEditor) {
+    imageEditor.destroy();
+    imageEditor = null;
+  }
   savedEditSettings = null;
   editSettings = null;
 
@@ -572,6 +574,11 @@ function saveEditedImage() {
   // Save button disabled to prevent the user triggering multiple
   // save operations
   $('edit-save-button').disabled = true;
+
+  // Check for imageEditor before continuing with save
+  if (!imageEditor) {
+    return;
+  }
 
   // If we are in crop mode, perform the crop before saving
   if ($('edit-crop-button').classList.contains('selected'))

@@ -282,6 +282,24 @@ suite('system/LockScreen >', function() {
           'the refreshClock wasn\'t called even after the time format changed');
       });
 
+  test('invokeSecureApp: checking manifest and app URL of the fired Event' +
+       'on secure mode',
+        function() {
+          var urlSamples = [
+            'app://system.gaiamobile.org/index.html',
+            'app://system.gaiamobile.org/index.html#'
+          ];
+          var expectedManifest =
+            'app://system.gaiamobile.org/manifest.webapp';
+
+          urlSamples.forEach(function(url) {
+            var manifestUrl = url.replace(/(\/)*(index.html#?)*$/,
+                                          '/manifest.webapp');
+            assert.equal(manifestUrl, expectedManifest,
+                         'the manifestURL generated is not correct');
+          });
+      });
+
   test('Handle event: when lock,' +
       'would fire event to turn secure mode on',
       function() {

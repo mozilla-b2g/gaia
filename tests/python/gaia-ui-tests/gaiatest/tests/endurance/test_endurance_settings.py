@@ -67,8 +67,6 @@ class TestEnduranceSettings(GaiaEnduranceTestCase):
         self.wait_for_element_present(settings_menu_locator[0], settings_menu_locator[1])
         menu_item = self.marionette.find_element(settings_menu_locator[0], settings_menu_locator[1])
 
-        # Need explicit scroll because of bug 833370
-        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [menu_item])
         time.sleep(1)
         menu_item.tap()
         time.sleep(2)

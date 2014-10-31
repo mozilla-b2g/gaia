@@ -123,8 +123,7 @@
 .md__display-hour {
   display: block;
   width: 3rem;
-  padding: 0.2rem;
-  height: 4.9rem;
+  padding-top: 0.2rem;
   text-align: center;
   line-height: 1.2;
 }

@@ -96,8 +96,6 @@ class ManualSetupEmail(Base):
 
     def select_account_type(self, value):
         account_type = self.marionette.find_element(*self._account_type_locator)
-        # TODO: remove the explicit scroll once bug 833370 is fixed
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [account_type])
         account_type.click()
         self.select(value)
 
@@ -155,7 +153,6 @@ class ManualSetupEmail(Base):
 
     def tap_next(self):
         self.wait_for_condition(lambda m: m.find_element(*self._next_locator).get_attribute('disabled') != 'true')
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [self.marionette.find_element(*self._next_locator)])
         self.marionette.find_element(*self._next_locator).tap()
         self.wait_for_condition(lambda m: m.find_element(
             *self._account_prefs_section_locator).location['x'] == 0)

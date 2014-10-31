@@ -619,6 +619,11 @@ ul li > label.range-icons span:last-child {
   right: 0;
 }
 
+ul li > label.range-icons.volume span {
+  line-height: 12rem;
+  margin: 0 1.6rem;
+}
+
 ul li.brightness-manual > label input[type="range"] {
   width: calc(100% - 10.8rem);
 }
@@ -629,28 +634,6 @@ li.brightness-manual div {
   left: 5rem;
   height: 3rem;
   width: calc(100% - 10.7rem);
-}
-
-ul li > label.range-icons.volume:before {
-  left: 1.4rem;
-  right: auto;
-  width: 3rem;
-  top: 4.4rem;
-}
-
-ul li > label.range-icons.volume.media:before {
-  background:
-    url(images/sound_volume_media.png) no-repeat 0 50% / 3rem;
-}
-
-ul li > label.range-icons.volume.notification:before {
-  background:
-    url(images/sound_volume_ringer.png) no-repeat 0 50% / 3rem;
-}
-
-ul li > label.range-icons.volume.alarm:before {
-  background:
-    url(images/sound_volume_alarm.png) no-repeat 0 50% / 3rem;
 }
 
 ul li > label.range-icons.volume input {
@@ -1050,10 +1033,9 @@ html[dir="rtl"] #feedback-sad {
   float: left;
 }
 
-html[dir="rtl"] ul li > label.range-icons.volume:before {
+html[dir="rtl"] ul li > label.range-icons.volume span {
   left: auto;
-  right: 1.4rem;
-  background-position: 100% 50%;
+  right: 0;
 }
 
 html[dir="rtl"] ul li > label.range-icons.volume input {

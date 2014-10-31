@@ -16,6 +16,9 @@ function NotificationTest(client, details, delay_create) {
 }
 
 NotificationTest.prototype = {
+  Selectors: {
+    toaster: '#notification-toaster'
+  },
   client: null,
   tag: null,
   close: function() {
@@ -37,6 +40,7 @@ NotificationTest.prototype = {
     }, [this.tag], function(err, value) {
       ret = value;
     });
+
     return ret;
   },
   dumpContainer: function() {

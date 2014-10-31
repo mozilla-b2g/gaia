@@ -20,7 +20,7 @@ var mocksForAppWindow = new MocksHelper([
   'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'AppChrome',
   'AppTransitionController'
 ]).init();
-
+ 
 suite('system/AppWindow', function() {
   var realPermissionSettings;
   mocksForAppWindow.attachTestHelpers();
@@ -1906,11 +1906,13 @@ suite('system/AppWindow', function() {
       );
       var stubShowScreenshot = this.sinon.stub(app1, '_showScreenshotOverlay');
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+      var stubBroadcast = this.sinon.stub(app1, 'broadcast');
 
       app1.handleEvent({
         type: '_shrinkingstart'
       });
 
+      assert.isTrue(stubBroadcast.calledWith('blur'));
       assert.isTrue(stubGetScreenshot.calledOnce, 'getScreenshot');
       assert.isTrue(stubShowScreenshot.calledOnce,
                     '_showScreenshotOverlay in callback');
@@ -1920,12 +1922,14 @@ suite('system/AppWindow', function() {
     test('Shrinking stop event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+      var stubBroadcast = this.sinon.stub(app1, 'broadcast');
 
       app1.handleEvent({
         type: '_shrinkingstop'
       });
 
       assert.isTrue(stubSetVisible.calledWith(true), 'setVisible');
+      assert.isTrue(stubBroadcast.calledWith('focus'));
     });
   });
 

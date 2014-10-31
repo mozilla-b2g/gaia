@@ -81,7 +81,6 @@ suite('DEBUG=1', function() {
         'webgl.verbose': true,
         'dom.max_script_run_time': 0,
         'toolkit.identity.debug': true,
-        'network.http.use-cache': false,
         'extensions.gaia.dir': process.cwd(),
         'extensions.gaia.domain': 'gaiamobile.org',
         'extensions.gaia.port': 8080,

@@ -1,5 +1,6 @@
 /* globals LockScreenAgent */
 /* global softwareButtonManager */
+/* global OrientationManager */
 'use strict';
 
 (function(exports) {
@@ -226,6 +227,22 @@
   LockScreenWindow.prototype.layoutWidth =
     function() {
       return window.innerWidth;
+    };
+
+  LockScreenWindow.prototype.lockOrientation =
+    function() {
+      // XXX: When we turn the screen on, try to lock the orientation
+      // until it works. It may fail at the moment the screenchange
+      // event has been fired, so we may need to try it several times.
+      var tryLockOrientation = () => {
+        if(screen.mozLockOrientation('portrait-primary')) {
+          window.clearInterval(this.orientationLockID);
+        }
+      };
+      if (OrientationManager.isOnRealDevice()) {
+        this.orientationLockID =
+          window.setInterval(tryLockOrientation);
+      }
     };
 
   exports.LockScreenWindow = LockScreenWindow;

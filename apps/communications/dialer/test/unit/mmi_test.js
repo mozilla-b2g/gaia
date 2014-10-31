@@ -323,6 +323,14 @@ suite('dialer/mmi', function() {
       assert.isTrue(MmiManager.isMMI('*123#', 0));
     });
 
+    test('Check an MMI single-digit short-string code', function() {
+      assert.isTrue(MmiManager.isMMI('1', 0));
+    });
+
+    test('Check an MMI double-digit short-string code', function() {
+      assert.isTrue(MmiManager.isMMI('11', 0));
+    });
+
     test('Check a non-MMI code', function() {
       assert.isFalse(MmiManager.isMMI('123', 0));
     });

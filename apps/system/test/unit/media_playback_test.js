@@ -1,12 +1,14 @@
 /* global MocksHelper, MockAppWindowManager, MockL10n,
-   MediaPlaybackWidget */
+   MediaPlaybackWidget, Bluetooth */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 
 var mocksForMediaPlayback = new MocksHelper([
+  'Bluetooth',
   'AppWindowManager'
 ]).init();
 
@@ -226,4 +228,113 @@ suite('system/media playback widget', function() {
     });
   });
 
+  suite('handleAudioRouteChange', function() {
+    var realACM, mockACM = {};
+    var stubSendCommand;
+
+    setup(function() {
+      realACM = navigator.mozAudioChannelManager;
+      navigator.mozAudioChannelManager = mockACM;
+
+      stubSendCommand = this.sinon.stub(widget, 'sendCommand');
+    });
+
+    teardown(function() {
+      mockACM.headphones = false;
+      navigator.mozAudioChannelManager = realACM;
+      widget.audioRouting = 'speaker';
+    });
+
+    test('no wired, no bluetooth, plug wired', function() {
+      widget.audioRouting = 'speaker';
+      mockACM.headphones = true;
+      Bluetooth.mExpectedProfile = '';
+      var event = { target: { headphones: true } };
+      var reason = 'wired';
+      widget.handleAudioRouteChange(event, reason);
+      assert.isTrue(!stubSendCommand.calledOnce);
+      assert.equal(widget.audioRouting, 'wired');
+    });
+
+    test('no wired, no bluetooth, connect bluetooth', function() {
+      widget.audioRouting = 'speaker';
+      mockACM.headphones = false;
+      Bluetooth.mExpectedProfile = Bluetooth.Profiles.A2DP;
+      var event = { detail: { connected: true } };
+      var reason = 'bluetooth';
+      widget.handleAudioRouteChange(event, reason);
+      assert.isTrue(!stubSendCommand.calledOnce);
+      assert.equal(widget.audioRouting, 'bluetooth');
+    });
+
+    test('wired active, no bluetooth, unplug wired', function() {
+      widget.audioRouting = 'wired';
+      mockACM.headphones = false;
+      Bluetooth.mExpectedProfile = '';
+      var event = { target: { headphones: false } };
+      var reason = 'wired';
+      widget.handleAudioRouteChange(event, reason);
+      assert.isTrue(stubSendCommand.calledOnce);
+      assert.isTrue(stubSendCommand.calledWith('pause'));
+      assert.equal(widget.audioRouting, 'speaker');
+    });
+
+    test('no wired, bluetooth active, disconnect bluetooth', function() {
+      widget.audioRouting = 'bluetooth';
+      mockACM.headphones = false;
+      Bluetooth.mExpectedProfile = '';
+      var event = { detail: { connected: false } };
+      var reason = 'bluetooth';
+      widget.handleAudioRouteChange(event, reason);
+      assert.isTrue(stubSendCommand.calledOnce);
+      assert.isTrue(stubSendCommand.calledWith('pause'));
+      assert.equal(widget.audioRouting, 'speaker');
+    });
+
+    test('wired active, bluetooth inactive, unplug wired', function() {
+      widget.audioRouting = 'wired';
+      mockACM.headphones = false;
+      Bluetooth.mExpectedProfile = Bluetooth.Profiles.A2DP;
+      var event = { target: { headphones: false } };
+      var reason = 'wired';
+      widget.handleAudioRouteChange(event, reason);
+      assert.isTrue(stubSendCommand.calledOnce);
+      assert.isTrue(stubSendCommand.calledWith('pause'));
+      assert.equal(widget.audioRouting, 'bluetooth');
+    });
+
+    test('wired inactive, bluetooth active, disconnect bluetooth', function() {
+      widget.audioRouting = 'bluetooth';
+      mockACM.headphones = true;
+      Bluetooth.mExpectedProfile = '';
+      var event = { detail: { connected: false } };
+      var reason = 'bluetooth';
+      widget.handleAudioRouteChange(event, reason);
+      assert.isTrue(stubSendCommand.calledOnce);
+      assert.isTrue(stubSendCommand.calledWith('pause'));
+      assert.equal(widget.audioRouting, 'wired');
+    });
+
+    test('wired active, bluetooth inactive, disconnect bluetooth', function() {
+      widget.audioRouting = 'wired';
+      mockACM.headphones = true;
+      Bluetooth.mExpectedProfile = '';
+      var event = { detail: { connected: false } };
+      var reason = 'bluetooth';
+      widget.handleAudioRouteChange(event, reason);
+      assert.isTrue(!stubSendCommand.calledOnce);
+      assert.equal(widget.audioRouting, 'wired');
+    });
+
+    test('wired inactive, bluetooth active, unplug wired', function() {
+      widget.audioRouting = 'bluetooth';
+      mockACM.headphones = false;
+      Bluetooth.mExpectedProfile = Bluetooth.Profiles.A2DP;
+      var event = { target: { headphones: false } };
+      var reason = 'wired';
+      widget.handleAudioRouteChange(event, reason);
+      assert.isTrue(!stubSendCommand.calledOnce);
+      assert.equal(widget.audioRouting, 'bluetooth');
+    });
+  });
 });

@@ -91,7 +91,8 @@ require.config({
       exclude: [
         'main',
         'modules/battery',
-        'modules/bluetooth'
+        'modules/bluetooth/bluetooth_v1',
+        'modules/bluetooth/bluetooth'
       ]
     },
     {
@@ -229,7 +230,10 @@ require.config({
     },
     {
       name: 'panels/homescreens/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/apps_cache'
+      ]
     },
     {
       name: 'panels/sound/panel',

@@ -30,8 +30,7 @@ Setting.prototype = {
       alarmId: null,
       start: null,
       end: null
-    },
-    showSwipeToNavigateHint: true
+    }
   },
 
   /** disable caching */

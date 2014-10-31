@@ -62,7 +62,7 @@ marionette('interop basic', function() {
 
         debug('Launch calendar.');
         app = new Calendar(client);
-        app.launch({ hideSwipeHint: true });
+        app.launch();
 
         app.setupAccount(setupOptions(provider, config));
 

@@ -1352,7 +1352,6 @@ var ThreadUI = {
 
   createMmsContent: function thui_createMmsContent(dataArray) {
     var container = document.createDocumentFragment();
-    var scrollViewToBottom = ThreadUI.scrollViewToBottom.bind(ThreadUI);
 
     dataArray.forEach(function(messageData) {
 
@@ -1360,7 +1359,7 @@ var ThreadUI = {
         var attachment = new Attachment(messageData.blob, {
           name: messageData.name
         });
-        var mediaElement = attachment.render(scrollViewToBottom);
+        var mediaElement = attachment.render();
         container.appendChild(mediaElement);
         attachmentMap.set(mediaElement, attachment);
       }
@@ -1430,7 +1429,7 @@ var ThreadUI = {
   _createNotDownloadedHTML:
   function thui_createNotDownloadedHTML(message, classNames) {
     // default strings:
-    var messageL10nId = 'not-downloaded-attachment';
+    var messageL10nId = 'tobedownloaded-attachment';
     var downloadL10nId = 'download-attachment';
 
     // assuming that incoming message only has one deliveryInfo
@@ -1587,8 +1586,9 @@ var ThreadUI = {
     }
 
     if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
-      SMIL.parse(message, function(slideArray) {
+      SMIL.parse(message, (slideArray) => {
         pElement.appendChild(ThreadUI.createMmsContent(slideArray));
+        this.scrollViewToBottom();
       });
     }
 
