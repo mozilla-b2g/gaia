@@ -10,6 +10,7 @@ class Settings(Base):
 
     name = 'Settings'
 
+    _settings_iframe_locator = (By.CSS_SELECTOR, 'iframe[src="app://settings.gaiamobile.org/index.html"]')
     _header_text_locator = (By.CSS_SELECTOR, '#root > gaia-header > h1')
     _data_text_locator = (By.ID, 'data-desc')
     _wifi_text_locator = (By.ID, 'wifi-desc')
@@ -44,6 +45,11 @@ class Settings(Base):
     def launch(self):
         Base.launch(self)
         self.wait_for_element_present(*self._app_loaded_locator)
+
+    def switch_to_settings_app(self):
+        self.marionette.switch_to_frame()
+        iframe = self.wait_for_element_present(*self._settings_iframe_locator)
+        self.marionette.switch_to_frame(iframe)
 
     def wait_for_airplane_toggle_ready(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
@@ -186,6 +192,18 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.homescreen_settings import HomescreenSettings
         self._tap_menu_item(self._homescreen_menu_item_locator)
         return HomescreenSettings(self.marionette)
+
+    @property
+    def is_airplane_mode_visible(self):
+        return self.is_element_displayed(*self._airplane_switch_locator)
+
+    @property
+    def is_wifi_menu_visible(self):
+        return self.is_element_displayed(*self._wifi_menu_item_locator)
+
+    @property
+    def is_cell_data_menu_visible(self):
+        return self.is_element_displayed(*self._cell_data_menu_item_locator)
 
     def _wait_for_menu_item(self, menu_item_locator):
         menu_item = self.marionette.find_element(*menu_item_locator)
