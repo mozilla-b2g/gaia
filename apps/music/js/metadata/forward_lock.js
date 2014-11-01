@@ -1,16 +1,8 @@
+/* global AudioMetadata, ForwardLock */
+/* exported ForwardLockMetadata */
 'use strict';
 
 var ForwardLockMetadata = (function() {
-  // TODO: remove these
-  var TAG_FORMAT = 'tag_format';
-  var TITLE = 'title';
-  var ARTIST = 'artist';
-  var ALBUM = 'album';
-  var TRACKNUM = 'tracknum';
-  var TRACKCOUNT = 'trackcount';
-  var DISCNUM = 'discnum';
-  var DISCCOUNT = 'disccount';
-  var IMAGE = 'picture';
 
   function parse(locked) {
     return new Promise(function(resolve, reject) {
@@ -28,8 +20,8 @@ var ForwardLockMetadata = (function() {
             if (unlockedMetadata.vendor) {
               metadata.vendor = unlockedMetadata.vendor;
             }
-            if (!metadata[TITLE]) {
-              metadata[TITLE] = unlockedMetadata.name;
+            if (!metadata.title) {
+              metadata.title = unlockedMetadata.name;
             }
             return metadata;
           });

@@ -1,17 +1,8 @@
+/* global BlobView */
+/* exported ID3v1Metadata */
 'use strict';
 
 var ID3v1Metadata = (function() {
-  // TODO: remove these
-  var TAG_FORMAT = 'tag_format';
-  var TITLE = 'title';
-  var ARTIST = 'artist';
-  var ALBUM = 'album';
-  var TRACKNUM = 'tracknum';
-  var TRACKCOUNT = 'trackcount';
-  var DISCNUM = 'discnum';
-  var DISCCOUNT = 'disccount';
-  var IMAGE = 'picture';
-
   function parse(blobview, metadata) {
     // If this looks like an MP3 file, then look for ID3v1 metadata
     // tag at the end of the file. But even if there is no metadata
@@ -67,14 +58,15 @@ var ID3v1Metadata = (function() {
       album = album.substring(0, p);
     }
 
-    metadata[TAG_FORMAT] = 'id3v1';
-    metadata[TITLE] = title || undefined;
-    metadata[ARTIST] = artist || undefined;
-    metadata[ALBUM] = album || undefined;
+    metadata.tag_format = 'id3v1';
+    metadata.title = title || undefined;
+    metadata.artist = artist || undefined;
+    metadata.album = album || undefined;
     var b1 = footer.getUint8(125);
     var b2 = footer.getUint8(126);
-    if (b1 === 0 && b2 !== 0)
-      metadata[TRACKNUM] = b2;
+    if (b1 === 0 && b2 !== 0) {
+      metadata.tracknum = b2;
+    }
     return metadata;
   }
 

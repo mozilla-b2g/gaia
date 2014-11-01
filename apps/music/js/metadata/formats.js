@@ -1,3 +1,6 @@
+/* global ForwardLockMetadata, ID3v1Metadata, ID3v2Metadata, LazyLoader,
+   MP4Metadata, OggMetadata */
+/* exported MetadataFormats */
 'use strict';
 
 var MetadataFormats = (function() {

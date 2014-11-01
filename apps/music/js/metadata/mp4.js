@@ -1,3 +1,4 @@
+/* exported MP4Metadata */
 'use strict';
 
 // https://developer.apple.com/library/mac/#documentation/QuickTime/QTFF/QTFFChap1/qtff1.html
@@ -5,34 +6,23 @@
 // http://atomicparsley.sourceforge.net/mpeg-4files.html
 
 var MP4Metadata = (function() {
-  // TODO: remove these
-  var TAG_FORMAT = 'tag_format';
-  var TITLE = 'title';
-  var ARTIST = 'artist';
-  var ALBUM = 'album';
-  var TRACKNUM = 'tracknum';
-  var TRACKCOUNT = 'trackcount';
-  var DISCNUM = 'discnum';
-  var DISCCOUNT = 'disccount';
-  var IMAGE = 'picture';
-
   // Map MP4 atom names to metadata property names
   var MP4ATOMS = {
-    '\xa9alb': ALBUM,
-    '\xa9art': ARTIST,
-    '\xa9ART': ARTIST,
-    'aART': ARTIST,
-    '\xa9nam': TITLE,
-    'trkn': TRACKNUM,
-    'disk': DISCNUM,
-    'covr': IMAGE
+    '\xa9alb' : 'album',
+    '\xa9art' : 'artist',
+    '\xa9ART' : 'artist',
+    'aART'    : 'artist',
+    '\xa9nam' : 'title',
+    'trkn'    : 'tracknum',
+    'disk'    : 'discnum',
+    'covr'    : 'image'
   };
 
   // These MP4 atoms are stored as pairs of integers, so they get mapped to
   // two metadata fields
   var MP4INTPAIRATOMS = {
-    'trkn': TRACKCOUNT,
-    'disk': DISCCOUNT
+    'trkn': 'trackcount',
+    'disk': 'disccount'
   };
 
   // These are 'ftyp' values that we recognize
@@ -73,7 +63,7 @@ var MP4Metadata = (function() {
       return Promise.reject(new Error('Unknown MP4 file type'));
     }
 
-    metadata[TAG_FORMAT] = 'mp4';
+    metadata.tag_format = 'mp4';
     return findMoovAtom(blobview, metadata).then(function(result) {
       if (!result) {
         return metadata;
@@ -98,10 +88,10 @@ var MP4Metadata = (function() {
       // but arbitrary number of other compatible brands are also acceptable,
       // so we will check all the compatible brands until the header ends.
       var index = 16;
-      var size = header.getUint32(0);
+      var size = blobview.getUint32(0);
 
       while (index < size) {
-        var compatiblebrand = header.getASCIIText(index, 4);
+        var compatiblebrand = blobview.getASCIIText(index, 4);
         index += 4;
         if (compatiblebrand in types) {
           return true;

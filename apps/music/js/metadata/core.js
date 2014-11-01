@@ -1,3 +1,5 @@
+/* global BlobView, MetadataFormats */
+/* exported AudioMetadata */
 'use strict';
 
 // XXX We're hiding the fact that these are JSdoc comments because our linter
@@ -64,7 +66,6 @@ var AudioMetadata = (function() {
       if (filename.slice(0, 5) === 'DCIM/' &&
           filename.slice(-4).toLowerCase() === '.3gp') {
         return Promise.reject('skipping 3gp video file');
-        return;
       }
 
       // If the file has a .m4v extension then it is almost certainly a video.
@@ -80,25 +81,10 @@ var AudioMetadata = (function() {
       return Promise.reject('file is empty or too small');
     }
 
-    // These are the property names we use in the returned metadata object
-    var TAG_FORMAT = 'tag_format';
-    var TITLE = 'title';
-    var ARTIST = 'artist';
-    var ALBUM = 'album';
-    var TRACKNUM = 'tracknum';
-    var TRACKCOUNT = 'trackcount';
-    var DISCNUM = 'discnum';
-    var DISCCOUNT = 'disccount';
-    var IMAGE = 'picture';
-    // These two properties are for playlist functionalities
-    // not originally metadata from the files
-    var RATED = 'rated';
-    var PLAYED = 'played';
-
     // Start off with some default metadata
     var metadata = {};
-    metadata[ARTIST] = metadata[ALBUM] = metadata[TITLE] = '';
-    metadata[RATED] = metadata[PLAYED] = 0;
+    metadata.artist = metadata.album = metadata.title = '';
+    metadata.rated = metadata.played = 0;
 
     // If the blob has a name, use that as a default title in case
     // we can't find one in the file
@@ -108,7 +94,7 @@ var AudioMetadata = (function() {
       if (p2 === -1) {
         p2 = filename.length;
       }
-      metadata[TITLE] = filename.substring(p1 + 1, p2);
+      metadata.title = filename.substring(p1 + 1, p2);
     }
 
     // Read the start of the file, figure out what kind it is, and call
@@ -254,13 +240,16 @@ var AudioMetadata = (function() {
       var extension = coverBlob.type === 'image/jpeg' ? '.jpg' : '.png';
       var imageFilename = vfatEscape(albumKey) + '.' + coverBlob.size +
                           extension;
-      return checkSaveCover(coverBlob, imageFilename).then(function(savedFile) {
-        metadata.picture.filename = savedFile;
-        return metadata;
-      }, function(err) {
-        delete metadata.picture;
-        return metadata;
-      });
+      var storageName = getStorageName(filename);
+      return checkSaveCover(coverBlob, imageFilename, storageName).then(
+        function(savedFile) {
+          metadata.picture.filename = savedFile;
+          return metadata;
+        }, function(err) {
+          delete metadata.picture;
+          return metadata;
+        }
+      );
     } else {
       // We have embedded album art! All the processing is already done, so we
       // can just return.
@@ -279,17 +268,46 @@ var AudioMetadata = (function() {
   }
 
   /**
+   * Get the name of the storage area for an absolute filename, with leading
+   * and trailing slashes (e.g. '/sdcard/'). If the filename is relative,
+   * return the empty string (i.e. use the default storage area.)
+   *
+   * @param {string} filename The path to the file.
+   * @return {string} The file's storage area, or the empty string if the path
+   *   was relative.
+   */
+  function getStorageName(filename) {
+    // `filename` is usually a fully qualified name (perhaps something like
+    // /sdcard/Music/file.mp3). On desktop, it's a relative name, but desktop
+    // only has one storage area anyway.
+    if (filename[0] === '/') {
+      var slashIndex = filename.indexOf('/', 1);
+      if (slashIndex < 0) {
+        var err = Error('handleCoverArt: Bad filename: "' + filename + '"');
+        console.error(err);
+        return Promise.reject(err);
+      }
+
+      // Get the storage name, e.g. /sdcard/
+      return filename.substring(0, slashIndex + 1);
+    }
+
+    return '';
+  }
+
+  /**
    * Check for the existence of an image on the audio file's storage area,
    * and if it's not present, try to save it.
    *
    * @param {Blob} coverBlob The blob for the full-size cover art.
    * @param {string} imageFilename A relative filename for the image.
+   * @param {string} storageName The name of the storage area too use for
+   *   saving the image. May be an empty string or a path with trailing '/'.
+   *   For instance, to store on the SD card, pass '/sdcard/'.
    * @return {Promise} A Promise that resolves when finished, providing the
    *   filename of the saved image.
    */
-  function checkSaveCover(coverBlob, imageFilename) {
-    var storageName = '';
-
+  function checkSaveCover(coverBlob, imageFilename, storageName) {
     // We want to put the image in the same storage area as the audio track
     // it's for. Since the audio track could be in any storage area, we'll
     // examine its filename to get the storage name; the storage name is
@@ -297,22 +315,6 @@ var AudioMetadata = (function() {
     // and build an absolute path for the image. This will ensure that the
     // generic deviceStorage we use for pictures ("pictureStorage") puts the
     // image where we want it.
-    //
-    // Filename is usually a fully qualified name (perhaps something like
-    // /sdcard/Music/file.mp3). On desktop, it's a relative name, but desktop
-    // only has one storage area anyway.
-    if (filename[0] === '/') {
-      var slashIndex = filename.indexOf('/', 1);
-      if (slashIndex < 0) {
-        var err = Error("handleCoverArt: Bad filename: '" + filename + "'");
-        console.error(err);
-        return Promise.reject(err);
-      }
-
-      // Get the storage name, e.g. /sdcard/
-      var storageName = filename.substring(0, slashIndex + 1);
-    }
-
     var imageAbsPath = storageName + '.music/covers/' + imageFilename;
     if (savedCoverCache.has(imageAbsPath)) {
       return Promise.resolve(imageAbsPath);
@@ -331,7 +333,7 @@ var AudioMetadata = (function() {
       getrequest.onerror = function() {
         var saverequest = pictureStorage.addNamed(coverBlob, imageAbsPath);
         saverequest.onerror = function() {
-          console.error('Could not save cover image', filename);
+          console.error('Could not save cover image', imageFilename);
         };
 
         // Don't bother waiting for saving to finish. Just return.

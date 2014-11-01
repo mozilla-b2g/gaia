@@ -1,3 +1,5 @@
+/* global asyncStorage, AudioMetadata, ImageUtils, musicdb */
+/* exported AlbumArt */
 'use strict';
 
 var AlbumArt = (function() {
@@ -29,7 +31,7 @@ var AlbumArt = (function() {
     }
 
     // See if we've already made a URL for this album.
-    var cacheKey = makeCacheKey(fileinfo.metadata);
+    var cacheKey = makeCacheKey(fileinfo);
     if (cacheKey && cacheKey in thumbnailL1Cache) {
       return Promise.resolve(thumbnailL1Cache[cacheKey]);
     }
@@ -67,25 +69,26 @@ var AlbumArt = (function() {
    * @return {Number} The hashed value.
    */
   function hash(str) {
-    var hash = 0;
-    if (str.length === 0) return hash;
+    var hashCode = 0;
+    if (str.length === 0) { return hashCode; }
     for (var i = 0; i < str.length; i++) {
       var c = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + c;
-      hash = hash & hash; // Convert to 32-bit integer
+      hashCode = ((hashCode << 5) - hashCode) + c;
+      hashCode = hashCode & hashCode; // Convert to 32-bit integer
     }
-    return hash;
+    return hashCode;
   }
 
   /**
    * Create a cache key for this file. The cache key should be unique for each
    * album, and (hopefully) the same for tracks in a given album.
    *
-   * @param {Object} metadata The file's metadata.
+   * @param {Object} fileinfo The file's info.
    * @return {String} A cache key for the file, or null if we couldn't generate
    *   one.
    */
-  function makeCacheKey(metadata) {
+  function makeCacheKey(fileinfo) {
+    var metadata = fileinfo.metadata;
     if (metadata.picture.filename) {
       return 'external.' + metadata.picture.filename;
     } else if (metadata.picture.flavor === 'embedded') {

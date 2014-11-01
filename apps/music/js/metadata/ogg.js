@@ -1,32 +1,21 @@
+/* exported OggMetadata */
 'use strict';
 
 var OggMetadata = (function() {
-
-  // TODO: remove these
-  var TAG_FORMAT = 'tag_format';
-  var TITLE = 'title';
-  var ARTIST = 'artist';
-  var ALBUM = 'album';
-  var TRACKNUM = 'tracknum';
-  var TRACKCOUNT = 'trackcount';
-  var DISCNUM = 'discnum';
-  var DISCCOUNT = 'disccount';
-  var IMAGE = 'picture';
-
   // Fields that should be stored as integers, not strings
   var INTFIELDS = [
-    TRACKNUM, TRACKCOUNT, DISCNUM, DISCCOUNT
+    'tracknum', 'trackcount', 'discnum', 'disccount'
   ];
 
   // Map ogg field names to metadata property names
   var OGGFIELDS = {
-    title: TITLE,
-    artist: ARTIST,
-    album: ALBUM,
-    tracknumber: TRACKNUM,
-    tracktotal: TRACKCOUNT,
-    discnumber: DISCNUM,
-    disctotal: DISCCOUNT
+    title: 'title',
+    artist: 'artist',
+    album: 'album',
+    tracknumber: 'tracknum',
+    tracktotal: 'trackcount',
+    discnumber: 'discnum',
+    disctotal: 'disccount'
   };
 
   function EndOfPageError() {}
@@ -66,11 +55,11 @@ var OggMetadata = (function() {
         switch (first_byte) {
         case 3:
           valid = fullpage.readASCIIText(6) === 'vorbis';
-          metadata[TAG_FORMAT] = 'vorbis';
+          metadata.tag_format = 'vorbis';
           break;
         case 79:
           valid = fullpage.readASCIIText(7) === 'pusTags';
-          metadata[TAG_FORMAT] = 'opus';
+          metadata.tag_format = 'opus';
           break;
         }
         if (!valid) {

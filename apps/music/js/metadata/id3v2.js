@@ -3,30 +3,19 @@
 'use strict';
 
 var ID3v2Metadata = (function() {
-  // TODO: remove these
-  var TAG_FORMAT = 'tag_format';
-  var TITLE = 'title';
-  var ARTIST = 'artist';
-  var ALBUM = 'album';
-  var TRACKNUM = 'tracknum';
-  var TRACKCOUNT = 'trackcount';
-  var DISCNUM = 'discnum';
-  var DISCCOUNT = 'disccount';
-  var IMAGE = 'picture';
-
   // Map id3v2 frame ids to metadata property names. Each line has two mappings:
   // one for id3v2.3+ and one for id3v2.2.
   var ID3V2FRAMES = {
-    TPE1: ARTIST, TP1: ARTIST,
-    TALB: ALBUM, TAL: ALBUM,
-    TIT2: TITLE, TT2: TITLE,
-    TRCK: TRACKNUM, TRK: TRACKNUM,
-    TPOS: DISCNUM, TPA: DISCNUM,
-    APIC: IMAGE, PIC: IMAGE
+    TPE1: 'artist',   TP1: 'artist',
+    TALB: 'album',    TAL: 'album',
+    TIT2: 'title',    TT2: 'title',
+    TRCK: 'tracknum', TRK: 'tracknum',
+    TPOS: 'discnum',  TPA: 'discnum',
+    APIC: 'picture',  PIC: 'picture'
   };
   var ID3V2SECONDARYFRAMES = {
-    TRCK: TRACKCOUNT, TRK: TRACKCOUNT,
-    TPOS: DISCCOUNT, TPA: DISCCOUNT
+    TRCK: 'trackcount', TRK: 'trackcount',
+    TPOS: 'disccount',  TPA: 'disccount'
   };
 
   function parse(blobview, metadata) {
@@ -35,7 +24,7 @@ var ID3v2Metadata = (function() {
       console.warn('mp3 file with unknown metadata version');
       return Promise.resolve(metadata);
     }
-    metadata[TAG_FORMAT] = header.versionString;
+    metadata.tag_format = header.versionString;
     return new Promise(function(resolve, reject) {
       blobview.getMore(blobview.index, header.length, function(moreview, err) {
         if (err) {
