@@ -197,7 +197,6 @@
 .appWindow > .fade-overlay {
   background-color: black;
   visibility: hidden;
-  opacity: 0.8;
 }
 
 .appWindow.homescreen.fadeout .fade-overlay.hidden {
@@ -300,10 +299,14 @@
   margin-top: 4.6rem;
 }
 
+/* Bug 1044103: The opacity of the screenshot is controlledœ
+   by the background property below 
+*/
+
 .appWindow > .identification-overlay {
   pointer-events: none;
 
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.95);
 
   visibility: hidden;
   opacity: 0;
