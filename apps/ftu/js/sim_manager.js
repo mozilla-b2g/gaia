@@ -104,7 +104,7 @@ var SimManager = (function() {
           l10nArgs
         );
 
-        if (retryCount == 1) {
+        if (retryCount === 1) {
           UIManager.pinError.
             querySelector('.lastchance').classList.remove('hidden');
         } else {
@@ -124,7 +124,7 @@ var SimManager = (function() {
           l10nArgs
         );
 
-        if (retryCount == 1) {
+        if (retryCount === 1) {
           UIManager.pukError.
             querySelector('.lastchance').classList.remove('hidden');
         } else {
@@ -147,7 +147,7 @@ var SimManager = (function() {
           l10nArgs
         );
 
-        if (retryCount == 1) {
+        if (retryCount === 1) {
           UIManager.xckError.
             querySelector('.lastchance').classList.remove('hidden');
         } else {
