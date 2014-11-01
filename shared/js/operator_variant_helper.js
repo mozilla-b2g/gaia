@@ -181,6 +181,7 @@ OperatorVariantHelper.prototype = {
     var mcc = this._iccCard.iccInfo.mcc || '000';
     var mnc = this._iccCard.iccInfo.mnc || '00';
     var iccId = this._iccId;
+    var transaction;
     if (mcc === '000') {
       return;
     }
@@ -204,7 +205,7 @@ OperatorVariantHelper.prototype = {
 
     } else {
       // Check whether we ran customizations already.
-      var transaction = this.settings.createLock();
+      transaction = this.settings.createLock();
       var persistKeyGetRequest = transaction.get(this._persistKey);
       persistKeyGetRequest.onsuccess = (function persistKeyGetRequestCb() {
         // Looks like we didn't run customizations, apply settings.
@@ -224,7 +225,7 @@ OperatorVariantHelper.prototype = {
     }
 
     // store current mcc/mnc info in the settings
-    var transaction = this.settings.createLock();
+    transaction = this.settings.createLock();
 
     var mccRequest = transaction.get(this.MCC_SETTINGS_KEY);
     mccRequest.onsuccess = (function() {
@@ -337,6 +338,7 @@ OperatorVariantHelper.prototype = {
    */
   listen: function(listenForChange) {
     // Defaults to true so we need to make sure it's set.
+    var iccManager;
     if (listenForChange === undefined) {
       listenForChange = true;
     }
@@ -346,7 +348,7 @@ OperatorVariantHelper.prototype = {
       // We need to keep a reference to the added listener for removal later.
       this._addedListener = this.customize.bind(this);
 
-      var iccManager = window.navigator.mozIccManager;
+      iccManager = window.navigator.mozIccManager;
       this._iccCard = iccManager.getIccById(this._iccId);
       if (this._iccCard) {
         // Add the actual bound listener.
@@ -379,7 +381,7 @@ OperatorVariantHelper.prototype = {
     }
 
     if (this._addedListener) {
-      var iccManager = window.navigator.mozIccManager;
+      iccManager = window.navigator.mozIccManager;
       this._iccCard = iccManager.getIccById(this._iccId);
       if (this._iccCard) {
         // Otherwise, unregister.

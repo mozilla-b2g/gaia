@@ -223,11 +223,12 @@ function monitorTagVisibility(
                            state.children[state.lastChildIndex + 1] : null;
     var nodesAddedAfterScreen = true;
     var numNodesAdded = 0;
-    for (var i = 0; i < mutations.length; i++) {
-      var mutation = mutations[i];
+    var i, j, child, mutation;
+    for (i = 0; i < mutations.length; i++) {
+      mutation = mutations[i];
       if (mutation.addedNodes) {
-        for (var j = 0; j < mutation.addedNodes.length; j++) {
-          var child = mutation.addedNodes[j];
+        for (j = 0; j < mutation.addedNodes.length; j++) {
+          child = mutation.addedNodes[j];
           if (child.nodeType === ELEMENT_NODE &&
             child.tagName === tag) {
             numNodesAdded += 1;
@@ -249,11 +250,11 @@ function monitorTagVisibility(
     //  node as a key to get the mutation for that deleted node
     var removedNodes = new WeakMap();
     var nodesRemoved = false;
-    for (var i = 0; i < mutations.length; i++) {
-      var mutation = mutations[i];
+    for (i = 0; i < mutations.length; i++) {
+      mutation = mutations[i];
       if (mutation.removedNodes) {
-        for (var j = 0; j < mutation.removedNodes.length; j++) {
-          var child = mutation.removedNodes[j];
+        for (j = 0; j < mutation.removedNodes.length; j++) {
+          child = mutation.removedNodes[j];
           removedNodes.set(child, mutation);
           nodesRemoved = true;
         }

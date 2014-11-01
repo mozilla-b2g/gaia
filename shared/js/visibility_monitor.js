@@ -148,11 +148,12 @@ function monitorChildVisibility(container,
       callCallbacks();
     }
 
+    var j, child;
     for (var i = 0; i < mutations.length; i++) {
       var mutation = mutations[i];
       if (mutation.addedNodes) {
-        for (var j = 0; j < mutation.addedNodes.length; j++) {
-          var child = mutation.addedNodes[j];
+        for (j = 0; j < mutation.addedNodes.length; j++) {
+          child = mutation.addedNodes[j];
           if (child.nodeType === Node.ELEMENT_NODE) {
             childAdded(child);
           }
@@ -160,8 +161,8 @@ function monitorChildVisibility(container,
       }
 
       if (mutation.removedNodes) {
-        for (var j = 0; j < mutation.removedNodes.length; j++) {
-          var child = mutation.removedNodes[j];
+        for (j = 0; j < mutation.removedNodes.length; j++) {
+          child = mutation.removedNodes[j];
           if (child.nodeType === Node.ELEMENT_NODE) {
             childRemoved(child,
                          mutation.previousSibling,
@@ -381,9 +382,10 @@ function monitorChildVisibility(container,
     }
 
     var bottompos = position(lastOnscreen);
+    var next;
     if (bottompos === ON) {
       // If the last element is onscreen, see if there are more below it.
-      var next = lastOnscreen.nextElementSibling;
+      next = lastOnscreen.nextElementSibling;
       while (next && position(next) === ON) {
         lastOnscreen = next;
         next = next.nextElementSibling;
@@ -405,7 +407,7 @@ function monitorChildVisibility(container,
       }
 
       lastOnscreen = firstOnscreen;
-      var next = lastOnscreen.nextElementSibling;
+      next = lastOnscreen.nextElementSibling;
       while (next && position(next) === ON) {
         lastOnscreen = next;
         next = next.nextElementSibling;
