@@ -387,7 +387,8 @@ gaia-header [data-icon] {
 
 #view-settings .view-body-inner,
 #import-settings .view-body-inner,
-#view-contact-form .view-body-inner {
+#view-contact-form .view-body-inner,
+#ice-settings .view-body-inner {
   background: #f4f4f4;
 }
 #view-contact-form #thumbnail-photo {
