@@ -147,8 +147,11 @@
           return list.length;
         },
         set: function(value) {
+          var oldLength = list.length;
           list.length = value;
-          this.render();
+          if (value < oldLength) {
+            this.render();
+          }
           return value;
         }
       },
