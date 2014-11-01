@@ -383,6 +383,7 @@ gaia-header [data-icon] {
 #ice-settings .view-body-inner,
 #view-settings .view-body-inner {
   padding: 0;
+  background: none repeat scroll 0% 0% #F4F4F4;
 }
 
 #view-settings .view-body-inner,
