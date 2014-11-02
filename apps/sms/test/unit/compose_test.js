@@ -649,7 +649,8 @@ suite('compose_test.js', function() {
         ]);
 
         req.onerror = function(err) {
-          assert.equal(err, 'file too large');
+          assert.instanceOf(err, Error);
+          assert.equal(err.message, 'file too large');
           Settings.mmsSizeLimitation = origLimit;
           done();
         };
@@ -997,16 +998,19 @@ suite('compose_test.js', function() {
 
       suite('onerror,', function() {
         test('file too large', function() {
-          request.onerror('file too large');
-
+          request.onerror(new Error('file too large'));
           sinon.assert.calledWith(window.alert, 'files-too-large{"n":1}');
         });
 
         test('other errors are logged', function() {
           var err = 'other error';
-          request.onerror(err);
+          request.onerror(new Error(err));
           sinon.assert.notCalled(window.alert);
-          sinon.assert.calledWith(console.warn, sinon.match.string, err);
+          sinon.assert.calledWith(
+            console.warn, 
+            'Unhandled error: ', 
+            new Error(err)
+          );
         });
       });
     });
@@ -1495,7 +1499,7 @@ suite('compose_test.js', function() {
           });
 
           test('file too large', function() {
-            request.onerror('file too large');
+            request.onerror(new Error('file too large'));
             sinon.assert.calledWith(
               window.alert,
               'files-too-large{"n":1}'
@@ -1503,10 +1507,14 @@ suite('compose_test.js', function() {
           });
 
           test('other errors are logged', function() {
-            var err = 'other error';
+            var err = new Error('other error');
             request.onerror(err);
             sinon.assert.notCalled(window.alert);
-            sinon.assert.calledWith(console.warn, sinon.match.string, err);
+            sinon.assert.calledWithExactly(
+              console.warn,
+              'Unhandled error: ', 
+              sinon.match.same(err)
+            );
           });
         });
       });

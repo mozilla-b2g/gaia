@@ -683,10 +683,14 @@ var Compose = (function() {
     },
 
     _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
-      if (err === 'file too large') {
+      var errId = err instanceof DOMError ? err.name : err.message;
+      if (errId === 'file too large') {
         alert(navigator.mozL10n.get('files-too-large', { n: 1 }));
-      } else {
-        console.warn('Unhandled error spawning activity:', err);
+      
+      //'pick cancelled' is the error thrown 
+      //when the pick activity app is canceled normally
+      } else if (errId !== 'ActivityCanceled' && errId !== 'pick cancelled') {
+        console.warn('Unhandled error: ', err);
       }
     },
 
@@ -795,7 +799,7 @@ var Compose = (function() {
           result.blob.size > Settings.mmsSizeLimitation &&
           Utils.typeFromMimeType(result.blob.type) !== 'img') {
           if (typeof requestProxy.onerror === 'function') {
-            requestProxy.onerror('file too large');
+            requestProxy.onerror(new Error('file too large'));
           }
           return;
         }
@@ -811,7 +815,7 @@ var Compose = (function() {
       // Re-throw Gecko-level errors
       activity.onerror = function() {
         if (typeof requestProxy.onerror === 'function') {
-          requestProxy.onerror.apply(requestProxy, arguments);
+          requestProxy.onerror.call(requestProxy, activity.error);
         }
       };
 
