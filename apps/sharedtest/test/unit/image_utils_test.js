@@ -376,41 +376,34 @@ suite('ImageUtils', function() {
         verifyImage(this.inputBlob, W, H, 0, 0, W - 1, H - 1, 4, done);
       });
 
-      test('throw for invalid input', function() {
+      test('throw for invalid input', function(done) {
         var self = this;
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover();
-        }, 'no arguments');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover('not a blob');
-        }, 'not a blob');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob);
-        }, 'no dimensions');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, 0, 10);
-        }, 'zero width');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, 10, 0);
-        }, 'zero height');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, -10, 10);
-        }, 'negative width');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, 10, -10);
-        }, 'negative height');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, Infinity, 10);
-        }, 'infinite width');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, 10, Infinity);
-        }, 'infinite height');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, {}, 10);
-        }, 'NaN width');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, 10, {});
-        }, 'NaN height');
+
+        function onResolve(value) {
+          throw Error('Must be rejected'); 
+        }
+
+        function onReject(err) {
+          assert.equal(err.message, 'invalid output dimensions');
+        }
+
+        function check(promise) {
+          return promise.then(onResolve, onReject);
+        }
+
+        Promise.all([
+          check(ImageUtils.resizeAndCropToCover()),
+          check(ImageUtils.resizeAndCropToCover('not a blob')),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, 0, 10)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, 10, 0)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, -10, 10)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, 10, -10)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, Infinity, 10)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, 10, Infinity)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, {}, 10)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, 10, {}))
+        ]).then(() => done(), done); 
       });
 
       // Verify that if the output size is the same as the input size then
@@ -510,55 +503,54 @@ suite('ImageUtils', function() {
       });
 
       suite('#-moz-samplesize', function() {
+        var spy;
         setup(function() {
-          this.spy = sinon.spy(ImageUtils.Downsample, 'sizeNoMoreThan');
+          spy = sinon.spy(ImageUtils.Downsample, 'sizeNoMoreThan');
         });
         teardown(function() {
-          this.spy.restore();
+          spy.restore();
         });
 
+        function checkResolve(promise, checkValue) {
+          return promise.then(
+            function resolve(outputBlob) {
+              sinon.assert.calledOnce(spy);
+              assert.equal(spy.returnValues[0].toString(), checkValue);
+            }, 
+            function reject(outputBlob) {
+              throw Error('Must be resolved');
+            }
+          );
+        }
+
         if (inputImageType === 'image/jpeg') {
-          test('uses it at half size', function() {
-            ImageUtils.resizeAndCropToCover(this.inputBlob, W / 2, H / 2)
-              .then(function resolve(outputBlob) {
-                assert.okay(this.spy.calledOnce);
-                assert.equal(this.spy.returnValues[0].toString(),
-                             '#-moz-samplesize=2');
-              });
+          test('uses it at half size', function(done) {
+            checkResolve(ImageUtils.resizeAndCropToCover(
+              this.inputBlob, W / 2, H / 2),
+              '#-moz-samplesize=2').then(done, done);
           });
 
-          test('uses it at third size', function() {
-            ImageUtils.resizeAndCropToCover(this.inputBlob, W / 3, H / 3)
-              .then(function resolve(outputBlob) {
-                assert.okay(this.spy.calledOnce);
-                assert.equal(this.spy.returnValues[0].toString(),
-                             '#-moz-samplesize=3');
-              });
+          test('uses it at third size', function(done) {
+            checkResolve(ImageUtils.resizeAndCropToCover(
+              this.inputBlob, W / 3, H / 3),
+              '#-moz-samplesize=3').then(done, done);
           });
-          test('uses it at fifth size', function() {
-            ImageUtils.resizeAndCropToCover(this.inputBlob, W / 5, H / 5)
-              .then(function resolve(outputBlob) {
-                assert.okay(this.spy.calledOnce);
-                assert.equal(this.spy.returnValues[0].toString(),
-                             '#-moz-samplesize=4');
-              });
+          test('uses it at fifth size', function(done) {
+            checkResolve(ImageUtils.resizeAndCropToCover(
+              this.inputBlob, W / 5, H / 5),
+              '#-moz-samplesize=4').then(done, done);
           });
 
-          test('does not use at three quarters size', function() {
-            ImageUtils.resizeAndCropToCover(this.inputBlob, W * 0.75, H * 0.75)
-              .then(function resolve(outputBlob) {
-                assert.okay(this.spy.calledOnce);
-                assert.equal(this.spy.returnValues[0].toString(),
-                             '');
-              });
+          test('does not use at three quarters size', function(done) {
+            checkResolve(ImageUtils.resizeAndCropToCover(
+              this.inputBlob, W * 0.75, H * 0.75),
+              '').then(done, done);
           });
         }
         else {
-          test('does not use for non-jpeg', function() {
+          test('does not use for non-jpeg', function(done) {
             ImageUtils.resizeAndCropToCover(this.inputBlob, W / 2, H / 2)
-              .then(function resolve(outputBlob) {
-                assert.okay(this.spy.notCalled);
-              });
+              .then(() => sinon.assert.notCalled(spy)).then(done, done);
           });
         }
       });
