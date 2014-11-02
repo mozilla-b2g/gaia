@@ -287,6 +287,7 @@
 }
 
 #notifications-container .notification.disappearing,
+#notifications-container .notification.disappearing-via-clear-all,
 .notification-toaster.disappearing {
   transition: transform 0.2s linear;
   transform: translateX(100%);

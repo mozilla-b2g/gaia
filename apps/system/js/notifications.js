@@ -9,6 +9,7 @@ var NotificationScreen = {
   TRANSITION_FRACTION: 0.30,
   TAP_THRESHOLD: 10,
   SCROLL_THRESHOLD: 10,
+  CLEAR_DELAY: 80,
 
   _notification: null,
   _containerWidth: null,
@@ -728,11 +729,31 @@ var NotificationScreen = {
 
   clearAll: function ns_clearAll() {
     var notifications = this.container.querySelectorAll('.notification');
-    for (var notification of notifications) {
-      if (notification.dataset.noClear === 'true') {
-        continue;
+    var clearable = [].slice.apply(notifications)
+                      .filter(function isClearable(notification) {
+                        return notification.dataset.noClear !== 'true';
+                      });
+    var notification;
+    this.clearAllButton.disabled = true;
+    if (!clearable.length) {
+      return;
+    }
+    // Adding a callback to the last cleared notification to defer
+    // the destroying of the notifications after the last disappear
+    var lastClearable = clearable[clearable.length - 1];
+    var removeAll = (function removeAll() {
+      lastClearable.removeEventListener('transitionend', removeAll);
+      for (var notification of clearable) {
+        this.closeNotification(notification);
       }
-      this.closeNotification(notification);
+    }).bind(this);
+    lastClearable.addEventListener('transitionend', removeAll);
+
+    for (var index = 0, max = clearable.length; index < max; index++) {
+      notification = clearable[index];
+      notification.style.transitionDelay = (this.CLEAR_DELAY * index) + 'ms';
+      notification.classList.add('disappearing-via-clear-all');
+      notification.style.transform = '';
     }
   },
 
