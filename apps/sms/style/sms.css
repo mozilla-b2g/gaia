@@ -794,7 +794,17 @@ body[role="application"] form[role="dialog"][data-type="action"] > section:first
 form[role="dialog"][data-type="action"].contact-prompt > header {
   height: auto;
   min-height: 5rem;
-  font-weight: 100;
+  font-weight: 300;
+}
+
+.unknown-contact-header {
+  line-height: 2.5rem;
+  padding: 1.3rem 0;
+  margin: 0;
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  font-size: 2.3rem;
 }
 
 .contact-header {
