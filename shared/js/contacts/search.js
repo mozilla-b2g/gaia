@@ -1,4 +1,5 @@
 'use strict';
+/* jshint loopfunc:true */
 /* global Contacts */
 /* global fb */
 /* global ImageLoader */
@@ -151,31 +152,34 @@ contacts.Search = (function() {
   };
 
   var highlightNode = function(node) {
-    var textNode = node.querySelector('.contact-text');
-    var displayedText = textNode.textContent;
 
-    currentSearchTerms.forEach(function(term) {
-      var hRegEx = new RegExp(term, 'gi');
-      var newTerms = [], newTerm;
+    var textNodes = node.querySelectorAll('.contact-text');
+    for (var i = 0; i < textNodes.length; i++) {
+      var displayedText = textNodes[i].textContent;
 
-      var result = hRegEx.exec(displayedText);
-      while (result) {
-        newTerm = displayedText.substr(result.index, term.length);
-        newTerm = Normalizer.escapeRegExp(newTerm).toLowerCase();
-        newTerms.push(newTerm);
-        result = hRegEx.exec(displayedText);
-      }
+      currentSearchTerms.forEach(function(term) {
+        var hRegEx = new RegExp(term, 'gi');
+        var newTerms = [], newTerm;
 
-      newTerms = newTerms.filter(function removeDuplicates(elem, pos) {
-        return newTerms.indexOf(elem) === pos;
+        var result = hRegEx.exec(displayedText);
+        while (result) {
+          newTerm = displayedText.substr(result.index, term.length);
+          newTerm = Normalizer.escapeRegExp(newTerm).toLowerCase();
+          newTerms.push(newTerm);
+          result = hRegEx.exec(displayedText);
+        }
+
+        newTerms = newTerms.filter(function removeDuplicates(elem, pos) {
+          return newTerms.indexOf(elem) === pos;
+        });
+
+        newTerms.forEach(function replaceWithHighlight(term) {
+          textNodes[i].firstChild.innerHTML = textNodes[i].textContent.replace(
+            new RegExp('(' + term + ')', 'i'),
+            '<span class="' + highlightClass + '">$1</span>');
+         });
       });
-
-      newTerms.forEach(function replaceWithHighlight(term) {
-        textNode.firstChild.innerHTML = textNode.textContent.replace(
-          new RegExp('(' + term + ')', 'i'),
-          '<span class="' + highlightClass + '">$1</span>');
-       });
-    });
+    }
   };
 
   var updateSearchList = function updateSearchList(cb) {
