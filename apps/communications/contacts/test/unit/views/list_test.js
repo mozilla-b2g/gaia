@@ -195,11 +195,13 @@ suite('Render contacts list', function() {
     var regExp = new RegExp('^' + phrase + '$', 'i');
     var highlightClass = contacts.Search.getHighlightClass();
     var highlightedNodes = searchList.getElementsByClassName(highlightClass);
+
+    assert.isTrue(highlightedNodes.length > 0);
     for (var i = 0, l = highlightedNodes.length; i < l; i++) {
-      // we want to be non-case-sensitive so simple comparision
+      // we want to be non-case-sensitive so simple comparison
       // of string will not work here. There could also be problems
       // with different languages when using String.toLowerCase(),
-      // thats why we use Regular Expressions
+      // that is why we use Regular Expressions
       assert.isTrue(regExp.test(highlightedNodes[i].innerHTML));
     }
   }
