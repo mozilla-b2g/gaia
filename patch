@@ -1,0 +1,22 @@
+From b8e2c9169c43a99bcd0ceafbe15215272ec92e5f Mon Sep 17 00:00:00 2001
+From: Pedro Cambra <pedro.cambra@gmail.com>
+Date: Sun, 2 Nov 2014 12:14:58 +0000
+Subject: [PATCH] Bug 1092559 - Fixed surname duplication on contact search
+
+---
+ shared/js/contacts/search.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/shared/js/contacts/search.js b/shared/js/contacts/search.js
+index b269a1d..f07f2f4 100644
+--- a/shared/js/contacts/search.js
++++ b/shared/js/contacts/search.js
+@@ -171,7 +171,7 @@ contacts.Search = (function() {
+       });
+ 
+       newTerms.forEach(function replaceWithHighlight(term) {
+-        textNode.firstChild.innerHTML = textNode.textContent.replace(
++        textNode.innerHTML = textNode.textContent.replace(
+           new RegExp('(' + term + ')', 'gi'),
+           '<span class="' + highlightClass + '">$1</span>');
+        });
