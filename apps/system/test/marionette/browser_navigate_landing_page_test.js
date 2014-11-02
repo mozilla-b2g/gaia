@@ -59,8 +59,10 @@ marionette('Browser - Navigating from the landing page',
     rocketbar.enterText(url + '\uE006');
 
     // Opens the search window, so we should have 3 with the home screen.
-    assert.equal((nApps + 1), system.getAppWindows().length,
-      'expected number of app windows');
+    // Wait for the expected number of app windows.
+    client.waitFor(function() {
+      return (nApps + 1) === system.getAppWindows().length;
+    });
 
     // Navigates the landing page which used to be an app window.
     assert.equal((nBrowsers + 1), system.getBrowserWindows().length,
