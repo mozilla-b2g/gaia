@@ -26,7 +26,6 @@ Notification.prototype = {
   getContainer: function() {
     return this.client
           .findElement('#desktop-notifications-container .other-notifications');
-
   },
 
   getFirstIconUrl: function() {

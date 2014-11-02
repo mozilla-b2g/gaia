@@ -6,20 +6,23 @@
  * Bug 830127 should fix input_areas.css and move this JS functionality
  * to a shared JS file, so this file won't be in the email app for long.
  */
+'use strict';
 define(function(require, exports) {
+  var slice = Array.prototype.slice;
+
   return function hookupInputAreaResetButtons(e) {
     // This selector is from shared/style/input_areas.css
     var selector = 'form p input + button[type="reset"],' +
           'form p textarea + button[type="reset"]';
-    var resetButtons = e.querySelectorAll(selector);
-    for (var i = 0, n = resetButtons.length; i < n; i++) {
-      resetButtons[i].addEventListener('mousedown', function(e) {
+    var resetButtons = slice.call(e.querySelectorAll(selector));
+    resetButtons.forEach(function(resetButton) {
+      resetButton.addEventListener('mousedown', function(e) {
         e.preventDefault();   // Don't take focus from the input field
       });
-      resetButtons[i].addEventListener('click', function(e) {
+      resetButton.addEventListener('click', function(e) {
         e.target.previousElementSibling.value = ''; // Clear input field
         e.preventDefault();   // Don't reset the rest of the form.
       });
-    }
+    });
   };
 });

@@ -1,4 +1,4 @@
-/*global define*/
+'use strict';
 define(function() {
   /**
    * Mixes properties from source into target.
@@ -11,8 +11,9 @@ define(function() {
    */
   return function mix(target, source, override) {
     Object.keys(source).forEach(function(key) {
-      if (!target.hasOwnProperty(key) || override)
+      if (!target.hasOwnProperty(key) || override) {
         target[key] = source[key];
+      }
     });
     return target;
   };

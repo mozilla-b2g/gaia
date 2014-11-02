@@ -1,5 +1,6 @@
-<section class="card-setup-fix-oauth2 error-card form-card card skin-organic anim-fade anim-overlay"
-         role="region">
+<!-- need this section element to keep building blocks happy. Too bad it
+  expects a section element -->
+<section class="error-card form-card skin-organic bbshim" role="region">
   <header>
     <h1 class="sup-account-header-label header-label"
         data-l10n-id="setup-fix-oauth2-header">Reauthorize EmaiL</h1>
@@ -10,10 +11,11 @@
       EmaiL NeedS ReauthorizatioN FoR AccounT
     </p>
 
-    <p class="sup-oauth2-name"></p>
+    <p data-prop="oauth2Name" class="sup-oauth2-name"></p>
 
     <div class="actions">
-      <button class="sup-reauth-btn recommend"
+      <button data-event="click:onReauth"
+              class="sup-reauth-btn recommend"
               data-l10n-id="setup-fix-oauth2-reauthorize">ReauthorizE</button>
     </div>
 

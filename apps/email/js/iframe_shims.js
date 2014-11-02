@@ -1,6 +1,3 @@
-/*jshint browser: true */
-/*global console, define */
-
 define(['shared/js/gesture_detector'], function() {
 
 'use strict';
@@ -349,19 +346,18 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
   iframe.contentDocument.write(htmlStr);
   iframe.contentDocument.write('</body>');
   iframe.contentDocument.close();
-  var iframeHtml = iframe.contentDocument.documentElement;
   var iframeBody = iframe.contentDocument.body;
 
   // NOTE.  This has gone through some historical iterations here AKA is
   // evolved.  Technically, getBoundingClientRect() may be superior since it can
-  // have fractional parts.  I believe I tried using it with iframeHtml and it
-  // ended up betraying me by reporting clientWidth/clientHeight instead of
-  // scrollWidth, whereas scrollWidth/scrollHeight worked better.  However I was
-  // trying a lot of things; I might just have been confused by some APZ
-  // glitches where panning right would not work immediately after zooming and
-  // you'd have to pan left first in order to pan all the way to the newly
-  // expaned right.  What we know right now is this gives the desired behaviour
-  // sizing behaviour.
+  // have fractional parts.  I believe I tried using it with
+  // iframe.contentDocument.documentElement and it ended up betraying me by
+  // reporting clientWidth/clientHeight instead of scrollWidth, whereas
+  // scrollWidth/scrollHeight worked better.  However I was trying a lot of
+  // things; I might just have been confused by some APZ glitches where panning
+  // right would not work immediately after zooming and you'd have to pan left
+  // first in order to pan all the way to the newly expaned right.  What we know
+  // right now is this gives the desired behaviour sizing behaviour.
   var scrollWidth = iframeBody.scrollWidth;
   var scrollHeight = iframeBody.scrollHeight;
 
@@ -418,8 +414,9 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
     // There is nothing to do if we are actually already at this scale level.
     // (Note that there still is something to do if newScale ===
     //  lastRequestedScale, though!)
-    if (newScale === scale)
+    if (newScale === scale) {
       return;
+    }
     lastRequestedScale = newScale;
     lastCenterX = centerX;
     lastCenterY = centerY;

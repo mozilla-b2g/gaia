@@ -1,18 +1,19 @@
-<section class="card-setup-manual-config form-card card skin-organic"
-         role="region">
+<!-- need this section element to keep building blocks happy. Too bad it
+  expects a section element -->
+<section class="skin-organic form-card bbshim" role="region">
   <header class="sup-account-header">
-    <a href="#" class="sup-back-btn">
+    <a data-event="click:onBack" href="#" class="sup-back-btn">
       <span class="icon icon-back"></span>
     </a>
     <h1 class="sup-account-header-label header-label"
         data-l10n-id="setup-manual-config-header">ManuaL SetuP</h1>
   </header>
-  <div class="scrollregion-below-header">
-    <div class="sup-error-region collapsed">
-      <div class="sup-error-message"></div>
+  <div data-prop="scrollBelowNode" class="scrollregion-below-header">
+    <div data-prop="errorRegionNode" class="sup-error-region collapsed">
+      <div data-prop="errorMessageNode" class="sup-error-message"></div>
     </div>
     <header class="collapsed"></header>
-    <form class="sup-manual-form">
+    <form data-prop="formNode" class="sup-manual-form">
       <div class="sup-manual-common sup-form">
         <p>
           <!-- x-inputmode is a temporary v1 B2G stop-gap -->
@@ -45,7 +46,9 @@
         <!-- These don't need L10N as they are protocol names. -->
         <li class="sup-manual-account-type-container">
           <span class="button icon icon-dialog">
-            <select class="mail-select sup-manual-account-type">
+            <select data-prop="accountTypeNode"
+                    data-event="change:onChangeAccountType"
+                    class="mail-select sup-manual-account-type">
               <option value="imap+smtp">IMAP+SMTP</option>
               <option value="pop3+smtp">POP3+SMTP</option>
               <option value="activesync">ActiveSync</option>
@@ -54,12 +57,13 @@
         </li>
       </div>
 
-      <section class="sup-manual-composite" role="region">
+      <section data-prop="compositeSection"
+               class="sup-manual-composite" role="region">
         <header class="collapsed"></header>
         <header>
-          <h2 class="sup-manual-imap-title"
+          <h2 data-prop="manualImapTitle"  class="sup-manual-imap-title"
               data-l10n-id="setup-manual-imap-header">ImaP SettingS</h2>
-          <h2 class="sup-manual-pop3-title"
+          <h2 data-prop="manualPop3Title" class="sup-manual-pop3-title"
               data-l10n-id="setup-manual-pop3-header">Pop3 SettingS</h2>
         </header>
         <div class="sup-form">
@@ -152,7 +156,8 @@
         </div>
       </section>
 
-      <section class="sup-manual-activesync collapsed" role="region">
+      <section data-prop="activeSyncSection"
+               class="sup-manual-activesync collapsed" role="region">
         <header class="collapsed"></header>
         <header>
           <h2 data-l10n-id="setup-manual-activesync-header">
@@ -178,7 +183,9 @@
       </section>
       <div class="sup-form">
         <p>
-          <button class="sup-manual-next-btn recommend" disabled>
+          <button data-prop="nextButton"
+                  data-event="click:onNext"
+                  class="sup-manual-next-btn recommend" disabled>
             <span data-l10n-id="setup-info-next">NexT</span>
           </button>
         </p>

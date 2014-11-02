@@ -1,11 +1,14 @@
 <!-- Per-account settings menu; largely read-only for now -->
-<section class="card-settings-account card-settings-account-common card skin-organic"
-         role="region">
+<!-- need this section element to keep building blocks happy. Too bad it
+  expects a section element -->
+<section class="skin-organic bbshim settings-account-common" role="region">>
   <header class="tng-account-header">
-    <a href="#" class="tng-back-btn back-btn header-left-btn">
+    <a data-event="click:onBack"
+       href="#" class="tng-back-btn back-btn header-left-btn">
       <span class="icon icon-back"></span>
     </a>
-    <h1 class="tng-account-header-label header-label">AccounT NamE</h1>
+    <h1 data-prop="headerLabel"
+        class="tng-account-header-label header-label">AccounT NamE</h1>
   </header>
   <section class="scrollregion-below-header skin-organic" role="region">
     <header class="collapsed"></header>
@@ -18,7 +21,8 @@
       <li class="list-text-with-sub">
         <span data-l10n-id="settings-account-name" class="list-text">
           YouR NamE</span>
-        <span class="tng-account-name list-sub-text">YouR NamE</span>
+        <span data-prop="accountNameNode"
+              class="tng-account-name list-sub-text">YouR NamE</span>
       </li>
       <li class="list-text-with-sub">
         <span data-l10n-id="settings-account-display-notifications"
@@ -47,8 +51,10 @@
               class="list-text aside start">
           SeT AS DefaulT EmaiL</span>
         <em class="aside end">
-          <label class="pack-checkbox tng-default-label">
-            <input class="tng-default-input" type="checkbox">
+          <label data-prop="defaultLabelNode"
+                 class="pack-checkbox tng-default-label">
+            <input data-prop="defaultInputNode"
+                   class="tng-default-input" type="checkbox">
             <span></span>
           </label>
         </em>
@@ -94,11 +100,13 @@
           </select>
         </span>
       </li>
-      <li class="synchronize-setting select-item">
+      <li data-prop="syncSettingNode" class="synchronize-setting select-item">
         <label data-l10n-id="settings-account-synchronize-window"
                class="list-text">DayS TO SynC</label>
         <span class="button icon icon-dialog">
-          <select class="mail-select tng-account-synchronize">
+          <select data-prop="synchronizeNode"
+                  data-event="change:onChangeSynchronize"
+                  class="mail-select tng-account-synchronize">
             <option value="auto" data-l10n-id="settings-synchronize-auto">
               AutomatiC</option>
             <option value="1d" data-l10n-id="settings-synchronize-one-day">
@@ -122,9 +130,11 @@
         ServeR SettingS
       </h2>
     </header>
-    <ul class="tng-list tng-account-server-container">
+    <ul data-prop="serversContainer"
+        class="tng-list tng-account-server-container">
       <li>
-        <a href="#" data-l10n-id="settings-account-userpass"
+        <a href="#" data-prop="accountCredNode"
+                    data-event="click:onClickCredentials"
           class="tng-account-credentials list-text item-with-children"></a>
       </li>
       <li>
@@ -132,11 +142,13 @@
               class="list-text aside start">
           AccounT TypE</span>
         <div class="aside end">
-          <span class="tng-account-type list-value">AccounT TypE</span>
+          <span data-prop="accountTypeNode"
+                class="tng-account-type list-value">AccounT TypE</span>
         </div>
       </li>
     </ul>
     <button href="#" data-l10n-id="settings-account-delete"
-      class="tng-account-delete danger">DeletE AccounT</button>
+            data-event="click:onDelete"
+            class="tng-account-delete danger">DeletE AccounT</button>
   </section>
 </section>

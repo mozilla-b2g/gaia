@@ -1,139 +1,163 @@
-<!-- Lists the messages in a folder -->
-<div class="card-message-list card" data-statuscolor="default" data-tray-target>
-  <!-- Non-search header -->
-  <section class="msg-list-header msg-nonsearch-only" role="region">
-    <header>
-      <a href="#" class="msg-folder-list-btn">
-        <span class="icon icon-menu">menu</span>
+<!-- Non-search header -->
+<section data-prop="normalHeader"
+         class="msg-list-header msg-nonsearch-only"
+         data-statuscolor="default"
+         role="region">
+  <header>
+    <a href="#" class="msg-folder-list-btn" data-event="click:onShowFolders">
+      <span class="icon icon-menu">menu</span>
+    </a>
+    <menu data-prop="headerMenuNode" type="toolbar" class="anim-opacity">
+      <a href="#" class="msg-compose-btn" data-event="click:onCompose">
+        <span class="icon icon-compose">compose</span>
       </a>
-      <menu type="toolbar" class="anim-opacity">
-        <a href="#" class="msg-compose-btn">
-          <span class="icon icon-compose">compose</span>
-        </a>
-      </menu>
-
-      <h1 class="msg-list-header-folder-label header-label">
-        <span class="msg-list-header-folder-name"></span>
-        <span class="msg-list-header-folder-unread collapsed"></span>
+    </menu>
+    <h1 data-prop="folderLabel"
+        class="msg-list-header-folder-label header-label">
+      <span data-prop="folderNameNode"
+            class="msg-list-header-folder-name"></span>
+      <span data-prop="folderUnread"
+            class="msg-list-header-folder-unread collapsed"></span>
       </h1>
-    </header>
-  </section>
-  <!-- Multi-edit state header -->
-  <section class="msg-listedit-header collapsed" role="region">
-    <header>
-      <a href="#" class="msg-listedit-cancel-btn">
-        <span class="icon icon-close"></span>
-      </a>
-      <h1 class="msg-listedit-header-label"></h1>
-    </header>
-  </section>
-  <!-- Search header -->
-  <section role="region"
-           class="msg-search-header msg-search-only">
-    <form class="msg-search-form" role="search">
-      <button class="msg-search-cancel" type="submit" data-l10n-id="message-search-cancel">Cancel</button>
-      <p>
-        <input type="text" required="required" class="msg-search-text"
+  </header>
+</section>
+<!-- Multi-edit state header -->
+<section data-prop="editHeader"
+         class="msg-listedit-header collapsed" role="region">
+  <header>
+    <a href="#" data-event="click:setEditModeDone"
+       class="msg-listedit-cancel-btn">
+      <span class="icon icon-close"></span>
+    </a>
+    <h1 data-prop="headerNode" class="msg-listedit-header-label">
+    </h1>
+  </header>
+</section>
+<!-- Search header -->
+<section role="region" data-prop="searchHeader"
+         class="msg-search-header msg-search-only">
+  <form role="search" data-event="submit:onSearchSubmit">
+    <button data-event="click:onCancelSearch"
+            class="msg-search-cancel" type="submit"
+            data-l10n-id="message-search-cancel">Cancel</button>
+    <p>
+      <input data-prop="searchInput" data-event="input:onSearchTextChange"
+             type="text" required="required" class="msg-search-text"
              dir="auto"
              autocorrect="off"
              inputmode="verbatim"
              x-inputmode="verbatim"
              data-l10n-id="message-search-input" />
-        <button type="reset" data-l10n-id="form-clear-input"></button>
+      <button type="reset" data-l10n-id="form-clear-input"></button>
+    </p>
+  </form>
+  <!-- Search filter switcher -->
+  <header class="msg-search-controls-bar">
+    <ul role="tablist" class="bb-tablist filter" data-type="filter">
+      <li role="presentation" class="msg-search-from msg-search-filter"
+          data-filter="author">
+        <a data-l10n-id="message-search-from" role="tab"
+          aria-selected="false">FroM</a></li>
+      <li role="presentation" class="msg-search-to msg-search-filter"
+          data-filter="recipients">
+        <a data-l10n-id="message-search-to" role="tab"
+          aria-selected="false">tO</a></li>
+      <li role="presentation" class="msg-search-subject msg-search-filter"
+           data-filter="subject">
+        <a data-l10n-id="message-search-subject" role="tab"
+          aria-selected="false">SubjecT</a>
+      </li>
+      <li role="presentation" class="msg-search-body msg-search-filter"
+           data-filter="body">
+        <a data-l10n-id="message-search-body" role="tab"
+          aria-selected="false">BodY</a></li>
+      <li role="presentation" class="msg-search-body msg-search-filter"
+          data-filter="all">
+        <a data-l10n-id="message-search-all" role="tab"
+          aria-selected="true">AlL</a></li>
+    </ul>
+  </header>
+</section>
+<!-- Scroll region -->
+<div data-prop="scrollContainer" class="msg-list-scrollouter">
+  <!-- exists so we can force a minimum height -->
+  <div class="msg-list-scrollinner">
+    <!-- The search textbox hides under the lip of the messages.
+         As soon as any typing happens in it, we push the search
+         controls card. -->
+    <form role="search" data-prop="searchBar"
+          class="msg-search-tease-bar msg-nonsearch-only">
+      <p>
+        <input data-event="focus:onSearchButton"
+               class="msg-search-text-tease" type="text"
+               dir="auto" data-l10n-id="message-search-input" />
       </p>
     </form>
-    <!-- Search filter switcher -->
-    <header class="msg-search-controls-bar">
-      <ul role="tablist" class="bb-tablist filter" data-type="filter">
-        <li role="presentation" class="msg-search-from msg-search-filter"
-            data-filter="author">
-          <a data-l10n-id="message-search-from" role="tab"
-            aria-selected="false">FroM</a></li>
-        <li role="presentation" class="msg-search-to msg-search-filter"
-            data-filter="recipients">
-          <a data-l10n-id="message-search-to" role="tab"
-            aria-selected="false">tO</a></li>
-        <li role="presentation" class="msg-search-subject msg-search-filter"
-             data-filter="subject">
-          <a data-l10n-id="message-search-subject" role="tab"
-            aria-selected="false">SubjecT</a>
-        </li>
-        <li role="presentation" class="msg-search-body msg-search-filter"
-             data-filter="body">
-          <a data-l10n-id="message-search-body" role="tab"
-            aria-selected="false">BodY</a></li>
-        <li role="presentation" class="msg-search-body msg-search-filter"
-            data-filter="all">
-          <a data-l10n-id="message-search-all" role="tab"
-            aria-selected="true">AlL</a></li>
-      </ul>
-    </header>
-  </section>
-  <!-- Scroll region -->
-  <div class="msg-list-scrollouter">
-    <!-- exists so we can force a minimum height -->
-    <div class="msg-list-scrollinner">
-      <!-- The search textbox hides under the lip of the messages.
-           As soon as any typing happens in it, we push the search
-           controls card. -->
-      <form role="search" class="msg-search-tease-bar msg-nonsearch-only">
-        <p>
-          <input class="msg-search-text-tease" type="text"
-               dir="auto" data-l10n-id="message-search-input" />
-        </p>
-      </form>
-      <div class="msg-messages-container">
-      </div>
-      <!-- maintain vertical space for the syncing/sync more div's
-           regardless of their displayed status so we don't scroll them
-           out of the way -->
-      <div class="msg-messages-sync-container">
-        <p class="msg-messages-syncing collapsed">
-          <span data-l10n-id="messages-syncing">Message loadinG</span>
-        </p>
-        <p class="msg-messages-sync-more collapsed">
-          <span data-l10n-id="messages-load-more">LoaD MorE</span>
-        </p>
-      </div>
+    <div data-prop="messagesContainer" class="msg-messages-container">
+    </div>
+    <!-- maintain vertical space for the syncing/sync more div's
+         regardless of their displayed status so we don't scroll them
+         out of the way -->
+    <div class="msg-messages-sync-container">
+      <p data-prop="syncingNode" class="msg-messages-syncing collapsed">
+        <span data-l10n-id="messages-syncing">Message loadinG</span>
+      </p>
+      <p data-prop="syncMoreNode"
+         data-event="click:onGetMoreMessages"
+         class="msg-messages-sync-more collapsed">
+        <span data-l10n-id="messages-load-more">LoaD MorE</span>
+      </p>
     </div>
   </div>
-  <!-- New email notification bar -->
-  <div class="message-list-topbar"></div>
-  <!-- Conveys background send, plus undo-able recent actions -->
-  <div class="msg-activity-infobar hidden">
-  </div>
-  <!-- Toolbar for non-multi-edit state -->
-  <ul class="bb-tablist msg-list-action-toolbar">
-    <li role="presentation" class="msg-nonsearch-only">
-      <button class="icon msg-refresh-btn" data-state="synchronized"></button>
-    </li>
-    <li role="presentation" class="msg-nonsearch-only msg-last-sync">
-      <span class="msg-last-synced-label"
-            data-l10n-id="folder-last-synced-label"></span>
-      <span class="msg-last-synced-value"></span>
-    </li>
-    <li role="presentation">
-      <button class="icon msg-edit-btn"></button>
-    </li>
-  </ul>
+</div>
+<!-- New email notification bar -->
+<div class="message-list-topbar"></div>
+<!-- Conveys background send, plus undo-able recent actions -->
+<div class="msg-activity-infobar hidden">
+</div>
+<!-- Toolbar for non-multi-edit state -->
+<ul data-prop="normalToolbar" class="bb-tablist msg-list-action-toolbar">
+  <li role="presentation" class="msg-nonsearch-only">
+    <button data-prop="refreshBtn" data-event="click:onRefresh"
+            class="icon msg-refresh-btn" data-state="synchronized"></button>
+  </li>
+  <li role="presentation" class="msg-nonsearch-only msg-last-sync">
+    <span data-prop="lastSyncedLabel"
+          class="msg-last-synced-label"
+          data-l10n-id="folder-last-synced-label"></span>
+    <span data-prop="lastSyncedAtNode"
+          class="msg-last-synced-value"></span>
+  </li>
+  <li role="presentation">
+    <button data-prop="editBtn" data-event="click:setEditModeStart"
+            class="icon msg-edit-btn"></button>
+  </li>
+</ul>
 
-  <!-- Toolbar for multi-edit state -->
-  <ul class="bb-tablist msg-listedit-action-toolbar collapsed">
-    <li role="presentation">
-      <button class="icon msg-delete-btn"></button>
-    </li>
-    <li role="presentation">
-      <button class="icon msg-star-btn"></button>
-    </li>
-    <li role="presentation">
-      <button class="icon msg-mark-read-btn"></button>
-    </li>
-    <li role="presentation">
-      <button class="icon msg-move-btn"></button>
-    </li>
-  </ul>
+<!-- Toolbar for multi-edit state -->
+<ul data-prop="editToolbar"
+    class="bb-tablist msg-listedit-action-toolbar collapsed">
+  <li role="presentation">
+    <button data-prop="deleteBtn" data-event="click:onDeleteMessages"
+            class="icon msg-delete-btn"></button>
+  </li>
+  <li role="presentation">
+    <button data-prop="starBtn" data-event="click:onStarMessages"
+            class="icon msg-star-btn"></button>
+  </li>
+  <li role="presentation">
+    <button data-prop="readBtn" data-event="click:onMarkMessagesRead"
+            class="icon msg-mark-read-btn"></button>
+  </li>
+  <li role="presentation">
+    <button data-prop="moveBtn" data-event="click:onMoveMessages"
+            class="icon msg-move-btn"></button>
+  </li>
+</ul>
 
-  <div class="msg-list-empty-container collapsed">
-    <p class="msg-list-empty-message-text" data-l10n-id="messages-folder-empty">No messagE</p>
-  </div>
+<div data-prop="messageEmptyContainer"
+     class="msg-list-empty-container collapsed">
+  <p data-prop="messageEmptyText"
+     class="msg-list-empty-message-text"
+     data-l10n-id="messages-folder-empty">No messagE</p>
 </div>

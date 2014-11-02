@@ -1,4 +1,4 @@
-/*global define */
+'use strict';
 define(function() {
   var queryString = {
     /**
@@ -8,8 +8,9 @@ define(function() {
      * @return {Object}
      */
     toObject: function toObject(value) {
-      if (!value)
+      if (!value) {
         return null;
+      }
 
       var result = {};
 

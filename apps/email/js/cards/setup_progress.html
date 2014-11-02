@@ -1,5 +1,6 @@
-<!-- I am setting up your account, please wait or read errors! -->
-<section class="card-setup-progress card anim-fade anim-overlay skin-organic" role="region">
+<!-- need this section element to keep building blocks happy. Too bad it
+  expects a section element -->
+<section class="skin-organic bbshim" role="region">
   <header class="sup-account-header">
     <h1 class="sup-account-header-label"
         data-l10n-id="setup-account-header3">NeW AccounT</h1>
@@ -9,7 +10,8 @@
       <h1 data-l10n-id="setup-progress-wait-msg">SettinG UP AccounT</h1>
       <p class="sup-progress-container"><progress></progress></p>
     </section>
-    <menu><button class="sup-back-btn full"
+    <menu><button data-event="click:onBack"
+                  class="sup-back-btn full"
                   data-l10n-id="message-multiedit-cancel">CanceL</button></menu>
   </form>
 </section>

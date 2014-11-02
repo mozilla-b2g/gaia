@@ -45,6 +45,15 @@ body {
 
 }
 
+/*
+* Temp shim because building blocks target a section element for some styles,
+* where we now use a custom element instead. Ideally bb would use a class
+* target instead.
+*/
+.card > section.bbshim {
+  height: 100%;
+}
+
 .card.anim-fade {
   transition-property: opacity;
   transition-duration: .3s;
@@ -341,7 +350,7 @@ the list of folders.
   font-size: 1.4rem;
 }
 
-.card-setup-fix-gmail .sup-gmail-account {
+cards-setup-fix-gmail .sup-gmail-account {
   text-align: center;
   font-size: 1.4rem;
 }

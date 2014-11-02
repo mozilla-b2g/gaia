@@ -1,19 +1,11 @@
-/**
- * UI infrastructure code and utility code for the gaia email app.
- **/
-/*jshint browser: true */
-/*global define, console, startupCacheEventsSent */
 'use strict';
-define(function(require, exports) {
+/*global startupCacheEventsSent */
+define(function(require) {
 
-var Cards,
-    Toaster = require('./toaster'),
+var mozL10n = require('l10n!'),
     evt = require('evt'),
-    mozL10n = require('l10n!'),
-    confirmDialogTemplateNode = require('tmpl!./cards/confirm_dialog.html'),
-    ValueSelector = require('value_selector');
-
-var hookupInputAreaResetButtons = require('input_areas');
+    toaster = require('toaster'),
+    hookupInputAreaResetButtons = require('input_areas');
 
 function addClass(domNode, name) {
   if (domNode) {
@@ -27,57 +19,12 @@ function removeClass(domNode, name) {
   }
 }
 
-function batchAddClass(domNode, searchClass, classToAdd) {
-  var nodes = domNode.getElementsByClassName(searchClass);
-  for (var i = 0; i < nodes.length; i++) {
-    nodes[i].classList.add(classToAdd);
-  }
-}
-
-var MATCHED_TEXT_CLASS = 'highlight';
-
-function appendMatchItemTo(matchItem, node) {
-  var text = matchItem.text;
-  var idx = 0;
-  for (var iRun = 0; iRun <= matchItem.matchRuns.length; iRun++) {
-    var run;
-    if (iRun === matchItem.matchRuns.length)
-      run = { start: text.length, length: 0 };
-    else
-      run = matchItem.matchRuns[iRun];
-
-    // generate the un-highlighted span
-    if (run.start > idx) {
-      var tnode = document.createTextNode(text.substring(idx, run.start));
-      node.appendChild(tnode);
-    }
-
-    if (!run.length)
-      continue;
-    var hspan = document.createElement('span');
-    hspan.classList.add(MATCHED_TEXT_CLASS);
-    hspan.textContent = text.substr(run.start, run.length);
-    node.appendChild(hspan);
-    idx = run.start + run.length;
-  }
-}
-
-/**
- * Add an event listener on a container that, when an event is encounted on
- * a descendant, walks up the tree to find the immediate child of the container
- * and tells us what the click was on.
- */
-function bindContainerHandler(containerNode, eventName, func) {
-  containerNode.addEventListener(eventName, function(event) {
-    var node = event.target;
-    // bail if they clicked on the container and not a child...
-    if (node === containerNode)
-      return;
-    while (node && node.parentNode !== containerNode) {
-      node = node.parentNode;
-    }
-    func(node, event);
-  }, false);
+// XXX when a bigger rename can happen, remove the need
+// to translate between custom element names and moz-style
+// underbar naming, and consider the card- as part of the
+// input names.
+function translateCustomElementName(customElementName) {
+  return customElementName.replace(/^cards-/, '').replace(/-/g, '_');
 }
 
 /**
@@ -85,46 +32,11 @@ function bindContainerHandler(containerNode, eventName, func) {
  * transitions.  We are cribbing from deuxdrop's mobile UI's cards.js
  * implementation created jrburke.
  */
-Cards = {
-  /* @dictof[
-   *   @key[name String]
-   *   @value[@dict[
-   *     @key[name String]{
-   *       The name of the card, which should also be the name of the css class
-   *       used for the card when 'card-' is prepended.
-   *     }
-   *     @key[modes @dictof[
-   *       @key[modeName String]
-   *       @value[modeDef @dict[
-   *         @key[tray Boolean]{
-   *           Should this card be displayed as a tray that leaves the edge of
-   *           the adjacent card visible?  (The width of the edge being a
-   *           value consistent across all cards.)
-   *         }
-   *       ]
-   *     ]]
-   *     @key[constructor Function]{
-   *       The constructor to use to create an instance of the card.
-   *     }
-   *   ]]
-   * ]
-   */
+var cards = {
   _cardDefs: {},
 
-  /* @listof[@typedef[CardInstance @dict[
-   *   @key[domNode]{
-   *   }
-   *   @key[cardDef]
-   *   @key[modeDef]
-   *   @key[left Number]{
-   *     Left offset of the card in #cards.
-   *   }
-   *   @key[cardImpl]{
-   *     The result of calling the card's constructor.
-   *   }
-   * ]]]{
-   *   Existing cards, left-to-right, new cards getting pushed onto the right.
-   * }
+  /*
+   * Existing cards, left-to-right, new cards getting pushed onto the right.
    */
   _cardStack: [],
   activeCardIndex: -1,
@@ -149,11 +61,13 @@ Cards = {
    * stuff at this layer is arbitrary.
    */
   _rootNode: null,
+
   /**
    * The "#cardContainer" node which serves as the scroll container for the
    * contained _cardsNode ("#cards").  It is as wide as the viewport.
    */
   _containerNode: null,
+
   /**
    * The "#cards" node that holds the cards; it is as wide as all of the cards
    * it contains and has its left offset changed in order to change what card
@@ -183,17 +97,12 @@ Cards = {
   _startupEventsEmitted: false,
 
   /**
-   * Is a tray card visible, suggesting that we need to intercept clicks in the
-   * tray region so that we can transition back to the thing visible because of
-   * the tray and avoid the click triggering that card's logic.
-   */
-  _trayActive: false,
-  /**
    * Is a popup visible, suggesting that any click that is not on the popup
    * should be taken as a desire to close the popup?  This is not a boolean,
    * but rather info on the active popup.
    */
   _popupActive: null,
+
   /**
    * Are we eating all click events we see until we transition to the next
    * card (possibly due to a call to pushCard that has not yet occurred?).
@@ -211,7 +120,7 @@ Cards = {
 
     this._statusColorMeta = document.querySelector('meta[name="theme-color"]');
 
-    Toaster.init(this._containerNode);
+    toaster.init(this._containerNode);
 
     this._containerNode.addEventListener('click',
                                          this._onMaybeIntercept.bind(this),
@@ -228,8 +137,8 @@ Cards = {
     // if it is also the current card.
     document.addEventListener('visibilitychange', function(evt) {
       var card = this._cardStack[this.activeCardIndex];
-      if (card && card.cardImpl.onCurrentCardDocumentVisibilityChange) {
-        card.cardImpl.onCurrentCardDocumentVisibilityChange(document.hidden);
+      if (card && card.onCurrentCardDocumentVisibilityChange) {
+        card.onCurrentCardDocumentVisibilityChange(document.hidden);
       }
     }.bind(this));
   },
@@ -254,80 +163,10 @@ Cards = {
     // Find the card containing the event target.
     var cardNode = event.target;
     for (cardNode = event.target; cardNode; cardNode = cardNode.parentElement) {
-      if (cardNode.classList.contains('card'))
+      if (cardNode.classList.contains('card')) {
         break;
-    }
-
-    // If tray is active and the click is in the card that is after
-    // current card (in the gutter), then just transition back to
-    // that card.
-    if (this._trayActive && cardNode && cardNode.classList.contains('after')) {
-      event.stopPropagation();
-      event.preventDefault();
-
-      // Look for a card with a data-tray-target attribute
-      var targetIndex = -1;
-      this._cardStack.some(function(card, i) {
-        if (card.domNode.hasAttribute('data-tray-target')) {
-          targetIndex = i;
-          return true;
-        }
-      });
-
-      // Choose a default of one card ahead
-      if (targetIndex === -1)
-        targetIndex = this.activeCardIndex + 1;
-
-      var indexDiff = targetIndex - (this.activeCardIndex + 1);
-      if (indexDiff > 0) {
-        this._afterTransitionAction = (function() {
-          this.removeCardAndSuccessors(this._cardStack[0].domNode,
-                                       'none', indexDiff);
-          this.moveToCard(targetIndex, 'animate', 'forward');
-        }.bind(this));
       }
-
-      this.moveToCard(this.activeCardIndex + 1, 'animate', 'forward');
     }
-  },
-
-  /**
-   * Called whenever the default card for the app should be inserted.
-   * Override this method in the app. The app should call Card.pushCard
-   * with the card of its choosing, and call the onPushed function passed
-   * in to pushDefaultCard once the default card has been pushed. The
-   * default card should be pushed with showMethod of 'none' so that
-   * whatever the onPushed function does will work well with card nav.
-   * @param  {Function} onPushed pass as the onPushed arg to pushCard.
-   */
-  pushDefaultCard: function(onPushed) {},
-
-  defineCard: function(cardDef) {
-    if (!cardDef.name)
-      throw new Error('The card type needs a name');
-    if (this._cardDefs.hasOwnProperty(cardDef.name))
-      throw new Error('Duplicate card name: ' + cardDef.name);
-    this._cardDefs[cardDef.name] = cardDef;
-
-    // normalize the modes
-    for (var modeName in cardDef.modes) {
-      var mode = cardDef.modes[modeName];
-      if (!mode.hasOwnProperty('tray'))
-        mode.tray = false;
-      mode.name = modeName;
-    }
-  },
-
-  defineCardWithDefaultMode: function(name, defaultMode, constructor,
-                                      templateNode) {
-    var cardDef = {
-      name: name,
-      modes: {},
-      constructor: constructor,
-      templateNode: templateNode
-    };
-    cardDef.modes['default'] = defaultMode;
-    this.defineCard(cardDef);
   },
 
   /**
@@ -335,8 +174,6 @@ Cards = {
    */
   /* @args[
    *   @param[type]
-   *   @param[mode String]{
-   *   }
    *   @param[showMethod @oneof[
    *     @case['animate']{
    *       Perform an animated scrolling transition.
@@ -365,20 +202,22 @@ Cards = {
    *   }
    * ]
    */
-  pushCard: function(type, mode, showMethod, args, placement) {
+  pushCard: function(type, showMethod, args, placement) {
     var cardDef = this._cardDefs[type];
 
     args = args || {};
 
     if (!cardDef) {
       var cbArgs = Array.slice(arguments);
-      this._pendingPush = [type, mode];
+      this._pendingPush = [type];
 
       // Only eat clicks if the card will be visibly displayed.
-      if (showMethod !== 'none')
+      if (showMethod !== 'none') {
         this.eatEventsUntilNextCard();
+      }
 
-      require(['cards/' + type], function() {
+      require(['element!cards/' + type], function(Ctor) {
+        this._cardDefs[type] = Ctor;
         this.pushCard.apply(this, cbArgs);
       }.bind(this));
       return;
@@ -386,25 +225,19 @@ Cards = {
 
     this._pendingPush = null;
 
-    var modeDef = cardDef.modes[mode];
-    if (!modeDef)
-      throw new Error('No such card mode: ' + mode);
-
     console.log('pushCard for type: ' + type);
 
-    var domNode = args.cachedNode ?
-                  args.cachedNode : cardDef.templateNode.cloneNode(true);
+    var domNode = args.cachedNode || new cardDef();
 
+    if (domNode.extraClasses) {
+      domNode.classList.add.apply(domNode.classList, domNode.extraClasses);
+    }
+    if (args && domNode.onArgs) {
+      domNode.onArgs(args);
+    }
+    domNode.classList.add('card');
     domNode.setAttribute('data-type', type);
-    domNode.setAttribute('data-mode', mode);
 
-    var cardImpl = new cardDef.constructor(domNode, mode, args);
-    var cardInst = {
-      domNode: domNode,
-      cardDef: cardDef,
-      modeDef: modeDef,
-      cardImpl: cardImpl
-    };
     var cardIndex, insertBuddy;
     if (!placement) {
       cardIndex = this._cardStack.length;
@@ -418,13 +251,14 @@ Cards = {
     }
     else if (placement === 'right') {
       cardIndex = this.activeCardIndex + 1;
-      if (cardIndex >= this._cardStack.length)
+      if (cardIndex >= this._cardStack.length) {
         insertBuddy = null;
-      else
+      } else {
         insertBuddy = this._cardsNode.children[cardIndex];
+      }
       domNode.classList.add('after');
     }
-    this._cardStack.splice(cardIndex, 0, cardInst);
+    this._cardStack.splice(cardIndex, 0, domNode);
 
     if (!args.cachedNode) {
       this._cardsNode.insertBefore(domNode, insertBuddy);
@@ -438,7 +272,7 @@ Cards = {
     // Only do auto font size watching for cards that do not have more
     // complicated needs, like message_list, which modifies children contents
     // that are not caught by the font_size_util.
-    if (!cardImpl.callHeaderFontSize) {
+    if (!domNode.callHeaderFontSize) {
       // We're appending new elements to DOM so to make sure headers are
       // properly resized and centered, we emit a lazyload event.
       // This will be removed when the gaia-header web component lands.
@@ -447,20 +281,23 @@ Cards = {
       }));
     }
 
-    if ('postInsert' in cardImpl)
-      cardImpl.postInsert();
+    if ('postInsert' in domNode) {
+      domNode.postInsert();
+    }
 
     if (showMethod !== 'none') {
       // make sure the reflow sees the new node so that the animation
       // later is smooth.
-      if (!args.cachedNode)
+      if (!args.cachedNode) {
         domNode.clientWidth;
+      }
 
       this._showCard(cardIndex, showMethod, 'forward');
     }
 
-    if (args.onPushed)
-      args.onPushed(cardImpl);
+    if (args.onPushed) {
+      args.onPushed(domNode);
+    }
   },
 
   /**
@@ -469,8 +306,8 @@ Cards = {
    * are the same as pushCard.
    * @return {Boolean} true if card was pushed.
    */
-  pushOrTellCard: function(type, mode, showMethod, args, placement) {
-    var query = [type, mode];
+  pushOrTellCard: function(type, showMethod, args, placement) {
+    var query = type;
     if (this.hasCard(query)) {
       this.tellCard(query, args);
       return false;
@@ -510,7 +347,7 @@ Cards = {
     // not know what element to use for a baseline. In those cases, Cards
     // decides the target element.
     if (!element) {
-      element = this._cardStack[this.activeCardIndex].domNode;
+      element = this._cardStack[this.activeCardIndex];
     }
 
     // Try first for specific color override. Do a node query, since for custom
@@ -544,55 +381,52 @@ Cards = {
     }
   },
 
-  _findCardUsingTypeAndMode: function(type, mode) {
+  _findCardUsingType: function(type) {
     for (var i = 0; i < this._cardStack.length; i++) {
-      var cardInst = this._cardStack[i];
-      if (cardInst.cardDef.name === type &&
-          cardInst.modeDef.name === mode) {
+      var domNode = this._cardStack[i];
+      if (translateCustomElementName(this.cardName(domNode)) === type) {
         return i;
       }
     }
   },
 
-  _findCardUsingImpl: function(impl) {
-    for (var i = 0; i < this._cardStack.length; i++) {
-      var cardInst = this._cardStack[i];
-      if (cardInst.cardImpl === impl)
-        return i;
-    }
-  },
-
   _findCard: function(query, skipFail) {
     var result;
-    if (Array.isArray(query))
-      result = this._findCardUsingTypeAndMode(query[0], query[1], skipFail);
-    else if (typeof(query) === 'number') // index number
+    if (typeof query === 'string') {
+      result = this._findCardUsingType(query, skipFail);
+    } else if (typeof(query) === 'number') { // index number
       result = query;
-    else
-      result = this._findCardUsingImpl(query);
+    } else {
+      // query is a DOM node in this case
+      result = this._cardStack.indexOf(query);
+    }
 
-    if (result > -1)
+    if (result > -1) {
       return result;
-    else if (!skipFail)
+    } else if (!skipFail) {
       throw new Error('Unable to find card with query:', query);
-    else
+    } else {
       // Returning undefined explicitly so that index comparisons, like
       // the one in hasCard, are correct.
       return undefined;
+    }
+  },
+
+  cardName: function(node) {
+    return node.nodeName.toLowerCase();
   },
 
   hasCard: function(query) {
-    if (this._pendingPush && Array.isArray(query) && query.length === 2 &&
-        this._pendingPush[0] === query[0] &&
-        this._pendingPush[1] === query[1])
+    if (this._pendingPush && this._pendingPush === query) {
       return true;
+    }
 
     return this._findCard(query, true) > -1;
   },
 
-  isVisible: function(cardImpl) {
-    return !!(cardImpl.domNode &&
-              cardImpl.domNode.classList.contains('center'));
+  isVisible: function(domNode) {
+    return !!(domNode &&
+              domNode.classList.contains('center'));
   },
 
   findCardObject: function(query) {
@@ -609,7 +443,7 @@ Cards = {
     if (this._pendingPush) {
       result = this._pendingPush;
     } else if (card) {
-      result = [card.cardDef.name, card.cardImpl.mode];
+      result = translateCustomElementName(this.cardName(card));
     }
     return result;
   },
@@ -619,7 +453,7 @@ Cards = {
   folderSelector: function(callback, filter) {
     var self = this;
 
-    require(['model'], function(model) {
+    require(['model', 'value_selector'], function(model, ValueSelector) {
       // XXX: Unified folders will require us to make sure we get the folder
       //      list for the account the message originates from.
       if (!self.folderPrompt) {
@@ -629,9 +463,7 @@ Cards = {
 
       model.latestOnce('foldersSlice', function(foldersSlice) {
         var folders = foldersSlice.items;
-        for (var i = 0; i < folders.length; i++) {
-          var folder = folders[i];
-
+        folders.forEach(function(folder) {
           var isMatch = !filter || filter(folder);
           if (folder.neededForHierarchy || isMatch) {
             self.folderPrompt.addToList(folder.name, folder.depth,
@@ -643,7 +475,7 @@ Cards = {
                 };
               }(folder));
           }
-        }
+        });
         self.folderPrompt.show();
       });
     });
@@ -655,53 +487,18 @@ Cards = {
 
   tellCard: function(query, what) {
     var cardIndex = this._findCard(query),
-        cardInst = this._cardStack[cardIndex];
-    if (!('told' in cardInst.cardImpl))
+        domNode = this._cardStack[cardIndex];
+    if (!('told' in domNode)) {
       console.warn('Tried to tell a card that\'s not listening!', query, what);
-    else
-      cardInst.cardImpl.told(what);
-  },
-
-  /**
-   * Create a mask that shows only the given node by creating 2 or 4 div's,
-   * returning the container that holds those divs.  It's not clear if a single
-   * div with some type of fancy clipping would be better.
-   */
-  _createMaskForNode: function(domNode, bounds) {
-    var anchorIn = this._rootNode, cleanupDivs = [];
-    var uiWidth = this._containerNode.offsetWidth,
-        uiHeight = this._containerNode.offsetHeight;
-
-    // inclusive pixel coverage
-    function addMask(left, top, right, bottom) {
-      var node = document.createElement('div');
-      node.classList.add('popup-mask');
-      node.style.left = left + 'px';
-      node.style.top = top + 'px';
-      node.style.width = (right - left + 1) + 'px';
-      node.style.height = (bottom - top + 1) + 'px';
-      cleanupDivs.push(node);
-      anchorIn.appendChild(node);
+    } else {
+      domNode.told(what);
     }
-    if (bounds.left > 1)
-      addMask(0, bounds.top, bounds.left - 1, bounds.bottom);
-    if (bounds.top > 0)
-      addMask(0, 0, uiWidth - 1, bounds.top - 1);
-    if (bounds.right < uiWidth - 1)
-      addMask(bounds.right + 1, bounds.top, uiWidth - 1, bounds.bottom);
-    if (bounds.bottom < uiHeight - 1)
-      addMask(0, bounds.bottom + 1, uiWidth - 1, uiHeight - 1);
-    return function() {
-      for (var i = 0; i < cleanupDivs.length; i++) {
-        anchorIn.removeChild(cleanupDivs[i]);
-      }
-    };
   },
 
   /**
    * Remove the card identified by its DOM node and all the cards to its right.
    * Pass null to remove all of the cards! If cardDomNode passed, but there
-   * are no cards before it, Cards.getDefaultCard is called to set up a before
+   * are no cards before it, cards.getDefaultCard is called to set up a before
    * card.
    */
   /* @args[
@@ -738,19 +535,20 @@ Cards = {
    */
   removeCardAndSuccessors: function(cardDomNode, showMethod, numCards,
                                     nextCardSpec, skipDefault) {
-    if (!this._cardStack.length)
+    if (!this._cardStack.length) {
       return;
+    }
 
     if (cardDomNode && this._cardStack.length === 1 && !skipDefault) {
       // No card to go to when done, so ask for a default
       // card and continue work once it exists.
-      return Cards.pushDefaultCard(function() {
+      return cards.pushDefaultCard(function() {
         this.removeCardAndSuccessors(cardDomNode, showMethod, numCards,
                                     nextCardSpec);
       }.bind(this));
     }
 
-    var firstIndex, iCard, cardInst;
+    var firstIndex, iCard, domNode;
     if (cardDomNode === undefined) {
       throw new Error('undefined is not a valid card spec!');
     }
@@ -762,17 +560,19 @@ Cards = {
     }
     else {
       for (iCard = this._cardStack.length - 1; iCard >= 0; iCard--) {
-        cardInst = this._cardStack[iCard];
-        if (cardInst.domNode === cardDomNode) {
+        domNode = this._cardStack[iCard];
+        if (domNode === cardDomNode) {
           firstIndex = iCard;
           break;
         }
       }
-      if (firstIndex === undefined)
+      if (firstIndex === undefined) {
         throw new Error('No card represented by that DOM node');
+      }
     }
-    if (!numCards)
+    if (!numCards) {
       numCards = this._cardStack.length - firstIndex;
+    }
 
     if (showMethod !== 'none') {
       var nextCardIndex = -1;
@@ -796,12 +596,12 @@ Cards = {
       }
     }
 
-    var deadCardInsts = this._cardStack.splice(
+    var deadDomNodes = this._cardStack.splice(
                           firstIndex, numCards);
-    for (iCard = 0; iCard < deadCardInsts.length; iCard++) {
-      cardInst = deadCardInsts[iCard];
+    for (iCard = 0; iCard < deadDomNodes.length; iCard++) {
+      domNode = deadDomNodes[iCard];
       try {
-        cardInst.cardImpl.die();
+        domNode.die();
       }
       catch (ex) {
         console.warn('Problem cleaning up card:', ex, '\n', ex.stack);
@@ -809,10 +609,10 @@ Cards = {
       switch (showMethod) {
         case 'animate':
         case 'immediate': // XXX handle properly
-          this._animatingDeadDomNodes.push(cardInst.domNode);
+          this._animatingDeadDomNodes.push(domNode);
           break;
         case 'none':
-          cardInst.domNode.parentNode.removeChild(cardInst.domNode);
+          domNode.parentNode.removeChild(domNode);
           break;
       }
     }
@@ -850,9 +650,9 @@ Cards = {
       this.activeCardIndex = cardIndex === 0 ? cardIndex : cardIndex - 1;
     }
 
-    var cardInst = (cardIndex !== null) ? this._cardStack[cardIndex] : null;
-    var beginNode = this._cardStack[this.activeCardIndex].domNode;
-    var endNode = this._cardStack[cardIndex].domNode;
+    var domNode = (cardIndex !== null) ? this._cardStack[cardIndex] : null;
+    var beginNode = this._cardStack[this.activeCardIndex];
+    var endNode = this._cardStack[cardIndex];
     var isForward = navDirection === 'forward';
 
     if (this._cardStack.length === 1) {
@@ -954,15 +754,13 @@ Cards = {
       removeClass(beginNode, 'no-anim');
       removeClass(endNode, 'no-anim');
 
-      this._onCardVisible(cardInst);
+      this._onCardVisible(domNode);
     }
 
     // Hide toaster while active card index changed:
-    Toaster.hide();
+    toaster.hide();
 
     this.activeCardIndex = cardIndex;
-    if (cardInst)
-      this._trayActive = cardInst.modeDef.tray;
   },
 
   _onTransitionEnd: function(event) {
@@ -974,13 +772,15 @@ Cards = {
     var activeCard = this._cardStack[this.activeCardIndex];
     // If no current card, this could be initial setup from cache, no valid
     // cards yet, so bail.
-    if (!activeCard)
+    if (!activeCard) {
       return;
+    }
 
     // Multiple cards can animate, so there can be multiple transitionend
     // events. Only do the end work when all have finished animating.
-    if (this._transitionCount > 0)
+    if (this._transitionCount > 0) {
       this._transitionCount -= 1;
+    }
 
     if (this._transitionCount === 0) {
       if (this._eatingEventsUntilNextCard) {
@@ -990,8 +790,9 @@ Cards = {
         // Use a setTimeout to give the animation some space to settle.
         setTimeout(function() {
           this._animatingDeadDomNodes.forEach(function(domNode) {
-            if (domNode.parentNode)
+            if (domNode.parentNode) {
               domNode.parentNode.removeChild(domNode);
+            }
           });
           this._animatingDeadDomNodes = [];
         }.bind(this), 100);
@@ -999,7 +800,7 @@ Cards = {
 
       // If an vertical overlay transition was was disabled, if
       // current node index is an overlay, enable it again.
-      var endNode = activeCard.domNode;
+      var endNode = activeCard;
 
       if (endNode.classList.contains('disabled-anim-vertical')) {
         removeClass(endNode, 'disabled-anim-vertical');
@@ -1023,7 +824,7 @@ Cards = {
       // nextCards can result in smoother transitions to new cards on first
       // navigation to that new card type, but loading the extra module may
       // also compete with current card and data model performance.
-      var nextCards = activeCard.cardImpl.nextCards;
+      var nextCards = activeCard.nextCards;
       if (nextCards) {
         console.log('Preloading cards: ' + nextCards);
         require(nextCards.map(function(id) {
@@ -1035,13 +836,13 @@ Cards = {
 
   /**
    * Handles final notification of card visibility in the stack.
-   * @param  {Card} cardInst the card instance.
+   * @param  {Card} domNode the card instance.
    */
-  _onCardVisible: function(cardInst) {
-    if (cardInst.cardImpl.onCardVisible) {
-      cardInst.cardImpl.onCardVisible();
+  _onCardVisible: function(domNode) {
+    if (domNode.onCardVisible) {
+      domNode.onCardVisible();
     }
-    this._emitStartupEvents(cardInst.cardImpl.skipEmitContentEvents);
+    this._emitStartupEvents(domNode.skipEmitContentEvents);
   },
 
   /**
@@ -1104,307 +905,14 @@ Cards = {
    * and the presence of any indicates a bug.
    */
   assertNoCards: function() {
-    if (this._cardStack.length)
+    if (this._cardStack.length) {
       throw new Error('There are ' + this._cardStack.length + ' cards but' +
                       ' there should be ZERO');
+    }
   }
 };
 
-////////////////////////////////////////////////////////////////////////////////
-// ConfirmDialog: defined inline with mail_common because of a cycle
-// with Cards. When Cards is split out of mail_common, this card
-// can be moved out too.
-function ConfirmDialog(domNode, mode, args) {
-  this.domNode = domNode;
+return cards;
 
-  var dialogBodyNode = args.dialogBodyNode,
-      confirm = args.confirm,
-      cancel = args.cancel,
-      callback = args.callback;
-
-  if (dialogBodyNode) {
-    this.domNode.appendChild(dialogBodyNode);
-  } else {
-    // If no dialogBodyNode passed in, use the default form display, and
-    // configure the confirm/cancel hand, for the simple way of handling
-    // confirm dialogs.
-    dialogBodyNode = this.domNode.querySelector('.confirm-dialog-form');
-
-    dialogBodyNode.querySelector('.confirm-dialog-message')
-                  .textContent = args.message;
-
-    dialogBodyNode.classList.remove('collapsed');
-
-    confirm = {
-      handler: function() {
-        callback(true);
-      }
-    };
-    cancel = {
-      handler: function() {
-        callback(false);
-      }
-    };
-  }
-
-  // Wire up the event handling
-  dialogBodyNode.addEventListener('submit', function(evt) {
-    evt.preventDefault();
-    evt.stopPropagation();
-
-    this.hide();
-
-    var target = evt.explicitOriginalTarget,
-        targetId = target.id,
-        isOk = target.classList.contains('confirm-dialog-ok'),
-        isCancel = target.classList.contains('confirm-dialog-cancel');
-
-    if ((isOk || targetId === confirm.id) && confirm.handler) {
-      confirm.handler();
-    } else if ((isCancel || targetId === cancel.id) && cancel.handler) {
-      cancel.handler();
-    }
-  }.bind(this));
-}
-
-ConfirmDialog.prototype = {
-  hide: function() {
-    Cards.removeCardAndSuccessors(this.domNode, 'immediate', 1, null, true);
-  },
-  die: function() {
-  }
-};
-
-/**
- * A class method used by others to create confirm dialogs.
- * This method has two call types, to accommodate older
- * code that used ConfirmDialog to pass a full form node:
- *
- *  ConfirmDialog.show(dialogFormNode, confirmObject, cancelObject);
- *
- * and simpler code that just wants to pass a string message
- * and a callback that returns true (if OK is pressed) or
- * false (if cancel is pressed):
- *
- *  ConfirmDialog.show(messageString, function(confirmed) {});
- *
- * This newer style mimics a plain confirm dialog, with an
- * OK and Cancel that are not customizable.
- */
-ConfirmDialog.show = function(message, callback, cancel) {
-  var dialogBodyNode;
-
-  // Old style confirms that have their own form.
-  if (typeof message !== 'string') {
-    dialogBodyNode = message;
-    message = null;
-  }
-
-  Cards.pushCard('confirm_dialog', 'default', 'immediate', {
-    dialogBodyNode: dialogBodyNode,
-    message: message,
-    confirm: callback,
-    callback: callback,
-    cancel: cancel
-  }, 'right');
-};
-
-Cards.defineCardWithDefaultMode(
-    'confirm_dialog',
-    { tray: false },
-    ConfirmDialog,
-    confirmDialogTemplateNode
-);
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Attachment Formatting Helpers
-
-/**
- * Display a human-readable file size.  Currently we always display things in
- * kilobytes because we are targeting a mobile device and we want bigger sizes
- * (like megabytes) to be obviously large numbers.
- */
-function prettyFileSize(sizeInBytes) {
-  var kilos = Math.ceil(sizeInBytes / 1024);
-  return mozL10n.get('attachment-size-kib', { kilobytes: kilos });
-}
-
-/**
- * Display a human-readable relative timestamp.
- */
-function prettyDate(time, useCompactFormat) {
-  var f = new mozL10n.DateTimeFormat();
-  return f.fromNow(time, useCompactFormat);
-}
-
-(function() {
-  var formatter = new mozL10n.DateTimeFormat();
-  var updatePrettyDate = function updatePrettyDate() {
-    var labels = document.querySelectorAll('[data-time]');
-    var i = labels.length;
-    while (i--) {
-      labels[i].textContent = formatter.fromNow(
-        labels[i].dataset.time,
-        // the presence of the attribute is our indicator; not its value
-        'compactFormat' in labels[i].dataset);
-    }
-  };
-  var timer = setInterval(updatePrettyDate, 60 * 1000);
-
-  function updatePrettyDateOnEvent() {
-    clearTimeout(timer);
-    updatePrettyDate();
-    timer = setInterval(updatePrettyDate, 60 * 1000);
-  }
-  // When user changes the language, update timestamps.
-  mozL10n.ready(updatePrettyDateOnEvent);
-
-  // On visibility change to not hidden, update timestamps
-  document.addEventListener('visibilitychange', function() {
-    if (document && !document.hidden) {
-      updatePrettyDateOnEvent();
-    }
-  });
-
-})();
-
-////////////////////////////////////////////////////////////////////////////////
-
-/**
- * Class to handle form input navigation.
- *
- * If 'Enter' is hit, next input element will be focused,
- * and if the input element is the last one, trigger 'onLast' callback.
- *
- * options:
- *   {
- *     formElem: element,             // The form element
- *     checkFormValidity: function    // Function to check form validity
- *     onLast: function               // Callback when 'Enter' in the last input
- *   }
- */
-function FormNavigation(options) {
-  function extend(destination, source) {
-    for (var property in source)
-      destination[property] = source[property];
-    return destination;
-  }
-
-  if (!options.formElem) {
-    throw new Error('The form element should be defined.');
-  }
-
-  var self = this;
-  this.options = extend({
-    formElem: null,
-    checkFormValidity: function checkFormValidity() {
-      return self.options.formElem.checkValidity();
-    },
-    onLast: function() {}
-  }, options);
-
-  this.options.formElem.addEventListener('keypress',
-    this.onKeyPress.bind(this));
-  this.options.formElem.addEventListener('click',
-    this.onClick.bind(this));
-}
-
-FormNavigation.prototype = {
-  onKeyPress: function formNav_onKeyPress(event) {
-    if (event.keyCode === 13) {
-      // If the user hit enter, focus the next form element, or, if the current
-      // element is the last one and the form is valid, submit the form.
-      var nextInput = this.focusNextInput(event);
-      if (!nextInput && this.options.checkFormValidity()) {
-        this.options.onLast(event);
-      }
-    }
-  },
-  onClick: function formNav_onClick(event) {
-    if (event.target.type === 'reset') {
-      var formValidity = this.options.checkFormValidity();
-      var buttonElems = this.options.formElem.getElementsByTagName('button');
-      for (var i = 0; i < buttonElems.length; i++) {
-        var button = buttonElems[i];
-        if (button.type !== 'reset') {
-            button.disabled = !formValidity;
-        }
-      }
-    }
-  },
-  focusNextInput: function formNav_focusNextInput(event) {
-    var currentInput = event.target;
-    var inputElems = this.options.formElem.getElementsByTagName('input');
-    var currentInputFound = false;
-
-    for (var i = 0; i < inputElems.length; i++) {
-      var input = inputElems[i];
-      if (currentInput === input) {
-        currentInputFound = true;
-        continue;
-      } else if (!currentInputFound) {
-        continue;
-      }
-
-      if (input.type === 'hidden' || input.type === 'button') {
-        continue;
-      }
-
-      input.focus();
-      if (document.activeElement !== input) {
-        // We couldn't focus the element we wanted.  Try with the next one.
-        continue;
-      }
-      return input;
-    }
-
-    // If we couldn't find anything to focus, just blur the initial element.
-    currentInput.blur();
-    return null;
-  }
-};
-
-/**
- * Format the message subject appropriately.  This means ensuring that if the
- * subject is empty, we use a placeholder string instead.
- *
- * @param {DOMElement} subjectNode the DOM node for the message's subject.
- * @param {Object} message the message object.
- */
-function displaySubject(subjectNode, message) {
-  var subject = message.subject && message.subject.trim();
-  if (subject) {
-    subjectNode.textContent = subject;
-    subjectNode.classList.remove('msg-no-subject');
-  }
-  else {
-    mozL10n.setAttributes(subjectNode, 'message-no-subject');
-    subjectNode.classList.add('msg-no-subject');
-  }
-}
-
-/**
- * Given a mime type, generates a CSS class name that uses just the first part
- * of the mime type. So, audio/ogg becomes mime-audio.
- * @param  {String} mimeType
- * @return {String} a class name usable in CSS.
- */
-function mimeToClass(mimeType) {
-  mimeType = mimeType || '';
-  return 'mime-' + (mimeType.split('/')[0] || '');
-}
-
-exports.Cards = Cards;
-exports.ConfirmDialog = ConfirmDialog;
-exports.FormNavigation = FormNavigation;
-exports.prettyDate = prettyDate;
-exports.prettyFileSize = prettyFileSize;
-exports.addClass = addClass;
-exports.removeClass = removeClass;
-exports.batchAddClass = batchAddClass;
-exports.bindContainerHandler = bindContainerHandler;
-exports.appendMatchItemTo = appendMatchItemTo;
-exports.displaySubject = displaySubject;
-exports.mimeToClass = mimeToClass;
 });
+

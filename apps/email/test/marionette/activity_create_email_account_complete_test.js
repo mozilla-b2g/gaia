@@ -35,7 +35,7 @@ marionette('activity create email account', function() {
     client.waitFor(function() {
       return client.executeScript(function() {
         var req = window.wrappedJSObject.require;
-        return req.defined('mail_common');
+        return req.defined('cards');
       });
     });
 
