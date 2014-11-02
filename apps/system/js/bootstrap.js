@@ -15,7 +15,7 @@
          ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
          CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
-         BatteryOverlay, BaseModule, AppWindowManager */
+         BatteryOverlay, BaseModule, AppWindowManager, BluetoothTransfer */
 'use strict';
 
 
@@ -135,17 +135,18 @@ window.addEventListener('load', function startup() {
   window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
   window.appWindowFactory.start();
+  window.attentionWindowManager = new window.AttentionWindowManager();
+  window.attentionWindowManager.start();
   window.batteryOverlay = new BatteryOverlay();
   window.batteryOverlay.start();
+  window.bluetoothTransfer = new BluetoothTransfer();
+  window.bluetoothTransfer.start();
   window.cellBroadcastSystem = new CellBroadcastSystem();
   window.cellBroadcastSystem.start();
   window.cpuManager = new CpuManager();
   window.cpuManager.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
-  /** @global */
-  window.attentionWindowManager = new window.AttentionWindowManager();
-  window.attentionWindowManager.start();
   window.dialerAgent = new DialerAgent();
   window.dialerAgent.start();
   window.edgeSwipeDetector = new EdgeSwipeDetector();
