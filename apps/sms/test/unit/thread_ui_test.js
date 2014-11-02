@@ -1,4 +1,4 @@
-/*global mocha, MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
+/*global MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
          Contacts, Compose, MockErrorDialog,
          Template, MockSMIL, Utils, MessageManager, LinkActionHandler,
          LinkHelper, Attachment, MockContact, MockOptionMenu,
@@ -11,12 +11,11 @@
          DocumentFragment,
          Errors,
          MockCompose,
-         AssetsHelper
+         AssetsHelper,
+         SMIL
 */
 
 'use strict';
-
-mocha.setup({ globals: ['alert'] });
 
 require('/js/event_dispatcher.js');
 require('/js/subject_composer.js');
@@ -55,6 +54,7 @@ require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_waiting_screen.js');
 require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_thread_list_ui.js');
+require('/test/unit/mock_selection_handler.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -94,7 +94,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'WaitingScreen',
   'Navigation',
   'Notification',
-  'ThreadListUI'
+  'ThreadListUI',
+  'SelectionHandler'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -2364,14 +2365,14 @@ suite('thread_ui.js >', function() {
         ids = [ids];
       }
 
-      var message, checkbox;
-      for (var i = 0; i < ids.length; i++) {
-        message = container.querySelector('#message-' + ids[i]);
-        checkbox = message.querySelector('input[type=checkbox]');
-        checkbox.checked = true;
-      }
+      var selectedIds = ids.map(id => '' + id);
+
+      ThreadUI.selectionHandler = null;
+      ThreadUI.startEdit();
+      ThreadUI.selectionHandler.selected = new Set(selectedIds);
       ThreadUI.delete();
       MockDialog.triggers.confirm();
+      ThreadUI.cancelEdit();
     };
 
     setup(function() {
@@ -2578,7 +2579,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -2633,7 +2634,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -2829,7 +2830,7 @@ suite('thread_ui.js >', function() {
       test('message is correct', function() {
         assert.equal(
           notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly'
         );
         assert.equal(
@@ -3722,12 +3723,18 @@ suite('thread_ui.js >', function() {
     });
 
     suite('after rendering a MMS', function() {
+      var inputArray = [{
+        name: 'imageTest.jpg',
+        blob: testImageBlob
+      }];
+
       setup(function() {
         this.sinon.spy(Attachment.prototype, 'render');
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
         this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
+        this.sinon.stub(SMIL, 'parse');
 
         // fake content so that there is something to scroll
         container.innerHTML = ThreadUI.tmpl.message.interpolate({
@@ -3735,11 +3742,8 @@ suite('thread_ui.js >', function() {
           bodyHTML: 'test #1'
         });
 
-        var inputArray = [{
-          name: 'imageTest.jpg',
-          blob: testImageBlob
-        }];
-        ThreadUI.createMmsContent(inputArray);
+        var message = MockMessages.mms();
+        ThreadUI.buildMessageDOM(message);
       });
 
       teardown(function() {
@@ -3748,20 +3752,20 @@ suite('thread_ui.js >', function() {
 
       test('should scroll when the view is scrolled to the bottom', function() {
         ThreadUI.isScrolledManually = false;
-        Attachment.prototype.render.yield();
+        SMIL.parse.yield(inputArray);
         sinon.assert.called(HTMLElement.prototype.scrollIntoView);
       });
 
       test('should not scroll when the user scrolled up the view', function() {
         ThreadUI.isScrolledManually = true;
-        Attachment.prototype.render.yield();
+        SMIL.parse.yield(inputArray);
         sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
       });
 
       test('should not scroll if not in the right panel', function() {
         Navigation.isCurrentPanel.withArgs('thread').returns(false);
         ThreadUI.isScrolledManually = false;
-        Attachment.prototype.render.yield();
+        SMIL.parse.yield(inputArray);
         sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
       });
     });

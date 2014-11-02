@@ -254,11 +254,11 @@ suite('Views.ViewEvent', function() {
         );
 
         assert.equal(
-          alarmChildren[0].textContent,
+          alarmChildren[0].textContent.trim(),
           navigator.mozL10n.get('alarm-at-event-standard')
         );
         assert.equal(
-          alarmChildren[1].textContent,
+          alarmChildren[1].textContent.trim(),
           navigator.mozL10n.get('minutes-before', {value: 1})
         );
 

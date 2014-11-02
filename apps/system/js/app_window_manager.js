@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenWindowManager, KeyboardManager,
-          layoutManager, System, NfcHandler, rocketbar */
+          layoutManager, System, NfcHandler, rocketbar, ShrinkingUI */
 'use strict';
 
 (function(exports) {
@@ -273,6 +273,8 @@
       window.addEventListener('appopened', this);
       window.addEventListener('apprequestopen', this);
       window.addEventListener('apprequestclose', this);
+      window.addEventListener('shrinking-start', this);
+      window.addEventListener('shrinking-stop', this);
       window.addEventListener('homescreenopened', this);
       window.addEventListener('reset-orientation', this);
       window.addEventListener('homescreencreated', this);
@@ -301,8 +303,6 @@
       window.addEventListener('permissiondialoghide', this);
       window.addEventListener('appopening', this);
       window.addEventListener('localized', this);
-      window.addEventListener('shrinking-start', this);
-      window.addEventListener('shrinking-stop', this);
 
       window.addEventListener('mozChromeEvent', this);
 
@@ -408,9 +408,21 @@
       var detail = evt.detail;
       switch (evt.type) {
         case 'shrinking-start':
-          activeApp && activeApp.broadcast('blur');
+          if (this.shrinkingUI && this.shrinkingUI.isActive()) {
+            return;
+          }
+          var bottomMost = this._activeApp.getBottomMostWindow();
+          this.shrinkingUI = new ShrinkingUI(bottomMost.element,
+            bottomMost.element.parentNode);
+          this.shrinkingUI.start();
+          activeApp && activeApp.broadcast('shrinkingstart');
           break;
         case 'shrinking-stop':
+          if (this.shrinkingUI && this.shrinkingUI.isActive()) {
+            activeApp && activeApp.broadcast('shrinkingstop');
+            this.shrinkingUI.stop();
+          }
+          break;
         case 'permissiondialoghide':
           activeApp && activeApp.broadcast('focus');
           break;
@@ -751,6 +763,9 @@
       // is the same as its current value.
       this._activeApp.resize();
       if (appHasChanged) {
+        if (this.shrinkingUI && this.shrinkingUI.isActive()) {
+          this.shrinkingUI.stop();
+        }
         this.publish('activeappchanged');
       }
 

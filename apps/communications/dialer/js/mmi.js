@@ -407,8 +407,10 @@ var MmiManager = {
       // If we're on a CDMA network USSD/MMI numbers are not available
       return false;
     } else {
-      // A valid USSD/MMI code is any 'number' ending in '#'.
-      return (number.charAt(number.length - 1) === '#');
+      /* A valid USSD/MMI code is any 'number' ending in '#' or made of only
+       * one or two characters (see 3GPP TS 20.030 6.3.5.2). */
+      return (number.charAt(number.length - 1) === '#') ||
+             (number.length <= 2);
     }
   },
 

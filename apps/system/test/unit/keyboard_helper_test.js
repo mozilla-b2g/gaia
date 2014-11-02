@@ -924,11 +924,29 @@ suite('KeyboardHelper', function() {
                        expectedSettings.enabled);
     });
 
-    test('change default settings and reset for nonLatin', function() {
+    test('change default settings and reset for nonLatin, ' +
+         ' preloaded layout', function() {
+      // Zhuyin is not preloaded for current config, so won't be enabled
       expectedSettings['default'][keyboardAppManifestURL] = {
-        'zh-Hant-Zhuyin': true, en: true, number: true};
+        'zh-Hans-Pinyin': true, en: true, number: true};
       expectedSettings['enabled'][keyboardAppManifestURL] = {
-        'zh-Hant-Zhuyin': true, en: true, number: true};
+        'zh-Hans-Pinyin': true, en: true, number: true};
+
+      KeyboardHelper.changeDefaultLayouts('zh-CN', true);
+      assert.deepEqual(KeyboardHelper.settings.default,
+                       expectedSettings['default']);
+
+      assert.deepEqual(KeyboardHelper.settings.enabled,
+                       expectedSettings.enabled);
+    });
+
+    test('change default settings and reset for nonLatin layout, ' +
+         'not preloaded', function() {
+      // Zhuyin is not preloaded for current config, so won't be enabled
+      expectedSettings['default'][keyboardAppManifestURL] = {
+        en: true, number: true};
+      expectedSettings['enabled'][keyboardAppManifestURL] = {
+        en: true, number: true};
 
       KeyboardHelper.changeDefaultLayouts('zh-TW', true);
       assert.deepEqual(KeyboardHelper.settings.default,

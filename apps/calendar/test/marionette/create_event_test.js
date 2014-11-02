@@ -186,7 +186,7 @@ marionette('creating events', function() {
           'Animal Planet reallylongwordthatshouldnotoverflowbecausewewrap';
 
         app = new Calendar(client);
-        app.launch({ hideSwipeHint: true });
+        app.launch();
         app.createEvent(scenario);
 
         app.month.waitForDisplay();

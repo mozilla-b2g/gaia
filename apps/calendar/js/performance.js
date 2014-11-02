@@ -8,7 +8,7 @@ require('shared/performance_testing_helper');
 // race conditions and the app contains way too many async operations during
 // startup and no simple way to listen to these events.
 
-exports._isDayBaseInteractive = false;
+exports._isMonthsDayInteractive = false;
 exports._isMonthReady = false;
 exports._isVisuallyActive = false;
 exports._isPendingReady = false;
@@ -40,15 +40,15 @@ exports.chromeInteractive = function() {
 };
 
 /**
- * Should be called when the DayBased view (inherited by MonthsDayView)
+ * Should be called when the MonthsDayView
  * rendered all the busytimes for that day.
  */
-exports.dayBasedReady = function() {
-  if (exports._isDayBaseInteractive) {
+exports.monthsDayReady = function() {
+  if (exports._isMonthsDayInteractive) {
     return;
   }
 
-  exports._isDayBaseInteractive = true;
+  exports._isMonthsDayInteractive = true;
   dispatchVisuallyCompleteAndInteractive();
 };
 
@@ -72,7 +72,7 @@ exports.monthReady = function() {
  */
 function dispatchVisuallyCompleteAndInteractive() {
   if (exports._isVisuallyActive ||
-      !exports._isDayBaseInteractive ||
+      !exports._isMonthsDayInteractive ||
       !exports._isMonthReady) {
     return;
   }

@@ -357,7 +357,6 @@
       document.getElementById('notifications-lockscreen-container');
 
     this.lockIfEnabled(true);
-    this.writeSetting(this.enabled);
     this.initUnlockerEvents();
 
     /* Status changes */
@@ -635,7 +634,7 @@
     var url =
           window.parent.location.href.replace('system', name),
         manifestUrl =
-          url.replace(/(\/)*(index.html)*$/, '/manifest.webapp');
+          url.replace(/(\/)*(index.html#?)*$/, '/manifest.webapp');
 
     url += '#secure';
     window.dispatchEvent(new window.CustomEvent('secure-launchapp',
@@ -673,8 +672,6 @@
     if (wasAlreadyUnlocked) {
       return;
     }
-
-    this.writeSetting(false);
 
     if (this.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
@@ -719,7 +716,6 @@
       // Any changes made to this,
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('secure-modeon');
-      this.writeSetting(true);
 
       if(this._checkGenerateMaskedBackgroundColor()){
         this._generateMaskedBackgroundColor();
@@ -753,7 +749,6 @@
 
         delete this.overlay.dataset.passcodeStatus;
         this.passCodeEntered = '';
-        this.updatePassCodeUI();
         break;
 
       case 'main':
@@ -1022,17 +1017,6 @@
     window.dispatchEvent(evt);
   };
 
-  LockScreen.prototype.writeSetting =
-  function ls_writeSetting(value) {
-    if (!window.navigator.mozSettings) {
-      return;
-    }
-
-    window.SettingsListener.getSettingsLock().set({
-      'lockscreen.locked': value
-    });
-  };
-
   /**
    * @param {boolean} switcher - true if mode is on, false if off.
    */
@@ -1112,7 +1096,7 @@
       this.passCodeError = 0;
       this.kPassCodeErrorTimeout = 500;
       this.kPassCodeErrorCounter = 0;
-      this.unlock();
+      // delegate the unlocking function call to panel state.
     };
 
   /** @exports LockScreen */

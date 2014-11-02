@@ -4,7 +4,8 @@
           MockContactsListObj, MockCookie, MockMozL10n,
           MockNavigationStack, MockUtils, MocksHelper,
           MockContactAllFields, MockContactDetails, MockContactsNfc,
-          MockContactsSearch, MockContactsSettings, Mockfb, MockImportStatusData
+          MockContactsSearch, MockContactsSettings, Mockfb,
+          MockImportStatusData, MockMozContacts
 */
 
 requireApp('communications/contacts/test/unit/mock_l10n.js');
@@ -21,6 +22,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_search.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_import_status_data.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
@@ -40,6 +42,9 @@ if (!window.contacts) {
 }
 if (!window.utils) {
   window.utils = null;
+}
+if (!navigator.mozContacts) {
+  navigator.mozContacts = null;
 }
 
 var globals = ['COMMS_APP_ORIGIN',
@@ -62,6 +67,7 @@ suite('Contacts', function() {
   var realFb;
   var realImportStatusData;
   var mockNavigation;
+  var realMozContacts;
 
   mocksForStatusBar.attachTestHelpers();
 
@@ -70,6 +76,9 @@ suite('Contacts', function() {
     navigator.mozL10n = MockMozL10n;
 
     sinon.spy(navigator.mozL10n, 'once');
+
+    realMozContacts = navigator.mozContacts;
+    navigator.mozContacts = MockMozContacts;
 
     realContacts = window.contacts;
     window.contacts = {};
@@ -98,6 +107,7 @@ suite('Contacts', function() {
 
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
+    navigator.mozContacts = realMozContacts;
     window.contacts = realContacts;
     window.utils = realUtils;
     window.fb = realFb;

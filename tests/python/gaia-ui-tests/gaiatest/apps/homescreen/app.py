@@ -20,6 +20,7 @@ class Homescreen(Base):
     _search_bar_icon_locator = (By.ID, 'search-input')
     _landing_page_locator = (By.ID, 'icons')
     _bookmark_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .bookmark')
+    _divider_locator = (By.CSS_SELECTOR, 'section.divider')
 
     def launch(self):
         Base.launch(self)
@@ -75,10 +76,30 @@ class Homescreen(Base):
 
     def move_app_to_position(self, app_position, to_position):
         app_elements = self.app_elements
+
+        self.marionette.execute_script(
+            'arguments[0].scrollIntoView(false);', [app_elements[app_position]])
+
         Actions(self.marionette).\
             press(app_elements[app_position]).\
             wait(3).\
             move(app_elements[to_position]).\
+            wait(1).\
+            release().\
+            wait(1).\
+            perform()
+
+    def move_to_divider(self, app_position, divider_position):
+        app_element = self.app_elements[app_position]
+        divider_element = self.divider_elements[divider_position]
+
+        self.marionette.execute_script(
+            'arguments[0].scrollIntoView(false);', [app_element])
+
+        Actions(self.marionette).\
+            press(app_element).\
+            wait(3).\
+            move(divider_element).\
             wait(1).\
             release().\
             wait(1).\
@@ -91,8 +112,6 @@ class Homescreen(Base):
     def tap_collection(self, collection_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
             if root_el.text == collection_name:
-                self.marionette.execute_script(
-                    'arguments[0].scrollIntoView(false);', [root_el])
                 # TODO bug 1043293 introduced a timing/tap race issue here
                 time.sleep(0.5)
                 root_el.tap()
@@ -110,6 +129,10 @@ class Homescreen(Base):
         }
         return appElements;
         """)
+
+    @property
+    def divider_elements(self):
+        return self.marionette.find_elements(*self._divider_locator)
 
     @property
     def visible_apps(self):
@@ -131,6 +154,10 @@ class Homescreen(Base):
             if root_el.text == bookmark_title:
                 return self.InstalledApp(self.marionette, root_el)
 
+    @property
+    def number_of_columns(self):
+        return int(self.marionette.find_element(*self._landing_page_locator).get_attribute('cols'))
+
     class InstalledApp(PageRegion):
 
         _delete_app_locator = (By.CSS_SELECTOR, 'span.remove')
@@ -141,10 +168,6 @@ class Homescreen(Base):
 
         def tap_icon(self):
             expected_name = self.name
-
-            #TODO remove scroll after Bug 937053 is resolved
-            self.marionette.execute_script(
-                'arguments[0].scrollIntoView(false);', [self.root_element])
 
             # TODO bug 1043293 introduced a timing/tap race issue here
             time.sleep(0.5)

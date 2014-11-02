@@ -793,6 +793,10 @@ function startPick() {
   }
 
   setView(LAYOUT_MODE.pick);
+
+  var pickHeading = $('pick-header-title');
+  // re-run the font-fit logic when header is visible
+   pickHeading.textContent = pickHeading.textContent;
 }
 
 // Called when the user clicks on a thumbnail in pick mode

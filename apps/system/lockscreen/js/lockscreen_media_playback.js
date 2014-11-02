@@ -12,7 +12,19 @@ function LockScreenMediaPlaybackWidget(container, options) {
   this.playPauseButton = container.querySelector('.play-pause');
   this.nextButton = container.querySelector('.next');
 
-  this.container.addEventListener('click', this);
+  this.previousButton.addEventListener(
+    'contextmenu', this.handleContextmenu.bind(this)
+  );
+  this.nextButton.addEventListener(
+    'contextmenu', this.handleContextmenu.bind(this)
+  );
+  this.container.addEventListener('touchend', this.handleTouchend.bind(this));
+
+  // When prev/next button releases, we need to know user simply clicking on it
+  // or holding on and perform fastseeking. Keeping this state to know which
+  // command should issue.
+  this.isFastSeeking = false;
+
   window.addEventListener('iac-mediacomms', this.handleMessage.bind(this));
   // When SCO status changes, we need to adjust the ui of the playback controls
   window.addEventListener(
@@ -129,38 +141,65 @@ LockScreenMediaPlaybackWidget.prototype = {
     }
   },
 
-  handleEvent: function mp_handleEvent(event) {
+  sendCommandEvent: function mp_sendCommandEvent(command) {
     // XXX: Before we implement LockScreen as a standalone app,
     // we make it inside a iframe, which would block this function
     // to get the IAC port. So these commands need to be send outside
     // the frame to System app, and System app would forward them via IAC.
-    var target = event.target;
+    window.dispatchEvent(new CustomEvent(
+      'lockscreen-request-mediacommand', {
+      detail: command
+    }));
+  },
+
+  handleContextmenu: function mp_handleContextmenu(event) {
     var command = null;
 
-    switch (target) {
+    switch (event.target) {
       case this.previousButton:
-        command = 'prevtrack';
-        break;
-      case this.playPauseButton:
-        // The play/pause indicator will get set once the music app replies with
-        // its "mode" message, but this will make us appear speedier.
-        if (target.dataset.icon === 'play') {
-          target.dataset.icon = 'pause';
-        } else {
-          target.dataset.icon = 'play';
-        }
-        command = 'playpause';
+        command = 'rewindstart';
         break;
       case this.nextButton:
-        command = 'nexttrack';
+        command = 'fastforwardstart';
         break;
     }
 
     if (command) {
-      window.dispatchEvent(new CustomEvent(
-        'lockscreen-request-mediacommand', {
-        detail: command
-      }));
+      this.isFastSeeking = true;
+      this.sendCommandEvent(command);
+    }
+  },
+
+  handleTouchend: function mp_handleTouchend(event) {
+    var command = null;
+
+    switch (event.target) {
+      case this.previousButton:
+        if (this.isFastSeeking) {
+          this.isFastSeeking = false;
+          command = 'rewindend';
+        } else {
+          command = 'prevtrack';
+        }
+        break;
+      case this.nextButton:
+        if (this.isFastSeeking) {
+          this.isFastSeeking = false;
+          command = 'fastforwardend';
+        } else {
+          command = 'nexttrack';
+        }
+        break;
+      case this.playPauseButton:
+        // The play/pause indicator will get set once the music app replies
+        // with its "mode" message, but this will make us appear speedier.
+        event.target.classList.toggle('is-paused');
+        command = 'playpause';
+        break;
+    }
+
+    if (command) {
+      this.sendCommandEvent(command);
     }
   }
 };

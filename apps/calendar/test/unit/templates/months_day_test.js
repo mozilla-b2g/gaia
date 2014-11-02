@@ -11,7 +11,7 @@ suite('templates/months_day', function() {
   suite('#event', function() {
     test('> regular event', function() {
       var result = renderHTML('event', {
-        classes: 'foo-class',
+        hasAlarms: true,
         busytimeId: 55,
         calendarId: 42,
         title: 'Lorem Ipsum',
@@ -22,8 +22,8 @@ suite('templates/months_day', function() {
         isAllDay: false
       });
 
-      assert.include(result, 'foo-class');
-      assert.include(result, 'data-id="55"');
+      assert.include(result, 'has-alarms');
+      assert.include(result, 'href="/event/show/55/"');
       assert.include(result, 'calendar-id-42');
       assert.include(result, '<h5 role="presentation">Lorem Ipsum</h5>');
       assert.include(result, 'Dolor Sit Amet');
@@ -33,13 +33,13 @@ suite('templates/months_day', function() {
       assert.include(result, '<div class="gaia-icon icon-calendar-dot ' +
         'calendar-text-color"');
       assert.match(result, /calendar-text-color"\s+aria-hidden="true">/);
-      assert.include(result, 'id="55-icon-calendar-alarm" aria-hidden="true"');
+      assert.match(result, /id="55-icon-calendar-alarm"\s+aria-hidden="true"/);
       assert.include(result, 'aria-describedby="55-icon-calendar-alarm"');
     });
 
     test('> all day event', function() {
       var result = renderHTML('event', {
-        classes: 'foo-class',
+        hasAlarms: false,
         busytimeId: 55,
         calendarId: 42,
         title: 'Lorem Ipsum',
@@ -50,8 +50,8 @@ suite('templates/months_day', function() {
         isAllDay: true
       });
 
-      assert.include(result, 'foo-class');
-      assert.include(result, 'data-id="55"');
+      assert.equal(result.indexOf('has-alarms'), -1, 'no alarm');
+      assert.include(result, 'href="/event/show/55/"');
       assert.include(result, 'calendar-id-42');
       assert.include(result, '<h5 role="presentation">Lorem Ipsum</h5>');
       assert.include(result, 'Dolor Sit Amet');

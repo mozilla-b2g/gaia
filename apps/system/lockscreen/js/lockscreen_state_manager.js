@@ -19,6 +19,8 @@
 /* global LockScreenStateKeypadShow */
 /* global LockScreenStateKeypadHiding, LockScreenStateKeypadRising */
 /* global LockScreenStatePanelHide */
+/* global LockScreenStateUnlock */
+/* global LockScreenStateSlideRestore */
 /* global LockScreenStateLogger */
 
 'use strict';
@@ -69,7 +71,8 @@
   function lssm_start(lockScreen) {
     this.lockScreen = lockScreen;
     this.logger = (new LockScreenStateLogger()).start({
-      debug: false
+      debug: false,
+      error: true
     });
     this.configs = {
       listenEvents: [
@@ -78,9 +81,14 @@
         'lockscreen-notification-request-activate-unlock',
         'lockscreen-request-unlock',
         'lockscreen-request-lock',
+        'lockscreen-notify-passcode-validationsuccess',
         'lockscreen-appclosed',
         'lockscreenslide-activate-right',
-        'lockscreen-keypad-input'
+        'lockscreen-keypad-input',
+        'lockscreen-inputappopening',
+        'lockscreen-inputappopened',
+        'lockscreen-inputappclosed',
+        'secure-appopened'
       ],
       observers: {
         'lockscreen.passcode-lock.enabled':
@@ -90,12 +98,14 @@
     // The state 'templates'. This component would do transfer among
     // these states.
     this.states = {
+      slideRestore: (new LockScreenStateSlideRestore()).start(this.lockScreen),
       slideShow: (new LockScreenStateSlideShow()).start(this.lockScreen),
       slideHide: (new LockScreenStateSlideHide()).start(this.lockScreen),
       keypadShow: (new LockScreenStateKeypadShow()).start(this.lockScreen),
       keypadHiding: (new LockScreenStateKeypadHiding()).start(this.lockScreen),
       keypadRising: (new LockScreenStateKeypadRising()).start(this.lockScreen),
-      panelHide: (new LockScreenStatePanelHide()).start(this.lockScreen)
+      panelHide: (new LockScreenStatePanelHide()).start(this.lockScreen),
+      unlock: (new LockScreenStateUnlock()).start(this.lockScreen)
     };
 
     // Default values
@@ -105,11 +115,12 @@
       passcodeTimeout: true, // If timeout, do show the keypad
       homePressed: false,
       activateUnlock: false,
-      transitionEnd: false,
       unlocking: false,
       keypadInput: '',
       forciblyUnlock: false,
-      inputpad: null
+      inputpad: null,
+      passcodeValidated: false,
+      secureAppOpen: false
     };
     Object.freeze(this.lockScreenDefaultStates);
 
@@ -141,19 +152,30 @@
   LockScreenStateManager.prototype.setupRules =
   function lssm_setupRules() {
     this.rules = new Map();
+    this.registerRule({
+      secureAppOpen: true
+    },
+    ['keypadShow', 'slideShow'],
+    this.states.slideRestore,
+    'Restore the slider when secure app opened');
+
+    this.registerRule({},
+    ['slideRestore'],
+    this.states.slideShow,
+    'Show the slide after restore it');
 
     this.registerRule({
       screenOn: true,
       unlocking: false
     },
-    ['panelHide', 'slideHide'],
+    ['panelHide', 'slideHide', 'unlock'],
     this.states.slideShow,
     'Resume from screen off');
 
     this.registerRule({
       passcodeEnabled: false,
       screenOn: true,
-      unlocking: true
+      activateUnlock: true
     },
     ['slideShow'],
     this.states.slideHide,
@@ -163,7 +185,7 @@
       passcodeEnabled: true,
       passcodeTimeout: false,
       screenOn: true,
-      unlocking: true
+      activateUnlock: true
     },
     ['slideShow'],
     this.states.slideHide,
@@ -218,6 +240,7 @@
 
     this.registerRule({
       passcodeEnabled: true,
+      passcodeValidated: true,
       screenOn: true,
       unlocking: true
     },
@@ -236,11 +259,18 @@
     'When the animation done, show no panel for unlocking.');
 
     this.registerRule({
+      unlocking: true
+    },
+    ['panelHide'],
+    this.states.unlock,
+    'When the animation done, unlock the screen.');
+
+    this.registerRule({
       keypadInput: 'c'
     },
     ['keypadShow'],
     this.states.keypadHiding,
-    'When user input the correct key code, hide the pad.');
+    'When user clean the key code, hide the pad.');
   };
 
   /**
@@ -358,8 +388,20 @@
       case 'lockscreen-appclosed':
         this.onAppClosed();
         break;
+      case 'lockscreen-inputappopening':
+        this.onInputAppOpening();
+        break;
+      case 'lockscreen-inputappclosed':
+        this.onInputAppClosed();
+        break;
       case 'lockscreen-keypad-input':
         this.onKeypadInput(detail.key);
+        break;
+      case 'lockscreen-notify-passcode-validationsuccess':
+        this.onPasscodeValidated();
+        break;
+      case 'secure-appopened':
+        this.onSecureAppOpened();
         break;
     }
   };
@@ -422,6 +464,38 @@
     this.transfer(inputs);
   };
 
+  LockScreenStateManager.prototype.onInputAppOpening =
+  function lssm_onInputAppOpening() {
+    var inputs = this.extend(this.lockScreenStates, {
+      inputpad: 'open'
+    });
+    this.transfer(inputs);
+  };
+
+  LockScreenStateManager.prototype.onInputAppOpened =
+  function lssm_onInputAppOpened() {
+    var inputs = this.extend(this.lockScreenStates, {
+      inputpad: 'show'
+    });
+    this.transfer(inputs);
+  };
+
+  LockScreenStateManager.prototype.onInputAppClosed =
+  function lssm_onInputAppClosed() {
+    var inputs = this.extend(this.lockScreenStates, {
+      inputpad: 'close'
+    });
+    this.transfer(inputs);
+  };
+
+  LockScreenStateManager.prototype.onSecureAppOpened =
+  function lssm_onSecureAppOpened() {
+    var inputs = this.extend(this.lockScreenStates, {
+      secureAppOpen: true
+    });
+    this.transfer(inputs);
+  };
+
   LockScreenStateManager.prototype.onActivateUnlock =
   function lssm_onActivateUnlock() {
     this.lockScreenStates.passcodeTimeout =
@@ -462,6 +536,16 @@
     } else {
       this.lockScreenStates.passcodeEnabled = value;
     }
+  };
+
+  LockScreenStateManager.prototype.onPasscodeValidated =
+  function lssm_onPasscodeValidated() {
+    var inputs = this.extend(this.lockScreenStates, {
+      passcodeValidated: true,
+      unlocking: true
+    });
+    this.lockScreenStates.unlocking = true;  // We're now unlocking.
+    this.transfer(inputs);
   };
 
   /**

@@ -100,7 +100,6 @@ class ContactForm(Base):
 
     def type_comment(self, value):
         element = self.marionette.find_element(*self._comment_locator)
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [element])
         element.clear()
         element.send_keys(value)
 
@@ -150,8 +149,6 @@ class EditContact(ContactForm):
 
     def tap_delete(self):
         delete_item = self.marionette.find_element(*self._delete_locator)
-        # TODO Bug 875830 - Remove scrollIntoView() when bug resolved
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [delete_item])
         delete_item.tap()
 
     def tap_cancel_delete(self):

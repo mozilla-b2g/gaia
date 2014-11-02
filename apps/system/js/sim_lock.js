@@ -22,6 +22,9 @@ var SimLock = {
     // Watch for apps that need a mobile connection
     window.addEventListener('appopened', this);
 
+    // Watch for the home button being pressed
+    window.addEventListener('home', this);
+
     // Display the dialog only after lockscreen is unlocked
     // before the transition.
     // To prevent keyboard being displayed behind it.
@@ -131,6 +134,11 @@ var SimLock = {
             self.showIfLocked();
           });
         break;
+      case 'home':
+        if (SimPinDialog.visible) {
+          SimPinDialog.close();
+        }
+        break;
       case 'appopened':
         // If an app needs 'telephony' or 'sms' permissions (i.e. mobile
         // connection) and the SIM card is locked, the SIM PIN unlock screen
@@ -155,8 +163,12 @@ var SimLock = {
         // although it has 'telephony' permission (Bug 861206)
         var settingsManifestURL =
           'app://settings.gaiamobile.org/manifest.webapp';
-        if (app.manifestURL == settingsManifestURL)
+        if (app.manifestURL == settingsManifestURL) {
+          if (SimPinDialog.visible) {
+            SimPinDialog.close();
+          }
           return;
+        }
 
         // If SIM is locked, cancel app opening in order to display
         // it after the SIM PIN dialog is shown

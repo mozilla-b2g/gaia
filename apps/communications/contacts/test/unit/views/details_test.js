@@ -45,6 +45,8 @@ requireApp('communications/contacts/test/unit/helper.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
+require('/shared/test/unit/mocks/mock_moz_contact.js');
+
 var _ = function(key) { return key; },
     subject,
     container,
@@ -86,7 +88,8 @@ var mocksHelperForDetailView = new MocksHelper([
   'WebrtcClient',
   'LazyLoader',
   'ActivityHandler',
-  'ContactsButtons'
+  'ContactsButtons',
+  'mozContact'
 ]).init();
 
 suite('Render contact', function() {

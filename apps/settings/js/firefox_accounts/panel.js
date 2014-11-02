@@ -125,7 +125,7 @@ var FxaPanel = (function fxa_panel() {
     // dynamically construct the resend link
     var dontSeeText = _('fxa-dont-see-email');
     dontSeeText = dontSeeText.replace(
-      '{{resend}}',
+      /{{\s*resend\s*}}/,
       '<a href="#" id="fxa-resend">' + _('fxa-resend') + '</a>'
     );
     resendEmail.innerHTML = dontSeeText;

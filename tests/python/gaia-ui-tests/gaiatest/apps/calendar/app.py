@@ -3,7 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette.errors import NoSuchElementException
+from marionette.errors import StaleElementException
 from marionette.marionette import Actions
+from marionette.wait import Wait
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
@@ -15,7 +18,6 @@ class Calendar(Base):
     _current_month_year_locator = (By.ID, 'current-month-year')
     _current_months_day_locator = (By.ID, 'months-day-view')
     _current_monthly_calendar_locator = (By.ID, 'month-view')
-    _hint_swipe_to_navigate_locator = (By.ID, 'hint-swipe-to-navigate')
     _add_event_button_locator = (By.XPATH, "//a[@href='/event/add/']")
 
     _month_display_button_locator = (By.XPATH, "//a[@href='/month/']")
@@ -29,21 +31,31 @@ class Calendar(Base):
     _event_view_locator = (By.ID, 'event-view')
     _time_header_locator = (By.ID, 'time-header')
 
+    _create_account_button_locator = (By.CLASS_NAME, 'create-account')
+    _create_account_header_locator = (By.ID, 'create-account-header')
+    _create_account_view_locator = (By.ID, 'create-account-view')
+    _create_account_preset_locator = (By.CSS_SELECTOR,
+                                      '#create-account-presets a')
+
+    _modify_account_header_locator = (By.ID, 'modify-account-header')
+    _modify_account_view_locator = (By.ID, 'modify-account-view')
+
     _settings_locator = (By.ID, 'settings')
 
     _advanced_settings_view_locator = (By.ID, 'advanced-settings-view')
     _advanced_settings_done_button_locator = (By.XPATH, "//a[@href='/settings/']")
 
     _event_list_date_locator = (By.ID, 'event-list-date')
+    _event_list_empty_locator = (By.ID, 'empty-message')
     _event_locator = (By.CLASS_NAME, 'event')
     _today_locator = (By.CLASS_NAME, 'present')
     _tomorrow_locator = (By.CSS_SELECTOR, '.present + li > .day')
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_element_displayed(*self._hint_swipe_to_navigate_locator)
-        self.marionette.find_element(*self._hint_swipe_to_navigate_locator).tap()
-        self.wait_for_element_not_displayed(*self._hint_swipe_to_navigate_locator)
+        # empty message is only displayed after first MonthsDay#render,
+        # so we are sure app is "ready" after that
+        self.wait_for_element_displayed(*self._event_list_empty_locator)
 
     @property
     def current_month_year(self):
@@ -70,6 +82,16 @@ class Calendar(Base):
         for event in self.events:
             if event.title == title:
                 return event
+
+    @property
+    def accounts(self):
+        return [account for account in self.marionette.find_elements(
+            *self._create_account_preset_locator)]
+
+    def account(self, preset):
+        for account in self.accounts:
+            if account.get_attribute('data-provider') == preset:
+                return account
 
     @property
     def settings(self):
@@ -112,7 +134,7 @@ class Calendar(Base):
         self.wait_for_element_displayed(*self._day_view_locator)
 
     def displayed_events_in_month_view(self, date_time):
-        return self.marionette.find_element(*self._get_events_locator_in_month_view(date_time)).text
+        return self.marionette.find_element(*self._get_events_locator_in_month_view()).text
 
     def displayed_events_in_week_view(self, date_time):
         return self.marionette.find_element(*self._get_events_locator_in_week_view(date_time)).text
@@ -125,10 +147,9 @@ class Calendar(Base):
         return (By.CSS_SELECTOR,
                 "#day-view .md__day[data-date*='%s'] .md__event" % data_date)
 
-    def _get_events_locator_in_month_view(self, date_time):
-        time_slot = self._get_data_hour(date_time)
+    def _get_events_locator_in_month_view(self):
         return (By.CSS_SELECTOR,
-                '#event-list section.hour-%d div.events' % time_slot)
+                '#event-list .event')
 
     def _get_events_locator_in_week_view(self, date_time):
         data_date = self._get_data_date(date_time)
@@ -165,6 +186,16 @@ class Calendar(Base):
         self.wait_for_condition(
             lambda m: m.find_element(
                 *self.settings._settings_drawer_locator).get_attribute('data-animstate') == 'done')
+
+    def a11y_click_create_account_back(self):
+        self.a11y_click_header(self.marionette.find_element(*self._create_account_header_locator),
+                               'button.icon-back')
+        self.wait_for_element_displayed(*self._advanced_settings_view_locator)
+
+    def a11y_click_modify_account_back(self):
+        self.a11y_click_header(self.marionette.find_element(*self._modify_account_header_locator),
+                               'button.icon-back')
+        self.wait_for_element_displayed(*self._create_account_view_locator)
 
     def a11y_click_settings(self):
         self.a11y_click_header(self.marionette.find_element(*self._time_header_locator),
@@ -221,6 +252,18 @@ class Calendar(Base):
         _advanced_settings_button_locator = (By.CSS_SELECTOR, '.settings')
         _settings_header_locator = (By.ID, 'settings-header')
         _settings_drawer_locator = (By.CLASS_NAME, 'settings-drawer')
+
+        def wait_for_calendar_unchecked(self, timeout=None):
+            Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException,
+                                                               StaleElementException]).until(
+                lambda m: not m.find_element(
+                    *self._calendar_local_checkbox_locator).get_attribute('checked'))
+
+        def wait_for_a11y_calendar_unchecked(self, timeout=None):
+            Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException,
+                                                               StaleElementException]).until(
+                lambda m: not m.find_element(
+                    *self._calendar_local_locator).get_attribute('aria-selected'))
 
     class Event(PageRegion):
 

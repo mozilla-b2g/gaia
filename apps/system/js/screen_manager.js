@@ -114,6 +114,11 @@ var ScreenManager = {
     window.addEventListener('unlocking-start', this);
     window.addEventListener('unlocking-stop', this);
 
+    // When secure app is on, do not turn the screen off.
+    // And when it's down, reset the timeout.
+    window.addEventListener('secure-appopened', this);
+    window.addEventListener('secure-appterminated', this);
+
     // User is actively using the screen reader.
     window.addEventListener('accessibility-action', this);
 
@@ -244,6 +249,12 @@ var ScreenManager = {
         this._setUnlocking();
         break;
 
+      // When secure app is on, do not turn the screen off.
+      // And when it's down, reset the timeout.
+      case 'secure-appopened':
+      case 'secure-appterminated':
+        this._reconfigScreenTimeout();
+        break;
       case 'unlocking-stop':
         this._resetUnlocking();
         break;
@@ -468,7 +479,7 @@ var ScreenManager = {
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
     } else if (!this._unlocking) {
-      if (window.System.locked) {
+      if (window.System.locked && !window.secureWindowManager.isActive()) {
         this._setIdleTimeout(this.LOCKING_TIMEOUT, true);
         window.addEventListener('lockscreen-appclosing', this);
         window.addEventListener('lockpanelchange', this);

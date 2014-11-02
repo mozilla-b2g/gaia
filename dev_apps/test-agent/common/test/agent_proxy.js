@@ -35,7 +35,14 @@
   });
 
   worker.use(TestAgent.BrowserWorker.BlanketDriver, {
-    blanketUrl: CommonResourceLoader.url('/common/vendor/blanket/blanket.js')
+    blanketUrl: CommonResourceLoader.url('/common/vendor/blanket/blanket.js'),
+    defaultConfig: {
+      'data-cover-only': 'js/',
+      'data-cover-never': '["test/unit/","alameda.js"]',
+      'data-cover-flags': 'lazyload',
+      'data-cover-adapter': CommonResourceLoader
+        .url('/common/vendor/blanket/test-agent-blanket.js')
+    }
   });
 
   //enable let, yield, etc...

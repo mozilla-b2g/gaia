@@ -131,13 +131,55 @@ suite('SimLock', function() {
   });
 
   suite('to test events', function() {
+    setup(function() {
+      this.sinon.stub(SimPinDialog, 'close', function() {
+        SimPinDialog.visible = false;
+      });
+      this.sinon.spy(SimLock, 'showIfLocked');
+    });
+
     test('when unlocking request comes, to check if it\'s for Camera',
       function() {
-        var stubShowIfLocked = this.sinon.stub(SimLock, 'showIfLocked');
         SimLock.handleEvent('lockscreen-request-unlock');
-        assert.isFalse(stubShowIfLocked.called,
+        assert.isFalse(SimLock.showIfLocked.called,
           'should not show the dialog');
       });
+
+    test('home press on dialog visible', function() {
+      SimPinDialog.visible = true;
+      SimLock.handleEvent({
+        type: 'home'
+      });
+      assert.isTrue(SimPinDialog.close.called, 'should close the dialog');
+      SimPinDialog.visible = false;
+    });
+
+    test('home press on dialog not visible', function() {
+      SimPinDialog.visible = false;
+      SimLock.handleEvent({
+        type: 'home'
+      });
+      assert.isFalse(SimPinDialog.close.called, 'should close the dialog');
+    });
+
+    test('Settings app is opened', function() {
+      SimPinDialog.visible = true;
+      SimLock.handleEvent({
+        type: 'appopened',
+        detail: {
+          url: 'app://settings.gaiamobile.org/index.html',
+          manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
+          manifest: {
+            permissions: {
+              telephony: {access: 'readwrite'}
+            }
+          },
+          origin: 'app://settings.gaiamobile.org'
+        }
+      });
+      assert.isTrue(SimPinDialog.close.called);
+      assert.isFalse(SimLock.showIfLocked.called);
+    });
   });
 
   suite('showIfLocked', function() {

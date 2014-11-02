@@ -49,7 +49,7 @@
       this.lockScreen.overlay.classList.remove('passcode-unlocking');
       // XXX: We assume this is sync in order. But if we use real
       // input window this would be broken.
-      resolve({'inputpad': 'close'});
+      resolve();
     });
   };
   exports.LockScreenStateKeypadHiding = LockScreenStateKeypadHiding;

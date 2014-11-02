@@ -48,7 +48,6 @@ define(function(require) {
        */
       LazyLoader.load([
         'js/firefox_accounts/menu_loader.js',
-        'js/try_show_homescreen_section.js',
         'js/icc_menu.js',
         'js/dsds_settings.js',
         'js/telephony_settings.js',

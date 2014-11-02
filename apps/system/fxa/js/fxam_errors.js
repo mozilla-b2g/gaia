@@ -4,9 +4,6 @@
 'use strict';
 
 (function(exports) {
-
-  var _ = navigator.mozL10n.get;
-
   var Errors = {
     CONNECTION_ERROR: {
       title: 'fxa-connection-error-title',
@@ -51,11 +48,13 @@
   }
 
   function _getCoppaError() {
+    var _ = navigator.mozL10n.get;
+
     var coppaLink = 'http://www.ftc.gov/news-events/media-resources/' +
                     'protecting-consumer-privacy/kids-privacy-coppa';
     var errorText = _('fxa-coppa-failure-error-message');
     var learnMore = _('fxa-learn-more');
-    var learnMorePlaceholder = '{{learnmore}}';
+    var learnMorePlaceholder = /{{\s*learnmore\s*}}/;
     var learnMoreLink = '<a href="' + coppaLink + '">' + learnMore + '</a>';
     // return as a string. fxam_error_overlay will innerHTML the whole message.
     return {

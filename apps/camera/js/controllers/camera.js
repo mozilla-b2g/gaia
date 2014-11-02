@@ -483,7 +483,7 @@ CameraController.prototype.updateZoomForMako = function() {
     // stream does not automatically reflect the current zoom value.
     self.settings.zoom.set('useZoomPreviewAdjustment', true);
     self.camera.set('maxHardwareZoom', maxHardwareZoom);
-    self.camera.emit('zoomconfigured');
+    self.camera.emit('zoomconfigured', self.camera.getZoom());
     debug('zoom reconfigured for mako');
   }
 };

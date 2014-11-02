@@ -2,6 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 /* global System, LockScreenWindow, LockScreenInputWindow */
+/* global secureWindowManager */
 
 (function(exports) {
   /**
@@ -63,6 +64,7 @@
                 'overlaystart',
                 'showlockscreenwindow',
                 'home',
+                'secure-appclosed',
                 'lockscreen-request-inputpad-open',
                 'lockscreen-request-inputpad-close'
                ]
@@ -128,6 +130,9 @@
           app = evt.detail;
           this.unregisterApp(app);
           break;
+        case 'secure-appclosed':
+          this.states.instance.lockOrientation();
+          break;
         case 'screenchange':
           // The screenchange may be invoked by proximity sensor,
           // or the power button. If it's caused by the proximity sensor,
@@ -138,6 +143,15 @@
               this.states.ready) {
             // The app would be inactive while screen off.
             this.openApp();
+            if (evt.detail.screenEnabled && this.states.instance &&
+                this.isActive() && !secureWindowManager.isActive()) {
+              // In theory listen to 'visibilitychange' event can solve this
+              // issue, since it would be fired at the correct moment that
+              // we can lock the orientation successfully, but this event
+              // would not be received when user press the button twice
+              // quickly, so we need to keep this workaround.
+              this.states.instance.lockOrientation();
+            }
           }
           break;
         case 'home':
@@ -261,6 +275,7 @@
       }
       this.states.instance.close(instant ? 'immediate': undefined);
       this.elements.screen.classList.remove('locked');
+      this.toggleLockedSetting(false);
     };
 
   /**
@@ -284,6 +299,7 @@
         this.states.instance.open();
       }
       this.elements.screen.classList.add('locked');
+      this.toggleLockedSetting(true);
     };
 
   /**
@@ -427,6 +443,16 @@
     function lwm_onInputpadClose() {
       this.states.instance.inputWindow.close();
       this.states.instance.resize();
+    };
+
+  LockScreenWindowManager.prototype.toggleLockedSetting =
+    function lswm_toggleLockedSetting(value) {
+      if (!window.navigator.mozSettings) {
+        return;
+      }
+      window.SettingsListener.getSettingsLock().set({
+        'lockscreen.locked': value
+      });
     };
 
   /** @exports LockScreenWindowManager */

@@ -550,7 +550,8 @@ function ds_getDeviceStorages() {
 
 var logElt;
 function log(msg) {
-  console.log(msg);
+  //console.log(msg);
+  dump(msg + '\n');
   if (!logElt) {
     logElt = document.getElementById('log');
   }
@@ -619,7 +620,8 @@ function ds_doit() {
       case 'test':
         //ds_test();
         //ds_test_enumerate();
-        ds_test_enumerate_dcim();
+        //ds_test_enumerate_dcim();
+        ds_test_enumerate_since();
         //ds_test_dotdot();
         //ds_test_watch();
         //ds_test_823965();
@@ -794,6 +796,41 @@ function ds_test_enumerate() {
    request.onsuccess = addSuccess;
    request.onerror = addError;
   }
+}
+
+function ds_test_enumerate_since() {
+  log('ds_test_enumerate_since');
+
+  var storage = navigator.getDeviceStorage('sdcard');
+  var cursor = storage.enumerate();
+  var timestamp = null
+  var do_since = true;
+  cursor.onsuccess = function enumSuccess(e) {
+    if (e.target.result == null) {
+      if (do_since) {
+        do_since = false;
+        if (timestamp) {
+          log('===== since.txt timestamp = ' + timestamp + ' =====');
+          var cursor_since = storage.enumerate({'since' : timestamp});
+          cursor_since.onsuccess = cursor.onsuccess;
+          cursor_since.onerror = cursor.onerror;
+        } else {
+          log("since.txt file not found");
+        }
+      } else {
+        log('===== Done =====');
+      }
+      return;
+    }
+    log(e.target.result.name + ' - ' + e.target.result.lastModifiedDate);
+    if (e.target.result.name.slice(-9) == 'since.txt') {
+      timestamp = e.target.result.lastModifiedDate;
+    }
+    e.target.continue();
+  };
+  cursor.onerror = function enumError(e) {
+    log('enumError');
+  };
 }
 
 function ds_test_enumerate_dcim() {

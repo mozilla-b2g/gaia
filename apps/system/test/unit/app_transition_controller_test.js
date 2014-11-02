@@ -178,6 +178,25 @@ suite('system/AppTransitionController', function() {
     assert.isTrue(stubReviveBrowser.called);
   });
 
+  test('Handle opening', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var acn1 = new AppTransitionController(app1);
+    var stubReviveBrowser = this.sinon.stub(app1, 'reviveBrowser');
+    var stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
+    acn1.handle_opening();
+    assert.isTrue(stubRequestForeground.calledOnce);
+    assert.isTrue(stubReviveBrowser.called);
+  });
+
+  test('Handle opening of callscreen window', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var acn1 = new AppTransitionController(app1);
+    var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
+    app1.isCallscreenWindow = true;
+    acn1.handle_opening();
+    assert.isTrue(stubSetOrientation.calledOnce);
+  });
+
   test('Warm launch event', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
@@ -258,15 +277,6 @@ suite('system/AppTransitionController', function() {
       assert.isTrue(stubRequestForeground.calledOnce);
       assert.isTrue(stubShow.called);
       assert.isTrue(stubSetOrientation.called);
-    });
-
-    test('Handle opened if the new window is attentionWindow', function() {
-      app1.isAttentionWindow = true;
-      acn1.handle_opened();
-      assert.isTrue(stubRequestForeground.calledOnce);
-      assert.isTrue(stubShow.called);
-      assert.isFalse(stubSetOrientation.called);
-      app1.element.classList.remove('attentionWindow');
     });
 
     test('Handle opened if the new window is callscreenWindow', function() {

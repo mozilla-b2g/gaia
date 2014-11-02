@@ -18,6 +18,14 @@
   z-index: 1000;
 }
 
+.fullscreen-app:not(.minimized-tray) gaia-progress {
+  visibility: hidden;
+}
+
+.fullscreen-app .chrome.dragged gaia-progress {
+  top: calc(var(--statusbar-height) + 4.4rem);
+}
+
 .chrome gaia-progress.visible {
   visibility: visible;
 }
@@ -25,7 +33,7 @@
 .chrome > .bar {
   pointer-events: auto;
   display: none;
-} 
+}
 
 .chrome > .bar.visible {
   display: block;

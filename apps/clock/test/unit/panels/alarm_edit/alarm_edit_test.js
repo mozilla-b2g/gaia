@@ -1,5 +1,4 @@
 'use strict';
-mocha.setup({ globals: ['GestureDetector'] });
 
 /** TEST TEMPORARILY DISABLED, SEE BUG 1033213 ****************************
 

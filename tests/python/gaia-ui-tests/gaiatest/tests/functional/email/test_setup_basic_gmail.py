@@ -17,7 +17,7 @@ class TestSetupGmail(GaiaTestCase):
             raise SkipTest('account details not present in test variables')
 
         GaiaTestCase.setUp(self)
-        self.connect_to_network()
+        self.connect_to_local_area_network()
 
         self.email = Email(self.marionette)
         self.email.launch()

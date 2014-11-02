@@ -29,19 +29,23 @@ suite('system/LockScreenStateManager', function() {
         });
       };
     };
-    window.LockScreenBaseState =
-    window.LockScreenStateSlideShow =
-    window.LockScreenStateSlideHide =
-    window.LockScreenStatePanelHide =
-    window.LockScreenStateKeypadShow =
-    window.LockScreenStateKeypadHiding =
-    window.LockScreenStateKeypadRising = mockState;
+    var genMock = function(type) {
+      return function() {
+        var neo = new mockState();
+        neo.type = type;
+        return neo;
+      };
+    };
 
-    window.LockScreenStateSlideShow.type = 'slideShow';
-    window.LockScreenStatePanelHide.type = 'panelHide';
-    window.LockScreenStateKeypadShow.type = 'keypadShow';
-    window.LockScreenStateKeypadHiding.type = 'keypadHiding';
-    window.LockScreenStateKeypadRising.type = 'keypadRising';
+    window.LockScreenBaseState = genMock('base');
+    window.LockScreenStateSlideShow = genMock('slideShow');
+    window.LockScreenStateSlideHide = genMock('slideHide');
+    window.LockScreenStateUnlock = genMock('slideUnlock');
+    window.LockScreenStateSlideRestore = genMock('slideRestore');
+    window.LockScreenStatePanelHide = genMock('panelHide');
+    window.LockScreenStateKeypadShow = genMock('keypadShow');
+    window.LockScreenStateKeypadHiding = genMock('keypadHiding');
+    window.LockScreenStateKeypadRising = genMock('keypadRising');
 
     window.LockScreenStateLogger = function() {
       this.start =
@@ -59,7 +63,6 @@ suite('system/LockScreenStateManager', function() {
     mockLockScreen = function() {
       this.overlay = document.createElement('div');
     };
-
     subject = (new LockScreenStateManager())
       .start(new mockLockScreen());
   });
@@ -96,6 +99,25 @@ suite('system/LockScreenStateManager', function() {
   });
 
   suite('transfer while states matched', function() {
+    test('After secure app launched, it would restore the slider',
+    function(done) {
+      this.sinon.stub(subject.states.slideRestore, 'transferTo',
+        function() {
+          // This would be the next step of 'transferOut'.
+          done();
+        });
+      var states = subject.extend(subject.lockScreenDefaultStates, {
+        secureAppOpen: true
+      });
+      subject.previousState = {
+        transferOut: this.sinon.stub().returns(Promise.resolve()),
+        type: 'keypadShow'
+      };
+      subject.transfer(states);
+      assert.isTrue(subject.previousState.transferOut.called,
+        'the state wasn\'t transferred from keypadShow to slideRestore');
+    });
+
     test('With passcode enabled, when it activate to unlock, ' +
          'show the passcode pad with animation',
     function(done) {
@@ -104,12 +126,12 @@ suite('system/LockScreenStateManager', function() {
           // This would be the next step of 'transferOut'.
           done();
         });
-      var states = {
+      var states = subject.extend(subject.lockScreenDefaultStates, {
         passcodeEnabled: true,
         passcodeTimeout: true,
         screenOn: true,
         activateUnlock: true
-      };
+      });
       subject.previousState = {
         transferOut: this.sinon.stub().returns(Promise.resolve()),
         type: 'slideShow'
@@ -127,11 +149,11 @@ suite('system/LockScreenStateManager', function() {
           // This would be the next step of 'transferOut'.
           done();
         });
-      var states = {
+      var states = subject.extend(subject.lockScreenDefaultStates, {
         passcodeEnabled: false,
         screenOn: true,
         activateUnlock: true
-      };
+      });
       subject.previousState = {
         transferOut: this.sinon.stub().returns(Promise.resolve()),
         type: 'slideShow'
@@ -149,12 +171,12 @@ suite('system/LockScreenStateManager', function() {
           // This would be the next step of 'transferOut'.
           done();
         });
-      var states = {
+      var states = subject.extend(subject.lockScreenDefaultStates, {
         passcodeEnabled: true,
         passcodeTimeout: false,
         screenOn: true,
         activateUnlock: true
-      };
+      });
       subject.previousState = {
         transferOut: this.sinon.stub().returns(Promise.resolve()),
         type: 'slideShow'
@@ -171,10 +193,10 @@ suite('system/LockScreenStateManager', function() {
           // This would be the next step of 'transferOut'.
           done();
         });
-      var states = {
+      var states = subject.extend(subject.lockScreenDefaultStates, {
         screenOn: true,
         unlocking: false
-      };
+      });
       subject.previousState = {
         transferOut: this.sinon.stub().returns(Promise.resolve()),
         type: 'panelHide'
@@ -191,10 +213,10 @@ suite('system/LockScreenStateManager', function() {
           // This would be the next step of 'transferOut'.
           done();
         });
-      var states = {
+      var states = subject.extend(subject.lockScreenDefaultStates, {
         screenOn: true,
         unlocking: false
-      };
+      });
       subject.previousState = {
         transferOut: this.sinon.stub().returns(Promise.resolve()),
         type: 'slideHide'
@@ -211,11 +233,11 @@ suite('system/LockScreenStateManager', function() {
           // This would be the next step of 'transferOut'.
           done();
         });
-      var states = {
+      var states = subject.extend(subject.lockScreenDefaultStates, {
         passcodeEnabled: true,
         screenOn: true,
         homePressed: true
-      };
+      });
       subject.previousState = {
         transferOut: this.sinon.stub().returns(Promise.resolve()),
         type: 'keypadShow'
@@ -233,12 +255,12 @@ suite('system/LockScreenStateManager', function() {
           // This would be the next step of 'transferOut'.
           done();
         });
-      var states = {
+      var states = subject.extend(subject.lockScreenDefaultStates, {
         passcodeEnabled: true,
         screenOn: true,
-        transitionEnd: true,
+        inputpad: 'close',
         unlocking: false
-      };
+      });
       subject.previousState = {
         transferOut: this.sinon.stub().returns(Promise.resolve()),
         type: 'keypadHiding'
@@ -255,9 +277,9 @@ suite('system/LockScreenStateManager', function() {
           // This would be the next step of 'transferOut'.
           done();
         });
-      var states = {
+      var states = subject.extend(subject.lockScreenDefaultStates, {
         screenOn: false
-      };
+      });
       subject.previousState = {
         transferOut: this.sinon.stub().returns(Promise.resolve()),
         type: 'keypadHiding'
@@ -267,27 +289,6 @@ suite('system/LockScreenStateManager', function() {
         'the state wasn\'t transferred from keypadHiding to slideShow');
     });
 
-    test('When it unlock with passcode, hide all panel with animation.',
-    function(done) {
-      this.sinon.stub(subject.states.keypadHiding, 'transferTo',
-        function() {
-          // This would be the next step of 'transferOut'.
-          done();
-        });
-      var states = {
-        passcodeEnabled: true,
-        screenOn: true,
-        unlocking: true
-      };
-      subject.previousState = {
-        transferOut: this.sinon.stub().returns(Promise.resolve()),
-        type: 'keypadShow'
-      };
-      subject.transfer(states);
-      assert.isTrue(subject.previousState.transferOut.called,
-        'the state wasn\'t transferred from keypadShow to keypadHiding');
-    });
-
     test('When the animation done, show no panel for unlocking.',
     function(done) {
       this.sinon.stub(subject.states.panelHide, 'transferTo',
@@ -295,12 +296,12 @@ suite('system/LockScreenStateManager', function() {
           // This would be the next step of 'transferOut'.
           done();
         });
-      var states = {
+      var states = subject.extend(subject.lockScreenDefaultStates, {
         passcodeEnabled: true,
         screenOn: true,
-        transitionEnd: true,
+        inputpad: 'close',
         unlocking: true
-      };
+      });
       subject.previousState = {
         transferOut: this.sinon.stub().returns(Promise.resolve()),
         type: 'keypadHiding'
@@ -310,16 +311,39 @@ suite('system/LockScreenStateManager', function() {
         'the state wasn\'t transferred from keypadHiding to panelHide');
     });
 
-    test('When user input the correct key code, hide the pad.',
+    test('When passcode validated, transfer to keypadHide',
     function(done) {
       this.sinon.stub(subject.states.keypadHiding, 'transferTo',
         function() {
           // This would be the next step of 'transferOut'.
           done();
         });
-      var states = {
-        keypadInput: 'c'
+      var states = subject.extend(subject.lockScreenDefaultStates, {
+        passcodeEnabled: true,
+        passcodeValidated: true,
+        screenOn: true,
+        inputpad: 'close',
+        unlocking: true
+      });
+      subject.previousState = {
+        transferOut: this.sinon.stub().returns(Promise.resolve()),
+        type: 'keypadShow'
       };
+      subject.transfer(states);
+      assert.isTrue(subject.previousState.transferOut.called,
+        'the state wasn\'t transferred from keypadShow to keypadHiding');
+    });
+
+    test('When user clean key code, hide the pad.',
+    function(done) {
+      this.sinon.stub(subject.states.keypadHiding, 'transferTo',
+        function() {
+          // This would be the next step of 'transferOut'.
+          done();
+        });
+      var states = subject.extend(subject.lockScreenDefaultStates, {
+        keypadInput: 'c'
+      });
       subject.previousState = {
         transferOut: this.sinon.stub().returns(Promise.resolve()),
         type: 'keypadShow'

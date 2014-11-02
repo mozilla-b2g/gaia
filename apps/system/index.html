@@ -77,7 +77,6 @@
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
-    <link rel="stylesheet" type="text/css" href="style/sound_manager/sound_manager.css">
     <link rel="stylesheet" type="text/css" href="style/ime_menu.css">
 
     <!-- Include shared building blocks -->
@@ -365,6 +364,10 @@
     <script defer src="js/emergency_callback_manager.js"></script>
     <link rel="stylesheet" type="text/css" href="style/emergency_callback_manager/emergency_callback_manager.css">
 
+    <!-- Shrinking UI -->
+    <link rel="stylesheet" type="text/css" href="shared/style/shrinking_ui.css">
+    <script defer src="shared/js/shrinking_ui.js"></script>
+
     <!-- Windows -->
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
@@ -382,8 +385,6 @@
     <script defer src="js/text_selection_dialog.js"></script>
     <script defer src="js/app_window.js"></script>
     <script defer src="js/popup_window.js"></script>
-    <script defer src="js/shrinking_ui.js"></script>
-    <link rel="stylesheet" type="text/css" href="style/shrinking_ui/shrinking_ui.css">
     <script defer src="js/browser_mixin.js"></script>
     <script defer src="js/wrapper_factory.js"></script>
     <script defer src="js/homescreen_window.js"></script>
@@ -612,9 +613,10 @@
                   <div class="track" data-l10n-id="mediaPlaybackTrack"></div>
                 </div>
                 <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
-                  <button data-icon="skip-back" class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
-                  <button data-icon="play" class="play-pause"></button>
-                  <button data-icon="skip-forward" class="next" data-l10n-id="mediaPlaybackNext"></button>
+                  <!-- XXX: These used to be button elements for prev/pause/next buttons but we are not able to receive contextmenu event from them. Change to div elements to make it work and able to fast seek from it (Bug 1017294) -->
+                  <div data-icon="skip-back" class="previous" data-l10n-id="mediaPlaybackPrevious"></div>
+                  <div data-icon="play" class="play-pause"></div>
+                  <div data-icon="skip-forward" class="next" data-l10n-id="mediaPlaybackNext"></div>
                 </div>
               </div>
 
@@ -890,6 +892,9 @@
       -->
       </div>
 
+      <div id="app-uninstall-dialog" data-z-index-level="app-uninstall-dialog">
+      </div>
+
       <form id="app-install-dialog" class='app-install-dialog generic-dialog'
             data-type="confirm" role="dialog"
             data-z-index-level="app-install-dialog">
@@ -954,12 +959,6 @@
           <ul>
           </ul>
         </section>
-        <p id="updates-data-connection-warning" data-l10n-id="downloadDataConnectionWarning">
-          Updates are downloaded via data connection when Wi-Fi is not available. Additional data charges may apply.
-        </p>
-        <p id="updates-offline-warning" data-l10n-id="downloadOfflineWarning">
-          Connection unavailable. Connect to a network to download updates.
-        </p>
         <menu data-items="2">
           <button id="updates-later-button" type="reset"
                   data-l10n-id="later">Later</button>
@@ -1042,7 +1041,7 @@
       <form data-type="confirm" role="dialog" id="quick-setting-data-enabled-dialog" class="generic-dialog" data-z-index-level="quick-setting-data-enabled-dialog">
         <section>
           <h1 data-l10n-id="data-roaming-enabled-title"></h1>
-          <p data-l10n-id="data-roaming-enabled-warning"></p>
+          <p data-l10n-id="data-roaming-enabled-warning2"></p>
         </section>
         <menu>
           <button type="button" class="quick-setting-data-cancel-btn recommend" data-l10n-id="notNow">Not now</button>
@@ -1199,6 +1198,9 @@
         </div>
 
         <div id="volume" class="vibration">
+          <style scoped>
+            @import url("style/sound_manager/sound_manager.css");
+          </style>
           <span class="channel-type"></span>
           <section>
             <div class="active"></div>

@@ -57,12 +57,13 @@ suite('simcard dialog', function() {
     var stubRequestClose = this.sinon.stub(SimPinDialog, 'requestClose');
     var stubHandleError = this.sinon.stub(SimPinDialog, 'handleError');
     var domreq = {
+      error: {},
       onsuccess: function() {},
       onerror: function() {}
     };
     stubUnlockCardLock.returns(domreq);
     SimPinDialog._currentSlot = slot;
-    SimPinDialog.unlockCardLock();
+    SimPinDialog.unlockCardLock({});
     assert.isTrue(stubUnlockCardLock.called);
     domreq.onsuccess();
     assert.isTrue(stubRequestClose.calledWith('success'));
@@ -108,22 +109,13 @@ suite('simcard dialog', function() {
   suite('error handling', function() {
     test('retry', function() {
       var stubShowErrorMsg = this.sinon.stub(SimPinDialog, 'showErrorMsg');
-      SimPinDialog.handleError({
-        retryCount: 1,
-        lockType: 'pin'
-      });
+      SimPinDialog.handleError('pin', 1);
       assert.isTrue(stubShowErrorMsg.calledWith(1, 'pin'));
 
-      SimPinDialog.handleError({
-        retryCount: 1,
-        lockType: 'puk'
-      });
+      SimPinDialog.handleError('puk', 1);
       assert.isTrue(stubShowErrorMsg.calledWith(1, 'puk'));
 
-      SimPinDialog.handleError({
-        retryCount: 1,
-        lockType: 'xck'
-      });
+      SimPinDialog.handleError('xck', 1);
       assert.isTrue(stubShowErrorMsg.calledWith(1, 'xck'));
     });
 

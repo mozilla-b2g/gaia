@@ -1,0 +1,3 @@
+#screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="date-selector"] {
+  height: calc(100% - 7rem);
+}

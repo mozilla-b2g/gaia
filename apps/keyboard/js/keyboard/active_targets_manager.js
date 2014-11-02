@@ -33,6 +33,7 @@ ActiveTargetsManager.prototype.ontargetmovedin = null;
 ActiveTargetsManager.prototype.ontargetcommitted = null;
 ActiveTargetsManager.prototype.ontargetcancelled = null;
 ActiveTargetsManager.prototype.ontargetdoubletapped = null;
+ActiveTargetsManager.prototype.onnewtargetwillactivate = null;
 
 // Show accent char menu (if there is one) or do other stuff
 // after LONG_PRESS_TIMEOUT
@@ -99,11 +100,12 @@ ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
     return;
   }
 
-  // All targets before the new touch need to be committed,
-  // according to UX requirement.
-  this.activeTargets.forEach(function(target, id) {
-    this._handlePressEnd(press, id);
-  }, this);
+  // Notify current targets about the new touch.
+  if (typeof this.onnewtargetwillactivate === 'function') {
+    this.activeTargets.forEach(function(target, id) {
+      this.onnewtargetwillactivate(target);
+    }, this);
+  }
 
   var target = press.target;
   this.activeTargets.set(id, target);

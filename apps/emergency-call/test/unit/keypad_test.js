@@ -1,8 +1,5 @@
 'use strict';
 
-mocha.setup({ globals: ['kFontStep', 'minFontSize',
-  'kMasterVolume', 'kShortPressDuration', 'gTonesFrequencies',
-  'keypadSoundIsEnabled', 'TonePlayer', 'KeypadManager'] });
 /* globals MockL10n, MocksHelper */
 
 require('/shared/test/unit/mocks/mock_l10n.js');

@@ -17,7 +17,7 @@ class TestMusic(GaiaTestCase):
 
     def test_select_album_play(self):
         """
-        https://moztrap.mozilla.org/manage/case/4031/
+        https://moztrap.mozilla.org/manage/case/3755/
         """
 
         music_app = Music(self.marionette)

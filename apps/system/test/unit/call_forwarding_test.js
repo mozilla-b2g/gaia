@@ -12,16 +12,6 @@ requireApp(
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 
-mocha.setup({
-  globals: [
-    'SIMSlotManager',
-    'SettingsHelper',
-    'CallForwarding',
-    'callForwarding',
-    'asyncStorage'
-  ]
-});
-
 suite('system/callForwarding >', function() {
   var realMobileConnections;
   var realSIMSlotManager;

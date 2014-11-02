@@ -91,7 +91,7 @@ section {
   width: 1000%;
   height: 100%;
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 
@@ -104,7 +104,9 @@ section {
 
 .card-thumbnail {
   position: absolute;
-  background: white;
+  background-color: white;
+  background-position: 50% 50%;
+  background-size: 100%;
   border-radius: 10rem;
   width: 20rem;
   height: 20rem;
@@ -142,4 +144,56 @@ section {
   line-height: 3rem;
   text-align: center;
   display: inline-block;
+}
+
+/* Folder tab */
+#folder-viewer {
+  position: absolute;
+  width: 100%;
+  top: 70%;
+  height: 20%;
+  background: RGBA(0, 0, 0, 0.7);
+}
+
+#folder-list-frame {
+  position: absolute;
+  top: calc(50% - 6rem);
+  left: calc(50% - 6rem);
+  overflow: hidden;
+  width: calc(50% + 6rem);
+  height: 12rem;
+}
+
+#folder-list {
+  position: relative;
+  width: 1000%;
+  height: 100%;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+
+.folder-card {
+  float: left;
+  height: 12rem;
+  width: 12rem;
+  margin: 0rem 2rem 0 2rem;
+}
+
+.folder-card-thumbnail {
+  position: absolute;
+  background: white;
+  border-radius: 5rem;
+  width: 10rem;
+  height: 10rem;
+}
+
+.folder-card-description {
+  position: absolute;
+  width: 9rem;
+  bottom: 0;
+  height: 3rem;
+  line-height: 3rem;
+  color: white;
+  text-align: center;
 }

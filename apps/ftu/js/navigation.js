@@ -237,16 +237,16 @@ var Navigation = {
       case '#welcome_browser':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
         var welcome = document.getElementById('browser_os_welcome');
-        navigator.mozL10n.setAttributes(welcome, 'htmlWelcome',
+        navigator.mozL10n.setAttributes(welcome, 'htmlWelcome2',
           getLocalizedLink('htmlWelcome'));
         var improve = document.getElementById('browser_os_improve');
-        navigator.mozL10n.setAttributes(improve, 'helpImprove',
+        navigator.mozL10n.setAttributes(improve, 'helpImprove2',
           getLocalizedLink('helpImprove'));
         break;
       case '#browser_privacy':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
         var linkPrivacy = document.getElementById('external-link-privacy');
-        navigator.mozL10n.setAttributes(linkPrivacy, 'learn-more-privacy',
+        navigator.mozL10n.setAttributes(linkPrivacy, 'learn-more-privacy2',
           getLocalizedLink('learn-more-privacy'));
         break;
       case '#SIM_mandatory':
@@ -261,10 +261,10 @@ var Navigation = {
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
         UIManager.navBar.classList.add('back-only');
         var linkTelemetry = document.getElementById('external-link-telemetry');
-        navigator.mozL10n.setAttributes(linkTelemetry, 'learn-more-telemetry',
+        navigator.mozL10n.setAttributes(linkTelemetry, 'learn-more-telemetry2',
           getLocalizedLink('learn-more-telemetry'));
         var linkInfo = document.getElementById('external-link-information');
-        navigator.mozL10n.setAttributes(linkInfo, 'learn-more-information',
+        navigator.mozL10n.setAttributes(linkInfo, 'learn-more-information2',
           getLocalizedLink('learn-more-information'));
         break;
     }

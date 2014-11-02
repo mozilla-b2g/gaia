@@ -1,4 +1,4 @@
-/*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
+/*global MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
          MockOptionMenu, Utils, Contacts, MockContact, Navigation,
@@ -8,10 +8,6 @@
          */
 
 'use strict';
-
-// remove this when https://github.com/visionmedia/mocha/issues/819 is merged in
-// mocha and when we have that new mocha in test agent
-mocha.setup({ globals: ['alert', 'confirm'] });
 
 requireApp('sms/js/utils.js');
 require('/js/dialog.js');
@@ -39,6 +35,8 @@ require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_inter_instance_event_dispatcher.js');
+require('/test/unit/mock_selection_handler.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',
@@ -54,6 +52,8 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'StickyHeader',
   'Navigation',
   'InterInstanceEventDispatcher',
+  'SelectionHandler',
+  'LazyLoader'
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -622,11 +622,15 @@ suite('thread_list_ui', function() {
 
         assert.isNotNull(document.getElementById('thread-' +thread.id));
       });
+
+      ThreadListUI.selectionHandler = null;
+      ThreadListUI.startEdit();
     });
 
     teardown(function() {
       ThreadListUI.container = '';
       Drafts.clear();
+      ThreadListUI.cancelEdit();
     });
 
     suite('confirm true', function() {
@@ -641,11 +645,9 @@ suite('thread_list_ui', function() {
       }
 
       function selectThreadsAndDelete(threadIds) {
-        threadIds.forEach((threadId) => {
-          ThreadListUI.container.querySelector(
-            '#thread-' + threadId + ' input[type=checkbox]'
-          ).checked = true;
-        });
+        var selectedIds = threadIds.map(threadId => '' + threadId);
+
+        ThreadListUI.selectionHandler.selected = new Set(selectedIds);
 
         Dialog.firstCall.args[0].options.confirm.method();
       }
@@ -1742,13 +1744,19 @@ suite('thread_list_ui', function() {
       thread2 = document.getElementById('thread-2');
     });
 
+    teardown(function() {
+      ThreadListUI.inEditMode = false;
+    });
+
     test('clicking on a list item', function() {
+      ThreadListUI.inEditMode = false;
       thread1.querySelector('a').click();
 
       sinon.assert.calledWith(Navigation.toPanel, 'thread', { id: 1 });
     });
 
     test('clicking on a list item in edit mode', function() {
+      ThreadListUI.inEditMode = true;
       thread1.querySelector('label').click();
 
       sinon.assert.notCalled(Navigation.toPanel);

@@ -364,9 +364,13 @@ var GaiaApps = {
 
   /**
    * Returns the currently displayed app.
+   * This is more like getDisplayedFrame really,
+   * as we return what frame the user is interacting with
    */
   getDisplayedApp: function() {
-    let app = window.wrappedJSObject.System.currentApp;
+    let app = window.wrappedJSObject.rocketbar.active ?
+        window.wrappedJSObject.rocketbar.searchWindow.getTopMostWindow() :
+        window.wrappedJSObject.System.currentApp;
 
     // If frontWindow is not null then a modal activityWindow 
     // containing an app is in focus

@@ -136,6 +136,7 @@ suite('navigation >', function() {
   });
 
   test('navigates backwards', function() {
+    MockIccHelper.setProperty('cardState', 'ready');
     Navigation.simMandatory = true;
     Navigation.totalSteps = numSteps; // explicitly set the total steps
 
@@ -300,7 +301,7 @@ suite('navigation >', function() {
             'aboutBrowser');
           var linkRef = document.getElementById('external-link-privacy');
           assert.equal(linkRef.getAttribute('data-l10n-id'),
-            'learn-more-privacy');
+            'learn-more-privacy2');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);

@@ -22,7 +22,7 @@ marionette('toggle calendar', function() {
 
   setup(function() {
     app = new Calendar(client);
-    app.launch({ hideSwipeHint: true });
+    app.launch();
   });
 
   function toggleLocalCalendar() {

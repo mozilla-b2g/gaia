@@ -1,0 +1,232 @@
+/* ----------------------------------
+
+ * BUTTONS: DEFAULT
+ * ---------------------------------- */
+[role="dialog"] button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+[role="dialog"] button,
+[role="dialog"] a[role="button"] {
+  width: 100%;
+  height: 3.8rem;
+  margin: 0 0 1rem;
+  padding: 0 1.5rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #fafafa url(images/ui/default.png) repeat-x left bottom;
+  border: 0.1rem solid #9f9f9f;
+  border-radius: 0.3rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 3.8rem;
+  color: #333;
+  text-align: center;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+/* Press (default & affirmative) */
+[role="dialog"] button:active,
+[role="dialog"] a[role="button"]:active,
+[role="dialog"] button.affirmative:active,
+[role="dialog"] a.affirmative[role="button"]:active  {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
+
+/* Affirmative */
+[role="dialog"] button.affirmative,
+[role="dialog"] a[role="button"].affirmative {
+  background-image: url(images/ui/affirmative.png);
+  background-color: #00caf2;
+  border-color: #00acce;
+}
+
+/* Negative */
+[role="dialog"] button.negative,
+[role="dialog"] a.negative[role="button"] {
+  background-image: url(images/ui/negative.png);
+  background-color: #b70404;
+  color: #fff;
+  text-shadow: -0.1rem -0.1rem 0 #830b0b;
+  border: none; 
+}
+
+/* Negative Press */
+[role="dialog"] button.negative:active,
+[role="dialog"] a[role="button"].negative:active {
+  background-image: url(images/ui/negative-press.png);
+  background-color: #890707;
+}
+
+/* Disabled (default & affirmative) */
+[role="dialog"] button[disabled="disabled"],
+[role="dialog"] a[role="button"][aria-disabled="true"],
+[role="dialog"] button[disabled="disabled"].affirmative,
+[role="dialog"] a[role="button"][aria-disabled="true"].affirmative {
+  background-image: url(images/ui/disabled-bright.png);
+  background-color: transparent;
+  border-color: #dadada;
+  color: #bcbcbc;
+}
+
+/* Disabled dark (default & affirmative) */
+[role="dialog"] menu button[disabled="disabled"],
+[role="dialog"] menu a[role="button"][aria-disabled="true"],
+[role="dialog"] menu button[disabled="disabled"].affirmative,
+[role="dialog"] menu a[role="button"][aria-disabled="true"].affirmative {
+  background-image: url(images/ui/disabled-dark.png);
+  background-color: transparent;
+  border: none;
+  color: #4a4a4a;
+  text-shadow: 0 0.1rem 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Negative disabled */
+[role="dialog"] button[disabled="disabled"].negative,
+[role="dialog"] a[role="button"][aria-disabled="true"].negative {
+  background-image: url(images/ui/negative-disabled.png);
+  color: #fff;
+  text-shadow: none;
+}
+
+/* Icons in buttons */
+[role="dialog"] button span,
+[role="dialog"] a[role="button"] span {
+  float: left;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0 0.5rem 0 -1rem;
+  background: transparent no-repeat center center;
+}
+
+[role="dialog"] button span.end,
+[role="dialog"] a[role="button"] span.end {
+  float: right;
+  margin: 0.3rem -1.5rem 0 1rem;
+}
+
+/* Icon base types */
+[role="dialog"] button span.goto,
+[role="dialog"] a[role="button"] span.goto {
+  background-image: url(images/icons/goto.png);
+}
+
+[role="dialog"] button span.launch,
+[role="dialog"] a[role="button"] span.launch {
+  background-image: url(images/icons/launch.png);
+  background-position: 1rem bottom;
+}
+
+[role="dialog"] button span.favorite,
+[role="dialog"] a[role="button"] span.favorite {
+  background-image: url(images/icons/favorite.png);
+}
+
+[role="dialog"] button span.call,
+[role="dialog"] a[role="button"] span.call {
+  background-image: url(images/icons/call.png);
+  background-position: center bottom;
+}
+
+[role="dialog"] button span.tick,
+[role="dialog"] a[role="button"] span.tick {
+  background-image: url(images/icons/tick.png);
+}
+
+
+/* ----------------------------------
+ * BUTTONS: LIST
+ * ---------------------------------- */
+[role="dialog"] .buttons-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+[role="dialog"] .buttons-list label {
+  font-size: 1.4rem;
+  line-height: 1em;
+  text-transform: uppercase;
+  display: block;
+  padding-left: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Default */
+[role="dialog"] .buttons-list button,
+[role="dialog"] .buttons-list a[role="button"] {
+  background: #e7e7e7;
+  border-color: #b6b6b6;
+  text-align: left;
+  font-size: 1.4rem;
+  line-height: 2.9rem;
+  position: relative;
+  overflow: visible;
+}
+
+[role="dialog"] .buttons-list a[role="button"]:after,
+[role="dialog"] .buttons-list button:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: url(images/ui/shadow.png) repeat-x left bottom;
+  height: 0.2rem;
+  margin-top: 0.1rem;
+  pointer-events: none;
+}
+
+/* Press */
+[role="dialog"] .buttons-list button:active,
+[role="dialog"] .buttons-list a[role="button"]:active {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
+
+[role="dialog"] .buttons-list a[role="button"]:active:after,
+[role="dialog"] .buttons-list button:active:after {
+  opacity: 0;
+}
+
+/* Disabled */
+[role="dialog"] .buttons-list button[disabled="disabled"],
+[role="dialog"] .buttons-list a[role="button"][aria-disabled="true"] {
+  background: #ededed;
+  border-color: #d3d3d3;
+  color: #a6a6a6;
+}
+
+[role="dialog"] .buttons-list button[disabled="disabled"]:after,
+[role="dialog"] .buttons-list a[role="button"][aria-disabled="true"]:after {
+  opacity: 1;
+}
+
+
+/* Compact mode */
+[role="dialog"] .buttons-list[data-mode="compact"] { margin-bottom: 1rem; }
+[role="dialog"] .buttons-list[data-mode="compact"] button,
+[role="dialog"] .buttons-list[data-mode="compact"] a[role="button"] {
+  margin: -0.1rem 0;
+  border-radius: 0;
+}
+
+[role="dialog"] .buttons-list[data-mode="compact"] li:first-child button,
+[role="dialog"] .buttons-list[data-mode="compact"] li:first-child a[role="button"] {
+  border-radius: 0.3rem 0.3rem 0 0;
+}
+
+[role="dialog"] .buttons-list[data-mode="compact"] li:last-child button,
+[role="dialog"] .buttons-list[data-mode="compact"] li:last-child a[role="button"] {
+  border-radius:0 0 0.3rem 0.3rem;
+}

@@ -1,5 +1,3 @@
-mocha.setup({ globals: ['GestureDetector'] });
-
 suite('Spinner', function() {
   'use strict';
   

@@ -106,7 +106,8 @@
   var COLON = 58;
   var SEMICOLON = 59;
   var ATPERSAND = 64;
-
+  var DOUBLEQUOTE = 34;
+  var CLOSEPAREN = 41;
   // all whitespace characters
   // U+FFFC place holder is added to white space
   // this enables suggestions
@@ -388,6 +389,8 @@
             case COMMA:
             case COLON:
             case SEMICOLON:
+            case DOUBLEQUOTE:
+            case CLOSEPAREN:
             // These keys may trigger word or punctuation corrections
             handler = handleCorrections(keyCode);
           correctionDisabled = false;

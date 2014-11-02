@@ -336,10 +336,6 @@ form[role="dialog"][data-type="edit"] {
   transform: translateY(0);
 }
 
-.edit .undo-candidate {
-  display: none;
-}
-
 /*
   Styles for new message
 */
@@ -689,7 +685,7 @@ Do not remove.
 
 .recipient[contenteditable].email {
   -moz-padding-end: 3.8rem;
-  background: white url(images/icons/icon_sms_compose_email.png) calc(100% - 1.5rem) center no-repeat;
+  background: white url(images/icons/icon_sms_compose_email.png) right 1.5rem center / 1.7rem no-repeat;
 }
 
 #messages-recipients-list > .recipient[contenteditable=true] {
@@ -854,10 +850,10 @@ body[role="application"] form[role="dialog"][data-type="action"] > header:first-
  */
 
 /* Elements related to information view */
-section[role="region"][class$='information'] #messages-options-button,
-section[role="region"][class$='information'] #messages-subheader,
-section[role="region"][class$='information'] #messages-container,
-section[role="region"][class$='information'] #messages-compose-form {
+section[role="region"][class*='-information'] #messages-options-button,
+section[role="region"][class*='-information'] #messages-subheader,
+section[role="region"][class*='-information'] #messages-container,
+section[role="region"][class*='-information'] #messages-compose-form {
   display: none !important; /* 1 */
 }
 
