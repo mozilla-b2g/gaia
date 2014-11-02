@@ -154,23 +154,26 @@ suite('telephony helper', function() {
     assert.isNull(mockActive.onheld);
   });
 
-  test('should NOT hold the active line before dialing in CDMA mode',
-  function() {
-    MockNavigatorMozMobileConnections[0].voice.type = 'evdoa';
-    var dialNumber = '123456';
-    var holdStub = this.sinon.stub();
-    var mockActive = {
-      number: '1111',
-      state: 'connected',
-      hold: holdStub
-    };
-    MockNavigatorMozTelephony.active = mockActive;
+  ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b', 'ehrpd'].forEach(
+  function(type) {
+    test('should NOT hold the active line before dialing in CDMA mode ' + type,
+    function() {
+      MockNavigatorMozMobileConnections[0].voice.type = type;
+      var dialNumber = '123456';
+      var holdStub = this.sinon.stub();
+      var mockActive = {
+        number: '1111',
+        state: 'connected',
+        hold: holdStub
+      };
+      MockNavigatorMozTelephony.active = mockActive;
 
-    subject.call(dialNumber, 0);
-    delete MockNavigatorMozTelephony.active;
-    sinon.assert.calledWith(navigator.mozTelephony.dial, dialNumber);
+      subject.call(dialNumber, 0);
+      delete MockNavigatorMozTelephony.active;
+      sinon.assert.calledWith(navigator.mozTelephony.dial, dialNumber);
 
-    assert.isFalse(holdStub.calledBefore(navigator.mozTelephony.dial));
+      assert.isFalse(holdStub.calledBefore(navigator.mozTelephony.dial));
+    });
   });
 
   test('should hold the active group call before dialing (if there is one)',
