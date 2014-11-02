@@ -693,6 +693,7 @@ return [
       this.curFilter = filter;
 
       if (phrase.length < 1) {
+        this.showEmptyLayout();
         return false;
       }
 
