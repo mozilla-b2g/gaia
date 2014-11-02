@@ -89,10 +89,7 @@ return View.extend({
   },
 
   template: function() {
-    return '<div class="frame-container js-frame-container">' +
-        '<div class="media-frame js-media-frame"></div>' +
-      '</div>' +
-      '<div class="preview-menu js-preview-menu">' +
+    return '<div class="preview-menu js-preview-menu">' +
         '<gaia-header class="js-header" action="back">' +
           '<h1 data-l10n-id="preview">Preview</h1>' +
           '<button class="preview-share-icon js-share"' +
@@ -101,7 +98,10 @@ return View.extend({
             'js-options" name="options" data-icon="more"></button>' +
         '</gaia-header>' +
       '</div>' +
-    '<div class="count-text js-count-text"></div>';
+      '<div class="frame-container js-frame-container">' +
+        '<div class="media-frame js-media-frame"></div>' +
+      '</div>' +
+      '<div class="count-text js-count-text"></div>';
   },
 
   onTap: function() {
