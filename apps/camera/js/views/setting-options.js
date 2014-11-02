@@ -66,6 +66,7 @@ module.exports = View.extend({
 
     li.textContent = localizable ? this.l10n.get(option.title) : option.title;
     li.setAttribute('data-key', option.key);
+    li.setAttribute('role','menuitem');
     li.className = 'setting-option';
     li.dataset.icon = 'tick';
     this.els.ul.appendChild(li);
@@ -83,7 +84,9 @@ module.exports = View.extend({
       '<button class="settings-back-btn js-back" data-icon="back">' +
       '</button>' +
       this.l10n.get(data.header) + '</h2>' +
-      '<div class="settings_items"><ul class="inner js-list"></ul></div>' +
+      '<div class="settings_items">' +
+         '<ul class="inner js-list" role="menu"></ul>' +
+      '</div>' +
     '</div>';
   }
 });
