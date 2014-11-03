@@ -17,6 +17,7 @@
   font-size: 1.4rem;
   font-weight: 500;
   padding: 1rem 0;
+  pointer-events: auto;
 }
 
 .icon-battery {
