@@ -1,6 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
+/* global secureWindowManager */
 
 (function(exports) {
   /**
@@ -54,7 +55,8 @@
                 'ftudone',
                 'overlaystart',
                 'showlockscreenwindow',
-                'home'
+                'home',
+                'secure-appclosed'
                ]
     }
   };
@@ -122,7 +124,8 @@
           app = evt.detail;
           this.unregisterApp(app);
           break;
-        case 'lockscreen-appclose':
+        case 'secure-appclosed':
+          this.states.instance.lockOrientation();
           break;
         case 'screenchange':
           // The screenchange may be invoked by proximity sensor,
@@ -132,6 +135,13 @@
           if ('proximity' !== evt.detail.screenOffBy &&
               !this.states.FTUOccurs &&
               this.states.ready) {
+            if (evt.detail.screenEnabled && this.states.instance &&
+                this.states.instance.isActive() &&
+                !secureWindowManager.isActive()) {
+               // Need to lock the orientation to prevent app open
+               // and lock screen as landscape mode.
+               this.states.instance.lockOrientation();
+            }
             // The app would be inactive while screen off.
             this.openApp();
           }
