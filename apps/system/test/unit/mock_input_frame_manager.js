@@ -2,37 +2,43 @@
 
 (function(exports) {
   var MockInputFrameManager = function() {
+    this._inputWindows = {};
+
     return this;
   };
 
   MockInputFrameManager.prototype = {
-    runningLayouts: {},
-
     start: function mifm_start() {
     },
 
     stop: function mifm_stop() {
     },
 
-    handleEvent: function mifm_handleEvent() {
+    removeKeyboard: function mifm_removeKeyboard() {
     },
 
-    setupFrame: function mifm_setupFrame() {
+    getHeight: function mifm_getHeight() {
     },
 
-    resetFrame: function mifm_resetFrame() {
+    hasActiveKeyboard: function mifm_hasActiveKeyboard() {
     },
 
-    launchFrame: function mifm_launchFrame() {
+    preloadInputWindow: function mifm_preloadInputWindow() {
     },
 
-    destroyFrame: function mifm_destroyFrame() {
+    showInputWindow: function mifm_showInputWindow() {
     },
 
-    removeKeyboard:
-    function mifm_removeKeyboard(manifestURL) {
-      delete this.runningLayouts[manifestURL];
+    hideInputWindow: function mifm_hideInputWindow() {
     },
+
+    hideInputWindowImmediately: function mifm_hideInputWindowImmediately() {
+    },
+
+    getLoadedManifestURLs: function mifm_getLoadedManifestURLs() {
+      return [];
+    }
+
   };
 
   exports.MockInputFrameManager = MockInputFrameManager;
