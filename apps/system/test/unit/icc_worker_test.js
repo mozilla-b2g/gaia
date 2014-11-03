@@ -191,12 +191,10 @@ suite('STK (icc_worker) >', function() {
     MockNotifications[0].onshow();
   });
 
-  test('STK_CMD_REFRESH', function(done) {
-    window.icc.onresponse = function(message, response) {
-      assert.equal(response.resultCode, navigator.mozIccManager.STK_RESULT_OK);
-      done();
-    };
+  test('STK_CMD_REFRESH', function() {
+    var spy = this.sinon.spy(icc_worker, '0x1');
     launchStkCommand(stkTestCommands.STK_CMD_REFRESH);
+    assert.isTrue(spy.calledWith(stkTestCommands.STK_CMD_REFRESH));
   });
 
   test('STK_CMD_PLAY_TONE', function(done) {

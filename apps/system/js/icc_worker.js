@@ -22,9 +22,6 @@ var icc_worker = {
     if (this.idleTextNotifications[message.iccId]) {
       this.idleTextNotifications[message.iccId].close();
     }
-    icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
-    });
   },
 
   // STK_CMD_POLL_INTERVAL
