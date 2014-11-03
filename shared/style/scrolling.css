@@ -11,8 +11,8 @@ nav[data-type="scrollbar"] {
 /* Mirror */
 nav[data-type="scrollbar"] p {
   position: absolute;
-  right: 5rem;
-  top: 20%;
+  right: 10rem;
+  top: 9rem;
   margin: 0;
   width: 12rem;
   height: 12rem;
@@ -88,6 +88,5 @@ nav[data-type="scrollbar"] li .pack-icon-favorites {
 
 /* Themes */
 /*.skin-comms*/ nav[data-type="scrollbar"] p {
-  background: rgba(51,204,204,0.8);
+  background-color: rgba(80, 80, 80, 0.8);
 }
-
