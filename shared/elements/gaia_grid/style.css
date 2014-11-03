@@ -331,3 +331,33 @@
   transform: scaleY(1);
   opacity: 1;
 }
+
+/* A hint element for dragging items to the top of the group */
+.edit-mode::after {
+  content: ' ';
+  display: block;
+  width: 100%;
+  height: 0.8rem;
+  z-index: 2;
+  opacity: 0;
+  background-color: #0095dd;
+
+  position: relative;
+  top: -0.8rem;
+}
+
+.edit-mode.dragging::after {
+  opacity: 1;
+}
+
+/* Shift container downwards when hovering over the top to reveal the group
+ * creation hint.
+ */
+.edit-mode {
+  will-change: transform;
+  transition: transform 0.25s;
+}
+
+.edit-mode.hover-over-top {
+  transform: translateY(0.8rem);
+}
