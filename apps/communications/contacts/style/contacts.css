@@ -1031,10 +1031,10 @@ form[role="combobox"] span[data-field="type"] {
   }
   80% {
     opacity: 0;
-    transform: rotate(0);
   }
   100% {
     opacity: 0;
+    transform: none;
   }
 }
 
@@ -1062,6 +1062,7 @@ form[role="combobox"] span[data-field="type"] {
 @keyframes red-cross {
   0% {
     opacity: 0;
+    transform: none;
   }
   20% {
     opacity: 0;
@@ -1075,11 +1076,11 @@ form[role="combobox"] span[data-field="type"] {
   }
   80% {
     opacity: 0.66;
-    transform: none;
+    transform: rotate(-7deg);
   }
   100% {
     opacity: 1;
-    transform: none;
+    transform: rotate(0deg);
   }
 }
 
