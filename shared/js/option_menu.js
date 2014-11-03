@@ -149,6 +149,10 @@ var OptionMenu = function(options) {
     if (!this.form.classList.contains('visible') && this.form.parentNode) {
       document.body.removeChild(this.form);
     }
+
+    // If we add a class, the animation will not be perform properly.
+    // see Bug 1095338 for further information
+    document.body.style.pointerEvents = 'initial';
   }.bind(this));
 
   menu.addEventListener('click', function(event) {
@@ -187,6 +191,10 @@ OptionMenu.prototype.show = function() {
     this.form.clientTop;
   }
   this.form.classList.add('visible');
+  // Prevent to execute another action.
+  // If we add a class, the animation will not be perform properly.
+  // see Bug 1095338 for further information
+  document.body.style.pointerEvents = 'none';
   // Focus form to blur anything triggered keyboard
   this.form.focus();
 };
