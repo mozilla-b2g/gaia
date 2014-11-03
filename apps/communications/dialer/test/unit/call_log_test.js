@@ -1016,4 +1016,27 @@ suite('dialer/call_log', function() {
       });
     });
   });
+
+  suite('locale changes', function() {
+    setup(function() {
+      this.sinon.spy(CallLog, 'updateHeaderCount');
+      this.sinon.stub(navigator.mozL10n, 'ready');
+      CallLog._initialized = false;
+      CallLog.init();
+    });
+
+    test('should update header count when editing', function() {
+      document.body.classList.add('recents-edit');
+      sinon.assert.notCalled(CallLog.updateHeaderCount);
+      navigator.mozL10n.ready.yield();
+      sinon.assert.calledOnce(CallLog.updateHeaderCount);
+    });
+
+    test('should not update header count when not editing', function() {
+      document.body.classList.remove('recents-edit');
+      sinon.assert.notCalled(CallLog.updateHeaderCount);
+      navigator.mozL10n.ready.yield();
+      sinon.assert.notCalled(CallLog.updateHeaderCount);
+    });
+  });
 });
