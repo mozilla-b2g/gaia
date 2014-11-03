@@ -62,10 +62,11 @@ class TestSetupAndSendIMAPEmail(GaiaTestCase):
         # wait for the email to be sent before we tap refresh
         self.email.wait_for_email(_subject)
 
-        # assert that the email app subject is in the email list
-        self.assertIn(_subject, [mail.subject for mail in self.email.mails])
-
-        read_email = self.email.mails[0].tap_subject()
+        # go through emails list and tap the email that has the expected subject
+        for mail in self.email.mails:
+            if mail.subject == _subject:
+                read_email = mail.tap_subject()
+                break
 
         self.assertEqual(_body, read_email.body.splitlines()[0])
         self.assertEqual(_subject, read_email.subject)

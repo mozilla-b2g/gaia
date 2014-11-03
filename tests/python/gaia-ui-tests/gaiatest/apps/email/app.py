@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette import Wait
+from marionette import expected
 from marionette.by import By
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -249,8 +250,8 @@ class Message(PageRegion):
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [self.root_element])
 
     def tap_subject(self):
-        el = self.root_element.find_element(*self._subject_locator)
-        self.wait_for_element_displayed(*self._subject_locator)
-        self.root_element.find_element(*self._subject_locator).tap()
+        subject = self.root_element.find_element(*self._subject_locator)
+        Wait(self.marionette).until(expected.element_enabled(subject))
+        subject.tap()
         from gaiatest.apps.email.regions.read_email import ReadEmail
         return ReadEmail(self.marionette)
