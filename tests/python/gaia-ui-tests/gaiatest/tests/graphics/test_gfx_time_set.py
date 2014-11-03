@@ -20,7 +20,7 @@ class TestTimeChange(GaiaImageCompareTestCase):
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
-        self.connect_to_network()
+        self.data_layer.connect_to_wifi()
         self.data_layer.set_time(self._seconds_since_epoch * 1000)
         self.data_layer.set_setting('time.timezone', 'Atlantic/Reykjavik')
 
