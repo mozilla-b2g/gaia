@@ -207,10 +207,6 @@
   visibility: visible;
 }
 
-.appWindow.homescreen.fadeout .fade-overlay {
-  opacity: 1;
-}
-
 .appWindow > .touch-blocker {
   visibility: hidden;
   background: transparent;
