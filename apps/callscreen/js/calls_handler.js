@@ -125,6 +125,13 @@ var CallsHandler = (function callsHandler() {
       }
     }
 
+    // To avoid flicking, since the on hold button is visible by default for
+    //  GSM networks, in the case of CDMA networks the on hold and merge buttons
+    //  are hidden before showing the call screen since these capabilities
+    //  are not available.
+    if (isFirstCallOnCdmaNetwork()) {
+      CallScreen.hideOnHoldAndMergeContainer();
+    }
     CallScreen.toggle();
     exitCallScreenIfNoCalls();
   }
@@ -177,6 +184,7 @@ var CallsHandler = (function callsHandler() {
       // User performed another outgoing call. show its status.
       } else {
         updatePlaceNewCall();
+        updateMergeAndOnHoldStatus();
         hc.show();
       }
     } else {
@@ -543,13 +551,18 @@ var CallsHandler = (function callsHandler() {
     if (telephony.active) {
       telephony.active.hold();
       CallScreen.render('connected-hold');
+      CallScreen.disableMuteButton();
+      CallScreen.disableSpeakerButton();
     } else {
       var line = telephony.calls.length ?
         telephony.calls[0] : telephony.conferenceGroup;
 
       line.resume();
       CallScreen.render('connected');
+      CallScreen.enableMuteButton();
+      CallScreen.enableSpeakerButton();
     }
+    CallScreen.toggleOnHold();
   }
 
   // Hang up the held call or the second incoming call
@@ -742,16 +755,12 @@ var CallsHandler = (function callsHandler() {
              (telephony.conferenceGroup.calls.length > 0));
   }
 
-  function mergeActiveCallWith(call) {
-    if (telephony.active == telephony.conferenceGroup) {
-      telephony.conferenceGroup.add(call);
+  function mergeCalls() {
+    if (!telephony.conferenceGroup.calls.length) {
+      telephony.conferenceGroup.add(telephony.calls[0], telephony.calls[1]);
     } else {
-      telephony.conferenceGroup.add(telephony.active, call);
+      telephony.conferenceGroup.add(telephony.calls[0]);
     }
-  }
-
-  function mergeConferenceGroupWithActiveCall() {
-    telephony.conferenceGroup.add(telephony.active);
   }
 
   /* === Telephony audio channel competing functions ===*/
@@ -782,14 +791,41 @@ var CallsHandler = (function callsHandler() {
     holdOrResumeSingleCall();
   }
 
-  function updatePlaceNewCall() {
-    var isEstablishing = telephony.calls.some(function (call) {
+  function isEstablishingCall() {
+    return telephony.calls.some(function(call) {
       return call.state == 'dialing' || call.state == 'alerting';
     });
-    if (telephony.calls && isEstablishing) {
-      CallScreen.disablePlaceNewCall();
+  }
+
+  function updatePlaceNewCall() {
+    if (isEstablishingCall()) {
+      CallScreen.disablePlaceNewCallButton();
     } else {
-      CallScreen.enablePlaceNewCall();
+      CallScreen.enablePlaceNewCallButton();
+    }
+  }
+
+  function updateMergeAndOnHoldStatus() {
+    // CDMA networks do not have the option to put calls on hold or to merge
+    //  calls and consequently both buttons are hidden. So, just return.
+    if (isFirstCallOnCdmaNetwork()) {
+      return;
+    }
+    var isEstablishing = isEstablishingCall();
+    var openLines = telephony.calls.length +
+      (telephony.conferenceGroup.calls.length ? 1 : 0);
+
+    if (openLines > 1 && !isEstablishing) {
+      CallScreen.hideOnHoldButton();
+      CallScreen.showMergeButton();
+    } else {
+      if (isEstablishing) {
+        CallScreen.disableOnHoldButton();
+      } else {
+        CallScreen.enableOnHoldButton();
+      }
+      CallScreen.hideMergeButton();
+      CallScreen.showOnHoldButton();
     }
   }
 
@@ -808,13 +844,14 @@ var CallsHandler = (function callsHandler() {
     switchToReceiver: switchToReceiver,
     switchToSpeaker: switchToSpeaker,
     switchToDefaultOut: switchToDefaultOut,
+    holdOrResumeSingleCall: holdOrResumeSingleCall,
 
     checkCalls: onCallsChanged,
-    mergeActiveCallWith: mergeActiveCallWith,
-    mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
+    mergeCalls: mergeCalls,
     updateAllPhoneNumberDisplays: updateAllPhoneNumberDisplays,
     updatePlaceNewCall: updatePlaceNewCall,
     exitCallScreenIfNoCalls: exitCallScreenIfNoCalls,
+    updateMergeAndOnHoldStatus: updateMergeAndOnHoldStatus,
 
     get activeCall() {
       return activeCall();

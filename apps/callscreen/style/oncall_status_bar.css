@@ -49,8 +49,7 @@
   #views,
   #lockscreen-header,
   #group-call-details,
-  .additionalContactInfo,
-  .merge-button {
+  .additionalContactInfo {
     display: none;
   }
 
