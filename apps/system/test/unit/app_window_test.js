@@ -24,6 +24,20 @@ var mocksForAppWindow = new MocksHelper([
 suite('system/AppWindow', function() {
   var realPermissionSettings;
   mocksForAppWindow.attachTestHelpers();
+
+  var fakeDOMRequest = {
+    onsuccess: function() {},
+    onerror: function() {},
+    then: function(success, error) {
+      this.onsuccess = function(evt) {
+        success(evt.target.result);
+      };
+      this.onerror = function() {
+        error();
+      };
+    }
+  };
+
   setup(function(done) {
     this.sinon.useFakeTimers();
 
@@ -831,22 +845,13 @@ suite('system/AppWindow', function() {
     reload: function() {},
     stop: function() {},
     getCanGoForward: function() {
-      return {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
+      return fakeDOMRequest;
     },
     getCanGoBack: function() {
-      return {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
+      return fakeDOMRequest;
     },
     getScreenshot: function() {
-      return {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
+      return fakeDOMRequest;
     },
     addNextPaintListener: function() {},
     removeNextPaintListener: function() {}
@@ -950,11 +955,6 @@ suite('system/AppWindow', function() {
       var stubScreenshot = this.sinon.stub(app1.browser.element,
         'getScreenshot');
 
-      var fakeDOMRequest = {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
-
       stubScreenshot.returns(fakeDOMRequest);
 
       var callback1 = this.sinon.spy();
@@ -979,11 +979,6 @@ suite('system/AppWindow', function() {
       var stubScreenshot2 = this.sinon.stub(app2.browser.element,
         'getScreenshot');
 
-      var fakeDOMRequest = {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
-
       stubScreenshot.returns(fakeDOMRequest);
       stubScreenshot2.returns(fakeDOMRequest);
 
@@ -1007,11 +1002,6 @@ suite('system/AppWindow', function() {
       var stubCanGoForward = this.sinon.stub(app1.browser.element,
         'getCanGoForward');
 
-      var fakeDOMRequest = {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
-
       stubCanGoForward.returns(fakeDOMRequest);
 
       var callback = this.sinon.spy();
@@ -1031,11 +1021,6 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       var stubCanGoBack = this.sinon.stub(app1.browser.element, 'getCanGoBack');
-
-      var fakeDOMRequest = {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
 
       stubCanGoBack.returns(fakeDOMRequest);
 
