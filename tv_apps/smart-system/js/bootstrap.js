@@ -1,13 +1,12 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ActivityWindowManager, SecureWindowFactory,
-         SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
+/*global ActivityWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, ScreenManager, Activities,
          DeveloperHUD, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage,
          SuspendingAppPriorityManager, TTLView,
-         MediaRecording, AppWindowFactory, SystemDialogManager,
+         MediaRecording, AppWindowFactory,
          applications, LayoutManager, PermissionManager, Accessibility,
          TextSelectionDialog, SleepMenu,
          ExternalStorageMonitor*/
@@ -39,17 +38,9 @@ window.addEventListener('load', function startup() {
     window.activityWindowManager = new ActivityWindowManager();
     window.activityWindowManager.start();
     /** @global */
-    window.secureWindowManager = window.secureWindowManager ||
-      new SecureWindowManager();
-    /** @global */
-    window.secureWindowFactory = new SecureWindowFactory();
-    /** @global */
     if (window.SuspendingAppPriorityManager) {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
-    /** @global */
-    window.systemDialogManager = window.systemDialogManager ||
-      new SystemDialogManager();
 
     window.AppWindowManager.init();
 
