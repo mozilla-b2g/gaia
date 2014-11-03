@@ -24,12 +24,15 @@ and talk to us on IRC:
 
 [The Gaia/Hacking page on MDN](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Gaia/Hacking) has all the information that you need to start working on Gaia, including building and running Gaia on a compatible device or desktop computer.
 
-## Shepherd (bot)
+## Autolander (bot)
 
-Opt-into new features by adding +shepherd to your first commit.
+Opt-into new features by adding +autolander to your pull request title.
 
 Features available:
-  - automatic github -> bugzilla linking
+  - Automatic pull request to bugzilla attachment linking.
+  - On checkin-needed and a R+ from a suggested reviewer in bugzilla, will try to integrate the pull request.
+  - Integration includes pulling the pull request into an integration branch, running tests on taskcluster, and merging to master when green.
+  - Autolander will update the bug with the landing commit, and resolve the bug as fixed.
 
 
 ## Tests
