@@ -25,7 +25,6 @@ define(function(require) {
    * @returns {ApnSelections}
    */
   function ApnSelections() {
-    this._isReady = false;
     this._readyPromise = null;
     this._apnSelections = [];
   }
@@ -114,34 +113,39 @@ define(function(require) {
      * @returns {Promise}
      */
     _ready: function as__ready() {
-      if (this._isReady) {
-        return Promise.resolve();
-      } else {
         // This ensures that the ready process being executed only once.
-        if (!this._readyPromise) {
-          var that = this;
-          this._readyPromise = new Promise(function(resolve) {
-            SettingsCache.getSettings(function(results) {
-              resolve(results[APN_SELECTIONS_KEY]);
-            });
-          }).then(function(apnSelections) {
-            if (apnSelections) {
-              return apnSelections;
-            } else {
-              return that._createEmptySelections();
-            }
-          }).then(function(apnSelections) {
-            // Turn the selections to observables
-            that._isReady = true;
-            apnSelections.forEach(function(selection, index) {
-              var observableApnSelection = Observable(selection);
-              that._observeApnSelections(observableApnSelection);
-              that._apnSelections[index] = observableApnSelection;
-            });
+      if (!this._readyPromise) {
+        var that = this;
+        this._readyPromise = new Promise(function(resolve) {
+          SettingsCache.getSettings(function(results) {
+            resolve(results[APN_SELECTIONS_KEY]);
           });
-        }
-        return this._readyPromise;
+        }).then(function(apnSelections) {
+          if (apnSelections) {
+            return apnSelections;
+          } else {
+            return that._createEmptySelections();
+          }
+        }).then(function(apnSelections) {
+          // Turn the selections to observables
+          apnSelections.forEach(function(selection, index) {
+            var observableApnSelection = Observable(selection);
+            that._observeApnSelections(observableApnSelection);
+            that._apnSelections[index] = observableApnSelection;
+          });
+
+          // Clear the entire apn selection states when the selections are
+          // cleared by other apps (usually the wap push app).
+          navigator.mozSettings.addObserver(APN_SELECTIONS_KEY,
+            function(event) {
+              if (event.settingValue === null) {
+                that._readyPromise = null;
+              }
+          });
+        });
       }
+
+      return this._readyPromise;
     },
 
     /**
