@@ -278,8 +278,8 @@ suite('SMS App Unit-Test', function() {
         // Given a number, we should retrieve the contact and update the info
         var threadWithContact = document.getElementById('thread-1');
         assert.equal(
-          threadWithContact.querySelector('.name').textContent,
-          'Pepito O\'Hare'
+          threadWithContact.querySelector('.threadlist-item-title').innerHTML,
+          '<bdi>Pepito O\'Hare</bdi>'
         );
       });
     });

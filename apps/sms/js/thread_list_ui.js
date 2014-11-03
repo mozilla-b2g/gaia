@@ -15,6 +15,12 @@
 
 const privateMembers = new WeakMap();
 
+function createBdiNode(content) {
+  var bdi = document.createElement('bdi');
+  bdi.textContent = content;
+  return bdi;
+}
+
 var ThreadListUI = {
   draftLinks: null,
   draftRegistry: null,
@@ -132,11 +138,12 @@ var ThreadListUI = {
 
     var threadNumbers = threadOrDraft.participants || threadOrDraft.recipients;
 
-    var name = node.querySelector('.name');
+    var titleContainer = node.querySelector('.threadlist-item-title');
+    var title = titleContainer.firstElementChild;
     var picture = node.querySelector('.threadlist-item-picture');
 
     if (!threadNumbers || !threadNumbers.length) {
-      name.setAttribute('data-l10n-id', 'no-recipient');
+      title.setAttribute('data-l10n-id', 'no-recipient');
       return;
     }
 
@@ -149,7 +156,7 @@ var ThreadListUI = {
         'default-picture', isContact && !contact.photoURL
       );
 
-      name.textContent = contact.title || number;
+      title.textContent = contact.title || number;
 
       var photoUrl = node.dataset.photoUrl;
       if (photoUrl) {
@@ -178,21 +185,33 @@ var ThreadListUI = {
 
     function* updateGroupThreadNode(numbers, titleMaxLength) {
       var contactTitle, number;
-      var threadTitle = '';
       var i = 0;
+      var threadTitleLength = 0;
+
+      var groupTitle = document.createElement('span');
+      var separatorNode = document.createElement('span');
+      separatorNode.setAttribute(
+        'data-l10n-id',
+        'thread-participant-separator'
+      );
 
       picture.firstElementChild.textContent = numbers.length;
       picture.classList.add('has-picture', 'group-picture');
 
-      while (i < numbers.length && threadTitle.length < titleMaxLength) {
+      while (i < numbers.length && threadTitleLength < titleMaxLength) {
         number = numbers[i++];
 
         contactTitle = (yield ThreadListUI.findContact(number)).title || number;
 
-        threadTitle += threadTitle ? ', ' + contactTitle : contactTitle;
+        if (threadTitleLength > 0) {
+          groupTitle.appendChild(separatorNode.cloneNode(true));
+        }
+        groupTitle.appendChild(createBdiNode(contactTitle));
+
+        threadTitleLength += contactTitle.length;
       }
 
-      name.textContent = threadTitle;
+      titleContainer.replaceChild(groupTitle, title);
     }
 
     if (threadNumbers.length === 1) {
