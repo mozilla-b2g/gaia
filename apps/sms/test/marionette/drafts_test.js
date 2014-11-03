@@ -61,7 +61,7 @@ marionette('Messages Drafts', function() {
 
       messagesApp.selectAppMenuOption('Save as Draft');
       var firstThread = messagesApp.ThreadList.firstThread;
-      assert.ok(firstThread.getAttribute('class').indexOf('draft') != -1);
+      assert.ok(firstThread.getAttribute('class').indexOf('draft') !== -1);
       firstThread.tap();
 
       assert.ok(composer.attachment);
