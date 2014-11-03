@@ -18,6 +18,7 @@
 /* global LockScreenStateSlideShow, LockScreenStateSlideHide */
 /* global LockScreenStateKeypadShow */
 /* global LockScreenStateKeypadHiding, LockScreenStateKeypadRising */
+/* global LockScreenStateKeypadShowFulfilledPasscode */
 /* global LockScreenStatePanelHide */
 /* global LockScreenStateUnlock */
 /* global LockScreenStateSlideRestore */
@@ -104,6 +105,9 @@
       keypadShow: (new LockScreenStateKeypadShow()).start(this.lockScreen),
       keypadHiding: (new LockScreenStateKeypadHiding()).start(this.lockScreen),
       keypadRising: (new LockScreenStateKeypadRising()).start(this.lockScreen),
+      keypadShowFulfilledPasscode:
+        (new LockScreenStateKeypadShowFulfilledPasscode())
+        .start(this.lockScreen),
       panelHide: (new LockScreenStatePanelHide()).start(this.lockScreen),
       unlock: (new LockScreenStateUnlock()).start(this.lockScreen)
     };
@@ -245,8 +249,12 @@
       unlocking: true
     },
     ['keypadShow'],
-    this.states.keypadHiding,
+    this.states.keypadShowFulfilledPasscode,
     'When it unlock with passcode, hide all panel with animation.');
+
+    this.registerRule({},
+      ['keypadShowFulfilledPasscode'],
+      this.states.keypadHiding);
 
     this.registerRule({
       passcodeEnabled: true,

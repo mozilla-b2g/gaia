@@ -40,7 +40,10 @@
   };
   LockScreenInputpad.prototype.start = function() {
     this.addEventListener('lockscreen-notify-passcode-validationfailed');
-    this.addEventListener('lockscreen-notify-passcode-validationsuccess');
+    // No need to handle validationsuccess since to clear the status must keep
+    // sync with the pad close and open, rather than do it hurriedly before
+    // the pad been closed.
+
     // Need these to reset status.
     this.addEventListener('lockscreen-appclosed', this);
     this.addEventListener('lockscreen-inputappclosed', this);
@@ -97,12 +100,9 @@
             this.removeErrorPasscodeUI();
             this.updatePassCodeUI();
           });
-      case 'lockscreen-notify-passcode-validationsuccess':
-        this.resetPasscodeStatus();
-        this.updatePassCodeUI();
-      break;
       case 'lockscreen-inputappclosed':
       case 'lockscreen-appclosed':
+        this.resetPasscodeStatus();
         this.removeErrorPasscodeUI();
         this.updatePassCodeUI();
       break;
