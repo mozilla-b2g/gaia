@@ -163,7 +163,6 @@
     <script defer src="js/sleep_menu.js"></script>
 
     <!-- Keyboard -->
-    <script defer src="js/input_transition.js"></script>
     <script defer src="js/ime_switcher.js"></script>
     <script defer src="js/input_frame_manager.js"></script>
     <script defer src="js/input_layouts.js"></script>
@@ -413,6 +412,7 @@
     <script defer src="js/visibility_manager.js"></script>
     <script defer src="js/layout_manager.js"></script>
     <script defer src="js/suspending_app_priority_manager.js"></script>
+    <script defer src="js/input_window.js"></script>
 
     <!-- Edge Gestures -->
     <script defer src="js/stack_manager.js"></script>
@@ -1077,7 +1077,7 @@
       <div id="ambient-indicator" data-z-index-level="notification-toaster"></div>
 
       <!-- keyboard -->
-      <div id="keyboards" class="hide" data-z-index-level="keyboards"></div>
+      <div id="keyboards" data-z-index-level="keyboards"></div>
 
       <!-- template for IME Menu. -->
       <div id="ime-menu-template" hidden>

@@ -7,20 +7,33 @@
 
   width: 100%;
   height: 100%;
-
-  transform: translateY(0);
-  transition: opacity 0.2s ease, transform 0.4s ease;
 }
 
-#keyboards.hide {
+.inputWindow {
+  position: absolute;
   opacity: 0;
   transform: translateY(100%);
-  /* ease-in for disappearing */
-  transition: opacity 0.4s ease-in, transform 0.4s ease-in;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
 }
 
-#keyboards.no-transition {
-  transition: none !important;
+.inputWindow iframe {
+  display: none;
+  position: absolute;
+  bottom: 0;
+
+  width: 100%;
+  height: 100%;
+}
+
+.inputWindow.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.inputWindow.top-most iframe {
+  display: block;
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -42,17 +55,41 @@
   }
 }
 
-#keyboards iframe {
-  position: absolute;
-  bottom: 0;
-
-  width: 100%;
-  height: 100%;
-  border: 0;
+.inputWindow.slide-from-bottom {
+  animation: kbShow 0.4s both ease;
 }
 
-#keyboards iframe.hide {
-  transform: translateY(100%);
+.inputWindow.slide-to-bottom {
+   /* ease-in for disappearing */
+  animation: kbHide 0.4s both ease-in;
+}
+
+@keyframes kbShow {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  80% {
+    /* the original style indicates opacity should transition from 0 to 1
+       within 0.2s for "ease", which after calculation is about 80% progress
+       of 0.4s "ease". */
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kbHide {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
 }
 
 /* notification */
@@ -86,7 +123,7 @@
 @keyframes slideFromBottom {
   0% {
     opacity: 0;
-    transform: translateY(calc(100%));
+    transform: translateY(100%);
   }
   50% {
     opacity: 1;
@@ -107,12 +144,12 @@
   }
   100% {
     opacity: 0;
-    transform: translateY(calc(100%));
+    transform: translateY(100%);
   }
 }
 
 .lockScreenInputWindow {
-  transform: translateY(calc(100%));
+  transform: translateY(100%);
 }
 
 .lockScreenInputWindow #lockscreen-inputpad-frame {
@@ -125,5 +162,5 @@
 }
 
 .lockScreenInputWindow #lockscreen-inputpad-frame.hide {
-  transform: translateY(calc(100%));
+  transform: translateY(100%);
 }

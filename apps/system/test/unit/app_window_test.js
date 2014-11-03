@@ -169,6 +169,14 @@ suite('system/AppWindow', function() {
     origin: 'app://www.fake4'
   };
 
+  var fakeInputAppConfig = {
+    url: 'app://www.fakeinput/index.html',
+    manifest: {},
+    manifestURL: 'app://www.fakeinput/ManifestURL',
+    origin: 'app://www.fakeinput',
+    isInputMethod: true
+  };
+
   test('App created with instanceID', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var app2 = new AppWindow(fakeAppConfig2);
@@ -2387,5 +2395,11 @@ suite('system/AppWindow', function() {
     var stub = this.sinon.stub(app1.transitionController, 'destroy');
     app1.destroy();
     assert.ok(stub.calledOnce);
+  });
+
+  test('No AppChrome for InputMethod AppWindows', function() {
+    var appInput = new AppWindow(fakeInputAppConfig);
+    appInput.element.dispatchEvent(new CustomEvent('_opened'));
+    assert.equal(appInput.appChrome, undefined);
   });
 });
