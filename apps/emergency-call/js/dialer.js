@@ -69,13 +69,7 @@ var CallHandler = {
 window.CallHandler = CallHandler;
 
 window.addEventListener('load', function onload() {
-  /* Tell the audio channel manager that we want to adjust the "notification"
-   * channel when the user presses the volumeup/volumedown buttons. */
-  if (navigator.mozAudioChannelManager) {
-    navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
-  }
-
   window.removeEventListener('load', onload);
   window.ICEContacts.updateICEContacts();
-  window.KeypadManager.init(/* oncall */ false);
+  window.KeypadManager.init();
 });

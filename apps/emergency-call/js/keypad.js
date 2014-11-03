@@ -161,7 +161,23 @@ var KeypadManager = {
                                                 this.hangUpCallFromKeypad);
     }
 
-    TonePlayer.init('notification');
+    TonePlayer.init('normal');
+    var channel = this._onCall ? 'telephony' : 'normal';
+    window.addEventListener('visibilitychange', function() {
+      var telephony = navigator.mozTelephony;
+      var callIsActive = telephony && telephony.calls.length;
+
+      if (TonePlayer) {
+        // If app is hidden and we are not in the middle of a call, then switch
+        // to normal channel, no matter what channel this app should use
+        if (document.hidden && !callIsActive) {
+          TonePlayer.setChannel('normal');
+        } else {
+          // Otherwise switch to the channel this app is supposed to use
+          TonePlayer.setChannel(channel);
+        }
+      }
+    });
 
     this.render();
 

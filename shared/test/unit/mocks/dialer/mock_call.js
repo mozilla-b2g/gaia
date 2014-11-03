@@ -5,8 +5,7 @@
 function MockCall(aNumber, aState, aServiceId) {
   this._eventListeners = {
     'statechange': [],
-    'disconnected': [],
-    'error': []
+    'disconnected': []
   };
 
   this.id = { number: aNumber };
@@ -41,9 +40,6 @@ function MockCall(aNumber, aState, aServiceId) {
     }
   }).bind(this);
 
-  this.triggerEvent = function(type) {
-    this._mTriggerEventListeners(type);
-  },
 
   // Mocking the events
   this.mChangeState = (function(state) {

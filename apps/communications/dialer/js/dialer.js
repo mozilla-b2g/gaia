@@ -3,7 +3,8 @@
 /* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
           KeypadManager,LazyL10n, LazyLoader, MmiManager, Notification,
           NotificationHelper, SettingsListener, SimPicker, SimSettingsHelper,
-          SuggestionBar, TelephonyHelper, Utils, Voicemail, MozActivity */
+          SuggestionBar, TelephonyHelper, TonePlayer, Utils, Voicemail,
+          MozActivity */
 
 var NavbarManager = {
   init: function nm_init() {
@@ -546,3 +547,23 @@ window.onresize = function(e) {
     NavbarManager.show();
   }
 };
+
+// If the app loses focus, close the audio stream.
+document.addEventListener('visibilitychange', function visibilitychanged() {
+  // Don't bother stopping the tone player if it's not been started
+  if (!TonePlayer) {
+    return;
+  }
+
+  if (!document.hidden) {
+    TonePlayer.ensureAudio();
+  } else {
+    // Reset the audio stream. This ensures that the stream is shutdown
+    // *immediately*.
+    TonePlayer.trashAudio();
+    // Just in case stop any dtmf tone
+    if (navigator.mozTelephony && navigator.mozTelephony.stopTone) {
+      navigator.mozTelephony.stopTone();
+    }
+  }
+});

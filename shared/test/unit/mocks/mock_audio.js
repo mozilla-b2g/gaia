@@ -53,28 +53,11 @@ MockAudioContext.mTeardown = function() {
 };
 
 MockAudioContext.prototype.createBuffer = function() { return {}; };
-MockAudioContext.prototype.createBufferSource = function() {
-  return {
-    connect: function() {},
-    start: function() {},
-    stop: function() {}
-  };
-};
-MockAudioContext.prototype.createGain = function() {
-  return {
-    connect: function() {},
-    gain: {
-      setValueAtTime: function() {}
-    }
-  };
-};
-MockAudioContext.prototype.createOscillator = function() {
-  return {
-    frequency: 0,
-    connect: function() {},
-    start: function() {},
-    stop: function() {}
-  };
-};
+MockAudioContext.prototype.createBufferSource = function() { return {
+  connect: function() {},
+  start: function() {},
+  stop: function() {}
+};};
+MockAudioContext.prototype.createGain = function() {};
 MockAudioContext.prototype.addEventListener = function() {};
 MockAudioContext.prototype.removeEventListener = function() {};

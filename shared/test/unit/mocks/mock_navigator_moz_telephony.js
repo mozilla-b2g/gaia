@@ -67,9 +67,8 @@
   function mnmt_mTriggerCallsChanged() {
     if (Mock.oncallschanged) {
       Mock.oncallschanged();
+      mnmt_mTriggerEvent('callschanged');
     }
-
-    mnmt_mTriggerEvent({ type: 'callschanged' });
   }
 
   function mnmt_mTriggerGroupCallsChanged() {
@@ -99,9 +98,7 @@
       hangUp: function() { return {}; },
       add: function() {},
       hold: function() {},
-      resume: function() {},
-      addEventListener: function() {},
-      removeEventListener: function() {}
+      resume: function() {}
     },
     startTone: function(dtmfChar) {},
     stopTone: function() {},
