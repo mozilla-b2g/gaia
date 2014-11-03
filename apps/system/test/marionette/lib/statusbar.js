@@ -15,7 +15,7 @@
     'callForwardings', 'geolocation', 'recording', 'mute', 'usb',
     'systemDownloads', 'emergencyCbNotification', 'nfc',
     'bluetoothTransferring', 'bluetooth', 'tethering', 'networkActivity',
-    'connections', 'wifi', 'flightMode', 'battery', 'time'
+    'connections', 'wifi', 'flightMode', 'battery', 'time', 'debugging'
   ];
 
   StatusBar.Selector = Object.freeze({
@@ -42,6 +42,7 @@
     flightMode: '.sb-icon-flight-mode',
     battery: '.sb-icon-battery',
     time: '.sb-icon-time',
+    debugging: '.sb-icon-debugging',
 
     statusbar: '#statusbar',
     statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',

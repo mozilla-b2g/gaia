@@ -596,6 +596,16 @@ body .utility-tray .statusbar > .sb-start {
   background-position: -26rem -8rem;
 }
 
+.sb-icon-debugging {
+  background: none;
+  text-align: center;
+}
+
+.sb-icon-debugging::before {
+  font-size: 1.6rem;
+  line-height: 1.6rem;
+}
+
 /* Hide icons applying a class to the status bar */
 .sb-hide-time .sb-icon-time,
 .sb-hide-battery .sb-icon-battery,
