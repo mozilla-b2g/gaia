@@ -14,7 +14,8 @@
     name: 'Core',
 
     REGISTRY: {
-      'mozSettings': 'SettingsCore'
+      'mozSettings': 'SettingsCore',
+      'mozBluetooth': 'BluetoothCore'
     },
 
     _start: function() {

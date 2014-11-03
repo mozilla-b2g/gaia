@@ -118,15 +118,6 @@ window.addEventListener('load', function startup() {
   window.addEventListener('ftuskip', doneWithFTU);
 
   Shortcuts.init();
-  // init Bluetooth module
-  if (window.navigator.mozBluetooth) {
-   if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
-    'undefined') { // APIv1
-      window.Bluetooth.init();
-      window.BluetoothTransfer.init();
-      window.NfcHandoverManager.init();
-    }
-  }
 
   ScreenManager.turnScreenOn();
 
