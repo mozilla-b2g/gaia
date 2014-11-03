@@ -2,12 +2,10 @@ define(function(require, exports) {
 'use strict';
 
 var Timespan = require('timespan');
-var compare = require('compare');
 
 const SECOND = 1000;
 const MINUTE = (SECOND * 60);
 const HOUR = MINUTE * 60;
-const DAY = HOUR * 24;
 
 exports._hourDate = new Date();
 exports.startsOnMonday = false;
@@ -67,29 +65,6 @@ exports.isToday = function(date) {
 };
 
 /**
- * Intended to be used in combination
- * with hoursOfOccurence used to sort
- * hours. ALLDAY is always first.
- */
-exports.compareHours = function(a, b) {
-  // to cover the case of a is allday
-  // and b is also allday
-  if (a === b) {
-    return 0;
-  }
-
-  if (a === exports.ALLDAY) {
-    return -1;
-  }
-
-  if (b === exports.ALLDAY) {
-    return 1;
-  }
-
-  return compare(a, b);
-};
-
-/**
  * Checks if date object only contains date information (not time).
  *
  * Example:
@@ -116,55 +91,6 @@ exports.isOnlyDate = function(date) {
 };
 
 /**
- * Given a start and end date will
- * calculate which hours given
- * event occurs (in order from allday -> 23).
- *
- * When an event occurs all of the given
- * date will return only "allday"
- *
- * @param {Date} day point for all day calculations.
- * @param {Date} start start point of given span.
- * @param {Date} end point of given span.
- * @return {Array} end end point of given span.
- */
-exports.hoursOfOccurence = function(day, start, end) {
-  // beginning reference point (start of given date)
-  var refStart = exports.createDay(day);
-  var refEnd = exports.endOfDay(day);
-
-  var startBefore = start <= refStart;
-  var endsAfter = end >= refEnd;
-
-  // yahoo sets start/end dates to same value for recurring all day events
-  if (startBefore && endsAfter || Number(start) === Number(end)) {
-    return [exports.ALLDAY];
-  }
-
-  start = (startBefore) ? refStart : start;
-  end = (endsAfter) ? refEnd : end;
-
-  var curHour = start.getHours();
-  var lastHour = end.getHours();
-  var hours = [];
-
-  // using < not <= because we only
-  // want to include the last hour if
-  // it contains some minutes or seconds.
-  for (; curHour < lastHour; curHour++) {
-    hours.push(curHour);
-  }
-
-  //XXX: just minutes would probably be fine?
-  //     seconds are here for consistency.
-  if (end.getMinutes() || end.getSeconds()) {
-    hours.push(end.getHours());
-  }
-
-  return hours;
-};
-
-/**
  * Calculates the difference between
  * two points in hours.
  *
@@ -179,13 +105,6 @@ exports.hourDiff = function(start, end) {
   end = end / HOUR;
 
   return end - start;
-};
-
-/**
- * Calculates the difference (in days) between 2 dates.
- */
-exports.dayDiff = function(startDate, endDate) {
-  return (endDate - startDate) / DAY;
 };
 
 /**
@@ -636,33 +555,18 @@ exports.relativeDuration = function(baseDate, startDate, endDate) {
 };
 
 /**
- * Checks if startDate and endDate are at first millisecond of the day and
- * if the distance between both dates is a multiple of a full day.
+ * Check if event spans thru the whole day.
  */
-exports.isAllDay = function(startDate, endDate) {
-  var dayDiff = exports.dayDiff(startDate, endDate);
-  var isFullDayDiff = dayDiff > 0 && Number.isInteger(dayDiff);
-  return exports.isStartOfDay(startDate) && exports.isStartOfDay(endDate) && (
-      // yahoo uses same start/end date for recurring all day events!!!
-      isFullDayDiff || Number(startDate) === Number(endDate)
-    );
-};
+exports.isAllDay = function(baseDate, startDate, endDate) {
+  // beginning reference point (start of given date)
+  var refStart = exports.createDay(baseDate);
+  var refEnd = exports.endOfDay(baseDate);
 
-/**
- * Checks if date is the start of the day.
- */
-exports.isStartOfDay = function(date) {
-  return exports.relativeTime(date) === 0;
-};
+  var startBefore = startDate <= refStart;
+  var endsAfter = endDate >= refEnd;
 
-/**
- * Gets the milliseconds elapsed since the start of the day.
- */
-exports.relativeTime = function(date) {
-  return date.getHours() * HOUR +
-    date.getMinutes() * MINUTE +
-    date.getSeconds() * SECOND +
-    date.getMilliseconds();
+  // yahoo uses same start/end date for recurring all day events!!!
+  return (startBefore && endsAfter) || Number(startDate) === Number(endDate);
 };
 
 window.addEventListener('localized', function changeStartDay() {
