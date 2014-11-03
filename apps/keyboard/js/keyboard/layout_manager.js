@@ -207,7 +207,7 @@ LayoutManager.prototype._updateCurrentPage = function() {
         value: layout.alternateLayoutKey || '12&',
         uppercaseValue: layout.alternateLayoutKey || '12&',
         ratio: 2,
-        ariaLabel: 'alternateLayoutKey2',
+        ariaLabel: 'alternateLayoutKey',
         className: 'page-switch-key',
         targetPage: 1,
         isSpecialKey: true
@@ -218,7 +218,7 @@ LayoutManager.prototype._updateCurrentPage = function() {
         value: layout.basicLayoutKey || 'ABC',
         uppercaseValue: layout.basicLayoutKey || 'ABC',
         ratio: 2,
-        ariaLabel: 'basicLayoutKey2',
+        ariaLabel: 'basicLayoutKey',
         className: 'page-switch-key',
         targetPage: this.PAGE_INDEX_DEFAULT,
         isSpecialKey: true
