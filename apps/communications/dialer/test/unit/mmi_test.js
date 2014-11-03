@@ -1,7 +1,8 @@
 /* globals MockMobileconnection, MockMobileOperator, MockNavigatormozApps,
            MockNavigatorMozIccManager, MockNavigatorMozMobileConnections,
            CALL_BARRING_STATUS_MMI_CODE, CALL_WAITING_STATUS_MMI_CODE,
-           MocksHelper, MmiManager, MockMmiUI, Notification */
+           MocksHelper, MmiManager, MockMmiUI, Notification,
+           MockNavigatorMozTelephony */
 
 'use strict';
 
@@ -13,6 +14,7 @@ require('/shared/test/unit/mocks/mock_mobile_operator.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_l10n.js');
@@ -65,6 +67,7 @@ var mocksHelperForMMI = new MocksHelper([
 suite('dialer/mmi', function() {
   var realMozApps;
   var realMozIccManager;
+  var realMozTelephony;
   var realMobileConnections;
   var mobileConn;
 
@@ -282,6 +285,9 @@ suite('dialer/mmi', function() {
     realMozIccManager = window.navigator.mozIccManager;
     window.navigator.mozIccManager = MockNavigatorMozIccManager;
 
+    realMozTelephony = window.navigator.mozTelephony;
+    window.navigator.mozTelephony = MockNavigatorMozTelephony;
+
     realMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
@@ -292,8 +298,11 @@ suite('dialer/mmi', function() {
   });
 
   suiteTeardown(function() {
+    MockNavigatorMozTelephony.mSuiteTeardown();
+
     navigator.mozApps = realMozApps;
     navigator.mozIccManager = realMozIccManager;
+    navigator.mozTelephony = realMozTelephony;
     navigator.mozMobileConnections = realMobileConnections;
   });
 
@@ -309,6 +318,7 @@ suite('dialer/mmi', function() {
   teardown(function() {
     MockNavigatorMozIccManager.mTeardown();
     MockNavigatorMozMobileConnections.mTeardown();
+    MockNavigatorMozTelephony.mTeardown();
     mobileConn.mTeardown();
     MmiManager._ui.teardown();
     MmiManager._conn = null;
@@ -321,14 +331,6 @@ suite('dialer/mmi', function() {
 
     test('Check an MMI code', function() {
       assert.isTrue(MmiManager.isMMI('*123#', 0));
-    });
-
-    test('Check an MMI single-digit short-string code', function() {
-      assert.isTrue(MmiManager.isMMI('1', 0));
-    });
-
-    test('Check an MMI double-digit short-string code', function() {
-      assert.isTrue(MmiManager.isMMI('11', 0));
     });
 
     test('Check a non-MMI code', function() {
@@ -345,15 +347,40 @@ suite('dialer/mmi', function() {
     });
 
     test('Requesting the IMEI is allowed on phones supporting GSM networks',
-      function() {
-        mobileConn.supportedNetworkTypes = ['gsm', 'lte', 'wcdma'];
-        mobileConn.voice = { type: 'is95a' };
-        assert.isTrue(MmiManager.isMMI('*#06#', 0));
+    function() {
+      mobileConn.supportedNetworkTypes = ['gsm', 'lte', 'wcdma'];
+      mobileConn.voice = { type: 'is95a' };
+      assert.isTrue(MmiManager.isMMI('*#06#', 0));
 
-        mobileConn.supportedNetworkTypes = ['cdma', 'evdo'];
-        mobileConn.voice = { type: 'evdoa' };
-        assert.isFalse(MmiManager.isMMI('*#06#', 0));
+      mobileConn.supportedNetworkTypes = ['cdma', 'evdo'];
+      mobileConn.voice = { type: 'evdoa' };
+      assert.isFalse(MmiManager.isMMI('*#06#', 0));
+    });
+
+    suite('Short string MMI', function() {
+      test('Check an MMI single-digit short-string code', function() {
+        assert.isTrue(MmiManager.isMMI('1', 0));
       });
+
+      test('Check a non-1X MMI double-digit short-string code', function() {
+        assert.isTrue(MmiManager.isMMI('21', 0));
+      });
+
+      test('1X is not a short-string MMI code outside of a call', function() {
+        assert.isFalse(MmiManager.isMMI('11', 0));
+      });
+
+      test('1X is a short-string MMI code during a call', function() {
+        MockNavigatorMozTelephony.calls = [{}];
+        assert.isTrue(MmiManager.isMMI('11', 0));
+      });
+
+      test('1X is a short-string MMI code during a conference call',
+      function() {
+        MockNavigatorMozTelephony.conferenceGroup.calls = [{}];
+        assert.isTrue(MmiManager.isMMI('11', 0));
+      });
+    });
   });
 
   suite('Successfully send mmi message with result', function() {
