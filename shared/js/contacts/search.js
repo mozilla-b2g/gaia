@@ -153,17 +153,19 @@ contacts.Search = (function() {
   var highlightNode = function(node) {
     var textNode = node.querySelector('.contact-text');
     var displayedText = textNode.textContent;
+    var normalizedDisplayedText = Normalizer.toAscii(displayedText);
 
     currentSearchTerms.forEach(function(term) {
       var hRegEx = new RegExp(term, 'gi');
       var newTerms = [], newTerm;
-
-      var result = hRegEx.exec(displayedText);
+      // RegExp.exec() saves the index of the last match and the next time it's
+      // called starts from there so we iterate over every match in the string.
+      var result = hRegEx.exec(normalizedDisplayedText);
       while (result) {
         newTerm = displayedText.substr(result.index, term.length);
         newTerm = Normalizer.escapeRegExp(newTerm).toLowerCase();
         newTerms.push(newTerm);
-        result = hRegEx.exec(displayedText);
+        result = hRegEx.exec(normalizedDisplayedText);
       }
 
       newTerms = newTerms.filter(function removeDuplicates(elem, pos) {
@@ -171,10 +173,17 @@ contacts.Search = (function() {
       });
 
       newTerms.forEach(function replaceWithHighlight(term) {
-        textNode.firstChild.innerHTML = textNode.textContent.replace(
-          new RegExp('(' + term + ')', 'i'),
-          '<span class="' + highlightClass + '">$1</span>');
-       });
+        var regexp = new RegExp('(?:<[^>]+>)|(' + term + ')', 'ig');
+        var setHighlighted = function(str, capturedGroup) {
+          if (capturedGroup) {
+            return '<span class="' + highlightClass + '">' + capturedGroup +
+                                                                    '</span>';
+          }
+          return str;
+        };
+
+        textNode.innerHTML = textNode.innerHTML.replace(regexp, setHighlighted);
+      });
     });
   };
 
