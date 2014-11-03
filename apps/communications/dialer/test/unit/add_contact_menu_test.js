@@ -2,7 +2,7 @@
 
 /* globals MocksHelper, AddContactMenu, OptionMenu */
 
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/dialer/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
 

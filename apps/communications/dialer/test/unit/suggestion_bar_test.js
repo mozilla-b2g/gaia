@@ -5,7 +5,7 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_call_handler.js');
 // FIXME : This should be a mock
 require('/shared/js/simple_phone_matcher.js');
