@@ -1534,6 +1534,7 @@ suite('system/AppWindow', function() {
 
       // Ensure that the closed event does not trigger the destroy method.
       this.sinon.stub(app.element, 'addEventListener');
+      this.sinon.stub(app, 'publish');
 
       this.sinon.stub(app, 'isActive').returns(true);
       var destroyStub = this.sinon.stub(app, 'destroy');
@@ -1544,6 +1545,7 @@ suite('system/AppWindow', function() {
 
       var fallbackTimeout = 1000;
       this.sinon.clock.tick(fallbackTimeout);
+      assert.isTrue(app.publish.calledWith('closed'));
       assert.ok(destroyStub.calledOnce);
     });
 
