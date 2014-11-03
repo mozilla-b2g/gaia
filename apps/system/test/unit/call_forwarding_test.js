@@ -1,6 +1,6 @@
-/* global MockNavigatorMozMobileConnections, MockNavigatorSettings,
+/* global MockNavigatorSettings,
    MockSIMSlotManager, MockSettingsHelper, MockasyncStorage,
-   MockMobileconnection, MockSIMSlot */
+   MockMobileconnection, MockSIMSlot, BaseModule */
 
 'use strict';
 
@@ -11,9 +11,11 @@ requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
+requireApp('system/js/system.js');
+requireApp('system/js/base_module.js');
+requireApp('system/js/call_forwarding.js');
 
 suite('system/callForwarding >', function() {
-  var realMobileConnections;
   var realSIMSlotManager;
   var realMozSettings;
   var realSettingsHelper;
@@ -37,10 +39,7 @@ suite('system/callForwarding >', function() {
     CALL_FORWARD_ACTION_ERASURE: 4
   };
 
-  suiteSetup(function(done) {
-    realMobileConnections = window.navigator.mozMobileConnections;
-    window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-
+  suiteSetup(function() {
     realMozSettings = window.navigator.mozSettings;
     window.navigator.mozSettings = MockNavigatorSettings;
 
@@ -52,12 +51,9 @@ suite('system/callForwarding >', function() {
 
     realAsyncStorage = window.asyncStorage;
     window.asyncStorage = MockasyncStorage;
-
-    requireApp('system/js/call_forwarding.js', done);
   });
 
   suiteTeardown(function() {
-    window.navigator.mozMobileConnections = realMobileConnections;
     window.navigator.mozSettings = realMozSettings;
     window.SIMSlotManager = realSIMSlotManager;
     window.SettingsHelper = realSettingsHelper;
@@ -76,7 +72,7 @@ suite('system/callForwarding >', function() {
     };
     MockSIMSlotManager.mInstances = this.slots;
 
-    this.callForwarding = new window.CallForwarding();
+    this.callForwarding = BaseModule.instantiate('CallForwarding');
   });
 
   teardown(function() {
@@ -86,13 +82,6 @@ suite('system/callForwarding >', function() {
   });
 
   suite('start()', function() {
-    test('should early return if it has been started', function() {
-      this.callForwarding.start();
-      sinon.spy(this.callForwarding._callForwardingHelper, 'set');
-      this.callForwarding.start();
-      sinon.assert.notCalled(this.callForwarding._callForwardingHelper.set);
-    });
-
     test('_slots should be the same as what SIMSlotManager returns',
       function() {
         this.callForwarding.start();

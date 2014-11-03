@@ -54,9 +54,18 @@
         if (this._providers.get(serverName)) {
           this.debug('service: ' + serviceName +
             ' is online, perform the request with ' + args.concat());
-          return new Promise(function(resolve) {
-            resolve(self._providers.get(serverName)[serviceName].apply(
-              self._providers.get(serverName), args));
+          return new Promise(function(resolve, reject) {
+            var returnValue = self._providers.get(serverName)[serviceName]
+              .apply(self._providers.get(serverName), args);
+            if (returnValue && returnValue.then && returnValue.catch) {
+              returnValue.then(function(result) {
+                resolve(result);
+              }).catch(function(error) {
+                reject(error);
+              });
+            } else {
+              resolve(returnValue);
+            }
           });
         } else {
           return new Promise(function(resolve, reject) {
@@ -67,6 +76,7 @@
             self._requestsByProvider.get(serverName).push({
               service: serviceName,
               resolve: resolve,
+              reject: reject,
               args: args
             });
           });
@@ -78,11 +88,20 @@
         this.debug('service [' + service +
           '] provider [' + server.name + '] is online, perform the task.');
         return new Promise(function(resolve, reject) {
-          resolve(server[service].apply(server, args));
+          var returnValue = resolve(server[service].apply(server, args));
+          if (returnValue && returnValue.then && returnValue.catch) {
+            returnValue.then(function(result) {
+              resolve(result);
+            }).catch(function(error) {
+              reject(error);
+            });
+          } else {
+            resolve(returnValue);
+          }
         });
       } else {
         this.debug('service: ' + service + ' is offline, queue the task.');
-        var promise = new Promise(function(resolve) {
+        var promise = new Promise(function(resolve, reject) {
           self.debug('storing the requests...');
           if (!self._requestsByService.has(service)) {
             self._requestsByService.set(service, []);
@@ -90,7 +109,8 @@
           self._requestsByService.get(service).push({
             service: service,
             args: args,
-            resolve: resolve
+            resolve: resolve,
+            reject: reject
           });
         });
         return promise;
@@ -98,7 +118,7 @@
     },
 
     /**
-     * Register a service to System.
+     * Register an asynchronous service to System.
      * If there is any client awaiting this service, they will be executed after
      * registration.
      * @param  {String} service Service name
@@ -117,11 +137,19 @@
         this._requestsByProvider.get(server.name).forEach(function(request) {
           self.debug('resolving..', server,
             server.name, request.service, request.args);
-          var result = (typeof(server[request.service]) === 'function') ?
+          var returnValue = (typeof(server[request.service]) === 'function') ?
             server[request.service].apply(server, request.args) :
             server[request.service];
 
-          request.resolve(result);
+          if (returnValue && returnValue.then && returnValue.catch) {
+            returnValue.then(function(result) {
+              request.resolve(result);
+            }).catch(function(error) {
+              request.reject(error);
+            });
+          } else {
+            request.resolve(returnValue);
+          }
         });
         this._requestsByProvider.delete(server.name);
       }
@@ -138,14 +166,23 @@
       if (this._requestsByService.has(service)) {
         this._requestsByService.get(service).forEach(function(request) {
           self.debug('resolving..', server, request.service);
-          request.resolve(server[request.service].apply(server, request.args));
+          var returnValue = server[request.service].apply(server, request.args);
+          if (returnValue && returnValue.then && returnValue.catch) {
+            returnValue.then(function(result) {
+              request.resolve(result);
+            }).catch(function(error) {
+              request.reject(error);
+            });
+          } else {
+            request.resolve(returnValue);
+          }
         });
         this._requestsByService.delete(service);
       }
     },
 
     /**
-     * Unregister a service to System
+     * Unregister an asynchronous service to System
      * @param  {String} service The name of the service
      * @param  {Object} server  The server
      */
@@ -154,6 +191,56 @@
       var se = this._services.get(service);
       if (se && server === se) {
         this._services.delete(service);
+      }
+    },
+
+    _states: new Map(),
+    _statesByState: new Map(),
+
+    registerState: function(state, provider) {
+      this._states.set(provider.name, provider);
+      this._statesByState.set(state, provider);
+    },
+
+    unregisterState: function(state, provider) {
+      this._states.delete(provider.name);
+      var machine = this._statesByState.get(state);
+      if (machine === provider) {
+        this._statesByState.delete(state);
+      }
+    },
+
+    /**
+     * Synchonously query the state of specific state machine.
+     * If the state machine is not started,
+     * you will get undefined.
+     *
+     * @example
+     * System.query('FtuLauncher.isFtuRunning');
+     * System.query('isFtuRunning');
+     * 
+     * @param  {String} state The machine name and the state name.
+     * @return {String|Boolean|Number}       
+     */
+    query: function(stateString) {
+      this.debug(stateString);
+      var args = stateString.split('.');
+      var state, provider;
+      if (args.length > 1) {
+        provider = this._states.get(args[0]);
+        state = args[1];
+      } else {
+        state = args[0];
+        provider = this._statesByState.get(state);
+      }
+      if (!provider) {
+        this.debug('Provider not ready, return undefined state.');
+        return undefined;
+      }
+      if (typeof(provider[state]) === 'function') {
+        return provider[state]();
+      } else {
+        return provider[state];
       }
     },
 

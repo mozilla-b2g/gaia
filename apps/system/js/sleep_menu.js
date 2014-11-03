@@ -1,5 +1,4 @@
 'use strict';
-/* global AirplaneMode */
 /* global CustomLogoPath */
 /* global Event */
 /* global LogoLoader */
@@ -14,7 +13,6 @@
    * restart, and power off. This file also currently contains a
    * developerOptions object which is not currently in use.
    * @class SleepMenu
-   * @requires AirplaneMode
    * @requires InitLogoHandler
    * @requires LogoLoader
    * @requires OrientationManager
@@ -275,6 +273,10 @@
       }
     },
 
+    publish: function(evtName) {
+      window.dispatchEvent(new CustomEvent(evtName));
+    },
+
     /**
      * Handles click events on menu items.
      * @memberof SleepMenu.prototype
@@ -294,7 +296,9 @@
           //
           // It should also save the status of the latter 4 items so when
           // leaving the airplane mode we could know which one to turn on.
-          AirplaneMode.enabled = !this.isFlightModeEnabled;
+          this.publish(this.isFlightModeEnabled ?
+            'request-airplane-mode-disable' :
+            'request-airplane-mode-enable');
           break;
 
         // About silent and silentOff

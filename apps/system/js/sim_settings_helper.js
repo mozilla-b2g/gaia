@@ -3,15 +3,18 @@
 'use strict';
 
 (function(exports) {
-
   // we have to make sure we are in DSDS
   if (!SIMSlotManager.isMultiSIM()) {
     return;
   }
 
   var SimSettingsHelper = {
-    init: function ssh_init() {
-      window.addEventListener('simslotready', this);
+    start: function ssh_init() {
+      if (SIMSlotManager.ready) {
+        this.simslotUpdatedHandler();
+      } else {
+        window.addEventListener('simslotready', this);
+      }
     },
     handleEvent: function ssh_handleEvent(evt) {
       switch (evt.type) {
@@ -57,8 +60,5 @@
       });
     }
   };
-
-  SimSettingsHelper.init();
   exports.SimSettingsHelper = SimSettingsHelper;
-
 })(window);

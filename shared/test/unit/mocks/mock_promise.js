@@ -59,9 +59,12 @@
  *
  */
 (function(exports) {
-
+var id=0;
 var MockPromise = function MockPromise(callback) {
   var p = {
+    id: id++,
+    type: 'MockPromise',
+
     then: sinon.spy(function SpyThen(onFulfilled, onRejected) {
       return new MockPromise();
     }),

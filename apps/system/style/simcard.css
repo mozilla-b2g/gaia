@@ -1,13 +1,13 @@
-#simpin-dialog {
+#simlock-dialog {
   background: #f4f4f4;
   color: #000;
 }
 
-#simpin-dialog button.back[hidden] {
+#simlock-dialog button.back[hidden] {
   display: none;
 }
 
-#simpin-dialog section[role="region"] {
+#simlock-dialog section[role="region"] {
   position: absolute;
   top: 0;
   left: 0;
@@ -16,7 +16,7 @@
   margin-bottom: 7rem;
 }
 
-#simpin-dialog .container {
+#simlock-dialog .container {
   position: absolute;
   padding: 0 2rem;
   font-size: 1.5rem;
@@ -25,11 +25,11 @@
   overflow-y: scroll;
 }
 
-#simpin-dialog .container div {
+#simlock-dialog .container div {
   white-space: normal;
 }
 
-#simpin-dialog .container > div {
+#simlock-dialog .container > div {
   padding-top: 1rem;
 }
 
@@ -37,7 +37,7 @@
   padding: 1rem;
 }
 
-#simpin-dialog .error #messageHeader {
+#simlock-dialog .error #messageHeader {
   color: red;
 }
 
@@ -48,7 +48,7 @@
   white-space: normal;
 }
 
-#simpin-dialog .input-wrapper {
+#simlock-dialog .input-wrapper {
   position: relative;
 }
 

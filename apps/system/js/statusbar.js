@@ -170,6 +170,7 @@ var StatusBar = {
     window.addEventListener('ftuopen', this);
     window.addEventListener('apptitlestatechanged', this);
     window.addEventListener('appchromecollapsed', this);
+    window.addEventListener('emergencycallbackstatechanged', this);
   },
 
   addSettingsListener: function sb_addSettingsListener(settingKey) {
@@ -286,9 +287,6 @@ var StatusBar = {
     window.addEventListener('lockscreen-appclosing', this);
     window.addEventListener('lockpanelchange', this);
 
-    window.addEventListener('simpinshow', this);
-    window.addEventListener('simpinclose', this);
-
     // Listen to orientation change and SHB activation/deactivation.
     window.addEventListener('system-resize', this);
 
@@ -318,6 +316,10 @@ var StatusBar = {
 
   handleEvent: function sb_handleEvent(evt) {
     switch (evt.type) {
+      case 'emergencycallbackstatechanged':
+        this.updateEmergencyCbNotification(evt.detail);
+        break;
+
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
         break;
