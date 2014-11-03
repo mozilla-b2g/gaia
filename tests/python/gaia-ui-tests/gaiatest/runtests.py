@@ -58,9 +58,12 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
         def gather_debug(test, status):
             rv = {}
             marionette = test._marionette_weakref()
-            try:
-                marionette.switch_to_frame()
-                rv['settings'] = json.dumps(marionette.execute_async_script("""
+
+            # In the event we're gathering debug without starting a session, skip marionette commands
+            if marionette.session is not None:
+                try:
+                    marionette.switch_to_frame()
+                    rv['settings'] = json.dumps(marionette.execute_async_script("""
 SpecialPowers.pushPermissions([
   {type: 'settings-read', allow: true, context: document},
   {type: 'settings-api-read', allow: true, context: document},
@@ -70,11 +73,11 @@ SpecialPowers.pushPermissions([
     marionetteScriptFinished(req.result);
   }
 });""", special_powers=True), sort_keys=True, indent=4, separators=(',', ': '))
-            except:
-                logger = mozlog.structured.get_default_logger()
-                if not logger:
-                    logger = mozlog.getLogger('gaiatest')
-                logger.warning('Failed to gather test failure debug.', exc_info=True)
+                except:
+                    logger = mozlog.structured.get_default_logger()
+                    if not logger:
+                        logger = mozlog.getLogger('gaiatest')
+                    logger.warning('Failed to gather test failure debug.', exc_info=True)
             return rv
 
         BaseMarionetteTestRunner.__init__(self, result_callbacks=[gather_debug], **kwargs)
