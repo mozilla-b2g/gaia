@@ -17,13 +17,14 @@ class SettingsForm(Base):
     _import_from_sdcard_locator = (By.CSS_SELECTOR, 'button.icon-sd')
     _import_from_gmail_button_locator = (By.CSS_SELECTOR, 'button.icon-gmail')
     _import_from_windows_live_button_locator = (By.CSS_SELECTOR, 'button.icon-live')
-    _import_settings_header = (By.ID, 'import-settings-header');
+    _import_settings_header = (By.ID, 'import-settings-header')
     _export_to_sd_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="memoryCard"]')
     _import_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="importContactsButton"]')
     _export_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="exportContactsButton"]')
     _gmail_contacts_imported_locator = (By.CSS_SELECTOR, '.icon.icon-gmail > p > span')
     _import_settings_locator = (By.ID, 'import-settings')
     _select_contacts_locator = (By.ID, 'selectable-form')
+    _sync_friends_locator = (By.ID, 'settingsFb')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -64,6 +65,13 @@ class SettingsForm(Base):
         self.marionette.find_element(*self._import_from_gmail_button_locator).tap()
         from gaiatest.apps.contacts.regions.gmail import GmailLogin
         return GmailLogin(self.marionette)
+
+    def tap_sync_friends(self):
+        self.wait_for_element_displayed(*self._sync_friends_locator)
+        self.marionette.find_element(*self._sync_friends_locator).tap()
+        self.wait_for_condition(lambda m: m.find_element(*self._sync_friends_locator).location['x'] == 0)
+        from gaiatest.apps.contacts.regions.facebook import FacebookLogin
+        return FacebookLogin(self.marionette)
 
     def tap_import_from_sdcard(self):
         self.wait_for_element_displayed(*self._import_from_sdcard_locator)
