@@ -17,12 +17,43 @@ var MockCallScreen = {
       cb();
     }
   },
-  enablePlaceNewCall: function() {
-    this.mEnablePlaceNewCallCalled = true;
+  enablePlaceNewCallButton: function() {
+    this.menablePlaceNewCallButtonCalled = true;
   },
-  disablePlaceNewCall: function() {
-    this.mEnablePlaceNewCallCalled = false;
+  disablePlaceNewCallButton: function() {
+    this.menablePlaceNewCallButtonCalled = false;
   },
+  enableMuteButton: function() {
+    this.menableMuteButtonCalled = true;
+  },
+  disableMuteButton: function() {
+    this.menableMuteButtonCalled = false;
+  },
+  enableSpeakerButton: function() {
+    this.menableSpeakerButtonCalled = true;
+  },
+  disableSpeakerButton: function() {
+    this.menableSpeakerButtonCalled = false;
+  },
+  showOnHoldButton: function() {
+    this.mshowOnHoldButtonCalled = true;
+  },
+  hideOnHoldButton: function() {
+    this.mhideOnHoldButtonCalled = true;
+  },
+  enableOnHoldButton: function() {
+    this.menableOnHoldButtonCalled = true;
+  },
+  disableOnHoldButton: function() {
+    this.menableOnHoldButtonCalled = false;
+  },
+  showMergeButton: function() {
+    this.mShowMergeButtonCalled = true;
+  },
+  hideMergeButton: function() {
+    this.mhideMergeButtonCalled = true;
+  },
+  hideOnHoldAndMergeContainer: function() {},
   syncSpeakerEnabled: function() {
     this.mSyncSpeakerCalled = true;
   },
@@ -78,7 +109,8 @@ var MockCallScreen = {
   cdmaConferenceCall: function() {},
   hidePlaceNewCallButton: function() {},
   showPlaceNewCallButton: function() {},
-
+  toggleOnHold : function() {},
+  
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;
   },
@@ -110,14 +142,28 @@ var MockCallScreen = {
   incomingSim: document.createElement('div'),
   incomingNumberAdditionalInfo: document.createElement('span'),
 
-  mEnablePlaceNewCallCalled: false,
+  menablePlaceNewCallButtonCalled: false,
+  menableMuteButtonCalled: false,
+  menableSpeakerButtonCalled: false,
+  mshowOnHoldButtonCalled: false,
+  mhideOnHoldButtonCalled: false,
+  menableOnHoldButtonCalled: false,
+  mShowMergeButtonCalled: false,
+  mhideMergeButtonCalled: false,
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
   mMuteOn: false,
   mSpeakerOn: false,
   mLastRenderMode: null,
   mTeardown: function teardown() {
-    this.mEnablePlaceNewCallCalled = false;
+    this.menablePlaceNewCallButtonCalled = false;
+    this.menableMuteButtonCalled = false;
+    this.menableSpeakerButtonCalled = false;
+    this.mshowOnHoldButtonCalled = false,
+    this.mhideOnHoldButtonCalled = false,
+    this.menableOnHoldButtonCalled = false,
+    this.mShowMergeButtonCalled = false,
+    this.mhideMergeButtonCalled = false,
     this.mSyncSpeakerCalled = false;
     this.mSetCallerContactImageCalled = false;
     this.mMuteOn = false;

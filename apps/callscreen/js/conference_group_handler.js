@@ -14,13 +14,6 @@ var ConferenceGroupHandler = (function() {
   var groupDurationChildNode = groupDuration.querySelector('span');
   var groupTotalDurationChildNode =
     groupDuration.querySelector('.total-duration');
-  var mergeButton = groupLine.querySelector('.merge-button');
-  mergeButton.onclick = function(evt) {
-    if (evt) {
-      evt.stopPropagation();
-    }
-    CallsHandler.mergeConferenceGroupWithActiveCall();
-  };
 
   var telephony = window.navigator.mozTelephony;
   if (telephony.conferenceGroup) {
@@ -60,7 +53,6 @@ var ConferenceGroupHandler = (function() {
     groupLine.hidden = false;
     groupLine.classList.remove('ended');
     groupLine.classList.remove('held');
-    groupDurationChildNode.textContent = null;
     CallScreen.createTicker(groupDuration);
     CallScreen.setCallerContactImage();
   }
