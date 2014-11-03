@@ -1009,7 +1009,6 @@ form[role="combobox"] span[data-field="type"] {
   height: 3rem;
   opacity: 0;
   transform-origin: 1.5rem 1.5rem;
-  transform: rotate(15deg);
   z-index: 30000;
 }
 
@@ -1071,6 +1070,7 @@ form[role="combobox"] span[data-field="type"] {
     opacity: 0;
   }
   60% {
+    transform: rotate(-15deg);
     opacity: 0.33;
   }
   80% {
@@ -1085,17 +1085,18 @@ form[role="combobox"] span[data-field="type"] {
 
 
 .inserted.displayed .img-delete-button > span {
-  animation: layer-cross 1s ease-in-out 0s 1 normal forwards;
+  animation: layer-cross 10s ease-in-out 0s 1 normal forwards;
 }
 
 .inserted.displayed .img-delete-button::after {
-  animation: empty-layer 1s ease-in-out 0s 1 normal forwards;
+  animation: empty-layer 10s ease-in-out 0s 1 normal forwards;
 }
 
 .inserted.displayed .img-delete-button::before {
-  animation: red-cross 1s ease-in-out 0s 1 normal forwards;
+  animation: red-cross 10s ease-in-out 0s 1 normal forwards;
 }
 
+/*
 .inserted.displayed.three-rows .img-delete-button > span,
 .inserted.displayed.three-rows .img-delete-button::after,
 .inserted.displayed.three-rows .img-delete-button::before {
@@ -1106,7 +1107,7 @@ form[role="combobox"] span[data-field="type"] {
 .inserted.displayed.one-row .img-delete-button::after,
 .inserted.displayed.one-row .img-delete-button::before {
   animation-duration: 0.35s;
-}
+} */
 
 /* Avoid the activate state on '+ Add xx' buttons */
 li button[data-field-type]:active {
