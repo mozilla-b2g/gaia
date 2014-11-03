@@ -55,8 +55,17 @@
           this.debug('service: ' + serviceName +
             ' is online, perform the request with ' + args.concat());
           return new Promise(function(resolve, reject) {
-            resolve(self._providers.get(serverName)[serviceName].apply(
-              self._providers.get(serverName), args));
+            var returnValue = self._providers.get(serverName)[serviceName]
+              .apply(self._providers.get(serverName), args);
+            if (returnValue && returnValue.then && returnValue.catch) {
+              returnValue.then(function(result) {
+                resolve(result);
+              }).catch(function(error) {
+                reject(error);
+              });
+            } else {
+              resolve(returnValue);
+            }
           });
         } else {
           return new Promise(function(resolve, reject) {
@@ -67,6 +76,7 @@
             self._requestsByProvider.get(serverName).push({
               service: serviceName,
               resolve: resolve,
+              reject: reject,
               args: args
             });
           });
@@ -78,11 +88,20 @@
         this.debug('service [' + service +
           '] provider [' + server.name + '] is online, perform the task.');
         return new Promise(function(resolve, reject) {
-          resolve(server[service].apply(server, args));
+          var returnValue = resolve(server[service].apply(server, args));
+          if (returnValue && returnValue.then && returnValue.catch) {
+            returnValue.then(function(result) {
+              resolve(result);
+            }).catch(function(error) {
+              reject(error);
+            });
+          } else {
+            resolve(returnValue);
+          }
         });
       } else {
         this.debug('service: ' + service + ' is offline, queue the task.');
-        var promise = new Promise(function(resolve) {
+        var promise = new Promise(function(resolve, reject) {
           self.debug('storing the requests...');
           if (!self._requestsByService.has(service)) {
             self._requestsByService.set(service, []);
@@ -90,7 +109,8 @@
           self._requestsByService.get(service).push({
             service: service,
             args: args,
-            resolve: resolve
+            resolve: resolve,
+            reject: reject
           });
         });
         return promise;
@@ -117,11 +137,19 @@
         this._requestsByProvider.get(server.name).forEach(function(request) {
           self.debug('resolving..', server,
             server.name, request.service, request.args);
-          var result = (typeof(server[request.service]) === 'function') ?
+          var returnValue = (typeof(server[request.service]) === 'function') ?
             server[request.service].apply(server, request.args) :
             server[request.service];
 
-          request.resolve(result);
+          if (returnValue && returnValue.then && returnValue.catch) {
+            returnValue.then(function(result) {
+              request.resolve(result);
+            }).catch(function(error) {
+              request.reject(error);
+            });
+          } else {
+            request.resolve(returnValue);
+          }
         });
         this._requestsByProvider.delete(server.name);
       }
@@ -138,7 +166,16 @@
       if (this._requestsByService.has(service)) {
         this._requestsByService.get(service).forEach(function(request) {
           self.debug('resolving..', server, request.service);
-          request.resolve(server[request.service].apply(server, request.args));
+          var returnValue = server[request.service].apply(server, request.args);
+          if (returnValue && returnValue.then && returnValue.catch) {
+            returnValue.then(function(result) {
+              request.resolve(result);
+            }).catch(function(error) {
+              request.reject(error);
+            });
+          } else {
+            request.resolve(returnValue);
+          }
         });
         this._requestsByService.delete(service);
       }

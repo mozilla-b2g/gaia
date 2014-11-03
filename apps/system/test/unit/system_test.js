@@ -3,6 +3,7 @@
 
 requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_promise.js');
 
 var mocksForSystem = new MocksHelper([
   'AppWindowManager', 'LazyLoader'
@@ -67,6 +68,58 @@ suite('system/System', function() {
     teardown(function() {
       System._services.clear();
       System._providers.clear();
+    });
+
+    suite('Promise in Promise', function() {
+      var fakeSettingsServer = {
+        get: function() {
+          this.promise = new Promise(function(resolve, reject) {
+            this.resolve = resolve;
+            this.reject = reject;
+          }.bind(this));
+          return this.promise;
+        }
+      };
+
+      test('Success', function(done) {
+        System.register('get', fakeSettingsServer);
+        System.request('get').then(function(result) {
+          assert.equal(result, 2);
+          done();
+        });
+        fakeSettingsServer.resolve(2);
+      });
+
+      test('Error', function(done) {
+        System.register('get', fakeSettingsServer);
+        System.request('get').then(function(result) {
+          assert.isFalse(true);
+        }).catch(function(error) {
+          assert.equal(error, 'uhhhhh');
+          done();
+        });
+        fakeSettingsServer.reject('uhhhhh');
+      });
+
+      test('Success: offline and then online', function(done) {
+        System.request('get').then(function(result) {
+          assert.equal(result, 3);
+          done();
+        });
+        System.register('get', fakeSettingsServer);
+        fakeSettingsServer.resolve(3);
+      });
+
+      test('Error: offline and then online', function(done) {
+        System.request('get').then(function(result) {
+          assert.isFalse(true);
+        }).catch(function(error) {
+          assert.equal(error, 'oooooh');
+          done();
+        });
+        System.register('get', fakeSettingsServer);
+        fakeSettingsServer.reject('oooooh');
+      });
     });
 
     test('Service provider is online.', function(done) {
