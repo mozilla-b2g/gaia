@@ -56,20 +56,7 @@ function(SettingsListener, SettingsHelper, SettingsURL) {
       });
     },
 
-    getEnabledCommands: function fmdc_get_enabled_commands() {
-      var commands = Object.keys(this._commands);
-      if (!this._geolocationEnabled) {
-        var idx = commands.indexOf('track');
-        if (idx >= 0) {
-          commands.splice(idx, 1);
-        }
-      }
-
-      return commands;
-    },
-
     invokeCommand: function fmdc_get_command(name, args) {
-      //FindMyDevice.beginHighPriority('command');
       this._commands[name].apply(this, args);
     },
 
@@ -77,65 +64,27 @@ function(SettingsListener, SettingsHelper, SettingsURL) {
       return !!(this._lockscreenEnabled && this._lockscreenPassCodeEnabled);
     },
 
-    _watchPositionId: null,
-
-    _trackTimeoutId: null,
-
     _ringTimeoutId: null,
 
     _commands: {
-      track: function fmdc_track(duration, reply) {
-        var self = this;
+      locate: function fmdc_track(duration, reply) {
+        var options = {
+          enableHighAccuracy: true,
+          timeout: duration * 1000,
+          maximumAge: 0
+        };
 
-        function stop() {
-          navigator.geolocation.clearWatch(self._watchPositionId);
-          self._watchPositionId = null;
-          clearTimeout(self._trackTimeoutId);
-          self._trackTimeoutId = null;
-          SettingsHelper('findmydevice.tracking').set(false);
-        }
+        reply = reply || function() {};
 
-        if (this._watchPositionId !== null || this._trackTimeoutId !== null) {
-          // already tracking
-          stop();
-        }
-
-        if (duration === 0) {
-          if (reply) {
-            reply(true);
-          }
-          return;
-        }
-
-        var lastPositionTimestamp = 0;
-
-        // start watching the current position, but throttle updates to one
-        // every TRACK_UPDATE_INTERVAL_MS
-        SettingsHelper('findmydevice.tracking').set(true);
-        self._watchPositionId = navigator.geolocation.watchPosition(
-        function(position) {
-          var timeElapsed = position.timestamp - lastPositionTimestamp;
-          if (timeElapsed < self.TRACK_UPDATE_INTERVAL_MS) {
-            return;
-          }
-
-          lastPositionTimestamp = position.timestamp;
+        function success(position) {
           reply(true, position);
-        }, function(error) {
-          reply(false, 'failed to get location: ' + error.message);
-        });
+        }
 
-        duration = (isNaN(duration) || duration < 0) ? 1 : duration;
-        self._trackTimeoutId = setTimeout(stop, duration * 1000);
-      },
+        function error(err) {
+          reply(false, err.message);
+        }
 
-      erase: function fmdc_erase(reply) {
-        navigator.mozPower.factoryReset('wipe');
-
-        // factoryReset() won't return, unless we're testing,
-        // in which case mozPower is a mock. The reply() below
-        // is thus only used for testing.
-        reply(true);
+        navigator.geolocation.getCurrentPosition(success, error, options);
       },
 
       lock: function fmdc_lock(message, passcode, reply) {

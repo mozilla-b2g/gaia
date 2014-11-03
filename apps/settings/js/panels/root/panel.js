@@ -82,6 +82,7 @@ define(function(require) {
         simSecurityItem.enabled = true;
         airplaneModeItem.enabled = true;
         themesItem.enabled = true;
+	privacyPanelItem.enabled = true;
       },
       onShow: function rp_onShow() {
         homescreenItem.enabled = true;
@@ -99,6 +100,7 @@ define(function(require) {
         airplaneModeItem.enabled = false;
         themesItem.enabled = false;
         homescreenItem.enabled = false;
+	privacyPanelItem.enabled = true;
       }
     });
   };

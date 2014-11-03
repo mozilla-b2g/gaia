@@ -8,7 +8,7 @@ define(function(require) {
   'use strict';
 
   function PrivacyPanelItem(element) {
-    this.element = element;
+    this._element = element;
     this._ppApp = null;
 
     this._privacyPanelManifestURL = document.location.protocol +
@@ -17,10 +17,38 @@ define(function(require) {
     
     this._getApp();
 
-    this.element.addEventListener('click', this._launch.bind(this));
+    this._element.addEventListener('click', this._launch.bind(this));
   }
 
   PrivacyPanelItem.prototype = {
+
+    /**
+     * Set current status of privacyPanelItem
+     *
+     * @access public
+     * @param {Boolean} enabled
+     * @memberOf PrivacyPanelItem
+     */
+    set enabled(enabled) {
+      if (this._enabled === enabled) {
+        return;
+      } else {
+        this._enabled = enabled;
+        if (this._enabled) {
+          this._updateSelection();
+        }
+      }
+    },
+
+    /**
+     * Get current status of privacyPanelItem
+     *
+     * @access public
+     * @memberOf PrivacyPanelItem
+     */
+    get enabled() {
+      return this._enabled;
+    },
 
     /**
      * Search from privacy-panel app and grab it's instance.
@@ -33,7 +61,7 @@ define(function(require) {
           var app = apps[i];
           if (app.manifestURL === this._privacyPanelManifestURL) {
             this._ppApp = app;
-            this.element.removeAttribute('hidden');
+            this._element.removeAttribute('hidden');
           }
         }
       }.bind(this);
@@ -64,6 +92,15 @@ define(function(require) {
       } else {
         alert(navigator.mozL10n.get('no-privacypanel'));
       }
+    },
+
+    /**
+     * Update theme section visibility based on _themeCount
+     *
+     * @memberOf PrivacyPanelItem
+     */
+    _updateSelection: function() {
+      this._element.querySelector('a').blur();
     }
   };
 

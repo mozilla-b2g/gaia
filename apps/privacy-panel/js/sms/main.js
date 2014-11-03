@@ -149,9 +149,9 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
         return;
       }
 
-      var lockReply = function(res, err) {
-        if ( ! res) {
-          console.warn('Error while trying to lock a phone, ' + err);
+      var lockReply = function(status, result) {
+        if ( ! status) {
+          console.warn('Error while trying to lock a phone, ' + result);
           return;
         }
         this._sendSMS(number, navigator.mozL10n.get('sms-lock'));
@@ -171,16 +171,16 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
         return;
       }
 
-      var locateReply = function(res, pos) {
+      var locateReply = function(status, result) {
         var lat, lon;
 
-        if ( ! res) {
-          console.warn('Error while trying to locate a phone, ' + pos);
+        if ( ! status) {
+          console.warn('Error while trying to locate a phone: ' + result);
           return;
         }
 
-        lat = pos.coords.latitude;
-        lon = pos.coords.longitude;
+        lat = result.coords.latitude;
+        lon = result.coords.longitude;
 
         this._sendSMS(number, navigator.mozL10n.get('sms-locate', {
           coords: lat + ',' + lon
@@ -192,7 +192,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
         }.bind(this), 3000);
       }.bind(this);
 
-      Commands.invokeCommand('track', [6, locateReply]);
+      Commands.invokeCommand('locate', [10, locateReply]);
     },
 
     /**
