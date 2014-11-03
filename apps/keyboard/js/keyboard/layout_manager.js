@@ -230,7 +230,7 @@ LayoutManager.prototype._updateModifiedLayout = function() {
         keyCode: this.KEYCODE_ALTERNATE_LAYOUT,
         value: layout.alternateLayoutKey || '12&',
         ratio: 2,
-        ariaLabel: 'alternateLayoutKey',
+        ariaLabel: 'alternateLayoutKey2',
         className: 'page-switch-key'
       };
     } else {
@@ -238,7 +238,7 @@ LayoutManager.prototype._updateModifiedLayout = function() {
         keyCode: this.KEYCODE_BASIC_LAYOUT,
         value: this.currentLayout.basicLayoutKey || 'ABC',
         ratio: 2,
-        ariaLabel: 'basicLayoutKey',
+        ariaLabel: 'basicLayoutKey2',
         className: 'page-switch-key'
       };
     }
