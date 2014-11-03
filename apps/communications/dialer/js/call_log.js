@@ -142,6 +142,13 @@ var CallLog = {
       self._dbupgrading = false;
       self.render();
     };
+
+    navigator.mozL10n.ready(function() {
+      // Update header count when locale changes and editing
+      if (document.body.classList.contains('recents-edit')) {
+        self.updateHeaderCount();
+      }
+    });
   },
 
   _updateCallTimes: function cl_updateCallTimes() {
