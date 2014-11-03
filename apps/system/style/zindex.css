@@ -101,6 +101,10 @@
   z-index: 4094;
 }
 /* Level 3: Statusbar, Utility-Tray */
+#screen:not(.utility-tray) > [data-z-index-level="utility-tray"] {
+  z-index: 16386;
+}
+
 #screen > [data-z-index-level="statusbar"] {
   z-index: 16385;
 }
@@ -120,11 +124,11 @@
  * there is an active attention screen not minimized in
  * the status bar */
 
-#screen > [data-z-index-level="utility-tray"] {
+#screen.utility-tray > [data-z-index-level="utility-tray"] {
   z-index: 16384;
 }
 
-#screen > [data-z-index-level="utility-tray-notifications"] {
+#screen.utility-tray > [data-z-index-level="utility-tray-notifications"] {
   z-index: 16384;
 }
 

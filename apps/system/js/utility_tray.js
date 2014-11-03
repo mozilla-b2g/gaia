@@ -266,6 +266,7 @@ var UtilityTray = {
       return;
     }
 
+    this.overlay.classList.add('moving');
     this.validateCachedSizes();
     this.active = true;
     this.startY = touch.pageY;
@@ -328,6 +329,7 @@ var UtilityTray = {
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {
+    this.overlay.classList.remove('moving');
     // Prevent utility tray shows while the screen got black out.
     if (window.System.locked) {
       this.hide(true);

@@ -3,9 +3,14 @@
   height: 0.2rem;
   width: 100%;
   position: absolute;
-  top: 0;
+  bottom: -1.2rem;
   left: 0;
   display: none;
+}
+
+#screen.utility-tray .attention-indicator,
+#utility-tray.moving .attention-indicator {
+  bottom: 0;
 }
 
 .attention-indicator.visible {
