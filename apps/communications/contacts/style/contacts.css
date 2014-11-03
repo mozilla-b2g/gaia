@@ -1062,7 +1062,6 @@ form[role="combobox"] span[data-field="type"] {
 @keyframes red-cross {
   0% {
     opacity: 0;
-    transform: none;
   }
   20% {
     opacity: 0;
