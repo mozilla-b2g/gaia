@@ -542,9 +542,7 @@
 
     readSetting: function(name) {
       this.debug('reading ' + name + ' from settings db');
-      return this.service.request('SettingsCore:get', name).then(function(p) {
-        return p;
-      });
+      return this.service.request('SettingsCore:get', name);
     },
 
     /**
