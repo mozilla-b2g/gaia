@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
+/* global AsyncSemaphore, bluetooth, CustomDialog, FtuLauncher, ScreenManager,
           SettingsListener, System */
 
 (function(exports) {
@@ -345,7 +345,7 @@
       return;
     }
 
-    if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) &&
+    if (bluetooth.isProfileConnected(bluetooth.Profiles.SCO) &&
         this.isOnCall()) {
       this.changeVolume(offset, 'bt_sco');
     } else if (this.isHeadsetConnected && offset > 0) {
