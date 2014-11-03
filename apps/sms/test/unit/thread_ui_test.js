@@ -5790,6 +5790,43 @@ suite('thread_ui.js >', function() {
 
       assert.isFalse(mainWrapper.classList.contains('edit'));
     });
+
+    test('revokes all attachment thumbnail URLs', function() {
+      this.sinon.stub(window.URL, 'revokeObjectURL');
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
+      var attachments = [{
+        location: 'image',
+        content: testImageBlob
+      }, {
+        location: 'image',
+        content: testImageBlob
+      }, {
+        location: 'video',
+        content: testVideoBlob
+      }];
+
+      attachments.forEach((attachment, index) => {
+        ThreadUI.appendMessage(MockMessages.mms({
+          id: index + 1,
+          attachments: [attachment]
+        }));
+
+        if (attachment.content.type.indexOf('image') >= 0) {
+          var attachmentContainer = ThreadUI.container.querySelector(
+            '[data-message-id="' + (index + 1) + '"] .attachment-container'
+          );
+          attachmentContainer.dataset.thumbnail = 'blob:fake' + index;
+        }
+      });
+
+      ThreadUI.beforeLeave();
+
+      sinon.assert.calledTwice(window.URL.revokeObjectURL);
+      sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake0');
+      sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake1');
+    });
   });
 
   suite('afterLeave()', function() {

@@ -20,8 +20,6 @@ MockAttachment.prototype = {
     return Utils.typeFromMimeType(this.blob.type);
   },
   render: function() {
-    this.mNextRender = document.createElement('iframe');
-    this.mNextRender.className = 'attachment-container';
     return this.mNextRender;
   },
   view: function() {},
