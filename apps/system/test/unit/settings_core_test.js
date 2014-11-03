@@ -27,19 +27,19 @@ suite('system/SettingsCore', function() {
   });
 
   suite('SettingsCore API', function() {
-    var s;
+    var subject;
     setup(function() {
-      s = BaseModule.instantiate('SettingsCore');
-      s.start();
+      subject = BaseModule.instantiate('SettingsCore');
+      subject.start();
     });
 
     teardown(function() {
-      s.stop();
+      subject.stop();
     });
 
     test('read', function(done) {
       MockNavigatorSettings.mSyncRepliesOnly = true;
-      s.get('lockscreen.locked').then(function(result) {
+      subject.get('lockscreen.locked').then(function(result) {
         assert.isTrue(result);
         done();
       });
@@ -49,7 +49,7 @@ suite('system/SettingsCore', function() {
 
     test('write', function(done) {
       MockNavigatorSettings.mSyncRepliesOnly = true;
-      s.set({'lockscreen.locked' : false}).then(function() {
+      subject.set({'lockscreen.locked' : false}).then(function() {
         assert.equal(MockNavigatorSettings.mSettings['lockscreen.locked'],
           false);
         done();
@@ -63,7 +63,7 @@ suite('system/SettingsCore', function() {
         name: 'fakeObserver',
         observe: spy
       };
-      s.addObserver('lockscreen.enabled', observer);
+      subject.addObserver('lockscreen.enabled', observer);
 
       MockNavigatorSettings.mTriggerObservers('lockscreen.enabled',
         {
@@ -86,8 +86,8 @@ suite('system/SettingsCore', function() {
         name: 'fakeObserver',
         observe: spy
       };
-      s.addObserver('lockscreen.enabled', observer);
-      s.removeObserver('lockscreen.enabled', observer);
+      subject.addObserver('lockscreen.enabled', observer);
+      subject.removeObserver('lockscreen.enabled', observer);
 
       MockNavigatorSettings.mTriggerObservers('lockscreen.enabled',
         {
