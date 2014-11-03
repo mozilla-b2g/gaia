@@ -17,8 +17,7 @@ suite('day_observer', function() {
   var tomorrow;
   var yesterday;
 
-  setup(function() {
-    // load the required sub-objects..
+  setup(function(done) {
     app = testSupport.calendar.app();
     subject = dayObserver;
     delay = subject.DISPATCH_DELAY + 5;
@@ -49,6 +48,7 @@ suite('day_observer', function() {
       },
       on: function() {}
     };
+    app.db.open(done);
   });
 
   setup(function() {
@@ -105,6 +105,7 @@ suite('day_observer', function() {
     subject.removeAllListeners();
     timeController.calendarStore = calendarStore;
     timeController.findAssociated = findAssociated;
+    app.db.close();
   });
 
   suite('#on', function() {
