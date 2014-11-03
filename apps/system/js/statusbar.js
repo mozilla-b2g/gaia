@@ -107,6 +107,8 @@ var StatusBar = {
     '1xrtt': true, 'is95a': true, 'is95b': true  // data call or voice call
   },
 
+  utilityTrayShown: false,
+
   geolocationActive: false,
   geolocationTimer: null,
 
@@ -207,6 +209,7 @@ var StatusBar = {
     window.addEventListener('attentionscreenshow', this);
     window.addEventListener('attentionscreenhide', this);
 
+    window.addEventListener('utility-tray-overlaywillopen', this);
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('utilitytrayhide', this);
 
@@ -254,6 +257,8 @@ var StatusBar = {
 
     window.addEventListener('simpinshow', this);
     window.addEventListener('simpinclose', this);
+
+    window.addEventListener('system-resize', this);
 
     // We need to preventDefault on mouse events until
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1005815 lands
@@ -313,7 +318,14 @@ var StatusBar = {
         }
         break;
 
+      case 'utility-tray-overlaywillopen':
+        this.utilityTrayShown = true;
+        this.resizeLabel();
+        break;
+
       case 'utilitytrayshow':
+        this.utilityTrayShown = true;
+        this.resizeLabel();
         this.show();
         break;
 
@@ -322,6 +334,7 @@ var StatusBar = {
         if (app && app.isFullScreen()) {
           this.hide();
         }
+        this.utilityTrayShown = false;
         break;
 
       case 'lockpanelchange':
@@ -438,6 +451,10 @@ var StatusBar = {
           evt.deltaY < 0 && !this.isLocked()) {
           window.dispatchEvent(new CustomEvent('statusbarwheel'));
         }
+        break;
+
+      case 'system-resize':
+        this.resizeLabel();
         break;
 
       case 'iac-change-appearance-statusbar':
@@ -696,6 +713,8 @@ var StatusBar = {
       l10nArgs.date = f.localeFormat(now, _('statusbarDateFormat'));
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
       this.update.label.call(this);
+
+      this.resizeLabel();
     },
 
     battery: function sb_updateBattery() {
@@ -727,18 +746,18 @@ var StatusBar = {
 
       this._networkActivityTimer = setTimeout(function hideNetActivityIcon() {
         icon.hidden = true;
-      }, 500);
+        this.resizeLabel();
+      }.bind(this), 500);
+
+      this.resizeLabel();
     },
 
     flightMode: function sb_flightMode() {
       var self = this;
-      var flightModeIcon = self.icons.flightMode;
-      if (self.settingValues['airplaneMode.enabled']) {
-        // "Airplane Mode"
-        flightModeIcon.hidden = false;
-        return;
-      }
-      flightModeIcon.hidden = true;
+      var icon = self.icons.flightMode;
+      icon.hidden = !self.settingValues['airplaneMode.enabled'];
+
+      this.resizeLabel();
     },
 
     signal: function sb_updateSignal() {
@@ -803,6 +822,8 @@ var StatusBar = {
       }
 
       this.refreshCallListener();
+
+      this.resizeLabel();
     },
 
     data: function sb_updateSignal() {
@@ -853,6 +874,8 @@ var StatusBar = {
       }
 
       this.refreshCallListener();
+
+      this.resizeLabel();
     },
 
 
@@ -908,6 +931,8 @@ var StatusBar = {
       if (icon.hidden !== wasHidden) {
         this.update.data.call(this);
       }
+
+      this.resizeLabel();
     },
 
     tethering: function sb_updateTethering() {
@@ -920,6 +945,8 @@ var StatusBar = {
         (this.settingValues['tethering.usb.connectedClients'] !== 0);
 
       this.updateIconLabel(icon, 'tethering', icon.dataset.active);
+
+      this.resizeLabel();
     },
 
     bluetooth: function sb_updateBluetooth() {
@@ -928,6 +955,8 @@ var StatusBar = {
       icon.hidden = !this.settingValues['bluetooth.enabled'];
       icon.dataset.active = Bluetooth.connected;
       this.updateIconLabel(icon, 'bluetooth', icon.dataset.active);
+
+      this.resizeLabel();
     },
 
     bluetoothProfiles: function sv_updateBluetoothProfiles() {
@@ -939,10 +968,14 @@ var StatusBar = {
 
       bluetoothTransferringIcon.hidden =
         !Bluetooth.isProfileConnected(Bluetooth.Profiles.OPP);
+
+      this.resizeLabel();
     },
 
     alarm: function sb_updateAlarm() {
       this.icons.alarm.hidden = !this.settingValues['alarm.enabled'];
+
+      this.resizeLabel();
     },
 
     mute: function sb_updateMute() {
@@ -951,6 +984,8 @@ var StatusBar = {
       this.updateIconLabel(icon,
         (this.settingValues['vibration.enabled'] === true) ?
           'vibration' : 'mute');
+
+      this.resizeLabel();
     },
 
     vibration: function sb_vibration() {
@@ -974,6 +1009,7 @@ var StatusBar = {
       if (this.recordingActive) {
         // Geolocation is currently active, show the active icon.
         icon.hidden = false;
+        this.resizeLabel();
         return;
       }
 
@@ -981,7 +1017,10 @@ var StatusBar = {
       // Show the inactive icon and hide it after kActiveIndicatorTimeout
       this.recordingTimer = window.setTimeout(function hideGeoIcon() {
         icon.hidden = true;
-      }, this.kActiveIndicatorTimeout);
+        this.resizeLabel();
+      }.bind(this), this.kActiveIndicatorTimeout);
+
+      this.resizeLabel();
     },
 
     sms: function sb_updateSms() {
@@ -1000,6 +1039,7 @@ var StatusBar = {
       if (this.geolocationActive) {
         // Geolocation is currently active, show the active icon.
         icon.hidden = false;
+        this.resizeLabel();
         return;
       }
 
@@ -1007,22 +1047,31 @@ var StatusBar = {
       // Show the inactive icon and hide it after kActiveIndicatorTimeout
       this.geolocationTimer = window.setTimeout(function hideGeoIcon() {
         icon.hidden = true;
-      }, this.kActiveIndicatorTimeout);
+        this.resizeLabel();
+      }.bind(this), this.kActiveIndicatorTimeout);
+
+      this.resizeLabel();
     },
 
     usb: function sb_updateUsb() {
       var icon = this.icons.usb;
       icon.hidden = !this.umsActive;
+
+      this.resizeLabel();
     },
 
     headphones: function sb_updateHeadphones() {
       var icon = this.icons.headphones;
       icon.hidden = !this.headphonesActive;
+
+      this.resizeLabel();
     },
 
     systemDownloads: function sb_updatesystemDownloads() {
       var icon = this.icons.systemDownloads;
       icon.hidden = (this.systemDownloadsCount === 0);
+
+      this.resizeLabel();
     },
 
     callForwarding: function sb_updateCallForwarding() {
@@ -1033,16 +1082,22 @@ var StatusBar = {
           icons[index].hidden = !state;
         });
       }
+
+      this.resizeLabel();
     },
 
     playing: function sb_updatePlaying() {
       var icon = this.icons.playing;
       icon.hidden = !this.playingActive;
+
+      this.resizeLabel();
     },
 
     nfc: function sb_updateNfc() {
       var icon = this.icons.nfc;
       icon.hidden = !this.nfcActive;
+
+      this.resizeLabel();
     }
   },
 
@@ -1262,6 +1317,26 @@ var StatusBar = {
   isLocked: function() {
     return 'undefined' !== typeof window.lockScreen &&
       window.lockScreen.locked;
+  },
+
+  resizeLabel: function ut_resizeLabel() {
+    if (!this.utilityTrayShown) {
+      return;
+    }
+
+    var width = this.statusbarIcons.clientWidth - 16 /* Remove padding */;
+
+    for (var i = 0; i < this.statusbarIcons.children.length; i++) {
+      var icon = this.statusbarIcons.children[i];
+      if (!icon.hidden && icon.id !== 'statusbar-label') {
+        var style = getComputedStyle(icon);
+        width -= icon.clientWidth +
+        parseInt(style.marginLeft, 10) +
+        parseInt(style.marginRight, 10);
+      }
+    }
+
+    this.icons.label.style.width = width + 'px';
   }
 };
 

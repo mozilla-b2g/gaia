@@ -285,6 +285,8 @@ var UtilityTray = {
   },
 
   show: function ut_show(dy) {
+    window.dispatchEvent(new CustomEvent('utility-tray-overlaywillopen'));
+
     var alreadyShown = this.shown;
     var overlay = this.overlay;
     var style = overlay.style;

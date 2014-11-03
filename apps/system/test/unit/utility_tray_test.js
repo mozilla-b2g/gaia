@@ -428,4 +428,33 @@ suite('system/UtilityTray', function() {
       assert.isTrue(defaultStub.notCalled);
     });
   });
+
+  suite('Events', function() {
+    test('open then close should trigger events in order', function() {
+      var eventsToListen = [
+        'utility-tray-overlaywillopen',
+        'utility-tray-overlayopened',
+        'utilitytrayhide'
+      ];
+      var events = [];
+
+      eventsToListen.forEach(function(type) {
+        window.addEventListener(type, function() {
+          events.push(type);
+        });
+      });
+
+      UtilityTray.show();
+      UtilityTray.overlay.dispatchEvent(createEvent('transitionend'));
+      UtilityTray.hide();
+
+      assert.deepEqual(events, eventsToListen);
+
+      eventsToListen.forEach(function(type) {
+        window.removeEventListener(type, function() {
+          events.push(type);
+        });
+      });
+    });
+  });
 });

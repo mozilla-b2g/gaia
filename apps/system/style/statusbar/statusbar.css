@@ -162,6 +162,9 @@ body:not(.rb-enabled) .utility-tray #statusbar-icons > .sb-start {
   font-size: 1.5rem;
   font-weight: 400;
   line-height: 1.6rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 body.rb-enabled #statusbar-label {
