@@ -59,6 +59,18 @@
   color: #ebebeb;
 }
 
+.overlay-image {
+  display: none;
+  margin: 2.5rem auto;
+  width: 13.5rem;
+  height: 13.5rem;
+}
+
+.overlay-image[data-image="camera_unavailable"] {
+  background: url("images/camera_unavailable.png") no-repeat center center / 13.5rem;
+  display: block;
+}
+
 /** Menu Close
  ---------------------------------------------------------*/
 

@@ -277,6 +277,7 @@ Camera.prototype.requestCamera = function(camera, config) {
   this.configured = !!config;
 
   navigator.mozCameras.getCamera(camera, config || {}, onSuccess, onError);
+  this.emit('requesting');
   debug('camera requested', camera, config);
 
   function onSuccess(mozCamera) {
@@ -308,6 +309,7 @@ Camera.prototype.requestCamera = function(camera, config) {
 
   function onError(err) {
     debug('error requesting camera', err);
+    self.emit('error', 'request-fail');
     self.ready();
   }
 };
@@ -1412,7 +1414,7 @@ Camera.prototype.getMaximumZoom = function() {
 };
 
 Camera.prototype.getZoom = function() {
-  return this.mozCamera.zoom;
+  return this.mozCamera && this.mozCamera.zoom;
 };
 
 Camera.prototype.setZoom = function(zoom) {
