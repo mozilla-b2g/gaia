@@ -1,12 +1,14 @@
 /**
  * Handle app_permissions_list panel's functionality.
+ *
+ * @module PermissionsList
  */
-
 define(function(require) {
   'use strict';
 
   var SettingsService = require('modules/settings_service');
   var ManifestHelper = require('shared/manifest_helper');
+  var AppsCache = require('modules/apps_cache');
   var mozApps = require('modules/navigator/mozApps');
   var mozPerms = require('modules/navigator/mozPermissionSettings');
 
@@ -15,18 +17,58 @@ define(function(require) {
     this._permissionsTable = null;
     this._permissionTableHaveProcessed = false;
     this._apps = null;
+    this._enabled = false;
   };
 
   PermissionsList.prototype = {
     /**
      * initialization
+     *
+     * @memberOf PermissionsList
+     * @param {HTMLElement} listRoot
+     * @access public
      */
     init: function pl_init(listRoot) {
       this._listRoot = listRoot;
+
+      this._boundOnAppChoose = this._onAppChoose.bind(this);
+      this._boundOnApplicationInstall = this._onApplicationInstall.bind(this);
+      this._boundOnApplicationUninstall =
+        this._onApplicationUninstall.bind(this);
+    },
+
+    set enabled(value) {
+      if (value !== this._enabled) {
+        this._enabled = value;
+        if (this._enabled) {
+          this._bindEvents();
+        } else {
+          this._unbindEvents();
+        }
+      }
+    },
+
+    _bindEvents: function pl__bindEvents() {
+      this._listRoot.addEventListener('click', this._boundOnAppChoose);
+      AppsCache.addEventListener('oninstall', this._boundOnApplicationInstall);
+      AppsCache.addEventListener('onuninstall',
+        this._boundOnApplicationUninstall);
+    },
+
+    _unbindEvents: function pl__unbindEvents() {
+      this._listRoot.removeEventListener('click', this._boundOnAppChoose);
+      AppsCache.removeEventListener('oninstall',
+        this._boundOnApplicationInstall);
+      AppsCache.removeEventListener('onuninstall',
+        this._boundOnApplicationUninstall);
     },
 
     /**
      * Set /resources/permissions_table.json.
+     *
+     * @memberOf PermissionsList
+     * @param {Object} permissionTable
+     * @access public
      */
     setPermissionsTable: function pl_setPermissionsTable(permissionTable) {
       this._permissionTable = permissionTable;
@@ -34,21 +76,33 @@ define(function(require) {
 
     /**
      * Refresh the app list when we enter into panel.
+     *
+     * @memberOf PermissionsList
+     * @access public
+     * @return {Promise}
      */
     refresh: function pl_refresh() {
+      var self = this;
       this._apps = [];
       if (this._permissionTableHaveProcessed) {
-        this.loadApps();
+        return this.loadApps();
       } else {
-        mozApps.getSelf().onsuccess =
-          this._initExplicitPermissionsTable.bind(this);
+        return mozApps.getSelf().then(function(app) {
+          return self._initExplicitPermissionsTable(app);
+        }).then(function() {
+          return self.loadApps();
+        });
       }
     },
 
     /**
      * Go to app_permissions_detail panel when user select an app.
+     *
+     * @memberOf PermissionsList
+     * @param {Event} evt
+     * @access public
      */
-    onAppChoose: function pl_on_app_choose(evt) {
+    _onAppChoose: function pl__onAppChoose(evt) {
       if (evt.target.dataset && evt.target.dataset.appIndex) {
         SettingsService.navigate('appPermissions-details', {
           app: this._apps[evt.target.dataset.appIndex],
@@ -60,8 +114,12 @@ define(function(require) {
     /**
      * When new application is installed, we push the app to list, sort them and
      * rerender the app list.
+     *
+     * @memberOf PermissionsList
+     * @param {Event} evt
+     * @access public
      */
-    onApplicationInstall: function pl_on_application_install(evt) {
+    _onApplicationInstall: function pl__onApplicationInstall(evt) {
       var app = evt.application;
       this._apps.push(app);
       this._sortApps();
@@ -71,8 +129,12 @@ define(function(require) {
     /**
      * When application is uninstalled, we remove it from list and rerender the
      * app list.
+     *
+     * @memberOf PermissionsList
+     * @param {Event} evt
+     * @access public
      */
-    onApplicationUninstall: function pl_on_application_uninstall(evt) {
+    _onApplicationUninstall: function pl__onApplicationUninstall(evt) {
       var app;
       var appIndex;
       this._apps.some(function findApp(anApp, index) {
@@ -94,8 +156,11 @@ define(function(require) {
 
     /**
      * Sort the applist by the name of its manifest.
+     *
+     * @memberOf PermissionsList
+     * @access private
      */
-    _sortApps: function pl__sort_apps() {
+    _sortApps: function pl__sortApps() {
       this._apps.sort(function alphabeticalSort(app, otherApp) {
         var manifest = new ManifestHelper(app.manifest ?
           app.manifest : app.updateManifest);
@@ -103,13 +168,17 @@ define(function(require) {
           otherApp.manifest : otherApp.updateManifest);
         return manifest.name > otherManifest.name;
       });
-
     },
 
     /**
      * Genrate UI template of app item.
+     *
+     * @memberOf PermissionsList
+     * @access private
+     * @param {Object} itemData
+     * @return {HTMLDivElement}
      */
-    _genAppItemTemplate: function pl__gen_app_item_template(itemData) {
+    _genAppItemTemplate: function pl__genAppItemTemplate(itemData) {
       var icon = document.createElement('img');
       var item = document.createElement('li');
       var link = document.createElement('a');
@@ -126,8 +195,11 @@ define(function(require) {
 
     /**
      * Genrate UI template of app item.
+     *
+     * @memberOf PermissionsList
+     * @access public
      */
-    renderList: function pl_render_list() {
+    renderList: function pl_renderList() {
       this._listRoot.innerHTML = '';
       var listFragment = document.createDocumentFragment();
       this._apps.forEach(function appIterator(app, index) {
@@ -146,10 +218,14 @@ define(function(require) {
     /**
      * Genrate explicitCertifiedPermissions table from plainPermissions table
      * table and "composedPermissions + accessModes" table.
+     *
+     * @memberOf PermissionsList
+     * @param {Event} evt
+     * @access private
      */
     _initExplicitPermissionsTable:
-      function pl__init_explicit_permissions_tablet(evt) {
-        this._currentApp = evt.target.result;
+      function pl__initExplicitPermissionsTable(app) {
+        this._currentApp = app;
 
         var table = this._permissionTable;
         table.explicitCertifiedPermissions = [];
@@ -174,26 +250,42 @@ define(function(require) {
           }.bind(this));
         }.bind(this));
         this._permissionTableHaveProcessed = true;
-        this.loadApps();
     },
 
     /**
      * Identify the permission whether is explict or not.
+     *
+     * @memberOf PermissionsList
+     * @access private
+     * @return {Bool}
      */
-    _isExplicitPerm: function pl_is_explicitPerm(perm) {
+    _isExplicitPerm: function pl_isExplicitPerm(perm) {
       return mozPerms.isExplicit(perm, this._currentApp.manifestURL,
                                  this._currentApp.origin, false);
     },
 
     /**
      * Filter explicit apps from moz apps, sort them, and render to screen.
+     *
+     * @memberOf PermissionsList
+     * @access public
+     * @return {Promise}
      */
-    loadApps: function pl_load_apps() {
-      mozApps.mgmt.getAll().onsuccess = this._loadApps.bind(this);
+    loadApps: function pl_loadApps() {
+      var self = this;
+      return AppsCache.apps().then(function(apps) {
+        self._loadApps(apps);
+      });
     },
 
-    _loadApps: function pl__load_apps(evt) {
-      var apps = evt.target.result;
+    /**
+     * Iterate internal apps and render them on UI.
+     *
+     * @memberOf PermissionsList
+     * @param {Object[]} apps
+     * @access private
+     */
+    _loadApps: function pl__loadApps(apps) {
       var table = this._permissionTable;
       apps.forEach(function(app) {
         var manifest = app.manifest ? app.manifest : app.updateManifest;
@@ -213,14 +305,20 @@ define(function(require) {
           this._apps.push(app);
         }
       }.bind(this));
+
       this._sortApps();
       this.renderList();
     },
 
     /**
      * Get icon URL.
+     *
+     * @memberOf PermissionsList
+     * @param {Object} app
+     * @param {Object} icons
+     * @access private
      */
-    _getBestIconURL: function pl__get_best_icon_URL(app, icons) {
+    _getBestIconURL: function pl__getBestIconURL(app, icons) {
       if (!icons || !Object.keys(icons).length) {
         return '../style/images/default.png';
       }
@@ -256,6 +354,7 @@ define(function(require) {
       }
     }
   };
+
   return function ctor_permissions_list() {
     return new PermissionsList();
   };

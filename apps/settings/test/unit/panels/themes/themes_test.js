@@ -1,8 +1,7 @@
 'use strict';
-/* global MockNavigatormozApps, MockNavigatorSettings, MockManifestHelper */
+/* global MockNavigatorSettings, MockManifestHelper */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 
@@ -11,7 +10,6 @@ suite('Themes > ', function() {
   var themes;
 
   var realNavigatorSettings;
-  var realMozApps;
   var selectedTheme;
 
   var mock_app1 = {
@@ -68,24 +66,20 @@ suite('Themes > ', function() {
   };
 
   var modules = [
-    'panels/themes/themes'
+    'panels/themes/themes',
+    'unit/mock_apps_cache'
   ];
 
   var maps = {
     'panels/themes/themes': {
       'shared/manifest_helper': 'MockManifestHelper',
-      'modules/settings_cache': 'MockSettingsCache'
+      'modules/settings_cache': 'MockSettingsCache',
+      'modules/apps_cache': 'unit/mock_apps_cache'
     }
   };
 
   suiteSetup(function(done) {
     selectedTheme = mock_app2.manifestURL;
-    MockNavigatormozApps.mApps = [mock_app1, mock_app2, mock_app3,
-      mock_app4, mock_app5];
-
-    realMozApps = navigator.mozApps;
-    navigator.mozApps = MockNavigatormozApps;
-
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
@@ -107,7 +101,8 @@ suite('Themes > ', function() {
       return MockManifestHelper;
     });
 
-    testRequire(modules, maps, function(Themes) {
+    testRequire(modules, maps, function(Themes, AppsCache) {
+      AppsCache._apps = [mock_app1, mock_app2, mock_app3, mock_app4, mock_app5];
       mockManifestHelper = MockManifestHelper;
       themes = Themes();
       themes.onInit(document.body);
@@ -118,9 +113,6 @@ suite('Themes > ', function() {
 
   suiteTeardown(function() {
     document.body.innerHTML = '';
-
-    navigator.mozApps = realMozApps;
-    realMozApps = null;
 
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;

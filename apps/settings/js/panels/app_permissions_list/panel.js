@@ -12,47 +12,6 @@ define(function(require) {
     var permissionsTableHasBeenLoaded = false;
     var elements = {};
     var permissionListModule = PermissionList();
-    var eventMapping = [
-      {
-        elementName: 'list',
-        eventType: 'click',
-        methodName: 'onAppChoose'
-      },
-      {
-        eventType: 'applicationinstall',
-        methodName: 'onApplicationInstall'
-      },
-      {
-        eventType: 'applicationuninstall',
-        methodName: 'onApplicationUninstall'
-      }
-    ];
-
-    function bindEvents(elements) {
-      eventMapping.forEach(function(map) {
-        map.method =
-          permissionListModule[map.methodName].bind(permissionListModule);
-        if (map.elementName) {
-          elements[map.elementName].addEventListener(map.eventType, map.method);
-        } else {
-          window.addEventListener(map.eventType, map.method);
-        }
-      });
-    }
-
-    function unbindEvents(elements) {
-      eventMapping.forEach(function(map) {
-        if (!map.method) {
-          return;
-        }
-        if (map.elementName) {
-          elements[map.elementName].removeEventListener(map.eventType,
-            map.method);
-        } else {
-          window.removeEventListener(map.eventType, map.method);
-        }
-      });
-    }
 
     return SettingsPanel({
       onInit: function(panel) {
@@ -73,11 +32,11 @@ define(function(require) {
             permissionListModule.refresh();
           });
         }
-        bindEvents(elements);
+        permissionListModule.enabled = true;
       },
 
       onBeforeHide: function() {
-        unbindEvents(elements);
+        permissionListModule.enabled = false;
       }
     });
   };

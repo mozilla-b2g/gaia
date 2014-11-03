@@ -4,6 +4,7 @@
 define(function(require) {
   'use strict';
 
+  var AppsCache = require('modules/apps_cache');
   var SettingsService = require('modules/settings_service');
   var ManifestHelper = require('shared/manifest_helper');
 
@@ -95,16 +96,15 @@ define(function(require) {
 
     _renderHomescreens: function h_renderHomescreens() {
       var self = this;
-      navigator.mozApps.mgmt.getAll().onsuccess = function mozAppGotAll(evt) {
-        self._apps = evt.target.result.filter(function(app) {
+      return AppsCache.apps().then(function(apps) {
+        self._apps = apps.filter(function(app) {
           var manifest =
             new ManifestHelper(app.manifest || app.updateManifest);
-
           return manifest && manifest.role && manifest.role === 'homescreen';
         });
 
         self._listBuilder();
-      };
+      });
     }
   };
 

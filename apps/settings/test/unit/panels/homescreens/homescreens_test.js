@@ -1,24 +1,28 @@
-/*global MockNavigatormozApps, MockNavigatorSettings*/
+/*global MockNavigatorSettings*/
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 suite('Homescreens > ', function() {
   var Homescreens;
+  var mockAppsCache;
   var manifestHelper;
-  var realMozApps, realNavigatorSettings;
+  var realNavigatorSettings;
 
   var modules = [
     'shared_mocks/mock_manifest_helper',
+    'unit/mock_apps_cache',
     'panels/homescreens/homescreens'
   ];
+
   var maps = {
     '*': {
       'shared/manifest_helper': 'shared_mocks/mock_manifest_helper',
-      'modules/settings_service': 'unit/mock_settings_service'
+      'modules/settings_service': 'unit/mock_settings_service',
+      'modules/apps_cache': 'unit/mock_apps_cache'
     }
   };
+
   var dom = document.createElement('div');
   var apps = [{
     origin: 'app://homescreen.gaiamobile.org',
@@ -44,24 +48,20 @@ suite('Homescreens > ', function() {
   }];
 
   suiteSetup(function(done) {
-    testRequire(modules, maps, function(MockManifestHelper, module) {
-      manifestHelper = MockManifestHelper;
+    testRequire(modules, maps,
+      function(MockManifestHelper, MockAppsCache, module) {
+        manifestHelper = MockManifestHelper;
+        mockAppsCache = MockAppsCache;
 
-      realMozApps = navigator.mozApps;
-      navigator.mozApps = MockNavigatormozApps;
+        realNavigatorSettings = navigator.mozSettings;
+        navigator.mozSettings = MockNavigatorSettings;
 
-      realNavigatorSettings = navigator.mozSettings;
-      navigator.mozSettings = MockNavigatorSettings;
-
-      Homescreens = module();
-      done();
+        Homescreens = module();
+        done();
     });
   });
 
   suiteTeardown(function() {
-    navigator.mozApps = realMozApps;
-    realMozApps = null;
-
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;
   });
@@ -94,24 +94,17 @@ suite('Homescreens > ', function() {
 
   suite('_renderHomescreens', function() {
     setup(function() {
-      this.sinon.stub(navigator.mozApps.mgmt, 'getAll', function() {
-        return {};
-      });
       this.sinon.stub(Homescreens, '_listBuilder');
-      Homescreens._renderHomescreens();
     });
 
-    test('we would call mozApps.mgmt.getAll in _renderHomescreens',
-      function() {
-        assert.ok(navigator.mozApps.mgmt.getAll.called);
-    });
-
-    test('we would call _listBuilder in _renderHomescreens', function() {
-      var request = navigator.mozApps.mgmt.getAll.returnValues[0];
-      request.result = [];
-      request.onsuccess({ target: request });
-      assert.equal(Homescreens._apps.length, 0);
-      assert.ok(Homescreens._listBuilder.called);
+    test('we would call _listBuilder in _renderHomescreens', function(done) {
+      Homescreens._renderHomescreens().then(function() {
+        assert.equal(Homescreens._apps.length, 0);
+        assert.ok(Homescreens._listBuilder.called);
+      }, function() {
+        // We should not reject here
+        assert.isTrue(false);  
+      }).then(done, done);
     });
   });
 

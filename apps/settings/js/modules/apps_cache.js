@@ -69,24 +69,33 @@ define(function(require) {
     _initEvents: function am__initEvents() {
       var self = this;
 
-      mozAppsMgmt.addEventListener('install', function(evt) {
+      mozAppsMgmt.oninstall = function(evt) {
         var installedApp = evt.application;
         self._apps.push(installedApp);
         self._eventHandlers.oninstall.forEach(function(eventHandler) {
-          eventHandler(installedApp);
+          eventHandler(evt);
         });
-      });
+      };
 
-      mozAppsMgmt.addEventListener('uninstall', function(evt) {
-        var removedApp = evt.application;
-        var index = self._apps.indexOf(removedApp);
-        if (index >= 0) {
-          self._apps.splice(index, 1);
+      mozAppsMgmt.onuninstall = function(evt) {
+        var manifestURL = evt.application.manifestURL;
+        var removedAppIndex;
+        // installed apps are normally in the end, so let's iterate
+        // backward to find them quickly.
+        for (var i = self._apps.length - 1; i >= 0; i--) {
+          if (self._apps[i].manifestURL === manifestURL) {
+            removedAppIndex = i;
+            break;
+          }
+        }
+
+        if (removedAppIndex) {
+          self._apps.splice(removedAppIndex, 1);
           self._eventHandlers.onuninstall.forEach(function(eventHandler) {
-            eventHandler(removedApp);
+            eventHandler(evt);
           });
         }
-      });
+      };
     },
 
     /**
