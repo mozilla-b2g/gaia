@@ -917,3 +917,47 @@ form[role="combobox"] span[data-field="type"] {
 #view-settings.fade-in, #view-contact-form.fade-in {
   transform: translateY(0);
 }
+
+/* Animations over the contact form when adding new group fields */
+.field-template.inserted {
+  opacity: 0;
+}
+
+.field-template.inserted.displayed {
+  animation: add-field 0.25s ease-in-out 1 forwards;
+}
+
+.field-template.inserted .first-row,
+.field-template.inserted .second-row,
+.field-template.inserted .third-row {
+  opacity: 0;
+  animation: add-field 0.20s linear 1 forwards;
+}
+
+@keyframes add-field {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.field-template.inserted.displayed .first-row {
+  animation-delay: 0.15s;
+}
+
+.field-template.inserted.displayed .second-row {
+  animation-delay: 0.25s;
+}
+
+.field-template.inserted.displayed .third-row {
+  animation-delay: 0.35s;
+}
+
+/* Avoid the activate state on '+ Add xx' buttons */
+li button[data-field-type]:active {
+  background: transparent;
+  color: #5F5F5F;
+}

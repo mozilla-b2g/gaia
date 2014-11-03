@@ -436,7 +436,10 @@ contacts.Form = (function() {
   var onNewFieldClicked = function onNewFieldClicked(evt) {
     var type = evt.target.dataset.fieldType;
     evt.preventDefault();
-    contacts.Form.insertField(type);
+    contacts.Form.insertField(type, null, [
+      'inserted',
+      'displayed'
+    ]);
     textFieldsCache.clear();
     // For dates only two instances
     if (type === 'date') {
@@ -474,7 +477,7 @@ contacts.Form = (function() {
     }
   }
 
-  var insertField = function insertField(type, object) {
+  var insertField = function insertField(type, object, targetClasses) {
     if (!type || !configs[type]) {
       console.error('Inserting field with unknown type');
       return;
@@ -569,6 +572,12 @@ contacts.Form = (function() {
     var boxTitle = rendered.querySelector('legend.action');
     if (boxTitle) {
       boxTitle.addEventListener('click', onGoToSelectTag);
+    }
+
+    // This will happen when the fields are added by the user on demand
+    if (Array.isArray(targetClasses)) {
+      rendered.classList.add(targetClasses[0]);
+      window.setTimeout(() => rendered.classList.add(targetClasses[1]));
     }
 
     container.classList.remove('empty');

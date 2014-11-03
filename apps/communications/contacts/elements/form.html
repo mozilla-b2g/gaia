@@ -8,7 +8,7 @@
 
     <div id='add-phone-#i#' role="listitem" data-template class='phone-template field-template' data-index="#i#">
       <fieldset class="fillflow-row">
-        <div class="two_fields">
+        <div class="two_fields first-row">
           <legend class="action" role="combobox" aria-haspopup="true" aria-labelledby="tel_type_#i#">
             <span aria-hidden="true" data-taglist="phone-type" name="tel" data-value="#type_value#"
               id="tel_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">
@@ -20,7 +20,7 @@
             <button type="reset">Clear</button>
           </p>
         </div>
-        <section>
+        <section class="second-row">
           <p class="setbox-item">
             <input placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel[#i#][value]" class="textfield" type="tel" value="#value#" id="number_#i#">
             <button type="reset">Clear</button>
@@ -31,11 +31,11 @@
 
     <div id='add-email-#i#' role="listitem" data-template class='email-template field-template' data-index="#i#">
       <fieldset class="fillflow-row">
-        <legend class="action" role="combobox" aria-haspopup="true" aria-labelledby="email_type_#i#">
+        <legend class="action first-row" role="combobox" aria-haspopup="true" aria-labelledby="email_type_#i#">
           <span aria-hidden="true" data-taglist="email-type" name="email[#i#][type]" data-value="#type_value#" id="email_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>
         </legend>
         <section>
-          <p class="setbox-item">
+          <p class="setbox-item second-row">
             <input placeholder="Email" data-field="value" data-l10n-id="email" name="email[#i#][value]" class="textfield" type="email" value="#value#" id="email_#i#">
             <button type="reset">Clear</button>
           </p>
@@ -46,11 +46,11 @@
     <div id='add-address-#i#' role="listitem" data-template class='address-template field-template' data-index="#i#">
       <fieldset class="fillflow-row">
         <section>
-          <p class="setbox-item">
+          <p class="setbox-item first-row">
             <input placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="adr[#i#][streetAddress]" class="textfield" type="text" x-inputmode="verbatim" value="#streetAddress#" id="streetAddress_#i#" dir="auto">
             <button type="reset">Clear</button>
           </p>
-          <div class="two_fields">
+          <div class="two_fields second-row">
             <legend class="action" role="combobox" aria-haspopup="true" aria-labelledby="address_type_#i#">
               <span aria-hidden="true" data-taglist="address-type" name="adr[#i#][type]" data-value="#type_value#" id="address_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>
             </legend>
@@ -59,7 +59,7 @@
               <button type="reset">Clear</button>
             </p>
           </div>
-          <div class="two_fields">
+          <div class="two_fields third-row">
             <p class="setbox-item">
               <input placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="adr[#i#][countryName]" class="textfield" type="text" x-inputmode="latin-prose" value="#countryName#" id="countryName_#i#" dir="auto">
               <button type="reset">Clear</button>
@@ -74,7 +74,7 @@
     </div>
 
     <div id='add-date-#i#' role="listitem" data-template class='date-template field-template' data-exclusive="true" data-custom="false" data-index="#i#">
-      <fieldset class="fillflow-row">
+      <fieldset class="fillflow-row first-row">
         <div class="two_fields">
           <legend class="action" role="combobox" aria-haspopup="true" aria-labelledby="date_type_#i#">
             <span aria-hidden="true" data-taglist="date-type" name="date[#i#][type]" data-value="#type_value#" id="date_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>
@@ -92,7 +92,7 @@
     </div>
 
     <div id='add-note-#i#' role="listitem" data-template class='note-template field-template' data-index="#i#">
-      <dl role="presentation" class="setbox fillflow-row">
+      <dl role="presentation" class="setbox fillflow-row first-row">
         <dd class="setbox-body">
           <p class="setbox-item">
             <textarea placeholder="Comment" data-field="note"
