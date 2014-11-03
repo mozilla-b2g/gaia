@@ -575,9 +575,11 @@ contacts.Form = (function() {
       rendered.classList.add('inserted');
 
       var delButton = rendered.querySelector('.' + IMG_DELETE_CLASS);
-      delButton.addEventListener('transitionend', function deleteRotation() {
-        delButton.removeEventListener('transitionend', deleteRotation);
-        delButton.classList.add('rendered');
+      delButton.addEventListener('transitionend', function deleteRotation(e) {
+        if (e.propertyName === 'transform') {
+          delButton.removeEventListener('transitionend', deleteRotation);
+          delButton.classList.add('rendered');
+        }
       });
 
       window.setTimeout(function() {
@@ -1262,6 +1264,9 @@ contacts.Form = (function() {
 
   var removeFieldIcon = function removeFieldIcon(selector, type) {
     var delButton = document.createElement('button');
+
+    var span = document.createElement('span');
+    delButton.appendChild(span);
 
     delButton.className = IMG_DELETE_CLASS; // + ' fillflow-row-action';
     delButton.setAttribute('data-l10n-id', 'removeField');
