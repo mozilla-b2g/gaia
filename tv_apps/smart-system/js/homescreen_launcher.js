@@ -1,5 +1,5 @@
 'use strict';
-/* global applications, SettingsListener, HomescreenWindow, TrustedUIManager */
+/* global applications, SettingsCache, HomescreenWindow, TrustedUIManager */
 (function(exports) {
   /**
    * HomescreenLauncher is responsible for launching the homescreen window
@@ -17,7 +17,7 @@
    * @class HomescreenLauncher
    * @requires module:TrustedUIManager
    * @requires module:Applications
-   * @requires module:SettingsListener
+   * @requires module:SettingsCache
    * @requires HomescreenWindow
    * @requires Applications
    */
@@ -85,7 +85,7 @@
 
     _fetchSettings: function hl_fetchSettings() {
       var that = this;
-      SettingsListener.observe('homescreen.manifestURL', '',
+      SettingsCache.observe('homescreen.manifestURL', '',
         // XXX: After landing of bug 976986, we should write a deregister
         // function of onRetrievingHomescreenManifestURL
         // see https://bugzilla.mozilla.org/show_bug.cgi?id=976998

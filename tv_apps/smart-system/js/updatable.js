@@ -233,15 +233,9 @@ SystemUpdatable.prototype.getBatteryPercentageThreshold = function() {
   var batteryThresholdKey =
     'app.update.battery-threshold.' + (isCharging ? 'plugged' : 'unplugged');
 
-  var settings = window.navigator.mozSettings;
-  var getRequest = settings.createLock().get(batteryThresholdKey);
-
   return new Promise(function(resolve, reject) {
-    getRequest.onerror = function() {
-      resolve(fallbackThreshold);
-    };
-    getRequest.onsuccess = function() {
-      var threshold = getRequest.result[batteryThresholdKey];
+    SettingsCache.get(batteryThresholdKey, function(value) {
+      var threshold = value;
       if (typeof threshold !== 'number') {
         threshold = fallbackThreshold;
       }
@@ -249,7 +243,7 @@ SystemUpdatable.prototype.getBatteryPercentageThreshold = function() {
         threshold = fallbackThreshold;
       }
       resolve(threshold);
-    };
+    });
   });
 };
 

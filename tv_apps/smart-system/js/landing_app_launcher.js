@@ -1,5 +1,5 @@
 'use strict';
-/* global applications, SettingsListener, LandingAppWindow,
+/* global applications, SettingsCache, LandingAppWindow,
           HomescreenLauncher */
 (function(exports) {
   /**
@@ -25,7 +25,7 @@
 
   proto._fetchSettings = function lal_fetchSettings() {
     var that = this;
-    SettingsListener.observe(this._settingsKey, '',
+    SettingsCache.observe(this._settingsKey, '',
       // XXX: After landing of bug 976986, we should write a deregister
       // function of onRetrievingHomescreenManifestURL
       // see https://bugzilla.mozilla.org/show_bug.cgi?id=976998

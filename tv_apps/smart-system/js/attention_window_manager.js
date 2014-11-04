@@ -1,5 +1,5 @@
 /* globals System, AppWindowManager, homescreenLauncher, SettingsListener,
-           AttentionIndicator */
+           SettingsCache, AttentionIndicator */
 'use strict';
 
 (function(exports) {

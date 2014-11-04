@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener, System */
+/* global SettingsCache, SettingsListener, System */
 
 (function(exports) {
 
@@ -108,7 +108,7 @@
      * @memberof UsbStorage.prototype
      */
     start: function() {
-      SettingsListener.observe(this.umsEnabled, false,
+      SettingsCache.observe(this.umsEnabled, false,
         this.bindUsbStorageChanged);
     },
 
@@ -128,15 +128,13 @@
      * @param {Boolean} enabled enables/disables automounting.
      */
     _usbStorageChanged: function(enabled) {
-      var req = navigator.mozSettings.createLock()
-        .get(this.usbTransferProtocol);
-      req.onsuccess = function() {
-        var protocol = this._keyMigration(
-          req.result[this.usbTransferProtocol]);
+      SettingsCache.get(this.usbTransferProtocol, function(value) {
+
+        var protocol = this._keyMigration(value);
         this._enabled = enabled;
         this._protocol = protocol;
         this._configUsbTransfer();
-      }.bind(this);
+      }.bind(this));
     },
 
     /**

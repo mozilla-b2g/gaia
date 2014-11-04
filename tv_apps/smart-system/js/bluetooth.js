@@ -65,10 +65,9 @@ var Bluetooth = {
       return;
 
     var bluetooth = window.navigator.mozBluetooth;
-    var settings = window.navigator.mozSettings;
     var self = this;
 
-    SettingsListener.observe('bluetooth.enabled', true, function(value) {
+    SettingsCache.observe('bluetooth.enabled', true, function(value) {
       if (!bluetooth) {
         // roll back the setting value to notify the UIs
         // that Bluetooth interface is not available

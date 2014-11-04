@@ -1,10 +1,10 @@
 'use strict';
-/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
+/* global AppWindow, PopupWindow, ActivityWindow, SettingsCache,
           AttentionWindow, MozActivity */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
-  SettingsListener.observe('in-app-sheet.enabled', false, function(value) {
+  SettingsCache.observe('in-app-sheet.enabled', false, function(value) {
     ENABLE_IN_APP_SHEET = value;
   });
   /**
