@@ -180,7 +180,7 @@ var Compose = (function() {
     } else {
       // trigger a recompute of size on the keypresses
       state.size = null;
-      compose.lock = false;
+      compose.unlocking();
     }
   }
 
@@ -482,6 +482,18 @@ var Compose = (function() {
     /** Stop further input because the max size is exceded
      */
     lock: false,
+
+    //disable the attach button when the memory exceeds
+    locking: function(){
+      compose.lock = true;
+      dom.attachButton.disabled = 'true';
+    },
+
+    //enable the attach button again when the memory is decreased
+    unlocking: function(){
+      compose.lock = false;
+      dom.attachButton.disabled = 'false';
+    },
 
     disable: function(state) {
       dom.sendButton.disabled = state;
