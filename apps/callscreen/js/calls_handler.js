@@ -426,13 +426,26 @@ var CallsHandler = (function callsHandler() {
         return;
     }
 
-    if (telephony.active) {
-      end();
-    } else if ((handledCalls.length > 1) || cdmaCallWaiting()) {
+    var incoming = incomingCall();
+
+    if ( telephony.active && incoming || cdmaCallWaiting() ) {
       holdAndAnswer();
+      console.log('holdAndAnswer');
+    } else if (telephony.active) {
+      end();
+      console.log('end');
     } else {
       answer();
+      console.log('answer');
     }
+  }
+
+  function incomingCall() {
+    return telephony.calls.some(function(call) {
+      if(call.state == 'incoming'){
+        return call;
+      }
+    });
   }
 
   /* === User Actions === */

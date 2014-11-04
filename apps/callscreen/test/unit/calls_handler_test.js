@@ -2358,15 +2358,6 @@ suite('calls handler', function() {
                                                    'headset-button-release');
       }
 
-      test('should end the active call', function() {
-        MockNavigatorMozTelephony.calls = [mockCall];
-        MockNavigatorMozTelephony.active = mockCall;
-
-        var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
-        triggerHeadset(this.sinon.clock);
-        sinon.assert.calledOnce(hangUpSpy);
-      });
-
       test('should answer an incoming call', function() {
         MockNavigatorMozTelephony.calls = [mockCall];
         MockNavigatorMozTelephony.mTriggerCallsChanged();
@@ -2376,14 +2367,25 @@ suite('calls handler', function() {
         sinon.assert.calledOnce(answerSpy);
       });
 
-      test('should answer a waiting call', function() {
+      test('should end the active call', function() {
+        MockNavigatorMozTelephony.active = mockCall;
+
+        var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
+        triggerHeadset(this.sinon.clock);
+        sinon.assert.calledOnce(hangUpSpy);
+      });
+
+      test('should hold the incoming call and answer the waiting one', 
+      function() {
         var waitingCall = new MockCall('88888', 'incoming');
         MockNavigatorMozTelephony.calls = [mockCall, waitingCall];
+       
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
-        var answerSpy = this.sinon.spy(waitingCall, 'answer');
+        var holdAndAnswerSpy = this.sinon.stub(CallsHandler, 'holdAndAnswer');
+        
         triggerHeadset(this.sinon.clock);
-        sinon.assert.calledOnce(answerSpy);
+        sinon.assert.calledOnce(holdAndAnswerSpy);
       });
     });
   });
