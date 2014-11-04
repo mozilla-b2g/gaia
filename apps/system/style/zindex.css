@@ -100,9 +100,14 @@
      in some situation like selecting a new keyboard. */
   z-index: 4094;
 }
-/* Level 3: Statusbar, Utility-Tray */
-#screen > [data-z-index-level="statusbar"] {
+
+/* Level 3: Attention screen and STK Messages */
+#screen > [data-z-index-level="icc-view"] {
   z-index: 16385;
+}
+
+#screen > [data-z-index-level="attention-screen"] {
+  z-index: 16384;
 }
 
 /* In landscape the software home button is on the right side of the screen
