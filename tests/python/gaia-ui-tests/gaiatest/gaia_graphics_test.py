@@ -138,7 +138,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
                 #rename files to following format: <testname>_<device>_<counter>+<timestamp>.png
                 timestamp = filename[0:filename.find(".png")]
                 newname = os.path.join(self.temp_dir, module_name + "_" + self.device_name + "_" + str(
-                    filecounter) + "+" + timestamp + ".png")
+                    filecounter) + "+" + timestamp +     ".png")
                 os.rename(os.path.join(self.temp_dir, filename), newname)
                 self.crop_images(newname, newname)
                 filecounter += 1
@@ -159,8 +159,8 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
 
         if not (err == '0\n' or err == '0'):
             err = err.replace('\n','')
-            print 'WARNING: ' + err + ' pixels mismatched between ' + target_img + ' and ' + ref_img
-            #raise self.ImageMismatchError(err, target_img,ref_img) #Enable this line instead if exception is needed
+            #print 'WARNING: ' + err + ' pixels mismatched between ' + target_img + ' and ' + ref_img
+            raise self.ImageMismatchError(err, target_img,ref_img) #Enable this line instead if exception is needed
 
     #do batch image compare- pick images with specified module name and compare against ref images
     def batch_image_compare(self, local_path, module_name, fuzz_value):
@@ -177,7 +177,8 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
                                            os.path.join(ref_path, ref_name),
                                            os.path.join(shot_path, f[0:f.find(".png")]) + "_diff.png", fuzz_value)
                 else:
-                    print ("Ref file not found for: " + f)
+                    raise self.RefFileNotFoundError(f)
+                    #print ("Ref file not found for: " + f)
 
     # do collect and compare in one shot
     def collect_and_compare(self, local_path, device_path, module_name, fuzz_value):
@@ -361,4 +362,10 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
         def __init__(self, pixelcount, target, reference):
             message = '\n %s pixels mismatched between: %s, %s' \
                       % (pixelcount, target, reference)
+            Exception.__init__(self, message)
+
+    class RefFileNotFoundError(Exception):
+        def __init__(self, reference):
+            message = '\n Reference file not found: %s' \
+                      % (reference)
             Exception.__init__(self, message)
