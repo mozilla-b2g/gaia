@@ -27,7 +27,7 @@ return [
     },
 
     resetApp: function() {
-      window.location.reload.bind(window.location);
+      window.location.reload();
     },
 
     dumpLog: function(target) {
