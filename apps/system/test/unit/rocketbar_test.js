@@ -434,6 +434,16 @@ suite('system/Rocketbar', function() {
       subject.focus);
   });
 
+  test('handleEvent() - system-resize', function() {
+    subject.activate();
+    subject.searchWindow.frontWindow = {
+      resize: function() {}
+    };
+    var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
+    window.dispatchEvent(new CustomEvent('system-resize'));
+    assert.ok(stub.calledOnce);
+  });
+
   test('handleHome()', function() {
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
