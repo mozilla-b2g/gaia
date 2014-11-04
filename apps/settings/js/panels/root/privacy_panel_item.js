@@ -86,7 +86,7 @@ define(function(require) {
         flag.onsuccess = function() {
           this._ppApp.launch();
         }.bind(this);
-        flag.onerror = function(){
+        flag.onerror = function() {
           console.error('Problem with launching Privacy Panel');
         };
       } else {

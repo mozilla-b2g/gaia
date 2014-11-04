@@ -1,19 +1,15 @@
 'use strict';
 
 var assert = require('assert');
-var PRIVACYPANEL_TEST_APP = 'app://privacy-panel.gaiamobile.org';
+var RootPanel = require('./lib/panels/root');
 
 marionette('check main page', function() {
-  var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client({});
+  var subject;
 
   setup(function() {
-    client.apps.launch(PRIVACYPANEL_TEST_APP);
-    client.apps.switchToApp(PRIVACYPANEL_TEST_APP);
-    client.helper.waitForElement('body');
+    subject = new RootPanel(client);
+    subject.init();
   });
 
   test('root page elements', function() {
@@ -22,23 +18,17 @@ marionette('check main page', function() {
   });
 
   test('ability to load ala panel', function() {
-    var alaMenuItem = client.findElement('#menu-item-ala');
-    var alaPanel = client.findElement('#ala-main');
-    alaMenuItem.click();
-    assert.ok(alaPanel.displayed());
+    subject.tapOnAlaMenuItem();
+    assert.ok(subject.isAlaDisplayed());
   });
 
   test('ability to load rpp panel', function() {
-    var rppMenuItem = client.findElement('#menu-item-rpp');
-    var rppPanel = client.findElement('#rpp-main');
-    rppMenuItem.click();
-    assert.ok(rppPanel.displayed());
+    subject.tapOnRppMenuItem();
+    assert.ok(subject.isRppDisplayed());
   });
 
   test('ability to load guided tour panel', function() {
-    var gtMenuItem = client.findElement('#menu-item-gt');
-    var gtPanel = client.findElement('#gt-main');
-    gtMenuItem.click();
-    assert.ok(gtPanel.displayed());
+    subject.tapOnGtMenuItem();
+    assert.ok(subject.isGtDisplayed());
   });
 });

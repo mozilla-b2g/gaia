@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var PRIVACYPANEL_TEST_APP = 'app://privacy-panel.gaiamobile.org';
+var AlaMainPanel = require('./lib/panels/ala_main');
 
 marionette('check ala main panel', function() {
   var client = marionette.client({
@@ -11,13 +11,11 @@ marionette('check ala main panel', function() {
       'geolocation.type': 'no-location'
     }
   });
-
-  var TRANSITION = 500;
+  var subject;
 
   setup(function() {
-    client.apps.launch(PRIVACYPANEL_TEST_APP);
-    client.apps.switchToApp(PRIVACYPANEL_TEST_APP);
-    client.helper.waitForElement('body');
+    subject = new AlaMainPanel(client);
+    subject.init();
   });
 
   test('ability to set geolocation and use location adjustment', function() {
@@ -33,12 +31,6 @@ marionette('check ala main panel', function() {
     var alaSwitcher = client.findElement(
       'span[data-l10n-id="use-location-blur"]');
 
-
-    // display ala panel
-    client.findElement('#menu-item-ala').click();
-    client.waitFor(function() {
-      return client.findElement('#ala-main').displayed();
-    }, { interval: TRANSITION });
     assert.ok( ! useLocationBlurBox.displayed());
 
 

@@ -1,6 +1,7 @@
 {
   "extends": "../../.jshintrc",
   "predef": [
+    "module",
     "suite",
     "test",
     "setup",
