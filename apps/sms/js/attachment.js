@@ -94,6 +94,16 @@
           alert(_('attachmentOpenError'));
         }
       };
+    },
+
+    toJSON: function() {
+      return {
+        name: this.name,
+        blob: this.blob,
+        isDraft: this.isDraft,
+        size: this.size,
+        type: this.type
+      };
     }
   };
 
