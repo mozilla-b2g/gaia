@@ -515,6 +515,10 @@ section ul.operate-certificate {
   white-space: nowrap;
 }
 
+#hotspot ul #hotspot-settings-section > a span {
+  max-width: 100%;
+}
+
 /******************************************************************************
  * Wallpaper snapshot
  */
