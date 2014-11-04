@@ -1213,6 +1213,7 @@ suite('system/UpdateManager', function() {
     var getDataRoamingSettingSpy;
     var checkUpdate2gEnabled;
     var showPromptNoConnectionSpy;
+    var mockMozMobileConnections;
 
     setup(function() {
       this.sinon.useFakeTimers();
@@ -1221,6 +1222,7 @@ suite('system/UpdateManager', function() {
         UpdateManager.downloadDialog.classList.remove('visible');
         return true;
       };
+      mockMozMobileConnections = navigator.mozMobileConnections;
 
       showForbiddenDwnSpy =
         this.sinon.spy(UpdateManager, 'showForbiddenDownload');
@@ -1245,6 +1247,7 @@ suite('system/UpdateManager', function() {
       this.sinon.clock.restore();
       UpdateManager.startDownloads = realStartDownloadsFunc;
       UpdateManager.downloadDialog.dataset.online = true;
+      navigator.mozMobileConnections = mockMozMobileConnections;
       navigator.mozWifiManager.connection.status = 'connected';
     });
 
@@ -1507,6 +1510,10 @@ suite('system/UpdateManager', function() {
         wifiPrioritized: false,
         noConnection: true,
         testResult: 'noConnection'
+      },
+      {
+        title: 'Connections undefined -> download not available',
+        testResult: 'noConnection'
       }
     ];
 
@@ -1530,14 +1537,18 @@ suite('system/UpdateManager', function() {
         navigator.mozWifiManager.connection.status =
           testCase.wifi ? 'connected' : 'disconnected';
 
-        for (var i = 0, iLen = testCase.conns.length;
-             i < iLen && i < MOBILE_CONNECTION_COUNT;
-             i++) {
-          MockNavigatorMozMobileConnections[i].data = {
-            connected: testCase.conns[i].connected,
-            type: testCase.conns[i].type,
-            roaming: (testCase.roaming ? true : false)
-          };
+        if (testCase.conns === undefined) {
+          navigator.mozMobileConnections = null;
+        } else {
+          for (var i = 0, iLen = testCase.conns.length;
+               i < iLen && i < MOBILE_CONNECTION_COUNT;
+               i++) {
+            MockNavigatorMozMobileConnections[i].data = {
+              connected: testCase.conns[i].connected,
+              type: testCase.conns[i].type,
+              roaming: (testCase.roaming ? true : false)
+            };
+          }
         }
 
         if (testCase.noConnection) {
