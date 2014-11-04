@@ -1,9 +1,17 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global SettingsListener */
 'use strict';
 
 var Bluetooth = {
+  /* this property store a reference of the default adapter */
+  _adapter: null,
+
+  /**
+   * keep a global connected property.
+   *
+   * @public
+   */
+  connected: false,
+
   get Profiles() {
     return {
       HFP: 'hfp',   // Hands-Free Profile
@@ -42,6 +50,13 @@ var Bluetooth = {
     return connectedProfiles;
   },
 
+  /**
+   * check if bluetooth profile is connected.
+   *
+   * @public
+   * @param  {[type]}  profile profile name
+   * @return {Boolean} connected state
+   */
   isProfileConnected: function bt_isProfileConnected(profile) {
     var isConnected = this['_' + profile + 'Connected'];
     if (isConnected === undefined) {
@@ -51,22 +66,17 @@ var Bluetooth = {
     }
   },
 
-  /* this property store a reference of the default adapter */
-  defaultAdapter: null,
-
-  /* keep a global connected property here */
-  connected: false,
-
+  /**
+   * bootstrap bluetooth.
+   *
+   * @public
+   */
   init: function bt_init() {
-    if (!window.navigator.mozSettings)
+    if (!window.navigator.mozSettings || !window.navigator.mozBluetooth) {
       return;
+    }
 
-    if (!window.navigator.mozBluetooth)
-      return;
-
-    var telephony = window.navigator.mozTelephony;
     var bluetooth = window.navigator.mozBluetooth;
-    var settings = window.navigator.mozSettings;
     var self = this;
 
     SettingsListener.observe('bluetooth.enabled', true, function(value) {
@@ -89,10 +99,11 @@ var Bluetooth = {
       evt.initCustomEvent('bluetooth-adapter-added',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
-      self.initDefaultAdapter();
+      self._initDefaultAdapter();
     };
+
     // if bluetooth is enabled in booting time, try to get adapter now
-    this.initDefaultAdapter();
+    this._initDefaultAdapter();
 
     // when bluetooth is really disabled, emit event to notify QuickSettings
     bluetooth.ondisabled = function bt_onDisabled() {
@@ -108,47 +119,50 @@ var Bluetooth = {
      * when getting bluetooth file transfer start/complete system messages
      */
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-start',
-      function bt_fileTransferUpdate(transferInfo) {
-        self._setProfileConnected(self.Profiles.OPP, true);
-        self.updateConnected();
-        var evt = document.createEvent('CustomEvent');
-        evt.initCustomEvent('bluetooth-opp-transfer-start',
-          /* canBubble */ true, /* cancelable */ false,
-          {transferInfo: transferInfo});
-        window.dispatchEvent(evt);
-      }
-    );
+      this._fileTransferUpdate.bind(this));
 
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
-      function bt_fileTransferUpdate(transferInfo) {
-        self._setProfileConnected(self.Profiles.OPP, false);
-        self.updateConnected();
-        var evt = document.createEvent('CustomEvent');
-        evt.initCustomEvent('bluetooth-opp-transfer-complete',
-          /* canBubble */ true, /* cancelable */ false,
-          {transferInfo: transferInfo});
-        window.dispatchEvent(evt);
-      }
-    );
+      this._onTransferComplete.bind(this));
+  },
+
+  _fileTransferUpdate: function bt_fileTransferUpdate(transferInfo) {
+    this._setProfileConnected(this.Profiles.OPP, true);
+    this._updateConnected();
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('bluetooth-opp-transfer-start',
+      /* canBubble */ true, /* cancelable */ false,
+      {transferInfo: transferInfo});
+    window.dispatchEvent(evt);
+  },
+
+  _onTransferComplete: function bt_onTransferComplete(transferInfo) {
+    this._setProfileConnected(this.Profiles.OPP, false);
+    this._updateConnected();
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('bluetooth-opp-transfer-complete',
+      /* canBubble */ true, /* cancelable */ false,
+      {transferInfo: transferInfo});
+    window.dispatchEvent(evt);
   },
 
   // Get adapter for BluetoothTransfer when everytime bluetooth is enabled
-  initDefaultAdapter: function bt_initDefaultAdapter() {
+  _initDefaultAdapter: function bt_initDefaultAdapter() {
     var bluetooth = window.navigator.mozBluetooth;
     var self = this;
 
     if (!bluetooth || !bluetooth.enabled ||
-        !('getDefaultAdapter' in bluetooth))
+        !('getDefaultAdapter' in bluetooth)) {
       return;
+    }
 
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_gotDefaultAdapter(evt) {
-      self.defaultAdapter = req.result;
-      self.initWithAdapter(self.defaultAdapter);
+      self._adapter = req.result;
+      self._initWithAdapter(self._adapter);
     };
   },
 
-  initWithAdapter: function bt_initWithAdapter(adapter) {
+  _initWithAdapter: function bt_initWithAdapter(adapter) {
     /* for v1, we only support two use cases for bluetooth connection:
      *   1. connecting with a headset
      *   2. transfering a file to/from another device
@@ -160,12 +174,12 @@ var Bluetooth = {
     var self = this;
     adapter.onhfpstatuschanged = function bt_hfpStatusChanged(evt) {
       self._setProfileConnected(self.Profiles.HFP, evt.status);
-      self.updateConnected();
+      self._updateConnected();
     };
 
     adapter.ona2dpstatuschanged = function bt_a2dpStatusChanged(evt) {
       self._setProfileConnected(self.Profiles.A2DP, evt.status);
-      self.updateConnected();
+      self._updateConnected();
     };
 
     adapter.onscostatuschanged = function bt_scoStatusChanged(evt) {
@@ -173,11 +187,12 @@ var Bluetooth = {
     };
   },
 
-  updateConnected: function bt_updateConnected() {
+  _updateConnected: function bt_updateConnected() {
     var bluetooth = window.navigator.mozBluetooth;
 
-    if (!bluetooth || !('isConnected' in bluetooth))
+    if (!bluetooth || !('isConnected' in bluetooth)) {
       return;
+    }
 
     var wasConnected = this.connected;
     this.connected = this.isProfileConnected(this.Profiles.HFP) ||
@@ -193,8 +208,13 @@ var Bluetooth = {
     }
   },
 
-  // This function is called by external (BluetoothTransfer) for re-use adapter
+  /**
+   * Called by external (BluetoothTransfer) for re-use adapter.
+   *
+   * @public
+   * @return {Object} default adapter
+   */
   getAdapter: function bt_getAdapter() {
-    return this.defaultAdapter;
+    return this._adapter;
   }
 };
