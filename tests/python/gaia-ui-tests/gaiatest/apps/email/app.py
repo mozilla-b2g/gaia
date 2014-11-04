@@ -19,7 +19,7 @@ class Email(Base):
     _email_locator = (By.CSS_SELECTOR, '#cardContainer .msg-header-item:not([data-index="-1"])')
     _syncing_locator = (By.CSS_SELECTOR, '#cardContainer .msg-messages-syncing > .small')
     _manual_setup_locator = (By.CSS_SELECTOR, '#cardContainer .sup-manual-config-btn')
-    _message_list_locator = (By.CSS_SELECTOR, '.card-message-list')
+    _message_list_locator = (By.CSS_SELECTOR, 'cards-message-list')
     _refresh_button_locator = (By.CLASS_NAME, 'msg-refresh-btn')
 
     def basic_setup_email(self, name, email, password):
