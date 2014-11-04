@@ -13,11 +13,8 @@ suite('Views.SingleDay', function() {
   var daysHolder;
   var subject;
 
-  suiteSetup(function() {
+  setup(function(done) {
     app = testSupport.calendar.app();
-  });
-
-  setup(function() {
     daysHolder = document.createElement('div');
     alldaysHolder = document.createElement('div');
     date = new Date(2014, 6, 23);
@@ -38,6 +35,7 @@ suite('Views.SingleDay', function() {
     this.sinon.spy(window, 'removeEventListener');
     this.sinon.spy(subject, 'onactive');
     this.sinon.spy(subject, 'oninactive');
+    app.db.open(done);
   });
 
   teardown(function() {
@@ -48,6 +46,7 @@ suite('Views.SingleDay', function() {
     subject.onactive.restore();
     subject.oninactive.restore();
     subject.destroy();
+    app.db.close();
   });
 
   test('#setup', function() {

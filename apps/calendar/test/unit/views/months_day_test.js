@@ -14,9 +14,10 @@ suite('Views.MonthsDay', function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
     dayObserver.removeAllListeners();
+    app.db.close();
   });
 
-  setup(function() {
+  setup(function(done) {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
@@ -29,6 +30,7 @@ suite('Views.MonthsDay', function() {
 
     app = testSupport.calendar.app();
     subject = new MonthsDay({ app: app });
+    app.db.open(done);
   });
 
   suite('#changeDate', function() {
