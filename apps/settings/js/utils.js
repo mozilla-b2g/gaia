@@ -103,7 +103,8 @@ function openIncompatibleSettingsDialog(dialogId, newSetting,
 
   // User has requested enable the feature so the old feature
   // must be disabled
-  function onEnable() {
+  function onEnable(evt) {
+    evt.preventDefault();
     var lock = Settings.mozSettings.createLock();
     var cset = {};
 
@@ -118,7 +119,8 @@ function openIncompatibleSettingsDialog(dialogId, newSetting,
     }
   }
 
-  function onCancel() {
+  function onCancel(evt) {
+    evt.preventDefault();
     var lock = Settings.mozSettings.createLock();
     var cset = {};
 
