@@ -330,9 +330,13 @@
               }
 
               enabled = !!this.bluetooth.dataset.enabled;
-              SettingsListener.getSettingsLock().set({
-                'bluetooth.enabled': !enabled
-              });
+              if (enabled) {
+                window.dispatchEvent(
+                  new CustomEvent('request-disable-bluetooth'));
+              } else {
+                window.dispatchEvent(
+                  new CustomEvent('request-enable-bluetooth'));
+              }
               break;
 
             case this.airplaneMode:
