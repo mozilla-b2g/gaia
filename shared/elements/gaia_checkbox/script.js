@@ -21,6 +21,8 @@ window.GaiaCheckbox = (function(win) {
     shadow.appendChild(this._template);
 
     this.checked = this.hasAttribute('checked');
+    this._wrapper.setAttribute('aria-checked', this.checked);
+    this.setAttribute('role', 'presentation');
 
     // When events are triggered on content nodes, they do not bubble to
     // our custom element. We add an event listener on our children so we can
@@ -31,7 +33,6 @@ window.GaiaCheckbox = (function(win) {
       if (!label) {
         return;
       }
-      label.addEventListener('click', this.handleClick.bind(this));
     }.bind(this));
 
     ComponentUtils.style.call(this, baseurl);
@@ -46,6 +47,7 @@ window.GaiaCheckbox = (function(win) {
    */
   proto.handleClick = function(e) {
     this.checked = !this.checked;
+    this._wrapper.setAttribute('aria-checked', this.checked);
 
     // We add this event listener twice (see above) on both the content and
     // custom element nodes. We need to stop the event propagation to prevent
@@ -85,8 +87,8 @@ window.GaiaCheckbox = (function(win) {
   var template = document.createElement('template');
 
   template.innerHTML =
-    `<span id="checkbox">
-      <span><content select="label"></content></span>
+    `<span id="checkbox" role="checkbox">
+      <span role="presentation"><content select="label"></content></span>
     </span>`;
 
   // Register and return the constructor
