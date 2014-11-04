@@ -11,7 +11,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_applications.js');
 require('/test/unit/mock_homescreen_launcher.js');
 require('/test/unit/mock_ime_switcher.js');
-require('/test/unit/mock_input_frame_manager.js');
+require('/test/unit/mock_input_window_manager.js');
 require('/test/unit/mock_ime_menu.js');
 require('/js/input_layouts.js');
 require('/js/keyboard_manager.js');
@@ -22,7 +22,7 @@ var mocksHelperForKeyboardManager = new MocksHelper([
     'LazyLoader',
     'Applications',
     'IMESwitcher',
-    'InputFrameManager',
+    'InputWindowManager',
     'ImeMenu',
     'L10n'
 ]).init();
@@ -311,7 +311,7 @@ suite('KeyboardManager', function() {
     var stubShowInputWindow;
     setup(function() {
       stubShowInputWindow =
-        this.sinon.stub(KeyboardManager.inputFrameManager, 'showInputWindow');
+        this.sinon.stub(KeyboardManager.inputWindowManager, 'showInputWindow');
 
       oldInputLayouts = KeyboardManager.inputLayouts.layouts;
       oldlayoutToGroupMapping =
@@ -566,7 +566,7 @@ suite('KeyboardManager', function() {
     test('Not in showingLayoutInfo', function() {
       var hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
       var stubManagerRemoveKB =
-        this.sinon.stub(KeyboardManager.inputFrameManager, 'removeKeyboard');
+        this.sinon.stub(KeyboardManager.inputWindowManager, 'removeKeyboard');
 
       KeyboardManager.removeKeyboard(fakeFrame_B.manifestURL);
       sinon.assert.callCount(hideKeyboard, 0);
@@ -644,13 +644,13 @@ suite('KeyboardManager', function() {
     });
 
     test('sheets-gesture-begin event: hide keyboard if needed', function() {
-      this.sinon.stub(KeyboardManager.inputFrameManager, 'hasActiveKeyboard')
+      this.sinon.stub(KeyboardManager.inputWindowManager, 'hasActiveKeyboard')
         .returns(true);
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
       trigger('sheets-gesture-begin');
       sinon.assert.calledOnce(spy);
 
-      KeyboardManager.inputFrameManager.hasActiveKeyboard.restore();
+      KeyboardManager.inputWindowManager.hasActiveKeyboard.restore();
     });
 
     test('lock event: do nothing if no keyboard', function() {
@@ -660,38 +660,42 @@ suite('KeyboardManager', function() {
     });
 
     test('lock event: hide keyboard if needed', function() {
-      this.sinon.stub(KeyboardManager.inputFrameManager, 'hasActiveKeyboard')
+      this.sinon.stub(KeyboardManager.inputWindowManager, 'hasActiveKeyboard')
         .returns(true);
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
       trigger('lockscreen-appopened');
       sinon.assert.calledOnce(spy);
 
-      KeyboardManager.inputFrameManager.hasActiveKeyboard.restore();
+      KeyboardManager.inputWindowManager.hasActiveKeyboard.restore();
     });
   });
 
   suite('Show Keyboard', function() {
     test('setKeyboardToShow: preload vs. show', function() {
-      this.sinon.stub(KeyboardManager.inputFrameManager, 'preloadInputWindow');
-      this.sinon.stub(KeyboardManager.inputFrameManager, 'showInputWindow');
+      this.sinon.stub(KeyboardManager.inputWindowManager, 'preloadInputWindow');
+      this.sinon.stub(KeyboardManager.inputWindowManager, 'showInputWindow');
 
       KeyboardManager._setKeyboardToShow('text', undefined, true);
 
-      sinon.assert.called(KeyboardManager.inputFrameManager.preloadInputWindow);
-      sinon.assert.notCalled(KeyboardManager.inputFrameManager.showInputWindow);
+      sinon.assert.called(
+        KeyboardManager.inputWindowManager.preloadInputWindow
+      );
+      sinon.assert.notCalled(
+        KeyboardManager.inputWindowManager.showInputWindow
+      );
 
-      KeyboardManager.inputFrameManager.preloadInputWindow.reset();
-      KeyboardManager.inputFrameManager.showInputWindow.reset();
+      KeyboardManager.inputWindowManager.preloadInputWindow.reset();
+      KeyboardManager.inputWindowManager.showInputWindow.reset();
 
       KeyboardManager._setKeyboardToShow('text', undefined, false);
 
       sinon.assert.notCalled(
-        KeyboardManager.inputFrameManager.preloadInputWindow
+        KeyboardManager.inputWindowManager.preloadInputWindow
       );
-      sinon.assert.called(KeyboardManager.inputFrameManager.showInputWindow);
+      sinon.assert.called(KeyboardManager.inputWindowManager.showInputWindow);
 
-      KeyboardManager.inputFrameManager.preloadInputWindow.restore();
-      KeyboardManager.inputFrameManager.showInputWindow.restore();
+      KeyboardManager.inputWindowManager.preloadInputWindow.restore();
+      KeyboardManager.inputWindowManager.showInputWindow.restore();
     });
 
     test('_onKeyboardReady', function() {
@@ -711,24 +715,24 @@ suite('KeyboardManager', function() {
     });
 
     test('hide', function() {
-      this.sinon.stub(KeyboardManager.inputFrameManager, 'hideInputWindow');
+      this.sinon.stub(KeyboardManager.inputWindowManager, 'hideInputWindow');
       KeyboardManager.hideKeyboard();
-      sinon.assert.called(KeyboardManager.inputFrameManager.hideInputWindow);
+      sinon.assert.called(KeyboardManager.inputWindowManager.hideInputWindow);
       sinon.assert.called(KeyboardManager._resetShowingLayoutInfo);
-      KeyboardManager.inputFrameManager.hideInputWindow.restore();
+      KeyboardManager.inputWindowManager.hideInputWindow.restore();
     });
 
     test('hideImmediately', function() {
-      this.sinon.stub(KeyboardManager.inputFrameManager,
+      this.sinon.stub(KeyboardManager.inputWindowManager,
         'hideInputWindowImmediately');
       KeyboardManager.hideKeyboardImmediately();
       sinon.assert.called(
-        KeyboardManager.inputFrameManager.hideInputWindowImmediately
+        KeyboardManager.inputWindowManager.hideInputWindowImmediately
       );
       sinon.assert.called(
         KeyboardManager._resetShowingLayoutInfo
       );
-      KeyboardManager.inputFrameManager.hideInputWindowImmediately.restore();
+      KeyboardManager.inputWindowManager.hideInputWindowImmediately.restore();
     });
   });
 
@@ -737,7 +741,7 @@ suite('KeyboardManager', function() {
     setup(function() {
       // prevent _setKeyboardToShow callCount miscalculation
       // due to launch on boot
-      KeyboardManager.inputFrameManager._inputWindows[
+      KeyboardManager.inputWindowManager._inputWindows[
         'app://keyboard.gaiamobile.org/manifest.webapp'
       ] = {};
 

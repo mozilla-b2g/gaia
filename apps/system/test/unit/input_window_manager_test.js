@@ -1,24 +1,24 @@
 'use strict';
 
-/* global MocksHelper, InputFrameManager, MockKeyboardManager,
+/* global MocksHelper, InputWindowManager, MockKeyboardManager,
    MockInputWindow */
 
 require('/shared/test/unit/mocks/mock_custom_event.js');
 require('/test/unit/mock_keyboard_manager.js');
 require('/test/unit/mock_input_window.js');
-require('/js/input_frame_manager.js');
+require('/js/input_window_manager.js');
 
-var mocksForInputFrameManager = new MocksHelper([
+var mocksForInputWindowManager = new MocksHelper([
   'KeyboardManager', 'InputWindow', 'CustomEvent'
 ]).init();
 
-suite('InputFrameManager', function() {
-  mocksForInputFrameManager.attachTestHelpers();
+suite('InputWindowManager', function() {
+  mocksForInputWindowManager.attachTestHelpers();
 
   var manager;
 
   setup(function(){
-    manager = new InputFrameManager(MockKeyboardManager);
+    manager = new InputWindowManager(MockKeyboardManager);
   });
 
   suite('Event handling', function() {

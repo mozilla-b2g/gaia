@@ -1,7 +1,7 @@
 'use strict';
 
 /* global SettingsListener, IMESwitcher, ImeMenu, KeyboardHelper,
-          InputFrameManager, InputLayouts, LazyLoader */
+          InputWindowManager, InputLayouts, LazyLoader */
 
 // If we get a inputmethod-contextchange chrome event for an element with
 // one of these types, we'll just ignore it.
@@ -104,8 +104,8 @@ var KeyboardManager = {
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', this);
 
-    this.inputFrameManager = new InputFrameManager(this);
-    this.inputFrameManager.start();
+    this.inputWindowManager = new InputWindowManager(this);
+    this.inputWindowManager.start();
 
     this.inputLayouts = new InputLayouts(this, TYPE_GROUP_MAPPING);
     this.inputLayouts.start();
@@ -120,13 +120,13 @@ var KeyboardManager = {
     }.bind(this));
   },
 
-  // XXX: in the future, call InputFrameManager.getHeight() directly
+  // XXX: in the future, call InputWindowManager.getHeight() directly
   getHeight: function kn_getHeight() {
-    return this.inputFrameManager.getHeight();
+    return this.inputWindowManager.getHeight();
   },
 
   _tryLaunchOnBoot: function km_launchOnBoot() {
-    if (this.inputFrameManager.getLoadedManifestURLs().length) {
+    if (this.inputWindowManager.getLoadedManifestURLs().length) {
       // There are already keyboard(s) being launched. We don't really care
       // if a default keyboard should be launch-on-boot.
       return;
@@ -145,7 +145,7 @@ var KeyboardManager = {
       // if there are still no keyboards running at this point -
       // set text to show, but don't bring it to the foreground.
       if (launchOnBoot &&
-          !this.inputFrameManager.getLoadedManifestURLs().length) {
+          !this.inputWindowManager.getLoadedManifestURLs().length) {
         this._setKeyboardToShow('text', undefined, true);
       }
     }).bind(this);
@@ -155,7 +155,7 @@ var KeyboardManager = {
     var enabledApps = this.inputLayouts.processLayouts(layouts);
 
     // Remove apps that are no longer enabled to clean up.
-    this.inputFrameManager.getLoadedManifestURLs().forEach(
+    this.inputWindowManager.getLoadedManifestURLs().forEach(
       function removeApp(manifestURL) {
       if (!enabledApps.has(manifestURL)) {
         this.removeKeyboard(manifestURL);
@@ -247,8 +247,8 @@ var KeyboardManager = {
         // We only do that when we don't run keyboards OOP.
         this._debug('mozmemorypressure event');
         if (!this.isOutOfProcessEnabled &&
-            !this.inputFrameManager.hasActiveKeyboard()) {
-          this.inputFrameManager.getLoadedManifestURLs().forEach(
+            !this.inputWindowManager.hasActiveKeyboard()) {
+          this.inputWindowManager.getLoadedManifestURLs().forEach(
             this.removeKeyboard, this
           );
           this._debug('mozmemorypressure event; keyboard removed');
@@ -257,7 +257,7 @@ var KeyboardManager = {
       case 'lockscreen-appopened':
         /* falls through */
       case 'sheets-gesture-begin':
-        if (this.inputFrameManager.hasActiveKeyboard()) {
+        if (this.inputWindowManager.hasActiveKeyboard()) {
           // Instead of hideKeyboard(), we should removeFocus() here.
           // (and, removing the focus cause Gecko to ask us to hideKeyboard())
           navigator.mozInputMethod.removeFocus();
@@ -287,7 +287,7 @@ var KeyboardManager = {
       this.hideKeyboard();
     }
 
-    this.inputFrameManager.removeKeyboard(manifestURL);
+    this.inputWindowManager.removeKeyboard(manifestURL);
 
     this._resetShowingLayoutInfo();
 
@@ -308,9 +308,9 @@ var KeyboardManager = {
     var layout = this.inputLayouts.layouts[group][index];
 
     if (launchOnly) {
-      this.inputFrameManager.preloadInputWindow(layout);
+      this.inputWindowManager.preloadInputWindow(layout);
     } else {
-      this.inputFrameManager.showInputWindow(layout);
+      this.inputWindowManager.showInputWindow(layout);
     }
 
     this._setShowingLayoutInfo(group, index, layout);
@@ -339,12 +339,12 @@ var KeyboardManager = {
   },
 
   hideKeyboard: function km_hideKeyboard() {
-    this.inputFrameManager.hideInputWindow();
+    this.inputWindowManager.hideInputWindow();
     this._resetShowingLayoutInfo();
   },
 
   hideKeyboardImmediately: function km_hideImmediately() {
-    this.inputFrameManager.hideInputWindowImmediately();
+    this.inputWindowManager.hideInputWindowImmediately();
     this._resetShowingLayoutInfo();
   },
 
