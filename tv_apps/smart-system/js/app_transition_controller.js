@@ -1,4 +1,4 @@
-/* global SettingsListener, System, SimPinDialog */
+/* global SettingsCache, System, SimPinDialog */
 'use strict';
 
 (function(exports) {
@@ -14,9 +14,8 @@
   };
 
   var appTransitionSetting = 'app-transition.enabled';
-  var transitionEnabled =
-    SettingsListener.getSettingsLock().get(appTransitionSetting);
-  SettingsListener.observe(appTransitionSetting, true, function(value) {
+  var transitionEnabled = true;
+  SettingsCache.observe(appTransitionSetting, true, function(value) {
     transitionEnabled = value;
   });
 

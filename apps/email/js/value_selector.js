@@ -24,7 +24,8 @@ How to:
 define(function(require) {
 'use strict';
 
-var FOLDER_DEPTH_CLASSES = require('folder_depth_classes'),
+var cards = require('cards'),
+    FOLDER_DEPTH_CLASSES = require('folder_depth_classes'),
     formNode = require('tmpl!cards/value_selector.html'),
     itemTemplateNode = require('tmpl!cards/vsl/item.html');
 
@@ -72,14 +73,12 @@ function ValueSelector(title, list) {
 
   show = function() {
     render();
-    // require call done here to avoid cycles. This will get better with
-    // the custom element refactoring.
-    require('mail_common').Cards.setStatusColor(formNode);
+    cards.setStatusColor(formNode);
     formNode.classList.remove('collapsed');
   };
 
   hide = function() {
-    require('mail_common').Cards.setStatusColor();
+    cards.setStatusColor();
     formNode.classList.add('collapsed');
     emptyList();
   };

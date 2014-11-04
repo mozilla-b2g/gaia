@@ -342,6 +342,7 @@
       }
       if (this.hoverItem) {
         this.hoverItem.element.classList.remove('hovered');
+        this.container.classList.remove('hover-over-top');
         this.hoverItem = null;
       }
 
@@ -366,6 +367,12 @@
         // a valid drop position or itself.
         this.icon.element.classList.remove('hovering');
         return;
+      }
+
+      // If we're hovering over the top of the group, add a style class to show
+      // a visual hint that this is a valid drop position.
+      if (insertDividerAtTop || (iconIsDivider && pageY < 0)) {
+        this.container.classList.add('hover-over-top');
       }
 
       // Collections and groups should not trigger a hover over collections

@@ -23,7 +23,9 @@ suite('ActiveTargetsManager', function() {
     userPressManagerStub = this.sinon.stub(UserPressManager.prototype);
     this.sinon.stub(window, 'UserPressManager').returns(userPressManagerStub);
 
-    this.sinon.stub(window, 'setTimeout');
+    this.sinon.stub(window, 'setTimeout', function () {
+      return 1;
+    });
     this.sinon.stub(window, 'clearTimeout');
 
     app = {
@@ -174,6 +176,45 @@ suite('ActiveTargetsManager', function() {
         'ontargetdoubletapped should not be called.');
       assert.isTrue(
         manager.ontargetcommitted.getCall(1).calledWith(press0.target));
+    });
+
+    test('double tap (with an intermediate different target)', function() {
+      var pressEnd = {
+        target: press0.target
+      };
+      userPressManagerStub.onpressend(pressEnd, id0);
+
+      assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
+      assert.isTrue(manager.ontargetcommitted.calledOnce);
+      assert.isFalse(manager.ontargetdoubletapped.calledOnce);
+      assert.isTrue(
+        manager.ontargetcommitted.calledWith(press0.target));
+      assert.equal(window.setTimeout.getCall(1).args[1],
+        manager.DOUBLE_TAP_TIMEOUT);
+
+      // Touch another target in the middle
+      var press1 = {
+        target: {
+          text: '2'
+        }
+      };
+
+      userPressManagerStub.onpressstart(press1, id0);
+      userPressManagerStub.onpressend(press1, id0);
+
+      assert.isTrue(manager.ontargetcommitted.calledTwice);
+      assert.isTrue(
+        manager.ontargetcommitted.getCall(1).calledWith(press1.target));
+
+      userPressManagerStub.onpressstart(press0, id0);
+      userPressManagerStub.onpressend(pressEnd, id0);
+
+      assert.isTrue(manager.ontargetcommitted.calledThrice,
+                   'ontargetcommitted should be called for the 3rd time.');
+      assert.isFalse(manager.ontargetdoubletapped.calledOnce,
+        'ontargetdoubletapped should not be called.');
+      assert.isTrue(
+        manager.ontargetcommitted.getCall(2).calledWith(press0.target));
     });
 
     test('triple tap (within DOUBLE_TAP_TIMEOUT)', function() {

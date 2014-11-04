@@ -1,4 +1,4 @@
-/* global mocha, MockL10n, MockTemplate, Template,
+/* global MockL10n, Template, MocksHelper, MockNavigatorSettings,
    MockNavigatorMozIccManager, MockNavigatorMozMobileConnections, SimPinLock,
    MockSimPinDialog, MockToaster
 */
@@ -24,7 +24,6 @@ suite('SimPinLock > ', function() {
   var realMozIccManager;
   var realMozSettings;
   var realSimPinDialog;
-  var stubById;
 
   suiteSetup(function(done) {
     MockL10n.once = function() {};
@@ -44,9 +43,6 @@ suite('SimPinLock > ', function() {
     realSimPinDialog = window.SimPinDialog;
     window.SimPinDialog = MockSimPinDialog;
 
-    realTemplate = window.Template;
-    window.Template = MockTemplate;
-
     realMozIccManager = window.navigator.mozIccManager;
     window.navigator.mozIccManager = MockNavigatorMozIccManager;
 
@@ -57,7 +53,20 @@ suite('SimPinLock > ', function() {
     realMozMobileConnections = window.navigator.mozMobileConnections;
     window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
-    requireApp('settings/js/simcard_lock.js', done);
+    var map = {
+      '*': {
+        'shared/template': 'unit/mock_template'
+      }
+    };
+
+    testRequire([
+      'unit/mock_template',
+    ], map, function(MockTemplate) {
+      realTemplate = window.Template;
+      window.Template = MockTemplate;
+
+      requireApp('settings/js/simcard_lock.js', done);
+    });
   });
 
   suiteTeardown(function() {
@@ -98,9 +107,6 @@ suite('SimPinLock > ', function() {
   });
 
   suite('init > ', function() {
-    var fakeRightIccId = '12345';
-    var fakeWrongIccId = '123';
-
     setup(function(done) {
       this.sinon.stub(SimPinLock, 'setAllElements');
       this.sinon.stub(SimPinLock, 'initSimPinBack');
@@ -619,7 +625,7 @@ suite('SimPinLock > ', function() {
     for (var i = 0; i < connsLength; i++) {
       window.navigator.mozMobileConnections.mRemoveMobileConnection(0);
     }
-    for (var i = 0; i < count; i++) {
+    for (var j = 0; j < count; j++) {
       window.navigator.mozMobileConnections.mAddMobileConnection();
     }
   }

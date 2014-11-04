@@ -19,7 +19,7 @@ var CrashReporter = (function() {
 
   // Only show the "Report" button if the user hasn't set a preference to
   // always/never report crashes.
-  SettingsListener.observe('app.reportCrashes', 'ask',
+  SettingsCache.observe('app.reportCrashes', 'ask',
       function handleCrashSetting(value) {
     showReportButton = (value != 'always' && value != 'never');
   });
@@ -121,16 +121,16 @@ var CrashReporter = (function() {
   // - If the user hasn't set a pref, add a "Report" button to the banner.
   function handleCrash(crashID, isChrome) {
     // Check to see if we should show a dialog.
-    var dialogReq = settings.createLock().get('crashReporter.dialogShown');
-    dialogReq.onsuccess = function dialogShownSuccess() {
-      var dialogShown = dialogReq.result['crashReporter.dialogShown'];
-      if (!dialogShown) {
-        settings.createLock().set({'crashReporter.dialogShown': true});
-        showDialog(crashID, isChrome);
-      } else {
-        showBanner(crashID, isChrome);
-      }
-    };
+    SettingsCache.get('crashReporter.dialogShown',
+      function dialogShownSuccess(value) {
+        var dialogShown = value;
+        if (!dialogShown) {
+          settings.createLock().set({'crashReporter.dialogShown': true});
+          showDialog(crashID, isChrome);
+        } else {
+          showBanner(crashID, isChrome);
+        }
+      });
   }
 
   // We depend on window_manager.js calling this function before

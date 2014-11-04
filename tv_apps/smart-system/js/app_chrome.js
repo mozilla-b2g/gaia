@@ -3,7 +3,7 @@
 /* global LazyLoader */
 /* global ModalDialog */
 /* global MozActivity */
-/* global SettingsListener */
+/* global SettingsCache */
 /* global System */
 
 'use strict';
@@ -13,7 +13,7 @@
   var _ = navigator.mozL10n.get;
 
   var newTabManifestURL = null;
-  SettingsListener.observe('rocketbar.newTabAppURL', '',
+  SettingsCache.observe('rocketbar.newTabAppURL', '',
     function(url) {
       // The application list in applications.js is not yet ready, so we store
       // only the manifestURL for now and we look up the application whenever

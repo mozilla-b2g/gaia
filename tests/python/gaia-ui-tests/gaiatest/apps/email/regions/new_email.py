@@ -9,7 +9,7 @@ from gaiatest.apps.base import Base
 class NewEmail(Base):
     # Write new email
 
-    _view_locator = (By.CSS_SELECTOR, '#cardContainer .card-compose')
+    _view_locator = (By.CSS_SELECTOR, '#cardContainer cards-compose')
     _to_locator = (By.CSS_SELECTOR, '#cardContainer .card.center .cmp-to-text.cmp-addr-text')
     _cc_locator = (By.CSS_SELECTOR, '#cardContainer .card.center .cmp-cc-text.cmp-addr-text')
     _bcc_locator = (By.CSS_SELECTOR, '#cardContainer .card.center .cmp-bcc-text.cmp-addr-text')

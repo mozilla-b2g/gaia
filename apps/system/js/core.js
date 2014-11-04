@@ -14,7 +14,8 @@
     name: 'Core',
 
     REGISTRY: {
-      'mozSettings': 'SettingsCore'
+      'mozSettings': 'SettingsCore',
+      'mozBluetooth': 'BluetoothCore'
     },
 
     _start: function() {
@@ -33,8 +34,12 @@
     startAPIHandler: function(api, handler) {
       BaseModule.lazyLoad([handler]).then(function() {
         var moduleName = BaseModule.lowerCapital(handler);
-        this[moduleName] =
-          BaseModule.instantiate(handler, navigator[api], this);
+        if (window[handler] && typeof(window[handler]) === 'function') {
+          this[moduleName] = new window[handler](navigator[api], this);
+        } else {
+          this[moduleName] =
+            BaseModule.instantiate(handler, navigator[api], this);
+        }
         if (!this[moduleName]) {
           return;
         }

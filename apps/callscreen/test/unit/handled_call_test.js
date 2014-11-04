@@ -1,4 +1,4 @@
-/* globals CallsHandler, FontSizeManager, HandledCall, MockCall, MockCallScreen,
+/* globals FontSizeManager, HandledCall, MockCall, MockCallScreen,
            MockCallsHandler, MockContactPhotoHelper, MockContacts,
            MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
            MockNavigatorSettings, MocksHelper, MockUtils, MockVoicemail,
@@ -86,7 +86,6 @@ suite('dialer/handled_call', function() {
                               '<span class="via-sim"></span>' +
                               '<span class="sim-number"></span>' +
                             '</div>' +
-                            '<button class="merge-button"></button>' +
                           '</section>';
     document.body.appendChild(templates);
   });
@@ -106,7 +105,6 @@ suite('dialer/handled_call', function() {
     this.sinon.stub(MockContactPhotoHelper,
                     'getThumbnail').returns(photoThumbnail);
     this.sinon.useFakeTimers(Date.now());
-    this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
 
     mockCall = new MockCall(String(phoneNumber), 'dialing');
     subject = new HandledCall(mockCall);
@@ -125,6 +123,10 @@ suite('dialer/handled_call', function() {
   });
 
   suite('initialization', function() {
+    setup(function() {
+      this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
+    });
+
     test('full resolution photo', function() {
       assert.equal(subject.photo, photoFullResolution);
     });
@@ -138,11 +140,11 @@ suite('dialer/handled_call', function() {
     });
 
     test('call event listener', function() {
-      assert.equal(mockCall._eventListeners.statechange.length, 2);
+      assert.equal(mockCall._eventListeners.statechange.length, 1);
     });
 
     test('CallsHandler.updatePlaceNewCall added as call state listener',
-      function() {
+    function() {
       subject.call.mChangeState();
       sinon.assert.calledOnce(MockCallsHandler.updatePlaceNewCall);
     });
@@ -180,11 +182,6 @@ suite('dialer/handled_call', function() {
         var durationChildNode = subject.node.querySelector('.duration span');
         assert.equal(subject.durationChildNode, durationChildNode);
         assert.isTrue(durationChildNode.classList.contains('font-light'));
-      });
-
-      test('should have a merge button', function() {
-        var mergeButton = subject.node.querySelector('.merge-button');
-        assert.equal(subject.mergeButton, mergeButton);
       });
     });
 
@@ -279,6 +276,8 @@ suite('dialer/handled_call', function() {
   suite('on connect', function() {
     setup(function() {
       this.sinon.spy(AudioCompetingHelper, 'compete');
+      this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
+      this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
       mockCall._connect();
     });
 
@@ -335,6 +334,14 @@ suite('dialer/handled_call', function() {
 
     test('speaker initially off', function() {
       assert.isFalse(MockCallScreen.mSpeakerOn);
+    });
+
+    test('the place new call button status is updated', function() {
+      sinon.assert.calledOnce(MockCallsHandler.updatePlaceNewCall);
+    });
+
+    test('the merge and on hold buttons status is updated', function() {
+      sinon.assert.calledOnce(MockCallsHandler.updateMergeAndOnHoldStatus);
     });
 
     test('AudioCompetingHelper compete gets called when connected', function() {
@@ -431,6 +438,18 @@ suite('dialer/handled_call', function() {
         assert.isTrue(playSpy.calledWith([[480, 620, 250]]));
       });
 
+      test('the place new call button status is updated', function() {
+        this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
+        mockCall._disconnect();
+        sinon.assert.calledOnce(MockCallsHandler.updatePlaceNewCall);
+      });
+
+      test('the merge and on hold buttons status is updated', function() {
+        this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
+        mockCall._disconnect();
+        sinon.assert.calledOnce(MockCallsHandler.updateMergeAndOnHoldStatus);
+      });
+
       test('AudioCompetingHelper leaveCompetition gets called on disconnected',
         function() {
           this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
@@ -469,6 +488,8 @@ suite('dialer/handled_call', function() {
 
   suite('holding', function() {
     setup(function() {
+      this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
+      this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
       this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
       mockCall._hold();
     });
@@ -479,12 +500,24 @@ suite('dialer/handled_call', function() {
 
     test('AudioCompetingHelper leaveCompetition gets called when held',
     function() {
-      sinon.assert.called(AudioCompetingHelper.leaveCompetition);
+      sinon.assert.calledOnce(AudioCompetingHelper.leaveCompetition);
+    });
+
+    test('the place new call button status is updated', function() {
+      // Call passes through the 'holding' and 'held' states.
+      sinon.assert.calledTwice(MockCallsHandler.updatePlaceNewCall);
+    });
+
+    test('the merge and on hold buttons status is updated', function() {
+      // Call passes through the 'holding' and 'held' states.
+      sinon.assert.calledTwice(MockCallsHandler.updateMergeAndOnHoldStatus);
     });
   });
 
   suite('resuming', function() {
     setup(function() {
+      this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
+      this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
       mockCall._hold();
       MockCallScreen.mSyncSpeakerCalled = false;
       MockCallScreen.mEnableKeypadCalled = false;
@@ -502,6 +535,18 @@ suite('dialer/handled_call', function() {
 
     test('changed the user photo', function() {
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+    });
+
+    test('the place new call button status is updated', function() {
+      // Call passes through the 'holding', 'held', 'resuming' and 'connected'
+      //  states.
+      sinon.assert.callCount(MockCallsHandler.updatePlaceNewCall, 4);
+    });
+
+    test('the merge and on hold buttons status is updated', function() {
+      // Call passes through the 'holding', 'held', 'resuming' and 'connected'
+      //  states.
+      sinon.assert.callCount(MockCallsHandler.updateMergeAndOnHoldStatus, 4);
     });
   });
 
@@ -850,15 +895,6 @@ suite('dialer/handled_call', function() {
       var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
       subject.hangupButton.onclick();
       assert.isTrue(hangUpSpy.calledOnce);
-    });
-  });
-
-  suite('merge button', function() {
-    test('should listen for click', function() {
-      var mergeActiveCallWithSpy = this.sinon.spy(CallsHandler,
-                                                  'mergeActiveCallWith');
-      subject.mergeButton.onclick();
-      assert.isTrue(mergeActiveCallWithSpy.calledWith(subject.call));
     });
   });
 

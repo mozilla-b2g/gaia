@@ -5,9 +5,12 @@
 
 .menu-item {
   position: static;
-  padding-left: 5.5rem;
   background-repeat: no-repeat;
   background-position: 1.4rem center;
+}
+
+.menu-item[data-icon] {
+  padding-left: 5.5rem;
 }
 
 a.menu-item:after  {

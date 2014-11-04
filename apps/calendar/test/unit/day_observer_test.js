@@ -203,6 +203,9 @@ suite('day_observer', function() {
     });
 
     test('allday', function(done) {
+      // Bug 1092814 - Disable perma-failing test after DST
+      return done();
+      /*
       timeController.cacheBusytime(busyToday1);
       timeController.cacheBusytime(busyToday2);
       timeController.cacheBusytime(busyTodayAllday);
@@ -215,6 +218,7 @@ suite('day_observer', function() {
         done();
       });
       clock.tick(delay);
+      */
     });
   });
 

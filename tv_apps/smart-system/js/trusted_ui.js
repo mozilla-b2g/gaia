@@ -63,7 +63,7 @@ var TrustedUIManager = {
   },
 
   open: function trui_open(name, frame, chromeEventId, onCancelCB) {
-    screen.mozLockOrientation('portrait');
+    screen.mozLockOrientation('default');
     this._hideAllFrames();
     if (this.currentStack.length) {
       this._makeDialogHidden(this._getTopDialog());
@@ -406,7 +406,7 @@ var TrustedUIManager = {
         break;
       case 'appopen':
         if (this.currentStack.length) {
-          screen.mozLockOrientation('portrait');
+          screen.mozLockOrientation('default');
         }
         break;
       case 'appwillclose':

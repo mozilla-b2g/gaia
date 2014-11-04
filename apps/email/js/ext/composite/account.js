@@ -60,28 +60,32 @@ function CompositeAccount(universe, accountDef, folderInfo, dbConn,
     accountDef.credentials.oauth2._transientLastRenew = 0;
   }
 
-  // XXX for now we are stealing the universe's logger
-  this._LOG = _LOG;
-
   this.identities = accountDef.identities;
 
   if (!PIECE_ACCOUNT_TYPE_TO_CLASS.hasOwnProperty(accountDef.receiveType)) {
-    this._LOG.badAccountType(accountDef.receiveType);
+    _LOG.badAccountType(accountDef.receiveType);
   }
   if (!PIECE_ACCOUNT_TYPE_TO_CLASS.hasOwnProperty(accountDef.sendType)) {
-    this._LOG.badAccountType(accountDef.sendType);
+    _LOG.badAccountType(accountDef.sendType);
   }
 
   this._receivePiece =
     new PIECE_ACCOUNT_TYPE_TO_CLASS[accountDef.receiveType](
       universe, this,
       accountDef.id, accountDef.credentials, accountDef.receiveConnInfo,
-      folderInfo, dbConn, this._LOG, receiveProtoConn);
+      folderInfo, dbConn, _LOG, receiveProtoConn);
   this._sendPiece =
     new PIECE_ACCOUNT_TYPE_TO_CLASS[accountDef.sendType](
       universe, this,
       accountDef.id, accountDef.credentials,
-      accountDef.sendConnInfo, dbConn, this._LOG);
+      accountDef.sendConnInfo, dbConn, _LOG);
+
+  // We used to hold onto the Universe's logger, but that wasn't right.  The
+  // receiving account piece is usually what we want.  In this case we're doing
+  // this so that MailUniverse can report the runOp_end for improved
+  // correctness. In the "slog" future we'll just use a common log object for
+  // this CompositeAccount and all the pieces, which will make this non-sketchy.
+  this._LOG = this._receivePiece._LOG;
 
   // expose public lists that are always manipulated in place.
   this.folders = this._receivePiece.folders;

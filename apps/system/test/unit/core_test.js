@@ -10,6 +10,28 @@ suite('system/Core', function() {
     requireApp('system/js/core.js', done);
   });
 
+  suite('Start handler', function() {
+    var core;
+    setup(function() {
+      core = new BaseModule.instantiate('Core');
+    });
+
+    teardown(function() {
+      core.stop();
+    });
+
+    test('Defined under window', function() {
+      var fakePromise = new MockPromise();
+      navigator.newapi = {};
+      this.sinon.stub(BaseModule, 'lazyLoad').returns(fakePromise);
+      core.startAPIHandler('newapi', 'NewApiHandler');
+      window.NewApiHandler = this.sinon.spy();
+      fakePromise.mFulfillToValue();
+      assert.isTrue(window.NewApiHandler.calledWithNew());
+      assert.isTrue(window.NewApiHandler.calledWith(navigator.newapi, core));
+    });
+  });
+
   suite('API handler bootstrap', function() {
     var core;
     setup(function() {

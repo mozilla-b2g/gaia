@@ -9,9 +9,9 @@ from gaiatest.apps.base import Base
 
 class SimManager(Base):
 
-    _outgoing_call_locator = (By.ID, "sim-manager-outgoing-call-select")
-    _outgoing_messages_locator = (By.ID, "sim-manager-outgoing-messages-select")
-    _outgoing_data_locator = (By.ID, "sim-manager-outgoing-data-select")
+    _outgoing_call_locator = (By.CSS_SELECTOR, ".sim-manager-outgoing-call-select")
+    _outgoing_messages_locator = (By.CSS_SELECTOR, ".sim-manager-outgoing-messages-select")
+    _outgoing_data_locator = (By.CSS_SELECTOR, ".sim-manager-outgoing-data-select")
     _back_button_locator = (By.CSS_SELECTOR, '.current header > a') 
     _confirm_suspended_locator = (By.CSS_SELECTOR, '.modal-dialog-confirm-ok')
 

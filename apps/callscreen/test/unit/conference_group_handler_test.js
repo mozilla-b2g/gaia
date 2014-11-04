@@ -32,7 +32,6 @@ suite('conference group handler', function() {
   var fakeGroupLine;
   var fakeGroupLabel;
   var fakeGroupDetails;
-  var fakeMergeButton;
   var fakeDurationChildNode;
   var fakeTotalDurationChildNode;
 
@@ -57,8 +56,6 @@ suite('conference group handler', function() {
                             '<div class="total-duration"></div>' +
                             '<div class="direction"></div>' +
                           '</div>' +
-                          '<button class="merge-button" data-l10n-id="merge">' +
-                            'Merge</button>' +
                         '</section>' +
                         '<form id="group-call-details" role="dialog" ' +
                           'data-type="action" class="overlay">' +
@@ -76,7 +73,6 @@ suite('conference group handler', function() {
     fakeGroupLine = document.getElementById('group-call');
     fakeGroupLabel = document.getElementById('group-call-label');
     fakeGroupDetails = document.getElementById('group-call-details');
-    fakeMergeButton = document.querySelector('.merge-button');
     fakeDurationChildNode =
         document.querySelector('#group-call > .duration > span');
     fakeTotalDurationChildNode =
@@ -372,16 +368,6 @@ suite('conference group handler', function() {
       var showStatusSpy = this.sinon.spy(CallScreen, 'showStatusMessage');
       MockNavigatorMozTelephony.conferenceGroup.onerror({name: 'removeError'});
       assert.isTrue(showStatusSpy.calledWith('conferenceRemoveError'));
-    });
-  });
-
-  suite('mergeButton', function() {
-    test('should call CallsHandler.mergeConferenceGroupWithActiveCall()',
-      function() {
-      var mergeSpy = this.sinon.spy(MockCallsHandler,
-                                    'mergeConferenceGroupWithActiveCall');
-      fakeMergeButton.onclick();
-      assert.isTrue(mergeSpy.called);
     });
   });
 });

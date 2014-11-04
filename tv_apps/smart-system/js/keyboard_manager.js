@@ -1,6 +1,6 @@
 'use strict';
 
-/* global SettingsListener, InputAppsTransitionManager, ImeMenu,
+/* global SettingsCache, InputAppsTransitionManager, ImeMenu,
           InputFrameManager, InputLayouts, LazyLoader, KeyboardHelper */
 
 // If we get a inputmethod-contextchange chrome event for an element with
@@ -68,7 +68,7 @@ var KeyboardManager = {
 
   init: function km_init() {
     // 3rd-party keyboard apps must be run out-of-process.
-    SettingsListener.observe('keyboard.3rd-party-app.enabled', true,
+    SettingsCache.observe('keyboard.3rd-party-app.enabled', true,
       function(value) {
         this.isOutOfProcessEnabled = value;
       }.bind(this));
@@ -138,12 +138,10 @@ var KeyboardManager = {
       return;
     }
 
-    var LAUNCH_ON_BOOT_KEY = 'keyboard.launch-on-boot';
-    var req = navigator.mozSettings.createLock().get(LAUNCH_ON_BOOT_KEY);
-    req.onsuccess = req.onerror = (function() {
+    SettingsCache.get('keyboard.launch-on-boot', (function(value) {
       // If the value is not set or it is set to true,
       // launch the keyboad in background
-      var launchOnBoot = req.result && req.result[LAUNCH_ON_BOOT_KEY];
+      var launchOnBoot = value;
       if (typeof launchOnBoot !== 'boolean') {
         launchOnBoot = true;
       }
@@ -154,7 +152,7 @@ var KeyboardManager = {
           !Object.keys(this.inputFrameManager.runningLayouts).length) {
         this._setKeyboardToShow('text', undefined, true);
       }
-    }).bind(this);
+    }).bind(this));
   },
 
   _updateLayouts: function km_updateLayouts(layouts) {

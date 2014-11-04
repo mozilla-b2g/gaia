@@ -8,7 +8,7 @@
   'use strict';
   // do not create thumbnails for too big attachments
   // (see bug 805114 for a similar issue in Gallery)
-  const MAX_THUMBNAIL_GENERATION_SIZE = 1.5 * 1024 * 1024; // 1.5MB
+  const MAX_THUMBNAIL_GENERATION_SIZE = 5 * 1024 * 1024; // 5MB
 
   // Actual thumbnails size should be 10 rem (100px) * devicePixelRatio
   const THUMBNAIL_SIZE = 100 * window.devicePixelRatio;
@@ -201,11 +201,11 @@
         this.getThumbnail() : Promise.reject();
 
     return thumbnailPromise.
-      then(function(url) {
+      then(function(thumbnail) {
         return {
           markup: this._getBaseMarkup('attachment-preview-tmpl'),
           cssClass: 'preview',
-          url: url
+          thumbnail: thumbnail
         };
       }.bind(this)).
       catch(function(error) {
@@ -220,7 +220,10 @@
             var thumbnailNode = contentContainer.querySelector('.thumbnail');
             if (thumbnailNode) {
               thumbnailNode.style.backgroundImage =
-                'url("' + data.url + '")';
+                'url("' + data.thumbnail.url + data.thumbnail.fragment + '")';
+
+              // It's essential to remember real image URL to revoke it later
+              attachmentContainer.dataset.thumbnail = data.thumbnail.url;
             }
           });
       }.bind(this));
@@ -260,7 +263,10 @@
           THUMBNAIL_SIZE / Math.min(data.width, data.height)
         );
 
-        return window.URL.createObjectURL(blob) + fragment;
+        return {
+          url: window.URL.createObjectURL(blob),
+          fragment: fragment
+        };
       }
     );
   };

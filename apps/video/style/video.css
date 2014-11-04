@@ -236,6 +236,7 @@ span.line-break {
  * is displayed.
  */
 #overlay,
+#in-use-overlay,
 #confirm-dialog {
   /* it takes up the whole screen */
   position: absolute;
@@ -253,7 +254,7 @@ span.line-break {
  * It has borders and a less transparent background so that
  * the overlay text shows up more clearly
  */
-#overlay-content {
+#overlay-content, #in-use-overlay-content {
   background:
   url(images/ui/pattern.png) repeat left top,
   url(images/ui/gradient.png) no-repeat left top;
@@ -274,7 +275,7 @@ span.line-break {
   padding: 11rem 2.5rem 0 2.5rem;
 }
 
-#overlay-title {
+#overlay-title, #in-use-overlay-title {
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
@@ -282,7 +283,7 @@ span.line-break {
   padding: 0;
 }
 
-#overlay-text {
+#overlay-text, #in-use-overlay-text {
   padding: 1rem 0.5rem 0 0.5rem;
   border-top: 0.1rem solid #686868;
   font-weight: 300;

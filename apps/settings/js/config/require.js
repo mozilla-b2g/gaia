@@ -45,6 +45,12 @@ require.config({
     'shared/toaster': {
       exports: 'Toaster'
     },
+    'shared/template': {
+      exports: 'Template'
+    },
+    'shared/sim_settings_helper': {
+      exports: 'SimSettingsHelper'
+    },
     'shared/tz_select': {
       exports: 'tzSelect'
     },
@@ -237,6 +243,10 @@ require.config({
     },
     {
       name: 'panels/sound/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/simcard_manager/panel',
       exclude: ['main']
     }
   ]

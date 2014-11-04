@@ -5,10 +5,6 @@
   will-change: scroll-position;
 }
 
-[data-mode="search"] .msg-list-scrollouter {
-  height: calc(100% - 13.5rem);
-}
-
 .msg-list-scrollinner {
   /* Give it a z-index of 0 so that all its contents are forced into a single stacking
      context. This simplifies display list construction because our many positioned
@@ -55,7 +51,7 @@ section[role="region"] > header:first-child h1.msg-list-header-folder-label {
   font-style: italic;
 }
 
-[data-mode="search"] .msg-search-tease-bar {
+cards-message-list-search .msg-search-tease-bar {
   display: none;
 }
 
@@ -74,8 +70,8 @@ bug 1033628 for more details. */
    be sure any inputs do not accept clicks/taps that would
    mess up the transition back to the message list. Also
    disable scrolling of the list */
-.card-message-list.after input,
-.card-message-list.after .msg-list-scrollouter {
+cards-message-list.after input,
+cards-message-list.after .msg-list-scrollouter {
   pointer-events: none;
 }
 
@@ -352,12 +348,12 @@ reflows. Foreground/background colors should be safe.
   pointer-events: none;
 }
 
-.card-message-reader .msg-body-container > progress {
+cards-message-reader .msg-body-container > progress {
   display: block;
   margin: 0 auto;
 }
 
-.card-message-reader .scrollregion-below-header {
+cards-message-reader .scrollregion-below-header {
   height: calc(100% - 9.5rem);
 }
 

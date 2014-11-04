@@ -5,13 +5,12 @@
 
 define(function(require) {
   var mozL10n = require('l10n!'),
-      Cards = require('mail_common').Cards;
+      cards = require('cards');
 
   /**
    * mixin properties for cards that share similar actions around the account
    * preferences.
    * ASSUMES the following properties have been initialized on the object
-   * - this.domNode
    * - this.account
    * - this.identity
    */
@@ -43,8 +42,9 @@ define(function(require) {
                         .some(function(option) {
                           return syncIntervalString === option.value;
                         });
-        if (!hasOption && extraOptions.indexOf(currentInterval) === -1)
+        if (!hasOption && extraOptions.indexOf(currentInterval) === -1) {
           extraOptions.push(currentInterval);
+        }
 
         // Add any extra sync interval options.
         extraOptions.forEach(function(interval) {
@@ -98,7 +98,7 @@ define(function(require) {
     },
 
     nodeFromClass: function(className) {
-      return this.domNode.getElementsByClassName(className)[0];
+      return this.getElementsByClassName(className)[0];
     },
 
     onChangeSyncInterval: function(event) {
@@ -143,15 +143,13 @@ define(function(require) {
     },
 
     onClickSignature: function(index) {
-     Cards.pushCard(
-        'settings_signature', 'default', 'animate',
+     cards.pushCard(
+        'settings_signature', 'animate',
         {
           account: this.account,
           index: index
         },
         'right');
     }
-
-
   };
 });

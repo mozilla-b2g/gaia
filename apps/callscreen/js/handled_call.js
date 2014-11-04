@@ -10,7 +10,6 @@ function HandledCall(aCall) {
   this.call = aCall;
 
   aCall.addEventListener('statechange', this);
-  aCall.addEventListener('statechange', CallsHandler.updatePlaceNewCall);
 
   aCall.ongroupchange = (function onGroupChange() {
     if (this.call.group) {
@@ -50,13 +49,6 @@ function HandledCall(aCall) {
   this.hangupButton.onclick = (function() {
     this.call.hangUp();
   }.bind(this));
-  this.mergeButton = this.node.querySelector('.merge-button');
-  this.mergeButton.onclick = (function(evt) {
-    if (evt) {
-      evt.stopPropagation();
-    }
-    CallsHandler.mergeActiveCallWith(this.call);
-  }).bind(this);
 
   this.updateCallNumber();
 
@@ -90,6 +82,8 @@ HandledCall.prototype._wasUnmerged = function hc_wasUnmerged() {
 };
 
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
+  CallsHandler.updatePlaceNewCall();
+  CallsHandler.updateMergeAndOnHoldStatus();
   switch (evt.call.state) {
     case 'connected':
       // The dialer agent in the system app plays and stops the ringtone once

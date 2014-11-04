@@ -16,7 +16,7 @@ define(function(require) {
    * toaster on the screen at a time. Subsequent 'toasts' will remove
    * any previously-displaying toast.
    */
-  var Toaster = {
+  var toaster = {
 
     defaultTimeout: 5000,
 
@@ -144,5 +144,5 @@ define(function(require) {
     }
   };
 
-  return Toaster;
+  return toaster;
 });

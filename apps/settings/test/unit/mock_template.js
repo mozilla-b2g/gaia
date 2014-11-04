@@ -1,11 +1,13 @@
-'use strict';
+define(function(require) {
+  'use strict';
 
-function MockTemplate(idOrNode) {
-  if (!(this instanceof Template)) {
-    return new Template(idOrNode);
+  function MockTemplate(idOrNode) {
+
   }
-}
 
-MockTemplate.prototype.interpolate = function(data, options) {
-  return data;
-};
+  MockTemplate.prototype.interpolate = function(data, options) {
+    return data;
+  };
+
+  return MockTemplate;
+});

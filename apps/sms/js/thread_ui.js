@@ -608,6 +608,16 @@ var ThreadUI = {
     // to slide correctly. Bug 1009541
     this.cancelEdit();
 
+    if (Navigation.isCurrentPanel('thread')) {
+      // Revoke thumbnail URL for every image attachment rendered within thread
+      var nodes = this.container.querySelectorAll(
+        '.attachment-container[data-thumbnail]'
+      );
+      Array.from(nodes).forEach((node) => {
+        window.URL.revokeObjectURL(node.dataset.thumbnail);
+      });
+    }
+
     // TODO move most of back() here: Bug 1010223
   },
 
@@ -2687,6 +2697,15 @@ var ThreadUI = {
         },
         params: [email]
       });
+      if (Settings.supportEmailRecipient) {
+        items.push({
+          l10nId: 'sendMMSToEmail',
+          method: function oMMS(param) {
+            ActivityPicker.sendMessage(param);
+          },
+          params: [email]
+        });
+      }
     } else {
       // Multi-participant activations or in-message numbers
       // will include a "Call" and "Send Message" options in the menu

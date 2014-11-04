@@ -45,6 +45,10 @@ class Settings(Base):
         Base.launch(self)
         self.wait_for_element_present(*self._app_loaded_locator)
 
+    def switch_to_settings_app(self):
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        self.apps.switch_to_displayed_app()
+
     def wait_for_airplane_toggle_ready(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
         self.wait_for_condition(lambda m: checkbox.is_enabled())
@@ -183,6 +187,18 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.homescreen_settings import HomescreenSettings
         self._tap_menu_item(self._homescreen_menu_item_locator)
         return HomescreenSettings(self.marionette)
+
+    @property
+    def is_airplane_mode_visible(self):
+        return self.is_element_displayed(*self._airplane_switch_locator)
+
+    @property
+    def is_wifi_menu_visible(self):
+        return self.is_element_displayed(*self._wifi_menu_item_locator)
+
+    @property
+    def is_cell_data_menu_visible(self):
+        return self.is_element_displayed(*self._cell_data_menu_item_locator)
 
     def _wait_for_menu_item(self, menu_item_locator):
         menu_item = self.marionette.find_element(*menu_item_locator)

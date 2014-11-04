@@ -1,9 +1,18 @@
 /*jshint browser: true */
 /*global requireApp, suite, setup, testConfig, test, assert,
-  teardown, suiteSetup, suiteTeardown */
-
+  suiteSetup, suiteTeardown, Promise */
+'use strict';
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
+
+// Run some final test confirmations after current turn has passed. The idea
+// being that the evt broadcasting to listeners will have completed once the
+// function passed to this function is called. So, only call this method inside
+// the first evt event listener, so that the future turn is clear from the
+// turn used to notify evt listeners.
+function onFutureTurn(fn) {
+  Promise.resolve(true).then(fn);
+}
 
 suite('evt', function() {
   var evt;
@@ -23,20 +32,23 @@ suite('evt', function() {
 
   suite('#on', function() {
 
-    test('basic use', function() {
+    test('basic use', function(done) {
       var count = 0;
 
       evt.on('testOn', function() {
         count += 1;
+        if (count === 2) {
+          onFutureTurn(function() {
+            assert.equal(count, 2);
+            done();
+          });
+        }
       });
       evt.emit('testOn');
       evt.emit('testOn');
-
-      //evt calls listeners synchronously, so should be complete now.
-      assert.equal(count, 2);
     });
 
-    test('multiple args', function() {
+    test('multiple args', function(done) {
       var count = 0;
 
       evt.on('testOn', function(first, second) {
@@ -47,51 +59,67 @@ suite('evt', function() {
         } else if (count === 2) {
           assert.equal(first, 'three');
           assert.equal(second, 'four');
+
+          onFutureTurn(function() {
+            // Make sure notification count stayed at two
+            assert.equal(count, 2);
+            done();
+          });
         }
       });
       evt.emit('testOn', 'one', 'two');
       evt.emit('testOn', 'three', 'four');
     });
 
-    test('only catch second emit', function() {
+    test('Catches both emits since async', function(done) {
       var count = 0;
 
       evt.emit('testOn2');
 
       evt.on('testOn2', function() {
         count += 1;
+        if (count === 2) {
+          assert.equal(count, 2);
+          done();
+        }
       });
 
       evt.emit('testOn2');
-
-      assert.equal(count, 1);
     });
 
   });
 
   suite('#once', function() {
 
-    test('basic use', function() {
+    test('basic use', function(done) {
       var count = 0;
 
       evt.once('testOnce', function() {
         count += 1;
+        onFutureTurn(function() {
+          assert.equal(count, 1);
+          done();
+        });
       });
       evt.emit('testOnce');
       evt.emit('testOnce');
-      assert.equal(count, 1);
     });
 
   });
 
   suite('#removeListener', function() {
 
-    test('basic use', function() {
+    test('basic use', function(done) {
       var count = 0;
 
       function onEvent() {
         count += 1;
         evt.removeListener('testRemoveListener', onEvent);
+        onFutureTurn(function() {
+          assert.equal(count, 1);
+          assert.equal(evt._events.hasOwnProperty('testRemoveListener'), false);
+          done();
+        });
       }
 
       evt.on('testRemoveListener', onEvent);
@@ -99,9 +127,6 @@ suite('evt', function() {
 
       evt.emit('testRemoveListener');
       evt.emit('testRemoveListener');
-
-      assert.equal(count, 1);
-      assert.equal(evt._events.hasOwnProperty('testRemoveListener'), false);
     });
 
   });
@@ -109,17 +134,24 @@ suite('evt', function() {
 
   suite('#emitWhenListener', function() {
 
-    test('basic use', function() {
+    test('basic use', function(done) {
       var count = 0;
 
       evt.emitWhenListener('testEmitWhenListener');
 
-      evt.on('testEmitWhenListener', function() {
-        count += 1;
-      });
+      onFutureTurn(function(fn) {
+        evt.on('testEmitWhenListener', function() {
+          count += 1;
+          if (count === 2) {
+            onFutureTurn(function() {
+              assert.equal(count, 2);
+              done();
+            });
+          }
+        });
 
-      evt.emit('testEmitWhenListener');
-      assert.equal(count, 2);
+        evt.emit('testEmitWhenListener');
+      });
     });
   });
 
@@ -138,7 +170,7 @@ suite('evt', function() {
       evt.mix(data);
     });
 
-    test('delayed value', function() {
+    test('delayed value', function(done) {
       var count = 0;
 
       data.latest('token', function(token) {
@@ -148,16 +180,19 @@ suite('evt', function() {
           assert.equal(token, 'one');
         } else if (count === 2) {
           assert.equal(token, 'two');
+
+          onFutureTurn(function() {
+            assert.equal(count, 2);
+            done();
+          });
         }
       });
 
       data.setToken('one');
       data.setToken('two');
-
-      assert.equal(count, 2);
     });
 
-    test('immediate value', function() {
+    test('immediate value', function(done) {
       var count = 0;
 
       data.setToken('one');
@@ -169,14 +204,16 @@ suite('evt', function() {
           assert.equal(token, 'one');
         } else if (count === 2) {
           assert.equal(token, 'two');
+          onFutureTurn(function() {
+            assert.equal(count, 2);
+            done();
+          });
         }
       });
 
       assert.equal(count, 1);
 
       data.setToken('two');
-
-      assert.equal(count, 2);
     });
 
     test('immediate value, after first listener', function() {
@@ -220,37 +257,48 @@ suite('evt', function() {
     });
 
 
-    test('double latestOnce listeners', function() {
+    test('double latestOnce listeners', function(done) {
       var count = 0;
 
       function onLatest(token) {
         count += 1;
 
         assert.equal(token, 'one');
+
+        if (count === 2) {
+          onFutureTurn(function() {
+            assert.equal(count, 2);
+            done();
+          });
+        }
       }
 
       data.latestOnce('token', onLatest);
       data.latestOnce('token', onLatest);
 
       data.setToken('one');
-      assert.equal(count, 2);
     });
 
-    test('delayed value', function() {
+    test('delayed value', function(done) {
       var count = 0;
 
       data.latestOnce('token', function(token) {
         count += 1;
 
         assert.equal(token, 'one');
+        assert.equal(count, 1);
+
+        onFutureTurn(function() {
+          assert.equal(count, 1);
+          done();
+        });
       });
 
       data.setToken('one');
       data.setToken('two');
-      assert.equal(count, 1);
     });
 
-    test('immediate value', function() {
+    test('immediate value', function(done) {
       var count = 0;
 
       data.setToken('one');
@@ -259,11 +307,15 @@ suite('evt', function() {
         count += 1;
 
         assert.equal(token, 'one');
+
+        onFutureTurn(function() {
+          assert.equal(count, 1);
+          done();
+        });
       });
 
       assert.equal(count, 1);
       data.setToken('two');
-      assert.equal(count, 1);
     });
 
     test('immediate value, after first listener', function() {

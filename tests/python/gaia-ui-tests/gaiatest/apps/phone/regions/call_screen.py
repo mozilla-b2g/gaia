@@ -27,7 +27,7 @@ class CallScreen(Phone):
     _hangup_button_locator = (By.CSS_SELECTOR, '.handled-call .hangup-button')
     _keypad_hangup_button_locator = (By.ID, 'keypad-hidebar-hang-up-action-wrapper')
     _keypad_visibility_button_locator = (By.ID, 'keypad-visibility')
-    _merge_calls_button_locator = (By.CSS_SELECTOR, '#calls .held .merge-button')
+    _merge_calls_button_locator = (By.ID, 'merge')
     _conference_call_label_locator = (By.ID, 'group-call-label')
     _conference_call_locator = (By.ID, 'group-call')
 

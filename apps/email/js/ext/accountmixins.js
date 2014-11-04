@@ -96,9 +96,9 @@ exports.runOp = function runOp(op, mode, callback) {
 
     DisasterRecovery.clearCurrentAccountOp(this);
     this._jobDriver.postJobCleanup(error);
-    console.log('runOp_end(' + mode + ': ' +
-                JSON.stringify(op).substring(0, 160) + ')\n');
-    this._LOG.runOp_end(mode, op.type, error, op);
+    // We used to log the runOp_end here, but this is too early because the
+    //  book-keeping for the op actually happens in the following callback.  So
+    //  we leave it to _localOpCompleted and _serverOpCompleted to log this.
     // defer the callback to the next tick to avoid deep recursion
     window.setZeroTimeout(function() {
       callback(error, resultIfAny, accountSaveSuggested);

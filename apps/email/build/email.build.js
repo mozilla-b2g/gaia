@@ -45,7 +45,6 @@
         'value_selector',
         'folder_depth_classes',
         'iframe_shims',
-        'mix',
         'cards/editor_mixins',
 
         // Bundle most likely, frequently used cards

@@ -118,6 +118,7 @@ window.addEventListener('load', function startup() {
   window.addEventListener('ftuskip', doneWithFTU);
 
   Shortcuts.init();
+
   ScreenManager.turnScreenOn();
 
   // To make sure homescreen window manager can intercept webapps-launch event,

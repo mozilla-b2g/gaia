@@ -1503,7 +1503,7 @@ var StatusBar = {
     // in case no SIM card is inserted
     var conns = window.navigator.mozMobileConnections;
 
-    if (!conns) {
+    if (!conns || !this.icons.signals) {
       return;
     }
 

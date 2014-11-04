@@ -177,7 +177,7 @@
           } else if ('absent' === cardId && true === evt.settingValue) {
             title = 'noSimCard';
             buttonText = 'ok';
-            message = 'noSIMCardInHotspot2';
+            message = 'noSIMCardInHotspot3';
 
             ModalDialog.alert(title, message, { title: buttonText });
             settings.createLock().set(cset);
@@ -201,7 +201,7 @@
           } else if ('absent' === cardId && true === evt.settingValue) {
             title = 'noSimCard';
             buttonText = 'ok';
-            message = 'noSIMCardInHotspot2';
+            message = 'noSIMCardInHotspot3';
 
             ModalDialog.alert(title, message, { title: buttonText });
             settings.createLock().set(cset);

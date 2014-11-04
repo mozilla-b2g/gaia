@@ -384,6 +384,7 @@ suite('system/UtilityTray', function() {
   suite('handleEvent: touchstart', function() {
     mocksHelperForUtilityTray.attachTestHelpers();
     setup(function() {
+      UtilityTray.hide();
       fakeEvt = createEvent('touchstart', false, true);
       fakeEvt.touches = [0];
     });
@@ -436,6 +437,13 @@ suite('system/UtilityTray', function() {
       /* XXX: This is to test UtilityTray.active,
               it works in local test but breaks in travis. */
       // assert.equal(UtilityTray.active, true);
+    });
+
+    test('onTouchStart is not called if already opened', function() {
+      UtilityTray.show();
+      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      UtilityTray.topPanel.dispatchEvent(fakeEvt);
+      assert.ok(stub.notCalled);
     });
   });
 

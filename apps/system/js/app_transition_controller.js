@@ -176,7 +176,7 @@
     function atc_do_opening() {
       this.app.debug('timer to ensure opened does occur.');
       this._openingTimeout = window.setTimeout(function() {
-        this.app.broadcast('openingtimeout');
+        this.app && this.app.broadcast('openingtimeout');
       }.bind(this),
       System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.OPENING_TRANSITION_TIMEOUT);
