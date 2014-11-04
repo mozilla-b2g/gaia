@@ -67,7 +67,7 @@ exports.clean = function (html, opts) {
   // senders are so bad they just leave them in the middle of email
   // content, as if they just dump from their CMS. So removing all of them
   // now
-  html = html.replace(/<!DOCTYPE\s+[^>]*>/g, '');
+  html = html.replace(/<!DOCTYPE\s+[^>]*>/gi, '');
 
   return exports.cleanNode(html, opts);
 };
