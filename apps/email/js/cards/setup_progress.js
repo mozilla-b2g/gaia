@@ -116,6 +116,7 @@ return [
           cards.pushCard(
             'setup_account_password', 'animate',
             {
+              displayName: args.displayName,
               emailAddress: args.emailAddress
             },
             'right');
