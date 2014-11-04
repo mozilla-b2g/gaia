@@ -169,6 +169,7 @@ var StatusBar = {
     window.addEventListener('ftuskip', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('apptitlestatechanged', this);
+    window.addEventListener('activitytitlestatechanged', this);
     window.addEventListener('appchromecollapsed', this);
   },
 
@@ -556,6 +557,7 @@ var StatusBar = {
         this._updateMinimizedStatusBarWidth();
         /* falls through */
       case 'apptitlestatechanged':
+      case 'activitytitlestatechanged':
       case 'homescreenopened':
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');

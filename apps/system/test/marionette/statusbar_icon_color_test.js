@@ -48,31 +48,31 @@ marionette('Statusbar colors', function() {
 
   test('statusbar icons are white in the lockscreen', function() {
     waitVisible();
-    waitForColor(false);
+    waitForDarkColor();
   });
 
   test('statusbar icons remain white after dark app', function() {
     waitVisible();
     helper.unlockScreen(client);
     client.apps.launch(SETTINGS_APP);
-    waitForColor(true);
+    waitForLightColor();
     helper.lockScreen(client);
-    waitForColor(false);
+    waitForDarkColor();
     helper.unlockScreen(client);
-    waitForColor(true);
+    waitForLightColor();
   });
 
   test('statusbar icons remain white after task switcher', function() {
     waitVisible();
     helper.unlockScreen(client);
     client.apps.launch(SETTINGS_APP);
-    waitForColor(true);
+    waitForLightColor();
     actions.longPress(system.softwareHome, 1).perform();
     waitForCardsView();
     helper.lockScreen(client);
-    waitForColor(false);
+    waitForDarkColor();
     helper.unlockScreen(client);
-    waitForColor(true);
+    waitForLightColor();
   });
 
   test('statusbar icons keep color after add homescreen', function() {
@@ -80,7 +80,7 @@ marionette('Statusbar colors', function() {
     helper.unlockScreen(client);
     var url = server.url('sample.html');
     bookmark.openAndSave(url);
-    waitForColor(true);
+    waitForLightColor();
   });
 
   test('statusbar icons keep color after activity', function() {
@@ -98,17 +98,38 @@ marionette('Statusbar colors', function() {
     system.appChromeContextLink.click();
     system.appChromeContextMenuShare.click();
     system.cancelActivity.click();
-    waitForColor(true);
+    waitForLightColor();
+  });
+
+  test('statusbar color after activity title change', function() {
+    helper.unlockScreen(client);
+    waitVisible();
+    waitForDarkColor();
+    launchSettingsActivity();
+    waitForLightColor();
   });
 
   test('statusbar icons are dark when utility tray is open', function() {
     waitVisible();
     helper.unlockScreen(client);
     client.apps.launch(SETTINGS_APP);
-    waitForColor(true);
+    waitForLightColor();
     utilityTray.open();
-    waitForColor(false);
+    waitForDarkColor();
   });
+
+  function launchSettingsActivity() {
+    client.executeScript(function() {
+      var activity = new window.wrappedJSObject.MozActivity({
+        name: 'configure',
+        data: {
+          target: 'device',
+          section: 'messaging'
+        }
+      });
+      activity.onsuccess = function() {};
+    });
+  }
 
   function waitForCardsView() {
     client.waitFor(function() {
@@ -126,6 +147,14 @@ marionette('Statusbar colors', function() {
       });
       return (visibility == 'visible');
     });
+  }
+
+  function waitForLightColor() {
+    waitForColor(true);
+  }
+
+  function waitForDarkColor() {
+    waitForColor(false);
   }
 
   function waitForColor(light) {
