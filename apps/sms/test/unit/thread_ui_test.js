@@ -498,7 +498,7 @@ suite('thread_ui.js >', function() {
       banner.classList.remove('hide');
 
       // add a lock to check that it is correctly removed
-      Compose.lock = true;
+      Compose.locking();
 
       Compose.on.withArgs('input').yield();
     }
