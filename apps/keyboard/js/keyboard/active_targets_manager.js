@@ -23,7 +23,8 @@ var ActiveTargetsManager = function(app) {
 
   this.longPressTimer = undefined;
 
-  this.doubleTapTimers = null;
+  this.doubleTapTimer = undefined;
+  this.doubleTapPreviousTarget = null;
 };
 
 ActiveTargetsManager.prototype.ontargetactivated = null;
@@ -46,7 +47,6 @@ ActiveTargetsManager.prototype.DOUBLE_TAP_TIMEOUT = 450;
 ActiveTargetsManager.prototype.start = function() {
   this.app.console.log('ActiveTargetsManager.start()');
   this.activeTargets = new Map();
-  this.doubleTapTimers = new WeakMap();
 
   var userPressManager =
     this.userPressManager = new UserPressManager(this.app);
@@ -71,6 +71,8 @@ ActiveTargetsManager.prototype.stop = function() {
   this.alternativesCharMenuManager = null;
 
   clearTimeout(this.longPressTimer);
+  this.doubleTapTimer = undefined;
+  this.doubleTapPreviousTarget = null;
 };
 
 ActiveTargetsManager.prototype.clearAllTargets = function() {
@@ -216,20 +218,20 @@ ActiveTargetsManager.prototype._handlePressEnd = function(press, id) {
   clearTimeout(this.longPressTimer);
 
   // Target should be either committed or doubled tapped here.
-  var timer;
-  if (this.doubleTapTimers.has(target)) {
-    timer = this.doubleTapTimers.get(target);
-    clearTimeout(timer);
-    this.doubleTapTimers.delete(target);
+  if (this.doubleTapTimer && this.doubleTapPreviousTarget === target) {
+    window.clearTimeout(this.doubleTapTimer);
+    this.doubleTapTimer = undefined;
 
     if (typeof this.ontargetdoubletapped === 'function') {
       this.ontargetdoubletapped(target);
     }
   } else {
-    timer = setTimeout(function() {
-      this.doubleTapTimers.delete(target);
+    this.doubleTapTimer = window.setTimeout(function() {
+      this.doubleTapTimer = undefined;
+      this.doubleTapPreviousTarget = null;
     }.bind(this), this.DOUBLE_TAP_TIMEOUT);
-    this.doubleTapTimers.set(target, timer);
+
+    this.doubleTapPreviousTarget = target;
 
     if (typeof this.ontargetcommitted === 'function') {
       this.ontargetcommitted(target);
