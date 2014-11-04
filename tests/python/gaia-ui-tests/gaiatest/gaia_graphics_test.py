@@ -159,13 +159,16 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
 
         if not (err == '0\n' or err == '0'):
             err = err.replace('\n','')
-            #print 'WARNING: ' + err + ' pixels mismatched between ' + target_img + ' and ' + ref_img
-            raise self.ImageMismatchError(err, target_img,ref_img) #Enable this line instead if exception is needed
+            return 'WARNING: ' + err + ' pixels mismatched between ' + target_img + ' and ' + ref_img + '\n'
+            #raise self.ImageMismatchError(err, target_img,ref_img) #Enable this line instead if exception is needed
+        else:
+            return ""
 
     #do batch image compare- pick images with specified module name and compare against ref images
     def batch_image_compare(self, local_path, module_name, fuzz_value):
         shot_path = local_path + "/" + self.shots_dir
         ref_path = local_path + "/" + self.ref_dir
+        errorMsg = ""
 
         file_list = self.sorted_ls(shot_path)
         ref_file_list = self.sorted_ls(ref_path)
@@ -173,12 +176,13 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
             if module_name + "_" + self.device_name in f:
                 ref_name = f[0:f.find("+")] + ".png"
                 if ref_name in ref_file_list:
-                    self.sub_image_compare(os.path.join(shot_path, f),
+                    errorMsg += self.sub_image_compare(os.path.join(shot_path, f),
                                            os.path.join(ref_path, ref_name),
                                            os.path.join(shot_path, f[0:f.find(".png")]) + "_diff.png", fuzz_value)
                 else:
-                    raise self.RefFileNotFoundError(f)
-                    #print ("Ref file not found for: " + f)
+                    errorMsg += "Ref file not found for: " + f + '\n'
+        if errorMsg is not "":
+            raise self.ImageCompareError(errorMsg)
 
     # do collect and compare in one shot
     def collect_and_compare(self, local_path, device_path, module_name, fuzz_value):
@@ -358,14 +362,6 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
         finger.perform()
         return finger
 
-    class ImageMismatchError(Exception):
-        def __init__(self, pixelcount, target, reference):
-            message = '\n %s pixels mismatched between: %s, %s' \
-                      % (pixelcount, target, reference)
-            Exception.__init__(self, message)
-
-    class RefFileNotFoundError(Exception):
-        def __init__(self, reference):
-            message = '\n Reference file not found: %s' \
-                      % (reference)
+    class ImageCompareError(Exception):
+        def __init__(self, message):
             Exception.__init__(self, message)
