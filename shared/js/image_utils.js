@@ -270,7 +270,7 @@
                                              outputType)
   {
     if (!outputWidth || !isFinite(outputWidth) || outputWidth <= 0 ||
-        !outputHeight || !isFinite(outputHeight || outputHeight <= 0)) {
+        !outputHeight || !isFinite(outputHeight) || outputHeight <= 0) {
       return Promise.reject(new TypeError('invalid output dimensions'));
     }
     outputWidth = Math.round(outputWidth);

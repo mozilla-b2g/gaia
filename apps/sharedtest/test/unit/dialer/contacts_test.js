@@ -60,6 +60,14 @@ suite('dialer/contacts', function() {
 
   mocksHelperForContacts.attachTestHelpers();
 
+  function checkContacts (test, expected) {
+    for (var key in expected) {
+      if (key !== 'photo') {
+        assert.deepEqual(test[key], expected[key], 'Contact.' + key);
+      }
+    }
+  }
+
   suiteSetup(function() {
     realMozContacts = navigator.mozContacts;
     navigator.mozContacts = new MockMozContactsObj([aMozTestContact]);
@@ -153,7 +161,7 @@ suite('dialer/contacts', function() {
         assert.ok(contact.updated instanceof Date &&
                   !isNaN(contact.updated.valueOf()));
         contact.updated = 'date';
-        assert.deepEqual(contact, aFacebookContact);
+        checkContacts(contact, aFacebookContact);
       });
     });
 
@@ -216,7 +224,7 @@ suite('dialer/contacts', function() {
         contacts[0].updated = 'date';
         // Phone numbers haven't been merged
         aFacebookContact.tel = aMozTestContact.tel;
-        assert.deepEqual(contacts[0], aFacebookContact);
+        checkContacts(contacts[0], aFacebookContact);
       });
     });
 
