@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="style/spinner.css" />
     <link rel="stylesheet" type="text/css" href="shared/style/status.css" />
     <link rel="stylesheet" type="text/css" href="style/video_tablet.css" media="(min-height: 768px) and (min-width: 768px)" />
+
   </head>
   <body role="application" class="skin-dark layout-fullscreen-player view-activity theme-media">
     <!-- display this at startup while we create thumbnails -->
@@ -45,6 +46,13 @@
             </div>
           </footer>
         </section>
+        <!-- display messages like "Cannot load video" here -->
+        <form id="in-use-overlay" role="dialog" data-type="confirm" class="hidden">
+          <section id="in-use-overlay-content">
+            <h1 id="in-use-overlay-title"></h1>
+            <p id="in-use-overlay-text"></p>
+          </section>
+        </form>
       </div>
     </section>
     <section id="banner" role="status" hidden>
@@ -68,6 +76,7 @@
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" />
 
     <!-- App Code -->
+    <script defer src="js/video_loading_checker.js"></script>
     <script defer src="js/video_utils.js"></script>
     <script defer src="js/forward_rewind_controller.js"></script>
     <script src="js/view.js"></script>
