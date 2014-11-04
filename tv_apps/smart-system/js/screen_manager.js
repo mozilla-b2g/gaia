@@ -139,7 +139,7 @@ var ScreenManager = {
     }
 
     this._firstOn = false;
-    SettingsListener.observe('screen.timeout', 60,
+    SettingsCache.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
       if (typeof value !== 'number')
         value = parseInt(value);
@@ -159,12 +159,12 @@ var ScreenManager = {
       }
     });
 
-    SettingsListener.observe('screen.automatic-brightness', true,
+    SettingsCache.observe('screen.automatic-brightness', true,
     function deviceLightSettingChanged(value) {
       self.setDeviceLightEnabled(value);
     });
 
-    SettingsListener.observe('screen.brightness', 1,
+    SettingsCache.observe('screen.brightness', 1,
     function brightnessSettingChanged(value) {
       self._userBrightness = value;
       self.setScreenBrightness(value, false);

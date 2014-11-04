@@ -65,7 +65,7 @@ var NotificationScreen = {
     this.ringtoneURL = new SettingsURL();
 
     var self = this;
-    SettingsListener.observe('notification.ringtone', '', function(value) {
+    SettingsCache.observe('notification.ringtone', '', function(value) {
       self._sound = self.ringtoneURL.set(value);
     });
   },
@@ -297,11 +297,9 @@ var NotificationScreen = {
 
 window.addEventListener('load', function() {
   window.removeEventListener('load', this);
-  if ('mozSettings' in navigator && navigator.mozSettings) {
-    var key = 'notifications.resend';
-    var req = navigator.mozSettings.createLock().get(key);
-    req.onsuccess = function onsuccess() {
-      var resendEnabled = req.result[key] || false;
+  if (window.SettingsCache) {
+    SettingsCache.get('notifications.resend', function onsuccess(value) {
+      var resendEnabled = value || false;
       if (!resendEnabled) {
         return;
       }
@@ -316,16 +314,16 @@ window.addEventListener('load', function() {
         navigator.mozChromeNotifications.
           mozResendAllNotifications(resendCallback);
       }
-    };
+    });
   }
 });
 
 NotificationScreen.init();
 
-SettingsListener.observe('audio.volume.notification', 7, function(value) {
+SettingsCache.observe('audio.volume.notification', 7, function(value) {
   NotificationScreen.silent = (value == 0);
 });
 
-SettingsListener.observe('vibration.enabled', true, function(value) {
+SettingsCache.observe('vibration.enabled', true, function(value) {
   NotificationScreen.vibrates = value;
 });

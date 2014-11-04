@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenWindowManager, KeyboardManager,
-          layoutManager, System */
+          layoutManager, System, SettingsCache */
 'use strict';
 
 (function(exports) {
@@ -317,7 +317,7 @@
       };
 
       for (var name in this._settingsObserveHandler) {
-        SettingsListener.observe(
+        SettingsCache.observe(
           name,
           this._settingsObserveHandler[name].defaultValue,
           this._settingsObserveHandler[name].callback
