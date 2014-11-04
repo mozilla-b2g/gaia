@@ -779,7 +779,9 @@ var VCFReader = (function _VCFReader() {
     for (var l = this.contents.length; i < l; i++) {
       this.currentChar = i;
       var ch = this.contents[i];
-      if (ch === '"') {
+      var prevCh = this.contents[i-1];
+
+      if (((!inLabel && prevCh === '=') || inLabel) && ch === '"') {
         inLabel = !inLabel;
         currentLine += ch;
         continue;
