@@ -73,6 +73,23 @@
     kActiveIndicatorTimeout: null,
     client: null,
 
+    isVisible: function() {
+      var el = this.client.findElement(StatusBar.Selector.statusbar);
+      return el.displayed();
+    },
+
+    waitForAppear: function() {
+      this.client.waitFor(function() {
+        return this.isVisible();
+      }.bind(this));
+    },
+
+    waitForDisappear: function() {
+      this.client.waitFor(function() {
+        return !this.isVisible();
+      }.bind(this));
+    },
+
     /**
      * Change the delay value in StatusBar.
      * @param {number=} delay The new value for delay in milliseconds.
