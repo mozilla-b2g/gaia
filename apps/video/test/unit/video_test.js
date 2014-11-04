@@ -14,6 +14,7 @@ requireApp('/video/test/unit/mock_metadata.js');
 requireApp('/video/test/unit/mock_mediadb.js');
 requireApp('/video/test/unit/mock_thumbnail_group.js');
 requireApp('/video/test/unit/mock_thumbnail_item.js');
+requireApp('/video/test/unit/mock_video_loading_checker.js');
 requireApp('/video/test/unit/mock_video_player.js');
 requireApp('/video/js/thumbnail_list.js');
 
@@ -447,7 +448,7 @@ suite('Video App Unit Tests', function() {
       selectedThumbnail.htmlNode.classList.remove('focused');
       dom.player.setDuration(0);
       dom.player.currentTime = -1;
-      dom.player.onloadedmetadata = null;
+      loadingChecker.resetLoadedMetadataCallback();
     });
 
     teardown(function() {
@@ -516,7 +517,7 @@ suite('Video App Unit Tests', function() {
       // object so onloadedmetadata is not going to be called
       // automatically -- invoke it manually
       //
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
       //
       // enterFullscreen is false -- did not enter fullscreen
       //
@@ -568,7 +569,7 @@ suite('Video App Unit Tests', function() {
       // object so onloadedmetadata is not going to be called
       // automatically -- invoke it manually
       //
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
       //
       // video is seeking -- 'doneSeeking' is not called syncronously
       //  * dom.player.onseeked is set to 'doneSeeking' function
@@ -636,7 +637,7 @@ suite('Video App Unit Tests', function() {
       assert.equal(dom.player.preload, 'metadata');
       assert.isTrue(dom.player.hidden);
 
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
 
       assert.equal(dom.durationText.textContent, '00:01');
       assert.equal(dom.player.currentTime, 0);
@@ -674,7 +675,7 @@ suite('Video App Unit Tests', function() {
                  false, /* enterFullscreen */
                  true /* keepControls */);
 
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
 
       assert.isTrue(containsClass(document.body, LAYOUT_MODE.list));
       assert.isFalse(containsClass(dom.play, 'paused'));
@@ -713,7 +714,7 @@ suite('Video App Unit Tests', function() {
                  true, /* enterFullscreen */
                  true /* keepControls */);
 
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
 
       assert.equal(containsClass(document.body,
                    LAYOUT_MODE.list), false);
@@ -757,7 +758,7 @@ suite('Video App Unit Tests', function() {
                  true, /* enterFullscreen */
                  false /* keepControls */);
 
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
 
       assert.equal(containsClass(document.body,
                    LAYOUT_MODE.list), false);
@@ -790,7 +791,7 @@ suite('Video App Unit Tests', function() {
                  false, /* enterFullscreen */
                  true /* keepControls */);
 
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
 
       assert.equal(dom.player.currentTime,
                    selectedVideo.metadata.currentTime);
@@ -817,7 +818,7 @@ suite('Video App Unit Tests', function() {
                  false, /* enterFullscreen */
                  true /* keepControls */);
 
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
 
       assert.equal(dom.player.currentTime, 0);
       assert.equal(dom.videoTitle.textContent, currentVideo.metadata.title);
@@ -855,7 +856,7 @@ suite('Video App Unit Tests', function() {
                  false, /* enterFullscreen */
                  true /* keepControls */);
 
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
 
       assert.equal(dom.player.currentTime, 0);
       assert.equal(dom.videoTitle.textContent, currentVideo.metadata.title);
@@ -885,7 +886,7 @@ suite('Video App Unit Tests', function() {
                  false, /* enterFullscreen */
                  true /* keepControls */);
 
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
 
       assert.equal(dom.player.currentTime, 0);
       assert.equal(dom.videoTitle.textContent, '');
@@ -916,7 +917,7 @@ suite('Video App Unit Tests', function() {
                  false, /* enterFullscreen */
                  true /* keepControls */);
 
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
 
       assert.equal(dom.player.currentTime, 0);
       assert.equal(dom.videoTitle.textContent, selectedVideo.title);
@@ -1479,7 +1480,7 @@ suite('Video App Unit Tests', function() {
       // object so onloadedmetadata is not going to be called
       // automatically -- invoke it manually
       //
-      dom.player.onloadedmetadata();
+      loadingChecker.invokeLoadedMetadataCallback();
 
       assert.isTrue(playerShowing);
       assert.equal(ThumbnailItem.titleMaxLines, 2);
