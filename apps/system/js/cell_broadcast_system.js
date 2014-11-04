@@ -69,10 +69,20 @@
       var msg = event.message;
       var serviceId = event.serviceId || 0;
       var conn = window.navigator.mozMobileConnections[serviceId];
+      var id = msg.messageId;
+
+      // Early return CMAS messsage and let network alert app handle it. Please
+      // ref http://www.etsi.org/deliver/etsi_ts/123000_123099/123041/
+      // 11.06.00_60/ts_123041v110600p.pdf, chapter 9.4.1.2.2 Message identifier
+      // Message id from range 4370 to 4399(1112 hex to 112f hex) should be CMAS
+      // message and network alert will display detail information.
+      if (id >= 4370 && id < 4400) {
+        return;
+      }
 
       if (conn &&
           conn.voice.network.mcc === MobileOperator.BRAZIL_MCC &&
-          msg.messageId === MobileOperator.BRAZIL_CELLBROADCAST_CHANNEL) {
+          id === MobileOperator.BRAZIL_CELLBROADCAST_CHANNEL) {
         var evt = new CustomEvent('cellbroadcastmsgchanged',
           { detail: msg.body });
         window.dispatchEvent(evt);
@@ -88,7 +98,7 @@
       }
 
       CarrierInfoNotifier.show(body,
-        navigator.mozL10n.get('cb-channel', { channel: msg.messageId }));
+        navigator.mozL10n.get('cb-channel', { channel: id }));
     },
 
     /**

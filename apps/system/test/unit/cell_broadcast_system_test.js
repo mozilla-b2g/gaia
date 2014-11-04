@@ -1,5 +1,7 @@
 'use strict';
-/* global CellBroadcastSystem, MocksHelper, MockNavigatorMozMobileConnections */
+/* global CellBroadcastSystem, MocksHelper, MockNavigatorMozMobileConnections,
+          CarrierInfoNotifier
+ */
 
 requireApp('system/js/carrier_info_notifier.js');
 requireApp('system/js/cell_broadcast_system.js');
@@ -77,6 +79,20 @@ suite('system/CellBroadcastSystem', function() {
         },
         serviceId: 0,
       });
+    });
+
+    test('return while message is CMAS', function() {
+      this.sinon.stub(CarrierInfoNotifier, 'show');
+
+      subject.show({
+        message: {
+          messageId: 4370,
+          body: {}
+        },
+        serviceId: 0,
+      });
+
+      sinon.assert.notCalled(CarrierInfoNotifier.show);
     });
   });
 
