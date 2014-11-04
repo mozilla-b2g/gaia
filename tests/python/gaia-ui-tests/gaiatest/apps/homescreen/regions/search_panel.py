@@ -15,10 +15,27 @@ class SearchPanel(Base):
     _search_results_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
     _search_suggestion_ok_button_locator = (By.ID, 'suggestions-notice-confirm')
     _rocketbar_input_locator = (By.ID, 'rocketbar-input')
+    _search_results_offline_locator = (By.ID, 'offline-message')
+    _search_results_offline_settings_locator = (By.ID, 'settings-connectivity')
 
     def _switch_to_search_results_frame(self):
         self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.marionette.find_element(*self._search_results_app_frame_locator))
+
+    @property
+    def offline_search_message(self):
+        return self.marionette.find_element(*self._search_results_offline_locator).text
+
+    @property
+    def is_offline_message_visible(self):
+        return self.is_element_displayed(*self._search_results_offline_locator)
+
+    def tap_offline_settings_button(self):
+        self.marionette.find_element(*self._search_results_offline_settings_locator).tap()
+        from gaiatest.apps.settings.app import Settings
+        settings = Settings(self.marionette)
+        settings.switch_to_settings_app()
+        return settings
 
     def type_into_search_box(self, search_term):
         self.keyboard.send(search_term)
