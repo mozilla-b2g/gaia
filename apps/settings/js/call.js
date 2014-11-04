@@ -1,10 +1,9 @@
-/* global CallBarring, TaskScheduler */
+/* global TaskScheduler */
 
 'use strict';
 
 require([
-  'modules/settings_cache',
-  'call_barring'
+  'modules/settings_cache'
 ], function(exports, SettingsCache) {
   /**
    * Singleton object that handles some call settings.
@@ -107,11 +106,6 @@ require([
       cs_initCallForwarding();
       window.setTimeout(cs_initCallForwardingObservers, 500);
 
-      CallBarring.init({
-        mobileConnection: _mobileConnection,
-        voiceServiceClassMask: _voiceServiceClassMask
-      });
-
       // Update items in the call settings panel.
       window.addEventListener('panelready', function(e) {
         // Get the mozMobileConnection instace for this ICC card.
@@ -143,14 +137,6 @@ require([
             }
             cs_updateCallForwardingSubpanels();
             break;
-          case '#call-cbSettings':
-            // No need to refresh the call barring settings items if
-            // navigated from changing the passcode.
-            if (e.detail.previous === '#call-cb-passcode') {
-              return;
-            }
-            CallBarring.updateSubpanels();
-            break;
         }
       });
 
@@ -169,9 +155,6 @@ require([
             break;
           case '#call-cfSettings':
             cs_updateCallForwardingSubpanels();
-            break;
-          case '#call-cbSettings':
-            CallBarring.updateSubpanels();
             break;
         }
       });

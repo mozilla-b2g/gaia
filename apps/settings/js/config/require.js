@@ -248,6 +248,10 @@ require.config({
     {
       name: 'panels/simcard_manager/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/call_barring/panel',
+      exclude: ['main']
     }
   ]
 });

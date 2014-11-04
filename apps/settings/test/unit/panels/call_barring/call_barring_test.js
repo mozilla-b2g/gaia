@@ -1,23 +1,10 @@
-/* globals loadBodyHTML, CallBarring, InputPasscodeScreen, Toaster,
-           MockL10n, MocksHelper, MockMobileconnection
-*/
-
+/* global MockL10n, MockMobileconnection */
 'use strict';
 
 require('/js/utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-
-requireApp('settings/test/unit/mock_toaster.js');
-requireApp('settings/test/unit/mock_callBarring_passcode.js');
-requireApp('settings/js/call_barring.js');
-
-var mocksForCallBarring = new MocksHelper([
-  'InputPasscodeScreen',
-  'Toaster'
-]).init();
 
 suite('Call Barring settings', function() {
   var realMozMobileConnection,
@@ -25,15 +12,24 @@ suite('Call Barring settings', function() {
       htmlDOM;
 
   var _mobileConnection,
-      baocElement,
+      _serviceClass;
+
+  var callBarring;
+
+  var baocElement,
       boicElement,
       boicExHcElement,
       baicElement,
       baicRElement;
 
-  var _serviceClass;
+  var mockPasscodeScreen = {
+    init: function init(){},
+    show: function show(){}
+  };
 
-  mocksForCallBarring.attachTestHelpers();
+  var mockToaster = {
+    showToast: function() {}
+  };
 
   function resetHTML() {
     document.body.innerHTML = '';
@@ -53,7 +49,9 @@ suite('Call Barring settings', function() {
     return element.querySelector('input').checked || false;
   }
 
-  suiteSetup(function() {
+
+
+  suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
@@ -61,6 +59,35 @@ suite('Call Barring settings', function() {
     navigator.mozMobileConnection = MockMobileconnection;
 
     htmlDOM = './_call_cb_settings.html';
+
+    var modules = [
+      'panels/call_barring/call_barring'
+    ];
+
+    var maps = {
+      'panels/call_barring/call_barring': {
+        'modules/settings_service': 'unit/mock_settings_service',
+        'panels/call_barring/cb_passcode_dialog': 'MockInputPasscodeScreen',
+        'shared/toaster': 'MockToaster'
+      }
+    };
+    this.MockInputPasscodeScreen = function() {
+      return mockPasscodeScreen;
+    };
+    define('MockInputPasscodeScreen', function() {
+      return this.MockInputPasscodeScreen;
+    }.bind(this));
+
+    this.MockToaster = mockToaster;
+    define('MockToaster', function() {
+      return this.MockToaster;
+    }.bind(this));
+
+    testRequire(modules, maps, function(CallBarringModule) {
+      callBarring = CallBarringModule();
+      done();
+    });
+
   });
 
   suiteTeardown(function() {
@@ -105,7 +132,7 @@ suite('Call Barring settings', function() {
       resetHTML();
 
       _mobileConnection.getCallBarringOption = sinon.stub();
-      CallBarring.init({
+      callBarring.init({
         'mobileConnection': _mobileConnection,
         'voiceServiceClassMask': _serviceClass
       });
@@ -119,7 +146,7 @@ suite('Call Barring settings', function() {
     test('> When ALL services are OFF', function(done) {
       _mobileConnection.getCallBarringOption.returns(serviceOff);
 
-      CallBarring.updateSubpanels(function finished(error) {
+      callBarring.refresh(function finished(error) {
         assert.isFalse(isItemDisabled(baocElement),
           'baoc should be enabled');
         assert.isFalse(isItemChecked(baocElement),
@@ -158,7 +185,7 @@ suite('Call Barring settings', function() {
       _mobileConnection.getCallBarringOption.returns(serviceOff);
       _mobileConnection.getCallBarringOption.withArgs(baoc).returns(serviceOn);
 
-      CallBarring.updateSubpanels(function finished(error) {
+      callBarring.refresh(function finished(error) {
         assert.isFalse(isItemDisabled(baocElement),
           'baoc should be enabled');
         assert.isTrue(isItemChecked(baocElement),
@@ -198,7 +225,7 @@ suite('Call Barring settings', function() {
       _mobileConnection.getCallBarringOption.
         withArgs(options).returns(serviceOn);
 
-      CallBarring.updateSubpanels(function finished(error) {
+      callBarring.refresh(function finished(error) {
         assert.isFalse(isItemDisabled(baocElement),
           'baoc should be enabled');
         assert.isFalse(isItemChecked(baocElement),
@@ -238,7 +265,7 @@ suite('Call Barring settings', function() {
       _mobileConnection.getCallBarringOption.
         withArgs(options).returns(serviceOn);
 
-      CallBarring.updateSubpanels(function finished(error) {
+      callBarring.refresh(function finished(error) {
         assert.isFalse(isItemDisabled(baocElement),
           'baoc should be enabled');
         assert.isFalse(isItemChecked(baocElement),
@@ -285,7 +312,7 @@ suite('Call Barring settings', function() {
       _mobileConnection.getCallBarringOption.
         withArgs(options2).returns(serviceOn);
 
-      CallBarring.updateSubpanels(function finished(error) {
+      callBarring.refresh(function finished(error) {
         assert.isFalse(isItemDisabled(baocElement),
           'baoc should be enabled');
         assert.isFalse(isItemChecked(baocElement),
@@ -325,7 +352,7 @@ suite('Call Barring settings', function() {
       _mobileConnection.getCallBarringOption.
         withArgs(options).returns(serviceOn);
 
-      CallBarring.updateSubpanels(function finished(error) {
+      callBarring.refresh(function finished(error) {
         assert.isFalse(isItemDisabled(baocElement),
           'baoc should be enabled');
         assert.isFalse(isItemChecked(baocElement),
@@ -365,7 +392,7 @@ suite('Call Barring settings', function() {
       _mobileConnection.getCallBarringOption.
         withArgs(options).returns(serviceOn);
 
-      CallBarring.updateSubpanels(function finished(error) {
+      callBarring.refresh(function finished(error) {
         assert.isFalse(isItemDisabled(baocElement),
           'baoc should be enabled');
         assert.isFalse(isItemChecked(baocElement),
@@ -399,7 +426,7 @@ suite('Call Barring settings', function() {
 
       _mobileConnection.getCallBarringOption.returns(serviceOn);
 
-      CallBarring.updateSubpanels(function finished(error) {
+      callBarring.refresh(function finished(error) {
         assert.isFalse(isItemDisabled(baocElement),
           'baoc should be enabled');
         assert.isTrue(isItemChecked(baocElement),
@@ -434,15 +461,16 @@ suite('Call Barring settings', function() {
     setup(function() {
       resetHTML();
 
-      CallBarring.init({
+      this.sinon.stub(mockPasscodeScreen, 'show', function() {
+        return Promise.reject();
+      });
+      this.sinon.spy(_mobileConnection, 'setCallBarringOption');
+
+      callBarring.init({
         'mobileConnection': _mobileConnection,
         'voiceServiceClassMask': _serviceClass
       });
 
-      this.sinon.stub(InputPasscodeScreen, 'show', function() {
-        return Promise.reject();
-      });
-      this.sinon.spy(_mobileConnection, 'setCallBarringOption');
     });
 
     teardown(function() {
@@ -453,7 +481,7 @@ suite('Call Barring settings', function() {
       var target = baocElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isFalse(_mobileConnection.setCallBarringOption.called);
         assert.isFalse(target.checked, 'fallback to previous state');
@@ -464,7 +492,7 @@ suite('Call Barring settings', function() {
       var target = boicElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isFalse(_mobileConnection.setCallBarringOption.called);
         assert.isFalse(target.checked, 'fallback to previous state');
@@ -475,7 +503,7 @@ suite('Call Barring settings', function() {
       var target = boicExHcElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isFalse(_mobileConnection.setCallBarringOption.called);
         assert.isFalse(target.checked, 'fallback to previous state');
@@ -486,7 +514,7 @@ suite('Call Barring settings', function() {
       var target = baicElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isFalse(_mobileConnection.setCallBarringOption.called);
         assert.isFalse(target.checked, 'fallback to previous state');
@@ -497,7 +525,7 @@ suite('Call Barring settings', function() {
       var target = baicRElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isFalse(_mobileConnection.setCallBarringOption.called);
         assert.isFalse(target.checked, 'fallback to previous state');
@@ -510,12 +538,12 @@ suite('Call Barring settings', function() {
     setup(function() {
       resetHTML();
 
-      CallBarring.init({
+      callBarring.init({
         'mobileConnection': _mobileConnection,
         'voiceServiceClassMask': _serviceClass
       });
 
-      this.sinon.stub(InputPasscodeScreen, 'show', function() {
+      this.sinon.stub(mockPasscodeScreen, 'show', function() {
         return Promise.resolve('0000');
       });
       this.sinon.stub(_mobileConnection, 'setCallBarringOption', function() {
@@ -529,10 +557,7 @@ suite('Call Barring settings', function() {
           }
         };
       });
-      this.sinon.stub(window, 'require', function(array,callback) {
-        callback(Toaster);
-      });
-      this.sinon.spy(Toaster, 'showToast');
+      this.sinon.stub(mockToaster, 'showToast');
     });
 
     teardown(function() {
@@ -543,10 +568,10 @@ suite('Call Barring settings', function() {
       var target = baocElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isTrue(_mobileConnection.setCallBarringOption.called);
-        assert.isTrue(Toaster.showToast.called, 'should show error');
+        assert.isTrue(mockToaster.showToast.called, 'should show error');
         assert.isFalse(target.checked, 'should fallback to previous state');
         done();
       });
@@ -555,10 +580,10 @@ suite('Call Barring settings', function() {
       var target = boicElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isTrue(_mobileConnection.setCallBarringOption.called);
-        assert.isTrue(Toaster.showToast.called, 'should show error');
+        assert.isTrue(mockToaster.showToast.called, 'should show error');
         assert.isFalse(target.checked, 'fallback to previous state');
         done();
       });
@@ -567,10 +592,10 @@ suite('Call Barring settings', function() {
       var target = boicExHcElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isTrue(_mobileConnection.setCallBarringOption.called);
-        assert.isTrue(Toaster.showToast.called, 'should show error');
+        assert.isTrue(mockToaster.showToast.called, 'should show error');
         assert.isFalse(target.checked, 'fallback to previous state');
         done();
       });
@@ -579,10 +604,10 @@ suite('Call Barring settings', function() {
       var target = baicElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isTrue(_mobileConnection.setCallBarringOption.called);
-        assert.isTrue(Toaster.showToast.called, 'should show error');
+        assert.isTrue(mockToaster.showToast.called, 'should show error');
         assert.isFalse(target.checked, 'fallback to previous state');
         done();
       });
@@ -591,9 +616,9 @@ suite('Call Barring settings', function() {
       var target = baicRElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
-        assert.isTrue(Toaster.showToast.called, 'should show error');
+        assert.isTrue(mockToaster.showToast.called, 'should show error');
         assert.isFalse(target.checked, 'fallback to previous state');
         done();
       });
@@ -604,12 +629,12 @@ suite('Call Barring settings', function() {
     setup(function() {
       resetHTML();
 
-      CallBarring.init({
+      callBarring.init({
         'mobileConnection': _mobileConnection,
         'voiceServiceClassMask': _serviceClass
       });
 
-      this.sinon.stub(InputPasscodeScreen, 'show', function() {
+      this.sinon.stub(mockPasscodeScreen, 'show', function() {
         return Promise.resolve('0000');
       });
       this.sinon.stub(_mobileConnection, 'setCallBarringOption', function() {
@@ -630,7 +655,7 @@ suite('Call Barring settings', function() {
       var target = baocElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isTrue(_mobileConnection.setCallBarringOption.called);
         assert.isTrue(target.checked, 'should keep the state');
@@ -641,7 +666,7 @@ suite('Call Barring settings', function() {
       var target = boicElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isTrue(_mobileConnection.setCallBarringOption.called);
         assert.isTrue(target.checked, 'should keep the state');
@@ -652,7 +677,7 @@ suite('Call Barring settings', function() {
       var target = boicExHcElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isTrue(_mobileConnection.setCallBarringOption.called);
         assert.isTrue(target.checked, 'should keep the state');
@@ -663,7 +688,7 @@ suite('Call Barring settings', function() {
       var target = baicElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isTrue(_mobileConnection.setCallBarringOption.called);
         assert.isTrue(target.checked, 'should keep the state');
@@ -674,7 +699,7 @@ suite('Call Barring settings', function() {
       var target = baicRElement.querySelector('input');
       target.click();
       assert.isTrue(target.checked);
-      assert.isTrue(InputPasscodeScreen.show.called);
+      assert.isTrue(mockPasscodeScreen.show.called);
       setTimeout(function() {
         assert.isTrue(_mobileConnection.setCallBarringOption.called);
         assert.isTrue(target.checked, 'should keep the state');

@@ -1,5 +1,4 @@
-/* exported MockInputPasscodeScreen, MockChangePasscodeScreen */
-
+/* exported MockInputPasscodeScreen */
 'use strict';
 
 var MockInputPasscodeScreen = (function() {
@@ -8,5 +7,3 @@ var MockInputPasscodeScreen = (function() {
     show: function show(){}
   };
 })();
-
-
