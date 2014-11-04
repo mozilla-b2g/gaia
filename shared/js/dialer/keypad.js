@@ -1,8 +1,9 @@
 /* exported KeypadManager */
 
 /* globals AddContactMenu, CallHandler, CallLogDBManager, CallsHandler,
-           CallScreen, CustomDialog, FontSizeManager, LazyLoader, LazyL10n,
-           MultiSimActionButton, SimPicker, SettingsListener, TonePlayer */
+           CallScreen, CustomDialog, DtmfTone, FontSizeManager, LazyLoader,
+           LazyL10n, MultiSimActionButton, SimPicker, SettingsListener,
+           TonePlayer */
 
 'use strict';
 
@@ -13,55 +14,6 @@ var gTonesFrequencies = {
   '7': [852, 1209], '8': [852, 1336], '9': [852, 1477],
   '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
-
-/**
- * DTMF tone constructor, providing the SIM on which this tone will be played
- * is mandatory.
- *
- * @param {String} tone The tone to be played.
- * @param {Boolean} short True if this will be a short tone, false otherwise.
- * @param {Integer} serviceId The ID of the SIM card on which to play the tone.
- */
-function DtmfTone(tone, short, serviceId) {
-  this.tone = tone;
-  this.short = short;
-  this.serviceId = serviceId;
-  this.timer = 0;
-}
-
-DtmfTone.prototype = {
-  /**
-   * Starts playing the tone, if this is a short tone it will stop automatically
-   * after kShortToneLength milliseconds, otherwise it will play until stopped.
-   */
-  play: function dt_play() {
-    clearTimeout(this.timer);
-
-    // Stop previous tone before dispatching a new one
-    navigator.mozTelephony.stopTone(this.serviceId);
-    navigator.mozTelephony.startTone(this.tone, this.serviceId);
-
-    if (this.short) {
-      this.timer = window.setTimeout(function dt_stopTone(serviceId) {
-        navigator.mozTelephony.stopTone(serviceId);
-      }, DtmfTone.kShortToneLength, this.serviceId);
-    }
-  },
-
-  /**
-   * Stop the DTMF tone, this is safe to call even if the DTMF tone has already
-   * stopped.
-   */
-  stop: function dt_stop() {
-    clearTimeout(this.timer);
-    navigator.mozTelephony.stopTone(this.serviceId);
-  }
-};
-
-/**
- * Length of a short DTMF tone, currently 120ms.
- */
-DtmfTone.kShortToneLength = 120;
 
 var KeypadManager = {
 
@@ -154,6 +106,17 @@ var KeypadManager = {
 
   multiSimActionButton: null,
 
+  /**
+   * Initializes the keypad manager, registers all the appropriate event
+   * handlers and instances the necessary sound infrastructure so that the
+   * keypad will be fully functional once this method has been called.
+   *
+   * @param oncall {Boolean} True if the keypad manager will be used during a
+   *        call and will play sounds on the "telephony" channel. False if it
+   *        will be used outside of a call and should use the "content" channel
+   *        instead. We should be using the "notification" channel but we can't
+   *        due to bug 1092346.
+   */
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
@@ -224,24 +187,9 @@ var KeypadManager = {
                                                 this.hangUpCallFromKeypad);
     }
 
-    TonePlayer.init('normal');
-    var channel = this._onCall ? 'telephony' : 'normal';
-    window.addEventListener('visibilitychange', (function() {
-      var telephony = navigator.mozTelephony;
-      var callIsActive = telephony.calls.length ||
-            telephony.conferenceGroup.calls.length;
-
-      if (TonePlayer) {
-        // If app is hidden and we are not in the middle of a call, then switch
-        // to normal channel, no matter what channel this app should use
-        if (document.hidden && !callIsActive) {
-          TonePlayer.setChannel('normal');
-        } else {
-          // Otherwise switch to the channel this app is supposed to use
-          TonePlayer.setChannel(channel);
-        }
-      }
-    }).bind(this));
+    /* XXX: We should be using the "notification" channel here instead of the
+     * "content" one but we can't due to bug 1092346. */
+    TonePlayer.init(this._onCall ? 'telephony' : 'content');
 
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',

@@ -10,11 +10,11 @@
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/shared/test/unit/mocks/mock_voicemail.js');
 require('/dialer/test/unit/mock_call_log.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
-require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
 require('/dialer/test/unit/mock_suggestion_bar.js');
 
