@@ -4,47 +4,42 @@
       <h1 data-l10n-id="simManager-header">SIM Manager</h1>
     </gaia-header>
     <div>
-      <ul id="sim-card-container"></ul>
+      <ul class="sim-card-container"></ul>
       <header>
         <h2 data-l10n-id="simSettings">SIM Settings</h2>
       </header>
       <ul class="sim-manager-select-list">
-        <li id="sim-manager-security-entry">
+        <li class="sim-manager-security-entry">
           <button class="icon icon-view" data-href="#simpin"
             data-l10n-id="simSecurity">SIM Security</button>
-          <small id="sim-manager-security-desc"></small>
+          <small class="sim-manager-security-desc"></small>
         </li>
         <li>
           <p data-l10n-id="sim-manager-outgoing-calls">Outgoing Calls</p>
           <p data-l10n-id="sim-manager-outgoing-call-desc" class="explanation">Calls will be sent from</p>
           <span class="button icon icon-dialog">
-            <select id="sim-manager-outgoing-call-select"></select>
+            <select class="sim-manager-outgoing-call-select"></select>
           </span>
         </li>
         <li>
           <p data-l10n-id="sim-manager-outgoing-messages">Outgoing Messages</p>
           <p data-l10n-id="sim-manager-outgoing-messages-desc" class="explanation">SMS will be sent from</p>
           <span class="button icon icon-dialog">
-            <select id="sim-manager-outgoing-messages-select"></select>
+            <select class="sim-manager-outgoing-messages-select"></select>
           </span>
         </li>
         <li>
           <p data-l10n-id="sim-manager-outgoing-data">Data</p>
           <p data-l10n-id="sim-manager-outgoing-data-description" class="explanation">Data service network and Marketplace payments</p>
           <span class="button icon icon-dialog">
-            <select id="sim-manager-outgoing-data-select"></select>
+            <select class="sim-manager-outgoing-data-select"></select>
           </span>
         </li>
       </ul>
     </div>
 
-    <script src="shared/js/template.js"></script>
-    <script src="shared/js/sim_settings_helper.js"></script>
-    <script src="shared/js/mobile_operator.js"></script>
-    <script src="js/simcard_manager_simcard_helper.js"></script>
-    <script src="js/simcard_manager.js"></script>
-
-    <div id="sim-card-tmpl" hidden>
+    <panel data-path="panels/simcard_manager/panel"></panel>
+    <div class="sim-card-tmpl" hidden>
       <!--
       <li class="sim-card sim-card-${sim-index}">
         <div class="sim-card-icon"></div>
