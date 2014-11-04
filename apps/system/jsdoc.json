@@ -6,7 +6,6 @@
             "!apps/system/js/app_install_manager.js",
             "!apps/system/js/app_usage_metrics.js",
             "!apps/system/js/app_window_manager.js",
-            "!apps/system/js/devtools/logshake.js",
             "!apps/system/js/lockscreen.js",
             "!apps/system/js/lockscreen_notification_builder.js",
             "!apps/system/js/lockscreen_notifications.js",
