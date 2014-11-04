@@ -386,6 +386,19 @@ suite('compose_test.js', function() {
         assert.deepEqual(final, original);
       });
 
+      test('Compose empty at force', function(done) {
+        Compose.clear();
+        var message = document.getElementById('messages-input');
+
+        message.innerHTML = '';
+        message.dispatchEvent(new InputEvent('input'));
+        waitForComposeEvent('segmentinfochange').then(function() {
+          assert.equal(message.innerHTML, '<br>');
+        }).then(done, done);
+
+        clock.tick(UPDATE_DELAY);
+      });
+
       teardown(function() {
         Compose.clear();
       });
