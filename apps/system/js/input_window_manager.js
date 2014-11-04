@@ -5,8 +5,8 @@
 (function(exports) {
 
   /**
-   * InputFrameManager manages all the InputWindow-related operations. It shows/
-   * hides/preloads/kills InputWindows for KeyboardManager as specified by
+   * InputWindowManager manages all the InputWindow-related operations. It shows
+   * /hides/preloads/kills InputWindows for KeyboardManager as specified by
    * keyboard layouts, and internally book-keeps those InputWindows and the
    * currently displayed one.
    *
@@ -44,7 +44,7 @@
    *   We show the new InputWindow without animation, and hide the old
    *   InputWindow, without animation, when the new InputWIndow is ready.
    */
-  var InputFrameManager = function(keyboardManager) {
+  var InputWindowManager = function(keyboardManager) {
     this._keyboardManager = keyboardManager;
 
     /*
@@ -78,13 +78,13 @@
     this._onDebug = false;
   };
 
-  InputFrameManager.prototype._debug = function ifm__debug(msg) {
+  InputWindowManager.prototype._debug = function iwm__debug(msg) {
     if (this._onDebug) {
-      console.log('[InputFrameManager] ' + msg);
+      console.log('[InputWindowManager] ' + msg);
     }
   };
 
-  InputFrameManager.prototype.start = function ifm_start() {
+  InputWindowManager.prototype.start = function iwm_start() {
     window.addEventListener('input-appopened', this);
     window.addEventListener('input-appclosing', this);
     window.addEventListener('input-appclosed', this);
@@ -93,7 +93,7 @@
     window.addEventListener('input-appterminated', this);
   };
 
-  InputFrameManager.prototype.stop = function ifm_stop() {
+  InputWindowManager.prototype.stop = function iwm_stop() {
     window.removeEventListener('input-appopened', this);
     window.removeEventListener('input-appclosing', this);
     window.removeEventListener('input-appclosed', this);
@@ -102,7 +102,7 @@
     window.removeEventListener('input-appterminated', this);
   };
 
-  InputFrameManager.prototype.handleEvent = function ifm_handleEvent(evt) {
+  InputWindowManager.prototype.handleEvent = function iwm_handleEvent(evt) {
     var inputWindow = evt.detail;
     switch (evt.type) {
       case 'input-appopened':
@@ -143,8 +143,8 @@
   };
 
   // XXX: change it to removeInputApp
-  InputFrameManager.prototype.removeKeyboard =
-  function ifm_removeKeyboard(kbManifestURL) {
+  InputWindowManager.prototype.removeKeyboard =
+  function iwm_removeKeyboard(kbManifestURL) {
     if (!this._inputWindows[kbManifestURL]) {
       return;
     }
@@ -157,13 +157,13 @@
     delete this._inputWindows[kbManifestURL];
   };
 
-  InputFrameManager.prototype.getHeight = function ifm_getHeight() {
+  InputWindowManager.prototype.getHeight = function iwm_getHeight() {
     return this._currentWindow ? this._currentWindow.height : undefined;
   };
 
   // XXX: change it to hasActiveInputApp
-  InputFrameManager.prototype.hasActiveKeyboard =
-    function ifm_hasActiveKeyboard() {
+  InputWindowManager.prototype.hasActiveKeyboard =
+    function iwm_hasActiveKeyboard() {
       return !!this._currentWindow;
   };
 
@@ -172,8 +172,8 @@
   // hash is the hash part of the |path|, including #, may be empty string
   // XXX: this should be done at KeyboardManager or KeyboardHelper
   // when we normalize the layouts there
-  InputFrameManager.prototype._extractLayoutConfigs =
-  function ifm_extractLayoutConfigs(layout){
+  InputWindowManager.prototype._extractLayoutConfigs =
+  function iwm_extractLayoutConfigs(layout){
     var manifestURL = layout.manifestURL;
     var path = layout.path;
     var id = layout.id;
@@ -202,8 +202,8 @@
     };
   };
 
-  InputFrameManager.prototype._makeInputWindow =
-  function ifm_makeInputWindow(configs){
+  InputWindowManager.prototype._makeInputWindow =
+  function iwm_makeInputWindow(configs){
     var isCertifiedApp = (configs.manifest.type === 'certified');
 
     // oop is always enabled for non-certified app,
@@ -229,15 +229,15 @@
     return inputWindow;
   };
 
-  InputFrameManager.prototype.preloadInputWindow =
-  function ifm_preloadInputWindow(layout) {
+  InputWindowManager.prototype.preloadInputWindow =
+  function iwm_preloadInputWindow(layout) {
     var configs = this._extractLayoutConfigs(layout);
     configs.stayBackground = true;
     this._makeInputWindow(configs);
   };
 
-  InputFrameManager.prototype.showInputWindow =
-  function ifm_showInputWindow(layout) {
+  InputWindowManager.prototype.showInputWindow =
+  function iwm_showInputWindow(layout) {
     var configs = this._extractLayoutConfigs(layout);
 
     // see if we can reuse an InputWindow...
@@ -267,7 +267,8 @@
     this._currentWindow = nextWindow;
   };
 
-  InputFrameManager.prototype.hideInputWindow = function ifm_hideInputWindow() {
+  InputWindowManager.prototype.hideInputWindow =
+  function iwm_hideInputWindow() {
     if (!this._currentWindow){
       return;
     }
@@ -277,8 +278,8 @@
     windowToClose.close();
   };
 
-  InputFrameManager.prototype.hideInputWindowImmediately =
-  function ifm_hideInputWindowImmediately() {
+  InputWindowManager.prototype.hideInputWindowImmediately =
+  function iwm_hideInputWindowImmediately() {
     if (!this._currentWindow){
       return;
     }
@@ -292,13 +293,14 @@
     windowToClose.close('immediate');
   };
 
-  InputFrameManager.prototype.getLoadedManifestURLs =
-  function ifm_getLoadedManifestURLs() {
+  InputWindowManager.prototype.getLoadedManifestURLs =
+  function iwm_getLoadedManifestURLs() {
     return Object.keys(this._inputWindows);
   };
 
   // broadcast system-wide keyboard-related events
-  InputFrameManager.prototype._kbPublish = function ifm_kbPublish(type, height){
+  InputWindowManager.prototype._kbPublish =
+  function iwm_kbPublish(type, height){
     var eventInitDict = {
       bubbles: true,
       cancelable: true,
@@ -313,6 +315,6 @@
     document.body.dispatchEvent(evt);
   };
 
-  exports.InputFrameManager = InputFrameManager;
+  exports.InputWindowManager = InputWindowManager;
 
 })(window);
