@@ -395,7 +395,27 @@ var HTMLParser = (function(){
   // - Block Elements - HTML 4.01
   var block = makeMap("address,applet,blockquote,button,center,dd,del,dir,div,dl,dt,fieldset,form,frameset,hr,iframe,ins,isindex,li,map,menu,noframes,noscript,object,ol,p,pre,script,table,tbody,td,tfoot,th,thead,tr,ul");
 
-  // - Inline Elements - HTML 4.01
+  // - Inline Elements - HTML 4.01, With the exception of "a", bug 1091310.
+  // The "close inline if current tag is block" used in bleach is now a bit out
+  // of date with the HTML parsing definition:
+  // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-inbody
+  // Specifically, native "inline" vs "block" elements are not primary branch
+  // points in closing logic, but it is very tag-specific. The most notable
+  // point  is that p elements should be closed more often by those rules than
+  // what is done here, and 'a' elements are not treated special when wrapping
+  // a "block" element.. And in the case of
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1091310
+  // specifically, there is no special closing behavior when encountering a
+  // table start tag, except to close any previously open p tag.
+  // Complete removal of the "block" and "inline" checking for closed tags was
+  // considered to fix bug 1091310, and to match more closely the behavior in
+  // the spec document. However:
+  // - we are currently looking at limiting the amount of changes for a possible
+  //   uplift to a more stable branch in gaia
+  // - There are still some notable inconsistencies with the spec, like this
+  //   code not closing of p tags in the same way.
+  // - These lists have things like iframe, object, and script in them, and want
+  //   to really think through the possible impact of the change in behavior.
   var inline = makeMap("abbr,acronym,applet,b,basefont,bdo,big,br,button,cite,code,del,dfn,em,font,i,iframe,img,input,ins,kbd,label,map,object,q,s,samp,script,select,small,span,strike,strong,sub,sup,textarea,tt,u,var");
 
   // - Elements that you can, intentionally, leave open (and close themselves)
