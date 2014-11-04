@@ -487,13 +487,13 @@ var Compose = (function() {
     locking: function(){
       compose.lock = true;
       dom.attachButton.disabled = 'true';
-    } 
+    },
 
     //enable the attach button again when the memory is decreased
     unlocking: function(){
       compose.lock = false;
       dom.attachButton.disabled = 'false';
-    }
+    },
 
     disable: function(state) {
       dom.sendButton.disabled = state;
