@@ -50,6 +50,15 @@ define(function(require) {
           ScreenLockItem(panel.querySelector('.screenLock-desc'));
         themesItem =
           ThemesItem(panel.querySelector('.themes-section'));
+
+        // We will initialize after idling
+        navigator.addIdleObserver({
+          time: 4,
+          onidle: function() {
+            navigator.removeIdleObserver(this);
+            themesItem.init();
+          }
+        });
       },
       onBeforeShow: function rp_onBeforeShow() {
         languageItem.enabled = true;

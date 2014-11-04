@@ -15,7 +15,6 @@ define(function(require) {
     this._element = element;
     this._themeCount = 0;
     this._boundUpdateThemes = this._updateThemes.bind(this);
-    this.init();
   }
 
   ThemesItem.prototype = {
