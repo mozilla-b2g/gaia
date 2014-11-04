@@ -120,6 +120,7 @@ SetupProgressCard.prototype = {
         Cards.pushCard(
           'setup_account_password', 'default', 'animate',
           {
+            displayName: args.displayName,
             emailAddress: args.emailAddress
           },
           'right');
