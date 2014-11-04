@@ -33,7 +33,7 @@ marionette('Search - Home Button Press', function() {
     // Emulate the home button and ensure the home screen is displayed.
     client.switchToFrame();
     assert.ok(client.findElement(Search.Selectors.iframe).displayed());
-    system.goHome();
+    system.tapHome();
     client.waitFor(function(){
       return !client.findElement(Search.Selectors.iframe).displayed();
     });

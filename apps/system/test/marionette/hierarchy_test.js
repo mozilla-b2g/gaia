@@ -18,7 +18,7 @@
     var client = marionette.client({
       settings: {
         'ftu.manifestURL': null,
-        'lockscreen.enabled': true
+        'lockscreen.enabled': false
       },
       apps: apps
     });
@@ -66,10 +66,13 @@
 
     setup(function() {
       system.waitForStartup();
-      lockscreen.unlock();
     });
 
     test('Lockscreen window is active', function() {
+      // We can only enable the lockscreen here because it will eat all
+      // |home| events, even unlocked
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1098370
+      lockscreen.setEnable(true);
       client.apps.launch('app://' + CALLER_APP);
       lockscreen.lock();
       assert.equal(getTopMost(), 'LockScreenWindowManager');
@@ -97,7 +100,7 @@
       fxASystemDialog.show();
       assert.equal(getTopMost(), 'SystemDialogManager');
       assert.equal(getActiveAppWindowAriaHidden(), 'true');
-      system.goHome();
+      system.tapHome();
       assert.equal(getTopMost(), 'AppWindowManager');
       assert.equal(getActiveAppWindowAriaHidden(), 'false');
     });

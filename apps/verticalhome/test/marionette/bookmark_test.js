@@ -40,7 +40,7 @@ marionette('Vertical - Bookmark', function() {
   });
 
   test('Bookmarking appends to last group', function() {
-    system.goHome();
+    system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
 
     var numIcons = home.numIcons;
@@ -50,7 +50,7 @@ marionette('Vertical - Bookmark', function() {
     client.switchToFrame();
     bookmark.openAndSave(url);
 
-    system.goHome();
+    system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
 
     client.waitFor(function() {
