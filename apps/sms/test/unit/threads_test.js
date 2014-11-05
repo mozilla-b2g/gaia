@@ -9,21 +9,19 @@ requireApp('sms/test/unit/mock_drafts.js');
 requireApp('sms/test/unit/mock_messages.js');
 
 
-var MocksHelperForThreadsTest = new MocksHelper([
+var mocksHelperForThreadsTest = new MocksHelper([
   'Drafts'
 ]).init();
 
+function assertDeepEqual(test, expected) {
+  for (var key in expected) {
+    assert.deepEqual(test[key], expected[key]);
+  }
+} 
+
 suite('Threads', function() {
-  var mocksHelper = MocksHelperForThreadsTest;
 
-  suiteSetup(function() {
-    window.location.hash = '';
-    mocksHelper.suiteSetup();
-  });
-
-  suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
-  });
+  mocksHelperForThreadsTest.attachTestHelpers();
 
   teardown(function() {
     Threads.clear();
@@ -105,7 +103,7 @@ suite('Threads', function() {
         type: 'sms'
       });
 
-      assert.deepEqual(thread, {
+      assertDeepEqual(thread, {
         // id was used
         id: 1,
         participants: ['555'],
@@ -130,7 +128,7 @@ suite('Threads', function() {
         type: 'sms'
       });
 
-      assert.deepEqual(thread, {
+      assertDeepEqual(thread, {
         // threadId was used
         id: 44,
         participants: ['555'],
@@ -159,7 +157,7 @@ suite('Threads', function() {
 
     test('Threads.set(key, val)', function() {
       Threads.set(1, {});
-      assert.deepEqual(Threads.get(1), {
+      assertDeepEqual(Threads.get(1), {
         body: undefined,
         id: undefined,
         lastMessageSubject: undefined,
@@ -196,6 +194,8 @@ suite('Threads', function() {
 
     test('Threads.delete() calls Drafts.delete()', function() {
       this.sinon.stub(Drafts, 'delete');
+      this.sinon.stub(Drafts, 'store');
+
       this.sinon.stub(Threads, 'get').returns({
         id: 1,
         hasDrafts: true
@@ -203,32 +203,21 @@ suite('Threads', function() {
 
       Threads.delete(1);
 
-      assert.isTrue(Drafts.delete.calledWith({ threadId: 1 }));
+      sinon.assert.calledWith(Drafts.delete, { threadId: 1 });
+      sinon.assert.callOrder(Drafts.delete, Drafts.store);
     });
   });
 
   suite('Operational', function() {
-    setup(function() {
-      window.location.hash = '';
-    });
-
     teardown(function() {
       Threads.delete(5);
     });
 
-    test('Threads.currentId', function() {
-      window.location.hash = '#thread=5';
-      assert.equal(Threads.currentId, 5);
-
-      window.location.hash = '';
-      assert.equal(Threads.currentId, null);
-    });
-
     test('Threads.active', function() {
       Threads.set(5, {});
+      Threads.currentId = 5;
 
-      window.location.hash = '#thread=5';
-      assert.deepEqual(Threads.active, { body: undefined,
+      assertDeepEqual(Threads.active, { body: undefined,
         id: undefined,
         lastMessageSubject: undefined,
         lastMessageType: undefined,
@@ -238,14 +227,13 @@ suite('Threads', function() {
         messages: []
       });
 
-      window.location.hash = '';
+      Threads.currentId = null;
       assert.equal(Threads.active, null);
     });
   });
 });
 
 suite('Thread', function() {
-  var mocksHelper = MocksHelperForThreadsTest;
   var date = new Date();
   var fixture = {
     id: 1,
@@ -256,14 +244,7 @@ suite('Thread', function() {
     unreadCount: 0
   };
 
-  suiteSetup(function() {
-    window.location.hash = '';
-    mocksHelper.suiteSetup();
-  });
-
-  suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
-  });
+  mocksHelperForThreadsTest.attachTestHelpers();
 
   teardown(function() {
     Threads.clear();
@@ -275,14 +256,14 @@ suite('Thread', function() {
 
   test('Thread', function() {
     assert.ok(Thread);
-    assert.include(Thread.prototype, 'drafts');
-    assert.include(Thread.prototype, 'hasDrafts');
+    assert.typeOf(Thread.prototype.drafts, 'object');
+    assert.typeOf(Thread.prototype.hasDrafts, 'boolean');
   });
 
   test('Thread object', function() {
     var thread = new Thread(fixture);
 
-    assert.deepEqual(thread, {
+    assertDeepEqual(thread, {
       id: 1,
       participants: ['555'],
       lastMessageSubject: undefined,

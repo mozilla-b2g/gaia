@@ -1,0 +1,39 @@
+{
+  "card_list": [
+    {
+      "name": "Television",
+      "type": "Deck",
+      "cachedIconURL": "style/icons/Blank.png"
+    },
+    {
+      "name": "Apps",
+      "type": "Deck",
+      "cachedIconURL": "style/icons/Blank.png"
+    },
+    {
+      "name": "Devices",
+      "type": "Deck",
+      "cachedIconURL": "style/icons/Blank.png"
+    },
+    {
+      "name": "Dashboard",
+      "type": "Deck",
+      "cachedIconURL": "style/icons/Blank.png"
+    },
+    {
+      "name": "Music",
+      "type": "Application",
+      "manifestURL": "app://music.gaiamobile.org/manifest.webapp"
+    },
+    {
+      "name": "Gallery",
+      "type": "Application",
+      "manifestURL": "app://gallery.gaiamobile.org/manifest.webapp"
+    },
+    {
+      "name": "Video",
+      "type": "Application",
+      "manifestURL": "app://video.gaiamobile.org/manifest.webapp"
+    }
+  ]
+}

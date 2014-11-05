@@ -1,26 +1,24 @@
-/*global req*/
-'use strict';
+/*jshint maxlen:false*/
 
 suite('app', function() {
+  'use strict';
+
   suiteSetup(function(done) {
     var self = this;
-
-    req([
+    requirejs([
       'app',
-      'lib/camera',
-      'vendor/view',
+      'lib/camera/camera',
+      'view',
       'lib/geo-location',
-      'lib/activity',
-      'lib/storage',
       'lib/setting',
-    ], function(App, Camera, View, GeoLocation, Activity, Storage, Setting) {
+      'lib/pinch'
+    ], function(App, Camera, View, GeoLocation, Setting, Pinch) {
       self.App = App;
       self.View = View;
       self.Camera = Camera;
       self.Geolocation = GeoLocation;
-      self.Activity = Activity;
-      self.Storage = Storage;
       self.Setting = Setting;
+      self.Pinch = Pinch;
       done();
     });
   });
@@ -35,6 +33,7 @@ suite('app', function() {
     win: function() {
       return {
         addEventListener: sinon.spy(),
+        dispatchEvent: sinon.stub(),
         location: {
           hash: ''
         }
@@ -43,6 +42,8 @@ suite('app', function() {
   };
 
   setup(function() {
+    var self = this;
+
     if (!navigator.mozCameras) {
       navigator.mozCameras = {
         getListOfCameras: function() { return []; },
@@ -53,42 +54,49 @@ suite('app', function() {
 
     navigator.mozL10n = { readyState: null };
 
+    navigator.mozSettings = {
+      addObserver: function() {},
+      removeObserver: function() {}
+    };
+
     var options = this.options = {
       doc: mocks.doc(),
       win: mocks.win(),
       el: document.createElement('div'),
       geolocation: sinon.createStubInstance(this.Geolocation),
-      activity: new this.Activity(),
+      pinch: sinon.createStubInstance(this.Pinch),
+      activity: {},
       camera: sinon.createStubInstance(this.Camera),
-      sounds: {},
-      storage: sinon.createStubInstance(this.Storage),
+      require: sinon.stub(),
       settings: {
-        geolocation: sinon.createStubInstance(this.Setting)
+        geolocation: sinon.createStubInstance(this.Setting),
+        spinnerTimeouts: sinon.createStubInstance(this.Setting)
       },
-      views: {
-        viewfinder: new this.View({ name: 'viewfinder' }),
-        focusRing: new this.View({ name: 'focus-ring' }),
-        controls: new this.View({ name: 'controls' }),
-        hud: new this.View({ name: 'hud' })
-      },
+      views: {},
       controllers: {
+        battery: sinon.spy(),
+        overlay: sinon.spy(),
         hud: sinon.spy(),
         timer: sinon.spy(),
         controls: sinon.spy(),
         viewfinder: sinon.spy(),
-        previewGallery: sinon.spy(),
-        overlay: sinon.spy(),
-        confirm: sinon.spy(),
         camera: sinon.spy(),
         settings: sinon.spy(),
         activity: sinon.spy(),
-        sounds: sinon.spy(),
-        recordingTimer: sinon.spy(),
-        zoomBar: sinon.spy(),
-        indicators: sinon.spy(),
-        battery: sinon.spy()
+
+        // Lazy loaded
+        lazy: [
+          'controllers/preview-gallery',
+          'controllers/storage',
+          'controllers/confirm',
+          'controllers/sounds'
+        ]
       }
     };
+
+    this.loadingView = sinon.createStubInstance(this.View);
+    this.loadingView.appendTo.returns(this.loadingView);
+    options.LoadingView = function() { return self.loadingView; };
 
     // Sandbox to put all our stubs in
     this.sandbox = sinon.sandbox.create();
@@ -98,19 +106,29 @@ suite('app', function() {
 
     // Stub out all methods
     this.sandbox.stub(options.activity);
-    this.sandbox.stub(options.viewfinder);
     this.sandbox.stub(options.focusRing);
     this.sandbox.stub(options.hud);
 
-    // More complex stubs
-    options.activity.check.callsArg(0);
+    // Sometimes we have to spy on the prototype,
+    // this is because methods get bound and passed
+    // directly as callbacks. We set spys on prototype
+    // methods before any of this happens, so that the
+    // spy is always at the root of any call.
     this.sandbox.spy(this.App.prototype, 'boot');
+    this.sandbox.spy(this.App.prototype, 'onReady');
+    this.sandbox.spy(this.App.prototype, 'showSpinner');
+    this.sandbox.spy(this.App.prototype, 'clearSpinner');
+
+    // Aliases
+    this.settings = options.settings;
+    this.pinch = options.pinch;
 
     // Create the app
     this.app = new this.App(options);
 
     this.sandbox.spy(this.app, 'on');
     this.sandbox.spy(this.app, 'set');
+    this.sandbox.spy(this.app, 'once');
     this.sandbox.spy(this.app, 'emit');
     this.sandbox.spy(this.app, 'firer');
   });
@@ -129,7 +147,6 @@ suite('app', function() {
       assert.ok(app.el === options.el);
       assert.ok(app.inSecureMode === false);
       assert.ok(app.geolocation === options.geolocation);
-      assert.ok(app.activity === options.activity);
       assert.ok(app.camera === options.camera);
       assert.ok(app.storage === options.storage);
       assert.ok(app.settings === options.settings);
@@ -159,23 +176,12 @@ suite('app', function() {
       var controllers = this.app.controllers;
       var app = this.app;
 
+      assert.ok(controllers.overlay.calledWith(app));
+      assert.ok(controllers.battery.calledWith(app));
       assert.ok(controllers.hud.calledWith(app));
       assert.ok(controllers.controls.calledWith(app));
       assert.ok(controllers.viewfinder.calledWith(app));
-      assert.ok(controllers.previewGallery.calledWith(app));
-      assert.ok(controllers.overlay.calledWith(app));
       assert.ok(controllers.camera.calledWith(app));
-      assert.ok(controllers.zoomBar.calledWith(app));
-      assert.ok(controllers.battery.calledWith(app));
-    });
-
-    test('Should put each of the views into the root element', function() {
-      var el = this.app.el;
-
-      assert.ok(el.querySelector('.viewfinder'));
-      assert.ok(el.querySelector('.focus-ring'));
-      assert.ok(el.querySelector('.controls'));
-      assert.ok(el.querySelector('.hud'));
     });
 
     test('Should bind to `visibilitychange` event', function() {
@@ -200,29 +206,43 @@ suite('app', function() {
 
     test('Should watch location only once storage confirmed healthy', function() {
       var geolocationWatch = this.app.geolocationWatch;
-      var storage = this.app.storage;
-      assert.ok(storage.once.calledWith('checked:healthy', geolocationWatch));
+      assert.ok(this.app.once.calledWith('storage:checked:healthy', geolocationWatch));
+    });
+
+    test('Should clear loading screen when camera is ready', function() {
+      var on = this.app.on.withArgs('ready');
+      var callback = on.args[0][1];
+
+      // Call the callback and make sure
+      // that `clearSpinner` was called.
+      callback();
+      sinon.assert.calledOnce(this.App.prototype.clearSpinner);
+    });
+
+    test('It calls `showSpinner`', function() {
+      sinon.assert.calledWith(this.App.prototype.showSpinner, 'requestingCamera');
+    });
+
+    suite('pinch', function() {
+      test('It listens to the pinch `changed` event', function() {
+        sinon.assert.called(this.pinch.on, 'changed');
+      });
+
+      test('It disables pinch while the preview-gallery is open', function() {
+        sinon.assert.called(this.app.on, 'previewgallery:opened', this.pinch.disable);
+        sinon.assert.called(this.app.on, 'previewgallery:closed', this.pinch.enable);
+      });
+
+      test('It disables pinch while settings is open', function() {
+        sinon.assert.called(this.app.on, 'settings:opened', this.pinch.disable);
+        sinon.assert.called(this.app.on, 'settings:closed', this.pinch.enable);
+      });
     });
 
     suite('App#geolocationWatch()', function() {
-      setup(function() {
-        this.options.settings.geolocation.get
-          .withArgs('promptDelay')
-          .returns(2000);
-      });
-
-      test('Should watch geolocation after given delay', function() {
-        this.app.geolocationWatch();
-
-        assert.isFalse(this.app.geolocation.watch.called);
-        this.clock.tick(2000);
-
-        assert.isTrue(this.app.geolocation.watch.called);
-      });
-
-      test('Should *not* watch location if not in activity', function() {
-        this.app.doc.hidden = false;
-        this.app.activity.active = true;
+      test('Should *not* watch location if in activity', function() {
+        this.app.hidden = false;
+        this.app.activity.pick = true;
 
         this.app.geolocationWatch();
         this.clock.tick(2000);
@@ -231,8 +251,8 @@ suite('app', function() {
       });
 
       test('Should *not* watch location if app hidden', function() {
-        this.app.doc.hidden = true;
-        this.app.activity.active = false;
+        this.app.hidden = true;
+        this.app.activity.pick = false;
 
         this.app.geolocationWatch();
         this.clock.tick(2000);
@@ -240,11 +260,100 @@ suite('app', function() {
         assert.isFalse(this.app.geolocation.watch.called);
       });
     });
+
+    suite('once(\'viewfinder:visible\')', function() {
+      setup(function() {
+
+        // Stop annoying logs
+        this.sandbox.stub(console, 'log');
+
+        this.spy = this.app.once.withArgs('viewfinder:visible');
+        this.callback = this.spy.args[0][1];
+
+        sinon.stub(this.app, 'onReady');
+        sinon.spy(this.app, 'loadLazyControllers');
+        sinon.stub(this.app, 'clearSpinner');
+        sinon.spy(this.app, 'loadL10n');
+
+        // Call the callback to test
+        this.callback();
+      });
+
+      test('Should fire a `criticalpathdone` event', function() {
+        assert.isTrue(this.app.emit.calledWith('criticalpathdone'));
+      });
+
+      test('Should flag `this.criticalPathDone`', function() {
+        assert.isTrue(this.app.criticalPathDone);
+      });
+
+      test('Should load l10n', function() {
+        assert.isTrue(this.app.loadL10n.calledOnce);
+      });
+
+      test('Should load non-critical controllers', function() {
+        sinon.assert.called(this.app.loadLazyControllers);
+      });
+    });
   });
 
-  suite('App#onBlur', function() {
+  suite('App#bindEvents()', function() {
     setup(function() {
-      this.app.onBlur();
+      this.app.firer.restore();
+
+      sinon.stub(this.app, 'firer');
+
+      this.app.firer
+        .withArgs('busy')
+        .returns('<busy-firer>');
+
+      this.app.firer
+        .withArgs('localized')
+        .returns('<localized-firer>');
+
+      this.app.bindEvents();
+    });
+
+    test('Should listen for visibilitychange on document', function() {
+      sinon.assert.calledWith(this.app.doc.addEventListener, 'visibilitychange');
+    });
+
+    test('Should relay window \'localized\' event', function() {
+      sinon.assert.calledWith(this.app.win.addEventListener, 'localized', '<localized-firer>');
+    });
+
+    test('It indicates the app is \'busy\' when the camera \'willchange\'', function() {
+      sinon.assert.calledWith(this.app.on, 'camera:willchange', '<busy-firer>');
+    });
+  });
+
+  suite('App#onVisibilityChange', function() {
+    test('Should update the `app.hidden` property', function() {
+      this.app.doc.hidden = true;
+      this.app.onVisibilityChange();
+      assert.equal(this.app.hidden, true);
+
+      this.app.doc.hidden = false;
+      this.app.onVisibilityChange();
+      assert.equal(this.app.hidden, false);
+    });
+
+    test('Should emit a \'visible\' event when the document is not hidden', function() {
+      this.app.doc.hidden = false;
+      this.app.onVisibilityChange();
+      assert.isTrue(this.app.emit.calledWith('visible'));
+    });
+
+    test('Should emit a \'hidden\' event when the document is hidden', function() {
+      this.app.doc.hidden = true;
+      this.app.onVisibilityChange();
+      assert.isTrue(this.app.emit.calledWith('hidden'));
+    });
+  });
+
+  suite('App#onHidden', function() {
+    setup(function() {
+      this.app.onHidden();
     });
 
     test('Should stop watching location', function() {
@@ -252,14 +361,10 @@ suite('app', function() {
     });
   });
 
-  suite('App#onFocus()', function() {
+  suite('App#onVisible()', function() {
     setup(function() {
       sinon.spy(this.app, 'geolocationWatch');
-      this.app.onFocus();
-    });
-
-    test('Should run a storage check', function() {
-      assert.ok(this.app.storage.check.called);
+      this.app.onVisible();
     });
 
     test('Should begin watching location again', function() {
@@ -267,21 +372,129 @@ suite('app', function() {
     });
   });
 
-  suite('App#configureL10n()', function() {
-    test('Should fire a `localized` event if l10n is already complete', function() {
-      navigator.mozL10n.readyState = 'complete';
-      this.app.configureL10n();
-      assert.ok(this.app.emit.calledWith('localized'));
+  suite('App#loadL10n()', function() {
+    test('Should require l10n', function() {
+      this.app.loadL10n();
+      assert.equal(this.app.require.args[0][0][0], 'l10n');
+    });
+  });
+
+  suite('App#onBusy()', function() {
+    setup(function() {
+      this.app.settings.spinnerTimeouts.get
+        .withArgs('takingPicture')
+        .returns(1500);
+
+      this.app.settings.spinnerTimeouts.get
+        .withArgs('requestingCamera')
+        .returns(600);
+
+      sinon.stub(this.app, 'showSpinner');
     });
 
-    test('Should not fire a `localized` event if l10n is not \'complete\'', function() {
-      this.app.configureL10n();
-      assert.ok(!this.app.emit.calledWith('localized'));
+    test('It calls showSpinner with type if busy type recongnised', function() {
+      this.app.onBusy('takingPicture');
+      sinon.assert.calledWith(this.app.showSpinner, 'takingPicture');
+      this.app.showSpinner.reset();
+
+      this.app.onBusy('requestingCamera');
+      sinon.assert.calledWith(this.app.showSpinner, 'requestingCamera');
+      this.app.showSpinner.reset();
     });
 
-    test('Should always listen for \'localized\' events', function() {
-      this.app.configureL10n();
-      assert.ok(!this.app.win.addEventListener('localized'));
+    test('Should not show loading screen if busy type not recongnised', function() {
+      this.app.onBusy('unknownType');
+      sinon.assert.notCalled(this.app.showSpinner);
+    });
+  });
+
+  suite('App#showSpinner()', function() {
+    setup(function() {
+      this.sandbox.spy(window, 'clearTimeout');
+
+      this.app.settings.spinnerTimeouts.get
+        .withArgs('takingPicture')
+        .returns(1500);
+
+      this.app.settings.spinnerTimeouts.get
+        .withArgs('requestingCamera')
+        .returns(600);
+
+    });
+
+    test('Should append a loading view to the app element and show', function() {
+      this.app.showSpinner('takingPicture');
+      this.clock.tick(1500);
+      sinon.assert.calledWith(this.app.views.loading.appendTo, this.app.el);
+      sinon.assert.called(this.app.views.loading.show);
+    });
+
+    test('Should clear any existing timeouts', function() {
+      this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
+      this.app.showSpinner('requestingCamera');
+      this.app.showSpinner('requestingCamera');
+      sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
+    });
+
+    test('It should not require a type', function() {
+      this.app.showSpinner();
+      this.clock.tick(1);
+      sinon.assert.calledWith(this.app.views.loading.appendTo, this.app.el);
+    });
+  });
+
+  suite('App#clearSpinner()', function() {
+    setup(function() {
+      this.sandbox.spy(window, 'clearTimeout');
+      this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
+      this.app.views.loading = sinon.createStubInstance(this.View);
+      this.app.views.loading.hide.callsArg(0);
+    });
+
+    test('Should clear loadingTimeout', function() {
+      this.app.views.loading = null;
+      this.app.showSpinner();
+      this.app.onReady();
+      this.app.clearSpinner();
+      sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
+    });
+
+    test('Should hide, then destroy the view', function() {
+      var view = this.app.views.loading;
+      this.app.clearSpinner();
+
+      sinon.assert.called(view.hide);
+      assert.ok(view.destroy.calledAfter(view.hide));
+    });
+
+    test('Should clear reference to `app.views.loading`', function() {
+      this.app.clearSpinner();
+      assert.equal(this.app.views.loading, null);
+    });
+  });
+
+  suite('App#loadLazyControllers()', function() {
+    setup(function() {
+      this.done = sinon.spy();
+      this.fakeControllers = [ sinon.spy(), sinon.spy(), sinon.spy() ];
+      this.app.loadLazyControllers(this.done);
+      this.callback = this.app.require.withArgs(this.app.controllers.lazy).args[0][1];
+      this.callback.apply(window, this.fakeControllers);
+    });
+
+    test('It requires the lazy controllers', function() {
+      sinon.assert.calledWith(this.app.require, this.app.controllers.lazy);
+    });
+
+    test('It runs each controller, passing in the App instance', function() {
+      var self = this;
+      this.fakeControllers.forEach(function(fakeController) {
+        sinon.assert.calledWith(fakeController, self.app);
+      });
+    });
+
+    test('It calls the callback', function() {
+      sinon.assert.calledOnce(this.done);
     });
   });
 });

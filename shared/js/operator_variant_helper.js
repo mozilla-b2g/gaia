@@ -89,11 +89,16 @@ OperatorVariantHelper.prototype = {
   //
   _iccCard: null,
   // Cached ICC information.
-  _iccSettings: { mcc: '', mnc: '' },
+  _iccSettings: { mcc: '', mnc: '', iccId: '' },
   // Settings persistence key.
   _persistKey: null,
   // Are operator variant customizations disabled?
   _disableAll: false,
+
+  // The mozSettings key for the saved ICCIDs.
+  get ICCID_SETTINGS_KEY() {
+    return 'operatorvariant.iccId';
+  },
 
   // The mozSettings key for the saved MCCs.
   get MCC_SETTINGS_KEY() {
@@ -146,8 +151,12 @@ OperatorVariantHelper.prototype = {
         } else {
           this._iccSettings.mnc = mncs[this._iccCardIndex];
         }
-        this.checkICCInfo();
-
+        var iccIdsRequest = transaction.get(this.ICCID_SETTINGS_KEY);
+        iccIdsRequest.onsuccess = (function() {
+          var iccIds = iccIdsRequest.result[this.ICCID_SETTINGS_KEY];
+          this._iccSettings.iccId = iccIds && iccIds[this._iccCardIndex];
+          this.checkICCInfo();
+        }).bind(this);
       }).bind(this);
     }).bind(this);
   },
@@ -171,16 +180,17 @@ OperatorVariantHelper.prototype = {
     // XXX sometimes we get 000/00 for mcc/mnc, even when cardState === 'ready'
     var mcc = this._iccCard.iccInfo.mcc || '000';
     var mnc = this._iccCard.iccInfo.mnc || '00';
+    var iccId = this._iccId;
     if (mcc === '000') {
       return;
     }
 
     // ensure that the iccSettings have been retrieved
-    if ((this._iccSettings.mcc === '') || (this._iccSettings.mnc === '')) {
+    if (this._iccSettings.iccId === '') {
       return;
     }
 
-    if ((mcc !== this._iccSettings.mcc) || (mnc !== this._iccSettings.mnc)) {
+    if (iccId !== this._iccSettings.iccId) {
       if (this._addedListener) {
         try {
           // apply new settings
@@ -237,8 +247,22 @@ OperatorVariantHelper.prototype = {
         var mncSettings = {};
         mncSettings[this.MNC_SETTINGS_KEY] = mncs;
         transaction.set(mncSettings);
-        this._iccSettings.mcc = mcc;
-        this._iccSettings.mnc = mnc;
+
+        var iccIdsRequest = transaction.get(this.ICCID_SETTINGS_KEY);
+        iccIdsRequest.onsuccess = (function() {
+          var iccIds = iccIdsRequest.result[this.ICCID_SETTINGS_KEY];
+          if (!iccIds || !Array.isArray(iccIds)) {
+            iccIds = [null, null];
+          }
+          iccIds[this._iccCardIndex] = iccId;
+          var iccIdSettings = {};
+          iccIdSettings[this.ICCID_SETTINGS_KEY] = iccIds;
+          transaction.set(iccIdSettings);
+
+          this._iccSettings.mcc = mcc;
+          this._iccSettings.mnc = mnc;
+          this._iccSettings.iccId = iccId;
+        }).bind(this);
       }).bind(this);
     }).bind(this);
   },

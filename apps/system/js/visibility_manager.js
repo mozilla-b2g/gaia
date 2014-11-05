@@ -1,8 +1,7 @@
-/* global AttentionScreen, System */
+/* global attentionWindowManager, System */
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
   /**
    * VisibilityManager manages visibility events and broadcast
    * to AppWindowManager.
@@ -12,23 +11,45 @@
    * We may need to handle windowclosing, windowopened in the future.
    *
    * @class VisibilityManager
-   * @requires AttentionScreen
+   * @requires attentionWindowManager
    * @requires System
    */
   var VisibilityManager = function VisibilityManager() {
-    this._attentionScreenTimer = null;
     this._normalAudioChannelActive = false;
     this._deviceLockedTimer = 0;
     this.overlayEvents = [
-      'lock',
-      'will-unlock',
-      'attentionscreenshow',
-      'attentionscreenhide',
-      'status-active',
-      'status-inactive',
-      'mozChromeEvent'
+      'cardviewshown',
+      'cardviewclosed',
+      'lockscreen-appopened',
+      'lockscreen-request-unlock',
+      'attention-inactive',
+      'attentionopened',
+      'mozChromeEvent',
+      'appclosing',
+      'homescreenopened',
+      'rocketbar-overlayopened',
+      'rocketbar-overlayclosed',
+      'utilitytraywillshow',
+      'utilitytray-tray-overlayopened',
+      'utilitytray-tray-overlayclosed',
+      'sheets-gesture-begin',
+      'sheets-gesture-end',
+      'system-dialog-show',
+      'system-dialog-hide',
+      'searchrequestforeground',
+      'apprequestforeground',
+      'lockscreen-apprequestforeground',
+      'secure-apprequestforeground',
+      'homescreenrequestforeground'
     ];
   };
+
+  /**
+   * Debug flag.
+   * @type {Boolean}
+   */
+  VisibilityManager.prototype.DEBUG = false;
+  VisibilityManager.prototype.CLASS_NAME = 'VisibilityManager';
 
   /**
    * Startup. Start listening all related events that changes visibility.
@@ -39,29 +60,65 @@
     this.overlayEvents.forEach(function overlayEventIterator(event) {
       window.addEventListener(event, this);
     }, this);
-    return this;
   };
 
   VisibilityManager.prototype.handleEvent = function vm_handleEvent(evt) {
-    if (this._attentionScreenTimer && 'mozChromeEvent' != evt.type) {
-      clearTimeout(this._attentionScreenTimer);
-    }
+    this.debug('handling ' + evt.type + ' event..');
     switch (evt.type) {
-      case 'status-active':
-      case 'attentionscreenhide':
-      case 'will-unlock':
-        if (window.lockScreen && window.lockScreen.locked) {
+      case 'searchrequestforeground':
+      case 'homescreenrequestforeground':
+      case 'lockscreen-apprequestforeground':
+      case 'secure-apprequestforeground':
+        // XXX: Use hierachy manager to know who is top most.
+        if (!attentionWindowManager.hasActiveWindow()) {
+          evt.detail.setVisible(true);
+        }
+        break;
+      case 'apprequestforeground':
+        // XXX: Use hierachy manager to know who is top most.
+        if (!System.locked &&
+            !attentionWindowManager.hasActiveWindow()) {
+          evt.detail.setVisible(true);
+        }
+        break;
+      // XXX: See Bug 999318.
+      // Audio channel is always normal without going back to none.
+      // We are actively discard audio channel state when homescreen
+      // is opened.
+      case 'appclosing':
+      case 'homescreenopened':
+        if (window.taskManager.isShown()) {
+          this.publish('hidewindowforscreenreader');
+        }
+        this._normalAudioChannelActive = false;
+        break;
+      case 'attention-inactive':
+        if (window.System.locked) {
+          this.publish('showlockscreenwindow');
           return;
         }
+        this.publish('showwindow', { type: evt.type });
+        this._resetDeviceLockedTimer();
+        break;
+      case 'lockscreen-request-unlock':
+        var detail = evt.detail,
+            activity = null,
+            notificationId = null;
 
-        this.publish('showwindows');
-        if (!AttentionScreen.isFullyVisible()) {
-          this.publish('showwindow', { type: evt.type });
+        if (detail) {
+          activity = detail.activity;
+          notificationId = detail.notificationId;
+        }
+
+        if (!attentionWindowManager.hasActiveWindow()) {
+          this.publish('showwindow', {
+            activity: activity,  // Trigger activity opening in AWM
+            notificationId: notificationId
+          });
         }
         this._resetDeviceLockedTimer();
         break;
-      case 'lock':
-        this.publish('hidewindows');
+      case 'lockscreen-appopened':
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         // TODO: Remove this hack.
@@ -74,26 +131,37 @@
         this._resetDeviceLockedTimer();
         break;
 
-
-      case 'status-inactive':
-        if (!AttentionScreen.isVisible()) {
-          return;
+      case 'attentionopened':
+        if (!System.locked) {
+          this.publish('hidewindow', { type: evt.type });
         }
-        this._setAttentionScreenVisibility(evt);
         break;
-      case 'attentionscreenshow':
-        this._setAttentionScreenVisibility(evt);
+      case 'sheets-gesture-begin':
+      case 'utilitytraywillshow':
+      case 'rocketbar-overlayopened':
+      case 'utility-tray-overlayopened':
+      case 'cardviewshown':
+      case 'system-dialog-show':
+        this.publish('hidewindowforscreenreader');
+        break;
+      case 'sheets-gesture-end':
+      case 'rocketbar-overlayclosed':
+      case 'utility-tray-overlayclosed':
+      case 'cardviewclosed':
+      case 'system-dialog-hide':
+        this.publish('showwindowforscreenreader');
         break;
       case 'mozChromeEvent':
         if (evt.detail.type == 'visible-audio-channel-changed') {
           this._resetDeviceLockedTimer();
 
           if (this._normalAudioChannelActive &&
-              evt.detail.channel !== 'normal' &&
-              window.lockScreen && window.lockScreen.locked) {
+              evt.detail.channel !== 'normal' && window.System.locked) {
             this._deviceLockedTimer = setTimeout(function setVisibility() {
-              this.publish('hidewindow',
-                { screenshoting: false, type: evt.type });
+              if (window.System.locked) {
+                this.publish('hidewindow',
+                  { screenshoting: false, type: evt.type });
+              }
             }.bind(this), 3000);
           }
 
@@ -104,20 +172,6 @@
         break;
     }
   };
-
-  /*
-  * Because in-transition is needed in attention screen,
-  * We set a timer here to deal with visibility change
-  */
-  VisibilityManager.prototype._setAttentionScreenVisibility =
-    function vm_setAttentionScreenVisibility(evt) {
-      var detail = evt.detail;
-      this._attentionScreenTimer = setTimeout(function setVisibility() {
-        this.publish('hidewindow',
-          { screenshoting: true, type: evt.type, origin: detail.origin });
-      }.bind(this), 3000);
-      this.publish('overlaystart');
-    };
 
   VisibilityManager.prototype._resetDeviceLockedTimer =
     function vm_resetDeviceLockedTimer() {
@@ -134,8 +188,8 @@
   };
 
   VisibilityManager.prototype.debug = function vm_debug() {
-    if (DEBUG) {
-      console.log('[VisibilityManager]' +
+    if (this.DEBUG) {
+      console.log('[' + this.CLASS_NAME + ']' +
         '[' + System.currentTime() + ']' +
         Array.slice(arguments).concat());
     }

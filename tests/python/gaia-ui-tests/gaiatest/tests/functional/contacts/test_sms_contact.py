@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from gaiatest import GaiaTestCase
 from gaiatest.mocks.mock_contact import MockContact
 
@@ -13,12 +15,17 @@ class TestContacts(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        self.contact = MockContact()
+        self.contact = MockContact(tel={
+            'value': self.testvars["carrier"]["phone_number"]})
         self.data_layer.insert_contact(self.contact)
 
     def test_sms_contact(self):
-        """https://moztrap.mozilla.org/manage/case/1314/"""
+        """
+        https://moztrap.mozilla.org/manage/case/1314/
+        """
         # Setup a text message from a contact.
+
+        text_message_content = "Automated Test %s" % str(time.time())
 
         contacts = Contacts(self.marionette)
         contacts.launch()
@@ -36,3 +43,19 @@ class TestContacts(GaiaTestCase):
         # Name and phone number have been passed in correctly.
         self.assertEqual(new_message.first_recipient_name, expected_name)
         self.assertEqual(new_message.first_recipient_number_attribute, expected_tel)
+
+        # check that the keyboard is open by default
+        self.marionette.switch_to_frame()
+        self.assertTrue(new_message.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
+
+        new_message.type_message(text_message_content)
+        message_thread = new_message.tap_send()
+
+        message_thread.wait_for_received_messages()
+
+        # Get the most recent received text message
+        last_received_message = message_thread.received_messages[-1]
+
+        # Check the most recent received message has the same text content
+        self.assertEqual(text_message_content, last_received_message.text)

@@ -1,13 +1,11 @@
 'use strict';
 
-mocha.globals(['SecureWindowManager', 'SecureWindowFactory', 'LockScreen',
-               'LockScreenSlide', 'Clock', 'OrientationManager',
-               'addEventListener', 'dispatchEvent', 'secureWindowManager',
-               'secureWindowFactory', 'lockScreen', 'LockScreenConnInfoManager',
-               'MediaPlaybackWidget', 'SettingsListener', 'SettingsURL']);
-
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_image.js');
+require('/shared/test/unit/mocks/mock_canvas.js');
+require('/shared/test/unit/mocks/mock_canvas_rendering_context_2d.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
@@ -20,7 +18,7 @@ requireApp('system/test/unit/mock_clock.js', function() {
     function() {
       window.realOrientationManager = window.OrientationManager;
       window.OrientationManager = window.MockOrientationManager;
-      requireApp('system/js/lockscreen.js');
+      requireApp('system/lockscreen/js/lockscreen.js');
     });
 });
 
@@ -34,7 +32,7 @@ if (!this.SettingsListener) {
 
 var mocksForLockScreen = new window.MocksHelper([
   'OrientationManager', 'AppWindowManager', 'AppWindow', 'LockScreenSlide',
-  'Clock', 'SettingsListener'
+  'Clock', 'SettingsListener', 'Image', 'Canvas'
 ]).init();
 
 requireApp('system/test/unit/mock_clock.js', function() {
@@ -44,7 +42,7 @@ requireApp('system/test/unit/mock_clock.js', function() {
     function() {
       window.realOrientationManager = window.OrientationManager;
       window.OrientationManager = window.MockOrientationManager;
-      requireApp('system/js/lockscreen.js');
+      requireApp('system/lockscreen/js/lockscreen.js');
     });
 });
 
@@ -56,6 +54,7 @@ suite('system/LockScreen >', function() {
   var realOrientationManager;
   var realFtuLauncher;
   var realSettingsListener;
+  var realMozSettings;
   var domPasscodePad;
   var domEmergencyCallBtn;
   var domOverlay;
@@ -64,16 +63,26 @@ suite('system/LockScreen >', function() {
   var domCamera;
   var stubById;
   var domMessage;
+  var mockGetAllElements;
   mocksForLockScreen.attachTestHelpers();
 
   setup(function() {
     stubById = sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
+    mockGetAllElements = function() {
+      ['area', 'areaCamera', 'areaUnlock', 'altCameraButton', 'iconContainer',
+       'overlay', 'clockTime', 'date'].forEach(function(name) {
+          subject[name] = document.createElement('div');
+      });
+    };
 
+    window.lockScreenNotifications = {
+      bindLockScreen: function() {}
+    };
     window.LockScreenConnInfoManager = function() {
       this.updateConnStates = function() {};
     };
-    window.MediaPlaybackWidget = function() {};
+    window.LockScreenMediaPlaybackWidget = function() {};
     window.SettingsURL = function() {};
 
     realL10n = navigator.mozL10n;
@@ -94,6 +103,9 @@ suite('system/LockScreen >', function() {
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = window.MockSettingsListener;
 
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = window.MockNavigatorSettings;
+
     subject = new window.LockScreen();
 
     domCamera = document.createElement('div');
@@ -111,6 +123,7 @@ suite('system/LockScreen >', function() {
     subject.message = domMessage;
 
     var mockClock = {
+      start: function() {},
       stop: function() {}
     };
     subject.overlay = domOverlay;
@@ -120,32 +133,63 @@ suite('system/LockScreen >', function() {
     subject.lock();
   });
 
-  test('Emergency call: should disable emergency-call button',
-    function() {
-      var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
-      navigator.mozTelephony.calls = {length: 1};
-      var evt = {type: 'callschanged'};
-      subject.handleEvent(evt);
-      assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
-      stubSwitchPanel.restore();
+  test('L10n initialization: it should NOT init the conn info manager if ' +
+       'there is already one', function() {
+    var stubConnInfoManager = this.sinon.stub(window,
+      'LockScreenConnInfoManager');
+    var originalMozl10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = {
+      get: function() { return ''; }
+    };
+    var originalMozMobileConnections = window.navigator.mozMobileConnections;
+    window.navigator.mozMobileConnections = {};
+    subject._lockscreenConnInfoManager = {};
+    assert.isTrue(!!(window.navigator.mozMobileConnections),
+                  'the first condition is not satisfied: ' +
+                   !!(window.navigator.mozMobileConnections));
+    assert.isTrue(!!(subject._lockscreenConnInfoManager),
+                  'the second condition is not satisfied: ' +
+                  !!(subject._lockscreenConnInfoManager));
+    this.sinon.stub(subject, 'refreshClock');
+    subject.l10nInit();
+    assert.isFalse(stubConnInfoManager.called,
+      'the l10nInit still instantiate the conn info manager even it\'s NOT' +
+      'undefined');
+    window.navigator.mozMobileConnections = originalMozMobileConnections;
+    window.navigator.mozL10n = originalMozl10n;
+    delete subject._lockscreenConnInfoManager;
   });
 
-  test('Emergency call: should enable emergency-call button',
-    function() {
-      var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
-      navigator.mozTelephony.calls = {length: 0};
-      var evt = {type: 'callschanged'};
-      subject.handleEvent(evt);
-      assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
-      stubSwitchPanel.restore();
+  test('L10n initialization: it should init the conn info manager if it\'s' +
+       ' undefined', function() {
+    var stubConnInfoManager = this.sinon.stub(window,
+      'LockScreenConnInfoManager');
+    var originalMozl10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = {
+      get: function() { return ''; }
+    };
+    var originalMozMobileConnections = window.navigator.mozMobileConnections;
+    window.navigator.mozMobileConnections = {};
+    assert.isTrue(!!(window.navigator.mozMobileConnections),
+                  'the first condition is not satisfied: ' +
+                   !!(window.navigator.mozMobileConnections));
+    assert.isTrue(!subject._lockscreenConnInfoManager,
+                  'the second condition is not satisfied: ' +
+                  !(subject._lockscreenConnInfoManager));
+    this.sinon.stub(subject, 'refreshClock');
+    subject.l10nInit();
+    assert.isTrue(stubConnInfoManager.called,
+       'the l10nInit doesn\'t instantiate the conn info manager even it\'s ' +
+       'undefined');
+    window.navigator.mozMobileConnections = originalMozMobileConnections;
+    window.navigator.mozL10n = originalMozl10n;
+    delete subject._lockscreenConnInfoManager;
   });
 
   test('Lock: can actually lock', function() {
-    var mockLO = sinon.stub(screen, 'mozLockOrientation');
     subject.overlay = domOverlay;
     subject.lock();
     assert.isTrue(subject.locked);
-    mockLO.restore();
   });
 
   test('Unlock: can actually unlock', function() {
@@ -154,21 +198,37 @@ suite('system/LockScreen >', function() {
     assert.isFalse(subject.locked);
   });
 
-  test('Passcode: enter passcode can unlock the screen', function() {
-    subject.passCodeEntered = '0000';
-    subject.passCode = '0000';
-    subject.passcodeCode = domPasscodeCode;
-    subject.checkPassCode();
-    assert.equal(subject.overlay.dataset.passcodeStatus, 'success');
+  test('Passcode: enter passcode should fire the validation event', function() {
+    var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+    subject.checkPassCode('foobar');
+    assert.isTrue(stubDispatchEvent.calledWithMatch(function(event) {
+      return 'lockscreen-request-passcode-validate' === event.type &&
+        'foobar' === event.detail.passcode;
+    }),
+    'it did\'t fire the correspond event to validate the passcode');
   });
 
-  test('Passcode: enter passcode can unlock the screen', function() {
-    subject.passCodeEntered = '0000';
-    subject.passCode = '3141';
-
-    subject.passcodeCode = domPasscodeCode;
-    subject.checkPassCode();
-    assert.equal(subject.overlay.dataset.passcodeStatus, 'error');
+  suite('Handle event: screenchange should propogate to _screenEnabled prop',
+    function() {
+      var stubDispatch;
+      setup(function() {
+        stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+        subject._screenEnabled = undefined;
+      });
+      test('True', function() {
+        subject.handleEvent({
+          type: 'screenchange',
+          detail: {screenEnabled: true}
+        });
+        assert.isTrue(subject._screenEnabled);
+      });
+      test('False', function() {
+        subject.handleEvent({
+          type: 'screenchange',
+          detail: {screenEnabled: false}
+        });
+        assert.isFalse(subject._screenEnabled);
+      });
   });
 
   test('Handle event: when screen changed,' +
@@ -212,6 +272,34 @@ suite('system/LockScreen >', function() {
         stubDispatch.restore();
       });
 
+  test('Handle event: when timeformat changed,' +
+      'would fire event to refresh the clock',
+      function() {
+        var stubRefreshClock = this.sinon.stub(subject, 'refreshClock');
+        subject.l10nready = true; // Or it would block the handler.
+        subject.handleEvent(new CustomEvent('timeformatchange'));
+        assert.isTrue(stubRefreshClock.called,
+          'the refreshClock wasn\'t called even after the time format changed');
+      });
+
+  test('invokeSecureApp: checking manifest and app URL of the fired Event' +
+       'on secure mode',
+        function() {
+          var urlSamples = [
+            'app://system.gaiamobile.org/index.html',
+            'app://system.gaiamobile.org/index.html#'
+          ];
+          var expectedManifest =
+            'app://system.gaiamobile.org/manifest.webapp';
+
+          urlSamples.forEach(function(url) {
+            var manifestUrl = url.replace(/(\/)*(index.html#?)*$/,
+                                          '/manifest.webapp');
+            assert.equal(manifestUrl, expectedManifest,
+                         'the manifestURL generated is not correct');
+          });
+      });
+
   test('Handle event: when lock,' +
       'would fire event to turn secure mode on',
       function() {
@@ -250,7 +338,241 @@ suite('system/LockScreen >', function() {
     assert.equal(subject.message.hidden, true);
   });
 
+  test('Lock when asked via lock-immediately setting', function() {
+    window.MockNavigatorSettings.mTriggerObservers(
+      'lockscreen.lock-immediately', {settingValue: true});
+    assert.isTrue(subject.locked,
+      'it didn\'t lock after the lock-immediately setting got changed');
+  });
+
   // XXX: Test 'Screen off: by proximity sensor'.
+
+  suite('Background functionality', function() {
+    var bgURL = 'blob:app://wallpaper.gaiamobile.org/b10b-1d';
+
+    suite('updateBackground', function() {
+      var stubGenerate;
+
+      setup(function() {
+        stubGenerate =
+          this.sinon.stub(subject, '_generateMaskedBackgroundColor');
+      });
+
+      test('updateBackground, Screen is not enabled and not locked',
+        function() {
+        subject._screenEnabled = false;
+        subject.locked = false;
+        subject.updateBackground(bgURL);
+        var bgElem = stubById.getCall(0).returnValue;
+        assert.equal(bgElem.style.backgroundImage, 'url("' + bgURL + '")');
+        assert.equal(subject._regenerateMaskedBackgroundColorFrom, bgURL);
+        assert.isFalse(stubGenerate.called);
+        assert.isTrue(subject._shouldRegenerateMaskedBackgroundColor);
+      });
+
+      test('updateBackground, Screen is enabled and not locked', function() {
+        subject._screenEnabled = true;
+        subject.locked = false;
+        subject.updateBackground(bgURL);
+        var bgElem = stubById.getCall(0).returnValue;
+        assert.equal(bgElem.style.backgroundImage, 'url("' + bgURL + '")');
+        assert.equal(subject._regenerateMaskedBackgroundColorFrom, bgURL);
+        assert.isFalse(stubGenerate.called);
+        assert.isTrue(subject._shouldRegenerateMaskedBackgroundColor);
+      });
+
+      test('updateBackground, Screen is not enabled and is locked', function() {
+        subject._screenEnabled = false;
+        subject.locked = true;
+        subject.updateBackground(bgURL);
+        var bgElem = stubById.getCall(0).returnValue;
+        assert.equal(bgElem.style.backgroundImage, 'url("' + bgURL + '")');
+        assert.equal(subject._regenerateMaskedBackgroundColorFrom, bgURL);
+        assert.isFalse(stubGenerate.called);
+        assert.isTrue(subject._shouldRegenerateMaskedBackgroundColor);
+      });
+
+      var testScreenEnabledAndLocked = function testScreenEnabledAndLocked() {
+        subject.locked = true;
+        subject.updateBackground(bgURL);
+        var bgElem = stubById.getCall(0).returnValue;
+        assert.equal(bgElem.style.backgroundImage, 'url("' + bgURL + '")');
+        assert.equal(subject._regenerateMaskedBackgroundColorFrom, bgURL);
+        assert.isTrue(stubGenerate.called);
+        assert.isFalse(subject._shouldRegenerateMaskedBackgroundColor);
+      };
+
+      test('updateBackground, Screen is enabled and is locked', function() {
+        subject._screenEnabled = true;
+        testScreenEnabledAndLocked();
+      });
+
+      test('updateBackground, _screenEnabled = undefined is regarded as ' +
+           'screen is enabled', function() {
+        subject._screenEnabled = undefined;
+        testScreenEnabledAndLocked();
+      });
+    });
+
+    test('checkGenerateMaskedBackgroundColor', function() {
+      subject._shouldRegenerateMaskedBackgroundColor = true;
+      subject._regenerateMaskedBackgroundColorFrom = bgURL;
+      assert.isTrue(subject._checkGenerateMaskedBackgroundColor());
+
+      subject._shouldRegenerateMaskedBackgroundColor = false;
+      subject._regenerateMaskedBackgroundColorFrom = undefined;
+      assert.isFalse(subject._checkGenerateMaskedBackgroundColor());
+    });
+
+    suite('generateMaskedBackgroundColor', function() {
+      // unit-test the function is a bit tricky: first we use the mocked image
+      // object (and set fake height/width). then we use the mocked canvas
+      // object that returns a image data that would calculate into red
+      // (#ff0000), green (#00ff00), and blue (#0000ff) for each of the three
+      // tests respectively, and we match the calculatd hsl against the known
+      // result.
+      // i.e. the image src fed into the function is actually not used in the
+      // calculation, for the test's sake.
+
+      var mockCanvas;
+      var mockContext;
+      var mockBgElem;
+      var img;
+      var canvasWidth;
+      var canvasHeight;
+      var fakeImageData;
+
+      setup(function() {
+        mockCanvas = new MockCanvas();
+        this.sinon.stub(document, 'createElement').returns(mockCanvas);
+
+        mockContext = new MockCanvasRenderingContext2D();
+
+        mockBgElem = {
+          dataset: {},
+          classList: {
+            contains: this.sinon.stub().returns(true)
+          },
+          style: {}
+        };
+
+        subject.maskedBackground = mockBgElem;
+
+        MockImage.teardown();
+
+        subject._regenerateMaskedBackgroundColorFrom = bgURL;
+        subject._generateMaskedBackgroundColor();
+
+        assert.isFalse(subject._shouldRegenerateMaskedBackgroundColor);
+        assert.strictEqual(
+          subject._regenerateMaskedBackgroundColorFrom,
+          undefined
+        );
+
+        img = MockImage.instances[0];
+        img.width = 100;
+        img.height = 100;
+
+        canvasWidth = img.width * window.devicePixelRatio;
+        canvasHeight = img.height * window.devicePixelRatio;
+
+        this.sinon.stub(mockCanvas, 'getContext').returns(mockContext);
+
+        // fill the fake imagedata with all red
+        fakeImageData = [];
+      });
+
+      test('red', function() {
+        for (var row = 0; row < canvasHeight; row++) {
+          for (var col = 0; col < canvasWidth; col++) {
+            fakeImageData[((canvasWidth * row) + col) * 4] = 255; // r
+            fakeImageData[((canvasWidth * row) + col) * 4 + 1] = 0; // g
+            fakeImageData[((canvasWidth * row) + col) * 4 + 2] = 0; // b
+          }
+        }
+
+        this.sinon.stub(mockContext, 'getImageData').returns({
+          data: fakeImageData
+        });
+
+        img.triggerEvent('onload');
+
+        assert.equal(
+          mockBgElem.dataset.wallpaperColor,
+          'hsla(0, 100%, 45%, 0.7)'
+        );
+        assert.isFalse('backgroundColor' in mockBgElem.style);
+      });
+
+      test('green', function() {
+        for (var row = 0; row < canvasHeight; row++) {
+          for (var col = 0; col < canvasWidth; col++) {
+            fakeImageData[((canvasWidth * row) + col) * 4] = 0; // r
+            fakeImageData[((canvasWidth * row) + col) * 4 + 1] = 255; // g
+            fakeImageData[((canvasWidth * row) + col) * 4 + 2] = 0; // b
+          }
+        }
+
+        this.sinon.stub(mockContext, 'getImageData').returns({
+          data: fakeImageData
+        });
+
+        img.triggerEvent('onload');
+
+        assert.equal(
+          mockBgElem.dataset.wallpaperColor,
+          'hsla(120, 100%, 45%, 0.7)'
+        );
+        assert.isFalse('backgroundColor' in mockBgElem.style);
+      });
+
+      test('blue', function() {
+        for (var row = 0; row < canvasHeight; row++) {
+          for (var col = 0; col < canvasWidth; col++) {
+            fakeImageData[((canvasWidth * row) + col) * 4] = 0; // r
+            fakeImageData[((canvasWidth * row) + col) * 4 + 1] = 0; // g
+            fakeImageData[((canvasWidth * row) + col) * 4 + 2] = 255; // b
+          }
+        }
+
+        this.sinon.stub(mockContext, 'getImageData').returns({
+          data: fakeImageData
+        });
+
+        img.triggerEvent('onload');
+
+        assert.equal(
+          mockBgElem.dataset.wallpaperColor,
+          'hsla(240, 100%, 45%, 0.7)'
+        );
+        assert.isFalse('backgroundColor' in mockBgElem.style);
+      });
+
+      test('red & update background style directly', function() {
+        for (var row = 0; row < canvasHeight; row++) {
+          for (var col = 0; col < canvasWidth; col++) {
+            fakeImageData[((canvasWidth * row) + col) * 4] = 255; // r
+            fakeImageData[((canvasWidth * row) + col) * 4 + 1] = 0; // g
+            fakeImageData[((canvasWidth * row) + col) * 4 + 2] = 0; // b
+          }
+        }
+
+        this.sinon.stub(mockContext, 'getImageData').returns({
+          data: fakeImageData
+        });
+
+        mockBgElem.classList.contains.returns(false);
+
+        img.triggerEvent('onload');
+
+        assert.isTrue(mockBgElem.classList.contains.calledWith('blank'));
+        assert.equal(
+          mockBgElem.style.backgroundColor,
+          'hsla(0, 100%, 45%, 0.7)'
+        );
+      });
+    });
+  });
 
   teardown(function() {
     navigator.mozL10n = realL10n;
@@ -259,11 +581,13 @@ suite('system/LockScreen >', function() {
     window.OrientationManager = window.realOrientationManager;
     window.FtuLauncher = realFtuLauncher;
     window.SettingsListener = realSettingsListener;
+    navigator.mozSettings = realMozSettings;
 
     document.body.removeChild(domPasscodePad);
     subject.passcodePad = null;
 
     window.MockSettingsListener.mTeardown();
+    window.MockNavigatorSettings.mTeardown();
     stubById.restore();
   });
 });

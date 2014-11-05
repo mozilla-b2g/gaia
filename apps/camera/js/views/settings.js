@@ -5,10 +5,10 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var OptionsView = require('views/setting-options');
 var debug = require('debug')('view:settings');
+var OptionsView = require('views/setting-options');
 var SettingView = require('views/setting');
-var View = require('vendor/view');
+var View = require('view');
 var bind = require('lib/bind');
 
 /**
@@ -17,6 +17,7 @@ var bind = require('lib/bind');
 
 module.exports = View.extend({
   name: 'settings',
+  fadeTime: 150,
 
   initialize: function(options) {
     this.OptionsView = options.OptionsView || OptionsView;
@@ -56,9 +57,17 @@ module.exports = View.extend({
     this.els.items = this.find('.js-items');
     this.els.pane2 = this.find('.js-pane-2');
     this.els.close = this.find('.js-close');
-    bind(this.els.close, 'click', this.firer('click:close'));
     this.items.forEach(this.addItem);
+
+    // Clean up
+    delete this.template;
+
     debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
+    bind(this.els.close, 'click', this.firer('click:close'));
     return this;
   },
 
@@ -94,15 +103,31 @@ module.exports = View.extend({
     this.el.setAttribute('show-pane', 'pane-' + name);
   },
 
+  fadeIn: function(done) {
+    setTimeout(this.show);
+    if (!done) { return; }
+    setTimeout(done, this.fadeTime);
+  },
+
+  fadeOut: function(done) {
+    this.hide();
+    if (!done) { return; }
+    setTimeout(done, this.fadeTime);
+  },
+
   template: function() {
     return '<div class="pane pane-1">' +
-      '<div class="settings_inner">' +
-        '<h2 class="settings_title">' + this.l10n.get('options') + '</h2>' +
-        '<div class="settings_items"><ul class="inner js-items"></ul></div>' +
+      '<div class="inner">' +
+        '<div class="settings_inner">' +
+          '<h2 class="settings_title">' + this.l10n.get('options') + '</h2>' +
+          '<div class="settings_items"><ul class="inner js-items"></ul></div>' +
+        '</div>' +
       '</div>' +
     '</div>' +
-    '<div class="pane pane-2 js-pane-2"></div>' +
-    '<div class="settings_close icon-settings js-close"></div>';
+    '<div class="pane pane-2">' +
+      '<div class="inner js-pane-2"></div>' +
+    '</div>' +
+    '<div class="settings_close js-close" data-icon="menu"></div>';
   }
 });
 

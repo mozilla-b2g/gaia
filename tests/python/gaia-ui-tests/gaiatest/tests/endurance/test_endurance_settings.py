@@ -12,26 +12,26 @@ from gaiatest import GaiaEnduranceTestCase
 class TestEnduranceSettings(GaiaEnduranceTestCase):
 
     settings_list = [
-                     {"menu_locator": ('id', 'menuItem-wifi'), "screen_locator": ('css selector', '#wifi-enabled input')},
+                     {"menu_locator": ('id', 'menuItem-wifi'), "screen_locator": ('css selector', '.wifi-enabled input')},
                      {"menu_locator": ('id', 'menuItem-callSettings'), "screen_locator": ('id', 'menuItem-callWaiting')},
                      {"menu_locator": ('id', 'menuItem-cellularAndData'), "screen_locator": ('id', 'dataConnection-desc')},
-                     {"menu_locator": ('id', 'menuItem-bluetooth'), "screen_locator": ('css selector', '#bluetooth-status input')},
+                     {"menu_locator": ('css selector', 'menuItem-bluetooth'), "screen_locator": ('css selector', '#bluetooth-status input')},
                      {"menu_locator": ('id', 'menuItem-internetSharing'), "screen_locator": ('xpath', '//button[@data-l10n-id="hotspotSettings"]')},
                      {"menu_locator": ('id', 'menuItem-sound'), "screen_locator": ('xpath', '//button[@data-l10n-id="change"]')},
                      {"menu_locator": ('id', 'menuItem-display'), "screen_locator": ('css selector', '#display.current')},
                      {"menu_locator": ('id', 'menuItem-notifications'), "screen_locator": ('xpath', '//a[@data-l10n-id="lockscreen-notifications"]')},
                      {"menu_locator": ('id', 'menuItem-dateAndTime'), "screen_locator": ('id', 'dateTime')},
-                     {"menu_locator": ('id', 'menuItem-languageAndRegion'), "screen_locator": ('css selector', '#root > header > h1')},
+                     {"menu_locator": ('css selector', 'menuItem-languageAndRegion'), "screen_locator": ('css selector', '#root > header > h1')},
                      {"menu_locator": ('id', 'menuItem-homescreen'), "screen_locator": ('xpath', '//a[@data-l10n-id="homescreen"]')},
                      {"menu_locator": ('id', 'menuItem-keyboard'), "screen_locator": ('xpath', '//a[@data-l10n-id="vibration"]')},
-                     {"menu_locator": ('id', 'menuItem-phoneLock'), "screen_locator": ('xpath', '//a[@data-l10n-id="lockScreen"]')},
+                     {"menu_locator": ('id', 'menuItem-screenLock'), "screen_locator": ('xpath', '//a[@data-l10n-id="lockScreen"]')},
                      {"menu_locator": ('id', 'menuItem-simSecurity'), "screen_locator": ('id', 'simpin-enabled')},
                      {"menu_locator": ('id', 'menuItem-appPermissions'), "screen_locator": ('xpath', '//a[@href="#appPermissions"]')},
                      {"menu_locator": ('id', 'menuItem-doNotTrack'), "screen_locator": ('css selector', '#doNotTrack label')},
-                     {"menu_locator": ('id', 'menuItem-applicationStorage'), "screen_locator": ('xpath', '//a[@data-l10n-id="appStorage"]')},
-                     {"menu_locator": ('id', 'menuItem-mediaStorage'), "screen_locator": ('id', 'mediaStorage')},
+                     {"menu_locator": ('css selector', 'menuItem-applicationStorage'), "screen_locator": ('xpath', '//a[@data-l10n-id="appStorage"]')},
+                     {"menu_locator": ('css selector', 'menuItem-mediaStorage'), "screen_locator": ('id', 'mediaStorage')},
                      {"menu_locator": ('id', 'menuItem-deviceInfo'), "screen_locator": ('css selector', '#about-moreInfo button')},
-                     {"menu_locator": ('id', 'menuItem-battery'), "screen_locator": ('id', 'model-name')},
+                     {"menu_locator": ('css selector', 'menuItem-battery'), "screen_locator": ('id', 'model-name')},
                      {"menu_locator": ('id', 'menuItem-improveBrowserOS'), "screen_locator": ('id', 'improveBrowserOS')},
                      {"menu_locator": ('id', 'menuItem-help'), "screen_locator": ('id', 'help')}
                     ]
@@ -67,8 +67,6 @@ class TestEnduranceSettings(GaiaEnduranceTestCase):
         self.wait_for_element_present(settings_menu_locator[0], settings_menu_locator[1])
         menu_item = self.marionette.find_element(settings_menu_locator[0], settings_menu_locator[1])
 
-        # Need explicit scroll because of bug 833370
-        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [menu_item])
         time.sleep(1)
         menu_item.tap()
         time.sleep(2)

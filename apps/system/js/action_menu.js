@@ -14,12 +14,12 @@
    * @param {Function} cancelCb Called when the menu is cancelled.
    * @param {Boolean} preventFocusChange Set to true to prevent focus changing.
    */
-  function ActionMenu(listItems, title, successCb, cancelCb,
+  function ActionMenu(listItems, titleL10nId, successCb, cancelCb,
   preventFocusChange) {
     this.onselected = successCb || function() {};
     this.oncancel = cancelCb || function() {};
     this.listItems = listItems;
-    this.title = title;
+    this.titleL10nId = titleL10nId;
   }
 
   ActionMenu.prototype = {
@@ -46,16 +46,16 @@
 
       // An action menu has a mandatory header
       this.header = document.createElement('header');
-      if (this.title !== undefined) {
-        this.header.textContent = this.title;
+      if (this.titleL10nId !== undefined) {
+        this.header.setAttribute('data-l10n-id', this.titleL10nId);
       }
 
       this.container.appendChild(this.header);
 
       // Following our paradigm we need a cancel
       this.cancel = document.createElement('button');
+      this.cancel.setAttribute('data-l10n-id', 'cancel');
       this.cancel.dataset.action = 'cancel';
-      this.cancel.dataset.l10nId = 'cancel';
 
       // We have a menu with all the options
       this.menu = document.createElement('menu');
@@ -64,17 +64,20 @@
       this.container.classList.add('visible');
 
       // We append to System app (actually to '#screen')
-      document.getElementById('screen').appendChild(this.container);
+      var screen = document.getElementById('screen');
+      screen.appendChild(this.container);
+      screen.classList.add('action-menu');
 
       this.buildMenu(this.listItems);
 
       this.container.addEventListener('submit', this);
       this.menu.addEventListener('click', this);
 
-      window.addEventListener('attentionscreenshow', this, true);
+      window.addEventListener('attentionopened', this, true);
       window.addEventListener('screenchange', this, true);
       window.addEventListener('home', this);
       window.addEventListener('holdhome', this);
+      window.addEventListener('sheets-gesture-begin', this);
 
       if (this.preventFocusChange) {
         this.menu.addEventListener('mousedown', this.preventFocusChange);
@@ -86,12 +89,15 @@
      * @memberof ActionMenu.prototype
      */
     stop: function() {
-      document.getElementById('screen').removeChild(this.container);
+      var screen = document.getElementById('screen');
+      screen.removeChild(this.container);
+      screen.classList.remove('action-menu');
 
-      window.removeEventListener('attentionscreenshow', this, true);
+      window.removeEventListener('attentionopened', this, true);
       window.removeEventListener('screenchange', this, true);
       window.removeEventListener('home', this);
       window.removeEventListener('holdhome', this);
+      window.removeEventListener('sheets-gesture-begin', this);
 
       if (this.preventFocusChange) {
         this.menu.removeEventListener('mousedown', this.preventFocusChange);
@@ -115,8 +121,6 @@
         }
         this.menu.appendChild(action);
       }, this);
-      var _ = navigator.mozL10n.get;
-      this.cancel.textContent = _('cancel');
       this.menu.appendChild(this.cancel);
     },
 
@@ -185,6 +189,7 @@
 
         case 'home':
         case 'holdhome':
+        case 'sheets-gesture-begin':
           if (!this.visible) {
             return;
           }
@@ -193,8 +198,9 @@
           this.oncancel();
           break;
 
-        case 'attentionscreenshow':
+        case 'attentionopened':
           this.hide();
+          this.oncancel();
           break;
       }
     }

@@ -69,21 +69,23 @@
         }
         return;
       }
-      // We don't need the screenshot of homescreen because:
-      // 1. Homescreen background is transparent,
-      //    currently gecko only sends JPG to us.
-      //    See bug 878003.
-      // 2. Homescreen screenshot isn't required by card view.
-      //    Since getScreenshot takes additional memory usage,
-      //    let's early return here.
       var self = this;
       var invoked = false;
       var timer;
 
+      // First, let's check if we have a frontWindow, if so this is the one
+      // we will want a screenshot of!
+      if (this.frontWindow) {
+        this.frontWindow.getScreenshot(callback, width, height, timeout);
+        return;
+      }
+
       if (timeout) {
         timer = window.setTimeout(function() {
-          if (invoked)
+          if (invoked) {
             return;
+          }
+          self.debug('getScreenshot timeout!');
           invoked = true;
           callback();
         }, timeout);
@@ -93,34 +95,50 @@
         width || this.width || layoutManager.width,
         height || this.height || layoutManager.height);
 
-      req.onsuccess = function gotScreenshotFromFrame(evt) {
-        var result = evt.target.result;
+      var success = function(result) {
         if (!width) {
           // Refresh _screenshotBlob when no width/height is specified.
           self._screenshotBlob = result;
         }
-        if (invoked)
-          return;
-        invoked = true;
-        if (timer)
-          window.clearTimeout(timer);
-        if (callback)
-          callback(result);
-      };
 
-      req.onerror = function gotScreenshotFromFrameError(evt) {
-        if (invoked)
+        self.debug('getScreenshot succeed!');
+        if (invoked) {
           return;
+        }
+        self.debug('get screenshot success!!!!');
         invoked = true;
-        if (timer)
+        if (timer) {
           window.clearTimeout(timer);
-        if (callback)
-          callback();
+        }
+        if (callback) {
+          callback(result);
+        }
       };
+      var error = function() {
+        self.debug('getScreenshot failed!');
+        if (invoked) {
+          return;
+        }
+        invoked = true;
+        if (timer) {
+          window.clearTimeout(timer);
+        }
+        if (callback) {
+          callback();
+        }
+      };
+      if (req.then) {
+        req.then(success, error);
+      } else {
+        req.onsuccess = function(evt) {
+          success(evt.target.result);
+        };
+        req.onerror = error;
+      }
     },
 
     focus: function bm_focus() {
-      if (this.browser.element) {
+      if (this.browser && this.browser.element) {
         this.browser.element.focus();
       }
     },
@@ -143,6 +161,12 @@
       }
     },
 
+    stop: function bm_stop() {
+      if (this.browser.element) {
+        this.browser.element.stop();
+      }
+    },
+
     _setVisible: function bm__setVisible(visible) {
       if (this.browser && this.browser.element &&
           'setVisible' in this.browser.element) {
@@ -150,6 +174,28 @@
         this.browser.element.setVisible(visible);
       }
     },
+
+    _setActive: function bm__setActive(active) {
+      if (this.browser && this.browser.element &&
+          'setActive' in this.browser.element) {
+        this.debug('setActive on browser element:' + active);
+        this.browser.element.setActive(active);
+      }
+    },
+
+    /**
+     * Set aria-hidden attribute on browser's element to handle its screen
+     * reader visibility.
+     * @type {Boolean} visible A flag indicating if the element should be screen
+     * reader visible.
+     */
+    _setVisibleForScreenReader:
+      function bm__setVisibleForScreenReader(visible) {
+        if (this.browser && this.browser.element) {
+          this.debug('aria-hidden on browser element:' + !visible);
+          this.browser.element.setAttribute('aria-hidden', !visible);
+        }
+      },
 
     /**
      * Fire a DOM Request to detect the history has previous page or not.
@@ -159,18 +205,29 @@
       var self = this;
       if (this.browser.element) {
         var r = this.browser.element.getCanGoBack();
-        r.onsuccess = function(evt) {
-          self._backable = evt.target.result;
-          if (callback)
-            callback(evt.target.result);
+        var success = function(result) {
+          self._backable = result;
+          if (callback) {
+            callback(result);
+          }
         };
-        r.onerror = function(evt) {
-          if (callback)
+        var error = function() {
+          if (callback) {
             callback();
+          }
         };
+        if (r.then) {
+          r.then(success, error);
+        } else {
+          r.onsuccess = function(evt) {
+            success(evt.target.result);
+          };
+          r.onerror = error;
+        }
       } else {
-        if (callback)
+        if (callback) {
           callback();
+        }
       }
     },
 
@@ -182,15 +239,25 @@
       var self = this;
       if (this.browser.element) {
         var r = this.browser.element.getCanGoForward();
-        r.onsuccess = function(evt) {
-          self._forwardable = evt.target.result;
-          if (callback)
-            callback(evt.target.result);
+        var success = function(result) {
+          self._forwardable = result;
+          if (callback) {
+            callback(result);
+          }
         };
-        r.onerror = function(evt) {
-          if (callback)
+        var error = function() {
+          if (callback) {
             callback();
+          }
         };
+        if (r.then) {
+          r.then(success, error);
+        } else {
+          r.onsuccess = function(evt) {
+            success(evt.target.result);
+          };
+          r.onerror = error;
+        }
       } else {
         if (callback)
           callback();

@@ -1,8 +1,7 @@
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
-requireApp('email/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
-mocha.globals(['htmlCacheRestoreDetectedActivity']);
 suite('appMessages', function() {
   var subject;
 
@@ -25,7 +24,6 @@ suite('appMessages', function() {
       // Make sure that we register our activity request handler.
       sinon.assert.calledWith(spy, 'activity');
       navigator.mozSetMessageHandler.restore();
-      done();
     });
   });
 

@@ -16,17 +16,19 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'thumbnails', 'thumbnails-video-button', 'thumbnails-select-button',
            'thumbnail-select-view',
            'thumbnails-delete-button', 'thumbnails-share-button',
-           'thumbnails-cancel-button', 'thumbnails-number-selected',
+           'thumbnails-select-top', 'thumbnails-number-selected',
            'player-view', 'fullscreen-button', 'spinner-overlay',
            'thumbnails-single-delete-button', 'thumbnails-single-share-button',
            'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
-           'overlay-menu', 'overlay-action-button',
-           'video-container', 'videoControls', 'videoBar', 'videoActionBar',
+           'overlay-menu', 'overlay-action-button', 'player-header',
+           'video-container', 'videoControls', 'videoBar', 'videoControlBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-           'slider-wrapper', 'throbber', 'delete-video-button',
-           'picker-close', 'picker-title', 'picker-done'];
+           'slider-wrapper', 'throbber', 'picker-close', 'picker-title',
+           'picker-header', 'picker-done', 'options', 'options-view',
+           'options-cancel-button', 'seek-backward', 'seek-forward',
+           'in-use-overlay', 'in-use-overlay-title', 'in-use-overlay-text'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -34,6 +36,7 @@ ids.forEach(function createElementRef(name) {
 
 dom.player.mozAudioChannelType = 'content';
 
+function $(id) { return document.getElementById(id); }
 var playing = false;
 
 // if this is true then the video tag is showing
@@ -94,20 +97,25 @@ var pendingUpdateTitleText = false;
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
+var videoControlsAutoHidingMsOverride;
+
+// We have a single instance of the loading checker because it is used
+// across functions
+var loadingChecker =
+  new VideoLoadingChecker(dom.player, dom.inUseOverlay, dom.inUseOverlayTitle,
+                          dom.inUseOverlayText);
+
 // Pause on visibility change
 document.addEventListener('visibilitychange', function visibilityChange() {
   if (document.hidden) {
     stopParsingMetadata();
-    if (playing)
+    if (playing) {
       pause();
-
-    if (playerShowing)
-      releaseVideo();
+    }
   }
   else {
     if (playerShowing) {
       setControlsVisibility(true);
-      restoreVideo();
     } else {
       // We only start parsing metadata when player is not shown.
       startParsingMetadata();
@@ -115,32 +123,31 @@ document.addEventListener('visibilitychange', function visibilityChange() {
   }
 });
 
-window.addEventListener('localized', function initLocale() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
+navigator.mozL10n.once(function() {
+
+  // Tell performance monitors that our chrome is visible
+  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+
+  init();
+
+  // Tell performance monitors that our chrome is ready to interact with.
+  window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 });
 
-navigator.mozL10n.ready(function initVideo() {
-  // This function should be called once. According to the implementation of
-  // mozL10n.ready, it may become the event handler of localized. So, we need to
-  // prevent database re-initialize.
-  // XXX: once bug 882592 is fixed, we should remove it and just call init.
-  if (!videodb)
-    init();
+// we don't need to wait for l10n ready to have correct css layout.
+initLayout();
+initThumbnailSize();
 
-  if (!isPhone) {
+if (!isPhone) {
+  navigator.mozL10n.ready(function localizeThumbnailListTitle() {
     // reload the thumbnail list title field for tablet which is the app name.
     var req = navigator.mozApps.getSelf();
     req.onsuccess = function() {
       var manifest = new ManifestHelper(req.result.manifest);
       dom.thumbnailListTitle.textContent = manifest.name;
     };
-  }
-});
-
-// we don't need to wait for l10n ready to have correct css layout.
-initLayout();
-initThumbnailSize();
+  });
+}
 
 function init() {
   thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);
@@ -160,6 +167,7 @@ function init() {
   }
 
   initPlayerControls();
+  ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
 
   // We get headphoneschange event when the headphones is plugged or unplugged
   var acm = navigator.mozAudioChannelManager;
@@ -227,13 +235,15 @@ function initPlayerControls() {
 
   // handle video player
   dom.player.addEventListener('timeupdate', timeUpdated);
+  dom.player.addEventListener('seeked', updateVideoControlSlider);
   dom.player.addEventListener('ended', playerEnded);
 
   // handle user tapping events
   dom.videoControls.addEventListener('click', toggleVideoControls, true);
   dom.play.addEventListener('click', handlePlayButtonClick);
-  dom.close.addEventListener('click', handleCloseButtonClick);
+  dom.playerHeader.addEventListener('action', handleCloseButtonClick);
   dom.pickerDone.addEventListener('click', postPickResult);
+  dom.options.addEventListener('click', showOptionsView);
 }
 
 function initOptionsButtons() {
@@ -241,13 +251,15 @@ function initOptionsButtons() {
   dom.thumbnailsVideoButton.addEventListener('click', launchCameraApp);
   // buttons for entering/exiting selection mode
   dom.thumbnailsSelectButton.addEventListener('click', showSelectView);
-  dom.thumbnailsCancelButton.addEventListener('click', hideSelectView);
+  dom.thumbnailsSelectTop.addEventListener('action', hideSelectView);
   // action buttons for selection mode
   dom.thumbnailsDeleteButton.addEventListener('click', deleteSelectedItems);
   dom.thumbnailsShareButton.addEventListener('click', shareSelectedItems);
 
   // info buttons
   dom.infoCloseButton.addEventListener('click', hideInfoView);
+  // option button cancel
+  dom.optionsCancelButton.addEventListener('click', hideOptionsView);
   // fullscreen player
   dom.fullscreenButton.addEventListener('click', toggleFullscreenPlayer);
   // fullscreen toolbar
@@ -339,7 +351,7 @@ function handleScreenLayoutChange() {
     if (!thumbnailList) {
       return;
     }
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitle();
   } else {
     pendingUpdateTitleText = true;
   }
@@ -363,7 +375,7 @@ function switchLayout(mode) {
   // Update title text when leaving fullscreen mode with pending task.
   if (oldMode === LAYOUT_MODE.fullscreenPlayer && pendingUpdateTitleText) {
     pendingUpdateTitleText = false;
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitle();
   }
 }
 
@@ -378,6 +390,7 @@ function handleActivityEvents(a) {
 }
 
 function showInfoView() {
+  hideOptionsView();
   //Get the length of the playing video
   var length = isFinite(currentVideo.metadata.duration) ?
       MediaUtils.formatDuration(currentVideo.metadata.duration) : '';
@@ -407,11 +420,15 @@ function showInfoView() {
 
   //Populate info overlay view
   MediaUtils.populateMediaInfo(data);
+  // We need to disable NFC sharing when showing info view
+  setNFCSharing(false);
   //Show the video info view
   dom.infoView.classList.remove('hidden');
 }
 
 function hideInfoView() {
+  // Enable NFC sharing when user hides info and returns to fullscreen mode
+  setNFCSharing(true);
   dom.infoView.classList.add('hidden');
 }
 
@@ -438,6 +455,23 @@ function hideSelectView() {
                              false, /* enterFullscreen */
                              true); /* keepControls */
   }
+}
+
+function showOptionsView() {
+  // If the user is about to share a video we should stop playing it because
+  // sometimes we won't go to the background when the activity starts and
+  // we keep playing. This will cause problems if the receiving app also tries
+  // to play it. Similarly, if the user is going to delete the video there is
+  // no point in continuing to play it. And if they care enough about it to
+  // look for more info about it, they probably don't want to miss anything.
+  if (playing) {
+    pause();
+  }
+  dom.optionsView.classList.remove('hidden');
+}
+
+function hideOptionsView() {
+  dom.optionsView.classList.add('hidden');
 }
 
 function clearSelection() {
@@ -535,19 +569,24 @@ function resetCurrentVideo() {
 function deleteSelectedItems() {
   if (selectedFileNames.length === 0)
     return;
+  LazyLoader.load('shared/style/confirm.css', function() {
 
-  var msg = navigator.mozL10n.get('delete-n-items?',
-                                  {n: selectedFileNames.length});
-  if (confirm(msg)) {
-    // XXX
-    // deleteFile is O(n), so this loop is O(n*n). If used with really large
-    // selections, it might have noticably bad performance.  If so, we
-    // can write a more efficient deleteFiles() function.
-    for (var i = 0; i < selectedFileNames.length; i++) {
-      deleteFile(selectedFileNames[i]);
-    }
-    clearSelection();
-  }
+    Dialogs.confirm({
+      messageId: 'delete-n-items?',
+      messageArgs: {n: selectedFileNames.length},
+      cancelId: 'cancel',
+      confirmId: 'delete',
+      danger: true
+    }, function() { // onSuccess
+      // deleteFile is O(n), so this loop is O(n*n). If used with really large
+      // selections, it might have noticably bad performance.  If so, we
+      // can write a more efficient deleteFiles() function.
+      for (var i = 0; i < selectedFileNames.length; i++) {
+        deleteFile(selectedFileNames[i]);
+      }
+      clearSelection();
+    });
+  });
 }
 
 function deleteFile(filename) {
@@ -569,16 +608,6 @@ function deleteFile(filename) {
   videodb.deleteFile(filename);
 }
 
-function deleteSingleFile(file) {
-  var msg = navigator.mozL10n.get('confirm-delete');
-  if (confirm(msg + ' ' + file)) {
-    deleteFile(file);
-    return true;
-  }
-
-  return false;
-}
-
 // Clicking on the share button in select mode shares all selected images
 function shareSelectedItems() {
   var blobs = selectedFileNames.map(function(name) {
@@ -592,7 +621,7 @@ function share(blobs) {
   if (blobs.length === 0)
     return;
 
-  var names = [], types = [], fullpaths = [];
+  var names = [], fullpaths = [];
 
   // Get the file name (minus path) and type of each blob
   blobs.forEach(function(blob) {
@@ -605,28 +634,12 @@ function share(blobs) {
     fullpaths.push(name);
     name = name.substring(name.lastIndexOf('/') + 1);
     names.push(name);
-
-    // And we just want the first component of the type "image" or "video"
-    var type = blob.type;
-    if (type)
-      type = type.substring(0, type.indexOf('/'));
-    types.push(type);
   });
-
-  // If there is just one type, or if all types are the same, then use
-  // that type plus '/*'. Otherwise, use 'multipart/mixed'
-  // If all the blobs are image we use 'image/*'. If all are videos
-  // we use 'video/*'. Otherwise, 'multipart/mixed'.
-  var type;
-  if (types.length === 1 || types.every(function(t) { return t === types[0]; }))
-    type = types[0] + '/*';
-  else
-    type = 'multipart/mixed';
 
   var a = new MozActivity({
     name: 'share',
     data: {
-      type: type,
+      type: 'video/*', // Video app only supports video types (bug 1069885)
       number: blobs.length,
       blobs: blobs,
       filenames: names,
@@ -671,9 +684,10 @@ function updateLoadingSpinner() {
     dom.spinnerOverlay.classList.add('hidden');
     dom.playerView.classList.remove('disabled');
     if (thumbnailList.count) {
-      // Load the first video item to player when we are in tablet and landscape
-      // mode.
-      currentVideo = thumbnailList.itemGroups[0].thumbnails[0].data;
+      // Initialize currentVideo to first video item if it doesn't have a value.
+      currentVideo = currentVideo ||
+                     thumbnailList.itemGroups[0].thumbnails[0].data;
+      // Load current video to player when we are in tablet and landscape.
       if (!isPhone && !isPortrait) {
         showPlayer(currentVideo, false, /* autoPlay */
                                  false, /* enterFullscreen */
@@ -722,36 +736,41 @@ function setPosterImage(dom, poster) {
 }
 
 function showOverlay(id) {
-  currentOverlay = id;
+  LazyLoader.load('shared/style/confirm.css', function() {
+    currentOverlay = id;
 
-  if (id === null) {
-    dom.overlay.classList.add('hidden');
-    return;
-  }
+    if (id === null) {
+      dom.overlay.classList.add('hidden');
+      return;
+    }
 
-  var _ = navigator.mozL10n.get;
+    var _ = navigator.mozL10n.get;
+    var text, title;
 
-  if (pendingPick || id === 'empty') {
-    // We cannot use hidden attribute because confirm.css overrides it.
-    dom.overlayMenu.classList.remove('hidden');
-    dom.overlayActionButton.classList.remove('hidden');
-    dom.overlayActionButton.textContent = _(pendingPick ?
-                                            'overlay-cancel-button' :
-                                            'overlay-camera-button');
-  } else {
-    dom.overlayMenu.classList.add('hidden');
-    dom.overlayActionButton.classList.add('hidden');
-  }
+    if (pendingPick || id === 'empty') {
+      dom.overlayMenu.classList.remove('hidden');
+      dom.overlayActionButton.classList.remove('hidden');
+      dom.overlayActionButton.setAttribute('data-l10n-id',
+                                           pendingPick ?
+                                             'overlay-cancel-button' :
+                                             'overlay-camera-button');
+    } else {
+      dom.overlayMenu.classList.add('hidden');
+      dom.overlayActionButton.classList.add('hidden');
+    }
 
-  if (id === 'nocard') {
-    dom.overlayTitle.textContent = _('nocard2-title');
-    dom.overlayText.textContent = _('nocard3-text');
-  } else {
-    dom.overlayTitle.textContent = _(id + '-title');
-    dom.overlayText.textContent = _(id + '-text');
-  }
+    if (id === 'nocard') {
+      title = 'nocard2-title';
+      text = 'nocard3-text';
+    } else {
+      title = id + '-title';
+      text = id + '-text';
+    }
 
-  dom.overlay.classList.remove('hidden');
+    dom.overlayTitle.setAttribute('data-l10n-id', title);
+    dom.overlayText.setAttribute('data-l10n-id', text);
+    dom.overlay.classList.remove('hidden');
+  });
 }
 
 function setControlsVisibility(visible) {
@@ -774,6 +793,14 @@ function setControlsVisibility(visible) {
 }
 
 function updateVideoControlSlider() {
+  // We update the slider when we get a 'seeked' event.
+  // Don't do updates while we're seeking because the position we fastSeek()
+  // to probably isn't exactly where we requested and we don't want jerky
+  // updates
+  if (dom.player.seeking) {
+    return;
+  }
+
   var percent = (dom.player.currentTime / dom.player.duration) * 100;
   if (isNaN(percent)) {
     return;
@@ -799,21 +826,36 @@ function setVideoPlaying(playing) {
 }
 
 function deleteCurrentVideo() {
-  // If we're deleting the file shown in the player we've got to
-  // return to the thumbnail list. We pass false to hidePlayer() to tell it
-  // not to record new metadata for the file we're about to delete.
-  if (deleteSingleFile(currentVideo.name)) {
-    if (!isPhone && !isPortrait) {
-      // If the file is deleted, we need to load another video file. This is
-      // only required at tablet and landscape mode. When there is no video in
-      // video app, the currentVideo is null and the overlay is shown.
-      if (currentVideo) {
-        showPlayer(currentVideo, false, true, true);
+  hideOptionsView();
+  // We need to disable NFC sharing when showing delete confirmation dialog
+  setNFCSharing(false);
+
+  LazyLoader.load('shared/style/confirm.css', function() {
+    // If we're deleting the file shown in the player we've got to
+    // return to the thumbnail list. We pass false to hidePlayer() to tell it
+    // not to record new metadata for the file we're about to delete.
+    Dialogs.confirm({
+      messageId: 'delete-video?',
+      cancelId: 'cancel',
+      confirmId: 'delete',
+      danger: true
+    }, function _onSuccess() { // onSuccess
+      deleteFile(currentVideo.name);
+      if (!isPhone && !isPortrait) {
+        // If the file is deleted, we need to load another video file. This is
+        // only required at tablet and landscape mode. When there is no video in
+        // video app, the currentVideo is null and the overlay is shown.
+        if (currentVideo) {
+          showPlayer(currentVideo, false, true, true);
+        }
+      } else {
+        hidePlayer(false);
       }
-    } else {
-      hidePlayer(false);
-    }
-  }
+    }, function _onError() {
+       // Enable NFC sharing when cancels delete and returns to fullscreen mode
+       setNFCSharing(true);
+    });
+  });
 }
 
 function handlePlayButtonClick() {
@@ -840,6 +882,7 @@ function postPickResult() {
 }
 
 function shareCurrentVideo() {
+  hideOptionsView();
   videodb.getFile(currentVideo.name, function(blob) {
     share([blob]);
   });
@@ -869,18 +912,32 @@ function handleSliderTouchStart(event) {
 }
 
 function setVideoUrl(player, video, callback) {
+
+  function handleLoadedMetadata() {
+    // We only want the 'loadedmetadata' handler to execute when the video
+    // app explicitly loads a video. To prevent unwanted side affects, for
+    // example, when the video app is sent to the background and then to the
+    // foreground, where gecko sends a 'loadedmetadata' event (among others),
+    // we clear the 'loadedmetadata' event handler after the event fires.
+    dom.player.onloadedmetadata = null;
+    callback();
+  }
+
+  function loadVideo(url) {
+    loadingChecker.ensureVideoLoads(handleLoadedMetadata);
+    player.src = url;
+  }
+
   if ('name' in video) {
     videodb.getFile(video.name, function(file) {
       var url = URL.createObjectURL(file);
-      player.onloadedmetadata = callback;
-      player.src = url;
+      loadVideo(url);
 
       if (pendingPick)
         currentVideoBlob = file;
     });
   } else if ('url' in video) {
-    player.onloadedmetadata = callback;
-    player.src = video.url;
+    loadVideo(video.url);
   }
 }
 
@@ -888,6 +945,26 @@ function scheduleVideoControlsAutoHiding() {
   controlFadeTimeout = setTimeout(function() {
     setControlsVisibility(false);
   }, 250);
+}
+
+function setNFCSharing(enable) {
+  if (!window.navigator.mozNfc) {
+    return;
+  }
+
+  if (enable) {
+    // If we have NFC, we need to put the callback to have shrinking UI.
+    window.navigator.mozNfc.onpeerready = function(event) {
+      // The callback function is called when user confirm to share the
+      // content, send it with NFC Peer.
+      videodb.getFile(currentVideo.name, function(file) {
+        event.peer.sendFile(file);
+      });
+    };
+  } else {
+    // We need to remove onpeerready while out of fullscreen view.
+    window.navigator.mozNfc.onpeerready = null;
+  }
 }
 
 // show video player
@@ -937,37 +1014,31 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
 
     dom.play.classList.remove('paused');
     playerShowing = true;
-    VideoUtils.fitContainer(dom.videoContainer, dom.player,
-                            currentVideo.metadata.rotation || 0);
 
-
+    var rotation;
     if ('metadata' in currentVideo) {
       if (currentVideo.metadata.currentTime === dom.player.duration) {
         currentVideo.metadata.currentTime = 0;
       }
       dom.videoTitle.textContent = currentVideo.metadata.title;
       dom.player.currentTime = currentVideo.metadata.currentTime || 0;
+      rotation = currentVideo.metadata.rotation;
     } else {
       dom.videoTitle.textContent = currentVideo.title || '';
       dom.player.currentTime = 0;
+      rotation = 0;
     }
+
+    VideoUtils.fitContainer(dom.videoContainer, dom.player,
+                            rotation || 0);
 
     if (dom.player.seeking) {
       dom.player.onseeked = doneSeeking;
     } else {
       doneSeeking();
     }
-
-   if (window.navigator.mozNfc) {
-      // If we have NFC, we need to put the callback to have shrinking UI.
-      window.navigator.mozNfc.onpeerready = function(event) {
-        // The callback function is called when user confirm to share the
-        // content, send it with NFC Peer.
-        videodb.getFile(video.name, function(file) {
-          navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
-        });
-      };
-    }
+    // Enable NFC sharing in fullscreen player mode
+    setNFCSharing(true);
   });
 }
 
@@ -980,10 +1051,8 @@ function hidePlayer(updateVideoMetadata, callback) {
   }
 
   dom.player.pause();
-  if (window.navigator.mozNfc) {
-    // We need to remove onpeerready while out of sharable context.
-    window.navigator.mozNfc.onpeerready = null;
-  }
+  // Disable NFC sharing when leaving player mode
+  setNFCSharing(false);
 
   function completeHidingPlayer() {
     // switch to the video gallery view
@@ -993,11 +1062,7 @@ function hidePlayer(updateVideoMetadata, callback) {
     playerShowing = false;
     updateDialog();
 
-    // Unload the video. This releases the video decoding hardware
-    // so other apps can use it. Note that any time the video app is hidden
-    // (by switching to another app) we leave player mode, and this
-    // code gets triggered, so if the video app is not visible it should
-    // not be holding on to the video hardware
+    // The video is no longer being played; unload the it.
     dom.player.removeAttribute('src');
     dom.player.load();
 
@@ -1058,17 +1123,26 @@ function hidePlayer(updateVideoMetadata, callback) {
 }
 
 function playerEnded() {
+  // Ignore ended events that occur while the user is dragging the slider
   if (dragging) {
     return;
   }
+
   if (endedTimer) {
     clearTimeout(endedTimer);
     endedTimer = null;
   }
 
-  dom.player.currentTime = 0;
-
-  pause();
+  // If we are still playing when this 'ended' event arrives, then the
+  // user played the video all the way to the end, and we skip to the
+  // beginning and pause so it is easy for the user to restart. If we
+  // reach the end because the user fast forwarded or dragged the slider
+  // to the end, then we will have paused the video before we get this
+  // event and in that case we will remain paused at the end of the video.
+  if (playing) {
+    dom.player.currentTime = 0;
+    pause();
+  }
 }
 
 function play() {
@@ -1082,7 +1156,6 @@ function play() {
   // by setting the media.mediasource.enabled pref to true.
   VideoStats.start(dom.player);
 
-  // Start playing
   dom.player.play();
   playing = true;
 }
@@ -1090,6 +1163,12 @@ function play() {
 function pause() {
   // Switch the button icon
   dom.play.classList.add('paused');
+
+  // Check the dragging is true or not before pausing
+  if (dragging) {
+    dragging = false;
+    dom.playHead.classList.remove('active');
+  }
 
   // Stop playing the video
   dom.player.pause();
@@ -1168,66 +1247,19 @@ function handleSliderTouchMove(event) {
   pos = Math.max(pos, 0);
   pos = Math.min(pos, 1);
 
+  // Update the slider to match the position of the user's finger.
+  // Note, however, that we don't update the displayed time until
+  // we actually get a 'seeked' event.
   var percent = pos * 100 + '%';
   dom.playHead.classList.add('active');
   dom.playHead.style.left = percent;
   dom.elapsedTime.style.width = percent;
-  dom.player.currentTime = dom.player.duration * pos;
-  dom.elapsedText.textContent = MediaUtils.formatDuration(
-    dom.player.currentTime);
+  dom.player.fastSeek(dom.player.duration * pos);
 }
 
 function toCamelCase(str) {
   return str.replace(/\-(.)/g, function replacer(str, p1) {
     return p1.toUpperCase();
-  });
-}
-
-// Call this when the app is hidden
-function releaseVideo() {
-  // readyState = 0: no metadata loaded, we don't need to save the currentTime
-  // of player. It is always 0 and can't be used to restore the state of video.
-  if (dom.player.readyState > 0) {
-    restoreTime = dom.player.currentTime;
-  }
-  dom.player.removeAttribute('src');
-  dom.player.load();
-}
-
-// Call this when the app becomes visible again
-function restoreVideo() {
-  // When restoreVideo is called, we assume we have currentVideo because the
-  // playerShowing is true.
-
-  function doneRestoreSeeking() {
-    dom.player.onseeked = null;
-    dom.player.hidden = false;
-  }
-
-  //hide video player before setVideoUrl
-  dom.player.hidden = true;
-  setVideoUrl(dom.player, currentVideo, function() {
-    VideoUtils.fitContainer(dom.videoContainer, dom.player,
-                            currentVideo.metadata.rotation || 0);
-
-    // Everything is ready, start to restore last playing time.
-    if (restoreTime !== null) {
-      // restore to the last time when we have a valid restoreTime.
-      dom.player.currentTime = restoreTime;
-    } else {
-      // When we don't have valid restoreTime, we need to restore to the last
-      // viewing position from metadata. When user taps on a unwatched video and
-      // presses home quickly, the dom.player may not finish the loading of
-      // video and the restoreTime is null. At the same case, the currentTime of
-      // metadata is still undefined because we haven't updateMetadata.
-      dom.player.currentTime = currentVideo.metadata.currentTime || 0;
-    }
-
-    if (dom.player.seeking) {
-      dom.player.onseeked = doneRestoreSeeking;
-    } else {
-      doneRestoreSeeking();
-    }
   });
 }
 
@@ -1238,13 +1270,13 @@ function showPickView() {
   thumbnailList.setPickMode(true);
   document.body.classList.add('pick-activity');
 
-  dom.pickerClose.addEventListener('click', cancelPick);
+  dom.pickerHeader.addEventListener('action', cancelPick);
 
   // In tablet, landscape mode, the pick view will have different UI from normal
   // view.
   if (!isPhone && !isPortrait) {
     // update all title text when rotating.
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitle();
   }
 }
 
@@ -1268,3 +1300,26 @@ function hideThrobber() {
   dom.throbber.classList.add('hidden');
   dom.throbber.classList.remove('throb');
 }
+
+//
+// Bug 1088456: when the view activity is launched by the bluetooth transfer
+// app (when the user taps on a downloaded file in the notification tray) the
+// view.html file can be launched while index.html is still running as the
+// foreground app. Since the video app does not get sent to the background in
+// this case, the currently playing video (if there is one) is not
+// unloaded. And so, in the case of videos that require decoder hardware, the
+// view activity cannot play the video. For this workaround, we have view.js
+// set a localStorage property when it starts. And here we listen for changes
+// to that property. When we see a change we unload the video so that the view
+// activity can play its video. We intentionally do not make any effort to
+// automatically restart the video.
+//
+window.addEventListener('storage', function(e) {
+  if (e.key === 'view-activity-wants-to-use-hardware' && e.newValue &&
+      playing && !document.hidden) {
+    console.log('The video app view activity needs to play a video.');
+    console.log('Pausing the video and returning to the thumbnails.');
+    console.log('See bug 1088456.');
+    handleCloseButtonClick();
+  }
+});

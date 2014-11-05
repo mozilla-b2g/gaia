@@ -1,20 +1,17 @@
-requireLib('format.js');
-requireLib('template.js');
+define(function(require) {
+'use strict';
+
+var Template = require('template');
+var format = require('format');
 
 suite('calendar/template', function() {
-  'use strict';
-
-  var Template, subject,
+  var subject,
       tplStr = '%s foo %h',
       support;
 
 
-  suiteSetup(function() {
+  setup(function() {
     support = testSupport.calendar;
-  });
-
-  suiteSetup(function() {
-    Template = Calendar.Template;
   });
 
   suite('Template.create', function() {
@@ -142,6 +139,27 @@ suite('calendar/template', function() {
       assert.equal(tpl.render('bar'), '\nfoo bar');
     });
 
+    test('with numeric, null and objects', function() {
+      var tpl = new Template(function() {
+        return 'foo ' + this.h('nullish') + this.h('undefinedish') +
+          this.h('zeroish') +' '+ this.h('falseish') + ' ' +
+          this.h('objectish');
+      });
+      // null, undefined and zero caused problems previously
+      assert.equal(tpl.render({
+        nullish: null,
+        undefinededish: undefined,
+        zeroish: 0,
+        falseish: false,
+        objectish: {
+          toString: function() {
+            // this should be escaped!!!
+            return '<a>complex</a>';
+          }
+        }
+      }), 'foo 0 false &lt;a&gt;complex&lt;/a&gt;');
+    });
+
     test('no html escape', function() {
       var tpl, input, output;
 
@@ -166,6 +184,13 @@ suite('calendar/template', function() {
 
       output = tpl.render({ one: false });
       assert.equal(output, '');
+    });
+
+    test('l10nId', function() {
+      var tpl = new Template(function() {
+        return this.l10nId('state');
+      });
+      assert.equal(tpl.render({state: 'past other-month'}), 'past-other-month');
     });
 
     suite('l10n', function() {
@@ -238,7 +263,7 @@ suite('calendar/template', function() {
         },
 
         format: function() {
-          Calendar.format(tpl, 'Sahaja', 'Lal');
+          format(tpl, 'Sahaja', 'Lal');
         }
       });
 
@@ -291,8 +316,7 @@ suite('calendar/template', function() {
 
       container.parentNode.removeChild(container);
     });
-
   });
-
 });
 
+});

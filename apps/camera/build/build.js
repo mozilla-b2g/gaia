@@ -1,45 +1,33 @@
 'use strict';
 
-/* global require, exports */
+/* global exports, require */
+
 var utils = require('utils');
-var config = require('./customizeConfig.js');
-var DEFAULT_VALUE = {
-  maxImagePixelSize: 5 * 1024 * 1024,
-  maxSnapshotPixelSize: 5 * 1024 * 1024,
 
-  // An estimated JPEG compression ratio expected from an average photo. Use
-  // a default assumption of 8:1 compression for high quality. This default
-  // value is derived from sample images taken with a variety of devices.
-  //
-  // Reference: http://en.wikipedia.org/wiki/JPEG#Effects_of_JPEG_compression
-  avgJpegCompressionRatio: 8
-};
-var CameraAppBuilder = function() {
-};
+function optimize(options) {
+  var r = require('r-wrapper').get(options.GAIA_DIR);
+  var configFile = utils.getFile(options.APP_DIR, 'build',
+    'require_config.jslike');
+  var optimizeOption = 'optimize=' + (options.GAIA_OPTIMIZE === '1' ?
+    'uglify2' : 'none');
+  r.optimize([configFile.path, optimizeOption]);
+}
 
-CameraAppBuilder.prototype.setOptions = function(options) {
-  this.stageDir = utils.getFile(options.STAGE_APP_DIR);
-  this.appDir = utils.getFile(options.APP_DIR);
+function copyUserConfig(options) {
+  var targetFile = utils.getFile(options.STAGE_APP_DIR, 'js', 'config',
+    'config.js');
+  var [parent, filename] = [targetFile.parent.path, targetFile.leafName];
 
-  var jsDir = utils.getFile(this.stageDir.path, 'js');
-  utils.ensureFolderExists(jsDir);
-};
-
-CameraAppBuilder.prototype.customizeMaximumImageSize = function(options) {
-  var distDir = options.GAIA_DISTRIBUTION_DIR;
-  var customize = JSON.parse(utils.getDistributionFileContent('camera',
-                    DEFAULT_VALUE, distDir));
-
-  var content = config.customizeMaximumImageSize(customize);
-  var file = utils.getFile(this.stageDir.path, 'js', 'config.js');
-  utils.writeContent(file, content);
-};
-
-CameraAppBuilder.prototype.execute = function(options) {
-  this.setOptions(options);
-  this.customizeMaximumImageSize(options);
-};
+  if (options.GAIA_DISTRIBUTION_DIR) {
+    var distConfig = utils.getFile(options.GAIA_DISTRIBUTION_DIR,
+      'camera-config.js');
+    if (distConfig.exists()) {
+      utils.copyFileTo(distConfig, parent, filename, true);
+    }
+  }
+}
 
 exports.execute = function(options) {
-  (new CameraAppBuilder()).execute(options);
+  copyUserConfig(options);
+  optimize(options);
 };

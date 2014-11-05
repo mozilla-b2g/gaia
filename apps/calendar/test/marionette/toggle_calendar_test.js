@@ -1,21 +1,28 @@
 'use strict';
 
-var Calendar = require('./lib/calendar');
+var Calendar = require('./lib/calendar'),
+    assert = require('chai').assert;
 
 marionette('toggle calendar', function() {
   var app;
-  var client = marionette.client();
+  var client = marionette.client({
+    prefs: {
+      // we need to disable the keyboard to avoid intermittent failures on
+      // Travis (transitions might take longer to run and block UI)
+      'dom.mozInputMethod.enabled': false,
+      // Do not require the B2G-desktop app window to have focus (as per the
+      // system window manager) in order for it to do focus-related things.
+      'focusmanager.testmode': true,
+    },
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
+    }
+  });
 
   setup(function() {
     app = new Calendar(client);
-    app.launch({ hideSwipeHint: true });
-
-    app.createEvent({
-      title: 'Toggle Calendar Test',
-      location: 'Some Place'
-    });
-
-    toggleLocalCalendar();
+    app.launch();
   });
 
   function toggleLocalCalendar() {
@@ -24,49 +31,82 @@ marionette('toggle calendar', function() {
     app.closeSettingsView();
   }
 
-  // the UI only gets updated after a few ms (data is persisted asynchronously
-  // and after a delay), so we need to wait "displayed" value to change - will
-  // timeout on test failure
-  function waitForElement(el) {
-    client.helper.waitForElement(el);
-  }
-
-  function waitForElementToDisappear(el) {
-    client.helper.waitForElementToDisappear(el);
-  }
-
-  suite('disable calendar', function() {
-    test('month view', function() {
-      waitForElementToDisappear(app.monthDay.events[0]);
+  suite('> regular event', function() {
+    setup(function() {
+      app.createEvent({
+        title: 'Toggle Calendar Test',
+        location: 'Some Place'
+      });
+      toggleLocalCalendar();
     });
 
-    test('week view', function() {
-      app.openWeekView();
-      waitForElementToDisappear(app.week.events[0]);
+    suite('disable calendar', function() {
+      test('month view', function() {
+        client.waitFor(function() {
+          return app.monthDay.events.length === 0;
+        });
+        assert.equal(app.month.busyDots.length, 0, 'no busy dots');
+      });
+
+      test('week view', function() {
+        app.openWeekView();
+        client.waitFor(function() {
+          return app.week.events.length === 0;
+        });
+      });
+
+      test('day view', function() {
+        app.openDayView();
+        client.waitFor(function() {
+          return app.day.events.length === 0;
+        });
+      });
     });
 
-    test('day view', function() {
-      app.openDayView();
-      waitForElementToDisappear(app.day.events[0]);
+    suite('enable calendar', function() {
+      setup(toggleLocalCalendar);
+
+      test('month view', function() {
+        client.waitFor(function() {
+          return app.monthDay.events.length;
+        });
+      });
+
+      test('week view', function() {
+        app.openWeekView();
+        client.waitFor(function() {
+          return app.week.events.length;
+        });
+      });
+
+      test('day view', function() {
+        app.openDayView();
+        client.waitFor(function() {
+          return app.day.events.length;
+        });
+      });
     });
   });
 
-  suite('enable calendar', function() {
-    setup(toggleLocalCalendar);
-
-    test('month view', function() {
-      waitForElement(app.monthDay.events[0]);
+  suite('> all day event', function() {
+    setup(function() {
+      app.createEvent({
+        title: 'Toggle Calendar Test',
+        location: 'Some Place',
+        allDay: true
+      });
+      toggleLocalCalendar();
     });
 
-    test('week view', function() {
-      app.openWeekView();
-      waitForElement(app.week.events[0]);
-    });
-
-    test('day view', function() {
+    test('should not hide all day on day view', function() {
       app.openDayView();
-      waitForElement(app.day.events[0]);
+      client.waitFor(function() {
+        return app.day.events.length === 0;
+      });
+      assert.ok(
+        app.day.allDay.displayed(),
+        'all day should be displayed'
+      );
     });
   });
-
 });

@@ -1,37 +1,24 @@
 suite('views/viewfinder', function() {
   'use strict';
-  var require = window.req;
 
   var SENSOR_ANGLE = 90;
 
   suiteSetup(function(done) {
     var self = this;
-    require(['views/viewfinder'], function(ViewfinderView) {
+    requirejs(['views/viewfinder'], function(ViewfinderView) {
       self.ViewfinderView = ViewfinderView;
       done();
     });
   });
 
   setup(function() {
-    var width = 300;
-    var height = 500;
-
     this.viewfinder = new this.ViewfinderView();
-
-    this.container = this.viewfinder.container = {
-      width: height,
-      height: width,
-      aspect: height / width
-    };
+    this.viewfinder.width = 300;
+    this.viewfinder.height = 500;
   });
 
   suite('ViewfinderView#updatePreview()', function() {
     setup(function() {
-      this.viewfinder.el = {
-        clientWidth: this.container.height,
-        clientHeight: this.container.width
-      };
-      
       sinon.stub(this.viewfinder, 'updatePreviewMetrics');
     });
 
@@ -76,7 +63,14 @@ suite('views/viewfinder', function() {
   });
 
   suite('ViewfinderView#updatePreviewMetrics()', function() {
-    setup(function() {});
+    setup(function() {
+      this.viewfinder.container = {
+        width: this.viewfinder.height,
+        height: this.viewfinder.width
+      };
+
+      this.container = this.viewfinder.container;
+    });
 
     test('Should set a \'scale-type\' attribute', function() {
       var previewSize = { width: 400, height: 300 };

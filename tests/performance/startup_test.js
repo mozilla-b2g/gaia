@@ -1,59 +1,73 @@
 'use strict';
 
 var assert = require('assert');
-
 var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
-var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
+var perfUtils = require('./perf-utils');
+var appPath = config.appPath;
 
-var manifestPath, entryPoint;
+if (perfUtils.isWhitelisted(config.whitelists.mozLaunch, appPath) ||
+    perfUtils.isBlacklisted(config.blacklists.legacyLaunch, appPath)) {
+  return;
+}
 
-var arr = mozTestInfo.appPath.split('/');
-manifestPath = arr[0];
-entryPoint = arr[1];
+var arr = appPath.split('/');
+var manifestPath = arr[0];
+var entryPoint = arr[1];
 
-marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
+marionette('startup test > ' + appPath + ' >', function() {
 
   var app;
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
+  // Do nothing on script timeout. Bug 987383
+  client.onScriptTimeout = null;
 
   var performanceHelper;
-  var isHostRunner = (process.env.MARIONETTE_RUNNER_HOST == 'marionette-device-host');
+  var isHostRunner = (config.runnerHost === 'marionette-device-host');
 
-  app = new App(client, mozTestInfo.appPath);
+  app = new App(client, appPath);
   if (app.skip) {
     return;
   }
 
   setup(function() {
     // Mocha timeout for this test
-    this.timeout(100000);
+    this.timeout(config.timeout);
     // Marionnette timeout for each command sent to the device
-    client.setScriptTimeout(10000);
-
-    MarionetteHelper.unlockScreen(client);
+    client.setScriptTimeout(config.scriptTimeout);
   });
 
   test('startup time', function() {
 
     performanceHelper = new PerformanceHelper({ app: app });
+    performanceHelper.unlockScreen();
 
     PerformanceHelper.registerLoadTimeListener(client);
+
+    var goals = PerformanceHelper.getGoalData(client);
 
     var memStats = [];
     performanceHelper.repeatWithDelay(function(app, next) {
       app.launch();
-      if (isHostRunner) {
-        // we can only collect memory if we have a host device (adb)
-        var memUsage = performanceHelper.getMemoryUsage(app);
-        assert.ok(memUsage, 'couldn\'t collect mem usage');
-        memStats.push(memUsage);
+
+      if (!isHostRunner) {
+        return app.close();
       }
+
+      // we can only collect memory if we have a host device (adb)
+      var memUsage = performanceHelper.getMemoryUsage(app);
+
+      // Bug 1045717: be sure to close app before we assert the value of
+      // memStats so we avoid leaking problems into other tests
       app.close();
+
+      assert.ok(memUsage, 'couldn\'t collect mem usage');
+      memStats.push(memUsage);
     });
 
     var results = PerformanceHelper.getLoadTimes(client);
@@ -71,8 +85,12 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
       return element.time;
     });
 
+    // results is an Array of values, one per run.
+    assert.ok(results.length == config.runs, 'missing runs');
+
     PerformanceHelper.reportDuration(results);
     PerformanceHelper.reportMemory(memStats);
+    PerformanceHelper.reportGoal(goals);
 
     PerformanceHelper.unregisterLoadTimeListener(client);
   });

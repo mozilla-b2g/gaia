@@ -17,7 +17,7 @@ class TestEnduranceGalleryFlick(GaiaEnduranceTestCase):
         GaiaEnduranceTestCase.setUp(self)
 
         # Add photos to storage.
-        self.push_resource(self.images, self.image_count, 'DCIM/100MZLLA')
+        self.push_resource(self.images, count=self.image_count)
 
         # Start gallery app
         self.gallery = Gallery(self.marionette)

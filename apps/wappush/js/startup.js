@@ -5,8 +5,4 @@
 
 'use strict';
 
-window.addEventListener('load', function callSetup(evt) {
-  window.removeEventListener('load', callSetup);
-
-  WapPushManager.init();
-});
+navigator.mozL10n.once(WapPushManager.init.bind(WapPushManager));

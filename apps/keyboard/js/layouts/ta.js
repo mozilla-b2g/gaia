@@ -1,5 +1,6 @@
 Keyboards.ta = {
   label: 'Tamil',
+  shortLabel: 'Ta',
   imEngine: 'india',
   menuLabel: 'தமிழ்',
   secondLayout: true,
@@ -35,7 +36,10 @@ Keyboards.ta = {
     'வ':'ழ',
     'ல':'ள',
     'ஸ':'ஷ',
-    'ய':'@'
+    'ய':'₹'
+  },
+  alt: {
+    '₹': '$ € £ ¥ ৳'
   },
   keys: [
     [

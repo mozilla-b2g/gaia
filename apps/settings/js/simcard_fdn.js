@@ -1,6 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global localize, SimPinDialog, Settings, MozActivity */
+/* global SimPinDialog, Settings, MozActivity */
 /* global FdnAuthorizedNumbers, getIccByIndex, console */
 
 'use strict';
@@ -43,7 +43,8 @@ var SimFdnLock = {
     var req = iccObj.getCardLock('fdn');
     req.onsuccess = function spl_checkSuccess() {
       var enabled = req.result.enabled;
-      localize(self.simFdnDesc, enabled ? 'enabled' : 'disabled');
+      self.simFdnDesc.setAttribute('data-l10n-id',
+                                   enabled ? 'enabled' : 'disabled');
       self.simFdnCheckBox.disabled = false;
       self.simFdnCheckBox.checked = enabled;
       self.resetPin2Item.hidden = !enabled;
@@ -96,7 +97,7 @@ var SimFdnLock = {
     this.fdnContactNumber.oninput = checkContactInputs;
 
     this.fdnContactButton.onclick = function() { // add FDN contact
-      localize(self.fdnContactTitle, 'fdnAction-add');
+      self.fdnContactTitle.setAttribute('data-l10n-id', 'fdnAction-add');
       self.fdnContactName.value = '';
       self.fdnContactNumber.value = '';
       self.fdnContactSubmit.onclick = function addContact() {
@@ -107,7 +108,8 @@ var SimFdnLock = {
     };
 
     this.fdnActionMenuEdit.onclick = function() { // edit FDN contact
-      localize(self.fdnContactTitle, 'fdnAction-edit-header');
+      self.fdnContactTitle.setAttribute('data-l10n-id',
+                                        'fdnAction-edit-header');
       self.fdnContactName.value = self.currentContact.name;
       self.fdnContactNumber.value = self.currentContact.number;
       self.fdnContactSubmit.onclick = function editContact() {

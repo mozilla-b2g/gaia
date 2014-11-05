@@ -4,7 +4,6 @@
 /* global Contacts */
 /* global LazyLoader */
 /* global MyLocks */
-/* global utils */
 /* global MockWakeLock */
 /* global MockasyncStorage */
 /* global MockMozL10n */
@@ -12,12 +11,13 @@
 /* global MocksHelper */
 /* global MockUtils */
 /* global MockContactsIndexHtml */
-/* global MockNavigatorMozMobileConnection */
 /* global MockNavigatorMozMobileConnections */
+/* global MockSimContactsImporter */
+/* global MockVCFReader */
+/* global MockMozContacts */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 
@@ -32,7 +32,8 @@ requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_sim_importer.js');
 
-requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 
 requireApp('communications/contacts/js/views/settings.js');
 requireApp('communications/contacts/js/utilities/icc_handler.js');
@@ -42,7 +43,6 @@ requireApp('communications/contacts/js/navigation.js');
 if (!window._) { window._ = null; }
 if (!window.utils) { window.utils = null; }
 if (!navigator.mozMobileConnections) { navigator.mozMobileConnections = null; }
-if (!navigator.mozMobileConnection) { navigator.mozMobileConnection = null; }
 
 var mocksHelperForContactImport = new MocksHelper([
   'Contacts', 'fb', 'asyncStorage', 'ConfirmDialog',
@@ -56,19 +56,29 @@ suite('Import contacts >', function() {
   var real_,
       realUtils,
       realWakeLock,
-      realMozMobileConnection,
-      realMozMobileConnections;
+      realMozMobileConnections,
+      realMozContacts;
+
+  setup(function() {
+    this.sinon.spy(window.utils.overlay, 'showMenu');
+    this.sinon.spy(Contacts, 'showStatus');
+  });
+
+  teardown(function() {
+    MockasyncStorage.clear();
+  });
 
   suiteSetup(function(done) {
     mocksHelper.suiteSetup();
 
     realMozMobileConnections = navigator.mozMobileConnections;
-    realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-    navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
 
     realWakeLock = navigator.requestWakeLock;
     navigator.requestWakeLock = MockWakeLock;
+
+    realMozContacts = navigator.mozContacts;
+    navigator.mozContacts = MockMozContacts;
 
     real_ = window._;
     window._ = MockMozL10n.get;
@@ -100,8 +110,8 @@ suite('Import contacts >', function() {
 
   suiteTeardown(function() {
     navigator.mozMobileConnections = realMozMobileConnections;
-    navigator.mozMobileConnection = realMozMobileConnection;
     navigator.requestWakeLock = realWakeLock;
+    navigator.mozContacts = realMozContacts;
 
     window.utils = realUtils;
     window._ = real_;
@@ -109,20 +119,28 @@ suite('Import contacts >', function() {
     mocksHelper.suiteTeardown();
   });
 
-  setup(function() {
-    this.sinon.spy(window.utils.overlay, 'showMenu');
-    this.sinon.spy(Contacts, 'showStatus');
-  });
-
-  teardown(function() {
-    MockasyncStorage.clear();
-  });
-
   test('SD Import went well', function(done) {
     contacts.Settings.importFromSDCard(function onImported() {
       assert.isTrue(window.utils.overlay.showMenu.called);
-      assert.isTrue(Contacts.showStatus.called);
+      assert.equal(Contacts.showStatus.getCall(0).args.length, 2);
       assert.equal(false, MyLocks.cpu);
+      done();
+    });
+  });
+
+  test('SD Import went well with duplicates found', function(done) {
+    MockVCFReader.prototype.numDuplicated = 2;
+
+    contacts.Settings.importFromSDCard(function onImported() {
+      assert.isTrue(window.utils.overlay.showMenu.called);
+
+      assert.isTrue(Contacts.showStatus.called);
+      assert.isTrue(Contacts.showStatus.getCall(0).args[0] !== null);
+      assert.isTrue(Contacts.showStatus.getCall(0).args[1] !== null);
+
+      assert.equal(false, MyLocks.cpu);
+
+      delete MockVCFReader.prototype.numDuplicated;
       done();
     });
   });
@@ -142,23 +160,40 @@ suite('Import contacts >', function() {
 
   suite('SIM Import ', function() {
     suiteSetup(function() {
-      Contacts.showStatus = utils.status.show;
       contacts.Settings.init();
     });
 
     test('If there are no Contacts to be imported a message appears',
       function(done) {
-        var observer = new MutationObserver(function(record) {
-          observer.disconnect();
-          assert.isTrue(record[0].target.classList.contains('opening'));
+        MockSimContactsImporter.prototype.numImportedContacts = 0;
+        MockSimContactsImporter.prototype.numDuplicated = 0;
+        MockSimContactsImporter.prototype.number = 0;
+
+        contacts.Settings.importFromSIMCard('1234', function onImported() {
+          assert.isTrue(Contacts.showStatus.called);
+          assert.isTrue(Contacts.showStatus.getCall(0).args[0] !== null);
+          assert.isTrue(Contacts.showStatus.getCall(0).args[1] === null);
+
+          delete MockSimContactsImporter.prototype.numImportedContacts;
           done();
         });
-        observer.observe(document.getElementById('statusMsg'), {
-          attributes: true,
-          attributeFilter: ['class']
-        });
-        var simOption = document.querySelector('.icon-sim');
-        simOption.click();
+    });
+
+    test('SIM Import went well with duplicates found', function(done) {
+      MockSimContactsImporter.prototype.numDuplicated = 1;
+      MockSimContactsImporter.prototype.numImportedContacts = 3;
+      MockSimContactsImporter.prototype.number = 3;
+
+      contacts.Settings.importFromSIMCard('1234', function onImported() {
+        assert.isTrue(Contacts.showStatus.called);
+        assert.isTrue(Contacts.showStatus.getCall(0).args[0] !== null);
+        assert.isTrue(Contacts.showStatus.getCall(0).args[1] !== null);
+
+        assert.equal(false, MyLocks.cpu);
+
+        delete MockSimContactsImporter.prototype.numDuplicates;
+        done();
+      });
     });
   });
 });

@@ -1,6 +1,7 @@
 'use strict';
 
 requireApp('homescreen/js/pagbar.js');
+requireApp('homescreen/test/unit/mock_l10n.js');
 
 suite('pagbar.js >', function() {
 
@@ -9,7 +10,8 @@ suite('pagbar.js >', function() {
   suiteSetup(function() {
     var markup = '<div class="paginationScroller" role="slider" ' +
                        'aria-valuemin="0" aria-valuenow="0" ' +
-                       'aria-valuemax="0" aria-controls="icongrid"></div>';
+                       'aria-valuetext="Step 0 of 0"' + 'aria-valuemax="0" ' +
+                       'aria-controls="icongrid"></div>';
 
     scroller = document.createElement('header');
     scroller.id = 'paginationBar';
@@ -42,7 +44,7 @@ suite('pagbar.js >', function() {
       assert.equal(scroller.getAttribute('aria-valuenow'), '1');
       assert.equal(scroller.getAttribute('aria-valuemax'), '4');
 
-      assert.equal('translateX(100%)', scroller.style.MozTransform);
+      assert.equal('translateX(100%)', scroller.style.transform);
     });
 
     test('Current page index: 3, total pages: 5 >', function() {
@@ -50,7 +52,7 @@ suite('pagbar.js >', function() {
       assert.equal(scroller.getAttribute('aria-valuenow'), '3');
       assert.equal(scroller.getAttribute('aria-valuemax'), '4');
 
-      assert.equal('translateX(300%)', scroller.style.MozTransform);
+      assert.equal('translateX(300%)', scroller.style.transform);
     });
 
     test('Keeping the position in the grid >', function() {
@@ -59,7 +61,7 @@ suite('pagbar.js >', function() {
       assert.equal(scroller.getAttribute('aria-valuemax'), '4');
 
       // The bar should be in the same position
-      assert.equal('translateX(300%)', scroller.style.MozTransform);
+      assert.equal('translateX(300%)', scroller.style.transform);
     });
 
     test('Adding a new page >', function() {
@@ -71,7 +73,7 @@ suite('pagbar.js >', function() {
       assert.equal(scroller.getAttribute('aria-valuenow'), '3');
       assert.equal(scroller.getAttribute('aria-valuemax'), '5');
 
-      assert.equal('translateX(300%)', scroller.style.MozTransform);
+      assert.equal('translateX(300%)', scroller.style.transform);
 
       // The new width should be shorter
       assert.isTrue(parseInt(width) > parseInt(scroller.style.width));
@@ -87,7 +89,7 @@ suite('pagbar.js >', function() {
       assert.equal(scroller.getAttribute('aria-valuemax'), '2');
 
       // The bar was translated
-      assert.equal('translateX(200%)', scroller.style.MozTransform);
+      assert.equal('translateX(200%)', scroller.style.transform);
 
       // The new width should be higher due to have less pages
       assert.isTrue(parseInt(width) < parseInt(scroller.style.width));

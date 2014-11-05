@@ -295,10 +295,6 @@ OmicronLab.Avro.Phonetic = {
                 "r":"।।"
             },
             {
-                "f":".",
-                "r":"।"
-            },
-            {
                 "f":"ghn",
                 "r":"ঘ্ন"
             },
@@ -1923,16 +1919,8 @@ OmicronLab.Avro.Phonetic = {
                 "r":":"
             },
             {
-                "f":":",
-                "r":"ঃ"
-            },
-            {
                 "f":"^`",
                 "r":"^"
-            },
-            {
-                "f":"^",
-                "r":"ঁ"
             },
             {
                 "f":",,",
@@ -1957,10 +1945,10 @@ OmicronLab.Avro.Phonetic = {
 
   var keyboard, buffer = "";
 
-  const SPACE = 32;
-  const TAB = 9;
-  const RETURN = 13;
-  const BACKSPACE = 8;
+  var SPACE = 32;
+  var TAB = 9;
+  var RETURN = 13;
+  var BACKSPACE = 8;
 
   function isBufferEmpty() {
     return buffer == "";

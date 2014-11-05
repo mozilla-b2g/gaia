@@ -11,7 +11,12 @@
   }
 
   utils.listeners.add({
-    '#link-close': fb.link.ui.end,
+    '#link-header': [
+      {
+        event: 'action',
+        handler: fb.link.ui.end
+      }
+    ],
     '#friends-list': fb.link.ui.selected
   });
 
@@ -34,10 +39,5 @@
       type: 'messaging_ready',
       data: ''
     }, fb.CONTACTS_APP_ORIGIN);
-  });
-
-  window.addEventListener('localized', function initContacts(evt) {
-    document.documentElement.lang = navigator.mozL10n.language.code;
-    document.documentElement.dir = navigator.mozL10n.language.direction;
   });
 })(document);

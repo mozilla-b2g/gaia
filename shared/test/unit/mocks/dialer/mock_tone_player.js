@@ -5,7 +5,6 @@
 var MockTonePlayer = {
   init: function() {},
   playSequence: function() {},
-  setChannel: function() {},
   start: function(frequencies, shortPress) {},
   stop: function() {}
 };

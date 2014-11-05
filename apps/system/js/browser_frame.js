@@ -33,7 +33,6 @@
   // property of Browser or prefix them with underscores.
   function createFrame(config, frame) {
     var browser = frame || document.createElement('iframe');
-    browser.setAttribute('mozallowfullscreen', 'true');
 
     // Most apps currently need to be hosted in a special 'mozbrowser' iframe.
     // They also need to be marked as 'mozapp' to be recognized as apps by the
@@ -45,15 +44,18 @@
     // window.open method.
     browser.name = config.window_name || 'main';
 
-    if (config.oop)
+    if (config.oop) {
       browser.setAttribute('remote', 'true');
+    }
 
     if (config.manifestURL) {
       browser.setAttribute('mozapp', config.manifestURL);
 
       // Only app with manifest could get system message.
-      browser.setAttribute('expecting-system-message',
-                            'expecting-system-message');
+      if (config.isSystemMessage) {
+        browser.setAttribute('expecting-system-message',
+                             'expecting-system-message');
+      }
     }
 
     if (config.parentApp) {
@@ -64,6 +66,13 @@
       // XXX: Move this dataset assignment into app window object.
       browser.dataset.useAsyncPanZoom = true;
       browser.setAttribute('mozasyncpanzoom', 'true');
+    }
+
+    if (config.isInputMethod) {
+      browser.setAttribute('mozpasspointerevents', 'true');
+      browser.setAttribute('ignoreuserfocus', 'true');
+    } else {
+      browser.setAttribute('mozallowfullscreen', 'true');
     }
 
     setMozAppType(browser, config);
@@ -87,10 +96,7 @@
   function setMozAppType(iframe, config) {
     // XXX: Those urls needs to be built dynamically.
     if (config.url.startsWith(window.location.protocol +
-                              '//communications.gaiamobile.org' +
-                              (window.location.port ?
-                                (':' + window.location.port) : '') +
-                              '/dialer') ||
+                              '//callscreen.gaiamobile.org') ||
         config.url.startsWith(window.location.protocol +
                               '//clock.gaiamobile.org')) {
       iframe.setAttribute('mozapptype', 'critical');
@@ -107,6 +113,8 @@
       /* If this frame corresponds to search, set mozapptype=search
        */
       iframe.setAttribute('mozapptype', 'search');
+    } else if (config.isInputMethod) {
+      iframe.setAttribute('mozapptype', 'inputmethod');
     }
   }
 }(this));

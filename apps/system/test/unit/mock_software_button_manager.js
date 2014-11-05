@@ -4,9 +4,11 @@
 function MockSoftwareButtonManager() {
 
   this.height = 0;
+  this.width = 0;
 
   this.mTeardown = function() {
     this.height = 0;
+    this.width = 0;
   };
 
 }

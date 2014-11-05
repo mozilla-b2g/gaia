@@ -6,7 +6,7 @@
   margin: 4rem 0 1rem 0;
 
   color: #CFE2E6;
-  font-weight: lighter;
+  font-weight: 300;
   font-variant-numeric: tabular-nums;
   font-size: 8.6rem;
   letter-spacing: -0.5rem;
@@ -56,7 +56,7 @@
   
   color: #CFE2E6;
   font: 2.5rem sans-serif;
-  font-weight: lighter;
+  font-weight: 300;
   text-decoration: none;
 }
 
@@ -67,7 +67,7 @@
 .lap-duration {
   float: right;
   font-variant-numeric: tabular-nums;
-  font-weight: lighter;
+  font-weight: 300;
 }
 
 @media (min-width: 768px) {

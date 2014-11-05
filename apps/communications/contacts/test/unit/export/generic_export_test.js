@@ -9,11 +9,11 @@
 
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_export_strategy.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
-requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 
 requireApp('communications/contacts/js/export/contacts_exporter.js');
 
@@ -51,6 +51,7 @@ suite('Contacts Exporter', function() {
   var subject;
   var ids = ['1', '3'];
   var realL10n;
+  var menuOverlay;
 
   function getContactsForIds(ids) {
     var contacts = MockContactsList();
@@ -117,6 +118,7 @@ suite('Contacts Exporter', function() {
     sinon.spy(window.utils.status, 'show');
 
     mocksHelperForExporter.suiteSetup();
+
   });
 
   suiteTeardown(function() {
@@ -127,9 +129,16 @@ suite('Contacts Exporter', function() {
     MockExportStrategy.hasDeterminativeProgress.restore();
     MockExportStrategy.setProgressStep.restore();
     mocksHelperForExporter.suiteTeardown();
+
   });
 
   setup(function() {
+    menuOverlay = document.createElement('form');
+    menuOverlay.innerHTML = '<menu>' +
+      '<button data-l10n-id="cancel" id="cancel-overlay">Cancel</button>' +
+      '</menu>';
+    document.body.appendChild(menuOverlay);
+
     subject = new ContactsExporter(MockExportStrategy);
 
     MockExportStrategy.shouldShowProgress.reset();
@@ -138,11 +147,15 @@ suite('Contacts Exporter', function() {
     MockExportStrategy.setProgressStep.reset();
   });
 
+  teardown(function() {
+    menuOverlay.parentNode.removeChild(menuOverlay);
+  });
+
 
   test('Correct initialization given an array of ids', function(done) {
     subject.init(ids, function onInitDone(contacts) {
       var expectedContacts = getContactsForIds(ids);
-      assert.length(contacts, 2);
+      assert.lengthOf(contacts, 2);
       assert.notStrictEqual(expectedContacts, contacts);
       done();
     });

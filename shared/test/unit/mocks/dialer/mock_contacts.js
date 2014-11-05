@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockContacts */
+
 var MockContacts = {
 
   // We need to test calls without contact information
@@ -51,5 +54,6 @@ var MockContacts = {
     this._calledWith = null;
     this.mCarrier = 'carrier';
     this.mType = 'type';
+    this.mResult = [];
   }
 };

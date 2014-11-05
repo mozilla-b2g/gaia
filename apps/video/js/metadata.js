@@ -253,7 +253,8 @@ function getMetadata(videofile, callback) {
     // and may not fire an error event, so if we aren't able to seek
     // after a certain amount of time, we'll abort and assume that the
     // video is invalid.
-    offscreenVideo.currentTime = Math.min(5, offscreenVideo.duration / 10);
+    var t = Math.min(5, offscreenVideo.duration / 10);
+    offscreenVideo.fastSeek(t);
 
     var failed = false;                      // Did seeking fail?
     var timeout = setTimeout(fail, 10000);   // Fail after 10 seconds
@@ -298,10 +299,16 @@ function getMetadata(videofile, callback) {
 
 function captureFrame(player, metadata, callback) {
   try {
+    // Create a new canvas, and set its size
     var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
     canvas.width = THUMBNAIL_WIDTH;
     canvas.height = THUMBNAIL_HEIGHT;
+
+    // Now create the context for the canvas after the size is set.
+    // The flag is a hint that we're going to be calling toBlob() on
+    // this canvas and that it is more efficient to use a software canvas
+    // than it is to do this on the GPU.
+    var ctx = canvas.getContext('2d', { willReadFrequently: true });
 
     var vw = player.videoWidth, vh = player.videoHeight;
     var tw, th;
@@ -350,10 +357,16 @@ function captureFrame(player, metadata, callback) {
     ctx.drawImage(player, x, y);
 
     // Convert it to an image file and pass to the callback.
-    canvas.toBlob(callback, 'image/jpeg');
+    canvas.toBlob(done, 'image/jpeg');
   }
   catch (e) {
     console.error('Exception in captureFrame:', e, e.stack);
-    callback(null);
+    done(null);
+  }
+
+  function done(blob) {
+    canvas.width = 0;    // Free canvas memory
+    ctx = canvas = null; // Prevent leaks, just to be safe
+    callback(blob);      // Return the frame thumbnail to the caller
   }
 }

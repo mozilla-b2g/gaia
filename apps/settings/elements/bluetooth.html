@@ -1,10 +1,9 @@
 <element name="bluetooth" extends="section">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
+    <gaia-header action="back" data-href="#root">
       <h1 data-l10n-id="bluetooth-header"> Bluetooth </h1>
-    </header>
+    </gaia-header>
 
     <div>
       <ul>
@@ -20,14 +19,12 @@
         <li hidden id="device-visible">
           <label class="pack-switch">
             <input type="checkbox" data-ignore>
-            <small id="bluetooth-device-name"></small>
             <span data-l10n-id="bluetooth-visible-to-all">Visible to all</span>
+            <small id="bluetooth-device-name"></small>
           </label>
         </li>
         <li hidden id="bluetooth-rename">
-          <label>
-            <button id="rename-device" data-l10n-id="rename-device" disabled>Rename My Device</button>
-          </label>
+          <button id="rename-device" data-l10n-id="rename-device" disabled>Rename My Device</button>
         </li>
       </ul>
 
@@ -47,18 +44,16 @@
       </div>
       <ul hidden id="bluetooth-search">
         <li>
-          <label>
-            <button id="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
-          </label>
+          <button id="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
         </li>
       </ul>
     </div>
 
     <form role="dialog" data-type="confirm" id="update-device-name" hidden>
       <section>
-        <h1 data-l10n-id="change-phone-name">Change phone name</h1>
+        <h1 data-l10n-id="change-device-name">Change phone name</h1>
         <p>
-          <input type="text" id="update-device-name-input" value=""/>
+          <input type="text" id="update-device-name-input" value="" dir="auto"/>
           <span data-l10n-id="change-phone-name-desc">Change the name of your device as it appears in your computer</span>
         </p>
       </section>
@@ -83,7 +78,7 @@
         <p data-l10n-id="device-option-unpair-device">Unpair device?</p>
       </section>
       <menu>
-        <button data-l10n-id="cancel">Cancel</button>
+        <button data-l10n-id="cancel" id="unpair-device-cancel">Cancel</button>
         <button data-l10n-id="device-option-confirm" id="confirm-option" class="danger">Confirm</button>
       </menu>
     </form>

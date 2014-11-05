@@ -1,36 +1,35 @@
 define(function(require, exports, module) {
 'use strict';
 
+// For perf-measurement related utilities
+require('performance-testing-helper');
+
 /**
  * Dependencies
  */
 
+var stopRecordingEvent = require('stop-recording-event');
 var NotificationView = require('views/notification');
-var ViewfinderView = require('views/viewfinder');
+var LoadingView = require('views/loading-screen');
 var orientation = require('lib/orientation');
-var ControlsView = require('views/controls');
-var FocusRing = require('views/focus-ring');
-var ZoomBarView = require('views/zoom-bar');
 var bindAll = require('lib/bind-all');
-var model = require('vendor/model');
+var AllDone = require('lib/all-done');
 var debug = require('debug')('app');
-var HudView = require('views/hud');
+var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
-
-/**
- * Locals
- */
-
-var unbind = bind.unbind;
-
-// Mixin model methods
-model(App.prototype);
+var model = require('model');
 
 /**
  * Exports
  */
 
 module.exports = App;
+
+/**
+ * Mixin `Model` API
+ */
+
+model(App.prototype);
 
 /**
  * Initialize a new `App`
@@ -43,42 +42,58 @@ module.exports = App;
  * @constructor
  */
 function App(options) {
+  debug('initialize');
   bindAll(this);
   this.views = {};
   this.el = options.el;
   this.win = options.win;
   this.doc = options.doc;
+  this.perf = options.perf || {};
+  this.pinch = options.pinch || new Pinch(this.el); // Test hook
+  this.require = options.require || window.requirejs; // Test hook
+  this.LoadingView = options.LoadingView || LoadingView; // test hook
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.controllers = options.controllers;
   this.geolocation = options.geolocation;
-  this.activity = options.activity;
   this.settings = options.settings;
-  this.storage = options.storage;
   this.camera = options.camera;
+  this.activity = {};
   this.sounds = options.sounds;
   debug('initialized');
 }
 
 /**
- * Runs all the methods
- * to boot the app.
+ * Runs all the methods to boot the app.
+ *
+ * The loading screen is shown until the
+ * camera is 'ready', then it is taken down.
  *
  * @public
  */
 App.prototype.boot = function() {
-  if (this.didBoot) { return; }
+  debug('boot');
+  if (this.booted) { return; }
+  this.showSpinner('requestingCamera');
+  this.bindEvents();
   this.initializeViews();
   this.runControllers();
+
+  // PERFORMANCE EVENT (1): moz-chrome-dom-loaded
+  // Designates that the app's *core* chrome or navigation interface
+  // exists in the DOM and is marked as ready to be displayed.
+  // PERFORMANCE EVENT (2): moz-chrome-interactive
+  // Designates that the app's *core* chrome or navigation interface
+  // has its events bound and is ready for user interaction.
+  this.dispatchEvent('moz-chrome-dom-loaded');
+  this.dispatchEvent('moz-chrome-interactive');
+
   this.injectViews();
-  this.bindEvents();
-  this.configureL10n();
-  this.emit('boot');
-  this.didBoot = true;
+  this.booted = true;
   debug('booted');
 };
 
-App.prototype.teardown = function() {
-  this.unbindEvents();
+App.prototype.dispatchEvent = function(name) {
+  this.win.dispatchEvent(new CustomEvent(name));
 };
 
 /**
@@ -88,23 +103,31 @@ App.prototype.teardown = function() {
  * @private
  */
 App.prototype.runControllers = function() {
-  debug('running controllers');
+  debug('run controllers');
+  this.controllers.overlay(this);
+  this.controllers.battery(this);
   this.controllers.settings(this);
   this.controllers.activity(this);
-  this.controllers.timer(this);
   this.controllers.camera(this);
   this.controllers.viewfinder(this);
-  this.controllers.recordingTimer(this);
-  this.controllers.indicators(this);
-  this.controllers.previewGallery(this);
-  this.controllers.controls(this);
-  this.controllers.confirm(this);
-  this.controllers.overlay(this);
-  this.controllers.sounds(this);
   this.controllers.hud(this);
-  this.controllers.zoomBar(this);
-  this.controllers.battery(this);
+  this.controllers.controls(this);  
   debug('controllers run');
+};
+
+/**
+ * Load and run all the lazy controllers.
+ *
+ * @param  {Function} done
+ */
+App.prototype.loadLazyControllers = function(done) {
+  debug('load lazy controllers');
+  var self = this;
+  this.require(this.controllers.lazy, function() {
+    [].forEach.call(arguments, function(controller) { controller(self); });
+    debug('controllers loaded');
+    done();
+  });
 };
 
 /**
@@ -114,11 +137,6 @@ App.prototype.runControllers = function() {
  */
 App.prototype.initializeViews = function() {
   debug('initializing views');
-  this.views.viewfinder = new ViewfinderView();
-  this.views.focusRing = new FocusRing();
-  this.views.controls = new ControlsView();
-  this.views.hud = new HudView();
-  this.views.zoomBar = new ZoomBarView();
   this.views.notification = new NotificationView();
   debug('views initialized');
 };
@@ -130,11 +148,6 @@ App.prototype.initializeViews = function() {
  */
 App.prototype.injectViews = function() {
   debug('injecting views');
-  this.views.viewfinder.appendTo(this.el);
-  this.views.focusRing.appendTo(this.el);
-  this.views.controls.appendTo(this.el);
-  this.views.hud.appendTo(this.el);
-  this.views.zoomBar.appendTo(this.el);
   this.views.notification.appendTo(this.el);
   debug('views injected');
 };
@@ -145,24 +158,34 @@ App.prototype.injectViews = function() {
  * @private
  */
 App.prototype.bindEvents = function() {
-  this.storage.once('checked:healthy', this.geolocationWatch);
+  debug('binding events');
+
+  // App
+  this.once('storage:checked:healthy', this.geolocationWatch);
+  this.once('viewfinder:visible', this.onCriticalPathDone);
+  this.once('camera:error', this.onCriticalPathDone);
+  this.on('camera:willchange', this.firer('busy'));
+  this.on('ready', this.clearSpinner);
+  this.on('visible', this.onVisible);
+  this.on('hidden', this.onHidden);
+  this.on('busy', this.onBusy);
+
+  // Pinch
+  this.pinch.on('changed', this.firer('pinch:changed'));
+  this.on('previewgallery:opened', this.pinch.disable);
+  this.on('previewgallery:closed', this.pinch.enable);
+  this.on('settings:opened', this.pinch.disable);
+  this.on('settings:closed', this.pinch.enable);
+
+  // DOM
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
+
+  // we bind to window.onlocalized in order not to depend
+  // on l10n.js loading (which is lazy). See bug 999132
+  bind(this.win, 'localized', this.firer('localized'));
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
-  this.on('focus', this.onFocus);
-  this.on('blur', this.onBlur);
   debug('events bound');
-};
-
-/**
- * Detaches event handlers.
- */
-App.prototype.unbindEvents = function() {
-  unbind(this.doc, 'visibilitychange', this.onVisibilityChange);
-  unbind(this.win, 'beforeunload', this.onBeforeUnload);
-  this.off('focus', this.onFocus);
-  this.off('blur', this.onBlur);
-  debug('events unbound');
 };
 
 /**
@@ -173,26 +196,99 @@ App.prototype.unbindEvents = function() {
  * may have made changes since the
  * app was minimised
  */
-App.prototype.onFocus = function() {
+App.prototype.onVisible = function() {
   this.geolocationWatch();
-  this.storage.check();
   orientation.start();
-  debug('focus');
+  debug('visible');
 };
 
 /**
  * Tasks to run when the
  * app is minimised/hidden.
+ *
+ * @private
  */
-App.prototype.onBlur = function() {
+App.prototype.onHidden = function() {
   this.geolocation.stopWatching();
   orientation.stop();
-  debug('blur');
+  debug('hidden');
 };
 
+/**
+ * Emit a click event that other
+ * modules can listen to.
+ *
+ * @private
+ */
 App.prototype.onClick = function() {
   debug('click');
   this.emit('click');
+};
+
+/**
+ * Log when critical path has completed.
+ *
+ * @private
+ */
+App.prototype.onCriticalPathDone = function() {
+  if (this.criticalPathDone) { return; }
+  debug('critical path done');
+
+  // PERFORMANCE EVENT (3): moz-app-visually-complete
+  // Designates that the app is visually loaded (e.g.: all of the
+  // "above-the-fold" content exists in the DOM and is marked as
+  // ready to be displayed).
+  this.dispatchEvent('moz-app-visually-complete');
+
+  // Load non-critical modules
+  this.listenForStopRecordingEvent();
+  this.loadLazyModules();
+  this.perf.criticalPath = Date.now();
+  this.criticalPathDone = true;
+  this.emit('criticalpathdone');
+};
+
+App.prototype.loadLazyModules = function() {
+  debug('load lazy modules');
+  var done = AllDone();
+  var self = this;
+
+  this.loadL10n(done());
+  this.loadLazyControllers(done());
+
+  // All done
+  done(function() {
+    debug('app fully loaded');
+
+    // PERFORMANCE EVENT (4): moz-content-interactive
+    // Designates that the app has its events bound for the minimum
+    // set of functionality to allow the user to interact with the
+    // "above-the-fold" content.
+    self.dispatchEvent('moz-content-interactive');
+
+    // PERFORMANCE EVENT (5): moz-app-loaded
+    // Designates that the app is *completely* loaded and all relevant
+    // "below-the-fold" content exists in the DOM, is marked visible,
+    // has its events bound and is ready for user interaction. All
+    // required startup background processing should be complete.
+    self.dispatchEvent('moz-app-loaded');
+    self.perf.loaded = Date.now();
+    self.loaded = true;
+    self.emit('loaded');
+    self.logPerf();
+  });
+};
+
+App.prototype.logPerf =function() {
+  var timing = window.performance.timing;
+  console.log('domloaded: %s',
+    timing.domComplete - timing.domLoading + 'ms');
+  console.log('first module: %s',
+    this.perf.firstModule - this.perf.jsStarted + 'ms');
+  console.log('critical-path: %s',
+    this.perf.criticalPath -  timing.domLoading + 'ms');
+  console.log('app-fully-loaded: %s',
+    this.perf.loaded - timing.domLoading + 'ms');
 };
 
 /**
@@ -206,9 +302,8 @@ App.prototype.onClick = function() {
  * @private
  */
 App.prototype.geolocationWatch = function() {
-  var delay = this.settings.geolocation.get('promptDelay');
-  var shouldWatch = !this.activity.active && !this.doc.hidden;
-  if (shouldWatch) { setTimeout(this.geolocation.watch, delay); }
+  var shouldWatch = !this.activity.pick && !this.hidden;
+  if (shouldWatch) { this.geolocation.watch(); }
 };
 
 /**
@@ -220,8 +315,8 @@ App.prototype.geolocationWatch = function() {
  * @private
  */
 App.prototype.onVisibilityChange = function() {
-  if (this.doc.hidden) { this.emit('blur'); }
-  else { this.emit('focus'); }
+  this.hidden = this.doc.hidden;
+  this.emit(this.hidden ? 'hidden' : 'visible');
 };
 
 /**
@@ -247,10 +342,142 @@ App.prototype.onBeforeUnload = function() {
  *
  * @private
  */
-App.prototype.configureL10n = function() {
-  var complete = navigator.mozL10n.readyState === 'complete';
-  bind(this.win, 'localized', this.firer('localized'));
-  if (complete) { this.emit('localized'); }
+App.prototype.loadL10n = function(done) {
+  this.require(['l10n'], done);
+};
+
+/**
+ * States whether localization
+ * has completed or not.
+ *
+ * @return {Boolean}
+ * @public
+ */
+App.prototype.localized = function() {
+  var l10n = navigator.mozL10n;
+  return l10n && l10n.readyState === 'complete';
+};
+
+/**
+ * Central place to localize a string.
+ *
+ * @param  {String} key
+ * @public
+ */
+App.prototype.l10nGet = function(key) {
+  var l10n = navigator.mozL10n;
+  if (l10n) {
+    return l10n.get(key);
+  }
+
+  // in case we don't have mozL10n loaded yet, we want to
+  // return the key. See bug 999132
+  return key;
+};
+
+/**
+ * Shows the loading screen after the
+ * number of ms defined in config.js
+ *
+ * @param {String} type
+ * @private
+ */
+App.prototype.showSpinner = function(key) {
+  debug('show loading type: %s', key);
+
+  var view = this.views.loading;
+  if (view) {
+    return;
+  }
+
+  var ms = this.settings.spinnerTimeouts.get(key) || 0;
+  var self = this;
+
+  clearTimeout(this.spinnerTimeout);
+  this.spinnerTimeout = setTimeout(function() {
+    self.views.loading = new self.LoadingView();
+    self.views.loading.appendTo(self.el).show();
+    debug('loading shown');
+  }, ms);
+};
+
+/**
+ * Clears the loadings screen, or
+ * any pending loading screen.
+ *
+ * @private
+ */
+App.prototype.clearSpinner = function() {
+  debug('clear loading');
+  var view = this.views.loading;
+  clearTimeout(this.spinnerTimeout);
+  if (!view) { return; }
+  view.hide(view.destroy);
+  this.views.loading = null;
+};
+
+/**
+ * When the camera indicates it's busy it
+ * sometimes passes a `type` string. When
+ * this type matches one of our keys in the
+ * `spinnerTimeouts` config, we display the
+ * loading screen passing on the type.
+ *
+ * @param  {String} type
+ * @private
+ */
+App.prototype.onBusy = function(type) {
+  debug('camera busy, type: %s', type);
+  var delay = this.settings.spinnerTimeouts.get(type);
+  if (delay) { this.showSpinner(type); }
+};
+
+/**
+ * Clears the loadings screen, or
+ * any pending loading screen.
+ *
+ * @private
+ */
+App.prototype.onReady = function() {
+  debug('ready');
+  var view = this.views.loading;
+  clearTimeout(this.spinnerTimeout);
+  if (!view) { return; }
+  view.hide(view.destroy);
+  this.views.loading = null;
+};
+
+/**
+ * If the system app is opening an attention screen (because
+ * of an incoming call or an alarm, e.g.) and if we are
+ * currently recording a video then we need to stop recording
+ * before the ringer or alarm starts sounding. We will be sent
+ * to the background shortly after this and will stop recording
+ * when that happens, but by that time it is too late and we
+ * have already recorded some sound. See bugs 995540 and 1006200.
+ *
+ * Similarly, if the user presses the Home button or switches to
+ * another app while recording, we need to stop recording right away,
+ * even if the system is overloaded and we don't get a visiblitychange
+ * event right away. See bug 1046167.
+ *
+ * To make this work, we rely on shared/js/stop_recording_event.js which
+ * abuses the settings API to allow the system app to broadcast a "you
+ * will soon be hidden" message to any certified apps that care. There
+ * ought to be a better way, but this is a quick way to fix a
+ * last-minute release blocker.
+ *
+ * @private
+ */
+App.prototype.listenForStopRecordingEvent = function() {
+  debug('listen for stop recording events');
+
+  // Start the module that generates
+  // the stoprecording events and listen
+  // for those custom DOM events and emit
+  // them using our internal event emitter
+  stopRecordingEvent.start();
+  addEventListener('stoprecording', this.firer('stoprecording'));
 };
 
 });

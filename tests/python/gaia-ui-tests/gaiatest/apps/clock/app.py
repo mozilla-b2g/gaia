@@ -2,10 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
+from marionette import expected
 from marionette.by import By
 from marionette.wait import Wait
-from marionette.errors import StaleElementException
+
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
@@ -16,29 +16,18 @@ class Clock(Base):
 
     _alarm_view_locator = (By.ID, 'edit-alarm')
     _alarm_create_new_locator = (By.ID, 'alarm-new')
-    _analog_clock_display_locator = (By.ID, 'analog-clock')
-    _digital_clock_display_locator = (By.ID, 'digital-clock')
-    _clock_day_date_locator = (By.ID, 'clock-day-date')
     _all_alarms_locator = (By.CSS_SELECTOR, '#alarms li')
+    _visible_clock_locator = (By.CSS_SELECTOR, '#clock-view .visible')
     _banner_countdown_notification_locator = (By.ID, 'banner-countdown')
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_new_alarm_button()
-        # Desperate attempt to bust the intermittency :(
-        time.sleep(1)
-
-    @property
-    def is_digital_clock_displayed(self):
-        return self.is_element_displayed(*self._digital_clock_display_locator)
-
-    @property
-    def is_analog_clock_displayed(self):
-        return self.is_element_displayed(*self._analog_clock_display_locator)
-
-    @property
-    def is_day_and_date_displayed(self):
-        return self.is_element_displayed(*self._clock_day_date_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._visible_clock_locator))))
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._alarm_create_new_locator))))
 
     @property
     def alarms(self):
@@ -46,51 +35,39 @@ class Clock(Base):
 
     @property
     def banner_notification(self):
-        self.wait_for_element_displayed(
-            *self._banner_countdown_notification_locator)
-        return self.marionette.find_element(
-            *self._banner_countdown_notification_locator).text
+        banner = Wait(self.marionette).until(
+            expected.element_present(*self._banner_countdown_notification_locator))
+        Wait(self.marionette).until(expected.element_displayed(banner))
+        return banner.text
 
     def dismiss_banner(self):
-        self.wait_for_element_displayed(
-            *self._banner_countdown_notification_locator)
+        banner = Wait(self.marionette).until(
+            expected.element_present(*self._banner_countdown_notification_locator))
+        Wait(self.marionette).until(expected.element_displayed(banner))
         # We can't tap to clear the banner as sometimes it taps the underlying alarm changing the UI
-        self.wait_for_element_not_displayed(
-            *self._banner_countdown_notification_locator)
-
-    def wait_for_new_alarm_button(self):
-        self.wait_for_element_displayed(*self._alarm_create_new_locator)
-
-    def tap_analog_display(self):
-        self.wait_for_element_displayed(*self._analog_clock_display_locator)
-        self.marionette.find_element(*self._analog_clock_display_locator).tap()
-        self.wait_for_element_displayed(*self._digital_clock_display_locator)
-
-    def tap_digital_display(self):
-        self.wait_for_element_displayed(*self._digital_clock_display_locator)
-        self.marionette.find_element(*self._digital_clock_display_locator).tap()
-        self.wait_for_element_displayed(*self._analog_clock_display_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(banner))
 
     def tap_new_alarm(self):
-        self.wait_for_element_displayed(*self._alarm_create_new_locator)
-        self.marionette.find_element(*self._alarm_create_new_locator).tap()
+        new_alarm = Wait(self.marionette).until(
+            expected.element_present(*self._alarm_create_new_locator))
+        Wait(self.marionette).until(expected.element_displayed(new_alarm))
+        new_alarm.tap()
         from gaiatest.apps.clock.regions.alarm import NewAlarm
         return NewAlarm(self.marionette)
 
     class Alarm(PageRegion):
 
         _label_locator = (By.CSS_SELECTOR, '.label')
-        _time_locator = (By.CSS_SELECTOR, '.time')
         _check_box_locator = (By.CSS_SELECTOR, '.input-enable')
         _enable_button_locator = (By.CSS_SELECTOR, '.alarmList.alarmEnable')
+        _time_locator = (By.CSS_SELECTOR, '.time')
+
+        def time(self):
+            return self.root_element.find_element(*self._time_locator).text
 
         @property
         def label(self):
             return self.root_element.find_element(*self._label_locator).text
-
-        @property
-        def time(self):
-            return self.root_element.find_element(*self._time_locator).text
 
         @property
         def is_alarm_active(self):
@@ -100,7 +77,8 @@ class Clock(Base):
             self.root_element.find_element(*self._enable_button_locator).tap()
 
         def wait_for_checkbox_to_change_state(self, value):
-            Wait(self.marionette, ignored_exceptions=StaleElementException).until(lambda m: self.is_alarm_active == value)
+            checkbox = self.marionette.find_element(*self._check_box_locator)
+            Wait(self.marionette).until(lambda m: checkbox.is_selected() == value)
 
         def tap(self):
             self.root_element.tap()

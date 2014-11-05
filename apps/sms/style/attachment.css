@@ -7,11 +7,12 @@
  */
 .attachment-container {
   position: relative;
+  margin-bottom: 0.5rem;
 
   display: block;
   border: none;
-  height: 84px; /* default size = 80 px + border */
-  width: 124px;
+  height: 10rem;
+  width: 10rem;
 }
 
 .attachment-draft {
@@ -27,16 +28,9 @@
   pointer-events: none;
 }
 
-.attachment-container.nopreview { /* 80x80 px placeholder + filename below */
-  height: calc(80px + 2.7rem); /* font-size = 1.7rem + 1rem margin */
-  width: 120px;
+.attachment-container.nopreview { /* 100x100 px placeholder + filename below */
+  height: 12.7rem; /* font-size = 1.7rem + 1rem margin */
 }
-
-/*.attachment-container.preview {
- * 80x80 px thumbnail, no filename shown
- * thumbnail size is defined dynamically, extensible to 80x120 or 120x80 
- *}
- */
 
 .article-list[data-type="list"] .message .attachment-container {
   margin: 1rem 0;
@@ -63,8 +57,8 @@
   top: 0;
   left: 0;
 
-  width: 120px;
-  height: 80px;
+  width: 10rem;
+  height: 10rem;
 }
 
 .outgoing .attachment {
@@ -95,8 +89,8 @@
   padding: 0 0.4rem;
   display: none;
 
-  background: rgba(0, 0, 0, 0.6);
-  color: rgb(255, 255, 255);
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
   font-size: 1.5rem;
 }
 
@@ -110,19 +104,23 @@
   right: 0;
   left: 0;
 
-  height: 1.7rem;
+  height: 2rem;
   display: none;
 
-  line-height: 1.7rem;
-  font-size: 1.7rem;
+  line-height: 2rem;
+  font-size: 1.6rem;
+  font-style: italic;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #474747;
+}
+
+.attachment-draft .file-name {
+  color: #4a4a4a;
 }
 
 .outgoing .file-name {
-  text-align: right;
+  text-align: end;
 }
 
 .nopreview .file-name {
@@ -133,19 +131,14 @@
   width: 100%;
   height: 100%;
 
-  background-image: none;
-  background-repeat: no-repeat;
-  background-position: center center
+  background: none no-repeat center center / cover;
 }
 
 .thumbnail-placeholder {
   width: 100%;
   height: 100%;
 
-  background-image: url('images/attachments.png');
-  background-repeat: no-repeat;
-  background-position: left top;
-  background-size: 120px;
+  background: url('images/attachments.png') no-repeat left top / 10rem;
 }
 
 .attachment-container .thumbnail,
@@ -163,45 +156,27 @@
 }
 
 .img-placeholder {
-  background-position: left -80px;
-}
-
-.attachment-draft:hover .img-placeholder,
-.attachment-draft:active .img-placeholder,
-.attachment-container:hover .img-placeholder,
-.attachment-container:active .img-placeholder {
-  background-position: right -80px;
+  background-position: left -10rem;
 }
 
 .audio-placeholder {
-  background-position: left -160px;
-}
-
-.attachment-draft:hover .audio-placeholder,
-.attachment-draft:active .audio-placeholder,
-.attachment-container:hover .audio-placeholder,
-.attachment-container:active .audio-placeholder {
-  background-position: right -160px;
+  background-position: left -20rem;
 }
 
 .video-placeholder {
-  background-position: left -240px;
+  background-position: left -30rem;
 }
 
-.attachment-draft:hover .video-placeholder,
-.attachment-draft:active .video-placeholder,
-.attachment-container:hover .video-placeholder,
-.attachment-container:active .video-placeholder  {
-  background-position: right -240px;
-}
+.attachment.corrupted .thumbnail-placeholder:after {
+  display: block;
 
-.corrupted {
-  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 100%;
+  width: 100%;
 
-  background-image: url('icons/corrupted.png');
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: 82px;
+  content: '';
+  background: url('icons/corrupted.png') no-repeat center center / 10rem;
 }
 

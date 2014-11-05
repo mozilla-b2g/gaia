@@ -1,7 +1,10 @@
+'use strict';
+/* global exports, require */
 var assert = require('chai').assert;
 var fs = require('fs');
 var AdmZip = require('adm-zip');
-var exec = require('child_process').exec;
+var childProcess = require('child_process');
+var rmrf = require('rimraf').sync;
 
 function getPrefsSandbox() {
   var sandbox = {
@@ -45,11 +48,17 @@ function checkPrefs(actual, expected) {
 }
 
 function checkWebappsScheme(webapps) {
+  var configKeys = ['origin', 'installOrigin', 'receipt', 'installTime',
+                    'updateTime', 'manifestURL', 'localId', 'appStatus'];
+
   Object.keys(webapps).forEach(function(key) {
     var webapp = webapps[key];
+    configKeys.forEach(function(configKey) {
+      assert.equal((configKey in webapp), true,
+        key + ' of webapps.json has not defined ' + configKey);
+    });
     var scheme =
       webapp.origin.indexOf('mochi.test') !== -1 ||
-      webapp.origin.indexOf('marketplace.allizom.org') !== -1 ||
       webapp.origin.indexOf('inapp-pay-test.paas.allizom.org') !== -1 ?
       'http' : 'app';
     assert.equal(webapp.origin.indexOf(scheme), 0);
@@ -81,21 +90,34 @@ function checkFileContentByPathInZip(zipPath, pathInZip,
     checkFileContentInZip(zipPath, pathInZip, actual, isJSON);
 }
 
-function checkFileContentInZip(zipPath, pathInZip, expectedContent, isJSON) {
-  var zip = new AdmZip(zipPath);
-  var entry = zip.getEntry(pathInZip);
-  var actual = isJSON ? JSON.parse(zip.readAsText(entry)) : zip.readFile(entry);
-  assert.deepEqual(actual, expectedContent);
-}
-
 function exec(command, callback) {
   var options = {
     maxBuffer: 400*1024
   };
 
-  exec(command, options, callback);
+  childProcess.exec(command, options, callback);
 }
 
+function emptyJsonFile(filePath) {
+  var content = fs.readFileSync(filePath);
+  fs.unlinkSync(filePath);
+  fs.writeFileSync(filePath, '{}');
+
+  var restoreFunc = function() {
+    fs.writeFileSync(filePath, content);
+  };
+
+  return restoreFunc;
+}
+
+function cleanupWorkspace() {
+  rmrf('profile');
+  rmrf('profile-debug');
+  rmrf('build_stage');
+  rmrf(exports.localesDir);
+}
+
+exports.localesDir = 'tmplocales';
 exports.getPrefsSandbox = getPrefsSandbox;
 exports.checkError = checkError;
 exports.checkSettings = checkSettings;
@@ -104,4 +126,6 @@ exports.checkWebappsScheme = checkWebappsScheme;
 exports.checkFileInZip = checkFileInZip;
 exports.checkFileContentInZip = checkFileContentInZip;
 exports.checkFileContentByPathInZip = checkFileContentByPathInZip;
+exports.emptyJsonFile = emptyJsonFile;
 exports.exec = exec;
+exports.cleanupWorkspace = cleanupWorkspace;

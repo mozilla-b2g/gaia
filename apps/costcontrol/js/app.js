@@ -1,6 +1,6 @@
-/* global BalanceTab, ConfigManager, Common, NonReadyScreen, showSimErrorDialog,
-          debug, CostControl, SettingsListener, TelephonyTab, ViewManager,
-          LazyLoader, AirplaneModeHelper */
+/* global BalanceTab, ConfigManager, Common, NonReadyScreen, SimManager,
+          debug, CostControl, TelephonyTab, ViewManager, LazyLoader,
+          PerformanceTestingHelper, AirplaneModeHelper, setNextReset */
 /* exported CostControlApp */
 
 'use strict';
@@ -43,39 +43,32 @@
 
 var CostControlApp = (function() {
 
-  var costcontrol, initialized = false;
+  var costcontrol,
+      initialized = false,
+      hashFromLastRun;
   var vmanager;
 
   // Set the application in waiting for SIM mode. During this mode, the
   // application shows a dialog informing about the current situation of the
   // SIM. Once ready, callback is executed.
   function waitForSIMReady(callback) {
-    Common.loadDataSIMIccId(function _onIccId(iccid) {
-      var dataSimIccInfo = Common.dataSimIcc;
-      var cardState = dataSimIccInfo && dataSimIccInfo.cardState;
+    SimManager.requestDataSimIcc(function _onIccId(dataSim) {
+      var dataSimIcc = dataSim.icc;
+      var cardState = dataSimIcc.cardState;
 
       // SIM not ready
       if (cardState !== 'ready') {
         showNonReadyScreen(cardState);
         debug('SIM not ready:', cardState);
-        dataSimIccInfo.oncardstatechange = function() {
+        dataSimIcc.oncardstatechange = function() {
           waitForSIMReady(callback);
         };
 
-      // SIM is ready, but ICC info is not ready yet
-      } else if (!Common.isValidICCID(iccid)) {
-        showNonReadyScreen(cardState);
-        debug('ICC info not ready yet');
-        dataSimIccInfo.oniccinfochange = function() {
-          waitForSIMReady(callback);
-        };
-
-      // All ready
+      // SIM is ready
       } else {
         hideNotReadyScreen();
-        debug('SIM ready. ICCID:', iccid);
-        dataSimIccInfo.oncardstatechange = undefined;
-        dataSimIccInfo.oniccinfochange = undefined;
+        debug('SIM ready. ICCID:', dataSim.iccId);
+        dataSimIcc.oncardstatechange = undefined;
         callback && callback();
       }
 
@@ -129,7 +122,9 @@ var CostControlApp = (function() {
 
   function hideNotReadyScreen(status) {
     debug('Hiding non-ready screen.');
-    vmanager.closeCurrentView();
+    if (vmanager.getCurrentView() === 'non-ready-screen') {
+      vmanager.closeCurrentView();
+    }
     return;
   }
 
@@ -190,36 +185,55 @@ var CostControlApp = (function() {
       }
     });
   }
-  // XXX: the clearLastSimScenario method must be included on Bug 968087 -
-  // [Cost Control] Refactor and simplify Cost Control start-up process.
-  function clearLastSimScenario(callback) {
-    Common.closeFTE();
-    (typeof callback === 'function') && callback();
+
+  function loadMessageHandler() {
+    var messageHandlerFrame = document.getElementById('message-handler');
+    var thereIsNextReset = ConfigManager.option('nextReset');
+    var alreadyLoaded = messageHandlerFrame.src
+      .contains('message_handler.html');
+
+    if (alreadyLoaded && thereIsNextReset) {
+      setNextReset(ConfigManager.option('nextReset'));
+      return;
+    }
+
+    if (thereIsNextReset) {
+      window.addEventListener('messagehandlerready', function _setNextReset() {
+        window.removeEventListener('messagehandlerready', _setNextReset);
+        setNextReset(ConfigManager.option('nextReset'));
+      });
+    }
+    messageHandlerFrame.src = 'message_handler.html';
+  }
+
+  function _onDataSimChange() {
+    // Before restarting the app, it's necessary remove the cached values of
+    // costcontrol and config to force an update.
+    CostControl.reset();
+    ConfigManager.setConfig(null);
+    SimManager.requestDataSimIcc(startApp);
   }
 
   function startApp(callback) {
-
-    function _onNoICCID() {
-      console.error('checkSIM() failed. Impossible to ensure consistent' +
-                    'data. Aborting start up.');
-      showSimErrorDialog('no-sim2');
+    if (SimManager.isMultiSim()) {
+      window.addEventListener('dataSlotChange', _onDataSimChange);
     }
 
-    Common.checkSIM(function _onSIMChecked() {
-      CostControl.getInstance(function _onCostControlReady(instance) {
-        if (ConfigManager.option('fte')) {
-          startFTE();
-          return;
-        }
-        costcontrol = instance;
-        if (!initialized) {
-          setupApp(callback);
-        } else {
-          loadSettings();
-          updateUI(callback);
-        }
-      });
-    }, _onNoICCID);
+    CostControl.getInstance(function _onCostControlReady(instance) {
+      if (ConfigManager.option('fte')) {
+        startFTE();
+        return;
+      }
+      loadMessageHandler();
+
+      costcontrol = instance;
+      if (!initialized) {
+        setupApp(callback);
+      } else {
+        loadSettings();
+        updateUI(callback);
+      }
+    });
   }
 
   var isApplicationLocalized = false;
@@ -227,6 +241,7 @@ var CostControlApp = (function() {
     isApplicationLocalized = true;
     if (initialized) {
       updateUI();
+      loadSettings();
     }
   });
 
@@ -294,17 +309,6 @@ var CostControlApp = (function() {
     updateUI(callback);
     ConfigManager.observe('plantype', updateUI, true);
 
-    // Avoid reload data sim info on the application startup
-    var isFirstCall = true;
-    // Refresh UI when the user changes the SIM for data connections
-    SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
-      if (!isFirstCall) {
-        clearLastSimScenario(Common.loadDataSIMIccId.bind(null, startApp));
-      } else {
-        isFirstCall = false;
-      }
-    });
-
     initialized = true;
 
     loadSettings();
@@ -312,6 +316,7 @@ var CostControlApp = (function() {
 
   // Load settings in background
   function loadSettings() {
+    PerformanceTestingHelper.dispatch('init-load-settings');
     document.getElementById('settings-view-placeholder').src = 'settings.html';
   }
 
@@ -332,65 +337,70 @@ var CostControlApp = (function() {
 
   var currentMode;
   function updateUI(callback) {
-    ConfigManager.requestSettings(Common.dataSimIccId,
-                                  function _onSettings(settings) {
-      var mode = ConfigManager.getApplicationMode();
-      debug('App UI mode: ', mode);
+    SimManager.requestDataSimIcc(function(dataSim) {
+      ConfigManager.requestSettings(dataSim.iccId,
+                                    function _onSettings(settings) {
+        var mode = ConfigManager.getApplicationMode();
+        var newHash;
+        debug('App UI mode: ', mode);
 
-      // Layout
-      if (mode !== currentMode) {
-        currentMode = mode;
+        // Layout
+        if (mode !== currentMode) {
+          currentMode = mode;
 
-        // Stand alone mode when data usage only
-        if (mode === 'DATA_USAGE_ONLY') {
-          var tabs = document.getElementById('tabs');
-          tabs.setAttribute('aria-hidden', true);
+          // Stand alone mode when data usage only
+          if (mode === 'DATA_USAGE_ONLY') {
+            var tabs = document.getElementById('tabs');
+            tabs.setAttribute('aria-hidden', true);
 
-          var dataUsageTab = document.getElementById('datausage-tab');
-          dataUsageTab.classList.add('standalone');
-          window.location.hash = '#datausage-tab';
+            var dataUsageTab = document.getElementById('datausage-tab');
+            dataUsageTab.classList.add('standalone');
+            newHash = '#datausage-tab';
 
-        // Two tabs mode
-        } else {
-          document.getElementById('balance-tab-filter')
-            .setAttribute('aria-hidden', (mode !== 'PREPAID'));
+          // Two tabs mode
+          } else {
+            document.getElementById('balance-tab-filter')
+              .setAttribute('aria-hidden', (mode !== 'PREPAID'));
 
-          document.getElementById('telephony-tab-filter')
-            .setAttribute('aria-hidden', (mode !== 'POSTPAID'));
+            document.getElementById('telephony-tab-filter')
+              .setAttribute('aria-hidden', (mode !== 'POSTPAID'));
 
-          // If it was showing the left tab, force changing to the
-          // proper left view
-          if (!isDataUsageTabShown()) {
-            window.location.hash = (mode === 'PREPAID') ?
-                                   '#balance-tab#' : '#telephony-tab#';
+            // If it was showing the left tab, force changing to the
+            // proper left view
+            if (!isDataUsageTabShown()) {
+              newHash = (mode === 'PREPAID') ? '#balance-tab#' :
+                        '#telephony-tab#';
+            }
           }
+          window.location.hash = hashFromLastRun || newHash;
+          hashFromLastRun = null;
+
+          // XXX: Break initialization to allow Gecko to render the animation on
+          // time.
+          setTimeout(function continueLoading() {
+            if (typeof callback === 'function') {
+              window.setTimeout(callback, 0);
+            }
+            document.getElementById('main').classList.remove('non-ready');
+
+            if (mode === 'PREPAID') {
+              if (typeof TelephonyTab !== 'undefined') {
+                TelephonyTab.finalize();
+              }
+              if (typeof BalanceTab !== 'undefined') {
+                BalanceTab.initialize();
+              }
+            } else if (mode === 'POSTPAID') {
+              if (typeof BalanceTab !== 'undefined') {
+                BalanceTab.finalize();
+              }
+              if (typeof TelephonyTab !== 'undefined') {
+                TelephonyTab.initialize();
+              }
+            }
+          });
         }
-
-        // XXX: Break initialization to allow Gecko to render the animation on
-        // time.
-        setTimeout(function continueLoading() {
-          if (typeof callback === 'function') {
-            window.setTimeout(callback, 0);
-          }
-          document.getElementById('main').classList.remove('non-ready');
-
-          if (mode === 'PREPAID') {
-            if (typeof TelephonyTab !== 'undefined') {
-              TelephonyTab.finalize();
-            }
-            if (typeof BalanceTab !== 'undefined') {
-              BalanceTab.initialize();
-            }
-          } else if (mode === 'POSTPAID') {
-            if (typeof BalanceTab !== 'undefined') {
-              BalanceTab.finalize();
-            }
-            if (typeof TelephonyTab !== 'undefined') {
-              TelephonyTab.initialize();
-            }
-          }
-        });
-      }
+      });
     });
   }
 
@@ -408,12 +418,13 @@ var CostControlApp = (function() {
 
       if (type === 'fte_finished') {
         window.removeEventListener('message', handler_finished);
-
         document.getElementById('splash_section').
           setAttribute('aria-hidden', 'true');
 
         // Only hide the FTE view when everything in the UI is ready
-        startApp(Common.closeFTE);
+        ConfigManager.requestAll(function() {
+          startApp(Common.closeFTE);
+        });
       }
     });
 
@@ -422,11 +433,12 @@ var CostControlApp = (function() {
   }
 
   function initApp() {
+    // The location hash keeps its current value even if the app is killed by
+    // the oom killer.
+    hashFromLastRun = window.location.hash;
+    window.location.hash = '';
     vmanager = new ViewManager();
-    waitForSIMReady(function _onSIMReady() {
-      document.getElementById('message-handler').src = 'message_handler.html';
-      Common.waitForDOMAndMessageHandler(window, startApp);
-    });
+    waitForSIMReady(startApp);
   }
 
   return {
@@ -448,7 +460,10 @@ var CostControlApp = (function() {
         });
       } else {
         SCRIPTS_NEEDED = [
+          'js/sim_manager.js',
           'js/utils/debug.js',
+          'shared/js/date_time_helper.js',
+          'js/utils/chart.js',
           'js/utils/formatting.js',
           'js/utils/toolkit.js',
           'js/settings/networkUsageAlarm.js',
@@ -460,6 +475,11 @@ var CostControlApp = (function() {
         ];
         LazyLoader.load(SCRIPTS_NEEDED, initApp);
       }
+      // Tell audio channel manager that we want to adjust the notification
+      // channel if the user press the volumeup/volumedown buttons in Usage.
+      if (navigator.mozAudioChannelManager) {
+        navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+      }
     },
     reset: function() {
       costcontrol = null;
@@ -469,6 +489,7 @@ var CostControlApp = (function() {
       settingsVManager = null;
       currentMode = null;
       isApplicationLocalized = false;
+      window.removeEventListener('dataSlotChange', _onDataSimChange);
       window.location.hash = '';
       nonReadyScreen = null;
     },
@@ -477,6 +498,9 @@ var CostControlApp = (function() {
     },
     showDataUsageTab: function _showDataUsageTab() {
       window.location.hash = '#datausage-tab';
+    },
+    showAppDetailView: function _showAppDetailView() {
+      window.location.hash = '##appdetail-view';
     }
   };
 }());

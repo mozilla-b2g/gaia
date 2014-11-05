@@ -88,34 +88,42 @@ var FxAccountsClient = function FxAccountsClient() {
     }, successCb, errorCb);
   };
 
-  var queryAccount = function queryAccount(accountId, successCb, errorCb) {
+  var queryAccount = function queryAccount(email, successCb, errorCb) {
     sendMessage({
       method: 'queryAccount',
-      accountId: accountId
+      email: email
     }, successCb, errorCb);
   };
 
-  var signIn = function signIn(accountId, password, successCb, errorCb) {
+  var resendVerificationEmail = function resendVerificationEmail(email,
+                                                       successCb, errorCb) {
+    sendMessage({
+      method: 'resendVerificationEmail',
+      email: email
+    }, successCb, errorCb);
+  };
+
+  var signIn = function signIn(email, password, successCb, errorCb) {
     sendMessage({
       method: 'signIn',
-      accountId: accountId,
+      email: email,
       password: password
     }, successCb, errorCb);
   };
 
-  var signUp = function signUp(accountId, password, successCb, errorCb) {
+  var signUp = function signUp(email, password, successCb, errorCb) {
     sendMessage({
       method: 'signUp',
-      accountId: accountId,
+      email: email,
       password: password
     }, successCb, errorCb);
   };
 
-  var verificationStatus = function verificationStatus(accountId, successCb,
+  var verificationStatus = function verificationStatus(email, successCb,
                                                        errorCb) {
     sendMessage({
       method: 'verificationStatus',
-      accountId: accountId
+      email: email
     }, successCb, errorCb);
   };
 
@@ -123,6 +131,7 @@ var FxAccountsClient = function FxAccountsClient() {
     'getAccounts': getAccounts,
     'logout': logout,
     'queryAccount': queryAccount,
+    'resendVerificationEmail': resendVerificationEmail,
     'signIn': signIn,
     'signUp': signUp,
     'verificationStatus': verificationStatus

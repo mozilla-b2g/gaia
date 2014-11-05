@@ -11,7 +11,7 @@ class FTUStep2(CostControl):
 
     _view_locator = (By.ID, 'non-vivo-step-1')
     _reset_report_period_select_locator = (By.CSS_SELECTOR, '#non-vivo-step-1 ul li:nth-child(1) span')
-    _next_button_locator = (By.CSS_SELECTOR, '#non-vivo-step-1 span[data-l10n-id="next"]')
+    _next_button_locator = (By.CSS_SELECTOR, '#non-vivo-step-1 button[data-l10n-id="next"]')
 
     def __init__(self, marionette):
         CostControl.__init__(self, marionette)

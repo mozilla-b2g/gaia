@@ -1,5 +1,7 @@
 'use strict';
 
+/* global SheetsTransition, System, appWindowManager */
+
 var StackManager = {
   init: function sm_init() {
     window.addEventListener('appcreated', this);
@@ -14,10 +16,32 @@ var StackManager = {
     if (this.position < 0) {
       return undefined;
     }
+
+    var app = this._currentFromStack();
+
+    // XXX: This code will be removed when bug 967405 lands.
+    // Until then we can get into edge cases where the app currently
+    // displayed is not part of the stack and we don't want to break.
+    if (!app) {
+      app = System.currentApp;
+    }
+
+    return app;
+  },
+
+  _currentFromStack: function sm_currentInStack() {
     return this._stack[this.position].getActiveWindow();
   },
+  outOfStack: function sm_outOfStack() {
+    return (this._currentFromStack() !== this.getCurrent());
+  },
+
   getPrev: function sm_getPrev() {
-    var inGroupPrev = this.getCurrent().getActiveWindow().getPrev();
+    if (this.outOfStack()) {
+      return undefined;
+    }
+
+    var inGroupPrev = this._currentFromStack().getPrev();
     if (inGroupPrev) {
       return inGroupPrev;
     }
@@ -28,8 +52,13 @@ var StackManager = {
 
     return undefined;
   },
+
   getNext: function sm_getNext() {
-    var inGroupNext = this.getCurrent().getActiveWindow().getNext();
+    if (this.outOfStack()) {
+      return undefined;
+    }
+
+    var inGroupNext = this._currentFromStack().getNext();
     if (inGroupNext) {
       return inGroupNext;
     }
@@ -48,13 +77,11 @@ var StackManager = {
       return;
     }
 
-    newApp.broadcast('swipein');
-    oldApp.broadcast('swipeout');
+    this._queueBroadcast(newApp, oldApp);
 
     if (newApp.groupID !== oldApp.groupID) {
       this.position--;
     }
-    this._stackChanged();
   },
 
   goNext: function sm_goNext() {
@@ -64,13 +91,39 @@ var StackManager = {
       return;
     }
 
-    newApp.broadcast('swipein');
-    oldApp.broadcast('swipeout');
+    this._queueBroadcast(newApp, oldApp);
 
     if (newApp.groupID !== oldApp.groupID) {
       this.position++;
     }
-    this._stackChanged();
+  },
+
+  commit: function sm_commit() {
+    // We're back to the same place, let's close up the gesture without
+    // queueing.
+    if (this._didntMove) {
+      window.dispatchEvent(new CustomEvent('sheets-gesture-end'));
+    }
+    if (!this._broadcastTimeout) {
+      this._broadcast();
+    }
+  },
+
+  commitClose: function sm_commitClose() {
+    // TODO: make this transition pretty but at least we're
+    // fixing the race condition
+    clearTimeout(this._broadcastTimeout);
+    this._broadcastTimeout = null;
+
+    if (this._appIn) {
+      this._appIn.broadcast('closed');
+    }
+
+    if (this._appOut) {
+      this._appOut.transitionController.clearTransitionClasses();
+    }
+
+    this._cleanUp();
   },
 
   snapshot: function sm_snapshot() {
@@ -84,6 +137,11 @@ var StackManager = {
   get position() {
     return this._current;
   },
+
+  get _didntMove() {
+    return !!this._appIn && this._appIn === this._appOut;
+  },
+
   set position(position) {
     var _position = parseInt(position);
     if (_position < -1 || _position >= this._stack.length) {
@@ -102,7 +160,8 @@ var StackManager = {
     switch (e.type) {
       case 'appcreated':
         var app = e.detail;
-        // The system application should never show up in the stack.
+        // Multiple apps use role=system to opt out of being part of
+        // the the card view.
         // XXX: This code will be removed when bug 967405 lands.
         if (app.manifest && app.manifest.role == 'system') {
           return;
@@ -115,7 +174,7 @@ var StackManager = {
         }
 
         // If the app is a child window of other window, do not insert it.
-        if (app.parentWindow) {
+        if (app.previousWindow) {
           return;
         }
 
@@ -138,17 +197,22 @@ var StackManager = {
         }
         break;
       case 'appopening':
-        var app = e.detail;
+        var app = e.detail; // jshint ignore: line
         var root = app.getRootWindow();
 
-        var idx = this._indexOfInstanceID(root.instanceID);
-        if (idx !== undefined && idx !== this._current) {
-          this._current = idx;
+        var id = this._indexOfInstanceID(root.instanceID);
+        if (id !== undefined && id !== this._current) {
+          this._current = id;
         }
         break;
       case 'home':
+        // only handle home events if task manager is not visible
+        if (window.taskManager && window.taskManager.isShown()) {
+          return;
+        }
         this._moveToTop(this.position);
         this.position = -1;
+        this.commitClose();
         break;
       case 'appterminated':
         var instanceID = e.detail.instanceID;
@@ -186,7 +250,7 @@ var StackManager = {
   },
 
   _indexOfURL: function sm_indexOfURL(url) {
-    var result = undefined;
+    var result;
     this._stack.some(function(app, idx) {
       if (app.url == url) {
         result = idx;
@@ -199,8 +263,7 @@ var StackManager = {
   },
 
   _indexOfInstanceID: function sm_indexOfIntanceID(instanceID) {
-    var result = undefined;
-    var self = this;
+    var result;
     this._stack.some(function(app, idx) {
       if (app.instanceID == instanceID) {
         result = idx;
@@ -218,10 +281,9 @@ var StackManager = {
       if (sConfig.instanceID == instanceID) {
         this._stack.splice(i, 1);
 
-        if (i <= this.position && this.position > 0) {
+        if (i <= this.position && this.position >= 0) {
           this.position--;
         }
-        this._dump();
         return;
       }
     }
@@ -238,6 +300,66 @@ var StackManager = {
     window.dispatchEvent(evt);
   },
 
+  _broadcastTimeout: null,
+  _appIn: null,
+  _appOut: null,
+  _queueBroadcast: function sm_queueBroadcast(appIn, appOut) {
+    if (this._appIn) {
+      this._appIn.cancelQueuedShow();
+    }
+    this._appIn = appIn;
+    appIn.queueShow();
+
+    if (!this._appOut) {
+      this._appOut = appOut;
+      appOut.queueHide();
+    }
+
+    if (this._broadcastTimeout === null) {
+      appWindowManager.sendStopRecordingRequest();
+    }
+
+    clearTimeout(this._broadcastTimeout);
+    this._broadcastTimeout = setTimeout(this._broadcast.bind(this), 800);
+  },
+
+  _broadcast: function sm_broadcast(close) {
+    clearTimeout(this._broadcastTimeout);
+    this._broadcastTimeout = null;
+
+    if (SheetsTransition.transitioning) {
+      return;
+    }
+
+    // We're back to the same place
+    if (this._didntMove) {
+      this._appIn.transitionController.clearTransitionClasses();
+      this._cleanUp();
+      return;
+    }
+
+    // We're done swiping around, let's close up the gesture. Note that
+    // sheets-gesture-start is detected and sent in SheetsTransition!!!
+    window.dispatchEvent(new CustomEvent('sheets-gesture-end'));
+
+    if (this._appIn) {
+      this._appIn.broadcast('swipein');
+    }
+    if (this._appOut) {
+      this._appOut.broadcast('swipeout');
+    }
+
+    this._cleanUp();
+
+    this._stackChanged();
+  },
+
+
+  _cleanUp: function sm_cleanUp() {
+    this._appIn = null;
+    this._appOut = null;
+  },
+
   /* Debug */
   _dump: function sm_dump() {
     var prefix = 'StackManager';
@@ -245,12 +367,12 @@ var StackManager = {
       var separator = (i == this.position) ? ' * ' : ' - ';
       console.log(prefix + separator + i + ' -> ' + this._stack[i].name +
         '/' + this._stack[i].instanceID);
-      var child = this._stack[i].childWindow;
+      var child = this._stack[i].nextWindow;
       while (child) {
-        var separator = (child.isActive()) ? ' @ ' : ' = ';
-        console.log(prefix + separator + i + ' ---> ' + this._stack[i].name +
+        var separator2 = (child.isActive()) ? ' @ ' : ' = ';
+        console.log(prefix + separator2 + i + ' ---> ' + this._stack[i].name +
                   '/' + this._stack[i].instanceID);
-        child = child.childWindow;
+        child = child.nextWindow;
       }
     }
   },

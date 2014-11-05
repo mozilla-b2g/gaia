@@ -1,6 +1,7 @@
 'use strict';
 
 var MockKeyboardHelper = {
+  fallbackLayouts: {},
   mKeyboards: [
     {
       manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
@@ -135,7 +136,9 @@ var MockKeyboardHelper = {
   isKeyboardType: function() {
     return true;
   },
-  changeDefaultLayouts: function() {}
+  changeDefaultLayouts: function() {},
+  getCurrentActiveLayout: function() {},
+  saveCurrentActiveLayout: function() {}
 };
 
 MockKeyboardHelper.mSuiteSetup = MockKeyboardHelper.mSetup;

@@ -5,19 +5,24 @@
     panel.style.display = 'block';
   });
 
-  // Until Haida lands this is how users could go back to Settings app
-  document.getElementById('back').addEventListener('click', function() {
-    document.addEventListener('visibilitychange', function() {
-      // Close ourself after the activity transition is completed.
+  document.addEventListener('visibilitychange', function() {
+    if (document.mozHidden) {
       window.close();
-    });
+    }
+  });
+
+  function goBack() {
+    this.removeEventListener('action', goBack);
     var activity = new MozActivity({
-      name: 'configure',
+      name: 'moz_configure_window',
       data: {
         target: 'device'
       }
     });
-  });
+  }
+
+  // Until Haida lands this is how users could go back to Settings app
+  document.getElementById('header').addEventListener('action', goBack);
 
   /**
    * Gets the settings based on information from the dom

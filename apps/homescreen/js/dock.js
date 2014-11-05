@@ -19,15 +19,6 @@ var DockManager = (function() {
   var touchmove = isTouch ? 'touchmove' : 'mousemove';
   var touchend = isTouch ? 'touchend' : 'mouseup';
 
-  var windowWidth = window.innerWidth;
-  // This prevents that windowWidth gets 0 when screen is off and homescreen is
-  // relaunched.
-  document.addEventListener('visibilitychange', function() {
-    if (document.hidden === false) {
-      windowWidth = window.innerWidth;
-    }
-  });
-
   var getX = (function getXWrapper() {
     return isTouch ? function(e) { return e.touches[0].pageX } :
                      function(e) { return e.pageX };
@@ -65,6 +56,7 @@ var DockManager = (function() {
 
         if (deltaX < 0) {
           // Go forward
+          var windowWidth = ScreenHelper.width;
           if (initialOffsetRight === windowWidth) {
             return;
           }
@@ -140,7 +132,7 @@ var DockManager = (function() {
 
   function onTouchEnd(scrollX) {
     if (dock.getNumIcons() <= maxNumAppInViewPort ||
-          dock.getLeft() === 0 || dock.getRight() === windowWidth) {
+          dock.getLeft() === 0 || dock.getRight() === ScreenHelper.width) {
       // No animation
       delete document.body.dataset.transitioning;
       return;
@@ -165,7 +157,7 @@ var DockManager = (function() {
 
   function rePosition(numApps, callback) {
     if (numApps > maxNumAppInViewPort && dock.getLeft() < 0 &&
-          dock.getRight() > windowWidth) {
+          dock.getRight() > ScreenHelper.width) {
       // The dock takes up the screen width.
       callback && setTimeout(callback);
       return;
@@ -201,10 +193,10 @@ var DockManager = (function() {
     }
 
     if (cellWidth === 0) {
-      cellWidth = windowWidth / maxNumAppInViewPort;
+      cellWidth = ScreenHelper.width / maxNumAppInViewPort;
     }
 
-    maxOffsetLeft = windowWidth - numIcons * cellWidth;
+    maxOffsetLeft = ScreenHelper.width - numIcons * cellWidth;
   }
 
   return {
@@ -265,6 +257,7 @@ var DockManager = (function() {
      * Update display after removing an app.
      */
     afterRemovingApp: function dm_afterRemovingApp() {
+      var windowWidth = ScreenHelper.width;
       maxOffsetLeft = windowWidth - dock.getNumIcons() * cellWidth;
       var numApps = dock.getNumIcons();
       if (numApps > maxNumAppInViewPort && dock.getRight() >= windowWidth) {

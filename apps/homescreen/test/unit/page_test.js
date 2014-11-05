@@ -24,13 +24,12 @@ var mocksHelperForPage = new MocksHelper([
   'DockManager',
   'GridManager',
   'Configurator'
-]);
-
-mocksHelperForPage.init();
+]).init();
 
 suite('page.js >', function() {
 
-  var mocksHelper = mocksHelperForPage;
+  mocksHelperForPage.attachTestHelpers();
+
   var containerNode;
 
   function createImageBlob() {
@@ -42,13 +41,7 @@ suite('page.js >', function() {
     return new Blob(data, properties);
   }
 
-  suiteSetup(function() {
-    mocksHelper.suiteSetup();
-  });
-
   setup(function() {
-    mocksHelper.setup();
-
     var fakeIconMarkup =
       '<div id="fake-icon">' +
         '<span id="fake-icon-name-wrapper" class="labelWrapper">' +
@@ -62,13 +55,7 @@ suite('page.js >', function() {
   });
 
   teardown(function() {
-    mocksHelper.teardown();
-
     containerNode.parentNode.removeChild(containerNode);
-  });
-
-  suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
   });
 
   suite('Icon >', function() {
@@ -600,6 +587,12 @@ suite('page.js >', function() {
         GridManager.init(page);
       });
 
+      setup(function() {
+        // prevent intermittent issues because appendIcon eventually calls
+        // toBlob.
+        this.sinon.stub(HTMLCanvasElement.prototype, 'toBlob');
+      });
+
       //Test 1st boot with SIM
       let svTestList = [{descr: '1st boot WITH sim. ', simPresent: true},
                         {descr: '1st boot WITHOUT sim. ', simPresent: false}];
@@ -646,7 +639,6 @@ suite('page.js >', function() {
       }
 
       suiteTeardown(function() {
-        mocksHelperForPage.suiteTeardown();
         document.body.removeChild(wrapperNode);
       });
     });

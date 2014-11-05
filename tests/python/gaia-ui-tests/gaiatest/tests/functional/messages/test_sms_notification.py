@@ -10,6 +10,9 @@ from gaiatest.apps.system.app import System
 class TestSmsNotification(GaiaTestCase):
 
     def test_sms_notification(self):
+        """
+        https://moztrap.mozilla.org/manage/case/1322/
+        """
 
         _text_message_content = "Automated Test %s" % str(time.time())
 
@@ -23,4 +26,4 @@ class TestSmsNotification(GaiaTestCase):
                     message="Notification did not appear. SMS database dump: %s " % self.data_layer.get_all_sms())
         system.wait_for_notification_toaster_not_displayed()
 
-        self.assertTrue(any("Messages" in app.name for app in self.apps.running_apps))
+        self.assertTrue(any("Messages" in app.name for app in self.apps.running_apps()))

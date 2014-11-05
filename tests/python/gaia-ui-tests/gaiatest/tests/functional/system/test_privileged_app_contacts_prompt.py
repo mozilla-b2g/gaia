@@ -13,7 +13,7 @@ class TestPrivilegedAppContactsPrompt(GaiaTestCase):
         GaiaTestCase.setUp(self)
         self.apps.set_permission('UI tests - Privileged App', 'contacts-read', 'prompt')
         self.apps.set_permission('UI tests - Privileged App', 'contacts-write', 'prompt')
-
+        self.apps.set_permission('UI tests - Privileged App', 'contacts-create', 'prompt')
 
     def test_contact_prompt(self):
         uiTestsPrivileged = UiTestsPivileged(self.marionette)
@@ -34,6 +34,9 @@ class TestPrivilegedAppContactsPrompt(GaiaTestCase):
 
         read_permission = self.apps.get_permission('UI tests - Privileged App', 'contacts-read')
         self.assertEqual(read_permission, 'allow')
+
+        create_permission = self.apps.get_permission('UI tests - Privileged App', 'contacts-create')
+        self.assertEqual(create_permission, 'allow')
 
         write_permission = self.apps.get_permission('UI tests - Privileged App', 'contacts-write')
         self.assertEqual(write_permission, 'allow')

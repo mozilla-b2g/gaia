@@ -9,13 +9,20 @@ MockSimContactsImporter.prototype = {
     this.readCb = cb;
   },
   set onimported(cb) {
-
+    this.importedCb = cb;
   },
   set onfinish(cb) {
     this.finishCb = cb;
   },
   start: function() {
     this.readCb(this.number);
-    this.finishCb();
+    if (this.number === 0) {
+      this.finishCb(this.numDuplicated);
+      return;
+    }
+    for(var j = 0; j < this.numImportedContacts; j++) {
+      this.importedCb();
+    }
+    this.finishCb(this.numDuplicated);
   }
 };

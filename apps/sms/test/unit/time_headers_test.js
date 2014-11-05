@@ -2,9 +2,10 @@
 
 'use strict';
 
+require('/shared/test/unit/mocks/mock_l10n.js');
+
 requireApp('sms/js/utils.js');
 requireApp('sms/js/time_headers.js');
-requireApp('sms/test/unit/mock_l10n.js');
 
 suite('TimeHeaders > ', function() {
 
@@ -28,7 +29,7 @@ suite('TimeHeaders > ', function() {
       this.sinon.spy(TimeHeaders, 'update');
 
       var additionalDataset = [
-        'data-is-thread="true"',
+        'data-date-only="true"',
         'data-hour-only="true"',
         ''
       ];
@@ -245,17 +246,19 @@ suite('TimeHeaders > ', function() {
 
     test('date and time header', function() {
       TimeHeaders.update(subject);
+
       var content = subject.textContent;
       assert.include(content, formattedTime);
       assert.include(content, formattedDate);
     });
 
     test('date header', function() {
-      subject.dataset.isThread = 'true';
+      subject.dataset.dateOnly = 'true';
       TimeHeaders.update(subject);
 
       var content = subject.textContent;
-      assert.isTrue(content.indexOf(formattedTime) === -1);
+      assert.isTrue(content.indexOf(formattedTime) === -1,
+                    'subject.textContent should not contain formattedTime');
       assert.include(content, formattedDate);
     });
 
@@ -265,7 +268,8 @@ suite('TimeHeaders > ', function() {
 
       var content = subject.textContent;
       assert.include(content, formattedTime);
-      assert.isTrue(content.indexOf(formattedDate) === -1);
+      assert.isTrue(content.indexOf(formattedDate) === -1,
+                    'subject.textContent should not contain formattedDate');
     });
   });
 

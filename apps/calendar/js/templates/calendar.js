@@ -1,31 +1,37 @@
-(function(window) {
-  'use strict';
+define(function(require, exports, module) {
+'use strict';
 
-  var Cal = Calendar.Template.create({
-    item: function() {
-      var id = this.h('_id');
-      var l10n = '';
+var Local = require('provider/local');
+var create = require('template').create;
 
-      // hack localize the only default calendar
-      if (id && Calendar.Provider.Local.calendarId === id) {
-        // localize the default calendar name
-        l10n = 'data-l10n-id="calendar-local"';
-      }
+module.exports = create({
+  item: function() {
+    var id = this.h('_id');
+    var l10n = '';
+    var name = '';
 
-      return '<li id="calendar-' + id + '">' +
-          '<div class="calendar-id-' + id + ' calendar-color"></div>' +
-          '<label class="pack-checkbox">' +
-            '<input ' +
-              'value="' + id + '" ' +
-              'type="checkbox" ' +
-              this.bool('localDisplayed', 'checked') + ' />' +
-            '<span ' + l10n + ' class="name">' + this.h('name') + '</span>' +
-          '</label>' +
-        '</li>';
+    // localize only the default calendar; there is no need to set the name
+    // the [data-l10n-id] will take care of setting the proper value
+    if (id && Local.calendarId === id) {
+      // localize the default calendar name
+      l10n = 'data-l10n-id="calendar-local"';
+    } else {
+      name = this.h('name');
     }
-  });
 
-  Calendar.ns('Templates').Calendar = Cal;
+    var checked = this.bool('localDisplayed', 'checked');
+    var ariaSelected = this.bool('localDisplayed', 'aria-selected="true"');
 
-}(this));
+    return `<li id="calendar-${id}" class="calendar-id-${id}"
+                role="presentation">
+        <div class="gaia-icon icon-calendar-dot calendar-text-color"
+             aria-hidden="true"></div>
+        <label class="pack-checkbox" role="option" ${ariaSelected}>
+          <input value="${id}" type="checkbox" ${checked}/>
+          <span ${l10n} class="name">${name}</span>
+        </label>
+      </li>`;
+  }
+});
 
+});

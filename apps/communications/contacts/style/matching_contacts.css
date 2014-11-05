@@ -1,3 +1,5 @@
+@import url("root.css");
+
 .hide, *[data-template] {
   display: none !important;
 }
@@ -31,6 +33,11 @@
 #contacts-list-container > ol > li[data-uuid] label,
 #contacts-list-container > ol > li[data-uuid] p {
   pointer-events: none;
+}
+
+#contacts-list-container > ol > li[data-uuid] aside > img {
+  box-shadow: none;
+  border: none;
 }
 
 #contacts-list-container > ol > li[data-uuid]:last-child {
@@ -96,4 +103,12 @@ form[role="dialog"][data-type="edit"] #main {
 
 #footer button:not([disabled]) {
   pointer-events: auto;
+}
+
+[data-type="list"] aside img {
+  border-style: hidden;
+}
+
+[data-type="list"] li[data-visited="true"] aside img {
+  border-style: solid;
 }

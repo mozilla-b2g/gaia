@@ -1,24 +1,28 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global Utils, FxaModuleManager, FxaModuleNavigation, LazyLoader */
+/* global HtmlHelper, FxaModule, FxaModuleManager, FxaModuleNavigation,
+   LazyLoader */
 /* exported FxaModuleUI */
 
 'use strict';
+
+const OFFLINE_TIMEOUT = 30 * 1000;
 
 var FxaModuleUI = {
   maxSteps: null,
   init: function(flow) {
     // Add listeners to the main elements
-    Utils.importElements(this,
-      'fxa-module-close',
+    HtmlHelper.importElements(this,
+      'fxa-module-header',
       'fxa-module-back',
       'fxa-module-next',
       'fxa-module-navigation',
-      'fxa-module-done'
+      'fxa-module-done',
+      'fxa-progress'
     );
 
-    this.fxaModuleClose.addEventListener('click', function() {
+    this.fxaModuleHeader.addEventListener('action', function() {
       FxaModuleManager.close('DIALOG_CLOSED_BY_USER');
     });
 
@@ -34,6 +38,22 @@ var FxaModuleUI = {
       FxaModuleNavigation.done();
     });
 
+    // Give up if the network goes offline for more than 30 seconds straight.
+    var offlineTimer;
+    window.addEventListener('online', function onOnline(evt) {
+      clearTimeout(offlineTimer);
+      FxaModule.hideErrorResponse();
+    });
+
+    window.addEventListener('offline', function onOffline(evt) {
+      if (offlineTimer) { return; }
+      offlineTimer = setTimeout(function onOfflineTimeout() {
+        return FxaModule.showErrorResponse({
+          error: 'OFFLINE'
+        });
+      }, OFFLINE_TIMEOUT);
+    });
+
     FxaModuleNavigation.init(flow);
   },
   setMaxSteps: function(num) {
@@ -42,9 +62,14 @@ var FxaModuleUI = {
   increaseMaxStepsBy: function(inc) {
     this.maxSteps = this.maxSteps + inc;
   },
+  decreaseMaxStepsBy: function(dec) {
+    this.maxSteps = this.maxSteps - dec;
+  },
   loadScreen: function(params) {
     var currentScreen = document.querySelector('.current');
     var nextScreen = params.panel;
+    // Set progress width
+    this.fxaProgress.style.width = (100 / this.maxSteps) + '%';
     // Lazy load current panel
     LazyLoader.load(nextScreen, function() {
       // If the panel contains any new script elements,
@@ -67,16 +92,20 @@ var FxaModuleUI = {
             this.fxaModuleNavigation.classList.add('navigation-done');
           }
         }
-        this.progress(100 * params.count / this.maxSteps);
+        this.setProgressBar(params.count);
 
-        params.onload && params.onload();
+        navigator.mozL10n.once(function() {
+          // fire module's init method
+          params.onload && params.onload();
 
-        if (nextScreen) {
-          this._animate(currentScreen,
-                        nextScreen,
-                        params.back,
-                        params.onanimate);
-        }
+          // animate it into view - TODO unclear how nextScreen could be falsy
+          if (nextScreen) {
+            this._animate(currentScreen,
+                          nextScreen,
+                          params.back,
+                          params.onanimate);
+          }
+        }.bind(this));
       }.bind(this));
     }.bind(this));
   },
@@ -117,8 +146,9 @@ var FxaModuleUI = {
     elem.classList.contains('rightToCurrent') ||
     elem.classList.contains('leftToCurrent') || false;
   },
-  progress: function(value) {
-    document.querySelector('#fxa-progress').value = value;
+  setProgressBar: function(value) {
+    this.fxaProgress.value = 100 * value / this.maxSteps;
+    this.fxaProgress.style.transform = 'translateX(' + 100 * (value - 1) + '%)';
   },
   setNextText: function(l10n) {
     this.fxaModuleNext.textContent = l10n;

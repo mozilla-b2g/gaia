@@ -1,13 +1,9 @@
-/* global FxAccountsIACHelper, FxaMenu, LazyLoader, Settings */
+/* global FxAccountsIACHelper, FxaMenu */
 
 'use strict';
 
-navigator.mozL10n.once(function loadWhenIdle() {
-  Settings.getSettings(function(results) {
-    var enabled = results['identity.fxaccounts.ui.enabled'];
-    if (!enabled) {
-      return;
-    }
+require(['shared/lazy_loader'], function(LazyLoader) {
+  navigator.mozL10n.once(function loadWhenIdle() {
     var idleObserver = {
       time: 4,
       onidle: function() {

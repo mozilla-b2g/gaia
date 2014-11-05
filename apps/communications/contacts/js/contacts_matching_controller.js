@@ -28,8 +28,7 @@ if (!contacts.MatchingController) {
      */
     var type = 'matching';
 
-    window.addEventListener('localized', function localized(evt) {
-      window.removeEventListener('localized', localized);
+    navigator.mozL10n.once(function localized(evt) {
       // The controller is started when the literals are available
       start(window.location.search.substring('contactId'.length + 2));
     });
@@ -63,7 +62,7 @@ if (!contacts.MatchingController) {
 
       var matcherDependencies = ['/shared/js/text_normalizer.js',
                                  '/shared/js/simple_phone_matcher.js',
-                                 '/contacts/js/contacts_matcher.js'];
+                                 '/shared/js/contacts/contacts_matcher.js'];
       LazyLoader.load(matcherDependencies, function loaded() {
         parent.contacts.List.getContactById(cid, function success(mContact) {
           // Master contact
@@ -171,8 +170,9 @@ if (!contacts.MatchingController) {
         return;
       }
 
-      LazyLoader.load(['/contacts/js/contacts_merger.js',
-                       '/contacts/js/utilities/image_thumbnail.js'],
+      LazyLoader.load(['/shared/js/contacts/contacts_merger.js',
+                       '/shared/js/contacts/utilities/image_thumbnail.js'
+                      ],
       function loaded() {
         var cb = function cb() {
           Curtain.hide(function() {

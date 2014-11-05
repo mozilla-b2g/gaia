@@ -6,12 +6,13 @@ var MockCompose = {
   init: function() {},
   on: function(type, handler) {},
   off: function(type, handler) {},
-  clearListeners: function() {},
+  offAll: function() {},
   getContent: function() {},
   getText: function() {},
   isEmpty: function() {
     return this.mEmpty;
   },
+  isSubjectMaxLength: () => false,
   disable: function(state) {},
   scrollToTarget: function(target) {},
   scrollMessageContent: function() {},
@@ -26,7 +27,9 @@ var MockCompose = {
   updateType: function() {},
 
   getSubject: function() {},
-  toggleSubject: function() {},
+  setSubject: function() {},
+  showSubject: function() {},
+  hideSubject: function() {},
   fromDraft: function() {},
   fromMessage: function() {},
 
@@ -38,5 +41,8 @@ var MockCompose = {
     this.mEmpty = true;
     this.mSubjectEmpty = true;
     this.mSubjectShowing = false;
+    this.size = null;
+    this.type = 'sms';
+    this.lock = false;
   }
 };

@@ -4,7 +4,7 @@
 
 /* Main dialog setup */
 [role="dialog"][data-type="value-selector"] {
-  background: url(value_selector/images/ui/pattern.png) repeat left top, url(value_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background: #2d2d2d;
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -52,7 +52,7 @@
   height: auto;
   list-style: none;
   position: relative;
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.2rem;
   line-height: 3.9rem;
   color: #fff;
@@ -92,22 +92,46 @@
   background-image: none;
 }
 
+/* Subheaders */
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] {
+  border: none;
+  background-color: #242424;
+  pointer-events: none;
+  -moz-user-select: none;
+}
+
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] label {
+  color: #858585;
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] label,
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] + li label {
+  border: none;
+}
+
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] label span {
+  line-height: 2rem;
+}
+
 /* Checked status */
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
+  background: transparent url(value_selector/images/icons/checked.png) right 1.2rem top 50% / 2.4rem no-repeat;
+}
+
 [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
   padding-right: 2.6rem;
   margin-right: 1.2rem;
   color: #00abcd;
-  background: transparent url(value_selector/images/icons/checked.png) no-repeat 100% 50%;
-  background-size: 2rem;
 }
 
-
 /* Menu & buttons setup */
-[role="dialog"][data-type="value-selector"] menu {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  background: #2d2d2d url(value_selector/images/ui/pattern.png) repeat left top;
+  background: #4d4d4d;
   display: block;
   overflow: hidden;
   position: absolute;
@@ -116,12 +140,12 @@
   bottom: 0;
 }
 
-[role="dialog"][data-type="value-selector"] menu button::-moz-focus-inner {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button::-moz-focus-inner {
   border: none;
   outline: none;
 }
 
-[role="dialog"][data-type="value-selector"] menu button {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button {
   width: calc((100% - 1rem) / 2);
   font-family: sans-serif;
   font-style: italic;
@@ -148,26 +172,26 @@
 }
 
 /* Affirmative */
-[role="dialog"][data-type="value-selector"] menu button.affirmative,
-[role="dialog"][data-type="value-selector"] menu button.recommend {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button.affirmative,
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button.recommend {
   background-color: #00caf2;
   color: #fff;
 }
 
 /* Pressed */
-[role="dialog"][data-type="value-selector"] menu button:active {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button:active {
   background: #00aacc;
   color: #fff;
 }
 
 /* Disabled */
-[role="dialog"][data-type="value-selector"] > menu > button[disabled] {
+[role="dialog"][data-type="value-selector"] > menu.value-selector-buttons > button[disabled] {
   background-color: #565656;
   color: rgba(255,255,255,0.4);
   pointer-events: none;
 }
 
-[role="dialog"][data-type="value-selector"] > menu > button[disabled].recommend {
+[role="dialog"][data-type="value-selector"] > menu.value-selector-buttons > button[disabled].recommend {
   background-color: #006579;
 }
 
@@ -175,25 +199,35 @@ button[disabled]::-moz-selection {
   -moz-user-select: none;
 }
 
-[role="dialog"][data-type="value-selector"] menu button:last-child {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button:last-child {
   margin-left: 1rem;
 }
 
-[role="dialog"][data-type="value-selector"] menu button,
-[role="dialog"][data-type="value-selector"] menu button:first-child {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button,
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button:first-child {
   margin: 0;
 }
 
-[role="dialog"][data-type="value-selector"] menu button.full {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button.full {
   width: 100%;
 }
 
 /* Right to left tweaks */
-html[dir="rtl"] #value-selector li input:checked + span,
-html[dir="rtl"] #value-selector li[aria-selected="true"] span {
+html[dir="rtl"] .value-selector li input:checked + span,
+html[dir="rtl"] .value-selector li[aria-selected="true"] span {
   padding-left: 2.6rem;
   padding-right: 1.5rem;
   margin-left: 1.2rem;
   margin-right: 0;
   background-position: 0 50%;
 }
+
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
+  background-position: left 1.2rem top 50%;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
+  padding-left: 2.6rem;
+  padding-right: 0;
+}
+

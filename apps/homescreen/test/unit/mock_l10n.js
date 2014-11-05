@@ -19,7 +19,8 @@ window.navigator.mozL10n = {
     };
   },
 
-  ready: function() {
+  ready: function(callback) {
+    setTimeout(callback);
   },
 
   language: {

@@ -19,7 +19,7 @@ class TestEnduranceVideoPlayback(GaiaEnduranceTestCase):
         GaiaEnduranceTestCase.setUp(self)
 
         # add video to storage
-        self.push_resource('VID_0001.3gp', destination='DCIM/100MZLLA')
+        self.push_resource('VID_0001.3gp')
 
     def test_endurance_video_playback(self):
         self.drive(test=self.video_playback, app='video')

@@ -7,17 +7,19 @@
 /* global MockLinkedContacts:true */
 /* global MockLinkHtml */
 /* global MockOauthflow */
+/* global MockCurtain */
 
 require('/shared/js/text_normalizer.js');
+require('/shared/js/binary_search.js');
 require('/shared/js/contacts/import/utilities/misc.js');
+require('/shared/js/contacts/utilities/dom.js');
+require('/shared/js/contacts/utilities/templates.js');
+
 requireApp('communications/contacts/test/unit/mock_link.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/facebook/test/unit/mock_curtain.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
-requireApp('communications/contacts/js/utilities/dom.js');
-require('/shared/js/binary_search.js');
-requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_linked_contacts.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_oauthflow.js');
@@ -27,6 +29,7 @@ var realImageLoader,
     realAsyncStorage,
     realFb,
     realOauthflow,
+    realCurtain,
     linkProposal,
     linkProposalChild;
 
@@ -54,6 +57,9 @@ suite('Link Friends Test Suite', function() {
   suiteSetup(function() {
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
+
+    realCurtain = window.Curtain;
+    window.Curtain = MockCurtain;
 
     realAsyncStorage = window.asyncStorage;
     window.asyncStorage = MockasyncStorage;
@@ -219,12 +225,35 @@ suite('Link Friends Test Suite', function() {
     });
   });
 
+  suite('Link UI process', function() {
+    test('Link UI process ends as expected', function(done) {
+      linkProposal.innerHTML = '';
+      linkProposal.appendChild(linkProposalChild);
+
+      sinon.stub(window.Curtain, 'hide', function(callback) {
+        if (typeof callback === 'function') {
+          callback();
+        }
+      });
+
+      sinon.stub(window.parent, 'postMessage', function(msg) {
+        done(function() {
+          window.Curtain.hide.restore();
+          window.parent.postMessage.restore();
+          assert.equal(msg.type, 'ready', 'Sent message is of type \'ready\'.');
+        });
+      });
+
+      fb.link.start('mock_token', '123456');
+    });
+  });
 
   suiteTeardown(function() {
     window.ImageLoader = realImageLoader;
     window.asyncStorage = realAsyncStorage;
     window.fb = realFb;
     window.oauthflow = realOauthflow;
+    window.Curtain = realCurtain;
   });
 
 });

@@ -19,12 +19,16 @@ class TestSetupAndSendIMAPEmail(GaiaTestCase):
             raise SkipTest('account details not present in test variables')
 
         GaiaTestCase.setUp(self)
-        self.connect_to_network()
+        self.connect_to_local_area_network()
 
         self.email = Email(self.marionette)
         self.email.launch()
 
     def test_setup_and_send_imap_email(self):
+        """
+        https://moztrap.mozilla.org/manage/case/6113/
+        https://moztrap.mozilla.org/manage/case/6114/
+        """
         # setup IMAP account
         self.email.setup_IMAP_email(self.account)
 
@@ -63,5 +67,5 @@ class TestSetupAndSendIMAPEmail(GaiaTestCase):
 
         read_email = self.email.mails[0].tap_subject()
 
-        self.assertEqual(_body, read_email.body)
+        self.assertEqual(_body, read_email.body.splitlines()[0])
         self.assertEqual(_subject, read_email.subject)

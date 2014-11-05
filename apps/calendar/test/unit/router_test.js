@@ -1,21 +1,22 @@
-requireSupport('fake_page.js');
-requireSupport('mock_view.js');
-requireLib('router.js');
+define(function(require) {
+'use strict';
+
+var FakePage = require('test/support/fake_page');
+var MockView = require('test/support/mock_view');
+var Router = require('router');
 
 suite('router', function() {
-  'use strict';
-
   var subject;
   var page;
   var View;
 
   suiteSetup(function() {
-    View = Calendar.Test.MockView;
+    View = MockView;
   });
 
   setup(function() {
-    page = Calendar.Test.FakePage;
-    subject = new Calendar.Router(page);
+    page = FakePage;
+    subject = new Router(page);
     page.routes.length = 0;
   });
 
@@ -78,5 +79,6 @@ suite('router', function() {
       assert.ok(subject[method]);
     });
   });
+});
 
 });

@@ -1,10 +1,14 @@
 /* Resetting */
-#cost-control-widget,
+#utility-tray-footer > #cost-control-widget,
 #cost-control-widget iframe {
-  width: 100%;
-  height: 4.5rem;
-  border: none;
+  height: 5.2rem;
   margin: 0;
   padding: 0;
-  background: url(gray-noise-pattern.png) repeat left bottom;
+  border: none;
+}
+
+#cost-control-widget iframe {
+  margin: 0 1.5rem;
+  width: calc(100% - 3rem);
+  border-bottom: .1rem solid rgba(255, 255, 255, .05);
 }

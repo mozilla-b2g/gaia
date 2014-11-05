@@ -1,24 +1,32 @@
+/* global StackManager, AppWindow, MockAppWindowManager, Event, MocksHelper,
+          MockSystem, HomescreenLauncher, MockSheetsTransition */
 'use strict';
-
-mocha.globals(['homescreenLauncher', 'layoutManager']);
 
 requireApp('system/js/stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_layout_manager.js');
+requireApp('system/test/unit/mock_sheets_transition.js');
 
 var mocksForStackManager = new MocksHelper([
-  'AppWindow', 'HomescreenLauncher', 'LayoutManager'
+  'AppWindow', 'AppWindowManager',
+  'HomescreenLauncher', 'LayoutManager',
+  'SheetsTransition', 'System'
 ]).init();
 
 suite('system/StackManager >', function() {
-  var dialer, contact, settings, google, system;
+  var dialer, contact, settings, google, system, operatorVariant;
   var contact_sheet_1, contact_sheet_2;
   var settings_sheet_1, settings_sheet_2, settings_sheet_3;
   mocksForStackManager.attachTestHelpers();
 
   setup(function() {
-    window.homescreenLauncher = new HomescreenLauncher().start();
+    this.sinon.useFakeTimers();
+
+    window.homescreenLauncher = new HomescreenLauncher();
+    window.homescreenLauncher.start();
     dialer = new AppWindow({
       url: 'app://communications.gaiamobile.org/dialer/index.html',
       origin: 'app://communications.gaiamobile.org/',
@@ -55,13 +63,22 @@ suite('system/StackManager >', function() {
       manifest: { role: 'system' }
     });
 
+    operatorVariant = new AppWindow({
+      url: 'app://opvariant.gaiamobile.org/index.html',
+      origin: 'app://opvariant.gaiamobile.org/',
+      manifestURL:
+        'app://opvariant.gaiamobile.org/contact/manifest.webapp',
+      name: 'Operator Variant',
+      manifest: { role: 'system' }
+    });
+
     contact_sheet_1 = new AppWindow({
       url: 'app://communications.gaiamobile.org/contact/sheet1.html',
       origin: 'app://communications.gaiamobile.org/',
       manifestURL:
         'app://communications.gaiamobile.org/contact/manifest.webapp',
       name: 'Contact',
-      parentWindow: contact
+      previousWindow: contact
     });
 
     contact_sheet_2 = new AppWindow({
@@ -70,7 +87,7 @@ suite('system/StackManager >', function() {
       manifestURL:
         'app://communications.gaiamobile.org/contact/manifest.webapp',
       name: 'Contact',
-      parentWindow: contact_sheet_1
+      previousWindow: contact_sheet_1
     });
 
     settings_sheet_1 = new AppWindow({
@@ -78,7 +95,7 @@ suite('system/StackManager >', function() {
       origin: 'app://settings.gaiamobile.org/',
       manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
       name: 'Settings',
-      parentWindow: settings
+      previousWindow: settings
     });
 
     settings_sheet_2 = new AppWindow({
@@ -86,7 +103,7 @@ suite('system/StackManager >', function() {
       origin: 'app://settings.gaiamobile.org/',
       manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
       name: 'Settings',
-      parentWindow: settings_sheet_1
+      previousWindow: settings_sheet_1
     });
 
     settings_sheet_3 = new AppWindow({
@@ -94,7 +111,7 @@ suite('system/StackManager >', function() {
       origin: 'app://settings.gaiamobile.org/',
       manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
       name: 'Settings',
-      parentWindow: settings_sheet_2
+      previousWindow: settings_sheet_2
     });
 
     contact_sheet_1.groupID = contact.groupID;
@@ -102,11 +119,14 @@ suite('system/StackManager >', function() {
     settings_sheet_1.groupID = settings.groupID;
     settings_sheet_2.groupID = settings.groupID;
     settings_sheet_3.groupID = settings.groupID;
+    window.appWindowManager = new MockAppWindowManager();
   });
 
   teardown(function() {
+    this.sinon.clock.tick(800); // Making sure everything got broadcasted
     window.homescreenLauncher = undefined;
     StackManager.__clearAll();
+    MockSystem.currentApp = null;
   });
 
   function appLaunch(app, warm) {
@@ -116,9 +136,9 @@ suite('system/StackManager >', function() {
       window.dispatchEvent(evt);
     }
 
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('launchapp', true, false, app.config);
-    window.dispatchEvent(evt);
+    var evt2 = document.createEvent('CustomEvent');
+    evt2.initCustomEvent('launchapp', true, false, app.config);
+    window.dispatchEvent(evt2);
   }
 
   function wrapperLaunch(app, warm) {
@@ -128,9 +148,9 @@ suite('system/StackManager >', function() {
       window.dispatchEvent(evt);
     }
 
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('launchapp', true, false, app.config);
-    window.dispatchEvent(evt);
+    var evt2 = document.createEvent('CustomEvent');
+    evt2.initCustomEvent('launchapp', true, false, app.config);
+    window.dispatchEvent(evt2);
   }
 
   function appCrash(app) {
@@ -153,21 +173,9 @@ suite('system/StackManager >', function() {
     window.dispatchEvent(evt);
   }
 
-  function configify(app) {
-    var config = {};
-    for (var key in app) {
-      if (key != 'frame' && key != 'iframe') {
-        config[key] = app[key];
-      }
-    }
-
-    return config;
-  }
-
   suite('Homescreen', function() {
-    setup(function(done) {
+    setup(function() {
       home();
-      setTimeout(done);
     });
 
     test('the position indicates we are on the homescreen',
@@ -176,18 +184,48 @@ suite('system/StackManager >', function() {
     });
   });
 
-  suite('Stack vs System App', function() {
+  suite('Stack vs hidden apps', function() {
     setup(function() {
       appLaunch(system);
+      appLaunch(operatorVariant);
     });
 
-    test('system app should never be in the stack', function() {
+    test('role=system apps should never be in the stack', function() {
       StackManager.snapshot().forEach(function(app) {
         if (app.manifest) {
-          assert.notEqual(app.manifest.role,
-                          'system',
-                          'system app should not be in snapshot');
+          assert.notEqual(app.manifest.role, 'system');
         }
+      });
+    });
+
+    suite('when the app currently displayed is not part of the stack',
+    function() {
+      setup(function() {
+        appLaunch(settings);
+        appLaunch(operatorVariant);
+        MockSystem.currentApp = operatorVariant;
+
+        this.sinon.stub(settings, 'getActiveWindow').returns(null);
+      });
+
+      test('getCurrent should still work to allow event forwarding',
+      function() {
+        assert.equal(StackManager.getCurrent(), operatorVariant);
+      });
+
+      test('outOfStack should be true since we don\'t know where we are',
+      function() {
+        assert.isTrue(StackManager.outOfStack());
+      });
+
+      suite('but to prevent undefined swiping behaviors', function() {
+        test('getPrev should return undefined', function() {
+          assert.isUndefined(StackManager.getPrev());
+        });
+
+        test('getNext should return undefined', function() {
+          assert.isUndefined(StackManager.getNext());
+        });
       });
     });
 
@@ -270,7 +308,9 @@ suite('system/StackManager >', function() {
     suite('> goNext()', function() {
       setup(function() {
         StackManager.goPrev();
+        assert.isFalse(StackManager._didntMove);
         StackManager.goPrev();
+        assert.isFalse(StackManager._didntMove);
       });
 
       test('should move forward in the stack without modifying it', function() {
@@ -280,7 +320,8 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getPrev().config, dialer.config);
       });
 
-      test('it should dispatch a stackchanged event', function(done) {
+      test('it should dispatch a stackchanged event after a delay',
+      function(done) {
         window.addEventListener('stackchanged', function onStackChanged(evt) {
           window.removeEventListener('stackchanged', onStackChanged);
 
@@ -294,6 +335,7 @@ suite('system/StackManager >', function() {
         });
 
         StackManager.goNext();
+        this.sinon.clock.tick(800);
       });
 
       test('the position should be updated properly', function() {
@@ -303,14 +345,115 @@ suite('system/StackManager >', function() {
       test('should do nothing when we\'re at the top of the stack',
       function() {
         StackManager.goNext();
+        assert.isFalse(StackManager._didntMove);
         StackManager.goNext();
+        assert.isTrue(StackManager._didntMove);
         assert.deepEqual(StackManager.getCurrent().config, settings.config);
         StackManager.goNext();
         assert.deepEqual(StackManager.getCurrent().config, settings.config);
       });
     });
-  });
 
+    test('going back to the start app', function() {
+      var onSheetsGestureEnd = this.sinon.spy();
+      window.addEventListener('sheets-gesture-end', onSheetsGestureEnd);
+      StackManager.goPrev();
+      StackManager.goNext();
+      assert.isTrue(StackManager._didntMove);
+      StackManager.commit();
+      sinon.assert.calledOnce(onSheetsGestureEnd);
+      this.sinon.clock.tick(800);
+      sinon.assert.calledOnce(onSheetsGestureEnd);
+      window.removeEventListener('sheets-gesture-end', onSheetsGestureEnd);
+    });
+
+    suite('> blasting through history', function() {
+      var dialerBroadcast, contactBroadcast, settingsBroadcast;
+      var dialerQueueShow, contactCancelQueuedShow, settingsQueueHide;
+      var sendStopRecordingRequest;
+
+      setup(function() {
+        dialerBroadcast = this.sinon.stub(dialer, 'broadcast');
+        contactBroadcast = this.sinon.stub(contact, 'broadcast');
+        settingsBroadcast = this.sinon.stub(settings, 'broadcast');
+
+        dialerQueueShow = this.sinon.stub(dialer, 'queueShow');
+        contactCancelQueuedShow = this.sinon.stub(contact, 'cancelQueuedShow');
+        settingsQueueHide = this.sinon.stub(settings, 'queueHide');
+
+        sendStopRecordingRequest = this.sinon.stub(window.appWindowManager,
+                                                   'sendStopRecordingRequest');
+
+        StackManager.goPrev();
+        assert.isFalse(StackManager._didntMove);
+        StackManager.goPrev();
+        assert.isFalse(StackManager._didntMove);
+      });
+
+      test('it should flag the next active app', function() {
+        sinon.assert.calledOnce(dialerQueueShow);
+      });
+
+      test('it should unflag an app we passed over', function() {
+        sinon.assert.calledOnce(contactCancelQueuedShow);
+      });
+
+      test('it should flag the app that will become inactive', function() {
+        sinon.assert.calledOnce(settingsQueueHide);
+      });
+
+      test('it should broadcast only 1 app change', function() {
+        sinon.assert.notCalled(dialerBroadcast);
+        sinon.assert.notCalled(contactBroadcast);
+        sinon.assert.notCalled(settingsBroadcast);
+
+        this.sinon.clock.tick(800);
+
+        sinon.assert.calledWith(dialerBroadcast, 'swipein');
+        sinon.assert.notCalled(contactBroadcast);
+        sinon.assert.calledWith(settingsBroadcast, 'swipeout');
+      });
+
+      test('it should call sendStopRecordingRequest', function() {
+        sinon.assert.calledOnce(sendStopRecordingRequest);
+      });
+
+      suite('if we\'re back to the same place', function() {
+        setup(function() {
+          StackManager.goNext();
+          StackManager.goNext();
+          assert.isTrue(StackManager._didntMove);
+        });
+
+        test('it should just cleanup the transition classes', function() {
+           var clearSpy = this.sinon.spy(settings.transitionController,
+                                         'clearTransitionClasses');
+          this.sinon.clock.tick(800);
+          sinon.assert.calledOnce(clearSpy);
+        });
+      });
+
+      suite('if we\'re still transitioning after the timeout', function() {
+        setup(function() {
+          MockSheetsTransition.transitioning = true;
+          this.sinon.clock.tick(800);
+        });
+
+        test('commit should then broadcast', function() {
+          sinon.assert.notCalled(dialerBroadcast);
+          sinon.assert.notCalled(contactBroadcast);
+          sinon.assert.notCalled(settingsBroadcast);
+
+          MockSheetsTransition.transitioning = false;
+          StackManager.commit();
+
+          sinon.assert.calledWith(dialerBroadcast, 'swipein');
+          sinon.assert.notCalled(contactBroadcast);
+          sinon.assert.calledWith(settingsBroadcast, 'swipeout');
+        });
+      });
+    });
+  });
 
   suite('When an app is launched', function() {
     setup(function() {
@@ -366,9 +509,7 @@ suite('system/StackManager >', function() {
 
       test('it should bring the current app on top too', function() {
         StackManager.goPrev();
-        StackManager._dump();
         appLaunch(dialer, true);
-        StackManager._dump();
 
         assert.deepEqual(StackManager.getPrev(), contact);
       });
@@ -547,6 +688,22 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getCurrent().config, settings.config);
       });
     });
+
+  });
+
+  suite('When the last app terminates', function() {
+    setup(function() {
+      appLaunch(contact);
+      appCrash(contact);
+    });
+    test('the position should be -1',
+    function() {
+      assert.equal(StackManager.position, -1);
+    });
+    test('the stack should be empty',
+    function() {
+      assert.equal(StackManager._stack.length, 0);
+    });
   });
 
   test('open app from card should update the ordering', function() {
@@ -563,6 +720,7 @@ suite('system/StackManager >', function() {
       appLaunch(contact);
       appLaunch(settings);
     });
+
     test('goPrev() should go the the parent window if there is one',
       function() {
         var stub1 = this.sinon.stub(settings, 'getActiveWindow');
@@ -573,9 +731,11 @@ suite('system/StackManager >', function() {
         var stubBroadcast2 = this.sinon.stub(settings_sheet_2, 'broadcast');
 
         StackManager.goPrev();
+        this.sinon.clock.tick(800);
         assert.isTrue(stubBroadcast1.calledWith('swipein'));
         assert.isTrue(stubBroadcast2.calledWith('swipeout'));
       });
+
     test('goNext() should go to the child window if there is one', function() {
       var stub1 = this.sinon.stub(settings, 'getActiveWindow');
       stub1.returns(settings_sheet_2);
@@ -585,12 +745,15 @@ suite('system/StackManager >', function() {
       var stubBroadcast2 = this.sinon.stub(settings_sheet_3, 'broadcast');
 
       StackManager.goNext();
+      this.sinon.clock.tick(800);
       assert.isTrue(stubBroadcast1.calledWith('swipeout'));
       assert.isTrue(stubBroadcast2.calledWith('swipein'));
     });
+
     test('goNext() should go to the next app root window if we are on a leaf',
       function() {
         StackManager.goPrev();
+        this.sinon.clock.tick(800);
         var stub1 = this.sinon.stub(settings, 'getRootWindow');
         stub1.returns(settings);
         var stub2 = this.sinon.stub(contact, 'getActiveWindow');
@@ -599,9 +762,11 @@ suite('system/StackManager >', function() {
         var stubBroadcast2 = this.sinon.stub(contact_sheet_2, 'broadcast');
 
         StackManager.goNext();
+        this.sinon.clock.tick(800);
         assert.isTrue(stubBroadcast2.calledWith('swipeout'));
         assert.isTrue(stubBroadcast1.calledWith('swipein'));
       });
+
     test('goPrev() should go to the previous app leaf if we are on a root',
       function() {
         var stub1 = this.sinon.stub(contact, 'getLeafWindow');
@@ -612,6 +777,7 @@ suite('system/StackManager >', function() {
         var stubBroadcast2 = this.sinon.stub(contact_sheet_2, 'broadcast');
 
         StackManager.goPrev();
+        this.sinon.clock.tick(800);
         assert.isTrue(stubBroadcast1.calledWith('swipeout'));
         assert.isTrue(stubBroadcast2.calledWith('swipein'));
       });
@@ -649,6 +815,19 @@ suite('system/StackManager >', function() {
       });
 
       home();
+    });
+
+    test('it should do an emergency broadcast to prevent race conditions',
+    function() {
+      var clearSpy = this.sinon.spy(settings.transitionController,
+                                    'clearTransitionClasses');
+      var broadcastSpy = this.sinon.spy(dialer, 'broadcast');
+      StackManager.goPrev();
+      home();
+      sinon.assert.calledWith(broadcastSpy, 'closed');
+      sinon.assert.calledOnce(clearSpy);
+      this.sinon.clock.tick(800);
+      sinon.assert.calledOnce(broadcastSpy);
     });
 
     suite('if the stack is empty', function() {

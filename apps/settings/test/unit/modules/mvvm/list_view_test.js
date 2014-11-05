@@ -338,7 +338,10 @@ suite('ListView', function() {
               assert.equal(this.template.called, 0);
             });
             test('does not change elements', function() {
-              assert.deepEqual(this.container.children, this.originalElements);
+              for (var i = 0; i < this.container.children.length; i++) {
+                assert.equal(this.container.children[i], 
+                  this.originalElements[i]);
+              }
             });
             suite('.enabled = true', function() {
               setup(function() {

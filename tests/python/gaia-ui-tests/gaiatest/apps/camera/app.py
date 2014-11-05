@@ -4,37 +4,35 @@
 
 import time
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
+from marionette.marionette import Actions
 
 from gaiatest.apps.base import Base
-from gaiatest.apps.base import PageRegion
-import gaiatest.apps.gallery.app
 
 
 class Camera(Base):
 
     name = 'Camera'
 
-    _camera_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="camera"][src*="/index.html"]')
-    _body_locator = (By.TAG_NAME, 'body')
+    _secure_camera_frame_locator = (By.CSS_SELECTOR, ".secureAppWindow.active[data-manifest-name='Camera'] iframe")
 
     # Controls View
     _controls_locator = (By.CSS_SELECTOR, '.controls')
     _switch_button_locator = (By.CSS_SELECTOR, '.test-switch')
     _capture_button_locator = (By.CSS_SELECTOR, '.test-capture')
     _gallery_button_locator = (By.CSS_SELECTOR, '.test-gallery')
-    _thumbnail_button_locator = (By.CSS_SELECTOR, '.test-thumbnail')
+    _thumbnail_button_locator = (By.CSS_SELECTOR, 'img.test-thumbnail')
 
-    _cancel_pick_button_locator = (By.CSS_SELECTOR, '.test-cancel-pick')
     _video_timer_locator = (By.CSS_SELECTOR, '.recording-timer')
 
     # HUD View
     _hud_locator = (By.CSS_SELECTOR, '.hud')
-    _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-toggle-flash')
-    _toggle_camera_button_locator = (By.CSS_SELECTOR, '.test-toggle-camera')
+    _loading_screen_locator = (By.CSS_SELECTOR, '.loading-screen')
+    _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-flash-button')
 
     _viewfinder_video_locator = (By.CLASS_NAME, 'viewfinder-video')
-    _focus_ring_locator = (By.CSS_SELECTOR, '.focus-ring')
 
     # ConfirmDialog
     _select_button_locator = (By.CSS_SELECTOR, '.test-confirm-select')
@@ -42,12 +40,17 @@ class Camera(Base):
     def launch(self):
         Base.launch(self)
         self.wait_for_capture_ready()
+        self.wait_for_element_not_displayed(*self._loading_screen_locator)
+
+    @property
+    def camera_mode(self):
+        return self.marionette.find_element(*self._controls_locator).get_attribute('data-mode')
 
     def take_photo(self):
         # Wait for camera to be ready to take a picture
-        self.wait_for_condition(
-            lambda m: m.find_element(
-                *self._controls_locator).get_attribute('enabled') == 'true', 20)
+        controls = self.marionette.find_element(*self._controls_locator)
+        Wait(self.marionette, timeout=20).until(
+            lambda m: controls.get_attribute('data-enabled') == 'true')
 
         self.tap_capture()
 
@@ -62,9 +65,10 @@ class Camera(Base):
         self.wait_for_video_capturing()
 
         # Wait for duration
+        timeout = duration + 10
         timer_text = "00:%02d" % duration
-        self.wait_for_condition(lambda m: m.find_element(
-            *self._video_timer_locator).text >= timer_text, timeout=duration + 10)
+        timer = self.marionette.find_element(*self._video_timer_locator)
+        Wait(self.marionette, timeout).until(lambda m: timer.text >= timer_text)
 
         # Stop recording
         self.tap_capture()
@@ -76,75 +80,69 @@ class Camera(Base):
         self.marionette.find_element(*self._capture_button_locator).tap()
 
     def tap_select_button(self):
-        self.marionette.find_element(*self._select_button_locator).tap()
+        select = self.marionette.find_element(*self._select_button_locator)
+        Wait(self.marionette).until(expected.element_enabled(select))
+        select.tap()
+        # Fall back to app beneath the picker
+        Wait(self.mariontte).until(lambda m: self.apps.displayed_app.name != self.name)
+        self.apps.switch_to_displayed_app()
 
     def tap_switch_source(self):
-        self.wait_for_element_displayed(*self._switch_button_locator)
-        self.marionette.find_element(*self._switch_button_locator).tap()
-        self.wait_for_condition(
-            lambda m: m.find_element(
-                *self._controls_locator).get_attribute('enabled') == 'true')
+        switch = self.marionette.find_element(*self._switch_button_locator)
+        Wait(self.marionette).until(expected.element_displayed(switch))
+
+        current_camera_mode = self.camera_mode
+        # TODO: Use marionette.tap(_switch_button_locator) to switch camera mode
+        Actions(self.marionette).press(switch).move_by_offset(0, 0).release().perform()
+
+        controls = self.marionette.find_element(*self._controls_locator)
+        Wait(self.marionette).until(lambda m: controls.get_attribute('data-enabled') == 'true')
+
+        Wait(self.marionette).until(lambda m: not current_camera_mode == self.camera_mode)
         self.wait_for_capture_ready()
 
     def tap_toggle_flash_button(self):
-        self.marionette.find_element(*self._toggle_flash_button_locator).tap()
-
-    def wait_for_select_button_displayed(self):
-        self.wait_for_element_displayed(*self._select_button_locator)
+        initial_flash_mode = self.current_flash_mode
+        toggle = self.marionette.find_element(*self._toggle_flash_button_locator)
+        Wait(self.marionette).until(expected.element_enabled(toggle))
+        toggle.tap()
+        Wait(self.marionette).until(lambda m: self.current_flash_mode != initial_flash_mode)
 
     def wait_for_capture_ready(self):
-        self.wait_for_condition(
-            lambda m: m.execute_script('return arguments[0].readyState;', [
-                self.wait_for_element_present(*self._viewfinder_video_locator)]) > 0, 10)
+        viewfinder = Wait(self.marionette).until(expected.element_present(*self._viewfinder_video_locator))
+        Wait(self.marionette, timeout=10).until(lambda m: m.execute_script('return arguments[0].readyState;', [viewfinder]) > 0)
+        controls = self.marionette.find_element(*self._controls_locator)
+        Wait(self.marionette).until(lambda m: controls.get_attribute('data-enabled') == 'true')
+        Wait(self.marionette).until(lambda m: controls.is_enabled())
 
     def wait_for_video_capturing(self):
-        self.wait_for_condition(lambda m: self.marionette.find_element(
-            *self._controls_locator).get_attribute('recording') == 'true')
+        controls = self.marionette.find_element(*self._controls_locator)
+        Wait(self.marionette).until(lambda m: controls.get_attribute('data-recording') == 'true')
 
-    def wait_for_video_timer_not_visible(self):
-        self.wait_for_element_not_displayed(*self._video_timer_locator)
-
-    def wait_for_flash(self, status):
-        if status == 'on':
-            self.wait_for_condition(
-                       lambda m: 'icon-flash-off' not in m.find_element(
-                           *self. _toggle_flash_button_locator).get_attribute('class'))
-        else:
-            self.wait_for_condition(
-                       lambda m: 'icon-flash-off' in m.find_element(
-                           *self._toggle_flash_button_locator).get_attribute('class'))
-
-    def wait_for_flash_enabled(self):
-       self.wait_for_flash('on')
-
-    def wait_for_flash_disabled(self):
-       self.wait_for_flash('off')
-
-    def switch_to_camera_frame(self):
+    def switch_to_secure_camera_frame(self):
+        # Find and switch to secure camera app frame (AppWindowManager hides it)
+        # This is only used when accessing camera in locked phone state
         self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._camera_frame_locator)
-        camera_frame = self.marionette.find_element(*self._camera_frame_locator)
-        self.marionette.switch_to_frame(camera_frame)
+        secure_camera_frame = self.marionette.find_element(*self._secure_camera_frame_locator)
+        self.marionette.switch_to_frame(secure_camera_frame)
         self.wait_for_capture_ready()
 
     def tap_switch_to_gallery(self):
         switch_to_gallery_button = self.marionette.find_element(*self._gallery_button_locator)
         switch_to_gallery_button.tap()
-        gallery_app = gaiatest.apps.gallery.app.Gallery(self.marionette)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == gallery_app.name)
+        from gaiatest.apps.gallery.app import Gallery
+        gallery_app = Gallery(self.marionette)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == gallery_app.name)
         self.apps.switch_to_displayed_app()
         return gallery_app
 
     def wait_for_thumbnail_visible(self):
-      self.wait_for_element_displayed(*self._thumbnail_button_locator)
+        thumbnail = Wait(self.marionette).until(expected.element_present(*self._thumbnail_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(thumbnail))
 
     @property
     def is_thumbnail_visible(self):
         return self.is_element_displayed(*self._thumbnail_button_locator)
-
-    @property
-    def is_toggle_flash_button_visible(self):
-        return self.is_element_displayed(*self._toggle_flash_button_locator)
 
     @property
     def video_timer(self):
@@ -160,8 +158,12 @@ class Camera(Base):
         return self.marionette.find_element(*self._hud_locator).get_attribute('flash-mode')
 
     @property
-    def is_flash_text_visible(self):
-        return self.is_element_present(*self._flash_text_visible_locator)
+    def current_image_src(self):
+        return self.marionette.find_element(*self._thumbnail_button_locator).get_attribute('src')
+
+    def wait_for_picture_to_change(self, image_src):
+        Wait(self.marionette).until(lambda m: self.current_image_src != image_src)
+
 
 class ImagePreview(Base):
 
@@ -175,8 +177,8 @@ class ImagePreview(Base):
 
     def wait_for_media_frame(self):
         media_frame = self.marionette.find_element(*self._media_frame_locator)
-        scr_height = int(self.marionette.execute_script('return window.screen.height'))
-        self.wait_for_condition(lambda m: (media_frame.location['y'] + media_frame.size['height']) == scr_height)
+        screen_height = int(self.marionette.execute_script('return window.screen.height;'))
+        Wait(self.marionette).until(lambda m: (media_frame.location['y'] + media_frame.size['height']) == screen_height)
 
     def tap_camera(self):
         self.marionette.find_element(*self._camera_button_locator).tap()

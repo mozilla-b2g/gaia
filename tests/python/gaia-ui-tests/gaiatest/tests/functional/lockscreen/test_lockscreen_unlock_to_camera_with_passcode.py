@@ -24,17 +24,17 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
         self.device.lock()
 
     def test_unlock_to_camera_with_passcode(self):
-        """https://moztrap.mozilla.org/manage/case/2460/"""
+        """
+        https://moztrap.mozilla.org/manage/case/2460/
+        """
 
         lock_screen = LockScreen(self.marionette)
+        lock_screen.switch_to_frame()
         camera = lock_screen.unlock_to_camera()
-
-        # Bug 965806 - test_lockscreen_unlock_to_camera_with_passcode.TestCameraUnlockWithPasscode is failing after Bug 951978
-        # lock_screen.wait_for_lockscreen_not_visible()
 
         self.assertTrue(self.device.is_locked)
 
-        camera.switch_to_camera_frame()
+        camera.switch_to_secure_camera_frame()
         camera.take_photo()
 
         # Check that thumbnail is visible

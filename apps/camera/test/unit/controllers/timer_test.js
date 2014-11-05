@@ -3,7 +3,7 @@ suite('controllers/timer', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    req([
+    requirejs([
       'controllers/timer',
       'views/timer',
       'lib/setting',
@@ -60,7 +60,14 @@ suite('controllers/timer', function() {
 
     test('Should stop the timer when the app \'blur\' event fires', function() {
       var controller = new this.TimerController(this.app);
-      assert.ok(this.app.on.calledWith('blur', controller.clear));
+      assert.ok(this.app.on.calledWith('hidden', controller.clear));
+    });
+
+    test('Should call onBatteryStatusChange ' + 
+      'when the app \'batteryStatus\' event fires', function() {
+      var controller = new this.TimerController(this.app);
+      assert.ok(this.app.on.calledWith('change:batteryStatus',
+                                             controller.onBatteryChanged));
     });
   });
 
@@ -166,6 +173,22 @@ suite('controllers/timer', function() {
 
     test('Should unbind the app listeners', function() {
       assert.ok(this.app.off.calledWith('click', this.controller.clear));
+    });
+  });
+
+  suite('TimerController#onBatteryChanged()', function() {
+    setup(function() {
+      this.controller.start();
+    });
+
+    test('Should stop the timer if status is shutdown', function() {
+      this.controller.onBatteryChanged('shutdown');
+     assert.ok(this.app.emit.calledWith('timer:cleared'));
+    });
+
+    test('Should not stop the timer if status is healthy', function() {
+      this.controller.onBatteryChanged('healthy');
+      assert.isFalse(this.app.emit.calledWith('timer:cleared'));
     });
   });
 });

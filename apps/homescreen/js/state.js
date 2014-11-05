@@ -28,15 +28,7 @@ const HomeState = (function() {
   }
 
   function openDB(success, error) {
-    try {
-      var indexedDB = window.indexedDB || window.webkitIndexedDB ||
-                      window.mozIndexedDB || window.msIndexedDB;
-    } catch (e) {
-      error(e);
-      return;
-    }
-
-    if (!indexedDB) {
+    if (!window.indexedDB) {
       error('Indexed DB is not available!!!');
       return;
     }
@@ -45,7 +37,7 @@ const HomeState = (function() {
     var emptyDB = false;
 
     try {
-      request = indexedDB.open(DB_NAME, DB_VERSION);
+      request = window.indexedDB.open(DB_NAME, DB_VERSION);
     } catch (ex) {
       error(ex.message);
       return;
@@ -161,6 +153,8 @@ const HomeState = (function() {
         HomeState.getSVApps(iteratorSVApps);
       }, error);
     },
+
+    openDB: openDB,
 
     saveGrid: function st_saveGrid(pages, success, error) {
       saveTable(GRID_STORE_NAME, pages, success, error);

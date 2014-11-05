@@ -119,6 +119,18 @@ Our `Makefile` has two tasks, one to **'build'** and one to **'clean'** (delete 
 3. Copy all the entire `shared/` directory into our build directory. This is so that any shared dependencies that we are using are available in `build_stage/camera/shared/`, mimicking the magically resolved `/shared/` HTTP requests in development.
 4. Run the `r.js` (RequireJS optimizer), pointing it at our `require_config.jslike` file (`.jslike` because we don't want Gaia builds to mess with it [I think]). This copies our entire application (JS and all) and bundles our JS (tracing `require()` calls) and CSS (tracing `@import`) in two single files.
 
+## Camera configuration
+
+All the configuration variables are included in js/config/config.js. To customize your camera there are two options:
+
+1. Edit js/config/config.js and change the desired values
+2. '''Build time configuration''' It is also possible to create an external config.js file that will be used at build time instead of the default one. Two steps:
+
+- Copy js/config/config.js to any location and modify the desired values
+- Especify the env variable GAIA_DISTRIBUTION_DIR that points to the location of your custom config.js before building the app e.g:
+
+GAIA_DISTRIBUTION_DIR=~/CUSTOM/CONFIG/DIRECTORY make APP=camera
+
 ## Debug messages in javascript console
 
 - To enable debug messages for all modules
@@ -202,3 +214,18 @@ Browser: `input[type="file"][accept="image/*"]`, `input[type="file"][accept="ima
   }
 }
 ```
+
+## Integration tests
+
+mozCamera API is not available on B2G desktop. The integration tests can only be run on device so they are disabled on TPBL. Running these tests before marking a pull request for review is going to help prevent regressions and give you confidence that you haven't made any obvious silly mistakes. You will have a proof that you still have a functional camera with working basic functionality.
+
+- To run the tests you have first to make sure that you have an engineering build of b2g in your device.
+
+To launch the tests you have to follow the steps below in your terminal and in the directory of your gaia clone:
+
+- export MARIONETTE_RUNNER_HOST=marionette-device-host
+- make test-integration-test APP=camera
+
+If you want to run only one of the test suits you can do:
+
+make test-integration-test APP=camera TEST_FILES=apps/camera/test/marionette/capture_test.js

@@ -10,7 +10,7 @@
   /**
    * wallpaper
    */
-  section[role="region"]#display #wallpaper-button {
+  section[role="region"]#display .wallpaper-button {
     background-position: 95% 24%;
   }
 
@@ -49,6 +49,7 @@
     transition: none;
     left: 0;
     width: 40rem;
+    visibility: visible;
   }
 
   section[role="region"],
@@ -104,7 +105,7 @@
   }
 
   section[role="region"]#root .pack-switch > .menu-item {
-    padding-left: 7.5rem;
+    padding-left: 6rem;
   }
 
   section[role="region"]#root ul li > label.pack-switch {
@@ -113,6 +114,7 @@
 
   section[role="region"]#root ul li > label.pack-switch > small {
     left: 6.25rem;
+    margin: 0 0 0 4.5rem;
   }
 
   section[role="region"]:not([id='root']) ul li > label.pack-switch > span {
@@ -135,7 +137,7 @@
     padding-left: 6rem;
   }
 
-  section[role="region"]:not([id='root']) ul:not([id='wifi-availableNetworks']) li > progress {
+  section[role="region"]:not([id='root']) ul:not([class='wifi-availableNetworks']) li > progress {
     width: 100%;
   }
 
@@ -155,11 +157,17 @@
    * button
    */
   section[role="region"]:not([id='root']) ul li button,
+  section[role="region"]:not([id='root']) ul li div.button,
   section[role="region"]:not([id='root']) ul li span.button,
-  section[role="region"]:not([id='root']) ul li a[role='button'] {
+  section[role="region"]:not([id='root']) ul li a.bb-button {
     width: 20rem;
     left: calc(100% - 20rem);
     height: 3.5rem;
+  }
+
+  section[role="region"]#findmydevice ul li button {
+    width: 100%;
+    left: 0;
   }
 
   section[role="region"]:not([id='root']) ul li span > select {
@@ -167,20 +175,21 @@
   }
 
   /**
-   * hotspot wifi settings
+   * wifi auth / hotspot wifi settings
    */
-  section[role="region"]#hotspot-wifiSettings ul li.password > label > span {
+  section[role="region"]#hotspot-wifiSettings ul li.password > label > span,
+  section[role="region"]#wifi-auth ul li.password > label > span {
     padding-left: 3rem;
   }
 
   /**
    * wallpaper
    */
-  section[role="region"]#display #wallpaper {
+  section[role="region"]#display .wallpaper {
     height: 33.5rem;
   }
 
-  section[role="region"]#display #wallpaper-button {
+  section[role="region"]#display .wallpaper-button {
     background-position: right 4rem top 2.5rem;
     /*background-position: 76.5rem 2.5rem;*/
   }
@@ -190,6 +199,20 @@
    */
   section[role="region"] ul li.sound-setting {
     min-height: 6rem;
+  }
+
+  ul li > label.range-icons.volume.alarm:before,
+  ul li > label.range-icons.volume.media:before,
+  ul li > label.range-icons.volume.notification:before {
+    background: none;
+  }
+
+  ul li > label.range-icons.volume input {
+    margin-left: 0;
+  }
+
+  ul li > label.range-icons.volume p {
+    padding-left: 0;
   }
 
   /**
@@ -252,10 +275,11 @@
   /**
    * display
    */
-  ul li#brightness-manual > label input[type="range"] {
+  section[role="region"] ul li.brightness-manual > label input[type="range"] {
     display: inline;
-    left: 5rem;
-    top: calc(50% - 1.5rem);
+    width: calc(100% - 8rem);
+    left: 4rem;
+    top: calc(50% - 1rem);
   }
 
   /**
@@ -272,8 +296,7 @@
   /**
    * button
    */
-  section[role="region"]:not([id='root']) button.icon,
-  section[role="region"]:not([id='root']) .button {
+  section[role="region"]:not([id='root']) ul li p + span.button {
     position: absolute;
     top: 1.2rem;
   }

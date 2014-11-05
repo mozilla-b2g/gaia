@@ -9,7 +9,6 @@ module.exports = FakeMusic;
 
 FakeMusic.Selector = Object.freeze({
   albumOneElement: '#album-one',
-
   playPauseElement: '#play-pause',
   stopElement: '#stop',
   previousTrackElement: '#previous',

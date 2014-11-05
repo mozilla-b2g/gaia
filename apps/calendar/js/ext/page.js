@@ -1,14 +1,4 @@
-/*
-(The MIT License)
 
-Copyright (c) 2012 TJ Holowaychuk <tj@vision-media.ca>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
 ;(function(){
 
   /**
@@ -33,17 +23,24 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    * Register `path` with callback `fn()`,
    * or route `path`, or `page.start()`.
    *
+   *   page(fn);
+   *   page('*', fn);
    *   page('/user/:id', load, user);
    *   page('/user/' + user.id, { some: 'thing' });
    *   page('/user/' + user.id);
    *   page();
    *
-   * @param {String} path
+   * @param {String|Function} path
    * @param {Function} fn...
    * @api public
    */
 
   function page(path, fn) {
+    // <callback>
+    if ('function' == typeof path) {
+      return page('*', path);
+    }
+
     // route <path> to <callback ...>
     if ('function' == typeof fn) {
       var route = new Route(path);
@@ -95,8 +92,8 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if (running) return;
     running = true;
     if (false === options.dispatch) dispatch = false;
-    if (false !== options.popstate) addEventListener('popstate', onpopstate, false);
-    if (false !== options.click) addEventListener('click', onclick, false);
+    if (false !== options.popstate) window.addEventListener('popstate', onpopstate, false);
+    if (false !== options.click) window.addEventListener('click', onclick, false);
     if (!dispatch) return;
     page.replace(location.pathname + location.search, null, true, dispatch);
   };
@@ -176,7 +173,7 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    */
 
   function unhandled(ctx) {
-    if (window.location.pathname == ctx.canonicalPath) return;
+    if (window.location.pathname + window.location.search == ctx.canonicalPath) return;
     page.stop();
     ctx.unhandled = true;
     window.location = ctx.canonicalPath;
@@ -203,6 +200,12 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     this.pathname = ~i ? path.slice(0, i) : path;
     this.params = [];
   }
+
+  /**
+   * Expose `Context`.
+   */
+
+  page.Context = Context;
 
   /**
    * Push state.
@@ -247,6 +250,12 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       , options.sensitive
       , options.strict);
   }
+
+  /**
+   * Expose `Route`.
+   */
+
+  page.Route = Route;
 
   /**
    * Return route middleware with
@@ -358,19 +367,31 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    */
 
   function onclick(e) {
-    if (e.defaultPrevented) return; 
+    if (1 != which(e)) return;
+    if (e.defaultPrevented) return;
     var el = e.target;
     while (el && 'A' != el.nodeName) el = el.parentNode;
     if (!el || 'A' != el.nodeName) return;
     var href = el.href;
     var path = el.pathname + el.search;
-    if (el.hash) return;
+    if (el.hash || '#' == el.getAttribute('href')) return;
     if (!sameOrigin(href)) return;
     var orig = path;
     path = path.replace(base, '');
     if (base && orig == path) return;
     e.preventDefault();
     page.show(orig);
+  }
+
+  /**
+   * Event button.
+   */
+
+  function which(e) {
+    e = e || window.event;
+    return null == e.which
+      ? e.button
+      : e.which;
   }
 
   /**

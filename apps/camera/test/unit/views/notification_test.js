@@ -3,7 +3,7 @@ suite('views/notification', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    req(['views/notification'], function(NotificationView) {
+    requirejs(['views/notification'], function(NotificationView) {
       self.NotificationView = NotificationView;
       done();
     });

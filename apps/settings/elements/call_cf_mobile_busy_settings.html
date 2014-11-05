@@ -1,25 +1,23 @@
 <element name="call-cf-mobileBusySettings" extends="section">
   <template>
 
-    <header>
-      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
-      <menu type="toolbar">
-        <button type="submit"><span data-l10n-id="ok">OK</span></button>
-      </menu>
-      <h1 data-l10n-id="callForwarding-header"> Call forwarding </h1>
-    </header>
+    <gaia-header>
+      <button type="reset" data-icon="back"><span data-l10n-id="back">Back</span></button>
+      <h1 data-l10n-id="callForwarding-header"> Call Forwarding </h1>
+      <button type="submit"><span data-l10n-id="ok">OK</span></button>
+    </gaia-header>
 
     <div>
       <ul id="cf-mobilebusy-advanced">
         <li>
           <p data-l10n-id="cf-numberWhenBusy">Number when busy</p>
-          <input type="tel" id="cf-mobilebusy-number" data-setting="ril.cf.mobilebusy.number" disabled/>
+          <input type="tel" id="cf-mobilebusy-number" data-setting="ril.cf.mobilebusy.number"/>
         </li>
         <li>
           <label class="pack-switch">
             <input type="checkbox" data-setting="ril.cf.mobilebusy.enabled">
-            <small data-l10n-id="callForwardingMobileBusyShort">When busy</small>
             <span data-l10n-id="callForwardingForward">Forward</span>
+            <small data-l10n-id="callForwardingMobileBusyShort">When busy</small>
           </label>
         </li>
       </ul>

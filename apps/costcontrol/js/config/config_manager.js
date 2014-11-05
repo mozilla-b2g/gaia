@@ -1,4 +1,4 @@
-/* global debug, Common, LazyLoader, asyncStorage, deepCopy */
+/* global debug, SimManager, LazyLoader, asyncStorage, deepCopy */
 /* exported ConfigManager */
 'use strict';
 
@@ -68,8 +68,7 @@ var ConfigManager = (function() {
   }
 
   // Load the operator configuration according to MCC_MNC pair
-  function requestConfiguration(callback) {
-    var currentDataIcc = Common.dataSimIcc;
+  function requestConfiguration(currentDataIcc, callback) {
     if (!currentDataIcc || !currentDataIcc.iccInfo) {
       console.error('No iccInfo available');
       return;
@@ -89,21 +88,20 @@ var ConfigManager = (function() {
     }
 
     if (configurationIndex) {
-      loadConfiguration(returnConfiguration);
+      loadConfiguration(currentDataIcc, returnConfiguration);
     } else {
       loadConfigurationIndex(function onIndex() {
-        loadConfiguration(returnConfiguration);
+        loadConfiguration(currentDataIcc, returnConfiguration);
       });
     }
   }
 
-  function loadConfiguration(callback) {
-    var configFilePath = getConfigFilePath();
+  function loadConfiguration(currentDataIcc, callback) {
+    var configFilePath = getConfigFilePath(currentDataIcc);
     LazyLoader.load(configFilePath, callback);
   }
 
-  function getConfigFilePath() {
-    var currentDataIcc = Common.dataSimIcc;
+  function getConfigFilePath(currentDataIcc) {
     var mcc = currentDataIcc.iccInfo.mcc;
     var mnc = currentDataIcc.iccInfo.mnc;
     var key = mcc + '_' + mnc;
@@ -116,24 +114,25 @@ var ConfigManager = (function() {
   }
 
   function loadConfigurationIndex(callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/js/config/index.json', true);
-    xhr.overrideMimeType('application/json');
-    xhr.responseType = 'json';
-    xhr.onload = function onXHRLoad() {
-      if (xhr.status !== 200) {
-        console.error('Error loading the configuration index! ' +
-                      'Error code: ' + xhr.status);
+    LazyLoader.getJSON('/js/config/index.json').then(function(json) {
+      configurationIndex = json;
+      if (configurationIndex === null) { // TODO Remove workaround when 
+					 // Bug 1069808 is fixed.
+        console.error('Error loading the configuration index!' + 
+                      'Response from LazyLoader was null.');
         configurationIndex = {};
       }
-      configurationIndex = xhr.response;
+
       if (typeof callback === 'function') {
         setTimeout(function() {
           callback();
         });
       }
-    };
-    xhr.send();
+    }, function(error) {
+      console.error('Error loading the configuration index! ' + 
+                    'Error code: ' + error);
+      configurationIndex = {};
+    });
   }
 
   // Let's serialize dates
@@ -168,10 +167,9 @@ var ConfigManager = (function() {
       if (settings === null) {
         settings = deepCopy(DEFAULT_SETTINGS);
         debug('Storing default settings for ICCID:', currentICCID);
-        asyncStorage.setItem(currentICCID, JSON.stringify(settings));
-      }
-
-      if (callback) {
+        asyncStorage.setItem(currentICCID, JSON.stringify(settings),
+                             callback && callback.bind(null, settings));
+      } else if (callback) {
         callback(settings);
       }
     });
@@ -179,12 +177,16 @@ var ConfigManager = (function() {
 
   // Provides vendor configuration and settings
   function requestAll(callback) {
-    requestConfiguration(function _afterConfig(configuration) {
-      requestSettings(Common.dataSimIccId, function _afterSettings(settings) {
-        if (callback) {
-          callback(configuration, settings);
+    SimManager.requestDataSimIcc(function(dataSimIcc) {
+      requestConfiguration(dataSimIcc.icc,
+                           function _afterConfig(configuration) {
+          requestSettings(dataSimIcc.iccId, function _afterSettings(settings) {
+            if (callback) {
+              callback(configuration, settings, dataSimIcc.iccId);
+            }
+          });
         }
-      });
+      );
     });
   }
 
@@ -203,39 +205,41 @@ var ConfigManager = (function() {
   // Set setting options asynchronously and dispatch an event for every
   // affected option.
   function setOption(options, callback) {
-    // If settings is not ready, load and retry
-    if (!settings) {
-      requestSettings(Common.dataSimIccId, function _afterEnsuringSettings() {
-        setOption(options, callback);
-      });
-      return;
-    }
-
-    // Store former values and update with new ones
-    var formerValue = {};
-    for (var name in options) {
-      if (options.hasOwnProperty(name)) {
-        formerValue[name] = settings[name];
-        settings[name] = options[name];
-      }
-    }
-
-    var currentICCID = Common.dataSimIccId || NO_ICCID;
-    asyncStorage.setItem(currentICCID, JSON.stringify(settings),
-      function _onSet() {
-        requestSettings(Common.dataSimIccId, function _onSettings(settings) {
-          for (var name in options) {
-            if (options.hasOwnProperty(name)) {
-                dispatchOptionChange(name, settings[name], formerValue[name],
-                                     settings);
-            }
-          }
+    SimManager.requestDataSimIcc(function(dataSimIcc) {
+      // If settings is not ready, load and retry
+      if (!settings) {
+        requestSettings(dataSimIcc.iccId, function _afterEnsuringSettings() {
+          setOption(options, callback);
         });
-        if (callback) {
-          callback();
+        return;
+      }
+
+      // Store former values and update with new ones
+      var formerValue = {};
+      for (var name in options) {
+        if (options.hasOwnProperty(name)) {
+          formerValue[name] = settings[name];
+          settings[name] = options[name];
         }
       }
-    );
+
+      var currentICCID = dataSimIcc.iccId || NO_ICCID;
+      asyncStorage.setItem(currentICCID, JSON.stringify(settings),
+        function _onSet() {
+          requestSettings(dataSimIcc.iccId, function _onSettings(settings) {
+            for (var name in options) {
+              if (options.hasOwnProperty(name)) {
+                  dispatchOptionChange(name, settings[name], formerValue[name],
+                                       settings);
+              }
+            }
+            if (callback) {
+              callback();
+            }
+          });
+        }
+      );
+    });
   }
 
   // Part of the synchronous interface, return or set a setting.
@@ -283,10 +287,12 @@ var ConfigManager = (function() {
           var name = evt.newValue.split('#')[0];
           var oldValue = settings ? settings[name] : undefined;
           debug('Synchronization request for', name, 'received!');
-          requestSettings(Common.dataSimIccId,
-                          function _onSettings(newSettings) {
-            settings = newSettings;
-            dispatchOptionChange(name, settings[name], oldValue, settings);
+          SimManager.requestDataSimIcc(function(dataSimIcc) {
+            requestSettings(dataSimIcc.iccId,
+                            function _onSettings(newSettings) {
+              settings = newSettings;
+              dispatchOptionChange(name, settings[name], oldValue, settings);
+            });
           });
         }
       });
@@ -327,7 +333,6 @@ var ConfigManager = (function() {
     getApplicationMode: getApplicationMode,
     setConfig: setConfig,
     requestAll: requestAll,
-    requestConfiguration: requestConfiguration,
     requestSettings: requestSettings,
     setOption: setOption,
     defaultValue: defaultValue,

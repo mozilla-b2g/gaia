@@ -1,8 +1,13 @@
+/* globals MmiManager */
+
+/* exported MockMmiUI */
+
 'use strict';
 
 var MockMmiUI = {
 
-  COMMS_APP_ORIGIN: 'http://communications.gaiamobile.org:8080',
+  COMMS_APP_ORIGIN: document.location.protocol + '//' +
+                    document.location.host,
   ready: true,
   _messageReceived: null,
   _sessionEnded: null,
@@ -15,14 +20,17 @@ var MockMmiUI = {
     switch (evt.data.type) {
       case 'mmi-received-ui':
         this._messageReceived = evt.data.message;
+        this._title = evt.data.title;
         this._sessionEnded = evt.data.sessionEnded;
         break;
       case 'mmi-success':
         this._messageReceived = evt.data.result;
+        this._title = evt.data.title;
         this._sessionEnded = null;
         break;
       case 'mmi-error':
         this._messageReceived = evt.data.error;
+        this._title = evt.data.title;
         this._sessionEnded = null;
         break;
     }

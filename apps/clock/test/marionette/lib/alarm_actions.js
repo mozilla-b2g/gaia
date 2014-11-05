@@ -1,7 +1,6 @@
 'use strict';
 /* global marionetteScriptFinished */
 
-var assert = require('assert');
 var utils = require('./utils');
 var $ = require('./mquery');
 
@@ -63,6 +62,10 @@ AlarmActions.prototype = {
     this.actions.tapAndTransition('#alarm-close');
   },
 
+  delete: function() {
+    this.actions.tapAndTransition('#alarm-delete');
+  },
+
   saveForm: function() {
     this.actions.tapAndTransition('#alarm-done');
   },
@@ -79,25 +82,35 @@ AlarmActions.prototype = {
     return $('#alarm-volume-input');
   },
 
-  fire: function(idx, attentionHandler) {
+  fire: function(idx, date, attentionHandler) {
     // Trigger a fake 'alarm' event:
-    this._client.executeScript(function(idx) {
+    this._client.executeScript(function(idx, date) {
+      // String to Date object.
+      date = new Date(date);
       var id = document.querySelector(
         '.alarm-cell:nth-child(' + (idx + 1) + ') .alarm-item').dataset.id;
       var alarm = new CustomEvent('test-alarm', {
         detail: {
           id: parseInt(id, 10),
-          type: 'normal'
+          type: 'normal',
+          date: date
         }
       });
       window.dispatchEvent(alarm);
-    }, [idx]);
+    }, [idx, date]);
 
     if (attentionHandler) {
       // Switch to the Attention Screen
       this._client.switchToFrame();
-      this._client.switchToFrame(
-        $('iframe[data-frame-name="_blank"]').el);
+      this._client.switchToFrame($('iframe[name="_blank"]').el);
+      // Wait for the onring page is ready.
+      this._client.waitFor(function() {
+        if (this._client.findElement('html')
+              .getAttribute('class')
+              .indexOf('ready') !== -1) {
+          return true;
+        }
+      }.bind(this));
       attentionHandler();
       // Now switch back to the system, then to the clock.
       this._client.switchToFrame();
@@ -145,8 +158,9 @@ AlarmActions.prototype = {
       return !!alarmData;
     }.bind(this));
 
-    assert.equal(this.list.length, originalAlarmCount + 1,
-                 'Alarm list should have an additional item after creation');
+    this._client.waitFor(function() {
+      return this.list.length === originalAlarmCount + 1;
+    }.bind(this));
 
     $('[data-panel-id="alarm"]').waitToAppear();
     this.waitForBanner();

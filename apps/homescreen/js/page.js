@@ -79,7 +79,7 @@ Icon.prototype = {
    */
   render: function icon_render() {
     /*
-     * <li role="button" aria-label="label" class="icon" data-manifestURL="zzz">
+     * <li role="link" aria-label="label" class="icon" data-manifestURL="zzz">
      *   <div>
      *     <img role="presentation" src="the icon image path"></img>
      *     <span class="label">label</span>
@@ -114,7 +114,7 @@ Icon.prototype = {
     }
 
     var localizedName = this.getName();
-    container.setAttribute('role', 'button');
+    container.setAttribute('role', 'link');
     container.setAttribute('aria-label', localizedName);
 
     // Icon container
@@ -160,8 +160,9 @@ Icon.prototype = {
     }
   },
 
-  appendOptions: function icon_appendOptions() {
-    var options = this.container.querySelector('.options');
+  appendOptions: function icon_appendOptions(container) {
+    container = container || this.container;
+    var options = container.querySelector('.options');
     if (options) {
       return;
     }
@@ -170,7 +171,7 @@ Icon.prototype = {
     options = document.createElement('span');
     options.className = 'options';
     options.dataset.isIcon = true;
-    this.container.appendChild(options);
+    container.appendChild(options);
   },
 
   removeOptions: function icon_removeOptions() {
@@ -554,7 +555,7 @@ Icon.prototype = {
     draggableElem.className = 'draggable';
     if (this.descriptor.type !== GridItemsFactory.TYPE.COLLECTION) {
       // Collections cannot be appended to others so this operation isn't needed
-      this.savePostion(draggableElem.dataset);
+      this.savePosition(draggableElem.dataset);
     }
 
     // For some reason, cloning and moving a node re-triggers the blob
@@ -569,6 +570,10 @@ Icon.prototype = {
       img.style.visibility = 'visible';
     };
     draggableElem.appendChild(icon);
+
+    if (this.descriptor.removable === true) {
+      this.appendOptions(icon);
+    }
 
     var container = this.container;
     container.dataset.dragging = 'true';
@@ -593,7 +598,7 @@ Icon.prototype = {
    *
    * @param{Object} Source object to set results
    */
-  savePostion: function icon_savePosition(obj) {
+  savePosition: function icon_savePosition(obj) {
     var page;
 
     if (this.container.parentNode === DockManager.page.olist) {
@@ -646,8 +651,8 @@ Icon.prototype = {
 
     var draggableElem = this.draggableElem;
     var style = draggableElem.style;
-    style.MozTransition = '-moz-transform .4s';
-    style.MozTransform = 'translate(' + x + 'px,' + y + 'px)';
+    style.transition = 'transform .4s';
+    style.transform = 'translate(' + x + 'px,' + y + 'px)';
 
     var finishDrag = function() {
       delete container.dataset.dragging;
@@ -667,7 +672,7 @@ Icon.prototype = {
 
     var content = draggableElem.querySelector('div');
     scale = typeof scale !== 'undefined' ? scale : 1;
-    content.style.MozTransform = 'scale(' + scale + ')';
+    content.style.transform = 'scale(' + scale + ')';
     content.addEventListener('transitionend', function tEnd(e) {
       e.target.removeEventListener('transitionend', tEnd);
       if (fallbackID !== null) {
@@ -753,7 +758,7 @@ Page.prototype = {
 
   ICONS_PER_ROW: 4,
 
-  DRAGGING_TRANSITION: '-moz-transform .3s',
+  DRAGGING_TRANSITION: 'transform .3s',
 
   REARRANGE_DELAY: 50,
 
@@ -788,8 +793,8 @@ Page.prototype = {
   moveByWithEffect: function pg_moveByWithEffect(scrollX, duration) {
     var container = this.movableContainer;
     var style = container.style;
-    style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition = '-moz-transform ' + duration + 'ms ease';
+    style.transform = 'translateX(' + scrollX + 'px)';
+    style.transition = 'transform ' + duration + 'ms ease';
   },
 
   /*
@@ -799,8 +804,8 @@ Page.prototype = {
    */
   moveBy: function pg_moveBy(scrollX) {
     var style = this.movableContainer.style;
-    style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition = '';
+    style.transform = 'translateX(' + scrollX + 'px)';
+    style.transition = '';
   },
 
   ready: true,
@@ -874,7 +879,7 @@ Page.prototype = {
 
   doDragLeave: function pg_doReArrange(callback, reflow) {
     this.iconsWhileDragging.forEach(function reset(node) {
-      node.style.MozTransform = node.style.MozTransition = '';
+      node.style.transform = node.style.transition = '';
       delete node.dataset.posX;
       delete node.dataset.posY;
     });
@@ -933,9 +938,9 @@ Page.prototype = {
                         Math.floor(from / this.ICONS_PER_ROW)) * 100);
 
     window.mozRequestAnimationFrame(function() {
-      node.style.MozTransform = 'translate(' + x + '%, ' + y + '%)';
+      node.style.transform = 'translate(' + x + '%, ' + y + '%)';
       if (transition)
-        node.style.MozTransition = transition;
+        node.style.transition = transition;
     });
   },
 
@@ -1297,15 +1302,15 @@ dockProto.render = function dk_render(apps, target) {
 dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
   var container = this.movableContainer;
   var style = container.style;
-  style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration + 'ms ease';
+  style.transform = 'translateX(' + scrollX + 'px)';
+  style.transition = 'transform ' + duration + 'ms ease';
 };
 
 dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
                                                               duration) {
   var style = this.movableContainer.style;
-  style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration + 'ms ease';
+  style.transform = 'translateX(' + scrollX + 'px)';
+  style.transition = 'transform ' + duration + 'ms ease';
 };
 
 dockProto.getLeft = function dk_getLeft() {
@@ -1313,7 +1318,7 @@ dockProto.getLeft = function dk_getLeft() {
 };
 
 dockProto.getTransform = function dk_getTransform() {
-  return this.movableContainer.style.MozTransform;
+  return this.movableContainer.style.transform;
 };
 
 /**
@@ -1340,9 +1345,9 @@ dockProto.placeIcon = function pg_placeIcon(node, from, to, transition) {
   var x = node.dataset.posX = parseInt(node.dataset.posX || 0) + (to - from) *
                               100;
 
-  node.style.MozTransform = 'translateX(' + x + '%)';
+  node.style.transform = 'translateX(' + x + '%)';
   if (transition)
-    node.style.MozTransition = transition;
+    node.style.transition = transition;
 };
 
 var TextOverflowDetective = (function() {

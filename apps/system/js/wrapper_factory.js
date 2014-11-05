@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, AppWindowManager, AppWindow, Rocketbar */
+/*global applications, System, appWindowManager, AppWindow */
 
 (function(window) {
   /**
@@ -10,7 +10,6 @@
   var WrapperFactory = {
     init: function wf_init() {
       window.addEventListener('mozbrowseropenwindow', this, true);
-      // Use capture in order to catch the event before PopupManager does
     },
 
     handleEvent: function wf_handleEvent(evt) {
@@ -35,11 +34,6 @@
           acc[decodeURIComponent(feature[0])] = decodeURIComponent(feature[1]);
           return acc;
         }, {});
-
-      if (features.features === 'rocketbarstartpage') {
-        Rocketbar.showNewTabPage();
-        return;
-      }
 
       // Handles only call to window.open with `remote=true` feature.
       if (!('remote' in features) || features.remote !== 'true') {
@@ -66,7 +60,6 @@
       }
 
       // So, we are going to open a remote window.
-      // Now, avoid PopupManager listener to be fired.
       evt.stopImmediatePropagation();
 
       var name = detail.name;
@@ -77,8 +70,19 @@
       // otherwise always open a new window for '_blank'.
       var origin = null;
       if (name == '_blank') {
+
+        // If we already have a browser and we receive an open request,
+        // display it in the current browser frame.
+        var activeApp = System.currentApp;
+        var isSearchApp = (activeApp.manifest &&
+          activeApp.manifest.role === 'search');
+        if (activeApp && (activeApp.isBrowser() || isSearchApp)) {
+          activeApp.navigate(url);
+          return;
+        }
+
         origin = url;
-        app = AppWindowManager.getApp(origin);
+        app = appWindowManager.getApp(origin);
         // Just bring on top if a wrapper window is
         // already running with this url.
         if (app && app.windowName == '_blank') {
@@ -86,7 +90,7 @@
         }
       } else {
         origin = 'window:' + name + ',source:' + callerOrigin;
-        app = AppWindowManager.getApp(origin);
+        app = appWindowManager.getApp(origin);
         if (app && app.windowName === name) {
           if (app.iframe.src === url) {
             // If the url is already loaded, just display the app
@@ -114,11 +118,10 @@
     },
 
     launchWrapper: function wf_launchWrapper(config) {
-      var app = AppWindowManager.getApp(config.origin);
+      var app = appWindowManager.getApp(config.origin);
       if (!app) {
         config.chrome = {
-          navigation: true,
-          rocketbar: false
+          scrollable: true
         };
         app = new AppWindow(config);
       } else {

@@ -8,14 +8,16 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "orientation": "portrait",
   "permissions": {
+    "themeable":{},
     "telephony":{},
     "bluetooth":{},
     "voicemail":{},
     "contacts":{ "access": "readonly" },
     "mobileconnection":{},
     "attention":{},
-    "settings":{ "access": "readonly" },
+    "settings":{ "access": "readwrite" },
     "time": {},
     "audio-channel-telephony":{},
     "idle":{},
@@ -27,9 +29,25 @@
     { "bluetooth-dialer-command": "/index.html" },
     { "headset-button": "/index.html" }
   ],
+  "datastores-access": {
+    "Gaia_Facebook_Friends": {
+      "readonly": true,
+      "description": "Facebook Friends"
+    }
+  },
   "orientation": "default",
   "icons": {
-        "30": "/style/icons/communication_30.png",
-        "45": "/style/icons/communication_45.png"
-  }
+    "84": "/style/icons/dialer_84.png",
+    "126": "/style/icons/dialer_126.png",
+    "142": "/style/icons/dialer_142.png",
+    "189": "/style/icons/dialer_189.png",
+    "284": "/style/icons/dialer_284.png"
+  },
+  "locales": {
+    "ar": {},
+    "en-US": {},
+    "fr": {},
+    "zh-TW": {}
+  },
+  "default_locale": "en-US"
 }

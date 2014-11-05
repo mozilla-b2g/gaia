@@ -14,9 +14,10 @@ var frames = $('frames');
 // element, and video player controls within the div, and you can refer to
 // those as currentFrame.image and currentFrame.video.player and
 // currentFrame.video.controls.
-var previousFrame = new MediaFrame($('frame1'));
-var currentFrame = new MediaFrame($('frame2'));
-var nextFrame = new MediaFrame($('frame3'));
+var maxImageSize = CONFIG_MAX_IMAGE_PIXEL_SIZE;
+var previousFrame = new MediaFrame($('frame1'), true, maxImageSize);
+var currentFrame = new MediaFrame($('frame2'), true, maxImageSize);
+var nextFrame = new MediaFrame($('frame3'), true, maxImageSize);
 
 if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
   previousFrame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
@@ -32,16 +33,22 @@ if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
 var transitioning = false;
 
 // Clicking on the back button will go to the preview view
-fullscreenButtons.back.onclick = setView.bind(null, LAYOUT_MODE.list);
+// Note that tablet doesn't have a back button, it's bind to header instead,
+// so we don't try to register click event on a non-existent button
+if (fullscreenButtons.back) {
+  fullscreenButtons.back.onclick = setView.bind(null, LAYOUT_MODE.list);
+}
 
 // Clicking the delete button while viewing a single item deletes that item
 fullscreenButtons.delete.onclick = deleteSingleItem;
 
 // Clicking the Edit button while viewing a photo switches to edit mode
 fullscreenButtons.edit.onclick = function() {
-  loader.load('js/ImageEditor.js', function() {
-    editPhotoIfCardNotFull(currentFileIndex);
-  });
+  LazyLoader.load(['js/ImageEditor.js',
+                   'shared/js/media/crop_resize_rotate.js'],
+                  function() {
+                    editPhotoIfCardNotFull(currentFileIndex);
+                  });
 };
 
 // In fullscreen mode, the share button shares the current item
@@ -49,10 +56,10 @@ fullscreenButtons.share.onclick = shareSingleItem;
 
 // Clicking the information button will display information about the photo.
 fullscreenButtons.info.onclick = function() {
-  loader.load(['js/info.js', 'shared/style/confirm.css', 'style/info.css'],
-              function() {
-                showFileInformation(files[currentFileIndex]);
-              });
+  LazyLoader.load(['js/info.js', 'shared/style/confirm.css', 'style/info.css'],
+                  function() {
+                    showFileInformation(files[currentFileIndex]);
+                  });
 };
 
 // Use the GestureDetector.js library to handle gestures.
@@ -121,29 +128,82 @@ nextFrame.container.addEventListener('transitionend', removeTransition);
 function deleteSingleItem() {
   var msg;
   if (files[currentFileIndex].metadata.video) {
-    msg = navigator.mozL10n.get('delete-video?');
+    msg = 'delete-video?';
   }
   else {
-    msg = navigator.mozL10n.get('delete-photo?');
+    msg = 'delete-photo?';
   }
+  // We need to disable NFC sharing when showing delete confirmation dialog
+  NFC.unshare();
 
   Dialogs.confirm({
-    message: msg,
-    cancelText: navigator.mozL10n.get('cancel'),
-    confirmText: navigator.mozL10n.get('delete'),
+    messageId: msg,
+    cancelId: 'cancel',
+    confirmId: 'delete',
     danger: true
   }, function() { // onSuccess
-    // disable delete and share button to prevent operations while delete item
+    // disable delete, edit and share button to prevent
+    // operations while delete item
     fullscreenButtons.delete.classList.add('disabled');
     fullscreenButtons.share.classList.add('disabled');
+    fullscreenButtons.edit.classList.add('disabled');
 
     deleteFile(currentFileIndex);
+    // Enable NFC sharing when done deleting and returns to fullscreen view
+    NFC.share(getCurrentFile);
+  }, function() { // onCancel
+    // Enable NFC sharing when cancels delete and returns to fullscreen view
+    NFC.share(getCurrentFile);
   });
 }
 
 // In fullscreen mode, the share button shares the current item
 function shareSingleItem() {
-  share([currentFrame.imageblob || currentFrame.videoblob]);
+  // This is the item we're sharing
+  var fileinfo = files[currentFileIndex];
+
+  // If the item is a video, just share it
+  if (fileinfo.metadata.video) {
+    share([currentFrame.videoblob]);
+  }
+  else {
+    // Otherwise it is an image.
+    // If it does not have any EXIF orientation, and if we don't need
+    // to downsample it, then just share it as it is.
+    if (!fileinfo.metadata.rotation &&
+        !fileinfo.metadata.mirrored &&
+        !CONFIG_MAX_PICK_PIXEL_SIZE) {
+      share([currentFrame.imageblob]);
+    }
+    else {
+      // This is only tricky case. If we are sharing an image that uses
+      // EXIF orientation for correct display, rotate it before sharing
+      // so that the recieving app doesn't have to know about EXIF
+      LazyLoader.load(['shared/js/media/crop_resize_rotate.js'],
+                      shareModifiedImage);
+    }
+  }
+
+  function shareModifiedImage() {
+    var metadata = fileinfo.metadata;
+    var button = fullscreenButtons.share;
+    button.classList.add('disabled');
+    Spinner.show();
+    var maxsize = CONFIG_MAX_PICK_PIXEL_SIZE || CONFIG_MAX_IMAGE_PIXEL_SIZE;
+    cropResizeRotate(currentFrame.imageblob, null,
+                     maxsize || null, null, metadata,
+                     function(error, rotatedBlob) {
+                       if (error) {
+                         console.error('Error while rotating image: ', error);
+                         rotatedBlob = currentFrame.imageblob;
+                       }
+                       ensureFileBackedBlob(rotatedBlob, function(file) {
+                         Spinner.hide();
+                         button.classList.remove('disabled');
+                         share([file], currentFrame.imageblob.name);
+                       });
+                     });
+  }
 }
 
 // In order to distinguish single taps from double taps, we have to
@@ -188,7 +248,8 @@ function resizeFrames() {
 // fullscreen mode directly.
 function singletap(e) {
   if (currentView === LAYOUT_MODE.fullscreen) {
-    if (currentFrame.displayingImage || currentFrame.video.player.paused) {
+    if ((currentFrame.displayingImage || currentFrame.video.player.paused) &&
+         isPhone) {
       fullscreenView.classList.toggle('toolbar-hidden');
     }
   } else if (currentView === LAYOUT_MODE.list &&
@@ -279,7 +340,7 @@ function swipeHandler(event) {
   var direction = (frameOffset < 0) ? 1 : -1;
 
   // If we're in a right-to-left locale, reverse those directions
-  if (languageDirection === 'rtl')
+  if (navigator.mozL10n.language.direction === 'rtl')
     direction *= -1;
 
   // Did we pan far enough or swipe fast enough to transition to
@@ -403,6 +464,11 @@ function setFramesPosition() {
     'translateX(' + (frameOffset + width) + 'px)';
   previousFrame.container.style.transform =
     'translateX(' + (frameOffset - width) + 'px)';
+
+  // XXX Bug 1021782 add 'current' class to currentFrame
+  nextFrame.container.classList.remove('current');
+  previousFrame.container.classList.remove('current');
+  currentFrame.container.classList.add('current');
 }
 
 function resetFramesPosition() {

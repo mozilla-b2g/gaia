@@ -1,3 +1,7 @@
+/* globals CallsHandler, CallScreen, FontSizeManager, LazyL10n */
+
+/* exported ConferenceGroupHandler */
+
 'use strict';
 
 var ConferenceGroupHandler = (function() {
@@ -5,20 +9,18 @@ var ConferenceGroupHandler = (function() {
   var groupLabel = document.getElementById('group-call-label');
   var groupDetails = document.getElementById('group-call-details');
   var groupDetailsHeader = groupDetails.querySelector('header');
+  // FIXME/bug 1007148: Refactor duration element structure
   var groupDuration = document.querySelector('#group-call > .duration');
   var groupDurationChildNode = groupDuration.querySelector('span');
-  var mergeButton = groupLine.querySelector('.merge-button');
-  mergeButton.onclick = function(evt) {
-    if (evt) {
-      evt.stopPropagation();
-    }
-    CallsHandler.mergeConferenceGroupWithActiveCall();
-  };
+  var groupTotalDurationChildNode =
+    groupDuration.querySelector('.total-duration');
 
   var telephony = window.navigator.mozTelephony;
-  telephony.conferenceGroup.oncallschanged = onCallsChanged;
-  telephony.conferenceGroup.onstatechange = onStateChange;
-  telephony.conferenceGroup.onerror = onConferenceError;
+  if (telephony.conferenceGroup) {
+    telephony.conferenceGroup.oncallschanged = onCallsChanged;
+    telephony.conferenceGroup.onstatechange = onStateChange;
+    telephony.conferenceGroup.onerror = onConferenceError;
+  }
 
   function onCallsChanged() {
     var calls = telephony.conferenceGroup.calls;
@@ -29,7 +31,7 @@ var ConferenceGroupHandler = (function() {
 
     LazyL10n.get(function localized(_) {
       groupDetailsHeader.textContent = groupLabel.textContent =
-        _('group-call', {n: calls.length});
+        _('conferenceCall', {n: calls.length});
     });
 
     // When hanging up phones on conferenceGroup.calls.length >= 2,
@@ -41,27 +43,35 @@ var ConferenceGroupHandler = (function() {
     if (telephony.conferenceGroup.calls.length >= 2) {
       CallsHandler.checkCalls();
     }
+
+    if (CallsHandler.isFirstCallOnCdmaNetwork()) {
+      CallScreen.cdmaConferenceCall();
+    }
   }
 
   function show() {
     groupLine.hidden = false;
     groupLine.classList.remove('ended');
     groupLine.classList.remove('held');
-    groupDurationChildNode.textContent = null;
     CallScreen.createTicker(groupDuration);
-    CallScreen.setCallerContactImage(null);
+    CallScreen.setCallerContactImage();
   }
 
   function end() {
+    groupTotalDurationChildNode.textContent =
+      groupDurationChildNode.textContent;
     LazyL10n.get(function localized(_) {
       groupDurationChildNode.textContent = _('callEnded');
     });
     groupLine.classList.add('ended');
     groupLine.classList.remove('held');
+    FontSizeManager.adaptToSpace(
+      CallScreen.getScenario(), groupLabel, false, 'end');
     CallScreen.stopTicker(groupDuration);
 
     setTimeout(function(evt) {
       groupLine.hidden = true;
+      CallScreen.updateCallsDisplay();
     }, CallScreen.callEndPromptTime);
   }
 

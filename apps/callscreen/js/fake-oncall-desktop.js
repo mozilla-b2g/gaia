@@ -1,4 +1,5 @@
 'use strict';
+/* global CallScreen */
 
 console.error('This file is not to be shipped.');
 console.error('It just helps to fake a call.');

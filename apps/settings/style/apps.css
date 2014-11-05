@@ -3,16 +3,21 @@
  */
 
 #appPermissions ul li img,
-#homescreen ul li img {
-  float: left;
-  margin-top: calc(3rem - 1.5rem);
+#homescreens ul li img {
   margin-right: 1.4rem;
   width: 3rem;
   height: 3rem;
   filter: url('shadow.svg#drop-shadow');
 }
 
-#uninstall-app {
+#appPermissions ul li > a,
+#homescreens ul li > a  {
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.uninstall-app {
   display: block;
   margin: auto;
   position: relative;
@@ -32,9 +37,23 @@
  */
 
 html[dir="rtl"] #appPermissions ul li img,
-html[dir="rtl"] #homescreen ul li img {
-  float: right;
+html[dir="rtl"] #homescreens ul li img {
   margin-left: 1.4rem;
   margin-right: auto;
 }
 
+/**
+ * Vertical homescreen panel
+ */
+
+#homescreen [data-type="list"] li:first-child {
+  padding-bottom: 1rem;
+}
+
+/**
+ * App permissions details panel
+ */
+
+.developer-infos > a > small {
+  color: #00e;
+}

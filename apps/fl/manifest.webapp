@@ -8,7 +8,19 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
+    "ar": {
+      "name": "Purchased Media",
+      "description": "Download and manage forward locked music, ringtones and wallpaper"
+    },
     "en-US": {
+      "name": "Purchased Media",
+      "description": "Download and manage forward locked music, ringtones and wallpaper"
+    },
+    "fr": {
+      "name": "Purchased Media",
+      "description": "Download and manage forward locked music, ringtones and wallpaper"
+    },
+    "zh-TW": {
       "name": "Purchased Media",
       "description": "Download and manage forward locked music, ringtones and wallpaper"
     }
@@ -17,7 +29,7 @@
   "activities": {
     "view" : {
       "filters": {
-        "type": "application/vnd.oma.dd+xml"
+        "type": { "value":["application/vnd.oma.dd+xml", "application/vnd.oma.drm.message"], "required":true }
       },
       "disposition": "inline",
       "href": "download.html",
@@ -37,6 +49,7 @@
     }
   },
   "permissions": {
+    "themeable":{},
     "systemXHR":{},
     "storage":{},
     "settings":{ "access": "readwrite" },

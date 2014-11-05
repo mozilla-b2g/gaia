@@ -9,12 +9,7 @@ var serverHelper = require('./lib/server_helper');
 
 marionette('email notifications, click', function() {
   var app, sync, notification, evt,
-      client = marionette.client({
-        settings: {
-          // disable keyboard ftu because it blocks our display
-          'keyboard.ftu.enabled': false
-        }
-      }),
+      client = marionette.client(),
       server1 = serverHelper.use({
                   credentials: {
                     username: 'testy1',

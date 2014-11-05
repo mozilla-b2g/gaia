@@ -43,23 +43,26 @@ class TestAccessibilityPhoneCallLog(GaiaTestCase):
         self.assertFalse(self.accessibility.is_disabled(self.marionette.find_element(
             *call_log._call_log_edit_button_locator)))
 
+        call_list = call_log.call_list
         # Now check that one call appears in the call log
-        self.assertEqual(call_log.all_calls_count, 1)
+        self.assertEqual(len(call_list), 1)
         # Check that the call displayed is for the call we made
-        self.assertIn(test_phone_number, call_log.first_all_call_text)
+        self.assertIn(test_phone_number, call_list[0].phone_number)
 
         call_log_first_item = self.marionette.find_elements(
             *call_log._all_calls_list_item_button_locator)[0]
+
+        # This needs to be uncommented once the screen reader can handle long press.
         # Activate a first log item with the screen reader.
-        self.accessibility.click(call_log_first_item)
+        # self.accessibility.click(call_log_first_item)
 
-        # Add contact action menu should be visible to the screen reader.
-        self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
-            *self.phone._add_contact_action_menu_locator)))
+        # # Add contact action menu should be visible to the screen reader.
+        # self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
+        #     *self.phone._call_group_menu_locator)))
 
-        # Close the add contact action menu with the screen reader.
-        self.accessibility.click(self.marionette.find_element(
-            *self.phone._cancel_action_menu_locator))
+        # # Close the add contact action menu with the screen reader.
+        # self.accessibility.click(self.marionette.find_element(
+        #     *self.phone._cancel_action_menu_locator))
 
         self.accessibility.click(self.marionette.find_element(
             *call_log._call_log_edit_button_locator))
@@ -72,7 +75,7 @@ class TestAccessibilityPhoneCallLog(GaiaTestCase):
         select = self.marionette.find_element(*call_log._call_log_edit_select_all_button_locator)
 
         # Edit mode is visible to the screen reader.
-        self.assertFalse(self.accessibility.is_hidden(call_log_edit_element))
+        self.assertTrue(self.accessibility.is_visible(call_log_edit_element))
         # Delete button is disabled for the screen reader.
         self.assertTrue(self.accessibility.is_disabled(delete))
         # Deselect all button is disabled for the screen reader.

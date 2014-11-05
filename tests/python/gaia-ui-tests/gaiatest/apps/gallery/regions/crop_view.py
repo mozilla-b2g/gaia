@@ -7,6 +7,7 @@ from gaiatest.apps.base import Base
 
 
 class CropView(Base):
+    _src = 'app://gallery.gaiamobile.org/index.html#pick'
 
     _crop_view_locator = (By.ID, 'crop-view')
     _crop_done_button_locator = (By.ID, 'crop-done-button')
@@ -18,3 +19,6 @@ class CropView(Base):
 
     def tap_crop_done(self):
         self.marionette.find_element(*self._crop_done_button_locator).tap()
+        # Fall back to the app underneath
+        self.wait_for_condition(lambda m: self.apps.displayed_app.src != self._src)
+        self.apps.switch_to_displayed_app()

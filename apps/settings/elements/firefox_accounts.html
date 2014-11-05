@@ -1,14 +1,14 @@
 <element name="fxa" extends="section" id="fxa-container">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
+    <gaia-header action="back" data-href="#root">
       <h1 data-l10n-id="fxa-accounts-header">Firefox Accounts</h1>
-    </header>
+    </gaia-header>
 
     <div id="fxa-logged-out" hidden>
       <ul>
         <li class="description">
+          <div class="fxa-logo"></div>
           <p data-l10n-id="fxa-overview" id="fxa-logged-out-description">
             Your Firefox Account lets you use features like Find My Device
             and apps like the Firefox Marketplace.
@@ -34,6 +34,9 @@
           </p>
           <p data-l10n-id="fxa-please-verify">
             Click the verification link in your email to confirm your account.
+          </p>
+          <p id="fxa-resend-email">
+            Don't see an email? <a href="#">Resend</a>.
           </p>
         </li>
         <li>

@@ -1,5 +1,12 @@
-
 'use strict';
+/* exported DownloadHelper */
+/* global DownloadFormatter */
+/* global DownloadStore */
+/* global DownloadUI */
+/* global LazyLoader */
+/* global MimeMapper */
+/* global MozActivity */
+/* global SettingsListener */
 
 /*
  * DownloadHelper.js: Perform some utility functions with DOMDownload
@@ -86,18 +93,6 @@ var DownloadHelper = (function() {
     );
   });
 
-  /*
-   * Returns the relative path from the file absolute path
-   *
-   * @param{String} Absolute path
-   *
-   * @returns(String) Relative path
-   */
-  function getRelativePath(path) {
-    var storagePath = storageName + '/';
-    return path.substring(path.indexOf(storagePath) + storagePath.length);
-  }
-
  /*
   * Error auxiliary method
   */
@@ -118,25 +113,24 @@ var DownloadHelper = (function() {
    */
   function getBlob(download) {
     var req = new Request();
-    var storage = navigator.getDeviceStorage(storageName);
+    var storage = getVolume(download.storageName);
     var storeAvailableReq = storage.available();
 
     storeAvailableReq.onsuccess = function available_onsuccess(e) {
-      var path = download.path;
+      var path = download.storagePath;
       switch (storeAvailableReq.result) {
         case 'unavailable':
           sendError(req, ' Could not open the file: ' + path + ' from ' +
-                    storageName, CODE.NO_SDCARD);
+                    download.storageName, CODE.NO_SDCARD);
           break;
 
         case 'shared':
           sendError(req, ' Could not open the file: ' + path + ' from ' +
-                    storageName, CODE.UNMOUNTED_SDCARD);
+                    download.storageName, CODE.UNMOUNTED_SDCARD);
           break;
 
         default:
           try {
-            path = getRelativePath(path);
             var storeGetReq = storage.get(path);
 
             storeGetReq.onsuccess = function store_onsuccess() {
@@ -146,11 +140,11 @@ var DownloadHelper = (function() {
             storeGetReq.onerror = function store_onerror() {
               sendError(req, storeGetReq.error.name +
                         ' Could not open the file: ' + path + ' from ' +
-                        storageName, CODE.FILE_NOT_FOUND);
+                        download.storageName, CODE.FILE_NOT_FOUND);
             };
           } catch (ex) {
             sendError(req, 'Error getting the file ' + path + ' from ' +
-                      storageName, CODE.DEVICE_STORAGE);
+                      download.storageName, CODE.DEVICE_STORAGE);
           }
       }
     };
@@ -255,6 +249,34 @@ var DownloadHelper = (function() {
     }
   };
 
+  /*
+   * This action gets the info for a download
+   *
+   * @param{Object} Configuration parameters
+   */
+  var InfoAction = function InfoAction(params) {
+    Action.call(this, params);
+
+    this.data = {
+      name: DownloadFormatter.getFileName(params.download),
+      type: params.type,
+      blob: params.blob,
+      size: params.download.totalBytes,
+      path: params.download.path
+    };
+  };
+
+  InfoAction.prototype = {
+    __proto__: Action.prototype,
+
+    /*
+     * It overrides the generic run method
+     */
+    run: function ia_run() {
+      this.req.done(this.data);
+    }
+  };
+
   // This is a factory that deals with different <Action> objects
   var ActionsFactory = {
     TYPE: {
@@ -265,6 +287,9 @@ var DownloadHelper = (function() {
       SHARE: {
         activityName: 'share',
         actionClass: ShareAction
+      },
+      INFO: {
+        actionClass: InfoAction
       },
       WALLPAPER: {
         activityName: 'setwallpaper',
@@ -308,16 +333,30 @@ var DownloadHelper = (function() {
 
     window.setTimeout(function launching() {
       var state = download.state;
-      if (state === 'succeeded') {
+      if (state === 'succeeded' || state === 'finalized') {
         LazyLoader.load(['shared/js/mime_mapper.js',
                          'shared/js/download/download_formatter.js'],
                         function loaded() {
           var type = getType(download);
 
+          //
+          // The 'open' action will always launch an activity using the original
+          // content type to allow for third party applications to handle
+          // arbitrary types of content.
+          //
+          // The 'share' action on the other hand only works with known mime
+          // types at this time.
+          //
+
           if (type.length === 0) {
-            sendError(req, 'Mime type not supported: ' + type,
-                      CODE.MIME_TYPE_NOT_SUPPORTED);
-            return;
+            type = download.contentType;
+
+            if (actionType !== ActionsFactory.TYPE.OPEN &&
+                actionType !== ActionsFactory.TYPE.INFO) {
+              sendError(req, 'Mime type not supported: ' + type,
+                        CODE.MIME_TYPE_NOT_SUPPORTED);
+              return;
+            }
           }
 
           var blobReq = getBlob(download);
@@ -392,7 +431,7 @@ var DownloadHelper = (function() {
     var req = new Request();
 
     deleteRequest.onsuccess = function() {
-      var storage = navigator.getDeviceStorage(storageName);
+      var storage = getVolume(download.storageName);
       var storeAvailableReq = storage.available();
 
       storeAvailableReq.onsuccess = function available_onsuccess(e) {
@@ -409,7 +448,7 @@ var DownloadHelper = (function() {
             break;
 
           default:
-            var storeDeleteReq = storage.delete(getRelativePath(path));
+            var storeDeleteReq = storage.delete(download.storagePath);
 
             storeDeleteReq.onsuccess = function store_onsuccess() {
               // Remove from the datastore if status is 'succeeded'
@@ -443,7 +482,7 @@ var DownloadHelper = (function() {
     };
 
     return req;
-  };
+  }
 
   function handlerError(error, download, cb) {
     LazyLoader.load('shared/js/download/download_ui.js', (function loaded() {
@@ -516,6 +555,26 @@ var DownloadHelper = (function() {
     };
   }
 
+  /**
+   *  Gets the storage for the download based on the volumen
+   *  it was saved (storageName)
+   */
+  function getVolume(volumeName) {
+    // Per API design, all media type return the same volumes.
+    // So we use 'sdcard' here for no reason.
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=856782#c10
+    var volumes = navigator.getDeviceStorages('sdcard');
+    if (!volumeName || volumeName === '') {
+      return volumes[0];
+    }
+    for (var i = 0; i < volumes.length; ++i) {
+      if (volumes[i].storageName === volumeName) {
+        return volumes[i];
+      }
+    }
+    return volumes[0];
+  }
+
   return {
    /*
     * This method allows clients to open a downlaod
@@ -551,6 +610,15 @@ var DownloadHelper = (function() {
     */
     ringtone: function(download) {
       return runAction(ActionsFactory.TYPE.RINGTONE, download);
+    },
+
+   /*
+    * This method returns information about a download
+    *
+    * @param{Object} It represents a DOMDownload object
+    */
+    info: function(download) {
+      return runAction(ActionsFactory.TYPE.INFO, download);
     },
 
     /*

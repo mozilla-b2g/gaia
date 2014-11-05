@@ -1,0 +1,11 @@
+{
+  "name": "Default Theme",
+  "description": "Default Theme.",
+  "type": "certified",
+  "role": "theme",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  }
+}

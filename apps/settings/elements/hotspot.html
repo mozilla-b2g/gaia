@@ -1,10 +1,9 @@
 <element name="hotspot" extends="section">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
+    <gaia-header action="back" data-href="#root">
       <h1 data-l10n-id="internetSharing-header"> Internet Sharing </h1>
-    </header>
+    </gaia-header>
 
     <div>
       <header>
@@ -13,7 +12,7 @@
       <ul>
         <li>
           <label class="pack-switch">
-            <input type="checkbox" name="tethering.wifi.enabled" class="uninit">
+            <input type="checkbox" id="tethering-wifi-enabled" class="uninit">
             <span data-l10n-id="wifi-hotspot">Wi-Fi Hotspot</span>
           </label>
         </li>
@@ -23,20 +22,21 @@
           </p>
         </li>
         <li>
-          <a data-l10n-id="wifi-name">Name
+          <a>
+            <span data-l10n-id="wifi-name">Name</span>
             <span data-name="tethering.wifi.ssid"></span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="wifi-security">Security
+          <a>
+            <span data-l10n-id="wifi-security">Security</span>
             <span id="wifi-security-type"></span>
           </a>
         </li>
         <li id="hotspot-settings-section">
-          <label>
-            <button class="icon icon-view"
-            data-l10n-id="hotspotSettings">Hotspot Settings</button>
-          </label>
+          <a class="menu-item" href="#">
+            <span data-l10n-id="hotspotSettings">Hotspot Settings</span>
+          </a>
         </li>
       </ul>
 
@@ -46,7 +46,7 @@
       <ul>
         <li>
           <label class="pack-switch">
-            <input type="checkbox" name="tethering.usb.enabled" class="uninit">
+            <input type="checkbox" id="tethering-usb-enabled" class="uninit">
             <span data-l10n-id="usb-tethering">USB Tethering</span>
           </label>
         </li>

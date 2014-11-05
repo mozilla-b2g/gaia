@@ -1,59 +1,40 @@
 <element name="show-event" extends="section">
   <template>
-    <header>
-      <button class="cancel">
-        <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
-      </button>
-
-      <menu type="toolbar">
-        <button class="edit">
-          <span data-l10n-id="edit">Edit</span>
-        </button>
-      </menu>
-
-      <h1 data-l10n-id="add-event-header">
+    <gaia-header id="show-event-header" action="back">
+      <h1 id="view-event-header" data-l10n-id="view-event-header">
         Event
       </h1>
-    </header>
+      <button class="edit">
+        <span data-l10n-id="edit">Edit</span>
+      </button>
+    </gaia-header>
 
     <section data-type="list">
-      <ul>
+      <ul aria-labelledby="view-event-header">
         <li class="title">
-          <h1><span class="content"></span></h1>
+          <h1 role="presentation"><span data-l10n-id="title" class="content"></span></h1>
         </li>
 
         <li class="location">
-          <span class="content"></span>
+          <span class="content" data-l10n-id="location"></span>
+        </li>
+
+        <li class="duration-time">
+          <span class="content" data-l10n-id="duration"></span>
         </li>
 
         <li class="current-calendar">
-          <span class="content"></span>
-        </li>
-
-        <li class="start-date">
-          <span data-l10n-id="from-time">From: </span>
-          <span class="content"></span>
-          <span class="start-time">
-            <span class="content"></span>
-          </span>
-        </li>
-
-        <li class="end-date">
-          <span data-l10n-id="to-time">To: </span>
-          <span class="content"></span>
-          <span class="end-time">
-            <span class="content"></span>
-          </span>
+          <div class="gaia-icon icon-calendar-dot calendar-text-color" aria-hidden="true"></div>
+          <span class="content" data-l10n-id="calendar"></span>
         </li>
 
         <li class="alarms">
-          <h2 data-l10n-id="remind-me">Remind me</h2>
-          <span class="content"></span>
+          <span data-l10n-id="reminder">Reminder:</span>
+          <span class="content" role="list" data-l10n-id="alarms"></span>
         </li>
 
         <li class="description">
-          <strong>Notes</strong><br>
-          <span class="content"></span>
+          <span class="content" data-l10n-id="description"></span>
         </li>
       </ul>
     </section>

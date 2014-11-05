@@ -2,9 +2,10 @@
 /* global MockSelectionDom */
 /* global triggerEvent */
 
+require('/shared/js/contacts/utilities/dom.js');
+
 requireApp('communications/contacts/test/unit/helper.js');
 requireApp('communications/contacts/test/unit/mock_selection_dom.js.html');
-requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/contacts_tag.js');
 
 suite('Fill tag options', function() {
@@ -43,9 +44,9 @@ suite('Fill tag options', function() {
       subject.fillTagOptions(container, originalTag,
                              testTagOptions['test-type']);
       assert.equal(container.querySelector('button[data-index="0"]')
-                   .textContent, 'value1');
+                   .getAttribute('data-l10n-id'), 'value1');
       assert.equal(container.querySelector('button[data-index="1"]')
-                   .textContent, 'value2');
+                   .getAttribute('data-l10n-id'), 'value2');
     });
 
     test('choose a tag', function() {
@@ -58,7 +59,7 @@ suite('Fill tag options', function() {
       var tags = container.querySelectorAll('button');
       triggerEvent(customTag, 'touchend');
       for (var i = 0; i < tags.length; i++) {
-        assert.lengthOf(tags[i].classList, 0);
+        assert.isFalse(tags[i].classList.contains('icon-selected'));
       }
     });
 

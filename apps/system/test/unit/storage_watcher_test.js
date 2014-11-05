@@ -2,6 +2,7 @@
 
 requireApp('system/js/storage_watcher.js');
 
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_event_target.js');
@@ -18,23 +19,11 @@ suite('system/DeviceStorageWatcher >', function() {
   var realNavigatorGetDeviceStorage;
   var fakeNotif;
   var tinyTimeout = 25;
-  var lastL10nParams = [];
-  var lastL10nKeys = [];
 
   mocksForStorageWatcher.attachTestHelpers();
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key, params) {
-        lastL10nKeys.push(key);
-        if (params) {
-          lastL10nParams.push(params);
-          return key + JSON.stringify(params);
-        }
-
-        return key;
-      }
-    };
+    navigator.mozL10n = MockL10n;
 
     realNavigatorGetDeviceStorage = navigator.getDeviceStorage;
     navigator.getDeviceStorage = MockNavigatorGetDeviceStorage;
@@ -51,10 +40,9 @@ suite('system/DeviceStorageWatcher >', function() {
     fakeNotif = document.createElement('div');
     fakeNotif.id = 'storage-watcher-container';
     fakeNotif.innerHTML = [
-      '<div class="message">',
-      '</div>',
-      '<div class="available-space">',
-      '</div>'
+      '<div data-icon="storage-circle"></div>',
+      '<div class="title-container"></div>',
+      '<div class="detail"></div>'
     ].join('');
 
     document.body.appendChild(fakeNotif);
@@ -75,8 +63,8 @@ suite('system/DeviceStorageWatcher >', function() {
     test('should bind DOM elements', function(done) {
       assert.equal('storage-watcher-container',
                    DeviceStorageWatcher._container.id);
-      assert.equal('message', DeviceStorageWatcher._message.className);
-      assert.equal('available-space',
+      assert.equal('title-container', DeviceStorageWatcher._message.className);
+      assert.equal('detail',
                    DeviceStorageWatcher._availableSpace.className);
       done();
     });
@@ -101,10 +89,12 @@ suite('system/DeviceStorageWatcher >', function() {
 
   suite('low device storage', function() {
     var event;
+    var getSpy;
 
     setup(function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
       var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
+      getSpy = this.sinon.spy(navigator.mozL10n, 'get');
 
       DeviceStorageWatcher.init();
       event = {
@@ -122,37 +112,46 @@ suite('system/DeviceStorageWatcher >', function() {
     });
 
     test('should show system banner', function() {
+
       assert.equal(1, MockSystemBanner.mShowCount);
       assert.equal(
         'low-device-storagefree-space{"value":0,"unit":"byteUnit-B"}',
         MockSystemBanner.mMessage);
-      assert.equal('byteUnit-B', lastL10nKeys[0]);
-      assert.equal('low-device-storage', lastL10nKeys[1]);
-      assert.equal('free-space', lastL10nKeys[2]);
-      assert.equal(lastL10nParams[0].value, 0);
-      assert.equal(lastL10nParams[0].unit, 'byteUnit-B');
+      assert.equal(getSpy.getCall(0).args[0], 'byteUnit-B');
+      assert.equal(getSpy.getCall(1).args[0], 'low-device-storage');
+      assert.equal(getSpy.getCall(2).args[0], 'free-space');
+      assert.deepEqual(getSpy.getCall(2).args[1], {
+        unit: 'byteUnit-B',
+        value: 0
+      });
     });
 
     test('should display the notification', function() {
       assert.isTrue(fakeNotif.classList.contains('displayed'));
-      assert.equal(fakeNotif.querySelector('.message').innerHTML,
+      assert.equal(fakeNotif.querySelector('.title-container').innerHTML,
                    'low-device-storage');
-      assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
-                   'free-space{"value":0,"unit":"byteUnit-B"}');
+      var l10nAttrs = navigator.mozL10n.getAttributes(
+        fakeNotif.querySelector('.detail'));
+      assert.equal(l10nAttrs.id, 'free-space');
+      assert.deepEqual(l10nAttrs.args, {
+        value: 0,
+        unit: 'byteUnit-B'
+      });
     });
 
     teardown(function() {
-      lastL10nKeys = [];
-      lastL10nParams = [];
+      navigator.mozL10n.get.restore();
     });
   });
 
   suite('low device storage, unknown free space', function() {
     var event;
+    var getSpy;
 
     setup(function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
       var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
+      getSpy = this.sinon.spy(navigator.mozL10n, 'get');
 
       DeviceStorageWatcher.init();
       event = {
@@ -173,22 +172,22 @@ suite('system/DeviceStorageWatcher >', function() {
       assert.equal(1, MockSystemBanner.mShowCount);
       assert.equal('low-device-storageunknown-free-space',
                    MockSystemBanner.mMessage);
-      assert.equal('low-device-storage', lastL10nKeys[0]);
-      assert.equal('unknown-free-space', lastL10nKeys[1]);
-      assert.equal(lastL10nParams[0], undefined);
+      assert.equal(getSpy.getCall(0).args[0], 'low-device-storage');
+      assert.equal(getSpy.getCall(1).args[0], 'unknown-free-space');
+      assert.equal(getSpy.getCall(1).args[1], undefined);
     });
 
     test('should display the notification with unknown space', function() {
       assert.isTrue(fakeNotif.classList.contains('displayed'));
-      assert.equal(fakeNotif.querySelector('.message').innerHTML,
+      assert.equal(fakeNotif.querySelector('.title-container').innerHTML,
                    'low-device-storage');
-      assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
-                   'unknown-free-space');
+      assert.equal(
+        fakeNotif.querySelector('.detail').getAttribute('data-l10n-id'),
+        'unknown-free-space');
     });
 
     teardown(function() {
-      lastL10nKeys = [];
-      lastL10nParams = [];
+      navigator.mozL10n.get.restore();
     });
   });
 
@@ -220,8 +219,13 @@ suite('system/DeviceStorageWatcher >', function() {
     });
 
     test('should update free space', function() {
-      assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
-                   'free-space{"value":1,"unit":"byteUnit-KB"}');
+      var l10nAttrs = navigator.mozL10n.getAttributes(
+        fakeNotif.querySelector('.detail'));
+      assert.equal(l10nAttrs.id, 'free-space');
+      assert.deepEqual(l10nAttrs.args, {
+        value: 1,
+        unit: 'byteUnit-KB'
+      });
     });
   });
 
@@ -267,9 +271,33 @@ suite('system/DeviceStorageWatcher >', function() {
       assert.equal(result.unit, 'byteUnit-KB');
     });
 
+    test('KB with decimal (round down)', function() {
+      var result = DeviceStorageWatcher.formatSize(1024 + 511);
+      assert.equal(result.size, 1);
+      assert.equal(result.unit, 'byteUnit-KB');
+    });
+
+    test('KB with decimal (round up)', function() {
+      var result = DeviceStorageWatcher.formatSize(1024 + 512);
+      assert.equal(result.size, 2);
+      assert.equal(result.unit, 'byteUnit-KB');
+    });
+
     test('MB', function() {
       var result = DeviceStorageWatcher.formatSize(1024 * 1024);
       assert.equal(result.size, 1);
+      assert.equal(result.unit, 'byteUnit-MB');
+    });
+
+    test('MB with decimal (lower than 1K)', function() {
+      var result = DeviceStorageWatcher.formatSize(1024 * 1024 + 512);
+      assert.equal(result.size, 1);
+      assert.equal(result.unit, 'byteUnit-MB');
+    });
+
+    test('MB with decimal (0.5MB)', function() {
+      var result = DeviceStorageWatcher.formatSize(1024 * 1024 + 512 * 1024);
+      assert.equal(result.size, 1.5);
       assert.equal(result.unit, 'byteUnit-MB');
     });
 

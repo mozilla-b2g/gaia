@@ -1,0 +1,82 @@
+/**
+ * FIXME/bug 1060293: This is entirely copied and pasted from
+ * shared/style/buttons.css because the selectors in there are overly broad and
+ * had to be made more specific. We should remove this file and use that one
+ * instead.
+ */
+.activity::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+.activity {
+  font-family: sans-serif;
+  font-style: italic;
+  width: 100%;
+  height: 4rem;
+  margin: 0 0 1rem;
+  padding: 0 1.2rem;
+  -moz-box-sizing: border-box;
+  /*display: inline-block;*/
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #d8d8d8;
+  border: none;
+  border-radius: 2rem;
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 4rem;
+  color: #333;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+}
+
+.activity:active {
+  background-color: #b2f2ff;
+  color: #fff;
+}
+
+li .activity {
+  position: relative;
+  text-align: left;
+  border: 0.1rem solid #c7c7c7;
+  background: rgba(0,0,0,0.05);
+  margin: 0 0 1rem;
+  overflow: hidden;
+  border-radius: 0;
+  /*display: flex;*/
+  height: auto;
+  min-height: 4rem;
+  text-overflow: initial;
+  white-space: normal;
+  line-height: 2rem;
+  padding: 1rem 1.2rem;
+}
+
+li .activity.icon:before {
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  margin-top: -1.5rem;
+  background: transparent no-repeat center center / 100% auto;
+  pointer-events: none;
+}
+
+html[dir="rtl"] li .activity {
+  text-align: right;
+}
+
+html[dir="rtl"] li .activity.icon {
+  padding: 1rem 1.3rem 1rem 4rem;
+}
+
+html[dir="rtl"] li .activity.icon:before {
+  right: auto;
+  left: 0.5rem;
+}

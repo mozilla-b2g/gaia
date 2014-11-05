@@ -1,88 +1,66 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ThreadListUI, ThreadUI, Threads, SMIL, MozSmsFilter, Compose,
-         Utils, LinkActionHandler, Contacts, GroupView,
-         ReportView, Utils, LinkActionHandler, Contacts, Drafts, Settings
+
+/* global EventDispatcher,
+    Promise,
+    Settings,
+    SMIL,
+    Threads,
+    Utils
 */
 
 /*exported MessageManager */
 
 'use strict';
-
+(function(exports) {
 var MessageManager = {
-  activity: null,
-  forward: null,
-  init: function mm_init(callback) {
-    if (this.initialized) {
-      return;
-    }
-    this.initialized = true;
-    // Allow for stubbing in environments that do not implement the
-    // `navigator.mozMobileMessage` API
-    this._mozMobileMessage = navigator.mozMobileMessage ||
-                    window.DesktopMockNavigatormozMobileMessage;
+  init: function mm_init() {
+    this._mozMobileMessage = navigator.mozMobileMessage;
 
-    this._mozMobileMessage.addEventListener('received',
-        this.onMessageReceived.bind(this));
-    this._mozMobileMessage.addEventListener('sending', this.onMessageSending);
-    this._mozMobileMessage.addEventListener('sent', this.onMessageSent);
-    this._mozMobileMessage.addEventListener('failed', this.onMessageFailed);
-    this._mozMobileMessage.addEventListener('deliverysuccess',
-                                            this.onDeliverySuccess);
-    this._mozMobileMessage.addEventListener('readsuccess',
-                                            this.onReadSuccess);
-    window.addEventListener('hashchange', this.onHashChange.bind(this));
-    document.addEventListener('visibilitychange',
-                              this.onVisibilityChange.bind(this));
-
-    // Initialize DOM elements which will be used in this code
-    [
-      'main-wrapper', 'thread-messages'
-    ].forEach(function(id) {
-      this[Utils.camelCase(id)] = document.getElementById(id);
-    }, this);
-    // Callback if needed
-    if (typeof callback === 'function') {
-      callback();
-    }
+    this._mozMobileMessage.addEventListener(
+      'received', this.onMessageReceived.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'sending', this.onMessageSending.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'sent', this.onMessageSent.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'failed', this.onMessageFailed.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'readsuccess', this.onReadSuccess.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'deliverysuccess', this.onDeliverySuccess.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'deleted', this.onDeleted.bind(this)
+    );
   },
 
   onMessageSending: function mm_onMessageSending(e) {
-    var message = e.message;
+    Threads.registerMessage(e.message);
 
-    Threads.registerMessage(message);
-
-    ThreadUI.onMessageSending(message);
-    ThreadListUI.onMessageSending(message);
+    this.emit('message-sending', { message: e.message });
   },
 
   onMessageFailed: function mm_onMessageFailed(e) {
-    ThreadUI.onMessageFailed(e.message);
+    this.emit('message-failed-to-send', { message: e.message });
   },
 
   onDeliverySuccess: function mm_onDeliverySuccess(e) {
-    // Only refresh report-view when page already opened with matched message id
-    var hashInfo = window.location.hash.split('=');
-    if (hashInfo[0] === '#report-view' && hashInfo[1] === '' + e.message.id) {
-      ReportView.refresh();
-    }
-
-    ThreadUI.onDeliverySuccess(e.message);
+    this.emit('message-delivered', { message: e.message });
   },
 
   onReadSuccess: function mm_onReadSuccess(e) {
-    // Only refresh report-view when page already opened with matched message id
-    var hashInfo = window.location.hash.split('=');
-    if (hashInfo[0] === '#report-view' && hashInfo[1] === '' + e.message.id) {
-      ReportView.refresh();
-    }
-
-    ThreadUI.onReadSuccess(e.message);
+    this.emit('message-read', { message: e.message });
   },
 
   onMessageSent: function mm_onMessageSent(e) {
-    ThreadUI.onMessageSent(e.message);
+    this.emit('message-sent', { message: e.message });
   },
 
   onMessageReceived: function mm_onMessageReceived(e) {
@@ -102,264 +80,17 @@ var MessageManager = {
 
     Threads.registerMessage(message);
 
-    if (message.threadId === Threads.currentId) {
-      // Mark as read in Gecko
-      this.markMessagesRead([message.id], function() {
-        ThreadListUI.updateThread(message);
+    this.emit('message-received', { message: message });
+  },
+
+  onDeleted: function(e) {
+    if (e.deletedThreadIds && e.deletedThreadIds.length) {
+      this.emit('threads-deleted', {
+        ids: e.deletedThreadIds
       });
-      ThreadUI.onMessageReceived(message);
-    } else {
-      ThreadListUI.onMessageReceived(message);
     }
   },
 
-  onVisibilityChange: function mm_onVisibilityChange(e) {
-    LinkActionHandler.reset();
-  },
-
-  slide: function mm_slide(direction, callback) {
-    var wrapper = this.mainWrapper;
-
-    // If no sliding is necessary, schedule the callback to be invoked as soon
-    // as possible (maintaining the asynchronous API of this method)
-    if (wrapper.dataset.position === direction) {
-      setTimeout(callback);
-      return;
-    }
-    wrapper.dataset.position = direction;
-
-    // We have 2 panels, so we get 2 transitionend for each step
-    var trEndCount = 0;
-    wrapper.addEventListener('transitionend', function trWait(e) {
-      trEndCount++;
-      if (trEndCount != 2) {
-        return;
-      }
-
-      wrapper.removeEventListener(e.type, trWait);
-      callback && callback();
-    });
-  },
-
-  launchComposer: function mm_launchComposer(callback) {
-    ThreadUI.cleanFields(true);
-    var draft = ThreadUI.draft || Drafts.get(Threads.currentId);
-    // Draft recipients are added as the composer launches
-    if (draft) {
-      // Recipients will exist for draft messages in threads
-      // Otherwise find them from draft recipient numbers
-      draft.recipients.forEach(function(number) {
-        Contacts.findByPhoneNumber(number, function(records) {
-          if (records.length) {
-            ThreadUI.recipients.add(
-              Utils.basicContact(number, records[0])
-            );
-          } else {
-            ThreadUI.recipients.add({
-              number: number
-            });
-          }
-        });
-      });
-
-      // Render draft contents into the composer input area.
-      Compose.fromDraft(draft);
-
-      // Discard this draft object and update the backing store
-      Drafts.delete(draft).store();
-    }
-
-    this.threadMessages.classList.add('new');
-
-    ThreadUI.onBeforeEnter();
-    this.slide('left', function() {
-      callback && callback();
-    });
-  },
-
-  handleForward: function mm_handleForward(forward) {
-    if (!forward) {
-      return;
-    }
-
-    var request = MessageManager.getMessage(+forward.messageId);
-
-    request.onsuccess = (function() {
-      Compose.fromMessage(request.result);
-
-      // Focus en recipients
-      ThreadUI.recipients.focus();
-    }).bind(this);
-
-    request.onerror = function() {
-      console.error('Error while forwarding.');
-    };
-
-    this.forward = null;
-  },
-
-  handleActivity: function mm_handleActivity(activity) {
-    if (!activity) {
-      return;
-    }
-    /**
-     * Choose the appropriate contact resolver:
-     *  - if we have a phone number and no contact, rely on findByPhoneNumber
-     *    to get a contact matching the number;
-     *  - if we have a contact object and no phone number, just use a dummy
-     *    source that returns the contact.
-     */
-    var findByPhoneNumber = Contacts.findByPhoneNumber.bind(Contacts);
-    var number = activity.number;
-    if (activity.contact && !number) {
-      findByPhoneNumber = function dummySource(contact, cb) {
-        cb(activity.contact);
-      };
-      number = activity.contact.number || activity.contact.tel[0].value;
-    }
-
-    // Add recipients and fill+focus the Compose area.
-    if (activity.contact && number) {
-      Utils.getContactDisplayInfo(
-        findByPhoneNumber, number, function onData(data) {
-          data.source = 'contacts';
-          ThreadUI.recipients.add(data);
-          Compose.fromMessage(activity);
-        }
-      );
-    } else {
-      if (number) {
-        // If the activity delivered the number of an unknown recipient,
-        // create a recipient directly.
-        ThreadUI.recipients.add({
-          number: number,
-          source: 'manual'
-        });
-      }
-      Compose.fromMessage(activity);
-    }
-
-    // Clean activity object
-    this.activity = null;
-  },
-
-  onHashChange: function mm_onHashChange(e) {
-    // Ensure that no specific element is left focused
-    // when changing UI panels
-    document.activeElement.blur();
-
-    // Information view pages should never persist any hash changes
-    GroupView.reset();
-    ReportView.reset();
-
-    // Leave the edit mode before transitioning to another panel. This is safe
-    // to do even if we're not in edit mode as it's essentially a no-op then.
-    ThreadUI.cancelEdit();
-    ThreadListUI.cancelEdit();
-
-    var self = this;
-    // TODO: We might need to refactor the view hash controlling in bug 881469.
-    switch (window.location.hash.split('=')[0]) {
-      case '#new':
-        ThreadUI.inThread = false;
-        MessageManager.launchComposer(function() {
-          this.handleActivity(this.activity);
-          this.handleForward(this.forward);
-          if (ThreadUI.draft) {
-            ThreadUI.draft.isEdited = false;
-          }
-          ThreadUI.recipients.focus();
-        }.bind(this));
-        break;
-      case '#thread-list':
-        ThreadUI.inThread = false;
-
-        //Keep the visible button the :last-child
-        var optionsButton = document.getElementById('messages-options-icon');
-        optionsButton.parentNode.appendChild(optionsButton);
-
-        ThreadListUI.renderDrafts();
-
-        if (this.threadMessages.classList.contains('new')) {
-          MessageManager.slide('right', function() {
-            self.threadMessages.classList.remove('new');
-          });
-        } else {
-          // Clear it before sliding.
-          ThreadUI.container.textContent = '';
-          MessageManager.slide('right', function() {
-            // When going to Messaging App, being in a thread, from
-            // a notification, we go directly to the thread, no to the
-            // composer.
-            if (self.activity && self.activity.threadId) {
-              window.location.hash = '#thread=' + self.activity.threadId;
-              self.activity = null;
-            }
-          });
-        }
-        break;
-      case '#group-view':
-        GroupView.show();
-        break;
-      case '#report-view':
-        ReportView.show();
-        break;
-      default:
-        var threadId = Threads.currentId;
-        var willSlide = true;
-
-        var finishTransition = (function finishTransition() {
-          // hashchanges from #group-view back to #thread=n
-          // are considered "in thread" and should not
-          // trigger a complete re-rendering of the messages
-          // or draft in the thread.
-          if (!ThreadUI.inThread) {
-            ThreadUI.inThread = true;
-
-            // Render messages
-            ThreadUI.renderMessages(threadId);
-
-            // Populate draft if there is one
-            var thread = Threads.get(threadId);
-            if (thread.hasDrafts) {
-              ThreadUI.draft = thread.drafts.latest;
-              Compose.fromDraft(ThreadUI.draft);
-              ThreadUI.draft.isEdited = false;
-            } else {
-              ThreadUI.draft = null;
-            }
-          }
-        }).bind(this);
-
-        // if we were previously composing a message - remove the class
-        // and skip the "slide" animation
-        if (this.threadMessages.classList.contains('new')) {
-          this.threadMessages.classList.remove('new');
-          willSlide = false;
-        }
-
-        ThreadListUI.mark(threadId, 'read');
-        // remove current thread id's notification if exist
-        Utils.closeNotificationsForThread();
-
-        ThreadUI.onBeforeEnter();
-
-        // Update Header
-        ThreadUI.updateHeaderData(function headerUpdated() {
-          if (willSlide) {
-            MessageManager.slide('left', function() {
-              finishTransition();
-            });
-          } else {
-            finishTransition();
-          }
-        });
-      break;
-    }
-
-  },
-  // TODO: Optimize this method. Tracked:
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=929919
   getThreads: function mm_getThreads(options) {
     /*
     options {
@@ -371,23 +102,25 @@ var MessageManager = {
     }
     */
 
-    var cursor = this._mozMobileMessage.getThreads();
-
     var each = options.each;
     var end = options.end;
     var done = options.done;
+    var cursor = null;
+
+    // WORKAROUND for bug 958738. We can remove 'try\catch' block once this bug
+    // is resolved
+    try {
+      cursor = this._mozMobileMessage.getThreads();
+    } catch(e) {
+      console.error('Error occurred while retrieving threads: ' + e.name);
+      end && end();
+      done && done();
+
+      return;
+    }
 
     cursor.onsuccess = function onsuccess() {
       if (this.result) {
-        // Register all threads to the Threads object.
-        Threads.set(this.result.id, this.result);
-
-        // If one of the requested threads is also the
-        // currently displayed thread, update the header immediately
-        if (this.result.id === Threads.currentId) {
-          ThreadUI.updateHeaderData();
-        }
-
         each && each(this.result);
 
         this.continue();
@@ -421,17 +154,17 @@ var MessageManager = {
       done: callback function invoked when we stopped iterating, either because
             it's the end or because it was stopped. It's invoked after the "end"
             callback.
-      filter: a MozMessageFilter or similar object
+      filter: a MobileMessageFilter or similar object
       invert: option to invert the selection
     }
 
      */
     var each = options.each;
-    var filter = options.filter;
     var invert = options.invert;
     var end = options.end;
     var endArgs = options.endArgs;
     var done = options.done;
+    var filter = options.filter;
     var cursor = this._mozMobileMessage.getMessages(filter, !invert);
 
     cursor.onsuccess = function onsuccess() {
@@ -577,25 +310,13 @@ var MessageManager = {
    * - onerror (optional func): called only once if there is an error.
    *
    */
+
   sendMMS: function mm_sendMMS(opts) {
-    var serviceId = opts.serviceId = this._sanitizeServiceId(opts.serviceId);
-
-    if (serviceId !== null &&
-        Settings.hasSeveralSim() &&
-        serviceId !== Settings.mmsServiceId) {
-      // TODO give a feedback, Bug 983315 
-      Settings.switchMmsSimHandler(serviceId, this._doSendMMS.bind(this, opts));
-    } else {
-      this._doSendMMS(opts);
-    }
-  },
-
-  _doSendMMS: function mm_doSendMMS(opts) {
     var request;
     var recipients = opts.recipients,
         subject = opts.subject,
         content = opts.content,
-        serviceId = opts.serviceId,
+        serviceId = opts.serviceId = this._sanitizeServiceId(opts.serviceId),
         onsuccess = opts.onsuccess,
         onerror = opts.onerror;
 
@@ -624,10 +345,22 @@ var MessageManager = {
   },
 
   // takes a formatted message in case you happen to have one
-  resendMessage: function mm_resendMessage(message, callback) {
+  resendMessage: function mm_resendMessage(opts) {
+    var message = opts.message;
+
+    if (!message) {
+      throw new Error('Message to resend is not defined.');
+    }
+
+    var serviceId = Settings.getServiceIdByIccId(message.iccId);
+    var sendOpts = this._getSendOptionsFromServiceId(serviceId);
+    var onsuccess = opts.onsuccess;
+    var onerror = opts.onerror;
     var request;
+
     if (message.type === 'sms') {
-      request = this._mozMobileMessage.send(message.receiver, message.body);
+      request = this._mozMobileMessage.send(
+        message.receiver, message.body, sendOpts);
     }
     if (message.type === 'mms') {
       request = this._mozMobileMessage.sendMMS({
@@ -635,32 +368,30 @@ var MessageManager = {
         subject: message.subject,
         smil: message.smil,
         attachments: message.attachments
-      });
+      }, sendOpts);
     }
 
     request.onsuccess = function onSuccess(evt) {
-      MessageManager.deleteMessage(message.id);
-      if (callback) {
-        callback(null, evt.target.result);
-      }
+      MessageManager.deleteMessages(message.id);
+      onsuccess && onsuccess(evt.target.result);
     };
 
     request.onerror = function onError(evt) {
-      MessageManager.deleteMessage(message.id);
-      if (callback) {
-        callback(evt.target.error);
-      }
+      MessageManager.deleteMessages(message.id);
+      onerror && onerror(evt.target.error);
     };
-
-    return request;
   },
 
-  deleteMessage: function mm_deleteMessage(id, callback) {
+  deleteMessages: function mm_deleteMessages(id, callback) {
     var req = this._mozMobileMessage.delete(id);
     req.onsuccess = function onsuccess() {
       callback && callback(this.result);
     };
 
+    // TODO: If the messages could not be deleted completely, conversation list
+    // page will also update without notification currently. May need more
+    // information for user that the messages were not removed completely.
+    // See bug #1045666 for details.
     req.onerror = function onerror() {
       var msg = 'Deleting in the database. Error: ' + req.error.name;
       console.log(msg);
@@ -668,22 +399,11 @@ var MessageManager = {
     };
   },
 
-  /*
-    TODO: If the messages could not be deleted completely,
-    conversation list page will also update without notification currently.
-    May need more infomation for user that the messages were not
-    removed completely.
-  */
-  deleteMessages: function mm_deleteMessages(list, callback) {
-    // mozMobileMessage.delete() has been modified per bug 771458.
-    // Now deleteMessage() can take an id or an array of id.
-    this.deleteMessage(list, callback);
-  },
-
-  markThreadRead: function mm_markThreadRead(threadId, callback) {
-    var filter = new MozSmsFilter();
-    filter.threadId = threadId;
-    filter.read = false;
+  markThreadRead: function mm_markThreadRead(threadId) {
+    var filter = {
+      threadId: threadId,
+      read: false
+    };
 
     var messagesUnreadIDs = [];
     var changeStatusOptions = {
@@ -700,7 +420,7 @@ var MessageManager = {
     MessageManager.getMessages(changeStatusOptions);
   },
 
-  markMessagesRead: function mm_markMessagesRead(list, callback) {
+  markMessagesRead: function mm_markMessagesRead(list) {
     if (!this._mozMobileMessage || !list.length) {
       return;
     }
@@ -710,23 +430,61 @@ var MessageManager = {
     // other potential call to the API, like the one for getting a message
     // list, could be done within the calls to mark the messages as read.
 
+    var id = list.pop();
     // TODO: Third parameter of markMessageRead is return read request.
     //       Here we always return read request for now, but we can let user
     //       decide to return request or not in Bug 971658.
-    var req = this._mozMobileMessage.markMessageRead(list.pop(), true, true);
+    var req = this._mozMobileMessage.markMessageRead(id, true, true);
 
     req.onsuccess = (function onsuccess() {
-      if (!list.length && callback) {
-        callback(req.result);
+      if (!list.length) {
         return;
       }
-      this.markMessagesRead(list, callback);
+
+      this.markMessagesRead(list);
     }).bind(this);
 
     req.onerror = function onerror() {
-      if (callback) {
-        callback(null);
-      }
+      console.error(
+        'Error while marking message %d as read: %s', id, this.error.name
+      );
     };
+  },
+
+  getSegmentInfo: function mm_getSegmentInfo(text) {
+    if (!(this._mozMobileMessage &&
+          this._mozMobileMessage.getSegmentInfoForText)) {
+      return Promise.reject(new Error('mozMobileMessage is unavailable.'));
+    }
+
+    var defer = Utils.Promise.defer();
+
+    var request = this._mozMobileMessage.getSegmentInfoForText(text);
+    request.onsuccess = function onsuccess(e) {
+      defer.resolve(e.target.result);
+    };
+
+    request.onerror = function onerror(e) {
+      defer.reject(e.target.error);
+    };
+
+    return defer.promise;
   }
 };
+
+Object.defineProperty(exports, 'MessageManager', {
+  get: function () {
+    delete exports.MessageManager;
+
+    exports.MessageManager = EventDispatcher.mixin(MessageManager, [
+      'message-sending', 'message-failed-to-send', 'message-delivered',
+      'message-read', 'message-sent', 'message-received', 'threads-deleted'
+    ]);
+
+    return exports.MessageManager;
+  },
+  configurable: true,
+  enumerable: true
+});
+
+})(window);

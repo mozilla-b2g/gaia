@@ -1,22 +1,37 @@
 {
-  "name": "Send To Bluetooth Device",
+  "name": "Bluetooth Manager",
   "type": "certified",
   "role": "system",
-  "description": "Gaia Bluetooth Transfer",
-  "launch_path": "/transfer.html",
+  "launch_path": "/settings.html",
+  "description": "Gaia Bluetooth Manager",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
+    "ar": {
+      "name": "Bluetooth",
+      "description": "Gaia Bluetooth"
+    },
     "en-US": {
-      "name": "Bluetooth Transfer",
-      "description": "Gaia Bluetooth Transfer"
+      "name": "Bluetooth",
+      "description": "Gaia Bluetooth"
+    },
+    "fr": {
+      "name": "Bluetooth",
+      "description": "Gaia Bluetooth"
+    },
+    "zh-TW": {
+      "name": "Bluetooth",
+      "description": "Gaia Bluetooth"
     }
   },
+  "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/60/Bluetooth.png",
-    "120": "/style/icons/Bluetooth.png"
+    "60": "/style/icons/Bluetooth_60.png",
+    "90": "/style/icons/Bluetooth_90.png",
+    "120": "/style/icons/Bluetooth_120.png",
+    "135": "/style/icons/Bluetooth_135.png"
   },
   "orientation": "default",
   "activities": {
@@ -29,9 +44,16 @@
       "href": "/transfer.html"
     }
   },
+  "messages": [
+    { "bluetooth-pairing-request": "/message.html" },
+    { "bluetooth-cancel": "/message.html" }
+  ],
   "permissions": {
+    "themeable":{},
+    "attention":{},
     "bluetooth":{},
     "device-storage:sdcard":{ "access": "readonly" },
-    "settings":{ "access": "readwrite" }
+    "settings":{ "access": "readwrite" },
+    "desktop-notification":{}
   }
 }

@@ -5,15 +5,22 @@
     <meta charset="utf-8" />
     <title>Bluetooth</title>
     <!-- Localization -->
-    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <link rel="manifest" href="manifest.webapp">
+    <link rel="localization" href="locales/bluetooth.{locale}.properties">
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <!-- Common style -->
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" /> -->
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style_unstable/buttons.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css" />
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <!-- Web Components -->
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script type="text/javascript" src="shared/js/component_utils.js"></script>
+    <script type="text/javascript" src="shared/elements/gaia_subheader/script.js"></script>
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/transfer.css" />
     <link rel="stylesheet" type="text/css" href="style/lists.css">
@@ -24,7 +31,7 @@
     <script type="text/javascript" defer src="js/deviceList.js"></script>
   </head>
 
-  <body role="application" class="skin-organic uninit">
+  <body role="application" class="skin-organic theme-settings uninit">
     <!-- Enable Bluetooth View -->
     <form role="dialog" data-type="confirm" id="enable-bluetooth-view" hidden>
       <section>
@@ -55,21 +62,20 @@
     </form>
     <!-- Devices List View -->
     <section role="region" id="devices-list-view" class="current" data-rendered="true" hidden>
-      <header>
-        <a href="#" id="cancel-activity"><span class="icon icon-close"></span></a>
+      <gaia-header id="devices-list-header" action="close">
         <h1 data-l10n-id="bluetooth"> Bluetooth </h1>
-      </header>
+      </gaia-header>
       <div>
         <!-- Devices List View :: Paired Devices List -->
-        <header id="bluetooth-paired-title">
-          <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
-        </header>
+        <gaia-subheader id="bluetooth-paired-title" skin="organic">
+          <span data-l10n-id="bluetooth-paired-devices">Paired Devices</span>
+        </gaia-subheader>
         <ul id="bluetooth-paired-devices" class="devices">
         </ul>
         <!-- Devices List View :: Found Devices List -->
-        <header id="bluetooth-found-title">
-          <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
-        </header>
+        <gaia-subheader id="bluetooth-found-title" skin="organic">
+          <span data-l10n-id="bluetooth-devices-in-area">Devices found</span>
+        </gaia-subheader>
         <ul id="bluetooth-devices" class="devices">
         </ul>
         <!-- Devices List View :: Search Button -->

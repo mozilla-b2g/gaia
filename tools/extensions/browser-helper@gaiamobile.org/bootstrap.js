@@ -16,7 +16,8 @@ function debug(data) {
 function initResponsiveDesign(browserWindow) {
   // Inject custom controls in responsive view
   Cu.import('resource:///modules/devtools/responsivedesign.jsm');
-  ResponsiveUIManager.once('on', function(event, tab, responsive) {
+  ResponsiveUIManager.once('on', function(event, {tab:tab}) {
+    let responsive = tab.__responsiveUI;
     let document = tab.ownerDocument;
 
     browserWindow.shell = {
@@ -116,19 +117,10 @@ function initResponsiveDesign(browserWindow) {
   });
 
   // Automatically toggle responsive design mode
-  let width = 320, height = 480;
-  // We have to take into account padding and border introduced with the
-  // device look'n feel:
-  width += 15*2; // Horizontal padding
-  width += 1*2; // Vertical border
-  height += 60; // Top Padding
-  height += 1; // Top border
-  let args = {'width': width, 'height': height};
   let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
   mgr.handleGcliCommand(browserWindow,
                         browserWindow.gBrowser.selectedTab,
-                        'resize to',
-                        args);
+                        'resize on');
 
   // Enable touch events
   browserWindow.gBrowser.selectedTab.__responsiveUI.enableTouch();
@@ -139,9 +131,8 @@ function startup(data, reason) {
     // Initialize various JSM instanciated by shell.js
     // All of them are usefull even if we don't use them in this file.
     Cu.import('resource://gre/modules/ContactService.jsm');
-    Cu.import('resource://gre/modules/SettingsChangeNotifier.jsm');
+    Cu.import('resource://gre/modules/SettingsRequestManager.jsm');
     Cu.import('resource://gre/modules/ActivitiesService.jsm');
-    Cu.import('resource://gre/modules/PermissionPromptHelper.jsm');
 
     var mm = Cc['@mozilla.org/globalmessagemanager;1']
                .getService(Ci.nsIMessageBroadcaster);
@@ -192,7 +183,7 @@ function startup(data, reason) {
           // We should end up with urls like:
           //   http://system.gaiamobile.org:8080/manifest.webapp
           //   app://system.gaiamobile.org/manifest.webapp
-          let manifestURL = request.URI.prePath + '/manifest.webapp';
+          let manifestURL = 'app://'+ request.URI.host +'/manifest.webapp';
           let manifest = appsService.getAppByManifestURL(manifestURL);
           if (manifest) {
             let app = manifest.QueryInterface(Ci.mozIApplication);
@@ -234,7 +225,28 @@ function startup(data, reason) {
                                 browserWindow.outerWidth - 550);
       gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser);
 
-      Cu.import('resource://gre/modules/Keyboard.jsm');
+      let KeyboardGlobal = Cu.import('resource://gre/modules/Keyboard.jsm');
+
+      // SystemAppProxy.jsm doesn't ship into Firefox.
+      // Keyboard.jsm is the only one user of it outside of b2g/ folder.
+      // So hack it, in order to allow keyboard to send events to the system app
+      Object.defineProperty(KeyboardGlobal, "SystemAppProxy", {
+        value: {
+          dispatchEvent: function (detail) {
+            let contentWindow = browserWindow.content;
+            var contentDetail = Components.utils.createObjectIn(contentWindow);
+            for (var i in detail) {
+              contentDetail[i] = detail[i];
+            }
+            Components.utils.makeObjectPropsNormal(contentDetail);
+
+            var customEvt = contentWindow.document.createEvent('CustomEvent');
+            customEvt.initCustomEvent('mozChromeEvent', true, true, contentDetail);
+            contentWindow.dispatchEvent(customEvt);
+          }
+        }
+      });
+
       Keyboard.initFormsFrameScript(mm);
       mm.loadFrameScript('chrome://global/content/forms.js', true);
     }, 'sessionstore-windows-restored', false);
@@ -267,4 +279,14 @@ function startup(data, reason) {
   } catch (e) {
     debug('Something went wrong while trying to start browser-helper: ' + e);
   }
+}
+
+function shutdown(data, reason) {
+  // prevent stdout warnings
+}
+
+function install(data, reason) {
+}
+
+function uninstall(data, reason) {
 }

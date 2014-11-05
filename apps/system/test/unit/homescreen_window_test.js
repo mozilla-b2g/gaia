@@ -1,24 +1,17 @@
-'use strict';
+/* global MocksHelper, HomescreenWindow, MockApplications,
+          MockAppWindow */
 
-mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'AppWindowManager', 'applications', 'ManifestHelper',
-      'HomescreenWindow', 'AttentionScreen', 'OrientationManager', 'System',
-      'AppWindow', 'BrowserFrame', 'BrowserConfigHelper', 'BrowserMixin',
-      'homescreenLauncher']);
+'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_attention_screen.js');
-requireApp('system/test/unit/mock_homescreen_launcher.js');
+requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForHomescreenWindow = new MocksHelper([
   'OrientationManager',
-  'Applications', 'SettingsListener',
-  'ManifestHelper', 'AppWindowManager',
-  'HomescreenLauncher'
+  'Applications', 'SettingsListener', 'ManifestHelper'
 ]).init();
 
 suite('system/HomescreenWindow', function() {
@@ -29,9 +22,16 @@ suite('system/HomescreenWindow', function() {
 
   setup(function(done) {
     this.sinon.useFakeTimers();
-    window.homescreenLauncher = new HomescreenLauncher().start();
-    stubById = this.sinon.stub(document, 'getElementById');
-    stubById.returns(document.createElement('div'));
+    stubById = this.sinon.stub(document, 'getElementById', function(id) {
+      var element = document.createElement('div');
+      if (id === 'homescreen') {
+        var container = document.createElement('div');
+        container.className = 'browser-container';
+        element.appendChild(container);
+      }
+
+      return element;
+    });
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
@@ -44,7 +44,6 @@ suite('system/HomescreenWindow', function() {
   });
 
   teardown(function() {
-    window.homescreenLauncher = undefined;
     stubById.restore();
     window.applications = realApplications;
     realApplications = null;
@@ -61,12 +60,22 @@ suite('system/HomescreenWindow', function() {
       });
 
       homescreenWindow = new HomescreenWindow('fakeManifestURL');
-      if (!'setVisible' in homescreenWindow.browser.element) {
+      if (!('setVisible' in homescreenWindow.browser.element)) {
         homescreenWindow.browser.element.setVisible = function() {};
       }
     });
     teardown(function() {
     });
+
+    test('should always resize', function() {
+      var stubResize = this.sinon.stub(homescreenWindow, '_resize');
+      var stubIsActive = this.sinon.stub(homescreenWindow, 'isActive');
+      stubIsActive.returns(false);
+
+      homescreenWindow.resize();
+      assert.isTrue(stubResize.calledOnce);
+    });
+
     test('Homescreen browser frame', function() {
       assert.equal(homescreenWindow.browser.element.name, 'main');
       assert.equal(
@@ -76,6 +85,36 @@ suite('system/HomescreenWindow', function() {
     test('homescree is created', function() {
       assert.isTrue(homescreenWindow.isHomescreen);
     });
+
+    test('ensure should change the url', function() {
+      var url = homescreenWindow.browser.element.src;
+      homescreenWindow.ensure(true);
+      assert.notEqual(url, homescreenWindow.browser.element.src);
+    });
+
+    test('ensure should not increase the length of the src', function() {
+      // Initially the url ends in #root. Call ensure() twice to ensure
+      // that we do not continue to increase the length on hash changes.
+      homescreenWindow.ensure(true);
+      var firstEnsure = homescreenWindow.browser.element.src;
+
+      homescreenWindow.ensure(true);
+      var secondEnsure = homescreenWindow.browser.element.src;
+
+      assert.equal(firstEnsure.length, secondEnsure.length);
+    });
+
+    test('ensure should kill front window but not change the url', function() {
+      var fakeFrontWindow = new MockAppWindow({ url: 'fake' });
+      homescreenWindow.frontWindow = fakeFrontWindow;
+      var url = homescreenWindow.browser.element.src;
+      var stubKill = this.sinon.stub(fakeFrontWindow, 'kill');
+      homescreenWindow.ensure(true);
+      assert.isTrue(stubKill.called);
+      assert.equal(url, homescreenWindow.browser.element.src);
+      homescreenWindow.frontWindow = null;
+    });
+
     suite('handle events', function() {
       test('mozbrowser events', function() {
         var stubRestart = this.sinon.stub(homescreenWindow, 'restart');
@@ -95,18 +134,28 @@ suite('system/HomescreenWindow', function() {
         });
         assert.isTrue(stubRestart.calledTwice);
       });
+      test('_localized event', function() {
+        var stubPublish = this.sinon.stub(homescreenWindow, 'publish');
+
+        homescreenWindow.handleEvent({
+          type: '_localized'
+        });
+
+        assert.isTrue(stubPublish.calledOnce);
+        assert.isTrue(stubPublish.calledWith('namechanged'));
+      });
     });
     suite('homescreen is crashed', function() {
       var stubRender;
-      var stubKill;
+      var spyKill;
       setup(function() {
         stubRender = this.sinon.stub(homescreenWindow, 'render');
-        stubKill = this.sinon.stub(homescreenWindow, 'kill');
+        spyKill = this.sinon.spy(homescreenWindow, 'kill');
       });
 
       teardown(function() {
         stubRender.restore();
-        stubKill.restore();
+        spyKill.restore();
       });
 
       test('Homescreen is crashed at foreground:' +
@@ -114,7 +163,7 @@ suite('system/HomescreenWindow', function() {
         var stubIsActive = this.sinon.stub(homescreenWindow, 'isActive');
         stubIsActive.returns(true);
         homescreenWindow.restart();
-        assert.isTrue(stubKill.called);
+        assert.isTrue(spyKill.called);
         this.sinon.clock.tick(0);
         assert.isTrue(stubRender.called);
       });
@@ -123,7 +172,7 @@ suite('system/HomescreenWindow', function() {
         var stubIsActive = this.sinon.stub(homescreenWindow, 'isActive');
         stubIsActive.returns(false);
         homescreenWindow.restart();
-        assert.isTrue(stubKill.called);
+        assert.isTrue(spyKill.called);
       });
 
       test('Homescreen should hide its fade-overlay while we call the method',

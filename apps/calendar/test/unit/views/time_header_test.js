@@ -1,9 +1,12 @@
+define(function(require) {
 'use strict';
 
 requireCommon('test/synthetic_gestures.js');
 
-suiteGroup('Views.TimeHeader', function() {
+var TimeHeader = require('views/time_header');
+var View = require('view');
 
+suite('Views.TimeHeader', function() {
   var subject;
   var app;
   var controller;
@@ -26,10 +29,9 @@ suiteGroup('Views.TimeHeader', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="wrapper"></div>',
-      '<header id="time-header">',
-        '<button class="settings"></button>',
+      '<gaia-header id="time-header" action="menu">',
         '<h1></h1>',
-      '</div>'
+      '</gaia-header>'
     ].join('');
 
     document.body.appendChild(div);
@@ -37,28 +39,22 @@ suiteGroup('Views.TimeHeader', function() {
     app = testSupport.calendar.app();
     controller = app.timeController;
 
-    subject = new Calendar.Views.TimeHeader({
-      app: app
-    });
+    subject = new TimeHeader({ app: app });
 
     controller.move(date);
     monthTitle = localeFormat(
       date,
-      '%B %Y'
+      '%b %Y'
     );
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.View);
+    assert.instanceOf(subject, View);
     assert.equal(subject.app, app);
     assert.ok(subject.element);
     assert.equal(
       subject.element, document.querySelector('#time-header')
     );
-  });
-
-  test('#settings', function() {
-    assert.ok(subject.settings);
   });
 
   test('#title', function() {
@@ -86,7 +82,7 @@ suiteGroup('Views.TimeHeader', function() {
   test('#getScale for week', function() {
     controller.move(new Date(2012, 0, 15));
     var out = subject.getScale('week');
-    var compare = localeFormat(new Date(2012, 0, 30), '%B %Y');
+    var compare = localeFormat(new Date(2012, 0, 30), '%b %Y');
     assert.equal(out, compare);
   });
 
@@ -108,10 +104,11 @@ suiteGroup('Views.TimeHeader', function() {
   test('#getScale for week - month ending on Wednesday', function() {
     controller.move(new Date(2013, 6, 30));
     var out = subject.getScale('week');
-    // even tho the week ends on the next month the days displayed on calendar
-    // all belong to same month (since we break the week into Sun-Wed and
-    // Thr-Sat)
-    assert.equal(out, localeFormat(new Date(2013, 6, 1), '%B %Y'));
+    assert.equal(
+      out,
+      localeFormat(new Date(2013, 6, 28), '%b %Y') + ' ' +
+      localeFormat(new Date(2013, 7, 3), '%b %Y')
+    );
   });
 
   test('#_updateTitle', function() {
@@ -174,7 +171,7 @@ suiteGroup('Views.TimeHeader', function() {
 
       assert.ok(calledWith);
     });
-
   });
+});
 
 });

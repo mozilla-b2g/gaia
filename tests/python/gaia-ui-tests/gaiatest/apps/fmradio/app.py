@@ -16,7 +16,7 @@ class FmRadio(Base):
     _power_button_locator = (By.ID, 'power-switch')
     _favorite_list_locator = (By.CSS_SELECTOR, 'div.fav-list-item')
     _frequency_display_locator = (By.ID, 'frequency')
-    _frequency_dialer_locator = (By.ID, 'frequency-dialer')
+    _frequency_dialer_locator = (By.ID, 'dialer-bar')
     _favorite_button_locator = (By.ID, 'bookmark-button')
     _next_button_locator = (By.ID, 'frequency-op-seekup')
     _prev_button_locator = (By.ID, 'frequency-op-seekdown')

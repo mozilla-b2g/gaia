@@ -5,8 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var formatPictureSizes = require('lib/picture-sizes/format-picture-sizes');
 var formatRecorderProfiles = require('lib/format-recorder-profiles');
+var formatPictureSizes = require('lib/format-picture-sizes');
 var debug = require('debug')('controller:settings');
 var SettingsView = require('views/settings');
 var bindAll = require('lib/bind-all');
@@ -25,14 +25,15 @@ module.exports.SettingsController = SettingsController;
  * @param {App} app
  */
 function SettingsController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.settings = app.settings;
+  this.activity = app.activity;
   this.notification = app.views.notification;
+  this.l10nGet = app.l10nGet;
 
-  // Allow test stubs
-  this.l10n = app.l10n || navigator.mozL10n;
+  // Provide test hooks
+  this.nav = app.nav || navigator;
   this.SettingsView = app.SettingsView || SettingsView;
   this.formatPictureSizes = app.formatPictureSizes || formatPictureSizes;
   this.formatRecorderProfiles = app.formatRecorderProfiles ||
@@ -43,10 +44,93 @@ function SettingsController(app) {
   debug('initialized');
 }
 
+/**
+ * Registers settings 'aliases' that provide
+ * a single interface for settings such as
+ * `flashModes` where we have `flashModesPicture`
+ * and `flashModesVideo`.
+ *
+ * This means that we can just use settings.flashModes,
+ * and be confident that it will interface with the
+ * correct setting depending on the value of `mode`.
+ *
+ * You can always use the underlying settings
+ * directly if you need that kind of control.
+ * @return {[type]} [description]
+ */
 SettingsController.prototype.configure = function() {
-  this.settings.alias('recorderProfiles', this.aliases.recorderProfiles);
-  this.settings.alias('pictureSizes', this.aliases.pictureSizes);
-  this.settings.alias('flashModes', this.aliases.flashModes);
+  this.setupRecorderProfilesAlias();
+  this.setupPictureSizesAlias();
+  this.setupFlashModesAlias();
+};
+
+/**
+ * Creates a SettingAlias that dynamically
+ * interfaces with the correct recorder
+ * profile Setting based on which camera
+ * ('front'/'back') is selected.
+ *
+ * @private
+ */
+SettingsController.prototype.setupRecorderProfilesAlias = function() {
+  var settings = this.settings;
+  this.settings.alias({
+    key: 'recorderProfiles',
+    settings: {
+      back: this.settings.recorderProfilesBack,
+      front: this.settings.recorderProfilesFront
+    },
+    get: function() {
+      var camera = settings.cameras.selected('key');
+      return this.settings[camera];
+    }
+  });
+};
+
+/**
+ * Creates a SettingAlias that dynamically
+ * interfaces with the correct picture
+ * size Setting based on which camera
+ * ('front'/'back') is selected.
+ *
+ * @private
+ */
+SettingsController.prototype.setupPictureSizesAlias = function() {
+  var settings = this.settings;
+  this.settings.alias({
+    key: 'pictureSizes',
+    settings: {
+      back: this.settings.pictureSizesBack,
+      front: this.settings.pictureSizesFront
+    },
+    get: function() {
+      var camera = settings.cameras.selected('key');
+      return this.settings[camera];
+    }
+  });
+};
+
+/**
+ * Creates a SettingAlias that dynamically
+ * interfaces with the correct flash-modes
+ * Setting based on which mode ('picture'/
+ * 'video') is selected.
+ *
+ * @private
+ */
+SettingsController.prototype.setupFlashModesAlias = function() {
+  var settings = this.settings;
+  this.settings.alias({
+    key: 'flashModes',
+    settings: {
+      picture: this.settings.flashModesPicture,
+      video: this.settings.flashModesVideo
+    },
+    get: function() {
+      var mode = settings.mode.selected('key');
+      return this.settings[mode];
+    }
+  });
 };
 
 /**
@@ -55,8 +139,10 @@ SettingsController.prototype.configure = function() {
  * @private
  */
 SettingsController.prototype.bindEvents = function() {
-  this.app.on('change:capabilities', this.onCapabilitiesChange);
+  this.app.on('localized', this.formatPictureSizeTitles);
   this.app.on('settings:toggle', this.toggleSettings);
+  this.app.on('camera:newcamera', this.onNewCamera);
+  this.app.on('activity:pick', this.onPickActivity);
 };
 
 /**
@@ -89,6 +175,11 @@ SettingsController.prototype.openSettings = function() {
     .on('click:close', this.closeSettings)
     .on('click:option', this.onOptionTap);
 
+  // Make sure the view is
+  // hidden before fading in
+  this.view.hide();
+  this.view.fadeIn();
+
   this.app.emit('settings:opened');
   debug('settings opened');
 };
@@ -98,13 +189,17 @@ SettingsController.prototype.openSettings = function() {
  *
  * @private
  */
-SettingsController.prototype.closeSettings = function() {
+SettingsController.prototype.closeSettings = function(done) {
   debug('close settings');
   if (!this.view) { return; }
-  this.view.destroy();
-  this.view = null;
-  this.app.emit('settings:closed');
-  debug('settings closed');
+  var self = this;
+  this.view.fadeOut(function() {
+    self.view.destroy();
+    self.view = null;
+    self.app.emit('settings:closed');
+    debug('settings closed');
+    if (typeof done === 'function') { done(); }
+  });
 };
 
 /**
@@ -119,39 +214,77 @@ SettingsController.prototype.onOptionTap = function(key, setting) {
   var flashMode = this.settings.flashModesPicture.selected('key');
   var ishdrOn = setting.key === 'hdr' && key === 'on';
   var flashDeactivated = flashMode !== 'off' && ishdrOn;
+  var self = this;
 
-  setting.select(key);
-  this.closeSettings();
-  this.notify(setting, flashDeactivated);
+  self.closeSettings(function() {
+    setting.select(key);
+    self.notify(setting, flashDeactivated);
+  });
+};
+
+/**
+ * Adjusts settings to meet requirements
+ * on new pick activity.
+ *
+ * @param  {Object} data
+ * @private
+ */
+SettingsController.prototype.onPickActivity = function(data) {
+  debug('pick activity', data);
+
+  var maxFileSize = data.maxFileSizeBytes;
+  var maxPixelSize = data.maxPixelSize;
+
+  // Settings changes made in 'pick'
+  // sessions shouldn't persist.
+  this.settings.dontSave();
+
+  if (maxPixelSize) {
+    this.settings.pictureSizesFront.set('maxPixelSize', maxPixelSize);
+    this.settings.pictureSizesBack.set('maxPixelSize', maxPixelSize);
+    debug('set maxPixelSize: %s', maxPixelSize);
+  }
+
+  if (maxFileSize) {
+    this.settings.recorderProfilesFront.set('maxFileSizeBytes', maxFileSize);
+    this.settings.recorderProfilesBack.set('maxFileSizeBytes', maxFileSize);
+    debug('set maxFileSize: %s', maxFileSize);
+  }
 };
 
 /**
  * Display a notifcation showing the
  * current state of the given setting.
  *
+ * If `notification` is `false in config
+ * for a setting then we don't show one.
+ *
  * @param  {Setting} setting
  * @private
  */
 SettingsController.prototype.notify = function(setting, flashDeactivated) {
-  var optionTitle = this.localize(setting.selected('title'));
-  var title = this.localize(setting.get('title'));
+  var dontNotify = setting.get('notifications') === false;
+  if (dontNotify) { return; }
+
+  var localizeOption = setting.get('optionsLocalizable') !== false;
+  var title = this.l10nGet(setting.get('title'));
+  var optionTitle = setting.selected('title');
   var html;
+
+  // Localize option title only if not specified in the config
+  optionTitle = localizeOption ? this.l10nGet(optionTitle) : optionTitle;
 
   // Check if the `flashMode` setting is going to be deactivated as part
   // of the change in the `hdr` setting and display a specialized
   // notification if that is the case
   if (flashDeactivated) {
     html = title + ' ' + optionTitle + '<br/>' +
-      this.l10n.get('flash-deactivated');
+      this.l10nGet('flash-deactivated');
   } else {
     html = title + '<br/>' + optionTitle;
   }
 
   this.notification.display({ text: html });
-};
-
-SettingsController.prototype.localize = function(value) {
-  return this.l10n.get(value) || value;
 };
 
 /**
@@ -165,7 +298,7 @@ SettingsController.prototype.localize = function(value) {
  *
  * @param  {Object} capabilities
  */
-SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
+SettingsController.prototype.onNewCamera = function(capabilities) {
   debug('new capabilities');
 
   this.settings.hdr.filterOptions(capabilities.hdr);
@@ -175,8 +308,7 @@ SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
   this.configurePictureSizes(capabilities.pictureSizes);
   this.configureRecorderProfiles(capabilities.recorderProfiles);
 
-  // Let the rest of the app
-  // know we're good to go.
+  // Let the rest of the app know we're good to go.
   this.app.emit('settings:configured');
   debug('settings configured to new capabilities');
 };
@@ -190,18 +322,19 @@ SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
  * @param  {Array} sizes
  */
 SettingsController.prototype.configurePictureSizes = function(sizes) {
+  debug('configuring picture sizes');
   var setting = this.settings.pictureSizes;
-  var maxPixelSize = setting.get('maxPixelSize');
+  var maxPixelSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
   var exclude = setting.get('exclude');
   var options = {
     exclude: exclude,
-    maxPixelSize: maxPixelSize,
-    mp: this.l10n.get('mp')
+    maxPixelSize: maxPixelSize
   };
-  var formatted = this.formatPictureSizes(sizes, options);
 
+  var formatted = this.formatPictureSizes(sizes, options);
   setting.resetOptions(formatted);
-  setting.emit('configured');
+  this.formatPictureSizeTitles();
+  debug('configured pictureSizes', setting.selected('key'));
 };
 
 /**
@@ -214,21 +347,51 @@ SettingsController.prototype.configurePictureSizes = function(sizes) {
  */
 SettingsController.prototype.configureRecorderProfiles = function(sizes) {
   var setting = this.settings.recorderProfiles;
+  var maxFileSize = setting.get('maxFileSizeBytes');
   var exclude = setting.get('exclude');
   var options = { exclude: exclude };
   var formatted = this.formatRecorderProfiles(sizes, options);
 
+  // If a file size limit has been imposed,
+  // pick the lowest-res (last) profile only.
+  if (maxFileSize) { formatted = [formatted[formatted.length - 1]]; }
+
   setting.resetOptions(formatted);
-  setting.emit('configured');
+};
+
+/**
+ * Creates a localized `title` property
+ * on each pictureSize option. This is
+ * used within the settings-menu.
+ *
+ * This is run each time `configurePictureSizes`
+ * is run and each time the app recieves a
+ * 'localized' event.
+ *
+ * If the app isn't 'localized' yet, we don't do
+ * anything and wait for the 'localized'
+ * event binding to run the function.
+ *
+ * @private
+ */
+SettingsController.prototype.formatPictureSizeTitles = function() {
+  if (!this.app.localized()) { return; }
+  var options = this.settings.pictureSizes.get('options');
+  var MP = this.l10nGet('mp');
+
+  options.forEach(function(size) {
+    var data = size.data;
+    var mp = data.mp ? data.mp + MP + ' ' : '';
+    size.title = mp + data.width + 'x' + data.height + ' ' + data.aspect;
+  });
+
+  debug('picture size titles formatted');
 };
 
 /**
  * Returns a list of settings
  * based on the `settingsMenu`
- * cofiguration.
- *
- * If any `conditions` are defined
- * they must pass to be in the list.
+ * configuration.
  *
  * @return {Array}
  */
@@ -242,58 +405,12 @@ SettingsController.prototype.menuItems = function() {
  * Tests if the passed `settingsMenu`
  * item is allowed in the settings menu.
  *
- * Should:
- *
- *   1. Be a currently supported setting
- *   2. Pass a defined condition
- *
  * @param  {Object} item
  * @return {Boolean}
  */
 SettingsController.prototype.validMenuItem = function(item) {
   var setting = this.settings[item.key];
   return !!setting && setting.supported();
-};
-
-/**
- * Settings aliases provide
- * convenient pointers to
- * specific settings based on
- * the state of other settings.
- *
- * @type {Object}
- */
-SettingsController.prototype.aliases = {
-  recorderProfiles: {
-    map: {
-      back: 'recorderProfilesBack',
-      front: 'recorderProfilesFront'
-    },
-    get: function() {
-      var camera = this.settings.cameras.selected('key');
-      return this.settings[this.map[camera]];
-    }
-  },
-  pictureSizes: {
-    map: {
-      back: 'pictureSizesBack',
-      front: 'pictureSizesFront'
-    },
-    get: function() {
-      var camera = this.settings.cameras.selected('key');
-      return this.settings[this.map[camera]];
-    }
-  },
-  flashModes: {
-    map: {
-      video: 'flashModesVideo',
-      picture: 'flashModesPicture'
-    },
-    get: function() {
-      var mode = this.settings.mode.selected('key');
-      return this.settings[this.map[mode]];
-    }
-  }
 };
 
 });

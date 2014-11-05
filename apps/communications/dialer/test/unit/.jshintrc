@@ -12,6 +12,7 @@
     "requireApp",
     "sinon",
     "mocha",
-    "loadBodyHTML"
+    "loadBodyHTML",
+    "Promise"
   ]
 }

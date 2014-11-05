@@ -2,6 +2,7 @@ define(function(require) {
 'use strict';
 
 var mozL10n = require('l10n');
+var constants = require('constants');
 
 var Utils = {};
 // Maintain references to millisecond multipliers
@@ -180,45 +181,6 @@ Utils.extend = function(initialObject, extensions) {
   return initialObject;
 };
 
-/**
- * RequestAnimationFrame after a delay.
- *
- * @param {function} fn - The function to evaluate
- *        in a future delayed animation frame.
- * @param {number} time - The number of milliseconds
- *        to delay (using setTimeout) before we
- *        request an animation frame.
- *
- * @return {object} an object that can be passed to
- *         `Utils.cancelAnimationAfter`.
- */
-Utils.requestAnimationAfter = function(fn, time) {
-  var ret = {};
-  if (time <= 0) {
-    ret.raf = requestAnimationFrame(fn);
-  } else {
-    ret.timeout = setTimeout(function() {
-      delete this.timeout;
-      this.raf = requestAnimationFrame(fn);
-    }.bind(ret), time);
-  }
-  return ret;
-};
-
-/**
- * Cancel a scheduled requestAnimationAfter.
- *
- * @param {object} id - the value returned from `requestAnimationAfter`.
- */
-Utils.cancelAnimationAfter = function(id) {
-  if (id && typeof id.raf !== 'undefined') {
-    cancelAnimationFrame(id.raf);
-  }
-  if (id && typeof id.timeout !== 'undefined') {
-    clearTimeout(id.timeout);
-  }
-};
-
 Utils.escapeHTML = function(str, escapeQuotes) {
   var span = document.createElement('span');
   span.textContent = str;
@@ -229,19 +191,20 @@ Utils.escapeHTML = function(str, escapeQuotes) {
   return span.innerHTML;
 };
 
-Utils.is12hFormat = function() {
-  var localeTimeFormat = mozL10n.get('dateTimeFormat_%X');
-  var is12h = (localeTimeFormat.indexOf('%p') >= 0);
-  return is12h;
+Utils.getLocalizedTimeHtml = function(date) {
+  var f = new mozL10n.DateTimeFormat();
+  var shortFormat = window.navigator.mozHour12 ?
+        mozL10n.get('shortTimeFormat12') :
+        mozL10n.get('shortTimeFormat24');
+  return f.localeFormat(date, shortFormat.replace('%p', '<small>%p</small>'));
 };
 
-Utils.getLocaleTime = function(d) {
+Utils.getLocalizedTimeText = function(date) {
   var f = new mozL10n.DateTimeFormat();
-  var is12h = Utils.is12hFormat();
-  return {
-    time: f.localeFormat(d, (is12h ? '%I:%M' : '%H:%M')).replace(/^0/, ''),
-    ampm: is12h ? f.localeFormat(d, '%p') : ''
-  };
+  var shortFormat = window.navigator.mozHour12 ?
+        mozL10n.get('shortTimeFormat12') :
+        mozL10n.get('shortTimeFormat24');
+  return f.localeFormat(date, shortFormat);
 };
 
 Utils.changeSelectByValue = function(selectElement, value) {
@@ -258,25 +221,6 @@ Utils.changeSelectByValue = function(selectElement, value) {
 
 Utils.getSelectedValueByIndex = function(selectElement) {
   return selectElement.options[selectElement.selectedIndex].value;
-};
-
-Utils.parseTime = function(time) {
-  var parsed = time.split(':');
-  var hour = +parsed[0]; // cast hour to int, but not minute yet
-  var minute = parsed[1];
-
-  // account for 'AM' or 'PM' vs 24 hour clock
-  var periodIndex = minute.indexOf('M') - 1;
-  if (periodIndex >= 0) {
-    hour = (hour == 12) ? 0 : hour;
-    hour += (minute.slice(periodIndex) == 'PM') ? 12 : 0;
-    minute = minute.slice(0, periodIndex);
-  }
-
-  return {
-    hour: hour,
-    minute: +minute // now cast minute to int
-  };
 };
 
 var wakeTarget = {
@@ -381,33 +325,6 @@ Utils.repeatString = function rep(str, times) {
 };
 
 Utils.format = {
-  time: function(hour, minute, opts) {
-    var period = '';
-    opts = opts || {};
-    opts.meridian = typeof opts.meridian === 'undefined' ? true : opts.meridian;
-    var padHours = typeof opts.padHours === 'undefined' ? false : opts.padHours;
-    opts.padHours = padHours;
-
-    if (opts.meridian && Utils.is12hFormat()) {
-      period = hour < 12 ? 'AM' : 'PM';
-      hour = hour % 12;
-      hour = (hour === 0) ? 12 : hour;
-    }
-
-    if (opts.padHours && hour < 10) {
-      hour = '0' + hour;
-    }
-
-    if (hour === 0) {
-      hour = '00';
-    }
-
-    if (minute < 10) {
-      minute = '0' + minute;
-    }
-
-    return hour + ':' + minute + period;
-  },
   hms: function(sec, format) {
     var hour = 0;
     var min = 0;
@@ -646,6 +563,51 @@ Utils.addEventListenerOnce = function(element, type, fn, useCapture) {
   };
   element.addEventListener(type, handler, useCapture);
 };
+
+Utils.summarizeDaysOfWeek = function(repeat) {
+  var days = [];
+  if (repeat) {
+    for (var day in repeat) {
+      if (repeat[day]) {
+        days.push(day);
+      }
+    }
+  }
+
+  var _ = mozL10n.get;
+  if (days.length === 7) {
+    return _('everyday');
+  } else if (days.length === 5 &&
+             days.indexOf('saturday') === -1 &&
+             days.indexOf('sunday') === -1) {
+    return _('weekdays');
+  } else if (days.length === 2 &&
+             days.indexOf('saturday') !== -1 &&
+             days.indexOf('sunday') !== -1) {
+    return _('weekends');
+  } else if (days.length === 0) {
+    return _('never');
+  } else {
+    var weekStartsOnMonday = parseInt(_('weekStartsOnMonday'), 10);
+    var allDays = (weekStartsOnMonday ?
+                   constants.DAYS_STARTING_MONDAY :
+                   constants.DAYS_STARTING_SUNDAY);
+
+    var repeatStrings = [];
+    allDays.forEach(function(day, idx) {
+      if (days.indexOf(day) !== -1) {
+        repeatStrings.push(_(constants.DAY_STRING_TO_L10N_ID[day]));
+      }
+    });
+
+    // TODO: Use a localized separator.
+    return repeatStrings.join(', ');
+  }
+};
+
+
+
+
 
 return Utils;
 

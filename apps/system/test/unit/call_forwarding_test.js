@@ -4,23 +4,13 @@
 
 'use strict';
 
-requireApp('system/js/mock_simslot.js');
-requireApp('system/js/mock_simslot_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
-
-mocha.setup({
-  globals: [
-    'SIMSlotManager',
-    'SettingsHelper',
-    'CallForwarding',
-    'callForwarding',
-    'asyncStorage'
-  ]
-});
 
 suite('system/callForwarding >', function() {
   var realMobileConnections;
@@ -29,23 +19,25 @@ suite('system/callForwarding >', function() {
   var realSettingsHelper;
   var realAsyncStorage;
 
+  // Must be in sync with nsIDOMMozMobileCFInfo interface.
+  var cfReason = {
+    CALL_FORWARD_REASON_UNCONDITIONAL: 0,
+    CALL_FORWARD_REASON_MOBILE_BUSY: 1,
+    CALL_FORWARD_REASON_NO_REPLY: 2,
+    CALL_FORWARD_REASON_NOT_REACHABLE: 3,
+    CALL_FORWARD_REASON_ALL_CALL_FORWARDING: 4,
+    CALL_FORWARD_REASON_ALL_CONDITIONAL_CALL_FORWARDING: 5
+  };
+
+  var cfAction = {
+    CALL_FORWARD_ACTION_DISABLE: 0,
+    CALL_FORWARD_ACTION_ENABLE: 1,
+    CALL_FORWARD_ACTION_QUERY_STATUS: 2,
+    CALL_FORWARD_ACTION_REGISTRATION: 3,
+    CALL_FORWARD_ACTION_ERASURE: 4
+  };
+
   suiteSetup(function(done) {
-    // Must be in sync with nsIDOMMozMobileCFInfo interface.
-    this.cfReason = {
-      CALL_FORWARD_REASON_UNCONDITIONAL: 0,
-      CALL_FORWARD_REASON_MOBILE_BUSY: 1,
-      CALL_FORWARD_REASON_NO_REPLY: 2,
-      CALL_FORWARD_REASON_NOT_REACHABLE: 3
-    };
-
-    this.cfAction = {
-      CALL_FORWARD_ACTION_DISABLE: 0,
-      CALL_FORWARD_ACTION_ENABLE: 1,
-      CALL_FORWARD_ACTION_QUERY_STATUS: 2,
-      CALL_FORWARD_ACTION_REGISTRATION: 3,
-      CALL_FORWARD_ACTION_ERASURE: 4
-    };
-
     realMobileConnections = window.navigator.mozMobileConnections;
     window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
@@ -251,84 +243,82 @@ suite('system/callForwarding >', function() {
       });
     });
 
-    suite('_updateCallForwardingIconState()', function() {
-      setup(function() {
-        this.event = {
-          reason: this.cfReason.CALL_FORWARD_REASON_UNCONDITIONAL,
-          action: this.cfAction.CALL_FORWARD_ACTION_ENABLE,
-          success: true
-        };
+    [cfReason.CALL_FORWARD_REASON_UNCONDITIONAL,
+     cfReason.CALL_FORWARD_REASON_ALL_CALL_FORWARDING].forEach(
+      function(reason) {
+        suite('_updateCallForwardingIconState()', function() {
+          setup(function() {
+            this.event = {
+              reason: reason,
+              action: cfAction.CALL_FORWARD_ACTION_ENABLE
+            };
 
-        this.callForwarding.start();
-      });
-
-      test('should early return if the event is not available', function() {
-        sinon.spy(this.callForwarding._callForwardingHelper, 'get');
-        this.callForwarding._updateCallForwardingIconState(this.slots[0]);
-        sinon.assert.notCalled(this.callForwarding._callForwardingHelper.get);
-      });
-
-      test('should early return if it is not unconditional call forwarding ',
-        function() {
-          this.event.reason = 'otherReason';
-          sinon.spy(this.callForwarding._callForwardingHelper, 'get');
-          this.callForwarding._updateCallForwardingIconState(this.slots[0],
-            this.event);
-          sinon.assert.notCalled(this.callForwarding._callForwardingHelper.get);
-      });
-
-      test('should set the icon state to false when unsuccess', function(done) {
-        this.event.success = false;
-        this.callForwarding._updateCallForwardingIconState(this.slots[0],
-          this.event);
-        setTimeout(function() {
-          assert.isFalse(
-            MockSettingsHelper.instances['ril.cf.enabled'].value[0]);
-          done();
-        });
-      });
-
-      suite('should set the icon state to true when with correct call ' +
-        'forwarding settings', function() {
-          test('CALL_FORWARD_ACTION_REGISTRATION', function(done) {
-            this.event.action = this.cfAction.CALL_FORWARD_ACTION_REGISTRATION;
-            this.callForwarding._updateCallForwardingIconState(this.slots[0],
-              this.event);
-            setTimeout(function() {
-              assert.isTrue(
-                MockSettingsHelper.instances['ril.cf.enabled'].value[0]);
-              done();
-            });
+            this.callForwarding.start();
           });
 
-          test('CALL_FORWARD_ACTION_ENABLE', function(done) {
-            this.event.action = this.cfAction.CALL_FORWARD_ACTION_ENABLE;
-            this.callForwarding._updateCallForwardingIconState(this.slots[0],
-              this.event);
-            setTimeout(function() {
+          test('should early return if the event is not available', function() {
+            sinon.spy(this.callForwarding._callForwardingHelper, 'get');
+            this.callForwarding._updateCallForwardingIconState(this.slots[0]);
+            sinon.assert.notCalled(
+              this.callForwarding._callForwardingHelper.get);
+          });
+
+          test('should early return if it is not unconditional call forwarding',
+            function() {
+              this.event.reason = 'otherReason';
+              sinon.spy(this.callForwarding._callForwardingHelper, 'get');
+              this.callForwarding._updateCallForwardingIconState(this.slots[0],
+                this.event);
+              sinon.assert.notCalled(
+                this.callForwarding._callForwardingHelper.get);
+          });
+
+          test('should set the icon state to false when erase the setting ' +
+            'successfully', function(done) {
+              this.event.action = cfAction.CALL_FORWARD_ACTION_ERASURE;
+              this.callForwarding._updateCallForwardingIconState(this.slots[0],
+                this.event);
+              setTimeout(function() {
+                assert.isFalse(
+                  MockSettingsHelper.instances['ril.cf.enabled'].value[0]);
+                done();
+              });
+          });
+
+          suite('should set the icon state to true when with correct call ' +
+            'forwarding settings', function() {
+              test('CALL_FORWARD_ACTION_REGISTRATION', function(done) {
+                this.event.action = cfAction.CALL_FORWARD_ACTION_REGISTRATION;
+                this.callForwarding._updateCallForwardingIconState(
+                  this.slots[0], this.event);
+                setTimeout(function() {
+                  assert.isTrue(
+                    MockSettingsHelper.instances['ril.cf.enabled'].value[0]);
+                  done();
+                });
+              });
+
+              test('CALL_FORWARD_ACTION_ENABLE', function(done) {
+                this.event.action = cfAction.CALL_FORWARD_ACTION_ENABLE;
+                this.callForwarding._updateCallForwardingIconState(
+                  this.slots[0], this.event);
+                setTimeout(function() {
+                  assert.isTrue(
+                    MockSettingsHelper.instances['ril.cf.enabled'].value[0]);
+                  done();
+                });
+              });
+          });
+
+          suite('should cache the call forwarding information', function() {
+            test('when success', function() {
+              this.callForwarding._updateCallForwardingIconState(this.slots[0],
+                this.event);
               assert.isTrue(
-                MockSettingsHelper.instances['ril.cf.enabled'].value[0]);
-              done();
+                MockasyncStorage.mItems['ril.cf.enabled.' + this.iccid]);
             });
           });
-      });
-
-      suite('should cache the call forwarding information', function() {
-        test('when success', function() {
-          this.callForwarding._updateCallForwardingIconState(this.slots[0],
-            this.event);
-          assert.isTrue(
-            MockasyncStorage.mItems['ril.cf.enabled.' + this.iccid]);
         });
-
-        test('when unsuccess', function() {
-          this.event.success = false;
-          this.callForwarding._updateCallForwardingIconState(this.slots[0],
-            this.event);
-          assert.isFalse(
-            MockasyncStorage.mItems['ril.cf.enabled.' + this.iccid]);
-        });
-      });
     });
 
     suite('_onCallForwardingStateChanged()', function() {

@@ -1,7 +1,7 @@
 'use strict';
 /* global eme, Promise, Search */
 
-requireApp('search/js/eme/eme.js');
+requireApp('search/shared/js/everythingme/eme.js');
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
 
@@ -49,44 +49,47 @@ suite('search/providers/suggestions', function() {
   });
 
   suite('search', function() {
-    function promise() {
-      return new Promise(function done() {});
-    }
-
     setup(function() {
       eme.api = {
         Search: {
           suggestions: function() {
-            return promise();
+            return new Promise(function(resolve) {
+              resolve({});
+            });
           }
         }
       };
     });
 
-    test('clears results', function() {
+    test('clears results', function(done) {
       var stub = this.sinon.stub(subject, 'clear');
-      subject.search();
-      assert.ok(stub.calledOnce);
+      subject.search().then(() => {
+        assert.ok(stub.calledOnce);
+        done();
+      }, done);
     });
 
-    test('makes api call', function() {
-      eme.api.Search = {suggestions: function() {}};
-      var stub = this.sinon.stub(eme.api.Search, 'suggestions');
-      stub.returns(promise());
+    test('makes api call', function(done) {
+      eme.api.Search = {suggestions: function() {
+        done();
+      }};
       subject.search();
-      assert.ok(stub.calledOnce);
     });
 
     test('clears if new suggestions', function() {
       var stub = this.sinon.stub(subject, 'clear');
-      subject.render('', []);
+      subject.render([]);
       assert.ok(stub.calledOnce);
     });
 
     test('renders text in result', function() {
-      subject.render('moz', ['[moz]illa']);
+      subject.render(['[moz]illa']);
       var container = subject.container;
       assert.notEqual(container.innerHTML.indexOf('mozilla'), -1);
+      assert.equal(container.querySelector('ul').getAttribute('role'),
+        'listbox');
+      assert.equal(container.querySelector('li').getAttribute('role'),
+        'option');
     });
   });
 

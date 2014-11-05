@@ -3,6 +3,8 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 'use strict';
+/* global Components, dump, XPCOMUtils */
+/* exported GaiaUITests_FakeUpdateChecker */
 
 let Cc = Components.classes;
 let Ci = Components.interfaces;
@@ -17,6 +19,14 @@ function GaiaUITests_FakeUpdateChecker() {
     dump('FakeUpdateChecker: ' + str + '\n');
   }
 
+  let newCheckerClassID = Cc['@mozilla.org/uuid-generator;1']
+                     .getService(Ci.nsIUUIDGenerator)
+                     .generateUUID();
+
+  let newTimerClassID = Cc['@mozilla.org/uuid-generator;1']
+                     .getService(Ci.nsIUUIDGenerator)
+                     .generateUUID();
+
   /**
    * FakeUpdateChecker
    * Mocking Checks for new Updates
@@ -28,8 +38,8 @@ function GaiaUITests_FakeUpdateChecker() {
 
   FakeUpdateChecker.prototype = {
     /**
-     * The URL of the update service XML file to connect to that contains details
-     * about available updates.
+     * The URL of the update service XML file to
+     * connect to that contains details about available updates.
      */
     getUpdateURL: function(force) {
       debug('getUpdateURL - update URL: ' + force);
@@ -78,7 +88,7 @@ function GaiaUITests_FakeUpdateChecker() {
   // replace it with our own.
   function replaceClass(contract, expected, newCid, className) {
     // Unregister the old factory.
-    let oldCid = "";
+    let oldCid = '';
     try {
       oldCid = Cm.contractIDToCID(contract);
     } catch (ex) {
@@ -94,10 +104,10 @@ function GaiaUITests_FakeUpdateChecker() {
         createInstance: function(outer, iid) {
           if (outer) {
             throw Components.results.NS_ERROR_NO_AGGREGATION;
-	  }
+    }
           if (instance === null) {
             instance = new className();
-	  }
+    }
           instance.QueryInterface(iid);
           return instance.QueryInterface(iid);
         },
@@ -120,16 +130,10 @@ function GaiaUITests_FakeUpdateChecker() {
 
   debug('Initiating update-checker service replacement');
 
-  let newCheckerClassID = Cc['@mozilla.org/uuid-generator;1']
-                     .getService(Ci.nsIUUIDGenerator)
-                     .generateUUID();
   let updateCheckerContract = '@mozilla.org/updates/update-checker;1';
   let checkerCid = '{898cdc9b-e43f-422f-9cc4-2f6291b415a3}';
   debug('Generated a new checker class ID: ' + newCheckerClassID);
 
-  let newTimerClassID = Cc['@mozilla.org/uuid-generator;1']
-                     .getService(Ci.nsIUUIDGenerator)
-                     .generateUUID();
   let updateTimerContract = '@mozilla.org/b2g/webapps-update-timer;1';
   let timerCid = '{637b0f77-2429-49a0-915f-abf5d0db8b9a}';
   debug('Generated a new timer class ID: ' + newTimerClassID);

@@ -1,3 +1,5 @@
+'use strict';
+
 var MockModalDialog = {
 
   mMethods: [
@@ -20,6 +22,9 @@ var MockModalDialog = {
   },
 
   showWithPseudoEvent: function mmd_showWIthPseudoEvent(param) {
+    if (typeof param.text === 'object' && param.text.raw) {
+      param.text = param.text.raw;
+    }
     if (this.mCallback) {
       this.mCallback(param);
     }

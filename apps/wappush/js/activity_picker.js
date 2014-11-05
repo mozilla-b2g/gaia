@@ -11,35 +11,27 @@ function activityDefaultError(event) {
                event.target.error.message + '\n');
 }
 
-function tryActivity(opts, onsuccess, onerror) {
-  var activity;
-
-  if (typeof onerror !== 'function') {
-    onerror = activityDefaultError;
-  }
-
-  if (window.MozActivity) {
-    activity = new MozActivity(opts);
-
-    if (typeof onsuccess === 'function') {
-      activity.onsuccess = onsuccess;
-    }
-
-    activity.onerror = onerror;
-  }
-}
-
 var ActivityPicker = {
   url: function ap_browse(url, onsuccess, onerror) {
-    var params = {
-      name: 'view',
-      data: {
-        type: 'url',
-        url: url
-      }
-    };
+    if (typeof onerror !== 'function') {
+      onerror = activityDefaultError;
+    }
 
-    tryActivity(params, onsuccess, onerror);
+    if (window.MozActivity) {
+      var activity = new MozActivity({
+        name: 'view',
+        data: {
+          type: 'url',
+          url: url
+        }
+      });
+
+      if (typeof onsuccess === 'function') {
+        activity.onsuccess = onsuccess;
+      }
+
+      activity.onerror = onerror;
+    }
   }
 };
 

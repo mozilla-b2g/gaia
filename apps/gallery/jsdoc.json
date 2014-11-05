@@ -1,0 +1,8 @@
+{
+  "gallery": {
+    "src": ["apps/gallery/js/**/*.js"],
+    "options": {
+      "destination": "docs/gallery"
+    }
+  }
+}

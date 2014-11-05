@@ -1,21 +1,16 @@
 <element name="call-fdnList-add" extends="section">
   <template>
 
-    <header>
-      <a href="#call-fdnList">
-        <span data-l10n-id="back" class="icon icon-back">Back</span>
-      </a>
-      <menu type="toolbar">
-        <button id="fdnContact-submit"><span data-l10n-id="done">Done</span></button>
-      </menu>
+    <gaia-header action="back" data-href="#call-fdnList">
       <h1 id="fdnContact-title"></h1>
-    </header>
+      <button id="fdnContact-submit"><span data-l10n-id="done">Done</span></button>
+    </gaia-header>
 
     <div>
       <ul>
         <li>
           <p data-l10n-id="fdnContact-name">Name</p>
-          <input x-inputmode="verbatim" type="text" id="fdnContact-name"/>
+          <input x-inputmode="verbatim" type="text" id="fdnContact-name" dir="auto"/>
         </li>
         <li>
           <p data-l10n-id="fdnContact-number">Number</p>

@@ -2,21 +2,25 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import Wait
 from marionette.by import By
 from marionette.marionette import Actions
 from gaiatest.apps.base import Base
 
 
 class FullscreenImage(Base):
+    '''
+    This is not the actual image file - it is a blob of the image file in storage
+    '''
 
     _fullscreen_view_locator = (By.ID, 'fullscreen-view')
-    _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"] > img')
+    _current_image_locator = (By.CSS_SELECTOR, '#frames .current > .image-view')
     _photos_toolbar_locator = (By.ID, 'fullscreen-toolbar')
     _delete_image_locator = (By.ID, 'fullscreen-delete-button-tiny')
     _confirm_delete_locator = (By.ID, 'confirm-ok')
     _edit_photo_locator = (By.ID, 'fullscreen-edit-button-tiny')
     _tile_view_locator = (By.ID, 'fullscreen-back-button-tiny')
-    _share_button_locator = (By.ID, 'fullscreen-share-button-tiny')
+    _photo_toolbar_options_locator = (By.CSS_SELECTOR, '#fullscreen-toolbar > a')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -28,7 +32,7 @@ class FullscreenImage(Base):
 
     @property
     def current_image_source(self):
-        return self.marionette.find_element(*self._current_image_locator).get_attribute('src')
+        return self.marionette.find_element(*self._current_image_locator).value_of_css_property('background-image')
 
     def flick_to_next_image(self):
         self._flick_to_image('next')
@@ -37,20 +41,15 @@ class FullscreenImage(Base):
         self._flick_to_image('previous')
 
     def _flick_to_image(self, direction):
+        image = self.marionette.find_element(*self._current_image_locator)
         action = Actions(self.marionette)
-
-        current_image = self.marionette.find_element(*self._current_image_locator)
-        current_image_move_x = current_image.size['width'] / 2
-        current_image_mid_x = current_image.size['width'] / 2
-        current_image_mid_y = current_image.size['height'] / 2
-
-        if direction == 'next':
-            action.flick(current_image, current_image_mid_x, current_image_mid_y, current_image_mid_x - current_image_move_x, current_image_mid_y)
-        else:
-            action.flick(current_image, current_image_mid_x, current_image_mid_y, current_image_mid_x + current_image_move_x, current_image_mid_y)
-
-        action.perform()
-        self.wait_for_element_displayed(*self._current_image_locator)
+        x_start = (image.size['width'] / 100) * (direction == 'next' and 90 or 10)
+        x_end = (image.size['width'] / 100) * (direction == 'next' and 10 or 90)
+        y_start = image.size['height'] / 4
+        y_end = image.size['height'] / 4
+        action.flick(image, x_start, y_start, x_end, y_end, 200).perform()
+        Wait(self.marionette).until(
+            lambda m: abs(image.location['x']) >= image.size['width'])
 
     def tap_delete_button(self):
         self.marionette.find_element(*self._delete_image_locator).tap()
@@ -59,11 +58,6 @@ class FullscreenImage(Base):
     def tap_confirm_deletion_button(self):
         self.marionette.find_element(*self._confirm_delete_locator).tap()
         self.wait_for_element_not_displayed(*self._confirm_delete_locator)
-        from gaiatest.apps.gallery.app import Gallery
-        gallery = Gallery(self.marionette)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == gallery.name)
-        self.apps.switch_to_displayed_app()
-        return gallery
 
     def tap_edit_button(self):
         self.marionette.find_element(*self._edit_photo_locator).tap()
@@ -76,20 +70,10 @@ class FullscreenImage(Base):
         from gaiatest.apps.gallery.app import Gallery
         return Gallery(self.marionette)
 
-    def tap_share_button(self):
-        self.marionette.find_element(*self._share_button_locator).tap()
-        from gaiatest.apps.system.regions.activities import Activities
-        return Activities(self.marionette)
-
     @property
     def photo_toolbar_width(self):
         return self.marionette.execute_script('return document.getElementById("fullscreen-toolbar").offsetWidth')
 
     @property
-    def is_image_displayed(self):
-        return self.is_element_displayed(*self._current_image_locator)
-
-    @property
-    def current_scale(self):
-        style = self.marionette.find_element(*self._current_image_locator).get_attribute('style')
-        return style.split('scale(')[1].split(') ')[0]
+    def photo_toolbar_options(self):
+        return self.marionette.find_elements(*self._photo_toolbar_options_locator)

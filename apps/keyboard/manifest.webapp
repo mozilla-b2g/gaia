@@ -9,6 +9,7 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
+    "themeable":{},
     "settings": { "access": "readwrite" },
     "input": {}
   },
@@ -27,7 +28,15 @@
     }
   },
   "locales": {
+    "ar": {
+      "name": "Built-in Keyboard",
+      "description": "Built-in Keyboard"
+    },
     "en-US": {
+      "name": "Built-in Keyboard",
+      "description": "Built-in Keyboard"
+    },
+    "fr": {
       "name": "Built-in Keyboard",
       "description": "Built-in Keyboard"
     },
@@ -35,6 +44,13 @@
       "name": "預設鍵盤",
       "description": "預設鍵盤"
     }
+  },
+  "icons": {
+    "84": "/style/icons/keyboard_84.png",
+    "126": "/style/icons/keyboard_126.png",
+    "142": "/style/icons/keyboard_142.png",
+    "189": "/style/icons/keyboard_189.png",
+    "284": "/style/icons/keyboard_284.png"
   },
   "default_locale": "en-US"
 }

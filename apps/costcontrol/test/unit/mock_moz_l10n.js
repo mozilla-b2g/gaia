@@ -6,6 +6,9 @@ var MockMozL10n = {
     if (key === 'magnitude') {
       return args.value + ' ' + args.unit;
     }
+    if (key === 'currency') {
+      return args.value + ' ' + args.currency;
+    }
     if (key === 'day-hour-format') {
       return args.day + ', ' + args.time;
     }
@@ -18,6 +21,9 @@ var MockMozL10n = {
       } else {
         return 'just now';
       }
+    }
+    if (key === 'weekStartsOnMonday') {
+      return '0';
     }
     return key;
   },

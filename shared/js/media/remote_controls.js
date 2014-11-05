@@ -119,9 +119,17 @@ MediaRemoteControls.prototype.removeCommandListener = function(name, listener) {
 };
 
 /**
- * Start to listen to the system message and configure the bluetooth.
+ * Setup the bluetooth/system message, IAC and wired controls.
  */
 MediaRemoteControls.prototype.start = function(callback) {
+  this._setupBluetooth(callback);
+  this._setupIAC();
+};
+
+/*
+ * Setup and configure the bluetooth/system message.
+ */
+MediaRemoteControls.prototype._setupBluetooth = function(callback) {
   var self = this;
 
   // AVRCP commands use system message.
@@ -167,8 +175,6 @@ MediaRemoteControls.prototype.start = function(callback) {
     var isConnected = event.status;
     if (isConnected && self._commandListeners['updatemetadata'].length > 0)
       self._commandHandler(REMOTE_CONTROLS.UPDATE_METADATA);
-    else
-      self._commandHandler(AVRCP.PAUSE_PRESS);
   }
 
   // Also expose the SCO status with the custom event because the SCO connection
@@ -187,6 +193,13 @@ MediaRemoteControls.prototype.start = function(callback) {
     self.defaultAdapter = null;
     // Do we need to do anything else?
   }
+};
+
+/*
+ * Setup and configure the IAC.
+ */
+MediaRemoteControls.prototype._setupIAC = function() {
+  var self = this;
 
   this._queuedMessages = [];
   // Set up Inter-App Communications

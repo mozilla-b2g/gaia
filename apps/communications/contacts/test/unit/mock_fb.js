@@ -3,6 +3,8 @@
 /* global MockAllFacebookContacts */
 /* global MockContactAllFields */
 /* global MockLinkedContacts */
+/* global MockImportStatusData */
+/* global utils */
 
 var FB_ID = 220439;
 
@@ -29,12 +31,33 @@ Mockfb.init = function(callback) {
   callback();
 };
 
+Mockfb.setEmptyContacts = function() {
+  this.contacts = [];
+};
+
 Mockfb.setIsFbContact = function(isFB) {
   this.fbContact = isFB;
 };
 
 Mockfb.setIsFbLinked = function(isLinked) {
   this.fbLinked = isLinked;
+};
+
+// This function redirects to the implementation
+// inside the Mockfb.Contact.  Purpose is to allow
+// reuse of this mock by the contacts_test.js
+// and to allow the existing tests to work.
+Mockfb.getData = function(con) {
+  var fbContact = new Mockfb.Contact(con);
+  return fbContact.getData();
+};
+
+Mockfb.getContactByNumber = function(number, onsuccess, onerror) {
+  if(this.contacts.length === 0) {
+    return onsuccess(null);
+  } else {
+    return onsuccess(this.contacts);
+  }
 };
 
 Mockfb.setIsEnabled = function(isEnabled) {
@@ -205,7 +228,8 @@ Mockfb.Contact = function(devContact, mozCid) {
           'test@test.com': true,
           'Palencia': true,
           'Castilla y León': true,
-          'España': true
+          'España': true,
+          'Test ORG': true
         };
         this.result[1][date] = true;
 
@@ -218,7 +242,7 @@ Mockfb.Contact = function(devContact, mozCid) {
   };
 
   this.promoteToLinked = function promoteToLinked() {
-
+    Mockfb.promoteToLinked();
   };
 
   Object.defineProperty(this, 'uid', {
@@ -232,6 +256,18 @@ Mockfb.Contact = function(devContact, mozCid) {
 
 Mockfb.isFbContact = function(contact) {
   return this.fbContact;
+};
+
+Mockfb.promoteToLinked = function() {
+  this.fbLinked = true;
+};
+
+Mockfb.setPropagatedFlag = function(field, contact) {
+  // Do nothing...
+};
+
+Mockfb.removePropagatedFlag = function(field, contact) {
+  // Do nothing...
 };
 
 Mockfb.isFbLinked = function(contact) {
@@ -295,15 +331,49 @@ Mockfb.utils = (function() {
       }
     },
 
-    getImportChecked: function() {
-
+    getImportChecked: function(cb) {
+      MockImportStatusData.get('tokenData').then(function(data){
+        if (data && data.access_token) {
+          cb('logged-in');
+        } else {
+          cb('logged-out');
+        }
+      });
     },
 
+    TOKEN_DATA_KEY: 'tokenData',
+
+    SCHEDULE_SYNC_KEY: 'facebookShouldHaveScheduledAt',
+
+    setLastUpdate: function(date, callback) {
+      typeof callback === 'function' && callback();
+    },
     setCachedNumFriends: function() {
 
     },
 
     _fbData: [],
+
+    getNumFbContacts: function() {
+      return {
+        result: 25,
+        set onsuccess(cb) {
+          cb();
+        }
+      };
+    },
+
+    numFbFriendsData: function(cbl) {
+      var localCb = cbl.local;
+      var remoteCb = cbl.remote;
+
+      if (typeof localCb == 'function'){
+        localCb(50);
+      }
+      if (typeof remoteCb == 'function'){
+        remoteCb(50);
+      }
+    },
 
     getAllFbContacts: function() {
       return {
@@ -327,3 +397,14 @@ Mockfb.contacts = {
     };
   }
 };
+
+Mockfb.sync = {
+  scheduleNextSync: function() {}
+};
+
+Mockfb.markFbCleaningInProgress = function(value) {
+  utils.cookie.update({
+    fbCleaningInProgress: value
+  });
+};
+

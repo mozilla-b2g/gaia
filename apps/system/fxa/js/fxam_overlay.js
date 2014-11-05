@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global Utils */
+/* global HtmlHelper */
 /* exported FxaModuleOverlay */
 
 'use strict';
@@ -18,7 +18,7 @@ var FxaModuleOverlay = {
         return;
       }
 
-      Utils.importElements(this,
+      HtmlHelper.importElements(this,
         'fxa-overlay',
         'fxa-overlay-msg'
       );
@@ -26,10 +26,10 @@ var FxaModuleOverlay = {
       this.initialized = true;
     },
 
-    show: function fxam_overlay_show(string) {
+    show: function fxam_overlay_show(l10nId) {
       this.init();
 
-      this.fxaOverlayMsg.textContent = string;
+      this.fxaOverlayMsg.setAttribute('data-l10n-id', l10nId);
       this.fxaOverlay.classList.add('show');
     },
 

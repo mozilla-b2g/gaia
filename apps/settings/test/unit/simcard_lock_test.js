@@ -1,4 +1,4 @@
-/* global mocha, MockL10n, MockTemplate, Template,
+/* global MockL10n, Template, MocksHelper, MockNavigatorSettings,
    MockNavigatorMozIccManager, MockNavigatorMozMobileConnections, SimPinLock,
    MockSimPinDialog, MockToaster
 */
@@ -10,12 +10,10 @@ requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mock_template.js');
 requireApp('settings/test/unit/mock_sim_pin_dialog.js');
 requireApp('settings/test/unit/mock_toaster.js');
-
-mocha.globals(['Template', 'SimPinLock', 'SimPinDialog']);
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForSimPinLock = new MocksHelper(['Toaster']).init();
 
@@ -26,7 +24,6 @@ suite('SimPinLock > ', function() {
   var realMozIccManager;
   var realMozSettings;
   var realSimPinDialog;
-  var stubById;
 
   suiteSetup(function(done) {
     MockL10n.once = function() {};
@@ -46,9 +43,6 @@ suite('SimPinLock > ', function() {
     realSimPinDialog = window.SimPinDialog;
     window.SimPinDialog = MockSimPinDialog;
 
-    realTemplate = window.Template;
-    window.Template = MockTemplate;
-
     realMozIccManager = window.navigator.mozIccManager;
     window.navigator.mozIccManager = MockNavigatorMozIccManager;
 
@@ -59,7 +53,20 @@ suite('SimPinLock > ', function() {
     realMozMobileConnections = window.navigator.mozMobileConnections;
     window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
-    requireApp('settings/js/simcard_lock.js', done);
+    var map = {
+      '*': {
+        'shared/template': 'unit/mock_template'
+      }
+    };
+
+    testRequire([
+      'unit/mock_template',
+    ], map, function(MockTemplate) {
+      realTemplate = window.Template;
+      window.Template = MockTemplate;
+
+      requireApp('settings/js/simcard_lock.js', done);
+    });
   });
 
   suiteTeardown(function() {
@@ -74,8 +81,11 @@ suite('SimPinLock > ', function() {
 
   // we use dsds for testing by default for each test
   setup(function() {
-    this.sinon.stub(window.navigator.mozL10n, 'localize');
+    this.sinon.stub(window.navigator.mozL10n, 'setAttributes');
     this.sinon.stub(document, 'getElementById', function() {
+      return document.createElement('div');
+    });
+    this.sinon.stub(document, 'querySelector', function() {
       return document.createElement('div');
     });
   });
@@ -91,18 +101,15 @@ suite('SimPinLock > ', function() {
       assert.isNotNull(SimPinLock.dialog);
       assert.isNotNull(SimPinLock.simPinTmpl);
       assert.isNotNull(SimPinLock.simPinContainer);
-      assert.isNotNull(SimPinLock.simPinBackButton);
+      assert.isNotNull(SimPinLock.simPinHeader);
       assert.isNotNull(SimPinLock.simSecurityDesc);
     });
   });
 
   suite('init > ', function() {
-    var fakeRightIccId = '12345';
-    var fakeWrongIccId = '123';
-
     setup(function(done) {
       this.sinon.stub(SimPinLock, 'setAllElements');
-      this.sinon.stub(SimPinLock, 'initSimPinBackButton');
+      this.sinon.stub(SimPinLock, 'initSimPinBack');
       this.sinon.stub(SimPinLock, 'initSimPinsUI');
       this.sinon.stub(SimPinLock, 'updateSimPinUI');
       this.sinon.stub(SimPinLock, 'updateSimPinsUI');
@@ -116,7 +123,7 @@ suite('SimPinLock > ', function() {
 
     test('all methods are called', function() {
       assert.ok(SimPinLock.setAllElements.called);
-      assert.ok(SimPinLock.initSimPinBackButton.called);
+      assert.ok(SimPinLock.initSimPinBack.called);
       assert.ok(SimPinLock.initSimPinsUI.called);
       assert.ok(SimPinLock.updateSimPinsUI.called);
       assert.ok(SimPinLock.addChangeEventOnIccs.called);
@@ -126,24 +133,24 @@ suite('SimPinLock > ', function() {
     });
   });
 
-  suite('initSimPinBackButton > ', function() {
+  suite('initSimPinBack > ', function() {
     suite('single sim > ', function() {
       setup(function() {
         initConns(1);
-        SimPinLock.initSimPinBackButton();
+        SimPinLock.initSimPinBack();
       });
       test('href is #root', function() {
-        var href = SimPinLock.simPinBackButton.getAttribute('href');
+        var href = SimPinLock.simPinHeader.dataset.href;
         assert.equal(href, '#root');
       });
     });
     suite('dual sim > ', function() {
       setup(function() {
         initConns(2);
-        SimPinLock.initSimPinBackButton();
+        SimPinLock.initSimPinBack();
       });
       test('href is #sim-manager', function() {
-        var href = SimPinLock.simPinBackButton.getAttribute('href');
+        var href = SimPinLock.simPinHeader.dataset.href;
         assert.equal(href, '#sim-manager');
       });
     });
@@ -597,8 +604,8 @@ suite('SimPinLock > ', function() {
         SimPinLock.updateSimSecurityDescUI(true);
       });
       test('is description with enabled wording', function() {
-        assert.equal(window.navigator.mozL10n.localize.args[0][1],
-          'enabled');
+        assert.equal(
+          SimPinLock.simSecurityDesc.getAttribute('data-l10n-id'), 'enabled');
       });
     });
     suite('disabled >', function() {
@@ -606,8 +613,8 @@ suite('SimPinLock > ', function() {
         SimPinLock.updateSimSecurityDescUI(false);
       });
       test('is description with disabled wording', function() {
-        assert.equal(window.navigator.mozL10n.localize.args[0][1],
-          'disabled');
+        assert.equal(
+          SimPinLock.simSecurityDesc.getAttribute('data-l10n-id'), 'disabled');
       });
     });
   });
@@ -618,7 +625,7 @@ suite('SimPinLock > ', function() {
     for (var i = 0; i < connsLength; i++) {
       window.navigator.mozMobileConnections.mRemoveMobileConnection(0);
     }
-    for (var i = 0; i < count; i++) {
+    for (var j = 0; j < count; j++) {
       window.navigator.mozMobileConnections.mAddMobileConnection();
     }
   }

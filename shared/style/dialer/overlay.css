@@ -4,8 +4,9 @@
 form.overlay {
   font-size: 1.5rem;
   opacity: 1;
+  visibility: hidden;
   transform: translateY(-100%);
-  transition: transform 0.4s ease-in-out;
+  transition: transform 0.4s ease-in-out, visibility 0.4s;
 }
 
 form.overlay > menu {
@@ -14,13 +15,14 @@ form.overlay > menu {
 
 form.overlay.display {
   transform: translateY(0%);
+  visibility: visible;
 }
 
 form.overlay menu ul {
   height: calc(100% - 13rem);
   overflow: auto;
   margin-top: 5rem;
-  padding: 0 2rem 0 2rem;
+  padding: 0;
   line-height: 2.4rem;
   list-style: none outside none;
 }
@@ -28,20 +30,20 @@ form.overlay menu ul {
 form.overlay menu ul > li,
 form.overlay menu ul > section {
   height: 4.5rem;
-  padding: 1rem 0;
+  padding: 1rem 2rem;
   font-size: 1.7rem;
-  border-bottom: 0.1rem solid #000;
   position: relative;
 }
 
 form.overlay menu ul > li:after,
 form.overlay menu ul > section:after {
   content: ' ';
-  width: 100%;
   border-bottom: 0.1rem solid #666;
   display: block;
   position: absolute;
+  left: 1rem;
   bottom: 0;
+  right: 1rem;
 }
 
 form.overlay menu ul > li:active,

@@ -1,73 +1,64 @@
-/* globals HtmlHelper, Provider, Search */
-
-(function() {
+/* globals DataGridProvider, SyncDataStore, Promise, IconsHelper */
+/* globals Search, GaiaGrid, PlacesIdbStore */
+/* globals DateHelper */
+/* globals asyncStorage */
+/* globals LazyLoader */
+(function(exports) {
 
   'use strict';
 
-  // We current re sync from scratch every time and store the last 50
-  // urls in memory
-  var results = {};
-  var icons = {};
-  var urls = [];
-  var MAX_URLS = 50;
-
-  // Store the most recent history and top sites in an ordered list
-  // in memory
-  var history = [];
-  var topSites = [];
+  var _ = navigator.mozL10n.get;
 
   // Maximum number of results to show show for a single query
-  var MAX_AWESOME_RESULTS = 3;
-  var MAX_HISTORY_RESULTS = 5;
+  var MAX_AWESOME_RESULTS = 4;
+  var MAX_HISTORY_RESULTS = 20;
   var MAX_TOPSITES_RESULTS = 6;
 
   // Name of the datastore we pick up places from
   var STORE_NAME = 'places';
 
-  // The last revision that we synced from the datastore, we sync
-  // every time the search app gains focus
-  var lastRevision = 0;
-
-  // Is there a sync in progress
-  var syncing = false;
-
-  var store;
-
   var topSitesWrapper = document.getElementById('top-sites');
   var historyWrapper = document.getElementById('history');
 
-  var initialSync = true;
-  var screenshotRequests = {};
-
-  topSitesWrapper.addEventListener('click', itemClicked);
-  historyWrapper.addEventListener('click', itemClicked);
-
-  function itemClicked(e) {
-    if (e.target.dataset.url) {
-      window.open(e.target.dataset.url, '_blank', 'remote=true');
-    }
+  // These elements are only included in the newtab page.
+  if (topSitesWrapper && historyWrapper) {
+    topSitesWrapper.addEventListener('click', itemClicked);
+    historyWrapper.addEventListener('click', itemClicked);
   }
 
-  navigator.getDataStores(STORE_NAME).then(function(stores) {
-    store = stores[0];
-    store.onchange = function() {
-      doSync();
-    };
-    doSync();
-  });
+  var cachedLink = document.createElement('a');
+  function parseUrl(url) {
+    cachedLink.href = url;
+    return cachedLink;
+  }
 
-  function saveIcon(url) {
-    if (url in icons) {
+  // Storage for locally fetched icons
+  var icons = {};
+  var iconUrls = {};
+
+  function getIcon(place) {
+
+    if (place.url in icons && icons[place.url]) {
+      return icons[place.url];
+    }
+
+    IconsHelper.getIcon(place.url, null, place).then(icon => {
+      saveIcon(place.url, icon);
+    });
+
+    return false;
+  }
+
+  function saveIcon(key, url) {
+    if (key in icons) {
       return;
     }
+    icons[key] = null;
+    iconUrls[key] = url;
     fetchIcon(url, function(err, icon) {
-      if (err) {
-        // null it out so we dont keep fetching broken icons
-        icons[url] = null;
-      } else {
-        icons[url] = icon;
+      if (!err) {
+        icons[key] = icon;
       }
-      showStartPage();
     });
   }
 
@@ -83,10 +74,6 @@
       }
 
       var blob = xhr.response;
-
-      if (blob.type.split('/')[0] != 'image') {
-        return callback(new Error('not an image'));
-      }
 
       if (blob.size > this.MAX_ICON_SIZE) {
         return callback(new Error('image_to_large'));
@@ -110,125 +97,176 @@
       };
     });
 
-    xhr.onerror = function() {
+    xhr.onerror = function(err) {
       return callback(new Error('Cannot load uri'));
     };
     xhr.send();
   }
 
-  function addToOrderedStore(store, obj, key, max) {
-    // Check the url isnt already in the store
-    var index = store.findIndex(function(x) { return x.url === obj.url; });
-    if (index !== -1) {
-      store[index] = obj;
-      return true;
+  function itemClicked(e) {
+    if (e.target.dataset.url) {
+      Search.navigate(e.target.dataset.url);
     }
-    // if the store is empty or the objects key is larger than the smallest
-    // in the store (ie oldest visit or least frecency)
-    if (store.length < max || obj[key] >= store[store.length - 1][key]) {
-      store.push(obj);
-      // Sort by key in reverse order
-      store.sort(function(a, b) { return b[key] - a[key]; });
-      if (store.length > max) {
-        store.length = max;
-      }
-      return true;
-    }
-    return false;
   }
 
-  function addToStartPage(place) {
-    place.visited = place.visited || 0;
+  var listTemplate = createList();
 
-    addToOrderedStore(history, place, 'visited', MAX_HISTORY_RESULTS);
+  function createList() {
+    var list = document.createElement('ul');
+    list.setAttribute('role', 'listbox');
+    return list;
+  }
 
-    if (addToOrderedStore(topSites, place, 'frecency', MAX_TOPSITES_RESULTS)) {
-      if (initialSync) {
-        // Dont attempt to load screenshots during initial sync, the
-        // pages wont exist
-        return;
-      }
-      if (place.url in screenshotRequests &&
-          screenshotRequests[place.url] >= place.visited) {
-        return;
-      }
-      screenshotRequests[place.url] = place.visited;
-      places.searchObj.requestScreenshot(place.url);
+  function incrementHistoryThreshold(timestamp, currentThreshold, thresholds) {
+    var newThreshold = currentThreshold += 1;
+    if (timestamp < thresholds[newThreshold]) {
+      return incrementHistoryThreshold(timestamp, newThreshold, thresholds);
     }
+    return newThreshold;
+  }
+
+  function drawHistoryHeading(parent, threshold, timestamp) {
+
+    var LABELS = [
+      'future',
+      'today',
+      'yesterday',
+      'last-7-days',
+      'this-month',
+      'last-6-months',
+      'older-than-6-months'
+    ];
+
+    var text = '';
+
+    // Special case for month headings
+    if (threshold == 5 && timestamp) {
+      var date = new Date(timestamp);
+      var now = new Date();
+      text = _('month-' + date.getMonth());
+      if (date.getFullYear() != now.getFullYear()) {
+        text += ' ' + date.getFullYear();
+      }
+    } else {
+      text = _(LABELS[threshold]);
+    }
+
+    var h3 = document.createElement('h3');
+    var textNode = document.createTextNode(text);
+    var ul = listTemplate.cloneNode(true);
+    h3.appendChild(textNode);
+    parent.appendChild(h3);
+    parent.appendChild(ul);
+  }
+
+  function updateIcon(visit, iconWrapper) {
+    var iconDom = iconWrapper.querySelector('img');
+    IconsHelper.getIcon(visit.url, null, visit).then((icon) => {
+      if (icon && iconDom) {
+        iconDom.onload = function () {
+          iconWrapper.classList.remove('empty');
+          iconDom.style.display = 'block';
+        };
+        iconDom.src = icon;
+      }
+    });
+  }
+
+  function buildHistory(visits) {
+
+    var thresholds = [
+      Date.now(),                        // 0. Now
+      DateHelper.todayStarted(),         // 1. Today
+      DateHelper.yesterdayStarted(),     // 2. Yesterday
+      DateHelper.thisWeekStarted(),      // 3. This week
+      DateHelper.thisMonthStarted(),     // 4. This month
+      DateHelper.lastSixMonthsStarted(), // 5. Six months
+      0                                  // 6. Epoch!
+    ];
+
+    var threshold = 0;
+    var month = null;
+    var year = null;
+
+    var fragment = document.createDocumentFragment();
+
+    visits.forEach(function(visit) {
+      // Draw new heading if new threshold reached
+      if (visit.date > 0 && visit.date < thresholds[threshold]) {
+        threshold = incrementHistoryThreshold(visit.date,
+                                              threshold, thresholds);
+        // Special case for month headings
+        if (threshold != 5) {
+          drawHistoryHeading(fragment, threshold);
+        }
+      }
+
+      if (threshold === 5) {
+        var timestampDate = new Date(visit.date);
+        if (timestampDate.getMonth() != month ||
+          timestampDate.getFullYear() != year) {
+          month = timestampDate.getMonth();
+          year = timestampDate.getFullYear();
+          drawHistoryHeading(fragment, threshold, visit.date);
+        }
+      }
+
+      visit.meta = visit.url;
+      visit.dataset = { url: visit.url };
+      var dom = exports.Places.buildResultsDom([visit]);
+      var iconDom = dom.querySelector('.icon');
+      fragment.appendChild(dom);
+      updateIcon(visit, iconDom);
+    });
+
+    return fragment;
   }
 
   function showStartPage() {
-    var historyDom = places.buildResultsDom(history.map(function(x) {
-      return formatPlace(x, '');
-    }));
 
-    var docFragment = document.createDocumentFragment();
-
-    topSites.forEach(function(x) {
-      var div = document.createElement('div');
-      var span = document.createElement('span');
-      span.textContent = x.title;
-      div.dataset.url = x.url;
-      div.classList.add('top-site');
-      div.appendChild(span);
-
-      if (x.screenshot) {
-        var objectURL = URL.createObjectURL(x.screenshot);
-        div.style.backgroundImage = 'url(' + objectURL + ')';
-      }
-      docFragment.appendChild(div);
-    });
-
-    historyWrapper.innerHTML = '';
-    historyWrapper.appendChild(historyDom);
-    topSitesWrapper.innerHTML = '';
-    topSitesWrapper.appendChild(docFragment);
-  }
-
-  function doSync() {
-    if (syncing) {
+    if (!topSitesWrapper || !historyWrapper) {
       return;
     }
-    syncing = true;
-    var cursor = store.sync(lastRevision);
 
-    function cursorResolve(task) {
-      lastRevision = task.revisionId;
-      switch (task.operation) {
-        // First implementation simply syncs recently used links
-        // and searches most recent, this will eventually be used
-        // to build an index
-      case 'update':
-      case 'add':
-        if (task.data.url.startsWith('app://') ||
-            task.data.url === 'about:blank') {
-          break;
-        }
-        results[task.data.url] = task.data;
-        if (task.data.iconUri) {
-          saveIcon(task.data.iconUri);
-        }
-        if (!(task.data.url in urls)) {
-          urls.unshift(task.data.url);
-        }
-        while (urls.length > MAX_URLS) {
-          var url = urls.pop();
-          delete results[url];
-        }
-        addToStartPage(task.data);
-        break;
-      case 'clear':
-      case 'remove':
-        break;
-      case 'done':
-        initialSync = false;
-        showStartPage();
-        syncing = false;
-        return;
-      }
-      cursor.next().then(cursorResolve);
+    var store = exports.Places.persistStore;
+
+    var urls = [];
+    store.readVisits(MAX_HISTORY_RESULTS, function(results) {
+      var docFragment = buildHistory(results);
+      historyWrapper.innerHTML = '';
+      historyWrapper.appendChild(docFragment);
+    }, function filter(visit) {
+      var isStored = visit.url in urls;
+      urls[visit.url] = true;
+      return !isStored;
+    });
+
+    store.read('frecency', MAX_TOPSITES_RESULTS, function(results) {
+      var docFragment = document.createDocumentFragment();
+      results.forEach(function(x) {
+        docFragment.appendChild(formatTopResult(x));
+      });
+      topSitesWrapper.innerHTML = '';
+      topSitesWrapper.appendChild(docFragment);
+    });
+  }
+
+  function formatTopResult(result) {
+    var div = document.createElement('div');
+    var span = document.createElement('span');
+    span.textContent = result.title || result.url;
+    div.dataset.url = result.url;
+    div.classList.add('top-site');
+    div.appendChild(span);
+    div.setAttribute('role', 'link');
+
+    if (result.screenshot || result.tile) {
+      var img = result.screenshot || result.tile;
+      var imgUrl = (typeof img === 'string') ? img : URL.createObjectURL(img);
+      div.style.backgroundImage = 'url(' + imgUrl + ')';
     }
-    cursor.next().then(cursorResolve);
+
+    return div;
   }
 
   function matchesFilter(value, filter) {
@@ -236,54 +274,114 @@
   }
 
   function formatPlace(placeObj, filter) {
-    var titleText = placeObj.title || placeObj.url;
 
-    var renderObj = {
-      title: HtmlHelper.createHighlightHTML(titleText, filter),
-      meta: HtmlHelper.createHighlightHTML(placeObj.url, filter),
-      dataset: {
-        url: placeObj.url
-      }
+    var bookmarkData = {
+      id: placeObj.url,
+      name: placeObj.title || placeObj.url,
+      url: placeObj.url
     };
 
-    if (placeObj.iconUri in icons && icons[placeObj.iconUri]) {
-      renderObj.icon = icons[placeObj.iconUri];
+    var icon = getIcon(placeObj);
+    if (icon) {
+      bookmarkData.icon = URL.createObjectURL(icon);
+      bookmarkData.iconUrl = iconUrls[placeObj.url];
     }
 
-    return renderObj;
+    return {
+      data: new GaiaGrid.Bookmark(bookmarkData)
+    };
   }
 
   function Places() {}
 
   Places.prototype = {
 
-    __proto__: Provider.prototype,
+    __proto__: DataGridProvider.prototype,
 
     name: 'Places',
 
     click: itemClicked,
 
-    search: function(filter, collect) {
-      this.clear();
-      var matched = 0;
-      var renderResults = [];
-      for (var url in results) {
-        var result = results[url];
-        if (!(matchesFilter(result.title, filter) ||
-              matchesFilter(result.url, filter))) {
-          continue;
-        }
-        renderResults.push(formatPlace(result, filter));
+    init: function() {
 
-        if (++matched >= MAX_AWESOME_RESULTS) {
-          break;
-        }
-      }
-      collect(renderResults);
+      DataGridProvider.prototype.init.apply(this, arguments);
+      this.persistStore = new PlacesIdbStore();
+
+      this.persistStore.init().then(() => {
+
+        this.syncStore =
+          new SyncDataStore(STORE_NAME, this.persistStore, 'url');
+
+        this.syncStore.filter = function(place) {
+          return place.url.startsWith('app://') ||
+            place.url === 'about:blank';
+        };
+        this.syncStore.onChange = function() {
+          showStartPage();
+        };
+        // Make init return a promise, so we know when
+        // we did the sync. Used right now for testing
+        // porpoises.
+        var rev = this.persistStore.latestRevision || 0;
+        return this.syncStore.sync(rev).then(() => {
+          return new Promise(resolve => {
+
+            function done() {
+              showStartPage();
+              resolve();
+            }
+
+            asyncStorage.getItem('have-preloaded-sites', (havePreloaded) => {
+              if (!havePreloaded) {
+                this.preloadTopSites().then(() => {
+                  asyncStorage.setItem('have-preloaded-sites', true);
+                  done();
+                });
+              } else {
+                done();
+              }
+            });
+          });
+        });
+      });
     },
+
+    saveSites: function(sites) {
+      return Promise.all(sites.map(site => {
+        site.frecency = -2;
+        return this.persistStore.addPlace(site);
+      }));
+    },
+
+    preloadTopSites: function() {
+      // load default build top sites
+      return LazyLoader.getJSON('/js/inittopsites.json').then(sites => {
+        return this.saveSites(sites);
+      });
+    },
+
+    search: function(filter) {
+      return new Promise((resolve, reject) => {
+        var matchedOrigins = {};
+        this.persistStore.read('frecency', MAX_AWESOME_RESULTS, (results) => {
+          resolve(results.map(function(result) {
+            return formatPlace(result, filter);
+          }));
+        }, function filterFun(result) {
+          var url = parseUrl(result.url);
+          var matches = !(url.hostname in matchedOrigins) &&
+            (matchesFilter(result.title, filter) ||
+             matchesFilter(result.url, filter));
+          if (matches) {
+            matchedOrigins[url.hostname] = true;
+          }
+          return matches;
+        });
+      });
+    }
   };
 
-  var places = new Places();
-  Search.provider(places);
+  exports.Places = new Places();
+  Search.provider(exports.Places);
 
-}());
+}(window));

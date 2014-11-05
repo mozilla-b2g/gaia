@@ -1,12 +1,79 @@
-/* global contacts, LazyLoader, utils */
-
+/* global contacts, LazyLoader, utils, Rest, MimeMapper */
 /* exported VCFReader */
 
 'use strict';
 
+function parseDataUri(str) {
+  var re = /^data:(.+);(charset=([^;]+))?;?base64,(.*)$/;
+  var matches = re.exec(str);
+
+  if (matches) {
+    return {
+      mime: matches[1],
+      charset: matches[3],
+      value: matches[4]
+    };
+  }
+  return null;
+}
+
+function ensureMimeType(type) {
+  type = type.toLowerCase();
+  if (!MimeMapper.isSupportedType(type)) {
+    type = MimeMapper.guessTypeFromExtension(type) || type;
+  }
+  return type || '';
+}
+
+/**
+* Given a string, expected to be in base64 format, an a
+* content type, returns the corresponding Blob.
+* If cannot be parsed, will return undefined.
+*
+* @param {string} data as a string.
+* @param {string} content type of the expected blob. Can be null.
+* @param {int} size of the slice to be parsed.
+*/
+function b64toBlob(b64Data, contentType, sliceSize) {
+  if (!b64Data) {
+    console.error('No b64 data provided to convert to blob.');
+    return;
+  }
+
+  contentType = contentType || '';
+  sliceSize = sliceSize || 1024;
+
+  function charCodeFromCharacter(c) {
+    return c.charCodeAt(0);
+  }
+
+  var blob;
+  try {
+    var byteCharacters = atob(b64Data);
+    var byteArrays = [];
+
+    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      var slice = byteCharacters.slice(offset, offset + sliceSize);
+      var byteNumbers = [];
+      for (var i = 0, l = slice.length; i < l; i++) {
+        byteNumbers.push(charCodeFromCharacter(slice[i]));
+      }
+      var byteArray = new Uint8Array(byteNumbers);
+
+      byteArrays.push(byteArray);
+    }
+
+    blob = new Blob(byteArrays, {type: contentType});
+  } catch (e) {
+    console.error('Error parsing base64 data');
+  }
+  return blob;
+}
+
 var VCFReader = (function _VCFReader() {
   var ReBasic = /^([^:]+):(.+)$/;
   var ReTuple = /([a-zA-Z]+)=(.+)/;
+  var WHITE_SPACE = ' ';
 
   // Default tel type class
   var DEFAULT_PHONE_TYPE = 'other';
@@ -35,6 +102,8 @@ var VCFReader = (function _VCFReader() {
     'voice,home' : 'home'
   };
 
+  var REST_TIMEOUT = 5000;
+
   function _parseTuple(p) {
     var match = p.match(ReTuple);
     return match ? [match[1].toLowerCase(), match[2]] : ['type', p];
@@ -54,8 +123,12 @@ var VCFReader = (function _VCFReader() {
       return null;
     }
 
+    // `tuples` is an array containing all the extra properties
     var tuples = parsed[1].split(/[;,]/);
-    var key = tuples.shift();
+    var fieldName = tuples.shift().toLowerCase();
+    // Value will be an empty array if there is only whitespace and
+    // semi-colons.
+    var fieldValue = /[^\s;]/.test(parsed[2]) ? parsed[2].split(';') : [];
     var meta = {
       type: []
     };
@@ -70,13 +143,33 @@ var VCFReader = (function _VCFReader() {
       }
     }
 
-    // Value will be an empty array if there is only whitespace and semi-colons.
-    var value = /[^\s;]/.test(parsed[2]) ? parsed[2].split(';') : [];
+    // If this is a photo, we correct the value and type
+    if (fieldName === 'photo') {
+      if (meta.type.length) {
+        meta.type = ensureMimeType(meta.type[0]);
+      }
+
+      fieldValue = parsed[2];
+      // vCard 3.0 expects a mandatory encoding = 'b' parameter for base64
+      // encoded images, and vCard 2.1 expects a 'BASE64' one.
+      if (meta.encoding && (meta.encoding.toLowerCase() === 'b' ||
+         meta.encoding.toLowerCase() === 'base64')) {
+        meta.encoding = 'base64';
+      } else {
+        var parsedUri = parseDataUri(fieldValue);
+        if (parsedUri) {
+          meta.type = ensureMimeType(parsedUri.mime);
+          meta.encoding = 'base64';
+          fieldValue = parsedUri.value;
+        }
+      }
+    }
+
     return {
-      key: key.toLowerCase(),
+      key: fieldName,
       data: {
         meta: meta,
-        value: value
+        value: fieldValue
       }
     };
   }
@@ -90,17 +183,26 @@ var VCFReader = (function _VCFReader() {
    */
   var _parseEntries = function(cardArray, cb) {
     var parsedCards = [];
+
+    function sendIfFinished(contactObj) {
+      parsedCards.push(contactObj);
+      if (parsedCards.length === cardArray.length) {
+        cb(parsedCards);
+      }
+    }
+
     for (var i = 0; i < cardArray.length; i++) {
       var lines = cardArray[i];
       // If there is no array of strings at cardArray[i] (representing a single
       // vcard), push a null value to account for a processed card.
       if (!lines) {
-        parsedCards.push(null);
+        sendIfFinished(null);
         continue;
       }
 
       var fields = {};
       var len = lines.length;
+
       for (var j = 0; j < len; j++) {
         var line = lines[j];
         var parsedLine = _parseLine(line);
@@ -118,13 +220,12 @@ var VCFReader = (function _VCFReader() {
       // If there isn't either a First Name (fn) or a Name (n) this card is not
       // a valid one, ignore.
       if (!fields.fn && !fields.n) {
-        parsedCards.push(null);
+        sendIfFinished(null);
         continue;
       }
-      parsedCards.push(vcardToContact(fields));
-    }
 
-    cb(parsedCards);
+      vcardToContact(fields, sendIfFinished);
+    }
   };
 
   /**
@@ -184,6 +285,7 @@ var VCFReader = (function _VCFReader() {
     if (vcardObj.fn && vcardObj.fn.length) {
       var fnMeta = vcardObj.fn[0].meta;
       var fnValue = vcardObj.fn[0].value[0];
+      // For the name field, we want the data as it is
       contactObj.name = [_decodeQP(fnMeta, fnValue)];
     }
 
@@ -194,7 +296,10 @@ var VCFReader = (function _VCFReader() {
       for (var i = 0; i < values.length; i++) {
         var namePart = values[i];
         if (namePart && NAME_PARTS[i]) {
-          contactObj[NAME_PARTS[i]] = [_decodeQP(meta, namePart)];
+          // For the rest of the fields, we want to keep the merged data
+          // separated the same way, in different positions of the array.
+          // see bug 981674
+          contactObj[NAME_PARTS[i]] = _decodeQP(meta, namePart).split(',');
         }
       }
 
@@ -235,7 +340,13 @@ var VCFReader = (function _VCFReader() {
       }
 
       for (var j = 2; j < adr.value.length; j++) {
-        cur[ADDR_PARTS[j]] = _decodeQP(adr.meta, adr.value[j]);
+        var decoded = _decodeQP(adr.meta, adr.value[j]);
+        // Because of adding empty fields while parsing the vCard
+        // merging contacts sometimes doesn't work as expected
+        // Check Bug 935636 for reference
+        if (decoded !== '') {
+          cur[ADDR_PARTS[j]] = decoded;
+        }
       }
 
       contactObj.adr.push(cur);
@@ -260,22 +371,23 @@ var VCFReader = (function _VCFReader() {
         return;
       }
 
-      var len = vcardObj[field].length,
-          hasTypeMapper = function(x) {
-            return x.trim().toLowerCase();
-          },
-          notTypeMapper = function(v, key) {
-            return v.meta[key].trim().toLowerCase();
-          },
-          noType = function(field) {
-            return field !== 'type';
-          },
-          noPref = function(field) {
-            return field !== 'pref';
-          },
-          typeFilter = function(metaValue) {
-            return !!VCARD_SIMPLE_TYPES[metaValue];
-          };
+      var len = vcardObj[field].length;
+      var hasTypeMapper = function(x) {
+        return x.trim().toLowerCase();
+      };
+      var notTypeMapper = function(v, key) {
+        return v.meta[key].trim().toLowerCase();
+      };
+      var noType = function(field) {
+        return field !== 'type';
+      };
+      var noPref = function(field) {
+        return field !== 'pref';
+      };
+      var typeFilter = function(metaValue) {
+        return !!VCARD_SIMPLE_TYPES[metaValue];
+      };
+
       for (var i = 0; i < len; i++) {
         var v = vcardObj[field][i];
         var metaValues;
@@ -396,13 +508,67 @@ var VCFReader = (function _VCFReader() {
     return contactObj;
   }
 
+  function _processPhoto(vcardObj, contactObj, cb) {
+    if (!Array.isArray(vcardObj.photo) ||
+      vcardObj.photo.length === 0 ||
+      !vcardObj.photo[0] ||
+      !vcardObj.photo[0].value) {
+      return cb(contactObj);
+    }
+
+    var photo = vcardObj.photo[0];
+    var photoContents = photo.value.trim();
+    if (!photoContents) {
+      return cb(contactObj);
+    }
+    if (photoContents && photo.meta && photo.meta.encoding === 'base64') {
+      var blob = b64toBlob(photoContents, photo.meta.type);
+      if (blob) {
+        utils.thumbnailImage(blob, function gotThumbnail(thumbnail) {
+          if (blob !== thumbnail) {
+            contactObj.photo = [blob, thumbnail];
+          } else {
+            contactObj.photo = [blob];
+          }
+          cb(contactObj);
+        });
+      } else {
+        cb(contactObj);
+      }
+    }
+    // Else we assume it is a http url
+    else {
+      var callbacks = {
+        success: function(blobPic) {
+          if (blobPic) {
+            contactObj.photo = [blobPic];
+          }
+          cb(contactObj);
+        },
+        error: function() {
+          console.error('Error getting photo for contact');
+          cb(contactObj);
+        },
+        timeout: function() {
+          console.error('Timeout getting photo for contact');
+          cb(contactObj);
+        }
+      };
+      Rest.get(photoContents, callbacks, {
+        responseType: 'blob',
+        operationsTimeout: REST_TIMEOUT
+      });
+    }
+  }
+
   /**
    * Converts a parsed vCard to a mozContact.
    *
    * @param {Object} vcard JSON representation of an vCard.
+   * @param {Function} cb Function to call with the resulting moxContact object
    * @return {Object, null} An object implementing mozContact interface.
    */
-  var vcardToContact = function(vcard) {
+  var vcardToContact = function(vcard, cb) {
     if (!vcard) {
       return null;
     }
@@ -413,7 +579,9 @@ var VCFReader = (function _VCFReader() {
     _processComm(vcard, obj);
     _processFields(vcard, obj);
 
-    return utils.misc.toMozContact(obj);
+    _processPhoto(vcard, obj, function(contactObj) {
+      cb(utils.misc.toMozContact(contactObj));
+    });
   };
 
   /**
@@ -427,6 +595,8 @@ var VCFReader = (function _VCFReader() {
     this.processed = 0;
     this.finished = false;
     this.currentChar = 0;
+
+    this.numDupsMerged = 0;
   };
 
   // Number of contacts processed at a given time.
@@ -449,6 +619,8 @@ var VCFReader = (function _VCFReader() {
      * change in case there are vcards with syntax errors or that our processor
      * can't parse.
      */
+    var self = this;
+
     var match = this.contents.match(/end:vcard/gi);
     // If there are no matches, then this probably isn't a vcard and we should
     // stop processing.
@@ -458,16 +630,23 @@ var VCFReader = (function _VCFReader() {
       }
       return;
     }
+
+    this.importedContacts = [];
     this.total = match.length;
     this.onread && this.onread(this.total);
-    this.ondone = cb;
+    this.ondone = function(numImported) {
+      cb(numImported, self.numDupsMerged);
+    };
 
     LazyLoader.load(['/shared/js/simple_phone_matcher.js',
+      '/shared/js/mime_mapper.js',
+      '/shared/js/contact_photo_helper.js',
       '/shared/js/contacts/import/utilities/misc.js',
-      '/contacts/js/contacts_matcher.js',
-      '/contacts/js/contacts_merger.js',
-      '/contacts/js/utilities/image_thumbnail.js',
-      '/contacts/js/merger_adapter.js'
+      '/shared/js/contacts/contacts_matcher.js',
+      '/shared/js/contacts/contacts_merger.js',
+      '/shared/js/contacts/utilities/image_thumbnail.js',
+      '/shared/js/contacts/merger_adapter.js',
+      '/shared/js/contacts/utilities/http_rest.js'
     ], function() {
       // Start processing the text
       // The data pump flows as follows:
@@ -494,9 +673,11 @@ var VCFReader = (function _VCFReader() {
    */
   VCFReader.prototype.onParsed = function(err, ct) {
     this.processed += 1;
+    this.importedContacts.push(ct);
+
     this.onimported && this.onimported(ct && ct.name);
     if (this.finished || this.processed === this.total) {
-      this.ondone(this.total);
+      this.ondone(this.importedContacts);
       return;
     }
 
@@ -513,6 +694,7 @@ var VCFReader = (function _VCFReader() {
   VCFReader.prototype.post = function(contactObjects) {
     var _onParsed = this.onParsed.bind(this);
     var cursor = 0;
+    var self = this;
 
     function afterSave(ct, e) {
       _onParsed(e, ct);
@@ -534,7 +716,10 @@ var VCFReader = (function _VCFReader() {
       var matchCbs = {
         onmatch: function(matches) {
           var callbacks = {
-            success: afterSaveFn,
+            success: function(mergedContact) {
+              self.numDupsMerged++;
+              afterSave(mergedContact, null);
+            },
             error: afterSaveFn
           };
           contacts.adaptAndMerge(contact, matches, callbacks);
@@ -544,7 +729,6 @@ var VCFReader = (function _VCFReader() {
           VCFReader._save(contact, afterSaveFn);
         }
       };
-
       contacts.Matcher.match(contact, 'passive', matchCbs);
     }
 
@@ -603,7 +787,7 @@ var VCFReader = (function _VCFReader() {
 
       // Ignore beginning whitespace that indicates multiline field.
       if (multiline === true) {
-        if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\n') {
+        if ((/[\r\t\s\n]/).test(ch)) {
           continue;
         } else {
           //currentLine += '\n'
@@ -613,12 +797,13 @@ var VCFReader = (function _VCFReader() {
 
       var next = this.contents[i + 1];
       if (inLabel || (ch !== '\n' && ch !== '\r')) {
-        // If we have a quoted-printable sign for multiline (/=\n/), ignore it.
-        if (ch === '=' && next && next.search(/(\r|\n)/) !== -1) {
+        // If we have a quoted-printable sign for multiline (/=\n/) AND
+        // we are not in a data URI field, ignore the character.
+        if (!(/^PHOTO/i).test(currentLine) && ch === '=' && next &&
+            next.search(/(\r|\n)/) !== -1) {
           multiline = true;
           continue;
         }
-
         currentLine += ch;
 
         // Continue only if this is not the last char in the string
@@ -627,9 +812,19 @@ var VCFReader = (function _VCFReader() {
         }
       }
 
+      // If the field is a photo, the field could be multiline, to know if the
+      // following line is part of the photo, we must check if the first char
+      // of the following line is a space.
+      var firstCharNextLine = this.contents[i + 2];
+      if ((firstCharNextLine === WHITE_SPACE) && (/[\r\t\s\n]/).test(next) &&
+        (/^PHOTO/i).test(currentLine)) {
+          multiline = true;
+          continue;
+      }
+
       // At this point, we know that ch is a newline, and in the vcard format,
       // if we have a space after a newline, it indicates multiline field.
-      if (next && (next === ' ' || next === '\t')) {
+      if (next && (next === WHITE_SPACE || next === '\t')) {
         multiline = true;
         continue;
       }
@@ -667,6 +862,12 @@ var VCFReader = (function _VCFReader() {
   VCFReader.processAddr = _processAddr;
   VCFReader.processName = _processName;
   VCFReader.vcardToContact = vcardToContact;
+
+  //Expose some utility methods
+  VCFReader.utils = {
+    parseDataUri: parseDataUri,
+    b64toBlob: b64toBlob
+  };
 
   return VCFReader;
 })();

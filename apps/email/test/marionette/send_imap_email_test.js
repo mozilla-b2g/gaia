@@ -4,12 +4,7 @@ var serverHelper = require('./lib/server_helper');
 
 marionette('send email via IMAP', function() {
   var app,
-      client = marionette.client({
-        settings: {
-          // disable keyboard ftu because it blocks our display
-          'keyboard.ftu.enabled': false
-        }
-      });
+      client = marionette.client();
 
   setup(function() {
     app = new Email(client);
@@ -19,8 +14,6 @@ marionette('send email via IMAP', function() {
   var server = serverHelper.use(null, this);
 
   test('should send a email', function() {
-    const ONE_NEW_EMAIL_NOTIFICATION = '1 New Email';
-
     app.manualSetupImapEmail(server);
     app.tapCompose();
 
@@ -31,14 +24,7 @@ marionette('send email via IMAP', function() {
     app.tapSend();
 
     app.tapRefreshButton();
-    app.waitForNewEmail();
-    // get the text of the notification bar
-    var notificationText = app.notificationBar.text();
-    assert.equal(
-      notificationText,
-      ONE_NEW_EMAIL_NOTIFICATION,
-      notificationText + ' should equal ' + ONE_NEW_EMAIL_NOTIFICATION
-    );
+    app.waitForSynchronized(0);
   });
 });
 

@@ -1,6 +1,16 @@
+/* exported MockCallScreen */
+
+'use strict';
+
 var MockCallScreen = {
+  /**
+   * Setting mScenario to a non-valid value taking into consideration the
+   *  possible scenario values as declared in FontSizeManager.
+   */
+  mScenario: -1,
   callEndPromptTime: 2000,
 
+  init: function() {},
   insertCall: function() {},
   moveToGroup: function() {},
   toggle: function(cb) {
@@ -8,21 +18,48 @@ var MockCallScreen = {
       cb();
     }
   },
-  enableKeypad: function() {
-    this.mEnableKeypadCalled = true;
+  enablePlaceNewCallButton: function() {
+    this.menablePlaceNewCallButtonCalled = true;
   },
-  disableKeypad: function() {
-    this.mEnableKeypadCalled = false;
+  disablePlaceNewCallButton: function() {
+    this.menablePlaceNewCallButtonCalled = false;
   },
+  enableMuteButton: function() {
+    this.menableMuteButtonCalled = true;
+  },
+  disableMuteButton: function() {
+    this.menableMuteButtonCalled = false;
+  },
+  enableSpeakerButton: function() {
+    this.menableSpeakerButtonCalled = true;
+  },
+  disableSpeakerButton: function() {
+    this.menableSpeakerButtonCalled = false;
+  },
+  showOnHoldButton: function() {
+    this.mshowOnHoldButtonCalled = true;
+  },
+  hideOnHoldButton: function() {
+    this.mhideOnHoldButtonCalled = true;
+  },
+  enableOnHoldButton: function() {
+    this.menableOnHoldButtonCalled = true;
+  },
+  disableOnHoldButton: function() {
+    this.menableOnHoldButtonCalled = false;
+  },
+  showMergeButton: function() {
+    this.mShowMergeButtonCalled = true;
+  },
+  hideMergeButton: function() {
+    this.mhideMergeButtonCalled = true;
+  },
+  hideOnHoldAndMergeContainer: function() {},
   syncSpeakerEnabled: function() {
     this.mSyncSpeakerCalled = true;
   },
-  setCallerContactImage: function(arg) {
+  setCallerContactImage: function() {
     this.mSetCallerContactImageCalled = true;
-    this.mSetCallerContactImageArg = arg;
-  },
-  setEmergencyWallpaper: function() {
-    this.mSetEmergencyWallpaperCalled = true;
   },
   mute: function() {
     this.mMuteOn = true;
@@ -70,7 +107,11 @@ var MockCallScreen = {
   setEndConferenceCall: function() {
     this.mSetEndConferenceCall = true;
   },
-
+  cdmaConferenceCall: function() {},
+  hidePlaceNewCallButton: function() {},
+  showPlaceNewCallButton: function() {},
+  toggleOnHold : function() {},
+  
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;
   },
@@ -86,27 +127,46 @@ var MockCallScreen = {
   },
   mInStatusBarMode: false,
 
+  getScenario: function() {
+    this.mGetScenarioCalled = true;
+    return this.mScenario;
+  },
+
+  mGetScenarioCalled: false,
+
   // Fake dom
   calls: document.createElement('div'),
   screen: document.createElement('div'),
   incomingContainer: document.createElement('div'),
+  incomingInfo: document.createElement('div'),
   incomingNumber: document.createElement('div'),
   incomingSim: document.createElement('div'),
   incomingNumberAdditionalInfo: document.createElement('span'),
 
-  mEnableKeypadCalled: false,
+  menablePlaceNewCallButtonCalled: false,
+  menableMuteButtonCalled: false,
+  menableSpeakerButtonCalled: false,
+  mshowOnHoldButtonCalled: false,
+  mhideOnHoldButtonCalled: false,
+  menableOnHoldButtonCalled: false,
+  mShowMergeButtonCalled: false,
+  mhideMergeButtonCalled: false,
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
-  mSetCallerContactImageArg: null,
   mMuteOn: false,
   mSpeakerOn: false,
   mLastRenderMode: null,
   mTeardown: function teardown() {
-    this.mEnableKeypadCalled = false;
+    this.menablePlaceNewCallButtonCalled = false;
+    this.menableMuteButtonCalled = false;
+    this.menableSpeakerButtonCalled = false;
+    this.mshowOnHoldButtonCalled = false,
+    this.mhideOnHoldButtonCalled = false,
+    this.menableOnHoldButtonCalled = false,
+    this.mShowMergeButtonCalled = false,
+    this.mhideMergeButtonCalled = false,
     this.mSyncSpeakerCalled = false;
     this.mSetCallerContactImageCalled = false;
-    this.mSetCallerContactImageArg = null;
-    this.mSetEmergencyWallpaperCalled = false;
     this.mMuteOn = false;
     this.mSpeakerOn = false;
     this.mLastRenderMode = null;
@@ -119,12 +179,12 @@ var MockCallScreen = {
     this.calls = document.createElement('div');
     this.screen = document.createElement('div');
     this.incomingContainer = document.createElement('div');
+    this.incomingInfo = document.createElement('div');
     this.incomingNumber = document.createElement('div');
     this.incomingNumberAdditionalInfo = document.createElement('span');
     this.mGroupDetailsShown = false;
     this.mRemoveCallCalled = false;
     this.mSetEndConferenceCall = false;
+    this.mGetScenarioCalled = false;
   }
 };
-
-

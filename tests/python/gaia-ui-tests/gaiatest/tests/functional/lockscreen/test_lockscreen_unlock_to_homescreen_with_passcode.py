@@ -5,6 +5,7 @@
 from gaiatest import GaiaTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 
+
 class TestLockScreen(GaiaTestCase):
 
     _input_passcode = '7931'
@@ -20,7 +21,11 @@ class TestLockScreen(GaiaTestCase):
         self.device.lock()
 
     def test_unlock_to_homescreen_with_passcode(self):
+        """
+        https://moztrap.mozilla.org/manage/case/1296/
+        """
         lock_screen = LockScreen(self.marionette)
+        lock_screen.switch_to_frame()
         passcode_pad = lock_screen.unlock_to_passcode_pad()
         homescreen = passcode_pad.type_passcode(self._input_passcode)
 

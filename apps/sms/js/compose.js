@@ -2,7 +2,13 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Settings, Utils, Attachment, AttachmentMenu, MozActivity, SMIL,
-        ThreadUI */
+        MessageManager,
+        SubjectComposer,
+        Navigation,
+        Promise,
+        ThreadUI,
+        EventDispatcher
+*/
 /*exported Compose */
 
 'use strict';
@@ -13,24 +19,24 @@
  * message content, and message size
  */
 var Compose = (function() {
+  // delay between 2 counter updates while composing a message
+  const UPDATE_DELAY = 500;
+
+  // Min available chars count that triggers available chars counter
+  const MIN_AVAILABLE_CHARS_COUNT = 20;
+
   var placeholderClass = 'placeholder';
   var attachmentClass = 'attachment-container';
 
-  var slice = Array.prototype.slice;
-  var attachments = new WeakMap();
+  var attachments = new Map();
 
   // will be defined in init
   var dom = {
     form: null,
     message: null,
-    subject: null,
     sendButton: null,
-    attachButton: null
-  };
-
-  var handlers = {
-    input: [],
-    type: []
+    attachButton: null,
+    counter: null
   };
 
   var state = {
@@ -41,52 +47,58 @@ var Compose = (function() {
     resizing: false,
 
     // 'sms' or 'mms'
-    type: 'sms'
-  };
+    type: 'sms',
 
-  var subject = {
-    isVisible: false,
-    toggle: function sub_toggle() {
-      this.isVisible ? this.hide() : this.show();
-    },
-    show: function sub_show() {
-      dom.subject.classList.remove('hide');
-      this.isVisible = true;
-      dom.subject.focus();
-      Compose.updateType();
-      onContentChanged();
-    },
-    hide: function sub_hide() {
-      dom.subject.classList.add('hide');
-      this.isVisible = false;
-      dom.message.focus();
-      Compose.updateType();
-      onContentChanged();
-    },
-    clear: function sub_clear() {
-      dom.subject.value = '';
-      dom.subject.classList.add('hide');
-      this.isVisible = false;
-    },
-    getContent: function sub_getContent() {
-      // Only send value if subject is showing. If not, send empty string
-      // We need to transform any linebreak or into a single space
-      return subject.isShowing ?
-             dom.subject.value.replace(/\n\s*/g, ' ') : '';
-    },
-    setContent: function sub_setContent(content) {
-      dom.subject.value = content;
-    },
-    getMaxLength: function sub_getMaxLength() {
-      return dom.subject.maxLength;
-    },
-    get isEmpty() {
-      return !dom.subject.value.length;
-    },
-    get isShowing() {
-      return this.isVisible;
+    segmentInfo: {
+      segments: 0,
+      charsAvailableInLastSegment: 0
     }
   };
+
+  var subject = null;
+
+  // Given a DOM element, we will extract an array of the
+  // relevant nodes as attachment or text
+  function getContentFromDOM(domElement) {
+    var content = [];
+    var node;
+
+    for (node = domElement.firstChild; node; node = node.nextSibling) {
+      // hunt for an attachment in the Map and append it
+      var attachment = attachments.get(node);
+      if (attachment) {
+        content.push(attachment);
+        continue;
+      }
+
+      var last = content.length - 1;
+      var text = node.textContent;
+
+      // Bug 877141 - contenteditable wil insert non-break spaces when
+      // multiple consecutive spaces are entered, we don't want them.
+      if (text) {
+        text = text.replace(/\u00A0/g, ' ');
+      }
+
+      if (node.nodeName == 'BR') {
+        if (node === domElement.lastChild) {
+          continue;
+        }
+        text = '\n';
+      }
+
+      // append (if possible) text to the last entry
+      if (text.length) {
+        if (typeof content[last] === 'string') {
+          content[last] += text;
+        } else {
+          content.push(text);
+        }
+      }
+    }
+
+    return content;
+  }
 
   // anytime content changes - takes a parameter to check for image resizing
   function onContentChanged(duck) {
@@ -101,9 +113,7 @@ var Compose = (function() {
       return imageAttachmentsHandling();
     }
 
-    var messageHasFrames = !!dom.message.querySelector('iframe');
-    var isEmptyMessage = !dom.message.textContent.length && !messageHasFrames;
-    var isEmptySubject = subject.isEmpty;
+    var isEmptyMessage = !dom.message.textContent.length && !hasAttachment();
 
     if (isEmptyMessage) {
       var brs = dom.message.getElementsByTagName('br');
@@ -122,23 +132,45 @@ var Compose = (function() {
       dom.message.classList.add(placeholderClass);
     }
 
-    // Send button management
-    /* The send button should be enabled only in the situations where:
-     * - The subject is showing and is not empty (it has text)
-     * - The message is not empty (it has text or attachment)
-    */
-    if ((isEmptyMessage && !subject.isShowing) ||
-        (isEmptyMessage && subject.isShowing && isEmptySubject)) {
-      compose.disable(true);
-      state.empty = true;
-    } else {
-      compose.disable(false);
-      state.empty = false;
+    state.emptyMessage = isEmptyMessage;
+
+    Compose.updateEmptyState();
+    Compose.updateSendButton();
+    Compose.updateType();
+    updateSegmentInfoThrottled();
+
+    Compose.emit('input');
+  }
+
+  function onSubjectChanged() {
+    // Track when content is edited for draft replacement case
+    if (ThreadUI.draft) {
+      ThreadUI.draft.isEdited = true;
     }
 
-    compose.updateType();
+    Compose.updateEmptyState();
+    Compose.updateSendButton();
+    Compose.updateType();
 
-    trigger.call(compose, 'input', new CustomEvent('input'));
+    Compose.emit('subject-change');
+  }
+
+  function onSubjectVisibilityChanged() {
+    if (subject.isVisible()) {
+      subject.focus();
+      dom.form.classList.add('subject-composer-visible');
+    } else {
+      dom.message.focus();
+      dom.form.classList.remove('subject-composer-visible');
+    }
+  }
+
+  function hasAttachment() {
+    return !!dom.message.querySelector('iframe');
+  }
+
+  function hasSubject() {
+    return subject.isVisible() && !!subject.getValue();
   }
 
   function composeKeyEvents(e) {
@@ -152,19 +184,11 @@ var Compose = (function() {
     }
   }
 
-  function trigger(type) {
-    var fns = handlers[type];
-    var args = slice.call(arguments, 1);
-
-    if (fns && fns.length) {
-      for (var i = 0; i < fns.length; i++) {
-        fns[i].apply(compose, args);
-      }
-    }
-  }
-
   function insert(item) {
     var fragment = document.createDocumentFragment();
+    if (!item) {
+      return null;
+    }
 
     // trigger recalc on insert
     state.size = null;
@@ -195,15 +219,14 @@ var Compose = (function() {
       return;
     }
 
-    var nodes = dom.message.querySelectorAll('iframe');
     var imgNodes = [];
-    var done = 0;
-    Array.prototype.forEach.call(nodes, function findImgNodes(node) {
-      var item = attachments.get(node);
-      if (item.type === 'img') {
+    attachments.forEach((attachment, node) => {
+      if (attachment.type === 'img') {
         imgNodes.push(node);
       }
     });
+
+    var done = 0;
 
     // Total number of images < 3
     //   => Set max image size to 2/5 message size limitation.
@@ -232,33 +255,86 @@ var Compose = (function() {
           state.size = null;
 
           item.blob = resizedBlob;
-          var newNode = item.render();
-          attachments.set(newNode, item);
-          if (dom.message.contains(node)) {
-            dom.message.insertBefore(newNode, node);
-            dom.message.removeChild(node);
-          }
+          item.updateFileSize();
+
           imageSized();
         });
       }
     }
     state.resizing = true;
-    resizedImg(imgNodes[done]);
+    resizedImg(imgNodes[0]);
     onContentChanged();
+  }
+
+  var segmentInfoTimeout = null;
+  function updateSegmentInfoThrottled() {
+    // we need to call updateSegmentInfo even in MMS mode if we have only text:
+    // if we're in MMS mode because we have a long message, then we need to
+    // check when we go back to SMS mode by having a shorter message.
+    // A possible solution is to do it only when the user deletes characters in
+    // MMS mode.
+    if (hasAttachment()) {
+      return resetSegmentInfo();
+    }
+
+    if (segmentInfoTimeout === null) {
+      segmentInfoTimeout = setTimeout(updateSegmentInfo, UPDATE_DELAY);
+    }
+  }
+
+  function updateSegmentInfo() {
+    segmentInfoTimeout = null;
+
+    var value = Compose.getText();
+
+    // saving one IPC call when we clear the composer
+    var segmentInfoPromise = value ?
+      MessageManager.getSegmentInfo(value) :
+      Promise.reject();
+
+    segmentInfoPromise.then(
+      function(segmentInfo) {
+        state.segmentInfo = segmentInfo;
+      }, resetSegmentInfo
+    ).then(compose.updateType.bind(Compose))
+    .then(compose.emit.bind(compose, 'segmentinfochange'));
+  }
+
+  function resetSegmentInfo() {
+    state.segmentInfo = {
+      segments: 0,
+      charsAvailableInLastSegment: 0
+    };
+  }
+
+  function disposeAttachmentNode(attachmentNode) {
+    var thumbnailURL = attachmentNode.dataset.thumbnail;
+    if (thumbnailURL) {
+      window.URL.revokeObjectURL(thumbnailURL);
+    }
+    attachments.delete(attachmentNode);
   }
 
   var compose = {
     init: function composeInit(formId) {
       dom.form = document.getElementById(formId);
-      dom.message = dom.form.querySelector('[contenteditable]');
-      dom.subject = document.getElementById('messages-subject-input');
+      dom.message = document.getElementById('messages-input');
       dom.sendButton = document.getElementById('messages-send-button');
       dom.attachButton = document.getElementById('messages-attach-button');
       dom.optionsMenu = document.getElementById('attachment-options-menu');
+      dom.counter = dom.form.querySelector('.js-message-counter');
+      dom.contentComposer = dom.form.querySelector('.js-content-composer');
+
+      subject = new SubjectComposer(
+        dom.form.querySelector('.js-subject-composer')
+      );
+
+      subject.on('change', onSubjectChanged);
+      subject.on('visibility-change', onSubjectChanged);
+      subject.on('visibility-change', onSubjectVisibilityChanged);
 
       // update the placeholder, send button and Compose.type
       dom.message.addEventListener('input', onContentChanged);
-      dom.subject.addEventListener('input', onContentChanged);
 
       // we need to bind to keydown & keypress because of #870120
       dom.message.addEventListener('keydown', composeKeyEvents);
@@ -273,85 +349,55 @@ var Compose = (function() {
       dom.attachButton.addEventListener('click',
         this.onAttachClick.bind(this));
 
-      this.clearListeners();
+      this.offAll();
       this.clear();
 
-      this.on('type', this.onTypeChange);
+      this.on('type', this.onTypeChange.bind(this));
+      this.on('type', this.updateMessageCounter.bind(this));
+      this.on('segmentinfochange', this.updateMessageCounter.bind(this));
+
+      /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
+       * property */
+      ThreadUI.on('recipientschange', this.updateSendButton.bind(this));
+      // Bug 1026384: call updateType as well when the recipients change
+
+      if (Settings.supportEmailRecipient) {
+        ThreadUI.on('recipientschange', this.updateType.bind(this));
+      }
+
+      var onInteracted = this.emit.bind(this, 'interact');
+
+      dom.message.addEventListener('focus', onInteracted);
+      dom.contentComposer.addEventListener('click', onInteracted);
+      subject.on('focus', onInteracted);
 
       return this;
-    },
-
-    on: function(type, handler) {
-      if (handlers[type]) {
-        handlers[type].push(handler);
-      }
-      return this;
-    },
-
-    off: function(type, handler) {
-      if (handlers[type]) {
-        var index = handlers[type].indexOf(handler);
-        if (index !== -1) {
-          handlers[type].splice(index, 1);
-        }
-      }
-      return this;
-    },
-
-    clearListeners: function() {
-      for (var type in handlers) {
-        handlers[type] = [];
-      }
     },
 
     getContent: function() {
-      var content = [];
-      var node;
-
-      for (node = dom.message.firstChild; node; node = node.nextSibling) {
-        // hunt for an attachment in the WeakMap and append it
-        var attachment = attachments.get(node);
-        if (attachment) {
-          content.push(attachment);
-          continue;
-        }
-
-        var last = content.length - 1;
-        var text = node.textContent;
-
-        // Bug 877141 - contenteditable wil insert non-break spaces when
-        // multiple consecutive spaces are entered, we don't want them.
-        if (text) {
-          text = text.replace(/\u00A0/g, ' ');
-        }
-
-        if (node.nodeName == 'BR') {
-          if (node === dom.message.lastChild) {
-            continue;
-          }
-          text = '\n';
-        }
-
-        // append (if possible) text to the last entry
-        if (text.length) {
-          if (typeof content[last] === 'string') {
-            content[last] += text;
-          } else {
-            content.push(text);
-          }
-        }
-      }
-
-      return content;
+      return getContentFromDOM(dom.message);
     },
 
     getSubject: function() {
-      return subject.getContent();
+      return subject.getValue();
     },
 
-    toggleSubject: function() {
-      subject.toggle();
+    setSubject: function(value) {
+      return subject.setValue(value);
     },
+
+    isSubjectMaxLength: function() {
+      return subject.getValue().length >= subject.getMaxLength();
+    },
+
+    showSubject: function() {
+      subject.show();
+    },
+
+    hideSubject: function() {
+      subject.hide();
+    },
+
     /** Render draft
      *
      * @param {Draft} draft Draft to be loaded into the composer.
@@ -367,8 +413,8 @@ var Compose = (function() {
       }
 
       if (draft.subject) {
-        dom.subject.value = draft.subject;
-        subject.toggle();
+        this.setSubject(draft.subject);
+        this.showSubject();
       }
 
       // draft content is an array
@@ -398,8 +444,8 @@ var Compose = (function() {
 
       if (message.type === 'mms') {
         if (message.subject) {
-          subject.setContent(message.subject);
-          subject.show();
+          this.setSubject(message.subject);
+          this.showSubject();
         }
         SMIL.parse(message, function(elements) {
           elements.forEach(function(element) {
@@ -415,12 +461,10 @@ var Compose = (function() {
             }
           }, this);
           this.ignoreEvents = false;
-          this.focus();
         }.bind(this));
         this.ignoreEvents = true;
       } else {
-        this.append(message.body ? message.body : '');
-        this.focus();
+        this.append(message.body);
       }
     },
 
@@ -486,6 +530,9 @@ var Compose = (function() {
      */
     prepend: function(item) {
       var fragment = insert(item);
+      if (!fragment) {
+        return this;
+      }
 
       // If the first element is a <br>, it needs to stay first
       // insert after it but before everyting else
@@ -513,6 +560,9 @@ var Compose = (function() {
         onContentChanged({containsImage: containsImage});
       } else {
         var fragment = insert(item);
+        if (!fragment) {
+          return this;
+        }
 
         if (document.activeElement === dom.message) {
           // insert element at caret position
@@ -536,27 +586,110 @@ var Compose = (function() {
     },
 
     clear: function() {
+      // changing the type here prevents the "type" event from being fired
+      state.type = 'sms';
+      this.onTypeChange();
+
+      // Dispose attachments
+      attachments.forEach((attachment, node) => disposeAttachmentNode(node));
+
       dom.message.innerHTML = '<br>';
-      subject.clear();
-      state.resizing = state.full = false;
+
+      subject.reset();
+
+      state.resizing = false;
       state.size = 0;
-      state.empty = true;
+
+      resetSegmentInfo();
+      segmentInfoTimeout = null;
+
       onContentChanged();
       return this;
     },
 
     focus: function() {
       dom.message.focus();
+
+      // Put the cursor at the end of the message
+      var selection = window.getSelection();
+      var range = document.createRange();
+      var lastChild = dom.message.lastChild;
+      if (lastChild.tagName === 'BR') {
+        range.setStartBefore(lastChild);
+      } else {
+        range.setStartAfter(lastChild);
+      }
+      selection.removeAllRanges();
+      selection.addRange(range);
+
       return this;
     },
 
     updateType: function() {
-      if ((subject.isShowing && !subject.isEmpty) ||
-          !!dom.message.querySelector('iframe')) {
-        this.type = 'mms';
-      } else {
-        this.type = 'sms';
+      var isTextTooLong =
+        state.segmentInfo.segments > Settings.maxConcatenatedMessages;
+
+      /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
+       * property
+       */
+      var hasEmailRecipient = ThreadUI.recipients.list.some(
+        function(recipient) { return recipient.isEmail; }
+      );
+
+      /* Note: in the future, we'll maybe want to force 'mms' from the UI */
+      var newType =
+        hasAttachment() || hasSubject() || hasEmailRecipient || isTextTooLong ?
+        'mms' : 'sms';
+
+      if (newType !== state.type) {
+        state.type = newType;
+        this.emit('type');
       }
+    },
+
+    updateEmptyState: function() {
+      state.empty = state.emptyMessage && !hasSubject();
+    },
+
+    // Send button management
+    /* The send button should be enabled only in the situations where:
+     * - The subject is showing and is not empty (it has text)
+     * - The message is not empty (it has text or attachment)
+    */
+    updateSendButton: function() {
+      // should disable if we have no message input
+      var disableSendMessage = state.empty || state.resizing;
+      var messageNotLong = compose.size <= Settings.mmsSizeLimitation;
+
+      /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
+       * property */
+      var recipients = ThreadUI.recipients;
+      var recipientsValue = recipients.inputValue;
+      var hasRecipients = false;
+
+      // Set hasRecipients to true based on the following conditions:
+      //
+      //  1. There is a valid recipients object
+      //  2. One of the following is true:
+      //      - The recipients object contains at least 1 valid recipient
+      //        - OR -
+      //      - There is >=1 character typed and the value is a finite number
+      //
+      if (recipients &&
+          (recipients.numbers.length ||
+            (recipientsValue && isFinite(recipientsValue)))) {
+
+        hasRecipients = true;
+      }
+
+      // should disable if the message is too long
+      disableSendMessage = disableSendMessage || !messageNotLong;
+
+      // should disable if we have no recipients in the "new thread" view
+      disableSendMessage = disableSendMessage ||
+        (Navigation.isCurrentPanel('composer') && !hasRecipients);
+
+      this.disable(disableSendMessage);
     },
 
     _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
@@ -588,8 +721,9 @@ var Compose = (function() {
           this.currentAttachment.view();
           break;
         case 'attachment-options-remove':
-          attachments.delete(this.currentAttachmentDOM);
           dom.message.removeChild(this.currentAttachmentDOM);
+          disposeAttachmentNode(this.currentAttachmentDOM);
+
           state.size = null;
           onContentChanged();
           AttachmentMenu.close();
@@ -600,7 +734,9 @@ var Compose = (function() {
             var fragment = insert(newAttachment);
 
             dom.message.insertBefore(fragment, this.currentAttachmentDOM);
+
             dom.message.removeChild(this.currentAttachmentDOM);
+            disposeAttachmentNode(this.currentAttachmentDOM);
 
             onContentChanged(newAttachment);
             AttachmentMenu.close();
@@ -618,6 +754,26 @@ var Compose = (function() {
         dom.message.setAttribute('x-inputmode', '-moz-sms');
       } else {
         dom.message.removeAttribute('x-inputmode');
+      }
+
+      dom.form.dataset.messageType = this.type;
+    },
+
+    updateMessageCounter: function c_updateMessageCounter() {
+      var counterValue = '';
+
+      if (this.type === 'sms') {
+        var segments = state.segmentInfo.segments;
+        var availableChars = state.segmentInfo.charsAvailableInLastSegment;
+
+        if (segments && (segments > 1 ||
+            availableChars <= MIN_AVAILABLE_CHARS_COUNT)) {
+          counterValue = availableChars + '/' + segments;
+        }
+      }
+
+      if (counterValue !== dom.counter.textContent) {
+        dom.counter.textContent = counterValue;
       }
     },
 
@@ -680,18 +836,6 @@ var Compose = (function() {
   Object.defineProperty(compose, 'type', {
     get: function composeGetType() {
       return state.type;
-    },
-    set: function composeSetType(value) {
-      // reject invalid types
-      if (!(value === 'sms' || value === 'mms')) {
-        return state.type;
-      }
-      if (value !== state.type) {
-        var event = new CustomEvent('type');
-        state.type = value;
-        trigger.call(this, 'type', event);
-      }
-      return state.type;
     }
   });
 
@@ -711,6 +855,12 @@ var Compose = (function() {
     }
   });
 
+  Object.defineProperty(compose, 'segmentInfo', {
+    get: function composeGetSegmentInfo() {
+      return state.segmentInfo;
+    }
+  });
+
   Object.defineProperty(compose, 'isResizing', {
     get: function composeGetResizeState() {
       return state.resizing;
@@ -718,14 +868,8 @@ var Compose = (function() {
   });
 
   Object.defineProperty(compose, 'isSubjectVisible', {
-    get: function composeGetResizeState() {
-      return subject.isShowing;
-    }
-  });
-
-  Object.defineProperty(compose, 'subjectMaxLength', {
-    get: function composeGetResizeState() {
-      return subject.getMaxLength();
+    get: function composeIsSubjectVisible() {
+      return subject.isVisible();
     }
   });
 
@@ -735,5 +879,11 @@ var Compose = (function() {
     }
   });
 
-  return compose;
+  return EventDispatcher.mixin(compose, [
+    'input',
+    'type',
+    'segmentinfochange',
+    'interact',
+    'subject-change'
+  ]);
 }());

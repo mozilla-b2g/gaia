@@ -13,6 +13,7 @@ class TestSms(GaiaTestCase):
         """This test sends a text message to itself. It waits for a reply message.
 
         https://moztrap.mozilla.org/manage/case/1322/
+        https://moztrap.mozilla.org/manage/case/1293/
         """
         _text_message_content = "Automated Test %s" % str(time.time())
 

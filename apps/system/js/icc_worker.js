@@ -66,6 +66,11 @@ var icc_worker = {
     var _ = navigator.mozL10n.get;
     DUMP('STK_CMD_SET_UP_CALL:', message.command.options);
     var options = message.command.options;
+
+    if (!icc.canProcessMessage(message)) {
+      return DUMP('Message active, delaying STK...');
+    }
+
     if (!options.confirmMessage) {
       options.confirmMessage = _(
         'icc-confirmCall-defaultmessage', {
@@ -86,6 +91,11 @@ var icc_worker = {
   '0x11': function STK_CMD_SEND_SS(message) {
     DUMP('STK_CMD_SEND_SS:', message.command.options);
     var options = message.command.options;
+
+    if (!icc.canProcessMessage(message)) {
+      return DUMP('Message active, delaying STK...');
+    }
+
     icc.responseSTKCommand(message, {
       resultCode: icc._iccManager.STK_RESULT_OK
     });
@@ -106,6 +116,11 @@ var icc_worker = {
   '0x13': function STK_CMD_SEND_SMS(message) {
     DUMP('STK_CMD_SEND_SMS:', message.command.options);
     var options = message.command.options;
+
+    if (!icc.canProcessMessage(message)) {
+      return DUMP('Message active, delaying STK...');
+    }
+
     icc.responseSTKCommand(message, {
       resultCode: icc._iccManager.STK_RESULT_OK
     });
@@ -121,6 +136,11 @@ var icc_worker = {
   '0x14': function STK_CMD_SEND_DTMF(message) {
     DUMP('STK_CMD_SEND_DTMF:', message.command.options);
     var options = message.command.options;
+
+    if (!icc.canProcessMessage(message)) {
+      return DUMP('Message active, delaying STK...');
+    }
+
     icc.responseSTKCommand(message, {
       resultCode: icc._iccManager.STK_RESULT_OK
     });
@@ -148,25 +168,25 @@ var icc_worker = {
       toneCode =
         typeof(toneCode) == 'string' ? toneCode.charCodeAt(0) : toneCode;
       switch (toneCode) {
-        case iccManager._iccManager.STK_TONE_TYPE_DIAL_TONE:
+        case icc._iccManager.STK_TONE_TYPE_DIAL_TONE:
           return 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
-        case iccManager._iccManager.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
+        case icc._iccManager.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
           return 'resources/dtmf_tones/480Hz+620Hz_200ms.ogg';
-        case iccManager._iccManager.STK_TONE_TYPE_CONGESTION:
+        case icc._iccManager.STK_TONE_TYPE_CONGESTION:
           return 'resources/dtmf_tones/425Hz_200ms.ogg';
-        case iccManager._iccManager.STK_TONE_TYPE_RADIO_PATH_ACK:
-        case iccManager._iccManager.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
+        case icc._iccManager.STK_TONE_TYPE_RADIO_PATH_ACK:
+        case icc._iccManager.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
           return 'resources/dtmf_tones/425Hz_200ms.ogg';
-        case iccManager._iccManager.STK_TONE_TYPE_ERROR:
+        case icc._iccManager.STK_TONE_TYPE_ERROR:
           return 'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
-        case iccManager._iccManager.STK_TONE_TYPE_CALL_WAITING_TONE:
-        case iccManager._iccManager.STK_TONE_TYPE_RINGING_TONE:
+        case icc._iccManager.STK_TONE_TYPE_CALL_WAITING_TONE:
+        case icc._iccManager.STK_TONE_TYPE_RINGING_TONE:
           return 'resources/dtmf_tones/425Hz_200ms.ogg';
-        case iccManager._iccManager.STK_TONE_TYPE_GENERAL_BEEP:
+        case icc._iccManager.STK_TONE_TYPE_GENERAL_BEEP:
           return 'resources/dtmf_tones/400Hz_200ms.ogg';
-        case iccManager._iccManager.STK_TONE_TYPE_POSITIVE_ACK_TONE:
+        case icc._iccManager.STK_TONE_TYPE_POSITIVE_ACK_TONE:
           return 'resources/dtmf_tones/425Hz_200ms.ogg';
-        case iccManager._iccManager.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
+        case icc._iccManager.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
           return 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms.ogg';
         default:
           return 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
@@ -176,16 +196,20 @@ var icc_worker = {
     DUMP('STK_CMD_PLAY_TONE:', message.command.options);
     var options = message.command.options;
 
+    if (options.text && !icc.canProcessMessage(message)) {
+      return DUMP('Message active, delaying STK...');
+    }
+
     var tonePlayer = new Audio();
     tonePlayer.src = getPhoneSound(options.tone);
     tonePlayer.loop = true;
 
     var timeout = 0;
-    if (options.duration &&
-        options.duration.timeUnit != undefined &&
-        options.duration.timeInterval != undefined) {
-      timeout = icc.calculateDurationInMS(options.duration.timeUnit,
-        options.duration.timeInterval);
+    var duration = options.duration;
+    if (duration && duration.timeUnit != undefined &&
+        duration.timeInterval != undefined) {
+      timeout = icc.calculateDurationInMS(duration.timeUnit,
+        duration.timeInterval);
     } else if (options.timeUnit != undefined &&
         options.timeInterval != undefined) {
       timeout = icc.calculateDurationInMS(options.timUnit,
@@ -227,14 +251,40 @@ var icc_worker = {
   '0x21': function STK_CMD_DISPLAY_TEXT(message) {
     DUMP('STK_CMD_DISPLAY_TEXT:', message.command.options);
     var options = message.command.options;
+
+    if (!icc.canProcessMessage(message)) {
+      return DUMP('Message active, delaying STK...');
+    }
+
+    // Check if device is idle or settings
+    var activeApp = System.currentApp;
+    var settingsOrigin = window.location.origin.replace('system', 'settings');
+    if (!options.isHighPriority && activeApp && !activeApp.isHomescreen &&
+        activeApp.origin !== settingsOrigin) {
+      DUMP('Do not display the text because normal priority.');
+      icc.responseSTKCommand(message, {
+        resultCode:
+          icc._iccManager.STK_RESULT_TERMINAL_CRNTLY_UNABLE_TO_PROCESS,
+        additionalInformation: 0x01
+      });
+      return;
+    }
+
+    var timeout = icc._displayTextTimeout;
+    var duration = options.duration;
+    if (duration && duration.timeUnit != undefined &&
+        duration.timeInterval != undefined) {
+      timeout = icc.calculateDurationInMS(duration.timeUnit,
+        duration.timeInterval);
+    }
+
     if (options.responseNeeded) {
       icc.responseSTKCommand(message, {
         resultCode: icc._iccManager.STK_RESULT_OK
       });
-      icc.confirm(message, options.text, icc._displayTextTimeout,
-        null);
+      icc.confirm(message, options.text, timeout, null);
     } else {
-      icc.confirm(message, options.text, icc._displayTextTimeout,
+      icc.confirm(message, options.text, timeout,
         function(userCleared) {
           if (userCleared == null) {
             return;   // ICC Back or ICC Terminate
@@ -267,6 +317,10 @@ var icc_worker = {
     DUMP('STK_CMD_GET_INPUT:', message.command.options);
     var options = message.command.options;
 
+    if (!icc.canProcessMessage(message)) {
+      return DUMP('Message active, delaying STK...');
+    }
+
     DUMP('STK Input title: ' + options.text);
 
     document.addEventListener('visibilitychange',
@@ -277,11 +331,13 @@ var icc_worker = {
           resultCode:
             icc._iccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER
         });
-        icc.hideViews();
+        icc.hideView();
       }, true);
 
-    var timeout = (options.duration &&
-      icc.calculateDurationInMS(options.duration)) || icc._inputTimeout;
+    var duration = options.duration;
+    var timeout = (duration &&
+      icc.calculateDurationInMS(duration.timeUnit, duration.timeInterval)) ||
+      icc._inputTimeout;
     icc.input(message, options.text, timeout, options,
       function(response, value) {
         if (response == null) {
@@ -295,10 +351,17 @@ var icc_worker = {
           });
         } else {
           DUMP('STK_CMD_GET_INPUT: Response = ', value);
-          icc.responseSTKCommand(message, {
-            resultCode: icc._iccManager.STK_RESULT_OK,
-            input: value
-          });
+          if (typeof value === 'boolean') {
+            icc.responseSTKCommand(message, {
+              resultCode: icc._iccManager.STK_RESULT_OK,
+              isYesNo: value
+            });
+          } else {
+            icc.responseSTKCommand(message, {
+              resultCode: icc._iccManager.STK_RESULT_OK,
+              input: value
+            });
+          }
         }
       });
   },
@@ -313,7 +376,7 @@ var icc_worker = {
       'icc.data': JSON.stringify(message)
     });
     reqIccData.onsuccess = function icc_getIccData() {
-      if (AppWindowManager.getApps(application)) {
+      if (window.appWindowManager.getApp(application)) {
         return DUMP('Settings is running. Ignoring');
       }
       navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
@@ -442,10 +505,12 @@ var icc_worker = {
     switch (options.timerAction) {
       case icc._iccManager.STK_TIMER_START:
         a_timer.start(options.timerId, options.timerValue * 1000,
-          function() {
-            DUMP('Timer expiration - ' + options.timerId);
+          function(realUsedTimeMs) {
+            DUMP('Timer expiration - ' + options.timerId +
+              ' - real used time ' + realUsedTimeMs);
             (icc.getIcc(message.iccId)).sendStkTimerExpiration({
-              'timerId': options.timerId
+              'timerId': options.timerId,
+              'timerValue': realUsedTimeMs / 1000
             });
           });
         icc.responseSTKCommand(message, {
@@ -459,27 +524,47 @@ var icc_worker = {
         break;
 
       case icc._iccManager.STK_TIMER_DEACTIVATE:
-        pendingTime = a_timer.stop(options.timerId) / 1000;
-        icc.responseSTKCommand(message, {
-          timer: {
-            'timerId': options.timerId,
-            'timerValue': pendingTime,
-            'timerAction': icc._iccManager.STK_TIMER_DEACTIVATE
-          },
-          resultCode: icc._iccManager.STK_RESULT_OK
-        });
+        if (a_timer.queryPendingTime(options.timerId) === 0) {
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId
+            },
+            resultCode:
+              icc._iccManager.STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE
+          });
+        } else {
+          pendingTime = a_timer.stop(options.timerId) / 1000;
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId,
+              'timerValue': pendingTime,
+              'timerAction': icc._iccManager.STK_TIMER_DEACTIVATE
+            },
+            resultCode: icc._iccManager.STK_RESULT_OK
+          });
+        }
         break;
 
       case icc._iccManager.STK_TIMER_GET_CURRENT_VALUE:
         pendingTime = a_timer.queryPendingTime(options.timerId) / 1000;
-        icc.responseSTKCommand(message, {
-          timer: {
-            'timerId': options.timerId,
-            'timerValue': pendingTime,
-            'timerAction': icc._iccManager.STK_TIMER_GET_CURRENT_VALUE
-          },
-          resultCode: icc._iccManager.STK_RESULT_OK
-        });
+        if (pendingTime === 0) {
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId
+            },
+            resultCode:
+              icc._iccManager.STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE
+          });
+        } else {
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId,
+              'timerValue': pendingTime,
+              'timerAction': icc._iccManager.STK_TIMER_GET_CURRENT_VALUE
+            },
+            resultCode: icc._iccManager.STK_RESULT_OK
+          });
+        }
         break;
     }
   },
@@ -491,11 +576,14 @@ var icc_worker = {
     this.idleTextNotifications[message.iccId] = new Notification(
       'SIM ' + icc.getSIMNumber(message.iccId) + ' STK', {
         body: options.text,
-        icon: 'style/icons/System.png',
+        icon: 'style/icons/system.png',
         tag: 'stkNotification_' + message.iccId
       });
     this.idleTextNotifications[message.iccId].onclick =
       function onClickSTKNotification() {
+        if (!icc.canProcessMessage(message)) {
+          return DUMP('Message active, delaying STK...');
+        }
         icc.alert(message, options.text);
       };
     this.idleTextNotifications[message.iccId].onshow =

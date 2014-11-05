@@ -1,0 +1,84 @@
+html {
+  font-size: 10px;
+}
+
+body {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+
+  /* XXX: The below overflow property is being ignored by B2G Phone
+     https://bugzilla.mozilla.org/show_bug.cgi?id=777672
+  */
+  overflow: hidden;
+}
+
+.invisible {
+  display: none;
+}
+
+.panel {
+  position: fixed;
+  display: block;
+  width: 100%;
+  height: 100%;
+  -moz-transition: -moz-transform 0.3s ease;
+  top: 0;
+}
+
+.test-panel {
+  -moz-transform: translateX(100%);
+}
+
+.list-panel{
+  -moz-transform: translateX(0);
+}
+
+body.test .list-panel{
+  -moz-transform: translateX(-100%);
+}
+
+body.test .test-panel {
+  -moz-transform: translateX(0);
+}
+
+
+#test-iframe {
+  border: none;
+  width: 100%;
+  height: calc(100% - 5rem);
+  background-color: #fff;
+}
+
+@media (orientation: landscape)
+{
+  .page {
+    position: absolute;
+    left: 0rem;
+    right: 3.5rem; /* tabs are at right, keep some space for it */
+    top: 0rem;
+    bottom: 0rem;
+  }
+
+  .sublist > li {
+    height: calc(100% / 5) !important;
+  }
+}
+
+@media (orientation: portrait)
+{
+  .page {
+    position: absolute;
+    left: 0rem;
+    right: 0rem;
+    top: 0rem;
+    bottom: 3.5rem; /* tabs are at bottom, keep some space for it */
+  }
+
+  .sublist > li {
+    height: calc(100% / 7) !important;
+  }
+}

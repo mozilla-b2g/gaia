@@ -1,27 +1,22 @@
-/*global req*/
-'use strict';
 
 suite('controllers/controls', function() {
-
+  /*jshint maxlen:false*/
+  'use strict';
   suiteSetup(function(done) {
     var self = this;
-
-    req([
+    requirejs([
       'app',
-      'lib/camera',
+      'lib/camera/camera',
       'controllers/controls',
       'views/controls',
-      'lib/activity',
       'lib/settings',
       'lib/setting'
     ], function(
-    App, Camera, ControlsController,
-    ControlsView, Activity, Settings, Setting) {
+    App, Camera, ControlsController, ControlsView, Settings, Setting) {
       self.App = App;
       self.Camera = Camera;
-      self.ControlsController = ControlsController;
+      self.ControlsController = ControlsController.ControlsController;
       self.ControlsView = ControlsView;
-      self.Activity = Activity;
       self.Settings = Settings;
       self.Setting = Setting;
       done();
@@ -34,8 +29,7 @@ suite('controllers/controls', function() {
     this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.settings.mode = sinon.createStubInstance(this.Setting);
     this.app.views = { controls: sinon.createStubInstance(this.ControlsView) };
-    this.app.activity = sinon.createStubInstance(this.Activity);
-    this.app.activity.allowedTypes = {};
+    this.app.activity = { allowedTypes: {} };
 
     // Fake available modes
     this.app.settings.mode.get
@@ -44,76 +38,101 @@ suite('controllers/controls', function() {
 
     // Aliases
     this.controls = this.app.views.controls;
+    this.view = this.app.views.controls;
+    this.settings = this.app.settings;
 
     this.controller = new this.ControlsController(this.app);
+    this.state = {};
+  });
+
+  teardown(function() {
+    delete this.controller;
   });
 
   suite('ControlsController()', function() {
-
-    test('Should *not* show the cancel button when ' +
-         '*not* within a \'pick\' activity', function() {
+    test('Should *not* show the cancel button when *not* within a \'pick\' activity', function() {
       assert.isTrue(this.app.views.controls.set.calledWith('cancel', false));
     });
 
     test('Should show the cancel button when within activity', function() {
-      this.app.activity.active = true;
-      this.controller = new this.ControlsController(this.app);
+      this.app.activity.pick = true;
+      this.state.controller = new this.ControlsController(this.app);
       assert.isTrue(this.app.views.controls.set.calledWith('cancel', true));
     });
 
-    test('Should be switchable when no activity is active', function() {
-      this.app.activity.active = false;
-      this.controller = new this.ControlsController(this.app);
-      assert.isTrue(this.app.views.controls.set.calledWith('switchable', true));
+    test('It sets the mode to the value of the \'mode\' setting', function() {
+
+      // Test 'picture'
+      this.app.settings.mode.selected.returns('picture');
+      var controller = new this.ControlsController(this.app);
+      sinon.assert.calledWith(this.view.setMode, 'picture');
+      this.view.set.reset();
+
+      // Test 'video'
+      this.app.settings.mode.selected.returns('video');
+      controller = new this.ControlsController(this.app);
+      sinon.assert.calledWith(this.view.setMode, 'video');
+      this.view.set.reset();
     });
 
-    test('Should not be switchable when only one mode is available', function() {
+    test('Should call the preview when click on thumbnail', function() {
+      assert.ok(this.view.on.calledWith('click:thumbnail'));
+    });
+
+    test('Should remove the capture button highlight when shutter fires', function() {
+      sinon.assert.calledWith(this.app.on, 'camera:shutter');
+
+      // Call the callback
+      this.app.on.withArgs('camera:shutter').args[0][1]();
+
+      sinon.assert.calledWith(this.view.unset, 'capture-active');
+    });
+
+    test('Should disable the controls when the camera is busy', function() {
+      // Call the callback and check the view was disabled
+      this.app.on.withArgs('busy').args[0][1]();
+      sinon.assert.called(this.view.disable);
+    });
+
+    suite('app.once(\'loaded\')', function() {
+      setup(function() {
+        // Call the callback
+        this.app.once.withArgs('loaded').args[0][1]();
+      });
+
+      test('It enables the controls', function() {
+        sinon.assert.called(this.view.enable);
+      });
+
+      test('It \'restores\' the controls when the camera is \'ready\' from thereon after', function() {
+        sinon.assert.calledWith(this.app.on, 'ready', this.controller.restore);
+      });
+    });
+
+    test('Should hide the controls when the timer is started', function() {
+      sinon.assert.calledWith(this.app.on, 'timer:started', this.controller.onTimerStarted);
+    });
+
+    test('Should restore the controls when the timer is cleared', function() {
+      sinon.assert.calledWith(this.app.on, 'timer:cleared', this.controller.onTimerStopped);
+      sinon.assert.calledWith(this.app.on, 'timer:ended', this.controller.onTimerStopped);
+    });
+
+    test('Should disable the view intitially until camera is ready', function() {
+      sinon.assert.called(this.view.disable);
+    });
+  });
+
+  suite('ControlsController#configureMode()', function() {
+    test('It\'s not switchable when only one mode is available', function() {
 
       // Fake avaialable modes
       this.app.settings.mode.get
         .withArgs('options')
         .returns([{ key: 'picture' }]);
 
-      this.controller = new this.ControlsController(this.app);
-
-      assert.isTrue(
-        this.app.views.controls.set.calledWith('switchable', false));
-    });
-
-    test('Should set the mode to the value of the \'mode\' setting', function() {
-      var controls = this.app.views.controls;
-
-      // Test 'picture'
-      this.app.settings.mode.selected.returns('picture');
-      this.controller = new this.ControlsController(this.app);
-      assert.ok(controls.set.calledWith('mode', 'picture'));
-      controls.set.reset();
-
-      // Test 'video'
-      this.app.settings.mode.selected.returns('video');
-      this.controller = new this.ControlsController(this.app);
-      assert.ok(controls.set.calledWith('mode', 'video'));
-      controls.set.reset();
-    });
-
-    test('Should call the preview when click on thumbnail', function() {
-      assert.ok(this.app.views.controls.on.calledWith('click:thumbnail'));
-    });
-
-    test('Should remove the capture button highlight when shutter fires', function() {
-      assert.isTrue(this.app.on.calledWith('camera:shutter', this.controller.captureHighlightOff));
-    });
-
-    test('Should disable the controls when the camera is busy', function() {
-      assert.isTrue(this.app.on.calledWith('camera:busy', this.controls.disable));
-    });
-
-    test('Should restore the controls when the camera is \'ready\'', function() {
-      assert.isTrue(this.app.on.calledWith('camera:ready', this.controller.restore));
-    });
-
-    test('Should restore the controls when the timer is cleared', function() {
-      assert.isTrue(this.app.on.calledWith('timer:cleared', this.controller.restore));
+      this.controller.configureMode();
+      assert.isTrue(this.view.disable.calledWith('switch'));
     });
   });
 
@@ -129,6 +148,14 @@ suite('controllers/controls', function() {
 
     test('Should fire a \'capture\' event on the app', function() {
       assert.isTrue(this.app.emit.calledWith('capture'));
+    });
+  });
+
+  suite('ControlsController.onViewModeChanged()', function() {
+    test('It switches to the next mode setting', function() {
+      this.controller.onViewModeChanged();
+      sinon.assert.notCalled(this.view.enable);
+      sinon.assert.called(this.settings.mode.next);
     });
   });
 });

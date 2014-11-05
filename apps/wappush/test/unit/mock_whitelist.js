@@ -8,6 +8,12 @@
 var MockWhiteList = {
   _whiteList: [],
 
+  init: function mwl_init() {
+    return new Promise(function mwl_init_promise(resolve) {
+      resolve();
+    });
+  },
+
   has: function mwl_has(value) {
     if (this._whiteList.length === 0) {
       return true;

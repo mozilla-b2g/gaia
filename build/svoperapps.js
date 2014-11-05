@@ -26,12 +26,12 @@ SvoperappsBuilder.prototype.appRequest = 0;
 * if the url does not conform to {scheme}://{net_loc}/, this function returns
 * null.
 */
-SvoperappsBuilder.prototype.getOrigin = function(url) {
+SvoperappsBuilder.prototype.getOrigin = function(url, defaultOrigin) {
   if (!url) {
     return null;
   } else {
     var matched = url.match(/^([a-zA-Z]+:\/\/.[^/]+).*/);
-    return (matched.length > 1) ? matched[1] : null;
+    return (matched && matched.length > 1) ? matched[1] : defaultOrigin;
   }
 };
 
@@ -73,7 +73,9 @@ function(manifest, metadata, appPath, cb, errCb) {
                            JSON.stringify(metadata));
 
   // download application
-  downloadMgr.download(manifest.package_path, appPath, 'application.zip',
+  var origin =  utils.getNewURI(metadata.manifestURL, null, null);
+  var absolutePkgPath = origin.resolve(manifest.package_path);
+  downloadMgr.download(absolutePkgPath, appPath, 'application.zip',
                        cb, function err(url, path) {
                          errCb(new Error('unable to download: ' + url));
                        });
@@ -178,7 +180,7 @@ function(appId, manifestUrl, origin, installOrigin, appPath, cached, done) {
           'manifestURL': manifestUrl
         };
         metadata.origin = json.package_path ?
-          self.getOrigin(json.package_path) :
+          self.getOrigin(json.package_path, installOrigin) :
           (origin || self.getOrigin(json.launch_path));
         self.downloadApp(json, metadata, appPath,
           copyAppPathToProfile, handleError);

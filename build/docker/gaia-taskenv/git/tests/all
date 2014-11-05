@@ -1,0 +1,7 @@
+#! /bin/bash -e
+./ref-branch
+./ref-master
+./pr-master
+./pr-branch
+./pr-remote
+./pr-refs

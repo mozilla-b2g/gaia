@@ -37,4 +37,4 @@ class TestGeolocationPrompt(GaiaTestCase):
 
         current_permission = self.apps.get_permission('Geoloc', 'geolocation')
         self.assertEqual(current_permission, 'allow')
-        self.wait_for_condition(lambda m: system_app.geolocation_icon_displayed)
+        system_app.wait_for_geolocation_icon_displayed()

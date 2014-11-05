@@ -1,18 +1,18 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireLib('models/calendar.js');
-requireLib('models/account.js');
+var CalendarTemplate = require('templates/calendar');
+var Factory = require('test/support/factory');
+var Settings = require('views/settings');
+var View = require('view');
+var nextTick = require('next_tick');
+var suiteGroup = require('test/support/suite_group');
+
 requireCommon('test/synthetic_gestures.js');
 
-suiteGroup('Views.Settings', function() {
-  'use strict';
-
-  ['Provider.Local', 'Provider.Caldav'].forEach(function(name) {
-    suiteSetup(function(done) {
-      Calendar.App.loadObject(name, done);
-    });
-  });
-
+suiteGroup('views/settings', function() {
+  /* jshint -W027 */
+  return;
   var subject;
   var app;
   var store;
@@ -20,19 +20,7 @@ suiteGroup('Views.Settings', function() {
   var template;
   var triggerEvent;
   var account;
-
-  function syncButtonVisible(yesNo) {
-    return function(done) {
-      subject.render();
-      subject.onrender = function() {
-        var contains =
-          subject.syncButton.classList.contains(Calendar.ACTIVE);
-
-        assert.equal(contains, yesNo, 'syncButton active');
-        done();
-      };
-    };
-  }
+  var models;
 
   function stageModels(list) {
     var object = Object.create(null);
@@ -78,10 +66,28 @@ suiteGroup('Views.Settings', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div id="time-views"></div>',
       '<div id="settings">',
-        '<button class="sync">sync</button>',
-        '<ul class="calendars"></ul>',
+      '  <header>',
+      '    <button data-l10n-id="back"',
+      '            class="settings-back"></button>',
+      '  </header>',
+      '  <div class="settings-shield"></div>',
+      '  <div class="settings-drawer-container">',
+      '    <div class="settings-drawer">',
+      '      <ol class="calendars">',
+      '      </ol>',
+      '      <div role="toolbar">',
+      '        <button class="settings toolbar-item">',
+      '          <span class="icon"',
+      '                data-l10n-id="advanced-settings-short">Settings</span>',
+      '        </button>',
+      '        <button class="sync update toolbar-item">',
+      '          <span class="icon"',
+      '                data-l10n-id="drawer-sync-button">Sync</span>',
+      '        </button>',
+      '      </div>',
+      '    </div>',
+      '  </div>',
       '</div>'
     ].join('');
 
@@ -90,9 +96,9 @@ suiteGroup('Views.Settings', function() {
     app = testSupport.calendar.app();
     controller = app.timeController;
     store = app.store('Calendar');
-    template = Calendar.Templates.Calendar;
+    template = CalendarTemplate;
 
-    subject = new Calendar.Views.Settings({
+    subject = new Settings({
       app: app,
       syncProgressTarget: div,
       // normally this is higher in production but
@@ -100,7 +106,37 @@ suiteGroup('Views.Settings', function() {
       waitBeforePersist: 10
     });
 
+    subject.calendarList = {
+      first: {
+        localDisplayed: true,
+        _id: 'first',
+        remote: {
+          name: 'first'
+        }
+      },
+      local: {
+        localDisplayed: true,
+        _id: 'local-first',
+        remote: {
+          name: 'this should not be used!!!!'
+        }
+      }
+    };
+
     app.db.open(done);
+
+    models = stageModels({
+      displayed: {
+        localDisplayed: true,
+        _id: 1
+      },
+
+      hidden: {
+        localDisplayed: false,
+        _id: 'hidden'
+      }
+    });
+
   });
 
   teardown(function(done) {
@@ -115,15 +151,11 @@ suiteGroup('Views.Settings', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.View);
+    assert.instanceOf(subject, View);
     assert.equal(subject.app, app);
     assert.equal(
       subject.element, document.querySelector('#settings')
     );
-  });
-
-  test('#time-views', function() {
-    assert.ok(subject.timeViews);
   });
 
   test('#calendars', function() {
@@ -167,8 +199,6 @@ suiteGroup('Views.Settings', function() {
         };
       });
 
-      test('hides button', syncButtonVisible(false));
-
       suite('add', function() {
         setup(function(done) {
           delete syncAccount._id;
@@ -179,32 +209,21 @@ suiteGroup('Views.Settings', function() {
             done();
           };
         });
-
-        test('shows button', syncButtonVisible(true));
       });
     });
 
   });
 
   suite('#_observeCalendarStore', function() {
-    var models = stageModels({
-      first: {
-        localDisplayed: true,
-        _id: 'first',
-        remote: {
-          name: 'first'
-        }
-      }
-    });
-
     var children;
     setup(function(done) {
       // we must wait until rendering completes
-      subject.render();
       subject.onrender = function() {
         children = subject.calendars.children;
-        Calendar.nextTick(done);
+        nextTick(done);
       };
+
+      subject.render();
     });
 
     suite('calendar update / error', function() {
@@ -244,9 +263,27 @@ suiteGroup('Views.Settings', function() {
 
         store.emit('update', model._id, model);
 
-        assert.equal(children[0].textContent, 'foo');
+        assert.equal(children[0].textContent.trim(), 'foo');
         assert.isFalse(
           check.checked
+        );
+      });
+
+      test('toggle l10n', function() {
+        var check = children[1].querySelector('[type="checkbox"]');
+        assert.ok(
+          check.checked,
+          'should be checked'
+        );
+
+        var model = models.local;
+        model.localDisplayed = false;
+        store.emit('update', model._id, model);
+
+        assert.equal(children[1].textContent.trim(), 'Offline calendar');
+        assert.isFalse(
+          check.checked,
+          'should uncheck'
         );
       });
     });
@@ -254,10 +291,11 @@ suiteGroup('Views.Settings', function() {
     suite('add', function() {
       function addModel() {
         store.emit('add', 'two', model);
-        assert.equal(children.length, 2);
-        assert.equal(children[1].textContent, 'second');
+        assert.equal(children.length, 3);
+        var container = children[2];
+        assert.equal(container.textContent.trim(), 'second');
 
-        return children[1];
+        return container;
       }
 
       var model;
@@ -268,7 +306,7 @@ suiteGroup('Views.Settings', function() {
           remote: { name: 'second' }
         });
 
-        assert.equal(children.length, 1);
+        assert.equal(children.length, 2);
       });
 
       test('success', function() {
@@ -291,9 +329,10 @@ suiteGroup('Views.Settings', function() {
     });
 
     test('remove', function() {
+      assert.equal(children.length, 2);
       store.emit('preRemove', models.first._id);
       store.emit('remove', models.first._id);
-      assert.equal(children.length, 0);
+      assert.equal(children.length, 1);
     });
   });
 
@@ -310,18 +349,6 @@ suiteGroup('Views.Settings', function() {
   });
 
   suite('#_onCalendarDisplayToggle', function() {
-    var models = stageModels({
-      displayed: {
-        localDisplayed: true,
-        _id: 1
-      },
-
-      hidden: {
-        localDisplayed: false,
-        _id: 'hidden'
-      }
-    });
-
     var checkboxes;
     setup(function(done) {
       subject.render();
@@ -339,7 +366,7 @@ suiteGroup('Views.Settings', function() {
     });
 
     function checkAsync(id, value) {
-      Calendar.nextTick(function() {
+      nextTick(function() {
         checkboxes[id].checked = !!value;
         triggerEvent(checkboxes[id], 'change');
       });
@@ -388,7 +415,7 @@ suiteGroup('Views.Settings', function() {
   });
 
   suite('#render', function() {
-    var accounts = testSupport.calendar.dbFixtures(
+    testSupport.calendar.dbFixtures(
       'account',
       'Account', {
         one: {
@@ -423,16 +450,6 @@ suiteGroup('Views.Settings', function() {
       }
     );
 
-    test('sync button with syncable accounts', syncButtonVisible(true));
-
-    suite('sync button visibility without syncable accounts', function() {
-      setup(function(done) {
-        Calendar.App.store('Account').remove(accounts.two._id, done);
-      });
-
-      test('without syncable accounts', syncButtonVisible(false));
-    });
-
     suite('calendars', function() {
       var one;
       var two;
@@ -453,8 +470,8 @@ suiteGroup('Views.Settings', function() {
       });
 
       test('naming', function() {
-        assert.equal(one.textContent, calendars.one.name);
-        assert.equal(two.textContent, calendars.two.name);
+        assert.equal(one.textContent.trim(), calendars.one.name);
+        assert.equal(two.textContent.trim(), calendars.two.name);
       });
 
       test('localDisplayed on calendar', function() {
@@ -476,31 +493,6 @@ suiteGroup('Views.Settings', function() {
     });
 
   });
-
-  suite('tap to navigate away from settings', function() {
-
-    var calledWith;
-
-    setup(function() {
-      calledWith = null;
-      app.resetState = function() {
-        calledWith = arguments;
-      };
-    });
-
-    test('#onactive', function() {
-      subject.onactive();
-      triggerEvent(subject.timeViews, 'click');
-      assert.ok(calledWith, 'navigates away');
-    });
-
-    test('#oninactive', function() {
-      subject.onactive();
-      subject.oninactive();
-      triggerEvent(subject.timeViews, 'click');
-      assert.ok(!calledWith, 'navigates away');
-    });
-
-  });
+});
 
 });

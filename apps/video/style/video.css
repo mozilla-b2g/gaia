@@ -3,10 +3,10 @@ html, body {
   padding: 0;
   font-size: 10px;
   height: 100%;
-  background-color: #0E1214;
 }
 
 body {
+  background-color: #0E1214;
   color: #fff;
   font-size: 10px;
   margin: 0;
@@ -113,14 +113,6 @@ span.line-break {
   font-size: 2.1rem;
 }
 
-#delete-video-button span {
-  background: transparent url(images/delete.png) no-repeat center center / 3rem;
-}
-
-#delete-video-button:active {
-  background-color: #21a6b9;
-}
-
 /*
  * Thumbnails are implemented as <li> elements in a <ul> with background-image
  * set to display the image. We use background-size: cover to automatically
@@ -156,7 +148,7 @@ span.line-break {
 .thumbnail {
   border-top: 0.1rem solid;
   border-color:rgba(255,255,255, 0.1);
-  margin: 0 2rem 0 0;
+  margin: 0;
   height: 12rem;
   overflow: hidden;
   position: relative;
@@ -181,6 +173,13 @@ span.line-break {
  */
 .thumbnail:active div {
   opacity: 0.85;
+}
+
+/*
+ * And make all the text color to white while selection
+ */
+.thumbnail:active span {
+  color: #FFF;
 }
 
 /*
@@ -236,7 +235,9 @@ span.line-break {
  * the issue.  The user can't interact with the app while the overlay
  * is displayed.
  */
-#overlay {
+#overlay,
+#in-use-overlay,
+#confirm-dialog {
   /* it takes up the whole screen */
   position: absolute;
   top: 0;
@@ -253,7 +254,7 @@ span.line-break {
  * It has borders and a less transparent background so that
  * the overlay text shows up more clearly
  */
-#overlay-content {
+#overlay-content, #in-use-overlay-content {
   background:
   url(images/ui/pattern.png) repeat left top,
   url(images/ui/gradient.png) no-repeat left top;
@@ -274,7 +275,7 @@ span.line-break {
   padding: 11rem 2.5rem 0 2.5rem;
 }
 
-#overlay-title {
+#overlay-title, #in-use-overlay-title {
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
@@ -282,7 +283,7 @@ span.line-break {
   padding: 0;
 }
 
-#overlay-text {
+#overlay-text, #in-use-overlay-text {
   padding: 1rem 0.5rem 0 0.5rem;
   border-top: 0.1rem solid #686868;
   font-weight: 300;
@@ -319,13 +320,9 @@ body.hidden *[data-l10n-id] {
   background: none !important;
 }
 
-.icon.icon-done {
-  background-image: url('images/iconaction_done_30x30.png') !important;
-  background-size: 3rem;
-}
-
 section[role="region"] > header {
-  background: rgba(0, 0, 0, 0.6);
+  /* Need to use !important,else color is not reflecting */
+  background: rgba(0, 0, 0, 0.85) !important;
 }
 
 section[role="region"] header:first-child h1 {
@@ -401,10 +398,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_video_30x30.png');
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
 }
 
 #thumbnails-select-button {
@@ -412,34 +405,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/iconaction_select_30x30.png');
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-.icon-delete {
-  display: block;
-  background-image: url('images/iconaction_delete_30x30.png') !important;
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-.icon-share {
-  display: block;
-  background-image: url('images/iconaction_share_30x30.png') !important;
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-.icon-info {
-  display: block;
-  background-image: url('images/iconaction_media_info_30x30.png') !important;
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
 }
 
 #thumbnails-delete-button {
@@ -447,8 +412,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_delete_30x30.png');
-  background-size: 3rem;
   border-right: 0.1rem solid #000;
 }
 
@@ -457,28 +420,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-}
-
-#videoActionBar .single-delete-button {
-  position: absolute;
-  width: 35%;
-  height: 100%;
-  left: 0;
-  border-right: 0.1rem solid #000;
-}
-
-#videoActionBar .single-share-button {
-  position: absolute;
-  width: 35%;
-  height: 100%;
-  left: 35%;
-}
-
-#videoActionBar .single-info-button {
-  position: absolute;
-  width: 30%;
-  height: 100%;
-  left: 70%;
 }
 
 header .icon:after {
@@ -494,6 +435,7 @@ header .icon:after {
   height: 100%;
   z-index: 10;
   opacity: 1;
+  will-change: opacity;
   -moz-transition: opacity 0.5s;
 }
 #videoControls.hidden {
@@ -510,11 +452,11 @@ header .icon:after {
 #videoBar {
   position: absolute;
   right: 0;
-  bottom: 4rem;
+  bottom: 4.4rem;
   left: 0;
-  height: 4.2rem;
+  height: 4rem;
   font-size: 0;
-  border-bottom: 0.1rem solid rgba(189,189,189, 0.1);
+  border-bottom: 0.1rem solid rgba(255,255,255, 0.1);
   background-color: rgba(0,0,0, 0.85);
   white-space: nowrap;
   z-index: 10;
@@ -524,7 +466,6 @@ header .icon:after {
   bottom: 0;
 }
 
-#play,
 #elapsed-text,
 #timeSlider,
 #slider-wrapper,
@@ -535,86 +476,37 @@ header .icon:after {
   vertical-align: top;
 }
 
-/* play/pause button */
-#play {
-  width: 6.5rem;
-  height: 4.2rem;
-}
-
-#play:before {
-  content: " ";
-  position: absolute;
-  top: calc(50% - 3.25rem);
-  left: calc(50% - 3.25rem);
-  width: 0;
-  height: 0;
-  border: 3.25rem solid rgba(255,255,255, 0.1);
-  border-radius: 100%;
-  z-index: -1;
-}
-
-#play {
-  position: relative;
-  padding: 0;
-  margin: 0 0 0 0.5rem;
-  border: none;
-  background: none;
-  overflow: hidden;
-  z-index: 20;
-}
-
-#play:after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-image: url("images/pause.png");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-}
-
-#play:active:before {
-  border-color: #00caf2;
-}
-
-#play.paused:after {
-  background-image: url("images/play.png");
-}
-
 #elapsed-text, #duration-text {
   color: #ffffff;
-  text-align: right;
   font-size: 1.4rem;
 }
 
 #elapsed-text {
-  width: 5.2rem;
+  width: 5.3rem;
+  padding-left: 1.5rem;
 }
 
 #duration-text {
-  width: 3.2rem;
-  margin-left: 1rem;
-  padding: 0 1rem;
+  text-align: right;
+  width: 5.3rem;
+  padding-right: 1.5rem;
 }
 
 /* time slider */
 #timeSlider {
   position: relative;
-  width: calc(100% - 6.5rem - 12.4rem);
+  width: 100%;
   z-index: 10;
 }
 
 #slider-wrapper {
-  width: 100%;
+  /* Take into account width and padding of elapsed and duration text */
+  width: calc(100% - 13.6rem);
   height: 4.2rem;
 }
 
 #slider-wrapper div {
   position: absolute;
-  left: 1.1rem;
   pointer-events: none;
 }
 
@@ -628,6 +520,7 @@ header .icon:after {
 #elapsedTime {
   background-color: #00caf2;
   z-index: 30;
+  margin-top: -0.2rem;
 }
 
 #bufferedTime {
@@ -642,11 +535,75 @@ header .icon:after {
   z-index: 10;
 }
 
+#videoControlBar {
+  height: 4.5rem;
+}
+
+#videoToolBar {
+  position: relative;
+  height: 4.8rem;
+  font-size: 0;
+  vertical-align: top;
+  border-top: 0.1rem solid rgba(255,255,255, 0.1);
+  background-color: #000;
+  overflow: hidden;
+}
+
+#seek-backward,
+#seek-forward,
+#play {
+  position: relative;
+  height: 100%;
+  padding: 0;
+  font-weight: 500;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+}
+
+#seek-backward,
+#seek-forward {
+  width: 33%;
+}
+
+#play {
+  width: 34%;
+}
+
+#play.paused:before {
+  content: 'play';
+  padding-left: 4px;
+}
+
+.player-controls-button {
+  color: #FFFFFF;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.player-controls-button:hover {
+  background: transparent;
+}
+
+.player-controls-button:active {
+  background: #00caf2;
+}
+
+.player-controls-button:disabled {
+  opacity: 0.3;
+}
+
+.player-controls-button:disabled:active {
+  background: transparent;
+}
+
 #playHead {
   position: absolute;
   top: calc(50% - 1.15rem);
   width: 2.3rem;
   height: 2.3rem;
+  margin-left: -1.15rem;
   border: none;
   background: none;
   pointer-events: none;
@@ -682,10 +639,23 @@ body:not(.pick-activity) #picker-close {
   display: none;
 }
 
+/**
+ * 1. COMPLEX: Scoped style-sheets within <gaia-header>
+ *    trump all other rules. !important is required
+ *    for an app to over-ride the default appearance
+ *    of content within the custom-element. This may
+ *    change when we get `:host` and `:content` selectors
+ *    in shadow-dom.
+ */
+
+body:not(.pick-activity) #picker-done {
+  display: none !important; /* 1 */
+}
+
 /* hide options when picking */
-body.pick-activity #videoActionBar,
+body.pick-activity #options,
 body.pick-activity #thumbnails-bottom {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 #two-column-spearator {
@@ -702,36 +672,39 @@ body.pick-activity #thumbnails-bottom {
 
 .thumbnail .details .title {
   order: 1;
-  flex: 0 1 auto;
   align-self: auto;
   word-break: break-all;
 }
 
 .thumbnail .details .duration-text {
   order: 2;
-  flex: 0 1 auto;
   align-self: auto;
 }
 
 .thumbnail .details .size-type-group {
   order: 3;
-  flex: 0 1 auto;
   align-self: auto;
 }
 
-
-
+/**
+ * 1. COMPLEX: Scoped style-sheets within <gaia-header>
+ *    trump all other rules. !important is required
+ *    for an app to over-ride the default appearance
+ *    of content within the custom-element. This may
+ *    change when we get `:host` and `:content` selectors
+ *    in shadow-dom.
+ */
 #thumbnail-list-title {
-  display: none;
-}
-
-body:not(.pick-activity) #thumbnail-list-view header {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 /* we don't have fullscreen button when we are not in large layout */
-#fullscreen-button, #fullscreen-tool-bar {
+#fullscreen-button {
   display: none;
+}
+
+.large-only {
+  display: none !important; /* 1 */
 }
 
 /* selection mode */
@@ -758,14 +731,9 @@ body:not(.view-activity) #spinner-overlay {
   display: none;
 }
 
-/* move videoBar to bottom when picking */
-body.pick-activity #videoControls #videoBar {
-  bottom: 0;
-}
-
-section[role="region"] > header:first-child .icon-back {
-  pointer-events: none;
-  width: 2.3rem;
+/* make videocontrolbar visible  when picking */
+body.pick-activity #videoControls #videoBar{
+  bottom: 4.4rem;
 }
 
 /*
@@ -780,7 +748,6 @@ form[role="dialog"][data-type="confirm"] button.hidden {
     width: 8rem;
   }
 }
-
 
 :focus { outline:none; }
 ::-moz-focus-inner {

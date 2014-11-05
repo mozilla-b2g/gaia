@@ -95,6 +95,9 @@ var MockSdCard = function MockSdCard() {
     get deviceStorage() {
       return deviceStorage;
     },
+    set deviceStorage(storage) {
+      deviceStorage = storage;
+    },
     'updateStorageState': updateStorageState,
     'checkStorageCard': function checkStorageCard() {
       return status === STATUSES.AVAILABLE;

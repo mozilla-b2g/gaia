@@ -36,8 +36,10 @@ var ViewManager = (function() {
   // depending on if the view was a tab or not:
   //   If it is a tab: it returns the current overlay view id or null
   //   If it is not a tab: it returns the previous ovrlay view or null
-  ViewManager.prototype.changeViewTo = function _changeViewTo(viewId,
+  ViewManager.prototype.changeViewTo = function _changeViewTo(viewHash,
                                                               callback) {
+    var hashParts = viewHash.split('?');
+    var viewId = hashParts[0];
     if (this.isCurrentView(viewId)) {
       return;
     }
@@ -50,60 +52,70 @@ var ViewManager = (function() {
                                      this._currentView.id : null;
 
     var view = document.getElementById(viewId);
+    var params = parseQueryParams(hashParts[1]);
+    var self = this;
 
     // lazy load HTML of the panel
-    this.loadPanel(view);
+    this.loadPanel(view, function() {
+      // Tabs are treated in a different way than overlay views
+      var isTab = self._isTab(viewId);
+      if (isTab) {
 
-    // Tabs are treated in a different way than overlay views
-    var isTab = this._isTab(viewId);
-    if (isTab) {
+        // Disposing the current view
+        var disposingTab = null;
+        if (self._currentTab) {
+          disposingTab = document.getElementById(self._currentTab);
+        }
+        if (disposingTab) {
+          disposingTab.dataset.viewport = self._tabs[disposingTab.id];
+          document.getElementById(disposingTab.id + '-filter').classList.remove(
+            '.selected');
+        }
+        // Showing the new one
+        view.dataset.viewport = '';
+        document.getElementById(view.id + '-filter').classList.add('.selected');
+        AccessibilityHelper.setAriaSelected(
+          document.getElementById(view.id + '-control'),
+          document.querySelectorAll('[role="tab"]'));
 
-      // Disposing the current view
-      var disposingTab = null;
-      if (this._currentTab) {
-        disposingTab = document.getElementById(this._currentTab);
+        self._currentTab = viewId;
+
+      // Overlay view
+      } else {
+        self.closeCurrentView();
+        previousViewId = self._currentView ? self._currentView.id : '';
+        self._currentView = {
+          id: viewId,
+          defaultViewport: view.dataset.viewport
+        };
+
+        // With a combination of CSS, we actually animate and display the view
+        delete view.dataset.viewport;
       }
-      if (disposingTab) {
-        disposingTab.dataset.viewport = this._tabs[disposingTab.id];
-        document.getElementById(disposingTab.id + '-filter').classList.remove(
-          '.selected');
+
+      if (typeof callback === 'function') {
+        callback(isTab, viewId, isTab ? currentViewId : previousViewId);
       }
-      // Showing the new one
-      view.dataset.viewport = '';
-      document.getElementById(view.id + '-filter').classList.add('.selected');
-      AccessibilityHelper.setAriaSelected(
-        document.getElementById(view.id + '-control'),
-        document.querySelectorAll('[role="tab"]'));
-
-      this._currentTab = viewId;
-
-    // Overlay view
-    } else {
-      this.closeCurrentView();
-      previousViewId = this._currentView ? this._currentView.id : '';
-      this._currentView = {
-        id: viewId,
-        defaultViewport: view.dataset.viewport
-      };
-
-      // With a combination of CSS, we actually animate and display the view
-      delete view.dataset.viewport;
-    }
-
-    if (callback) {
-      callback(isTab, viewId, isTab ? currentViewId : previousViewId);
-    }
-    notifyViewChange(isTab, viewId);
+      notifyViewChange(isTab, viewId, params);
+    });
   };
 
-  function notifyViewChange(isTab, current) {
+  function notifyViewChange(isTab, current, params) {
     var type = isTab ? 'tabchanged' : 'viewchanged';
-    var event = new CustomEvent(type, { detail: current });
+    var event = new CustomEvent(type, {
+      detail: {
+        id: current,
+        params: params
+      }
+    });
     window.dispatchEvent(event);
   }
 
-  ViewManager.prototype.loadPanel = function _loadPanel(panel) {
+  ViewManager.prototype.loadPanel = function _loadPanel(panel, callback) {
     if (!panel || panel.hidden === false) {
+      if (typeof callback === 'function') {
+        callback();
+      }
       return;
     }
 
@@ -118,9 +130,15 @@ var ViewManager = (function() {
       }
     }
 
-    //activate all styles
     var styles = panel.querySelectorAll('link');
-    for (var i = 0; i < styles.length; i++) {
+    var scripts = panel.querySelectorAll('script');
+
+    var styleCount = styles.length;
+    var scriptCount = scripts.length;
+    var assetsRemaining = styleCount + scriptCount;
+
+    //activate all styles
+    for (var i = 0; i < styleCount; i++) {
       var styleHref = styles[i].href;
       if (!document.getElementById(styleHref)) {
         var style = document.createElement('link');
@@ -128,34 +146,45 @@ var ViewManager = (function() {
         style.rel = 'stylesheet';
         style.type = 'text/css';
         style.media = 'all';
+        style.onload = onAssetLoaded;
         document.head.appendChild(style);
       }
     }
 
-    // translate content
-    navigator.mozL10n.translate(panel);
-
     // activate all scripts
-    var scripts = panel.querySelectorAll('script');
-    for (var j = 0; j < scripts.length; j++) {
+    for (var j = 0; j < scriptCount; j++) {
       var src = scripts[j].getAttribute('src');
       if (!document.getElementById(src)) {
         var script = document.createElement('script');
         script.type = 'application/javascript';
         script.src = script.id = src;
+        script.onload = onAssetLoaded;
         document.head.appendChild(script);
       }
     }
 
     //add listeners
-    var closeButtons = panel.querySelectorAll('.close-dialog');
-    [].forEach.call(closeButtons, function(closeButton) {
-      closeButton.addEventListener('click', function() {
+    var headers = panel.querySelectorAll('gaia-header[action="close"]');
+    [].forEach.call(headers, function(headerWithClose) {
+      headerWithClose.addEventListener('action', function() {
         window.parent.location.hash = '#';
       });
     });
 
     panel.hidden = false;
+
+    checkCallback();
+
+    function checkCallback() {
+      if (assetsRemaining === 0 && typeof callback === 'function') {
+        callback();
+      }
+    }
+
+    function onAssetLoaded() {
+      assetsRemaining--;
+      checkCallback();
+    }
   };
 
   // Close the current view returning to the previous one
@@ -191,6 +220,32 @@ var ViewManager = (function() {
   ViewManager.prototype.getCurrentTab = function _getCurrentTab() {
     return this._currentTab;
   };
+
+  function parseQueryParams(queryParams) {
+    var params = {};
+
+    queryParams = (queryParams || '').split('&');
+    queryParams.forEach(function(param) {
+      if (!param) { return; }
+
+      var pair = param.split('=');
+      var key = pair[0];
+      var value = pair[1];
+
+      if (params[key]) {
+        if (!Array.isArray(params[key])) {
+          params[key] = [params[key]];
+        }
+
+        params[key].push(value);
+        return;
+      }
+
+      params[key] = value;
+    });
+
+    return params;
+  }
 
   return ViewManager;
 }());

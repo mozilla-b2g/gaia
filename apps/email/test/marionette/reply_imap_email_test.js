@@ -11,12 +11,7 @@ var serverHelper = require('./lib/server_helper');
  * "John Doe wrote...", "Original message", etc., as appropriate.
  */
 marionette('reply to an e-mail', function() {
-  var client = marionette.client({
-    settings: {
-      // disable keyboard ftu because it blocks our display
-      'keyboard.ftu.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var BODY_TEXT = 'I still have a dream.';
 

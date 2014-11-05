@@ -3,14 +3,18 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
+    <meta name="theme-color" content="#242d33">
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
     <link rel="stylesheet" type="text/css" href="style/onring.css">
 
     <!-- Date/Time Localization -->
-    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
-    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <link rel="manifest" href="manifest.webapp">
+    <link rel="localization" href="locales/clock.{locale}.properties">
+    <link rel="localization" href="locales/alarms.{locale}.properties">
+    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+    <script defer src="/shared/js/date_time_helper.js"></script>
   </head>
 
   <body>
@@ -19,13 +23,12 @@
       <div id="ring-clock">
         <div id="ring-clock-display">
           <span id="ring-clock-time"></span>
-          <span id="ring-clock-hour24-state"></span>
         </div>
         <div id="ring-label"></div>
       </div>
       <div id="footer-button-container">
-        <div id="ring-button-stop" class="button" data-l10n-id="stop">Stop</div>
-        <div id="ring-button-snooze" class="button" data-l10n-id="snooze-button">Snooze</div>
+        <button id="ring-button-stop" class="recommend" data-l10n-id="stop">Stop</button>
+        <button id="ring-button-snooze" data-l10n-id="snooze-button">Snooze</button>
       </div>
       </div>
     </div>

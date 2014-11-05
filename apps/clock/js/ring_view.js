@@ -22,13 +22,14 @@ function RingView() {
   this.snoozeButton.addEventListener('click', this.onClickSnooze.bind(this));
   this.closeButton.addEventListener('click', this.onClickClose.bind(this));
   window.addEventListener('beforeunload', this.onBeforeUnload.bind(this));
+  window.addEventListener('timeformatchange', this.refreshDisplay.bind(this));
 
   this.activeAlarm = PostMessageProxy.create(window.opener, 'activeAlarm');
 
   PostMessageProxy.receive('ringView', this);
 
   if (window.opener) {
-    mozL10n.ready(() => {
+    mozL10n.once(() => {
       ChildWindowManager.fireReady();
     });
   }
@@ -106,16 +107,19 @@ RingView.prototype = {
     var alert = this.alerts[0];
 
     // Set the label (blank or falsey becomes a default string).
-    this.ringLabel.textContent = alert.label ||
-      mozL10n.get(alert.type === 'alarm' ? 'alarm' : 'timer');
+    if (alert.label) {
+      this.ringLabel.removeAttribute('data-l10n-id');
+      this.ringLabel.textContent = alert.label;
+    } else {
+      this.ringLabel.setAttribute('data-l10n-id',
+                                  alert.type === 'alarm' ? 'alarm' : 'timer');
+    }
 
     // Display the proper screen widgets.
     this.ringDisplay.dataset.ringType = alert.type;
 
     // Set the time to display.
-    var localeTime = Utils.getLocaleTime(alert.time);
-    this.time.textContent = localeTime.time;
-    this.hourState.textContent = localeTime.ampm;
+    this.time.innerHTML = Utils.getLocalizedTimeHtml(alert.time);
 
     if (alert.sound) {
       this.ringtonePlayer.playRingtone(alert.sound);
@@ -228,7 +232,6 @@ RingView.prototype = {
 
 Utils.extendWithDomGetters(RingView.prototype, {
   time: '#ring-clock-time',
-  hourState: '#ring-clock-hour24-state',
   ringLabel: '#ring-label',
   snoozeButton: '#ring-button-snooze',
   closeButton: '#ring-button-stop',

@@ -1,3 +1,4 @@
+/* global PerformanceTestingHelper, TelephonySettingHelper */
 'use strict';
 
 /**
@@ -19,11 +20,6 @@ var Settings = {
     return this.ScreenLayout.getCurrentLayout('tabletAndLandscaped');
   },
 
-  _panelsWithClass: function pane_with_class(targetClass) {
-    return document.querySelectorAll(
-      'section[role="region"].' + targetClass);
-  },
-
   _isTabletAndLandscapeLastTime: null,
 
   rotate: function rotate(evt) {
@@ -31,24 +27,23 @@ var Settings = {
     var panelsWithCurrentClass;
     if (Settings._isTabletAndLandscapeLastTime !==
         isTabletAndLandscapeThisTime) {
-      panelsWithCurrentClass = Settings._panelsWithClass('current');
+      panelsWithCurrentClass = document.querySelectorAll(
+        'section[role="region"].current');
       // in two column style if we have only 'root' panel displayed,
       // (left: root panel, right: blank)
       // then show default panel too
       if (panelsWithCurrentClass.length === 1 &&
         panelsWithCurrentClass[0].id === 'root') {
         // go to default panel
-        Settings.currentPanel = Settings.defaultPanelForTablet;
+        Settings.currentPanel = Settings.initialPanelForTablet;
       }
     }
     Settings._isTabletAndLandscapeLastTime = isTabletAndLandscapeThisTime;
   },
 
-  defaultPanelForTablet: '#wifi',
+  initialPanelForTablet: '#wifi',
 
   _currentPanel: null,
-
-  _currentActivity: null,
 
   get currentPanel() {
     return this._currentPanel;
@@ -59,305 +54,92 @@ var Settings = {
       hash = '#' + hash;
     }
 
-    if (hash == this._currentPanel) {
-      return;
-    }
-
-    // If we're handling an activity and the 'back' button is hit,
-    // close the activity if the activity section is different than root panel.
-    // XXX this assumes the 'back' button of the activity panel
-    //     points to the root panel.
-    if (this._currentActivity !== null &&
-          (hash === '#home' ||
-          (hash === '#root' && Settings._currentActivitySection !== 'root'))) {
-      Settings.finishActivityRequest();
+    if (hash === this._currentPanel) {
       return;
     }
 
     if (hash === '#wifi') {
-      PerformanceTestingHelper.dispatch('start');
+      PerformanceTestingHelper.dispatch('start-wifi-list-test');
     }
 
+    // take off # first
     var panelID = hash;
     if (panelID.startsWith('#')) {
       panelID = panelID.substring(1);
     }
 
-    this._currentPanel = hash;
-    this.SettingsService.navigate(panelID, null, function() {
-      switch (hash) {
-        case 'about-licensing':
-          // Workaround for bug 825622, remove when fixed
-          var iframe = document.getElementById('os-license');
-          iframe.src = iframe.dataset.src;
-          break;
-        case 'wifi':
-          PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
-          break;
-      }
-    });
+    this.SettingsService.navigate(panelID);
   },
 
-  _initialized: false,
-
   init: function settings_init(options) {
-    this._initialized = true;
-
     if (!this.mozSettings || !navigator.mozSetMessageHandler) {
       return;
     }
 
+    this.SettingsUtils = options.SettingsUtils;
     this.SettingsService = options.SettingsService;
-    this.SettingsCache = options.SettingsCache;
     this.PageTransitions = options.PageTransitions;
-    this.LazyLoader = options.LazyLoader;
     this.ScreenLayout = options.ScreenLayout;
 
+    // XXX: We need to set to currentPanel here although SettingsService already
+    //      knows the default panel id. This line will be removed along with
+    //      "currentPanel" soon.
+    this.currentPanel = window.LaunchContext.initialPanelId;
+
+    navigator.mozL10n.once(function loadWhenIdle() {
+      var idleObserver = {
+        time: 3,
+        onidle: function() {
+          navigator.removeIdleObserver(idleObserver);
+        }.bind(this)
+      };
+      navigator.addIdleObserver(idleObserver);
+    }.bind(this));
+
+    // make operations not block the load time
     setTimeout((function nextTick() {
-      this.LazyLoader.load(['js/utils.js'], startupLocale);
-
-      this.LazyLoader.load(['shared/js/wifi_helper.js'], displayDefaultPanel);
-
-      /**
-       * Enable or disable the menu items related to the ICC card relying on the
-       * card and radio state.
-       */
-      this.LazyLoader.load([
-        'js/firefox_accounts/menu_loader.js',
-        'shared/js/airplane_mode_helper.js',
-        'js/airplane_mode.js',
-        'js/battery.js',
-        'shared/js/async_storage.js',
-        'js/storage.js',
-        'js/try_show_homescreen_section.js',
-        'shared/js/mobile_operator.js',
-        'shared/js/icc_helper.js',
-        'shared/js/settings_listener.js',
-        'shared/js/toaster.js',
-        'js/connectivity.js',
-        'js/security_privacy.js',
-        'js/icc_menu.js',
-        'js/nfc.js',
-        'js/dsds_settings.js',
-        'js/telephony_settings.js',
-        'js/telephony_items_handler.js'
-      ], function() {
-        TelephonySettingHelper.init();
-      });
-    }).bind(this));
-
-    function displayDefaultPanel() {
       // With async pan zoom enable, the page starts with a viewport
       // of 980px before beeing resize to device-width. So let's delay
       // the rotation listener to make sure it is not triggered by fake
       // positive.
-      Settings.ScreenLayout.watch(
+      this.ScreenLayout.watch(
         'tabletAndLandscaped',
         '(min-width: 768px) and (orientation: landscape)');
-      window.addEventListener('screenlayoutchange', Settings.rotate);
+      window.addEventListener('screenlayoutchange', this.rotate);
 
-      // display of default panel(#wifi) must wait for
-      // lazy-loaded script - wifi_helper.js - loaded
-      if (Settings.isTabletAndLandscape()) {
-        Settings.currentPanel = Settings.defaultPanelForTablet;
+      // WifiHelper is guaranteed to be loaded in main.js before calling to
+      // this line.
+      if (this.isTabletAndLandscape()) {
+        self.currentPanel = self.initialPanelForTablet;
       }
-    }
 
-    if (!navigator.mozTelephony) {
-      var elements = ['call-settings',
-                      'data-connectivity',
-                      'messaging-settings',
-                      'simSecurity-settings'];
-      elements.forEach(function(el) {
-        document.getElementById(el).hidden = true;
-      });
-    }
+      window.addEventListener('keydown', this.handleSpecialKeys);
+    }).bind(this));
 
-    // we hide all entry points by default,
-    // so we have to detect and show them up
-    if (navigator.mozMobileConnections) {
-      if (navigator.mozMobileConnections.length == 1) {
-        // single sim
-        document.getElementById('simCardManager-settings').hidden = true;
+    PerformanceTestingHelper.dispatch('startup-path-done');
+  },
+
+  /**
+   * back button = close dialog || back to the root page
+   * + prevent the [Return] key to validate forms
+   */
+  handleSpecialKeys: function settings_handleSpecialKeys(event) {
+    if (Settings.currentPanel != '#root' &&
+        event.keyCode === event.DOM_VK_ESCAPE) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      var dialog = document.querySelector('#dialogs .active');
+      if (dialog) {
+        dialog.classList.remove('active');
+        document.body.classList.remove('dialog');
       } else {
-        // dsds
-        document.getElementById('simSecurity-settings').hidden = true;
+        Settings.currentPanel = '#root';
       }
-    }
-
-    // register web activity handler
-    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
-
-    this.currentPanel = 'root';
-  },
-
-  // Cache of all current settings values.  There's some large stuff
-  // in here, but not much useful can be done with the settings app
-  // without these, so we keep this around most of the time.
-  get settingsCache() {
-    return this.SettingsCache.cache;
-  },
-
-  // Invoke |callback| with a request object for a successful fetch of
-  // settings values, when those values are ready.
-  getSettings: function(callback) {
-    this.SettingsCache.getSettings(callback);
-  },
-
-  // An activity can be closed either by pressing the 'X' button
-  // or by a visibility change (i.e. home button or app switch).
-  finishActivityRequest: function settings_finishActivityRequest() {
-    // Remove the dialog mark to restore settings status
-    // once the animation from the activity finish.
-    // If we finish the activity pressing home, we will have a
-    // different animation and will be hidden before the animation
-    // ends.
-    if (document.hidden) {
-      this.restoreDOMFromActivty();
-    } else {
-      var self = this;
-      document.addEventListener('visibilitychange', function restore(evt) {
-        if (document.hidden) {
-          document.removeEventListener('visibilitychange', restore);
-          self.restoreDOMFromActivty();
-        }
-      });
-    }
-
-    // Send a result to finish this activity
-    if (Settings._currentActivity !== null) {
-      Settings._currentActivity.postResult(null);
-      Settings._currentActivity = null;
-    }
-
-    Settings._currentActivitySection = null;
-  },
-
-  // When we finish an activity we need to leave the DOM
-  // as it was before handling the activity.
-  restoreDOMFromActivty: function settings_restoreDOMFromActivity() {
-    var currentPanel = document.querySelector('[data-dialog]');
-    if (currentPanel !== null) {
-      delete currentPanel.dataset.dialog;
-    }
-    delete document.body.dataset.filterBy;
-  },
-
-  visibilityHandler: function settings_visibilityHandler(evt) {
-    if (document.hidden) {
-      Settings.finishActivityRequest();
-      document.removeEventListener('visibilitychange',
-        Settings.visibilityHandler);
-    }
-  },
-
-  webActivityHandler: function settings_handleActivity(activityRequest) {
-    var name = activityRequest.source.name;
-    var section = 'root';
-    Settings._currentActivity = activityRequest;
-    switch (name) {
-      case 'configure':
-        section = Settings._currentActivitySection =
-                                          activityRequest.source.data.section;
-
-        if (!section) {
-          // If there isn't a section specified,
-          // simply show ourselve without making ourselves a dialog.
-          Settings._currentActivity = null;
-        }
-
-        // Validate if the section exists
-        var sectionElement = document.getElementById(section);
-        if (!sectionElement || sectionElement.tagName !== 'SECTION') {
-          var msg = 'Trying to open an non-existent section: ' + section;
-          console.warn(msg);
-          activityRequest.postError(msg);
-          return;
-        } else if (section === 'root') {
-          var filterBy = activityRequest.source.data.filterBy;
-          if (filterBy) {
-            document.body.dataset.filterBy = filterBy;
-          }
-        }
-
-        // Go to that section
-        setTimeout(function settings_goToSection() {
-          Settings.currentPanel = section;
-        });
-        break;
-      default:
-        Settings._currentActivity = Settings._currentActivitySection = null;
-        break;
-    }
-
-    // Mark the desired panel as a dialog
-    if (Settings._currentActivity !== null) {
-      var domSection = document.getElementById(section);
-      domSection.dataset.dialog = true;
-      document.addEventListener('visibilitychange',
-        Settings.visibilityHandler);
-    }
-  },
-
-  getSupportedLanguages: function settings_getLanguages(callback) {
-    if (!callback)
-      return;
-
-    if (this._languages) {
-      callback(this._languages);
-    } else {
-      var self = this;
-      var LANGUAGES = '/shared/resources/languages.json';
-      loadJSON(LANGUAGES, function loadLanguages(data) {
-        if (data) {
-          self._languages = data;
-          callback(self._languages);
-        }
-      });
+    } else if (event.keyCode === event.DOM_VK_RETURN) {
+      event.target.blur();
+      event.stopPropagation();
+      event.preventDefault();
     }
   }
 };
-
-// back button = close dialog || back to the root page
-// + prevent the [Return] key to validate forms
-window.addEventListener('keydown', function handleSpecialKeys(event) {
-  if (Settings.currentPanel != '#root' &&
-      event.keyCode === event.DOM_VK_ESCAPE) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    var dialog = document.querySelector('#dialogs .active');
-    if (dialog) {
-      dialog.classList.remove('active');
-      document.body.classList.remove('dialog');
-    } else {
-      Settings.currentPanel = '#root';
-    }
-  } else if (event.keyCode === event.DOM_VK_RETURN) {
-    event.target.blur();
-    event.stopPropagation();
-    event.preventDefault();
-  }
-});
-
-// startup & language switching
-function startupLocale() {
-  // XXX change to mozL10n.ready when https://bugzil.la/993188 is fixed
-  navigator.mozL10n.once(function startupLocale() {
-    initLocale();
-    window.addEventListener('localized', initLocale);
-  });
-}
-
-function initLocale() {
-  var lang = navigator.mozL10n.language.code;
-
-  // set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = lang;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // display the current locale in the main panel
-  Settings.getSupportedLanguages(function displayLang(languages) {
-    document.getElementById('language-desc').textContent = languages[lang];
-  });
-}

@@ -1,11 +1,9 @@
 suite('controllers/battery', function() {
-  /*global req*/
   'use strict';
 
   suiteSetup(function(done) {
     var self = this;
-
-    req([
+    requirejs([
       'app',
       'controllers/battery',
       'lib/settings',
@@ -36,6 +34,7 @@ suite('controllers/battery', function() {
     this.app.settings.battery = sinon.createStubInstance(this.Setting);
     this.app.settings.battery.get.withArgs('levels').returns(levels);
     this.app.l10n = { get: sinon.stub() };
+    this.app.localized = sinon.stub().returns(true);
     this.app.views = {
       notification: sinon.createStubInstance(this.NotificationView)
     };
@@ -127,6 +126,17 @@ suite('controllers/battery', function() {
 
       this.controller.updateStatus();
       assert.ok(this.app.set.calledWith('batteryStatus', 'healthy'));
+    });
+
+    test('should wait for the app to be localized', function() {
+      this.app.battery.level = 0.06;
+      this.app.localized.returns(false);
+      this.controller.app.get
+        .withArgs('batteryStatus')
+        .returns('critical');
+
+      this.controller.updateStatus();
+      assert.ok(this.app.on.calledWith('localized'));
     });
   });
 

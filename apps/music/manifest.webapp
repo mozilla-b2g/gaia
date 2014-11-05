@@ -8,10 +8,11 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
+    "themeable":{},
     "storage":{},
     "device-storage:music":{ "access": "readwrite" },
+    "device-storage:pictures":{ "access": "readwrite" },
     "settings":{ "access": "readonly" },
-    "deprecated-hwvideo":{},
     "bluetooth":{},
     "audio-channel-content":{},
     "nfc":{ "access": "readwrite" }
@@ -54,13 +55,14 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/Music_60.png",
-    "90": "/style/icons/Music_90.png",
-    "120": "/style/icons/Music_120.png",
-    "135": "/style/icons/Music_135.png"
+    "84": "/style/icons/music_84.png",
+    "126": "/style/icons/music_126.png",
+    "142": "/style/icons/music_142.png",
+    "189": "/style/icons/music_189.png",
+    "284": "/style/icons/music_284.png"
   },
   "orientation": "default",
   "messages": [
-     { "media-button": "/index.html#mix" }
+     { "media-button": "/index.html" }
   ]
 }

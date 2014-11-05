@@ -1,4 +1,5 @@
 {
   "name": "alert test",
-  "launch_path": "/index.html"
+  "launch_path": "/index.html",
+  "fullscreen": true
 }

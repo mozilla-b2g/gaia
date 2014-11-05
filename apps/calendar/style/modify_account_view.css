@@ -13,6 +13,7 @@
 
 #modify-account-view .during-progress {
   display: none;
+  pointer-events: none;
 }
 
 #modify-account-view.in-progress .during-progress {
@@ -97,6 +98,11 @@
 #modify-account-view.auth-oauth2 .save,
 #modify-account-view.auth-oauth2 .password {
   display: none;
+}
+
+#modify-account-view.remove-dialog #modify-account-header,
+#modify-account-view.remove-dialog .modify-account-form {
+  visibility: hidden;
 }
 
 #oauth2 {

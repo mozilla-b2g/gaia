@@ -1,13 +1,16 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireLib('timespan.js');
-requireLib('interval_tree.js');
+var Calc = require('calc');
+var Factory = require('test/support/factory');
+var IntervalTree = require('interval_tree');
+var Responder = require('responder');
+var TimeController = require('controllers/time');
+var Timespan = require('timespan');
 
 window.page = window.page || {};
 
 suite('Controllers.Time', function() {
-  'use strict';
-
   var subject;
   var app;
   var busytimeStore;
@@ -15,7 +18,14 @@ suite('Controllers.Time', function() {
 
   setup(function(done) {
     app = testSupport.calendar.app();
-    subject = new Calendar.Controllers.Time(app);
+    subject = new TimeController(app);
+
+    subject.calendarStore = {
+      shouldDisplayCalendar: function(id) {
+        return true;
+      },
+      on: function() {}
+    };
 
     busytimeStore = app.store('Busytime');
     db = app.db;
@@ -39,8 +49,8 @@ suite('Controllers.Time', function() {
 
   test('initialize', function() {
     assert.equal(subject.app, app);
-    assert.instanceOf(subject, Calendar.Responder);
-    assert.instanceOf(subject._collection, Calendar.IntervalTree);
+    assert.instanceOf(subject, Responder);
+    assert.instanceOf(subject._collection, IntervalTree);
     assert.ok(!subject.pending);
 
     assert.deepEqual(subject._timespans, []);
@@ -117,7 +127,7 @@ suite('Controllers.Time', function() {
     var calledWith;
 
     subject.on('scaleChange', function() {
-      calledWith = arguments;
+      calledWith = Array.slice(arguments);
     });
 
     subject.scale = 'year';
@@ -140,32 +150,53 @@ suite('Controllers.Time', function() {
     var event;
 
     setup(function() {
-      span = new Calendar.Timespan(0, Infinity);
+      span = new Timespan(0, Infinity);
       busy = Factory('busytime');
+      event = null;
 
       subject.observeTime(span, function(result) {
         event = result;
       });
+      sinon.stub(subject.calendarStore, 'shouldDisplayCalendar');
+    });
 
-      subject.cacheBusytime(busy);
+    teardown(function() {
+      subject.calendarStore.shouldDisplayCalendar.restore();
     });
 
     test('#cacheBusytime', function() {
+      subject.calendarStore.shouldDisplayCalendar.returns(true);
+
+      subject.cacheBusytime(busy);
+
       assert.equal(event.type, 'add');
       assert.equal(event.data, busy);
 
       var query = subject.queryCache(span);
       assert.equal(query[0], busy);
-    });
 
-    test('remove', function() {
       subject.removeCachedBusytime(busy._id);
 
       assert.equal(event.type, 'remove');
       assert.equal(event.data, busy);
 
-      var query = subject.queryCache(busy);
-      assert.length(query, 0);
+      query = subject.queryCache(busy);
+      assert.lengthOf(query, 0);
+    });
+
+    test('disabled calendar', function() {
+      subject.calendarStore.shouldDisplayCalendar.returns(false);
+
+      subject.cacheBusytime(busy);
+
+      // should not return busytimes from disabled calendars
+      var query = subject.queryCache(span);
+      assert.lengthOf(query, 0);
+
+      // should not dispatch event for disabled calendars
+      assert.equal(event, null);
+      subject.removeCachedBusytime(busy._id);
+      assert.equal(event, null);
     });
   });
 
@@ -295,7 +326,7 @@ suite('Controllers.Time', function() {
         done(function() {
           assert.ok(!err);
           assert.ok(data);
-          assert.length(data, 1);
+          assert.lengthOf(data, 1);
 
           assert.deepEqual(data[0], {
             busytime: busytime
@@ -307,7 +338,7 @@ suite('Controllers.Time', function() {
     test('when given a busytime id (not cached)', function(done) {
       subject.findAssociated(hasAlarm._id, function(err, data) {
         done(function() {
-          assert.length(data, 1, 'has data');
+          assert.lengthOf(data, 1, 'has data');
           var item = data[0];
 
           assert.equal(item.busytime._id, hasAlarm._id, 'has alarm');
@@ -370,7 +401,7 @@ suite('Controllers.Time', function() {
       subject.findAssociated(noAlarm, options, function(err, result) {
         done(function() {
           assert.ok(!err);
-          assert.length(result, 1);
+          assert.lengthOf(result, 1);
           assert.deepEqual(result[0], expected);
         });
       });
@@ -436,7 +467,7 @@ suite('Controllers.Time', function() {
     subject.move(date);
 
     subject.move = function() {
-      Calendar.Controllers.Time.prototype.move.apply(this, arguments);
+      TimeController.prototype.move.apply(this, arguments);
       calledMove = arguments;
     };
 
@@ -536,7 +567,7 @@ suite('Controllers.Time', function() {
     function cacheTest(desc, cb) {
       test(desc, function(done) {
         spans = subject._timespans;
-        assert.length(spans, spanLength);
+        assert.lengthOf(spans, spanLength);
         // sanity check
         subject.cacheEvent(Factory('event'));
         cb();
@@ -545,7 +576,7 @@ suite('Controllers.Time', function() {
           // three ranges furthest from the
           // current point.
           done(function() {
-            assert.length(subject._timespans, max);
+            assert.lengthOf(subject._timespans, max);
             assert.deepEqual(subject._eventsCache, {}, 'removes event cache');
 
             if (toBeRemoved) {
@@ -577,7 +608,7 @@ suite('Controllers.Time', function() {
 
       subject.purgeCache();
       assert.isFalse(calledWith, 'miss - purged busytimes');
-      assert.length(
+      assert.lengthOf(
         Object.keys(subject._eventsCache), 1,
         'miss - purged events'
       );
@@ -586,7 +617,7 @@ suite('Controllers.Time', function() {
 
       subject.purgeCache();
       assert.isTrue(calledWith, 'hit - busytimes');
-      assert.length(Object.keys(subject._eventsCache), 0);
+      assert.lengthOf(Object.keys(subject._eventsCache), 0);
     });
 
     cacheTest('future - previous is missing', function() {
@@ -701,7 +732,7 @@ suite('Controllers.Time', function() {
       };
 
       store = app.store('Busytime');
-      span = new Calendar.Timespan(
+      span = new Timespan(
         new Date(2012, 1, 1),
         new Date(2012, 1, 5)
       );
@@ -761,13 +792,13 @@ suite('Controllers.Time', function() {
         'should remove inRange'
       );
 
-      assert.length(events.remove, 1);
+      assert.lengthOf(events.remove, 1);
       assert.equal(events.remove[0], inRange);
 
     });
 
     test('#queryCache', function() {
-      var span = new Calendar.Timespan(
+      var span = new Timespan(
         new Date(2000, 1, 1),
         new Date(2015, 1, 1)
       );
@@ -776,7 +807,7 @@ suite('Controllers.Time', function() {
         span
       );
 
-      assert.length(results, 2);
+      assert.lengthOf(results, 2);
       assert.deepEqual(
         subject.queryCache(span),
         results
@@ -926,13 +957,13 @@ suite('Controllers.Time', function() {
     });
 
     test('load', function() {
-      var span = new Calendar.Timespan(
+      var span = new Timespan(
         0,
         Infinity
       );
 
       var results = subject.queryCache(span);
-      assert.length(results, 3);
+      assert.lengthOf(results, 3);
 
       // trim the private variables
       results.forEach(function(item) {
@@ -958,7 +989,7 @@ suite('Controllers.Time', function() {
     var loaded;
 
     suiteSetup(function() {
-      spanOfMonth = Calendar.Calc.spanOfMonth;
+      spanOfMonth = Calc.spanOfMonth;
     });
 
     function monthSpan(date) {
@@ -1057,7 +1088,7 @@ suite('Controllers.Time', function() {
             assert.ok(!subject.pending, 'should not be pending');
             // quick sanity check to verify we are cleaning up
             // the spans that are not used.
-            assert.length(subject._timespans, subject._maxTimespans);
+            assert.lengthOf(subject._timespans, subject._maxTimespans);
           });
         });
 
@@ -1131,7 +1162,7 @@ suite('Controllers.Time', function() {
             generateSpanOfMonth(2012, 1)
           ];
 
-          assert.length(subject._timespans, 6);
+          assert.lengthOf(subject._timespans, 6);
           assert.deepEqual(subject._timespans, expected);
         });
       });
@@ -1141,5 +1172,6 @@ suite('Controllers.Time', function() {
     });
 
   });
+});
 
 });

@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['WrapperFactory']);
-
 suite('system/WrapperFactory', function() {
   setup(function(done) {
     requireApp('system/js/wrapper_factory.js', done);

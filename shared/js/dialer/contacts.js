@@ -76,31 +76,22 @@ var Contacts = {
     request.onsuccess = function findCallback() {
       var contacts = request.result;
       if (contacts.length === 0) {
-        // Checking if FB is enabled or not
-        window.asyncStorage.getItem('tokenData', function(data) {
-          if (!data || !data.access_token) {
-            // Facebook is not even enabled
-            callback(null);
-            return;
+        // It is only necessary to search for one variant as FB takes care
+        fb.getContactByNumber(number, function fb_ready(finalContact) {
+          var objMatching = null;
+          if (finalContact) {
+            objMatching = {
+              value: number,
+              // Facebook telephone are always of type personal
+              type: 'personal',
+              // We don't know the carrier from FB phones
+              carrier: null
+            };
           }
-
-          // It is only necessary to search for one variant as FB takes care
-          fb.getContactByNumber(number, function fb_ready(finalContact) {
-              var objMatching = null;
-              if (finalContact) {
-                objMatching = {
-                  value: number,
-                  // Facebook telephone are always of type personal
-                  type: 'personal',
-                  // We don't know the carrier from FB phones
-                  carrier: null
-                };
-              }
-              callback(finalContact, objMatching);
-            }, function fb_err(err) {
-                callback(null);
-            });
-          });
+          callback(finalContact, objMatching);
+        }, function fb_err(err) {
+          callback(null);
+        });
         return;
       }
 
@@ -141,6 +132,29 @@ var Contacts = {
     };
   },
 
+  _mergeOneFbContact: function _mergeOneFbContact(contacts, index) {
+    return new Promise(function(resolve, reject) {
+      var fbReq = fb.getData(contacts[index]);
+
+      fbReq.onsuccess = function() {
+        // We don't have to merge phone numbers from FB in order to avoid
+        // duplicate contacts in suggesstion bar because it also searches
+        // matchings in facebook datastore. It means that this method
+        // returns mozContacts merged but without FB's phone numbers (just
+        // local ones)
+        var originalTel = contacts[index].tel;
+        contacts[index] = fbReq.result;
+        contacts[index].tel = originalTel;
+        resolve();
+      };
+
+      fbReq.onerror = function() {
+        console.error('Could not merge Facebook data for', contacts[index].id);
+        reject();
+      };
+    });
+  },
+
   _mergeFbContacts: function _mergeFbContacts(contacts, callback) {
     if (!callback || !(callback instanceof Function)) {
       return;
@@ -151,24 +165,23 @@ var Contacts = {
     }
 
     LazyLoader.load(this._FB_FILES, function() {
-      for (var i = 0, length = contacts.length; i < length; i++) {
-        if (fb.isFbContact(contacts[i])) {
-          var fbReq = fb.getData(contacts[i]);
-          fbReq.onsuccess = function() {
-            contacts[i] = fbReq.result;
-            if (i === (length - 1)) {
-              callback(contacts);
-            }
-          };
-          fbReq.onerror = function() {
-            console.error('Could not merge Facebook data');
-            callback(contacts);
-          };
-        } else if (i === (length - 1)) {
+      var pending = contacts.length;
+
+      var onContactMerged = function() {
+        if (--pending === 0) {
           callback(contacts);
         }
+      };
+
+      for (var i = 0, length = contacts.length; i < length; i++) {
+        if (fb.isFbContact(contacts[i])) {
+          this._mergeOneFbContact(contacts, i).then(onContactMerged,
+                                                    onContactMerged);
+        } else {
+          onContactMerged();
+        }
       }
-    });
+    }.bind(this));
   },
 
   _findContacts: function _findContacts(options, callback) {
@@ -192,13 +205,7 @@ var Contacts = {
 
       // If we have contacts data from Facebook, we need to merge it with the
       // one from the Contacts API db.
-      window.asyncStorage.getItem('tokenData', function(data) {
-        if (data && data.access_token) {
-          self._mergeFbContacts(contacts, callback);
-        } else {
-          callback(contacts);
-        }
-      });
+      self._mergeFbContacts(contacts, callback);
     };
 
     req.onerror = function onerror() {
@@ -223,5 +230,28 @@ var Contacts = {
 
       self._findContacts(options, callback);
     });
+  },
+
+  getLength: function getLength(prop) {
+    if (!prop || !prop.length) {
+      return 0;
+    }
+    return prop.length;
+  },
+
+  sendEmailOrPick: function sendEmailOrPick(address) {
+    try {
+      // We don't check the email format, lets the email
+      // app do that
+      new MozActivity({
+        name: 'new',
+        data: {
+          type: 'mail',
+          URI: 'mailto:' + address
+        }
+      });
+    } catch (e) {
+      console.error('WebActivities unavailable? : ' + e);
+    }
   }
 };

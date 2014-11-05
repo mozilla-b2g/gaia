@@ -1,0 +1,15 @@
+{
+  "contacts": {
+    "src": ["apps/communications/contacts/js/**/*.js",
+            "!apps/communications/contacts/js/views/form.js"],
+    "options": {
+      "destination": "docs/contacts"
+    }
+  },
+  "dialer": {
+    "src": ["apps/communications/dialer/js/**/*.js"],
+    "options": {
+      "destination": "docs/dialer"
+    }
+  }
+}

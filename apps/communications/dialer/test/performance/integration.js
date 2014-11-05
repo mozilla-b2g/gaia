@@ -1,3 +1,5 @@
+'use strict';
+
 var App = requireGaia('/tests/performance/app.js');
 
 function DialerIntegration(client) {

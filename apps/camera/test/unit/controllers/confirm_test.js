@@ -1,11 +1,10 @@
 /*jshint maxlen:false*/
-/*global req*/
 'use strict';
 
 suite('controllers/confirm', function() {
   suiteSetup(function(done) {
     var modules = this.modules = {};
-    req([
+    requirejs([
       'controllers/confirm',
       'views/confirm'
     ], function(Controller, ConfirmView) {
@@ -44,7 +43,7 @@ suite('controllers/confirm', function() {
 
   suite('ConfirmController#onNewMedia()', function() {
     test('Should not do anything if there is no active activity', function() {
-      this.app.activity.active = false;
+      this.app.activity.pick = false;
       this.controller.onNewMedia({});
       assert.ok(this.app.ConfirmView.notCalled);
     });

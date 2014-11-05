@@ -35,6 +35,11 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
     'networkLocked' : 'simLockedPhone',
     'serviceProviderLocked' : 'simLockedPhone',
     'corporateLocked' : 'simLockedPhone',
+    'network1Locked' : 'simLockedPhone',
+    'network2Locked' : 'simLockedPhone',
+    'hrpdNetworkLocked' : 'simLockedPhone',
+    'ruimCorporateLocked' : 'simLockedPhone',
+    'ruimServiceProviderLocked' : 'simLockedPhone',
     'unknown' : 'unknownSimCardState',
     'illegal' : 'simCardIllegal',
     'absent' : 'noSimCard',
@@ -74,7 +79,6 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
     tih_updateDataTypeMapping();
     _iccManager = window.navigator.mozIccManager;
     _mobileConnections = window.navigator.mozMobileConnections;
-    _ = window.navigator.mozL10n.get;
     if (!_mobileConnections || !_iccManager) {
       return;
     }
@@ -219,7 +223,13 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
         continue;
       }
       desc.style.fontStyle = 'italic';
-      localize(desc, details);
+
+      if (details !== '') {
+        desc.setAttribute('data-l10n-id', details);
+      } else {
+        desc.removeAttribute('data-l10n-id');
+        desc.textContent = '';
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-/* global LazyLoader, AppWindowManager, applications, ManifestHelper*/
+/* global LazyLoader, System, applications, ManifestHelper*/
 /* global Template*/
 'use strict';
 (function(exports) {
@@ -19,18 +19,17 @@
     fullscreenRequest: undefined,
     isVideo: false,
     isAudio: false,
+    /**
+     * special dialog for camera selection while in app mode and
+     * permission is granted
+     */
+    isCamSelector: false,
     responseStatus: undefined,
     /**
      * A queue of pending requests. Callers of requestPermission() must be
      * careful not to create an infinite loop!
      */
     pending: [],
-
-    /**
-     * The ID of the next permission request. This is incremented by one
-     * on every request, modulo some large number to prevent overflow problems.
-     */
-    nextRequestID: 0,
 
     /**
      * The ID of the request currently visible on the screen. This has the value
@@ -46,6 +45,7 @@
       // Div over in which the permission UI resides.
       this.overlay = document.getElementById('permission-screen');
       this.dialog = document.getElementById('permission-dialog');
+      this.title = document.getElementById('permission-title');
       this.message = document.getElementById('permission-message');
       this.moreInfo = document.getElementById('permission-more-info');
       this.moreInfoLink = document.getElementById('permission-more-info-link');
@@ -53,6 +53,7 @@
       this.moreInfoBox = document.getElementById('permission-more-info-box');
 
       // "Yes"/"No" buttons on the permission UI.
+      this.buttons = document.getElementById('permission-buttons');
       this.yes = document.getElementById('permission-yes');
       this.no = document.getElementById('permission-no');
 
@@ -60,6 +61,8 @@
       this.remember = document.getElementById('permission-remember-checkbox');
       this.rememberSection =
         document.getElementById('permission-remember-section');
+      this.deviceSelector =
+        document.getElementById('permission-device-selector');
       this.devices = document.getElementById('permission-devices');
 
       var self = this;
@@ -69,6 +72,10 @@
       });
 
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('attentionopening', this);
+      window.addEventListener('attentionopened', this);
+      window.addEventListener('lockscreen-appopened', this);
+
       /* On home/holdhome pressed, discard permission request.
        * XXX: We should make permission dialog be embededd in appWindow
        * Gaia bug is https://bugzilla.mozilla.org/show_bug.cgi?id=853711
@@ -77,6 +84,21 @@
       this.discardPermissionRequest = this.discardPermissionRequest.bind(this);
       window.addEventListener('home', this.discardPermissionRequest);
       window.addEventListener('holdhome', this.discardPermissionRequest);
+
+      /* If an application that is currently running needs to get killed for
+       * whatever reason we want to discard it's request for permissions.
+       */
+      window.addEventListener('appterminated', (function(evt) {
+        if (evt.detail.origin == this.currentOrigin) {
+          this.discardPermissionRequest();
+        }
+      }).bind(this));
+
+      // Ensure that the focus is not stolen by the permission overlay, as
+      // it may appears on top of a <select> element, and just cancel it.
+      this.overlay.addEventListener('mousedown', function onMouseDown(evt) {
+        evt.preventDefault();
+      });
     },
 
     /**
@@ -91,29 +113,35 @@
       this.fullscreenRequest = null;
       this.isVideo = false;
       this.isAudio = false;
+      this.isCamSelector = false;
 
       this.responseStatus = null;
       this.pending = [];
-      this.nextRequestID = null;
       this.currentRequestId = null;
 
       this.overlay = null;
       this.dialog = null;
+      this.title = null;
       this.message = null;
       this.moreInfo = null;
       this.moreInfoLink = null;
       this.moreInfoBox = null;
 
+      this.remember = null;
+      this.rememberSection = null;
+      this.deviceSelector = null;
+      this.devices = null;
+
+      this.buttons = null;
       this.yes = null;
       this.no = null;
 
-      this.remember = null;
-      this.rememberSection = null;
-      this.devices = null;
-
       window.removeEventListener('mozChromeEvent', this);
-      window.removeEventListener('home', this);
-      window.removeEventListener('holdhome', this);
+      window.removeEventListener('attentionopening', this);
+      window.removeEventListener('attentionopened', this);
+      window.removeEventListener('lockscreen-appopened', this);
+      window.removeEventListener('home', this.discardPermissionRequest);
+      window.removeEventListener('holdhome', this.discardPermissionRequest);
     },
 
     /**
@@ -123,13 +151,24 @@
     cleanDialog: function pm_cleanDialog() {
       this.permissionType = undefined;
       this.currentPermissions = undefined;
+      this.currentChoices = {};
       this.isVideo = false;
       this.isAudio = false;
-      this.currentChoices = {};
-      this.devices.innerHTML = '';
+      this.isCamSelector = false;
+
+      //handled in showPermissionPrompt
+      if (this.message.classList.contains('hidden')) {
+        this.message.classList.remove('hidden');
+      }
       if (!this.moreInfoBox.classList.contains('hidden')) {
         this.moreInfoBox.classList.add('hidden');
       }
+      this.devices.innerHTML = '';
+      if (!this.deviceSelector.classList.contains('hidden')) {
+        this.deviceSelector.classList.add('hidden');
+      }
+      this.buttons.dataset.items = 2;
+      this.no.style.display = 'inline';
     },
 
     /**
@@ -147,14 +186,18 @@
           if (detail.permissions) {
             if ('video-capture' in detail.permissions) {
               this.isVideo = true;
-
               LazyLoader.load('shared/js/template.js');
+
+              // video selector is only for app
+              if (detail.isApp && detail.isGranted &&
+                detail.permissions['video-capture'].length > 1) {
+                this.isCamSelector = true;
+              }
             }
             if ('audio-capture' in detail.permissions) {
               this.isAudio = true;
             }
-          } else {
-            // work in compatible mode
+          } else { // work in <1.4 compatible mode
             if (detail.permission) {
               this.permissionType = detail.permission;
               if ('video-capture' === detail.permission) {
@@ -180,9 +223,13 @@
           }
           this.overlay.dataset.type = this.permissionType;
 
-          // Not show remember my choice option in gUM
           if (this.isAudio || this.isVideo) {
-            this.rememberSection.style.display = 'none';
+            if (!detail.isApp) {
+              // Not show remember my choice option in website
+              this.rememberSection.style.display = 'none';
+            } else {
+              this.rememberSection.style.display = 'block';
+            }
 
             // Set default options
             this.currentPermissions = detail.permissions;
@@ -195,8 +242,6 @@
                 }
               }
             }
-          } else {
-            this.rememberSection.style.display = 'block';
           }
 
           this.handlePermissionPrompt(detail);
@@ -206,7 +251,22 @@
           break;
         case 'fullscreenoriginchange':
           delete this.overlay.dataset.type;
+          this.cleanDialog();
           this.handleFullscreenOriginChange(detail);
+          break;
+      }
+
+      switch (evt.type) {
+        case 'attentionopened':
+        case 'attentionopening':
+          if (this.currentOrigin !== evt.detail.origin) {
+            this.discardPermissionRequest();
+          }
+          break;
+        case 'lockscreen-appopened':
+          if (this.currentRequestId == 'fullscreen') {
+            this.discardPermissionRequest();
+          }
           break;
       }
     },
@@ -251,13 +311,14 @@
         this.cancelRequest(this.fullscreenRequest);
         this.fullscreenRequest = undefined;
       }
-      if (detail.fullscreenorigin !== AppWindowManager.getActiveApp().origin) {
+      if (detail.fullscreenorigin !== System.currentApp.origin) {
         var _ = navigator.mozL10n.get;
         // The message to be displayed on the approval UI.
         var message =
           _('fullscreen-request', { 'origin': detail.fullscreenorigin });
         this.fullscreenRequest =
-          this.requestPermission(detail.origin, detail.permission, message, '',
+          this.requestPermission('fullscreen', detail.origin, detail.permission,
+                                 message, '',
                                               /* yesCallback */ null,
                                               /* noCallback */ function() {
                                                 document.mozCancelFullScreen();
@@ -271,27 +332,48 @@
      * @param {Object} detail The event detail object.
      */
     handlePermissionPrompt: function pm_handlePermissionPrompt(detail) {
-      if (this.isAudio || this.isVideo) {
+      if ((this.isAudio || this.isVideo) && !detail.isApp &&
+        !this.isCamSelector) {
+        // gUM always not remember in web mode
         this.remember.checked = false;
       } else {
         this.remember.checked = detail.remember ? true : false;
       }
-      var str = '';
+
+      var message = '';
       var permissionID = 'perm-' + this.permissionType.replace(':', '-');
       var _ = navigator.mozL10n.get;
 
       if (detail.isApp) { // App
         var app = applications.getByManifestURL(detail.manifestURL);
-        str = _(permissionID + '-appRequest',
+        message = _(permissionID + '-appRequest',
           { 'app': new ManifestHelper(app.manifest).name });
+
+        if (this.isCamSelector) {
+          this.title.setAttribute('data-l10n-id', 'title-cam');
+        } else {
+          this.title.setAttribute('data-l10n-id', 'title-app');
+        }
+        navigator.mozL10n.setAttributes(
+          this.deviceSelector,
+          'perm-camera-selector-appRequest',
+          { 'app': new ManifestHelper(app.manifest).name }
+        );
       } else { // Web content
-        str = _(permissionID + '-webRequest', { 'site': detail.origin });
+        message = _(permissionID + '-webRequest', { 'site': detail.origin });
+
+        this.title.setAttribute('data-l10n-id', 'title-web');
+        navigator.mozL10n.setAttributes(
+          this.deviceSelector,
+          'perm-camera-selector-webRequest',
+          { 'site': detail.origin }
+        );
       }
 
       var moreInfoText = _(permissionID + '-more-info');
       var self = this;
-      this.requestPermission(detail.origin, this.permissionType,
-        str, moreInfoText,
+      this.requestPermission(detail.id, detail.origin, this.permissionType,
+        message, moreInfoText,
         function pm_permYesCB() {
           self.dispatchResponse(detail.id, 'permission-allow',
             self.remember.checked);
@@ -306,7 +388,9 @@
      * @memberof PermissionManager.prototype
      */
     dispatchResponse: function pm_dispatchResponse(id, type, remember) {
-      remember = remember ? true : false;
+      if (this.isCamSelector) {
+        remember = true;
+      }
       this.responseStatus = type;
 
       var response = {
@@ -315,7 +399,7 @@
         remember: remember
       };
 
-      if (this.isVideo || this.isAudio) {
+      if (this.isVideo || this.isAudio || this.isCamSelector) {
         response.choices = this.currentChoices;
       }
       var event = document.createEvent('CustomEvent');
@@ -339,7 +423,19 @@
       this.no.callback = null;
       this.moreInfoLink.removeEventListener('click',
         this.moreInfoHandler);
+      this.hideInfoLink.removeEventListener('click',
+        this.moreInfoHandler);
       this.moreInfo.classList.add('hidden');
+      // XXX: This is telling AppWindowManager to focus the active app.
+      // After we are moving into AppWindow, we need to remove that
+      // and call this.app.focus() instead.
+      this.publish('permissiondialoghide');
+    },
+
+    publish: function(eventName, detail) {
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent(eventName, true, true, detail);
+      window.dispatchEvent(event);
     },
 
     /**
@@ -376,12 +472,13 @@
       var callback = null;
       if (evt.target === this.yes && this.yes.callback) {
         callback = this.yes.callback;
+        this.responseStatus = 'permission-allow';
       } else if (evt.target === this.no && this.no.callback) {
         callback = this.no.callback;
+        this.responseStatus = 'permission-deny';
       } else if (evt.target === this.moreInfoLink ||
                  evt.target === this.hideInfoLink) {
         this.toggleInfo();
-        this.moreInfoBox.classList.toggle('hidden');
         return;
       }
       this.hidePermissionPrompt();
@@ -403,12 +500,9 @@
      * Queue or show the permission prompt
      * @memberof PermissionManager.prototype
      */
-    requestPermission: function pm_requestPermission(origin, permission,
+    requestPermission: function pm_requestPermission(id, origin, permission,
                                      msg, moreInfoText,
                                      yescallback, nocallback) {
-      var id = this.nextRequestID;
-      this.nextRequestID = (this.nextRequestID + 1) % 1000000;
-
       if (this.currentRequestId !== undefined) {
         // There is already a permission request being shown, queue this one.
         this.pending.push({
@@ -437,6 +531,10 @@
       var self = this;
       var template = new Template('device-list-item-tmpl');
       var checked;
+
+      // show description
+      this.deviceSelector.classList.remove('hidden');
+      // build device list
       this.currentPermissions['video-capture'].forEach(function(option) {
         // Match currentChoices
         checked = (self.currentChoices['video-capture'] === option) ?
@@ -472,8 +570,9 @@
         // Show the "More info… " link.
         this.moreInfo.classList.remove('hidden');
         this.moreInfoHandler = this.clickHandler.bind(this);
+        this.hideInfoHandler = this.clickHandler.bind(this);
         this.moreInfoLink.addEventListener('click', this.moreInfoHandler);
-        this.hideInfoLink.addEventListener('click', this.moreInfoHandler);
+        this.hideInfoLink.addEventListener('click', this.hideInfoHandler);
         this.moreInfoBox.textContent = moreInfoText;
       }
       this.currentRequestId = id;
@@ -483,25 +582,32 @@
         this.listDeviceOptions();
       }
 
-      // Make the screen visible
-      this.overlay.classList.add('visible');
-
       // Set event listeners for the yes and no buttons
       var isSharedPermission = this.isVideo || this.isAudio ||
            this.permissionType === 'geolocation';
 
-      var _ = navigator.mozL10n.get;
-      this.yes.textContent =
-        isSharedPermission ? _('share-' + this.permissionType) : _('allow');
+      this.yes.setAttribute('data-l10n-id',
+        isSharedPermission ? 'share-' + this.permissionType : 'allow');
       this.yesHandler = this.clickHandler.bind(this);
       this.yes.addEventListener('click', this.yesHandler);
       this.yes.callback = yescallback;
 
-      this.no.textContent = isSharedPermission ?
-          _('dontshare-' + this.permissionType) : _('dontallow');
+      this.no.setAttribute('data-l10n-id', isSharedPermission ?
+        'dontshare-' + this.permissionType : 'dontallow');
       this.noHandler = this.clickHandler.bind(this);
       this.no.addEventListener('click', this.noHandler);
       this.no.callback = nocallback;
+
+      // customize camera selector dialog
+      if (this.isCamSelector) {
+        this.message.classList.add('hidden');
+        this.rememberSection.style.display = 'none';
+        this.buttons.dataset.items = 1;
+        this.no.style.display = 'none';
+        this.yes.setAttribute('data-l10n-id', 'ok');
+      }
+      // Make the screen visible
+      this.overlay.classList.add('visible');
     },
 
     /**
@@ -538,7 +644,16 @@
           this.currentRequestId === null) {
         return;
       }
-      this.dispatchResponse(this.currentRequestId, 'permission-deny', false);
+
+      if (this.currentRequestId == 'fullscreen') {
+        if (this.no.callback) {
+          this.no.callback();
+        }
+        this.fullscreenRequest = undefined;
+      } else {
+        this.dispatchResponse(this.currentRequestId, 'permission-deny', false);
+      }
+
       this.hidePermissionPrompt();
       this.pending = [];
     }

@@ -1,6 +1,7 @@
 var MockStackManager = {
   mCurrent: 0,
   mStack: [],
+  mOutOfstack: false,
 
   init: function sm_init() {
   },
@@ -13,10 +14,17 @@ var MockStackManager = {
   getNext: function sm_getNext() {
   },
 
+  outOfStack: function sm_outOfStack() {
+    return this.mOutOfStack;
+  },
+
   goPrev: function sm_goPrev() {
   },
   goNext: function sm_goNext() {
   },
+
+  commit: function() {},
+  commitClose: function() {},
 
   snapshot: function sm_snapshot() {
     return this.mStack.slice(0);

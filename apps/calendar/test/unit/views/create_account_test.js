@@ -1,6 +1,11 @@
-suiteGroup('Views.CreateAccount', function() {
-  'use strict';
+define(function(require) {
+'use strict';
 
+var AccountTemplate = require('templates/account');
+var CreateAccount = require('views/create_account');
+var Presets = require('presets');
+
+suite('Views.CreateAccount', function() {
   var subject;
   var template;
   var app;
@@ -15,7 +20,9 @@ suiteGroup('Views.CreateAccount', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="create-account-view">',
-        '<button class="cancel">cancel</button>',
+        '<gaia-header id="create-account-header" action="back">',
+          '<h1>Add an account</h1>',
+        '</gaia-header>',
         '<ul id="create-account-presets"></ul>',
       '</div>'
     ].join('');
@@ -24,11 +31,8 @@ suiteGroup('Views.CreateAccount', function() {
 
     app = testSupport.calendar.app();
 
-    template = Calendar.Templates.Account;
-    subject = new Calendar.Views.CreateAccount({
-      app: app
-    });
-
+    template = AccountTemplate;
+    subject = new CreateAccount({ app: app });
     app.db.open(done);
   });
 
@@ -82,8 +86,6 @@ suiteGroup('Views.CreateAccount', function() {
 
       assert.equal(renderCalled, true);
     });
-
-
   });
 
   suite('#render', function() {
@@ -95,7 +97,7 @@ suiteGroup('Views.CreateAccount', function() {
       var presets;
 
       setup(function(done) {
-        presets = Object.keys(Calendar.Presets);
+        presets = Object.keys(Presets);
         subject.render();
         subject.onrender = done;
       });
@@ -108,7 +110,7 @@ suiteGroup('Views.CreateAccount', function() {
         presets.forEach(function(val) {
           assert.include(
             html,
-            template.provider.render({ name: val })
+            val
           );
         });
       });
@@ -150,7 +152,7 @@ suiteGroup('Views.CreateAccount', function() {
         );
       });
     });
-
   });
+});
 
 });

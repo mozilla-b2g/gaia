@@ -21,6 +21,7 @@ var BASE_TYPES = new Set([
 var SETTINGS_KEYS = {
   ENABLED: 'keyboard.enabled-layouts',
   DEFAULT: 'keyboard.default-layouts',
+  CURRENT_ACTIVE: 'keyboard.current-active-layouts',
   THIRD_PARTY_APP_ENABLED: 'keyboard.3rd-party-app.enabled'
 };
 
@@ -57,15 +58,12 @@ var MULTI_LAYOUT_MAP = {
 // In order to provide default defaults, we need to know the default keyboard
 var defaultKeyboardManifestURL =
   'app://keyboard.gaiamobile.org/manifest.webapp';
-// support http:// version as well
-if (location.protocol === 'http:') {
-  defaultKeyboardManifestURL =
-    'http://keyboard.gaiamobile.org:8080/manifest.webapp';
-}
 
 // Stores a local copy of whatever is in the settings database
 var currentSettings = {
-  defaultLayouts: {}
+  defaultLayouts: {},
+  // type -> active layout mapping (e.g. { text: { id, manifestURL } })
+  currentActiveLayouts: {}
 };
 
 // until we read otherwise, asssume the default keyboards are en and number
@@ -164,6 +162,7 @@ var loadedSettings = new Set();
  */
 function kh_loadedSetting(setting) {
   loadedSettings.add(setting);
+
   if (loadedSettings.size >= Object.keys(SETTINGS_KEYS).length) {
     waitingForSettings.forEach(function(callback) {
       callback();
@@ -193,6 +192,7 @@ function kh_getSettings() {
   var lock = window.navigator.mozSettings.createLock();
   lock.get(SETTINGS_KEYS.DEFAULT).onsuccess = kh_parseDefault;
   lock.get(SETTINGS_KEYS.ENABLED).onsuccess = kh_parseEnabled;
+  lock.get(SETTINGS_KEYS.CURRENT_ACTIVE).onsuccess = kh_parseCurrentActive;
   lock.get(SETTINGS_KEYS.THIRD_PARTY_APP_ENABLED).onsuccess =
     kh_parse3rdPartyAppEnabled;
 }
@@ -219,6 +219,17 @@ function kh_parseDefault() {
     currentSettings.defaultLayouts = value;
   }
   kh_loadedSetting(SETTINGS_KEYS.DEFAULT);
+}
+
+/**
+ * Parse the result from the settings query for current active layouts
+ */
+function kh_parseCurrentActive() {
+  var value = this.result[SETTINGS_KEYS.CURRENT_ACTIVE];
+  if (value) {
+    currentSettings.currentActiveLayouts = value;
+  }
+  kh_loadedSetting(SETTINGS_KEYS.CURRENT_ACTIVE);
 }
 
 /**
@@ -464,11 +475,29 @@ Object.defineProperties(kh_SettingsHelper, {
       currentSettings.enabledLayouts = map2dClone(value);
     },
     enumerable: true
+  },
+  'active': {
+    get: function() {
+      return map2dClone(currentSettings.currentActiveLayouts);
+    },
+    set: function(value) {
+      currentSettings.currentActiveLayouts = map2dClone(value);
+    },
+    enumerable: true
   }
 });
 
 var KeyboardHelper = exports.KeyboardHelper = {
   settings: kh_SettingsHelper,
+
+  // bug 1035117: define the fallback layout for a group if no layout has been
+  // selected for that group (if it's not enforced in settings)
+  // please see the bug and its related UX spec for the sense of 'fallback'
+  fallbackLayoutNames: {
+    password: 'en'
+  },
+
+  fallbackLayouts: {},
 
   /**
    * Listen for changes in settings or apps and read the deafault settings
@@ -596,6 +625,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
     var toSet = {};
     toSet[SETTINGS_KEYS.ENABLED] = currentSettings.enabledLayouts;
     toSet[SETTINGS_KEYS.DEFAULT] = currentSettings.defaultLayouts;
+    toSet[SETTINGS_KEYS.CURRENT_ACTIVE] = currentSettings.currentActiveLayouts;
     window.navigator.mozSettings.createLock().set(toSet);
   },
 
@@ -685,6 +715,13 @@ var KeyboardHelper = exports.KeyboardHelper = {
     }
 
     function withApps(apps) {
+      // we'll delete keys in this active copy (= the purpose of copying)
+      var fallbackLayoutNames = {};
+      for (var group in this.fallbackLayoutNames) {
+        fallbackLayoutNames[group] = this.fallbackLayoutNames[group];
+      }
+      this.fallbackLayouts = {};
+
       var layouts = apps.reduce(function eachApp(result, app) {
 
         var manifest = new ManifestHelper(app.manifest);
@@ -701,6 +738,18 @@ var KeyboardHelper = exports.KeyboardHelper = {
             inputManifest: inputManifest,
             layoutId: layoutId
           });
+
+          // bug 1035117: insert a fallback layout regardless of its
+          // and enabledness
+          // XXX: we only do this for built-in keyboard?
+          if (app.manifestURL === defaultKeyboardManifestURL) {
+            for (var group in fallbackLayoutNames) {
+              if (layoutId === fallbackLayoutNames[group]) {
+                this.fallbackLayouts[group] = layout;
+                delete fallbackLayoutNames[group];
+              }
+            }
+          }
 
           if (options['default'] && !layout['default']) {
             continue;
@@ -730,12 +779,12 @@ var KeyboardHelper = exports.KeyboardHelper = {
           });
         }
         return result;
-      }, []);
+      }.bind(this), []);
 
       kh_withSettings(callback.bind(null, layouts));
     }
 
-    this.getApps(withApps);
+    this.getApps(withApps.bind(this));
   },
 
   /**
@@ -829,6 +878,26 @@ var KeyboardHelper = exports.KeyboardHelper = {
 
       this.saveToSettings(); // save changes to settings
     }.bind(this));
+  },
+
+  getCurrentActiveLayout: function kh_getActive(type) {
+    return currentSettings.currentActiveLayouts[type];
+  },
+
+  saveCurrentActiveLayout: function kh_saveActive(type, id, manifestURL) {
+    var curr = currentSettings.currentActiveLayouts[type];
+    if (curr && curr.id === id && curr.manifestURL === manifestURL) {
+      return;
+    }
+
+    currentSettings.currentActiveLayouts[type] = {
+      id: id,
+      manifestURL: manifestURL
+    };
+
+    var toSet = {};
+    toSet[SETTINGS_KEYS.CURRENT_ACTIVE] = currentSettings.currentActiveLayouts;
+    window.navigator.mozSettings.createLock().set(toSet);
   }
 };
 

@@ -14,6 +14,8 @@
 
 var DeviceStorageWatcher = {
 
+  LOW_DISK_NOTIF_ID: 'low-disk-space',
+
   init: function dsw_init() {
     this._lowDeviceStorage = false;
 
@@ -25,8 +27,8 @@ var DeviceStorageWatcher = {
     this._container = document.getElementById('storage-watcher-container');
     this._container.onclick = this.containerClicked;
 
-    this._message = this._container.querySelector('.message');
-    this._availableSpace = this._container.querySelector('.available-space');
+    this._message = this._container.querySelector('.title-container');
+    this._availableSpace = this._container.querySelector('.detail');
   },
 
   containerClicked: function dsw_containerClicked() {
@@ -48,7 +50,7 @@ var DeviceStorageWatcher = {
     this._lowDeviceStorage = false;
     if (this._container.classList.contains('displayed')) {
       this._container.classList.remove('displayed');
-      NotificationScreen.decExternalNotifications();
+      NotificationScreen.removeUnreadNotification(this.LOW_DISK_NOTIF_ID);
     }
   },
 
@@ -56,7 +58,7 @@ var DeviceStorageWatcher = {
     this._lowDeviceStorage = true;
     if (!this._container.classList.contains('displayed')) {
       this._container.classList.add('displayed');
-      NotificationScreen.incExternalNotifications();
+      NotificationScreen.addUnreadNotification(this.LOW_DISK_NOTIF_ID);
     }
   },
 
@@ -81,12 +83,16 @@ var DeviceStorageWatcher = {
 
   updateAvailableSpace: function dsw_updateAvailableSpace(space) {
     if (space && typeof space.size !== 'undefined' && space.unit) {
-      this._availableSpace.textContent = this._('free-space', {
-        value: space.size,
-        unit: space.unit
-      });
+      navigator.mozL10n.setAttributes(
+        this._availableSpace,
+        'free-space',
+        {
+          value: space.size,
+          unit: space.unit
+        }
+      );
     } else {
-      this._availableSpace.textContent = this._('unknown-free-space');
+      this._availableSpace.setAttribute('data-l10n-id', 'unknown-free-space');
     }
   },
 
@@ -101,13 +107,12 @@ var DeviceStorageWatcher = {
 
     var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     var i = 0;
-    while (size >= 1024 && i < units.length) {
+    while (size >= 1024 && i < (units.length) - 1) {
       size /= 1024;
       ++i;
     }
 
-    var sizeString = size.toFixed((size < 1024 * 1024) ? 0 : 1);
-    var sizeDecimal = parseFloat(sizeString);
+    var sizeDecimal = i < 2 ? Math.round(size) : Math.round(size * 10) / 10;
 
     return {
       size: sizeDecimal,
@@ -153,7 +158,7 @@ var DeviceStorageWatcher = {
   }
 };
 
-window.addEventListener('localized', function startup(evt) {
-  window.removeEventListener('localized', startup);
-  DeviceStorageWatcher.init();
-});
+// unit tests call init() manually
+if (navigator.mozL10n) {
+  navigator.mozL10n.once(DeviceStorageWatcher.init.bind(DeviceStorageWatcher));
+}

@@ -1,9 +1,4 @@
 /* ROOT */
-/* Hidden elements */
-.hide, [data-template] {
-  display: none !important;
-}
-
 
 /* Global */
 html {
@@ -102,11 +97,11 @@ a abbr {
 }
 
 /* Icons */
-span[role="button"] {
+span.icon {
   font-style: normal;
 }
 
-span[role="button"] + b, span[role="button"] + span {
+span.icon + b, span.icon + span {
   vertical-align: middle;
 }
 
@@ -200,40 +195,28 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
 }
 
 /* Rewritting from buttons.css */
-section[role="region"] > header:first-child button,
-section[role="region"] > header:first-child a[role="button"] {
+section[role="region"] > gaia-header button,
+section[role="region"] > gaia-header a {
   white-space: normal;
 }
 
 /* Buttons inside list redefinition */
-li button span,
-li a[role="button"] span {
+li button span {
   font-size: 0;
 }
 
+li button span[data-l10n-id] {
+  font-size: 1.6rem;
+}
+
 /* Extending components */
-li button.activity > b em ,
-li a[role="button"].activity > b em{
+li button.activity > b em {
   color: #727272;
   font-style: normal;
 }
 
 [data-type="list"] li p {
   margin-left: 1.5rem;
-}
-
-li button.activity > b ,
-li a[role="button"].activity > b{
-  font-weight: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-  position: absolute;
-  left: 1.5rem;
-  right: 3rem;
-  top: 0;
-  bottom: 0;
 }
 
 /* BB Lists extending */
@@ -245,7 +228,7 @@ li a[role="button"].activity > b{
   left: 0;
 }
 
-[data-type="list"] header {
+[data-type="list"] gaia-header {
   padding: 0 0 0 1.5rem;
   position: sticky;
   top: -1.5rem;
@@ -261,6 +244,10 @@ li a[role="button"].activity > b{
 [data-type="list"] li p,
 [data-type="list"] li aside {
   pointer-events: none;
+}
+
+[data-type="list"] li aside.pack-end {
+  margin: 0 2rem 0 0;
 }
 
 /* Selection tag extended from shared/style/buttons.css */
@@ -299,7 +286,6 @@ li a[role="button"].activity > b{
   z-index: 5;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 1.5rem;
   background: #fff;
   color: #333;
   text-align: left;
@@ -308,45 +294,7 @@ li a[role="button"].activity > b{
 
 /* Removes scroll from the view body inner */
 .view-noscroll .view-body-inner {
-  width: -moz-calc(100% + 1rem);
-}
-
-
-/* LAYOUT */
-/* ITEM: The smallest complete structure; */
-.item {
-  display: block;
-  overflow: hidden;
-}
-
-.item-media {
-  float: left;
-  margin-right: 1rem;
-}
-
-.item-media.pull-right {
-  margin-left: 1rem;
-  margin-right: 0;
-}
-
-.item-body {
-  display: table;
-}
-
-.item-body-exp {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* PULLS: Float an element to the desired position; */
-.pull-right {
-  float: right;
-}
-
-.pull-left {
-  float: left;
+  width: -moz-calc(100% + 1.5rem);
 }
 
 /* STACK: inline block list items; */
@@ -363,73 +311,28 @@ li a[role="button"].activity > b{
 
 /* ICONS */
 
-span[role="button"] {
+span.icon {
   font-size: 0;
   background: transparent no-repeat center center;
   background-size: 100% auto;
   display: inline-block;
 }
 
-span[role="button"].icon-finish {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-/* selection list */
-span[role="button"].icon-selected {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-/* tabs */
-span[role="button"].icon-profile {
-  background-color: rgba(255, 255, 255, 0.5)
-}
-
-/* navigation */
-span[role="button"].icon-log {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-span[role="button"].icon-contacts {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-span[role="button"].icon-messages {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-span[role="button"].icon-grid {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
 /* GENERIC BUTTONS */
-span[role="button"].icon-delete {
+span.icon.icon-delete {
   background-image: url(/contacts/style/gphx/bitmap/default/forms/delete.png);
   background-size: 3rem;
+  width: 3rem;
 }
 
-span[role="button"].icon-addimage {
+span.icon.icon-addimage {
   background-image: url(/contacts/style/gphx/bitmap/default/forms/add.png);
   background-size: 3rem;
   width: 3rem;
   height: 2.9rem;
 }
 
-li button.icon-call:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/call.png);
-}
-
-li button.icon-message:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/sms.png);
-}
-
-li button.send-sms {
-  width: 0;
-}
-li button.icon-email:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/mail.png);
-}
-
-span[role="button"].icon-address {
+span.icon.icon-address {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/location.png);
 }
 
@@ -452,41 +355,13 @@ li button.icon-fb-profile:before {
 }
 
 li button.icon-add:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png);
-  background-size: auto;
+  background-image: url(/contacts/style/images/Add_button.png);
+  left: 0.2rem
 }
 
 li button.icon-find-and-merge:before {
   background-image: url(/contacts/style/images/findandmerge.png);
-  background-size: auto;
-}
-
-
-/* arrows */
-span[role="button"].icon-arrow {
-  border: solid 0.4rem transparent;
-  width: 0;
-  height: 0;
-}
-
-span[role="button"].icon-arrow.icon-arrow-top {
-  margin-top: -0.4rem;
-  border-bottom-color: #333;
-}
-
-span[role="button"].icon-arrow.icon-arrow-bottom {
-  margin-top: 0.4rem;
-  border-top-color: #333;
-}
-
-span[role="button"].icon-arrow.icon-arrow-left {
-  margin-right: 0.4rem;
-  border-right-color: #333;
-}
-
-span[role="button"].icon-arrow.icon-arrow-right {
-  margin-left: 0.4rem;
-  border-left-color: #333;
+  background-size: 3rem;
 }
 
 /* Block type (long text) */
@@ -494,12 +369,6 @@ span[role="button"].icon-arrow.icon-arrow-right {
   height: auto;
   min-height: 4rem;
   word-wrap: normal;
-}
-.action-block span[role="button"] {
-  float: left;
-  display: inline;
-  background-size: 3rem;
-  display: none; /* Hide unused button */
 }
 .action-block b {
   display: block;
@@ -546,9 +415,10 @@ span[role="button"].icon-arrow.icon-arrow-right {
   top: 0;
   width: auto;
   height: auto;
+  padding-top: 0;
 }
 
-.fillflow-row-action span[role="button"] {
+.fillflow-row-action span.icon {
   border: none;
   margin: 0;
   height: 3.8rem;
@@ -557,12 +427,14 @@ span[role="button"].icon-arrow.icon-arrow-right {
 /* MEDIA: specific ratio used in forms; */
 .fillflow-media {
   margin: 0 1rem 0.5rem 0;
-  width: 8.8rem;
-  height: 8.8rem;
+  width: 7rem;
+  height: 7rem;
   position: relative;
   z-index: 0;
-  border: 0.1rem solid #c7c7c7;
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #c7c7c7;
+  background-color: #fff;
+  border-radius: 7rem;
+  -moz-box-sizing: border-box;
 }
 
 .fillflow-media:active {
@@ -576,24 +448,27 @@ span[role="button"].icon-arrow.icon-arrow-right {
 
 .fillflow-media p {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  margin:0;
+  padding:0;
+  left: -1.5rem;
+  top: 2rem;
   text-align: center;
   z-index: -1;
+  width: 10rem;
 }
 
 .fillflow-media p em {
   display: block;
   color: #858585;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: normal;
   font-style: italic;
-  margin-top: 0.2rem;
+  margin-top: 1.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .fillflow-media .edit-photo {
-  background: rgba(255, 255, 255, 0.4);
   top: 0;
   right: 5rem;
   z-index: 1;
@@ -603,21 +478,37 @@ span[role="button"].icon-arrow.icon-arrow-right {
 }
 
 .fillflow-media .edit-photo em {
-  color: #fff;
-  text-shadow: 0 0 2px rgba(0, 0, 0, 0.9);
-  margin-top: 6rem;
+  color: #858585;
+  margin-top: 7rem;
 }
 
 .with-photo .edit-photo {
   display: block;
+  width: 7rem;
 }
 
+.fillflow-media #photo-button {
+  width: 100%;
+  height: 100%;
+  background: none;
+  line-height: inherit;
+  padding: 0;
+}
 
 .fillflow-media img {
   width: 100%;
   height: 100%;
   background: #fff no-repeat center center;
   background-size: cover;
+}
+
+/* We don't need a delete button on the first section */
+.fillflow-media .img-delete-button {
+  display: none;
+}
+
+#thumbnail-action {
+  margin: 0 1.5rem 0.5rem 1.5rem;
 }
 
 /* JUMPER */
@@ -647,7 +538,8 @@ nav[data-type="scrollbar"] ol > li > * {
   display: block !important;
 }
 
-#groups-list.selecting .group-section li {
+#groups-list.selecting .group-section li,
+#search-list.selecting li {
   padding-left: 2rem;
 }
 
@@ -665,33 +557,58 @@ form[role="dialog"].no-overlay button {
   background: none;
 }
 
-
 #groups-list[data-type="list"].active.selecting li:not(:active):after {
   display:none !important;
 }
 
-.has-preferred-sim .icon-call div:after {
-  content: "";
-  position: absolute;
-  width: 1.4rem;
-  height: 1rem;
-  bottom: 0;
-  right: 0.9rem;
-  background-image: url("/shared/style/sim_picker/images/long-tap-indicator.png");
-  background-repeat: no-repeat;
-  background-size: 1.4rem 1rem;
+html[dir="rtl"] .fillflow-row-action {
+  right: auto;
+  left: 0;
 }
 
-.js-sim-indication {
-  float: right;
-  margin-right: -0.2rem;
-  display: none;
+html[dir="rtl"] .view-body-inner,
+html[dir="rtl"] ::-moz-placeholder {
+  text-align: right;
 }
 
-.has-preferred-sim .js-sim-indication {
-  display: initial;
+#import-settings button {
+  margin: 1.5rem;
+  width: calc(100% - 3rem);
 }
 
-#sim-picker {
+#contact-list-ice {
+  padding-left: 1rem
+}
+
+#contact-list-ice li {
+  display: flex;
+  align-items: baseline;
+}
+
+#contact-list-ice span {
+  width: 3rem;
+  height: 3rem;
+  background: url('/contacts/style/images/icon_ice.png') no-repeat 0 0 / 3rem auto transparent;
+}
+
+#groups-list.selecting #contact-list-ice {
+  display:none;
+}
+
+#ice-list {
+  min-height: 100%;
+  background: #FFF;
   text-align: left;
+}
+
+.ice-contact {
+  font-size: 1.6rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 24rem;
+}
+
+#contacts-form-notes textarea {
+  height: 9rem;
 }

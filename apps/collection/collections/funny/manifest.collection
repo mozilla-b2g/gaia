@@ -1,0 +1,15 @@
+{
+  "name": "Funny",
+  "role": "collection",
+  "categoryId": 277,
+  "pinned": [
+    ["apps", "video"]
+  ],
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/collections/funny/icon.png",
+    "90": "/collections/funny/icon_90.png",
+    "120": "/collections/funny/icon_120.png",
+    "135": "/collections/funny/icon_135.png"
+  }
+}

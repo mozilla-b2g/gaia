@@ -1,4 +1,4 @@
-# Gaia [![Build Status](https://travis-ci.org/mozilla-b2g/gaia.svg)](https://travis-ci.org/mozilla-b2g/gaia)
+# Gaia
 
 Gaia is Mozilla's Phone UX for the Boot to Gecko (B2G) project.
 
@@ -170,9 +170,16 @@ To view log out from a test
 make test-integration VERBOSE=1
 ```
 
+#### Running tests in OOP mode
+
+To run tests in OOP mode
+
+```sh
+make test-integration OOP=1
+```
+
 #### Where to find documentation
   - [Node.js](http://nodejs.org)
-
   - [MDN: for high level overview](https://developer.mozilla.org/en-US/docs/Marionette/Marionette_JavaScript_Tools)
   - [mocha: which is wrapped by marionette-js-runner](http://visionmedia.github.io/mocha/)
   - [marionette-js-runner: for the test framework](https://github.com/mozilla-b2g/marionette-js-runner)
@@ -212,7 +219,15 @@ See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/do
 
 To generate API reference locally, you have to install grunt with following command:
 
-    $ npm -g grunt-cli
+```sh
+$ npm -g grunt-cli
+```
 
 then run `make docs` command to generate docs.
 The generated API docs will be located in `docs` folder.
+
+You could generate single app doc with this:
+
+```sh
+$ grunt jsdoc:system
+```

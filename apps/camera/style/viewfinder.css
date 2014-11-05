@@ -1,13 +1,4 @@
 
-/**
- * 1. PERF: Don't transition to 0 to
- *    avoid composite layer being discarded.
- * 2. Disabled `will-change` due to performance
- *    issues on Hamachi. Leaving in place so that
- *    we can re-introduce as a later date to improve
- *    frame-rate on more capable devices.
- */
-
 .viewfinder {
   display: flex;
   position: absolute;
@@ -17,9 +8,16 @@
   height: 100%;
   justify-content: center;
   overflow: hidden;
-  opacity: 0.001; /* 1 */
-  /*will-change: opacity;*/ /* 2 */
-  transition: opacity 200ms ease-in-out;
+  opacity: 0;
+  transition: opacity 360ms ease-in-out;
+}
+
+/**
+ * enabled="false"
+ */
+
+.viewfinder[enabled="false"] {
+  pointer-events: none;
 }
 
 /**
@@ -31,7 +29,7 @@
 }
 
 /**
- * @visible
+ * visible
  */
 
 .viewfinder.visible {
@@ -69,7 +67,6 @@
   max-height: 100%; /* 1 */
   justify-content: center;
   align-items: center;
-  overflow: hidden;
 }
 
 /** Video Container
@@ -85,6 +82,7 @@
 .viewfinder-video {
   width: 100%;
   height: 100%;
+  outline: none;
 }
 
 /** Frame Grid

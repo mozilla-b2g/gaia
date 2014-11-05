@@ -1,4 +1,4 @@
-/* global Provider, Search, UrlHelper */
+/* global Search, DataGridProvider, GaiaGrid, Promise */
 
 (function() {
 
@@ -6,6 +6,8 @@
 
   function LocalApps() {
     this.apps = {};
+    this.appListing = [];
+    this.blacklist;
 
     var mozApps = navigator.mozApps.mgmt;
     var self = this;
@@ -22,83 +24,40 @@
       e.target.result.forEach(function r_AppsForEach(app) {
         self.apps[app.manifestURL] = app;
       });
+      self.createBlacklist().then(() => {
+        self.createAppListing();
+      });
     };
   }
 
   LocalApps.prototype = {
 
-    __proto__: Provider.prototype,
+    __proto__: DataGridProvider.prototype,
 
     name: 'LocalApps',
 
     dedupes: true,
     dedupeStrategy: 'exact',
 
-    click: function(e) {
-      var target = e.target;
-
-      var manifestURL = target.dataset.manifest;
-      if (manifestURL && this.apps[manifestURL]) {
-        if (target.dataset.entryPoint) {
-          this.apps[manifestURL].launch(
-            target.dataset.entryPoint
-          );
-        } else {
-          this.apps[manifestURL].launch();
-        }
-      }
-    },
-
-    search: function(input, collect) {
-      this.clear();
-
-      var results = this.find(input);
-      var formatted = [];
-      results.forEach(function eachResult(result) {
-        var dataset = {
-          manifest: result.manifestURL
+    createBlacklist: function() {
+      return new Promise((resolve, reject) => {
+        var self = this;
+        var key = 'app.launch_path.blacklist';
+        var req = navigator.mozSettings.createLock().get(key);
+        req.onsuccess = function onsuccess() {
+          self.blacklist = req.result[key] || [];
+          resolve();
         };
-
-        if (result.entryPoint) {
-          dataset.entryPoint = result.entryPoint;
-        }
-
-        var icons = result.manifest.icons || {};
-        var imgUrl = '';
-        for (var i in icons) {
-          var eachUrl = icons[i];
-          if (UrlHelper.hasScheme(eachUrl)) {
-            imgUrl = eachUrl;
-          } else {
-            // For relative URLs
-            var a = document.createElement('a');
-            a.href = result.origin;
-            imgUrl = a.protocol + '//' + a.host + eachUrl;
-          }
-        }
-
-        // Only display results which have icons.
-        if (!imgUrl) {
-          return;
-        }
-
-        formatted.push({
-          title: result.manifest.name,
-          icon: imgUrl,
-          dedupeId: result.manifestURL,
-          dataset: dataset
-        });
-      }, this);
-      collect(formatted);
+      });
     },
 
-    find: function(query) {
-      var results = [];
+    createAppListing: function() {
+      var appListing = [];
+      var blacklist = this.blacklist;
 
-      // Create a list of manifestURLs for apps with names which match the query
       var manifestURLs = Object.keys(this.apps);
-      manifestURLs.forEach(function eachManifest(manifestURL) {
 
+      manifestURLs.forEach(function eachManifest(manifestURL) {
         var app = this.apps[manifestURL];
         var manifest = app.manifest;
 
@@ -107,30 +66,84 @@
           return;
         }
 
-        var appListing = [];
         var entryPoints = manifest.entry_points;
-
         if (entryPoints) {
           for (var i in entryPoints) {
             var entry = entryPoints[i];
             entry.entryPoint = i;
+            entry.manifestURL = app.manifestURL;
             appListing.push(entry);
           }
         } else {
+          manifest.manifestURL = app.manifestURL;
           appListing.push(manifest);
         }
 
-        appListing.forEach(function(manifest) {
-          if (manifest.name.toLowerCase().indexOf(query.toLowerCase()) != -1) {
-            results.push({
-              origin: app.origin,
-              manifestURL: manifestURL,
-              app: app,
-              manifest: manifest,
-              entryPoint: manifest.entryPoint
-            });
-          }
-        });
+        if (blacklist) {
+          blacklist.forEach(function(blackentry) {
+            for (var i in appListing) {
+              var app = appListing[i];
+              if (app.launch_path === blackentry) {
+                appListing.splice(i, 1);
+              }
+            }
+          });
+        }
+      }, this);
+
+      this.appListing = appListing;
+    },
+
+    removeAppListing: function(app) {
+      for (var i in this.appListing) {
+        var manifest = this.appListing[i];
+        if (manifest.manifestURL === app.manifestURL) {
+          this.appListing.splice(i, 1);
+        }
+      }
+    },
+
+    search: function(input) {
+      return new Promise((resolve, reject) => {
+        var results = this.find(input);
+        var formatted = [];
+
+        results.forEach(function eachResult(result) {
+          formatted.push({
+            dedupeId: result.app.manifestURL,
+            data: new GaiaGrid.Mozapp(result.app, result.entryPoint)
+          });
+        }, this);
+
+        resolve(formatted);
+      });
+    },
+
+    /**
+     * Checks if an app manifest matches a query.
+     */
+    matches: function(manifest, query) {
+      query = query.toLowerCase();
+
+      // Get the localized name from the query.
+      var userLang = document.documentElement.lang;
+      var locales = manifest.locales;
+      var localized = locales && locales[userLang] && locales[userLang].name;
+      localized = localized || '';
+
+      return manifest.name.toLowerCase().indexOf(query) != -1 ||
+        localized.toLowerCase().indexOf(query) != -1;
+    },
+
+    find: function(query) {
+      var results = [];
+      this.appListing.forEach(function(manifest) {
+        if (this.matches(manifest, query)) {
+          results.push({
+            app: this.apps[manifest.manifestURL],
+            entryPoint: manifest.entryPoint
+          });
+        }
       }, this);
 
       return results;

@@ -1,17 +1,17 @@
+/* global exports, require */
+'use strict';
+
 /**
- * DownloadManager is a tool for downloading file from internet. This
- * implementation uses Downloads.jsm to do it. When downloads a https url which
- * uses self-signed certificate, DownloadManager fallbacks to "http" protocol to
- * download it.
+ * DownloadManager is a tool for downloading file from internet.
+ * When downloads a https url which uses self-signed certificate,
+ * DownloadManager fallbacks to "http" protocol to download it.
  *
  */
 
 var utils = require('./utils');
 
-const { Cc, Ci, Cr, Cu } = require('chrome');
-Cu.import('resource://gre/modules/FileUtils.jsm');
-Cu.import('resource://gre/modules/Services.jsm');
-Cu.import('resource://gre/modules/Downloads.jsm');
+const { Cc, Ci, Cu, Cr } = require('chrome');
+const { Services } = Cu.import('resource://gre/modules/Services.jsm');
 
 var DownloadManager = {
   debug: false,
@@ -74,14 +74,32 @@ var DownloadManager = {
     }
 
     DownloadManager.count += 1;
-    Downloads.createDownload({
-       source: url,
-       target: tmpFile
-    }).then(function(download) {
-      download.source.isPrivate = true;  // don't add to history
-      logLine('download for: ' + url + ' is placed.');
-      download.start().then(downloadFinished, downloadError);
-    }, downloadError);
+
+    var listener = {
+      QueryInterface: function(iid) {
+       if (!iid.equals(Ci.nsIDownloadObserver) &&
+           !iid.equals(Ci.nsISupports)) {
+          throw Cr.NS_ERROR_NO_INTERFACE;
+        }
+        return this;
+      },
+
+      onDownloadComplete: function(downloader, request, ctxt, status, file) {
+        if (!file || status !== 0) {
+          downloadError('failed to download "' + url + '" with error code: ' +
+                        status);
+        } else {
+          downloadFinished();
+        }
+      }
+    };
+
+    var downloader = Cc['@mozilla.org/network/downloader;1']
+                   .createInstance(Ci.nsIDownloader);
+    downloader.init(listener, tmpFile);
+
+    let channel = Services.io.newChannel(url, null, null);
+    channel.asyncOpen(downloader, null);
   },
   // private functions and variables
   _tempFolder: null,

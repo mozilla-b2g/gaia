@@ -63,6 +63,7 @@ function FormButton(input, config) {
   this.refresh = this.refresh.bind(this);
   // Update the dropdown when the language changes.
   window.addEventListener('localized', this.refresh);
+  window.addEventListener('timeformatchange', this.refresh);
 }
 
 FormButton.prototype = {

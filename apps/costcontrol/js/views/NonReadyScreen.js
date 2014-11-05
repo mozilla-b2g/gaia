@@ -7,7 +7,7 @@ function NonReadyScreen(container) {
   this.id = container.id;
   this.container = container;
   this.activity = container.querySelector('progress');
-  this.header = container.querySelector('h3');
+  this.header = container.querySelector('h1');
   this.message = container.querySelector('p');
   this.button = container.querySelector('button');
 
@@ -22,6 +22,7 @@ NonReadyScreen.prototype.updateForState = function(cardState) {
   switch (cardState) {
     case null:
     case 'absent':
+    case 'unknown':
     case 'pinRequired':
     case 'pukRequired':
     case 'airplaneMode':
@@ -60,7 +61,7 @@ NonReadyScreen.prototype.getMessageIdFor = function(cardState) {
   var message;
 
   // SIM is absent
-  if (!cardState || cardState === 'absent') {
+  if (!cardState || cardState === 'absent' || cardState === 'unknown') {
     message = 'no-sim2';
 
   // SIM is locked

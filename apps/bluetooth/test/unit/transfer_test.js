@@ -4,7 +4,7 @@
 
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/load_body_html_helper.js');
-requireApp('bluetooth/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -17,8 +17,6 @@ function switchReadOnlyProperty(originObject, propName, targetObj) {
   });
 }
 
-requireApp('bluetooth/js/transfer.js');
-
 var mocksForTransferHelper = new MocksHelper([
   'NavigatorSettings',
   'gDeviceList'
@@ -26,6 +24,7 @@ var mocksForTransferHelper = new MocksHelper([
 
 suite('Bluetooth app > transfer ', function() {
   var realL10n;
+  var mockOnceFunc;
   var realSetMessageHandler;
   var realMozSettings;
   var realMozBluetooth;
@@ -37,9 +36,11 @@ suite('Bluetooth app > transfer ', function() {
 
   mocksForTransferHelper.attachTestHelpers();
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = MockL10n;
+    mockOnceFunc = MockL10n.once;
+    MockL10n.once = function(handler) { handler(); };
 
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
@@ -51,6 +52,9 @@ suite('Bluetooth app > transfer ', function() {
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
 
     MockNavigatormozSetMessageHandler.mSetup();
+
+    loadBodyHTML('./_transfer.html');
+    requireApp('bluetooth/js/transfer.js', done);
   });
 
   suiteTeardown(function() {
@@ -59,13 +63,11 @@ suite('Bluetooth app > transfer ', function() {
     navigator.mozSettings = realMozSettings;
     switchReadOnlyProperty(navigator, 'mozBluetooth', realMozBluetooth);
     window.navigator.mozL10n = realL10n;
+    MockL10n.once = mockOnceFunc;
+    document.body.innerHTML = '';
   });
 
   setup(function() {
-    loadBodyHTML('./_transfer.html');
-
-    window.dispatchEvent(new CustomEvent('localized', {}));
-
     dialogConfirmBluetooth = document.getElementById('enable-bluetooth-view');
     bluetoothCancelButton = document.getElementById(
       'enable-bluetooth-button-cancel');
@@ -73,10 +75,6 @@ suite('Bluetooth app > transfer ', function() {
       'enable-bluetooth-button-turn-on');
     dialogAlertView = document.getElementById('alert-view');
     alertOkButton = document.getElementById('alert-button-ok');
-  });
-
-  teardown(function() {
-    document.body.innerHTML = '';
   });
 
   suite('handle "share" activity > ', function() {

@@ -130,29 +130,6 @@ var mozFMRadio = navigator.mozFM || navigator.mozFMRadio || {
   }
 };
 
-// XXX fake mozSetting object for UI testing on PC
-var mozSettings = navigator.mozSettings || {
-  addObserver: function settings_addObserver(key, callback) {},
-  createLock: function settings_createLock() {
-    return {
-      get: function() {
-        var request = {
-          result: {}
-        };
-
-        window.setTimeout(function() {
-          if (request.onsuccess) {
-            request.result['ril.radio.disabled'] = false;
-            request.onsuccess();
-          }
-        }, 500);
-
-        return request;
-      }
-    };
-  }
-};
-
 // XXX fake SpeakerManager object for UI testing on PC
 (function(aGlobal) {
   aGlobal.SpeakerManager = aGlobal.SpeakerManager || aGlobal.MozSpeakerManager;
@@ -190,7 +167,6 @@ function updatePowerUI() {
   var enabled = mozFMRadio.enabled;
   if (enabled) {
     PerformanceTestingHelper.dispatch('fm-radio-enabled');
-    PerformanceTestingHelper.dispatch('startup-path-done');
   }
   console.log('Power status: ' + (enabled ? 'on' : 'off'));
   var powerSwitch = $('power-switch');
@@ -203,7 +179,7 @@ function updateAntennaUI() {
 }
 
 function updateAirplaneModeUI() {
-  $('airplane-mode-warning').hidden = !rilDisabled;
+  $('airplane-mode-warning').hidden = !airplaneModeEnabled;
 }
 
 var enabling = false;
@@ -222,9 +198,9 @@ function updateEnablingState(enablingState) {
   updateFrequencyBarUI();
 }
 
-var rilDisabled = false;
+var airplaneModeEnabled = false;
 function enableFMRadio(frequency) {
-  if (rilDisabled)
+  if (airplaneModeEnabled)
     return;
 
   var request = mozFMRadio.enable(frequency);
@@ -408,7 +384,6 @@ var frequencyDialer = {
 
   _addDialerUnit: function(start, end) {
     var markStart = start - start % this.unit;
-    var html = '';
 
     // At the beginning and end of the dial, some of the notches should be
     // hidden. To do this, we use an absolutely positioned div mask.
@@ -429,35 +404,44 @@ var frequencyDialer = {
       }
     }
 
-    html += '    <div class="dialer-unit-mark-box">';
-    if (startMaskWidth > 0) {
-      html += '<div class="dialer-unit-mark-mask-start" style="width: ' +
-              startMaskWidth + 'px"></div>';
-    }
-    if (endMaskWidth > 0) {
-      html += '<div class="dialer-unit-mark-mask-end" style="width: ' +
-              endMaskWidth + 'px"></div>';
-    }
-    html += '    </div>';
+    var container = document.createElement('div');
+    container.classList.add('dialer-unit-mark-box');
 
-    var width = 'width: ' + (100 / this.unit) + '%';
+    if (startMaskWidth > 0) {
+      var markStart = document.createElement('div');
+      markStart.classList.add('dialer-unit-mark-mask-start');
+      markStart.style.width = startMaskWidth + 'px';
+
+      container.appendChild(markStart);
+    }
+
+    if (endMaskWidth > 0) {
+      var markEnd = document.createElement('div');
+      markEnd.classList.add('dialer-unit-mark-mask-end');
+      markEnd.style.width = endMaskWidth + 'px';
+
+      container.appendChild(markEnd);
+    }
+
+    var width = (100 / this.unit) + '%';
     // Show the frequencies on dialer
     for (var j = 0; j < this.unit; j++) {
       var frequency = Math.floor(markStart) + j;
       var showFloor = frequency >= start && frequency <= end;
-      if (showFloor) {
-        html += '<div class="dialer-unit-floor" style="' + width + '">' +
-          frequency + '</div>';
-      } else {
-        html += '  <div class="dialer-unit-floor hidden-block" style="' +
-          width + '">' + frequency + '</div>';
+
+      var unit = document.createElement('div');
+      unit.classList.add('dialer-unit-floor');
+      if (!showFloor) {
+        unit.classList.add('hidden-block');
       }
+      unit.style.width = width;
+      unit.appendChild(document.createTextNode(frequency));
+      container.appendChild(unit);
     }
 
-    html += '  </div>';
     var unit = document.createElement('div');
     unit.className = 'dialer-unit';
-    unit.innerHTML = html;
+    unit.appendChild(container);
     $('frequency-dialer').appendChild(unit);
   },
 
@@ -729,8 +713,6 @@ var favoritesList = {
 };
 
 function init() {
-  PerformanceTestingHelper.dispatch('start');
-
   frequencyDialer.init();
 
   var seeking = false;
@@ -822,11 +804,13 @@ function init() {
 
   // Disable the power button and the fav list when the airplane mode is on.
   updateAirplaneModeUI();
-  mozSettings.addObserver('ril.radio.disabled', function(event) {
-    rilDisabled = event.settingValue;
+
+  AirplaneModeHelper.addEventListener('statechange', function(status) {
+    airplaneModeEnabled = status === 'enabled';
     updateAirplaneModeUI();
   });
 
+  // Load the fav list and enable the FM radio if an antenna is available.
   historyList.init(function hl_ready() {
     if (mozFMRadio.antennaAvailable) {
       // Enable FM immediately
@@ -845,18 +829,80 @@ function init() {
       favoritesList.init();
     }
     updatePowerUI();
+
+    // PERFORMANCE EVENT (5): moz-app-loaded
+    // Designates that the app is *completely* loaded and all relevant
+    // "below-the-fold" content exists in the DOM, is marked visible,
+    // has its events bound and is ready for user interaction. All
+    // required startup background processing should be complete.
+    window.dispatchEvent(new CustomEvent('moz-app-loaded'));
   });
+
+  //
+  // If the system app is opening an attention screen (because
+  // of an incoming call or an alarm, e.g.) and if we are
+  // currently playing the radio then we need to stop the radio
+  // before the ringer or alarm starts sounding. See bugs 995540
+  // and 1006200.
+  //
+  // XXX We're abusing the settings API here to allow the system app
+  // to broadcast a message to any certified apps that care. There
+  // ought to be a better way, but this is a quick and easy way to
+  // fix a last-minute release blocker.
+  //
+  navigator.mozSettings.addObserver(
+    'private.broadcast.attention_screen_opening',
+    function(event) {
+      // An attention screen is in the process of opening. Save the
+      // current state of the radio and disable.
+      if (event.settingValue) {
+        window._previousFMRadioState = mozFMRadio.enabled;
+        window._previousEnablingState = enabling;
+        window._previousSpeakerForcedState = speakerManager.speakerforced;
+        mozFMRadio.disable();
+      }
+
+      // An attention screen is closing.
+      else {
+        // If the radio was previously enabled or was in the process
+        // of becoming enabled, re-enable the radio.
+        if (!!window._previousFMRadioState || !!window._previousEnablingState) {
+          // Ensure the antenna is still available before re-starting
+          // the radio.
+          if (mozFMRadio.antennaAvailable) {
+            enableFMRadio(frequencyDialer.getFrequency());
+          }
+
+          // Re-enable the speaker if it was previously forced.
+          speakerManager.forcespeaker = !!window._previousSpeakerForcedState;
+        }
+      }
+    }
+  );
 }
 
 window.addEventListener('load', function(e) {
-  var req = mozSettings.createLock().get('ril.radio.disabled');
-  req.onsuccess = function() {
-    rilDisabled = req.result['ril.radio.disabled'];
+  AirplaneModeHelper.ready(function() {
+    airplaneModeEnabled = AirplaneModeHelper.getStatus() == 'enabled';
     init();
-  };
-  req.onerror = function() {
-    init();
-  };
+
+    // PERFORMANCE EVENT (2): moz-chrome-interactive
+    // Designates that the app's *core* chrome or navigation interface
+    // has its events bound and is ready for user interaction.
+    window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+
+    // PERFORMANCE EVENT (3): moz-app-visually-complete
+    // Designates that the app is visually loaded (e.g.: all of the
+    // "above-the-fold" content exists in the DOM and is marked as
+    // ready to be displayed).
+    window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+
+    // PERFORMANCE EVENT (4): moz-content-interactive
+    // Designates that the app has its events bound for the minimum
+    // set of functionality to allow the user to interact with the
+    // "above-the-fold" content.
+    window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+  });
 }, false);
 
 // Turn off radio immediately when window is unloaded.
@@ -864,9 +910,7 @@ window.addEventListener('unload', function(e) {
   mozFMRadio.disable();
 }, false);
 
-// Set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('localized', function showBody() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-});
-
+// PERFORMANCE EVENT (1): moz-chrome-dom-loaded
+// Designates that the app's *core* chrome or navigation interface
+// exists in the DOM and is marked as ready to be displayed.
+window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));

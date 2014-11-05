@@ -1,4 +1,3 @@
-/* global _ */
 'use strict';
 
 var utils = window.utils || {};
@@ -24,10 +23,10 @@ var utils = window.utils || {};
     progressElement.setAttribute('value', 0);
 
     function showMessage() {
-      progressMsg.textContent = _(progressTextId, {
-        current: counter,
-        total: total
-      });
+      navigator.mozL10n.setAttributes(progressMsg,
+                                      progressTextId,
+                                      { current: counter, total: total }
+      );
     }
 
     /**
@@ -38,12 +37,13 @@ var utils = window.utils || {};
     this.update = function(value) {
       if (value && value <= total && value >= counter) {
         counter = value;
-        progressElement.setAttribute('value', (counter * 100) / total);
       } else {
-        progressElement.setAttribute('value', (++counter * 100) / total);
+        counter++;
       }
-       showMessage();
-     };
+      progressElement.setAttribute('value',
+        ((counter * 100) / total).toFixed()); // Percent fraction is not needed.
+      showMessage();
+    };
 
     this.setTotal = function(ptotal) {
       total = ptotal;
@@ -54,21 +54,28 @@ var utils = window.utils || {};
       clazz = clazzName;
       // To refresh the message according to the new clazzName
       if (clazzName === 'activityBar' || clazzName === 'spinner') {
-        progressMsg.textContent = null;
+        progressMsg.removeAttribute('data-l10n-id');
       }
     };
 
-    this.setHeaderMsg = function(headerMsg) {
-      progressTitle.textContent = headerMsg;
+    this.setHeaderMsg = function(headerMsgId) {
+      progressTitle.setAttribute('data-l10n-id', headerMsgId);
     };
   } // ProgressBar
 
   utils.overlay.isAnimationPlaying = false;
   utils.overlay.isShown = false;
-  utils.overlay._show = function _show(message, progressClass, textId) {
+  utils.overlay._show = function _show(messageId, progressClass, textId) {
     progressActivity.classList.remove('hide');
-    progressTitle.textContent = message;
+    if (typeof messageId === 'string') {
+      progressTitle.setAttribute('data-l10n-id', messageId);
+    } else {
+      navigator.mozL10n.setAttributes(progressTitle,
+                                      messageId.id,
+                                      messageId.args);
+    }
     progressMsg.textContent = null;
+    progressMsg.removeAttribute('data-l10n-id');
     if (utils.overlay.isShown) {
       return;
     }
@@ -76,6 +83,9 @@ var utils = window.utils || {};
     overlay.classList.remove('fade-out');
     overlay.classList.add('fade-in');
     utils.overlay.isAnimationPlaying = true;
+    // Custom event that can be used to apply (screen reader) visibility
+    // changes.
+    window.dispatchEvent(new CustomEvent('loadingoverlayshowing'));
     overlay.addEventListener('animationend', function ov_onFadeIn(ev) {
       utils.overlay.isAnimationPlaying = false;
       overlay.removeEventListener('animationend', ov_onFadeIn);
@@ -84,20 +94,20 @@ var utils = window.utils || {};
     });
   };
 
-  utils.overlay.show = function show(message, progressClass, textId) {
+  utils.overlay.show = function show(messageId, progressClass, textId) {
     var out;
     // In the case of an spinner this object will not be really used
     out = new ProgressBar(textId, progressClass);
     setClass(progressClass);
     utils.overlay.hideMenu(); // By default
     if (!utils.overlay.isAnimationPlaying) {
-      utils.overlay._show(message, progressClass, textId);
+      utils.overlay._show(messageId, progressClass, textId);
       return out;
     }
     overlay.addEventListener('animationend',
       function ov_showWhenFinished(ev) {
         overlay.removeEventListener('animationend', ov_showWhenFinished);
-        utils.overlay._show(message, progressClass, textId);
+        utils.overlay._show(messageId, progressClass, textId);
       }
     );
     return out;
@@ -114,6 +124,7 @@ var utils = window.utils || {};
   Object.defineProperty(utils.overlay, 'oncancel', {
     set: function(cancelCb) {
       if (typeof cancelCb === 'function') {
+        cancelButton.disabled = false;
         cancelButton.onclick = function on_cancel(e) {
           delete cancelButton.onclick;
           cancelCb();
@@ -156,6 +167,9 @@ var utils = window.utils || {};
     overlay.classList.remove('fade-in');
     overlay.classList.add('fade-out');
     utils.overlay.isAnimationPlaying = true;
+    // Custom event that can be used to apply (screen reader) visibility
+    // changes.
+    window.dispatchEvent(new CustomEvent('loadingoverlayhiding'));
     overlay.addEventListener('animationend', function ov_onFadeOut(ev) {
       utils.overlay.isAnimationPlaying = false;
       overlay.removeEventListener('animationend', ov_onFadeOut);

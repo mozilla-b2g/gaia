@@ -1,0 +1,318 @@
+/* ------------------------------------
+ * Layout.css will allow us creating
+ * easy structures using flexbox.
+ * This file will replace lists.css
+ * ------------------------------------ */
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-size: 18px;
+  color: #333;
+  overflow: hidden;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+p {
+  margin: 0;
+  line-height: 22px
+}
+
+/* Horizontal layout */
+.hbox {
+  display: flex;
+  flex-direction: row;
+}
+
+.hbox.left { justify-content: flex-start; }
+.hbox.center { justify-content: center; }
+.hbox.right { justify-content: flex-end; }
+.hbox.top { align-items: flex-start; }
+.hbox.middle { align-items: center; }
+.hbox.bottom { align-items: flex-end; }
+
+.hbox > .self-top { align-self: flex-start; }
+.hbox > .self-middle { align-self: center; }
+.hbox > .self-bottom { align-self: flex-end; }
+
+/* Vertical layout */
+.vbox {
+  display: flex;
+  flex-direction: column;
+}
+
+.vbox.left { align-items: flex-start; }
+.vbox.center { align-items: center; }
+.vbox.right { align-items: flex-end; }
+.vbox.top { justify-content: flex-start; }
+.vbox.middle { justify-content: center; }
+.vbox.bottom { justify-content: flex-end; }
+
+.vbox > .self-left { align-self: flex-start; }
+.vbox > .self-center { align-self: center; }
+.vbox > .self-right { align-self: flex-end; }
+
+/*
+ * Layout properties
+ */
+
+.fit {
+  flex: 1;
+}
+
+.scroll {
+  overflow: auto;
+}
+
+.fit.two   { flex: 2; }
+.fit.three { flex: 3; }
+.fit.four  { flex: 4; }
+.fit.five  { flex: 5; }
+.fit.six   { flex: 6; }
+
+/*
+ * Elements
+ */
+
+/* Lists */
+.gaia-list {
+  font-size: 18px;
+}
+
+.gaia-list li {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 40px;
+  padding: 10px 15px;
+}
+
+.gaia-list li:after {
+  position: absolute;
+  content: "";
+  right: 15px;
+  top: 0;
+  bottom: 0;
+  left: 15px;
+  border-bottom: 1px solid #e7e7e7;
+  pointer-events: none;
+}
+
+.gaia-list li:last-of-type:after {
+  display: none;
+}
+
+.gaia-list.active li:active,
+.gaia-list li.active:active {
+  background-color: rgba(0, 213, 255, 0.3);
+}
+
+
+.gaia-list li.vbox {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* List header */
+.gaia-list header {
+  padding: 0 30px;
+  margin: 0;
+  font-size: 16px;
+  height: 30px;
+  line-height: 40px;
+  font-weight: normal;
+  color: #ff4e00;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #fff;
+}
+
+.gaia-list.sticky header {
+  position: sticky;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* List elements */
+.gaia-list li p,
+.gaia-list li label {
+  margin-left: 15px;
+}
+
+.gaia-list li p:not(:first-of-type) {
+  color: #858585;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.gaia-list li p em {
+  font-size: 15px;
+  font-style: normal;
+}
+
+.gaia-list li p time {
+  margin-right: 3px;
+  text-transform: uppercase;
+}
+
+.gaia-list label.pack-checkbox,
+.gaia-list label.pack-radio,
+.gaia-list label.pack-switch {
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  height: auto;
+  min-height: 40px;
+  padding: 10px 0;
+  margin: -10px 0 -10px 15px;
+}
+
+.gaia-list label.vbox.pack-checkbox,
+.gaia-list label.vbox.pack-radio,
+.gaia-list label.vbox.pack-switch {
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.gaia-list label.pack-checkbox:not(.reverse) {
+  padding-left: 30px;
+  margin-left: 0;
+}
+
+.gaia-list label.pack-checkbox span:after {
+  left: 10px;
+}
+
+.gaia-list label.pack-radio span:after,
+.gaia-list label.pack-checkbox.reverse span:after,
+.gaia-list label.pack-switch span:after {
+  left: auto;
+  right: 0;
+}
+
+.gaia-list label.pack-radio span,
+.gaia-list label.pack-checkbox span,
+.gaia-list label.pack-switch span,
+.gaia-list label p {
+  word-wrap: break-word;
+  width: 100%;
+}
+
+.gaia-list label.pack-radio span,
+.gaia-list label.pack-checkbox.reverse span,
+.gaia-list label.pack-radio p,
+.gaia-list label.pack-checkbox.reverse p {
+  width: calc(100% - 30px);
+}
+
+.gaia-list label.pack-switch span,
+.gaia-list label.pack-switch p {
+  width: calc(100% - 70px);
+}
+
+.gaia-list label p {
+  color: #858585;
+  font-size: 15px;
+  line-height: 20px;
+  margin-left: 0;
+}
+
+.gaia-list li.icon {
+  padding-left: 40px;
+  background-position: 15px center;
+  background-repeat: no-repeat;
+  background-size: 30px;
+}
+
+.gaia-list [data-type=img],
+.gaia-list li img {
+  display: block;
+  overflow: hidden;
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  margin-top: 5px;
+  box-sizing: border-box;
+  box-shadow: 0 0 0 1px #dedede;
+  background: transparent center center / cover;
+  position: relative;
+
+  /* Favor performance over quality */
+  image-rendering: -moz-crisp-edges;
+}
+
+.gaia-list li button,
+.gaia-list li .button {
+  margin: 0;
+}
+
+.gaia-list li button + button,
+.gaia-list li p + button,
+.gaia-list li p + .button,
+.gaia-list li button + p,
+.gaia-list li .button + p,
+.gaia-list li label + button,
+.gaia-list li label + .button {
+  margin-top: 10px;
+}
+
+/* Footer */
+.gaia-footer {
+  border-top: 1px solid #e7e7e7;
+  background-color: #fff;
+  padding: 10px 15px;
+  display: flex;
+}
+
+.gaia-footer p {
+  margin: 0 15px 10px;
+  word-break: break-all;
+  text-align: center;
+  color: #858585;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.gaia-footer button,
+.gaia-footer .button {
+  margin: 0 0 0 15px;
+}
+
+.gaia-footer button:first-of-type,
+.gaia-footer .button:first-of-type {
+  margin-left: 0;
+}
+
+/*
+ * Skins
+ */
+
+.skin-comms .gaia-list header {
+  color: #4997a7;
+}
+
+.skin-organic .gaia-list header {
+  background-color: #e7e7e7;
+  color: #4d4d4d;
+  font-size: 15px;
+  line-height: 34px;
+  text-transform: none;
+}

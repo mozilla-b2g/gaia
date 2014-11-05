@@ -31,7 +31,7 @@ var TrustedUIManager = {
 
   throbber: document.getElementById('trustedui-throbber'),
 
-  closeButton: document.getElementById('trustedui-close'),
+  header: document.getElementById('trustedui-header'),
 
   errorTitle: document.getElementById('trustedui-error-title'),
 
@@ -60,7 +60,7 @@ var TrustedUIManager = {
     window.addEventListener('appterminated', this);
     window.addEventListener('keyboardhide', this);
     window.addEventListener('keyboardchange', this);
-    this.closeButton.addEventListener('click', this);
+    this.header.addEventListener('action', this);
     this.errorClose.addEventListener('click', this);
   },
 
@@ -97,7 +97,7 @@ var TrustedUIManager = {
       // Only one dialog, so transition back to main app.
       var self = this;
       var container = this.popupContainer;
-      if (!CardsView.cardSwitcherIsShown()) {
+      if (!taskManager.isShown()) {
         if (!origin) {
           this._restoreCallerApp(this._lastDisplayedApp);
         }
@@ -146,7 +146,7 @@ var TrustedUIManager = {
   },
 
   _hideCallerApp: function trui_hideCallerApp(origin, callback) {
-    var app = AppWindowManager.getApp(origin);
+    var app = appWindowManager.getApp(origin);
     if (app == null || app.isHomescreen) {
       return;
     }
@@ -175,13 +175,13 @@ var TrustedUIManager = {
   },
 
   _restoreCallerApp: function trui_restoreCallerApp(origin) {
-    var frame = AppWindowManager.getApp(origin).frame;
+    var frame = appWindowManager.getApp(origin).frame;
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
-    if (!AppWindowManager.getActiveApp().isHomescreen) {
+    if (!System.currentApp.isHomescreen) {
       this.publish('trusteduihide', { origin: origin });
     }
-    if (AppWindowManager.getActiveApp().origin == origin) {
+    if (System.currentApp.origin == origin) {
       frame.classList.add('restored');
       frame.addEventListener('transitionend', function removeRestored() {
         frame.removeEventListener('transitionend', removeRestored);
@@ -359,10 +359,17 @@ var TrustedUIManager = {
     }
 
     var name = dialog.name;
-    var _ = navigator.mozL10n.get;
 
-    this.errorTitle.textContent = _('error-title', {name: name});
-    this.errorMessage.textContent = _(errorProperty, {name: name});
+    navigator.mozL10n.setAttributes(
+      this.errorTitle,
+      'error-title',
+      { name: name }
+    );
+    navigator.mozL10n.setAttributes(
+      this.errorTitle,
+      errorProperty,
+      { name: name }
+    );
 
     this.container.classList.add('error');
   },
@@ -376,6 +383,7 @@ var TrustedUIManager = {
         }
         this._hideTrustedApp();
         break;
+      case 'action':
       case 'click':
         // cancel button or error close button
         this.container.classList.remove('error');

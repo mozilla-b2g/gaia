@@ -4,7 +4,7 @@
 /* global Promise */
 
 (function(exports) {
-  
+
   var datastore;
 
   // Datastore name declared on the manifest.webapp
@@ -106,7 +106,7 @@
     var callbacks = listeners[operation];
     callbacks && callbacks.forEach(function iterCallback(callback) {
       datastore.get(event.id).then(function got(result) {
-        callback({
+        callback.method.call(callback.context || this, {
           type: operation,
           target: result || event
         });
@@ -115,17 +115,22 @@
   }
 
   function addEventListener(type, callback) {
+    var context;
     if (!(type in listeners)) {
       listeners[type] = [];
     }
 
     var cb = callback;
     if (typeof cb === 'object') {
+      context = cb;
       cb = cb.handleEvent;
     }
 
     if (cb) {
-      listeners[type].push(cb);
+      listeners[type].push({
+        method: cb,
+        context: context
+      });
       init();
     }
   }
@@ -138,7 +143,13 @@
     var callbacks = listeners[type];
     var length = callbacks.length;
     for (var i = 0; i < length; i++) {
-      if (callbacks[i] && callbacks[i] === callback) {
+
+      var thisCallback = callback;
+      if (typeof thisCallback === 'object') {
+        thisCallback = callback.handleEvent;
+      }
+
+      if (callbacks[i] && callbacks[i].method === thisCallback) {
         callbacks.splice(i, 1);
         return true;
       }
@@ -192,6 +203,14 @@
     return new Promise(function doRemove(resolve, reject) {
       init().then(function onInitialized() {
         datastore.remove(id).then(resolve, reject);
+      }, reject);
+    });
+  }
+
+  function clear() {
+    return new Promise(function doClear(resolve, reject) {
+      init().then(function onInitialized() {
+        datastore.clear().then(resolve, reject);
       }, reject);
     });
   }
@@ -255,7 +274,14 @@
      *
      * @param{String} The bookmark's id
      */
-     remove: remove
+     remove: remove,
+
+    /*
+     *
+     * This method clears the entire datastore, removing all entries.
+     *
+     */
+     clear: clear
   };
 
 }(window));

@@ -1,0 +1,6 @@
+{
+  "name": "fullscreen LAYOUT",
+  "launch_path": "/index.html",
+  "fullscreen": true,
+  "fullscreen_layout": true
+}

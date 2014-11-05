@@ -46,12 +46,12 @@ nav[data-type="scrollbar"] ol {
 }
 
 nav[data-type="scrollbar"] li {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   line-height: 1.4em;
   text-align: center;
   text-transform: uppercase;
   width: 4.5rem;
-  height: 3.44%; /* 100% / 29 items */
+  height: calc(100% / 29);
 }
 
 nav[data-type="scrollbar"] li a {

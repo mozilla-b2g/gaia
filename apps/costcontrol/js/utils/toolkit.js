@@ -31,18 +31,6 @@ function deepCopy(object) {
   return clone;
 }
 
-Object.prototype.extend = function _extend() {
-  for (var i = 0, len = arguments.length; i < len; i++) {
-    var object = arguments[i];
-    for (var name in object) {
-      if (object.hasOwnProperty(name)) {
-        this[name] = object[name];
-      }
-    }
-  }
-  return this;
-};
-
 var Toolkit = {
   checkEnoughDelay: function(threshold, dateA, dateB) {
     if (!dateA) {

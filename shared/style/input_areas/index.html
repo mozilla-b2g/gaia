@@ -7,135 +7,232 @@
   <link rel="stylesheet" href="../input_areas.css">
 
   <!--
-    This <style> and <link> is only used for the example code, is no needed for the real case use
+    This <style>, <script> and <link> is only used for the example code,
+    is no needed for the real case use
   -->
   <style>
     html, body {
       margin: 0;
       padding: 0;
       font-size: 10px;
-      background-color: #fff;
+      background-color: #f4f4f4;
     }
-    body { background: none; }
+
+    label.bb-docs {
+      font-family: sans-serif;
+      font-size: 1.2rem;
+      margin-left: 1.5rem;
+    }
+
     h2.bb-docs {
+      font-family: sans-serif;
       padding: 0.4rem 3rem;
       margin: -0.1rem 0 0;
       border: solid 0.1rem #e8e8e8;
       color: #666;
       font-size: 1.8rem;
-      font-weight: lighter;
-      background-color: #f5f5f5;
+      font-weight: 300;
+      background-color: #fff;
     }
-    form { margin: 1rem 2rem; }
 
-    form[role="search"] button.icon-attachment:before {
-      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MjRDOEE3NkY5ODdEMTFFMjkwQTRGMjQ4RjZEMzhDQzkiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MjRDOEE3NzA5ODdEMTFFMjkwQTRGMjQ4RjZEMzhDQzkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDoyNEM4QTc2RDk4N0QxMUUyOTBBNEYyNDhGNkQzOENDOSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDoyNEM4QTc2RTk4N0QxMUUyOTBBNEYyNDhGNkQzOENDOSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PkuOQLYAAAGRSURBVHja7JZNRERRGIbvVGYVERHRKiKG2kQZIibSKqZNi1mlNlGklCitZohI1KrlXI2GIRJRWqQYpUWrtGgbKVJE5PYe3sPnkvt3xpD78bjj3OM+3nO+c0zCcRyrHtVg1ali8f8XN/31IjWYDvqtZpAEb3Lw/uqyZokz4A58gFfwCLK1XupVcArawDbYBI3gECyHWmoftQY2wDUYBe8cXwcnfFcCTyYTS+mIkKr6AvPc76zJpdbSW1AFN+AC9Is5OmWHKbGWVplyjglTXN5WztNH4sGEWEqVbBgUQB+YoXQAtIMd8AnKUZtLSr/BEDt4hXs5zXlKdgY6wQR4iZLYLU0z6RKlBzzLNtgF3SAHKlGO0yKl6vr5YdKCSKqk4+AI9AqpHfrK5Ify4pyO8bdbWqHQt9RLPMlbKMe9KxElLVKqmqcnqNRLnOTz2TVW5MVQ5jHqCir1aq5zPvNM3sI7WEn3mDSU1Cuxaph9MEt0bYEFboUVRuqnq6fYPBl29bFYCduKUIn4720sjsWm6leAAQD4qmIfI9EPMQAAAABJRU5ErkJggg==);
+    form { margin: 1rem 1.5rem; }
+
+    form[role="search"] { margin: 1rem 0; }
+
+    div.skin-dark {
+      background: #000;
     }
+
+    div.skin-dark.margins {
+      margin: 1rem -1.5rem;
+      padding: 1.5rem 1.5rem 0.5rem;
+    }
+
+    /**
+     *  .bb-editable
+     *  Added properties for this example, don't add on app.
+     */
+    .bb-editable {
+      padding: 1.5rem 1rem 0.5rem;
+      background: #bbb;
+    }
+
+    /**
+     *  .icon-email:before
+     *  Define the background-image with custom icon for App.
+     *  Atention, well need the pseudo-element for compatibility with Building Blocks.
+     *
+     *  Example:
+     *  .icon-mms:before { background-image: url(...); }
+     */
+    .icon-email:after {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAABaCAYAAACv+ebYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAASRJREFUeNrsl8ENgjAUhqlhAEfxQDyzgXdOjoCT0ClYg54Nu+gGtcRiAlJ5fQ9CDP+XFJOW+hlo6/uTBADw76hfg9ba0n0cBd//VErp6FlO3FgZDevn9pO50u4iEXPkn/ul4hj54L4lxBT51/hS4odrVUA62b+UOCSvfP+q4rE8KF1DTF5w3JPLio9Gx1T/Yauzen/idGb8Jv13QgEAAAAAyNJi27bitJhlmeYUAhfXcoHYuKY5pU/uJ3OluaTm4sjN3JOiFnsxckN5PTFVJkVuqGsitrw9hRaL7ycvxFhxt7WuE3Lt+1ct6MfyXhq131PmVukkpX+n5RYRhn24IC0iLQIAAABIi2/uRSFOi+e6RlpEWkRaRFpEWkRaRFoEYG+8BBgAvaeWTjgXDaoAAAAASUVORK5CYII=);
+    }
+
+    .icon-send {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAABH0lEQVR42uXXPUtCURjAcTVx09ZsEhx0dInALyCUuTX7Bn4CHR2ckqDJ1SUiCESkbxDRV9BJBxGhIXoZQkHs8T84iV3uuYdz7uDwm/9c7j3neW5ARHxxwOFAv2+DY/gBBQRth1sQDFFGxFY4iT/I1hx1xMyGgTfIjm+0ETcZrkH+sUQXKRPhYywgDtYYIKsb3vUEcekVeQShHb6AKBqiiIhOOIx3iAcz1BFVDwN3EA1fuMGJavgME3xiDfFoiUvnsLM4znGNBjp4xtRFvKcSzmCMD6xsPvGtH+/4CHM/vuqcx3Nc0j3Hj4o31xW0b64Yfv24qysuplPaxHR62RP8QRunpuZxYs8G0rCxgTQhGKFqc+e6RwEhW1umDQf8C7MBVhE+F1rOxMAAAAAASUVORK5CYII=);
+    }
+
   </style>
+  <script>
+    window.onload = function(){
+      document.getElementById('dir').checked = false;
+    };
+  </script>
 </head>
 
 <body role="application">
   <p dir="ltr">
-    <label>
-      <input type="checkbox"
+    <label class="bb-docs">
+      <input id="dir" type="checkbox" checked="false"
         onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
       RTL mode
     </label>
   </p>
+  <h2 class="bb-docs">Default inputs</h2>
+  <form>
+    <p>
+      <input type="text" placeholder="Placeholder">
+      <button type="reset">Clear</button>
+    </p>
 
-    <h2 class="bb-docs">Default inputs</h2>
-    <form>
+    <p>
+      <textarea placeholder="Placeholder in textarea"></textarea>
+    </p>
+
+    <p>
+      <input type="text" placeholder="Placeholder" value="Some written text" required>
+      <button type="reset">Clear</button>
+    </p>
+
+    <p>
+      <input type="text" placeholder="Disabled" disabled required>
+      <button type="reset">Clear</button>
+    </p>
+
+    <div class="skin-dark margins">
       <p>
-        <input type="text" placeholder="Placeholder" required>
+        <input type="text" placeholder="Placeholder" value="Some written text">
         <button type="reset">Clear</button>
       </p>
+    </div>
+  </form>
 
+  <h2 class="bb-docs">Required inputs</h2>
+  <form>
+    <p>
+      <input type="text" placeholder="Placeholder" required>
+      <button type="reset">Clear</button>
+    </p>
+
+    <p>
+      <textarea placeholder="Placeholder in textarea" required></textarea>
+    </p>
+  </form>
+
+  <h2 class="bb-docs">Date/time inputs</h2>
+  <form>
+    <p>
+      <input disabled type="date" placeholder="YYYY-MM-DD">
+    </p>
+
+    <p>
+      <input type="time" placeholder="hh:mm:ss">
+    </p>
+  </form>
+
+  <h2 class="bb-docs">Fieldset</h2>
+  <form>
+    <fieldset>
+      <legend class="action">Mobile</legend>
+      <section>
+        <p>
+          <input type="tel" placeholder="Phone number">
+          <button type="reset">Clear</button>
+        </p>
+        <p>
+          <input type="text" placeholder="Name" value="Jessy James">
+          <button type="reset">Clear</button>
+        </p>
+      </section>
+    </fieldset>
+
+    <fieldset disabled>
+      <legend>Work</legend>
+      <section>
+        <p>
+          <input type="tel" placeholder="Email">
+          <button type="reset">Clear</button>
+        </p>
+      </section>
+    </fieldset>
+  </form>
+
+  <h2 class="bb-docs">Forms: Input text</h2>
+  <form role="search">
+    <p>
+      <input type="text" placeholder="Search...">
+      <button type="reset">Clear</button>
+    </p>
+  </form>
+
+  <form role="search">
+    <button type="submit">Cancel</button>
+    <p>
+      <input type="text" placeholder="Search..." value="Some text here">
+      <button type="reset">Clear</button>
+    </p>
+  </form>
+
+  <div class="skin-dark">
+  <h2 class="bb-docs">Skin dark</h2>
+    <form role="search" class="skin-dark">
       <p>
-        <textarea placeholder="Placeholder in textarea" required></textarea>
-      </p>
-
-      <p>
-        <input type="text" placeholder="Placeholder" value="Some written text" required>
-        <button type="reset">Clear</button>
-      </p>
-    </form>
-
-    <h2 class="bb-docs">Fieldset</h2>
-     <form>
-      <fieldset>
-        <legend class="action">Mobile</legend>
-        <section>
-          <p>
-            <input type="tel" placeholder="Phone number" required>
-            <button type="reset">Clear</button>
-          </p>
-          <p>
-            <input type="text" placeholder="Name" value="Jessy James" required>
-            <button type="reset">Clear</button>
-          </p>
-        </section>
-      </fieldset>
-
-      <fieldset>
-        <legend>Work</legend>
-        <section>
-          <p>
-            <input type="tel" placeholder="Email" required>
-            <button type="reset">Clear</button>
-          </p>
-        </section>
-      </fieldset>
-     </form>
-
-    <h2 class="bb-docs">Forms: Input text</h2>
-
-    <form role="search">
-      <p>
-        <input type="text" placeholder="Search..." required>
-        <button type="reset">Clear</button>
-      </p>
-    </form>
-
-    <form role="search">
-      <button type="submit">Cancel</button>
-      <p>
-        <input type="text" placeholder="Search..." required value="Some text here">
+        <input type="text" placeholder="Search...">
         <button type="reset">Clear</button>
       </p>
     </form>
 
     <form role="search" class="skin-dark">
-      <p>
-        <input type="text" placeholder="Search..." required>
-        <button type="reset">Clear</button>
-      </p>
-    </form>
-
-    <form role="search" class="skin-dark">
       <button type="submit">Cancel</button>
       <p>
-        <input type="text" placeholder="Search..." required value="Some text here">
+        <input type="text" placeholder="Search..." value="Some text here">
         <button type="reset">Clear</button>
       </p>
     </form>
+  </div>
 
-    <h2 class="bb-docs">Forms: Text area</h2>
+  <h2 class="bb-docs">Forms: Text area</h2>
+  <form role="search" class="bottom">
+    <!-- this button should be enabled after start typing in the input field-->
+    <button type="submit" disabled>Send</button>
+    <p>
+      <textarea></textarea>
+    </p>
+  </form>
 
-    <form role="search" class="bottom">
-      <!-- this button should be enabled after start typing in the input field-->
-      <button type="submit" disabled>Send</button>
-      <p>
-        <textarea required></textarea>
-      </p>
-    </form>
+  <form role="search" class="bottom">
+    <button type="submit">Send</button>
+    <p>
+      <textarea>Some text here</textarea>
+    </p>
+  </form>
 
-    <form role="search" class="bottom">
-      <button class="icon icon-attachment">Attachment</button>
-      <button type="submit">Send</button>
-      <p>
-        <textarea required>Some text here</textarea>
-      </p>
-    </form>
+  <form role="search" class="bottom">
+    <button type="submit" class="icon icon-send">Send</button>
+    <p>
+      <textarea>Some text here</textarea>
+    </p>
+  </form>
+
+  <h2 class="bb-docs">Content Editable</h2>
+  <ul class="bb-editable">
+    <li contenteditable="false">Travis Gray Travis Gray</li>
+    <li class="invalid" contenteditable="false">Lucy B.</li>
+    <li class="icon icon-email" contenteditable="false">Mary</li>
+    <li class="invalid icon icon-email" contenteditable="false">Paul C.</li>
+    <li contenteditable="true">John</li>
+  </ul>
 
 </body>
 </html>

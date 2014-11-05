@@ -86,13 +86,7 @@ IMEngineBase.prototype = {
      * Sends the input string to the IMEManager.
      * @param {String} str The input string.
      */
-    sendString: function(str) {},
-
-    /**
-     * Change the keyboad
-     * @param {String} keyboard The name of the keyboard.
-     */
-    alterKeyboard: function(keyboard) {}
+    sendString: function(str) {}
   },
 
   /**
@@ -128,6 +122,18 @@ IMEngineBase.prototype = {
    * @param {Object} data User data of the candidate.
    */
   select: function engineBase_select(text, data) {
+  },
+
+  /**
+   * Notifies when selection changes
+   */
+  selectionChange: function engineBase_selectionChange(detail) {
+  },
+
+  /**
+   * Notifies when surrounding text changes
+   */
+  surroundingtextChange: function engineBase_surroundingtextChange(detail) {
   },
 
   /**
@@ -218,6 +224,9 @@ var IMEngine = function engine_constructor() {
   IMEngineBase.call(this);
 };
 
+// We use keycode 65 to represent "'" for pinyin input method
+var SPECIAL_KEYCODE_FOR_DELIMITER = 65;
+
 IMEngine.prototype = {
   // Implements IMEngineBase
   __proto__: new IMEngineBase(),
@@ -246,9 +255,6 @@ IMEngine.prototype = {
 
   _isActive: false,
   _uninitTimer: null,
-
-  // Current keyboard
-  _keyboard: 'zh-Hans-Pinyin',
 
   _sendPendingSymbols: function engine_sendPendingSymbols() {
     debug('SendPendingSymbol: ' + this._pendingSymbols);
@@ -327,6 +333,8 @@ IMEngine.prototype = {
     }
 
     var code = this._keypressQueue.shift();
+    // We use keycode 65 to represent "'" for pinyin input method
+    var realCode = (code == SPECIAL_KEYCODE_FOR_DELIMITER) ? 39 : code;
 
     if (code == 0) {
       // This is a select function operation.
@@ -350,7 +358,7 @@ IMEngine.prototype = {
 
         // pass the key to IMEManager for default action
         debug('Default action.');
-        this._glue.sendKey(code);
+        this._glue.sendKey(realCode);
         this._next();
       } else {
         this._pendingSymbols = this._pendingSymbols.substring(0,
@@ -385,32 +393,25 @@ IMEngine.prototype = {
       debug('Default action.');
       this.empty();
       if (sendKey) {
-        this._glue.sendKey(code);
+        this._glue.sendKey(realCode);
       }
       this._next();
       return;
     }
 
-    var symbol = String.fromCharCode(code);
-
-    debug('Processing symbol: ' + symbol);
+    debug('Processing symbol: ' + String.fromCharCode(realCode));
 
     // add symbol to pendingSymbols
-    this._appendNewSymbol(code);
+    this._appendNewSymbol(realCode);
     this._updateCandidatesAndSymbols(this._next.bind(this));
   },
 
   _isPinyinKey: function engine_isPinyinKey(code) {
-    if (this._keyboard == 'zh-Hans-Pinyin') {
-      // '
-      if (code == 39) {
-        return true;
-      }
-
-      // a-z
-      if (code >= 97 && code <= 122) {
-        return true;
-      }
+    // keycode 65 is used to represent "'" for pinyin input method
+    // a-z
+    if ((code >= 97 && code <= 122) ||
+        code === SPECIAL_KEYCODE_FOR_DELIMITER) {
+      return true;
     }
 
     return false;
@@ -479,14 +480,6 @@ IMEngine.prototype = {
         callback();
       });
     }
-  },
-
-  _alterKeyboard: function engine_changeKeyboard(keyboard) {
-    this._resetKeypressQueue();
-    this.empty();
-
-    this._keyboard = keyboard;
-    this._glue.alterKeyboard(keyboard);
   },
 
   _resetKeypressQueue: function engine_abortKeypressQueue() {
@@ -600,43 +593,10 @@ IMEngine.prototype = {
    *Override
    */
   click: function engine_click(keyCode) {
-    if (this._layoutPage !== LAYOUT_PAGE_DEFAULT) {
-      this._glue.sendKey(keyCode);
-      return;
-    }
-
     IMEngineBase.prototype.click.call(this, keyCode);
 
-    switch (keyCode) {
-      case -11: // Switch to Pinyin Panel
-        this._alterKeyboard('zh-Hans-Pinyin');
-        break;
-      case -20: // Switch to Chinese Symbol Panel, Same page
-      case -21: // Switch to Chinese Symbol Panel, Page 1
-      case -22: // Switch to Chinese Symbol Panel, Page 2
-      case -30: // Switch to English Symbol Panel, Same page
-      case -31: // Switch to English Symbol Panel, Page 1
-      case -32: // Switch to English Symbol Panel, Page 2
-        var index = Math.abs(keyCode);
-        var symbolType = index < 30 ? 'Ch' : 'En';
-        var symbolPage = index % 10;
-        if (!symbolPage)
-          symbolPage = this._keyboard.substr(-1);
-        this._alterKeyboard(
-          'zh-Hans-Pinyin-Symbol-' + symbolType + '-' + symbolPage);
-        break;
-      default:
-        this._keypressQueue.push(keyCode);
-        break;
-    }
-
+    this._keypressQueue.push(keyCode);
     this._start();
-  },
-
-  _layoutPage: LAYOUT_PAGE_DEFAULT,
-
-  setLayoutPage: function engine_setLayoutPage(page) {
-    this._layoutPage = page;
   },
 
   /**
@@ -691,6 +651,19 @@ IMEngine.prototype = {
   /**
    * Override
    */
+  selectionChange: function engine_selectionChange(detail) {
+    debug('selectionChange');
+
+    if (detail.ownAction) {
+      return;
+    }
+
+    this.empty();
+  },
+
+  /**
+   * Override
+   */
   activate: function engine_activate(language, state, options) {
     IMEngineBase.prototype.activate.call(this, language, state, options);
 
@@ -702,12 +675,6 @@ IMEngine.prototype = {
     var inputType = state.type;
     debug('Activate. Input type: ' + inputType);
 
-    var keyboard = 'zh-Hans-Pinyin';
-    if (inputType == '' || inputType == 'text' || inputType == 'textarea') {
-      keyboard = this._keyboard;
-    }
-
-    this._glue.alterKeyboard(keyboard);
 
     if (!emEngineWrapper.isReady()) {
       var self = this;

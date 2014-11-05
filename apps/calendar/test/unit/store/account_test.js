@@ -1,20 +1,15 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireLib('db.js');
-requireLib('models/account.js');
-requireLib('models/calendar.js');
-requireLib('store/abstract.js');
-requireLib('store/account.js');
+var Abstract = require('store/abstract');
+var AccountModel = require('models/account');
+var CalendarError = require('error');
+var CalendarModel = require('models/calendar');
+var CalendarStore = require('store/calendar');
+var Factory = require('test/support/factory');
+var providerFactory = require('provider/provider_factory');
 
 suite('store/account', function() {
-  'use strict';
-
-  ['Provider.Local', 'Provider.Caldav'].forEach(function(name) {
-    suiteSetup(function(done) {
-      Calendar.App.loadObject(name, done);
-    });
-  });
-
   var subject;
   var db;
   var app;
@@ -43,7 +38,7 @@ suite('store/account', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.Store.Abstract);
+    assert.instanceOf(subject, Abstract);
     assert.equal(subject.db, db);
     assert.deepEqual(subject._cached, {});
   });
@@ -72,7 +67,7 @@ suite('store/account', function() {
     suite('marking error', function() {
       var error;
       setup(function(done) {
-        error = new Calendar.Error.Authentication();
+        error = new CalendarError.Authentication();
         subject.markWithError(model, error, done);
       });
 
@@ -113,7 +108,7 @@ suite('store/account', function() {
     suite('dependant calendars', function() {
       var err;
       setup(function(done) {
-        err = new Calendar.Error.Authentication();
+        err = new CalendarError.Authentication();
         subject.markWithError(model, err, done);
       });
 
@@ -207,9 +202,9 @@ suite('store/account', function() {
         providerType: 'Caldav'
       });
 
-      model = new Calendar.Models.Account(modelParams);
+      model = new AccountModel(modelParams);
 
-      app._providers.Caldav = {
+      providerFactory.providers.Caldav = {
         getAccount: function(details, callback) {
           calledWith = details;
           setTimeout(function() {
@@ -217,6 +212,10 @@ suite('store/account', function() {
           }, 0);
         }
       };
+    });
+
+    teardown(function() {
+      delete providerFactory.providers.Caldav;
     });
 
     suite('duplicate account failure', function() {
@@ -307,7 +306,7 @@ suite('store/account', function() {
 
       subject.verifyAndPersist(model, function(err, id, data) {
         done(function() {
-          assert.instanceOf(data, Calendar.Models.Account);
+          assert.instanceOf(data, AccountModel);
           assert.equal(data.domain, result.domain);
           assert.equal(data.entrypoint, result.entrypoint);
           assert.equal(data.calendarHome, result.calendarHome);
@@ -333,7 +332,7 @@ suite('store/account', function() {
 
       subject.verifyAndPersist(model, function(err, id, data) {
         done(function() {
-          assert.instanceOf(data, Calendar.Models.Account);
+          assert.instanceOf(data, AccountModel);
           assert.equal(data.domain, modelParams.domain);
           assert.equal(data.calendarHome, modelParams.calendarHome);
         });
@@ -351,17 +350,14 @@ suite('store/account', function() {
       calendars = {};
       calStore = subject.db.getStore('Calendar');
 
-      model = subject._createModel({
-        providerType: 'Local'
-      });
-
+      model = subject._createModel({ providerType: 'Local' });
       subject.persist(model, done);
     });
 
     setup(function(done) {
       assert.ok(model._id);
       // we will eventually remove this
-      calendars[1] = new Calendar.Models.Calendar({
+      calendars[1] = new CalendarModel({
         accountId: model._id,
         remote: { id: 777 }
       });
@@ -370,7 +366,7 @@ suite('store/account', function() {
     });
 
     setup(function(done) {
-      calendars[2] = new Calendar.Models.Calendar({
+      calendars[2] = new CalendarModel({
         accountId: 'some-other',
         remote: { id: 666 }
       });
@@ -407,20 +403,15 @@ suite('store/account', function() {
 
   suite('#_createModel', function() {
     test('with id', function() {
-      var result = subject._createModel({
-        providerType: 'Local'
-      }, 'id');
+      var result = subject._createModel({ providerType: 'Local' }, 'id');
 
       assert.equal(result.providerType, 'Local');
       assert.equal(result._id, 'id');
-      assert.instanceOf(result, Calendar.Models.Account);
+      assert.instanceOf(result, AccountModel);
     });
 
     test('without id', function() {
-     var result = subject._createModel({
-        providerType: 'Local'
-      });
-
+      var result = subject._createModel({ providerType: 'Local' });
       assert.equal(result.providerType, 'Local');
       assert.isFalse(('_id' in result));
     });
@@ -449,7 +440,7 @@ suite('store/account', function() {
     });
 
     test('found accounts', function() {
-      assert.length(results, 1);
+      assert.lengthOf(results, 1);
       assert.equal(results[0]._id, accounts.sync._id);
     });
 
@@ -501,6 +492,11 @@ suite('store/account', function() {
         remote: { name: 'add' }
       });
 
+      cals.add2 = Factory('calendar', {
+        accountId: account._id,
+        remote: { name: 'add2' }
+      });
+
       cals.remove = Factory('calendar', {
         accountId: account._id,
         remote: { name: 'remove' }
@@ -508,7 +504,10 @@ suite('store/account', function() {
 
       cals.update = Factory('calendar', {
         accountId: account._id,
-        remote: { name: 'update' },
+        // this color won't be used since it is not part of the palette (test
+        // case where user is updating the app and already have calendars
+        // stored in the DB)
+        remote: { name: 'update', color: '#00FFCC' },
         error: {}
       });
     });
@@ -542,7 +541,9 @@ suite('store/account', function() {
       remote[cals.update.remote.id] = {
         id: cals.update.remote.id,
         name: 'update!',
-        description: 'new desc'
+        description: 'new desc',
+        // this color will be ignored
+        color: '#F00'
       };
 
       remote[cals.add.remote.id] = {
@@ -550,7 +551,14 @@ suite('store/account', function() {
         name: 'new item'
       };
 
-      app.provider('Mock').stageFindCalendars(
+      remote[cals.add2.remote.id] = {
+        id: cals.add2.remote.id,
+        name: 'add 2 calendar',
+        // this color will be ignored
+        color: '#0FC'
+      };
+
+      providerFactory.get('Mock').stageFindCalendars(
         account.user,
         null,
         remote
@@ -576,8 +584,8 @@ suite('store/account', function() {
 
     test('after sync', function() {
       assert.equal(
-        Object.keys(syncResults).length, 2,
-        'should only have two records'
+        Object.keys(syncResults).length, 3,
+        'should only have three records'
       );
 
       // EVENTS
@@ -597,13 +605,22 @@ suite('store/account', function() {
         cals.add.remote.id
       );
 
+      var add2Obj = events.add[1][1].remote;
+
+      assert.equal(
+        add2Obj.id,
+        cals.add2.remote.id
+      );
+
       var remoteUpdate = syncResults[cals.update.remote.id];
       var remoteAdd = syncResults[cals.add.remote.id];
+      var remoteAdd2 = syncResults[cals.add2.remote.id];
+      var palette = CalendarStore.REMOTE_COLORS;
 
       // update
       assert.instanceOf(
         remoteUpdate,
-        Calendar.Models.Calendar,
+        CalendarModel,
         'should update cache'
       );
 
@@ -621,10 +638,16 @@ suite('store/account', function() {
         'should update changed name'
       );
 
+      assert.equal(
+        remoteUpdate.color,
+        palette[0],
+        'should ignore color from remote and only use colors from palette'
+      );
+
       // add
       assert.instanceOf(
         remoteAdd,
-        Calendar.Models.Calendar,
+        CalendarModel,
         'should add new calendar'
       );
 
@@ -633,8 +656,39 @@ suite('store/account', function() {
         'new item',
         'should use remote data when creating new calendar'
       );
-    });
 
+      assert.equal(
+        remoteAdd.color,
+        palette[1],
+        'should add new color from palette'
+      );
+
+      // add 2
+      assert.instanceOf(
+        remoteAdd,
+        CalendarModel,
+        'should add new calendar'
+      );
+
+      assert.equal(
+        remoteAdd2.name,
+        'add 2 calendar',
+        'should use remote data when creating new calendar'
+      );
+
+      assert.equal(
+        remoteAdd2.color,
+        palette[2],
+        'should add new color from palette'
+      );
+
+      assert.notEqual(
+        remoteAdd.color,
+        remoteAdd2.color,
+        'each calendar should use a different color'
+      );
+    });
   });
+});
 
 });

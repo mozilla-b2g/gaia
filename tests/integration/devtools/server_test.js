@@ -1,5 +1,5 @@
-/* global RemoteDebugger, DebuggerServer */
 'use strict';
+/* global Cu, DebuggerServer, marionette, require, setup, test */
 var assert = require('assert');
 
 marionette('Dev Tools server', function() {
@@ -23,13 +23,15 @@ marionette('Dev Tools server', function() {
 
   test('is running and listening', function() {
     var debuggerServerInited = client.executeScript(function() {
+      Cu.import('resource://gre/modules/devtools/dbg-server.jsm');
       return DebuggerServer.initialized;
     });
     assert.ok(debuggerServerInited, 'Debugger server initialized');
-    var debuggerServerListening = client.executeScript(function() {
-      return !!DebuggerServer._listener;
+    var debuggerServerSockets = client.executeScript(function() {
+      Cu.import('resource://gre/modules/devtools/dbg-server.jsm');
+      return DebuggerServer.listeningSockets;
     });
-    assert.ok(debuggerServerListening, 'Debugger server listening');
+    assert.equal(debuggerServerSockets, 1, 'Debugger server listening');
   });
 
 });

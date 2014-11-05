@@ -3,7 +3,9 @@
 
 var MockCookie = {
   data: {},
-  load: function() {},
+  load: function() {
+    return this.data;
+  },
   update: function(obj) {
     this.data = obj;
   }

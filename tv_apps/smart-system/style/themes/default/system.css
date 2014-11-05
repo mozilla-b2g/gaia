@@ -1,0 +1,26 @@
+/* Windows */
+
+div.windowSprite {
+  background: url("images/noise.png") repeat scroll 50% 50%, #373a3d;
+}
+
+/* Tasks Manager */
+
+#cardsView li {
+  background-color: #00f;
+}
+
+#cardsView li > a {
+  background: url('images/tasks/close.png') no-repeat;
+}
+
+#cardsView li > a:active {
+  background: url('images/tasks/close-active.png') no-repeat;
+}
+
+#cardsView li > h1 {
+  text-align: center;
+  color: #fff;
+  font-size: 2em;
+  text-shadow: #000 0 0.2rem 0.1rem;
+}

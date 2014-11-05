@@ -1,0 +1,10 @@
+{
+  "ringtones": {
+    "src": ["apps/ringtones/js/**/*.js",
+            "!apps/ringtones/js/manage.js",
+            "!apps/ringtones/js/pick.js"],
+    "options": {
+      "destination": "docs/ringtones"
+    }
+  }
+}

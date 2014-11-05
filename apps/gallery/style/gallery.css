@@ -28,7 +28,7 @@ section {
 }
 
 .large-only {
-  display: none;
+  display: none !important;
 }
 
 .hidden {
@@ -61,25 +61,6 @@ body.pickView #pick-view,
 body.editView #edit-view,
 body.cropView #crop-view {
   display: block;
-}
-
-/*
- * The overlay is where we display messages like Scanning, No Photos,
- * No SD card and SD Card in Use along with instructions for resolving
- * the issue.  The user can't interact with the app while the overlay
- * is displayed.
- */
-#overlay,
-#confirm-dialog {
-  /* it takes up the whole screen */
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-
-  /* almost transparent gray */
-  background-color: rgba(0, 0, 0, 0.4);
 }
 
 /*
@@ -230,21 +211,8 @@ body.pickView #thumbnails {
   padding: 0;
   /* default to left-to-right, but overridden for rtl languages below */
   float: left;
-  /* no list item bullets */
-  list-style-type: none;
   /* don't let the user select the items */
   -moz-user-select: none;
-  /* thumbnail images will be displayed with background-image */
-  /* these properties scale and position the images correctly */
-  background-position: center;   /* keep the cropping at the edges */
-  background-size: contain;
-  background-repeat: no-repeat;
-  /*
-   * When we have a background image it will cover the whole thumbnail
-   * but when we're swapping that image in it might be visible before
-   * the image. So we want a color that contrasts with the border so we
-   * at least get the effect of a grid rather than a black screen
-   */
   background-color: #444;
 
   /*
@@ -274,7 +242,11 @@ body.pickView #thumbnails {
   margin-right: 0;
 }
 
-.thumbnail.selected {
+.thumbnailImage{
+  width: 100%;
+}
+
+.thumbnailImage.selected {
   outline: solid #00aacc 0.3rem;
   outline-offset: -0.2rem;
 }
@@ -314,8 +286,17 @@ body.pickView #thumbnails {
   font-size: 0;
   border-radius: 50%;
   border: none;
-  background: rgba(95, 95, 95, 0.3) url(images/back.png) no-repeat 50% 50%;
+  background: rgba(95, 95, 95, 0.3);
+  color: inherit;
   transition: opacity 0.2s linear;
+}
+
+/**
+ * 1. Make sure icon is aligned inside circle
+ */
+
+#fullscreen-back-button-tiny:before {
+  margin-left: -0.3rem; /* 1 */
 }
 
 #fullscreen-back-button-tiny:active {
@@ -382,6 +363,12 @@ body.hidden *[data-l10n-id] {
   float: right;
 }
 
+html[dir="rtl"] #fullscreen-back-button-tiny {
+  left: auto;
+  right: 1.4rem;
+  background-image: url(images/back_rtl.png);
+}
+
 /* the indeterminate progress bar displayed while scanning */
 #progress {
   position: absolute;
@@ -411,6 +398,18 @@ body.hidden *[data-l10n-id] {
   to {
     transform: translateY(-2.1rem);
   }
+}
+
+#spinner {
+  position: absolute;
+  top: calc(50% - 1.5rem);
+  left: calc(50% - 1.5rem);
+  z-index: 1000;
+}
+
+/* override progress_activity.css */
+#spinner.hidden {
+  display: none;
 }
 
 /* buttons */
@@ -462,7 +461,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_camera_30x30.png');
   border-right: 0.1rem solid #000;
 }
 
@@ -471,7 +469,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/iconaction_select_30x30.png');
 }
 
 #thumbnails-delete-button {
@@ -479,7 +476,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_delete_30x30.png');
   border-right: 0.1rem solid #000;
 }
 
@@ -488,7 +484,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/iconaction_share_30x30.png');
 }
 
 #fullscreen-toolbar {
@@ -534,11 +529,12 @@ footer {
 
 #fullscreen-view.toolbar-hidden #fullscreen-back-button-tiny {
   opacity: 0;
+  pointer-events: none;
 }
 
-#pick-top {
+#pick-header {
   /*
-   * we want the user to be able to push the back button even if
+   * we want the user to be able to push the close button even if
    * an overlay is displayed, so be sure that this titlebar/toolbar
    * is above the overlay
    */
@@ -577,14 +573,14 @@ footer {
   left: 0;
   right: 0;
   top: 5rem;
-  bottom: 9.5rem; /* 4.5rem for edit-toolbar, 5rem for edit-options */
+  bottom: 4.5rem; /* 4.5rem for edit-toolbar */
 }
 
 #edit-preview-canvas {
   position: absolute;
   top: 1.5rem;
-  left: 1.5rem;
-  width: calc(100% - 3rem);  /* I can't do right: 1.5rem here. Bug? */
+  left: 2.5rem;
+  width: calc(100% - 5rem);  /* I can't do right: 2.5rem here. Bug? */
   height: calc(100% - 3rem);  /* can't just set bottom: 1.5rem here */
 }
 
@@ -601,7 +597,7 @@ footer {
   left: 0;
   width: 100%;
   height: 5rem;
-  bottom: 4.5rem;
+  bottom: 0;
   background: url(images/options-background.png);
 }
 
@@ -644,7 +640,6 @@ footer {
   border-width: 0;
   border-right: solid black 0.1rem;
   overflow: hidden;
-  padding-top: 1.6rem;
   font-size: 1.4rem;
   background-position: center;
 }
@@ -656,7 +651,6 @@ footer {
 
 #edit-crop-none {
   left: 0;
-  background-image: url('images/iconaction_undo_30x30.png');
 }
 #edit-crop-aspect-free {
   left: 20%;
@@ -755,8 +749,13 @@ a.filter-faded {
 /* all buttons in the toolbar share these styles */
 #edit-toolbar > a {
   display: inline-block;
+  vertical-align: top;
   width: 25%;
   height: 100%;
+}
+
+#edit-toolbar > a.selected {
+  color: #00CAF2;
 }
 
 #edit-exposure-button {
@@ -779,36 +778,16 @@ a.filter-faded {
   left: 80%;
 }
 
-#edit-enhance-options {
-  line-height: 5.5rem;
+/* Override the styles from shared/styles/status.css */
+#edit-copy-save-banner.banner, #edit-enhance-banner.banner {
+  position: absolute;
+  left: 0;
+  bottom: 4.5rem;
+  background-color: #0E1214;
+}
+
+#edit-copy-save-banner > p, #edit-enhance-banner > p {
   text-align: center;
-}
-#fullscreen-camera-button-tiny {
-  background-image: url('images/iconaction_camera_30x30.png');
-}
-
-#fullscreen-edit-button-tiny {
-  background-image: url('images/iconaction_camera_editphoto_30x30.png');
-}
-
-#fullscreen-share-button-tiny {
-  background-image: url('images/iconaction_share_30x30.png');
-}
-
-#fullscreen-info-button-tiny {
-  background-image: url('images/iconaction_media_info_30x30.png');
-}
-
-#fullscreen-delete-button-tiny {
-  background-image: url('images/iconaction_delete_30x30.png');
-}
-
-#edit-exposure-button {
-  background-image: url('images/actionicon_gallery_edit_exposure_30x30.png');
-}
-
-#edit-crop-button {
-  background-image: url('images/actionicon_gallery_edit_crop_30x30.png');
 }
 
 #edit-effect-button {
@@ -823,44 +802,8 @@ a.filter-faded {
   background-image: url('images/actionicon_gallery_edit_enhance_30x30.png');
 }
 
-#edit-effect-button.selected{
-  background-image: url('images/actionicon_gallery_edit_effect_selected_30x30.png');
-}
-
-#edit-crop-button.selected {
-  background-image: url('images/actionicon_gallery_edit_crop_selected_30x30.png');
-}
-
-#edit-exposure-button.selected {
-  background-image: url('images/actionicon_gallery_edit_exposure_selected_30x30.png');
-}
-
-#edit-enhance-button.selected {
-  background-image: url('images/actionicon_gallery_edit_enhance_selected_30x30.png');
-}
-
 #edit-enhance-button.on {
   background-image: url('images/actionicon_gallery_edit_enhance_on_30x30.png');
-}
-
-#edit-enhance-button.selected.on {
-  background-image: url('images/actionicon_gallery_edit_enhance_on_selected_30x30.png');
-}
-
-#edit-enhance-options a.button {
-  position: absolute;
-  display: block;
-  top: 0;
-  bottom: 0;
-  width: 20%;
-  margin: 0;
-  padding: 0;
-  border-width: 0;
-  border-right: solid black 0.1rem;
-  overflow: hidden;
-  padding-top: 1.6rem;
-  font-size: 1.4rem;
-  background-position: center;
 }
 
 /*

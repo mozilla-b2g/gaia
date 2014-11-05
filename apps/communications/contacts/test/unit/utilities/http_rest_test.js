@@ -2,7 +2,7 @@
 
 'use strict';
 
-requireApp('communications/contacts/js/utilities/http_rest.js');
+require('/shared/js/contacts/utilities/http_rest.js');
 
 suite('> Rest utility class', function() {
   var restRequest, subject, xhr;

@@ -19,7 +19,8 @@ var MusicComms = {
         // Check if it's resumed by the SCO disconnection, if so, we need to
         // recover the player to the original status.
         if (isResumedBySCO) {
-          if (this._statusBeforeSCO === PLAYSTATUS_PLAYING)
+          if (this._statusBeforeSCO === PLAYSTATUS_PLAYING ||
+              this._statusBeforeSCO === INTERRUPT_BEGIN)
             PlayerView.play();
           else
             PlayerView.pause();
@@ -134,7 +135,7 @@ var MusicComms = {
 
     this.mrc.notifyAppInfo({
       origin: window.location.origin,
-      icon: window.location.origin + '/style/icons/Music_60.png'
+      icon: window.location.origin + '/style/icons/music_84.png'
     });
 
     this.enabled = true;

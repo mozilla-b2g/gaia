@@ -12,6 +12,8 @@
     this.element = dialogFake;
   };
 
+  MockSystemDialog.prototype.SUB_COMPONENTS = {};
+
   MockSystemDialog.prototype.show = function msd_show(reason) {
     this.onShow(reason);
   };
@@ -32,6 +34,7 @@
     }
   };
 
+  MockSystemDialog.prototype.broadcast =
   MockSystemDialog.prototype.resize =
   MockSystemDialog.prototype.updateHeight =
   function() {};

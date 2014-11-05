@@ -41,8 +41,8 @@ marionette('Sim Dialog:', function() {
   test.skip('Input is shown with error', function() {
 
     client.executeScript(loadScripts, [[
-      'js/mock_simslot.js',
-      'js/mock_simslot_manager.js'
+      '../../../../shared/unit/mocks/mock_simslot.js',
+      '../../../../shared/unit/mocks/mock_simslot_manager.js'
     ]]);
 
     client.executeScript(function(path) {
@@ -56,10 +56,7 @@ marionette('Sim Dialog:', function() {
 
       win.SimPinDialog.init();
       win.SimPinDialog.show(slot);
-      win.SimPinDialog.handleError({
-        retryCount: 1,
-        lockType: 'pin'
-      });
+      win.SimPinDialog.handleError('pin', 1);
     });
 
     client.findElement(pinInput).tap();

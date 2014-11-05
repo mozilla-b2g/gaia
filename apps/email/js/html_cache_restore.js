@@ -1,11 +1,27 @@
 /*jshint browser: true */
 /*global performance, console */
+'use strict';
 var _xstart = performance.timing.fetchStart -
               performance.timing.navigationStart;
 function plog(msg) {
   console.log(msg + ' ' + (performance.now() - _xstart));
 }
 
+/**
+ * Apparently the event catching done for the startup events from
+ * performance_testing_helper record the last event received of that type as
+ * the official time, instead of using the first. So unfortunately, we need a
+ * global to make sure we do not emit the same events later.
+ * @type {Boolean}
+ */
+var startupCacheEventsSent = false;
+
+/**
+ * Version number for cache, allows expiring cache.
+ * Set by build process. Set as a global because it
+ * is also used in html_cache.js.
+ */
+var HTML_COOKIE_CACHE_VERSION = '1';
 
 // Use a global to work around issue with
 // navigator.mozHasPendingMessage only returning
@@ -13,13 +29,7 @@ function plog(msg) {
 window.htmlCacheRestorePendingMessage = [];
 
 (function() {
-  /**
-   * Version number for cache, allows expiring cache.
-   * Set by build process, value must match the value
-   * in html_cache.js.
-   */
-  var CACHE_VERSION = '1',
-      selfNode = document.querySelector('[data-loadsrc]'),
+  var selfNode = document.querySelector('[data-loadsrc]'),
       loader = selfNode.dataset.loader,
       loadSrc = selfNode.dataset.loadsrc;
 
@@ -51,7 +61,9 @@ window.htmlCacheRestorePendingMessage = [];
       value = value.substring(index + 1);
     }
 
-    if (version !== CACHE_VERSION) {
+    if (version !== HTML_COOKIE_CACHE_VERSION) {
+      console.log('Skipping cookie cache, out of date. Expected ' +
+                  HTML_COOKIE_CACHE_VERSION + ' but found ' + version);
       value = '';
     }
 
@@ -81,19 +93,72 @@ window.htmlCacheRestorePendingMessage = [];
   // TODO: mozHasPendingMessage can only be called once?
   // Need to set up variable to delay normal code logic later
   if (navigator.mozHasPendingMessage) {
-    if (navigator.mozHasPendingMessage('activity'))
+    if (navigator.mozHasPendingMessage('activity')) {
       window.htmlCacheRestorePendingMessage.push('activity');
-    if (navigator.mozHasPendingMessage('alarm'))
+    }
+    if (navigator.mozHasPendingMessage('alarm')) {
       window.htmlCacheRestorePendingMessage.push('alarm');
-    if (navigator.mozHasPendingMessage('notification'))
+    }
+    if (navigator.mozHasPendingMessage('notification')) {
       window.htmlCacheRestorePendingMessage.push('notification');
+    }
   }
 
   if (window.htmlCacheRestorePendingMessage.length) {
     startApp();
   } else {
-    cardsNode.innerHTML = retrieve();
+    var contents = retrieve();
+    cardsNode.innerHTML = contents;
+    startupCacheEventsSent = !!contents;
     window.addEventListener('load', startApp, false);
+  }
+
+  // START COPY performance_testing_helper.js
+  // A copy instead of a separate script because the gaia build system is not
+  // set up to inline this with our main script element, and we want this work
+  // to be done after the cache restore, but want to trigger the events that
+  // may be met by the cache right away without waiting for another script
+  // load after html_cache_restore.
+  function dispatch(name) {
+    if (!window.mozPerfHasListener) {
+      return;
+    }
+
+    var now = window.performance.now();
+    var epoch = Date.now();
+
+    setTimeout(function() {
+      var detail = {
+        name: name,
+        timestamp: now,
+        epoch: epoch
+      };
+      var event = new CustomEvent('x-moz-perf', { detail: detail });
+
+      window.dispatchEvent(event);
+    });
+  }
+
+  ([
+    'moz-chrome-dom-loaded',
+    'moz-chrome-interactive',
+    'moz-app-visually-complete',
+    'moz-content-interactive',
+    'moz-app-loaded'
+  ].forEach(function(eventName) {
+      window.addEventListener(eventName, function mozPerfLoadHandler() {
+        dispatch(eventName);
+      }, false);
+    }));
+
+  window.PerformanceTestingHelper = {
+    dispatch: dispatch
+  };
+  // END COPY performance_testing_helper.js
+
+  if (startupCacheEventsSent) {
+    window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+    window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
   }
 }());
 

@@ -18,12 +18,15 @@ Search.URL = 'app://search.gaiamobile.org';
 
 Search.Selectors = {
   iframe: 'iframe[mozapptype="search"]',
-  firstAppContainer: '#localapps',
-  firstApp: '#localapps div',
+  firstAppContainer: 'gaia-grid',
+  firstApp: 'gaia-grid .icon',
   firstContact: '#contacts div',
   firstContactContainer: '#contacts',
   firstPlace: '#places div .title',
-  firstPlaceContainer: '#places'
+  firstPlaceContainer: '#places',
+  firstRunConfirm: '#suggestions-notice-confirm',
+  topSites: '.top-site',
+  historyResults: '#history .result'
 };
 
 Search.prototype = {
@@ -39,19 +42,70 @@ Search.prototype = {
   },
 
   /**
-   * Checks that the text of a selector matches the expected result.
-   * Clicks on that result.
-   * @param {String} selectorKey from Search.Selectors.
-   * @param {String} expected value of the text.
+   * Return selector for the grid item with a n identifier
    */
-  checkResult: function(selectorKey, expected) {
-    var selectors = Search.Selectors;
+  getResultSelector: function(identifier) {
+    return '.icon[data-identifier="' + identifier + '"]';
+  },
 
-    this.client.helper.waitForElement(selectors[selectorKey + 'Container']);
-    var result = this.client.helper
-      .waitForElement(selectors[selectorKey]);
+  /**
+   * Return grid results for a particular identifier
+   */
+  getResult: function(identifier) {
+    var selector = '.icon[data-identifier="' + identifier + '"]';
+    return this.client.findElements(selector);
+  },
+
+  getHistoryResults: function() {
+    return this.client.findElements(Search.Selectors.historyResults);
+  },
+
+  getTopSites: function() {
+    return this.client.findElements(Search.Selectors.topSites);
+  },
+
+  /**
+   * Checks that we have a result for a given app in the results list.
+   */
+  checkResult: function(identifier, expected) {
+    var selectors = Search.Selectors;
+    var selector = '.icon[data-identifier*="' + identifier + '"]';
+
+    this.client.helper.waitForElement(selectors.firstAppContainer);
+    var result = this.client.helper.waitForElement(selector);
     assert.equal(expected, result.text());
-    result.click();
+    return result;
+  },
+
+  /**
+   * Workaround for bug 1022768, where app permissions are not auto ALLOWed
+   * for tests on desktop. If that bug is fixed, this function should be
+   * removed.
+   */
+  removeGeolocationPermission: function() {
+    var client = this.client.scope({ context: 'chrome' });
+    client.executeScript(function(origin) {
+      var mozPerms = navigator.mozPermissionSettings;
+      mozPerms.set(
+        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
+      );
+    }, [Search.URL]);
+  },
+
+  /**
+   * On first run a warning is shown to users on Search app configuration
+   * trigger this notice and confirm it.
+   */
+  triggerFirstRun: function(rocketbar) {
+    rocketbar.enterText('a');
+    this.goToResults();
+
+    this.client.executeScript(function() {
+      window.wrappedJSObject.Search.toShowNotice = false;
+    });
+
+    this.client.switchToFrame();
+    rocketbar.enterText('');
   },
 
   /**

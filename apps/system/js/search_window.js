@@ -21,50 +21,83 @@
     'mozbrowsererror'
   ];
 
-  SearchWindow.SUB_COMPONENTS = {};
+  SearchWindow.SUB_COMPONENTS = {
+    'childWindowFactory': window.ChildWindowFactory,
+    'contextmenu': window.BrowserContextMenu,
+    'transitionController': window.AppTransitionController
+  };
 
-  SearchWindow.prototype = {
-    __proto__: AppWindow.prototype,
+  SearchWindow.prototype = Object.create(AppWindow.prototype);
 
-    _DEBUG: false,
+  SearchWindow.prototype.constructor = SearchWindow;
 
-    CLASS_NAME: 'Search',
+  SearchWindow.SUSPENDING_ENABLED = false;
 
-    openAnimation: 'zoom-out',
+  SearchWindow.prototype._DEBUG = false;
 
-    closeAnimation: 'zoom-in',
+  SearchWindow.prototype.CLASS_NAME = 'Search';
 
-    eventPrefix: 'search',
+  SearchWindow.prototype.CLASS_LIST = 'appWindow searchWindow';
 
-    containerElement: document.getElementById('rocketbar-results'),
+  SearchWindow.prototype.openAnimation = 'immediate';
 
-    /**
-     * Construct browser config object by manifestURL.
-     * @param {String} url The settings url of the search app.
-     */
-    setBrowserConfig: function(url) {
-      var manifestURL = url ? url.match(/(^.*?:\/\/.*?\/)/)[1] +
-        'manifest.webapp' : '';
-      this.manifestURL = manifestURL;
-      this.searchAppURL = url;
+  SearchWindow.prototype.closeAnimation = 'immediate';
 
-      var app = applications.getByManifestURL(manifestURL);
-      this.origin = app.origin;
-      this.manifestURL = app.manifestURL;
-      this.url = app.origin + '/index.html';
+  SearchWindow.prototype.eventPrefix = 'search';
 
-      this.browser_config =
-        new BrowserConfigHelper(this.origin, this.manifestURL);
+  SearchWindow.prototype.containerElement =
+    document.getElementById('rocketbar-results');
 
-      this.manifest = this.browser_config.manifest;
-      this.browser_config.url = this.url;
-      this.browser_config.isSearch = true;
-      this.config = this.browser_config;
-      this.isSearch = true;
+  SearchWindow.prototype.view = function aw_view() {
+    return '<div class=" ' + this.CLASS_LIST +
+             ' " id="' + this.instanceID +
+             '" transition-state="closed">' +
+             '<div class="browser-container"></div>' +
+           '</div>';
+  };
 
-      this.render();
-      this.open();
-    }
+  // The search window orientation depends on the orientation of the
+  // current displayed app. So don't do anything here.
+  SearchWindow.prototype.lockOrientation = function() {
+  };
+
+  // We don't need to wait.
+  // Kill process will call requestclose to let manager decide
+  // if we want to wait the background needs repaint,
+  // but we don't need it right now.
+  SearchWindow.prototype.requestClose = function() {
+    this.close();
+  };
+
+  /**
+   * Construct browser config object by manifestURL.
+   * @param {String} url The settings url of the search app.
+   */
+  SearchWindow.prototype.setBrowserConfig = function(url) {
+    var manifestURL = url ? url.match(/(^.*?:\/\/.*?\/)/)[1] +
+      'manifest.webapp' : '';
+    this.manifestURL = manifestURL;
+    this.searchAppURL = url;
+
+    var app = applications.getByManifestURL(manifestURL);
+    this.origin = app.origin;
+    this.manifestURL = app.manifestURL;
+    this.url = app.origin + '/index.html';
+
+    this.browser_config =
+      new BrowserConfigHelper({
+        url: this.origin,
+        manifestURL: this.manifestURL
+      });
+
+    this.manifest = this.browser_config.manifest;
+    this.browser_config.url = this.url;
+    this.browser_config.isSearch = true;
+    this.config = this.browser_config;
+    this.isSearch = true;
+
+    this.render();
+    this.open();
   };
 
   exports.SearchWindow = SearchWindow;

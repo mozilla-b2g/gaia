@@ -1,40 +1,44 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* globals SettingsHelper, SIMSlotManager, Notification, ModalDialog */
+
+'use strict';
+
 // Custom voicemail notification -- This can be removed once DesktopNotification
 // supports removing notifications via API
 var Voicemail = {
 
   icon: null,
   notifications: {},
+  tagPrefix: 'voicemailNotification:',
 
   init: function vm_init() {
     var voicemail = window.navigator.mozVoicemail;
-    if (!voicemail)
+    if (!voicemail) {
       return;
-
-    voicemail.addEventListener('statuschanged', this);
+    }
 
     this.icon = window.location.protocol + '//' +
       window.location.hostname + '/style/icons/voicemail.png';
+
     this.voiceMailNumberHelper = SettingsHelper('ril.iccInfo.mbdn', null);
+
+    // Cleanup any pending notification and prepare event handler
+    return this.setupNotifications();
   },
 
   handleEvent: function vm_handleEvent(evt) {
-    var voicemail = window.navigator.mozVoicemail;
-    var status = evt.status;
-
-    if (!status)
-      return;
-
-    this.updateNotification(status);
+    var voicemailStatus = evt.status;
+    if (voicemailStatus) {
+      this.updateNotification(voicemailStatus);
+    }
   },
 
   updateNotification: function vm_updateNotification(status) {
     var _ = window.navigator.mozL10n.get;
     var title = status.returnMessage;
     var showCount = status.hasMessages && status.messageCount > 0;
-    var simIndex = status.serviceId + 1;
 
     if (!title) {
       title = showCount ? _('newVoicemails', { n: status.messageCount }) :
@@ -65,9 +69,6 @@ var Voicemail = {
       }
 
       if (status.hasMessages) {
-        if (SIMSlotManager.isMultiSIM()) {
-          title = 'SIM ' + simIndex + ' - ' + title;
-        }
         Voicemail.showNotification(title, text, number, status.serviceId);
       } else {
         Voicemail.hideNotification(status.serviceId);
@@ -83,10 +84,16 @@ var Voicemail = {
 
     serviceId = serviceId || 0;
 
+    if (!SIMSlotManager.hasOnlyOneSIMCardDetected()) {
+      var _ = window.navigator.mozL10n.get;
+      title =
+        _('voicemailNotificationMultiSim', { n: serviceId + 1, title: title });
+    }
+
     var notifOptions = {
       body: text,
       icon: this.icon,
-      tag: 'voicemailNotification:' + serviceId
+      tag: this.tagPrefix + serviceId
     };
 
     var notification = new Notification(title, notifOptions);
@@ -111,17 +118,15 @@ var Voicemail = {
     };
 
     var showNoVoicemail = (function vmNotificationNoCall_onClick(event) {
-      var _ = window.navigator.mozL10n.get;
-
       var voicemailDialog = {
-        title: _('voicemailNoNumberTitle'),
-        text: _('voicemailNoNumberText'),
+        title: 'voicemailNoNumberTitle',
+        text: 'voicemailNoNumberText',
         confirm: {
-          title: _('voicemailNoNumberSettings'),
+          title: 'voicemailNoNumberSettings',
           callback: this.showVoicemailSettings
         },
         cancel: {
-          title: _('voicemailNoNumberCancel'),
+          title: 'voicemailNoNumberCancel',
           callback: function() {}
         }
       };
@@ -135,6 +140,10 @@ var Voicemail = {
     notification.addEventListener('click',
       voicemailNumber ? callVoicemail : showNoVoicemail);
 
+    notification.addEventListener('close', (function vm_closeNotification(evt) {
+      this.notifications[serviceId] = null;
+    }).bind(this));
+
     this.notifications[serviceId] = notification;
   },
 
@@ -144,7 +153,33 @@ var Voicemail = {
     }
 
     this.notifications[serviceId].close();
-    this.notifications[serviceId] = null;
+  },
+
+  setupNotifications: function vm_setupNotifications() {
+    // Always make sure the initial state is known
+    this.notifications = {};
+    var prefix = this.tagPrefix;
+    var promise = Notification.get();
+    return promise.then(function(notifications) {
+      notifications.forEach(function(notification) {
+        if (!notification) {
+          return;
+        }
+
+        // We cannot search for 'tag=voicemailNotification:*'
+        // so we do it by ourselves.
+        // Bail out if the notification does not match our tag.
+        if (!notification.tag || !notification.tag.startsWith(prefix)) {
+          return;
+        }
+
+        // Let's remove voicemail notification.
+        notification.close();
+      });
+    }).then((function() {
+      var voicemail = window.navigator.mozVoicemail;
+      voicemail.addEventListener('statuschanged', this);
+    }).bind(this));
   },
 
   showVoicemailSettings: function vm_showVoicemailSettings() {

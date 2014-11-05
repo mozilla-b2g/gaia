@@ -21,7 +21,7 @@ var OperatorVariant = (function() {
   /**
    * Init function.
    */
-  function cs_init() {
+  function ov_init() {
     if (!_mobileConnections || !_iccManager || !_settings) {
       return;
     }
@@ -64,8 +64,48 @@ var OperatorVariant = (function() {
     return -1;
   }
 
+  /**
+   * Helper function. Ensure the value stored under the specified key is an
+   * array.
+   */
+  function ov_ensureValueUnderKeyIsArray(key) {
+    return new Promise(function(resolve, reject) {
+      var getReq = _settings.createLock().get(key);
+      getReq.onsuccess = function() {
+        var originalSetting = getReq.result[key];
+        var newSetting = null;
+        if (!originalSetting) {
+          newSetting = ['', ''];
+        } else if (!Array.isArray(originalSetting)) {
+          // Migrate settings field if needed
+          newSetting = [originalSetting, ''];
+        }
+
+        if (newSetting) {
+          var obj = {};
+          obj[key] = newSetting;
+          var setReq = _settings.createLock().set(obj);
+          setReq.onsuccess = resolve;
+          setReq.onerror = resolve;
+        } else {
+          resolve();
+        }
+      };
+      getReq.onerror = resolve;
+    });
+  }
+
   return {
-    init: cs_init
+    ov_ensureValueUnderKeyIsArray: ov_ensureValueUnderKeyIsArray,
+    init: function() {
+      Promise.all([
+        ov_ensureValueUnderKeyIsArray('ril.iccInfo.mbdn'),
+        ov_ensureValueUnderKeyIsArray('ril.cellbroadcast.disabled'),
+        ov_ensureValueUnderKeyIsArray('ril.cellbroadcast.searchlist')
+      ]).then(function() {
+        ov_init();
+      });
+    }
   };
 })();
 

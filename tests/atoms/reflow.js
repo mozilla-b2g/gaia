@@ -1,7 +1,5 @@
 'use strict';
 
-const Cu = Components.utils;
-
 (function(exports) {
   if ('MozReflowAtom' in exports) {
     return;

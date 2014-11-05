@@ -36,9 +36,6 @@ Sounds.prototype.add = function(data) {
     enabled: false
   };
 
-  // Prefetch audio
-  sound.audio = this.createAudio(sound.url);
-
   this.items[data.name] = sound;
   this.isEnabled(sound, function(value) {
     self.setEnabled(sound, value);
@@ -115,7 +112,12 @@ Sounds.prototype.setEnabled = function(sound, value) {
  * @public
  */
 Sounds.prototype.play = function(name) {
-  this.playSound(this.items[name]);
+  var sound = this.items[name];
+  if (!sound.audio) {
+    sound.audio = this.createAudio(sound.url);
+  }
+
+  this.playSound(sound);
 };
 
 /**

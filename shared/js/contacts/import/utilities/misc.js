@@ -1,10 +1,10 @@
-/* global mozContact, oauthflow, asyncStorage */
+/* global mozContact, oauthflow, ImportStatusData */
 'use strict';
 
 var utils = window.utils || {};
 
 // Scale ratio for different devices
-var SCALE_RATIO = window.innerWidth / 320;
+var SCALE_RATIO = window.devicePixelRatio || 1;
 
 var LAST_IMPORT_TIMESTAMP_SUFFIX = '_last_import_timestamp';
 
@@ -177,11 +177,12 @@ if (!utils.misc) {
   };
 
   utils.misc.setTimestamp = function(type, callback) {
-    asyncStorage.setItem(type + LAST_IMPORT_TIMESTAMP_SUFFIX, Date.now(),
-                         callback);
+    ImportStatusData.put(type + LAST_IMPORT_TIMESTAMP_SUFFIX, Date.now())
+        .then(callback);
   };
 
   utils.misc.getTimestamp = function(type, callback) {
-    asyncStorage.getItem(type + LAST_IMPORT_TIMESTAMP_SUFFIX, callback);
+    ImportStatusData.get(type + LAST_IMPORT_TIMESTAMP_SUFFIX)
+        .then(callback);
   };
 }

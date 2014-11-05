@@ -28,7 +28,8 @@ var FixturePhones = [
   {
     // This is only tested where there are sufficient permissions
     // to use navigator.mozPhoneNumberService.normalize
-    isTestable: !!navigator.mozPhoneNumberService.normalize,
+    isTestable: !!(navigator.mozPhoneNumberService &&
+                   navigator.mozPhoneNumberService.normalize),
     title: 'Non-Digit in Contact',
     values: [
       '1-800-BUY-A-CAR', '1 800 BUY A CAR', '1 (800) BUY A CAR',

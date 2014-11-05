@@ -1,80 +1,82 @@
-require(['config/require', 'config'], function() {
-  'use strict';
+'use strict';
 
-  define('boot', function(require) {
-    var debug = require('debug')('main');
-    var timing = window.performance.timing;
-    debug('domloaded in %s', (timing.domComplete - timing.domLoading) + 'ms');
+// Store timestamp when JS started running
+window.jsStarted = Date.now();
 
-    /**
-     * Module Dependencies
-     */
+define(function(require) {
 
-    var App = require('app');
-    var Camera = require('lib/camera');
-    var Sounds = require('lib/sounds');
-    var Settings = require('lib/settings');
-    var sounds = new Sounds(require('config/sounds'));
-    var settings = new Settings(require('config/settings'));
-    var GeoLocation = require('lib/geo-location');
-    var Activity = require('lib/activity');
-    var Storage = require('lib/storage');
-    var controllers = {
-      hud: require('controllers/hud'),
-      controls: require('controllers/controls'),
-      viewfinder: require('controllers/viewfinder'),
-      recordingTimer: require('controllers/recording-timer'),
-      previewGallery: require('controllers/preview-gallery'),
-      overlay: require('controllers/overlay'),
-      confirm: require('controllers/confirm'),
-      settings: require('controllers/settings'),
-      activity: require('controllers/activity'),
-      camera: require('controllers/camera'),
-      sounds: require('controllers/sounds'),
-      timer: require('controllers/timer'),
-      zoomBar: require('controllers/zoom-bar'),
-      indicators: require('controllers/indicators'),
-      battery: require('controllers/battery')
-    };
+// Store performance timestamps
+var perf = {
+  jsStarted: window.jsStarted,
+  firstModule: Date.now()
+};
 
-    // Attach navigator.mozL10n
-    require('l10n');
+/**
+ * Module Dependencies
+ */
 
-    debug('required dependencies');
+var Settings = require('lib/settings');
+var GeoLocation = require('lib/geo-location');
+var settingsData = require('config/config');
+var settings = new Settings(settingsData);
+var Camera = require('lib/camera/camera');
+var App = require('app');
 
-    var camera = new Camera({
-      maxFileSizeBytes: 0,
-      maxWidth: 0,
-      maxHeight: 0,
-      container: document.body,
-      cafEnabled: settings.caf.enabled()
-    });
+// Create globals specified in the config file
+var key;
+if (settingsData.globals) {
+  for (key in settingsData.globals) {
+    window[key] = settingsData.globals[key];
+  }
+}
 
-    /**
-     * Create new `App`
-     */
+// Create new `App`
+var app = window.app = new App({
+  settings: settings,
+  geolocation: new GeoLocation(),
+  el: document.body,
+  doc: document,
+  win: window,
+  perf: perf,
 
-    var app = window.app = new App({
-      win: window,
-      doc: document,
-      el: document.body,
-      geolocation: new GeoLocation(),
-      activity: new Activity(),
-      settings: settings,
-      camera: camera,
-      sounds: sounds,
-      controllers: controllers,
-      storage: new Storage()
-    });
+  camera: new Camera({
+    focus: settingsData.focus
+  }),
 
-    debug('created app');
+  controllers: {
+    overlay: require('controllers/overlay'),
+    battery: require('controllers/battery'),
+    hud: require('controllers/hud'),
+    controls: require('controllers/controls'),
+    viewfinder: require('controllers/viewfinder'),
+    settings: require('controllers/settings'),
+    activity: require('controllers/activity'),
+    camera: require('controllers/camera'),
 
-    // Fetch persistent settings
-    app.settings.fetch();
+    // Lazy loaded controllers
+    lazy: [
+      'controllers/zoom-bar',
+      'controllers/indicators',
+      'controllers/recording-timer',
+      'controllers/preview-gallery',
+      'controllers/storage',
+      'controllers/confirm',
+      'controllers/sounds',
+      'controllers/timer'
+    ]
+  }
+});
 
-    // Check for activities, then boot
-    app.activity.check(app.boot);
-  });
+// We start the camera loading straight
+// away (async), as this is the slowest
+// part of the boot process.
+app.camera.load();
+app.settings.fetch();
+app.boot();
 
-  require(['boot']);
+// Clean up
+for (key in settingsData) {
+  delete settingsData[key];
+}
+
 });

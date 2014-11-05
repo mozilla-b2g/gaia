@@ -16,6 +16,9 @@
   MockSecureWindow.prototype.open =
   MockSecureWindow.prototype.close =
   MockSecureWindow.prototype.kill =
+  MockSecureWindow.prototype.softKill =
+  MockSecureWindow.prototype.cancelSoftKill =
+  MockSecureWindow.prototype.isSoftKillPending =
   MockSecureWindow.prototype.setVisible =
   function() {};
 

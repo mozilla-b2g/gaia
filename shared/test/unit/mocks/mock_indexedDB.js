@@ -3,13 +3,14 @@
 /* exported MockIndexedDB */
 
 function MockIndexedDB() {
-  var transRequest = {};
-
   var dbs = [];
   var deletedDbs = [];
   this.options = {};
+  this.storedDataDbs = {};
 
   var self = this;
+  
+  var nextId = 1;
 
   Object.defineProperty(this, 'dbs', {
     get: function() {
@@ -23,15 +24,25 @@ function MockIndexedDB() {
     }
   });
 
-  var FakeDB = function(name) {
-    var dummyFunction = function() {};
+  var FakeDB = function(name , storedData) {
+    var dummyFunction = function(obj) {
+      return obj;
+    };
+
     this.receivedData = [];
+    this.receivedDataHash = {};
     this.deletedData = [];
-    this.storedData = {};
+    this.storedData = storedData || {};
     this.options = {};
 
+    var objectStore = {
+      createIndex: dummyFunction
+    };
+
     this.objectStoreNames = ['fakeObjStore'];
-    this.createObjectStore = dummyFunction;
+    this.createObjectStore = dummyFunction.bind(undefined,
+                                                objectStore);
+
     this.deleteObjectStore = dummyFunction;
     this.transaction = sinon.stub();
     this.objectStore = sinon.stub();
@@ -40,25 +51,38 @@ function MockIndexedDB() {
     this.delete = dummyFunction;
     this.openCursor = dummyFunction;
     this.close = dummyFunction;
+    this.clear = dummyFunction;
+    this.index = dummyFunction;
 
     this.transaction.returns(this);
     this.objectStore.returns(this);
 
     var self = this;
+    
+    sinon.stub(this, 'index', function(indexName) {
+      var data = self.storedData;
+      
+      if (self._indexedData && self._indexedData.by) {
+        data = self._indexedData.by[indexName] || self.storedData;
+      }
+      return new FakeIndex(indexName, data, self.options);
+    });
 
     sinon.stub(this, 'close', function() {
       self.isClosed = true;
     });
 
     sinon.stub(this, 'put', function(data) {
-      self.receivedData.put(data);
-      return transRequest;
+      data.id = data.id || nextId++;
+      self.receivedDataHash[data.id] = data;
+      self.receivedData.push(data);
+      return _getRequest();
     });
 
     sinon.stub(this, 'get', function(key) {
-      return _getRequest(self.storedData[key]);
+      return _getRequest(self.storedData[key] || self.receivedDataHash[key]);
     });
-
+    
     sinon.stub(this, 'openCursor', function() {
       if (self.options.cursorOpenInError === true) {
         return _getRequest(null, {
@@ -68,11 +92,11 @@ function MockIndexedDB() {
       if (Object.keys(self.storedData).length === 0) {
         return _getRequest(null);
       }
-
+ 
       var cursor = new FakeCursor(self.storedData);
       var req = _getRequest(cursor);
       cursor.request = req;
-
+ 
       return req;
     });
 
@@ -85,10 +109,46 @@ function MockIndexedDB() {
       }
 
       delete self.storedData[id];
+      delete self.receivedDataHash[id];
+      var idx = self.receivedData.findIndex(function(elem) {
+        return elem.id && elem.id === id;
+      });
+      if (idx !== -1) {
+        self.receivedData.splice(idx, 1);
+      }
+      
       self.deletedData.push(id);
       return _getRequest(true);
     });
+    
+    sinon.stub(this, 'clear', function() {
+      self.storedData = {};
+      self.receivedDataHash = {};
+      self.receivedData = [];
+      
+      return _getRequest();
+    });
   };
+  
+  function FakeIndex(indexName, data, options) {
+    this.openCursor = function() {
+      if (options.cursorOpenInError === true) {
+        return _getRequest(null, {
+          isInError: true
+        });
+      }
+      
+      if (Object.keys(data).length === 0) {
+        return _getRequest(null);
+      }
+
+      var cursor = new FakeCursor(data);
+      var req = _getRequest(cursor);
+      cursor.request = req;
+
+      return req;
+    };
+  }
 
   var FakeCursor = function(data) {
     var _pointer = 0;
@@ -119,7 +179,7 @@ function MockIndexedDB() {
       });
     }
 
-    var db = new FakeDB(name);
+    var db = new FakeDB(name, self.storedDataDbs[name]);
     dbs.push(db);
     var outReq = _getRequest(db, {
       upgradeNeeded: (Array.isArray(self.options.upgradeNeededDbs) &&
@@ -137,6 +197,7 @@ function MockIndexedDB() {
 
   function _getRequest(result, opts) {
     var options = opts || {};
+    
     return {
       result: result,
       error: null,

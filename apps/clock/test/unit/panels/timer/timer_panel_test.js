@@ -4,7 +4,7 @@
 suite('Timer.Panel', function() {
   var clock, activeAlarm;
   var isHidden;
-  var View, Timer, Utils, mozL10n;
+  var View, Timer, Utils;
 
   suiteSetup(function(done) {
     isHidden = function(element) {
@@ -12,13 +12,12 @@ suite('Timer.Panel', function() {
     };
 
     require(['panels/alarm/active_alarm', 'timer', 'panels/timer/main',
-             'view', 'utils', 'l10n'],
-            function(ActiveAlarm, timer, timerPanel, view, utils, l10n) {
+             'view', 'utils'],
+            function(ActiveAlarm, timer, timerPanel, view, utils) {
       Timer = timer;
       Timer.Panel = timerPanel;
       View = view;
       Utils = utils;
-      mozL10n = l10n;
       activeAlarm = new ActiveAlarm();
       done();
     });
@@ -56,24 +55,19 @@ suite('Timer.Panel', function() {
     assert.isFalse(dialog.visible);
   });
 
-  test('panel is translated', function() {
-    /* jshint unused:false */
-    this.sinon.spy(mozL10n, 'translate');
-    var panel = new Timer.Panel(document.createElement('div'));
-    assert.ok(mozL10n.translate.called);
-  });
-
   test('update ', function() {
     var panel = new Timer.Panel(document.createElement('div'));
 
+    // The timer panel should display rounded seconds.
     panel.update(10000);
-
-    // TODO: update for l10n
     assert.equal(panel.nodes.time.textContent, '00:00:10');
-
-    panel.update(0);
-
-    // TODO: update for l10n
+    panel.update( 9555);
+    assert.equal(panel.nodes.time.textContent, '00:00:10');
+    panel.update( 9499);
+    assert.equal(panel.nodes.time.textContent, '00:00:09');
+    panel.update(  500);
+    assert.equal(panel.nodes.time.textContent, '00:00:01');
+    panel.update(    0);
     assert.equal(panel.nodes.time.textContent, '00:00:00');
   });
 
@@ -161,6 +155,50 @@ suite('Timer.Panel', function() {
     fakeTick(panel);
     assert.equal(panel.nodes.time.textContent, '00:59:55');
   });
+ 
+  test('Create button is disabled when picker is set to 0:00', function() {
+    var panel = new Timer.Panel(document.createElement('div'));
+    var create = panel.nodes.create;
+    var nodes = panel.picker.nodes;
+
+    create = {
+      setAttribute: function() {},
+      removeAttribute: function() {}
+    };
+    
+    this.sinon.spy(create, 'removeAttribute');
+    this.sinon.spy(create, 'setAttribute');
+
+    assert.isTrue(panel.nodes.create.disabled);
+
+    panel.picker.value = '3:00';
+    nodes.hours.dispatchEvent(
+      new CustomEvent('transitionend')
+    );
+    
+    assert.isFalse(panel.nodes.create.disabled);
+
+    panel.picker.value = '0:00';
+    nodes.hours.dispatchEvent(
+      new CustomEvent('transitionend')
+    );
+
+    assert.isTrue(panel.nodes.create.disabled);
+
+    panel.picker.value = '0:15';
+    nodes.minutes.dispatchEvent(
+      new CustomEvent('transitionend')
+    );
+    
+    assert.isFalse(panel.nodes.create.disabled);
+
+    panel.picker.value = '0:00';
+    nodes.minutes.dispatchEvent(
+      new CustomEvent('transitionend')
+    );
+
+    assert.isTrue(panel.nodes.create.disabled);
+  });
 
   suite('Timer.Panel, Events', function() {
     var panel;
@@ -214,8 +252,13 @@ suite('Timer.Panel', function() {
       assert.ok(timer.cancel.called);
     });
 
-    test('click: create ', function() {
-      panel.picker = { value: '0:60' };
+    test('click: create', function() {
+      panel.picker.value = '1:00';
+
+      panel.picker.nodes.hours.dispatchEvent(
+        new CustomEvent('transitionend')
+      );
+
       panel.nodes.create.dispatchEvent(
         new CustomEvent('click')
       );
@@ -239,17 +282,17 @@ suite('Timer.Panel', function() {
     test('blur: sound', function() {
       var menu = panel.soundButton.button;
       var sound = panel.nodes.sound;
-      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      Utils.changeSelectByValue(sound, 'ac_digicloud.opus');
       sound.dispatchEvent(
         new CustomEvent('blur')
       );
 
-      assert.equal(menu.textContent, 'ac_normal_gem_echoes_opus');
+      assert.equal(menu.textContent, 'ac_digicloud_opus');
     });
 
     test('change: sound', function() {
       var sound = panel.nodes.sound;
-      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      Utils.changeSelectByValue(sound, 'ac_digicloud.opus');
       var mockAudio = {
         pause: this.sinon.spy(),
         play: this.sinon.spy(),
@@ -265,13 +308,13 @@ suite('Timer.Panel', function() {
       assert.isTrue(mockAudio.play.called);
       assert.isTrue(mockAudio.loop);
       assert.equal(mockAudio.mozAudioChannelType, 'alarm');
-      var expected = 'shared/resources/media/alarms/ac_normal_gem_echoes.opus';
+      var expected = 'shared/resources/media/alarms/ac_digicloud.opus';
       assert.equal(mockAudio.src, expected);
     });
 
     test('blur: pause playing alarm', function() {
       var sound = panel.nodes.sound;
-      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      Utils.changeSelectByValue(sound, 'ac_digicloud.opus');
 
       var mockAudio = {
         pause: this.sinon.spy(),

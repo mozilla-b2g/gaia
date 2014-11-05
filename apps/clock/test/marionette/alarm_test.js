@@ -21,6 +21,14 @@ marionette('Alarm', function() {
     assert.ok($('#clock-day-date').displayed());
   });
 
+  test('Deleting an alarm works between app launches', function() {
+    alarm.create();
+    alarm.openEditForm(0);
+    alarm.delete();
+    actions.restart();
+    assert.equal(alarm.list.length, 0);
+  });
+
   // PythonTests: functional/test_clock_set_alarm
   test('Blank "New Alarm" form mutates properly', function() {
     alarm.openNewForm();
@@ -63,6 +71,11 @@ marionette('Alarm', function() {
     assert.equal($('#sound-menu').text(), selectedOptions.sound);
     assert.equal($('#snooze-menu').text(), selectedOptions.snooze);
     assert.equal($('#repeat-menu').text(), selectedOptions.repeat);
+    // Ensure that the time button shows the value of the time
+    // <select>, since updating the select does not automatically
+    // change the button unless our code makes it do so.
+    utils.assertStringContainsTime($('#time-select + button').text(),
+                                   utils.stringToDate($('#time-select').val()));
   });
 
   test('Volume control saves immediately when changed', function() {
@@ -144,7 +157,10 @@ marionette('Alarm', function() {
 
     alarm.saveForm();
 
-    assert.equal(alarm.list[0].name, changedName);
+    $.client.waitFor(function() {
+      return alarm.list[0].name === changedName;
+    }.bind(this));
+
     utils.assertStringContainsTime(alarm.list[0].timeString, changedTime);
 
     // Assert that the banner has been displayed.
@@ -165,7 +181,7 @@ marionette('Alarm', function() {
 
   test('Fire an alarm', function() {
     alarm.create();
-    alarm.fire(0, function() {
+    alarm.fire(0, new Date(), function() {
       // Click the "stop" button
       var el = $('#ring-button-stop');
       try {
@@ -175,6 +191,11 @@ marionette('Alarm', function() {
         // handling the click event. This is expected.
       }
     });
+
+    // The alarm must disable itself since it is not repeating.
+    $.client.waitFor(function() {
+      return !alarm.list[0].enabled;
+    }.bind(this));
 
     // Make sure we can see the analog clock again.
     $('#analog-clock').waitToAppear();

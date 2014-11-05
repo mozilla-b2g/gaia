@@ -9,14 +9,47 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 1.5rem 0 7rem;
+  padding: 0 0 7rem;
   color: #fff;
   font-size: 0;
   white-space: nowrap;
-  background: url(images/ui/pattern.png), url(images/ui/gradient.png) no-repeat;
+  background: #2d2d2d;
   background-size: auto auto, 100% 100%;
   z-index: 100;
   overflow: hidden;
+}
+
+/* Fullscreen layout apps need to correct for SHB using css since
+   the layout manager does not account for SHB in this case. */
+#screen.fullscreen-layout-app.software-button-enabled [role="dialog"].generic-dialog,
+#screen.software-button-enabled > #dialog-screen,
+#screen.software-button-enabled + #downloadConfirmUI {
+  bottom: var(--software-home-button-height);
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled [role="dialog"].generic-dialog,
+  #screen.software-button-enabled > #dialog-screen,
+  #screen.software-button-enabled + #downloadConfirmUI {
+    right: var(--software-home-button-height);
+  }
+
+  #screen.fullscreen-layout-app.software-button-enabled [role="dialog"].generic-dialog,
+  #screen.software-button-enabled > #dialog-screen,
+  #screen.software-button-enabled + #downloadConfirmUI {
+    bottom: 0;
+  }
+}
+
+#screen.software-button-enabled gaia-confirm {
+  margin-bottom: var(--software-home-button-height);
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled gaia-confirm {
+    margin-bottom: 0;
+    margin-right: var(--software-home-button-height);
+  }
 }
 
 [role="dialog"].generic-dialog:before {
@@ -24,7 +57,7 @@
   display: inline-block;
   vertical-align: middle;
   width: 0.1rem;
-  height: 100%;
+  height: calc(100% - 7rem);
 }
 
 [role="dialog"].generic-dialog .inner {
@@ -39,19 +72,18 @@
 [role="dialog"].generic-dialog h3 {
   font-weight: normal;
   font-size: 1.6rem;
-  line-height: 1em;
+  line-height: 1.5rem;
   color: #fff;
   border-bottom: 0.1rem solid #686868;
   margin: 0 0 1rem;
-  padding-bottom: 1rem;
+  padding: 0 1.5rem 1.5rem;
 }
 
 [role="dialog"].generic-dialog menu:not([type="toolbar"]) {
   white-space: nowrap;
   margin: 0;
-  padding: 1.5rem;
-  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
-  background: #2d2d2d url(images/ui/pattern.png) repeat left top;
+  padding: 1.5rem 1rem;
+  background-color: #4d4d4d;
   display: block;
   overflow: hidden;
   position: absolute;
@@ -60,21 +92,15 @@
   bottom: 0;
 }
 
-[role="dialog"].generic-dialog menu:not([type="toolbar"]) button:last-child,
-[role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:last-child {
-  margin-left: 1rem;
-}
-
 [role="dialog"].generic-dialog menu:not([type="toolbar"]) button,
-[role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"],
-[role="dialog"].generic-dialog menu:not([type="toolbar"]) button:first-child,
-[role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:first-child {
-  margin: 0;
+[role="dialog"].generic-dialog menu:not([type="toolbar"]) a.bb-button {
+  margin-bottom: 0;
 }
 
 [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] button,
-[role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a[role="button"] {
-  width: calc((100% - 1rem) / 2);
+[role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a.bb-button {
+  width: calc((100% - 2rem) / 2);
+  margin: 0 0.5rem;
 }
 
 
@@ -103,11 +129,9 @@
   [role="dialog"].generic-dialog {
     -moz-box-sizing: border-box;
     position: absolute;
-    top: calc(50% - 24rem);
-    left: calc(50% - 34rem);
     width: 68rem;
     height: 48rem;
-    padding: 6rem;
+    padding: 0;
     font-size: 2.2rem;
     background-image: none;
     background-color: #333333;
@@ -138,7 +162,7 @@
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) button:last-child,
-  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:last-child {
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a.bb-button:last-child {
     margin-left: 4rem;
     font-size: 2.3rem;
     font-weight: 400;
@@ -147,14 +171,14 @@
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) button,
-  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"],
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a.bb-button,
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) button:first-child,
-  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:first-child {
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a.bb-button:first-child {
     margin-left: calc(50% - 9rem);
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] button:first-child,
-  [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a[role="button"]:first-child {
+  [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a.bb-button:first-child {
     margin-left: calc(50% - 20rem);
     font-size: 2.3rem;
     font-weight: 400;

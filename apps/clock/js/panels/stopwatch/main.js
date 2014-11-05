@@ -63,8 +63,6 @@ define(function(require) {
     element.addEventListener(
       'panel-visibilitychange', this.onvisibilitychange.bind(this));
 
-    mozL10n.translate(this.element);
-
     this.setStopwatch(new Stopwatch());
 
   };
@@ -132,6 +130,10 @@ define(function(require) {
     if (evt.detail.isVisible) {
       this.setState(stopwatch.getState());
     }
+    if (this.screenWakeLock) {
+      this.screenWakeLock.unlock();
+      this.screenWakeLock = null;
+    }
   };
 
   Stopwatch.Panel.prototype.checkLapButton = function() {
@@ -181,8 +183,13 @@ define(function(require) {
       this.tick = requestAnimationFrame(tickfn);
     }).bind(this);
     tickfn();
-    this.showButtons('pause', 'lap');
-    this.hideButtons('start', 'resume', 'reset');
+    //bug#983393
+    var laps = priv.get(this).stopwatch.getLaps().length+1;
+    var maxLaps = parseInt(this.element.dataset.maxLaps, 10);
+    if (laps<maxLaps) {
+      this.showButtons('pause', 'lap');
+      this.hideButtons('start', 'resume', 'reset');
+    }
     this.screenWakeLock = navigator.requestWakeLock('screen');
   };
 
@@ -210,7 +217,7 @@ define(function(require) {
       time: Utils.format.durationMs(time)
     });
     li.innerHTML = html;
-    mozL10n.localize(
+    mozL10n.setAttributes(
       li.querySelector('.lap-name'),
       'lap-number',
       { n: num }
@@ -221,7 +228,7 @@ define(function(require) {
   function updateLapDom(num, time, li) {
     li.querySelector('.lap-duration').textContent =
       Utils.format.durationMs(time);
-    mozL10n.localize(
+    mozL10n.setAttributes(
       li.querySelector('.lap-name'),
       'lap-number',
       { n: num }

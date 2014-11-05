@@ -1,5 +1,5 @@
 'use strict';
-
+/* global require, module */
 /*
  * You need the following pref for this to work.
  * 'devtools.debugger.forbid-certified-apps': false
@@ -15,6 +15,7 @@ var atom = fs.readFileSync('./tests/atoms/reflow.js', {encoding: 'utf-8'});
 var ReflowHelper = function(client) {
   var chrome = client.scope({ context: 'chrome' });
   chrome.executeScript(atom);
+  client.setContext('content');
 
   this.startTracking = function(manifestURL) {
     chrome.executeScript(function(url) {

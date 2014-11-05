@@ -12,7 +12,7 @@
   line-height: 16rem;
   opacity: 0;
   overflow: hidden;
-  transform: scale(1.5) translateZ(1px);
+  transform: scale(1.5);
   transition: none;
   pointer-events: none;
 }

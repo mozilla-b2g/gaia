@@ -1,4 +1,5 @@
-/* globals _, ContactToVcard, getStorageIfAvailable, getUnusedFilename */
+/* globals _, ContactToVcard, getStorageIfAvailable, getUnusedFilename
+*/
 
 /* exported ContactsSDExport */
 
@@ -8,6 +9,7 @@ var ContactsSDExport = function ContactsSDExport() {
 
   var contacts;
   var progressStep;
+  var cancelled = false;
 
   var setContactsToExport = function setContactsToExport(cts) {
     contacts = cts;
@@ -22,7 +24,7 @@ var ContactsSDExport = function ContactsSDExport() {
   };
 
   var getExportTitle = function getExportTitle() {
-    return _('sdExport-title');
+    return 'memoryCardExport-title';
   };
 
   var hasGivenName = function hasGivenName(contact) {
@@ -62,9 +64,9 @@ var ContactsSDExport = function ContactsSDExport() {
     } else {
       var today = new Date();
       filename.push(
-        today.getDate(),
-        today.getMonth() + 1,
         today.getFullYear(),
+        today.getMonth() + 1,
+        today.getDate(),
         contacts.length
       );
     }
@@ -89,6 +91,10 @@ var ContactsSDExport = function ContactsSDExport() {
     );
   };
 
+  var cancelExport = function cancelExport() {
+    cancelled = true;
+  };
+
   var doExport = function doExport(finishCallback) {
     /* XXX: We use a batch-conversion size of 2MiB. This ensures that the
      * process won't go out of memory even on low-end devices. This should be
@@ -97,41 +103,50 @@ var ContactsSDExport = function ContactsSDExport() {
     var count = 0;
     var pendingBatches = 0;
     var done = false;
+    var cancelButton = document.querySelector('#cancel-overlay');
 
     if (typeof finishCallback !== 'function') {
       throw new Error('SD export requires a callback function');
     }
 
     ContactToVcard(contacts, function onContacts(vcards, nCards) {
+      if (cancelled) {
+        finishCallback(null, 0);
+        return;
+      }
       var blob = new Blob([vcards], {'type': 'text/vcard'});
 
       pendingBatches++;
 
       getStorage(getFileName(), blob,
         function onStorage(error, storage, finalName) {
-          if (error) {
+          if (error !== null) {
             var reason = error;
             // numeric error means not enough space available
-            if (parseInt(error, 10) > 0) {
+            if (parseInt(error, 10) >= 0) {
               reason = 'noSpace';
             }
             finishCallback({
               'reason': reason
-            }, count, error.message);
+            }, count, true);
             return;
           }
-
+          if (cancelled) {
+            finishCallback(null, 0);
+            return;
+          }
+          cancelButton.disabled = true;
           var request = storage.addNamed(blob, finalName);
           request.onsuccess = function onSuccess() {
             count += nCards;
             pendingBatches--;
 
             if (done && (pendingBatches === 0)) {
-              finishCallback(null, count, null);
+              finishCallback(null, count, false);
             }
           };
           request.onerror = function onError(e) {
-            finishCallback({ 'reason': e }, count, e.message);
+            finishCallback({ 'reason': e }, count, true);
           };
         });
     }, function finish() {
@@ -146,6 +161,7 @@ var ContactsSDExport = function ContactsSDExport() {
     'getExportTitle': getExportTitle,
     'doExport': doExport,
     'setProgressStep': setProgressStep,
+    'cancelExport': cancelExport,
     get name() { return 'SD'; } // handling error messages on contacts_exporter
   };
 

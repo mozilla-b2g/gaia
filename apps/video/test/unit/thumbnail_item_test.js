@@ -6,7 +6,7 @@
 require('/shared/js/l10n.js');
 require('/shared/js/template.js');
 require('/shared/js/media/media_utils.js');
-requireApp('/video/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('/video/js/thumbnail_item.js');
 
 suite('Thumbnail Item Unit Tests', function() {

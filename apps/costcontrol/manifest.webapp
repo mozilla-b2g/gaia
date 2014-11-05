@@ -8,6 +8,7 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
+    "themeable":{},
     "sms":{},
     "mobileconnection":{},
     "desktop-notification":{},
@@ -15,7 +16,11 @@
     "networkstats-manage":{},
     "alarms": {},
     "telephony": {},
-    "storage": {}
+    "storage": {},
+    "audio-channel-notification":{},
+    "webapps-manage":{},
+    "device-storage:apps":{ "access": "readonly" },
+    "systemXHR":{}
   },
   "activities": {
     "costcontrol/balance": {
@@ -35,17 +40,30 @@
     }
   },
   "locales": {
+    "ar": {
+      "name": "Usage",
+      "description": "Usage application to see credit and data usage statistics"
+    },
     "en-US": {
+      "name": "Usage",
+      "description": "Usage application to see credit and data usage statistics"
+    },
+    "fr": {
+      "name": "Usage",
+      "description": "Usage application to see credit and data usage statistics"
+    },
+    "zh-TW": {
       "name": "Usage",
       "description": "Usage application to see credit and data usage statistics"
     }
   },
   "default_locale": "en-US",
   "icons": {
-    "135": "/style/icons/cost-control_135.png",
-    "120": "/style/icons/cost-control_120.png",
-    "90": "/style/icons/cost-control_90.png",
-    "60": "/style/icons/cost-control_60.png"
+  "84": "/style/icons/costcontrol_84.png",
+  "126": "/style/icons/costcontrol_126.png",
+  "142": "/style/icons/costcontrol_142.png",
+  "189": "/style/icons/costcontrol_189.png",
+  "284": "/style/icons/costcontrol_284.png"
   },
   "orientation": "default",
   "messages": [

@@ -59,9 +59,11 @@ ImprovePanel.prototype = {
   },
 
   enableSubmitPerfData: function() {
+    var initialState = this.isSubmitPerfData;
     this.waitForElement('submitPerfData').tap();
     this.client.waitFor(function() {
-      return this.isSubmitPerfData;
+      // Ensure tapping the element changed its state
+      return this.isSubmitPerfData !== initialState;
     }.bind(this));
   },
 

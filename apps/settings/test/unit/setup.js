@@ -24,8 +24,11 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'shared/screen_layout': {
         exports: 'ScreenLayout'
       },
-      'unit/mock_l10n': {
-        exports: 'MockL10n'
+      'shared/tz_select': {
+        exports: 'tzSelect'
+      },
+      'shared/template': {
+        exports: 'Template'
       },
       'unit/mock_async_storage': {
         exports: 'MockAsyncStorage'
@@ -36,17 +39,78 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_settings_cache': {
         exports: 'MockSettingsCache'
       },
-      'shared_mocks/mock_navigator_moz_settings': {
-        exports: 'MockNavigatorSettings'
-      },
-      'shared_mocks/mock_keyboard_helper': {
-        exports: 'MockKeyboardHelper'
-      },
       'unit/mock_settings_service': {
         exports: 'MockSettingsService'
       },
       'unit/mock_xml_http_request': {
         exports: 'MockXmlHttpRequest'
+      },
+      'unit/mock_moz_apps': {
+        exports: 'MockMozApps'
+      },
+      'unit/mock_wifi_utils': {
+        exports: 'MockWifiUtils'
+      },
+      'unit/mock_airplane_mode_helper': {
+        exports: 'MockAirplaneModeHelper'
+      },
+      'unit/mock_apps_cache': {
+        exports: 'MockAppsCache'
+      },
+      'shared_mocks/mock_navigator_moz_settings': {
+        exports: 'MockNavigatorSettings'
+      },
+      'shared_mocks/mock_l10n': {
+        exports: 'MockL10n'
+      },
+      'shared_mocks/mock_language_list': {
+        exports: 'MockLanguageList'
+      },
+      'shared_mocks/mock_keyboard_helper': {
+        exports: 'MockKeyboardHelper'
+      },
+      'shared_mocks/mock_settings_listener': {
+        exports: 'MockSettingsListener',
+        deps: ['shared_mocks/mock_navigator_moz_settings']
+      },
+      'shared_mocks/mock_permission_settings': {
+        exports: 'MockPermissionSettings'
+      },
+      'shared_mocks/mock_manifest_helper': {
+        exports: 'MockManifestHelper'
+      },
+      'shared_mocks/mock_moz_activity': {
+        exports: 'MockMozActivity'
+      },
+      'shared_mocks/mock_settings_url': {
+        exports: 'MockSettingsURL'
+      },
+      'shared_mocks/mock_wifi_helper': {
+        exports: 'MockWifiHelper'
+      },
+      'shared_mocks/mock_navigator_moz_wifi_manager': {
+        exports: 'MockNavigatorMozWifiManager'
+      },
+      'shared_mocks/mock_bluetooth_helper': {
+        exports: 'MockBluetoothHelper'
+      },
+      'shared_mocks/mock_navigator_moz_bluetooth': {
+        exports: 'MockMozBluetooth'
+      },
+      'shared_mocks/mock_enumerate_all': {
+        exports: 'MockEnumerateAll'
+      },
+      'shared_mocks/mock_lazy_loader': {
+        exports: 'MockLazyLoader'
+      },
+      'shared_mocks/mock_simslot_manager': {
+        exports: 'MockSIMSlotManager'
+      },
+      'shared_mocks/mock_mobile_operator': {
+        exports: 'MockMobileOperator'
+      },
+      'shared_mocks/mock_sim_settings_helper': {
+        exports: 'MockSimSettingsHelper'
       }
     },
     modules: [

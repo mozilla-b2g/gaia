@@ -1,4 +1,4 @@
-/* global AutoSettings, BalanceLowLimitView, Common, ConfigManager, CostControl,
+/* global AutoSettings, BalanceLowLimitView, Common, ConfigManager, SimManager,
           dataLimitConfigurer, LazyLoader, debug, ViewManager */
 
 /*
@@ -8,9 +8,6 @@
 (function() {
 
   'use strict';
-
-  var costcontrol;
-  var hasSim = true;
 
   // Fallback from some values, just in case they are missed from configuration
   var DEFAULT_LOW_LIMIT_THRESHOLD = 3;
@@ -22,18 +19,16 @@
   function initLazyFTE() {
     var SCRIPTS_NEEDED = [
       'js/utils/debug.js',
-      'js/utils/formatting.js',
       'js/utils/toolkit.js',
+      'js/sim_manager.js',
       'js/common.js',
-      'js/costcontrol.js',
       'js/config/config_manager.js',
       'js/views/BalanceLowLimitView.js',
       'js/view_manager.js',
-      'js/settings/limitdialog.js',
       'js/settings/autosettings.js'
     ];
     LazyLoader.load(SCRIPTS_NEEDED, function onScriptsLoaded() {
-      Common.loadDataSIMIccId(_onIccReady);
+      setupFTE();
       parent.postMessage({
         type: 'fte_ready',
         data: ''
@@ -43,42 +38,16 @@
     });
   }
 
-  function _onIccReady(iccid) {
-    var stepsLeft = 2;
-    // Load iccInfo of current data simcard
-    var dataSimIccInfo = Common.dataSimIcc;
-
-    // No SIM
-    if (!dataSimIccInfo || dataSimIccInfo.cardState === 'absent') {
-      hasSim = false;
-      trySetup();
-
-    // SIM is not ready
-    } else if (dataSimIccInfo.cardState !== 'ready') {
-      debug('SIM not ready:', dataSimIccInfo);
-      dataSimIccInfo.oniccinfochange = _onIccReady;
-
-    // SIM is ready
-    } else {
-      dataSimIccInfo.oniccinfochange = undefined;
-      trySetup();
-    }
-
-    CostControl.getInstance(function _onCostControl(instance) {
-      costcontrol = instance;
-      trySetup();
-    });
-
-    function trySetup() {
-      if (!(--stepsLeft)) {
-        Common.loadNetworkInterfaces(setupFTE);
-      }
-    }
-  }
-
   var wizard, vmanager;
   var toStep2, step = 0;
   function setupFTE() {
+    if (SimManager.isMultiSim()) {
+      window.addEventListener('dataSlotChange', function _onDataSimChange() {
+        window.removeEventListener('dataSlotChange', _onDataSimChange);
+        // Close FTE if change the SimCard for data connections
+        Common.closeFTE();
+      });
+    }
     ConfigManager.requestAll(function _onSettings(configuration, settings) {
       wizard = document.getElementById('firsttime-view');
       vmanager = new ViewManager();
@@ -91,8 +60,21 @@
       // Initialize resetTime and trackingPeriod to default values
       ConfigManager.setOption({resetTime: 1, trackingPeriod: 'monthly' });
 
-      AutoSettings.addType('data-limit', dataLimitConfigurer);
+      var mode = ConfigManager.getApplicationMode();
 
+      var SCRIPTS_NEEDED = [
+        'js/settings/limitdialog.js',
+        'js/utils/formatting.js'
+      ];
+      LazyLoader.load(SCRIPTS_NEEDED, function onScriptsLoaded() {
+        Common.loadNetworkInterfaces(function() {
+          AutoSettings.addType('data-limit', dataLimitConfigurer);
+          if (mode === 'DATA_USAGE_ONLY') {
+            AutoSettings.initialize(ConfigManager, vmanager,
+                                    '#non-vivo-step-2');
+          }
+        });
+      });
       // Currency is set by config as well
       if (configuration && configuration.credit &&
           configuration.credit.currency) {
@@ -101,22 +83,15 @@
           configuration.credit.currency;
       }
 
-      var mode = ConfigManager.getApplicationMode();
-
-      if (!hasSim) {
-        wizard.querySelector('p.info').setAttribute('aria-hidden', true);
-        wizard.querySelector('.no-sim').setAttribute('aria-hidden', false);
-      }
-
       if (mode === 'DATA_USAGE_ONLY') {
         debug('FTE for non supported SIM');
         wizard.dataset.steps = '3';
         reset(['step-1', 'non-vivo-step-1', 'non-vivo-step-2']);
         AutoSettings.initialize(ConfigManager, vmanager, '#non-vivo-step-1');
-        AutoSettings.initialize(ConfigManager, vmanager, '#non-vivo-step-2');
 
       } else {
         wizard.dataset.steps = '4';
+        reset(['step-1', 'step-2']);
         AutoSettings.initialize(ConfigManager, vmanager, '#step-1');
 
         // Plantype selection
@@ -145,6 +120,12 @@
       var finish = document.querySelectorAll('[data-navigation=finish]');
       [].forEach.call(finish, function cc_eachFinish(finishButton) {
         finishButton.addEventListener('click', onFinish);
+      });
+
+      // Needed to put the alarms for balance and networkUsage
+      LazyLoader.load(['js/costcontrol.js'], function() {
+        var messageHandlerFrame = document.getElementById('message-handler');
+        messageHandlerFrame.src = 'message_handler.html';
       });
     });
   }
@@ -214,11 +195,6 @@
   // NAVIGATION
 
   function reset(track) {
-    // Set wizard progess section
-    wizard.classList.add('total-steps-' + track.length);
-    wizard.classList.remove('step-' + (step + 1));
-    wizard.classList.add('step-1');
-
     // Reposition screens
     var currentScreen = document.getElementById(currentTrack[step]);
     var newStartScreen = document.getElementById(track[0]);
@@ -255,10 +231,6 @@
     delete nextScreen.dataset.viewport;
     currentScreen.dataset.viewport = 'left';
 
-    // Advance progress bar
-    wizard.classList.remove('step-' + (step + 1));
-    wizard.classList.add('step-' + (step + 2));
-
     step += 1;
 
     // Validate when in step 2 in order to restore buttons and errors
@@ -282,23 +254,21 @@
     delete prevScreen.dataset.viewport;
     currentScreen.dataset.viewport = 'right';
 
-    // Back progress bar
-    wizard.classList.remove('step-' + (step + 1));
-    wizard.classList.add('step-' + step);
-
     step -= 1;
   }
 
   function onFinish(evt) {
     evt.target.disabled = true;
-    ConfigManager.requestSettings(Common.dataSimIccId,
-                                  function _onSettings(settings) {
-      ConfigManager.setOption({ fte: false }, function _returnToApp() {
-        Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
-          function _returnToTheApplication() {
-            Common.startApp();
-          }
-        );
+    SimManager.requestDataSimIcc(function(dataSim) {
+      ConfigManager.requestSettings(dataSim.iccId,
+                                    function _onSettings(settings) {
+        ConfigManager.setOption({ fte: false }, function _returnToApp() {
+          Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
+            function _returnToTheApplication() {
+              Common.startApp();
+            }
+          );
+        });
       });
     });
   }

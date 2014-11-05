@@ -8,7 +8,7 @@
 var AttachmentMenu = {
 
   init: function(id) {
-    this.el = document.getElementById(id);
+    this.el = document.getElementById(id).querySelector('#attachment-options');
     ['view', 'remove', 'replace', 'cancel'].forEach(function(button) {
       this[button + 'Button'] =
         this.el.querySelector('#attachment-options-' + button);
@@ -19,7 +19,6 @@ var AttachmentMenu = {
   open: function(attachment) {
     var name = attachment.name;
     var blob = attachment.blob;
-    var l10n = navigator.mozL10n;
     var fileName = name.substr(name.lastIndexOf('/') + 1);
 
     // Localize the name of the file type
@@ -34,11 +33,20 @@ var AttachmentMenu = {
 
     this.header.textContent = fileName;
 
-    l10n.localize(this.viewButton, 'view-attachment-' + fileType);
-    l10n.localize(this.removeButton, 'remove-attachment-' + fileType);
-    l10n.localize(this.replaceButton, 'replace-attachment-' + fileType);
+    this.viewButton.setAttribute(
+      'data-l10n-id',
+      'view-attachment-' + fileType
+    );
+    this.removeButton.setAttribute(
+      'data-l10n-id',
+      'remove-attachment-' + fileType
+    );
+    this.replaceButton.setAttribute(
+      'data-l10n-id',
+      'replace-attachment-' + fileType
+    );
 
-    this.el.className = '';
+    this.el.classList.add('visible');
 
     // focus the menu so we can lose focus on anything with the keyboard
     // when we gain focus through longpress/contextmenu the keyboard
@@ -47,7 +55,7 @@ var AttachmentMenu = {
   },
 
   close: function() {
-    this.el.className = 'hide';
+    this.el.classList.remove('visible');
   }
 
 };

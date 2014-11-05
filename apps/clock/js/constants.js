@@ -4,21 +4,22 @@ define(function(require, exports) {
   // ---------------------------------------------------------
   // Constants
 
-  exports.DAYS = [
+  exports.DAYS_STARTING_MONDAY = [
     'monday', 'tuesday', 'wednesday', 'thursday', 'friday',
-    'saturday', 'sunday'
-  ];
+    'saturday', 'sunday'];
 
-  exports.RDAYS = exports.DAYS.map(function(_, n) {
-    return n;
-  });
+  exports.DAYS_STARTING_SUNDAY = [
+    'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday',
+    'saturday'];
 
-  exports.WEEKDAYS = [0, 1, 2, 3, 4].map(function(x) {
-    return exports.DAYS[x];
-  });
-
-  exports.WEEKENDS = [5, 6].map(function(x) {
-    return exports.DAYS[x];
-  });
+  exports.DAY_STRING_TO_L10N_ID = {
+    'sunday': 'weekday-0-short',
+    'monday': 'weekday-1-short',
+    'tuesday': 'weekday-2-short',
+    'wednesday': 'weekday-3-short',
+    'thursday': 'weekday-4-short',
+    'friday': 'weekday-5-short',
+    'saturday': 'weekday-6-short'
+  };
 
 });

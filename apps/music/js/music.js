@@ -38,14 +38,11 @@ var pendingPick;
 var SETTINGS_OPTION_KEY = 'settings_option_key';
 var playerSettings;
 
-// We get a localized event when the application is launched and when
-// the user switches languages.
-window.addEventListener('localized', function onlocalized() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
+var chromeInteractive = false;
+var firstScanDone = false;
 
-  // Get prepared for the localized strings, these will be used later
+// Get prepared for the localized strings, these will be used later
+navigator.mozL10n.ready(function onLanguageChange() {
   musicTitle = navigator.mozL10n.get('music');
   playlistTitle = navigator.mozL10n.get('playlists');
   artistTitle = navigator.mozL10n.get('artists');
@@ -60,68 +57,94 @@ window.addEventListener('localized', function onlocalized() {
   recentlyAddedTitle = navigator.mozL10n.get(recentlyAddedTitleL10nId);
   mostPlayedTitle = navigator.mozL10n.get(mostPlayedTitleL10nId);
   leastPlayedTitle = navigator.mozL10n.get(leastPlayedTitleL10nId);
+});
 
-  // The first time we get this event we start running the application.
-  // But don't re-initialize if the user switches languages while we're running.
-  if (!musicdb) {
-    init();
+navigator.mozL10n.once(function onLocalizationInit() {
+  // Tell performance monitors that our chrome is visible.
+  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
-    TitleBar.init();
-    TilesView.init();
-    ListView.init();
-    SubListView.init();
-    SearchView.init();
-    TabBar.init();
+  init();
 
-    // If the URL contains '#pick', we will handle the pick activity
-    // or just start the Music app from Mix page
-    if (document.URL.indexOf('#pick') !== -1) {
-      navigator.mozSetMessageHandler('activity', function activityHandler(a) {
-        var activityName = a.source.name;
+  TitleBar.init();
+  TilesView.init();
+  ListView.init();
+  SubListView.init();
+  SearchView.init();
+  TabBar.init();
 
-        if (activityName === 'pick') {
-          pendingPick = a;
-        }
-      });
+  // If the URL contains '#pick', we will handle the pick activity
+  // or just start the Music app from Mix page
+  if (document.URL.indexOf('#pick') !== -1) {
+    navigator.mozSetMessageHandler('activity', function activityHandler(a) {
+      var activityName = a.source.name;
 
-      TabBar.option = 'title';
-      ModeManager.start(MODE_PICKER);
-    } else {
-      TabBar.option = 'mix';
-      ModeManager.start(MODE_TILES);
+      if (activityName === 'pick') {
+        pendingPick = a;
+      }
+    });
 
-      // The player options will be used later,
-      // so let's get them first before the player is loaded.
-      asyncStorage.getItem(SETTINGS_OPTION_KEY, function(settings) {
-        playerSettings = settings;
-      });
-
-      // The done button must be removed when we are not in picker mode
-      // because the rules of the header building blocks
-      var doneButton = document.getElementById('title-done');
-      doneButton.parentNode.removeChild(doneButton);
-    }
+    TabBar.option = 'title';
+    ModeManager.start(MODE_PICKER);
   } else {
-    ModeManager.updateTitle();
+    TabBar.option = 'mix';
+    ModeManager.start(MODE_TILES);
+
+    // The player options will be used later,
+    // so let's get them first before the player is loaded.
+    asyncStorage.getItem(SETTINGS_OPTION_KEY, function(settings) {
+      playerSettings = settings;
+    });
+
+    // The done button must be removed when we are not in picker mode
+    // because the rules of the header building blocks
+    var doneButton = document.getElementById('title-done');
+    doneButton.parentNode.removeChild(doneButton);
   }
 
-  TabBar.playlistArray.localize();
+  // Do this now and on each language change in the future
+  navigator.mozL10n.ready(function() {
+    ModeManager.updateTitle();
+    TabBar.playlistArray.localize();
+
+    if (!chromeInteractive) {
+      chromeInteractive = true;
+      // Tell performance monitors that our chrome is interactible.
+      window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+    }
+  });
+
 });
 
 // We use this flag when switching views. We want to hide the scan progress
 // bar (to show the titlebar) when we enter sublist mode or player mode
 var displayingScanProgress = false;
 
+// We need to know if we're in the middle of reparsing all the existing music
+// to show the correct overlay.
+var reparsingMetadata = false;
+
 function init() {
+  // We want to exclude some folders that store ringtones so they don't show up
+  // in the music app. The regex matches absolute paths starting with a volume
+  // name (e.g. "/volume-name/Ringtones/") or relative paths starting with the
+  // excluded folder name (e.g. "Ringtones/").
+  var excludedFolders = ['Ringtones', 'Notifications', 'Alarms'];
+  var excludeFilter = new RegExp(
+    '^(/[^/]*/)?(' + excludedFolders.join('|') + ')/', 'i'
+  );
+
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
   // So the behaviors of musicdb are the same as the MediaDB in gallery
   musicdb = new MediaDB('music', metadataParserWrapper, {
     indexes: ['metadata.album', 'metadata.artist', 'metadata.title',
               'metadata.rated', 'metadata.played', 'date'],
+    excludeFilter: excludeFilter,
     batchSize: 1,
     autoscan: false, // We call scan() explicitly after listing music we know
-    version: 2
+    updateRecord: updateRecord,
+    reparsedRecord: reparsedRecord,
+    version: 3
   });
 
   function metadataParserWrapper(file, onsuccess, onerror) {
@@ -130,9 +153,33 @@ function init() {
     });
   }
 
+  function updateRecord(record, oldVersion, newVersion) {
+    if (oldVersion === 2) {
+      // Version 3 of the music DB changes ID3 parsing, so we need to reparse
+      // the file from scratch!
+      record.needsReparse = true;
+      reparsingMetadata = true;
+    }
+    return record.metadata;
+  }
+
+  function reparsedRecord(oldMetadata, newMetadata) {
+    // We assume that updateRecord has already changed oldMetadata if necessary.
+    // (It's not necessary at the moment).
+    newMetadata.rated = oldMetadata.rated;
+    newMetadata.played = oldMetadata.played;
+    return newMetadata;
+  }
+
   // show dialog in upgradestart, when it finished, it will turned to ready.
-  musicdb.onupgrading = function() {
+  musicdb.onupgrading = function(event) {
     showOverlay('upgrade');
+
+    if (event.detail.oldClientVersion === 2) {
+      // We want to delete asyncStorage, which was used in version 2 to cache
+      // album art.
+      window.indexedDB.deleteDatabase('asyncStorage');
+    }
   };
 
   // This is called when DeviceStorage becomes unavailable because the
@@ -184,6 +231,7 @@ function init() {
 
     // Display music that we already know about
     showCurrentView(function() {
+      reparsingMetadata = false;
       // Hide the  spinner once we've displayed the initial screen
       document.getElementById('spinner-overlay').classList.add('hidden');
 
@@ -233,6 +281,13 @@ function init() {
       filesFoundBatch = 0;
       filesDeletedWhileScanning = 0;
       showCurrentView();
+    }
+
+    // If this was the first scan after startup, tell the performance monitors
+    // that we finished loading everything.
+    if (!firstScanDone) {
+      firstScanDone = true;
+      window.dispatchEvent(new CustomEvent('moz-app-loaded'));
     }
   };
 
@@ -344,21 +399,17 @@ function showOverlay(id) {
   }
 
   var title, text;
+  var l10nIds = {'title': id + '-title', 'text': id + '-text'};
   if (id === 'nocard') {
-    title = navigator.mozL10n.get('nocard2-title');
-    text = navigator.mozL10n.get('nocard3-text');
-  } else {
-    title = navigator.mozL10n.get(id + '-title');
-    text = navigator.mozL10n.get(id + '-text');
+    l10nIds.title = 'nocard2-title';
+    l10nIds.text = 'nocard3-text';
   }
 
   var titleElement = document.getElementById('overlay-title');
   var textElement = document.getElementById('overlay-text');
 
-  titleElement.textContent = title;
-  titleElement.dataset.l10nId = id + '-title';
-  textElement.textContent = text;
-  textElement.dataset.l10nId = id + '-text';
+  titleElement.dataset.l10nId = l10nIds.title;
+  textElement.dataset.l10nId = l10nIds.text;
 
   document.getElementById('overlay').classList.remove('hidden');
 }
@@ -371,8 +422,10 @@ function showCorrectOverlay() {
   // If we do know about songs and the 'empty overlay is being displayed
   // then hide it.
   if (knownSongs.length > 0) {
-    if (currentOverlay === 'empty')
+    if (currentOverlay === 'empty' || currentOverlay === 'upgrade')
       showOverlay(null);
+  } else if (reparsingMetadata) {
+    showOverlay('upgrade');
   } else {
     showOverlay('empty');
   }
@@ -406,7 +459,6 @@ function showCurrentView(callback) {
     // because mix page is not needed in picker mode
     if (pendingPick) {
       showListView();
-      knownSongs = ListView.dataSource;
 
       if (callback)
         callback();
@@ -429,25 +481,37 @@ function showCurrentView(callback) {
     // every song.
     // * Note that we need to update tiles view every time this happens
     // because it's the top level page and an independent view
-    tilesHandle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
-                                       function(songs) {
-                                         // Add null to the array of songs
-                                         // this is a flag that tells update()
-                                         // to show or hide the 'empty' overlay
-                                         songs.push(null);
-                                         TilesView.clean();
+    tilesHandle = musicdb.enumerateAll(
+      'metadata.album', null, 'nextunique',
+      function(songs) {
+        // Add null to the array of songs
+        // this is a flag that tells update()
+        // to show or hide the 'empty' overlay
+        songs.push(null);
+        TilesView.clean();
 
-                                         knownSongs.length = 0;
-                                         songs.forEach(function(song) {
-                                           TilesView.update(song);
-                                           // Push the song to knownSongs then
-                                           // we can display a correct overlay
-                                           knownSongs.push(song);
-                                         });
+        knownSongs.length = 0;
+        songs.forEach(function(song) {
+          TilesView.update(song);
+          // Push the song to knownSongs then
+          // we can display a correct overlay
+          knownSongs.push(song);
+        });
 
-                                         if (callback)
-                                            callback();
-                                      });
+        // Tell performance monitors that the content is displayed and is ready
+        // to interact with. We won't send the final moz-app-loaded event until
+        // we're completely stable and have finished scanning.
+        //
+        // XXX: Maybe we could emit these events earlier, when we've just
+        // finished the "above the fold" content. That's hard to do on arbitrary
+        // screen resolutions, though.)
+        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+
+        if (callback)
+          callback();
+      }
+    );
   });
 }
 
@@ -485,10 +549,23 @@ var ModeManager = {
   },
 
   pop: function() {
-    if (this._modeStack.length <= 1)
+    if (this._modeStack.length <= 1) {
       return;
+    }
     this._modeStack.pop();
     this._updateMode();
+  },
+
+  updateBackArrow: function() {
+    var noBackArrow = [
+      MODE_TILES,
+      MODE_LIST,
+      MODE_SEARCH_FROM_TILES,
+      MODE_SEARCH_FROM_LIST
+    ];
+
+    var hide = noBackArrow.indexOf(this.currentMode) > -1;
+    TitleBar.showBackArrow(!hide);
   },
 
   updateTitle: function() {
@@ -528,8 +605,11 @@ var ModeManager = {
     // because the title is already localized in HTML
     // And if title does exist, it should be the localized "Music"
     // so it will be just fine to update changeTitleText() again
-    if (title)
+    if (title) {
       TitleBar.changeTitleText(title);
+    }
+
+
   },
 
   _updateMode: function(callback) {
@@ -537,6 +617,7 @@ var ModeManager = {
     var playerLoaded = (typeof PlayerView != 'undefined');
 
     this.updateTitle();
+    this.updateBackArrow();
 
     if (mode === MODE_PLAYER) {
       // Here if Player is not loaded yet and we are going to play
@@ -574,14 +655,16 @@ var ModeManager = {
       // Disable the NFC sharing when it's in the other modes.
       this.enableNFCSharing(false);
 
-      if (callback)
+      if (callback) {
         callback();
+      }
     }
 
     // We have to show the done button when we are in picker mode
     // and previewing the selecting song
-    if (pendingPick)
+    if (pendingPick) {
       document.getElementById('title-done').hidden = (mode !== MODE_PLAYER);
+    }
 
     // Remove all mode classes before applying a new one
     var modeClasses = ['tiles-mode', 'list-mode', 'sublist-mode', 'player-mode',
@@ -606,14 +689,15 @@ var ModeManager = {
   },
 
   enableNFCSharing: function(enabled) {
-    if (!navigator.mozNfc)
+    if (!navigator.mozNfc) {
       return;
+    }
 
     if (enabled && !pendingPick) {
       // Assign the sharing function to onpeerready so that it will trigger
       // the shrinking ui to share the playing file.
       navigator.mozNfc.onpeerready = function(event) {
-        var peer = navigator.mozNfc.getNFCPeer(event.detail);
+        var peer = event.peer;
         if (peer)
           peer.sendFile(PlayerView.playingBlob);
       };
@@ -644,10 +728,29 @@ var TitleBar = {
 
   init: function tb_init() {
     this.view.addEventListener('click', this);
+    this.view.addEventListener('action', this.onActionBack);
   },
 
   changeTitleText: function tb_changeTitleText(content) {
     this.titleText.textContent = content;
+  },
+
+  showBackArrow: function(show) {
+    if (show) { this.view.setAttribute('action', 'back'); }
+    else { this.view.removeAttribute('action'); }
+  },
+
+  onActionBack: function() {
+    if (pendingPick) {
+      if (ModeManager.currentMode === MODE_PICKER) {
+        pendingPick.postError('pick cancelled');
+        return;
+      }
+
+      PlayerView.stop();
+    }
+
+    ModeManager.pop();
   },
 
   handleEvent: function tb_handleEvent(evt) {
@@ -659,23 +762,11 @@ var TitleBar = {
 
     switch (evt.type) {
       case 'click':
-        if (!target)
+        if (!target) {
           return;
+        }
 
         switch (target.id) {
-          case 'title-back':
-            if (pendingPick) {
-              if (ModeManager.currentMode === MODE_PICKER) {
-                pendingPick.postError('pick cancelled');
-                return;
-              }
-
-              cleanupPick();
-            }
-
-            ModeManager.pop();
-
-            break;
           case 'title-player':
             // We cannot to switch to player mode
             // when there is no song in the dataSource of player
@@ -684,15 +775,29 @@ var TitleBar = {
 
             break;
           case 'title-done':
-            pendingPick.postResult({
-              type: PlayerView.playingBlob.type,
-              blob: PlayerView.playingBlob,
-              name:
-                PlayerView.dataSource[PlayerView.currentIndex].metadata.title ||
-                ''
+            var currentFileinfo = PlayerView.dataSource[
+              PlayerView.currentIndex
+            ];
+            var playingBlob = PlayerView.playingBlob;
+            getAlbumArtBlob(currentFileinfo, function(err, picture) {
+              var currentMetadata = currentFileinfo.metadata;
+              pendingPick.postResult({
+                type: playingBlob.type,
+                blob: playingBlob,
+                name: currentMetadata.title || '',
+                // We only pass some metadata attributes so we don't share
+                // personal details like # of times played and ratings.
+                metadata: {
+                  title: currentMetadata.title,
+                  artist: currentMetadata.artist,
+                  album: currentMetadata.album,
+                  picture: picture
+                }
+              });
+
+              cleanupPick();
             });
 
-            cleanupPick();
             break;
         }
 
@@ -1006,6 +1111,7 @@ function createListElement(option, data, index, highlight) {
       if (index === 0) {
         var shuffleIcon = document.createElement('div');
         shuffleIcon.className = 'list-playlist-icon';
+        shuffleIcon.dataset.icon = 'shuffle';
         li.appendChild(shuffleIcon);
       }
 
@@ -1074,7 +1180,12 @@ function createListElement(option, data, index, highlight) {
 
       var indexSpan = document.createElement('span');
       indexSpan.className = 'list-song-index';
-      indexSpan.textContent = index + 1;
+      var trackNum = data.metadata.tracknum;
+      if (data.metadata.discnum && data.multidisc) {
+        trackNum = data.metadata.discnum + '.' +
+          (trackNum < 10 ? '0' + trackNum : trackNum);
+      }
+      indexSpan.textContent = trackNum;
 
       var titleSpan = document.createElement('span');
       titleSpan.className = 'list-song-title';
@@ -1144,6 +1255,7 @@ var ListView = {
 
     this.info = null;
     this.dataSource = [];
+
     this.index = 0;
     this.lastDataIndex = 0;
     this.firstLetters = [];
@@ -1232,6 +1344,12 @@ var ListView = {
             // the height.
             count = record ? count : null;
             this.adjustHeight(info.option, count);
+            // In picker mode we have to use the ListView's dataSource to
+            // display the correct overlay.
+            if (pendingPick) {
+              knownSongs = this.dataSource;
+              showCorrectOverlay();
+            }
           }
         }.bind(this));
     }.bind(this));
@@ -1358,7 +1476,7 @@ var ListView = {
     var headerHeight = this.anchor.firstChild.offsetHeight;
     var itemHeight = this.anchor.lastChild.offsetHeight;
     var bottomHeight = parseInt(getComputedStyle(this.anchor.lastChild, null).
-      getPropertyValue('margin-bottom'));
+      getPropertyValue('margin-bottom'), 10);
 
     this.anchor.style.height = (
       headerHeight * this.firstLetters.length +
@@ -1633,6 +1751,19 @@ var SubListView = {
                                          function lv_enumerateAll(dataArray) {
       var albumName;
       var albumNameL10nId;
+      var maxDiscNum = 1;
+
+      if (option === 'album') {
+        dataArray.sort(function(e1, e2) {
+          return (e1.metadata.discnum - e2.metadata.discnum) ||
+            (e1.metadata.tracknum - e2.metadata.tracknum);
+        });
+
+        maxDiscNum = Math.max(
+          dataArray[dataArray.length - 1].metadata.disccount,
+          dataArray[dataArray.length - 1].metadata.discnum
+        );
+      }
 
       if (option === 'artist') {
         albumName = data.metadata.artist || unknownArtist;
@@ -1654,6 +1785,7 @@ var SubListView = {
       SubListView.setAlbumSrc(data);
 
       dataArray.forEach(function(songData) {
+        songData.multidisc = (maxDiscNum > 1);
         SubListView.update(songData);
       });
 
@@ -1703,7 +1835,7 @@ var SubListView = {
               PlayerView.setShuffle(false);
             }
 
-            var targetIndex = parseInt(target.dataset.index);
+            var targetIndex = parseInt(target.dataset.index, 10);
 
             if (PlayerView.shuffleOption) {
               // Shuffled list maybe not exist yet
@@ -1901,9 +2033,27 @@ var TabBar = {
     return this._tabs = this.view.querySelectorAll('[role="tab"]');
   },
 
+  set option(choice) {
+    var map = {
+      'mix': 'tabs-mix',
+      'playlist': 'tabs-playlists',
+      'artist': 'tabs-artists',
+      'album': 'tabs-albums',
+      'title': 'tabs-songs'
+    };
+
+    var tab = document.getElementById(map[choice]);
+    AccessibilityHelper.setAriaSelected(tab, this.tabs);
+    this._option = choice;
+  },
+
+  get option() {
+    return this._option;
+  },
+
   init: function tab_init() {
-    this.option = '';
-    this.view.addEventListener('click', this);
+    this.option = 'mix';
+    this.view.addEventListener('touchend', this);
 
     this.playlistArray.localize = function() {
       this.forEach(function(playList) {
@@ -1926,7 +2076,7 @@ var TabBar = {
       return;
 
     switch (evt.type) {
-      case 'click':
+      case 'touchend':
         var target = evt.target;
 
         if (!target)
@@ -1938,8 +2088,6 @@ var TabBar = {
         } else {
           this.option = target.dataset.option;
         }
-
-        AccessibilityHelper.setAriaSelected(target, this.tabs);
 
         switch (target.id) {
           case 'tabs-mix':

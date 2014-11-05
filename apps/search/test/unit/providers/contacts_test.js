@@ -6,7 +6,7 @@ require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/js/url_helper.js');
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
-require('/apps/communications/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 require('/apps/communications/contacts/test/unit/mock_contacts_list.js');
 
 var mocksForMarketplaceProvider = new MocksHelper([
@@ -77,9 +77,17 @@ suite('search/providers/contacts', function() {
       assert.ok(stub.calledOnce);
     });
 
-    test('contact is rendered', function() {
-      subject.search('stub content', Search.collect.bind(Search, subject));
-      assert.notEqual(subject.container.innerHTML.indexOf('Antonio CC'), -1);
+    test('contact is rendered', function(done) {
+      subject.search('stub content').then((results) => {
+        Search.collect(subject, results);
+        var contact = subject.container.querySelector('.result');
+        assert.equal(contact.querySelector('.title').innerHTML, 'Pepito A');
+        assert.equal(contact.getAttribute('aria-label'), 'Pepito A');
+        assert.equal(contact.getAttribute('role'), 'link');
+        assert.equal(contact.querySelector('.icon img').getAttribute('role'),
+          'presentation');
+        done();
+      });
     });
   });
 

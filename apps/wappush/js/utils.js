@@ -24,6 +24,28 @@
       });
 
       return parsed;
+    },
+
+    /**
+     * Generate message title according from message sender and the
+     * serviceId if there are multiple SIMs.
+     */
+    prepareMessageTitle: function ut_prepareMessageTitle(message) {
+      var _title = message.sender;
+      /* If the phone has more than one SIM prepend the number of the SIM on
+       * which this message was received */
+      if (navigator.mozIccManager &&
+          navigator.mozIccManager.iccIds.length > 1) {
+        var _ = navigator.mozL10n.get;
+        var simName = _('sim', { id: +message.serviceId + 1 });
+
+        _title = _(
+          'dsds-notification-title-with-sim',
+           { sim: simName, title: _title }
+        );
+      }
+
+      return _title;
     }
   };
 

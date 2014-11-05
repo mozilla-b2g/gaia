@@ -37,7 +37,11 @@ Dialer.Selectors = {
   keypadCallBarAddContact: '#keypad-callbar-add-contact',
 
   callLogTabItem: '#option-recents',
+  callLogEditButton: '#call-log-icon-edit',
   callLogTabs: '#call-log-filter',
+  callLogNoResultsContainer: '#no-result-container',
+  callLogItem: '.log-item',
+  callLogEditForm: '#edit-mode',
 
   contactsTabItem: '#option-contacts',
   contactsIframe: '#iframe-contacts',

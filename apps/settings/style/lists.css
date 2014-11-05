@@ -13,10 +13,13 @@ ul {
 ul li {
   -moz-box-sizing: border-box;
   position: relative;
-  min-height: 6rem;
   margin: 0 1.5rem;
   border-bottom: 0.1rem solid #e6e6e3;
   color: #000;
+}
+
+ul+ul li:first-child {
+  border-top: 0.1rem solid #e6e6e3;
 }
 
 ul li:last-child {
@@ -33,17 +36,33 @@ ul li label:not([for]) {
 
 ul li > a,
 ul li > span,
-ul li > label > span {
-  display: block;
+ul li > small,
+ul li > label > span,
+ul li > label > small {
   text-decoration: none;
   outline: 0;
   color: #000;
   -moz-box-sizing: border-box;
-  height: 6rem;
   font-size: 1.9rem;
-  line-height: 6rem;
   padding: 0 3rem;
   margin: 0 -1.5rem;
+}
+
+ul li,
+ul li > a,
+ul li > label {
+  min-height: 6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+ul li[hidden] {
+  display: none;
+}
+
+ul li > a > span {
+  pointer-events: none;
 }
 
 ul li.active a,
@@ -56,7 +75,8 @@ ul li:not([aria-disabled="true"]) > a[href]:focus {
   color: #222;
 }
 
-ul li[aria-disabled="true"] > a {
+ul li[aria-disabled="true"] > a,
+ul li[aria-disabled="true"] > p {
   color: #797e80;
   opacity: 0.6;
   pointer-events: none;
@@ -75,17 +95,21 @@ ul > li > progress + span {
   padding: 0 0 0 1rem;
   color: #505b5b;
   font-size: 1.4rem;
+  line-height: 6rem;
 }
 
 /* description + value on the same line */
-ul li > a span {
+ul li > a span:nth-of-type(2):not(.button) {
   position: absolute;
   right: 1.5rem;
   color: #505859;
+  line-height: 6rem;
+  height: 6rem;
+  top: 0;
 }
 
 /* text ellipsis */
-ul li > *, ul li > label > * {
+ul li > *, ul li > label > *, ul li > a > * {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -93,16 +117,28 @@ ul li > *, ul li > label > * {
 }
 
 /* sublines */
-ul li > small, ul li > label > small {
-  position: absolute;
-  left: 1.5rem;
-  right: 1.5rem;
-  top: 50%;
-  padding-top: 0.4rem;
+ul li > small, ul li > label > small , ul li > a > small {
+  display: block;
   font-size: 1.4rem;
   color: #505859;
   /* click/tap events should be caught by the <a> element below the <small> */
   pointer-events: none;
+}
+
+small.multiline > span {
+  display: block;
+}
+
+ul li > label {
+  font-size: 1.9rem;
+  line-height: 1.9rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+ul li > label ~ input {
+  margin-bottom: 1.5rem;
 }
 
 ul li > label.pack-checkbox > small,
@@ -111,27 +147,7 @@ ul li > label.pack-radio > small {
 }
 
 ul li > label.pack-switch > small {
-   right: 9rem;
-}
-
-/* multiple line item */
-ul li.multiline > small {
-  position: relative;
-  top: -3rem;
-  margin-bottom: -2.3rem;
-}
-
-ul li.multiline > small > span {
-  display: block;
-  padding-bottom: 0.2rem;
-}
-
-/* required for empty elements like Bluetooth */
-ul li small:not(:empty) + a,
-ul li small:not(:empty) + span,
-ul li.multiline > span {
-  line-height: 4.4rem;
-  padding-bottom: 0.1rem; /* Bug 903438 */
+  right: 9rem;
 }
 
 /* color previews */
@@ -139,8 +155,13 @@ ul li > label.pack-checkbox > .color-preview:before {
   height: 2rem;
   width: 2rem;
   content: "";
-  display: inline-block;
-  margin: 0 1rem -0.2rem -1rem;
+  margin: -1.1rem 0 0 -3rem;
+  top: 50%;
+  position: absolute;
+}
+
+ul.disabled li > label.pack-checkbox > .color-preview:before {
+  opacity: 0.4;
 }
 
 ul li > label.pack-checkbox > .warning-counter:before {
@@ -172,32 +193,34 @@ ul li > label.pack-checkbox > .ttl-monitor:before {
 }
 
 ul li > label.pack-checkbox > .uss-monitor:before {
-  background-color: navy;
+  background-color: dimgrey;
 }
 
 ul li > label.pack-checkbox > .memory-monitor:before {
-  background-color: slategrey;
+  background-color: lightslategrey;
 }
 
 ul li > label.pack-checkbox > .memory-item:before {
-  background-color: slategrey;
-  height: 1.2rem;
-  width: 1.2rem;
-  margin: 0 1rem 0.1rem -0.2rem;
+  background-color: lightslategrey;
+  height: 2rem;
+  width: 2rem;
+  margin: -1.1rem 0 0 -3rem;
 }
 
 
 /******************************************************************************
- * Boolean inputs
+ * Boolean buttons
  */
 
 ul li button,
-ul li a[role="button"] {
-  position: relative;
-  top: 1.1rem;
-  width: 100%;
-  margin-bottom: 1.2rem;
+ul li a.bb-button {
+  display: inline-block;
+  margin: 1rem 0;
 }
+
+/******************************************************************************
+ * Boolean inputs
+ */
 
 /* custom styles for boolean inputs (see /shared/style/switches.css) */
 ul li label {
@@ -208,17 +231,30 @@ ul li > label:not([for]),
 ul li > label.pack-checkbox,
 ul li > label.pack-radio,
 ul li > label.pack-switch {
+  padding: 0 1.5rem;
+  margin: 0 -1.5rem;
   width: 100%;
   height: 100%;
-  margin: 0;
+  min-height: 6rem;
   overflow: visible;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+ul li > label:not([for]) > span,
+ul li > label.pack-checkbox > span,
+ul li > label.pack-radio > span,
+ul li > label.pack-switch > span {
+  line-height: normal;
+  height: auto;
 }
 
 ul li > label.pack-checkbox > span:after,
 ul li > label.pack-radio > span:after,
 ul li > label.pack-switch > input ~ span:after {
   left: auto;
-  right: 0;
+  right: 1.5rem;
 }
 
 ul li > label.pack-checkbox > span {
@@ -237,11 +273,39 @@ ul li > label.pack-radio > span {
   padding-right: 5.9rem;
 }
 
-ul li > label.pack-checkbox:active > span,
-ul li > label.pack-radio:active > span,
-ul li > label.pack-switch:active > span {
+ul li > label.pack-checkbox:active,
+ul li > label.pack-radio:active,
+ul li > label.pack-switch:active {
   background-color: #b2f2ff;
   color: #222;
+}
+
+/******************************************************************************
+ * Split panel
+ */
+ul li.pack-split .name:active {
+  background-color: #B2F2FF;
+}
+
+ul li.pack-split .name {
+  position: absolute;
+  top: 0;
+  width: calc(100% - 9rem);
+  padding-left: 1.5rem;
+}
+
+ul li.pack-split:after {
+  content: '';
+  position: absolute;
+  background-color: #E6E6E3;
+  right: 7.5rem;
+  width: 0.1rem;
+  height: calc(100% - 2rem);
+  top: 1rem;
+}
+
+ul li.pack-split > span {
+  background-color: transparent;
 }
 
 /******************************************************************************
@@ -261,14 +325,6 @@ ul li p + label:not([for]) {
   height: calc(100% - 2.5rem);
 }
 
-ul li p + input[type="text"],
-ul li p + input[type="number"],
-ul li p + input[type="tel"],
-ul li p + input[type="password"] {
-  width: 100%;
-  margin-bottom: 1.5rem;
-}
-
 
 /******************************************************************************
  * Range inputs
@@ -280,17 +336,14 @@ input[type=range] {
   background: none;
 }
 
-input[type=range]:-moz-focusring {
-  outline: none;
+input[type=range]::-moz-focus-outer {
+  border: 0;
 }
 
 ul li > label input[type="range"] {
-  position: relative;
-  top: calc(50% - 1.5rem);
-  left: 5rem;
-  right: 7rem;
   height: 3rem;
-  width: calc(100% - 15rem);
+  width: calc(100% - 3rem);
+  margin: 1.5rem;
 }
 
 input[type=range]::-moz-range-track {
@@ -324,19 +377,10 @@ ul li.sound-setting > label input[type="range"] {
   left: 1.5rem;
 }
 
-ul li#brightness-manual > label input[type="range"] {
+ul li.brightness-manual > label input[type="range"] {
   margin: 0 auto;
   width: calc(100% - 10rem);
   display: inline;
-}
-
-/******************************************************************************
- * Select boxes
- */
-.button.icon-dialog select {
-  border: none;
-  background: transparent;
-  font-size: 1.7rem;
 }
 
 /******************************************************************************
@@ -391,7 +435,7 @@ html[dir="rtl"] ul > li > progress + span {
   padding-right: 1rem;
 }
 
-html[dir="rtl"] ul li > a span {
+html[dir="rtl"] ul li > a span:nth-of-type(2):not(.button) {
   left: 1.5rem;
   right: auto;
 }
@@ -421,13 +465,13 @@ html[dir="rtl"] ul li > label.pack-switch > small:not(.menu-item-desc) {
 html[dir="rtl"] ul li > label.pack-checkbox > span:after,
 html[dir="rtl"] ul li > label.pack-radio > span:after,
 html[dir="rtl"] ul li > label.pack-switch > input ~ span:after {
-  left: 0;
+  left: 1.5rem;
   right: auto;
 }
 
 html[dir="rtl"] ul li > label.pack-checkbox > span {
   padding-left: 6.1rem;
-  
+
 }
 html[dir="rtl"] ul li > label.pack-checkbox > span:not(.menu-item) {
   padding-left: 6.1rem;
@@ -477,7 +521,11 @@ html[dir="rtl"] ul li.bluetooth-device > a{
 }
 
 html[dir="rtl"] ul li > label.pack-checkbox > .color-preview:before {
-  margin-left: 1rem;
-  margin-right: -1rem;
+  margin-left: 0;
+  margin-right: -3rem;
 }
 
+html[dir="rtl"] ul li > label.pack-checkbox > .memory-item:before {
+  margin-left: 0;
+  margin-right: -3rem;
+}

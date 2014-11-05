@@ -1,15 +1,16 @@
-requireLib('timespan.js');
-requireLib('calc.js');
+define(function(require) {
+'use strict';
+
+var Timespan = require('timespan');
+var Calc = require('calc');
 
 //Worth noting that these tests will fail
 //in horrible ways outside of US timezone.
 suite('calendar/calc', function() {
-  'use strict';
-
   var subject, mocked = {};
 
   setup(function() {
-    subject = Calendar.Calc;
+    subject = Calc;
   });
 
   teardown(function() {
@@ -66,38 +67,6 @@ suite('calendar/calc', function() {
       false
     );
 
-  });
-
-  suite('#formatHour', function() {
-    var realDateFormat;
-    var fmt;
-
-    suiteSetup(function() {
-      realDateFormat = Calendar.App.dateFormat;
-      fmt = navigator.mozL10n.DateTimeFormat();
-      Calendar.App.dateFormat = fmt;
-    });
-
-    suiteTeardown(function() {
-      Calendar.App.dateFormat = realDateFormat;
-    });
-
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840489.
-// These test appear to make incorrect assumptions about localization details
-// (they do not fail on systems configured for US English).
-    test('7 hours', function() {
-      var result = subject.formatHour(7);
-      assert.equal(result, '7 AM');
-    });
-
-    test('23 hours', function() {
-      var result = subject.formatHour(23);
-      assert.equal(result, '11 PM');
-    });
-*/
   });
 
   test('#dayOfWeekFromSunday', function() {
@@ -448,10 +417,7 @@ suite('calendar/calc', function() {
 
       var out = subject.spanOfDay(date, true);
 
-      assert.deepEqual(out, new Calendar.Timespan(
-        date,
-        end
-      ));
+      assert.deepEqual(out, new Timespan(date, end));
     });
 
     test('ignore time', function() {
@@ -466,27 +432,24 @@ suite('calendar/calc', function() {
 
       var out = subject.spanOfDay(date);
 
-      assert.deepEqual(out, new Calendar.Timespan(
-        start,
-        end
-      ));
+      assert.deepEqual(out, new Timespan(start, end));
     });
 
   });
 
-  suite('#hoursOfOccurance', function() {
+  suite('#hoursOfOccurence', function() {
     var center;
 
     setup(function() {
       center = new Date(2012, 0, 1);
     });
 
-    function hoursOfOccurance(start, end) {
-      return subject.hoursOfOccurance(center, start, end);
+    function hoursOfOccurence(start, end) {
+      return subject.hoursOfOccurence(center, start, end);
     }
 
     test('overlap before', function() {
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2011, 1, 5),
         new Date(2012, 0, 1, 3)
       );
@@ -495,7 +458,7 @@ suite('calendar/calc', function() {
     });
 
     test('overlap after', function() {
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2012, 0, 1, 20),
         new Date(2012, 0, 2, 2)
       );
@@ -504,7 +467,7 @@ suite('calendar/calc', function() {
     });
 
     test('one hour', function() {
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2012, 0, 1, 5),
         new Date(2012, 0, 1, 6)
       );
@@ -513,7 +476,7 @@ suite('calendar/calc', function() {
     });
 
     test('1 & 1/2 hours', function() {
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2012, 0, 1, 5),
         new Date(2012, 0, 1, 6, 30)
       );
@@ -522,7 +485,7 @@ suite('calendar/calc', function() {
     });
 
     test('2 hours', function() {
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2012, 0, 1, 5),
         new Date(2012, 0, 1, 7)
       );
@@ -534,9 +497,19 @@ suite('calendar/calc', function() {
       var end = new Date(2012, 0, 2);
       end.setMilliseconds(end - 1);
 
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2012, 0, 1),
         end
+      );
+
+      assert.deepEqual(out, [subject.ALLDAY]);
+    });
+
+    test('bug 1074772', function() {
+      // yahoo sets start/end dates to same value for recurring all day events
+      var out = hoursOfOccurence(
+        new Date(2012, 0, 1),
+        new Date(2012, 0, 1)
       );
 
       assert.deepEqual(out, [subject.ALLDAY]);
@@ -833,5 +806,45 @@ suite('calendar/calc', function() {
     });
 
   });
+
+  suite('#isAllDay', function() {
+    test('full day', function() {
+      assert.isTrue(subject.isAllDay(
+        new Date(2014, 9, 5),
+        new Date(2014, 9, 6)
+      ));
+    });
+
+    test('not start of the day', function() {
+      assert.isFalse(subject.isAllDay(
+        new Date(2014, 9, 5, 5),
+        new Date(2014, 9, 6)
+      ));
+    });
+
+    test('longer than a full day', function() {
+      assert.isFalse(subject.isAllDay(
+        new Date(2014, 9, 5),
+        new Date(2014, 9, 6, 5)
+      ));
+    });
+
+    test('multiple days', function() {
+      assert.isTrue(subject.isAllDay(
+        new Date(2014, 9, 5),
+        new Date(2014, 9, 16)
+      ));
+    });
+
+    test('same date', function() {
+      // yahoo uses same start/end dates for recurring all day events
+      assert.isTrue(subject.isAllDay(
+        new Date(2014, 9, 5),
+        new Date(2014, 9, 5)
+      ));
+    });
+  });
+
+});
 
 });

@@ -26,6 +26,7 @@
 
       this.initVoicePrivacy();
       this.initRoaming();
+      this.initCallerIdPreference();
       this.initPreferredNetworkType();
 
       this.started = true;
@@ -39,7 +40,7 @@
         this.connections.map(function() { return false; });
       var voicePrivacyHelper =
         SettingsHelper('ril.voicePrivacy.enabled', defaultVoicePrivacySettings);
-      voicePrivacyHelper.get(function gotVP(values) {
+      voicePrivacyHelper.get(function got_vp(values) {
         this.connections.forEach(function vp_iterator(conn, index) {
           var setReq = conn.setVoicePrivacyMode(values[index]);
           setReq.onerror = function set_vpm_error() {
@@ -62,7 +63,7 @@
         this.connections.map(function() { return 'any'; });
       var roamingPreferenceHelper =
         SettingsHelper('ril.roaming.preference', defaultRoamingPreferences);
-      roamingPreferenceHelper.get(function gotRP(values) {
+      roamingPreferenceHelper.get(function got_rp(values) {
         this.connections.forEach(function rp_iterator(conn, index) {
           var setReq = conn.setRoamingPreference(values[index]);
           setReq.onerror = function set_vpm_error() {
@@ -75,6 +76,118 @@
           };
         });
       }.bind(this));
+    },
+
+    /**
+     * Initializes caller id restriction based on user setting.
+     *
+     * CLIR_DEFAULT:     0
+     * CLIR_INVOCATION:  1
+     * CLIR_SUPPRESSION: 2
+     */
+    initCallerIdPreference: function() {
+      var callerIdPreferenceHelper = SettingsHelper('ril.clirMode', null);
+      var that = this;
+
+      callerIdPreferenceHelper.get(function got_cid(values) {
+        that.connections.forEach(function cid_iterator(conn, index) {
+          if (values && values[index] !== null) {
+            that._setCallerIdPreference(conn, values[index], function() {
+              that._syncCallerIdPreferenceWithCarrier(conn, index,
+                callerIdPreferenceHelper);
+              that._registerListenerForCallerIdPreference(conn, index,
+                callerIdPreferenceHelper);
+            });
+          } else {
+            that._registerListenerForCallerIdPreference(conn, index,
+              callerIdPreferenceHelper);
+          }
+        });
+      });
+    },
+
+    _registerListenerForCallerIdPreference: function(conn, index, helper) {
+      // register event handler for caller id preference change, but we should
+      // always query the real settings value from the carrier.
+      conn.addEventListener('clirmodechange', function onclirchanged(event) {
+        this._syncCallerIdPreferenceWithCarrier(conn, index, helper);
+      }.bind(this));
+    },
+
+    _syncCallerIdPreferenceWithCarrier: function(conn, index, helper) {
+      var that = this;
+      this._getCallerIdPreference(conn, function(realValue) {
+        helper.get(function got_cid(values) {
+          values = values || that.connections.map(function() {
+            return 0;
+          });
+          values[index] = realValue;
+          helper.set(values);
+        });
+      });
+    },
+
+    _getCallerIdPreference: function(conn, callback) {
+      var req = conn.getCallingLineIdRestriction();
+      req.onsuccess = req.onerror = function(event) {
+        var value = 0;
+        if (req.result) {
+          switch (req.result.m) {
+            case 1: // Permanently provisioned
+            case 3: // Temporary presentation disallowed
+            case 4: // Temporary presentation allowed
+              value = req.result.n;
+              break;
+            case 0: // Not Provisioned
+            case 2: // Unknown (network error, etc)
+              value = 0;
+              break;
+            default:
+              value = 0;
+              break;
+          }
+        }
+
+        if (callback) {
+          callback(value);
+        }
+      };
+    },
+
+    _setCallerIdPreference: function(conn, callerIdPreference, callback) {
+      if (!conn.setCallingLineIdRestriction) {
+        if (callback) {
+          callback();
+        }
+        return;
+      }
+
+      var doSet = function() {
+        var setReq = conn.setCallingLineIdRestriction(callerIdPreference);
+        setReq.onsuccess = function set_cid_success() {
+          if (callback) {
+            callback();
+          }
+        };
+        setReq.onerror = function set_cid_error() {
+          console.error('Error set caller id restriction.');
+          if (callback) {
+            callback();
+          }
+        };
+      };
+
+      // Waiting for voice connected
+      if (conn.voice && conn.voice.connected) {
+        doSet();
+      } else {
+        conn.addEventListener('voicechange', function onchange() {
+          if (conn.voice && conn.voice.connected) {
+            conn.removeEventListener('voicechange', onchange);
+            doSet();
+          }
+        });
+      }
     },
 
     /**
@@ -139,7 +252,7 @@
      */
     _getDefaultPreferredNetworkType: function(hwSupportedTypes) {
       return ['lte', 'wcdma', 'gsm', 'cdma', 'evdo'].filter(function(type) {
-        return (hwSupportedTypes.indexOf(type) !== -1);
+        return (hwSupportedTypes && hwSupportedTypes.indexOf(type) !== -1);
       }).join('/');
     }
   };

@@ -2,7 +2,7 @@ define(function(require) {
   'use strict';
 
   var App = require('app');
-  var AlarmsDB = require('alarmsdb');
+  var alarmDatabase = require('alarm_database');
   var Timer = require('timer');
   var Utils = require('utils');
   var ChildWindowManager = require('./child_window_manager');
@@ -29,6 +29,50 @@ define(function(require) {
     this.ringView = PostMessageProxy.create(null, 'ringView');
   }
 
+  function logForAlarmDebugging() {
+    // The following logs are included for debugging reported
+    // problems with alarm firing times: <https://bugzil.la/1052245>
+    console.log('[Clock] =====================================\n');
+    console.log('[Clock] Alarm Debug:', JSON.stringify({
+      'now': new Date().toJSON(),
+      'tz': new Date().getTimezoneOffset()
+    }));
+
+    alarmDatabase.getAll().then((alarms) => {
+      console.log('[Clock] ===== Raw IndexedDB Alarm Data: =====\n');
+      // Logging in a loop to ensure we don't overrun the line buffer:
+      alarms.forEach(function(a) {
+        console.log('[Clock]   ', JSON.stringify(a.toJSON()));
+      });
+      console.log('[Clock] -------------------------------------\n');
+    });
+
+    var request = navigator.mozAlarms.getAll();
+    request.onsuccess = function() {
+      console.log('[Clock] ======= Remaining mozAlarms: ========\n');
+
+      if (!request.result) {
+        console.log('[Clock] mozAlarm API invariant failure?');
+      } else {
+        request.result.forEach(function(alarm) {
+          console.log('[Clock]   ', JSON.stringify(alarm));
+        });
+      }
+
+      console.log('[Clock] -------------------------------------\n');
+    };
+
+    request.onerror = function() {
+      console.error('[Clock] Failed to get list of mozAlarms:', this.error);
+    };
+  }
+
+  // Log at startup.
+  logForAlarmDebugging();
+
+  // Log periodically when the Clock app is running.
+  setInterval(logForAlarmDebugging, 10 * 60 * 1000);
+
   ActiveAlarm.prototype = {
 
     /**
@@ -37,8 +81,15 @@ define(function(require) {
      * have a chance to present the attention alert window.
      */
     onMozAlarm: function(message) {
+      // message.detail in only for marionette test.
+      // We pass it via AlarmActions.fire method.
       var data = message.data || message.detail;
-      data.date = message.date || new Date();
+      data.date = message.date || message.detail.date;
+
+      console.log('[Clock] ### ALARM FIRED! ### Details:',
+                  JSON.stringify(message));
+
+      logForAlarmDebugging(message);
 
       Utils.safeWakeLock({ timeoutMs: 30000 }, (done) => {
         switch (data.type) {
@@ -89,12 +140,7 @@ define(function(require) {
       var date = data.date;
       var type = data.type;
 
-      AlarmsDB.getAlarm(id, (err, alarm) => {
-        if (err) {
-          done();
-          return;
-        }
-
+      alarmDatabase.get(id).then((alarm) => {
         this.popAlert({
           type: 'alarm',
           label: alarm.label,
@@ -105,13 +151,18 @@ define(function(require) {
         });
 
         if (type === 'normal') {
-          alarm.schedule({
-            type: 'normal',
-            first: false
-          }, alarm.saveCallback(done));
-        } else /* (type === 'snooze') */ {
-          alarm.cancel('snooze');
-          alarm.save(done);
+          // The alarm instance doesn't yet know that a mozAlarm has
+          // fired, so we call .cancel() to wipe this mozAlarm ID from
+          // alarm.registeredAlarms().
+          alarm.cancel();
+
+          if (alarm.isRepeating()) {
+            alarm.schedule('normal').then(done);
+          } else {
+            done();
+          }
+        } else {
+          done();
         }
       });
     },
@@ -141,13 +192,8 @@ define(function(require) {
      * @param {string} alarmId The ID of the alarm.
      */
     snoozeAlarm: function(alarmId) {
-      AlarmsDB.getAlarm(alarmId, function(err, alarm) {
-        if (err) {
-          return;
-        }
-        alarm.schedule({
-          type: 'snooze'
-        }, alarm.saveCallback());
+      alarmDatabase.get(alarmId).then((alarm) => {
+        alarm.schedule('snooze');
       });
     },
 

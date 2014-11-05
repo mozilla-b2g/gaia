@@ -3,16 +3,18 @@
 /* global MocksHelper, MockNavigatorMozIccManager, MockSystemICC, icc_worker,
           MockNotifications */
 
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 requireApp('system/js/icc_worker.js');
 
-mocha.globals(['icc']);
-
 var mocksForIcc = new MocksHelper([
+  'AppWindowManager',
+  'System',
   'L10n',
   'Dump',
   'Notification'
@@ -39,6 +41,24 @@ suite('STK (icc_worker) >', function() {
 
   setup(function() {
     stkTestCommands = {
+      STK_CMD_DISPLAY_TEXT: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_DISPLAY_TEXT,
+          commandQualifier: 0,
+          options: {
+            text: 'stk display test text',
+            userClear: true,
+            responseNeeded: false,
+            duration: {
+              timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
+              timeInterval: 5
+            }
+          }
+        }
+      },
+
       STK_CMD_GET_INPUT: {
         iccId: '1010011010',
         command: {
@@ -78,12 +98,33 @@ suite('STK (icc_worker) >', function() {
           commandQualifier: 0,
           options: {}
         }
+      },
+
+      STK_CMD_PLAY_TONE: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_PLAY_TONE,
+          commandQualifier: 0,
+          options: {
+            text: 'abc',
+            tone: '\u0001',
+            duration: {
+              timeUnit: navigator.mozIccManager.STK_TIME_UNIT_SECOND,
+              timeInterval: 5
+            }
+          }
+        }
       }
     };
   });
 
   function launchStkCommand(cmd) {
     function stkCmd(CMD) {
+      /* TODO: cleanup this function after bug 819831 landed */
+      if (typeof CMD === 'string') {
+        return CMD;
+      }
       return '0x' + CMD.toString(16);
     }
     icc_worker[stkCmd(cmd.command.typeOfCommand)](cmd);
@@ -97,12 +138,30 @@ suite('STK (icc_worker) >', function() {
     icc_worker.dummy();
   });
 
+  test('STK_CMD_DISPLAY_TEXT (User response)', function(done) {
+    window.icc.onresponse = function(message, response) {
+      assert.equal(response.resultCode, navigator.mozIccManager.STK_RESULT_OK);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_DISPLAY_TEXT);
+  });
+
+  test('STK_CMD_DISPLAY_TEXT (Timeout)', function(done) {
+    window.icc.confirm = function(stkMsg, message, timeout, callback) {
+      callback(false);
+    };
+    window.icc.onresponse = function(message, response) {
+      assert.equal(response.resultCode,
+        navigator.mozIccManager.STK_RESULT_NO_RESPONSE_FROM_USER);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_DISPLAY_TEXT);
+  });
+
   test('STK_CMD_GET_INPUT (User response)', function(done) {
     var stkResponse = 'stk introduced text';
     window.icc.input = function(stkMsg, message, timeout, options, callback) {
-      setTimeout(function() {
-        callback(true, stkResponse);
-      });
+      callback(true, stkResponse);
     };
     window.icc.onresponse = function(message, response) {
       assert.equal(response.resultCode, navigator.mozIccManager.STK_RESULT_OK);
@@ -114,9 +173,7 @@ suite('STK (icc_worker) >', function() {
 
   test('STK_CMD_GET_INPUT (Timeout)', function(done) {
     window.icc.input = function(stkMsg, message, timeout, options, callback) {
-      setTimeout(function() {
-        callback(false);
-      });
+      callback(false);
     };
     window.icc.onresponse = function(message, response) {
       assert.equal(response.resultCode,
@@ -142,5 +199,67 @@ suite('STK (icc_worker) >', function() {
       done();
     };
     launchStkCommand(stkTestCommands.STK_CMD_REFRESH);
+  });
+
+  test('STK_CMD_PLAY_TONE', function(done) {
+    window.icc.onresponse = function(message, response) {
+      assert.equal(response.resultCode, navigator.mozIccManager.STK_RESULT_OK);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_PLAY_TONE);
+  });
+
+  test('visibilitychange => STK_RESULT_UICC_SESSION_TERM_BY_USER',
+    function(done) {
+      window.icc.onresponse = function(message, response) {
+        window.icc.onresponse = function() {};  // Avoid multiple calls
+        assert.equal(response.resultCode,
+          navigator.mozIccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER);
+        done();
+      };
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+    });
+
+  suite('Messages queue >', function() {
+    var addPendingMessageSpy;
+    setup(function() {
+      this.sinon.stub(window.icc, 'isViewActive',
+        function() {
+          return true;
+      });
+
+      this.sinon.stub(window.icc, 'canProcessMessage',
+        function(message) {
+          window.icc.addPendingMessage(message);
+          return false;
+      });
+
+      addPendingMessageSpy = this.sinon.spy(window.icc,
+        'addPendingMessage');
+    });
+
+    test('Should add a pending message', function() {
+      var testCommand = stkTestCommands.STK_CMD_DISPLAY_TEXT;
+      launchStkCommand(testCommand);
+      assert.isTrue(addPendingMessageSpy.calledWith(testCommand));
+    });
+
+    test('Should not play tone', function() {
+      var testCommand = stkTestCommands.STK_CMD_PLAY_TONE;
+      launchStkCommand(testCommand);
+      assert.isTrue(addPendingMessageSpy.calledWith(testCommand));
+    });
+
+    test('Should play tone', function(done) {
+      window.icc.onresponse = function(message, response) {
+        assert.equal(response.resultCode,
+          navigator.mozIccManager.STK_RESULT_OK);
+        done();
+      };
+      var testCommand = stkTestCommands.STK_CMD_PLAY_TONE;
+      delete testCommand.command.options.text;
+      launchStkCommand(testCommand);
+      assert.isFalse(addPendingMessageSpy.calledWith(testCommand));
+    });
   });
 });

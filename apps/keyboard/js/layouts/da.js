@@ -1,9 +1,10 @@
 Keyboards.da = {
   label: 'Danish',
+  shortLabel: 'Da',
   menuLabel: 'Dansk',
   imEngine: 'latin',
   autoCorrectLanguage: 'da',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   alt: {
     a: 'äáàâąã',
     e: 'éèêëę€',

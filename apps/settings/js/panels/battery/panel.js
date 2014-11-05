@@ -10,14 +10,15 @@ define(function(require) {
   return function ctor_battery_panel() {
     var _batteryLevelText = null;
     var _refreshText = function() {
-      navigator.mozL10n.localize(_batteryLevelText,
-                                 'batteryLevel-percent-' + Battery.state,
-                                 { level: Battery.level });
+      navigator.mozL10n.setAttributes(_batteryLevelText,
+                                      'batteryLevel-percent-' + Battery.state,
+                                      { level: Battery.level });
     };
 
     return SettingsPanel({
       onInit: function bp_onInit(rootElement) {
-        _batteryLevelText = rootElement.querySelector('#battery-level *');
+        _batteryLevelText = rootElement.querySelector(
+          '#battery-level span:last-of-type');
       },
       onBeforeShow: function bp_onBeforeShow(rootElement) {
         Battery.observe('level', _refreshText);

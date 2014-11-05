@@ -5,6 +5,7 @@
 
 var CustomDialog = (function() {
 
+  var container = null;
   var screen = null;
   var dialog = null;
   var header = null;
@@ -18,7 +19,11 @@ var CustomDialog = (function() {
         return;
       }
 
-      document.body.removeChild(screen);
+      if (!container) {
+        container = document.body;
+      }
+
+      container.removeChild(screen);
       screen = null;
       dialog = null;
       header = null;
@@ -29,16 +34,21 @@ var CustomDialog = (function() {
 
     /**
     * Method that shows the dialog
-    * @param  {String} title the title of the dialog. null or empty for
-    *                  no title. or you can give a object with more options
-    *                  like {icon: path or empty string, title: String}.
+    * @param  {Object} title the l10n id for the title of the dialog. null or
+    *                  empty for no title. or you can give a object with more
+    *                  options like {icon: path or empty string,
+    *                  id: an l10n-id, args: an object of arguments that
+    *                  parameterise the 'id' field}.
     * @param  {String} msg message for the dialog. give a object like the
-    *                  title to enable more options:
-    *                  {icon: path or empty string, message: String}.
+    *                  title to enable more options.
     * @param  {Object} cancel {title, callback} object when confirm.
     * @param  {Object} confirm {title, callback} object when cancel.
+    * @param  {Element} [containerElement] an optional element for which the 
+    *                   dialog will be injected
     */
-    show: function dialog_show(title, msg, cancel, confirm) {
+    show: function dialog_show(title, msg, cancel, confirm, containerElement) {
+      container = containerElement || document.body;
+
       if (screen === null) {
         screen = document.createElement('form');
         screen.setAttribute('role', 'dialog');
@@ -55,30 +65,56 @@ var CustomDialog = (function() {
         // It's also possible to be extended with more usable decorating
         // options and elements.
         //
-        // 'title'|'message' -> Object|String -> dialog -> the element
+        // 'title'|'message' -> Object|String -> the element -> dialog
         // -> the decorated element
         var decorateWithOptions = function cd_decorateWithOptions(type, options,
                                                                   elm, dialog) {
           if ('string' === typeof options) {
-            elm.textContent = options;
+            elm.setAttribute('data-l10n-id', options);
             return elm;
           }
 
-          var text = options[type];
           var icon = options.icon;
-          elm.textContent = text;
+
+          var textElm = elm;
 
           if (icon && '' !== icon) {
+            // We can't localize elements with child nodes
+            // so if there's going to be an icon, we need to create a separate
+            // node for text. See bug 1053629 for details
+            textElm = document.createElement('span');
             var iconImg = new Image();
             iconImg.src = icon;
             iconImg.classList.add('custom-dialog-' + type + '-icon');
 
             // Icons usually insert as the first element.
             elm.insertBefore(iconImg, elm.firstChild);
+            elm.appendChild(textElm);
           }
           // More decorating options goes here.
 
+          if (options.id) {
+            navigator.mozL10n.setAttributes(
+              textElm,
+              options.id,
+              options.args
+            );
+          } else {
+            var text = options[type];
+            textElm.textContent = text;
+          }
+
           return elm;
+        };
+
+        var setElementText = function (element, options) {
+          if ('string' === typeof options) {
+            element.setAttribute('data-l10n-id', options);
+          }
+
+          if(options.id) {
+            navigator.mozL10n.setAttributes(element, options.id, options.args);
+          }
         };
 
         header = document.createElement('h1');
@@ -102,8 +138,7 @@ var CustomDialog = (function() {
         // and form submit in system app would make system app reload.
         no.type = 'button';
 
-        var noText = document.createTextNode(cancel.title);
-        no.appendChild(noText);
+        setElementText(no, cancel.title);
         no.id = 'dialog-no';
         no.addEventListener('click', clickHandler);
         menu.appendChild(no);
@@ -116,8 +151,7 @@ var CustomDialog = (function() {
           // and form submit in system app would make system app reload.
           yes.type = 'button';
 
-          var yesText = document.createTextNode(confirm.title);
-          yes.appendChild(yesText);
+          setElementText(yes, confirm.title);
           yes.id = 'dialog-yes';
 
           //confirm can be with class "danger" or "recommend"
@@ -133,7 +167,7 @@ var CustomDialog = (function() {
 
         screen.appendChild(menu);
 
-        document.body.appendChild(screen);
+        container.appendChild(screen);
       }
 
       // Make the screen visible
@@ -152,7 +186,10 @@ var CustomDialog = (function() {
           cancel.callback();
         }
       }
+
+      return screen;
     }
+
   };
 }());
 

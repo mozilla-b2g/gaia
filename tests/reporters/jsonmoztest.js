@@ -5,6 +5,8 @@
  * @api public
  */
 
+'use strict';
+/* global global */
 
 module.exports = JSONMozTestReporter;
 

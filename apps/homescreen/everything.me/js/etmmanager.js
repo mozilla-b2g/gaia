@@ -1,7 +1,6 @@
 'use strict';
 
-/* globals
-  MozActivity, LazyLoader, utils, extend,
+/* globals MozActivity, LazyLoader, utils, extend,
   IconRetriever, Homescreen, GridItemsFactory, GridManager, Icon, Bookmark,
   Evme
 */

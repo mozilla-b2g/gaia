@@ -1,27 +1,17 @@
-(function(window) {
-  'use strict';
+define(function(require, exports, module) {
+'use strict';
 
-  var FORMAT_REGEX = /%([0-9])?s/g;
+var FORMAT_REGEX = /%([0-9])?s/g;
 
-  if (typeof(Calendar) === 'undefined') {
-    /*global Calendar:true */
-    Calendar = {};
-  }
+module.exports = function() {
+  var args = Array.prototype.slice.call(arguments);
 
-  Calendar.format = function() {
-    var i = 0,
-        str,
-        args = Array.prototype.slice.call(arguments),
-        result;
+  var i = 0;
+  var str = args.shift();
+  return str.replace(FORMAT_REGEX, function(match, pos) {
+    var index = parseInt(pos || i++, 10);
+    return args[index];
+  });
+};
 
-    str = args.shift();
-
-    result = str.replace(FORMAT_REGEX, function(match, pos) {
-      var index = parseInt(pos || i++, 10);
-      return args[index];
-    });
-
-    return result;
-  };
-
-}(this));
+});

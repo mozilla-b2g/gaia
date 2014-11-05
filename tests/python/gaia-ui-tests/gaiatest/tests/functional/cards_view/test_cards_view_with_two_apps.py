@@ -21,7 +21,9 @@ class TestCardsView(GaiaTestCase):
         self.marionette.switch_to_frame()
 
     def test_that_app_can_be_launched_from_cards_view(self):
-        """https://moztrap.mozilla.org/manage/case/2462/"""
+        """
+        https://moztrap.mozilla.org/manage/case/2462/
+        """
 
         cards_view = CardsView(self.marionette)
         self.assertFalse(cards_view.is_cards_view_displayed, 'Cards view not expected to be visible')
@@ -30,12 +32,19 @@ class TestCardsView(GaiaTestCase):
         self.device.hold_home_button()
         cards_view.wait_for_cards_view()
 
+        # Wait for first app ready
+        cards_view.wait_for_card_ready(self._test_apps[1])
+
         for app in self._test_apps:
             self.assertTrue(cards_view.is_app_displayed(app),
-                            '%s app should be visible in cards view' % app)
+                            '%s app should be present in cards view' % app)
 
-        cards_view.swipe_to_next_app()
+        cards_view.swipe_to_previous_app()
+
+        # Wait for previous app ready
+        cards_view.wait_for_card_ready(self._test_apps[0])
         cards_view.tap_app(self._test_apps[0])
+
         cards_view.wait_for_cards_view_not_displayed()
 
         self.assertEqual(self.apps.displayed_app.name, self._test_apps[0])

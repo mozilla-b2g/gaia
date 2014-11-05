@@ -1,0 +1,42 @@
+#checkbox {
+  display: inline-block;
+  vertical-align: middle;
+  width: 100%;
+  height: 5rem;
+  position: relative;
+  background: none;
+}
+
+#checkbox span {
+  float: left;
+  font-size: 1.8rem;
+  color: #333;
+  padding: 1rem 0 0;
+  height: 6rem;
+  line-height: 3rem;
+  box-sizing: border-box;
+  display: block;
+}
+
+#checkbox span:after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -1.1rem 0 0 -1.1rem;
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+#checkbox span:after {
+  background: url(images/default.png) no-repeat center top / 2.2rem auto;
+}
+
+#checkbox.checked span:after {
+  background-position: center bottom;
+}
+
+/* 'Dangerous' checkboxes */
+#checkbox.danger span:after {
+  background-image: url(images/danger.png);
+}

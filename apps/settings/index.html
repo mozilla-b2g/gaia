@@ -3,11 +3,11 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
+    <meta name="theme-color" content="#eeeeee">
     <title>Settings</title>
 
     <!-- Debug/DUMP method support -->
     <script defer="" src="/shared/js/dump.js"></script>
-    <script defer="" src="/shared/js/settings_url.js"></script>
 
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
@@ -18,7 +18,7 @@
     <link rel="stylesheet" type="text/css" href="style/lists.css">
     <link rel="stylesheet" type="text/css" href="style/icons.css">
     <link rel="stylesheet" type="text/css" href="style/settings.css">
-    <link rel="stylesheet" type="text/css" href="style/settings_large.css">
+    <link rel="stylesheet" type="text/css" href="style/settings_large.css" data-device-type="tablet">
     <!-- Panel Stylesheets
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -26,10 +26,12 @@
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
     <link rel="stylesheet" type="text/css" href="style/apps.css"/>
-    <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
+    <link rel="stylesheet" type="text/css" href="style/screen_lock.css"/>
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/updates.css"/>
     <link rel="stylesheet" type="text/css" href="style/downloads.css"/>
+    <script defer="" src="shared/js/component_utils.js"></script>
+    <script defer="" src="shared/elements/gaia_buttons/script.js"></script>
     -->
 
     <!-- Shared resources
@@ -43,21 +45,32 @@
     <link rel="resource" type="image/png" href="shared/resources/branding/privacy_sprite.png"/>
     -->
 
+    <!-- Components -->
+    <script src="shared/elements/config.js"></script>
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
+    <script src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+
     <!-- Localization -->
-    <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
-    <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
-    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
-    <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
-    <link rel="resource" type="application/l10n" href="shared/locales/tz.ini">
-    <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <script defer="" src="shared/js/l10n.js"></script>
+    <link rel="manifest" href="./manifest.webapp">
+
+    <link rel="localization" href="shared/locales/download/download.{locale}.properties">
+    <link rel="localization" href="shared/locales/branding/branding.{locale}.properties">
+    <link rel="localization" href="shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="shared/locales/permissions/permissions.{locale}.properties">
+    <link rel="localization" href="shared/locales/tz/tz.{locale}.properties">
+    <link rel="localization" href="shared/locales/sounds/sounds.{locale}.properties">
+    <link rel="localization" href="locales/settings.{locale}.properties">
+    <link rel="localization" href="locales/device_type/settings.device.{locale}.properties">
+
+    <script src="shared/js/l10n.js"></script>
     <script defer="" src="shared/js/l10n_date.js"></script>
+
+    <!-- Lazy loader -->
+    <script src="/shared/js/lazy_loader.js"></script>
 
     <!-- For perf-measurement related utilities -->
     <script defer="" src="/shared/js/performance_testing_helper.js"></script>
-
-    <!-- Lazy loader -->
-    <script defer="" src="/shared/js/lazy_loader.js"></script>
 
     <!-- Screen layout watcher -->
     <script defer="" src="/shared/js/screen_layout.js"></script>
@@ -70,17 +83,29 @@
     <!--<script defer src="shared/js/download/download_formatter.js"></script>-->
     <!--<script defer src="shared/js/icc_helper.js"></script>-->
     <!--<script defer src="shared/js/keyboard_helper.js"></script>-->
+    <!--<script defer src="shared/js/language_list.js"></script>-->
+    <!--<script defer src="shared/js/manifest_helper.js"></script>-->
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
     <!--<script defer src="shared/js/async_storage.js"></script>-->
     <!--<script defer src="shared/js/wifi_helper.js"></script>-->
+    <!--<script defer src="shared/js/bluetooth_helper.js"></script>-->
     <!--<script defer src="shared/js/settings_helper.js"></script> -->
     <!--<script defer src="shared/js/settings_listener.js"></script> -->
     <!--<script defer src="shared/js/airplane_mode_helper.js"></script> -->
     <!--<script defer src="shared/js/toaster.js"></script> -->
     <!--<script defer src="shared/js/lazy_loader.js"></script> -->
+    <!--<script defer src="shared/js/font_size_utils.js"></script> -->
     <!--<script defer src="shared/js/screen_layout.js"></script> -->
     <!--<script defer src="shared/js/fxa_iac_client.js"></script> -->
     <!--<script defer src="shared/js/text_normalizer.js"></script> -->
+    <!--<script defer src="shared/js/settings_url.js"></script> -->
+    <!--<script defer src="shared/js/simslot.js"></script> -->
+    <!--<script defer src="shared/js/simslot_manager.js"></script> -->
+    <!--<script defer src="shared/js/omadrm/fl.js"></script> -->
+    <!--<script defer src="shared/js/device_storage/enumerate_all.js"></script> -->
+    <!--<script defer src="shared/js/tz_select.js"></script> -->
+    <!--<script defer src="shared/js/sim_settings_helper.js"></script> -->
+    <!--<script defer src="shared/js/template.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -104,38 +129,42 @@
     <link rel="import" href="/elements/call_iccs.html">
     <link rel="import" href="/elements/call.html">
     <link rel="import" href="/elements/messaging.html">
+    <link rel="import" href="/elements/messaging_details.html">
+    <link rel="import" href="/elements/apn_settings.html">
+    <link rel="import" href="/elements/apn_list.html">
+    <link rel="import" href="/elements/apn_editor.html">
     <link rel="import" href="/elements/carrier_operator_settings.html">
-    <link rel="import" href="/elements/carrier_data_settings.html">
-    <link rel="import" href="/elements/carrier_mms_settings.html">
-    <link rel="import" href="/elements/carrier_supl_settings.html">
-    <link rel="import" href="/elements/carrier_dun_settings.html">
-    <link rel="import" href="/elements/carrier_ims_settings.html">
     <link rel="import" href="/elements/carrier_dc_warning.html">
     <link rel="import" href="/elements/carrier_dr_warning.html">
-    <link rel="import" href="/elements/carrier_iccs.html">
+    <link rel="import" href="/elements/carrier_detail.html">
     <link rel="import" href="/elements/carrier.html">
     <link rel="import" href="/elements/bluetooth.html">
+    <link rel="import" href="/elements/bluetooth_v2.html">
     <link rel="import" href="/elements/hotspot_wifi_settings.html">
     <link rel="import" href="/elements/hotspot.html">
     <link rel="import" href="/elements/sound.html">
     <link rel="import" href="/elements/display.html">
+    <link rel="import" href="/elements/homescreen.html">
+    <link rel="import" href="/elements/search.html">
+    <link rel="import" href="/elements/navigation.html">
     <link rel="import" href="/elements/notifications.html">
     <link rel="import" href="/elements/date_time.html">
     <link rel="import" href="/elements/languages.html">
-    <link rel="import" href="/elements/sim_manager.html">
-    <link rel="import" href="/elements/homescreen_details.html">
-    <link rel="import" href="/elements/homescreen.html">
+    <link rel="import" href="/elements/simcard_manager.html">
+    <link rel="import" href="/elements/homescreens_details.html">
+    <link rel="import" href="/elements/homescreens.html">
     <link rel="import" href="/elements/keyboard.html">
     <link rel="import" href="/elements/keyboard_enabled_default.html">
     <link rel="import" href="/elements/keyboard_selection_add_more.html">
-    <link rel="import" href="/elements/keyboard_selection.html">
-    <link rel="import" href="/elements/phone_lock_passcode.html">
-    <link rel="import" href="/elements/phone_lock.html">
+    <link rel="import" href="/elements/themes.html">
+    <link rel="import" href="/elements/screen_lock_passcode.html">
+    <link rel="import" href="/elements/screen_lock.html">
     <link rel="import" href="/elements/simpin_dialog.html">
     <link rel="import" href="/elements/simpin.html">
     <link rel="import" href="/elements/app_permissions_details.html">
     <link rel="import" href="/elements/app_permissions.html">
     <link rel="import" href="/elements/do_not_track.html">
+    <link rel="import" href="/elements/browsing_privacy.html">
     <link rel="import" href="/elements/about_more_info.html">
     <link rel="import" href="/elements/about_your_rights.html">
     <link rel="import" href="/elements/about_your_privacy.html">
@@ -144,9 +173,12 @@
     <link rel="import" href="/elements/about_legal.html">
     <link rel="import" href="/elements/about.html">
     <link rel="import" href="/elements/battery.html">
+    <link rel="import" href="/elements/usb_storage.html">
     <link rel="import" href="/elements/application_storage.html">
     <link rel="import" href="/elements/media_storage.html">
     <link rel="import" href="/elements/accessibility.html">
+    <link rel="import" href="/elements/accessibility_screenreader.html">
+    <link rel="import" href="/elements/accessibility_colors.html">
     <link rel="import" href="/elements/developer_hud.html">
     <link rel="import" href="/elements/developer.html">
     <link rel="import" href="/elements/crash_reports.html">
@@ -158,8 +190,11 @@
     <link rel="import" href="/elements/downloads.html">
     <link rel="import" href="/elements/firefox_accounts.html">
     <link rel="import" href="/elements/findmydevice.html">
+    <link rel="import" href="/elements/frame.html">
+    <link rel="import" href="/elements/templates/messaging.html">
+    <link rel="import" href="/elements/root.html">
   </head>
-  <body class="skin-organic uninit">
+  <body class="skin-organic uninit theme-settings">
     <!--
       - Lazy-Loading: to avoid parsing all settings panels before necessary, the
       - HTML markup is included in a comment node and applied with `.innerHTML'
@@ -224,30 +259,30 @@
     <section is="call-iccs" role="region" id="call-iccs"></section>
     <!-- Connectivity :: Call -->
     <section is="call" role="region" id="call" data-require-sub-panels="true"></section>
+    <!-- Connectivity :: Messaging :: Details -->
+    <section is="messaging-details" role="region" id="messaging-details"></section>
     <!-- Connectivity :: Messaging -->
     <section is="messaging" role="region" id="messaging"></section>
     <!-- Connectivity :: Cellular & Data :: Network Operator -->
     <section is="carrier-operatorSettings" role="region" id="carrier-operatorSettings"></section>
-    <!-- Connectivity :: Cellular & Data :: Data Settings -->
-    <section is="carrier-dataSettings" role="region" id="carrier-dataSettings"></section>
-    <!-- Connectivity :: Cellular & Data :: Message Settings -->
-    <section is="carrier-mmsSettings" role="region" id="carrier-mmsSettings"></section>
-    <!-- Connectivity :: Cellular & Data :: A-GPS Settings -->
-    <section is="carrier-suplSettings" role="region" id="carrier-suplSettings"></section>
-    <!-- Connectivity :: Cellular & Data :: DUN Settings -->
-    <section is="carrier-dunSettings" role="region" id="carrier-dunSettings"></section>
-    <!-- Connectivity :: Cellular & Data :: IMS Settings -->
-    <section is="carrier-imsSettings" role="region" id="carrier-imsSettings"></section>
+    <!-- Connectivity :: Cellular & Data :: APN Settings -->
+    <section is="apn-settings" role="region" id="apn-settings"></section>
+    <!-- Connectivity :: Cellular & Data :: APN List -->
+    <section is="apn-list" role="region" id="apn-list"></section>
+    <!-- Connectivity :: Cellular & Data :: APN Editor -->
+    <section is="apn-editor" role="region" id="apn-editor"></section>
     <!-- Connectivity :: Cellular & Data :: Data Connection Warnings -->
     <section is="carrier-dc-warning" role="region" id="carrier-dc-warning"></section>
     <!-- Connectivity :: Cellular & Data :: Data Roaming Warnings -->
     <section is="carrier-dr-warning" role="region" id="carrier-dr-warning"></section>
-    <!-- Connectivity :: Cellular & Data :: ICCs -->
-    <section is="carrier-iccs" role="region" id="carrier-iccs"></section>
+    <!-- Connectivity :: Cellular & Data :: Detail -->
+    <section is="carrier-detail" role="region" id="carrier-detail"></section>
     <!-- Connectivity :: Cellular & Data -->
     <section is="carrier" role="region" id="carrier" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Bluetooth -->
     <section is="bluetooth" role="region" id="bluetooth"></section>
+    <!-- Connectivity :: Bluetooth v2 -->
+    <section is="bluetooth_v2" role="region" id="bluetooth_v2"></section>
     <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
     <section is="hotspot-wifiSettings" role="region" id="hotspot-wifiSettings"></section>
     <!-- Connectivity :: Internet Sharing -->
@@ -257,6 +292,12 @@
     <section is="sound" role="region" id="sound" data-require-sub-panels="true"></section>
     <!-- Personalization :: Display -->
     <section is="display" role="region" id="display"></section>
+    <!-- Personalization :: Homescreen -->
+    <section is="homescreen" role="region" id="homescreen"></section>
+    <!-- Personalization :: Search -->
+    <section is="search" role="region" id="search"></section>
+    <!-- Personalization :: Navigation -->
+    <section is="navigation" role="region" id="navigation"></section>
     <!-- Personalization :: Notifications -->
     <section is="notifications" role="region" id="notifications"></section>
     <!-- Personalization :: Date & Time -->
@@ -265,10 +306,10 @@
     <section is="languages" role="region" id="languages"></section>
     <!-- Personalization :: SIM card manager -->
     <section is="sim-manager" role="region" id="sim-manager"></section>
-    <!-- Personalization :: Homescreen :: details -->
-    <section is="homescreen-details" role="region" id="homescreen-details"></section>
-    <!-- Personalization :: Homescreen -->
-    <section is="homescreen" role="region" id="homescreen" data-require-sub-panels="true"></section>
+    <!-- Personalization :: Homescreens :: details -->
+    <section is="homescreens-details" role="region" id="homescreens-details"></section>
+    <!-- Personalization :: Homescreens -->
+    <section is="homescreens" role="region" id="homescreens" data-require-sub-panels="true"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard :: Add More Keyboards -->
     <section is="keyboard-selection-addMore" role="region" id="keyboard-selection-addMore"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard -->
@@ -276,14 +317,16 @@
     <!-- Personalization :: Keyboard -->
     <section is="keyboard" role="region" id="keyboard" data-require-sub-panels="true"></section>
     <section is="keyboard-enabled-default" role="region" id="keyboard-enabled-default"></section>
+    <!-- Personalization :: Themes -->
+    <section is="themes" role="region" id="themes"></section>
 
     <!-- Accounts :: Find My Device -->
     <section is="findmydevice" role="region" id="findmydevice"></section>
 
-    <!-- Security :: Phone Lock :: PIN Input -->
-    <section is="phoneLock-passcode" role="region" id="phoneLock-passcode"></section>
-    <!-- Security :: Phone Lock -->
-    <section is="phoneLock" role="region" id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false" data-require-sub-panels="true"></section>
+    <!-- Security :: Screen Lock :: PIN Input -->
+    <section is="screenLock-passcode" role="region" id="screenLock-passcode"></section>
+    <!-- Security :: Screen Lock -->
+    <section is="screenLock" role="region" id="screenLock" data-passcode-enabled="false" data-lockscreen-enabled="false" data-require-sub-panels="true"></section>
     <!-- Security :: SIM Security :: SIM PIN Input -->
     <section is="simpin-dialog" role="region" id="simpin-dialog"></section>
     <!-- Security :: SIM Security -->
@@ -294,6 +337,8 @@
     <section is="appPermissions" role="region" id="appPermissions" data-require-sub-panels="true"></section>
     <!-- Security :: Do Not Track -->
     <section is="doNotTrack" role="region" id="doNotTrack"></section>
+    <!-- Security :: Browser -->
+    <section is="browsingPrivacy" role="region" id="browsingPrivacy"></section>
 
     <!-- Device :: Information :: More Information -->
     <section is="about-moreInfo" role="region" id="about-moreInfo"></section>
@@ -313,10 +358,16 @@
     <section is="downloads" role="region" id="downloads"></section>
     <!-- Device :: Battery -->
     <section is="battery" role="region" id="battery"></section>
-    <!-- Device :: Device Storage -->
+    <!-- Storage :: USB Transfer Protocol -->
+    <section is="usbStorage" role="region" id="usbStorage"></section>
+    <!-- Storage :: Device Storage -->
     <section is="applicationStorage" role="region" id="applicationStorage"></section>
-    <!-- Device :: Media Storage -->
+    <!-- Storage :: Media Storage -->
     <section is="mediaStorage" role="region" id="mediaStorage"></section>
+    <!-- Device :: Accessibility :: Color Filter -->
+    <section is="accessibility-colors" role="region" id="accessibility-colors"></section>
+    <!-- Device :: Accessibility :: Screen Reader -->
+    <section is="accessibility-screenreader" role="region" id="accessibility-screenreader"></section>
     <!-- Device :: Accessibility -->
     <section is="accessibility" role="region" id="accessibility"></section>
     <!-- Device :: Developer :: HUD -->
@@ -333,217 +384,32 @@
     <section is="improveBrowserOS" role="region" id="improveBrowserOS" data-require-sub-panels="true"></section>
     <!-- Device :: Help -->
     <section is="help" role="region" id="help"></section>
-
     <!-- SIM Toolkit -->
     <section is="icc" role="region" id="icc"></section>
-
     <!-- Firefox Accounts -->
     <section is="fxa" role="region" id="fxa"></section>
+    <!-- Iframe -->
+    <section is="frame" role="region" id="frame"></section>
+
+    <!-- templates -->
+    <!-- templates :: Messaging -->
+    <section is="template-messaging" role="region" id="template-messaging"></section>
 
     <!-- Main List -->
-    <section role="region" id="root" class="current" data-rendered="true">
-      <header>
-        <menu id="activityDoneButton" type="toolbar">
-          <a href="#home" role="menuitem" data-l10n-id="done">Done</a>
-        </menu>
-        <h1 data-l10n-id="settings"> Settings </h1>
-      </header>
+    <section is="root" role="region" id="root"></section>
 
-      <div>
-        <!-- Main :: Network & Connectivity -->
-        <header data-category="connectivity">
-          <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
-        </header>
-        <ul>
-          <li data-category="connectivity">
-            <label class="pack-switch">
-              <input id="airplaneMode-input" class="uninit" type="checkbox" disabled>
-              <span id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</span>
-            </label>
-          </li>
-          <li>
-            <label class="pack-switch">
-              <input name="geolocation.enabled" class="uninit" type="checkbox">
-              <span id="menuItem-gps" class="menu-item" data-l10n-id="geolocation">Geolocation</span>
-            </label>
-          </li>
-          <li data-category="connectivity">
-            <small id="wifi-desc" class="menu-item-desc"></small>
-            <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
-          </li>
-          <li id="simCardManager-settings" aria-disabled="true">
-            <small id="simmanager-desc" class="menu-item-desc"></small>
-            <a id="menuItem-simManager" class="menu-item" href="#sim-manager" data-l10n-id="simManager">SIM manager</a>
-          </li>
-          <li id="call-settings" aria-disabled="true">
-            <small id="call-desc" class="menu-item-desc"></small>
-            <a id="menuItem-callSettings" class="menu-item" href="#call" data-l10n-id="callSettings">Call Settings</a>
-          </li>
-          <li id="messaging-settings" aria-disabled="true">
-            <small id="messaging-desc" class="menu-item-desc"></small>
-            <a id="menuItem-messagingSettings" class="menu-item" href="#messaging" data-l10n-id="messagingSettings">Messaging Settings</a>
-          </li>
-          <li id="data-connectivity" data-category="connectivity" aria-disabled="true">
-            <small id="data-desc" class="menu-item-desc"></small>
-            <a id="menuItem-cellularAndData" class="menu-item" href="#carrier" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
-          </li>
-          <li>
-            <small id="bluetooth-desc" class="menu-item-desc"></small>
-            <a id="menuItem-bluetooth" class="menu-item" href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
-          </li>
-          <li id="nfc-settings" hidden>
-            <label class="pack-switch">
-              <input id="nfc-input" name="nfc.enabled" class="uninit" type="checkbox">
-              <span id="menuItem-nfc" class="menu-item" data-l10n-id="nfc">NFC</span>
-            </label>
-          </li>
-          <li>
-            <small id="internetSharing-desc" class="menu-item-desc"></small>
-            <a id="menuItem-internetSharing" class="menu-item" href="#hotspot" data-l10n-id="internetSharing">Internet Sharing</a>
-          </li>
-        </ul>
-
-        <!-- Main :: Personalization -->
-        <header>
-          <h2 data-l10n-id="personalization">Personalization</h2>
-        </header>
-        <ul>
-          <li>
-            <a id="menuItem-sound" class="menu-item" href="#sound" data-l10n-id="sound">Sound</a>
-          </li>
-          <li>
-            <a id="menuItem-display" class="menu-item" href="#display" data-l10n-id="display">Display</a>
-          </li>
-          <li>
-            <a id="menuItem-notifications" class="menu-item" href="#notifications" data-l10n-id="notifications">Notifications</a>
-          </li>
-          <li>
-            <small id="time-desc" class="menu-item-desc"></small>
-            <a id="menuItem-dateAndTime" class="menu-item" href="#dateTime" data-l10n-id="dateAndTime">Date &amp; Time</a>
-          </li>
-          <li>
-            <small id="language-desc" class="menu-item-desc"></small>
-            <!-- The data-l10n-id and title should be changed from language to languageAndRegion in V2. -->
-            <a id="menuItem-languageAndRegion" class="menu-item" href="#languages" data-l10n-id="language">Language</a>
-          </li>
-          <li id="homescreen-section" hidden>
-            <a id="menuItem-homescreen" class="menu-item" href="#homescreen" data-l10n-id="homescreen">Homescreen</a>
-          </li>
-          <li>
-            <small id="keyboard-desc" class="menu-item-desc"></small>
-            <a id="menuItem-keyboard" class="menu-item" href="#keyboard" data-l10n-id="keyboards">Keyboards</a>
-          </li>
-        </ul>
-
-        <!-- Main :: Accounts -->
-        <header>
-          <h2 data-l10n-id="accounts">Accounts</h2>
-        </header>
-        <ul>
-          <li data-show-name="identity.fxaccounts.ui.enabled" hidden>
-            <small id="fxa-desc" class="menu-item-desc"></small>
-            <a id="menuItem-fxa" class="menu-item" href="#fxa" data-l10n-id="fxa-accounts">Firefox Accounts</a>
-          </li>
-          <li data-show-name="findmydevice.ui.enabled" hidden>
-            <small id="findmydevice-desc" class="menu-item-desc"></small>
-            <a id="menuItem-findmydevice" class="menu-item" href="#findmydevice"
-              data-l10n-id="findmydevice">Find My Device</a>
-          </li>
-        </ul>
-
-        <!-- Main :: Security & Privacy -->
-        <header>
-          <h2 data-l10n-id="privacyAndSecurity">Privacy &amp; Security</h2>
-        </header>
-        <ul>
-          <li>
-            <small id="phoneLock-desc" class="menu-item-desc"></small>
-            <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
-          </li>
-          <li id="simSecurity-settings" aria-disabled="true">
-            <small id="simCardLock-desc" class="menu-item-desc"></small>
-            <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM security</a>
-          </li>
-          <li>
-            <a id="menuItem-appPermissions" class="menu-item" href="#appPermissions" data-l10n-id="appPermissions">App permissions</a>
-          </li>
-          <li>
-            <small id="doNotTrack-desc" class="menu-item-desc"></small>
-            <a id="menuItem-doNotTrack" class="menu-item" href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
-          </li>
-        </ul>
-        <!-- Main :: Storage -->
-        <header>
-          <h2 data-l10n-id="storage">Storage</h2>
-        </header>
-        <ul>
-          <li>
-            <label class="pack-switch">
-              <input id="ums-switch-root" data-ignore type="checkbox">
-              <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
-              <span id="menuItem-enableStorage" class="menu-item" data-l10n-id="enableUSBStorage1">USB storage</span>
-            </label>
-          </li>
-          <li>
-            <small id="application-storage-desc" class="menu-item-desc"></small>
-            <a id="menuItem-applicationStorage" class="menu-item" href="#applicationStorage" data-l10n-id="appStorage">Application Storage</a>
-          </li>
-          <li id="media-storage-section">
-            <small id="media-storage-desc" class="menu-item-desc"></small>
-            <a id="menuItem-mediaStorage" class="menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
-          </li>
-        </ul>
-
-        <!-- Main :: Device -->
-        <header>
-          <h2 data-l10n-id="device">Device</h2>
-        </header>
-        <ul>
-          <li>
-            <a id="menuItem-deviceInfo" class="menu-item" href="#about" data-l10n-id="deviceInfo">Device Information</a>
-          </li>
-          <li>
-            <a id="menuItem-downloads" class="menu-item" href="#downloads" data-l10n-id="downloads">Downloads</a>
-          </li>
-          <li>
-            <small id="battery-desc" class="menu-item-desc"></small>
-            <a id="menuItem-battery" class="menu-item" href="#battery" data-l10n-id="battery">Battery</a>
-          </li>
-          <li data-show-name="accessibility.show-settings" hidden>
-            <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
-          </li>
-          <li data-show-name="developer.menu.enabled" hidden>
-            <a id="menuItem-developer" class="menu-item" href="#developer" data-l10n-id="developer">Developer</a>
-          </li>
-          <li>
-            <a id="menuItem-improveBrowserOS" class="menu-item" href="#improveBrowserOS" data-l10n-id="improveBrowserOS">Improve Browser OS</a>
-          </li>
-          <li>
-            <a id="menuItem-help" class="menu-item" href="#help" data-l10n-id="help">Help</a>
-          </li>
-        </ul>
-
-        <!-- Main :: SIM Toolkit -->
-        <header id="icc-mainheader">
-          <h2 data-l10n-id="operatorServices">Operator Services</h2>
-        </header>
-        <ul id="icc-entries">
-        </ul>
-      </div>
-    </section>
-
-    <form role="dialog" data-type="confirm" id="turn-on-ums-dialog" hidden>
+    <!-- Warning Dialog :: Incompatible Settings :: USB Storage & USB Tethering & Wifi Tethering -->
+    <form data-type="confirm" role="dialog" class="incompatible-settings-dialog" hidden>
       <section>
-        <h1 data-l10n-id="ums-warning-title">Enable USB storage?</h1>
-        <p data-l10n-id="turn-on-ums-confirm">
-            Turning on Enable USB storage allows another computer or device connected using USB to access files on this phone.
-        </p>
+        <h1 class="is-warning-head"></h1>
+        <p class="is-warning-message"></p>
       </section>
       <menu>
-        <button data-l10n-id="cancel" id="ums-cancel-option">Cancel</button>
-        <button data-l10n-id="ok" id="ums-confirm-option" class="recommend">OK</button>
+        <button class="incompatible-settings-cancel-btn" data-l10n-id="cancel">Cancel</button>
+        <button class="incompatible-settings-ok-btn recommend" data-l10n-id="enable">Enable</button>
       </menu>
     </form>
+
     <script src="js/startup.js"></script>
   </body>
 </html>

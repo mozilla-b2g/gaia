@@ -1,7 +1,7 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ApnHelper */
+/* globals ApnHelper, LazyLoader */
 
 (function(exports) {
   'use strict';
@@ -93,6 +93,51 @@
       return r;
     },
 
+    clone: function ovh_clone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    },
+
+    /**
+     * Utility function to merge default apn settings (from apn.json) to
+     * existing apn settings.
+     *
+     * @param {Array} apns
+     *                Existing apns.
+     * @param {Array} defaultApns
+     *                Default apns. Note that in the array there should be no
+     *                apn with the carrier name "_custom_".
+     */
+    mergeAndKeepCustomApnSettings:
+      function ovh_mergeApnSettings(apns, defaultApns) {
+        var defaultApnsCopy = this.clone(defaultApns);
+
+        // apns might be undefined, do filtering only if it's an Array
+        var existingCustomApns = !Array.isArray(apns) ? [] :
+          apns.filter(function(apn) {
+            return (apn.carrier === '_custom_');
+          });
+
+        // Find the apn types of the custom apns.
+        var typesOfCustomApn = new Set();
+        existingCustomApns.forEach(function(apn) {
+          apn.types.forEach(function(type) {
+            typesOfCustomApn.add(type);
+          });
+        });
+
+        // We only need to set the apns of the types that are not covered by
+        // the custom apns.
+        var apnsToBeSet = defaultApnsCopy.filter(function(apn) {
+          // Remove the type that is already covered by the custom apns.
+          apn.types = apn.types.filter(function(type) {
+            return !typesOfCustomApn.has(type);
+          });
+          return !!apn.types.length;
+        });
+        apnsToBeSet = apnsToBeSet.concat(existingCustomApns);
+
+        return apnsToBeSet;
+    },
 
     /**
      * Apply the carrier settings relaying on the MCC and MNC values. This
@@ -110,24 +155,22 @@
       this._iccSettings.mcc = mcc;
       this._iccSettings.mnc = mnc;
 
-      if (!persistKeyNotSet) {
-        this.retrieveOperatorVariantSettings(
-          this.applyOperatorVariantSettings.bind(this)
-        );
-        this.retrieveWAPUserAgentProfileSettings(
-          this.applyWAPUAProfileUrl.bind(this)
-        );
-      } else {
-        this.retrieveOperatorVariantSettings(
-          (function retrieveOperatorVariantSettingsCb(result) {
-            this.filterApnsByMvnoRules(0, result, [], '', '',
-              (function onFinishCb(filteredApnList) {
-                this.buildApnSettings(filteredApnList);
-            }).bind(this));
-            this.applyVoicemailSettings(result, /*isUpdate*/ true);
-          }).bind(this)
-        );
-      }
+      this.retrieveOperatorVariantSettings(function(result) {
+        this.buildCompleteDefaultApnSettings(result);
+
+        if (!persistKeyNotSet) {
+          this.applyOperatorVariantSettings(result);
+          this.retrieveWAPUserAgentProfileSettings(
+            this.applyWAPUAProfileUrl.bind(this)
+          );
+        } else {
+          this.filterApnsByMvnoRules(0, result, [], '', '',
+            (function onFinishCb(filteredApnList) {
+              this.buildApnSettings(filteredApnList);
+          }).bind(this));
+          this.applyCellBroadcastSearchList(result);
+        }
+      }.bind(this));
 
       this._operatorVariantHelper.applied();
     },
@@ -142,32 +185,24 @@
       function ovh_retrieveOperatorVariantSettings(callback) {
 
       var self = this;
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', OPERATOR_VARIANT_FILE, true);
-      xhr.responseType = 'json';
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
-          var apn = xhr.response;
+      LazyLoader.getJSON(OPERATOR_VARIANT_FILE).then(function(apn) {
+        // The apn.json generator strips out leading zeros for mcc values. No
+        // need for padding in this instance.
+        var mcc = self._iccSettings.mcc;
 
-          // The apn.json generator strips out leading zeros for mcc values. No
-          // need for padding in this instance.
-          var mcc = self._iccSettings.mcc;
+        // We must pad the mnc value and turn it into a string otherwise
+        // we could *fail* to load the appropriate settings for single digit
+        // *mnc* values!
+        var mnc = self.padLeft(self._iccSettings.mnc, 2);
 
-          // We must pad the mnc value and turn it into a string otherwise
-          // we could *fail* to load the appropriate settings for single digit
-          // *mnc* values!
-          var mnc = self.padLeft(self._iccSettings.mnc, 2);
+        // Get the type of the data network
+        var networkType = window.navigator
+                                .mozMobileConnections[self._iccCardIndex]
+                                .data.type;
 
-          // Get the type of the data network
-          var networkType = window.navigator
-                                  .mozMobileConnections[self._iccCardIndex]
-                                  .data.type;
-
-          // Get a list of matching APNs
-          callback(ApnHelper.getCompatible(apn, mcc, mnc, networkType));
-        }
-      };
-      xhr.send();
+        // Get a list of matching APNs
+        callback(ApnHelper.getCompatible(apn, mcc, mnc, networkType));
+      });
     },
 
     /**
@@ -334,8 +369,13 @@
           var item = {};
           switch (name) {
             case 'voicemail':
-              this.applyVoicemailSettings(result, /*isUpdate*/ false);
+              this.applyVoicemailSettings(result);
               break;
+
+            case 'cellBroadcastSearchList':
+              this.applyCellBroadcastSearchList(result);
+              break;
+
             // load values from the AUTH_TYPES
             case 'authtype':
               item[key] = apn[name] ? AUTH_TYPES[apn[name]] : 'notDefined';
@@ -355,7 +395,7 @@
               break;
           }
 
-          if (Object.keys(item)) {
+          if (Object.keys(item).length) {
             transaction.set(item);
           }
         }
@@ -368,21 +408,13 @@
     },
 
     /**
-     * Store the voicemail settings into the settings database.
+     * Get the value of a specific operator vatiant setting.
      *
      * @param {Array} allSettings Carrier settings.
-     * @param {Boolean} isSystemUpdate Indicating whether the function is called
-     *                                 due to system update or a new icc card is
-     *                                 detected.
+     * @param {String} prop The name of the property to be queried.
      */
-    applyVoicemailSettings:
-      function ovh_applyVoicemailSettings(allSettings, isSystemUpdate) {
-        var number = this.getVMNumberFromOperatorVariantSettings(allSettings);
-        this.updateVoicemailSettings(number, isSystemUpdate);
-    },
-
-    getVMNumberFromOperatorVariantSettings:
-      function ovh_getVMNumberFromOperatorVariantSettings(allSettings) {
+    getValueFromOperatorVariantSettings:
+      function ovh_getVMNumberFromOperatorVariantSettings(allSettings, prop) {
         var operatorVariantSettings = {};
         for (var i = 0; i < allSettings.length; i++) {
           if (allSettings[i] &&
@@ -391,48 +423,64 @@
             break;
           }
         }
-
-        // Load the voicemail number stored in the apn.json database.
-        return operatorVariantSettings['voicemail'] || '';
+        // Load the value stored in the apn.json database.
+        return operatorVariantSettings[prop] || '';
     },
 
-    updateVoicemailSettings:
-      function ovh_updateVoicemailSettings(number, isSystemUpdate) {
-        // Store settings into the database.
+    /**
+     * Store update the operator variant settings to database.
+     *
+     * @param {String} key The key of the settings field.
+     * @param {Object} value The value.
+     */
+    updateOperatorVariantSettings:
+      function ovh_updateOperatorVariantSettings(key, value) {
         var settings = window.navigator.mozSettings;
         var transaction = settings.createLock();
 
-        var request = transaction.get('ril.iccInfo.mbdn');
+        var request = transaction.get(key);
         request.onsuccess = (function() {
-          var originalSetting = request.result['ril.iccInfo.mbdn'];
-          var newSetting;
-          var newNumber;
+          var originalSetting =
+            request.result[key] || ['', ''];
 
-          // Create an empty setting if needed
-          if (!originalSetting || !Array.isArray(originalSetting)) {
-            newSetting = ['', ''];
-          } else {
-            newSetting = originalSetting;
-          }
+          // If the key is 'ril.iccInfo.mbdn':
+          // We should only call to this function when new icc cards detected
+          // (not system update) in order to preserve user manual settings.
 
-          // Determine the new value:
-          // - Use the original value when the function is called due to
-          //   system update
-          // - Use the passed in number when the function is called due to
-          //   new icc cards detected (not system update)
-          if (isSystemUpdate) {
-            if (!Array.isArray(originalSetting)) {
-              newNumber = originalSetting;
-            } else {
-              newNumber = originalSetting[this._iccCardIndex];
-            }
-          } else {
-            newNumber = number;
-          }
-
-          newSetting[this._iccCardIndex] = newNumber;
-          transaction.set({'ril.iccInfo.mbdn': newSetting});
+          // If the key is 'ril.cellbroadcast.searchlist':
+          // Note that cellbroad cast search list is never touched by users,
+          // we should always apply the new value no matter the function is
+          // triggered by changing icc cards or system update.
+          originalSetting[this._iccCardIndex] = value;
+          var obj = {};
+          obj[key] = originalSetting;
+          transaction.set(obj);
         }).bind(this);
+    },
+
+    /**
+     * Store the voicemail settings into the settings database.
+     *
+     * @param {Array} allSettings Carrier settings.
+     */
+    applyVoicemailSettings:
+      function ovh_applyVoicemailSettings(allSettings) {
+        var number = this.getValueFromOperatorVariantSettings(allSettings,
+          'voicemail');
+        this.updateOperatorVariantSettings('ril.iccInfo.mbdn', number);
+    },
+
+    /**
+     * Store the cell broadcast settings into the settings database.
+     *
+     * @param {Array} allSettings Carrier settings.
+     */
+    applyCellBroadcastSearchList:
+      function ovh_applyCellBroadcastSearchList(allSettings) {
+        var searchList = this.getValueFromOperatorVariantSettings(allSettings,
+          'cellBroadcastSearchList');
+        this.updateOperatorVariantSettings('ril.cellbroadcast.searchlist',
+          searchList);
     },
 
     /**
@@ -440,6 +488,59 @@
      */
     canHandleType: function ovh_canHandleType(apn, type) {
       return (apn.type && (apn.type.indexOf(type) != -1));
+    },
+
+    /**
+     * Helper function to
+     * - Change property mane 'type' by 'types'.
+     * - Change values for 'authtype' property as the ones that gecko expects.
+     */
+    convertApnSettings: function ovh_convertApns(apnSettings) {
+      var that = this;
+      return apnSettings.map(function(apn) {
+        var apnClone = that.clone(apn);
+        if (apnClone.type && Array.isArray(apnClone.type)) {
+          apnClone.types = apnClone.type.map(function(type) {
+            return type;
+          });
+        }
+        delete apnClone.type;
+        if (apnClone.authtype) {
+          apnClone.authtype = AUTH_TYPES[apnClone.authtype] || 'notDefined';
+        }
+        return apnClone;
+      });
+    },
+
+    /**
+     * Build all possible apn settings for the current mcc and mnc codes.
+     *
+     * @param {Array} allApnList The array of settings used for bulding the data
+     *                           call ones.
+     */
+    buildCompleteDefaultApnSettings:
+      function ovh_buildCompleteDefaultApnSettings(allApnList) {
+        var settings = window.navigator.mozSettings;
+        var validApnSettings = allApnList.filter(function(apn) {
+          return apn.type && apn.type.indexOf('operatorvariant') == -1;
+        });
+        validApnSettings = this.convertApnSettings(validApnSettings);
+
+        // Store default apn items to the database.
+        var transaction = settings.createLock();
+        var request = transaction.get('ril.data.default.apns');
+        var mcc = this._iccSettings.mcc;
+        var mnc = this._iccSettings.mnc;
+
+        request.onsuccess = (function() {
+          var result = request.result['ril.data.default.apns'] || {};
+          result[mcc] = result[mcc] || {};
+          result[mcc][mnc] = validApnSettings;
+
+          transaction.set({
+            'ril.data.default.apns': result
+          });
+        }).bind(this);
     },
 
     /**
@@ -474,7 +575,7 @@
         for (var k = 0; k < allApnList.length; k++) {
           if (this.canHandleType(allApnList[k], type)) {
             if (allApnList[k].type.length > 1) {
-              var tmpApn = JSON.parse(JSON.stringify(allApnList[k]));
+              var tmpApn = this.clone(allApnList[k]);
               delete tmpApn.type;
               tmpApn.type = [];
               tmpApn.type.push(type);
@@ -487,34 +588,33 @@
         }
       }
 
-      // Change property mane 'type' by 'types'.
-      // Change values for 'authtype' property as the ones that gecko expects.
-      for (var l = 0; l < tmpApnSettings.length; l++) {
-        var apn = tmpApnSettings[l];
-        apn.types = [];
-        apn.type.forEach(function forEachApnType(type) {
-          apn.types.push(type);
-        });
-        delete apn.type;
-        if (apn.authtype) {
-          apn.authtype = AUTH_TYPES[apn.authtype] || 'notDefined';
-        }
-        apnSettings.push(apn);
-      }
+      apnSettings = this.convertApnSettings(tmpApnSettings);
 
-      // Store settings into the database.
       var settings = window.navigator.mozSettings;
-      var transaction = settings.createLock();
 
+      // Store settings into the database and clear the user selection.
+      var transaction = settings.createLock();
       var request = transaction.get('ril.data.apnSettings');
       request.onsuccess = (function() {
         var result = request.result['ril.data.apnSettings'];
         if (!result || !Array.isArray(result)) {
           result = [[], []];
         }
-        result[this._iccCardIndex] = apnSettings;
 
-        transaction.set({'ril.data.apnSettings': result});
+        // We should respect to the existing custom settings if any. Instead
+        // of overwriting it with "apnSettings" compeletely, we should only
+        // overwrite the apn settings that are not configured by custom
+        // settings by using the result of "mergeAndKeepCustomApnSettings".
+        var existingApnSettings = result[this._iccCardIndex];
+        var mergedApnSettings = this.mergeAndKeepCustomApnSettings(
+          existingApnSettings, apnSettings);
+
+        result[this._iccCardIndex] = mergedApnSettings;
+        transaction.set({
+          'ril.data.apnSettings': result,
+          'ril.data.default.apnSettings': result,
+          'apn.selections': null
+        });
       }).bind(this);
     },
 
@@ -532,24 +632,17 @@
       var WAP_UA_PROFILE_FILE = '/resources/wapuaprof.json';
       var DEFAULT_KEY = '000000';
 
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', WAP_UA_PROFILE_FILE, true);
-      xhr.responseType = 'json';
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
-          var uaprof = xhr.response;
-          // normalize mcc, mnc as zero padding string.
-          var mcc = self.padLeft(self._iccSettings.mcc, 3);
-          var mnc = self.padLeft(self._iccSettings.mnc, 3);
+      LazyLoader.getJSON(WAP_UA_PROFILE_FILE).then(function(uaprof) {
+        // normalize mcc, mnc as zero padding string.
+        var mcc = self.padLeft(self._iccSettings.mcc, 3);
+        var mnc = self.padLeft(self._iccSettings.mnc, 3);
 
-          // Get the ua profile url with mcc/mnc. Fallback to default if no
-          // record found. If still not found, we use undefined as the default
-          // value
-          var uaProfile = uaprof[mcc + mnc] || uaprof[DEFAULT_KEY];
-          callback(uaProfile);
-        }
-      };
-      xhr.send();
+        // Get the ua profile url with mcc/mnc. Fallback to default if no
+        // record found. If still not found, we use undefined as the default
+        // value
+        var uaProfile = uaprof[mcc + mnc] || uaprof[DEFAULT_KEY];
+        callback(uaProfile);
+      });
     },
 
     /**

@@ -96,7 +96,7 @@ var InitLogoHandler = {
 
   _removeCarrierPowerOn: function ilh_removeCarrierPowerOn() {
     var self = this;
-    if (this.carrierLogo) {
+    if (this.carrierLogo && this.carrierLogo.parentNode) {
       this.carrierLogo.parentNode.removeChild(self.carrierLogo);
       this._setReady();
     } else {
@@ -194,6 +194,7 @@ var InitLogoHandler = {
           elem.load();
         }
         self.carrierLogo.parentNode.removeChild(self.carrierLogo);
+        delete self.carrierLogo; // Don't entrain the DOM nodes.
 
         self.osLogo.classList.add('hide');
         self.carrierPowerOnElement = null;
@@ -203,6 +204,9 @@ var InitLogoHandler = {
     self.osLogo.addEventListener('transitionend', function transOsLogo() {
       self.osLogo.removeEventListener('transitionend', transOsLogo);
       self.osLogo.parentNode.removeChild(self.osLogo);
+      delete self.osLogo; // Don't entrain the DOM nodes.
+      window.mozPerformance.timing.mozOsLogoEnd = Date.now();
+      window.dispatchEvent(new CustomEvent('logohidden'));
       if (callback) {
         callback();
       }

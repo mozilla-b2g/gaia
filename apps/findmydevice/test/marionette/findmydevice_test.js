@@ -34,6 +34,8 @@ marionette('Find My Device lock >', function() {
     var lockButton = client.findElement('#lock');
     lockButton.click();
 
+    // XXX: After we make LockScreen as an iframe or app, this should be the
+    // line to switch to LockScreen frame.
     client.switchToFrame();
     var lockscreen = client.findElement('#lockscreen');
     client.waitFor(function() {
@@ -51,6 +53,7 @@ marionette('Find My Device lock >', function() {
       return false;
     });
 
+    // sanity-check the settings we should have set
     var settings = {
       'lockscreen.enabled': true,
       'lockscreen.passcode-lock.enabled': true,
@@ -62,5 +65,37 @@ marionette('Find My Device lock >', function() {
     for (var s in settings) {
       assert.equal(client.settings.get(s), settings[s]);
     }
+
+    client.switchToFrame();
+
+    // now unlock the screen and re-lock it, the message should disappear
+    client.executeScript(function() {
+      window.wrappedJSObject.System.request('unlock');
+    });
+
+    client.waitFor(function() {
+      return client.executeScript(function() {
+        return !window.wrappedJSObject.System.locked;
+      });
+    });
+
+    client.executeScript(function() {
+      window.wrappedJSObject.System.request('lock');
+    });
+
+    // XXX: After we make LockScreen as an iframe or app, this should be the
+    // line to switch to LockScreen frame.
+    client.switchToFrame();
+    lockscreen = client.findElement('#lockscreen');
+    client.waitFor(function() {
+      return lockscreen.displayed();
+    });
+
+    lockscreenMessage = client.findElement('#lockscreen-message');
+    client.waitFor(function() {
+      return !lockscreenMessage.displayed();
+    });
+
+    assert.equal(client.settings.get('lockscreen.lock-message'), '');
   });
 });

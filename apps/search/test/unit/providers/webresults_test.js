@@ -1,20 +1,17 @@
 'use strict';
 /* global eme, Promise, Search */
 
-requireApp('search/js/eme/eme.js');
+requireApp('search/shared/js/everythingme/eme.js');
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
+requireApp('search/js/providers/grid_provider.js');
 
 suite('search/providers/webresults', function() {
 
-  var fakeElement, stubById, clock, subject;
+  var clock, subject;
 
   setup(function(done) {
     clock = sinon.useFakeTimers();
-    fakeElement = document.createElement('div');
-    fakeElement.style.cssText = 'height: 100px; display: block;';
-    stubById = this.sinon.stub(document, 'getElementById')
-                          .returns(fakeElement.cloneNode(true));
     requireApp('search/js/providers/webresults.js', function() {
       subject = Search.providers.WebResults;
       done();
@@ -22,7 +19,6 @@ suite('search/providers/webresults', function() {
   });
 
   teardown(function() {
-    stubById.restore();
     clock.restore();
   });
 
@@ -34,28 +30,11 @@ suite('search/providers/webresults', function() {
     });
   });
 
-  suite('click', function() {
-    test('calls browser', function() {
-      var stub = this.sinon.stub(Search, 'navigate');
-      subject.click({
-        target: {
-          dataset: {
-            url: 'http://mozilla.org',
-            icon: 'http://mozilla.org/img'
-          }
-        }
-      });
-      assert.ok(stub.calledWith('http://mozilla.org', {
-        icon: 'http://mozilla.org/img',
-        originName: undefined,
-        originUrl: 'http://mozilla.org'
-      }));
-    });
-  });
-
   suite('search', function() {
     function promise() {
-      return new Promise(function done() {});
+      return new Promise(function(resolve) {
+        resolve();
+      });
     }
 
     setup(function() {
@@ -68,24 +47,13 @@ suite('search/providers/webresults', function() {
       };
     });
 
-    test('clears results', function() {
-      var stub = this.sinon.stub(subject, 'clear');
+    test('make api call', function(done) {
+      eme.api.Apps.search = function() {
+        done();
+      };
       subject.search();
-      assert.ok(stub.calledOnce);
     });
 
-    test('make api call', function() {
-      var stub = this.sinon.stub(eme.api.Apps, 'search');
-      stub.returns(promise());
-      subject.search();
-      assert.ok(stub.calledOnce);
-    });
-
-    test('renders text in result', function() {
-      subject.render([{title: 'mozilla'}]);
-      var container = subject.container;
-      assert.notEqual(container.innerHTML.indexOf('mozilla'), -1);
-    });
   });
 
 });

@@ -51,9 +51,14 @@ function createVideoPosterImage(blob, done) {
       // First, create a full-size
       // unrotated poster image
       var postercanvas = document.createElement('canvas');
-      var postercontext = postercanvas.getContext('2d');
       postercanvas.width = videowidth;
       postercanvas.height = videoheight;
+      // Create the context after setting canvas dimensions so we don't realloc.
+      // Use the willReadFrequently hint to use a software canvas off the gpu.
+      var postercontext = postercanvas.getContext('2d', {
+        willReadFrequently: true
+      });
+
       postercontext.drawImage(offscreenVideo, 0, 0);
 
       // We're done with the
@@ -63,6 +68,15 @@ function createVideoPosterImage(blob, done) {
       offscreenVideo.load();
 
       postercanvas.toBlob(function(imageBlob) {
+        // Now that we've encoded the canvas image, we can free the
+        // canvas memory by setting its size to 0.
+        // This prevents a memory leak. See bug 1070195.
+        postercanvas.width = 0;
+
+        // It is probably unnecessary to clear these, doing it now might
+        // cause them to be garbage collected sooner than otherwise.
+        postercanvas = postercontext = null;
+
         done(null, {
           width: videowidth,
           height: videoheight,

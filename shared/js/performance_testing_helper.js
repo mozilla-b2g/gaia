@@ -2,24 +2,43 @@
 
 (function(window) {
 
+  // Placeholder for storing statically generated performance timestamps,
+  // similar to window.performance
+  window.mozPerformance = {
+    timing: {}
+  };
+
   function dispatch(name) {
     if (!window.mozPerfHasListener) {
       return;
     }
 
     var now = window.performance.now();
+    var epoch = Date.now();
 
     setTimeout(function() {
-      //console.log('PerformanceTestingHelper: dispatching event', name);
-
       var detail = {
         name: name,
-        timestamp: now
+        timestamp: now,
+        epoch: epoch
       };
-      var evt = new CustomEvent('x-moz-perf', { detail: detail });
-      window.dispatchEvent(evt);
+      var event = new CustomEvent('x-moz-perf', { detail: detail });
+
+      window.dispatchEvent(event);
     });
   }
+
+  [
+    'moz-chrome-dom-loaded',
+    'moz-chrome-interactive',
+    'moz-app-visually-complete',
+    'moz-content-interactive',
+    'moz-app-loaded'
+  ].forEach(function(eventName) {
+      window.addEventListener(eventName, function mozPerfLoadHandler() {
+        dispatch(eventName);
+      }, false);
+    });
 
   window.PerformanceTestingHelper = {
     dispatch: dispatch

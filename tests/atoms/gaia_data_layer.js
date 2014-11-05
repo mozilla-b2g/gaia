@@ -3,6 +3,10 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 'use strict';
+/* global marionetteScriptFinished, pair, device:true, mozContact, i */
+/* global waitFor, SpecialPowers, adapter:true, aContacts */
+/* exported pair, discovery, GaiaDataLayer */
+/* jshint -W083 */
 
 var GaiaDataLayer = {
 
@@ -10,14 +14,16 @@ var GaiaDataLayer = {
     var req = window.navigator.mozBluetooth.getDefaultAdapter();
     req.onsuccess = function() {
       var adapter = req.result;
+      var discovery;
       adapter.ondevicefound = function(aEvent) {
         device = aEvent.device;
+        var pair;
         if (device.name === aDeviceName) {
-          var pair = adapter.pair(device.address);
+          pair = adapter.pair(device.address);
           marionetteScriptFinished(true);
         }
       };
-      var discovery = adapter.startDiscovery();
+      discovery = adapter.startDiscovery();
     };
   },
 
@@ -28,8 +34,9 @@ var GaiaDataLayer = {
       var req = adapter.getPairedDevices();
       req.onsuccess = function() {
         var total = req.result.slice().length;
+        var up;
         for (var i = total; i > 0; i--) {
-          var up = adapter.unpair(req.result.slice()[i - 1].address);
+          up = adapter.unpair(req.result.slice()[i - 1].address);
         }
       };
     };
@@ -79,6 +86,11 @@ var GaiaDataLayer = {
   },
 
   insertContact: function(aContact) {
+    if (aContact.photo) {
+      var blob = GaiaDataLayer.base64ToBlob(aContact.photo, 'image/jpg');
+      aContact.photo = [blob];
+    }
+
     SpecialPowers.addPermission('contacts-create', true, document);
     var contact = new mozContact(aContact);
     var req = window.navigator.mozContacts.save(contact);
@@ -90,6 +102,23 @@ var GaiaDataLayer = {
     req.onerror = function() {
       console.error('error saving contact', req.error.name);
       SpecialPowers.removePermission('contacts-create', document);
+      marionetteScriptFinished(false);
+    };
+  },
+
+  insertSIMContact: function(aType, aContact) {
+
+    // Get 1st SIM
+    var iccId = window.navigator.mozIccManager.iccIds[0];
+    var icc = window.navigator.mozIccManager.getIccById(iccId);
+
+    var req = icc.updateContact(aType, aContact);
+    req.onsuccess = function() {
+      console.log('success saving contact to SIM');
+      marionetteScriptFinished(true);
+    };
+    req.onerror = function() {
+      console.error('error saving contact to SIM', req.error.name);
       marionetteScriptFinished(false);
     };
   },
@@ -110,7 +139,8 @@ var GaiaDataLayer = {
     };
   },
 
-  getSIMContacts: function(aCallback) {
+  getSIMContacts: function(aType, aCallback) {
+    var type = aType || 'adn';
     var callback = aCallback || marionetteScriptFinished;
     var icc = navigator.mozIccManager;
 
@@ -120,14 +150,14 @@ var GaiaDataLayer = {
     if (icc && icc.iccIds && icc.iccIds[0]) {
       icc = icc.getIccById(icc.iccIds[0]);
     }
-    var req = icc.readContacts('adn');
+    var req = icc.readContacts(type);
     req.onsuccess = function() {
-      console.log('success finding contacts');
+      console.log('success finding ' + type + ' contacts');
       SpecialPowers.removePermission('contacts-read', document);
       callback(req.result);
     };
     req.onerror = function() {
-      console.error('error finding contacts ' + req.error.name);
+      console.error('error finding ' + type + ' contacts ' + req.error.name);
       SpecialPowers.removePermission('contacts-read', document);
       callback([]);
     };
@@ -157,15 +187,16 @@ var GaiaDataLayer = {
   removeContact: function(aContact, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     SpecialPowers.addPermission('contacts-write', true, document);
-    console.log("removing contact with id '" + aContact.id + "'");
+    console.log('removing contact with id \'' + aContact.id + '\'');
     var req = window.navigator.mozContacts.remove(aContact);
     req.onsuccess = function() {
-      console.log("success removing contact with id '" + aContact.id + "'");
+      console.log('success removing contact with id \'' + aContact.id + '\'');
       SpecialPowers.removePermission('contacts-write', document);
       callback(true);
     };
     req.onerror = function() {
-      console.error("error removing contact with id '" + aContacts[i].id + "'");
+      console.error('error removing contact with id \'' +
+                      aContacts[i].id + '\'');
       SpecialPowers.removePermission('contacts-write', document);
       callback(false);
     };
@@ -174,6 +205,7 @@ var GaiaDataLayer = {
   getSetting: function(aName, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     SpecialPowers.addPermission('settings-read', true, document);
+    SpecialPowers.addPermission('settings-api-read', true, document);
     var req = window.navigator.mozSettings.createLock().get(aName);
     req.onsuccess = function() {
       console.log('setting retrieved');
@@ -186,19 +218,21 @@ var GaiaDataLayer = {
   },
 
   setSetting: function(aName, aValue, aReturnOnSuccess) {
-    SpecialPowers.addPermission('settings-readwrite', true, document);
+    SpecialPowers.addPermission('settings-write', true, document);
+    SpecialPowers.addPermission('settings-api-write', true, document);
     var returnOnSuccess = aReturnOnSuccess || aReturnOnSuccess === undefined;
     var setting = {};
     setting[aName] = aValue;
     console.log('setting ' + aName + ' to ' + aValue);
-    var req = window.navigator.mozSettings.createLock().set(setting);
-    req.onsuccess = function() {
+    var lock = window.navigator.mozSettings.createLock();
+    var req = lock.set(setting);
+    lock.onsettingstransactionsuccess = function() {
       console.log('setting changed');
       if (returnOnSuccess) {
         marionetteScriptFinished(true);
       }
     };
-    req.onerror = function() {
+    lock.onsettingstransactionfailure = function() {
       console.log('error changing setting ' + req.error.name);
       marionetteScriptFinished(false);
     };
@@ -209,8 +243,8 @@ var GaiaDataLayer = {
     var manager = window.navigator.mozWifiManager;
 
     if (this.isWiFiConnected(aNetwork)) {
-      console.log("already connected to network with ssid '" +
-                  aNetwork.ssid + "'");
+      console.log('already connected to network with ssid \'' +
+                  aNetwork.ssid + '\'');
       callback(true);
     }
     else {
@@ -222,11 +256,11 @@ var GaiaDataLayer = {
       }
 
       req.onsuccess = function() {
-        console.log("waiting for connection status 'connected'");
+        console.log('waiting for connection status \'connected\'');
         waitFor(
           function() {
-            console.log("success connecting to network with ssid '" +
-                        aNetwork.ssid + "'");
+            console.log('success connecting to network with ssid \'' +
+                        aNetwork.ssid + '\'');
             callback(true);
           },
           function() {
@@ -322,11 +356,11 @@ var GaiaDataLayer = {
     var req = manager.forget(aNetwork);
 
     req.onsuccess = function() {
-      console.log("success forgetting network with ssid '" +
-                  aNetwork.ssid + "'");
+      console.log('success forgetting network with ssid \'' +
+                  aNetwork.ssid + '\'');
       if (waitForStatus !== false) {
-        console.log("waiting for connection status '" +
-                    waitForStatus + "'");
+        console.log('waiting for connection status \'' +
+                    waitForStatus + '\'');
         waitFor(
           function() { callback(true); },
           function() {
@@ -341,16 +375,20 @@ var GaiaDataLayer = {
     };
 
     req.onerror = function() {
-      console.log("error forgetting network with ssid '" + aNetwork.ssid + "' " +
-                  req.error.name);
+      console.log('error forgetting network with ssid \'' +
+                    aNetwork.ssid + '\' ' + req.error.name);
       callback(false);
     };
   },
 
   isWiFiConnected: function(aNetwork) {
-    var manager = window.navigator.mozWifiManager;
-    return manager.connection.status === 'connected' &&
-           manager.connection.network.ssid === aNetwork.ssid;
+    let manager = window.navigator.mozWifiManager;
+    let connected = manager.connection.status === 'connected';
+    if (connected && aNetwork) {
+      return manager.connection.network.ssid === aNetwork.ssid;
+    } else {
+      return connected;
+    }
   },
 
   getMozTelephonyState: function() {
@@ -433,9 +471,8 @@ var GaiaDataLayer = {
     req.onsuccess = function() {
       var file = req.result;
       if (file) {
-        if (aType === 'music' &&
-            file.name.slice(0, 13) === '/sdcard/DCIM/' &&
-            file.name.slice(-4) === '.3gp') {
+        if (aType === 'music' && file.name.slice(-4) === '.3gp') {
+          // 3gp is both music and video; we skip the music definition
           req.continue();
         }
         else {
@@ -494,14 +531,11 @@ var GaiaDataLayer = {
     SpecialPowers.setBoolPref('dom.sms.enabled', true);
     let sms = window.navigator.mozMobileMessage;
 
-    let msgList = new Array();
-    let filter = new MozSmsFilter();
-    let request = sms.getMessages(filter, false);
+    let msgList = [];
+    let cursor = sms.getMessages(null, false);
 
-    request.onsuccess = function(event) {
-      var cursor = event.target;
-
-      if(!cursor.done) {
+    cursor.onsuccess = function(event) {
+      if(cursor.result) {
         // Add the sms to the list
         msgList.push(cursor.result);
         // Now get the next in the list
@@ -513,7 +547,7 @@ var GaiaDataLayer = {
       }
     };
 
-    request.onerror = function(event) {
+    cursor.onerror = function(event) {
       console.log('sms.getMessages error: ' + event.target.error.name);
       disableSms();
       callback(false);
@@ -533,15 +567,13 @@ var GaiaDataLayer = {
     SpecialPowers.setBoolPref('dom.sms.enabled', true);
     let sms = window.navigator.mozMobileMessage;
 
-    let msgList = new Array();
-    let filter = new MozSmsFilter;
-    let request = sms.getMessages(filter, false);
+    let msgList = [];
+    let cursor = sms.getMessages(null, false);
 
-    request.onsuccess = function(event) {
-      var cursor = event.target.result;
+    cursor.onsuccess = function(event) {
       // Check if message was found
-      if (cursor && cursor.message) {
-        msgList.push(cursor.message.id);
+      if (cursor.result) {
+        msgList.push(cursor.result.id);
         // Now get next message in the list
         cursor.continue();
       } else {
@@ -557,7 +589,7 @@ var GaiaDataLayer = {
       }
     };
 
-    request.onerror = function(event) {
+    cursor.onerror = function(event) {
       console.log('sms.getMessages error: ' + event.target.error.name);
       disableSms();
       callback(false);
@@ -602,7 +634,7 @@ var GaiaDataLayer = {
 
   bluetoothSetDeviceName: function(device_name, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    console.log("Setting device's bluetooth name to '%s'" % device_name);
+    console.log('Setting device\'s bluetooth name to \'%s\'' % device_name);
 
     var req = window.navigator.mozBluetooth.getDefaultAdapter();
     req.onsuccess = function() {
@@ -626,7 +658,7 @@ var GaiaDataLayer = {
 
   bluetoothSetDeviceDiscoverableMode: function(discoverable, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    if (discoverable == true) {
+    if (discoverable === true) {
       console.log('Making the device discoverable via bluetooth');
     } else {
       console.log('Turning device bluetooth discoverable mode OFF');
@@ -655,9 +687,20 @@ var GaiaDataLayer = {
   deleteAllAlarms: function() {
     window.wrappedJSObject.AlarmManager.getAlarmList(function(aList) {
       aList.forEach(function(aAlarm) {
-         console.log("Deleting alarm with id  '" + aAlarm.id + "'");
+         console.log('Deleting alarm with id  \'' + aAlarm.id + '\'');
          window.wrappedJSObject.AlarmManager.delete(aAlarm);
       });
     });
+  },
+
+  base64ToBlob: function(base64, mimeType) {
+      var binary = atob(base64);
+      var len = binary.length;
+      var buffer = new ArrayBuffer(len);
+      var view = new Uint8Array(buffer);
+      for (var i = 0; i < len; i++) {
+        view[i] = binary.charCodeAt(i);
+      }
+      return new Blob([view], {type: mimeType});
   }
 };

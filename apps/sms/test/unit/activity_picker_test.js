@@ -1,15 +1,19 @@
-/*global MocksHelper, MockL10n, ActivityPicker, MozActivity */
+/*global MocksHelper, MockL10n, ActivityPicker, MozActivity, ActivityHandler */
 
 'use strict';
+
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('sms/js/activity_picker.js');
 requireApp('sms/js/utils.js');
 
-requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_activity_handler.js');
+
 
 var mocksHelperAP = new MocksHelper([
+  'ActivityHandler',
   'MozActivity',
   'Utils'
 ]).init();
@@ -286,52 +290,12 @@ suite('ActivityPicker', function() {
   });
 
   suite('sendMessage', function() {
-
     test('sendMessage(phone) ', function() {
+      this.sinon.stub(ActivityHandler, 'toView');
       ActivityPicker.sendMessage('999');
 
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'new',
-        data: {
-          type: 'websms/sms',
-          number: '999'
-        }
-      });
-    });
-
-    test('sendMessage(phone, success) ', function() {
-      ActivityPicker.sendMessage('999', onsuccess);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'new',
-        data: {
-          type: 'websms/sms',
-          number: '999'
-        }
-      });
-    });
-
-    test('sendMessage(phone, success, error) ', function() {
-      ActivityPicker.sendMessage('999', onsuccess, onerror);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.equal(
-        MozActivity.instances[0].onerror, onerror
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'new',
-        data: {
-          type: 'websms/sms',
-          number: '999'
-        }
+      sinon.assert.calledWith(ActivityHandler.toView, {
+        number: '999'
       });
     });
   });

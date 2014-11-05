@@ -5,7 +5,6 @@ var Panel = require('panel');
 var Picker = require('picker/picker');
 var View = require('view');
 
-var mozL10n = require('l10n');
 var Utils = require('utils');
 var Timer = require('timer');
 var Sounds = require('sounds');
@@ -83,8 +82,6 @@ Timer.Panel = function(element) {
     element.addEventListener('click', this.onclick.bind(this), false);
   }, this);
 
-  mozL10n.translate(this.element);
-
   var sound = this.nodes.sound;
 
   sound.addEventListener('blur', this.pauseAlarm.bind(this), false);
@@ -100,6 +97,25 @@ Timer.Panel = function(element) {
   element.addEventListener('panel-visibilitychange',
                            this.onvisibilitychange.bind(this));
 
+  // The start button is disable by default (picker at 00:00 by default)
+  this.nodes.create.setAttribute('disabled', 'true');
+  
+  var create = this.nodes.create;
+  var picker = this.picker;
+
+  var enableButton = function() {
+    if(timeFromPicker(picker.value) === 0) {
+      create.setAttribute('disabled', 'true');
+    } else {
+      create.removeAttribute('disabled');
+    }
+  };
+
+  // The start button is enable if the value of the timer is not 00:00
+  picker.nodes.minutes.addEventListener('transitionend', enableButton);
+  picker.nodes.hours.addEventListener('transitionend', enableButton);
+
+  
   Timer.singleton(function(err, timer) {
     this.timer = timer;
     timer.onend = this.dialog.bind(this);
@@ -159,7 +175,7 @@ Timer.Panel.prototype.onvisibilitychange = function(evt) {
  */
 Timer.Panel.prototype.dialog = function(opts = { isVisible: true }) {
   if (opts.isVisible) {
-    Utils.cancelAnimationAfter(this.tickTimeout);
+    window.cancelAnimationFrame(this.tickTimeout);
   }
   View.instance(this.nodes.dialog).visible = opts.isVisible;
   return this;
@@ -170,20 +186,19 @@ Timer.Panel.prototype.tick = function() {
     return;
   }
   this.update(this.timer.remaining);
-  var delay = (this.timer.startTime + this.timer.duration - Date.now()) % 1000;
-  this.tickTimeout = Utils.requestAnimationAfter(this.tick.bind(this), delay);
+  this.tickTimeout = window.requestAnimationFrame(this.tick.bind(this));
 };
 
 /**
- * update Update the Timer UI's time display
- * @param  {Number} remaining Seconds remaining in timer countdown.
- *                            Defaults to 0.
- *
- * @return {Object} Timer.Panel.
+ * Given milliseconds, render the time as a rounded-to-seconds
+ * countdown.
  */
 Timer.Panel.prototype.update = function(remaining = 0) {
-  this.nodes.time.textContent = Utils.format.hms(
-    (remaining - (remaining % 1000)) / 1000, 'hh:mm:ss');
+  var newText = Utils.format.hms(Math.round(remaining / 1000), 'hh:mm:ss');
+  // Use localized caching here to prevent unnecessary DOM repaints.
+  if (this._cachedTimerText !== newText) {
+    this.nodes.time.textContent = this._cachedTimerText = newText;
+  }
   return this;
 };
 
@@ -253,7 +268,7 @@ Timer.Panel.prototype.onclick = function(event) {
 
       // Show new timer dialog
       panel.dialog();
-      Utils.cancelAnimationAfter(this.tickTimeout);
+      window.cancelAnimationFrame(this.tickTimeout);
     }
 
     if (meta.action === 'start') {
@@ -263,7 +278,7 @@ Timer.Panel.prototype.onclick = function(event) {
 
     if (meta.action === 'pause') {
       panel.toggle(nodes.start, nodes.pause);
-      Utils.cancelAnimationAfter(this.tickTimeout);
+      window.cancelAnimationFrame(this.tickTimeout);
     }
   } else {
 

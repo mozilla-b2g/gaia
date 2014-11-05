@@ -9,16 +9,18 @@ from gaiatest.apps.emergency_call.app import EmergencyCall
 
 class PasscodePad(Base):
 
-    _lockscreen_panel_locator = (By.ID, 'lockscreen-panel-passcode')
+    _lockscreen_passcode_code_locator = (By.ID, 'lockscreen-passcode-code')
+    _lockscreen_passcode_pad_locator = (By.ID, 'lockscreen-passcode-pad')
     _numeric_button_locator = (By.CSS_SELECTOR, '#lockscreen-passcode-pad a[data-key="%s"]')
     _emergency_button_locator = (By.CSS_SELECTOR, '#lockscreen-passcode-pad a[data-key="e"]')
 
     def __init__(self, marionette):
-        self.marionette = marionette
-        lockscreen_panel = self.marionette.find_element(*self._lockscreen_panel_locator)
+        Base.__init__(self, marionette)
+        lockscreen_passcode_pad = self.marionette.find_element(*self._lockscreen_passcode_pad_locator)
         emergency_button = self.marionette.find_element(*self._emergency_button_locator)
-        self.wait_for_condition(lambda m: lockscreen_panel.size['height'] ==
-              (emergency_button.size['height'] + emergency_button.location['y']))
+        # wait button * 4 rows === the pad's height
+        self.wait_for_condition(lambda m: lockscreen_passcode_pad.size['height'] ==
+              (4 * emergency_button.size['height']))
 
     def type_passcode(self, passcode):
         for digit in passcode:

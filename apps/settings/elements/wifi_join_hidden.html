@@ -1,24 +1,22 @@
 <element name="wifi-joinHidden" extends="section">
   <template>
 
-    <header>
-      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
-      <menu type="toolbar">
-        <button type="submit"><span data-l10n-id="ok">OK</span></button>
-      </menu>
+    <gaia-header>
+      <button type="reset" data-icon="back"><span data-l10n-id="back">Back</span></button>
       <h1 data-l10n-id="authentication-header"> Authentication </h1>
-    </header>
+      <button type="submit"><span data-l10n-id="ok">OK</span></button>
+    </gaia-header>
 
     <div>
       <ul>
         <li>
           <p data-l10n-id="ssid-name">SSID Network Name</p>
-          <input type="text" data-ignore name="ssid" />
+          <input type="text" data-ignore name="ssid" dir="auto" />
         </li>
         <li>
           <p data-l10n-id="security">Security</p>
           <span class="button icon icon-dialog">
-            <select>
+            <select name="security">
               <option data-l10n-id="securityNone">none</option>
               <option>WEP</option>
               <option selected>WPA-PSK</option>
@@ -29,10 +27,9 @@
         <li class="eap">
           <p data-l10n-id="eap">EAP method</p>
           <span class="button icon icon-dialog" data-eapMethod>
-            <select>
+            <select name="eap">
               <option value="SIM">SIM</option>
               <option value="PEAP">PEAP</option>
-              <option value="TLS">TLS</option>
               <option value="TTLS">TTLS</option>
             </select>
           </span>
@@ -51,15 +48,15 @@
         </li>
         <li class="identity">
           <p data-l10n-id="wifi-join-username">Username</p>
-          <input type="text" data-ignore name="identity" />
+          <input type="text" data-ignore name="identity" dir="auto" />
         </li>
         <li class="password">
+          <p data-l10n-id="wifi-join-password">Password</p>
+          <input type="password" data-ignore name="password" maxlength="63" />
           <label class="pack-checkbox">
             <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden">
             <span data-l10n-id="showPassword">show password</span>
           </label>
-          <p data-l10n-id="wifi-join-password">Password</p>
-          <input type="password" data-ignore name="password" maxlength="63" />
         </li>
         <li class="server-certificate">
           <p data-l10n-id="server-certificate">Server certificate</p>
@@ -76,6 +73,8 @@
         </li>
       </ul>
     </div>
+
+    <panel data-path="panels/wifi_join_hidden/panel"></panel>
 
   </template>
 </element>

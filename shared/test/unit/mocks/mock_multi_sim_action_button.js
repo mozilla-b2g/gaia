@@ -7,13 +7,15 @@ var MockMultiSimActionButtonSingleton = {
   performAction: function() {
 
   },
-  _phoneNumberGetter: null
+  _phoneNumberGetter: null,
+  _click: function() {}
 };
 
 var MockMultiSimActionButton =
   function(button, callCallback, settings, phoneNumberGetter) {
   MockMultiSimActionButtonSingleton.mIsInitialized = true;
   MockMultiSimActionButtonSingleton._phoneNumberGetter = phoneNumberGetter;
+  button.addEventListener('click', MockMultiSimActionButtonSingleton._click);
 
   return MockMultiSimActionButtonSingleton;
 };

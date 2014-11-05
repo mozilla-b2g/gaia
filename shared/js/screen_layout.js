@@ -66,7 +66,7 @@ var ScreenLayout = {
   getCurrentLayout: function sl_getCurrentLayout(type) {
     if (type === undefined) {
       for (var name in this.defaultQueries) {
-        if (this.queries[name].matches) {
+        if (this.queries[name] && this.queries[name].matches) {
           return name;
         }
       }

@@ -2,60 +2,94 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import Wait
 from marionette.by import By
-from marionette.errors import StaleElementException
-from marionette.errors import NoSuchElementException
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
+import urllib
 
 
 class SearchPanel(Base):
 
-    _body = (By.CSS_SELECTOR, 'body')
-    _search_title_query_locator = (By.CSS_SELECTOR, '#search-title > .query')
-    _search_title_first_word_locator = (By.CSS_SELECTOR, '#search-title [data-l10n-id="evme-helper-title-prefix"]')
-    _search_results_from_everything_me_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.cloud li[data-name]')
-    _search_results_installed_app_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.installed li[data-name]')
-    _app_icon_locator = (By.CSS_SELECTOR, 'ul.cloud li[data-name]')
+    _search_results_app_frame_locator = (By.CSS_SELECTOR, '.searchWindow.active iframe')
+    _search_results_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
+    _search_suggestion_ok_button_locator = (By.ID, 'suggestions-notice-confirm')
+    _rocketbar_input_locator = (By.ID, 'rocketbar-input')
+    _search_results_offline_locator = (By.ID, 'offline-message')
+    _search_results_offline_settings_locator = (By.ID, 'settings-connectivity')
+
+    def _switch_to_search_results_frame(self):
+        self.marionette.switch_to_frame()
+        self.marionette.switch_to_frame(self.marionette.find_element(*self._search_results_app_frame_locator))
+
+    @property
+    def offline_search_message(self):
+        return self.marionette.find_element(*self._search_results_offline_locator).text
+
+    @property
+    def is_offline_message_visible(self):
+        return self.is_element_displayed(*self._search_results_offline_locator)
+
+    def tap_offline_settings_button(self):
+        self.marionette.find_element(*self._search_results_offline_settings_locator).tap()
+        from gaiatest.apps.settings.app import Settings
+        settings = Settings(self.marionette)
+        settings.switch_to_settings_app()
+        return settings
 
     def type_into_search_box(self, search_term):
         self.keyboard.send(search_term)
+        # The search results frame is not findable with AppWindowManager
+        self._switch_to_search_results_frame()
+
+    def go_to_url(self, url):
+        self.keyboard.send(url)
+
+        #TODO Remove hack once Bug 1062309 is fixed
+        self.marionette.switch_to_frame()
+        self.wait_for_condition(lambda m: not self.keyboard.is_keyboard_displayed)
+
+        self.marionette.find_element(*self._rocketbar_input_locator).tap()
+
+        self.wait_for_condition(lambda m: self.keyboard.is_keyboard_displayed)
         self.keyboard.tap_enter()
-        Wait(self.marionette, ignored_exceptions=StaleElementException).until(
-            lambda m: m.find_element(*self._search_title_query_locator).text.lower() == search_term.lower())
-        self.wait_for_element_displayed(*self._search_title_first_word_locator)
+        self.wait_for_condition(lambda m: urllib.quote(url, safe=':/?=') in self.apps.displayed_app.name)
 
-    def wait_for_everything_me_loaded(self):
-        self.wait_for_condition(
-            lambda m: 'evme-loading' not in m.find_element(
-                *self._body).get_attribute('class'))
+        from gaiatest.apps.search.regions.browser import Browser
+        return Browser(self.marionette)
 
-    def wait_for_everything_me_results_to_load(self):
-        self.wait_for_element_displayed(*self._search_results_from_everything_me_locator)
+    def wait_for_everything_me_results_to_load(self, minimum_expected_results=1):
+        self.wait_for_condition(lambda m: len(m.find_elements(*self._search_results_locator))
+                                          > minimum_expected_results)
 
-    def wait_for_app_icons_displayed(self):
-        self.wait_for_element_displayed(*self._app_icon_locator)
+    def confirm_suggestion_notice(self):
+        self.wait_for_element_displayed(*self._search_suggestion_ok_button_locator)
+        self.marionette.find_element(*self._search_suggestion_ok_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._search_suggestion_ok_button_locator)
 
-    def wait_for_installed_apps_displayed(self):
-        self.wait_for_element_displayed(*self._search_results_installed_app_locator)
+    def _is_result_a_webapp(self, result_element):
+        # An app result is to an installable (via marketplace) webapp
+        return '.webapp' in result_element.get_attribute('data-identifier')
 
     @property
-    def results(self):
+    def app_results(self):
+        # An app result is to an installable (via marketplace) webapp
         return [self.Result(marionette=self.marionette, element=result)
-                for result in self.marionette.find_elements(*self._search_results_from_everything_me_locator)]
+                for result in self.marionette.find_elements(*self._search_results_locator)
+                    if self._is_result_a_webapp(result)]
 
     @property
-    def installed_apps(self):
-        return [self.InstalledApp(self.marionette, root_el) for root_el in
-                self.marionette.find_elements(*self._search_results_installed_app_locator)]
+    def link_results(self):
+        # A link result just opens a page in a frame
+        return [self.Result(marionette=self.marionette, element=result)
+                for result in self.marionette.find_elements(*self._search_results_locator)
+                    if not self._is_result_a_webapp(result)]
 
     class Result(PageRegion):
 
         @property
         def name(self):
-            return self.root_element.get_attribute('data-name')
+            return self.root_element.text
 
         def tap(self):
             app_name = self.name
@@ -67,16 +101,3 @@ class SearchPanel(Base):
 
             # Wait for title to load (we cannot be more specific because the aut may change)
             self.wait_for_condition(lambda m: bool(m.title))
-
-    class InstalledApp(PageRegion):
-
-        @property
-        def name(self):
-            return self.root_element.get_attribute('data-name')
-
-        def tap(self):
-            expected_name = self.name
-            self.root_element.tap()
-            Wait(self.marionette, ignored_exceptions=StaleElementException).until(
-                lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
-            self.apps.switch_to_displayed_app()

@@ -7,10 +7,10 @@
    *
    * There're some cases we need to reset the orientation of the top window:
    * * LockScreen is unlocked.
-   * * AttentionScreen is hidden.
-   * * AttentionScreen is closed.
+   * * An attention window is opened.
+   * * All attention window is closed.
    * * TrustedUI is closed.
-   * * SleepMenu is hidden.
+   * * sleepMenu is hidden.
    *
    * Any of them occurs would trigger OrientationManager to dispatch
    * <code>reset-orientation</code> event and AppWindowManager would reset the
@@ -32,28 +32,32 @@
           }.bind(this));
       }
 
-      window.addEventListener('will-unlock', this);
-      window.addEventListener('attentionscreenhide', this);
-      window.addEventListener('status-active', this);
+      window.addEventListener('lockscreen-appclosing', this);
+      window.addEventListener('attentionclosed', this);
       window.addEventListener('sleepmenuhide', this);
       window.addEventListener('trusteduiclose', this);
+      window.addEventListener('shrinking-stop', this);
+      window.addEventListener('searchclosing', this);
     },
 
     handleEvent: function om_handleEvent(evt) {
       switch (evt.type) {
-        case 'attentionscreenhide':
-        case 'status-active':
+        case 'attentionclosed':
         case 'sleepmenuhide':
         case 'trusteduiclose':
-        case 'will-unlock':
+        case 'lockscreen-appclosing':
+        case 'searchclosing':
           // We don't need to reset orientation if lockscreen is locked.
-          if (window.lockScreen && window.lockScreen.locked) {
+          if (System.locked) {
             return;
           }
         /**
          * Fired when the orientation needs to be locked/unlocked again.
          * @event module:OrientationManager#reset-orientation
          */
+          this.publish('reset-orientation');
+          break;
+        case 'shrinking-stop':
           this.publish('reset-orientation');
           break;
       }

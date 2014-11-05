@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper, Notification, Threads*/
+/* globals ContactPhotoHelper, Notification, Promise, Threads, Settings */
 
 (function(exports) {
   'use strict';
@@ -9,13 +9,7 @@
   var rescape = /[.?*+^$[\]\\(){}|-]/g;
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
   var rnondialablechars = /[^,#+\*\d]/g;
-  var downsamplingRefSize = {
-    // Estimate average Thumbnail size:
-    // 120 X 60 (max pixel) X 3 (full color) / 20 (average jpeg compress ratio)
-    // = 1080 (byte)
-    'thumbnail' : 1080
-    // TODO: For mms resizing
-  };
+  var rmail = /[\w-]+@[\w\-]/;
 
   var Utils = {
     date: {
@@ -37,7 +31,10 @@
     getFormattedHour: function ut_getFormattedHour(time) {
       this.date.shared.setTime(+time);
       return this.date.format.localeFormat(
-        this.date.shared, navigator.mozL10n.get('shortTimeFormat')
+        this.date.shared,
+        navigator.mozL10n.get(
+          navigator.mozHour12 ? 'shortTimeFormat12' : 'shortTimeFormat24'
+        )
       );
     },
     getDayDate: function re_getDayDate(time) {
@@ -68,34 +65,20 @@
         dayDiff < 6 && this.date.format.localeFormat(this.date.shared, '%A') ||
         this.date.format.localeFormat(this.date.shared, '%x');
     },
-    getFontSize: function ut_getFontSize() {
-      if (!this.rootFontSize) {
-        var htmlCss = window.getComputedStyle(document.documentElement, null);
-        this.rootFontSize = parseInt(htmlCss.getPropertyValue('font-size'), 10);
-      }
-      return this.rootFontSize;
-    },
 
     // We will apply createObjectURL for details.photoURL if contact image exist
     // Please remember to revoke the photoURL after utilizing it.
     getContactDetails:
       function ut_getContactDetails(number, contacts, include) {
-
       var details = {};
 
       include = include || {};
 
       function updateDetails(contact) {
-        var name, phone, carrier, i, length, subscriber, org;
+        var name, phone, i, length, subscriber, org;
         name = contact.name[0];
         org = contact.org && contact.org[0];
         length = contact.tel ? contact.tel.length : 0;
-        phone = length && contact.tel[0].value ? contact.tel[0] : {
-          value: '',
-          type: '',
-          carrier: ''
-        };
-        carrier = phone.carrier;
         subscriber = number.length > 7 ? number.substr(-8) : number;
 
         // Check which of the contacts phone number are we using
@@ -103,7 +86,6 @@
           // Based on E.164 (http://en.wikipedia.org/wiki/E.164)
           if (contact.tel[i].value.indexOf(subscriber) !== -1) {
             phone = contact.tel[i];
-            carrier = phone.carrier;
             break;
           }
         }
@@ -119,31 +101,10 @@
           }
         }
 
-        // Carrier logic
-        if (name) {
-          // Check if other phones with same type and carrier
-          // Convert the tel-type to string before tel-type comparison.
-          // TODO : We might need to handle multiple tel type in the future.
-          for (i = 0; i < length; i++) {
-            var telType = contact.tel[i].type && contact.tel[i].type.toString();
-            var phoneType = phone.type && phone.type.toString();
-            if (contact.tel[i].value !== phone.value &&
-                telType === phoneType &&
-                contact.tel[i].carrier === phone.carrier) {
-              carrier = phone.value;
-            }
-          }
-        }
-
         details.name = name;
-        details.carrier = carrier || phone.value || '';
         // We pick the first discovered org name as the phone number's detail
         // org information.
         details.org = details.org || org;
-
-        if (phone.type) {
-          details.carrier = phone.type + ' | ' + details.carrier;
-        }
       }
 
       // In no contact or contact with empty information cases, we will leave
@@ -171,37 +132,35 @@
       return details;
     },
 
-    getCarrierTag: function ut_getCarrierTag(input, tels, details) {
-      /**
-        1. If a phone number has carrier associated with it
-            the output will be:
+    extend: function ut_extend(target, source) {
+      for (var key in source) {
+        if (source.hasOwnProperty(key)) {
+          target[key] = source[key];
+        }
+      }
+    },
 
-          type | carrier
-
-        2. If there is no carrier associated with the phone number
-            the output will be:
-
-          type | phonenumber
-
-        3. If for some reason a single contact has two phone numbers with
-            the same type and the same carrier the output will be:
-
-          type | phonenumber
-
-        4. If for some reason a single contact has no name and no carrier,
-            the output will be:
-
-          type
-
-        5. If for some reason a single contact has no name, no type
-            and no carrier, the output will be nothing.
-      */
+    /**
+     * Based on input number tries to extract more phone details like phone
+     * type, full phone number and phone carrier.
+     * 1. If a phone number has carrier associated with it then both "type" and
+     * "carrier" will be returned;
+     *
+     * 2. If there is no carrier associated with the phone number then "type"
+     *  and "phone number" will be returned;
+     *
+     * 3. If for some reason a single contact has two phone numbers with the
+     * same type and the same carrier then "type" and "phone number" will be
+     * returned;
+     *
+     * note: The argument "tels" can actually contain "emails" too.
+     *
+     */
+    getPhoneDetails: function ut_getPhoneDetails(input, tels) {
       var length = tels.length;
-      var hasDetails = typeof details !== 'undefined';
       var hasUniqueCarriers = true;
       var hasUniqueTypes = true;
-      var name = hasDetails ? details.name : '';
-      var found, tel, type, carrier, value, ending;
+      var found, tel, type, carrier;
 
       for (var i = 0; i < length; i++) {
         tel = tels[i];
@@ -223,19 +182,14 @@
       }
 
       if (!found) {
-        return '';
+        return null;
       }
 
-      type = (found.type && found.type[0]) || '';
-      carrier = (hasUniqueCarriers || hasUniqueTypes) ? found.carrier : '';
-      value = carrier || found.value;
-      ending = ' | ' + (carrier || value);
-
-      if (hasDetails && !name && !carrier) {
-        ending = '';
-      }
-
-      return type + ending;
+      return {
+        type: (found.type && found.type[0]) || null,
+        carrier: hasUniqueCarriers || hasUniqueTypes ? found.carrier : null,
+        number: found.value
+      };
     },
 
     // Based on "non-dialables" in https://github.com/andreasgal/PhoneNumber.js
@@ -260,6 +214,12 @@
       // String comparison starts here
       if (typeof a !== 'string' || typeof b !== 'string') {
         return false;
+      }
+
+      if (Settings.supportEmailRecipient &&
+          Utils.isEmailAddress(a) &&
+          Utils.isEmailAddress(b)) {
+        return a === b;
       }
 
       if (service && service.normalize) {
@@ -322,8 +282,9 @@
         });
         return;
       }
+
       var ratio = Math.sqrt(blob.size / limit);
-      Utils.resizeImageBlobWithRatio({
+      Utils._resizeImageBlobWithRatio({
         blob: blob,
         limit: limit,
         ratio: ratio,
@@ -334,29 +295,45 @@
     //  resizeImageBlobWithRatio have additional ratio to force image
     //  resize to smaller size to avoid edge case about quality adjustment
     //  not working.
-    resizeImageBlobWithRatio: function ut_resizeImageBlobWithRatio(obj) {
+    //  For JPG images, a ratio between 2 and 8 will be set to a close
+    //  power of 2. A ratio between 1 and 2 will be set to 2. A ratio bigger
+    //  than 8 will be rounded to the closest bigger integer.
+    //
+    _resizeImageBlobWithRatio: function ut_resizeImageBlobWithRatio(obj) {
       var blob = obj.blob;
       var callback = obj.callback;
       var limit = obj.limit;
-      var ratio = obj.ratio;
-      var qualities = [0.75, 0.5, 0.25];
+      var ratio = Math.ceil(obj.ratio);
+      var qualities = [0.65, 0.5, 0.25];
 
-      if (blob.size < limit) {
+      var sampleSize = 1;
+      var sampleSizeHash = '';
+
+      if (blob.size < limit || ratio <= 1) {
         setTimeout(function blobCb() {
           callback(blob);
         });
         return;
       }
 
+      if (blob.type === 'image/jpeg') {
+        if (ratio >= 8) {
+          sampleSize = 8;
+        } else {
+          sampleSize = ratio = Utils.getClosestSampleSize(ratio);
+        }
+
+        sampleSizeHash = '#-moz-samplesize=' + sampleSize;
+      }
+
       var img = document.createElement('img');
       var url = window.URL.createObjectURL(blob);
-      img.src = url;
+      img.src = url + sampleSizeHash;
+
       img.onload = function onBlobLoaded() {
         window.URL.revokeObjectURL(url);
-        var imageWidth = img.width;
-        var imageHeight = img.height;
-        var targetWidth = imageWidth / ratio;
-        var targetHeight = imageHeight / ratio;
+        var targetWidth = img.width * sampleSize / ratio;
+        var targetHeight = img.height * sampleSize / ratio;
 
         var canvas = document.createElement('canvas');
         canvas.width = targetWidth;
@@ -364,6 +341,7 @@
         var context = canvas.getContext('2d', { willReadFrequently: true });
 
         context.drawImage(img, 0, 0, targetWidth, targetHeight);
+        img.src = '';
         // Bug 889765: Since we couldn't know the quality of the original jpg
         // The 'resized' image might have a bigger size because it was saved
         // with quality or dpi. Here we will adjust the jpg quality(or resize
@@ -371,12 +349,22 @@
         // sure the size won't exceed the limitation.
         var level = 0;
 
+        function cleanup() {
+          canvas.width = canvas.height = 0;
+          canvas = null;
+        }
+
         function ensureSizeLimit(resizedBlob) {
           if (resizedBlob.size < limit) {
-            callback(resizedBlob);
+            cleanup();
+
+            // using a setTimeout so that used objects can be garbage collected
+            // right now
+            setTimeout(callback.bind(null, resizedBlob));
           } else {
+            resizedBlob = null; // we don't need it anymore
             // Reduce image quality for match limitation. Here we set quality
-            // to 0.75, 0.5 and 0.25 for image blob resizing.
+            // to 0.65, 0.5 and 0.25 for image blob resizing.
             // (Default image quality is 0.92 for jpeg)
             if (level < qualities.length) {
               canvas.toBlob(ensureSizeLimit, 'image/jpeg',
@@ -384,35 +372,42 @@
             } else {
               // We will resize the blob if image quality = 0.25 still exceed
               // size limitation.
-              Utils.resizeImageBlobWithRatio({
-                blob: blob,
-                limit: limit,
-                ratio: ratio * 2,
-                callback: callback
-              });
+              cleanup();
+
+              // using a setTimeout so that used objects can be garbage
+              // collected right now
+              setTimeout(
+                Utils._resizeImageBlobWithRatio.bind(Utils, {
+                  blob: blob,
+                  limit: limit,
+                  ratio: ratio * 2,
+                  callback: callback
+                })
+              );
             }
           }
         }
+
         canvas.toBlob(ensureSizeLimit, blob.type);
       };
     },
-    // Return the url path with #-moz-samplesize postfix and downsampled image
-    // could be loaded directly from backend graphics lib.
-    getDownsamplingSrcUrl: function ut_getDownsamplingSrcUrl(options) {
-      var newUrl = options.url;
-      var size = options.size;
-      var ref = downsamplingRefSize[options.type];
 
-      if (size && ref) {
-        // Estimate average Thumbnail size
-        var ratio = Math.min(Math.sqrt(size / ref), 16);
-
-        if (ratio >= 2) {
-          newUrl += '#-moz-samplesize=' + Math.floor(ratio);
-        }
+    getClosestSampleSize: function ut_getClosestSampleSize(ratio) {
+      if (ratio >= 8) {
+        return 8;
       }
-      return newUrl;
+
+      if (ratio >= 4) {
+        return 4;
+      }
+
+      if (ratio >= 2) {
+        return 2;
+      }
+
+      return 1;
     },
+
     camelCase: function ut_camelCase(str) {
       return str.replace(rdashes, function replacer(str, p1) {
         return p1.toUpperCase();
@@ -435,6 +430,7 @@
         case 'video':
         case 'audio':
         case 'text':
+        case 'application':
           return mainPart;
         default:
           return null;
@@ -513,20 +509,18 @@
     */
     getDisplayObject: function(theTitle, tel) {
       var number = tel.value;
-      var title = theTitle || number;
       var type = tel.type && tel.type.length ? tel.type[0] : '';
-      var carrier = tel.carrier ? (tel.carrier + ', ') : '';
-      var separator = type || carrier ? ' | ' : '';
       var data = {
-        name: title,
+        name: theTitle || number,
         number: number,
         type: type,
-        carrier: carrier,
-        separator: separator,
-        nameHTML: '',
-        numberHTML: ''
-      };
+        carrier: tel.carrier || ''
+       };
 
+      if (Settings.supportEmailRecipient) {
+        data.email = number;
+        data.emailHTML = '';
+       }
       return data;
     },
 
@@ -543,7 +537,12 @@
         };
       });
     },
-
+    /*
+       TODO: Email Address check.
+     */
+    isEmailAddress: function(email) {
+      return rmail.test(email);
+    },
     /*
       Helper function for removing notifications. It will fetch the notification
       using the current threadId or the parameter if provided, and close them
@@ -567,6 +566,109 @@
         ).catch(function onError(reason) {
           console.error('Notification.get(tag: ' + targetTag + '): ', reason);
         });
+    },
+
+    /**
+     * Converts image DOM node to canvas respecting image ratio.
+     * @param imageNode Image DOM node to convert.
+     * @param width Target image width.
+     * @param height Target image height.
+     * @returns {Node} Canvas object created from image DOM node.
+     */
+    imageToCanvas: function(imageNode, width, height) {
+      var ratio = Math.max(imageNode.width / width, imageNode.height / height);
+
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(imageNode.width / ratio);
+      canvas.height = Math.round(imageNode.height / ratio);
+
+      var context = canvas.getContext('2d', { willReadFrequently: true });
+
+      // Using canvas width and height with correct image proportions
+      context.drawImage(imageNode, 0, 0, canvas.width, canvas.height);
+
+      return canvas;
+    },
+
+    /**
+     * Returns a function that will call specified "func" function only after it
+     * stops being called for a specified wait time.
+     * @param {function} func Function to call.
+     * @param {number} waitTime Number of milliseconds to wait before calling
+     * actual "func" function once debounced function stops being called.
+     * @returns {function}
+     */
+    debounce: function(func, waitTime) {
+      var timeout, args, context;
+
+      var executeLater = function() {
+        func.apply(context, args);
+        timeout = context = args = null;
+      };
+
+      return function() {
+        context = this;
+        args = arguments;
+
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+
+        timeout = setTimeout(executeLater, waitTime);
+      };
+    },
+
+    /**
+     * Promise related utilities
+     */
+    Promise: {
+      /**
+       * Returns object that contains promise and related resolve\reject methods
+       * to avoid wrapping long or complex code into single Promise constructor.
+       * @returns {{promise: Promise, resolve: function, reject: function}}
+       */
+      defer: function() {
+        var deferred = {};
+
+        deferred.promise = new Promise(function(resolve, reject) {
+          deferred.resolve = resolve;
+          deferred.reject = reject;
+        });
+
+        return deferred;
+      },
+
+      /**
+       * Wraps a generator function that yields Promises in a way that generator
+       * flow is paused until yielded Promise is resolved, so that consumer gets
+       * Promise result instead of Promise instance itself.
+       * See https://www.promisejs.org/generators/ as the reference.
+       * @param {function*} generatorFunction Generator function that yields
+       * Promises.
+       * @return {function}
+       */
+      async: function(generatorFunction) {
+        return function asyncGenerator() {
+          var generator = generatorFunction.apply(this, arguments);
+
+          function handle(result) {
+            if (result.done) {
+              return Promise.resolve(result.value);
+            }
+
+            return Promise.resolve(result.value).then(
+              (result) => handle(generator.next(result)),
+              (error) => handle(generator.throw(error))
+            );
+          }
+
+          try {
+            return handle(generator.next());
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        };
+      }
     }
   };
 

@@ -1,11 +1,12 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-// Timespan is always loaded but not in the test
-requireLib('timespan.js');
+var Calc = require('calc');
+var EventMutations = require('event_mutations');
+var Factory = require('test/support/factory');
+var Timespan = require('timespan');
 
-suiteGroup('EventMutations', function() {
-  'use strict';
-
+suite('EventMutations', function() {
   var subject;
   var app;
   var db;
@@ -16,12 +17,18 @@ suiteGroup('EventMutations', function() {
   var busytimeStore;
   var alarmStore;
   var componentStore;
+  var shouldDisplay;
 
   setup(function(done) {
-    subject = Calendar.EventMutations;
+    subject = EventMutations;
     app = testSupport.calendar.app();
+    subject.app = app;
     db = app.db;
     controller = app.timeController;
+    shouldDisplay = controller._shouldDisplayBusytime;
+    controller._shouldDisplayBusytime = function() {
+      return true;
+    };
 
     eventStore = db.getStore('Event');
     busytimeStore = db.getStore('Busytime');
@@ -32,6 +39,7 @@ suiteGroup('EventMutations', function() {
   });
 
   teardown(function(done) {
+    controller._shouldDisplayBusytime = shouldDisplay;
     testSupport.calendar.clearStore(
       db,
       [
@@ -56,10 +64,7 @@ suiteGroup('EventMutations', function() {
     addEvent = null;
     removeTime = null;
 
-    var span = new Calendar.Timespan(
-      0, Infinity
-    );
-
+    var span = new Timespan(0, Infinity);
     controller.observe();
     controller.observeTime(span, function(e) {
       switch (e.type) {
@@ -87,12 +92,12 @@ suiteGroup('EventMutations', function() {
       });
 
       // Set the event to start and end in the past
-      event.remote.start = Calendar.Calc.dateToTransport(
+      event.remote.start = Calc.dateToTransport(
         new Date(Date.now() - 2 * 60 * 60 * 1000)
       );
 
       // Ending one hour in the future
-      event.remote.end = Calendar.Calc.dateToTransport(
+      event.remote.end = Calc.dateToTransport(
         new Date(Date.now() - 1 * 60 * 60 * 1000)
       );
 
@@ -180,12 +185,12 @@ suiteGroup('EventMutations', function() {
       event.remote.foo = true;
 
       // Starting one hour in the past
-      event.remote.start = Calendar.Calc.dateToTransport(
+      event.remote.start = Calc.dateToTransport(
         new Date(Date.now() - 1 * 60 * 60 * 1000)
       );
 
       // Ending one hour in the future
-      event.remote.end = Calendar.Calc.dateToTransport(
+      event.remote.end = Calc.dateToTransport(
         new Date(Date.now() + 1 * 60 * 60 * 1000)
       );
 
@@ -274,5 +279,6 @@ suiteGroup('EventMutations', function() {
       });
     });
   });
+});
 
 });

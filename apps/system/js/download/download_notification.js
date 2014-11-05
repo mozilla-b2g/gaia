@@ -57,7 +57,8 @@ DownloadNotification.prototype = {
   _update: function dn_update() {
     this._updateSystemDownloads();
     if (this.download.state === 'finalized') {
-      this._onFinalized();
+      // In theory we should never see this, but, we know that if we were
+      // to see this we want to do nothing.
       return;
     }
     var noNotify = this._wontNotify();
@@ -68,6 +69,11 @@ DownloadNotification.prototype = {
     var info = this._getInfo();
     if (noNotify) {
       info.noNotify = true;
+    }
+    if (this.state === 'downloading') {
+      info.mozbehavior = {
+        noscreen: true
+      };
     }
     NotificationScreen.addNotification(info);
     if (this.state === 'succeeded') {
@@ -120,10 +126,6 @@ DownloadNotification.prototype = {
     this._storeDownload(this.download);
   },
 
-  _onFinalized: function dn_onFinalized() {
-    this._close();
-  },
-
   /**
    * This method stores complete downloads to share them with the download list
    * in settings app
@@ -133,10 +135,19 @@ DownloadNotification.prototype = {
   _storeDownload: function dn_storeDownload(download) {
     var req = DownloadStore.add(download);
 
-    req.onsuccess = function _storeDownloadOnSuccess() {
-      console.info('The download', download.id, 'was stored successfully:',
-                    download.url);
-    };
+    req.onsuccess = (function _storeDownloadOnSuccess(request) {
+      // We don't care about any more state changes to the download.
+      download.onstatechange = null;
+      // Update the download object to the datastore representation.
+      this.download = req.result;
+
+      var mozDownloadManager = navigator.mozDownloadManager;
+      if (mozDownloadManager) {
+        // Once we've added the download to our data store we own it so clear
+        // all references to it from the Downloads API.
+        mozDownloadManager.clearAllDone();
+      }
+    }).bind(this);
 
     req.onerror = function _storeDownloadOnError(e) {
       console.error('Exception storing the download', download.id, '(',
@@ -154,9 +165,8 @@ DownloadNotification.prototype = {
    * @return {String} Icon path.
    */
   _getIcon: function dn_getIcon() {
-    var state = this.state;
-    return state === 'stopped' ? null : this._ICONS_PATH + state +
-                                        this._ICONS_EXTENSION;
+    var icon = (this.state === 'downloading' ? 'downloading' : 'download');
+    return this._ICONS_PATH + icon + this._ICONS_EXTENSION;
   },
 
   /**

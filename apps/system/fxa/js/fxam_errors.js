@@ -4,25 +4,16 @@
 'use strict';
 
 (function(exports) {
-
   var Errors = {
-    ACCOUNT_DOES_NOT_EXIST: {
-      title: 'fxa-account-does-not-exist-title',
-      message: 'fxa-account-does-not-exist-message'
-    },
-    CANNOT_CREATE_ACCOUNT: {
-      title: 'fxa-cannot-create-title',
-      message: 'fxa-cannot-create-message'
+    CONNECTION_ERROR: {
+      title: 'fxa-connection-error-title',
+      message: 'fxa-connection-error-message'
     },
     RESET_PASSWORD_ERROR: {
       title: 'fxa-reset-password-error-title',
       message: 'fxa-reset-password-error-message'
     },
-    RESET_PASSWORD_IN_SETTINGS: {
-      title: 'fxa-reset-password-in-settings-title',
-      message: 'fxa-reset-password-in-settings-message'
-    },
-    INVALID_ACCOUNTID: {
+    INVALID_EMAIL: {
       title: 'fxa-invalid-email-title',
       message: 'fxa-invalid-email-message'
     },
@@ -30,29 +21,13 @@
       title: 'fxa-invalid-password-title',
       message: 'fxa-invalid-password-message'
     },
-    ALREADY_SIGNED_IN_USER: {
-      title: 'fxa-already-signed-in-title',
-      message: 'fxa-already-signed-in-message'
-    },
-    INTERNAL_ERROR_INVALID_USER: {
-      title: 'fxa-generic-error-title',
-      message: 'fxa-generic-error-message'
-    },
-    SERVER_ERROR: {
-      title: 'fxa-generic-error-title',
-      message: 'fxa-generic-error-message'
-    },
-    NO_TOKEN_SESSION: {
-      title: 'fxa-generic-error-title',
-      message: 'fxa-generic-error-message'
-    },
-    GENERIC_ERROR: {
-      title: 'fxa-generic-error-title',
-      message: 'fxa-generic-error-message'
-    },
     COPPA_ERROR: {
-      title: 'fxa-coppa-error-title',
-      message: 'fxa-coppa-error-message'
+      title: 'fxa-coppa-failure-error-title',
+      message: 'fxa-coppa-failure-error-message'
+    },
+    COPPA_FTU_ERROR: {
+      title: 'fxa-coppa-failure-error-title',
+      message: 'fxa-coppa-ftu-error-message'
     },
     OFFLINE: {
       title: 'fxa-offline-error-title',
@@ -65,11 +40,25 @@
   };
 
   function _getError(error) {
-    var _ = navigator.mozL10n.get;
     var l10nKeys = Errors[error] || Errors.UNKNOWN;
     return {
-      title: _(l10nKeys.title),
-      message: _(l10nKeys.message)
+      title: l10nKeys.title,
+      message: error == 'COPPA_ERROR' ? _getCoppaError() : l10nKeys.message
+    };
+  }
+
+  function _getCoppaError() {
+    var _ = navigator.mozL10n.get;
+
+    var coppaLink = 'http://www.ftc.gov/news-events/media-resources/' +
+                    'protecting-consumer-privacy/kids-privacy-coppa';
+    var errorText = _('fxa-coppa-failure-error-message');
+    var learnMore = _('fxa-learn-more');
+    var learnMorePlaceholder = /{{\s*learnmore\s*}}/;
+    var learnMoreLink = '<a href="' + coppaLink + '">' + learnMore + '</a>';
+    // return as a string. fxam_error_overlay will innerHTML the whole message.
+    return {
+      html: errorText.replace(learnMorePlaceholder, learnMoreLink)
     };
   }
 

@@ -16,7 +16,7 @@ var MockStatusBar = {
     this.methodCalled('updateNotification');
   },
 
-  updateNotificationUnread: function(unread) {
+  setActive: function(unread) {
     this.mNotificationUnread = unread;
   },
 

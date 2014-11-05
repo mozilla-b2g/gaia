@@ -12,16 +12,16 @@ from gaiatest.apps.homescreen.regions.bookmark_menu import BookmarkMenu
 
 class Collection(Base):
 
-    _apps_locator = (By.CSS_SELECTOR, '.evme-apps ul.cloud li[data-name]')
-    _homescreen_status_notification = (By.CSS_SELECTOR, "section[role='status'] > p")
+    name = 'Smart Collections'
 
-    def wait_for_collection_screen_visible(self):
-        self.wait_for_element_displayed(*self._apps_locator)
+    _apps_locator = (By.CSS_SELECTOR, 'gaia-grid .icon:not(.placeholder)')
+    _close_button_locator = (By.ID, 'close')
 
-    @property
-    def notification_message(self):
-        self.wait_for_element_displayed(*self._homescreen_status_notification)
-        return self.marionette.find_element(*self._homescreen_status_notification).text
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        self.apps.switch_to_displayed_app()
+        self.wait_for_condition(lambda m: len(m.find_elements(*self._apps_locator)) > 0)
 
     @property
     def applications(self):
@@ -30,11 +30,11 @@ class Collection(Base):
     class Result(PageRegion):
 
         # Modal dialog locators
-        _modal_dialog_save_locator = (By.CSS_SELECTOR, ".cloud-app-actions.show > menu > button[data-action = 'save']")
+        _modal_dialog_save_locator = (By.ID, "bookmark-cloudapp")
 
         @property
         def name(self):
-            return self.root_element.get_attribute('data-name')
+            return self.root_element.text
 
         def tap(self):
             app_name = self.name

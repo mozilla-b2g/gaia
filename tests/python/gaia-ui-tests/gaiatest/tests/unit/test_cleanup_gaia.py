@@ -9,7 +9,8 @@ from gaiatest.mocks.mock_contact import MockContact
 
 class TestCleanupGaia(GaiaTestCase):
 
-    homescreen_frame_locator = (By.CSS_SELECTOR, 'div.homescreen iframe')
+    homescreen_frame_locator = (By.CSS_SELECTOR, '#homescreen iframe')
+    homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
 
     def test_cleanup_gaia(self):
         self.check_initial_state()
@@ -29,15 +30,16 @@ class TestCleanupGaia(GaiaTestCase):
         self.data_layer.insert_contact(MockContact())
         self.assertEqual(len(self.data_layer.all_contacts), 2)
 
-        # move away from home screen
+        # move to homescreen and scroll last icon into view
         self.marionette.switch_to_frame(
             self.marionette.find_element(*self.homescreen_frame_locator))
+        homescreen_last_icon = self.marionette.find_elements(*self.homescreen_all_icons_locator)[-1]
         self.marionette.execute_script(
-            'window.wrappedJSObject.GridManager.goToPage(1);')
-        self.assertEqual(self.marionette.execute_script("""
-var manager = window.wrappedJSObject.GridManager;
-return manager.pageHelper.getCurrentPageNumber();
-"""), 1)
+            'arguments[0].scrollIntoView(false);', [homescreen_last_icon])
+        self.assertGreater(self.marionette.execute_script(
+            "return window.scrollY"), 0)
+
+        # move away from homescreen
         self.marionette.switch_to_frame()
 
         # lock screen
@@ -64,8 +66,4 @@ return manager.pageHelper.getCurrentPageNumber();
         # check we're on the home screen
         self.marionette.switch_to_frame(
             self.marionette.find_element(*self.homescreen_frame_locator))
-        self.assertEqual(self.marionette.execute_script("""
-var manager = window.wrappedJSObject.GridManager;
-return manager.pageHelper.getCurrentPageNumber();
-"""), 0)
         self.marionette.switch_to_frame()

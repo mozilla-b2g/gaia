@@ -2,24 +2,6 @@ section[role="region"].skin-organic {
   background: #f4f4f4;
 }
 
-/* Make it so that invalid input areas only show up as red when they're focused.
-   This keeps the redness to a minimum in the setup cards. */
-
-input:invalid {
-  border: 0.1rem solid #ccc;
-  color: initial;
-}
-
-input:-moz-placeholder {
-  color: #666;
-}
-
-input:focus:invalid {
-  border: 0.1rem solid #820000;
-  color: #b90000;
-}
-
-
 .sup-form {
   margin: 1rem 2rem;
 }
@@ -58,19 +40,6 @@ input:focus:invalid {
   font-size: 120%;
   text-align: center;
 }
-.sup-error-code {
-  color: #aaa;
-  margin-top: 0.4rem;
-  text-align: right;
-  font-size: 110%;
-}
-.sup-error-code:before {
-  content: "[";
-}
-.sup-error-code:after {
-  content: "]";
-}
-
 
 .sup-progress-region {
   width: calc(100% - 3rem);
@@ -84,7 +53,7 @@ input:focus:invalid {
   display: inline-block;
   width: calc(100% - 7rem);
   vertical-align: middle;
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.4rem;
   line-height: 3rem;
   letter-spacing: 0.024rem;
@@ -94,11 +63,11 @@ input:focus:invalid {
   margin-right: 1.2rem;
 }
 
-.card-setup-done .sup-progress-label {
+cards-setup-done .sup-progress-label {
   padding: 0 1.5rem;
 }
 
-.card-setup-done .sup-form-btn {
+cards-setup-done .sup-form-btn {
   position: absolute;
   bottom: 6.3rem;
   left: 1.5rem;
@@ -106,8 +75,18 @@ input:focus:invalid {
   margin: 0;
 }
 
-.card-setup-done .sup-form-btn.recommend {
+cards-setup-done .sup-form-btn.recommend {
   bottom: 1.5rem;
+}
+
+.sup-oauth-description {
+  font-size: 1.8rem;
+}
+
+.sup-oauth2-name {
+  font-size: 1.6rem;
+  color: #585858;
+  word-wrap: break-word;
 }
 
 /* get some margin around the form elements; I'm not sure how BB wants it */
@@ -137,17 +116,77 @@ input:focus:invalid {
 }
 
 .tng-account-add, .tng-account-delete {
+  display: block;
   width: calc(100% - 3rem);
-  margin: 1.1rem auto;
+  margin: 1.5rem auto;
   text-align: center;
+}
+
+.tng-signature-text {
+  margin: 0;
+  min-height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-height: none;
+  display: block;
+  font-family: inherit;
+  font-weight: normal;
+  color: #333;
+  border: none;
+  box-shadow: none;
+  background: white;
+  outline: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding: 1rem 1.5rem 0;
+  font-size: 1.6rem;
+}
+
+.tng-list {
+  margin: 0;
+  padding: 0;
+}
+
+li button.signature-button.icon:before {
+  background-image: url('../shared/style/buttons/images/next.png');
+  right: 0;
+}
+
+li button.signature-button.button.icon {
+  width: 100%;
+  margin: 0 auto 2rem auto;
+  padding-right: 3rem;
+  padding-left: 0;
+}
+
+.signature-button-content {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  overflow: hidden;
+  margin-left: 1rem;
+}
+
+.signature-button-content.empty-placeholder {
+  color: #858585;
 }
 
 li:not([role]) {
   position: relative;
-  width: 100%;
-  min-height: 5.5rem;
   border-bottom: solid 0.1rem #dbd9d9;
   list-style-type: none;
+}
+
+.tng-list li:last-child {
+  border-bottom: 0;
+}
+
+/* Special override because delete button follows the
+   tng-acccount-server-container, and cannot place the button inside that ul
+   since items are dynamically appended to it. So just explicitly state the
+   desire for a bottom border in that case. */
+.tng-list.tng-account-server-container li:last-child {
+  border-bottom: solid 0.1rem #dbd9d9;
 }
 
 li a:active {
@@ -156,7 +195,7 @@ li a:active {
 }
 
 .list-text-with-sub {
-  padding: 2rem 0 1rem 0;
+  padding: 1.5rem 0;
 }
 
 .list-text-with-sub .list-text {
@@ -173,8 +212,8 @@ li.select-item {
   overflow: hidden;
   text-overflow: ellipsis;
   color: #000;
+  padding-left: 1.5rem;
   line-height: 5.5rem;
-  padding-left: 3rem;
   font-size: 1.8rem;
   outline: 0 none;
 }
@@ -196,28 +235,38 @@ li.select-item {
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  word-wrap: break-word;
   color: #5b5b5b;
   font-size: 1.6rem;
-  padding-left: 3rem;
+  padding-left: 1.5rem;
+}
+
+.sup-no-list .list-text,
+.sup-no-list .list-sub-text {
+  padding-left: 0;
 }
 
 li .aside.start {
   float: left;
-  width: calc(100% - 13.5rem);
+  width: calc(100% - 9.5rem);
 }
 
 li .aside.end {
   float: right;
 }
 
-.aside.end .pack-switch {
-  padding-right: 3rem;
-  margin-right: 1.5rem;
-}
-
 li.align-center {
   text-align: center;
+}
+
+.item-with-children::after  {
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  position: absolute;
+  top: calc(50% - 1.5rem);
+  right: 0;
+  background: url(/shared/style/buttons/images/next.png) no-repeat center / 3rem auto;
 }
 
 .mail-select {
@@ -251,15 +300,7 @@ li.settings-input-list {
 }
 
 .tng-accounts-container li {
-  min-height: 6rem;
-  text-align: center;
-}
-
-.tng-accounts-container li > a {
-  padding: 0 3rem;
-  text-align: left;
-  font-size: 1.9rem;
-  line-height: 6rem;
+  margin: 0 1.5rem;
 }
 
 .settings-button {
@@ -271,34 +312,24 @@ li.settings-input-list {
   opacity: 0;
 }
 
-section.card-settings-account-common li {
-  margin: 0 auto;
+section.settings-account-common li {
+  margin: 0 1.5rem;
   overflow: hidden;
-  width: 100%;
 }
 
-section.card-settings-account-common li.syncinterval-setting label,
-section.card-settings-account-common li.synchronize-setting label {
+.settings-account-common li.syncinterval-setting label,
+.settings-account-common li.synchronize-setting label {
   height: 3.5rem;
   line-height: 3.5rem;
   width: auto;
 }
 
-section.card-settings-account-common li span.button {
+.settings-account-common li span.button {
   display: block;
   margin: 0 auto 1rem auto;
-  width: calc(100% - 3rem);
 }
 
-section.card-settings-account-common li span.button select {
-  padding-left: 0;
-  text-align: left;
-  text-indent: -0.22rem;
-  /** Need to push the little select arrow off the page */
-  width: calc(100% + 10rem) !important;
-}
-
-section.card-settings-account-common li .pack-checkbox {
+.settings-account-common li .pack-checkbox {
   margin-top: 0.2rem;
 }
 
@@ -337,4 +368,31 @@ li.sup-manual-account-type-container .button {
 
 .sup-progress-container {
   text-align: center;
+}
+
+/* When card is not the center, but has a progress spinner, hide it, to avoid
+   the animation taking cycles away from activities like typing. Bug 1083288 */
+.before .sup-progress-container progress,
+.after .sup-progress-container progress {
+  display: none;
+}
+
+cards-setup-oauth2 .scrollregion-below-header {
+  overflow: hidden;
+  will-change: auto;
+}
+
+.sup-oauth2-browser {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+}
+
+cards-settings-debug button {
+  display: block;
+  margin: 1.5rem auto;
+  width: calc(100% - 3rem);
 }

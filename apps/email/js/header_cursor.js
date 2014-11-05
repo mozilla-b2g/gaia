@@ -1,4 +1,5 @@
 /*global define */
+'use strict';
 /**
  * @fileoverview Bug 918303 - HeaderCursor added to provide MessageListCard and
  *     MessageReaderCard the current message and whether there are adjacent
@@ -24,21 +25,11 @@ define(function(require) {
     // Inherit from evt.Emitter.
     evt.Emitter.call(this);
 
-    // Listen for some slice events to do some special work.
-    this.on('messages_splice', this.onMessagesSplice.bind(this));
-    this.on('messages_remove', this.onMessagesSpliceRemove.bind(this));
-    this.on('messages_complete', function() {
-      // Consumers, like message_list, always want their 'complete' work
-      // to fire, but by default the slice removes the complete handler
-      // at the end. So rebind on each call here.
-      if (this.messagesSlice) {
-        this.messagesSlice.oncomplete = makeListener('complete', this);
-      }
-    }.bind(this));
-
-    // Listen to model for folder changes.
-    this.onLatestFolder = this.onLatestFolder.bind(this);
-    model.latest('folder', this.onLatestFolder);
+    // Need to distinguish between search and nonsearch slices,
+    // since there can be two cards that both are listening for
+    // slice changes, but one is for search output, and one is
+    // for nonsearch output. The message_list is an example.
+    this.searchMode = 'nonsearch';
   }
 
   HeaderCursor.prototype = evt.mix({
@@ -61,6 +52,34 @@ define(function(require) {
      * @type {Array}
      */
     sliceEvents: ['splice', 'change', 'status', 'remove', 'complete'],
+
+    _inited: false,
+
+    /**
+     * Sets up the event wiring and will trigger the slice creation by listening
+     * to model 'folder' changes. Want to wait until there are views that need
+     * to use the header_cursor for showing UI, to avoid extra work, like in the
+     * background sync case.
+     */
+    init: function() {
+      this._inited = true;
+
+      // Listen for some slice events to do some special work.
+      this.on('messages_splice', this.onMessagesSplice.bind(this));
+      this.on('messages_remove', this.onMessagesSpliceRemove.bind(this));
+      this.on('messages_complete', function() {
+        // Consumers, like message_list, always want their 'complete' work
+        // to fire, but by default the slice removes the complete handler
+        // at the end. So rebind on each call here.
+        if (this.messagesSlice) {
+          this.messagesSlice.oncomplete = makeListener('complete', this);
+        }
+      }.bind(this));
+
+      // Listen to model for folder changes.
+      this.onLatestFolder = this.onLatestFolder.bind(this);
+      model.latest('folder', this.onLatestFolder);
+    },
 
     /**
      * The messageReader told us it wanted to advance, so we should go ahead
@@ -155,7 +174,7 @@ define(function(require) {
         hasNext: index !== messages.length - 1    // Can't be last
       });
 
-      this.emit('currentMessage', currentMessage);
+      this.emit('currentMessage', currentMessage, index);
       this.currentMessage = currentMessage;
     },
 
@@ -189,6 +208,7 @@ define(function(require) {
     },
 
     startSearch: function(phrase, whatToSearch) {
+      this.searchMode = 'search';
       this.bindToSlice(model.api.searchFolderMessages(model.folder,
                                                       phrase,
                                                       whatToSearch));
@@ -196,6 +216,7 @@ define(function(require) {
 
     endSearch: function() {
       this.die();
+      this.searchMode = 'nonsearch';
       this.freshMessagesSlice();
     },
 
@@ -251,7 +272,7 @@ define(function(require) {
       var messages = this.messagesSlice.items;
       if (messages.length === 0) {
         // No more messages... sad!
-        return this.currentMessage = null;
+        return (this.currentMessage = null);
       }
 
       var index = Math.min(removedFromIndex, messages.length - 1);
@@ -268,6 +289,20 @@ define(function(require) {
       this.currentMessage = null;
     }
   });
+
+  /*
+   * Override the .on method so that initialization and slice creation is
+   * delayed until there are listeners.
+   */
+  var oldOn = HeaderCursor.prototype.on;
+  HeaderCursor.prototype.on = function() {
+    if (!this._inited) {
+      this.init();
+      HeaderCursor.prototype.on = oldOn;
+    }
+
+    return oldOn.apply(this, arguments);
+  };
 
   /**
    * @constructor

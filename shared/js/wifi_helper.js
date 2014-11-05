@@ -10,8 +10,7 @@ var WifiHelper = {
     return navigator.mozWifiManager;
   }(),
 
-  setPassword: function(network, password, identity,
-                        eap, phase2, certificate) {
+  setPassword: function(network, password, identity, eap, phase2, certificate) {
     var encType = this.getKeyManagement(network);
     switch (encType) {
       case 'WPA-PSK':
@@ -60,7 +59,8 @@ var WifiHelper = {
   },
 
   getCapabilities: function(network) {
-    return network.capabilities === undefined ? [] : network.capabilities;
+    return network.capabilities === undefined || network.capabilities === null ?
+           [] : network.capabilities;
   },
 
   getKeyManagement: function(network) {

@@ -36,7 +36,6 @@
     "wifi-manage",
     "systemXHR",
     "voicemail",
-    "deprecated-hwvideo",
     "idle",
     "time",
     "embed-apps",
@@ -53,6 +52,9 @@
     "audio-channel-telephony",
     "audio-channel-ringer",
     "audio-channel-publicnotification",
-    "open-remote-window"
+    "open-remote-window",
+    "audio-capture",
+    "video-capture",
+    "mobileid"
   ]
 }

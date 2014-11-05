@@ -1,6 +1,7 @@
 'use strict';
 
-var MockAppWindowManager = {
+var MockAppWindowManager = function() {};
+MockAppWindowManager.prototype = {
   isRunning: function(config) {
     return (config.origin in this.mRunningApps);
   },
@@ -25,6 +26,10 @@ var MockAppWindowManager = {
     return this.mRunningApps[origin];
   },
 
+  getAppByURL: function mawm_getAppByUrl() {
+    return null;
+  },
+
   // reference to active appWindow instance.
   mActiveApp: null,
 
@@ -43,5 +48,13 @@ var MockAppWindowManager = {
   },
 
   broadcastMessage: function() {
-  }
+  },
+
+  sendStopRecordingRequest: function(callback) {
+    if (callback) {
+      callback();
+    }
+  },
+
+  start: function() {}
 };

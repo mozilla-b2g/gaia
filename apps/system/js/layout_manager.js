@@ -1,9 +1,7 @@
-/* global KeyboardManager, softwareButtonManager, StatusBar,
-          System */
+/* global KeyboardManager, softwareButtonManager, System */
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
   /**
    * LayoutManager gathers all external events which would affect
    * the layout of the windows and redirect the event to AppWindowManager.
@@ -31,13 +29,10 @@
   var LayoutManager = function LayoutManager() {};
 
   LayoutManager.prototype = {
+    DEBUG: false,
+    CLASS_NAME: 'LayoutManager',
     /** @lends LayoutManager */
 
-    /**
-     * Gives the width for the screen.
-     *
-     * @memberOf LayoutManager
-     */
     get clientWidth() {
       if (this._clientWidth) {
         return this._clientWidth;
@@ -53,10 +48,22 @@
      * @memberOf LayoutManager
      */
     get height() {
-      return window.innerHeight -
-        (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
-        StatusBar.height -
-        softwareButtonManager.height;
+      var activeApp = System.currentApp;
+      var isFullScreenLayout = activeApp && activeApp.isFullScreenLayout();
+      var softwareButtonHeight = System.locked || isFullScreenLayout ?
+        0 : softwareButtonManager.height;
+      var keyboardHeight = this.keyboardEnabled ?
+        KeyboardManager.getHeight() : 0;
+      var height = window.innerHeight - keyboardHeight - softwareButtonHeight;
+
+      // Normalizing the height so that it always translates to an integral
+      // number of device pixels
+      var dpx = window.devicePixelRatio;
+      if ((height * dpx) % 1 !== 0) {
+        height = Math.ceil(height * dpx) / dpx;
+      }
+
+      return height;
     },
 
     /**
@@ -65,7 +72,10 @@
      * @memberOf LayoutManager
      */
     get width() {
-      return window.innerWidth;
+      return window.innerWidth -
+        ((System.currentApp &&
+          System.currentApp.isFullScreenLayout()) ?
+          0 : softwareButtonManager.width);
     },
 
     /**
@@ -77,7 +87,7 @@
      * @memberOf LayoutManager
      */
     match: function lm_match(width, height) {
-      return (this.height === height);
+      return (this.width === width && this.height === height);
     },
 
     /**
@@ -94,15 +104,13 @@
      */
     start: function lm_start() {
       window.addEventListener('resize', this);
-      window.addEventListener('status-active', this);
-      window.addEventListener('status-inactive', this);
       window.addEventListener('keyboardchange', this);
       window.addEventListener('keyboardhide', this);
-      window.addEventListener('attentionscreenhide', this);
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
-      return this;
+      window.addEventListener('attention-inactive', this);
+      window.addEventListener('lockscreen-appclosed', this);
     },
 
     handleEvent: function lm_handleEvent(evt) {
@@ -118,6 +126,17 @@
            * @event LayoutManager#system-resize
            */
           this.publish('system-resize');
+          break;
+        case 'resize':
+          this.publish('system-resize');
+          this.publish('orientationchange');
+          break;
+        case 'lockscreen-appclosed':
+          // If the software button is enabled it will be un-hidden when
+          // the lockscreen is closed and trigger a system level resize.
+          if (softwareButtonManager.enabled) {
+            this.publish('system-resize');
+          }
           break;
         default:
           if (evt.type === 'keyboardhide') {
@@ -137,9 +156,9 @@
     },
 
     debug: function lm_debug() {
-      if (DEBUG) {
-        console.log('[LayoutManager]' +
-          '[' + System.currentTime() + ']' +
+      if (this.DEBUG) {
+        console.log('[' + this.CLASS_NAME + ']' +
+          '[' + System.currentTime() + '] ' +
           Array.slice(arguments).concat());
       }
     }

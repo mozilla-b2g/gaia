@@ -20,7 +20,7 @@ class TestCalendar(GaiaTestCase):
     def test_calendar_flick_through_months(self):
         """https://bugzilla.mozilla.org/show_bug.cgi?id=937085"""
 
-        MONTH_YEAR_PATTERN = '%B %Y'
+        MONTH_YEAR_PATTERN = '%b %Y'
 
         calendar = Calendar(self.marionette)
         calendar.launch()

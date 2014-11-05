@@ -1,10 +1,10 @@
 suite('lib/setting', function() {
+  /*jshint maxlen:false*/
   'use strict';
-  var require = window.req;
 
   suiteSetup(function(done) {
     var self = this;
-    require(['lib/setting'], function(Setting) {
+    requirejs(['lib/setting'], function(Setting) {
       self.Setting = Setting;
       done();
     });
@@ -233,18 +233,16 @@ suite('lib/setting', function() {
       assert.equal(this.setting.selected('key'), 'a');
     });
 
-    test('Should not fire a `change` event', function() {
+    test('Should fire a `change` event', function() {
       var spy = sinon.spy();
 
       this.setting.on('change', spy);
       this.setting.filterOptions(['c']);
 
-      assert.isFalse(spy.called);
+      assert.isTrue(spy.called);
     });
 
     test('Should cope with keys that aren\'t defined', function() {
-      var spy = sinon.spy();
-
       this.setting.filterOptions(['a', 'c', 'jibberish']);
       var options = this.setting.get('options');
 

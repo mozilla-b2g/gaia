@@ -31,6 +31,21 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var isPausedWhileDragging;
   var sliderRect;
 
+  //
+  // Bug 1088456: when the view activity is launched by the bluetooth transfer
+  // app (when the user taps on a downloaded file in the notification tray)
+  // this code starts running while the regular video app is still running as
+  // the foreground app. Since the video app does not get sent to the
+  // background in this case, the currently playing video (if there is one) is
+  // not paused. And so, in the case of videos that require decoder hardware,
+  // the view activity cannot play the video. For this workaround, we have set
+  // a localStorage property here. The video.js file should receive an event
+  // when we do that and will use that as a signal to unload its video. We use
+  // Date.now() as the value of the property so we get a different value and
+  // generate an event each time we run.
+  //
+  localStorage.setItem('view-activity-wants-to-use-hardware', Date.now());
+
   initUI();
 
   // If blob exists, video should be launched by open activity
@@ -46,8 +61,13 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // and if there is enough free space, then display a save button.
     if (data.allowSave && data.filename && checkFilename()) {
       getStorageIfAvailable('videos', blob.size, function(ds) {
+        dom.save.hidden = false;
+
+        // HACK: Cause gaia-header to re-run font-fit logic
+        // now that the 'save' button is visible.
+        dom.videoTitle.textContent = dom.videoTitle.textContent;
+
         storage = ds;
-        dom.menu.hidden = false;
       });
     }
 
@@ -104,10 +124,12 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     // Get all the elements we use by their id
     var ids = ['player', 'player-view', 'videoControls',
-               'close', 'play', 'playHead', 'video-container',
+               'player-header', 'play', 'playHead', 'video-container',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
-               'menu', 'save', 'banner', 'message'];
+               'save', 'banner', 'message', 'seek-forward',
+               'seek-backward', 'videoControlBar', 'in-use-overlay',
+               'in-use-overlay-title', 'in-use-overlay-text'];
 
     ids.forEach(function createElementRef(name) {
       dom[toCamelCase(name)] = document.getElementById(name);
@@ -136,6 +158,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     });
 
     dom.player.addEventListener('timeupdate', timeUpdated);
+    dom.player.addEventListener('seeked', updateSlider);
 
     // showing + hiding the loading spinner
     dom.player.addEventListener('waiting', showSpinner);
@@ -147,16 +170,12 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     // option buttons
     dom.play.addEventListener('click', handlePlayButtonClick);
-    dom.close.addEventListener('click', done);
+    dom.playerHeader.addEventListener('action', done);
     dom.save.addEventListener('click', save);
     // show/hide controls
     dom.videoControls.addEventListener('click', toggleVideoControls, true);
 
-    // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-    window.addEventListener('localized', function showBody() {
-      document.documentElement.lang = navigator.mozL10n.language.code;
-      document.documentElement.dir = navigator.mozL10n.language.direction;
-    });
+    ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
   }
 
   function checkFilename() {
@@ -233,11 +252,14 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     // End the activity
     activity.postResult({saved: saved});
+
+    // Undo the bug 1088456 workaround hack.
+    localStorage.removeItem('view-activity-wants-to-use-hardware');
   }
 
   function save() {
     // Hide the menu that holds the save button: we can only save once
-    dom.menu.hidden = true;
+    dom.save.hidden = true;
     // XXX work around bug 870619
     dom.videoTitle.textContent = dom.videoTitle.textContent;
 
@@ -260,10 +282,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   // show video player
   function showPlayer(url, title) {
-
-    dom.videoTitle.textContent = title || '';
-    dom.player.src = url;
-    dom.player.onloadedmetadata = function() {
+    function handleLoadedMetadata() {
       dom.durationText.textContent = MediaUtils.formatDuration(
         dom.player.duration);
       timeUpdated();
@@ -281,7 +300,18 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       }, 2000);
 
       play();
-    };
+    }
+
+    dom.videoTitle.textContent = title || '';
+
+    var loadingChecker =
+      new VideoLoadingChecker(dom.player, dom.inUseOverlay,
+                              dom.inUseOverlayTitle,
+                              dom.inUseOverlayText);
+    loadingChecker.ensureVideoLoads(handleLoadedMetadata);
+
+    dom.player.src = url;
+
     dom.player.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
     dom.player.onerror = function(evt) {
       var errorid = '';
@@ -373,11 +403,27 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       endedTimer = null;
     }
 
-    dom.player.currentTime = 0;
-    pause();
+    // If we are still playing when this 'ended' event arrives, then the
+    // user played the video all the way to the end, and we skip to the
+    // beginning and pause so it is easy for the user to restart. If we
+    // reach the end because the user fast forwarded or dragged the slider
+    // to the end, then we will have paused the video before we get this
+    // event and in that case we will remain paused at the end of the video.
+    if (playing) {
+      dom.player.currentTime = 0;
+      pause();
+    }
   }
 
   function updateSlider() {
+    // We update the slider when we get a 'seeked' event.
+    // Don't do updates while we're seeking because the position we fastSeek()
+    // to probably isn't exactly where we requested and we don't want jerky
+    // updates
+    if (dom.player.seeking) {
+      return;
+    }
+
     var percent = (dom.player.currentTime / dom.player.duration) * 100;
     if (isNaN(percent)) // this happens when we end the activity
       return;
@@ -429,13 +475,14 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     pos = Math.max(pos, 0);
     pos = Math.min(pos, 1);
 
+    // Update the slider to match the position of the user's finger.
+    // Note, however, that we don't update the displayed time until
+    // we actually get a 'seeked' event.
     var percent = pos * 100 + '%';
     dom.playHead.classList.add('active');
     dom.playHead.style.left = percent;
     dom.elapsedTime.style.width = percent;
-    dom.player.currentTime = dom.player.duration * pos;
-    dom.elapsedText.textContent = MediaUtils.formatDuration(
-      dom.player.currentTime);
+    dom.player.fastSeek(dom.player.duration * pos);
   }
 
   function showBanner(msg) {

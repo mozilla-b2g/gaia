@@ -53,43 +53,52 @@ var pendingPrediction;
 
 var Commands = {
   setLanguage: function setLanguage(language) {
-    if (language !== currentLanguage) {
-      currentLanguage = language;
+    if (language === currentLanguage) {
+      return;
+    }
 
-      try {
-        var dicturl = 'dictionaries/' + language + '.dict';
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', dicturl, false);
-        xhr.responseType = 'arraybuffer';
-        xhr.send();
-        //
-        // XXX
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=804395
-        // The app protocol doesn't seem to return a status code and
-        // we just get a zero-length array if the url is undefined
-        //
-        if (xhr.response && xhr.response.byteLength) {
+    function postError(message) {
+      postMessage({
+        cmd: 'error',
+        message: 'setLanguage: ' + message
+      });
+    }
+
+    currentLanguage = language;
+
+    var dicturl = 'dictionaries/' + language + '.dict';
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', dicturl, false);
+    xhr.responseType = 'arraybuffer';
+    xhr.send();
+
+    try {
+      if (xhr.status === 200) {
+        try {
           Predictions.setDictionary(xhr.response);
-        }
-        else {
           postMessage({
-            cmd: 'error',
-            message: 'setLanguage: Unknown language: ' + language
+            cmd: 'success',
+            fn: 'setLanguage',
+            language: language
           });
         }
+        catch (e) {
+          postError('setDictionary failed: ' + e);
+        }
       }
-      catch (e) {
-        postMessage({
-          cmd: 'error',
-          message: 'setLanguage: Unknown language: ' + language + ': ' + e
-        });
+      else {
+        postError('Unknown language: ' + language);
       }
+    }
+    catch (ex) {
+      postError('Unknown language: ' + language + ': ' + xhr.error);
     }
   },
 
   setNearbyKeys: function setNearbyKeys(nearbyKeys) {
     try {
       Predictions.setNearbyKeys(nearbyKeys);
+      postMessage({ cmd: 'success', fn: 'setNearbyKeys' });
     }
     catch (e) {
       postMessage({cmd: 'error', message: 'setNearbyKeys: ' + e.message});

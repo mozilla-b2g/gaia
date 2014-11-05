@@ -1,10 +1,9 @@
 <element name="call-fdnSettings" extends="section">
   <template>
 
-    <header>
-      <a href="#call"><span class="icon icon-back">back</span></a>
+    <gaia-header action="back" data-href="#call">
       <h1 data-l10n-id="fdnSettings-header"> Fixed dialing numbers </h1>
-    </header>
+    </gaia-header>
 
     <div>
       <ul>
@@ -21,22 +20,22 @@
         <li id="fdn-enabled">
           <label class="pack-switch">
             <input type="checkbox" data-ignore>
-            <small></small>
             <span data-l10n-id="fdnSettings">Fixed dialing numbers</span>
+            <small></small>
           </label>
         </li>
         <li>
-          <small data-l10n-id="fdn-authorizedNumbers-desc">
-            List of numbers that can be called
-          </small>
-          <a href="#call-fdnList" data-l10n-id="fdn-authorizedNumbers">
-            Authorized numbers
+          <a class="menu-item" href="#call-fdnList">
+            <span data-l10n-id="fdn-authorizedNumbers">
+              Authorized numbers
+            </span>
+            <small data-l10n-id="fdn-authorizedNumbers-desc">
+              List of numbers that can be called
+            </small>
           </a>
         </li>
         <li id="fdn-resetPIN2">
-          <label>
-            <button data-l10n-id="fdnReset">Reset PIN2 code</button>
-          </label>
+          <button data-l10n-id="fdnReset">Reset PIN2 code</button>
         </li>
       </ul>
     </div>

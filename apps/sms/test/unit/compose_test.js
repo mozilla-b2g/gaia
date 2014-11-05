@@ -1,20 +1,30 @@
 /* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
-         AttachmentMenu, Draft, document, XMLHttpRequest, Blob, navigator,
-         ThreadUI, SMIL */
+         AttachmentMenu, Draft, Blob,
+         ThreadUI, SMIL,
+         InputEvent,
+         MessageManager,
+         Navigation,
+         Promise,
+         AssetsHelper,
+         FocusEvent,
+         SubjectComposer
+*/
 
 /*jshint strict:false */
 /*jslint node: true */
 
 'use strict';
 
-requireApp('sms/js/compose.js');
+require('/js/event_dispatcher.js');
+require('/js/compose.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/drafts.js');
 
-requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
+require('/test/unit/mock_message_manager.js');
+require('/test/unit/mock_navigation.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -22,17 +32,22 @@ requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 require('/test/unit/mock_smil.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/test/unit/mock_subject_composer.js');
 
 var mocksHelperForCompose = new MocksHelper([
   'asyncStorage',
   'AttachmentMenu',
+  'MessageManager',
+  'Navigation',
   'Settings',
   'Recipients',
   'Utils',
   'MozActivity',
   'Attachment',
   'ThreadUI',
-  'SMIL'
+  'SMIL',
+  'SubjectComposer'
 ]).init();
 
 suite('compose_test.js', function() {
@@ -40,6 +55,8 @@ suite('compose_test.js', function() {
   var realMozL10n;
   var oversizedImageBlob,
       smallImageBlob;
+  var clock;
+  var UPDATE_DELAY = 500;
 
   function mockAttachment(size) {
     var attachment = new MockAttachment({
@@ -53,96 +70,146 @@ suite('compose_test.js', function() {
     var attachment = isOversized ?
       new MockAttachment(oversizedImageBlob, { name: 'oversized.jpg' }) :
       new MockAttachment(smallImageBlob, { name: 'small.jpg' });
+    attachment.mNextRender.dataset.thumbnail = 'blob:fake' + Math.random();
     return attachment;
+  }
+
+  /**
+   * Waits for "count" "eventName" events.
+   * @param {string} eventName Compose event name to wait for.
+   * @param {number?} count Optional number of fired events to wait for. If not
+   * specified - 1 is used.
+   * @returns {Promise} Promise that is resolved once event fired "count" times.
+   */
+  function waitForComposeEvent(eventName, count) {
+    count = count || 1;
+    return new Promise((resolve) => {
+      Compose.on(eventName, function onEvent() {
+        if (--count === 0) {
+          Compose.off(eventName, onEvent);
+          resolve();
+        }
+      });
+    });
   }
 
   suiteSetup(function(done) {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    // Create test blob for image attachment resize testing
-    var assetsNeeded = 0;
-    function getAsset(filename, loadCallback) {
-      assetsNeeded++;
 
-      var req = new XMLHttpRequest();
-      req.open('GET', filename, true);
-      req.responseType = 'blob';
-      req.onload = function() {
-        loadCallback(req.response);
-        if (--assetsNeeded === 0) {
-          done();
-        }
-      };
-      req.send();
-    }
-    getAsset('/test/unit/media/IMG_0554.jpg', function(blob) {
-      oversizedImageBlob = blob;
-    });
-    getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
-      smallImageBlob = blob;
-    });
+    var blobPromises = [
+      AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then(
+        (blob) => oversizedImageBlob = blob
+      ),
+      AssetsHelper.generateImageBlob(300, 300, 'image/jpeg', 0.5).then(
+        (blob) => smallImageBlob = blob
+      )
+    ];
+
+    Promise.all(blobPromises).then(() => {
+      done(function() {
+        var mmsSizeLimit = 300 * 1024;
+
+        assert.isTrue(
+          smallImageBlob.size < mmsSizeLimit,
+          'Image blob should be greater than MMS size limit'
+        );
+
+        assert.isTrue(
+          oversizedImageBlob.size > mmsSizeLimit,
+          'Image blob should be greater than MMS size limit'
+        );
+      });
+    }, done);
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
   });
 
+  setup(function() {
+    clock = this.sinon.useFakeTimers();
+
+    this.sinon.stub(SubjectComposer.prototype, 'on');
+    this.sinon.stub(SubjectComposer.prototype, 'isVisible').returns(false);
+    this.sinon.stub(SubjectComposer.prototype, 'getValue').returns('');
+  });
+
+  teardown(function() {
+    this.sinon.clock.tick(UPDATE_DELAY);
+  });
+
   suite('Message Composition', function() {
-    var message, subject, sendButton, attachButton;
+    var message, sendButton, attachButton, form;
 
     setup(function() {
+      this.sinon.stub(ThreadUI, 'on');
+
       loadBodyHTML('/index.html');
+      // this needs a proper DOM
+      ThreadUI.initRecipients();
+      Settings.supportEmailRecipient = true;
       Compose.init('messages-compose-form');
-      message = document.querySelector('[contenteditable]');
-      subject = document.getElementById('messages-subject-input');
+      message = document.getElementById('messages-input');
       sendButton = document.getElementById('messages-send-button');
       attachButton = document.getElementById('messages-attach-button');
+      form = document.getElementById('messages-compose-form');
     });
 
     suite('Subject', function() {
       setup(function() {
-        Compose.clear();
+        this.sinon.stub(SubjectComposer.prototype, 'show');
+        this.sinon.stub(SubjectComposer.prototype, 'hide');
+        this.sinon.stub(SubjectComposer.prototype, 'setValue');
+        this.sinon.stub(SubjectComposer.prototype, 'getMaxLength');
+      });
+
+      test('Visibility', function() {
+        SubjectComposer.prototype.isVisible.returns(true);
+        assert.isTrue(Compose.isSubjectVisible);
+
+        SubjectComposer.prototype.isVisible.returns(false);
+        assert.isFalse(Compose.isSubjectVisible);
       });
 
       test('Toggle field', function() {
-        assert.isTrue(subject.classList.contains('hide'));
-        // Show
-        Compose.toggleSubject();
-        assert.isFalse(subject.classList.contains('hide'));
-        // Hide
-        Compose.toggleSubject();
-        assert.isTrue(subject.classList.contains('hide'));
+        Compose.showSubject();
+        sinon.assert.called(SubjectComposer.prototype.show);
+
+        Compose.hideSubject();
+        sinon.assert.called(SubjectComposer.prototype.hide);
       });
 
       test('Get content from subject field', function() {
         var content = 'Title';
-        subject.value = content;
-        // We need to show the subject to get content
-        Compose.toggleSubject();
+        SubjectComposer.prototype.getValue.returns(content);
+
         assert.equal(Compose.getSubject(), content);
       });
 
-      // Per discussion, this is being deferred to another bug
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
-      //
-      // test('Toggle type display visibility', function() {
-      //   assert.isFalse(sendButton.classList.contains('has-counter'));
+      test('Set content to subject field', function() {
+        var content = 'Title';
+        Compose.setSubject(content);
 
-      //   subject.value = 'hi';
-      //   Compose.toggleSubject();
-      //   assert.isTrue(sendButton.classList.contains('has-counter'));
+        sinon.assert.calledWith(SubjectComposer.prototype.setValue, content);
+      });
 
-      //   Compose.toggleSubject();
-      //   assert.isFalse(sendButton.classList.contains('has-counter'));
-      // });
+      suite('Subject methods in Compose object', function() {
+        setup(function() {
+          SubjectComposer.prototype.getMaxLength.returns(5);
+        });
 
-      test('Sent subject doesnt have line breaks (spaces instead)', function() {
-        // Set the value
-        subject.value = 'Line 1\nLine 2\n\n\n\nLine 3';
-        // We need to show the subject to get content
-        Compose.toggleSubject();
-        var text = Compose.getSubject();
-        assert.equal(text, 'Line 1 Line 2 Line 3');
+        test('> isSubjectMaxLength:false', function() {
+          SubjectComposer.prototype.getValue.returns('abcd');
+
+          assert.isFalse(Compose.isSubjectMaxLength());
+        });
+
+        test('> isSubjectMaxLength:true', function() {
+          SubjectComposer.prototype.getValue.returns('abcde');
+
+          assert.isTrue(Compose.isSubjectMaxLength());
+        });
       });
     });
 
@@ -178,6 +245,9 @@ suite('compose_test.js', function() {
     suite('Clearing Message', function() {
       setup(function() {
         Compose.clear();
+
+        this.sinon.stub(SubjectComposer.prototype, 'reset');
+        this.sinon.stub(window.URL, 'revokeObjectURL');
       });
 
       test('Clear removes text', function() {
@@ -190,20 +260,46 @@ suite('compose_test.js', function() {
       });
       test('Clear removes attachment', function() {
         Compose.append(mockAttachment());
-        var txt = Compose.getContent();
-        assert.equal(txt.length, 1, 'One line in txt');
+
+        assert.equal(Compose.getContent().length, 1, 'One line in text');
+
         Compose.clear();
-        txt = Compose.getContent();
-        assert.equal(txt.length, 0, 'No lines in the txt');
+
+        assert.equal(Compose.getContent().length, 0, 'No lines in the text');
+        sinon.assert.notCalled(
+          window.URL.revokeObjectURL,
+          'Should not revoke anything for non-image attachment'
+        );
       });
-      test('Clear removes subject', function() {
-        subject.value = 'Title';
-        Compose.toggleSubject();
-        var txt = Compose.getSubject();
-        assert.equal(txt, 'Title', 'Something in the txt');
+      test('Clear properly revokes thumbnail URLs', function() {
+        var attachments = [
+          mockAttachment(), mockImgAttachment(), mockImgAttachment()
+        ];
+
+        attachments.forEach((attachment) => Compose.append(attachment));
+        assert.equal(Compose.getContent().length, 3, 'Three lines in text');
+
+        // Remove one attachment manually
+        attachments[2].mNextRender.remove();
+
         Compose.clear();
-        txt = Compose.getSubject();
-        assert.equal(txt, '', 'Nothing in the txt');
+
+        assert.equal(Compose.getContent().length, 0, 'No lines in the text');
+        sinon.assert.calledTwice(
+          window.URL.revokeObjectURL,
+          'Should revoke object URL for all image attachments'
+        );
+        attachments.slice(1).forEach((attachment) => {
+          sinon.assert.calledWith(
+            window.URL.revokeObjectURL,
+            attachment.mNextRender.dataset.thumbnail
+          );
+        });
+      });
+      test('Resets subject', function() {
+        Compose.clear();
+
+        sinon.assert.called(SubjectComposer.prototype.reset);
       });
     });
 
@@ -215,9 +311,7 @@ suite('compose_test.js', function() {
       });
 
       test('Message appended with html', function() {
-        var message = document.querySelector(
-          '#messages-compose-form [contenteditable]'
-        );
+        var message = document.getElementById('messages-input');
 
         Compose.append('<b>hi!</b>\ntest');
         var txt = Compose.getContent();
@@ -261,12 +355,37 @@ suite('compose_test.js', function() {
         assert.equal(count, 1);
       });
 
+      test('Compose.append("")', function() {
+        var stub = sinon.stub();
+        Compose.on('input', stub);
+
+        var original = Compose.getContent();
+        Compose.append('');
+        var final = Compose.getContent();
+
+        sinon.assert.notCalled(stub);
+        assert.deepEqual(final, original);
+      });
+
       test('Message prepend', function() {
         Compose.append('end');
         Compose.prepend('start');
         var txt = Compose.getContent();
         assert.equal(txt[0], 'startend', 'text is inserted at beginning');
       });
+
+      test('Compose.prepend("")', function() {
+        var stub = sinon.stub();
+        Compose.on('input', stub);
+
+        var original = Compose.getContent();
+        Compose.prepend('');
+        var final = Compose.getContent();
+
+        sinon.assert.notCalled(stub);
+        assert.deepEqual(final, original);
+      });
+
       teardown(function() {
         Compose.clear();
       });
@@ -282,13 +401,13 @@ suite('compose_test.js', function() {
       setup(function() {
         onInput = sinon.stub();
         onType = sinon.spy(captureType);
-        Compose.type = 'sms';
+        Compose.clear();
         Compose.on('input', onInput);
         Compose.on('type', onType);
       });
 
       teardown(function() {
-        Compose.clearListeners();
+        Compose.offAll();
         typeWhenEvent = null;
       });
 
@@ -304,12 +423,6 @@ suite('compose_test.js', function() {
         assert.ok(onType.called);
         assert.ok(onInput.calledAfter(onType));
         assert.equal(typeWhenEvent, 'mms');
-      });
-
-      test('changing type', function() {
-        Compose.type = 'mms';
-        assert.isFalse(onInput.called);
-        assert.ok(onType.called);
       });
     });
 
@@ -431,6 +544,9 @@ suite('compose_test.js', function() {
           content: ['I have an attachment!', attachment],
           threadId: 1
         });
+
+        this.sinon.stub(SubjectComposer.prototype, 'show');
+        this.sinon.stub(SubjectComposer.prototype, 'setValue');
       });
       teardown(function() {
 
@@ -442,16 +558,30 @@ suite('compose_test.js', function() {
         assert.equal(Compose.getContent(), d1.content.join(''));
       });
 
-      test('Draft with subject', function() {
-        assert.isFalse(Compose.isSubjectVisible);
+      test('Place cursor at the end of the compose field', function() {
         Compose.fromDraft(d1);
-        assert.equal(Compose.getSubject(), d1.subject);
-        assert.isTrue(Compose.isSubjectVisible);
+
+        var range = window.getSelection().getRangeAt(0);
+        assert.equal(message.lastChild.tagName, 'BR');
+        assert.isTrue(range.collapsed);
+        assert.equal(range.startOffset, message.childNodes.length - 1);
+      });
+
+      test('Draft with subject', function() {
+        Compose.fromDraft(d1);
+
+        sinon.assert.called(SubjectComposer.prototype.show);
+        sinon.assert.calledWith(
+          SubjectComposer.prototype.setValue,
+          d1.subject
+        );
       });
 
       test('Draft without subject', function() {
         Compose.fromDraft(d2);
-        assert.isFalse(Compose.isSubjectVisible);
+
+        sinon.assert.notCalled(SubjectComposer.prototype.show);
+        sinon.assert.notCalled(SubjectComposer.prototype.setValue);
       });
 
       test('Draft with attachment', function() {
@@ -476,7 +606,14 @@ suite('compose_test.js', function() {
       });
 
       test('Changing subject', function() {
-        Compose.toggleSubject();
+        SubjectComposer.prototype.on.withArgs('change').yield();
+
+        assert.isTrue(ThreadUI.draft.isEdited);
+      });
+
+      test('Hiding or showing subject', function() {
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
         assert.isTrue(ThreadUI.draft.isEdited);
       });
 
@@ -602,37 +739,56 @@ suite('compose_test.js', function() {
     });
 
     suite('Image Attachment Handling', function() {
-      var realgetResizedImgBlob;
       setup(function() {
+        this.sinon.stub(Utils, 'getResizedImgBlob');
         Compose.clear();
       });
-      suiteSetup(function() {
-        realgetResizedImgBlob = Utils.getResizedImgBlob;
-        Utils.getResizedImgBlob = function mockResize() {
-          Utils.getResizedImgBlob.args = arguments;
-          realgetResizedImgBlob.apply(null, arguments);
-        };
-      });
-      suiteTeardown(function() {
-        Utils.getResizedImgBlob = realgetResizedImgBlob;
-      });
-      test('Attaching one image', function(done) {
-        var actualSize;
+
+      test('Attaching one small image', function(done) {
+        var initialSize;
+        var attachment = mockImgAttachment();
+
         function onInput() {
-          if (!Compose.isResizing) {
+          done(function() {
             Compose.off('input', onInput);
             var img = Compose.getContent();
             assert.equal(img.length, 1, 'One image');
-            assert.notEqual(actualSize, Compose.size,
-              'the size was recalculated after resizing');
-            done();
+            assert.notEqual(Compose.size, initialSize,
+              'the size was recalculated');
+          });
+        }
+        // we store this so we can make sure it's recalculated
+        initialSize = Compose.size;
+
+        Compose.on('input', onInput);
+        Compose.append(attachment);
+      });
+
+      test('Attaching one oversized image', function(done) {
+        var actualSize;
+        var attachment = mockImgAttachment(true);
+        sinon.spy(attachment, 'updateFileSize');
+
+        function onInput() {
+          if (!Compose.isResizing) {
+            done(function() {
+              Compose.off('input', onInput);
+              var img = Compose.getContent();
+              assert.equal(img.length, 1, 'One image');
+              assert.notEqual(Compose.size, actualSize,
+                'the size was recalculated after resizing');
+              assert.equal(attachment.blob, smallImageBlob);
+              sinon.assert.called(attachment.updateFileSize);
+            });
           }
         }
         Compose.on('input', onInput);
-        Compose.append(mockImgAttachment());
+        Compose.append(attachment);
         // we store this so we can make sure it gets resized
         actualSize = Compose.size;
+        Utils.getResizedImgBlob.lastCall.yield(smallImageBlob);
       });
+
       test('Attaching another oversized image', function(done) {
         function onInput() {
           if (!Compose.isResizing) {
@@ -640,43 +796,54 @@ suite('compose_test.js', function() {
 
             if (images.length < 2) {
               Compose.append(mockImgAttachment(true));
+              Utils.getResizedImgBlob.lastCall.yield(smallImageBlob);
             } else {
-              Compose.off('input', onInput);
-              assert.equal(images.length, 2, 'two images');
-              assert.equal(Compose.getContent()[1], 'append more image',
-                'Second attachment is text');
-              assert.isTrue(Utils.getResizedImgBlob.args[1] ===
-                            Settings.mmsSizeLimitation * 0.4,
-                'getResizedImgBlob should set to 2/5 MMS size');
-              assert.isTrue(Compose.getContent()[2].size <
-                            Settings.mmsSizeLimitation * 0.4,
-                'Image attachment is resized');
-              done();
+              done(function() {
+                var content = Compose.getContent();
+
+                Compose.off('input', onInput);
+                assert.equal(images.length, 2, 'two images');
+                assert.equal(content[1], 'append more image',
+                  'Second attachment is text');
+                assert.ok(
+                  Utils.getResizedImgBlob.lastCall.calledWith(
+                    sinon.match.any,
+                    Settings.mmsSizeLimitation * 0.4
+                  ),
+                  'getResizedImgBlob should set to 2/5 MMS size'
+                );
+
+                assert.equal(content[2].blob, smallImageBlob);
+              });
             }
           }
         }
         Compose.on('input', onInput);
         Compose.append(mockImgAttachment(true));
         Compose.append('append more image');
+        Utils.getResizedImgBlob.lastCall.yield(smallImageBlob);
       });
+
       test('Third image attached, size limitation should changed',
-        function(done) {
+      function(done) {
         function onInput() {
           if (!Compose.isResizing) {
             var images = Compose.getContent();
             if (images.length < 3) {
               Compose.append(mockImgAttachment(true));
+              Utils.getResizedImgBlob.lastCall.yield(smallImageBlob);
             } else {
-              Compose.off('input', onInput);
-              assert.equal(images.length, 3, 'three images');
-              assert.isTrue(Utils.getResizedImgBlob.args[1] ===
-                            Settings.mmsSizeLimitation * 0.2,
-                'getResizedImgBlob should set to 1/5 MMS size');
-              images.forEach(function(img) {
-                assert.isTrue(img.size < Settings.mmsSizeLimitation * 0.2,
-                  'Image attachment is resized');
+              done(function() {
+                Compose.off('input', onInput);
+                assert.equal(images.length, 3, 'three images');
+                assert.ok(
+                  Utils.getResizedImgBlob.lastCall.calledWith(
+                    sinon.match.any,
+                    Settings.mmsSizeLimitation * 0.2
+                  ),
+                  'getResizedImgBlob should set to 1/5 MMS size'
+                );
               });
-              done();
             }
           }
         }
@@ -686,86 +853,129 @@ suite('compose_test.js', function() {
     });
 
     suite('Message Type Events', function() {
-      var form;
-      var expectType = 'sms';
-
-      function typeChange(event) {
-        assert.equal(Compose.type, expectType);
-        typeChange.called++;
-      }
+      var typeChangeStub;
 
       setup(function() {
-        expectType = 'sms';
         Compose.clear();
-        typeChange.called = 0;
-        form = document.getElementById('messages-compose-form');
 
-        Compose.on('type', typeChange);
+        typeChangeStub = sinon.stub();
+
+        Compose.on('type', typeChangeStub);
       });
 
       teardown(function() {
-        Compose.off('type', typeChange);
+        Compose.off('type', typeChangeStub);
       });
 
-      test('Message switches type when adding/removing attachment',
+      test('Message switches type when adding attachment but not when clearing',
         function() {
-        expectType = 'mms';
         Compose.append(mockAttachment());
-        assert.equal(typeChange.called, 1);
 
-        expectType = 'sms';
+        sinon.assert.calledOnce(typeChangeStub);
+        assert.equal(Compose.type, 'mms');
+
         Compose.clear();
-        assert.equal(typeChange.called, 2);
+
+        sinon.assert.calledOnce(typeChangeStub);
+        assert.equal(Compose.type, 'sms');
       });
 
       test('Message switches type when adding/removing subject',
         function() {
-        expectType = 'mms';
-        Compose.toggleSubject();
-        subject.value = 'foo';
-        subject.dispatchEvent(new CustomEvent('input'));
-        assert.equal(typeChange.called, 1);
+        SubjectComposer.prototype.getValue.returns('foo');
 
-        expectType = 'sms';
-        Compose.clear();
-        assert.equal(typeChange.called, 2);
+        SubjectComposer.prototype.isVisible.returns(true);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
+        sinon.assert.calledOnce(typeChangeStub);
+        assert.equal(Compose.type, 'mms');
+
+        SubjectComposer.prototype.isVisible.returns(false);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
+        sinon.assert.calledTwice(typeChangeStub);
+        assert.equal(Compose.type, 'sms');
+      });
+
+      test('Message switches type when there is an e-mail among the recipients',
+      function() {
+        ThreadUI.recipients.add({
+          number: 'foo@bar.com',
+          isEmail: true
+        });
+
+        ThreadUI.on.withArgs('recipientschange').yield();
+
+        sinon.assert.calledOnce(typeChangeStub);
+        assert.equal(Compose.type, 'mms');
       });
     });
 
-    suite('changing inputmode', function() {
+    suite('changing inputmode and message type', function() {
       test('initial inputmode is sms', function() {
         assert.equal(message.getAttribute('x-inputmode'), '-moz-sms');
+        assert.equal(form.dataset.messageType, 'sms');
       });
 
-      test('changing type to mms', function() {
-        Compose.type = 'mms';
+      test('changing type to mms, then clear', function() {
+        SubjectComposer.prototype.getValue.returns('some subject');
+
+        SubjectComposer.prototype.isVisible.returns(true);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
 
         assert.isFalse(message.hasAttribute('x-inputmode'));
+        assert.equal(form.dataset.messageType, 'mms');
+
+        SubjectComposer.prototype.isVisible.returns(false);
+        Compose.clear();
+        assert.equal(message.getAttribute('x-inputmode'), '-moz-sms');
+        assert.equal(form.dataset.messageType, 'sms');
       });
 
       test('changing type to mms then sms', function() {
-        Compose.type = 'mms';
-        Compose.type = 'sms';
+        SubjectComposer.prototype.getValue.returns('some subject');
+
+        SubjectComposer.prototype.isVisible.returns(true);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+        SubjectComposer.prototype.isVisible.returns(false);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
 
         assert.equal(message.getAttribute('x-inputmode'), '-moz-sms');
+        assert.equal(form.dataset.messageType, 'sms');
       });
     });
 
     suite('Compose fromMessage', function() {
+      var xssString = '<img src="/" onerror="delete window.Compose;" />';
+      var escapedXssString =
+        '&lt;img src="/" onerror="delete window.Compose;" /&gt;';
+
       setup(function() {
         this.sinon.spy(Compose, 'append');
         this.sinon.spy(HTMLElement.prototype, 'focus');
         this.sinon.stub(SMIL, 'parse');
       });
+
       test('from sms', function() {
-        Compose.fromMessage({type: 'sms', body: 'test'});
+        var body = 'It\'s http:\\mozilla.org' + xssString;
+
+        Compose.fromMessage({type: 'sms', body: body });
+
         sinon.assert.called(Compose.append);
-        sinon.assert.called(message.focus);
+        sinon.assert.notCalled(message.focus);
+        assert.isDefined(Compose, 'XSS should not be successful');
+        assert.equal(message.textContent, body);
+        assert.equal(
+          message.innerHTML,
+          'It\'s http:\\mozilla.org' + escapedXssString + '<br>'
+        );
       });
 
       test('from mms', function() {
-        var testString = ['test\nstring 1\nin slide 1',
-                          'test\nstring 2\nin slide 2'];
+        var testString = [
+          'test\nstring 1\nin slide 1' + xssString,
+          'It\'s test\nstring 2\nin slide 2'
+        ];
         Compose.fromMessage({type: 'mms'});
 
         // Should not be focused before parse complete.
@@ -773,15 +983,25 @@ suite('compose_test.js', function() {
         assert.isTrue(message.classList.contains('ignoreEvents'));
         SMIL.parse.yield([{text: testString[0]}, {text: testString[1]}]);
 
-        sinon.assert.calledWith(Compose.append);
-        sinon.assert.called(message.focus);
+        sinon.assert.called(Compose.append);
+        sinon.assert.notCalled(message.focus);
         assert.isFalse(message.classList.contains('ignoreEvents'));
+        assert.isDefined(Compose, 'XSS should not be successful');
+        assert.equal(
+          message.textContent,
+          testString.join('').replace(/\n/g, '')
+        );
+        assert.equal(
+          message.innerHTML,
+          'test<br>string 1<br>in slide 1' + escapedXssString +
+          'It\'s test<br>string 2<br>in slide 2<br>'
+        );
       });
 
       test('empty body', function() {
         Compose.fromMessage({type: 'sms', body: null});
-        sinon.assert.calledWith(Compose.append, '');
-        sinon.assert.called(message.focus);
+        sinon.assert.calledWith(Compose.append, null);
+        sinon.assert.notCalled(message.focus);
       });
     });
 
@@ -822,6 +1042,372 @@ suite('compose_test.js', function() {
         });
       });
     });
+
+    suite('send button management:', function() {
+      setup(function() {
+        Compose.clear();
+
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      });
+
+      teardown(function() {
+        Compose.clear();
+      });
+
+      suite('In thread panel, button should be...', function() {
+        setup(function() {
+          Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+          Compose.clear();
+        });
+
+        test('disabled at the beginning', function() {
+          assert.isTrue(sendButton.disabled);
+        });
+
+        test('enabled when there is message input', function() {
+          Compose.append('Hola');
+          assert.isFalse(sendButton.disabled);
+        });
+
+        test('enabled when there is subject input and is visible', function() {
+          SubjectComposer.prototype.isVisible.returns(true);
+          SubjectComposer.prototype.getValue.returns('test');
+          SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
+          assert.isFalse(sendButton.disabled);
+        });
+
+        test('disabled when there is subject input, but is hidden', function() {
+          sendButton.disabled = false;
+
+          SubjectComposer.prototype.isVisible.returns(false);
+          SubjectComposer.prototype.getValue.returns('test');
+          SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
+          assert.isTrue(sendButton.disabled);
+        });
+
+        test('enabled when there is message input, but too many segments',
+        function(done) {
+          var segmentInfo = {
+            segments: 11,
+            charsAvailableInLastSegment: 10
+          };
+          var promise = Promise.resolve(segmentInfo);
+          this.sinon.stub(MessageManager, 'getSegmentInfo').returns(promise);
+
+          Compose.append('Hola');
+
+          promise.then(
+            () => assert.isFalse(sendButton.disabled)
+          ).then(done, done);
+        });
+
+        test('disabled when oversized', function() {
+          Settings.mmsSizeLimitation = 1024;
+          Compose.append(mockAttachment(512));
+          Compose.append('sigh');
+          Compose.append(mockAttachment(512));
+          assert.isTrue(sendButton.disabled);
+        });
+      });
+
+      suite('In composer panel, button should be...', function() {
+        setup(function() {
+          Navigation.isCurrentPanel.withArgs('composer').returns(true);
+
+          Compose.clear();
+          ThreadUI.recipients.length = 0;
+          ThreadUI.recipients.inputValue = '';
+        });
+
+        teardown(function() {
+          Compose.clear();
+          ThreadUI.recipients.length = 0;
+          ThreadUI.recipients.inputValue = '';
+        });
+
+        suite('enabled', function() {
+          setup(function() {
+            // force disabled state to see that this is correctly removed
+            sendButton.disabled = true;
+          });
+
+          suite('when there is message input...', function() {
+            setup(function() {
+              Compose.append('Hola');
+            });
+
+            test('and recipient field value is valid ', function() {
+              ThreadUI.recipients.inputValue = '999';
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isFalse(sendButton.disabled);
+            });
+
+            test('after adding a valid recipient ', function() {
+              ThreadUI.recipients.add({
+                number: '999'
+              });
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isFalse(sendButton.disabled);
+            });
+
+            test('after adding valid & questionable recipients ', function() {
+              ThreadUI.recipients.add({
+                number: 'foo',
+                isQuestionable: true
+              });
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              ThreadUI.recipients.add({
+                number: '999'
+              });
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isFalse(sendButton.disabled);
+            });
+          });
+
+          test('when message input size is at the maximum', function() {
+            ThreadUI.recipients.add({ number: '999' });
+            Settings.mmsSizeLimitation = 1024;
+
+            Compose.append(mockAttachment(1024));
+
+            assert.isFalse(sendButton.disabled);
+          });
+
+          suite('when there is visible subject with input...', function() {
+            setup(function() {
+              SubjectComposer.prototype.getValue.returns('Title');
+              SubjectComposer.prototype.isVisible.returns(true);
+
+              SubjectComposer.prototype.on.withArgs('visibility-change').
+                yield();
+            });
+
+            test('and recipient field value is valid ', function() {
+              ThreadUI.recipients.inputValue = '999';
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isFalse(sendButton.disabled);
+            });
+
+            test('after adding a valid recipient ', function() {
+              ThreadUI.recipients.add({
+                number: '999'
+              });
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isFalse(sendButton.disabled);
+            });
+
+            test('after adding valid & questionable recipients ', function() {
+              ThreadUI.recipients.add({
+                number: 'foo',
+                isQuestionable: true
+              });
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              ThreadUI.recipients.add({
+                number: '999'
+              });
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isFalse(sendButton.disabled);
+            });
+          });
+
+          suite('when a valid recipient exists...', function() {
+            setup(function() {
+              ThreadUI.recipients.add({
+                number: '999'
+              });
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+            });
+
+            test('after adding message input ', function() {
+              Compose.append('Hola');
+              assert.isFalse(sendButton.disabled);
+            });
+
+            test('after adding subject input', function() {
+              SubjectComposer.prototype.getValue.returns('Title');
+              SubjectComposer.prototype.isVisible.returns(true);
+
+              SubjectComposer.prototype.on.withArgs('visibility-change').
+                yield();
+
+              assert.isFalse(sendButton.disabled);
+            });
+
+            test('when message input size is at the maximum', function() {
+              Settings.mmsSizeLimitation = 1024;
+
+              Compose.append(mockAttachment(1024));
+
+              assert.isFalse(sendButton.disabled);
+            });
+          });
+        });
+
+        suite('disabled', function() {
+          test('when there is no message input, subject or recipient',
+            function() {
+            assert.isTrue(sendButton.disabled);
+          });
+
+          test('when message is over data limit ', function() {
+            ThreadUI.recipients.add({
+              number: '999'
+            });
+
+            Compose.append(mockAttachment(295 * 1024));
+
+            assert.isFalse(sendButton.disabled);
+            Compose.append('Hola');
+
+            assert.isTrue(sendButton.disabled);
+          });
+
+          suite('when there is message input...', function() {
+            setup(function() {
+              Compose.append('Hola');
+            });
+
+            teardown(function() {
+              Compose.clear();
+            });
+
+            test('there is no recipient ', function() {
+              assert.isTrue(sendButton.disabled);
+            });
+
+            test('recipient field value is questionable ', function() {
+              ThreadUI.recipients.inputValue = 'a';
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isTrue(sendButton.disabled);
+            });
+
+            test('after adding a questionable recipient ', function() {
+              ThreadUI.recipients.add({
+                number: 'foo',
+                isQuestionable: true
+              });
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isFalse(sendButton.disabled);
+            });
+          });
+
+          suite('when there is subject input...', function() {
+            setup(function() {
+              sendButton.disabled = false;
+
+              SubjectComposer.prototype.getValue.returns('Title');
+              SubjectComposer.prototype.on.withArgs('change').yield();
+            });
+
+            teardown(function() {
+              Compose.clear();
+            });
+
+            test('there is no recipient ', function() {
+              assert.isTrue(sendButton.disabled);
+            });
+
+            test('recipient field value is questionable ', function() {
+              ThreadUI.recipients.inputValue = 'a';
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isTrue(sendButton.disabled);
+            });
+
+            test('after adding a questionable recipient ', function() {
+              ThreadUI.recipients.add({
+                number: 'foo',
+                isQuestionable: true
+              });
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isTrue(sendButton.disabled);
+            });
+
+            test('there is recipient, but subject field is hidden', function() {
+              ThreadUI.recipients.add({
+                number: '999'
+              });
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isTrue(sendButton.disabled);
+            });
+          });
+
+          suite('when a valid recipient exists...', function() {
+            test('there is no message input ', function() {
+
+              ThreadUI.recipients.add({
+                number: 'foo'
+              });
+
+              ThreadUI.on.withArgs('recipientschange').yield();
+
+              assert.isTrue(sendButton.disabled);
+            });
+          });
+
+          test('oversized message', function() {
+            Settings.mmsSizeLimitation = 1024;
+            Compose.append(mockAttachment(512));
+            Compose.append('sigh');
+            Compose.append(mockAttachment(512));
+            assert.isTrue(sendButton.disabled);
+          });
+        });
+
+        test('disabled while resizing oversized image and ' +
+          'enabled when resize complete ',
+          function(done) {
+
+          this.sinon.stub(Utils, 'getResizedImgBlob');
+
+          ThreadUI.recipients.add({
+            number: '999'
+          });
+
+          ThreadUI.on.withArgs('recipientschange').yield();
+
+          function onInput() {
+            if (!Compose.isResizing) {
+              Compose.off('input', onInput);
+              assert.isFalse(sendButton.disabled);
+              done();
+            }
+          }
+          Compose.on('input', onInput);
+          Compose.append(mockImgAttachment(true));
+          assert.isTrue(sendButton.disabled);
+          Utils.getResizedImgBlob.yield(smallImageBlob);
+        });
+      });
+    });
   });
 
   suite('Attachment pre-send menu', function() {
@@ -832,10 +1418,12 @@ suite('compose_test.js', function() {
       this.attachmentSize = Compose.size;
       this.sinon.stub(AttachmentMenu, 'open');
       this.sinon.stub(AttachmentMenu, 'close');
+      this.sinon.stub(window.URL, 'revokeObjectURL');
 
       // trigger a click on attachment
       this.attachment.mNextRender.click();
     });
+
     test('click opens menu', function() {
       assert.isTrue(AttachmentMenu.open.called);
     });
@@ -861,7 +1449,11 @@ suite('compose_test.js', function() {
           document.getElementById('attachment-options-remove').click();
         });
         test('removes the original attachment', function() {
-          assert.ok(!this.attachment.mNextRender.parentNode);
+          sinon.assert.calledWith(
+            window.URL.revokeObjectURL,
+            this.attachment.mNextRender.dataset.thumbnail
+          );
+          assert.isFalse(document.body.contains(this.attachment.mNextRender));
         });
         test('closes the menu', function() {
           assert.isTrue(AttachmentMenu.close.called);
@@ -905,7 +1497,11 @@ suite('compose_test.js', function() {
             assert.isTrue(Compose.requestAttachment.called);
           });
           test('removes the original attachment', function() {
-            assert.ok(!this.attachment.mNextRender.parentNode);
+            sinon.assert.calledWith(
+              window.URL.revokeObjectURL,
+              this.attachment.mNextRender.dataset.thumbnail
+            );
+            assert.isFalse(document.body.contains(this.attachment.mNextRender));
           });
           test('inserts the new attachment', function() {
             assert.ok(this.replacement.mNextRender.parentNode);
@@ -947,6 +1543,11 @@ suite('compose_test.js', function() {
             );
           });
 
+          test('does not remove original attachment', function() {
+            sinon.assert.notCalled(window.URL.revokeObjectURL);
+            assert.isTrue(document.body.contains(this.attachment.mNextRender));
+          });
+
           test('other errors are logged', function() {
             var err = 'other error';
             request.onerror(err);
@@ -962,24 +1563,439 @@ suite('compose_test.js', function() {
     setup(function() {
       this.sinon.stub(AttachmentMenu, 'open');
       this.sinon.stub(AttachmentMenu, 'close');
+      this.sinon.stub(Utils, 'getResizedImgBlob');
     });
     test('click opens menu while resizing and resize complete', function(done) {
       Compose.clear();
       var imageAttachment = mockImgAttachment(true);
       function onInput() {
         if (!Compose.isResizing) {
-          Compose.off('input', onInput);
-          imageAttachment.mNextRender.click();
-          assert.isTrue(AttachmentMenu.open.called, 'Menu should popup');
-          done();
+          done(function() {
+            Compose.off('input', onInput);
+            imageAttachment.mNextRender.click();
+            sinon.assert.called(AttachmentMenu.open, 'Menu should popup');
+          });
         }
       }
       Compose.on('input', onInput);
       Compose.append(imageAttachment);
       imageAttachment.mNextRender.click();
-      assert.isFalse(AttachmentMenu.open.called,
-        'Menu could not be opened while ressizing');
+      sinon.assert.notCalled(
+        AttachmentMenu.open,
+        'Menu could not be opened while ressizing'
+      );
+
+      Utils.getResizedImgBlob.yield(smallImageBlob);
+    });
+  });
+
+  suite('segmentInfo', function() {
+    var initialSegmentInfo = {
+      segments: 0,
+      charsAvailableInLastSegment: 0
+    };
+
+    var segmentInfoPromise, expected;
+    var initialText = 'hello,';
+    var followingText = ' world!';
+
+    function setInput(string) {
+      var message = document.getElementById('messages-input');
+      message.textContent = string;
+
+      var event = new InputEvent('input', { bubbles: true, cancelable: true });
+      message.dispatchEvent(event);
+    }
+
+    function setInputAndWait(string) {
+      setInput(string);
+
+      clock.tick(UPDATE_DELAY);
+
+      return waitForSegmentinfo();
+    }
+
+    function waitForSegmentinfo(count) {
+      return waitForComposeEvent('segmentinfochange', count);
+    }
+
+    setup(function(done) {
+      this.sinon.stub(MessageManager, 'getSegmentInfo');
+
+      expected = {
+        segments: 1,
+        charsAvailableInLastSegment: 20
+      };
+
+      segmentInfoPromise = Promise.resolve(expected);
+      MessageManager.getSegmentInfo.returns(segmentInfoPromise);
+
+      loadBodyHTML('/index.html');
+      Compose.init('messages-compose-form');
+      // Compose.init does a Compose.clear which updates segmentInfo
+      clock.tick(UPDATE_DELAY);
+      waitForSegmentinfo().then(done);
+    });
+
+    teardown(function(done) {
+      // some tests use a rejected promise
+      segmentInfoPromise.catch(() => {}).then(function() {
+        Compose.clear();
+        Compose.offAll();
+      }).then(done, done);
+    });
+
+    test('updates when input is entered', function(done) {
+      setInputAndWait('some text').then(function() {
+        assert.deepEqual(Compose.segmentInfo, expected);
+        assert.equal(Compose.type, 'sms');
+      }).then(done, done);
+    });
+
+    test('does not update when subject input changes', function() {
+      SubjectComposer.prototype.getValue.returns('some subject');
+      SubjectComposer.prototype.isVisible.returns(true);
+      SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
+      setInput('some body');
+      this.sinon.clock.tick(UPDATE_DELAY);
+      sinon.assert.called(MessageManager.getSegmentInfo);
+
+      MessageManager.getSegmentInfo.reset();
+
+      SubjectComposer.prototype.on.withArgs('change').yield();
+
+      this.sinon.clock.tick(UPDATE_DELAY);
+
+      sinon.assert.notCalled(MessageManager.getSegmentInfo);
+    });
+
+    test('updates when subject is removed', function(done) {
+      SubjectComposer.prototype.getValue.returns('some subject');
+      SubjectComposer.prototype.isVisible.returns(true);
+      SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
+      setInputAndWait('some text').then(function() {
+        assert.equal(Compose.type, 'mms');
+
+        SubjectComposer.prototype.isVisible.returns(false);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
+        assert.deepEqual(Compose.segmentInfo, expected);
+        assert.equal(Compose.type, 'sms');
+      }).then(done, done);
+    });
+
+    test('has the default value if there is an error', function(done) {
+      segmentInfoPromise = Promise.reject(new Error('error'));
+      MessageManager.getSegmentInfo.returns(segmentInfoPromise);
+
+      setInputAndWait('some text').then(function() {
+        assert.deepEqual(Compose.segmentInfo, initialSegmentInfo);
+        assert.equal(Compose.type, 'sms');
+      }).then(done, done);
+    });
+
+    test('set type to mms if the text is very long', function(done) {
+      Settings.maxConcatenatedMessages = 10;
+
+      var expected = {
+        segments: 11,
+        charsAvailableInLastSegment: 20
+      };
+      segmentInfoPromise = Promise.resolve(expected);
+      MessageManager.getSegmentInfo.returns(segmentInfoPromise);
+
+      setInputAndWait('some text').then(function() {
+        assert.deepEqual(Compose.segmentInfo, expected);
+        assert.equal(Compose.type, 'mms');
+      }).then(done, done);
+    });
+
+    test('set type back to sms if the text is shortened', function(done) {
+      Settings.maxConcatenatedMessages = 10;
+
+      var result1 = {
+        segments: 11,
+        charsAvailableInLastSegment: 20
+      };
+      var result2 = {
+        segments: 10,
+        charsAvailableInLastSegment: 20
+      };
+      segmentInfoPromise = Promise.resolve(result1);
+      MessageManager.getSegmentInfo.returns(segmentInfoPromise);
+
+      setInputAndWait('some text').then(function() {
+        segmentInfoPromise = Promise.resolve(result2);
+        MessageManager.getSegmentInfo.returns(segmentInfoPromise);
+        return setInputAndWait('some text');
+      }).then(function() {
+        assert.deepEqual(Compose.segmentInfo, result2);
+        assert.equal(Compose.type, 'sms');
+      }).then(done, done);
+    });
+
+    test('returns the empty segmentInfo when text is empty', function(done) {
+      setInputAndWait('some text').then(function() {
+        MessageManager.getSegmentInfo.reset();
+        return setInputAndWait('');
+      }).then(function() {
+        sinon.assert.notCalled(MessageManager.getSegmentInfo);
+        assert.deepEqual(Compose.segmentInfo, initialSegmentInfo);
+      }).then(done, done);
+    });
+
+    test('do not call getSegmentInfo twice in a row', function(done) {
+      Compose.append(initialText);
+      this.sinon.clock.tick(UPDATE_DELAY / 2);
+      Compose.append(followingText);
+
+      var waitingPromise = waitForSegmentinfo();
+
+      this.sinon.clock.tick(UPDATE_DELAY);
+
+      waitingPromise.then(function() {
+        sinon.assert.calledOnce(MessageManager.getSegmentInfo);
+        sinon.assert.calledWith(
+          MessageManager.getSegmentInfo, initialText + followingText
+        );
+      }).then(done, done);
+    });
+
+    suite('asynchronous tricky tests >', function() {
+      var deferred1, deferred2;
+
+      var segmentInfo1 = {
+        segments: 1,
+        charsAvailableInLastSegment: 50
+      };
+
+      var segmentInfo2 = {
+        segments: 1,
+        charsAvailableInLastSegment: 40
+      };
+
+      function defer() {
+        var deferred = {};
+
+        deferred.promise = new Promise(function(resolve, reject) {
+          deferred.resolve = resolve;
+          deferred.reject = reject;
+        });
+
+        return deferred;
+      }
+
+      var results;
+      function captureSegmentInfo() {
+        results.push(Compose.segmentInfo);
+      }
+
+      setup(function() {
+        results = [];
+        Compose.on('segmentinfochange', captureSegmentInfo);
+
+        deferred1 = defer();
+        deferred2 = defer();
+
+        MessageManager.getSegmentInfo.reset();
+        MessageManager.getSegmentInfo.onFirstCall().returns(deferred1.promise);
+        MessageManager.getSegmentInfo.onSecondCall().returns(deferred2.promise);
+
+        Compose.append(initialText);
+        this.sinon.clock.tick(UPDATE_DELAY);
+
+        // the user appends more text before the segment info request returns
+        Compose.append(followingText);
+
+        // wait for the next update delay => should fire
+        this.sinon.clock.tick(UPDATE_DELAY);
+      });
+
+      teardown(function() {
+        Compose.off('segmentinfochange', captureSegmentInfo);
+      });
+
+      test('getSegmentInfoForText got called twice', function() {
+        sinon.assert.calledTwice(MessageManager.getSegmentInfo);
+
+        // sinon.assert.calledWith does not work with individual calls
+        assert.ok(
+          MessageManager.getSegmentInfo.firstCall.calledWith(initialText)
+        );
+        assert.ok(
+          MessageManager.getSegmentInfo.secondCall.calledWith(
+            initialText + followingText
+          )
+        );
+      });
+
+      test('segment info requests return ordered', function(done) {
+        deferred1.resolve(segmentInfo1);
+        deferred2.resolve(segmentInfo2);
+
+        waitForSegmentinfo(2).then(function() {
+          assert.equal(results[1], segmentInfo2);
+        }).then(done, done);
+      });
+
+      test('2 segment info requests return unordered', function(done) {
+        deferred2.resolve(segmentInfo2);
+        deferred1.resolve(segmentInfo1);
+
+        waitForSegmentinfo(2).then(function() {
+          // note: this is wrong, but this won't happen in real life
+          assert.equal(results[1], segmentInfo1);
+        }).then(done, done);
+      });
+    });
+  });
+
+  suite('Message char counter', function() {
+    var messageCounter,
+        segmentInfoResponse;
+
+    setup(function(done) {
+      this.sinon.stub(
+        MessageManager,
+        'getSegmentInfo',
+        () => Promise.resolve(segmentInfoResponse)
+      );
+
+      loadBodyHTML('/index.html');
+      messageCounter = document.querySelector('.js-message-counter');
+
+      Compose.init('messages-compose-form');
+      waitForComposeEvent('segmentinfochange').then(done);
+      clock.tick(UPDATE_DELAY);
+
+      // Initiate next update
+      Compose.append('Some text');
+    });
+
+    test('there are no segments', function(done) {
+      Compose.clear();
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in first segment, enough characters', function(done) {
+      segmentInfoResponse = {
+        segments: 1,
+        charsAvailableInLastSegment: 25
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in first segment, less or equal then 20 chars left', function(done) {
+      segmentInfoResponse = {
+        segments: 1,
+        charsAvailableInLastSegment: 20
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '20/1');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in second segment', function(done) {
+      segmentInfoResponse = {
+        segments: 2,
+        charsAvailableInLastSegment: 40
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '40/2');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in last segment', function(done) {
+      segmentInfoResponse = {
+        segments: 10,
+        charsAvailableInLastSegment: 20
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '20/10');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('clears counter if type changed to MMS', function(done) {
+      segmentInfoResponse = {
+        segments: 11,
+        charsAvailableInLastSegment: 40
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'mms');
+        assert.equal(messageCounter.textContent, '');
+
+        // Go back to sms
+        segmentInfoResponse = {
+          segments: 10,
+          charsAvailableInLastSegment: 40
+        };
+        Compose.append('Some other text');
+        clock.tick(UPDATE_DELAY);
+
+        return waitForComposeEvent('segmentinfochange').then(function () {
+          assert.equal(Compose.type, 'sms');
+          assert.equal(messageCounter.textContent, '40/10');
+        });
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+  });
+
+  suite('Message "interact" event', function() {
+    setup(function() {
+      loadBodyHTML('/index.html');
+      Compose.init('messages-compose-form');
+    });
+
+    test('correctly calls "interact" event', function() {
+      var onInteractStub = sinon.stub();
+
+      Compose.on('interact', onInteractStub);
+
+      document.getElementById('messages-input').click();
+      sinon.assert.calledOnce(onInteractStub);
+
+      document.getElementById('messages-input').dispatchEvent(
+        new FocusEvent('focus')
+      );
+      sinon.assert.calledTwice(onInteractStub);
+
+      document.getElementById('messages-attach-button').click();
+      sinon.assert.calledThrice(onInteractStub);
+
+      document.querySelector('.js-content-composer').click();
+      assert.equal(onInteractStub.callCount, 4);
+
+      SubjectComposer.prototype.on.withArgs('focus').yield();
+      assert.equal(onInteractStub.callCount, 5);
     });
   });
 });
-

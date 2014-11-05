@@ -1,12 +1,14 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireLib('controllers/error.js');
-requireLib('models/account.js');
-requireLib('notification.js');
+var CalendarError = require('error');
+var ErrorController = require('controllers/error');
+var Factory = require('test/support/factory');
+var Responder = require('responder');
+var nextTick = require('next_tick');
+var notification = require('notification');
 
 suite('controllers/error', function() {
-  'use strict';
-
   /**
    * Because of uplifting difficulties I chose to copy/paste
    * the following code rather then attempt to uplift related testing fixes...
@@ -51,9 +53,7 @@ suite('controllers/error', function() {
 
   setup(function(done) {
     app = testSupport.calendar.app();
-    subject = new Calendar.Controllers.Error(
-      app
-    );
+    subject = new ErrorController(app);
 
     app.db.open(done);
     detail = {
@@ -74,14 +74,14 @@ suite('controllers/error', function() {
 
   test('initialization', function() {
     assert.equal(subject.app, app);
-    assert.instanceOf(subject, Calendar.Responder);
+    assert.instanceOf(subject, Responder);
   });
 
   suite('default handling', function() {
 
     test('authenticate', function(done) {
       var callsAuth = false;
-      var error = new Calendar.Error.Authentication(detail);
+      var error = new CalendarError.Authentication(detail);
 
       subject.handleAuthenticate = function(account) {
         assert.equal(account, detail.account, 'sends account');
@@ -114,16 +114,15 @@ suite('controllers/error', function() {
 
     var realSendApi;
     suiteSetup(function() {
-      realSendApi = Calendar.Notification.send;
-      Calendar.Notification.send = function() {
+      realSendApi = notification.sendNotification;
+      notification.sendNotification = function() {
         sent = Array.slice(arguments);
-        var cb = sent[sent.length - 1];
-        Calendar.nextTick(cb);
+        return Promise.resolve();
       };
     });
 
     suiteTeardown(function() {
-      Calendar.Notification.send = realSendApi;
+      notification.sendNotification = realSendApi;
     });
 
     setup(function() {
@@ -136,7 +135,7 @@ suite('controllers/error', function() {
       var expectedURL = subject.accountErrorUrl + account._id;
       account.error = { count: 1 };
       subject.handleAuthenticate(account, function() {
-        Calendar.nextTick(function() {
+        nextTick(function() {
           done(function() {
             assert.ok(lock.mIsUnlocked, 'unlocks');
             assert.ok(sent, 'sends notification');
@@ -157,5 +156,6 @@ suite('controllers/error', function() {
       });
     });
   });
+});
 
 });

@@ -17,8 +17,9 @@ Contacts.URL = 'app://communications.gaiamobile.org';
 
 Contacts.config = {
   settings: {
-    // disable keyboard ftu because it blocks our display
-    'keyboard.ftu.enabled': false
+    // disable FTU because it blocks our display
+    'ftu.manifestURL': null,
+    'lockscreen.enabled': false
   }
 };
 
@@ -26,8 +27,11 @@ Contacts.Selectors = {
   body: 'body',
   bodyReady: 'body .view-body',
 
+  settingsButton: '#settings-button',
+
   confirmHeader: '#confirmation-message h1',
   confirmBody: '#confirmation-message p',
+  confirmDismiss: '#confirmation-message menu button',
 
   details: '#view-contact-details',
   detailsEditContact: '#edit-contact-button',
@@ -36,11 +40,14 @@ Contacts.Selectors = {
   detailsFindDuplicate: '#contact-detail-inner #find-merge-button',
   detailsFavoriteButton: '#toggle-favorite',
   detailsContactName: '#contact-name-title',
+  detailsHeader: '#details-view-header',
 
   duplicateFrame: 'iframe[src*="matching_contacts.html"]',
   duplicateHeader: '#title',
   duplicateClose: '#merge-close',
   duplicateMerge: '#merge-action',
+
+  exportButton: '#exportContacts button',
 
   form: '#view-contact-form',
   formTitle: '#contact-form-title',
@@ -49,17 +56,20 @@ Contacts.Selectors = {
   formCustomTagDone: '#view-select-tag #settings-done',
   formNew: '#add-contact-button',
   formGivenName: '#givenName',
+  formOrg: '#org',
   formFamilyName: '#familyName',
   formSave: '#save-button',
   formTel: '#contacts-form-phones input[type="tel"]',
+  formDelFirstTel: '#add-phone-0 .img-delete-button',
   formTelLabelFirst: '#tel_type_0',
   formTelNumberSecond: '#number_1',
   formEmailFirst: '#email_0',
 
   groupList: ' #groups-list',
   list: '#view-contacts-list',
-  listContactFirst: '.contact-item',
-  listContactFirstText: '.contact-item .contact-text',
+  listContactFirst: 'li:not([data-group="ice"]).contact-item',
+  listContactFirstText: 'li:not([data-group="ice"]).contact-item p',
+  contactListHeader: '#contacts-list-header',
 
   searchLabel: '#search-start',
   searchInput: '#search-contact',
@@ -67,7 +77,27 @@ Contacts.Selectors = {
   searchResultFirst: '#search-list .contact-item',
 
   scrollbar: 'nav[data-type="scrollbar"]',
-  overlay: 'nav[data-type="scrollbar"] p'
+  overlay: 'nav[data-type="scrollbar"] p',
+
+  settingsView: '#view-settings',
+  settingsClose: '#settings-close',
+  bulkDelete: '#bulkDelete',
+
+  editForm: '#selectable-form',
+  editMenu: '#select-all-wrapper',
+
+  clearOrgButton: '#clear-org',
+  setIceButton: '#set-ice',
+  iceHeader: '#ice-header',
+  iceSettingsHeader: '#ice-settings-header',
+  iceSettings: '#ice-settings',
+  iceSwitch1: '#ice-contacts-1-switch',
+  iceInputSwitch1: '#ice-contacts-1-switch input[type="checkbox"]',
+  iceSwitch2: '#ice-contacts-2-switch',
+  iceButton1: '#select-ice-contact-1',
+  iceButton2: '#select-ice-contact-2',
+  iceGroupOpen: '#section-group-ice',
+  iceContact: '#ice-group .contact-item'
 };
 
 Contacts.prototype = {
@@ -91,7 +121,7 @@ Contacts.prototype = {
    * @param {String} key of the string to lookup.
    */
   l10n: function(file, key) {
-    var string = this.client.executeScript(function(file, key) {
+    var ast = this.client.executeScript(function(file, key) {
       var xhr = new XMLHttpRequest();
       var data;
       xhr.open('GET', file, false); // Intentional sync
@@ -102,7 +132,11 @@ Contacts.prototype = {
       return data;
     }, [file, key]);
 
-    return string[key];
+    for (var i = 0; i < ast.length; i++) {
+      if (ast[i].$i === key) {
+        return ast[i].$v;
+      }
+    }
   },
 
   waitSlideLeft: function(elementKey) {
@@ -131,6 +165,16 @@ Contacts.prototype = {
     this.client.waitFor(test);
   },
 
+  waitForFadeIn: function(element) {
+    var test = function() {
+      var opacity = element.cssProperty('opacity');
+      var pointerEvents = element.cssProperty('pointer-events');
+
+      return opacity == 1 && pointerEvents == 'auto';
+    };
+    this.client.waitFor(test);
+  },
+
   waitForFormShown: function() {
     var form = this.client.helper.waitForElement(Contacts.Selectors.form),
         location;
@@ -143,17 +187,8 @@ Contacts.prototype = {
 
   waitForFormTransition: function() {
     var selectors = Contacts.Selectors,
-        bodyHeight = this.client.findElement(selectors.body).size().height,
         form = this.client.findElement(selectors.form);
-    var test = function() {
-      var location = form.location();
-      // Since only checking form position could not guarantee
-      // the transition is ended, add z-index checking because
-      // it will be removed after transition.
-      var zIndex = this.getElementStyle(selectors.form, 'zIndex');
-      return location.y >= bodyHeight && !zIndex;
-    };
-    this.client.waitFor(test.bind(this));
+    this.client.helper.waitForElementToDisappear(form);
   },
 
   enterContactDetails: function(details) {
@@ -162,7 +197,8 @@ Contacts.prototype = {
 
     details = details || {
       givenName: 'Hello',
-      familyName: 'Contact'
+      familyName: 'Contact',
+      org: 'Enterprise'
     };
 
     this.waitForFormShown();

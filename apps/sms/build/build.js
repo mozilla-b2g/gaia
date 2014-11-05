@@ -1,31 +1,30 @@
+/* global require, exports */
+
 'use strict';
 
-/* global require, exports */
 var utils = require('utils');
 
-var SmsAppBuilder = function() {
-};
+function removeDesktopOnlyFolder(appStageDir) {
+  var desktopOnlyDir = utils.getFile(appStageDir, 'js', 'desktop-only');
 
-// set options
-SmsAppBuilder.prototype.setOptions = function(options) {
-  this.stageDir = utils.getFile(options.STAGE_APP_DIR);
-  this.distDirPath = options.GAIA_DISTRIBUTION_DIR;
-};
+  if (desktopOnlyDir.exists()) {
+    desktopOnlyDir.remove(true);
+  }
+}
 
-SmsAppBuilder.prototype.writeBlacklist = function() {
-  var defaultContent = ['4850', '7000'];
-  var file =
-    utils.getFile(this.stageDir.path, 'js', 'blacklist.json');
-  utils.writeContent(file,
-    utils.getDistributionFileContent('sms-blacklist',
-      defaultContent, this.distDirPath));
-};
+function removeDesktopOnlyScripts(appStageDir) {
+  var indexFile = utils.getFile(appStageDir, 'index.html');
+  var desktopOnlyScriptsRegex = /<script.+desktop\-only.+<\/script>/g;
 
-SmsAppBuilder.prototype.execute = function(options) {
-  this.setOptions(options);
-  this.writeBlacklist();
-};
+  utils.writeContent(
+    indexFile,
+    utils.getFileContent(indexFile).replace(desktopOnlyScriptsRegex, '')
+  );
+}
 
 exports.execute = function(options) {
-  (new SmsAppBuilder()).execute(options);
+  utils.copyToStage(options);
+
+  removeDesktopOnlyFolder(options.STAGE_APP_DIR);
+  removeDesktopOnlyScripts(options.STAGE_APP_DIR);
 };

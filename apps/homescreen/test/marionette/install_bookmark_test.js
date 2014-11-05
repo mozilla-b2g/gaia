@@ -7,12 +7,7 @@ var Server = require('./lib/server');
 var FlowManager = require('./lib/flow_manager');
 
 marionette('Install bookmark on homescreen', function() {
-  var client = marionette.client({
-        settings: {
-          // disable keyboard ftu because it blocks our display
-          'keyboard.ftu.enabled': false
-        }
-      });
+  var client = marionette.client();
   var browser;
   var homescreen;
   var server;
@@ -44,7 +39,7 @@ marionette('Install bookmark on homescreen', function() {
                                browser);
     });
 
-    test(' sample.html is on homescreen with expected title',
+    test.skip(' sample.html is on homescreen with expected title',
       function() {
         client.switchToFrame();
         homescreen.launch();
@@ -67,7 +62,7 @@ marionette('Install bookmark on homescreen', function() {
           FlowManager.setTitleToBookmark(newExpectedTitle, homescreen);
         });
 
-        test(' And we change the title of it', function() {
+        test.skip(' And we change the title of it', function() {
           client.switchToFrame();
           homescreen.launch();
           // aria-label won't change after we change bookmark title,

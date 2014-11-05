@@ -1,4 +1,5 @@
 /*jshint node: true, browser: true */
+'use strict';
 function Email(client) {
   this.client = client.scope({ searchTimeout: 20000 });
 }
@@ -7,12 +8,10 @@ module.exports = Email;
 Email.EMAIL_ORIGIN = 'app://email.gaiamobile.org';
 
 var Selector = {
-  notificationBar: '.card-message-list .msg-list-topbar',
-  setupNameInput: '.card-setup-account-info .sup-info-name',
-  setupEmailInput: '.card-setup-account-info .sup-info-email',
-  setupPasswordInput: '.card-setup-account-info .sup-info-password',
-  nextButton: '.card-setup-account-info .sup-info-next-btn',
-  prefsNextButton: '.card-setup-account-prefs .sup-info-next-btn',
+  setupNameInput: 'cards-setup-account-info .sup-info-name',
+  setupEmailInput: 'cards-setup-account-info .sup-info-email',
+  nextButton: 'cards-setup-account-info .sup-info-next-btn',
+  prefsNextButton: 'cards-setup-account-prefs .sup-info-next-btn',
   manualSetupNameInput: '.sup-manual-form .sup-info-name',
   manualSetupEmailInput: '.sup-manual-form .sup-info-email',
   manualSetupImapPasswordInput:
@@ -28,48 +27,58 @@ var Selector = {
   manualSetupSmtpPasswordInput: '.sup-manual-form .sup-manual-smtp-password',
   manualSetupSmtpPortInput: '.sup-manual-form .sup-manual-smtp-port',
   manualSetupSmtpSocket: '.sup-manual-form .sup-manual-smtp-socket',
-  manualNextButton: '.card-setup-manual-config .sup-manual-next-btn',
-  msgDownBtn: '.card-message-reader .msg-down-btn',
-  msgListScrollOuter: '.card-message-list .msg-list-scrollouter',
-  editMode: '.card-message-list .msg-edit-btn',
-  editModeCheckBoxes: '.card-message-list label.pack-checkbox',
-  editModeTrash: '.card-message-list button.msg-delete-btn',
-  msgUpBtn: '.card-message-reader .msg-up-btn',
-  msgEnvelopeSubject: '.card-message-reader .msg-envelope-subject',
-  showMailButton: '.card-setup-done .sup-show-mail-btn',
+  manualNextButton: 'cards-setup-manual-config .sup-manual-next-btn',
+  msgDownBtn: 'cards-message-reader .msg-down-btn',
+  msgListScrollOuter: 'cards-message-list .msg-list-scrollouter',
+  editMode: 'cards-message-list .msg-edit-btn',
+  editModeCheckBoxes:
+    'cards-message-list .msg-header-item[data-index="0"] label.pack-checkbox',
+  editModeTrash: 'cards-message-list button.msg-delete-btn',
+  msgUpBtn: 'cards-message-reader .msg-up-btn',
+  msgEnvelopeSubject: 'cards-message-reader .msg-envelope-subject',
+  showMailButton: 'cards-setup-done .sup-show-mail-btn',
+  confirmDialogOkButton: '.confirm-dialog-form .confirm-dialog-ok',
   manualConfigButton: '.scrollregion-below-header .sup-manual-config-btn',
   composeButton: '.msg-list-header .msg-compose-btn',
-  composeEmailContainer: '.card-compose .cmp-to-container',
-  composeEmailInput: '.card-compose .cmp-addr-text',
-  composeSubjectInput: '.card-compose .cmp-subject-text',
-  composeBodyInput: '.card-compose .cmp-body-text',
-  composeSendButton: '.card-compose .cmp-send-btn',
-  composeBackButton: '.card-compose .cmp-back-btn',
+  composeEmailContainer: 'cards-compose .cmp-to-container',
+  composeEmailInput: 'cards-compose .cmp-addr-text',
+  composeSubjectInput: 'cards-compose .cmp-subject-text',
+  composeBodyInput: 'cards-compose .cmp-body-text',
+  composeSendButton: 'cards-compose .cmp-send-btn',
+  composeBackButton: 'cards-compose .cmp-back-btn',
   composeDraftDiscard: '#cmp-draft-discard',
   composeDraftSave: '#cmp-draft-save',
+  composeErrorMessage: 'cards-compose .cmp-error-message',
   refreshButton: '.card.center .msg-refresh-btn',
-  messageHeaderItem: '.msg-messages-container .msg-header-item',
-  cardMessageReader: '.card-message-reader',
+  messageHeaderItem:
+  '.msg-messages-container .msg-header-item',
+  cardMessageReader: 'cards-message-reader',
   currentCardInputs: '.card.center input[type="text"]',
   replyMenuButton: '.msg-reply-btn',
   replyMenu: '.msg-reply-menu',
   replyMenuReply: '.msg-reply-menu-reply',
   replyMenuForward: '.msg-reply-menu-forward',
   replyMenuAll: '.msg-reply-menu-reply-all',
-  searchButton: '.msg-search-btn',
-  searchCard: '.card[data-mode="search"]',
+  searchTextTease: '.msg-search-text-tease',
+  searchCard: 'cards-message-list-search',
   folderListButton: '.msg-list-header .msg-folder-list-btn',
-  settingsButton: '.fld-nav-toolbar .fld-nav-settings-btn',
-  settingsDoneButton: '.card-settings-main [data-l10n-id="settings-done"]',
-  addAccountButton: '.tng-accounts-container .tng-account-add',
-  accountListButton: '.fld-folders-header .fld-accounts-btn',
+  folderListCloseButton: 'cards-folder-picker .fld-header-back',
+  folderListContents: 'cards-folder-picker .fld-acct-scrollinner',
+  settingsButton: '.fld-nav-toolbar',
+  settingsDoneButton: 'cards-settings-main [data-l10n-id="settings-done"]',
+  addAccountButton: 'cards-settings-main .tng-account-add',
+  accountListButton: '.fld-acct-header',
+  accountListContainer: '.fld-accountlist-container',
   settingsMainAccountItems: '.tng-accounts-container .tng-account-item',
   syncIntervalSelect: '.tng-account-check-interval ',
   // Checkboxes are weird: hidden to marionette, but the associated label
   // is clickable and does the job.
   notifyEmailCheckbox: '.tng-notify-mail-label',
-  accountSettingsBackButton: '.card-settings-account .tng-back-btn',
+  accountSettingsBackButton: 'cards-settings-account .tng-back-btn',
   localDraftsItem: '.fld-folders-container a[data-type=localdrafts]',
+  outboxItem: '.fld-folders-container a[data-type=outbox]',
+  outboxItemSyncIcon: '.msg-header-syncing-section',
+  msgLastSync: '.msg-last-synced-value',
   toaster: 'section[role="status"]'
 };
 
@@ -78,8 +87,15 @@ Email.prototype = {
    * Send some emails and then receive them.
    *
    * @param {Array} messages list of messages with to, subject, and body.
+   * @param {Number} [messageSyncIndex] the index into the list of messages in
+   * the message list that indicates synchronization is complete. Uses the last
+   * index in messages by default.
    */
-  sendAndReceiveMessages: function(messages) {
+  sendAndReceiveMessages: function(messages, messageSyncIndex) {
+    if (messageSyncIndex === undefined) {
+      messageSyncIndex = messages.length - 1;
+    }
+
     messages.forEach(function(message) {
       this.tapCompose();
       this.typeTo(message.to);
@@ -89,21 +105,12 @@ Email.prototype = {
     }.bind(this));
 
     this.tapRefreshButton();
-    this.waitForNewEmail();
-    this.tapNotificationBar();
+    this.waitForSynchronized(messageSyncIndex);
   },
 
   waitForToaster: function() {
     var toaster = this.client.helper.waitForElement(Selector.toaster);
     this.client.helper.waitForElementToDisappear(toaster);
-  },
-
-  get notificationBar() {
-    return this.client.helper.waitForElement(Selector.notificationBar);
-  },
-
-  tapNotificationBar: function() {
-    this.notificationBar.click();
   },
 
   get msgDownBtn() {
@@ -140,6 +147,18 @@ Email.prototype = {
     return text;
   },
 
+  getComposeErrorMessage: function() {
+    return this.client.helper
+      .waitForElement(Selector.composeErrorMessage)
+      .text();
+  },
+
+  getLastSyncText: function() {
+    return this.client.helper
+      .waitForElement(Selector.msgLastSync)
+      .text();
+  },
+
   manualSetupImapEmail: function(server, finalActionName) {
     // setup a IMAP email account
     var email = server.imap.username + '@' + server.imap.hostname;
@@ -147,7 +166,6 @@ Email.prototype = {
     // wait for the setup page is loaded
     this._setupTypeName(server.imap.username);
     this._setupTypeEmail(email);
-    this._setupTypePassword(server.imap.password);
 
     this._waitForElementNoTransition(Selector.manualConfigButton).tap();
     this._waitForTransitionEnd('setup_manual_config');
@@ -183,12 +201,9 @@ Email.prototype = {
   // going to setting up a new account after triggering email launch
   // from an activity.
   confirmWantAccount: function() {
-    this.client.helper.waitForAlert('not set up to send or receive email');
-    // inlined selector since it is specific to the out-of-app confirm
-    // dialog found in system/index.html
-    this._tapSelector('#modal-dialog-confirm-ok');
     this.client.switchToFrame();
     this.client.apps.switchToApp(Email.EMAIL_ORIGIN);
+    this.client.helper.waitForElement(Selector.confirmDialogOkButton).tap();
     this.client.helper.waitForElement(Selector.manualConfigButton);
     this.client.helper.waitForElement(Selector.manualConfigButton).tap();
   },
@@ -197,11 +212,11 @@ Email.prototype = {
     this._tapSelector(Selector.folderListButton);
     this._waitForElementNoTransition(Selector.settingsButton);
     this._waitForTransitionEnd('folder_picker');
+    this.client.helper.waitForElement(Selector.folderListContents);
   },
 
   tapFolderListCloseButton: function() {
-    this._tapSelector(Selector.folderListButton);
-    this._waitForElementNoTransition(Selector.settingsButton);
+    this._tapSelector(Selector.folderListCloseButton);
     this.waitForMessageList();
   },
 
@@ -209,8 +224,9 @@ Email.prototype = {
     // XXX: Workaround util http://bugzil.la/912873 is fixed.
     // Wait for 500ms to let the element be clickable
     this.client.helper.wait(500);
-    this._waitForElementNoTransition(Selector.accountListButton).tap();
-    this._waitForTransitionEnd('account_picker');
+
+    this.client.helper.waitForElement(Selector.accountListButton).tap();
+    this.client.helper.waitForElement(Selector.accountListContainer);
   },
 
   tapLocalDraftsItem: function() {
@@ -221,8 +237,26 @@ Email.prototype = {
     this._waitForTransitionEnd('message_list');
   },
 
+  tapOutboxItem: function() {
+    this._waitForElementNoTransition(Selector.outboxItem).tap();
+    this._waitForTransitionEnd('message_list');
+  },
+
+  getOutboxItemSyncIconForIndex: function(index) {
+    var header = this.getHeaderAtIndex(index);
+    var iconEl = header.findElement(Selector.outboxItemSyncIcon);
+    var className = iconEl.getAttribute('className');
+    if (/-syncing$/.test(className)) {
+      return 'syncing';
+    } else if (/-error$/.test(className)) {
+      return 'error';
+    } else {
+      return '';
+    }
+  },
+
   switchAccount: function(number) {
-    var accountSelector = '.acct-list-container ' +
+    var accountSelector = '.fld-accountlist-container ' +
                           'a:nth-child(' + number + ')';
     this.client.helper
       .waitForElement(accountSelector)
@@ -300,14 +334,14 @@ Email.prototype = {
    * future if we inline various affordances proposed by UX.
    */
   getComposeBody: function() {
-    return client.executeScript(function() {
-      var Cards = window.wrappedJSObject.require('mail_common').Cards,
-          card = Cards._cardStack[Cards.activeCardIndex];
-      if (card.cardDef.name !== 'compose')
+    return this.client.executeScript(function() {
+      var cards = window.wrappedJSObject.require('cards'),
+          card = cards._cardStack[cards.activeCardIndex];
+      if (cards.cardName(card) !== 'cards-compose') {
         throw new Error('active card should be compose!');
+      }
 
-      var composeCard = card.cardImpl;
-      return composeCard.fromEditor();
+      return card.fromEditor();
     }, []);
   },
 
@@ -316,11 +350,11 @@ Email.prototype = {
    * Waits for an edit checkbox to appear.
    */
   editMode: function() {
-    client.helper
+    this.client.helper
       .waitForElement(Selector.editMode)
       .tap();
 
-    client.helper
+    this.client.helper
       .waitForElement(Selector.editModeCheckBoxes);
   },
 
@@ -328,17 +362,30 @@ Email.prototype = {
    * Returns the edit mode checkboxes.
    */
   editModeCheckboxes: function() {
-    var elements = client.findElements(Selector.editModeCheckBoxes);
+    var elements = this.client.findElements(Selector.editModeCheckBoxes);
     return elements;
+  },
+
+  isElementDisabled: function(selector) {
+    var client = this.client;
+
+    client.helper.waitForElement(selector);
+
+    client.waitFor(function() {
+      return client.executeScript(function(selector) {
+        var doc = window.wrappedJSObject.document,
+            selectNode = doc.querySelector(selector);
+
+        return selectNode.disabled;
+      }, [selector]);
+    });
   },
 
   /**
    * Taps the trash button in edit mode.
    */
-  editModeTrash: function() {
-    client.helper
-      .waitForElement(Selector.editModeTrash)
-      .tap();
+  isEditModeTrashDisabled: function() {
+    this.isElementDisabled(Selector.editModeTrash);
   },
 
   abortCompose: function(cardId) {
@@ -390,14 +437,31 @@ Email.prototype = {
       .tap();
   },
 
-  tapSearchButton: function() {
+  tapSearchArea: function() {
     this.client.helper
-      .waitForElement(Selector.searchButton)
-      .tap();
+      .waitForElement(Selector.searchTextTease)
+      .sendKeys('a');
+
+
+    var client = this.client;
+    client.waitFor(function() {
+      return client.executeScript(function(selector) {
+        var doc = window.wrappedJSObject.document,
+            selectNode = doc.querySelector(selector);
+
+        // Synthesize an event since focus does not work
+        // through marionette API
+        var event = document.createEvent('Event');
+        event.initEvent('focus', true, true);
+        selectNode.dispatchEvent(event);
+
+        return true;
+      }, [Selector.searchTextTease]);
+    });
 
     this.client.helper
       .waitForElement(Selector.searchCard);
-    this._waitForTransitionEnd('message_list');
+    this._waitForTransitionEnd('message_list_search');
   },
 
   waitForMessageList: function() {
@@ -412,8 +476,8 @@ Email.prototype = {
     this._waitForTransitionEnd('compose');
   },
 
-  waitForNewEmail: function() {
-    this._waitForElementNoTransition(Selector.notificationBar);
+  waitForSynchronized: function(index) {
+    this.getHeaderAtIndex(index);
   },
 
   launch: function() {
@@ -430,9 +494,9 @@ Email.prototype = {
   },
 
   getHeaderAtIndex: function(index) {
-    var client = this.client;
-    var elements = client.findElements(Selector.messageHeaderItem);
-    return client.helper.waitForElement(elements[index]);
+    var element = this.client.findElement(Selector.messageHeaderItem +
+                                             '[data-index="' + index + '"]');
+    return this.client.helper.waitForElement(element);
   },
 
   tapEmailAtIndex: function(index) {
@@ -446,13 +510,18 @@ Email.prototype = {
     // we see one.  Then tap on it.
     this.client.waitFor(function() {
       var element = this.getEmailBySubject(subject);
-      if (!element)
+      if (!element) {
         return false;
+      }
 
       element.tap();
       this._waitForTransitionEnd(cardId);
       return true;
     }.bind(this));
+  },
+
+  getMessageCount: function() {
+    return this.client.findElements(Selector.messageHeaderItem).length;
   },
 
   getEmailBySubject: function(subject) {
@@ -490,6 +559,8 @@ Email.prototype = {
       whichButton = Selector.replyMenuForward;
       break;
     case 'reply':
+      whichButton = Selector.replyMenuReply;
+      break;
     default:
       whichButton = Selector.replyMenuReply;
       break;
@@ -527,15 +598,14 @@ Email.prototype = {
 
   _onTransitionEndScriptTimeout: function(cardId) {
     var result = this.client.executeScript(function(cardId) {
-      var Cards = window.wrappedJSObject.require('mail_common').Cards,
-          card = Cards._cardStack[Cards.activeCardIndex],
-          cardNode = card && card.domNode;
+      var cards = window.wrappedJSObject.require('cards'),
+          cardNode = cards._cardStack[cards.activeCardIndex];
 
       return {
         cardNode: !!cardNode,
         centered: cardNode && cardNode.classList.contains('center'),
         correctId: cardNode && cardNode.dataset.type === cardId,
-        eventsClear: !Cards._eatingEventsUntilNextCard
+        eventsClear: !cards._eatingEventsUntilNextCard
       };
     }, [cardId]);
 
@@ -553,13 +623,12 @@ Email.prototype = {
 
     client.waitFor(function() {
       return client.executeScript(function(cardId) {
-        var Cards = window.wrappedJSObject.require('mail_common').Cards,
-            card = Cards._cardStack[Cards.activeCardIndex],
-            cardNode = card && card.domNode;
+        var cards = window.wrappedJSObject.require('cards'),
+            cardNode = cards._cardStack[cards.activeCardIndex];
 
         return !!cardNode && cardNode.classList.contains('center') &&
                cardNode.dataset.type === cardId &&
-               !Cards._eatingEventsUntilNextCard;
+               !cards._eatingEventsUntilNextCard;
       }, [cardId]);
     });
 
@@ -568,11 +637,11 @@ Email.prototype = {
 
   _onNoTransitionScriptTimeout: function() {
     var result = this.client.executeScript(function() {
-      var Cards = window.wrappedJSObject.require('mail_common').Cards;
+      var cards = window.wrappedJSObject.require('cards');
 
       return {
-        cards: !!Cards,
-        eventsClear: !!Cards && !Cards._eatingEventsUntilNextCard
+        cards: !!cards,
+        eventsClear: !!cards && !cards._eatingEventsUntilNextCard
       };
     });
 
@@ -590,8 +659,8 @@ Email.prototype = {
 
     client.waitFor(function() {
       return client.executeScript(function() {
-        var Cards = window.wrappedJSObject.require('mail_common').Cards;
-        return !Cards._eatingEventsUntilNextCard;
+        var cards = window.wrappedJSObject.require('cards');
+        return !cards._eatingEventsUntilNextCard;
       });
     });
 
@@ -610,12 +679,6 @@ Email.prototype = {
       .sendKeys(email);
   },
 
-  _setupTypePassword: function(password) {
-    this.client.helper
-      .waitForElement(Selector.setupPasswordInput)
-      .sendKeys(password);
-  },
-
   _waitForElementNoTransition: function(selector) {
     this._waitForNoTransition();
     return this.client.helper.waitForElement(selector);
@@ -627,8 +690,9 @@ Email.prototype = {
 
   _tapNext: function(selector, cardId) {
     this._tapSelector(selector);
-    if (cardId)
+    if (cardId) {
       this._waitForTransitionEnd(cardId);
+    }
   },
 
   _clearAndSendKeys: function(selector, value) {

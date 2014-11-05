@@ -1,43 +1,96 @@
 /*jshint browser: true */
-/*global define, console */
+/*global define, console, FontSizeUtils, requestAnimationFrame */
+'use strict';
+
 define(function(require) {
 
-var templateNode = require('tmpl!./message_list.html'),
-    msgHeaderItemNode = require('tmpl!./msg/header_item.html'),
+var msgHeaderItemNode = require('tmpl!./msg/header_item.html'),
     deleteConfirmMsgNode = require('tmpl!./msg/delete_confirm.html'),
     largeMsgConfirmMsgNode = require('tmpl!./msg/large_message_confirm.html'),
-    common = require('mail_common'),
+    cards = require('cards'),
+    ConfirmDialog = require('confirm_dialog'),
+    date = require('date'),
+    evt = require('evt'),
+    toaster = require('toaster'),
     model = require('model'),
     headerCursor = require('header_cursor').cursor,
     htmlCache = require('html_cache'),
-    MessageListTopbar = require('message_list_topbar'),
     mozL10n = require('l10n!'),
-    Cards = common.Cards,
-    Toaster = common.Toaster,
-    ConfirmDialog = common.ConfirmDialog,
-    batchAddClass = common.batchAddClass,
-    bindContainerClickAndHold = common.bindContainerClickAndHold,
-    bindContainerHandler = common.bindContainerHandler,
-    appendMatchItemTo = common.appendMatchItemTo,
-    displaySubject = common.displaySubject,
-    prettyDate = common.prettyDate,
-    accessibilityHelper = require('shared/js/accessibility_helper');
+    VScroll = require('vscroll'),
+    MessageListTopBar = require('message_list_topbar'),
+    accessibilityHelper = require('shared/js/accessibility_helper'),
+    messageDisplay = require('message_display');
 
-/**
- * Try and keep at least this many display heights worth of undisplayed
- * messages.
- */
-var SCROLL_MIN_BUFFER_SCREENS = 2;
-/**
- * Keep around at most this many display heights worth of undisplayed messages.
- */
-var SCROLL_MAX_RETENTION_SCREENS = 7;
 
-/**
- * Time to wait between scroll events. Initially 150 & 325 where tried but
- * because we wait between snippet requests 50 feels about right...
- */
-var SCROLL_DELAY = 50;
+var MATCHED_TEXT_CLASS = 'highlight';
+
+function appendMatchItemTo(matchItem, node) {
+  var text = matchItem.text;
+  var idx = 0;
+  for (var iRun = 0; iRun <= matchItem.matchRuns.length; iRun++) {
+    var run;
+    if (iRun === matchItem.matchRuns.length) {
+      run = { start: text.length, length: 0 };
+    } else {
+      run = matchItem.matchRuns[iRun];
+    }
+
+    // generate the un-highlighted span
+    if (run.start > idx) {
+      var tnode = document.createTextNode(text.substring(idx, run.start));
+      node.appendChild(tnode);
+    }
+
+    if (!run.length) {
+      continue;
+    }
+    var hspan = document.createElement('span');
+    hspan.classList.add(MATCHED_TEXT_CLASS);
+    hspan.textContent = text.substr(run.start, run.length);
+    node.appendChild(hspan);
+    idx = run.start + run.length;
+  }
+}
+
+// Default data used for the VScroll component, when data is not
+// loaded yet for display in the virtual scroll listing.
+var defaultVScrollData = {
+  'isPlaceholderData': true,
+  'id': 'INVALID',
+  'author': {
+    'name': '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583',
+    'address': '',
+    'contactId': null
+  },
+  'to': [
+    {
+      'name': ' ',
+      'address': ' ',
+      'contactId': null
+    }
+  ],
+  'cc': null,
+  'bcc': null,
+  'date': '0',
+  'hasAttachments': false,
+  'snippet': '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583' +
+             '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583' +
+             '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583',
+  'isRead': true,
+  'isStarred': false,
+  'sendStatus': {},
+  'subject': '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583' +
+             '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583' +
+             '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583'
+};
+
+// We will display this loading data for any messages we are
+// pretending exist so that the UI has a reason to poke the search
+// slice to do more work.
+var defaultSearchVScrollData = {
+  header: defaultVScrollData,
+  matches: []
+};
 
 /**
  * Minimum number of items there must be in the message slice
@@ -54,13 +107,6 @@ var MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST = 6000;
  * Fetch up to 4kb while scrolling
  */
 var MAXIMUM_BYTES_PER_MESSAGE_DURING_SCROLL = 4 * 1024;
-
-/**
- * Number of messages to grow the list by in a single event.  A value
- * of 1 will result in the GELAM default of 15 being used.
- */
-var MIN_MESSAGE_GROWTH_SIZE = 2;
-var MAX_MESSAGE_GROWTH_SIZE = 8;
 
 /**
  * List messages for listing the contents of folders ('nonsearch' mode) and
@@ -110,1366 +156,1793 @@ var MAX_MESSAGE_GROWTH_SIZE = 8;
  * care to use efficient selectors.
  *
  */
-function MessageListCard(domNode, mode, args) {
-  this.domNode = domNode;
-  this.mode = mode;
-  this.scrollNode = domNode.getElementsByClassName('msg-list-scrollouter')[0];
+return [
+  require('./base')(require('template!./message_list.html')),
+  {
+    createdCallback: function() {
+      var mode = this.mode;
 
-  if (mode === 'nonsearch')
-    batchAddClass(domNode, 'msg-search-only', 'collapsed');
-  else
-    batchAddClass(domNode, 'msg-nonsearch-only', 'collapsed');
-
-  this.messagesContainer =
-    domNode.getElementsByClassName('msg-messages-container')[0];
-
-  this.messageEmptyContainer =
-    domNode.getElementsByClassName('msg-list-empty-container')[0];
-  // - message actions
-  bindContainerClickAndHold(
-    this.messagesContainer,
-    // clicking shows the message reader for a message
-    this.onClickMessage.bind(this),
-    // press-and-hold shows the single-message mutation options
-    this.onHoldMessage.bind(this));
-
-  // - less-than-infinite scrolling
-  this.scrollContainer =
-    domNode.getElementsByClassName('msg-list-scrollouter')[0];
-  this.scrollContainer.addEventListener('scroll', this.onScroll.bind(this),
-                                        false);
-  this.syncingNode =
-    domNode.getElementsByClassName('msg-messages-syncing')[0];
-  this.syncMoreNode =
-    domNode.getElementsByClassName('msg-messages-sync-more')[0];
-  this.syncMoreNode
-    .addEventListener('click', this.onGetMoreMessages.bind(this), false);
-
-  // - header buttons: non-edit mode
-  domNode.getElementsByClassName('msg-folder-list-btn')[0]
-    .addEventListener('click', this.onShowFolders.bind(this), false);
-  domNode.getElementsByClassName('msg-compose-btn')[0]
-    .addEventListener('click', this.onCompose.bind(this), false);
-
-  // - toolbar: non-edit mode
-  this.toolbar = {};
-  this.toolbar.searchBtn = domNode.getElementsByClassName('msg-search-btn')[0];
-  this.toolbar.searchBtn
-    .addEventListener('click', this.onSearchButton.bind(this), false);
-  this.toolbar.editBtn = domNode.getElementsByClassName('msg-edit-btn')[0];
-  this.toolbar.editBtn
-    .addEventListener('click', this.setEditMode.bind(this, true), false);
-  this.toolbar.refreshBtn =
-    domNode.getElementsByClassName('msg-refresh-btn')[0];
-  this.toolbar.refreshBtn
-    .addEventListener('click', this.onRefresh.bind(this), false);
-
-  // - header buttons: edit mode
-  domNode.getElementsByClassName('msg-listedit-cancel-btn')[0]
-    .addEventListener('click', this.setEditMode.bind(this, false), false);
-
-  // - toolbar: edit mode
-  domNode.getElementsByClassName('msg-star-btn')[0]
-    .addEventListener('click', this.onStarMessages.bind(this, true), false);
-  domNode.getElementsByClassName('msg-mark-read-btn')[0]
-    .addEventListener('click', this.onMarkMessagesRead.bind(this, true), false);
-  domNode.getElementsByClassName('msg-delete-btn')[0]
-    .addEventListener('click', this.onDeleteMessages.bind(this, true), false);
-  this.toolbar.moveBtn = domNode.getElementsByClassName('msg-move-btn')[0];
-  this.toolbar.moveBtn
-    .addEventListener('click', this.onMoveMessages.bind(this, true), false);
-
-  // -- non-search mode
-  if (mode === 'nonsearch') {
-    // - search teaser bar
-    // Focusing the teaser bar's text field is the same as hitting the search
-    // button.
-    domNode.getElementsByClassName('msg-search-text-tease')[0]
-      .addEventListener('focus', this.onSearchButton.bind(this), false);
-  }
-  // -- search mode
-  else if (mode === 'search') {
-    domNode.getElementsByClassName('msg-search-cancel')[0]
-      .addEventListener('click', this.onCancelSearch.bind(this), false);
-
-    bindContainerHandler(
-      domNode.getElementsByClassName('filter')[0],
-      'click', this.onSearchFilterClick.bind(this));
-    this.searchFilterTabs = domNode.querySelectorAll('.filter [role="tab"]');
-    this.searchInput = domNode.getElementsByClassName('msg-search-text')[0];
-    this.searchInput.addEventListener(
-      'input', this.onSearchTextChange.bind(this), false);
-  }
-
-  // convenience wrapper for context.
-  this._onScroll = this._onScroll.bind(this);
-
-  this.editMode = false;
-  this.selectedMessages = null;
-
-  this.curFolder = null;
-  this.isIncomingFolder = true;
-
-  this.usingCachedNode = !!args.cachedNode;
-
-  // Binding "this" to some functions as they are used for
-  // event listeners.
-  this._folderChanged = this._folderChanged.bind(this);
-  this.onNewMail = this.onNewMail.bind(this);
-  this.messages_splice = this.messages_splice.bind(this);
-  this.messages_change = this.messages_change.bind(this);
-  this.messages_status = this.messages_status.bind(this);
-  this.messages_complete = this.messages_complete.bind(this);
-
-  model.latest('folder', this._folderChanged);
-  model.on('newInboxMessages', this.onNewMail);
-
-  this.sliceEvents.forEach(function(type) {
-    var name = 'messages_' + type;
-    headerCursor.on(name, this[name]);
-  }.bind(this));
-
-  this.onCurrentMessage = this.onCurrentMessage.bind(this);
-  headerCursor.on('currentMessage', this.onCurrentMessage);
-
-  // If this card is created after header_cursor is set up
-  // with a messagesSlice, then need to bootstrap this card
-  // to catch up, since the normal events will not fire.
-  // Common scenarios for this case are: going back to the
-  // message list after reading a message from a notification,
-  // or from a compose triggered from an activity. However,
-  // only do this if there is a current folder. A case
-  // where there is not a folder: after deleting an account,
-  // and the UI is bootstrapping back to existing account.
-  // Also, search pushes a new message_list card, but search
-  // needs a special slice, created only when the search
-  // actually starts. So do not bootstrap in that case.
-  if (this.curFolder && this.mode === 'nonsearch') {
-    var items = headerCursor.messagesSlice && headerCursor.messagesSlice.items;
-    if (items && items.length) {
-      this.messages_splice(0, 0, items);
-      this.messages_complete(0);
-    }
-  }
-}
-MessageListCard.prototype = {
-  /**
-   * How many milliseconds since our last progress update event before we put
-   * the progressbar in the indeterminate "candybar" state?
-   *
-   * This value is currently arbitrarily chosen by asuth to try and avoid us
-   * flipping back and forth from non-candybar state to candybar state
-   * frequently.  This should be updated with UX or VD feedback.
-   */
-  PROGRESS_CANDYBAR_TIMEOUT_MS: 2000,
-
-  /**
-   * @type {MessageListTopbar}
-   * @private
-   */
-  _topbar: null,
-
-  /**
-   * Cache the distance between messages since rows are effectively fixed
-   * height.
-   */
-  _distanceBetweenMessages: 0,
-
-  sliceEvents: ['splice', 'change', 'status', 'complete'],
-
-  postInsert: function() {
-    this._hideSearchBoxByScrolling();
-
-    if (this.mode === 'search')
-      this.searchInput.focus();
-  },
-
-  onSearchButton: function() {
-    // Do not bother if there is no current folder.
-    if (!this.curFolder)
-      return;
-
-    Cards.pushCard(
-      'message_list', 'search', 'animate',
-      {
-        folder: this.curFolder
-      });
-  },
-
-  setEditMode: function(editMode) {
-    // Do not bother if this is triggered before
-    // a folder has loaded.
-    if (!this.curFolder)
-      return;
-
-    var domNode = this.domNode;
-    // XXX the manual DOM play here is now a bit overkill; we should very
-    // probably switch top having the CSS do this for us or at least invest
-    // some time in cleanup.
-    var normalHeader = domNode.getElementsByClassName('msg-list-header')[0],
-        searchHeader = domNode.getElementsByClassName('msg-search-header')[0],
-        editHeader = domNode.getElementsByClassName('msg-listedit-header')[0],
-        normalToolbar =
-          domNode.getElementsByClassName('msg-list-action-toolbar')[0],
-        editToolbar =
-          domNode.getElementsByClassName('msg-listedit-action-toolbar')[0];
-
-    this.editMode = editMode;
-
-    if (editMode) {
-      normalHeader.classList.add('collapsed');
-      searchHeader.classList.add('collapsed');
-      normalToolbar.classList.add('collapsed');
-      editHeader.classList.remove('collapsed');
-      editToolbar.classList.remove('collapsed');
-      this.messagesContainer.classList.add('show-edit');
-
-      this.selectedMessages = [];
-      var cbs = this.messagesContainer.querySelectorAll('input[type=checkbox]');
-      for (var i = 0; i < cbs.length; i++) {
-        cbs[i].checked = false;
-      }
-      this.selectedMessagesUpdated();
-    }
-    else {
-      if (this.mode === 'nonsearch')
-        normalHeader.classList.remove('collapsed');
-      else
-        searchHeader.classList.remove('collapsed');
-      normalToolbar.classList.remove('collapsed');
-      editHeader.classList.add('collapsed');
-      editToolbar.classList.add('collapsed');
-      this.messagesContainer.classList.remove('show-edit');
-
-      // (Do this based on the DOM nodes actually present; if the user has been
-      // scrolling a lot, this.selectedMessages may contain messages that no
-      // longer have a domNode around.)
-      var selectedMsgNodes =
-        domNode.getElementsByClassName('msg-header-item-selected');
-      for (var i = selectedMsgNodes.length - 1; i >= 0; i--) {
-        selectedMsgNodes[i].classList.remove('msg-header-item-selected');
+      if (mode === 'nonsearch') {
+        this.batchAddClass('msg-search-only', 'collapsed');
+      } else {
+        this.batchAddClass('msg-nonsearch-only', 'collapsed');
+        // Favor the use of the card background color for the status bar instead
+        // of the default color.
+        this.dataset.statuscolor = 'background';
       }
 
+      this.bindContainerHandler(this.messagesContainer, 'click',
+                                this.onClickMessage.bind(this));
+      // Sync display
+      this._needsSizeLastSync = true;
+      this.updateLastSynced();
+
+      // -- search mode
+      if (mode === 'search') {
+        this.bindContainerHandler(
+          this.querySelector('.filter'),
+          'click', this.onSearchFilterClick.bind(this));
+        this.searchFilterTabs = this.querySelectorAll('.filter [role="tab"]');
+      }
+
+      this.editMode = false;
       this.selectedMessages = null;
-    }
 
-    // UXXX do we want to disable the buttons if nothing is selected?
-  },
+      this.curFolder = null;
+      this.isIncomingFolder = true;
+      this._emittedContentEvents = false;
 
-  /**
-   * Update the edit mode UI bits sensitive to a change in the set of selected
-   * messages.  This means: the label that says how many messages are selected,
-   * whether the buttons are enabled, which of the toggle-pairs are visible.
-   */
-  selectedMessagesUpdated: function() {
-    var headerNode =
-      this.domNode.getElementsByClassName('msg-listedit-header-label')[0];
-    headerNode.textContent =
-      mozL10n.get('message-multiedit-header',
-                  { n: this.selectedMessages.length });
+      this.usingCachedNode = this.dataset.cached === 'cached';
 
-    var starBtn = this.domNode.getElementsByClassName('msg-star-btn')[0],
-        readBtn = this.domNode.getElementsByClassName('msg-mark-read-btn')[0];
+      // Set up the list data source for VScroll
+      var listFunc = (function(index) {
+         return headerCursor.messagesSlice.items[index];
+      }.bind(this));
 
-    // Enabling/disabling rules (not UX-signed-off):  Our bias is that people
-    // want to star messages and mark messages unread (since it they naturally
-    // end up unread), so unless messages are all in this state, we assume that
-    // is the desired action.
-    var numStarred = 0, numRead = 0;
-    for (var i = 0; i < this.selectedMessages.length; i++) {
-      var msg = this.selectedMessages[i];
-      if (msg.isStarred)
-        numStarred++;
-      if (msg.isRead)
-        numRead++;
-    }
+      listFunc.size = function() {
+        // This method could get called during VScroll updates triggered
+        // by messages_splice. However at that point, the headerCount may
+        // not be correct, like when fetching more messages from the
+        // server. So approximate by using the size of slice.items.
+        var slice = headerCursor.messagesSlice;
+        // coerce headerCount to 0 if it was undefined to avoid a NaN
+        return Math.max(slice.headerCount || 0, slice.items.length);
+      };
+      this.listFunc = listFunc;
 
-    // Unstar if everything is starred, otherwise star
-    this.setAsStarred = !(numStarred && numStarred ===
-                          this.selectedMessages.length);
-    // Mark read if everything is unread, otherwise unread
-    this.setAsRead = (this.selectedMessages.length && numRead === 0);
+      // We need to wait for the slice to complete before we can issue any
+      // sensible growth requests.
+      this.waitingOnChunk = true;
+      this.desiredHighAbsoluteIndex = 0;
+      this._needVScrollData = false;
+      this.vScroll = new VScroll(
+        this.messagesContainer,
+        this.scrollContainer,
+        msgHeaderItemNode,
+        (this.mode === 'nonsearch' ?
+                       defaultVScrollData : defaultSearchVScrollData)
+      );
 
-    if (!this.setAsStarred)
-      starBtn.classList.add('msg-btn-active');
-    else
-      starBtn.classList.remove('msg-btn-active');
+      // Called by VScroll wants to bind some data to a node it wants to
+      // display in the DOM.
+      if (this.mode === 'nonsearch') {
+        this.vScroll.bindData = (function bindNonSearch(model, node) {
+          model.element = node;
+          node.message = model;
+          this.updateMessageDom(true, model);
+        }).bind(this);
+      } else {
+        this.vScroll.bindData = (function bindSearch(model, node) {
+          model.element = node;
+          node.message = model.header;
+          this.updateMatchedMessageDom(true, model);
+        }).bind(this);
+      }
 
-    if (this.setAsRead)
-      readBtn.classList.add('msg-btn-active');
-    else
-      readBtn.classList.remove('msg-btn-active');
-  },
+      // Called by VScroll when it detects it will need more data in the near
+      // future. VScroll does not know if it already asked for this information,
+      // so this function needs to be sure it actually needs to ask for more
+      // from the back end.
+      this.vScroll.prepareData = (function(highAbsoluteIndex) {
+        var items = headerCursor.messagesSlice &&
+                    headerCursor.messagesSlice.items,
+            headerCount = headerCursor.messagesSlice.headerCount;
 
-  _hideSearchBoxByScrolling: function() {
-    // scroll the search bit out of the way
-    var searchBar =
-      this.domNode.getElementsByClassName('msg-search-tease-bar')[0];
+        if (!items || !headerCount) {
+          return;
+        }
 
-    // Search bar could have been collapsed with a cache load, make sure
-    // it is visible
-    searchBar.classList.remove('collapsed');
+        // Make sure total amount stays within possible range.
+        if (highAbsoluteIndex > headerCount - 1) {
+          highAbsoluteIndex = headerCount - 1;
+        }
 
-    this.scrollNode.scrollTop = searchBar.offsetHeight;
-  },
+        // We're already prepared if the slice is already that big.
+        if (highAbsoluteIndex < items.length) {
+          return;
+        }
 
-  onShowFolders: function() {
-    var query = ['folder_picker', 'navigation'];
-    if (Cards.hasCard(query)) {
-      Cards.moveToCard(query);
-    } else {
-      // Add navigation, but before the message list.
-      Cards.pushCard(
-        'folder_picker', 'navigation', 'none',
-        {
-          onPushed: function() {
-            setTimeout(function() {
-            // Do showCard here instead of using an 'animate'
-            // for the pushCard call, since the styling of
-            // the folder_picker uses new images that need to
-            // load, and if 'animate' is used, the banner
-            // gradient is not loaded during the transition.
-            // The setTimeout also gives the header image a
-            // chance to finish loading. Without it, there is
-            // still a white flash. Going lower than 50, not
-            // specifying a value, still resulted in white flash.
-            Cards.moveToCard(query);
-          }, 50);
-          }.bind(this)
-        },
-        // Place to left of message list
-        'left');
-    }
-  },
+        this.loadNextChunk(highAbsoluteIndex);
+      }.bind(this));
 
-  onCompose: function() {
-    Cards.pushCard('compose', 'default', 'animate');
-  },
+      this._hideSearchBoxByScrolling =
+                                      this._hideSearchBoxByScrolling.bind(this);
+      this._onVScrollStopped = this._onVScrollStopped.bind(this);
 
-  /**
-   * Show a folder, returning true if we actually changed folders or false if
-   * we did nothing because we were already in the folder.
-   */
-  showFolder: function(folder, forceNewSlice) {
-    if (folder === this.curFolder && !forceNewSlice)
-      return false;
+      // Event listeners for VScroll events.
+      this.vScroll.on('inited', this._hideSearchBoxByScrolling);
+      this.vScroll.on('dataChanged', this._hideSearchBoxByScrolling);
+      this.vScroll.on('scrollStopped', this._onVScrollStopped);
+      this.vScroll.on('recalculated', function(calledFromTop) {
+        if (calledFromTop) {
+          this._hideSearchBoxByScrolling();
+        }
+      }.bind(this));
 
-    // If using a cache, do not clear the HTML as it will
-    // be cleared once real data has been fetched.
-    if (!this.usingCachedNode) {
-      this.messagesContainer.innerHTML = '';
-    }
+      this._topBar = new MessageListTopBar(
+        this.querySelector('.message-list-topbar')
+      );
+      this._topBar.bindToElements(this.scrollContainer, this.vScroll);
 
-    this.curFolder = folder;
+      // Binding "this" to some functions as they are used for
+      // event listeners.
+      this._folderChanged = this._folderChanged.bind(this);
+      this.onNewMail = this.onNewMail.bind(this);
+      this.onFoldersSliceChange = this.onFoldersSliceChange.bind(this);
+      this.messages_splice = this.messages_splice.bind(this);
+      this.messages_change = this.messages_change.bind(this);
+      this.messages_status = this.messages_status.bind(this);
+      this.messages_complete = this.messages_complete.bind(this);
 
-    switch (folder.type) {
-      case 'drafts':
-      case 'localdrafts':
-      case 'sent':
-        this.isIncomingFolder = false;
-        break;
-      default:
-        this.isIncomingFolder = true;
-        break;
-    }
+      this.onFolderPickerClosing = this.onFolderPickerClosing.bind(this);
+      evt.on('folderPickerClosing', this.onFolderPickerClosing);
 
-    this.domNode.getElementsByClassName('msg-list-header-folder-label')[0]
-      .textContent = folder.name;
+      model.latest('folder', this._folderChanged);
+      model.on('newInboxMessages', this.onNewMail);
+      model.on('backgroundSendStatus', this.onBackgroundSendStatus.bind(this));
 
-    this.hideEmptyLayout();
+      model.on('foldersSliceOnChange', this.onFoldersSliceChange);
 
-    // you can't refresh the localdrafts folder or move messages out of it.
-    if (folder.type === 'localdrafts') {
-      this.toolbar.refreshBtn.classList.add('collapsed');
-      this.toolbar.moveBtn.classList.add('collapsed');
-    }
-    else {
-      this.toolbar.refreshBtn.classList.remove('collapsed');
-      this.toolbar.moveBtn.classList.remove('collapsed');
-    }
+      this.sliceEvents.forEach(function(type) {
+        var name = 'messages_' + type;
+        headerCursor.on(name, this[name]);
+      }.bind(this));
 
-    if (forceNewSlice) {
-      // We are creating a new slice, so any pending snippet requests are moot.
-      this._snippetRequestPending = false;
-      headerCursor.freshMessagesSlice();
-    }
+      this.onCurrentMessage = this.onCurrentMessage.bind(this);
+      headerCursor.on('currentMessage', this.onCurrentMessage);
 
-    return true;
-  },
+      // If this card is created after header_cursor is set up
+      // with a messagesSlice, then need to bootstrap this card
+      // to catch up, since the normal events will not fire.
+      // Common scenarios for this case are: going back to the
+      // message list after reading a message from a notification,
+      // or from a compose triggered from an activity. However,
+      // only do this if there is a current folder. A case
+      // where there is not a folder: after deleting an account,
+      // and the UI is bootstrapping back to existing account.
+      // Also, search pushes a new message_list card, but search
+      // needs a special slice, created only when the search
+      // actually starts. So do not bootstrap in that case.
+      if (this.curFolder && this.mode === 'nonsearch') {
+        var items = headerCursor.messagesSlice &&
+                    headerCursor.messagesSlice.items;
+        if (items && items.length) {
+          this.messages_splice(0, 0, items);
+          this.messages_complete(0);
+        }
+      }
+    },
 
-  showSearch: function(phrase, filter) {
-    console.log('sf: showSearch. phrase:', phrase, phrase.length);
+    // Hack to get separate modules for search vs non-search, but
+    // eventually the search branches in this file should be moved
+    // to message_list_search
+    mode: 'nonsearch',
 
-    this.curFolder = model.folder;
-    this.messagesContainer.innerHTML = '';
-    this.curPhrase = phrase;
-    this.curFilter = filter;
+    /**
+     * @type {MessageListTopbar}
+     * @private
+     */
+    _topBar: null,
 
-    if (phrase.length < 1)
-      return false;
+    /**
+     * Cache the distance between messages since rows are effectively fixed
+     * height.
+     */
+    _distanceBetweenMessages: 0,
 
-    // We are creating a new slice, so any pending snippet requests are moot.
-    this._snippetRequestPending = false;
-    headerCursor.startSearch(phrase, {
-      author: filter === 'all' || filter === 'author',
-      recipients: filter === 'all' || filter === 'recipients',
-      subject: filter === 'all' || filter === 'subject',
-      body: filter === 'all' || filter === 'body'
-    });
-    return true;
-  },
+    sliceEvents: ['splice', 'change', 'status', 'complete'],
 
-  onSearchFilterClick: function(filterNode, event) {
-    accessibilityHelper.setAriaSelected(filterNode.firstElementChild,
-      this.searchFilterTabs);
-    this.showSearch(this.searchInput.value, filterNode.dataset.filter);
-  },
+    toolbarEditButtonNames:['starBtn', 'readBtn', 'deleteBtn', 'moveBtn'],
 
-  onSearchTextChange: function(event) {
-    console.log('sf: typed, now:', this.searchInput.value);
-    this.showSearch(this.searchInput.value, this.curFilter);
-  },
+    /**
+     * Inform Cards to not emit startup content events, this card will trigger
+     * them once data from back end has been received and the DOM is up to date
+     * with that data.
+     * @type {Boolean}
+     */
+    skipEmitContentEvents: true,
 
-  onCancelSearch: function(event) {
-    try {
-      headerCursor.endSearch();
-    }
-    catch (ex) {
-      console.error('problem killing slice:', ex, '\n', ex.stack);
-    }
-    Cards.removeCardAndSuccessors(this.domNode, 'animate');
-  },
+    postInsert: function() {
+      this._hideSearchBoxByScrolling();
 
-  onGetMoreMessages: function() {
-    if (!headerCursor.messagesSlice)
-      return;
+      // Now that _hideSearchBoxByScrolling has activated the display
+      // of the search box, get the height of the search box and tell
+      // vScroll about it, but only do this once the DOM is displayed
+      // so the ClientRect gives an actual height.
+      this.vScroll.visibleOffset =
+                                  this.searchBar.getBoundingClientRect().height;
 
-    headerCursor.messagesSlice.requestGrowth(1, true);
-    // Provide instant feedback that they pressed the button by hiding the
-    // button.  However, don't show 'synchronizing' because that might not
-    // actually happen.
-    this.syncMoreNode.classList.add('collapsed');
-  },
+      // Also tell the MessageListTopBar
+      this._topBar.visibleOffset = this.vScroll.visibleOffset;
 
-  // The funny name because it is auto-bound as a listener for
-  // messagesSlice events in headerCursor using a naming convention.
-  messages_status: function(newStatus) {
-    switch (newStatus) {
-      case 'synchronizing':
-      case 'syncblocked':
-        this.syncingNode.classList.remove('collapsed');
-        this.syncMoreNode.classList.add('collapsed');
-        this.hideEmptyLayout();
+      // For search we want to make sure that we capture the screen size prior
+      // to focusing the input since the FxOS keyboard will resize our window to
+      // be smaller which messes up our logic a bit.  We trigger metric
+      // gathering in non-search cases too for consistency.
+      this.vScroll.captureScreenMetrics();
+      if (this.mode === 'search') {
+        this.searchInput.focus();
+      }
+    },
 
-        this.toolbar.refreshBtn.dataset.state = 'synchronizing';
-        break;
-      case 'syncfailed':
-        // If there was a problem talking to the server, notify the user and
-        // provide a means to attempt to talk to the server again.  We have made
-        // onRefresh pretty clever, so it can do all the legwork on
-        // accomplishing this goal.
-        Toaster.logRetryable(newStatus, this.onRefresh.bind(this));
-
-        // Fall through...
-      case 'synced':
-        this.toolbar.refreshBtn.dataset.state = 'synchronized';
-        this.syncingNode.classList.add('collapsed');
-        break;
-    }
-  },
-
-  /**
-   * Hide buttons that are not appropriate if we have no messages and display
-   * the appropriate l10n string in the message list proper.
-   */
-  showEmptyLayout: function() {
-    var text = this.domNode.
-      getElementsByClassName('msg-list-empty-message-text')[0];
-
-    this._clearCachedMessages();
-
-    text.textContent = this.mode == 'search' ?
-      mozL10n.get('messages-search-empty') :
-      mozL10n.get('messages-folder-empty');
-    this.messageEmptyContainer.classList.remove('collapsed');
-    this.toolbar.editBtn.classList.add('disabled');
-    this.toolbar.searchBtn.classList.add('disabled');
-    this._hideSearchBoxByScrolling();
-  },
-  /**
-   * Show buttons we hid in `showEmptyLayout` and hide the "empty folder"
-   * message.
-   */
-  hideEmptyLayout: function() {
-    this.messageEmptyContainer.classList.add('collapsed');
-    this.toolbar.editBtn.classList.remove('disabled');
-    this.toolbar.searchBtn.classList.remove('disabled');
-  },
-
-
-  /**
-   * @param {number=} newEmailCount Optional number of new messages.
-   * The funny name because it is auto-bound as a listener for
-   * messagesSlice events in headerCursor using a naming convention.
-   */
-  messages_complete: function(newEmailCount) {
-    if (headerCursor.messagesSlice.userCanGrowDownwards)
-      this.syncMoreNode.classList.remove('collapsed');
-    else
-      this.syncMoreNode.classList.add('collapsed');
-
-    // Show empty layout, unless this is a slice with fake data that
-    // will get changed soon.
-    if (headerCursor.messagesSlice.items.length === 0) {
-      this.showEmptyLayout();
-    }
-
-    this.onNewMail(newEmailCount);
-
-    // Consider requesting more data or discarding data based on scrolling that
-    // has happened since we issued the request.  (While requests were pending,
-    // onScroll ignored scroll events.)
-    this.onScroll(null);
-  },
-
-  onNewMail: function(newEmailCount) {
-    var inboxFolder = model.foldersSlice.getFirstFolderWithType('inbox');
-
-    if (inboxFolder.id === this.curFolder.id &&
-        newEmailCount && newEmailCount !== NaN && newEmailCount !== 0) {
-      if (!Cards.isVisible(this)) {
-        this._whenVisible = this.onNewMail.bind(this, newEmailCount);
+    onSearchButton: function() {
+      // Do not bother if there is no current folder.
+      if (!this.curFolder) {
         return;
       }
 
-      // Decorate or update the little notification bar that tells the user
-      // how many new emails they've received after a sync.
-      if (this._topbar && this._topbar.getElement() !== null) {
-        // Update the existing status bar.
-        this._topbar.updateNewEmailCount(newEmailCount);
+      cards.pushCard(
+        'message_list_search', 'animate',
+        {
+          folder: this.curFolder
+        });
+    },
+
+    setEditMode: function(editMode) {
+      // Do not bother if this is triggered before
+      // a folder has loaded.
+      if (!this.curFolder) {
+        return;
+      }
+
+      if (this.curFolder.type === 'outbox') {
+        // You cannot edit the outbox messages if the outbox is syncing.
+        if (editMode && this.outboxSyncInProgress) {
+          return;
+        }
+
+        // Outbox Sync and Edit Mode are mutually exclusive. Disable
+        // outbox syncing before allowing us to enter edit mode, and
+        // vice versa. The callback shouldn't take long, but we wait to
+        // trigger edit mode until outbox sync has been fully disabled,
+        // to prevent ugly theoretical race conditions.
+        model.api.setOutboxSyncEnabled(model.account, !editMode, function() {
+          this._setEditMode(editMode);
+        }.bind(this));
       } else {
-        this._topbar = new MessageListTopbar(
-            this.scrollContainer, newEmailCount);
-
-        var el =
-            document.getElementsByClassName(MessageListTopbar.CLASS_NAME)[0];
-        this._topbar.decorate(el);
-        this._topbar.render();
+        this._setEditMode(editMode);
       }
-    }
-  },
+    },
 
-  onScroll: function(evt) {
-    if (this._pendingScrollEvent) {
-      return;
-    }
+    // This function is called from setEditMode() after ensuring that
+    // the backend is in a state where we can safely use edit mode.
+    _setEditMode: function(editMode) {
+      var i;
 
-    this._pendingScrollEvent = true;
-    this._scrollTimer = setTimeout(this._onScroll, SCROLL_DELAY, evt);
-  },
+      this.editMode = editMode;
 
-  /**
-   * Handle scrolling by requesting more messages when we have less than the
-   * minimum buffer space and trimming messages when we have more than the max.
-   *
-   * We don't care about the direction of scrolling, which is helpful since this
-   * also lets us handle cases where message deletion might have done bad things
-   * to us.  (It does, however, open the door to foolishness where we request
-   * data and then immediately discard some of it.)
-   */
-  _onScroll: function(event) {
-    if (this._pendingScrollEvent) {
-      this._pendingScrollEvent = false;
-    }
+      // XXX the manual DOM play here is now a bit overkill; we should very
+      // probably switch top having the CSS do this for us or at least invest
+      // some time in cleanup.
+      if (editMode) {
+        this.normalHeader.classList.add('collapsed');
+        this.searchHeader.classList.add('collapsed');
+        this.normalToolbar.classList.add('collapsed');
+        this.editHeader.classList.remove('collapsed');
+        this.editToolbar.classList.remove('collapsed');
+        this.messagesContainer.classList.add('show-edit');
 
-
-    // Defer processing until any pending requests have completed;
-    // `onSliceRequestComplete` will call us.
-    if (!headerCursor.messagesSlice ||
-        headerCursor.messagesSlice.pendingRequestCount)
-      return;
-
-    if (!this._hasSnippetRequest()) {
-      this._requestSnippets();
-    }
-
-    var curScrollTop = this.scrollContainer.scrollTop,
-        viewHeight = this.scrollContainer.clientHeight;
-
-    var preScreens = curScrollTop / viewHeight,
-        postScreens = (this.scrollContainer.scrollHeight -
-                       (curScrollTop + viewHeight)) /
-                      viewHeight;
-
-    var shrinkLowIncl = 0,
-        shrinkHighIncl = headerCursor.messagesSlice.items.length - 1,
-        messageNode = null, targOff;
-    if (preScreens < SCROLL_MIN_BUFFER_SCREENS &&
-        !headerCursor.messagesSlice.atTop) {
-      headerCursor.messagesSlice.requestGrowth(
-        -1 * this._getGrowth(preScreens));
-      return;
-    }
-    else if (preScreens > SCROLL_MAX_RETENTION_SCREENS) {
-      // Take off one screen at a time.
-      targOff = curScrollTop -
-                (viewHeight * (SCROLL_MAX_RETENTION_SCREENS - 1));
-      for (messageNode = this.messagesContainer.firstElementChild;
-           messageNode.offsetTop + messageNode.clientHeight < targOff;
-           messageNode = messageNode.nextElementSibling) {
-        shrinkLowIncl++;
+        this.selectedMessages = [];
+        var cbs = this.messagesContainer
+                  .querySelectorAll('input[type=checkbox]');
+        for (i = 0; i < cbs.length; i++) {
+          cbs[i].checked = false;
+        }
+        this.selectedMessagesUpdated();
       }
-    }
+      else {
+        if (this.mode === 'nonsearch') {
+          this.normalHeader.classList.remove('collapsed');
+        } else {
+          this.searchHeader.classList.remove('collapsed');
+        }
+        this.normalToolbar.classList.remove('collapsed');
+        this.editHeader.classList.add('collapsed');
+        this.editToolbar.classList.add('collapsed');
+        this.messagesContainer.classList.remove('show-edit');
 
-    if (postScreens < SCROLL_MIN_BUFFER_SCREENS &&
-        !headerCursor.messagesSlice.atBottom) {
-      headerCursor.messagesSlice.requestGrowth(this._getGrowth(postScreens));
-    }
-    else if (postScreens > SCROLL_MAX_RETENTION_SCREENS) {
-      targOff = curScrollTop +
-                this.scrollContainer.clientHeight +
-                (viewHeight * (SCROLL_MAX_RETENTION_SCREENS - 1));
-      for (messageNode = this.messagesContainer.lastElementChild;
-           messageNode.offsetTop > targOff;
-           messageNode = messageNode.previousElementSibling) {
-        shrinkHighIncl--;
-      }
-    }
-
-    if (shrinkLowIncl !== 0 ||
-        shrinkHighIncl !== headerCursor.messagesSlice.items.length - 1) {
-      headerCursor.messagesSlice.requestShrinkage(shrinkLowIncl,
-                                                  shrinkHighIncl);
-    }
-
-  },
-
-  _getGrowth: function(screens) {
-    var percentEmpty = 1 - (screens / SCROLL_MIN_BUFFER_SCREENS);
-    var range = MAX_MESSAGE_GROWTH_SIZE - MIN_MESSAGE_GROWTH_SIZE;
-    return ~~(MIN_MESSAGE_GROWTH_SIZE + (percentEmpty * range));
-  },
-
-  _hasSnippetRequest: function() {
-    var max = MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST;
-    var now = Date.now();
-
-    // if we before the maximum time to wait between requests...
-    var beforeTimeout =
-      (this._lastSnippetRequest + max) > now;
-
-    // there is an important case where the backend may be slow OR have some
-    // fatal error which would prevent us from ever requesting an new set of
-    // snippets because we wait until the last batch finishes... To prevent that
-    // from ever happening we maintain the request start time and if more then
-    // MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST passes we issue a new request.
-    if (
-      this._snippetRequestPending &&
-      beforeTimeout
-    ) {
-      return true;
-    }
-
-    return false;
-  },
-
-  _pendingSnippetRequest: function() {
-    this._snippetRequestPending = true;
-    this._lastSnippetRequest = Date.now();
-  },
-
-  _clearSnippetRequest: function() {
-    this._snippetRequestPending = false;
-  },
-
-  // the distance between items. It is expected to remain fairly constant
-  // throughout the list so we only need to calculate it once.
-  _getDistance: function() {
-    var items = headerCursor.messagesSlice.items;
-    if (!this._distanceBetweenMessages && items.length > 1) {
-      this._distanceBetweenMessages =
-        items[1].element.getBoundingClientRect().top -
-        items[0].element.getBoundingClientRect().top;
-    }
-    return this._distanceBetweenMessages;
-  },
-
-  _requestSnippets: function() {
-    var items = headerCursor.messagesSlice.items;
-    var len = items.length;
-
-    if (!len)
-      return;
-
-    var clearSnippets = this._clearSnippetRequest.bind(this);
-    var options = {
-      // this is per message
-      maximumBytesToFetch: MAXIMUM_BYTES_PER_MESSAGE_DURING_SCROLL
-    };
-
-    if (len < MINIMUM_ITEMS_FOR_SCROLL_CALC) {
-      this._pendingSnippetRequest();
-      headerCursor.messagesSlice.maybeRequestBodies(0,
-          MINIMUM_ITEMS_FOR_SCROLL_CALC - 1, options, clearSnippets);
-      return;
-    }
-
-    // Distance will always be non-zero here because we ensure the list
-    // is populated above.
-    var distance = this._getDistance();
-
-    // starting offset to begin fetching snippets
-    var startOffset = Math.floor(this.scrollContainer.scrollTop / distance);
-
-    this._snippetsPerScrollTick = (
-      this._snippetsPerScrollTick ||
-      Math.ceil(this.scrollContainer.getBoundingClientRect().height / distance)
-    );
-
-
-    this._pendingSnippetRequest();
-    headerCursor.messagesSlice.maybeRequestBodies(
-      startOffset,
-      startOffset + this._snippetsPerScrollTick,
-      options,
-      clearSnippets
-    );
-
-  },
-
-  /**
-   * How many items in the message list to keep for the _cacheDom call.
-   * @type {Number}
-   */
-  _cacheListLimit: 7,
-
-  /**
-   * Tracks if a DOM cache save is scheduled for later.
-   * @type {Number}
-   */
-  _cacheDomTimeoutId: 0,
-
-  /**
-   * Confirms card state is in a visual state suitable for caching.
-   */
-  _isCacheableCardState: function() {
-    return this.cacheableFolderId === this.curFolder.id &&
-           this.mode === 'nonsearch' &&
-           !this.editMode;
-  },
-
-  /**
-   * Caches the DOM for this card, but trims it down a bit first.
-   */
-  _cacheDom: function() {
-    this._cacheDomTimeoutId = 0;
-    if (!this._isCacheableCardState()) {
-      return;
-    }
-
-    var cacheNode = this.domNode.cloneNode(true);
-
-
-    // Hide search field as it will not operate and gets scrolled out
-    // of view after real load.
-    var removableCacheNode = cacheNode.querySelector('.msg-search-tease-bar');
-    if (removableCacheNode)
-      removableCacheNode.classList.add('collapsed');
-
-    // Hide "new mail" topbar too
-    removableCacheNode = cacheNode
-                           .querySelector('.' + MessageListTopbar.CLASS_NAME);
-    if (removableCacheNode)
-      removableCacheNode.classList.add('collapsed');
-
-    // Trim the message list to _cacheListLimit.
-    if (this.messagesContainer.children.length > this._cacheListLimit) {
-      var msgContainer = cacheNode
-                        .getElementsByClassName('msg-messages-container')[0];
-      for (var childIndex = msgContainer.children.length - 1;
-                            childIndex > this._cacheListLimit - 1;
-                            childIndex--) {
-        var childNode = msgContainer.children[childIndex];
-        childNode.parentNode.removeChild(childNode);
-      }
-    }
-    htmlCache.saveFromNode(cacheNode);
-  },
-
-  /**
-   * Considers a DOM cache, but only if it meets the criteria for what
-   * should be saved in the cache, and if a save is not already scheduled.
-   * @param  {Number} index the index of the message that triggered
-   *                  this call.
-   */
-  _considerCacheDom: function(index) {
-    // Only bother if not already waiting to update cache and
-    if (!this._cacheDomTimeoutId &&
-        // card visible state is appropriate
-        this._isCacheableCardState() &&
-        // if our slice is showing the newest messages in the folder and
-        headerCursor.messagesSlice.atTop &&
-        // if actually got a numeric index and
-        (index || index === 0) &&
-        // if it affects the data we cache
-        index < this._cacheListLimit) {
-      this._cacheDomTimeoutId = setTimeout(this._cacheDom.bind(this), 600);
-    }
-  },
-
-  /**
-   * Clears out the messages HTML in messageContainer from using the cached
-   * nodes that were picked up when the HTML cache of this list was used
-   * (which is indicated by usingCachedNode being true). The cached HTML
-   * needs to be purged when the real data is finally available and will
-   * replace the cached state. A more sophisticated approach would be to
-   * compare the cached HTML to what would be inserted in its place, and
-   * if no changes, skip this step, but that comparison operation could get
-   * tricky, and it is cleaner just to wipe it and start fresh. Once the
-   * cached HTML has been cleared, then usingCachedNode is set to false
-   * to indicate that the main piece of content in the card, the message
-   * list, is no longer from a cached node.
-   */
-  _clearCachedMessages: function() {
-    if (this.usingCachedNode) {
-      this.messagesContainer.innerHTML = '';
-      this.usingCachedNode = false;
-    }
-  },
-
-  // The funny name because it is auto-bound as a listener for
-  // messagesSlice events in headerCursor using a naming convention.
-  messages_splice: function(index, howMany, addedItems,
-                             requested, moreExpected, fake) {
-    // If no work to do, just skip it.
-    if (index === 0 && howMany === 0 && !addedItems.length)
-      return;
-
-    // XXX: This function should be re-written to cache the current scrollTop
-    //      and calculate changes to it in-memory without touching the DOM.
-    //      The scrollTop should only be written back to the DOM when
-    //      absolutely necessary.  Touching thins like scrollTop, offsetTop,
-    //      getBoundingClientRect(), can trigger sync reflows.
-
-    var prevHeight;
-    // - removed messages
-    if (howMany) {
-      if (fake && index === 0 &&
-          headerCursor.messagesSlice.items.length === howMany &&
-          !addedItems.length) {
-      } else {
-        // Regular remove for current call.
-        // Plan to fixup the scroll position if we are deleting a message that
-        // starts before the (visible) scrolled area.  (We add the container's
-        // start offset because it is as big as the occluding header bar.)
-        prevHeight = null;
-        if (headerCursor.messagesSlice.items[index].element.offsetTop <
-            this.scrollContainer.scrollTop + this.messagesContainer.offsetTop) {
-          prevHeight = this.messagesContainer.clientHeight;
+        // (Do this based on the DOM nodes actually present; if the user has
+        // been scrolling a lot, this.selectedMessages may contain messages that
+        // no longer have a domNode around.)
+        var selectedMsgNodes =
+          this.getElementsByClassName('msg-header-item-selected');
+        for (i = selectedMsgNodes.length - 1; i >= 0; i--) {
+          selectedMsgNodes[i].classList.remove('msg-header-item-selected');
         }
 
-        for (var i = index + howMany - 1; i >= index; i--) {
-          var message = headerCursor.messagesSlice.items[i];
-          message.element.parentNode.removeChild(message.element);
-        }
+        this.selectedMessages = null;
+      }
 
-        // If fixup is requred, adjust.
-        if (prevHeight !== null) {
-          this.scrollContainer.scrollTop -=
-            (prevHeight - this.messagesContainer.clientHeight);
-        }
+      // UXXX do we want to disable the buttons if nothing is selected?
+    },
 
-        // Check the message count after deletion:
-        if (this.messagesContainer.children.length === 0) {
-          this.showEmptyLayout();
+    // Event handler wired up in HTML template
+    setEditModeStart: function() {
+      this.setEditMode(true);
+    },
+
+    // Event handler wired up in HTML template
+    setEditModeDone: function() {
+      this.setEditMode(false);
+    },
+
+    /**
+     * Update the edit mode UI bits sensitive to a change in the set of selected
+     * messages.  This means the label that says how many messages are selected,
+     * whether the buttons are enabled, which of the toggle-pairs are visible.
+     */
+    selectedMessagesUpdated: function() {
+      mozL10n.setAttributes(this.headerNode, 'message-multiedit-header',
+                            { n: this.selectedMessages.length });
+
+      var hasMessages = !!this.selectedMessages.length;
+
+      // Enabling/disabling rules (not UX-signed-off):  Our bias is that people
+      // want to star messages and mark messages unread (since it they naturally
+      // end up unread), so unless messages are all in this state, we assume
+      // that is the desired action.
+      var numStarred = 0, numRead = 0;
+      for (var i = 0; i < this.selectedMessages.length; i++) {
+        var msg = this.selectedMessages[i];
+        if (msg.isStarred) {
+          numStarred++;
+        }
+        if (msg.isRead) {
+          numRead++;
         }
       }
-    }
 
-    this._clearCachedMessages();
+      // Unstar if everything is starred, otherwise star
+      this.setAsStarred = !(numStarred && numStarred ===
+                            this.selectedMessages.length);
+      // Mark read if everything is unread, otherwise unread
+      this.setAsRead = (hasMessages && numRead === 0);
 
-    // - added/existing
-    var insertBuddy, self = this;
-    if (index >= this.messagesContainer.childElementCount)
-      insertBuddy = null;
-    else
-      insertBuddy = this.messagesContainer.children[index];
-    if (insertBuddy &&
-        (insertBuddy.offsetTop <=
-         this.scrollContainer.scrollTop + this.messagesContainer.offsetTop))
-      prevHeight = this.messagesContainer.clientHeight;
-    else
-      prevHeight = null;
+      // Update mark read/unread button to show what action will be taken.
+      this.readBtn.classList.toggle('unread', numRead > 0);
 
-    // Remove the no message text while new messages added:
-    if (addedItems.length > 0) {
+      // Update disabled state based on if there are selected messages
+      this.toolbarEditButtonNames.forEach(function(key) {
+        this[key].disabled = !hasMessages;
+      }.bind(this));
+    },
+
+    _hideSearchBoxByScrolling: function() {
+      // scroll the search bit out of the way
+      var searchBar = this.searchBar,
+          scrollContainer = this.scrollContainer;
+
+      // Search bar could have been collapsed with a cache load,
+      // make sure it is visible, but if so, adjust the scroll
+      // position in case the user has scrolled before this code
+      // runs.
+      if (searchBar.classList.contains('collapsed')) {
+        searchBar.classList.remove('collapsed');
+        scrollContainer.scrollTop += searchBar.offsetHeight;
+      }
+
+      // Adjust scroll position now that there is something new in
+      // the scroll region, but only if at the top. Otherwise, the
+      // user's purpose scroll positioning may be disrupted.
+      //
+      // Note that when we call this.vScroll.clearDisplay() we
+      // inherently scroll back up to the top, so this check is still
+      // okay even when switching folders.  (We do not want to start
+      // index 50 in our new folder because we were at index 50 in our
+      // old folder.)
+      if (scrollContainer.scrollTop === 0) {
+        scrollContainer.scrollTop = searchBar.offsetHeight;
+      }
+    },
+
+    onShowFolders: function() {
+      cards.pushCard('folder_picker', 'immediate', {
+        onPushed: function() {
+          this.headerMenuNode.classList.add('transparent');
+        }.bind(this)
+      });
+    },
+
+    onCompose: function() {
+      cards.pushCard('compose', 'animate');
+    },
+
+    /**
+     * If the last synchronised label is more than half the length
+     * of its display area, set a "long" style on it that allows
+     * different styling. But only do this once per card instance,
+     * the label should not change otherwise.
+     * TODO though, once locale changing in app is supported, this
+     * should be revisited.
+     */
+    sizeLastSync: function() {
+      if (this._needsSizeLastSync && this.lastSyncedLabel.scrollWidth) {
+        var label = this.lastSyncedLabel;
+        var overHalf = label.scrollWidth > label.parentNode.clientWidth / 2;
+        label.parentNode.classList[(overHalf ? 'add' : 'remove')]('long');
+        this._needsSizeLastSync = false;
+      }
+    },
+
+    updateLastSynced: function(value) {
+      var method = value ? 'remove' : 'add';
+      this.lastSyncedLabel.classList[method]('collapsed');
+      date.setPrettyNodeDate(this.lastSyncedAtNode, value);
+      this.sizeLastSync();
+    },
+
+    updateUnread: function(num) {
+      var content = '';
+      if (num > 0) {
+        content = num > 999 ? mozL10n.get('messages-folder-unread-max') : num;
+      }
+
+      this.folderUnread.textContent = content;
+      this.folderUnread.classList.toggle('collapsed', !content);
+      this.callHeaderFontSize();
+    },
+
+    onFoldersSliceChange: function(folder) {
+      if (folder === this.curFolder) {
+        this.updateUnread(folder.unread);
+        this.updateLastSynced(folder.lastSyncedAt);
+      }
+    },
+
+    /**
+     * A workaround for shared/js/font_size_utils not recognizing child node
+     * content changing, and if it did, it would be noisy/extra work if done
+     * generically. Using a rAF call to not slow down the rest of card updates,
+     * it is something that can happen lazily on another turn.
+     */
+    callHeaderFontSize: function(node) {
+      requestAnimationFrame(function() {
+        FontSizeUtils._reformatHeaderText(this.folderLabel);
+      }.bind(this));
+    },
+
+    /**
+     * Show a folder, returning true if we actually changed folders or false if
+     * we did nothing because we were already in the folder.
+     */
+    showFolder: function(folder, forceNewSlice) {
+      if (folder === this.curFolder && !forceNewSlice) {
+        return false;
+      }
+
+      // If using a cache, do not clear the HTML as it will
+      // be cleared once real data has been fetched.
+      if (!this.usingCachedNode) {
+        // This inherently scrolls us back up to the top of the list.
+        this.vScroll.clearDisplay();
+      }
+      this._needVScrollData = true;
+
+      this.curFolder = folder;
+
+      switch (folder.type) {
+        case 'drafts':
+        case 'localdrafts':
+        case 'outbox':
+        case 'sent':
+          this.isIncomingFolder = false;
+          break;
+        default:
+          this.isIncomingFolder = true;
+          break;
+      }
+
+      this.folderNameNode.textContent = folder.name;
+      this.updateUnread(folder.unread);
+
       this.hideEmptyLayout();
-    }
 
-    addedItems.forEach(function(message, i) {
-      var domMessage;
-      domMessage = message.element = msgHeaderItemNode.cloneNode(true);
+      // You can't refresh messages in the localdrafts folder.
+      this.refreshBtn.classList.toggle('collapsed',
+                                               folder.type === 'localdrafts');
+      // You can't move messages in localdrafts or the outbox.
+      this.moveBtn.classList.toggle('collapsed',
+                                            folder.type === 'localdrafts' ||
+                                            folder.type === 'outbox');
+      // You can't flag or change the read status of messages in the outbox.
+      this.starBtn.classList.toggle('collapsed',
+                                            folder.type === 'outbox');
+      this.readBtn.classList.toggle('collapsed',
+                                            folder.type === 'outbox');
 
-      if (self.mode === 'nonsearch') {
-        domMessage.message = message;
-        self.updateMessageDom(true, message);
+      this.updateLastSynced(folder.lastSyncedAt);
+
+      if (forceNewSlice) {
+        // We are creating a new slice, so any pending snippet requests are
+        // moot.
+        this._snippetRequestPending = false;
+        headerCursor.freshMessagesSlice();
       }
-      else {
-        domMessage.message = message.header;
-        self.updateMatchedMessageDom(true, message);
+
+      this.onFolderShown();
+
+      return true;
+    },
+
+    showSearch: function(phrase, filter) {
+      console.log('sf: showSearch. phrase:', phrase, phrase.length);
+
+      this.curFolder = model.folder;
+      this.vScroll.clearDisplay();
+      this.curPhrase = phrase;
+      this.curFilter = filter;
+
+      if (phrase.length < 1) {
+        return false;
       }
 
-      self.messagesContainer.insertBefore(domMessage, insertBuddy);
-    });
+      // We are creating a new slice, so any pending snippet requests are moot.
+      this._snippetRequestPending = false;
+      // Don't bother the new slice with requests until we hears it completion
+      // event.
+      this.waitingOnChunk = true;
+      headerCursor.startSearch(phrase, {
+        author: filter === 'all' || filter === 'author',
+        recipients: filter === 'all' || filter === 'recipients',
+        subject: filter === 'all' || filter === 'subject',
+        body: filter === 'all' || filter === 'body'
+      });
 
-    if (prevHeight) {
-      this.scrollContainer.scrollTop +=
-        (this.messagesContainer.clientHeight - prevHeight);
-    }
+      return true;
+    },
 
-    // Only cache if it is an add or remove of items
-    if (addedItems.length || howMany) {
+    onSearchFilterClick: function(filterNode, event) {
+      accessibilityHelper.setAriaSelected(filterNode.firstElementChild,
+        this.searchFilterTabs);
+      this.showSearch(this.searchInput.value, filterNode.dataset.filter);
+    },
+
+    onSearchTextChange: function(event) {
+      console.log('sf: typed, now:', this.searchInput.value);
+      this.showSearch(this.searchInput.value, this.curFilter);
+    },
+
+    onSearchSubmit: function(event) {
+      // Not a real form to submit, so stop actual submission.
+      event.preventDefault();
+
+      // Blur the focus away from the text input. This has the effect of hiding
+      // the keyboard. This is useful for the two cases where this function is
+      // currently triggered: Enter on the keyboard or Cancel on form submit.
+      // Note that the Cancel button has a type="submit", which is technically
+      // an incorrect use of that type. However the /shared styles depend on it
+      // being marked as such for style reasons.
+      this.searchInput.blur();
+    },
+
+    onCancelSearch: function(event) {
+      // Only care about real clicks on actual button, not fake ones triggered
+      // by a form submit from the Enter button on the keyboard.
+      // Note: the cancel button should not really be a type="submit", but it is
+      // that way because the /shared styles for this search form wants to see
+      // a submit. Longer term this should be changed in the /shared components.
+      // This event test is used because in form submit cases, the
+      // explicitOriginalTarget (the text input) is not the same as the target
+      // (the button).
+      if (event.explicitOriginalTarget !== event.target) {
+        return;
+      }
+
+      try {
+        headerCursor.endSearch();
+      }
+      catch (ex) {
+        console.error('problem killing slice:', ex, '\n', ex.stack);
+      }
+      cards.removeCardAndSuccessors(this, 'animate');
+    },
+
+    onGetMoreMessages: function() {
+      if (!headerCursor.messagesSlice) {
+        return;
+      }
+
+      headerCursor.messagesSlice.requestGrowth(1, true);
+    },
+
+    // The funny name because it is auto-bound as a listener for
+    // messagesSlice events in headerCursor using a naming convention.
+    messages_status: function(newStatus) {
+      if (headerCursor.searchMode !== this.mode) {
+        return;
+      }
+
+      // The outbox's refresh button is used for sending messages, so we
+      // ignore any syncing events generated by the slice. The outbox
+      // doesn't need to show many of these indicators (like the "Load
+      // More Messages..." node, etc.) and it has its own special
+      // "refreshing" display, as documented elsewhere in this file.
+      if (this.curFolder.type === 'outbox') {
+        return;
+      }
+
+      if (newStatus === 'synchronizing' ||
+         newStatus === 'syncblocked') {
+          this.syncingNode.classList.remove('collapsed');
+          this.syncMoreNode.classList.add('collapsed');
+          this.hideEmptyLayout();
+
+          this.refreshBtn.dataset.state = 'synchronizing';
+      } else if (newStatus === 'syncfailed' ||
+                 newStatus === 'synced') {
+        if (newStatus === 'syncfailed') {
+          // If there was a problem talking to the server, notify the user and
+          // provide a means to attempt to talk to the server again.  We have
+          // made onRefresh pretty clever, so it can do all the legwork on
+          // accomplishing this goal.
+          toaster.toast({
+            text: mozL10n.get('toaster-retryable-syncfailed')
+          });
+        }
+        this.refreshBtn.dataset.state = 'synchronized';
+        this.syncingNode.classList.add('collapsed');
+        this._manuallyTriggeredSync = false;
+      }
+    },
+
+    isEmpty: function() {
+      return headerCursor.messagesSlice.items.length === 0;
+    },
+
+    /**
+     * Hide buttons that are not appropriate if we have no messages and display
+     * the appropriate l10n string in the message list proper.
+     */
+    showEmptyLayout: function() {
+      this._clearCachedMessages();
+
+      mozL10n.setAttributes(
+        this.messageEmptyText,
+        (this.mode === 'search') ? 'messages-search-empty' :
+                                   'messages-folder-empty');
+      this.messageEmptyContainer.classList.remove('collapsed');
+
+      this.editBtn.disabled = true;
+
+      // The outbox can't refresh anything if there are no messages.
+      if (this.curFolder.type === 'outbox') {
+        this.refreshBtn.disabled = true;
+      }
+
+      this._hideSearchBoxByScrolling();
+    },
+    /**
+     * Show buttons we hid in `showEmptyLayout` and hide the "empty folder"
+     * message.
+     */
+    hideEmptyLayout: function() {
+      this.messageEmptyContainer.classList.add('collapsed');
+      this.editBtn.disabled = false;
+      this.refreshBtn.disabled = false;
+    },
+
+
+    /**
+     * @param {number=} newEmailCount Optional number of new messages.
+     * The funny name because it is auto-bound as a listener for
+     * messagesSlice events in headerCursor using a naming convention.
+     */
+    messages_complete: function(newEmailCount) {
+      if (headerCursor.searchMode !== this.mode) {
+        return;
+      }
+
+      console.log('message_list complete:',
+                  headerCursor.messagesSlice.items.length, 'items of',
+                  headerCursor.messagesSlice.headerCount,
+                  'alleged known headers. canGrow:',
+                  headerCursor.messagesSlice.userCanGrowDownwards);
+
+    // Show "load more", but only if the slice can grow and if there is a
+    // non-zero headerCount. If zero headerCount, it likely means the folder
+    // has never been synchronized, and this display was an offline display,
+    // so it is hard to know if messages can be synchronized. In this case,
+    // canGrow is not enough of an indicator, because as far as the back end is
+    // concerned, it could grow, it just has no way to check for sure yet. So
+    // hide the "load more", the user can use the refresh icon once online to
+    // load messages.
+    if (headerCursor.messagesSlice.userCanGrowDownwards &&
+        headerCursor.messagesSlice.headerCount) {
+        this.syncMoreNode.classList.remove('collapsed');
+      } else {
+        this.syncMoreNode.classList.add('collapsed');
+      }
+
+      // Show empty layout, unless this is a slice with fake data that
+      // will get changed soon.
+      if (headerCursor.messagesSlice.items.length === 0) {
+        this.showEmptyLayout();
+      }
+
+      // Search does not trigger normal conditions for a folder changed,
+      // so if vScroll is missing its data, set it up now.
+      if (this.mode === 'search' && !this.vScroll.list) {
+        this.vScroll.setData(this.listFunc);
+      }
+
+      this.onNewMail(newEmailCount);
+
+      this.waitingOnChunk = false;
+      // Load next chunk if one is pending
+      if (this.desiredHighAbsoluteIndex) {
+        this.loadNextChunk(this.desiredHighAbsoluteIndex);
+        this.desiredHighAbsoluteIndex = 0;
+      }
+
+      // It's possible for a synchronization to result in a change to
+      // headerCount without resulting in a splice.  This is very likely
+      // to happen with a search filter when it was lying about another
+      // messages existing, but it's also possible to happen in
+      // synchronizations.
+      //
+      // XXX Our total correctness currently depends on headerCount only
+      // changing as a result of a synchronization triggered by this slice.
+      // This does not hold up when confronted with periodic background sync; we
+      // need to finish cleanup up the headerCount change notification stuff.
+      //
+      // (However, this is acceptable glitchage right now.  We just need to make
+      // sure it doesn't happen for searches since it's so blatant.)
+      //
+      // So, anyways, use updateDataBind() to cause VScroll to double-check that
+      // our list size didn't change from what it thought it was.  (It renders
+      // coordinate-space predictively based on our headerCount, but we
+      // currently only provide strong correctness guarantees for actually
+      // reported `items`, so we must do this.)  If our list size is the same,
+      // this call is effectively a no-op.
+      this.vScroll.updateDataBind(0, [], 0);
+
+
+      // Inform that content is ready. There could actually be a small delay
+      // with vScroll.updateDataBind from rendering the final display, but it is
+      // small enough that it is not worth trying to break apart the design to
+      // accommodate this metrics signal.
+      if (!this._emittedContentEvents) {
+        evt.emit('metrics:contentDone');
+        this._emittedContentEvents = true;
+      }
+    },
+
+    onNewMail: function(newEmailCount) {
+      var inboxFolder = model.foldersSlice.getFirstFolderWithType('inbox');
+
+      if (inboxFolder.id === this.curFolder.id &&
+          newEmailCount && newEmailCount > 0) {
+        if (!cards.isVisible(this)) {
+          this._whenVisible = this.onNewMail.bind(this, newEmailCount);
+          return;
+        }
+
+        // If the user manually synced, then want to jump to show the new
+        // messages. Otherwise, show the top bar.
+        if (this._manuallyTriggeredSync) {
+          this.vScroll.jumpToIndex(0);
+        } else {
+          // Update the existing status bar.
+          this._topBar.showNewEmailCount(newEmailCount);
+        }
+      }
+    },
+
+    // When an email is being sent from the app (and not from an outbox
+    // refresh), we'll receive notification here. Play a sound and
+    // raise a toast, if appropriate.
+    onBackgroundSendStatus: function(data) {
+      if (this.curFolder.type === 'outbox') {
+        if (data.state === 'sending') {
+          // If the message is now sending, make sure we're showing the
+          // outbox as "currently being synchronized".
+          this.toggleOutboxSyncingDisplay(true);
+        } else if (data.state === 'syncDone') {
+          this.toggleOutboxSyncingDisplay(false);
+        }
+      }
+
+      if (data.emitNotifications) {
+        toaster.toast({
+          text: data.localizedDescription
+        });
+      }
+    },
+
+    /**
+     * Waits for scrolling to stop before fetching snippets.
+     */
+    _onVScrollStopped: function() {
+      // Give any pending requests in the slice priority.
+      if (!headerCursor.messagesSlice ||
+          headerCursor.messagesSlice.pendingRequestCount) {
+        return;
+      }
+
+      // Do not bother fetching snippets if this card is not in view.
+      // The card could still have a scroll event triggered though
+      // by the next/previous work done in message_reader.
+      if (cards.isVisible(this) && !this._hasSnippetRequest()) {
+        this._requestSnippets();
+      }
+    },
+
+    _hasSnippetRequest: function() {
+      var max = MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST;
+      var now = Date.now();
+
+      // if we before the maximum time to wait between requests...
+      var beforeTimeout =
+        (this._lastSnippetRequest + max) > now;
+
+      // there is an important case where the backend may be slow OR have some
+      // fatal error which would prevent us from ever requesting an new set of
+      // snippets because we wait until the last batch finishes. To prevent that
+      // from ever happening we maintain the request start time and if more then
+      // MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST passes we issue a new request.
+      if (
+        this._snippetRequestPending &&
+        beforeTimeout
+      ) {
+        return true;
+      }
+
+      return false;
+    },
+
+    _pendingSnippetRequest: function() {
+      this._snippetRequestPending = true;
+      this._lastSnippetRequest = Date.now();
+    },
+
+    _clearSnippetRequest: function() {
+      this._snippetRequestPending = false;
+    },
+
+    _requestSnippets: function() {
+      var items = headerCursor.messagesSlice.items;
+      var len = items.length;
+
+      if (!len) {
+        return;
+      }
+
+      var clearSnippets = this._clearSnippetRequest.bind(this);
+      var options = {
+        // this is per message
+        maximumBytesToFetch: MAXIMUM_BYTES_PER_MESSAGE_DURING_SCROLL
+      };
+
+      if (len < MINIMUM_ITEMS_FOR_SCROLL_CALC) {
+        this._pendingSnippetRequest();
+        headerCursor.messagesSlice.maybeRequestBodies(0,
+            MINIMUM_ITEMS_FOR_SCROLL_CALC - 1, options, clearSnippets);
+        return;
+      }
+
+      var visibleIndices = this.vScroll.getVisibleIndexRange();
+
+      if (visibleIndices) {
+        this._pendingSnippetRequest();
+        headerCursor.messagesSlice.maybeRequestBodies(
+          visibleIndices[0],
+          visibleIndices[1],
+          options,
+          clearSnippets
+        );
+      }
+    },
+
+    /**
+     * How many items in the message list to keep for the _cacheDom call.
+     * @type {Number}
+     */
+    _cacheListLimit: 7,
+
+    /**
+     * Tracks if a DOM cache save is scheduled for later.
+     * @type {Number}
+     */
+    _cacheDomTimeoutId: 0,
+
+    /**
+     * Confirms card state is in a visual state suitable for caching.
+     */
+    _isCacheableCardState: function() {
+      return this.cacheableFolderId === this.curFolder.id &&
+             this.mode === 'nonsearch' &&
+             !this.editMode;
+    },
+
+    /**
+     * Caches the DOM for this card, but trims it down a bit first.
+     */
+    _cacheDom: function() {
+      this._cacheDomTimeoutId = 0;
+      if (!this._isCacheableCardState()) {
+        return;
+      }
+
+      var cacheNode = this.cloneNode(true);
+      cacheNode.dataset.cached = 'cached';
+
+      // Make sure toolbar is visible, could be hidden by drawer
+      cacheNode.querySelector('menu[type="toolbar"]')
+               .classList.remove('transparent');
+
+      // Hide search field as it will not operate and gets scrolled out
+      // of view after real load.
+      var removableCacheNode = cacheNode.querySelector('.msg-search-tease-bar');
+      if (removableCacheNode) {
+        removableCacheNode.classList.add('collapsed');
+      }
+
+      // Hide "new mail" topbar too
+      removableCacheNode = cacheNode.querySelector('.message-list-topbar');
+      if (removableCacheNode) {
+        this._topBar.resetNodeForCache(removableCacheNode);
+      }
+
+      // Hide the last sync number
+      var tempNode = cacheNode.querySelector('.msg-last-synced-label');
+      if (tempNode) {
+        tempNode.classList.add('collapsed');
+      }
+      tempNode = cacheNode.querySelector('.msg-last-synced-value');
+      if (tempNode) {
+        tempNode.innerHTML = '';
+      }
+
+      // Trim vScroll containers that are not in play
+      VScroll.trimMessagesForCache(
+        cacheNode.querySelector('.msg-messages-container'),
+        this._cacheListLimit
+      );
+
+      htmlCache.saveFromNode(cacheNode);
+    },
+
+    /**
+     * Considers a DOM cache, but only if it meets the criteria for what
+     * should be saved in the cache, and if a save is not already scheduled.
+     * @param  {Number} index the index of the message that triggered
+     *                  this call.
+     */
+    _considerCacheDom: function(index) {
+      // Only bother if not already waiting to update cache and
+      if (!this._cacheDomTimeoutId &&
+          // card visible state is appropriate
+          this._isCacheableCardState() &&
+          // if the scroll area is at the top (otherwise the
+          // virtual scroll may be showing non-top messages)
+          this.vScroll.firstRenderedIndex === 0 &&
+          // if actually got a numeric index and
+          (index || index === 0) &&
+          // if it affects the data we cache
+          index < this._cacheListLimit) {
+        this._cacheDomTimeoutId = setTimeout(this._cacheDom.bind(this), 600);
+      }
+    },
+
+    /**
+     * Clears out the messages HTML in messageContainer from using the cached
+     * nodes that were picked up when the HTML cache of this list was used
+     * (which is indicated by usingCachedNode being true). The cached HTML
+     * needs to be purged when the real data is finally available and will
+     * replace the cached state. A more sophisticated approach would be to
+     * compare the cached HTML to what would be inserted in its place, and
+     * if no changes, skip this step, but that comparison operation could get
+     * tricky, and it is cleaner just to wipe it and start fresh. Once the
+     * cached HTML has been cleared, then usingCachedNode is set to false
+     * to indicate that the main piece of content in the card, the message
+     * list, is no longer from a cached node.
+     */
+    _clearCachedMessages: function() {
+      if (this.usingCachedNode) {
+        this.messagesContainer.innerHTML = '';
+        this.usingCachedNode = false;
+      }
+    },
+
+    /**
+     * Request data through desiredHighAbsoluteIndex if we don't have it
+     * already and we think it exists.  If we already have an outstanding
+     * request we will save off this most recent request to process once
+     * the current request completes.  Any previously queued request will
+     * be forgotten regardless of how it compares to the newly queued
+     * request.
+     *
+     * @param  {Number} desiredHighAbsoluteIndex
+     */
+    loadNextChunk: function(desiredHighAbsoluteIndex) {
+      // The recalculate logic will trigger a call to prepareData, so
+      // it's okay for us to bail.  It's advisable for us to bail
+      // because any calls to prepareData will be based on outdated
+      // index information.
+      if (this.vScroll.waitingForRecalculate) {
+        return;
+      }
+
+      if (this.waitingOnChunk) {
+        this.desiredHighAbsoluteIndex = desiredHighAbsoluteIndex;
+        return;
+      }
+
+      // Do not bother asking for more than exists
+      if (desiredHighAbsoluteIndex >= headerCursor.messagesSlice.headerCount) {
+        desiredHighAbsoluteIndex = headerCursor.messagesSlice.headerCount - 1;
+      }
+
+      // Do not bother asking for more than what is already
+      // fetched
+      var items = headerCursor.messagesSlice.items;
+      var curHighAbsoluteIndex = items.length - 1;
+      var amount = desiredHighAbsoluteIndex - curHighAbsoluteIndex;
+      if (amount > 0) {
+        // IMPORTANT NOTE!
+        // 1 is unfortunately a special value right now for historical reasons
+        // that the other side interprets as a request to grow downward with the
+        // default growth size.  XXX change backend and its tests...
+        console.log('message_list loadNextChunk growing', amount,
+                    (amount === 1 ? '(will get boosted to 15!) to' : 'to'),
+                    (desiredHighAbsoluteIndex + 1), 'items out of',
+                    headerCursor.messagesSlice.headerCount, 'alleged known');
+        headerCursor.messagesSlice.requestGrowth(
+          amount,
+          // the user is not requesting us to go synchronize new messages
+          false);
+        this.waitingOnChunk = true;
+      }
+    },
+
+    // The funny name because it is auto-bound as a listener for
+    // messagesSlice events in headerCursor using a naming convention.
+    messages_splice: function(index, howMany, addedItems,
+                               requested, moreExpected, fake) {
+
+      // If no work to do, or wrong mode, just skip it.
+      if (headerCursor.searchMode !== this.mode ||
+         (index === 0 && howMany === 0 && !addedItems.length)) {
+        return;
+      }
+
+      this._clearCachedMessages();
+
+      if (this._needVScrollData) {
+        this.vScroll.setData(this.listFunc);
+        this._needVScrollData = false;
+      }
+
+      this.vScroll.updateDataBind(index, addedItems, howMany);
+
+      // Remove the no message text while new messages added:
+      if (addedItems.length > 0) {
+        this.hideEmptyLayout();
+      }
+
+      // If the end result is no more messages, then show empty layout.
+      // This is needed mostly because local drafts do not trigger
+      // a messages_complete callback when removing the last draft
+      // from the compose triggered in that view. The scrollStopped
+      // is used to avoid a flash where the old message is briefly visible
+      // before cleared, and having the empty layout overlay it.
+      // Using the slice's headerCount because it is updated before splice
+      // listeners are notified, so should be accurate.
+      if (!headerCursor.messagesSlice.headerCount) {
+        this.vScroll.once('scrollStopped', function() {
+          // Confirm there are still no messages. Since this callback happens
+          // async, some items could have appeared since first issuing the
+          // request to show empty.
+          if (!headerCursor.messagesSlice.headerCount) {
+            this.showEmptyLayout();
+          }
+        }.bind(this));
+      }
+
+      // Only cache if it is an add or remove of items
+      if (addedItems.length || howMany) {
+        this._considerCacheDom(index);
+      }
+    },
+
+    // The funny name because it is auto-bound as a listener for
+    // messagesSlice events in headerCursor using a naming convention.
+    messages_change: function(message, index) {
+      if (headerCursor.searchMode !== this.mode) {
+        return;
+      }
+
+      if (this.mode === 'nonsearch') {
+        this.onMessagesChange(message, index);
+      } else {
+        this.updateMatchedMessageDom(false, message);
+      }
+    },
+
+    onMessagesChange: function(message, index) {
+      this.updateMessageDom(false, message);
+
+      // Since the DOM change, cache may need to change.
       this._considerCacheDom(index);
-    }
-  },
+    },
 
-  // The funny name because it is auto-bound as a listener for
-  // messagesSlice events in headerCursor using a naming convention.
-  messages_change: function(message, index) {
-    if (this.mode === 'nonsearch') {
-      this.onMessagesChange(message, index);
-    } else {
-      this.updateMatchedMessageDom(false, message);
-    }
-  },
+    _updatePeepDom: function(peep) {
+      peep.element.textContent = peep.name || peep.address;
+    },
 
-  // The funny name because it is auto-bound as a listener for
-  // messagesSlice events in headerCursor using a naming convention.
-  onMessagesChange: function(message, index) {
-    this.updateMessageDom(false, message);
+    /**
+     * Update the state of the given DOM node.  Note that DOM nodes are reused
+     * so although you can depend on `firstTime` to be accurate, you must ensure
+     * that this method cleans up any dirty state resulting from any possible
+     * prior operation of this method.
+     *
+     * Also note that there is a separate method `updateMatchedMessageDom` for
+     * our search mode.  If you are changing this method you probably also want
+     * to be changing that method.
+     */
+    updateMessageDom: function(firstTime, message) {
+      var msgNode = message.element;
 
-    // Since the DOM change, cache may need to change.
-    this._considerCacheDom(index);
-  },
-
-  _updatePeepDom: function(peep) {
-    peep.element.textContent = peep.name || peep.address;
-  },
-
-  updateMessageDom: function(firstTime, message) {
-    var msgNode = message.element;
-
-    // ID is stored as a data- attribute so that it can survive
-    // serialization to HTML for storing in the HTML cache, and
-    // be usable before the actual data from the backend has
-    // loaded, as clicks to the message list are allowed before
-    // the back end is available. For this reason, click
-    // handlers should use dataset.id when wanting the ID.
-    msgNode.dataset.id = message.id;
-
-    // some things only need to be done once
-    var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
-    if (firstTime) {
-      var listPerson;
-      if (this.isIncomingFolder)
-        listPerson = message.author;
-      // XXX This is not to UX spec, but this is a stop-gap and that would
-      // require adding strings which we cannot justify as a slipstream fix.
-      else if (message.to && message.to.length)
-        listPerson = message.to[0];
-      else if (message.cc && message.cc.length)
-        listPerson = message.cc[0];
-      else if (message.bcc && message.bcc.length)
-        listPerson = message.bcc[0];
-      else
-        listPerson = message.author;
-
-      // author
-      listPerson.element =
-        msgNode.getElementsByClassName('msg-header-author')[0];
-      listPerson.onchange = this._updatePeepDom;
-      listPerson.onchange(listPerson);
-      // date
-      dateNode.dataset.time = message.date.valueOf();
-      dateNode.textContent = prettyDate(message.date);
-      // subject
-      displaySubject(msgNode.getElementsByClassName('msg-header-subject')[0],
-                     message);
-      // attachments
-      if (message.hasAttachments)
-        msgNode.getElementsByClassName('msg-header-attachments')[0]
-          .classList.add('msg-header-attachments-yes');
-    }
-
-    // snippet
-    msgNode.getElementsByClassName('msg-header-snippet')[0]
-      .textContent = message.snippet;
-
-    // unread (we use very specific classes directly on the nodes rather than
-    // child selectors for hypothetical speed)
-    var unreadNode =
-      msgNode.getElementsByClassName('msg-header-unread-section')[0];
-    if (message.isRead) {
-      unreadNode.classList.remove('msg-header-unread-section-unread');
-      dateNode.classList.remove('msg-header-date-unread');
-    }
-    else {
-      unreadNode.classList.add('msg-header-unread-section-unread');
-      dateNode.classList.add('msg-header-date-unread');
-    }
-    // star
-    var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
-    if (message.isStarred)
-      starNode.classList.add('msg-header-star-starred');
-    else
-      starNode.classList.remove('msg-header-star-starred');
-  },
-
-  updateMatchedMessageDom: function(firstTime, matchedHeader) {
-    var msgNode = matchedHeader.element,
-        matches = matchedHeader.matches,
-        message = matchedHeader.header;
-
-    // Even though updateMatchedMessageDom is only used in searches,
-    // which likely will not be cached, the dataset.is is set to
-    // maintain parity withe updateMessageDom and so click handlers
-    // can always just use the dataset property.
-    msgNode.dataset.id = matchedHeader.id;
-
-    // some things only need to be done once
-    var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
-    if (firstTime) {
-      // author
-      var authorNode = msgNode.getElementsByClassName('msg-header-author')[0];
-      if (matches.author) {
-        appendMatchItemTo(matches.author, authorNode);
-      }
-      else {
-        // we can only update the name if it wasn't matched on.
-        message.author.element = authorNode;
-        message.author.onchange = this._updatePeepDom;
-        message.author.onchange(message.author);
+      if (!msgNode) {
+        return;
       }
 
-      // date
-      dateNode.dataset.time = message.date.valueOf();
-      dateNode.textContent = prettyDate(message.date);
+      // If the placeholder data, indicate that in case VScroll
+      // wants to go back and fix later.
+      var classAction = message.isPlaceholderData ? 'add' : 'remove';
+      msgNode.classList[classAction](this.vScroll.itemDefaultDataClass);
 
-      // subject
-      var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
-      if (matches.subject)
-        appendMatchItemTo(matches.subject[0], subjectNode);
-      else
-        displaySubject(subjectNode, message);
+      // ID is stored as a data- attribute so that it can survive
+      // serialization to HTML for storing in the HTML cache, and
+      // be usable before the actual data from the backend has
+      // loaded, as clicks to the message list are allowed before
+      // the back end is available. For this reason, click
+      // handlers should use dataset.id when wanting the ID.
+      msgNode.dataset.id = message.id;
+
+      // some things only need to be done once
+      var dateNode = msgNode.querySelector('.msg-header-date');
+      var subjectNode = msgNode.querySelector('.msg-header-subject');
+      var snippetNode = msgNode.querySelector('.msg-header-snippet');
+      if (firstTime) {
+        var listPerson;
+        if (this.isIncomingFolder) {
+          listPerson = message.author;
+        // XXX This is not to UX spec, but this is a stop-gap and that would
+        // require adding strings which we cannot justify as a slipstream fix.
+        } else if (message.to && message.to.length) {
+          listPerson = message.to[0];
+        } else if (message.cc && message.cc.length) {
+          listPerson = message.cc[0];
+        } else if (message.bcc && message.bcc.length) {
+          listPerson = message.bcc[0];
+        } else {
+          listPerson = message.author;
+        }
+
+        // author
+        listPerson.element =
+          msgNode.querySelector('.msg-header-author');
+        listPerson.onchange = this._updatePeepDom;
+        listPerson.onchange(listPerson);
+        // date
+        var dateTime = message.date.valueOf();
+        dateNode.dataset.time = dateTime;
+        dateNode.textContent = dateTime ? date.prettyDate(message.date) : '';
+        // subject
+        messageDisplay.subject(msgNode.querySelector('.msg-header-subject'),
+                              message);
+
+        // attachments (can't change within a message but can change between
+        // messages, and since we reuse DOM nodes...)
+        var attachmentsNode = msgNode.querySelector('.msg-header-attachments');
+        attachmentsNode.classList.toggle('msg-header-attachments-yes',
+                                         message.hasAttachments);
+        // snippet needs to be shorter if icon is shown
+        snippetNode.classList.toggle('icon-short', message.hasAttachments);
+      }
 
       // snippet
-      var snippetNode = msgNode.getElementsByClassName('msg-header-snippet')[0];
-      if (matches.body)
-       appendMatchItemTo(matches.body[0], snippetNode);
-      else
-        snippetNode.textContent = message.snippet;
+      snippetNode.textContent = message.snippet;
 
-      // attachments
-      if (message.hasAttachments)
-        msgNode.getElementsByClassName('msg-header-attachments')[0]
-          .classList.add('msg-header-attachments-yes');
-    }
+      // update styles throughout the node for read vs unread
+      msgNode.classList.toggle('unread', !message.isRead);
 
-    // unread (we use very specific classes directly on the nodes rather than
-    // child selectors for hypothetical speed)
-    var unreadNode =
-      msgNode.getElementsByClassName('msg-header-unread-section')[0];
-    if (message.isRead) {
-      unreadNode.classList.remove('msg-header-unread-section-unread');
-      dateNode.classList.remove('msg-header-date-unread');
-    }
-    else {
-      unreadNode.classList.add('msg-header-unread-section-unread');
-      dateNode.classList.add('msg-header-date-unread');
-    }
-    // starmail
-    var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
-    if (message.isStarred)
-      starNode.classList.add('msg-header-star-starred');
-    else
-      starNode.classList.remove('msg-header-star-starred');
-  },
+      // star
+      var starNode = msgNode.querySelector('.msg-header-star');
 
-  /**
-   * Called by Cards when the instance of this card type is the
-   * visible card.
-   */
-  onCardVisible: function() {
-    if (this._whenVisible) {
-      var fn = this._whenVisible;
-      this._whenVisible = null;
-      fn();
-    }
-  },
+      starNode.classList.toggle('msg-header-star-starred', message.isStarred);
+      // subject needs to give space for star if it is visible
+      subjectNode.classList.toggle('icon-short', message.isStarred);
 
-  onClickMessage: function(messageNode, event) {
-    var header = messageNode.message;
-    if (this.editMode) {
-      var idx = this.selectedMessages.indexOf(header);
-      var cb = messageNode.querySelector('input[type=checkbox]');
-      if (idx !== -1) {
-        this.selectedMessages.splice(idx, 1);
-        cb.checked = false;
+      // sync status
+      var syncNode =
+            msgNode.querySelector('.msg-header-syncing-section');
+
+      // sendState is only intended for outbox messages, so not all
+      // messages will have sendStatus defined.
+      var sendState = message.sendStatus && message.sendStatus.state;
+
+      syncNode.classList.toggle('msg-header-syncing-section-syncing',
+                                sendState === 'sending');
+      syncNode.classList.toggle('msg-header-syncing-section-error',
+                                sendState === 'error');
+
+      // edit mode select state
+      if (this.editMode) {
+        var checkbox = msgNode.querySelector('input[type=checkbox]');
+        checkbox.checked = this.selectedMessages.indexOf(message) !== -1;
       }
-      else {
-        this.selectedMessages.push(header);
-        cb.checked = true;
-      }
-      this.selectedMessagesUpdated();
-      return;
-    }
-
-    if (this.curFolder && this.curFolder.type === 'localdrafts') {
-      var composer = header.editAsDraft(function() {
-        Cards.pushCard('compose', 'default', 'animate',
-                       { composer: composer });
-      });
-      return;
-    }
-
-    function pushMessageCard() {
-      Cards.pushCard(
-        'message_reader', 'default', 'animate',
-        {
-          // The header here may be undefined here, since the click
-          // could be on a cached HTML node before the back end has
-          // started up. It is OK if header is not available as the
-          // message_reader knows how to wait for the back end to
-          // start up to get the header value later.
-          header: header,
-          // Use the property on the HTML, since the click could be
-          // from a cached HTML node and the real data object may not
-          // be available yet.
-          messageSuid: messageNode.dataset.id
-        });
-    }
-
-    if (header) {
-      headerCursor.setCurrentMessage(header);
-    } else {
-      headerCursor.setCurrentMessageBySuid(messageNode.dataset.id);
-    }
-
-    // If the message is really big, warn them before they open it.
-    // Ideally we'd only warn if you're on a cell connection
-    // (metered), but as of now `navigator.connection.metered` isn't
-    // implemented.
-
-    // This number is somewhat arbitrary, based on a guess that most
-    // plain-text/HTML messages will be smaller than this. If this
-    // value is too small, users get warned unnecessarily. Too large
-    // and they download a lot of data without knowing. Since we
-    // currently assume that all network connections are metered,
-    // they'll always see this if they get a large message...
-    var LARGE_MESSAGE_SIZE = 1 * 1024 * 1024;
-
-    // watch out, header might be undefined here (that's okay, see above)
-    if (header && header.bytesToDownloadForBodyDisplay > LARGE_MESSAGE_SIZE) {
-      this.showLargeMessageWarning(
-        header.bytesToDownloadForBodyDisplay, function(result) {
-        if (result) {
-          pushMessageCard();
-        } else {
-          // abort
-        }
-      });
-    } else {
-      pushMessageCard();
-    }
-  },
-
-  /**
-   * Scroll to make sure that the current message is in our visible window.
-   *
-   * @param {MessageCursor.CurrentMessage} currentMessage representation of the
-   *     email we're currently reading.
-   */
-  onCurrentMessage: function(currentMessage) {
-    if (!currentMessage) {
-      return;
-    }
-
-    var id = currentMessage.header.id;
-    var selector = '.msg-messages-container ' +
-                   '.msg-header-item[data-id="' + id + '"]';
-    var element = document.querySelector(selector);
-
-    // Element may not be there if current message is fired
-    // before the notification of a folder change happens,
-    // which could be the case when entering from a notification.
-    if (!element) {
-      return;
-    }
-
-    // Check whether or not the current message is in the visible window.
-    var top = this.scrollContainer.scrollTop;
-    var bottom = this.scrollContainer.scrollTop +
-                 this.scrollContainer.getBoundingClientRect().bottom;
-    if (element.offsetTop >= top && element.offsetTop <= bottom) {
-      return;
-    }
-
-    this.scrollContainer.scrollTop = element.offsetTop;
-  },
-
-  onHoldMessage: function(messageNode, event) {
-    if (this.curFolder)
-      this.setEditMode(true);
-  },
-
-  onRefresh: function() {
-    if (!headerCursor.messagesSlice)
-      return;
-
-    switch (headerCursor.messagesSlice.status) {
-      // If we're still synchronizing, then the user is not well served by
-      // queueing a refresh yet, let's just squash this.
-      case 'new':
-      case 'synchronizing':
-        break;
-      // If we fully synchronized, then yes, let us refresh.
-      case 'synced':
-        headerCursor.messagesSlice.refresh();
-        break;
-      // If we failed to talk to the server, then let's only do a refresh if we
-      // know about any messages.  Otherwise let's just create a new slice by
-      // forcing reentry into the folder.
-      case 'syncfailed':
-        if (headerCursor.messagesSlice.items.length)
-          headerCursor.messagesSlice.refresh();
-        else
-          this.showFolder(this.curFolder, /* force new slice */ true);
-        break;
-    }
-  },
-
-  onStarMessages: function() {
-    var op = model.api.markMessagesStarred(this.selectedMessages,
-                                         this.setAsStarred);
-    this.setEditMode(false);
-    Toaster.logMutation(op);
-  },
-
-  onMarkMessagesRead: function() {
-    var op = model.api.markMessagesRead(this.selectedMessages, this.setAsRead);
-    this.setEditMode(false);
-    Toaster.logMutation(op);
-  },
-
-  onDeleteMessages: function() {
-    // TODO: Batch delete back-end mail api is not ready for IMAP now.
-    //       Please verify this function under IMAP when api completed.
-
-    if (this.selectedMessages.length === 0) {
-      return this.setEditMode(false);
-    }
-
-    var dialog = deleteConfirmMsgNode.cloneNode(true);
-    var content = dialog.getElementsByTagName('p')[0];
-    content.textContent = mozL10n.get('message-multiedit-delete-confirm',
-                                      { n: this.selectedMessages.length });
-    ConfirmDialog.show(dialog,
-      { // Confirm
-        id: 'msg-delete-ok',
-        handler: function() {
-          var op = model.api.deleteMessages(this.selectedMessages);
-          Toaster.logMutation(op);
-          this.setEditMode(false);
-        }.bind(this)
-      },
-      { // Cancel
-        id: 'msg-delete-cancel',
-        handler: null
-      }
-    );
-  },
-
-  /**
-   * Show a warning that the given message is large.
-   * Callback is called with cb(true|false) to continue.
-   */
-  showLargeMessageWarning: function(size, cb) {
-    var dialog = largeMsgConfirmMsgNode.cloneNode(true);
-    // TODO: If UX designers want the size included in the warning
-    // message, add it here.
-    ConfirmDialog.show(dialog,
-      { // Confirm
-        id: 'msg-large-message-ok',
-        handler: function() { cb(true); }
-      },
-      { // Cancel
-        id: 'msg-large-message-cancel',
-        handler: function() { cb(false); }
-      }
-    );
-  },
-
-  onMoveMessages: function() {
-    // TODO: Batch move back-end mail api is not ready now.
-    //       Please verify this function when api landed.
-    Cards.folderSelector(function(folder) {
-      var op = model.api.moveMessages(this.selectedMessages, folder);
-      Toaster.logMutation(op);
-      this.setEditMode(false);
-    }.bind(this));
-  },
-
-  _folderChanged: function(folder) {
-    // It is possible that the notification of latest folder is fired
-    // but in the meantime the foldersSlice could be cleared due to
-    // a change in the current account, before this listener is called.
-    // So skip this work if no foldersSlice, this method will be called
-    // again soon.
-    if (!model.foldersSlice)
-      return;
-
-    // Folder could have changed because account changed. Make sure
-    // the cacheableFolderId is still set correctly.
-    var inboxFolder = model.foldersSlice.getFirstFolderWithType('inbox');
-    this.cacheableFolderId = model.account === model.acctsSlice.defaultAccount ?
-                                               inboxFolder.id : null;
-
-    this.folder = folder;
-
-    if (this.mode == 'nonsearch') {
-      if (this.showFolder(folder)) {
-        this._hideSearchBoxByScrolling();
-      }
-    } else {
-      this.showSearch('', 'all');
-    }
-  },
-
-  die: function() {
-    this.sliceEvents.forEach(function(type) {
-      var name = 'messages_' + type;
-      headerCursor.removeListener(name, this[name]);
-    }.bind(this));
-
-    model.removeListener('folder', this._folderChanged);
-    model.removeListener('newInboxMessages', this.onNewMail);
-    headerCursor.removeListener('currentMessage', this.onCurrentMessage);
-  }
-};
-
-Cards.defineCard({
-  name: 'message_list',
-  modes: {
-    nonsearch: {
-      tray: false
     },
-    search: {
-      tray: false
-    }
-  },
-  constructor: MessageListCard,
-  templateNode: templateNode
-});
 
-return MessageListCard;
+    updateMatchedMessageDom: function(firstTime, matchedHeader) {
+      var msgNode = matchedHeader.element,
+          matches = matchedHeader.matches,
+          message = matchedHeader.header;
+
+      if (!msgNode) {
+        return;
+      }
+
+      // If the placeholder data, indicate that in case VScroll
+      // wants to go back and fix later.
+      var classAction = message.isPlaceholderData ? 'add' : 'remove';
+      msgNode.classList[classAction](this.vScroll.itemDefaultDataClass);
+
+      // Even though updateMatchedMessageDom is only used in searches,
+      // which likely will not be cached, the dataset.is is set to
+      // maintain parity withe updateMessageDom and so click handlers
+      // can always just use the dataset property.
+      msgNode.dataset.id = matchedHeader.id;
+
+      // some things only need to be done once
+      var dateNode = msgNode.querySelector('.msg-header-date');
+      var subjectNode = msgNode.querySelector('.msg-header-subject');
+      if (firstTime) {
+        // author
+        var authorNode = msgNode.querySelector('.msg-header-author');
+        if (matches.author) {
+          authorNode.textContent = '';
+          appendMatchItemTo(matches.author, authorNode);
+        }
+        else {
+          // we can only update the name if it wasn't matched on.
+          message.author.element = authorNode;
+          message.author.onchange = this._updatePeepDom;
+          message.author.onchange(message.author);
+        }
+
+        // date
+        dateNode.dataset.time = message.date.valueOf();
+        dateNode.textContent = date.prettyDate(message.date);
+
+        // subject
+        if (matches.subject) {
+          subjectNode.textContent = '';
+          appendMatchItemTo(matches.subject[0], subjectNode);
+        } else {
+          messageDisplay.subject(subjectNode, message);
+        }
+
+        // snippet
+        var snippetNode = msgNode.querySelector('.msg-header-snippet');
+        if (matches.body) {
+          snippetNode.textContent = '';
+          appendMatchItemTo(matches.body[0], snippetNode);
+        } else {
+          snippetNode.textContent = message.snippet;
+        }
+
+        // attachments (can't change within a message but can change between
+        // messages, and since we reuse DOM nodes...)
+        var attachmentsNode =
+          msgNode.querySelector('.msg-header-attachments');
+        attachmentsNode.classList.toggle('msg-header-attachments-yes',
+                                         message.hasAttachments);
+        // snippet needs to be shorter if icon is shown
+        snippetNode.classList.toggle('icon-short', message.hasAttachments);
+      }
+
+      // unread (we use very specific classes directly on the nodes rather than
+      // child selectors for hypothetical speed)
+      var unreadNode =
+        msgNode.querySelector('.msg-header-unread-section');
+      unreadNode.classList.toggle('msg-header-unread-section-unread',
+                                  !message.isRead);
+      dateNode.classList.toggle('msg-header-date-unread', !message.isRead);
+
+      // star
+      var starNode = msgNode.querySelector('.msg-header-star');
+      starNode.classList.toggle('msg-header-star-starred', message.isStarred);
+      // subject needs to give space for star if it is visible
+      subjectNode.classList.toggle('icon-short', message.isStarred);
+
+      // edit mode select state
+      if (this.editMode) {
+        var checkbox = msgNode.querySelector('input[type=checkbox]');
+        checkbox.checked = this.selectedMessages.indexOf(message) !== -1;
+      }
+    },
+
+    /**
+     * Called when the folder picker is animating to close. Need to
+     * listen for it so this card can animate fading in the header menu.
+     */
+    onFolderPickerClosing: function() {
+      this.headerMenuNode.classList.remove('transparent');
+    },
+
+    /**
+     * Listener called when a folder is shown. The listener emits an
+     * 'inboxShown' for the current account, if the inbox is really being shown
+     * and the app is visible. Useful if periodic sync is involved, and
+     * notifications need to be closed if the inbox is visible to the user.
+     */
+    onFolderShown: function() {
+      if (this.mode === 'search') {
+        return;
+      }
+
+      var account = model.account,
+          foldersSlice = model.foldersSlice;
+
+      // The extra checks here are to allow for lazy startup when we might have
+      // a card instance but not a full model available. Once the model is
+      // available though, this method will get called again, so the event
+      // emitting is still correctly done in the lazy startup case.
+      if (!document.hidden && account && foldersSlice && this.curFolder) {
+        var inboxFolder = foldersSlice.getFirstFolderWithType('inbox');
+        if (inboxFolder === this.curFolder) {
+          evt.emit('inboxShown', account.id);
+        }
+      }
+    },
+
+    /**
+     * An API method for the cards infrastructure, that Cards will call when the
+     * page visibility changes and this card is the currently displayed card.
+     */
+    onCurrentCardDocumentVisibilityChange: function() {
+      this.onFolderShown();
+    },
+
+    /**
+     * Called by Cards when the instance of this card type is the
+     * visible card.
+     */
+    onCardVisible: function() {
+      if (this._whenVisible) {
+        var fn = this._whenVisible;
+        this._whenVisible = null;
+        fn();
+      }
+
+      // In case the vScroll was initialized when the card was not visible, like
+      // in an activity/notification flow when this card is created in the
+      // background behind the compose/reader card, let it know it is visible
+      // now in case it needs to finish initializing and initial display.
+      this.vScroll.nowVisible();
+
+      // On first construction, or if done in background,
+      // this card would not be visible to do the last sync
+      // sizing so be sure to check it now.
+      this.sizeLastSync();
+    },
+
+    onClickMessage: function(messageNode, event) {
+      // You cannot open a message if this is the outbox and it is syncing.
+      if (this.curFolder &&
+          this.curFolder.type === 'outbox' && this.outboxSyncInProgress) {
+        return;
+      }
+
+      var header = messageNode.message;
+
+      // Skip nodes that are default/placeholder ones.
+      if (header && header.isPlaceholderData) {
+        return;
+      }
+
+      if (this.editMode) {
+        var idx = this.selectedMessages.indexOf(header);
+        var cb = messageNode.querySelector('input[type=checkbox]');
+        if (idx !== -1) {
+          this.selectedMessages.splice(idx, 1);
+          cb.checked = false;
+        }
+        else {
+          this.selectedMessages.push(header);
+          cb.checked = true;
+        }
+        this.selectedMessagesUpdated();
+        return;
+      }
+
+      if (this.curFolder && this.curFolder.type === 'localdrafts') {
+        var composer = header.editAsDraft(function() {
+          cards.pushCard('compose', 'animate',
+                         { composer: composer });
+        });
+        return;
+      }
+
+      // When tapping a message in the outbox, don't open the message;
+      // instead, move it to localdrafts and edit the message as a
+      // draft.
+      if (this.curFolder && this.curFolder.type === 'outbox') {
+        // If the message is currently being sent, abort.
+        if (header.sendStatus.state === 'sending') {
+          return;
+        }
+        var draftsFolder =
+              model.foldersSlice.getFirstFolderWithType('localdrafts');
+
+        console.log('outbox: Moving message to localdrafts.');
+        model.api.moveMessages([header], draftsFolder, function(moveMap) {
+          header.id = moveMap[header.id];
+          console.log('outbox: Editing message in localdrafts.');
+          var composer = header.editAsDraft(function() {
+            cards.pushCard('compose', 'animate',
+                           { composer: composer });
+          });
+        });
+
+        return;
+      }
+
+      function pushMessageCard() {
+        cards.pushCard(
+          'message_reader', 'animate',
+          {
+            // The header here may be undefined here, since the click
+            // could be on a cached HTML node before the back end has
+            // started up. It is OK if header is not available as the
+            // message_reader knows how to wait for the back end to
+            // start up to get the header value later.
+            header: header,
+            // Use the property on the HTML, since the click could be
+            // from a cached HTML node and the real data object may not
+            // be available yet.
+            messageSuid: messageNode.dataset.id
+          });
+      }
+
+      if (header) {
+        headerCursor.setCurrentMessage(header);
+      } else if (messageNode.dataset.id) {
+        // a case where header was not set yet, like clicking on a
+        // cookie cached node, or virtual scroll item that is no
+        // longer backed by a header.
+        headerCursor.setCurrentMessageBySuid(messageNode.dataset.id);
+      } else {
+        // Not an interesting click, bail
+        return;
+      }
+
+      // If the message is really big, warn them before they open it.
+      // Ideally we'd only warn if you're on a cell connection
+      // (metered), but as of now `navigator.connection.metered` isn't
+      // implemented.
+
+      // This number is somewhat arbitrary, based on a guess that most
+      // plain-text/HTML messages will be smaller than this. If this
+      // value is too small, users get warned unnecessarily. Too large
+      // and they download a lot of data without knowing. Since we
+      // currently assume that all network connections are metered,
+      // they'll always see this if they get a large message...
+      var LARGE_MESSAGE_SIZE = 1 * 1024 * 1024;
+
+      // watch out, header might be undefined here (that's okay, see above)
+      if (header && header.bytesToDownloadForBodyDisplay > LARGE_MESSAGE_SIZE) {
+        this.showLargeMessageWarning(
+          header.bytesToDownloadForBodyDisplay, function(result) {
+          if (result) {
+            pushMessageCard();
+          } else {
+            // abort
+          }
+        });
+      } else {
+        pushMessageCard();
+      }
+    },
+
+    /**
+     * Scroll to make sure that the current message is in our visible window.
+     *
+     * @param {header_cursor.CurrentMessage} currentMessage representation of
+     *     the email we're currently reading.
+     * @param {Number} index the index of the message in the messagesSlice
+     */
+    onCurrentMessage: function(currentMessage, index) {
+      if (!currentMessage || headerCursor.searchMode !== this.mode) {
+        return;
+      }
+
+      var visibleIndices = this.vScroll.getVisibleIndexRange();
+      if (visibleIndices &&
+          (index < visibleIndices[0] || index > visibleIndices[1])) {
+        this.vScroll.jumpToIndex(index);
+      }
+    },
+
+    onHoldMessage: function(messageNode, event) {
+      if (this.curFolder) {
+        this.setEditMode(true);
+      }
+    },
+
+    /**
+     * The outbox has a special role in the message_list, compared to
+     * other folders. We don't expect to synchronize the outbox with the
+     * server, but we do allow the user to use the refresh button to
+     * trigger all of the outbox messages to send.
+     *
+     * While they're sending, we need to display several spinny refresh
+     * icons: One next to each message while it's queued for sending,
+     * and also the main refresh button.
+     *
+     * However, the outbox send operation doesn't happen all in one go;
+     * the backend only fires one 'sendOutboxMessages' at a time,
+     * iterating through the pending messages. Fortunately, it notifies
+     * the frontend (via `onBackgroundSendStatus`) whenever the state of
+     * any message changes, and it provides a flag to let us know
+     * whether or not the outbox sync is fully complete.
+     *
+     * So the workflow for outbox's refresh UI display is as follows:
+     *
+     * 1. The user taps the "refresh" button. In response:
+     *
+     *    1a. Immediately make all visible refresh icons start spinning.
+     *
+     *    1b. Immediately kick off a 'sendOutboxMessages' job.
+     *
+     * 2. We will start to see send status notifications, in this
+     *    class's onBackgroundSendStatus notification. We listen to
+     *    these events as they come in, and wait until we see a
+     *    notification with state === 'syncDone'. We'll keep the main
+     *    refresh icon spinning throughout this process.
+     *
+     * 3. As messages send or error out, we will receive slice
+     *    notifications for each message (handled here in `messages_change`).
+     *    Since each message holds its own status as `header.sendStatus`,
+     *    we don't need to do anything special; the normal rendering logic
+     *    will reset each message's status icon to the appropriate state.
+     *
+     * But don't take my word for it; see `jobs/outbox.js` and
+     * `jobmixins.js` in GELAM for backend-centric descriptions of how
+     * the outbox sending process works.
+     */
+    toggleOutboxSyncingDisplay: function(syncing) {
+      // Use an internal guard so that we only trigger changes to the UI
+      // when necessary, rather than every time, which could break animations.
+      if (syncing === this._outboxSyncing) {
+        return;
+      }
+
+      this._outboxSyncing = syncing;
+
+      var i;
+      var items = this.messagesContainer.getElementsByClassName(
+        'msg-header-syncing-section');
+
+      if (syncing) {
+        // For maximum perceived responsiveness, show the spinning icons
+        // next to each message immediately, rather than waiting for the
+        // backend to actually start sending each message. When the
+        // backend reports back with message results, it'll update the
+        // icon to reflect the proper result.
+        for (i = 0; i < items.length; i++) {
+          items[i].classList.add('msg-header-syncing-section-syncing');
+          items[i].classList.remove('msg-header-syncing-section-error');
+        }
+
+        this.editBtn.disabled = true;
+        this.refreshBtn.dataset.state = 'synchronizing';
+      } else {
+        // After sync, the edit button should remain disabled only if
+        // the list is empty.
+        this.editBtn.disabled = this.isEmpty();
+        this.refreshBtn.dataset.state = 'synchronized';
+
+        // Similarly, we must stop the refresh icons for each message
+        // from rotating further. For instance, if we are offline, we
+        // won't actually attempt to send any of those messages, so
+        // they'll still have a spinny icon until we forcibly remove it.
+        for (i = 0; i < items.length; i++) {
+          items[i].classList.remove('msg-header-syncing-section-syncing');
+        }
+      }
+    },
+
+    onRefresh: function() {
+      if (!headerCursor.messagesSlice) {
+        return;
+      }
+
+      // If this is the outbox, refresh has a different meaning.
+      if (this.curFolder.type === 'outbox') {
+        // Rather than refreshing the folder, we'll send the pending
+        // outbox messages, and spin the refresh icon while doing so.
+        this.toggleOutboxSyncingDisplay(true);
+      }
+      // If this is a normal folder...
+      else {
+        switch (headerCursor.messagesSlice.status) {
+        // If we're still synchronizing, then the user is not well served by
+        // queueing a refresh yet, let's just squash this.
+        case 'new':
+        case 'synchronizing':
+          break;
+        // If we fully synchronized, then yes, let us refresh.
+        case 'synced':
+          this._manuallyTriggeredSync = true;
+          headerCursor.messagesSlice.refresh();
+          break;
+        // If we failed to talk to the server, then let's only do a refresh if
+        // we know about any messages.  Otherwise let's just create a new slice
+        // by forcing reentry into the folder.
+        case 'syncfailed':
+          if (headerCursor.messagesSlice.items.length) {
+            headerCursor.messagesSlice.refresh();
+          } else {
+            this.showFolder(this.curFolder, /* force new slice */ true);
+          }
+          break;
+        }
+      }
+
+      // Even if we're not actually viewing the outbox right now, we
+      // should still attempt to sync any pending messages. It's fairly
+      // harmless to kick off this job here, but it could also make
+      // sense to do this at the backend level. There are a number of
+      // cases where we might also want to  sendOutboxMessages() if
+      // we follow up with a more comprehensive sync setting -- e.g. on
+      // network change, on app startup, etc., so it's worth revisiting
+      // this and how coupled we want incoming vs outgoing sync to be.
+      model.api.sendOutboxMessages(model.account);
+    },
+
+    onStarMessages: function() {
+      var op = model.api.markMessagesStarred(this.selectedMessages,
+                                           this.setAsStarred);
+      this.setEditMode(false);
+      toaster.toastOperation(op);
+    },
+
+    onMarkMessagesRead: function() {
+      var op = model.api.markMessagesRead(this.selectedMessages,
+                                          this.setAsRead);
+      this.setEditMode(false);
+      toaster.toastOperation(op);
+    },
+
+    onDeleteMessages: function() {
+      // TODO: Batch delete back-end mail api is not ready for IMAP now.
+      //       Please verify this function under IMAP when api completed.
+
+      if (this.selectedMessages.length === 0) {
+        return this.setEditMode(false);
+      }
+
+      var dialog = deleteConfirmMsgNode.cloneNode(true);
+      var content = dialog.getElementsByTagName('p')[0];
+      mozL10n.setAttributes(content, 'message-multiedit-delete-confirm',
+                            { n: this.selectedMessages.length });
+      ConfirmDialog.show(dialog,
+        { // Confirm
+          id: 'msg-delete-ok',
+          handler: function() {
+            var op = model.api.deleteMessages(this.selectedMessages);
+            toaster.toastOperation(op);
+            this.setEditMode(false);
+          }.bind(this)
+        },
+        { // Cancel
+          id: 'msg-delete-cancel',
+          handler: null
+        }
+      );
+    },
+
+    /**
+     * Show a warning that the given message is large.
+     * Callback is called with cb(true|false) to continue.
+     */
+    showLargeMessageWarning: function(size, cb) {
+      var dialog = largeMsgConfirmMsgNode.cloneNode(true);
+      // TODO: If UX designers want the size included in the warning
+      // message, add it here.
+      ConfirmDialog.show(dialog,
+        { // Confirm
+          id: 'msg-large-message-ok',
+          handler: function() { cb(true); }
+        },
+        { // Cancel
+          id: 'msg-large-message-cancel',
+          handler: function() { cb(false); }
+        }
+      );
+    },
+
+    onMoveMessages: function() {
+      // TODO: Batch move back-end mail api is not ready now.
+      //       Please verify this function when api landed.
+
+      cards.folderSelector(function(folder) {
+        var op = model.api.moveMessages(this.selectedMessages, folder);
+        toaster.toastOperation(op);
+        this.setEditMode(false);
+      }.bind(this), function(folder) {
+        return folder.isValidMoveTarget;
+      });
+
+
+    },
+
+    _folderChanged: function(folder) {
+      // It is possible that the notification of latest folder is fired
+      // but in the meantime the foldersSlice could be cleared due to
+      // a change in the current account, before this listener is called.
+      // So skip this work if no foldersSlice, this method will be called
+      // again soon.
+      if (!model.foldersSlice) {
+        return;
+      }
+
+      // Folder could have changed because account changed. Make sure
+      // the cacheableFolderId is still set correctly.
+      var inboxFolder = model.foldersSlice.getFirstFolderWithType('inbox');
+      this.cacheableFolderId =
+                             model.account === model.acctsSlice.defaultAccount ?
+                            inboxFolder.id : null;
+
+      this.folder = folder;
+
+      if (this.mode == 'nonsearch') {
+        if (this.showFolder(folder)) {
+          this._hideSearchBoxByScrolling();
+        }
+      } else {
+        this.showSearch('', 'all');
+      }
+    },
+
+    die: function() {
+      this.sliceEvents.forEach(function(type) {
+        var name = 'messages_' + type;
+        headerCursor.removeListener(name, this[name]);
+      }.bind(this));
+
+      evt.removeListener('folderPickerClosing', this.onFolderPickerClosing);
+
+      model.removeListener('folder', this._folderChanged);
+      model.removeListener('newInboxMessages', this.onNewMail);
+      model.removeListener('foldersSliceOnChange', this.onFoldersSliceChange);
+      headerCursor.removeListener('currentMessage', this.onCurrentMessage);
+
+      this.vScroll.destroy();
+    }
+  }
+];
 });

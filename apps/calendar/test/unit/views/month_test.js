@@ -1,18 +1,14 @@
+define(function(require) {
+'use strict';
+
+var Calc = require('calc');
+var Month = require('views/month');
+var MonthChild = require('views/month_child');
+var TimeParent = require('views/time_parent');
+
 requireCommon('test/synthetic_gestures.js');
-require('/shared/js/gesture_detector.js');
-requireLib('timespan.js');
 
-/*
-requireLib('utils/ordered_map.js');
-requireLib('templates/month.js');
-requireLib('views/time_parent.js');
-requireLib('views/month_child.js');
-requireLib('views/month.js');
-*/
-
-suiteGroup('Views.Month', function() {
-  'use strict';
-
+suite('Views.Month', function() {
   var subject,
       app,
       controller,
@@ -47,14 +43,11 @@ suiteGroup('Views.Month', function() {
 
     busytimes = app.store('Busytime');
 
-    subject = new Calendar.Views.Month({
-      app: app
-    });
-
+    subject = new Month({ app: app });
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.Views.TimeParent);
+    assert.instanceOf(subject, TimeParent);
     assert.equal(subject.controller, controller);
     assert.equal(subject.element, document.querySelector('#month-view'));
   });
@@ -69,7 +62,7 @@ suiteGroup('Views.Month', function() {
         '[data-date]'
       );
 
-      var date = Calendar.Calc.dateFromId(
+      var date = Calc.dateFromId(
         el.dataset.date
       );
 
@@ -147,8 +140,27 @@ suiteGroup('Views.Month', function() {
 
     subject._onswipe({
       dy: 0,
-      dx: 100,
+      dx: window.innerWidth / 5,
       direction: 'left'
+    });
+
+    assert.deepEqual(
+      subject.controller.selectedDay,
+      expected,
+      'selects first day of month'
+    );
+  });
+
+  test('#_onwheel', function() {
+    var date = new Date(2012, 4, 10);
+    var expected = new Date(2012, 5, 1);
+    subject.date = date;
+
+    subject._onwheel({
+      deltaMode: window.WheelEvent.DOM_DELTA_PAGE,
+      DOM_DELTA_PAGE: window.WheelEvent.DOM_DELTA_PAGE,
+      deltaX: 1,
+      deltaY: 0
     });
 
     assert.deepEqual(
@@ -162,7 +174,7 @@ suiteGroup('Views.Month', function() {
     var time = new Date(2012, 1, 1);
     var child = subject._createChild(time);
 
-    assert.instanceOf(child, Calendar.Views.MonthChild);
+    assert.instanceOf(child, MonthChild);
     assert.deepEqual(child.date, time);
   });
 
@@ -206,27 +218,29 @@ suiteGroup('Views.Month', function() {
       subject._selectDay(select);
 
       var dayEl = selected();
-      assert.length(dayEl, 1, 'should highlight selected');
+      assert.lengthOf(dayEl, 1, 'should highlight selected');
 
       dayEl = dayEl[0];
 
       assert.ok(dayEl.id, 'should have id');
-      assert.include(dayEl.id, Calendar.Calc.getDayId(
+      assert.equal(dayEl.getAttribute('aria-selected'), 'true');
+      assert.include(dayEl.id, Calc.getDayId(
         select
       ));
     });
 
     test('#_clearSelectedDay', function() {
       subject.render();
-      assert.length(selected(), 0);
+      assert.lengthOf(selected(), 0);
 
       var el = subject.element.querySelector('li');
       el.classList.add('selected');
+      el.setAttribute('aria-selected', true);
 
-      assert.length(selected(), 1);
+      assert.lengthOf(selected(), 1);
       subject._clearSelectedDay();
-
-      assert.length(selected(), 0);
+      assert.isNull(el.getAttribute('aria-selected'));
+      assert.lengthOf(selected(), 0);
     });
 
   });
@@ -236,5 +250,6 @@ suiteGroup('Views.Month', function() {
     controller.move(time);
     subject.render();
   });
+});
 
 });

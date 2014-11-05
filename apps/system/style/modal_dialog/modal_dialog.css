@@ -7,7 +7,6 @@
   display: none;
 }
 
-.authentication-dialog input,
 #modal-dialog input {
   border-radius: 0.2rem;
   height: 4rem;
@@ -33,6 +32,16 @@
   padding: 0 0 7rem;
 }
 
+#screen.fullscreen-layout-app.software-button-enabled .appWindow > .modal-dialog {
+  height: calc(100% - var(--software-home-button-height));
+}
+
+@media (orientation: landscape) {
+  #screen.fullscreen-layout-app.software-button-enabled .appWindow > .modal-dialog {
+    height: 100%;
+  }
+}
+
 .appWindow > .modal-dialog .modal-dialog-custom-prompt p {
   display: block !important;
 }
@@ -42,9 +51,7 @@
 }
 
 #modal-dialog-error {
-  background-color: black;
-  background-image: url(images/error_bk.png);
-  background-size: 32rem;
+  background-color: #2d2d2d;
 }
 
 #modal-dialog-sad-face {
@@ -55,9 +62,10 @@
 
 /* Confirm dialog */
 .modal-dialog-message-container p {
-  display:inline !important;
+  display: block;
   word-wrap: break-word;
-  padding: 0;
+  padding: 0 1.5rem;
+  margin: 0;
 }
 
 /* Select one dialog */

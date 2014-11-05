@@ -4,7 +4,7 @@
 
 from marionette.by import By
 from gaiatest import GaiaTestCase
-from gaiatest.apps.browser.app import Browser
+from gaiatest.apps.search.app import Search
 from gaiatest.apps.cost_control.app import CostControl
 
 
@@ -14,10 +14,15 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
     _cost_control_widget_locator = (By.CSS_SELECTOR, '#cost-control-widget > iframe')
     _data_usage_view_locator = (By.ID, 'datausage-limit-view')
 
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+        self.data_layer.disable_wifi()
+        self.data_layer.connect_to_cell_data()
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
+
     def test_cost_control_data_alert_mobile(self):
         """https://moztrap.mozilla.org/manage/case/8938/"""
 
-        self.data_layer.connect_to_cell_data()
         cost_control = CostControl(self.marionette)
         cost_control.launch()
 
@@ -35,9 +40,14 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         self.assertTrue(cost_control.is_mobile_data_tracking_on)
 
         # open browser to get some data downloaded
-        browser = Browser(self.marionette)
-        browser.launch()
-        browser.go_to_url('http://www.mozilla.org/', timeout=120)
+        search = Search(self.marionette)
+        search.launch()
+        browser = search.go_to_url('http://www.mozilla.org/')
+        browser.wait_for_page_to_load(180)
+
+        browser.switch_to_content()
+        self.wait_for_condition(lambda m: "Home of the Mozilla Project" in m.title)
+        browser.switch_to_chrome()
 
         # get the notification bar
         self.device.touch_home_button()

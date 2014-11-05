@@ -13,12 +13,13 @@ class CellDataPrompt(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._cell_data_prompt_turn_on_button_locator)
+        self.wait_for_condition(lambda m: m.find_element(*self._cell_data_prompt_container_locator).location['x'] == 0)
 
     def turn_on(self):
+        container = self.marionette.find_element(*self._cell_data_prompt_container_locator)
         self.marionette.find_element(*self._cell_data_prompt_turn_on_button_locator).tap()
+        self.wait_for_condition(lambda m: container.location['x'] == container.size['width'])
 
     @property
     def is_displayed(self):
-        # The prompt container and its contents return True is_displayed erroneously
-        return 'current' in self.marionette.find_element(*self._cell_data_prompt_container_locator).get_attribute('class')
+        return self.marionette.find_element(*self._cell_data_prompt_container_locator).is_displayed()

@@ -9,6 +9,7 @@ from marionette.errors import StaleElementException
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.ftu.app import Ftu
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestFtu(GaiaTestCase):
@@ -16,33 +17,35 @@ class TestFtu(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
+        # Reset timezone.user-selected setting as we change this in our testvars
+        self.data_layer.set_setting('time.timezone.user-selected', None)
+
         self.ftu = Ftu(self.marionette)
         self.ftu.launch()
 
         # If mozWifiManager is not initialised an exception may be thrown
-        Wait(self.marionette, ignored_exceptions=JavascriptException).until(
-            lambda m: self.data_layer.is_wifi_enabled)
+        Wait(self.marionette).until(lambda m: self.data_layer.is_wifi_enabled)
 
     def test_ftu_skip_tour(self):
-        """https://moztrap.mozilla.org/manage/case/3876/
-
-        https://moztrap.mozilla.org/manage/case/3879/
+        """
+        https://moztrap.mozilla.org/manage/case/6119/
         """
         ssid = self.testvars['wifi']['ssid']
         psk = self.testvars['wifi'].get('psk')
         keymanagement = self.testvars['wifi'].get('keyManagement')
 
-        self.assertGreater(self.ftu.languages_list, 0, "No languages listed on screen")
+        self.wait_for_condition(lambda m: self.ftu.languages_list > 0, message="No languages listed on screen")
 
         # select en-US due to the condition of this test is only for en-US
         self.ftu.tap_language("en-US")
-        self.ftu.tap_next_to_cell_data_section()
 
-        # Tap enable data
-        self.ftu.enable_data()
-        self.wait_for_condition(
-            lambda m: self.data_layer.is_cell_data_connected,
-            message='Cell data was not connected by FTU app')
+        # Tap enable data if sim network present
+        if self.device.has_mobile_connection:
+            self.ftu.tap_next_to_cell_data_section()
+            self.ftu.enable_data()
+            self.wait_for_condition(
+                lambda m: self.data_layer.is_cell_data_connected,
+                message='Cell data was not connected by FTU app')
 
         # Tap next
         self.ftu.tap_next_to_wifi_section()
@@ -55,15 +58,18 @@ class TestFtu(GaiaTestCase):
                 self.testvars['wifi']['ssid']).get_attribute('class'))
 
         self.assertTrue(self.data_layer.is_wifi_connected(self.testvars['wifi']),
-		    "WiFi was not connected via FTU app")
+                        "WiFi was not connected via FTU app")
 
         self.apps.switch_to_displayed_app()
 
-        # Set timezone
-        self.ftu.tap_next_to_timezone_section()
-        self.ftu.set_timezone_continent("Asia")
-        self.ftu.set_timezone_city("Almaty")
-        self.assertEqual(self.ftu.timezone_title, "UTC+06:00 Asia/Almaty")
+        # Set timezone if not connected to sim network
+        if not self.device.has_mobile_connection:
+            self.ftu.tap_next_to_timezone_section()
+            # UTC-05:00 America/New York is the default info if no network is detected
+            self.assertEqual(self.ftu.timezone_title, "UTC-05:00 America/New York")
+            self.ftu.set_timezone_continent("Asia")
+            self.ftu.set_timezone_city("Almaty")
+            self.assertEqual(self.ftu.timezone_title, "UTC+06:00 Asia/Almaty")
 
         # Verify Geolocation section appears
         self.ftu.tap_next_to_geolocation_section()
@@ -71,24 +77,26 @@ class TestFtu(GaiaTestCase):
         # Disable geolocation
         self.ftu.disable_geolocation()
         self.wait_for_condition(
-		        lambda m: not self.data_layer.get_setting('geolocation.enabled'),
-		        message='Geolocation was not disabled by the FTU app')
+            lambda m: not self.data_layer.get_setting('geolocation.enabled'),
+            message='Geolocation was not disabled by the FTU app')
         self.ftu.tap_next_to_import_contacts_section()
 
-        # Tap import from SIM
-        # You can do this as many times as you like without db conflict
-        self.ftu.tap_import_from_sim()
-        self.ftu.wait_for_contacts_imported()
-        self.assertEqual(self.ftu.count_imported_contacts, len(self.data_layer.all_contacts))
+        if self.device.has_mobile_connection:
+            # Tap import from SIM
+            # You can do this as many times as you like without db conflict
+            self.ftu.tap_import_from_sim()
+            self.ftu.wait_for_contacts_imported()
+            self.assertEqual(self.ftu.count_imported_contacts, len(self.data_layer.all_contacts))
 
-        # all_contacts switches to top frame; Marionette needs to be switched back to ftu
-        self.apps.switch_to_displayed_app()
+            # all_contacts switches to top frame; Marionette needs to be switched back to ftu
+            self.apps.switch_to_displayed_app()
+
         self.ftu.tap_next_to_firefox_accounts_section()
         self.ftu.tap_next_to_welcome_browser_section()
 
         # Tap the statistics box and check that it sets a setting
-        # TODO assert via settings API that this is set. Currently it is not used
         self.ftu.tap_statistics_checkbox()
+        self.assertTrue(self.data_layer.get_setting('debug.performance_data.shared'))
         self.ftu.tap_next_to_privacy_browser_section()
 
         # Enter a dummy email address and check it set inside the os
@@ -100,4 +108,4 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_skip_tour()
 
         # Switch back to top level now that FTU app is gone
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'Homescreen')
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == Homescreen.name)

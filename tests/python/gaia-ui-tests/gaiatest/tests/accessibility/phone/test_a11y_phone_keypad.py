@@ -34,7 +34,7 @@ class TestAccessibilityPhoneKeypad(GaiaTestCase):
         # Check that the number was entered correctly.
         self.assertEqual(self.phone.keypad.phone_number, number_to_verify)
         # Delete is visible to the screen reader.
-        self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
+        self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
             *self.phone.keypad._keypad_delete_locator)))
         # Call button is enabled for the screen reader.
         self.assertFalse(self.accessibility.is_disabled(self.marionette.find_element(

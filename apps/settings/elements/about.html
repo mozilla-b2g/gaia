@@ -1,39 +1,37 @@
 <element name="about" extends="section">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="deviceInfo-header"> Device Information </h1>
-    </header>
+    <gaia-header action="back" data-href="#root">
+      <h1 data-l10n-id="deviceInfo-header">Device Information</h1>
+    </gaia-header>
 
     <div>
       <ul>
-        <li id="deviceinfo-phone-num" class="multiline">
-          <span data-l10n-id="deviceInfo-MSISDN"> Phone number </span>
-          <small id="deviceInfo-msisdns"></small>
+        <li id="deviceinfo-phone-num">
+          <span data-l10n-id="deviceInfo-MSISDN">Phone number</span>
+          <small id="deviceInfo-msisdns" class="multiline"></small>
         </li>
         <li>
+          <span id="model-name" data-l10n-id="model-name">Model</span>
           <small data-name="deviceinfo.hardware"></small>
-          <span id="model-name" data-l10n-id="model-name"> Model </span>
         </li>
         <li>
+          <span id="os-version" data-l10n-id="software">Software</span>
           <small data-name="deviceinfo.software"></small>
-          <span id="os-version" data-l10n-id="software"> Software </span>
         </li>
         <li>
+          <span data-l10n-id="last-updated">Last Updated</span>
           <small id="last-update-date"></small>
-          <span data-l10n-id="last-updated"> Last Updated </span>
         </li>
         <li>
-          <label>
-            <button class="icon icon-view" data-href="#about-moreInfo"
-              data-l10n-id="more-info"> More Information </button>
-          </label>
+          <a class="menu-item" href="#about-moreInfo">
+            <span data-l10n-id="more-info">More Information</span>
+          </a>
         </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="softwareUpdates"> Software Updates </h2>
+        <h2 data-l10n-id="softwareUpdates">Software Updates</h2>
       </header>
       <ul>
         <li>
@@ -47,10 +45,8 @@
           </span>
         </li>
         <li>
-          <label>
-            <button id="check-update-now"
-              data-l10n-id="check-update-now"> Check Now </button>
-          </label>
+          <button id="check-update-now"
+            data-l10n-id="check-update-now">Check Now</button>
         </li>
         <li id="update-status" class="description update-status">
           <p>
@@ -62,7 +58,7 @@
       </ul>
 
       <header>
-        <h2 data-l10n-id="aboutBrowserOS"> About Browser OS </h2>
+        <h2 data-l10n-id="aboutBrowserOS">About B2G OS</h2>
       </header>
       <ul>
         <li class="description">
@@ -73,27 +69,51 @@
           </p>
         </li>
         <li>
-          <label>
-            <button class="icon icon-view" data-href="#about-yourRights"
-              data-l10n-id="your-rights"> Your Rights </button>
-          </label>
+          <a class="menu-item" href="#about-yourRights">
+            <span data-l10n-id="your-rights">Your Rights</span>
+          </a>
         </li>
         <li>
-          <label>
-            <button class="icon icon-view" data-href="#about-yourPrivacy"
-              data-l10n-id="your-privacy"> Your Privacy </button>
-          </label>
+          <a class="menu-item" href="#about-yourPrivacy">
+            <span data-l10n-id="your-privacy">Your Privacy</span>
+          </a>
         </li>
         <li>
-          <label>
-            <button class="icon icon-view" data-href="#about-legal"
-              data-l10n-id="about-legal-info"> Legal Information </button>
-          </label>
+          <a class="menu-item" href="#about-legal">
+            <span data-l10n-id="about-legal-info">Legal Information</span>
+          </a>
+        </li>
+        <li>
+          <a class="menu-item" href="https://www.mozilla.org/credits/">
+            <span data-l10n-id="about-credit-info">Credits</span>
+          </a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="reset-head">Reset</h2>
+      </header>
+      <ul>
+        <li>
+          <button id="reset-phone" data-l10n-id="reset-device">Reset Phone</button>
         </li>
       </ul>
     </div>
 
+    <form role="dialog" data-type="confirm" id="reset-phone-dialog" hidden>
+      <section>
+        <h1 data-l10n-id="reset-warning-title">CAUTION</h1>
+        <p data-l10n-id="reset-warning-body">
+          Resetting will erase all your data, including any apps you’ve purchased. The phone will be restored to its factory condition. None of your settings or data will be saved.
+        </p>
+      </section>
+      <menu>
+        <button data-l10n-id="cancel" id="cancel-reset-phone">Cancel</button>
+        <button data-l10n-id="reset" id="confirm-reset-phone" class="danger">Reset</button>
+      </menu>
+    </form>
+
     <script src="js/about.js"></script>
+    <script src="js/factory_reset.js"></script>
 
   </template>
 </element>

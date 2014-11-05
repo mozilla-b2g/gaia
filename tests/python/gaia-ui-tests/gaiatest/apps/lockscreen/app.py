@@ -10,19 +10,38 @@ from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.camera.app import Camera
 from gaiatest.apps.lockscreen.regions.passcode_pad import PasscodePad
 
+
 class LockScreen(Base):
+
+    _lockscreen_window_locator = (By.CLASS_NAME, 'lockScreenWindow')
 
     _lockscreen_locator = (By.ID, 'lockscreen')
     _lockscreen_handle_locator = (By.ID, 'lockscreen-area-slide')
-    _lockscreen_passcode_panel_locator = (By.ID, 'lockscreen-panel-passcode')
+    _lockscreen_passcode_code_locator = (By.ID, 'lockscreen-passcode-code')
+    _lockscreen_passcode_pad_locator = (By.ID, 'lockscreen-passcode-pad')
 
     _unlock_button_locator = (By.ID, 'lockscreen-area-unlock')
     _camera_button_locator = (By.ID, 'lockscreen-area-camera')
 
     _notification_locator = (By.CSS_SELECTOR, '#notifications-lockscreen-container > div.notification')
 
-    def unlock(self):
+    def switch_to_frame(self):
+      # XXX: Because we're not in frame yet. LockScreen team now is
+      # trying hard to do decoupling & as-iframe at the same time,
+      # but iframe now stuck at weird test failures, so the team decide
+      # to land decoupling part first, with some dummy functions that
+      # can be modified later to fit the implementation.
+      #
+      # If we finished to make it as an iframe, to this to switch
+      # to the real frame:
+      #
+      #   self.marionette.switch_to_frame(
+      #    self.marionette.find_element(*self._lockscreen_frame_locator));
+      #
+      # But now we're not ready to do that yet.
+      self.marionette.switch_to_frame();
 
+    def unlock(self):
         self._slide_to_unlock('homescreen')
         return Homescreen(self.marionette)
 
@@ -34,7 +53,7 @@ class LockScreen(Base):
     def unlock_to_passcode_pad(self):
         self.wait_for_element_displayed(*self._lockscreen_handle_locator)
         self._slide_to_unlock('homescreen')
-        self.wait_for_element_displayed(*self._lockscreen_passcode_panel_locator)
+        self.wait_for_element_displayed(*self._lockscreen_passcode_code_locator)
         return PasscodePad(self.marionette)
 
     def _slide_to_unlock(self, destination):
@@ -74,7 +93,7 @@ class LockScreen(Base):
 
 class Notification(PageRegion):
     _body_locator = (By.CSS_SELECTOR, 'div.detail')
-    _title_locator = (By.CSS_SELECTOR, 'div')
+    _title_locator = (By.CSS_SELECTOR, 'div.title')
 
     @property
     def is_visible(self):

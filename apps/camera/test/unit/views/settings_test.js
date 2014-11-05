@@ -3,7 +3,7 @@ suite('views/settings', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    req([
+    requirejs([
       'views/settings',
       'views/setting-options'
     ], function(SettingsView, OptionsView) {

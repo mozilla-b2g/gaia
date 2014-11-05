@@ -7,7 +7,20 @@ var SHARED_PATH = __dirname + '/../../../../shared/test/integration';
 
 marionette('alarm', function() {
   var app;
-  var client = marionette.client();
+  var client = marionette.client({
+    prefs: {
+      // we need to disable the keyboard to avoid intermittent failures on
+      // Travis (transitions might take longer to run and block UI)
+      'dom.mozInputMethod.enabled': false,
+      // Do not require the B2G-desktop app window to have focus (as per the
+      // system window manager) in order for it to do focus-related things.
+      'focusmanager.testmode': true
+    },
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
+    }
+  });
 
   suite(' > with alarm mocks', function() {
 
@@ -17,7 +30,7 @@ marionette('alarm', function() {
         '/mock_navigator_mozalarms.js');
       client.contentScript.inject(SHARED_PATH +
         '/mock_navigator_moz_set_message_handler.js');
-      app.launch({ hideSwipeHint: true });
+      app.launch();
     });
 
     suite('create event with a single reminder', function() {
@@ -62,7 +75,7 @@ marionette('alarm', function() {
   suite('> without alarm mocks', function() {
     setup(function() {
       app = new Calendar(client);
-      app.launch({ hideSwipeHint: true });
+      app.launch();
     });
 
     suite('create two events with simultaneous reminders', function() {

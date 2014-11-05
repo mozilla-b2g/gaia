@@ -29,11 +29,11 @@ module.exports.TimerController = TimerController;
 function TimerController(app) {
   bindAll(this);
   this.app = app;
-  this.sounds = app.sounds;
   this.settings = app.settings;
   this.view = app.views.timer || new TimerView();
   this.view.appendTo(app.el);
   this.bindEvents();
+  debug('initialized');
 }
 
 /**
@@ -44,8 +44,9 @@ function TimerController(app) {
  */
 TimerController.prototype.bindEvents = function() {
   this.app.on('startcountdown', this.start);
-  this.view.on('timer:immanent', this.beep);
-  this.app.on('blur', this.clear);
+  this.app.on('hidden', this.clear);
+  this.app.on('change:batteryStatus', this.onBatteryChanged);
+  this.view.on('timer:immanent', this.app.firer('timer:immanent'));
 };
 
 /**
@@ -113,6 +114,12 @@ TimerController.prototype.tick = function() {
   this.scheduleTick();
 };
 
+TimerController.prototype.onBatteryChanged = function(status) {
+  if (status === 'shutdown') {
+    this.clear();
+  }
+};
+
 /**
  * Call ._clear() and fire 'cleared' event.
  *
@@ -164,21 +171,6 @@ TimerController.prototype.bindTimerEvents = function() {
  */
 TimerController.prototype.unbindTimerEvents = function() {
   this.app.off('click', this.clear);
-};
-
-/**
- * Plays a beep sound.
- *
- * We don't have specific sound file for beep
- * so we are using recordingEnd sound for this.
- *
- * NOTE: Commented out until we have correct
- * sound effects in place (bug 991808).
- *
- * @private
- */
-TimerController.prototype.beep = function() {
-  // this.sounds.play('recordingEnd');
 };
 
 });

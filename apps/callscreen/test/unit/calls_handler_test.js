@@ -1,8 +1,17 @@
+/* globals CallScreen, CallsHandler, FontSizeManager, HandledCall,
+           MockBluetoothHelperInstance, MockCall, MockCallScreen, MockLazyL10n,
+           MockMozL10n, MockNavigatormozApps, MockNavigatorMozIccManager,
+           MockNavigatormozSetMessageHandler, MockNavigatorMozTelephony,
+           MockNavigatorWakeLock, MocksHelper, MockTonePlayer, MockUtils,
+           telephonyAddCall, telephonyAddCdmaCall, MockAudioContext,
+           MockNavigatorMozMobileConnections, AudioCompetingHelper */
+
 'use strict';
 
+require('/js/audio_competing_helper.js');
 require('/test/unit/mock_call_screen.js');
-require('/test/unit/mock_bluetooth_helper.js');
-require('/test/unit/mock_simple_phone_matcher.js');
+require('/shared/test/unit/mocks/mock_simple_phone_matcher.js');
+require('/shared/test/unit/mocks/mock_bluetooth_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -16,15 +25,9 @@ require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
-require(
-  '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
-);
-
-// The CallsHandler binds stuff when evaluated so we load it
-// after the mocks and we don't want it to show up as a leak.
-if (!this.CallsHandler) {
-  this.CallsHandler = null;
-}
+require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
 var mocksHelperForCallsHandler = new MocksHelper([
   'HandledCall',
@@ -37,7 +40,9 @@ var mocksHelperForCallsHandler = new MocksHelper([
   'BluetoothHelper',
   'Utils',
   'Audio',
-  'SimplePhoneMatcher'
+  'AudioContext',
+  'SimplePhoneMatcher',
+  'FontSizeManager'
 ]).init();
 
 suite('calls handler', function() {
@@ -46,6 +51,8 @@ suite('calls handler', function() {
   var realWakeLock;
   var realMozIccManager;
   var realSetMessageHandler;
+  var realMozL10n;
+  var realMozMobileConnections;
 
   mocksHelperForCallsHandler.attachTestHelpers();
 
@@ -65,6 +72,12 @@ suite('calls handler', function() {
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
 
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockMozL10n;
+
+    realMozMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+
     require('/js/calls_handler.js', done);
   });
 
@@ -75,17 +88,23 @@ suite('calls handler', function() {
     navigator.requestWakeLock = realWakeLock;
     navigator.mozIccManager = realMozIccManager;
     navigator.mozSetMessageHandler = realSetMessageHandler;
+    navigator.mozL10n = realMozL10n;
+    navigator.mozMobileConnections = realMozMobileConnections;
   });
 
   setup(function() {
     this.sinon.useFakeTimers();
     MockNavigatormozSetMessageHandler.mSetup();
+    var conn1 = new window.MockMobileconnection();
+    conn1.voice = { type: 'edge' };
+    MockNavigatorMozMobileConnections.mAddMobileConnection(conn1, 1);
   });
 
   teardown(function() {
     MockNavigatorMozIccManager.mTeardown();
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatormozSetMessageHandler.mTeardown();
+    MockNavigatorMozMobileConnections.mTeardown();
   });
 
   suite('> telephony.oncallschanged handling', function() {
@@ -95,57 +114,167 @@ suite('calls handler', function() {
 
       setup(function() {
         mockCall = new MockCall('12334', 'incoming');
+        mockCall.addEventListener(
+          'statechange', CallsHandler.updatePlaceNewCall);
+        mockCall.addEventListener(
+          'statechange', CallsHandler.updateMergeAndOnHoldStatus);
         mockHC = telephonyAddCall.call(this, mockCall);
       });
 
-      test('should instanciate a handled call', function() {
+      test('should instantiate a handled call', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(HandledCall.calledWith(mockCall));
       });
 
       test('should insert the handled call node in the CallScreen', function() {
-        var insertSpy = this.sinon.spy(MockCallScreen, 'insertCall');
+        this.sinon.spy(MockCallScreen, 'insertCall');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(insertSpy.calledWith(mockHC.node));
+        sinon.assert.calledWith(MockCallScreen.insertCall, mockHC.node);
       });
 
       test('should render the CallScreen in incoming mode', function() {
-        var renderSpy = this.sinon.spy(MockCallScreen, 'render');
+        this.sinon.spy(MockCallScreen, 'render');
+        this.sinon.spy(MockCallScreen, 'toggle');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(renderSpy.calledWith('incoming'));
+        sinon.assert.calledWith(MockCallScreen.render, 'incoming');
+        sinon.assert.calledOnce(MockCallScreen.toggle);
       });
 
-      test('should toggle the CallScreen', function() {
-        var toggleSpy = this.sinon.spy(MockCallScreen, 'toggle');
+      test('should toggle the showPlaceNewCallButton', function() {
+        this.sinon.spy(MockCallScreen, 'showPlaceNewCallButton');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(toggleSpy.calledOnce);
+        sinon.assert.calledOnce(MockCallScreen.showPlaceNewCallButton);
       });
 
       test('should unmute', function() {
-        var unmuteSpy = this.sinon.spy(MockCallScreen, 'unmute');
+        this.sinon.spy(MockCallScreen, 'unmute');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(unmuteSpy.calledOnce);
+        sinon.assert.calledOnce(MockCallScreen.unmute);
       });
 
       test('should switch sound to default out', function() {
-        var toDefaultSpy = this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
+        this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(toDefaultSpy.calledOnce);
+        sinon.assert.calledOnce(MockCallScreen.switchToDefaultOut);
+      });
+
+      test('should disable the place new call button while establishing',
+      function() {
+        this.sinon.spy(MockCallScreen, 'disablePlaceNewCallButton');
+        mockCall.mChangeState('dialing');
+        sinon.assert.calledOnce(MockCallScreen.disablePlaceNewCallButton);
+      });
+
+      test('should enable the place new call button when established',
+      function() {
+        this.sinon.spy(MockCallScreen, 'enablePlaceNewCallButton');
+        mockCall.mChangeState('connected');
+        sinon.assert.calledOnce(MockCallScreen.enablePlaceNewCallButton);
+      });
+
+      test('should show the on hold button while establishing', function() {
+        this.sinon.spy(MockCallScreen, 'showOnHoldButton');
+        mockCall.mChangeState('dialing');
+        sinon.assert.calledOnce(MockCallScreen.showOnHoldButton);
+      });
+
+      test('should disable the on hold button while establishing', function() {
+        this.sinon.spy(MockCallScreen, 'disableOnHoldButton');
+        mockCall.mChangeState('dialing');
+        sinon.assert.calledOnce(MockCallScreen.disableOnHoldButton);
+      });
+
+      test('should show the on hold button when established', function() {
+        this.sinon.spy(MockCallScreen, 'showOnHoldButton');
+        mockCall.mChangeState('connected');
+        sinon.assert.calledOnce(MockCallScreen.showOnHoldButton);
+      });
+
+      test('should enable the on hold button when established', function() {
+        this.sinon.spy(MockCallScreen, 'enableOnHoldButton');
+        mockCall.mChangeState('connected');
+        sinon.assert.calledOnce(MockCallScreen.enableOnHoldButton);
+      });
+
+      test('should hide the merge button while establishing', function() {
+        this.sinon.spy(MockCallScreen, 'hideMergeButton');
+        mockCall.mChangeState('dialing');
+        sinon.assert.calledOnce(MockCallScreen.hideMergeButton);
+      });
+
+      test('should hide the merge button when established', function() {
+        this.sinon.spy(MockCallScreen, 'hideMergeButton');
+        mockCall.mChangeState('connected');
+        sinon.assert.calledOnce(MockCallScreen.hideMergeButton);
+      });
+
+      suite('screen management', function() {
+        setup(function() {
+          this.sinon.spy(navigator, 'requestWakeLock');
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+        });
+
+        test('should turn the screen on', function() {
+          sinon.assert.called(navigator.requestWakeLock, 'screen');
+        });
+
+        test('and release it when we pick up the call', function() {
+          mockCall._connect();
+          var lock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.equal(lock.topic, 'screen');
+          assert.isTrue(lock.released);
+        });
+      });
+
+      suite('in CDMA Network', function() {
+        test('should not toggle no-add-call in CDMA network', function() {
+          MockNavigatorMozMobileConnections[1].voice = {
+            type: 'evdoa'
+          };
+          this.sinon.spy(MockCallScreen, 'showPlaceNewCallButton');
+
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          sinon.assert.calledOnce(MockCallScreen.showPlaceNewCallButton);
+        });
+
+        test('should hide the container of on hold and merge buttons',
+          function() {
+          MockNavigatorMozMobileConnections[1].voice = {
+            type: 'evdoa'
+          };
+          this.sinon.spy(MockCallScreen, 'hideOnHoldAndMergeContainer');
+
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          mockCall.mChangeState('dialing');
+          sinon.assert.calledOnce(MockCallScreen.hideOnHoldAndMergeContainer);
+        });
       });
     });
 
     suite('> hanging up the last incoming call', function() {
       setup(function() {
         var mockCall = new MockCall('12334', 'incoming');
-        var mockHC = telephonyAddCall.call(this, mockCall, {trigger: true});
+        telephonyAddCall.call(this, mockCall, {trigger: true});
 
         MockNavigatorMozTelephony.calls = [];
       });
 
-      test('should toggle the CallScreen', function() {
-        var toggleSpy = this.sinon.spy(MockCallScreen, 'toggle');
+      test('should close the callscreen app after a delay', function() {
+        this.sinon.spy(window, 'close');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(toggleSpy.calledOnce);
+        sinon.assert.notCalled(window.close);
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
+        sinon.assert.calledOnce(window.close);
+      });
+
+      test('should only set 1 timer for app close delay', function() {
+        this.sinon.spy(window, 'close');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime/2);
+        sinon.assert.notCalled(window.close);
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
+        sinon.assert.calledOnce(window.close);
       });
     });
 
@@ -156,55 +285,180 @@ suite('calls handler', function() {
       setup(function() {
         var firstCall = new MockCall('543552', 'incoming');
         extraCall = new MockCall('12334', 'incoming');
+        extraCall.addEventListener(
+          'statechange', CallsHandler.updatePlaceNewCall);
+        extraCall.addEventListener(
+          'statechange', CallsHandler.updateMergeAndOnHoldStatus);
 
         telephonyAddCall.call(this, firstCall, {trigger: true});
         extraHC = telephonyAddCall.call(this, extraCall);
       });
 
-      test('should instanciate another handled call', function() {
+      test('should instantiate another handled call', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(HandledCall.calledWith(extraCall));
       });
 
       test('should insert the handled call node in the CallScreen', function() {
-        var insertSpy = this.sinon.spy(MockCallScreen, 'insertCall');
+        this.sinon.spy(MockCallScreen, 'insertCall');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(insertSpy.calledWith(extraHC.node));
+        sinon.assert.calledWith(MockCallScreen.insertCall, extraHC.node);
       });
 
       test('should hide the handled call node', function() {
-        var hideSpy = this.sinon.spy(extraHC, 'hide');
+        this.sinon.spy(extraHC, 'hide');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(hideSpy.calledOnce);
+        sinon.assert.calledOnce(extraHC.hide);
       });
 
       test('should show the call waiting UI', function() {
-        var showSpy = this.sinon.spy(MockCallScreen, 'showIncoming');
+        this.sinon.spy(MockCallScreen, 'showIncoming');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(showSpy.calledOnce);
+        sinon.assert.calledOnce(MockCallScreen.showIncoming);
       });
 
       test('should play the call waiting tone', function() {
-        var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
+        this.sinon.spy(MockTonePlayer, 'playSequence');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(playSpy.calledOnce);
+        sinon.assert.calledOnce(MockTonePlayer.playSequence);
       });
 
       test('should show the contact information', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.equal(CallScreen.incomingNumber.textContent, 'test name');
-        assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
+        assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
         assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent,
-                     extraCall.number);
+                     'type, 12334');
       });
 
       test('should show the number of a unknown contact', function() {
-        // 111 is a special case for unknown contacts in MockContacts
-        extraCall.number = '111';
+        // 111 is a special case in MockContacts to return no contact.
+        extraCall.id = { number: '111' };
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.equal(CallScreen.incomingNumber.textContent, extraCall.number);
-        assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
+        assert.equal(CallScreen.incomingNumber.textContent,
+                     extraCall.id.number);
+        assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
         assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent, '');
+      });
+
+      suite('adaptToSpace and ensureFixedBaseline', function() {
+        setup(function() {
+          this.sinon.spy(FontSizeManager, 'adaptToSpace');
+          this.sinon.spy(FontSizeManager, 'ensureFixedBaseline');
+        });
+
+        test('should call FontSizeManager.adaptToSpace and ensureFixedBaseline',
+        function() {
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+          sinon.assert.calledWith(
+            FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+            CallScreen.incomingNumber, false, 'end');
+          sinon.assert.calledWith(
+            FontSizeManager.ensureFixedBaseline,
+            FontSizeManager.SECOND_INCOMING_CALL,
+            CallScreen.incomingNumber
+          );
+        });
+
+        test('should only call FontSizeManager.adaptToSpace if incoming call ' +
+             'not a contact', function() {
+          // 111 is a special case in MockContacts to return no contact.
+          extraCall.id = { number: '111' };
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          sinon.assert.calledWith(
+            FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+            CallScreen.incomingNumber, false, 'end');
+          sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
+        });
+
+        test('should only call FontSizeManager.adaptToSpace if both calls ' +
+             'have withheld numbers', function() {
+          MockNavigatorMozTelephony.calls = [];
+
+          var firstCall = new MockCall('', 'incoming');
+          extraCall = new MockCall('', 'incoming');
+
+          telephonyAddCall.call(this, firstCall, {trigger: true});
+          extraHC = telephonyAddCall.call(this, extraCall);
+
+          FontSizeManager.adaptToSpace.reset();
+          FontSizeManager.ensureFixedBaseline.reset();
+
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+          sinon.assert.calledWith(
+            FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+            MockCallScreen.incomingNumber, false, 'end');
+          sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
+          assert.equal(
+            MockCallScreen.incomingNumber.textContent, 'withheld-number');
+        });
+
+        test('should only call FontSizeManager.adaptToSpace if the second ' +
+             'call has withheld number', function() {
+          MockNavigatorMozTelephony.calls = [];
+
+          var firstCall = new MockCall('543552', 'incoming');
+          extraCall = new MockCall('', 'incoming');
+
+          telephonyAddCall.call(this, firstCall, {trigger: true});
+          extraHC = telephonyAddCall.call(this, extraCall);
+
+          FontSizeManager.adaptToSpace.reset();
+          FontSizeManager.ensureFixedBaseline.reset();
+
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+          sinon.assert.calledWith(
+            FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+            MockCallScreen.incomingNumber, false, 'end');
+          sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
+          assert.equal(
+            MockCallScreen.incomingNumber.textContent, 'withheld-number');
+        });
+      });
+
+      test('should disable the place new call button', function() {
+        this.sinon.spy(MockCallScreen, 'disablePlaceNewCallButton');
+        extraCall.mChangeState('alerting');
+        sinon.assert.calledOnce(MockCallScreen.disablePlaceNewCallButton);
+      });
+
+      test('should show the on hold button', function() {
+        this.sinon.spy(MockCallScreen, 'showOnHoldButton');
+        extraCall.mChangeState('alerting');
+        sinon.assert.calledOnce(MockCallScreen.showOnHoldButton);
+      });
+
+      test('should disable the on hold button', function() {
+        this.sinon.spy(MockCallScreen, 'disableOnHoldButton');
+        extraCall.mChangeState('alerting');
+        sinon.assert.calledOnce(MockCallScreen.disableOnHoldButton);
+      });
+
+      test('should hide the merge button', function() {
+        this.sinon.spy(MockCallScreen, 'hideMergeButton');
+        extraCall.mChangeState('alerting');
+        sinon.assert.calledOnce(MockCallScreen.hideMergeButton);
+      });
+
+      suite('screen management', function() {
+        setup(function() {
+          this.sinon.spy(navigator, 'requestWakeLock');
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+        });
+
+        test('should turn the screen on', function() {
+          sinon.assert.called(navigator.requestWakeLock, 'screen');
+        });
+
+        test('and release it when we pick up the call', function() {
+          extraCall._connect();
+          var lock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.equal(lock.topic, 'screen');
+          assert.isTrue(lock.released);
+        });
       });
 
       suite('DSDS SIM display >', function() {
@@ -231,6 +485,66 @@ suite('calls handler', function() {
           });
         });
       });
+
+      suite('in CDMA Network', function() {
+        test('should hide the container of on hold and merge buttons', 
+        function() {
+          MockNavigatorMozMobileConnections[1].voice = {
+            type: 'evdoa'
+          };
+          this.sinon.spy(MockCallScreen, 'hideOnHoldAndMergeContainer');
+
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          extraCall.mChangeState('alerting');
+          sinon.assert.calledOnce(MockCallScreen.hideOnHoldAndMergeContainer);
+        });
+      });
+    });
+
+    suite('> making an extra outgoing call', function() {
+      var extraCall;
+      var extraHC;
+
+      setup(function() {
+        this.sinon.spy(MockCallScreen, 'disablePlaceNewCallButton');
+        this.sinon.spy(MockCallScreen, 'showOnHoldButton');
+        this.sinon.spy(MockCallScreen, 'hideOnHoldButton');
+        this.sinon.spy(MockCallScreen, 'disableOnHoldButton');
+        this.sinon.spy(MockCallScreen, 'hideMergeButton');
+        var firstCall = new MockCall('543552', 'incoming');
+        extraCall = new MockCall('12334', 'dialing');
+
+        telephonyAddCall.call(this, firstCall, {trigger: true});
+        extraHC = telephonyAddCall.call(this, extraCall, {trigger: true});
+      });
+
+      test('should disable the place new call button', function() {
+        sinon.assert.calledOnce(MockCallScreen.disablePlaceNewCallButton);
+      });
+
+      test('should show the on hold button', function() {
+        sinon.assert.calledOnce(MockCallScreen.showOnHoldButton);
+      });
+
+      test('should disable the on hold button', function() {
+        sinon.assert.calledOnce(MockCallScreen.disableOnHoldButton);
+      });
+
+      test('should hide the merge button', function() {
+        sinon.assert.calledOnce(MockCallScreen.hideMergeButton);
+      });
+
+      suite('in CDMA Network', function() {
+        test('should disable the on hold button', function() {
+          MockNavigatorMozMobileConnections[1].voice = {
+            type: 'evdoa'
+          };
+
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          extraCall.mChangeState();
+          sinon.assert.calledOnce(MockCallScreen.disableOnHoldButton);
+        });
+      });
     });
 
     suite('> receiving a third call', function() {
@@ -251,21 +565,21 @@ suite('calls handler', function() {
       });
 
       test('should hangup the call directly', function() {
-        var hangupSpy = this.sinon.spy(overflowCall, 'hangUp');
+        this.sinon.spy(overflowCall, 'hangUp');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(hangupSpy.calledOnce);
+        sinon.assert.calledOnce(overflowCall.hangUp);
       });
 
-      test('should still instanciate a handled call', function() {
+      test('should still instantiate a handled call', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(HandledCall.calledWith(overflowCall));
       });
 
       test('should not insert the handled call node in the CallScreen',
       function() {
-        var insertSpy = this.sinon.spy(MockCallScreen, 'insertCall');
+        this.sinon.spy(MockCallScreen, 'insertCall');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(insertSpy.notCalled);
+        sinon.assert.notCalled(MockCallScreen.insertCall);
       });
 
       suite('when a conference call is ongoing', function() {
@@ -276,18 +590,18 @@ suite('calls handler', function() {
         });
 
         test('should not hangup the call directly', function() {
-          var hangupSpy = this.sinon.spy(overflowCall, 'hangUp');
+          this.sinon.spy(overflowCall, 'hangUp');
           MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
           MockNavigatorMozTelephony.mTriggerCallsChanged();
-          assert.isTrue(hangupSpy.notCalled);
+          sinon.assert.notCalled(overflowCall.hangUp);
         });
 
         test('should insert the handled call node in the CallScreen',
         function() {
-          var insertSpy = this.sinon.spy(MockCallScreen, 'insertCall');
+          this.sinon.spy(MockCallScreen, 'insertCall');
           MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
           MockNavigatorMozTelephony.mTriggerCallsChanged();
-          assert.isTrue(insertSpy.calledWith(overflowHC.node));
+          sinon.assert.calledWith(MockCallScreen.insertCall, overflowHC.node);
         });
       });
     });
@@ -303,15 +617,15 @@ suite('calls handler', function() {
       });
 
       test('should show the call waiting UI', function() {
-        var showSpy = this.sinon.spy(MockCallScreen, 'showIncoming');
+        this.sinon.spy(MockCallScreen, 'showIncoming');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(showSpy.calledOnce);
+        sinon.assert.calledOnce(MockCallScreen.showIncoming);
       });
 
       test('should play the call waiting tone', function() {
-        var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
+        this.sinon.spy(MockTonePlayer, 'playSequence');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(playSpy.calledOnce);
+        sinon.assert.calledOnce(MockTonePlayer.playSequence);
       });
 
       test('should display the hold-and-answer button only', function() {
@@ -321,36 +635,51 @@ suite('calls handler', function() {
 
       test('should do the same after answering another call', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        var showSpy = this.sinon.spy(MockCallScreen, 'showIncoming');
-        var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
-        var holdSpy = this.sinon.spy(mockCall, 'hold');
+        this.sinon.spy(MockCallScreen, 'showIncoming');
+        this.sinon.spy(MockCallScreen, 'hideIncoming');
+        this.sinon.spy(mockCall, 'hold');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(showSpy.calledOnce);
+        sinon.assert.calledOnce(MockCallScreen.showIncoming);
         CallsHandler.holdAndAnswer();
-        assert.isTrue(hideSpy.calledOnce);
-        assert.isTrue(holdSpy.calledOnce);
+        sinon.assert.calledOnce(MockCallScreen.hideIncoming);
+        sinon.assert.calledOnce(mockCall.hold);
+      });
+
+      test('should toggle no-add-call in CDMA network', function() {
+        MockNavigatorMozMobileConnections[1].voice = {
+          type: 'evdoa'
+        };
+        MockNavigatorMozTelephony.calls = [mockCall, '123456789'];
+        this.sinon.spy(MockCallScreen, 'hidePlaceNewCallButton');
+
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        sinon.assert.calledOnce(MockCallScreen.hidePlaceNewCallButton);
       });
     });
 
     suite('> extra call ending', function() {
-      var hideSpy;
-
       setup(function() {
         var firstCall = new MockCall('543552', 'incoming');
         var extraCall = new MockCall('12334', 'incoming');
 
         telephonyAddCall.call(this, firstCall, {trigger: true});
 
-        var extraHC = telephonyAddCall.call(this, extraCall, {trigger: true});
-        hideSpy = this.sinon.spy(extraHC, 'hide');
+        telephonyAddCall.call(this, extraCall, {trigger: true});
 
         MockNavigatorMozTelephony.calls = [firstCall];
       });
 
       test('should hide the call waiting UI', function() {
-        var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+        this.sinon.spy(MockCallScreen, 'hideIncoming');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(hideSpy.calledOnce);
+        sinon.assert.calledOnce(MockCallScreen.hideIncoming);
+      });
+
+      test('should not close the callscreen app', function() {
+        this.sinon.spy(window, 'close');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
+        sinon.assert.notCalled(window.close);
       });
     });
 
@@ -371,18 +700,18 @@ suite('calls handler', function() {
       });
 
       test('should not hide the handled calls', function() {
-        var firstHideSpy = this.sinon.spy(firstHC, 'hide');
-        var secondHideSpy = this.sinon.spy(secondHC, 'hide');
+        this.sinon.spy(firstHC, 'hide');
+        this.sinon.spy(secondHC, 'hide');
 
         MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
-        assert.isTrue(firstHideSpy.notCalled);
-        assert.isTrue(secondHideSpy.notCalled);
+        sinon.assert.notCalled(firstHC.hide);
+        sinon.assert.notCalled(secondHC.hide);
       });
     });
 
-    suite('> people disconnecting from a conference call', function() {
+    suite('> conference call hangups', function() {
       var firstConfCall, firstHC;
       var secondConfCall, secondHC;
 
@@ -400,21 +729,28 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
-        MockNavigatorMozTelephony.calls = [firstConfCall];
-        MockNavigatorMozTelephony.conferenceGroup.calls = [secondConfCall];
-
-        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        MockNavigatorMozTelephony.calls = [];
-        MockNavigatorMozTelephony.conferenceGroup.calls = [];
+        this.sinon.spy(window, 'close');
       });
 
-      test('should toggle the CallScreen', function() {
-        var toggleSpy = this.sinon.spy(MockCallScreen, 'toggle');
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
+      test('should not close CallScreen when first party disconnects',
+      function() {
+        MockNavigatorMozTelephony.calls = [firstConfCall];
+        MockNavigatorMozTelephony.conferenceGroup.calls = [secondConfCall];
         MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
-        assert.isTrue(toggleSpy.calledOnce);
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
+        sinon.assert.notCalled(window.close);
+      });
+
+      test('should close CallScreen when last party disconnects',
+      function() {
+        MockNavigatorMozTelephony.calls = [];
+        MockNavigatorMozTelephony.conferenceGroup.calls = [];
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
+        sinon.assert.calledOnce(window.close);
       });
     });
 
@@ -447,17 +783,24 @@ suite('calls handler', function() {
         var secondConfCall = new MockCall('12334', 'held');
         extraCall = new MockCall('424242', 'incoming');
 
+        /**
+         * Don't add all 3 calls at once since |CallsHandler.addCall|
+         * would hangup the 3rd call
+         */
         telephonyAddCall.call(this, firstConfCall, {trigger: true});
         telephonyAddCall.call(this, secondConfCall, {trigger: true});
-        telephonyAddCall.call(this, extraCall, {trigger: true});
 
-        MockNavigatorMozTelephony.calls = [extraCall];
+        // Merge calls
         MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
                                                   secondConfCall];
         firstConfCall.group = MockNavigatorMozTelephony.conferenceGroup;
         secondConfCall.group = MockNavigatorMozTelephony.conferenceGroup;
-
+        MockNavigatorMozTelephony.calls = [];
         MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+
+        // Add extra call
+        telephonyAddCall.call(this, extraCall, {trigger: true});
+        MockNavigatorMozTelephony.calls = [extraCall];
         MockNavigatorMozTelephony.mTriggerCallsChanged();
       });
 
@@ -468,8 +811,6 @@ suite('calls handler', function() {
         sinon.assert.called(MockNavigatorMozTelephony.conferenceGroup.resume);
       });
     });
-
-
   });
 
   suite('> Public methods', function() {
@@ -478,6 +819,8 @@ suite('calls handler', function() {
 
       setup(function() {
         mockCall = new MockCall('12334', 'incoming');
+        mockCall.addEventListener(
+          'statechange', CallsHandler.updatePlaceNewCall);
         telephonyAddCall.call(this, mockCall, {trigger: true});
       });
 
@@ -492,6 +835,12 @@ suite('calls handler', function() {
         CallsHandler.answer();
         assert.isTrue(renderSpy.calledWith('connected'));
       });
+
+      test('should enable the place new call button', function() {
+        this.sinon.spy(MockCallScreen, 'enablePlaceNewCallButton');
+        CallsHandler.answer();
+        sinon.assert.calledOnce(MockCallScreen.enablePlaceNewCallButton);
+      });
     });
 
     suite('> CallsHandler.end()', function() {
@@ -500,6 +849,8 @@ suite('calls handler', function() {
 
         setup(function() {
           mockCall = new MockCall('543552', 'incoming');
+          mockCall.addEventListener(
+            'statechange', CallsHandler.updatePlaceNewCall);
           telephonyAddCall.call(this, mockCall, {trigger: true});
           MockNavigatorMozTelephony.active = mockCall;
         });
@@ -509,11 +860,18 @@ suite('calls handler', function() {
           CallsHandler.end();
           assert.isTrue(hangUpSpy.calledOnce);
         });
+
+        test('should enable the place new call button', function() {
+          this.sinon.spy(MockCallScreen, 'enablePlaceNewCallButton');
+          CallsHandler.end();
+          sinon.assert.calledOnce(MockCallScreen.enablePlaceNewCallButton);
+        });
       });
 
       suite('> ending a conference call', function() {
         var firstConfCall;
         var secondConfCall;
+        var mockPromise;
 
         setup(function() {
           firstConfCall = new MockCall('432423', 'incoming');
@@ -527,19 +885,23 @@ suite('calls handler', function() {
 
           MockNavigatorMozTelephony.active =
             MockNavigatorMozTelephony.conferenceGroup;
+
+          mockPromise = Promise.resolve();
+          this.sinon.stub(MockNavigatorMozTelephony.conferenceGroup, 'hangUp')
+                         .returns(mockPromise);
         });
 
         test('should hangup all the calls in the conference group', function() {
-          var firstHangUpSpy = this.sinon.spy(firstConfCall, 'hangUp');
-          var secondHangUpSpy = this.sinon.spy(secondConfCall, 'hangUp');
           CallsHandler.end();
-          assert.isTrue(firstHangUpSpy.calledOnce);
-          assert.isTrue(secondHangUpSpy.calledOnce);
+          sinon.assert.calledOnce(
+            MockNavigatorMozTelephony.conferenceGroup.hangUp);
         });
 
-        test('should call CallScreen.setEndConferenceCall', function() {
+        test('should call CallScreen.setEndConferenceCall', function(done) {
           CallsHandler.end();
-          assert.isTrue(MockCallScreen.mSetEndConferenceCall);
+          mockPromise.then(function() {
+            assert.isTrue(MockCallScreen.mSetEndConferenceCall);
+          }).then(done, done);
         });
       });
 
@@ -550,6 +912,8 @@ suite('calls handler', function() {
         setup(function() {
           firstCall = new MockCall('543552', 'incoming');
           secondCall = new MockCall('12334', 'incoming');
+          secondCall.addEventListener(
+            'statechange', CallsHandler.updatePlaceNewCall);
 
           telephonyAddCall.call(this, firstCall, {trigger: true});
           telephonyAddCall.call(this, secondCall, {trigger: true});
@@ -567,6 +931,12 @@ suite('calls handler', function() {
           CallsHandler.end();
           assert.isTrue(hangUpSpy.notCalled);
         });
+
+        test('should enable the place new call button', function() {
+          this.sinon.spy(MockCallScreen, 'enablePlaceNewCallButton');
+          CallsHandler.end();
+          sinon.assert.calledOnce(MockCallScreen.enablePlaceNewCallButton);
+        });
       });
 
       suite('> refusing an incoming call', function() {
@@ -574,6 +944,8 @@ suite('calls handler', function() {
 
         setup(function() {
           mockCall = new MockCall('543552', 'incoming');
+          mockCall.addEventListener(
+            'statechange', CallsHandler.updatePlaceNewCall);
 
           telephonyAddCall.call(this, mockCall, {trigger: true});
         });
@@ -582,6 +954,12 @@ suite('calls handler', function() {
           var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
           CallsHandler.end();
           assert.isTrue(hangUpSpy.calledOnce);
+        });
+
+        test('should enable the place new call button', function() {
+          this.sinon.spy(MockCallScreen, 'enablePlaceNewCallButton');
+          CallsHandler.end();
+          sinon.assert.calledOnce(MockCallScreen.enablePlaceNewCallButton);
         });
       });
     });
@@ -615,6 +993,8 @@ suite('calls handler', function() {
           setup(function() {
             connectedCall = new MockCall('543552', 'connected');
             incomingCall = new MockCall('12334', 'incoming');
+            incomingCall.addEventListener(
+              'statechange', CallsHandler.updatePlaceNewCall);
 
             telephonyAddCall.call(this, connectedCall, {trigger: true});
             MockNavigatorMozTelephony.active = connectedCall;
@@ -631,6 +1011,12 @@ suite('calls handler', function() {
             var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
             CallsHandler.holdAndAnswer();
             assert.isTrue(hideSpy.calledOnce);
+          });
+
+          test('should disable the place new call button', function() {
+            this.sinon.spy(MockCallScreen, 'disablePlaceNewCallButton');
+            incomingCall.mChangeState('dialing');
+            sinon.assert.calledOnce(MockCallScreen.disablePlaceNewCallButton);
           });
       });
 
@@ -709,7 +1095,7 @@ suite('calls handler', function() {
 
             telephonyAddCall.call(this, call, {trigger: true});
             MockNavigatorMozTelephony.active = call;
-            call.secondNumber = '12345';
+            call.secondId = { number: '12345' };
             call.state = 'connected';
           });
 
@@ -752,11 +1138,11 @@ suite('calls handler', function() {
           telephonyAddCall.call(this, call, {trigger: true});
           MockNavigatorMozTelephony.active = call;
 
-          var hideIncomingSpy = this.sinon.spy(CallScreen, 'hideIncoming');
-          var hangUpSpy = this.sinon.spy(call, 'hangUp');
+          this.sinon.spy(CallScreen, 'hideIncoming');
+          this.sinon.spy(call, 'hangUp');
           CallsHandler.endAndAnswer();
-          assert.isTrue(hideIncomingSpy.notCalled);
-          assert.isTrue(hangUpSpy.notCalled);
+          sinon.assert.notCalled(CallScreen.hideIncoming);
+          sinon.assert.notCalled(call.hangUp);
         });
       });
 
@@ -775,16 +1161,15 @@ suite('calls handler', function() {
           });
 
           test('should hang up the active call', function() {
-            var hangUpSpy =
-              this.sinon.spy(MockNavigatorMozTelephony.active, 'hangUp');
+            this.sinon.spy(MockNavigatorMozTelephony.active, 'hangUp');
             CallsHandler.endAndAnswer();
-            assert.isTrue(hangUpSpy.calledOnce);
+            sinon.assert.calledOnce(MockNavigatorMozTelephony.active.hangUp);
           });
 
           test('should hide the call waiting UI', function() {
-            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+            this.sinon.spy(MockCallScreen, 'hideIncoming');
             CallsHandler.endAndAnswer();
-            assert.isTrue(hideSpy.calledOnce);
+            sinon.assert.calledOnce(MockCallScreen.hideIncoming);
           });
       });
 
@@ -802,15 +1187,15 @@ suite('calls handler', function() {
           });
 
           test('should hang up the held call', function() {
-            var hangUpSpy = this.sinon.spy(heldCall, 'hangUp');
+            this.sinon.spy(heldCall, 'hangUp');
             CallsHandler.endAndAnswer();
-            assert.isTrue(hangUpSpy.calledOnce);
+            sinon.assert.calledOnce(heldCall.hangUp);
           });
 
           test('should hide the call waiting UI', function() {
-            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+            this.sinon.spy(MockCallScreen, 'hideIncoming');
             CallsHandler.endAndAnswer();
-            assert.isTrue(hideSpy.calledOnce);
+            sinon.assert.calledOnce(MockCallScreen.hideIncoming);
           });
       });
 
@@ -827,15 +1212,15 @@ suite('calls handler', function() {
           });
 
           test('should invoke hold to answer the second call', function() {
-            var holdSpy = this.sinon.spy(mockCall, 'hold');
+            this.sinon.spy(mockCall, 'hold');
             CallsHandler.endAndAnswer();
-            assert.isTrue(holdSpy.calledOnce);
+            sinon.assert.calledOnce(mockCall.hold);
           });
 
           test('should hide the call waiting UI', function() {
-            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+            this.sinon.spy(MockCallScreen, 'hideIncoming');
             CallsHandler.endAndAnswer();
-            assert.isTrue(hideSpy.calledOnce);
+            sinon.assert.calledOnce(MockCallScreen.hideIncoming);
           });
 
           test('should enable the CDMA call waiting UI', function() {
@@ -844,16 +1229,17 @@ suite('calls handler', function() {
           });
 
           test('should inform bluetooth of answering second call', function() {
-            var switchCallsSpy = this.sinon.spy(
-              MockBluetoothHelperInstance, 'answerWaitingCall');
+            this.sinon.spy(MockBluetoothHelperInstance, 'answerWaitingCall');
             CallsHandler.endAndAnswer();
-            assert.equal(switchCallsSpy.calledOnce, true);
+            sinon.assert.calledOnce(
+              MockBluetoothHelperInstance.answerWaitingCall);
           });
       });
 
       suite('when a conference call is active', function() {
         var firstConfCall;
         var secondConfCall;
+        var mockPromise;
 
         setup(function() {
           firstConfCall = new MockCall('432423', 'incoming');
@@ -870,27 +1256,100 @@ suite('calls handler', function() {
 
           var incomingCall = new MockCall('12334', 'incoming');
           telephonyAddCall.call(this, incomingCall, {trigger: true});
+
+          mockPromise = Promise.resolve();
+          this.sinon.stub(MockNavigatorMozTelephony.conferenceGroup, 'hangUp')
+                         .returns(mockPromise);
         });
 
         test('should hangup all the calls in the conference group', function() {
-          var firstHangUpSpy = this.sinon.spy(firstConfCall, 'hangUp');
-          var secondHangUpSpy = this.sinon.spy(secondConfCall, 'hangUp');
           CallsHandler.endAndAnswer();
-          assert.isTrue(firstHangUpSpy.calledOnce);
-          assert.isTrue(secondHangUpSpy.calledOnce);
+          sinon.assert.calledOnce(
+            MockNavigatorMozTelephony.conferenceGroup.hangUp);
         });
 
-        test('should hide the call waiting UI', function() {
-          var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+        test('should hide the call waiting UI', function(done) {
           CallsHandler.endAndAnswer();
-          assert.isTrue(hideSpy.calledOnce);
+          mockPromise.then(function() {
+            assert.isTrue(MockCallScreen.mHideIncomingCalled);
+          }).then(done, done);
         });
 
-        test('should call CallScreen.setEndConferenceCall', function() {
+        test('should call CallScreen.setEndConferenceCall', function(done) {
           CallsHandler.endAndAnswer();
-          assert.isTrue(MockCallScreen.mSetEndConferenceCall);
+          mockPromise.then(function() {
+            assert.isTrue(MockCallScreen.mSetEndConferenceCall);
+          }).then(done, done);
+        });
+      });
+    });
+
+    suite('> CallsHandler.holdOrResumeSingleCall()', function() {
+      var firstCall;
+
+      suite('put ongoing call on hold', function() {
+        setup(function() {
+          firstCall = new MockCall('543552', 'connected');
+
+          telephonyAddCall.call(this, firstCall, {trigger: true});
+          MockNavigatorMozTelephony.active = firstCall;
         });
 
+        test('should call telephony.active.hold()', function() {
+          this.sinon.spy(MockNavigatorMozTelephony.active, 'hold');
+          CallsHandler.holdOrResumeSingleCall();
+          sinon.assert.calledOnce(MockNavigatorMozTelephony.active.hold);
+        });
+
+        test('should render the call screen in on hold mode', function() {
+          this.sinon.spy(MockCallScreen, 'render');
+          CallsHandler.holdOrResumeSingleCall();
+          sinon.assert.calledWith(MockCallScreen.render, 'connected-hold');
+        });
+
+        test('should disable the mute button', function() {
+          this.sinon.spy(MockCallScreen, 'disableMuteButton');
+          CallsHandler.holdOrResumeSingleCall();
+          sinon.assert.calledOnce(MockCallScreen.disableMuteButton);
+        });
+
+        test('should disable the speaker button', function() {
+          this.sinon.spy(MockCallScreen, 'disableSpeakerButton');
+          CallsHandler.holdOrResumeSingleCall();
+          sinon.assert.calledOnce(MockCallScreen.disableSpeakerButton);
+        });
+      });
+
+      suite('resume held 1 to 1 ongoing call', function() {
+        setup(function() {
+          firstCall = new MockCall('543552', 'held');
+
+          telephonyAddCall.call(this, firstCall, {trigger: true});
+        });
+
+        test('should call firstCall.resume()', function() {
+          this.sinon.spy(firstCall, 'resume');
+          CallsHandler.holdOrResumeSingleCall();
+          sinon.assert.calledOnce(firstCall.resume);
+        });
+
+        test('should render the call screen in connected mode', function() {
+          this.sinon.spy(MockCallScreen, 'render');
+          CallsHandler.holdOrResumeSingleCall();
+          sinon.assert.calledWith(MockCallScreen.render, 'connected');
+        });
+
+        test('should enable the mute button', function() {
+          this.sinon.spy(MockCallScreen, 'enableMuteButton');
+          CallsHandler.holdOrResumeSingleCall();
+          sinon.assert.calledOnce(MockCallScreen.enableMuteButton);
+        });
+
+        test('should enable the speaker button', function() {
+          this.sinon.spy(MockCallScreen, 'enableSpeakerButton');
+          CallsHandler.holdOrResumeSingleCall();
+          sinon.assert.calledOnce(MockCallScreen.enableSpeakerButton);
+        });
       });
     });
 
@@ -1139,12 +1598,11 @@ suite('calls handler', function() {
       });
 
       test('should get active call', function() {
-        var activeHandlerCall = CallsHandler.activecall;
-          assert.equal(CallsHandler.activeCall.call, activeCall);
+        assert.equal(CallsHandler.activeCall.call, activeCall);
       });
     });
 
-    suite('CallsHandler.mergeActiveCallWith', function() {
+    suite('CallsHandler.mergeCalls', function() {
       suite('without a conference call ongoing', function() {
         var inactiveCall;
         var activeCall;
@@ -1161,7 +1619,7 @@ suite('calls handler', function() {
         });
 
         test('should call telephony.conferenceGroup.add()', function() {
-          CallsHandler.mergeActiveCallWith(inactiveCall);
+          CallsHandler.mergeCalls();
           assert.isTrue(addSpy.calledWith(activeCall, inactiveCall));
         });
       });
@@ -1194,41 +1652,352 @@ suite('calls handler', function() {
         });
 
         test('should call telephony.conferenceGroup.add()', function() {
-          CallsHandler.mergeActiveCallWith(overflowCall);
+          CallsHandler.mergeCalls();
           assert.isTrue(addSpy.calledWith(overflowCall));
         });
       });
     });
 
-    suite('> CallsHandler.mergeConferenceGroupWithActiveCall', function() {
-      var firstCall;
-      var extraCall;
-      var overflowCall;
-      var addSpy;
+    suite('CallsHandler.updateMergeAndOnHoldStatus', function() {
+      suite('1 establishing call', function() {
+        var mockCall;
+        setup(function() {
+          mockCall = new MockCall('111111111', 'dialing');
+          telephonyAddCall.call(this, mockCall, {trigger: true});
+          this.sinon.spy(CallScreen, 'showOnHoldButton');
+          this.sinon.spy(CallScreen, 'hideOnHoldButton');
+          this.sinon.spy(CallScreen, 'enableOnHoldButton');
+          this.sinon.spy(CallScreen, 'disableOnHoldButton');
+          this.sinon.spy(CallScreen, 'showMergeButton');
+          this.sinon.spy(CallScreen, 'hideMergeButton');
+        });
 
-      setup(function() {
-        firstCall = new MockCall('543552', 'incoming');
-        extraCall = new MockCall('12334', 'incoming');
-        overflowCall = new MockCall('424242', 'incoming');
+        test('should disable the on hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.disableOnHoldButton);
+        });
 
-        telephonyAddCall.call(this, firstCall, {trigger: true});
-        telephonyAddCall.call(this, extraCall, {trigger: true});
+        test('should hide the merge button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.hideMergeButton);
+        });
 
-        telephonyAddCall.call(this, overflowCall);
+        test('should show the on hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.showOnHoldButton);
+        });
 
-        MockNavigatorMozTelephony.calls = [overflowCall];
-        MockNavigatorMozTelephony.conferenceGroup.calls =
-          [firstCall, extraCall];
+        suite('in CDMA Network', function() {
+          test('should do nothing', function() {
+            MockNavigatorMozMobileConnections[1].voice = {
+              type: 'evdoa'
+            };
 
-        MockNavigatorMozTelephony.active = overflowCall;
-
-        addSpy =
-          this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'add');
+            CallsHandler.updateMergeAndOnHoldStatus();
+            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.showMergeButton);
+            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+          });
+        });
       });
 
-      test('should call telephony.conferenceGroup.add()', function() {
-        CallsHandler.mergeConferenceGroupWithActiveCall();
-        assert.isTrue(addSpy.calledWith(overflowCall));
+      suite('1 established call', function() {
+        setup(function() {
+          telephonyAddCall.call(
+            this, new MockCall('111111111', 'connected'), {trigger: true});
+          this.sinon.spy(CallScreen, 'showOnHoldButton');
+          this.sinon.spy(CallScreen, 'hideOnHoldButton');
+          this.sinon.spy(CallScreen, 'enableOnHoldButton');
+          this.sinon.spy(CallScreen, 'disableOnHoldButton');
+          this.sinon.spy(CallScreen, 'showMergeButton');
+          this.sinon.spy(CallScreen, 'hideMergeButton');
+        });
+
+        test('should enable the on hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.enableOnHoldButton);
+        });
+
+        test('should hide the merge button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.hideMergeButton);
+        });
+
+        test('should show the on hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.showOnHoldButton);
+        });
+
+        suite('in CDMA Network', function() {
+          test('should do nothing', function() {
+            MockNavigatorMozMobileConnections[1].voice = {
+              type: 'evdoa'
+            };
+
+            CallsHandler.updateMergeAndOnHoldStatus();
+            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.showMergeButton);
+            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+          });
+        });
+      });
+
+      suite('1 conference established call', function() {
+        var conferenceCall1, conferenceCall2;
+
+        setup(function() {
+          conferenceCall1 = new MockCall('111111111', 'connected');
+          conferenceCall2 = new MockCall('222222222', 'connected');
+
+          telephonyAddCall.call(this, conferenceCall1, {trigger: true});
+          telephonyAddCall.call(this, conferenceCall2, {trigger: true});
+
+          MockNavigatorMozTelephony.conferenceGroup.calls =
+            [conferenceCall1, conferenceCall2];
+          MockNavigatorMozTelephony.calls = [];
+
+          this.sinon.spy(CallScreen, 'showOnHoldButton');
+          this.sinon.spy(CallScreen, 'hideOnHoldButton');
+          this.sinon.spy(CallScreen, 'enableOnHoldButton');
+          this.sinon.spy(CallScreen, 'disableOnHoldButton');
+          this.sinon.spy(CallScreen, 'showMergeButton');
+          this.sinon.spy(CallScreen, 'hideMergeButton');
+        });
+
+        test('should enable the on hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.enableOnHoldButton);
+        });
+
+        test('should hide the merge button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.hideMergeButton);
+        });
+
+        test('should show the on hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.showOnHoldButton);
+        });
+
+        suite('in CDMA Network', function() {
+          test('should do nothing', function() {
+            MockNavigatorMozMobileConnections[1].voice = {
+              type: 'evdoa'
+            };
+
+            CallsHandler.updateMergeAndOnHoldStatus();
+            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.showMergeButton);
+            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+          });
+        });
+      });
+
+      suite('1 one-to-one established call and 1 establishing call',
+      function() {
+        setup(function() {
+          telephonyAddCall.call(
+            this, new MockCall('111111111', 'connected'), {trigger: true});
+          telephonyAddCall.call(
+            this, new MockCall('222222222', 'dialing'), {trigger: true});
+
+          this.sinon.spy(CallScreen, 'showOnHoldButton');
+          this.sinon.spy(CallScreen, 'hideOnHoldButton');
+          this.sinon.spy(CallScreen, 'enableOnHoldButton');
+          this.sinon.spy(CallScreen, 'disableOnHoldButton');
+          this.sinon.spy(CallScreen, 'showMergeButton');
+          this.sinon.spy(CallScreen, 'hideMergeButton');
+        });
+
+        test('should disable the on hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.disableOnHoldButton);
+        });
+
+        test('should hide the merge button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.hideMergeButton);
+        });
+
+        test('should show the on hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.showOnHoldButton);
+        });
+
+        suite('in CDMA Network', function() {
+          test('should do nothing', function() {
+            MockNavigatorMozMobileConnections[1].voice = {
+              type: 'evdoa'
+            };
+
+            CallsHandler.updateMergeAndOnHoldStatus();
+            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.showMergeButton);
+            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+          });
+        });
+      });
+
+      suite('1 conference established call and 1 establishing call',
+      function() {
+        var conferenceCall1, conferenceCall2;
+
+        setup(function() {
+          conferenceCall1 = new MockCall('111111111', 'incoming');
+          conferenceCall2 = new MockCall('222222222', 'incoming');
+          telephonyAddCall.call(
+            this, new MockCall('333333333', 'dialing'), {trigger: true});
+
+          telephonyAddCall.call(this, conferenceCall1, {trigger: true});
+          telephonyAddCall.call(this, conferenceCall2, {trigger: true});
+
+          MockNavigatorMozTelephony.conferenceGroup.calls =
+            [conferenceCall1, conferenceCall2];
+
+          this.sinon.spy(CallScreen, 'showOnHoldButton');
+          this.sinon.spy(CallScreen, 'hideOnHoldButton');
+          this.sinon.spy(CallScreen, 'enableOnHoldButton');
+          this.sinon.spy(CallScreen, 'disableOnHoldButton');
+          this.sinon.spy(CallScreen, 'showMergeButton');
+          this.sinon.spy(CallScreen, 'hideMergeButton');
+        });
+
+        test('should disable the on hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.disableOnHoldButton);
+        });
+
+        test('should hide the merge button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.hideMergeButton);
+        });
+
+        test('should show the on hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.showOnHoldButton);
+        });
+
+        suite('in CDMA Network', function() {
+          test('should do nothing', function() {
+            MockNavigatorMozMobileConnections[1].voice = {
+              type: 'evdoa'
+            };
+
+            CallsHandler.updateMergeAndOnHoldStatus();
+            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.showMergeButton);
+            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+          });
+        });
+      });
+
+      suite('2 one-to-one established calls', function() {
+        setup(function() {
+          telephonyAddCall.call(
+            this, new MockCall('111111111', 'connected'), {trigger: true});
+          telephonyAddCall.call(
+            this, new MockCall('222222222', 'connected'), {trigger: true});
+
+          this.sinon.spy(CallScreen, 'showOnHoldButton');
+          this.sinon.spy(CallScreen, 'hideOnHoldButton');
+          this.sinon.spy(CallScreen, 'enableOnHoldButton');
+          this.sinon.spy(CallScreen, 'disableOnHoldButton');
+          this.sinon.spy(CallScreen, 'showMergeButton');
+          this.sinon.spy(CallScreen, 'hideMergeButton');
+        });
+
+        test('should hide the on-hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.hideOnHoldButton);
+        });
+
+        test('should show the merge button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.showMergeButton);
+        });
+
+        suite('in CDMA Network', function() {
+          test('should do nothing', function() {
+            MockNavigatorMozMobileConnections[1].voice = {
+              type: 'evdoa'
+            };
+
+            CallsHandler.updateMergeAndOnHoldStatus();
+            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.showMergeButton);
+            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+          });
+        });
+      });
+
+      suite('1 one-to-one and 1 conference established calls', function() {
+        var singleCall, conferenceCall1, conferenceCall2;
+
+        setup(function() {
+          singleCall = new MockCall('111111111', 'incoming');
+          conferenceCall1 = new MockCall('222222222', 'incoming');
+          conferenceCall2 = new MockCall('333333333', 'incoming');
+
+          telephonyAddCall.call(this, conferenceCall1, {trigger: true});
+          telephonyAddCall.call(this, conferenceCall2, {trigger: true});
+
+          telephonyAddCall.call(this, singleCall);
+
+          MockNavigatorMozTelephony.calls = [singleCall];
+          MockNavigatorMozTelephony.conferenceGroup.calls =
+            [conferenceCall1, conferenceCall2];
+
+          this.sinon.spy(CallScreen, 'showOnHoldButton');
+          this.sinon.spy(CallScreen, 'hideOnHoldButton');
+          this.sinon.spy(CallScreen, 'enableOnHoldButton');
+          this.sinon.spy(CallScreen, 'disableOnHoldButton');
+          this.sinon.spy(CallScreen, 'showMergeButton');
+          this.sinon.spy(CallScreen, 'hideMergeButton');
+        });
+
+        test('should hide the on-hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.hideOnHoldButton);
+        });
+
+        test('should show the merge button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(CallScreen.showMergeButton);
+        });
+
+        suite('in CDMA Network', function() {
+          test('should do nothing', function() {
+            MockNavigatorMozMobileConnections[1].voice = {
+              type: 'evdoa'
+            };
+
+            CallsHandler.updateMergeAndOnHoldStatus();
+            sinon.assert.notCalled(MockCallScreen.showOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.enableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.disableOnHoldButton);
+            sinon.assert.notCalled(MockCallScreen.showMergeButton);
+            sinon.assert.notCalled(MockCallScreen.hideMergeButton);
+          });
+        });
       });
     });
 
@@ -1261,19 +2030,47 @@ suite('calls handler', function() {
       });
     });
 
-    suite('> CallsHandler.switchToDefaultOut', function() {
+    suite('> CallsHandler.switchToDefaultOut when visible', function() {
+      // switchToDefaultOut() also check callscreen displayed before connecting
+      // to SCO, so we make it displayed first.
+      setup(function() {
+        var mockCall = new MockCall('12334', 'incoming');
+        telephonyAddCall.call(this, mockCall, {trigger: true});
+        MockNavigatorMozTelephony.active = mockCall;
+      });
+
       test('should connect bluetooth SCO', function() {
-        var connectScoSpy = this.sinon.spy(
-          MockBluetoothHelperInstance, 'connectSco');
+        this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
         CallsHandler.switchToDefaultOut();
-        assert.isTrue(connectScoSpy.calledOnce);
+        sinon.assert.calledOnce(MockBluetoothHelperInstance.connectSco);
       });
 
       test('should not connect bluetooth SCO', function() {
-        var connectScoSpy = this.sinon.spy(
-          MockBluetoothHelperInstance, 'connectSco');
+        this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
         CallsHandler.switchToDefaultOut(true /* do not connect */);
-        assert.isTrue(connectScoSpy.notCalled);
+        sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
+      });
+
+      test('should disable the speaker', function() {
+        CallsHandler.switchToDefaultOut();
+        assert.isFalse(MockNavigatorMozTelephony.speakerEnabled);
+      });
+
+      test('should not connect bluetooth SCO if no Active call', function() {
+        this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
+        MockNavigatorMozTelephony.active = null;
+        CallsHandler.switchToDefaultOut(false);
+        sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
+      });
+    });
+
+    suite('> CallsHandler.switchToDefaultOut when hidden', function() {
+      test('should never connect bluetooth SCO', function() {
+        this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
+        CallsHandler.switchToDefaultOut();
+        sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
+        CallsHandler.switchToDefaultOut(true /* do not connect */);
+        sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
       });
 
       test('should disable the speaker', function() {
@@ -1311,6 +2108,32 @@ suite('calls handler', function() {
         assert.isTrue(CallsHandler.switchToDefaultOut.calledOnce);
       });
     });
+
+    suite('> CallsHandler.isFirstCallOnCdmaNetwork()', function() {
+      setup(function() {
+        var mockCall = new MockCall('12334', 'incoming', 0);
+        telephonyAddCall.call(this, mockCall);
+      });
+
+      test('radio type is NOT CDMA', function() {
+        MockNavigatorMozMobileConnections[0].voice = {
+          type: 'edge'
+        };
+
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.isFalse(CallsHandler.isFirstCallOnCdmaNetwork());
+      });
+
+      test('radio type is CDMA', function() {
+        ['evdoa', 'evdo0', 'evdob',
+         '1xrtt', 'is95a', 'is95b'].forEach(function(type) {
+          MockNavigatorMozMobileConnections[0].voice = { type: type };
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
+        });
+      });
+    });
   });
 
   suite('> headphone and bluetooth support', function() {
@@ -1343,7 +2166,7 @@ suite('calls handler', function() {
       test('should switch sound to default out', function() {
         var toDefaultSpy = this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
         headphonesChange.yield();
-        assert.isTrue(toDefaultSpy.calledOnce);
+        assert.isTrue(toDefaultSpy.calledWithExactly());
       });
     });
 
@@ -1353,11 +2176,9 @@ suite('calls handler', function() {
         this.sinon.stub(
           MockBluetoothHelperInstance, 'getConnectedDevicesByProfile')
           .yields(['dummyDevice']);
-        var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon')
-                    .throws('should pass true to setBTReceiverIcon');
-        setIconStub.withArgs(true);
+        var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon');
         CallsHandler.setup();
-        assert.isTrue(setIconStub.calledOnce);
+        sinon.assert.calledOnce(setIconStub);
       });
 
       test('should show the speaker button when connected if no bluetooth' +
@@ -1365,11 +2186,9 @@ suite('calls handler', function() {
         this.sinon.stub(
           MockBluetoothHelperInstance, 'getConnectedDevicesByProfile')
           .yields([]);
-        var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon')
-                    .throws('should pass false to setBTReceiverIcon');
-        setIconStub.withArgs(false);
+        var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon');
         CallsHandler.setup();
-        assert.isTrue(setIconStub.calledOnce);
+        sinon.assert.calledOnce(setIconStub);
       });
 
       test('should switch sound to BT receiver when connected', function() {
@@ -1437,8 +2256,11 @@ suite('calls handler', function() {
           MockNavigatorMozTelephony.mTriggerCallsChanged();
 
           var hangUpSpy = this.sinon.spy(call1, 'hangUp');
+          var answerSpy = this.sinon.spy(call2, 'answer');
+
           triggerCommand('CHLD=1');
           sinon.assert.calledOnce(hangUpSpy);
+          sinon.assert.calledOnce(answerSpy);
         });
       });
 
@@ -1450,6 +2272,19 @@ suite('calls handler', function() {
           var answerSpy = this.sinon.spy(call2, 'answer');
           triggerCommand('CHLD=2');
           sinon.assert.calledOnce(answerSpy);
+        });
+
+        test('should not try to hold a CDMA call', function() {
+          MockNavigatorMozMobileConnections[1].voice = {
+            type: 'evdoa'
+          };
+          MockNavigatorMozTelephony.calls = [call1];
+          MockNavigatorMozTelephony.active = call1;
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+          this.sinon.spy(call1, 'hold');
+          triggerCommand('CHLD=2');
+          sinon.assert.notCalled(call1.hold);
         });
       });
 
@@ -1550,6 +2385,158 @@ suite('calls handler', function() {
         triggerHeadset(this.sinon.clock);
         sinon.assert.calledOnce(answerSpy);
       });
+    });
+  });
+
+  suite('> active calls getters', function() {
+    var mockCalls;
+
+    setup(function() {
+      mockCalls = MockNavigatorMozTelephony.calls = [
+        new MockCall('99999', 'incoming'),
+        new MockCall('88888', 'incoming')
+      ];
+      MockNavigatorMozTelephony.active = mockCalls[0];
+      MockNavigatorMozTelephony.mTriggerCallsChanged();
+    });
+
+    test('getActiveCall should return active call', function() {
+      assert.equal(CallsHandler.activeCall.call.id.number,
+                   MockNavigatorMozTelephony.active.id.number);
+    });
+
+    suite('> getActiveCallForContactImage', function() {
+      test('should return active call if it is the only one', function() {
+        MockNavigatorMozTelephony.calls = [mockCalls[0]];
+        MockNavigatorMozTelephony.active = mockCalls[0];
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.equal(CallsHandler.activeCallForContactImage.call.id.number,
+                     MockNavigatorMozTelephony.active.id.number);
+      });
+
+      test('should return first already connected call', function() {
+        assert.equal(CallsHandler.activeCallForContactImage.call.id.number,
+                     MockNavigatorMozTelephony.active.id.number);
+      });
+
+      test('should return null if no active call', function() {
+        MockNavigatorMozTelephony.active = null;
+        assert.equal(CallsHandler.activeCallForContactImage, null);
+      });
+
+      test('should return null if in group call', function() {
+        MockNavigatorMozTelephony.calls = mockCalls;
+        MockNavigatorMozTelephony.conferenceGroup.calls =
+          mockCalls;
+        MockNavigatorMozTelephony.active =
+          MockNavigatorMozTelephony.conferenceGroup;
+
+        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.equal(CallsHandler.activeCallForContactImage, null);
+      });
+
+      test('should return null if in group call and has incoming', function() {
+        MockNavigatorMozTelephony.calls =
+          [mockCalls[0], new MockCall('1111', 'incoming')];
+        MockNavigatorMozTelephony.conferenceGroup.calls =
+          mockCalls;
+        MockNavigatorMozTelephony.active =
+          MockNavigatorMozTelephony.conferenceGroup;
+
+        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.equal(CallsHandler.activeCallForContactImage, null);
+      });
+
+      test('should return first non-group call', function() {
+        var mockCall = new MockCall('2222', 'incoming');
+
+        MockNavigatorMozTelephony.calls =
+          [mockCalls[0], mockCall];
+        MockNavigatorMozTelephony.conferenceGroup.calls =
+          mockCalls;
+        MockNavigatorMozTelephony.active = mockCall;
+
+        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.equal(CallsHandler.activeCallForContactImage.call.id.number,
+                     MockNavigatorMozTelephony.active.id.number);
+      });
+    });
+  });
+
+  suite('> Audio competing event listening', function() {
+    var gsmcall = null;
+
+    setup(function() {
+      AudioCompetingHelper.init('test');
+      this.sinon.spy(AudioCompetingHelper, 'clearListeners');
+
+      gsmcall = new MockCall('543552', 'connected');
+      telephonyAddCall.call(this, gsmcall);
+
+      CallsHandler.setup();
+    });
+
+    test('should call clearListeners', function() {
+      sinon.assert.called(AudioCompetingHelper.clearListeners);
+    });
+
+    test('should call onMozInterrupBegin', function() {
+      this.sinon.spy(gsmcall, 'hold');
+      this.sinon.spy(MockAudioContext.prototype, 'addEventListener');
+
+      MockNavigatorMozTelephony.active = gsmcall;
+      AudioCompetingHelper.compete();
+
+      sinon.assert.calledWith(MockAudioContext.prototype.addEventListener,
+                              'mozinterruptbegin');
+      MockAudioContext.prototype.addEventListener.yield();
+      sinon.assert.called(gsmcall.hold);
+      AudioCompetingHelper.leaveCompetition();
+    });
+
+    test('should call forceAnAudioCompetitionWin', function() {
+      this.sinon.spy(AudioCompetingHelper, 'compete');
+      this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
+      this.sinon.spy(MockAudioContext.prototype, 'addEventListener');
+
+      var gsmcall2 = new MockCall('543552', 'connected');
+      telephonyAddCall.call(this, gsmcall2);
+
+      AudioCompetingHelper.compete();
+
+      sinon.assert.calledWith(MockAudioContext.prototype.addEventListener,
+                              'mozinterruptbegin');
+      MockAudioContext.prototype.addEventListener.yield();
+      sinon.assert.calledOnce(AudioCompetingHelper.leaveCompetition);
+      sinon.assert.calledTwice(AudioCompetingHelper.compete);
+    });
+  });
+
+  suite('> busy tone', function() {
+    var mockCall;
+
+    setup(function() {
+      this.sinon.spy(MockTonePlayer, 'playSequence');
+      mockCall = new MockCall('12334', 'incoming');
+      MockNavigatorMozTelephony.active = mockCall;
+    });
+
+    test('should play the busy tone if we found the line busy', function() {
+      var sequence = [[480, 620, 500], [0, 0, 500],
+                      [480, 620, 500], [0, 0, 500],
+                      [480, 620, 500], [0, 0, 500]];
+
+      MockNavigatorMozTelephony.mTriggerCallsChanged();
+      mockCall.error = { name: 'BusyError' };
+      mockCall.triggerEvent('error');
+      sinon.assert.calledWith(MockTonePlayer.playSequence, sequence);
     });
   });
 });

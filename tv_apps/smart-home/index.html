@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Home</title>
+
+    <link rel="stylesheet" type="text/css" href="style/home.css">
+    <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
+
+    <!-- Helper libraries -->
+    <script defer src="tv_shared/js/vendor/evt.js"></script>
+    <script defer src="js/utils.js"></script>
+    <script defer src="js/piped_promise.js"></script>
+    <!-- Specific code -->
+    <script defer src="js/card.js"></script>
+    <script defer src="js/application.js"></script>
+    <script defer src="js/deck.js"></script>
+    <!-- XXX: we should remove fake_deck once we have real decks -->
+    <script defer src="js/fake_deck.js"></script>
+    <script defer src="js/card_store.js"></script>
+    <script defer src="js/card_manager.js"></script>
+    <script defer src="tv_shared/js/selection_border.js"></script>
+    <script defer src="js/scrollable.js"></script>
+    <script defer src="tv_shared/js/spatial_navigator.js"></script>
+    <script defer src="js/home.js"></script>
+
+    <!-- Shared libraries -->
+    <script src="shared/js/l10n.js"></script>
+
+    <!-- L10n properties -->
+    <link rel="manifest" href="manifest.webapp"/>
+    <link rel="localization" href="locales/home.{locale}.properties"/>
+    <link rel="localization" href="shared/locales/date/date.{locale}.properties"/>
+  </head>
+
+  <body>
+    <article role="region" class="skin-dark" id="main-section">
+      <section id="clock">
+        <span id="time">10:30</span><span id="day-period" data-l10n-id="time_am">am</span>
+      </section>
+      <section id="search">
+        <div id="search-container" role="button">
+          <input id="search-input" type="text" role="presentation" placeholder="I'm thinking of..."></input>
+        </div>
+      </section>
+
+      <section id="card-viewer">
+        <div id="card-list-frame">
+          <div id="card-list" data-default-item="2">
+          </div>
+        </div>
+      </section>
+      <section id="folder-viewer">
+        <div id="folder-list-frame">
+          <div id="folder-list" data-default-item="0">
+            <div class="folder-card">
+              <div class="folder-card-thumbnail"></div>
+              <div class="folder-card-description">This is a foldercard</div>
+            </div>
+            <div class="folder-card">
+              <div class="folder-card-thumbnail"></div>
+              <div class="folder-card-description">This is a foldercard</div>
+            </div>
+            <div class="folder-card">
+              <div class="folder-card-thumbnail"></div>
+              <div class="folder-card-description">This is a foldercard</div>
+            </div>
+            <div class="folder-card">
+              <div class="folder-card-thumbnail"></div>
+              <div class="folder-card-description">This is a foldercard</div>
+            </div>
+            <div class="folder-card">
+              <div class="folder-card-thumbnail"></div>
+              <div class="folder-card-description">This is a foldercard</div>
+            </div>
+            <div class="folder-card">
+              <div class="folder-card-thumbnail"></div>
+              <div class="folder-card-description"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="filter-tab-container">
+        <div class="filter-tab" data-l10n-id="all">all</div>
+        <div class="filter-tab" data-l10n-id="dash">dash</div>
+        <div class="filter-tab" data-l10n-id="tv">tv</div>
+        <div class="filter-tab" data-l10n-id="device">device</div>
+        <div class="filter-tab" data-l10n-id="app">app</div>
+      </section>
+      <section id="commands">
+        <div class="command-button" data-l10n-id="edit">edit</div>
+        <div class="command-button" data-l10n-id="settings">settings</div>
+      </section>
+    </article>
+  </body>
+
+</html>

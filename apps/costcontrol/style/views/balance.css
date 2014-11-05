@@ -9,7 +9,7 @@
   border-bottom: solid 0.1rem #b7b7b7;
   box-shadow: 0 0.1rem 0 0 rgba(255, 255, 255, 0.8);
   margin-bottom: 1rem;
-  padding: 0rem 0 0.8rem;
+  padding: 0 0 0.8rem;
   overflow: hidden;
 }
 
@@ -51,7 +51,7 @@ section.content .error-messages {
   color: #b20000;
   font-size: 1.4rem;
   line-height: 1.4em;
-  padding: 0rem 0.8rem 0.5rem;
+  padding: 0 0.8rem 0.5rem;
   margin-bottom: 1.5rem;
   overflow: hidden;
   border-bottom: solid 1px #b20000;
@@ -65,7 +65,7 @@ section.content .error-messages {
   background-position: center;
   background-repeat: no-repeat;
   padding: 0 0.4rem;
-  margin: 0.5rem 1rem 0;
+  margin: 0.5rem 1rem 1rem;
   float: left;
 }
 

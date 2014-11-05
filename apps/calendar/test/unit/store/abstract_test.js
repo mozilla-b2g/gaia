@@ -1,14 +1,11 @@
-/*global Factory */
+define(function(require, exports, module) {
+'use strict';
 
-requireLib('responder.js');
-requireLib('db.js');
-requireLib('store/abstract.js');
-requireLib('models/account.js');
-requireApp('calendar/test/unit/helper.js');
+var Abstract = require('store/abstract');
+var Factory = require('test/support/factory');
+var Responder = require('responder');
 
 suite('store/abstract', function() {
-  'use strict';
-
   var subject;
   var db;
   var app;
@@ -16,7 +13,7 @@ suite('store/abstract', function() {
   setup(function(done) {
     app = testSupport.calendar.app();
     db = app.db;
-    subject = new Calendar.Store.Abstract(db);
+    subject = new Abstract(db);
 
     // set _store to accounts so we can actually
     // persist stuff.
@@ -48,7 +45,7 @@ suite('store/abstract', function() {
 
   test('initialization', function() {
     assert.equal(subject.db, db);
-    assert.instanceOf(subject, Calendar.Responder);
+    assert.instanceOf(subject, Responder);
     assert.deepEqual(subject._cached, {});
   });
 
@@ -109,16 +106,20 @@ suite('store/abstract', function() {
       assert.equal(list[1], object);
     }
 
+    suiteSetup(function() {
+      this.testData = {};
+    });
+
     setup(function(done) {
       addDepsCalled = null;
-      object = this.object;
+      object = this.testData.object;
       events = {};
 
       subject._addDependents = function() {
         addDepsCalled = arguments;
       };
 
-      if (this.persist !== false) {
+      if (this.testData.persist !== false) {
         subject.persist(object, function(err, key) {
           id = key;
         });
@@ -134,7 +135,11 @@ suite('store/abstract', function() {
     suite('with transaction', function() {
 
       suiteSetup(function() {
-        this.persist = false;
+        this.testData.persist = false;
+      });
+
+      suiteTeardown(function() {
+        delete this.testData.persist;
       });
 
       test('result', function(done) {
@@ -181,8 +186,13 @@ suite('store/abstract', function() {
       var id = 'uniq';
 
       suiteSetup(function() {
-        this.persist = true;
-        this.object = { providerType: 'local', _id: 'uniq' };
+        this.testData.persist = true;
+        this.testData.object = { providerType: 'local', _id: 'uniq' };
+      });
+
+      suiteTeardown(function() {
+        delete this.testData.persist;
+        delete this.testData.object;
       });
 
       test('update event', function() {
@@ -211,8 +221,13 @@ suite('store/abstract', function() {
 
     suite('add', function() {
       suiteSetup(function() {
-        this.persist = true;
-        this.object = { providerType: 'local' };
+        this.testData.persist = true;
+        this.testData.object = { providerType: 'local' };
+      });
+
+      suiteTeardown(function() {
+        delete this.testData.persist;
+        delete this.testData.object;
       });
 
       test('add event', function() {
@@ -352,7 +367,7 @@ suite('store/abstract', function() {
       var results = [];
 
       function complete() {
-        assert.length(results, expected);
+        assert.lengthOf(results, expected);
 
         var idx = 1;
 
@@ -441,5 +456,6 @@ suite('store/abstract', function() {
     });
 
   });
+});
 
 });

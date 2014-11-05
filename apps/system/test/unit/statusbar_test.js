@@ -1,25 +1,30 @@
+/* globals FtuLauncher, MockL10n, MockMobileOperator, MockLayoutManager,
+           MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
+           MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
+           MockSystem, MockTouchForwarder, StatusBar, System,
+           MockNfcManager, MockMobileconnection, MockAppWindowManager,
+           UtilityTray */
+
 'use strict';
 
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_lock_screen.js', function() {
-
-  // Because we can't see it while we attach helpers,
-  // which may not be loaded yet.
-  //
-  // And it can't be used as helper because the name
-  // can't be "MocklockScreen".
-  window.lockScreen = MockLockScreen;
-});
-requireApp('system/js/mock_simslot.js');
-requireApp('system/js/mock_simslot_manager.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
-requireApp('system/test/unit/mock_touch_forwarder.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_mobile_operator.js');
+require(
+  '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/shared/test/unit/mocks/mock_icc_helper.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_simslot.js');
+require('/shared/test/unit/mocks/mock_simslot_manager.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/test/unit/mock_app_window_manager.js');
+require('/test/unit/mock_ftu_launcher.js');
+require('/test/unit/mock_nfc_manager.js');
+require('/test/unit/mock_touch_forwarder.js');
+require('/test/unit/mock_sim_pin_dialog.js');
+require('/test/unit/mock_utility_tray.js');
+require('/test/unit/mock_layout_manager.js');
 
 var mocksForStatusBar = new MocksHelper([
   'FtuLauncher',
@@ -27,43 +32,27 @@ var mocksForStatusBar = new MocksHelper([
   'MobileOperator',
   'SIMSlotManager',
   'AppWindowManager',
-  'TouchForwarder'
+  'TouchForwarder',
+  'SimPinDialog',
+  'UtilityTray',
+  'LayoutManager'
 ]).init();
 
-mocha.globals(['Clock', 'StatusBar', 'lockScreen', 'System']);
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
   var fakeStatusBarNode, fakeTopPanel, fakeStatusBarBackground,
-    fakeStatusBarIcons;
-  var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
-  var originalLocked;
+      fakeStatusBarIcons, fakeStatusbarIconsMaxWrapper, fakeStatusbarIconsMax,
+      fakeStatusbarIconsMinWrapper, fakeStatusbarIconsMin,
+      fakeStatusBarConnections, fakeStatusBarCallForwardings, fakeStatusBarTime,
+      fakeStatusBarLabel, fakeStatusBarBattery;
+  var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [],
+      realNfcManager, realLayoutManager;
 
-  mocksForStatusBar.attachTestHelpers();
-  suiteSetup(function(done) {
-    window.lockScreen = MockLockScreen;
-    originalLocked = window.lockScreen.locked;
-    window.lockScreen.locked = false;
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-    realMozMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-    realMozTelephony = navigator.mozTelephony;
-    navigator.mozTelephony = MockNavigatorMozTelephony;
-
-    requireApp('system/js/statusbar.js', done);
-  });
-
-  suiteTeardown(function() {
-    window.lockScreen.locked = originalLocked;
-    navigator.mozL10n = realMozL10n;
-    navigator.mozMobileConnections = realMozMobileConnections;
-    navigator.mozTelephony = realMozTelephony;
-  });
-
-  setup(function() {
+  function prepareDOM() {
     for (var i = 1; i < mobileConnectionCount; i++) {
       MockNavigatorMozMobileConnections.mAddMobileConnection();
     }
+
     fakeStatusBarNode = document.createElement('div');
     fakeStatusBarNode.id = 'statusbar';
     document.body.appendChild(fakeStatusBarNode);
@@ -80,44 +69,134 @@ suite('system/Statusbar', function() {
     fakeStatusBarIcons.id = 'statusbar-icons';
     document.body.appendChild(fakeStatusBarIcons);
 
-    StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
-      var elt;
-      if (elementName == 'system-downloads' ||
-          elementName == 'network-activity') {
-        elt = document.createElement('canvas');
-      } else {
-        elt = document.createElement('div');
-      }
-      elt.id = 'statusbar-' + elementName;
-      elt.hidden = true;
-      fakeStatusBarNode.appendChild(elt);
-      fakeIcons[elementName] = elt;
+    fakeStatusbarIconsMaxWrapper = document.createElement('div');
+    fakeStatusbarIconsMaxWrapper.id = 'statusbar-maximized-wrapper';
+    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMaxWrapper);
+
+    fakeStatusbarIconsMinWrapper = document.createElement('div');
+    fakeStatusbarIconsMinWrapper.id = 'statusbar-minimized-wrapper';
+    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMinWrapper);
+
+    fakeStatusbarIconsMax = document.createElement('div');
+    fakeStatusbarIconsMax.id = 'statusbar-maximized';
+    fakeStatusbarIconsMaxWrapper.appendChild(fakeStatusbarIconsMax);
+
+    fakeStatusbarIconsMin = document.createElement('div');
+    fakeStatusbarIconsMin.id = 'statusbar-minimized';
+    fakeStatusbarIconsMinWrapper.appendChild(fakeStatusbarIconsMin);
+
+    fakeStatusBarConnections = document.createElement('div');
+    fakeStatusBarConnections.id = 'statusbar-connections';
+    document.body.appendChild(fakeStatusBarConnections);
+
+    fakeStatusBarCallForwardings = document.createElement('div');
+    fakeStatusBarCallForwardings.id = 'statusbar-call-forwardings';
+    document.body.appendChild(fakeStatusBarCallForwardings);
+
+    fakeStatusBarTime = document.createElement('div');
+    fakeStatusBarTime.id = 'statusbar-time';
+    document.body.appendChild(fakeStatusBarTime);
+
+    fakeStatusBarLabel = document.createElement('div');
+    fakeStatusBarLabel.id = 'statusbar-label';
+    document.body.appendChild(fakeStatusBarLabel);
+
+    fakeStatusBarBattery = document.createElement('div');
+    fakeStatusBarBattery.id = 'statusbar-battery';
+    document.body.appendChild(fakeStatusBarBattery);
+  }
+
+  mocksForStatusBar.attachTestHelpers();
+
+  setup(function(done) {
+    this.sinon.useFakeTimers();
+
+    window.System = MockSystem;
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+    realMozMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+    realMozTelephony = navigator.mozTelephony;
+    navigator.mozTelephony = MockNavigatorMozTelephony;
+    realLayoutManager = window.layoutManager;
+    window.layoutManager = MockLayoutManager;
+
+    realNfcManager = window.nfcManager;
+    window.nfcManager = new MockNfcManager();
+    sinon.spy(window.nfcManager, 'isActive');
+    window.appWindowManager = new MockAppWindowManager();
+
+    prepareDOM();
+
+    requireApp('system/js/clock.js', function() {
+      requireApp('system/js/statusbar.js', statusBarReady);
     });
 
-    // executing init again
-    StatusBar.init();
+    function statusBarReady() {
 
-    var signalElements = document.querySelectorAll('.statusbar-signal');
-    var dataElements = document.querySelectorAll('.statusbar-data');
+      StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
+        var elt = document.getElementById('statusbar-' + elementName);
+        if (elt) {
+          elt.parentNode.removeChild(elt);
+        }
+        if (elementName == 'system-downloads' ||
+            elementName == 'network-activity') {
+          elt = document.createElement('canvas');
+        } else {
+          elt = document.createElement('div');
+        }
+        elt.id = 'statusbar-' + elementName;
+        elt.style = 'width: 10px;';
+        elt.hidden = true;
+        fakeStatusBarNode.appendChild(elt);
+        fakeIcons[elementName] = elt;
+      });
 
-    fakeIcons.signals = {};
-    Array.prototype.slice.call(signalElements).forEach(function(signal, index) {
-      fakeIcons.signals[mobileConnectionCount - index - 1] = signal;
-    });
-    fakeIcons.data = {};
-    Array.prototype.slice.call(dataElements).forEach(function(data, index) {
-      fakeIcons.data[mobileConnectionCount - index - 1] = data;
-    });
+      // executing init again
+      StatusBar.init();
+      StatusBar.finishInit();
+
+      var signalElements = document.querySelectorAll('.statusbar-signal');
+      var dataElements = document.querySelectorAll('.statusbar-data');
+      var roamingElems = document.querySelectorAll('.sb-icon-roaming');
+
+      fakeIcons.signals = {};
+      fakeIcons.roaming = {};
+      Array.prototype.slice.call(signalElements).forEach(
+        function(signal, index) {
+          fakeIcons.signals[mobileConnectionCount - index - 1] = signal;
+        }
+      );
+      fakeIcons.data = {};
+      Array.prototype.slice.call(dataElements).forEach(function(data, index) {
+        fakeIcons.data[mobileConnectionCount - index - 1] = data;
+      });
+
+      Array.prototype.slice.call(roamingElems).forEach(function(data, index) {
+        fakeIcons.roaming[mobileConnectionCount - index - 1] = data;
+      });
+
+      done();
+    }
   });
+
   teardown(function() {
     fakeStatusBarNode.parentNode.removeChild(fakeStatusBarNode);
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozMobileConnections.mTeardown();
+    System.locked = false;
+    System.currentApp = null;
+    navigator.mozL10n = realMozL10n;
+    navigator.mozMobileConnections = realMozMobileConnections;
+    navigator.mozTelephony = realMozTelephony;
+    window.layoutManager = realLayoutManager;
+    window.nfcManager.isActive.restore();
+    window.nfcManager = realNfcManager;
   });
 
   suite('airplane mode icon', function() {
     test('turning on airplane mode makes icon appear', function() {
-      MockSettingsListener.mCallbacks['airplaneMode.enabled'](true);
+      MockSettingsListener.mCallbacks['airplaneMode.status']('enabled');
       assert.isFalse(StatusBar.icons.flightMode.hidden);
     });
   });
@@ -130,16 +209,111 @@ suite('system/Statusbar', function() {
     });
   });
 
+  suite('init when FTU is running', function() {
+    setup(function() {
+      this.sinon.stub(StatusBar, 'finishInit');
+      this.sinon.stub(StatusBar, 'setAppearance');
+    });
+
+    teardown(function() {
+      StatusBar.finishInit.restore();
+      StatusBar.setAppearance.restore();
+    });
+
+    test('skipping FTU finishes initialization', function() {
+      var evt = new CustomEvent('ftuskip');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.finishInit.called);
+    });
+
+    test('finish init immediately during upgrade', function() {
+      FtuLauncher.mIsUpgrading = true;
+      var evt = new CustomEvent('ftuopen');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.finishInit.called);
+    });
+
+    test('finish init only after ftu', function() {
+      FtuLauncher.mIsUpgrading = false;
+      var evt = new CustomEvent('ftuopen');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.finishInit.notCalled);
+      evt = new CustomEvent('ftudone');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.finishInit.called);
+    });
+
+    test('handles apptitlestatechanged on ftu', function() {
+      FtuLauncher.mIsUpgrading = false;
+      var evt = new CustomEvent('apptitlestatechanged');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.setAppearance.called);
+    });
+  });
+
+  suite('handle FTU progress events', function() {
+    setup(function() {
+      this.sinon.stub(StatusBar, 'addSettingsListener');
+    });
+
+    test('connections display after languages step', function() {
+      this.sinon.stub(StatusBar, 'createConnectionsElements');
+      this.sinon.stub(StatusBar, 'addConnectionsListeners');
+      var evt = new CustomEvent('iac-ftucomms', {
+        detail: {
+          type: 'step',
+          hash: '#languages'
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.createConnectionsElements.called);
+      assert.isTrue(StatusBar.addConnectionsListeners.called);
+      assert.isTrue(StatusBar.addSettingsListener
+                    .calledWith('ril.data.enabled'));
+    });
+
+    test('wifi step activates wifi', function() {
+      this.sinon.stub(StatusBar, 'setActiveWifi');
+      var evt = new CustomEvent('iac-ftucomms', {
+        detail: {
+          type: 'step',
+          hash: '#wifi'
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.setActiveWifi.called);
+      assert.isTrue(StatusBar.addSettingsListener
+                    .calledWith('wifi.enabled'));
+    });
+
+    test('timezone step activates time', function() {
+      this.sinon.stub(StatusBar, 'toggleTimeLabel');
+      var evt = new CustomEvent('iac-ftucomms', {
+        detail: {
+          type: 'step',
+          hash: '#date_and_time'
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.toggleTimeLabel.called);
+    });
+  });
+
   suite('StatusBar height', function() {
     var app;
     setup(function() {
       app = {
         isFullScreen: function() {
           return true;
-        }
+        },
+        getTopMostWindow: function() {
+          return app;
+        },
+
+        element: document.createElement('div')
       };
 
-      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      System.currentApp = app;
       StatusBar.screen = document.createElement('div');
     });
     teardown(function() {
@@ -193,7 +367,14 @@ suite('system/Statusbar', function() {
   });
 
   suite('time bar', function() {
+    var app;
     setup(function() {
+      app = {
+        getTopMostWindow: function() {
+          return app;
+        }
+      };
+      System.currentApp = app;
       StatusBar.clock.stop();
       StatusBar.screen = document.createElement('div');
     });
@@ -201,39 +382,45 @@ suite('system/Statusbar', function() {
       StatusBar.screen = null;
     });
     test('first launch', function() {
-      MockLockScreen.locked = true;
+      System.locked = true;
       StatusBar.init();
+      StatusBar.finishInit();
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('lock', function() {
-      MockLockScreen.locked = true;
-      var evt = new CustomEvent('lock');
+      System.locked = true;
+      var currentApp = {};
+      var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+      var evt = new CustomEvent('lockscreen-appopened', {detail: currentApp});
       StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(currentApp));
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('unlock', function() {
-      var evt = new CustomEvent('unlock');
+      var evt = new CustomEvent('lockscreen-appclosing');
+      var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(app));
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
     });
-    test('attentionscreen show', function() {
-      var evt = new CustomEvent('attentionscreenshow');
+    test('attention opening', function() {
+      var evt = new CustomEvent('attentionopened');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('attentionsceen hide', function() {
       // Test this when lockscreen is off.
-      var originalLocked = window.lockScreen.locked;
-      window.lockScreen.locked = false;
-      var evt = new CustomEvent('attentionscreenhide');
+      System.locked = false;
+      var evt = new CustomEvent('attentionclosed');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
-      window.lockScreen.locked = originalLocked;
     });
     test('emergency call when locked', function() {
       var evt = new CustomEvent('lockpanelchange', {
@@ -247,13 +434,21 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('moztime change while lockscreen is unlocked', function() {
-      var originalLocked = window.lockScreen.locked;
-      window.lockScreen.locked = false;
+      System.locked = false;
       var evt = new CustomEvent('moztimechange');
       StatusBar.handleEvent(evt);
+      this.sinon.clock.tick();
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
-      window.lockScreen.locked = originalLocked;
+      this.sinon.clock.restore();
+    });
+    test('timeformatchange while timeformat changed', function() {
+      var evt = new CustomEvent('timeformatchange');
+      StatusBar.handleEvent(evt);
+      this.sinon.clock.tick();
+      assert.notEqual(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, false);
+      this.sinon.clock.restore();
     });
     test('screen enable but screen is unlocked', function() {
       var evt = new CustomEvent('screenchange', {
@@ -261,7 +456,7 @@ suite('system/Statusbar', function() {
           screenEnabled: true
         }
       });
-      MockLockScreen.locked = false;
+      System.locked = false;
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
@@ -272,7 +467,7 @@ suite('system/Statusbar', function() {
           screenEnabled: true
         }
       });
-      MockLockScreen.locked = true;
+      System.locked = true;
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
@@ -304,367 +499,372 @@ suite('system/Statusbar', function() {
       mockSimSlots = null;
     });
 
-    for (var i = 0; i < mobileConnectionCount; i++) {
-      (function(slotIndex) {
-        suite('slot: ' + slotIndex, function() {
-          var dataset;
-          setup(function() {
-            dataset = fakeIcons.signals[slotIndex].dataset;
-            MockSIMSlotManager.mInstances = mockSimSlots;
-          });
-
-          test('no network without sim, not searching', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: null,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = null;
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.isUndefined(dataset.level);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('no network without sim, searching', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: null,
-              emergencyCallsOnly: false,
-              state: 'searching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = null;
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.isUndefined(dataset.level);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('no network with sim, sim locked', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: null,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.equal(fakeIcons.signals[slotIndex].hidden, true);
-          });
-
-          test('searching', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: null,
-              emergencyCallsOnly: false,
-              state: 'searching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, -1);
-            assert.equal(dataset.searching, 'true');
-          });
-
-          test('emergency calls only, no sim', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = null;
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.isUndefined(dataset.level);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('emergency calls only, with sim', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.equal(fakeIcons.signals[slotIndex].hidden, true);
-          });
-
-          test('emergency calls only, in call', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            MockNavigatorMozTelephony.active = {
-              state: 'connected'
-            };
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('emergency calls only, dialing', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            MockNavigatorMozTelephony.active = {
-              state: 'dialing'
-            };
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('emergency calls, passing a call', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            var activeCall = {
-              state: 'dialing'
-            };
-
-            MockNavigatorMozTelephony.active = activeCall;
-            MockNavigatorMozTelephony.calls = [activeCall];
-
-            var evt = new CustomEvent('callschanged');
-            MockNavigatorMozTelephony.mTriggerEvent(evt);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('normal carrier', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: true,
-              relSignalStrength: 80,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('airplane mode', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: true,
-              relSignalStrength: 80,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            MockSettingsListener.mCallbacks['airplaneMode.enabled'](true);
-
-            assert.isFalse(StatusBar.icons.flightMode.hidden);
-            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
-          });
-
-          test('roaming', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: true,
-              relSignalStrength: 80,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: true,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.equal(dataset.roaming, 'true');
-            assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('emergency calls, roaming', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: true,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, -1);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('emergency calls, avoid infinite callback loop', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            var mockTel = MockNavigatorMozTelephony;
-
-            StatusBar.update.signal.call(StatusBar);
-            assert.equal(mockTel.mCountEventListener('callschanged',
-                                                     StatusBar), 1);
-
-            // Bug 880390: On B2G18 adding a 'callschanged' listener can trigger
-            // another event immediately.  To avoid an infinite loop, the
-            // listener must only be added once.  Simulate this immediate event
-            // here and then check that we still only have one listener.
-
-            var evt = new CustomEvent('callschanged');
-            mockTel.mTriggerEvent(evt);
-            assert.equal(mockTel.mCountEventListener('callschanged',
-                                                     StatusBar), 1);
-          });
-
-          test('EVDO connection, show data call signal strength', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 0,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            MockNavigatorMozMobileConnections[slotIndex].data = {
-              connected: true,
-              relSignalStrength: 80,
-              type: 'evdo',
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            StatusBar.update.signal.call(StatusBar);
-            assert.equal(dataset.level, 4);
-          });
+    function slotIndexTests(slotIndex) {
+      suite('slot: ' + slotIndex, function() {
+        var dataset;
+        setup(function() {
+          dataset = fakeIcons.signals[slotIndex].dataset;
+          MockSIMSlotManager.mInstances = mockSimSlots;
         });
-      })(i);
+
+        test('no network without sim, not searching', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: null,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = null;
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.isUndefined(dataset.level);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('no network without sim, searching', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: null,
+            emergencyCallsOnly: false,
+            state: 'searching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = null;
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.isUndefined(dataset.level);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('no network with sim, sim locked', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: null,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.equal(fakeIcons.signals[slotIndex].hidden, true);
+        });
+
+        test('searching', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: null,
+            emergencyCallsOnly: false,
+            state: 'searching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, -1);
+          assert.equal(dataset.searching, 'true');
+        });
+
+        test('emergency calls only, no sim', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = null;
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.isUndefined(dataset.level);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('emergency calls only, with sim', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.equal(fakeIcons.signals[slotIndex].hidden, true);
+        });
+
+        test('emergency calls only, in call', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          MockNavigatorMozTelephony.active = {
+            state: 'connected',
+            serviceId: slotIndex
+          };
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, 4);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('emergency calls only, dialing', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          MockNavigatorMozTelephony.active = {
+            state: 'dialing',
+            serviceId: slotIndex
+          };
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, 4);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('emergency calls, passing a call', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          var activeCall = {
+            state: 'dialing',
+            serviceId: slotIndex
+          };
+
+          MockNavigatorMozTelephony.active = activeCall;
+          MockNavigatorMozTelephony.calls = [activeCall];
+
+          var evt = new CustomEvent('callschanged');
+          MockNavigatorMozTelephony.mTriggerEvent(evt);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, 4);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('normal carrier', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: true,
+            relSignalStrength: 80,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, 4);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('airplane mode', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: true,
+            relSignalStrength: 80,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          MockSettingsListener.mCallbacks['airplaneMode.status']('enabled');
+
+          assert.isFalse(StatusBar.icons.flightMode.hidden);
+          assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+        });
+
+        test('roaming', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: true,
+            relSignalStrength: 80,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: true,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.equal(fakeIcons.roaming[0].hidden, false);
+          assert.equal(dataset.level, 4);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('emergency calls, roaming', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: true,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, -1);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('emergency calls, avoid infinite callback loop', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          var mockTel = MockNavigatorMozTelephony;
+
+          StatusBar.update.signal.call(StatusBar);
+          assert.equal(mockTel.mCountEventListener('callschanged',
+                                                   StatusBar), 1);
+
+          // Bug 880390: On B2G18 adding a 'callschanged' listener can trigger
+          // another event immediately.  To avoid an infinite loop, the
+          // listener must only be added once.  Simulate this immediate event
+          // here and then check that we still only have one listener.
+
+          var evt = new CustomEvent('callschanged');
+          mockTel.mTriggerEvent(evt);
+          assert.equal(mockTel.mCountEventListener('callschanged',
+                                                   StatusBar), 1);
+        });
+
+        test('EVDO connection, show data call signal strength', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 0,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          MockNavigatorMozMobileConnections[slotIndex].data = {
+            connected: true,
+            relSignalStrength: 80,
+            type: 'evdo',
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          StatusBar.update.signal.call(StatusBar);
+          assert.equal(dataset.level, 4);
+        });
+      });
+    }
+
+    for (var i = 0; i < mobileConnectionCount; i++) {
+      slotIndexTests(i);
     }
   });
 
@@ -781,148 +981,298 @@ suite('system/Statusbar', function() {
       StatusBar.settingValues['ril.cf.enabled'] = defaultValue;
     });
 
-    for (var i = 0; i < mobileConnectionCount; i++) {
-      (function(slotIndex) {
-        suite('slot: ' + slotIndex, function() {
-          test('call forwarding enabled', function() {
-            StatusBar.settingValues['ril.cf.enabled'][slotIndex] = true;
-            StatusBar.update.callForwarding.call(StatusBar);
-            assert.isFalse(StatusBar.icons.callForwardings[slotIndex].hidden);
-          });
+    test('createCallForwardingsElements shouldn\'t display icons', function() {
+      StatusBar.createCallForwardingsElements();
+      assert.isTrue(StatusBar.icons.callForwardings.hidden);
+    });
 
-          test('call forwarding disabled', function() {
-            StatusBar.settingValues['ril.cf.enabled'][slotIndex] = false;
-            StatusBar.update.callForwarding.call(StatusBar);
-            assert.isTrue(StatusBar.icons.callForwardings[slotIndex].hidden);
-          });
+    function slotIndexTests(slotIndex) {
+      suite('slot: ' + slotIndex, function() {
+        test('call forwarding enabled', function() {
+          StatusBar.settingValues['ril.cf.enabled'][slotIndex] = true;
+          StatusBar.update.callForwarding.call(StatusBar);
+          assert.isFalse(
+            StatusBar.icons.callForwardingsElements[slotIndex].hidden);
         });
-      })(i);
+
+        test('call forwarding disabled', function() {
+          StatusBar.settingValues['ril.cf.enabled'][slotIndex] = false;
+          StatusBar.update.callForwarding.call(StatusBar);
+          assert.isTrue(
+            StatusBar.icons.callForwardingsElements[slotIndex].hidden);
+        });
+      });
+    }
+
+    for (var i = 0; i < mobileConnectionCount; i++) {
+      slotIndexTests(i);
     }
   });
 
   suite('data connection', function() {
-    for (var i = 0; i < mobileConnectionCount; i++) {
-      (function(slotIndex) {
-        suite('slot: ' + slotIndex, function() {
-          suite('data connection unavailable', function() {
-            teardown(function() {
-              StatusBar.settingValues = {};
+
+    function slotIndexTests(slotIndex) {
+      suite('slot: ' + slotIndex, function() {
+        suite('data connection unavailable', function() {
+          teardown(function() {
+            StatusBar.settingValues = {};
+          });
+
+          test('radio disabled', function() {
+            StatusBar.settingValues['ril.radio.disabled'] = true;
+            StatusBar.update.data.call(StatusBar);
+            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+            // Just because radio is disabled doesn't mean we're in airplane
+            // mode.
+            assert.isTrue(StatusBar.icons.flightMode.hidden);
+          });
+
+          test('data disabled', function() {
+            StatusBar.settingValues['ril.data.enabled'] = false;
+            StatusBar.update.data.call(StatusBar);
+            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+          });
+
+          test('data not connected', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data =
+              { connected: false };
+            StatusBar.update.data.call(StatusBar);
+            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+          });
+
+          test('wifi icon is displayed', function() {
+            StatusBar.icons.wifi.hidden = false;
+            StatusBar.update.data.call(StatusBar);
+            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+          });
+        });
+
+        suite('data connection available', function() {
+          setup(function() {
+            StatusBar.settingValues['ril.radio.disabled'] = false;
+            StatusBar.settingValues['ril.data.enabled'] = true;
+            StatusBar.icons.wifi.hidden = true;
+          });
+
+          teardown(function() {
+            StatusBar.settingValues = {};
+          });
+
+          test('type lte', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'lte'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '4G');
+          });
+
+          // GSM
+          test('type hspa+', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'hspa+'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H+');
+          });
+
+          test('type hsdpa', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'hsdpa'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
+          });
+
+          test('type hsupa', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'hsupa'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
+          });
+
+          test('type hspa', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'hspa'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
+          });
+
+          test('type umts', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'umts'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '3G');
+          });
+
+          test('type edge', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'edge'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, 'E');
+          });
+
+          test('type gprs', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'gprs'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '2G');
+          });
+
+          // CDMA
+          test('type 1xrtt', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: '1xrtt'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+          });
+
+          test('type is95a', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'is95a'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+          });
+
+          test('type is95b', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'is95b'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+          });
+
+          // CDMA related to calls
+          suite('CDMA network types when there is a call',
+            function() {
+              test('type ehrpd', function() {
+                MockNavigatorMozTelephony.calls = [{}];
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'ehrpd'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent,
+                             '4G');
             });
 
-            test('radio disabled', function() {
-              StatusBar.settingValues['ril.radio.disabled'] = true;
+            test('type evdo0', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'evdo0'
+              };
               StatusBar.update.data.call(StatusBar);
-              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
-              // Just because radio is disabled doesn't mean we're in airplane
-              // mode.
-              assert.isTrue(StatusBar.icons.flightMode.hidden);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
             });
 
-            test('data disabled', function() {
-              StatusBar.settingValues['ril.data.enabled'] = false;
+            test('type evdoa', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'evdoa'
+              };
               StatusBar.update.data.call(StatusBar);
-              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
             });
 
-            test('data not connected', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data =
-                { connected: false };
+            test('type evdob', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'evdob'
+              };
               StatusBar.update.data.call(StatusBar);
-              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
             });
 
-            test('wifi icon is displayed', function() {
-              StatusBar.icons.wifi.hidden = false;
+            test('type 1xrtt', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: '1xrtt'
+              };
               StatusBar.update.data.call(StatusBar);
-              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+            });
+
+            test('type is95a', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'is95a'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+            });
+
+            test('type is95b', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'is95b'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
             });
           });
 
-          suite('data connection available', function() {
-            setup(function() {
-              StatusBar.settingValues['ril.radio.disabled'] = false;
-              StatusBar.settingValues['ril.data.enabled'] = true;
-              StatusBar.icons.wifi.hidden = true;
+          suite('CDMA network types when there is no call',
+            function() {
+              test('type ehrpd', function() {
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'ehrpd'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent,
+                             '4G');
             });
 
-            teardown(function() {
-              StatusBar.settingValues = {};
-            });
-
-            test('type lte', function() {
+            test('type evdo0', function() {
               MockNavigatorMozMobileConnections[slotIndex].data = {
                 connected: true,
-                type: 'lte'
+                type: 'evdo0'
               };
               StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, '4G');
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
             });
 
-            // GSM
-            test('type hspa+', function() {
+            test('type evdoa', function() {
               MockNavigatorMozMobileConnections[slotIndex].data = {
                 connected: true,
-                type: 'hspa+'
+                type: 'evdoa'
               };
               StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H+');
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
             });
 
-            test('type hsdpa', function() {
+            test('type evdob', function() {
               MockNavigatorMozMobileConnections[slotIndex].data = {
                 connected: true,
-                type: 'hsdpa'
+                type: 'evdob'
               };
               StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
             });
 
-            test('type hsupa', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data = {
-                connected: true,
-                type: 'hsupa'
-              };
-              StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
-            });
-
-            test('type hspa', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data = {
-                connected: true,
-                type: 'hspa'
-              };
-              StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
-            });
-
-            test('type umts', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data = {
-                connected: true,
-                type: 'umts'
-              };
-              StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, '3G');
-            });
-
-            test('type edge', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data = {
-                connected: true,
-                type: 'edge'
-              };
-              StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'E');
-            });
-
-            test('type gprs', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data = {
-                connected: true,
-                type: 'gprs'
-              };
-              StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, '2G');
-            });
-
-            // CDMA
             test('type 1xrtt', function() {
               MockNavigatorMozMobileConnections[slotIndex].data = {
                 connected: true,
@@ -949,151 +1299,13 @@ suite('system/Statusbar', function() {
               StatusBar.update.data.call(StatusBar);
               assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
             });
-
-            // CDMA related to calls
-            suite('CDMA network types when there is a call',
-              function() {
-                test('type ehrpd', function() {
-                  MockNavigatorMozTelephony.calls = [{}];
-                  MockNavigatorMozMobileConnections[slotIndex].data = {
-                    connected: true,
-                    type: 'ehrpd'
-                  };
-                  StatusBar.update.data.call(StatusBar);
-                  assert.equal(StatusBar.icons.data[slotIndex].textContent,
-                               '4G');
-              });
-
-              test('type evdo0', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdo0'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-
-              test('type evdoa', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdoa'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-
-              test('type evdob', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdob'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-
-              test('type 1xrtt', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: '1xrtt'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-
-              test('type is95a', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'is95a'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-
-              test('type is95b', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'is95b'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-            });
-
-            suite('CDMA network types when there is no call',
-              function() {
-                test('type ehrpd', function() {
-                  MockNavigatorMozMobileConnections[slotIndex].data = {
-                    connected: true,
-                    type: 'ehrpd'
-                  };
-                  StatusBar.update.data.call(StatusBar);
-                  assert.equal(StatusBar.icons.data[slotIndex].textContent,
-                               '4G');
-              });
-
-              test('type evdo0', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdo0'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
-              });
-
-              test('type evdoa', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdoa'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
-              });
-
-              test('type evdob', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdob'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
-              });
-
-              test('type 1xrtt', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: '1xrtt'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
-              });
-
-              test('type is95a', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'is95a'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
-              });
-
-              test('type is95b', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'is95b'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
-              });
-            });
           });
         });
-      })(i);
+      });
+    }
+
+    for (var i = 0; i < mobileConnectionCount; i++) {
+      slotIndexTests(i);
     }
   });
 
@@ -1139,6 +1351,11 @@ suite('system/Statusbar', function() {
         assert.include(label_content, 'Orange');
         assert.include(label_content, 'PR');
       });
+
+      test('dataset-multiple is set to false', function() {
+        StatusBar.updateConnectionsVisibility();
+        assert.equal(fakeIcons.connections.dataset.multiple, 'false');
+      });
     });
 
     suite('multiple sims', function() {
@@ -1159,21 +1376,30 @@ suite('system/Statusbar', function() {
         assert.equal(-1, label_content.indexOf('Orange'));
         assert.equal(-1, label_content.indexOf('PR'));
       });
+
+      test('multiple is set to true if any active sim', function() {
+        fakeIcons.signals[0].dataset.inactive = 'false';
+        StatusBar.updateConnectionsVisibility();
+        assert.equal(fakeIcons.connections.dataset.multiple, 'true');
+      });
+
+      test('multiple is set to false if no SIM insterted', function() {
+        StatusBar.updateConnectionsVisibility();
+        assert.equal(fakeIcons.connections.dataset.multiple, 'false');
+      });
     });
   });
 
   suite('media information', function() {
-    var fakeClock;
     var recordingSpy;
 
     setup(function() {
-      fakeClock = this.sinon.useFakeTimers();
       recordingSpy = this.sinon.spy(StatusBar.update, 'recording');
     });
 
     teardown(function() {
       StatusBar.recordingCount = 0;
-      fakeClock.restore();
+      StatusBar.playingActive = false;
     });
 
     test('geolocation is activating', function() {
@@ -1221,6 +1447,7 @@ suite('system/Statusbar', function() {
     });
 
     test('audio player is playing', function() {
+      StatusBar.recordingActive = false;
       var evt = new CustomEvent('mozChromeEvent', {
         detail: {
           type: 'audio-channel-changed',
@@ -1229,6 +1456,32 @@ suite('system/Statusbar', function() {
       });
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.playing.hidden, false);
+    });
+
+    test('audio player is not playing while recording', function() {
+      StatusBar.recordingActive = true;
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'audio-channel-changed',
+          channel: 'content'
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.playing.hidden, true);
+    });
+
+    test('repeat audio-channel-changed event', function() {
+      StatusBar.recordingActive = false;
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'audio-channel-changed',
+          channel: 'content'
+        }
+      });
+      var updatePlayingSpy = sinon.spy(StatusBar.update, 'playing');
+      StatusBar.handleEvent(evt);
+      StatusBar.handleEvent(evt);
+      assert.equal(updatePlayingSpy.callCount, 1);
     });
   });
 
@@ -1251,33 +1504,60 @@ suite('system/Statusbar', function() {
         return e;
     }
 
-    function fakeDispatch(type, x, y) {
-      var e = forgeTouchEvent(type, x, y);
-      StatusBar.panelTouchHandler(e);
+    function forgeMouseEvent(type, x, y) {
+      var e = document.createEvent('MouseEvent');
+
+      e.initMouseEvent(type, true, true, window, 1, x, y, x, y,
+                       false, false, false, false, 0, null);
 
       return e;
     }
 
-    // Making sure the time-bounded features won't have side effects
-    // outside of this suite.
-    setup(function() {
-      this.sinon.useFakeTimers();
-    });
+    function fakeDispatch(type, x, y) {
+      var e;
+      if (type.startsWith('mouse')) {
+        e = forgeMouseEvent(type, x, y);
+      } else {
+        e = forgeTouchEvent(type, x, y);
+      }
+      StatusBar.panelHandler(e);
 
-    teardown(function() {
-      this.sinon.clock.tick(10000);
-    });
+      return e;
+    }
 
     var app;
     setup(function() {
       app = {
         isFullScreen: function() {
-          return false;
+          return true;
         },
-        iframe: document.createElement('iframe')
+        titleBar: {
+          element: document.createElement('div')
+        },
+        iframe: document.createElement('iframe'),
+        getTopMostWindow: function() {
+          return app;
+        },
+        config: {},
+        _element: null,
+        get element() {
+          if (!this._element) {
+            var element = document.createElement('div');
+            var title = document.createElement('div');
+            title.classList.add('titlebar');
+            element.appendChild(title);
+
+            var chrome = document.createElement('div');
+            chrome.className = 'chrome';
+            element.appendChild(chrome);
+            this._element = element;
+          }
+
+          return this._element;
+        }
       };
 
-      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      System.currentApp = app;
       this.sinon.stub(StatusBar.element, 'getBoundingClientRect').returns({
         height: 10
       });
@@ -1285,123 +1565,54 @@ suite('system/Statusbar', function() {
       StatusBar.screen = document.createElement('div');
     });
 
-    test('the status bar should not close if the current app is not fullscreen',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(false);
-      StatusBar.show();
-
-      var evt = new CustomEvent('utilitytrayhide');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should show when utilitytray is showing',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(true);
-      StatusBar.hide();
-
-      var evt = new CustomEvent('utilitytrayshow');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('homescreenopened should set classes and call show()', function() {
-      var showStub = this.sinon.stub(StatusBar, 'show');
-      var evt = new CustomEvent('homescreenopened');
-      StatusBar.handleEvent(evt);
-      assert.ok(showStub.calledOnce);
-      assert.ok(StatusBar.element.classList.contains('on-homescreen'));
-      assert.ok(StatusBar.background.classList.contains('on-homescreen'));
-      showStub.restore();
-
-    });
-
-    test('homescreenclosing should unset classes', function() {
-      StatusBar.element.classList.add('on-homescreen');
-      StatusBar.background.classList.add('on-homescreen');
-      var evt = new CustomEvent('homescreenclosing');
-      StatusBar.handleEvent(evt);
-      assert.isFalse(StatusBar.element.classList.contains('on-homescreen'));
-      assert.isFalse(StatusBar.background.classList.contains('on-homescreen'));
-    });
-
-    test('rocketbarfocus', function() {
-      var evt = new CustomEvent('rocketbarfocus');
-      StatusBar.handleEvent(evt);
-      assert.ok(StatusBar.element.classList.contains('rocketbar-focused'));
-      assert.ok(StatusBar.background.classList.contains('rocketbar-focused'));
-    });
-
-    test('rocketbarblur', function() {
-      StatusBar.element.classList.add('rocketbar-focused');
-      StatusBar.background.classList.add('rocketbar-focused');
-      var evt = new CustomEvent('rocketbarblur');
-      StatusBar.handleEvent(evt);
-      assert.isFalse(StatusBar.element.classList.
-        contains('rocketbar-focused'));
-      assert.isFalse(StatusBar.background.classList.
-        contains('rocketbar-focused'));
-    });
-
-    test('the status bar should show when attentionscreen is showing',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(true);
-      StatusBar.hide();
-
-      var evt = new CustomEvent('attentionscreenshow');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should be hidden when attentionscreen is hidden',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(true);
-      StatusBar.show();
-
-      var evt = new CustomEvent('attentionscreenhide');
-      StatusBar.handleEvent(evt);
-
-      assert.isTrue(StatusBar.element.classList.contains('invisible'));
-    });
-
     suite('Revealing the StatusBar >', function() {
       var transitionEndSpy;
+      var element;
       setup(function() {
-        transitionEndSpy = this.sinon.spy(StatusBar.element,
-                                          'addEventListener');
+        StatusBar._cacheHeight = 24;
+        element = System.currentApp.element
+                                                 .querySelector('.titlebar');
+        transitionEndSpy = this.sinon.spy(element, 'addEventListener');
       });
 
       function assertStatusBarReleased() {
         assert.equal(StatusBar.element.style.transform, '');
         assert.equal(StatusBar.element.style.transition, '');
 
-        // We remove the background after the transition
-        assert.isTrue(StatusBar.element.classList.contains('dragged'));
-        transitionEndSpy.yield();
-        assert.isFalse(StatusBar.element.classList.contains('dragged'));
+        assert.isFalse(element.classList.contains('dragged'));
       }
 
       teardown(function() {
+        this.sinon.clock.tick(10000);
         StatusBar.element.style.transition = '';
         StatusBar.element.style.transform = '';
+      });
+
+      test('it should stop the propagation of the events at first', function() {
+        var fakeEvt = {
+          stopImmediatePropagation: function() {},
+          preventDefault: function() {},
+          type: 'fake'
+        };
+        this.sinon.spy(fakeEvt, 'stopImmediatePropagation');
+        StatusBar.panelHandler(fakeEvt);
+        sinon.assert.calledOnce(fakeEvt.stopImmediatePropagation);
       });
 
       test('it should translate the statusbar on touchmove', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 5);
         var transform = 'translateY(calc(5px - 100%))';
-
-        assert.equal(StatusBar.element.style.transform, transform);
+        assert.equal(element.style.transform, transform);
         fakeDispatch('touchend', 100, 5);
       });
 
       test('it should set the dragged class on touchstart', function() {
         fakeDispatch('touchstart', 100, 0);
-        assert.isTrue(StatusBar.element.classList.contains('dragged'));
-        fakeDispatch('touchend', 100, 5);
+        assert.isFalse(element.classList.contains('dragged'));
+        fakeDispatch('touchmove', 100, 24);
+        fakeDispatch('touchend', 100, 25);
+        assert.isTrue(element.classList.contains('dragged'));
       });
 
       test('it should not translate the statusbar more than its height',
@@ -1409,19 +1620,50 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 5);
         fakeDispatch('touchmove', 100, 15);
-        var transform = 'translateY(calc(10px - 100%))';
-
-        assert.equal(StatusBar.element.style.transform, transform);
+        var transform = 'translateY(calc(15px - 100%))';
+        assert.equal(element.style.transform, transform);
         fakeDispatch('touchend', 100, 15);
+      });
+
+      test('it should not stop the propagation of the events once revealed',
+      function() {
+        fakeDispatch('touchstart', 100, 0);
+        fakeDispatch('touchmove', 100, 5);
+        fakeDispatch('touchmove', 100, 24);
+        fakeDispatch('touchend', 100, 5);
+
+        var fakeEvt = {
+          stopImmediatePropagation: function() {},
+          preventDefault: function() {},
+          type: 'fake'
+        };
+        this.sinon.spy(fakeEvt, 'stopImmediatePropagation');
+        StatusBar.panelHandler(fakeEvt);
+        sinon.assert.notCalled(fakeEvt.stopImmediatePropagation);
       });
 
       test('it should not reveal when ftu is running', function() {
         FtuLauncher.mIsRunning = true;
         fakeDispatch('touchstart', 100, 0);
-        fakeDispatch('touchmove', 100, 5);
-        assert.equal(StatusBar.element.style.transform, '');
+        fakeDispatch('touchmove', 100, 100);
+
+        var titleEl = System.currentApp.element
+                                       .querySelector('.titlebar');
+        assert.equal(titleEl.style.transform, '');
         FtuLauncher.mIsRunning = false;
       });
+
+      test('it should not forward events when the tray is opened', function() {
+        UtilityTray.active = true;
+        fakeDispatch('touchstart', 100, 0);
+        fakeDispatch('touchmove', 100, 100);
+
+        var titleEl = System.currentApp.element
+                                       .querySelector('.titlebar');
+        assert.equal(titleEl.style.transform, '');
+        UtilityTray.active = false;
+      });
+
 
       suite('after the gesture', function() {
         suite('when the StatusBar is not fully displayed', function() {
@@ -1440,15 +1682,16 @@ suite('system/Statusbar', function() {
           setup(function() {
             fakeDispatch('touchstart', 100, 0);
             fakeDispatch('touchmove', 100, 5);
-            fakeDispatch('touchmove', 100, 15);
-            fakeDispatch('touchend', 100, 15);
+            fakeDispatch('touchmove', 100, 24);
+            fakeDispatch('touchend', 100, 24);
           });
 
           test('it should not hide it right away', function() {
-            var transform = 'translateY(calc(10px - 100%))';
-            assert.equal(StatusBar.element.style.transform, transform);
-            assert.equal(StatusBar.element.style.transition,
-                         'transform 0s ease 0s');
+            var titleEl = System.currentApp.element
+                                          .querySelector('.titlebar');
+            assert.equal(titleEl.style.transform, '');
+            assert.equal(titleEl.style.transition, '');
+            assert.ok(titleEl.classList.contains('dragged'));
           });
 
           test('but after 5 seconds', function() {
@@ -1471,14 +1714,26 @@ suite('system/Statusbar', function() {
       });
     });
 
-    suite('Touch forwarding >', function() {
+    test('it should prevent default on mouse events keep the focus on the app',
+    function() {
+      var mousedown = fakeDispatch('mousedown', 100, 0);
+      var mousemove = fakeDispatch('mousemove', 100, 2);
+      var mouseup = fakeDispatch('mouseup', 100, 2);
+
+      assert.isTrue(mousedown.defaultPrevented);
+      assert.isTrue(mousemove.defaultPrevented);
+      assert.isTrue(mouseup.defaultPrevented);
+    });
+
+    suite('Touch forwarding in fullscreen >', function() {
       var forwardSpy;
 
       setup(function() {
+        StatusBar._cacheHeight = 24;
         forwardSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
       });
 
-      test('it should prevent default on all touch events to prevent relows',
+      test('it should prevent default on all touch events to prevent reflows',
       function() {
         var touchstart = fakeDispatch('touchstart', 100, 0);
         var touchmove = fakeDispatch('touchmove', 100, 2);
@@ -1511,9 +1766,9 @@ suite('system/Statusbar', function() {
       suite('if it\'s not a tap and the statusbar is not fully displayed',
       function() {
         test('it should not forward any events', function() {
-          var touchstart = fakeDispatch('touchstart', 100, 0);
+          fakeDispatch('touchstart', 100, 0);
           fakeDispatch('touchmove', 100, 8);
-          var touchend = fakeDispatch('touchend', 100, 8);
+          fakeDispatch('touchend', 100, 8);
 
           assert.isTrue(forwardSpy.notCalled);
         });
@@ -1523,8 +1778,8 @@ suite('system/Statusbar', function() {
       function() {
         var touchstart = fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 6);
-        var secondMove = fakeDispatch('touchmove', 100, 12);
-        var thirdMove = fakeDispatch('touchmove', 100, 18);
+        var secondMove = fakeDispatch('touchmove', 100, 26);
+        var thirdMove = fakeDispatch('touchmove', 100, 28);
         var touchend = fakeDispatch('touchend', 100, 2);
 
         assert.equal(forwardSpy.callCount, 4);
@@ -1540,29 +1795,814 @@ suite('system/Statusbar', function() {
     });
   });
 
-  suite('not fullscreen mode >', function() {
-    var app;
+  suite('NFC', function() {
     setup(function() {
-      app = {
-        isFullScreen: function() {
-          return true;
-        },
-        iframe: document.createElement('iframe')
-      };
-
-      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
-      StatusBar.screen = document.createElement('div');
+      sinon.spy(StatusBar, 'setActiveNfc');
     });
 
-    test('the status bar should not be hidden when attentionscreen is hidden',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(false);
-      StatusBar.show();
+    teardown(function() {
+      StatusBar.setActiveNfc.restore();
+    });
 
-      var evt = new CustomEvent('attentionscreenhide');
+    test('checks initial state from nfcManager', function() {
+      StatusBar.init();
+      StatusBar.finishInit();
+      assert.isTrue(window.nfcManager.isActive.called);
+    });
+
+    test('NFC is off', function() {
+      var evt = new CustomEvent('nfc-state-changed', {
+        detail: {
+          active: false
+        }
+      });
       StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.nfc.hidden, true);
+    });
 
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
+    test('NFC is on', function() {
+      var evt = new CustomEvent('nfc-state-changed', {
+        detail: {
+          active: true
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.nfc.hidden, false);
+    });
+
+    test('should call to setActiveNfc when changing', function() {
+      var evt = new CustomEvent('nfc-state-changed', {
+        detail: {
+          active: true
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.setActiveNfc.calledWith(evt.detail.active));
+    });
+  });
+
+  suite('setActiveNfc', function() {
+    setup(function() {
+      sinon.spy(StatusBar.update, 'nfc');
+    });
+
+    teardown(function() {
+      StatusBar.update.nfc.restore();
+    });
+
+    test('should set nfcActive', function() {
+      var isActive = true;
+      StatusBar.nfcActive = false;
+      StatusBar.setActiveNfc(isActive);
+      assert.equal(StatusBar.nfcActive, isActive);
+    });
+
+    test('should update the icon', function() {
+      StatusBar.setActiveNfc(true);
+      assert.isTrue(StatusBar.update.nfc.called);
+    });
+  });
+
+  suite('Wifi', function() {
+    test('Wifi status change event', function() {
+      var spyUpdateWifi = this.sinon.spy(StatusBar.update, 'wifi');
+      var evt = new CustomEvent('wifi-statuschange');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(spyUpdateWifi.called);
+    });
+  });
+
+  suite('Time format', function() {
+    test('should be 24 hour', function() {
+      var timeFormat = StatusBar._getTimeFormat('shortTimeFormat24');
+      assert.equal(timeFormat, 'shortTimeFormat24');
+    });
+
+    test('should be 12 hour with AM/PM', function() {
+      StatusBar.settingValues['statusbar.show-am-pm'] = true;
+
+      var timeFormat = StatusBar._getTimeFormat('123 %p');
+      assert.equal(timeFormat, '123 <span>%p</span>');
+    });
+
+    test('should be 12 hour without AM/PM', function() {
+      StatusBar.settingValues['statusbar.show-am-pm'] = false;
+
+      var timeFormat = StatusBar._getTimeFormat('123 %p');
+      assert.equal(timeFormat, '123');
+    });
+  });
+
+  suite('Icons', function() {
+    test('visibility should be updated on screen resize', function() {
+      var spyUpdateIconVisibility =
+        this.sinon.spy(StatusBar, '_updateIconVisibility');
+
+      var evt = new CustomEvent('system-resize');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(spyUpdateIconVisibility.called);
+    });
+
+    test('visibility update should get the status bars width', function() {
+      var spyGetMaximizedStatusBarWidth =
+        this.sinon.spy(StatusBar, '_getMaximizedStatusBarWidth');
+
+      StatusBar._updateIconVisibility();
+      assert.isTrue(spyGetMaximizedStatusBarWidth.called);
+    });
+
+    suite('when only 2 icons fit in the maximized status bar', function() {
+      var iconWithPriority1;
+      var iconWithPriority2;
+      var iconWithPriority3;
+      var getMaximizedStatusBarWidthStub;
+
+      setup(function() {
+        // Reset all the icons to be hidden.
+        StatusBar.PRIORITIES.forEach(function(iconObj) {
+          var iconId = iconObj[0];
+          StatusBar.icons[StatusBar.toCamelCase(iconId)].hidden = true;
+        });
+
+        iconWithPriority1 =
+          StatusBar.icons[StatusBar.toCamelCase(StatusBar.PRIORITIES[0][0])];
+        iconWithPriority2 =
+          StatusBar.icons[StatusBar.toCamelCase(StatusBar.PRIORITIES[1][0])];
+        iconWithPriority3 =
+          StatusBar.icons[StatusBar.toCamelCase(StatusBar.PRIORITIES[2][0])];
+
+        iconWithPriority1.hidden = false;
+        iconWithPriority2.hidden = false;
+        iconWithPriority3.hidden = false;
+
+        // The maximized status bar can fit icons with priority 1 and 2.
+        getMaximizedStatusBarWidthStub = sinon.stub(StatusBar,
+          '_getMaximizedStatusBarWidth', function() {
+            return StatusBar._getIconWidth(StatusBar.PRIORITIES[0]) +
+              StatusBar._getIconWidth(StatusBar.PRIORITIES[1]);
+          });
+        // The minimized status bar can only fit the highest priority icon.
+        StatusBar._minimizedStatusBarWidth = StatusBar._getIconWidth(
+          StatusBar.PRIORITIES[0]);
+
+        StatusBar._updateIconVisibility();
+      });
+
+      teardown(function() {
+        getMaximizedStatusBarWidthStub.restore();
+      });
+
+      test('the maximized status bar should hide icon #3', function() {
+        StatusBar._updateIconVisibility();
+
+        // Icon #1 is always visible.
+        assert.isFalse(StatusBar.statusbarIcons.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[0][0]));
+        // Icon #2 is visible in the maximized status bar.
+        assert.isFalse(StatusBar.statusbarIcons.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[1][0]));
+        // Icon #3 is hidden in the maximized status bar.
+        assert.isTrue(StatusBar.statusbarIcons.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[2][0]));
+      });
+
+      test('the minimized status bar should hide icon #2', function() {
+        StatusBar._updateIconVisibility();
+
+        // Icon #1 is always visible.
+        assert.isFalse(StatusBar.statusbarIconsMin.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[0][0]));
+        // Icon #2 is hidden in the minimized status bar.
+        assert.isTrue(StatusBar.statusbarIconsMin.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[1][0]));
+        // Icon #2 is not hidden in the minimized status bar.
+        assert.isFalse(StatusBar.statusbarIconsMin.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[2][0]));
+      });
+    });
+  });
+
+  suite('_getIconWidth', function() {
+    test('should return the stored value for fixed size icons', function() {
+      // Get the index of emergency cb icon in StatusBar.PRIORITIES.
+      var iconIndex;
+      StatusBar.PRIORITIES.some(function(iconObj, i) {
+        if (iconObj[0] === 'emergency-cb-notification') {
+          iconIndex = i;
+          return true;
+        }
+        return false;
+      });
+
+      var emergencyCbNotificationIcon = StatusBar.icons.emergencyCbNotification;
+      emergencyCbNotificationIcon.hidden = false;
+
+      assert.ok(StatusBar.PRIORITIES[iconIndex][1]);
+      assert.equal(StatusBar._getIconWidth(StatusBar.PRIORITIES[iconIndex]),
+          16 + 4);
+    });
+
+    test('should compute the width of variable size icons', function() {
+      // Get the index of time icon in StatusBar.PRIORITIES.
+      var iconIndex;
+      StatusBar.PRIORITIES.some(function(iconObj, i) {
+        if (iconObj[0] === 'time') {
+          iconIndex = i;
+          return true;
+        }
+        return false;
+      });
+
+      var timeIcon = StatusBar.icons.time;
+      timeIcon.hidden = false;
+
+      assert.isNull(StatusBar.PRIORITIES[iconIndex][1]);
+      assert.equal(StatusBar._getIconWidth(StatusBar.PRIORITIES[iconIndex]),
+        timeIcon.clientWidth);
+    });
+  });
+
+  suite('setAppearance', function() {
+    setup(function() {
+      StatusBar.element.classList.remove('light');
+      StatusBar.element.classList.remove('maximized');
+    });
+
+    test('setAppearance light and maximized', function() {
+      var app = {
+        _topWindow: {
+          appChrome: {
+            useLightTheming: function useLightTheming() {
+              return true;
+            },
+            isMaximized: function isMaximized() {
+              return true;
+            }
+          }
+        },
+        appChrome: {
+          isMaximized: function isMaximized() {
+            return true;
+          }
+        },
+        getTopMostWindow: function getTopMostWindow() {
+          return this._topWindow;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
+        }
+      };
+      var spyTopUseLightTheming = this.sinon.spy(app._topWindow.appChrome,
+                                                 'useLightTheming');
+      var spyTopIsMaximized = this.sinon.spy(app._topWindow.appChrome,
+                                             'isMaximized');
+      var spyParentIsMaximized = this.sinon.spy(app.appChrome, 'isMaximized');
+
+      StatusBar.setAppearance(app);
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+      assert.isTrue(spyTopUseLightTheming.calledOnce);
+      assert.isFalse(spyTopIsMaximized.called);
+      assert.isTrue(spyParentIsMaximized.calledOnce);
+    });
+
+    test('setAppearance no appChrome', function() {
+      StatusBar.setAppearance({
+        getTopMostWindow: function getTopMostWindow() {
+          return this;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
+        }
+      });
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance homescreen', function() {
+      StatusBar.setAppearance({
+        isHomescreen: true,
+        getTopMostWindow: function getTopMostWindow() {
+          return this;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
+        }
+      });
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance using bottom window', function() {
+      var app = {
+        _topWindow: {
+          _bottomWindow: null,
+          appChrome: {
+            useLightTheming: function useLightTheming() {
+              return true;
+            },
+            isMaximized: function isMaximized() {
+              return true;
+            },
+          },
+          getBottomMostWindow: function getBottomMostWindow() {
+            return this._bottomWindow;
+          }
+        },
+        appChrome: {
+          useLightTheming: function useLightTheming() {
+            return false;
+          },
+          isMaximized: function isMaximized() {
+            return false;
+          }
+        },
+        getTopMostWindow: function getTopMostWindow() {
+          return this._topWindow;
+        },
+        getBottomMostWindow: function getBottomMostWindow() {
+          return this;
+        }
+      };
+
+      app._topWindow._bottomWindow = app;
+
+      StatusBar.element.classList.add('light');
+      StatusBar.element.classList.add('maximized');
+
+      var spyTopUseLightTheming = this.sinon.spy(app._topWindow.appChrome,
+                                                 'useLightTheming');
+      var spyTopIsMaximized = this.sinon.spy(app._topWindow.appChrome,
+                                             'isMaximized');
+      var spyBottomUseLightTheming = this.sinon.spy(app.appChrome,
+                                                    'useLightTheming');
+      var spyBottomIsMaximized = this.sinon.spy(app.appChrome, 'isMaximized');
+
+      StatusBar.setAppearance(app._topWindow, true);
+
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('maximized'));
+      assert.isTrue(spyBottomUseLightTheming.calledOnce);
+      assert.isFalse(spyTopUseLightTheming.called);
+      assert.isTrue(spyBottomIsMaximized.calledOnce);
+      assert.isFalse(spyTopIsMaximized.called);
+    });
+  });
+
+  suite('lockscreen support', function() {
+    var lockscreenApp, app;
+
+    setup(function() {
+      lockscreenApp = getApp(true, true);
+      app = getApp(false, false);
+      var evt = new CustomEvent('lockscreen-appopened', {
+        detail: lockscreenApp
+      });
+      MockSystem.currentApp = app;
+      StatusBar.handleEvent(evt);
+    });
+
+    teardown(function() {
+      var evt = new CustomEvent('lockscreen-appclosing');
+      StatusBar.handleEvent(evt);
+      MockSystem.currentApp = null;
+    });
+
+    test('should set the lockscreen icons color', function() {
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('should do nothing when is locked', function() {
+      StatusBar.setAppearance(app);
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('should set the active app color when closing', function() {
+      var evt = new CustomEvent('lockscreen-appclosing');
+      StatusBar.handleEvent(evt);
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('maximized'));
+    });
+
+    function getApp(light, maximized) {
+      return {
+        getTopMostWindow: function() {
+          return this;
+        },
+        appChrome: {
+          useLightTheming: function useLightTheming() {
+            return light;
+          },
+          isMaximized: function isMaximized() {
+            return maximized;
+          }
+        }
+      };
+    }
+  });
+
+  suite('updateSignalIcon', function() {
+    var mockIcon = {},
+        connInfo = {
+          relSignalStrength: 75,
+          roaming: true,
+          network: {
+            shortName: 'name'
+          }
+        };
+
+    setup(function() {
+      sinon.stub(MockL10n, 'get').returns('test');
+      mockIcon.dataset = {};
+      mockIcon.setAttribute = sinon.spy();
+    });
+
+    teardown(function() {
+      MockL10n.get.restore();
+    });
+
+    test('should set the data-level attribute', function() {
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.equal(mockIcon.dataset.level, 4);
+    });
+
+    test('roaming visibility with one sim', function() {
+      fakeIcons.roaming[0].hidden = connInfo.roaming;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.equal(fakeIcons.roaming[0].hidden, !connInfo.roaming);
+    });
+
+    test('roaming visibility with multisim', function() {
+      mockIcon.dataset.index = 2;
+      fakeIcons.roaming[1].hidden = connInfo.roaming;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.equal(fakeIcons.roaming[1].hidden, !connInfo.roaming);
+    });
+
+    test('should remove the searching dataset', function() {
+      mockIcon.dataset.searching = true;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.isTrue(!mockIcon.dataset.searching);
+    });
+
+    test('should set the aria-label', function() {
+      mockIcon.dataset.searching = true;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.isTrue(MockL10n.get.calledWith('statusbarSignalRoaming', {
+        level: mockIcon.dataset.level,
+        operator: connInfo.network && connInfo.network.shortName
+      }));
+      sinon.assert.calledWith(mockIcon.setAttribute, 'aria-label', 'test');
+    });
+  });
+
+  suite('handle events', function() {
+    var app;
+    var setAppearanceStub;
+    var resumeUpdateStub;
+    var pauseUpdateStub;
+
+    function testEventThatHides(event) {
+      var evt = new CustomEvent(event);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.element.classList.contains('hidden'));
+    }
+
+    function testEventThatShows(event) {
+      var currentApp = {
+        getTopMostWindow: function getTopMostWindow() {
+          return this._topWindow;
+        }
+      };
+      System.currentApp = currentApp;
+      var evt = new CustomEvent(event, {detail: currentApp});
+      StatusBar.element.classList.add('hidden');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(currentApp));
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+    }
+
+    function testEventThatPause(event) {
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+      assert.isTrue(pauseUpdateStub.called);
+
+      StatusBar.resumeUpdate();
+    }
+
+    function testEventThatResume(event) {
+      StatusBar.pauseUpdate();
+
+      var evt = new CustomEvent(event);
+      StatusBar.handleEvent(evt);
+      assert.isTrue(resumeUpdateStub.called);
+      assert.isFalse(StatusBar.isPaused());
+    }
+
+    setup(function() {
+      app = {};
+      MockSystem.currentApp = app;
+      setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+      pauseUpdateStub = this.sinon.stub(StatusBar, 'pauseUpdate');
+      resumeUpdateStub = this.sinon.stub(StatusBar, 'resumeUpdate');
+    });
+
+    test('stackchanged', function() {
+      StatusBar.element.classList.add('hidden');
+      assert.isTrue(StatusBar.element.classList.contains('hidden'));
+      var event = new CustomEvent('stackchanged');
+      StatusBar.handleEvent(event);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(app));
+    });
+
+    test('sheets-gesture-end', function() {
+      StatusBar.element.classList.add('hidden');
+      assert.isTrue(StatusBar.element.classList.contains('hidden'));
+      var event = new CustomEvent('sheets-gesture-end');
+      StatusBar.handleEvent(event);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+    });
+
+    test('homescreenopening', function() {
+      testEventThatHides.bind(this)('homescreenopening');
+    });
+
+    test('appopening', function() {
+      testEventThatHides.bind(this)('appopening');
+    });
+
+    test('sheets-gesture-begin', function() {
+      testEventThatHides.bind(this)('sheets-gesture-begin');
+    });
+
+    test('homescreenopened', function() {
+      testEventThatShows.bind(this)('homescreenopened');
+    });
+
+    test('appopened', function() {
+      testEventThatShows.bind(this)('appopened');
+    });
+
+    test('apptitlestatechanged', function() {
+      testEventThatShows.bind(this)('apptitlestatechanged');
+    });
+
+    test('activityopened', function() {
+      var stub = this.sinon.spy(StatusBar, '_updateMinimizedStatusBarWidth');
+      testEventThatShows.bind(this)('activityopened');
+      assert.isTrue(stub.calledOnce);
+    });
+
+    test('utilitytraywillshow', function() {
+      testEventThatPause.bind(this)('utilitytraywillshow');
+    });
+
+    test('utilitytraywillhide', function() {
+      testEventThatPause.bind(this)('utilitytraywillhide');
+    });
+
+    test('cardviewshown', function() {
+      testEventThatPause.bind(this)('cardviewshown');
+    });
+
+    test('sheets-gesture-begin', function() {
+      testEventThatPause.bind(this)('sheets-gesture-begin');
+    });
+
+    test('sheets-gesture-end', function() {
+      testEventThatResume.bind(this)('sheets-gesture-end');
+    });
+
+    test('utility-tray-overlayopened', function() {
+      testEventThatResume.bind(this)('utility-tray-overlayopened');
+    });
+
+    test('utility-tray-overlayclosed', function() {
+      testEventThatResume.bind(this)('utility-tray-overlayclosed');
+    });
+
+    test('cardviewclosed', function() {
+      testEventThatResume.bind(this)('cardviewclosed');
+    });
+  });
+
+  suite('Label icon width', function() {
+    var labelIndex;
+    var realClientWidth;
+
+    setup(function() {
+      StatusBar.PRIORITIES.some(function(iconObj, index) {
+        if (iconObj[0] === 'label') {
+          labelIndex = index;
+          return true;
+        }
+
+        return false;
+      });
+      realClientWidth = Object.getOwnPropertyDescriptor(fakeIcons.label,
+        'clientWidth');
+    });
+
+    teardown(function() {
+      if (realClientWidth) {
+        Object.defineProperty(fakeIcons.label, 'clientWidth', realClientWidth);
+      } else {
+        delete fakeIcons.label.clientWidth;
+      }
+    });
+
+    test('should be cached after initialisation', function() {
+      assert.isNotNull(StatusBar.PRIORITIES[labelIndex][1]);
+      assert.isNumber(StatusBar.PRIORITIES[labelIndex][1]);
+    });
+
+    test('should have the cache invalidated when width changes', function() {
+      var label = fakeIcons.label;
+
+      Object.defineProperty(label, 'clientWidth', {
+        configurable: true,
+        get: function() { return 10; }
+      });
+      StatusBar.update.time.call(StatusBar, '*');
+
+      var originalWidth = StatusBar.PRIORITIES[labelIndex][1];
+
+      Object.defineProperty(label, 'clientWidth', {
+        configurable: true,
+        get: function() { return 20; }
+      });
+      StatusBar.update.time.call(StatusBar, '***');
+
+      assert.notEqual(originalWidth, StatusBar.PRIORITIES[labelIndex][1]);
+    });
+  });
+
+  suite('Geolocation and recording', function() {
+    var updateIconSpy;
+    var cloneStatusbarSpy;
+
+    function StatusBarHandleEvent(type, active) {
+      StatusBar.handleEvent({
+        type: type[0],
+        detail: {
+          type: type[1],
+          active: active
+        }
+      });
+    }
+
+    setup(function() {
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+      cloneStatusbarSpy = this.sinon.spy(StatusBar, 'cloneStatusbar');
+    });
+
+    test('should reprioritise icons only once per call', function() {
+      var updateIconCallCount = 0;
+      var cloneStatusbarCallCount = 0;
+      [
+        ['mozChromeEvent', 'geolocation-status'],
+        ['recordingEvent', 'recording-state-changed']
+      ].forEach(function(type) {
+          StatusBarHandleEvent(type, true);
+          updateIconCallCount++;
+          cloneStatusbarCallCount++;
+          assert.equal(updateIconSpy.callCount, updateIconCallCount);
+          assert.equal(cloneStatusbarSpy.callCount, cloneStatusbarCallCount);
+
+          StatusBarHandleEvent(type, false);
+          cloneStatusbarCallCount++;
+          assert.equal(updateIconSpy.callCount, updateIconCallCount);
+          assert.equal(cloneStatusbarSpy.callCount, cloneStatusbarCallCount);
+        }.bind(this));
+    });
+  });
+
+  suite('Signal icons', function() {
+    var slots;
+    var mockMobileConnection;
+    var updateIconSpy;
+
+    setup(function() {
+      mockMobileConnection = MockMobileconnection();
+      mockMobileConnection.voice = {
+        network: {
+          mcc: 123
+        }
+      };
+      mockMobileConnection.simCard = {
+        cardState: 'ready',
+        iccInfo: {
+          iccid: 'iccid1'
+        }
+      };
+      slots = [new MockSIMSlot(mockMobileConnection, 0)];
+      MockSIMSlotManager.mInstances = slots;
+
+      StatusBar.settingValues['ril.radio.disabled'] = false;
+      StatusBar.update.signal.call(StatusBar);
+
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+    });
+
+    teardown(function() {
+      MockSIMSlotManager.mTeardown();
+    });
+
+    test('should call reprioritise function when changed', function() {
+      StatusBar.settingValues['ril.radio.disabled'] = true;
+      StatusBar.update.signal.call(StatusBar);
+
+      assert.isTrue(updateIconSpy.called);
+    });
+
+    test('should not call reprioritise function when not changed', function() {
+      StatusBar.settingValues['ril.radio.disabled'] = false;
+      StatusBar.update.signal.call(StatusBar);
+
+      assert.isFalse(updateIconSpy.called);
+    });
+  });
+
+  suite('Data icons', function() {
+    var updateIconSpy;
+
+    setup(function() {
+      MockNavigatorMozMobileConnections[0].data = {
+        connected: true,
+        type: 'lte'
+      };
+
+      StatusBar.settingValues['ril.radio.disabled'] = false;
+      StatusBar.settingValues['ril.data.enabled'] = true;
+      StatusBar.icons.wifi.hidden = true;
+      StatusBar.update.data.call(StatusBar);
+
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+    });
+
+    test('should call reprioritise function when changed', function() {
+      StatusBar.settingValues['ril.data.enabled'] = false;
+      StatusBar.update.data.call(StatusBar);
+
+      assert.isTrue(updateIconSpy.called);
+    });
+
+    test('should not call reprioritise function when not changed', function() {
+      StatusBar.settingValues['ril.data.enabled'] = true;
+      StatusBar.update.data.call(StatusBar);
+
+      assert.isFalse(updateIconSpy.called);
+    });
+  });
+
+  suite('Network activity icons', function() {
+    var updateIconSpy;
+    var clock;
+
+    setup(function() {
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+      clock = sinon.useFakeTimers();
+    });
+
+    teardown(function() {
+      clock.restore();
+    });
+
+    test('should call reprioritise function when changed', function() {
+      StatusBar.update.networkActivity.call(StatusBar);
+
+      assert.isTrue(updateIconSpy.called);
+    });
+
+    test('should call reprioritise function after 500ms', function() {
+      StatusBar.update.networkActivity.call(StatusBar);
+      clock.tick(510);
+
+      assert.equal(updateIconSpy.callCount, 2);
+    });
+  });
+
+  suite('cloneStatusbar', function() {
+    test('should create a new DOM element for the status bar', function() {
+      var oldElement = StatusBar.statusbarIconsMin;
+      assert.equal(oldElement, StatusBar.statusbarIconsMin);
+
+      StatusBar.cloneStatusbar();
+      assert.notEqual(oldElement, StatusBar.statusbarIconsMin);
+    });
+
+    test('should conserve the CSS class names applied', function() {
+      var className = 'abc-DEF-' + Math.random();
+      StatusBar.statusbarIconsMin.className = className;
+
+      StatusBar.cloneStatusbar();
+      assert.equal(StatusBar.statusbarIconsMin.className, className);
     });
   });
 });

@@ -239,7 +239,12 @@ fb.sync = Sync;
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
       var iconURL = app.installOrigin + params.iconURL;
-      NotificationHelper.send(params.title, params.body, iconURL);
+      var options = {
+        body: params.body,
+        icon: iconURL
+      };
+
+      var notification = new Notification(params.title, options);
 
       if (typeof params.callback === 'function') {
         params.callback();

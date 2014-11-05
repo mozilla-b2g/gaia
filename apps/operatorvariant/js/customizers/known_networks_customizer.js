@@ -106,6 +106,7 @@ var KnownNetworksCustomizer = (function() {
             var network = getNetwork(netParams);
             if (network) {
               network.dontConnect = true;
+              network = new window.MozWifiNetwork(network);
               wifiManager.associate(network);
               allKnownNet[network.ssid] = network;
             }

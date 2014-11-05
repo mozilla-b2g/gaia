@@ -3,79 +3,97 @@
 
 'use strict';
 
-/*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
-         Settings, LazyLoader, TimeHeaders, Information,
-         PerformanceTestingHelper */
+/*global ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
+         Settings, LazyLoader, TimeHeaders, Information, SilentSms,
+         PerformanceTestingHelper, App, Navigation, EventDispatcher,
+         LocalizationHelper,
+         InterInstanceEventDispatcher
+*/
 
-window.addEventListener('localized', function localized() {
-  // This will be called during startup, and any time the languange is changed
+var Startup = {
+  _lazyLoadScripts: [
+    '/shared/js/settings_listener.js',
+    '/shared/js/sim_picker.js',
+    '/shared/js/mime_mapper.js',
+    '/shared/js/notification_helper.js',
+    '/shared/js/option_menu.js',
+    '/shared/js/gesture_detector.js',
+    '/shared/js/settings_url.js',
+    '/shared/js/mobile_operator.js',
+    '/shared/js/multi_sim_action_button.js',
+    '/shared/js/image_utils.js',
+    'js/waiting_screen.js',
+    'js/errors.js',
+    'js/dialog.js',
+    'js/error_dialog.js',
+    'js/link_helper.js',
+    'js/link_action_handler.js',
+    'js/contact_renderer.js',
+    'js/activity_picker.js',
+    'js/information.js',
+    'js/shared_components.js',
+    'js/task_runner.js',
+    'js/silent_sms.js',
+    'js/recipients.js',
+    'js/attachment.js',
+    'js/attachment_renderer.js',
+    'js/attachment_menu.js',
+    'js/thread_ui.js',
+    'js/subject_composer.js',
+    'js/compose.js',
+    'js/wbmp.js',
+    'js/smil.js',
+    'js/notify.js',
+    'js/activity_handler.js',
+    'js/localization_helper.js'
+  ],
 
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
+  _lazyLoadInit: function() {
+    LazyLoader.load(this._lazyLoadScripts, function() {
+      LocalizationHelper.init();
 
-  // Look for any iframes and localize them - mozL10n doesn't do this
-  Array.prototype.forEach.call(document.querySelectorAll('iframe'),
-    function forEachIframe(iframe) {
-      var doc = iframe.contentDocument;
-      doc.documentElement.lang = navigator.mozL10n.language.code;
-      doc.documentElement.dir = navigator.mozL10n.language.direction;
-      navigator.mozL10n.translate(doc.body);
-    }
-  );
+      InterInstanceEventDispatcher.connect();
 
-  // Also look for l10n-contains-date and re-translate the date message.
-  // More complex because the argument to the l10n string is itself a formatted
-  // date using l10n.
-  Array.prototype.forEach.call(
-    document.getElementsByClassName('l10n-contains-date'),
-    function(element) {
-      if (!(element.dataset.l10nDate && element.dataset.l10nDateFormat)) {
-        return;
-      }
+      // dispatch moz-content-interactive when all the modules initialized
+      SilentSms.init();
+      ActivityHandler.init();
 
-      var format = navigator.mozL10n.get(element.dataset.l10nDateFormat);
-      var date = new Date(+element.dataset.l10nDate);
-      var localeData = Utils.date.format.localeFormat(date, format);
+      // Init UI Managers
+      TimeHeaders.init();
+      ThreadUI.init();
+      Information.initDefaultViews();
 
-      if (element.dataset.l10nId && element.dataset.l10nArgs) {
-        var args = JSON.parse(element.dataset.l10nArgs);
-        args.date = localeData;
-        navigator.mozL10n.localize(element, element.dataset.l10nId, args);
-      } else {
-        element.textContent = localeData;
-      }
-    }
-  );
+      // Dispatch post-initialize event for continuing the pending action
+      Startup.emit('post-initialize');
+      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
-});
+      // Fetch mmsSizeLimitation and max concat
+      Settings.init();
 
-window.addEventListener('load', function() {
-  PerformanceTestingHelper.dispatch('load');
-  function initUIApp() {
-    TimeHeaders.init();
-    ActivityHandler.init();
-
-    // Init UI Managers
-    ThreadUI.init();
-    ThreadListUI.init();
-    Information.initDefaultViews();
-    ThreadListUI.renderThreads();
-
-    // Fetch mmsSizeLimitation
-    Settings.init();
-    PerformanceTestingHelper.dispatch('objects-init-finished');
-  }
-
-  if (!navigator.mozMobileMessage) {
-    var mocks = [
-      'js/desktop-only/mobilemessage.js',
-      'js/desktop-only/contacts.js'
-    ];
-    LazyLoader.load(mocks, function() {
-      MessageManager.init(initUIApp);
+      PerformanceTestingHelper.dispatch('objects-init-finished');
     });
-    return;
+  },
+
+  init: function() {
+    var loaded = function() {
+      window.removeEventListener('DOMContentLoaded', loaded);
+      window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+
+      MessageManager.init();
+      Navigation.init();
+      ThreadListUI.init();
+      ThreadListUI.renderThreads(this._lazyLoadInit.bind(this), function() {
+        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+        App.setReady();
+      });
+
+      // dispatch chrome-interactive when thread list related modules
+      // initialized
+      window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+    }.bind(this);
+
+    window.addEventListener('DOMContentLoaded', loaded);
   }
-  MessageManager.init(initUIApp);
-});
+};
+
+EventDispatcher.mixin(Startup).init();

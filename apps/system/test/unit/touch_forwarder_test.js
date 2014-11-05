@@ -2,7 +2,6 @@
 
 /* global MockSettingsListener, TouchForwarder, MocksHelper */
 
-mocha.globals(['TouchForwarder', 'SettingsListener']);
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForTouchForwarder = new MocksHelper([

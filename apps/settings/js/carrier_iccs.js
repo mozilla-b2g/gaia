@@ -16,6 +16,11 @@ var IccHandlerForCarrierSettings = (function(window, document, undefined) {
    'networkLocked' : 'simLockedPhone',
    'serviceProviderLocked' : 'simLockedPhone',
    'corporateLocked' : 'simLockedPhone',
+   'network1Locked' : 'simLockedPhone',
+   'network2Locked' : 'simLockedPhone',
+   'hrpdNetworkLocked' : 'simLockedPhone',
+   'ruimCorporateLocked' : 'simLockedPhone',
+   'ruimServiceProviderLocked' : 'simLockedPhone',
    'unknown' : 'unknownSimCardState',
    'illegal' : 'simCardIllegal',
    'absent' : 'noSimCard',
@@ -41,7 +46,6 @@ var IccHandlerForCarrierSettings = (function(window, document, undefined) {
     'gprs' : '2G GPRS'
   };
 
-  var _ = navigator.mozL10n.get;
   var _settings = window.navigator.mozSettings;
   var _iccManager = window.navigator.mozIccManager;
   var _mobileConnections = null;
@@ -143,7 +147,8 @@ var IccHandlerForCarrierSettings = (function(window, document, undefined) {
 
     var mobileConnection = ihfcs_getMobileConnectionFromIccId(iccId);
     if (!mobileConnection) {
-      localize(desc, '');
+      desc.textContent = '';
+      desc.removeAttribute('data-l10n-id');
       ihfcs_disableItems(_menuItemIds[iccCardIndex], true);
       return;
     }
@@ -151,25 +156,28 @@ var IccHandlerForCarrierSettings = (function(window, document, undefined) {
     if (mobileConnection.radioState !== 'enabled') {
       // Airplane is enabled. Well, radioState property could be changing but
       // let's disable the items during the transitions also.
-      localize(desc, CARDSTATE_MAPPING['null']);
+      desc.setAttribute('data-l10n-id', CARDSTATE_MAPPING['null']);
       ihfcs_disableItems(_menuItemIds[iccCardIndex], true);
       return;
     }
     if (mobileConnection.radioState === 'enabled') {
-      localize(desc, '');
+      desc.textContent = '';
+      desc.removeAttribute('data-l10n-id');
       ihfcs_disableItems(_menuItemIds[iccCardIndex], false);
     }
 
     var iccCard = _iccManager.getIccById(iccId);
     if (!iccCard) {
-      localize(desc, '');
+      desc.textContent = '';
+      desc.removeAttribute('data-l10n-id');
       ihfcs_disableItems(_menuItemIds[iccCardIndex], true);
       return;
     }
 
     var cardState = iccCard.cardState;
     if (cardState !== 'ready') {
-      localize(desc, CARDSTATE_MAPPING[cardState || 'null']);
+      desc.setAttribute('data-l10n-id',
+                        CARDSTATE_MAPPING[cardState || 'null']);
       ihfcs_disableItems(_menuItemIds[iccCardIndex], true);
       return;
     }
@@ -253,17 +261,3 @@ var IccHandlerForCarrierSettings = (function(window, document, undefined) {
     init: ihfcs_init
   };
 })(this, document);
-
-/**
- * Startup.
- */
-navigator.mozL10n.once(function loadWhenIdle() {
-  var idleObserver = {
-    time: 3,
-    onidle: function() {
-      IccHandlerForCarrierSettings.init();
-      navigator.removeIdleObserver(idleObserver);
-    }
-  };
-  navigator.addIdleObserver(idleObserver);
-});

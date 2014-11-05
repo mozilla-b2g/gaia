@@ -4,15 +4,19 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8" />
     <title>Videos</title>
-    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
-    <link rel="resource" type="application/l10n" href="shared/locales/date.ini" />
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
-    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css" />
+    <link rel="manifest" href="manifest.webapp">
+    <link rel="localization" href="locales/video.{locale}.properties">
+    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+    <!-- this file is loaded lazily but is listed here so it gets packaged
+    <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
+    -->
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/info.css" />
     <link rel="stylesheet" type="text/css" href="style/spinner.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css" />
     <link rel="stylesheet" type="text/css" href="style/video_tablet.css" media="(min-height: 768px) and (min-width: 768px)" />
 
+    <!-- Shared Libs -->
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
     <script defer src="shared/js/screen_layout.js"></script>
@@ -25,39 +29,47 @@
     <script defer src="shared/js/manifest_helper.js"></script>
     <script defer src="shared/js/media/video_stats.js"></script>
     <script defer src="shared/js/performance_testing_helper.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/dialogs.js"></script>
+
+    <!-- Web Components -->
+    <script defer src="shared/elements/config.js"></script>
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" />
+    <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+
     <script defer src="js/metadata.js"></script>
     <script defer src="js/db.js"></script>
     <script defer src="js/thumbnail_list.js"></script>
     <script defer src="js/thumbnail_date_group.js"></script>
     <script defer src="js/thumbnail_item.js"></script>
     <script defer src="js/video_utils.js"></script>
+    <script defer src="js/forward_rewind_controller.js"></script>
+    <script defer src="js/video_loading_checker.js"></script>
     <script defer src="js/video.js"></script>
   </head>
-  <body role="application" class="skin-dark">
+  <body role="application" class="skin-dark theme-media">
     <div id="two-column-spearator"></div>
     <section role="region" id="thumbnail-list-view">
-      <header>
-        <a href="#" id="picker-close"><span class="icon icon-back">back</span></a>
+      <gaia-header id="picker-header" action="back">
         <h1 id="picker-title" data-l10n-id="pick-title"></h1>
         <h1 id="thumbnail-list-title">Video</h1>
-      </header>
+      </gaia-header>
 
       <footer id="thumbnails-bottom">
-        <a id="thumbnails-video-button" class="button"></a>
-        <a id="thumbnails-select-button" class="button"></a>
+        <a id="thumbnails-video-button" class="button" data-icon="video"></a>
+        <a id="thumbnails-select-button" class="button" data-icon="select"></a>
       </footer>
     </section>
 
-
     <section role="region" id="thumbnail-select-view" class="skin-dark">
-      <header id="thumbnails-select-top">
-        <button id="thumbnails-cancel-button"><span class="icon icon-close"></span></button>
+      <gaia-header id="thumbnails-select-top" action="close">
         <h1 id="thumbnails-number-selected"></h1>
-      </header>
+      </gaia-header>
 
       <footer id="thumbnails-select-bottom">
-        <a id="thumbnails-delete-button" class="button icon-delete"></a>
-        <a id="thumbnails-share-button" class="button icon-share"></a>
+        <a id="thumbnails-delete-button" class="button" data-icon="delete"></a>
+        <a id="thumbnails-share-button" class="button" data-icon="share"></a>
       </footer>
     </section>
 
@@ -70,21 +82,13 @@
       </div>
       <!-- video controls -->
       <div id="videoControls">
-        <section role="region" class="skin-dark">
-          <header>
-            <a href="#" id="close"><span class="icon icon-back">back</span></a>
-            <menu type="toolbar">
-              <span id="fullscreen-tool-bar">
-                <button class="single-delete-button"><span class="icon icon-delete"></span></button>
-                <button class="single-share-button"><span class="icon icon-share"></span></button>
-                <button class="single-info-button"><span class="icon icon-info"></span></button>
-              </span>
-              <button id="picker-done"><span class="icon icon-done"></span></button>
-            </menu>
+        <section role="region">
+          <gaia-header id="player-header" action="back">
             <h1 id="video-title"></h1>
-          </header>
+            <button id="options" data-icon="more"></button>
+            <button id="picker-done" data-l10n-id="done">Done</button>
+          </gaia-header>
           <footer id="videoBar">
-            <button id="play" class="paused"></button>
             <div id="timeSlider">
               <span id="elapsed-text"></span>
               <div id="slider-wrapper">
@@ -97,10 +101,12 @@
             </div>
             <div id="fullscreen-button"></div>
           </footer>
-          <footer id="videoActionBar">
-            <a class="button single-delete-button icon-delete"></a>
-            <a class="button single-share-button icon-share"></a>
-            <a class="button single-info-button icon-info"></a>
+          <footer id="videoControlBar">
+            <div id="videoToolBar">
+              <button id="seek-backward" class="player-controls-button" data-icon="skip-back"></button>
+              <button id="play" class="player-controls-button" data-icon="pause"></button>
+              <button id="seek-forward" class="player-controls-button" data-icon="skip-forward"></button>
+            </div>
           </footer>
         </section>
       </div>
@@ -126,6 +132,16 @@
       <menu>
         <button type="button" id="info-close-button"
                 data-l10n-id="close-button" class="full"></button>
+      </menu>
+    </form>
+
+    <form id='options-view' role="dialog" data-type="action" class="hidden">
+      <menu>
+       <button type="button" class="single-share-button"><span class="gi gi-text" data-l10n-id="share">Share</span></button>
+       <button type="button" class="single-info-button"><span class="gi gi-text" data-l10n-id="more-info">More info</span></button>
+       <button type="button" class="single-delete-button"><span class="gi gi-text" data-l10n-id="delete">Delete</span></button>
+       <button type="button" id="options-cancel-button"
+	           data-l10n-id="overlay-cancel-button"></button>
       </menu>
     </form>
 
@@ -173,6 +189,21 @@
         <button type="button" id="overlay-action-button" class="full"></button>
       </menu>
     </form>
-
+    <form id="confirm-dialog" role="dialog" data-type="confirm" class="hidden">
+      <section>
+        <p id="confirm-msg"></p>
+      </section>
+      <menu>
+        <button id="confirm-cancel"></button>
+        <button id="confirm-ok"></button>
+      </menu>
+    </form>
+    <!-- display "Cannot load video because it is in use" here -->
+    <form id="in-use-overlay" role="dialog" data-type="confirm" class="hidden">
+      <section id="in-use-overlay-content">
+        <h1 id="in-use-overlay-title"></h1>
+        <p id="in-use-overlay-text"></p>
+      </section>
+    </form>
   </body>
 </html>

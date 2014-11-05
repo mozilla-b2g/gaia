@@ -1,3 +1,8 @@
+'use strict';
+/* global Wallpaper */
+
+require('/shared/js/lazy_loader.js');
+require('/shared/js/media/downsample.js');
 requireApp('wallpaper/js/pick.js');
 
 suite('wallpaper/pick', function() {
@@ -14,17 +19,16 @@ suite('wallpaper/pick', function() {
   });
 
   test('generateWallpaperList', function(done) {
-    var prefix =
     Wallpaper.wallpapersUrl = '/test/unit/list_test.json';
     Wallpaper.init();
     Wallpaper.generateWallpaperList(function() {
       done(function() {
         var wallpapers = document.getElementById('wallpapers');
         assert.equal(2, wallpapers.children.length);
-        assert.equal('url("resources/test_1.png")',
-          wallpapers.children[0].style.backgroundImage);
-        assert.equal('url("resources/test_2.png")',
-          wallpapers.children[1].style.backgroundImage);
+        assert.equal('resources/test_1.png',
+          wallpapers.children[0].dataset.filename);
+        assert.equal('resources/test_2.png',
+          wallpapers.children[1].dataset.filename);
       });
     });
   });

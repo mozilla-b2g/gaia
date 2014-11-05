@@ -1,5 +1,6 @@
 Keyboards['bn-Probhat'] = {
   label: 'Bangla - Probhat',
+  shortLabel: 'Bn',
   menuLabel: 'বাংলা - প্রভাত',
   alternateLayoutKey: '?১২',
   basicLayoutKey: 'কখগ',
@@ -56,44 +57,56 @@ Keyboards['bn-Probhat'] = {
     'ো': 'ৌ',
     '্': 'ঁ',
     '।': '॥',
-    'ঞ': 'ঋ'
+    'ঞ': 'ঋ',
+    '.': ',?!;:…'
   },
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
-      '০': '0 º',
-      '১': '১ম 1',
-      '২': '২য় 2',
-      '৩': '৩য় 3',
-      '৪': '৪র্থ 4',
-      '৫': '৫ম 5',
-      '৬': '৬ষ্ঠ 6',
-      '৭': '৭ম 7',
-      '৮': '৮ম 8',
-      '৯': '৯ম 9',
-      '৳': '$ € £ ¥',
-      '?': '¿',
-      '!': '¡',
-      '-': '_'
+      '০': ['0', 'º'],
+      '১': ['১ম', '1'],
+      '২': ['২য়', '2'],
+      '৩': ['৩য়', '3'],
+      '৪': ['৪র্থ', '4'],
+      '৫': ['৫ম', '5'],
+      '৬': ['৬ষ্ঠ', '6'],
+      '৭': ['৭ম', '7'],
+      '৮': ['৮ম', '8'],
+      '৯': ['৯ম', '9'],
+      '৳': ['₹', '$', '€', '£', '¢', '¥'],
+      '"': ['“', '”'],
+      '\'':['‘', '’'],
+      '?': ['¿'],
+      '!': ['¡'],
+      '+': ['-', '×', '÷', '±']
     },
+    // These are based on the en layout, with top row modifed and $ localized.
     keys: [
       [
-        { value: '১' }, { value: '২' }, { value: '৩' } , { value: '৪' },
-        { value: '৫' } , { value: '৬' }, { value: '৭' } , { value: '৮' },
+        { value: '১' }, { value: '২' }, { value: '৩' }, { value: '৪' },
+        { value: '৫' }, { value: '৬' }, { value: '৭' }, { value: '৮' },
         { value: '৯' }, { value: '০' }
       ], [
-        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '$' },
-        { value: '%' }, { value: '&' } , { value: '*' }, { value: '-' },
-        { value: '+' }, { value: '(' }, { value: ')' },
-        { value: '_', visible: ['email'] }
+        { value: '@' }, { value: '#' },
+        { value: '৳', className: 'alternate-indicator' }, { value: '&' },
+        { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
+        { value: '(' }, { value: ')' }
       ], [
-        { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-        { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
-        { value: ';' }, { value: '/' }, { value: '?' },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
+        },
+        { value: '+',
+          supportsSwitching: {
+            value: ','
+          }
+        }, { value: ':' }, { value: ';' }, { value: '"' },
+        { value: '\'' }, { value: '!' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

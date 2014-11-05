@@ -3,7 +3,7 @@
 /* global MockMozContacts */
 
 requireApp('communications/contacts/js/export/sim.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 
 suite('Sim export', function() {
   var realMozContacts = null;
@@ -193,6 +193,30 @@ suite('Sim export', function() {
       assert.equal(contactToExport.url.length, 2);
       assert.deepEqual(contactToExport.url[0], contactToExportOriginalUrl);
       assert.deepEqual(contactToExport.url[1], iccContactIdUrl);
+      done();
+    });
+  });
+
+  test('Calling with cancel flag activated', function(done) {
+    var contacts = [c1, c2, c1, c2, c1];
+    var exportedContacts = 2;
+    var callNum = 0;
+    // Replacing the progress function to allow simulating the click of the
+    // cancel button on the nth call
+    var progressMockForCancel = function() {
+      callNum++;
+      if (callNum === exportedContacts) {
+        obj.subject.cancelExport();
+      }
+    };
+
+    var obj = setupManagerAndSubject(contacts);
+    obj.subject.setProgressStep(progressMockForCancel);
+
+    obj.subject.doExport(function onFinish(error, exported) {
+      assert.equal(exportedContacts, obj.updateSpy.callCount);
+      assert.isNull(error);
+      assert.equal(exportedContacts, exported);
       done();
     });
   });

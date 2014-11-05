@@ -14,8 +14,7 @@ class TestMarketplaceLaunch(GaiaTestCase):
     
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission('Homescreen', 'geolocation', 'deny')
-        self.connect_to_network()
+        self.connect_to_local_area_network()
     
     def test_marketplace_launch(self):
         

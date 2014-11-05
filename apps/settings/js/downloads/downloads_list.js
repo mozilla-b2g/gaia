@@ -19,7 +19,7 @@
 
   // Buttons
   var editButton = null;
-  var closeButton = null;
+  var editHeader = null;
   var deleteButton = null;
   var selectAllButton = null;
   var deselectAllButton = null;
@@ -43,7 +43,7 @@
       emptyDownloadsContainer.hidden = true;
     }
 
-    editButton.className = isEmpty ? 'disabled' : '';
+    editButton.disabled = isEmpty;
   }
 
   function _newDownload(download) {
@@ -142,6 +142,11 @@
 
   function _onDownloadStateChange(event) {
     var download = event.download;
+    // We don't care about finalized as a state change. The DownloadList and
+    // DownloadItem are not designed to consume this state change.
+    if (download.state === 'finalized') {
+      return;
+    }
     _update(download);
   }
 
@@ -160,6 +165,7 @@
         // paused -> downloading
         _restartDownload(download);
         break;
+      case 'finalized':
       case 'succeeded':
         // launch an app to view the download
         _showDownloadActions(download);
@@ -347,29 +353,23 @@
   function _loadEditMode() {
     // Disable all checks
     _disableAllChecks();
-    // Ensure that header is the firstchild for using building blocks
-    var targetHeader = document.getElementById('edit-mode-header');
-    targetHeader.parentNode.insertBefore(
-      targetHeader,
-      targetHeader.parentNode.firstChild
-    );
-    targetHeader.hidden = downloadsEditMenu.hidden = false;
+
     // Add 'edit' stype
     downloadsPanel.classList.add('edit');
+
+    downloadsEditMenu.hidden = false;
+
     // Change edit mdoe status
     isEditMode = true;
     _updateButtonsStatus();
   }
 
   function _closeEditMode() {
-    // Ensure the header
-    var targetHeader = document.getElementById('downloads-header');
-    targetHeader.parentNode.insertBefore(
-      targetHeader,
-      targetHeader.parentNode.firstChild
-    );
     // Remove "edit" styles
     downloadsPanel.classList.remove('edit');
+
+    downloadsEditMenu.hidden = true;
+
     // Clean vars
     isEditMode = false;
     numberOfDownloads = 0;
@@ -403,7 +403,7 @@
         downloadsEditMenu = document.getElementById('downloads-edit-menu');
         // Buttons
         editButton = document.getElementById('downloads-edit-button');
-        closeButton = document.getElementById('downloads-close-button');
+        editHeader = document.getElementById('downloads-edit-header');
         deleteButton = document.getElementById('downloads-delete-button');
         selectAllButton =
           document.getElementById('downloads-edit-select-all');
@@ -426,7 +426,7 @@
 
         // Add listener to edit mode
         editButton.addEventListener('click', _loadEditMode.bind(this));
-        closeButton.addEventListener('click', _closeEditMode.bind(this));
+        editHeader.addEventListener('action', _closeEditMode.bind(this));
         selectAllButton.addEventListener('click', _enableAllChecks.bind(this));
         deselectAllButton.addEventListener('click',
           _disableAllChecks.bind(this));

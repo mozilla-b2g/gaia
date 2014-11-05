@@ -1,0 +1,25 @@
+task:
+  metadata:
+    name: Gaia JSON Lint
+    description: JSON linter
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+  scopes:
+    # Source caches contains various sources (including a tarball of gaia source
+    # tree)
+    - docker-worker:cache:gaia-misc-caches
+
+  payload:
+    cache:
+      gaia-misc-caches: /home/tester/caches/
+    command:
+      - entrypoint
+      - ./bin/ci run jsonlint
+  extra:
+    treeherder:
+      symbol: JSON
+      groupSymbol: LINT
+      groupName: Linters
+
+

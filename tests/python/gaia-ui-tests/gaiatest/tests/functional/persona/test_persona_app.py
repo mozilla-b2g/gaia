@@ -18,7 +18,7 @@ class TestPersonaStandard(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.connect_to_network()
+        self.connect_to_local_area_network()
 
         # Generate unverified PersonaTestUser account
         self.user = PersonaTestUser().create_user(

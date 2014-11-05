@@ -39,7 +39,13 @@ function initDB() {
   };
 
   videodb.onscanend = function() {
-    firstScanEnded = true;
+    // If this was the first scan after startup, then tell
+    // performance monitors that the app is finally fully loaded and stable.
+    if (!firstScanEnded) {
+      firstScanEnded = true;
+      window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+    }
+
     updateDialog();
     updateLoadingSpinner();
   };
@@ -61,6 +67,7 @@ function enumerateDB() {
   if (enumerated)
     return;
   enumerated = true;
+  var firstBatchDisplayed = false;
 
   var batch = [];
   var batchSize = 4;
@@ -100,6 +107,14 @@ function enumerateDB() {
   function flush() {
     batch.forEach(addVideo);
     batch.length = 0;
+
+    if (!firstBatchDisplayed) {
+      firstBatchDisplayed = true;
+      // Tell performance monitors that "above the fold" content is displayed
+      // and is ready to interact with.
+      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+    }
   }
 }
 

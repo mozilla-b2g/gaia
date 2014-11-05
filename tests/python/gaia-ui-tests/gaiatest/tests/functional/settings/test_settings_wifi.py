@@ -13,6 +13,9 @@ class TestSettingsWifi(GaiaTestCase):
         self.data_layer.disable_wifi()
 
     def test_connect_to_wifi_via_settings_app(self):
+        """
+        https://moztrap.mozilla.org/manage/case/6075/
+        """
         settings = Settings(self.marionette)
         settings.launch()
         wifi_settings = settings.open_wifi_settings()

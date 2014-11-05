@@ -7,6 +7,7 @@
     transform: translateY(-3rem);
 }
 
+#evmeContainer.empty-query:not(.empty-history) #header,
 #evmeContainer:not(.empty-query) #header,
 .evme-keyboard-visible #header {
     background: rgba(0, 0, 0, 0.8) !important;

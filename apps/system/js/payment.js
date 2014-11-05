@@ -131,7 +131,7 @@ var Payment = {
   _openTrustedUI: function _openTrustedUI(frame) {
     // The payment flow is shown within the trusted UI with the name of
     // the mozPay caller application as title.
-    var title = AppWindowManager.getActiveApp().name;
+    var title = System.currentApp.name;
     title = title ? title : navigator.mozL10n.get('payment-flow');
     TrustedUIManager.open(title, frame, this.chromeEventId);
   },
@@ -143,10 +143,7 @@ var Payment = {
   }
 };
 
-// Make sure L10n is ready before init
-if (navigator.mozL10n.readyState == 'complete' ||
-    navigator.mozL10n.readyState == 'interactive') {
-  Payment.init();
-} else {
-  window.addEventListener('localized', Payment.init.bind(Payment));
+// unit tests call init() manually
+if (navigator.mozL10n) {
+  navigator.mozL10n.once(Payment.init.bind(Payment));
 }

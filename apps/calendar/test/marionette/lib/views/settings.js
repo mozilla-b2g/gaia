@@ -12,15 +12,9 @@ Settings.prototype = {
 
   selector: '#settings',
 
-  createAccount: function() {
-    this
-      .findElement('a[href="/select-preset/"]')
-      .click();
-  },
-
   setupAdvancedSettings: function() {
     this.client
-      .findElement('a[href="/advanced-settings/"]')
+      .findElement('button.settings')
       .click();
   },
 
@@ -30,13 +24,21 @@ Settings.prototype = {
       .click();
   },
 
+  calendars: function() {
+    return this
+      .findElements('.calendars .name')
+      .map(function(element) {
+        return element.text();
+      });
+  },
+
   toggleCalendar: function(name) {
     name = name || 'Offline calendar';
     this
-      .findElements('.calendars > li')
-      .filter(function(el) {
-        return el.findElement('.name').text() === name;
+      .findElements('.pack-checkbox')
+      .filter(function(element) {
+        return element.text() === name;
       })[0]
-      .findElement('.pack-checkbox').click();
+      .click();
   }
 };

@@ -175,7 +175,7 @@
    *        before invoking the append callback. If this paramter is not
    *        provided a default value of 1MiB will be used instead.
    */
-  function ContactToVcard(contacts, append, success, batchSize) {
+  function ContactToVcard(contacts, append, success, batchSize, skipPhoto) {
     var vCardsString = '';
     var nextIndex = 0;
     var cardsInBatch = 0;
@@ -312,7 +312,14 @@
        * be one of the IANA registered image formats or a non-standard image
        * format.
       */
-      if (ct.photo && ct.photo.length) {
+      if (
+        (
+          typeof skipPhoto == 'undefined' ||
+          skipPhoto === false
+        ) &&
+        ct.photo &&
+        ct.photo.length
+      ) {
         var photoMeta = ['PHOTO', 'ENCODING=b'];
         var blob = ct.photo[0];
 

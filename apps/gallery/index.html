@@ -3,99 +3,115 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8" />
+    <meta name="theme-color" content="#242d33">
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
     <link rel="stylesheet" href="style/VideoPlayer.css" type="text/css" />
     <link rel="stylesheet" href="style/VideoPlayer_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
-    <link rel="stylesheet" href="shared/style/headers.css" type="text/css" />
     <link rel="stylesheet" href="shared/style/progress_activity.css"/>
     <!-- Reponsive design for tiny & large device -->
     <link rel="stylesheet" href="style/gallery_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
+    <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <!-- this file is loaded lazily but is listed here so it gets packaged
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
     -->
     <!-- Localization -->
-    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
-    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
+    <link rel="manifest" href="manifest.webapp">
+    <link rel="localization" href="locales/gallery.{locale}.properties">
+    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <!-- Shared code -->
+    <script defer src="shared/js/performance_testing_helper.js"></script>
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
     <script defer src="shared/js/template.js"></script>
     <script defer src="shared/js/device_storage/enumerate_all.js"></script>
     <script defer src="shared/js/mediadb.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
-    <script defer src="shared/js/tag_visibility_monitor.js"></script>
+    <script defer src="shared/js/font_size_utils.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
     <script defer src="shared/js/screen_layout.js"></script>
     <script defer src="shared/js/scroll_detector.js"></script>
+    <script defer src="shared/js/media/downsample.js"></script>
+    <script defer src="shared/js/dialogs.js"></script>
+
+    <!-- This script is lazy loaded, but listed here so it gets packaged -->
+    <!-- <script defer src="shared/js/media/crop_resize_rotate.js"></script> -->
+
+    <!-- Web Components -->
+    <script defer src="shared/elements/config.js"></script>
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" />
+    <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/config.js"></script>
+    <script defer src="js/utils.js"></script>
     <script defer src="js/thumbnail_item.js"></script>
     <script defer src="js/thumbnail_date_group.js"></script>
     <script defer src="js/thumbnail_list.js"></script>
-    <script defer src="js/dialogs.js"></script>
+    <script defer src="js/ensure_file_backed_blob.js"></script>
+    <script defer src="js/spinner.js"></script>
+    <script defer src="js/overlay.js"></script>
+    <script defer src="js/nfc.js"></script>
     <script defer src="js/gallery.js"></script>
-
   </head>
 
-  <body role="application">
-    <section role="region" id="thumbnail-list-view" class="skin-organic">
-      <header id="thumbnails-list-top">
+  <body role="application" class="theme-media">
+    <section role="region" id="thumbnail-list-view" class="skin-dark">
+      <!-- Header only shown on tablet view  -->
+      <gaia-header id="thumbnails-list-top">
         <h1 id="thumbnail-list-title" data-l10n-id="gallery">Gallery</h1>
-      </header>
+      </gaia-header>
       <footer id="thumbnails-bottom">
-        <a id="thumbnails-camera-button" class="button"></a>
-        <a id="thumbnails-select-button" class="button"></a>
+        <a id="thumbnails-camera-button" class="button" data-icon="camera"></a>
+        <a id="thumbnails-select-button" class="button" data-icon="select"></a>
       </footer>
     </section>
 
     <section role="region" id="thumbnail-select-view" class="skin-dark">
-      <header id="thumbnails-select-top">
-        <button id="thumbnails-cancel-button"><span class="icon icon-close"></span></button>
+      <gaia-header id="selected-header" action="close">
         <h1 id="thumbnails-number-selected"></h1>
-      </header>
-
+      </gaia-header>
       <footer id="thumbnails-select-bottom">
-        <a id="thumbnails-delete-button" class="button"></a>
-        <a id="thumbnails-share-button" class="button"></a>
+        <a id="thumbnails-delete-button" class="button" data-icon="delete"></a>
+        <a id="thumbnails-share-button" class="button" data-icon="share"></a>
       </footer>
     </section>
-    <section role="region" id="fullscreen-view" class="skin-organic">
-      <header id="fullscreen-toolbar-header" class="large-only">
-        <menu type="toolbar">
-          <a id="fullscreen-camera-button-large">
-            <span class="icon icon-camera"></span>
-          </a>
-          <a id="fullscreen-edit-button-large">
-            <span class="icon icon-picedit"></span>
-          </a>
-          <a id="fullscreen-share-button-large">
-            <span class="icon icon-share"></span>
-          </a>
-          <a id="fullscreen-info-button-large">
-            <span class="icon icon-info"></span>
-          </a>
-          <a id="fullscreen-delete-button-large">
-            <span class="icon icon-delete"></span>
-          </a>
-        </menu>
-        <button id="fullscreen-back-button-large" class="large-only"><span class="icon icon-back"></span></button>
+    <section role="region" id="fullscreen-view" class="skin-dark">
+      <gaia-header id="fullscreen-toolbar-header" action="back" class="large-only">
         <h1 data-l10n-id="gallery" id="fullscreen-title">Gallery</h1>
-      </header>
+        <a id="fullscreen-camera-button-large">
+          <span data-icon="camera"></span>
+        </a>
+        <a id="fullscreen-edit-button-large">
+          <span data-icon="edit-image"></span>
+        </a>
+        <a id="fullscreen-share-button-large">
+          <span data-icon="share"></span>
+        </a>
+        <a id="fullscreen-info-button-large">
+          <span data-icon="info"></span>
+        </a>
+        <a id="fullscreen-delete-button-large">
+          <span data-icon="delete"></span>
+        </a>
+      </gaia-header>
       <div id="frames">
         <!-- the current photo plus next and previous waiting in the wings -->
         <div id="frame1" class="frame"></div>
         <div id="frame2" class="frame"></div>
         <div id="frame3" class="frame"></div>
       </div>
-      <button id="fullscreen-back-button-tiny" type="reset" class="tiny-only"></button>
+      <section role="status" id="edit-copy-save-banner" class="banner" hidden>
+        <p id="edit-copy-save-status"></p>
+      </section>
+      <button id="fullscreen-back-button-tiny" type="reset" class="tiny-only" data-icon="back"></button>
       <footer id="fullscreen-toolbar" class="tiny-only">
-        <a id="fullscreen-camera-button-tiny" class="button"></a>
-        <a id="fullscreen-edit-button-tiny" class="button"></a>
-        <a id="fullscreen-share-button-tiny" class="button"></a>
-        <a id="fullscreen-info-button-tiny" class="button"></a>
-        <a id="fullscreen-delete-button-tiny" class="button"></a>
+        <a id="fullscreen-camera-button-tiny" class="button" data-icon="camera"></a>
+        <a id="fullscreen-edit-button-tiny" class="button" data-icon="edit-image"></a>
+        <a id="fullscreen-share-button-tiny" class="button" data-icon="share"></a>
+        <a id="fullscreen-info-button-tiny" class="button" data-icon="info"></a>
+        <a id="fullscreen-delete-button-tiny" class="button" data-icon="delete"></a>
       </footer>
     </section>
     <form id="info-view" role="dialog" data-type="confirm" class="hidden">
@@ -118,34 +134,28 @@
                 data-l10n-id="close-button" class="full"></button>
       </menu>
     </form>
-    <section role="region" id="pick-view" class="skin-organic">
-      <header id="pick-top">
-        <button id="pick-back-button"><span class="icon icon-back"></span></button>
-        <h1 id="pick-header" data-l10n-id="pickoneimage2"></h1>
-      </header>
+    <section role="region" id="pick-view">
+      <gaia-header id="pick-header" action="close">
+        <h1 id="pick-header-title" data-l10n-id="pickoneimage2"></h1>
+      </gaia-header>
     </section>
 
-    <section role="region" id="crop-view" class="skin-organic">
-      <header id="crop-top">
-        <button id="crop-back-button"><span class="icon icon-back"></span></button>
-        <menu type="toolbar">
-          <button id="crop-done-button" data-l10n-id="done">done</button>
-        </menu>
+    <section role="region" id="crop-view" class="skin-dark">
+      <gaia-header id="crop-top" action="back">
         <h1 id="crop-header" data-l10n-id="cropimage"></h1>
-      </header>
+        <button id="crop-done-button" data-l10n-id="done">done</button>
+      </gaia-header>
       <div id="crop-frame">
         <img id="crop-image"></img>
       </div>
     </section>
 
     <section role="region" id="edit-view" class="skin-dark">
-      <header id="edit-header">
-        <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
-        <menu type="toolbar">
-          <button id="edit-save-button" data-l10n-id="done">done</button>
-        </menu>
+      <gaia-header id="edit-header" action="close">
         <h1 id="edit-title" data-l10n-id="edit"></h1>
-      </header>
+        <button id="edit-save-button" data-l10n-id="save">Save</button>
+        <button id="edit-tool-apply-button" data-l10n-id="apply" hidden>Apply</button>
+      </gaia-header>
 
       <!-- Indicates progress when saving -->
       <progress id="save-progress" value="0" max="120" class="hidden"></progress>
@@ -175,7 +185,7 @@
         </div>
 
         <div id="edit-crop-options" class="edit-options-bar hidden">
-          <a id="edit-crop-none" class="button"></a>
+          <a id="edit-crop-none" class="button" data-icon="undo"></a>
           <a id="edit-crop-aspect-free" class="selected radio button"></a>
           <a id="edit-crop-aspect-portrait" class="radio button"></a>
           <a id="edit-crop-aspect-landscape" class="radio button"></a>
@@ -194,19 +204,17 @@
           <a id="edit-effect-faded" class="radio button filter-faded bgimage"
              data-effect="faded"></a>
         </div>
-
-        <div id="edit-enhance-options" class="edit-options-bar hidden">
-          <span id="edit-enhance-status"></span>
-        </div>
-
       </div>
+      <section role="status" id="edit-enhance-banner" class="banner" hidden>
+        <p id="edit-enhance-status"></p>
+      </section>
 
       <!-- buttons for selecting the type of edit to perform -->
       <footer id="edit-toolbar">
-        <a id="edit-exposure-button" class="selected radio button"></a>
-        <a id="edit-crop-button" class="radio button"></a>
-        <a id="edit-effect-button" class="radio button"></a>
-        <a id="edit-enhance-button" class="radio button"></a>
+        <a id="edit-exposure-button" class="button" data-icon="brightness"></a>
+        <a id="edit-crop-button" class="button" data-icon="crop"></a>
+        <a id="edit-effect-button" class="button"></a>
+        <a id="edit-enhance-button" class="button"></a>
       </footer>
     </section>
 
@@ -219,7 +227,7 @@
       <!--
         <li>
           <div class="thumbnail-group-header">${group-header}</div>
-          <ul class="thumbnail-group-container"></ul>
+          <div class="thumbnail-group-container"></div>
         </li>
       -->
     </div>
@@ -229,6 +237,12 @@
       <div id="throbber"></div>
     </div>
 
+    <!-- See spinner.js -->
+    <!-- a spinner that we display in the center of the screen when -->
+    <!-- doing time-consuming operations like rotating images -->
+    <progress id="spinner" class="hidden"></progress>
+
+    <!-- See overlay.js -->
     <!-- display messages like "No Photos" and "No SD Card" here -->
     <form id="overlay" role="dialog" data-type="confirm" class="hidden">
       <section id="overlay-content">

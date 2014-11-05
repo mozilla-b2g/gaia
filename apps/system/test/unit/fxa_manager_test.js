@@ -245,10 +245,7 @@ suite('system/FxAccountManager >', function() {
     var id = 123;
     var dispatchEventStub;
     setup(function() {
-      dispatchEventStub = this.sinon.stub(window, 'dispatchEvent')
-        .throws('Should send content event');
-      dispatchEventStub.withArgs(sinon.match.has('type',
-                                 'mozFxAccountsRPContentEvent'));
+      dispatchEventStub = this.sinon.stub(window, 'dispatchEvent');
 
       FxAccountsUI._successMsg = 'success';
       FxAccountsManager.handleEvent({
@@ -269,7 +266,7 @@ suite('system/FxAccountManager >', function() {
     });
 
     test('on FxAccountsUI reply sendContentEvent', function() {
-      assert.isTrue(dispatchEventStub.called);
+      sinon.assert.calledOnce(dispatchEventStub);
     });
   });
 
@@ -279,7 +276,7 @@ suite('system/FxAccountManager >', function() {
       FxAccountsManager.onPortMessage({
         'detail': {
           'name': 'refreshAuthentication',
-          'accountId': 'dummy@domain.org'
+          'email': 'dummy@domain.org'
         }
       });
     });
@@ -290,7 +287,7 @@ suite('system/FxAccountManager >', function() {
 
     test('FxAccountsUI.refreshAuthentication called', function() {
       assert.equal(FxAccountsUI._call, 'refreshAuthentication');
-      assert.equal(FxAccountsUI._accountId, 'dummy@domain.org');
+      assert.equal(FxAccountsUI._email, 'dummy@domain.org');
     });
 
     test('Got fxa-mgmt port', function() {
@@ -313,7 +310,7 @@ suite('system/FxAccountManager >', function() {
       FxAccountsManager.onPortMessage({
         'detail': {
           'name': 'refreshAuthentication',
-          'accountId': 'dummy@domain.org'
+          'email': 'dummy@domain.org'
         }
       });
     });
@@ -324,7 +321,7 @@ suite('system/FxAccountManager >', function() {
 
     test('FxAccountsUI.refreshAuthentication called', function() {
       assert.equal(FxAccountsUI._call, 'refreshAuthentication');
-      assert.equal(FxAccountsUI._accountId, 'dummy@domain.org');
+      assert.equal(FxAccountsUI._email, 'dummy@domain.org');
     });
 
     test('Got fxa-mgmt port', function() {
@@ -345,10 +342,7 @@ suite('system/FxAccountManager >', function() {
     var id = 123;
     var dispatchEventStub;
     setup(function() {
-      dispatchEventStub = this.sinon.stub(window, 'dispatchEvent')
-        .throws('Should send content event');
-      dispatchEventStub.withArgs(sinon.match.has('type',
-                                 'mozFxAccountsRPContentEvent'));
+      dispatchEventStub = this.sinon.stub(window, 'dispatchEvent');
 
       FxAccountsUI._successMsg = 'success';
       FxAccountsManager.handleEvent({
@@ -356,7 +350,7 @@ suite('system/FxAccountManager >', function() {
           'id': id,
           'eventName': 'refreshAuthentication',
           'data': {
-            'accountId': 'dummy@domain.org'
+            'email': 'dummy@domain.org'
           }
         }
       });
@@ -369,12 +363,77 @@ suite('system/FxAccountManager >', function() {
 
     test('FxAccountsUI.refreshAuthentication called', function() {
       assert.equal(FxAccountsUI._call, 'refreshAuthentication');
-      assert.equal(FxAccountsUI._accountId, 'dummy@domain.org');
+      assert.equal(FxAccountsUI._email, 'dummy@domain.org');
     });
 
     test('on FxAccountsUI reply sendContentEvent', function() {
-      assert.isTrue(dispatchEventStub.called);
+      sinon.assert.calledOnce(dispatchEventStub);
     });
   });
+
+  suite('On resendVerificationEmail port message, successCb', function() {
+    setup(function() {
+      FxAccountsClient._successMsg = 'success';
+      FxAccountsManager.onPortMessage({
+        'detail': {
+          'name': 'resendVerificationEmail'
+        }
+      });
+    });
+
+    teardown(function() {
+      FxAccountsClient._reset();
+    });
+
+    test('FxAccountsClient.resendVerificationEmail called', function() {
+      assert.equal(FxAccountsClient._call, 'resendVerificationEmail');
+    });
+
+    test('Got fxa-mgmt port', function() {
+      assert.equal(MockIACPort._name, 'fxa-mgmt');
+    });
+
+    test('Sent success message through port', function() {
+      assert.equal(MockIACPort._messages.length, 1);
+      assert.ok(MockIACPort._messages[0] instanceof Object);
+      assert.deepEqual(MockIACPort._messages[0], {
+        'methodName': 'resendVerificationEmail',
+        'data': 'success'
+      });
+    });
+  });
+
+  suite('On resendVerificationEmail port message, errorCb', function() {
+    setup(function() {
+      FxAccountsClient._errorMsg = 'error';
+      FxAccountsManager.onPortMessage({
+        'detail': {
+          'name': 'resendVerificationEmail'
+        }
+      });
+    });
+
+    teardown(function() {
+      FxAccountsClient._reset();
+    });
+
+    test('FxAccountsClient.resendVerificationEmail called', function() {
+      assert.equal(FxAccountsClient._call, 'resendVerificationEmail');
+    });
+
+    test('Got fxa-mgmt port', function() {
+      assert.equal(MockIACPort._name, 'fxa-mgmt');
+    });
+
+    test('Sent success message through port', function() {
+      assert.equal(MockIACPort._messages.length, 1);
+      assert.ok(MockIACPort._messages[0] instanceof Object);
+      assert.deepEqual(MockIACPort._messages[0], {
+        'methodName': 'resendVerificationEmail',
+        'error': 'error'
+      });
+    });
+  });
+
 
 });

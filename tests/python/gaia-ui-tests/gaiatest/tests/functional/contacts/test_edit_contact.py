@@ -19,7 +19,9 @@ class TestContacts(GaiaTestCase):
         self.data_layer.insert_contact(self.contact)
 
     def test_edit_contact(self):
-        """https://moztrap.mozilla.org/manage/case/1310/"""
+        """
+        https://moztrap.mozilla.org/manage/case/1310/
+        """
 
         # First insert a new contact to edit
 
@@ -35,8 +37,6 @@ class TestContacts(GaiaTestCase):
         self.contact['givenName'] = 'gaia%s' % repr(time.time()).replace('.', '')[10:]
         self.contact['familyName'] = "testedit"
         self.contact['tel']['value'] = "02011111111"
-
-        # self.(*self._given_name_locator)
 
         edit_contact.type_given_name(self.contact['givenName'])
         edit_contact.type_family_name(self.contact['familyName'])

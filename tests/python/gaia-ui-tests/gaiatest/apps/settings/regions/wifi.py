@@ -10,12 +10,12 @@ from gaiatest.apps.base import Base
 
 class Wifi(Base):
 
-    _wifi_enabled_label_locator = (By.CSS_SELECTOR, '#wifi-enabled label')
-    _wifi_enabled_checkbox_locator = (By.CSS_SELECTOR, '#wifi-enabled input')
-    _available_networks_locator = (By.CSS_SELECTOR, '#wifi-availableNetworks > li > aside[class*="wifi-signal"]')
+    _wifi_enabled_label_locator = (By.CSS_SELECTOR, '.wifi-enabled label')
+    _wifi_enabled_checkbox_locator = (By.CSS_SELECTOR, '.wifi-enabled input')
+    _available_networks_locator = (By.CSS_SELECTOR, '.wifi-availableNetworks > li > aside[class*="wifi-signal"]')
     _password_input_locator = (By.CSS_SELECTOR, '#wifi-auth input[type="password"]')
     _password_ok_button_locator = (By.CSS_SELECTOR, '#wifi-auth button[type="submit"]')
-    _connected_message_locator = (By.CSS_SELECTOR, '#wifi-availableNetworks li.active small')
+    _connected_message_locator = (By.CSS_SELECTOR, '.wifi-availableNetworks li.active small')
 
     @property
     def is_wifi_enabled(self):
@@ -28,10 +28,8 @@ class Wifi(Base):
     def connect_to_network(self, network_info):
 
         # Wait for the networks to be found
-        this_network_locator = ('xpath', "//li/a[text()='%s']" % network_info['ssid'])
+        this_network_locator = ('xpath', "//li/a/span[text()='%s']" % network_info['ssid'])
         this_network = self.wait_for_element_present(*this_network_locator)
-
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [this_network])
         this_network.tap()
 
         if network_info.get('keyManagement'):
@@ -46,5 +44,8 @@ class Wifi(Base):
             password_input.send_keys(password)
             ok_button.tap()
 
-        Wait(self.marionette, timeout=60, ignored_exceptions=StaleElementException).until(
+        connected_message = self.marionette.find_element(*self._connected_message_locator)
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [connected_message])
+        timeout = max(self.marionette.timeout and self.marionette.timeout / 1000, 60)
+        Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
             lambda m: m.find_element(*self._connected_message_locator).text == "Connected")

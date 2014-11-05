@@ -76,7 +76,7 @@ We suggest keeping your global definitions alphabetically ordered, one line for 
 // example of too many globals - use commas to separate, whitespace is not sufficient
 /* global ActivityHandler, ActivityPicker, Attachment, AttachmentMenu, Compose,
     Contacts, Dialog, LinkActionHandler, LinkHelper, MessageManager,
-    MozActivity, MozSmsFilter, OptionMenu, Recipients, SMIL, Settings,
+    MozActivity, OptionMenu, Recipients, SMIL, Settings,
     Template, ThreadListUI, Threads, TimeHeaders URL, Utils, WaitingScreen */
 ```
 

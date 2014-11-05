@@ -1,22 +1,12 @@
 'use strict';
 
-mocha.setup({
-  globals: [
-    'Settings',
-    'MockL10n',
-    'LazyLoader',
-    'startupLocale',
-    'initLocale'
-  ]
-});
-
 suite('SettingsPanel', function() {
   suiteSetup(function(done) {
     testRequire([
       'modules/settings_panel',
       'modules/panel_utils',
       'modules/settings_cache',
-      'unit/mock_l10n'
+      'shared_mocks/mock_l10n'
     ], (function(settingsPanelFunc, PanelUtils, SettingsCache, MockL10n) {
       this.realL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
@@ -59,33 +49,35 @@ suite('SettingsPanel', function() {
       activateSpy.restore();
     });
 
-    test('uninit()', function() {
+    test('uninit()', function(done) {
       var panelElement = document.createElement('div');
       var settingsCacheRemoveEventListenerSpy =
-        sinon.spy(this.SettingsCache, 'removeEventListener');
+        this.sinon.spy(this.SettingsCache, 'removeEventListener');
       var panelRemoveEventListenerSpy =
-        sinon.spy(panelElement, 'removeEventListener');
+        this.sinon.spy(panelElement, 'removeEventListener');
 
-      this.panel.init(panelElement);
-      assert.isTrue(this.panel.initialized);
+      Promise.resolve(this.panel.init(panelElement))
+      .then(function() {
+        assert.isTrue(this.panel.initialized);
 
-      this.panel.uninit();
-      // initialized is false after uninitialized.
-      assert.isFalse(this.panel.initialized);
+        this.panel.uninit();
+        // initialized is false after uninitialized.
+        assert.isFalse(this.panel.initialized);
 
-      // Added listeners should be removed when uninit.
-      sinon.assert.calledWith(settingsCacheRemoveEventListenerSpy,
-        'settingsChange');
-      sinon.assert.calledWith(panelRemoveEventListenerSpy, 'change',
-        this.PanelUtils.onInputChange);
-      sinon.assert.calledWith(panelRemoveEventListenerSpy, 'click',
-        this.PanelUtils.onLinkClick);
+        // Added listeners should be removed when uninit.
+        sinon.assert.calledWith(settingsCacheRemoveEventListenerSpy,
+          'settingsChange');
+        sinon.assert.calledWith(panelRemoveEventListenerSpy, 'change',
+          this.PanelUtils.onInputChange);
+        sinon.assert.calledWith(panelRemoveEventListenerSpy, 'click',
+          this.PanelUtils.onLinkClick);
 
-      settingsCacheRemoveEventListenerSpy.restore();
-      panelRemoveEventListenerSpy.restore();
+        settingsCacheRemoveEventListenerSpy.restore();
+        panelRemoveEventListenerSpy.restore();
+      }.bind(this)).then(done, done);
     });
 
-    test('beforeShow()', function() {
+    test('beforeShow()', function(done) {
       var initSpy = sinon.spy(this.panel, 'init');
       var panelElement = document.createElement('div');
       var options = {};
@@ -95,54 +87,59 @@ suite('SettingsPanel', function() {
       var panelAddEventListenerSpy =
         sinon.spy(panelElement, 'addEventListener');
 
-      this.panel.beforeShow(panelElement, options);
-      // init should be called when beforeShow is called at the first time.
-      sinon.assert.calledWith(initSpy, panelElement, options);
-      // PanelUtils.preset should be called with the panel element.
-      sinon.assert.calledWith(presetSpy, panelElement);
-      // Related listeners should be added.
-      sinon.assert.calledWith(settingsCacheAddEventListenerSpy,
-        'settingsChange');
-      sinon.assert.calledWith(panelAddEventListenerSpy, 'change',
-        this.PanelUtils.onInputChange);
-      sinon.assert.calledWith(panelAddEventListenerSpy, 'click',
-        this.PanelUtils.onLinkClick);
+      Promise.resolve(this.panel.beforeShow(panelElement, options))
+      .then(function() {
+        // init should be called when beforeShow is called at the first time.
+        sinon.assert.calledWith(initSpy, panelElement, options);
+        // PanelUtils.preset should be called with the panel element.
+        sinon.assert.calledWith(presetSpy, panelElement);
+        // Related listeners should be added.
+        sinon.assert.calledWith(settingsCacheAddEventListenerSpy,
+          'settingsChange');
+        sinon.assert.calledWith(panelAddEventListenerSpy, 'change',
+          this.PanelUtils.onInputChange);
+        sinon.assert.calledWith(panelAddEventListenerSpy, 'click',
+          this.PanelUtils.onLinkClick);
 
-      presetSpy.restore();
-      settingsCacheAddEventListenerSpy.restore();
-      panelAddEventListenerSpy.restore();
+        presetSpy.restore();
+        settingsCacheAddEventListenerSpy.restore();
+        panelAddEventListenerSpy.restore();
+      }.bind(this)).then(done, done);
     });
 
-    test('show()', function() {
+    test('show()', function(done) {
       var initSpy = sinon.spy(this.panel, 'init');
       var panelElement = document.createElement('div');
       var options = {};
 
-      this.panel.show(panelElement, options);
-      // init should be called when show is called at the first time.
-      sinon.assert.calledWith(initSpy, panelElement, options);
+      Promise.resolve(this.panel.show(panelElement, options))
+      .then(function() {
+        // init should be called when show is called at the first time.
+        sinon.assert.calledWith(initSpy, panelElement, options);
+      }).then(done, done);
     });
 
-    test('hide()', function() {
+    test('hide()', function(done) {
       var panelElement = document.createElement('div');
       var settingsCacheRemoveEventListenerSpy =
-        sinon.spy(this.SettingsCache, 'removeEventListener');
+        this.sinon.spy(this.SettingsCache, 'removeEventListener');
       var panelRemoveEventListenerSpy =
-        sinon.spy(panelElement, 'removeEventListener');
+        this.sinon.spy(panelElement, 'removeEventListener');
 
-      this.panel.init(panelElement);
-      this.panel.hide();
+      Promise.resolve(this.panel.init(panelElement))
+      .then(this.panel.hide())
+      .then(function() {
+        // Added listeners should be removed when hiding.
+        sinon.assert.calledWith(settingsCacheRemoveEventListenerSpy,
+          'settingsChange');
+        sinon.assert.calledWith(panelRemoveEventListenerSpy, 'change',
+          this.PanelUtils.onInputChange);
+        sinon.assert.calledWith(panelRemoveEventListenerSpy, 'click',
+          this.PanelUtils.onLinkClick);
 
-      // Added listeners should be removed when hiding.
-      sinon.assert.calledWith(settingsCacheRemoveEventListenerSpy,
-        'settingsChange');
-      sinon.assert.calledWith(panelRemoveEventListenerSpy, 'change',
-        this.PanelUtils.onInputChange);
-      sinon.assert.calledWith(panelRemoveEventListenerSpy, 'click',
-        this.PanelUtils.onLinkClick);
-
-      settingsCacheRemoveEventListenerSpy.restore();
-      panelRemoveEventListenerSpy.restore();
+        settingsCacheRemoveEventListenerSpy.restore();
+        panelRemoveEventListenerSpy.restore();
+      }.bind(this)).then(done, done);
     });
   });
 
@@ -170,14 +167,17 @@ suite('SettingsPanel', function() {
       var internalFuncName = convertToInternalFuncName(funcName);
       test(internalFuncName + ' should be called when ' +
         funcName + ' is called',
-          function() {
+          function(done) {
             var spy = sinon.spy(this.mockOptions, internalFuncName);
             var panel = this.SettingsPanel(this.mockOptions);
             var panelElement = document.createElement('div');
             var options = {};
 
-            panel[funcName](panelElement, options);
-            sinon.assert.calledWith(spy, panelElement, options);
+            Promise
+            .resolve(panel[funcName](panelElement, options))
+            .then(function() {
+              sinon.assert.calledWith(spy, panelElement, options);
+            }).then(done, done);
       });
     });
 
@@ -185,33 +185,40 @@ suite('SettingsPanel', function() {
       var internalFuncName = convertToInternalFuncName(funcName);
       test(internalFuncName + ' shoule be called when ' +
         funcName + ' is called',
-          function() {
+          function(done) {
             var spy = sinon.spy(this.mockOptions, internalFuncName);
             var panel = this.SettingsPanel(this.mockOptions);
 
-            panel[funcName]();
-            sinon.assert.calledOnce(spy);
+            Promise
+            .resolve(panel[funcName]())
+            .then(function() {
+              sinon.assert.calledOnce(spy);
+            }).then(done, done);
       });
     });
 
     test('onUninit should be called when uninit is called',
-      function() {
+      function(done) {
         var spy = sinon.spy(this.mockOptions, 'onUninit');
         var panel = this.SettingsPanel(this.mockOptions);
 
-        panel.init();
-        panel.uninit();
-        sinon.assert.calledOnce(spy);
+        Promise.resolve(panel.init())
+        .then(function() {
+          panel.uninit();
+          sinon.assert.calledOnce(spy);
+        }).then(done, done);
     });
 
-    test('onInit should be called only once', function() {
+    test('onInit should be called only once', function(done) {
       var spy = sinon.spy(this.mockOptions, 'onInit');
       var panel = this.SettingsPanel(this.mockOptions);
       var panelElement = document.createElement('div');
 
-      panel.init(panelElement);
-      panel.init(panelElement);
-      sinon.assert.calledOnce(spy);
+      Promise.resolve(panel.init(panelElement))
+      .then(panel.init(panelElement))
+      .then(function() {
+        sinon.assert.calledOnce(spy);
+      }).then(done, done);
     });
 
     test('onUninit should not be called if it is not initialized', function() {

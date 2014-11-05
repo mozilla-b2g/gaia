@@ -1,23 +1,31 @@
 'use strict';
-/* global Rocketbar, MocksHelper, MockAppWindow, MockIACPort, SearchWindow */
+/* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow,
+   MockSystem */
 
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_search_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_iac_handler.js');
 
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
+  'SearchWindow',
   'SettingsListener',
+  'SettingsURL',
+  'System',
   'IACPort'
 ]).init();
-
-mocha.globals(['SearchWindow', 'Rocketbar']);
 
 suite('system/Rocketbar', function() {
   mocksForRocketbar.attachTestHelpers();
   var stubById;
+  var subject;
 
   setup(function(done) {
+    this.sinon.useFakeTimers();
+
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       if (id == 'rocketbar-input') {
         return document.createElement('input');
@@ -26,10 +34,9 @@ suite('system/Rocketbar', function() {
       }
     });
 
-    requireApp('system/js/search_window.js');
     requireApp('system/js/rocketbar.js', function() {
-      Rocketbar.init();
-      Rocketbar._port = MockIACPort;
+      subject = new Rocketbar();
+      subject._port = MockIACPort;
       done();
     });
   });
@@ -37,56 +44,34 @@ suite('system/Rocketbar', function() {
   teardown(function() {
     stubById.restore();
     MockIACPort.mTearDown();
-    Rocketbar._port = null;
+    subject._port = null;
+    MockSystem.currentApp = null;
   });
 
-  test('enable()', function() {
-    var addEventListenersStub = this.sinon.stub(Rocketbar,
+  test('start()', function() {
+    var addEventListenersStub = this.sinon.stub(subject,
       'addEventListeners');
-    Rocketbar.enable();
+    subject.start();
     assert.ok(addEventListenersStub.calledOnce);
-    assert.ok(Rocketbar.body.classList.contains('rb-enabled'));
-    assert.ok(Rocketbar.enabled);
+    assert.ok(subject.enabled);
     addEventListenersStub.restore();
-  });
-
-  test('disable()', function() {
-    var removeEventListenersStub = this.sinon.stub(Rocketbar,
-      'removeEventListeners');
-    Rocketbar.body.classList.add('rb-enabled');
-    Rocketbar.enabled = true;
-    Rocketbar.disable();
-    assert.ok(removeEventListenersStub.calledOnce);
-    assert.equal(Rocketbar.body.classList.contains('rb-enabled'), false);
-    assert.equal(Rocketbar.enabled, false);
-    removeEventListenersStub.restore();
   });
 
   test('addEventListeners()', function() {
     var windowAddEventListenerStub = this.sinon.stub(window,
       'addEventListener');
-    var rocketbarAddEventListenerStub = this.sinon.stub(Rocketbar.rocketbar,
+    var rocketbarAddEventListenerStub = this.sinon.stub(subject.rocketbar,
       'addEventListener');
-    var inputAddEventListenerStub = this.sinon.stub(Rocketbar.input,
+    var inputAddEventListenerStub = this.sinon.stub(subject.input,
       'addEventListener');
-    var formAddEventListenerStub = this.sinon.stub(Rocketbar.form,
+    var formAddEventListenerStub = this.sinon.stub(subject.form,
       'addEventListener');
 
-    Rocketbar.addEventListeners();
+    subject.addEventListeners();
 
     assert.ok(windowAddEventListenerStub.calledWith('apploading'));
-    assert.ok(windowAddEventListenerStub.calledWith('appforeground'));
     assert.ok(windowAddEventListenerStub.calledWith('apptitlechange'));
-    assert.ok(windowAddEventListenerStub.calledWith('applocationchange'));
-    assert.ok(windowAddEventListenerStub.calledWith('home'));
-    assert.ok(windowAddEventListenerStub.calledWith('cardviewclosedhome'));
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
-    assert.ok(windowAddEventListenerStub.calledWith('homescreenopened'));
-    assert.ok(windowAddEventListenerStub.calledWith('stackchanged'));
-    assert.ok(rocketbarAddEventListenerStub.calledWith('touchstart'));
-    assert.ok(rocketbarAddEventListenerStub.calledWith('touchmove'));
-    assert.ok(rocketbarAddEventListenerStub.calledWith('touchend'));
-    assert.ok(rocketbarAddEventListenerStub.calledWith('transitionend'));
     assert.ok(inputAddEventListenerStub.calledWith('blur'));
     assert.ok(inputAddEventListenerStub.calledWith('input'));
     assert.ok(formAddEventListenerStub.calledWith('submit'));
@@ -98,455 +83,391 @@ suite('system/Rocketbar', function() {
     formAddEventListenerStub.restore();
   });
 
-  test('removeEventListeners()', function() {
-    var windowRemoveEventListenerStub = this.sinon.stub(window,
-      'removeEventListener');
-    var rocketbarRemoveEventListenerStub = this.sinon.stub(Rocketbar.rocketbar,
-      'removeEventListener');
-    var inputRemoveEventListenerStub = this.sinon.stub(Rocketbar.input,
-      'removeEventListener');
-    var formRemoveEventListenerStub = this.sinon.stub(Rocketbar.form,
-      'removeEventListener');
-
-    Rocketbar.removeEventListeners();
-
-    assert.ok(windowRemoveEventListenerStub.calledWith('apploading'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('appforeground'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('apptitlechange'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('applocationchange'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('home'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('cardviewclosedhome'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('appopened'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('homescreenopened'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('stackchanged'));
-    assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchstart'));
-    assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchmove'));
-    assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchend'));
-    assert.ok(rocketbarRemoveEventListenerStub.calledWith('transitionend'));
-    assert.ok(inputRemoveEventListenerStub.calledWith('blur'));
-    assert.ok(inputRemoveEventListenerStub.calledWith('input'));
-    assert.ok(formRemoveEventListenerStub.calledWith('submit'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('iac-search-results'));
-
-    windowRemoveEventListenerStub.restore();
-    rocketbarRemoveEventListenerStub.restore();
-    inputRemoveEventListenerStub.restore();
-    formRemoveEventListenerStub.restore();
-  });
-
-  test('expand() - collapsed', function(done) {
-    window.addEventListener('rocketbarexpand', function() {
-      done();
-    });
-    Rocketbar.expand();
-    assert.ok(Rocketbar.rocketbar.classList.contains('expanded'));
-    assert.ok(Rocketbar.expanded);
-  });
-
-  test('expand() - already expanded', function() {
-    Rocketbar.expanded = true;
-    Rocketbar.expand();
-    assert.equal(Rocketbar.rocketbar.classList.contains('expanded'), false);
-  });
-
-  test('collapse() - expanded', function(done) {
-    var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
-    var blurStub = this.sinon.stub(Rocketbar, 'blur');
-    var exitHomeStub = this.sinon.stub(Rocketbar, 'exitHome');
-    Rocketbar.active = true;
-    Rocketbar.expanded = true;
-    window.addEventListener('rocketbarcollapse', function() {
-      done();
-    });
-    Rocketbar.collapse();
-    assert.ok(exitHomeStub.calledOnce);
-    assert.ok(hideResultsStub.calledOnce);
-    assert.ok(blurStub.calledOnce);
-    assert.equal(Rocketbar.rocketbar.classList.contains('expanded'), false);
-    assert.equal(Rocketbar.expanded, false);
-    hideResultsStub.restore();
-    blurStub.restore();
-    exitHomeStub.restore();
-  });
-
-  test('collapse() - already collapsed', function() {
-    var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
-    var blurStub = this.sinon.stub(Rocketbar, 'blur');
-    Rocketbar.collapse();
-    assert.ok(hideResultsStub.notCalled);
-    assert.ok(blurStub.notCalled);
-    hideResultsStub.restore();
-    blurStub.restore();
-  });
-
-  test('enterHome() - not already home', function() {
-    Rocketbar.onHomescreen = false;
-    var expandStub = this.sinon.stub(Rocketbar, 'expand');
-    Rocketbar.enterHome();
-    assert.ok(Rocketbar.onHomescreen);
-    assert.ok(expandStub.calledOnce);
-    Rocketbar.rocketbar.classList.contains('on-homescreen');
-  });
-
-  test ('enterHome() - already home', function() {
-    var expandStub = this.sinon.stub(Rocketbar, 'expand');
-    Rocketbar.onHomescreen = true;
-    Rocketbar.enterHome();
-    assert.ok(Rocketbar.onHomescreen);
-    assert.ok(expandStub.notCalled);
-    expandStub.restore();
-  });
-
-  test ('exitHome()', function() {
-    Rocketbar.onHomescreen = true;
-    Rocketbar.exitHome();
-    assert.ok(!Rocketbar.onHomescreen);
-    assert.ok(!Rocketbar.rocketbar.classList.contains('on-homescreen'));
-  });
-
   test('showResults()', function() {
-    Rocketbar.results.classList.add('hidden');
-    Rocketbar.showResults();
-    assert.equal(Rocketbar.results.classList.contains('hidden'), false);
+    subject.results.classList.add('hidden');
+    subject.showResults();
+    assert.equal(subject.results.classList.contains('hidden'), false);
+    assert.equal(subject.backdrop.classList.contains('results-shown'), true);
   });
 
   test('hideResults()', function() {
-    Rocketbar.hideResults();
-    assert.ok(Rocketbar.results.classList.contains('hidden'));
+    subject.activate();
+    var stub = this.sinon.stub(subject.searchWindow, 'hideContextMenu');
+
+    subject.hideResults();
+    assert.ok(subject.results.classList.contains('hidden'));
+    assert.equal(subject.backdrop.classList.contains('results-shown'), false);
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    sinon.assert.calledOnce(stub);
   });
 
-  test('showTaskManager()', function(done) {
-    var showResultsStub = this.sinon.stub(Rocketbar, 'showResults');
-    navigator.mozL10n = {
-      'get': function() {
-        return 'Search';
-      }
-    };
-    window.addEventListener('taskmanagershow', function() {
-      done();
-    });
-    Rocketbar.showTaskManager();
-    assert.ok(showResultsStub.calledOnce);
-    assert.equal(Rocketbar.input.value, '');
-    assert.equal(Rocketbar.titleContent.textContent, 'Search');
-    showResultsStub.restore();
+  test('selectAll()', function() {
+    var stub = this.sinon.stub(subject.input, 'setSelectionRange');
+    subject.selectAll();
+    sinon.assert.calledOnce(stub);
+    stub.restore();
   });
 
-  test('focus()', function(done) {
-    window.addEventListener('rocketbarfocus', function focus() {
-      window.removeEventListener('rocketbarfocus', focus);
-      done();
-    });
-    var loadSearchAppStub = this.sinon.stub(Rocketbar, 'loadSearchApp');
-    var handleKeyboardChangeStub = this.sinon.stub(Rocketbar,
-      'handleKeyboardChange');
-    Rocketbar.form.classList.add('hidden');
-    Rocketbar.activate();
-    Rocketbar.focus();
-    assert.ok(Rocketbar.rocketbar.classList.contains('active'));
-    assert.ok(Rocketbar.title.classList.contains('hidden'));
-    assert.equal(Rocketbar.form.classList.contains('hidden'), false);
-    assert.ok(Rocketbar.active);
+  test('focus()', function() {
+    var loadSearchAppStub = this.sinon.stub(subject, 'loadSearchApp')
+      .returns(Promise.resolve());
+    subject.form.classList.add('hidden');
+    subject.activate();
+    subject.focus();
+    assert.ok(subject.rocketbar.classList.contains('active'));
+    assert.equal(subject.form.classList.contains('hidden'), false);
+    assert.ok(subject.screen.classList.contains('rocketbar-focused'));
+    assert.ok(subject.active);
     assert.ok(loadSearchAppStub.calledOnce);
-    var event = new CustomEvent('keyboardchange');
-    Rocketbar.body.dispatchEvent(event);
-    assert.ok(handleKeyboardChangeStub.calledOnce);
     loadSearchAppStub.restore();
-    handleKeyboardChangeStub.restore();
   });
 
-  test('blur() - results hidden', function(done) {
-    window.addEventListener('rocketbarblur', function() {
-      done();
-    });
-    var handleKeyboardChangeStub = this.sinon.stub(Rocketbar,
-      'handleKeyboardChange');
-    Rocketbar.results.classList.add('hidden');
-    Rocketbar.title.classList.add('hidden');
-    Rocketbar.active = true;
-    Rocketbar.deactivate();
-    assert.equal(Rocketbar.title.classList.contains('hidden'), false);
-    assert.ok(Rocketbar.form.classList.contains('hidden'));
-    assert.equal(Rocketbar.active, false);
-    assert.ok(!Rocketbar.rocketbar.classList.contains('active'));
-    var event = new CustomEvent('keyboardchange');
-    Rocketbar.body.dispatchEvent(event);
-    assert.ok(handleKeyboardChangeStub.notCalled);
-    handleKeyboardChangeStub.restore();
+  test('blur() - results hidden', function() {
+    subject.results.classList.add('hidden');
+    subject.active = true;
+    subject.deactivate();
+    assert.ok(subject.form.classList.contains('hidden'));
+    assert.ok(!subject.screen.classList.contains('rocketbar-focused'));
+    assert.equal(subject.active, false);
+    assert.ok(!subject.rocketbar.classList.contains('active'));
   });
 
   test('blur() - results shown', function() {
-    Rocketbar.deactivate();
-    assert.equal(Rocketbar.form.classList.contains('hidden'), false);
+    subject.deactivate();
+    assert.equal(subject.form.classList.contains('hidden'), false);
   });
 
-  test('handleAppChange()', function() {
-    var handleLocationChangeStub = this.sinon.stub(Rocketbar,
-      'handleLocationChange');
-    var handleTitleChangeStub = this.sinon.stub(Rocketbar,
-      'handleTitleChange');
-    var exitHomeStub = this.sinon.stub(Rocketbar, 'exitHome');
-    var collapseStub = this.sinon.stub(Rocketbar, 'collapse');
-    var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
-     Rocketbar.handleAppChange();
-     assert.ok(handleLocationChangeStub.calledOnce);
-     assert.ok(handleTitleChangeStub.calledOnce);
-     assert.ok(exitHomeStub.calledOnce);
-     assert.ok(collapseStub.calledOnce);
-     assert.ok(hideResultsStub.calledOnce);
-     handleLocationChangeStub.restore();
-     handleTitleChangeStub.restore();
-     exitHomeStub.restore();
-     collapseStub.restore();
-     hideResultsStub.restore();
+  test('handleEvent() - attentionopening', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'attentionopening'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
   });
 
-  test('handleTitleChange()', function() {
-    var updateSearchIndexStub = this.sinon.stub(Rocketbar,
-      'updateSearchIndex');
-
-    // Title
-    var event = new CustomEvent('apptitlechange', { 'detail': {
-      'title': 'Example Title'
-    }});
-    Rocketbar.handleTitleChange(event);
-    assert.equal(Rocketbar.titleContent.textContent, 'Example Title');
-    assert.ok(updateSearchIndexStub.calledOnce);
-
-    // No title
-    event = new CustomEvent('apptitlechange', { 'detail': {
-    }});
-    Rocketbar.handleTitleChange(event);
-    assert.equal(Rocketbar.titleContent.textContent, '');
-
-    updateSearchIndexStub.restore();
+  test('handleEvent() - attentionopened', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'attentionopened'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
   });
 
-  test('handleTitleChange() - not current window', function() {
-    var updateSearchIndexStub = this.sinon.stub(Rocketbar,
-      'updateSearchIndex');
-    var appWindow = new MockAppWindow();
-    appWindow.isActive = function() {
-      return false;
+  test('handleEvent() - apploading', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+
+    // Bug 1071953 - Not called when stayBackground is true.
+    var event1 = {type: 'apploading', detail: {
+      stayBackground: true
+    }};
+    subject.handleEvent(event1);
+    assert.ok(hideResultsStub.notCalled);
+    assert.ok(deactivateStub.notCalled);
+
+    var event2 = {type: 'apploading'};
+    subject.handleEvent(event2);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - appforeground', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'appforeground'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - appopened', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'appopened'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - launchapp', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'launchapp'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - launchapp /w background', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'launchapp', detail: {
+      stayBackground: true
+    }};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.notCalled);
+    assert.ok(deactivateStub.notCalled);
+  });
+
+  test('handleEvent() - lockscreen-appopened', function() {
+    var handleLockStub = this.sinon.stub(subject, 'handleLock');
+    var event = {type: 'lockscreen-appopened'};
+    subject.handleEvent(event);
+    assert.ok(handleLockStub.calledOnce);
+  });
+
+  test('handleEvent() - focus', function() {
+    var handleFocusStub = this.sinon.stub(subject, 'handleFocus');
+    var event = {type: 'focus'};
+    subject.handleEvent(event);
+    assert.ok(handleFocusStub.calledOnce);
+  });
+
+  test('handleEvent() - home', function() {
+    var handleHomeStub = this.sinon.stub(subject, 'handleHome');
+    var event = {type: 'home'};
+    subject.handleEvent(event);
+    assert.ok(handleHomeStub.calledOnce);
+  });
+
+  test('handleEvent() - blur', function() {
+    var handleBlurStub = this.sinon.stub(subject, 'handleBlur');
+    var event = {type: 'blur'};
+    subject.handleEvent(event);
+    assert.ok(handleBlurStub.calledOnce);
+  });
+
+  test('handleEvent() - input', function() {
+    var handleInputStub = this.sinon.stub(subject, 'handleInput');
+    var event = {type: 'input'};
+    subject.handleEvent(event);
+    assert.ok(handleInputStub.calledOnce);
+  });
+
+  test('handleEvent() - click cancel button', function() {
+    var handleCancelStub = this.sinon.stub(subject, 'handleCancel');
+    var event = {type: 'click', target: subject.cancel};
+    subject.handleEvent(event);
+    assert.ok(handleCancelStub.calledOnce);
+  });
+
+  test('handleEvent() - click clear button', function() {
+    var clearStub = this.sinon.stub(subject, 'clear');
+    var event = {type: 'click', target: subject.clearBtn};
+    subject.handleEvent(event);
+    assert.ok(clearStub.calledOnce);
+  });
+
+  test('handleEvent() - click backdrop', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'click', target: subject.backdrop};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - launchactivity', function() {
+    var handleActivityStub = this.sinon.stub(subject, 'handleActivity');
+    var event = {type: 'launchactivity'};
+    subject.handleEvent(event);
+    assert.ok(handleActivityStub.calledOnce);
+  });
+
+  test('handleEvent() - searchterminated', function() {
+    var handleSearchTerminatedStub =
+      this.sinon.stub(subject, 'handleSearchTerminated');
+    var event = {type: 'searchterminated'};
+    subject.handleEvent(event);
+    assert.ok(handleSearchTerminatedStub.calledOnce);
+  });
+
+  test('handleEvent() - submit', function() {
+    var handleSubmitStub = this.sinon.stub(subject, 'handleSubmit');
+    var event = {type: 'submit'};
+    subject.handleEvent(event);
+    assert.ok(handleSubmitStub.calledOnce);
+  });
+
+  test('handleEvent() - iac-search-results', function() {
+    var handleSearchMessageStub =
+      this.sinon.stub(subject, 'handleSearchMessage');
+    var event = {type: 'iac-search-results'};
+    subject.handleEvent(event);
+    assert.ok(handleSearchMessageStub.calledOnce);
+  });
+
+  test('handleEvent() - open-app', function() {
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+
+    // Does not hide with frontWindow
+    subject.searchWindow = {
+      frontWindow: {}
     };
-    var event = new CustomEvent('apptitlechange', { 'detail' : appWindow});
-    Rocketbar.handleTitleChange(event);
-    assert.ok(updateSearchIndexStub.notCalled);
-    updateSearchIndexStub.restore();
-  });
+    window.dispatchEvent(new CustomEvent('open-app'));
+    assert.ok(deactivateStub.notCalled);
+    assert.ok(hideResultsStub.notCalled);
+    subject.searchWindow = null;
 
-  test('handleLocationChange() - browser window', function() {
-    var updateSearchIndexStub = this.sinon.stub(Rocketbar,
-      'updateSearchIndex');
-    Rocketbar.titleContent.textConent = 'value to clear';
-    var event = new CustomEvent('apptlocationchange', { 'detail': {
-      'config': {
-        'url': 'http://example.com'
+    // Bug 1071953 - Not called when showApp is false.
+    window.dispatchEvent(new CustomEvent('open-app', {
+      detail: {
+        showApp: false
       }
-    }});
-    Rocketbar.handleLocationChange(event);
-    assert.equal(Rocketbar.input.value, 'http://example.com');
-    assert.equal(Rocketbar.titleContent.textContent, '');
-    assert.ok(updateSearchIndexStub.calledOnce);
-    updateSearchIndexStub.restore();
+    }));
+    assert.ok(deactivateStub.notCalled);
+    assert.ok(hideResultsStub.notCalled);
+
+    // Does not hide if the search window is not open.
+    window.dispatchEvent(new CustomEvent('searchclosed'));
+    window.dispatchEvent(new CustomEvent('open-app'));
+    assert.ok(deactivateStub.notCalled);
+    assert.ok(hideResultsStub.notCalled);
+
+    // Hides if the search window is open.
+    window.dispatchEvent(new CustomEvent('searchopened'));
+
+    window.dispatchEvent(new CustomEvent('open-app'));
+    assert.ok(deactivateStub.calledOnce);
+    assert.ok(hideResultsStub.calledOnce);
   });
 
-  test('handleLocationChange() - app window', function() {
-    var updateSearchIndexStub = this.sinon.stub(Rocketbar,
-      'updateSearchIndex');
-    Rocketbar.input.value = 'value to clear';
-    Rocketbar.titleContent.textConent = 'value to clear';
-    var event = new CustomEvent('apptlocationchange', { 'detail': {
-      'config': {
-        'url': 'http://example.com'
+  test('handleEvent() - permissiondialoghide: active', function() {
+    var focusStub = this.sinon.stub(subject, 'focus');
+    var event = {type: 'permissiondialoghide'};
+    subject.active = true;
+    subject.handleEvent(event);
+    assert.ok(focusStub.calledOnce);
+  });
+
+  test('handleEvent() - permissiondialoghide: inactive', function() {
+    var focusStub = this.sinon.stub(subject, 'focus');
+    var event = {type: 'permissiondialoghide'};
+    subject.active = false;
+    subject.handleEvent(event);
+    assert.isFalse(focusStub.called);
+  });
+
+  test('handleEvent() - global-search-request: is app', function() {
+    var activeApp = {
+      config: {url: 'app.url'},
+      isBrowser: function() {}
+    };
+    MockSystem.currentApp = activeApp;
+    this.sinon.stub(activeApp, 'isBrowser').returns(true);
+    var setInputStub = this.sinon.stub(subject, 'setInput');
+    var activateStub = this.sinon.stub(subject, 'activate');
+    var event = {type: 'global-search-request'};
+    subject.handleEvent(event);
+    assert.ok(setInputStub.calledOnce);
+    assert.ok(activateStub.calledOnce);
+  });
+
+  test('handleEvent() - global-search-request: non app', function() {
+    var fakeTimer = this.sinon.useFakeTimers();
+    var activeApp = {
+      config: {url: 'app.url'},
+      isBrowser: function() {
+        return true;
       },
-      'manifestURL': 'http://example.com/manifest.webapp'
-    }});
-    Rocketbar.handleLocationChange(event);
-    assert.equal(Rocketbar.input.value, '');
-    assert.equal(Rocketbar.titleContent.textContent, '');
-    assert.ok(updateSearchIndexStub.calledOnce);
-    updateSearchIndexStub.restore();
+      appChrome: {
+        maximize: function() {},
+        isMaximized: function() {}
+      }
+    };
+    MockSystem.currentApp = activeApp;
+    var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
+    this.sinon.stub(subject, 'activate', function(cb) {
+      cb();
+    });
+    this.sinon.spy(subject, 'hideResults');
+    this.sinon.spy(subject, 'focus');
+    this.sinon.spy(subject, 'selectAll');
+    this.sinon.spy(subject, 'setInput');
+
+    var event = {type: 'global-search-request'};
+    subject.handleEvent(event);
+    maximize.getCall(0).args[0]();
+    this.sinon.clock.tick();
+
+    sinon.assert.callOrder(
+      subject.setInput,
+      activeApp.appChrome.maximize,
+      subject.activate,
+      subject.hideResults,
+      subject.focus,
+      subject.selectAll);
+    fakeTimer.restore();
+  });
+
+  test('handleEvent() - global-search-request: ' +
+    'appChrome.maximize is called for apps', function() {
+    var activeApp = {
+      config: {url: 'app.url'},
+      isBrowser: function() {
+        return false;
+      },
+      appChrome: {
+        maximize: function() {},
+        isMaximized: function() {}
+      }
+    };
+    MockSystem.currentApp = activeApp;
+
+    var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
+    this.sinon.stub(subject, 'activate', function(cb) {
+      cb();
+    });
+    this.sinon.spy(subject, 'focus');
+
+    var event = {type: 'global-search-request'};
+    subject.handleEvent(event);
+
+    maximize.getCall(0).args[0]();
+
+    sinon.assert.callOrder(
+      activeApp.appChrome.maximize,
+      subject.activate,
+      subject.focus);
+  });
+
+  test('handleEvent() - system-resize', function() {
+    subject.activate();
+    subject.searchWindow.frontWindow = {
+      resize: function() {}
+    };
+    var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
+    window.dispatchEvent(new CustomEvent('system-resize'));
+    assert.ok(stub.calledOnce);
   });
 
   test('handleHome()', function() {
-    navigator.mozL10n = {
-      'get': function() {
-        return 'Search';
-      }
-    };
-    var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
-    var enterHomeStub = this.sinon.stub(Rocketbar, 'enterHome');
-    var blurStub = this.sinon.stub(Rocketbar, 'deactivate');
-    Rocketbar.input.value = 'value to clear';
-    Rocketbar.handleHome();
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    subject.handleHome();
+    assert.ok(deactivateStub.calledOnce);
     assert.ok(hideResultsStub.calledOnce);
-    assert.equal(Rocketbar.input.value, '');
-    assert.equal(Rocketbar.titleContent.textContent, 'Search');
-    assert.ok(enterHomeStub.called);
-    assert.ok(blurStub.calledOnce);
-    hideResultsStub.restore();
-    enterHomeStub.restore();
-    blurStub.restore();
   });
 
-  test('handleTouch() - touchstart', function() {
-    var event = {
-      type: 'touchstart',
-      touches: [
-        {
-          pageY: 3
-        }
-      ]
-    };
-    Rocketbar.handleTouch(event);
-    assert.equal(Rocketbar._wasClicked, false);
-    assert.equal(Rocketbar._touchStart, 3);
-  });
-
-  test('handleTouch() - touchmove', function() {
-    // Assumes EXPANSION_THRESHOLD: 5, TASK_MANAGER_THRESHOLD: 200
-    var expandStub = this.sinon.stub(Rocketbar, 'expand');
-    var collapseStub = this.sinon.stub(Rocketbar, 'collapse');
-    var showTaskManagerStub = this.sinon.stub(Rocketbar, 'showTaskManager');
-
-    // Expand
-    Rocketbar._touchStart = 1;
-    var event = {
-      type: 'touchmove',
-      touches: [
-        {
-          pageY: 11 // Greater than 1+5, less than 1+200
-        }
-      ]
-    };
-    Rocketbar.handleTouch(event);
-    assert.ok(expandStub.calledOnce);
-    assert.ok(collapseStub.notCalled);
-    assert.ok(showTaskManagerStub.notCalled);
-
-    // Collapse
-    event = {
-      type: 'touchmove',
-      touches: [
-        {
-          pageY: -7 // Less than 1-5
-        }
-      ]
-    };
-    Rocketbar.handleTouch(event);
-    assert.ok(collapseStub.calledOnce);
-    assert.ok(showTaskManagerStub.notCalled);
-
-    // Show task manager
-    event = {
-      type: 'touchmove',
-      touches: [
-        {
-          pageY: 202 // More than 1+200
-        }
-      ]
-    };
-    Rocketbar.handleTouch(event);
-    assert.ok(showTaskManagerStub.calledOnce);
-
-    expandStub.restore();
-    collapseStub.restore();
-    showTaskManagerStub.restore();
-  });
-
-  test('handleTouch() - touchend', function() {
-    // Assumes EXPANSION_THRESHOLD: 5
-    var handleClickStub = this.sinon.stub(Rocketbar, 'handleClick');
-
-    // Not a click
-    Rocketbar._touchStart = 1;
-    var event = {
-      type: 'touchend',
-      changedTouches: [
-        {
-          pageY: 7 // More than 1+5
-        }
-      ]
-    };
-    Rocketbar.handleTouch(event);
-    assert.equal(Rocketbar._touchStart, -1);
-    assert.equal(handleClickStub.wasCalled);
-
-    // A click
-    event = {
-      type: 'touchend',
-      changedTouches: [
-        {
-          pageY: 3 // Between -1-5 and -1+5
-        }
-      ]
-    };
-    Rocketbar.handleTouch(event);
-    assert.ok(handleClickStub.calledOnce);
-    handleClickStub.restore();
-  });
-
-  test('handleClick()', function() {
-    var focusStub = this.sinon.stub(Rocketbar, 'focus');
-    var expandStub = this.sinon.stub(Rocketbar, 'expand');
-
-    // Expanded
-    Rocketbar.expanded = true;
-    Rocketbar.handleClick();
-    assert.ok(focusStub.calledOnce);
-
-    // Collapsed
-    Rocketbar.active = false;
-    Rocketbar.expanded = false;
-    Rocketbar.handleClick();
-    assert.ok(Rocketbar._wasClicked);
-    assert.ok(expandStub.calledOnce);
-
-    focusStub.restore();
-    expandStub.restore();
-  });
-
-  test('handleTransitionEnd()', function() {
-    var focusStub = this.sinon.stub(Rocketbar, 'focus');
-
-    // Not expanded
-    Rocketbar.handleTransitionEnd();
-    assert.ok(focusStub.notCalled);
-
-    // Expanded
-    Rocketbar.expanded = true;
-    Rocketbar._wasClicked = true;
-    Rocketbar.handleTransitionEnd();
-    assert.ok(focusStub.calledOnce);
-    assert.ok(!Rocketbar._wasClicked);
-    focusStub.restore();
-  });
-
-  test('handleInput()', function(done) {
-    var showResultsStub = this.sinon.stub(Rocketbar, 'showResults');
-    var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
+  test('handleInput()', function() {
+    var showResultsStub = this.sinon.stub(subject, 'showResults');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
 
     // With input
-    Rocketbar.input.value = 'abc';
-    Rocketbar.results.classList.add('hidden');
-    Rocketbar.handleInput();
+    subject.input.value = 'abc';
+    subject.results.classList.add('hidden');
+    subject.handleInput();
     assert.ok(showResultsStub.calledOnce);
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
 
     // With no input
-    Rocketbar.input.value = '';
-    Rocketbar.results.classList.remove('hidden');
-    Rocketbar.handleInput();
+    subject.input.value = '';
+    subject.results.classList.remove('hidden');
+    subject.handleInput();
     assert.ok(hideResultsStub.calledOnce);
-
-    // Task manager shown
-    Rocketbar.screen.classList.add('task-manager');
-    window.addEventListener('taskmanagerhide', function() {
-      done();
-    });
-    Rocketbar.handleInput();
 
     showResultsStub.restore();
     hideResultsStub.restore();
@@ -558,8 +479,16 @@ suite('system/Rocketbar', function() {
         done();
       }
     };
-    Rocketbar.handleSubmit(event);
+    subject.handleSubmit(event);
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
+  });
+
+  test('handleCancel()', function() {
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    subject.handleCancel();
+    assert.ok(deactivateStub.calledOnce);
+    assert.ok(hideResultsStub.calledOnce);
   });
 
   test('handleKeyboardChange()', function(done) {
@@ -568,52 +497,26 @@ suite('system/Rocketbar', function() {
         done();
       }
     };
-    Rocketbar.handleKeyboardChange(event);
-  });
-
-  test('handleStackChanged() - empty stack', function() {
-    Rocketbar.cardView = true;
-    var focusStub = this.sinon.stub(Rocketbar, 'activate');
-    var event = {
-      detail: {
-        sheets: []
-      }
-    };
-    Rocketbar.handleStackChanged(event);
-    assert.ok(focusStub.calledOnce);
-    focusStub.restore();
-  });
-
-  test('handleStackChanged() - non-empty stack', function() {
-    Rocketbar.expanded = true;
-    var focusStub = this.sinon.stub(Rocketbar, 'focus');
-    var event = {
-      detail: {
-        sheets: ['a', 'b', 'c']
-      }
-    };
-    Rocketbar.handleStackChanged(event);
-    assert.ok(focusStub.notCalled);
-    focusStub.restore();
+    subject.handleKeyboardChange(event);
   });
 
   test('loadSearchApp()', function() {
-    var initSearchConnectionStub = this.sinon.stub(Rocketbar,
+    var initSearchConnectionStub = this.sinon.stub(subject,
       'initSearchConnection');
-    Rocketbar._searchAppURL = 'http://search.example.com/';
-    Rocketbar._searchManifestURL = 'http://search.example.com/manifest.webapp';
+    subject._searchAppURL = 'http://search.example.com/';
+    subject._searchManifestURL = 'http://search.example.com/manifest.webapp';
 
     // searchFrame DOM
-    Rocketbar.loadSearchApp();
+    subject.loadSearchApp();
     assert.ok(initSearchConnectionStub.calledOnce);
 
     initSearchConnectionStub.restore();
   });
 
-  test('initSearchConnection()', function() {
-    var handleSearchMessageStub = this.sinon.stub(Rocketbar,
+  test('initSearchConnection()', function(done) {
+    var handleSearchMessageStub = this.sinon.stub(subject,
       'handleSearchMessage');
-    Rocketbar._pendingMessage = 'hi';
+    subject._pendingMessage = 'hi';
     var realMozApps = navigator.mozApps;
     navigator.mozApps = {};
     var app = { result: {
@@ -626,22 +529,23 @@ suite('system/Rocketbar', function() {
           };
        }
     }};
-    Rocketbar._port = null;
+    subject._port = null;
     navigator.mozApps.getSelf = function() { return app; };
-    Rocketbar.initSearchConnection();
-    app.onsuccess();
-    assert.equal(Rocketbar._port, 'abc');
-    assert.equal(Rocketbar._pendingMessage, null);
-    assert.ok(handleSearchMessageStub.calledOnce);
-    navigator.mozApps = realMozApps;
-    handleSearchMessageStub.restore();
+    subject.initSearchConnection().then(() => {
+      assert.equal(subject._port, 'abc');
+      assert.equal(subject._pendingMessage, null);
+      assert.ok(handleSearchMessageStub.calledOnce);
+      navigator.mozApps = realMozApps;
+      handleSearchMessageStub.restore();
+      done();
+    });
+    app.onsuccess({target: app});
   });
 
   test('handleSearchMessage()', function() {
-    var initSearchConnectionStub = this.sinon.stub(Rocketbar,
+    var initSearchConnectionStub = this.sinon.stub(subject,
       'initSearchConnection');
-    var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
-    var collapseStub = this.sinon.stub(Rocketbar, 'collapse');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
 
     // Input message
     var event = {
@@ -651,8 +555,11 @@ suite('system/Rocketbar', function() {
         input: 'http://example.com'
       }
     };
-    Rocketbar.handleSearchMessage(event);
-    assert.equal(Rocketbar.input.value, 'http://example.com');
+    var spy = sinon.spy(subject, 'focus');
+    subject.handleSearchMessage(event);
+    assert.equal(subject.input.value, 'http://example.com');
+    assert.isTrue(spy.called);
+    spy.restore();
 
     // Hide message
     event = {
@@ -661,46 +568,185 @@ suite('system/Rocketbar', function() {
         action: 'hide'
       }
     };
-    Rocketbar.handleSearchMessage(event);
+    subject.handleSearchMessage(event);
     assert.ok(hideResultsStub.calledOnce);
-    assert.ok(collapseStub.calledOnce);
 
     // No _port
-    Rocketbar._port = null;
-    Rocketbar.handleSearchMessage(event);
-    assert.equal(Rocketbar._pendingMessage, event);
+    subject._port = null;
+    subject.handleSearchMessage(event);
+    assert.equal(subject._pendingMessage, event);
     assert.ok(initSearchConnectionStub.calledOnce);
 
     initSearchConnectionStub.restore();
     hideResultsStub.restore();
-    collapseStub.restore();
   });
 
   test('updateSearchIndex()', function() {
-    var postMessageStub = this.sinon.stub(Rocketbar._port, 'postMessage');
-    Rocketbar.updateSearchIndex();
+    var postMessageStub = this.sinon.stub(subject._port, 'postMessage');
+    subject.updateSearchIndex();
     assert.ok(postMessageStub.calledOnce);
     postMessageStub.restore();
   });
 
-  test('handleSearchCrashed() - calls render after crash', function() {
-    Rocketbar.enable();
+  test('handleActivity()', function() {
+    subject.loadSearchApp();
 
-    Rocketbar._searchAppURL = 'http://search.example.com/';
-    Rocketbar._searchManifestURL = 'http://search.example.com/manifest.webapp';
+    var stubDispatchEvent = this.sinon.stub(subject.searchWindow,
+      'broadcast');
 
-    Rocketbar.searchWindow = null;
-
-    var publishStub = this.sinon.stub(SearchWindow.prototype, 'publish');
-
-    Rocketbar.loadSearchApp();
-    assert.ok(publishStub.calledOnce);
-
-    // Dispatch a crash event.
-    window.dispatchEvent(new CustomEvent('searchcrashed'));
-    Rocketbar.loadSearchApp();
-    assert.ok(publishStub.calledTwice);
+    subject.handleEvent({
+      type: 'launchactivity',
+      detail: {
+        isActivity: true,
+        inline: true,
+        parentApp: subject.searchWindow.manifestURL
+      },
+      stopImmediatePropagation: function() {}
+    });
+    assert.isTrue(stubDispatchEvent.called);
+    assert.equal(stubDispatchEvent.getCall(0).args[0], 'launchactivity');
+    assert.equal(stubDispatchEvent.getCall(0).args[1].isActivity, true);
   });
 
+  test('handleSearchTerminated() - calls render after crash', function() {
+    subject.start();
+
+    subject._searchAppURL = 'http://search.example.com/';
+    subject._searchManifestURL = 'http://search.example.com/manifest.webapp';
+
+    subject.searchWindow = null;
+    var spy = this.sinon.spy(window, 'MockSearchWindow');
+
+    subject.loadSearchApp();
+    assert.ok(spy.calledWithNew);
+    spy.restore();
+
+    // Dispatch a crash event.
+    window.dispatchEvent(new CustomEvent('searchterminated'));
+
+    assert.equal(subject.searchWindow, null);
+    assert.equal(subject._port, null);
+
+    subject.loadSearchApp();
+    assert.ok(spy.calledWithNew);
+
+    assert.ok(subject.searchWindow instanceof MockSearchWindow);
+    assert.equal(subject._port, null);
+  });
+
+  test('open', function() {
+    subject.activate();
+    var openStub = this.sinon.stub(subject.searchWindow, 'open');
+    var closeStub = this.sinon.stub(subject.searchWindow, 'close');
+    subject.showResults();
+    assert.isTrue(openStub.called);
+    subject.hideResults();
+    assert.isTrue(closeStub.called);
+  });
+
+  test('search window should not be opened again if it is dead', function() {
+    subject.activate();
+    this.sinon.stub(subject.searchWindow, 'isDead').returns(true);
+    var openStub = this.sinon.stub(subject.searchWindow, 'open');
+    subject.showResults();
+    assert.isFalse(openStub.called);
+  });
+
+  test('focus after geolocation hidden', function() {
+    var focusStub = this.sinon.stub(subject, 'focus');
+    subject.activate();
+    subject.active = true;
+    subject.handleEvent({type: 'permissiondialoghide'});
+    assert.ok(focusStub.calledOnce);
+    focusStub.restore();
+  });
+
+  test('Dont clear input when search app crashes', function() {
+    subject.input.value = 'value to not clear';
+    window.dispatchEvent(new CustomEvent('searchterminated'));
+    assert.equal(subject.input.value, 'value to not clear');
+  });
+
+  test('focus on render after a tick', function() {
+    var focusStub = this.sinon.stub(subject, 'focus');
+
+    subject.activate();
+    subject.active = true;
+    subject.handleSearchMessage({detail: {action: 'render'}});
+
+    sinon.assert.notCalled(focusStub);
+    this.sinon.clock.tick(1);
+    sinon.assert.calledOnce(focusStub);
+  });
+
+  suite('activate with a transition', function() {
+    test('done after transition and search app load', function(done) {
+      this.sinon.stub(subject, 'loadSearchApp').returns(Promise.resolve());
+      subject.activate(done);
+      subject.backdrop.dispatchEvent(new CustomEvent('transitionend'));
+    });
+
+    test('done after safety timeout and search app load', function(done) {
+      this.sinon.stub(subject, 'loadSearchApp').returns(Promise.resolve());
+      subject.activate(done);
+      this.sinon.clock.tick(500);
+    });
+  });
+
+  suite('deactivate with a transition', function() {
+    setup(function() {
+      subject.active = true;
+      subject.form.classList.remove('hidden');
+      subject.rocketbar.classList.add('active');
+      subject.focused = false;
+    });
+
+    test('should update the css classed properly', function() {
+      subject.deactivate();
+      assert.isTrue(subject.form.classList.contains('hidden'));
+      assert.isFalse(subject.rocketbar.classList.contains('active'));
+    });
+
+    test('should publish rocketbar-overlayclosed after the transition',
+    function(done) {
+      var published = false;
+      window.addEventListener('rocketbar-overlayclosed', function gotIt() {
+        published = true;
+        window.removeEventListener('rocketbar-overlayclosed', gotIt);
+
+        assert.ok(published);
+        done();
+      });
+      subject.deactivate();
+      assert.isFalse(published);
+      subject.backdrop.dispatchEvent(new CustomEvent('transitionend'));
+    });
+
+    suite('when the keyboard is displayed', function() {
+      setup(function() {
+        subject.screen.classList.add('rocketbar-focused');
+        subject.focused = true;
+        this.sinon.spy(subject, 'blur');
+      });
+
+      test('should blur, wait for the keyboard to leave, then exit',
+      function(done) {
+        window.addEventListener('rocketbar-overlayclosed', function gotIt() {
+          window.removeEventListener('rocketbar-overlayclosed', gotIt);
+          done();
+        });
+
+        subject.deactivate();
+
+        sinon.assert.calledOnce(subject.blur);
+        assert.isTrue(subject.screen.classList.contains('rocketbar-focused'));
+
+        window.dispatchEvent(new CustomEvent('keyboardhidden'));
+        assert.isFalse(subject.screen.classList.contains('rocketbar-focused'));
+
+        subject.backdrop.dispatchEvent(new CustomEvent('transitionend'));
+      });
+    });
+  });
 });
 

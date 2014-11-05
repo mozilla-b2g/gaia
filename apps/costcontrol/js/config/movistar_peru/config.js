@@ -3,7 +3,7 @@
 
 var MovistarPeruConfig = {
   provider: 'Movistar',
-  is_free: false,
+  is_free: true,
   credit: { currency: 'S/.' },
   balance: {
     destination: '600',

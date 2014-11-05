@@ -1,4 +1,4 @@
-/* globals MockNavigatorMozTelephony, HandledCall */
+/* globals HandledCall, MockNavigatorMozTelephony */
 /* exported telephonyAddCall, telephonyAddCdmaCall */
 
 'use strict';
@@ -81,7 +81,7 @@ function telephonyAddCall(mockCall, opt) {
 /* Should be called in the context of a suite after one call has already been
  * added via telephonyAddCall(). */
 function telephonyAddCdmaCall(number, opt) {
-  MockNavigatorMozTelephony.calls[0].secondNumber = number;
+  MockNavigatorMozTelephony.calls[0].secondId = { number: number };
   MockNavigatorMozTelephony.calls[0].state = 'connected';
 
   if (opt && opt.trigger) {

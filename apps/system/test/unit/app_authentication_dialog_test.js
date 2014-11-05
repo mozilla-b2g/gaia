@@ -1,15 +1,18 @@
 'use strict';
-
-mocha.globals(['AppWindow', 'System', 'BaseUI', 'AppAuthenticationDialog']);
+/* global AppAuthenticationDialog */
+/* global AppWindow */
+/* global MocksHelper */
+/* global MockL10n */
 
 requireApp('system/test/unit/mock_app_window.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForAppAuthDialog = new MocksHelper([
   'AppWindow'
 ]).init();
 
 suite('system/AppAuthenticationDialog', function() {
-  var stubById, stubQuerySelector;
+  var stubById, stubQuerySelector, realL10n;
   mocksForAppAuthDialog.attachTestHelpers();
   setup(function(done) {
     stubById = this.sinon.stub(document, 'getElementById');
@@ -17,6 +20,8 @@ suite('system/AppAuthenticationDialog', function() {
     stubQuerySelector = this.sinon.stub(e, 'querySelector');
     stubQuerySelector.returns(document.createElement('div'));
     stubById.returns(e);
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     requireApp('system/js/system.js');
     requireApp('system/js/base_ui.js');
@@ -26,6 +31,7 @@ suite('system/AppAuthenticationDialog', function() {
   teardown(function() {
     stubById.restore();
     stubQuerySelector.restore();
+    navigator.mozL10n = realL10n;
   });
 
   var fakeAppConfig1 = {
@@ -38,21 +44,23 @@ suite('system/AppAuthenticationDialog', function() {
   test('new', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var auth1 = new AppAuthenticationDialog(app1);
+    assert.ok(app1);
+    assert.ok(auth1);
   });
 
   test('show/hide', function() {
     var app1 = new AppWindow(fakeAppConfig1);
 
     var auth1 = new AppAuthenticationDialog(app1);
-    auth1.handleEvent({
-      type: 'mozbrowserrequireusernameandpassword',
-      preventDefault: function() {},
+    var evt = new CustomEvent('mozbrowserusernameandpasswordrequired', {
       detail: {
         host: '',
         realm: '',
         authenticate: function() {}
       }
     });
+    var stubStopPropagation = this.sinon.stub(evt, 'stopPropagation');
+    auth1.handleEvent(evt);
     auth1.hide();
 
     assert.isFalse(auth1.element.classList.contains('visible'));
@@ -60,5 +68,6 @@ suite('system/AppAuthenticationDialog', function() {
     auth1.show();
 
     assert.isTrue(auth1.element.classList.contains('visible'));
+    assert.isTrue(stubStopPropagation.called);
   });
 });

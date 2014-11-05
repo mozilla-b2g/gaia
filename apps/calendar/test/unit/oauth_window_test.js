@@ -1,6 +1,11 @@
-suiteGroup('OAuthWindow', function() {
-  'use strict';
+define(function(require) {
+'use strict';
 
+var OAuthWindow = require('oauth_window');
+var QueryString = require('querystring');
+var View = require('view');
+
+suite('OAuthWindow', function() {
   var subject;
   var url = 'https://foobar.com';
   var element;
@@ -21,17 +26,14 @@ suiteGroup('OAuthWindow', function() {
     element = document.createElement('section');
     element.innerHTML = [
       '<section role="region">',
-        '<header>',
-          '<button class="cancel">',
-            '<a>cancel</a>',
-          '</button>',
-          '<h1 class="toolbar"></h1>',
-        '</header>',
+        '<gaia-header id="oauth-header" action="cancel">',
+          '<h1 class="oauth-browser-title"></h1>',
+        '</gaia-header>',
         '<div class="browser-container"></div>',
       '</section>'
     ].join('');
 
-    subject = new Calendar.OAuthWindow(
+    subject = new OAuthWindow(
       element,
       url,
       params
@@ -43,7 +45,7 @@ suiteGroup('OAuthWindow', function() {
     assert.equal(subject.element, element);
     assert.deepEqual(
       subject.target,
-      url + '?' + Calendar.QueryString.stringify(params),
+      url + '?' + QueryString.stringify(params),
       '.target'
     );
   });
@@ -62,16 +64,16 @@ suiteGroup('OAuthWindow', function() {
     );
   });
 
-  test('.browserCancelButton', function() {
+  test('.browserHeader', function() {
     assert.equal(
-      subject.browerCancelButton,
-      element.querySelector('button.cancel')
+      subject.browserHeader,
+      element.querySelector(subject.selectors.browserHeader)
     );
   });
 
   test('without redirect_uri', function() {
     assert.throws(function() {
-      return new Calendar.OAuthWindow(url, {});
+      return new OAuthWindow(url, {});
     });
   });
 
@@ -86,7 +88,7 @@ suiteGroup('OAuthWindow', function() {
 
     test('is active', function() {
       assert.ok(
-        subject.element.classList.contains(Calendar.View.ACTIVE),
+        subject.element.classList.contains(View.ACTIVE),
         'is active'
       );
     });
@@ -138,8 +140,8 @@ suiteGroup('OAuthWindow', function() {
       };
 
       testSupport.calendar.triggerEvent(
-        subject.browerCancelButton,
-        'click'
+        subject.browserHeader,
+        'action'
       );
     });
 
@@ -162,7 +164,7 @@ suiteGroup('OAuthWindow', function() {
 
       emitLocationChange(
         params.redirect_uri + '?' +
-        Calendar.QueryString.stringify(successParams)
+        QueryString.stringify(successParams)
       );
     });
   });
@@ -180,7 +182,7 @@ suiteGroup('OAuthWindow', function() {
       assert.ok(!element.querySelector('iframe'), 'removes from dom');
       assert.isFalse(subject.isOpen, 'isOpen');
       assert.ok(
-        !element.classList.contains(Calendar.View.ACTIVE),
+        !element.classList.contains(View.ACTIVE),
         'is inactive'
       );
     });
@@ -195,12 +197,13 @@ suiteGroup('OAuthWindow', function() {
       };
 
       testSupport.calendar.triggerEvent(
-        subject.browerCancelButton,
-        'click'
+        subject.browserHeader,
+        'action'
       );
 
       assert.ok(!triggedClose, 'does not trigger close');
     });
   });
+});
 
 });

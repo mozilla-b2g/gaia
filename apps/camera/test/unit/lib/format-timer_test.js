@@ -6,11 +6,10 @@
 require('/shared/js/format.js');
 
 suite('Format Timer Unit Tests', function() {
-  var require = window.req;
   var subject;
 
   suiteSetup(function(done) {
-    require([
+    requirejs([
       'lib/format-timer'
     ], function(formattimer) {
       subject = formattimer;

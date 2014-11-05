@@ -72,6 +72,17 @@
       return 'homescreen';
     },
 
+    /**
+     * manifest URL of homescreen.
+     *
+     * @access public
+     * @memberOf HomescreenLauncher.prototype
+     * @type {string}
+     */
+    get manifestURL() {
+      return this._currentManifestURL;
+    },
+
     _fetchSettings: function hl_fetchSettings() {
       var that = this;
       SettingsListener.observe('homescreen.manifestURL', '',
@@ -110,9 +121,8 @@
      */
     start: function hl_start() {
       if (this._started) {
-        return this;
+        return;
       }
-
       this._started = true;
       if (applications.ready) {
         this._fetchSettings();
@@ -125,11 +135,10 @@
       window.addEventListener('appopening', this);
       window.addEventListener('appopened', this);
       window.addEventListener('keyboardchange', this);
-      window.addEventListener('cardviewbeforeshow', this);
-      window.addEventListener('cardviewbeforeclose', this);
       window.addEventListener('shrinking-start', this);
       window.addEventListener('shrinking-stop', this);
-      return this;
+      window.addEventListener('software-button-enabled', this);
+      window.addEventListener('software-button-disabled', this);
     },
 
     /**
@@ -151,10 +160,10 @@
       window.removeEventListener('trusteduihide', this);
       window.removeEventListener('trusteduishow', this);
       window.removeEventListener('applicationready', this._onAppReady);
-      window.removeEventListener('cardviewbeforeshow', this);
-      window.removeEventListener('cardviewbeforeclose', this);
       window.removeEventListener('shrinking-start', this);
       window.removeEventListener('shrinking-stop', this);
+      window.removeEventListener('software-button-enabled', this);
+      window.removeEventListener('software-button-disabled', this);
       this._started = false;
     },
 
@@ -167,8 +176,8 @@
     handleEvent: function hl_handleEvent(evt) {
       switch (evt.type) {
         case 'trusteduishow':
-          this.getHomescreen().toggle(true);
-          this.getHomescreen().fadeIn();
+          this.getHomescreen(true).toggle(true);
+          this.getHomescreen(true).fadeIn();
           break;
         case 'trusteduihide':
           this.getHomescreen().toggle(false);
@@ -191,15 +200,6 @@
           // hiding/switching keyboard.
           this.getHomescreen().fadeOut();
           break;
-        case 'cardviewbeforeshow':
-          // Fade out the homescreen before showing the cards view to avoid
-          // having it bleed through during the transition animation.
-          this.getHomescreen().fadeOut();
-          break;
-        case 'cardviewbeforeclose':
-          // Fade homescreen back in before the cards view closes.
-          this.getHomescreen().fadeIn();
-          break;
         case 'shrinking-start':
           // To hide the homescreen overlay while we set the background behind
           // it due to the shrinking UI.
@@ -209,6 +209,11 @@
           // To resume the homescreen after shrinking UI is over.
           this.getHomescreen().showFadeOverlay();
           break;
+        case 'software-button-enabled':
+        case 'software-button-disabled':
+          var homescreen = this.getHomescreen();
+          homescreen && homescreen.resize();
+          break;
       }
     },
 
@@ -216,10 +221,11 @@
      * Get instance of homescreen window singleton
      *
      * @memberOf HomescreenLauncher.prototype
+     * @params {Boolean} ensure Ensure the homescreen app is alive.
      * @returns {HomescreenWindow} Instance of homescreen window singleton, or
      *                             null if HomescreenLauncher is not ready
      */
-    getHomescreen: function hl_getHomescreen() {
+    getHomescreen: function hl_getHomescreen(ensure) {
       if (this._currentManifestURL === '') {
         console.warn('HomescreenLauncher: not ready right now.');
         return null;
@@ -228,7 +234,9 @@
         this._instance = new HomescreenWindow(this._currentManifestURL);
         return this._instance;
       } else {
-        this._instance.ensure();
+        if (ensure) {
+          this._instance.ensure();
+        }
         return this._instance;
       }
     }

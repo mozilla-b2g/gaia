@@ -1,7 +1,50 @@
 'use strict';
-
+/*
+ * This is a mock for the API navigator.mozSettings. This is supposed to be used
+ * in unit tests to simulate the API and exercize all branches of your code. It
+ * should simulate it correctly for get/set operations, and for observers as
+ * well.
+ *
+ * To use it, you need to have the following code in your test:
+ *
+ * var realMozSettings;
+ * suiteSetup(funcction() {
+ *   realMozSettings = navigator.mozSettings
+ *   navigator.mozSettings = MockNavigatorSettings
+ * });
+ *
+ * suiteTeardown(function() {
+ *   navigator.mozSettings = realMozSettings;
+ * });
+ *
+ * setup(function() {
+ *   MockNavigatorSettings.mSetup();
+ * });
+ *
+ * teardown(function() {
+ *   MockNavigatorSettings.mTeardown();
+ * });
+ *
+ * This mock is stateful until we reset it with mSetup or mTeardown. This means
+ * that any setting that has been set can also be retrieved.
+ * MockNavigatorSettings.mSettings gives a direct access to the stored settings.
+ * Then during a test, it's possible to check what setting(s) a code has set, or
+ * set settings before the test starts.
+ *
+ * In a normal operation, this mock uses setTimeout to properly simulate that
+ * mozSettings' get and set operations are asynchronous. Because setTimeout can
+ * have inconvenients (is slow, could produce races, intermittents, and sinon's
+ * fake timers do not play well), this mock also has a synchronous way for the
+ * get operation only:
+ *
+ * - you need to set the boolean MockNavigatorSettings.mSyncRepliesOnly to true
+ *   after calling mSetup.
+ * - then you can call mReplyToRequests to answer any pending request in a
+ *   synchronous way.
+ *
+ */
 (function(window) {
-  var observers, settings, removedObservers, requests;
+  var observers, settings, removedObservers, requests, timeouts;
   var _mSyncRepliesOnly, _onsettingchange;
 
   function mns_mLockSet(obj) {
@@ -19,35 +62,44 @@
     }
 
     var req = {
-      onsuccess: null,
-      onerror: null
+      addEventListener: function(name, cb) {
+        req['on' + name] = cb;
+      }
     };
 
-    setTimeout(function() {
-      if (req.onsuccess) {
-        req.onsuccess();
-      }
-    });
+    if (!_mSyncRepliesOnly) {
+      timeouts.push(setTimeout(function() {
+        if (req.onsuccess) {
+          req.onsuccess();
+        }
+      }));
+    } else {
+      requests.push(req);
+    }
 
     return req;
   }
 
   function mns_clearRequests() {
     requests = [];
+    if (timeouts) {
+      timeouts.forEach(clearTimeout);
+    }
+    timeouts = [];
   }
 
   function mns_mReplyToRequests() {
     try {
-      requests.forEach(function(request) {
+      var currentRequests = requests;
+      requests = [];
+      currentRequests.forEach(function(request) {
         if (request.onsuccess) {
           request.onsuccess({
             target: request
           });
         }
       });
-    }
-    finally {
-      requests = [];
+    } catch(e) {
     }
   }
 
@@ -64,13 +116,12 @@
         settingsRequest['on' + name] = cb;
       }
     };
-
     if (!_mSyncRepliesOnly) {
-      setTimeout(function() {
+      timeouts.push(setTimeout(function() {
         if (settingsRequest.onsuccess) {
           settingsRequest.onsuccess();
         }
-      });
+      }));
     } else {
       requests.push(settingsRequest);
     }
@@ -84,6 +135,9 @@
   }
 
   function mns_removeObserver(name, cb) {
+    if (!observers[name]) {
+      return;
+    }
     removedObservers[name] = removedObservers[name] || [];
     removedObservers[name].push(cb);
 
@@ -102,6 +156,7 @@
 
   function mns_mTriggerObservers(name, args) {
     var theseObservers = observers[name];
+    args.settingName = name;
     if (theseObservers) {
       theseObservers.forEach(function(func) {
         func(args);
@@ -117,7 +172,7 @@
     observers = {};
     settings = {};
     removedObservers = {};
-    requests = [];
+    mns_clearRequests();
     _mSyncRepliesOnly = false;
     _onsettingchange = null;
   }

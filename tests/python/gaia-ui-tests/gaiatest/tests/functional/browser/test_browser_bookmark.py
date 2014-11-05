@@ -5,8 +5,8 @@
 import time
 
 from gaiatest import GaiaTestCase
-from gaiatest.apps.browser.app import Browser
 from gaiatest.apps.homescreen.app import Homescreen
+from gaiatest.apps.search.app import Search
 
 
 class TestBrowserBookmark(GaiaTestCase):
@@ -15,20 +15,22 @@ class TestBrowserBookmark(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.connect_to_network()
+        self.connect_to_local_area_network()
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
+
+        self.test_url = self.marionette.absolute_url('mozilla.html')
 
         curr_time = repr(time.time()).replace('.', '')
         self.bookmark_title = 'gaia%s' % curr_time[10:]
 
     def test_browser_bookmark(self):
-        browser = Browser(self.marionette)
-        browser.launch()
+        search = Search(self.marionette)
+        search.launch()
 
-        browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
-        browser.tap_bookmark_button()
+        browser = search.go_to_url(self.test_url)
+        browser.tap_menu_button()
+        bookmark = browser.tap_add_to_home()
 
-        bookmark = browser.tap_add_bookmark_to_home_screen_choice_button()
-        bookmark.switch_to_add_bookmark_frame()
         bookmark.type_bookmark_title(self.bookmark_title)
         bookmark.tap_add_bookmark_to_home_screen_dialog_button()
 
@@ -36,6 +38,19 @@ class TestBrowserBookmark(GaiaTestCase):
         self.device.touch_home_button()
 
         homescreen = Homescreen(self.marionette)
+        homescreen.wait_for_app_icon_present(self.bookmark_title)
         self._bookmark_added = homescreen.is_app_installed(self.bookmark_title)
 
         self.assertTrue(self._bookmark_added, 'The bookmark %s was not found to be installed on the home screen.' % self.bookmark_title)
+
+        # Delete the bookmark
+        homescreen.activate_edit_mode()
+        homescreen.bookmark(self.bookmark_title).tap_delete_app().tap_confirm(bookmark=True)
+
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)
+        self.apps.switch_to_displayed_app()
+        homescreen.wait_for_bookmark_icon_not_present(self.bookmark_title)
+
+        # Check that the bookmark icon is no longer displayed on the homescreen
+        self._bookmark_added = homescreen.is_app_installed(self.bookmark_title)
+        self.assertFalse(self._bookmark_added, 'The bookmark %s was not successfully removed from homescreen.' % self.bookmark_title)

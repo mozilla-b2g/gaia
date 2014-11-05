@@ -1,9 +1,7 @@
+/* global MocksHelper, MockL10n, AppWindow, AppModalDialog */
 'use strict';
 
-mocha.globals(['AppWindow', 'AppModalDialog', 'System', 'BaseUI']);
-
-
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 
@@ -54,6 +52,7 @@ suite('system/AppModalDialog', function() {
   var fakeAlertEvent = {
     type: 'mozbrowsermodalprompt',
     preventDefault: function() {},
+    stopPropagation: function() {},
     detail: {
       type: 'alert',
       title: 'alert title',
@@ -65,6 +64,7 @@ suite('system/AppModalDialog', function() {
   var fakeConfirmEvent = {
     type: 'mozbrowsermodalprompt',
     preventDefault: function() {},
+    stopPropagation: function() {},
     detail: {
       type: 'confirm',
       title: 'confirm title',
@@ -76,6 +76,7 @@ suite('system/AppModalDialog', function() {
   var fakePromptEvent = {
     type: 'mozbrowsermodalprompt',
     preventDefault: function() {},
+    stopPropagation: function() {},
     detail: {
       type: 'prompt',
       title: 'prompt title',
@@ -87,6 +88,7 @@ suite('system/AppModalDialog', function() {
   var fakeCustomPromptEvent = {
     type: 'mozbrowsermodalprompt',
     preventDefault: function() {},
+    stopPropagation: function() {},
     detail: {
       type: 'custom-prompt',
       unblock: function() {},
@@ -95,20 +97,20 @@ suite('system/AppModalDialog', function() {
     }
   };
 
-  function attachModalDialog() {
-  }
-
   test('New', function() {
     assert.isDefined(md.instanceID);
   });
 
   test('Alert', function() {
+    var stubStopPropagation =
+      this.sinon.stub(fakeAlertEvent, 'stopPropagation');
     md.handleEvent(fakeAlertEvent);
 
     assert.isTrue(md.element.classList.contains('visible'));
     assert.isTrue(md.elements.alert.classList.contains('visible'));
     assert.equal(md.elements.alertTitle.innerHTML, 'alert title');
     assert.equal(md.elements.alertMessage.innerHTML, 'alert message');
+    assert.isTrue(stubStopPropagation.called);
   });
 
   test('Confirm', function() {

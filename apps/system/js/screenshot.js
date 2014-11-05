@@ -1,3 +1,5 @@
+/* global MozActivity */
+
 'use strict';
 
 (function(exports) {
@@ -45,7 +47,7 @@
       }
       this._started = true;
 
-      window.addEventListener('home+sleep', this);
+      window.addEventListener('volumedown+sleep', this);
       window.addEventListener('mozChromeEvent', this);
     },
 
@@ -59,7 +61,7 @@
       }
       this._started = false;
 
-      window.removeEventListener('home+sleep', this);
+      window.removeEventListener('volumedown+sleep', this);
       window.removeEventListener('mozChromeEvent', this);
     },
 
@@ -70,7 +72,7 @@
      */
     handleEvent: function(evt) {
       switch (evt.type) {
-        case 'home+sleep':
+        case 'volumedown+sleep':
           this.takeScreenshot();
           break;
 
@@ -125,12 +127,29 @@
 
           var saveRequest = storage.addNamed(file, filename);
 
+          var openImage = function openImage() {
+            var request = storage.get(filename);
+            request.onsuccess = function() {
+              var imgblob = this.result;
+              /*jshint nonew: false */
+              new MozActivity({
+                name: 'open',
+                data: {
+                  type: imgblob.type,
+                  filename: filename,
+                  blob: imgblob,
+                  exitWhenHidden: true
+                }
+              });
+            };
+          };
+
           saveRequest.onsuccess = (function ss_onsuccess() {
             // Vibrate again when the screenshot is saved
             navigator.vibrate(100);
 
             // Display filename in a notification
-            this._notify('screenshotSaved', filename);
+            this._notify('screenshotSaved', filename, null, openImage);
           }).bind(this);
 
           saveRequest.onerror = (function ss_onerror() {
@@ -186,23 +205,25 @@
     /**
      * Display a screenshot success or failure notification.
      * Localize the first argument, and localize the third if the second is null
-     * @param  {String} titleid l10n ID of the string to show.
-     * @param  {String} body    Label to show as body, or null.
-     * @param  {String} bodyid  l10n ID of the label to show as body.
+     * @param  {String} titleid  l10n ID of the string to show.
+     * @param  {String} body     Label to show as body, or null.
+     * @param  {String} bodyid   l10n ID of the label to show as body.
+     * @param  {String} onClick  Optional handler if the notification is clicked
      * @memberof Screenshot.prototype
      */
-    _notify: function notify(titleid, body, bodyid) {
+    _notify: function notify(titleid, body, bodyid, onClick) {
       var title = navigator.mozL10n.get(titleid) || titleid;
       body = body || navigator.mozL10n.get(bodyid);
       var notification = new window.Notification(title, {
         body: body,
-        icon: 'style/icons/Gallery.png'
+        icon: '/style/icons/Gallery.png'
       });
 
-      // We had to do something here, or jshint will complain about either
-      // an unused variable (notification) or
-      // a consturctor with side effect (Notification).
-      notification.onclick = function noop() {
+      notification.onclick = function() {
+        notification.close();
+        if (onClick) {
+          onClick();
+        }
       };
     }
   };

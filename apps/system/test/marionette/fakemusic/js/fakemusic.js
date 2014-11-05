@@ -110,4 +110,6 @@ var FakeMusic = {
   }
 };
 
-FakeMusic.init();
+window.addEventListener('load', function() {
+  FakeMusic.init();
+});

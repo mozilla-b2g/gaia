@@ -1,6 +1,6 @@
 'use strict';
 /* global contacts */
-/* global MockActivities */
+/* global ActivityHandler */
 /* global MockAlphaScroll */
 /* global MockasyncStorage */
 /* global MockCookie */
@@ -11,21 +11,23 @@
 /* global Mockfb */
 /* global MockImageLoader */
 /* global MockMozContacts */
-/* global MockPerformanceTestingHelper */
 /* global MockURL */
 /* global MocksHelper */
 /* global MockNavigationStack */
 /* global Normalizer */
+/* global ICEStore */
+/* global LazyLoader */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/tag_visibility_monitor.js');
+require('/shared/js/contacts/utilities/dom.js');
+require('/shared/js/contacts/utilities/templates.js');
+require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
-requireApp('communications/contacts/js/views/search.js');
+require('/shared/js/contacts/search.js');
+require('/shared/js/contacts/utilities/ice_store.js');
 requireApp('communications/contacts/js/views/list.js');
-requireApp('communications/contacts/js/utilities/dom.js');
-requireApp('communications/contacts/js/utilities/event_listeners.js');
-requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -36,8 +38,8 @@ requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
-require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
+requireApp('communications/contacts/js/utilities/performance_helper.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
@@ -63,16 +65,8 @@ if (!window.mozL10n) {
   window.mozL10n = null;
 }
 
-if (!window.ActivityHandler) {
-  window.ActivityHandler = null;
-}
-
 if (!window.ImageLoader) {
   window.ImageLoader = null;
-}
-
-if (!window.PerformanceTestingHelper) {
-  window.PerformanceTestingHelper = null;
 }
 
 if (!window.asyncStorage) {
@@ -84,7 +78,8 @@ if (!window.asyncScriptsLoaded) {
 }
 
 var mocksForListView = new MocksHelper([
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'ActivityHandler'
 ]).init();
 
 suite('Render contacts list', function() {
@@ -99,10 +94,8 @@ suite('Render contacts list', function() {
       realContacts,
       realFb,
       realImageLoader,
-      realPerformanceTestingHelper,
       realAsyncStorage,
       mockContacts,
-      realActivities,
       realURL,
       groupA,
       groupB,
@@ -112,6 +105,7 @@ suite('Render contacts list', function() {
       groupGreek,
       groupCyrillic,
       groupFav,
+      groupsContainer,
       groupUnd,
       containerA,
       containerB,
@@ -129,7 +123,8 @@ suite('Render contacts list', function() {
       settings,
       searchSection,
       noContacts,
-      realMozContacts;
+      realMozContacts,
+      fastScroll;
 
   function doLoad(list, values, callback) {
     var handler = function() {
@@ -159,9 +154,9 @@ suite('Render contacts list', function() {
   // Poor man's way of delaying until an element is onscreen as determined
   // by the visibility monitor.
   function doOnscreen(list, element, callback) {
+    var uuid = element.dataset.uuid;
+    list.notifyRowOnScreenByUUID(uuid, callback);
     element.scrollIntoView(true);
-    // XXX Replace this with a true callback from monitor or list
-    window.setTimeout(callback);
   }
 
   function assertNoGroup(title, container) {
@@ -184,13 +179,29 @@ suite('Render contacts list', function() {
   }
 
   function assertContactFound(contact) {
-    var selectorStr = 'li';
-    selectorStr = 'li.contact-item';
+    var selectorStr = 'li.contact-item';
 
     var showContact = searchList.querySelectorAll(selectorStr);
-    assert.length(showContact, 1);
+    assert.lengthOf(showContact, 1);
     assert.equal(showContact[0].dataset.uuid, contact.id);
     assert.isTrue(noResults.classList.contains('hide'));
+  }
+
+  function assertHighlight(phrase) {
+    var selectorStr = 'li.contact-item';
+    var showContact = searchList.querySelectorAll(selectorStr);
+    assert.isTrue(showContact.length > 0);
+
+    var regExp = new RegExp('^' + phrase + '$', 'i');
+    var highlightClass = contacts.Search.getHighlightClass();
+    var highlightedNodes = searchList.getElementsByClassName(highlightClass);
+    for (var i = 0, l = highlightedNodes.length; i < l; i++) {
+      // we want to be non-case-sensitive so simple comparision
+      // of string will not work here. There could also be problems
+      // with different languages when using String.toLowerCase(),
+      // thats why we use Regular Expressions
+      assert.isTrue(regExp.test(highlightedNodes[i].innerHTML));
+    }
   }
 
   function getStringToBeOrdered(contact, orderByLastName) {
@@ -249,21 +260,16 @@ suite('Render contacts list', function() {
     containerSection.innerHTML += '<menu id="standard-menu" type="toolbar">' +
       '<button id="add-contact-button"><span></span></button>' +
       '<button id="settings-button"><span></span></button>' +
-      '<button id="select-action" class="hide"><span></span></button>' +
-      '</menu>' + '<menu id="select-menu" type="toolbar" class="hide">' +
-      '<button role="menuitem" id="select-action"></button>' +
-      '</menu>';
+    '</menu>';
     document.body.appendChild(containerSection);
 
     container = document.createElement('div');
     containerSection.appendChild(container);
 
-    var groupsContainer = document.createElement('div');
+    groupsContainer = document.createElement('div');
     groupsContainer.id = 'groups-container';
     groupsContainer.innerHTML += '<section data-type="list" ' +
       'id="groups-list"></section>';
-    groupsContainer.innerHTML += '<nav data-type="scrollbar">';
-    groupsContainer.innerHTML += '<p></p></nav>';
 
     // We need this minimal amount of style for scrolling and the visibility
     // monitor to work correctly.
@@ -275,14 +281,20 @@ suite('Render contacts list', function() {
     loading.id = 'loading-overlay';
     settings = document.createElement('div');
     settings.id = 'view-settings';
-    settings.innerHTML = '<div class="view-body-inner"></div>';
+    settings.innerHTML = '<button id="settings-close"' +
+                                          'data-l10n-id="done">Done</button>';
+    settings.innerHTML += '<div class="view-body-inner"></div>';
     noContacts = document.createElement('div');
     noContacts.id = 'no-contacts';
     list = container.querySelector('#groups-list');
+    fastScroll = document.createElement('nav');
+    fastScroll.dataset.type = 'scrollbar';
+    fastScroll.innerHTML = '<p></p>';
 
     document.body.appendChild(loading);
     document.body.appendChild(settings);
     document.body.appendChild(noContacts);
+    document.body.appendChild(fastScroll);
 
     searchSection = document.createElement('section');
     searchSection.id = 'search-view';
@@ -315,10 +327,16 @@ suite('Render contacts list', function() {
 
     selectSection = document.createElement('form');
     selectSection.id = 'selectable-form';
-    selectSection.innerHTML = '<menu id="select-all-wrapper">' +
+    selectSection.innerHTML = '<section role="region">' +
+    '<gaia-header id="selectable-form-header" action="close">' +
+      '<h1 id="edit-title" data-l10n-id="contacts"></h1>' +
+      '<button type="button" id="select-action"></button>' +
+    '</gaia-header>' +
+    '</section>' +
+    '<menu id="select-all-wrapper">' +
       '<button id="deselect-all" disabled="disabled"></button>' +
       '<button id="select-all"></button>' +
-      '</menu>';
+    '</menu>';
 
     document.body.appendChild(selectSection);
 
@@ -370,17 +388,19 @@ suite('Render contacts list', function() {
     realFb = window.fb;
     window.fb = Mockfb;
     window.Contacts.extServices = MockExtFb;
-    realActivities = window.ActivityHandler;
-    window.ActivityHandler = MockActivities;
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
     realURL = window.URL || {};
-    realPerformanceTestingHelper = window.PerformanceTestingHelper;
-    window.PerformanceTestingHelper = MockPerformanceTestingHelper;
     window.URL = MockURL;
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
     window.utils.cookie = MockCookie;
+    sinon.stub(window.utils.cookie, 'load', function() {
+      return {
+        order: true,
+        defaultImage: true
+      };
+    });
     realMozContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
     subject = contacts.List;
@@ -402,9 +422,7 @@ suite('Render contacts list', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
-    window.ActivityHandler = realActivities;
-    window.ImageLoader = realActivities;
-    window.PerformanceTestingHelper = realPerformanceTestingHelper;
+    window.ImageLoader = realImageLoader;
     window.asyncStorage = realAsyncStorage;
     navigator.mozContacts = realMozContacts;
     mocksForListView.suiteTeardown();
@@ -454,6 +472,11 @@ suite('Render contacts list', function() {
       window.fb.isEnabled = false;
     });
 
+    setup(function() {
+      this.sinon.spy(window.utils.PerformanceHelper, 'contentInteractive');
+      this.sinon.spy(window.utils.PerformanceHelper, 'loadEnd');
+    });
+
     test('first time', function() {
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
@@ -468,6 +491,9 @@ suite('Render contacts list', function() {
       assertNoGroup(groupD, containerD);
       assertNoGroup(groupGreek, containerGreek);
       assertNoGroup(groupCyrillic, containerCyrillic);
+      sinon.assert.calledOnce(
+        window.utils.PerformanceHelper.contentInteractive);
+      sinon.assert.calledOnce(window.utils.PerformanceHelper.loadEnd);
     });
 
     test('adding one at the beginning', function() {
@@ -798,6 +824,8 @@ suite('Render contacts list', function() {
       subject.remove('2');
       subject.remove('3');
       assert.isFalse(noContacts.classList.contains('hide'));
+      assert.isTrue(fastScroll.classList.contains('hide'));
+      assert.isTrue(groupsContainer.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       assertNoGroup(groupFav, containerFav);
     });
@@ -881,13 +909,13 @@ suite('Render contacts list', function() {
         var lastFav = favList[favList.length - 1];
         doOnscreen(subject, lastFav, function() {
           assert.equal(lastFav.dataset.rendered, 'true',
-                       'contact should be rendered in "favorites" list');
+                     'contact should be rendered in "favorites" list');
 
           var aList = assertGroup(groupA, containerA, names.length);
           var lastA = aList[aList.length - 1];
           doOnscreen(subject, lastA, function() {
             assert.equal(lastA.dataset.rendered, 'true',
-                         'contact should be rendered in "A" list');
+                       'contact should be rendered in "A" list');
             done();
           });
         });
@@ -898,13 +926,14 @@ suite('Render contacts list', function() {
       var newList = new MockContactsList();
       doLoad(subject, newList, function() {
         doLoad(subject, null, function() {
-          assertNoGroup(groupA, containerA);
-          assertNoGroup(groupB, containerB);
-          assertNoGroup(groupC, containerC);
-          assertNoGroup(groupD, containerD);
-          assertNoGroup(groupFav, containerFav);
-          assertNoGroup(groupUnd, containerUnd);
-          done();
+          done(function() {
+            assertNoGroup(groupA, containerA);
+            assertNoGroup(groupB, containerB);
+            assertNoGroup(groupC, containerC);
+            assertNoGroup(groupD, containerD);
+            assertNoGroup(groupFav, containerFav);
+            assertNoGroup(groupUnd, containerUnd);
+          });    
         });
       });
     });
@@ -912,32 +941,37 @@ suite('Render contacts list', function() {
     test('removing one contact', function(done) {
       var newList = new MockContactsList();
       doLoad(subject, newList, function() {
-        var originalNumber = container.querySelectorAll('.contact-item').length;
-        assert.isNotNull(container.querySelector('[data-uuid="2"]'));
+        done(function() {
+          var originalNumber = 
+            container.querySelectorAll('.contact-item').length;
+          assert.isNotNull(container.querySelector('[data-uuid="2"]'));
 
-        subject.remove('2');
+          subject.remove('2');
 
-        var afterDelNumber = container.querySelectorAll('.contact-item').length;
-        assert.equal(originalNumber, afterDelNumber + 1);
-        assert.isNotNull(container.querySelector('[data-uuid="1"]'));
-        assert.isNull(container.querySelector('[data-uuid="2"]'));
-        assert.isNotNull(container.querySelector('[data-uuid="3"]'));
+          var afterDelNumber = 
+            container.querySelectorAll('.contact-item').length;
+          assert.equal(originalNumber, afterDelNumber + 1);
+          assert.isNotNull(container.querySelector('[data-uuid="1"]'));
+          assert.isNull(container.querySelector('[data-uuid="2"]'));
+          assert.isNotNull(container.querySelector('[data-uuid="3"]'));
 
-        // There are contacts on the list so no contacts should be hidden
-        assert.isTrue(noContacts.classList.contains('hide'));
-
-        done();
+          // There are contacts on the list so no contacts should be hidden
+          assert.isTrue(noContacts.classList.contains('hide'));
+          assert.isFalse(fastScroll.classList.contains('hide'));
+          assert.isFalse(groupsContainer.classList.contains('hide'));
+        });
       });
     });
 
     test('checking no contacts when coming from activity', function(done) {
-      MockActivities.currentlyHandling = true;
+      ActivityHandler.currentlyHandling = true;
       doLoad(subject, [], function() {
-        assert.isTrue(noContacts.classList.contains('hide'));
-        assertNoGroup(groupFav, containerFav);
-        assertTotal(0, 0);
-        MockActivities.currentlyHandling = false;
-        done();
+        done(function() {
+          assert.isTrue(noContacts.classList.contains('hide'));
+          assertNoGroup(groupFav, containerFav);
+          assertTotal(0, 0);
+          ActivityHandler.currentlyHandling = false;
+        });
       });
     });
 
@@ -950,7 +984,7 @@ suite('Render contacts list', function() {
 
         doOnscreen(subject, contact, function() {
           var img = contact.querySelector('span[data-type=img]');
-
+          assert.equal(img.style.backgroundPosition, '');
           assert.equal(img.dataset.src, 'test.png',
                         'At the begining contact 1 img === "test.png"');
           var prevUpdated = contact.dataset.updated;
@@ -1030,15 +1064,16 @@ suite('Render contacts list', function() {
       assertTotal(0, 0);
 
       doLoad(subject, [deviceContact], function() {
-        groupT = container.querySelector('#group-T');
-        containerT = container.querySelector('#contacts-list-T');
-        var tContacts = assertGroup(groupT, containerT, 1);
-        assert.isTrue(tContacts[0].querySelector('p').innerHTML.
-                      indexOf('Taylor') > -1);
+        done(function() {
+          groupT = container.querySelector('#group-T');
+          containerT = container.querySelector('#contacts-list-T');
+          var tContacts = assertGroup(groupT, containerT, 1);
+          assert.isTrue(tContacts[0].querySelector('p').innerHTML.
+                        indexOf('Taylor') > -1);
 
-        // Two instances as this contact is a favorite one also
-        assertTotal(2, 2);
-        done();
+          // Two instances as this contact is a favorite one also
+          assertTotal(2, 2);
+        });
       });
     }); // test ends
 
@@ -1049,7 +1084,7 @@ suite('Render contacts list', function() {
                      'search-view');
         assert.equal(window.Contacts.navigation.getCurrentTransition(),
                      'none');
-        });
+      });
     });
 
     test('check empty search', function(done) {
@@ -1060,11 +1095,10 @@ suite('Render contacts list', function() {
         contacts.Search.search(function search_finished() {
           var selectorStr = 'li.contact-item';
           var contacts = searchList.querySelectorAll(selectorStr);
-
-          assert.length(contacts, 0);
-          assert.isFalse(noResults.classList.contains('hide'));
-
-          done();
+          done(function() {
+            assert.lengthOf(contacts, 0);
+            assert.isFalse(noResults.classList.contains('hide'));
+          });     
         });
       });
     });
@@ -1079,9 +1113,10 @@ suite('Render contacts list', function() {
         searchBox.value = contact.givenName[0] + ' ' +
                           contact.familyName[0] + '  ';
         contacts.Search.search(function search_finished() {
-          assertContactFound(contact);
-          contacts.Search.invalidateCache();
-          done();
+          done(function() {
+            assertContactFound(contact);
+            contacts.Search.invalidateCache();
+          });
         });
       });
     });
@@ -1117,9 +1152,10 @@ suite('Render contacts list', function() {
       doLoad(subject, mockContacts, function() {
         searchBox.value = '(';
         contacts.Search.search(function search_finished() {
-          assert.isFalse(noResults.classList.contains('hide'));
-          contacts.Search.invalidateCache();
-          done();
+          done(function() {
+            assert.isFalse(noResults.classList.contains('hide'));
+            contacts.Search.invalidateCache();
+          });
         });
       });
     });
@@ -1135,10 +1171,11 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = '(';
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+            });
           });
         });
       });
@@ -1163,10 +1200,11 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = accentedCharName + ' ' + contact.familyName[0];
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+            });
           });
         });
       });
@@ -1194,10 +1232,11 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = givenName + ' ' + familyName;
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+            });
           });
         });
       });
@@ -1212,10 +1251,11 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = contact.tel[0].value;
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+            });
           });
         });
       });
@@ -1238,12 +1278,93 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = 'noName';
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(empty);
-            contacts.Search.invalidateCache();
-            contacts.Search.exitSearchMode({preventDefault: function() {}});
-            done();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(empty);
+              contacts.Search.invalidateCache();
+              contacts.Search.exitSearchMode({preventDefault: function() {}});
+            });
           });
+        });
+      });
+    });
+
+    test('Search for contacts with middle names', function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+      contact.givenName[1] = 'Juan';
+      contact.name = contact.givenName[0] + ' ' + contact.givenName[1] +  ' ' +
+                     contact.familyName[0];
+
+      doLoad(subject, mockContacts, function() {
+        contacts.List.initSearch(function onInit() {
+          searchBox.value = contact.givenName[0][0] + ' ' +
+              contact.familyName[0][0];
+          contacts.Search.search(function search_finished() {
+            contacts.Search.invalidateCache();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contact.givenName[1] = null;
+            });
+          });
+        });
+      });
+    });
+
+    test('Search phrase highlightded correctly for first letter',
+        function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+
+      doLoad(subject, mockContacts, function() {
+        var firstLetter = contact.givenName[0].charAt(0);
+        searchBox.value = firstLetter;
+        contacts.Search.search(function search_finished() {
+          done(function() { 
+            assertHighlight(firstLetter);
+            contacts.Search.invalidateCache();
+          });
+        });
+      });
+    });
+
+    test('Search phrase highlightded correctly for more than one letter',
+        function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+
+      doLoad(subject, mockContacts, function() {
+        var firstLetter = contact.givenName[0];
+        searchBox.value = firstLetter;
+        contacts.Search.search(function search_finished() {
+          done(function() {
+            assertHighlight(firstLetter);
+            contacts.Search.invalidateCache();
+          });
+        });
+      });
+    });
+
+    test('Search phrase highlights accented equivalent characters',
+        function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+      contact.givenName[0] = 'Aáeéi';
+      contact.name[0] = contact.givenName[0] + ' ' + contact.familyName[0];
+      contact.id = 'test-contact';
+
+      doLoad(subject, mockContacts, function() {
+        searchBox.value = 'ae';
+        contacts.Search.search(function search_finished() {
+          done(function() {
+            assertHighlight('áe');
+            contacts.Search.invalidateCache();
+          }); 
         });
       });
     });
@@ -1251,29 +1372,29 @@ suite('Render contacts list', function() {
     test('Order string lazy calculated', function(done) {
       mockContacts = new MockContactsList();
       doLoad(subject, mockContacts, function() {
-        // The nodes are there
-        var nodes = list.querySelectorAll('li');
-        assert.length(nodes, 3);
+        done(function() {
+          // The nodes are there
+          var nodes = list.querySelectorAll('li');
+          assert.lengthOf(nodes, 3);
 
-        // But no order strings are rendered initially.  This work is deferred
-        nodes = list.querySelectorAll('li[data-order]');
-        assert.length(nodes, 0);
+          // But no order strings are rendered initially.  This work is deferred
+          nodes = list.querySelectorAll('li[data-order]');
+          assert.lengthOf(nodes, 0);
 
-        // Adding a contact via refresh() should result in the order string
-        // being calculated.
-        var c = new MockContactAllFields();
-        c.id = 99;
-        c.familyName = ['AZ'];
-        c.category = [];
-        doRefreshContact(subject, c);
+          // Adding a contact via refresh() should result in the order string
+          // being calculated.
+          var c = new MockContactAllFields();
+          c.id = 99;
+          c.familyName = ['AZ'];
+          c.category = [];
+          doRefreshContact(subject, c);
 
-        nodes = list.querySelectorAll('li');
-        assert.length(nodes, 4);
+          nodes = list.querySelectorAll('li');
+          assert.lengthOf(nodes, 4);
 
-        nodes = list.querySelectorAll('li[data-order]');
-        assert.length(nodes, 2);
-
-        done();
+          nodes = list.querySelectorAll('li[data-order]');
+          assert.lengthOf(nodes, 2);
+        });
       });
     });
 
@@ -1291,7 +1412,7 @@ suite('Render contacts list', function() {
 
       var nodes = document.querySelectorAll('li[data-order]');
 
-      assert.length(nodes, mockContacts.length);
+      assert.lengthOf(nodes, mockContacts.length);
       for (i = 0; i < nodes.length; i++) {
         var node = nodes[i];
         var mockContact = mockContacts[i];
@@ -1348,30 +1469,10 @@ suite('Render contacts list', function() {
 
   suite('Select mode', function() {
     var elements = {
-      'standardMenu': {
-        'id': 'standard-menu',
-        'selectMode': 'hide',
-        'normalMode': 'show'
-      },
-      'selectMenu': {
-        'id': 'select-menu',
+      'selectForm': {
+        'id': 'selectable-form',
         'selectMode': 'show',
         'normalMode': 'hide'
-      },
-      'closeButton': {
-        'id': 'cancel_activity',
-        'selectMode': 'show',
-        'normalMode': 'hide'
-      },
-      'selectAllButton': {
-        'id': 'select-all',
-        'selectMode': 'show',
-        'normalMode': 'show' // We don't care, the form will be hide
-      },
-      'deselectAllButton': {
-        'id': 'deselect-all',
-        'selectMode': 'show',
-        'normalMode': 'show' // We don't care, the form will be hide
       }
     };
     var mockNavigationStack;
@@ -1412,8 +1513,16 @@ suite('Render contacts list', function() {
         assert.equal(selectActionTitle, selectActionButton.textContent);
         assert.isTrue(selectActionButton.disabled);
 
+        var settingsButton = containerSection.querySelector('#settings-button');
+        var addButton = containerSection.querySelector('#add-contact-button');
+        var doneSettings = document.querySelector('#settings-close');
+
+        assert.isTrue(settingsButton.classList.contains('hide'));
+        assert.isTrue(addButton.classList.contains('hide'));
+        assert.isTrue(doneSettings.disabled);
+
         done();
-      }, mockNavigationStack, 'transition');
+      }, mockNavigationStack);
     });
 
     suite('Selection checks', function() {
@@ -1422,7 +1531,7 @@ suite('Render contacts list', function() {
         doLoad(subject, mockContacts, function() {
           subject.selectFromList('', null, function() {
             done();
-          }, new MockNavigationStack(), 'transition');
+          }, new MockNavigationStack());
         });
       });
 
@@ -1454,6 +1563,24 @@ suite('Render contacts list', function() {
         for (var check of checks) {
           assert.include(uuids, check.value);
         }
+      });
+
+      test('danger class is not present in checks', function() {
+        var checks = list.querySelectorAll('input[type="checkbox"]');
+        for (var check of checks) {
+          assert.isFalse(check.parentNode.classList.contains('danger'));
+        }
+      });
+
+      test('danger class is present if options.isDanger is true',
+        function(done) {
+          subject.selectFromList('', null, function() {
+            var checks = list.querySelectorAll('input[type="checkbox"]');
+            for (var check of checks) {
+              assert.isTrue(check.parentNode.classList.contains('danger'));
+            }
+            done();
+          }, new MockNavigationStack(), { isDanger: true });
       });
 
       test('if no contact is selected, action button is disabled',
@@ -1493,45 +1620,34 @@ suite('Render contacts list', function() {
 
     suite('Exit select mode', function() {
       function checkVisibilityExit() {
-        // Buttons visibility
-        for (var i in elements) {
-          var element = elements[i];
-
-          if (typeof element != 'object') {
-            return;
-          }
-          var node = document.getElementById(element.id);
-          if (element.normalMode == 'show') {
-            assert.isFalse(node.classList.contains('hide'));
-          } else {
-            assert.isTrue(node.classList.contains('hide'));
-          }
-        }
-
         // We still have the check boxes, but they are hidden
         assert.isFalse(list.classList.contains('selecting'));
         assert.isFalse(searchList.classList.contains('selecting'));
+
+        var settingsButton = containerSection.querySelector('#settings-button');
+        var addButton = containerSection.querySelector('#add-contact-button');
+        var doneSettings = document.querySelector('#settings-close');
+
+        assert.isFalse(settingsButton.classList.contains('hide'));
+        assert.isFalse(addButton.classList.contains('hide'));
+        assert.isFalse(doneSettings.disabled);
       }
+
       setup(function(done) {
         mockContacts = new MockContactsList();
         doLoad(subject, mockContacts, function() {
           subject.selectFromList('', null, function() {
-            // Simulate the click to close
             done();
-          }, new MockNavigationStack(), 'transition');
+          }, new MockNavigationStack());
         });
-      });
-
-      test('Exit select mode by dismissing', function() {
-        var close = document.querySelector('#cancel_activity');
-        close.click();
-
-        checkVisibilityExit();
       });
 
       test('check visibility of components', function() {
         contacts.List.exitSelectMode();
+
         checkVisibilityExit();
+        assert.isFalse(selectSection.classList.contains('in-edit-mode'));
+        assert.isFalse(selectSection.classList.contains('contacts-select'));
       });
     });
 
@@ -1544,7 +1660,7 @@ suite('Render contacts list', function() {
             var close = document.querySelector('#cancel_activity');
             close.click();
             done();
-          }, new MockNavigationStack(), 'transition');
+          }, new MockNavigationStack(), { isDanger: true });
         });
 
       });
@@ -1554,9 +1670,214 @@ suite('Render contacts list', function() {
           var contactsRows = list.querySelectorAll('li');
           var checks = list.querySelectorAll('input[type="checkbox"]');
           assert.equal(contactsRows.length, checks.length);
+          for (var check of checks) {
+            assert.isFalse(check.parentNode.classList.contains('danger'));
+          }
           done();
-        }, new MockNavigationStack(), 'transition');
+        }, new MockNavigationStack(), { isDanger: false });
       });
     });
+  });
+
+  suite('Row on screen notification', function() {
+    var names = [];
+    var elements = [];
+    setup(function (done) {
+      names = ['AA', 'AB', 'AC', 'AD', 'AE',
+       'AF', 'AG', 'AH', 'AI', 'AJ', 'AK'];
+      var list = [];
+      for (var i = 0; i < names.length; ++i) {
+        var name = names[i];
+        var c = new MockContactAllFields();
+        c.id = 'mock-' + i;
+        c.familyName = [name];
+        list.push(c);
+      }
+
+      doLoad(subject, list, function () {
+        elements = assertGroup(groupA, containerA, names.length);
+        done();
+      });
+    });
+
+    test('Scroll to a deep row', function (done) {
+      var element = elements[names.length -1];
+      doOnscreen(subject, element, function (row) {
+        assert.isNotNull(row);
+        assert.equal(row, element);
+        done();
+      });
+    });
+
+    test('Notify a row that is on the screen', function(done) {
+      var element = elements[0];
+      doOnscreen(subject, element, function (r) {
+        subject.notifyRowOnScreenByUUID(element.dataset.uuid, function(row) {
+          assert.isNotNull(row);
+          assert.equal(row, element);
+          done();
+        });
+      });
+    });
+  });
+
+  suite('ICE Contacts', function() {
+    var dispatchChange;
+
+    setup(function() {
+      this.sinon.stub(ICEStore, 'onChange', function(cb) {
+        dispatchChange = cb;
+      });
+      this.sinon.stub(ICEStore, 'getContacts', function() {
+        return {
+          then: function(cb) {
+            cb([1,2]);
+          }
+        };
+      });
+      this.sinon.stub(LazyLoader, 'load', function(files, cb) {
+        cb();
+      });
+
+      this.sinon.spy(MockAlphaScroll, 'showGroup');
+      this.sinon.spy(MockAlphaScroll, 'hideGroup');
+    });
+
+    teardown(function() {
+      ICEStore.onChange.restore();
+    });
+
+    test('> ICE group is always build but is hidden', function() {
+      var stub = ICEStore.getContacts;
+      ICEStore.getContacts = function() {
+        return {
+          then: function(cb) {
+            cb();
+          }
+        };
+      };
+
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts);
+      // ICE group created, even if we don't have contacts
+      var iceGroup = document.getElementById('section-group-ice');
+      assert.isNotNull(iceGroup);
+      // ICE group not visible
+      assert.isTrue(iceGroup.classList.contains('hide'));
+
+      ICEStore.getContacts = stub;
+    });
+
+    test('Display the ICE group if ICE contacts present', function(done) {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts, false, callback);
+
+      function callback() {
+        // Check ice group present
+        var iceGroup = document.getElementById('section-group-ice');
+        done(function() {
+          assert.isNotNull(iceGroup);
+          assert.isFalse(iceGroup.classList.contains('hide'));
+          // Check that we are displaying the extra item in the alphascroll
+          sinon.assert.calledOnce(MockAlphaScroll.showGroup);
+          sinon.assert.calledWith(MockAlphaScroll.showGroup, 'ice');
+        });
+      }
+    });
+
+    test('> after a list reload, the ice group appears', function() {
+      subject.load(null, true);
+      var iceGroup = document.getElementById('section-group-ice');
+      assert.isNotNull(iceGroup);
+    });
+
+    test('toggleICEGroup hides group', function(done) {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts, false, () => {
+        var iceGroup = document.getElementById('section-group-ice');
+        assert.isFalse(iceGroup.classList.contains('hide'));
+        subject.toggleICEGroup(false);
+        assert.isTrue(iceGroup.classList.contains('hide'));
+        dispatchChange();
+        // The group was updated and it calls to showICEGroup but it remains
+        // hidden because it was forced by toggleICEGroup.
+        assert.isTrue(iceGroup.classList.contains('hide'));
+        done();
+      });
+    });
+  });
+
+  suite('Default images', function() {
+    suiteSetup(function(done) {
+      mockContacts = new MockContactsList();
+      // Remove photo field from those contacts
+      mockContacts.forEach(function(ct) {
+        delete ct.photo;
+      });
+
+      // Make contact[0] favourite
+      mockContacts[0].category.push('favorite');
+      // Make contact[2] just a phone number
+      mockContacts[2] = {
+        'id': '3',
+        'updated': new Date(),
+        'tel': [
+          {
+            'value': '+346578888883',
+            'type': 'mobile',
+            'carrier': 'TEF'
+          }
+        ]
+      };
+
+      MockCookie.data = {
+        defaultImage: true
+      };
+
+      // Forces the cookie data to be reloaded
+      subject.setOrderByLastName(null);
+      // From now on we will have order by lastname
+      subject.init();
+      // Wait till the rows are being displayed on the screen
+      subject.notifyRowOnScreenByUUID('1', function() {
+        done();
+      });
+      doLoad(subject, mockContacts);
+    });
+
+    suiteTeardown(function() {
+      MockCookie.data = {};
+      subject.setOrderByLastName(true);
+    });
+
+    test('Check default image appears', function() {
+      var contact = document.querySelector('[data-uuid="2"]');
+      assert.isTrue(contact.innerHTML.indexOf('aside') !== -1);
+    });
+
+    test('Check default image saves the backgroundPosition properly',
+          function() {
+      var img = document.querySelector('[data-uuid="2"] aside span');
+      assert.equal(img.dataset.backgroundPosition, '');
+    });
+
+    test('Check favorites with default image have proper group',
+      function() {
+        var favorite =
+          document.querySelector('#section-group-favorites [data-uuid="1"]');
+        assert.isNotNull(favorite);
+        var img = favorite.querySelector('aside span');
+        assert.equal(img.dataset.group, 'A');
+      }
+    );
+
+    test('Check contacts under # has # in the default image',
+      function() {
+        var justPhone = document.querySelector('[data-uuid="3"]');
+        assert.isNotNull(justPhone);
+        var img = justPhone.querySelector('aside span');
+        assert.equal(img.dataset.group, '#');
+      }
+    );
   });
 });

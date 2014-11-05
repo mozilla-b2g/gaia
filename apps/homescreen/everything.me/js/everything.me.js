@@ -3,19 +3,12 @@
 var EverythingME = {
   activated: false,
   pendingEvent: undefined,
+  gridPage: null,
 
   init: function EverythingME_init(config) {
     this.debug = !!config.debug;
 
     var self = this;
-
-    LazyLoader.load(['shared/js/settings_listener.js'],
-      function loaded() {
-        SettingsListener.observe('rocketbar.enabled', false,
-          function onSettingChange(value) {
-          self.rocketbarEnabled = value;
-        });
-      });
 
     var footer = document.querySelector('#footer');
     if (footer) {
@@ -23,18 +16,26 @@ var EverythingME = {
     }
 
     var gridPage = document.querySelector('#icongrid > div:first-child');
+    self.gridPage = gridPage;
     gridPage.classList.add('evmePage');
 
 
     // pre-evme-load pseudo searchbar
     var activationIcon = document.createElement('div');
     activationIcon.id = 'evme-activation-icon';
+    activationIcon.setAttribute('role', 'button');
+    activationIcon.setAttribute('aria-labelledby',
+      'evme-activation-icon-input');
+    activationIcon.setAttribute('aria-haspopup', 'true');
     activationIcon.innerHTML =
-      '<input type="text" x-inputmode="verbatim"' +
-      ' data-l10n-id="evme-searchbar-default2" />';
+      '<input id="evme-activation-icon-input" type="text" role="presentation"' +
+      ' x-inputmode="verbatim" data-l10n-id="evme-searchbar-default2"/>';
 
     // insert into first page
     gridPage.insertBefore(activationIcon, gridPage.firstChild);
+    // Capture clicks on the gridPage and handle everything.me's searchbar's and
+    // helper's visibility.
+    gridPage.addEventListener('click', gridClicked);
 
     // Append appropriate placeholder translation to pseudo searchbar
     navigator.mozL10n.ready(function loadSearchbarValue() {
@@ -47,26 +48,9 @@ var EverythingME = {
     // add event listeners that trigger evme load
     activationIcon.addEventListener('contextmenu', onContextMenu);
     activationIcon.addEventListener('click', triggerActivateFromInput);
-    activationIcon.addEventListener('touchstart', searchFocus);
     window.addEventListener('collectionlaunch', triggerActivate);
     window.addEventListener('collectiondropapp', triggerActivate);
     window.addEventListener('suggestcollections', triggerActivate);
-    window.addEventListener('search-focus', searchFocus);
-
-    /**
-     * Called when the search bar is focused.
-     * Opens the rocketbar and prevents the event default
-     * Ensures that we do not focus on the searchbar, otherwise
-     * the keyboard can flicker or not show up.
-     */
-    function searchFocus(e) {
-      if (self.rocketbarEnabled) {
-        e.preventDefault();
-        // Call stopPropagation to prevent the click event
-        e.stopPropagation();
-        self.openRocketbar();
-      }
-    }
 
     // specifically for pseudo searchbar
     function triggerActivateFromInput(e) {
@@ -98,6 +82,12 @@ var EverythingME = {
       } else {
         loadCollectionAssets();
       }
+    }
+
+    function gridClicked(e) {
+      window.dispatchEvent(new CustomEvent('gridclicked', {
+        detail: { data: e }
+      }));
     }
 
     function loadCollectionAssets() {
@@ -171,13 +161,6 @@ var EverythingME = {
     EverythingME.migrateStorage();
   },
 
-  openRocketbar: function() {
-    LazyLoader.load(['everything.me/js/search/control.js'],
-      function loaded() {
-        EverythingME.SearchControl.open();
-      });
-  },
-
   onActivationIconBlur: function onActivationIconBlur(e) {
     EverythingME.pendingEvent = null;
     e.target.removeEventListener('blur', onActivationIconBlur);
@@ -214,7 +197,6 @@ var EverythingME = {
     var searchPage = document.getElementById('search-page');
     LazyLoader.load(searchPage, function loaded() {
       document.body.classList.add('evme-loading');
-      navigator.mozL10n.translate(searchPage);
       EverythingME.load();
     });
   },
@@ -371,7 +353,7 @@ var EverythingME = {
   onEvmeLoaded: function onEvmeLoaded() {
 
     var page = document.getElementById('evmeContainer'),
-        gridPage = document.querySelector('#icongrid > div:first-child'),
+        gridPage = EverythingME.gridPage,
         activationIcon = document.getElementById('evme-activation-icon'),
         activationIconInput = activationIcon.querySelector('input'),
         existingQuery = activationIconInput && activationIconInput.value,
@@ -381,14 +363,17 @@ var EverythingME = {
     activationIconInput.removeEventListener('blur',
                                             EverythingME.onActivationIconBlur);
 
-    // add evme into the first grid page
-    gridPage.appendChild(page.parentNode.removeChild(page));
+    // add evme into the first grid page, and ensure correct DOM order
+    gridPage.insertBefore(page.parentNode.removeChild(page),
+      gridPage.firstChild);
 
     EvmeFacade.onShow();
 
     var e = EverythingME.pendingEvent;
 
-    if (e && evmeInput && e.target === activationIconInput) {
+    if (e && evmeInput && (e.target === activationIconInput ||
+      // Screen reader lands on the activationIcon and not the input itself
+      e.target === activationIcon)) {
       // set the query the user entered before loaded
       if (existingQuery) {
         EvmeFacade.searchFromOutside(existingQuery);
@@ -565,8 +550,6 @@ var EverythingME = {
             EverythingME.hideLoading();
             EverythingME.pendingEvent = null;
           });
-
-        navigator.mozL10n.translate(elLoading);
 
         window.setTimeout(function styleReady() {
           elLoading.style.display = 'block';

@@ -17,14 +17,13 @@ suite('Latin suggestions', function() {
 
     imSettings = {
       resetUpperCase: sinon.stub(),
-      sendKey: sinon.stub().returns(
-        new Promise(function(res, rej) { res(); })),
-      sendString: sinon.stub(),
+      sendKey: sinon.stub().returns(Promise.resolve()),
+      sendString: sinon.stub().returns(Promise.resolve()),
       sendCandidates: sinon.stub(),
       setUpperCase: sinon.stub(),
       setLayoutPage: sinon.stub(),
-      replaceSurroundingText: sinon.stub().returns(
-        new Promise(function(res, rej) { res(); }))
+      replaceSurroundingText: sinon.stub().returns(Promise.resolve()),
+      isCapitalized: sinon.stub()
     };
     im.init(imSettings);
 
@@ -162,7 +161,22 @@ suite('Latin suggestions', function() {
     });
   });
 
-  test('dismissSuggestions hides suggestions and inserts space', function() {
+  test('New line then dot should not remove newline', function(next) {
+    setState('Hello');
+
+    im.click(KeyEvent.DOM_VK_RETURN).then(function() {
+      return im.click('.'.charCodeAt(0));
+    }).then(function() {
+      sinon.assert.callCount(imSettings.replaceSurroundingText, 0);
+      sinon.assert.callCount(imSettings.sendKey, 2);
+      assert.equal(imSettings.sendKey.args[0][0], KeyEvent.DOM_VK_RETURN);
+      assert.equal(imSettings.sendKey.args[1][0], '.'.charCodeAt(0));
+
+      next();
+    });
+  });
+
+  test('dismissSuggestions hides suggestions', function() {
     im.dismissSuggestions();
 
     // Send candidates should be called once with an empty array
@@ -170,9 +184,38 @@ suite('Latin suggestions', function() {
     sinon.assert.callCount(imSettings.sendCandidates, 1);
     sinon.assert.calledWith(imSettings.sendCandidates, []);
 
-    // Also, a space should be inserted
-    sinon.assert.callCount(imSettings.sendKey, 1);
-    sinon.assert.calledWith(imSettings.sendKey, 32);
+    // Also, a space should not be inserted
+    sinon.assert.callCount(imSettings.sendKey, 0);
+  });
+
+  suite('Uppercase suggestions', function() {
+    test('All uppercase input yields uppercase suggestions', function() {
+      testPrediction('HOLO', 'HOLO', [
+          ['yolo', 10],
+          ['Yelp', 5],
+          ['whuuu', 4]
+        ]);
+
+      sinon.assert.callCount(imSettings.sendCandidates, 1);
+      // Verify that we show 3 suggestions that do not include the input
+      // and that we do not mark the first as an autocorrection.
+      sinon.assert.calledWith(imSettings.sendCandidates,
+                              ['*YOLO', 'YELP', 'WHUUU']);
+    });
+
+    test('One char uppercase not yields uppercase suggestions', function() {
+      testPrediction('F', 'F', [
+          ['yolo', 10],
+          ['Yelp', 5],
+          ['whuuu', 4]
+        ]);
+
+      sinon.assert.callCount(imSettings.sendCandidates, 1);
+      // Verify that we show 3 suggestions that do not include the input
+      // and that we do not mark the first as an autocorrection.
+      sinon.assert.calledWith(imSettings.sendCandidates,
+                              ['yolo', 'Yelp', 'whuuu']);
+    });
   });
 
   suite('handleSuggestions', function() {
@@ -245,6 +288,44 @@ suite('Latin suggestions', function() {
       sinon.assert.callCount(imSettings.sendCandidates, 1);
       sinon.assert.calledWith(imSettings.sendCandidates,
                               ['his', 'HUD', 'hide']);
+    });
+
+    suite('Suggestion length mismatch', function() {
+      test('Length mismatch, low freq', function() {
+        testPrediction('zoolgy', 'zoolgy', [
+          ['zoology', 4.2],
+          ['Zoology\'s', 0.09504000000000001]
+        ]);
+
+        sinon.assert.callCount(imSettings.sendCandidates, 1);
+        sinon.assert.calledWith(imSettings.sendCandidates,
+                                ['zoology', 'Zoology\'s']);
+      });
+
+      test('Length mismatch, medium freq', function() {
+        testPrediction('Folow', 'Folow', [
+          ['Follow', 6.237],
+          ['Follows', 2.4948],
+          ['Followed', 1.0454400000000001],
+          ['Follower', 0.7603200000000001]
+        ]);
+
+        sinon.assert.callCount(imSettings.sendCandidates, 1);
+        sinon.assert.calledWith(imSettings.sendCandidates,
+                                ['*Follow', 'Follows', 'Followed']);
+      });
+
+      test('Length mismatch, high freq', function() {
+        testPrediction('awesomeo', 'awesomeo', [
+            ['awesome', 31],
+            ['trahlah', 8],
+            ['moarstu', 7]
+          ]);
+
+        sinon.assert.callCount(imSettings.sendCandidates, 1);
+        sinon.assert.calledWith(imSettings.sendCandidates,
+                                ['*awesome', 'trahlah', 'moarstu']);
+      });
     });
   });
 });

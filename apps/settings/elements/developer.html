@@ -1,25 +1,99 @@
 <element name="developer" extends="section">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">Back</span></a>
+    <gaia-header action="back" data-href="#root">
       <h1 data-l10n-id="developer-header">Developer</h1>
-    </header>
+    </gaia-header>
 
     <div>
       <header>
-        <h2 data-l10n-id="debug">Debug</h2>
+        <h2 data-l10n-id="developer-tools">Developer Tools</h2>
       </header>
       <ul>
         <li>
-          <label>
-            <button class="icon icon-view" data-href="#developer-hud" data-l10n-id="hud-button">Developer HUD</button>
+          <p data-l10n-id="remote-debugging-usb">Debugging via USB</p>
+          <span class="button icon icon-dialog">
+            <select name="debugger.remote-mode" data-value-type="string">
+              <option value="disabled" data-l10n-id="debugger-disabled" selected>Disabled</option>
+              <option value="adb-only" data-l10n-id="debugger-adb-only">ADB Only</option>
+              <option value="adb-devtools" data-l10n-id="debugger-adb-and-devtools">ADB and DevTools</option>
+            </select>
+          </span>
+        </li>
+        <li data-show-name="devtools.remote.wifi.visible" hidden>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="devtools.remote.wifi.enabled">
+            <span data-l10n-id="dev-tools-wifi">DevTools via Wi-Fi</span>
           </label>
         </li>
+        <li>
+          <a class="menu-item" href="#developer-hud">
+            <span data-l10n-id="hud-settings-button">Developer HUD</span>
+          </a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="devtools.qps.enabled">
+            <span data-l10n-id="dev-tools-qps">Pseudo-localization</span>
+          </label>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="graphics">Graphics</h2>
+      </header>
+      <ul>
         <li>
           <label class="pack-checkbox">
             <input type="checkbox" name="debug.paint-flashing.enabled">
             <span data-l10n-id="paint-flashing">Flash repainted area</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="apz.force-enable">
+            <span data-l10n-id="apz">Async Pan/Zoom</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="apz.overscroll.enabled">
+            <span data-l10n-id="apz-overscroll">Overscrolling</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="layers.enable-tiles">
+            <span data-l10n-id="tiling">Tiling</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="layers.low-precision">
+            <span data-l10n-id="low-precision">Low-precision painting</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="layers.low-opacity">
+            <span data-l10n-id="low-opacity">Low-precision transparency</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="layers.composer2d.enabled">
+            <span data-l10n-id="hardware-composer">Hardware composer</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="layers.draw-tile-borders">
+            <span data-l10n-id="draw-tile-borders">Draw Tile Borders</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="layers.draw-borders">
+            <span data-l10n-id="draw-layer-borders">Draw layer borders</span>
           </label>
         </li>
         <li>
@@ -30,16 +104,61 @@
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="layers.draw-borders">
-            <span data-l10n-id="layers-draw-borders">Draw layers borders</span>
+            <input type="checkbox" name="app.cards_view.screenshots.enabled">
+            <span data-l10n-id="cards-view-screenshots">Cards View: Screenshots</span>
+          </label>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="window-management">Window Management</h2>
+      </header>
+      <ul>
+        <li id="software-home-button">
+          <label class="pack-checkbox">
+            <input type="checkbox" name="software-button.enabled">
+            <span data-l10n-id="software-home-button">Software home button</span>
+          </label>
+        </li>
+        <li id="homegesture">
+          <label class="pack-checkbox">
+            <input type="checkbox" name="homegesture.enabled">
+            <span data-l10n-id="home-gesture">Home gesture</span>
+          </label>
+        </li>
+        <li id="continuoustransition">
+          <label class="pack-checkbox">
+            <input type="checkbox" name="continuous-transition.enabled">
+            <span data-l10n-id="continuous-transition">Continuous transition</span>
           </label>
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="layers.composer2d.enabled">
-            <span data-l10n-id="layers-composer2d-enabled">Enable hardware composer</span>
+            <input type="checkbox" name="app-transition.enabled">
+            <span data-l10n-id="app-transition">App transition</span>
           </label>
         </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="app-suspending.enabled">
+            <span data-l10n-id="app-suspending">App suspending</span>
+          </label>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="homescreen">Homescreen</h2>
+      </header>
+      <ul>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="verticalhome.grouping.enabled">
+            <span data-l10n-id="verticalhome-grouping">App grouping</span>
+          </label>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="debug">Debug</h2>
+      </header>
+      <ul>
         <li>
           <label class="pack-checkbox">
             <input type="checkbox" name="debug.log-animations.enabled">
@@ -47,25 +166,33 @@
           </label>
         </li>
         <li>
-          <p data-l10n-id="remote-debugging">Remote Debugging</p>
-          <span class="button icon icon-dialog">
-            <select name="debugger.remote-mode" data-value-type="string">
-              <option value="disabled" data-l10n-id="debugger-disabled" selected>Disabled</option>
-              <option value="adb-only" data-l10n-id="debugger-adb-only">ADB Only</option>
-              <option value="adb-devtools" data-l10n-id="debugger-adb-and-devtools">ADB and Devtools</option>
-            </select>
-          </span>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="geolocation.debugging.enabled">
+            <span data-l10n-id="geolocation-debugging-enabled">Geolocation output in ADB</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="geolocation.debugging.gps-locations-ignored">
+            <span data-l10n-id="geolocation-debugging-gps-locations-ignored">Ignore GPS locations</span>
+          </label>
         </li>
         <li>
           <label class="pack-checkbox">
             <input type="checkbox" name="wifi.debugging.enabled">
-            <span data-l10n-id="wifi-debugging">Wi-Fi output in adb</span>
+            <span data-l10n-id="wifi-debugging">Wi-Fi output in ADB</span>
           </label>
         </li>
         <li>
           <label class="pack-checkbox">
             <input type="checkbox" name="bluetooth.debugging.enabled">
-            <span data-l10n-id="bluetooth-debugging">Bluetooth output in adb</span>
+            <span data-l10n-id="bluetooth-debugging">Bluetooth output in ADB</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="nfc.debugging.enabled">
+            <span data-l10n-id="nfc-debugging">NFC output in ADB</span>
           </label>
         </li>
         <li>
@@ -81,105 +208,44 @@
           </label>
         </li>
         <li>
-          <label>
-            <button id="ftuLauncher" data-l10n-id="launch-ftu">Launch FTU</button>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="accessibility.screenreader-show-settings">
+            <span data-l10n-id="showScreenReaderSettings">Show screen reader settings</span>
           </label>
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="accessibility.show-settings">
-            <span data-l10n-id="showA11ySettings">Show accessibility settings</span>
+            <input type="checkbox" name="dom.mozApps.use_reviewer_certs">
+            <span data-l10n-id="use-reviewer-certs">Use Marketplace reviewer certs</span>
           </label>
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="apz.force-enable"/>
-            <span data-l10n-id="apz-force-enable">Enable APZ for all content processes</span>
+            <input type="checkbox" name="devtools.logshake">
+            <span data-l10n-id="shake-to-log">Shake to save system log</span>
           </label>
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="layers.enable-tiles"/>
-            <span data-l10n-id="layers-enable-tiles">Layers: Enable Tiles</span>
+            <input type="checkbox" name="debug.verbose_app_permissions">
+            <span data-l10n-id="verbose-app-permissions">Verbose App Permissions</span>
           </label>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="layers.simple-tiles"/>
-            <span data-l10n-id="layers-simple-tiles">Layers: Simple Tiles</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="layers.progressive-paint"/>
-            <span data-l10n-id="layers-progressive-paint">Layers: Progressive Paint</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="layers.draw-tile-borders"/>
-            <span data-l10n-id="layers-draw-tile-borders">Layers: Draw Tile Borders</span>
-          </label>
-        </li>
-        <li>
-          <p data-l10n-id="apz-displayport-heuristics">Displayport Heuristics</p>
-          <span class="button icon icon-dialog">
-            <select name="apz.displayport.heuristics">
-              <option data-l10n-id="apz-heuristic-default" value="default">Default</option>
-              <option data-l10n-id="apz-heuristic-center" value="center-displayport">Center displayport</option>
-              <option data-l10n-id="apz-heuristic-perfect" value="perfect-paint-times">Assume perfect paints</option>
-              <option data-l10n-id="apz-heuristic-taller" value="taller-displayport">Taller displayport</option>
-              <option data-l10n-id="apz-heuristic-faster" value="faster-paint">Faster paints</option>
-              <option data-l10n-id="apz-heuristic-nocheck" value="no-checkerboard">No checkerboarding</option>
-            </select>
-          </span>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="app.cards_view.screenshots.enabled"/>
-            <span data-l10n-id="cards-view-screenshots-enabled">Cards View: Enable Screenshots</span>
-          </label>
+          <button id="ftuLauncher" data-l10n-id="launch-ftu">Launch First Time Use</button>
         </li>
       </ul>
       <header>
-        <h2 data-l10n-id="window-management">Window Management</h2>
+        <h2 data-l10n-id="softwareUpdates">Software updates</h2>
       </header>
       <ul>
-        <li id="software-home-button">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="software-button.enabled">
-            <span data-l10n-id="software-button-enabled">Software home button enabled</span>
-          </label>
-        </li>
-        <li id="homegesture">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="homegesture.enabled"/>
-            <span data-l10n-id="homegesture-enabled">Home gesture enabled</span>
-          </label>
-        </li>
-        <li id="edgesgesture">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="edgesgesture.enabled"/>
-            <span data-l10n-id="edgesgesture-enabled">Edges gesture enabled</span>
-          </label>
-        </li>
-        <li id="continuoustransition">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="continuous-transition.enabled"/>
-            <span data-l10n-id="continuoustransition-enabled">Continuous transition enabled</span>
-          </label>
+        <li>
+          <p data-l10n-id="update-channel">Update Channel</p>
+          <input type="text" name="app.update.channel" dir="auto">
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="app-transition.enabled"/>
-            <span data-l10n-id="enable-app-transition">Enable app transition</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="app-suspending.enabled"/>
-            <span data-l10n-id="enable-app-suspending">Enable app suspending</span>
-          </label>
+          <p data-l10n-id="update-url">Update URL</p>
+          <input type="text" name="app.update.url" dir="auto">
         </li>
       </ul>
     </div>

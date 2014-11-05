@@ -26,13 +26,15 @@ class TestContacts(GaiaTestCase):
     def test_sort_contacts(self):
         contacts_app = Contacts(self.marionette)
         contacts_app.launch()
-        contacts_app.wait_for_contacts(number_to_wait_for=len(self._contacts_name_list))
 
         # if "Order by last name" switch is on, turn off it
         contacts_settings = contacts_app.tap_settings()
         if contacts_settings.order_by_last_name:
             contacts_settings.tap_order_by_last_name()
         contacts_settings.tap_done()
+
+        # here we wait for contacts once the correct order has been set
+        contacts_app.wait_for_contacts(number_to_wait_for=len(self._contacts_name_list))
 
         # sort by first name, compare with sorted-by-first-name list
         contact_items = contacts_app.contacts
@@ -46,6 +48,7 @@ class TestContacts(GaiaTestCase):
         contacts_settings.tap_order_by_last_name()
         # go to contacts main page from settings page
         contacts_settings.tap_done()
+        contacts_app.wait_for_contacts(number_to_wait_for=len(self._contacts_name_list))
 
         # sort by last name, compare with sorted-by-last-name list
         contact_items = contacts_app.contacts

@@ -1,5 +1,6 @@
 Keyboards.ar = {
   label: 'Arabic',
+  shortLabel: 'Ar',
   menuLabel: 'العربية',
   secondLayout: true,
   specificCssRule: true,

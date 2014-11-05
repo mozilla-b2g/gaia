@@ -140,6 +140,8 @@ function monitorTagVisibility(
     state.lastChild = null;
     state.prev.firstChildIndex = null;
     state.prev.lastChildIndex = null;
+    state.prev.firstChild = null;
+    state.prev.lastChild = null;
   }
 
   //====================================

@@ -1,5 +1,5 @@
-/*jshint browser: true */
 /*global define, console, Notification */
+'use strict';
 define(function(require) {
   var appSelf = require('app_self'),
       evt = require('evt'),
@@ -49,16 +49,13 @@ define(function(require) {
       // Dynamically load util, since it is only needed for certain
       // pathways in this module.
       require(['attachment_name'], function(attachmentName) {
-        var data = {};
+        var data;
         if (dataType === 'url' && activityName === 'share') {
-          data.body = url;
+          data = {
+            body: url
+          };
         } else {
-          var urlParts = url ? queryURI(url) : [];
-          data.to = urlParts[0];
-          data.subject = urlParts[1];
-          data.body = typeof urlParts[2] === 'string' ? urlParts[2] : null;
-          data.cc = urlParts[3];
-          data.bcc = urlParts[4];
+          data = queryURI(url);
           data.attachmentBlobs = sourceData.blobs || [];
           data.attachmentNames = sourceData.filenames || [];
 
@@ -75,8 +72,10 @@ define(function(require) {
       // "click". The system app will also notify this method of
       // any close events for notificaitons, which are not at all
       // interesting, at least for the purposes here.
-      if (!msg.clicked)
+      if (!msg.clicked) {
+        this.emitWhenListener('notificationClosed');
         return;
+      }
 
       // Need to manually get all notifications and close the one
       // that triggered this event due to fallout from 890440 and

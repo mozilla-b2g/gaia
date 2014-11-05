@@ -1,12 +1,9 @@
 <element name="about-legal" extends="section">
   <template>
 
-    <header>
-      <a href="#about">
-        <span class="icon icon-back">back</span>
-      </a>
+    <gaia-header action="back" data-href="#about">
       <h1 data-l10n-id="about-legal-info-header"> Legal Information </h1>
-    </header>
+    </gaia-header>
 
     <div>
       <header>
@@ -14,13 +11,13 @@
       </header>
       <ul>
         <li>
-          <a href="#about-licensing" data-l10n-id="open-source-notices">
-            Open Source Notices
+          <a class="menu-item" href="#about-licensing">
+            <span data-l10n-id="open-source-notices">Open Source Notices</span>
           </a>
         </li>
         <li>
-          <a href="#about-source-code" data-l10n-id="obtaining-source-code">
-            Obtaining Source Code
+          <a class="menu-item" href="#about-source-code">
+            <span data-l10n-id="obtaining-source-code">Obtaining Source Code</span>
           </a>
         </li>
       </ul>

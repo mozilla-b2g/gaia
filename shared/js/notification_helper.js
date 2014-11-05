@@ -62,9 +62,10 @@ var NotificationHelper = {
     this._referencesArray.push(notification);
   },
   _forget: function nc_forget(notification) {
-    this._referencesArray.splice(
-      this._referencesArray.indexOf(notification), 1
-    );
+    var idx = this._referencesArray.indexOf(notification);
+    if (idx >= 0) {
+      this._referencesArray.splice(idx, 1);
+    }
   }
 };
 

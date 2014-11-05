@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global FxaModuleStates, FxaModuleUI, FxaModule, FxaModuleNavigation,
-   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager, FtuLauncher */
+   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager */
 /* exported FxaModuleEnterPassword */
 
 'use strict';
@@ -52,9 +52,9 @@ var FxaModuleEnterPassword = (function() {
   function _forgotPassword() {
     /*jshint validthis:true*/
     var self = this;
-    if (FtuLauncher.isFtuRunning()) {
-      return self.showErrorResponse({
-        error: 'RESET_PASSWORD_IN_SETTINGS'
+    if (this.isFTU) {
+      return this.showErrorResponse({
+        error: 'RESET_PASSWORD_ERROR'
       });
     }
     // Note: we don't need to pass a success callback, but we do need an errback
@@ -63,7 +63,7 @@ var FxaModuleEnterPassword = (function() {
       null,
       function on_reset_error() {
         self.showErrorResponse({
-          error: 'RESET_PASSWORD_ERROR'
+          error: 'UNKNOWN_ERROR'
         });
       }
     );
@@ -76,7 +76,7 @@ var FxaModuleEnterPassword = (function() {
       _ = navigator.mozL10n.get;
       // Cache DOM elements
       this.importElements(
-        'fxa-user-email',
+        'fxa-hello-known-user',
         'fxa-pw-input',
         'fxa-show-pw',
         'fxa-forgot-password'
@@ -120,8 +120,15 @@ var FxaModuleEnterPassword = (function() {
       return;
     }
 
-    this.fxaUserEmail.textContent = options.email;
+    this.isFTU = !!(options && options.isftu);
     this.email = options.email;
+
+    var helloUserText = _('fxa-hello-user');
+    helloUserText = helloUserText.replace(
+      /{{\s*email\s*}}/,
+      '<a id="fxa-known-user-email">' + this.email + '</a>'
+    );
+    this.fxaHelloKnownUser.innerHTML = helloUserText;
 
     _cleanForm(
       this.fxaPwInput,
@@ -133,7 +140,7 @@ var FxaModuleEnterPassword = (function() {
   };
 
   Module.onNext = function onNext(gotoNextStepCallback) {
-    FxaModuleOverlay.show(_('fxa-authenticating'));
+    FxaModuleOverlay.show('fxa-connecting');
 
     FxaModuleManager.setParam('success', true);
     FxModuleServerRequest.signIn(

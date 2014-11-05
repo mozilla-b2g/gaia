@@ -16,10 +16,11 @@ suite('KeyboardHelper', function() {
     'applicationuninstall'];
   var DEFAULT_KEY = 'keyboard.default-layouts';
   var ENABLED_KEY = 'keyboard.enabled-layouts';
+  var CURRENT_ACTIVE = 'keyboard.current-active-layouts';
   var THIRD_PARTY_APP_ENABLED_KEY = 'keyboard.3rd-party-app.enabled';
-  var keyboardAppOrigin = 'http://keyboard.gaiamobile.org:8080';
+  var keyboardAppOrigin = 'app://keyboard.gaiamobile.org';
   var keyboardAppManifestURL =
-      'http://keyboard.gaiamobile.org:8080/manifest.webapp';
+      'app://keyboard.gaiamobile.org/manifest.webapp';
   var standardKeyboards = [
     {
       manifestURL: keyboardAppManifestURL,
@@ -154,15 +155,16 @@ suite('KeyboardHelper', function() {
 
   test('requests initial settings', function() {
     var requests = MockNavigatorSettings.mRequests;
-    assert.equal(requests.length, 26);
+    assert.equal(requests.length, 27);
     assert.ok(DEFAULT_KEY in requests[0].result, 'requested defaults');
     assert.ok(ENABLED_KEY in requests[1].result, 'requested enabled');
-    assert.ok(THIRD_PARTY_APP_ENABLED_KEY in requests[2].result,
+    assert.ok(CURRENT_ACTIVE in requests[2].result, 'active enabled');
+    assert.ok(THIRD_PARTY_APP_ENABLED_KEY in requests[3].result,
       'requested 3rd-party keyboard app enabled');
 
     var i = 0;
     for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
-      assert.ok(DEPRECATE_KEYBOARD_SETTINGS[key] in requests[3 + i].result,
+      assert.ok(DEPRECATE_KEYBOARD_SETTINGS[key] in requests[4 + i].result,
                 'requested deprecated settings - ' +
                 DEPRECATE_KEYBOARD_SETTINGS[key]);
       i++;
@@ -565,6 +567,62 @@ suite('KeyboardHelper', function() {
     });
   });
 
+  suite('Fallback layout with getLayouts', function() {
+    var oldFallbackLayoutNames;
+    var oldFallbackLayouts;
+    setup(function() {
+      MockNavigatorSettings.mRequests[0].result[DEFAULT_KEY] =
+        defaultSettings['default'];
+      MockNavigatorSettings.mRequests[1].result[ENABLED_KEY] =
+        defaultSettings.enabled;
+      this.sinon.stub(KeyboardHelper, 'getApps');
+      this.sinon.spy(window, 'ManifestHelper');
+      // since defaultSettings.default does not include fr layout,
+      // fallback with password-type should be set with fr layout
+      this.apps = [{
+        origin: keyboardAppOrigin,
+        manifestURL: keyboardAppManifestURL,
+        manifest: {
+          role: 'input',
+          inputs: {
+            en: {
+              types: ['text', 'url']
+            },
+            fr: {
+              types: ['password']
+            },
+            number: {
+              types: ['number']
+            }
+          }
+        }
+      }];
+
+      MockNavigatorSettings.mReplyToRequests();
+
+      oldFallbackLayoutNames = KeyboardHelper.fallbackLayoutNames;
+      oldFallbackLayouts = KeyboardHelper.fallbackLayouts;
+      KeyboardHelper.fallbackLayoutNames = {
+        password: 'fr'
+      };
+      KeyboardHelper.getLayouts({ 'default': true }, function() {}.bind(this));
+      KeyboardHelper.settings.enabled = defaultSettings.enabled;
+      KeyboardHelper.getApps.yield(this.apps);
+    });
+
+    teardown(function() {
+      KeyboardHelper.fallbackLayoutNames = oldFallbackLayoutNames;
+      KeyboardHelper.fallbackLayouts = oldFallbackLayouts;
+    });
+
+    test('fallback layout test', function() {
+      assert.isTrue('password' in KeyboardHelper.fallbackLayouts,
+                    '"password" type is not in fallback layouts');
+      assert.equal('fr', KeyboardHelper.fallbackLayouts.password.layoutId,
+                   'fallback layout for "password" is not "fr"');
+    });
+  });
+
   suite('watchLayouts', function() {
     setup(function() {
       MockNavigatorSettings.mRequests[0].result[DEFAULT_KEY] =
@@ -760,9 +818,9 @@ suite('KeyboardHelper', function() {
     suite('old settings: cs enabled', function() {
       setup(function() {
         this.sinon.stub(KeyboardHelper, 'saveToSettings');
-        MockNavigatorSettings.mRequests[3].
+        MockNavigatorSettings.mRequests[4].
           result[DEPRECATE_KEYBOARD_SETTINGS.en] = false;
-        MockNavigatorSettings.mRequests[5].
+        MockNavigatorSettings.mRequests[6].
           result[DEPRECATE_KEYBOARD_SETTINGS.cs] = true;
         MockNavigatorSettings.mReplyToRequests();
       });
@@ -783,9 +841,9 @@ suite('KeyboardHelper', function() {
     suite('old settings: serbian enabled', function() {
       setup(function() {
         this.sinon.stub(KeyboardHelper, 'saveToSettings');
-        MockNavigatorSettings.mRequests[3].
+        MockNavigatorSettings.mRequests[4].
           result[DEPRECATE_KEYBOARD_SETTINGS.en] = false;
-        MockNavigatorSettings.mRequests[23].
+        MockNavigatorSettings.mRequests[24].
           result[DEPRECATE_KEYBOARD_SETTINGS.sr] = true;
         MockNavigatorSettings.mReplyToRequests();
       });
@@ -866,11 +924,29 @@ suite('KeyboardHelper', function() {
                        expectedSettings.enabled);
     });
 
-    test('change default settings and reset for nonLatin', function() {
+    test('change default settings and reset for nonLatin, ' +
+         ' preloaded layout', function() {
+      // Zhuyin is not preloaded for current config, so won't be enabled
       expectedSettings['default'][keyboardAppManifestURL] = {
-        'zh-Hant-Zhuyin': true, en: true, number: true};
+        'zh-Hans-Pinyin': true, en: true, number: true};
       expectedSettings['enabled'][keyboardAppManifestURL] = {
-        'zh-Hant-Zhuyin': true, en: true, number: true};
+        'zh-Hans-Pinyin': true, en: true, number: true};
+
+      KeyboardHelper.changeDefaultLayouts('zh-CN', true);
+      assert.deepEqual(KeyboardHelper.settings.default,
+                       expectedSettings['default']);
+
+      assert.deepEqual(KeyboardHelper.settings.enabled,
+                       expectedSettings.enabled);
+    });
+
+    test('change default settings and reset for nonLatin layout, ' +
+         'not preloaded', function() {
+      // Zhuyin is not preloaded for current config, so won't be enabled
+      expectedSettings['default'][keyboardAppManifestURL] = {
+        en: true, number: true};
+      expectedSettings['enabled'][keyboardAppManifestURL] = {
+        en: true, number: true};
 
       KeyboardHelper.changeDefaultLayouts('zh-TW', true);
       assert.deepEqual(KeyboardHelper.settings.default,
@@ -878,6 +954,15 @@ suite('KeyboardHelper', function() {
 
       assert.deepEqual(KeyboardHelper.settings.enabled,
                        expectedSettings.enabled);
+    });
+  });
+
+  suite('Active layouts', function() {
+    test('save layout stores in settings', function() {
+      KeyboardHelper.saveCurrentActiveLayout('yolo', 'en', 'app://something');
+
+      assert.deepEqual(KeyboardHelper.settings.active,
+        { 'yolo': { id: 'en', manifestURL: 'app://something' } });
     });
   });
 });

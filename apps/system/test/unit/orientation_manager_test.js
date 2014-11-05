@@ -1,41 +1,29 @@
 'use strict';
 
-mocha.globals(['OrientationManager', 'SettingsListener', 'lockScreen']);
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForOrientationManager = new MocksHelper([
-  'SettingsListener'
+  'SettingsListener', 'System'
 ]).init();
 
 suite('system/OrientationManager >', function() {
   var originalLocked;
   mocksForOrientationManager.attachTestHelpers();
   setup(function(done) {
-    window.lockScreen = window.MockLockScreen;
-    originalLocked = window.lockScreen.locked;
-    window.lockScreen.locked = false;
+    window.System.locked = false;
     requireApp('system/js/orientation_manager.js', done);
-    window.lockScreen = MockLockScreen;
   });
 
   teardown(function() {
-    window.lockScreen.locked = originalLocked;
+    window.System.locked = false;
   });
 
   suite('handle events', function() {
-    test('attentionscreenhide', function() {
+    test('attentionclosed', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
       OrientationManager.handleEvent({
-        type: 'attentionscreenhide'
-      });
-      assert.isTrue(stubPublish.calledWith('reset-orientation'));
-    });
-
-    test('status-active', function() {
-      var stubPublish = this.sinon.stub(OrientationManager, 'publish');
-      OrientationManager.handleEvent({
-        type: 'status-active'
+        type: 'attentionclosed'
       });
       assert.isTrue(stubPublish.calledWith('reset-orientation'));
     });
@@ -48,6 +36,14 @@ suite('system/OrientationManager >', function() {
       assert.isTrue(stubPublish.calledWith('reset-orientation'));
     });
 
+    test('search window close should trigger reset', function() {
+      var stubPublish = this.sinon.stub(OrientationManager, 'publish');
+      OrientationManager.handleEvent({
+        type: 'searchclosing'
+      });
+      assert.isTrue(stubPublish.calledWith('reset-orientation'));
+    });
+
     test('trusteduiclose', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
       OrientationManager.handleEvent({
@@ -56,21 +52,31 @@ suite('system/OrientationManager >', function() {
       assert.isTrue(stubPublish.calledWith('reset-orientation'));
     });
 
-    test('will-unlock', function() {
+    test('lockscreen-appclosing', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
       OrientationManager.handleEvent({
-        type: 'will-unlock'
+        type: 'lockscreen-appclosing'
       });
       assert.isTrue(stubPublish.calledWith('reset-orientation'));
     });
 
     test('attention screen hides when lockscreen is active', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
-      window.lockScreen.locked = true;
+      window.System.locked = true;
       OrientationManager.handleEvent({
-        type: 'attentionscreenhide'
+        type: 'attentionclosing'
       });
       assert.isFalse(stubPublish.called);
+      window.System.locked = false;
+    });
+
+    test('shrinking-stop', function() {
+      var stubPublish = this.sinon.stub(OrientationManager, 'publish');
+      OrientationManager.handleEvent({
+        type: 'shrinking-stop'
+      });
+
+      assert.isTrue(stubPublish.withArgs('reset-orientation').calledOnce);
     });
   });
 });

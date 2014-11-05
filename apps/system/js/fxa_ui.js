@@ -5,6 +5,7 @@
 var FxAccountsUI = {
   dialog: null,
   panel: null,
+  iframe: null,
   onerrorCb: null,
   onsuccessCb: null,
 
@@ -42,12 +43,12 @@ var FxAccountsUI = {
   },
 
   // Refresh authentication flow.
-  refreshAuthentication: function fxa_ui_refreshAuth(accountId,
+  refreshAuthentication: function fxa_ui_refreshAuth(email,
                                                      onsuccess,
                                                      onerror) {
     this.onsuccessCb = onsuccess;
     this.onerrorCb = onerror;
-    this.loadFlow('refresh_auth', ['accountId=' + accountId]);
+    this.loadFlow('refresh_auth', ['email=' + email]);
   },
 
   // Method which close the dialog.
@@ -62,8 +63,12 @@ var FxAccountsUI = {
   },
 
   // Method for reseting the panel.
-  reset: function fxa_ui_reset() {
-    this.panel.innerHTML = '';
+  reset: function fxa_ui_reset(reason) {
+    this.panel.removeChild(this.iframe);
+    this.dialog.browser = null;
+    if (reason == 'home' || reason == 'holdhome') {
+      this.onerrorCb && this.onerrorCb('DIALOG_CLOSED_BY_USER');
+    }
     this.onerrorCb = null;
     this.onsuccessCb = null;
   },
@@ -71,16 +76,16 @@ var FxAccountsUI = {
   // Method for loading the iframe with the flow required.
   loadFlow: function fxa_ui_loadFlow(flow, params) {
     var url = '../fxa/fxa_module.html#' + flow;
+    if (FtuLauncher.isFtuRunning()) {
+      params = params || [];
+      params.push('isftu=true');
+    }
     if (params && Array.isArray(params)) {
       url += '?' + params.join('&');
     }
     this.iframe.setAttribute('src', url);
     this.panel.appendChild(this.iframe);
-    if (FtuLauncher.isFtuRunning()) {
-      this.panel.classList.add('isFTU');
-    } else {
-      this.panel.classList.remove('isFTU');
-    }
+    this.dialog.browser = { element: this.iframe };
     this.dialog.show();
   },
 
@@ -97,4 +102,5 @@ var FxAccountsUI = {
   }
 };
 
-FxAccountsUI.init();
+// this injects code into HTML and we need it to be localized
+navigator.mozL10n.once(FxAccountsUI.init.bind(FxAccountsUI));

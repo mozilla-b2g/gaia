@@ -79,7 +79,15 @@
  *          app to update the metadata record of specified file. The return
  *          value of this function is the updated metadata. If client app does
  *          not update any metadata, client app still needs to return
- *          file.metadata.
+ *          file.metadata. The client may also set file.needsReparse to indicate
+ *          that the source file should be reparsed.
+ *
+ *       reparsedRecord:
+ *          If in updateRecord, a record has been marked with file.needsReparse,
+ *          this function is called after the file has been reparsed to allow
+ *          the client app to merge any old metadata (e.g. metadata set by the
+ *          user). This function takes two arguments: the old metadata and the
+ *          new metadata, and should return the merged metadata.
  *
  *       excludeFilter:
  *          excludeFilter is used when client app wants MediaDB to filter out
@@ -380,7 +388,11 @@ var MediaDB = (function() {
     this.state = MediaDB.OPENING;
     this.scanning = false;  // becomes true while scanning
     this.parsingBigFiles = false;
-    this.updateRecord = options.updateRecord; // for data upgrade from client.
+
+    // These are for data upgrade from the client.
+    this.updateRecord = options.updateRecord;
+    this.reparsedRecord = options.reparsedRecord;
+
     if (options.excludeFilter && (options.excludeFilter instanceof RegExp)) {
       // only regular expression object is accepted.
       this.clientExcludeFilter = options.excludeFilter;
@@ -627,6 +639,12 @@ var MediaDB = (function() {
       try {
         dbfile.metadata = media.updateRecord(dbfile, oldClientVersion,
                                              media.version);
+        if (dbfile.needsReparse && !media.reparsedRecord) {
+          console.warn(
+            'client app requested reparse, but no reparsedRecord was set'
+          );
+          delete dbfile.needsReparse;
+        }
         store.put(dbfile);
       } catch (ex) {
         // discard client upgrade error, client app should handle it.
@@ -1158,8 +1176,11 @@ var MediaDB = (function() {
         var cursor = cursorRequest.result;
         if (cursor) {
           try {
-            if (!cursor.value.fail) {  // if metadata parsing succeeded
-              callback(cursor.value);
+            // If metadata parsing succeeded and the file doesn't need
+            // reparsing.
+            var fileinfo = cursor.value;
+            if (!fileinfo.fail) {
+              callback(fileinfo);
             }
           }
           catch (e) {
@@ -1222,13 +1243,22 @@ var MediaDB = (function() {
         var cursor = cursorRequest.result;
         if (cursor) {
           try {
+            // when the index is 0, we should just return the first
+            // record and does not need to advance the cursor.
+            if (index === 0) {
+              isTarget = true;
+            }
+
             // if metadata parsing succeeded and is the target record
-            if (!cursor.value.fail && isTarget) {
+            var fileinfo = cursor.value;
+            if (!fileinfo.fail && isTarget) {
               callback(cursor.value);
               cursor.continue();
             }
             else {
-              cursor.advance(index - 1);
+              // cursor.advance() should be given with index values
+              // greater than or equal to 1.
+              cursor.advance(index);
               isTarget = true;
             }
           }
@@ -1352,7 +1382,7 @@ var MediaDB = (function() {
   MediaDB.READY = 'ready';         // MediaDB is available and ready for use
   MediaDB.NOCARD = 'nocard';       // Unavailable because there is no sd card
   MediaDB.UNMOUNTED = 'unmounted'; // Unavailable because card unmounted
-  MediaDB.CLOSED = 'closed';       // Unavailalbe because MediaDB has closed
+  MediaDB.CLOSED = 'closed';       // Unavailable because MediaDB has closed
 
   /* Details of helper functions follow */
 
@@ -1588,14 +1618,32 @@ var MediaDB = (function() {
           }
 
           // Case 4: two files with the same name.
-          // 4a: date and size are the same for both: do nothing
-          // 4b: file has changed: it is both a deletion and a creation
+          // 4a: date or size has changed: it is both a deletion and a creation
+          // 4b: dbfile needs reparse: it is both a deletion and an update
+          // 4c: date and size are the same for both, and no reparse needed:
+          //     do nothing
           if (dsfile.name === dbfile.name) {
+            // In release 1.3 and before files reported local times, and in 1.4
+            // and later they report UTC times. If the user has upgraded from
+            // 1.3 to 1.4 they may have files in the db whose times are in a
+            // local timezone. We want to recognize those files as matching
+            // existing files so we consider two files to have the same time if
+            // they are within +/- 12 hours of each other and if the difference
+            // in times is an exactly multiple of 10 minutes. (This assumes all
+            // world timezones are exact multiples of 10 minutes.)
             var lastModified = dsfile.lastModifiedDate;
-            if ((lastModified && lastModified.getTime() !== dbfile.date) ||
-                dsfile.size !== dbfile.size) {
+            var timeDifference = lastModified.getTime() - dbfile.date;
+            var sameTime = (timeDifference === 0 ||
+              ((Math.abs(timeDifference) <= 12 * 60 * 60 * 1000) &&
+              (timeDifference % 10 * 60 * 1000 === 0)));
+            var sameSize = dsfile.size === dbfile.size;
+
+            if (!sameTime || !sameSize) {
               deleteRecord(media, dbfile.name);
               insertRecord(media, dsfile);
+            } else if (dbfile.needsReparse) {
+              deleteRecord(media, dbfile.name);
+              insertRecord(media, dsfile, dbfile.metadata);
             }
             dsindex++;
             dbindex++;
@@ -1648,11 +1696,11 @@ var MediaDB = (function() {
   // Ensures that only one file is being parsed at a time, but tries
   // to make as many db changes in one transaction as possible.  The
   // special value null indicates that scanning is complete.
-  function insertRecord(media, fileOrName) {
+  function insertRecord(media, fileOrName, oldMetadata) {
     var details = media.details;
 
     // Add this file to the queue of files to process
-    details.pendingInsertions.push(fileOrName);
+    details.pendingInsertions.push([fileOrName, oldMetadata]);
 
     // If the queue is already being processed, just return
     if (details.processingQueue) {
@@ -1704,7 +1752,7 @@ var MediaDB = (function() {
         deleteFiles();
       }
       else if (details.pendingInsertions.length > 0) {
-        insertFile(details.pendingInsertions.shift());
+        insertFile(...details.pendingInsertions.shift());
       }
       else {
         details.processingQueue = false;
@@ -1745,8 +1793,10 @@ var MediaDB = (function() {
     }
 
     // Insert a file into the db. One transaction per insertion.
-    // The argument might be a filename or a File object.
-    function insertFile(f) {
+    // The argument f might be a filename or a File object.
+    // oldMetadata is the metadata of this file before it was reparsed (or
+    // undefined).
+    function insertFile(f, oldMetadata) {
       // null is a special value pushed on to the queue when a scan()
       // is complete.  We use it to trigger a scanend event
       // after all the change events from the scan are delivered
@@ -1779,17 +1829,17 @@ var MediaDB = (function() {
           if (media.mimeTypes && ignore(media, getreq.result)) {
             next();
           } else {
-            parseMetadata(getreq.result, f);
+            parseMetadata(getreq.result, f, oldMetadata);
           }
         };
       }
       else {
         // otherwise f is the file we want
-        parseMetadata(f, f.name);
+        parseMetadata(f, f.name, oldMetadata);
       }
     }
 
-    function parseMetadata(file, filename) {
+    function parseMetadata(file, filename, oldMetadata) {
       if (!file.lastModifiedDate) {
         console.warn('MediaDB: parseMetadata: no lastModifiedDate for',
                      filename,
@@ -1828,6 +1878,9 @@ var MediaDB = (function() {
       }
       function gotMetadata(metadata) {
         fileinfo.metadata = metadata;
+        if (oldMetadata && media.reparsedRecord) {
+          fileinfo.metadata = media.reparsedRecord(oldMetadata, metadata);
+        }
         storeRecord(fileinfo);
         if (!media.scanning) {
           // single file parsing.
@@ -1934,7 +1987,7 @@ var MediaDB = (function() {
     }
     details.pendingNotificationTimer =
       setTimeout(function() { sendNotifications(media); },
-                 media.batchHoldTime);
+                 media.scanning ? media.batchHoldTime : 100);
   }
 
   // Send out notifications for creations and deletions

@@ -5,15 +5,13 @@
 'use strict';
 
 function SimPinDialog(dialog) {
-  var conns = window.navigator.mozMobileConnections;
   var icc;
+  var _localize = navigator.mozL10n.setAttributes;
+  var translate = navigator.mozL10n.get;
 
-  if (!conns) {
+  if (!window.navigator.mozMobileConnections) {
     return;
   }
-
-  var _localize = navigator.mozL10n.localize;
-
 
   /**
    * Global variables and callbacks -- set by the main `show()' method
@@ -35,7 +33,7 @@ function SimPinDialog(dialog) {
    * User Interface constants
    */
 
-  var dialogTitle = dialog.querySelector('header h1');
+  var dialogTitle = dialog.querySelector('gaia-header h1');
   var dialogDone = dialog.querySelector('button[type="submit"]');
   var dialogClose = dialog.querySelector('button[type="reset"]');
   dialogDone.onclick = verify;
@@ -63,6 +61,7 @@ function SimPinDialog(dialog) {
     });
     return input;
   }
+
   var pinInput = numberPasswordInput(pinArea);
   var pukInput = numberPasswordInput(pukArea);
   var newPinInput = numberPasswordInput(newPinArea);
@@ -77,7 +76,7 @@ function SimPinDialog(dialog) {
       errorMsg.hidden = true;
       return;
     }
-    _localize(errorMsgHeader, headerL10nId);
+    errorMsgHeader.setAttribute('data-l10n-id', headerL10nId);
     _localize(errorMsgBody, bodyL10nId, args);
     errorMsg.hidden = false;
   }
@@ -94,20 +93,19 @@ function SimPinDialog(dialog) {
   }
 
   // card lock error messages
-  function handleCardLockError(event) {
-    var type = event.lockType; // expected: 'pin', 'fdn', 'puk'
-    if (!type) {
+  function handleCardLockError(lockType, retryCount) {
+    // expected: 'pin', 'fdn', 'puk'
+    if (!lockType) {
       skip();
       return;
     }
 
     // after three strikes, ask for PUK/PUK2
-    var count = event.retryCount;
-    if (count <= 0) {
-      if (type === 'pin') {
+    if (retryCount <= 0) {
+      if (lockType === 'pin') {
         // we leave this for system app
         skip();
-      } else if (type === 'fdn' || type === 'pin2') {
+      } else if (lockType === 'fdn' || lockType === 'pin2') {
         _action = initUI('unlock_puk2');
         pukInput.focus();
       } else { // out of PUK/PUK2: we're doomed
@@ -117,13 +115,13 @@ function SimPinDialog(dialog) {
       return;
     }
 
-    var msgId = (count > 1) ? 'AttemptMsg3' : 'LastChanceMsg';
-    showMessage(type + 'ErrorMsg', type + msgId, { n: count });
+    var msgId = (retryCount > 1) ? 'AttemptMsg3' : 'LastChanceMsg';
+    showMessage(lockType + 'ErrorMsg', lockType + msgId, { n: retryCount });
     showRetryCount(count);
 
-    if (type === 'pin' || type === 'fdn') {
+    if (lockType === 'pin' || lockType === 'fdn') {
       pinInput.focus();
-    } else if (type === 'puk') {
+    } else if (lockType === 'puk') {
       pukInput.focus();
     }
   }
@@ -166,7 +164,7 @@ function SimPinDialog(dialog) {
       _onsuccess();
     };
     req.onerror = function sp_unlockError() {
-      handleCardLockError(req.error);
+      handleCardLockError(options.lockType, req.error.retryCount);
     };
   }
 
@@ -217,8 +215,8 @@ function SimPinDialog(dialog) {
       close();
       _onsuccess();
     };
-    req.onerror = function sp_unlockError() {
-      handleCardLockError(req.error);
+    req.onerror = function sp_enableError() {
+      handleCardLockError(options.lockType, req.error.retryCount);
     };
   }
 
@@ -229,6 +227,17 @@ function SimPinDialog(dialog) {
 
   var _fdnContactInfo = {};
 
+  /**
+   * Updates a FDN contact. For some reason, `icc.updateContact` requires the
+   * pin input value instead of delegating to `icc.setCardLock`. That means
+   * that, in case of failure, the error is different that the one that
+   * `icc.setCardLock` gives. This means that we have to handle it separatedly
+   * instead of being able to use the existing `handleCardLockError` above.
+   * Among other things, it doesn't include the retryCount, so we can't tell
+   * the user how many remaining tries she has. What a mess.
+   *
+   * This should be solved when bug 1070941 is fixed.
+   */
   function updateFdnContact() {
     var req = icc.updateContact('fdn', _fdnContactInfo, pinInput.value);
 
@@ -238,16 +247,28 @@ function SimPinDialog(dialog) {
     };
 
     req.onerror = function onerror(e) {
-      var wrongPin2 = /IncorrectPassword/.test(req.error.name);
-      if (wrongPin2) { // TODO: count retries (not supported by the platform)
-        _action = initUI('get_pin2');
-        showMessage('fdnErrorMsg');
-        pinInput.value = '';
-        pinInput.focus();
-      } else {
-        _oncancel(_fdnContactInfo);
-        close();
-        throw new Error('Could not edit FDN contact on SIM card', e);
+      switch (req.error.name) {
+        case 'IncorrectPassword':
+        case 'SimPin2':
+          // TODO: count retries (not supported by the platform) -> Bug 1070941
+          _action = initUI('get_pin2');
+          showMessage('fdnErrorMsg');
+          pinInput.value = '';
+          pinInput.focus();
+          break;
+        case 'SimPuk2':
+          _action = initUI('unlock_puk2');
+          pukInput.focus();
+          break;
+        case 'NoFreeRecordFound':
+          alert(translate('fdnNoFDNFreeRecord'));
+          _oncancel(_fdnContactInfo);
+          close();
+          break;
+        default:
+          _oncancel(_fdnContactInfo);
+          close();
+          throw new Error('Could not edit FDN contact on SIM card', e);
       }
     };
   }

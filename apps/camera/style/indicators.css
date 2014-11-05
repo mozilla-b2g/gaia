@@ -39,12 +39,16 @@
   display: none;
   height: 1.8rem;
   width: 1.8rem;
-  font-size: 18px;
+  line-height: 1;
   margin-bottom: 1.2rem;
   border-radius: 4px;
   text-align: center;
   background-color: rgba(255,255,255,0.8);
   color: #008EAB;
+}
+
+.indicators li:before {
+  font-size: 1.8rem;
 }
 
 /**
@@ -61,9 +65,18 @@
  */
 
 .indicators[recording=true] .indicator_hdr,
+.indicators[mode=video] .indicator_hdr,
 .indicators[recording=true] .indicator_timer,
 .indicators[timer=off] .indicator_timer {
   display: none;
+}
+
+/** Indication Geolocation
+ ---------------------------------------------------------*/
+
+li.indicator_geolocation:before {
+  font-size: 1.3rem;
+  line-height: 1.4;
 }
 
 /** Indicator Timer
@@ -73,17 +86,24 @@
   display: block;
 }
 
+.indicators .indicator_timer:before {
+  font-size: 1.7rem;
+}
+
 /** Indicator Battery
  ---------------------------------------------------------*/
 
 .indicators .indicator_battery {
   width: 2.5rem;
   height: 0.9rem;
-  font-size: 2.5rem;
   line-height: 0.9rem;
   margin-left: -0.3rem;
   color: #D92E2E;
   background: transparent;
+}
+
+.indicators .indicator_battery:before {
+  font-size: 2.5rem;
 }
 
 /**
@@ -118,21 +138,13 @@
 }
 
 /**
- * battery=low
- */
-
-.indicators[battery='low'] .indicator_battery:before {
-  content: "\e619";
-}
-
-/**
  * battery=verylow,
  * battery=critical
  */
 
 .indicators[battery='verylow'] .indicator_battery:before,
 .indicators[battery='critical'] .indicator_battery:before {
-  content: "\e61a";
+  content: "battery-1";
 }
 
 /**

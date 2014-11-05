@@ -7,12 +7,7 @@ var serverHelper = require('./lib/server_helper');
 
 marionette('activity create email account', function() {
   var app,
-      client = marionette.client({
-        settings: {
-          // disable keyboard ftu because it blocks our display
-          'keyboard.ftu.enabled': false
-        }
-      }),
+      client = marionette.client(),
       server = serverHelper.use({
         credentials: {
           username: 'testy1',
@@ -40,7 +35,7 @@ marionette('activity create email account', function() {
     client.waitFor(function() {
       return client.executeScript(function() {
         var req = window.wrappedJSObject.require;
-        return req.defined('mail_common');
+        return req.defined('cards');
       });
     });
 

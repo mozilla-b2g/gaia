@@ -1,5 +1,4 @@
 'use strict';
-/* global _ */
 /* global ConfirmDialog */
 /* global contacts */
 /* global fb */
@@ -13,7 +12,7 @@ if (typeof Contacts.extServices === 'undefined') {
 
     var extensionFrame = document.querySelector('#fb-extensions');
     var oauthFrame = document.querySelector('#fb-oauth');
-    oauthFrame.src = '/facebook/fb_oauth.html';
+    oauthFrame.src = '/shared/pages/import/oauth.html';
     var currentURI, access_token;
     var canClose = true, canCloseLogout = true;
     var closeRequested = false;
@@ -57,7 +56,8 @@ if (typeof Contacts.extServices === 'undefined') {
       closeRequested = false;
       canClose = false;
       canCloseLogout = false;
-      load('import.html?service=' + serviceName, 'friends', serviceName);
+      load('/shared/pages/import/import.html?service=' + serviceName,
+           'friends', serviceName);
     }
 
     function load(uri, from, serviceName) {
@@ -77,7 +77,7 @@ if (typeof Contacts.extServices === 'undefined') {
       extensionFrame.src = currentURI = null;
     }
 
-    function close(message) {
+    function close(messageId, additionalMessageId) {
       extensionFrame.addEventListener('transitionend', function tclose() {
         extensionFrame.removeEventListener('transitionend', tclose);
         extensionFrame.classList.add('hidden');
@@ -88,8 +88,8 @@ if (typeof Contacts.extServices === 'undefined') {
           closeRequested = true;
         }
 
-        if (message && message.trim().length > 0) {
-          Contacts.showStatus(message);
+        if (messageId) {
+          Contacts.showStatus(messageId, additionalMessageId);
         }
       // Otherwise we do nothing as the sync process will finish sooner or later
       });
@@ -233,9 +233,9 @@ if (typeof Contacts.extServices === 'undefined') {
     }
 
     function unlink(cid) {
-      var msg = _('social-unlink-confirm-title');
+      var msg = 'social-unlink-confirm-title';
       var yesObject = {
-        title: _('social-unlink-confirm-accept'),
+        title: 'social-unlink-confirm-accept',
         isDanger: true,
         callback: function onAccept() {
           ConfirmDialog.hide();
@@ -244,7 +244,7 @@ if (typeof Contacts.extServices === 'undefined') {
       };
 
       var noObject = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function onCancel() {
           ConfirmDialog.hide();
         }
@@ -326,7 +326,7 @@ if (typeof Contacts.extServices === 'undefined') {
         break;
 
         case 'window_close':
-          close(data.message);
+          close(data.messageId, data.additionalMessageId);
           notifySettings();
         break;
 

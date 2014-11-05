@@ -1,4 +1,4 @@
-/* global eme, Provider, Search */
+/* global eme, Search, DataGridProvider, GaiaGrid, GridIconRenderer, Promise */
 
 (function() {
 
@@ -8,61 +8,70 @@
 
   WebResults.prototype = {
 
-    __proto__: Provider.prototype,
+    __proto__: DataGridProvider.prototype,
 
     name: 'WebResults',
 
     dedupes: true,
     dedupeStrategy: 'fuzzy',
+    remote: true,
+
+    renderFullscreen: false,
 
     init: function() {
-      Provider.prototype.init.apply(this, arguments);
+      DataGridProvider.prototype.init.apply(this, arguments);
       eme.init();
     },
 
-    click: function(e) {
-      var url = e.target && e.target.dataset.url;
-      if (url) {
-        Search.navigate(url, {
-          icon: e.target.dataset.icon,
-          originUrl: url,
-          originName: e.target.dataset.title
-        });
-      }
+    /**
+     * Provides fullscreen search results.
+     * This happens when a suggestion is tapped or the enter key is pressed.
+     */
+    fullscreen: function(query) {
+      this.renderFullscreen = true;
+      this.search(query).then((results) => {
+        this.render(results);
+        this.renderFullscreen = false;
+      });
     },
 
-    search: function(input, collect) {
-      this.clear();
-      if (!eme.api.Apps) {
-        return;
-      }
-
-      this.request = eme.api.Apps.search({
-        'query': input
-      });
-
-      this.request.then((function resolve(data) {
-        var response = data.response;
-        if (response && response.apps && response.apps.length) {
-          var results = response.apps.map(function each(app) {
-            return {
-              title: app.name,
-              icon: app.icon,
-              dedupeId: app.appUrl,
-              dataset: {
-                title: app.name,
-                url: app.appUrl,
-                icon: app.icon
-              }
-            };
-          });
-          collect(results);
+    search: function(input) {
+      return new Promise((resolve, reject) =>
+        eme.init().then(() => {
+        if (!eme.api.Apps) {
+          reject();
+          return;
         }
-      }).bind(this), function reject(reason) {
-        // handle errors
-      });
-    }
 
+        this.request = eme.api.Apps.search({
+          'query': input
+        });
+
+        this.request.then((data) => {
+          var response = data.response;
+          if (response && response.apps && response.apps.length) {
+            var results = [];
+            response.apps.forEach(app => {
+              results.push({
+                dedupeId: app.appUrl,
+                data: new GaiaGrid.Bookmark({
+                  id: app.appUrl,
+                  name: app.name,
+                  url: app.appUrl,
+                  icon: app.icon,
+                  renderer: GridIconRenderer.TYPE.CLIP
+                }, {
+                  search: true}
+                )
+              });
+            });
+            resolve(results);
+          }
+        }, (reason) => {
+          reject();
+        });
+      }));
+    }
   };
 
   Search.provider(new WebResults(window.eme));

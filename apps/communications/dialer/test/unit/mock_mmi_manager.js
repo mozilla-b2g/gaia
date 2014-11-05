@@ -21,10 +21,16 @@ var MockMmiManager = {
   handleMMIReceived: function(message, sessionEnded) {
 
   },
+  sendNotification: function(message, cardIndex) {
+    return { then: function(callback) { callback(); } };
+  },
   isMMI: function(number) {
     return false;
   },
   handleEvent: function(evt) {
+
+  },
+  showImei: function() {
 
   }
 };

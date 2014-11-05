@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.ftu.app import Ftu
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestFtu(GaiaTestCase):
@@ -16,7 +17,7 @@ class TestFtu(GaiaTestCase):
 
     def test_ftu_skip_tour_for_desktop(self):
 
-        self.assertGreater(self.ftu.languages_list, 0, "No languages listed on screen")
+        self.wait_for_condition(lambda m: self.ftu.languages_list > 0, message="No languages listed on screen")
 
         # select en-US due to the condition of this test is only for en-US
         self.ftu.tap_language("en-US")
@@ -42,8 +43,8 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_next_to_welcome_browser_section()
 
         # Tap the statistics box and check that it sets a setting
-        # TODO assert via settings API that this is set. Currently it is not used
         self.ftu.tap_statistics_checkbox()
+        self.assertTrue(self.data_layer.get_setting('debug.performance_data.shared'))
         self.ftu.tap_next_to_privacy_browser_section()
 
         # Enter a dummy email address and check it set inside the os
@@ -55,4 +56,4 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_skip_tour()
 
         # Switch back to top level now that FTU app is gone
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'Homescreen')
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == Homescreen.name)

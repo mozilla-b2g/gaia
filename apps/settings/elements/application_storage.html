@@ -1,30 +1,32 @@
 <element name="applicationStorage" extends="section">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
+    <gaia-header action="back" data-href="#root">
       <h1 data-l10n-id="appStorage-header"> Application Storage </h1>
-    </header>
+    </gaia-header>
 
     <div>
       <ul>
         <li>
-          <progress id="apps-space-bar" min="0" value="0" max="100"></progress>
+          <progress class="apps-space-bar" min="0" value="0" max="100"></progress>
         </li>
 
         <li>
-          <a data-l10n-id="apps-total-space"> Total Space
-            <span id="apps-total-space"></span>
+          <a>
+            <span data-l10n-id="apps-total-space">Total Space</span>
+            <span class="apps-total-space"></span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="apps-used-space"> Used
-            <span id="apps-used-space"></span>
+          <a>
+            <span data-l10n-id="apps-used-space">Used</span>
+            <span class="apps-used-space"></span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="apps-free-space"> Left
-            <span id="apps-free-space"></span>
+          <a>
+            <span data-l10n-id="apps-free-space">Left</span>
+            <span class="apps-free-space"></span>
           </a>
         </li>
         <li class="description two-column-description">
@@ -34,7 +36,7 @@
         </li>
       </ul>
     </div>
-    <script src="js/app_storage.js"></script>
+    <panel data-path="panels/app_storage/panel"></panel>
 
   </template>
 </element>

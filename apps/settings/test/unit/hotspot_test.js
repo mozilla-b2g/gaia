@@ -7,7 +7,9 @@ require('/js/hotspot_wifi_settings.js');
 require('/test/unit/mock_navigator_settings.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/js/utils.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 var mocksHelperForHotspot = new MocksHelper([
     'SettingsListener'
@@ -25,25 +27,7 @@ suite('Hotspot', function() {
 
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-
-    var html =
-      '<div id="hotspot">' +
-        '<ul>' +
-          '<li id="hotspot-settings-section">' +
-            '<label>' +
-              '<button class="icon icon-view"' +
-              'data-l10n-id="hotspotSettings">Hotspot Settings</button>' +
-            '</label>' +
-          '</li>' +
-          '<li class="password-item" hidden>' +
-            '<a data-l10n-id="wifi-password">Password' +
-              '<span data-name="tethering.wifi.security.password"></span>' +
-            '</a>' +
-          '</li>' +
-        '</ul>' +
-      '</div>';
-
-    document.body.insertAdjacentHTML('beforeend', html);
+    loadBodyHTML('./_hotspot.html');
   });
 
   suiteTeardown(function() {

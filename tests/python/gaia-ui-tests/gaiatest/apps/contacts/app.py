@@ -1,6 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# file, You can obtain one at http://mozilla.org/MPL/2.0/. 
 
 from marionette.by import By
 from marionette.errors import JavascriptException
@@ -17,16 +17,15 @@ class Contacts(Base):
     _new_contact_button_locator = (By.ID, 'add-contact-button')
     _settings_button_locator = (By.ID, 'settings-button')
     _favorites_list_locator = (By.ID, 'contacts-list-favorites')
-    _contacts_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="contacts"][src*="/index.html"]')
+    _select_all_wrapper_locator = (By.ID, 'select-all-wrapper')
     _select_all_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="selectAll"]')
     _export_button_locator = (By.ID, 'select-action')
     _status_message_locator = (By.ID, 'statusMsg')
-    _select_contacts_to_import_frame_locator = (By.ID, 'fb-extensions')
-    _import_locator = (By.ID, 'import-action')
-    _first_contact_locator = (By.CSS_SELECTOR, 'li.block-item label.pack-checkbox')
+
+    _group_container_selector = "#groups-container"
 
     #  contacts
-    _contact_locator = (By.CSS_SELECTOR, 'li.contact-item')
+    _contact_locator = (By.CSS_SELECTOR, 'li[data-uuid]:not([data-group="ice"])')
 
     def launch(self):
         Base.launch(self)
@@ -35,25 +34,10 @@ class Contacts(Base):
         self.wait_for_element_displayed(*self._settings_button_locator)
 
     def switch_to_contacts_frame(self):
-        self.marionette.switch_to_frame()
-        contacts_frame = self.wait_for_element_present(*self._contacts_frame_locator)
-        self.marionette.switch_to_frame(contacts_frame)
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        self.apps.switch_to_displayed_app()
         Wait(self.marionette, ignored_exceptions=JavascriptException).until(
             lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded') is True)
-
-    def switch_to_select_contacts_frame(self):
-        self.switch_to_contacts_frame()
-        self.wait_for_element_displayed(*self._select_contacts_to_import_frame_locator)
-        select_contacts = self.marionette.find_element(*self._select_contacts_to_import_frame_locator)
-        self.marionette.switch_to_frame(select_contacts)
-
-    def tap_first_contact(self):
-        self.marionette.find_element(*self._first_contact_locator).tap()
-
-    def tap_import_button(self):
-        self.marionette.find_element(*self._import_locator).tap()
-        from gaiatest.apps.contacts.regions.settings_form import SettingsForm
-        return SettingsForm(self.marionette)
 
     @property
     def contacts(self):
@@ -63,10 +47,11 @@ class Contacts(Base):
     def wait_for_contacts(self, number_to_wait_for=1):
         self.wait_for_condition(lambda m: len(m.find_elements(*self._contact_locator)) == number_to_wait_for)
 
-    # TODO: Replace this by using apps.displayed_app when bug 951815 is fixed
-    def wait_for_contacts_frame_to_close(self):
-        self.marionette.switch_to_default_content()
-        self.wait_for_element_not_present(*self._contacts_frame_locator)
+        # we need to scroll in order to force the rendering of all the contacts
+        height = self.marionette.execute_script("return document.querySelector('[data-uuid]').clientHeight;")
+        for idx in range(number_to_wait_for):
+            self.marionette.execute_script("document.querySelector('{0}').scrollTop = {1}".
+                                            format(self._group_container_selector, idx * height))
 
     def contact(self, name):
         for contact in self.contacts:
@@ -76,14 +61,28 @@ class Contacts(Base):
     def tap_new_contact(self):
         self.marionette.find_element(*self._new_contact_button_locator).tap()
         from gaiatest.apps.contacts.regions.contact_form import NewContact
-        return NewContact(self.marionette)
+        new_contact = NewContact(self.marionette)
+        new_contact.wait_for_new_contact_form_to_load()
+        return new_contact
+
+    def a11y_click_new_contact(self):
+        self.accessibility.click(self.marionette.find_element(*self._new_contact_button_locator))
+        from gaiatest.apps.contacts.regions.contact_form import NewContact
+        new_contact = NewContact(self.marionette)
+        new_contact.wait_for_new_contact_form_to_load()
+        return new_contact
 
     def tap_settings(self):
         self.marionette.find_element(*self._settings_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._settings_button_locator)
         from gaiatest.apps.contacts.regions.settings_form import SettingsForm
         return SettingsForm(self.marionette)
 
     def tap_select_all(self):
+        window_height = self.marionette.execute_script('return window.wrappedJSObject.innerHeight')
+        wrapper = self.marionette.find_element(*self._select_all_wrapper_locator)
+        self.wait_for_condition(lambda m: int(wrapper.size['height'] + wrapper.location['y']) == window_height)
+
         self.marionette.find_element(*self._select_all_button_locator).tap()
 
     def tap_export(self):
@@ -101,7 +100,7 @@ class Contacts(Base):
     class Contact(PageRegion):
 
         _name_locator = (By.CSS_SELECTOR, 'p > strong')
-        _full_name_locator = (By.CSS_SELECTOR, 'p')
+        _full_name_locator = (By.CSS_SELECTOR, 'p.contact-text')
 
         @property
         def name(self):
@@ -111,9 +110,25 @@ class Contacts(Base):
         def full_name(self):
             return self.root_element.find_element(*self._full_name_locator).text
 
-        def tap(self, return_details=True):
+        def tap(self, return_class='ContactDetails'):
             self.root_element.find_element(*self._name_locator).tap()
+            return self._return_class_from_tap(return_class)
 
-            if return_details:
+        def a11y_click(self, return_class='ContactDetails'):
+            self.accessibility.click(self.root_element)
+            return self._return_class_from_tap(return_class)
+
+        def _return_class_from_tap(self, return_class='ContactDetails'):
+            if return_class == 'ContactDetails':
                 from gaiatest.apps.contacts.regions.contact_details import ContactDetails
                 return ContactDetails(self.marionette)
+            elif return_class == 'EditContact':
+                # This may seem superfluous but we can enter EditContact from Contacts, or from ActivityPicker
+                self.wait_for_condition(lambda m: self.apps.displayed_app.name == Contacts.name)
+                self.apps.switch_to_displayed_app()
+                from gaiatest.apps.contacts.regions.contact_form import EditContact
+                return EditContact(self.marionette)
+            else:
+                # We are using contacts picker in activity - after choosing, fall back to open app
+                self.wait_for_condition(lambda m: self.apps.displayed_app.name != Contacts.name)
+                self.apps.switch_to_displayed_app()

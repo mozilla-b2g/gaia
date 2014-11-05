@@ -60,7 +60,8 @@
                 'system-dialog-hide',
                 'system-resize',
                 'home',
-                'holdhome']
+                'holdhome',
+                'mozChromeEvent']
     }
   };
 
@@ -103,6 +104,21 @@
           // Deactivate the dialog and pass the event type in the two cases
           this.deactivateDialog(this.states.activeDialog, evt.type);
         }
+        break;
+      case 'mozChromeEvent':
+        if (!this.states.activeDialog || !evt.detail ||
+          evt.detail.type !== 'inputmethod-contextchange') {
+          return;
+        }
+        var typesToHandle = ['select-one', 'select-multiple', 'date', 'time',
+          'datetime', 'datetime-local', 'blur'];
+        if (typesToHandle.indexOf(evt.detail.inputType) < 0) {
+          return;
+        }
+        // Making sure app-window does not receive this event.
+        evt.stopImmediatePropagation();
+        this.states.activeDialog.broadcast('inputmethod-contextchange',
+          evt.detail);
         break;
     }
   };

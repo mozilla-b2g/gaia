@@ -1,11 +1,9 @@
 (function() {
 'use strict';
 
-mocha.globals(['LockScreenWindowManager', 'LockScreen', 'LockScreenWindow',
-               'addEventListener', 'dispatchEvent', 'lockScreenWindowManager',
-               'lockScreen', 'SettingsListener']);
-
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
 requireApp('system/js/lockscreen_window_manager.js');
@@ -15,9 +13,12 @@ var mocksForLockScreenWindowManager = new window.MocksHelper([
 ]).init();
 
 suite('system/LockScreenWindowManager', function() {
+  var subject;
   var stubById;
   var appFake;
   var originalSettingsListener;
+  var originalMozActivity;
+  var originalMozSettings;
 
   mocksForLockScreenWindowManager.attachTestHelpers();
 
@@ -27,77 +28,106 @@ suite('system/LockScreenWindowManager', function() {
     appFake = new window.LockScreenWindow();
 
     originalSettingsListener = window.SettingsListener;
+    originalMozActivity = window.MozActivity;
     window.SettingsListener = {
       observe: function(name, bool, cb) {},
       getSettingsLock: function() {
-        return {get: function(name) {
-          if ('lockscreen.enabled' === name) {
-            return true;
-          }
-        }};
+        return {
+          get: function(name) {
+            if ('lockscreen.enabled' === name) {
+              return true;
+            }
+          },
+          set: function() {}
+        };
       }
     };
-    // To prevent the original one has been
-    // initialized in the bootstrap stage.
-    //
-    // XXX: On Travis the manager would be a empty object,
-    // but on local everything is fine. So the second condition
-    // is necessary.
-    if (window.lockScreenWindowManager &&
-        0 !== Object.keys(window.lockScreenWindowManager).length) {
-      window.lockScreenWindowManager.stopEventListeners();
-      window.lockScreenWindowManager.startEventListeners();
-    } else {
-      window.lockScreenWindowManager = new window.LockScreenWindowManager();
-    }
-    // Differs from the existing mock which is expected by other components.
-    window.LockScreen = function() {};
+    window.MozActivity = function() {};
+
+    originalMozSettings = window.navigator.mozSettings;
+    window.navigator.mozSettings = window.MockNavigatorSettings;
+
   });
 
   teardown(function() {
     window.SettingsListener = originalSettingsListener;
+    window.MozActivity = originalMozActivity;
+    window.navigator.mozSettings = originalMozSettings;
+    window.MockNavigatorSettings.mTeardown();
     stubById.restore();
   });
 
   suite('Handle events', function() {
+    setup(function() {
+      subject = new window.LockScreenWindowManager();
+      subject.setup();
+      subject.startObserveSettings();
+      subject.elements = {};
+      subject.elements.screen =
+        document.createElement('div');
+      // Differs from the existing mock which is expected by other components.
+      window.LockScreen = function() {};
+    });
+
+    test('It should stop home event to propagate', function() {
+      var evt = {
+            type: 'home',
+            stopImmediatePropagation: this.sinon.stub()
+          };
+      // Need to be active to block the home event.
+      this.sinon.stub(subject, 'isActive',
+        function() {
+          return true;
+      });
+      subject.handleEvent(evt);
+      assert.ok(evt.stopImmediatePropagation.called,
+        'it didn\'t call the stopImmediatePropagation method');
+    });
+
     test('App created', function() {
-      window.lockScreenWindowManager.handleEvent(
+      subject.handleEvent(
         { type: 'lockscreen-appcreated',
           detail: appFake });
       assert.equal(
-        window.lockScreenWindowManager.states.instance.instanceID,
+        subject.states.instance.instanceID,
           appFake.instanceID,
         'the app was not activated');
-        window.assert.isObject(window.lockScreenWindowManager
+        window.assert.isObject(subject
           .states.instance,
         'the app was not registered in the maanger');
-      window.lockScreenWindowManager.unregisterApp(appFake);
+      subject.unregisterApp(appFake);
     });
 
     test('Initialize when screenchange', function() {
-      var originalCreateWindow = window.lockScreenWindowManager.createWindow;
+      var originalCreateWindow = subject.createWindow;
+      var originalLockScreenInputWindow = window.LockScreenInputWindow;
+      window.LockScreenInputWindow = function() {};
       var stubCreateWindow =
-      this.sinon.stub(window.lockScreenWindowManager, 'createWindow',
+      this.sinon.stub(subject, 'createWindow',
         function() {
           return originalCreateWindow.bind(this).call();
         });
-      window.lockScreenWindowManager.handleEvent(
+      subject.states.ready = true;
+      subject.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
       assert.isTrue(stubCreateWindow.called,
           'the manage didn\'t create the singleton window');
-      var app = window.lockScreenWindowManager.states.instance;
+      var app = subject.states.instance;
       if (app) {
-        window.lockScreenWindowManager.unregisterApp(app);
+        subject.unregisterApp(app);
       }
-      window.lockScreenWindowManager.stopEventListeners();
+      subject.stopEventListeners();
+      window.LockScreenInputWindow = originalLockScreenInputWindow =
+        originalLockScreenInputWindow;
     });
 
     test('Screenchange by proximity sensor, should not open the LockScreen app',
     function() {
-      var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
+      var stubOpenApp = this.sinon.stub(subject,
         'openApp');
-      window.lockScreenWindowManager.handleEvent(
+      subject.states.ready = true;
+      subject.handleEvent(
         {
           type: 'screenchange',
           detail: { screenEnabled: true,
@@ -109,22 +139,105 @@ suite('system/LockScreenWindowManager', function() {
         'screenchange was caused by proximity sensor');
     });
 
+    test('When ScreenChange and it\'s enabled, try to lock orientation',
+    function() {
+      var handleEvent =
+        window.LockScreenWindowManager.prototype.handleEvent;
+      var mockSubject = {
+        states: {
+          ready: true,
+          instance: {
+            lockOrientation: this.sinon.stub()
+          }
+        },
+        openApp: function() {},
+        isActive: function() {
+          return true;
+        }
+      };
+      window.secureWindowManager = {
+        isActive: function() {
+          return false;
+        }
+      };
+      handleEvent.call(mockSubject,
+        {
+          type: 'screenchange',
+          detail: { screenEnabled: true }
+        });
+      assert.isTrue(
+        mockSubject.states.instance.lockOrientation.called,
+        'it doesn\'t lock the orientation while screenchage');
+    });
+
+    test('When secure app get killed, try to lock orientation',
+    function() {
+      var handleEvent =
+        window.LockScreenWindowManager.prototype.handleEvent;
+      var mockSubject = {
+        states: {
+          ready: true,
+          instance: {
+            lockOrientation: this.sinon.stub()
+          }
+        },
+        openApp: function() {},
+        isActive: function() {
+          return true;
+        }
+      };
+      window.secureWindowManager = {
+        isActive: function() {
+          return false;
+        }
+      };
+      handleEvent.call(mockSubject,
+        {
+          type: 'secure-appclosed'
+        });
+      assert.isTrue(
+        mockSubject.states.instance.lockOrientation.called,
+        'it doesn\'t lock the orientation while secure app closed');
+    });
+
     test('Open the app when screen is turned on', function() {
-      window.lockScreenWindowManager.registerApp(appFake);
+      subject.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');
-      window.lockScreenWindowManager.handleEvent(
+      subject.states.ready = true;
+      subject.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
       assert.isTrue(stubOpen.called,
-        'the manager didn\'t call the app.close when screen off');
-      window.lockScreenWindowManager.unregisterApp(appFake);
+        'the manager didn\'t call the app.open when screen on');
+      subject.unregisterApp(appFake);
+    });
+
+    test('When FTU occurs, try to close the app', function() {
+      var stubCloseApp = this.sinon.stub(subject,
+        'closeApp');
+      subject.handleEvent({ type: 'ftuopen' });
+      assert.isTrue(stubCloseApp.called,
+        'the LockScreenWindowManager doesn\'t call the closeApp');
     });
 
     test('When FTU occurs, the window should not be instantiated', function() {
-      var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
+      var stubOpenApp = this.sinon.stub(subject,
         'openApp');
-      window.lockScreenWindowManager.handleEvent( { type: 'ftuopen' } );
-      window.lockScreenWindowManager.handleEvent(
+      subject.states.ready = true;
+      subject.handleEvent({ type: 'ftuopen' });
+      subject.handleEvent(
+        { type: 'screenchange',
+          detail: { screenEnabled: true } });
+      assert.isFalse(stubOpenApp.called,
+        'the LockScreenWindow still be instantiated while the FTU is opened');
+    });
+
+    test('When the lockscreen settings is not ready, ' +
+          'the window should not be instantiated', function() {
+      var stubOpenApp = this.sinon.stub(subject,
+        'openApp');
+      subject.states.ready = false;
+      subject.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
       assert.isFalse(stubOpenApp.called,
@@ -132,15 +245,81 @@ suite('system/LockScreenWindowManager', function() {
     });
 
     test('But after FTU done, the window should be instantiated', function() {
-      var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
+      var stubOpenApp = this.sinon.stub(subject,
         'openApp');
-      window.lockScreenWindowManager.handleEvent( { type: 'ftuopen' } );
-      window.lockScreenWindowManager.handleEvent( { type: 'ftudone' } );
-      window.lockScreenWindowManager.handleEvent(
+      subject.handleEvent({ type: 'ftuopen' });
+      subject.handleEvent({ type: 'ftudone' });
+      subject.states.ready = true;
+      subject.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
       assert.isTrue(stubOpenApp.called,
         'the LockScreenWindow is not instantiated after the FTU was closed.');
+    });
+
+    test('Send lockscreen window to background while overlay is there.',
+      function() {
+        var app = new window.MockLockScreenWindow();
+        this.sinon.stub(app, 'isActive').returns(true);
+        subject.states.instance = app;
+        var stubSetVisible = this.sinon.stub(app, 'setVisible');
+        subject.handleEvent({ type: 'overlaystart' });
+        assert.isTrue(stubSetVisible.calledWith(false));
+      });
+
+    test('Send lockscreen window to foreground.', function() {
+      var app = new window.MockLockScreenWindow();
+      this.sinon.stub(app, 'isActive').returns(true);
+      subject.states.instance = app;
+      var stubSetVisible = this.sinon.stub(app, 'setVisible');
+      subject.handleEvent({
+        type: 'showlockscreenwindow'
+      });
+      assert.isTrue(stubSetVisible.calledWith(true));
+    });
+
+    test('LockScreen request to unlock without activity detail', function() {
+      var evt = { type: 'lockscreen-request-unlock' },
+          stubCloseApp = this.sinon.stub(subject,
+            'closeApp');
+      subject.handleEvent(evt);
+      assert.isTrue(stubCloseApp.called,
+        'it did\'t close the window while unlock request arrive');
+    });
+
+    test('Open the app when asked via lock-immediately setting', function() {
+      subject.registerApp(appFake);
+      var stubOpen = this.sinon.stub(appFake, 'open');
+      window.MockNavigatorSettings.mTriggerObservers(
+        'lockscreen.lock-immediately', {settingValue: true});
+      assert.isTrue(stubOpen.called,
+        'the manager didn\'t open the app when requested');
+      subject.unregisterApp(appFake);
+    });
+
+    test('onInputpadOpen would open the window and call resize', function() {
+      subject.states.instance = appFake;
+      appFake.inputWindow = {
+        open: this.sinon.stub(),
+        close: this.sinon.stub()
+      };
+      var stubResize = this.sinon.stub(appFake, 'resize');
+      subject.onInputpadClose();
+      assert.isTrue(appFake.inputWindow.close.called, 'called no |open|');
+      assert.isTrue(stubResize.called, 'called no |resize|');
+    });
+
+    test('Open the app would set the corresponding mozSettings', function() {
+      var originalEnabled = subject.states.enabled;
+      subject.states.enabled = true;
+      subject.registerApp(appFake);
+      var stubToggleSystemSettings = this.sinon.stub(
+        subject, 'toggleLockedSetting');
+      subject.openApp();
+      assert.isTrue(stubToggleSystemSettings.calledWith(true),
+        'the manager didn\'t set the mozSettings value');
+      subject.unregisterApp(appFake);
+      subject.states.enabled = originalEnabled;
     });
   });
 });

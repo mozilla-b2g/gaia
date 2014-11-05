@@ -1,25 +1,28 @@
-var fs = require('fs'),
-    util = require('util'),
-    assert = require('assert');
+'use strict';
+
+var util = require('util'),
+    perfUtils = require('./perf-utils');
 
 /* This is a helper to for perftesting apps. */
 function PerfTestApp(client, origin) {
-  if (excludedApps.indexOf(origin) !== -1) {
+  if (perfUtils.isBlacklisted(config.blacklists.global, origin)) {
     this.client = null;
     this.origin = null;
     this.skip = true;
-    if (process.env.VERBOSE) {
-      console.log("'" + origin +
-                  "' is an excluded app, skipping tests.");
+    if (config.verbose) {
+      console.log('"%s" is a blacklisted app, skipping tests.', origin);
     }
     return;
   }
-  var arr = mozTestInfo.appPath.split('/');
-  manifestPath = arr[0];
-  entryPoint = arr[1];
 
-  origin = util.format('app://%s.gaiamobile.org',
-                       manifestPath);
+  var arr = config.appPath.split('/');
+  var manifestPath = arr[0];
+  var entryPoint = arr[1];
+  origin = util.format('app://%s',
+    manifestPath.indexOf('.') !== -1 ?
+    manifestPath :
+    manifestPath + '.gaiamobile.org');
+
   this.entryPoint = entryPoint;
   this.client = client;
   this.origin = origin;
@@ -34,8 +37,6 @@ PerfTestApp.prototype = {
 
   /** the Webapp instance. */
   instance: null,
-
-  PERFORMANCE_ATOM: 'window.wrappedJSObject.PerformanceHelperAtom',
 
   defaultCallback: function() {
   },
@@ -65,7 +66,6 @@ PerfTestApp.prototype = {
    * @return {String} css selector.
    */
   selector: function(name) {
-    var selector;
     if (!(name in this.selectors)) {
       throw new Error('unknown element "' + name + '"');
     }
@@ -88,20 +88,11 @@ PerfTestApp.prototype = {
     this.client.findElement(this.selector(name), callback);
   },
 
-  observePerfEvents: function(stopEventName) {
-
-    this.client.executeScript(
-      fs.readFileSync('./tests/performance/performance_helper_atom.js') + '\n'
-    );
-
-  },
-
   waitForPerfEvents: function(stopEventName, callback) {
     var client = this.client;
-    var self = this;
 
     this.client.executeAsyncScript(
-      this.PERFORMANCE_ATOM + '.waitForEvent("' + stopEventName +
+      'window.wrappedJSObject.mozPerfWaitForEvent("' + stopEventName +
         '", function() { marionetteScriptFinished(); });',
       function(error) {
 
@@ -111,11 +102,11 @@ PerfTestApp.prototype = {
         }
 
         var runResults = client.executeScript(
-          'return ' + self.PERFORMANCE_ATOM + '.getMeasurements();'
+          'return window.wrappedJSObject.mozPerfGetMeasurements();'
         );
 
         client.executeScript(
-          self.PERFORMANCE_ATOM + '.unregister();'
+          'window.wrappedJSObject.mozPerfUnregisterListener();'
         );
 
         if (callback) {

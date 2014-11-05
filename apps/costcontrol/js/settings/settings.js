@@ -1,5 +1,6 @@
 /* global BalanceView, LazyLoader, AutoSettings, BalanceLowLimitView,
-          ViewManager, dataLimitConfigurer, Formatting */
+          ViewManager, dataLimitConfigurer, Formatting, PerformanceTestingHelper
+*/
 /* exported debug, sendBalanceThresholdNotification */
 /*
  * Settings is in charge of setup the setting section. It uses an AutoSettings
@@ -12,6 +13,7 @@
 // Import global objects from parent window
 var ConfigManager = window.parent.ConfigManager;
 var CostControl = window.parent.CostControl;
+var SimManager = window.parent.SimManager;
 var Common = window.parent.Common;
 var NetworkUsageAlarm = window.parent.NetworkUsageAlarm;
 
@@ -28,7 +30,7 @@ var debug = window.parent.debug;
 
 var Settings = (function() {
 
-  var costcontrol, vmanager, initialized;
+  var costcontrol, vmanager, initialized, endLoadSettingsNotified;
   var plantypeSelector, phoneActivityTitle, phoneActivitySettings;
   var balanceTitle, balanceSettings, reportsTitle;
   var balanceView;
@@ -72,13 +74,16 @@ var Settings = (function() {
       ConfigManager.observe(
         'dataLimit',
         function _onDataLimitChange(value, old, key, settings) {
-          var currentDataInterface = Common.getDataSIMInterface();
-          if (!value) {
-            NetworkUsageAlarm.clearAlarms(currentDataInterface);
-          } else {
-            addNetworkUsageAlarm(currentDataInterface,
-                                 Common.getDataLimit(settings));
-          }
+          SimManager.requestDataSimIcc(function(dataSim) {
+            var iccId = dataSim.iccId;
+            var currentDataInterface = Common.getDataSIMInterface(iccId);
+            if (!value) {
+              NetworkUsageAlarm.clearAlarms(currentDataInterface);
+            } else {
+              addNetworkUsageAlarm(currentDataInterface,
+                                   Common.getDataLimit(settings));
+            }
+          });
         },
         true
       );
@@ -136,7 +141,7 @@ var Settings = (function() {
 
       initialized = true;
 
-      updateUI();
+      Settings.updateUI();
     });
   }
 
@@ -269,6 +274,12 @@ var Settings = (function() {
         var hidePhoneActivity = (mode !== 'POSTPAID');
         var hideBalance = (mode !== 'PREPAID');
         var hideReportsTitle = (mode === 'PREPAID');
+        var textReportsTitle = (mode === 'POSTPAID') ?
+          'phone-and-internet-data-report' : 'internet-data-report';
+
+        reportsTitle.querySelector('span').setAttribute(
+          'data-l10n-id', textReportsTitle
+        );
 
         balanceLowLimitView.disabled = (mode !== 'PREPAID');
         plantypeSelector.setAttribute('aria-hidden', hidePlantypeSelector);
@@ -297,6 +308,10 @@ var Settings = (function() {
                           settings.lastTelephonyReset);
           break;
       }
+      if (endLoadSettingsNotified) {
+        PerformanceTestingHelper.dispatch('end-load-settings');
+        endLoadSettingsNotified = true;
+      }
     });
   }
 
@@ -310,10 +325,16 @@ var Settings = (function() {
     data = Formatting.roundData(datausage.wifi.total);
     wifiUsage.textContent = Formatting.formatData(data);
 
+    updateDataUsageTimestamp(lastCompleteDataReset, datausage.timestamp);
+  }
+
+  var dataUsagePeriod = { begin: null, end: null };
+  function updateDataUsageTimestamp(begin, end) {
+    dataUsagePeriod.begin = begin;
+    dataUsagePeriod.end = end;
     var timestamp = document.querySelector('#wifi-data-usage + .meta');
     timestamp.innerHTML = '';
-    timestamp.appendChild(Formatting.formatTimeHTML(lastCompleteDataReset,
-                                                    datausage.timestamp));
+    timestamp.appendChild(Formatting.formatTimeHTML(begin, end));
   }
 
   // Update balance view on settings
@@ -327,26 +348,36 @@ var Settings = (function() {
   function updateTelephony(activity, lastTelephonyReset) {
     var calltimeSpan = document.getElementById('calltime');
     var smscountSpan = document.getElementById('smscount');
-    calltimeSpan.textContent = _('magnitude', {
+    Common.localize(calltimeSpan, 'magnitude', {
       value: Formatting.computeTelephonyMinutes(activity),
       unit: 'min.'
     });
-    smscountSpan.textContent = _('magnitude', {
+    Common.localize(smscountSpan, 'magnitude', {
       value: activity.smscount,
       unit: 'SMS'
     });
+    updateTelephonyTimestamp(lastTelephonyReset, activity.timestamp);
+  }
+
+  var telephonyPeriod = { begin: null, end: null };
+  function updateTelephonyTimestamp(begin, end) {
+    telephonyPeriod.begin = begin;
+    telephonyPeriod.end = end;
     var timestamp = document.getElementById('telephony-timestamp');
     timestamp.innerHTML = '';
-    timestamp.appendChild(Formatting.formatTimeHTML(
-      lastTelephonyReset,
-      activity.timestamp
-    ));
+    timestamp.appendChild(Formatting.formatTimeHTML(begin, end));
   }
+
+  window.addEventListener('timeformatchange', function () {
+    updateTelephonyTimestamp(telephonyPeriod.begin, telephonyPeriod.end);
+    updateDataUsageTimestamp(dataUsagePeriod.begin, dataUsagePeriod.end);
+  });
 
   return {
     initialize: function() {
       var SCRIPTS_NEEDED = [
         'js/utils/toolkit.js',
+        'shared/js/date_time_helper.js',
         'js/utils/formatting.js',
         'js/views/BalanceLowLimitView.js',
         'js/settings/limitdialog.js',

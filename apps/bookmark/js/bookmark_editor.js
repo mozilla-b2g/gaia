@@ -1,6 +1,6 @@
 'use strict';
 
-/* global UrlHelper, BookmarksDatabase */
+/* global UrlHelper, BookmarksDatabase, Icon */
 /* exported BookmarkEditor */
 
 var BookmarkEditor = {
@@ -21,27 +21,40 @@ var BookmarkEditor = {
   _init: function bookmarkEditor_init(mode) {
     this.mode = document.body.dataset.mode = mode;
     this.bookmarkTitle = document.getElementById('bookmark-title');
-    this.bookmarkUrl = document.getElementById('bookmark-url');
+    this.bookmarkIcon = document.getElementById('bookmark-icon');
     this.cancelButton = document.getElementById('cancel-button');
-    this.saveButton = document.getElementById(mode === 'add' ? 'add-button' :
-                                                               'edit-button');
+    this.saveButton = document.getElementById('done-button');
 
     this.cancelButton.addEventListener('click', this.close.bind(this));
     this.saveListener = this.save.bind(this);
     this.saveButton.addEventListener('click', this.saveListener);
 
     this.bookmarkTitle.value = this.data.name || '';
-    this.bookmarkUrl.value = this.data.url || '';
+
+    this._renderIcon();
 
     this._checkDoneButton();
     this.form = document.getElementById('bookmark-form');
     this.form.addEventListener('input', this._checkDoneButton.bind(this));
+    this.form.addEventListener('submit', this._submit.bind(this));
     var touchstart = 'ontouchstart' in window ? 'touchstart' : 'mousedown';
     this.clearButton = document.getElementById('bookmark-title-clear');
     this.clearButton.addEventListener(touchstart, this._clearTitle.bind(this));
     if (mode === 'put') {
       this._onEditMode();
     }
+
+    // We're appending new elements to DOM so to make sure headers are
+    // properly resized and centered, we emmit a lazyload event.
+    // This will be removed when the gaia-header web component lands.
+    window.dispatchEvent(new CustomEvent('lazyload', {
+      detail: document.body
+    }));
+  },
+
+  _renderIcon: function renderIcon() {
+    var icon = new Icon(this.bookmarkIcon, this.data.icon);
+    icon.render();
   },
 
   _onEditMode: function bookmarkEditor_onEditMode() {
@@ -51,6 +64,15 @@ var BookmarkEditor = {
 
   close: function bookmarkEditor_close() {
     this.oncancelled();
+  },
+
+  /**
+   * Handles the submit case for the form when the user presses the enter key.
+   * @param {Event} event The form submit event.
+   */
+  _submit: function(event) {
+    event.preventDefault();
+    this.save();
   },
 
   _clearTitle: function bookmarkEditor_clearTitle(event) {
@@ -63,9 +85,7 @@ var BookmarkEditor = {
     // If one of the ﬁelds is blank, the “Done” button should be dimmed and
     // inactive
     var title = this.bookmarkTitle.value.trim();
-    var url = this.bookmarkUrl.value.trim();
-    this.saveButton.disabled = title === '' || url === '' ||
-                               UrlHelper.isNotURL(url);
+    this.saveButton.disabled = title === '';
   },
 
   save: function bookmarkEditor_save(evt) {
@@ -73,7 +93,7 @@ var BookmarkEditor = {
 
     // Only allow urls to be bookmarked.
     // This is defensive check - callers should filter out non-URLs.
-    var url = this.bookmarkUrl.value.trim();
+    var url = this.data.url.trim();
     if (UrlHelper.isNotURL(url)) {
       this.oncancelled();
       return;

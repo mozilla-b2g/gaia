@@ -6,7 +6,7 @@
 var gDeviceList = null;
 
 // handle Bluetooth settings
-navigator.mozL10n.ready(function deviceList() {
+navigator.mozL10n.once(function deviceList() {
   var _ = navigator.mozL10n.get;
   var settings = window.navigator.mozSettings;
   var bluetooth = window.navigator.mozBluetooth;
@@ -18,22 +18,20 @@ navigator.mozL10n.ready(function deviceList() {
   }
 
   function debug(msg) {
-    if (!_debug)
+    if (!_debug) {
       return;
-
+    }
     console.log('[Bluetooth APP Device List]: ' + msg);
   }
 
   // device list
-  gDeviceList = (function deviceList() {
+  gDeviceList = (function devicesList() {
     var deviceList = document.getElementById('devices-list-view');
     var bluetoothSearch = document.getElementById('bluetooth-search');
     var searchAgainBtn = document.getElementById('search-device');
     var searchingItem = document.getElementById('bluetooth-searching');
-    var exitButton = document.getElementById('cancel-activity');
+    var header = document.getElementById('devices-list-header');
 
-    var pairingMode = 'active';
-    var userCanceledPairing = false;
     var pairingAddress = null;
     var connectingAddress = null;
     var connectedAddress = null;
@@ -95,7 +93,7 @@ navigator.mozL10n.ready(function deviceList() {
 
     // private DOM helper: create a device list item
     function newListItem(device, descL10nId) {
-      var deviceName = document.createElement('a');
+      var deviceName = document.createElement('span');
       var aName = (device.name === '') ? _('unnamed-device') : device.name;
       var aL10nId = (device.name === '') ? 'unnamed-device' : '';
       deviceName.textContent = aName;
@@ -109,11 +107,13 @@ navigator.mozL10n.ready(function deviceList() {
       pairingProgress.classList.add('overlapping-icon');
       pairingProgress.classList.add('hidden');
 
+      var a = document.createElement('a');
+      a.appendChild(deviceName);
+      a.appendChild(deviceDesc);
       var li = document.createElement('li');
       li.classList.add('bluetooth-device');
       li.classList.add('bluetooth-type-' + device.icon);
-      li.appendChild(deviceDesc); // should append this first
-      li.appendChild(deviceName);
+      li.appendChild(a);
       li.appendChild(pairingProgress);
 
       return li;
@@ -142,11 +142,25 @@ navigator.mozL10n.ready(function deviceList() {
     // when DefaultAdapter is ready.
     function initial(adapter, deviceSelectedCallback, exitBtnClickedCallback) {
       deviceList.hidden = false;
-      exitButton.addEventListener('click', cancelActivity);
+      header.addEventListener('action', cancelActivity);
       defaultAdapter = adapter;
       defaultAdapter.onpairedstatuschanged = function bt_getPairedMessage(evt) {
         showDevicePaired(evt.status, 'Authentication Failed');
       };
+
+      defaultAdapter.ondiscoverystatechanged =
+        function bt_discoveryStateChanged(evt) {
+          if (!evt.discovering) {
+            searchAgainBtn.disabled = false;
+            searchingItem.hidden = true;
+
+            clearTimeout(discoverTimeout);
+            discoverTimeout = null;
+          } else {
+            searchAgainBtn.disabled = true;
+            searchingItem.hidden = false;
+          }
+        };
 
       onDeviceSelectedHandler = deviceSelectedCallback;
       onExitBtnClickedHandler = exitBtnClickedCallback;
@@ -160,18 +174,19 @@ navigator.mozL10n.ready(function deviceList() {
     function uninit() {
       deviceList.hidden = true;
       defaultAdapter = null;
-      exitButton.removeEventListener('click', cancelActivity);
+      header.removeEventListener('action', cancelActivity);
     }
 
     function getPairedDevice() {
-      if (!bluetooth.enabled || !defaultAdapter)
+      if (!bluetooth.enabled || !defaultAdapter) {
         return;
+      }
       var req = defaultAdapter.getPairedDevices();
       req.onsuccess = function bt_getPairedSuccess() {
         // copy for sorting
         var paired = req.result.slice();
         var length = paired.length;
-        if (length == 0) {
+        if (length === 0) {
           pairList.show(false);
           return;
         }
@@ -179,8 +194,9 @@ navigator.mozL10n.ready(function deviceList() {
         paired.sort(function(a, b) {
           return a.name > b.name;
         });
-        for (var i = 0; i < length; i++) {
-          (function(device) {
+
+        function deviceStatus(){
+          return (function(device) {
             var stateL10nId = (device.address === connectedAddress) ?
               'device-status-connected' : '';
             var aItem = newListItem(device, stateL10nId);
@@ -200,7 +216,11 @@ navigator.mozL10n.ready(function deviceList() {
             };
             pairList.list.appendChild(aItem);
             pairList.index[device.address] = [device, aItem];
-          })(paired[i]);
+          });
+        }
+
+        for (var i = 0; i < length; i++) {
+          deviceStatus()(paired[i]);
         }
         pairList.show(true);
       };
@@ -215,7 +235,7 @@ navigator.mozL10n.ready(function deviceList() {
       if (existingDevice) {
         var existingItem = existingDevice[1];
         if (device.name && existingItem) {
-          var deviceName = existingItem.querySelector('a');
+          var deviceName = existingItem.querySelector('a > span');
           if (deviceName) {
             deviceName.dataset.l10nId = '';
             deviceName.textContent = device.name;
@@ -242,7 +262,6 @@ navigator.mozL10n.ready(function deviceList() {
         progress.classList.remove('hidden');
 
         var req = defaultAdapter.pair(device.address);
-        pairingMode = 'active';
         pairingAddress = device.address;
         var msg = 'pairing with address = ' + pairingAddress;
         debug(msg);
@@ -266,8 +285,6 @@ navigator.mozL10n.ready(function deviceList() {
       // the same status update twice.
       var workingAddress = pairingAddress;
       pairingAddress = null;
-      // turn on search button while pairing process finished
-      searchAgainBtn.disabled = false;
       if (paired) {
         // if the device is on the list, remove it.
         // it will show on paired list later.
@@ -281,19 +298,16 @@ navigator.mozL10n.ready(function deviceList() {
           readyToSendFile(device);
         }
       } else {
-        // display failure only when active request
-        if (pairingMode === 'active' && !userCanceledPairing) {
-          // show pair process fail.
-          var msg = _('error-pair-title');
-          if (errorMessage === 'Repeated Attempts') {
-            msg = msg + '\n' + _('error-pair-toofast');
-          } else if (errorMessage === 'Authentication Failed') {
-            msg = msg + '\n' + _('error-pair-pincode');
-          }
-          debug(msg);
-          window.alert(msg);
+        // show pair process fail.
+        var msg = _('error-pair-title');
+        if (errorMessage === 'Repeated Attempts') {
+          msg = msg + '\n' + _('error-pair-toofast');
+        } else if (errorMessage === 'Authentication Failed') {
+          msg = msg + '\n' + _('error-pair-pincode');
         }
-        userCanceledPairing = false;
+        debug(msg);
+        window.alert(msg);
+
         // rollback device status
         if (openList.index[workingAddress]) {
           var small = openList.index[workingAddress][1].querySelector('small');
@@ -313,44 +327,31 @@ navigator.mozL10n.ready(function deviceList() {
     }
 
     function startDiscovery() {
-      if (!bluetooth.enabled || !defaultAdapter || discoverTimeout)
+      if (!bluetooth.enabled || !defaultAdapter || discoverTimeout) {
         return;
+      }
 
       var req = defaultAdapter.startDiscovery();
       req.onsuccess = function bt_discoveryStart() {
-        searchAgainBtn.disabled = true;
-        if (!discoverTimeout)
+        if (!discoverTimeout) {
           discoverTimeout = setTimeout(stopDiscovery, discoverTimeoutTime);
+        }
       };
       req.onerror = function bt_discoveryFailed() {
-        searchingItem.hidden = true;
-        searchAgainBtn.disabled = false;
+        console.error('Can not discover nearby device');
       };
-    }
-
-    function stopDiscoveryWhenLeaveApp() {
-      //only stop discovery when Bluetooth app is hidden
-      if (!document.hidden)
-        return;
-      stopDiscovery();
     }
 
     function stopDiscovery() {
-      if (!bluetooth.enabled || !defaultAdapter || !discoverTimeout)
+      if (!bluetooth.enabled || !defaultAdapter || !discoverTimeout) {
         return;
+      }
 
       var req = defaultAdapter.stopDiscovery();
-      req.onsuccess = function bt_discoveryStopped() {
-        if (!pairingAddress)
-          searchAgainBtn.disabled = false;
-
-        searchingItem.hidden = true;
-      };
       req.onerror = function bt_discoveryStopFailed() {
         console.error('Failed to stop discovery of nearby devices');
-        searchAgainBtn.disabled = true;
-        searchingItem.hidden = false;
       };
+
       clearTimeout(discoverTimeout);
       discoverTimeout = null;
     }

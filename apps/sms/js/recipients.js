@@ -1,4 +1,5 @@
-/*global GestureDetector, Dialog */
+/*global GestureDetector, Dialog, Navigation, SharedComponents, Utils,
+         Settings */
 
 (function(exports) {
   'use strict';
@@ -23,11 +24,13 @@
     this.number = (opts.number || '') + '';
     this.email = opts.email || '';
     this.editable = opts.editable || 'true';
+    this.role = this.editable ? 'textbox' : 'button';
     this.source = opts.source || 'manual';
     this.type = opts.type || '';
-    this.separator = opts.separator || '';
     this.carrier = opts.carrier || '';
     this.className = 'recipient';
+    this.isEmail = Settings.supportEmailRecipient &&
+                   Utils.isEmailAddress(this.number);
 
     // isLookupable
     //  the recipient was accepted by pressing <enter>
@@ -52,7 +55,9 @@
     // is questionable and may be invalid.
     number = this.number[0] === '+' ? this.number.slice(1) : this.number;
 
-    if (this.source === 'manual' && !rdigit.test(number)) {
+    if (this.isEmail) {
+      this.className += ' email';
+    } else if (this.source === 'manual' && !rdigit.test(number)) {
       this.isQuestionable = true;
     }
 
@@ -60,7 +65,7 @@
     // mark it visually for the user.
     //
     if (this.isQuestionable || this.isInvalid) {
-      this.className += ' attention';
+      this.className += ' invalid';
     }
   }
 
@@ -101,8 +106,7 @@
 
   Recipient.FIELDS = [
     'name', 'number', 'email', 'editable', 'source',
-    'type', 'separator', 'carrier',
-    'isQuestionable', 'isInvalid', 'isLookupable'
+    'type', 'carrier', 'isQuestionable', 'isInvalid', 'isLookupable'
   ];
 
   /**
@@ -143,8 +147,11 @@
           return list.length;
         },
         set: function(value) {
+          var oldLength = list.length;
           list.length = value;
-          this.render();
+          if (value < oldLength) {
+            this.render();
+          }
           return value;
         }
       },
@@ -175,8 +182,8 @@
     });
 
     data.set(this, list);
+    events.set(this, { add: [], remove: [], modechange: [] });
     view.set(this, new Recipients.View(this, setup));
-    events.set(this, { add: [], remove: [] });
   }
 
   /**
@@ -374,6 +381,7 @@
     var template = setup.template;
     var nodes = [];
     var clone;
+    var outerCss = window.getComputedStyle(outer);
 
     priv.set(this, {
       owner: owner,
@@ -386,16 +394,8 @@
         isTransitioning: false,
         visible: 'singleline'
       },
-      dims: {
-        inner: {
-          height: 0,
-          width: 0
-        },
-        outer: {
-          height: 0,
-          width: 0
-        }
-      }
+      minHeight: parseInt(outerCss.getPropertyValue('min-height'), 10),
+      mode: 'singleline-mode'
     });
 
     clone = inner.cloneNode(true);
@@ -421,6 +421,8 @@
         }
       }
     });
+
+    this.updateMode = Utils.debounce(this.updateMode, 100);
 
     ['click', 'keypress', 'keyup', 'blur', 'pan'].forEach(function(type) {
       outer.addEventListener(type, this, false);
@@ -546,12 +548,14 @@
       // in the recipients list.
       node.isPlaceholder = false;
       node.contentEditable = false;
+      node.setAttribute('role', 'button');
 
       // The last node should be contentEditable=true
       // and isPlaceholder=true
       if (i === nodes.length - 1) {
         node.isPlaceholder = true;
         node.contentEditable = true;
+        node.setAttribute('role', 'textbox');
       } else {
         // Map the node to it's entry in the list
         // (only for actual recipient nodes)
@@ -559,9 +563,11 @@
       }
     });
 
-    if (view.state.visible === 'singleline') {
+    if (view.state.visible === 'singleline' && nodes.length) {
       inner.querySelector(':last-child').scrollIntoView(false);
     }
+
+    this.updateMode();
 
     return this;
   };
@@ -611,7 +617,35 @@
       // scroll to the bottom of the inner view
       view.inner.scrollTop = view.inner.scrollHeight;
     }
+
+    this.updateMode();
+
     return this;
+  };
+
+  /**
+   * Checks whether recipients view mode (single or multi line) has changed
+   * since previous check and notifies listeners with 'modechange' event in this
+   * case.
+   */
+  Recipients.View.prototype.updateMode = function() {
+    var view = priv.get(this);
+
+    var mode = view.inner.scrollHeight > view.minHeight ?
+        'multiline-mode' : 'singleline-mode';
+
+    if (view.mode !== mode) {
+      view.mode = mode;
+
+      // the list in "singleline-mode" should only have "singleline" view
+      if (mode === 'singleline-mode' && view.state.visible === 'multiline') {
+        this.visible('singleline', {
+          refocus: this
+        });
+      }
+
+      view.owner.emit('modechange', mode);
+    }
   };
 
   var rtype = /^(multi|single)line$/;
@@ -660,11 +694,12 @@
 
     // Once the transition has ended, the set focus to
     // the last child element in the recipients list view
-    view.inner.parentNode.addEventListener('transitionend', function te() {
+    view.outer.addEventListener('transitionend', function te() {
       var last = view.inner.lastElementChild;
       var previous;
 
-      if (location.hash === '#new' && state.visible === 'singleline') {
+      if (Navigation.isCurrentPanel('composer') &&
+          state.visible === 'singleline') {
         while (last !== null && last.isPlaceholder) {
           previous = last.previousElementSibling;
           if (!last.textContent) {
@@ -676,9 +711,7 @@
         if (opts.refocus) {
           opts.refocus.focus();
         }
-      }
-
-      if (last !== null) {
+      } else if (state.visible === 'multiline' && last !== null) {
         last.scrollIntoView(true);
       }
 
@@ -735,17 +768,6 @@
       length = typed.length;
     }
 
-    // Make sure that height of the displayed list is
-    // being tracked. If no previously known height is set,
-    // or it's just zero, update it.
-    if (!view.dims.inner.height) {
-      view.dims.inner.height = view.inner.offsetHeight;
-    }
-
-    if (!view.dims.outer.height) {
-      view.dims.outer.height = view.outer.offsetHeight;
-    }
-
     switch (event.type) {
 
       case 'pan':
@@ -753,12 +775,13 @@
         //
         //  1. The recipients in the list have caused the
         //      container to grow enough to require the
-        //      additional viewable area.
-        //      (>1 visible lines or 1.5x the original size)
+        //      additional viewable area and the view is singleline
+        //      mode originally.
         //  2. The user is "pulling down" the recipient list.
 
         // #1
-        if (view.inner.scrollHeight > (view.dims.inner.height * 1.5)) {
+        if (view.state.visible === 'singleline' &&
+            view.inner.scrollHeight > view.minHeight) {
           // #2
           if (event.detail.absolute.dy > 0) {
             this.visible('multiline');
@@ -908,7 +931,7 @@
           isDeletingRecipient = true;
         }
 
-
+        this.updateMode();
         break;
 
       case 'keypress':
@@ -998,6 +1021,7 @@
           number: typed,
           editable: editable,
           source: 'manual',
+          role: editable ? 'textbox' : 'button',
           isLookupable: isLookupable
         });
 
@@ -1015,6 +1039,7 @@
     if (isEdittingRecipient) {
       // Make the last added entry "editable"
       target.contentEditable = true;
+      target.setAttribute('role', 'textbox');
       target.isPlaceholder = true;
       this.focus(target);
     }
@@ -1048,20 +1073,13 @@
       };
 
       // build fragment for dialog body
-      var dialogBody = document.createDocumentFragment();
-      if (recipient.type) {
-        var typeElement = document.createElement('span');
-        if (!navigator.mozL10n.get(recipient.type)) {
-          typeElement.textContent = recipient.type;
-        } else {
-          navigator.mozL10n.localize(typeElement, recipient.type);
-        }
-        dialogBody.appendChild(typeElement);
-      }
+      var dialogBody = document.createElement('div');
 
-      dialogBody.appendChild(document.createTextNode(
-        recipient.separator + recipient.carrier + recipient.number
-      ));
+      dialogBody.innerHTML = SharedComponents.phoneDetails({
+        number: recipient.number,
+        type: recipient.type,
+        carrier: recipient.carrier
+      });
 
       // Dialog will have a closure reference to the response
       // object, therefore it's not necessary to pass it around
@@ -1072,7 +1090,7 @@
             value: recipient.name || recipient.number
           },
           body: {
-            value: dialogBody
+            value: dialogBody.firstElementChild
           },
           options: {
             cancel: {

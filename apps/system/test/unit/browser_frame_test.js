@@ -1,3 +1,5 @@
+/* globals BrowserFrame */
+
 'use strict';
 
 /* Unit test of browser_frame.js */
@@ -17,16 +19,23 @@ suite('browser class > ', function() {
       assert.equal(b.element.getAttribute('mozapptype'), 'critical');
     });
 
-    test('mozapptype: dialer', function() {
+    test('mozapptype: callscreen', function() {
       var port = '';
       if (window.location.port !== '') {
         port = ':' + window.location.port;
       }
       var b = new BrowserFrame({
-        url: window.location.protocol + '//' +
-            'communications.gaiamobile.org' + port + '/dialer'
+        url: window.location.protocol + '//' + 'callscreen.gaiamobile.org'
       });
       assert.equal(b.element.getAttribute('mozapptype'), 'critical');
+    });
+
+    test('mozapptype: inputmethod', function() {
+      var b = new BrowserFrame({
+        url: window.location.protocol + '//' + 'keyboard.gaiamobile.org',
+        isInputMethod: true
+      });
+      assert.equal(b.element.getAttribute('mozapptype'), 'inputmethod');
     });
 
     test('mozapptype: other app', function() {
@@ -49,6 +58,7 @@ suite('browser class > ', function() {
 
   test('expect system message', function() {
     var b = new BrowserFrame({
+      isSystemMessage: true,
       url: window.location.protocol + '//' + 'other.gaiamobile.org',
       manifestURL: window.location.protocol +
         '//' + 'other.gaiamobile.org/manifest.webapp'
@@ -57,9 +67,26 @@ suite('browser class > ', function() {
       'expecting-system-message');
 
     var b2 = new BrowserFrame({
-      url: window.location.protocol + '//' + 'other.gaiamobile.org'
+      url: window.location.protocol + '//' + 'other.gaiamobile.org',
+      manifestURL: window.location.protocol +
+        '//' + 'other.gaiamobile.org/manifest.webapp'
     });
     assert.isNull(b2.element.getAttribute('expecting-system-message'));
+
+    var b3 = new BrowserFrame({
+      isSystemMessage: true,
+      url: window.location.protocol + '//' + 'other.gaiamobile.org'
+    });
+    assert.isNull(b3.element.getAttribute('expecting-system-message'));
+  });
+
+  test('inputmethod app attributes', function() {
+    var b = new BrowserFrame({
+      url: window.location.protocol + '//' + 'keyboard.gaiamobile.org',
+      isInputMethod: true
+    });
+    assert.equal(b.element.getAttribute('mozpasspointerevents'), 'true');
+    assert.equal(b.element.getAttribute('ignoreuserfocus'), 'true');
   });
 });
 

@@ -14,9 +14,8 @@ LOCAL_SRC_FILES := profile.tar.gz
 LOCAL_MODULE_PATH := $(TARGET_OUT_DATA)/local
 include $(BUILD_PREBUILT)
 
-# We will keep this flag in .b2g.mk so |./flash.sh gaia| follows
-# will correctly pick up the flags.
-GAIA_MAKE_FLAGS :=
+# Collect all flags we need to pass to Gaia Makefile
+GAIA_MAKE_FLAGS := $(BOARD_GAIA_MAKE_FLAGS)
 
 GAIA_PROFILE_INSTALL_PARENT := $(TARGET_OUT_DATA)/local
 GAIA_APP_INSTALL_PARENT := $(GAIA_PROFILE_INSTALL_PARENT)
@@ -28,6 +27,15 @@ GAIA_MAKE_FLAGS += PRODUCTION=1
 B2G_SYSTEM_APPS := 1
 endif
 
+# Gaia currently supports different builds by giving a specific device type.
+# GAIA_DEVICE_TYPE:
+# phone - default
+# tablet
+# tv
+ifneq (,$(GAIA_DEVICE_TYPE))
+GAIA_MAKE_FLAGS += GAIA_DEVICE_TYPE=$(GAIA_DEVICE_TYPE)
+endif
+
 # Gaia currently needs to specify the default scale value manually or pictures
 # with correct resolution will not be applied.
 ifneq (,$(GAIA_DEV_PIXELS_PER_PX))
@@ -35,7 +43,6 @@ GAIA_MAKE_FLAGS += GAIA_DEV_PIXELS_PER_PX=$(GAIA_DEV_PIXELS_PER_PX)
 endif
 
 ifeq ($(B2G_SYSTEM_APPS),1)
-GAIA_MAKE_FLAGS += B2G_SYSTEM_APPS=1
 GAIA_APP_INSTALL_PARENT := $(TARGET_OUT)/b2g
 CLEAN_PROFILE := 1
 endif
@@ -65,12 +72,15 @@ gaia-tests-zip:
 	@(cd $(GAIA_PATH)/tests/atoms && tar -chf - *) | (cd $(GAIA_TESTS_STAGE)/gaiatest/gaiatest/atoms && tar -xf -)
 	(cd $(GAIA_TESTS_STAGE) && zip -r $(GAIA_PATH)/gaia-tests.zip *)
 
+.PHONY: gaia-prefs
+gaia-prefs:
+	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) preferences
+
 .PHONY: $(LOCAL_PATH)/profile.tar.gz
-$(LOCAL_PATH)/profile.tar.gz:
+$(LOCAL_PATH)/profile.tar.gz: gaia-prefs
 ifeq ($(CLEAN_PROFILE), 1)
 	rm -rf $(GAIA_PATH)/profile $(GAIA_PATH)/profile.tar.gz
 endif
-	echo $(GAIA_MAKE_FLAGS) > $(GAIA_PATH)/.b2g.mk
 	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) profile
 	@FOLDERS='webapps'; \
 	if [ -d $(GAIA_PATH)/profile/indexedDB ]; then \

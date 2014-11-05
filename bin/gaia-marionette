@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # All options are passed to `./node_modules/.bin/marionette-mocha` so
 # you can also use mocha commands like `--grep`, `--timeout` see `--help`
@@ -8,22 +8,31 @@
 SOURCE="${BASH_SOURCE[0]}"
 # Make it an absolute path
 DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
+BUILDAPP=${BUILDAPP:-desktop}
 
 # where all gaia specific customizations for mocha-marionette live.
 SHARED=$DIR/../shared/test/integration
 
+safe_which() {
+  if [ "$(which $1)" ];
+  then
+    which $1
+  fi
+}
+
 # Go to the isolated Python environment if we already setup the virtualenv.
-VIRTUALENV=$(which virtualenv)
-JS_MARIONETTE_ENV=$(find $DIR/.. -path "*/js-marionette-env")
-if [ -x "$VIRTUALENV" -a -x "$JS_MARIONETTE_ENV" ]; then
-  source ./js-marionette-env/bin/activate
+VIRTUALENV=$(safe_which virtualenv)
+
+CI_VENV=$(find $DIR/.. -path "*/ci_venv")
+if [ -x "$VIRTUALENV" -a -x "$CI_VENV" ]; then
+  source ./ci_venv/bin/activate
 fi
 
 # We skip the related tests if the Radicale CalDAV server is not installed.
-if [ ! -x "$VIRTUALENV" -o ! -x "$JS_MARIONETTE_ENV" -o ! -x "$(which radicale)" ]; then
+if [ ! -x "$VIRTUALENV" -o ! -x "$CI_VENV" -o ! -x "$(safe_which radicale)" ]; then
   echo -e "The Radicale CalDAV server is not installed in the virtualenv, we will skip the CalDAV tests.\n \
            \rIf you want to run the CalDAV tests, please run |make caldav-server-install| first."
-  CALDAV_RELATED_TESTS="apps/calendar/test/marionette/caldav_test.js"
+  CALDAV_RELATED_TESTS="apps/calendar/test/marionette/caldav_test.js apps/calendar/test/marionette/server_test.js"
   SKIP_TEST_FILES="$SKIP_TEST_FILES $CALDAV_RELATED_TESTS"
 fi
 
@@ -39,8 +48,10 @@ fi
 # make sure node_modules are 100% up to date
 make node_modules
 
-# download b2g-desktop (if its not present)
-make -C $DIR/../ b2g
+if [ "$BUILDAPP" == "desktop" ]; then
+    # download b2g-desktop (if its not present)
+    make -C $DIR/../ b2g
+fi
 
 # tests can timeout without the profile-test folder so build it here.
 if [ ! -d $DIR/../profile-test ]; then
@@ -51,38 +62,53 @@ if [ -z "$TEST_FILES" ]; then
   if [ -z "$APP" ]; then
     if [ -z "$SKIP_TEST_FILES" ]; then
       TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
-                            -or -path "*/test_apps/*/test/marionette/*_test.js" \
+                            -or -path "*/dev_apps/*/test/marionette/*_test.js" \
                             -or -path "*/tests/integration/*/*_test.js")
     else
       TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                            -or -path "*/test_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                            -or -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
                             -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES)
     fi
   else
     if [ -z "$SKIP_TEST_FILES" ]; then
       TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" \
-                            -or -path "*/test_apps/$APP/test/marionette/*_test.js" \
+                            -or -path "*/dev_apps/$APP/test/marionette/*_test.js" \
                             -or -path "*/tests/integration/$APP/*_test.js")
     else
       TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                            -or -path "*/test_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                            -or -path "*/dev_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
                             -or -path "*/tests/integration/$APP/*_test.js" $SKIP_TEST_FILES)
     fi
   fi
 fi
 
-if [ -z "$XULRUNNER_DIRECTORY" ] ; then
-  # the xulrunner directory isn't in the environment
-  XULRUNNER_DIRECTORY=`ls -d "$DIR/../xulrunner-sdk"*/xulrunner-sdk | sort -nr | head -n1 2> /dev/null`
+if [ -n "$PART" ] ; then
+  if [ -z "$NBPARTS" ] ; then
+    echo "You need to specify the number of parts using the env variable NBPARTS"
+    exit 1
+  fi
+
+  TEMP_FILE=$(mktemp)
+
+  # the quotes are important here, otherwise bash replace newlines characters by
+  # spaces
+  echo "$TEST_FILES" | sort > $TEMP_FILE
+  TEST_FILES=$(split -n l/$PART/$NBPARTS $TEMP_FILE)
+  echo -e "------- Will run the following test files:\n$TEST_FILES\n-------"
+  rm -f $TEMP_FILE
 fi
 
 if [ -z "$XULRUNNER_DIRECTORY" ] ; then
-  echo "Couldn't find XULrunner. Please execute this file from 'make' or install XULrunner yourself."
-  exit 1
+  # the xulrunner directory isn't in the environment
+  XULRUNNER_DIRECTORY=$(ls -d "$DIR"/../b2g_sdk/* | sort -nr | head -n1 2> /dev/null)
+fi
+
+if [ -z "$XPCSHELLSDK" ] ; then
+  XPCSHELLSDK=$(find "$XULRUNNER_DIRECTORY" -type f -name xpcshell | sort -nr | head -n1 2> /dev/null)
 fi
 
 # find xpcshell and put it in the path
-XPCSHELL_DIR=$(dirname $(find "$XULRUNNER_DIRECTORY"/bin -type f -name "xpcshell" | head -n 1));
+XPCSHELL_DIR=$(dirname "$XPCSHELLSDK")
 
 
 VERBOSE_OPTS=""
@@ -90,12 +116,50 @@ if [ "$VERBOSE" ]; then
   VERBOSE_OPTS="--verbose"
 fi
 
+OOP_OPTS=""
+if [ "$OOP" ]; then
+  OOP_OPTS="--b2g-desktop-oop"
+fi
+
+RUNTIME_OPTS=""
+if [ "$RUNTIME" ]; then
+  RUNTIME_OPTS="--runtime=$RUNTIME"
+fi
+
+# Dirty hack until we can kill this file or fix passing DEBUG to profile
+# construction.
+if [ ! -z "$NODE_DEBUG" ];
+then
+  export DEBUG=$NODE_DEBUG
+fi
+
+if [ "$BUILDAPP" != "desktop" ] ; then
+  LANG="en_US.UTF-8"
+  export LANG
+fi
+
+DEVICE_OPTS=""
+if [ "$B2G_HOME" ]; then
+  DEVICE_OPTS="--b2g-home $B2G_HOME"
+fi
+if [ "$SYMBOLS" ]; then
+  DEVICE_OPTS="$ADDITIONAL_OPTS --symbols-path $SYMBOLS"
+fi
+if [ "$DEVICE_SERIAL" ]; then
+  DEVICE_OPTS="$ADDITIONAL_OPTS --serial $DEVICE_SERIAL"
+fi
+if [ "$DUMP_PATH" ]; then
+  DEVICE_OPTS="$ADDITIONAL_OPTS --dump-path $DUMP_PATH"
+fi
+
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.
 PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
   $VERBOSE_OPTS \
+  $OOP_OPTS \
+  $RUNTIME_OPTS \
+  $DEVICE_OPTS \
   --timeout 60s \
-  --ui tdd \
   --profile-builder $SHARED/profile_builder.js \
   --profile-base $SHARED/profile.js \
   $SHARED/setup.js \

@@ -5,23 +5,28 @@
 function MockCall(aNumber, aState, aServiceId) {
   this._eventListeners = {
     'statechange': [],
-    'disconnected': []
+    'disconnected': [],
+    'error': []
   };
 
-  this.number = aNumber;
+  this.id = { number: aNumber };
   this.serviceId = (aServiceId === undefined) ? 1 : aServiceId;
   this.state = aState;
 
-  this.answer = function() {};
-  this.hangUp = function() {};
+  this.answer = function() {
+    this._connect();
+  };
+  this.hangUp = function() {
+    this._disconnect();
+  };
   this.hold = function() {};
   this.resume = function() {};
 
   this.mEmergencyNumbers = ['112', '911'];
-  this.emergency = this.mEmergencyNumbers.indexOf(this.number) >= 0;
+  this.emergency = this.mEmergencyNumbers.indexOf(aNumber) >= 0;
 
   this.mVoicemailNumbers = ['123'];
-  this.voicemail = this.mVoicemailNumbers.indexOf(this.number) >= 0;
+  this.voicemail = this.mVoicemailNumbers.indexOf(aNumber) >= 0;
 
   this.addEventListener = (function(type, handler) {
     if (this._eventListeners[type]) {
@@ -36,6 +41,9 @@ function MockCall(aNumber, aState, aServiceId) {
     }
   }).bind(this);
 
+  this.triggerEvent = function(type) {
+    this._mTriggerEventListeners(type);
+  },
 
   // Mocking the events
   this.mChangeState = (function(state) {

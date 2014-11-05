@@ -2,28 +2,26 @@
 
 
 var assert = require('assert');
-
-var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
-
-var PerformanceHelper =
-  requireGaia('/tests/performance/performance_helper.js');
+var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
 var SettingsIntegration = require('./integration.js');
 
-marionette(mozTestInfo.appPath + ' >', function() {
+marionette(config.appPath + ' >', function() {
   var app;
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
+  // Do nothing on script timeout. Bug 987383
+  client.onScriptTimeout = null;
 
-  app = new SettingsIntegration(client, mozTestInfo.appPath);
+  app = new SettingsIntegration(client, config.appPath);
 
   setup(function() {
-    // It affects the first run otherwise
-    this.timeout(500000);
-    client.setScriptTimeout(50000);
-    MarionetteHelper.unlockScreen(client);
+    this.timeout(config.timeout);
+    client.setScriptTimeout(config.scriptTimeout);
+    PerformanceHelper.injectHelperAtom(client);
   });
 
   test('rendering WiFi list >', function() {
@@ -34,13 +32,16 @@ marionette(mozTestInfo.appPath + ' >', function() {
       lastEvent: lastEvent
     });
 
+    performanceHelper.unlockScreen();
+
     performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = true;
       app.launch(waitForBody);
 
-      performanceHelper.observe();
-
       app.element('wifiSelector', function(err, wifiSubpanel) {
+        client.waitFor(function() {
+          return wifiSubpanel.enabled;
+        });
         wifiSubpanel.tap();
       });
 
@@ -49,7 +50,8 @@ marionette(mozTestInfo.appPath + ' >', function() {
           app.close();
           throw error;
         } else {
-          performanceHelper.reportRunDurations(runResults);
+          performanceHelper.reportRunDurations(runResults,
+                                              'start-wifi-list-test');
           assert.ok(Object.keys(runResults).length, 'empty results');
           app.close();
         }

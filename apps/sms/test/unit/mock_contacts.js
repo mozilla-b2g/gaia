@@ -27,6 +27,16 @@ var MockContacts = {
     this.mCallCallback(callback, result);
   },
 
+  findByAddress: function mc_findByAddress(value, callback) {
+    var result = MockContact.list();
+    this.mCallCallback(callback, result);
+  },
+
+  findExactByEmail: function mc_findExactByEmail(value, callback) {
+    var result = MockContact.list();
+    this.mCallCallback(callback, result);
+  },
+
   findByString: function mc_findByString(value, callback) {
     var result = MockContact.list();
     this.mCallCallback(callback, result);
@@ -36,6 +46,8 @@ var MockContacts = {
     var result = MockContact.list();
     this.mCallCallback(callback, result);
   },
+
+  addUnknown: () => {},
 
   mTeardown: function mc_mTeardown() {
     this.mAsync = false;

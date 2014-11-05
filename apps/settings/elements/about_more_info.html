@@ -1,100 +1,82 @@
 <element name="about-moreInfo" extends="section">
   <template>
 
-    <header>
-      <button type="reset">
-        <span data-l10n-id="back" class="icon icon-back">Back</span>
-      </button>
-      <h1 data-l10n-id="more-info-header"> More Information </h1>
-    </header>
+    <gaia-header action="back" data-href="#about">
+      <h1 data-l10n-id="more-info-header">More Information</h1>
+    </gaia-header>
 
     <div>
       <ul>
         <li>
+          <span data-l10n-id="os-version">OS Version</span>
           <small data-name="deviceinfo.os"></small>
-          <span data-l10n-id="os-version"> OS Version </span>
         </li>
         <li>
+          <span data-l10n-id="firmware_revision">Firmware Revision</span>
           <small data-name="deviceinfo.firmware_revision"></small>
-          <span data-l10n-id="firmware_revision"> Firmware Revision </span>
         </li>
         <li>
+          <span data-l10n-id="hardware_revision">Hardware Revision</span>
           <small data-name="deviceinfo.hardware"></small>
-          <span data-l10n-id="hardware_revision"> Hardware Revision </span>
         </li>
         <li>
+          <span data-l10n-id="macAddress">MAC Address</span>
           <small data-name="deviceinfo.mac"></small>
-          <span data-l10n-id="macAddress"> MAC address </span>
         </li>
         <li>
-          <small id="deviceInfo-imei"></small>
-          <span data-l10n-id="deviceInfo-IMEI"> IMEI </span>
-        </li>
-        <li class="multiline">
-          <span data-l10n-id="deviceInfo-ICCID"> ICCID </span>
-          <small id="deviceInfo-iccids"></small>
+          <span data-l10n-id="deviceInfo-IMEI">IMEI</span>
+          <small id="deviceInfo-imeis" class="multiline"></small>
         </li>
         <li>
+          <span data-l10n-id="build_number">Build Number</span>
+          <small data-name="deviceinfo.build_number"></small>
+        </li>
+        <li>
+          <span data-l10n-id="deviceInfo-ICCID">ICCID</span>
+          <small id="deviceInfo-iccids" class="multiline"></small>
+        </li>
+        <li>
+          <span data-l10n-id="platform_version">Platform Version</span>
           <small data-name="deviceinfo.platform_version"></small>
-          <span data-l10n-id="platform_version"> Platform Version </span>
         </li>
         <li>
+          <span data-l10n-id="build-id">Build Identifier</span>
           <small data-name="deviceinfo.platform_build_id"></small>
-          <span data-l10n-id="build-id"> Build Identifier </span>
         </li>
         <li>
-          <small data-name="deviceinfo.update_channel"></small>
-          <span data-l10n-id="update-channel"> Update Channel </span>
+          <span data-l10n-id="update-channel">Update Channel</span>
+          <small data-name="app.update.channel"></small>
         </li>
         <li>
+          <span data-l10n-id="bluetooth-address">Bluetooth Address</span>
           <small data-name="deviceinfo.bt_address"></small>
-          <span data-l10n-id="bluetooth-address"> Bluetooth Address </span>
-        </li>
-        <li>
-          <label>
-            <button id="reset-phone" data-l10n-id="reset-phone">Reset Phone</button>
-          </label>
         </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
+        <h2 data-l10n-id="gitInfo">Git Commit Info</h2>
       </header>
       <ul>
         <li>
-          <small id="gaia-commit-hash"></small>
           <span id="gaia-commit-date"></span>
+          <small id="gaia-commit-hash"></small>
         </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="devSettings"> Developer Settings </h2>
+        <h2 data-l10n-id="devSettings">Developer Settings</h2>
       </header>
       <ul>
         <li>
-          <label class="pack-checkbox">
+          <label class="pack-switch">
             <input type="checkbox" name="developer.menu.enabled">
-            <span data-l10n-id="developer-menu">Developer menu</span>
+            <span data-l10n-id="developer-menu">Developer Menu</span>
           </label>
         </li>
       </ul>
     </div>
 
-    <form role="dialog" data-type="confirm" id="reset-phone-dialog" hidden>
-      <section>
-        <h1 data-l10n-id="reset-warning-title">CAUTION</h1>
-        <p data-l10n-id="reset-warning-body">
-          Resetting will erase all your data, including any apps you’ve purchased. The phone will be restored to its factory condition. None of your settings or data will be saved.
-        </p>
-      </section>
-      <menu>
-        <button data-l10n-id="cancel" id="cancel-reset-phone">Cancel</button>
-        <button data-l10n-id="reset" id="confirm-reset-phone" class="danger">Reset</button>
-      </menu>
-    </form>
-
     <script src="js/about_more_info.js"></script>
-    <script src="js/factory_reset.js"></script>
 
   </template>
 </element>

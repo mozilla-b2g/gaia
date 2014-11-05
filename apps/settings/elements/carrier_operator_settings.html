@@ -1,10 +1,9 @@
 <element name="carrier-operatorSettings" extends="section">
   <template>
 
-    <header>
-      <a href="#carrier"><span class="icon icon-back">back</span></a>
+    <gaia-header action="back" data-href="#carrier">
       <h1 data-l10n-id="networkOperator-header"> Network Operator </h1>
-    </header>
+    </gaia-header>
 
     <div id="carrier-operatorSettings-content">
       <ul>
@@ -27,8 +26,8 @@
         <li id="operator-autoSelect" hidden>
           <label class="pack-switch">
             <input type="checkbox" data-ignore>
-            <small></small>
             <span data-l10n-id="operator-autoSelect">Automatic Selection</span>
+            <small></small>
           </label>
         </li>
       </ul>
@@ -44,9 +43,7 @@
           Searching…
         </li>
         <li data-state="ready">
-          <label>
-            <button data-l10n-id="scanNetworks">Search Again</button>
-          </label>
+          <button data-l10n-id="scanNetworks">Search Again</button>
         </li>
       </ul>
     </div>

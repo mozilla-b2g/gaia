@@ -166,7 +166,7 @@ window.SMIL = {
     var slides = [];
     var activeReaders = 0;
     var attachmentsNotFound = false;
-    var workingText = [];
+    var smilMismatched = false;
     var doc;
     var parTags;
 
@@ -195,7 +195,7 @@ window.SMIL = {
 
     function exitPoint() {
       if (!activeReaders) {
-        callback(slides);
+        setTimeout(callback.bind(null, slides));
       }
     }
 
@@ -236,10 +236,8 @@ window.SMIL = {
     }
 
     // handle mms messages without smil
-    // aggregate all text attachments into last slide
-    function SMIL_parseWithoutSMIL(attachment) {
-      var slide;
-      var textIndex = workingText.length;
+    // Display the attachments of the mms message in order
+    function SMIL_parseWithoutSMIL(attachment, idx) {
       var blob = attachment.content;
       if (!blob) {
         return;
@@ -249,31 +247,20 @@ window.SMIL = {
       // handle text blobs (plain text blob only) by reading them and
       // converting to text on the last slide
       if (type === 'text' && blob.type === 'text/plain') {
-        workingText.push('');
         readTextBlob(blob, function SMIL_parseAttachmentRead(event, text) {
-          workingText[textIndex] = text;
-
-          // when the last reader finishs, we will join the text together
-          if (!activeReaders) {
-            text = workingText.join(' ');
-            if (slides.length) {
-              slides[slides.length - 1].text = text;
-            } else {
-              slides.push({
-                text: text
-              });
-            }
-            exitPoint();
-          }
+          slides[idx] = {
+            text: text
+          };
+          exitPoint();
         });
 
       // make sure the type was something we want, otherwise ignore it
       } else if (type) {
-        slide = { name: attachment.location, blob: attachment.content };
+        var slide = { name: attachment.location, blob: attachment.content };
         if (slide.name && slide.name.slice(-5) === '.wbmp') {
           convertWbmpToPng(slide);
         }
-        slides.push(slide);
+        slides[idx] = slide;
       }
     }
 
@@ -339,13 +326,23 @@ window.SMIL = {
     if (smil) {
       doc = (new DOMParser()).parseFromString(smil, 'application/xml');
       parTags = doc.documentElement.getElementsByTagName('par');
-      Array.prototype.forEach.call(parTags, SMIL_parseHandleParTag);
+
+      // Check if attachments are all listed in smil.
+      var elements = Array.reduce(
+        parTags, (count, par) => count + par.childElementCount, 0
+      );
+
+      if (elements !== attachments.length) {
+        smilMismatched = true;
+      } else {
+        Array.prototype.forEach.call(parTags, SMIL_parseHandleParTag);
+      }
     }
 
     // handle MMS attachments without SMIL / malformed SMIL
-    if (!smil || attachmentsNotFound || !slides.length) {
+    if (!smil || attachmentsNotFound || !slides.length || smilMismatched) {
       // reset slides in the attachments not found case
-      slides = [];
+      slides = Array(attachments.length);
       attachments.forEach(SMIL_parseWithoutSMIL);
     }
     exitPoint();

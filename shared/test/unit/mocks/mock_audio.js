@@ -33,3 +33,48 @@ MockAudio.prototype.pause = function() {
 MockAudio.prototype.cloneNode = function() {
   return this;
 };
+
+function MockAudioContext(channel) {
+  MockAudioContext.instances.push(this);
+  this.mozAudioChannelType = channel;
+  this.currentTime = 0;
+  this.sampleRate = 0;
+  this.destination = null;
+}
+
+MockAudioContext.instances = [];
+
+MockAudioContext.mSetup = function() {
+  MockAudioContext.instances = [];
+};
+
+MockAudioContext.mTeardown = function() {
+  MockAudioContext.instances = [];
+};
+
+MockAudioContext.prototype.createBuffer = function() { return {}; };
+MockAudioContext.prototype.createBufferSource = function() {
+  return {
+    connect: function() {},
+    start: function() {},
+    stop: function() {}
+  };
+};
+MockAudioContext.prototype.createGain = function() {
+  return {
+    connect: function() {},
+    gain: {
+      setValueAtTime: function() {}
+    }
+  };
+};
+MockAudioContext.prototype.createOscillator = function() {
+  return {
+    frequency: 0,
+    connect: function() {},
+    start: function() {},
+    stop: function() {}
+  };
+};
+MockAudioContext.prototype.addEventListener = function() {};
+MockAudioContext.prototype.removeEventListener = function() {};

@@ -1,6 +1,7 @@
 'use strict';
 
-/* global Curtain, FacebookConnector, ImageLoader, Normalizer, utils, oauth2 */
+/* global Curtain, FacebookConnector, ImageLoader, Normalizer, utils,
+   ImportStatusData, oauth2 */
 
 var fb = window.fb || {};
 
@@ -63,7 +64,6 @@ if (!fb.link) {
     var currentNetworkRequest = null;
     // State can be proposal or view All
     var state;
-    var _ = navigator.mozL10n.get;
     var imgLoader;
 
     // Only needed for testing purposes
@@ -134,11 +134,13 @@ if (!fb.link) {
           doGetRemoteProposal(acc_tk, cdata, query);
         }
         else {
-          throw ('FB: Contact to be linked not found: ', cid);
+          throw new Error(
+                  'FB: Contact to be linked not found in mozContacts: ' + cid);
         }
       };
-      req.onerror = function() {
-        throw ('FB: Error while retrieving contact data: ', cid);
+      req.onerror = function(e) {
+        window.console.error('FB: Error while retrieving contact data: ', cid);
+        throw e;
       };
     };
 
@@ -326,7 +328,7 @@ if (!fb.link) {
             numFriendsProposed = currentRecommendation.length;
           }
         } else {
-          viewButton.textContent = _('viewAll');
+          viewButton.setAttribute('data-l10n-id', 'viewAll');
           viewButton.onclick = UI.viewAllFriends;
         }
 
@@ -346,9 +348,12 @@ if (!fb.link) {
             var data = e.data;
             if (data && data.type === 'dom_transition_end') {
               window.removeEventListener('message', linkOnViewPort);
-              utils.status.show(_('linkProposal', {
-                numFriends: numFriendsProposed
-              }));
+              utils.status.show({
+                id: 'linkProposal',
+                args: {
+                  numFriends: numFriendsProposed
+                }
+              });
             }
           });
         });
@@ -479,7 +484,7 @@ if (!fb.link) {
 
     link.friendsReady = function(response) {
       if (typeof response.error === 'undefined' && response.data) {
-        viewButton.textContent = _('viewRecommend');
+        viewButton.setAttribute('data-l10n-id', 'viewRecommend');
         viewButton.onclick = UI.viewRecommended;
 
         allFriends = response;
@@ -570,7 +575,7 @@ if (!fb.link) {
         allFriends = null;
         link.start(contactid);
       };
-      window.asyncStorage.removeItem(fb.utils.TOKEN_DATA_KEY, cb);
+      ImportStatusData.remove(fb.utils.TOKEN_DATA_KEY).then(cb);
     }
 
     UI.selected = function(event) {
@@ -659,7 +664,7 @@ if (!fb.link) {
     UI.viewRecommended = function(event) {
       // event.target === viewButton
       event.target.onclick = UI.viewAllFriends;
-      event.target.textContent = _('viewAll');
+      event.target.setAttribute('data-l10n-id', 'viewAll');
 
       clearList();
       utils.templates.append(friendsList, currentRecommendation);

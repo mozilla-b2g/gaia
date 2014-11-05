@@ -1,55 +1,36 @@
 {
-  "tasks": {
-    "marionette integration tests": {
+  "metadata": {
+    "name": "Gaia taskgraph",
+    "description": "Gaia taskgraph generator"
+  },
+  "scopes": ["docker-worker:cache:resources"],
+  "tags": {},
+  "tasks": [
+    {
       "task": {
         "metadata": {
-          "name": "Gaia Marionette JS integration testing"
+          "name": "Task graph construction...."
         },
+        "provisionerId": "aws-provisioner",
+        "workerType": "gaia",
+        "scopes": ["docker-worker:cache:gaia-misc-caches"],
         "payload": {
-          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
           "command": [
-            "./bin/github make test-integration REPORTER=mocha-tbpl-reporter"
-          ]
+            "entrypoint",
+            "echo 'what' && make node_modules && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
+          ],
+          "graphs": ["/graph.json"]
         },
-        "tags": {
-          "treeherderProject": "gaia",
-          "treeherderSymbol": "GI"
-        }
-      }
-    },
-    "build tests": {
-      "task": {
-        "metadata": {
-          "name": "Gaia build system tests"
-        },
-        "payload": {
-          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
-          "command": [
-            "./bin/github ./tests/travis_ci/build_tests/script"
-          ]
-        },
-        "tags": {
-          "treeherderProject": "gaia",
-          "treeherderSymbol": "GB"
-        }
-      }
-    },
-    "lint": {
-      "task": {
-        "metadata": {
-          "name": "Gaia code linters"
-        },
-        "payload": {
-          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
-          "command": [
-            "./bin/github make hint"
-          ]
-        },
-        "tags": {
-          "treeherderProject": "gaia",
-          "treeherderSymbol": "HINT"
+        "extra": {
+          "treeherder": {
+            "symbol": "G"
+          }
         }
       }
     }
-  }
+  ]
 }

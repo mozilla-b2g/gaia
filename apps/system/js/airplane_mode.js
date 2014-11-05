@@ -90,9 +90,10 @@
       );
     },
     updateStatus: function(value) {
+      // FM Radio will be turned off in Gecko, more detailed about why we do
+      // this in Gecko instead, please check bug 997064.
       var bluetooth = window.navigator.mozBluetooth;
       var wifiManager = window.navigator.mozWifiManager;
-      var fmRadio = window.navigator.mozFMRadio;
       var nfc = window.navigator.mozNfc;
 
       // Radio is a special service (might not exist e.g. tablet)
@@ -129,11 +130,6 @@
         // Turn off NFC
         if (nfc) {
           this._suspend('nfc');
-        }
-
-        // Turn off FM Radio.
-        if (fmRadio && fmRadio.enabled) {
-          fmRadio.disable();
         }
       } else {
         // Note that we don't restore Wifi tethering when leaving airplane mode
@@ -209,6 +205,10 @@
      */
     watchEvents: function(value, checkedActions) {
       var self = this;
+      // We don't want to wait until the first event reacts in order to
+      // update the status, because we can set the status to 'enabling' or
+      // 'disabling' already through `_updateAirplaneModeStatus`.
+      self._updateAirplaneModeStatus(checkedActions);
       for (var serviceName in this._checkedActionsMap) {
 
         // if we are waiting for specific service
@@ -237,10 +237,10 @@
      */
     set enabled(value) {
       if (value !== this._enabled) {
+        this._enabled = value;
+
         // start watching events
         this.watchEvents(value, this._getCheckedActions(value));
-
-        this._enabled = value;
 
         // tell services to do their own operations
         this._serviceHelper.updateStatus(value);

@@ -2,8 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
-
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
 
@@ -26,14 +24,11 @@ class TestPowerSaveMode(GaiaTestCase):
         battery_settings = settings.open_battery_settings()
         battery_settings.toggle_power_save_mode()
 
-        # TODO Wait for everything to switch off
-        time.sleep(5)
-
         # Wait for Cell Data to be disabled.
         self.wait_for_condition(lambda m: not self.data_layer.is_cell_data_connected)
 
-        # Check if Wi-Fi is disabled.
-        self.assertFalse(self.data_layer.is_wifi_connected(self.testvars['wifi']))
+        # Wait for Wi-Fi to be disabled.
+        self.wait_for_condition(lambda m: not self.data_layer.is_wifi_connected(self.testvars['wifi']))
 
         # Check if Cell Data is disabled.
         self.assertFalse(self.data_layer.get_setting('ril.data.enabled'))

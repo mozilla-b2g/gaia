@@ -17,10 +17,13 @@ ul {
 ul li {
   -moz-box-sizing: border-box;
   position: relative;
-  min-height: 6rem;
   margin: 0 1.5rem;
   border-bottom: 0.1rem solid #e6e6e3;
   color: #000;
+}
+
+ul li:last-child {
+  border-bottom: none;
 }
 
 ul li.sound-setting {
@@ -32,28 +35,47 @@ ul li label:not([for]) {
 }
 
 ul li > a,
-ul li > span {
+ul li > span,
+ul li > small,
+ul li > label > span,
+ul li > label > small {
   display: block;
   text-decoration: none;
   outline: 0;
   color: #000;
   -moz-box-sizing: border-box;
-  height: 6rem;
   font-size: 1.9rem;
-  line-height: 6rem;
   padding: 0 1.5rem;
 }
 
-ul li.active,
-ul li:not(.disabled) > small + a:active,
-ul li:not(.disabled) > a[href]:active,
-ul li:not(.disabled) > small + a:focus,
-ul li:not(.disabled) > a[href]:focus {
+ul li,
+ul li > a,
+ul li > label {
+  min-height: 6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+ul li[hidden] {
+  display: none;
+}
+
+ul li > a > span {
+  pointer-events: none;
+}
+
+ul li.active a,
+ul li.active span,
+ul li:not([aria-disabled="true"]) > small + a:active,
+ul li:not([aria-disabled="true"]) > a[href]:active,
+ul li:not([aria-disabled="true"]) > small + a:focus,
+ul li:not([aria-disabled="true"]) > a[href]:focus {
   background-color: #b2f2ff;
   color: #222;
 }
 
-ul li.disabled > a {
+ul li[aria-disabled="true"] > a {
   color: #797e80;
   opacity: 0.6;
   pointer-events: none;
@@ -63,6 +85,16 @@ ul > li > progress {
   display: inline-block;
   margin: 0;
   padding: 0;
+}
+
+ul > li > progress + span {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0;
+  padding: 0 0 0 1rem;
+  color: #505b5b;
+  font-size: 1.4rem;
+  line-height: 6rem;
 }
 
 /* Customization style for overlapping .bluetooth-device:before */
@@ -87,14 +119,17 @@ ul > li > progress + span {
 }
 
 /* description + value on the same line */
-ul li > a span {
+ul li > a span:nth-of-type(2):not(.button) {
   position: absolute;
   right: 1.5rem;
   color: #505859;
+  line-height: 6rem;
+  height: 6rem;
+  top: 0;
 }
 
 /* text ellipsis */
-ul li > * {
+ul li > *, ul li > label > *, ul li > a > * {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -102,16 +137,16 @@ ul li > * {
 }
 
 /* sublines */
-ul li > small {
-  position: absolute;
-  left: 1.5rem;
-  right: 1.5rem;
-  top: 50%;
-  padding-top: 0.4rem;
+ul li > small, ul li > label > small , ul li > a > small {
+  display: block;
   font-size: 1.4rem;
   color: #505859;
   /* click/tap events should be caught by the <a> element below the <small> */
   pointer-events: none;
+}
+
+small > span {
+  display: block;
 }
 
 ul li > label {
@@ -123,41 +158,33 @@ ul li > label {
 }
 
 ul li > label ~ input {
-
   margin-bottom: 1.5rem;
 }
 
-ul li > label.pack-checkbox + small,
-ul li > label.pack-radio + small {
+ul li > label.pack-checkbox > small,
+ul li > label.pack-radio > small {
   right: 6.1rem;
 }
 
-ul li > label.pack-switch + small {
+ul li > label.pack-switch > small {
   right: 9rem;
 }
-
-/* required for empty elements like Bluetooth */
-ul li > small:not(:empty) + a,
-ul li > small:not(:empty) + span {
-  line-height: 4.4rem;
-  padding-bottom: 0.1rem; /* Bug 903438 */
-}
-
 
 /******************************************************************************
  * Boolean buttons
  */
 
 ul li button,
-ul li a[role="button"] {
+ul li a.bb-button {
   display: inline-block;
   margin: 1rem 0;
 }
 
 /******************************************************************************
- * Boolean inputs (see /shared/style/switches.css)
+ * Boolean inputs
  */
 
+/* custom styles for boolean inputs (see /shared/style/switches.css) */
 ul li label {
   text-transform: none;
 }
@@ -166,32 +193,167 @@ ul li > label:not([for]),
 ul li > label.pack-checkbox,
 ul li > label.pack-radio,
 ul li > label.pack-switch {
-  position: absolute;
-  top: 0;
-  left: 0;
+  padding: 0 1.5rem;
+  margin: 0 -1.5rem;
   width: 100%;
   height: 100%;
+  min-height: 6rem;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
+ul li > label:not([for]) > span,
 ul li > label.pack-checkbox > span,
 ul li > label.pack-radio > span,
-ul li > label.pack-switch > input + span {
-  left: auto;
-  right: 0;
+ul li > label.pack-switch > span {
+  line-height: normal;
+  height: auto;
 }
 
-ul li > label.pack-checkbox ~ a,
-ul li > label.pack-radio ~ a {
+ul li > label.pack-checkbox > span:after,
+ul li > label.pack-radio > span:after,
+ul li > label.pack-switch > input ~ span:after {
+  left: auto;
+  right: 1.5rem;
+}
+
+ul li > label.pack-checkbox > span {
   padding-right: 6.1rem;
 }
 
-ul li > label.pack-switch ~ a {
+ul li > label.pack-radio ~ p {
+  padding-right: 3rem;
+}
+
+ul li > label.pack-switch > span {
    padding-right: 9rem;
 }
 
-ul li > label.pack-checkbox:active ~ a,
-ul li > label.pack-radio:active ~ a,
-ul li > label.pack-switch:active ~ a {
+ul li > label.pack-radio > span {
+  padding-right: 5.9rem;
+}
+
+ul li > label.pack-checkbox:active,
+ul li > label.pack-radio:active,
+ul li > label.pack-switch:active {
   background-color: #b2f2ff;
   color: #222;
+}
+
+/******************************************************************************
+ * Field inputs
+ */
+
+ul li p {
+  font-size: 1.9rem;
+  line-height: 1.9rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+ul li p + label:not([for]) {
+  top: 2.5rem;
+  height: calc(100% - 2.5rem);
+}
+
+/******************************************************************************
+ * Right-to-Left layout
+ */
+
+html[dir="rtl"] ul > li > progress + span {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+html[dir="rtl"] ul li > a span:nth-of-type(2):not(.button) {
+  left: 1.5rem;
+  right: auto;
+}
+
+html[dir="rtl"] ul li > label.pack-checkbox > small,
+html[dir="rtl"] ul li > label.pack-radio > small {
+  left: 6.1rem;
+  right: 4rem;
+}
+
+html[dir="rtl"] ul li > label.pack-checkbox > small:not(.menu-item-desc),
+html[dir="rtl"] ul li > label.pack-radio > small:not(.menu-item-desc) {
+   left: 9rem;
+   right: 2rem;
+}
+
+html[dir="rtl"] ul li > label.pack-switch > small {
+   left: 9rem;
+   right: 4rem;
+}
+
+html[dir="rtl"] ul li > label.pack-switch > small:not(.menu-item-desc) {
+   left: 9rem;
+   right: 2rem;
+}
+
+html[dir="rtl"] ul li > label.pack-checkbox > span:after,
+html[dir="rtl"] ul li > label.pack-radio > span:after,
+html[dir="rtl"] ul li > label.pack-switch > input ~ span:after {
+  left: 1.5rem;
+  right: auto;
+}
+
+html[dir="rtl"] ul li > label.pack-checkbox > span {
+  padding-left: 6.1rem;
+
+}
+html[dir="rtl"] ul li > label.pack-checkbox > span:not(.menu-item) {
+  padding-left: 6.1rem;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] ul li > label.pack-radio ~ p {
+  padding-left: 3rem;
+}
+
+html[dir="rtl"] ul li > label.pack-switch > span {
+  padding-left: 9rem;
+}
+
+html[dir="rtl"] ul li > label.pack-switch > span:not(.menu-item) {
+  padding-left: 9rem;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] ul li > label.pack-radio > span {
+  padding-left: 5.9rem;
+}
+
+html[dir="rtl"] ul li > label.pack-radio > span:not(.menu-item) {
+  padding-left: 5.9rem;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] ul li > label input[type="range"] {
+  left: 7rem;
+  right: 5rem;
+}
+
+html[dir="rtl"] ul li.sound-setting > label input[type="range"] {
+  left: auto;
+  right: 1.5rem;
+}
+
+html[dir="rtl"] dl dt {
+  padding-left: 0;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] ul li.bluetooth-device > a{
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+html[dir="rtl"] ul li > label.pack-checkbox > .color-preview:before {
+  margin-left: 1rem;
+  margin-right: -1rem;
 }

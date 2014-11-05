@@ -9,7 +9,6 @@ define(function(require, exports, module) {
 
 var prepareBlob = require('lib/prepare-preview-blob');
 var debug = require('debug')('controller:confirm');
-var resizeImage = require('lib/resize-image');
 var ConfirmView = require('views/confirm');
 var bindAll = require('lib/bind-all');
 
@@ -26,10 +25,11 @@ module.exports.ConfirmController = ConfirmController;
  * @param {Object} options
  */
 function ConfirmController(app) {
+  this.app = app;
+  this.settings = app.settings;
   this.activity = app.activity;
   this.camera = app.camera;
   this.container = app.el;
-  this.app = app;
 
   // Allow these dependencies
   // to be injected if need be.
@@ -42,16 +42,26 @@ function ConfirmController(app) {
 }
 
 ConfirmController.prototype.renderView = function() {
+  if (!this.activity.pick) {
+    return;
+  }
+
   if (this.confirmView) {
     this.confirmView.show();
     return;
   }
+
   this.confirmView = new this.ConfirmView();
-  this.confirmView.hide();
+  this.confirmView.maxPreviewSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
   this.confirmView.render().appendTo(this.container);
-  this.confirmView.on('click:select', this.onSelectMedia);
+
+  // We want to listen to select events exactly once
+  // The media is selected, the confirm view dismissed
+  // and the activity returns
+  this.confirmView.once('click:select', this.onSelectMedia);
   this.confirmView.on('click:retake', this.onRetakeMedia);
-  this.camera.resumePreview();
+  this.confirmView.on('loadingvideo', this.app.firer('busy'));
+  this.confirmView.on('playingvideo', this.app.firer('ready'));
 };
 
 /**
@@ -59,6 +69,17 @@ ConfirmController.prototype.renderView = function() {
  *
  */
 ConfirmController.prototype.bindEvents = function() {
+
+  // Render/Show the view on the `newimage` and `newvideo` events
+  // since they are fired immediately when tapping 'Capture'/'Stop'.
+  // This prevents the 'Capture'/'Stop' button from being able to be
+  // triggered multiple times before the confirm view appears.
+  this.camera.on('newimage', this.renderView);
+  this.camera.on('newvideo', this.renderView);
+
+  // Update the MediaFrame contents with the image/video upon
+  // receiving the `newmedia` event. This event is slightly delayed
+  // since it waits for the storage callback to complete.
   this.app.on('newmedia', this.onNewMedia);
 };
 
@@ -73,10 +94,9 @@ ConfirmController.prototype.bindEvents = function() {
  *
  */
 ConfirmController.prototype.onNewMedia = function(newMedia) {
-  if (!this.activity.active) { return; }
+  if (!this.activity.pick) { return; }
 
   this.newMedia = newMedia;
-  this.renderView();
   if (newMedia.isVideo) { // Is video
     this.confirmView.showVideo(newMedia);
   } else { // Is Image
@@ -85,32 +105,7 @@ ConfirmController.prototype.onNewMedia = function(newMedia) {
 };
 
 ConfirmController.prototype.onSelectMedia = function() {
-  var activity = this.activity;
-  var needsResizing;
-  var media = {
-    blob: this.newMedia.blob
-  };
-
-  if (this.newMedia.isVideo) { // Is Video
-    media.type = 'video/3gpp';
-    media.poster = this.newMedia.poster.blob;
-  } else { // Is Image
-    media.type = 'image/jpeg';
-    needsResizing = activity.data.width || activity.data.height;
-    debug('needs resizing: %s', needsResizing);
-    if (needsResizing) {
-      resizeImage({
-        blob: this.newMedia.blob,
-        width: activity.data.width,
-        height: activity.data.height
-      }, function(newBlob) {
-        media.blob = newBlob;
-        activity.postResult(media);
-      });
-      return;
-    }
-  }
-  activity.postResult(media);
+  this.app.emit('confirm:selected', this.newMedia);
 };
 
 ConfirmController.prototype.onRetakeMedia = function() {

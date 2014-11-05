@@ -1,4 +1,5 @@
-/* global _, CostControl, ConfigManager, debug, Common, Formatting */
+/* global _, CostControl, ConfigManager, debug,
+          Formatting, SimManager, Common */
 /*
  * The telephony tab is in charge of show telephony and billing cycle
  * information.
@@ -10,6 +11,8 @@
 var TelephonyTab = (function() {
   var costcontrol, initialized = false;
   var view, smscount, calltime, time, resetDate;
+  var telephonyPeriod = { begin: null, end: null };
+
   function setupTab() {
     if (initialized) {
       return;
@@ -32,6 +35,12 @@ var TelephonyTab = (function() {
       ConfigManager.observe('lastTelephonyActivity', updateCounters, true);
       ConfigManager.observe('lastTelephonyReset', updateUI, true);
       ConfigManager.observe('nextReset', updateNextReset, true);
+
+      // Timeformat
+      window.addEventListener('timeformatchange', function () {
+        updateTimePeriod(
+          telephonyPeriod.begin, null, null, telephonyPeriod.end);
+      });
 
       updateUI();
       initialized = true;
@@ -65,31 +74,33 @@ var TelephonyTab = (function() {
 
   function updateUI() {
     var requestObj = { type: 'telephony' };
-    ConfigManager.requestSettings(Common.dataSimIccId,
-                                  function _onSettings(settings) {
-      costcontrol.request(requestObj, function _afterRequest(result) {
-        var telephonyActivity = result.data;
-        debug('Last telephony activity:', telephonyActivity);
-        updateTimePeriod(settings.lastTelephonyReset, null, null, settings);
-        updateCounters(telephonyActivity);
-        updateNextReset(settings.nextReset, null, null, settings);
+    SimManager.requestDataSimIcc(function(dataSimIcc) {
+      ConfigManager.requestSettings(dataSimIcc.iccId,
+                                    function _onSettings(settings) {
+        costcontrol.request(requestObj, function _afterRequest(result) {
+          var telephonyActivity = result.data;
+          debug('Last telephony activity:', telephonyActivity);
+          updateTimePeriod(settings.lastTelephonyReset, null, null, settings);
+          updateCounters(telephonyActivity);
+          updateNextReset(settings.nextReset, null, null, settings);
+        });
       });
     });
   }
 
   function updateTimePeriod(lastReset, old, key, settings) {
+    telephonyPeriod.begin = lastReset;
+    telephonyPeriod.end = settings.lastTelephonyActivity.timestamp;
     time.innerHTML = '';
-    time.appendChild(Formatting.formatTimeHTML(lastReset,
-                                    settings.lastTelephonyActivity.timestamp));
-
+    time.appendChild(Formatting.formatTimeHTML(lastReset, telephonyPeriod.end));
   }
 
   function updateCounters(activity) {
-    smscount.textContent = _('magnitude', {
+    Common.localize(smscount, 'magnitude', {
       value: activity.smscount,
       unit: 'SMS'
     });
-    calltime.textContent = _('magnitude', {
+    Common.localize(calltime, 'magnitude', {
       value: Formatting.computeTelephonyMinutes(activity),
       unit: 'min.'
     });
@@ -102,7 +113,7 @@ var TelephonyTab = (function() {
     } else {
       billingCycle.setAttribute('aria-hidden', false);
       var content = Formatting.getFormattedDate(settings.nextReset,
-                                                _('short-date-format'));
+        _('short-date-format'));
       resetDate.textContent = content;
     }
   }

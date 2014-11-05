@@ -1,4 +1,5 @@
 'use strict';
+/* globals MockDOMRequest */
 /* exported MockGetDeviceStorage */
 
 var MockGetDeviceStorage = function() {
@@ -6,7 +7,7 @@ var MockGetDeviceStorage = function() {
     get: function(filepath) {
       return {
         set onsuccess(cb) {
-          cb();
+          cb.call(this);
         },
         get result() {
           var file = {
@@ -41,6 +42,15 @@ var MockGetDeviceStorage = function() {
           return 'available';
         }
       };
+    },
+    // need include libraries to test following domrequest functions
+    // * /shared/test/unit/mocks/mock_event_target.js
+    // * /shared/test/unit/mocks/mock_dom_request.js
+    freeSpace: function freeSpace() {
+      return new MockDOMRequest();
+    },
+    usedSpace: function usedSpace() {
+      return new MockDOMRequest();
     }
   };
 };

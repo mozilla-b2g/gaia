@@ -2,21 +2,47 @@ define(function(require, exports, module) {
 'use strict';
 
 /**
+ * Dependencies
+ */
+
+var debug = require('debug')('controller:sounds');
+var Sounds = require('lib/sounds');
+
+/**
  * Exports
  */
 
-exports = module.exports = function(app) { return new SoundsController(app); };
-exports.SoundsController = SoundsController;
+module.exports = function(app) { return new SoundsController(app); };
+module.exports.SoundsController = SoundsController;
 
 /**
  * Initialize a new `SoundsController`
- * @param {[type]} app [description]
+ *
+ * @param {App} app [description]
  */
 function SoundsController(app) {
-  this.sounds = app.sounds;
-  app.on('change:recording', this.onRecordingChange);
-  app.on('camera:shutter', this.sounds.player('shutter'));
+  var list = app.settings.sounds.get('list');
+  this.sounds = new Sounds(list);
+  this.app = app;
+  this.configure();
+  this.bindEvents();
+  debug('initialized');
 }
+
+SoundsController.prototype.configure = function() {
+  // Tell audio channel manager that we want to adjust the notification
+  // channel if the user press the volumeup/volumedown buttons in Camera.
+  if (navigator.mozAudioChannelManager) {
+    navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+  }
+};
+
+SoundsController.prototype.bindEvents = function() {
+  this.app.on('change:recording', this.onRecordingChange.bind(this));
+  this.app.on('camera:willrecord', this.sounds.player('recordingStart'));
+  this.app.on('camera:shutter', this.sounds.player('shutter'));
+  this.app.on('timer:immanent', this.sounds.player('timer'));
+};
 
 /**
  * Plays the start/end recording sound.
@@ -24,8 +50,9 @@ function SoundsController(app) {
  * @private
  */
 SoundsController.prototype.onRecordingChange = function(recording) {
-  if (recording) { this.sounds.play('recordingStart'); }
-  else { this.sounds.play('recordingEnd'); }
+  if (!recording) {
+    this.sounds.play('recordingEnd');
+  }
 };
 
 });

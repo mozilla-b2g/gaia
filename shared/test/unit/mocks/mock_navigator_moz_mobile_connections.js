@@ -1,10 +1,15 @@
 'use strict';
 
+/**
+ * Will provide 1 Mobileconnection by default. call mAddMobileConnection and
+ * mRemoveMobileConnection to add/remove extra connections.
+ */
 (function() {
   function MockMobileconnection() {
     var props = ['voice', 'data', 'iccId', 'radioState', 'iccInfo'];
     var eventListeners = null;
     var radioEnabledReq = null;
+    var sendMMIReq = null;
 
     function mnmmc_init() {
       props.forEach(function(prop) {
@@ -15,9 +20,11 @@
         'iccinfochange': [],
         'radiostatechange': [],
         'datachange': [],
-        'cfstatechange': []
+        'cfstatechange': [],
+        'ussdreceived': []
       };
       radioEnabledReq = {};
+      sendMMIReq = {};
     }
 
     function mnmmc_addEventListener(type, callback) {
@@ -55,17 +62,35 @@
       return radioEnabledReq;
     }
 
-    function mnmmc_sendMMI() {}
+    function mnmmc_sendMMI() {
+      return sendMMIReq;
+    }
+    function mnmmc_cancelMMI() {}
 
     var _mock = {
+      // Constants
+      ICC_SERVICE_CLASS_VOICE: (1 << 0),
+      ICC_SERVICE_CLASS_DATA: (1 << 1),
+      ICC_SERVICE_CLASS_FAX: (1 << 2),
+      ICC_SERVICE_CLASS_SMS: (1 << 3),
+      ICC_SERVICE_CLASS_DATA_SYNC: (1 << 4),
+      ICC_SERVICE_CLASS_DATA_ASYNC: (1 << 5),
+      ICC_SERVICE_CLASS_PACKET: (1 << 6),
+      ICC_SERVICE_CLASS_PAD: (1 << 7),
+      ICC_SERVICE_CLASS_MAX: (1 << 7),
+      // Methods
       addEventListener: mnmmc_addEventListener,
       removeEventListener: mnmmc_removeEventListener,
       triggerEventListeners: mnmmc_triggerEventListeners,
       setRadioEnabled: mnmmc_setRadioEnabled,
       sendMMI: mnmmc_sendMMI,
+      cancelMMI: mnmmc_cancelMMI,
       mTeardown: mnmmc_init,
       get mCachedRadioEnabledReq() {
         return radioEnabledReq;
+      },
+      get mCachedSendMMIReq() {
+        return sendMMIReq;
       },
       get mEventListeners() {
         return eventListeners;

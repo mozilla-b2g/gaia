@@ -18,7 +18,6 @@ body {
   color: #000;
   font-size: 1.6rem;
   line-height: 2.2rem;
-  text-align: center;
   vertical-align: middle;
   background-color: #FFF;
 }
@@ -99,37 +98,6 @@ a abbr {
   cursor: pointer;
 }
 
-/* Icons */
-span[role="button"] {
-  font-style: normal;
-}
-
-span[role="button"] + b, span[role="button"] + span {
-  vertical-align: middle;
-}
-
-/* Tables */
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-  width: 100%;
-}
-
-td {
-  vertical-align: top;
-}
-
-caption, th {
-  text-align: left;
-}
-
-caption {
-  text-indent: -9999rem;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
 /* Forms */
 form {
   margin: 0;
@@ -151,23 +119,6 @@ legend {
   height: 0;
   overflow: hidden;
   font: 0/0 a;
-}
-
-
-button {
-  height: auto;
-  width: auto;
-  overflow: visible;
-  display: inline-block;
-  vertical-align: middle;
-  background: none;
-  border: none;
-  outline: none;
-  font-size: 1.1rem;
-  line-height: 1.3rem;
-  color: #666;
-  white-space: nowrap;
-  cursor: pointer;
 }
 
 button::-moz-focus-inner {

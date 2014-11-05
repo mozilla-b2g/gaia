@@ -7,29 +7,152 @@
 
   width: 100%;
   height: 100%;
+}
 
+.inputWindow {
+  position: absolute;
+  opacity: 0;
+  transform: translateY(100%);
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.inputWindow iframe {
+  display: none;
+  position: absolute;
+  bottom: 0;
+
+  width: 100%;
+  height: 100%;
+}
+
+.inputWindow.active {
+  opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.2s ease, transform 0.4s ease;
+}
+
+.inputWindow.top-most iframe {
+  display: block;
 }
 
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #keyboards {
-    bottom: 5rem;
+    bottom: var(--software-home-button-height);
   }
 }
 
 #screen.software-button-enabled #keyboards {
-  bottom: 5rem;
+  bottom: var(--software-home-button-height);
 }
 
-#keyboards.hide {
-  opacity: 0;
+@media (orientation: landscape) {
+  #screen.software-button-enabled #keyboards {
+    right: var(--software-home-button-height);
+    bottom: 0;
+    left: 0;
+    width: auto;
+  }
+}
+
+.inputWindow.slide-from-bottom {
+  animation: kbShow 0.4s both ease;
+}
+
+.inputWindow.slide-to-bottom {
+   /* ease-in for disappearing */
+  animation: kbHide 0.4s both ease-in;
+}
+
+@keyframes kbShow {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  80% {
+    /* the original style indicates opacity should transition from 0 to 1
+       within 0.2s for "ease", which after calculation is about 80% progress
+       of 0.4s "ease". */
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kbHide {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+/* notification */
+#keyboard-show-ime-list > .fake-notification {
+  box-sizing: border-box;
+
+  /* wait for activate */
+  display: none;
+}
+
+#keyboard-show-ime-list > .fake-notification.activated {
+  display: block;
+}
+
+#keyboard-show-ime-list > .fake-notification > .title-container {
+  margin: 1.4rem 0 0 3.7rem;
+}
+
+#keyboard-show-ime-list > .fake-notification > .detail {
+  margin-left: 3.7rem;
+}
+
+.lockScreenInputWindow.slide-from-bottom {
+  animation: slideFromBottom 0.4s both ease;
+}
+
+.lockScreenInputWindow.slide-to-bottom {
+  animation: slideToBottom 0.4s both ease-in;
+}
+
+@keyframes slideFromBottom {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideToBottom {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.lockScreenInputWindow {
   transform: translateY(100%);
-  /* ease-in for disappearing */
-  transition: opacity 0.4s ease-in, transform 0.4s ease-in;
 }
 
-#keyboards iframe {
+.lockScreenInputWindow #lockscreen-inputpad-frame {
   position: absolute;
   bottom: 0;
 
@@ -38,51 +161,6 @@
   border: 0;
 }
 
-#keyboards iframe.hide {
+.lockScreenInputWindow #lockscreen-inputpad-frame.hide {
   transform: translateY(100%);
-}
-
-/* notification */
-#keyboard-show-ime-list > .fake-notification {
-  background-repeat: no-repeat;
-  background-position: 1.5rem center;
-  background-size: 3rem;
-  -moz-box-sizing: border-box;
-  padding: 1rem 1rem 1rem 5rem;
-
-  /* wait for activate */
-  display: none;
-}
-
-#keyboard-show-ime-list > .fake-notification > .message {
-  line-height: 2.5rem;
-  font-weight: 700;
-  font-size: 1.6rem;
-  white-space: nowrap;
-}
-
-#keyboard-show-ime-list > .fake-notification > .tip {
-  color: grey;
-  font-size: 11pt;
-}
-
-#keyboard-show-ime-list > .fake-notification.activated{
-  display: block;
-}
-
-/* copied from settings page */
-#keyboard-show-ime-list > .fake-notification::before {
-  position: absolute;
-  top: calc((6.2rem - 3.2rem) / 2);
-  left: calc((5.5rem - 2.8rem) / 2);
-  width: 3rem;
-  height: 3rem;
-
-  content: '';
-
-  background: url(../icons/Keyboard.png) top left no-repeat;
-}
-
-.notransition {
-  transition: none !important;
 }

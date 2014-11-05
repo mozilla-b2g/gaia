@@ -1,6 +1,6 @@
+/* global StatusBar */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global LayoutManager */
 'use strict';
 
 (function(exports) {
@@ -32,14 +32,13 @@
    * @extends BaseUI
    */
   var SystemDialog = function SystemDialog(options) {
-    if (options) {
-      this.options = options;
-    }
+    this.options = options || {};
+
     this.render();
     this.publish('created');
   };
 
-  SystemDialog.prototype.__proto__ = window.BaseUI.prototype;
+  SystemDialog.prototype = Object.create(window.BaseUI.prototype);
 
   SystemDialog.prototype.CLASS_NAME = 'SystemDialog';
 
@@ -63,8 +62,70 @@
   };
 
   /**
+   * System dialog's subcomponents.
+   * @type {Object}
+   */
+  SystemDialog.prototype.SUB_COMPONENTS = {
+    'valueSelector': window.ValueSelector
+  };
+
+  /**
+   * Install sub components belonging to the System Dialog.
+   * The necessary components are based on
+   * SystemDialog.prototype.SUB_COMPONENTS.
+   */
+  SystemDialog.prototype.installSubComponents =
+    function sd_installSubComponents() {
+      this.debug('installing sub components...');
+      for (var componentName in this.SUB_COMPONENTS) {
+        if (this.SUB_COMPONENTS[componentName]) {
+          this[componentName] = new this.SUB_COMPONENTS[componentName](this);
+        }
+      }
+    };
+
+  /**
+   * Uninstall sub components belonging to the System Dialog.
+   */
+  SystemDialog.prototype.uninstallSubComponents =
+    function sd_uninstallSubComponents() {
+      for (var componentName in this.SUB_COMPONENTS) {
+        if (this[componentName]) {
+          this[componentName].destroy();
+          this[componentName] = null;
+        }
+      }
+    };
+
+  /**
+   * Set aria-hidden attribute on browser's element (if available) to handle its
+   * screen reader visibility.
+   * @type {Boolean} visible A flag indicating if the element should be screen
+   * reader visible.
+   */
+  SystemDialog.prototype._setVisibleForScreenReader =
+    function sd__setVisibleForScreenReader(visible) {
+      if (this.browser && this.browser.element) {
+        this.debug('aria-hidden on browser element:' + !visible);
+        this.browser.element.setAttribute('aria-hidden', !visible);
+      }
+    };
+
+  /**
+   * Focus on browser's element (if available).
+   */
+  SystemDialog.prototype.focus = function sd_focus() {
+    if (this.browser && this.browser.element) {
+      this.browser.element.focus();
+    }
+  };
+
+  /**
    * System Dialog html view
    * Override me. It's able to customize your layout.
+   *
+   * The SystemDialog module expects the returned DOM element is set with
+   * hidden attribute, so the UI begin with closed state.
    */
   SystemDialog.prototype.view = function sd_view() {
     return '';
@@ -80,6 +141,22 @@
     this._fetchElements();
     this._registerEvents();
     this.element = document.getElementById(this.instanceID);
+    this.installSubComponents();
+  };
+
+  /**
+   * Operations when destroying a system dialog inlcude unregistering events and
+   * uninstalling sub components.
+   */
+  SystemDialog.prototype.destroy = function sd_destroy() {
+    this.publish('willdestroy');
+    this._unregisterEvents();
+    this.uninstallSubComponents();
+    if (this.element) {
+      this.element.parentNode.removeChild(this.element);
+      this.element = null;
+    }
+    this.publish('destroyed');
   };
 
   /**
@@ -94,7 +171,9 @@
    * Update dialog height via LayoutManager
    */
   SystemDialog.prototype.updateHeight = function sd_updateHeight() {
-    var height = LayoutManager.height;
+    // The LayoutManager is already taking care of the keyboard height,
+    // so we don't need to worry about that here.
+    var height = window.layoutManager.height - StatusBar.height;
     this.containerElement.style.height = height + 'px';
     this.debug('updateHeight: new height = ' + height);
   };
@@ -103,6 +182,7 @@
    * Publish 'show' event for activate the dialog
    */
   SystemDialog.prototype.show = function sd_show() {
+    this.publish('opening');
     this.element.hidden = false;
     this.element.classList.add(this.customID);
     this.onShow();
@@ -116,6 +196,7 @@
    * @param  {boolean} isManagerRequest True: The caller is SystemDialogManager.
    */
   SystemDialog.prototype.hide = function sd_hide(reason, isManagerRequest) {
+    this.publish('closing');
     // The 'reason' is coming from the dialog controller or SystemDialogManager.
     // After the dialog is hidden, pass the reason to its controller via onHide.
     this.element.hidden = true;

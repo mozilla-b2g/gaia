@@ -60,7 +60,7 @@ suite('system/FxAccountsClient >', function() {
   suite('Init', function() {
     test('Integrity', function() {
       assert.isNotNull(FxAccountsClient);
-      assert.equal(Object.keys(FxAccountsClient).length, 6);
+      assert.equal(Object.keys(FxAccountsClient).length, 7);
     });
 
     test('No event listeners', function() {
@@ -176,8 +176,8 @@ suite('system/FxAccountsClient >', function() {
 
   suite('queryAccount/verificationStatus', function() {
     setup(function() {
-      FxAccountsClient.queryAccount('accountId', successCb, errorCb);
-      FxAccountsClient.verificationStatus('accountId', successCb, errorCb);
+      FxAccountsClient.queryAccount('email', successCb, errorCb);
+      FxAccountsClient.verificationStatus('email', successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -189,11 +189,11 @@ suite('system/FxAccountsClient >', function() {
       assert.ok(MockDispatchedEvents[1].detail.data);
       assert.deepEqual(MockDispatchedEvents[0].detail.data, {
         method: 'queryAccount',
-        accountId: 'accountId'
+        email: 'email'
       });
       assert.deepEqual(MockDispatchedEvents[1].detail.data, {
         method: 'verificationStatus',
-        accountId: 'accountId'
+        email: 'email'
       });
     });
 
@@ -204,8 +204,8 @@ suite('system/FxAccountsClient >', function() {
 
   suite('signIn/signUp', function() {
     setup(function() {
-      FxAccountsClient.signIn('accountId', 'pass', successCb, errorCb);
-      FxAccountsClient.signUp('accountId', 'pass', successCb, errorCb);
+      FxAccountsClient.signIn('email', 'pass', successCb, errorCb);
+      FxAccountsClient.signUp('email', 'pass', successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -217,14 +217,40 @@ suite('system/FxAccountsClient >', function() {
       assert.ok(MockDispatchedEvents[1].detail.data);
       assert.deepEqual(MockDispatchedEvents[0].detail.data, {
         method: 'signIn',
-        accountId: 'accountId',
+        email: 'email',
         password: 'pass'
       });
       assert.deepEqual(MockDispatchedEvents[1].detail.data, {
         method: 'signUp',
-        accountId: 'accountId',
+        email: 'email',
         password: 'pass'
       });
     });
+
+    suiteTeardown(function() {
+      MockDispatchedEvents = [];
+    });
   });
+
+  suite('resendVerificationEmail', function() {
+    setup(function() {
+      FxAccountsClient.resendVerificationEmail('email', successCb, errorCb);
+    });
+
+    test('Event dispatched to chrome side', function() {
+      assert.equal(MockDispatchedEvents.length, 1);
+      assert.ok(MockEventListener['mozFxAccountsChromeEvent']);
+      assert.ok(MockDispatchedEvents[0].detail.id);
+      assert.ok(MockDispatchedEvents[0].detail.data);
+      assert.deepEqual(MockDispatchedEvents[0].detail.data, {
+        method: 'resendVerificationEmail',
+        email: 'email'
+      });
+    });
+
+    suiteTeardown(function() {
+      MockDispatchedEvents = [];
+    });
+  });
+
 });

@@ -12,12 +12,29 @@ ReadEvent.prototype = {
 
   selector: '#event-view',
 
+  waitForDisplay: function() {
+    // event details are loaded asynchronously, so we need to wait until the
+    // "loading" class is removed from the view; this will avoid intermittent
+    // failures on Travis (caused by race condition)
+    var element = this.getElement();
+    this.client.waitFor(function(){
+      return element.displayed() &&
+        element.getAttribute('className').indexOf('loading') === -1;
+    });
+  },
+
   get alarms() {
     return this
       .findElements('.alarms > .content > div')
       .map(function(element) {
         return element.text();
       });
+  },
+
+  get calendarColor() {
+    return this
+      .findElement('.current-calendar > .icon-calendar-dot.calendar-text-color')
+      .cssProperty('color');
   },
 
   get calendar() {
@@ -36,15 +53,9 @@ ReadEvent.prototype = {
     return this.findElement('.description');
   },
 
-  get endDate() {
+  get durationTime() {
     return this
-      .findElement('.end-date > .content')
-      .text();
-  },
-
-  get endTime() {
-    return this
-      .findElement('.end-date > .end-time > .content')
+      .findElement('.duration-time > .content')
       .text();
   },
 
@@ -58,16 +69,8 @@ ReadEvent.prototype = {
     return this.findElement('.location');
   },
 
-  get startDate() {
-    return this
-      .findElement('.start-date > .content')
-      .text();
-  },
-
-  get startTime() {
-    return this
-      .findElement('.start-date > .start-time > .content')
-      .text();
+  get reminders() {
+    return this.findElements('.alarms > .content > div');
   },
 
   get title() {
@@ -78,6 +81,12 @@ ReadEvent.prototype = {
 
   get titleContainer() {
     return this.findElement('.title');
+  },
+
+  get editable() {
+    return this
+      .findElement('.edit')
+      .enabled();
   },
 
   cancel: function() {

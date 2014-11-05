@@ -25,9 +25,9 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
         # tap the field "input type=text"
         keyboard = keyboard_page.tap_text_input()
 
-        # type first 6 letters of the expected word
-        expected_word = 'keyboard '
-        keyboard.send(expected_word[:6])
+        # type first 7 letters of the expected word
+        expected_word = 'keyboard'
+        keyboard.send(expected_word[:7])
 
         # tap the first predictive word
         keyboard.tap_first_predictive_word()
@@ -37,3 +37,37 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
         # check if the word in the input field is the same as the expected word
         typed_word = keyboard_page.text_input
         self.assertEqual(typed_word, expected_word)
+
+        ## TEST 2, tap second suggestion, then press space
+        keyboard.send(' ')
+        keyboard_page.switch_to_frame()
+
+        # type some misspelled word
+        keyboard.send('Tes')
+        keyboard_page.switch_to_frame()
+        self.assertEqual(keyboard_page.text_input, 'keyboard Tes')
+
+        # tap second predictive word (tea)
+        keyboard.tap_suggestion('Tea')
+        self.apps.switch_to_displayed_app()
+
+        # Send space
+        keyboard.send(' ')
+        keyboard_page.switch_to_frame()
+
+        # Output should be 'Tea '
+        self.assertEqual(keyboard_page.text_input, 'keyboard Tea ')
+
+        ## TEST 3 - type something with autocorrect and press space
+        keyboard.send('ye ')
+        keyboard_page.switch_to_frame()
+        self.assertEqual(keyboard_page.text_input, 'keyboard Tea yes ')
+
+        # TEST 4 - autocorrect, dot and backspace
+        keyboard.send('wot.')
+        keyboard_page.switch_to_frame()
+        self.assertEqual(keyboard_page.text_input, 'keyboard Tea yes wit.')
+
+        keyboard.tap_backspace()
+        keyboard_page.switch_to_frame()
+        self.assertEqual(keyboard_page.text_input, 'keyboard Tea yes wot')

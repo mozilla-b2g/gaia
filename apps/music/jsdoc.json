@@ -1,0 +1,8 @@
+{
+  "music": {
+    "src": ["apps/music/js/**/*.js"],
+    "options": {
+      "destination": "docs/music"
+    }
+  }
+}

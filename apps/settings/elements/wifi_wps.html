@@ -1,13 +1,11 @@
 <element name="wifi-wps" extends="section">
   <template>
 
-    <header>
-      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
-      <menu type="toolbar">
-        <button type="submit"><span data-l10n-id="ok">OK</span></button>
-      </menu>
+    <gaia-header>
+      <button type="reset" data-icon="back"><span data-l10n-id="back">Back</span></button>
       <h1 data-l10n-id="wpsMessage-header"> Connect with WPS </h1>
-    </header>
+      <button type="submit"><span data-l10n-id="ok">OK</span></button>
+    </gaia-header>
 
     <div>
       <header>
@@ -32,11 +30,11 @@
             <span data-l10n-id="wpsApPinLabel">AP PIN connection</span>
           </label>
         </li>
-        <li id="wifi-wps-pin-area">
+        <li class="wifi-wps-pin-area">
           <p data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</p>
           <input type="password" x-inputmode="digit" size="8" maxlength="8"/>
         </li>
-        <li id="wifi-wps-pin-aps">
+        <li class="wifi-wps-pin-aps">
           <p data-l10n-id="wpsPinAps">Select an opposite device</p>
           <span class="button icon icon-dialog">
             <select></select>
@@ -44,6 +42,8 @@
         </li>
       </ul>
     </div>
+
+    <panel data-path="panels/wifi_wps/panel"></panel>
 
   </template>
 </element>

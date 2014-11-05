@@ -9,10 +9,21 @@ var MockScreenManager = (function() {
   var screenEnabled = true;
 
   function turnScreenOn() {
+    screenEnabled = true;
+  }
+
+  function turnScreenOff() {
+    screenEnabled = false;
   }
 
   return {
     turnScreenOn: turnScreenOn,
-    screenEnabled: screenEnabled
+    turnScreenOff: turnScreenOff,
+    get screenEnabled() {
+      return screenEnabled;
+    },
+    set screenEnabled(value) {
+      screenEnabled = value;
+    }
   };
 })();

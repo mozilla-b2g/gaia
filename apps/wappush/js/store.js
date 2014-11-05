@@ -3,6 +3,8 @@
 
 /* exported StoreProvisioning */
 
+/* global uuid */
+
 'use strict';
 
 /**
@@ -23,11 +25,14 @@ var StoreProvisioning = (function() {
    * Loads the operator numeric value (MCC and MNC codes) stored into the
    * settings database. The APNs are stored relaying on these codes.
    *
+   * @param {Number} iccCardIndex Index of the card on which the message was
+   *                              received. We are going to add the apns to
+   *                              the right card.
    * @param {function} callback It will be called once the work is done (only
    *                            useful for unit testing). This function doesn't
    *                            any parameter.
    */
-  function sp_getMccMncCodes(callback) {
+  function sp_getMccMncCodes(iccCardIndex, callback) {
     var settings = navigator.mozSettings;
     if (!settings) {
       if (callback) {
@@ -36,11 +41,7 @@ var StoreProvisioning = (function() {
       return;
     }
 
-    // XXX: Bug 947198
-    // We must add support for multi ICC card devices to the OMA CP logic.
-    // In the meantime we assume the ICC card the WAP push app is working with
-    // is the first one.
-    var iccCardIndex = 0;
+    iccCardIndex = iccCardIndex || 0;
 
     var transaction = navigator.mozSettings.createLock();
     var mccRequest = transaction.get(MCC_KEY);
@@ -70,13 +71,20 @@ var StoreProvisioning = (function() {
    * Stores the APNs into the settings database.
    *
    * @param {Array} parameters The array containing the APNs.
+   * @param {Number} iccCardIndex Index of the card on which the message was
+   *                              received.
    * @param {function} callback It will be called once the work is done (only
    *                            useful for unit testing). This function doesn't
    *                            accetp any parameter.
    */
-  function sp_provision(parameters, callback) {
+  function sp_provision(parameters, iccCardIndex, callback) {
     var existingApns = null;
     var newApns = {};
+
+    // Add an unique id to identify APNs with the same carrier name
+    for (var i = 0; i < parameters.length; i++) {
+      parameters[i]._id = uuid();
+    }
 
     var settings = navigator.mozSettings;
     if (!settings) {
@@ -85,7 +93,7 @@ var StoreProvisioning = (function() {
       }
       return;
     }
-    sp_getMccMncCodes(function sp_getMccMncCodesCb() {
+    sp_getMccMncCodes(iccCardIndex, function sp_getMccMncCodesCb() {
       var transaction = navigator.mozSettings.createLock();
       var load = transaction.get(CP_APN_KEY);
       load.onsuccess = function onsuccessCb() {
@@ -108,9 +116,45 @@ var StoreProvisioning = (function() {
           data[CP_APN_KEY] = existingApns;
         }
         transaction.set(data);
-        if (callback) {
-          callback();
-        }
+
+        iccCardIndex = iccCardIndex || 0;
+        var request = transaction.get('ril.data.apnSettings');
+        request.onsuccess = function() {
+          var apnSettings = request.result['ril.data.apnSettings'];
+          if (!apnSettings || !Array.isArray(apnSettings)) {
+            apnSettings = [[], []];
+          }
+
+          var apnList = apnSettings[iccCardIndex];
+          parameters.forEach(function(apn) {
+            var apnEnabled =  false;
+            for (var i = 0; i < apnList.length; i++) {
+              if (apnList[i].types[0] === apn.types[0]) {
+                apnList[i] = apn;
+                apnEnabled = true;
+                break;
+              }
+            }
+
+            if (!apnEnabled) {
+              apnList.push(apn);
+            }
+          });
+
+          transaction.set({
+            'ril.data.apnSettings': apnSettings,
+            'apn.selections': null
+          });
+          if (callback) {
+            callback();
+          }
+        };
+
+        request.onerror = function onError() {
+          if (callback) {
+            callback();
+          }
+        };
       };
       load.onerror = function onerrorCb() {
         if (callback) {

@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.setup({ globals: ['MockNavigatorSettings'] });
-
 suite('SettingsCache', function() {
   suiteSetup(function(done) {
     this.keyValuePairs = {

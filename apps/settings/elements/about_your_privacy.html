@@ -1,12 +1,9 @@
 <element name="about-yourPrivacy" extends="section">
   <template>
 
-    <header>
-      <button type="reset">
-        <span data-l10n-id="back" class="icon icon-back">Back</span>
-      </button>
+    <gaia-header action="back" data-href="#about">
       <h1 data-l10n-id="your-privacy-header"> Your Privacy </h1>
-    </header>
+    </gaia-header>
 
     <div>
       <header>
@@ -14,10 +11,14 @@
       </header>
       <ul>
         <li>
-          <a class="privacy-menuitem privacy-browserOS" href="https://www.mozilla.org/privacy/firefox-os/" data-l10n-id="brandShortName">B2G OS</a>
+          <a class="menu-item privacy-menuitem privacy-browserOS" href="https://www.mozilla.org/privacy/firefox-os/">
+            <span data-l10n-id="brandShortName">B2G OS</span>
+          </a>
         </li>
         <li>
-          <a class="privacy-menuitem privacy-marketPlace" href="https://marketplace.firefox.com/privacy-policy">Marketplace</a>
+          <a class="menu-item privacy-menuitem privacy-marketPlace" href="https://marketplace.firefox.com/privacy-policy">
+            <span>Marketplace</span>
+          </a>
         </li>
       </ul>
       <header>
@@ -25,7 +26,9 @@
       </header>
       <ul>
         <li>
-          <a class="privacy-menuitem privacy-everythingME" href="http://corp.everything.me/privacy">everything.me</a>
+          <a class="menu-item privacy-menuitem privacy-everythingME" href="http://everything.me/privacy">
+            <span>EverythingMe</span>
+          </a>
         </li>
       </ul>
     </div>

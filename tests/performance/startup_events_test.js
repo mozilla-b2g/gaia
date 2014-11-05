@@ -1,78 +1,84 @@
 'use strict';
 
 var assert = require('assert');
-
 var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
-var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
+var perfUtils = require('./perf-utils');
+var appPath = config.appPath;
 
-var whitelistedApps = [
-  'communications/contacts',
-  'clock',
-  'fm',
-  'sms'
-];
-
-if (whitelistedApps.indexOf(mozTestInfo.appPath) === -1) {
+if (!perfUtils.isWhitelisted(config.whitelists.mozLaunch, appPath)) {
   return;
 }
 
-var manifestPath, entryPoint;
-var arr = mozTestInfo.appPath.split('/');
-manifestPath = arr[0];
-entryPoint = arr[1];
+// XXX This test currently only functions correctly on actual devices
+// because of the memory tests. This check should be removed once we can
+// support checking memory on simulated devices
+if (!perfUtils.isDeviceHost()) {
+  return;
+}
 
-
-marionette('startup event test > ' + mozTestInfo.appPath + ' >', function() {
+marionette('startup event test > ' + appPath + ' >', function() {
 
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
-  var lastEvent = 'startup-path-done';
+  var app = new App(client, appPath);
 
-  var app = new App(client, mozTestInfo.appPath);
+  // Do nothing on script timeout. Bug 987383
+  client.onScriptTimeout = null;
+
   if (app.skip) {
     return;
   }
 
   var performanceHelper = new PerformanceHelper({
     app: app,
-    lastEvent: lastEvent
+    lastEvent: 'moz-app-loaded'
   });
 
   setup(function() {
-    // it affects the first run otherwise
-    this.timeout(500000);
-    client.setScriptTimeout(50000);
-
-    MarionetteHelper.unlockScreen(client);
+    this.timeout(config.timeout);
+    client.setScriptTimeout(config.scriptTimeout);
+    PerformanceHelper.injectHelperAtom(client);
+    performanceHelper.unlockScreen();
   });
 
   test('startup >', function() {
 
+    var goals = PerformanceHelper.getGoalData(client);
+    var memoryResults = [];
+
     performanceHelper.repeatWithDelay(function(app, next) {
-
       var waitForBody = false;
+      PerformanceHelper.registerTimestamp(client);
       app.launch(waitForBody);
-
-      performanceHelper.observe();
 
       performanceHelper.waitForPerfEvent(function(runResults, error) {
         if (error) {
           app.close();
           throw error;
-        } else {
-          performanceHelper.reportRunDurations(runResults);
-          assert.ok(Object.keys(runResults).length, 'empty results');
-          app.close();
         }
+
+        var memoryUsage = performanceHelper.getMemoryUsage(app);
+        runResults.start = +PerformanceHelper.getEpochStart(client);
+
+        app.close();
+
+        assert.ok(memoryUsage, 'could not collect memory usage');
+        assert.ok(Object.keys(runResults).length, 'empty results');
+        assert.ok(runResults.start > 0, 'problem capturing start epoch');
+
+        memoryResults.push(memoryUsage);
+        performanceHelper.reportRunDurations(runResults);
       });
     });
 
+    PerformanceHelper.reportDuration([], 'memory');
+    PerformanceHelper.reportMemory(memoryResults, 'memory');
     performanceHelper.finish();
-
+    PerformanceHelper.reportGoal(goals);
   });
-
 });

@@ -25,10 +25,10 @@ Rocketbar.clientOptions = {
     'dom.w3c_touch_events.enabled': 1
   },
   settings: {
+    'homescreen.manifestURL':
+      'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
-    'keyboard.ftu.enabled': false,
-    'lockscreen.enabled': false,
-    'rocketbar.enabled': true
+    'lockscreen.enabled': false
   }
 };
 
@@ -37,7 +37,12 @@ Rocketbar.prototype = {
     activeBrowserFrame: '#windows .appWindow.active',
     screen: '#screen',
     rocketbar: '#rocketbar',
-    rocketbarInput: '#rocketbar-input'
+    title: '#rocketbar-title',
+    input: '#rocketbar-input',
+    cancel: '#rocketbar-cancel',
+    clear: '#rocketbar-clear',
+    backdrop: '#rocketbar-backdrop',
+    results: '#rocketbar-results'
   },
 
   /**
@@ -46,29 +51,89 @@ Rocketbar.prototype = {
   focus: function() {
     var rocketbar = this.client.findElement(this.selectors.rocketbar);
     this.client.waitFor(rocketbar.displayed.bind(rocketbar));
+
+    // Poll the page to ensure rocketbar is enabled before tapping on it.
+    var lastVal = false;
+    this.client.waitFor(function() {
+      this.client.executeScript(function() {
+        var win = window.wrappedJSObject;
+        return win.rocketbar && win.rocketbar.enabled;
+      }, function(err, value) {
+        lastVal = value;
+      });
+      return lastVal;
+    }.bind(this));
+
     rocketbar.tap();
-    var rocketbarInput =
-      this.client.findElement(this.selectors.rocketbarInput);
-    this.client.waitFor(rocketbarInput.displayed.bind(rocketbarInput));
+    var input =
+      this.client.findElement(this.selectors.input);
+    this.client.waitFor(input.displayed.bind(input));
+  },
+
+  /**
+   * Focuses the rocketbar from the homescreen.
+   * This is a temporary method while the homescreen search trigger lives in
+   * the homescreen app. If we move it to the system app we can remove this.
+   */
+  homescreenFocus: function() {
+    var HomeLib = require(
+      '../../../../../apps/verticalhome/test/marionette/lib/home2');
+    var homeLib = new HomeLib(this.client);
+    homeLib.waitForLaunch();
+    homeLib.focusRocketBar();
   },
 
   /**
    * Send keys to the Rocketbar (needs to be focused first).
    */
-  enterText: function(input) {
-    var rocketbarInput =
-      this.client.findElement(this.selectors.rocketbarInput);
-    rocketbarInput.clear();
-    this.client.waitFor(rocketbarInput.displayed.bind(rocketbarInput));
-    rocketbarInput.sendKeys(input);
+  enterText: function(text) {
+    var input =
+      this.client.findElement(this.selectors.input);
+    input.clear();
+    this.client.waitFor(input.displayed.bind(input));
+    input.sendKeys(text);
+
+    if (!text.length) {
+      this.client.executeScript(function() {
+        window.wrappedJSObject.rocketbar.handleInput();
+      });
+    }
+
+    // Manually blur the input with script or the keyboard can mess up
+    // visibility in tests.
+    input.scriptWith(function(el) {
+      el.blur();
+    });
+  },
+
+  /**
+   * Switches to a search browser frame.
+   * The URL of a search provider will generally contain '{searchTerms}', so
+   * we replace that with the search text.
+   */
+  switchToSearchFrame: function(url, text) {
+    url = url.replace('{searchTerms}', '');
+    return this.switchToBrowserFrame(url);
   },
 
   /**
    * Switch to a browser window frame which matches the given URL.
    */
   switchToBrowserFrame: function(url) {
-    var browserFrame = this.client.findElement('iframe[src="' + url + '"]');
+    url = url.replace(/\s+/g, '%20');
+    var browserFrame = this.client.findElement('iframe[src*="' + url + '"]');
     this.client.switchToFrame(browserFrame);
+  },
+
+  /**
+   * Wait for Rocketbar to initialise and expand.
+   */
+  waitForLoad: function() {
+    var element = this.rocketbar;
+    this.client.waitFor(function() {
+      var rocketbarClass = element.getAttribute('class');
+      return rocketbarClass.indexOf('expanded') != -1;
+    });
   },
 
   /**
@@ -87,17 +152,35 @@ Rocketbar.prototype = {
     });
   },
 
-  /**
-   * Get the Rocketbar element.
-   */
   get rocketbar() {
     return this.client.findElement(this.selectors.rocketbar);
   },
 
-  /**
-   * Get screen element.
-   */
+  get results() {
+    return this.client.findElement(this.selectors.results);
+  },
+
   get screen() {
     return this.client.findElement(this.selectors.screen);
+  },
+
+  get title() {
+    return this.client.findElement(this.selectors.title);
+  },
+
+  get input() {
+    return this.client.findElement(this.selectors.input);
+  },
+
+  get cancel() {
+    return this.client.findElement(this.selectors.cancel);
+  },
+
+  get clear() {
+    return this.client.findElement(this.selectors.clear);
+  },
+
+  get backdrop() {
+    return this.client.findElement(this.selectors.backdrop);
   }
 };

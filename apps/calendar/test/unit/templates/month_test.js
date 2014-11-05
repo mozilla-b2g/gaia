@@ -1,10 +1,13 @@
-suiteGroup('Templates.Month', function() {
-  'use strict';
+define(function(require) {
+'use strict';
 
+var Month = require('templates/month');
+
+suite('Templates.Month', function() {
   var subject;
 
   suiteSetup(function() {
-    subject = Calendar.Templates.Month;
+    subject = Month;
   });
 
   function a() {
@@ -33,8 +36,8 @@ suiteGroup('Templates.Month', function() {
 
   test('#weekDaysHeader', function() {
     var result = renderHTML('weekDaysHeader', a());
-
     assert.ok(result);
+    assert.include(result, 'role="presentation"');
     assert.include(result, '<a></a>');
   });
 
@@ -45,6 +48,7 @@ suiteGroup('Templates.Month', function() {
     });
 
     assert.ok(result);
+    assert.include(result, 'role="columnheader"');
     assert.include(result, 'Monday');
   });
 
@@ -71,16 +75,23 @@ suiteGroup('Templates.Month', function() {
         dateString: add('dateStr'),
         state: add('active'),
         date: add('date1'),
+        ariaDescribedby: add('aria-describedby'),
+        idBusyIndicator: add('idme-busy-indicator'),
+        idDescription: add('idme-description'),
         busy: a()
       }
     );
 
     assert.ok(result);
 
+    assert.include(result, 'role="gridcell"');
+    assert.include(result, 'role="button"');
+    assert.include(result, 'tabindex="0"');
     data.forEach(function(item) {
       assert.include(result, item);
     });
 
   });
+});
 
 });

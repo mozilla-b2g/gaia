@@ -198,5 +198,3 @@ var Bluetooth = {
     return this.defaultAdapter;
   }
 };
-
-Bluetooth.init();

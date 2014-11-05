@@ -1,5 +1,6 @@
 Keyboards.my = {
   label: 'Myanmar',
+  shortLabel: 'My',
   menuLabel: '\u1019\u103C\u1014\u103A\u1019\u102C', /*မြန်မာ*/
   secondLayout: true,
   basicLayoutKey: '\u1000\u1001\u1002', /*ကခဂ*/
@@ -60,7 +61,8 @@ Keyboards.my = {
     '\u100A'/*ည*/: '\u1009'/*ဉ*/,
     '\u102C'/*ာ*/: '\u1026'/*ဦ*/
   },
-  alternateLayout: {
+  pages: [undefined, {
+    needsCommaKey: true,
     keys: [
       [
         { value: '\u1041'/*၁*/ }, { value: '\u1042'/*၂*/ },
@@ -74,7 +76,11 @@ Keyboards.my = {
         { value: '\u101F'/*ဟ*/ }, { value: '\u1027'/*ဧ*/ },
         { value: '/' }, { value: '?' }, { value: '(' }, { value: ')' }
       ], [
-        { value: '#+=', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: '#+=', ratio: 1.5,
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
+        },
         { value: '\u104F'/*၏*/ }, { value: '\u1029'/*ဩ*/, ratio: 1.5 },
         { value: '\u102A'/*ဪ*/, ratio: 2 },
         { value: '၊' }, { value: '။', ratio: 1.5 },
@@ -84,10 +90,13 @@ Keyboards.my = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  },
-  symbolLayout: {
+  }, {
+    needsCommaKey: true,
     alt: {
-      '€': '€ ¥'
+      '€': ['¢', '¥'],
+      '"': ['“', '”'],
+      '\'':['‘', '’'],
+      '+': ['-', '×', '÷', '±']
     },
     keys: [
       [
@@ -100,7 +109,7 @@ Keyboards.my = {
         { value: '+' }, { value: '=' }
       ], [
         { value: '\u1041\u1042\u1043'/*၁၂၃*/, ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT },
+          keyCode: KeyboardEvent.DOM_VK_ALT, targetPage: 1 },
         { value: '\\' }, { value: '\'' }, { value: '[' }, { value: ']' },
         { value: '<' }, { value: '>' }, {value: ';' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
@@ -109,5 +118,5 @@ Keyboards.my = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

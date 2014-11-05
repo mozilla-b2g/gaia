@@ -1,5 +1,17 @@
 'use strict';
 
+/**
+ * This file contains all Node.js version of utils functions.
+ * Since we're stil in the progress to migrate to Node.js, the
+ * missing functions in this file should be in the 'utils-xpc.js'
+ *
+ * About documents:
+ * Users can find comments in the 'utils-xpc.js',
+ * which contains the complete functions used in 'utils.js'
+ */
+
+/* global require, exports, Buffer */
+
 var utils = require('./utils.js');
 var path = require('path');
 var sh = require('child_process').exec;
@@ -7,15 +19,16 @@ var fs = require('fs');
 var AdmZip = require('adm-zip');
 var Q = require('q');
 var os = require('os');
+var vm = require('vm');
 
 function joinPath() {
-  var src = path.join.apply(this, arguments);
+  var src = path.join.apply(path, arguments);
   console.log(src);
   return src;
 }
 
 function getFile() {
-  var src = path.join.apply(this, arguments);
+  var src = path.join.apply(path, arguments);
   var fileStat;
   try {
     fileStat = fs.statSync(src);
@@ -124,6 +137,32 @@ function getLocaleBasedir(original) {
     original.replace('/', '\\', 'g') : original;
 }
 
+function existsInAppDirs(appDirs, appName) {
+  var apps = appDirs.split(' ');
+  var exists = apps.some(function (appPath) {
+    let appFile = getFile(appPath);
+    return (appName === appFile.leafName);
+  });
+  return exists;
+}
+
+var scriptLoader = {
+  scripts: {},
+  load: function(filePath, exportObj, withoutCache) {
+    try {
+      if (!withoutCache && this.scripts[filePath]) {
+        return;
+      }
+      var script = fs.readFileSync(filePath, {encoding: 'utf-8'});
+      vm.runInNewContext(script, exportObj);
+      this.scripts[filePath] = true;
+    } catch(e) {
+      delete this.scripts[filePath];
+      throw 'cannot load script from ' + filePath;
+    }
+  }
+};
+
 var Services = {};
 
 exports.Services = Services;
@@ -142,3 +181,6 @@ exports.processEvents = processEvents;
 exports.writeContent = writeContent;
 exports.Q = Q;
 exports.getLocaleBasedir = getLocaleBasedir;
+exports.existsInAppDirs = existsInAppDirs;
+exports.scriptLoader = scriptLoader;
+

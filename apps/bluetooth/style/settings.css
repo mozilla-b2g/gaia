@@ -1,5 +1,5 @@
 /**
- * Reference these style sheet from Settings app 
+ * Reference these style sheet from Settings app
  */
 
 /**
@@ -29,7 +29,7 @@ section[role="region"] {
   width: 100%;
   height: 100%;
   border: 0;
-  background: url(images/document_bg.png);
+  background-color: #f4f4f4;
   overflow: hidden;
 }
 
@@ -80,4 +80,31 @@ section[role="region"] > div {
 
 .description a {
   font-size: 1.7rem;
+}
+
+.hint label span {
+  top: 2.9rem !important;
+}
+
+.hint .explanation {
+  font-style: normal;
+  position: relative;
+  margin-top: -2rem;
+  padding: 0.5rem 4rem 1.3rem 1.5rem;
+  white-space: normal;
+}
+
+.hint > label:not([for]) ~ .explanation {
+  padding-right: 8rem;
+}
+
+.hint .explanation[hidden] {
+  display: none;
+}
+
+/******************************************************************************
+ * Update device name dialog
+ */
+#update-device-name > section input {
+  margin: 1rem 0;
 }

@@ -20,7 +20,7 @@
     this.publish('created');
   };
 
-  SimPinSystemDialog.prototype.__proto__ = window.SystemDialog.prototype;
+  SimPinSystemDialog.prototype = Object.create(window.SystemDialog.prototype);
 
   SimPinSystemDialog.prototype.customID = 'simpin-dialog';
 
@@ -28,14 +28,11 @@
 
   SimPinSystemDialog.prototype.view = function spd_view() {
     return '<div id="' + this.instanceID + '" role="dialog" ' +
-           'class="generic-dialog" data-z-index-level="simpin-dialog" hidden>' +
+           'class="generic-dialog" data-z-index-level="system-dialog" hidden>' +
            '<section role="region">' +
-             '<header>' +
-               '<button class="back" hidden>' +
-                 '<span class="icon icon-back"></span>' +
-               '</button>' +
-             '<h1></h1>' +
-             '</header>' +
+             '<gaia-header>' +
+               '<h1></h1>' +
+             '</gaia-header>' +
              '<div class="container">' +
              '<div id="errorMsg" class="error" hidden>' +
                '<div id="messageHeader">The PIN was incorrect.</div>' +
@@ -65,8 +62,6 @@
                '<div name="xckDesc" data-l10n-id="nckCode">NCK Code</div>' +
                '<div class="input-wrapper">' +
                  '<input name="xckpin" type="number" size="16" ' +
-                 'maxlength="16" />' +
-                 '<input name="xckpinVis" type="text" size="16" ' +
                  'maxlength="16" />' +
                '</div>' +
              '</div>' +

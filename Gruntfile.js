@@ -1,5 +1,48 @@
+/* global module, require */
 module.exports = function(grunt) {
   'use strict';
+
+  var fs = require('fs'),
+      path = require('path');
+  var JSDOCJSON = 'jsdoc.json';
+
+  // Load the plugin that provides tasks.
+  require('load-grunt-tasks')(grunt);
+  grunt.loadTasks('tasks');
+
+  // merge source to destination dict
+  function extend(destination, source) {
+    for (var property in source) {
+      if (source.hasOwnProperty(property)) {
+        destination[property] = source[property];
+      }
+    }
+    return destination;
+  }
+
+  var jsdocConfig = {
+    // per app configurations are defined in each app's jsdoc.json file
+    options: {
+      configure: '.jsdocrc',
+      lenient: true //comment this out to debug jsdoc strictly
+    }
+  };
+
+  // processing jsdoc configurations
+  var files = fs.readdirSync('apps');
+  files.forEach(function(filePath, i) {
+    var appName = path.join('apps', filePath);
+    if (fs.statSync(appName).isDirectory()) {
+      // read jsdoc.json file in each app
+      var jsonFile = path.join('apps', filePath, JSDOCJSON);
+      if (fs.existsSync(jsonFile)) {
+        console.log('... ' + filePath + ' config file found');
+        var appcfg = JSON.parse(fs.readFileSync(jsonFile,
+          { encoding: 'utf8' }));
+        extend(jsdocConfig, appcfg);
+      }
+    }
+  });
 
   // Project configuration
   grunt.initConfig({
@@ -7,40 +50,8 @@ module.exports = function(grunt) {
     clean: {
       docs: ['docs/']
     },
-    jsdoc: {
-      system: {
-        src: ['apps/system/js/**/*.js',
-              // XXX Remove the following exclusion after related javascript
-              // features are supported by JSDocs parser.
-              '!apps/system/js/airplane_mode.js',
-              '!apps/system/js/sound_manager.js',
-              '!apps/system/js/title.js',
-              '!apps/system/js/value_selector/date_picker.js',
-              '!apps/system/js/value_selector/spin_date_picker.js',
-              '!apps/system/js/lockscreen.js',
-              '!apps/system/js/edge_swipe_detector.js',
-              '!apps/system/js/stack_manager.js',],
-        options: {
-          destination: 'docs/system'
-        }
-      },
-      keyboard: {
-        src: ['apps/keyboard/js/**/*.js',
-              '!apps/keyboard/js/render.js'],
-        options: {
-          destination: 'docs/keyboard'
-        }
-      },
-      options: {
-        configure: '.jsdocrc',
-        lenient: true
-      }
-    }
+    jsdoc: jsdocConfig
   });
-
-  // Load the plugin that provides tasks
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-jsdoc');
 
   // Default task(s)
   grunt.registerTask('docs', ['clean', 'jsdoc']);

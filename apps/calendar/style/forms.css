@@ -37,12 +37,13 @@ form li {
   /* pass the events from <span> to <input> */
   pointer-events: none;
   position: absolute;
-  top: 0;
   left: 1.5rem;
   font-weight: normal;
 }
 
 .hidden-input {
+  /* The hidden date and time inputs need to overlap the span(s) with datetime class. */
+  position: absolute;
   /* visibility: hidden; will avoid events to reach the <input> */
   opacity: 0;
 }

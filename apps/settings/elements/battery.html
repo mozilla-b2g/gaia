@@ -1,22 +1,22 @@
 <element name="battery" extends="section">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
+    <gaia-header action="back" data-href="#root">
       <h1 data-l10n-id="battery-header"> Battery </h1>
-    </header>
+    </gaia-header>
 
     <div>
       <ul>
         <li>
-          <a id="battery-level" data-l10n-id="batteryLevel">Current Battery Life
+          <a id="battery-level">
+            <span data-l10n-id="batteryLevel">Current Battery Life</span>
             <span></span>
           </a>
         </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="powerSaveMode">Power Save Mode</h2>
+        <h2 data-l10n-id="powerSaveModeTitle">Power Save Mode</h2>
       </header>
       <ul>
         <li>
@@ -26,7 +26,7 @@
           </label>
         </li>
         <li>
-          <p data-l10n-id="turnOnAuto">Turn on automatically</p>
+          <p data-l10n-id="turnOnAuto">Turn On Automatically</p>
           <span class="button icon icon-dialog">
             <select name="powersave.threshold">
               <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>

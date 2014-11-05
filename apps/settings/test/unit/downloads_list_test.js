@@ -2,9 +2,7 @@
 
 'use strict';
 
-mocha.globals(['DownloadUI']);
-
-requireApp('settings/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 // Mockup the API
 require('/shared/test/unit/mocks/mock_download.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_downloads.js');
@@ -45,7 +43,7 @@ suite('DownloadList', function() {
   var realMozDownloads, realL10n;
 
   var downloadsContainerDOM, editButton, deleteButton,
-    selectAllButton, deselectAllButton;
+    selectAllButton, deselectAllButton, downloadsEditMenu;
 
   suiteSetup(function() {
     // Mock l10n
@@ -68,6 +66,7 @@ suite('DownloadList', function() {
     selectAllButton = null;
     deselectAllButton = null;
     deleteButton = null;
+    downloadsEditMenu = null;
     mocksHelperForDownloadList.suiteTeardown();
   });
 
@@ -89,6 +88,7 @@ suite('DownloadList', function() {
         document.getElementById('downloads-edit-select-all');
       deselectAllButton =
         document.getElementById('downloads-edit-deselect-all');
+      downloadsEditMenu = document.getElementById('downloads-edit-menu');
       mocksHelperForDownloadList.setup();
       done();
     });
@@ -101,30 +101,16 @@ suite('DownloadList', function() {
     mocksHelperForDownloadList.teardown();
   });
 
-  suite(' > initialization', function() {
-    test(' > edit mode UI components are hidden while rendering',
-         function(done) {
-      DownloadsList.init(function() {
-        var downloadsEditMenu = document.getElementById('downloads-edit-menu');
-        var editModeHeader = document.getElementById('edit-mode-header');
-        assert.isTrue(downloadsEditMenu.hidden);
-        assert.isTrue(editModeHeader.hidden);
-        // Edit mode
-        editButton.click();
-        assert.isFalse(downloadsEditMenu.hidden);
-        assert.isFalse(editModeHeader.hidden);
-        done();
-      });
-    });
-  });
-
   suite(' > edit mode', function() {
     test(' > edit mode button enabled/disabled', function(done) {
       DownloadsList.init(function() {
         // Edit button is false at the beginning
-        assert.isFalse(editButton.classList.contains('disabled'));
+        assert.isFalse(editButton.disabled);
+        // Edit menu is hidden at the beginning
+        assert.isTrue(downloadsEditMenu.hidden);
         // Edit mode
         editButton.click();
+        assert.isFalse(downloadsEditMenu.hidden);
         // Select all
         selectAllButton.click();
 
@@ -136,7 +122,7 @@ suite('DownloadList', function() {
             if (itemsDeleted === MockMozDownloads.mockLength) {
               // Stop the observer
               observer.disconnect();
-              assert.ok(editButton.classList.contains('disabled'));
+              assert.ok(editButton.disabled);
               done();
             }
           });
@@ -319,6 +305,22 @@ suite('DownloadList', function() {
         // DownloadUI knows which will be the correct confirm depending on state
         // and error attributes
         assert.equal(downloadUI.args[0][0], null);
+      });
+
+      suite('Recently download can be open', function() {
+        setup(function(done) {
+          MockDownloadStore.downloads = [new MockDownload({
+            state: 'finalized'
+          })];
+          DownloadsList.init(function() {
+            done();
+          });
+        });
+
+        test(' > a finalized download, but not in datastore', function() {
+          container.firstChild.click();
+          assert.ok(DownloadUI.showActions.calledOnce);
+        });
       });
     });
 

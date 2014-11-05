@@ -62,21 +62,21 @@ function getAlbumArtBlob(fileinfo, callback) {
     };
     // I don't think onerror usually gets called, but let's play it safe.
     xhr.onerror = function() {
-      callback('error');
+      callback('error', null);
     };
 
     // Bad local URLs throw in send() for some reason.
     try {
       xhr.send();
     } catch (e) {
-      callback(e);
+      callback(e, null);
     }
   };
 
   if ('picture' in fileinfo.metadata) {
     getThumbnailURL(fileinfo, function(url) {
       if (!url)
-        return callback(null);
+        return callback(null, null);
       getBlob(url, callback);
     });
   }

@@ -5,11 +5,12 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var debug = require('debug')('view:confirm');
 var addPanAndZoomHandlers = require('lib/panzoom');
-var MediaFrame = require('MediaFrame');
-var View = require('vendor/view');
-var bind = require('lib/bind');
 var orientation = require('lib/orientation');
+var MediaFrame = require('MediaFrame');
+var bind = require('lib/bind');
+var View = require('view');
 
 /**
  * Exports
@@ -25,8 +26,6 @@ module.exports = View.extend({
   render: function() {
     var l10n = navigator.mozL10n;
 
-    this.show();
-
     this.el.innerHTML = this.template({
       retake: l10n.get('retake-button'),
       select: l10n.get('select-button')
@@ -37,23 +36,47 @@ module.exports = View.extend({
     this.els.retake = this.find('.js-retake');
     this.els.select = this.find('.js-select');
 
-    // Events
+    // Disable buttons on this view by default
+    // until an image/video is displayed
+    this.disableButtons();
+
+    // Initialize the MediaFrame component
+    this.setupMediaFrame();
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
     bind(this.els.retake, 'click', this.onButtonClick);
     bind(this.els.select, 'click', this.onButtonClick);
-
-    this.setupMediaFrame();
     return this;
   },
 
   setupMediaFrame: function() {
-    this.mediaFrame = new MediaFrame(this.els.mediaFrame);
+    this.mediaFrame = new MediaFrame(this.els.mediaFrame, true,
+                                     this.maxPreviewSize);
+    this.mediaFrame.video.onloading = this.onVideoLoading;
+    this.mediaFrame.video.onplaying = this.onVideoPlaying;
     addPanAndZoomHandlers(this.mediaFrame);
     window.addEventListener('resize', this.onResize);
     return this;
   },
 
+  onVideoLoading: function() {
+    this.emit('loadingvideo', 'loadingVideo');
+  },
+
+  onVideoPlaying: function() {
+    this.emit('playingvideo');
+  },
+
   clearMediaFrame: function() {
     this.mediaFrame.clear();
+    this.disableButtons();
   },
 
   hide: function() {
@@ -66,7 +89,18 @@ module.exports = View.extend({
     orientation.unlock();
   },
 
+  disableButtons: function() {
+    this.els.retake.setAttribute('disabled', true);
+    this.els.select.setAttribute('disabled', true);
+  },
+
+  enableButtons: function() {
+    this.els.retake.removeAttribute('disabled');
+    this.els.select.removeAttribute('disabled');
+  },
+
   showImage: function(image) {
+    this.enableButtons();
     this.mediaFrame.displayImage(
       image.blob,
       image.width,
@@ -78,6 +112,7 @@ module.exports = View.extend({
   },
 
   showVideo: function(video) {
+    this.enableButtons();
     this.mediaFrame.displayVideo(
       video.blob,
       video.poster.blob,

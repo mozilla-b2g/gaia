@@ -10,6 +10,9 @@ define(function(require) {
 
     return SettingsPanel({
       onBeforeShow: function() {
+        languages.buildList();
+        languages.updateDateTime();
+
         localizedEventListener = function() {
           languages.onLocalized(languages);
         };

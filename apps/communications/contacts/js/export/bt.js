@@ -1,5 +1,5 @@
 /* global getStorageIfAvailable, getUnusedFilename, ContactToVcardBlob,
-    MozActivity */
+    MozActivity, utils */
 
 /* exported ContactsBTExport */
 'use strict';
@@ -7,6 +7,7 @@
 var ContactsBTExport = function ContactsBTExport() {
   var contacts;
   var progressStep;
+  var cancelled = false;
   var _ = navigator.mozL10n.get;
 
   var _setContactsToExport = function btex_setContactsToExport(cts) {
@@ -18,7 +19,7 @@ var ContactsBTExport = function ContactsBTExport() {
   };
 
   var _getExportTitle = function btex_getExportTitle() {
-    return _('btExport-title');
+    return 'btExport-title';
   };
 
   var _setProgressStep = function btex_setProgressStep(p) {
@@ -59,9 +60,9 @@ var ContactsBTExport = function ContactsBTExport() {
     } else {
       var today = new Date();
       filename.push(
-        today.getDate(),
-        today.getMonth() + 1,
         today.getFullYear(),
+        today.getMonth() + 1,
+        today.getDate(),
         contacts.length
       );
     }
@@ -89,6 +90,7 @@ var ContactsBTExport = function ContactsBTExport() {
     if (typeof callback !== 'function') {
       throw new Error('saveToSDcard requires a callback function');
     }
+
     var request = storage.addNamed(blob, name);
     request.onsuccess = function(evt) {
       callback(null, evt.target.result); // returns the full filepath
@@ -106,41 +108,52 @@ var ContactsBTExport = function ContactsBTExport() {
     request.onerror = callback;
   };
 
+  var cancelExport = function cancelExport() {
+    cancelled = true;
+  };
+
   var _doExport = function btex_doExport(finishCallback) {
     if (typeof finishCallback !== 'function') {
       throw new Error('BT export requires a callback function');
     }
 
     var checkError = function checkError(error) {
-      if (!error) {
+      if (error === null) {
         return false;
       }
       var reason = error;
       // numeric error means not enough space available
-      if (parseInt(error, 10) > 0) {
+      if (parseInt(error, 10) >= 0) {
         reason = 'noSpace';
       }
-      finishCallback({
-        'reason': reason
-      }, 0, error.message);
+      finishCallback({ 'reason': reason }, 0, false);
       return true;
     };
 
     ContactToVcardBlob(contacts, function onContacts(blob) {
+      if (cancelled) {
+        finishCallback(null, 0, false);
+        return;
+      }
       _getStorage(_getFileName(), blob,
       function onStorage(error, storage, filename) {
         if (checkError(error)) {
           return;
         }
 
+        if (cancelled) {
+          finishCallback(null, 0, false);
+          return;
+        }
+
+        utils.overlay.hideMenu();
         _saveToSdcard(storage, filename, blob,
         function onVcardSaved(error, filepath) {
           if (checkError(error)) {
             return;
           }
 
-          _getFile(storage, filepath,
-          function onFileRetrieved(error, file) {
+          _getFile(storage, filepath, function onFileRetrieved(error, file) {
             if (checkError(error)) {
               return;
             }
@@ -155,8 +168,9 @@ var ContactsBTExport = function ContactsBTExport() {
                 filepaths: [filepath]
               }
             });
-            a.onsuccess = function() { // Everything went OK
-              finishCallback(null, contacts.length, null); // final callback
+
+            a.onsuccess = function() {
+              finishCallback(null, contacts.length);
             };
 
             a.onerror = function(e) {
@@ -180,6 +194,7 @@ var ContactsBTExport = function ContactsBTExport() {
     'getExportTitle': _getExportTitle,
     'setProgressStep': _setProgressStep,
     'doExport': _doExport,
+    'cancelExport' : cancelExport,
     get name() { return 'BT';} // handling error messages on contacts_exporter
   };
 };

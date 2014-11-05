@@ -2,7 +2,12 @@ var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('improve b2g', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
+    }
+  });
   var settingsApp;
   var improvePanel;
   var feedbackPanel;
@@ -97,7 +102,8 @@ marionette('improve b2g', function() {
         'and try again.');
     });
 
-    test('click back and enter again, the msg should be the same',
+    // disabled at bug #981993 because of intermittent failures
+    test.skip('click back and enter again, the msg should be the same',
       function() {
       var msg = 'test';
       feedbackPanel.inputMsgToDialog(msg);

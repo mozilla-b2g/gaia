@@ -93,8 +93,6 @@ var VideoUtils = {
    *             node {HTMLElement}: the element contains the text.
    *             maxLine {int}: optional, maximum line of text. The default
    *                            value is 2.
-   *             ellipsisIndex {int}: optional, the number of left text in the
-   *                                  end. The default value is 3.
    *             ellipsisCharacter {string}: optional, the text of ellipsis
    *                                         char. The default value is '...'.
    *
@@ -104,29 +102,12 @@ var VideoUtils = {
     // options
     var maxLine = options.maxLine || 2;
     var node = options.node;
-    var ellipsisIndex = (options.ellipsisIndex || options.ellipsisIndex === 0) ?
-                        ellipsisIndex = options.ellipsisIndex : 3;
     var ellipsisCharacter = options.ellipsisCharacter || '...';
 
     if (node === null) {
       return oldName;
     }
 
-    // used variables and functions
-    function hitsNewline(oldHeight, newHeight) {
-      return oldHeight !== newHeight;
-    }
-
-    var newName = '';
-    var oldHeight;
-    var newHeight;
-    var baseHeight;
-    var currentLine;
-    var ellipsisAt;
-    var hasNewEllipsisPoint = true;
-    var nameBeforeEllipsis = [];
-    var nameBeforeEllipsisString;
-    var nameAfterEllipsis = ellipsisIndex ? oldName.slice(-ellipsisIndex) : '';
     var realVisibility = node.style.visibility;
     var realWordBreak = node.style.wordBreak;
 
@@ -141,105 +122,61 @@ var VideoUtils = {
     node.style.wordBreak = 'break-all';
 
     /*
-     * Get the base height to count the currentLine at first
+     * Get the height of a line of text
      */
     node.textContent = '.';
-    baseHeight = node.clientHeight;
-    node.textContent = '';
+    var baseHeight = node.clientHeight;
+    var computedStyle = window.getComputedStyle(node, null);
+    var paddingTop =
+      parseInt(computedStyle.getPropertyValue('padding-top'), 10);
+    var paddingBottom =
+      parseInt(computedStyle.getPropertyValue('padding-bottom'), 10);
+    var padding = paddingTop + paddingBottom;
+    var lineHeight = baseHeight - padding;
 
-    var needEllipsis = oldName.split('').some(function(character, index) {
-
-      nameBeforeEllipsis.push(character);
-      nameBeforeEllipsisString = nameBeforeEllipsis.join('');
-
-      oldHeight = node.clientHeight;
-      node.textContent = nameBeforeEllipsisString +
-          ellipsisCharacter + nameAfterEllipsis;
-      newHeight = node.clientHeight;
-
+    /*
+     * Determine if the title needs truncating
+     */
+    node.textContent = oldName;
+    var originalTitleHeight = node.clientHeight - padding;
+    var linesForOriginalTitle = (originalTitleHeight / lineHeight);
+    if (linesForOriginalTitle <= maxLine) {
       /*
-       * When index is 0, we have to update currentLine according to
-       * the first assignment (it is possible that at first the currentLine
-       * is not 0 if the width of node is too small)
+       * Title does not need truncating. Restore UI and return original title
        */
-      if (index === 0) {
-        currentLine = Math.floor(newHeight / baseHeight);
+      node.style.visibility = realVisibility;
+      node.style.wordBreak = realWordBreak;
+      return oldName;
+    }
+
+    function titleTooLong(pos) {
+      node.textContent = oldName.slice(0, pos) + ellipsisCharacter;
+      var tempTitleHeight = node.clientHeight - padding;
+      return (tempTitleHeight / lineHeight) > maxLine;
+    }
+
+    var low = 0;
+    var high = oldName.length - 1;
+    var mid;
+    var ellipsisIndex = 0;
+
+    do {
+      mid = Math.floor((low + high) / 2);
+      if (titleTooLong(mid)) {
+        high = mid - 1;
       }
-
-      if (hitsNewline(oldHeight, newHeight) && index !== 0) {
-
-        /*
-         * The reason why we have to check twice is because there is a
-         * situation that truncated string is overflowed but there is
-         * still room for original string.
-         *
-         * In this way, we have to memorize the ellipsis index and
-         * slice `nameBeforeEllipsis` to the index in the end.
-         */
-        var testHeight;
-        node.textContent = nameBeforeEllipsisString;
-        testHeight = node.clientHeight;
-
-        if (hitsNewline(oldHeight, testHeight)) {
-
-          /*
-           * We have to make it true again to keep the ellipsisAt
-           * up to date.
-           */
-          hasNewEllipsisPoint = true;
-          currentLine += 1;
-        } else {
-          /*
-           * This is the situation that we still have room, so we have
-           * to keep the ellipsisAt value for later use.
-           */
-          if (hasNewEllipsisPoint) {
-            ellipsisAt = index;
-            hasNewEllipsisPoint = false;
-          }
-        }
+      else {
+        ellipsisIndex = mid;
+        low = mid + 1;
       }
+    }
+    while (low <= high);
 
-      if (currentLine > maxLine) {
-        if (index === 0) {
-
-          /*
-           * It means that at first, the whole string is already in
-           * an overflowed situation, you have to avoid this situation.
-           * And we will bypass oldName back to you.
-           *
-           * There are some options for you :
-           *
-           *   1. Check options.ellipsisCharacter
-           *   2. Check options.maxLine
-           *   3. Check node's width (maybe too narrow)
-           */
-          console.error(
-            'Your string is in a overflowed situation, ' +
-            'please check your options');
-        }
-
-        /*
-         * Remove the last character, because it causes the overflow
-         */
-        nameBeforeEllipsis.pop();
-        node.textContent = '';
-        return true;
-      } else {
-      }
-    });
+    var newName = oldName.slice(0, ellipsisIndex) + ellipsisCharacter;
 
     // restore UI
     node.style.visibility = realVisibility;
     node.style.wordBreak = realWordBreak;
-
-    if (!needEllipsis) {
-      newName = oldName;
-    } else {
-      newName += nameBeforeEllipsis.join('').slice(0, ellipsisAt);
-      newName += ellipsisCharacter;
-      newName += nameAfterEllipsis;
-    }
 
     return newName;
   }

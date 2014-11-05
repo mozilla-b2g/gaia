@@ -1,5 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global LazyLoader */
 
 /**
  * This lib relies on `l10n.js' to implement localizable date/time strings.
@@ -10,7 +9,6 @@
  * WARNING: this library relies on the non-standard `toLocaleFormat()' method,
  * which is specific to Firefox -- no other browser is supported.
  */
-
 
 
 (function(exports) {
@@ -38,7 +36,7 @@
   }
 
   function _calcPercentage(currently, total) {
-    if (total == 0) {
+    if (total === 0) {
       return 0;
     }
 
@@ -74,7 +72,7 @@
       }
 
       LazyLoader.load(['shared/js/l10n_date.js'], function onload() {
-        var prettyDate = navigator.mozL10n.DateTimeFormat().fromNow(date, true);
+        var prettyDate = navigator.mozL10n.DateTimeFormat().fromNow(date);
         callback && callback(prettyDate);
       });
     },

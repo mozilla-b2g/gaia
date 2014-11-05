@@ -1,6 +1,6 @@
 // custom jshint reporter, allows errors in files listed in the
 // build/jshint/xfail.list file, but still display them
-/* global module, process */
+/* global module, process, require */
 
 'use strict';
 

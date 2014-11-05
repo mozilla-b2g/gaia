@@ -1,7 +1,8 @@
 Keyboards['tr-F'] = {
   label: 'Turkish F',
+  shortLabel: 'Tr',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'tr',
   menuLabel: 'Türkçe F',
   upperCase: {
@@ -35,8 +36,8 @@ Keyboards['tr-F'] = {
       { value: 'ç' }, { value: 'z' }, { value: 's' }, { value: 'b'},
       { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
-      { value: '&nbsp', ratio: 9.5, keyCode: KeyboardEvent.DOM_VK_SPACE },
-      { value: '↵', ratio: 2.5, keyCode: KeyEvent.DOM_VK_RETURN }
+      { value: '&nbsp', ratio: 10.0, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '↵', ratio: 2.0, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ]
 };

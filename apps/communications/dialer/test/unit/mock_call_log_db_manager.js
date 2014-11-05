@@ -1,3 +1,7 @@
+'use strict';
+
+/* exported MockCallLogDBManager */
+
 var MockCallLogDBManager = {
   _calls: [],
   _getGroupListCursor: 0,
@@ -6,7 +10,7 @@ var MockCallLogDBManager = {
   _getGroupListCallback: null,
   add: function add(recentCall, callback) {
     this._calls.push(recentCall);
-    var group = new Object();
+    var group = {};
     group.number = recentCall.number;
     if (callback) {
       callback(group);
@@ -18,7 +22,7 @@ var MockCallLogDBManager = {
     this._calls.forEach(function(call) {
       if (call.type === type) {
         found = true;
-        var group = new Object();
+        var group = {};
         group.number = call.number;
         callback(group);
         return false;
@@ -37,6 +41,26 @@ var MockCallLogDBManager = {
     this._calls = [];
     callback();
   },
+  updateGroupContactInfo: function(contact, matchingTel, callback) {
+    var callsMatched = 0;
+    this._calls.forEach(function(call) {
+      if (call.contact.matchingTel.value == matchingTel.value) {
+        call.contact = contact;
+        callsMatched++;
+      }
+    });
+    callback(callsMatched);
+  },
+  removeGroupContactInfo: function(contactId, group, callback) {
+    var callsMatched = 0;
+    for (var i=0; i < this._calls.length; i++) {
+      if (this._calls[i].contact.id == contactId) {
+        delete this._calls[i];
+        callsMatched++;
+      }
+    }
+    callback(callsMatched);
+  },
   continue: function mcldm_continue() {
     if (this._calls.length > this._getGroupListCursor) {
       this.value = this._calls[this._getGroupListCursor];
@@ -47,5 +71,6 @@ var MockCallLogDBManager = {
     if (this._getGroupListCallback != null) {
       this._getGroupListCallback(this);
     }
-  }
+  },
+  getGroup: function() {},
 };

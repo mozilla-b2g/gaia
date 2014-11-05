@@ -1,4 +1,3 @@
-/*global define, setTimeout */
 /*
  * Custom events lib. Notable features:
  *
@@ -11,8 +10,12 @@
  * - new evt.Emitter() can be used to create a new instance of an
  *   event emitter.
  * - Uses "this" insternally, so always call object with the emitter args
- *
+ * - emit takes an async turn before notifying listeners.
+ * - However, `latest` and `latestOnce` will call the function in the same turn
+ *   if the target of the `latest` calls is available at that time. of the first
+ *   latest call.
  */
+'use strict';
 define(function() {
 
   var evt,
@@ -47,8 +50,9 @@ define(function() {
       var self = this,
           fired = false;
       function one() {
-        if (fired)
+        if (fired) {
           return;
+        }
         fired = true;
         fn.apply(null, arguments);
         // Remove at a further turn so that the event
@@ -86,10 +90,11 @@ define(function() {
      * @param  {Function} fn listener.
      */
     latestOnce: function(id, fn) {
-      if (this[id] && !this._pendingEvents[id])
+      if (this[id] && !this._pendingEvents[id]) {
         fn(this[id]);
-      else
+      } else {
         this.once(id, fn);
+      }
     },
 
     removeListener: function(id, fn) {
@@ -100,8 +105,9 @@ define(function() {
         if (i !== -1) {
           listeners.splice(i, 1);
         }
-        if (listeners.length === 0)
+        if (listeners.length === 0) {
           delete this._events[id];
+        }
       }
     },
 
@@ -116,30 +122,37 @@ define(function() {
       if (listeners) {
         this.emit.apply(this, arguments);
       } else {
-        if (!this._pendingEvents[id])
+        if (!this._pendingEvents[id]) {
           this._pendingEvents[id] = [];
+        }
         this._pendingEvents[id].push(slice.call(arguments, 1));
       }
     },
 
     emit: function(id) {
-      var args = slice.call(arguments, 1),
-          listeners = this._events[id];
-      if (listeners) {
-        listeners.forEach(function(fn) {
-          try {
-            fn.apply(null, args);
-          } catch (e) {
-            // Throw at later turn so that other listeners
-            // can complete. While this messes with the
-            // stack for the error, continued operation is
-            // valued more in this tradeoff.
-            setTimeout(function() {
-              throw e;
-            });
-          }
-        });
-      }
+      var args = slice.call(arguments, 1);
+
+      // Trigger an async resolution by using a promise.
+      Promise.resolve().then(function() {
+        var listeners = this._events[id];
+        if (listeners) {
+          listeners.forEach(function(fn) {
+            try {
+              fn.apply(null, args);
+            } catch (e) {
+              // Throw at later turn so that other listeners
+              // can complete. While this messes with the
+              // stack for the error, continued operation is
+              // valued more in this tradeoff.
+              // This also means we do not need to .catch()
+              // for the wrapping promise.
+              setTimeout(function() {
+                throw e;
+              });
+            }
+          });
+        }
+      }.bind(this));
     }
   };
 

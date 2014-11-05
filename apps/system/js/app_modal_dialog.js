@@ -1,3 +1,4 @@
+/* global AppModalDialog, AirplaneMode */
 'use strict';
 
 (function(window) {
@@ -22,15 +23,11 @@
     // One to one mapping.
     this.instanceID = _id++;
     this._injected = false;
-    try {
-      app.element.addEventListener('mozbrowsershowmodalprompt', this);
-    } catch (e) {
-      app._dump();
-    }
+    app.element.addEventListener('mozbrowsershowmodalprompt', this);
     return this;
   };
 
-  AppModalDialog.prototype.__proto__ = window.BaseUI.prototype;
+  AppModalDialog.prototype = Object.create(window.BaseUI.prototype);
 
   AppModalDialog.prototype.CLASS_NAME = 'AppModalDialog';
 
@@ -47,6 +44,7 @@
   AppModalDialog.prototype.handleEvent = function amd_handleEvent(evt) {
     this.app.debug('handling ' + evt.type);
     evt.preventDefault();
+    evt.stopPropagation();
     this.events.push(evt);
     if (!this._injected) {
       this.render();
@@ -97,7 +95,7 @@
   };
 
   AppModalDialog.prototype.getTitle = function amd_getTitle() {
-    if (AirplanMode && AirplaneMode.enabled) {
+    if (AirplaneMode && AirplaneMode.enabled) {
       return _('airplane-is-on');
     } else if (!navigator.onLine) {
       return _('network-connection-unavailable');
@@ -207,8 +205,9 @@
 
   // Show relative dialog and set message/input value well
   AppModalDialog.prototype.show = function amd_show() {
-    if (!this.events.length)
+    if (!this.events.length) {
       return;
+    }
 
     var evt = this.events[0];
 
@@ -218,7 +217,7 @@
 
     function escapeHTML(str) {
       var stringHTML = str;
-      stringHTML = stringHTML.replace(/\</g, '&#60;');
+      stringHTML = stringHTML.replace(/</g, '&#60;');
       stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
       stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
 
@@ -280,7 +279,7 @@
           domElement = document.createElement('button');
           domElement.dataset.buttonIndex = i;
           if (button.messageType === 'builtin') {
-            domElement.textContent = navigator.mozL10n.get(button.message);
+            domElement.setAttribute('data-l10n-id', button.message);
           } else if (button.messageType === 'custom') {
             // For custom button, we assume that the text is already translated
             domElement.textContent = button.message;
@@ -320,14 +319,16 @@
     this.element.blur();
     this.app.browser.element.removeAttribute('aria-hidden');
     this.element.classList.remove('visible');
-    if (this.app)
+    if (this.app) {
       this.app.focus();
-    if (!this.events.length)
+    }
+    if (!this.events.length) {
       return;
+    }
 
     var evt = this.events[0];
     var type = evt.detail.promptType;
-    if (type == 'prompt') {
+    if (type === 'prompt') {
       this.elements.promptInput.blur();
     }
     this.elements[type].classList.remove('visible');
@@ -336,8 +337,9 @@
   // When user clicks OK button on alert/confirm/prompt
   AppModalDialog.prototype.confirmHandler =
     function amd_confirmHandler(clickEvt) {
-      if (!this.events.length)
+      if (!this.events.length) {
         return;
+      }
 
       clickEvt.preventDefault();
 
@@ -365,15 +367,17 @@
           var returnValue = {
             selectedButton: clickEvt.target.dataset.buttonIndex
           };
-          if (evt.detail.showCheckbox)
+          if (evt.detail.showCheckbox) {
             returnValue.checked = elements.customPromptCheckbox.checked;
+          }
           evt.detail.returnValue = returnValue;
           elements.customPrompt.classList.remove('visible');
           break;
       }
 
-      if (evt.detail.unblock)
+      if (evt.detail.unblock) {
         evt.detail.unblock();
+      }
 
       this.processNextEvent();
     };
@@ -382,8 +386,9 @@
   // when the user try to escape the dialog with the escape key
   AppModalDialog.prototype.cancelHandler =
     function amd_cancelHandler(clickEvt) {
-      if (!this.events.length)
+      if (!this.events.length) {
         return;
+      }
 
       clickEvt.preventDefault();
       var evt = this.events[0];
@@ -414,8 +419,9 @@
           break;
       }
 
-      if (evt.detail.unblock)
+      if (evt.detail.unblock) {
         evt.detail.unblock();
+      }
 
       this.processNextEvent();
     };
@@ -423,8 +429,9 @@
   // When user selects an option on selectone dialog
   AppModalDialog.prototype.selectOneHandler =
     function amd_selectOneHandler(target) {
-      if (!this.events.length)
+      if (!this.events.length) {
         return;
+      }
 
       var elements = this.elements;
 
@@ -433,8 +440,9 @@
       evt.detail.returnValue = target.id;
       elements.selectOne.classList.remove('visible');
 
-      if (evt.detail.unblock)
+      if (evt.detail.unblock) {
         evt.detail.unblock();
+      }
 
       this.processNextEvent();
     };
@@ -446,15 +454,14 @@
       // titles which are important to the user for context in diagnosing
       // issues.
       //
-      // However, we will ignore all titles containing the application url or
-      // origin url. These types of titles simply indicate that the active
+      // However, we will ignore all titles containing a URL using the app
+      // protocol. These types of titles simply indicate that the active
       // application is prompting and are more confusing to the user than
       // useful. Instead we will return the application name if there is one
       // or an empty string.
       //
       if (!title ||
-          title.contains(this.app.config.url) ||
-          title.contains(this.app.config.origin)) {
+          title.contains('app://')) {
         return this.app.name || '';
       }
 

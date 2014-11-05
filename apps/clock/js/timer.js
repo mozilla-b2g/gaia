@@ -37,7 +37,7 @@ function Timer(opts) {
     startTime: now,
     duration: null,
     configuredDuration: null,
-    sound: 'ac_classic_clock_alarm.opus',
+    sound: 'ac_awake.opus',
     vibrate: true
   }, opts);
 }

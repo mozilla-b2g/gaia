@@ -1,0 +1,5 @@
+{
+  "external": true,
+  "manifestURL": "http://mochi.test:8888/manifest.webapp",
+  "origin": "http://mochi.test:8888"
+}

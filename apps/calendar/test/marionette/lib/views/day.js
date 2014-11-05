@@ -1,20 +1,25 @@
 'use strict';
 
-var View = require('./view');
+var WeekView = require('./week'),
+    DayEvent = require('./day_event');
 
 function Day() {
-  View.apply(this, arguments);
+  WeekView.apply(this, arguments);
 }
 module.exports = Day;
 
 Day.prototype = {
-  __proto__: View.prototype,
+  __proto__: WeekView.prototype,
 
   selector: '#day-view',
 
-  get events() {
-    // FIXME: use a very specific selector because of Bug 988079
-    return this.findElements('section[data-date].active .event');
-  }
+  get activeDay() {
+    return this.findElements('.md__day')[1];
+  },
 
+  get events() {
+    return this.activeDay.findElements('.md__event').map(function(el) {
+      return new DayEvent(this.client, el);
+    }, this);
+  }
 };

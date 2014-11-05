@@ -1,80 +1,86 @@
 'use strict';
+/* global Promise */
 
 var utils = window.utils || {};
 
 if (typeof utils.config === 'undefined') {
   (function() {
-    var config = utils.config = {};
-    var loading = {};
-    var loaded = {};
-    var pendingRequests = {};
+    var configs = {};
+    var initializing = {};
+    var initialized = {};
 
-    config.load = function(resource) {
-      var outReq = new LoadRequest();
+    var EVENT_INITIALIZED = 'config_initialized';
 
-      var data = loaded[resource];
-      if (data) {
-        window.setTimeout(function() {
-          outReq.completed(data);
-        },0);
-      }
-      else {
-        var requests = pendingRequests[resource];
-        if (!Array.isArray(requests)) {
-          pendingRequests[resource] = requests = [];
-        }
-        requests.push(outReq);
-        var isLoading = loading[resource];
-        if (!isLoading) {
-          loading[resource] = true;
-          window.setTimeout(function do_load() {
-            var xhr = new XMLHttpRequest();
-            xhr.overrideMimeType('application/json');
-            xhr.open('GET', resource, true);
+    utils.config = utils.config || {};
 
-            xhr.onreadystatechange = function() {
-              // We will get a 0 status if the app is in app://
-              if (xhr.readyState === 4 && (xhr.status === 200 ||
-                                           xhr.status === 0)) {
-
-                var response = xhr.responseText;
-                var configuration = JSON.parse(response);
-                loaded[resource] = configuration;
-                delete loading[resource];
-                // Notifying all pending requests
-                requests.forEach(function(aRequest) {
-                  aRequest.completed(configuration);
-                });
-                delete pendingRequests[resource];
-              }
-              else if (xhr.readyState === 4) {
-                requests.forEach(function(aRequest) {
-                  aRequest.failed(xhr.status);
-                });
-                delete pendingRequests[resource];
-              }
-            }; // onreadystatechange
-
-            xhr.send(null);
-
-          },0);
-        }
-      }
-      return outReq;
+    utils.config.reset = function() {
+      configs = {};
+      initializing = {};
+      initialized = {};
     };
 
-    function LoadRequest() {
-      this.completed = function(configData) {
-        if (typeof this.onload === 'function') {
-          this.onload(configData);
+    utils.config.load = function(file) {
+      return new Promise(function(resolve, reject) {
+        var isInitialized = initialized[file];
+        if (isInitialized === true) {
+          resolve(configs[file]);
+          return;
         }
-      };
 
-      this.failed = function(code) {
-        if (typeof this.onerror === 'function') {
-          this.onerror(code);
+        var isInitializing = initializing[file];
+        if (isInitializing) {
+          var handler = function(expectedFile, e) {
+            document.removeEventListener(EVENT_INITIALIZED, handler);
+            var file = e.detail.file;
+            if (expectedFile !== file) {
+              return;
+            }
+
+            if (e.detail.success) {
+              resolve(configs[file]);
+            }
+            else {
+              reject();
+            }
+          }.bind(null, file);
+
+          document.addEventListener(EVENT_INITIALIZED, handler);
+          return;
         }
-      };
-    }
+
+        initializing[file] = true;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', file, true);
+        xhr.responseType = 'json';
+
+        xhr.onload = function() {
+          configs[file] = xhr.response;
+          delete initializing[file];
+          initialized[file] = true;
+
+          document.dispatchEvent(new CustomEvent(EVENT_INITIALIZED, {
+            detail: {
+              file: file,
+              success: true
+            }
+          }));
+          resolve(configs[file]);
+        };
+
+        xhr.onerror = function() {
+           document.dispatchEvent(new CustomEvent(EVENT_INITIALIZED, {
+            detail: {
+              file: file,
+              success: false
+            }
+          }));
+          delete initializing[file];
+          reject(xhr.error);
+        };
+
+        xhr.send(null);
+      });
+    };
   })();
 }

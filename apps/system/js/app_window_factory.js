@@ -1,6 +1,5 @@
 'use strict';
-/* global applications, BrowserConfigHelper, AppWindowManager,
-          homescreenLauncher, AppWindow */
+/* global applications, BrowserConfigHelper, AppWindow */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -16,7 +15,7 @@
    *
    * If gecko is asking us to open an inline activity page,
    * AppWindowFactory would wrap the configuration and sent it to
-   * ActivityWindowFactory for it to do instantiation via event
+   * AppWindowFactory for it to do instantiation via event
    * <code>launchactivity</code>.
    *
    * ![app and activity launch flow](http://i.imgur.com/ZyMcgft.png)
@@ -24,6 +23,7 @@
    * @class AppWindowFactory
    */
   function AppWindowFactory() {
+    this.preHandleEvent = this.preHandleEvent.bind(this);
   }
 
   AppWindowFactory.prototype = {
@@ -45,24 +45,15 @@
       }
       this._started = true;
 
-      /**
-       * Wait for applicationready event to do the following work.
-       *
-       * @listens webapps-launch
-       */
-      if (applications.ready) {
-        window.addEventListener('webapps-launch', this);
-        window.addEventListener('webapps-close', this);
-        window.addEventListener('open-app', this);
-      } else {
-        var self = this;
-        window.addEventListener('applicationready', function appReady(e) {
-          window.removeEventListener('applicationready', appReady);
-          window.addEventListener('webapps-launch', self);
-          window.addEventListener('webapps-close', self);
-          window.addEventListener('open-app', self);
-        });
-      }
+      window.addEventListener('webapps-launch', this.preHandleEvent);
+      window.addEventListener('webapps-close', this.preHandleEvent);
+      window.addEventListener('open-app', this.preHandleEvent);
+      window.addEventListener('openwindow', this.preHandleEvent);
+      window.addEventListener('appopenwindow', this.preHandleEvent);
+      window.addEventListener('applicationready', (function appReady(e) {
+        window.removeEventListener('applicationready', appReady);
+        this._handlePendingEvents();
+      }).bind(this));
     },
 
     /**
@@ -75,26 +66,52 @@
       }
       this._started = false;
 
-      window.removeEventListener('webapps-launch', this);
-      window.removeEventListener('webapps-close', this);
-      window.removeEventListener('open-app', this);
+      window.removeEventListener('webapps-launch', this.preHandleEvent);
+      window.removeEventListener('webapps-close', this.preHandleEvent);
+      window.removeEventListener('open-app', this.preHandleEvent);
+      window.removeEventListener('openwindow', this.preHandleEvent);
+      window.removeEventListener('appopenwindow', this.preHandleEvent);
+    },
+
+    /**
+     * Queue events until AppWindowFactory is ready to handle them.
+     */
+    _queueEvents: [],
+
+    _queuePendingEvent: function(evt) {
+      this._queueEvents.push(evt);
+    },
+
+    _handlePendingEvents: function() {
+      this._queueEvents.forEach((function(evt) {
+        this.handleEvent(evt);
+      }).bind(this));
+      this._queueEvents = [];
+    },
+
+    preHandleEvent: function(evt) {
+      if (applications.ready) {
+        this.handleEvent(evt);
+      } else {
+        this._queuePendingEvent(evt);
+      }
     },
 
     handleEvent: function awf_handleEvent(evt) {
       var detail = evt.detail;
-      var manifestURL = detail.manifestURL;
-      if (!manifestURL) {
+      if (!detail.url && !detail.manifestURL) {
         return;
       }
 
-      var config = new BrowserConfigHelper(detail.url, detail.manifestURL);
+      var config = new BrowserConfigHelper(detail);
 
-      if (!config.manifest) {
-        return;
-      }
+      config.evtType = evt.type;
 
       switch (evt.type) {
+        case 'openwindow':
+        case 'appopenwindow':
         case 'webapps-launch':
+          config.timestamp = detail.timestamp;
           // TODO: Look up current opened window list,
           // and then create a new instance here.
           this.launch(config);
@@ -153,22 +170,28 @@
         return;
       }
       if (config.isActivity && config.inline) {
-        this.publish('launchactivity', config);
+        this.publish('launchactivity', config, document.body);
         return;
       }
 
-      // The rocketbar currently handles the management of
-      // the search app
-      if (config.manifest.role === 'search') {
+      // The rocketbar currently handles the management of normal search app
+      // launches. Requests for the 'newtab' page will continue to filter
+      // through and publish the launchapp event.
+      if (config.manifest && config.manifest.role === 'search' &&
+          config.url.indexOf('newtab.html') === -1) {
         return;
       }
-      var app = AppWindowManager.getApp(config.origin);
+      var app = window.appWindowManager.getApp(config.origin,
+        config.manifestURL);
       if (app) {
+        if (config.evtType == 'appopenwindow') {
+          app.browser.element.src = config.url;
+        }
         app.reviveBrowser();
-      } else if (config.origin !== homescreenLauncher.origin) {
+      } else {
+        // homescreenWindowManager already listens webapps-launch and open-app.
+        // We don't need to check if the launched app is homescreen.
         new AppWindow(config);
-      } else if (config.origin == homescreenLauncher.origin) {
-        homescreenLauncher.getHomescreen().ensure();
       }
       this.publish('launchapp', config);
     },
@@ -179,10 +202,11 @@
      * @param  {Object} detail The data passed when initializing the event.
      * @memberof AppWindowFactory.prototype
      */
-    publish: function awf_publish(event, detail) {
+    publish: function awf_publish(event, detail, scope) {
+      scope = scope || window;
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent(event, true, false, detail);
-      window.dispatchEvent(evt);
+      scope.dispatchEvent(evt);
     }
   };
 

@@ -10,6 +10,7 @@ UI_TESTS = "UI Tests"
 
 
 class UiTests(Base):
+    _test_panel_header_locator = (By.CSS_SELECTOR, '#test-panel-header')
     _ui_page_locator = (By.CSS_SELECTOR, 'a[href="#UI"]')
     _api_page_locator = (By.CSS_SELECTOR, 'a[href="#API"]')
     _hw_page_locator = (By.CSS_SELECTOR, 'a[href="#HW"]')
@@ -57,3 +58,11 @@ class UiTests(Base):
         from gaiatest.apps.ui_tests.regions.keyboard import KeyboardPage
 
         return KeyboardPage(self.marionette)
+
+    def tap_back_button(self):
+        self.wait_for_element_displayed(*self._test_panel_header_locator)
+
+        # TODO: remove tap with coordinates after Bug 1061698 is fixed
+        self.marionette.find_element(*self._test_panel_header_locator).tap(25, 25)
+
+        self.wait_for_element_not_displayed(*self._test_panel_header_locator)

@@ -30,7 +30,7 @@
       var req = this.mozSettings.createLock().get('ril.radio.disabled');
       req.onsuccess = function() {
         self.isAirplaneMode = req.result['ril.radio.disabled'];
-        self.initSimPinBackButton();
+        self.initSimPinBack();
         self.initSimPinsUI();
         self.updateSimPinsUI();
         self.addChangeEventOnIccs();
@@ -40,17 +40,14 @@
         console.log('Initialize simcardLock failed');
       };
     },
-    initSimPinBackButton: function() {
+    initSimPinBack: function() {
       // Because this panel is used in one-sim & two-sim structures,
       // the entry point of sim security is different.
       //
       // In this way, we have to make sure users can go back to the
       // right panel.
-      if (this.isSingleSim()) {
-        this.simPinBackButton.setAttribute('href', '#root');
-      } else {
-        this.simPinBackButton.setAttribute('href', '#sim-manager');
-      }
+      this.simPinHeader.dataset.href = this.isSingleSim() ?
+        '#root' : '#sim-manager';
     },
     initSimPinsUI: function() {
       var simPinHTMLs = [];
@@ -113,9 +110,8 @@
       }.bind(this));
     },
     updateSimSecurityDescUI: function(enabled) {
-      window.navigator.mozL10n.localize(this.simSecurityDesc, enabled ?
-        'enabled' : 'disabled');
-      this.simSecurityDesc.dataset.l10nId = enabled ? 'enabled' : 'disabled';
+      this.simSecurityDesc.setAttribute('data-l10n-id',
+                                        enabled ? 'enabled' : 'disabled');
     },
     handleEvent: function(evt) {
       var target = evt.target;
@@ -202,8 +198,8 @@
       this.dialog = document.getElementById('simpin-dialog');
       this.simPinTmpl = document.getElementById('simpin-tmpl');
       this.simPinContainer = document.getElementById('simpin-container');
-      this.simPinBackButton = document.getElementById('simpin-back');
-      this.simSecurityDesc = document.getElementById('simCardLock-desc');
+      this.simPinHeader = document.getElementById('simpin-header');
+      this.simSecurityDesc = document.querySelector('.simCardLock-desc');
     },
     addIccDetectedEvent: function() {
       var self = this;

@@ -1,10 +1,8 @@
 /* global MockL10n, MediaRecording */
 'use strict';
 
-mocha.globals(['MediaRecording']);
-
 require('/shared/test/unit/load_body_html_helper.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('system/media recording', function() {
   var realL10n;
@@ -92,8 +90,7 @@ suite('system/media recording', function() {
     });
 
     test('show icon', function() {
-      assert.equal(mediaRecording.messages[0].icon,
-        'url(style/media_recording/images/Microphone.png)');
+      assert.equal(mediaRecording.messages[0].icon, 'mic');
     });
   });
 
@@ -107,8 +104,7 @@ suite('system/media recording', function() {
     });
 
     test('show icon', function() {
-      assert.equal(mediaRecording.messages[0].icon,
-        'url(style/media_recording/images/Camera.png)');
+      assert.equal(mediaRecording.messages[0].icon, 'video');
     });
   });
 
@@ -122,8 +118,7 @@ suite('system/media recording', function() {
     });
 
     test('show icon', function() {
-      assert.equal(mediaRecording.messages[0].icon,
-        'url(style/media_recording/images/VideoRecorder.png)');
+      assert.equal(mediaRecording.messages[0].icon, 'video-mic');
     });
   });
 

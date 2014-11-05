@@ -1,5 +1,6 @@
 Keyboards['bn-Avro'] = {
   label: 'Bangla - Avro',
+  shortLabel: 'Bn',
   imEngine: 'jsavrophonetic',
   menuLabel: 'বাংলা - অভ্র',
   alternateLayoutKey: '?১২৩',
@@ -31,16 +32,16 @@ Keyboards['bn-Avro'] = {
     x: 'X',
     y: 'Y',
     z: 'Z',
-    '.': ',?!;:'
+    '.': ',?!;:…'
   },
   keys: [
     [
       { value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' },
-      { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' },
+      { value: 't' }, { value: 'y' }, { value: 'u' } , { value: 'i' },
       { value: 'o' }, { value: 'p' }
     ], [
       { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
-      { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
+      { value: 'g' }, { value: 'h' }, { value: 'j' }, { value: 'k' },
       { value: 'l' }, { value: 'ঁ' }
     ], [
       { value: '⇪', ratio: 1.25, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
@@ -49,45 +50,58 @@ Keyboards['bn-Avro'] = {
       { value: 'n', ratio: 0.95 }, { value: 'm', ratio: 0.95 },
       { value: '⌫', ratio: 1.25, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
-      { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '&nbsp', ratio: 7, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '।' },
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
-      '০': 'º',
-      '১': '1 ',
-      '২': '2 ',
-      '৩': '3 ',
-      '৪': '4 ',
-      '৫': '5 ',
-      '৬': '6 ',
-      '৭': '7 ',
-      '৮': '8 ',
-      '৯': '9 ',
-      '৳': '$ € £ ¥',
-      '?': '¿',
-      '!': '¡'
+      '০': ['º'],
+      '১': ['1'],
+      '২': ['2'],
+      '৩': ['3'],
+      '৪': ['4'],
+      '৫': ['5'],
+      '৬': ['6'],
+      '৭': ['7'],
+      '৮': ['8'],
+      '৯': ['9'],
+      '৳': ['₹', '$', '€', '£', '¢', '¥'],
+      '"': ['“', '”'],
+      '\'':['‘', '’'],
+      '?': ['¿'],
+      '!': ['¡'],
+      '+': ['-', '×', '÷', '±']
     },
+    // These are based on the en layout, with top row modifed, $ localized and & replaced.
     keys: [
       [
-        { value: '১' }, { value: '২' }, { value: '৩' } , { value: '৪' },
-        { value: '৫' } , { value: '৬' }, { value: '৭' } , { value: '৮' },
+        { value: '১' }, { value: '২' }, { value: '৩' }, { value: '৪' },
+        { value: '৫' }, { value: '৬' }, { value: '৭' }, { value: '৮' },
         { value: '৯' }, { value: '০' }
       ], [
-        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '৳' },
-        { value: '%' }, { value: '&' } , { value: '*' }, { value: '-' },
-        { value: '+' }, { value: '(' }, { value: ')' },
-        { value: '_', visible: ['email'] }
+        { value: '@' }, { value: '#' },
+        { value: '৳', className: 'alternate-indicator' }, { value: 'ঃ' },
+        { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
+        { value: '(' }, { value: ')' }
       ], [
-        { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-        { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
-        { value: ';' }, { value: '/' }, { value: '?' },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
+        },
+        { value: '+',
+          supportsSwitching: {
+            value: ','
+          }
+        }, { value: ':' }, { value: ';' }, { value: '"' },
+        { value: '\'' }, { value: '!' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

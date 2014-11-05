@@ -7,15 +7,16 @@
 requireApp('/system/test/unit/fxa_test/load_element_helper.js');
 
 // Real code
-requireApp('system/fxa/js/utils.js');
+require('/shared/js/utilities.js');
 requireApp('system/fxa/js/fxam_module.js');
 requireApp('system/fxa/js/fxam_states.js');
 requireApp('system/fxa/js/fxam_manager.js');
+requireApp('system/fxa/js/fxam_navigation.js');
 requireApp('system/fxa/js/fxam_overlay.js');
 requireApp('system/fxa/js/fxam_error_overlay.js');
 
 // Mockuped code
-requireApp('/system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('/system/test/unit/fxa_test/mock_fxam_ui.js');
 requireApp('/system/test/unit/fxa_test/mock_fxam_server_request.js');
 requireApp('/system/test/unit/fxa_test/mock_fxam_errors.js');
@@ -31,13 +32,6 @@ var mocksHelperForCoppaModule = new MocksHelper([
   'FxModuleServerRequest',
   'FxaModuleErrors',
   'LazyLoader'
-]);
-
-mocha.globals([
-  'LazyLoader',
-  'FxaModuleErrors',
-  'FxModuleServerRequest',
-  'FxaModuleUI'
 ]);
 
 suite('Screen: COPPA', function() {
@@ -100,27 +94,6 @@ suite('Screen: COPPA', function() {
     test(' > FxaModuleUI called', function(done) {
       assert.isFalse(fxamUIEnableSpy.calledOnce);
       assert.ok(fxamUIIncStepsSpy.calledOnce);
-      done();
-    });
-  });
-
-  suite(' > Second call to init', function() {
-    var fxamUIEnableSpy;
-    var fxamUIIncStepsSpy;
-    setup(function() {
-      fxamUIEnableSpy = this.sinon.spy(FxaModuleUI, 'enableNextButton');
-      fxamUIIncStepsSpy = this.sinon.spy(FxaModuleUI, 'increaseMaxStepsBy');
-      FxaModuleCoppa.init();
-    });
-
-    teardown(function() {
-      fxamUIEnableSpy = null;
-      fxamUIIncStepsSpy = null;
-    });
-
-    test(' > FxaModuleUI should not be called', function(done) {
-      assert.isFalse(fxamUIEnableSpy.calledOnce);
-      assert.isFalse(fxamUIIncStepsSpy.calledOnce);
       done();
     });
   });

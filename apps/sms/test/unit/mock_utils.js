@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Utils */
+/* global Utils, Promise */
 /* exported MockUtils */
 
 var MockUtils = {
@@ -8,9 +8,7 @@ var MockUtils = {
   // Utils.js
   camelCase: Utils.camelCase,
   date: Utils.date,
-  getFontSize: function() {
-    return 12;
-  },
+  extend: Utils.extend,
   getDayDate: Utils.getDayDate,
   getHeaderDate: Utils.getHeaderDate,
   getFormattedHour: Utils.getFormattedHour,
@@ -21,13 +19,16 @@ var MockUtils = {
   getContactDisplayInfo: Utils.getContactDisplayInfo,
   getContactDetails: Utils.getContactDetails,
   getResizedImgBlob: Utils.getResizedImgBlob,
-  getDownsamplingSrcUrl: Utils.getDownsamplingSrcUrl,
-  getCarrierTag: Utils.getCarrierTag,
+  getPhoneDetails: Utils.getPhoneDetails,
   removeNonDialables: Utils.removeNonDialables,
   multiRecipientMatch: Utils.multiRecipientMatch,
   probablyMatches: Utils.probablyMatches,
   getDisplayObject: Utils.getDisplayObject,
   basicContact: Utils.basicContact,
   asyncLoadRevokeURL: Utils.asyncLoadRevokeURL,
-  closeNotificationsForThread: Utils.closeNotificationsForThread
+  isEmailAddress: Utils.isEmailAddress,
+  closeNotificationsForThread: () => Promise.resolve(),
+  imageToDataUrl: Utils.imageToDataUrl,
+  debounce: Utils.debounce,
+  Promise: Utils.Promise
 };

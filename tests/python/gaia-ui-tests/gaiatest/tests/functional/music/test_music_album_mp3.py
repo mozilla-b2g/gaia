@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
 from gaiatest import GaiaTestCase
 from gaiatest.apps.music.app import Music
 
@@ -15,7 +16,9 @@ class TestMusic(GaiaTestCase):
         self.push_resource('MUS_0001.mp3')
 
     def test_select_album_play(self):
-        """https://moztrap.mozilla.org/manage/case/4031/"""
+        """
+        https://moztrap.mozilla.org/manage/case/3755/
+        """
 
         music_app = Music(self.marionette)
         music_app.launch()
@@ -36,8 +39,10 @@ class TestMusic(GaiaTestCase):
         player_view = sublist_view.tap_play()
 
         # play for a short duration
+        play_time = time.strptime('00:03', '%M:%S')
         self.wait_for_condition(
-            lambda m: player_view.player_elapsed_time == '00:05',
+            lambda m: player_view.player_elapsed_time >= play_time,
+            timeout=10,
             message='Mp3 sample did not start playing')
 
         # validate playback

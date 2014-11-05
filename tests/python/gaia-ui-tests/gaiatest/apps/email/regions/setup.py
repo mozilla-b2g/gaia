@@ -8,15 +8,14 @@ from gaiatest.apps.base import Base
 
 class SetupEmail(Base):
 
-    _name_locator = (By.CSS_SELECTOR, 'section.card-setup-account-info input.sup-info-name')
-    _email_locator = (By.CSS_SELECTOR, 'section.card-setup-account-info input.sup-info-email')
-    _password_locator = (By.CSS_SELECTOR, 'section.card-setup-account-info input.sup-info-password')
+    _name_locator = (By.CSS_SELECTOR, 'cards-setup-account-info input.sup-info-name')
+    _email_locator = (By.CSS_SELECTOR, 'cards-setup-account-info input.sup-info-email')
     _next_locator = (By.CSS_SELECTOR, '.sup-info-next-btn')
     _continue_button_locator = ('class name', 'sup-show-mail-btn sup-form-btn recommend')
     _check_for_new_messages_locator = (By.CSS_SELECTOR, '.tng-account-check-interval.mail-select')
-    _account_prefs_section_locator = (By.CSS_SELECTOR, 'section.card-setup-account-prefs')
-    _account_prefs_next_locator = (By.CSS_SELECTOR, '.card-setup-account-prefs .sup-info-next-btn')
-    _done_section_locator = (By.CSS_SELECTOR, 'section.card-setup-done')
+    _account_prefs_section_locator = (By.CSS_SELECTOR, 'cards-setup-account-prefs section')
+    _account_prefs_next_locator = (By.CSS_SELECTOR, 'cards-setup-account-prefs .sup-info-next-btn')
+    _done_section_locator = (By.CSS_SELECTOR, 'cards-setup-done section')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -28,13 +27,8 @@ class SetupEmail(Base):
     def type_email(self, value):
         self.marionette.find_element(*self._email_locator).send_keys(value)
 
-    def type_password(self, value):
-        self.marionette.find_element(*self._password_locator).send_keys(value)
-
     def tap_next(self):
         self.marionette.find_element(*self._next_locator).tap()
-        self.wait_for_condition(lambda m: m.find_element(
-            *self._account_prefs_section_locator).location['x'] == 0)
 
     def tap_account_prefs_next(self):
         self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
@@ -51,30 +45,32 @@ class ManualSetupEmail(Base):
 
     name = 'E-Mail'  # hack to be able to use select
 
-    _name_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config input.sup-info-name')
-    _email_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config input.sup-info-email')
-    _password_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config input.sup-info-password')
+    _name_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config input.sup-info-name')
+    _email_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config input.sup-info-email')
+    _password_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config input.sup-info-password')
 
-    _account_type_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-account-type')
+    _account_type_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-account-type')
 
-    _imap_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-username')
-    _imap_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-hostname')
-    _imap_port_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-port')
+    _imap_username_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-composite-username')
+    _imap_password_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-composite-password')
+    _imap_hostname_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-composite-hostname')
+    _imap_port_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-composite-port')
 
-    _smtp_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-username')
-    _smtp_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-hostname')
-    _smtp_port_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-port')
+    _smtp_username_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-smtp-username')
+    _smtp_password_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-smtp-password')
+    _smtp_hostname_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-smtp-hostname')
+    _smtp_port_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-smtp-port')
 
-    _activesync_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-activesync-hostname')
-    _activesync_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-activesync-username')
+    _activesync_hostname_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-activesync-hostname')
+    _activesync_username_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-activesync-username')
 
     _next_locator = (By.CSS_SELECTOR, '.sup-manual-next-btn')
     _continue_button_locator = (By.CLASS_NAME, 'sup-show-mail-btn sup-form-btn recommend')
 
     _check_for_new_messages_locator = (By.CSS_SELECTOR, '.tng-account-check-interval.mail-select')
-    _account_prefs_section_locator = (By.CSS_SELECTOR, 'section.card-setup-account-prefs')
-    _account_prefs_next_locator = (By.CSS_SELECTOR, '.card-setup-account-prefs .sup-info-next-btn')
-    _done_section_locator = (By.CSS_SELECTOR, 'section.card-setup-done')
+    _account_prefs_section_locator = (By.CSS_SELECTOR, 'cards-setup-account-prefs')
+    _account_prefs_next_locator = (By.CSS_SELECTOR, 'cards-setup-account-prefs .sup-info-next-btn')
+    _done_section_locator = (By.CSS_SELECTOR, 'cards-setup-done section')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -100,8 +96,6 @@ class ManualSetupEmail(Base):
 
     def select_account_type(self, value):
         account_type = self.marionette.find_element(*self._account_type_locator)
-        # TODO: remove the explicit scroll once bug 833370 is fixed
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [account_type])
         account_type.click()
         self.select(value)
 
@@ -112,6 +106,11 @@ class ManualSetupEmail(Base):
 
     def type_imap_hostname(self, value):
         el = self.marionette.find_element(*self._imap_hostname_locator)
+        el.clear()
+        el.send_keys(value)
+
+    def type_imap_password(self, value):
+        el = self.marionette.find_element(*self._imap_password_locator)
         el.clear()
         el.send_keys(value)
 
@@ -130,6 +129,11 @@ class ManualSetupEmail(Base):
         el.clear()
         el.send_keys(value)
 
+    def type_smtp_password(self, value):
+        el = self.marionette.find_element(*self._smtp_password_locator)
+        el.clear()
+        el.send_keys(value)
+
     def type_smtp_port(self, value):
         el = self.marionette.find_element(*self._smtp_port_locator)
         el.clear()
@@ -140,26 +144,26 @@ class ManualSetupEmail(Base):
         el = self.marionette.find_element(*self._activesync_username_locator)
         el.clear()
         el.send_keys(value)
+        self.keyboard.dismiss()
 
     def type_activesync_hostname(self, value):
         el = self.marionette.find_element(*self._activesync_hostname_locator)
         el.clear()
         el.send_keys(value)
 
-    def type_activesync_port(self, value):
-        el = self.marionette.find_element(*self._activesync_port_locator)
-        el.clear()
-        el.send_keys(value)
-
     def tap_next(self):
         self.wait_for_condition(lambda m: m.find_element(*self._next_locator).get_attribute('disabled') != 'true')
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [self.marionette.find_element(*self._next_locator)])
         self.marionette.find_element(*self._next_locator).tap()
         self.wait_for_condition(lambda m: m.find_element(
             *self._account_prefs_section_locator).location['x'] == 0)
+        self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
+
+    def check_for_emails_interval(self, value):
+        self.marionette.execute_script('document.querySelector("[data-l10n-id = settings-check-every-5min]").value = "%s";' % value)
+        self.marionette.find_element(*self._check_for_new_messages_locator).tap()
+        self.select('Every 5 minutes')
 
     def tap_account_prefs_next(self):
-        self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
         self.marionette.find_element(*self._account_prefs_next_locator).tap()
 
     def wait_for_setup_complete(self):

@@ -15,6 +15,7 @@ var ValuePicker = (function() {
     this._upper = unitStyle.valueDisplayedText.length - 1;
     this._range = unitStyle.valueDisplayedText.length;
     this._currentIndex = 0;
+    this._unitHeight = 0;
     this.init();
   }
 
@@ -38,17 +39,24 @@ var ValuePicker = (function() {
       tunedIndex = Math.floor(tunedIndex);
     }
 
-    if (tunedIndex < this._lower)
+    if (tunedIndex < this._lower) {
       tunedIndex = this._lower;
+    }
 
-    if (tunedIndex > this._upper)
+    if (tunedIndex > this._upper) {
       tunedIndex = this._upper;
+    }
 
+    var beforeIndex = this._currentIndex;
     if (this._currentIndex != tunedIndex) {
       this._currentIndex = tunedIndex;
       this.onselectedindexchange(this._currentIndex);
     }
     this.updateUI(tunedIndex, ignorePicker);
+
+    var elementChildren = this.element.children;
+    elementChildren[beforeIndex].classList.remove('selected');
+    elementChildren[this._currentIndex].classList.add('selected');
 
     return tunedIndex;
   };
@@ -57,10 +65,8 @@ var ValuePicker = (function() {
     var newIndex = this._valueDisplayedText.indexOf(displayedText);
     if (newIndex != -1) {
       if (this._currentIndex != newIndex) {
-        this._currentIndex = newIndex;
-        this.onselectedindexchange(this._currentIndex);
+        this.setSelectedIndex(newIndex);
       }
-      this.updateUI(newIndex);
     }
   };
 
@@ -100,9 +106,9 @@ var ValuePicker = (function() {
     this.initUI();
     this.setSelectedIndex(0); // Default Index is zero
     this.keypressHandler = vp_keypress.bind(this);
-    this.mousedonwHandler = vp_mousedown.bind(this);
-    this.mousemoveHandler = vp_mousemove.bind(this);
-    this.mouseupHandler = vp_mouseup.bind(this);
+    this.touchstartHandler = vp_touchstart.bind(this);
+    this.touchmoveHandler = vp_touchmove.bind(this);
+    this.touchendHandler = vp_touchend.bind(this);
     this.addEventListeners();
   };
 
@@ -114,12 +120,6 @@ var ValuePicker = (function() {
     for (var i = 0; i < unitCount; ++i) {
       this.addPickerUnit(i);
     }
-    // cache the size of picker
-    this._pickerUnits = this.element.children;
-    this._pickerUnitsHeight = this._pickerUnits[0].clientHeight;
-    this._pickerHeight = this._pickerUnits[0].clientHeight *
-                                     this._pickerUnits.length;
-    this._space = this._pickerHeight / this._range;
   };
 
   VP.prototype.addPickerUnit = function(index) {
@@ -132,7 +132,13 @@ var ValuePicker = (function() {
 
   VP.prototype.updateUI = function(index, ignorePicker) {
     if (true !== ignorePicker) {
-      this._top = -index * this._space;
+      // Bug 1075200 get unit height when needed and
+      // retry next time when dom is not rendered
+      if (this._unitHeight === 0) {
+        this._unitHeight = this.element.firstChild.clientHeight *
+          this.element.children.length / this._range;
+      }
+      this._top = -index * this._unitHeight;
       this.element.style.transform = 'translateY(' + this._top + 'px)';
       this.container.setAttribute('aria-valuenow', index);
       this.container.setAttribute('aria-valuetext',
@@ -142,19 +148,20 @@ var ValuePicker = (function() {
 
   VP.prototype.addEventListeners = function() {
     this.container.addEventListener('keypress', this.keypressHandler, false);
-    this.element.addEventListener('mousedown', this.mousedonwHandler, false);
+    this.element.addEventListener('touchstart', this.touchstartHandler, false);
   };
 
   VP.prototype.removeEventListeners = function() {
-    this.element.removeEventListener('mouseup', this.mouseupHandler, false);
-    this.element.removeEventListener('mousemove', this.mousemoveHandler, false);
+    this.element.removeEventListener('touchend', this.touchendHandler, false);
+    this.element.removeEventListener('touchmove', this.touchmoveHandler, false);
   };
 
   VP.prototype.uninit = function() {
     this._top = 0;
-    this.element.removeEventListener('mousedown', this.mousedonwHandler, false);
-    this.element.removeEventListener('mouseup', this.mouseupHandler, false);
-    this.element.removeEventListener('mousemove', this.mousemoveHandler, false);
+    this.element.removeEventListener(
+      'touchstart', this.touchstartHandler, false);
+    this.element.removeEventListener('touchend', this.touchendHandler, false);
+    this.element.removeEventListener('touchmove', this.touchmoveHandler, false);
     this.element.style.transform = 'translateY(0px)';
     this.container.removeEventListener('keypress', this.keypressHandler, false);
     this.container.removeAttribute('role');
@@ -169,14 +176,17 @@ var ValuePicker = (function() {
   VP.prototype.onselectedindexchange = function(index) {};
 
   function cloneEvent(evt) {
-    if ('touches' in evt)
-      evt = evt.touches[0];
-    return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
+    return {
+      x: evt.touches[0].pageX,
+      y: evt.touches[0].pageY,
+      timestamp: evt.timeStamp
+    };
   }
 
   function empty(element) {
-    while (element.hasChildNodes())
+    while (element.hasChildNodes()) {
       element.removeChild(element.lastChild);
+    }
     element.innerHTML = '';
   }
 
@@ -211,7 +221,7 @@ var ValuePicker = (function() {
     return reValue;
   }
 
-  function vp_mousemove(event) {
+  function vp_touchmove(event) {
     event.stopPropagation();
     event.target.setCapture(true);
     currentEvent = cloneEvent(event);
@@ -222,21 +232,19 @@ var ValuePicker = (function() {
     this._top = this._top + getMovingSpace();
     this.element.style.transform = 'translateY(' + this._top + 'px)';
 
-    tunedIndex = calcTargetIndex(this._space);
+    tunedIndex = calcTargetIndex(this._unitHeight);
     var roundedIndex = Math.round(tunedIndex * 10) / 10;
 
-    if (roundedIndex != this._currentIndex)
+    if (roundedIndex != this._currentIndex) {
       this.setSelectedIndex(toFixed(roundedIndex), true);
+    }
 
     startEvent = currentEvent;
   }
 
-  function vp_mouseup(event) {
+  function vp_touchend(event) {
     event.stopPropagation();
     this.removeEventListeners();
-
-    // Add animation back
-    this.element.classList.add('animation-on');
 
     // Add momentum if speed is higher than a given threshold.
     if (Math.abs(currentSpeed) > SPEED_THRESHOLD) {
@@ -247,25 +255,23 @@ var ValuePicker = (function() {
     currentSpeed = 0;
   }
 
-  function vp_mousedown(event) {
+  function vp_touchstart(event) {
     event.stopPropagation();
-
-    // Stop animation
-    this.element.classList.remove('animation-on');
 
     startEvent = currentEvent = cloneEvent(event);
     tunedIndex = this._currentIndex;
 
     this.removeEventListeners();
-    this.element.addEventListener('mousemove', this.mousemoveHandler, false);
-    this.element.addEventListener('mouseup', this.mouseupHandler, false);
+    this.element.addEventListener('touchmove', this.touchmoveHandler, false);
+    this.element.addEventListener('touchend', this.touchendHandler, false);
   }
 
   function vp_keypress(event) {
-    if (event.keyCode == KeyEvent.DOM_VK_DOWN)
+    if (event.keyCode == KeyEvent.DOM_VK_DOWN) {
       this.setSelectedIndex(this._currentIndex - 1);
-    else
+    } else {
       this.setSelectedIndex(this._currentIndex + 1);
+    }
   }
 
   return VP;

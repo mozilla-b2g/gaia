@@ -1,42 +1,15 @@
 <element name="appPermissions" extends="section">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="appPermissions-header">
-        App permissions
-      </h1>
-    </header>
+    <gaia-header action="back" data-href="root">
+      <h1 data-l10n-id="appPermissions-header">App Permissions</h1>
+    </gaia-header>
 
     <div>
-      <ul></ul>
-
-      <ul>
-        <li>
-          <button id="clear-bookmarks-app"
-                  style="visibility: hidden"
-                  data-l10n-id="clearBookmarkAppsData">
-            Clear bookmarks data
-          </button>
-        </li>
-      </ul>
+      <ul class="app-list"></ul>
     </div>
 
-    <form role="dialog" data-type="confirm" hidden class="cb-alert">
-      <section>
-        <h1 data-l10n-id="confirmClearBookmarkAppsDataTitle">Clear private data from bookmarks</h1>
-        <p>
-          <strong data-l10n-id="confirmClearBookmarkAppsDataDesc">This clear private data from bookmarks that have been added to the home screen. This cannot be undone.</strong>
-        </p>
-      </section>
-      <menu>
-        <button class="cb-alert-cancel" data-l10n-id="cancel">Cancel</button>
-        <button class="cb-alert-clear recommend danger" data-l10n-id="clear">Clear</button>
-      </menu>
-    </form>
-
-    <script type="application/javascript" src="shared/js/manifest_helper.js"></script>
-    <script src="js/apps.js"></script>
+    <panel data-path="panels/app_permissions_list/panel"></panel>
 
   </template>
 </element>

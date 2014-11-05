@@ -1,39 +1,51 @@
 (function() {
 
   'use strict';
-  /* global Search, UrlHelper */
+  /* global asyncStorage */
+  /* global Contextmenu */
+  /* global Search */
+  /* global SearchDedupe */
+  /* global SettingsListener */
+  /* global UrlHelper */
 
   // timeout before notifying providers
-  var SEARCH_DELAY = 600;
+  var SEARCH_DELAY = 500;
 
   window.Search = {
+
     _port: null,
-
-    /**
-     * A mapping of search results to be de-duplicated via manifesURL.
-     */
-    exactResults: {},
-
-    /**
-     * A mapping of search results to be de-duplicated by other than
-     * manifestURL. This is our strategy of de-duplicating results from
-     * Everything.me and locally installed apps.
-     */
-    fuzzyResults: {},
-
-    /**
-     * A list of common words that we ignore when de-duping
-     */
-    dedupeNullList: [
-      'mobile', 'touch'
-    ],
 
     providers: {},
 
+    /**
+     * Template to construct search query URL. Set from search.urlTemplate
+     * setting. {searchTerms} is replaced with user provided search terms.
+     *
+     * 'everything.me' is a special case which uses the e.me UI instead.
+     */
+    urlTemplate: 'https://www.google.com/search?q={searchTerms}',
+
     searchResults: document.getElementById('search-results'),
-    newTabPage: document.getElementById('newtab-page'),
+
+    offlineMessage: document.getElementById('offline-message'),
+    settingsConnectivity: document.getElementById('settings-connectivity'),
+    suggestionsWrapper: document.getElementById('suggestions-wrapper'),
+    loadingElement: document.getElementById('loading'),
+
+    suggestionsEnabled: false,
+
+    /**
+     * Used to display a notice on how to configure the search provider
+     * on first use
+     */
+    suggestionNotice: document.getElementById('suggestions-notice-wrapper'),
+    toShowNotice: null,
+    NOTICE_KEY: 'notice-shown',
 
     init: function() {
+
+      this.dedupe = new SearchDedupe();
+
       // Initialize the parent port connection
       var self = this;
       navigator.mozApps.getSelf().onsuccess = function() {
@@ -66,13 +78,49 @@
           self.providers[i].init(self);
         }
       }
+
+      // Listen for changes in default search engine
+      SettingsListener.observe('search.urlTemplate', false, function(value) {
+        if (value) {
+          this.urlTemplate = value;
+        }
+      }.bind(this));
+
+      var enabledKey = 'search.suggestions.enabled';
+      SettingsListener.observe(enabledKey, true, function(enabled) {
+        this.suggestionsEnabled = enabled;
+      }.bind(this));
+
+      this.initNotice();
+      this.initConnectivityCheck();
+
+      // Fire off a dummy geolocation request so the prompt can be responded
+      // to before the user starts typing
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(function(){});
+      }
+
+      this.contextmenu = new Contextmenu();
+      window.addEventListener('resize', this.resize);
+    },
+
+    resize: function() {
+      var grid = document.getElementById('icons');
+      if (grid && grid.render) {
+        grid.render({
+          rerender: true,
+          skipDivider: true
+        });
+      }
     },
 
     /**
      * Adds a search provider
      */
     provider: function(provider) {
-      this.providers[provider.name] = provider;
+      if (!(provider.name in this.providers)) {
+        this.providers[provider.name] = provider;
+      }
     },
 
     /**
@@ -88,6 +136,7 @@
      * Called when the user changes the search query
      */
     change: function(msg) {
+
       clearTimeout(this.changeTimeout);
 
       this.showSearchResults();
@@ -95,15 +144,63 @@
       var input = msg.data.input;
       var providers = this.providers;
 
-      this.changeTimeout = setTimeout(function doSearch() {
-        this.exactResults = {};
-        this.fuzzyResults = {};
+      this.changeTimeout = setTimeout(() => {
+        this.clear();
+        this.dedupe.reset();
 
-        for (var i in providers) {
-          var provider = providers[i];
-          provider.search(input, this.collect.bind(this, provider));
+        Object.keys(providers).forEach((providerKey) => {
+          var provider = providers[providerKey];
+
+          // If suggestions are disabled, only use local providers
+          if (this.suggestionsEnabled || !provider.remote) {
+
+            if (provider.remote) {
+              this.loadingElement.classList.add('loading');
+            }
+
+            provider.search(input).then((results) => {
+              if (provider.name === 'Suggestions') {
+                var shown = (input.length > 2 &&
+                             results.length &&
+                             this.toShowNotice);
+                this.suggestionNotice.hidden = !shown;
+              }
+
+              this.collect(provider, results);
+            }).catch((err) => {
+              if (provider.remote) {
+                this.loadingElement.classList.remove('loading');
+              }
+            });
+          }
+        });
+      }, SEARCH_DELAY);
+    },
+
+    /**
+     * Show a notice to the user informaing them of how to configure
+     * search providers, should only be shown once.
+     */
+    initNotice: function() {
+
+      var confirm = document.getElementById('suggestions-notice-confirm');
+
+      confirm.addEventListener('click', this.discardNotice.bind(this, true));
+
+      asyncStorage.getItem(this.NOTICE_KEY, function(value) {
+        if (this.toShowNotice === null) {
+          this.toShowNotice = !value;
         }
-      }.bind(this), SEARCH_DELAY);
+      }.bind(this));
+    },
+
+    discardNotice: function(focus) {
+      this.suggestionNotice.hidden = true;
+      this.toShowNotice = false;
+      asyncStorage.setItem(this.NOTICE_KEY, true);
+      if (focus) {
+        this._port.postMessage({'action': 'focus'});
+      }
     },
 
     /**
@@ -112,11 +209,7 @@
      */
     expandSearch: function(query) {
       this.clear();
-      var webProvider = this.providers.WebResults;
-      webProvider.search(query, function onCollect(results) {
-        webProvider.render(results);
-      });
-      this.providers.BGImage.fetchImage(query);
+      this.providers.WebResults.fullscreen(query);
     },
 
     /**
@@ -126,94 +219,49 @@
      * @param {Array} results The results of the provider search.
      */
     collect: function(provider, results) {
+
+      if (provider.remote) {
+        this.loadingElement.classList.remove('loading');
+      }
+
       if (!provider.dedupes) {
         provider.render(results);
         return;
       }
 
-      var validResults = [];
+      results = this.dedupe.reduce(results, provider.dedupeStrategy);
+      provider.render(results);
 
-      // Cache the matched dedupe IDs.
-      // Providers should not attempt to deduplicate against themselves.
-      // This should perform better and lead to less misses.
-      var exactDedupeIdCache = [];
-      var fuzzyDedupeIdCache = [];
-
-      results.forEach(function eachResult(result) {
-        var found = false;
-        var dedupeId = result.dedupeId.toLowerCase();
-
-        // Get the host of the dedupeId for the fuzzy result case
-        var host;
-        try {
-          host = new URL(dedupeId).host;
-        } catch (e) {
-          host = dedupeId;
+      if (provider.grid) {
+        var childNodes = provider.grid.childNodes;
+        if (childNodes.length) {
+          var item = childNodes[childNodes.length - 1];
+          var rect = item.getBoundingClientRect();
+          provider.grid.style.height = rect.bottom + 'px';
         }
-        var fuzzyDedupeIds = [host, dedupeId];
-
-        // Try to use some simple domain heuristics to find duplicates
-        // E.g, we would want to de-dupe between:
-        // m.site.org and touch.site.org, sub.m.site.org and m.site.org
-        // We also try to avoid deduping on second level domains by
-        // checking the length of the segment.
-        // For each part of the host, we add it to the fuzzy lookup table
-        // if it is more than three characters. This algorithm is far
-        // from perfect, but it will likely catch 99% of our usecases.
-        var hostParts = host.split('.');
-        for (var i in hostParts) {
-          var part = hostParts[i];
-          if (part.length > 3 && this.dedupeNullList.indexOf(part) === -1) {
-            fuzzyDedupeIds.push(part);
-          }
-        }
-
-        // Check if we have already rendered the result
-        if (provider.dedupeStrategy == 'exact') {
-          if (this.exactResults[dedupeId]) {
-            found = true;
-          }
-        } else {
-          // Handle the fuzzy matching case
-          // Try to match against either host or subdomain
-          fuzzyDedupeIds.forEach(function eachFuzzy(eachId) {
-            for (var i in this.fuzzyResults) {
-              if (i.indexOf(eachId) !== -1) {
-                found = true;
-              }
-            }
-          }, this);
-        }
-
-        // At the end of each iteration, cache the dedupe keys.
-        exactDedupeIdCache.push(dedupeId);
-        fuzzyDedupeIdCache = fuzzyDedupeIdCache.concat(fuzzyDedupeIds);
-
-        if (!found) {
-          validResults.push(result);
-        }
-      }, this);
-
-      exactDedupeIdCache.forEach(function eachFuzzy(eachId) {
-        this.exactResults[eachId] = true;
-      }, this);
-
-      fuzzyDedupeIdCache.forEach(function eachFuzzy(eachId) {
-        this.fuzzyResults[eachId] = true;
-      }, this);
-
-      provider.render(validResults);
+      }
     },
 
     /**
      * Called when the user submits the search form
      */
     submit: function(msg) {
+
+      this.discardNotice();
+
       var input = msg.data.input;
 
       // Not a valid URL, could be a search term
       if (UrlHelper.isNotURL(input)) {
-        this.expandSearch(input);
+        // Special case for everything.me
+        if (this.urlTemplate == 'everything.me') {
+          this.expandSearch(input);
+        // Other search providers show results in the browser
+        } else {
+          var url = this.urlTemplate.replace('{searchTerms}',
+                                             encodeURIComponent(input));
+          this.navigate(url);
+        }
         return;
       }
 
@@ -235,33 +283,14 @@
       for (var i in this.providers) {
         this.providers[i].clear();
       }
-      this.showBlank();
-    },
 
-    showBlank: function() {
-      if (this.searchResults) {
-        this.newTabPage.classList.add('hidden');
-        this.searchResults.classList.add('hidden');
-      }
-    },
-
-    /**
-     * Called when the user displays the task manager
-     */
-    showTaskManager: function() {
-      this.showBlank();
+      this.suggestionNotice.hidden = true;
     },
 
     showSearchResults: function() {
       if (this.searchResults) {
         this.searchResults.classList.remove('hidden');
-        this.newTabPage.classList.add('hidden');
       }
-    },
-
-    showNewTabPage: function() {
-      this.searchResults.classList.add('hidden');
-      this.newTabPage.classList.remove('hidden');
     },
 
     /**
@@ -285,32 +314,9 @@
     /**
      * Opens a browser to a URL
      * @param {String} url The url to navigate to
-     * @param {Object} config Optional configuration.
      */
-    navigate: function(url, config) {
-      var features = {
-        remote: true,
-        useAsyncPanZoom: true
-      };
-
-      config = config || {};
-      for (var i in config) {
-        features[i] = config[i];
-      }
-
-      var featureStr = Object.keys(features)
-        .map(function(key) {
-          return encodeURIComponent(key) + '=' +
-            encodeURIComponent(features[key]);
-        }).join(',');
-      window.open(url, '_blank', featureStr);
-    },
-
-    requestScreenshot: function(url) {
-      this._port.postMessage({
-        'action': 'request-screenshot',
-        'url': url
-      });
+    navigate: function(url) {
+      window.open(url, '_blank', 'remote=true');
     },
 
     /**
@@ -322,6 +328,42 @@
         'input': input
       });
       this.expandSearch(input);
+    },
+
+    initConnectivityCheck: function() {
+      var self = this;
+      function onConnectivityChange() {
+        if (navigator.onLine) {
+          self.searchResults.classList.remove('offline');
+        } else {
+          self.searchResults.classList.add('offline');
+        }
+      }
+
+      this.settingsConnectivity.addEventListener(
+        'click', function() {
+          var activity = new window.MozActivity({
+            name: 'configure',
+            data: {
+              target: 'device',
+              section: 'root',
+              filterBy: 'connectivity'
+            }
+          });
+          activity.onsuccess = function() {
+            /*
+            XXX: Since this activity inmediately returns
+            success, we cannot go back to the search bar.
+            Keeping a reference of the activity once this
+            is fixed.
+            */
+          };
+        }
+      );
+
+      window.addEventListener('offline', onConnectivityChange);
+      window.addEventListener('online', onConnectivityChange);
+      onConnectivityChange();
     }
   };
 

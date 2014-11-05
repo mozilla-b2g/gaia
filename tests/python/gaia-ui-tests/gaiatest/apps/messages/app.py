@@ -13,15 +13,22 @@ class Messages(Base):
     _create_new_message_locator = (By.ID, 'icon-add')
     _first_message_locator = (By.ID, 'thread-1')
     _messages_frame_locator = (By.CSS_SELECTOR, 'iframe[data-url*=sms]')
+    _options_icon_locator = (By.ID, 'threads-options-icon')
+    _app_ready_locator = (By.CLASS_NAME, 'js-app-ready')
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_element_displayed(*self._create_new_message_locator)
+        self.wait_for_element_displayed(*self._app_ready_locator)
 
     def tap_create_new_message(self):
         self.marionette.find_element(*self._create_new_message_locator).tap()
         from gaiatest.apps.messages.regions.new_message import NewMessage
         return NewMessage(self.marionette)
+
+    def tap_options(self):
+        self.marionette.find_element(*self._options_icon_locator).tap()
+        from gaiatest.apps.messages.regions.activities import Activities
+        return Activities(self.marionette)
 
     def wait_for_message_list(self):
         self.wait_for_element_displayed(*self._create_new_message_locator)
@@ -33,9 +40,3 @@ class Messages(Base):
         self.marionette.find_element(*self._first_message_locator).tap()
         from gaiatest.apps.messages.regions.message_thread import MessageThread
         return MessageThread(self.marionette)
-
-    def switch_to_messages_frame(self):
-        self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._messages_frame_locator)
-        messages_frame = self.marionette.find_element(*self._messages_frame_locator)
-        self.marionette.switch_to_frame(messages_frame)

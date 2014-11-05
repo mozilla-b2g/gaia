@@ -59,6 +59,15 @@ var BlobView = (function() {
     };
   };
 
+  // Synchronous factory function for use when you have an array buffer and want
+  // to treat it as a BlobView (e.g. to use the readXYZ functions). We need
+  // this for the music app, which uses an array buffer to hold
+  // de-unsynchronized ID3 frames.
+  BlobView.getFromArrayBuffer = function(buffer, offset, length, littleEndian) {
+    return new BlobView(null, offset, length, buffer, offset, length,
+                        littleEndian);
+  };
+
   BlobView.prototype = {
     constructor: BlobView,
 
@@ -67,6 +76,11 @@ var BlobView = (function() {
     // range of bytes, they can be passed directly to the callback without
     // going back to the blob to read them
     getMore: function(offset, length, callback) {
+      // If we made this BlobView from an array buffer, there's no blob backing
+      // it, and so it's impossible to get more data.
+      if (!this.blob)
+        fail('no blob backing this BlobView');
+
       if (offset >= this.sliceOffset &&
           offset + length <= this.sliceOffset + this.sliceLength) {
         // The quick case: we already have that region of the blob
@@ -355,6 +369,35 @@ var BlobView = (function() {
       }
     },
 
+    // Get UTF16 text.  If le is not specified, expect a BOM to define
+    // endianness.  If le is true, read UTF16LE, if false, UTF16BE.
+    getUTF16Text: function(offset, len, le) {
+      if (len % 2) {
+        fail('len must be a multiple of two');
+      }
+      if (le === null || le === undefined) {
+        var BOM = this.getUint16(offset);
+        len -= 2;
+        offset += 2;
+        if (BOM === 0xFEFF)
+          le = false;
+        else
+          le = true;
+      }
+
+      // We need to support unaligned reads, so we can't use a Uint16Array here.
+      var s = '';
+      for (var i = 0; i < len; i += 2)
+        s += String.fromCharCode(this.getUint16(offset + i, le));
+      return s;
+    },
+
+    readUTF16Text: function(len, le) {
+      var value = this.getUTF16Text(this.index, len, le);
+      this.index += len;
+      return value;
+    },
+
     // Read 4 bytes, ignore the high bit and combine them into a 28-bit
     // big-endian unsigned integer.
     // This format is used by the ID3v2 metadata.
@@ -405,9 +448,12 @@ var BlobView = (function() {
 
     // Read UTF16 text.  If le is not specified, expect a BOM to define
     // endianness.  If le is true, read UTF16LE, if false, UTF16BE
-    // Read until we find a null-terminator, but never more than size bytes
+    // Read until we find a null-terminator, but never more than size bytes.
     readNullTerminatedUTF16Text: function(size, le) {
-      if (le == null) {
+      if (size % 2) {
+        fail('size must be a multiple of two');
+      }
+      if (le === null || le === undefined) {
         var BOM = this.readUnsignedShort();
         size -= 2;
         if (BOM === 0xFEFF) {
@@ -432,8 +478,11 @@ var BlobView = (function() {
   };
 
   // We don't want users of this library to accidentally call the constructor
-  // instead of using the factory function, so we return a dummy object
+  // instead of using one of the factory functions, so we return a dummy object
   // instead of the real constructor. If someone really needs to get at the
   // real constructor, the contructor property of the prototype refers to it.
-  return { get: BlobView.get };
+  return {
+    get: BlobView.get,
+    getFromArrayBuffer: BlobView.getFromArrayBuffer
+  };
 }());

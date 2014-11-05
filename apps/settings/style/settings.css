@@ -10,7 +10,6 @@ html, body {
   height: 100%;
   font-size: 10px;
   overflow: hidden;
-  background-color: #f4f4f4;
 }
 
 
@@ -45,21 +44,39 @@ section[role="region"] {
  */
 section[role="region"] {
   transform: translateX(+100%);
-  transition: transform .4s ease, visibility .4s;
   visibility: hidden;
-  height: 0;
 }
 
 section[role="region"].previous {
   transform: translateX(-100%);
-  height: 100%;
+  visibility: hidden;
 }
 
 section[role="region"].current {
   transform: translateX(0);
   visibility: visible;
+}
+
+/**
+ * Only use the animation when ready
+ */
+body[data-ready="true"] section[role="region"] {
+  transition: transform .4s ease, visibility .4s;
+}
+
+body[data-ready="true"] section[role="region"].current {
   transition: transform .4s ease;
-  height: 100%;
+}
+
+/**
+ * Only accepts click events after the first panel gets ready
+ */
+body {
+  pointer-events: none;
+}
+
+body[data-ready="true"] {
+  pointer-events: auto;
 }
 
 /**
@@ -81,6 +98,16 @@ section[role="region"] > div {
   will-change: scroll-position;
 }
 
+/**
+ * The back button icon shouldn't be
+ * the same color as other icons.
+ */
+
+gaia-header a:first-child,
+gaia-header button:first-child {
+  color: var(--header-action-button-color) !important;
+}
+
 /*
  * Need this for scrollable background layer
  * optimization in gecko. See Bug 950250
@@ -90,15 +117,42 @@ section[role="region"] > div > ul {
   background-color: #f4f4f4;
 }
 
+/**
+ * 1. Localized text in buttons
+ *    should be hidden.
+ */
+
+gaia-header [data-icon] > span {
+  font-size: 0; /* 1 */
+}
+
+/******************************************************************************
+ * Frame section
+ */
+#frame iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
 /******************************************************************************
  * Activities section = "root" and filtered by category
  */
+
+/**
+ * 1. !important required to override scoped
+ *    styles in <gaia-header>
+ */
+
 #activityDoneButton {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 body[data-filter-by] #activityDoneButton {
-  display: block;
+  display: inherit !important; /* 1 */
 }
 
 body[data-filter-by] #root > div header,
@@ -159,12 +213,20 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
 
 .link-text {
   font-size: 1.4rem;
-  color: #336699;
+  color: #35679A;
   text-decoration: underline;
+}
+
+.link-text:active {
+  background-color: #c1d6e6;
 }
 
 .hint label span {
   top: 2.9rem !important;
+}
+
+.hint span {
+  line-height: 6rem;
 }
 
 .hint .explanation {
@@ -183,6 +245,19 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
   display: none;
 }
 
+
+/******************************************************************************
+ * Disabled items
+ */
+
+.disabled a,
+.disabled p,
+.disabled h2,
+.disabled label,
+.disabled select {
+  opacity: 0.6;
+  pointer-events: none;
+}
 
 /******************************************************************************
  * Wi-Fi settings
@@ -228,22 +303,20 @@ section[data-security*="EAP"] li.auth-phase2,
 section[data-security*="EAP"] li.server-certificate,
 section[data-security*="EAP"] li.server-certificate-description,
 section[data-security*="EAP"] li.identity {
-  display: block;
+  display: inherit;
 }
 
 section li.password {
-  display: block; /*asf*/
+  display: inherit; /*asf*/
   height: 12rem;
   padding-right: 0;
 }
 
 section li.password > label {
-  position: absolute;
-  top: 8.3rem;
-  left: 0;
-  right: 1.5rem;
   height: 3rem;
-  z-index: 1;
+  min-height: 0;
+  margin-top: 0.5rem;
+  margin-left: 0;
 }
 
 section li.password > label > span:after {
@@ -252,17 +325,17 @@ section li.password > label > span:after {
   margin-left: 0;
 }
 
+
 section li.password > label > span {
-  position: absolute;
-  left: 1.5rem;
   padding-left: 3rem;
   height: 3rem;
   color: #848484;
   font-size: 1.7rem;
   line-height: 3rem;
+  margin-right: 1.5rem;
 }
 
-section li.password > label:active > span {
+section li.password > label:active {
   background-color: transparent;
   color: #848484;
 }
@@ -281,11 +354,6 @@ section ul.operate-certificate {
   bottom: 0;
   width: 100%;
   background: url(images/document_bg.png);
-}
-
-#wifi-certificate-files-List li.disabled a {
-  opacity: 0.6;
-  pointer-events: none;
 }
 
 
@@ -361,7 +429,7 @@ section ul.operate-certificate {
 #menuItem-callWaiting .checkbox-label,
 #menuItem-callWaiting[data-state="on"] .checkbox-label,
 #menuItem-callWaiting[data-state="off"] .checkbox-label {
-  display: block;
+  display: inherit;
 }
 
 #menuItem-callWaiting .alert-label,
@@ -370,12 +438,12 @@ section ul.operate-certificate {
   display: none;
 }
 
-#menuItem-callWaiting[data-state="unknown"] .checkbox-label {
+#menuItem-callWaiting[data-state="unknown"] .checkbox-label input ~ span:after {
   display: none;
 }
 
 #menuItem-callWaiting[data-state="unknown"] .alert-label {
-  display: block;
+  display: inherit;
 }
 
 #menuItem-callWaiting .alert-label > span {
@@ -410,6 +478,32 @@ section ul.operate-certificate {
   padding-bottom: 1em;
 }
 
+.apn-list .apn-item .name {
+  position: absolute;
+  left: -1.5rem;
+  top: 0;
+  width: calc(100% - 3.5rem);
+  padding-left: 1.5rem;
+}
+
+.apn-list .apn-item .name:active {
+  background-color: #B2F2FF;
+}
+
+.apn-list .apn-item:after {
+  content: '';
+  position: absolute;
+  background-color: #E6E6E3;
+  right: 3.5rem;
+  width: 0.1rem;
+  height: calc(100% - 1rem);
+  top: 0.5rem;
+}
+
+.apn-list .apn-item .pack-radio > span {
+  background-color: transparent;
+}
+
 /******************************************************************************
  * Internet sharing (Wi-Fi HotSpot)
  */
@@ -421,20 +515,23 @@ section ul.operate-certificate {
   white-space: nowrap;
 }
 
+#hotspot ul #hotspot-settings-section > a span {
+  max-width: 100%;
+}
+
 /******************************************************************************
  * Wallpaper snapshot
  */
 
 #wallpaper-header { border: none; }
 
-#wallpaper {
+.wallpaper {
   position: relative;
   overflow: hidden;
   height: 17rem;
 }
 
-#wallpaper-button {
-  background: url(images/wallpaper_edit.png) no-repeat 25rem 11.5rem / 4.5rem;
+.wallpaper .wallpaper-button {
   position: absolute;
   border: none;
   height: 100%;
@@ -442,12 +539,33 @@ section ul.operate-certificate {
   top: 0;
   left: 0;
   margin: 0;
-}
-#wallpaper-button:active {
-  background-image: url(images/wallpaper_edit_pressed.png);
+  background: none;
 }
 
-#wallpaper-preview {
+.wallpaper .wallpaper-button > span {
+  position: absolute;
+  right: 0; bottom: 0;
+  width: 4.6rem;
+  height: 4.6rem;
+  margin: 1.5rem;
+  font-size: 21px;
+  line-height: 4.6rem;
+  text-align: center;
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  color: #fff;
+}
+
+.wallpaper .wallpaper-button:active > span {
+ background: #00C7EF;
+}
+
+.wallpaper .wallpaper-button > span:before {
+  font-size: 40px;
+  margin-right: -2px;
+}
+
+.wallpaper .wallpaper-preview {
   margin-top: -10rem;
   position: absolute;
   width: 100%;
@@ -464,6 +582,13 @@ section ul.operate-certificate {
   border-bottom: none;
 }
 
+/******************************************************************************
+ * Sound settings
+ */
+
+.manage-tones-button {
+  padding-left: 3rem;
+}
 
 /******************************************************************************
  * Volume & Brightness: min/max icons
@@ -482,16 +607,32 @@ ul li > label.range-icons:before {
   pointer-events: none;
 }
 
-ul li > label.range-icons.brightness:before {
-  background:
-    url(images/range_icons_brightness_min.png) no-repeat 0 50%,
-    url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
-  background-size: 3rem;
-  left: 1rem;
-  right: auto;
+ul li > label.range-icons span {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  padding: 0px;
+  margin: 0px 1.5rem;
+  pointer-events: none;
+  color: #657073;
+  line-height: 6rem;
 }
 
-#brightness-manual div {
+ul li > label.range-icons span:last-child {
+  left: auto;
+  right: 0;
+}
+
+ul li > label.range-icons.volume span {
+  line-height: 12rem;
+  margin: 0 1.6rem;
+}
+
+ul li.brightness-manual > label input[type="range"] {
+  width: calc(100% - 10.8rem);
+}
+
+li.brightness-manual div {
   position: relative;
   top: calc(50% - 1.5rem);
   left: 5rem;
@@ -499,21 +640,20 @@ ul li > label.range-icons.brightness:before {
   width: calc(100% - 10.7rem);
 }
 
-ul li > label.range-icons.volume:before {
-  background:
-    url(images/range_icons_volume_min.png) no-repeat 0 50%,
-    url(images/range_icons_volume_max.png) no-repeat 100% 50%;
-  background-size: 3rem;
-  left: 1.4rem;
-  right: auto;
-  width: calc(100% - 2.1rem);
-  top: calc(50% + .6rem);
+ul li > label.range-icons.volume input {
+  position: inherit;
+  margin-left: 5.8rem;
+  width: calc(100% - 7.5rem);
+  opacity: 0;
+  transition: opacity .6s ease 0s;
 }
 
-ul li > label.range-icons.volume input {
-  width: calc(100% - 10.5rem);
-  top: 0.2rem;
-  left: 0.35rem;
+/******************************************************************************
+ * Accessibility
+ */
+
+#accessibility ul li > a.menu-item {
+  padding: 0 3rem;
 }
 
 /******************************************************************************
@@ -526,7 +666,20 @@ ul li > label.range-icons.volume input {
   background: none;
 }
 
+/**
+ * 1. !important required to override scoped
+ *    styles in <gaia-header>. When we have
+ *    ::content selector in the platform, this
+ *    shouldn't be requireed anymore.
+ */
 #icc .hidden {
+  display: none !important; /* 1 */
+}
+
+/******************************************************************************
+ * Messaging
+ */
+#messaging .simcards-container[hidden] {
   display: none;
 }
 
@@ -534,23 +687,27 @@ ul li > label.range-icons.volume input {
  * Date & Time
  */
 
-#timezone-raw span,
 #dateTime ul.disabled p,
-#dateTime ul.disabled a {
+#dateTime ul.disabled a,
+#dateTime .time-manual.disabled span {
+  color: #797e80;
+}
+
+#dateTime .timezone.disabled select {
   color: #797e80;
   opacity: 0.6;
+  top: 0.1rem;
+  left: 1rem;
+  padding: 0;
+  text-shadow: 0 0 0;
   pointer-events: none;
 }
 
-#dateTime #timezone.disabled {
-  display: none;
-}
-
-#time-manual span {
+#dateTime .time-manual span {
   pointer-events: none;
 }
 
-#time-manual input {
+#dateTime .time-manual input {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -559,6 +716,11 @@ ul li > label.range-icons.volume input {
   opacity: 0;
 }
 
+#dateTime .time-manual label {
+  min-height: 0;
+  height: 0;
+  display: block;
+}
 
 /******************************************************************************
  * Improve Browser OS
@@ -654,6 +816,7 @@ ul li > label.range-icons.volume input {
 #os-license {
   width: 100%;
   height: calc(100% - 5rem);
+  border: 0;
 }
 
 
@@ -665,13 +828,13 @@ ul li > label.range-icons.volume input {
   height: auto;
 }
 
-#call-support-numbers, #online-support-text {
+#help-call-support-numbers, #help-online-support-text {
   display: block;
   line-height: 3rem;
   margin-bottom: 2rem;
 }
 
-#call-support-numbers a, #online-support-text a {
+#help-call-support-numbers a, #help-online-support-text a {
   display: block;
 }
 
@@ -681,19 +844,74 @@ ul li > label.range-icons.volume input {
 }
 
 /******************************************************************************
- * Bluetooth
+ * Firefox Accounts
  */
-#update-device-name > section input {
-  margin: 1rem 0;
+
+.fxa-logo {
+  background-image: url('images/fxa_logo.png');
+  background-repeat: no-repeat;
+  background-size: 16.4rem;
+  margin: 3rem auto 0;
+  width: 17rem;
+  height: 19.5rem;
 }
 
-/* Web activity handling */
-.skin-organic section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/organic/close.png);
+#fxa-unverified .description {
+  background-image: url('images/fxa_envelope.png');
+  background-repeat: no-repeat;
+  background-size: 7rem;
+  background-position: 0 1.5rem;
+  padding-top: 1.5rem;
 }
 
-section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/close.png);
+#fxa-unverified .disabled {
+  color: #ccc;
+}
+
+#fxa-unverified-text {
+  padding-top: 0.8rem;
+  margin-left: 6rem;
+}
+
+/******************************************************************************
+ * Developer and Developer HUD
+ *
+ * Override default behavior to let checkbox text wrap on multiple lines
+ */
+
+#developer ul li > label > span,
+#developer-hud ul li > label > span {
+  overflow: visible;
+  white-space: normal;
+  min-height: 6rem;
+  height: auto;
+  line-height: 2.3rem;
+  padding: 1.9rem 4rem 1.5rem 3rem;
+}
+
+#developer ul li > label.pack-switch > span,
+#developer-hud ul li > label.pack-switch > span {
+  padding-right: 9rem;
+}
+
+#developer-hud ul li > label > span.color-preview {
+  padding-left: 5rem;
+}
+
+#developer-hud ul li.hud-separator {
+  border-top: 0.1rem solid #e6e6e3;
+}
+
+/******************************************************************************
+* App Permissions
+*
+* Note: The reason why we need this style is because element.hidden will make
+* the CSS specificity 0,0,1,0 (Yes, it is a pseudo class). And because our BB
+* 's CSS specificity is much higher than this, we have to override it again
+* to make sure it will display as hidden.
+*/
+.clear-bookmarks-app[hidden] {
+  display: none;
 }
 
 /******************************************************************************
@@ -759,14 +977,14 @@ html[dir="rtl"] section li.password > label {
 
 html[dir="rtl"] section li.password > label > span:after {
   left: auto;
-  right: 0;
+  right: 1.5rem;
   margin-left: auto;
   margin-right: 0;
 }
 
 html[dir="rtl"] section li.password > label > span {
-  left: auto;
-  right: 1.5rem;
+  margin-left: 0;
+  margin-right: 0;
   padding-right: 3rem;
 }
 
@@ -796,7 +1014,7 @@ html[dir="rtl"] ul li > label.range-icons.brightness:before {
   right: 1rem;
 }
 
-html[dir="rtl"] #brightness-manual div {
+html[dir="rtl"] .brightness-manual div {
   left: auto;
   right: 5rem;
 }
@@ -819,12 +1037,16 @@ html[dir="rtl"] #feedback-sad {
   float: left;
 }
 
-html[dir="rtl"] ul li > label.range-icons.volume:before {
-  background-position: 100% 50%, 0 50%;
+html[dir="rtl"] ul li > label.range-icons.volume span {
+  left: auto;
+  right: 0;
 }
 
 html[dir="rtl"] ul li > label.range-icons.volume input {
-  left: auto;
-  right: 0.35rem;
+  margin-right: 5.8rem;
 }
 
+html[dir="rtl"] #developer-hud ul li > label > span.color-preview {
+  padding-left: 0;
+  padding-right: 5rem;
+}

@@ -1,7 +1,7 @@
 'use strict';
 
 (function(window) {
-  var DEBUG = true;
+  var DEBUG = false;
   var _id = 0;
 
   /**
@@ -23,9 +23,14 @@
    */
   BaseUI.prototype.render = function bu_render() {
     this.publish('willrender');
-    this.containerElement.insertAdjacentHTML('beforeend', this.view());
+    this.containerElement.insertAdjacentHTML('afterbegin', this.view());
     this._fetchElements();
     this._registerEvents();
+    if (this.element) {
+      // Force a style flush so that if the UI is immediately shown, any
+      // transition associated with the visible class will play.
+      this.element.clientTop;
+    }
     this.publish('rendered');
   };
 
@@ -60,12 +65,29 @@
     ele.classList.remove('visible');
   };
 
-  BaseUI.prototype.publish = function bu_publish(event, detail) {
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(this.EVENT_PREFIX + event,
-                        true, false, detail || this);
+  BaseUI.prototype.broadcast = function bu_broadcast(event, detail) {
+    if (this.element) {
+      var internalEvent = new CustomEvent('_' + event, {
+        bubbles: false,
+        detail: detail || this
+      });
 
-    this.debug('publish: ' + event);
+      this.debug(' publishing internal event: ' + event);
+      this.element.dispatchEvent(internalEvent);
+    }
+  };
+
+  BaseUI.prototype.publish = function bu_publish(event, detail) {
+    // Dispatch internal event before external events.
+    this.broadcast(event, detail);
+    var evt = new CustomEvent(this.EVENT_PREFIX + event, {
+      bubbles: true,
+      cancelable: false,
+      detail: detail || this
+    });
+
+    this.debug(' publishing external event: ' + event);
+    // Publish external event.
     window.dispatchEvent(evt);
   };
 

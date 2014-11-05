@@ -1,6 +1,7 @@
+/* global AppWindow, BrowserFrame, OrientationManager */
 'use strict';
 
-(function(window) {
+(function(exports) {
   var _id = 0;
 
   /**
@@ -73,21 +74,19 @@
     }
 
     if (caller) {
-      caller.setActivityCallee(this);
-      this.activityCaller = caller;
+      caller.setFrontWindow(this);
+      this.rearWindow = caller;
       if (caller.element) {
         this.containerElement = caller.element;
       }
     }
 
+    this.publish('creating');
     this.render();
     this.publish('created');
-    // We'll open ourselves automatically,
-    // but maybe we should do requestOpen and let manager open us.
-    this.open();
   };
 
-  ActivityWindow.prototype.__proto__ = AppWindow.prototype;
+  ActivityWindow.prototype = Object.create(AppWindow.prototype);
 
   ActivityWindow.prototype.eventPrefix = 'activity';
 
@@ -99,8 +98,8 @@
    */
   ActivityWindow.prototype._DEBUG = false;
 
-  ActivityWindow.prototype.openAnimation = 'slideup';
-  ActivityWindow.prototype.closeAnimation = 'slidedown';
+  ActivityWindow.prototype.openAnimation = 'fade-in';
+  ActivityWindow.prototype.closeAnimation = 'fade-out';
 
   /**
    * ActivityWindow's fullscreen state is copying from the caller
@@ -114,8 +113,8 @@
       return this._fullscreen;
     }
 
-    this._fullscreen = this.activityCaller ?
-                       this.activityCaller.isFullScreen() :
+    this._fullscreen = this.rearWindow ?
+                       this.rearWindow.isFullScreen() :
                        this.manifest ?
                        !!this.manifest.fullscreen :
                        false;
@@ -125,16 +124,15 @@
   /**
    * Lock or unlock orientation for this activity.
    */
-  ActivityWindow.prototype.setOrientation =
-    function acw_setOrientation(noCapture) {
+  ActivityWindow.prototype.lockOrientation =
+    function acw_lockOrientation(noCapture) {
       if (this.isActive()) {
-
         var orientation1 = (this.manifest) ?
                             this.manifest.orientation : null;
         var orientation2 = (this.config.manifest) ?
                             this.config.manifest.orientation : null;
-        var orientation3 = (this.activityCaller.manifest) ?
-                            this.activityCaller.manifest.orientation : null;
+        var orientation3 = (this.rearWindow.manifest) ?
+                            this.rearWindow.manifest.orientation : null;
         var orientation4 = OrientationManager.globalOrientation;
 
         var orientation = orientation1 ||
@@ -161,25 +159,29 @@
           }
         }
       }
-
-      if (!noCapture && this.activityCallee &&
-          this.activityCallee instanceof ActivityWindow) {
-        this.activityCallee.setOrientation(noCapture);
-      }
     };
 
   ActivityWindow.prototype.view = function acw_view() {
-    this.instanceID = _id;
+    this.instanceID = this.CLASS_NAME + '_' + _id;
+    _id++;
     return '<div class="appWindow activityWindow inline-activity' +
-            '" id="activity-window-' + _id++ + '">' +
-            '<div class="screenshot-overlay"></div>' +
+            '" id="' + this.instanceID + '">' +
+            '<div class="titlebar">' +
+            ' <div class="notifications-shadow"></div>' +
+            ' <div class="statusbar-shadow titlebar-maximized"></div>' +
+            ' <div class="statusbar-shadow titlebar-minimized"></div>' +
+            '</div>' +
             '<div class="fade-overlay"></div>' +
+            '<div class="browser-container">' +
+            ' <div class="screenshot-overlay"></div>' +
+            '</div>' +
             '</div>';
   };
 
   ActivityWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
+    'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory
@@ -188,71 +190,12 @@
   ActivityWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
       'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
-      '_localized', '_opened', '_closing'];
-
-  ActivityWindow.prototype._handle__closing =
-    function acw__handle__closing() {
-      this.restoreCaller();
-    };
+      '_localized'];
 
   ActivityWindow.prototype._handle_mozbrowseractivitydone =
     function aw__handle_mozbrowseractivitydone() {
       this.kill();
     };
-
-  /**
-   * Kill ActivityWindow. We overwrite the default behavior of
-   * AppWindow.kill here.
-   */
-  ActivityWindow.prototype.kill = function acw_kill(evt) {
-    if (this._killed)
-      return;
-    this._killed = true;
-    if (evt && 'stopPropagation' in evt) {
-      evt.stopPropagation();
-    }
-    if (this.isActive()) {
-      var self = this;
-      this.element.addEventListener('_closed', function onClose() {
-        self.element.removeEventListener('_closed', onClose);
-        self.publish('terminated');
-        // If caller is an instance of appWindow,
-        // tell AppWindowManager to open it.
-        // XXX: Call this.activityCaller.open() if open logic is done.
-        self.debug('request caller to open again');
-        if (self.activityCallee) {
-          self.activityCallee.kill();
-        }
-        if (self.activityCaller instanceof AppWindow) {
-          // If we're killed by event handler, display the caller.
-          if (evt) {
-            self.activityCaller.requestOpen();
-          }
-        } else if (self.activityCaller instanceof ActivityWindow) {
-          if (evt) {
-            self.activityCaller.open();
-          }
-        } else {
-          console.warn('unknown window type of activity caller.');
-        }
-
-        var e = self.element.parentNode.removeChild(self.element);
-        self.debug('removing ' + e);
-        self.publish('removed');
-      });
-      this.close();
-    } else {
-      this.publish('terminated');
-      if (this.activityCallee) {
-        this.activityCallee.kill();
-      }
-      var e = this.element.parentNode.removeChild(this.element);
-      this.debug('removing ' + e);
-      this.publish('removed');
-    }
-    this.debug('killed by ', evt ? evt.type : 'direct function call.');
-    this.activityCaller.unsetActivityCallee();
-  };
 
   ActivityWindow.prototype.render = function acw_render() {
     this.publish('willrender');
@@ -270,8 +213,10 @@
     };
     this.browser = new BrowserFrame(this.browser_config);
     this.element =
-      document.getElementById('activity-window-' + this.instanceID);
-    this.element.insertBefore(this.browser.element, this.element.childNodes[0]);
+      document.getElementById(this.instanceID);
+
+    this.browserContainer = this.element.querySelector('.browser-container');
+    this.browserContainer.appendChild(this.browser.element);
     this.frame = this.element;
     this.iframe = this.browser.element;
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
@@ -301,52 +246,20 @@
    * Note: this overrides AppWindow.prototype.requestOpen().
    */
   ActivityWindow.prototype.requestOpen = function acw_requestOpen() {
-    if (this.activityCaller)
-      this.activityCaller.requestOpen();
-  };
-
-  /**
-   * Restore caller's visibility when we start closing.
-   * But if the caller is not active, it would return early.
-   */
-  ActivityWindow.prototype.restoreCaller = function restoreCaller() {
-    var app = this.activityCaller;
-    // Do nothing if app is not active.
-    if (!app || !app.isActive() || app._killed)
-      return;
-
-    // Do not bubble the orientation lock this time.
-    app.setOrientation(true);
-    if (app instanceof AppWindow) {
-      // XXX: Refine this in AttentionWindow
-      if (!AttentionScreen.isFullyVisible()) {
-        app.setVisible(true);
-      }
-    } else if (app instanceof ActivityWindow) {
-      // XXX: Refine this in AttentionWindow
-      if (!AttentionScreen.isFullyVisible()) {
-        app.setVisible(true);
-      }
+    if (this.rearWindow) {
+      this.rearWindow.requestOpen();
     }
   };
 
-  ActivityWindow.prototype._handle__opened =
-    function acw__handle__opened() {
-      var app = this.activityCaller;
-      // Set page visibility of focused app to false
-      // once inline activity frame's transition is ended.
-      // XXX: We have trouble to make all inline activity
-      // openers being sent to background now,
-      // because of OOM killer may kill them accidently.
-      // See https://bugzilla.mozilla.org/show_bug.cgi?id=914412,
-      // and https://bugzilla.mozilla.org/show_bug.cgi?id=822325.
-      // So we only set browser app(in-process)'s page visibility
-      // to false now to resolve 914412.
-      if (app && app instanceof AppWindow && !app.isOOP()) {
-        app.setVisible(false, true);
-      }
-    };
+  /**
+   * Request to close. We don't need to reset the visibility of
+   * the bottom window here so we simply close.
+   * Note: this overrides AppWindow.prototype.requestClose().
+   */
+  ActivityWindow.prototype.requestClose = function acw_requestOpen() {
+    this.close();
+  };
 
-  window.ActivityWindow = ActivityWindow;
+  exports.ActivityWindow = ActivityWindow;
 
-}(this));
+}(window));

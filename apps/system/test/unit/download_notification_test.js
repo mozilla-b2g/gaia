@@ -7,7 +7,7 @@ requireApp('system/test/unit/mock_download_store.js');
 requireApp('system/test/unit/mock_download_ui.js');
 requireApp('system/test/unit/mock_download_formatter.js');
 requireApp('system/test/unit/mock_download_helper.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_statusbar.js');
@@ -295,15 +295,8 @@ suite('system/DownloadNotification >', function() {
       download.state = 'finalized';
       download.onstatechange();
 
-      sinon.assert.called(NotificationScreen.removeNotification);
-
-      var args = NotificationScreen.removeNotification.args[0];
-      var id = DownloadFormatter.getUUID(download);
-      assert.isTrue(args.indexOf(id) !== -1);
-
-      assert.isNull(notification.id);
-      assert.isNull(notification.download);
-      assert.isNull(notification.state);
+      assert.isFalse(NotificationScreen.removeNotification.called,
+                     'Notification should remain when download is finalized.');
     });
 
   });
