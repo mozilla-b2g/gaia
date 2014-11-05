@@ -7,7 +7,7 @@
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
          Thread, MultiSimActionButton, Navigation, Promise, LazyLoader,
-         Dialog, SharedComponents,
+         SharedComponents,
          Errors,
          EventDispatcher,
          SelectionHandler
@@ -1280,7 +1280,9 @@ var ThreadUI = {
       phoneDetails = Utils.getPhoneDetails(number, address);
 
       if (phoneDetails) {
-        carrierTag.innerHTML = SharedComponents.phoneDetails(phoneDetails);
+        carrierTag.innerHTML = SharedComponents.phoneDetails(
+          phoneDetails
+        ).toString();
 
         threadMessages.classList.add('has-carrier');
       } else {
@@ -1835,30 +1837,10 @@ var ThreadUI = {
       );
     }
 
-    var dialog = new Dialog({
-      title: {
-        l10nId: 'messages'
-      },
-      body: {
-        l10nId: 'deleteMessages-confirmation'
-      },
-      options: {
-        cancel: {
-          text: {
-            l10nId: 'cancel'
-          }
-        },
-        confirm: {
-          text: {
-            l10nId: 'delete'
-          },
-          method: performDeletion.bind(this),
-          className: 'danger'
-        }
-      }
-    });
-
-    dialog.show();
+    return Utils.confirm(
+      'deleteMessages-confirmation', null,
+      { text: 'delete', className: 'danger' }
+    ).then(performDeletion.bind(this));
   },
 
   cancelEdit: function thlui_cancelEdit() {
@@ -1934,10 +1916,9 @@ var ThreadUI = {
     // Click events originating from a "message-status" aside of an error
     // message should trigger a prompt for retransmission.
     if (elems.message.classList.contains('error') && elems.messageStatus) {
-      if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
+      Utils.confirm('resend-confirmation').then(() => {
         this.resendMessage(elems.message.dataset.messageId);
-      }
-      return;
+      });
     }
   },
 
@@ -2044,15 +2025,14 @@ var ThreadUI = {
           {
             l10nId: 'delete',
             method: function deleteMessage(messageId) {
-              if (window.confirm(navigator.mozL10n
-                .get('deleteMessage-confirmation'))) {
-                // Complete deletion in DB and UI
-                MessageManager.deleteMessages(messageId,
-                  function onDeletionDone() {
-                    ThreadUI.deleteUIMessages(messageId);
-                  }
+              Utils.confirm(
+                'deleteMessage-confirmation', null,
+                { text: 'delete', className: 'danger' }
+              ).then(() => {
+                MessageManager.deleteMessages(
+                  messageId, () => ThreadUI.deleteUIMessages(messageId)
                 );
-              }
+              });
             },
             params: [messageId]
           }

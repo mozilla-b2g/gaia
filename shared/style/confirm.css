@@ -58,7 +58,7 @@ form[role="dialog"][data-type="confirm"] menu {
   margin: 0;
   padding: 1.5rem;
   background: #4d4d4d;
-  display: block;
+  display: flex;
   overflow: hidden;
   position: absolute;
   left: 0;
@@ -135,22 +135,13 @@ button[disabled]::-moz-selection {
   -moz-user-select: none;
 }
 
+form[role="dialog"][data-type="confirm"] menu button {
+  margin: 0;
+  -moz-margin-end: 1rem;
+}
 
 form[role="dialog"][data-type="confirm"] menu button:last-child {
-  margin-left: 1rem;
-}
-
-form[role="dialog"][data-type="confirm"] menu button,
-form[role="dialog"][data-type="confirm"] menu button:first-child {
-  margin: 0 0.5rem;
-}
-
-form[role="dialog"][data-type="confirm"] menu button {
-  width: calc((100% - 2rem) / 2);
-}
-
-form[role="dialog"][data-type="confirm"] menu button.full {
-  width: 100%;
+  -moz-margin-end: 0;
 }
 
 /*

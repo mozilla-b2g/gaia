@@ -21,7 +21,7 @@
         throw new Error('Phone details are required!');
       }
 
-      return getTemplate('phone-details-tmpl').interpolate({
+      return getTemplate('phone-details-tmpl').prepare({
         type: details.type,
         number: details.number,
         carrier: details.carrier,

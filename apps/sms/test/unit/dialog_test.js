@@ -18,15 +18,15 @@ suite('Dialog', function() {
     navigator.mozL10n = MockL10n;
     params = {
       title: {
-        value: 'Foo Title'
+        raw: 'Foo Title'
       },
       body: {
-        value: 'Foo Body'
+        raw: 'Foo Body'
       },
       options: {
         cancel: {
           text: {
-            value: 'Foo Cancel'
+            raw: 'Foo Cancel'
           }
         }
       }
@@ -128,7 +128,7 @@ suite('Dialog', function() {
     // We add the confirm
     params.options.confirm = {
       text: {
-        value: 'Foo Cancel'
+        raw: 'Foo Cancel'
       }
     };
     // Now we create the new element
@@ -152,7 +152,7 @@ suite('Dialog', function() {
     // We add the confirm
     params.options.confirm = {
       text: {
-        value: 'Foo Cancel'
+        raw: 'Foo Cancel'
       },
       className: 'test-class'
     };
@@ -175,21 +175,13 @@ suite('Dialog', function() {
   });
 
   test('Checking the localization.', function() {
-    params.title = {
-      l10nId: 'l10n Title'
-    },
-    params.body = {
-      l10nId: 'l10n Body'
-    },
+    params.title = 'l10n Title',
+    params.body = { raw: 'non-l10n Body' },
     params.options.cancel = {
-      text: {
-        l10nId: 'l10n keyCancel'
-      }
+      text: { id: 'l10n keyCancel' }
     };
     params.options.confirm = {
-      text: {
-        l10nId: 'l10n keyConfirm'
-      }
+      text: { id: 'l10n keyConfirm', args: { n: 1 } }
     };
     var l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
     // Now we create the new element
@@ -202,43 +194,38 @@ suite('Dialog', function() {
     // We check the type
     var dialogForm = currentlyDefinedForms[currentlyDefinedFormsLength - 1];
     // We check how many buttons we have (mandatory + confirm one)
-    var titleDOM = dialogForm.querySelector('strong');
-    var bodyDOM = dialogForm.querySelector('small');
+    var titleDOM = dialogForm.querySelector('h1');
+    var bodyDOM = dialogForm.querySelector('p');
     var formOptions = dialogForm.getElementsByTagName('button');
     assert.equal(formOptions.length, 2);
+
     // We check localization
-    assert.ok(l10nSpy.calledWith(titleDOM, params.title.l10nId),
-      'Title DOM localized with proper string');
-    assert.ok(l10nSpy.calledWith(bodyDOM, params.body.l10nId),
-      'Body DOM localized with proper string');
-    assert.ok(l10nSpy.calledWith(formOptions[0],
-      params.options.cancel.text.l10nId),
-      'Confirm DOM localized with proper string');
-    assert.ok(l10nSpy.calledWith(formOptions[1],
-      params.options.confirm.text.l10nId),
-      'Cancel DOM localized with proper string');
+    assert.equal(titleDOM.getAttribute('data-l10n-id'), params.title);
+    assert.equal(bodyDOM.textContent, params.body.raw);
+    assert.isFalse(bodyDOM.hasAttribute('data-l10n-id'));
+    sinon.assert.calledWith(
+      l10nSpy, formOptions[0], params.options.cancel.text.id
+    );
+    sinon.assert.calledWith(
+      l10nSpy, formOptions[1],
+      params.options.confirm.text.id, params.options.confirm.text.args
+    );
   });
 
   test('Checking parametrized body localization.', function() {
-    params.title = {
-      l10nId: 'l10n Title'
-    },
+    params.title = 'l10n Title';
     params.body = {
-      l10nId: 'l10n Body',
-      l10nArgs: {
+      id: 'l10n Body',
+      args: {
         n: 3,
         numbers: ['123', '456', '789']
       }
     };
     params.options.cancel = {
-      text: {
-        l10nId: 'l10n keyCancel'
-      }
+      text: 'l10n keyCancel'
     };
     params.options.confirm = {
-      text: {
-        l10nId: 'l10n keyConfirm'
-      }
+      text: 'l10n keyConfirm'
     };
 
     // Now we create the new element
@@ -251,10 +238,16 @@ suite('Dialog', function() {
     // We check the type
     var dialogForm = currentlyDefinedForms[currentlyDefinedFormsLength - 1];
     // We check how many buttons we have (mandatory + confirm one)
-    var bodyDOM = dialogForm.querySelector('small');
+    var bodyDOM = dialogForm.querySelector('p');
     // We check localization
-    assert.equal(bodyDOM.getAttribute('data-l10n-id'), params.body.l10nId,
-      'Body DOM localized with proper string');
+    assert.equal(
+      bodyDOM.getAttribute('data-l10n-id'), params.body.id,
+      'Body DOM localized with proper string'
+    );
+    assert.equal(
+      bodyDOM.getAttribute('data-l10n-args'), JSON.stringify(params.body.args),
+      'Body DOM localized with proper string'
+    );
   });
 
   test('Should prevent pointer events before transitionend', function() {

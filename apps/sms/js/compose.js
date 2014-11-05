@@ -699,11 +699,14 @@ var Compose = (function() {
     _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
       var errId = err instanceof DOMError ? err.name : err.message;
       if (errId === 'file too large') {
-        alert(navigator.mozL10n.get('attached-files-too-large', {
-          n: 1,
-          mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
-        }));
-        
+        Utils.alert({
+          id: 'attached-files-too-large',
+          args: {
+            n: 1,
+            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+          }
+        });
+
       //'pick cancelled' is the error thrown when the pick activity app is
       // canceled normally
       } else if (errId !== 'ActivityCanceled' && errId !== 'pick cancelled') {

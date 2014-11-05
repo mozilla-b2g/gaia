@@ -3,7 +3,6 @@
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
          MockOptionMenu, Utils, Contacts, MockContact, Navigation,
          MockSettings,
-         Dialog,
          InterInstanceEventDispatcher,
          MockStickyHeader,
          StickyHeader
@@ -13,7 +12,6 @@
 
 require('/shared/js/usertiming.js');
 requireApp('sms/js/utils.js');
-require('/js/dialog.js');
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
@@ -640,8 +638,6 @@ suite('thread_list_ui', function() {
     });
 
     suite('confirm true', function() {
-      var dialogStub;
-
       function getMessagesCallParams(threadId) {
         return  {
           each: sinon.match.func,
@@ -655,48 +651,34 @@ suite('thread_list_ui', function() {
 
         ThreadListUI.selectionHandler.selected = new Set(selectedIds);
 
-        Dialog.firstCall.args[0].options.confirm.method();
+        return ThreadListUI.delete();
       }
 
       setup(function() {
-        dialogStub = sinon.createStubInstance(Dialog);
-
         this.sinon.stub(WaitingScreen, 'show');
         this.sinon.stub(WaitingScreen, 'hide');
         this.sinon.stub(MessageManager, 'deleteMessages');
-        this.sinon.stub(window, 'Dialog').returns(dialogStub);
-
-        ThreadListUI.delete();
+        this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
       });
 
-      test('called dialog with proper message', function() {
-        sinon.assert.called(dialogStub.show);
-
-        sinon.assert.calledWith(Dialog, {
-          title: { l10nId: 'messages' },
-          body: { l10nId: 'deleteThreads-confirmation2' },
-          options: {
-            cancel: {
-              text: { l10nId: 'cancel' }
-            },
-            confirm: {
-              text: { l10nId: 'delete' },
-              className: 'danger',
-              method: sinon.match.func
-            }
-          }
-        });
+      test('called confirm with proper message', function(done) {
+        selectThreadsAndDelete(threadDraftIds).then(() => {
+          sinon.assert.calledWith(
+            Utils.confirm, 'deleteThreads-confirmation2', null,
+            { text: 'delete', className: 'danger' }
+          );
+        }).then(done, done);
       });
 
       suite('delete drafts only', function() {
-        setup(function() {
+        setup(function(done) {
           this.sinon.spy(Drafts, 'store');
 
           threadDraftIds.forEach((id) => {
             assert.isTrue(Drafts.byThreadId(id).length > 0);
           });
 
-          selectThreadsAndDelete(threadDraftIds);
+          selectThreadsAndDelete(threadDraftIds).then(done, done);
         });
 
         test('removes thread draft from the DOM', function() {
@@ -719,11 +701,11 @@ suite('thread_list_ui', function() {
       suite('delete real threads only', function() {
         var threadsToDelete = threadIds.slice(0, 2);
 
-        setup(function() {
+        setup(function(done) {
           this.sinon.spy(Drafts, 'store');
           this.sinon.spy(Utils, 'closeNotificationsForThread');
 
-          selectThreadsAndDelete(threadsToDelete);
+          selectThreadsAndDelete(threadsToDelete).then(done, done);
         });
 
         test('getMessages is called for the right thread', function() {
@@ -783,11 +765,11 @@ suite('thread_list_ui', function() {
       suite('delete both real threads and drafts', function() {
         var threadsToDelete = threadDraftIds.concat(threadIds);
 
-        setup(function() {
+        setup(function(done) {
           this.sinon.spy(Drafts, 'store');
           this.sinon.spy(Utils, 'closeNotificationsForThread');
 
-          selectThreadsAndDelete(threadsToDelete);
+          selectThreadsAndDelete(threadsToDelete).then(done, done);
         });
 
         test('getMessages is called for the right thread', function() {

@@ -10,27 +10,24 @@ suite('SharedComponents >', function() {
 
   suite('phoneDetails >', function() {
     test('localized correctly', function() {
-      var phoneDetailsMarkup = SharedComponents.phoneDetails({
+      var phoneDetails = SharedComponents.phoneDetails({
         number: '1',
         type: 'Mobile'
-      });
-
-      var node = document.createElement('div');
-      node.innerHTML = phoneDetailsMarkup;
+      }).toDocumentFragment();
 
       assert.equal(
-        node.querySelector('.phone-type').getAttribute('data-l10n-id'),
+        phoneDetails.querySelector('.phone-type').getAttribute('data-l10n-id'),
         'Mobile'
       );
 
       assert.equal(
-        node.querySelector('.phone-type-separator')
+        phoneDetails.querySelector('.phone-type-separator')
           .getAttribute('data-l10n-id'),
         'phone-type-separator'
       );
 
       assert.equal(
-        node.querySelector('.phone-carrier-separator')
+        phoneDetails.querySelector('.phone-carrier-separator')
           .getAttribute('data-l10n-id'),
         'phone-carrier-separator'
       );
@@ -47,71 +44,71 @@ suite('SharedComponents >', function() {
     });
 
     test('no phone type, no phone carrier', function() {
-      var phoneDetailsMarkup = SharedComponents.phoneDetails({
+      var phoneDetails = SharedComponents.phoneDetails({
         number: '1'
-      });
+      }).toDocumentFragment();
 
-      var node = document.createElement('div');
-
-      node.innerHTML = phoneDetailsMarkup;
-
-      assert.isNull(node.querySelector('.has-phone-type'));
-      assert.isNull(node.querySelector('.has-phone-carrier'));
-      assert.equal(node.querySelector('.phone-number').textContent, '1');
+      assert.isNull(phoneDetails.querySelector('.has-phone-type'));
+      assert.isNull(phoneDetails.querySelector('.has-phone-carrier'));
+      assert.equal(
+        phoneDetails.querySelector('.phone-number').textContent, '1'
+      );
     });
 
     test('no phone carrier', function() {
-      var phoneDetailsMarkup = SharedComponents.phoneDetails({
+      var phoneDetails = SharedComponents.phoneDetails({
         number: '1',
         type: 'Mobile'
-      });
+      }).toDocumentFragment();
 
-      var node = document.createElement('div');
-
-      node.innerHTML = phoneDetailsMarkup;
-
-      assert.isNotNull(node.querySelector('.has-phone-type'));
-      assert.isNull(node.querySelector('.has-phone-carrier'));
-      assert.equal(node.querySelector('.phone-number').textContent, '1');
-      assert.equal(node.querySelector('.phone-type').textContent, 'Mobile');
+      assert.isNotNull(phoneDetails.querySelector('.has-phone-type'));
+      assert.isNull(phoneDetails.querySelector('.has-phone-carrier'));
+      assert.equal(
+        phoneDetails.querySelector('.phone-number').textContent, '1'
+      );
+      assert.equal(
+        phoneDetails.querySelector('.phone-type').textContent, 'Mobile'
+      );
     });
 
     test('no phone type, but with carrier', function() {
-      var phoneDetailsMarkup = SharedComponents.phoneDetails({
+      var phoneDetails = SharedComponents.phoneDetails({
         number: '1',
         carrier: 'MTS'
-      });
+      }).toDocumentFragment();
 
-      var node = document.createElement('div');
-
-      node.innerHTML = phoneDetailsMarkup;
-
-      assert.isNull(node.querySelector('.has-phone-type'));
-      assert.isNotNull(node.querySelector('.has-phone-carrier'));
-      assert.equal(node.querySelector('.phone-number').textContent, '1');
-      assert.equal(node.querySelector('.phone-carrier').textContent, 'MTS');
+      assert.isNull(phoneDetails.querySelector('.has-phone-type'));
+      assert.isNotNull(phoneDetails.querySelector('.has-phone-carrier'));
+      assert.equal(
+        phoneDetails.querySelector('.phone-number').textContent, '1'
+      );
+      assert.equal(
+        phoneDetails.querySelector('.phone-carrier').textContent, 'MTS'
+      );
     });
 
     test('with phone type and carrier', function() {
-      var phoneDetailsMarkup = SharedComponents.phoneDetails({
+      var phoneDetails = SharedComponents.phoneDetails({
         number: '1',
         type: 'Mobile',
         carrier: 'MTS'
-      });
+      }).toDocumentFragment();
 
-      var node = document.createElement('div');
-
-      node.innerHTML = phoneDetailsMarkup;
-
-      assert.isNotNull(node.querySelector('.has-phone-type'));
-      assert.isNotNull(node.querySelector('.has-phone-carrier'));
-      assert.equal(node.querySelector('.phone-number').textContent, '1');
-      assert.equal(node.querySelector('.phone-type').textContent, 'Mobile');
-      assert.equal(node.querySelector('.phone-carrier').textContent, 'MTS');
+      assert.isNotNull(phoneDetails.querySelector('.has-phone-type'));
+      assert.isNotNull(phoneDetails.querySelector('.has-phone-carrier'));
+      assert.equal(
+        phoneDetails.querySelector('.phone-number').textContent, '1'
+      );
+      assert.equal(
+        phoneDetails.querySelector('.phone-type').textContent, 'Mobile'
+      );
+      assert.equal(
+        phoneDetails.querySelector('.phone-carrier').textContent, 'MTS'
+      );
     });
 
     test('with interpolation options', function() {
-      this.sinon.spy(Template.prototype, 'interpolate');
+      this.sinon.spy(Template.prototype, 'prepare');
 
       var interpolationOptions = {
         safe: ['number']
@@ -124,7 +121,7 @@ suite('SharedComponents >', function() {
       }, interpolationOptions);
 
       sinon.assert.calledWithMatch(
-        Template.prototype.interpolate,
+        Template.prototype.prepare,
         sinon.match.any,
         interpolationOptions
       );
