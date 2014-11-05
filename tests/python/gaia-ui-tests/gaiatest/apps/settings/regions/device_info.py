@@ -11,7 +11,7 @@ class DeviceInfo(Base):
     _phone_number_locator = (By.ID, 'deviceInfo-msisdns')
     _model_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.hardware"]')
     _software_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.software"]')
-    _more_info_button_locator = (By.CSS_SELECTOR, '#about button[data-l10n-id="more-info"]')
+    _more_info_button_locator = (By.CSS_SELECTOR, 'a[href="#about-moreInfo"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
