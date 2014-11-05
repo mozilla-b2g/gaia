@@ -25,7 +25,7 @@ task:
 
     command:
       - entrypoint
-      - mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log
+      - mkdir -p artifacts && npm rebuild && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log
 
     artifacts:
       'public/marionette_js_tests':
