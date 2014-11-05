@@ -238,16 +238,6 @@ button::-moz-focus-inner {
   font-family: Sans-serif;
 }
 
-/* For keyboard layout menu*/
-.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:before,
-.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:after {
-  display: inherit;
-}
-
-.keyboard-key.special-key.highlighted.kbr-menu-on .visual-wrapper > .key-element {
-  font-size: 0;
-}
-
 /* Key states */
 
 /* Active key, used for shift key - uppercase */
@@ -268,15 +258,6 @@ button::-moz-focus-inner {
 /* The underline for caps lock */
 .keyboard-key.kbr-key-hold:not(.highlighted) > .visual-wrapper {
   box-shadow: 0 0.4rem 0 #00caf2;
-}
-
-/* Alt menu enabled */
-.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > .key-element {
-  background: none;
-}
-
-.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > .popup {
-  display: none;
 }
 
 .keyboard-key.pinyin-ch-ellipsis > .visual-wrapper > .key-element {

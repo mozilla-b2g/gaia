@@ -1,6 +1,6 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global AlternativesCharMenuView, HandwritingPadView */
+/* global AlternativesCharMenuView, HandwritingPadView, KeyView */
 
 'use strict';
 
@@ -26,8 +26,6 @@ var IMERender = (function() {
   // with; essentially the revrse mapping of |renderingManager._domObjectMap|.
   // ideally this should only be accessed by this renderer and alt_char_menu's
   // view.
-  var targetObjDomMap = null;
-
   var layoutWidth = 10;
 
   var numberOfCandidatesPerRow = 8;
@@ -38,23 +36,6 @@ var IMERender = (function() {
   var cachedWindowHeight = -1;
   var cachedWindowWidth = -1;
 
-  var ARIA_LABELS = {
-    '⇪': 'upperCaseKey2',
-    '⌫': 'backSpaceKey2',
-    '&nbsp': 'spaceKey2',
-    '↵': 'returnKey2',
-    '.': 'periodKey2',
-    ',': 'commaKey2',
-    ':': 'colonKey2',
-    ';': 'semicolonKey2',
-    '?': 'questionMarkKey2',
-    '!': 'exclamationPointKey2',
-    '(': 'leftBracketKey2',
-    ')': 'rightBracketKey2',
-    '"': 'doubleQuoteKey2',
-    '«': 'leftDoubleAngleQuoteKey2',
-    '»': 'rightDoubleAngleQuoteKey2'
-  };
 
   window.addEventListener('resize', function kr_onresize() {
     cachedWindowHeight = window.innerHeight;
@@ -72,7 +53,6 @@ var IMERender = (function() {
     cachedWindowHeight = window.innerHeight;
     cachedWindowWidth = window.innerWidth;
 
-    targetObjDomMap = new WeakMap();
     viewMap = new WeakMap();
   };
 
@@ -220,14 +200,13 @@ var IMERender = (function() {
     // Create canvas for handwriting.
     if ('handwritingPadOptions' in layout) {
       var handwritingPadView = new HandwritingPadView();
-      var canvas = handwritingPadView.getHandwritingPad();
-      content.appendChild(canvas);
+      content.appendChild(handwritingPadView.element);
 
       var target = {
         isHandwritingPad: true
       };
 
-      setDomElemViewTargetObject(canvas, target, handwritingPadView);
+      registerView(target, handwritingPadView);
     }
 
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
@@ -241,86 +220,25 @@ var IMERender = (function() {
       }
 
       row.forEach((function buildKeyboardColumns(key) {
-        // Keys may be hidden if the .hidden property contains the inputType
-        if (key.hidden && key.hidden.indexOf(flags.inputType) !== -1)
-          return;
-
-        // Keys may be visible if the .visibile property contains the inputType
-        if (key.visible && key.visible.indexOf(flags.inputType) === -1)
-          return;
-
-        var attributeList = [];
-        var className = '';
-
-        if (key.isSpecialKey) {
-          className = 'special-key';
-        } else {
-          // The 'key' role tells an assistive technology that these buttons
-          // are used for composing text or numbers, and should be easier to
-          // activate than usual buttons. We keep special keys, like backspace,
-          // as buttons so that their activation is not performed by mistake.
-          attributeList.push({
-            key: 'role',
-            value: 'key'
-          });
-
-          if (layout.keyClassName) {
-            className = layout.keyClassName;
-          }
-        }
-
-        if (key.className) {
-          className += ' ' + key.className;
-        }
-
         var ratio = key.ratio || 1;
         rowLayoutWidth += ratio;
 
-        var keyWidth = placeHolderWidth * ratio;
+        // One key in layout may be used to create multiple keyViews in
+        // different pages, so create a unique instance here.
+        var target = Object.freeze(Object.create(key));
+        var options = {
+            keyClassName: layout.keyClassName,
+            outputChar: key.uppercaseValue,
+            keyWidth: (placeHolderWidth * ratio)
+        };
 
-        if (key.disabled) {
-          attributeList.push({
-            key: 'disabled',
-            value: 'true'
-          });
+        if (layout.secondLayout) {
+          options.altOutputChar = key.value;
         }
 
-        if (key.ariaLabel || ARIA_LABELS[key.value]) {
-          attributeList.push({
-            key: 'data-l10n-id',
-            value: key.ariaLabel || ARIA_LABELS[key.value]
-          });
-        } else {
-          attributeList.push({
-            key: 'aria-label',
-            value: key.ariaLabel || key.value
-          });
-        }
-
-        // If this layout requires different rendering for uppercase/lowercase
-        // buttons, we will set the outputChar as an array, and buildKey()
-        // would be smart enough to put two label <span>s in the DOM.
-        var outputChar = (!layout.secondLayout) ?
-          key.uppercaseValue : [key.uppercaseValue, key.value];
-
-        var keyElement = buildKey(outputChar, className, keyWidth + 'px',
-          key, key.longPressValue, attributeList);
-
-        // a few dataset properties are retained in bug 1044525 because some css
-        // and ui/integration tests rely on them.
-        // also to not break them we spell keycode instead of keyCode in dataset
-        keyElement.dataset.keycode = key.keyCode;
-        keyElement.dataset.keycodeUpper = key.keyCodeUpper;
-        if ('targetPage' in key) {
-          keyElement.dataset.targetPage = key.targetPage;
-        }
-        if ('compositeKey' in key) {
-          keyElement.dataset.compositeKey = key.compositeKey;
-        }
-
-        kbRow.appendChild(keyElement);
-
-        setDomElemTargetObject(keyElement, key);
+        var keyView = new KeyView(target, options, IMERender);
+        keyView.render();
+        kbRow.appendChild(keyView.element);
       }));
 
       if ('handwritingPadOptions' in layout &&
@@ -358,16 +276,23 @@ var IMERender = (function() {
   };
 
   // Highlight the key according to the case.
-  var highlightKey = function kr_updateKeyHighlight(key) {
-    var keyElem = targetObjDomMap.get(key);
+  var highlightKey = function kr_updateKeyHighlight(target) {
+    var keyView = viewMap.get(target);
+    if (!keyView) {
+      return;
+    }
 
-    keyElem.classList.add('highlighted');
+    keyView.highlight();
   };
 
   // Unhighlight a key
-  var unHighlightKey = function kr_unHighlightKey(key) {
-    var keyElem = targetObjDomMap.get(key);
-    keyElem.classList.remove('highlighted');
+  var unHighlightKey = function kr_unHighlightKey(target) {
+    var keyView = viewMap.get(target);
+    if (!keyView) {
+      return;
+    }
+
+    keyView.unHighlight();
   };
 
   var toggleCandidatePanel = function(expand) {
@@ -639,21 +564,17 @@ var IMERender = (function() {
 
   // Show char alternatives.
   var showAlternativesCharMenu = function(key, altChars) {
-
-    var keyWidth = (cachedWindowWidth / layoutWidth) | 0;
-    var renderer = {
-      ARIA_LABELS: ARIA_LABELS,
-      buildKey: buildKey,
-      keyWidth: keyWidth,
-      screenInPortraitMode: screenInPortraitMode,
-      renderingManager: renderingManager
+    var options = {
+      keyWidth: (cachedWindowWidth / layoutWidth) | 0,
+      screenInPortraitMode: screenInPortraitMode
     };
 
     alternativesCharMenu = new AlternativesCharMenuView(activeIme,
                                                         altChars,
-                                                        renderer);
-    alternativesCharMenu.show(key);
-    targetObjDomMap.get(key).classList.add('kbr-menu-on');
+                                                        options,
+                                                        IMERender);
+    var keyElement = viewMap.get(key).element;
+    alternativesCharMenu.show(keyElement);
     _menuKey = key;
 
     return alternativesCharMenu;
@@ -662,7 +583,6 @@ var IMERender = (function() {
   // Hide the alternative menu
   var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {
     alternativesCharMenu.hide();
-    targetObjDomMap.get(_menuKey).classList.remove('kbr-menu-on');
   };
 
   var _keyArray = []; // To calculate proximity info for predictive text
@@ -862,67 +782,6 @@ var IMERender = (function() {
     return toggleButton;
   };
 
-  var buildKey = function buildKey(label, className, width, key, altNote,
-                                   attributeList) {
-    var altNoteNode;
-    if (altNote) {
-      altNoteNode = document.createElement('div');
-      altNoteNode.className = 'alt-note';
-      altNoteNode.textContent = altNote;
-    }
-
-    var contentNode = document.createElement('button');
-    contentNode.className = 'keyboard-key ' + className;
-    contentNode.style.width = width;
-
-    if (attributeList) {
-      attributeList.forEach(function(attribute) {
-        contentNode.setAttribute(attribute.key, attribute.value);
-      });
-    }
-
-    var vWrapperNode = document.createElement('span');
-    vWrapperNode.className = 'visual-wrapper';
-
-    var labelNode = document.createElement('span');
-    // Using innerHTML here because some labels (so far only the &nbsp; in the
-    // space key) can be HTML entities.
-    labelNode.innerHTML = Array.isArray(label) ? label[0] : label;
-    labelNode.className = 'key-element';
-    labelNode.dataset.label = Array.isArray(label) ? label[0] : label;
-    vWrapperNode.appendChild(labelNode);
-
-    // If the |label| argument is an array, that means we need to insert another
-    // DOM element represents the lowercase label so that container styling can
-    // toggle between two.
-    if (Array.isArray(label)) {
-      // Create a lowercase label element
-      var labelNode = document.createElement('span');
-      labelNode.innerHTML = label[1];
-      labelNode.className = 'key-element lowercase';
-      labelNode.dataset.label = label[1];
-      vWrapperNode.appendChild(labelNode);
-    }
-
-    // Add uppercase and lowercase pop-up for highlighted key
-    labelNode = document.createElement('span');
-    labelNode.innerHTML = Array.isArray(label) ? label[0] : label;
-    labelNode.className = 'uppercase popup';
-    vWrapperNode.appendChild(labelNode);
-
-    labelNode = document.createElement('span');
-    labelNode.innerHTML = key.lowercaseValue;
-    labelNode.className = 'lowercase popup';
-    vWrapperNode.appendChild(labelNode);
-
-    if (altNoteNode) {
-      vWrapperNode.appendChild(altNoteNode);
-    }
-    contentNode.appendChild(vWrapperNode);
-
-    return contentNode;
-  };
-
   var getWidth = function getWidth() {
     if (!activeIme)
       return 0;
@@ -990,15 +849,13 @@ var IMERender = (function() {
     // map back to the DOM element correctly.
     var objRef = Object.freeze(Object.create(obj));
     renderingManager.domObjectMap.set(elem, objRef);
-    targetObjDomMap.set(objRef, elem);
   };
 
-  var setDomElemViewTargetObject =
-    function setDomElemViewTargetObject(elem, obj, view) {
-      var objRef = Object.freeze(Object.create(obj));
-      renderingManager.domObjectMap.set(elem, objRef);
-      viewMap.set(objRef, view);
-    };
+  // Register target -> View mapping
+  var registerView = function registerView(target, view) {
+    renderingManager.domObjectMap.set(view.element, target);
+    viewMap.set(target, view);
+  };
 
   // Measure the width of the element, and return the scale that
   // we can use to make it fit in the container. The return values
@@ -1077,6 +934,10 @@ var IMERender = (function() {
     'isFullCandidataPanelShown': isFullCandidataPanelShown,
     'getNumberOfCandidatesPerRow': getNumberOfCandidatesPerRow,
     'candidatePanelCode': candidatePanelCode,
+    'registerView': registerView,
+    'getView': function getView(target) {
+      return viewMap.get(target);
+    },
     get activeIme() {
       return activeIme;
     },
@@ -1085,9 +946,6 @@ var IMERender = (function() {
     },
     get candidatePanel() {
       return activeIme && activeIme.querySelector('.keyboard-candidate-panel');
-    },
-    get targetObjDomMap() {
-      return targetObjDomMap;
     },
     setCachedWindowSize: function(width, height) {
       cachedWindowWidth = width;

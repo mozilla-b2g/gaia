@@ -7,18 +7,14 @@
  * interactions on it. Handwriting pad is a canvas element in DOM.
  */
 var HandwritingPadView = function() {
-  this.handwritingPad = document.createElement('canvas');
-  this.handwritingPad.className = 'handwriting-pad';
+  this.element = document.createElement('canvas');
+  this.element.className = 'handwriting-pad';
   this.lastX = this.lastY = 0;
-};
-
-HandwritingPadView.prototype.getHandwritingPad = function() {
-  return this.handwritingPad;
 };
 
 HandwritingPadView.prototype.drawHandwritingPad =
   function drawHandwritingPad(press, start, strokeWidth) {
-    var ctx = this.handwritingPad.getContext('2d');
+    var ctx = this.element.getContext('2d');
     ctx.strokeStyle = '#df4b26';
     ctx.lineJoin = 'round';
     ctx.lineWidth = strokeWidth;
@@ -41,16 +37,16 @@ HandwritingPadView.prototype.drawHandwritingPad =
 
 HandwritingPadView.prototype.clearHandwritingPad =
   function clearHandwritingPad() {
-    var ctx = this.handwritingPad.getContext('2d');
-    var width = this.handwritingPad.width;
-    var height = this.handwritingPad.height;
+    var ctx = this.element.getContext('2d');
+    var width = this.element.width;
+    var height = this.element.height;
     ctx.clearRect(0, 0, width, height);
   };
 
 // Get user press point relative position in canvas.
 HandwritingPadView.prototype._getPressPoint =
   function getPressPoint(press) {
-    var canvasRect = this.handwritingPad.getBoundingClientRect();
+    var canvasRect = this.element.getBoundingClientRect();
 
     // Get canvas rectangle's relative top left positon
     // in document body.
