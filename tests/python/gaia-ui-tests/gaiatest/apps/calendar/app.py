@@ -2,9 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
 from marionette.by import By
 from marionette.errors import NoSuchElementException
-from marionette.errors import StaleElementException
 from marionette.marionette import Actions
 from marionette.wait import Wait
 from gaiatest.apps.base import Base
@@ -55,7 +55,9 @@ class Calendar(Base):
         Base.launch(self)
         # empty message is only displayed after first MonthsDay#render,
         # so we are sure app is "ready" after that
-        self.wait_for_element_displayed(*self._event_list_empty_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._event_list_empty_locator))))
 
     @property
     def current_month_year(self):
@@ -75,8 +77,7 @@ class Calendar(Base):
                 for event in self.marionette.find_elements(*self._event_locator)]
 
     def wait_for_events(self, number_to_wait_for=1):
-        self.wait_for_condition(
-            lambda m: len(m.find_elements(*self._event_locator)) == number_to_wait_for)
+        Wait(self.marionette).until(lambda m: len(m.find_elements(*self._event_locator)) == number_to_wait_for)
 
     def event(self, title):
         for event in self.events:
@@ -114,24 +115,36 @@ class Calendar(Base):
 
     def a11y_click_week_display_button(self):
         self.accessibility.click(self.marionette.find_element(*self._week_display_button_locator))
-        self.wait_for_element_displayed(*self._week_view_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._week_view_locator))))
 
     def tap_week_display_button(self):
         self.marionette.find_element(*self._week_display_button_locator).tap()
-        self.wait_for_element_displayed(*self._week_view_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._week_view_locator))))
 
     def a11y_click_month_display_button(self):
         self.accessibility.click(self.marionette.find_element(*self._month_display_button_locator))
-        self.wait_for_element_displayed(*self._current_monthly_calendar_locator)
-        self.wait_for_element_displayed(*self._current_months_day_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._current_monthly_calendar_locator))))
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._current_months_day_locator))))
 
     def a11y_click_day_display_button(self):
         self.accessibility.click(self.marionette.find_element(*self._day_display_button_locator))
-        self.wait_for_element_displayed(*self._day_view_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._day_view_locator))))
 
     def tap_day_display_button(self):
         self.marionette.find_element(*self._day_display_button_locator).tap()
-        self.wait_for_element_displayed(*self._day_view_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._day_view_locator))))
 
     def displayed_events_in_month_view(self, date_time):
         return self.marionette.find_element(*self._get_events_locator_in_month_view()).text
@@ -183,19 +196,22 @@ class Calendar(Base):
             [header], special_powers=True)
 
     def wait_fot_settings_drawer_animation(self):
-        self.wait_for_condition(
-            lambda m: m.find_element(
-                *self.settings._settings_drawer_locator).get_attribute('data-animstate') == 'done')
+        el = self.marionette.find_element(*self.settings._settings_drawer_locator)
+        Wait(self.marionette).until(lambda m: el.get_attribute('data-animstate') == 'done')
 
     def a11y_click_create_account_back(self):
         self.a11y_click_header(self.marionette.find_element(*self._create_account_header_locator),
                                'button.icon-back')
-        self.wait_for_element_displayed(*self._advanced_settings_view_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._advanced_settings_view_locator))))
 
     def a11y_click_modify_account_back(self):
         self.a11y_click_header(self.marionette.find_element(*self._modify_account_header_locator),
                                'button.icon-back')
-        self.wait_for_element_displayed(*self._create_account_view_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._create_account_view_locator))))
 
     def a11y_click_settings(self):
         self.a11y_click_header(self.marionette.find_element(*self._time_header_locator),
@@ -241,8 +257,7 @@ class Calendar(Base):
 
         action.flick(month, x_start, y_start, x_end, y_end, 200).perform()
 
-        self.wait_for_condition(
-            lambda m: self.current_month_year != month_year)
+        Wait(self.marionette).until(lambda m: self.current_month_year != month_year)
 
     class Settings(PageRegion):
 
@@ -254,15 +269,12 @@ class Calendar(Base):
         _settings_drawer_locator = (By.CLASS_NAME, 'settings-drawer')
 
         def wait_for_calendar_unchecked(self, timeout=None):
-            Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException,
-                                                               StaleElementException]).until(
-                lambda m: not m.find_element(
-                    *self._calendar_local_checkbox_locator).get_attribute('checked'))
+            checkbox = self.marionette.find_element(*self._calendar_local_checkbox_locator)
+            Wait(self.marionette, timeout).until(expected.element_not_selected(checkbox))
 
         def wait_for_a11y_calendar_unchecked(self, timeout=None):
-            Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException,
-                                                               StaleElementException]).until(
-                lambda m: not m.find_element(
+            Wait(self.marionette, timeout).until(
+                lambda m: not self.marionette.find_element(
                     *self._calendar_local_locator).get_attribute('aria-selected'))
 
     class Event(PageRegion):
@@ -281,7 +293,7 @@ class Calendar(Base):
 
         def a11y_click(self):
             self.accessibility.click(self.root_element)
-            self.wait_for_condition(lambda m: self.marionette.find_element(
-                *self._event_view_locator).is_displayed())
+            el = self.marionette.find_element(*self._event_view_locator)
+            Wait(self.marionette).until(expected.element_displayed(el))
             from gaiatest.apps.calendar.regions.event_details import EventDetails
             return EventDetails(self.marionette)
