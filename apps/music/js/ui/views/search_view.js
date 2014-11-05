@@ -5,6 +5,15 @@
 'use strict';
 
 var SearchView = {
+  context: {
+    ALL: 'ALL',
+    ARTISTS: 'ARTISTS',
+    ALBUMS: 'ALBUMS',
+    SONGS: 'SONGS',
+  },
+
+  searchContext: 'ALL',
+
   get view() {
     return document.getElementById('search');
   },
@@ -65,20 +74,29 @@ var SearchView = {
 
     // Only shows the search results of tracks when it's in picker mode
     if (!App.pendingPick) {
-      this.searchHandles.artist = musicdb.enumerate(
-        'metadata.artist', null, 'nextunique',
-        sv_showResult.bind(this, 'artist')
-      );
-      this.searchHandles.album = musicdb.enumerate(
-        'metadata.album', null, 'nextunique',
-        sv_showResult.bind(this, 'album')
-      );
+      if (this.searchContext === this.context.ALL ||
+          this.searchContext === this.context.ARTISTS) {
+        this.searchHandles.artist = musicdb.enumerate(
+          'metadata.artist', null, 'nextunique',
+          sv_showResult.bind(this, 'artist')
+        );
+      }
+      if (this.searchContext === this.context.ALL ||
+          this.searchContext === this.context.ALBUMS) {
+        this.searchHandles.album = musicdb.enumerate(
+          'metadata.album', null, 'nextunique',
+          sv_showResult.bind(this, 'album')
+        );
+      }
     }
 
-    this.searchHandles.title = musicdb.enumerate(
-      'metadata.title',
-      sv_showResult.bind(this, 'title')
-    );
+    if (this.searchContext === this.context.ALL ||
+        this.searchContext === this.context.SONGS) {
+      this.searchHandles.title = musicdb.enumerate(
+        'metadata.title',
+        sv_showResult.bind(this, 'title')
+      );
+    }
   },
 
   clearSearch: function sv_clearSearch() {

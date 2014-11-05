@@ -1,5 +1,5 @@
 /* exported TabBar */
-/* global AccessibilityHelper, ListView, TilesView,
+/* global AccessibilityHelper, ListView, TilesView, SearchView,
           MODE_TILES, MODE_LIST, ModeManager */
 'use strict';
 
@@ -79,6 +79,7 @@ var TabBar = {
 
             ModeManager.start(MODE_TILES);
             TilesView.hideSearch();
+            SearchView.searchContext = SearchView.context.ALL;
 
             break;
           case 'tabs-playlists':
@@ -88,6 +89,8 @@ var TabBar = {
             this.playlistArray.forEach(function(playlist) {
               ListView.update(this.option, playlist);
             }.bind(this));
+
+            SearchView.searchContext = SearchView.context.ALL;
 
             break;
           case 'tabs-artists':
@@ -102,6 +105,18 @@ var TabBar = {
 
             ModeManager.start(MODE_LIST);
             ListView.activate(info);
+
+            switch (target.id) {
+              case 'tabs-artists':
+                SearchView.searchContext = SearchView.context.ARTISTS;
+                break;
+              case 'tabs-albums':
+                SearchView.searchContext = SearchView.context.ALBUMS;
+                break;
+              case 'tabs-songs':
+                SearchView.searchContext = SearchView.context.SONGS;
+                break;
+            }
             break;
         }
 
