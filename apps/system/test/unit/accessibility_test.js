@@ -66,14 +66,16 @@ suite('system/Accessibility', function() {
 
   function getVolumeUp() {
     return {
-      type: 'volumeup',
+      type: 'mozChromeEvent',
+      detail: { type: 'volume-up-button-press' },
       timeStamp: Date.now() * 1000
     };
   }
 
   function getVolumeDown() {
     return {
-      type: 'volumedown',
+      type: 'mozChromeEvent',
+      detail: { type: 'volume-down-button-press' },
       timeStamp: Date.now() * 1000
     };
   }

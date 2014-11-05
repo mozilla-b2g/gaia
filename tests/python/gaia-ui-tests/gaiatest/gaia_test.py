@@ -597,23 +597,26 @@ class GaiaDevice(object):
 
     def press_sleep_button(self):
         self.marionette.execute_script("""
-            window.wrappedJSObject.dispatchEvent(new KeyboardEvent('mozbrowserbeforekeydown', {
-              key: 'Power'
+            window.wrappedJSObject.dispatchEvent(new CustomEvent('mozChromeEvent', {
+              detail: {
+                type: 'sleep-button-press'
+              }
             }));""")
 
     def press_release_volume_up_then_down_n_times(self, n_times):
         self.marionette.execute_script("""
-            function sendEvent(key, aType) {
-              var type = aType === 'press' ? 'mozbrowserafterkeydown' : 'mozbrowserafterkeyup';
-              window.wrappedJSObject.dispatchEvent(new KeyboardEvent(type, {
-                key: key
+            function sendEvent(aName, aType) {
+              window.wrappedJSObject.dispatchEvent(new CustomEvent('mozChromeEvent', {
+                detail: {
+                  type: aName + '-button-' + aType
+                }
               }));
             }
             for (var i = 0; i < arguments[0]; ++i) {
-              sendEvent('VolumeUp', 'press');
-              sendEvent('VolumeUp', 'release');
-              sendEvent('VolumeDown', 'press');
-              sendEvent('VolumeDown', 'release');
+              sendEvent('volume-up', 'press');
+              sendEvent('volume-up', 'release');
+              sendEvent('volume-down', 'press');
+              sendEvent('volume-down', 'release');
             };""", script_args=[n_times])
 
     def turn_screen_off(self):
