@@ -781,13 +781,15 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
   font-weight: 100;
 }
 
-.unknown-contact {
+.unknown-contact-header {
   line-height: 2.5rem;
   padding: 1.3rem 0;
   margin: 0;
   overflow: hidden;
+
   text-overflow: ellipsis;
   font-size: 2.3rem;
+  font-weight:300;
 }
 
 .contact-header {

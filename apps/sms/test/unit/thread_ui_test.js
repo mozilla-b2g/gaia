@@ -3847,7 +3847,7 @@ suite('thread_ui.js >', function() {
             // Ensures that the OptionMenu was given
             // the phone number to display
             assert.equal(call.header.textContent, '999');
-            assert.ok(call.header.classList.contains('unknown-contact'));
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3880,7 +3880,7 @@ suite('thread_ui.js >', function() {
             // Ensures that the OptionMenu was given
             // the email address to display
             assert.equal(call.header.textContent, 'a@b.com');
-            assert.ok(call.header.classList.contains('unknown-contact'));
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3923,8 +3923,9 @@ suite('thread_ui.js >', function() {
             var items = call.items;
 
             // Ensures that the OptionMenu was given
-            // the email address to diplay
-            assert.equal(call.header, 'a@b.com');
+            // the email address to display
+            assert.equal(call.header.textContent, 'a@b.com');
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -4002,7 +4003,7 @@ suite('thread_ui.js >', function() {
 
             assert.equal(calls.length, 1);
             assert.equal(calls[0].header.textContent, '777');
-            assert.ok(calls[0].header.classList.contains('unknown-contact'));
+            assert.ok(calls[0].header.classList.contains('unknown-contact-header'));
             assert.equal(calls[0].items.length, 3);
             assert.equal(typeof calls[0].complete, 'function');
           });
@@ -4051,11 +4052,9 @@ suite('thread_ui.js >', function() {
             var calls = MockOptionMenu.calls;
 
             assert.equal(calls.length, 1);
-<<<<<<< HEAD
             assert.equal(calls[0].header.textContent, 'a@b');
-            assert.ok(calls[0].header.classList.contains('unknown-contact'));
+            assert.ok(calls[0].header.classList.contains('unknown-contact-header'));
             assert.equal(calls[0].items.length, 5);
->>>>>>>  Bug 943165 - [Messages] Bug 934531 follow-up: make the visual right for numbers-only headers r=julien
             assert.equal(typeof calls[0].complete, 'function');
           });
         });
@@ -4116,7 +4115,7 @@ suite('thread_ui.js >', function() {
           // Ensures that the OptionMenu was given
           // the phone number to display
           assert.equal(call.header.textContent, '999');
-          assert.ok(call.header.classList.contains('unknown-contact'));
+          assert.ok(call.header.classList.contains('unknown-contact-header'));
 
           assert.equal(items.length, 5);
 

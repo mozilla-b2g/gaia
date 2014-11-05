@@ -2682,7 +2682,7 @@ var ThreadUI = {
     //
     if (!header && (number || email)) {
       header = document.createElement('div');
-      header.className = 'unknown-contact';
+      header.className = 'unknown-contact-header';
       header.textContent = number || email;
     }
 
