@@ -1254,35 +1254,6 @@ suite('lib/camera/camera', function() {
       assert.equal(this.camera.mozCamera.flashMode, 'auto');
     });
 
-    test('Should suspend `this.mozCamera.flashMode`', function() {
-      this.camera.mozCamera.flashMode = 'on';
-      this.camera.suspendFlashMode();
-      assert.equal(this.camera.mozCamera.flashMode, 'off');
-      this.camera.restoreFlashMode();
-      assert.equal(this.camera.mozCamera.flashMode, 'on');
-    });
-
-    test('Should not set `this.mozCamera.flashMode` while suspensed', function() {
-      this.camera.mozCamera.flashMode = 'on';
-      this.camera.suspendFlashMode();
-      assert.equal(this.camera.mozCamera.flashMode, 'off');
-      this.camera.setFlashMode('auto');
-      assert.equal(this.camera.mozCamera.flashMode, 'off');
-      this.camera.restoreFlashMode();
-      assert.equal(this.camera.mozCamera.flashMode, 'auto');
-    });
-
-    test('Should remain suspended `this.mozCamera.flashMode` after first restore', function() {
-      this.camera.mozCamera.flashMode = 'on';
-      this.camera.suspendFlashMode();
-      assert.equal(this.camera.mozCamera.flashMode, 'off');
-      this.camera.suspendFlashMode();
-      assert.equal(this.camera.mozCamera.flashMode, 'off');
-      this.camera.restoreFlashMode();
-      assert.equal(this.camera.mozCamera.flashMode, 'off');
-      this.camera.restoreFlashMode();
-      assert.equal(this.camera.mozCamera.flashMode, 'on');
-    });
   });
 
   suite('Camera#updateFocusArea()', function() {
@@ -1293,23 +1264,12 @@ suite('lib/camera/camera', function() {
       };
     });
 
-    test('Should suspend flash mode and restore when complete', function() {
-      this.camera.mozCamera.flashMode = 'on';
+    test('Should focus updateFocusArea', function() {
       this.camera.updateFocusArea();
-      assert.equal(this.camera.mozCamera.flashMode, 'off');
       assert.ok(this.camera.focus.updateFocusArea.called);
       this.camera.focus.updateFocusArea.callArgWith(1, 'focused');
-      assert.equal(this.camera.mozCamera.flashMode, 'on');
     });
 
-    test('Should suspend flash mode and restore when interrupted', function() {
-      this.camera.mozCamera.flashMode = 'on';
-      this.camera.updateFocusArea();
-      assert.equal(this.camera.mozCamera.flashMode, 'off');
-      assert.ok(this.camera.focus.updateFocusArea.called);
-      this.camera.focus.updateFocusArea.callArgWith(1, 'interrupted');
-      assert.equal(this.camera.mozCamera.flashMode, 'on');
-    });
   });
 
   suite('Camera#setPictureSize()', function() {
