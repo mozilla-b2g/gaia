@@ -123,6 +123,8 @@ var displayingScanProgress = false;
 // to show the correct overlay.
 var reparsingMetadata = false;
 
+var forceRefresh = false;
+
 function init() {
   // We want to exclude some folders that store ringtones so they don't show up
   // in the music app. The regex matches absolute paths starting with a volume
@@ -269,6 +271,47 @@ function init() {
     filesDeletedWhileScanning = 0;
   };
 
+  function forceRefreshView() {
+    forceRefresh = false;
+    if (ModeManager.currentMode === MODE_PLAYER) {
+      // Current mode is player, refresh previous view after mode manager pop
+      switch (ModeManager.previousMode) {
+        case MODE_LIST:
+        case MODE_PICKER:
+          ModeManager.popCallback = function() {
+            ListView.refresh();
+          };
+          break;
+        case MODE_SUBLIST:
+          ModeManager.popCallback = function() {
+            SubListView.refresh();
+          };
+          break;
+        case MODE_SEARCH_FROM_TILES:
+        case MODE_SEARCH_FROM_LIST:
+          ModeManager.popCallback = function() {
+            SearchView.refresh();
+          };
+          break;
+      }
+    } else {
+      // Current mode not player, refresh current view immediately
+      switch (ModeManager.currentMode) {
+        case MODE_LIST:
+        case MODE_PICKER:
+          ListView.refresh();
+          break;
+        case MODE_SUBLIST:
+          SubListView.refresh();
+          break;
+        case MODE_SEARCH_FROM_TILES:
+        case MODE_SEARCH_FROM_LIST:
+          SearchView.refresh();
+          break;
+      }
+    }
+  };
+
   // And hide the throbber when scanning is done
   musicdb.onscanend = function() {
     scanning = false;
@@ -281,6 +324,9 @@ function init() {
       filesFoundBatch = 0;
       filesDeletedWhileScanning = 0;
       showCurrentView();
+    }
+    if (forceRefresh) {
+      forceRefreshView();
     }
 
     // If this was the first scan after startup, tell the performance monitors
@@ -338,6 +384,7 @@ function init() {
   // display music that is no longer available.  But the only way to prevent
   // this is to refuse to display any music until the scan completes.
   musicdb.ondeleted = function(event) {
+    forceRefresh = true;
     if (scanning) {
       // If we get a deletion during a scan, just note it for processing
       // when the scan is over
@@ -533,9 +580,14 @@ var MODE_PICKER = 7;
 var ModeManager = {
   _modeStack: [],
   playerTitle: null,
+  popCallback: null,
 
   get currentMode() {
     return this._modeStack[this._modeStack.length - 1];
+  },
+
+  get previousMode() {
+    return this._modeStack[this._modeStack.length - 2];
   },
 
   start: function(mode, callback) {
@@ -553,7 +605,8 @@ var ModeManager = {
       return;
     }
     this._modeStack.pop();
-    this._updateMode();
+    this._updateMode(this.popCallback);
+    this.popCallback = null;
   },
 
   updateBackArrow: function() {
@@ -636,10 +689,12 @@ var ModeManager = {
           callback();
       }.bind(this));
     } else {
-      if (mode === MODE_LIST || mode === MODE_PICKER)
+      if (mode === MODE_LIST || mode === MODE_PICKER) {
         document.getElementById('views-list').classList.remove('hidden');
-      else if (mode === MODE_SUBLIST)
+      }
+      else if (mode === MODE_SUBLIST) {
         document.getElementById('views-sublist').classList.remove('hidden');
+      }
       else if (mode === MODE_SEARCH_FROM_TILES ||
                mode === MODE_SEARCH_FROM_LIST) {
         document.getElementById('search').classList.remove('hidden');
@@ -1308,6 +1363,7 @@ var ListView = {
       return;
     }
 
+    this.previousActivateInfo = info;
     // Choose one of the indexes to get the count and it should be the
     // correct count because failed records don't contain metadata, so
     // here we just pick the album, artist or title as indexes.
@@ -1353,6 +1409,10 @@ var ListView = {
           }
         }.bind(this));
     }.bind(this));
+  },
+
+  refresh: function lv_refresh() {
+    this.activate(this.previousActivateInfo);
   },
 
   update: function lv_update(option, result) {
@@ -1747,6 +1807,14 @@ var SubListView = {
     var targetOption = (option === 'date') ? option : 'metadata.' + option;
     SubListView.clean();
 
+    var activateOption = {
+      option: option,
+      data: data,
+      index: index,
+      keyRange: keyRange,
+      direction: direction
+    };
+    this.previousActivateOption = activateOption;
     sublistHandle = musicdb.enumerateAll(targetOption, keyRange, direction,
                                          function lv_enumerateAll(dataArray) {
       var albumName;
@@ -1792,6 +1860,15 @@ var SubListView = {
       if (callback)
         callback();
     });
+  },
+
+  refresh: function slv_refresh() {
+    var option = this.previousActivateOption.option;
+    var data = this.previousActivateOption.data;
+    var index = this.previousActivateOption.index;
+    var keyRange = this.previousActivateOption.keyRange;
+    var direction = this.previousActivateOption.direction;
+    this.activate(option, data, index, keyRange, direction);
   },
 
   update: function slv_update(result) {
@@ -1895,6 +1972,7 @@ var SearchView = {
     if (!query)
       return;
 
+    this.previousSearchQuery = query;
     // Convert to lowercase and replace accented characters
     var queryLowerCased = query.toLocaleLowerCase();
     query = Normalizer.toAscii(queryLowerCased);
@@ -1939,6 +2017,10 @@ var SearchView = {
       'metadata.title',
       sv_showResult.bind(this, 'title')
     );
+  },
+
+  refresh: function sv_refresh() {
+    this.search(this.previousSearchQuery);
   },
 
   clearSearch: function sv_clearSearch() {
