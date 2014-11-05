@@ -1,23 +1,42 @@
 'use strict';
 
 /* global MocksHelper, InputWindowManager, MockKeyboardManager,
-   MockInputWindow */
+   InputWindow */
 
 require('/shared/test/unit/mocks/mock_custom_event.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/test/unit/mock_orientation_manager.js');
 require('/test/unit/mock_keyboard_manager.js');
-require('/test/unit/mock_input_window.js');
 require('/js/input_window_manager.js');
 
 var mocksForInputWindowManager = new MocksHelper([
-  'KeyboardManager', 'InputWindow', 'CustomEvent'
+  'OrientationManager', 'SettingsListener', 'KeyboardManager', 'CustomEvent'
 ]).init();
 
 suite('InputWindowManager', function() {
   mocksForInputWindowManager.attachTestHelpers();
 
   var manager;
+  var stubIWConstructor;
 
-  setup(function(){
+  suiteSetup(function(done) {
+    require('/js/browser_frame.js');
+    require('/js/app_transition_controller.js');
+    require('/js/app_window.js');
+    require('/js/browser_mixin.js');
+    require('/js/input_window.js', function() {
+      done();
+    });
+  });
+
+  setup(function() {
+    var realIWPrototype = InputWindow.prototype;
+    stubIWConstructor = this.sinon.stub(window, 'InputWindow', () =>
+      // simulate |sinon.createStubInstance|: we want a new stubbed instance
+      // each time we call the constructor, so use Object.create here.
+      this.sinon.stub(Object.create(realIWPrototype))
+    );
+
     manager = new InputWindowManager(MockKeyboardManager);
   });
 
@@ -38,7 +57,7 @@ suite('InputWindowManager', function() {
         test(`Send keyboardchange if source InputWindow
               is currentWindow`, function() {
 
-          var inputWindow = new MockInputWindow();
+          var inputWindow = new InputWindow();
           inputWindow.height = 200;
 
           manager._currentWindow = inputWindow;
@@ -52,9 +71,8 @@ suite('InputWindowManager', function() {
         test(`Do not send keyboardchange if source InputWindow
               is not currentWindow`, function() {
 
-          manager._currentWindow = new MockInputWindow();
-          evt.detail = new MockInputWindow();
-
+          manager._currentWindow = new InputWindow();
+          evt.detail = new InputWindow();
           manager.handleEvent(evt);
 
           assert.isFalse(stubKBPublish.called);
@@ -81,7 +99,7 @@ suite('InputWindowManager', function() {
       test(`Call onKeyboardReady if Source InputWindow
             is currentWindow`, function() {
 
-        var inputWindow = new MockInputWindow();
+        var inputWindow = new InputWindow();
 
         manager._currentWindow = inputWindow;
         evt.detail = inputWindow;
@@ -94,8 +112,8 @@ suite('InputWindowManager', function() {
       test(`Do not call onKeyboardReady if source InputWindow
             is not currentWindow`, function() {
 
-        manager._currentWindow = new MockInputWindow();
-        evt.detail = new MockInputWindow();
+        manager._currentWindow = new InputWindow();
+        evt.detail = new InputWindow();
 
         manager.handleEvent(evt);
 
@@ -103,15 +121,13 @@ suite('InputWindowManager', function() {
       });
 
       test('Immediate-closes lastWindow if it is available', function() {
-        manager._lastWindow = new MockInputWindow();
-
-        var stubClose = this.sinon.stub(manager._lastWindow, 'close');
-
-        evt.detail = new MockInputWindow();
+        var lastWindow = new InputWindow();
+        manager._lastWindow = lastWindow;
+        evt.detail = new InputWindow();
 
         manager.handleEvent(evt);
 
-        assert.isTrue(stubClose.calledWith('immediate'));
+        assert.isTrue(lastWindow.close.calledWith('immediate'));
         assert.strictEqual(manager._lastWindow, null);
       });
     });
@@ -125,7 +141,7 @@ suite('InputWindowManager', function() {
 
         evt = {
           type: 'input-appclosing',
-          detail: new MockInputWindow()
+          detail: new InputWindow()
         };
       });
 
@@ -138,7 +154,7 @@ suite('InputWindowManager', function() {
       });
 
       test('Do not send keyboardhide if there is currentWindow', function() {
-        manager._currentWindow = new MockInputWindow();
+        manager._currentWindow = new InputWindow();
 
         manager.handleEvent(evt);
 
@@ -155,7 +171,7 @@ suite('InputWindowManager', function() {
 
         evt = {
           type: 'input-appclosed',
-          detail: new MockInputWindow()
+          detail: new InputWindow()
         };
       });
 
@@ -168,7 +184,7 @@ suite('InputWindowManager', function() {
       });
 
       test('Do not send keyboardhidden if there is currentWindow', function() {
-        manager._currentWindow = new MockInputWindow();
+        manager._currentWindow = new InputWindow();
 
         manager.handleEvent(evt);
 
@@ -176,17 +192,14 @@ suite('InputWindowManager', function() {
       });
 
       test('Source InputWindow is deactivated', function() {
-        var stubSetAsActiveInput =
-          this.sinon.stub(evt.detail,'_setAsActiveInput');
-
         manager.handleEvent(evt);
 
-        assert.isTrue(stubSetAsActiveInput.calledWith(false));
+        assert.isTrue(evt.detail._setAsActiveInput.calledWith(false));
       });
     });
 
     test('input-appterminated', function() {
-      var inputWindow = new MockInputWindow();
+      var inputWindow = new InputWindow();
 
       var evt = {
         type: 'input-appterminated',
@@ -206,9 +219,9 @@ suite('InputWindowManager', function() {
   });
 
   test('removeKeyboard', function() {
-    var inputWindow = this.sinon.stub(new MockInputWindow());
-    var inputWindow2 = this.sinon.stub(new MockInputWindow());
-    var inputWindow3 = this.sinon.stub(new MockInputWindow());
+    var inputWindow = new InputWindow();
+    var inputWindow2 = new InputWindow();
+    var inputWindow3 = new InputWindow();
 
     manager._inputWindows['app://keyboard.gaiamobile.org/manifest.webapp'] = {
       '/index.html': inputWindow,
@@ -235,7 +248,7 @@ suite('InputWindowManager', function() {
   });
 
   test('getHeight', function() {
-    manager._currentWindow = new MockInputWindow();
+    manager._currentWindow = new InputWindow();
     manager._currentWindow.height = 300;
 
     assert.equal(manager.getHeight(), 300);
@@ -245,7 +258,7 @@ suite('InputWindowManager', function() {
     manager._currentWindow = undefined;
     assert.isFalse(manager.hasActiveKeyboard());
 
-    manager._currentWindow = new MockInputWindow();
+    manager._currentWindow = new InputWindow();
     assert.isTrue(manager.hasActiveKeyboard());
   });
 
@@ -253,7 +266,7 @@ suite('InputWindowManager', function() {
     manager._currentWindow = undefined;
     assert.isFalse(manager.hasActiveKeyboard());
 
-    manager._currentWindow = new MockInputWindow();
+    manager._currentWindow = new InputWindow();
     assert.isTrue(manager.hasActiveKeyboard());
   });
 
@@ -329,7 +342,7 @@ suite('InputWindowManager', function() {
 
         var inputWindow = manager._makeInputWindow(configs);
 
-        assert.equal(configs, inputWindow._storedConfigs,
+        assert.equal(configs, stubIWConstructor.getCall(0).args[0],
                      'configs should be passed into inputWindow');
 
         assert.equal(
@@ -492,8 +505,8 @@ suite('InputWindowManager', function() {
       var inputWindow2;
 
       setup(function() {
-        inputWindow = this.sinon.stub(new MockInputWindow());
-        inputWindow2 = this.sinon.stub(new MockInputWindow());
+        inputWindow = new InputWindow();
+        inputWindow2 = new InputWindow();
       });
 
       test('Parameters are passed to helper functions correctly', function() {
@@ -610,7 +623,7 @@ suite('InputWindowManager', function() {
     });
 
     test('hideInputWindow', function() {
-      var inputWindow = this.sinon.stub(new MockInputWindow());
+      var inputWindow = new InputWindow();
       manager._currentWindow = inputWindow;
 
       manager.hideInputWindow();
@@ -623,7 +636,7 @@ suite('InputWindowManager', function() {
     test('hideInputWindowImmediately', function() {
       var stubKBPublish = this.sinon.stub(manager, '_kbPublish');
 
-      var inputWindow = this.sinon.stub(new MockInputWindow());
+      var inputWindow = new InputWindow();
       manager._currentWindow = inputWindow;
 
       manager.hideInputWindowImmediately();

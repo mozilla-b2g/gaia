@@ -2,9 +2,9 @@
 
 /* globals InputWindow, AppWindow */
 
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_orientation_manager.js');
-requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/test/unit/mock_orientation_manager.js');
+require('/shared/test/unit/mocks/mock_manifest_helper.js');
 
 var mocksForInputWindow = new window.MocksHelper([
   'OrientationManager', 'SettingsListener', 'ManifestHelper'
@@ -21,11 +21,11 @@ suite('system/InputWindow', function() {
     keyboardContainer.id = 'keyboards';
     document.body.appendChild(keyboardContainer);
 
-    requireApp('system/js/browser_frame.js');
-    requireApp('system/js/app_transition_controller.js');
-    requireApp('system/js/app_window.js');
-    requireApp('system/js/browser_mixin.js');
-    requireApp('system/js/input_window.js', function(){
+    require('/js/browser_frame.js');
+    require('/js/app_transition_controller.js');
+    require('/js/app_window.js');
+    require('/js/browser_mixin.js');
+    require('/js/input_window.js', function(){
       app = new InputWindow({
         manifest: {},
         manifestURL: 'app://keyboard.gaiamobile.org/manifestURL.webapp',
