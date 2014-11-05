@@ -988,16 +988,18 @@ var TilesView = {
           return;
         }
 
-        break;
-
-      case 'click':
         if (target.id === 'views-tiles-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_TILES) {
             ModeManager.pop();
           }
           this.hideSearch();
-          evt.preventDefault();
-        } else if (target.dataset.index) {
+          SearchView.clearSearch();
+        }
+
+        break;
+
+      case 'click':
+        if (target.dataset.index) {
           var handler;
           var index = target.dataset.index;
 
@@ -1582,27 +1584,27 @@ var ListView = {
           return;
         }
 
-        break;
-
-      case 'click':
         if (target.id === 'views-list-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_LIST) {
             ModeManager.pop();
           }
           this.hideSearch();
-          evt.preventDefault();
-        } else {
-          var option = target.dataset.option;
-          // When an user select "Shuffle all"
-          // We just play all songs with shuffle order
-          // or change mode to subList view and list songs
-          if (option === 'shuffleAll')
-            this.playWithShuffleAll();
-          else if (option === 'title')
-            this.playWithIndex(target.dataset.index);
-          else if (option)
-            this.activateSubListView(target);
+          SearchView.clearSearch();
         }
+
+        break;
+
+      case 'click':
+        var option = target.dataset.option;
+        // When an user select "Shuffle all"
+        // We just play all songs with shuffle order
+        // or change mode to subList view and list songs
+        if (option === 'shuffleAll')
+          this.playWithShuffleAll();
+        else if (option === 'title')
+          this.playWithIndex(target.dataset.index);
+        else if (option)
+          this.activateSubListView(target);
 
         break;
 
