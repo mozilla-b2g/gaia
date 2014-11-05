@@ -12,7 +12,8 @@ SoundToast.Selector = Object.freeze({
   AlarmVolumeBar: '#volume[data-channel="alarm"]',
   NotificationVolumeBar: '#volume[data-channel="notification"]',
   TelephonyVolumeBar: '#volume[data-channel="telephony"]',
-  BluetoothSCOVolumeBar: '#volume[data-channel="bt_sco"]'
+  BluetoothSCOVolumeBar: '#volume[data-channel="bt_sco"]',
+  LoudWarningPrompt: '#dialog-message[data-l10n-id="ceWarningcontent"]'
 });
 
 SoundToast.prototype = {
@@ -41,6 +42,11 @@ SoundToast.prototype = {
   get BluetoothSCOVolumeBar() {
     this.client.switchToFrame();
     return this.client.findElement(SoundToast.Selector.BluetoothSCOVolumeBar);
+  },
+
+  get LoudWarningPrompt() {
+    this.client.switchToFrame();
+    return this.client.findElement(SoundToast.Selector.LoudWarningPrompt);
   },
 
   waitForMediaVolumeShown: function(shouldBeShown, shouldBeMuted) {
@@ -87,5 +93,15 @@ SoundToast.prototype = {
       var volumeShown = this.BluetoothSCOVolumeBar.displayed();
       return volumeShown === shouldBeShown;
     }.bind(this));
-  }
+  },
+
+  waitForLoudWarningShown: function() {
+    this.client.waitFor(function() {
+      var loudWarningPrompt = this.LoudWarningPrompt;
+      if (!loudWarningPrompt.displayed()) {
+        return false;
+      }
+      return loudWarningPrompt.getAttribute('textContent').length > 0;
+    }.bind(this));
+  },
 };
