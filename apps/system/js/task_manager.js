@@ -351,6 +351,10 @@
     // Note that we rebuild the switcher each time we need it rather
     // than trying to keep it in sync with app launches.
 
+    if (document.mozFullScreen) {
+      document.mozCancelFullScreen();
+    }
+
     // Apps info from Stack Manager.
     this.unfilteredStack = StackManager.snapshot();
     this.stack = this.unfilteredStack;
