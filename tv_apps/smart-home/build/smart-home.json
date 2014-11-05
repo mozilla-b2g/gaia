@@ -8,6 +8,7 @@
     {
       "name": "Apps",
       "type": "Deck",
+      "manifestURL": "app://app-deck.gaiamobile.org/manifest.webapp",
       "cachedIconURL": "style/icons/Blank.png"
     },
     {

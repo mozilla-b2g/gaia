@@ -1,0 +1,25 @@
+{
+  "name": "Apps",
+  "description": "Smart Screen Apps Deck",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "role": "deck",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Apps",
+      "description": "Smart Screen Apps Deck"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  },
+  "permissions": {
+    "webapps-manage": {},
+    "systemXHR": {}
+  }
+}

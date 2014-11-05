@@ -1,0 +1,10 @@
+{
+  "smart-home": {
+    "src": [
+      "tv_apps/apps-deck/js/**/*.js"
+    ],
+    "options": {
+      "destination": "docs/apps-deck"
+    }
+  }
+}
