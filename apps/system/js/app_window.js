@@ -210,6 +210,7 @@
     function aw_setVisible(visible) {
       this.debug('set visibility -> ', visible);
       this.setVisibleForScreenReader(visible);
+      this._setActive(visible);
       if (visible) {
         // If this window is not the lockscreen, and the screen is locked,
         // we need to aria-hide the window.
@@ -230,7 +231,6 @@
    */
   AppWindow.prototype.setVisibleForScreenReader =
     function aw_setVisibleForScreenReader(visible) {
-      this._setActive(visible);
       this.element.setAttribute('aria-hidden', !visible);
     };
 

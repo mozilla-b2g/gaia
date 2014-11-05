@@ -530,6 +530,13 @@
   transform: translateX(calc(100% + 2rem));
 }
 
+#screen #windows > .appWindow.will-become-active,
+#screen #windows > .appWindow.inside-edges,
+#screen #windows > .appWindow.outside-edges-left,
+#screen #windows > .appWindow.outside-edges-right {
+  will-change: transform;
+}
+
 @media (orientation: landscape) {
   #screen.software-button-enabled:not(.fullscreen-layout-app) #windows > .appWindow.outside-edges-right {
     transform: translateX(calc(100% + var(--software-home-button-height)));
