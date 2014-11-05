@@ -1,0 +1,26 @@
+ul {
+  list-style-type: none;
+}
+
+ul, li {
+  margin: 0;
+  padding: 0;
+  /* have a default height for setting vertical align */
+  height: 4rem;
+}
+
+.menu-item {
+  font-size: 20px;
+  color: black;
+  display: inline-block;
+  /* add padding 4rem for left space for icon */
+  padding: 0.2rem 4.2rem 0.2rem 0.2rem;
+}
+
+.menu-item span {
+  /* 9.1rem is 14rem - 4rem(icon) - 0.5rem(right border) - 0.4rem(selection border)*/
+  width: 9.1rem;
+  display: inline-block;
+  text-align: right;
+  line-height: 4rem;
+}
