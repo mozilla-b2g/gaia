@@ -3,7 +3,6 @@
   "description": "Bookmark Manager",
   "type": "certified",
   "role": "system",
-  "orientation": "default",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
