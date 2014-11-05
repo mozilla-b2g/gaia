@@ -170,7 +170,7 @@ export BUILDAPP
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 ifneq ($(BUILDAPP),desktop)
-REPORTER?=mocha-socket-reporter
+REPORTER?=mocha-tbpl-reporter
 MARIONETTE_RUNNER_HOST?=marionette-socket-host
 endif
 REPORTER?=spec
@@ -706,6 +706,10 @@ endif
 	npm install && npm rebuild
 	@echo "node_modules installed."
 	touch -c $@
+ifeq ($(BUILDAPP),device)
+	export LANG=en_US.UTF-8; \
+	npm install marionette-socket-host
+endif
 
 ###############################################################################
 # Tests                                                                       #
@@ -1006,7 +1010,7 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox $(PROFILE_FOLDER) $(STAGE_DIR) docs
+	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox $(PROFILE_FOLDER) $(STAGE_DIR) docs minidumps
 
 # clean out build products and tools
 really-clean: clean

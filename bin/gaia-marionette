@@ -126,30 +126,30 @@ if [ "$RUNTIME" ]; then
   RUNTIME_OPTS="--runtime=$RUNTIME"
 fi
 
-# start runner-service if we're testing against device/emulator
-SPAWNED_PID=""
-if [ "$BUILDAPP" != "desktop" ]; then
-  ADDITIONAL_OPTS=""
-  if [ "$B2G_HOME" ]; then
-    ADDITIONAL_OPTS="--b2g-home $B2G_HOME"
-  fi
-  if [ "$SYMBOLS" ]; then
-    ADDITIONAL_OPTS="$ADDITIONAL_OPTS --symbols-path $SYMBOLS"
-  fi
-  if [ "$DEVICE_SERIAL" ]; then
-    ADDITIONAL_OPTS="$ADDITIONAL_OPTS --serial $DEVICE_SERIAL"
-  fi
-  gaia-integration --buildapp $BUILDAPP $ADDITIONAL_OPTS &
-  SPAWNED_PID=$!
-  trap "kill $SPAWNED_PID" SIGINT SIGKILL SIGTERM
-  echo "spawned PID: $SPAWNED_PID"
-fi
-
 # Dirty hack until we can kill this file or fix passing DEBUG to profile
 # construction.
 if [ ! -z "$NODE_DEBUG" ];
 then
   export DEBUG=$NODE_DEBUG
+fi
+
+if [ "$BUILDAPP" != "desktop" ] ; then
+  LANG="en_US.UTF-8"
+  export LANG
+fi
+
+DEVICE_OPTS=""
+if [ "$B2G_HOME" ]; then
+  DEVICE_OPTS="--b2g-home $B2G_HOME"
+fi
+if [ "$SYMBOLS" ]; then
+  DEVICE_OPTS="$ADDITIONAL_OPTS --symbols-path $SYMBOLS"
+fi
+if [ "$DEVICE_SERIAL" ]; then
+  DEVICE_OPTS="$ADDITIONAL_OPTS --serial $DEVICE_SERIAL"
+fi
+if [ "$DUMP_PATH" ]; then
+  DEVICE_OPTS="$ADDITIONAL_OPTS --dump-path $DUMP_PATH"
 fi
 
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
@@ -158,18 +158,10 @@ PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
   $VERBOSE_OPTS \
   $OOP_OPTS \
   $RUNTIME_OPTS \
+  $DEVICE_OPTS \
   --timeout 60s \
-  --ui tdd \
   --profile-builder $SHARED/profile_builder.js \
   --profile-base $SHARED/profile.js \
   $SHARED/setup.js \
   $TEST_FILES \
   $@
-
-if [ $SPAWNED_PID ]; then
-  ps ux | grep $SPAWNED_PID | grep -v grep
-  if [ $? -eq 0 ]; then
-    echo "killing $SPAWNED_PID"
-    kill $SPAWNED_PID
-  fi
-fi
