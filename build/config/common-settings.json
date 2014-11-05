@@ -94,6 +94,8 @@
    "icc.goBackTimeout": 4000,
    "icc.selectTimeout": 150000,
    "identity.fxaccounts.reset-password.url": "https://accounts.firefox.com/reset_password",
+   "identity.fxaccounts.terms.url": "https://accounts.firefox.com/legal/terms",
+   "identity.fxaccounts.privacy.url": "https://accounts.firefox.com/legal/privacy",
    "in-app-sheet.enabled": false,
    "keyboard.vibration": true,
    "keyboard.clicksound": false,

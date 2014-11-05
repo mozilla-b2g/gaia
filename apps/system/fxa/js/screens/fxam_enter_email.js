@@ -2,8 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global FxaModuleStates, FxaModuleUI, FxaModule, FxaModuleNavigation,
-   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager, EntrySheet,
-   BrowserFrame */
+   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager */
 /* exported FxaModuleEnterEmail */
 
 'use strict';
@@ -16,8 +15,6 @@
 var FxaModuleEnterEmail = (function() {
 
   var _ = null;
-  var termsUrl = 'https://accounts.firefox.com/legal/terms';
-  var privacyUrl = 'https://accounts.firefox.com/legal/privacy';
 
   function _isEmailValid(emailEl) {
     return emailEl && emailEl.value && emailEl.validity.valid;
@@ -68,11 +65,11 @@ var FxaModuleEnterEmail = (function() {
     var noticeText = _('fxa-notice');
     var tosReplaced = noticeText.replace(
       /{{\s*tos\s*}}/,
-      '<a id="fxa-terms" href="' + termsUrl + '">Terms of Service</a>'
+      '<a id="fxa-terms" href="#">Terms of Service</a>'
     );
     var tosPnReplaced = tosReplaced.replace(
       /{{\s*pn\s*}}/,
-      '<a id="fxa-privacy" href="' + privacyUrl + '">Privacy Notice</a>'
+      '<a id="fxa-privacy" href="#">Privacy Notice</a>'
     );
     this.fxaNotice.innerHTML = tosPnReplaced;
 
@@ -104,42 +101,6 @@ var FxaModuleEnterEmail = (function() {
       }.bind(this)
     );
 
-    this.fxaTerms.addEventListener('click', onExternalLinkClick.bind(this));
-    this.fxaPrivacy.addEventListener('click', onExternalLinkClick.bind(this));
-
-    function onExternalLinkClick(e) {
-      /*jshint validthis:true */
-      e.stopPropagation();
-      e.preventDefault();
-      var url = e.target.href;
-      if (this.entrySheet) {
-        this.entrySheet.close();
-        this.entrySheet = null;
-      }
-      this.entrySheet = new EntrySheet(
-        window.top.document.getElementById('screen'),
-        url,
-        new BrowserFrame({url: url})
-      );
-      this.entrySheet.open();
-    }
-
-    document.addEventListener(
-      'visibilitychange',
-      onVisibilityChange.bind(this)
-    );
-
-    function onVisibilityChange() {
-      /*jshint validthis:true */
-      if (document.hidden) {
-        document.removeEventListener('visibilitychange', onVisibilityChange);
-        if (this.entrySheet) {
-          this.entrySheet.close();
-          this.entrySheet = null;
-        }
-      }
-    }
-
     // Ensure that pressing 'ENTER' (keycode 13) we send the form
     // as expected
     this.fxaEmailInput.addEventListener(
@@ -151,6 +112,18 @@ var FxaModuleEnterEmail = (function() {
         }
       }.bind(this)
     );
+
+    this.fxaTerms.addEventListener('click', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      FxModuleServerRequest.loadTermsURL(this.isFTU);
+      }.bind(this));
+
+    this.fxaPrivacy.addEventListener('click', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      FxModuleServerRequest.loadPrivacyURL(this.isFTU);
+      }.bind(this));
 
     // Avoid to add listener twice
     this.initialized = true;
@@ -188,4 +161,3 @@ var FxaModuleEnterEmail = (function() {
   return Module;
 
 }());
-
