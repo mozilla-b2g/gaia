@@ -103,6 +103,11 @@ suite('lib/camera/camera', function() {
       sinon.assert.called(this.camera.busy);
     });
 
+    test('It flags the camera as \'recording\' straight away', function() {
+      this.camera.startRecording();
+      sinon.assert.calledWith(this.camera.set, 'recording', true);
+    });
+
     test('Should error if not enough storage space', function() {
       this.camera.getFreeVideoStorageSpace =
         sinon.stub().callsArgWith(0, null, 9);
@@ -203,7 +208,6 @@ suite('lib/camera/camera', function() {
         sinon.stub().callsArgWith(0, null, 'dir/my-video.3gp');
       this.camera.mozCamera.startRecording.callsArg(3);
       this.camera.startRecording();
-      assert.ok(this.camera.set.calledWith('recording', true));
       assert.ok(this.camera.startVideoTimer.called);
       sinon.assert.called(this.camera.ready);
     });
@@ -214,6 +218,29 @@ suite('lib/camera/camera', function() {
       this.camera.mozCamera.startRecording.callsArg(4);
       this.camera.startRecording();
       assert.ok(this.camera.onRecordingError.called);
+    });
+  });
+
+  suite('Camera#onRecordingError()', function() {
+    setup(function() {
+      this.navigatorMozl10n = navigator.mozL10n;
+      navigator.mozL10n = { get: sinon.stub() };
+      this.sandbox.stub(window, 'alert');
+      sinon.spy(this.camera, 'set');
+    });
+
+    teardown(function() {
+      navigator.mozL10n = this.navigatorMozl10n;
+    });
+
+    test('It sets `recording` to `false`', function() {
+      this.camera.onRecordingError();
+      sinon.assert.calledWith(this.camera.set, 'recording', false);
+    });
+
+    test('It calls ready()', function() {
+      this.camera.onRecordingError();
+      sinon.assert.called(this.camera.ready);
     });
   });
 
