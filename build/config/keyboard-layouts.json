@@ -16,7 +16,8 @@
         {"layoutId": "bg-Pho-Trad", "app": ["apps", "keyboard"]}
     ],
     "bn-BD": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+       	{"layoutId": "bn-Avro", "app": ["apps", "keyboard"]},
+	{"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "bs": [
         {"layoutId": "bs", "app": ["apps", "keyboard"]}
