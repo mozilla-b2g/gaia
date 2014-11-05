@@ -101,6 +101,7 @@ class Keyboard(Base):
     def _switch_to_correct_layout(self, val):
         layout_page = self._layout_page
         current_input_type = self._current_input_type
+        current_input_mode = self._current_input_mode
         if val.isspace():
             # Space is available on every keyboard panel
             pass
@@ -119,7 +120,7 @@ class Keyboard(Base):
         else:
             # If it's not space or alpha then it must be in Alternate or Symbol.
             # It can't be in Basic so let's go into Alternate and then try to find it
-            if not current_input_type == 'number' and layout_page == 0:
+            if layout_page == 0 and not current_input_type == 'number' and not current_input_mode == 'numeric':
                 self._tap_page_switching_key(1)
                 page_0_key_locator = (self._page_switching_key_locator[0], self._page_switching_key_locator[1] % (0))
                 self.wait_for_element_displayed(*page_0_key_locator)
@@ -151,6 +152,10 @@ class Keyboard(Base):
     @property
     def _layout_page(self):
         return self.marionette.execute_script('return window.wrappedJSObject.app.layoutManager.currentPageIndex;')
+
+    @property
+    def _current_input_mode(self):
+        return self.marionette.execute_script('return window.wrappedJSObject.app.inputContext.inputMode;')
 
     # this is to switch to the frame of keyboard
     def switch_to_keyboard(self):
