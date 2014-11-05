@@ -171,7 +171,7 @@
       this.browser.element.removeEventListener('mozbrowserresize', this, true);
       this.element.classList.remove('top-most');
 
-      this.height = undefined;
+      this.height = 0;
     }
   };
 

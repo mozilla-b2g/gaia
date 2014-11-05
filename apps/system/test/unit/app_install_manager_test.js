@@ -1,3 +1,5 @@
+/* global InputWindowManager, inputWindowManager */
+
 'use strict';
 
 requireApp('system/test/unit/mock_app.js');
@@ -10,7 +12,7 @@ requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
-requireApp('system/test/unit/mock_keyboard_manager.js');
+require('/js/input_window_manager.js');
 
 require('/shared/js/template.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -20,6 +22,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 
 requireApp('system/js/app_install_manager.js');
+
 var mocksForAppInstallManager = new MocksHelper([
   'StatusBar',
   'SystemBanner',
@@ -30,7 +33,6 @@ var mocksForAppInstallManager = new MocksHelper([
   'ManifestHelper',
   'LazyLoader',
   'FtuLauncher',
-  'KeyboardManager',
   'KeyboardHelper'
 ]).init();
 
@@ -218,6 +220,9 @@ suite('system/AppInstallManager >', function() {
     document.body.appendChild(fakeSetupDialog);
     document.body.appendChild(fakeImeListDialog);
     document.body.appendChild(fakeImeListTemplate);
+
+    window.inputWindowManager =
+      this.sinon.stub(Object.create(InputWindowManager.prototype));
 
     AppInstallManager.init();
   });
@@ -1354,7 +1359,7 @@ suite('system/AppInstallManager >', function() {
     var mockApp, mockAppTwo, mockAppName, mockAppTwoName;
     setup(function() {
       AppInstallManager.init();
-      KeyboardManager.isOutOfProcessEnabled = true;
+      inputWindowManager.isOutOfProcessEnabled = true;
 
       navigator.mozL10n = MockL10n;
       mockAppName = 'Fake keyboard app';
@@ -1423,8 +1428,8 @@ suite('system/AppInstallManager >', function() {
 
     test('should be uninstalled if disabled', function() {
       // Disabling keyboard app installation.
-      // Set MockKeyboardManager.isOutOfProcessEnabled to false
-      KeyboardManager.isOutOfProcessEnabled = false;
+      // Set stubbed inputWindowManager.isOutOfProcessEnabled to false
+      inputWindowManager.isOutOfProcessEnabled = false;
 
       this.sinon.spy(navigator.mozApps.mgmt, 'uninstall');
       AppInstallManager.handleInstallSuccess(mockApp);

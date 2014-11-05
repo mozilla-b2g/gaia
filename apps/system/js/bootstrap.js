@@ -44,6 +44,10 @@ window.addEventListener('load', function startup() {
     window.appWindowManager = new AppWindowManager();
 
     /** @global */
+    window.inputWindowManager = new window.InputWindowManager();
+    window.inputWindowManager.start();
+
+    /** @global */
     window.activityWindowManager = new ActivityWindowManager();
     window.activityWindowManager.start();
 

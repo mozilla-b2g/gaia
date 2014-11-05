@@ -1,4 +1,4 @@
-/* global KeyboardManager, softwareButtonManager, Service */
+/* global inputWindowManager, softwareButtonManager, Service */
 'use strict';
 
 (function(exports) {
@@ -21,7 +21,6 @@
    * ![resize layout flow](http://i.imgur.com/bUMm4VM.png)
    *
    * @class LayoutManager
-   * @requires KeyboardManager
    * @requires SoftwareButtonManager
    * @requires StatusBar
    * @requires Service
@@ -53,7 +52,7 @@
       var softwareButtonHeight = Service.locked || isFullScreenLayout ?
         0 : softwareButtonManager.height;
       var keyboardHeight = this.keyboardEnabled ?
-        KeyboardManager.getHeight() : 0;
+        inputWindowManager.getHeight() : 0;
       var height = window.innerHeight - keyboardHeight - softwareButtonHeight;
 
       // Normalizing the height so that it always translates to an integral

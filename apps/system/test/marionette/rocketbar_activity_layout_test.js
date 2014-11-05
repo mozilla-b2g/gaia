@@ -69,7 +69,7 @@ marionette('Rocketbar - Opened Activity From Search', function() {
       var matches = newHeight === lastHeight;
       lastHeight = newHeight;
       var keyboardHeight = client.executeScript(function() {
-        return window.wrappedJSObject.KeyboardManager.getHeight();
+        return window.wrappedJSObject.inputWindowManager.getHeight();
       });
       var frameRect = bookmark.currentTabFrame.scriptWith(function(el) {
         return el.getBoundingClientRect();
