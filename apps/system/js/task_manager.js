@@ -116,6 +116,9 @@
     if (this.isShown()) {
       return;
     }
+    if (document.mozFullScreen) {
+      document.mozCancelFullScreen();
+    }
     this.calculateDimensions();
     this.newStackPosition = null;
     this._registerShowingEvents();
