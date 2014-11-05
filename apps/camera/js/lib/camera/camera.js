@@ -949,6 +949,7 @@ Camera.prototype.startRecording = function(options) {
   // Rotation is flipped for front camera
   if (frontCamera) { rotation = -rotation; }
 
+  this.set('recording', true);
   this.busy();
 
   // Lock orientation during video recording
@@ -991,6 +992,7 @@ Camera.prototype.startRecording = function(options) {
         self.onRecordingError('error-video-file-path');
         return;
       }
+
       video.filepath = filepath;
       self.emit('willrecord');
       self.mozCamera.startRecording(
@@ -1009,7 +1011,6 @@ Camera.prototype.startRecording = function(options) {
   }
 
   function onSuccess() {
-    self.set('recording', true);
     self.startVideoTimer();
     self.ready();
 
@@ -1156,6 +1157,7 @@ Camera.prototype.onRecordingError = function(id) {
   var title = navigator.mozL10n.get(id + '-title');
   var text = navigator.mozL10n.get(id + '-text');
   alert(title + '. ' + text);
+  this.set('recording', false);
   this.ready();
 };
 
