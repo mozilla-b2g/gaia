@@ -664,7 +664,7 @@ suite('InputWindowManager', function() {
 
       manager._kbPublish('keyboardevent', 400);
 
-      assert.deepEqual(stubDispatchEvent.getCall(0).args[0], {
+      sinon.assert.calledWithMatch(stubDispatchEvent, {
         type: 'keyboardevent',
         bubbles: true,
         cancelable: true,
