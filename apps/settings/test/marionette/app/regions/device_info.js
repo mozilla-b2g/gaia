@@ -15,10 +15,10 @@ function DeviceInfoPanel(client) {
 module.exports = DeviceInfoPanel;
 
 DeviceInfoPanel.Selectors = {
-  'moreInfoBtn': '#about a[href="#about-moreInfo"]',
-  'yourRightsBtn': '#about a[href="#about-yourRights"]',
-  'yourPrivacyBtn': '#about a[href="#about-yourPrivacy"]',
-  'legalInfoBtn': '#about a[href="#about-legal"]',
+  'moreInfoBtn': '#about button[data-l10n-id="more-info"]',
+  'yourRightsBtn': '#about button[data-l10n-id="your-rights"]',
+  'yourPrivacyBtn': '#about button[data-l10n-id="your-privacy"]',
+  'legalInfoBtn': '#about button[data-l10n-id="about-legal-info"]',
   'resetPhoneBtn': '#about button#reset-phone',
   'resetPhoneDialog': '#reset-phone-dialog',
   'cancelResetPhoneBtn': '#cancel-reset-phone',

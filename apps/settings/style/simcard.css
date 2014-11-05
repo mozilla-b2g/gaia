@@ -49,6 +49,9 @@
   opacity: 0.6;
   pointer-events: none;
 }
+.sim-manager-security-entry p[data-href="#simpin"] {
+  line-height: 3rem;
+}
 .sim-manager-select-list .explanation {
   font-size: 1.2rem;
   font-style: normal;

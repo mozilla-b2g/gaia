@@ -44,8 +44,7 @@ define(function(require) {
         pickType: 'alerttone',
         settingsKey: 'notification.ringtone',
         allowNone: true, // Allow "None" as a choice for alert tones.
-        button: this._elements.alertToneSelection,
-        desc: this._elements.alertToneSelectionDesc
+        button: this._elements.alertToneSelection
       }];
 
       // If we're a telephone, then show the section for ringtones, too.
@@ -54,8 +53,7 @@ define(function(require) {
           pickType: 'ringtone',
           settingsKey: 'dialer.ringtone',
           allowNone: false, // The ringer must always have an actual sound.
-          button: this._elements.ringToneSelection,
-          desc: this._elements.ringToneSelectionDesc
+          button: this._elements.ringToneSelection
         });
         this._elements.ringer.hidden = false;
       }
@@ -73,10 +71,10 @@ define(function(require) {
       var l10nID = tonename && tonename.l10nID;
 
       if (l10nID) {
-        tone.desc.setAttribute('data-l10n-id', l10nID);
+        tone.button.setAttribute('data-l10n-id', l10nID);
       } else {
-        tone.desc.removeAttribute('data-l10n-id');
-        tone.desc.textContent = tonename;
+        tone.button.removeAttribute('data-l10n-id');
+        tone.button.textContent = tonename;
       }
     },
 
@@ -92,11 +90,11 @@ define(function(require) {
     _renderTone: function tm_renderTone(tone, result, secret) {
       var oldRingtoneName = null;
 
-      var l10nId = tone.desc.getAttribute('data-l10n-id');
+      var l10nId = tone.button.getAttribute('data-l10n-id');
       if (!l10nId) {
-        oldRingtoneName = tone.desc.textContent;
+        oldRingtoneName = tone.button.textContent;
       }
-      tone.desc.setAttribute('data-l10n-id', 'saving-tone');
+      tone.button.setAttribute('data-l10n-id', 'saving-tone');
       var promise;
       var self = this;
       // If we got a locked ringtone, we have to unlock it first
@@ -113,11 +111,11 @@ define(function(require) {
             result.name, result.blob, result.id);
         } else {
           if (l10nId) {
-            tone.desc.setAttribute('data-l10n-id', l10nId);
+            tone.button.setAttribute('data-l10n-id', l10nId);
           } else {
              // remove temp 'saving-tone' l10nId
-            tone.desc.removeAttribute('data-l10n-id');
-            tone.desc.textContent = oldRingtoneName;
+            tone.button.removeAttribute('data-l10n-id');
+            tone.button.textContent = oldRingtoneName;
           }
           alert(navigator.mozL10n.get('unplayable-ringtone'));
         }

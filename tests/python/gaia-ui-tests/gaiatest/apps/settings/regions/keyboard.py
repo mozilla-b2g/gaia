@@ -9,7 +9,7 @@ from gaiatest.apps.base import Base
 class Keyboard(Base):
 
     _section_locator = (By.ID, 'keyboard')
-    _add_more_keyboards_button_locator = (By.CSS_SELECTOR, "a[href='#keyboard-selection-addMore']")
+    _add_more_keyboards_button_locator = (By.CSS_SELECTOR, "button[data-l10n-id='selectKeyboards']")
     _built_in_keyboard_list_element_locator = (By.CSS_SELECTOR, '.enabledKeyboardList > li > span')
 
     def __init__(self, marionette):

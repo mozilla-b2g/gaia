@@ -71,7 +71,7 @@ define(function(require) {
     return SettingsPanel({
       onInit: function asp_onInit(rootElement) {
         _rootElement = rootElement;
-        var apnBtns = rootElement.querySelectorAll('a[data-apn-type]');
+        var apnBtns = rootElement.querySelectorAll('button[data-apn-type]');
         var resetBtn = rootElement.querySelector('button.reset-apn');
         var header = rootElement.querySelector('gaia-header');
 

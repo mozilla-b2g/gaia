@@ -18,10 +18,6 @@ ul li {
   color: #000;
 }
 
-ul+ul li:first-child {
-  border-top: 0.1rem solid #e6e6e3;
-}
-
 ul li:last-child {
   border-bottom: none;
 }

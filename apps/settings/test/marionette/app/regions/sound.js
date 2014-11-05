@@ -32,9 +32,7 @@ SoundPanel.Selectors = {
               '#sound input[name="lockscreen.unlock-sound.enabled"]',
   'unlockScreenSpan': '#sound span[data-l10n-id="unlock-screen"]',
   'alerttoneButton': '.alert-tone-selection',
-  'alerttoneButtonDesc': '.alert-tone-selection .desc',
   'ringtoneButton': '.ring-tone-selection',
-  'ringtoneButtonDesc': '.ring-tone-selection .desc',
   'manageTonesButton': '.manage-tones-button'
 };
 
@@ -131,11 +129,11 @@ SoundPanel.prototype = {
   },
 
   get selectedRingtone() {
-    return this.waitForElement('ringtoneButtonDesc').text();
+    return this.waitForElement('ringtoneButton').text();
   },
 
   get selectedAlertTone() {
-    return this.waitForElement('alerttoneButtonDesc').text();
+    return this.waitForElement('alerttoneButton').text();
   },
 
   getSelectedTone: function(type) {

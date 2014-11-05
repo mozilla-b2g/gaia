@@ -13,7 +13,7 @@ var Hotspot = {
     var lock = settings.createLock();
 
     var hotspotSettingBtn =
-      document.querySelector('#hotspot-settings-section a');
+      document.querySelector('#hotspot-settings-section button');
 
     var hotspotElement =
       document.querySelector('input#tethering-wifi-enabled');

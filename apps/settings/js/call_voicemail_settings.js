@@ -3,9 +3,8 @@
 'use strict';
 
 require([
-  'modules/settings_cache',
-  'modules/settings_service'
-], function(SettingsCache, SettingsService) {
+  'modules/settings_cache'
+], function(SettingsCache) {
   var input;
   var submitBtn;
 
@@ -43,7 +42,6 @@ require([
         'ril.iccInfo.mbdn': numbers
       });
     });
-    SettingsService.navigate('call');
   };
   
   var reset = function csvm_reset(callback) {
