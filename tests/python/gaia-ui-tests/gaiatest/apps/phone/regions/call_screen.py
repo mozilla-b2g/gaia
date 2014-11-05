@@ -30,6 +30,7 @@ class CallScreen(Phone):
     _merge_calls_button_locator = (By.ID, 'merge')
     _conference_call_label_locator = (By.ID, 'group-call-label')
     _conference_call_locator = (By.ID, 'group-call')
+    _contact_background_locator = (By.ID, 'contact-background')
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
@@ -61,8 +62,16 @@ class CallScreen(Phone):
         return self.marionette.find_element(*self._outgoing_call_locator).find_element(*self._calling_contact_information_locator).text
 
     @property
+    def calling_contact_information(self):
+        return self.marionette.find_element(*self._outgoing_call_locator).find_element(*self._calling_contact_information_locator).text
+
+    @property
     def conference_label(self):
         return self.marionette.find_element(*self._conference_call_label_locator).text
+
+    @property
+    def contact_background_style(self):
+        return self.marionette.find_element(*self._contact_background_locator).get_attribute('style')
 
     def wait_for_outgoing_call(self):
         outgoing_call = self.marionette.find_element(*self._outgoing_call_locator)
