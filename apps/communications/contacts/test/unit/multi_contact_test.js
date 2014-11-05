@@ -120,9 +120,9 @@ suite('Getting MultiContact Data', function() {
     navigator.mozContacts = realMozContacts;
   });
 
-  test('Getting data from two different datastores', function(done) {
-    MultiContact.getData(entry).then(function success(data) {
-      done(function() {
+  test('Getting data from two different datastores', done => {
+    MultiContact.getData(entry).then(data => {
+      done(() => {
         assert.equal(data.id, globalEntryId);
 
         assert.equal(data.familyName[0], 'Cantera');
@@ -130,16 +130,12 @@ suite('Getting MultiContact Data', function() {
         assert.equal(data.tel.length, 1);
         assert.equal(data.email.length, 1);
       });
-    }, function error(err) {
-        done(function() {
-          assert.fail('Error while getting data');
-        });
-    });
+    }).catch(err => done(() => assert.fail('Error while getting data')));
   });
 
   test('Getting data only from mozContacts', function(done) {
-    MultiContact.getData(onlyMozContactEntry).then(function success(data) {
-      done(function() {
+    MultiContact.getData(onlyMozContactEntry).then(data => {
+      done(() => {
         assert.equal(data.id, globalEntryId);
 
         assert.equal(data.familyName[0], aMozTestContact.familyName[0]);
@@ -149,11 +145,7 @@ suite('Getting MultiContact Data', function() {
         assert.equal(JSON.stringify(data.email),
                      JSON.stringify(aMozTestContact.email));
       });
-    }, function error(err) {
-        done(function() {
-          assert.fail('Error while getting data');
-        });
-    });
+    }).catch(err => done(() => assert.fail('Error while getting data')));
   });
 
   test('Getting data from a datastore and mozContacts', function(done) {
@@ -165,10 +157,6 @@ suite('Getting MultiContact Data', function() {
         assert.equal(data.givenName[0], 'Carlos');
         assert.equal(data.tel.length, 2);
       });
-    }, function error(err) {
-        done(function() {
-          assert.fail('Error while getting data');
-        });
-    });
+    }).catch(err => done(() => assert.fail('Error while getting data')));
   });
 });
