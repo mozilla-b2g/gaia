@@ -3704,7 +3704,7 @@ suite('thread_ui.js >', function() {
       };
       ThreadUI.appendMessage(message);
 
-      this.sinon.stub(window, 'confirm');
+      this.sinon.stub(Utils, 'confirm');
       request = {};
       this.sinon.stub(MessageManager, 'getMessage').returns(request);
       this.sinon.stub(MessageManager, 'resendMessage');
@@ -3713,20 +3713,27 @@ suite('thread_ui.js >', function() {
 
     test('clicking on an error message bubble in a thread with 1 message ' +
       'should try to resend and remove the errored message',
-      function() {
-      window.confirm.returns(true);
+      function(done) {
+      var confirmPromise = Promise.resolve();
+      Utils.confirm.returns(confirmPromise);
       this.errorMsg.querySelector('.message-status').click();
 
-      request.result = message;
-      request.onsuccess && request.onsuccess.call(request);
-      assert.isNull(ThreadUI.container.querySelector('li'));
-      assert.ok(
-        MessageManager.resendMessage.calledWithMatch({
-          onerror: sinon.match.func,
-          onsuccess: sinon.match.func,
-          message: message
-        })
-      );
+      sinon.assert.calledWith(Utils.confirm, { l10nId: 'resend-confirmation'});
+
+      confirmPromise.then(function() {
+        request.result = message;
+        request.onsuccess && request.onsuccess.call(request);
+
+        assert.isNull(ThreadUI.container.querySelector('li'));
+        sinon.assert.calledWithMatch(
+          MessageManager.resendMessage,
+          {
+            onerror: sinon.match.func,
+            onsuccess: sinon.match.func,
+            message: message
+          }
+        );
+      }).then(done, done);
     });
   });
 
@@ -4063,7 +4070,7 @@ suite('thread_ui.js >', function() {
         delivery: 'sent',
         timestamp: Date.now()
       });
-      this.sinon.stub(window, 'confirm');
+      this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
       this.sinon.stub(ThreadUI, 'resendMessage');
       this.elems = {
         errorMsg: ThreadUI.container.querySelector('.error'),
@@ -4075,43 +4082,51 @@ suite('thread_ui.js >', function() {
       'triggers a confirmation dialog',
       function() {
       this.elems.errorMsg.querySelector('.message-status').click();
-      assert.equal(window.confirm.callCount, 1);
+      sinon.assert.calledOnce(Utils.confirm);
     });
 
     test('clicking on p element in an error message' +
       'does not triggers a confirmation  dialog',
       function() {
       this.elems.errorMsg.querySelector('.bubble p').click();
-      assert.equal(window.confirm.callCount, 0);
+      sinon.assert.notCalled(Utils.confirm);
     });
 
     test('clicking on an error message does not trigger a confirmation dialog',
       function() {
       this.elems.errorMsg.click();
-      assert.equal(window.confirm.callCount, 0);
+      sinon.assert.notCalled(Utils.confirm);
     });
 
     test('clicking on "message-status" aside in an error message and ' +
       'accepting the confirmation dialog triggers a message re-send operation',
-    function() {
-      window.confirm.returns(true);
+    function(done) {
+      var confirmPromise = Promise.resolve();
+      Utils.confirm.returns(confirmPromise);
       this.elems.errorMsg.querySelector('.message-status').click();
-      assert.equal(ThreadUI.resendMessage.callCount, 1);
+
+      confirmPromise.then(function() {
+        sinon.assert.calledOnce(ThreadUI.resendMessage);
+      }).then(done, done);
     });
 
     test('clicking on an error message bubble and rejecting the ' +
       'confirmation dialog does not trigger a message re-send operation',
-      function() {
-      window.confirm.returns(false);
+      function(done) {
+      var confirmPromise = Promise.reject();
+      Utils.confirm.returns(confirmPromise);
       this.elems.errorMsg.querySelector('.bubble').click();
-      assert.equal(ThreadUI.resendMessage.callCount, 0);
+
+      confirmPromise.catch(function() {
+        sinon.assert.notCalled(ThreadUI.resendMessage);
+      }).then(done, done);
     });
 
     test('clicking on a sent message does not trigger a confirmation dialog ' +
       'nor a message re-send operation', function() {
       this.elems.sentMsg.click();
-      assert.equal(window.confirm.callCount, 0);
-      assert.equal(ThreadUI.resendMessage.callCount, 0);
+      sinon.assert.notCalled(Utils.confirm);
+      sinon.assert.notCalled(ThreadUI.resendMessage);
     });
   });
 

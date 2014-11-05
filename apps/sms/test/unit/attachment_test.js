@@ -499,7 +499,7 @@ suite('attachment_test.js', function() {
       var activity;
       setup(function() {
         this.sinon.spy(window, 'MozActivity');
-        this.sinon.stub(window, 'alert');
+        this.sinon.stub(Utils, 'alert').returns(Promise.resolve());
 
         var attachment = new Attachment(testImageBlob, {
           name: 'IMG_0554.jpg'
@@ -514,21 +514,21 @@ suite('attachment_test.js', function() {
         activity.onerror.call({
           error: { name: 'NO_PROVIDER' }
         });
-        sinon.assert.calledWith(window.alert, 'attachmentOpenError');
+        sinon.assert.calledWith(Utils.alert, { l10nId: 'attachmentOpenError' });
       });
 
       test('Activity is canceled', function() {
         activity.onerror.call({
           error: { name: 'ActivityCanceled' }
         });
-        sinon.assert.notCalled(window.alert);
+        sinon.assert.notCalled(Utils.alert);
       });
 
       test('Activity is canceled (on some other environment)', function() {
         activity.onerror.call({
           error: { name: 'USER_ABORT' }
         });
-        sinon.assert.notCalled(window.alert);
+        sinon.assert.notCalled(Utils.alert);
       });
 
     });

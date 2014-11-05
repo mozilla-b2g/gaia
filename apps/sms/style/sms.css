@@ -19,6 +19,7 @@ form[role="dialog"][data-type="confirm"] p {
 
 form[role="dialog"][data-type="confirm"] p small{
   line-height: 2rem;
+  white-space: pre-line;
 }
 
 

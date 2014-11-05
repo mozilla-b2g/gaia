@@ -1,7 +1,8 @@
 /* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
          AttachmentMenu, Draft, document, XMLHttpRequest, Blob, navigator,
-         ThreadUI, SMIL */
+         ThreadUI, SMIL,
+         Promise */
 
 /*jshint strict:false */
 /*jslint node: true */
@@ -884,7 +885,7 @@ suite('compose_test.js', function() {
       setup(function() {
         request = {};
         this.sinon.stub(Compose, 'requestAttachment').returns(request);
-        this.sinon.stub(window, 'alert');
+        this.sinon.stub(Utils, 'alert').returns(Promise.resolve());
         this.sinon.stub(Compose, 'append');
         this.sinon.stub(console, 'warn');
 
@@ -905,13 +906,16 @@ suite('compose_test.js', function() {
         test('file too large', function() {
           request.onerror('file too large');
 
-          sinon.assert.calledWith(window.alert, 'files-too-large{"n":1}');
+          sinon.assert.calledWith(
+            Utils.alert,
+            { l10nId: 'files-too-large', l10nArgs: { n: 1 } }
+          );
         });
 
         test('other errors are logged', function() {
           var err = 'other error';
           request.onerror(err);
-          sinon.assert.notCalled(window.alert);
+          sinon.assert.notCalled(Utils.alert);
           sinon.assert.calledWith(console.warn, sinon.match.string, err);
         });
       });
@@ -1029,22 +1033,22 @@ suite('compose_test.js', function() {
 
         suite('onerror,', function() {
           setup(function() {
-            this.sinon.stub(window, 'alert');
+            this.sinon.stub(Utils, 'alert').returns(Promise.resolve());
             this.sinon.stub(console, 'warn');
           });
 
           test('file too large', function() {
             request.onerror('file too large');
             sinon.assert.calledWith(
-              window.alert,
-              'files-too-large{"n":1}'
+              Utils.alert,
+              { l10nId: 'files-too-large', l10nArgs: { n: 1 }}
             );
           });
 
           test('other errors are logged', function() {
             var err = 'other error';
             request.onerror(err);
-            sinon.assert.notCalled(window.alert);
+            sinon.assert.notCalled(Utils.alert);
             sinon.assert.calledWith(console.warn, sinon.match.string, err);
           });
         });

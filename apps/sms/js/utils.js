@@ -1,7 +1,10 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper, Notification, Threads*/
+/* globals ContactPhotoHelper, Notification, Threads,
+           Dialog,
+           Promise
+*/
 
 (function(exports) {
   'use strict';
@@ -637,6 +640,68 @@
         ).catch(function onError(reason) {
           console.error('Notification.get(tag: ' + targetTag + '): ', reason);
         });
+    },
+
+    alert: function (message, title) {
+      var deferred = this.Promise.defer();
+
+      var dialog = new Dialog({
+        title: title || { l10nId: 'modal-dialog-default-title' },
+        body: message,
+        options: {
+          cancel: {
+            text: { l10nId: 'modal-dialog-ok-button' },
+            method: deferred.resolve
+          }
+        }
+      });
+      dialog.show();
+
+      return deferred.promise;
+    },
+
+    confirm: function (message, title) {
+      var deferred = this.Promise.defer();
+
+      var dialog = new Dialog({
+        title: title || { l10nId: 'modal-dialog-default-title' },
+        body: message,
+        options: {
+          cancel: {
+            text: { l10nId: 'modal-dialog-cancel-button' },
+            method: deferred.reject
+          },
+
+          confirm: {
+            text: { l10nId: 'modal-dialog-ok-button' },
+            method: deferred.resolve
+          }
+        }
+      });
+      dialog.show();
+
+      return deferred.promise;
+    },
+
+    /**
+     * Promise related utilities
+     */
+    Promise: {
+      /**
+       * Returns object that contains promise and related resolve\reject methods
+       * to avoid wrapping long or complex code into single Promise constructor.
+       * @returns {{promise: Promise, resolve: function, reject: function}}
+       */
+      defer: function () {
+        var deferred = {};
+
+        deferred.promise = new Promise(function (resolve, reject) {
+          deferred.resolve = resolve;
+          deferred.reject = reject;
+        });
+
+        return deferred;
+      }
     }
   };
 

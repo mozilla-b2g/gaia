@@ -2048,10 +2048,9 @@ var ThreadUI = global.ThreadUI = {
     // Click events originating from a "message-status" aside of an error
     // message should trigger a prompt for retransmission.
     if (elems.message.classList.contains('error') && elems.messageStatus) {
-      if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
-        this.resendMessage(elems.message.dataset.messageId);
-      }
-      return;
+      Utils.confirm({ l10nId: 'resend-confirmation'}).then(function() {
+        ThreadUI.resendMessage(elems.message.dataset.messageId);
+      });
     }
   },
 
@@ -3058,7 +3057,4 @@ Object.defineProperty(ThreadUI, 'selectedInputs', {
     return this.getSelectedInputs();
   }
 });
-
-window.confirm = window.confirm; // allow override in unit tests
-
 }(this));

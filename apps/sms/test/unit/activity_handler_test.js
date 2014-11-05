@@ -5,7 +5,8 @@
          MockNavigatorWakeLock, MockOptionMenu,
          MockMessages, MockL10n, MockSilentSms,
          MockNavigatormozMobileMessage,
-         Settings
+         Settings,
+         Utils
 */
 
 'use strict';
@@ -88,7 +89,7 @@ suite('ActivityHandler', function() {
   });
 
   setup(function() {
-    this.sinon.stub(window, 'alert');
+    this.sinon.stub(Utils, 'alert').returns(Promise.resolve());
 
     MockNavigatormozSetMessageHandler.mSetup();
 
@@ -199,7 +200,10 @@ suite('ActivityHandler', function() {
 
       panelPromise.then(function() {
         sinon.assert.notCalled(Compose.append);
-        sinon.assert.calledWith(window.alert, 'files-too-large{"n":5}');
+        sinon.assert.calledWith(Utils.alert, {
+          l10nId: 'files-too-large',
+          l10nArgs: { n: 5 }
+        });
       }).then(done, done);
     });
 
@@ -215,7 +219,7 @@ suite('ActivityHandler', function() {
 
       panelPromise.then(function() {
         sinon.assert.called(Compose.append);
-        sinon.assert.notCalled(window.alert);
+        sinon.assert.notCalled(Utils.alert);
       }).then(done, done);
     });
 
@@ -631,7 +635,7 @@ suite('ActivityHandler', function() {
       });
 
       test('an alert is displayed', function() {
-        sinon.assert.calledWith(window.alert, title + '\n' + body);
+        sinon.assert.calledWith(Utils.alert, { value: body }, { value: title });
       });
 
       test('handleMessageNotification is not called', function() {
@@ -794,7 +798,7 @@ suite('ActivityHandler', function() {
       message = MockMessages.sms();
       realMozMobileMessage = navigator.mozMobileMessage;
       navigator.mozMobileMessage = MockNavigatormozMobileMessage;
-      this.sinon.stub(window, 'confirm');
+      this.sinon.stub(Utils, 'confirm');
     });
 
     teardown(function() {
@@ -802,34 +806,51 @@ suite('ActivityHandler', function() {
     });
 
     suite('confirm false', function() {
+      var confirmPromise = Promise.reject();
 
       setup(function() {
         this.sinon.stub(Compose, 'clear');
         this.sinon.stub(ThreadUI, 'cleanFields');
-        window.confirm.returns(false);
+
+        Utils.confirm.returns(confirmPromise);
       });
 
-      test('the text shouldn\'t be cleaned', function() {
+      test('the text should not be cleaned', function(done) {
         ActivityHandler.handleMessageNotification(message);
         MockNavigatormozMobileMessage.mTriggerSuccessMessageRequest();
-        assert.isFalse(Compose.clear.called);
-        assert.isFalse(ThreadUI.cleanFields.called);
-        assert.isTrue(window.confirm.called);
+        sinon.assert.calledWith(
+          Utils.confirm,
+          { l10nId: 'discard-new-message' }
+        );
+
+        confirmPromise.catch(function() {
+          sinon.assert.notCalled(Compose.clear);
+          sinon.assert.notCalled(ThreadUI.cleanFields);
+        }).then(done, done);
       });
     });
 
     suite('confirm true', function() {
+      var confirmPromise = Promise.resolve();
 
       setup(function() {
-        window.confirm.returns(true);
         this.sinon.stub(ThreadUI, 'cleanFields');
+
+        Utils.confirm.returns(confirmPromise);
       });
 
-      test('the text should be cleaned', function() {
+      test('the text should be cleaned', function(done) {
         ActivityHandler.handleMessageNotification(message);
         MockNavigatormozMobileMessage.mTriggerSuccessMessageRequest();
-        assert.isTrue(ThreadUI.cleanFields.called);
-        assert.isTrue(window.confirm.called);
+
+        sinon.assert.calledWith(
+          Utils.confirm,
+          { l10nId: 'discard-new-message' }
+        );
+
+        confirmPromise.then(function() {
+          sinon.assert.called(ThreadUI.cleanFields);
+        }).then(done, done);
       });
     });
   });
