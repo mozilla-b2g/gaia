@@ -20,7 +20,8 @@ var MusicComms = {
         // recover the player to the original status.
         if (isResumedBySCO) {
           if (this._statusBeforeSCO === PLAYSTATUS_PLAYING ||
-              this._statusBeforeSCO === INTERRUPT_BEGIN)
+              (this._statusBeforeSCO === INTERRUPT_BEGIN &&
+              PlayerView.interruptedAudioChannel === 'ringer'))
             PlayerView.play();
           else
             PlayerView.pause();
@@ -175,5 +176,9 @@ var MusicComms = {
         this.isSCOEnabled = status;
       }.bind(this));
     }
+  },
+
+  getAudioChannel: function() {
+    return this.mrc._audioChannel;
   }
 };

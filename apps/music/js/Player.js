@@ -107,6 +107,7 @@ var PlayerView = {
     this.setSeekBar(0, 0, 0); // Set 0 to default seek position
     this.intervalID = null;
 
+    this.interruptedAudioChannel = 'none';
     this.view.addEventListener('click', this);
     this.view.addEventListener('contextmenu', this);
 
@@ -1044,6 +1045,8 @@ var PlayerView = {
       case 'mozinterruptbegin':
         this.playStatus = INTERRUPT_BEGIN;
         this.updateRemotePlayStatus();
+        if (typeof MusicComms !== 'undefined')
+          this.interruptedAudioChannel = MusicComms.getAudioChannel();
         break;
 
       case 'mozinterruptend':

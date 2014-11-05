@@ -81,6 +81,7 @@ function MediaRemoteControls() {
   this.defaultAdapter = null;
   this._commandListeners = {};
   this._isSCOConnected = false;
+  this._audioChannel = 'none';
 
   // Create the empty object for all command listeners.
   for (var command in REMOTE_CONTROLS)
@@ -215,6 +216,11 @@ MediaRemoteControls.prototype._setupIAC = function() {
       self._ports = ports;
       self._ports.forEach(function(port) {
         port.onmessage = function(event) {
+          if (event.data.audioChannel) {
+
+            self._audioChannel = event.data.audioChannel;
+            return;
+          }
           self._commandHandler(event.data.command);
         };
 

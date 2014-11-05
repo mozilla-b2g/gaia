@@ -299,6 +299,15 @@
           case 'audio-channel-changed':
             this.currentChannel = e.detail.channel;
             this.ceAccumulator();
+            // Post channel type to music app, this will help in identifying channel type 
+            // when an interrupt is occurred. This approach is to solve bug: 1077768.
+            var port = IACHandler.getPort('mediacomms');
+
+            if (!port) {
+              return;
+             }
+
+            port.postMessage({audioChannel: currentChannel});
             break;
           case 'headphones-status-changed':
             this.isHeadsetConnected = (e.detail.state !== 'off');
