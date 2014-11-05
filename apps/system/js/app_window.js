@@ -422,21 +422,26 @@
     if (this.isActive() && this.getBottomMostWindow().isActive() &&
         !this.isHomescreen) {
 
-      var fallbackTimeout;
       var onClosed = function() {
-        clearTimeout(fallbackTimeout);
         this.element.removeEventListener('_closed', onClosed);
         this.destroy();
       }.bind(this);
 
       this.element.addEventListener('_closed', onClosed);
-      fallbackTimeout = setTimeout(onClosed,
-        this.transitionController.CLOSING_TRANSITION_TIMEOUT);
 
       if (this.previousWindow) {
         this.previousWindow.getBottomMostWindow().open('in-from-left');
         this.close('out-to-right');
       } else {
+        if (this.transitionController) {
+          // In normal case,
+          // the window manager will call this.close() to response
+          // the requestClose(), and when the timeout here is reached,
+          // it will not close again because transition controller
+          // is taking care of that.
+          setTimeout(this.close.bind(this, 'immediate'),
+            this.transitionController.CLOSING_TRANSITION_TIMEOUT);
+        }
         this.requestClose();
       }
     } else {

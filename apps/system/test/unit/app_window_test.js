@@ -1265,7 +1265,8 @@ suite('system/AppWindow', function() {
   suite('Event handlers', function() {
     var fakeTransitionController = {
       requireOpen: function() {},
-      requireClose: function() {}
+      requireClose: function() {},
+      CLOSING_TRANSITION_TIMEOUT: 350
     };
 
     suite('Hidewindow event', function() {
@@ -1529,15 +1530,16 @@ suite('system/AppWindow', function() {
       this.sinon.stub(app.element, 'addEventListener');
 
       this.sinon.stub(app, 'isActive').returns(true);
-      var destroyStub = this.sinon.stub(app, 'destroy');
+      this.sinon.stub(app, 'close');
 
       app.transitionController = fakeTransitionController;
       app.kill();
-      assert.ok(destroyStub.notCalled);
+      assert.ok(app.close.notCalled);
 
-      var fallbackTimeout = 1000;
-      this.sinon.clock.tick(fallbackTimeout);
-      assert.ok(destroyStub.calledOnce);
+      this.sinon.clock.tick(
+        fakeTransitionController.CLOSING_TRANSITION_TIMEOUT);
+      assert.ok(app.close.calledOnce);
+      assert.ok(app.close.calledWith('immediate'));
     });
 
     test('Destroy active window directly when the bottom app is not Active',
