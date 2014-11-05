@@ -44,10 +44,11 @@ fullscreenButtons.delete.onclick = deleteSingleItem;
 
 // Clicking the Edit button while viewing a photo switches to edit mode
 fullscreenButtons.edit.onclick = function() {
-  loader.load(['js/ImageEditor.js', 'shared/js/media/crop_resize_rotate.js'],
-              function() {
-                editPhotoIfCardNotFull(currentFileIndex);
-              });
+  LazyLoader.load(['js/ImageEditor.js',
+                   'shared/js/media/crop_resize_rotate.js'],
+                  function() {
+                    editPhotoIfCardNotFull(currentFileIndex);
+                  });
 };
 
 // In fullscreen mode, the share button shares the current item
@@ -55,10 +56,10 @@ fullscreenButtons.share.onclick = shareSingleItem;
 
 // Clicking the information button will display information about the photo.
 fullscreenButtons.info.onclick = function() {
-  loader.load(['js/info.js', 'shared/style/confirm.css', 'style/info.css'],
-              function() {
-                showFileInformation(files[currentFileIndex]);
-              });
+  LazyLoader.load(['js/info.js', 'shared/style/confirm.css', 'style/info.css'],
+                  function() {
+                    showFileInformation(files[currentFileIndex]);
+                  });
 };
 
 // Use the GestureDetector.js library to handle gestures.
@@ -133,7 +134,7 @@ function deleteSingleItem() {
     msg = 'delete-photo?';
   }
   // We need to disable NFC sharing when showing delete confirmation dialog
-  setNFCSharing(false);
+  NFC.unshare();
 
   Dialogs.confirm({
     messageId: msg,
@@ -149,10 +150,10 @@ function deleteSingleItem() {
 
     deleteFile(currentFileIndex);
     // Enable NFC sharing when done deleting and returns to fullscreen view
-    setNFCSharing(true);
+    NFC.share(getCurrentFile);
   }, function() { // onCancel
     // Enable NFC sharing when cancels delete and returns to fullscreen view
-    setNFCSharing(true);
+    NFC.share(getCurrentFile);
   });
 }
 
@@ -178,8 +179,8 @@ function shareSingleItem() {
       // This is only tricky case. If we are sharing an image that uses
       // EXIF orientation for correct display, rotate it before sharing
       // so that the recieving app doesn't have to know about EXIF
-      loader.load(['shared/js/media/crop_resize_rotate.js'],
-                  shareModifiedImage);
+      LazyLoader.load(['shared/js/media/crop_resize_rotate.js'],
+                      shareModifiedImage);
     }
   }
 
@@ -187,7 +188,7 @@ function shareSingleItem() {
     var metadata = fileinfo.metadata;
     var button = fullscreenButtons.share;
     button.classList.add('disabled');
-    showSpinner();
+    Spinner.show();
     var maxsize = CONFIG_MAX_PICK_PIXEL_SIZE || CONFIG_MAX_IMAGE_PIXEL_SIZE;
     cropResizeRotate(currentFrame.imageblob, null,
                      maxsize || null, null, metadata,
@@ -197,7 +198,7 @@ function shareSingleItem() {
                          rotatedBlob = currentFrame.imageblob;
                        }
                        ensureFileBackedBlob(rotatedBlob, function(file) {
-                         hideSpinner();
+                         Spinner.hide();
                          button.classList.remove('disabled');
                          share([file], currentFrame.imageblob.name);
                        });
