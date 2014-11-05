@@ -77,6 +77,7 @@ suite('shared/js/sticky_header.js', function() {
     function checkBackgroundImage(src) {
       assert.equal(sticky.style.backgroundImage,
                    src ? '-moz-element(#' + src + ')' : '');
+      assert.equal(sticky.classList.contains('has-content'), !!src);
     }
 
     setup(function() {
