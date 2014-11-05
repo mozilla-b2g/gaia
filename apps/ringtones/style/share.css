@@ -41,8 +41,12 @@ article {
   float: left;
   width: 3rem;
   height: 3rem;
-  margin-right: 1.2rem;
+  -moz-margin-end: 1.2rem;
   background-size: 3rem;
+}
+
+html[dir="rtl"] #picture {
+  float: right;
 }
 
 #playpause {
@@ -66,7 +70,11 @@ article {
 
 #set-default .pack-checkbox {
   float: left;
-  margin-left: -0.5rem;
+  -moz-margin-start: -0.5rem;
+}
+
+html[dir="rtl"] #set-default .pack-checkbox {
+  float: right;
 }
 
 #set-default p {
