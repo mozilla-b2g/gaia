@@ -36,18 +36,14 @@ suite('ErrorDialog', function() {
       (new ErrorDialog(errorDescription));
 
       sinon.assert.calledWith(Dialog.call, sinon.match.any, {
-        title: {
-          l10nId: errorDescription.prefix + 'Title'
-        },
+        title: errorDescription.prefix + 'Title',
         body: {
-          l10nId: errorDescription.prefix + 'Body',
-          l10nArgs: null
+          id: errorDescription.prefix + 'Body',
+          args: null
         },
         options: {
           cancel: {
-            text: {
-              l10nId:  errorDescription.prefix + 'BtnOk'
-            }
+            text: errorDescription.prefix + 'BtnOk'
           }
         }
       });
@@ -75,9 +71,7 @@ suite('ErrorDialog', function() {
         body: sinon.match.any,
         options: {
           cancel: {
-            text: {
-              l10nId:  errorDescription.prefix + 'BtnOk'
-            }
+            text: errorDescription.prefix + 'BtnOk'
           }
         }
       });
@@ -98,9 +92,7 @@ suite('ErrorDialog', function() {
         body: sinon.match.any,
         options: {
           cancel: {
-            text: {
-              l10nId:  errorDescription.prefix + 'BtnOk'
-            }
+            text:  errorDescription.prefix + 'BtnOk'
           }
         }
       });
@@ -121,14 +113,10 @@ suite('ErrorDialog', function() {
         body: sinon.match.any,
         options: {
           cancel: {
-            text: {
-              l10nId:  errorDescription.prefix + 'BtnOk'
-            }
+            text: errorDescription.prefix + 'BtnOk'
           },
           confirm: {
-            text: {
-              l10nId: errorDescription.prefix + 'Confirm'
-            },
+            text: errorDescription.prefix + 'Confirm',
             method: dialogOptions.confirmHandler
           }
         }
@@ -153,8 +141,8 @@ suite('ErrorDialog', function() {
       sinon.assert.calledWith(Dialog.call, sinon.match.any, {
         title: sinon.match.any,
         body: {
-          l10nId: errorDescription.prefix + 'Body',
-          l10nArgs: {
+          id: errorDescription.prefix + 'Body',
+          args: {
             n: dialogOptions.recipients.length,
             numbers: dialogOptions.recipients.join('<br />')
           }
@@ -190,8 +178,8 @@ suite('ErrorDialog', function() {
       sinon.assert.calledWith(Dialog.call, sinon.match.any, {
         title: sinon.match.any,
         body: {
-          l10nId: errorDescription.prefix + 'Body',
-          l10nArgs: {
+          id: errorDescription.prefix + 'Body',
+          args: {
             activeSimId: '1',
             nonActiveSimId: '2'
           }
@@ -213,8 +201,8 @@ suite('ErrorDialog', function() {
       sinon.assert.calledWith(Dialog.call, sinon.match.any, {
         title: sinon.match.any,
         body: {
-          l10nId: errorDescription.prefix + 'Body',
-          l10nArgs: {
+          id: errorDescription.prefix + 'Body',
+          args: {
             activeSimId: '2',
             nonActiveSimId: '1'
           }
@@ -236,8 +224,8 @@ suite('ErrorDialog', function() {
       sinon.assert.calledWith(Dialog.call, sinon.match.any, {
         title: sinon.match.any,
         body: {
-          l10nId: errorDescription.prefix + 'Body',
-          l10nArgs: null
+          id: errorDescription.prefix + 'Body',
+          args: null
         },
         options: sinon.match.any
       });
@@ -257,8 +245,8 @@ suite('ErrorDialog', function() {
       sinon.assert.calledWith(Dialog.call, sinon.match.any, {
         title: sinon.match.any,
         body: {
-          l10nId: errorDescription.prefix + 'Body',
-          l10nArgs: null
+          id: errorDescription.prefix + 'Body',
+          args: null
         },
         options: sinon.match.any
       });
@@ -271,8 +259,8 @@ suite('ErrorDialog', function() {
       sinon.assert.calledWith(Dialog.call, sinon.match.any, {
         title: sinon.match.any,
         body: {
-          l10nId: errorDescription.prefix + 'Body',
-          l10nArgs: null
+          id: errorDescription.prefix + 'Body',
+          args: null
         },
         options: sinon.match.any
       });

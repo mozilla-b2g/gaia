@@ -7,7 +7,7 @@
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, MockNavigatorSettings, MockContactRenderer,
          Draft, MockStickyHeader, MultiSimActionButton, Promise,
-         MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings,
+         MockLazyLoader, WaitingScreen, Navigation, MockSettings,
          DocumentFragment,
          Errors,
          MockCompose,
@@ -44,8 +44,6 @@ require('/test/unit/mock_settings.js');
 require('/test/unit/mock_activity_picker.js');
 require('/test/unit/mock_dialog.js');
 require('/test/unit/mock_smil.js');
-require('/test/unit/mock_custom_dialog.js');
-require('/test/unit/mock_url.js');
 require('/test/unit/mock_compose.js');
 require('/test/unit/mock_activity_handler.js');
 require('/test/unit/mock_information.js');
@@ -77,7 +75,6 @@ var mocksHelperForThreadUI = new MocksHelper([
   'MozActivity',
   'ActivityPicker',
   'OptionMenu',
-  'Dialog',
   'ErrorDialog',
   'Contacts',
   'SMIL',
@@ -2369,9 +2366,7 @@ suite('thread_ui.js >', function() {
       ThreadUI.selectionHandler = null;
       ThreadUI.startEdit();
       ThreadUI.selectionHandler.selected = new Set(selectedIds);
-      ThreadUI.delete();
-      MockDialog.triggers.confirm();
-      ThreadUI.cancelEdit();
+      return ThreadUI.delete();
     };
 
     setup(function() {
@@ -2380,27 +2375,20 @@ suite('thread_ui.js >', function() {
       for (var i = 0; i < testMessages.length; i++) {
         ThreadUI.appendMessage(testMessages[i]);
       }
-      doMarkedMessagesDeletion = doMarkedMessagesDeletion.bind(this);
+      this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
     });
 
     teardown(function() {
       container.innerHTML = '';
     });
 
-    test('dialog shows the proper message', function() {
-      doMarkedMessagesDeletion(1);
-      assert.isTrue(MockDialog.prototype.show.called);
-      assert.equal(MockDialog.calls[0].body.l10nId,
-                      'deleteMessages-confirmation');
-      assert.equal(MockDialog.calls[0].options.confirm.text.l10nId,
-                      'delete', 'right text on button');
-      assert.equal(MockDialog.calls[0].options.confirm.className,
-                      'danger','right styling on button');
-    });
-    test('dialog confirmed', function() {
-      doMarkedMessagesDeletion(1);
-      assert.isTrue(MockDialog.triggers.confirm.called);
-      assert.isFalse(MockDialog.triggers.cancel.called);
+    test('confirm shows the proper message', function(done) {
+      doMarkedMessagesDeletion(1).then(() => {
+        sinon.assert.calledWith(
+          Utils.confirm, 'deleteMessages-confirmation', null,
+          { text: 'delete', className: 'danger' }
+        );
+      }).then(done, done);
     });
 
     test('deleting a single message removes it from the DOM', function() {
@@ -2408,44 +2396,50 @@ suite('thread_ui.js >', function() {
       assert.isFalse(checkIfMessageIsInDOM(testMessages[0].id));
     });
 
-    test('messages marked for deletion get deleted', function() {
+    test('messages marked for deletion get deleted', function(done) {
       var messagesToDelete = [1, 2];
-      doMarkedMessagesDeletion(messagesToDelete);
-
-      for (var i = 0; i < testMessages.length; i++) {
-        assert.equal(checkIfMessageIsInDOM(testMessages[i].id),
-                     messagesToDelete.indexOf(testMessages[i].id) == -1);
-      }
+      doMarkedMessagesDeletion(messagesToDelete).then(() => {
+        for (var i = 0; i < testMessages.length; i++) {
+          assert.equal(checkIfMessageIsInDOM(testMessages[i].id),
+                       messagesToDelete.indexOf(testMessages[i].id) == -1);
+        }
+      }).then(done, done);
     });
 
-    test('deleting marked messages takes user back to view mode', function() {
+    test('deleting marked messages takes user back to view mode',
+      function(done) {
       this.sinon.stub(ThreadListUI, 'updateThread').returns(true);
       ThreadUI.startEdit();
-      doMarkedMessagesDeletion(1);
-      MessageManager.mTriggerOnSuccess();
-      assert.isFalse(ThreadUI.mainWrapper.classList.contains('edit'));
+      doMarkedMessagesDeletion(1).then(() => {
+        MessageManager.mTriggerOnSuccess();
+        assert.isFalse(ThreadUI.mainWrapper.classList.contains('edit'));
+      }).then(done, done);
     });
 
-    test('thread gets updated when a message is deleted', function() {
+    test('thread gets updated when a message is deleted', function(done) {
       var updateThreadSpy =
         this.sinon.stub(ThreadListUI, 'updateThread').returns(true);
-      doMarkedMessagesDeletion(1);
-      MessageManager.mTriggerOnSuccess();
-      sinon.assert.calledWith(updateThreadSpy, undefined, { deleted: true });
+      doMarkedMessagesDeletion(1).then(() => {
+        MessageManager.mTriggerOnSuccess();
+        sinon.assert.calledWith(updateThreadSpy, undefined, { deleted: true });
+      }).then(done, done);
     });
 
-    test('waiting screen shown when messages are deleted', function() {
+    test('waiting screen shown when messages are deleted', function(done) {
       this.sinon.spy(WaitingScreen, 'show');
-      doMarkedMessagesDeletion(1);
-      sinon.assert.calledOnce(WaitingScreen.show);
+      doMarkedMessagesDeletion(1).then(() => {
+        sinon.assert.calledOnce(WaitingScreen.show);
+      }).then(done, done);
     });
 
-    test('waiting screen hidden when messages are done deletion', function() {
+    test('waiting screen hidden when messages are done deletion',
+      function(done) {
       this.sinon.stub(ThreadListUI, 'updateThread').returns(true);
       this.sinon.spy(WaitingScreen, 'hide');
-      doMarkedMessagesDeletion(1);
-      MessageManager.mTriggerOnSuccess();
-      sinon.assert.calledOnce(WaitingScreen.hide);
+      doMarkedMessagesDeletion(1).then(() => {
+        MessageManager.mTriggerOnSuccess();
+        sinon.assert.calledOnce(WaitingScreen.hide);
+      }).then(done, done);
     });
 
     suite('deleting all messages', function() {
@@ -3217,7 +3211,7 @@ suite('thread_ui.js >', function() {
       };
       ThreadUI.appendMessage(message);
 
-      this.sinon.stub(window, 'confirm');
+      this.sinon.stub(Utils, 'confirm');
       request = {};
       this.sinon.stub(MessageManager, 'getMessage').returns(request);
       this.sinon.stub(MessageManager, 'resendMessage');
@@ -3226,20 +3220,27 @@ suite('thread_ui.js >', function() {
 
     test('clicking on an error message bubble in a thread with 1 message ' +
       'should try to resend and remove the errored message',
-      function() {
-      window.confirm.returns(true);
+      function(done) {
+      var confirmPromise = Promise.resolve();
+      Utils.confirm.returns(confirmPromise);
       this.errorMsg.querySelector('.message-status').click();
 
-      request.result = message;
-      request.onsuccess && request.onsuccess.call(request);
-      assert.isNull(ThreadUI.container.querySelector('li'));
-      assert.ok(
-        MessageManager.resendMessage.calledWithMatch({
-          onerror: sinon.match.func,
-          onsuccess: sinon.match.func,
-          message: message
-        })
-      );
+      sinon.assert.calledWith(Utils.confirm, 'resend-confirmation');
+
+      confirmPromise.then(function() {
+        request.result = message;
+        request.onsuccess && request.onsuccess.call(request);
+
+        assert.isNull(ThreadUI.container.querySelector('li'));
+        sinon.assert.calledWithMatch(
+          MessageManager.resendMessage,
+          {
+            onerror: sinon.match.func,
+            onsuccess: sinon.match.func,
+            message: message
+          }
+        );
+      }).then(done, done);
     });
   });
 
@@ -3616,7 +3617,7 @@ suite('thread_ui.js >', function() {
         delivery: 'sent',
         timestamp: Date.now()
       });
-      this.sinon.stub(window, 'confirm');
+      this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
       this.sinon.stub(ThreadUI, 'resendMessage');
       this.elems = {
         errorMsg: ThreadUI.container.querySelector('.error'),
@@ -3628,43 +3629,51 @@ suite('thread_ui.js >', function() {
       'triggers a confirmation dialog',
       function() {
       this.elems.errorMsg.querySelector('.message-status').click();
-      assert.equal(window.confirm.callCount, 1);
+      sinon.assert.calledOnce(Utils.confirm);
     });
 
     test('clicking on p element in an error message' +
       'does not triggers a confirmation  dialog',
       function() {
       this.elems.errorMsg.querySelector('.bubble p').click();
-      assert.equal(window.confirm.callCount, 0);
+      sinon.assert.notCalled(Utils.confirm);
     });
 
     test('clicking on an error message does not trigger a confirmation dialog',
       function() {
       this.elems.errorMsg.click();
-      assert.equal(window.confirm.callCount, 0);
+      sinon.assert.notCalled(Utils.confirm);
     });
 
     test('clicking on "message-status" aside in an error message and ' +
       'accepting the confirmation dialog triggers a message re-send operation',
-    function() {
-      window.confirm.returns(true);
+    function(done) {
+      var confirmPromise = Promise.resolve();
+      Utils.confirm.returns(confirmPromise);
       this.elems.errorMsg.querySelector('.message-status').click();
-      assert.equal(ThreadUI.resendMessage.callCount, 1);
+
+      confirmPromise.then(function() {
+        sinon.assert.calledOnce(ThreadUI.resendMessage);
+      }).then(done, done);
     });
 
     test('clicking on an error message bubble and rejecting the ' +
       'confirmation dialog does not trigger a message re-send operation',
-      function() {
-      window.confirm.returns(false);
+      function(done) {
+      var confirmPromise = Promise.reject();
+      Utils.confirm.returns(confirmPromise);
       this.elems.errorMsg.querySelector('.bubble').click();
-      assert.equal(ThreadUI.resendMessage.callCount, 0);
+
+      confirmPromise.catch(function() {
+        sinon.assert.notCalled(ThreadUI.resendMessage);
+      }).then(done, done);
     });
 
     test('clicking on a sent message does not trigger a confirmation dialog ' +
       'nor a message re-send operation', function() {
       this.elems.sentMsg.click();
-      assert.equal(window.confirm.callCount, 0);
-      assert.equal(ThreadUI.resendMessage.callCount, 0);
+      sinon.assert.notCalled(Utils.confirm);
+      sinon.assert.notCalled(ThreadUI.resendMessage);
     });
   });
 

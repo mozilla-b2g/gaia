@@ -1,4 +1,4 @@
-/*global MocksHelper, MockL10n, MockGestureDetector, MockDialog,
+/*global MocksHelper, MockL10n, MockGestureDetector,
          loadBodyHTML, ThreadUI, MessageManager,
          ThreadListUI, Contacts, MockContact, MockThreadList,
          MockThreadMessages, getMockupedDate, Utils */
@@ -18,7 +18,6 @@ requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_information.js');
-requireApp('sms/test/unit/mock_dialog.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/test/unit/mock_settings.js');
@@ -55,7 +54,6 @@ var MocksHelperForSmsUnitTest = new MocksHelper([
   'TimeHeaders',
   'Information',
   'ContactPhotoHelper',
-  'Dialog',
   'InterInstanceEventDispatcher',
   'LazyLoader'
 ]).init();
@@ -459,9 +457,10 @@ suite('SMS App Unit-Test', function() {
         this.sinon.spy(ThreadUI, 'checkInputs');
         this.sinon.stub(ThreadListUI, 'setContact');
         ThreadUI.renderMessages(1, function() {
+          ThreadUI.startEdit();
           done();
         });
-        ThreadUI.startEdit();
+
       });
 
       teardown(function() {
@@ -503,18 +502,21 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select all while receiving new message', function(done) {
+        this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
         ThreadUI.selectionHandler.toggleCheckedAll(true);
+        var checkboxes = Array.from(ThreadUI.container.querySelectorAll(
+          'input[type=checkbox]'
+        ));
+        var checkUncheckAllButton = document.getElementById(
+          'messages-check-uncheck-all-button'
+        );
 
-        var checkboxes =
-          ThreadUI.container.querySelectorAll('input[type=checkbox]');
-        var checkUncheckAllButton =
-          document.getElementById('messages-check-uncheck-all-button');
         assert.equal(checkboxes.length, 5);
-        assert.equal(checkboxes.length,
-          [].slice.call(checkboxes).filter(function(i) {
-            return i.checked;
-          }).length, 'All items should be checked');
-
+        assert.equal(
+          checkboxes.length,
+          checkboxes.filter((item) => item.checked).length,
+          'All items should be checked'
+        );
         // now a new message comes in...
         var incomingMessage = {
           sender: '197746797',
@@ -528,40 +530,37 @@ suite('SMS App Unit-Test', function() {
         ThreadUI.appendMessage(incomingMessage);
 
         // new checkbox should have been added
-        checkboxes =
-          ThreadUI.container.querySelectorAll('input[type=checkbox]');
+        checkboxes = ThreadUI.container.querySelectorAll(
+          'input[type=checkbox]'
+        );
         assert.equal(checkboxes.length, 6);
         assert.equal(checkboxes[2].checked, true);
         assert.equal(checkboxes[5].checked, false);
 
         // Select-Deselect all should both be enabled
-        assert.isFalse(checkUncheckAllButton
-          .hasAttribute('disabled'), 'Check-Uncheck all enabled');
+        assert.isFalse(
+          checkUncheckAllButton.hasAttribute('disabled'),
+          'Check-Uncheck all enabled'
+        );
 
         // now delete the selected messages...
-        MessageManager.deleteMessages = stub(function(list, itCb) {
-          setTimeout(itCb);
-        });
+        this.sinon.stub(MessageManager, 'deleteMessages').yields();
 
-        var getMessageReq = {};
+        var getMessageReq = {
+          result: incomingMessage
+        };
         this.sinon.stub(MessageManager, 'getMessage').returns(getMessageReq);
-        getMessageReq.result = incomingMessage;
 
-        setTimeout(function() {
+        ThreadUI.delete().then(() => {
           getMessageReq.onsuccess();
-          assert.isTrue(MockDialog.triggers.confirm.called);
-          assert.equal(MessageManager.deleteMessages.callCount, 1);
-          assert.equal(MessageManager.deleteMessages.calledWith[0].length, 5);
+          sinon.assert.calledOnce(MessageManager.deleteMessages);
+          assert.equal(MessageManager.deleteMessages.args[0][0].length, 5);
           assert.equal(ThreadUI.container.querySelectorAll('li').length, 1,
             'correct number of Thread li');
           assert.equal(
             ThreadUI.container.querySelector('#message-9999 p').textContent,
             'Recibidas!');
-          done();
-        }, 1500); // only the last one is slow. What is blocking?
-
-        ThreadUI.delete();
-        MockDialog.triggers.confirm();
+        }).then(done, done);
       });
 
       test('checkInputs should fire in edit mode', function() {

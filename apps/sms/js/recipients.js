@@ -1,4 +1,4 @@
-/*global GestureDetector, Dialog, Navigation, SharedComponents, Utils,
+/*global GestureDetector, Navigation, SharedComponents, Utils,
          Settings */
 
 (function(exports) {
@@ -831,7 +831,7 @@
               //
               // 1.a Delete Mode
               //
-              Recipients.View.prompts.remove(recipient, function(response) {
+              Recipients.View.prompts.remove(recipient, function(isConfirmed) {
                 // When the editable placeholder is in "zero width" mode,
                 // it's possible to accidentally tap a recipient when the
                 // intention is to tap the to-field area around the recipient
@@ -852,7 +852,7 @@
                 //   placeholder (via focus()).
                 //
                 // #1
-                if (response.isConfirmed) {
+                if (isConfirmed) {
                   owner.remove(
                     relation.get(target)
                   );
@@ -1051,31 +1051,9 @@
 
   Recipients.View.prompts = {
     remove: function(recipient, callback) {
-      var response = {
-        isConfirmed: false
-      };
+      callback = typeof callback === 'function' ? callback : () => {};
 
-      var handler = function() {
-        // Create a closure reference to
-        // the response object. The `isConfirmed`
-        // property will be explicitly updated
-        // in the Dialog option handler if necessary.
-        //
-        // The _Cancel_ "method" may use this
-        // handler directly, because the default
-        // `isConfirmed` value is |false|.
-        //
-        // The _Remove_ "method" will explicitly update
-        // `isConfirmed` to |true| and then call this handler.
-        if (typeof callback === 'function') {
-          callback(response);
-        }
-      };
-
-      // build fragment for dialog body
-      var dialogBody = document.createElement('div');
-
-      dialogBody.innerHTML = SharedComponents.phoneDetails({
+      var bodyTemplate = SharedComponents.phoneDetails({
         number: recipient.number,
         type: recipient.type,
         carrier: recipient.carrier
@@ -1084,37 +1062,11 @@
       var title = document.createElement('bdi');
       title.textContent = recipient.name || recipient.number;
 
-      // Dialog will have a closure reference to the response
-      // object, therefore it's not necessary to pass it around
-      // as an explicit param list item.
-      var dialog = new Dialog(
-        {
-          title: {
-            value: title
-          },
-          body: {
-            value: dialogBody.firstElementChild
-          },
-          options: {
-            cancel: {
-              text: {
-                l10nId: 'cancel'
-              },
-              method: handler
-            },
-            confirm: {
-              text: {
-                l10nId: 'remove'
-              },
-              method: function() {
-                response.isConfirmed = true;
-                handler();
-              },
-              className: 'danger'
-            }
-          }
-        });
-      dialog.show();
+      Utils.confirm(
+        { raw: bodyTemplate.toDocumentFragment() },
+        { raw: title },
+        { text: 'remove', className: 'danger' }
+      ).then(() => callback(true), () => callback(false));
 
       Recipients.View.isFocusable = false;
     }
