@@ -12,8 +12,7 @@
     ],
     "bg": [
         {"layoutId": "bg-BDS", "app": ["apps", "keyboard"]},
-        {"layoutId": "bg-Pho-Ban", "app": ["apps", "keyboard"]},
-        {"layoutId": "bg-Pho-Trad", "app": ["apps", "keyboard"]}
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "bn-BD": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
