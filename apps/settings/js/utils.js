@@ -145,25 +145,6 @@ function openIncompatibleSettingsDialog(dialogId, newSetting,
 }
 
 /**
- * JSON loader
- */
-
-function loadJSON(href, callback) {
-  if (!callback)
-    return;
-  var xhr = new XMLHttpRequest();
-  xhr.onerror = function() {
-    console.error('Failed to fetch file: ' + href, xhr.statusText);
-  };
-  xhr.onload = function() {
-    callback(xhr.response);
-  };
-  xhr.open('GET', href, true); // async
-  xhr.responseType = 'json';
-  xhr.send();
-}
-
-/**
  * Helper class for formatting file size strings
  * required by *_storage.js
  */
