@@ -1593,12 +1593,10 @@ suite('thread_list_ui', function() {
     });
 
     test('display correctly a group MMS thread', function(done) {
-      var threadTitleNode = groupThread.node.querySelector('.name');
-
       Object.defineProperty(window, 'innerWidth', {
         configurable: true,
-        get: () => 400 }
-      );
+        get: () => 400
+      });
       ThreadListUI.init();
 
       Contacts.findByAddress.withArgs('555').yields(MockContact.list([{
@@ -1612,6 +1610,10 @@ suite('thread_list_ui', function() {
       }]));
 
       ThreadListUI.setContact(groupThread.node).then(() => {
+        var threadTitleNode = groupThread.node.querySelector(
+          '.threadlist-item-title'
+        );
+
         assert.isFalse(
           groupThread.picture.style.backgroundImage.contains('blob:')
         );
@@ -1622,18 +1624,23 @@ suite('thread_list_ui', function() {
           groupThread.pictureContainer.classList.contains('has-picture')
         );
         assert.equal(groupThread.picture.textContent, '2');
-        assert.equal(threadTitleNode.textContent, 'James Bond, Bond James');
+        assert.equal(
+          threadTitleNode.innerHTML,
+          '<span>' +
+            '<bdi>James Bond</bdi>' +
+            '<span data-l10n-id="thread-participant-separator"></span>' +
+            '<bdi>Bond James</bdi>' +
+          '</span>'
+        );
       }).then(done, done);
     });
 
     test('display correctly a group MMS thread with lots of participants',
     function(done) {
-      var threadTitleNode = groupThread.node.querySelector('.name');
-
       Object.defineProperty(window, 'innerWidth', {
         configurable: true,
-        get: () => 200 }
-      );
+        get: () => 200
+      });
       ThreadListUI.init();
 
       Contacts.findByAddress.withArgs('555').yields(MockContact.list([{
@@ -1642,6 +1649,10 @@ suite('thread_list_ui', function() {
       }]));
 
       ThreadListUI.setContact(groupThread.node).then(() => {
+        var threadTitleNode = groupThread.node.querySelector(
+          '.threadlist-item-title'
+        );
+
         sinon.assert.calledOnce(Contacts.findByAddress);
         sinon.assert.calledWith(Contacts.findByAddress, '555');
         assert.isFalse(
@@ -1654,7 +1665,10 @@ suite('thread_list_ui', function() {
           groupThread.pictureContainer.classList.contains('has-picture')
         );
         assert.equal(groupThread.picture.textContent, '2');
-        assert.equal(threadTitleNode.textContent, 'James Bond');
+        assert.equal(
+          threadTitleNode.innerHTML,
+          '<span><bdi>James Bond</bdi></span>'
+        );
       }).then(done, done);
     });
   });

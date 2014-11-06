@@ -963,7 +963,10 @@ suite('Recipients', function() {
 
           var dialogParameters = MockDialog.calls[MockDialog.calls.length - 1];
 
-          assert.equal(dialogParameters.title.value, recipient.name);
+          assert.equal(
+            dialogParameters.title.value.outerHTML,
+            '<bdi>' + recipient.name + '</bdi>'
+          );
           assert.equal(
             dialogParameters.body.value.outerHTML,
             phoneDetailsNode.innerHTML
