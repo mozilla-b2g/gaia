@@ -73,6 +73,8 @@ var Dialog = function(params) {
   this.form.dataset.type = 'confirm';
   this.form.setAttribute('role', 'dialog');
   this.form.tabIndex = -1;
+  // Pick up option_menu.css styling
+  this.form.dataset.subtype = 'menu';
 
   // We fill the main info
 

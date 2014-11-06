@@ -78,6 +78,7 @@ var OptionMenu = function(options) {
   // Create the structure
   this.form = document.createElement('form');
   this.form.dataset.type = options.type || 'action';
+  this.form.dataset.subtype = 'menu';
   this.form.setAttribute('role', 'dialog');
   this.form.tabIndex = -1;
 

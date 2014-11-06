@@ -9,6 +9,20 @@ html, body {
 }
 
 
+/* Style for the attachment options menu, mimics style for shared
+ * options dialog element.
+ */
+#attachment-options {
+  visibility: hidden;
+  transform: translateY(100%);
+  transition: transform ease-in-out .3s, visibility .3s;
+}
+
+#attachment-options.visible {
+  visibility: visible;
+  transform: translateY(0);
+}
+
 /*
   Override BB. Some CSS tweaks for having a better confirm readability
 */
