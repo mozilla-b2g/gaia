@@ -408,6 +408,31 @@ suite('system/TaskManager >', function() {
     });
   });
 
+  suite('when a document is fullscreen', function() {
+    var realFullScreen;
+    setup(function() {
+      realFullScreen = document.mozFullScreen;
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        get: function() { return true; }
+      });
+    });
+
+    teardown(function() {
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        get: function() { return realFullScreen; }
+      });
+    });
+
+    test('should exit fullscreen when showing',
+      function() {
+        var cancelSpy = this.sinon.spy(document, 'mozCancelFullScreen');
+        taskManager.show();
+        sinon.assert.calledOnce(cancelSpy);
+      });
+  });
+
   suite('settings > ', function() {
     suite('screenshots settings >', function() {
       var SETTING_KEY;
