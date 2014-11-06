@@ -383,6 +383,10 @@ section[role="region"].new > header:first-child form {
  display: block;
 }
 
+/**
+ * 1. Center content
+ */
+
 #messages-contact-pick-button .icon-user {
   position: absolute;
   top: 0.6rem;
@@ -391,24 +395,20 @@ section[role="region"].new > header:first-child form {
   display: block;
   width: 2.8rem;
   height: 2.8rem;
+  line-height: 2.7rem; /* 1 */
+  text-align: center; /* 1 */
   border-radius: 50%;
 
   color: #575757;
   background-color: #FFF;
 }
 
-#messages-contact-pick-button .icon-user:after {
-  content: "+";
-  position: absolute;
+/**
+ * Icon
+ */
 
-  display: block;
-  width: 2.8rem;
-  height: 2.8rem;
-
-  line-height: 2.8rem;
-  font-size: 2.1rem;
-  font-weight: 500;
-  text-align: center;
+#messages-contact-pick-button .icon-user:before {
+  font-size: 1.8rem;
 }
 
 #messages-contact-pick-button .icon-user:active {
