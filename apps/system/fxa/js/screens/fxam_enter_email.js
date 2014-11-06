@@ -117,13 +117,13 @@ var FxaModuleEnterEmail = (function() {
       e.stopPropagation();
       e.preventDefault();
       FxModuleServerRequest.loadTermsURL(this.isFTU);
-      }.bind(this));
+    }.bind(this));
 
     this.fxaPrivacy.addEventListener('click', function(e) {
       e.stopPropagation();
       e.preventDefault();
       FxModuleServerRequest.loadPrivacyURL(this.isFTU);
-      }.bind(this));
+    }.bind(this));
 
     // Avoid to add listener twice
     this.initialized = true;

@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global BrowserFrame, EntrySheet, FxaModuleManager, MozActivity,
-  SettingsHelper */
+   SettingsHelper */
 
 'use strict';
 
@@ -13,7 +13,7 @@
 
 (function(exports) {
 
-  var entrySheet;
+  var _entrySheet;
 
   function _setAccountDetails(response) {
     if(response && response.user && response.user.email) {
@@ -42,10 +42,10 @@
         url: url
       }
     });
-    activity.onsuccess = function on_load_external_link_success() {
+    activity.onsuccess = function onLoadExternalLinkSuccess() {
       FxaModuleManager.close();
     };
-    activity.onerror = function on_load_external_link_error(err) {
+    activity.onerror = function onLoadExternalLinkError(err) {
       console.error(err);
       onerror && onerror(err);
     };
@@ -56,24 +56,24 @@
   // Used for FTU, where we cannot switch to the browser and close the app
   // without problems. See also bug 1082444.
   function _openEntrySheet(url) {
-    if (entrySheet) {
-      entrySheet.close();
-      entrySheet = null;
+    if (_entrySheet) {
+      _entrySheet.close();
+      _entrySheet = null;
     }
-    entrySheet = new EntrySheet(
+    _entrySheet = new EntrySheet(
       window.top.document.getElementById('screen'),
       url,
       new BrowserFrame({url: url})
     );
-    entrySheet.open();
+    _entrySheet.open();
 
     function onVisibilityChange() {
       /*jshint validthis:true */
       if (document.hidden) {
         document.removeEventListener('visibilitychange', onVisibilityChange);
-        if (entrySheet) {
-          entrySheet.close();
-          entrySheet = null;
+        if (_entrySheet) {
+          _entrySheet.close();
+          _entrySheet = null;
         }
       }
     }
@@ -137,10 +137,10 @@
     },
     requestPasswordReset:
       function fxmsr_requestPasswordReset(email, isFTU, onerror) {
-      var pref = 'identity.fxaccounts.reset-password.url';
-      SettingsHelper(pref).get(function(url) {
+      const setting = 'identity.fxaccounts.reset-password.url';
+      SettingsHelper(setting).get(function(url) {
         if (!url) {
-          return console.error('Failed to load ' + pref);
+          return console.error('Failed to load ' + setting);
         }
         if (email) {
           url += '?email=' + email;
@@ -149,17 +149,17 @@
       });
     },
     loadTermsURL: function fxmsr_loadTermsURL(isFTU) {
-      var pref = 'identity.fxaccounts.terms.url';
-      SettingsHelper(pref).get(function(url) {
+      const setting = 'identity.fxaccounts.terms.url';
+      SettingsHelper(setting).get(function(url) {
         url ? _loadExternalURL(url, isFTU) :
-          console.error('Failed to load ' + pref);
+          console.error('Failed to load ' + setting);
       });
     },
     loadPrivacyURL: function fxmsr_loadPrivacyURL(isFTU) {
-      var pref = 'identity.fxaccounts.privacy.url';
-      SettingsHelper(pref).get(function(url) {
+      const setting = 'identity.fxaccounts.privacy.url';
+      SettingsHelper(setting).get(function(url) {
         url ? _loadExternalURL(url, isFTU) :
-          console.error('Failed to load ' + pref);
+          console.error('Failed to load ' + setting);
       });
     }
   };
