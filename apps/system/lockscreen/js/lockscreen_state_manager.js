@@ -83,6 +83,7 @@
         'lockscreen-request-lock',
         'lockscreen-notify-passcode-validationsuccess',
         'lockscreen-appclosed',
+        'lockscreenslide-activate-left',
         'lockscreenslide-activate-right',
         'lockscreen-keypad-input',
         'lockscreen-inputappopening',
@@ -371,6 +372,7 @@
       case 'lockscreen-notify-homepressed':
         this.onHomePressed();
         break;
+      case 'lockscreenslide-activate-left':
       case 'lockscreenslide-activate-right':
       case 'lockscreen-notification-request-activate-unlock':
         this.onActivateUnlock();
