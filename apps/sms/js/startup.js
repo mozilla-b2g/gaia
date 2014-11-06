@@ -22,6 +22,7 @@ var Startup = {
     '/shared/js/mobile_operator.js',
     '/shared/js/multi_sim_action_button.js',
     '/shared/js/image_utils.js',
+    '/shared/js/custom_dialog.js',
     'js/waiting_screen.js',
     'js/errors.js',
     'js/dialog.js',

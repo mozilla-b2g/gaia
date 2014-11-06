@@ -350,17 +350,13 @@ var ActivityHandler = {
       // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
       navigator.mozApps.getSelf().onsuccess = function(event) {
         var app = event.target.result;
-        var iconURL = NotificationHelper.getIconURI(app);
-
-        // XXX: Add params to Icon URL.
-        iconURL += '?type=class0';
 
         // We have to remove the SMS due to it does not have to be shown.
         MessageManager.deleteMessages(message.id, function() {
           app.launch();
           Notify.ringtone();
           Notify.vibrate();
-          alert(number + '\n' + message.body);
+          Utils.showAlert({ title: number }, { message: message.body });
           releaseWakeLock();
         });
       };
@@ -530,7 +526,7 @@ var ActivityHandler = {
 
       // the type param is only set for class0 messages
       if (params.type === 'class0') {
-        alert(message.title + '\n' + message.body);
+        Utils.showAlert({ title: message.title }, { message: message.body });
         return;
       }
 

@@ -1,7 +1,9 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper, Notification, Promise, Threads, Settings */
+/* globals ContactPhotoHelper, Notification, Promise, Threads, Settings,
+           CustomDialog
+*/
 
 (function(exports) {
   'use strict';
@@ -10,6 +12,8 @@
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
   var rnondialablechars = /[^,#+\*\d]/g;
   var rmail = /[\w-]+@[\w\-]/;
+
+  const QueuedAlerts = [];
 
   var Utils = {
     date: {
@@ -566,6 +570,29 @@
         ).catch(function onError(reason) {
           console.error('Notification.get(tag: ' + targetTag + '): ', reason);
         });
+    },
+
+    showAlert: function (title, message) {
+      QueuedAlerts.push({ title: title, message: message });
+
+      if (QueuedAlerts.length > 1) {
+        return;
+      }
+
+      CustomDialog.show(
+        title || 'alert-dialog-default-title',
+        message, {
+          title: 'alert-dialog-ok-button',
+          callback: () => {
+            QueuedAlerts.shift();
+            CustomDialog.hide();
+
+            var nextQueuedAlert = QueuedAlerts.shift();
+            if (nextQueuedAlert) {
+              Utils.showAlert(nextQueuedAlert.title, nextQueuedAlert.message);
+            }
+          }
+      });
     },
 
     /**
