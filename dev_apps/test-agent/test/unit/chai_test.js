@@ -18,4 +18,9 @@ suite('chai', function() {
     ({ 'foo.bar': 'baz' }).should.have.property('foo.bar');
   });
 
+  test('chai-as-promised plugin', function(done) {
+    assert.isFulfilled(Promise.resolve(), "Promise resolved").notify(done);
+    assert.isRejected(Promise.reject(), "Promise rejected").notify(done);
+  });
+
 });
