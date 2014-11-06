@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html>
-  <head>
+<!DOCTYPE html><html><head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <meta name="theme-color" content="#00b7b7">
@@ -33,43 +31,43 @@
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <link rel="localization" href="/shared/locales/sim_picker/sim_picker.{locale}.properties">
     <!-- Firefox Desktop shims -->
-    <script defer src="js/desktop-only/navigator_moz_icc_manager.js"></script>
-    <script defer src="js/desktop-only/navigator_moz_settings.js"></script>
-    <script defer src="js/desktop-only/navigator_moz_mobilemessage.js"></script>
-    <script defer src="js/desktop-only/navigator_moz_contacts.js"></script>
-    <script defer src="js/desktop-only/async_storage.js"></script>
+    <script defer="" src="js/desktop-only/navigator_moz_icc_manager.js"></script>
+    <script defer="" src="js/desktop-only/navigator_moz_settings.js"></script>
+    <script defer="" src="js/desktop-only/navigator_moz_mobilemessage.js"></script>
+    <script defer="" src="js/desktop-only/navigator_moz_contacts.js"></script>
+    <script defer="" src="js/desktop-only/async_storage.js"></script>
     <!-- Web Components -->
-    <script defer src="/shared/elements/config.js"></script>
+    <script defer="" src="/shared/elements/config.js"></script>
     <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css" /> -->
-    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
-    <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
+    <script defer="" src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
     <!-- Shared code -->
-    <script defer src="shared/js/l10n.js"></script>
-    <script defer src="shared/js/l10n_date.js"></script>
+    <script defer="" src="shared/js/l10n.js"></script>
+    <script defer="" src="shared/js/l10n_date.js"></script>
     <!-- Should be removed while gecko support navigator.mozHour12 API -->
-    <script defer src="shared/js/date_time_helper.js"></script>
-    <script defer src="shared/js/template.js"></script>
-    <script defer src="shared/js/performance_testing_helper.js"></script>
-    <script defer src="shared/js/async_storage.js"></script>
-    <script defer src="shared/js/lazy_loader.js"></script>
-    <script defer src="shared/js/sticky_header.js"></script>
-    <script defer src="shared/js/contact_photo_helper.js"></script>
-    <script defer src="shared/js/fb/fb_request.js"></script>
-    <script defer src="shared/js/fb/fb_data_reader.js"></script>
-    <script defer src="shared/js/fb/fb_reader_utils.js"></script>
-    <script defer src="js/navigation.js"></script>
-    <script defer src="js/event_dispatcher.js"></script>
-    <script defer src="js/iac/event_dispatcher.js"></script>
-    <script defer src="js/time_headers.js"></script>
-    <script defer src="js/contacts.js"></script>
-    <script defer src="js/drafts.js"></script>
-    <script defer src="js/threads.js"></script>
-    <script defer src="js/thread_list_ui.js"></script>
-    <script defer src="js/utils.js"></script>
-    <script defer src="js/settings.js"></script>
-    <script defer src="js/message_manager.js"></script>
-    <script defer src="js/app.js"></script>
-    <script defer src="js/startup.js"></script>
+    <script defer="" src="shared/js/date_time_helper.js"></script>
+    <script defer="" src="shared/js/template.js"></script>
+    <script defer="" src="shared/js/performance_testing_helper.js"></script>
+    <script defer="" src="shared/js/async_storage.js"></script>
+    <script defer="" src="shared/js/lazy_loader.js"></script>
+    <script defer="" src="shared/js/sticky_header.js"></script>
+    <script defer="" src="shared/js/contact_photo_helper.js"></script>
+    <script defer="" src="shared/js/fb/fb_request.js"></script>
+    <script defer="" src="shared/js/fb/fb_data_reader.js"></script>
+    <script defer="" src="shared/js/fb/fb_reader_utils.js"></script>
+    <script defer="" src="js/navigation.js"></script>
+    <script defer="" src="js/event_dispatcher.js"></script>
+    <script defer="" src="js/iac/event_dispatcher.js"></script>
+    <script defer="" src="js/time_headers.js"></script>
+    <script defer="" src="js/contacts.js"></script>
+    <script defer="" src="js/drafts.js"></script>
+    <script defer="" src="js/threads.js"></script>
+    <script defer="" src="js/thread_list_ui.js"></script>
+    <script defer="" src="js/utils.js"></script>
+    <script defer="" src="js/settings.js"></script>
+    <script defer="" src="js/message_manager.js"></script>
+    <script defer="" src="js/app.js"></script>
+    <script defer="" src="js/startup.js"></script>
     <!-- Lazy load scripts
     <script defer src="shared/js/notification_helper.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
@@ -111,10 +109,10 @@
   </head>
 
   <body role="application" class="skin-comms theme-communications">
-    <article id="main-wrapper" class="wrapper" data-position='right'>
+    <article id="main-wrapper" class="wrapper" data-position="right">
       <section id="thread-list" class="panel" role="region">
         <gaia-header class="view-header regular-header">
-          <h1 data-l10n-id="messages">Messages</h1>
+          <h1 data-l10n-id="messages"></h1>
           <a href="#composer" id="icon-add" data-icon="compose"></a>
           <a id="threads-options-icon" data-icon="more"></a>
         </gaia-header>
@@ -123,25 +121,25 @@
 
         <div id="threads-no-messages" class="hide">
           <div id="no-result-message">
-            <p data-l10n-id="noMessages-title">No messages</p>
-            <p data-l10n-id="noMessages-text">Start communicating now</p>
+            <p data-l10n-id="noMessages-title"></p>
+            <p data-l10n-id="noMessages-text"></p>
           </div>
         </div>
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
           <section role="region" class="theme-settings">
             <gaia-header id="threads-edit-header" action="close">
-              <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title">Select</h1>
+              <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title"></h1>
               <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>
           <menu>
-            <button id="threads-delete-button" data-l10n-id="delete">delete</button>
+            <button id="threads-delete-button" data-l10n-id="delete"></button>
           </menu>
         </form>
 
         <section id="threads-draft-saved-banner" class="hide" role="status">
-          <p data-l10n-id="message-draft-saved">Message saved as draft</p>
+          <p data-l10n-id="message-draft-saved"></p>
         </section>
 
         <div id="sticky"></div>
@@ -155,9 +153,7 @@
         </gaia-header>
         <div id="messages-subheader" class="subheader">
           <section id="messages-to-field">
-            <section data-l10n-id="to" id="to-label">
-              To:
-            </section>
+            <section data-l10n-id="to" id="to-label"></section>
             <!-- When overflow occurs in the recipients list, scrolling is
             commonly triggered automatically through focus and keyboard events.
             In these cases, white space described by CSS `padding-bottom` will
@@ -165,8 +161,7 @@
             only scroll far enough to bring the cursor into view). A container
             element is necessary to consistently render this vertical space
             (instead realized with CSS `margin-bottom`). -->
-            <div id="messages-recipients-list-container" class="bb-editable"
-                 role="group" aria-labelledby="to-label">
+            <div id="messages-recipients-list-container" class="bb-editable" role="group" aria-labelledby="to-label">
               <section id="messages-recipients-list" class="singleline">
               </section>
             </div>
@@ -181,40 +176,28 @@
           Compose field. These notifications should be hidden automatically so
           they do not prevent the user from inputting text. -->
           <div class="overlay">
-            <section id="messages-subject-max-length-notice"
-                     role="notification"
-                     class="hide">
-              <p data-l10n-id='messages-max-subject-length-text'></p>
+            <section id="messages-subject-max-length-notice" role="notification" class="hide">
+              <p data-l10n-id="messages-max-subject-length-text"></p>
             </section>
-            <section id="messages-max-length-notice"
-                     role="notification"
-                     class="hide">
+            <section id="messages-max-length-notice" role="notification" class="hide">
               <p></p>
             </section>
-            <section id="messages-sms-counter-notice"
-                     role="notification"
-                     class="hide">
+            <section id="messages-sms-counter-notice" role="notification" class="hide">
               <p></p>
             </section>
-            <section id="messages-convert-notice"
-                    role="notification"
-                    class="hide">
+            <section id="messages-convert-notice" role="notification" class="hide">
               <p></p>
             </section>
-            <section id="messages-resize-notice"
-                    role="notification"
-                    class="hide">
-              <p data-l10n-id="resize-image">Resizing the attached image</p>
+            <section id="messages-resize-notice" role="notification" class="hide">
+              <p data-l10n-id="resize-image"></p>
             </section>
-            <section id="messages-new-message-notice"
-                    role="notification"
-                    class="hide">
+            <section id="messages-new-message-notice" role="notification" class="hide">
               <div>
-                <div data-l10n-id="new-message-notice-text">You have new messages</div>
-                <div class="contact">Contact</div>
+                <div data-l10n-id="new-message-notice-text"></div>
+                <div class="contact"></div>
               </div>
               <div>
-                <button class="notice-button" data-l10n-id="new-message-notice-a-text">read it</button>
+                <button class="notice-button" data-l10n-id="new-message-notice-a-text"></button>
               </div>
             </section>
           </div>
@@ -256,26 +239,20 @@
             <div id="messages-container" data-type="list" class="article-list"></div>
             <form id="messages-compose-form" role="search" class="bottom" data-message-type="sms">
               <section class="subject-composer js-subject-composer hide">
-                <div contentEditable="true" class="subject-composer-input"
-                     role="textbox"
-                     aria-multiline="false">
+                <div contenteditable="true" class="subject-composer-input" role="textbox" aria-multiline="false">
                 </div>
-                <div class="subject-composer-placeholder"
-                     data-l10n-id="messagesSubjectInput_placeholder">
+                <div class="subject-composer-placeholder" data-l10n-id="messagesSubjectInput_placeholder">
                 </div>
-                <span class="mms-label subject-composer-mms-label"
-                      data-l10n-id="mms-label">MMS</span>
+                <span class="mms-label subject-composer-mms-label" data-l10n-id="mms-label"></span>
               </section>
               <section class="content-composer js-content-composer">
                 <button id="messages-attach-button" aria-label="Add attachment" data-l10n-id="attach-button" type="button"></button>
                 <div class="composer-message-input-container">
-                  <div id="messages-input" contentEditable="true" name="message"
-                       x-inputmode="-moz-sms" class="js-l10n-placeholder"
-                       role="textbox" aria-multiline="true">
+                  <div id="messages-input" contenteditable="true" name="message" x-inputmode="-moz-sms" class="js-l10n-placeholder" role="textbox" aria-multiline="true">
                   </div>
                 </div>
                 <div class="composer-button-container">
-                  <span class="mms-label content-composer-mms-label" data-l10n-id="mms-label">MMS</span>
+                  <span class="mms-label content-composer-mms-label" data-l10n-id="mms-label"></span>
                   <span class="message-counter js-message-counter"></span>
                   <button id="messages-send-button" class="icon" aria-label="Send" data-l10n-id="send-button" type="submit">
                     <div class="js-sim-indication sim-indication" data-l10n-id="send-button-sim-indication"></div>
@@ -285,15 +262,15 @@
             </form>
           </div>
         </article>
-        <form role="dialog" id="messages-edit-form" data-type="edit" >
+        <form role="dialog" id="messages-edit-form" data-type="edit">
           <section role="region" class="theme-settings">
             <gaia-header id="messages-edit-header" action="close">
-              <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title">Delete Messages</h1>
+              <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title"></h1>
               <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>
           <menu>
-            <button id="messages-delete-button" data-l10n-id="delete">delete</button>
+            <button id="messages-delete-button" data-l10n-id="delete"></button>
           </menu>
         </form>
         <section id="messages-recipient-suggestions" class="article-list hide" data-type="list">
@@ -305,7 +282,7 @@
     <article id="loading">
       <form role="dialog" data-type="confirm" class="loading-container">
         <section>
-          <p class="loading-header" data-l10n-id="deleting-messages">Deleting messages...</p>
+          <p class="loading-header" data-l10n-id="deleting-messages"></p>
           <div role="status">
             <progress class="small"></progress>
           </div>
@@ -567,7 +544,8 @@
     </div>
 
     <article>
-      <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" tabindex="-1" hidden></form>
+      <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" tabindex="-1" hidden=""></form>
     </article>
-  </body>
-</html>
+  
+
+</body></html>

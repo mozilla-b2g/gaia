@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html>
-  <head>
+<!DOCTYPE html><html><head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <meta name="theme-color" content="#00b7b7">
@@ -37,23 +35,23 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/option_menu.css">
 
     <!-- JS -->
-    <script defer src="/shared/js/lazy_loader.js"></script>
-    <script defer src="/shared/js/font_size_utils.js"></script>
-    <script defer src="/shared/js/lazy_l10n.js"></script>
-    <script defer src="/dialer/js/index.js"></script>
+    <script defer="" src="/shared/js/lazy_loader.js"></script>
+    <script defer="" src="/shared/js/font_size_utils.js"></script>
+    <script defer="" src="/shared/js/lazy_l10n.js"></script>
+    <script defer="" src="/dialer/js/index.js"></script>
 
-    <script defer src="/shared/js/dialer/utils.js"></script>
-    <script defer src="/shared/js/dialer/tone_player.js"></script>
-    <script defer src="/shared/js/dialer/dtmf_tone.js"></script>
-    <script defer src="/shared/js/dialer/keypad.js"></script>
-    <script defer src="/shared/js/dialer/font_size_manager.js"></script>
+    <script defer="" src="/shared/js/dialer/utils.js"></script>
+    <script defer="" src="/shared/js/dialer/tone_player.js"></script>
+    <script defer="" src="/shared/js/dialer/dtmf_tone.js"></script>
+    <script defer="" src="/shared/js/dialer/keypad.js"></script>
+    <script defer="" src="/shared/js/dialer/font_size_manager.js"></script>
 
-    <script defer src="/dialer/js/dialer.js"></script>
-    <script defer src="/dialer/js/call_log_db.js"></script>
-    <script defer src="/shared/js/multi_sim_action_button.js"></script>
+    <script defer="" src="/dialer/js/dialer.js"></script>
+    <script defer="" src="/dialer/js/call_log_db.js"></script>
+    <script defer="" src="/shared/js/multi_sim_action_button.js"></script>
 
     <!-- for perf-measurement related utilities -->
-    <script defer src='/shared/js/performance_testing_helper.js'></script>
+    <script defer="" src="/shared/js/performance_testing_helper.js"></script>
 
     <!-- Lazy load all the things:
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
@@ -120,7 +118,7 @@
           <section role="region">
             <gaia-header>
               <h1 data-l10n-id="callLog"></h1>
-              <button id="call-log-icon-edit" data-icon="edit" disabled>
+              <button id="call-log-icon-edit" data-icon="edit" disabled="">
                 <span data-l10n-id="callLogEdit" aria-disabled="true"></span>
               </button>
             </gaia-header>
@@ -132,23 +130,23 @@
             </nav>
             <div class="view-body">
               <article id="call-log-container" role="tabpanel" class="view-body-inner active" data-type="list">
-                <div id="no-result-container" hidden>
+                <div id="no-result-container" hidden="">
                   <div id="no-result-message">
                     <p id="no-result-msg1" data-l10n-id="no-logs-msg-1"></p>
                     <p id="no-result-msg2" data-l10n-id="no-logs-msg-2"></p>
-                    <p id="no-result-msg3" data-l10n-id="no-logs-msg-3" hidden></p>
+                    <p id="no-result-msg3" data-l10n-id="no-logs-msg-3" hidden=""></p>
                   </div>
                 </div>
               </article>
               <div id="sticky"></div>
             </div>
           </section>
-          <section is="call-info-view" id="call-info-view" role="region" hidden></section>
+          <section is="call-info-view" id="call-info-view" role="region" hidden=""></section>
         </div>
         <form role="dialog" data-type="confirm" id="call-log-upgrading" class="hide">
           <section>
             <div role="status">
-              <span id="call-log-upgrade-percent" class="loading-header">0%</span>
+              <span id="call-log-upgrade-percent" class="loading-header"></span>
               <progress id="call-log-upgrade-progress" class="pack-activity" value="0" max="100"></progress>
             </div>
           </section>
@@ -173,67 +171,67 @@
             <div role="button" is="contact-in-overlay" class="js-suggestion-item contact-item bb-button"></div>
             <div role="button" id="suggestion-count" class="suggestion-count more bb-button"></div>
           </section>
-          <button role="button" is="contact-in-overlay" id="contact-in-overlay-template" class="js-suggestion-item contact-item bb-button" hidden></button>
+          <button role="button" is="contact-in-overlay" id="contact-in-overlay-template" class="js-suggestion-item contact-item bb-button" hidden=""></button>
 
           <article id="keyboard-container">
             <section id="keypad">
               <div class="keypad-row">
                 <div class="keypad-key" role="key" data-value="1">
-                  <span>1</span>
+                  <span></span>
                   <em class="keypad-subicon voicemail" data-l10n-id="voiceMailKey"></em>
                 </div>
                 <div class="keypad-key" role="key" data-value="2">
-                  <span>2</span>
-                  <em>ABC</em>
+                  <span></span>
+                  <em></em>
                 </div>
                 <div class="keypad-key" role="key" data-value="3">
-                  <span>3</span>
-                  <em>DEF</em>
+                  <span></span>
+                  <em></em>
                 </div>
               </div>
               <div class="keypad-row">
                 <div class="keypad-key" role="key" data-value="4">
-                  <span>4</span>
-                  <em>GHI</em>
+                  <span></span>
+                  <em></em>
                 </div>
                 <div class="keypad-key" role="key" data-value="5">
-                  <span>5</span>
-                  <em>JKL</em>
+                  <span></span>
+                  <em></em>
                 </div>
                 <div class="keypad-key" role="key" data-value="6">
-                  <span>6</span>
-                  <em>MNO</em>
+                  <span></span>
+                  <em></em>
                 </div>
               </div>
               <div class="keypad-row">
                 <div class="keypad-key" role="key" data-value="7">
-                  <span>7</span>
-                  <em>PQRS</em>
+                  <span></span>
+                  <em></em>
                 </div>
                 <div class="keypad-key" role="key" data-value="8">
-                  <span>8</span>
-                  <em>TUV</em>
+                  <span></span>
+                  <em></em>
                 </div>
                 <div class="keypad-key" role="key" data-value="9">
-                  <span>9</span>
-                  <em>WXYZ</em>
+                  <span></span>
+                  <em></em>
                 </div>
               </div>
               <div class="keypad-row">
                 <div class="keypad-key" role="key" data-value="*" data-l10n-id="asterisk">
-                  <div class="asterisk">*</div>
+                  <div class="asterisk"></div>
                 </div>
                 <div class="keypad-key" role="key" data-value="0">
-                  <span>0</span>
-                  <em class="font-size-plus">+</em>
+                  <span></span>
+                  <em class="font-size-plus"></em>
                 </div>
                 <div class="keypad-key" role="key" data-type="dial" data-value="#" data-l10n-id="hashSign">
-                  <div class="sharp">#</div>
+                  <div class="sharp"></div>
                 </div>
               </div>
             </section>
             <section id="keypad-callbar">
-              <button id="keypad-callbar-add-contact" data-value="add-contact" class="reset-button keypad-callbar-button icon-add-contact" data-l10n-id="dialerAddContact" disabled></button>
+              <button id="keypad-callbar-add-contact" data-value="add-contact" class="reset-button keypad-callbar-button icon-add-contact" data-l10n-id="dialerAddContact" disabled=""></button>
               <button id="keypad-callbar-call-action" class="reset-button" data-value="make-call" data-l10n-id="makeCall">
                 <div class="js-sim-indication"></div>
               </button>
@@ -243,23 +241,23 @@
       </li>
     </section>
 
-    <form is="edit-mode" id="edit-mode" role="dialog" data-l10n-id="callLogEditDialog" data-type="edit" hidden></form>
+    <form is="edit-mode" id="edit-mode" role="dialog" data-l10n-id="callLogEditDialog" data-type="edit" hidden=""></form>
 
-    <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden></form>
+    <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden=""></form>
 
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
 
     <form is="contact-list-overlay" id="contact-list-overlay" role="dialog" data-type="action" class="overlay" aria-hidden="true">
     </form>
 
-    <section is="phone-details" id="phone-details" hidden></section>
-    <section is="email-details" id="email-details" hidden></section>
+    <section is="phone-details" id="phone-details" hidden=""></section>
+    <section is="email-details" id="email-details" hidden=""></section>
 
-    <article id="mmi-screen" role="region" hidden>
+    <article id="mmi-screen" role="region" hidden="">
       <section role="region">
         <gaia-header id="mmi-header" action="close">
-          <h1 id="header-title">USSD</h1>
-          <button id="send" data-l10n-id="send" disabled> Send </button>
+          <h1 id="header-title"></h1>
+          <button id="send" data-l10n-id="send" disabled=""></button>
         </gaia-header>
       </section>
       <section id="mmi-container" role="region">
@@ -268,22 +266,23 @@
       </section>
       <form id="response" role="region">
         <p>
-          <input id="response-text" type="text" data-l10n-id="type-your-response" placeholder="Type your selection..." dir="auto" required disabled>
-          <button id="response-text-reset" type="reset" data-l10n-id="clear-all-text"> Clear-all-text </button>
+          <input id="response-text" type="text" data-l10n-id="type-your-response" placeholder="Type your selection..." dir="auto" required="" disabled="">
+          <button id="response-text-reset" type="reset" data-l10n-id="clear-all-text"></button>
         </p>
       </form>
     </article>
 
     <form data-type="confirm" role="dialog" id="loading-overlay" class="hide">
       <section>
-        <h1 data-l10n-id="sending">Sending</h1>
+        <h1 data-l10n-id="sending"></h1>
         <p role="status">
           <progress class="pack-activity" value="0" max="100"></progress>
         </p>
       </section>
       <menu>
-        <button class="full" id="cancel" data-l10n-id="cancel">Cancel</button>
+        <button class="full" id="cancel" data-l10n-id="cancel"></button>
       </menu>
     </form>
-  </body>
-</html>
+  
+
+</body></html>

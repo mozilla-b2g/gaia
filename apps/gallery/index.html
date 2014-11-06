@@ -1,16 +1,14 @@
-<!DOCTYPE html>
-<html>
-  <head>
+<!DOCTYPE html><html><head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
-    <meta charset="utf-8" />
+    <meta charset="utf-8">
     <meta name="theme-color" content="#242d33">
     <title>Gallery</title>
-    <link rel="stylesheet" href="style/gallery.css" type="text/css" />
-    <link rel="stylesheet" href="style/VideoPlayer.css" type="text/css" />
-    <link rel="stylesheet" href="style/VideoPlayer_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
-    <link rel="stylesheet" href="shared/style/progress_activity.css"/>
+    <link rel="stylesheet" href="style/gallery.css" type="text/css">
+    <link rel="stylesheet" href="style/VideoPlayer.css" type="text/css">
+    <link rel="stylesheet" href="style/VideoPlayer_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)">
+    <link rel="stylesheet" href="shared/style/progress_activity.css">
     <!-- Reponsive design for tiny & large device -->
-    <link rel="stylesheet" href="style/gallery_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
+    <link rel="stylesheet" href="style/gallery_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <!-- this file is loaded lazily but is listed here so it gets packaged
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
@@ -20,47 +18,47 @@
     <link rel="localization" href="locales/gallery.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <!-- Shared code -->
-    <script defer src="shared/js/performance_testing_helper.js"></script>
-    <script defer src="shared/js/l10n.js"></script>
-    <script defer src="shared/js/l10n_date.js"></script>
-    <script defer src="shared/js/template.js"></script>
-    <script defer src="shared/js/device_storage/enumerate_all.js"></script>
-    <script defer src="shared/js/mediadb.js"></script>
-    <script defer src="shared/js/lazy_loader.js"></script>
-    <script defer src="shared/js/font_size_utils.js"></script>
-    <script defer src="shared/js/media/media_utils.js"></script>
-    <script defer src="shared/js/screen_layout.js"></script>
-    <script defer src="shared/js/scroll_detector.js"></script>
-    <script defer src="shared/js/media/downsample.js"></script>
-    <script defer src="shared/js/dialogs.js"></script>
+    <script defer="" src="shared/js/performance_testing_helper.js"></script>
+    <script defer="" src="shared/js/l10n.js"></script>
+    <script defer="" src="shared/js/l10n_date.js"></script>
+    <script defer="" src="shared/js/template.js"></script>
+    <script defer="" src="shared/js/device_storage/enumerate_all.js"></script>
+    <script defer="" src="shared/js/mediadb.js"></script>
+    <script defer="" src="shared/js/lazy_loader.js"></script>
+    <script defer="" src="shared/js/font_size_utils.js"></script>
+    <script defer="" src="shared/js/media/media_utils.js"></script>
+    <script defer="" src="shared/js/screen_layout.js"></script>
+    <script defer="" src="shared/js/scroll_detector.js"></script>
+    <script defer="" src="shared/js/media/downsample.js"></script>
+    <script defer="" src="shared/js/dialogs.js"></script>
 
     <!-- This script is lazy loaded, but listed here so it gets packaged -->
     <!-- <script defer src="shared/js/media/crop_resize_rotate.js"></script> -->
 
     <!-- Web Components -->
-    <script defer src="shared/elements/config.js"></script>
+    <script defer="" src="shared/elements/config.js"></script>
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" />
-    <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
+    <script defer="" src="shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <!-- Specific code -->
-    <script defer src="js/config.js"></script>
-    <script defer src="js/utils.js"></script>
-    <script defer src="js/thumbnail_item.js"></script>
-    <script defer src="js/thumbnail_date_group.js"></script>
-    <script defer src="js/thumbnail_list.js"></script>
-    <script defer src="js/ensure_file_backed_blob.js"></script>
-    <script defer src="js/spinner.js"></script>
-    <script defer src="js/overlay.js"></script>
-    <script defer src="js/nfc.js"></script>
-    <script defer src="js/gallery.js"></script>
+    <script defer="" src="js/config.js"></script>
+    <script defer="" src="js/utils.js"></script>
+    <script defer="" src="js/thumbnail_item.js"></script>
+    <script defer="" src="js/thumbnail_date_group.js"></script>
+    <script defer="" src="js/thumbnail_list.js"></script>
+    <script defer="" src="js/ensure_file_backed_blob.js"></script>
+    <script defer="" src="js/spinner.js"></script>
+    <script defer="" src="js/overlay.js"></script>
+    <script defer="" src="js/nfc.js"></script>
+    <script defer="" src="js/gallery.js"></script>
   </head>
 
   <body role="application" class="theme-media">
     <section role="region" id="thumbnail-list-view" class="skin-dark">
       <!-- Header only shown on tablet view  -->
       <gaia-header id="thumbnails-list-top">
-        <h1 id="thumbnail-list-title" data-l10n-id="gallery">Gallery</h1>
+        <h1 id="thumbnail-list-title" data-l10n-id="gallery"></h1>
       </gaia-header>
       <footer id="thumbnails-bottom">
         <a id="thumbnails-camera-button" class="button" data-icon="camera"></a>
@@ -79,7 +77,7 @@
     </section>
     <section role="region" id="fullscreen-view" class="skin-dark">
       <gaia-header id="fullscreen-toolbar-header" action="back" class="large-only">
-        <h1 data-l10n-id="gallery" id="fullscreen-title">Gallery</h1>
+        <h1 data-l10n-id="gallery" id="fullscreen-title"></h1>
         <a id="fullscreen-camera-button-large">
           <span data-icon="camera"></span>
         </a>
@@ -102,7 +100,7 @@
         <div id="frame2" class="frame"></div>
         <div id="frame3" class="frame"></div>
       </div>
-      <section role="status" id="edit-copy-save-banner" class="banner" hidden>
+      <section role="status" id="edit-copy-save-banner" class="banner" hidden="">
         <p id="edit-copy-save-status"></p>
       </section>
       <button id="fullscreen-back-button-tiny" type="reset" class="tiny-only" data-icon="back"></button>
@@ -130,8 +128,7 @@
         </dl>
       </section>
       <menu>
-        <button type="button" id="info-close-button"
-                data-l10n-id="close-button" class="full"></button>
+        <button type="button" id="info-close-button" data-l10n-id="close-button" class="full"></button>
       </menu>
     </form>
     <section role="region" id="pick-view">
@@ -143,18 +140,18 @@
     <section role="region" id="crop-view" class="skin-dark">
       <gaia-header id="crop-top" action="back">
         <h1 id="crop-header" data-l10n-id="cropimage"></h1>
-        <button id="crop-done-button" data-l10n-id="done">done</button>
+        <button id="crop-done-button" data-l10n-id="done"></button>
       </gaia-header>
       <div id="crop-frame">
-        <img id="crop-image"></img>
+        <img id="crop-image">
       </div>
     </section>
 
     <section role="region" id="edit-view" class="skin-dark">
       <gaia-header id="edit-header" action="close">
         <h1 id="edit-title" data-l10n-id="edit"></h1>
-        <button id="edit-save-button" data-l10n-id="save">Save</button>
-        <button id="edit-tool-apply-button" data-l10n-id="apply" hidden>Apply</button>
+        <button id="edit-save-button" data-l10n-id="save"></button>
+        <button id="edit-tool-apply-button" data-l10n-id="apply" hidden=""></button>
       </gaia-header>
 
       <!-- Indicates progress when saving -->
@@ -170,7 +167,7 @@
       <div id="edit-options">
         <div id="exposure-slider" class="edit-options-bar hidden">
           <div id="sliderbar">
-            <hr id="sliderline"/>
+            <hr id="sliderline">
             <div id="sliderthumb"></div>
           </div>
           <div id="sliderlabels">
@@ -193,19 +190,14 @@
         </div>
 
         <div id="edit-effect-options" class="edit-options-bar hidden">
-          <a id="edit-effect-none" class="selected radio button bgimage"
-             data-effect="none"></a>
-          <a id="edit-effect-bw" class="radio button filter-bw bgimage"
-             data-effect="bw"></a>
-          <a id="edit-effect-sepia" class="radio button filter-sepia bgimage"
-             data-effect="sepia"></a>
-          <a id="edit-effect-bluesteel" class="radio button filter-bluesteel bgimage"
-             data-effect="bluesteel"></a>
-          <a id="edit-effect-faded" class="radio button filter-faded bgimage"
-             data-effect="faded"></a>
+          <a id="edit-effect-none" class="selected radio button bgimage" data-effect="none"></a>
+          <a id="edit-effect-bw" class="radio button filter-bw bgimage" data-effect="bw"></a>
+          <a id="edit-effect-sepia" class="radio button filter-sepia bgimage" data-effect="sepia"></a>
+          <a id="edit-effect-bluesteel" class="radio button filter-bluesteel bgimage" data-effect="bluesteel"></a>
+          <a id="edit-effect-faded" class="radio button filter-faded bgimage" data-effect="faded"></a>
         </div>
       </div>
-      <section role="status" id="edit-enhance-banner" class="banner" hidden>
+      <section role="status" id="edit-enhance-banner" class="banner" hidden="">
         <p id="edit-enhance-status"></p>
       </section>
 
@@ -223,7 +215,7 @@
     <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
 
     <!-- This element is the template of each thumbnail item -->
-    <div id="thumbnail-group-header" hidden>
+    <div id="thumbnail-group-header" hidden="">
       <!--
         <li>
           <div class="thumbnail-group-header">${group-header}</div>
@@ -246,13 +238,12 @@
     <!-- display messages like "No Photos" and "No SD Card" here -->
     <form id="overlay" role="dialog" data-type="confirm" class="hidden">
       <section id="overlay-content">
-        <h1 id="overlay-title">tre</h1>
-        <p id="overlay-text">ter</p>
+        <h1 id="overlay-title"></h1>
+        <p id="overlay-text"></p>
       </section>
       <menu id="overlay-menu" class="hidden">
-        <button type="button" id="overlay-camera-button" class="hidden full"
-                data-l10n-id="overlay-camera-button">Go to Camera</button>
-        <button type="button" id="overlay-cancel-button" data-l10n-id="cancel" class="full">Cancel</button>
+        <button type="button" id="overlay-camera-button" class="hidden full" data-l10n-id="overlay-camera-button"></button>
+        <button type="button" id="overlay-cancel-button" data-l10n-id="cancel" class="full"></button>
       </menu>
     </form>
 
@@ -269,33 +260,30 @@
     <!-- Some SVG filters we use -->
     <svg id="filters" width="0" height="0">
       <filter id="filter-bw">
-        <feColorMatrix type="matrix"
-                       values="0.65 0.25 0.10 0 0
+        <fecolormatrix type="matrix" values="0.65 0.25 0.10 0 0
                                0.65 0.25 0.10 0 0
                                0.65 0.25 0.10 0 0
-                               0    0    0    1 0"/>
+                               0    0    0    1 0"></fecolormatrix>
       </filter>
       <filter id="filter-sepia">
-        <feColorMatrix type="matrix"
-                       values="0.393 0.769 0.189 0 0
+        <fecolormatrix type="matrix" values="0.393 0.769 0.189 0 0
                                0.349 0.686 0.168 0 0
                                0.272 0.534 0.131 0 0
-                               0     0     0     1 0"/>
+                               0     0     0     1 0"></fecolormatrix>
       </filter>
       <filter id="filter-bluesteel">
-        <feColorMatrix type="matrix"
-                       values="1    0.25 0.65 0   0
+        <fecolormatrix type="matrix" values="1    0.25 0.65 0   0
                                0.1  1    0.65 0   0
                                0.1  0.25 1    0.1 0
-                               0    0    0    1   0"/>
+                               0    0    0    1   0"></fecolormatrix>
       </filter>
       <filter id="filter-faded">
-        <feColorMatrix type="matrix"
-                       values="1    0.2   0.2   0.03 0
+        <fecolormatrix type="matrix" values="1    0.2   0.2   0.03 0
                                0.2  0.7   0.2   0.05 0
                                0.1  0     0.8   0    0
-                               0    0     0     1    0"/>
+                               0    0     0     1    0"></fecolormatrix>
       </filter>
     </svg>
-  </body>
-</html>
+  
+
+</body></html>

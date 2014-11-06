@@ -1,4 +1,4 @@
-<div id="timer-dialog" class="panel skin-dark">
+<html><head></head><body><div id="timer-dialog" class="panel skin-dark">
 
   <div id="value-selector">
     <!-- Time Picker -->
@@ -6,12 +6,8 @@
     <div id="time-picker" data-type="picker">
       <div class="picker-container">
         <div class="picker-labels">
-          <div class="picker-label" id="hours" data-l10n-id="hours">
-            Hours
-          </div>
-          <div class="picker-label" id="minutes" data-l10n-id="minutes">
-            Minutes
-          </div>
+          <div class="picker-label" id="hours" data-l10n-id="hours"></div>
+          <div class="picker-label" id="minutes" data-l10n-id="minutes"></div>
         </div>
         <div class="picker-bar-background">
         </div>
@@ -24,7 +20,7 @@
           </div>
         </div>
         <div class="value-indicator">
-          <div class="value-indicator-colon" aria-hidden="true">:</div>
+          <div class="value-indicator-colon" aria-hidden="true"></div>
         </div>
       </div>
     </div>
@@ -32,15 +28,13 @@
 
     <ul id="timer-edit" class="compact">
       <li>
-        <button id="timer-create" class="recommend" data-l10n-id="start">
-          Start
-        </button>
+        <button id="timer-create" class="recommend" data-l10n-id="start"></button>
       </li>
       <li>
-        <label data-l10n-id="sound">Sound:</label>
+        <label data-l10n-id="sound"></label>
         <select id="timer-sound">
-          <option value="0" data-l10n-id="noSound">No Sound</option>
-          <option value="ac_awake.opus" data-l10n-id="ac_awake_opus" selected></option>
+          <option value="0" data-l10n-id="noSound"></option>
+          <option value="ac_awake.opus" data-l10n-id="ac_awake_opus" selected=""></option>
           <option value="ac_crystalize.opus" data-l10n-id="ac_crystalize_opus"></option>
           <option value="ac_cycle.opus" data-l10n-id="ac_cycle_opus"></option>
           <option value="ac_digicloud.opus" data-l10n-id="ac_digicloud_opus"></option>
@@ -56,8 +50,8 @@
       </li>
       <li>
         <label class="pack-switch">
-          <input type="checkbox" id="timer-vibrate" checked class="uninit" />
-          <span data-l10n-id="vibrate">Vibrate:</span>
+          <input type="checkbox" id="timer-vibrate" checked="" class="uninit">
+          <span data-l10n-id="vibrate"></span>
        </label>
       </li>
     </ul>
@@ -65,22 +59,15 @@
 </div>
 <div id="timer-active">
   <div id="timer-time-display">
-    <div id="timer-time">00:00</div>
+    <div id="timer-time"></div>
     <menu id="timer-controls">
-      <button id="timer-start" class="edit-button" data-l10n-id="resume">
-        Resume
-      </button>
-      <button id="timer-pause" class="edit-button" data-l10n-id="pause">
-        Pause
-      </button>
-      <button id="timer-cancel" class="danger" data-l10n-id="cancel">
-        Cancel
-      </button>
+      <button id="timer-start" class="edit-button" data-l10n-id="resume"></button>
+      <button id="timer-pause" class="edit-button" data-l10n-id="pause"></button>
+      <button id="timer-cancel" class="danger" data-l10n-id="cancel"></button>
     </menu>
   </div>
   <div id="timer-plus-time">
-    <button id="timer-plus" data-value="60" data-l10n-id="plusMinute">
-      +1 Min
-    </button>
+    <button id="timer-plus" data-value="60" data-l10n-id="plusMinute"></button>
   </div>
 </div>
+</body></html>

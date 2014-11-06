@@ -1,33 +1,23 @@
-<!-- Per-account settings menu; largely read-only for now -->
-<!-- need this section element to keep building blocks happy. Too bad it
-  expects a section element -->
-<section class="skin-organic bbshim settings-account-common" role="region">
+<!-- Per-account settings menu; largely read-only for now --><!-- need this section element to keep building blocks happy. Too bad it
+  expects a section element --><html><head></head><body><section class="skin-organic bbshim settings-account-common" role="region">
   <header class="tng-account-header">
-    <a data-event="click:onBack"
-       href="#" class="tng-back-btn back-btn header-left-btn">
+    <a data-event="click:onBack" href="#" class="tng-back-btn back-btn header-left-btn">
       <span class="icon icon-back"></span>
     </a>
-    <h1 data-prop="headerLabel"
-        class="tng-account-header-label header-label">AccounT NamE</h1>
+    <h1 data-prop="headerLabel" class="tng-account-header-label header-label"></h1>
   </header>
   <section class="scrollregion-below-header skin-organic" role="region">
     <header class="collapsed"></header>
     <header class="tng-main-accounts-label">
-      <h2 data-l10n-id="settings-sub-header-account">
-        AccounT
-      </h2>
+      <h2 data-l10n-id="settings-sub-header-account"></h2>
     </header>
     <ul class="tng-list">
       <li class="list-text-with-sub">
-        <span data-l10n-id="settings-account-name" class="list-text">
-          YouR NamE</span>
-        <span data-prop="accountNameNode"
-              class="tng-account-name list-sub-text">YouR NamE</span>
+        <span data-l10n-id="settings-account-name" class="list-text"></span>
+        <span data-prop="accountNameNode" class="tng-account-name list-sub-text"></span>
       </li>
       <li class="list-text-with-sub">
-        <span data-l10n-id="settings-account-display-notifications"
-              class="list-text aside start">
-          DisplaY NotificationS FoR NeW MessageS</span>
+        <span data-l10n-id="settings-account-display-notifications" class="list-text aside start"></span>
         <em class="aside end">
           <label class="tng-notify-mail-label pack-switch">
             <input class="tng-notify-mail" type="checkbox">
@@ -36,9 +26,7 @@
         </em>
       </li>
       <li class="list-text-with-sub">
-        <span data-l10n-id="settings-account-play-sound-onsend"
-              class="list-text aside start">
-          PlaY SounD AfteR MessagE SenT</span>
+        <span data-l10n-id="settings-account-play-sound-onsend" class="list-text aside start"></span>
         <em class="aside end">
           <label class="tng-sound-onsend-label pack-switch">
             <input class="tng-sound-onsend" type="checkbox">
@@ -47,22 +35,16 @@
         </em>
       </li>
       <li>
-        <span data-l10n-id="settings-default-account"
-              class="list-text aside start">
-          SeT AS DefaulT EmaiL</span>
+        <span data-l10n-id="settings-default-account" class="list-text aside start"></span>
         <em class="aside end">
-          <label data-prop="defaultLabelNode"
-                 class="pack-checkbox tng-default-label">
-            <input data-prop="defaultInputNode"
-                   class="tng-default-input" type="checkbox">
+          <label data-prop="defaultLabelNode" class="pack-checkbox tng-default-label">
+            <input data-prop="defaultInputNode" class="tng-default-input" type="checkbox">
             <span></span>
           </label>
         </em>
       </li>
       <li class="settings-signature settings-input-list">
-          <span data-l10n-id="settings-account-signature-label"
-              class="list-text aside start">
-          SignaturE</span>
+          <span data-l10n-id="settings-account-signature-label" class="list-text aside start"></span>
           <em class="aside end">
             <label class="pack-switch tng-default-label">
               <input class="tng-signature-input" type="checkbox">
@@ -75,80 +57,52 @@
       </li>
     </ul>
     <header class="tng-main-accounts-label">
-      <h2 data-l10n-id="settings-sub-header-data">
-        DatA
-      </h2>
+      <h2 data-l10n-id="settings-sub-header-data"></h2>
     </header>
     <ul class="tng-list">
       <li class="syncinterval-setting select-item">
-        <label data-l10n-id="settings-account-check-mail" class="list-text">
-          ChecK FoR NeW MessageS</label>
+        <label data-l10n-id="settings-account-check-mail" class="list-text"></label>
         <span class="button icon icon-dialog">
           <select class="tng-account-check-interval mail-select">
-            <option value="0" data-l10n-id="settings-check-every-manual">
-              ManuallY</option>
-            <option value="300000" data-l10n-id="settings-check-every-5min">
-              5 MinuteS</option>
-            <option value="600000" data-l10n-id="settings-check-every-10min">
-              10 MinuteS</option>
-            <option value="900000" data-l10n-id="settings-check-every-15min">
-              15 MinuteS</option>
-            <option value="1800000" data-l10n-id="settings-check-every-30min">
-              30 MinuteS</option>
-            <option value="3600000" data-l10n-id="settings-check-every-60min">
-              60 MinuteS</option>
+            <option value="0" data-l10n-id="settings-check-every-manual"></option>
+            <option value="300000" data-l10n-id="settings-check-every-5min"></option>
+            <option value="600000" data-l10n-id="settings-check-every-10min"></option>
+            <option value="900000" data-l10n-id="settings-check-every-15min"></option>
+            <option value="1800000" data-l10n-id="settings-check-every-30min"></option>
+            <option value="3600000" data-l10n-id="settings-check-every-60min"></option>
           </select>
         </span>
       </li>
       <li data-prop="syncSettingNode" class="synchronize-setting select-item">
-        <label data-l10n-id="settings-account-synchronize-window"
-               class="list-text">DayS TO SynC</label>
+        <label data-l10n-id="settings-account-synchronize-window" class="list-text"></label>
         <span class="button icon icon-dialog">
-          <select data-prop="synchronizeNode"
-                  data-event="change:onChangeSynchronize"
-                  class="mail-select tng-account-synchronize">
-            <option value="auto" data-l10n-id="settings-synchronize-auto">
-              AutomatiC</option>
-            <option value="1d" data-l10n-id="settings-synchronize-one-day">
-              1 DaY</option>
-            <option value="3d" data-l10n-id="settings-synchronize-three-days">
-              3 DayS</option>
-            <option value="1w" data-l10n-id="settings-synchronize-one-week">
-              1 WeeK</option>
-            <option value="2w" data-l10n-id="settings-synchronize-two-weeks">
-              2 WeekS</option>
-            <option value="1m" data-l10n-id="settings-synchronize-one-month">
-              1 MontH</option>
-            <option value="all" data-l10n-id="settings-synchronize-all">
-              AlL MessageS</option>
+          <select data-prop="synchronizeNode" data-event="change:onChangeSynchronize" class="mail-select tng-account-synchronize">
+            <option value="auto" data-l10n-id="settings-synchronize-auto"></option>
+            <option value="1d" data-l10n-id="settings-synchronize-one-day"></option>
+            <option value="3d" data-l10n-id="settings-synchronize-three-days"></option>
+            <option value="1w" data-l10n-id="settings-synchronize-one-week"></option>
+            <option value="2w" data-l10n-id="settings-synchronize-two-weeks"></option>
+            <option value="1m" data-l10n-id="settings-synchronize-one-month"></option>
+            <option value="all" data-l10n-id="settings-synchronize-all"></option>
           </select>
         </span>
       </li>
     </ul>
     <header class="tng-main-accounts-label">
-      <h2 data-l10n-id="settings-sub-header-server">
-        ServeR SettingS
-      </h2>
+      <h2 data-l10n-id="settings-sub-header-server"></h2>
     </header>
-    <ul data-prop="serversContainer"
-        class="tng-list tng-account-server-container">
+    <ul data-prop="serversContainer" class="tng-list tng-account-server-container">
       <li>
-        <a href="#" data-prop="accountCredNode"
-                    data-event="click:onClickCredentials"
-          class="tng-account-credentials list-text item-with-children"></a>
+        <a href="#" data-prop="accountCredNode" data-event="click:onClickCredentials" class="tng-account-credentials list-text item-with-children"></a>
       </li>
       <li>
-        <span data-l10n-id="settings-account-type"
-              class="list-text aside start">
-          AccounT TypE</span>
+        <span data-l10n-id="settings-account-type" class="list-text aside start"></span>
         <div class="aside end">
-          <span data-prop="accountTypeNode"
-                class="tng-account-type list-value">AccounT TypE</span>
+          <span data-prop="accountTypeNode" class="tng-account-type list-value"></span>
         </div>
       </li>
     </ul>
-    <button href="#" data-l10n-id="settings-account-delete"
-            data-event="click:onDelete"
-            class="tng-account-delete danger">DeletE AccounT</button>
+    <button href="#" data-l10n-id="settings-account-delete" data-event="click:onDelete" class="tng-account-delete danger"></button>
   </section>
 </section>
+</body></html>

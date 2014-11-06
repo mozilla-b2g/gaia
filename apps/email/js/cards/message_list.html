@@ -1,32 +1,23 @@
-<!-- Non-search header -->
-<section data-prop="normalHeader"
-         class="msg-list-header msg-nonsearch-only"
-         data-statuscolor="default"
-         role="region">
+<!-- Non-search header --><html><head></head><body><section data-prop="normalHeader" class="msg-list-header msg-nonsearch-only" data-statuscolor="default" role="region">
   <header>
     <a href="#" class="msg-folder-list-btn" data-event="click:onShowFolders">
-      <span class="icon icon-menu">menu</span>
+      <span class="icon icon-menu"></span>
     </a>
     <menu data-prop="headerMenuNode" type="toolbar" class="anim-opacity">
       <a href="#" class="msg-compose-btn" data-event="click:onCompose">
-        <span class="icon icon-compose">compose</span>
+        <span class="icon icon-compose"></span>
       </a>
     </menu>
-    <h1 data-prop="folderLabel"
-        class="msg-list-header-folder-label header-label">
-      <span data-prop="folderNameNode"
-            class="msg-list-header-folder-name"></span>
-      <span data-prop="folderUnread"
-            class="msg-list-header-folder-unread collapsed"></span>
+    <h1 data-prop="folderLabel" class="msg-list-header-folder-label header-label">
+      <span data-prop="folderNameNode" class="msg-list-header-folder-name"></span>
+      <span data-prop="folderUnread" class="msg-list-header-folder-unread collapsed"></span>
       </h1>
   </header>
 </section>
 <!-- Multi-edit state header -->
-<section data-prop="editHeader"
-         class="msg-listedit-header collapsed" role="region">
+<section data-prop="editHeader" class="msg-listedit-header collapsed" role="region">
   <header>
-    <a href="#" data-event="click:setEditModeDone"
-       class="msg-listedit-cancel-btn">
+    <a href="#" data-event="click:setEditModeDone" class="msg-listedit-cancel-btn">
       <span class="icon icon-close"></span>
     </a>
     <h1 data-prop="headerNode" class="msg-listedit-header-label">
@@ -34,47 +25,28 @@
   </header>
 </section>
 <!-- Search header -->
-<section role="region" data-prop="searchHeader"
-         class="msg-search-header msg-search-only">
+<section role="region" data-prop="searchHeader" class="msg-search-header msg-search-only">
   <form role="search" data-event="submit:onSearchSubmit">
-    <button data-event="click:onCancelSearch"
-            class="msg-search-cancel" type="submit"
-            data-l10n-id="message-search-cancel">Cancel</button>
+    <button data-event="click:onCancelSearch" class="msg-search-cancel" type="submit" data-l10n-id="message-search-cancel"></button>
     <p>
-      <input data-prop="searchInput" data-event="input:onSearchTextChange"
-             type="text" required="required" class="msg-search-text"
-             dir="auto"
-             autocorrect="off"
-             inputmode="verbatim"
-             x-inputmode="verbatim"
-             data-l10n-id="message-search-input" />
+      <input data-prop="searchInput" data-event="input:onSearchTextChange" type="text" required="required" class="msg-search-text" dir="auto" autocorrect="off" inputmode="verbatim" x-inputmode="verbatim" data-l10n-id="message-search-input">
       <button type="reset" data-l10n-id="form-clear-input"></button>
     </p>
   </form>
   <!-- Search filter switcher -->
   <header class="msg-search-controls-bar">
     <ul role="tablist" class="bb-tablist filter" data-type="filter">
-      <li role="presentation" class="msg-search-from msg-search-filter"
-          data-filter="author">
-        <a data-l10n-id="message-search-from" role="tab"
-          aria-selected="false">FroM</a></li>
-      <li role="presentation" class="msg-search-to msg-search-filter"
-          data-filter="recipients">
-        <a data-l10n-id="message-search-to" role="tab"
-          aria-selected="false">tO</a></li>
-      <li role="presentation" class="msg-search-subject msg-search-filter"
-           data-filter="subject">
-        <a data-l10n-id="message-search-subject" role="tab"
-          aria-selected="false">SubjecT</a>
+      <li role="presentation" class="msg-search-from msg-search-filter" data-filter="author">
+        <a data-l10n-id="message-search-from" role="tab" aria-selected="false"></a></li>
+      <li role="presentation" class="msg-search-to msg-search-filter" data-filter="recipients">
+        <a data-l10n-id="message-search-to" role="tab" aria-selected="false"></a></li>
+      <li role="presentation" class="msg-search-subject msg-search-filter" data-filter="subject">
+        <a data-l10n-id="message-search-subject" role="tab" aria-selected="false"></a>
       </li>
-      <li role="presentation" class="msg-search-body msg-search-filter"
-           data-filter="body">
-        <a data-l10n-id="message-search-body" role="tab"
-          aria-selected="false">BodY</a></li>
-      <li role="presentation" class="msg-search-body msg-search-filter"
-          data-filter="all">
-        <a data-l10n-id="message-search-all" role="tab"
-          aria-selected="true">AlL</a></li>
+      <li role="presentation" class="msg-search-body msg-search-filter" data-filter="body">
+        <a data-l10n-id="message-search-body" role="tab" aria-selected="false"></a></li>
+      <li role="presentation" class="msg-search-body msg-search-filter" data-filter="all">
+        <a data-l10n-id="message-search-all" role="tab" aria-selected="true"></a></li>
     </ul>
   </header>
 </section>
@@ -85,12 +57,9 @@
     <!-- The search textbox hides under the lip of the messages.
          As soon as any typing happens in it, we push the search
          controls card. -->
-    <form role="search" data-prop="searchBar"
-          class="msg-search-tease-bar msg-nonsearch-only">
+    <form role="search" data-prop="searchBar" class="msg-search-tease-bar msg-nonsearch-only">
       <p>
-        <input data-event="focus:onSearchButton"
-               class="msg-search-text-tease" type="text"
-               dir="auto" data-l10n-id="message-search-input" />
+        <input data-event="focus:onSearchButton" class="msg-search-text-tease" type="text" dir="auto" data-l10n-id="message-search-input">
       </p>
     </form>
     <div data-prop="messagesContainer" class="msg-messages-container">
@@ -100,12 +69,10 @@
          out of the way -->
     <div class="msg-messages-sync-container">
       <p data-prop="syncingNode" class="msg-messages-syncing collapsed">
-        <span data-l10n-id="messages-syncing">Message loadinG</span>
+        <span data-l10n-id="messages-syncing"></span>
       </p>
-      <p data-prop="syncMoreNode"
-         data-event="click:onGetMoreMessages"
-         class="msg-messages-sync-more collapsed">
-        <span data-l10n-id="messages-load-more">LoaD MorE</span>
+      <p data-prop="syncMoreNode" data-event="click:onGetMoreMessages" class="msg-messages-sync-more collapsed">
+        <span data-l10n-id="messages-load-more"></span>
       </p>
     </div>
   </div>
@@ -118,46 +85,34 @@
 <!-- Toolbar for non-multi-edit state -->
 <ul data-prop="normalToolbar" class="bb-tablist msg-list-action-toolbar">
   <li role="presentation" class="msg-nonsearch-only">
-    <button data-prop="refreshBtn" data-event="click:onRefresh"
-            class="icon msg-refresh-btn" data-state="synchronized"></button>
+    <button data-prop="refreshBtn" data-event="click:onRefresh" class="icon msg-refresh-btn" data-state="synchronized"></button>
   </li>
   <li role="presentation" class="msg-nonsearch-only msg-last-sync">
-    <span data-prop="lastSyncedLabel"
-          class="msg-last-synced-label"
-          data-l10n-id="folder-last-synced-label"></span>
-    <span data-prop="lastSyncedAtNode"
-          class="msg-last-synced-value"></span>
+    <span data-prop="lastSyncedLabel" class="msg-last-synced-label" data-l10n-id="folder-last-synced-label"></span>
+    <span data-prop="lastSyncedAtNode" class="msg-last-synced-value"></span>
   </li>
   <li role="presentation">
-    <button data-prop="editBtn" data-event="click:setEditModeStart"
-            class="icon msg-edit-btn"></button>
+    <button data-prop="editBtn" data-event="click:setEditModeStart" class="icon msg-edit-btn"></button>
   </li>
 </ul>
 
 <!-- Toolbar for multi-edit state -->
-<ul data-prop="editToolbar"
-    class="bb-tablist msg-listedit-action-toolbar collapsed">
+<ul data-prop="editToolbar" class="bb-tablist msg-listedit-action-toolbar collapsed">
   <li role="presentation">
-    <button data-prop="deleteBtn" data-event="click:onDeleteMessages"
-            class="icon msg-delete-btn"></button>
+    <button data-prop="deleteBtn" data-event="click:onDeleteMessages" class="icon msg-delete-btn"></button>
   </li>
   <li role="presentation">
-    <button data-prop="starBtn" data-event="click:onStarMessages"
-            class="icon msg-star-btn"></button>
+    <button data-prop="starBtn" data-event="click:onStarMessages" class="icon msg-star-btn"></button>
   </li>
   <li role="presentation">
-    <button data-prop="readBtn" data-event="click:onMarkMessagesRead"
-            class="icon msg-mark-read-btn"></button>
+    <button data-prop="readBtn" data-event="click:onMarkMessagesRead" class="icon msg-mark-read-btn"></button>
   </li>
   <li role="presentation">
-    <button data-prop="moveBtn" data-event="click:onMoveMessages"
-            class="icon msg-move-btn"></button>
+    <button data-prop="moveBtn" data-event="click:onMoveMessages" class="icon msg-move-btn"></button>
   </li>
 </ul>
 
-<div data-prop="messageEmptyContainer"
-     class="msg-list-empty-container collapsed">
-  <p data-prop="messageEmptyText"
-     class="msg-list-empty-message-text"
-     data-l10n-id="messages-folder-empty">No messagE</p>
+<div data-prop="messageEmptyContainer" class="msg-list-empty-container collapsed">
+  <p data-prop="messageEmptyText" class="msg-list-empty-message-text" data-l10n-id="messages-folder-empty"></p>
 </div>
+</body></html>

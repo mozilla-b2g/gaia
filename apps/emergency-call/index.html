@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html>
-  <head>
+<!DOCTYPE html><html><head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Emergency Call Dialer</title>
@@ -20,16 +18,16 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/overlay.css">
     <link rel="stylesheet" type="text/css" href="style/ice_contacts.css">
 
-    <script defer type="application/javascript" src="/shared/js/lazy_loader.js"></script>
-    <script defer type="application/javascript" src="/shared/js/l10n.js"></script>
-    <script defer type="application/javascript" src="/shared/js/dialer/utils.js"></script>
-    <script defer type="application/javascript" src="/shared/js/dialer/dtmf_tone.js"></script>
-    <script defer type="application/javascript" src="/shared/js/dialer/tone_player.js"></script>
-    <script defer type="application/javascript" src="/shared/js/contacts/utilities/ice_store.js"></script>
-    <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
-    <script defer type="application/javascript" src="js/ice_contacts.js"></script>
-    <script defer type="application/javascript" src="js/keypad.js"></script>
-    <script defer type="application/javascript" src="js/dialer.js"></script>
+    <script defer="" type="application/javascript" src="/shared/js/lazy_loader.js"></script>
+    <script defer="" type="application/javascript" src="/shared/js/l10n.js"></script>
+    <script defer="" type="application/javascript" src="/shared/js/dialer/utils.js"></script>
+    <script defer="" type="application/javascript" src="/shared/js/dialer/dtmf_tone.js"></script>
+    <script defer="" type="application/javascript" src="/shared/js/dialer/tone_player.js"></script>
+    <script defer="" type="application/javascript" src="/shared/js/contacts/utilities/ice_store.js"></script>
+    <script defer="" type="application/javascript" src="/shared/js/settings_listener.js"></script>
+    <script defer="" type="application/javascript" src="js/ice_contacts.js"></script>
+    <script defer="" type="application/javascript" src="js/keypad.js"></script>
+    <script defer="" type="application/javascript" src="js/dialer.js"></script>
 
     <!-- Lazy load all the things:
     <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
@@ -56,69 +54,67 @@
           <button id="keypad-delete" class="reset-button" data-value="delete" data-l10n-id="keypadDelete">
           </button>
         </div>
-        <section id="ice-contacts-bar" class="ice-contacts-bar" hidden data-l10n-id="ice-contacts-bar-text">
-          ICE Contacts - In Case of Emergency
-        </section>
+        <section id="ice-contacts-bar" class="ice-contacts-bar" hidden="" data-l10n-id="ice-contacts-bar-text"></section>
         <article id="keyboard-container">
           <section id="keypad">
             <div class="keypad-row">
               <div class="keypad-key" role="key" data-value="1">
-                <span>1</span>
+                <span></span>
                 <em class="keypad-subicon"></em>
               </div>
               <div class="keypad-key" role="key" data-value="2">
-                <span>2</span>
-                <em>ABC</em>
+                <span></span>
+                <em></em>
               </div>
               <div class="keypad-key" role="key" data-value="3">
-                <span>3</span>
-                <em>DEF</em>
+                <span></span>
+                <em></em>
               </div>
             </div>
             <div class="keypad-row">
               <div class="keypad-key" role="key" data-value="4">
-                <span>4</span>
-                <em>GHI</em>
+                <span></span>
+                <em></em>
               </div>
               <div class="keypad-key" role="key" data-value="5">
-                <span>5</span>
-                <em>JKL</em>
+                <span></span>
+                <em></em>
               </div>
               <div class="keypad-key" role="key" data-value="6">
-                <span>6</span>
-                <em>MNO</em>
+                <span></span>
+                <em></em>
               </div>
             </div>
             <div class="keypad-row">
               <div class="keypad-key" role="key" data-value="7">
-                <span>7</span>
-                <em>PQRS</em>
+                <span></span>
+                <em></em>
               </div>
               <div class="keypad-key" role="key" data-value="8">
-                <span>8</span>
-                <em>TUV</em>
+                <span></span>
+                <em></em>
               </div>
               <div class="keypad-key" role="key" data-value="9">
-                <span>9</span>
-                <em>WXYZ</em>
+                <span></span>
+                <em></em>
               </div>
             </div>
             <div class="keypad-row">
               <div class="keypad-key" role="key" data-value="*" data-l10n-id="asterisk">
-                <div class="asterisk">*</div>
+                <div class="asterisk"></div>
               </div>
               <div class="keypad-key" role="key" data-value="0">
-                <span>0</span>
-                <em class="font-size-plus">+</em>
+                <span></span>
+                <em class="font-size-plus"></em>
               </div>
               <div class="keypad-key" role="key" data-type="dial" data-value="#" data-l10n-id="hashSign">
-                <div class="sharp">#</div>
+                <div class="sharp"></div>
               </div>
             </div>
           </section>
           <section id="keypad-callbar">
-            <span role="button" id="keypad-callbar-cancel" class='keypad-callbar-button cancel' data-type="action" data-value="cancel" >
-              <div data-l10n-id="cancel">Cancel</div>
+            <span role="button" id="keypad-callbar-cancel" class="keypad-callbar-button cancel" data-type="action" data-value="cancel">
+              <div data-l10n-id="cancel"></div>
             </span>
             <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
               <div>
@@ -130,8 +126,9 @@
     </article>
     <form is="contact-list-overlay" id="contact-list-overlay" role="dialog" data-type="action" class="overlay">
     </form>
-    <button is="contact-in-overlay" id="contact-in-overlay" class="contact-item ci--action-menu" hidden></button>
+    <button is="contact-in-overlay" id="contact-in-overlay" class="contact-item ci--action-menu" hidden=""></button>
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
-    <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden></form>
-  </body>
-</html>
+    <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden=""></form>
+  
+
+</body></html>

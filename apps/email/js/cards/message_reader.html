@@ -1,4 +1,4 @@
-<section class="msg-reader-header" role="region" data-statuscolor="default">
+<html><head></head><body><section class="msg-reader-header" role="region" data-statuscolor="default">
   <header>
     <a data-event="click:onBack" href="#" class="msg-back-btn">
       <span class="icon icon-back"></span>
@@ -14,26 +14,21 @@
     <h1 class="msg-reader-header-label"></h1>
   </header>
 </section>
-<div data-prop="scrollContainer"
-     class="scrollregion-below-header scrollregion-horizontal-too">
+<div data-prop="scrollContainer" class="scrollregion-below-header scrollregion-horizontal-too">
   <div data-prop="envelopeBar" class="msg-envelope-bar">
     <div class="msg-envelope-line msg-envelope-from-line">
-      <span class="msg-envelope-key"
-             data-l10n-id="envelope-from">FroM</span>
+      <span class="msg-envelope-key" data-l10n-id="envelope-from"></span>
     </div>
     <!-- the details starts out collapsed, but can be toggled -->
     <div class="msg-envelope-details">
       <div class="msg-envelope-line msg-envelope-to-line">
-        <span class="msg-envelope-key"
-               data-l10n-id="envelope-to">tO</span>
+        <span class="msg-envelope-key" data-l10n-id="envelope-to"></span>
       </div>
       <div class="msg-envelope-line msg-envelope-cc-line">
-        <span class="msg-envelope-key"
-               data-l10n-id="envelope-cc">cC</span>
+        <span class="msg-envelope-key" data-l10n-id="envelope-cc"></span>
       </div>
       <div class="msg-envelope-line msg-envelope-bcc-line">
-        <span class="msg-envelope-key"
-               data-l10n-id="envelope-bcc">BcC</span>
+        <span class="msg-envelope-key" data-l10n-id="envelope-bcc"></span>
       </div>
     </div>
     <div class="msg-envelope-subject-container">
@@ -41,16 +36,14 @@
       <span class="msg-envelope-date"></span>
     </div>
   </div>
-  <ul data-prop="attachmentsContainer"
-      class="msg-attachments-container collapsed">
+  <ul data-prop="attachmentsContainer" class="msg-attachments-container collapsed">
   </ul>
   <!-- Tells us about remote/not downloaded images, asks to show -->
   <div data-prop="loadBar" class="msg-reader-load-infobar collapsed">
     <p data-prop="loadBarText" class="msg-reader-load-infobar-text"></p>
     <button class="msg-reader-load-infobar-button"></button>
   </div>
-  <div data-prop="rootBodyNode"
-       class="msg-body-container"><progress></progress></div>
+  <div data-prop="rootBodyNode" class="msg-body-container"><progress></progress></div>
 </div>
 
 <ul class="bb-tablist msg-reader-action-toolbar">
@@ -67,3 +60,4 @@
     <button data-prop="replyBtn" class="icon msg-reply-btn"></button>
   </li>
 </ul>
+</body></html>
