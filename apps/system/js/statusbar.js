@@ -22,11 +22,11 @@
 
 var StatusBar = {
   /* all elements that are children nodes of the status bar */
-  ELEMENTS: ['emergency-cb-notification', 'time', 'connections',
-    'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
-    'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
-    'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
-    'system-downloads', 'call-forwardings', 'playing', 'nfc'],
+  ELEMENTS: ['emergency-cb-notification', 'time', 'connections', 'battery',
+    'wifi', 'data', 'flight-mode', 'network-activity', 'tethering', 'alarm',
+    'debugging', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
+    'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb',
+    'label', 'system-downloads', 'call-forwardings', 'playing', 'nfc'],
 
   // The indices indicate icons priority (lower index = highest priority)
   // In each subarray:
@@ -40,6 +40,7 @@ var StatusBar = {
     ['wifi', 16 + 4],
     ['connections', null], // Width can change
     ['time', null], // Width can change
+    ['debugging', 16 + 4],
     ['system-downloads', 16 + 4],
     ['geolocation', 16 + 4],
     ['network-activity', 16 + 4],
@@ -110,7 +111,8 @@ var StatusBar = {
     'ril.cf.enabled': ['callForwarding'],
     'operatorResources.data.icon': ['iconData'],
     'statusbar.network-activity.disabled': ['networkActivity'],
-    'statusbar.show-am-pm': ['time']
+    'statusbar.show-am-pm': ['time'],
+    'debugger.remote-mode': ['debugging']
   },
 
   /* Track which settings are observed, so we don't add multiple listeners. */
@@ -1495,6 +1497,14 @@ var StatusBar = {
     nfc: function sb_updateNfc() {
       var icon = this.icons.nfc;
       icon.hidden = !this.nfcActive;
+
+      this._updateIconVisibility();
+    },
+
+    debugging: function sb_updateDebugging() {
+      var icon = this.icons.debugging;
+
+      icon.hidden = this.settingValues['debugger.remote-mode'] == 'disabled';
 
       this._updateIconVisibility();
     }
