@@ -24,12 +24,17 @@ and talk to us on IRC:
 
 [The Gaia/Hacking page on MDN](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Gaia/Hacking) has all the information that you need to start working on Gaia, including building and running Gaia on a compatible device or desktop computer.
 
-## Shepherd (bot)
+## Autolander (bot)
 
-Opt-into new features by adding +shepherd to your first commit.
+Autolander is a bot which integrations github and bugzilla workflows. Opt-into new features by adding +autolander to your pull request title.
 
 Features available:
-  - automatic github -> bugzilla linking
+  - Automatic pull request to bugzilla attachment linking.
+  - Automatic landing, on green integration run, with a R+ from a suggested reviewer and checkin-needed keyword.
+  - Comments in the bug with the landed commit, and marks the bug as fixed.
+  - Validates pull request title and commit message formats.
+  - Currently only runs a subset of the gaia CI tests which are stable on taskcluster. Ensure you have a green gaia-try run before adding checkin-needed.
+  - See more at: https://github.com/kevingrandon/autolander
 
 
 ## Tests
