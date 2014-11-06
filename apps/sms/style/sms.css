@@ -80,29 +80,17 @@ form[role="dialog"][data-type="edit"] > menu {
   top: 5rem;
 
   /* The width is not 100% so the scrollbar is visible. */
-  width: calc(100% - 2rem);
+  width: calc(100% - 1.5rem);
 
   /* The height needs to be kept in sync with the header height. */
   height: 3.1rem;
 
-  /* Leaving 1rem margin for both side to makes scrollbar visible in LTR/RTL */
-  margin: 0 1rem;
-
   /* The sticky element needs to be above the list. */
   z-index: 2;
 
-  /* Hide sticky header when content is not ready */
-  visibility: hidden;
-
   /* Those style will affect the backgroundImage: -moz-element. */
   background-repeat: no-repeat;
-  background-position: center top;
-  background-color: white;
-}
-
-#sticky.has-content {
-  /* Set sticky header visible only when content is ready */
-  visibility: visible;
+  background-position: 1.5rem 0;
 }
 
 .edit #threads-container[data-type="list"] {
@@ -778,7 +766,17 @@ body[role="application"] form[role="dialog"][data-type="action"] > section:first
 form[role="dialog"][data-type="action"].contact-prompt > header {
   height: auto;
   min-height: 5rem;
-  font-weight: 100;
+  font-weight: 300;
+}
+
+.unknown-contact-header {
+  line-height: 2.5rem;
+  padding: 1.3rem 0;
+  margin: 0;
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  font-size: 2.3rem;
 }
 
 .contact-header {

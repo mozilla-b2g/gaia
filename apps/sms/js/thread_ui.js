@@ -2649,7 +2649,7 @@ var ThreadUI = {
       this.prompt({
         number: tel,
         email: email,
-        header: fragment || number,
+        header: fragment,
         contactId: id,
         isContact: isContact,
         inMessage: inMessage
@@ -2669,7 +2669,7 @@ var ThreadUI = {
     var email = opt.email || '';
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
-    var header = opt.header || number || email || '';
+    var header = opt.header;
     var items = [];
     var params, props;
 
@@ -2680,10 +2680,16 @@ var ThreadUI = {
     //      in the header of the option menu
     //  - items: array of options to display in menu
     //
+    if (!header && (number || email)) {
+      header = document.createElement('div');
+      header.className = 'unknown-contact-header';
+      header.textContent = number || email;
+    }
+
     params = {
       classes: ['contact-prompt'],
       complete: complete,
-      header: header,
+      header: header || '',
       items: null
     };
 
