@@ -7,6 +7,7 @@ function MockTaskManager() {
 }
 
 MockTaskManager.prototype = {
+  isActive: function() {},
   start: function() {},
   show: function() { this.is_shown = true; },
   hide: function() { this.is_shown = false; },

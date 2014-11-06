@@ -118,7 +118,8 @@
     isHidden: function() { return false; },
     '_resize': function() {},
     isForeground: function() {},
-    killable: function() {}
+    killable: function() {},
+    setVisibileForScreenReader: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];

@@ -1,6 +1,7 @@
 /* global appWindowManager, AppWindow, HomescreenWindowManager, MockShrinkingUI,
           HomescreenWindow, MocksHelper, MockSettingsListener, System,
-          MockRocketbar, rocketbar, homescreenWindowManager */
+          MockRocketbar, rocketbar, homescreenWindowManager,
+          MockTaskManager */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -17,6 +18,7 @@ requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_nfc_handler.js');
 requireApp('system/test/unit/mock_rocketbar.js');
+requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/js/system.js');
 requireApp('system/shared/test/unit/mocks/mock_shrinking_ui.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -25,7 +27,8 @@ var mocksForAppWindowManager = new MocksHelper([
   'OrientationManager', 'ActivityWindow', 'ShrinkingUI',
   'Applications', 'SettingsListener', 'HomescreenWindowManager',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
-  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System', 'NfcHandler'
+  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System', 'NfcHandler',
+  'TaskManager'
 ]).init();
 
 suite('system/AppWindowManager', function() {
@@ -53,6 +56,7 @@ suite('system/AppWindowManager', function() {
     window.homescreenWindowManager.mHomescreenWindow = home;
 
     window.rocketbar = new MockRocketbar();
+    window.taskManager = new MockTaskManager();
 
     app1 = new AppWindow(fakeAppConfig1);
     app2 = new AppWindow(fakeAppConfig2);
@@ -992,4 +996,40 @@ suite('system/AppWindowManager', function() {
     assert.isNull(appWindowManager.getAppByURL(url1));
   });
 
+  suite('Hierarchy functions', function() {
+    test('getActiveWindow', function() {
+      appWindowManager._activeApp = app1;
+      assert.equal(appWindowManager.getActiveWindow(), app1);
+    });
+
+    test('setHierarchy', function() {
+      appWindowManager._activeApp = app1;
+      this.sinon.stub(app1, 'focus');
+      this.sinon.stub(app1, 'setVisibleForScreenReader');
+      appWindowManager.setHierarchy(true);
+      assert.isTrue(app1.focus.called);
+      assert.isTrue(app1.setVisibleForScreenReader.calledWith(true));
+
+      appWindowManager.setHierarchy(false);
+      assert.isTrue(app1.setVisibleForScreenReader.calledWith(false));
+    });
+
+    test('focus is redirected', function() {
+      appWindowManager._activeApp = app1;
+      this.sinon.stub(app1, 'focus');
+      appWindowManager.focus();
+      assert.isTrue(app1.focus.called);
+    });
+
+    suite('isActive', function() {
+      test('No active app', function() {
+        assert.isFalse(appWindowManager.isActive());
+      });
+
+      test('There is active app', function() {
+        appWindowManager._activeApp = app1;
+        assert.isTrue(appWindowManager.isActive());
+      });
+    });
+  });
 });

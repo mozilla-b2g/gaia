@@ -17,11 +17,35 @@
   var AppWindowManager = function() {};
   AppWindowManager.prototype = {
     DEBUG: false,
-    CLASS_NAME: 'AppWindowManager',
+    name: 'AppWindowManager',
+    EVENT_PREFIX: 'appwindowmanager',
     continuousTransition: false,
 
     element: document.getElementById('windows'),
     screen: document.getElementById('screen'),
+
+    isActive: function() {
+      return !!this._activeApp;
+    },
+
+    setHierarchy: function(active) {
+      if (!this._activeApp) {
+        this.debug('No active app.');
+        return;
+      }
+      if (active) {
+        this.focus();
+      }
+      this._activeApp.setVisibleForScreenReader(active);
+    },
+
+    focus: function() {
+      if (!this._activeApp) {
+        return;
+      }
+      this.debug('focusing ' + this._activeApp.name);
+      this._activeApp.focus();
+    },
 
     /**
      * Test the app is already running.
@@ -34,6 +58,15 @@
       } else {
         return false;
       }
+    },
+
+    /**
+     * HierarchyManager will use this function to
+     * get the active window instance.
+     * @return {AppWindow|null} The active app window instance
+     */
+    getActiveWindow: function() {
+      return this.getActiveApp();
     },
 
     /**
@@ -351,6 +384,7 @@
           this._settingsObserveHandler[name].callback
         );
       }
+      System.request('registerHierarchy', this);
     },
 
     /**
@@ -400,6 +434,7 @@
       }
 
       this._settingsObserveHandler = null;
+      System.request('unregisterHierarchy', this);
     },
 
     handleEvent: function awm_handleEvent(evt) {
@@ -590,12 +625,14 @@
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
+          activeApp && activeApp.setVisibleForScreenReader(false);
           this.broadcastMessage('sheetsgesturebegin');
           break;
 
         case 'sheets-gesture-end':
           // All inactive app window instances need to be aware of this so they
           // can hide the screenshot overlay. The check occurs in the AppWindow.
+          activeApp && activeApp.setVisibleForScreenReader(true);
           this.broadcastMessage('sheetsgestureend');
           break;
 
@@ -705,7 +742,7 @@
 
     debug: function awm_debug() {
       if (this.DEBUG) {
-        console.log('[' + this.CLASS_NAME + ']' +
+        console.log('[' + this.name + ']' +
           '[' + System.currentTime() + ']' +
           Array.slice(arguments).concat());
       }

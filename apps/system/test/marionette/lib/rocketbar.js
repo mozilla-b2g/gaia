@@ -42,7 +42,8 @@ Rocketbar.prototype = {
     cancel: '#rocketbar-cancel',
     clear: '#rocketbar-clear',
     backdrop: '#rocketbar-backdrop',
-    results: '#rocketbar-results'
+    results: '#rocketbar-results',
+    appTitle: '.appWindow.active .chrome .title'
   },
 
   /**
@@ -81,6 +82,14 @@ Rocketbar.prototype = {
     var homeLib = new HomeLib(this.client);
     homeLib.waitForLaunch();
     homeLib.focusRocketBar();
+  },
+
+  /**
+   * Trigger rocketbar from app title.
+   */
+  appTitleFocus: function() {
+    var title = this.client.findElement(this.selectors.appTitle);
+    title.click();
   },
 
   /**

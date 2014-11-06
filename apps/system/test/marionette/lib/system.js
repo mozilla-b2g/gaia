@@ -286,8 +286,16 @@ System.prototype = {
   },
 
   goHome: function() {
+    this.client.switchToFrame();
     this.client.executeScript(function() {
       window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
+    });
+  },
+
+  holdHome: function() {
+    this.client.switchToFrame();
+    this.client.executeScript(function() {
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('holdhome'));
     });
   },
 

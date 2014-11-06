@@ -41,10 +41,10 @@ suite('system/LayoutManager >', function() {
       assert.isTrue(stubPublish.calledWith('orientationchange'));
     });
 
-    test('attention-inactive', function() {
+    test('attentionwindowmanager-deactivated', function() {
       var stubPublish = this.sinon.stub(layoutManager, 'publish');
       layoutManager.handleEvent({
-        type: 'attention-inactive'
+        type: 'attentionwindowmanager-deactivated'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
     });

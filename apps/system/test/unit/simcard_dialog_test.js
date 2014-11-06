@@ -19,7 +19,8 @@ suite('simcard dialog', function() {
   var MockSimPinSystemDialog = function(id, options) {
     return {
       show: function() {},
-      hide: function() {}
+      hide: function() {},
+      requestFocus: function() {}
     };
   };
 
@@ -49,6 +50,13 @@ suite('simcard dialog', function() {
     stubByQuery.restore();
     stubById.restore();
   });
+
+  test('requestFocus should be called when inputFieldControl is called',
+    function() {
+      this.sinon.stub(SimPinDialog.simPinSystemDialog, 'requestFocus');
+      SimPinDialog.inputFieldControl(true);
+      assert.isTrue(SimPinDialog.simPinSystemDialog.requestFocus.called);
+    });
 
   test('unlock', function() {
     var slot = new MockSIMSlot(null, 0);

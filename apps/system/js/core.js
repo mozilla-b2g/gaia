@@ -10,6 +10,10 @@
   var Core = function() {
   };
 
+  Core.SUB_MODULES = [
+    'HierarchyManager'
+  ];
+
   BaseModule.create(Core, {
     name: 'Core',
 

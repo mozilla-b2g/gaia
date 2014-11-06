@@ -388,6 +388,56 @@ suite('system/TaskManager >', function() {
     this.sinon.clock.tick(500); // 100ms exit + 400ms safety
   });
 
+  suite('Hierarchy functions', function() {
+    setup(function() {
+      this.sinon.stub(taskManager, '_fetchElements');
+      this.sinon.stub(taskManager, '_registerEvents');
+      this.sinon.stub(taskManager, '_unregisterEvents');
+      taskManager.stack = [];
+      taskManager.unfilteredStack = [];
+    });
+
+    teardown(function() {
+      taskManager.stop();
+    });
+
+    test('start should register hierarchy', function() {
+      this.sinon.stub(MockSystem, 'request');
+      taskManager.start();
+      assert.isTrue(
+        MockSystem.request.calledWith('registerHierarchy', taskManager));
+    });
+
+    test('stop should unregister hierarchy', function() {
+      taskManager.start();
+      this.sinon.stub(MockSystem, 'request');
+      taskManager.stop();
+      assert.isTrue(
+        MockSystem.request.calledWith('unregisterHierarchy', taskManager));
+    });
+
+    test('setActive to true should publish -activated', function(done) {
+      window.addEventListener(taskManager.EVENT_PREFIX + '-activated',
+        function onactivated() {
+          window.removeEventListener(taskManager.EVENT_PREFIX + '-activated',
+            onactivated);
+          done();
+        });
+      taskManager.setActive(true);
+    });
+
+    test('setActive to false should publish -deactivated', function(done) {
+      taskManager.setActive(true);
+      window.addEventListener(taskManager.EVENT_PREFIX + '-deactivated',
+        function ondeactivated() {
+          window.removeEventListener(taskManager.EVENT_PREFIX + '-deactivated',
+            ondeactivated);
+          done();
+        });
+      taskManager.setActive(false);
+    });
+  });
+
   suite('sanity check > ', function() {
     test('instantiable TaskManager', function(){
       assert.isTrue(taskManager instanceof window.TaskManager,

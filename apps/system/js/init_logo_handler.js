@@ -67,10 +67,17 @@ var CustomLogoPath = (function() {
 
 // Function to animate init starting logo
 var InitLogoHandler = {
+  name: 'InitLogoHandler',
   ready: false,
   animated: false,
   readyCallBack: null,
   logoLoader: null,
+  EVENT_PREFIX: 'initlogo',
+  publish: function(evtName) {
+    window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + evtName, {
+      detail: this
+    }));
+  },
 
   get carrierLogo() {
     delete this.carrierLogo;
@@ -88,6 +95,7 @@ var InitLogoHandler = {
     this.logoLoader = logoLoader;
     logoLoader.onnotfound = this._removeCarrierPowerOn.bind(this);
     logoLoader.onload = this._appendCarrierPowerOn.bind(this);
+    System.request('registerHierarchy', this);
   },
 
   handleEvent: function ilh_handleEvent() {
@@ -141,10 +149,15 @@ var InitLogoHandler = {
       this.readyCallBack();
       this.readyCallBack = null;
     }
+    this.publish('-activated');
   },
 
   _waitReady: function ilh_waitReady(callback) {
     this.readyCallBack = callback;
+  },
+
+  isActive: function() {
+    return this.ready && !this.animated;
   },
 
   animate: function ilh_animate(callback) {
@@ -159,6 +172,9 @@ var InitLogoHandler = {
       return;
 
     this.animated = true;
+
+    self.publish('-deactivated');
+    System.request('unregisterHierarchy', self);
 
     // No carrier logo - Just animate OS logo.
     if (!self.logoLoader.found) {
