@@ -22,6 +22,8 @@ class Email(Base):
     _manual_setup_locator = (By.CSS_SELECTOR, '#cardContainer .sup-manual-config-btn')
     _message_list_locator = (By.CSS_SELECTOR, 'cards-message-list')
     _refresh_button_locator = (By.CLASS_NAME, 'msg-refresh-btn')
+    _search_textbox_locator = (By.CSS_SELECTOR, 'form[role="search"]')
+    _email_subject_locator = (By.XPATH, '//a[@data-index!="-1"]/div/span[text()="%s"]')
 
     def basic_setup_email(self, name, email, password):
 
@@ -140,6 +142,18 @@ class Email(Base):
             lambda m: element.is_displayed() and
             element.location['x'] == 0)
 
+    def wait_for_search_textbox_hidden(self):
+        self.wait_for_element_not_displayed(*self._search_textbox_locator)
+
+    def tap_email_subject(self, subject):
+        subject_locator = (
+            self._email_subject_locator[0],
+            self._email_subject_locator[1] % subject
+        )
+        self.marionette.find_element(*subject_locator).tap()
+        from gaiatest.apps.email.regions.read_email import ReadEmail
+        return ReadEmail(self.marionette)
+
     def wait_for_email(self, subject, timeout=120):
         Wait(self.marionette, timeout, interval=5).until(
             self.email_exists(self, subject))
@@ -248,10 +262,3 @@ class Message(PageRegion):
 
     def scroll_to_message(self):
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [self.root_element])
-
-    def tap_subject(self):
-        subject = self.root_element.find_element(*self._subject_locator)
-        Wait(self.marionette).until(expected.element_enabled(subject))
-        subject.tap()
-        from gaiatest.apps.email.regions.read_email import ReadEmail
-        return ReadEmail(self.marionette)
