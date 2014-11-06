@@ -672,26 +672,24 @@ suite('lib/camera/camera', function() {
   });
 
   suite('Camera#onPreviewStateChange()', function() {
-    setup(function() {
-
-    });
-
-    test('It fires \'busy\' event if \'stopped\' or \'paused\'', function() {
+    test('It doesn\'t fire \'busy\' event if \'stopped\' or \'paused\'', function() {
       this.camera.onPreviewStateChange('stopped');
-      assert.ok(this.camera.emit.calledWith('busy'));
-      this.camera.emit.reset();
-
-      this.camera.onPreviewStateChange('paused');
-      assert.ok(this.camera.emit.calledWith('busy'));
+      assert.isFalse(this.camera.emit.calledWith('busy'));
     });
 
-    test('It fires \'ready\' event for all other states', function() {
-      this.camera.onPreviewStateChange('something else');
-      sinon.assert.called(this.camera.ready);
-      this.camera.ready.reset();
+    test('It doesn\'t fire \'ready\' event if \'started\'', function() {
+      this.camera.onPreviewStateChange('started');
+      assert.isFalse(this.camera.emit.calledWith('ready'));
+    });
 
-      this.camera.onPreviewStateChange('other');
-      sinon.assert.called(this.camera.ready);
+    test('It fire a `preview:*` event', function() {
+      this.camera.onPreviewStateChange('started');
+      sinon.assert.calledWith(this.camera.emit, 'preview:started');
+    });
+
+    test('It stores the last known preview state', function() {
+      this.camera.onPreviewStateChange('started');
+      assert.equal(this.camera.previewState, 'started');
     });
   });
 
