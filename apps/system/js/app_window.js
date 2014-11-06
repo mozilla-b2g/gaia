@@ -430,8 +430,19 @@
         this.destroy();
       }.bind(this);
 
+      var timeoutClosed = function() {
+        if (!this.element) {
+          return;
+        }
+        this.element.removeEventListener('_closed', onClosed);
+        // We need to publish closed in order not to break something
+        // needs the event.
+        this.publish('closed');
+        this.destroy();
+      }.bind(this);
+
       this.element.addEventListener('_closed', onClosed);
-      fallbackTimeout = setTimeout(onClosed,
+      fallbackTimeout = setTimeout(timeoutClosed,
         this.transitionController.CLOSING_TRANSITION_TIMEOUT);
 
       if (this.previousWindow) {
@@ -465,6 +476,9 @@
    * @fires AppWindow#appdestroyed
    */
   AppWindow.prototype.destroy = function aw_destroy() {
+    if (!this.element) {
+      return;
+    }
     /**
      * Fired before the instance id destroyed.
      * @event AppWindow#appwilldestroy
