@@ -170,10 +170,14 @@ contacts.Search = (function() {
         return newTerms.indexOf(elem) === pos;
       });
 
+      var addHighlightClass = function(p1, p2) {
+        return ((p2 == undefined) || p2 == '') ? p1 : '<span class=' + highlightClass + '>' + p1 + '</span>';
+      }
+
       newTerms.forEach(function replaceWithHighlight(term) {
-        textNode.firstChild.innerHTML = textNode.textContent.replace(
-          new RegExp('(' + term + ')', 'gi'),
-          '<span class="' + highlightClass + '">$1</span>');
+        textNode.innerHTML = textNode.innerHTML.replace(
+          new RegExp('<[^>]+>|(' + term + ')', 'gi'),
+          addHighlightClass);
        });
     });
   };
