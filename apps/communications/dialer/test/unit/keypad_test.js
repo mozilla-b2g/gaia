@@ -1,9 +1,9 @@
 /* globals CallHandler, CallLogDBManager, FontSizeManager, gTonesFrequencies,
            KeypadManager, MockCall, MockCallsHandler, MockIccManager,
            MockNavigatorMozTelephony, MockNavigatorSettings,
-           MockSettingsListener, MocksHelper, MockTonePlayer, SimPicker,
-           telephonyAddCall, MockMultiSimActionButtonSingleton, MockMozL10n,
-           CustomDialog, MockMozActivity
+           MockSettingsListener, MocksHelper, MockTonePlayer, telephonyAddCall,
+           MockMultiSimActionButtonSingleton, MockMozL10n,  CustomDialog,
+           MockMozActivity, CustomElementsHelper
 */
 
 'use strict';
@@ -19,7 +19,6 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/shared/test/unit/mocks/mock_sim_picker.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
@@ -30,6 +29,9 @@ require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/mock_custom_dialog.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
+require('/dialer/test/unit/mock_dialer_index.html.js');
+require(
+  '/shared/test/unit/mocks/elements/gaia_sim_picker/mock_gaia_sim_picker.js');
 
 var mocksHelperForKeypad = new MocksHelper([
   'LazyL10n',
@@ -41,12 +43,16 @@ var mocksHelperForKeypad = new MocksHelper([
   'CallLogDBManager',
   'HandledCall',
   'SettingsListener',
-  'SimPicker',
+  'GaiaSimPicker',
   'TonePlayer',
   'CustomDialog',
   'MozActivity',
   'FontSizeManager'
 ]).init();
+
+var customElementsHelperForKeypad = new CustomElementsHelper([
+  'GaiaSimPicker'
+]);
 
 suite('dialer/keypad', function() {
   var subject;
@@ -76,6 +82,8 @@ suite('dialer/keypad', function() {
 
     subject = KeypadManager;
     subject.init(/* oncall */ false);
+
+    customElementsHelperForKeypad.resolve();
   });
 
   suiteTeardown(function() {
@@ -556,6 +564,7 @@ suite('dialer/keypad', function() {
 
       suite('DualSIM', function() {
         var fakeVoicemail2 = '666';
+        var simPicker;
 
         setup(function() {
           navigator.mozIccManager.iccIds[0] = 0;
@@ -565,24 +574,25 @@ suite('dialer/keypad', function() {
             fakeVoicemail, fakeVoicemail2];
           MockNavigatorSettings.mSettings['ril.voicemail.defaultServiceId'] = 1;
 
-          this.sinon.spy(SimPicker, 'getOrPick');
+          simPicker = document.getElementById('sim-picker');
+          this.sinon.spy(simPicker, 'getOrPick');
           doLongPress('1');
 
           MockNavigatorSettings.mReplyToRequests();
         });
 
         test('should show the SIM picker for favorite SIM', function() {
-          sinon.assert.calledWith(SimPicker.getOrPick, 1, 'voiceMail');
+          sinon.assert.calledWith(simPicker.getOrPick, 1, 'voiceMail');
         });
 
         test('should call voicemail for SIM1', function() {
-          SimPicker.getOrPick.yield(0);
+          simPicker.getOrPick.yield(0);
           MockNavigatorSettings.mReplyToRequests();
           sinon.assert.calledWith(CallHandler.call, fakeVoicemail, 0);
         });
 
         test('should call voicemail for SIM2', function() {
-          SimPicker.getOrPick.yield(1);
+          simPicker.getOrPick.yield(1);
           MockNavigatorSettings.mReplyToRequests();
           sinon.assert.calledWith(CallHandler.call, fakeVoicemail2, 1);
         });

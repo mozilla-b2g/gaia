@@ -9,8 +9,9 @@
     <link rel="localization" href="shared/locales/phone_types/phone_types.{locale}.properties">
     <link rel="localization" href="locales/emergency-call.{locale}.properties">
     <link rel="localization" href="shared/locales/keypad/keypad.{locale}.properties">
-    <link rel="localization" href="shared/locales/sim_picker/sim_picker.{locale}.properties">
     <link rel="localization" href="shared/locales/telephony/telephony.{locale}.properties">
+    <link rel="localization" href="shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
+    <link rel="localization" href="shared/elements/gaia_sim_picker/locales/gaia_sim_picker.{locale}.properties">
 
     <link rel="stylesheet" type="text/css" href="/shared/style/animations.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/dialer.css">
@@ -33,17 +34,19 @@
 
     <!-- Lazy load all the things:
     <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/sim_picker.css">
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia_menu/style.css">
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia_sim_picker/style.css">
     <script defer src="/shared/js/confirm.js"></script>
     <script defer src="/shared/js/sim_settings_helper.js"></script>
-    <script defer src="/shared/js/sim_picker.js"></script>
     <script defer src="/shared/js/dialer/telephony_messages.js"></script>
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia_sim_picker/script.js"></script>
+    <script defer src="/shared/elements/gaia_menu/script.js"></script>
     -->
 
     <link rel="import" href="/shared/elements/confirmation-message.html">
     <link rel="import" href="/shared/elements/contacts/contact_in_overlay.html">
     <link rel="import" href="/shared/elements/contacts/contact_list_overlay.html">
-    <link rel="import" href="/shared/elements/sim_picker.html">
   </head>
   <body class="hidden">
     <article id="views" class="full-height">
@@ -132,6 +135,6 @@
     </form>
     <button is="contact-in-overlay" id="contact-in-overlay" class="contact-item ci--action-menu" hidden></button>
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
-    <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden></form>
+    <gaia-sim-picker id="sim-picker" tabindex="-1"></gaia-sim-picker>
   </body>
 </html>

@@ -1,8 +1,8 @@
 'use strict';
 
 /* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
-          KeypadManager,LazyL10n, LazyLoader, MmiManager, Notification,
-          NotificationHelper, SettingsListener, SimPicker, SimSettingsHelper,
+          KeypadManager, LazyL10n, LazyLoader, MmiManager, Notification,
+          NotificationHelper, SettingsListener, SimSettingsHelper,
           SuggestionBar, TelephonyHelper, Utils, Voicemail, MozActivity */
 
 var NavbarManager = {
@@ -375,8 +375,11 @@ var CallHandler = (function callHandler() {
         SimSettingsHelper.getCardIndexFrom('outgoingCall',
         function(defaultCardIndex) {
           if (defaultCardIndex === SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
-            LazyLoader.load(['/shared/js/sim_picker.js'], function() {
-              SimPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
+            LazyLoader.load(['/shared/js/component_utils.js',
+                             '/shared/elements/gaia_sim_picker/script.js'],
+            function() {
+              var simPicker = document.getElementById('sim-picker');
+              simPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
                 CallHandler.call(phoneNumber, ci);
               });
               // Show the dialer so the user can select the SIM.
