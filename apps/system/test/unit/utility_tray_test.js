@@ -363,6 +363,25 @@ suite('system/UtilityTray', function() {
     });
   });
 
+  suite('handleEvent: appopened', function() {
+    setup(function() {
+      // simulating dragging
+      UtilityTray.overlay.style.MozTransform = 'translateX(128px)';
+      UtilityTray.active = true;
+    });
+
+    test('should call hide if the app is fullscreen', function() {
+      fakeEvt = createEvent('appopened', false, true, {
+        origin: 'app://otherApp',
+        isFullScreen: function() { return true; }
+      });
+      UtilityTray.handleEvent(fakeEvt);
+      assert.equal(UtilityTray.shown, false);
+      assert.equal(UtilityTray.active, false);
+      assert.equal(UtilityTray.overlay.style.MozTransform, '');
+    });
+  });
+
   suite('handleEvent: touchstart', function() {
     mocksHelperForUtilityTray.attachTestHelpers();
     setup(function() {
