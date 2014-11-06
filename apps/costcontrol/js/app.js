@@ -130,6 +130,53 @@ var CostControlApp = (function() {
 
   // XXX: See the module documentation for details about URL schema
   var tabmanager, settingsVManager;
+
+  function _onHashChange(evt) {
+    var parser = document.createElement('a');
+    parser.href = evt.oldURL;
+    var oldHash = parser.hash.split('#');
+    parser.href = evt.newURL;
+    var newHash = parser.hash.split('#');
+
+    if (newHash.length > 3) {
+      console.error('Cost Control bad URL schema');
+      return;
+    }
+
+    debug('URL schema before normalizing:', newHash);
+
+    var normalized = false;
+    if (!newHash[1] && oldHash[1]) {
+      newHash[1] = oldHash[1];
+      normalized = true;
+    }
+
+    if (newHash.length === 3 && newHash[2] === '') {
+      if (oldHash.length === 3) {
+        newHash[2] = oldHash[2];
+      } else {
+        newHash = newHash.slice(0, 2);
+      }
+      normalized = true;
+    }
+
+    if (normalized) {
+      debug('URL schema after normalization:', newHash);
+      window.location.hash = newHash.join('#');
+      return;
+    }
+
+    if (newHash[1]) {
+      tabmanager.changeViewTo(newHash[1]);
+    }
+
+    if (newHash.length < 3) {
+      vmanager.closeCurrentView();
+    } else {
+      vmanager.changeViewTo(newHash[2]);
+    }
+  }
+
   function setupCardHandler() {
     // View managers for dialogs and settings
     tabmanager = new ViewManager(
@@ -138,52 +185,7 @@ var CostControlApp = (function() {
     settingsVManager = new ViewManager();
 
     // View handler
-    window.addEventListener('hashchange', function _onHashChange(evt) {
-
-      var parser = document.createElement('a');
-      parser.href = evt.oldURL;
-      var oldHash = parser.hash.split('#');
-      parser.href = evt.newURL;
-      var newHash = parser.hash.split('#');
-
-      if (newHash.length > 3) {
-        console.error('Cost Control bad URL schema');
-        return;
-      }
-
-      debug('URL schema before normalizing:', newHash);
-
-      var normalized = false;
-      if (newHash[1] === '' && oldHash[1]) {
-        newHash[1] = oldHash[1];
-        normalized = true;
-      }
-
-      if (newHash.length === 3 && newHash[2] === '') {
-        if (oldHash.length === 3) {
-          newHash[2] = oldHash[2];
-        } else {
-          newHash = newHash.slice(0, 2);
-        }
-        normalized = true;
-      }
-
-      if (normalized) {
-        debug('URL schema after normalization:', newHash);
-        window.location.hash = newHash.join('#');
-        return;
-      }
-
-      if (newHash[1]) {
-        tabmanager.changeViewTo(newHash[1]);
-      }
-
-      if (newHash.length < 3) {
-        vmanager.closeCurrentView();
-      } else {
-        vmanager.changeViewTo(newHash[2]);
-      }
-    });
+    window.addEventListener('hashchange', _onHashChange);
   }
 
   function loadMessageHandler() {
@@ -490,6 +492,7 @@ var CostControlApp = (function() {
       currentMode = null;
       isApplicationLocalized = false;
       window.removeEventListener('dataSlotChange', _onDataSimChange);
+      window.removeEventListener('hashchange', _onHashChange);
       window.location.hash = '';
       nonReadyScreen = null;
     },
@@ -501,6 +504,7 @@ var CostControlApp = (function() {
     },
     showAppDetailView: function _showAppDetailView() {
       window.location.hash = '##appdetail-view';
-    }
+    },
+    _onHashChange: _onHashChange
   };
 }());
