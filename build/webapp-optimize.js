@@ -1,4 +1,4 @@
-/*global exports, require, dump*/
+/*global exports, require*/
 'use strict';
 /**
  * webpp-optimize will do below things.
@@ -250,13 +250,7 @@ HTMLOptimizer.prototype.concatL10nResources = function() {
     switch (rel) {
       case 'manifest':
         var url = link.getAttribute('href');
-        var manifest = {};
-        try {
-          manifest = JSON.parse(this.getFileByRelativePath(url).content);
-        } catch(err) {
-          dump('Unable to parse ' + url + ' manifest: ' + err.message);
-          throw err;
-        }
+        var manifest = JSON.parse(this.getFileByRelativePath(url).content);
 
         if (manifest.default_locale) {
           var defaultLocaleMeta = doc.createElement('meta');
@@ -323,7 +317,7 @@ HTMLOptimizer.prototype.concatL10nResources = function() {
  *
  */
 HTMLOptimizer.prototype.aggregateJsResources = function() {
-  var gaia = utils.gaia;
+  var gaia = utils.gaia.getInstance(this.config);
   var baseName = this.htmlFile.leafName.split('.')[0];
   var deferred = {
     fileType: 'script',
@@ -727,22 +721,8 @@ WebappOptimize.prototype.writeASTs = function() {
     }
   });
 
-  // A workaround for bug 1093267 in order to handle callscreen's l10n broken.
-  // Callscreen will reuse resource from communications so that we can't remove
-  // communications/dialer/locales until callscreen finish its optimization.
-  // After bug 1093267 has been resolved, we're going to get rid of this.
-  if (this.config.GAIA_CONCAT_LOCALES === '1' &&
-    this.webapp.buildDirectoryFile.path.indexOf('communications') === -1) {
+  if (this.config.GAIA_CONCAT_LOCALES === '1') {
     cleanLocaleFiles(this.webapp.buildDirectoryFile);
-  }
-  if (this.config.GAIA_CONCAT_LOCALES === '1' &&
-    this.webapp.buildDirectoryFile.path.indexOf('callscreen') !== -1) {
-    cleanLocaleFiles(this.webapp.buildDirectoryFile);
-    var communications = utils.gaia.getInstance(this.config)
-      .webapps.filter(function(app) {
-      return app.appDir.path.indexOf('communications') !== -1;
-    });
-    cleanLocaleFiles(communications[0].buildDirectoryFile);
   }
 };
 
@@ -776,15 +756,13 @@ WebappOptimize.prototype.execute = function(config) {
   files.forEach(this.processFile, this);
 };
 
-function execute(options) {
-  var targetWebapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
+function execute(config) {
+  var gaia = utils.gaia.getInstance(config);
   var locales;
-  if (options.GAIA_CONCAT_LOCALES === '1') {
-    locales = getLocales(options);
+  if (config.GAIA_CONCAT_LOCALES === '1') {
+    locales = getLocales(config);
   } else {
-    locales = [options.GAIA_DEFAULT_LOCALE];
+    locales = [config.GAIA_DEFAULT_LOCALE];
   }
   var win = {
     navigator: {},
@@ -797,16 +775,18 @@ function execute(options) {
   };
 
   // Load window object from build/l10n.js and shared/js/l10n.js into win;
-  win = loadL10nScript(options, win);
+  win = loadL10nScript(config, win);
 
-  var optimizeConfig = loadOptimizeConfig(options);
+  var optimizeConfig = loadOptimizeConfig(config);
 
-  (new WebappOptimize()).execute({
-    config: options,
-    webapp: targetWebapp,
-    locales: locales,
-    win: win,
-    optimizeConfig: optimizeConfig
+  gaia.webapps.forEach(function(webapp) {
+    (new WebappOptimize()).execute({
+      config: config,
+      webapp: webapp,
+      locales: locales,
+      win: win,
+      optimizeConfig: optimizeConfig
+    });
   });
 }
 

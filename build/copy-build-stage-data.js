@@ -47,14 +47,60 @@ function moveExternalApp(webapp, source, destination) {
   }
 }
 
+function cleanProfile(webappsDir) {
+  // Profile can contain folders with a generated uuid that need to be deleted
+  // or apps will be duplicated.
+  var expreg = /^{[\w]{8}-[\w]{4}-[\w]{4}-[\w]{4}-[\w]{12}}$/;
+  utils.ls(webappsDir, false).forEach(function(dir) {
+    if (expreg.test(dir.leafName)) {
+      dir.remove(true);
+    }
+  });
+}
+
+/**
+ * Generate data for webapps.json.
+ */
+function genWebappJSON(config) {
+  var configItems = ['origin', 'installOrigin', 'receipt', 'installTime',
+                     'updateTime', 'manifestURL', 'removable', 'localId',
+                     'etag', 'packageEtag', 'appStatus'];
+  var resultJSON = {};
+
+  configItems.forEach(function(key) {
+    if (key in config) {
+      resultJSON[key] = config[key];
+    }
+  });
+  return resultJSON;
+}
+
+/**
+ * Copy settings_stage.json under stage to settings.json under profile.
+ */
+function copySettingsJStoProfile(stageDir, profileDir) {
+  var settingsFile = stageDir.clone();
+  var defaultsDir = profileDir.clone();
+  settingsFile.append('settings_stage.json');
+  settingsFile.copyTo(profileDir, 'settings.json');
+
+  defaultsDir.append('defaults');
+  utils.ensureFolderExists(defaultsDir);
+  settingsFile.copyTo(defaultsDir, 'settings.json');
+}
+
 function execute(options) {
+
   const WEBAPP_FILENAME = 'manifest.webapp';
   const UPDATE_WEBAPP_FILENAME = 'update.webapp';
+  var webappsJSON = {};
+  var gaia = utils.gaia.getInstance(options);
   var webappsBaseDir = utils.getFile(options.PROFILE_DIR);
-  var stageDir = utils.getFile(options.STAGE_DIR);
-  var targetWebapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
+  var stageDir = gaia.stageDir;
+
+  if (options.BUILD_APP_NAME === '*') {
+    copySettingsJStoProfile(stageDir, webappsBaseDir);
+  }
 
   var webappsJSONFile = stageDir.clone();
   webappsJSONFile.append('webapps_stage.json');
@@ -62,38 +108,53 @@ function execute(options) {
 
   webappsBaseDir.append('webapps');
 
-  var webappManifest = targetWebapp.buildDirectoryFile.clone();
-  var updateManifest = targetWebapp.buildDirectoryFile.clone();
-
-  webappManifest.append(WEBAPP_FILENAME);
-  updateManifest.append(UPDATE_WEBAPP_FILENAME);
-
-  var stageManifest =
-    webappManifest.exists() ? webappManifest : updateManifest;
-
-  if (!stageManifest.exists()) {
-    return;
+  if (webappsBaseDir.exists()) {
+    // remove all external app with uuid folder name
+    cleanProfile(webappsBaseDir);
+  } else {
+    utils.ensureFolderExists(webappsBaseDir);
   }
 
-  // Compute webapp folder name in profile
-  let webappTargetDir = webappsBaseDir.clone();
+  gaia.webapps.forEach(function(app) {
+    var webappManifest = app.buildDirectoryFile.clone();
+    var updateManifest = app.buildDirectoryFile.clone();
 
-  // Preparing webapps.json content
-  var appConfig = webappsStageJSON[targetWebapp.sourceDirectoryName];
-  var webappTargetDirName = appConfig.webappTargetDirName;
+    webappManifest.append(WEBAPP_FILENAME);
+    updateManifest.append(UPDATE_WEBAPP_FILENAME);
 
-  webappTargetDir.append(webappTargetDirName);
-  utils.ensureFolderExists(webappTargetDir);
-  if (utils.isExternalApp(targetWebapp)) {
-    var appSource = stageDir.clone();
-    appSource.append(targetWebapp.sourceDirectoryName);
-    moveExternalApp(targetWebapp, appSource, webappTargetDir);
-    return;
-  }
+    var stageManifest =
+      webappManifest.exists() ? webappManifest : updateManifest;
 
-  // We'll remove it once bug 968666 is merged.
-  var targetManifest = webappTargetDir.clone();
-  stageManifest.copyTo(targetManifest, WEBAPP_FILENAME);
+    if (!stageManifest.exists()) {
+      return;
+    }
+
+    // Compute webapp folder name in profile
+    let webappTargetDir = webappsBaseDir.clone();
+
+    // Preparing webapps.json content
+    var appConfig = webappsStageJSON[app.sourceDirectoryName];
+    var webappTargetDirName = appConfig.webappTargetDirName;
+    webappsJSON[webappTargetDirName] = genWebappJSON(appConfig);
+
+    webappTargetDir.append(webappTargetDirName);
+    utils.ensureFolderExists(webappTargetDir);
+    if (utils.isExternalApp(app)) {
+      var appSource = stageDir.clone();
+      appSource.append(app.sourceDirectoryName);
+      moveExternalApp(app, appSource, webappTargetDir);
+      return;
+    }
+
+    // We'll remove it once bug 968666 is merged.
+    var targetManifest = webappTargetDir.clone();
+    stageManifest.copyTo(targetManifest, WEBAPP_FILENAME);
+  });
+
+  var manifestFile = webappsBaseDir.clone();
+  manifestFile.append('webapps.json');
+  utils.writeContent(manifestFile,
+    JSON.stringify(webappsJSON, null, 2) + '\n');
 }
 
 exports.execute = execute;

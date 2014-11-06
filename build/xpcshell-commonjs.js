@@ -27,16 +27,10 @@ try {
   // CommonjsRunner constructor.
 }
 
-var CommonjsRunner = function(module, appOptions) {
-  appOptions = appOptions || '{}';
-  try {
-    appOptions = JSON.parse(appOptions);
-  } catch (err) {
-    dump('Unable to parse options ' + err.message);
-    throw err;
-  }
+var CommonjsRunner = function(module) {
   const GAIA_DIR = env.get('GAIA_DIR');
-  const APP_DIR = appOptions.APP_DIR || env.get('APP_DIR');
+  const APP_DIR = env.get('APP_DIR');
+
   let gaiaDirFile = new FileUtils.File(GAIA_DIR);
   let appBuildDirFile, appDirFile;
 
@@ -125,12 +119,12 @@ CommonjsRunner.prototype.run = function() {
   }
 };
 
-function run(module, appOptions) {
-  var runner = new CommonjsRunner(module, appOptions);
+function run(module) {
+  var runner = new CommonjsRunner(module);
   runner.run();
 }
 
-function require(module, appOptions) {
-  var runner = new CommonjsRunner(module, appOptions);
+function require(module) {
+  var runner = new CommonjsRunner(module);
   return runner.require(module);
 }

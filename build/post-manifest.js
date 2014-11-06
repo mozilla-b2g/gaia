@@ -32,29 +32,30 @@ function manifestInterAppHostnames(manifest, config) {
 function execute(options) {
   const WEBAPP_FILENAME = 'manifest.webapp';
   const UPDATE_WEBAPP_FILENAME = 'update.webapp';
-  var targetWebapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
 
-  if (utils.isExternalApp(targetWebapp)) {
-    return;
-  }
+  var gaia = utils.gaia.getInstance(options);
+  var webappsBaseDir = gaia.stageDir;
+  gaia.webapps.forEach(function(app) {
+    if (utils.isExternalApp(app)) {
+      return;
+    }
 
-  var webappManifest = targetWebapp.buildDirectoryFile.clone();
-  var updateManifest = targetWebapp.buildDirectoryFile.clone();
-  webappManifest.append(WEBAPP_FILENAME);
-  updateManifest.append(UPDATE_WEBAPP_FILENAME);
-  var stageManifest =
-    webappManifest.exists() ? webappManifest : updateManifest;
+    var webappManifest = app.buildDirectoryFile.clone();
+    var updateManifest = app.buildDirectoryFile.clone();
+    webappManifest.append(WEBAPP_FILENAME);
+    updateManifest.append(UPDATE_WEBAPP_FILENAME);
+    var stageManifest =
+      webappManifest.exists() ? webappManifest : updateManifest;
 
-  if (!stageManifest.exists()) {
-    return;
-  }
-  var manifestContent = utils.getJSON(stageManifest);
-  if (manifestContent.connections) {
-    manifestContent =
-      manifestInterAppHostnames(manifestContent, options);
-    utils.writeContent(stageManifest, JSON.stringify(manifestContent));
-  }
+    if (!stageManifest.exists()) {
+      return;
+    }
+    var manifestContent = utils.getJSON(stageManifest);
+    if (manifestContent.connections) {
+      manifestContent =
+        manifestInterAppHostnames(manifestContent, options);
+      utils.writeContent(stageManifest, JSON.stringify(manifestContent));
+    }
+  });
 }
 exports.execute = execute;

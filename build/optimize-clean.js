@@ -10,29 +10,29 @@ function debug(str) {
 }
 
 function execute(options) {
-  debug('Begin');
+  var gaia = utils.gaia.getInstance(options);
   config = options;
-  var targetWebapp = utils.getWebapp(options.APP_DIR,
-    options.GAIA_DOMAIN, options.GAIA_SCHEME,
-    options.GAIA_PORT, options.STAGE_DIR);
+  debug('Begin');
 
-  // if BUILD_APP_NAME isn't `*`, we only accept one webapp
-  if (config.BUILD_APP_NAME != '*' &&
-    targetWebapp.sourceDirectoryName != config.BUILD_APP_NAME) {
-    return;
-  }
-
-  debug(targetWebapp.sourceDirectoryName);
-
-  let re = new RegExp('\\.html\\.' + config.GAIA_DEFAULT_LOCALE + '$');
-  let files = utils.ls(targetWebapp.buildDirectoryFile, true);
-  files.forEach(function(file) {
-    if (
-      re.test(file.leafName) ||
-      file.leafName.indexOf(utils.gaia.aggregatePrefix) === 0
-    ) {
-      file.remove(false);
+  gaia.webapps.forEach(function(webapp) {
+    // if BUILD_APP_NAME isn't `*`, we only accept one webapp
+    if (config.BUILD_APP_NAME != '*' &&
+      webapp.sourceDirectoryName != config.BUILD_APP_NAME) {
+      return;
     }
+
+    debug(webapp.sourceDirectoryName);
+
+    let re = new RegExp('\\.html\\.' + config.GAIA_DEFAULT_LOCALE + '$');
+    let files = utils.ls(webapp.buildDirectoryFile, true);
+    files.forEach(function(file) {
+      if (
+        re.test(file.leafName) ||
+        file.leafName.indexOf(gaia.aggregatePrefix) === 0
+      ) {
+        file.remove(false);
+      }
+    });
   });
 
   debug('End');
