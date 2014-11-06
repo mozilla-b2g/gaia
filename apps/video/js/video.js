@@ -78,10 +78,11 @@ var sliderRect;
 var thumbnailList;
 
 var pendingPick;
-// This app uses deprecated-hwvideo permission to access video decoding hardware
-// But Camera and Gallery also need to use that hardware, and those three apps
-// may only have one video playing at a time among them. So we need to be
-// careful to relinquish the hardware when we are not visible.
+
+// Before launching a share activity we may need to release the video hardware
+// If so we need to remember the playback time so we can resume at the
+// right time. See releaseVideo() and restoreVideo().
+var videoHardwareReleased = false;
 var restoreTime = null;
 
 var isPhone;
@@ -629,6 +630,10 @@ function share(blobs) {
     names.push(name);
   });
 
+  if (playerShowing) {
+    releaseVideo();
+  }
+
   var a = new MozActivity({
     name: 'share',
     data: {
@@ -640,6 +645,8 @@ function share(blobs) {
     }
   });
 
+  a.onsuccess = restoreVideo;
+
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
@@ -647,6 +654,7 @@ function share(blobs) {
     } else {
       console.warn('share activity error:', a.error.name);
     }
+    restoreVideo();
   };
 }
 
@@ -1292,6 +1300,45 @@ function hideThrobber() {
   dom.throbber.classList.remove('throb');
 }
 
+// This function unloads the current video to release the decoder
+// hardware.  We use it when invoking a share activity because if the
+// share activity is inline, then we won't go to the background and
+// the receiving app won't be able to play the video.
+function releaseVideo() {
+  if (videoHardwareReleased) {
+    return;
+  }
+  videoHardwareReleased = true;
+
+  // readyState = 0: no metadata loaded, we don't need to save the currentTime
+  // of player. It is always 0 and can't be used to restore the state of video.
+  if (dom.player.readyState > 0) {
+    restoreTime = dom.player.currentTime;
+  }
+  else {
+    restoreTime = 0;
+  }
+  dom.player.removeAttribute('src');
+  dom.player.load();
+}
+
+// We call this to load and seek the video again when the share activity
+// is complete.
+function restoreVideo() {
+  if (!videoHardwareReleased) {
+    return;
+  }
+  videoHardwareReleased = false;
+
+  // When restoreVideo is called, we assume we have currentVideo because the
+  // playerShowing is true.
+  setVideoUrl(dom.player, currentVideo, function() {
+    VideoUtils.fitContainer(dom.videoContainer, dom.player,
+                            currentVideo.metadata.rotation || 0);
+    dom.player.currentTime = restoreTime;
+  });
+}
+
 //
 // Bug 1088456: when the view activity is launched by the bluetooth transfer
 // app (when the user taps on a downloaded file in the notification tray) the
@@ -1305,9 +1352,12 @@ function hideThrobber() {
 // activity can play its video. We intentionally do not make any effort to
 // automatically restart the video.
 //
+// Bug 1085212: if we already released the video hardware (when starting a
+// share activity) then we don't need to respond to this localStorage hack.
+//
 window.addEventListener('storage', function(e) {
   if (e.key === 'view-activity-wants-to-use-hardware' && e.newValue &&
-      playing && !document.hidden) {
+      !document.hidden && playerShowing && !videoHardwareReleased) {
     console.log('The video app view activity needs to play a video.');
     console.log('Pausing the video and returning to the thumbnails.');
     console.log('See bug 1088456.');
