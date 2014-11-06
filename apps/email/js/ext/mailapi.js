@@ -109,6 +109,7 @@ MailAccount.prototype = {
   __update: function(wireRep) {
     this.enabled = wireRep.enabled;
     this.problems = wireRep.problems;
+    this.syncRange = wireRep.syncRange;
     this.syncInterval = wireRep.syncInterval;
     this.notifyOnNew = wireRep.notifyOnNew;
     this.playSoundOnSend = wireRep.playSoundOnSend;
