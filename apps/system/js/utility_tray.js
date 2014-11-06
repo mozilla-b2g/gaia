@@ -43,6 +43,7 @@ var UtilityTray = {
     window.addEventListener('displayapp', this);
     window.addEventListener('appopening', this);
     window.addEventListener('appopened', this);
+    window.addEventListener('mozfullscreenchange', this);
     window.addEventListener('resize', this);
 
     // Listen for screen reader edge gestures
@@ -118,6 +119,9 @@ var UtilityTray = {
         if (app && app.isFullScreen()) {
           this.hide();
         }
+        break;
+      case 'mozfullscreenchange':
+        this.hide();
         break;
 
       case 'launchapp':
