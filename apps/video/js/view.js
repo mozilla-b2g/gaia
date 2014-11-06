@@ -128,8 +128,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
                'save', 'banner', 'message', 'seek-forward',
-               'seek-backward', 'videoControlBar', 'in-use-overlay',
-               'in-use-overlay-title', 'in-use-overlay-text'];
+               'seek-backward', 'videoControlBar'];
 
     ids.forEach(function createElementRef(name) {
       dom[toCamelCase(name)] = document.getElementById(name);
@@ -282,7 +281,10 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   // show video player
   function showPlayer(url, title) {
-    function handleLoadedMetadata() {
+
+    dom.videoTitle.textContent = title || '';
+    dom.player.src = url;
+    dom.player.onloadedmetadata = function() {
       dom.durationText.textContent = MediaUtils.formatDuration(
         dom.player.duration);
       timeUpdated();
@@ -300,18 +302,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       }, 2000);
 
       play();
-    }
-
-    dom.videoTitle.textContent = title || '';
-
-    var loadingChecker =
-      new VideoLoadingChecker(dom.player, dom.inUseOverlay,
-                              dom.inUseOverlayTitle,
-                              dom.inUseOverlayText);
-    loadingChecker.ensureVideoLoads(handleLoadedMetadata);
-
-    dom.player.src = url;
-
+    };
     dom.player.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
     dom.player.onerror = function(evt) {
       var errorid = '';
