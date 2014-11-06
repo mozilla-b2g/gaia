@@ -1,5 +1,5 @@
-/* global ForwardLockMetadata, ID3v1Metadata, ID3v2Metadata, LazyLoader,
-   MP4Metadata, OggMetadata */
+/* global FLACMetadata, ForwardLockMetadata, ID3v1Metadata, ID3v2Metadata,
+   LazyLoader, MP4Metadata, OggMetadata */
 /* exported MetadataFormats */
 'use strict';
 
@@ -41,6 +41,13 @@ var MetadataFormats = (function() {
       get module() { return OggMetadata; },
       match: function(header) {
         return header.getASCIIText(0, 4) === 'OggS';
+      }
+    },
+    {
+      file: 'js/metadata/flac.js',
+      get module() { return FLACMetadata; },
+      match: function(header) {
+        return header.getASCIIText(0, 4) === 'fLaC';
       }
     },
     {
