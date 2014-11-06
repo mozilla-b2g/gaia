@@ -169,23 +169,23 @@ function loadJSON(href, callback) {
  */
 
 var FileSizeFormatter = (function FileSizeFormatter(fixed) {
-  function getReadableFileSize(size, digits) { // in: size in Bytes
-    if (size === undefined)
+  function getReadableFileSize(bytes, digits) { // in: size in Bytes
+    if (bytes === undefined)
       return {};
 
     var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    var i = 0;
-    while (size >= 1024) {
-      size /= 1024;
-      ++i;
+    var size, e;
+    if (bytes) {
+      e = Math.floor(Math.log(bytes) / Math.log(1024));
+      size = (bytes / Math.pow(1024, e)).toFixed(digits || 0);
+    } else {
+      e = 0;
+      size = '0';
     }
 
-    var sizeString = size.toFixed(digits || 0);
-    var sizeDecimal = parseFloat(sizeString);
-
     return {
-      size: sizeDecimal,
-      unit: units[i]
+      size: size,
+      unit: units[e]
     };
   }
 
@@ -204,8 +204,8 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
       return;
     }
 
-    // KB - 3 KB (nearest ones), MB, GB - 1.2 MB (nearest tenth)
-    var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
+    // KB - 3 KB (nearest ones), MB, GB - 1.29 MB (nearest hundredth)
+    var fixedDigits = (size < 1024 * 1024) ? 0 : 2;
     var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
 
     var _ = navigator.mozL10n.get;
