@@ -10,12 +10,32 @@
     this.init();
   };
 
+  // Icons sorted by priority.
   StatusBar.Icons = [
-    'label', 'sms', 'alarm', 'playing', 'headphones', 'bluetoothHeadphones',
-    'callForwardings', 'geolocation', 'recording', 'mute', 'usb',
-    'systemDownloads', 'emergencyCbNotification', 'nfc',
-    'bluetoothTransferring', 'bluetooth', 'tethering', 'networkActivity',
-    'connections', 'wifi', 'flightMode', 'battery', 'time'
+    'emergencyCbNotification',
+    'battery',
+    'recording',
+    'flightMode',
+    'wifi',
+    'connections',
+    'time',
+    'debugging',
+    'systemDownloads',
+    'geolocation',
+    'networkActivity',
+    'tethering',
+    'bluetoothTransferring',
+    'bluetooth',
+    'nfc',
+    'usb',
+    'alarm',
+    'bluetoothHeadphones',
+    'mute',
+    'callForwardings',
+    'playing',
+    'headphones',
+    //'sms', // Not currently implemented.
+    'label'
   ];
 
   StatusBar.Selector = Object.freeze({
@@ -42,6 +62,7 @@
     flightMode: '.sb-icon-flight-mode',
     battery: '.sb-icon-battery',
     time: '.sb-icon-time',
+    debugging: '.sb-icon-debugging',
 
     statusbar: '#statusbar',
     statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',

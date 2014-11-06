@@ -80,7 +80,12 @@
       window.wrappedJSObject.close();
     });
     this.client.waitFor((function() {
+      var searchTimeout = this.client.searchTimeout;
+      this.client.setSearchTimeout(0);
+
       var frames = this.client.findElements('iframe[mozapp]');
+      this.client.setSearchTimeout(searchTimeout);
+
       return frames.reduce(function(prev, frame) {
         if (frame.getAttribute('mozapp').match(origin)) {
           return false;

@@ -151,20 +151,6 @@ suite('Integration tests', function() {
     });
   });
 
-  suite('Build file inclusion tests', function() {
-    test('build includes elements folder and sim_picker', function(done) {
-      helper.exec('make', function(error, stdout, stderr) {
-        var pathInZip = 'shared/elements/sim_picker.html';
-        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-          'communications.gaiamobile.org', 'application.zip');
-        var expectedSimPickerPath = path.join(process.cwd(),
-          'shared', 'elements', 'sim_picker.html');
-        helper.checkFileInZip(zipPath, pathInZip, expectedSimPickerPath);
-        done();
-      });
-    });
-  });
-
   test('make test-l10n-optimize build noFetch file', function(done) {
     helper.exec('APP=test-l10n-optimize make',
       function(error, stdout, stderr) {

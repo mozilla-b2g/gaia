@@ -10,9 +10,23 @@ suite('views/controls', function() {
     ], function(ControlsView, Drag) {
       self.ControlsView = ControlsView;
       self.Drag = Drag;
-      done();
+      self.style = loadCss('/style/controls.css', function() { done(); });
     });
   });
+
+  suiteTeardown(function() {
+    this.style.remove();
+  });
+
+  function loadCss(url, done) {
+    var link = document.createElement('link');
+    link.type = 'text/css';
+    link.rel = 'stylesheet';
+    link.href = url;
+    link.onload = done;
+    document.head.appendChild(link);
+    return link;
+  }
 
   setup(function() {
     var self = this;
@@ -209,5 +223,12 @@ suite('views/controls', function() {
       this.view.onSwitchSnapped({ x: 'right' });
       assert.isTrue(this.view.emit.calledWith('modechanged'));
     });
+  });
+
+  test('The switch should appear in the video position when set before the view is in the DOM', function() {
+    var view = new this.ControlsView();
+    view.setMode('video');
+    view.appendTo(document.body);
+    assert.equal(view.drag.handle.el.style.transform, 'translate(64px, 0px)');
   });
 });

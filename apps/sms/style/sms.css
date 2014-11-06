@@ -9,6 +9,22 @@ html, body {
 }
 
 
+/* Style for the attachment options menu, mimics style for shared
+ * options menu element.
+ * TODO: We should remove this once we used the shared options menu for the
+ *       attachment menu.
+ */
+#attachment-options {
+  visibility: hidden;
+  transform: translateY(100%);
+  transition: transform ease-in-out .3s, visibility .3s;
+}
+
+#attachment-options.visible {
+  visibility: visible;
+  transform: translateY(0);
+}
+
 /*
   Override BB. Some CSS tweaks for having a better confirm readability
 */
@@ -829,6 +845,18 @@ section[role="region"].new .article-list[data-type="list"]  li {
 
 .suggestion * {
   pointer-events: none;
+}
+
+.thread-participant-count {
+  display: none;
+}
+
+/**
+ * In RTL mode location of this counter should be changed accordingly, but
+ * indicator itself (eg. "(+3)") should be always LTR
+ */
+.thread-group-header > .thread-participant-count {
+  display: unset;
 }
 
 .subheader {

@@ -24,6 +24,13 @@ module.exports.TimerController = TimerController;
  * same synchronous turn in which they
  * are bound.
  *
+ * Events:
+ *
+ *   - 'timer:immanent' - The timer is close to ending
+ *   - 'timer:started' - The timer has begun counting down
+ *   - 'timer:cleared' - The countdown was canceled
+ *   - 'timer:ended' - The timer finished counting down
+ *
  * @param {App} app [description]
  */
 function TimerController(app) {
@@ -94,9 +101,8 @@ TimerController.prototype.scheduleTick = function() {
  * Decrements the timer and checks
  * if its still has second left.
  *
- * If no time remains, an 'ended'
- * event is fired and the timer
- * is cleared.
+ * If no time remains, the timer
+ * has ended.
  *
  * If time does remain, we update
  * the view.
@@ -105,13 +111,17 @@ TimerController.prototype.scheduleTick = function() {
  */
 TimerController.prototype.tick = function() {
   if (--this.seconds <= 0) {
-    this.app.emit('timer:ended');
-    this._clear();
+    this.onEnded();
     return;
   }
 
   this.view.set(this.seconds);
   this.scheduleTick();
+};
+
+TimerController.prototype.onEnded = function() {
+  this.app.emit('timer:ended');
+  this._clear();
 };
 
 TimerController.prototype.onBatteryChanged = function(status) {

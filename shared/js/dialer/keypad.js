@@ -2,8 +2,7 @@
 
 /* globals AddContactMenu, CallHandler, CallLogDBManager, CallsHandler,
            CallScreen, CustomDialog, DtmfTone, FontSizeManager, LazyLoader,
-           LazyL10n, MultiSimActionButton, SimPicker, SettingsListener,
-           TonePlayer */
+           LazyL10n, MultiSimActionButton, SettingsListener, TonePlayer */
 
 'use strict';
 
@@ -125,6 +124,8 @@ var KeypadManager = {
     this._phoneNumber = '';
 
     var keyHandler = this.keyHandler.bind(this);
+    this.keypad.addEventListener('contextmenu', keyHandler);
+
     this.keypad.addEventListener('touchstart', keyHandler, true);
     this.keypad.addEventListener('touchmove', keyHandler, true);
     this.keypad.addEventListener('touchend', keyHandler, true);
@@ -440,6 +441,14 @@ var KeypadManager = {
 
   keyHandler: function kh_keyHandler(event) {
 
+    // When long pressing on the voicemail button, if a menu pops up on top of
+    // the 1 button, a click will go through and target that button unless we
+    // preventDefault the contextmenu event.
+    if (event.type == 'contextmenu') {
+      event.preventDefault();
+      return;
+    }
+
     var key = event.target.dataset.value;
 
     // We could receive this event from an element that
@@ -576,10 +585,13 @@ var KeypadManager = {
     var key = 'ril.voicemail.defaultServiceId';
     var req = navigator.mozSettings.createLock().get(key);
     req.onsuccess = function() {
-      LazyLoader.load(['/shared/js/sim_picker.js'], function() {
+      LazyLoader.load(['/shared/js/component_utils.js',
+                       '/shared/elements/gaia_sim_picker/script.js'],
+      function() {
         LazyL10n.get(function(_) {
-          SimPicker.getOrPick(req.result[key], _('voiceMail'),
-                              self._callVoicemailForSim);
+          var simPicker = document.getElementById('sim-picker');
+          simPicker.getOrPick(req.result[key], _('voiceMail'),
+                              self._callVoicemailForSim.bind(self));
         });
       });
     };

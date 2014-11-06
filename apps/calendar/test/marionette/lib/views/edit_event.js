@@ -106,17 +106,30 @@ EditEvent.prototype = {
     }
   },
 
-  set reminders(value) {
-    // Every event gets a 5 minute alarm. Since we want to "set" the alarms
-    // with the parameter value, first remove the default alarm and then
-    // add the parameter ones.
-    var select = this.findElement('select[name="alarm[]"]');
-    this.client.helper.tapSelectOption(select, 'None');
+  set reminders(values) {
+    if (!values || !values.length) {
+      values = ['None'];
+    }
+    values.forEach(this.setReminderValue, this);
+  },
 
-    value.forEach(function(reminder) {
-      var alarmSelect = this.findElement('.alarms > *:last-child');
-      this.client.helper.tapSelectOption(alarmSelect, reminder);
-    }.bind(this));
+  setReminderValue: function(value, index) {
+    // maximum amount of reminders is 5
+    var nth = Math.min(index, 4) + 1;
+    // we are using this complex selector, instead of querying for all the
+    // available <select> elements, because client.helper.tapSelectOption
+    // will wait for element to be displayed before trying to click on it; that
+    // way we avoid potential race conditions
+    var el = this.findElement('.alarms > *:nth-child(' + nth + ') select');
+    this.client.helper.tapSelectOption(el, value);
+  },
+
+  get reminders() {
+    return this.findElements('[name="alarm[]"]').map(function(select) {
+      return select.scriptWith(function(el) {
+        return el.options[el.options.selectedIndex].textContent.trim();
+      });
+    });
   },
 
   cancel: function() {

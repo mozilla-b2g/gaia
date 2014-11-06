@@ -3846,7 +3846,7 @@ suite('thread_ui.js >', function() {
 
             // Ensures that the OptionMenu was given
             // the phone number to diplay
-            assert.equal(call.header, '999');
+            assert.equal(call.header.outerHTML, '<bdi>999</bdi>');
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3878,7 +3878,7 @@ suite('thread_ui.js >', function() {
 
             // Ensures that the OptionMenu was given
             // the email address to diplay
-            assert.equal(call.header, 'a@b.com');
+            assert.equal(call.header.outerHTML, '<bdi>a@b.com</bdi>');
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3922,7 +3922,7 @@ suite('thread_ui.js >', function() {
 
             // Ensures that the OptionMenu was given
             // the email address to diplay
-            assert.equal(call.header, 'a@b.com');
+            assert.equal(call.header.outerHTML, '<bdi>a@b.com</bdi>');
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3999,7 +3999,7 @@ suite('thread_ui.js >', function() {
             var calls = MockOptionMenu.calls;
 
             assert.equal(calls.length, 1);
-            assert.equal(calls[0].header, '777');
+            assert.equal(calls[0].header.outerHTML, '<bdi>777</bdi>');
             assert.equal(calls[0].items.length, 3);
             assert.equal(typeof calls[0].complete, 'function');
           });
@@ -4048,7 +4048,7 @@ suite('thread_ui.js >', function() {
             var calls = MockOptionMenu.calls;
 
             assert.equal(calls.length, 1);
-            assert.equal(calls[0].header, 'a@b');
+            assert.equal(calls[0].header.outerHTML, '<bdi>a@b</bdi>');
             assert.equal(calls[0].items.length, 5);
             assert.equal(typeof calls[0].complete, 'function');
           });
@@ -4109,7 +4109,7 @@ suite('thread_ui.js >', function() {
 
           // Ensures that the OptionMenu was given
           // the phone number to diplay
-          assert.equal(call.header, '999');
+          assert.equal(call.header.outerHTML, '<bdi>999</bdi>');
 
           assert.equal(items.length, 5);
 
@@ -5981,12 +5981,6 @@ suite('thread_ui.js >', function() {
         Recipients.View.isFocusable = false;
         ThreadUI.beforeEnter(transitionArgs);
         assert.isTrue(Recipients.View.isFocusable);
-      });
-
-      test('loads and translates SIM picker', function() {
-        var simPickerElt = document.getElementById('sim-picker');
-
-        sinon.assert.calledWith(MockLazyLoader.load, [simPickerElt]);
       });
 
       test('loads the audio played when a message is sent', function() {

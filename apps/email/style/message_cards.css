@@ -686,6 +686,11 @@ cards-message-reader .scrollregion-below-header {
   border-top: 0.1rem solid #bebebe;
 }
 
+cards-message-list-search .msg-list-empty-message-text {
+  top: 0;
+  border-top: 0;
+}
+
 .msg-messages-sync-container > p,
 .msg-list-empty {
   height: 8rem;

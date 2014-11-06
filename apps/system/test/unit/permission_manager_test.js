@@ -588,6 +588,20 @@ suite('system/permission manager', function() {
         assert.isTrue(
           permissionManager.moreInfoBox.classList.contains('hidden'));
       });
+
+      test('should not handle click event when dialog is hidden',
+        function(done) {
+          this.sinon.spy(permissionManager, 'clickHandler');
+          window.addEventListener('permissiondialoghide', function onhide() {
+            window.removeEventListener('permissiondialoghide', onhide);
+            permissionManager.moreInfoLink.click();
+            assert.isFalse(permissionManager.clickHandler.called);
+            permissionManager.hideInfoLink.click();
+            assert.isFalse(permissionManager.clickHandler.called);
+            done();
+          });
+          permissionManager.hidePermissionPrompt();
+      });
   });
 
 });

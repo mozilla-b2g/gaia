@@ -182,13 +182,7 @@ apps/keyboard/test/unit/imes/latin/latin_test.js
 apps/keyboard/test/unit/imes/latin/worker_test.js
 apps/keyboard/test/unit/setup_engine.js
 apps/keyboard/test/unit/suggest_test.js
-apps/music/js/Player.js
-apps/music/js/communications.js
 apps/music/js/metadata.js
-apps/music/js/music.js
-apps/music/js/open.js
-apps/music/js/utils.js
-apps/music/test/unit/remote_controls_test.js
 apps/settings/js/about.js
 apps/settings/js/bluetooth.js
 apps/settings/js/call.js
@@ -235,7 +229,6 @@ apps/sharedtest/test/unit/mediadb_test.js
 apps/sharedtest/test/unit/mime_mapper_test.js
 apps/sharedtest/test/unit/setImmediate_worker.js
 apps/sharedtest/test/unit/settings_url_test.js
-apps/sharedtest/test/unit/setup.js
 apps/sharedtest/test/unit/simple_phone_matcher_test.js
 apps/sharedtest/test/unit/support/long_load.js
 apps/sharedtest/test/unit/tag_visibility_monitor_test.js
@@ -271,7 +264,6 @@ apps/system/js/storage_watcher.js
 apps/system/js/trusted_ui.js
 apps/system/js/updatable.js
 apps/system/js/update_manager.js
-apps/system/js/utility_tray.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_picker.js
 apps/system/js/wifi.js

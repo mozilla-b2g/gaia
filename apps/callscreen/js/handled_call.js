@@ -1,6 +1,6 @@
-/* globals CallsHandler, CallScreen, Contacts, ContactPhotoHelper,
-           FontSizeManager, LazyL10n, Utils, Voicemail, TonePlayer,
-           AudioCompetingHelper */
+/* globals AudioCompetingHelper, CallsHandler, CallScreen,
+           ConferenceGroupHandler, Contacts, ContactPhotoHelper,
+           FontSizeManager, LazyL10n, Utils, Voicemail, TonePlayer */
 
 'use strict';
 
@@ -13,9 +13,18 @@ function HandledCall(aCall) {
 
   aCall.ongroupchange = (function onGroupChange() {
     if (this.call.group) {
-      CallScreen.moveToGroup(this.node);
+      ConferenceGroupHandler.addToGroupDetails(this.node);
       this._leftGroup = false;
     } else if (this._wasUnmerged()) {
+      if (ConferenceGroupHandler.isGroupDetailsShown()) {
+        // Since the call has been unmerged and its node will be moved from the
+        // participant list overlay to the main call screen, the call node is
+        // cloned and added to the call node parent so it is kept in the
+        // participant list overlay until it is hidden.
+        this.node.parentNode.insertBefore(this.node.cloneNode(true), this.node);
+      }
+      // Move the call node from the conference call participant list overlay
+      //  to the main call screen page.
       CallScreen.insertCall(this.node);
       this._leftGroup = false;
     } else {
@@ -305,17 +314,19 @@ HandledCall.prototype.remove = function hc_remove() {
 
   var self = this;
   CallScreen.stopTicker(this.durationNode);
-  var currentDuration = this.durationChildNode.textContent;
+  var currentDuration = ConferenceGroupHandler.isGroupDetailsShown() ?
+    ConferenceGroupHandler.currentDuration : this.durationChildNode.textContent;
   // FIXME/bug 1007148: Refactor duration element structure. No number or ':'
   //  existence checking will be necessary.
-  this.totalDurationNode.textContent =
-    !!currentDuration.match(/\d+/g) ? currentDuration : '';
+  var totalDuration = !!currentDuration.match(/\d+/g) ? currentDuration : '';
+  this.totalDurationNode.textContent = totalDuration;
+  this.node.classList.add('ended');
 
   LazyL10n.get(function localized(_) {
     self.durationNode.classList.remove('isTimer');
     self.durationChildNode.textContent = _('callEnded');
   });
-  this.node.classList.add('ended');
+
   setTimeout(function(evt) {
     CallScreen.removeCall(self.node);
     self.node = null;

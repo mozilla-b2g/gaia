@@ -68,7 +68,13 @@ System.prototype = {
   },
 
   getBrowserWindows: function() {
-    return this.client.findElements(System.Selector.browserWindow);
+    var searchTimeout = this.client.searchTimeout;
+    this.client.setSearchTimeout(0);
+
+    var elements = this.client.findElements(System.Selector.browserWindow);
+
+    this.client.setSearchTimeout(searchTimeout);
+    return elements;
   },
 
   get activeHomescreenFrame() {
@@ -286,8 +292,16 @@ System.prototype = {
   },
 
   goHome: function() {
+    this.client.switchToFrame();
     this.client.executeScript(function() {
       window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
+    });
+  },
+
+  holdHome: function() {
+    this.client.switchToFrame();
+    this.client.executeScript(function() {
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('holdhome'));
     });
   },
 

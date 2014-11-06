@@ -146,8 +146,6 @@ suite('system/shrinkingUI', function() {
   });
 
   test('Shrinking UI SetTip', function() {
-    var fakeParent = document.createElement('div');
-    fakeParent.appendChild(fakeApp.element);
     var tempTip = document.createElement('div');
     tempTip.classList.remove = this.sinon.stub();
     var stubSlidingTip =
@@ -160,7 +158,7 @@ suite('system/shrinkingUI', function() {
 
     assert.isTrue(stubSlidingTip.called);
     assert.equal(shrinkingUI.tip, tempTip);
-    assert.deepEqual(tempTip.parentNode, fakeParent);
+    assert.equal(tempTip.parentNode, fakeApp.element.parentNode);
     assert.isTrue(tempTip.classList.remove.calledWith('hide'));
 
     // second test: with shrinkingUIcurrent.tip being available

@@ -679,38 +679,6 @@ Camera.prototype.setFlashMode = function(key) {
 };
 
 /**
- * Disables flash until it is
- * restored. restoreFlashMode
- * must be called the same
- * number of times in order to
- * restore the original state.
- */
-Camera.prototype.suspendFlashMode = function() {
-  if (this.suspendedFlashCount === 0) {
-    this.suspendedFlashMode = this.mozCamera.flashMode;
-    this.mozCamera.flashMode = 'off';
-    debug('flash mode suspended');
-  }
-  ++this.suspendedFlashCount;
-};
-
-/**
- * Restores flash mode to its
- * original state. If it was
- * disabled multiple times,
- * only the final call will
- * do the restoration.
- */
-Camera.prototype.restoreFlashMode = function() {
-  --this.suspendedFlashCount;
-  if (this.suspendedFlashCount === 0) {
-    this.mozCamera.flashMode = this.suspendedFlashMode;
-    debug('flash mode restored: %s', this.suspendedFlashMode);
-    this.suspendedFlashMode = null;
-  }
-};
-
-/**
  * Releases the camera hardware.
  *
  * @param  {Function} done
@@ -900,13 +868,8 @@ Camera.prototype.takePicture = function(options) {
 };
 
 Camera.prototype.updateFocusArea = function(rect, done) {
-  var self = this;
-  // Disables flash temporarily so it doesn't go off while focusing
-  this.suspendFlashMode();
   this.focus.updateFocusArea(rect, focusDone);
   function focusDone(state) {
-    // Restores previous flash mode
-    self.restoreFlashMode();
     if (done) {
       done(state);
     }
@@ -949,6 +912,7 @@ Camera.prototype.startRecording = function(options) {
   // Rotation is flipped for front camera
   if (frontCamera) { rotation = -rotation; }
 
+  this.set('recording', true);
   this.busy();
 
   // Lock orientation during video recording
@@ -991,6 +955,7 @@ Camera.prototype.startRecording = function(options) {
         self.onRecordingError('error-video-file-path');
         return;
       }
+
       video.filepath = filepath;
       self.emit('willrecord');
       self.mozCamera.startRecording(
@@ -1009,7 +974,6 @@ Camera.prototype.startRecording = function(options) {
   }
 
   function onSuccess() {
-    self.set('recording', true);
     self.startVideoTimer();
     self.ready();
 
@@ -1156,6 +1120,7 @@ Camera.prototype.onRecordingError = function(id) {
   var title = navigator.mozL10n.get(id + '-title');
   var text = navigator.mozL10n.get(id + '-text');
   alert(title + '. ' + text);
+  this.set('recording', false);
   this.ready();
 };
 
@@ -1175,15 +1140,13 @@ Camera.prototype.onShutter = function() {
  * from the camera hardware. If 'stopped'
  * or 'paused' the camera must not be used.
  *
- * @param  {String} state
+ * @param  {String} state ['stopped', 'paused']
  * @private
  */
 Camera.prototype.onPreviewStateChange = function(state) {
   debug('preview state change: %s', state);
-  var busy = state === 'stopped' || state === 'paused';
+  this.previewState = state;
   this.emit('preview:' + state);
-  if (busy) { this.busy(); }
-  else { this.ready(); }
 };
 
 /**

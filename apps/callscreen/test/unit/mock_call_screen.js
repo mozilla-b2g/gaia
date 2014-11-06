@@ -12,7 +12,6 @@ var MockCallScreen = {
 
   init: function() {},
   insertCall: function() {},
-  moveToGroup: function() {},
   toggle: function(cb) {
     if (typeof(cb) == 'function') {
       cb();
@@ -85,12 +84,6 @@ var MockCallScreen = {
   showStatusMessage: function(text) {
     this.mShowStatusMessageCalled = true;
   },
-  showGroupDetails: function() {
-    this.mGroupDetailsShown = true;
-  },
-  hideGroupDetails: function() {
-    this.mGroupDetailsShown = false;
-  },
   setBTReceiverIcon: function() {},
   createTicker: function(node) {
     this.mCalledCreateTicker = true;
@@ -104,14 +97,11 @@ var MockCallScreen = {
   removeCall: function() {
     this.mRemoveCallCalled = true;
   },
-  setEndConferenceCall: function() {
-    this.mSetEndConferenceCall = true;
-  },
-  cdmaConferenceCall: function() {},
   hidePlaceNewCallButton: function() {},
   showPlaceNewCallButton: function() {},
   toggleOnHold : function() {},
-  
+  cdmaConferenceCall: function() {},
+  removeEndedCalls: function() {},
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;
   },
@@ -182,9 +172,7 @@ var MockCallScreen = {
     this.incomingInfo = document.createElement('div');
     this.incomingNumber = document.createElement('div');
     this.incomingNumberAdditionalInfo = document.createElement('span');
-    this.mGroupDetailsShown = false;
     this.mRemoveCallCalled = false;
-    this.mSetEndConferenceCall = false;
     this.mGetScenarioCalled = false;
   }
 };

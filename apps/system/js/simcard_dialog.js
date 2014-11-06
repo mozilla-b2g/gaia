@@ -112,7 +112,6 @@ var SimPinDialog = {
         this.lockType = lockType;
         this.errorMsg.hidden = true;
         this.inputFieldControl(true, false, false, false);
-        this.pinInput.focus();
         break;
       case 'puk':
         this.lockType = lockType;
@@ -120,7 +119,6 @@ var SimPinDialog = {
         _(this.errorMsgBody, 'enterPukMsg');
         this.errorMsg.hidden = false;
         this.inputFieldControl(false, true, false, true);
-        this.pukInput.focus();
         break;
       case 'nck':
       case 'cck':
@@ -134,7 +132,6 @@ var SimPinDialog = {
         this.errorMsg.hidden = true;
         this.inputFieldControl(false, false, true, false);
         _(this.desc, lockType + 'Code');
-        this.xckInput.focus();
         break;
       default:
         this.skip();
@@ -236,6 +233,7 @@ var SimPinDialog = {
     this.xckArea.hidden = !isXck;
     this.newPinArea.hidden = !isNewPin;
     this.confirmPinArea.hidden = !isNewPin;
+    this.simPinSystemDialog.requestFocus();
   },
 
   verify: function spl_verify() {
@@ -276,6 +274,20 @@ var SimPinDialog = {
 
   get visible() {
     return this._visible;
+  },
+
+  focus: function() {
+    switch (this.lockType) {
+      case 'pin':
+        this.pinInput.focus();
+        break;
+      case 'puk':
+        this.pukInput.focus();
+        break;
+      default:
+        this.xckInput.focus();
+        break;
+    }
   },
 
   /**

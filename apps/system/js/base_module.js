@@ -1,4 +1,4 @@
-/* global System, LazyLoader */
+/* global System, LazyLoader, DUMP */
 'use strict';
 
 (function(exports) {
@@ -436,6 +436,10 @@
         if (this.TRACE) {
           console.trace();
         }
+      } else if (window.DUMP) {
+        DUMP('[' + this.name + ']' +
+          '[' + System.currentTime() + '] ' +
+            Array.slice(arguments).concat());
       }
     },
 

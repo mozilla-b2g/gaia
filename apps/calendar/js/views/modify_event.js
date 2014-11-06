@@ -25,6 +25,8 @@ ModifyEvent.prototype = {
 
   ERROR_PREFIX: 'event-error-',
 
+  MAX_ALARMS: 5,
+
   formats: {
     date: 'dateTimeFormat_%x',
     time: 'shortTimeFormat'
@@ -106,13 +108,12 @@ ModifyEvent.prototype = {
       return;
     }
 
-    // Append a new alarm select only if we don't have an empty one
-    var allAlarms = this.element.querySelectorAll('[name="alarm[]"]');
-    //jshint boss:true
-    for (var i = 0, alarmEl; alarmEl = allAlarms[i]; i++) {
-      if (alarmEl.value == 'none') {
-        return;
-      }
+    // Append a new alarm select only if we don't have an empty one or if we
+    // didn't reach the maximum number of alarms
+    var alarms = this.queryAlarms();
+    if (alarms.length >= this.MAX_ALARMS ||
+        alarms.some(el => el.value === 'none')) {
+      return;
     }
 
     var newAlarm = document.createElement('div');
@@ -277,6 +278,10 @@ ModifyEvent.prototype = {
     for (; i < len; i++) {
       fields[i].readOnly = boolean;
     }
+  },
+
+  queryAlarms: function() {
+    return Array.from(document.querySelectorAll('[name="alarm[]"]'));
   },
 
   get alarmList() {
@@ -505,18 +510,20 @@ ModifyEvent.prototype = {
       );
     }
 
-    var alarms = this.element.querySelectorAll('[name="alarm[]"]');
     fields.alarms = [];
-    //jshint boss:true
-    for (var i = 0, alarm; alarm = alarms[i]; i++) {
-      if (alarm.value == 'none') { continue; }
+    var triggers = ['none'];
+    this.queryAlarms().forEach(alarm => {
+      if (triggers.indexOf(alarm.value) !== -1) {
+        return;
+      }
+
+      triggers.push(alarm.value);
 
       fields.alarms.push({
         action: 'DISPLAY',
         trigger: parseInt(alarm.value, 10)
       });
-
-    }
+    });
 
     return fields;
   },

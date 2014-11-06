@@ -1,5 +1,6 @@
-/* globals CallsHandler, FontSizeManager, KeypadManager, LazyL10n,
-           LockScreenSlide, MozActivity, SettingsListener, Utils, performance */
+/* globals CallsHandler, FontSizeManager, KeypadManager,
+           LazyL10n, LockScreenSlide, MozActivity, SettingsListener, Utils,
+           performance */
 /* jshint nonew: false */
 
 'use strict';
@@ -16,8 +17,6 @@ var CallScreen = {
   views: document.getElementById('views'),
 
   calls: document.getElementById('calls'),
-  groupCalls: document.getElementById('group-call-details'),
-  groupCallsList: document.getElementById('group-call-details-list'),
 
   mainContainer: document.getElementById('main-container'),
   contactBackground: document.getElementById('contact-background'),
@@ -42,9 +41,6 @@ var CallScreen = {
 
   answerButton: document.getElementById('callbar-answer'),
   rejectButton: document.getElementById('callbar-hang-up'),
-
-  showGroupButton: document.getElementById('group-show'),
-  hideGroupButton: document.getElementById('group-hide'),
 
   incomingContainer: document.getElementById('incoming-container'),
   incomingInfo: document.getElementById('incoming-info'),
@@ -127,7 +123,7 @@ var CallScreen = {
                                         this.toggleSpeaker.bind(this));
     this.bluetoothButton.addEventListener('click',
                                           this.toggleBluetoothMenu.bind(this));
-    this.holdButton.addEventListener('click', 
+    this.holdButton.addEventListener('click',
                                CallsHandler.holdOrResumeSingleCall.bind(this));
     this.mergeButton.addEventListener('click',
                                       CallsHandler.mergeCalls.bind(this));
@@ -135,12 +131,6 @@ var CallScreen = {
                                        CallsHandler.answer);
     this.rejectButton.addEventListener('click',
                                        CallsHandler.end);
-
-    this.showGroupButton.addEventListener('click',
-                                          this.showGroupDetails.bind(this));
-
-    this.hideGroupButton.addEventListener('click',
-                                          this.hideGroupDetails.bind(this));
 
     this.switchToDeviceButton.addEventListener(
       'click', this.switchToDefaultOut.bind(this, false));
@@ -309,13 +299,8 @@ var CallScreen = {
   },
 
   removeCall: function cs_removeCall(node) {
-    // The node can be either inside groupCallsList or calls.
     node.parentNode.removeChild(node);
     this.updateCallsDisplay();
-  },
-
-  moveToGroup: function cs_moveToGroup(node) {
-    this.groupCallsList.appendChild(node);
   },
 
   resizeHandler: function cs_resizeHandler() {
@@ -529,20 +514,6 @@ var CallScreen = {
     this.holdAndMergeContainer.style.display = 'none';
   },
 
-  showGroupDetails: function cs_showGroupDetails(evt) {
-    if (evt) {
-      evt.stopPropagation();
-    }
-    this.groupCalls.classList.add('display');
-  },
-
-  hideGroupDetails: function cs_hideGroupDetails(evt) {
-    if (evt) {
-      evt.preventDefault();
-    }
-    this.groupCalls.classList.remove('display');
-  },
-
   createTicker: function(durationNode) {
     var durationChildNode = durationNode.querySelector('span');
 
@@ -568,13 +539,6 @@ var CallScreen = {
     durationNode.classList.remove('isTimer');
     clearInterval(durationNode.dataset.tickerId);
     delete durationNode.dataset.tickerId;
-  },
-
-  setEndConferenceCall: function cs_setEndConferenceCall() {
-    var callElems = this.groupCallsList.getElementsByTagName('SECTION');
-    for (var i = 0; i < callElems.length; i++) {
-      callElems[i].dataset.groupHangup = 'groupHangup';
-    }
   },
 
   handleEvent: function cs_handleEvent(evt) {

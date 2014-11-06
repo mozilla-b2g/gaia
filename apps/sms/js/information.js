@@ -419,6 +419,11 @@ Information.prototype = {
     }
     // Restore message list view UI elements
     this.parent.classList.remove(this.name + '-information');
+
+    // Header is shared with Thread and Composer panels, so let's cleanup,
+    // it should be removed once bug 961572 is landed.
+    ThreadUI.headerText.removeAttribute('data-l10n-id');
+    ThreadUI.headerText.removeAttribute('data-l10n-args');
   },
 
   // Incrementing ID for each rendering request to avoid possible race when next
@@ -466,6 +471,7 @@ Information.prototype = {
           });
         } else {
           var li = document.createElement('li');
+          li.role = 'presentation';
           li.innerHTML = TMPL.number.interpolate({
             number: number
           });

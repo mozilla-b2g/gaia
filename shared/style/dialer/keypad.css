@@ -272,7 +272,7 @@
   height: 1rem;
   bottom: 0;
   right: 1.7rem;
-  background-image: url("/shared/style/sim_picker/images/long-tap-indicator.png");
+  background-image: url("/shared/elements/gaia_sim_picker/images/long-tap-indicator.png");
   background-repeat: no-repeat;
   background-size: 1.4rem 1rem;
 }

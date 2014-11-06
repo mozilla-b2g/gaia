@@ -71,6 +71,15 @@
     };
   };
 
+  LockScreenWindowManager.prototype.name = 'LockScreenWindowManager';
+  LockScreenWindowManager.prototype.EVENT_PREFIX = 'lockscreenwindowmanager';
+  /**
+   * This function will be invoked by hierarchyManager.
+   */
+  LockScreenWindowManager.prototype.getActiveWindow = function() {
+    return this.isActive() ? this.states.instance : null;
+  };
+
   /**
    * To initialize the class instance (register events, observe settings, etc.)
    */
@@ -83,6 +92,7 @@
     this.initWindow();
     System.register('unlock', this);
     System.register('lock', this);
+    System.request('registerHierarchy', this);
   };
 
   /**
@@ -276,6 +286,7 @@
       this.states.instance.close(instant ? 'immediate': undefined);
       this.elements.screen.classList.remove('locked');
       this.toggleLockedSetting(false);
+      this.publish(this.EVENT_PREFIX + '-deactivated', this);
     };
 
   /**
@@ -300,6 +311,7 @@
       }
       this.elements.screen.classList.add('locked');
       this.toggleLockedSetting(true);
+      this.publish(this.EVENT_PREFIX + '-activated', this);
     };
 
   /**
@@ -311,10 +323,8 @@
    */
   LockScreenWindowManager.prototype.publish =
     function lwm_publish(ne, detail) {
-      if ('string' === typeof ne) {
-        ne = new CustomEvent(ne, { detail: detail });
-      }
-      window.dispatchEvent(ne);
+      var event = new CustomEvent(ne, { detail: detail });
+      window.dispatchEvent(event);
     };
 
   /**

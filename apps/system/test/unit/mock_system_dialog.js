@@ -12,7 +12,12 @@
     this.element = dialogFake;
   };
 
+  MockSystemDialog.prototype._setVisibleForScreenReader = function() {};
+
   MockSystemDialog.prototype.SUB_COMPONENTS = {};
+
+
+  MockSystemDialog.prototype.focus = function () {};
 
   MockSystemDialog.prototype.show = function msd_show(reason) {
     this.onShow(reason);

@@ -424,8 +424,10 @@
       this.moreInfoLink.removeEventListener('click',
         this.moreInfoHandler);
       this.hideInfoLink.removeEventListener('click',
-        this.moreInfoHandler);
-      this.moreInfo.classList.add('hidden');
+        this.hideInfoHandler);
+      if (!this.hideInfoLink.classList.contains('hidden')) {
+        this.toggleInfo();
+      }
       // XXX: This is telling AppWindowManager to focus the active app.
       // After we are moving into AppWindow, we need to remove that
       // and call this.app.focus() instead.

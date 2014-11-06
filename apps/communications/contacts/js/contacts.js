@@ -607,12 +607,10 @@ var Contacts = (function() {
       callback();
     } else {
       Contacts.view('Details', function viewLoaded() {
-        var simPickerNode = document.getElementById('sim-picker');
         LazyLoader.load(
           [SHARED_UTILS_PATH + '/misc.js',
            '/dialer/js/telephony_helper.js',
            '/shared/js/contacts/sms_integration.js',
-           simPickerNode,
            '/shared/js/contacts/contacts_buttons.js'],
         function() {
           detailsReady = true;

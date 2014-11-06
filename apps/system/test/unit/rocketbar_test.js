@@ -1,12 +1,13 @@
 'use strict';
 /* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow,
-   MockSystem */
+   MockSystem, MockPromise */
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_search_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_promise.js');
 requireApp('system/test/unit/mock_iac_handler.js');
 
 var mocksForRocketbar = new MocksHelper([
@@ -46,6 +47,89 @@ suite('system/Rocketbar', function() {
     MockIACPort.mTearDown();
     subject._port = null;
     MockSystem.currentApp = null;
+  });
+
+  suite('Hierarchy functions', function() {
+    test('setHierarchy: false', function() {
+      var searchWindow = new MockSearchWindow();
+      subject.searchWindow = searchWindow;
+      this.sinon.stub(searchWindow, 'setVisibleForScreenReader');
+      subject.setHierarchy(false);
+      assert.isTrue(searchWindow.setVisibleForScreenReader.calledWith(false));
+    });
+
+    test('setHierarchy: true', function() {
+      var searchWindow = new MockSearchWindow();
+      subject.searchWindow = searchWindow;
+      this.sinon.stub(searchWindow, 'setVisibleForScreenReader');
+      this.sinon.stub(subject, 'focus');
+      subject.setHierarchy(true);
+      assert.isTrue(subject.focus.called);
+      assert.isTrue(searchWindow.setVisibleForScreenReader.calledWith(true));
+    });
+
+    test('Should register hierarchy on start', function() {
+      this.sinon.stub(MockSystem, 'request');
+      subject.start();
+      assert.isTrue(
+        MockSystem.request.calledWith('registerHierarchy', subject));
+    });
+
+    test('isActive', function() {
+      subject.start();
+      assert.isFalse(subject.isActive());
+      subject.activate();
+      assert.isTrue(subject.isActive());
+    });
+
+    test('Should publish activated when search is loaded and transitioned',
+      function() {
+        subject.start();
+        var fakePromise = new MockPromise();
+        this.sinon.stub(subject, 'loadSearchApp').returns(fakePromise);
+        subject.activate();
+        this.sinon.stub(subject, 'publish');
+        subject.backdrop.dispatchEvent(new CustomEvent('transitionend'));
+        fakePromise.mFulfillToValue();
+        assert.isTrue(subject.publish.calledWith('-activated'));
+      });
+
+    test('Should publish deactivated when closing transition ends',
+      function() {
+        subject.start();
+        subject.activate();
+        subject.deactivate();
+        this.sinon.stub(subject, 'publish');
+        subject.backdrop.dispatchEvent(new CustomEvent('transitionend'));
+        assert.isTrue(subject.publish.calledWith('-deactivated'));
+      });
+
+    test('Should publish activating when activate is called', function() {
+      subject.start();
+      this.sinon.stub(subject, 'publish');
+      subject.activate();
+      assert.isTrue(subject.publish.calledWith('-activating'));
+    });
+
+    test('Should publish deactivating when deactivate is called', function() {
+      subject.start();
+      this.sinon.stub(subject, 'publish');
+      subject.activate();
+      subject.deactivate();
+      assert.isTrue(subject.publish.calledWith('-deactivating'));
+    });
+
+    test('Should get search window instance if we are active', function() {
+      var searchWindow = new MockSearchWindow();
+      subject.searchWindow = searchWindow;
+      subject.activate();
+      assert.equal(subject.getActiveWindow(), searchWindow);
+    });
+
+    test('Should get search window instance if we are inactive', function() {
+      subject.deactivate();
+      assert.isNull(subject.getActiveWindow());
+    });
   });
 
   test('start()', function() {

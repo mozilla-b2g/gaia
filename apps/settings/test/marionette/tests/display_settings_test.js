@@ -25,14 +25,12 @@ marionette('manipulate display settings', function() {
     test('show the toggle when with light sensor', function() {
       client.executeScript(function() {
         var theWindow = window.wrappedJSObject;
-        theWindow.loadJSON = function(path, callback) {
-          setTimeout(function() {
-            callback({ ambientLight: true });
-          });
+        theWindow.LazyLoader.getJSON = function(path) {
+          return Promise.resolve({ ambientLight: true });
         };
       });
       // Navigate to the display menu
-      // We need to mock loadJSON function before switching to panel.
+      // We need to mock LazyLoader.getJSON function before switching to panel.
       displayPanel = settingsApp.displayPanel;
       assert.ok(displayPanel.isAutoBrightnessItemVisible);
     });
@@ -40,10 +38,8 @@ marionette('manipulate display settings', function() {
     test('hide the toggle when without light sensor', function() {
       client.executeScript(function() {
         var theWindow = window.wrappedJSObject;
-        theWindow.loadJSON = function(path, callback) {
-          setTimeout(function() {
-            callback({ ambientLight: false });
-          });
+        theWindow.LazyLoader.getJSON = function(path) {
+          return Promise.resolve({ ambientLight: false });
         };
       });
       // Navigate to the display menu

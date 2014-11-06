@@ -6,7 +6,7 @@
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
-         Thread, MultiSimActionButton, LazyLoader, Navigation, Promise,
+         Thread, MultiSimActionButton, Navigation, Promise, LazyLoader,
          Dialog, SharedComponents,
          Errors,
          EventDispatcher,
@@ -53,6 +53,12 @@ function thui_generateSmilSlides(slides, content) {
   return slides;
 }
 
+function createBdiNode(content) {
+  var bdi = document.createElement('bdi');
+  bdi.textContent = content;
+  return bdi;
+}
+
 var ThreadUI = {
   CHUNK_SIZE: 10,
   // duration of the notification that message type was converted
@@ -90,7 +96,8 @@ var ThreadUI = {
       'message-status',
       'not-downloaded',
       'recipient',
-      'date-group'
+      'date-group',
+      'header'
     ];
 
     AttachmentMenu.init('attachment-options-menu');
@@ -501,8 +508,6 @@ var ThreadUI = {
           Settings.SERVICE_ID_KEYS.smsServiceId
       );
 
-      var simPickerElt = document.getElementById('sim-picker');
-      LazyLoader.load([simPickerElt]);
       this.initSentAudio();
     }
 
@@ -636,6 +641,7 @@ var ThreadUI = {
     }
 
     if (!Navigation.isCurrentPanel('thread')) {
+      this.headerText.textContent = '';
       this.threadMessages.classList.remove('has-carrier');
       this.callNumberButton.classList.add('hide');
     }
@@ -1291,7 +1297,7 @@ var ThreadUI = {
 
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData() {
-    var thread, number, others;
+    var thread, number;
 
     thread = Threads.active;
 
@@ -1300,7 +1306,6 @@ var ThreadUI = {
     }
 
     number = thread.participants[0];
-    others = thread.participants.length - 1;
 
     // Add data to contact activity interaction
     this.headerText.dataset.number = number;
@@ -1318,14 +1323,15 @@ var ThreadUI = {
         var contactName = details.title || number;
         this.headerText.dataset.isContact = !!details.isContact;
         this.headerText.dataset.title = contactName;
-        navigator.mozL10n.setAttributes(
-          this.headerText,
-          'thread-header-text',
-          {
-            name: contactName,
-            n: others
-          }
+
+        this.headerText.classList.toggle(
+          'thread-group-header',
+          thread.participants.length > 1
         );
+        this.headerText.innerHTML = this.tmpl.header.interpolate({
+          name: contactName,
+          participantCount: (thread.participants.length - 1).toString()
+        });
 
         this.updateCarrier(thread, contacts);
         resolve();
@@ -2669,9 +2675,13 @@ var ThreadUI = {
     var email = opt.email || '';
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
-    var header = opt.header || number || email || '';
     var items = [];
     var params, props;
+
+    var header = opt.header || number || email || '';
+    if (header && (typeof header === 'string' || typeof header === 'number')) {
+      header = createBdiNode(header);
+    }
 
     // Create a params object.
     //  - complete: callback to be invoked when a
