@@ -7,7 +7,6 @@ define(function(require) {
   var WifiWps = require('panels/wifi/wifi_wps');
   var WifiContext = require('modules/wifi_context');
   var WifiHelper = require('shared/wifi_helper');
-  var WifiNetworkList = require('panels/wifi/wifi_network_list');
   var wifiManager = WifiHelper.getWifiManager();
 
   return function ctor_wifi() {
@@ -18,6 +17,8 @@ define(function(require) {
         this._settings = navigator.mozSettings;
         this._wifiSectionVisible = true;
         this._scanPending = false;
+        this._networkListPromise = null;
+        this._initialized = false;
 
         elements = {
           panel: panel,
@@ -53,7 +54,6 @@ define(function(require) {
           wpsPbcLabelBlock: elements.wpsPbcLabelBlock
         };
 
-        this._networkList = WifiNetworkList(elements.networklist);
         this._wps = WifiWps();
         this._wps.addEventListener('statusreset', function() {
           elements.wps.wpsPbcLabelBlock.setAttribute('data-l10n-id',
@@ -63,14 +63,6 @@ define(function(require) {
                                                        'wpsDescription2');
           }, 1500);
         });
-
-        SettingsListener.observe('wifi.enabled', true, function(enabled) {
-          this._setMozSettingsEnabled(enabled);
-          if (enabled) {
-            this._updateNetworkState();
-            this._networkList.scan();
-          }
-        }.bind(this));
 
         // element related events
         elements.scanItem.addEventListener('click',
@@ -94,14 +86,18 @@ define(function(require) {
         WifiContext.addEventListener('wifiEnabled', function() {
           elements.wifiCheckbox.disabled = false;
           this._updateNetworkState();
-          this._networkList.scan();
+          this._networkList().then((networkList) => {
+            networkList.scan();
+          });
         }.bind(this));
 
         WifiContext.addEventListener('wifiDisabled', function() {
           elements.wifiCheckbox.disabled = false;
           // Re-enable UI toggle
-          this._networkList.clear(false);
-          this._networkList.autoscan = false;
+          this._networkList().then((networkList) => {
+            networkList.clear(false);
+            networkList.autoscan = false;
+          });
         }.bind(this));
 
         WifiContext.addEventListener('wifiStatusChange', function(event) {
@@ -110,7 +106,9 @@ define(function(require) {
           this._updateNetworkState();
           if (scanStates.has(event.status)) {
             if (this._wifiSectionVisible) {
-              this._networkList.scan();
+              this._networkList().then((networkList) => {
+                networkList.scan();
+              });
             } else {
               this._scanPending = true;
             }
@@ -124,10 +122,23 @@ define(function(require) {
           }
         }.bind(this));
       },
-
       onBeforeShow: function() {
         this._wifiSectionVisible = true;
         this._updateVisibilityStatus();
+      },
+      onShow: function() {
+        if (!this._initialized) {
+          this._initialized = true;
+          SettingsListener.observe('wifi.enabled', true, function(enabled) {
+            this._setMozSettingsEnabled(enabled);
+            if (enabled) {
+              this._updateNetworkState();
+              this._networkList().then((networkList) => {
+                networkList.scan();
+              });
+            }
+          }.bind(this));
+        }
       },
       onBeforeHide: function() {
         this._wifiSectionVisible = false;
@@ -162,7 +173,11 @@ define(function(require) {
                 }
               });
             },
-            wpsAvailableNetworks: self._networkList.getWpsAvailableNetworks()
+            wpsAvailableNetworks: function() {
+              return self._networkList().then((networkList) => {
+                return networkList.getWpsAvailableNetworks();
+              });
+            }
           });
         }
       },
@@ -178,41 +193,47 @@ define(function(require) {
         checkbox.disabled = true;
       },
       _onScanItemClick: function() {
-        this._networkList.clear(true);
-        this._networkList.scan();
+        this._networkList().then((networkList) => {
+          networkList.clear(true);
+          networkList.scan();
+        });
       },
       _updateVisibilityStatus: function() {
-        if (this._scanPending) {
-          this._networkList.scan();
-          this._scanPending = false;
-        }
+        this._networkList().then((networkList) => {
+          if (this._scanPending) {
+            networkList.scan();
+            this._scanPending = false;
+          }
+        });
       },
       _setMozSettingsEnabled: function(enabled) {
-        elements.wifiCheckbox.checked = enabled;
-        if (enabled) {
-          /**
-           * wifiManager may not be ready (enabled) at this moment.
-           * To be responsive, show 'initializing' status and 'search...' first.
-           * A 'scan' would be called when wifiManager is enabled.
-           */
-          this._networkList.clear(true);
-          elements.wpsColumn.hidden = false;
-        } else {
-          if (this._wps.inProgress) {
-            elements.wpsInfoBlock.
-              setAttribute('data-l10n-id', WifiContext.wifiStatusText.id);
-            if (WifiContext.wifiStatusText.args) {
+        this._networkList().then((networkList) => {
+          elements.wifiCheckbox.checked = enabled;
+          if (enabled) {
+            /**
+             * wifiManager may not be ready (enabled) at this moment.
+             * To be responsive, show 'initializing' status and 'search...'
+             * first. A 'scan' would be called when wifiManager is enabled.
+             */
+            networkList.clear(true);
+            elements.wpsColumn.hidden = false;
+          } else {
+            if (this._wps.inProgress) {
               elements.wpsInfoBlock.
-                setAttribute('data-l10n-args',
-                             JSON.stringify(WifiContext.wifiStatusText.args));
-            } else {
-              elements.wpsInfoBlock.removeAttribute('data-l10n-args');
+                setAttribute('data-l10n-id', WifiContext.wifiStatusText.id);
+              if (WifiContext.wifiStatusText.args) {
+                elements.wpsInfoBlock.
+                  setAttribute('data-l10n-args',
+                    JSON.stringify(WifiContext.wifiStatusText.args));
+              } else {
+                elements.wpsInfoBlock.removeAttribute('data-l10n-args');
+              }
             }
+            networkList.clear(false);
+            networkList.autoscan = false;
+            elements.wpsColumn.hidden = true;
           }
-          this._networkList.clear(false);
-          this._networkList.autoscan = false;
-          elements.wpsColumn.hidden = true;
-        }
+        });
       },
       _updateNetworkState: function() {
         // update network state, called only when wifi enabled.
@@ -244,8 +265,10 @@ define(function(require) {
         var dialogElement = elements.dialogElement;
 
         var onConfirm = function onConfirm() {
-          self._networkList._toggleNetwork(network);
-          enableDialog(false);
+          self._networkList().then((networkList) => {
+            networkList._toggleNetwork(network);
+            enableDialog(false);
+          });
         };
 
         var onCancel = function onCancel() {
@@ -267,6 +290,16 @@ define(function(require) {
         };
 
         enableDialog(true);
+      },
+      _networkList: function() {
+        if (!this._networkListPromise) {
+          this._networkListPromise = new Promise((resolve) => {
+            require(['panels/wifi/wifi_network_list'], (WifiNetworkList) => {
+              resolve(WifiNetworkList(elements.networklist));
+            });
+          });
+        }
+        return this._networkListPromise;
       }
     });
   };
