@@ -651,7 +651,7 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
   var root, title, header, attachmentsContainer, msgBodyContainer,
       titleHeight, headerHeight, attachmentsHeight,
       msgBodyMarginTop, msgBodyMarginLeft, attachmentsMarginTop,
-      iframeDoc, inputStyle;
+      iframeDoc, inputStyle, loadBar, loadBarHeight;
   // Tap gesture event for HTML type mail and click event for plain text mail
   if (iframe) {
     root = document.getElementsByClassName('scrollregion-horizontal-too')[0];
@@ -659,6 +659,7 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
     header = document.getElementsByClassName('msg-envelope-bar')[0];
     attachmentsContainer =
       document.getElementsByClassName('msg-attachments-container')[0];
+    loadBar = document.getElementsByClassName('msg-reader-load-infobar')[0];
     msgBodyContainer = document.getElementsByClassName('msg-body-container')[0];
     inputStyle = window.getComputedStyle(msgBodyContainer);
     msgBodyMarginTop = parseInt(inputStyle.marginTop);
@@ -674,6 +675,11 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
     eventType,
     function clicked(event) {
       if (iframe) {
+        // Because the "show (external) images" loadBar could be opened or
+        // closed depending on what the user does relative to this click, get
+        // the client height at the time of click.
+        loadBarHeight = loadBar.clientHeight;
+
         // Because the attachments are updating late,
         // get the client height while clicking iframe.
         attachmentsHeight = attachmentsContainer.clientHeight;
@@ -685,7 +691,7 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
         var scale = transform.match(/(\d|\.)+/g)[0];
         dx = event.detail.clientX + root.scrollLeft - msgBodyMarginLeft;
         dy = event.detail.clientY + root.scrollTop -
-             titleHeight - headerHeight -
+             titleHeight - headerHeight - loadBarHeight -
              attachmentsHeight - attachmentsMarginTop - msgBodyMarginTop;
         node = iframeDoc.elementFromPoint(dx / scale, dy / scale);
       } else {
