@@ -125,7 +125,4 @@ suite('RPP Auth panels', function() {
 
   });
 
-  test('should allow us to register rpp passphrase', function() {
-    assert.isTrue(true);
-  });
 });

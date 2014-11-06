@@ -21,12 +21,19 @@ requireApp('privacy-panel/js/vendor/alameda.js', () => {
       },
       'shared/settings_helper': {
         exports: 'SettingsHelper'
+      },
+      'mocks/mock_navigator_moz_set_message_handler': {
+        exports: 'MockNavigatormozSetMessageHandler'
+      },
+      'shared/settings_url': {
+        exports: 'SettingsURL'
       }
     },
     urlArgs: 'cache_bust=' + Date.now(),
     map: {
       '*': {
-        'shared/async_storage': 'mymocks/mock_async_storage'
+        'shared/async_storage': 'mymocks/mock_async_storage',
+        'sms/commands': 'mymocks/mock_commands'
       }
     }
   });

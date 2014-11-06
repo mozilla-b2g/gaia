@@ -16,26 +16,9 @@
     "sms":{},
     "telephony":{}
   },
-  "activities": {
-    "configure": {
-      "filters": {
-        "target": "device"
-       },
-      "disposition": "window"
-    }
-  },
   "messages": [
     { "sms-received": "/index.html" }
   ],
-  "connections": {
-    "privacy-panel-wakeup": {
-      "rules": {
-        "manifestURLs": [
-          "app://system.gaiamobile.org/manifest.webapp"
-        ]
-      }
-    }
-  },
   "locales": {
     "ar": {
       "name": "Privacy Panel",
