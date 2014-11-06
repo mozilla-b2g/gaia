@@ -434,6 +434,7 @@ var Browser = {
           var a = document.createElement('a');
           a.href = tab.url;
           var iconUrl = a.protocol + '//' + a.hostname + '/' + 'favicon.ico';
+          tab.iconUrl = iconUrl;
           BrowserDB.setAndLoadIconForPage(tab.url, iconUrl);
         }
 
@@ -907,22 +908,20 @@ var Browser = {
       return;
     }
 
-    BrowserDB.getPlace(this.currentTab.url, (function(place) {
-      new MozActivity({
-        name: 'save-bookmark',
-        data: {
-          type: 'url',
-          url: this.currentTab.url,
-          name: this.currentTab.title,
-          icon: place.iconUri,
-          useAsyncPanZoom: true
-        },
-        onerror: function(e) {
-          console.warn('Unhandled error from save-bookmark activity: ' +
-                       e.target.error.message + '\n');
-        }
-      });
-    }).bind(this));
+    new MozActivity({
+      name: 'save-bookmark',
+      data: {
+        type: 'url',
+        url: this.currentTab.url,
+        name: this.currentTab.title,
+        icon: this.currentTab.iconUrl,
+        useAsyncPanZoom: true
+      },
+      onerror: function(e) {
+        console.warn('Unhandled error from save-bookmark activity: ' +
+                     e.target.error.message + '\n');
+      }
+    });
     this.hideBookmarkMenu();
   },
 
