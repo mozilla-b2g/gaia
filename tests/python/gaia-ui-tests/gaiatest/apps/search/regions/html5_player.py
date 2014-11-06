@@ -3,7 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-
+from marionette import expected
+from marionette import Wait
+from marionette.by import By
+from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
 
@@ -14,57 +17,93 @@ class HTML5Player(PageRegion):
     http://www.w3.org/TR/2012/WD-html5-20121025/media-elements.html#media-element
     """
 
+    _video_element_locator = (By.TAG_NAME, 'video')
+
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+        self.root_element = Wait(self.marionette).until(
+            expected.element_present(*self._video_element_locator))
+        Wait(self.marionette).until(expected.element_displayed(self.root_element))
+
     def wait_for_video_loaded(self):
-        self.wait_for_condition(
-            lambda m:
-            int(self.root_element.get_attribute('readyState')) == 4)
+        # Wait a bit longer to make sure enough of the video has been loaded
+        Wait(self.marionette, timeout=10).until(
+            lambda m: int(self.root_element.get_attribute('readyState')) == 4)
 
     @property
-    def is_paused(self):
-        return self.root_element.get_attribute('paused') == 'true'
+    def is_fullscreen(self):
+        return self.marionette.execute_script("""return document.mozFullScreenElement ==
+                                                 document.getElementsByTagName("video")[0]""")
+
+    @property
+    def is_playing(self):
+        return self.root_element.get_attribute('paused') != 'true'
+
+    @property
+    def is_muted(self):
+        return self.root_element.get_attribute('muted') == 'true'
 
     @property
     def is_ended(self):
         return self.root_element.get_attribute('ended') == 'true'
 
     @property
-    def has_controls(self):
-        return self.root_element.get_attribute('controls') == 'true'
+    def controls_visible(self):
+        return (int(self.get_location('playButton')[0]) > 0)
 
-    def _disable_controls(self):
-        if self.has_controls:
-            self.marionette.execute_script(
-                'arguments[0].removeAttribute("controls")',
-                script_args=[self.root_element])
+    def set_loop(self, bool):
+        if bool:
+            script = 'arguments[0].loop = true'
+        else:
+            script = 'arguments[0].loop = false'
+        self.marionette.execute_script(script, script_args=[self.root_element])
+
+    def reset(self):
+        script = 'arguments[0].currentTime = 0'
+        self.marionette.execute_script(script, script_args=[self.root_element])
 
     def invoke_controls(self):
-        if not self.has_controls:
-            self.marionette.execute_script(
-                'arguments[0].setAttribute("controls", "controls")',
-                script_args=[self.root_element])
-            if not (self.is_paused or self.is_ended):
-                self.root_element.tap()
-        else:
-            self.root_element.tap()
-        time.sleep(.25)
+        self.root_element.tap()
+        Wait(self.marionette).until(lambda m: self.controls_visible)
 
-    def play(self):
-        self.invoke_controls()
-        # We cannot actually tap on the elements because they are not HTML elements
-        # but we can tap where we anticipate them to be.
-        y_tap_location = int(self.root_element.size['height']/3)
-        self.root_element.tap(y=y_tap_location)
-        self.wait_for_condition(lambda m: not self.is_paused)
-        self._disable_controls()
+    def get_location(self, class_name):
+        return self.marionette.execute_script("""
+           var a = SpecialPowers.Cc["@mozilla.org/inspector/dom-utils;1"]
+               .getService(SpecialPowers.Ci.inIDOMUtils)
+               .getChildrenForNode(document.getElementsByTagName('video')[0], true);
+           var x1 = document.getElementsByTagName('video')[0].getBoundingClientRect().left;
+           var x2 = a[1].ownerDocument
+                        .getAnonymousElementByAttribute(a[1],'class', '%s')
+                        .getBoundingClientRect().left;
+           var y1 = document.getElementsByTagName('video')[0]
+                            .getBoundingClientRect().top;
+           var y2 = a[1].ownerDocument.getAnonymousElementByAttribute(a[1],'class', '%s')
+                        .getBoundingClientRect().top;
+           return (Math.floor(x2-x1) + ',' + Math.floor(y2-y1));
+         """ % (class_name, class_name)).split(',')
 
-    def pause(self):
-        self.invoke_controls()
-        # We cannot actually tap on the elements because they are not HTML elements
-        # but we can tap where we anticipate them to be.
-        y_tap_location = int(self.root_element.size['height']/3)
-        self.root_element.tap(y=y_tap_location)
-        self.wait_for_condition(lambda m: self.is_paused)
-        self._disable_controls()
+    def tap_video_control(self, class_name):
+        location = self.get_location(class_name)
+        self.root_element.tap(x=int(location[0])+5, y=int(location[1])+5)
+
+    def tap_play(self):
+        self.tap_video_control('playButton')
+        Wait(self.marionette).until(lambda m: self.is_playing is True)
+
+    def tap_pause(self):
+        self.tap_video_control('playButton')
+        Wait(self.marionette).until(lambda m: self.is_playing is False)
+
+    def tap_mute(self):
+        self.tap_video_control('muteButton')
+        Wait(self.marionette).until(lambda m: self.is_muted is True)
+
+    def tap_unmute(self):
+        self.tap_video_control('muteButton')
+        Wait(self.marionette).until(lambda m: self.is_muted is False)
+
+    def tap_full_screen(self):
+        self.tap_video_control('fullscreenButton')
 
     def is_video_playing(self):
         # get 4 timestamps during approx. 1 sec
