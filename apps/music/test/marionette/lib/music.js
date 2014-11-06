@@ -21,6 +21,7 @@ Music.Selector = Object.freeze({
   songsTab: '#tabs-songs',
   albumsTab: '#tabs-albums',
   coverImage: '#player-cover-image',
+  alphaScroll: 'nav[data-type="scrollbar"]',
 
   // search fields
   searchTiles: '#views-tiles-search',
@@ -65,6 +66,10 @@ Music.prototype = {
 
   get albumsTab() {
     return this.client.helper.waitForElement(Music.Selector.albumsTab);
+  },
+
+  get alphaScroll() {
+    return this.client.helper.waitForElement(Music.Selector.alphaScroll);
   },
 
   get firstSong() {
@@ -212,6 +217,14 @@ Music.prototype = {
 
   switchToAlbumsView: function() {
     this.albumsTab.tap();
+  },
+
+  scrollToLetter: function(letter) {
+    var alphaScroll = this.alphaScroll;
+    var element =
+        alphaScroll.findElement('li[data-letter="' + letter + '"]',
+                                'css selector');
+    element.tap();
   },
 
   selectAlbum: function(name) {
