@@ -99,6 +99,11 @@
   clear: both;
 }
 
+#datausage-tab .app-item > a {
+  display: block;
+  overflow: auto;
+}
+
 #datausage-tab .app-image {
   padding: 1.1rem 1.3rem 1.1rem 1.3rem;
   width: 3rem;

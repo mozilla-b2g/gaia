@@ -349,6 +349,7 @@ var DataUsageTab = (function() {
       var imgElement = document.createElement('img');
       imgElement.className = 'app-image';
       imgElement.src = Common.getAppIcon(app);
+      imgElement.setAttribute('role', 'presentation');
       imgElement.onerror = function() {
         console.warn('Unable to load icon: ' + this.src);
         this.src = '/style/images/app/icons/default.png';
@@ -366,10 +367,12 @@ var DataUsageTab = (function() {
 
       var barElement = document.createElement('div');
       barElement.className = 'app-info-row app-usage-bar';
+      barElement.setAttribute('role', 'presentation');
       appInfoElement.appendChild(barElement);
 
       var usedBarElement = document.createElement('div');
       usedBarElement.className = 'app-usage-bar-used';
+      usedBarElement.setAttribute('role', 'presentation');
       barElement.appendChild(usedBarElement);
 
       var usageElement = document.createElement('div');
