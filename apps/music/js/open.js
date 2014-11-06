@@ -1,25 +1,6 @@
+/* global getStorageIfAvailable, getUnusedFilename, MimeMapper, PlayerView,
+          TYPE_BLOB */
 'use strict';
-
-// strings for localization
-var unknownAlbum;
-var unknownArtist;
-var unknownTitle;
-// The L10n ids will be needed for player to update the unknown strings
-// after localized event fires, but this won't happen because currently
-// an inline activity will be closed if users change the system language
-// we still keep this in case the system app change this behavior
-var unknownAlbumL10nId = 'unknownAlbum';
-var unknownArtistL10nId = 'unknownArtist';
-var unknownTitleL10nId = 'unknownTitle';
-
-// We get a localized event when the application is launched and when
-// the user switches languages.
-navigator.mozL10n.ready(function onLanguageChange() {
-  // Get prepared for the localized strings, these will be used later
-  unknownAlbum = navigator.mozL10n.get('unknownAlbum');
-  unknownArtist = navigator.mozL10n.get('unknownArtist');
-  unknownTitle = navigator.mozL10n.get('unknownTitle');
-});
 
 navigator.mozL10n.once(function onLocalizationInit() {
   navigator.mozSetMessageHandler('activity', handleOpenActivity);
@@ -111,7 +92,7 @@ function handleOpenActivity(request) {
   }
 
   function checkFilename() {
-    var dotIdx = data.filename.lastIndexOf('.'), ext, type;
+    var dotIdx = data.filename.lastIndexOf('.'), ext;
 
     if (dotIdx > -1) {
       ext = data.filename.substr(dotIdx + 1);
@@ -134,12 +115,5 @@ function handleOpenActivity(request) {
     setTimeout(function() {
       banner.hidden = true;
     }, 3000);
-  }
-
-  // Strip directories and just return the base filename
-  function baseName(filename) {
-    if (!filename)
-      return '';
-    return filename.substring(filename.lastIndexOf('/') + 1);
   }
 }
