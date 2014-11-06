@@ -8,6 +8,7 @@
 /* global SettingsListener */
 /* global StatusBar */
 /* global System */
+/* global DUMP */
 'use strict';
 
 (function(exports) {
@@ -1053,6 +1054,12 @@
       if (TRACE) {
         console.trace();
       }
+    } else if (window.DUMP) {
+      DUMP('[' + this.CLASS_NAME + ']' +
+        '[' + (this.name || this.origin) + ']' +
+        '[' + this.instanceID + ']' +
+        '[' + System.currentTime() + '] ' +
+        Array.slice(arguments).concat());
     }
   };
 
