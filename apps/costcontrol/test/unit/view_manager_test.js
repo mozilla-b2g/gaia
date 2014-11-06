@@ -97,4 +97,16 @@ suite('ViewManager suite >', function() {
     }
   );
 
+  test('Obscured view gets "behind" class',
+    function(done) {
+      viewManager.loadPanel = realLoadPanel;
+      viewManager.changeViewTo('view-1', '#view-2', function() {
+        assert.ok(view2.classList.contains('behind'));
+        viewManager.closeCurrentView();
+        assert.ok(!view2.classList.contains('behind'));
+        done();
+      });
+    }
+  );
+
 });

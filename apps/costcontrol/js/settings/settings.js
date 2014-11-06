@@ -177,7 +177,7 @@ var Settings = (function() {
     var resetTelephonyButton = document.getElementById('reset-telephony');
     resetTelephonyButton.addEventListener('click',
       function _onTelephonyReset() {
-        vmanager.changeViewTo(telephonyDialog.id);
+        vmanager.changeViewTo(telephonyDialog.id, '#settings-view');
       }
     );
 
@@ -203,7 +203,7 @@ var Settings = (function() {
     // Button reset Data Usage Settings send to reset data dialog
     var resetDataUsage = document.getElementById('reset-data-usage');
     resetDataUsage.addEventListener('click', function _onDataReset() {
-      vmanager.changeViewTo(dataDialog.id);
+      vmanager.changeViewTo(dataDialog.id, '#settings-view');
     });
 
     var resetWifiDataUsage = document.getElementById('reset-data-wifi-usage');

@@ -64,6 +64,16 @@ input.error {
   opacity: 0.0;
 }
 
+/* Hide/show tab panel when other views show up */
+
+#tabpanel {
+  transition: visibility 0.5s;
+}
+
+#tabpanel.behind {
+  visibility: hidden;
+}
+
 /**
  * 1. GaiaHeader will vertically align
  *    display block elements
@@ -107,6 +117,10 @@ gaia-header [data-icon]:before {
 }
 
 /* VIEWPORTS */
+.view.behind {
+  visibility: hidden;
+}
+
 .view[data-viewport="ethereal"] {
   pointer-events: none;
   opacity: 0;

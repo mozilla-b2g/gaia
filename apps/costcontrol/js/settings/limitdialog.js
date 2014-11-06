@@ -2,7 +2,7 @@
 /* exported dataLimitConfigurer */
 'use strict';
 
-function dataLimitConfigurer(guiWidget, settings, viewManager) {
+function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
   var MINUS_CHAR_CODE = 45,
       COMMA_CHAR_CODE = 44,
       DOT_CHAR_CODE = 46,
@@ -154,7 +154,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
   // Show the dialog
   var oldUnitValue;
   guiWidget.addEventListener('click', function ccld_onWidgetClick() {
-    viewManager.changeViewTo(dialog.id);
+    viewManager.changeViewTo(dialog.id, widgetRoot);
     dataLimitInput.focus();
     dataLimitInput.setSelectionRange(dataLimitInput.value.length,
                                      dataLimitInput.value.length);

@@ -72,43 +72,46 @@
     </section>
 
     <section id="main" role="region" class="window skin-organic non-ready">
-      <!-- XXX: The order of sections is important (tabs should be place above
-the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
-      <gaia-header>
-        <h1 data-l10n-id="usage">Usage</h1>
-        <button class="settings-button" data-icon="settings"></button>
-      </gaia-header>
+      <div id="tabpanel">
+        <!-- XXX: The order of sections is important (tabs should be place above
+             the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
+        <gaia-header>
+          <h1 data-l10n-id="usage">Usage</h1>
+          <button class="settings-button" data-icon="settings"></button>
+        </gaia-header>
 
-      <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
-      <ul id="tabs" role="tablist" class="bb-tablist" data-type="filter" data-items="2">
-        <li id="balance-tab-filter" role="presentation">
-          <a id="balance-tab-control" data-l10n-id="balance" href="#balance-tab" role="tab" aria-controls="balance-tab">
-            Balance
-          </a>
-        </li>
-        <li id="telephony-tab-filter" role="presentation" hidden>
-          <a id="telephony-tab-control" data-l10n-id="phone" href="#telephony-tab" role="tab" aria-controls="telephony-tab">
-            Phone
-          </a>
-        </li>
-        <li id="datausage-tab-filter" role="presentation">
-          <a id="datausage-tab-control" data-l10n-id="internet" href="#datausage-tab" role="tab" aria-controls="datausage-tab">
-            Internet
-          </a>
-        </li>
-      </ul>
+        <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
+        <ul id="tabs" role="tablist" class="bb-tablist" data-type="filter" data-items="2">
+          <li id="balance-tab-filter" role="presentation">
+            <a id="balance-tab-control" data-l10n-id="balance" href="#balance-tab" role="tab" aria-controls="balance-tab">
+              Balance
+            </a>
+          </li>
+          <li id="telephony-tab-filter" role="presentation" hidden>
+            <a id="telephony-tab-control" data-l10n-id="phone" href="#telephony-tab" role="tab" aria-controls="telephony-tab">
+              Phone
+            </a>
+          </li>
+          <li id="datausage-tab-filter" role="presentation">
+            <a id="datausage-tab-control" data-l10n-id="internet" href="#datausage-tab" role="tab" aria-controls="datausage-tab">
+              Internet
+            </a>
+          </li>
+        </ul>
 
-      <!-- BALANCE TAB -->
-      <section is="balance-tab" aria-labelledby="balance-tab-control" role="region tabpanel" id="balance-tab" class="bb-tabpanel view" data-viewport="left" hidden></section>
+        <!-- BALANCE TAB -->
+        <section is="balance-tab" aria-labelledby="balance-tab-control" role="region tabpanel" id="balance-tab" class="bb-tabpanel view" data-viewport="left" hidden></section>
 
-      <!-- TELEPHONY TAB -->
-      <section is="telephony-tab" aria-labelledby="telephony-tab-control" role="region tabpanel" id="telephony-tab" class="bb-tabpanel view" data-viewport="left" hidden></section>
+        <!-- TELEPHONY TAB -->
+        <section is="telephony-tab" aria-labelledby="telephony-tab-control" role="region tabpanel" id="telephony-tab" class="bb-tabpanel view" data-viewport="left" hidden></section>
+
+        <!-- DATA USAGE TAB -->
+        <section is="datausage-tab" aria-labelledby="datausage-tab-control" id="datausage-tab" role="region tabpanel" class="bb-tabpanel view" data-viewport="right" hidden></section>
+
+      </div>
 
       <!-- The top up input -->
-      <section is="topup-dialog" role="region" id="topup-dialog" class="view" data-viewport="bottom" hidden></section>
-
-      <!-- DATA USAGE TAB -->
-      <section is="datausage-tab" aria-labelledby="datausage-tab-control" id="datausage-tab" role="region tabpanel" class="bb-tabpanel view" data-viewport="right" hidden></section>
+      <section is="topup-dialog" role="dialog" id="topup-dialog" class="view" data-viewport="bottom" hidden></section>
 
       <!-- App Detail view -->
       <section is="appdetail-view" id="appdetail-view" class="view" data-viewport="right" hidden></section>

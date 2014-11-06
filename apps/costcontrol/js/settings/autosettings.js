@@ -248,7 +248,7 @@ var AutoSettings = (function() {
       var entry = getEntryParent(guiWidget);
       var configurer = OPTION_CONFIGURERS[type];
       if (configurer) {
-        configurer(guiWidget, settings, vmanager);
+        configurer(guiWidget, settings, vmanager, root);
       }
 
       // Simple dependency resolution:
