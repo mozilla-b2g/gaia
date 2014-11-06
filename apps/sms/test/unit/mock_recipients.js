@@ -5,18 +5,25 @@ function MockRecipients(setup) {
   this.recipientsList = document.getElementById(setup.inner);
   Object.defineProperty(this, 'length', {
     get: function() {
-      return this.numbers.length;
+      return this.numbersList.length;
     },
     set: function(val) {
-      this.numbers.length = val;
+      this.numbersList.length = val;
     }
   });
+
+  Object.defineProperty(this, 'numbers', {
+    get: function() {
+      return Array.from(this.numbersList);
+    }
+  });
+
   this.events = {
     add: [],
     remove: [],
     modechange: []
   };
-  this.numbers = [];
+  this.numbersList = [];
   this.inputValue = '';
   this.list = [];
 }
@@ -25,16 +32,16 @@ MockRecipients.prototype.add = function(contact) {
   var span = document.createElement('span');
   span.textContent = contact.number;
   this.recipientsList.appendChild(span);
-  this.numbers.push(contact.number);
+  this.numbersList.push(contact.number);
   this.list.push(contact);
   this.emit('add', this.length, contact);
   return this;
 };
 
 MockRecipients.prototype.remove = function(phone) {
-  var index = this.numbers.indexOf(phone);
+  var index = this.numbersList.indexOf(phone);
   if (index != -1) {
-    this.numbers.splice(this.numbers.indexOf(phone), 1);
+    this.numbersList.splice(this.numbersList.indexOf(phone), 1);
     this.emit('remove', this.length);
   }
   return this;

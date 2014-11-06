@@ -5330,7 +5330,9 @@ suite('thread_ui.js >', function() {
   suite('Close button behaviour', function() {
     test('Call ActivityHandler.leaveActivity', function(done) {
       this.sinon.stub(ActivityHandler, 'leaveActivity');
+      this.sinon.stub(ThreadUI, 'cleanFields');
       ThreadUI.close().then(function() {
+        sinon.assert.called(ThreadUI.cleanFields);
         sinon.assert.called(ActivityHandler.leaveActivity);
       }).then(done, done);
     });
