@@ -14,6 +14,8 @@
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <link rel="stylesheet" type="text/css" href="shared/style/tabs.css"/>
     <link rel="stylesheet" type="text/css" href="style/music.css"/>
+    <link rel="stylesheet" type="text/css" href="/shared/style/lists.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/scrolling.css" >
     <!-- Localization -->
     <link rel="manifest" href="manifest.webapp">
     <link rel="localization" href="locales/music.{locale}.properties">
@@ -31,6 +33,7 @@
     <script defer src="shared/js/media/remote_controls.js"></script>
     <script defer src="shared/js/omadrm/fl.js"></script>
     <script defer src="shared/js/scroll_detector.js"></script>
+    <script defer src="shared/js/alpha_scroll.js"></script>
     <!-- Web components -->
     <script defer src="shared/js/component_utils.js"></script>
     <script defer src="shared/elements/gaia_subheader/script.js"></script>
@@ -49,6 +52,40 @@
     <script defer src="js/communications.js"></script>
   </head>
 
+  <article class="view-body">
+   <nav data-type="scrollbar" class="hidden">
+    <p></p>
+    <ol>
+    <li data-anchor="group-#" data-letter="#"><a href="#">#</a></li>
+    <li data-anchor="group-A" data-letter="A"><a href="#">A</a></li>
+    <li data-anchor="group-B" data-letter="B"><a href="#">B</a></li>
+    <li data-anchor="group-C" data-letter="C"><a href="#">C</a></li>
+    <li data-anchor="group-D" data-letter="D"><a href="#">D</a></li>
+    <li data-anchor="group-E" data-letter="E"><a href="#">E</a></li>
+    <li data-anchor="group-F" data-letter="F"><a href="#">F</a></li>
+    <li data-anchor="group-G" data-letter="G"><a href="#">G</a></li>
+    <li data-anchor="group-H" data-letter="H"><a href="#">H</a></li>
+    <li data-anchor="group-I" data-letter="I"><a href="#">I</a></li>
+    <li data-anchor="group-J" data-letter="J"><a href="#">J</a></li>
+    <li data-anchor="group-K" data-letter="K"><a href="#">K</a></li>
+    <li data-anchor="group-L" data-letter="L"><a href="#">L</a></li>
+    <li data-anchor="group-M" data-letter="M"><a href="#">M</a></li>
+    <li data-anchor="group-N" data-letter="N"><a href="#">N</a></li>
+    <li data-anchor="group-O" data-letter="O"><a href="#">O</a></li>
+    <li data-anchor="group-P" data-letter="P"><a href="#">P</a></li>
+    <li data-anchor="group-Q" data-letter="Q"><a href="#">Q</a></li>
+    <li data-anchor="group-R" data-letter="R"><a href="#">R</a></li>
+    <li data-anchor="group-S" data-letter="S"><a href="#">S</a></li>
+    <li data-anchor="group-T" data-letter="T"><a href="#">T</a></li>
+    <li data-anchor="group-U" data-letter="U"><a href="#">U</a></li>
+    <li data-anchor="group-V" data-letter="V"><a href="#">V</a></li>
+    <li data-anchor="group-W" data-letter="W"><a href="#">W</a></li>
+    <li data-anchor="group-X" data-letter="X"><a href="#">X</a></li>
+    <li data-anchor="group-Y" data-letter="Y"><a href="#">Y</a></li>
+    <li data-anchor="group-Z" data-letter="Z"><a href="#">Z</a></li>
+   </ol>
+   </nav>
+  </article>
   <body role="application" class="theme-media">
     <gaia-header id="title" action="back">
       <h1 id="title-text" data-l10n-id="music">Music</h1>

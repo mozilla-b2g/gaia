@@ -1,7 +1,7 @@
 /* exported App */
 /* global initDB, musicdb, LazyLoader, TitleBar, TabBar, asyncStorage,
           TilesView, ListView, SubListView, SearchView, ModeManager,
-          MODE_PICKER, MODE_TILES, MODE_LIST, reparsingMetadata */
+          MODE_PICKER, MODE_TILES, MODE_LIST, reparsingMetadata, utils */
 'use strict';
 
 /*
@@ -14,6 +14,7 @@ var SETTINGS_OPTION_KEY = 'settings_option_key';
 var App = (function() {
   var app;
   var chromeInteractive = false;
+
   // initialize the app object
   init();
 
@@ -45,6 +46,8 @@ var App = (function() {
       });
     });
 
+    initAlphaScroll();
+
     window.addEventListener('scrollstart', function onScroll(e) {
       var views = document.getElementById('views');
       views.classList.add('scrolling');
@@ -54,6 +57,28 @@ var App = (function() {
       var views = document.getElementById('views');
       views.classList.remove('scrolling');
     });
+  }
+
+  function scrollToCb(domTarget, group) {
+    if (domTarget.offsetTop > 0) {
+      ListView.view.scrollTop = domTarget.offsetTop;
+    } else if (group === 'search-container') {
+      ListView.view.scrollTop = 0;
+    }
+  }
+
+  function initAlphaScroll() {
+    var overlay = document.querySelector('nav[data-type="scrollbar"] p');
+    var jumper = document.querySelector('nav[data-type="scrollbar"] ol');
+
+    var params = {
+      overlay: overlay,
+      jumper: jumper,
+      groupSelector: '#group-',
+      scrollToCb: scrollToCb
+    };
+
+    utils.alphaScroll.init(params);
   }
 
   function setStartMode() {
