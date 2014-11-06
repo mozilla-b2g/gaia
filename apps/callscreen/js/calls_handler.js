@@ -1,6 +1,6 @@
-/* globals BluetoothHelper, CallScreen, Contacts, HandledCall, KeypadManager,
-           LazyL10n, SimplePhoneMatcher, TonePlayer, Utils,
-           AudioCompetingHelper */
+/* globals AudioCompetingHelper, BluetoothHelper, CallScreen,
+           ConferenceGroupHandler, Contacts, HandledCall, KeypadManager,
+           LazyL10n, SimplePhoneMatcher, TonePlayer, Utils */
 
 'use strict';
 
@@ -346,7 +346,9 @@ var CallsHandler = (function callsHandler() {
 
   function updateAllPhoneNumberDisplays() {
     handledCalls.forEach(function(call) {
-      call.restorePhoneNumber();
+      if (!call._leftGroup) {
+        call.restorePhoneNumber();
+      }
     });
   }
   window.addEventListener('resize', updateAllPhoneNumberDisplays);
@@ -623,7 +625,7 @@ var CallsHandler = (function callsHandler() {
 
   function endConferenceCall() {
     return telephony.conferenceGroup.hangUp().then(function() {
-      CallScreen.setEndConferenceCall();
+      ConferenceGroupHandler.signalConferenceEnded();
     }, function() {
       console.error('Failed to hangup Conference Call');
     });
