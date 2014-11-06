@@ -99,6 +99,8 @@
    "keyboard.clicksound": false,
    "keyboard.autocorrect": true,
    "keyboard.wordsuggestion": true,
+   "keyboard.handwriting.strokeWidth": 10,
+   "keyboard.handwriting.responseTime": 500,
    "keyboard.current": null,
    "keyboard.3rd-party-app.enabled": true,
    "keyboard.launch-on-boot": true,

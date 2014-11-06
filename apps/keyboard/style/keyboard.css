@@ -775,6 +775,13 @@ bubble above the key when you tap and hold. */
   font-size: 1.7rem;
 }
 
+/* Handwriting */
+.handwriting-pad {
+  background-color: #ebeced;
+  margin: -1px;
+  float: left;
+}
+
 /* Hindi */
 .keyboard-key.hindi > .visual-wrapper > span[data-label="औ"],
 .keyboard-key.hindi > .visual-wrapper > span[data-label="आ"],
