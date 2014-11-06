@@ -172,7 +172,7 @@ contacts.Search = (function() {
 
       newTerms.forEach(function replaceWithHighlight(term) {
         textNode.firstChild.innerHTML = textNode.textContent.replace(
-          new RegExp('(' + term + ')', 'gi'),
+          new RegExp('(' + term + ')', 'i'),
           '<span class="' + highlightClass + '">$1</span>');
        });
     });
