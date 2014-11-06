@@ -1140,15 +1140,13 @@ Camera.prototype.onShutter = function() {
  * from the camera hardware. If 'stopped'
  * or 'paused' the camera must not be used.
  *
- * @param  {String} state
+ * @param  {String} state ['stopped', 'paused']
  * @private
  */
 Camera.prototype.onPreviewStateChange = function(state) {
   debug('preview state change: %s', state);
-  var busy = state === 'stopped' || state === 'paused';
+  this.previewState = state;
   this.emit('preview:' + state);
-  if (busy) { this.busy(); }
-  else { this.ready(); }
 };
 
 /**
