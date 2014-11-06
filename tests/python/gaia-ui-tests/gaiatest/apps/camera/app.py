@@ -84,7 +84,7 @@ class Camera(Base):
         Wait(self.marionette).until(expected.element_enabled(select))
         select.tap()
         # Fall back to app beneath the picker
-        Wait(self.mariontte).until(lambda m: self.apps.displayed_app.name != self.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)
         self.apps.switch_to_displayed_app()
 
     def tap_switch_source(self):
