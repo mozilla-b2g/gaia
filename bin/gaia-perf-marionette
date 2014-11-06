@@ -93,7 +93,6 @@ for app in $APPS; do
   export CURRENT_APP="$app"
   OUT=`PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
     --timeout 60s \
-    --ui tdd \
     --profile-builder $SHARED/profile_builder.js \
     --profile-base $SHARED/profile.js \
     --host $MARIONETTE_RUNNER_HOST \
