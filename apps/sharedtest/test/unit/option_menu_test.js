@@ -165,6 +165,10 @@ suite('OptionMenu', function() {
         } catch (e) {
           // Waiting for stylesheet to load
         } finally {
+          // Clear the interval again just in case we threw before calling
+          // clearInterval() the first time. This is necessary so we don't call
+          // the done() function multiple times.
+          clearInterval(loaded);
           var form = document.createElement('form');
           form.setAttribute('role', 'dialog');
           form.setAttribute('data-type', 'confirm');
