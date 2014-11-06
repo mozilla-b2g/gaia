@@ -168,7 +168,7 @@ marionette('Ringtone management', function() {
         container.addButton.tap();
 
         musicApp.switchToMe();
-        musicApp.playFirstSong();
+        musicApp.songsTab.play();
         musicApp.finishPick();
 
         container.waitForNewRingtoneWindow(function(win) {

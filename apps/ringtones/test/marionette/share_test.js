@@ -38,9 +38,8 @@ marionette('Share as ringtone', function() {
       var settingsApp = new Settings(client);
 
       musicApp.launch();
-      musicApp.waitForFirstTile();
       musicApp.switchToSongsView();
-      musicApp.playFirstSong();
+      musicApp.songsTab.play();
       musicApp.shareWith('Ringtones');
 
       app.inShare(function(container) {

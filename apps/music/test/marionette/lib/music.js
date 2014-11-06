@@ -3,26 +3,25 @@
 
 var assert = require('assert');
 var Actions = require('marionette-client').Actions;
+var SongsTab = require('./views/songs_tab');
 
-function Music(client, origin) {
+function Music(client) {
   this.client = client;
-  this.origin = origin || ('app://' + Music.DEFAULT_ORIGIN);
   this.actions = new Actions(client);
+  this.songsTab = new SongsTab(client);
 }
 
 module.exports = Music;
 
-Music.DEFAULT_ORIGIN = 'music.gaiamobile.org';
+Music.DEFAULT_ORIGIN = 'app://music.gaiamobile.org';
 
 Music.Selector = Object.freeze({
   messageOverlay: '#overlay',
   firstTile: '.tile',
-  songsTab: '#tabs-songs',
   albumsTab: '#tabs-albums',
   coverImage: '#player-cover-image',
   viewsList: '#views-list-anchor',
   viewsSublist: '#views-sublist-anchor',
-  firstSong: '.list-item',
   playButton: '#player-controls-play',
   progressBar: '#player-seek-bar-progress',
   shareButton: '#player-cover-share',
@@ -43,28 +42,14 @@ Music.prototype = {
     return this.client.findElement(Music.Selector.firstTile);
   },
 
-  get songsTab() {
-    return this.client.helper.waitForElement(Music.Selector.songsTab);
-  },
-
   get albumsTab() {
     return this.client.helper.waitForElement(Music.Selector.albumsTab);
   },
 
-  get firstSong() {
-    return this.client.helper.waitForElement(Music.Selector.firstSong);
-  },
-
   get songs() {
     this.waitForSublist();
-
-    var list = this.client.findElement(Music.Selector.viewsSublist);
-    assert.ok(list);
-
-    var list_items = list.findElements('li.list-item', 'css selector');
-    assert.ok(list_items);
-
-    return list_items;
+    return this.client.findElement(Music.Selector.viewsSublist)
+                      .findElements('li.list-item');
   },
 
   get playButton() {
@@ -106,28 +91,30 @@ Music.prototype = {
     return parseFloat(this.progressBar.getAttribute('value'));
   },
 
-  launch: function() {
+  launch: function(options) {
+    options = options || { waitForFirstTile: true };
     this.client.switchToFrame();
-    this.client.apps.launch(this.origin);
-    this.client.apps.switchToApp(this.origin);
+    this.client.apps.launch(Music.DEFAULT_ORIGIN);
+    this.client.apps.switchToApp(Music.DEFAULT_ORIGIN);
     this.client.helper.waitForElement('body');
+    if (options.waitForFirstTile) {
+      // Wait for the first song loaded.
+      this.waitForFirstTile();
+    }
   },
 
   switchToMe: function(options) {
     options = options || {};
 
     this.client.switchToFrame();
-
-    // Switch to music even when it is in background.
+    if (options.background != null && !options.background) {
+      this.client.apps.launch(Music.DEFAULT_ORIGIN);
+    }
     // We cannot use switchToApp here, because it will wait
     // for the app to come to foreground.
-    if (options.background) {
-      var musicFrame = this.client.findElement('iframe[src*="' +
-                                          this.origin + '"]');
-      this.client.switchToFrame(musicFrame);
-    } else {
-      this.client.apps.switchToApp(this.origin);
-    }
+    var musicFrame =
+      this.client.findElement('iframe[src*="' + Music.DEFAULT_ORIGIN + '"]');
+    this.client.switchToFrame(musicFrame);
   },
 
   waitForFirstTile: function() {
@@ -166,7 +153,7 @@ Music.prototype = {
   },
 
   switchToSongsView: function() {
-    this.songsTab.tap();
+    this.client.findElement('#tabs-songs').tap();
   },
 
   switchToAlbumsView: function() {
@@ -184,10 +171,6 @@ Music.prototype = {
       return element.findElement('span.list-main-title', 'css selector')
         .text() === name;
     })[0].tap();
-  },
-
-  playFirstSong: function() {
-    this.firstSong.click();
   },
 
   tapPlayButton: function() {
@@ -217,12 +200,12 @@ Music.prototype = {
       try {
         shareMenu = quickly.findElement(Music.Selector.shareMenu);
       } catch(e) {
-        this.client.apps.switchToApp(this.origin);
+        this.client.apps.switchToApp(Music.DEFAULT_ORIGIN);
         return false;
       }
 
       var isDisplayed = shareMenu.displayed();
-      this.client.apps.switchToApp(this.origin);
+      this.client.apps.switchToApp(Music.DEFAULT_ORIGIN);
       return isDisplayed;
     }.bind(this));
 

@@ -45,6 +45,17 @@ marionette('Music player tests', function() {
       statusbar = new Statusbar(client);
     });
 
+    test('Should not play music when ringtone is playing', function() {
+      music.launch();
+      music.switchToSongsView();
+      music.songsTab.play();
+      statusbar.waitForPlayingIndicatorShown(true);
+
+      // Ringtone will be played automatically.
+      ringtones.launch();
+      statusbar.waitForPlayingIndicatorShown(false);
+    });
+
     // This test is skipped for not failing tpbl, please see bug 997360.
     test.skip('Interrupted by a higher priority channel', function() {
       // Launch Music app and wait for the first tile to come out. Switch to
@@ -119,15 +130,13 @@ marionette('Music player tests', function() {
   suite('Player icon tests', function() {
     test('Check the player icon hides before play some song', function() {
       music.launch();
-      music.waitForFirstTile();
       music.checkPlayerIconShown(false);
     });
 
     test('Check the player icon displays after play some song', function() {
       music.launch();
-      music.waitForFirstTile();
       music.switchToSongsView();
-      music.playFirstSong();
+      music.songsTab.play();
 
       music.tapHeaderActionButton();
       music.checkPlayerIconShown(true);
