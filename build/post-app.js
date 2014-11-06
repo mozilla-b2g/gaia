@@ -1,7 +1,8 @@
-/* global require, exports */
 'use strict';
 
-function execute(options) {
+/* global require, exports */
+
+exports.execute = function(options) {
   require('./clean-build-files').execute(options);
 
   // Filter images/video by GAIA_DEV_PIXELS_PER_PX.
@@ -35,5 +36,4 @@ function execute(options) {
   // webapp-zip wants these files to still be around during the zip stage,
   // depend on webapp-zip so it runs to completion before we start the cleanup.
   require('./optimize-clean').execute(options);
-}
-exports.execute = execute;
+};

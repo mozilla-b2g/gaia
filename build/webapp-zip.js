@@ -62,6 +62,13 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
     function fileExist(file) {
       return !file.exists();
     },
+    // A workaround for bug 1093267 in order to handle callscreen's l10n broken.
+    // We remove locales folder in zip
+    // After bug 1093267 has been resolved, we're going to get rid of this.
+    function isLocales(file) {
+      return file.path.indexOf('communications') !== -1 &&
+        utils.getExtension(file.path) === 'properties';
+    },
     function fileHidden(file) {
       return file.isHidden();
     },
@@ -167,20 +174,20 @@ WebappZip.prototype.execute = function(options) {
   this.closeZip();
 };
 
-function execute(config) {
-  var webappsTargetDir = utils.getFile(config.PROFILE_DIR);
+function execute(options) {
+  var targetWebapp = utils.getWebapp(options.APP_DIR,
+    options.GAIA_DOMAIN, options.GAIA_SCHEME,
+    options.GAIA_PORT, options.STAGE_DIR);
+
+  var webappsTargetDir = utils.getFile(options.PROFILE_DIR);
   // Create profile folder if doesn't exists
   utils.ensureFolderExists(webappsTargetDir);
 
   // Create webapps folder if doesn't exists
   webappsTargetDir.append('webapps');
 
-  var gaia = utils.gaia.getInstance(config);
-  gaia.webapps.forEach(function(webapp) {
-    (new WebappZip()).execute({
-      config: config, targetDir: webappsTargetDir, webapp: webapp});
-  });
-
+  (new WebappZip()).execute({
+    config: options, targetDir: webappsTargetDir, webapp: targetWebapp});
 }
 
 exports.execute = execute;

@@ -464,7 +464,9 @@ function execute(options) {
       'to be set');
     return;
   }
-  var gaia = utils.gaia.getInstance(options);
+  var targetWebapp = utils.getWebapp(options.APP_DIR,
+    options.GAIA_DOMAIN, options.GAIA_SCHEME,
+    options.GAIA_PORT, options.STAGE_DIR);
 
   // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
   var localeBasedir = utils.getLocaleBasedir(options.LOCALE_BASEDIR);
@@ -477,22 +479,20 @@ function execute(options) {
       deviceType: options.GAIA_DEVICE_TYPE,
     });
 
-  gaia.webapps.forEach(function(webapp) {
-    if (options.BUILD_APP_NAME !== '*' &&
-      webapp.sourceDirectoryName != options.BUILD_APP_NAME) {
-      return;
-    }
+  if (options.BUILD_APP_NAME !== '*' &&
+    targetWebapp.sourceDirectoryName != options.BUILD_APP_NAME) {
+    return;
+  }
 
-    if (utils.isExternalApp(webapp)) {
-      return;
-    }
-    var files = utils.ls(webapp.buildDirectoryFile, true,
-      /^tests?$/);
+  if (utils.isExternalApp(targetWebapp)) {
+    return;
+  }
+  var files = utils.ls(targetWebapp.buildDirectoryFile, true,
+    /^tests?$/);
 
-    l10nManager.localize(files.filter(function(file) {
-      return /\.html$/.test(file.path);
-    }), webapp);
-  });
+  l10nManager.localize(files.filter(function(file) {
+    return /\.html$/.test(file.path);
+  }), targetWebapp);
 }
 
 exports.execute = execute;
