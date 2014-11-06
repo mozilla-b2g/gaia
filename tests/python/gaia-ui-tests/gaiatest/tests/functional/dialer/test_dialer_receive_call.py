@@ -49,10 +49,9 @@ class TestReceiveCall(GaiaTestCase):
 
         call_screen.hang_up()
 
-        # Wait for Plivo to report the call as completed
         Wait(self.plivo, timeout=PLIVO_TIMEOUT).until(
             lambda p: p.is_call_completed(self.call_uuid),
-            message='The call was not completed.')
+            message="Plivo didn't report the call as completed")
         self.call_uuid = None
 
     def tearDown(self):
