@@ -10,7 +10,9 @@ html, body {
 
 
 /* Style for the attachment options menu, mimics style for shared
- * options dialog element.
+ * options menu element.
+ * TODO: We should remove this once we used the shared options menu for the
+ *       attachment menu.
  */
 #attachment-options {
   visibility: hidden;
