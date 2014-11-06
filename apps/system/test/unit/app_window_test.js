@@ -1,5 +1,5 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockContextMenu, layoutManager,
+      LayoutManager, MocksHelper, MockContextMenu, layoutManager, System,
       MockAppTransitionController, MockPermissionSettings, DocumentFragment */
 'use strict';
 
@@ -933,6 +933,15 @@ suite('system/AppWindow', function() {
   });
 
   suite('Browser Mixin', function() {
+    var fakeDOMRequest;
+
+    setup(function() {
+      fakeDOMRequest = {
+        onsuccess: function() {},
+        onerror: function() {}
+      };
+    });
+
     test('MozBrowser API: simple methods', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
@@ -961,13 +970,14 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       var stubScreenshot = this.sinon.stub(app1.browser.element,
-        'getScreenshot');
+        'getScreenshot').returns(fakeDOMRequest);
 
       stubScreenshot.returns(fakeDOMRequest);
 
       var callback1 = this.sinon.spy();
       app1.getScreenshot(callback1);
-      assert.isTrue(stubScreenshot.called);
+      sinon.assert.calledWith(stubScreenshot,
+         sinon.match.number, sinon.match.number, 'image/jpeg');
       fakeDOMRequest.onsuccess({ target: { result: 'fakeBlob' } });
       assert.equal(app1._screenshotBlob, 'fakeBlob');
       assert.isTrue(callback1.calledWith('fakeBlob'));
@@ -983,12 +993,9 @@ suite('system/AppWindow', function() {
       injectFakeMozBrowserAPI(app1.browser.element);
       injectFakeMozBrowserAPI(app2.browser.element);
       var stubScreenshot = this.sinon.stub(app1.browser.element,
-        'getScreenshot');
+        'getScreenshot').returns(fakeDOMRequest);
       var stubScreenshot2 = this.sinon.stub(app2.browser.element,
-        'getScreenshot');
-
-      stubScreenshot.returns(fakeDOMRequest);
-      stubScreenshot2.returns(fakeDOMRequest);
+        'getScreenshot').returns(fakeDOMRequest);
 
       var callback1 = this.sinon.spy();
       app1.frontWindow = app2;
@@ -1004,11 +1011,26 @@ suite('system/AppWindow', function() {
       assert.isTrue(callback1.called);
     });
 
+    test('MozBrowser API: getScreenshot for homescreen', function() {
+      var home = new AppWindow(fakeAppConfig1);
+      home.isHomescreen = true;
+
+      injectFakeMozBrowserAPI(home.browser.element);
+      var stubScreenshot = this.sinon.stub(home.browser.element,
+        'getScreenshot').returns(fakeDOMRequest);
+
+      home.getScreenshot();
+
+      // should take screenshot blob with png fromat
+      sinon.assert.calledWith(stubScreenshot,
+        sinon.match.number, sinon.match.number, 'image/png');
+    });
+
     test('MozBrowser API: getGoForward', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       var stubCanGoForward = this.sinon.stub(app1.browser.element,
-        'getCanGoForward');
+        'getCanGoForward').returns(fakeDOMRequest);
 
       stubCanGoForward.returns(fakeDOMRequest);
 
@@ -1028,9 +1050,8 @@ suite('system/AppWindow', function() {
     test('MozBrowser API: getGoBack', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      var stubCanGoBack = this.sinon.stub(app1.browser.element, 'getCanGoBack');
-
-      stubCanGoBack.returns(fakeDOMRequest);
+      var stubCanGoBack = this.sinon.stub(app1.browser.element,
+        'getCanGoBack').returns(fakeDOMRequest);
 
       var callback = this.sinon.spy();
       app1.canGoBack(callback);
@@ -1457,11 +1478,12 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubKill.called);
     });
 
-    test('Closed event', function() {
+    test('Closed while system is busy and homescreen at bottom', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       app1.isHomescreen = true;
       var app2 = new AppWindow(fakeAppConfig2);
 
+      this.sinon.stub(System, 'isBusyLoading').returns(true);
       injectFakeMozBrowserAPI(app1.browser.element);
       injectFakeMozBrowserAPI(app2.browser.element);
       var stubScreenshot = this.sinon.stub(app1.browser.element,
