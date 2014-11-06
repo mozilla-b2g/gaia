@@ -29,13 +29,7 @@ return [
       this.args = args;
       this.callingCard = args.callingCard;
       this.creationInProcess = true;
-
-      if (!args.password) {
-        this.learnAbout();
-      } else {
-        // The manual config pathway.
-        this.tryCreate();
-      }
+      this.cardHasBeenShown = false;
     },
 
     extraClasses: ['anim-fade', 'anim-overlay'],
@@ -48,20 +42,38 @@ return [
     },
 
     onCardVisible: function() {
-      // If this card was made visible because of a cancel of a secondary config
-      // card, just go back one more card. The setTimeout is a hack. Without it,
-      // the final card is not actionable because the onTransitionEnd is not
-      // fired on this second removeCardAndSuccessors call while done as part
-      // of finishing up the previous card's removeCardAndSuccessors. A queue
-      // approach as described in 973038 does not help. It seems like the
-      // _transitionEnd for the second call does not ever fire. Need some async
-      // delay, not sure why yet. Otherwise, _eatingEventsUntilNextCard ends up
-      // as true, since the reset logic for it in _onTransitionEnd does not
-      // fire.
-      if (this.pushedSecondaryCard) {
-        // Doing an immediate setTimeout is not enough, bothersome that it
-        // needs a time threshold
-        setTimeout(this.onBack.bind(this), 100);
+      if (this.cardHasBeenShown) {
+        // If this card was made visible because of a cancel of a secondary
+        // config card, just go back one more card. The setTimeout is a hack.
+        // Without it, the final card is not actionable because the
+        // onTransitionEnd is not fired on this second removeCardAndSuccessors
+        // call while done as part of finishing up the previous card's
+        // removeCardAndSuccessors. A queue approach as described in 973038 does
+        // not help. It seems like the _transitionEnd for the second call does
+        // not ever fire. Need some async delay, not sure why yet. Otherwise,
+        // _eatingEventsUntilNextCard ends up as true, since the reset logic for
+        // it in _onTransitionEnd does not fire.
+        if (this.cardFirstShown && this.pushedSecondaryCard) {
+          // Doing an immediate setTimeout is not enough, bothersome that it
+          // needs a time threshold
+          setTimeout(this.onBack.bind(this), 100);
+        }
+      } else {
+        // First time the card has been shown, can now sort out what card to
+        // show next. This logic could be in onArgs, but it is racy, where
+        // learnAbout could complete before the animation to this card completes
+        // which would lead to a case where this.pushedSecondaryCard will be
+        // set to true before onCardVisible is called for the first time. Long
+        // term fix is to remove the pushedSecondaryCard hack, and allow
+        // multiple card removal in one call, along with the fix for bug 973038.
+        this.cardHasBeenShown = true;
+
+        if (!this.args.password) {
+          this.learnAbout();
+        } else {
+          // The manual config pathway.
+          this.tryCreate();
+        }
       }
     },
 
