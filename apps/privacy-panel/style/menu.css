@@ -2,12 +2,12 @@
 /******************************************************************************
  * Setting icons
  */
-
 .menu-item {
   position: static;
   padding-left: 5.5rem;
   background-repeat: no-repeat;
   background-position: 1.4rem center;
+  background-size: 3.2rem 3.2rem;
 }
 
 a.menu-item:after  {

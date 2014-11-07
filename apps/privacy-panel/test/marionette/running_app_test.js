@@ -2,7 +2,7 @@
 
 var SettingsApp = require('./lib/panels/settings_app');
 
-marionette('remote privacy protection main panel', function() {
+marionette('settings app', function() {
   var client = marionette.client({
     settings: {
       'privacy-panel-gt-complete': true
@@ -15,7 +15,7 @@ marionette('remote privacy protection main panel', function() {
     subject.init();
   });
 
-  test('ftu register form is displayed', function() {
+  test('loading privacy-panel app from settings', function() {
     subject.tapOnMenuItem();
 
     // Change marionette context to privacy-panel app.

@@ -136,7 +136,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
         }.bind(this), 3000);
       }.bind(this);
 
-      Commands.invokeCommand('ring', [86400, ringReply]);
+      Commands.invokeCommand('ring', [120, ringReply]);
     },
 
     /**

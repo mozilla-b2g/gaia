@@ -3,7 +3,7 @@
 var assert = require('assert');
 var GtPanels = require('./lib/panels/ftu_guided_tour');
 
-marionette('guided tour panels', function() {
+marionette('first time use', function() {
   var client = marionette.client({});
   var subject;
 

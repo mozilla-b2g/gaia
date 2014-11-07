@@ -1,3 +1,4 @@
+/*jshint maxlen:120 */
 /**
  * ALA define custom location panel.
  * 
@@ -105,37 +106,37 @@ function(panels, SettingsListener, SettingsHelper) {
       this.updateCountriesList();
       this.updateType();
 
-      this.runCallback();
+      this.saveConfig();
     },
 
     toggleType: function(event) {
       this.config.type = event.target.value;
       this.updateType();
-      this.runCallback();
+      this.saveConfig();
     },
 
     toggleCountry: function(event) {
       this.config.country = event.target.value;
       this.updateCountry();
       this.updateLongitudeAndLatitudeForCity();
-      this.runCallback();
+      this.saveConfig();
     },
 
     toggleCity: function(event) {
       this.config.city = event.target.value;
       this.updateCity();
       this.updateLongitudeAndLatitudeForCity();
-      this.runCallback();
+      this.saveConfig();
     },
 
     toggleLongitude: function(event) {
       this.config.longitude = event.target.value;
-      this.runCallback();
+      this.saveConfig();
     },
 
     toggleLatitude: function(event) {
       this.config.latitude = event.target.value;
-      this.runCallback();
+      this.saveConfig();
     },
 
     updateCountriesList: function() {
@@ -262,8 +263,17 @@ function(panels, SettingsListener, SettingsHelper) {
       this.latitude.value = this.config.latitude || 0;
     },
 
-    runCallback: function() {
-      this.callback(this.config);
+    validate: function() {
+      var lat = /^[-+]?(([0-8]\d|\d)(\.\d{1,6})?|90(\.0{1,6})?)$/;
+      var lon = /^[-+]?((1[0-7]\d(\.\d{1,6})?)|(180(\.0+)?)|(\d\d(\.\d{1,6})?)|(\d(\.\d{1,6})?))$/;
+
+      return lat.test(this.config.latitude) && lon.test(this.config.longitude);
+    },
+
+    saveConfig: function() {
+      if (this.validate()) {
+        this.callback(this.config);
+      }
     }
   };
 
