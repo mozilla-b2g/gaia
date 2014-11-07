@@ -25,17 +25,18 @@ function MockDownload(params) {
   this.contentType = params.contentType || DEFAULT_PARAMS.contentType;
   this.startTime = params.startTime || DEFAULT_PARAMS.startTime;
   this.error = params.error || DEFAULT_PARAMS.error;
+
 }
 
 MockDownload.prototype = {
   pause: function() {
     return {
-      then: function() {}
+      then: function(success, error) { setTimeout(success, 0); }
     };
   },
   resume: function() {
     return {
-      then: function() {}
+      then: function(success, error) { setTimeout(success, 0); }
     };
   }
 };
