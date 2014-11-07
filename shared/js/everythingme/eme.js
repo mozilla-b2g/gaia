@@ -7,7 +7,7 @@
   const mozSettings = navigator.mozSettings;
 
   const DEBUG = true;
-  const API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
+  const API_URL = 'http://localhost/{resource}/';
 
   var initPromise = null;
   var slice = Function.call.bind(Array.prototype.slice);
