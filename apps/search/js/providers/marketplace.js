@@ -5,11 +5,7 @@
   'use strict';
 
   const NUM_DISPLAY = 4;
-  const API = 'https://marketplace.firefox.com/api/v2/apps/search/rocketbar/' +
-    '?q={q}' +
-    '&limit=' + NUM_DISPLAY +
-    '&lang=' + document.documentElement.lang +
-    '&region=restofworld';
+  var apiUrl = null;
 
   function Marketplace() {}
 
@@ -23,16 +19,30 @@
     dedupeStrategy: 'exact',
     remote: true,
 
+    init: function() {
+
+      DataGridProvider.prototype.init.apply(this, arguments);
+      var urlKey = 'search.marketplace.url';
+      var req = navigator.mozSettings.createLock().get(urlKey);
+      req.onsuccess = function () {
+        if (req.result[urlKey]) {
+          apiUrl = req.result[urlKey]
+            .replace('{limit}', NUM_DISPLAY)
+            .replace('{lang}', document.documentElement.lang);
+        }
+      };
+    },
+
     search: function(input) {
       return new Promise((resolve, reject) => {
         this.abort();
 
-        if (!input) {
-          return;
+        if (!input || !apiUrl) {
+          return reject();
         }
 
         var req = new XMLHttpRequest();
-        req.open('GET', API.replace('{q}', input), true);
+        req.open('GET', apiUrl.replace('{q}', input), true);
         req.onload = (function onload() {
           var results = JSON.parse(req.responseText);
           if (!results.length) {
