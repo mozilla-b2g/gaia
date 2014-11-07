@@ -16,6 +16,7 @@ requireApp('ftu/test/unit/mock_time_manager.js');
 requireApp('ftu/test/unit/mock_ui_manager.js');
 requireApp('ftu/test/unit/mock_navigation.js');
 requireApp('ftu/test/unit/mock_data_mobile.js');
+requireApp('ftu/test/unit/mock_language_manager.js');
 
 suite('AppManager >', function() {
   var mocksHelperForAppManager = new MocksHelper([
@@ -27,7 +28,8 @@ suite('AppManager >', function() {
     'TimeManager',
     'UIManager',
     'Navigation',
-    'DataMobile'
+    'DataMobile',
+    'LanguageManager'
   ]).init();
 
   var realL10n;

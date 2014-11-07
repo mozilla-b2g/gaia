@@ -72,6 +72,3 @@ var LanguageManager = {
     });
   }
 };
-
-LanguageManager.init();
-
