@@ -3,6 +3,7 @@
 /* global MocksHelper */
 /* global MockL10n */
 /* global MockNavigatorBattery */
+/* global MozActivity */
 
 requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -12,11 +13,13 @@ require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/js/power_save.js');
 requireApp('system/js/battery_overlay.js');
+require('/shared/test/unit/mocks/mock_moz_activity.js');
 
 var mocksForBatteryOverlay = new MocksHelper([
   'SettingsListener',
   'sleepMenu',
-  'GestureDetector'
+  'GestureDetector',
+  'MozActivity'
 ]).init();
 
 suite('battery manager >', function() {
@@ -130,6 +133,22 @@ suite('battery manager >', function() {
         sendLevelChange(0.00);
         sinon.assert.calledWithMatch(window.dispatchEvent,
                                      { type: 'batteryshutdown' });
+      });
+
+      suite('Battery notification', function() {
+        var params = {
+          name: 'configure',
+          data: {
+            target: 'device',
+            section: 'battery'
+          }
+        };
+
+        test('open settings when notification is clicked', function() {
+          notifNode.click();
+
+          assert.deepEqual(MozActivity.calls[0], params);
+        });
       });
     });
 

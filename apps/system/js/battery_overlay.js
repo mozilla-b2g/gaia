@@ -1,6 +1,7 @@
 'use strict';
 /* global PowerSave */
 /* global ScreenManager */
+/* global MozActivity */
 
 (function(exports) {
 
@@ -23,7 +24,7 @@
     getAllElements: function bm_getAllElements() {
       this.screen = document.getElementById('screen');
       this.overlay = document.getElementById('system-overlay');
-      this.notification = document.getElementById('battery');
+      this._notification = document.getElementById('battery');
     },
 
     checkBatteryDrainage: function bm_checkBatteryDrainage() {
@@ -53,6 +54,9 @@
 
       this._screenOn = true;
       this._wasEmptyBatteryNotificationDisplayed = false;
+
+      this._notification.addEventListener('click',
+        this.handleEvent.bind(this));
 
       this.displayIfNecessary();
     },
@@ -92,6 +96,22 @@
           } else {
             this.displayIfNecessary();
           }
+          break;
+        case 'click':
+          /* jshint nonew: false */
+          new MozActivity({
+            name: 'configure',
+            data: {
+              target: 'device',
+              section: 'battery'
+            }
+          });
+
+          if (this._toasterTimeout) {
+            clearTimeout(this._toasterTimeout);
+          }
+
+          this.hide();
           break;
       }
     },
