@@ -27,30 +27,54 @@ require.config({
   }
 });
 
+(function() {
+  var ppFTU = navigator.mozSettings.createLock()
+    .get('privacy-panel-gt-complete');
+  ppFTU.onsuccess = function() {
+    var ftu = ppFTU.result['privacy-panel-gt-complete'];
+
+    if ( ! ftu) {
+      var rootPanel = document.getElementById('root');
+      rootPanel.classList.remove('current');
+      rootPanel.classList.add('previous');
+      document.getElementById('gt-main').classList.add('current');
+
+      navigator.mozSettings.createLock().set({
+        'privacy-panel-gt-complete': true
+      });
+    }
+  };
+})();
+
 require([
   'panels',
   'root/main',
-  'ala/main',
-  'rpp/main',
-  'sms/main',
   'shared/l10n'
 ],
 
-function(panels, root, ala, rpp, commands) {
+function(panels, root) {
   root.init();
 
   // load all templates for guided tour sections
   panels.load('gt');
 
-  // load all templates for location accuracy sections
-  panels.load('ala', function() {
-    ala.init();
-  });
+  require([
+    'ala/main',
+    'rpp/main',
+    'sms/main'
+  ],
 
-  // load all templates for remote privacy sections
-  panels.load('rpp', function() {
-    rpp.init();
-  });
+  function(ala, rpp, commands) {
+    // load all templates for location accuracy sections
+    panels.load('ala', function() {
+      ala.init();
+    });
 
-  commands.init();
+    // load all templates for remote privacy sections
+    panels.load('rpp', function() {
+      rpp.init();
+    });
+
+    commands.init();
+  });
 });

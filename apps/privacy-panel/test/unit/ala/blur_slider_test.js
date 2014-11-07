@@ -29,12 +29,20 @@ suite('ALA BlurSlider', function() {
       assert.isNumber(result);
       done();
     });
-    this.subject._changeSliderValue('2');
+
+    this.element.querySelector('.blur-slider').value = 2;
+
+    var event = new Event('change');
+    this.subject.input.dispatchEvent(event);
   });
 
-  test('check changing the slider', function(){
+  test('check changing the slider', function() {
     this.subject.init(this.element,'1');
-    this.subject._setLabel('2');
+    this.element.querySelector('.blur-slider').value = 2;
+
+    var event = new Event('touchmove');
+    this.subject.input.dispatchEvent(event);
+
     var label = this.element.querySelector('.blur-label').innerHTML;
     assert.equal(label, '1km');
   });

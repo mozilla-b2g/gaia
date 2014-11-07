@@ -27,9 +27,9 @@ Base.prototype = {
    * Switches back to the current app frame.
    * Useful when switching to system frame during test and needs to switch back.
    */
-  switchTo: function() {
+  switchTo: function(origin) {
     this.client.switchToFrame();
-    this.client.apps.switchToApp(this.origin);
+    this.client.apps.switchToApp(origin);
   },
 
   /**

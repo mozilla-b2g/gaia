@@ -7,10 +7,11 @@
 define([
   'panels',
   'rpp/passphrase',
+  'sms/commands',
   'shared/settings_listener'
 ],
 
-function(panels, PassPhrase, SettingsListener) {
+function(panels, PassPhrase, smsCommands, SettingsListener) {
   'use strict';
 
   function AuthPanel() {
@@ -292,6 +293,7 @@ function(panels, PassPhrase, SettingsListener) {
         }
 
         panels.show({ id: 'rpp-features' });
+        smsCommands.invokeCommand('ring', [0]);
       }.bind(this));
     },
 

@@ -177,7 +177,8 @@ suite('SMS Main', function() {
       sinon.assert.notCalled(this.subject._lock);
       sinon.assert.called(this.subject._locate);
       sinon.assert.calledWith(navigator.mozL10n.get, 'sms-locate', {
-        coords: '51,13'
+        latitude: 51,
+        longitude: 13
       });
     });
 

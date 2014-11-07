@@ -36,14 +36,4 @@ suite('ALA CustomLocation', function() {
       done();
     });
   });
-
-  test('item was loaded properly', function() {
-    assert.isTrue(true);
-  });
-
-  //test('check if we have a list of countries', function(){
-  //  this.subject.init();
-  //  var listOfcountriesAndCities = this.countriesAndCities;
-  //  assert.isNotNull(listOfcountriesAndCities);
-  //});
 });

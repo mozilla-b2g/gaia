@@ -172,18 +172,14 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
       }
 
       var locateReply = function(status, result) {
-        var lat, lon;
-
         if ( ! status) {
           console.warn('Error while trying to locate a phone: ' + result);
           return;
         }
 
-        lat = result.coords.latitude;
-        lon = result.coords.longitude;
-
         this._sendSMS(number, navigator.mozL10n.get('sms-locate', {
-          coords: lat + ',' + lon
+          latitude: result.coords.latitude,
+          longitude: result.coords.longitude
         }));
 
         // Lock phone

@@ -6,6 +6,7 @@ var AlaMainPanel = require('./lib/panels/ala_main');
 marionette('check ala main panel', function() {
   var client = marionette.client({
     settings: {
+      'privacy-panel-gt-complete': true,
       'geolocation.enabled': false,
       'ala.settings.enabled': false,
       'geolocation.type': 'no-location'

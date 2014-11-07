@@ -6,6 +6,7 @@ var RppMainPanel = require('./lib/panels/rpp_features');
 marionette('remote privacy protection main panel', function() {
   var client = marionette.client({
     settings: {
+      'privacy-panel-gt-complete': true,
       'lockscreen.enabled': true,
       'lockscreen.passcode-lock.enabled': true,
       'rpp.locate.enabled': false,

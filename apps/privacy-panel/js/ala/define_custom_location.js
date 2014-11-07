@@ -38,7 +38,6 @@ function(panels, SettingsListener, SettingsHelper) {
      * @constructor
      */
     init: function() {
-      this.settings =   window.navigator.mozSettings;
       this.panel =      document.getElementById('ala-custom');
       this.typeCC =     this.panel.querySelector('.dcl-type-cc');
       this.typeGPS =    this.panel.querySelector('.dcl-type-gps');

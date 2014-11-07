@@ -3,7 +3,11 @@
 var GtPanels = require('./lib/panels/guided_tour');
 
 marionette('guided tour panels', function() {
-  var client = marionette.client({});
+  var client = marionette.client({
+    settings: {
+      'privacy-panel-gt-complete': true
+    }
+  });
   var subject;
 
   setup(function() {

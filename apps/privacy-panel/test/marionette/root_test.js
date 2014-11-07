@@ -4,7 +4,11 @@ var assert = require('assert');
 var RootPanel = require('./lib/panels/root');
 
 marionette('check main page', function() {
-  var client = marionette.client({});
+  var client = marionette.client({
+    settings: {
+      'privacy-panel-gt-complete': true
+    }
+  });
   var subject;
 
   setup(function() {

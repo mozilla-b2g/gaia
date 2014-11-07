@@ -29,7 +29,6 @@ function(panels, BlurSlider, appList, SettingsListener, SettingsHelper) {
      * @constructor
      */
     init: function(apps) {
-      this.settings = window.navigator.mozSettings;
       this.panel = document.getElementById('ala-exceptions');
       this.apps = apps;
 
