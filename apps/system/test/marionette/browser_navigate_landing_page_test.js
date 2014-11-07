@@ -51,15 +51,21 @@ marionette('Browser - Navigating from the landing page',
     client.apps.switchToApp(Search.URL);
     client.helper.waitForElement('body');
     client.switchToFrame();
-    system.appUrlbar.click();
-
     var nApps = system.getAppWindows().length;
     var nBrowsers = system.getBrowserWindows().length;
+
+    system.appUrlbar.click();
     var url = server.url('sample.html');
+    rocketbar.enterText(url);
+
+    // Wait for the search app to be open.
+    client.waitFor(function() {
+      return (nApps + 1) === system.getAppWindows().length;
+    });
     rocketbar.enterText(url + '\uE006');
 
-    // Opens the search window, so we should have 3 with the home screen.
-    // Wait for the expected number of app windows.
+    // Wait for the new browser window.
+    // It should override the search app.
     client.waitFor(function() {
       return (nApps + 1) === system.getAppWindows().length;
     });
