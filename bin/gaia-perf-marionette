@@ -73,7 +73,7 @@ for app in $APPS; do
   # xpcshell in available for email fake servers.
   export CURRENT_APP="$app"
   OUT=`PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
-    --timeout 10s \
+    --timeout 60s \
     --ui tdd \
     --profile-builder $SHARED/profile_builder.js \
     --profile-base $SHARED/profile.js \
