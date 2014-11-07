@@ -18,8 +18,11 @@ suite('chai', function() {
     ({ 'foo.bar': 'baz' }).should.have.property('foo.bar');
   });
 
-  test('chai-as-promised plugin', function(done) {
+  test('chai-as-promised plugin resolve', function(done) {
     assert.isFulfilled(Promise.resolve(), "Promise resolved").notify(done);
+  });
+
+  test('chai-as-promised plugin reject', function(done) {
     assert.isRejected(Promise.reject(), "Promise rejected").notify(done);
   });
 
