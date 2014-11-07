@@ -45,6 +45,9 @@ suite('DownloadList', function() {
   var downloadsContainerDOM, editButton, deleteButton,
     selectAllButton, deselectAllButton, downloadsEditMenu;
 
+  var clock;
+  var TICK = 1000;
+
   suiteSetup(function() {
     // Mock l10n
     realL10n = navigator.mozL10n;
@@ -93,12 +96,15 @@ suite('DownloadList', function() {
       done();
     });
 
+    clock = this.sinon.useFakeTimers();
   });
 
   teardown(function() {
     document.body.innerHTML = '';
     MockDownloadStore.downloads = [];
     mocksHelperForDownloadList.teardown();
+
+    clock.restore();
   });
 
   suite(' > edit mode', function() {
@@ -136,6 +142,8 @@ suite('DownloadList', function() {
         // Delete all downloads
         deleteButton.click();
       });
+
+      clock.tick(TICK);
     });
 
     test(' > select all button enabled/disabled', function(done) {
@@ -152,6 +160,8 @@ suite('DownloadList', function() {
         assert.isFalse(selectAllButton.disabled);
         done();
       });
+
+      clock.tick(TICK);
     });
 
     test(' > select the first one download', function(done) {
@@ -171,6 +181,8 @@ suite('DownloadList', function() {
         assert.isFalse(selectAllButton.disabled);
         done();
       });
+
+      clock.tick(TICK);
     });
 
     test(' > deselect all button enabled/disabled', function(done) {
@@ -189,6 +201,8 @@ suite('DownloadList', function() {
         assert.ok(deselectAllButton.disabled);
         done();
       });
+
+      clock.tick(TICK);
     });
 
     test(' > Deletion', function(done) {
@@ -227,6 +241,8 @@ suite('DownloadList', function() {
         // Delete all downloads
         deleteButton.click();
       });
+
+      clock.tick(TICK);
     });
   });
 
@@ -242,6 +258,8 @@ suite('DownloadList', function() {
         assert.equal(downloadsContainerDOM.firstChild.tagName, 'LI');
         done();
       });
+
+      clock.tick(TICK);
     });
 
     test(' > check render with one item in datastore', function(done) {
@@ -257,6 +275,8 @@ suite('DownloadList', function() {
         assert.equal(downloadsContainerDOM.firstChild.tagName, 'LI');
         done();
       });
+
+      clock.tick(TICK);
     });
 
     // This takes into account the structure defined in the mock. In this case
@@ -277,6 +297,8 @@ suite('DownloadList', function() {
           container = document.querySelector('#downloadList ul');
           done();
         });
+
+        clock.tick(TICK);
       });
 
       teardown(function() {
@@ -315,6 +337,8 @@ suite('DownloadList', function() {
           DownloadsList.init(function() {
             done();
           });
+
+          clock.tick(TICK);
         });
 
         test(' > a finalized download, but not in datastore', function() {
@@ -342,8 +366,8 @@ suite('DownloadList', function() {
           container = document.querySelector('#downloadList ul');
           done();
         });
-
         emptyContainer = document.getElementById('download-list-empty');
+        clock.tick(TICK);
       });
 
       teardown(function() {
@@ -362,7 +386,7 @@ suite('DownloadList', function() {
         var launchStub = sinon.stub(DownloadHelper, 'open', function() {
           return {
             set onsuccess(cb) {},
-            set onerror(cb) {setTimeout(cb, 50);}
+            set onerror(cb) {setTimeout(cb, 0); clock.tick(TICK); }
           };
         });
 
@@ -381,6 +405,7 @@ suite('DownloadList', function() {
               assert.equal(0, emptyContainer.classList.length);
               done();
               setTimeout(cleanStubs, 0);
+              clock.tick(TICK);
             },
             set onerror(cb) {}
           };

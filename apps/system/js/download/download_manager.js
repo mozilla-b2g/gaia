@@ -24,8 +24,8 @@ var DownloadManager = (function() {
   var notifications = {};
   var started = false;
 
-  // Set our download start handler.
-  mozDownloadManager.ondownloadstart = function onDownloadStart(ev) {
+  // Define and set our download start handler.
+  function onDownloadStart(ev) {
     if (started) {
       createDownloadNotification(ev.download);
     } else {
@@ -39,7 +39,8 @@ var DownloadManager = (function() {
         window.addEventListener('notification-clicked', handleEvent);
       });
     }
-  };
+  }
+  mozDownloadManager.addEventListener('downloadstart', onDownloadStart);
 
   function createDownloadNotification(download) {
     var id = DownloadFormatter.getUUID(download);
