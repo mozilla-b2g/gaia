@@ -34,13 +34,6 @@ var MmiManager = {
                      '/shared/js/mobile_operator.js'];
     LazyLoader.load(lazyFiles, function resourcesLoaded() {
       window.addEventListener('message', self);
-      for (var i = 0; i < navigator.mozMobileConnections.length; i++) {
-        var conn = navigator.mozMobileConnections[i];
-
-        // We cancel any active sessions if one exists to avoid sending any new
-        // USSD message within an invalid session.
-        conn.cancelMMI();
-      }
 
       LazyL10n.get(function localized(_) {
         self._ = _;

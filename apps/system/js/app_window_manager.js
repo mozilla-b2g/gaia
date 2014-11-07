@@ -374,6 +374,19 @@
 
         case 'appterminated':
           var app = evt.detail; // jshint ignore:line
+
+          // XXX: Cancel any active sessions was done when dialer app init
+          // to avoid sending any new USSD message within an invalid session.
+          // But this will introduce problems like bug 1090853, so we have to
+          // cancel any active sessions when dialer app terminated instead.
+          var dialerOrigin = 'app://communications.gaiamobile.org/dialer/';
+          if (app.origin.startsWith(dialerOrigin)) {
+            for (var i = 0; i < navigator.mozMobileConnections.length; i++) {
+              var conn = navigator.mozMobileConnections[i];
+              conn.cancelMMI();
+            }
+          }
+
           var instanceID = evt.detail.instanceID;
           if (activeApp && app.instanceID === activeApp.instanceID) {
             activeApp = null;
