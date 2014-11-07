@@ -12,6 +12,8 @@ require('/js/deck.js');
 require('/js/application.js');
 
 suite('smart-home/CardManager', function() {
+  // Disabled, bug 1095219
+  return;
   var realPipedPromise;
 
   suiteSetup(function(done) {
