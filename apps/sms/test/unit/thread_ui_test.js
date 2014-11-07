@@ -132,6 +132,13 @@ suite('thread_ui.js >', function() {
     elt.dispatchEvent(event);
   }
 
+  function setActiveThread(id = 1) {
+    Threads.set(id, {
+      participants: ['999']
+    });
+    Threads.currentId = id;
+  }
+
   mocksHelperForThreadUI.attachTestHelpers();
 
   suiteSetup(function(done) {
@@ -203,6 +210,7 @@ suite('thread_ui.js >', function() {
 
     document.body.innerHTML = '';
     Threads.currentId = null;
+    Threads.clear();
 
     sticky = null;
     MockOptionMenu.mTeardown();
@@ -2289,6 +2297,7 @@ suite('thread_ui.js >', function() {
 
   suite('renderMessages()', function() {
     setup(function() {
+      setActiveThread();
       this.sinon.stub(MessageManager, 'getMessages');
       this.sinon.spy(TaskRunner.prototype, 'push');
       ThreadUI.initializeRendering();
@@ -2477,22 +2486,22 @@ suite('thread_ui.js >', function() {
     },
     {
       id: 5,
-      threadId: 9,
+      threadId: 8,
       timestamp: +new Date(Date.now() - 150000)
     },
     {
       id: 6,
-      threadId: 10,
+      threadId: 8,
       timestamp: +new Date(Date.now() - 150000)
     },
     {
       id: 7,
-      threadId: 11,
+      threadId: 8,
       timestamp: +new Date(Date.now() - 150000)
     },
     {
       id: 8,
-      threadId: 12,
+      threadId: 8,
       timestamp: +new Date(Date.now() - 150000)
     }];
 
@@ -2515,10 +2524,14 @@ suite('thread_ui.js >', function() {
 
     setup(function(done) {
       ThreadUI.initializeRendering();
+      setActiveThread(8);
       container =
         ThreadUI.getMessageContainer(testMessages[0].timestamp, false);
       var promises = testMessages.map(
-        (testMessage) => ThreadUI.appendMessage(testMessage)
+        (testMessage) => {
+          Threads.registerMessage(testMessage);
+          ThreadUI.appendMessage(testMessage);
+        }
       );
       Promise.all(promises).then(() => {
         this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
@@ -2951,10 +2964,13 @@ suite('thread_ui.js >', function() {
         });
         suite('response success', function() {
           setup(function() {
+            setActiveThread();
+            this.sinon.stub(Threads, 'unregisterMessage');
             MessageManager.retrieveMMS.returnValues[0].onsuccess();
           });
           // re-rendering message happens from a status handler
           test('removes message', function() {
+            sinon.assert.called(Threads.unregisterMessage);
             assert.equal(element.parentNode, null);
           });
         });
@@ -3056,10 +3072,13 @@ suite('thread_ui.js >', function() {
         });
         suite('response success', function() {
           setup(function() {
+            setActiveThread();
+            this.sinon.stub(Threads, 'unregisterMessage');
             MessageManager.retrieveMMS.returnValues[0].onsuccess();
           });
           // re-rendering message happens from a status handler
           test('removes message', function() {
+            sinon.assert.called(Threads.unregisterMessage);
             assert.equal(element.parentNode, null);
           });
         });
@@ -3285,9 +3304,10 @@ suite('thread_ui.js >', function() {
   suite('resendMessage', function() {
     setup(function(done) {
       var promises = [];
-
+      setActiveThread();
       this.receivers = ['1234'];
       this.targetMsg = {
+        threadId: 1,
         id: 23,
         type: 'sms',
         receivers: this.receivers,
@@ -3296,6 +3316,7 @@ suite('thread_ui.js >', function() {
         timestamp: Date.now()
       };
       this.otherMsg = {
+        threadId: 1,
         id: 45,
         type: 'sms',
         receivers: this.receivers,
@@ -3304,6 +3325,8 @@ suite('thread_ui.js >', function() {
         timestamp: Date.now()
       };
       ThreadUI.initializeRendering();
+      Threads.registerMessage(this.targetMsg);
+      Threads.registerMessage(this.targetMsg);
       promises.push(
         ThreadUI.appendMessage(this.targetMsg),
         ThreadUI.appendMessage(this.otherMsg)
@@ -3404,7 +3427,9 @@ suite('thread_ui.js >', function() {
   suite('Message error resent in thread with 1 message', function() {
     var message, request;
     setup(function(done) {
+      setActiveThread();
       message = {
+        threadId: 1,
         id: 23,
         type: 'sms',
         body: 'This is a error sms',
@@ -3417,6 +3442,7 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(MessageManager, 'resendMessage');
 
       ThreadUI.initializeRendering();
+      Threads.registerMessage(message);
       ThreadUI.appendMessage(message).then(() => {
         this.errorMsg = ThreadUI.container.querySelector('.error');
       }).then(done, done);

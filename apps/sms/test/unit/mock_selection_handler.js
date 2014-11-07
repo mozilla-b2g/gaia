@@ -17,5 +17,6 @@ MockSelectionHandler.prototype = {
   select: function() {},
   unselect: function() {},
   toggleCheckedAll: function() {},
-  cleanForm: function() {}
+  cleanForm: function() {},
+  allSelected: function() {}
 };

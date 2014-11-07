@@ -10,6 +10,11 @@ var MockThreads = {
   registerMessage: function() {
 
   },
+
+  unregisterMessage: function() {
+
+  },
+
   mTeardown: function mt_mTeardown() {
     this.currentId = null;
   },

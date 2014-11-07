@@ -6,6 +6,7 @@
 require('/js/selection_handler.js');
 
 suite('SelectionHandler', function() {
+  const LENGTH = 10;
   var container, checkUncheckAllButton, selectionHandler, options;
 
   setup(function() {
@@ -13,18 +14,20 @@ suite('SelectionHandler', function() {
     checkUncheckAllButton = document.createElement('button');
 
     var innerHTML = '';
-    for (var i = 0; i < 10; i++) {
+    var idSet = new Set();
+    for (var i = 0; i < LENGTH; i++) {
       innerHTML +=  '<label>' +
       '<input type="checkbox" value="' + i + '">' +
       '<span></span></label>';
+      idSet.add(i);
     }
     container.innerHTML = innerHTML;
 
     options = {
       container: container,
       checkUncheckAllButton: checkUncheckAllButton,
-      checkInputs: sinon.stub(),
-      getAllInputs: sinon.stub(),
+      updateSelectionStatus: sinon.stub(),
+      getIdIterator: sinon.stub().returns(idSet.values()),
       isInEditMode: sinon.stub()
     };
   });
@@ -37,8 +40,8 @@ suite('SelectionHandler', function() {
         // One element missed
         container: container,
         // Methods
-        checkInputs: sinon.stub(),
-        getAllInputs: sinon.stub(),
+        updateSelectionStatus: sinon.stub(),
+        getIdIterator: sinon.stub(),
         isInEditMode: sinon.stub()
       }));
     });
@@ -47,8 +50,8 @@ suite('SelectionHandler', function() {
       var options = {
         container: container,
         checkUncheckAllButton: checkUncheckAllButton,
-        checkInputs: sinon.stub(),
-        getAllInputs: sinon.stub(),
+        updateSelectionStatus: sinon.stub(),
+        getIdIterator: sinon.stub(),
         isInEditMode: sinon.stub()
       };
       selectionHandler = new SelectionHandler(options);
@@ -75,7 +78,7 @@ suite('SelectionHandler', function() {
       selectionHandler.isInEditMode.returns(false);
       container.querySelectorAll('input')[0].click();
 
-      sinon.assert.notCalled(selectionHandler.checkInputs);
+      sinon.assert.notCalled(selectionHandler.updateSelectionStatus);
       assert.equal(selectionHandler.selectedCount, 0);
     });
 
@@ -88,13 +91,13 @@ suite('SelectionHandler', function() {
 
       target.dispatchEvent(event);
 
-      sinon.assert.called(selectionHandler.checkInputs);
+      sinon.assert.called(selectionHandler.updateSelectionStatus);
       assert.equal(selectionHandler.selectedCount, 1);
       assert.equal(selectionHandler.selectedList[0], target.value);
 
       target.dispatchEvent(event);
 
-      sinon.assert.called(selectionHandler.checkInputs);
+      sinon.assert.called(selectionHandler.updateSelectionStatus);
       assert.equal(selectionHandler.selectedCount, 0);
     });
   });
@@ -131,7 +134,6 @@ suite('SelectionHandler', function() {
 
   suite('toggleCheckedAll', function() {
     setup(function() {
-      options.getAllInputs.returns(container.querySelectorAll('input'));
       selectionHandler = new SelectionHandler(options);
 
       this.sinon.stub(selectionHandler, 'updateCheckboxes');
@@ -139,19 +141,17 @@ suite('SelectionHandler', function() {
 
     test('Should select all when not all data selected first', function() {
       selectionHandler.select(1);
-
       selectionHandler.toggleCheckedAll();
-      assert.equal(
-        selectionHandler.selectedCount,
-        selectionHandler.getAllInputs().length);
+
+      assert.equal(selectionHandler.selectedCount, LENGTH);
     });
 
     test('Should unselect all when all selected first', function() {
-      var allData = selectionHandler.getAllInputs();
-      for (var i = 0, l = allData.length; i < l; i++) {
-        selectionHandler.select(allData[i].value);
+      for (var id of selectionHandler.inputIdSet) {
+        selectionHandler.select(id);
       }
-      assert.equal(selectionHandler.selectedCount, allData.length);
+
+      assert.equal(selectionHandler.selectedCount, LENGTH);
 
       selectionHandler.toggleCheckedAll();
       assert.equal(selectionHandler.selectedCount, 0);
@@ -174,6 +174,27 @@ suite('SelectionHandler', function() {
       selectionHandler.cleanForm();
       assert.equal(selectionHandler.selectedCount, 0);
       sinon.assert.called(selectionHandler.updateCheckboxes);
+    });
+  });
+
+  suite('allSelected', function() {
+    setup(function() {
+      selectionHandler = new SelectionHandler(options);
+    });
+
+    test('return false if none or some selected', function() {
+      assert.isFalse(selectionHandler.allSelected());
+
+      selectionHandler.select(0);
+      assert.isFalse(selectionHandler.allSelected());
+    });
+
+    test('return true if all selected', function() {
+      for (var id of selectionHandler.inputIdSet) {
+        selectionHandler.select(id);
+      }
+
+      assert.isTrue(selectionHandler.allSelected());
     });
   });
 });
