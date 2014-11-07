@@ -5,6 +5,7 @@
 from marionette import expected
 from marionette.by import By
 from marionette.errors import NoSuchElementException
+from marionette.errors import StaleElementException
 from marionette.marionette import Actions
 from marionette.wait import Wait
 from gaiatest.apps.base import Base
@@ -273,7 +274,7 @@ class Calendar(Base):
             Wait(self.marionette, timeout).until(expected.element_not_selected(checkbox))
 
         def wait_for_a11y_calendar_unchecked(self, timeout=None):
-            Wait(self.marionette, timeout).until(
+            Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
                 lambda m: not self.marionette.find_element(
                     *self._calendar_local_locator).get_attribute('aria-selected'))
 
