@@ -9,26 +9,105 @@
 
   function Settings() {
     this.bindSelf();
+    this.panels = {};
+    this.settingsGroup = $('settings-group');
+    this.itemTitleElement = $('items-panel-title');
   }
 
   var proto = Settings.prototype = new Base();
 
-  proto.init = function st_init() {
-    var self = this;
-    this.group = new SettingsGroup($('settings-group'), 'main-menu');
-    // We don't need to bind again, because SettingsGroup had already auto bound
-    // self.
-    this.group.on('ready', this.group.init);
-    this.group.on('itemChoosed', this.switchGroup);
-    window.addEventListener('keydown', this.handleKeyDown);
-    document.body.dataset.active = 'group';
+  proto.groupClassMap = {
+    'picture': SettingsList,
+    'sound': SettingsList,
+    'network': SettingsList,
+    'timer': SettingsList,
+    'setup': SetupGroupList,
+    'help': SettingsList
   };
 
-  proto.pumpKeyEvent = function st_pumpKeyEvent(key) {
+  proto.init = function st_init() {
+    var self = this;
+    this.settingsGroup.addEventListener('transitionend',
+                                        this.handleTransitionEnd);
+    this.group = new SettingsGroup(this.settingsGroup, 'main-menu');
+    // We don't need to bind again, because SettingsGroup had already auto bound
+    // self.
+    this.group.on('groupChoosed', this.switchGroup);
+    window.addEventListener('keydown', this.handleKeyDown);
+    document.body.dataset.active = 'group';
+    this.group.on('ready', function groupReady() {
+      self.group.setVisible(true);
+      self.group.setActive(true);
+    });
+  };
+
+  proto.pumpMoveEvent = function st_pumpMoveEvent(key) {
     switch(document.body.dataset.active) {
+      case 'list':
+        this.activePanel.move(key);
+        break;
       default:
         this.group.move(key);
         break;
+    }
+  };
+
+  proto.confirmSelection = function st_confirmSelection(key) {
+    if (this.stateTransitioning) {
+      // If it is transitioning, we don't need to accept any confirm or exit
+      // command.
+      return;
+    }
+    switch(document.body.dataset.active) {
+      case 'group':
+        this.stateTransitioning = true;
+        document.body.dataset.active = 'list';
+        document.body.dataset.activeGroup = this.selectedGroup;
+        // set activate state to tell panel to show selection border.
+        this.activateGroup(this.selectedGroup);
+        break;
+      case 'list':
+        this.activePanel.confirmSelection(key);
+        break;
+    }
+  };
+
+  proto.activateGroup = function st_activateGroup(group) {
+    if (this.activePanel) {
+      this.activePanel.setActive(false);
+    }
+    this.activePanel = this.panels[group];
+    if (this.activePanel) {
+      this.activePanel.setActive(true);
+    }
+  };
+
+  proto.exitPanel = function st_exitPanel(key) {
+    if (this.stateTransitioning) {
+      // If it is transitioning, we don't need to accept any confirm or exit
+      // command.
+      return;
+    }
+    switch(document.body.dataset.active) {
+      case 'list':
+        this.stateTransitioning = true;
+        document.body.dataset.active = 'group';
+        document.body.dataset.activeGroup = '';
+        this.group.setActive(true);
+        this.activateGroup(null);
+        break;
+    }
+  };
+
+  proto.handleTransitionEnd = function st_handleTransitionEnd(evt) {
+    this.stateTransitioning = false;
+    if (evt.currentTarget === this.settingsGroup) {
+      switch(document.body.dataset.active) {
+        case 'group':
+        case 'list':
+          this.group.setActive(false);
+          break;
+      }
     }
   };
 
@@ -41,10 +120,15 @@
     switch (key) {
       case 'up':
       case 'down':
-        this.pumpKeyEvent(key);
+        this.pumpMoveEvent(key);
         break;
-      case 'left':
+      case 'enter':
       case 'right':
+        this.confirmSelection(key);
+        break;
+      case 'esc':
+      case 'left':
+        this.exitPanel(key);
         break;
     }
   };
@@ -71,7 +155,16 @@
   };
 
   proto.switchGroup = function st_switchGroup(id) {
-    console.log('group id: ' + id);
+    if (!this.panels[id]) {
+      this.panels[id] = new this.groupClassMap[id]();
+      this.panels[id].init($(id + '-section'));
+    }
+
+    for (var key in this.panels) {
+      this.panels[key].setVisible(id === key);
+    }
+    this.selectedGroup = id;
+    this.itemTitleElement.setAttribute('data-l10n-id', id);
   };
 
   exports.Settings = Settings;
