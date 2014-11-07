@@ -419,7 +419,7 @@ contacts.Form = (function() {
     }
 
     for (var i = 0; i < toRender.length; i++) {
-      insertField(type, toRender[i] || {});
+      insertField(type, toRender[i] || {}, true);
     }
   };
 
@@ -474,7 +474,7 @@ contacts.Form = (function() {
     }
   }
 
-  var insertField = function insertField(type, object) {
+  var insertField = function insertField(type, object, transition) {
     if (!type || !configs[type]) {
       console.error('Inserting field with unknown type');
       return;
@@ -571,8 +571,25 @@ contacts.Form = (function() {
       boxTitle.addEventListener('click', onGoToSelectTag);
     }
 
+    if (!transition) {
+      rendered.classList.add('inserted');
+
+      var delButton = rendered.querySelector('.' + IMG_DELETE_CLASS);
+      delButton.addEventListener('transitionend', function deleteRotation(e) {
+        if (e.propertyName === 'transform') {
+          delButton.removeEventListener('transitionend', deleteRotation);
+          delButton.classList.add('rendered');
+        }
+      });
+
+      window.setTimeout(function() {
+        rendered.classList.add('displayed');
+      });
+    }
+
     container.classList.remove('empty');
     container.appendChild(rendered);
+
     counters[type]++;
 
     // Finally we need to check the status of the add date button
@@ -1247,6 +1264,9 @@ contacts.Form = (function() {
 
   var removeFieldIcon = function removeFieldIcon(selector, type) {
     var delButton = document.createElement('button');
+
+    var span = document.createElement('span');
+    delButton.appendChild(span);
 
     delButton.className = IMG_DELETE_CLASS; // + ' fillflow-row-action';
     delButton.setAttribute('data-l10n-id', 'removeField');

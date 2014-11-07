@@ -833,6 +833,8 @@ form[role="combobox"] span[data-field="type"] {
   border-radius: 15px 0 0;
   background-color: #fff;
   border: 1px solid #e7e7e7;
+  overflow: hidden;
+
 }
 
 /* Add separation between templates */
@@ -916,4 +918,199 @@ form[role="combobox"] span[data-field="type"] {
 /* particulary in the flow: settings -> back() -> contact list */
 #view-settings.fade-in, #view-contact-form.fade-in {
   transform: translateY(0);
+}
+
+
+
+
+.field-template.inserted {
+  opacity: 0;
+}
+
+.field-template.inserted.displayed {
+  animation: add-field 0.25s ease-in-out 0s 1 normal forwards;
+}
+
+.field-template.inserted .first-row,
+.field-template.inserted .second-row,
+.field-template.inserted .third-row {
+  opacity: 0;
+}
+
+@keyframes add-field {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.field-template.inserted.displayed .first-row {
+  animation: add-field 0.20s linear 0.15s 1 normal forwards;
+}
+
+.field-template.inserted.displayed .second-row {
+  animation: add-field 0.20s linear 0.25s 1 normal forwards;
+}
+
+.field-template.inserted.displayed .third-row {
+  animation: add-field 0.20s linear 0.35s 1 normal forwards;
+}
+
+.inserted.displayed .img-delete-button {
+  background: none;
+}
+
+/* Plus image. grey background. Layer 1 */
+.inserted .img-delete-button > span {
+  background: url('images/form_add_remove_buttons.png') no-repeat scroll;
+  background-position: 0 -6rem;
+  background-size: 3rem 9rem;
+  background-color: transparent;
+  opacity: 1;
+  width:  3rem;
+  height: 3rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 1.5rem 1.5rem;
+  z-index: 10000;
+}
+
+/* grey background without the plus image. Layer 2 */
+.inserted .img-delete-button::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
+  background: url('images/form_add_remove_buttons.png') no-repeat scroll;
+  background-position: 0 -3rem;
+  background-size: 3rem 9rem;
+  background-color: transparent;
+  width:  3rem;
+  height: 3rem;
+  opacity: 0;
+  z-index: 20000;
+}
+
+/* Red cross image. initially rotated a bit. Layer 3 */
+.inserted .img-delete-button::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
+  background: url('images/form_add_remove_buttons.png') no-repeat scroll;
+  background-position: 0 0;
+  background-size: 3rem 9rem;
+  background-color: transparent;
+  width:  3rem;
+  height: 3rem;
+  opacity: 0;
+  transform-origin: 1.5rem 1.5rem;
+  z-index: 30000;
+}
+
+@keyframes layer-cross {
+  0% {
+    opacity: 1;
+    transform: none;
+  }
+  20% {
+    opacity: 0.66;
+    transform: rotate(15deg);
+  }
+  40% {
+    opacity: 0.33;
+    transform: rotate(30deg);
+  }
+  60% {
+    opacity: 0;
+    transform: rotate(45deg);
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+
+@keyframes empty-layer {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.33;
+  }
+  40% {
+    opacity: 0.66;
+  }
+  60% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.66;
+  }
+  100% {
+    opacity: 0.33;
+  }
+}
+
+@keyframes red-cross {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0;
+  }
+  60% {
+    transform: rotate(-15deg);
+    opacity: 0.33;
+  }
+  80% {
+    opacity: 0.66;
+    transform: rotate(-7deg);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+}
+
+
+.inserted.displayed .img-delete-button > span {
+  animation: layer-cross 1s ease-in-out 0s 1 normal forwards;
+}
+
+.inserted.displayed .img-delete-button::after {
+  animation: empty-layer 1s ease-in-out 0s 1 normal forwards;
+}
+
+.inserted.displayed .img-delete-button::before {
+  animation: red-cross 1s ease-in-out 0s 1 normal forwards;
+}
+
+
+.inserted.displayed.three-rows .img-delete-button > span,
+.inserted.displayed.three-rows .img-delete-button::after,
+.inserted.displayed.three-rows .img-delete-button::before {
+  animation-duration: 1.25s;
+}
+
+.inserted.displayed.one-row .img-delete-button > span,
+.inserted.displayed.one-row .img-delete-button::after,
+.inserted.displayed.one-row .img-delete-button::before {
+  animation-duration: 0.40s;
+}
+
+/* Avoid the activate state on '+ Add xx' buttons */
+li button[data-field-type]:active {
+  background: transparent;
+  color: #5F5F5F;
 }
