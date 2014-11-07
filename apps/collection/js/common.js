@@ -17,14 +17,16 @@
 
   const suffix =
     backgroundRatio === 1 ? '.jpg' : ('@' + backgroundRatio + 'x.jpg');
-  const mozBgUrl =
-    'https://fxos.cdn.mozilla.net/collection/background/{categoryId}' + suffix;
+
+  const mozCdnPath = '/collection/background/{categoryId}' + suffix;
 
   const APPS_IN_ICON = 3;
 
   function Common() {}
 
   Common.prototype = {
+
+    cdnHost: null,
 
     APPS_IN_ICON: APPS_IN_ICON,
 
@@ -60,7 +62,26 @@
         return Promise.reject('no categoryId');
       }
 
-      var url = mozBgUrl.replace('{categoryId}', collection.categoryId);
+      if (this.cdnHost) {
+        return this._fetchMozBackground(collection);
+      }
+
+      return new Promise((resolve, reject) => {
+        var req = navigator.mozSettings.createLock().get('cdn.url');
+        req.onsuccess = () => {
+          this.cdnHost = req.result['cdn.url'];
+          resolve();
+        };
+      }).then(this._fetchMozBackground.bind(this, collection));
+    },
+
+
+    /**
+     * Fetches the background once we have the URL from settings.
+     */
+    _fetchMozBackground: function(collection) {
+      var url = this.cdnHost + mozCdnPath.replace('{categoryId}',
+        collection.categoryId);
       var xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open('GET', url, true);
       xhr.responseType = 'blob';
