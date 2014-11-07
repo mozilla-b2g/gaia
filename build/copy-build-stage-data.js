@@ -115,27 +115,25 @@ function execute(options) {
     utils.ensureFolderExists(webappsBaseDir);
   }
 
-  gaia.webapps.forEach(function(app) {
-    var webappManifest = app.buildDirectoryFile.clone();
-    var updateManifest = app.buildDirectoryFile.clone();
+  gaia.rebuildWebapps.forEach(function(app) {
+    let webappManifest = app.buildDirectoryFile.clone();
+    let updateManifest = app.buildDirectoryFile.clone();
 
     webappManifest.append(WEBAPP_FILENAME);
     updateManifest.append(UPDATE_WEBAPP_FILENAME);
 
-    var stageManifest =
+    let stageManifest =
       webappManifest.exists() ? webappManifest : updateManifest;
 
     if (!stageManifest.exists()) {
       return;
     }
 
-    // Compute webapp folder name in profile
-    let webappTargetDir = webappsBaseDir.clone();
-
     // Preparing webapps.json content
     var appConfig = webappsStageJSON[app.sourceDirectoryName];
     var webappTargetDirName = appConfig.webappTargetDirName;
-    webappsJSON[webappTargetDirName] = genWebappJSON(appConfig);
+    // Compute webapp folder name in profile
+    let webappTargetDir = webappsBaseDir.clone();
 
     webappTargetDir.append(webappTargetDirName);
     utils.ensureFolderExists(webappTargetDir);
@@ -146,9 +144,15 @@ function execute(options) {
       return;
     }
 
-    // We'll remove it once bug 968666 is merged.
-    var targetManifest = webappTargetDir.clone();
+    let targetManifest = webappTargetDir.clone();
     stageManifest.copyTo(targetManifest, WEBAPP_FILENAME);
+  });
+
+  gaia.webapps.forEach(function(app) {
+    // Preparing webapps.json content
+    var appConfig = webappsStageJSON[app.sourceDirectoryName];
+    var webappTargetDirName = appConfig.webappTargetDirName;
+    webappsJSON[webappTargetDirName] = genWebappJSON(appConfig);
   });
 
   var manifestFile = webappsBaseDir.clone();
