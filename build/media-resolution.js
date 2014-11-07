@@ -74,10 +74,9 @@ MediaResolution.prototype.execute = function(options) {
 
 function execute(config) {
   var gaia = utils.gaia.getInstance(config);
-  gaia.webapps.forEach(function(webapp) {
+  gaia.rebuildWebapps.forEach(function(webapp) {
     (new MediaResolution()).execute({webapp: webapp, config: config});
   });
-
 }
 
 exports.execute = execute;

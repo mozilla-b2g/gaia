@@ -36,6 +36,15 @@ function generateServicesConfig(config) {
     utils.joinPath('shared', 'pages', 'import', 'js', 'parameters.js'),
                     config.GAIA_DIR);
 
+  var content = jsPrefix + JSON.stringify(importServices) + ';';
+
+  if (resultFile.exists()) {
+    let prev = utils.getFileContent(resultFile);
+    if (prev === content) {
+      return;
+    }
+  }
+
   utils.writeContent(resultFile, jsPrefix +
                      JSON.stringify(importServices) + ';');
 }

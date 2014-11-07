@@ -3,8 +3,9 @@
 /* global exports, require */
 
 var utils = require('utils');
+var rebuild = require('rebuild');
 
-function buildApps(options) {
+function getAppRegExp(options) {
   var appRegExp;
   try {
     appRegExp = utils.getAppNameRegex(options.BUILD_APP_NAME);
@@ -13,24 +14,24 @@ function buildApps(options) {
       'environment variable, APP=' + options.BUILD_APP_NAME);
     throw e;
   }
+  return appRegExp;
+}
 
-  options.GAIA_APPDIRS.split(' ').forEach(function(appDir) {
+function buildApps(options) {
+  options.rebuildAppDirs.forEach(function(appDir) {
     let appDirFile = utils.getFile(appDir);
+    let appOptions = utils.cloneJSON(options);
+    let stageAppDir = utils.getFile(options.STAGE_DIR, appDirFile.leafName);
 
-    if (appRegExp.test(appDirFile.leafName)) {
-      let appOptions = utils.cloneJSON(options);
-      let stageAppDir = utils.getFile(options.STAGE_DIR, appDirFile.leafName);
+    appOptions.APP_DIR = appDirFile.path;
+    appOptions.STAGE_APP_DIR = stageAppDir.path;
 
-      appOptions.APP_DIR = appDirFile.path;
-      appOptions.STAGE_APP_DIR = stageAppDir.path;
-
-      let buildFile = utils.getFile(appDir, 'build', 'build.js');
-      if (buildFile.exists()) {
-        utils.log('app', 'building ' + appDirFile.leafName + ' app...');
-        require(appDirFile.leafName + '/build').execute(appOptions);
-      } else {
-        utils.copyToStage(appOptions);
-      }
+    let buildFile = utils.getFile(appDir, 'build', 'build.js');
+    if (buildFile.exists()) {
+      utils.log('app', 'building ' + appDirFile.leafName + ' app...');
+      require(appDirFile.leafName + '/build').execute(appOptions);
+    } else {
+      utils.copyToStage(appOptions);
     }
   });
 }
@@ -38,6 +39,16 @@ function buildApps(options) {
 exports.execute = function(options) {
   var stageDir = utils.getFile(options.STAGE_DIR);
   utils.ensureFolderExists(stageDir);
+
+  if (options.BUILD_APP_NAME === '*') {
+    options.rebuildAppDirs = rebuild.execute(options);
+  } else {
+    options.rebuildAppDirs = options.GAIA_APPDIRS.split(' ')
+      .filter(function(appDir) {
+        let appDirFile = utils.getFile(appDir);
+        return getAppRegExp(options).test(appDirFile.leafName);
+      });
+  }
 
   require('pre-app').execute(options);
 
