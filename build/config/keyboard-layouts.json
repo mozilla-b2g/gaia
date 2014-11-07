@@ -15,6 +15,7 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "bn-BD": [
+        {"layoutId": "bn-Avro", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "bs": [
