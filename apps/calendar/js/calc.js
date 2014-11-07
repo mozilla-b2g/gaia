@@ -331,6 +331,10 @@ exports.endOfDay = function(date) {
   return day;
 };
 
+exports.monthStart = function(date, diff = 0) {
+  return new Date(date.getFullYear(), date.getMonth() + diff, 1);
+};
+
 /**
  * Returns localized day of week.
  *

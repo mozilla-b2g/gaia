@@ -3,8 +3,6 @@ define(function(require) {
 
 var Calc = require('calc');
 var Month = require('views/month');
-var MonthChild = require('views/month_child');
-var TimeParent = require('views/time_parent');
 
 requireCommon('test/synthetic_gestures.js');
 
@@ -12,17 +10,17 @@ suite('Views.Month', function() {
   var subject,
       app,
       controller,
-      busytimes,
       triggerEvent;
 
-
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     triggerEvent = testSupport.calendar.triggerEvent;
+    app = testSupport.calendar.app();
+    // db is needed by dayObserver :(
+    app.db.open(done);
   });
 
-  teardown(function() {
-    var el = document.getElementById('test');
-    el.parentNode.removeChild(el);
+  suiteTeardown(function() {
+    app.db.close();
   });
 
   setup(function() {
@@ -37,25 +35,30 @@ suite('Views.Month', function() {
 
     document.body.appendChild(div);
 
-    app = testSupport.calendar.app();
     controller = app.timeController;
     controller.move(new Date());
-
-    busytimes = app.store('Busytime');
 
     subject = new Month({ app: app });
   });
 
+  teardown(function() {
+    subject.destroy();
+    var el = document.getElementById('test');
+    el.parentNode.removeChild(el);
+  });
+
   test('initialization', function() {
-    assert.instanceOf(subject, TimeParent);
-    assert.equal(subject.controller, controller);
     assert.equal(subject.element, document.querySelector('#month-view'));
   });
 
   suite('events', function() {
 
+    setup(function() {
+      subject._initEvents();
+    });
+
     test('dom: click', function() {
-      subject.render();
+      subject.onfirstseen();
 
       // find something with [data-date];
       var el = subject.element.querySelector(
@@ -102,12 +105,7 @@ suite('Views.Month', function() {
 */
 
     test('controller: monthChange', function() {
-      var calledClear = null;
       var calledActivateTime = null;
-
-      subject._clearSelectedDay = function() {
-        calledClear = true;
-      };
 
       subject.changeDate = function(month) {
         calledActivateTime = month;
@@ -116,38 +114,26 @@ suite('Views.Month', function() {
       var date = new Date(2012, 1, 1);
       controller.move(date);
 
-      assert.ok(calledClear);
       assert.deepEqual(calledActivateTime, date);
     });
 
-    test('controller: selectedDayChange', function() {
-      var calledWith;
-      var date = new Date();
-
-      subject._selectDay = function() {
-        calledWith = arguments;
-      };
-
-      controller.selectedDay = date;
-      assert.deepEqual(calledWith[0], date);
-    });
   });
 
   test('#_onswipe', function() {
-    var date = new Date(2012, 4, 10);
-    var expected = new Date(2012, 5, 1);
+    var date = new Date(2012, 4, 1);
+    var expected = new Date(2012, 3, 1);
     subject.date = date;
 
     subject._onswipe({
       dy: 0,
       dx: window.innerWidth / 5,
-      direction: 'left'
+      direction: 'right'
     });
 
     assert.deepEqual(
-      subject.controller.selectedDay,
+      app.timeController.selectedDay,
       expected,
-      'selects first day of month'
+      'selects first day of previous month'
     );
   });
 
@@ -164,91 +150,67 @@ suite('Views.Month', function() {
     });
 
     assert.deepEqual(
-      subject.controller.selectedDay,
+      app.timeController.selectedDay,
       expected,
       'selects first day of month'
     );
   });
 
-  test('#_createChild', function() {
-    var time = new Date(2012, 1, 1);
-    var child = subject._createChild(time);
-
-    assert.instanceOf(child, MonthChild);
-    assert.deepEqual(child.date, time);
-  });
-
   test('#_nextTime', function() {
-    var date = new Date(2012, 4, 1);
-    var expected = new Date(2012, 5, 1);
-
+    subject.date = new Date(2012, 4, 1);
     assert.deepEqual(
-      subject._nextTime(date),
-      expected
+      subject._nextTime(),
+      new Date(2012, 5, 1)
     );
   });
 
   test('#_previousTime', function() {
-    var date = new Date(2012, 5, 1);
-    var expected = new Date(2012, 4, 1);
-
+    subject.date = new Date(2012, 5, 1);
     assert.deepEqual(
-      subject._previousTime(date),
-      expected
+      subject._previousTime(),
+      new Date(2012, 4, 1)
     );
   });
 
-  test('#onfirstseen', function() {
-    assert.equal(subject.onfirstseen, subject.render);
-  });
+  test('#changeDate', function() {
+    var base;
 
-  suite('selected days', function() {
-    function selected() {
-      return subject.element.querySelectorAll(
-        subject.selectors.selectedDay
-      );
+    function dayIds() {
+      var months = subject.element.querySelectorAll('section.month');
+      return Array.map(months, el => el.dataset.date).join(', ');
     }
 
-    test('#_selectDay', function() {
-      var now = new Date(2012, 0, 1);
-      controller.move(now);
-      subject.render();
+    base = new Date(2014, 10, 11);
+    subject.changeDate(base);
+    assert.ok(subject.currentFrame.active, 'currentFrame.active');
+    assert.deepEqual(
+      subject.currentFrame.date,
+      new Date(2014, 10, 1),
+      'base date should always be first day of the month'
+    );
+    assert.equal(
+      dayIds(),
+      'd-2014-9-1, d-2014-10-1, d-2014-11-1',
+      '1: month elements should be sorted'
+    );
 
-      var select = new Date(2012, 0, 5);
-      subject._selectDay(select);
+    base = new Date(2015, 0, 1);
+    subject.changeDate(base);
+    assert.deepEqual(subject.currentFrame.date, base, '2: currentFrame.date');
+    assert.equal(
+      dayIds(),
+      'd-2014-11-1, d-2015-0-1, d-2015-1-1',
+      '2: month elements should be sorted'
+    );
 
-      var dayEl = selected();
-      assert.lengthOf(dayEl, 1, 'should highlight selected');
-
-      dayEl = dayEl[0];
-
-      assert.ok(dayEl.id, 'should have id');
-      assert.equal(dayEl.getAttribute('aria-selected'), 'true');
-      assert.include(dayEl.id, Calc.getDayId(
-        select
-      ));
-    });
-
-    test('#_clearSelectedDay', function() {
-      subject.render();
-      assert.lengthOf(selected(), 0);
-
-      var el = subject.element.querySelector('li');
-      el.classList.add('selected');
-      el.setAttribute('aria-selected', true);
-
-      assert.lengthOf(selected(), 1);
-      subject._clearSelectedDay();
-      assert.isNull(el.getAttribute('aria-selected'));
-      assert.lengthOf(selected(), 0);
-    });
-
-  });
-
-  test('#render', function() {
-    var time = new Date(2012, 1, 1);
-    controller.move(time);
-    subject.render();
+    base = new Date(2014, 3, 1);
+    subject.changeDate(base);
+    assert.deepEqual(subject.currentFrame.date, base, '3: currentFrame.date');
+    assert.equal(
+      dayIds(),
+      'd-2014-2-1, d-2014-3-1, d-2014-4-1',
+      '3: month elements should be sorted'
+    );
   });
 });
 
