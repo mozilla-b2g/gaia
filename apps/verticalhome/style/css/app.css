@@ -68,11 +68,11 @@ gaia-grid {
   display: none;
 }
 
-.divider:not(.group):last-of-type {
+.divider.last:not(.group) {
   visibility: hidden;
 }
 
-.edit-mode .divider:last-of-type {
+.edit-mode .divider.last {
   visibility: visible;
 }
 
