@@ -17,7 +17,7 @@ class TestCalendarViewsVisibilityAccessibility(GaiaTestCase):
         self.views = {
             'time_views': self.marionette.find_element(*self.calendar._time_views_locator),
             'current_day': self.marionette.find_element(
-                *self.calendar._current_months_day_locator),
+                *self.calendar._current_month_day_agenda_locator),
             'month': self.marionette.find_element(
                 *self.calendar._current_monthly_calendar_locator),
             'day': self.marionette.find_element(*self.calendar._day_view_locator),

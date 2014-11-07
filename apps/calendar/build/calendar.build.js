@@ -88,7 +88,7 @@
       exclude: ['main']
     },
     {
-      name: 'views/months_day',
+      name: 'views/month_day_agenda',
       exclude: ['main']
     },
     {

@@ -8,7 +8,7 @@ require('shared/performance_testing_helper');
 // race conditions and the app contains way too many async operations during
 // startup and no simple way to listen to these events.
 
-exports._isMonthsDayInteractive = false;
+exports._isMonthAgendaInteractive = false;
 exports._isMonthReady = false;
 exports._isVisuallyActive = false;
 exports._isPendingReady = false;
@@ -44,11 +44,11 @@ exports.chromeInteractive = function() {
  * rendered all the busytimes for that day.
  */
 exports.monthsDayReady = function() {
-  if (exports._isMonthsDayInteractive) {
+  if (exports._isMonthAgendaInteractive) {
     return;
   }
 
-  exports._isMonthsDayInteractive = true;
+  exports._isMonthAgendaInteractive = true;
   dispatchVisuallyCompleteAndInteractive();
 };
 
@@ -72,7 +72,7 @@ exports.monthReady = function() {
  */
 function dispatchVisuallyCompleteAndInteractive() {
   if (exports._isVisuallyActive ||
-      !exports._isMonthsDayInteractive ||
+      !exports._isMonthAgendaInteractive ||
       !exports._isMonthReady) {
     return;
   }
@@ -107,7 +107,7 @@ exports.pendingReady = function() {
 };
 
 /**
- * App is only considered "loaded" after the MonthView and MonthsDayView
+ * App is only considered "loaded" after the MonthView and MonthDayAgenda
  * are "ready" and the first pending operations batch is completed (loading
  * events from DB and recurring events expansion).
  */
