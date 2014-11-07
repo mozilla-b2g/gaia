@@ -24,7 +24,11 @@ MockApp.prototype = {
         MockApp.mItems.push(detail);
       }
     },
-    removeUntilDivider: function() {},
+    appendItemToExpandedGroup: function(detail) {
+      if (detail) {
+        MockApp.mItems.push(detail);
+      }
+    },
     removeIconByIdentifier: function(identifier) {
       delete MockApp.mIcons[identifier];
     },
