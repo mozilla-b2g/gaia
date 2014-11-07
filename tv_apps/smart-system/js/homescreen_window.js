@@ -154,6 +154,7 @@
         if (this.element) {
           return;
         }
+        this.publish('created');
         this.render();
         this.open();
       }.bind(this));
