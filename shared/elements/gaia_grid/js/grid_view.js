@@ -490,6 +490,17 @@
           item.element = null;
         }
 
+        // Add a style class for the last item in the grid, to allow for
+        // special styling of said item. Because DOM ordering may differ from
+        // grid ordering, we can't rely on CSS alone for this.
+        if (item.element) {
+          if (idx === this.items.length - 1) {
+            item.element.classList.add('last');
+          } else {
+            item.element.classList.remove('last');
+          }
+        }
+
         if (item.detail.type === 'divider') {
           nextDivider = null;
         } else {
