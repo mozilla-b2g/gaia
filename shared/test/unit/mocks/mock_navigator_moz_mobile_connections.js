@@ -64,6 +64,17 @@
     function mnmmc_cancelMMI() {}
 
     var _mock = {
+      // Constants
+      ICC_SERVICE_CLASS_VOICE: (1 << 0),
+      ICC_SERVICE_CLASS_DATA: (1 << 1),
+      ICC_SERVICE_CLASS_FAX: (1 << 2),
+      ICC_SERVICE_CLASS_SMS: (1 << 3),
+      ICC_SERVICE_CLASS_DATA_SYNC: (1 << 4),
+      ICC_SERVICE_CLASS_DATA_ASYNC: (1 << 5),
+      ICC_SERVICE_CLASS_PACKET: (1 << 6),
+      ICC_SERVICE_CLASS_PAD: (1 << 7),
+      ICC_SERVICE_CLASS_MAX: (1 << 7),
+      // Methods
       addEventListener: mnmmc_addEventListener,
       removeEventListener: mnmmc_removeEventListener,
       triggerEventListeners: mnmmc_triggerEventListeners,
