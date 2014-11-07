@@ -264,10 +264,6 @@ var ThreadUI = {
     // So we assimilate recipients if user starts to interact with Composer
     Compose.on('interact', this.assimilateRecipients.bind(this));
 
-    this.container.addEventListener(
-      'click', this.assimilateRecipients.bind(this)
-    );
-
     this.multiSimActionButton = null;
 
     this.timeouts.update = null;

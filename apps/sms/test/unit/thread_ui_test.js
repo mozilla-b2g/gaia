@@ -945,26 +945,6 @@ suite('thread_ui.js >', function() {
       });
     });
 
-    test('Recipient assimilation is called when container is clicked',
-      function() {
-      Navigation.isCurrentPanel.withArgs('composer').returns(true);
-
-      var node = document.createElement('span');
-      node.isPlaceholder = true;
-      node.textContent = '999';
-
-      ThreadUI.recipientsList.appendChild(node);
-
-      container.click();
-
-      // recipient added and container is cleared
-      sinon.assert.calledWithMatch(ThreadUI.recipients.add, {
-        name: '999',
-        number: '999',
-        source: 'manual'
-      });
-    });
-
     suite('Recipients.View.isFocusable', function() {
 
       setup(function() {

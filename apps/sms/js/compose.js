@@ -323,7 +323,6 @@ var Compose = (function() {
       dom.attachButton = document.getElementById('messages-attach-button');
       dom.optionsMenu = document.getElementById('attachment-options-menu');
       dom.counter = dom.form.querySelector('.js-message-counter');
-      dom.contentComposer = dom.form.querySelector('.js-content-composer');
 
       subject = new SubjectComposer(
         dom.form.querySelector('.js-subject-composer')
@@ -367,8 +366,9 @@ var Compose = (function() {
 
       var onInteracted = this.emit.bind(this, 'interact');
 
+      dom.message.addEventListener('click', onInteracted);
       dom.message.addEventListener('focus', onInteracted);
-      dom.contentComposer.addEventListener('click', onInteracted);
+      dom.attachButton.addEventListener('click', onInteracted);
       subject.on('focus', onInteracted);
 
       return this;
