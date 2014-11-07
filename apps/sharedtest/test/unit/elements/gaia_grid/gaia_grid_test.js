@@ -132,18 +132,35 @@ suite('GaiaGrid', function() {
       assert.equal(element.getItems().length, itemLength + 1);
     });
 
-    test('removeUntilDivider', function() {
+    test('appendItem adds before divider', function() {
       element.clear();
-      var placeholder = new GaiaGrid.Placeholder();
 
-      var removeStub = this.sinon.stub(placeholder, 'remove');
+      var divider = new GaiaGrid.Divider();
       element.add(fakeBookmarkItem);
-      element.add(placeholder);
-      element.render();
-      assert.equal(element.children.length, 2);
-      element.removeUntilDivider();
-      assert.ok(removeStub.calledOnce);
-      assert.equal(element.children.length, 2);
+      element.add(divider);
+
+      var itemLength = element.getItems().length;
+      element.appendItemToExpandedGroup(fakeBookmarkItem2);
+
+      var items = element.getItems();
+      assert.equal(items.length, itemLength + 1);
+      assert.equal(items[items.length - 1], divider);
+    });
+
+    test('appendItemToExpandedGroup adds after collapsed divider', function() {
+      element.clear();
+
+      var divider = new GaiaGrid.Divider();
+      element.add(fakeBookmarkItem);
+      element.add(divider);
+
+      var itemLength = element.getItems().length;
+      divider.detail.collapsed = true;
+      element.appendItemToExpandedGroup(fakeBookmarkItem2);
+
+      var items = element.getItems();
+      assert.ok(items.length > itemLength);
+      assert.equal(items[itemLength], fakeBookmarkItem2);
     });
 
     test('clear will dereference item elements', function() {

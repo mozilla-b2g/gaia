@@ -75,13 +75,13 @@
       // There is a last divider that is always in the list, but not rendered
       // unless in edit mode.
       // Remove this divider, append the app, then re-append the divider.
-      var lastDivider = app.grid.removeUntilDivider();
       this.addIconToGrid(application);
       var svApp = configurator.getSingleVariantApp(application.manifestURL);
       var lastElem = app.grid.getIndexLastIcon();
       if (configurator.isSimPresentOnFirstBoot && svApp &&
           svApp.location < lastElem &&
           !this.isPreviouslyInstalled(application.manifestURL)) {
+        app.grid.popDivider();
         app.grid.removeNonVisualElements();
         lastElem = app.grid.getIndexLastIcon();
         app.grid.moveTo(lastElem, svApp.location);
@@ -89,7 +89,6 @@
         this.addPreviouslyInstalledSvApp(application.manifestURL);
         app.itemStore.savePrevInstalledSvApp(this.svPreviouslyInstalledApps);
       }
-      app.grid.add(lastDivider);
 
       app.grid.render();
       app.itemStore.deferredSave(app.grid.getItems());
@@ -203,9 +202,7 @@
       var appObject = this.mapToApp({
         manifestURL: application.manifestURL
       });
-      var lastDivider = app.grid.removeUntilDivider();
-      app.grid.add(appObject);
-      app.grid.add(lastDivider);
+      app.grid.appendItemToExpandedGroup(appObject);
       app.grid.render();
     },
 
