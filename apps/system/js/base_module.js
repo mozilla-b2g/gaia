@@ -1,4 +1,4 @@
-/* global System, LazyLoader, DUMP */
+/* global LazyLoader, DUMP */
 'use strict';
 
 (function(exports) {
@@ -74,20 +74,41 @@
    * 
    * @example
    * var MyModule = function() {};
-   * MyModule.SERVICES = ['isActive'];
+   * MyModule.SERVICES = ['unlock'];
    * MyModule.prototype = Object.create(BaseModule.prototype);
    * MyModule.prototype.constructor = MyModule;
    * MyModule.prototype.name = 'MyModule';
    * var m = new MyModule();
    * m.start();
    * // other module
-   * System.request('MyModule:isActive').then(function(result) {
+   * System.request('MyModule:unlock').then(function(result) {
    * });
-   * System.request('isActive').then(function(result) {
+   * System.request('unlock').then(function(result) {
    *   // if the request is registered by only one module.
    * });
    */
   BaseModule.SERVICES = [];
+
+  /**
+   * The function or property exported here will be
+   * synchronously queried by other module in system app.
+   * If we are not started yet, they will get undefined.
+   * 
+   * @example
+   * var MyModule = function() {};
+   * MyModule.STATES = ['isActive'];
+   * MyModule.prototype = Object.create(BaseModule.prototype);
+   * MyModule.prototype.constructor = MyModule;
+   * MyModule.prototype.name = 'MyModule';
+   * var m = new MyModule();
+   * m.start();
+   * // other module
+   * console.log(System.query('MyModule:isActive'));
+   * // if the method name is unique.
+   * console.log(System.query('isActive'));
+   * @type {Array}
+   */
+  BaseModule.STATES = [];
 
   var SubmoduleMixin = {
     /**
@@ -146,9 +167,15 @@
     }
   };
 
+  /**
+   * SettingsMixin will provide you the ability to watch
+   * and store the settings in this._settings
+   * @type {Object}
+   */
   var SettingMixin = {
     observe: function(name, value) {
       this.debug('observing ' + name + ' : ' + value);
+      this._settings[name] = value;
       if (typeof(this['_observe_' + name]) == 'function') {
         this.debug('observer for ' + name + ' found, invoking.');
         this['_observe_' + name](value);
@@ -160,10 +187,11 @@
         this.debug('No settings needed, skipping.');
         return;
       }
+      this._settings = {};
       this.debug('~observing following settings: ' +
         this.constructor.SETTINGS.concat());
       this.constructor.SETTINGS.forEach(function(setting) {
-        System.request('SettingsCore:addObserver', setting, this);
+        this.service.request('SettingsCore:addObserver', setting, this);
       }, this);
     },
 
@@ -172,7 +200,7 @@
         return;
       }
       this.constructor.SETTINGS.forEach(function(setting) {
-        System.request('SettingsCore:removeObserver', setting, this);
+        this.service.request('SettingsCore:removeObserver', setting, this);
       }, this);
     }
   };
@@ -241,7 +269,7 @@
         return;
       }
       this.constructor.SERVICES.forEach(function(service) {
-        System.register(service, this);
+        this.service.register(service, this);
       }, this);
     },
 
@@ -250,7 +278,27 @@
         return;
       }
       this.constructor.SERVICES.forEach(function(service) {
-        System.unregister(service, this);
+        this.service.unregister(service, this);
+      }, this);
+    }
+  };
+
+  var StateMixin = {
+    _registerStates: function() {
+      if (!this.constructor.STATES) {
+        return;
+      }
+      this.constructor.STATES.forEach(function(state) {
+        this.service.registerState(state, this);
+      }, this);
+    },
+
+    _unregisterStates: function() {
+      if (!this.constructor.STATES) {
+        return;
+      }
+      this.constructor.STATES.forEach(function(state) {
+        this.service.unregisterState(state, this);
       }, this);
     }
   };
@@ -297,6 +345,9 @@
     if (constructor.SERVICES) {
       BaseModule.mixin(constructor.prototype, ServiceMixin);
     }
+    if (constructor.STATES) {
+      BaseModule.mixin(constructor.prototype, StateMixin);
+    }
     if (constructor.SUB_MODULES) {
       BaseModule.mixin(constructor.prototype, SubmoduleMixin);
     }
@@ -304,6 +355,8 @@
       BaseModule.mixin(constructor.prototype, prototype);
       if (prototype.name) {
         AVAILABLE_MODULES[prototype.name] = constructor;
+      } else {
+        console.warn('No name give, impossible to instantiate without name.');
       }
     }
     return constructor;
@@ -320,9 +373,12 @@
    */
   BaseModule.instantiate = function(moduleName) {
     if (moduleName in AVAILABLE_MODULES) {
-      var args = Array.prototype.splice(arguments, 1);
-      return new (Function.prototype.bind.apply(
-        AVAILABLE_MODULES[moduleName], args)); // jshint ignore: line
+      var args = Array.prototype.slice.call(arguments, 1);
+      var constructor = function() {
+        AVAILABLE_MODULES[moduleName].apply(this, args);
+      };
+      constructor.prototype = AVAILABLE_MODULES[moduleName].prototype;
+      return new constructor();
     }
     return undefined;
   };
@@ -388,6 +444,8 @@
   };
 
   BaseModule.prototype = {
+    service: window.System,
+
     DEBUG: false,
 
     TRACE: false,
@@ -431,14 +489,14 @@
     debug: function() {
       if (this.DEBUG || GLOBAL_DEBUG) {
         console.log('[' + this.name + ']' +
-          '[' + System.currentTime() + '] ' +
+          '[' + this.service.currentTime() + '] ' +
             Array.slice(arguments).concat());
         if (this.TRACE) {
           console.trace();
         }
       } else if (window.DUMP) {
         DUMP('[' + this.name + ']' +
-          '[' + System.currentTime() + '] ' +
+          '[' + this.service.currentTime() + '] ' +
             Array.slice(arguments).concat());
       }
     },
@@ -449,7 +507,7 @@
     info: function() {
       if (this.DEBUG || GLOBAL_DEBUG) {
         console.info('[' + this.name + ']' +
-          '[' + System.currentTime() + '] ' +
+          '[' + this.service.currentTime() + '] ' +
           Array.slice(arguments).concat());
       }
     },
@@ -460,7 +518,7 @@
     warn: function() {
       if (this.DEBUG || GLOBAL_DEBUG) {
         console.warn('[' + this.name + ']' +
-          '[' + System.currentTime() + '] ' +
+          '[' + this.service.currentTime() + '] ' +
           Array.slice(arguments).concat());
       }
     },
@@ -471,7 +529,7 @@
     error: function() {
       if (this.DEBUG || GLOBAL_DEBUG) {
         console.error('[' + this.name + ']' +
-          '[' + System.currentTime() + '] ' +
+          '[' + this.service.currentTime() + '] ' +
           Array.slice(arguments).concat());
       }
     },
@@ -479,12 +537,14 @@
     writeSetting: function(settingObject) {
       this.debug('writing ' + JSON.stringify(settingObject) +
         ' to settings db');
-      return System.request('SettingsCore:set', settingObject);
+      return this.service.request('SettingsCore:set', settingObject);
     },
 
     readSetting: function(name) {
       this.debug('reading ' + name + ' from settings db');
-      return System.request('SettingsCore:get', name);
+      return this.service.request('SettingsCore:get', name).then(function(p) {
+        return p;
+      });
     },
 
     /**
@@ -538,6 +598,7 @@
       this._subscribeEvents && this._subscribeEvents();
       this._observeSettings && this._observeSettings();
       this._registerServices && this._registerServices();
+      this._registerStates && this._registerStates();
       this.switchLifeCycle('started');
     },
 
@@ -555,6 +616,7 @@
         return;
       }
       this._unregisterServices && this._unregisterServices();
+      this._unregisterStates && this._unregisterStates();
       this._stopSubModules && this._stopSubModules();
       this._unsubscribeEvents && this._unsubscribeEvents();
       this._unobserveSettings && this._unobserveSettings();

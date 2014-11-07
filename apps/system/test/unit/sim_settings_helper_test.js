@@ -45,6 +45,7 @@ suite('SimSettingsHelper > ', function() {
       setup(function() {
         setSlotAbsent(0, true);
         setSlotAbsent(1, true);
+        SimSettingsHelper.start();
         emitSimslotReadyEvent();
         this.sinon.clock.tick(1000);
       });
@@ -57,6 +58,7 @@ suite('SimSettingsHelper > ', function() {
       setup(function() {
         setSlotAbsent(0, false);
         setSlotAbsent(1, false);
+        SimSettingsHelper.start();
         emitSimslotReadyEvent();
         this.sinon.clock.tick(1000);
       });
@@ -73,6 +75,7 @@ suite('SimSettingsHelper > ', function() {
           });
         setSlotAbsent(0, true);
         setSlotAbsent(1, false);
+        SimSettingsHelper.start();
         emitSimslotReadyEvent();
         this.sinon.clock.tick(1000);
       });
@@ -90,6 +93,7 @@ suite('SimSettingsHelper > ', function() {
   });
 
   function emitSimslotReadyEvent() {
+    SIMSlotManager.ready = true;
     window.dispatchEvent(new CustomEvent('simslotready'));
   }
 

@@ -1,4 +1,4 @@
-/* global SettingsListener, System, SimPinDialog, rocketbar */
+/* global SettingsListener, System, rocketbar */
 'use strict';
 
 (function(exports) {
@@ -285,12 +285,13 @@
   };
 
   AppTransitionController.prototype._shouldFocusApp = function() {
-    // XXX: Remove this after SIMPIN Dialog is refactored.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=938979
     // XXX: Rocketbar losing input focus
     // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
+    // XXX: We should let HierarchyManager to manage the focus.
+    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1079748
     return (this._transitionState == 'opened' &&
-            !SimPinDialog.visible && !rocketbar.active);
+            !rocketbar.active &&
+            !System.query('SimLockManager.isActive'));
   };
 
   AppTransitionController.prototype.requireOpen = function(animation) {

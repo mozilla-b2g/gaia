@@ -1,14 +1,7 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-/* globals ApnHelper, LazyLoader */
+/* globals ApnHelper, LazyLoader, OperatorVariantHelper */
 
 (function(exports) {
   'use strict';
-
-  // Setting key for the setting holding the OS version.
-  var DEVICE_INFO_OS_KEY = 'deviceinfo.os';
-
   // Prefix for the persist key.
   var PERSIST_KEY_PREFIX = 'operatorvariant';
   // Sufix for the persist key.
@@ -27,9 +20,10 @@
    * Helper object that handles some carrier-specific settings on the ICC card
    * from the mozMobileConnection.
    */
-  function OperatorVariantHandler(iccId, iccCardIndex) {
+  function OperatorVariantHandler(iccId, iccCardIndex, manager) {
+    this.manager = manager;
     /** Holds the OS version */
-    this._deviceInfoOs = 'unknown';
+    this._deviceInfoOs = manager.deviceInfoOs || 'unknown';
     /** Index of the ICC card on the mozMobileConnections array */
     this._iccCardIndex = iccCardIndex;
     /** ICC id in the ICC card */
@@ -42,24 +36,9 @@
 
   OperatorVariantHandler.prototype = {
     /**
-     * Init function.
-     */
-    init: function ovh_init() {
-      var settings = window.navigator.mozSettings;
-      var deviceInfoOsGetRequest =
-        settings.createLock().get(DEVICE_INFO_OS_KEY);
-      deviceInfoOsGetRequest.onsuccess = (function onSuccessHandler() {
-        this._deviceInfoOs =
-          deviceInfoOsGetRequest.result[DEVICE_INFO_OS_KEY] || 'unknown';
-
-        this.run();
-      }).bind(this);
-    },
-
-    /**
      * Run customizations.
      */
-    run: function ovh_run() {
+    start: function ovh_start() {
       // Set some carrier settings on startup and when the SIM card is changed.
       this._operatorVariantHelper =
         new OperatorVariantHelper(
@@ -196,8 +175,7 @@
         var mnc = self.padLeft(self._iccSettings.mnc, 2);
 
         // Get the type of the data network
-        var networkType = window.navigator
-                                .mozMobileConnections[self._iccCardIndex]
+        var networkType = self.manager.mobileConnections[self._iccCardIndex]
                                 .data.type;
 
         // Get a list of matching APNs
@@ -655,25 +633,5 @@
       transaction.set({'wap.UAProf.url': urlValue});
     }
   };
-
-  /**
-   * Handle some carrier-specific settings on the ICC card whose id  we pass as
-   * parameter.
-   *
-   * @param {String} iccId The iccId code form the ICC card.
-   * @param {Numeric} iccCardIndex Index of the ICC card on the
-   *                               mozMobileConnections array.
-   *
-   * @return {Object} A OperatorVariantHandler object.
-   */
-  OperatorVariantHandler.handleICCCard =
-    function ovh_handleICCCard(iccId, iccCardIndex) {
-    var obj = new OperatorVariantHandler(iccId, iccCardIndex);
-    obj.init();
-
-    return obj;
-  };
-
-
   exports.OperatorVariantHandler = OperatorVariantHandler;
 })(window);

@@ -22,7 +22,6 @@ require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_ftu_launcher.js');
 require('/test/unit/mock_nfc_manager.js');
 require('/test/unit/mock_touch_forwarder.js');
-require('/test/unit/mock_sim_pin_dialog.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_layout_manager.js');
 
@@ -33,7 +32,6 @@ var mocksForStatusBar = new MocksHelper([
   'SIMSlotManager',
   'AppWindowManager',
   'TouchForwarder',
-  'SimPinDialog',
   'UtilityTray',
   'LayoutManager'
 ]).init();
@@ -206,6 +204,18 @@ suite('system/Statusbar', function() {
       assert.equal(Object.keys(fakeIcons.signals).length,
         mobileConnectionCount);
       assert.equal(Object.keys(fakeIcons.data).length, mobileConnectionCount);
+    });
+  });
+
+  suite('Emergency Call', function() {
+    test('Statechanged event should update the notification', function() {
+      this.sinon.stub(StatusBar, 'updateEmergencyCbNotification');
+      var evt = new CustomEvent('emergencycallbackstatechanged', {
+        detail: true
+      });
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.updateEmergencyCbNotification
+            .calledWith(true));
     });
   });
 

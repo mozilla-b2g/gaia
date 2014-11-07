@@ -2,7 +2,7 @@
 /* global asyncStorage */
 /* global IccHelper */
 /* global ModalDialog */
-/* global AirplaneMode */
+/* global System */
 
 (function(exports) {
 
@@ -167,7 +167,8 @@
 
       this.getDUNConnection().then(function(DUNConnection) {
         if (type == 'wifi') {
-          if (AirplaneMode.enabled && true === evt.settingValue) {
+          if (System.query('AirplaneMode.isActive') &&
+              true === evt.settingValue) {
             title = 'apmActivated';
             buttonText = 'ok';
             message ='noHotspotWhenAPMisOnWifiHotspot';
@@ -191,7 +192,8 @@
             settings.createLock().set(cset);
           }
         } else {
-          if (AirplaneMode.enabled && true === evt.settingValue) {
+          if (System.query('AirplaneMode.isActive') &&
+              true === evt.settingValue) {
             title = 'apmActivated';
             buttonText = 'ok';
             message ='noHotspotWhenAPMisOnUsbHotspot';

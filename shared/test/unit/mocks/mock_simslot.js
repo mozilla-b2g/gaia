@@ -8,7 +8,17 @@ var MockSIMSlot = function(conn, index) {
   this.absent = false;
   this.locked = false;
   this.simCard = {
-    cardState: null
+    cardState: null,
+    iccInfo: {
+      iccid: '11111111111111111111',
+      iccType: 'sim',
+      mcc: '000',
+      mnc: '000',
+      spn: null,
+      isDisplayNetworkNameRequired: false,
+      isDisplaySpnRequired: false,
+      msisdn: null
+    }
   };
   this.update = function() {};
   this.isAbsent = function() { return this.absent; };
