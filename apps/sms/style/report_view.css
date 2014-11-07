@@ -93,7 +93,7 @@
 .report-view > .contact-list p,
 .report-view > .contact-list span {
   font-size: 1.4rem;
-  line-height: 1rem;
+  line-height: 1.6rem;
 }
 
 .report-view > .contact-list .suggestion .name {
@@ -110,10 +110,14 @@
 }
 
 .report-view > .contact-list .number {
-  padding-top: 1.2rem;
+  padding-top: 0.9rem;
 }
 
 .report-view > .contact-list div {
+  padding-top: 0.7rem;
+}
+
+.report-view > .contact-list .name + div {
   padding-top: 1rem;
 }
 

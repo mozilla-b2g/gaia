@@ -295,11 +295,16 @@ suite('Information view', function() {
                      subjectContent);        
       }
 
-      sinon.assert.calledWith(
-        navigator.mozL10n.setAttributes,
-        reportView.sentTitle,
-        sentTitle
-      );
+      if (delivery === 'error') {
+        assert.isFalse(navigator.mozL10n.setAttributes.calledWith(
+          reportView.sentTitle, sentTitle));
+      } else {
+        sinon.assert.calledWith(
+          navigator.mozL10n.setAttributes,
+          reportView.sentTitle,
+          sentTitle
+        );
+      }
 
       sinon.assert.calledWith(
         navigator.mozL10n.setAttributes,
@@ -678,6 +683,7 @@ suite('Information view', function() {
         reportView.render();
 
         reportDiv = getInfoBlock(reportView.renderContactList);
+        sinon.assert.notCalled(Template.prototype.interpolate);
         assert.equal(reportDiv.dataset.deliveryStatus, 'not-applicable');
       });
 
@@ -805,6 +811,7 @@ suite('Information view', function() {
             switch (delivery) {
               case 'not-applicable':
                 assert.equal(block.dataset.deliveryStatus, 'not-applicable');
+                sinon.assert.notCalled(Template.prototype.interpolate);
                 return;
               case 'pending':
                 data.titleL10n = 'report-status-pending';
@@ -850,8 +857,6 @@ suite('Information view', function() {
             block = getInfoBlock(reportView.renderContactList);
             switch (delivery) {
               case 'not-applicable':
-                assert.equal(block.dataset.deliveryStatus, 'pending');
-                return;
               case 'pending':
                 data.titleL10n = 'report-status-pending';
                 assert.equal(block.dataset.deliveryStatus, 'pending');
