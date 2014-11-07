@@ -28,6 +28,12 @@ LayoutNormalizer.prototype._isSpecialKey = function(key) {
   return hasSpecialCode || key.keyCode <= 0;
 };
 
+LayoutNormalizer.prototype._hasAlternativeKeys = function(key, page) {
+  var alt = page.alt || {};
+
+  return key in alt;
+};
+
 LayoutNormalizer.prototype._getUpperCaseValue = function(key, page) {
   if (KeyEvent.DOM_VK_SPACE === key.keyCode ||
       this._isSpecialKey(key) ||
@@ -40,7 +46,8 @@ LayoutNormalizer.prototype._getUpperCaseValue = function(key, page) {
 };
 
 // normalize one key of the layout
-LayoutNormalizer.prototype._normalizeKey = function(key, page) {
+LayoutNormalizer.prototype._normalizeKey = function(key, page,
+                                                    showAlternatesIndicator) {
   var keyChar = key.value;
   var upperCaseKeyChar = this._getUpperCaseValue(key, page);
 
@@ -55,6 +62,10 @@ LayoutNormalizer.prototype._normalizeKey = function(key, page) {
 
   key.isSpecialKey = this._isSpecialKey(key);
 
+  if (showAlternatesIndicator) {
+    key.className = 'alternate-indicator';
+  }
+
   if (key.longPressValue) {
     var longPressKeyCode = key.longPressKeyCode ||
       key.longPressValue.charCodeAt(0);
@@ -62,7 +73,7 @@ LayoutNormalizer.prototype._normalizeKey = function(key, page) {
   }
 
   if (key.supportsSwitching) {
-    this._normalizeKey(key.supportsSwitching, page);
+    this._normalizeKey(key.supportsSwitching, page, false);
   }
 
   if (KeyboardEvent.DOM_VK_ALT === code && !('targetPage' in key)) {
@@ -78,7 +89,7 @@ LayoutNormalizer.prototype._normalizePageKeys = function(page) {
 
   page.keys = keyRows.map(function(keyRow) {
     return keyRow.map(function(key) {
-      return this._normalizeKey(key, page);
+      return this._normalizeKey(key, page, false);
     }, this);
   }, this);
 
@@ -89,8 +100,12 @@ LayoutNormalizer.prototype._normalizePageKeys = function(page) {
       if (false === overwrites[overwrittenKey]) {
         result[overwrittenKey] = false;
       } else {
+        // Check whether overwriting key has alternative keys.
+        var hasAlternativeKeys =
+          this._hasAlternativeKeys(overwrites[overwrittenKey], page);
         result[overwrittenKey] =
-          this._normalizeKey({value: overwrites[overwrittenKey]}, page);
+          this._normalizeKey({value: overwrites[overwrittenKey]}, page,
+                             hasAlternativeKeys);
       }
       return result;
     }.bind(this), {});
