@@ -101,28 +101,35 @@
   visibility: visible;
 }
 
+/**
+ * [dir=rtl]
+ *
+ * The tick icon should be on the
+ * left hand edge, and text on the right.
+ */
+
+[dir="rtl"] .setting-option:before {
+  float: left;
+}
+
 /** Back Button
  ---------------------------------------------------------*/
 
 .settings-back-btn {
-  width: 15rem;
+  position: absolute;
+  left: -2px;
+  top: 0;
+  width: 50%;
   height: 9rem;
-  background: transparent;
-  border: none;
   text-shadow: none;
   font-size: 24px;
   color: #FFFFFF;
   text-align: left;
-  margin-top: 0rem;
-  margin-right: -26.1rem;
-  margin-left: -2.5rem;
   line-height: 9rem;
-  padding-left: 0.5rem;
-  position: absolute;
 }
 
 /**
- * :actives
+ * :active
  */
 
 .settings-back-btn:active {
