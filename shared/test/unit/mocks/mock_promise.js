@@ -88,7 +88,7 @@ var MockPromise = function MockPromise(callback) {
 
     mFulfillToValue: function mFulfill(value) {
       if (!this.then.called) {
-        // throw new Error('MockPromise: cannot fulfill, then() not called.');
+        throw new Error('MockPromise: cannot fulfill, then() not called.');
       }
 
       return this.then.firstCall.args[0].call(window, value);
