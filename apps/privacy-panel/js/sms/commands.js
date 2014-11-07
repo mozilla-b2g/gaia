@@ -70,7 +70,7 @@ function(SettingsListener, SettingsHelper, SettingsURL) {
       locate: function fmdc_track(duration, reply) {
         var options = {
           enableHighAccuracy: true,
-          timeout: duration * 1000,
+          timeout: duration,
           maximumAge: 0
         };
 
