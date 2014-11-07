@@ -26,7 +26,7 @@ iframe {
   display: flex; /* Fix Bug 976665 */
 }
 
-[aria-hidden="true"] { display: none !important; }
+[hidden] { display: none !important; }
 
 input.error {
   background-color: rgba(219, 113, 95, 0.2) !important;

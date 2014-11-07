@@ -351,7 +351,7 @@ var CostControlApp = (function() {
           // Stand alone mode when data usage only
           if (mode === 'DATA_USAGE_ONLY') {
             var tabs = document.getElementById('tabs');
-            tabs.setAttribute('aria-hidden', true);
+            tabs.hidden = true;
 
             var dataUsageTab = document.getElementById('datausage-tab');
             dataUsageTab.classList.add('standalone');
@@ -360,10 +360,10 @@ var CostControlApp = (function() {
           // Two tabs mode
           } else {
             document.getElementById('balance-tab-filter')
-              .setAttribute('aria-hidden', (mode !== 'PREPAID'));
+              .hidden = (mode !== 'PREPAID');
 
             document.getElementById('telephony-tab-filter')
-              .setAttribute('aria-hidden', (mode !== 'POSTPAID'));
+              .hidden = (mode !== 'POSTPAID');
 
             // If it was showing the left tab, force changing to the
             // proper left view
@@ -419,7 +419,7 @@ var CostControlApp = (function() {
       if (type === 'fte_finished') {
         window.removeEventListener('message', handler_finished);
         document.getElementById('splash_section').
-          setAttribute('aria-hidden', 'true');
+          hidden = 'true';
 
         // Only hide the FTE view when everything in the UI is ready
         ConfigManager.requestAll(function() {

@@ -282,12 +282,12 @@ var Settings = (function() {
         );
 
         balanceLowLimitView.disabled = (mode !== 'PREPAID');
-        plantypeSelector.setAttribute('aria-hidden', hidePlantypeSelector);
-        phoneActivityTitle.setAttribute('aria-hidden', hidePhoneActivity);
-        phoneActivitySettings.setAttribute('aria-hidden', hidePhoneActivity);
-        balanceTitle.setAttribute('aria-hidden', hideBalance);
-        balanceSettings.setAttribute('aria-hidden', hideBalance);
-        reportsTitle.setAttribute('aria-hidden', hideReportsTitle);
+        plantypeSelector.hidden = hidePlantypeSelector;
+        phoneActivityTitle.hidden = hidePhoneActivity;
+        phoneActivitySettings.hidden = hidePhoneActivity;
+        balanceTitle.hidden = hideBalance;
+        balanceSettings.hidden = hideBalance;
+        reportsTitle.hidden = hideReportsTitle;
       }
 
       // Views

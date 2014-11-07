@@ -19,10 +19,6 @@ button::-moz-focus-inner {
   outline: none;
 }
 
-[aria-hidden="true"] {
-  display: none;
-}
-
 /* Base font patterns */
 .unit {
   font-size: 1.2rem;

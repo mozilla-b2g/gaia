@@ -283,7 +283,7 @@ var DataUsageTab = (function() {
   // On tapping on wifi toggle
   function toggleWifi() {
     var isChecked = wifiToggle.checked;
-    wifiLayer.setAttribute('aria-hidden', !isChecked);
+    wifiLayer.hidden = !isChecked;
     // save wifi toggled state
     ConfigManager.setOption({ isWifiChartVisible: isChecked });
 
@@ -295,9 +295,9 @@ var DataUsageTab = (function() {
   // On tapping on mobile toggle
   function toggleMobile() {
     var isChecked = mobileToggle.checked;
-    mobileLayer.setAttribute('aria-hidden', !isChecked);
-    warningLayer.setAttribute('aria-hidden', !isChecked);
-    limitsLayer.setAttribute('aria-hidden', !isChecked);
+    mobileLayer.hidden = !isChecked;
+    warningLayer.hidden = !isChecked;
+    limitsLayer.hidden = !isChecked;
     // save wifi toggled state
     ConfigManager.setOption({ isMobileChartVisible: isChecked });
 

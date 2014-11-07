@@ -70,15 +70,15 @@ suite('SIM non-ready waiting screen >', function() {
   });
 
   function assertMessageMode(cardstate) {
-    assert.equal(progress.getAttribute('aria-hidden'), 'true');
-    assert.equal(header.getAttribute('aria-hidden'), 'false');
-    assert.equal(message.getAttribute('aria-hidden'), 'false');
+    assert.ok(progress.hidden);
+    assert.ok(!header.hidden);
+    assert.ok(!message.hidden);
   }
 
   function assertWaitingMode() {
-    assert.equal(progress.getAttribute('aria-hidden'), 'false');
-    assert.equal(header.getAttribute('aria-hidden'), 'true');
-    assert.equal(message.getAttribute('aria-hidden'), 'true');
+    assert.ok(!progress.hidden);
+    assert.ok(header.hidden);
+    assert.ok(message.hidden);
   }
 
   test(

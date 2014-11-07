@@ -152,7 +152,7 @@ suite('Application Startup Modes Test Suite >', function() {
     var dataUsageTab = document.getElementById('datausage-tab');
 
     // Tab zone is hidden and standalone mode for data usage tab is set
-    assert.equal(tabs.getAttribute('aria-hidden'), 'true');
+    assert.ok(tabs.hidden);
     assert.isTrue(dataUsageTab.classList.contains('standalone'));
   }
 
@@ -165,9 +165,9 @@ suite('Application Startup Modes Test Suite >', function() {
 
     // Tab zone is shown, the balance enabler (filter) is shown and the
     // telephony one is hidden.
-    assert.notEqual(tabs.getAttribute('aria-hidden'), 'true');
-    assert.notEqual(balanceTabFilter.getAttribute('aria-hidden'), 'true');
-    assert.equal(telephonyTabFilter.getAttribute('aria-hidden'), 'true');
+    assert.ok(!tabs.hidden);
+    assert.ok(!balanceTabFilter.hidden);
+    assert.ok(telephonyTabFilter.hidden);
 
     // Balance is currently shown
     assert.equal(balanceTab.dataset.viewport, '');
@@ -186,9 +186,9 @@ suite('Application Startup Modes Test Suite >', function() {
 
     // Tab zone is shown, the telephony enabler (filter) is shown and the
     // balance one is hidden.
-    assert.notEqual(tabs.getAttribute('aria-hidden'), 'true');
-    assert.equal(balanceTabFilter.getAttribute('aria-hidden'), 'true');
-    assert.notEqual(telephonyTabFilter.getAttribute('aria-hidden'), 'true');
+    assert.ok(!tabs.hidden);
+    assert.ok(balanceTabFilter.hidden);
+    assert.ok(!telephonyTabFilter.hidden, 'true');
 
     // Telephony is currently shown
     assert.equal(telephonyTab.dataset.viewport, '');
