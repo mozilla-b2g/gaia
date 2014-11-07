@@ -375,5 +375,16 @@ suite('system/LockScreenStateManager', function() {
       assert.isTrue(stubOnActiveUnlock.called,
         'the handler didn\'t handle the event');
     });
+
+    test('When slide to camera without passcode, it would trigger activate ' +
+         'unlock.',
+    function() {
+      var stubOnActiveUnlock = this.sinon.stub(subject, 'onActivateUnlock');
+      subject.handleEvent({
+        type: 'lockscreenslide-activate-left'
+      });
+      assert.isTrue(stubOnActiveUnlock.called,
+        'the handler didn\'t handle the event');
+    });
   });
 });
