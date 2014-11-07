@@ -123,6 +123,7 @@ function L10nManager(gaiaDir,
         var resFile =
           getResourceFile(webapp, relPathInApp,
                           realURL, loc, isOfficialBranding);
+
         var isShared = /\.?\/?shared\//.test(realURL);
 
         var destFile;
@@ -476,11 +477,17 @@ function execute(options) {
       deviceType: options.GAIA_DEVICE_TYPE,
     });
 
-  gaia.rebuildWebapps.forEach(function(webapp) {
+  gaia.webapps.forEach(function(webapp) {
+    if (options.BUILD_APP_NAME !== '*' &&
+      webapp.sourceDirectoryName != options.BUILD_APP_NAME) {
+      return;
+    }
+
     if (utils.isExternalApp(webapp)) {
       return;
     }
-    var files = utils.ls(webapp.buildDirectoryFile, true, /^tests?$/);
+    var files = utils.ls(webapp.buildDirectoryFile, true,
+      /^tests?$/);
 
     l10nManager.localize(files.filter(function(file) {
       return /\.html$/.test(file.path);

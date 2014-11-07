@@ -90,21 +90,12 @@ function checkFileContentByPathInZip(zipPath, pathInZip,
     checkFileContentInZip(zipPath, pathInZip, actual, isJSON);
 }
 
-function exec(command, options, callback) {
-  var opts = {
-    maxBuffer: 400 * 1024
+function exec(command, callback) {
+  var options = {
+    maxBuffer: 400*1024
   };
-  if (typeof options !== 'function') {
-    for (var key in options) {
-      if (options.hasOwnProperty(key)) {
-        opts[key] = options[key];
-      }
-    }
-  } else {
-    callback = options;
-  }
 
-  childProcess.exec(command, opts, callback);
+  childProcess.exec(command, options, callback);
 }
 
 function emptyJsonFile(filePath) {

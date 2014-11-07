@@ -176,7 +176,7 @@ function execute(config) {
   webappsTargetDir.append('webapps');
 
   var gaia = utils.gaia.getInstance(config);
-  gaia.rebuildWebapps.forEach(function(webapp) {
+  gaia.webapps.forEach(function(webapp) {
     (new WebappZip()).execute({
       config: config, targetDir: webappsTargetDir, webapp: webapp});
   });

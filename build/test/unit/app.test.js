@@ -12,14 +12,13 @@ suite('app.js', function() {
   var stageDir = '/path/to/build_stage';
   var applist = ['app1', 'app2', 'app3'];
   var options = {
-    rebuildAppDirs: ['/path/to/app1', '/path/to/app2', '/path/to/app3'],
+    GAIA_APPDIRS: '/path/to/app1 /path/to/app2 /path/to/app3',
     STAGE_DIR: stageDir
   };
 
   setup(function() {
     var stubs = {
-      'utils': mockUtils,
-      'rebuild': {}
+      'utils': mockUtils
     };
     app = proxyquire.noCallThru().load('../../app', stubs);
 
