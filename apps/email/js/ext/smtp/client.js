@@ -288,6 +288,7 @@ define(function(require, exports) {
       normalizedError: normalizedError,
       errorName: err.name,
       errorMessage: err.message,
+      errorData: err.data,
       wasSending: wasSending
     });
 
