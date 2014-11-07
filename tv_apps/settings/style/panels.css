@@ -10,6 +10,7 @@
   top: 3rem;
   bottom: 3rem;
   overflow: hidden;
+  transition: width 0.2s ease-in-out;
 }
 
 .menu-container {
@@ -35,21 +36,36 @@
   border-bottom-left-radius: 1rem;
 }
 
-/* state of different panels */
-body.group-focused .settings-group {
+/* state of different panels
+ * note menu-items is also aware of active state
+ */
+/** main focus is on group list */
+body[data-active='group'] .settings-group {
   width: 14rem;
   right: calc(100% * 2 / 3 + 2rem);
 }
 
-body.group-focused .settings-items {
+body[data-active='group'] .settings-items {
   width: calc(100% * 2 / 3 - 2rem);
   right: 2rem;
 }
 
-body.group-focused .settings-items section:not(:nth-child(2)) {
+body[data-active='group'] .settings-detail {
   display: none;
 }
 
-body.group-focused .settings-detail {
+/** main focus is on settings list */
+body[data-active='list'] .settings-group {
+  /* 4rem for icon, 0.5rem for border-left */
+  width: 4.5rem;
+  right: calc(100% * 2 / 3 + 2rem);
+}
+
+body[data-active='list'] .settings-items {
+  width: calc(100% * 2 / 3 - 2rem);
+  right: 2rem;
+}
+
+body[data-active='list'] .settings-detail {
   display: none;
 }

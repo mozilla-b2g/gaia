@@ -10,6 +10,8 @@ ul, li {
 }
 
 .menu-item {
+  width: calc(100% - 4.4rem);
+  height: 4rem;
   font-size: 20px;
   color: black;
   display: inline-block;
@@ -18,9 +20,26 @@ ul, li {
 }
 
 .menu-item span {
-  /* 9.1rem is 14rem - 4rem(icon) - 0.5rem(right border) - 0.4rem(selection border)*/
-  width: 9.1rem;
+  width: 100%;
   display: inline-block;
-  text-align: right;
   line-height: 4rem;
+}
+
+.settings-group .menu-item span {
+  text-align: right;
+}
+
+.settings-items .menu-item {
+  width: calc(100% - 6rem);
+  padding-left: 1rem;
+  padding-right: 5rem;
+}
+
+body[data-active='list'] .settings-group .menu-item {
+  width: calc(100% - 4rem);
+  padding: 0 4rem 0 0;
+}
+
+body[data-active='list'] .settings-group span {
+  display: none;
 }

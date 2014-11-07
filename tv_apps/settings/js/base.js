@@ -12,6 +12,12 @@
     }
   };
 
+  Base.prototype.nodeListToArray = function b_nodeListToArray(obj) {
+    return [].map.call(obj, function(element) {
+      return element;
+    })
+  };
+
   exports.Base = Base;
 
 })(window);

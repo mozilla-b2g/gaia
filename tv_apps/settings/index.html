@@ -21,7 +21,9 @@
 
     <!-- main -->
     <script defer src="js/base.js"></script>
+    <script defer src="js/settings_list.js"></script>
     <script defer src="js/settings_group.js"></script>
+    <script defer src="js/setup_group_list.js"></script>
     <script defer src="js/settings.js"></script>
 
     <!-- L10n properties -->
@@ -31,9 +33,15 @@
 
     <!-- menu items  -->
     <link rel="import" href="/elements/main-menu.html">
+    <link rel="import" href="/elements/picture-section.html">
+    <link rel="import" href="/elements/sound-section.html">
+    <link rel="import" href="/elements/network-section.html">
+    <link rel="import" href="/elements/timer-section.html">
+    <link rel="import" href="/elements/setup-section.html">
+    <link rel="import" href="/elements/help-section.html">
   </head>
 
-  <body class="group-focused">
+  <body>
     <!-- layer 1 menu -->
     <section id="settings-group" class="layer-container settings-group">
       <header>
@@ -44,14 +52,14 @@
     <!-- layer 2 menu -->
     <section id="settings-items" class="layer-container settings-items">
       <header>
-        <h2 id="items-panel-title" class="panel-title">Panel 2</h2>
+        <h2 id="items-panel-title" class="panel-title"></h2>
       </header>
-      <section is="picture-section" role="region" id="picture-section" class="menu-container">TBD</section>
-      <section is="sound-section" role="region" id="sound-section" class="menu-container">TBD</section>
-      <section is="network-section" role="region" id="network-section" class="menu-container">TBD</section>
-      <section is="timer-section" role="region" id="timer-section" class="menu-container">TBD</section>
-      <section is="setup-section" role="region" id="wifi-section" class="menu-container">TBD</section>
-      <section is="help-section" role="region" id="help-section" class="menu-container">TBD</section>
+      <section is="picture-section" role="region" id="picture-section" class="menu-container"></section>
+      <section is="sound-section" role="region" id="sound-section" class="menu-container" hidden></section>
+      <section is="network-section" role="region" id="network-section" class="menu-container" hidden></section>
+      <section is="timer-section" role="region" id="timer-section" class="menu-container" hidden></section>
+      <section is="setup-section" role="region" id="setup-section" class="menu-container" hidden></section>
+      <section is="help-section" role="region" id="help-section" class="menu-container" hidden></section>
     </section>
     <!-- layer 3 menu -->
     <section id="settings-detail" class="layer-container settings-detail">
