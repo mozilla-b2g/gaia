@@ -21,6 +21,8 @@ class NewMessage(Messages):
     _thread_messages_locator = (By.ID, 'thread-messages')
     _message_resize_notice_locator = (By.ID, 'messages-resize-notice')
     _subject_input_locator = (By.CSS_SELECTOR, '.subject-composer-input')
+    _image_attachment_locator = (By.CSS_SELECTOR, '.attachment-container.preview')
+
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -45,6 +47,11 @@ class NewMessage(Messages):
         self.wait_for_element_displayed(*self._message_field_locator)
         message_field = self.marionette.find_element(*self._message_field_locator)
         message_field.tap()
+
+    def tap_image_attachment(self):
+        self.marionette.find_element(*self._image_attachment_locator).tap()
+        from gaiatest.apps.messages.regions.attachment_options import AttachmentOptions
+        return AttachmentOptions(self.marionette)
 
     def tap_send(self, timeout=120):
         self.wait_for_condition(lambda m: m.find_element(*self._send_message_button_locator).is_enabled())
