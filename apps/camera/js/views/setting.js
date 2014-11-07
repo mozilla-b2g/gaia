@@ -24,6 +24,7 @@ module.exports = View.extend({
     this.on('destroy', this.onDestroy);
     this.el.dataset.icon = this.model.get('icon');
     this.el.classList.add('test-' + this.model.get('title') + '-setting');
+    this.el.setAttribute('role','menuitem');
     bind(this.el, 'click', this.onClick);
   },
 
