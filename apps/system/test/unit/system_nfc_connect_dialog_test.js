@@ -50,16 +50,27 @@ suite('NfcConnectSystemDialog', function() {
   suite('Dialog lifecycle', function() {
     var nfcDialog;
     var spyDispatchEvent;
+    var stubResize;
 
     setup(function() {
       spyDispatchEvent = this.sinon.spy(window, 'dispatchEvent');
 
       nfcDialog = new NfcConnectSystemDialog();
+
+      stubResize = this.sinon.stub(nfcDialog, 'resize',
+      function() {
+        return true;
+      });
       nfcDialog.show(null, function() {}, function() {});
     });
 
     teardown(function() {
       spyDispatchEvent.restore();
+      stubResize.restore();
+    });
+
+    test('After show, resize dialog.', function() {
+      assert.isTrue(stubResize.called);
     });
 
     test('After confirmed, dismissed properly.', function() {
@@ -95,17 +106,23 @@ suite('NfcConnectSystemDialog', function() {
     var nfcDialog;
     var stubConfirm;
     var stubCancel;
+    var stubResize;
 
     setup(function() {
       stubConfirm = this.sinon.spy();
       stubCancel = this.sinon.spy();
 
       nfcDialog = new NfcConnectSystemDialog();
+      stubResize = this.sinon.stub(nfcDialog, 'resize',
+      function() {
+        return true;
+      });
       nfcDialog.show(null, stubConfirm, stubCancel);
     });
 
     teardown(function() {
       nfcDialog.hide();
+      stubResize.restore();
     });
 
     test('Cancel button calls only cancel callback', function() {
@@ -124,17 +141,23 @@ suite('NfcConnectSystemDialog', function() {
   suite('L10n', function() {
     var realL10n;
     var nfcDialog;
+    var stubResize;
 
     setup(function() {
       realL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
 
       nfcDialog = new NfcConnectSystemDialog();
+      stubResize = this.sinon.stub(nfcDialog, 'resize',
+      function() {
+        return true;
+      });
     });
 
     teardown(function() {
       navigator.mozL10n = realL10n;
       nfcDialog.hide();
+      stubResize.restore();
     });
 
     var assertTextContent = function(btEnabled, btName, el, expected) {
