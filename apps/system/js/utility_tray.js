@@ -215,9 +215,6 @@ var UtilityTray = {
         if (!this.shown) {
           this.screen.classList.remove('utility-tray');
           this.notifications.classList.remove('visible');
-
-          window.dispatchEvent(new CustomEvent(
-            'utility-tray-overlayclosed-finished'));
         }
         break;
 

@@ -456,23 +456,15 @@ suite('system/UtilityTray', function() {
   });
 
   suite('handleEvent: transitionend', function() {
-
-    var spyDispatchEvent;
     setup(function() {
-      spyDispatchEvent = this.sinon.spy(window, 'dispatchEvent');
       fakeEvt = createEvent('transitionend');
       UtilityTray.hide();
       UtilityTray.overlay.dispatchEvent(fakeEvt);
     });
 
-    teardown(function() {
-      spyDispatchEvent.restore();
-    });
-
     test('Test utilitytrayhide is correcly dispatched', function() {
       assert.equal(UtilityTray.screen.
         classList.contains('utility-tray'), false);
-      assert.ok(spyDispatchEvent.called);
     });
   });
 

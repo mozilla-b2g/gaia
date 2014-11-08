@@ -268,16 +268,11 @@ var QuickSettings = {
 
           case this.fullApp:
             // XXX: This should be replaced probably by Web Activities
-            window.addEventListener('utility-tray-overlayclosed-finished',
-              function _onClosed() {
-              window.removeEventListener('utility-tray-overlayclosed-finished',
-                _onClosed);
-              var host = document.location.host;
-              var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-              var protocol = document.location.protocol + '//';
-              applications.getByManifestURL(
-                protocol + 'settings.' + domain + '/manifest.webapp').launch();
-            });
+            var host = document.location.host;
+            var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+            var protocol = document.location.protocol + '//';
+            applications.getByManifestURL(protocol + 'settings.' +
+                                          domain + '/manifest.webapp').launch();
 
             UtilityTray.hide();
             break;
