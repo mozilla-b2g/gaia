@@ -21,7 +21,7 @@ task:
     env:
       REPORTER: 'mocha-tbpl-reporter'
       TEST_MANIFEST: './shared/test/integration/tbpl-manifest.json'
-      TEST_FILES: apps/sms/test/marionette/share_activity_test.js
+      TEST_FILES: apps/ftu/test/marionette/ftu_test.js
 
     command:
       - entrypoint
