@@ -1,3 +1,8 @@
+// Global plugin
+marionette.plugin('globalme', function() {
+  return { isGlobal: true };
+});
+
 marionette('plugins', function() {
   function PluginA(client, options) {
     return PluginA;
@@ -14,12 +19,16 @@ marionette('plugins', function() {
 
   var client = marionette.client();
 
+  test('global plugin is exposed', function() {
+    assert(client.globalme.isGlobal);
+  });
+
   test('a is exposed', function() {
     assert.strictEqual(client.a, PluginA);
   });
 
   test('plugins are created for each test', function() {
-    assert.equal(client.b.id, 2);
+    assert.equal(client.b.id, 3);
   });
 
   suite('overrides plugin a', function() {
@@ -38,7 +47,7 @@ marionette('plugins', function() {
     });
 
     test('b is still plugin b', function() {
-      assert.equal(client.b.id, 5);
+      assert.equal(client.b.id, 6);
     });
   });
 });

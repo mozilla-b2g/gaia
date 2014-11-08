@@ -332,6 +332,21 @@
     },
 
     /**
+     * Returns the object with:
+     *   x and y location of the element
+     *   height and width of the element
+     * @method rect
+     * @param  {Function} callback [Error err, Object rect]
+     * @return {Object} self.
+     */
+    rect: function rect (callback) {
+      var cmd = {
+        name: 'getElementRect'
+      };
+      return this._sendCommand(cmd, 'value', callback);
+    },
+
+    /**
      * Returns the value of the specified CSS property name.
      *
      * @method cssProperty

@@ -4,4 +4,3 @@ before_install:
 script: "make ci"
 node_js:
   - "0.10"
-  - "0.8"

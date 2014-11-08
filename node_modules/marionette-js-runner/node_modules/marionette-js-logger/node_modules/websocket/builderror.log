@@ -1,0 +1,1 @@
+child_process: customFds option is deprecated, use stdio instead.

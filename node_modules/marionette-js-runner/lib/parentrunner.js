@@ -1,4 +1,5 @@
 var Children = require('./childrunner');
+var debug = require('debug')('marionette-js-runner:parentrunner');
 
 function ParentRunner(argv) {
   this.argv = argv;
@@ -11,6 +12,34 @@ ParentRunner.prototype = {
    * @type {Array}
    */
   children: null,
+
+  /**
+   * Safely cleanup the state of all children.
+   *
+   * @param {Function} callback [Error]
+   */
+  cleanup: function(callback) {
+    debug('Handling SIGINT');
+
+    // TODO: Consider adding a timeout for waiting for cleanup to happen safely.
+    var pending = this.children.length;
+    if (!pending) {
+      // SIGINT is a user request so if we are done exit 0
+      process.exit(0);
+      return;
+    }
+
+    function next() {
+      if (--pending === 0) callback && callback();
+    }
+
+    var child;
+    while (child = this.children.pop()) {
+      // Cleanly handle all children teardowns.
+      child.process.kill();
+      child.process.once('exit', next);
+    }
+  },
 
   /**
    * Runs the mocha tests with a given reporter.
@@ -49,6 +78,9 @@ ParentRunner.prototype = {
     // process and runner.
     this.process = child.process;
     this.runner = child.runner;
+
+    // Begin listening to SIGINT
+    process.on('SIGINT', this.cleanup.bind(this));
 
     return new options.Reporter(child.runner);
   }

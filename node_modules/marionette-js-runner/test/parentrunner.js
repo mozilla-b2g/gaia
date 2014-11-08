@@ -48,7 +48,7 @@ suite('parentrunner', function() {
 
       result = subject.run({
         Host: Host,
-        reporter: Reporter,
+        Reporter: Reporter,
         ProfileBuilder: ProfileBuilder,
         profileBase: profileBase
       });
@@ -73,15 +73,15 @@ suite('parentrunner', function() {
       });
 
       test('options', function() {
-        assert.deepEqual(
-          child.options,
-          {
-            argv: subject.argv,
-            Host: Host,
-            ProfileBuilder: ProfileBuilder,
-            profileBase: profileBase
-          }
-        );
+        var expected = {
+          argv: subject.argv,
+          Host: Host,
+          ProfileBuilder: ProfileBuilder,
+          profileBase: profileBase,
+          verbose: undefined,
+          runtime: undefined
+        };
+        assert.deepEqual(child.options, expected);
       });
     });
   });

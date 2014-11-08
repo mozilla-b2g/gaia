@@ -30,11 +30,10 @@ function defensiveResolvePath(argument) {
  * in the specified manifest file.
  *
  * @param {String} manifestPath referencing the manifest file.
- * @param {Array} fileArgs paths to the test files.
- * @param {Array} argv command-line arguments.
+ * @param {Array} argv parsed command-line arguments.
  * @return {Array} transformed command-line arguments.
  */
-function applyManifest(manifestPath, fileArgs, argv) {
+function applyManifest(manifestPath, argv) {
   var fullPaths, manifest;
 
   try {
@@ -49,7 +48,7 @@ function applyManifest(manifestPath, fileArgs, argv) {
     throw new Error('Unable to parse manifest file as JSON');
   }
 
-  fullPaths = fileArgs.map(resolvePath);
+  fullPaths = argv.map(resolvePath);
 
   if (manifest.whitelist) {
     manifest.whitelist = manifest.whitelist.map(resolvePath);
@@ -65,10 +64,10 @@ function applyManifest(manifestPath, fileArgs, argv) {
     withoutFiles = intersect(fullPaths, blacklist);
   }
 
-  argv = argv.map(defensiveResolvePath);
+  fullPaths = fullPaths.map(defensiveResolvePath);
 
   // Remove the appropriate file arguments from the list
-  return difference(withoutFiles, argv);
+  return difference(withoutFiles, fullPaths);
 }
 
 module.exports = applyManifest;

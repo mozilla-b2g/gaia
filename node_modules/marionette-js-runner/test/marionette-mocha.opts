@@ -1,1 +1,1 @@
---profile-base profile.js
+--timeout 100s --profile-base profile.js
