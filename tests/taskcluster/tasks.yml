@@ -30,7 +30,7 @@ definitions:
   #jshint:
 
   marionette_js_tests:
-    chunks: 100
+    chunks: 120
 
   #unit_tests_b2g:
     #chunks: 30
