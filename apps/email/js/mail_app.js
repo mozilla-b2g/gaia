@@ -510,18 +510,6 @@ appMessages.on('activity', gateEntry(function(type, data, rawActivity) {
   }
 }));
 
-appMessages.on('notificationClosed', gateEntry(function(data) {
-  // The system notifies the app of closed messages. This really is not helpful
-  // for the email app, but since it wakes up the app, if we do not at least try
-  // to show a usable UI, the user could end up with a blank screen. As the app
-  // could also have been awakened by sync or just user action and running in
-  // the background, we cannot just close the app. So just make sure there is
-  // some usable UI.
-  if (waitForAppMessage && !Cards.getCurrentCardType()) {
-    resetApp();
-  }
-}));
-
 appMessages.on('notification', gateEntry(function(data) {
   var type = data ? data.type : '';
 
@@ -579,6 +567,26 @@ appMessages.on('notification', gateEntry(function(data) {
       }
     }
   });
+}));
+
+/*
+ * IMPORTANT: place this event listener after the one for 'notification'. In the
+ * case where email is not running and is opened by a notification, these
+ * listeners are added after the initial notifications have been received by
+ * app_messages, and so the order in which they are registered affect which one
+ * is called first for pending listeners. evt.js does not keep an absolute order
+ * on all events.
+ */
+appMessages.on('notificationClosed', gateEntry(function(data) {
+  // The system notifies the app of closed messages. This really is not helpful
+  // for the email app, but since it wakes up the app, if we do not at least try
+  // to show a usable UI, the user could end up with a blank screen. As the app
+  // could also have been awakened by sync or just user action and running in
+  // the background, we cannot just close the app. So just make sure there is
+  // some usable UI.
+  if (waitForAppMessage && !Cards.getCurrentCardType()) {
+    resetApp();
+  }
 }));
 
 model.init();
