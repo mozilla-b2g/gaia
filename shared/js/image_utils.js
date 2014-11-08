@@ -158,7 +158,7 @@
         }
         else if (header[0] === 0x42 && /* B */
                  header[1] === 0x4D && /* M */
-                 view.getUint16(2, true) === imageBlob.size)
+                 view.getUint32(2, true) === imageBlob.size)
         {
           // This is a BMP file
           try {
