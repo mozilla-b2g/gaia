@@ -61,9 +61,13 @@ marionette('Software Home Button - File Open Error', function() {
 
     // Tap on the toaster to open the download.
     // We could also open this from settings or the utility tray if needed.
-    var toasterDetail = client.helper.waitForElement(
-      '#notification-toaster.displayed .toaster-detail');
-    toasterDetail.tap();
+    var toasterTitle;
+    client.waitFor(function() {
+      toasterTitle = client.helper.waitForElement(
+        '#notification-toaster.displayed .toaster-title');
+      return toasterTitle.text().indexOf('Download complete') !== -1;
+    });
+    toasterTitle.tap();
 
     function rect(el) {
       return el.getBoundingClientRect();
