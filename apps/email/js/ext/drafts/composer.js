@@ -2,14 +2,12 @@ define(
   [
     'mailbuild',
     '../mailchew',
-    '../util',
-    'exports'
+    '../util'
   ],
   function(
     MimeNode,
     $mailchew,
-    $imaputil,
-    exports
+    $imaputil
   ) {
 
 var formatAddresses = $imaputil.formatAddresses;
@@ -24,6 +22,22 @@ MimeNode.prototype.removeHeader = function(key) {
     }
   }
 };
+
+/**
+ * Ensure that all newlines are of the form \r\n.  Our database representation
+ * for composed messages uses just \n at the current time.
+ *
+ * Test coverage is currently provided by end-to-end tests like test_compose
+ * since the SMTP fake server knows to generate a 451 if it sees incorrect
+ * newlines.  (Thanks to qmail!)
+ */
+function normalizeNewlines(body) {
+  // If regexps supported look-behinds we could avoid the wasted identity
+  // transform on \r\n but that's the only way to find an \n not preceded by
+  // an \r.  We don't really need the lone \r but if we're normalizing why
+  // not normalize 100%?
+  return body.replace(/\r?\n|\r/g, '\r\n');
+}
 
 /**
  * Abstraction around the mailbuild helper library and our efforts to avoid
@@ -88,10 +102,11 @@ function Composer(newRecords, account, identity) {
     var htmlContent = body.bodyReps[1].content;
     messageNode = new MimeNode('text/html');
     messageNode.setContent(
-      $mailchew.mergeUserTextWithHTML(textContent, htmlContent));
+      normalizeNewlines(
+        $mailchew.mergeUserTextWithHTML(textContent, htmlContent)));
   } else {
     messageNode = new MimeNode('text/plain');
-    messageNode.setContent(textContent);
+    messageNode.setContent(normalizeNewlines(textContent));
   }
 
   var root;
@@ -150,8 +165,6 @@ function Composer(newRecords, account, identity) {
     }
   }.bind(this));
 }
-
-exports.Composer = Composer;
 Composer.prototype = {
 
   /**
@@ -246,6 +259,10 @@ Composer.prototype = {
       this._smartWakeLock.renew(reason);
     }
   }
+};
+
+return {
+  Composer: Composer
 };
 
 }); // end define
