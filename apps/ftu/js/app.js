@@ -1,6 +1,6 @@
 /* global DataMobile, Navigation, SimManager, TimeManager,
           UIManager, WifiManager, ImportIntegration, Tutorial,
-          VersionHelper */
+          VersionHelper, LanguageManager */
 /* exported AppManager */
 'use strict';
 
@@ -32,6 +32,7 @@ var AppManager = {
   init: function init(versionInfo) {
     this.isInitialized = true;
 
+    LanguageManager.init();
     UIManager.init();
     Navigation.init();
 
