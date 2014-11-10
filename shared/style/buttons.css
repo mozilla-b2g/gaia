@@ -399,12 +399,6 @@ html[dir="rtl"] li .button {
   text-align: right;
 }
 
-html[dir="rtl"] li button.icon,
-html[dir="rtl"] li .bb-button.icon,
-html[dir="rtl"] li .button.icon {
-  padding: 1rem 1.3rem 1rem 4rem;
-}
-
 html[dir="rtl"] button[data-icon]:before,
 html[dir="rtl"] .bb-button[data-icon]:before,
 html[dir="rtl"] .button[data-icon]:before {
