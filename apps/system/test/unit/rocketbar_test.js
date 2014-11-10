@@ -310,9 +310,10 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleEvent() - home', function() {
-    var handleHomeStub = this.sinon.stub(subject, 'handleHome');
+    var handleHomeStub = this.sinon.stub(subject, '_handle_home');
     var event = {type: 'home'};
-    subject.handleEvent(event);
+    this.sinon.stub(subject, 'isActive').returns(true);
+    subject.respondToHierarchyEvent(event);
     assert.ok(handleHomeStub.calledOnce);
   });
 
@@ -354,9 +355,9 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleEvent() - launchactivity', function() {
-    var handleActivityStub = this.sinon.stub(subject, 'handleActivity');
+    var handleActivityStub = this.sinon.stub(subject, '_handle_launchactivity');
     var event = {type: 'launchactivity'};
-    subject.handleEvent(event);
+    subject.respondToHierarchyEvent(event);
     assert.ok(handleActivityStub.calledOnce);
   });
 
@@ -556,20 +557,21 @@ suite('system/Rocketbar', function() {
     assert.ok(setInputStub.calledWith(''));
   });
 
-  test('handleEvent() - system-resize', function() {
+  test('handle hierarchy event - system-resize', function() {
     subject.activate();
     subject.searchWindow.frontWindow = {
       resize: function() {}
     };
     var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
-    window.dispatchEvent(new CustomEvent('system-resize'));
+    subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
     assert.ok(stub.calledOnce);
   });
 
-  test('handleHome()', function() {
+  test('_handle_home', function() {
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
-    subject.handleHome();
+    this.sinon.stub(subject, 'isActive').returns(true);
+    subject._handle_home();
     assert.ok(deactivateStub.calledOnce);
     assert.ok(hideResultsStub.calledOnce);
   });
@@ -616,15 +618,6 @@ suite('system/Rocketbar', function() {
     subject.handleCancel();
     assert.ok(deactivateStub.calledOnce);
     assert.ok(hideResultsStub.calledOnce);
-  });
-
-  test('handleKeyboardChange()', function(done) {
-    var event = {
-      'stopImmediatePropagation': function() {
-        done();
-      }
-    };
-    subject.handleKeyboardChange(event);
   });
 
   test('loadSearchApp()', function() {
@@ -721,7 +714,7 @@ suite('system/Rocketbar', function() {
     var stubDispatchEvent = this.sinon.stub(subject.searchWindow,
       'broadcast');
 
-    subject.handleEvent({
+    subject.respondToHierarchyEvent({
       type: 'launchactivity',
       detail: {
         isActivity: true,

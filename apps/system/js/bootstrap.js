@@ -75,8 +75,6 @@ window.addEventListener('load', function startup() {
     window.lockScreenWindowManager = new window.LockScreenWindowManager();
     window.lockScreenWindowManager.start();
 
-    // Let systemDialogManager handle inputmethod-contextchange event before
-    // starting appWindowManager. See bug 1082741.
     window.appWindowManager.start();
 
     /** @global */

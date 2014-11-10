@@ -11,6 +11,13 @@
   HierarchyManager.STATES = [
     'getTopMostWindow'
   ];
+  HierarchyManager.EVENTS = [
+    'home',
+    'holdhome',
+    'system-resize',
+    'launchactivity',
+    'mozChromeEvent'
+  ];
   BaseModule.create(HierarchyManager, {
     name: 'HierarchyManager',
     EVENT_PREFIX: 'hierachy',
@@ -55,10 +62,10 @@
       'SecureWindowManager',
       'LockScreenWindowManager',
       'UtilityTray',
-      'TaskManager',
       'SystemDialogManager',
       'Rocketbar',
-      'AppWindowManager'
+      'AppWindowManager',
+      'TaskManager'
     ],
 
     _stop: function() {
@@ -87,9 +94,13 @@
       if (this._topMost !== lastTopMost) {
         if (lastTopMost) {
           this.debug('last top most is ' + lastTopMost.name);
+        } else {
+          this.debug('last top most is null.');
         }
         if (found) {
           this.debug('next top most is ' + this._topMost.name);
+        } else {
+          this.debug('next top most is null.');
         }
         // Blur the last top most module.
         lastTopMost && lastTopMost.setHierarchy &&
@@ -122,9 +133,41 @@
     },
 
     handleEvent: function(evt) {
-      this.debug('handling ' + evt.type);
-      this.updateHierarchy();
+      switch (evt.type) {
+        case 'mozChromeEvent':
+          if (!evt.detail ||
+              evt.detail.type !== 'inputmethod-contextchange') {
+            break;
+          }
+          /* falls through */
+        case 'home':
+        case 'holdhome':
+        case 'launchactivity':
+        case 'webapps-launch':
+        case 'system-resize':
+          this.broadcast(evt);
+          break;
+        default:
+          this.debug('handling ' + evt.type);
+          this.updateHierarchy();
+          break;
+      }
       return false;
+    },
+
+    /**
+     * Broadcast hierarchy based event until it's blocked
+     * @param  {DOMEvent} evt Event to be broadcast
+     */
+    broadcast: function(evt) {
+      this._ui_list.some(function(ui) {
+        if (ui.respondToHierarchyEvent) {
+          // If the module wants to interrupt the event,
+          // it should return false in the broadcast function.
+          this.debug('handover ' + evt.type + ' to ' + ui.name);
+          return (ui.respondToHierarchyEvent(evt) !== true);
+        }
+      }, this);
     },
 
     /**

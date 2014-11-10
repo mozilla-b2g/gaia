@@ -22,33 +22,45 @@ suite('system/HierarchyManager', function() {
     EVENT_PREFIX: 'attwm',
     isActive: function() {},
     getActiveWindow: function() {},
-    setHierarchy: function() {}
+    setHierarchy: function() {},
+    respondToHierarchyEvent: function() {}
   };
   var fakeAppWindowManager = {
     name: 'AppWindowManager',
     EVENT_PREFIX: 'awm',
     isActive: function() {},
     getActiveWindow: function() {},
-    setHierarchy: function() {}
+    setHierarchy: function() {},
+    respondToHierarchyEvent: function() {}
   };
   var fakeSystemDialogManager = {
     name: 'SystemDialogManager',
     EVENT_PREFIX: 'sdm',
     isActive: function() {},
-    setHierarchy: function() {}
+    setHierarchy: function() {},
+    respondToHierarchyEvent: function() {}
   };
   var fakeRocketbar = {
     name: 'Rocketbar',
     EVENT_PREFIX: 'rb',
     isActive: function() {},
     getActiveWindow: function() {},
-    setHierarchy: function() {}
+    setHierarchy: function() {},
+    respondToHierarchyEvent: function() {}
   };
   var fakeInitLogoHandler = {
     name: 'InitLogoHandler',
     EVENT_PREFIX: 'il',
     isActive: function() {},
-    setHierarchy: function() {}
+    setHierarchy: function() {},
+    respondToHierarchyEvent: function() {}
+  };
+  var fakeTaskManager = {
+    name: 'TaskManager',
+    EVENT_PREFIX: 'tm',
+    isActive: function() {},
+    setHierarchy: function() {},
+    respondToHierarchyEvent: function() {}
   };
 
   setup(function() {
@@ -198,5 +210,48 @@ suite('system/HierarchyManager', function() {
         assert.equal(subject._ui_list.length, 3);
         assert.isTrue(subject.updateHierarchy.calledThrice);
       });
+  });
+
+  suite('respondToHierarchyEvent hierarchy events', function() {
+    setup(function() {
+      subject.registerHierarchy(fakeSystemDialogManager);
+      subject.registerHierarchy(fakeRocketbar);
+      subject.registerHierarchy(fakeTaskManager);
+      subject.registerHierarchy(fakeAppWindowManager);
+      subject.registerHierarchy(fakeAttentionWindowManager);
+    });
+
+    teardown(function() {
+      subject.unregisterHierarchy(fakeSystemDialogManager);
+      subject.unregisterHierarchy(fakeRocketbar);
+      subject.unregisterHierarchy(fakeTaskManager);
+      subject.unregisterHierarchy(fakeAppWindowManager);
+      subject.unregisterHierarchy(fakeAttentionWindowManager);
+    });
+
+    test('Should broadcast event from top to bottom until blocked', function() {
+      this.sinon.stub(fakeRocketbar,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeSystemDialogManager,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeAppWindowManager,
+        'respondToHierarchyEvent').returns(false);
+      this.sinon.stub(fakeTaskManager,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeAttentionWindowManager,
+        'respondToHierarchyEvent').returns(true);
+      var homeEvt = new CustomEvent('home');
+      window.dispatchEvent(homeEvt);
+      assert.isTrue(fakeAttentionWindowManager
+        .respondToHierarchyEvent.calledWith(homeEvt));
+      assert.isTrue(fakeRocketbar
+        .respondToHierarchyEvent.calledWith(homeEvt));
+      assert.isTrue(fakeSystemDialogManager
+        .respondToHierarchyEvent.calledWith(homeEvt));
+      assert.isTrue(fakeAppWindowManager
+        .respondToHierarchyEvent.calledWith(homeEvt));
+      assert.isFalse(fakeTaskManager
+        .respondToHierarchyEvent.calledWith(homeEvt));
+    });
   });
 });

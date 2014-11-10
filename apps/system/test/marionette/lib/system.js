@@ -343,6 +343,13 @@ System.prototype = {
     });
   },
 
+  resize: function() {
+    this.client.switchToFrame();
+    this.client.executeScript(function() {
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('resize'));
+    });
+  },
+
   stopClock: function() {
     var client = this.client;
     var clock = client.executeScript(function() {

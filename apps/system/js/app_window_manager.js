@@ -1,5 +1,6 @@
 /* global SettingsListener, homescreenWindowManager, inputWindowManager,
-          layoutManager, Service, NfcHandler, rocketbar, ShrinkingUI */
+          layoutManager, Service, NfcHandler, rocketbar, ShrinkingUI,
+          FtuLauncher */
 'use strict';
 
 (function(exports) {
@@ -33,7 +34,7 @@
     screen: document.getElementById('screen'),
 
     isActive: function() {
-      return !!this._activeApp;
+      return (!!this._activeApp && this._activeApp.isActive());
     },
 
     setHierarchy: function(active) {
@@ -299,6 +300,7 @@
      * @memberOf module:AppWindowManager
      */
     start: function awm_start() {
+      this.activated = false;
       if (this.slowTransition) {
         this.element.classList.add('slow-transition');
       } else {
@@ -306,8 +308,6 @@
       }
       window.addEventListener('cardviewbeforeshow', this);
       window.addEventListener('launchapp', this);
-      document.body.addEventListener('launchactivity', this, true);
-      window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('ftuskip', this);
@@ -335,7 +335,6 @@
       window.addEventListener('attentionopened', this);
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
-      window.addEventListener('system-resize', this);
       window.addEventListener('orientationchange', this);
       window.addEventListener('sheets-gesture-begin', this);
       window.addEventListener('sheets-gesture-end', this);
@@ -344,8 +343,7 @@
       window.addEventListener('permissiondialoghide', this);
       window.addEventListener('appopening', this);
       window.addEventListener('localized', this);
-
-      window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('taskmanager-activated', this);
 
       this._settingsObserveHandler = {
         // continuous transition controlling
@@ -402,7 +400,6 @@
      */
     stop: function awm_stop() {
       window.removeEventListener('launchapp', this);
-      window.removeEventListener('home', this);
       window.removeEventListener('appcreated', this);
       window.removeEventListener('appterminated', this);
       window.removeEventListener('ftuskip', this);
@@ -423,16 +420,15 @@
       window.removeEventListener('attentionopened', this);
       window.removeEventListener('homegesture-enabled', this);
       window.removeEventListener('homegesture-disabled', this);
-      window.removeEventListener('system-resize', this);
       window.removeEventListener('orientationchange', this);
       window.removeEventListener('sheets-gesture-begin', this);
       window.removeEventListener('sheets-gesture-end', this);
       window.removeEventListener('permissiondialoghide', this);
       window.removeEventListener('appopening', this);
       window.removeEventListener('localized', this);
-      window.removeEventListener('mozChromeEvent', this);
       window.removeEventListener('shrinking-start', this);
       window.removeEventListener('shrinking-stop', this);
+      window.removeEventListener('taskmanager-activated', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -443,6 +439,44 @@
 
       this._settingsObserveHandler = null;
       Service.request('unregisterHierarchy', this);
+    },
+
+    '_handle_system-resize': function() {
+      if (this._activeApp) {
+        this.debug(' Resizing ' + this._activeApp.name);
+        if (!this._activeApp.isTransitioning()) {
+          this._activeApp.resize();
+          return false;
+        }
+      }
+      return true;
+    },
+
+    _handle_home: function(evt) {
+      // XXX: FtuLauncher should become submodule of AppWindowManager.
+      if (FtuLauncher.respondToHierarchyEvent(evt)) {
+        if (!homescreenWindowManager.ready ||
+            (window.taskManager && window.taskManager.isActive())) {
+          return true;
+        }
+        this.display(null, null, null, 'home');
+        return false;
+      } else {
+        return false;
+      }
+    },
+
+    _handle_holdhome: function(evt) {
+      // XXX: FtuLauncher should become submodule of AppWindowManager.
+      var ret = FtuLauncher.respondToHierarchyEvent(evt);
+      return ret;
+    },
+
+    respondToHierarchyEvent: function(evt) {
+      if (this['_handle_' + evt.type]) {
+        return this['_handle_' + evt.type](evt);
+      }
+      return true;
     },
 
     handleEvent: function awm_handleEvent(evt) {
@@ -474,15 +508,6 @@
           break;
         case 'orientationchange':
           this.broadcastMessage(evt.type);
-          break;
-        case 'system-resize':
-          this.debug(' Resizing...');
-          if (activeApp) {
-            this.debug(' Resizing ' + activeApp.name);
-            if (!activeApp.isTransitioning()) {
-              activeApp.resize();
-            }
-          }
           break;
 
         // Dispatch internal events for navigation usage.
@@ -595,30 +620,10 @@
           }
           break;
 
-        // If the lockscreen is active, it will stop propagation on this event
-        // and we'll never see it here. Similarly, other overlays may use this
-        // event to hide themselves and may prevent the event from getting here.
-        // Note that for this to work, the lockscreen and other overlays must
-        // be included in index.html before this one, so they can register their
-        // event handlers before we do.
-        case 'home':
-          if (!homescreenWindowManager.ready ||
-              (window.taskManager && window.taskManager.isActive())) {
-            return;
-          }
-          this.display(null, null, null, 'home');
-          break;
-
         case 'launchapp':
           var config = evt.detail;
           this.debug('launching' + config.origin);
           this.launch(config);
-          break;
-
-        case 'launchactivity':
-          if (evt.detail.isActivity && evt.detail.inline) {
-            this.launchActivity(evt);
-          }
           break;
 
         case 'cardviewbeforeshow':
@@ -651,23 +656,32 @@
           this.broadcastMessage('localized');
           break;
 
-        case 'mozChromeEvent':
-          if (!activeApp || !evt.detail ||
-            evt.detail.type !== 'inputmethod-contextchange') {
-            return;
-          }
-          activeApp.getTopMostWindow().broadcast('inputmethod-contextchange',
-            evt.detail);
+        case 'taskmanager-activated':
+          this.activated = false;
+          this.publish(this.EVENT_PREFIX + '-deactivated');
           break;
       }
     },
 
-    launchActivity: function(evt) {
-      // We don't know who is the opener,
-      // delegate the request to the active window.
-      if (this._activeApp) {
+    _handle_launchactivity: function(evt) {
+      if (evt.detail.isActivity && evt.detail.inline && this._activeApp) {
         this._activeApp.broadcast('launchactivity', evt.detail);
+        return false;
       }
+      return true;
+    },
+
+    '_handle_mozChromeEvent': function(evt) {
+      if (!evt.detail || evt.detail.type !== 'inputmethod-contextchange') {
+        return true;
+      }
+      if (this._activeApp) {
+        this._activeApp.getTopMostWindow()
+            .broadcast('inputmethod-contextchange',
+          evt.detail);
+        return false;
+      }
+      return true;
     },
 
     _dumpAllWindows: function() {
@@ -794,6 +808,13 @@
 
     _updateActiveApp: function awm__changeActiveApp(instanceID) {
       var appHasChanged = (this._activeApp !== this._apps[instanceID]);
+      this.debug(appHasChanged, this.activated, this._activeApp);
+      var activated = false;
+      if (!this.activated && appHasChanged && !this._activeApp) {
+        activated = true;
+      } else if (!appHasChanged && this._activeApp && !this.activated) {
+        activated = true;
+      } 
 
       this._activeApp = this._apps[instanceID];
       if (!this._activeApp) {
@@ -819,6 +840,9 @@
 
       this.debug('=== Active app now is: ',
         (this._activeApp.name || this._activeApp.origin), '===');
+      if (activated) {
+        this.publish(this.EVENT_PREFIX + '-activated');
+      }
     },
 
     /**

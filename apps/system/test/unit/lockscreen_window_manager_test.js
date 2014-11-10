@@ -128,17 +128,14 @@ suite('system/LockScreenWindowManager', function() {
 
     test('It should stop home event to propagate', function() {
       var evt = {
-            type: 'home',
-            stopImmediatePropagation: this.sinon.stub()
+            type: 'home'
           };
       // Need to be active to block the home event.
       this.sinon.stub(subject, 'isActive',
         function() {
           return true;
       });
-      subject.handleEvent(evt);
-      assert.ok(evt.stopImmediatePropagation.called,
-        'it didn\'t call the stopImmediatePropagation method');
+      subject.respondToHierarchyEvent(evt);
     });
 
     test('App created', function() {

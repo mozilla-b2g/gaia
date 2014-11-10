@@ -182,7 +182,7 @@ suite('system/SecureWindowManager', function() {
       var stubSoftKillApps = this.sinon.stub(window.secureWindowManager,
         'softKillApps');
       window.secureWindowManager.registerApp(appFake);
-      window.secureWindowManager.handleEvent(evt);
+      window.secureWindowManager.respondToHierarchyEvent(evt);
 
       assert.isTrue(stubSoftKillApps.called,
           'should shut down secure apps after pressing home');

@@ -55,8 +55,7 @@
                 'secure-appcreated',
                 'secure-appopened',
                 'secure-appterminated',
-                'secure-apprequestclose',
-                'home'
+                'secure-apprequestclose'
                ]
     }
   };
@@ -72,6 +71,20 @@
   };
   SecureWindowManager.prototype.getActiveWindow = function() {
     return this.isActive() ? this.states.activeApp : null;
+  };
+  SecureWindowManager.prototype._handle_home = function() {
+    if (0 !== Object.keys(this.states.runningApps).length) {
+      this.elements.screen.classList.remove('secure-app');
+      this.softKillApps();
+    }
+    return true;
+  };
+  SecureWindowManager.prototype.respondToHierarchyEvent = function(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    } else {
+      return true;
+    }
   };
 
   /**
@@ -135,12 +148,6 @@
           app.close(this.states.killMode ?
               this.configs.killAnimation : null);
           this.elements.screen.classList.remove('secure-app');
-          break;
-        case 'home':
-          if (0 !== Object.keys(this.states.runningApps).length) {
-            this.elements.screen.classList.remove('secure-app');
-            this.softKillApps();
-          }
           break;
       }
     };

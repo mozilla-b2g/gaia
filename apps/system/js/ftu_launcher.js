@@ -45,12 +45,6 @@ var FtuLauncher = {
   },
 
   init: function fl_init() {
-    // We have to block home/holdhome event if FTU is first time running.
-    // Note: FTU could be launched from Settings app too.
-    // We don't want to block home/holdhome in that case.
-    window.addEventListener('home', this);
-    window.addEventListener('holdhome', this);
-
     // for iac connection
     window.addEventListener('iac-ftucomms', this);
 
@@ -69,6 +63,38 @@ var FtuLauncher = {
     Service.registerState('isFtuRunning', this);
   },
 
+  _handle_home: function() {
+    if (this._isRunningFirstTime) {
+      // Because tiny devices have its own exit button,
+      // this check is for large devices
+      if (!this._bypassHomeEvent) {
+        return false;
+      } else {
+        var killEvent = document.createEvent('CustomEvent');
+        killEvent.initCustomEvent('killapp',
+          /* canBubble */ true, /* cancelable */ false, {
+          origin: this._ftuOrigin
+        });
+        window.dispatchEvent(killEvent);
+      }
+    }
+    return true;
+  },
+
+  _handle_holdhome: function() {
+    if (this._isRunningFirstTime) {
+      return false;
+    }
+    return true;
+  },
+
+  respondToHierarchyEvent: function(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    }
+    return true;
+  },
+
   handleEvent: function fl_init(evt) {
     switch (evt.type) {
       case 'appopened':
@@ -81,33 +107,10 @@ var FtuLauncher = {
         }
         break;
 
-      case 'home':
-        if (this._isRunningFirstTime) {
-          // Because tiny devices have its own exit button,
-          // this check is for large devices
-          if (!this._bypassHomeEvent) {
-            evt.stopImmediatePropagation();
-          } else {
-            var killEvent = document.createEvent('CustomEvent');
-            killEvent.initCustomEvent('killapp',
-              /* canBubble */ true, /* cancelable */ false, {
-              origin: this._ftuOrigin
-            });
-            window.dispatchEvent(killEvent);
-          }
-        }
-        break;
-
       case 'iac-ftucomms':
         var message = evt.detail;
         if (message === 'done') {
           this.setBypassHome(true);
-        }
-        break;
-
-      case 'holdhome':
-        if (this._isRunningFirstTime) {
-          evt.stopImmediatePropagation();
         }
         break;
 

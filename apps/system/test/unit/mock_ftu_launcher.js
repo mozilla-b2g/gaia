@@ -18,6 +18,8 @@
 
     getFtuOrigin: function() {
       return 'app://ftu.gaiamobile.org';
-    }
+    },
+
+    respondToHierarchyEvent: function() {}
   };
 }(window));

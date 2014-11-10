@@ -68,7 +68,7 @@ suite('system/TaskManager >', function() {
 
   function sendHoldhome() {
     var evt = new CustomEvent('holdhome', { });
-    window.dispatchEvent(evt);
+    taskManager.respondToHierarchyEvent(evt);
   }
 
   function sendAppopen(detail) {
@@ -1072,7 +1072,7 @@ suite('system/TaskManager >', function() {
         .then(function() { done(); }, done);
 
         var event = new CustomEvent('home');
-        window.dispatchEvent(event);
+        taskManager.respondToHierarchyEvent(event);
         fakeFinish(this.sinon.clock, home);
       });
     });
@@ -1120,7 +1120,7 @@ suite('system/TaskManager >', function() {
         .then(function() { done(); }, done);
 
         var event = new CustomEvent('home');
-        window.dispatchEvent(event);
+        taskManager.respondToHierarchyEvent(event);
         fakeFinish(this.sinon.clock, activeApp);
       });
 

@@ -301,24 +301,12 @@ suite('system/UtilityTray', function() {
     setup(function() {
       fakeEvt = createEvent('home', true);
 
-      // Since nsIDOMEvent::StopImmediatePropagation does not set
-      // any property on the event, and there is no way to add a
-      // global event listeners, let's just overidde the method
-      // to set our own property.
-      fakeEvt.stopImmediatePropagation = function() {
-        this._stopped = true;
-      };
-
       UtilityTray.show();
-      window.dispatchEvent(fakeEvt);
+      UtilityTray.respondToHierarchyEvent(fakeEvt);
     });
 
     test('should be hidden', function() {
       assert.equal(UtilityTray.shown, false);
-    });
-
-    test('home should have been stopped', function() {
-      assert.equal(fakeEvt._stopped, true);
     });
   });
 
