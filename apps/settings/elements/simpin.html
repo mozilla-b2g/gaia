@@ -1,7 +1,7 @@
 <element name="simpin" extends="section">
   <template>
 
-    <gaia-header id="simpin-header" action="back" data-href="#root">
+    <gaia-header class="simpin-header" action="back" data-href="#root">
       <h1 data-l10n-id="simSecurity-header"> SIM Security </h1>
     </gaia-header>
 
@@ -21,14 +21,11 @@
           </p>
         </li>
       </ul>
-      <ul id="simpin-container"></ul>
+      <ul class="simpin-container"></ul>
     </div>
 
-    <script src="shared/js/toaster.js"></script>
-    <script src="shared/js/template.js"></script>
-    <script src="js/simcard_dialog.js"></script>
-    <script src="js/simcard_lock.js"></script>
-    <div id="simpin-tmpl" hidden>
+    <panel data-path="panels/simpin/panel"><panel>
+    <div class="simpin-tmpl" hidden>
        <!--
        <li class="simpin-enabled simpin-enabled-${sim-index} simpin-${sim-index}">
          <label class="pack-switch">
