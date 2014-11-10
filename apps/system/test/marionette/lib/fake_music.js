@@ -2,10 +2,12 @@
 
 function FakeMusic(client, origin) {
   this.client = client;
-  this.origin = origin;
+  this.origin = origin || ('app://' + FakeMusic.DEFAULT_ORIGIN);
 }
 
 module.exports = FakeMusic;
+
+FakeMusic.DEFAULT_ORIGIN = 'fakemusic.gaiamobile.org';
 
 FakeMusic.Selector = Object.freeze({
   albumOneElement: '#album-one',
@@ -54,7 +56,7 @@ FakeMusic.prototype = {
     this.client.apps.switchToApp(this.origin);
 
     // Wait until the app has told us it's fully loaded.
-    var body = this.client.helper.waitForElement('body.loaded');
+    this.client.helper.waitForElement('body.loaded');
 
     this.client.switchToFrame();
   },
