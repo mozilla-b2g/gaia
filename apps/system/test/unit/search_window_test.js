@@ -3,6 +3,7 @@
 /* global MockApplications */
 /* global MocksHelper */
 /* global MockSettingsListener */
+/* global SettingsListener */
 /* global SearchWindow */
 
 
@@ -50,6 +51,14 @@ suite('system/SearchWindow', function() {
     var searchWindow = new SearchWindow();
     assert.ok(searchWindow.constructor === SearchWindow,
       'Uses the SearchWindow constructor');
+  });
+
+  test('destroy - unobserves setting', function() {
+    var subject = new SearchWindow();
+    this.sinon.spy(SettingsListener, 'unobserve');
+    subject.destroy();
+    sinon.assert.calledWith(SettingsListener.unobserve,
+      'rocketbar.searchAppURL', subject._setBrowserConfig);
   });
 
   test('setBrowserConfig', function() {
