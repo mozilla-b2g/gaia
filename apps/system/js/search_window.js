@@ -10,8 +10,9 @@
     this.instanceID = 'search';
     this.publish('created');
 
+    this._setBrowserConfig = this.setBrowserConfig.bind(this);
     SettingsListener.observe('rocketbar.searchAppURL', '',
-      this.setBrowserConfig.bind(this));
+      this._setBrowserConfig);
 
     return this;
   }
@@ -67,6 +68,16 @@
   // but we don't need it right now.
   SearchWindow.prototype.requestClose = function() {
     this.close();
+  };
+
+  /**
+   * Overrides appWindow.destroy.
+   * Unobserves from any living listeners.
+   */
+  SearchWindow.prototype.destroy = function() {
+    SettingsListener.unobserve('rocketbar.searchAppURL',
+      this._setBrowserConfig);
+    AppWindow.prototype.destroy.call(this);
   };
 
   /**
