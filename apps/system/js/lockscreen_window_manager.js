@@ -59,6 +59,7 @@
                 'lockscreen-appterminated',
                 'lockscreen-appclose',
                 'screenchange',
+                'system-resize',
                 'ftuopen',
                 'ftudone',
                 'overlaystart',
@@ -142,6 +143,11 @@
           break;
         case 'secure-appclosed':
           this.states.instance.lockOrientation();
+          break;
+        case 'system-resize':
+          if (this.states.instance && this.states.instance.isActive()) {
+            this.states.instance.resize();
+          }
           break;
         case 'screenchange':
           // The screenchange may be invoked by proximity sensor,
