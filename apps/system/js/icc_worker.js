@@ -16,6 +16,12 @@ var icc_worker = {
     });
   },
 
+  // Helper to retrieve text from MozStkTextMessage
+  _retrieveText: function icc_worker_retrieve_text(stkMessage) {
+    return (typeof stkMessage === 'string' || stkMessage instanceof String) ?
+      stkMessage : ((stkMessage) ? stkMessage.text : null);
+  },
+
   // STK_CMD_REFRESH
   '0x1': function STK_CMD_REFRESH(message) {
     DUMP('STK_CMD_REFRESH', message.command.options);
@@ -58,7 +64,7 @@ var icc_worker = {
       if (confirmed && postMessage) {
         // Transfering the second alpha id to dialer (Bug #873906)
         window.navigator.mozSettings.createLock().set({
-          'icc.callmessage': options.callMessage
+          'icc.callmessage': callMessage
         });
       }
     }
@@ -67,23 +73,26 @@ var icc_worker = {
     DUMP('STK_CMD_SET_UP_CALL:', message.command.options);
     var options = message.command.options;
 
+    var confirmMessage = this._retrieveText(options.confirmMessage);
+    var callMessage = this._retrieveText(options.callMessage);
+
     if (!icc.canProcessMessage(message)) {
       return DUMP('Message active, delaying STK...');
     }
 
-    if (!options.confirmMessage) {
-      options.confirmMessage = _(
+    if (!confirmMessage) {
+      confirmMessage = _(
         'icc-confirmCall-defaultmessage', {
           'number': options.address
         });
     }
-    if (options.confirmMessage) {
-      icc.asyncConfirm(message, options.confirmMessage,
+    if (confirmMessage) {
+      icc.asyncConfirm(message, confirmMessage,
         function(confirmed) {
-          stkSetupCall(confirmed, options.callMessage);
+          stkSetupCall(confirmed, callMessage);
         });
     } else {
-      stkSetupCall(true, options.callMessage);
+      stkSetupCall(true, callMessage);
     }
   },
 
@@ -159,7 +168,8 @@ var icc_worker = {
     icc.responseSTKCommand(message, {
       resultCode: icc._iccManager.STK_RESULT_OK
     });
-    icc.showURL(message, options.url, options.confirmMessage);
+    icc.showURL(message, options.url,
+      this._retrieveText(options.confirmMessage));
   },
 
   // STK_CMD_PLAY_TONE
