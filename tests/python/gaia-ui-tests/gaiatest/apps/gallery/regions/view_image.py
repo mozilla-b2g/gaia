@@ -12,6 +12,8 @@ from gaiatest.apps.base import Base
 class ViewImage(Base):
 
     _header_locator = (By.ID, 'header')
+    _banner_message_locator = (By.ID, 'message')
+    _save_image_button_locator = (By.ID, 'save')
     _image_locator = (By.CSS_SELECTOR, 'div.image-view')
 
     def __init__(self, marionette):
@@ -27,6 +29,12 @@ class ViewImage(Base):
     def is_image_visible(self):
         return self.is_element_displayed(*self._image_locator)
 
+    @property
+    def banner_message(self):
+        element = Wait(self.marionette).until(expected.element_present(*self._banner_message_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        return element.text
+
     def tap_back_button(self):
         header = self.marionette.find_element(*self._header_locator)
         # TODO: replace this condition with tap on the back button, after Bug 1061698 is fixed
@@ -36,3 +44,6 @@ class ViewImage(Base):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != 'Gallery')
 
         self.apps.switch_to_displayed_app()
+
+    def tap_save_image(self):
+        self.marionette.find_element(*self._save_image_button_locator).tap()

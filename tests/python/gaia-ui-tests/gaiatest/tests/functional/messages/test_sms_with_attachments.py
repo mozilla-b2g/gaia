@@ -54,3 +54,11 @@ class TestSmsWithAttachments(GaiaTestCase):
 
         # Check that message has attachments
         self.assertTrue(last_message.has_attachments)
+
+        view_image = last_message.tap_attachment()
+        view_image.tap_save_image()
+        self.assertIn('saved to Gallery', view_image.banner_message)
+
+        # Check that there are 2 picture on the sd card
+        # One is the picture we sent, the second is the one saved
+        self.assertEqual(2, len(self.data_layer.picture_files))
