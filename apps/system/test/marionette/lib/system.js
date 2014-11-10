@@ -30,6 +30,7 @@ System.Selector = Object.freeze({
   appChromeProgressBar: '.appWindow.active .chrome gaia-progress',
   softwareButtons: '#software-buttons',
   browserWindow: '.appWindow.browser',
+  dialogOverlay: '#screen #dialog-overlay',
   downloadDialog: '#downloadConfirmUI',
   imeMenu: '.ime-menu',
   sleepMenuContainer: '#sleep-menu-container',
@@ -124,6 +125,11 @@ System.prototype = {
   get appChromeProgressBar() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeProgressBar);
+  },
+
+  get dialogOverlay() {
+    return this.client.helper.waitForElement(
+      System.Selector.dialogOverlay);
   },
 
   get downloadDialog() {
