@@ -6,6 +6,7 @@ function bluetoothTest() {
   var switchButton = document.getElementById('switch');
   var state = document.getElementById('state');
   var address = document.getElementById('address');
+  var version = document.getElementById('version');
   var btHelper = new BluetoothHelper();
 
   function update() {
@@ -43,10 +44,12 @@ function bluetoothTest() {
   }
 
   if (btHelper.v2) {
+    version.textContent = "v2";
     bluetooth.onadapteradded = function onAdapterAdded(evt) {
       update();
     }
   } else {
+    version.textContent = "v1";
     bluetooth.addEventListener('adapteradded', update);
   }
   
