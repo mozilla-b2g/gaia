@@ -44,7 +44,7 @@ class TestEnduranceSmsSendReceive(GaiaEnduranceTestCase):
         # create new message
         _text_message_content = "SMS %d of %d (send receive endurance test %s)" % (self.iteration, self.iterations, str(time.time()))
         new_message = self.messages.tap_create_new_message()
-        new_message.type_phone_number(self.testvars['carrier']['phone_number'])
+        new_message.type_phone_number(self.testvars['local_phone_numbers'][0])
         new_message.type_message(_text_message_content)
 
         # send

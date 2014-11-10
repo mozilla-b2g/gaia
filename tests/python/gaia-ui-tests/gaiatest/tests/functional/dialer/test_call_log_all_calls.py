@@ -46,7 +46,7 @@ class TestCallLogAllCalls(GaiaTestCase):
             self.testvars['plivo']['phone_number']
         )
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['carrier']['phone_number'].replace('+', ''),
+            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''),
             timeout=30)
 
         call_screen = CallScreen(self.marionette)
