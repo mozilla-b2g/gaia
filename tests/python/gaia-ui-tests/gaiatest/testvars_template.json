@@ -1,11 +1,7 @@
 {
   "settings": {},
   "prefs": {},
-  "carrier":{
-    "phone_number": "",
-    "country": "",
-    "network": ""
-  },
+  "local_phone_numbers": [""],
   "imei": "",
   "remote_phone_number": "",
   "wifi": {
