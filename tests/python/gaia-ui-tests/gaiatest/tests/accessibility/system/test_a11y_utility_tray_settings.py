@@ -21,4 +21,4 @@ class TestUtilityTraySettingsAccessibility(GaiaTestCase):
         settings = utility_tray.a11y_click_quick_settings_full_app()
 
         # Make sure that Settings is the currently displayed app.
-        self.assertEquals(self.apps.displayed_app.name, settings.name)
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == settings.name)
