@@ -130,6 +130,40 @@ suite('system/LockScreenWindowManager', function() {
         'screenchange was caused by proximity sensor');
     });
 
+    test('When ScreenChange and it\'s enabled, try to lock orientation',
+    function() {
+      var handleEvent =
+        window.LockScreenWindowManager.prototype.handleEvent;
+      var mockSubject = {
+        states: {
+          ready: true,
+          instance: {
+            lockOrientation: this.sinon.stub(),
+            isActive: function() {
+              return true;
+            }
+          }
+        },
+        openApp: function() {},
+        isActive: function() {
+          return true;
+        }
+      };
+      window.secureWindowManager = {
+        isActive: function() {
+          return false;
+        }
+      };
+      handleEvent.call(mockSubject,
+        {
+          type: 'screenchange',
+          detail: { screenEnabled: true }
+        });
+      assert.isTrue(
+        mockSubject.states.instance.lockOrientation.called,
+        'it doesn\'t lock the orientation while screenchage');
+    });
+
     test('Open the app when screen is turned on', function() {
       window.lockScreenWindowManager.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');
