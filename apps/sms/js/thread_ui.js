@@ -53,12 +53,6 @@ function thui_generateSmilSlides(slides, content) {
   return slides;
 }
 
-function createBdiNode(content) {
-  var bdi = document.createElement('bdi');
-  bdi.textContent = content;
-  return bdi;
-}
-
 var ThreadUI = {
   CHUNK_SIZE: 10,
   // duration of the notification that message type was converted
@@ -2651,7 +2645,7 @@ var ThreadUI = {
       this.prompt({
         number: tel,
         email: email,
-        header: fragment || number,
+        header: fragment,
         contactId: id,
         isContact: isContact,
         inMessage: inMessage
@@ -2671,13 +2665,9 @@ var ThreadUI = {
     var email = opt.email || '';
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
+    var header = opt.header;
     var items = [];
     var params, props;
-
-    var header = opt.header || number || email || '';
-    if (header && (typeof header === 'string' || typeof header === 'number')) {
-      header = createBdiNode(header);
-    }
 
     // Create a params object.
     //  - complete: callback to be invoked when a
@@ -2686,10 +2676,16 @@ var ThreadUI = {
     //      in the header of the option menu
     //  - items: array of options to display in menu
     //
+    if (!header && (number || email)) {
+      header = document.createElement('bdi');
+      header.className = 'unknown-contact-header';
+      header.textContent = number || email;
+    }
+
     params = {
       classes: ['contact-prompt'],
       complete: complete,
-      header: header,
+      header: header || '',
       items: null
     };
 

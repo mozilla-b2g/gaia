@@ -3825,8 +3825,10 @@ suite('thread_ui.js >', function() {
             var items = call.items;
 
             // Ensures that the OptionMenu was given
-            // the phone number to diplay
-            assert.equal(call.header.outerHTML, '<bdi>999</bdi>');
+            // the phone number to display
+            assert.equal(call.header.textContent, '999');
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
+            assert.equal(call.header.tagName, 'BDI');
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3857,8 +3859,10 @@ suite('thread_ui.js >', function() {
             var items = call.items;
 
             // Ensures that the OptionMenu was given
-            // the email address to diplay
-            assert.equal(call.header.outerHTML, '<bdi>a@b.com</bdi>');
+            // the email address to display
+            assert.equal(call.header.textContent, 'a@b.com');
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
+            assert.equal(call.header.tagName, 'BDI');
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3901,8 +3905,10 @@ suite('thread_ui.js >', function() {
             var items = call.items;
 
             // Ensures that the OptionMenu was given
-            // the email address to diplay
-            assert.equal(call.header.outerHTML, '<bdi>a@b.com</bdi>');
+            assert.equal(call.header.tagName, 'BDI');
+            // the email address to display
+            assert.equal(call.header.textContent, 'a@b.com');
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3979,7 +3985,11 @@ suite('thread_ui.js >', function() {
             var calls = MockOptionMenu.calls;
 
             assert.equal(calls.length, 1);
-            assert.equal(calls[0].header.outerHTML, '<bdi>777</bdi>');
+            assert.equal(calls[0].header.textContent, '777');
+            assert.ok(
+              calls[0].header.classList.contains('unknown-contact-header')
+            );
+            assert.equal(calls[0].header.tagName, 'BDI');
             assert.equal(calls[0].items.length, 3);
             assert.equal(typeof calls[0].complete, 'function');
           });
@@ -4028,7 +4038,11 @@ suite('thread_ui.js >', function() {
             var calls = MockOptionMenu.calls;
 
             assert.equal(calls.length, 1);
-            assert.equal(calls[0].header.outerHTML, '<bdi>a@b</bdi>');
+            assert.equal(calls[0].header.textContent, 'a@b');
+            assert.ok(
+              calls[0].header.classList.contains('unknown-contact-header')
+            );
+            assert.equal(calls[0].header.tagName, 'BDI');
             assert.equal(calls[0].items.length, 5);
             assert.equal(typeof calls[0].complete, 'function');
           });
@@ -4088,8 +4102,10 @@ suite('thread_ui.js >', function() {
           var items = call.items;
 
           // Ensures that the OptionMenu was given
-          // the phone number to diplay
-          assert.equal(call.header.outerHTML, '<bdi>999</bdi>');
+          // the phone number to display
+          assert.equal(call.header.textContent, '999');
+          assert.ok(call.header.classList.contains('unknown-contact-header'));
+          assert.equal(call.header.tagName, 'BDI');
 
           assert.equal(items.length, 5);
 
