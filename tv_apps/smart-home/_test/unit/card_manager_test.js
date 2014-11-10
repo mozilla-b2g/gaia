@@ -1,8 +1,8 @@
 'use strict';
 
 /* global CardManager */
-/* Disabled, bug 1095219
-require('/js/vendor/evt.js');
+
+require('/tv_shared/js/vendor/evt.js');
 require('/js/utils.js');
 require('/test/unit/mock_piped_promise.js');
 require('/test/unit/mock_card_store.js');
@@ -182,4 +182,3 @@ suite('smart-home/CardManager', function() {
 
   });
 });
-*/
