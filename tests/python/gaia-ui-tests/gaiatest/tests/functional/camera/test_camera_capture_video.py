@@ -4,7 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.camera.app import Camera
-
+import json
 
 class TestCamera(GaiaTestCase):
 
@@ -32,4 +32,6 @@ class TestCamera(GaiaTestCase):
         # Check that video saved to SD card
         self.wait_for_condition(lambda m: len(self.data_layer.video_files) == self.previous_number_of_videos + 1, 15)
         self.assertEqual(len(self.data_layer.video_files), self.previous_number_of_videos + 1)
+        file = json.loads(self.data_layer.video_files[0])
+        self.assertTrue(file["size"] > 1000)
 

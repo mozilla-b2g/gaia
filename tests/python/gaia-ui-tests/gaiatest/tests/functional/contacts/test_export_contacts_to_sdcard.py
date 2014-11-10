@@ -1,3 +1,4 @@
+import json
 from gaiatest import GaiaTestCase
 from gaiatest.apps.contacts.app import Contacts
 from gaiatest.mocks.mock_contact import MockContact
@@ -13,8 +14,9 @@ class TestExportContactsToSDCard(GaiaTestCase):
         self.data_layer.insert_contact(self.contact)
 
         # remove vcf files from sdcard
-        for filename in self.data_layer.sdcard_files('.vcf'):
-            self.device.file_manager.remove(filename)
+        for filestr in self.data_layer.sdcard_files('.vcf'):
+            file = json.loads(filestr)
+            self.device.file_manager.remove(file.name)
 
     def test_export_contacts_to_sdcard(self):
         """ Export contacts to an SD card """
@@ -33,5 +35,5 @@ class TestExportContactsToSDCard(GaiaTestCase):
         self.assertIn('1/1 contacts exported', contacts_app.status_message)
 
         vcf_files = self.data_layer.sdcard_files('.vcf')
-
+        print(len(vcf_files))
         self.assertEqual(1, len(vcf_files))
