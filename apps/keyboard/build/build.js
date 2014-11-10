@@ -4,6 +4,7 @@
 
 var utils = require('utils');
 var keyboardConfig = require('./keyboard-config');
+var settingsConfig = require('./settings-config');
 
 var KeyboardAppBuilder = function() {
 };
@@ -132,6 +133,11 @@ KeyboardAppBuilder.prototype.generateManifest = function() {
                      JSON.stringify(manifest));
 };
 
+KeyboardAppBuilder.prototype.modifySettings = function() {
+  if (settingsConfig.checkHandwriting(this.allLayouts)) {
+    settingsConfig.addHandwritingSettings(this.appDir.path, this.distDir.path);
+  }
+};
 
 KeyboardAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
@@ -143,6 +149,7 @@ KeyboardAppBuilder.prototype.execute = function(options) {
   this.copyStaticFiles();
   this.copyLayouts();
   this.generateManifest();
+  this.modifySettings();
 };
 
 exports.execute = function(options) {

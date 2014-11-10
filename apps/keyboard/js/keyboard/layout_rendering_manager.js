@@ -148,6 +148,16 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
   return p;
 };
 
+LayoutRenderingManager.prototype.drawHandwritingPad = function(press,
+                                                               start,
+                                                               strokeWidth) {
+  return IMERender.drawHandwritingPad(press, start, strokeWidth);
+};
+
+LayoutRenderingManager.prototype.clearHandwritingPad = function(target) {
+  IMERender.clearHandwritingPad(target);
+};
+
 // So there are a couple of things that we want don't want to block
 // on here, so we can do it if resizeUI is fully finished
 LayoutRenderingManager.prototype._afterRenderDrew = function() {
