@@ -46,7 +46,7 @@ class TestSetUpConferenceCall(GaiaTestCase):
         call_screen.wait_for_condition(lambda m: self.data_layer.active_telephony_state == 'connected')
 
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['carrier']['phone_number'].replace('+', ''),
+            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''),
             timeout=PLIVO_TIMEOUT)
 
         call_screen = CallScreen(self.marionette)
