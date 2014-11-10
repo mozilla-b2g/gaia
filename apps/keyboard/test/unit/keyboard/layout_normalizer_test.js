@@ -294,6 +294,20 @@ suite('LayoutNormalizer', function() {
 
       assert.equal(key.supportsSwitching.keyCodeUpper, 'A'.charCodeAt(0));
     });
+
+    test('normalize a key which has alternative keys', function() {
+      var normalizer = new LayoutNormalizer({});
+
+      this.sinon.stub(normalizer, '_getUpperCaseValue').returns('A');
+
+      var key = {
+        value: 'a'
+      };
+
+      normalizer._normalizeKey(key, {}, true);
+
+      assert.equal(key.className, 'alternate-indicator');
+    });
   });
 
   suite('normalizePageKeys', function() {
@@ -341,6 +355,29 @@ suite('LayoutNormalizer', function() {
         'b': 'C'
       });
     });
+
+    test('overwriting key in textLayoutOverwrite has alternative keys',
+      function() {
+        var normalizer = new LayoutNormalizer({});
+
+        var page = {
+          textLayoutOverwrite: {
+            'a': 'b'
+          },
+          alt: {
+            'b': 'cdefg'
+          }
+        };
+
+        var overwritingkey = 'b';
+        var hasAlternativeKeys = normalizer._hasAlternativeKeys(overwritingkey,
+                                                                page);
+        assert.isTrue(hasAlternativeKeys);
+
+        normalizer._normalizePageKeys(page);
+        assert.equal(page.textLayoutOverwrite.a.className,
+                     'alternate-indicator');
+      });
   });
 
   suite('normalizePageAltKeys', function() {
