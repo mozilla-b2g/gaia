@@ -124,16 +124,7 @@ When running your tests add the argument::
 Expected variables
 ^^^^^^^^^^^^^^^^^^
 
-* carrier - Carrier information of the test phone, including the phone number, country and network of the SIM card:
-
-.. code-block:: javascript
-
-    'carrier': {
-      'phone_number': '',
-      'country': '',
-      'network': ''
-    }
-
+* local_phone_numbers - Array of phone numbers that are attached to the phone.
 * imei - The 12 digit IMEI code of the test phone.
 * remote_phone_number - Phone number that your device can call during the tests (try not to be a nuisance!). Prefix the number with '+' and your international dialing code.
 * wifi - These are the settings of your WiFi connection. Currently this supports WPA/WEP/etc. You can add WiFi networks by doing the following (remember to replace ``KeyManagement`` and the password with the value your network supports):
