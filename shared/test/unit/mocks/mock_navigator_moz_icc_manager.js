@@ -84,26 +84,25 @@
 
       object.getCardLock = function(type) {
         object._getCardLockType = type;
-        var obj = {
-          onsuccess: null,
-          result: {
-            enabled: true
-          }
-        };
+        var req = {};
+
         timeouts.push(setTimeout(function() {
-          if (obj.onsuccess) {
-            obj.onsuccess();
+          req.result = { enabled: true };
+          if (req.onsuccess) {
+            req.onsuccess();
           }
         }));
-        return obj;
+        return req;
       };
 
       object.getCardLockRetryCount = function(type) {
-        var req = {
-          result: { retryCount: 3 }
-        };
+        var req = {};
+
         timeouts.push(setTimeout(function() {
-          req.onsuccess && req.onsuccess();
+          if (req.onsuccess) {
+            req.result = { retryCount: 3 };
+            req.onsuccess && req.onsuccess();
+          }
         }));
         return req;
       };
