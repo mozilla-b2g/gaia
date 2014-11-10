@@ -11,8 +11,6 @@ var suiteGroup = require('test/support/suite_group');
 requireCommon('test/synthetic_gestures.js');
 
 suiteGroup('views/settings', function() {
-  /* jshint -W027 */
-  return;
   var subject;
   var app;
   var store;
