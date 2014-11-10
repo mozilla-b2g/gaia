@@ -123,4 +123,7 @@ var VivoConfig = (function() {
   };
 }());
 
-ConfigManager.setConfig(VivoConfig);
+// for unit testing
+if (typeof ConfigManager !== 'undefined') {
+  ConfigManager.setConfig(VivoConfig);
+}

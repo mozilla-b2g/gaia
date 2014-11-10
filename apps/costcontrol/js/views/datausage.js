@@ -55,7 +55,7 @@ var DataUsageTab = (function() {
       SimManager.requestDataSimIcc(function(dataSimIcc) {
         ConfigManager.requestSettings(dataSimIcc.iccId,
                                       function _onSettings(settings) {
-          debug('First time setup for model');
+          debug('First time setup for model\n');
           model = {
             height: ChartUtils.toDevicePixels(graphicArea.clientHeight),
             width: ChartUtils.toDevicePixels(graphicArea.clientWidth),
@@ -104,7 +104,7 @@ var DataUsageTab = (function() {
           Common.loadApps()
             .then(finishInit)
             .catch(function(reason) {
-              debug(reason);
+              debug(reason, '\n');
               finishInit();
             });
         });
@@ -229,7 +229,7 @@ var DataUsageTab = (function() {
             ChartUtils.expandModel(model);
             resolve();
 
-            debug('Rendering');
+            debug('Rendering\n');
             drawCharts();
           });
         });
@@ -350,7 +350,7 @@ var DataUsageTab = (function() {
       imgElement.className = 'app-image';
       imgElement.src = Common.getAppIcon(app);
       imgElement.onerror = function() {
-        console.warn('Unable to load icon: ' + this.src);
+        console.warn('Unable to load icon: ' + this.src + '\n');
         this.src = '/style/images/app/icons/default.png';
       };
       linkElement.appendChild(imgElement);
@@ -455,7 +455,7 @@ var DataUsageTab = (function() {
       });
 
       if (!app) {
-        debug('No app with manifest URL: ' + manifestURL);
+        debug('No app with manifest URL: ' + manifestURL, '\n');
         return;
       }
 

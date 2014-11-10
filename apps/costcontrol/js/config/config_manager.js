@@ -64,13 +64,13 @@ var ConfigManager = (function() {
   var configuration, configurationIndex, noConfigFound = false;
   function setConfig(newConfiguration) {
     configuration = newConfiguration;
-    debug('Provider configuration done!');
+    debug('Provider configuration done!\n');
   }
 
   // Load the operator configuration according to MCC_MNC pair
   function requestConfiguration(currentDataIcc, callback) {
     if (!currentDataIcc || !currentDataIcc.iccInfo) {
-      console.error('No iccInfo available');
+      console.error('No iccInfo available\n');
       return;
     }
 
@@ -119,7 +119,7 @@ var ConfigManager = (function() {
       if (configurationIndex === null) { // TODO Remove workaround when 
 					 // Bug 1069808 is fixed.
         console.error('Error loading the configuration index!' + 
-                      'Response from LazyLoader was null.');
+                      'Response from LazyLoader was null.\n');
         configurationIndex = {};
       }
 
@@ -130,7 +130,7 @@ var ConfigManager = (function() {
       }
     }, function(error) {
       console.error('Error loading the configuration index! ' + 
-                    'Error code: ' + error);
+                    'Error code: ' + error + '\n');
       configurationIndex = {};
     });
   }
@@ -166,7 +166,7 @@ var ConfigManager = (function() {
 
       if (settings === null) {
         settings = deepCopy(DEFAULT_SETTINGS);
-        debug('Storing default settings for ICCID:', currentICCID);
+        debug('Storing default settings for ICCID:', currentICCID, '\n');
         asyncStorage.setItem(currentICCID, JSON.stringify(settings),
                              callback && callback.bind(null, settings));
       } else if (callback) {
@@ -199,7 +199,7 @@ var ConfigManager = (function() {
       settings: settings
     } });
     window.dispatchEvent(event);
-    debug('Event optionchange dispatched for', name);
+    debug('Event optionchange dispatched for', name, '\n');
   }
 
   // Set setting options asynchronously and dispatch an event for every
@@ -257,7 +257,7 @@ var ConfigManager = (function() {
   var callbacks;
   // Function in charge of dispatch the events to the observers
   function callCallbacks(evt) {
-    debug('Option', evt.detail.name, 'has changed!');
+    debug('Option', evt.detail.name, 'has changed!\n');
     var callbackCollection = callbacks[evt.detail.name] || [];
     for (var i = 0; i < callbackCollection.length; i++) {
       var callback = callbackCollection[i];
@@ -272,7 +272,7 @@ var ConfigManager = (function() {
   // an initial call to the callback unless you provide true as the last
   // parameter.
   function syncObserve(name, callback, avoidInitialCall) {
-    debug('Installing observer for', name);
+    debug('Installing observer for', name, '\n');
 
     // XXX: initialize this only if an observer is added
     if (callbacks === undefined) {
@@ -286,7 +286,7 @@ var ConfigManager = (function() {
         if (evt.key === 'sync') {
           var name = evt.newValue.split('#')[0];
           var oldValue = settings ? settings[name] : undefined;
-          debug('Synchronization request for', name, 'received!');
+          debug('Synchronization request for', name, 'received!\n');
           SimManager.requestDataSimIcc(function(dataSimIcc) {
             requestSettings(dataSimIcc.iccId,
                             function _onSettings(newSettings) {

@@ -23,7 +23,7 @@ var IACManager = (function() {
       navigator.mozApps.getSelf().onsuccess = function(evt) {
         var app = evt.target.result;
         app.connect('costcontrolSmsQuery').then(function onConnAccepted(ports) {
-          debug('Connection with sms app established...');
+          debug('Connection with sms app established...\n');
           ports.forEach(function(port) {
             var waitingForAnswerTimeout;
 
@@ -42,7 +42,7 @@ var IACManager = (function() {
             port.postMessage(msg);
           });
         }, function onConnRejected(reason) {
-          console.log('Rejected connection attempt due to', reason);
+          console.log('Rejected connection attempt due to', reason, '\n');
           reject(reason);
         });
       };

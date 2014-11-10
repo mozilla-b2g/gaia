@@ -121,7 +121,7 @@ var Common = {
 
   closeApplication: function() {
     return setTimeout(function _close() {
-      debug('Closing.');
+      debug('Closing.\n');
       window.close();
     });
   },
@@ -138,7 +138,7 @@ var Common = {
   // that meet the argument function criteria
   getInterface: function getInterface(findFunction) {
     if (!Common.allNetworkInterfaceLoaded) {
-      debug('Network interfaces are not ready yet');
+      debug('Network interfaces are not ready yet\n');
       var header = _('data-usage');
       var msg = _('loading-interface-data');
       this.modalAlert(header + '\n' + msg);
@@ -394,16 +394,16 @@ var Common = {
   localizeWeekdaySelector: function _localizeWeekdaySelector(selector) {
     var weekStartsOnMonday =
       !!parseInt(navigator.mozL10n.get('weekStartsOnMonday'), 10);
-    debug('Week starts on monday?', weekStartsOnMonday);
+    debug('Week starts on monday?', weekStartsOnMonday, '\n');
     var monday = selector.querySelector('.monday');
     var sunday = selector.querySelector('.sunday');
     var list = monday.parentNode;
     if (weekStartsOnMonday) {
-      debug('Monday, Tuesday...');
+      debug('Monday, Tuesday...\n');
       list.insertBefore(monday, list.childNodes[0]); // monday is the first
       list.appendChild(sunday); // sunday is the last
     } else {
-      debug('Sunday, Monday...');
+      debug('Sunday, Monday...\n');
       list.insertBefore(sunday, list.childNodes[0]); // sunday is the first
       list.insertBefore(monday, sunday.nextSibling); // monday is the second
     }

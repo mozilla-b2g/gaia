@@ -79,7 +79,7 @@ var TelephonyTab = (function() {
                                     function _onSettings(settings) {
         costcontrol.request(requestObj, function _afterRequest(result) {
           var telephonyActivity = result.data;
-          debug('Last telephony activity:', telephonyActivity);
+          debug('Last telephony activity:', telephonyActivity, '\n');
           updateTimePeriod(settings.lastTelephonyReset, null, null, settings);
           updateCounters(telephonyActivity);
           updateNextReset(settings.nextReset, null, null, settings);
