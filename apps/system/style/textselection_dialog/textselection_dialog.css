@@ -10,8 +10,8 @@
   height: 5.2rem;
   width: auto;
   position: absolute;
-  background-color: #696b6e;
-  box-shadow: 0.2rem 0.2rem 0.4rem 0 rgba(0, 0, 0, 0.4);
+  background-color: #606b6e;
+  box-shadow: 0.1rem 0.1rem 0.4rem 0 rgba(0, 0, 0, 0.4);
   border-radius: 0.2rem;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -45,7 +45,7 @@
 
 #text-selection-dialog-root > .textselection-dialog div:after {
   content: '';
-  background-color: #596466;
+  background-color: #525b5e;
   width: 0.1rem;
   height: 4.4rem;
   margin-top: 0.4rem;
