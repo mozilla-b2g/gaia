@@ -73,7 +73,7 @@ class TestEnduranceSmsConversation(GaiaEnduranceTestCase):
         # type phone number and message text
         contact_field = self.marionette.find_element(
             *self._receiver_input_locator)
-        contact_field.send_keys(self.testvars['carrier']['phone_number'])
+        contact_field.send_keys(self.testvars['local_phone_numbers'][0])
         message_field = self.marionette.find_element(
             *self._message_field_locator)
         message_field.send_keys(_text_message_content)

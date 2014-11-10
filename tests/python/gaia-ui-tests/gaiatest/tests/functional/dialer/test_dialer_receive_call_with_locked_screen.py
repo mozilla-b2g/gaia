@@ -32,7 +32,7 @@ class TestReceiveCallScreenLocked(GaiaTestCase):
 
         self.device.lock()
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['carrier']['phone_number'].replace('+', ''),
+            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''),
             timeout=PLIVO_TIMEOUT)
 
         # Wait for the incoming call screen to show up
