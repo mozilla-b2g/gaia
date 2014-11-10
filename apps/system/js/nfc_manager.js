@@ -50,7 +50,10 @@
      * @enum {string}
      */
     NFC_HW_STATE: {
+      DISABLING: 'nfcDisabling',
       OFF: 'nfcOff',
+      ENABLING: 'nfcEnabling',
+      // active states below
       ON: 'nfcOn',
       ENABLE_DISCOVERY: 'nfcEnableDiscovery',
       DISABLE_DISCOVERY: 'nfcDisableDiscovery'
@@ -126,7 +129,14 @@
      * returns {boolean} isActive
      */
     isActive: function nm_isActive() {
-      return (this._hwState !== this.NFC_HW_STATE.OFF) ? true : false;
+      return this._hwState === this.NFC_HW_STATE.ON ||
+             this._hwState === this.NFC_HW_STATE.ENABLE_DISCOVERY ||
+             this._hwState === this.NFC_HW_STATE.DISABLE_DISCOVERY;
+    },
+
+    isInTransition: function nm_isInTransition() {
+      return this._hwState === this.NFC_HW_STATE.ENABLING ||
+             this._hwState === this.NFC_HW_STATE.DISABLING;
     },
 
     /**
@@ -205,7 +215,7 @@
         case 'lockscreen-appopened': // Fall through
         case 'lockscreen-appclosed':
         case 'screenchange':
-          if (this._hwState === this.NFC_HW_STATE.OFF) {
+          if (!this.isActive()) {
             return;
           }
           state = (ScreenManager.screenEnabled && !System.locked) ?
@@ -234,9 +244,17 @@
      * @param {boolean} enabled - NFC setting value
      */
     _nfcSettingsChanged: function nm_nfcSettingsChanged(enabled) {
-      var state = !enabled ? this.NFC_HW_STATE.OFF :
+      this._debug('_nfcSettingsChanged, nfc.enabled: ' + enabled);
+
+      if (this.isActive() === enabled || this.isInTransition()) {
+        this._debug('_nfcSettingsChanged ignoring, active:' + this.isActive() +
+                    'in transition: ' + this.isInTransition());
+        return;
+      }
+
+      var state = !enabled ? this.NFC_HW_STATE.DISABLING :
         (System.locked ? this.NFC_HW_STATE.DISABLE_DISCOVERY :
-                         this.NFC_HW_STATE.ON);
+                         this.NFC_HW_STATE.ENABLING);
       this._changeHardwareState(state);
     },
 
@@ -256,33 +274,57 @@
 
       var req;
       switch (state) {
-        case this.NFC_HW_STATE.OFF:
+        case this.NFC_HW_STATE.DISABLING:
           req = nfcdom.powerOff();
+          SettingsListener.getSettingsLock().set({ 'nfc.status':'disabling' });
           break;
         case this.NFC_HW_STATE.DISABLE_DISCOVERY:
           req = nfcdom.stopPoll();
           break;
-        case this.NFC_HW_STATE.ON:
+        case this.NFC_HW_STATE.ENABLING:
+          req = nfcdom.startPoll();
+          SettingsListener.getSettingsLock().set({ 'nfc.status': 'enabling' });
+          break;
         case this.NFC_HW_STATE.ENABLE_DISCOVERY:
           req = nfcdom.startPoll();
           break;
       }
 
-      // update statusbar status via custom event
-      var event = new CustomEvent('nfc-state-changed', {
-        detail: {
-          active: this.isActive()
-        }
-      });
-      window.dispatchEvent(event);
 
       req.onsuccess = () => {
         this._debug('_changeHardwareState ' + state + ' success');
+        // checking if NFC HW was in transition states and move to proper
+        if (this.isInTransition()) {
+          this._handleNFCOnOff(this._hwState === this.NFC_HW_STATE.ENABLING);
+        }
       };
       req.onerror = () => {
         this._logVisibly('_changeHardwareState ' + state + ' error ' +
                          req.error.name);
+        // rollback to previous state in case of transition states
+        if (this.isInTransition()) {
+          this._handleNFCOnOff(this._hwState !== this.NFC_HW_STATE.ENABLING);
+          // QUESTION: Should I rollback nfc.enabled setting here?
+          // Is this needed if all visuals will show the previouse state?
+        }
       };
+    },
+
+    _handleNFCOnOff: function nm_handleNFCOnOff(isOn) {
+      this._debug('_handleNFCOnOf is on:' + isOn);
+
+      this._hwState = (isOn) ? this.NFC_HW_STATE.ON : this.NFC_HW_STATE.OFF;
+      SettingsListener.getSettingsLock().set({
+        'nfc.status': (isOn) ? 'enabled' : 'disabled'
+      });
+      // event dispatching to handle statusbar change
+      // TODO remove since nfc.status setting can be reused for statusbar update
+      var event = new CustomEvent('nfc-state-changed', {
+        detail: {
+          active: isOn
+        }
+      });
+      window.dispatchEvent(event);
     },
 
     /**
