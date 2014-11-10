@@ -42,7 +42,7 @@ const TYPE_GROUP_MAPPING = {
 // How long to wait before we actually switch layouts
 const SWITCH_CHANGE_DELAY = 20;
 
-var KeyboardManager = {
+window.KeyboardManager = {
   // this info keeps the current keyboard layout's information,
   // including its group, its index in the group array in InputLayouts.layouts,
   // and its "layout" as kept in InputLayouts.layouts
@@ -347,12 +347,3 @@ var KeyboardManager = {
     }.bind(this));
   }
 };
-
-if (window.applications.ready) {
-  KeyboardManager.init();
-} else {
-  window.addEventListener('applicationready', function mozAppsReady(event) {
-    window.removeEventListener('applicationready', mozAppsReady);
-    KeyboardManager.init();
-  });
-}
