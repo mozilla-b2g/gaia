@@ -23,6 +23,9 @@ var icc = {
 
   init: function icc_init() {
     this._iccManager = window.navigator.mozIccManager;
+    if (!this._iccManager) {
+      return;
+    }
     this.checkPlatformCompatibility();
     var self = this;
     this.clearMenuCache(function() {
