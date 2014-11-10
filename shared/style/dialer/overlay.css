@@ -46,6 +46,11 @@ form.overlay menu ul > section:after {
   right: 1rem;
 }
 
+form.overlay menu ul > li:last-child:after,
+form.overlay menu ul > section:last-child:after {
+  display: none;
+}
+
 form.overlay menu ul > li:active,
 form.overlay menu ul > section:active {
   background-color: #00ABCC;
