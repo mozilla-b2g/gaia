@@ -76,9 +76,18 @@
     // instance property prevents direct access to the
     // template once it's been initialized.
     priv.set(this, {
-      tmpl: extract(idOrNode)
+      idOrNode: idOrNode
     });
   }
+
+  Template.prototype.extract = function() {
+    var members = priv.get(this);
+    if (!members.tmpl) {
+      members.tmpl = extract(members.idOrNode);
+      delete members.idOrNode;
+    }
+    return members.tmpl;
+  };
 
   /**
    * template.toString()
@@ -88,7 +97,7 @@
    */
   Template.prototype.toString = function() {
     // Return a copy of the stored template string.
-    return priv.get(this).tmpl.slice();
+    return this.extract().slice();
   };
 
   /**
@@ -113,7 +122,7 @@
     options = options || {};
     options.safe = options.safe || [];
 
-    return priv.get(this).tmpl.replace(rmatcher, function(match, property) {
+    return this.extract().replace(rmatcher, function(match, property) {
       property = property.trim();
       // options.safe is an array of properties that can be ignored
       // by the "suspicious" html strategy.
