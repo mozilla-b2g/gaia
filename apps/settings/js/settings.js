@@ -110,7 +110,7 @@ var Settings = {
       // WifiHelper is guaranteed to be loaded in main.js before calling to
       // this line.
       if (this.isTabletAndLandscape()) {
-        self.currentPanel = self.initialPanelForTablet;
+        this.currentPanel = this.initialPanelForTablet;
       }
 
       window.addEventListener('keydown', this.handleSpecialKeys);
