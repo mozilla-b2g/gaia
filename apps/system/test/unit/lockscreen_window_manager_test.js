@@ -289,6 +289,27 @@ suite('system/LockScreenWindowManager', function() {
         'it doesn\'t lock the orientation while screenchage');
     });
 
+    test('When system resizing event comes, try to resize the window',
+    function() {
+      var handleEvent =
+        window.LockScreenWindowManager.prototype.handleEvent;
+      var mockSubject = {
+        states: {
+          instance: {
+            isActive: function() { return true; },
+            resize: this.sinon.stub()
+          }
+        }
+      };
+      handleEvent.call(mockSubject,
+        {
+          type: 'system-resize'
+        });
+      assert.isTrue(
+        mockSubject.states.instance.resize.called,
+        'it doesn\'t resize the window while system-resize comes');
+    });
+
     test('When secure app get killed, try to lock orientation',
     function() {
       var handleEvent =

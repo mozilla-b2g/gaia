@@ -2,6 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
+/* global OrientationManager */
+
 (function(exports) {
   var AppWindow = window.AppWindow;
 
@@ -153,6 +155,23 @@
         };
       };
       return iframe;
+    };
+
+  LockScreenWindow.prototype.lockOrientation =
+    function() {
+      // XXX: When we turn the screen on, try to lock the orientation
+      // until it works. It may fail at the moment the screenchange
+      // event has been fired, so we may need to try it several times.
+      var tryLockOrientation = () => {
+        if(screen.mozLockOrientation('portrait-primary')) {
+          window.clearInterval(this.orientationLockID);
+        }
+      };
+      if (OrientationManager.isOnRealDevice()) {
+        this.orientationLockID =
+          window.setInterval(tryLockOrientation, 4);
+        // 4ms is the minimum interval according to W3C#setTimeout standard.
+      }
     };
   exports.LockScreenWindow = LockScreenWindow;
 })(window);
