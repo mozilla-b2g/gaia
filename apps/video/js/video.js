@@ -82,7 +82,9 @@ var pendingPick;
 // But Camera and Gallery also need to use that hardware, and those three apps
 // may only have one video playing at a time among them. So we need to be
 // careful to relinquish the hardware when we are not visible.
+// We also relinquish the hardware when starting a share activity (bug 1085212)
 var restoreTime = null;
+var needsRestore = false;
 
 var isPhone;
 var isPortrait;
@@ -454,6 +456,15 @@ function hideSelectView() {
 }
 
 function showOptionsView() {
+  // If the user is about to share a video we should stop playing it because
+  // sometimes we won't go to the background when the activity starts and
+  // we keep playing. This will cause problems if the receiving app also tries
+  // to play it. Similarly, if the user is going to delete the video there is
+  // no point in continuing to play it. And if they care enough about it to
+  // look for more info about it, they probably don't want to miss anything.
+  if (playing) {
+    pause();
+  }
   dom.optionsView.classList.remove('hidden');
 }
 
@@ -644,6 +655,10 @@ function share(blobs) {
   else
     type = 'multipart/mixed';
 
+  if (playerShowing) {
+    releaseVideo();
+  }
+
   var a = new MozActivity({
     name: 'share',
     data: {
@@ -655,6 +670,8 @@ function share(blobs) {
     }
   });
 
+  a.onsuccess = restoreVideo;
+
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
@@ -662,6 +679,7 @@ function share(blobs) {
     } else {
       console.warn('share activity error:', a.error.name);
     }
+    restoreVideo();
   };
 }
 
@@ -1251,8 +1269,17 @@ function toCamelCase(str) {
   });
 }
 
-// Call this when the app is hidden
+// Call this when the app is hidden or when we initiate a share
+// activity.  For inline share activities, we'll never get a
+// visibility change event.  For window disposition activities we do
+// get visibility changes so this function and restoreVideo() may each
+// be called twice. This is harmless because of the needsRestore flag.
 function releaseVideo() {
+  if (needsRestore) { // If already release, don't do anything
+    return;
+  }
+  needsRestore = true;
+
   // readyState = 0: no metadata loaded, we don't need to save the currentTime
   // of player. It is always 0 and can't be used to restore the state of video.
   if (dom.player.readyState > 0) {
@@ -1262,8 +1289,13 @@ function releaseVideo() {
   dom.player.load();
 }
 
-// Call this when the app becomes visible again
+// Call this when the app becomes visible again or when the share ends
 function restoreVideo() {
+  if (!needsRestore) { // If there is nothing to restore, just return
+    return;
+  }
+  needsRestore = false;
+
   // When restoreVideo is called, we assume we have currentVideo because the
   // playerShowing is true.
 
