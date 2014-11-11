@@ -1670,4 +1670,32 @@ suite('system/Statusbar', function() {
       });
     });
   });
+
+  suite('utilityTrayShown', function() {
+    test('should be set to true the utility tray is opened', function() {
+      ['utility-tray-overlaywillopen', 'utilitytrayshow'].forEach(
+        function(type) {
+          StatusBar.utilityTrayShown = null; // Reset value
+
+          StatusBar.handleEvent(new CustomEvent(type));
+          assert.isTrue(StatusBar.utilityTrayShown);
+        });
+    });
+
+    test('should be set to false the utility tray is closed', function() {
+      StatusBar.handleEvent(new CustomEvent('utilitytrayhide'));
+      assert.isFalse(StatusBar.utilityTrayShown);
+    });
+  });
+
+  suite('resizeLabel()', function() {
+    test('should be called when the utility tray is opened', function() {
+      StatusBar.handleEvent(new CustomEvent('utility-tray-overlaywillopen'));
+
+      var stub = this.sinon.stub(StatusBar, 'resizeLabel');
+      StatusBar.handleEvent(new CustomEvent('moznetworkdownload'));
+
+      assert.ok(stub.calledOnce);
+    });
+  });
 });
