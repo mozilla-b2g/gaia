@@ -41,7 +41,8 @@
     "wifi-manage":{},
     "time": {},
     "device-storage:sdcard": { "access": "readcreate" },
-    "phonenumberservice": {}
+    "phonenumberservice": {},
+    "webapps-manage":{}
   },
 
   "orientation": "default",

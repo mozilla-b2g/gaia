@@ -112,6 +112,7 @@ var KeyboardManager = {
 
     // get enabled keyboard from mozSettings, parse their manifest
     LazyLoader.load([
+      'shared/js/input_mgmt/input_app_list.js',
       'shared/js/keyboard_helper.js'
     ], function() {
       KeyboardHelper.watchLayouts(

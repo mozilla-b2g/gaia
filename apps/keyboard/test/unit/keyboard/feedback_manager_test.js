@@ -8,7 +8,7 @@ require('/js/keyboard/feedback_manager.js');
 require('/js/keyboard/settings.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
-require('/test/unit/mock_navigator_mozsettings.js');
+require('/shared/js/input_mgmt/mock_navigator_mozsettings.js');
 
 suite('VibrationFeedback', function() {
   var realMozSettings;

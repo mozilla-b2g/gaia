@@ -14,7 +14,9 @@ suite('MockDOMRequest', function() {
       assert.equal(req.error, undefined, 'req.error === undefined');
       assert.equal(req.readyState, 'done', 'req.readyState === done');
 
-      done();
+      req.then(function(value) {
+        assert.equal(value, result, 'resolve to result');
+      }).then(done, done);
     };
 
     req.fireSuccess(result);
@@ -29,7 +31,11 @@ suite('MockDOMRequest', function() {
       assert.equal(req.error, error, 'req.error === error');
       assert.equal(req.readyState, 'done', 'req.readyState === done');
 
-      done();
+      req.then(function() {
+        assert.ok(false, 'should not resolve');
+      }, function(e) {
+        assert.equal(e, error, 'reject to error');
+      }).then(done, done);
     };
 
     req.fireError(error);

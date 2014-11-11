@@ -19,7 +19,8 @@ require.config({
       exports: 'IccHelper'
     },
     'shared/keyboard_helper': {
-      exports: 'KeyboardHelper'
+      exports: 'KeyboardHelper',
+      deps: ['shared/input_mgmt/input_app_list']
     },
     'shared/language_list': {
       exports: 'LanguageList'
