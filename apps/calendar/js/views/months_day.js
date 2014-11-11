@@ -104,7 +104,7 @@ MonthsDay.prototype = {
       location: event.remote.location,
       startTime: startDate,
       endTime: endDate,
-      isAllDay: isAllDay(startDate, endDate)
+      isAllDay: isAllDay(this.date, startDate, endDate)
     });
   },
 

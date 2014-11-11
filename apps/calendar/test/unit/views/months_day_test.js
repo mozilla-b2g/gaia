@@ -120,6 +120,7 @@ suite('Views.MonthsDay', function() {
         .withArgs('events').returns(events)
         .withArgs('emptyMessage').returns(emptyMessage);
 
+      subject.date = new Date(2014, 9, 22);
       emptyMessage.classList = {
         toggle: sinon.spy()
       };
