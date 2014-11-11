@@ -61,14 +61,6 @@ var Awesomescreen = {
     this.results.classList.add('hidden');
     Browser.hideCurrentTab();
     Browser.tabsBadge.innerHTML = '';
-    // Ensure the user cannot interact with the browser until the
-    // transition has ended, this will not be triggered unless the
-    // use is navigating from the tab screen.
-    var pageShown = (function() {
-      Browser.mainScreen.removeEventListener('transitionend', pageShown, true);
-      Browser.inTransition = false;
-    });
-    Browser.mainScreen.addEventListener('transitionend', pageShown, true);
     Browser.switchScreen(Browser.AWESOME_SCREEN);
     var buttonMode = Browser.urlInput.value === '' ? null : Browser.GO;
     Browser.setUrlButtonMode(buttonMode);

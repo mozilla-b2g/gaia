@@ -44,6 +44,7 @@ var Browser = {
   addressBarState: null,
 
   inTransition: false,
+  creatingTab: false,
 
   waitingActivities: [],
   hasLoaded: false,
@@ -374,11 +375,15 @@ var Browser = {
   },
 
   handleNewTab: function browserHandleNewTab(e) {
-    this.inTransition = true;
+    if (this.inTransition || this.creatingTab) {
+      return;
+    }
+    this.creatingTab = true;
     var tabId = this.createTab();
     this.showNewTabAnimation((function browser_showNewTabAnimation() {
       this.selectTab(tabId);
       Awesomescreen.show();
+      this.creatingTab = false;
     }).bind(this));
   },
 
@@ -1310,6 +1315,18 @@ var Browser = {
       this.screenSwipeMngr.gestureDetector.stopDetecting();
     }
     if (this.currentScreen !== screen) {
+      // If transitioning into or out of tabs screen set transition state to
+      // prevent interactions.
+      if (this.currentScreen == this.TABS_SCREEN ||
+        screen == this.TABS_SCREEN) {
+        this.inTransition = true;
+        this.mainScreen.addEventListener('transitionend',
+          (function browser_transitionEnd() {
+          this.inTransition = false;
+          this.mainScreen.removeEventListener('transitionend',
+            browser_transitionEnd);
+        }).bind(this));
+      }
       document.body.classList.remove(this.currentScreen);
       this.previousScreen = this.currentScreen;
       this.currentScreen = screen;
@@ -1413,7 +1430,6 @@ var Browser = {
     this.switchScreen(this.PAGE_SCREEN);
     this.setUrlBar(this.currentTab.title || this.currentTab.url);
     this.updateTabsCount();
-    this.inTransition = false;
   },
 
   _tabScreenObjectURLs: [],
@@ -1444,7 +1460,6 @@ var Browser = {
     this.switchScreen(this.TABS_SCREEN);
     this.screenSwipeMngr.gestureDetector.startDetecting();
     new GestureDetector(ul).startDetecting();
-    this.inTransition = false;
   },
 
   generateTabLi: function browser_generateTabLi(tab) {
