@@ -13,13 +13,11 @@ class Search(Base):
 
     _url_bar_locator = (By.CSS_SELECTOR, 'div.search-app .urlbar .title')
 
-    def launch(self):
-        Base.launch(self)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name,
-                                message='Displayed app was %s' % self.apps.displayed_app.name)
-        self.wait_for_element_displayed(*self._url_bar_locator)
-
     def go_to_url(self, url):
+        # The URL bar shown is actually in the system app not in this Search app.
+        # We switch back to the system app, then tap the panel, but this will only
+        # work from Search app which embiggens the input bar
+        self.marionette.switch_to_frame()
         self.marionette.find_element(*self._url_bar_locator).tap()
 
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
