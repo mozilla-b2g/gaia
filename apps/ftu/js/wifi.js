@@ -23,16 +23,20 @@ var WifiManager = {
     }
   },
 
+  getNetworks: function wn_getNetworks(callback) {
+    this.networks ? callback(this.networks) : this.scan(callback);
+  },
+
   scan: function wn_scan(callback) {
     if (this._scanning) {
       return;
     }
     this._scanning = true;
     utils.overlay.show('scanningNetworks', 'spinner');
-    var scanTimeout;
     var SCAN_TIMEOUT = 10000;
 
     var self = this;
+    self.onScan = callback;
 
     var req = this.api ? this.api.getNetworks() : null;
     if (!req) {
@@ -50,24 +54,28 @@ var WifiManager = {
     req.onsuccess = function onScanSuccess() {
       self._scanning = false;
       self.networks = req.result;
-      clearTimeout(scanTimeout);
-      callback(self.networks);
+      clearTimeout(self.scanTimeout);
+      self.scanTimeout = null;
+      self.onScan(self.networks);
+      self.onScan = null;
     };
 
     req.onerror = function onScanError() {
       self._scanning = false;
       console.error('Error reading networks: ' + req.error.name);
-      clearTimeout(scanTimeout);
-      callback();
+      self.onScan = callback;
     };
 
     // Timeout in case of scanning errors not thrown by the API
     // We can't block the user in the screen (bug 889623)
-    scanTimeout = setTimeout(function() {
-      self._scanning = false;
-      console.warn('Timeout while reading networks');
-      callback();
-    }, SCAN_TIMEOUT);
+    if (!self.scanTimeout) {
+      self.scanTimeout = setTimeout(function() {
+        self._scanning = false;
+        console.warn('Timeout while reading networks');
+        self.onScan();
+      }, SCAN_TIMEOUT);
+    }
+
   },
 
   enable: function wn_enable(lock) {
@@ -133,11 +141,14 @@ var WifiManager = {
     var self = this;
     if (WifiManager.api) {
       WifiManager.api.onstatuschange = function(event) {
-        WifiUI.updateNetworkStatus(self.ssid, event.status);
         if (event.status === 'connected') {
-          if (self.networks && self.networks.length) {
-            WifiUI.renderNetworks(self.networks);
-          }
+          WifiUI.updateNetworkStatus(event.network.ssid, event.status);
+        } else if (event.status === 'disconnected' && self.onScan) {
+          self.scan(self.onScan);
+        } else {
+          // we assume that this status is to do with the last network
+          // we have seen.
+          WifiUI.updateNetworkStatus(self.ssid, event.status);
         }
       };
     }
@@ -398,6 +409,10 @@ var WifiUI = {
       icon.classList.add('connecting');
     } else {
       icon.classList.remove('connecting');
+      if (status === 'connected') {
+        icon.classList.add('connected');
+        element.classList.add('connected');
+      }
     }
   }
 
