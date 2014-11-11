@@ -119,9 +119,13 @@ var NotificationScreen = {
   handleEvent: function ns_handleEvent(evt) {
     switch (evt.type) {
       case 'mozChromeNotificationEvent':
+        console.debug('Notification: E');
         var detail = evt.detail;
+        console.debug('Notification: event: ' + detail.type);
         switch (detail.type) {
           case 'desktop-notification':
+            console.debug('Notification: detail=' + JSON.stringify(detail));
+            console.debug('Notification: this.isResending=' + this.isResending);
             this.addNotification(detail);
             if (this.isResending) {
               this.resendReceived++;
@@ -388,6 +392,8 @@ var NotificationScreen = {
   },
 
   addNotification: function ns_addNotification(detail) {
+    console.debug('addNotification: E');
+    console.debug('addNotification: id=' + detail.id);
     // LockScreen window may not opened while this singleton got initialized.
     this.lockScreenContainer = this.lockScreenContainer ||
       document.getElementById('notifications-lockscreen-container');
@@ -416,6 +422,7 @@ var NotificationScreen = {
       notificationNode.dataset.obsoleteAPI = 'true';
     }
     var type = detail.type || 'desktop-notification';
+    console.debug('addNotification: type=' + type);
     notificationNode.dataset.type = type;
     notificationNode.dataset.manifestURL = manifestURL;
 
@@ -460,7 +467,9 @@ var NotificationScreen = {
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
     var oldNotif = notificationContainer.querySelector(notifSelector);
+    console.debug('addNotification: oldNotif=' + oldNotif);
     if (oldNotif) {
+      console.debug('addNotification: replacing old notification');
       // The whole node cannot be replaced because CSS animations are re-started
       oldNotif.replaceChild(titleContainer,
         oldNotif.querySelector('.title-container'));
@@ -475,6 +484,7 @@ var NotificationScreen = {
       oldNotif.dataset.type = type;
       notificationNode = oldNotif;
     } else {
+      console.debug('addNotification: inserting new nnotification');
       notificationContainer.insertBefore(notificationNode,
           notificationContainer.firstElementChild);
     }
