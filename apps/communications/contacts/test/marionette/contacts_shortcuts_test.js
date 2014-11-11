@@ -37,8 +37,9 @@ marionette('Contacts shortcuts > touch', function() {
       assert.equal(overlay.text().length, 1);
       assert.equal(overlayOpacity(), '1');
       action.release().perform();
-      assert.equal(overlay.text().length, 0);
+      client.helper.waitForElementToDisappear(overlay);
       assert.equal(overlayOpacity(), '0');
+      assert.equal(overlay.text().length, 0);
     });
 
     // Disabled bug 1005708
