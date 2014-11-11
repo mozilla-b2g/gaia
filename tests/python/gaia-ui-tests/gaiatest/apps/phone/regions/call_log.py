@@ -132,6 +132,7 @@ class LogEntries(PageRegion):
     _edit_mode_checkbox_locator = (By.CSS_SELECTOR, '.call-log-selection input')
     _phone_number_locator = (By.CSS_SELECTOR, 'span.primary-info-main')
     _retry_count_locator = (By.CSS_SELECTOR, 'span.retry-count')
+    _icon_locator = (By.CSS_SELECTOR, '.icon')
 
     @property
     def phone_number(self):
@@ -149,3 +150,14 @@ class LogEntries(PageRegion):
     @property
     def is_checked(self):
         return self.root_element.find_element(*self._edit_mode_checkbox_locator).is_selected()
+
+    @property
+    def is_sim1_involved(self):
+        return self._is_sim_involved('first-sim')
+
+    @property
+    def is_sim2_involved(self):
+        return self._is_sim_involved('second-sim')
+
+    def _is_sim_involved(self, sim):
+        return sim in self.root_element.find_element(*self._icon_locator).get_attribute('class')
