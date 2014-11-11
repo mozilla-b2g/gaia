@@ -120,6 +120,9 @@ var Compose = (function() {
       // firefox will keep an extra <br> in there
       if (brs.length > 1) {
         isEmptyMessage = false;
+      } else if (brs.length === 0) {
+        // <br> element is gone away, but we require it
+        dom.message.innerHTML = '<br>';
       }
     }
 
