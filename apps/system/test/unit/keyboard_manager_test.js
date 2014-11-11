@@ -714,6 +714,15 @@ suite('KeyboardManager', function() {
       KeyboardManager._onKeyboardReady();
       sinon.assert.called(KeyboardManager._showIMESwitcher);
     });
+
+    test('Do not save activeLayout to settings if setKeyboardToShow is called' +
+         'with launchOnly=true', function() {
+      MockKeyboardHelper.saveCurrentActiveLayout = this.sinon.stub();
+
+      KeyboardManager._setKeyboardToShow('text', undefined, true);
+
+      sinon.assert.notCalled(MockKeyboardHelper.saveCurrentActiveLayout);
+    });
   });
 
   suite('Hide Keyboard', function() {
