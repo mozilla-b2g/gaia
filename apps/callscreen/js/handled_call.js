@@ -104,6 +104,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       }, 1000);
       CallScreen.render('connected');
       this.connected();
+      CallScreen.toggleOnHold();
       break;
     case 'disconnected':
       AudioCompetingHelper.leaveCompetition();
@@ -112,6 +113,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
     case 'held':
       AudioCompetingHelper.leaveCompetition();
       this.node.classList.add('held');
+      CallScreen.toggleOnHold();
       break;
   }
 };

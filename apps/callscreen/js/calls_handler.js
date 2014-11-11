@@ -595,7 +595,6 @@ var CallsHandler = (function callsHandler() {
       CallScreen.enableMuteButton();
       CallScreen.enableSpeakerButton();
     }
-    CallScreen.toggleOnHold();
   }
 
   // Hang up the held call or the second incoming call
