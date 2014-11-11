@@ -130,6 +130,10 @@
 
 
 /* Level 4: Attention window */
+#screen > [data-z-index-level="icc-view"] {
+  z-index: 8195;
+}
+
 #screen > [data-z-index-level="permission-screen"] {
   z-index: 8194;
 }
