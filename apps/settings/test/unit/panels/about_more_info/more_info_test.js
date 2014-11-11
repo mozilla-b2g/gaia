@@ -7,8 +7,9 @@ require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 
 suite('about more info >', function() {
   var moreInfo;
-  var realL10n, realMobileConnections, realTelephony;
-  var elements = {};
+  var realL10n;
+  var realMobileConnections;
+  var realTelephony;
 
   var modules = [
     'shared_mocks/mock_l10n',
@@ -16,11 +17,19 @@ suite('about more info >', function() {
   ];
   var maps = {
     '*': {
-      'modules/bluetooth': 'MockBluetooth'
+      'modules/bluetooth/version_detector': 'MockBluetoothVersionDetector',
+      'modules/bluetooth/bluetooth': 'MockBluetooth',
+      'modules/bluetooth/bluetooth_v1': 'MockBluetooth'
     }
   };
 
+  var elements = {};
+
   suiteSetup(function(done) {
+    this.MockBluetoothVersionDetector = {
+      version: 1
+    };
+
     this.MockBluetooth = {
       enabled: false,
       numberOfPairedDevices: 0,
@@ -31,6 +40,10 @@ suite('about more info >', function() {
     var requireCtx = testRequire([], maps, function() {});
     define('MockBluetooth', function() {
       return this.MockBluetooth;
+    }.bind(this));
+
+    define('MockBluetoothVersionDetector', function() {
+      return this.MockBluetoothVersionDetector;
     }.bind(this));
 
     requireCtx(modules, function(MockL10n, module) {
@@ -117,7 +130,7 @@ suite('about more info >', function() {
       this.sinon.stub(moreInfo, '_loadIccId');
       this.sinon.stub(moreInfo, '_loadGaiaCommit');
       this.sinon.stub(moreInfo, '_loadMacAddress');
-      this.sinon.spy(this.MockBluetooth, 'observe');
+      this.sinon.stub(moreInfo, '_loadBluetoothAddress');
       moreInfo.init(elements);
     });
 
@@ -126,7 +139,7 @@ suite('about more info >', function() {
       assert.ok(moreInfo._loadIccId.called);
       assert.ok(moreInfo._loadGaiaCommit.called);
       assert.ok(moreInfo._loadMacAddress.called);
-      assert.ok(this.MockBluetooth.observe.calledWith('address'));
+      assert.ok(moreInfo._loadBluetoothAddress.called);
     });
   });
 
@@ -141,7 +154,6 @@ suite('about more info >', function() {
       test('the list item should be hidden when mozMobileConnections is ' +
         'unavailable', function() {
           navigator.mozMobileConnections = null;
-          // moreInfo._elements.deviceInfoIccIds = elements.deviceInfoIccIds;
           moreInfo._loadIccId();
           assert.isTrue(moreInfo._elements.deviceInfoIccIds.parentNode.hidden);
           navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
@@ -158,11 +170,10 @@ suite('about more info >', function() {
       test('should show "Not available" when iccid is unavalilable',
         function() {
           MockNavigatorMozMobileConnections[0].iccId = null;
-          this.sinon.spy(navigator.mozL10n, 'setAttributes');
           moreInfo._loadIccId();
           var span = moreInfo._elements.deviceInfoIccIds.querySelector('span');
-          assert.ok(navigator.mozL10n.setAttributes.calledWith(span,
-            'unavailable'));
+          this.sinon.spy(span, 'setAttribute');
+          assert.equal(span.getAttribute('data-l10n-id'), 'unavailable');
       });
 
       test('should show correct value when with iccid', function() {

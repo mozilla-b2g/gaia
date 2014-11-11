@@ -272,7 +272,9 @@ require.config({
       name: 'panels/about_more_info/panel',
       exclude: [
         'main',
-        'modules/bluetooth',
+        'modules/bluetooth/version_detector',
+        'modules/bluetooth/bluetooth_v1',
+        'modules/bluetooth/bluetooth'
       ]
     }
   ]

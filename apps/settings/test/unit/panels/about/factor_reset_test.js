@@ -3,8 +3,6 @@
 suite('about > factory_reset', function() {
   var factoryReset;
   var realNavigatorPower;
-  var elements = {};
-
   var modules = [
     'panels/about/factory_reset'
   ];
@@ -16,6 +14,14 @@ suite('about > factory_reset', function() {
     factoryReset: function() {}
   };
 
+  var elements = {
+    resetButton: document.createElement('button'),
+    resetDialog: document.createElement('form'),
+    resetConfirm: document.createElement('button'),
+    resetCancel: document.createElement('button')
+  };
+  elements.resetDialog.hidden = true;
+
   suiteSetup(function(done) {
     testRequire(modules, maps,
       function(module) {
@@ -23,32 +29,6 @@ suite('about > factory_reset', function() {
         navigator.mozPower = MockPower;
 
         factoryReset = module();
-
-        var updateNodes =
-        '<ul>' +
-          '<li>' +
-            '<button class="reset-phone">Reset Phone</button>' +
-          '</li>' +
-        '</ul>' +
-        '<form role="dialog" data-type="confirm"' +
-          'class="reset-phone-dialog" hidden>' +
-          '<section>' +
-          '</section>' +
-          '<menu>' +
-            '<button class="cancel-reset-phone">Cancel</button>' +
-            '<button class="confirm-reset-phone danger">Reset</button>' +
-          '</menu>' +
-        '</form>';
-
-        document.body.insertAdjacentHTML('beforeend', updateNodes);
-
-        elements.resetButton = document.querySelector('.reset-phone');
-        elements.resetDialog =
-          document.querySelector('.reset-phone-dialog');
-        elements.resetConfirm =
-          document.querySelector('.confirm-reset-phone');
-        elements.resetCancel =
-          document.querySelector('.cancel-reset-phone');
         done();
     });
   });
@@ -77,8 +57,7 @@ suite('about > factory_reset', function() {
 
     test('resetButton is enabled when mozPower exist', function() {
       factoryReset.init(elements);
-      factoryReset._elements.resetButton
-        .dispatchEvent(new CustomEvent('click'));
+      factoryReset._elements.resetButton.click();
       assert.ok(factoryReset._resetClick.called);
     });
   });
@@ -87,22 +66,22 @@ suite('about > factory_reset', function() {
     setup(function() {
       this.sinon.stub(factoryReset, '_factoryReset');
       factoryReset.init(elements);
-      factoryReset._resetClick();
     });
 
     test('resetDialog is shown when calling resetClick', function() {
+      factoryReset._resetClick();
       assert.equal(factoryReset._elements.resetDialog.hidden, false);
     });
 
     test('resetDialog is hidden when cancel button is clicked', function() {
-      factoryReset._elements.resetCancel
-        .dispatchEvent(new CustomEvent('click'));
+      factoryReset._resetClick();
+      factoryReset._elements.resetCancel.click();
       assert.equal(factoryReset._elements.resetDialog.hidden, true);
     });
 
     test('factoryReset is called when confirm button is clicked', function() {
-      factoryReset._elements.resetConfirm
-        .dispatchEvent(new CustomEvent('click'));
+      factoryReset._resetClick();
+      factoryReset._elements.resetConfirm.click();
       assert.ok(factoryReset._factoryReset.called);
     });
   });

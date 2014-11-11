@@ -7,8 +7,10 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
 suite('about > hardware_info', function() {
   var hardwareInfo;
-  var realL10n, realNavigatorSettings, realMobileConnections, realIccManager;
-  var elements = {};
+  var realL10n;
+  var realNavigatorSettings;
+  var realMobileConnections;
+  var realIccManager;
 
   var modules = [
     'shared_mocks/mock_l10n',
@@ -17,6 +19,12 @@ suite('about > hardware_info', function() {
   ];
   var maps = {
     '*': {}
+  };
+
+  var elements = {
+    updateStatus: document.createElement('li'),
+    deviceInfoPhoneNum: document.createElement('li'),
+    deviceInfoMsisdns: document.createElement('li')
   };
 
   suiteSetup(function(done) {
@@ -35,34 +43,6 @@ suite('about > hardware_info', function() {
         navigator.mozSettings = MockNavigatorSettings;
 
         hardwareInfo = module();
-
-        var updateNodes =
-        '<section id="root" role="region"></section>' +
-        '<ul>' +
-          '<li class="deviceinfo-phone-num">' +
-            '<small class="deviceInfo-msisdns"></small>' +
-          '</li>' +
-          '<li>' +
-            '<small class="last-update-date"></small>' +
-          '</li>' +
-          '<li>' +
-            '<button class="check-update-now">Check Now</button>' +
-          '</li>' +
-          '<li class="update-status description">' +
-            '<p class="general-information description">' +
-              'Checking for update...</p>' +
-            '<p class="system-update-status description"></p>' +
-          '</li>' +
-        '</ul>';
-
-        document.body.insertAdjacentHTML('beforeend', updateNodes);
-
-        elements.updateStatus = document.querySelector('.update-status');
-        elements.deviceInfoPhoneNum =
-          document.querySelector('.deviceinfo-phone-num');
-        elements.deviceInfoMsisdns =
-          document.querySelector('.deviceInfo-msisdns');
-
         done();
     });
   });
@@ -94,48 +74,47 @@ suite('about > hardware_info', function() {
   });
 
   suite('loadHardwareInfo >', function() {
-    var deviceInfoPhoneNum;
     var iccIds = ['12345', '22345'];
 
     setup(function() {
-      deviceInfoPhoneNum = document.querySelector('.deviceinfo-phone-num');
       MockNavigatorMozIccManager.addIcc(iccIds[0]);
       MockNavigatorMozMobileConnections[0].iccId = iccIds[0];
+      this.sinon.spy(hardwareInfo, '_renderPhoneNumberElement');
     });
 
     suite('single sim', function() {
       test('the list item should be hidden when without iccinfo',
         function() {
           MockNavigatorMozIccManager.getIccById(iccIds[0]).iccInfo = null;
-          hardwareInfo._loadHardwareInfo();
-          assert.isTrue(deviceInfoPhoneNum.hidden);
+          hardwareInfo.init(elements);
+          assert.isTrue(hardwareInfo._elements.deviceInfoPhoneNum.hidden);
       });
 
       test('should show unknown phone number when no msisdn and mdn',
         function() {
           MockNavigatorMozIccManager.getIccById(iccIds[0]).iccInfo = {};
-          this.sinon.spy(navigator.mozL10n, 'setAttributes');
           hardwareInfo._loadHardwareInfo();
-          var span =
-            deviceInfoPhoneNum.querySelector('.deviceInfo-msisdns span');
-          assert.ok(navigator.mozL10n.setAttributes.calledWith(span,
-            'unknown-phoneNumber'));
+          assert.ok(hardwareInfo._renderPhoneNumberElement.calledWith(
+            {}, 0, false));
+          assert.isFalse(hardwareInfo._elements.deviceInfoPhoneNum.hidden);
       });
 
       test('should show correct value when with mdn', function() {
         MockNavigatorMozIccManager.getIccById(iccIds[0]).iccInfo =
           { mdn: 'mdn' };
         hardwareInfo._loadHardwareInfo();
-        var span = deviceInfoPhoneNum.querySelector('.deviceInfo-msisdns span');
-        assert.equal(span.textContent, 'mdn');
+        assert.ok(hardwareInfo._renderPhoneNumberElement.calledWith(
+          { mdn: 'mdn' }, 0, false));
+        assert.isFalse(hardwareInfo._elements.deviceInfoPhoneNum.hidden);
       });
 
       test('should show correct value when with msisdn', function() {
         MockNavigatorMozIccManager.getIccById(iccIds[0]).iccInfo =
           { msisdn: 'msisdn' };
         hardwareInfo._loadHardwareInfo();
-        var span = deviceInfoPhoneNum.querySelector('.deviceInfo-msisdns span');
-        assert.equal(span.textContent, 'msisdn');
+        assert.ok(hardwareInfo._renderPhoneNumberElement.calledWith(
+          { msisdn: 'msisdn' }, 0, false));
+        assert.isFalse(hardwareInfo._elements.deviceInfoPhoneNum.hidden);
       });
     });
 
@@ -155,39 +134,85 @@ suite('about > hardware_info', function() {
           MockNavigatorMozIccManager.getIccById(iccIds[0]).iccInfo = null;
           MockNavigatorMozIccManager.getIccById(iccIds[1]).iccInfo = null;
           hardwareInfo._loadHardwareInfo();
-          assert.isTrue(deviceInfoPhoneNum.hidden);
+          assert.isTrue(hardwareInfo._elements.deviceInfoPhoneNum.hidden);
       });
 
       test('should show the list item when there are iccinfos', function() {
         MockNavigatorMozIccManager.getIccById(iccIds[0]).iccInfo = null;
         MockNavigatorMozIccManager.getIccById(iccIds[1]).iccInfo = {};
         hardwareInfo._loadHardwareInfo();
-        assert.isFalse(deviceInfoPhoneNum.hidden);
+        assert.isFalse(hardwareInfo._elements.deviceInfoPhoneNum.hidden);
       });
 
       test('should show unknown phone number when no msisdn and mdn',
         function() {
           MockNavigatorMozIccManager.getIccById(iccIds[0]).iccInfo = {};
           MockNavigatorMozIccManager.getIccById(iccIds[1]).iccInfo = {};
-          this.sinon.spy(navigator.mozL10n, 'setAttributes');
           hardwareInfo._loadHardwareInfo();
-          var spans =
-            deviceInfoPhoneNum.querySelectorAll('.deviceInfo-msisdns span');
-
-          assert.deepEqual(navigator.mozL10n.setAttributes.args[0], [
-            spans[0], 'unknown-phoneNumber-sim', { index: 1 }
-          ]);
-          assert.deepEqual(navigator.mozL10n.setAttributes.args[1], [
-            spans[1], 'unknown-phoneNumber-sim', { index: 2 }
-          ]);
+          assert.ok(hardwareInfo._renderPhoneNumberElement.calledWith(
+            {}, 0, true));
+          assert.ok(hardwareInfo._renderPhoneNumberElement.calledWith(
+            {}, 1, true));
       });
 
       test('should show correct sim indicator', function() {
         hardwareInfo._loadHardwareInfo();
-        var spans =
-          deviceInfoPhoneNum.querySelectorAll('.deviceInfo-msisdns span');
-        assert.equal(spans[0].textContent, 'SIM 1: mdn1');
-        assert.equal(spans[1].textContent, 'SIM 2: mdn2');
+        assert.ok(hardwareInfo._renderPhoneNumberElement.calledWith(
+          { mdn: 'mdn1' }, 0, true));
+        assert.ok(hardwareInfo._renderPhoneNumberElement.calledWith(
+          { mdn: 'mdn2' }, 1, true));
+      });
+    });
+  });
+
+  suite('_renderPhoneNumberElement >', function() {
+    suite('single sim', function() {
+      test('should show unknown phone number when no msisdn and mdn',
+        function() {
+          var span = hardwareInfo._renderPhoneNumberElement({}, 0, false);
+          assert.ok(span.getAttribute('data-l10n-id', 'unknown-phoneNumber'));
+      });
+
+      test('should show correct value when with mdn', function() {
+        var span = hardwareInfo._renderPhoneNumberElement(
+          { mdn: 'mdn' }, 0, false);
+        assert.equal(span.textContent, 'mdn');
+      });
+
+      test('should show correct value when with msisdn', function() {
+        var span = hardwareInfo._renderPhoneNumberElement(
+          { msisdn: 'msisdn' }, 0, false);
+        assert.isFalse(hardwareInfo._elements.deviceInfoPhoneNum.hidden);
+        assert.equal(span.textContent, 'msisdn');
+      });
+    });
+
+    suite('multiple sim', function() {
+      test('should show unknown phone number when no msisdn and mdn',
+        function() {
+          this.sinon.spy(navigator.mozL10n, 'setAttributes');
+          var spans0 = hardwareInfo._renderPhoneNumberElement({}, 0, true);
+          assert.equal(navigator.mozL10n.setAttributes.args[0][0], spans0);
+          assert.equal(navigator.mozL10n.setAttributes.args[0][1],
+            'unknown-phoneNumber-sim');
+          assert.equal(navigator.mozL10n.setAttributes.args[0][2].index,
+            1);
+          var spans1 = hardwareInfo._renderPhoneNumberElement({}, 1, true);
+          assert.equal(navigator.mozL10n.setAttributes.args[1][0], spans1);
+          assert.equal(navigator.mozL10n.setAttributes.args[1][1],
+            'unknown-phoneNumber-sim');
+          assert.equal(navigator.mozL10n.setAttributes.args[1][2].index,
+            2);
+      });
+
+      test('should show correct sim indicator', function() {
+        hardwareInfo._loadHardwareInfo();
+        var spans0 = hardwareInfo._renderPhoneNumberElement(
+          { mdn: 'mdn1' }, 0, true);
+        var spans1 = hardwareInfo._renderPhoneNumberElement(
+          { mdn: 'mdn2' }, 1, true);
+        assert.equal(spans0.textContent, 'SIM 1: mdn1');
+        assert.equal(spans1.textContent, 'SIM 2: mdn2');
       });
     });
   });

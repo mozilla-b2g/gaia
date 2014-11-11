@@ -88,8 +88,8 @@ define(function(require) {
      * @param {Number} index index number
      * @param {Boolean} isMultiSim has multiple SIM
      */
-    _renderPhoneNumberElement: function hi__renderPhoneNumberElement(iccInfo,
-      index, isMultiSim) {
+    _renderPhoneNumberElement: function hi__renderPhoneNumberElement(
+      iccInfo, index, isMultiSim) {
         var span = document.createElement('span');
         var msisdn = iccInfo.msisdn || iccInfo.mdn;
         if (msisdn) {
@@ -100,7 +100,7 @@ define(function(require) {
             navigator.mozL10n.setAttributes(span,
               'unknown-phoneNumber-sim', { index: index + 1 });
           } else {
-            navigator.mozL10n.setAttributes(span, 'unknown-phoneNumber');
+            span.setAttribute('data-l10n-id', 'unknown-phoneNumber');
           }
         }
         return span;

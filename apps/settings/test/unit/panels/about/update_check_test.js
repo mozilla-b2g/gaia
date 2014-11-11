@@ -3,7 +3,6 @@
 suite('about > update_check', function() {
   var updateCheck;
   var realL10n, realNavigatorSettings;
-  var elements = {};
   var geckoUpdateSetting = 'gecko.updateStatus';
   var appsUpdateSetting = 'apps.updateStatus';
 
@@ -16,6 +15,14 @@ suite('about > update_check', function() {
     '*': {}
   };
 
+  var elements = {
+    updateStatus: document.createElement('li'),
+    checkUpdateNow: document.createElement('button'),
+    lastUpdateDate: document.createElement('small'),
+    systemStatus: document.createElement('li'),
+    generalInfo: document.createElement('p')
+  };
+
   suiteSetup(function(done) {
     testRequire(modules, maps,
       function(MockL10n, MockNavigatorSettings, module) {
@@ -26,38 +33,6 @@ suite('about > update_check', function() {
         navigator.mozSettings = MockNavigatorSettings;
 
         updateCheck = module();
-
-        var updateNodes =
-        '<section id="root" role="region"></section>' +
-        '<ul>' +
-          '<li class="deviceinfo-phone-num">' +
-            '<small class="deviceInfo-msisdns"></small>' +
-          '</li>' +
-          '<li>' +
-            '<small class="last-update-date"></small>' +
-          '</li>' +
-          '<li>' +
-            '<button class="check-update-now">Check Now</button>' +
-          '</li>' +
-          '<li class="update-status description">' +
-            '<p class="general-information description">' +
-              'Checking for update...</p>' +
-            '<p class="system-update-status description"></p>' +
-          '</li>' +
-        '</ul>';
-
-        document.body.insertAdjacentHTML('beforeend', updateNodes);
-
-        elements.updateStatus = document.querySelector('.update-status');
-        elements.checkUpdateNow =
-          document.querySelector('.check-update-now');
-        elements.lastUpdateDate =
-          document.querySelector('.last-update-date');
-        elements.systemStatus =
-          document.querySelector('.system-update-status');
-        elements.generalInfo =
-          document.querySelector('.general-information');
-
         done();
     });
   });
@@ -119,7 +94,7 @@ suite('about > update_check', function() {
         .classList.contains('checking'));
       assert.isTrue(updateCheck._elements.updateStatus
         .classList.contains('visible'));
-      assert.notEqual(elements.generalInfo.textContent.length, 0);
+      assert.equal(updateCheck._elements.systemStatus.textContent.length, 0);
     });
 
     suite('getting response for system update >', function() {

@@ -7,7 +7,6 @@ define(function(require) {
   'use strict';
 
   var SettingsListener = require('shared/settings_listener');
-  var Bluetooth = require('modules/bluetooth');
 
   /** MMI control code used for retrieving a phone's IMEI code. */
   var GET_IMEI_COMMAND = '*#06#';
@@ -36,8 +35,7 @@ define(function(require) {
       this._loadIccId();
       this._loadGaiaCommit();
       this._loadMacAddress();
-
-      Bluetooth.observe('address', this._refreshBluetoothAddress.bind(this));
+      this._loadBluetoothAddress();
     },
 
     /**
@@ -232,7 +230,7 @@ define(function(require) {
             navigator.mozL10n.setAttributes(span,
               'deviceInfo-ICCID-unavailable-sim', { index: index + 1 });
           } else {
-            navigator.mozL10n.setAttributes(span, 'unavailable');
+            span.setAttribute('data-l10n-id', 'unavailable');
           }
         }
         this._elements.deviceInfoIccIds.appendChild(span);
@@ -251,6 +249,23 @@ define(function(require) {
       for (var i = 0, l = this._elements.fields.length; i < l; i++) {
         this._elements.fields[i].textContent = address;
       }
+    },
+
+    _loadBluetoothAddress: function about_loadBluetoothAddress() {
+      require(['modules/bluetooth/version_detector'],
+        function(BluetoothAPIVersionDetector) {
+          var bluetoothModulePath;
+          if (BluetoothAPIVersionDetector.version === 1) {
+            bluetoothModulePath = 'modules/bluetooth/bluetooth_v1';
+          } else if (BluetoothAPIVersionDetector.version === 2) {
+            bluetoothModulePath = 'modules/bluetooth/bluetooth';
+          }
+
+          require([bluetoothModulePath], function(Bluetooth) {
+            Bluetooth.observe('address',
+              this._refreshBluetoothAddress.bind(this));
+          }.bind(this));
+      });
     }
   };
 
