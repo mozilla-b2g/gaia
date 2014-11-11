@@ -3,10 +3,12 @@
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'AppWindowManager',
-  'LazyLoader'
+  'LazyLoader',
+  'FtuLauncher'
 ]);
 mocksHelperForUtilityTray.init();
 
@@ -321,6 +323,10 @@ suite('system/UtilityTray', function() {
       fakeEvt.touches = [0];
     });
 
+    teardown(function() {
+      MockFtuLauncher.mIsRunning = false;
+    });
+
     test('onTouchStart is not called if LockScreen is locked', function() {
       window.lockScreen.locked = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
@@ -351,6 +357,13 @@ suite('system/UtilityTray', function() {
       /* XXX: This is to test UtilityTray.active,
               it works in local test but breaks in travis. */
       // assert.equal(UtilityTray.active, true);
+    });
+
+    test('onTouchStart is called when ftu is running', function() {
+      MockFtuLauncher.mIsRunning = true;
+      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      UtilityTray.handleEvent(fakeEvt);
+      assert.ok(stub.notCalled);
     });
   });
 
