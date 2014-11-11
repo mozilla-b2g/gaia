@@ -72,11 +72,11 @@ MediaResolution.prototype.execute = function(options) {
   files.forEach(this.fileProcess.bind(this));
 };
 
-function execute(config) {
-  var gaia = utils.gaia.getInstance(config);
-  gaia.rebuildWebapps.forEach(function(webapp) {
-    (new MediaResolution()).execute({webapp: webapp, config: config});
-  });
+function execute(options) {
+  var targetWebapp = utils.getWebapp(options.APP_DIR,
+    options.GAIA_DOMAIN, options.GAIA_SCHEME,
+    options.GAIA_PORT, options.STAGE_DIR);
+  (new MediaResolution()).execute({ webapp: targetWebapp, config: options });
 }
 
 exports.execute = execute;

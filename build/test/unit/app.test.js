@@ -19,7 +19,8 @@ suite('app.js', function() {
   setup(function() {
     var stubs = {
       'utils': mockUtils,
-      'rebuild': {}
+      'rebuild': {},
+      './post-app': { execute: function() {} }
     };
     app = proxyquire.noCallThru().load('../../app', stubs);
 
@@ -34,8 +35,12 @@ suite('app.js', function() {
       return file;
     };
 
-    mockUtils.copyToStage = function(options) {
+    mockUtils.copyToStage = function() {
       copied = true;
+    };
+
+    mockUtils.ensureFolderExists = function() {
+      return true;
     };
   });
 

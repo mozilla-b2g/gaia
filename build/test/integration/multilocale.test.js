@@ -27,9 +27,6 @@ suite('Multilocale integration tests', function() {
       command = 'GAIA_CONCAT_LOCALES=0 ' + command;
     }
 
-    // We were failing because the output from the gaia build process was
-    // larger than the default maximum buffer size on Travis, so we explicitly
-    // set a size here.  The default of 200kb is not enough.
     helper.exec(command, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
       var zip = new AdmZip(settingsZipPath);

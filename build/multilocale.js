@@ -44,33 +44,6 @@ function L10nManager(gaiaDir,
   this.deviceType = subject.deviceType;
 
   /**
-   * Remove locale files from build stage dir
-   *
-   * @param  {String} stageDir - webapp stage directory
-   */
-  function cleanLocaleFiles(stageDir) {
-    var localesDir = stageDir.clone();
-    localesDir.append('locales');
-    if (localesDir.exists()) {
-      localesDir.remove(true);
-    }
-
-    var sharedLocalesDir = stageDir.clone();
-    sharedLocalesDir.append('shared');
-    sharedLocalesDir.append('locales');
-    if (sharedLocalesDir.exists()) {
-      sharedLocalesDir.remove(true);
-    }
-
-    var files = utils.ls(stageDir, false);
-    files.forEach(function(file) {
-      if (file.isDirectory()) {
-        cleanLocaleFiles(file);
-      }
-    });
-  }
-
-  /**
    * Copy l10n resources required by the .html file to build stage directory
    *
    * The resources will be copied either from app's source directory or
@@ -222,9 +195,6 @@ function L10nManager(gaiaDir,
   function localize(htmlFiles, webapp) {
     // Localize webapp's manifest.webapp file.
     localizeManifest(webapp);
-
-    // Clean all localization files from the build stage directory
-    cleanLocaleFiles(webapp.buildDirectoryFile);
 
     // Copy resource files into build_stage directory
     htmlFiles.forEach(function(htmlFile) {
@@ -463,7 +433,9 @@ function execute(options) {
       'to be set');
     return;
   }
-  var gaia = utils.gaia.getInstance(options);
+  var targetWebapp = utils.getWebapp(options.APP_DIR,
+    options.GAIA_DOMAIN, options.GAIA_SCHEME,
+    options.GAIA_PORT, options.STAGE_DIR);
 
   // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
   var localeBasedir = utils.getLocaleBasedir(options.LOCALE_BASEDIR);
@@ -476,16 +448,14 @@ function execute(options) {
       deviceType: options.GAIA_DEVICE_TYPE,
     });
 
-  gaia.rebuildWebapps.forEach(function(webapp) {
-    if (utils.isExternalApp(webapp)) {
-      return;
-    }
-    var files = utils.ls(webapp.buildDirectoryFile, true, /^tests?$/);
+  if (utils.isExternalApp(targetWebapp)) {
+    return;
+  }
+  var files = utils.ls(targetWebapp.buildDirectoryFile, true, /^tests?$/);
 
-    l10nManager.localize(files.filter(function(file) {
-      return /\.html$/.test(file.path);
-    }), webapp);
-  });
+  l10nManager.localize(files.filter(function(file) {
+    return /\.html$/.test(file.path);
+  }), targetWebapp);
 }
 
 exports.execute = execute;
