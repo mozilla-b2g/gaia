@@ -154,6 +154,7 @@ suite('wifi > ', function() {
 
   suite('scan networks', function() {
     var showOverlayStub;
+    var clock = sinon.useFakeTimers();
 
     setup(function() {
       showOverlayStub = this.sinon.spy(utils.overlay, 'show');
@@ -185,35 +186,47 @@ suite('wifi > ', function() {
 
     test('error while scanning', function(done) {
       var consoleSpy = this.sinon.spy(console, 'error');
-      var stub = this.sinon.stub(MockNavigatorMozWifiManager, 'getNetworks',
-        function() {
-          return {
-            set onerror(callback) {
-              this.error = {
-                name: 'error'
-              };
-              callback();
-            }
-          };
+      var stub = this.sinon.stub(MockNavigatorMozWifiManager, 'getNetworks');
+      stub.onFirstCall().returns(
+        {
+          set onerror(callback) {
+            this.error = {
+              name: 'error'
+            };
+            callback();
+          }
         }
       );
+
+      stub.onSecondCall().returns(
+        {
+          set onsuccess(callback) {
+            this.result = fakeNetworks;
+            callback();
+          }
+        }
+      );
+
       WifiManager.scan(function(networks) {
-        assert.ok(showOverlayStub.calledOnce, 'shows loading overlay');
-        assert.isUndefined(networks, 'no networks returned');
+        assert.ok(stub.calledTwice);
+        assert.ok(showOverlayStub.called, 'shows loading overlay');
+        assert.isDefined(networks, 'networks eventually returned');
         assert.ok(consoleSpy.calledOnce);
         done();
       });
+
+      //simulate a status change
+      WifiManager.api.onstatuschange({status: 'disconnected'});
     });
 
     test('timeout error', function(done) {
-      var clock = this.sinon.useFakeTimers();
       var consoleSpy = this.sinon.spy(console, 'warn');
       var stub = this.sinon.stub(MockNavigatorMozWifiManager, 'getNetworks',
         function() {
           return {};
       });
       WifiManager.scan(function(networks) {
-        assert.ok(showOverlayStub.calledOnce, 'shows loading overlay');
+        assert.ok(showOverlayStub.called, 'shows loading overlay');
         assert.isUndefined(networks, 'no networks returned');
         assert.ok(consoleSpy.calledOnce);
         done();
