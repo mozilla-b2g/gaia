@@ -207,9 +207,9 @@
       </section>
 
       <!-- Data usage limits -->
-      <section role="region" id="data-limit-dialog" class="view" data-viewport="bottom">
+      <section aria-labelledby="limit-dialog-heading" role="dialog" id="data-limit-dialog" class="view" data-viewport="bottom">
         <gaia-header id="limit-dialog-header" action="close">
-          <h1 data-l10n-id="data-limit-header">Data Usage Limit</h1>
+          <h1 id="limit-dialog-heading" data-l10n-id="data-limit-header">Data Usage Limit</h1>
           <button id="data-usage-done-button" data-l10n-id="done" class="recommend">Done</button>
         </gaia-header>
         <section class="content">
@@ -223,14 +223,16 @@
         <form>
           <ul class="buttons-list">
             <li>
+              <label for="data-limit-input">
+                <input id="data-limit-input" type="text" x-inputmode="numeric" maxlength="6" />
+              </label>
+            </li>
+            <li>
               <button type="button" class="icon icon-dialog switch-unit-button">
                 <span class="tag"></span>
               </button>
             </li>
           </ul>
-          <label for="data-limit-input">
-            <input id="data-limit-input" type="text" x-inputmode="numeric" maxlength="6" />
-          </label>
         </form>
       </section>
 

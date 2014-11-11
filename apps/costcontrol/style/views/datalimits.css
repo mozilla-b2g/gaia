@@ -9,8 +9,8 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 1.5rem 1.5rem 0.5rem;
   border-top: solid 0.1rem #e7e7e7;
+  height: 7rem;
 }
 
 #data-limit-dialog form button.switch-unit-button {
@@ -26,11 +26,19 @@
   padding: 0;
 }
 
+#data-limit-dialog form .buttons-list {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  margin: 0 1.5rem;
+}
+
 #data-limit-dialog form input {
   text-align: right;
   font-weight: 500;
   font-size: 2.4rem;
-  width: calc(100% - 10rem);
+  width: calc(100% - 1rem);
+  margin: 0;
 }
 
 #data-limit-dialog .content .info {
