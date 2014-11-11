@@ -40,7 +40,7 @@ section {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #pick-view, #edit-view, #crop-view {
+.view {
   position: absolute;
   top: 0;
   left: 0;
@@ -56,7 +56,7 @@ section {
 
 body.thumbnailListView #thumbnail-list-view,
 body.thumbnailSelectView #thumbnail-select-view,
-body.fullscreenView #fullscreen-view,
+body.carouselView #carousel-view,
 body.pickView #pick-view,
 body.editView #edit-view,
 body.cropView #crop-view {
@@ -501,14 +501,14 @@ footer {
   height: 100%;
 }
 
-#fullscreen-view.toolbar-hidden #fullscreen-toolbar {
+#carousel-view.toolbar-hidden #fullscreen-toolbar {
   pointer-events: none;
   visibility: hidden;
   transform: translate(0, 4.5rem);
   transition-delay: 0s;
 }
 
-#fullscreen-view.toolbar-hidden #fullscreen-back-button-tiny {
+#carousel-view.toolbar-hidden #fullscreen-back-button-tiny {
   opacity: 0;
   pointer-events: none;
 }

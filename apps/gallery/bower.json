@@ -1,0 +1,16 @@
+{
+  "name": "gallery",
+  "version": "2.2",
+  "homepage": "https://github.com/mozilla-b2g/gaia/tree/master/apps/gallery",
+  "authors": [
+    "David Flanagan <dflanagan@mozilla.com>",
+    "Punam Dahiya <pdahiya@mozilla.com>",
+    "Justin D'Arcangelo <jdarcangelo@mozilla.com>",
+    "Diego Marcos <dmarcos@mozilla.com>"
+  ],
+  "main": "index.html",
+  "private": true,
+  "dependencies": {
+    "gaia-carousel": "gaia-components/gaia-carousel#~0.0.8"
+  }
+}

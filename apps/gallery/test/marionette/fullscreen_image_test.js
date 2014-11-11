@@ -43,7 +43,7 @@ marionette('the gallery', function() {
     // You should be able to click on an image to view a fullscreen
     // preview and go back by pressing the 'back' button.
     app.thumbnail.click();
-    assert.ok(app.fullscreenView.displayed());
+    assert.ok(app.carouselView.displayed());
 
     app.fullscreenBackButton.click();
     assert.ok(app.thumbnailsView.displayed());
@@ -65,7 +65,7 @@ marionette('the gallery', function() {
     var translateX = app.getFrameTranslation(app.fullscreenFrame2);
     assert.strictEqual(translateX, 0);
 
-    var size = app.fullscreenView.size();
+    var size = app.carouselView.size();
     var centerX = size.width / 2;
     var centerY = size.height / 2;
 

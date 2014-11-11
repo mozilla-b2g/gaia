@@ -23,8 +23,7 @@ GalleryAppBuilder.prototype.concatenatedScripts = function() {
     [this.sharedPath, 'js', 'gesture_detector.js'],
     [this.sharedPath, 'js', 'format.js'],
     [this.sharedPath, 'js', 'media', 'video_player.js'],
-    [this.sharedPath, 'js', 'media', 'media_frame.js'],
-    [this.options.APP_DIR, 'js', 'frames.js']
+    [this.sharedPath, 'js', 'media', 'media_frame.js']
   ];
   var frameScriptsPath = utils.joinPath(this.options.STAGE_APP_DIR, 'js',
     'frame_scripts.js');

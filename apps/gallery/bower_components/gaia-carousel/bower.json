@@ -1,0 +1,16 @@
+{
+  "name": "gaia-carousel",
+  "version": "0.0.8",
+  "homepage": "https://github.com/gaia-components/gaia-carousel",
+  "license": "MIT",
+  "main": "gaia-carousel.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "example",
+    "test",
+    "gaia-carousel.js",
+    "package.json",
+    "README.md"
+  ]
+}

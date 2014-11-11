@@ -20,7 +20,7 @@ Gallery.ORIGIN = 'app://gallery.gaiamobile.org';
  */
 Gallery.Selector = Object.freeze({
   thumbnail: '.thumbnail',
-  fullscreenView: '#fullscreen-view',
+  carouselView: '#carousel-view',
   thumbnailsView: '#thumbnail-list-view',
   thumbnailsSelectButton: '#thumbnails-select-button',
   thumbnailsDeleteButton: '#thumbnails-delete-button',
@@ -70,8 +70,8 @@ Gallery.prototype = {
   /**
    * @return {Marionette.Element} Container for fullscreen view of an image.
    */
-  get fullscreenView() {
-    return this.client.helper.waitForElement(Gallery.Selector.fullscreenView);
+  get carouselView() {
+    return this.client.helper.waitForElement(Gallery.Selector.carouselView);
   },
 
   /**

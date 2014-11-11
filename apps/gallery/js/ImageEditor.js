@@ -1,6 +1,7 @@
 // This file contains Gallery code for editing images
 'use strict';
 
+var editedPhotoFilename;
 var editedPhotoURL; // The blob URL of the photo we're currently editing
 var editSettings; // Settings object to perform edits and initialize the UI
 var imageEditor;
@@ -47,8 +48,8 @@ function resizeHandler() {
 }
 
 function editPhoto(n) {
-  editedPhotoIndex = n;
   var metadata = files[n].metadata;
+  editedPhotoFilename = files[n].name;
 
   editSettings = {
     crop: {
@@ -540,12 +541,12 @@ function exitEdit(saved) {
   // we want the slider re-zeroed for the next time we come into the editor
   exposureSlider.forceSetExposure(0.0);
 
-  // We came in to edit mode from fullscreenView.  If the user cancels the edit
-  // go back to fullscreenView.  Otherwise, if the user saves the photo, we go
+  // We came in to edit mode from carouselView.  If the user cancels the edit
+  // go back to carouselView.  Otherwise, if the user saves the photo, we go
   // back to thumbnail list view because that is where the newly saved
   // image is going to show up.
   // XXX: this isn't really right. Ideally the new photo should show up
-  // right next to the old one and we should go back to fullscreenView to view
+  // right next to the old one and we should go back to carouselView to view
   // the edited photo.
   if (saved) {
     // After we sucessfully save a picture, we need to make sure that the
@@ -553,11 +554,13 @@ function exitEdit(saved) {
     // so that the currentFileIndex will stay at 0 which is the newest one.
     justSavedEditedImage = true;
     // After insert sucessfully, db will call file created and setFile to
-    // latest file, then we go to fullscreen mode to see the edited picture.
-    setView(LAYOUT_MODE.fullscreen);
+    // latest file, then we go to carousel mode to see the edited picture.
+    setView(LAYOUT_MODE.carousel);
   } else {
-    setView(LAYOUT_MODE.fullscreen);
-    showFile(currentFileIndex);
+    setView(LAYOUT_MODE.carousel);
+
+    carouselController.setItems(files);
+    carouselController.setItemIndex(currentFileIndex);
   }
 }
 
@@ -606,17 +609,16 @@ function saveEditedImage() {
   function gotBlob(blob) {
     // Hide progressbar when saved.
     progressBar.classList.add('hidden');
-    var original = files[editedPhotoIndex].name;
     var basename, extension, filename;
     var version = 1;
-    var p = original.lastIndexOf('.');
+    var p = editedPhotoFilename.lastIndexOf('.');
     if (p === -1) {
-      basename = original;
+      basename = editedPhotoFilename;
       extension = '';
     }
     else {
-      basename = original.substring(0, p);
-      extension = original.substring(p);
+      basename = editedPhotoFilename.substring(0, p);
+      extension = editedPhotoFilename.substring(p);
     }
 
     // Create a filename for the edited image.  Loop if necessary and
