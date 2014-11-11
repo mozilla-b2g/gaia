@@ -193,7 +193,11 @@ suite('calls handler', function() {
       });
     });
 
-    suite('> hanging up the last incoming call', function() {
+    // This suite indirectly tests `exitCallScreenIfNoCalls()`. We should unit
+    // test this directly instead and rely on integration tests for most of what
+    // we're currently doing here.
+    suite('> hanging up the last incoming call, `exitCallScreenIfNoCalls()`',
+    function() {
       setup(function() {
         var mockCall = new MockCall('12334', 'incoming');
         telephonyAddCall.call(this, mockCall, {trigger: true});
@@ -224,6 +228,43 @@ suite('calls handler', function() {
         this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
         sinon.assert.calledOnce(window.close);
       });
+
+      test('should not close the callscreen app if a new call comes',
+      function() {
+        this.sinon.spy(window, 'close');
+
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime/2);
+
+        var mockCall = new MockCall('43321', 'incoming');
+        telephonyAddCall.call(this, mockCall, {trigger: true});
+
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
+        sinon.assert.notCalled(window.close);
+      });
+
+      test('should set \'no-handled-calls\' class on `body`', function() {
+        assert.isTrue(document.body.classList.contains('no-handled-calls'));
+      });
+
+      test('should unset \'no-handled-calls\' class on `body` if new call come',
+      function() {
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime/2);
+
+        var mockCall = new MockCall('43321', 'incoming');
+        telephonyAddCall.call(this, mockCall, {trigger: true});
+
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
+        assert.isFalse(document.body.classList.contains('no-handled-calls'));
+      });
+    });
+
+    test('should not set \'no-handled-calls\' class on `body` if there were ' +
+         'never any handled calls', function() {
+      assert.isFalse(document.body.classList.contains('no-handled-calls'));
+      this.sinon.clock.tick(MockCallScreen.callEndPromptTime/2);
+      assert.isFalse(document.body.classList.contains('no-handled-calls'));
     });
 
     suite('> receiving an extra incoming call', function() {

@@ -14,6 +14,12 @@ var CallsHandler = (function callsHandler() {
   var CDMA_CALLS_LIMIT = 2;
 
   var handledCalls = [];
+  // Bug 1093862: The telephony API fires the 'callschanged' event as soon as
+  // the listener is attached. This was fixed in bug 1081811, but the change was
+  // not propagated to this branch. Without this fix, we improperly disable the
+  // UI because we believe that all calls have ended. To work around this issue,
+  // we track whether or not there were ever any handled calls.
+  var everHadHandledCalls = false;
   var exitCallScreenTimeout = null;
 
   var toneInterval = null; // Timer used to play the waiting tone
@@ -130,6 +136,8 @@ var CallsHandler = (function callsHandler() {
   }
 
   function addCall(call) {
+    everHadHandledCalls = true;
+
     // Once we already have 1 call, we need to care about incoming
     // calls and insert new dialing calls.
     if (handledCalls.length &&
@@ -298,15 +306,22 @@ var CallsHandler = (function callsHandler() {
    */
   function exitCallScreenIfNoCalls() {
     if (handledCalls.length === 0) {
+      // Prevent the user from doing anything while we're waiting for the exit
+      // timer to fire. This prevents them from taking any actions that would
+      // require there to be a handled call.
+      document.body.classList.toggle('no-handled-calls', everHadHandledCalls);
+
       if (exitCallScreenTimeout !== null) {
         clearTimeout(exitCallScreenTimeout);
         exitCallScreenTimeout = null;
       }
       exitCallScreenTimeout = setTimeout(function(evt) {
+        exitCallScreenTimeout = null;
         if (handledCalls.length === 0) {
           window.close();
+        } else {
+          document.body.classList.toggle('no-handled-calls', false);
         }
-        exitCallScreenTimeout = null;
       }, CallScreen.callEndPromptTime);
     }
   }
