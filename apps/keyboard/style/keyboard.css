@@ -782,6 +782,28 @@ bubble above the key when you tap and hold. */
   float: left;
 }
 
+/* Gujarati */
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="ઔ"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="ઐ"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="આ"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="ઓ"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="એ"] {
+  font-size: 1.8rem;
+}
+
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="અ"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="ઋ"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="ઁ"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="ૌ"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="ા"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="ી"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="ૂ"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="્"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="િ"],
+.keyboard-key.gujarati > .visual-wrapper > span[data-label="ો"] {
+  font-size: 1.9rem;
+}
+
 /* Hindi */
 .keyboard-key.hindi > .visual-wrapper > span[data-label="औ"],
 .keyboard-key.hindi > .visual-wrapper > span[data-label="आ"],
