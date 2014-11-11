@@ -6,6 +6,8 @@ module.exports = {
     'cdn.url': 'http://localhost',
     'everythingme.api.url': null
   },
-  // prefs: {},
+  prefs: {
+    'geo.wifi.uri': 'http://localhost'
+  },
   // apps: {}
 };
