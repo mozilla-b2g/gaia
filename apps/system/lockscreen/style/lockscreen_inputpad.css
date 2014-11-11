@@ -125,11 +125,11 @@
   color: #a6a6a6;
 }
 
-.passcode-entered #lockscreen-passcode-pad > a[data-key="c"] {
+#lockscreen-passcode-pad.passcode-entered > a[data-key="c"] {
   display: none;
 }
 
-.passcode-entered #lockscreen-passcode-pad > a[data-key="b"] {
+#lockscreen-passcode-pad.passcode-entered > a[data-key="b"] {
   display: block;
 }
 
