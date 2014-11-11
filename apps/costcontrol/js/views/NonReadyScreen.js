@@ -61,7 +61,7 @@ NonReadyScreen.prototype.getMessageIdFor = function(cardState) {
   var message;
 
   // SIM is absent
-  if (!cardState || cardState === 'absent' || cardState === 'unknown') {
+  if (!cardState || cardState === 'absent') {
     message = 'no-sim2';
 
   // SIM is locked
@@ -72,6 +72,8 @@ NonReadyScreen.prototype.getMessageIdFor = function(cardState) {
     message = 'sim-locked';
   } else if (cardState === 'airplaneMode') {
     message = 'airplane-mode';
+  } else if (cardState === 'unknown') {
+    message = 'unknown';
   }
 
   return message;
