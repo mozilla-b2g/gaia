@@ -386,7 +386,7 @@ suite('webapp-shared.js', function() {
       isDirectory = false;
       webappShared.gaia.distributionDir = 'testdistributionDir';
       webappShared.pushResource('media/ringtones/');
-      assert.equal(result[0].path, 'ringtones');
+      assert.equal(result[0].path, 'shared/resource/media/ringtones');
     });
 
     test('pushJS', function() {
