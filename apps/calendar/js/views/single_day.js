@@ -148,7 +148,8 @@ SingleDay.prototype = {
 
     if (remote.alarms && remote.alarms.length) {
       var icon = document.createElement('i');
-      icon.className = 'gaia-icon icon-calendar-alarm calendar-text-color';
+      icon.className = 'icon-calendar-alarm calendar-text-color';
+      icon.dataset.icon = 'alarm';
       el.appendChild(icon);
       el.classList.add('has-alarms');
     }

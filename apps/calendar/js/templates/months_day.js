@@ -37,12 +37,12 @@ var MonthsDay = create({
       class="event calendar-id-${calendarId} ${alarmClass}"
       role="option" aria-describedby="${busytimeId}-icon-calendar-alarm">
       <div class="container">
-        <div class="gaia-icon icon-calendar-dot calendar-text-color"
+        <div class="dot calendar-text-color"
           aria-hidden="true"></div>
         <div class="event-time">${eventTime}</div>
         <div class="event-details">${eventDetails}</div>
         <div id="${busytimeId}-icon-calendar-alarm" aria-hidden="true"
-          class="gaia-icon icon-calendar-alarm calendar-text-color"
+          class="icon-calendar-alarm calendar-text-color" data-icon="alarm"
           data-l10n-id="icon-calendar-alarm"></div>
       </div>
       </a>`;
