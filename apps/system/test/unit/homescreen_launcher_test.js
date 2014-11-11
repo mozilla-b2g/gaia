@@ -187,6 +187,28 @@ suite('system/HomescreenLauncher', function() {
       stubFadeIn.restore();
     });
 
+    test('light cardview', function() {
+      MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
+      var hasTrustedUI = this.sinon.stub(MockTrustedUIManager, 'hasTrustedUI');
+      hasTrustedUI.returns(false);
+      homescreen = window.homescreenLauncher.getHomescreen();
+      this.sinon.stub(homescreen, 'fadeOut');
+
+      window.homescreenLauncher.handleEvent({
+        type: 'cardviewbeforeshow',
+        detail: 'browser-only'
+      });
+      assert.isTrue(homescreen.element.classList.contains('light'),
+                    'light class added');
+
+      window.homescreenLauncher.handleEvent({
+        type: 'cardviewbeforeclose'
+      });
+      assert.isFalse(homescreen.element.classList.contains('light'),
+                     'light class removed');
+
+    });
+
     test('shrinking UI start; hide homescreen fade-overlay', function() {
       var isSuccessCalled = false;
       var stubGetHomescreen = this.sinon.stub(window.homescreenLauncher,

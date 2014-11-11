@@ -363,10 +363,7 @@
     this.initialTouchPosition = null;
 
     // Apply the filter. Noop if no filterName.
-    if (this.filter(filterName)) {
-      // Update visual style to indicate we're filtered.
-      this.element.classList.add('filtered');
-    }
+    this.filter(filterName);
 
     // Short-hand, but we need to get reference to it here as filter can
     // change the stack that will be used.
@@ -404,7 +401,7 @@
 
     // We're committed to showing the card switcher.
     // Homescreen fades (shows its fade-overlay) on cardviewbeforeshow events
-    this.fireCardViewBeforeShow();
+    this.fireCardViewBeforeShow({ detail: filterName });
 
     var activeApp = AppWindowManager.getActiveApp();
 
@@ -851,6 +848,9 @@
         var filter = null;
         if (evt.detail && evt.detail.filter) {
           filter = evt.detail.filter;
+          this.element.classList.add('filtered');
+        } else {
+          this.element.classList.remove('filtered');
         }
         this.show(filter);
         break;
@@ -910,8 +910,8 @@
   /**
    * @memberOf TaskManager.prototype
    */
-  TaskManager.prototype.fireCardViewBeforeShow = function() {
-    window.dispatchEvent(new CustomEvent('cardviewbeforeshow'));
+  TaskManager.prototype.fireCardViewBeforeShow = function(props) {
+    window.dispatchEvent(new CustomEvent('cardviewbeforeshow', props));
   };
 
   /**
