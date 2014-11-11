@@ -278,9 +278,9 @@ textarea,
 #dialog-overlay {
   position: absolute;
   top: var(--statusbar-height);
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: calc(100% - var(--statusbar-height));
   visibility: hidden;
   pointer-events: none;
 }
@@ -288,13 +288,13 @@ textarea,
 #screen.active-statusbar #dialog-overlay,
 #screen.active-statusbar.fullscreen-app #dialog-overlay {
   top: 4rem;
-  height: calc(100% - 4rem);
+  bottom: 0;
 }
 
 #screen:-moz-full-screen-ancestor #dialog-overlay,
 #screen.fullscreen-app #dialog-overlay {
   top: 0;
-  height: 100%;
+  bottom: 0;
 }
 
 #screen:not(.crash-dialog) #crash-dialog {
