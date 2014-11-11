@@ -12,7 +12,6 @@ import subprocess
 import time
 from marionette.marionette import Actions
 from marionette.marionette import MultiActions
-import pdb
 
 
 class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
@@ -22,7 +21,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
 
         self.temp_dir = tempfile.mkdtemp()
         self.local_path = '.'
-        self.device_info =  mozversion.get_version(dm_type='adb')
+        self.device_info = mozversion.get_version(dm_type='adb')
         if not os.path.exists(os.path.join(self.local_path, self.ref_dir)):
             os.makedirs(os.path.join(self.local_path, self.ref_dir))
         if not os.path.exists(os.path.join(self.local_path, self.shots_dir)):
@@ -33,7 +32,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
         # # Setup image comparison specific methods
         self.device_name = self.get_device_name()
 
-        #if self.device_name == "flame":
+        # if self.device_name == "flame":
         #    self.screenshot_location = "/storage/sdcard0/screenshots/"
 
         if self.get_gaia_version() >= 34:
@@ -58,7 +57,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
         return int(version)
 
     # invokes screen capture event (pressing home button + sleep button together)
-    def invoke_screen_capture(self, frame=None, browser=None):
+    def invoke_screen_capture(self, frame=None):
         time.sleep(2)
         if frame is not 'root':
             self.marionette.switch_to_frame()  # switch to root frame (system app)
@@ -69,7 +68,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
         if frame is not 'root':
             self.apps.switch_to_displayed_app()
         time.sleep(6)  # for the notification overlay to disappear
-        if (frame is 'chrome'):
+        if frame is 'chrome':
             self.marionette.switch_to_frame()
 
     # this method collects images in the sd card and places in the /refimages folder, renames it, and trims the top.
@@ -79,7 +78,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
 
         self.wipe_folder_content(self.temp_dir)
 
-        #save files to the folder
+        # save files to the folder
         self.device_manager._runPull(device_path, self.temp_dir)
         #go through the files and rename them accordingly based on order and resolution
         filelist = self.sorted_ls(self.temp_dir)
@@ -99,7 +98,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
     # crops the top portion of the image by 1/24 of vertical resolution to remove the status bar
     @staticmethod
     def crop_images(filename, newfilename):
-        #get vertical dimension of the image
+        # get vertical dimension of the image
         p = subprocess.Popen(["identify", filename],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
@@ -123,7 +122,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
         #verify the file exists
         os.path.isfile(newfilename)
 
-    #pulls the screenshots off the device and copies locally.  Make sure the path ends with '/', so multi-file copy
+    # pulls the screenshots off the device and copies locally.  Make sure the path ends with '/', so multi-file copy
     #can be enabled.  It appends device info and test name
     def collect_screenshots(self, device_path, module_name):
 
@@ -138,7 +137,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
                 #rename files to following format: <testname>_<device>_<counter>+<timestamp>.png
                 timestamp = filename[0:filename.find(".png")]
                 newname = os.path.join(self.temp_dir, module_name + "_" + self.device_name + "_" + str(
-                    filecounter) + "+" + timestamp +     ".png")
+                    filecounter) + "+" + timestamp + ".png")
                 os.rename(os.path.join(self.temp_dir, filename), newname)
                 self.crop_images(newname, newname)
                 filecounter += 1
@@ -158,7 +157,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
         p.wait()
 
         if not (err == '0\n' or err == '0'):
-            err = err.replace('\n','')
+            err = err.replace('\n', '')
             return 'WARNING: ' + err + ' pixels mismatched between ' + target_img + ' and ' + ref_img + '\n'
             #raise self.ImageMismatchError(err, target_img,ref_img) #Enable this line instead if exception is needed
         else:
@@ -168,7 +167,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
     def batch_image_compare(self, local_path, module_name, fuzz_value):
         shot_path = local_path + "/" + self.shots_dir
         ref_path = local_path + "/" + self.ref_dir
-        errorMsg = ""
+        errormsg = ""
 
         file_list = self.sorted_ls(shot_path)
         ref_file_list = self.sorted_ls(ref_path)
@@ -176,13 +175,14 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
             if module_name + "_" + self.device_name in f:
                 ref_name = f[0:f.find("+")] + ".png"
                 if ref_name in ref_file_list:
-                    errorMsg += self.sub_image_compare(os.path.join(shot_path, f),
-                                           os.path.join(ref_path, ref_name),
-                                           os.path.join(shot_path, f[0:f.find(".png")]) + "_diff.png", fuzz_value)
+                    errormsg += self.sub_image_compare(os.path.join(shot_path, f),
+                                                       os.path.join(ref_path, ref_name),
+                                                       os.path.join(shot_path, f[0:f.find(".png")]) + "_diff.png",
+                                                       fuzz_value)
                 else:
-                    errorMsg += "Ref file not found for: " + f + '\n'
-        if errorMsg is not "":
-            raise self.ImageCompareError(errorMsg)
+                    errormsg += "Ref file not found for: " + f + '\n'
+        if errormsg is not "":
+            raise self.ImageCompareError(errormsg)
 
     # do collect and compare in one shot
     def collect_and_compare(self, local_path, device_path, module_name, fuzz_value):
@@ -195,14 +195,13 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
         #locate screenshot folder
         storage_paths = [self.device.storage_path]
         if self.device.is_android_build:
-            # TODO: Remove hard-coded paths once bug 1018079 is resolved
             storage_paths.extend(['/mnt/sdcard',
                                   '/mnt/extsdcard',
                                   '/storage/sdcard',
                                   '/storage/sdcard0',
                                   '/storage/sdcard1'])
         for path in storage_paths:
-            screenshot_path = os.path.join(path,"screenshots")
+            screenshot_path = os.path.join(path, "screenshots")
             if self.device.file_manager.dir_exists(screenshot_path):
                 if len(self.device.file_manager.list_items(screenshot_path)) > 0:
                     self.screenshot_location = screenshot_path
@@ -235,16 +234,16 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
 
     #screen configuration methods
     # invert the screen when value=True
-    def invert(self,value):
-            self.data_layer.set_bool_pref('layers.effect.invert', value)
+    def invert(self, value):
+        self.data_layer.set_bool_pref('layers.effect.invert', value)
 
     # set screen to grayscale mode when value=True
-    def grayscale(self,value):
+    def grayscale(self, value):
         self.data_layer.set_bool_pref('layers.effect.grayscale', value)
 
     # adjust contrast value of screen.  0 is standard, negative values are of lower contrast, and positive values
     # increase contrast. clips around -1.0 and 1.0
-    def contrast(self,value):
+    def contrast(self, value):
         self.data_layer.set_char_pref('layers.effect.contrast', value)
 
     #UI action methods
@@ -290,7 +289,7 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
     #level = level of zoom, 'low' or 'high'
     def pinch(self, locator, zoom, level):
 
-        global init_thumb_x
+        global init_thumb_x, init_thumb_y, init_index_x, init_index_y, disp_x, disp_y
         screen = self.marionette.find_element(*locator)
         index_finger = Actions(self.marionette)
         thumb = Actions(self.marionette)
