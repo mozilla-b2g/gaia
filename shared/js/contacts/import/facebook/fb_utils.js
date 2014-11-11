@@ -299,12 +299,6 @@ window.fb = fb;
     Utils.logout = function() {
       var outReq = new Utils.Request();
 
-      // Duration of the timer that checks window close by the user (1/2 sec)
-      var WINDOW_TIMER_INTERVAL = 500;
-      // Maximum time we are going to wait for a logout operation (5 secs)
-      var LOGOUT_TIMEOUT = 5000;
-      var MAX_TIMER_TICKS = LOGOUT_TIMEOUT / WINDOW_TIMER_INTERVAL;
-
       window.setTimeout(function do_logout() {
         Utils.getCachedAccessToken(function getAccessToken(access_token) {
           if (access_token) {
@@ -316,14 +310,12 @@ window.fb = fb;
 
             var logoutParams = params.join('&');
             var logoutUrl = logoutService + logoutParams;
-            var loggedOut = false;
 
             var m_listen = function(e) {
               if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
                 return;
               }
               if (e.data === 'closed') {
-                loggedOut = true;
                 window.asyncStorage.removeItem(STORAGE_KEY);
                 outReq.done();
               }
@@ -333,28 +325,7 @@ window.fb = fb;
 
             window.addEventListener('message', m_listen);
 
-            var logoutWindow = window.open(logoutUrl, '', 'dialog');
-            // This timer is run in order to monitor whether the window is
-            // closed by the user during the logout process (bug 1084224).
-            // This will have to be removed once bug 966216 is fixed
-            var timerTicks = 0;
-            var timerId = window.setInterval(function() {
-              timerTicks++;
-              var closed = (logoutWindow.closed === true);
-              var timedOut = (timerTicks >= MAX_TIMER_TICKS);
-
-              if (loggedOut || closed || timedOut) {
-                window.clearInterval(timerId);
-                window.removeEventListener('message', m_listen);
-              }
-
-              if (closed && !loggedOut) {
-                outReq.failed('UserCancelled');
-              }
-              else if (timedOut && !loggedOut) {
-                outReq.failed('Timeout');
-              }
-            }, WINDOW_TIMER_INTERVAL);
+            window.open(logoutUrl, '', 'dialog');
           } // if
           else {
             outReq.done();
