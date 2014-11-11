@@ -1993,11 +1993,21 @@ OmicronLab.Avro.Phonetic = {
 
   InputMethods.jsavrophonetic = {
     init: init,
-    click: click
+    click: click,
+    activate: activate,
+    deactivate: deactivate
   };
 
   function init(interfaceObject) {
     keyboard = interfaceObject;
+  }
+
+  function activate() {
+    clearBuffer();
+  }
+
+  function deactivate() {
+    clearBuffer();
   }
 
   function click(keycode, x, y) {
