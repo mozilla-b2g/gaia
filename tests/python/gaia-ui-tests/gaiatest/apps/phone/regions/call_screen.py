@@ -75,8 +75,12 @@ class CallScreen(Phone):
         return self.marionette.find_element(*self._contact_background_locator).get_attribute('style')
 
     @property
-    def via_sim(self):
+    def outgoing_via_sim(self):
         return self.marionette.find_element(*self._outgoing_call_locator).find_element(*self._via_sim_locator).text
+
+    @property
+    def incoming_via_sim(self):
+        return self.marionette.find_element(*self._incoming_call_locator).find_element(*self._via_sim_locator).text
 
     def wait_for_outgoing_call(self):
         outgoing_call = self.marionette.find_element(*self._outgoing_call_locator)

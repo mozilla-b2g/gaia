@@ -26,7 +26,7 @@ class TestDialerDsdsMakePhoneCallWithDefaultSim(GaiaTestCase):
 
         # TODO Replace the following line by a check on the l10n ID
         # once bug 1104667 lands
-        self.assertTrue(default_sim_name in call_screen.via_sim)
+        self.assertTrue(default_sim_name in call_screen.outgoing_via_sim)
         call_screen.hang_up()
 
     def tearDown(self):
