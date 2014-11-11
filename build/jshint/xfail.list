@@ -367,7 +367,6 @@ shared/js/fb/fb_data_reader.js
 shared/js/fb/fb_reader_utils.js
 shared/js/fb/fb_request.js
 shared/js/fxa_iac_client.js
-shared/js/keyboard_helper.js
 shared/js/lockscreen_slide.js
 shared/js/media/get_video_rotation.js
 shared/js/media/jpeg_metadata_parser.js
