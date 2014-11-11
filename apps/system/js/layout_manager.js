@@ -111,6 +111,8 @@
       window.addEventListener('software-button-disabled', this);
       window.addEventListener('attentionwindowmanager-deactivated', this);
       window.addEventListener('lockscreen-appclosed', this);
+
+      this._lastOrientation = screen.mozOrientation;
     },
 
     handleEvent: function lm_handleEvent(evt) {
@@ -120,6 +122,7 @@
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
+          console.log("[LayoutManager] Keyboardchange was triggered");
           this.keyboardEnabled = true;
           /**
            * Fired when layout needs to be adjusted.
@@ -128,8 +131,17 @@
           this.publish('system-resize');
           break;
         case 'resize':
-          this.publish('system-resize');
+          // bug 1073806: do not publish system-resize if keyboard is showing
+          // and we've changed orientation: keyboardchange will trigger later
+          // and we'll resize then.
+          if (screen.mozOrientation === this._lastOrientation ||
+              !this.keyboardEnabled) {
+            this.publish('system-resize');
+          }else{
+            console.log("[LayoutManager] Omitted sending system-resize");
+          }
           this.publish('orientationchange');
+          this._lastOrientation = screen.mozOrientation;
           break;
         case 'lockscreen-appclosed':
           // If the software button is enabled it will be un-hidden when
