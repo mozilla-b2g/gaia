@@ -52,6 +52,41 @@ suite('LockScreenInputpad', function() {
       .classList.contains('disabled'));
   });
 
+  suite('updatePassCodeUI', function() {
+    test('it would add passcode-entered class while passcode entered',
+    function() {
+      var method = subject.updatePassCodeUI;
+      var mockSubject = {
+        states: {
+          passCodeEntered: 'foo'
+        },
+        passcodePad: document.createElement('div'),
+        passcodeCode: document.createElement('div')
+      };
+      method.apply(mockSubject);
+      assert.isTrue(mockSubject.passcodePad
+        .classList.contains('passcode-entered'),
+        'no passcode-entered class added');
+    });
+
+    test('it would add passcode-entered class while no passcode entered',
+    function() {
+      var method = subject.updatePassCodeUI;
+      var mockSubject = {
+        states: {
+          passCodeEntered: ''
+        },
+        passcodePad: document.createElement('div'),
+        passcodeCode: document.createElement('div')
+      };
+      var stubRemove = this.sinon.stub(mockSubject.passcodePad.classList,
+        'remove');
+      method.apply(mockSubject);
+      assert.isTrue(stubRemove.called,
+        'no remove method called; so the class may still stick on it');
+    });
+  });
+
   suite('decorateErrorPasscodeUI', function() {
     var originalStates,
         originalConfigs,
