@@ -49,7 +49,7 @@ var MockCommon = function(config) {
     modalAlert: function(msg) {
       var event = new CustomEvent('fakealert', { detail: msg });
       window.dispatchEvent(event);
-      console.log('Alert: ' + msg);
+      console.log('Alert: ' + msg + '\n');
     },
     getDataSIMInterface: function getDataSIMInterface(iccId) {
       var dataSimCard = allInterfacesFake[1];

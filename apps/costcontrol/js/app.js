@@ -59,7 +59,7 @@ var CostControlApp = (function() {
       // SIM not ready
       if (cardState !== 'ready') {
         showNonReadyScreen(cardState);
-        debug('SIM not ready:', cardState);
+        debug('SIM not ready:', cardState, '\n');
         dataSimIcc.oncardstatechange = function() {
           waitForSIMReady(callback);
         };
@@ -67,19 +67,19 @@ var CostControlApp = (function() {
       // SIM is ready
       } else {
         hideNotReadyScreen();
-        debug('SIM ready. ICCID:', dataSim.iccId);
+        debug('SIM ready. ICCID:', dataSim.iccId, '\n');
         dataSimIcc.oncardstatechange = undefined;
         callback && callback();
       }
 
     // In case we can not get a valid ICCID.
     }, function _errorNoSim() {
-      console.warn('Error when trying to get the ICC, SIM not detected.');
+      console.warn('Error when trying to get the ICC, SIM not detected.\n');
       LazyLoader.load(['/shared/js/airplane_mode_helper.js'], function() {
         AirplaneModeHelper.ready(function() {
           var fakeState = null;
           if (AirplaneModeHelper.getStatus() === 'enabled') {
-            console.warn('The airplaneMode is enabled.');
+            console.warn('The airplaneMode is enabled.\n');
             fakeState = 'airplaneMode';
             var iccManager = window.navigator.mozIccManager;
             iccManager.addEventListener('iccdetected',
@@ -110,7 +110,7 @@ var CostControlApp = (function() {
     }
 
     function realshowNonReadyScreen(messageId) {
-      debug('Showing non-ready screen.');
+      debug('Showing non-ready screen.\n');
       if (!nonReadyScreen) {
         nonReadyScreen =
           new NonReadyScreen(document.getElementById('non-ready-screen'));
@@ -121,7 +121,7 @@ var CostControlApp = (function() {
   }
 
   function hideNotReadyScreen(status) {
-    debug('Hiding non-ready screen.');
+    debug('Hiding non-ready screen.\n');
     if (vmanager.getCurrentView() === 'non-ready-screen') {
       vmanager.closeCurrentView();
     }
@@ -147,11 +147,11 @@ var CostControlApp = (function() {
       var newHash = parser.hash.split('#');
 
       if (newHash.length > 3) {
-        console.error('Cost Control bad URL schema');
+        console.error('Cost Control bad URL schema\n');
         return;
       }
 
-      debug('URL schema before normalizing:', newHash);
+      debug('URL schema before normalizing:', newHash, '\n');
 
       var normalized = false;
       if (newHash[1] === '' && oldHash[1]) {
@@ -169,7 +169,7 @@ var CostControlApp = (function() {
       }
 
       if (normalized) {
-        debug('URL schema after normalization:', newHash);
+        debug('URL schema after normalization:', newHash, '\n');
         window.location.hash = newHash.join('#');
         return;
       }
@@ -284,14 +284,14 @@ var CostControlApp = (function() {
           return;
         }
 
-        debug('Notification was clicked!');
+        debug('Notification was clicked!\n');
 
         navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
           var app = evt.target.result;
           app.launch();
 
           var type = notification.imageURL.split('?')[1];
-          debug('Notification type:', type);
+          debug('Notification type:', type, '\n');
           handleNotification(type);
         };
       }
@@ -342,7 +342,7 @@ var CostControlApp = (function() {
                                     function _onSettings(settings) {
         var mode = ConfigManager.getApplicationMode();
         var newHash;
-        debug('App UI mode: ', mode);
+        debug('App UI mode: ', mode, '\n');
 
         // Layout
         if (mode !== currentMode) {

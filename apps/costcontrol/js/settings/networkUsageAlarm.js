@@ -5,12 +5,12 @@ var NetworkUsageAlarm = (function() {
   function _addAlarm(networkInterface, value, onsuccess, onerror) {
     if (!networkInterface) {
       console.error('Error, the network interface is not defined when trying ' +
-                    'to add an alarm');
+                    'to add an alarm\n');
       (typeof onerror === 'function') && onerror();
       return;
     }
     if (value === null || typeof value === 'undefined') {
-      console.error('Limit value is undefined, impossible add an alarm');
+      console.error('Limit value is undefined, impossible add an alarm\n');
       (typeof onerror === 'function') && onerror();
       return;
     }
@@ -19,7 +19,7 @@ var NetworkUsageAlarm = (function() {
     request.onsuccess = onsuccess;
     request.onerror = function error(e) {
       console.error('Error, when trying to addAlarm to the interfaceId: ' +
-                    networkInterface.id + ' and limit: ' + value);
+                    networkInterface.id + ' and limit: ' + value + '\n');
       (typeof onerror === 'function') && onerror();
     };
   }
@@ -27,7 +27,7 @@ var NetworkUsageAlarm = (function() {
   function _clearAlarms(networkInterface, callback) {
     if (!networkInterface) {
       console.error('Error, the network interface is not defined when trying ' +
-                    'to remove alarms');
+                    'to remove alarms\n');
       return;
     }
     var request = navigator.mozNetworkStats.getAllAlarms(networkInterface);
@@ -43,7 +43,7 @@ var NetworkUsageAlarm = (function() {
       }
 
       function _onErrorRemoveAlarm() {
-        console.error('Error when trying to remove one alarm.');
+        console.error('Error when trying to remove one alarm.\n');
         checkForCompletion();
       }
 
@@ -61,7 +61,8 @@ var NetworkUsageAlarm = (function() {
     };
 
     request.onerror = function error() {
-      console.error('Error when trying to get alarms from the API to clear it');
+      console.error('Error when trying to get alarms from the API ' + 
+                    'to clear it\n');
     };
   }
 
@@ -73,10 +74,10 @@ var NetworkUsageAlarm = (function() {
     } else {
       if (!dataInterface) {
         console.error('Error, the network interface is not defined when ' +
-                      'trying to update an alarm');
+                      'trying to update an alarm\n');
       } else {
          console.error('Error, the data limit value is not defined when ' +
-                       'trying to update an alarm');
+                       'trying to update an alarm\n');
       }
       (typeof onerror === 'function') && onerror();
     }

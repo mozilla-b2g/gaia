@@ -33,7 +33,7 @@
   // inside an iframe (no standalone mode), all the messages should be attended
   // so we can conclude **there is nothing to do**.
   if (inStandAloneMode() && window.history.length > 1) {
-    debug('Nothing to do in message handler, returning to app...');
+    debug('Nothing to do in message handler, returning to app...\n');
     window.history.back();
   }
 
@@ -44,7 +44,7 @@
   // Close if in standalone mode
   var closing, activity;
   function closeIfProceeds() {
-    debug('Checking for closing...');
+    debug('Checking for closing...\n');
     if (inStandAloneMode()) {
       closing = Common.closeApplication();
     }
@@ -67,21 +67,21 @@
     // XXX: This is not part of configuration by SIM so we bypass ConfigManager
     asyncStorage.getItem('nextResetAlarm', function(id) {
       // There is already an alarm, remove it
-      debug('Current nextResetAlarm', id + '.', id ? 'Removing.' : '');
+      debug('Current nextResetAlarm', id + '.', id ? 'Removing.\n' : '\n');
       if (id) {
         navigator.mozAlarms.remove(id);
       }
 
       // If no when, disable alarms passing null
       if (!when) {
-        debug('Automatic reset disabled');
+        debug('Automatic reset disabled\n');
         updateResetAttributes(null, null, callback);
         return;
       }
 
       // If the alarm is in the past, fake it was launched
       if (when.getTime() < Date.now()) {
-        debug('Faking a past reset alarm');
+        debug('Faking a past reset alarm\n');
         _onAlarm({ data: { type: 'nextReset' } });
         if (callback) {
           setTimeout(callback);
@@ -93,7 +93,7 @@
       var alarms = navigator.mozAlarms;
       var request = alarms.add(when, 'ignoreTimezone', {type: 'nextReset' });
       request.onsuccess = function _onSuccess() {
-        debug('Setting nextResetAlarm', request.result, 'to', when);
+        debug('Setting nextResetAlarm', request.result, 'to', when, '\n');
         updateResetAttributes(request.result, when, callback);
       };
     });
@@ -121,7 +121,7 @@
             index++;
           }
           if (found) {
-            debug('TopUp timeout found:', alarm.date);
+            debug('TopUp timeout found:', alarm.date, '\n');
             callback(alarm.date);
           } else {
             callback(null);
@@ -203,8 +203,8 @@
         };
       }
 
-      debug('Low limit already notified:', settings.lowLimitNotified);
-      debug('Zero balance already notified:', settings.lowLimitNotified);
+      debug('Low limit already notified:', settings.lowLimitNotified, '\n');
+      debug('Zero balance already notified:', settings.lowLimitNotified, '\n');
 
       // Zero reached notification
       var type;
@@ -224,7 +224,7 @@
         }
         return;
       }
-      debug('Notification type:', type);
+      debug('Notification type:', type, '\n');
       iconURL += '?' + type;
 
       // Get l10n for remaining balance
@@ -276,8 +276,8 @@
             ConfigManager.setOption(
               { 'errors': settings.errors, 'waitingForBalance': null },
               function _onBalanceTimeout() {
-                debug('Timeout for balance');
-                debug('Trying to synchronize!');
+                debug('Timeout for balance', '\n');
+                debug('Trying to synchronize!', '\n');
                 localStorage.sync = 'errors#' + Math.random();
                 closeIfProceeds();
               }
@@ -292,8 +292,8 @@
             ConfigManager.setOption(
               { 'errors': settings.errors, 'waitingForTopUp': null },
               function _onBalanceTimeout() {
-                debug('Timeout for topup');
-                debug('Trying to synchronize!');
+                debug('Timeout for topup', '\n');
+                debug('Trying to synchronize!', '\n');
                 localStorage.sync = 'errors#' + Math.random();
                 closeIfProceeds();
               }
@@ -349,7 +349,7 @@
     LazyLoader.load('js/iac_manager.js', function() {
       IACManager.init(configuration);
       IACManager.broadcastEndOfSMSQuery(type).then(function(msg) {
-        debug('After broadcasting for ' + type + ' (disabling)');
+        debug('After broadcasting for ' + type + ' (disabling)\n');
       });
     });
   }
@@ -361,7 +361,7 @@
       costcontrol = ccontrol;
 
       if (inStandAloneMode() || inApplicationMode()) {
-        debug('Installing handlers');
+        debug('Installing handlers\n');
 
         // When receiving an SMS, recognize and parse
         navigator.mozSetMessageHandler('sms-received', function _onSMS(sms) {
@@ -385,16 +385,16 @@
             }
 
             // Parse the message
-            debug('Parsing received SMS');
+            debug('Parsing received SMS\n');
             var isBalance, isConfirmation, isError;
             isBalance = isConfirmation = isError = false;
 
-            debug('Trying to recognize balance SMS');
+            debug('Trying to recognize balance SMS\n');
             var description = new RegExp(configuration.balance.regexp);
             var balanceData = sms.body.match(description);
 
             if (!balanceData) {
-              debug('Trying to recognize zero balance SMS');
+              debug('Trying to recognize zero balance SMS\n');
               // Some carriers use another response messages format
               // for zero balance
               var zeroDescription = configuration.balance.zero_regexp ?
@@ -408,18 +408,19 @@
             if (!isBalance || balanceData.length < 2) {
               console.warn('Impossible to parse balance message.');
 
-              debug('Trying to recognize TopUp confirmation SMS');
+              debug('Trying to recognize TopUp confirmation SMS\n');
               description = new RegExp(configuration.topup.confirmation_regexp);
               isConfirmation = !!sms.body.match(description);
               if (!isConfirmation) {
-                console.warn('Impossible to parse TopUp confirmation message.');
+                console.warn('Impossible to parse TopUp confirmation ' + 
+                  'message.\n');
 
-                debug('Trying to recognize TopUp error SMS');
+                debug('Trying to recognize TopUp error SMS\n');
                 description =
                   new RegExp(configuration.topup.incorrect_code_regexp);
                 isError = !!sms.body.match(description);
                 if (!isError) {
-                  console.warn('Impossible to parse TopUp confirmation msg.');
+                  console.warn('Impossible to parse TopUp confirmation msg.\n');
                 }
               }
 
@@ -451,7 +452,7 @@
                 // Remove the timeout
                 navigator.mozAlarms.remove(settings.waitingForBalance);
                 debug('Balance timeout:', settings.waitingForBalance,
-                      'removed');
+                      'removed\n');
 
                 disableSilentModeFor('balance', configuration);
               }
@@ -459,8 +460,8 @@
               ConfigManager.setOption(
                 { 'lastBalance': newBalance, 'waitingForBalance': null },
                 function _onSet() {
-                  debug('Balance up to date and stored');
-                  debug('Trying to synchronize!');
+                  debug('Balance up to date and stored\n');
+                  debug('Trying to synchronize!\n');
                   localStorage.sync = 'lastBalance#' + Math.random();
                   sendBalanceThresholdNotification(newBalance, settings,
                                                    closeIfProceeds);
@@ -470,7 +471,7 @@
               if (settings.waitingForTopUp !== null) {
                 // Store SUCCESS for TopIp and sync
                 navigator.mozAlarms.remove(settings.waitingForTopUp);
-                debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
+                debug('TopUp timeout:', settings.waitingForTopUp, 'removed\n');
                 disableSilentModeFor('topup', configuration);
               }
               ConfigManager.setOption(
@@ -480,8 +481,8 @@
                   'zeroBalanceNotified': false
                 },
                 function _onSet() {
-                  debug('TopUp confirmed!');
-                  debug('Trying to synchronize!');
+                  debug('TopUp confirmed!\n');
+                  debug('Trying to synchronize!\n');
                   localStorage.sync = 'waitingForTopUp#' + Math.random();
                   closeIfProceeds();
                 }
@@ -490,7 +491,7 @@
               // Store ERROR for TopUp and sync
               settings.errors.INCORRECT_TOPUP_CODE = true;
               navigator.mozAlarms.remove(settings.waitingForTopUp);
-              debug('TopUp timeout: ', settings.waitingForTopUp, 'removed');
+              debug('TopUp timeout: ', settings.waitingForTopUp, 'removed\n');
               ConfigManager.setOption(
                 {
                   'errors': settings.errors,
@@ -499,8 +500,8 @@
                   'zeroBalanceNotified': false
                 },
                 function _onSet() {
-                  debug('Balance up to date and stored');
-                  debug('Trying to synchronize!');
+                  debug('Balance up to date and stored\n');
+                  debug('Trying to synchronize!\n');
                   localStorage.sync = 'errors#' + Math.random();
                   sendIncorrectTopUpNotification(closeIfProceeds);
                 }
@@ -515,7 +516,7 @@
         // Count a new SMS
         navigator.mozSetMessageHandler('sms-sent', function _onSent(sms) {
           clearTimeout(closing);
-          debug('SMS sent!');
+          debug('SMS sent!\n');
 
           var configuration = ConfigManager.configuration;
           var mode = ConfigManager.getApplicationMode();
@@ -573,7 +574,7 @@
               closeIfProceeds();
               return;
             }
-            debug('Outgoing call finished!');
+            debug('Outgoing call finished!\n');
             SimManager.requestDataSimIcc(function(dataSimIcc) {
               ConfigManager.requestSettings(dataSimIcc.iccId,
                                             function _onSettings(settings) {

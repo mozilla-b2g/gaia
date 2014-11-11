@@ -35,7 +35,7 @@ suite('Network usage alarms  Test Suite  >', function() {
       NetworkUsageAlarm.clearAlarms(null);
       assert.ok(consoleSpy.calledOnce);
       assert.ok(consoleSpy.calledWith('Error, the network interface is not ' +
-        'defined when trying to remove alarms'));
+        'defined when trying to remove alarms\n'));
       consoleSpy.restore();
     }
   );
@@ -48,11 +48,12 @@ suite('Network usage alarms  Test Suite  >', function() {
       var consoleSpy = this.sinon.spy(console, 'error');
 
       NetworkUsageAlarm.clearAlarms(allInterfacesFake[1], function () {
-        assert.ok(removeAlarmsSpy.calledOnce);
-        assert.equal(consoleSpy.callCount, 0);
-        consoleSpy.restore();
-        removeAlarmsSpy.restore();
-        done();
+        done(function() {
+          assert.ok(removeAlarmsSpy.calledOnce);
+          assert.equal(consoleSpy.callCount, 0);
+          consoleSpy.restore();
+          removeAlarmsSpy.restore();
+        });
       });
     }
   );
@@ -65,13 +66,14 @@ suite('Network usage alarms  Test Suite  >', function() {
       var consoleSpy = this.sinon.spy(console, 'error');
 
       NetworkUsageAlarm.clearAlarms(allInterfacesFake[2], function () {
-        assert.ok(removeAlarmsSpy.calledOnce);
-        assert.ok(consoleSpy.calledOnce);
-        assert.ok(consoleSpy.calledWith('Error when trying to remove one ' +
-          'alarm.'));
-        consoleSpy.restore();
-        removeAlarmsSpy.restore();
-        done();
+        done(function() {
+          assert.ok(removeAlarmsSpy.calledOnce);
+          assert.ok(consoleSpy.calledOnce);
+          assert.ok(consoleSpy.calledWith('Error when trying to remove one ' +
+            'alarm.\n'));
+          consoleSpy.restore();
+          removeAlarmsSpy.restore();
+        });
       });
     }
   );
@@ -84,12 +86,12 @@ suite('Network usage alarms  Test Suite  >', function() {
       NetworkUsageAlarm.updateAlarm(null, 24);
       assert.ok(consoleSpy.calledOnce);
       assert.ok(consoleSpy.calledWith('Error, the network interface is not ' +
-        'defined when trying to update an alarm'));
+        'defined when trying to update an alarm\n'));
 
       NetworkUsageAlarm.updateAlarm(allInterfacesFake[1], null);
       assert.ok(consoleSpy.calledTwice);
       assert.ok(consoleSpy.calledWith('Error, the data limit value is not ' +
-        'defined when trying to update an alarm'));
+        'defined when trying to update an alarm\n'));
       consoleSpy.restore();
     }
   );
@@ -104,13 +106,14 @@ suite('Network usage alarms  Test Suite  >', function() {
       var limitValue = 1972;
       NetworkUsageAlarm.updateAlarm(allInterfacesFake[1], limitValue,
                                     function _ok() {
-        assert.ok(removeAlarmsSpy.calledOnce);
-        assert.ok(addAlarmSpy.calledOnce);
-        assert.ok(addAlarmSpy.calledWith(allInterfacesFake[1], limitValue));
+        done(function() {
+          assert.ok(removeAlarmsSpy.calledOnce);
+          assert.ok(addAlarmSpy.calledOnce);
+          assert.ok(addAlarmSpy.calledWith(allInterfacesFake[1], limitValue));
 
-        addAlarmSpy.restore();
-        removeAlarmsSpy.restore();
-        done();
+          addAlarmSpy.restore();
+          removeAlarmsSpy.restore();
+        });
       },
       function _error() {
         var consoleSpy = this.sinon.spy(console, 'error');
@@ -134,18 +137,19 @@ suite('Network usage alarms  Test Suite  >', function() {
       var limitValue = 1972;
       NetworkUsageAlarm.updateAlarm(allInterfacesFake[3], limitValue, null,
         function _error() {
-          assert.ok(removeAlarmsSpy.calledOnce);
-          assert.ok(addAlarmSpy.calledOnce);
-          assert.ok(addAlarmSpy.calledWith(allInterfacesFake[3], limitValue));
-          assert.ok(consoleSpy.calledOnce);
-          assert.ok(consoleSpy.calledWith('Error, when trying to addAlarm to ' +
-            'the interfaceId: ' + allInterfacesFake[3].id + ' and limit: ' +
-            limitValue));
+          done(function() {
+            assert.ok(removeAlarmsSpy.calledOnce);
+            assert.ok(addAlarmSpy.calledOnce);
+            assert.ok(addAlarmSpy.calledWith(allInterfacesFake[3], limitValue));
+            assert.ok(consoleSpy.calledOnce);
+            assert.ok(consoleSpy.calledWith('Error, when trying to addAlarm ' +
+              'to the interfaceId: ' + allInterfacesFake[3].id + 
+              ' and limit: ' + limitValue + '\n'));
 
-          addAlarmSpy.restore();
-          removeAlarmsSpy.restore();
-          consoleSpy.restore();
-          done();
+            addAlarmSpy.restore();
+            removeAlarmsSpy.restore();
+            consoleSpy.restore();
+          });
         });
     }
   );

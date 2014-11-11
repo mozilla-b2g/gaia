@@ -56,7 +56,7 @@ var ChartUtils = (function() {
       upperDate = new Date(today.getTime() + (NEVER_PERIOD - NEVER_ANCHOR));
     }
 
-    debug('Upper date:', upperDate);
+    debug('Upper date:', upperDate, '\n');
     return upperDate;
   }
 
@@ -90,7 +90,7 @@ var ChartUtils = (function() {
       }
     }
 
-    debug('Lower date:', lowerDate);
+    debug('Lower date:', lowerDate, '\n');
     return lowerDate;
   }
 

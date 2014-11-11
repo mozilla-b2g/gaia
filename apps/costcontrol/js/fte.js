@@ -84,7 +84,7 @@
       }
 
       if (mode === 'DATA_USAGE_ONLY') {
-        debug('FTE for non supported SIM');
+        debug('FTE for non supported SIM\n');
         wizard.dataset.steps = '3';
         reset(['step-1', 'non-vivo-step-1', 'non-vivo-step-2']);
         AutoSettings.initialize(ConfigManager, vmanager, '#non-vivo-step-1');

@@ -21,10 +21,10 @@ var CostControl = (function() {
 
   var costcontrol;
   function getInstance(onready) {
-    debug('Initializing Cost Control');
+    debug('Initializing Cost Control\n');
 
     function goOn() {
-      debug('Cost Control already ready!');
+      debug('Cost Control already ready!\n');
       onready(costcontrol);
     }
 
@@ -49,7 +49,7 @@ var CostControl = (function() {
         isBalanceRequestSMS: isBalanceRequestSMS
       };
 
-      debug('Cost Control ready!');
+      debug('Cost Control ready!\n');
       onready(costcontrol);
     }
 
@@ -67,7 +67,7 @@ var CostControl = (function() {
       statistics = window.navigator.mozNetworkStats;
     }
 
-    debug('APIs loaded!');
+    debug('APIs loaded!\n');
   }
 
   // OTHER LOGIC
@@ -86,7 +86,7 @@ var CostControl = (function() {
   // specific handler.
   function request(requestObj, callback) {
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
-      debug('Request for:', requestObj.type);
+      debug('Request for:', requestObj.type, '\n');
 
       var force = requestObj.force;
       var result = {};
@@ -271,11 +271,11 @@ var CostControl = (function() {
   // Send a request SMS and set timeouts for interrupting waiting for response
   var BALANCE_TIMEOUT = 5 * 60 * 1000; // Should be 5 min
   function requestBalance(configuration, settings, callback, result) {
-    debug('Requesting balance...');
+    debug('Requesting balance...\n');
     result.data = settings.lastBalance;
 
     function sendSMS() {
-      debug('After IAC broadcast ask for starting - balance');
+      debug('After IAC broadcast ask for starting - balance\n');
       // Send request SMS
       var newSMS = mobileMessageManager.send(
         configuration.balance.destination,
@@ -283,7 +283,7 @@ var CostControl = (function() {
       );
 
       newSMS.onsuccess = function _onSuccess() {
-        debug('Request SMS sent! Waiting for response.');
+        debug('Request SMS sent! Waiting for response.\n');
 
         if (!DEBUGGING) {
           mobileMessageManager.delete(newSMS.result.id);
@@ -295,7 +295,7 @@ var CostControl = (function() {
         newAlarm.onsuccess = function _alarmSet(evt) {
           var id = evt.target.result;
           debug('Timeout for balance (', id, ') update set to:',
-                BALANCE_TIMEOUT);
+                BALANCE_TIMEOUT, '\n');
 
           ConfigManager.setOption(
             {
@@ -319,7 +319,7 @@ var CostControl = (function() {
             },
             function _onSet() {
               isSendingBalanceRequest = false;
-              debug('Failed to set timeout for balance request!');
+              debug('Failed to set timeout for balance request!\n');
               result.status = 'error';
               result.details = 'timeout_fail';
               if (callback) {
@@ -332,9 +332,9 @@ var CostControl = (function() {
 
       newSMS.onerror = function _onError() {
         isSendingBalanceRequest = false;
-        debug('Request SMS failed! But returning stored balance.');
+        debug('Request SMS failed! But returning stored balance.\n');
         IACManager.broadcastEndOfSMSQuery('balance').then(function(msg) {
-          debug('After IAC broadcast ask for ending - balance');
+          debug('After IAC broadcast ask for ending - balance\n');
         });
         result.status = 'error';
         result.details = 'request_fail';
@@ -342,7 +342,7 @@ var CostControl = (function() {
           callback(result);
         }
       };
-      debug('Balance out of date. Requesting fresh data...');
+      debug('Balance out of date. Requesting fresh data...\n');
     }
     IACManager.init(configuration);
     IACManager.broadcastStartOfSMSQuery('balance').then(sendSMS, sendSMS);
@@ -351,10 +351,10 @@ var CostControl = (function() {
   // Send a top up SMS and set timeouts for interrupting waiting for response
   var TOPUP_TIMEOUT = 5 * 60 * 1000; // Should be 5 min
   function requestTopUp(configuration, settings, code, callback, result) {
-    debug('Requesting TopUp with code', code, '...');
+    debug('Requesting TopUp with code', code, '...\n');
 
     function sendSMS() {
-      debug('After IAC broadcast ask for starting - topup');
+      debug('After IAC broadcast ask for starting - topup\n');
 
       // TODO: Ensure is free
       var newSMS = mobileMessageManager.send(
@@ -363,7 +363,7 @@ var CostControl = (function() {
       );
 
       newSMS.onsuccess = function _onSuccess() {
-        debug('TopUp SMS sent! Waiting for response.');
+        debug('TopUp SMS sent! Waiting for response.\n');
 
         if (!DEBUGGING) {
           mobileMessageManager.delete(newSMS.result.id);
@@ -374,7 +374,8 @@ var CostControl = (function() {
 
         newAlarm.onsuccess = function _alarmSet(evt) {
           var id = evt.target.result;
-          debug('Timeout for TopUp (', id, ') update set to:', TOPUP_TIMEOUT);
+          debug('Timeout for TopUp (', id, ') update set to:', 
+            TOPUP_TIMEOUT, '\n');
 
           // XXX: waitingForTopUp can be null if no waiting or distinct
           // than null to indicate the unique id of the timeout waiting
@@ -394,7 +395,7 @@ var CostControl = (function() {
         };
 
         newAlarm.onerror = function _alarmFailedToSet(evt) {
-          debug('Failed to set timeout for TopUp request!');
+          debug('Failed to set timeout for TopUp request!\n');
           result.status = 'error';
           result.details = 'timeout_fail';
           if (callback) {
@@ -404,9 +405,9 @@ var CostControl = (function() {
       };
 
       newSMS.onerror = function _onError() {
-        debug('TopUp SMS failed!');
+        debug('TopUp SMS failed!\n');
         IACManager.broadcastEndOfSMSQuery('topup').then(function(msg) {
-          debug('After IAC broadcast ask for ending - topup');
+          debug('After IAC broadcast ask for ending - topup\n');
         });
         result.status = 'error';
         result.details = 'request_fail';
@@ -425,11 +426,11 @@ var CostControl = (function() {
   var DAY = 24 * 3600 * 1000; // 1 day
   function requestDataStatistics(configuration, settings, callback, dataSimIcc,
                                  result, apps) {
-    debug('Statistics out of date. Requesting fresh data...');
+    debug('Statistics out of date. Requesting fresh data...\n');
 
     var maxAge = 1000 * statistics.maxStorageAge;
     var minimumStart = new Date(Date.now() - maxAge);
-    debug('The max age for samples is ' + minimumStart);
+    debug('The max age for samples is ', minimumStart, '\n');
 
     // If settings.lastCompleteDataReset is not set let's use the past week.
     // This is only for not breaking dogfooders build and this can be remove at
@@ -519,7 +520,7 @@ var CostControl = (function() {
 
         ConfigManager.setOption({ 'lastDataUsage': savedUsage },
           function _onSetItem() {
-            debug('Statistics up to date and stored.');
+            debug('Statistics up to date and stored.\n');
           }
         );
       }
@@ -611,7 +612,7 @@ var CostControl = (function() {
       result.status = 'success';
       result.data = lastDataUsage;
 
-      debug('Returning up to date statistics.');
+      debug('Returning up to date statistics.\n');
       if (callback) {
         callback(result);
       }

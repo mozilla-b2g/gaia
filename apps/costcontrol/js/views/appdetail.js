@@ -131,7 +131,7 @@ var AppDetailView = (function() {
     // Request usage for this specific app
     costcontrol.request(usageRequest, function(result) {
       if (result.status !== 'success') {
-        console.error('Error requesting data usage. This should not happen.');
+        console.error('Error requesting data usage. This should not happen.\n');
         return;
       }
 
@@ -219,7 +219,7 @@ var AppDetailView = (function() {
         });
       });
     } else {
-      console.error('Error requesting data usage. This should not happen.');
+      console.error('Error requesting data usage. This should not happen.\n');
     }
   }
 

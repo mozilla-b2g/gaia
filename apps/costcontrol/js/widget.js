@@ -21,12 +21,12 @@ var Widget = (function() {
     var cardState = checkCardState(dataSimIcc);
 
     if (cardState !== 'ready') {
-      debug('SIM not ready:', dataSimIcc.cardState);
+      debug('SIM not ready:', dataSimIcc.cardState, '\n');
       initialized = false;
       dataSimIcc.oncardstatechange = checkSIMStatus.bind(null, dataSim);
     // SIM ready
     } else {
-      debug('SIM ready. ICCID:', dataSim.iccId);
+      debug('SIM ready. ICCID:', dataSim.iccId, '\n');
       dataSimIcc.oncardstatechange = undefined;
       var SCRIPTS_NEEDED_TO_START = [
         'js/costcontrol.js',
@@ -45,7 +45,7 @@ var Widget = (function() {
 
     // SIM is absent
     if (!cardState || cardState === 'absent' || cardState === 'unknown') {
-      debug('There is no SIM');
+      debug('There is no SIM\n');
       Widget.showSimError('no-sim2');
 
     // SIM is locked
@@ -192,10 +192,10 @@ var Widget = (function() {
 
   // On balance update received
   function onBalance(balance, old, key, settings) {
-    debug('Balance received:', balance);
+    debug('Balance received:', balance, '\n');
     setBalanceMode('default');
     updateBalance(balance, settings.lowLimit && settings.lowLimitThreshold);
-    debug('Balance updated!');
+    debug('Balance updated!\n');
   }
 
   // On balance update fail
@@ -203,7 +203,7 @@ var Widget = (function() {
     if (!errors || !errors.BALANCE_TIMEOUT) {
       return;
     }
-    debug('Balance timeout!');
+    debug('Balance timeout!\n');
 
     setBalanceMode('warning');
     errors.BALANCE_TIMEOUT = false;
@@ -272,7 +272,7 @@ var Widget = (function() {
 
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
       var mode = ConfigManager.getApplicationMode();
-      debug('Widget UI mode:', mode);
+      debug('Widget UI mode:', mode, '\n');
 
       var isPrepaid = (mode === 'PREPAID');
       var isDataUsageOnly = (mode === 'DATA_USAGE_ONLY');
@@ -280,7 +280,7 @@ var Widget = (function() {
       // Show fte mode widget
       if (settings.fte) {
         setupFte(configuration.provider, mode);
-        debug('Widget in FTE mode');
+        debug('Widget in FTE mode\n');
         return;
       }
 
@@ -312,7 +312,7 @@ var Widget = (function() {
       // Content for data statistics
       var requestObj = { type: 'datausage' };
       costcontrol.request(requestObj, function _onDataStatistics(result) {
-        debug(result);
+        debug(result, '\n');
         var stats = result.data;
         var data = Formatting.roundData(stats.mobile.total);
         if (isLimited) {
@@ -324,7 +324,7 @@ var Widget = (function() {
 
           var current = stats.mobile.total;
           var limit = Common.getDataLimit(settings);
-          debug(limit);
+          debug(limit, '\n');
 
           // State
           views.limitedDataUsage.classList.remove('nearby-limit');
@@ -381,7 +381,7 @@ var Widget = (function() {
 
           requestObj = { type: 'balance' };
           costcontrol.request(requestObj, function _onRequest(result) {
-            debug(result);
+            debug(result, '\n');
             var status = result.status;
             var balance = result.data;
             setBalanceMode(status === 'error' ? 'warning' : 'updating');
@@ -418,7 +418,7 @@ var Widget = (function() {
   function updateBalance(balance, limit) {
 
     if (!balance) {
-      debug('Balance not available');
+      debug('Balance not available\n');
       balanceView.update();
       return;
     }
@@ -482,7 +482,7 @@ var Widget = (function() {
         waitForIccAndCheckSim();
         var errorMessageId = (AirplaneModeHelper.getStatus() === 'enabled') ?
                              'airplane-mode' : 'no-sim2';
-        console.warn('Error when trying to get the ICC ID');
+        console.warn('Error when trying to get the ICC ID\n');
         Widget.showSimError(errorMessageId);
       });
     });
