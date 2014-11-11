@@ -1121,15 +1121,23 @@ var StatusBar = {
       }
 
       var icon = this.icons.battery;
+      var previousLevel = parseInt(icon.dataset.level, 10);
+      var previousCharging = icon.dataset.charging === 'true';
 
       icon.dataset.charging = battery.charging;
       var level = Math.floor(battery.level * 10) * 10;
-      icon.dataset.level = level;
-      navigator.mozL10n.setAttributes(
-        icon,
-        battery.charging ? 'statusbarBatteryCharging' : 'statusbarBattery',
-        { level: level }
-      );
+
+      if (previousLevel !== level || previousCharging !== battery.charging) {
+        icon.dataset.level = level;
+        navigator.mozL10n.setAttributes(
+          icon,
+          battery.charging ? 'statusbarBatteryCharging' : 'statusbarBattery',
+          {level: level}
+        );
+        this.previousCharging = battery.charging;
+
+        this.cloneStatusbar();
+      }
     },
 
     networkActivity: function sb_updateNetworkActivity() {
