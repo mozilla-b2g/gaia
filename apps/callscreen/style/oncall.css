@@ -122,6 +122,10 @@
     visibility: hidden;
   }
 
+  body.no-handled-calls * {
+    pointer-events: none;
+  }
+
   body.showKeypad #views {
     transition: transform 0.3s ease, visibility 0.3s;
     transform: translateY(-100%);

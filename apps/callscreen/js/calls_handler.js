@@ -331,15 +331,22 @@ var CallsHandler = (function callsHandler() {
    */
   function exitCallScreenIfNoCalls(timeout) {
     if (handledCalls.length === 0) {
+      // Prevent the user from doing anything while we're waiting for the exit
+      // timer to fire. This prevents them from taking any actions that would
+      // require there to be a handled call.
+      document.body.classList.toggle('no-handled-calls', true);
+
       if (exitCallScreenTimeout !== null) {
         clearTimeout(exitCallScreenTimeout);
         exitCallScreenTimeout = null;
       }
       exitCallScreenTimeout = setTimeout(function(evt) {
+        exitCallScreenTimeout = null;
         if (handledCalls.length === 0) {
           window.close();
+        } else {
+          document.body.classList.toggle('no-handled-calls', false);
         }
-        exitCallScreenTimeout = null;
       }, timeout);
     }
   }
