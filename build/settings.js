@@ -57,6 +57,29 @@ function setTone(settings, config, toneType, name, l10nID) {
     'builtin:' + toneType + '/' + name.replace(/\.\w+$/, '');
 }
 
+function setCustomizedTone(settings, config, toneType, name) {
+  let settingsKey, dir;
+  switch (toneType) {
+  case 'ringtone':
+    settingsKey = 'dialer.ringtone';
+    break;
+  default:
+    throw new Error('unknown tone type: ' + toneType);
+  }
+
+  let tone = utils.resolve(
+    utils.joinPath(config.GAIA_DISTRIBUTION_DIR, 'ringtones', name),
+    config.GAIA_DIR);
+  if (!tone.exists()) {
+    throw new Error('customized tone not exist: ' + tone.path);
+  }
+
+  settings[settingsKey] = utils.getFileAsDataURI(tone);
+  settings[settingsKey + '.name'] = name.replace(/\.\w+$/, '');
+  settings[settingsKey + '.id'] = settings[settingsKey + '.default.id'] =
+    'builtin:' + toneType + '/' + name.replace(/\.\w+$/, '');
+}
+
 function setMediatone(settings, config) {
   // Grab notifier_firefox.opus and convert it into a base64 string
   let mediatone_name = 'shared/resources/media/notifications/' +
@@ -78,10 +101,28 @@ function setAlarmtone(settings, config) {
 }
 
 function setRingtone(settings, config) {
-  // Grab ringer_firefox.opus and convert it into a base64 string
-  let ringtone_name = 'ringer_firefox.opus';
-  let ringtone_l10nID = 'ringer_firefox2';
-  setTone(settings, config, 'ringtone', ringtone_name, ringtone_l10nID);
+  if (config.GAIA_DISTRIBUTION_DIR &&
+      utils.getFile(config.GAIA_DISTRIBUTION_DIR, 'ringtones').exists()) {
+    let ringtoneConfigFile = utils.resolve(
+      utils.joinPath('ringtones', 'list.json'),
+      config.GAIA_DISTRIBUTION_DIR);
+    if (!ringtoneConfigFile.exists()) {
+      throw new Error('customized ringtone list not exist');
+    }
+
+    let ringtoneConfig = utils.getJSON(ringtoneConfigFile);
+    for(var name in ringtoneConfig) {
+      // Take first ringtone as the default ringtone in customization list
+      let ringtone_name = name;
+      setCustomizedTone(settings, config, 'ringtone', ringtone_name);
+      break;
+    }
+  } else {
+    // Grab ringer_firefox.opus and convert it into a base64 string
+    let ringtone_name = 'ringer_firefox.opus';
+    let ringtone_l10nID = 'ringer_firefox2';
+    setTone(settings, config, 'ringtone', ringtone_name, ringtone_l10nID);
+  }
 }
 
 function setNotification(settings, config) {
