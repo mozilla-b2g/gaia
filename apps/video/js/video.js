@@ -27,7 +27,8 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'picker-close', 'picker-title',
            'picker-header', 'picker-done', 'options', 'options-view',
-           'options-cancel-button', 'seek-backward', 'seek-forward'];
+           'options-cancel-button', 'seek-backward', 'seek-forward',
+           'in-use-overlay', 'in-use-overlay-title', 'in-use-overlay-text'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -98,6 +99,12 @@ var pendingUpdateTitleText = false;
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
 var videoControlsAutoHidingMsOverride;
+
+// We have a single instance of the loading checker because it is used
+// across functions
+var loadingChecker =
+  new VideoLoadingChecker(dom.player, dom.inUseOverlay, dom.inUseOverlayTitle,
+                          dom.inUseOverlayText);
 
 // Pause on visibility change
 document.addEventListener('visibilitychange', function visibilityChange() {
@@ -940,18 +947,21 @@ function setVideoUrl(player, video, callback) {
     callback();
   }
 
+  function loadVideo(url) {
+    loadingChecker.ensureVideoLoads(handleLoadedMetadata);
+    player.src = url;
+  }
+
   if ('name' in video) {
     videodb.getFile(video.name, function(file) {
       var url = URL.createObjectURL(file);
-      player.onloadedmetadata = handleLoadedMetadata;
-      player.src = url;
+      loadVideo(url);
 
       if (pendingPick)
         currentVideoBlob = file;
     });
   } else if ('url' in video) {
-    player.onloadedmetadata = handleLoadedMetadata;
-    player.src = video.url;
+    loadVideo(video.url);
   }
 }
 
@@ -1170,7 +1180,6 @@ function play() {
   // by setting the media.mediasource.enabled pref to true.
   VideoStats.start(dom.player);
 
-  // Start playing
   dom.player.play();
   playing = true;
 }
