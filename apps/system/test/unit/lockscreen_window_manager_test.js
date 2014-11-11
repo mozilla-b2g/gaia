@@ -335,6 +335,27 @@ suite('system/LockScreenWindowManager', function() {
       assert.isTrue(stubSetVisible.calledWith(true));
     });
 
+    test('When system resizing event comes, try to resize the window',
+    function() {
+      var handleEvent =
+        window.LockScreenWindowManager.prototype.handleEvent;
+      var mockSubject = {
+        states: {
+          instance: {
+            isActive: function() { return true; },
+            resize: this.sinon.stub()
+          }
+        }
+      };
+      handleEvent.call(mockSubject,
+        {
+          type: 'system-resize'
+        });
+      assert.isTrue(
+        mockSubject.states.instance.resize.called,
+        'it doesn\'t resize the window while system-resize comes');
+    });
+
     test('LockScreen request to unlock without activity detail', function() {
       var evt = { type: 'lockscreen-request-unlock' },
           stubCloseApp = this.sinon.stub(subject,

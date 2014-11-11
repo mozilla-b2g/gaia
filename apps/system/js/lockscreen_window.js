@@ -241,7 +241,8 @@
       };
       if (OrientationManager.isOnRealDevice()) {
         this.orientationLockID =
-          window.setInterval(tryLockOrientation);
+          window.setInterval(tryLockOrientation, 4);
+        // 4ms is the minimum interval according to W3C#setTimeout standard.
       }
     };
 
