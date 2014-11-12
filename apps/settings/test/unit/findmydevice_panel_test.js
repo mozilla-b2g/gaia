@@ -1,14 +1,11 @@
 /* global MocksHelper */
-/* global MockLoadJSON */
 /* global HtmlImports */
-/* global FindMyDevice */
 /* global MockSettingsListener */
 /* global MockSettingsHelper */
+/* global MockLazyLoader */
 /* global IAC_API_WAKEUP_REASON_TRY_DISABLE */
 
 'use strict';
-
-require('mock_load_json.js');
 
 // require helpers for managing html
 require('/shared/test/unit/load_body_html_helper.js');
@@ -17,15 +14,16 @@ require('/shared/js/html_imports.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_helper.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/js/findmydevice_iac_api.js');
 
 var mocksForFindMyDevice = new MocksHelper([
-  'SettingsListener', 'SettingsHelper'
+  'SettingsListener', 'SettingsHelper', 'LazyLoader'
 ]).init();
 
 suite('Find My Device panel > ', function() {
   var MockMozId, realMozId;
-  var realL10n, realLoadJSON, subject;
+  var realL10n, subject;
   var signinSection, settingsSection, trackingSection, login, loginButton,
       checkbox, unverifiedError;
 
@@ -68,8 +66,9 @@ suite('Find My Device panel > ', function() {
 
     navigator.mozId = MockMozId;
 
-    realLoadJSON = window.loadJSON;
-    window.loadJSON = MockLoadJSON.loadJSON;
+    this.sinon.stub(MockLazyLoader, 'getJSON', function() {
+      return Promise.resolve({});
+    });
 
     // first, load settings app
     loadBodyHTML('/index.html');
@@ -98,10 +97,39 @@ suite('Find My Device panel > ', function() {
       // manually enable the loginButton
       loginButton.removeAttribute('disabled');
 
+      // Define a map so that we can replace the module with a mock.
+      var map = {
+        '*': {
+          'modules/settings_utils': 'MockSettingsUtils',
+          'shared/settings_listener': 'MockSettingsListener'
+        }
+      };
+
+      // Define the mock for replacing "modules/settings_utils".
+      define('MockSettingsUtils', function() {
+        return {
+          runHeaderFontFit: function() {}
+        };
+      });
+
+      // Define the mock for replacing "shared/settings_listener".
+      define('MockSettingsListener', function() {
+        return MockSettingsListener;
+      });
+
+      // Create a new require context for defining the mock and requiring.
+      var requireCtx = testRequire([], map, function() {});
+
       require('/js/findmydevice.js', function() {
-        subject = FindMyDevice;
-        subject.init();
-        done();
+        // Use the context to require the module for testing
+        requireCtx(['findmydevice'], function(FindMyDevice) {
+          subject = FindMyDevice;
+          subject.init();
+          // Ensure promise is resolved and FindMyDevice.init()
+          // is finished before tests start
+          MockLazyLoader.getJSON.getCall(0).returnValue.then(
+            function() { done(); });
+        });
       });
     });
   });
@@ -139,10 +167,10 @@ suite('Find My Device panel > ', function() {
 
   test('ignore clicks when button is disabled', function() {
     loginButton.disabled = true;
-    var onLoginClickSpy = sinon.spy(FindMyDevice, '_onLoginClick');
+    var onLoginClickSpy = sinon.spy(subject, '_onLoginClick');
     loginButton.click();
     sinon.assert.notCalled(onLoginClickSpy);
-    FindMyDevice._onLoginClick.restore();
+    subject._onLoginClick.restore();
   });
 
   test('enable button after watch fires onready', function() {
@@ -205,10 +233,10 @@ suite('Find My Device panel > ', function() {
   test('prevent accidental auto-enable on FxA sign-in', function() {
     MockMozId.onlogout();
     loginButton.click();
-    assert.equal(true, window.FindMyDevice._interactiveLogin,
+    assert.equal(true, subject._interactiveLogin,
       'ensure _interactiveLogin is true after login button is clicked');
     MockMozId.oncancel();
-    assert.equal(false, window.FindMyDevice._interactiveLogin,
+    assert.equal(false, subject._interactiveLogin,
       'ensure _interactiveLogin is false after FxA cancel');
     MockMozId.onlogin();
     assert.equal(0, MockSettingsListener.getSettingsLock().locks.length,
@@ -272,6 +300,5 @@ suite('Find My Device panel > ', function() {
   teardown(function() {
     navigator.mozL10n = realL10n;
     navigator.mozId = realMozId;
-    window.loadJSON = realLoadJSON;
   });
 });
