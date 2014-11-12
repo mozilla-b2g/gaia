@@ -59,7 +59,7 @@
   color: #ebebeb;
 }
 
-/** Menu Close
+/** Menu Action
  ---------------------------------------------------------*/
 
 /**
@@ -67,15 +67,16 @@
  *    conifrm.css selectors.
  */
 
-.overlay-menu-close {
+.overlay-menu-action {
   display: none !important; /* 1 */
 }
 
 /**
- * @closable=true
+ * @action=true
  */
 
-.overlay[data-closable=true] .overlay-menu-close {
+.overlay[data-action=close] .overlay-menu-action,
+.overlay[data-action=reboot] .overlay-menu-action {
   display: block !important; /* 1 */
 }
 

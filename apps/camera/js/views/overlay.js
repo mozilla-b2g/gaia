@@ -18,7 +18,7 @@ module.exports = View.extend({
 
   initialize: function(options) {
     this.data('type', options.type);
-    this.data('closable', options.closable);
+    this.data('action', options.data.action);
     this.render(options.data);
   },
 
@@ -29,7 +29,7 @@ module.exports = View.extend({
 
     // Pick out elements
     this.els.buttons = {
-      close: this.find('.js-close-btn')
+      action: this.find('.js-action-btn')
     };
 
     // Clean up
@@ -40,7 +40,7 @@ module.exports = View.extend({
   },
 
   bindEvents: function() {
-    bind(this.els.buttons.close, 'click', this.onButtonClick);
+    bind(this.els.buttons.action, 'click', this.onButtonClick);
     return this;
   },
 
@@ -51,9 +51,9 @@ module.exports = View.extend({
         '<h1 class="overlay-title">' + data.title + '</h1>' +
         '<p id="overlay-text">' + data.body + '</p>' +
       '</section>' +
-      '<menu class="overlay-menu-close">' +
-        '<button class="full js-close-btn" type="button" name="close-btn">' +
-        data.closeButtonText + '</button>' +
+      '<menu class="overlay-menu-action">' +
+        '<button class="full js-action-btn" type="button" name="' + data.action + '">' +
+        data.actionButtonText + '</button>' +
       '</menu>' +
     '</form>';
   },
