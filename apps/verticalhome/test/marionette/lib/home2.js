@@ -70,7 +70,8 @@ Home2.Selectors = {
   collections: '#icons .icon.collection',
   contextmenu: '#contextmenu-dialog',
   removeCollectionConfirm: 'gaia-confirm',
-  themeColor: 'head meta[name="theme-color"]'
+  themeColor: 'head meta[name="theme-color"]',
+  placeholders: '#icons .placeholder'
 };
 
 /**
@@ -154,6 +155,16 @@ Home2.prototype = {
 
     actions.longPress(firstIcon, 1).perform();
     this.client.helper.waitForElement(Home2.Selectors.editHeaderText);
+  },
+
+  /**
+   * Exits the edit mode by long-pressing the done button and waiting for it
+   * to disappear.
+   */
+  exitEditMode: function() {
+    var done = this.client.findElement(Home2.Selectors.editHeaderDone);
+    done.click();
+    this.client.helper.waitForElementToDisappear(done);
   },
 
   /**
@@ -353,6 +364,32 @@ Home2.prototype = {
     // Wait for the icon to animate into place
     var actions = new Actions(this.client);
     actions.wait(1).perform();
+  },
+
+  /**
+   * Opens the context menu by long-pressing on the first available placeholder.
+   * If there is no placeholder, the first icon will be dragged to the top of
+   * the grid to create a new group, and thus new placeholders.
+   */
+  openContextMenu: function() {
+    function placeholderExists() {
+      return !!document.querySelector('#icons .placeholder');
+    }
+
+    var selectors = Home2.Selectors;
+    var actions = new Actions(this.client);
+
+    if (!this.client.executeScript(placeholderExists)) {
+      this.enterEditMode();
+      var done = this.client.findElement(selectors.editHeaderDone);
+      var firstIcon = this.client.findElement(selectors.firstIcon);
+      actions.press(firstIcon).wait(1).move(done).release().perform();
+      this.exitEditMode();
+    }
+
+    var placeholder = this.client.findElement(selectors.placeholders);
+    placeholder.scriptWith(function(e) { e.scrollIntoView(false); });
+    actions.longPress(placeholder, 1).perform();
   }
 };
 
