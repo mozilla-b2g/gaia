@@ -29,7 +29,9 @@ marionette('notification tests', function() {
               'Utility notification notification contains all fields');
   });
 
-  test('swipe up should hide the toast', function() {
+  // Skipping due to intermittent orange
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1091484
+  test.skip('swipe up should hide the toast', function() {
     var toaster = dispatchNotification(client);
     actions.flick(toaster, 50, 30, 50, -30, 300).perform(function() {
       assert.equal(toaster.displayed(), false);
