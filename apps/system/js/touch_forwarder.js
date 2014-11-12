@@ -9,17 +9,8 @@
 *
 */
 
-/* global SettingsListener */
-
 (function(exports) {
   'use strict';
-
-  var forceApzSetting = true;
-  SettingsListener.observe('apz.force-enable', true,
-    function apzSettingsChanged(value) {
-      forceApzSetting = value;
-    }
-  );
 
   var TouchForwarder = function TouchForwarder() {
     this.destination = null;
@@ -43,7 +34,7 @@
       case 'touchmove':
         // We only forward one touchmove for APZ enabled iframes
         // the potention subsequent ones are ignored.
-        if (!this._firstMoveForwarded || notUsingAsyncPanZoom(iframe)) {
+        if (!this._firstMoveForwarded) {
           sendTouchEvent(iframe, e);
           this._firstMoveForwarded = true;
         }
@@ -57,11 +48,6 @@
 
         touch = e.changedTouches[0];
         this._updateShouldTap(touch);
-
-        // We only need to forge mouse events for iframes without APZ.
-        if (this._shouldTap && notUsingAsyncPanZoom(iframe)) {
-          sendTapMouseEvents(iframe, touch.clientX, touch.clientY);
-        }
 
         this._resetState();
         break;
@@ -83,15 +69,6 @@
       this._shouldTap = false;
     }
   };
-
-  function notUsingAsyncPanZoom(iframe) {
-    if (!iframe) {
-      return;
-    }
-
-    var apzFlag = iframe.getAttribute('mozasyncpanzoom');
-    return !forceApzSetting && !apzFlag;
-  }
 
   function sendTouchEvent(iframe, e) {
     if (!iframe) {
@@ -127,16 +104,6 @@
     }
 
     return [type, identifiers, xs, ys, rxs, rys, rs, fs, xs.length, modifiers];
-  }
-
-  function sendTapMouseEvents(iframe, x, y) {
-    if (!iframe) {
-      return;
-    }
-
-    iframe.sendMouseEvent('mousemove', x, y, 0, 0, 0);
-    iframe.sendMouseEvent('mousedown', x, y, 0, 1, 0);
-    iframe.sendMouseEvent('mouseup', x, y, 0, 1, 0);
   }
 
   exports.TouchForwarder = TouchForwarder;
