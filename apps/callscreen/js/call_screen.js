@@ -231,66 +231,17 @@ var CallScreen = {
     });
   },
 
-  _wallpaperReady: false,
-  _toggleWaiting: false,
-  _toggleCallback: null,
-
   _wallpaperImageHandler: function cs_wallpaperImageHandler(image) {
     this.mainContainer.style.backgroundImage = 'url(' +
       (typeof image === 'string' ? image : URL.createObjectURL(image)) + ')';
-    setTimeout(this._onWallpaperReady.bind(this));
-  },
-
-  _onWallpaperReady: function cs_onWallpaperReady() {
-    this._wallpaperReady = true;
-    if (this._toggleWaiting) {
-      this.toggle(this._toggleCallback);
-      this._toggleCallback = null;
-      this._toggleWaiting = false;
-    }
-  },
-
-  _transitioning: false,
-  _transitionDone: false,
-  _contactBackgroundWaiting: false,
-
-  toggle: function cs_toggle(callback) {
-    // Waiting for the wallpaper to be set before toggling the screen in
-    if (!this._wallpaperReady) {
-      this._toggleWaiting = true;
-      this._toggleCallback = callback;
-      return;
-    }
-
-    if (callback && typeof(callback) == 'function') {
-      setTimeout(callback);
-    }
-    this._onTransitionDone();
-  },
-
-  _onTransitionDone: function cs_onTransitionDone() {
-    this._transitionDone = true;
-    if (this._contactBackgroundWaiting) {
-      this.setCallerContactImage();
-      this._contactBackgroundWaiting = false;
-    }
   },
 
   setCallerContactImage: function cs_setCallerContactImage() {
-    // Waiting for the call screen transition to end before updating
-    // the contact image
-    if (!this._transitionDone) {
-      this._contactBackgroundWaiting = true;
-      return;
-    }
-
     var activeCallForContactImage = CallsHandler.activeCallForContactImage;
     var blob = activeCallForContactImage && activeCallForContactImage.photo;
 
-    this.contactBackground.classList.remove('ready');
     var background = blob ? 'url(' + URL.createObjectURL(blob) + ')' : '';
     this.contactBackground.style.backgroundImage = background;
-    this.contactBackground.classList.add('ready');
   },
 
   insertCall: function cs_insertCall(node) {

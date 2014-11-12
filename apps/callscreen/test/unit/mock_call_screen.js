@@ -12,11 +12,6 @@ var MockCallScreen = {
 
   init: function() {},
   insertCall: function() {},
-  toggle: function(cb) {
-    if (typeof(cb) == 'function') {
-      cb();
-    }
-  },
   enablePlaceNewCallButton: function() {
     this.menablePlaceNewCallButtonCalled = true;
   },

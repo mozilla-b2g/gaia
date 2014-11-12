@@ -137,7 +137,7 @@ var CallsHandler = (function callsHandler() {
     if (isFirstCallOnCdmaNetwork()) {
       CallScreen.hideOnHoldAndMergeContainer();
     }
-    CallScreen.toggle();
+    CallScreen.setCallerContactImage();
     exitCallScreenIfNoCalls(CallScreen.callEndPromptTime);
   }
 

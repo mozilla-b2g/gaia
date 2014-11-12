@@ -137,10 +137,10 @@ suite('calls handler', function() {
 
       test('should render the CallScreen in incoming mode', function() {
         this.sinon.spy(MockCallScreen, 'render');
-        this.sinon.spy(MockCallScreen, 'toggle');
+        this.sinon.spy(MockCallScreen, 'setCallerContactImage');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.calledWith(MockCallScreen.render, 'incoming');
-        sinon.assert.calledOnce(MockCallScreen.toggle);
+        sinon.assert.calledOnce(MockCallScreen.setCallerContactImage);
       });
 
       test('should toggle the showPlaceNewCallButton', function() {
