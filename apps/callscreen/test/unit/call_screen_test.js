@@ -1,4 +1,4 @@
-/* globals CallScreen, FontSizeManager, MockCall, MockCallsHandler, Utils,
+/* globals CallScreen, FontSizeManager, MockCallsHandler, Utils,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
            MockMozL10n, MocksHelper, MockSettingsListener, performance */
 
@@ -198,7 +198,7 @@ suite('call screen', function() {
       this.sinon.stub(CallScreen, 'showClock');
       this.sinon.stub(CallScreen, 'initLockScreenSlide');
       this.sinon.stub(CallScreen, 'render');
-      this.sinon.spy(MockCallsHandler, 'holdOrResumeSingleCall');
+      this.sinon.spy(MockCallsHandler, 'holdOrResumeCallByUser');
       this.sinon.spy(MockCallsHandler, 'mergeCalls');
       mockElements.forEach(function(name) {
         CallScreen[name] = document.createElement('button');
@@ -210,7 +210,7 @@ suite('call screen', function() {
       sinon.assert.notCalled(CallScreen.showClock);
       sinon.assert.notCalled(CallScreen.initLockScreenSlide);
       sinon.assert.notCalled(CallScreen.render);
-      sinon.assert.notCalled(MockCallsHandler.holdOrResumeSingleCall);
+      sinon.assert.notCalled(MockCallsHandler.holdOrResumeCallByUser);
       sinon.assert.notCalled(MockCallsHandler.mergeCalls);
     });
 
@@ -256,7 +256,7 @@ suite('call screen', function() {
 
       test('hold button successfully added and notified', function() {
         CallScreen.holdButton.dispatchEvent(event);
-        sinon.assert.calledOnce(MockCallsHandler.holdOrResumeSingleCall);
+        sinon.assert.calledOnce(MockCallsHandler.holdOrResumeCallByUser);
       });
 
       test('merge button successfully added and notified', function() {
@@ -670,38 +670,17 @@ suite('call screen', function() {
     });
   });
 
-  suite('toggleOnHold', function() {
-    test('should put active-state class when there is an active call',
+  suite('setShowIsHeld', function() {
+    test('should disable the active state of the on hold button',
     function() {
-      var mockCall = new MockCall('12334', 'connected');
-      navigator.mozTelephony.active = mockCall;
-
-      CallScreen.toggleOnHold();
-      assert.isTrue(CallScreen.holdButton.classList.contains('active-state'));
-    });
-
-    test('should remove active-state class when there isn\'t an active call',
-    function() {
-      navigator.mozTelephony.active = null;
-
-      CallScreen.toggleOnHold();
+      CallScreen.setShowIsHeld(false);
       assert.isFalse(CallScreen.holdButton.classList.contains('active-state'));
     });
 
-    test('should put active-state class with conferenceCall on holding',
+    test('should enable the active state of the on hold button',
     function() {
-      navigator.mozTelephony.conferenceGroup.state = 'holding';
-
-      CallScreen.toggleOnHold();
+      CallScreen.setShowIsHeld(true);
       assert.isTrue(CallScreen.holdButton.classList.contains('active-state'));
-    });
-
-    test('should remove active-state class with conferenceCall on connected',
-    function() {
-      navigator.mozTelephony.conferenceGroup.state = 'connected';
-
-      CallScreen.toggleOnHold();
-      assert.isFalse(CallScreen.holdButton.classList.contains('active-state'));
     });
   });
 
