@@ -41,7 +41,7 @@
   background-color: #333333;
 }
 
-.media-frame > img {
+.media-frame > .image-view {
   top: 0;
   left: 0;
   position: absolute;
