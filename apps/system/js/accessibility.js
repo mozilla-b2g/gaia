@@ -147,7 +147,8 @@
                   'layers.effect.grayscale': aValue ?
                     this.settings['accessibility.colors.grayscale'] : false,
                   'layers.effect.contrast': aValue ?
-                    this.settings['accessibility.colors.contrast'] : '0.0'
+                    this.settings['accessibility.colors.contrast'] *
+                    this.CONTRAST_CAP : '0.0'
                 });
                 break;
 
