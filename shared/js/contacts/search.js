@@ -153,8 +153,9 @@ contacts.Search = (function() {
     // This regexp match against everything except HTML tags
     // 'currentTextToSearch' should be relatively safe from
     // regex symbols getting passed through since it was previously normalized
-    var hRegEx = new RegExp('(' + currentTextToSearch + ')(?=[^>]*<)', 'gi');
-    node.innerHTML = node.innerHTML.replace(
+    var hRegEx = new RegExp('(' + currentTextToSearch + ')', 'gi');
+    var textNode = node.querySelector('.contact-text');
+    textNode.firstChild.innerHTML = textNode.textContent.replace(
       hRegEx,
       '<span class="' + highlightClass + '">$1</span>'
     );
@@ -372,6 +373,9 @@ contacts.Search = (function() {
     for (var c = from; c < end && c < contacts.length; c++) {
       var contact = contacts[c].node || contacts[c];
       var contactText = contacts[c].text || getSearchText(contacts[c]);
+      contactText = contactText.replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
       if (!pattern.test(contactText)) {
         if (contact.dataset.uuid in currentSet) {
           searchList.removeChild(currentSet[contact.dataset.uuid]);
