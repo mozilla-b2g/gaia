@@ -1,0 +1,27 @@
+* {
+  -moz-user-select: none;
+}
+
+html {
+  font-size: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 2rem;
+  -moz-box-sizing: border-box;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+a, p {
+  color: #4d4d4d;
+  font-size: 1.4rem;
+}

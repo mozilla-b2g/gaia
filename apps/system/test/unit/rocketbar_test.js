@@ -446,7 +446,7 @@ suite('system/Rocketbar', function() {
     var activateStub = this.sinon.stub(subject, 'activate');
     var event = {type: 'global-search-request'};
     subject.handleEvent(event);
-    assert.ok(setInputStub.calledOnce);
+    assert.ok(setInputStub.calledWith('app.url'));
     assert.ok(activateStub.calledOnce);
   });
 
@@ -518,6 +518,24 @@ suite('system/Rocketbar', function() {
       subject.focus);
   });
 
+  test('handleEvent() - global-search-request: private browsing', function() {
+    var activeApp = {
+      config: {url: 'app://system.gaiamobile.org/private_browser.html'},
+      isBrowser: function() {},
+      isPrivateBrowser: function() {
+        return true;
+      }
+    };
+    MockService.currentApp = activeApp;
+    this.sinon.stub(activeApp, 'isBrowser').returns(true);
+    var setInputStub = this.sinon.stub(subject, 'setInput');
+    var event = {type: 'global-search-request'};
+    subject.handleEvent(event);
+
+    // Should clear the input
+    assert.ok(setInputStub.calledWith(''));
+  });
+
   test('handleEvent() - system-resize', function() {
     subject.activate();
     subject.searchWindow.frontWindow = {
@@ -558,6 +576,11 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleSubmit()', function(done) {
+    MockService.currentApp = {
+      isPrivateBrowser: function() {
+        return false;
+      }
+    };
     var event = {
       'preventDefault': function() {
         done();

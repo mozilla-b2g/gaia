@@ -15,7 +15,6 @@
     this.enabled = false;
     this.focused = false;
     this.active = false;
-    this.currentApp = null;
 
     // Properties
     this._port = null; // Inter-app communications port
@@ -310,8 +309,13 @@
           if (app && !app.isBrowser()) {
             afterActivate = this.focus.bind(this);
           } else {
-            // Set the input to be the URL in the case of a browser.
-            this.setInput(app.config.url);
+            // Clear the input if the URL starts with a system page.
+            if (app.config.url.startsWith('app://system.gaiamobile.org')) {
+              this.setInput('');
+            } else {
+              // Set the input to be the URL in the case of a normal browser.
+              this.setInput(app.config.url);
+            }
 
             afterActivate = () => {
               this.hideResults();
@@ -541,6 +545,11 @@
         action: 'submit',
         input: this.input.value
       });
+
+      // Do not persist search submissions from private windows.
+      if (Service.currentApp.isPrivateBrowser()) {
+        this.setInput('');
+      }
     },
 
     /**

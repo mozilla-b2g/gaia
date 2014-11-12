@@ -79,6 +79,7 @@
     reload: function() {},
     stop: function() {},
     isBrowser: function() {},
+    isPrivateBrowser: function() {},
     isCertified: function() {},
     navigate: function() {},
     isFullScreen: function() {},

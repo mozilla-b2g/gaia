@@ -1,6 +1,8 @@
 /* global MozActivity, IconsHelper, LazyLoader */
 /* global applications */
+/* global AppWindow */
 /* global BookmarksDatabase */
+/* global BrowserConfigHelper */
 
 (function(window) {
   'use strict';
@@ -197,13 +199,14 @@
     }
   };
 
-  BrowserContextMenu.prototype.openUrl = function(url) {
+  BrowserContextMenu.prototype.openUrl = function(url, isPrivate) {
     /*jshint -W031 */
     new MozActivity({
       name: 'view',
       data: {
         type: 'url',
-        url: url
+        url: url,
+        isPrivate: isPrivate
       }
     });
   };
@@ -243,7 +246,20 @@
     }));
   };
 
-  BrowserContextMenu.prototype.newWindow = function(manifest) {
+  BrowserContextMenu.prototype.newWindow = function(manifest, isPrivate) {
+    // For private windows we create an empty private app window.
+    if (isPrivate) {
+      var privateBrowserUrl = location.origin + '/private_browser.html';
+      var config = new BrowserConfigHelper({url: privateBrowserUrl});
+      config.useAsyncPanZoom = true;
+      config.oop = true;
+      config.isPrivate = true;
+      var newApp = new AppWindow(config);
+      newApp.requestOpen();
+      return;
+    }
+
+    // Else we open up the browser.
     var newTabApp = applications.getByManifestURL(manifest);
     newTabApp.launch();
   };
@@ -267,6 +283,10 @@
           id: 'open-in-new-window',
           label: _('open-in-new-window'),
           callback: this.openUrl.bind(this, uri)
+        }, {
+          id: 'open-in-new-private-window',
+          label: _('open-in-new-private-window'),
+          callback: this.openUrl.bind(this, uri, true)
         }, {
           id: 'bookmark-link',
           label: _('add-link-to-home-screen'),
@@ -319,6 +339,12 @@
         id: 'new-window',
         label: _('new-window'),
         callback: this.newWindow.bind(this, manifest)
+      });
+
+      menuData.push({
+        id: 'new-private-window',
+        label: _('new-private-window'),
+        callback: this.newWindow.bind(this, manifest, true)
       });
 
       menuData.push({

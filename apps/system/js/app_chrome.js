@@ -86,7 +86,13 @@
 
     if (chrome.scrollable) {
       this.app.element.classList.add('collapsible');
-      this.app.element.classList.add('light');
+
+      if (this.app.isPrivateBrowser()) {
+        this.element.classList.add('private');
+      } else {
+        this.app.element.classList.add('light');
+      }
+
       this.scrollable.scrollgrab = true;
     }
 
@@ -136,19 +142,19 @@
   AppChrome.prototype.overflowMenuView = function an_overflowMenuView() {
     var template = `<gaia-overflow-menu>
 
-             <button id="new-window" data-l10n-id="new-window">
-               New Window
-             </button>
+     <button id="new-window" data-l10n-id="new-window">
+     </button>
 
-             <button id="add-to-home" data-l10n-id="add-to-home-screen" hidden>
-               Add to Home Screen
-             </button>
+     <button id="new-private-window" data-l10n-id="new-private-window">
+     </button>
 
-             <button id="share" data-l10n-id="share">
-                 Share
-             </button>
+     <button id="add-to-home" data-l10n-id="add-to-home-screen" hidden>
+     </button>
 
-           </gaia-overflow-menu>`;
+     <button id="share" data-l10n-id="share">
+     </button>
+
+    </gaia-overflow-menu>`;
     return template;
   };
 
@@ -281,6 +287,12 @@
       case this.newWindowButton:
         evt.stopImmediatePropagation();
         this.onNewWindow();
+        break;
+
+      case this.newPrivateWinButton:
+        // Currently not in use, awaiting shared menu web components work.
+        evt.stopImmediatePropagation();
+        this.onNewPrivateWindow();
         break;
 
       case this.addToHomeButton:
@@ -743,12 +755,15 @@
           querySelector('gaia-overflow-menu');
         this.newWindowButton = this._overflowMenu.
           querySelector('#new-window');
+        this.newPrivateWinButton = this._overflowMenu.
+          querySelector('#new-private-window');
         this.addToHomeButton = this._overflowMenu.
           querySelector('#add-to-home');
         this.shareButton = this._overflowMenu.
           querySelector('#share');
 
         this.newWindowButton.addEventListener('click', this);
+        this.newPrivateWinButton.addEventListener('click', this);
         this.addToHomeButton.addEventListener('click', this);
         this.shareButton.addEventListener('click', this);
 

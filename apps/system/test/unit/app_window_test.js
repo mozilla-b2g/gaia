@@ -96,6 +96,13 @@ suite('system/AppWindow', function() {
     origin: 'app://www.fake4'
   };
 
+  var fakePrivateConfig = {
+    url: 'http://www.private/index.html',
+    manifest: {},
+    origin: 'http://www.private',
+    isPrivate: true
+  };
+
   var fakeAppConfigBackground = {
     url: 'app://www.fakebackground/index.html',
     manifest: {},
@@ -2047,6 +2054,14 @@ suite('system/AppWindow', function() {
     assert.isFalse(app1.isBrowser());
     assert.isTrue(app2.isBrowser());
     assert.isTrue(app2.element.classList.contains('browser'));
+  });
+
+  test('isPrivateBrowser', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakePrivateConfig);
+    assert.isFalse(app1.isPrivateBrowser());
+    assert.isTrue(app2.isPrivateBrowser());
+    assert.isTrue(app2.element.classList.contains('private'));
   });
 
   test('isCertified', function() {
