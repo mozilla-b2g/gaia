@@ -415,79 +415,35 @@ suite('call screen', function() {
     });
   });
 
-  suite('toggling', function() {
-    suiteSetup(function() {
-      CallScreen._wallpaperReady = true;
-    });
-
-    teardown(function() {
-      CallScreen._transitioning = false;
-    });
-
-    suite('once the wallpaper is loaded', function() {
-      suite('when opening in incoming-locked mode', function() {
-        var spyCallback;
-
-        setup(function() {
-          CallScreen.screen.dataset.layout = 'incoming-locked';
-          spyCallback = this.sinon.spy();
-
-          CallScreen.toggle(spyCallback);
-        });
-
-        test('should call the callback', function(done) {
-          setTimeout(function() {
-            assert.isTrue(spyCallback.called);
-            done();
-          });
-        });
-      });
-    });
-  });
-
   suite('contact image setter', function() {
     var fakeBlob = new Blob([], {type: 'image/png'});
     var fakeURL = URL.createObjectURL(fakeBlob);
-
-    suiteSetup(function() {
-      CallScreen._transitionDone = false;
-    });
 
     setup(function() {
       MockCallsHandler.mActiveCallForContactImage = new MockHandledCall();
       MockCallsHandler.mActiveCallForContactImage.photo = fakeBlob;
     });
 
-    test('it should wait for the transition to be over', function(done) {
-      MockCallsHandler.mActiveCallForContactImage = new MockHandledCall();
-      MockCallsHandler.mActiveCallForContactImage.photo =
-        new Blob([], {type: 'image/png'});
-
+    test('should change background of the contact photo', function() {
+      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
       CallScreen.setCallerContactImage();
-      assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
-
-      CallScreen.toggle();
-
-      setTimeout(function() {
-        assert.ok(CallScreen.contactBackground.style.backgroundImage);
-        CallScreen.setCallerContactImage();
-        done();
-      });
+      assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                   'url("' + fakeURL + '")');
     });
 
-    suite('once the transition is over', function() {
-      test('should change background of the contact photo', function() {
-        this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
-        CallScreen.setCallerContactImage();
-        assert.equal(CallScreen.contactBackground.style.backgroundImage,
-                       'url("' + fakeURL + '")');
-      });
+    test('incoming locked-mode should change background of the contact photo',
+    function() {
+      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
+      CallScreen.screen.dataset.layout = 'incoming-locked';
+      CallScreen.setCallerContactImage();
+      assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                   'url("' + fakeURL + '")');
+    });
 
-      test('should clean up background property if null', function() {
-        MockCallsHandler.mActiveCallForContactImage = null;
-        CallScreen.setCallerContactImage();
-        assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
-      });
+    test('should clean up background property if null', function() {
+      MockCallsHandler.mActiveCallForContactImage = null;
+      CallScreen.setCallerContactImage();
+      assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
     });
   });
 
@@ -868,6 +824,7 @@ suite('call screen', function() {
     test('should show the banner', function() {
       assert.isTrue(bannerClass.contains('visible'));
     });
+
     test('should show the text', function() {
       assert.equal(statusMessage.querySelector('p').textContent,
                    'message');
@@ -894,6 +851,7 @@ suite('call screen', function() {
           this.sinon.clock.tick(2000);
           done();
         });
+
         test('should hide the banner', function() {
           assert.isFalse(bannerClass.contains('visible'));
         });
