@@ -281,10 +281,12 @@
       url: placeObj.url
     };
 
+    if (false) {
     var icon = getIcon(placeObj);
     if (icon) {
       bookmarkData.icon = URL.createObjectURL(icon);
       bookmarkData.iconUrl = iconUrls[placeObj.url];
+    }
     }
 
     return {
