@@ -1,4 +1,4 @@
-/*global OptionMenu, MockL10n */
+/*global OptionMenu, MockL10n, TransitionEvent */
 
 'use strict';
 
@@ -80,6 +80,17 @@ suite('OptionMenu', function() {
         sinon.spy(document.body, 'appendChild');
         menu.show();
         sinon.assert.notCalled(document.body.appendChild);
+      });
+
+      test('Prevent pointer events', function() {
+        menu.show();
+        assert.equal(document.body.style.pointerEvents, 'none');
+        var transitionend = new TransitionEvent('transitionend', {
+          bubbles: true,
+          propertyName: 'transform'
+        });
+        menu.form.dispatchEvent(transitionend);
+        assert.equal(document.body.style.pointerEvents, 'initial');
       });
 
       suite('menu.hide()', function() {
