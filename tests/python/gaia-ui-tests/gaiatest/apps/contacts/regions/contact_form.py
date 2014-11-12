@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -113,7 +115,8 @@ class ContactForm(Base):
         return Activities(self.marionette)
 
     def wait_for_image_to_load(self):
-        self.wait_for_condition(lambda m: 'background-image' in self.picture_style)
+        el = self.marionette.find_element(*self._thumbnail_photo_locator)
+        Wait(self.marionette).until(lambda m: 'background-image' in el.get_attribute('style'))
 
 
 class EditContact(ContactForm):
@@ -127,19 +130,20 @@ class EditContact(ContactForm):
 
     def __init__(self, marionette):
         ContactForm.__init__(self, marionette)
-        update = self.wait_for_element_present(*self._update_locator)
-        self.wait_for_condition(lambda m: update.location['y'] == 0)
+        update = Wait(self.marionette).until(expected.element_present(*self._update_locator))
+        Wait(self.marionette).until(lambda m: update.location['y'] == 0)
 
     def tap_update(self, return_details=True):
         self.wait_for_update_button_enabled()
-        self.marionette.find_element(*self._update_locator).tap()
+        update = self.marionette.find_element(*self._update_locator)
+        update.tap()
         if return_details:
-            self.wait_for_element_not_displayed(*self._update_locator)
+            Wait(self.marionette).until(expected.element_not_displayed(update))
             from gaiatest.apps.contacts.regions.contact_details import ContactDetails
             return ContactDetails(self.marionette)
         else:
             # else we drop back to the underlying app
-            self.wait_for_condition(lambda m: self.apps.displayed_app.name != self.name)
+            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)
             self.apps.switch_to_displayed_app()
 
     def tap_cancel(self):
@@ -152,16 +156,20 @@ class EditContact(ContactForm):
         delete_item.tap()
 
     def tap_cancel_delete(self):
-        self.wait_for_element_displayed(*self._delete_form_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._delete_form_locator))))
         self.marionette.find_element(*self._cancel_delete_locator).tap()
 
     def tap_confirm_delete(self):
-        self.wait_for_element_displayed(*self._delete_form_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._delete_form_locator))))
         self.marionette.find_element(*self._confirm_delete_locator).tap()
 
     def wait_for_update_button_enabled(self):
-        self.wait_for_condition(lambda m: m.find_element(
-            *self._update_locator).is_enabled())
+        update = self.marionette.find_element(*self._update_locator)
+        Wait(self.marionette).until(expected.element_enabled(update))
 
 
 class NewContact(ContactForm):
@@ -174,13 +182,13 @@ class NewContact(ContactForm):
 
     def switch_to_new_contact_form(self):
         # When NewContact form is called as an ActivityWindow
-        self.wait_for_condition(lambda m: self.apps.displayed_app.src == self._src)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.src == self._src)
         self.apps.switch_to_displayed_app()
         self.wait_for_new_contact_form_to_load()
 
     def wait_for_new_contact_form_to_load(self):
         done = self.marionette.find_element(*self._done_button_locator)
-        self.wait_for_condition(lambda m: done.location['y'] == 0)
+        Wait(self.marionette).until(lambda m: done.location['y'] == 0)
 
     def tap_done(self, return_contacts=True):
         self.marionette.find_element(*self._done_button_locator).tap()
@@ -198,6 +206,6 @@ class NewContact(ContactForm):
             return Contacts(self.marionette)
         else:
             from gaiatest.apps.contacts.app import Contacts
-            self.wait_for_condition(lambda m: self.apps.displayed_app.name != Contacts.name)
+            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != Contacts.name)
             # Fall back to the underlying app
             self.apps.switch_to_displayed_app()

@@ -1,7 +1,8 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/. 
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
 from marionette.by import By
 from marionette.errors import JavascriptException
 from marionette import Wait
@@ -30,14 +31,16 @@ class Contacts(Base):
     def launch(self):
         Base.launch(self)
         Wait(self.marionette, ignored_exceptions=JavascriptException).until(
-            lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded') is True)
-        self.wait_for_element_displayed(*self._settings_button_locator)
+            lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded;') is True)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._settings_button_locator))))
 
     def switch_to_contacts_frame(self):
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
         Wait(self.marionette, ignored_exceptions=JavascriptException).until(
-            lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded') is True)
+            lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded;') is True)
 
     @property
     def contacts(self):
@@ -45,7 +48,8 @@ class Contacts(Base):
                 for contact in self.marionette.find_elements(*self._contact_locator)]
 
     def wait_for_contacts(self, number_to_wait_for=1):
-        self.wait_for_condition(lambda m: len(m.find_elements(*self._contact_locator)) == number_to_wait_for)
+        Wait(self.marionette).until(lambda m: len(m.find_elements(
+            *self._contact_locator)) == number_to_wait_for)
 
         # we need to scroll in order to force the rendering of all the contacts
         height = self.marionette.execute_script("return document.querySelector('[data-uuid]').clientHeight;")
@@ -73,15 +77,16 @@ class Contacts(Base):
         return new_contact
 
     def tap_settings(self):
-        self.marionette.find_element(*self._settings_button_locator).tap()
-        self.wait_for_element_not_displayed(*self._settings_button_locator)
+        settings = self.marionette.find_element(*self._settings_button_locator)
+        settings.tap()
+        Wait(self.marionette).until(expected.element_not_displayed(settings))
         from gaiatest.apps.contacts.regions.settings_form import SettingsForm
         return SettingsForm(self.marionette)
 
     def tap_select_all(self):
         window_height = self.marionette.execute_script('return window.wrappedJSObject.innerHeight')
         wrapper = self.marionette.find_element(*self._select_all_wrapper_locator)
-        self.wait_for_condition(lambda m: int(wrapper.size['height'] + wrapper.location['y']) == window_height)
+        Wait(self.marionette).until(lambda m: int(wrapper.size['height'] + wrapper.location['y']) == window_height)
 
         self.marionette.find_element(*self._select_all_button_locator).tap()
 
@@ -94,8 +99,10 @@ class Contacts(Base):
 
     @property
     def status_message(self):
-        self.wait_for_element_displayed(*self._status_message_locator)
-        return self.marionette.find_element(*self._status_message_locator).text
+        status = Wait(self.marionette).until(expected.element_present(
+            *self._status_message_locator))
+        Wait(self.marionette).until(expected.element_displayed(status))
+        return status.text
 
     class Contact(PageRegion):
 
@@ -124,11 +131,11 @@ class Contacts(Base):
                 return ContactDetails(self.marionette)
             elif return_class == 'EditContact':
                 # This may seem superfluous but we can enter EditContact from Contacts, or from ActivityPicker
-                self.wait_for_condition(lambda m: self.apps.displayed_app.name == Contacts.name)
+                Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == Contacts.name)
                 self.apps.switch_to_displayed_app()
                 from gaiatest.apps.contacts.regions.contact_form import EditContact
                 return EditContact(self.marionette)
             else:
                 # We are using contacts picker in activity - after choosing, fall back to open app
-                self.wait_for_condition(lambda m: self.apps.displayed_app.name != Contacts.name)
+                Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != Contacts.name)
                 self.apps.switch_to_displayed_app()
