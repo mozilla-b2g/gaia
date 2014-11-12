@@ -14,12 +14,12 @@
    * @param {Function} cancelCb Called when the menu is cancelled.
    * @param {Boolean} preventFocusChange Set to true to prevent focus changing.
    */
-  function ActionMenu(listItems, title, successCb, cancelCb,
+  function ActionMenu(listItems, titleL10nId, successCb, cancelCb,
   preventFocusChange) {
     this.onselected = successCb || function() {};
     this.oncancel = cancelCb || function() {};
     this.listItems = listItems;
-    this.title = title;
+    this.titleL10nId = titleL10nId;
   }
 
   ActionMenu.prototype = {
@@ -46,16 +46,16 @@
 
       // An action menu has a mandatory header
       this.header = document.createElement('header');
-      if (this.title !== undefined) {
-        this.header.textContent = this.title;
+      if (this.titleL10nId !== undefined) {
+        this.header.setAttribute('data-l10n-id', this.titleL10nId);
       }
 
       this.container.appendChild(this.header);
 
       // Following our paradigm we need a cancel
       this.cancel = document.createElement('button');
+      this.cancel.setAttribute('data-l10n-id', 'cancel');
       this.cancel.dataset.action = 'cancel';
-      this.cancel.dataset.l10nId = 'cancel';
 
       // We have a menu with all the options
       this.menu = document.createElement('menu');
@@ -121,8 +121,6 @@
         }
         this.menu.appendChild(action);
       }, this);
-      var _ = navigator.mozL10n.get;
-      this.cancel.textContent = _('cancel');
       this.menu.appendChild(this.cancel);
     },
 

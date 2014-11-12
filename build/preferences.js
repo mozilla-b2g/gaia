@@ -137,7 +137,7 @@ PreferencesBuilder.prototype.preparePref = function() {
 
   this.userPrefs['b2g.system_startup_url'] = this.system;
 
-  this.domains = [this.config.GAIA_DOMAIN];
+  this.domains = [this.config.GAIA_DOMAIN, 'theme.' + this.config.GAIA_DOMAIN];
   this.config.GAIA_ALLAPPDIRS.split(' ').forEach(function(appdir) {
     this.domains.push(utils.getFile(appdir).leafName + '.' +
       this.config.GAIA_DOMAIN);
@@ -272,11 +272,6 @@ PreferencesBuilder.prototype.setDebugPref = function() {
 
   // Identity debug messages
   this.userPrefs['toolkit.identity.debug'] = true;
-
-  // Disable HTTP caching for now
-  // This makes working with the system app much easier, due to the iframe
-  // caching issue.
-  this.userPrefs['network.http.use-cache'] = false;
 
   // Preferences for httpd
   // (Use JSON.stringify in order to avoid taking care of `\` escaping)

@@ -1,10 +1,8 @@
 /* global SettingsListener, homescreenWindowManager, KeyboardManager,
-          layoutManager, System, NfcHandler, rocketbar */
+          layoutManager, System, NfcHandler, rocketbar, ShrinkingUI */
 'use strict';
 
 (function(exports) {
-  var screenElement = document.getElementById('screen');
-
   /**
    * AppWindowManager manages the interaction of AppWindow instances.
    *
@@ -16,12 +14,38 @@
    *
    * @module AppWindowManager
    */
-  var AppWindowManager = {
+  var AppWindowManager = function() {};
+  AppWindowManager.prototype = {
     DEBUG: false,
-    CLASS_NAME: 'AppWindowManager',
+    name: 'AppWindowManager',
+    EVENT_PREFIX: 'appwindowmanager',
     continuousTransition: false,
 
     element: document.getElementById('windows'),
+    screen: document.getElementById('screen'),
+
+    isActive: function() {
+      return !!this._activeApp;
+    },
+
+    setHierarchy: function(active) {
+      if (!this._activeApp) {
+        this.debug('No active app.');
+        return;
+      }
+      if (active) {
+        this.focus();
+      }
+      this._activeApp.setVisibleForScreenReader(active);
+    },
+
+    focus: function() {
+      if (!this._activeApp) {
+        return;
+      }
+      this.debug('focusing ' + this._activeApp.name);
+      this._activeApp.focus();
+    },
 
     /**
      * Test the app is already running.
@@ -34,6 +58,15 @@
       } else {
         return false;
       }
+    },
+
+    /**
+     * HierarchyManager will use this function to
+     * get the active window instance.
+     * @return {AppWindow|null} The active app window instance
+     */
+    getActiveWindow: function() {
+      return this.getActiveApp();
     },
 
     /**
@@ -144,7 +177,7 @@
         document.mozCancelFullScreen();
       }
 
-      screenElement.classList.remove('fullscreen-app');
+      this.screen.classList.remove('fullscreen-app');
 
       var switching = appCurrent && !appCurrent.isHomescreen &&
                       !appNext.isHomescreen;
@@ -257,7 +290,7 @@
      *
      * @memberOf module:AppWindowManager
      */
-    init: function awm_init() {
+    start: function awm_start() {
       if (System.slowTransition) {
         this.element.classList.add('slow-transition');
       } else {
@@ -273,6 +306,8 @@
       window.addEventListener('appopened', this);
       window.addEventListener('apprequestopen', this);
       window.addEventListener('apprequestclose', this);
+      window.addEventListener('shrinking-start', this);
+      window.addEventListener('shrinking-stop', this);
       window.addEventListener('homescreenopened', this);
       window.addEventListener('reset-orientation', this);
       window.addEventListener('homescreencreated', this);
@@ -349,6 +384,7 @@
           this._settingsObserveHandler[name].callback
         );
       }
+      System.request('registerHierarchy', this);
     },
 
     /**
@@ -356,7 +392,7 @@
      * tests to avoid breaking other tests.
      * @memberOf module:AppWindowManager
      */
-    uninit: function awm_uninit() {
+    stop: function awm_stop() {
       window.removeEventListener('launchapp', this);
       window.removeEventListener('home', this);
       window.removeEventListener('appcreated', this);
@@ -387,6 +423,8 @@
       window.removeEventListener('appopening', this);
       window.removeEventListener('localized', this);
       window.removeEventListener('mozChromeEvent', this);
+      window.removeEventListener('shrinking-start', this);
+      window.removeEventListener('shrinking-stop', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -396,6 +434,7 @@
       }
 
       this._settingsObserveHandler = null;
+      System.request('unregisterHierarchy', this);
     },
 
     handleEvent: function awm_handleEvent(evt) {
@@ -403,6 +442,22 @@
       var activeApp = this._activeApp;
       var detail = evt.detail;
       switch (evt.type) {
+        case 'shrinking-start':
+          if (this.shrinkingUI && this.shrinkingUI.isActive()) {
+            return;
+          }
+          var bottomMost = this._activeApp.getBottomMostWindow();
+          this.shrinkingUI = new ShrinkingUI(bottomMost.element,
+            bottomMost.element.parentNode);
+          this.shrinkingUI.start();
+          activeApp && activeApp.broadcast('shrinkingstart');
+          break;
+        case 'shrinking-stop':
+          if (this.shrinkingUI && this.shrinkingUI.isActive()) {
+            activeApp && activeApp.broadcast('shrinkingstop');
+            this.shrinkingUI.stop();
+          }
+          break;
         case 'permissiondialoghide':
           activeApp && activeApp.broadcast('focus');
           break;
@@ -570,14 +625,14 @@
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
-          // All app window instances need to be aware of this so they can show
-          // the screenshot overlay.
+          activeApp && activeApp.setVisibleForScreenReader(false);
           this.broadcastMessage('sheetsgesturebegin');
           break;
 
         case 'sheets-gesture-end':
           // All inactive app window instances need to be aware of this so they
           // can hide the screenshot overlay. The check occurs in the AppWindow.
+          activeApp && activeApp.setVisibleForScreenReader(true);
           this.broadcastMessage('sheetsgestureend');
           break;
 
@@ -687,7 +742,7 @@
 
     debug: function awm_debug() {
       if (this.DEBUG) {
-        console.log('[' + this.CLASS_NAME + ']' +
+        console.log('[' + this.name + ']' +
           '[' + System.currentTime() + ']' +
           Array.slice(arguments).concat());
       }
@@ -735,16 +790,19 @@
         return;
       }
       var fullscreen = this._activeApp.isFullScreen();
-      screenElement.classList.toggle('fullscreen-app', fullscreen);
+      this.screen.classList.toggle('fullscreen-app', fullscreen);
 
       var fullScreenLayout = this._activeApp.isFullScreenLayout();
-      screenElement.classList.toggle('fullscreen-layout-app', fullScreenLayout);
+      this.screen.classList.toggle('fullscreen-layout-app', fullScreenLayout);
 
       // Resize when opened.
       // Note: we will not trigger reflow if the final size
       // is the same as its current value.
       this._activeApp.resize();
       if (appHasChanged) {
+        if (this.shrinkingUI && this.shrinkingUI.isActive()) {
+          this.shrinkingUI.stop();
+        }
         this.publish('activeappchanged');
       }
 

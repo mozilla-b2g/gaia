@@ -204,8 +204,7 @@
     notification.appendChild(message);
 
     var tip = document.createElement('div');
-    var helper = window.navigator.mozL10n.get('attentionScreen-tapToShow');
-    tip.appendChild(document.createTextNode(helper));
+    tip.setAttribute('data-l10n-id', 'attentionScreen-tapToShow');
     tip.classList.add('detail');
     notification.appendChild(tip);
 
@@ -229,6 +228,11 @@
     if (this.notification) {
       this.notification.style.display = 'block';
     }
+
+    // Resize the window to accommodate the presence or absence of the software
+    // home button.
+    this._resize();
+
     AppWindow.prototype.show.call(this);
   };
 

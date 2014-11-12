@@ -4,11 +4,11 @@
 
 var MockMultiContact = {
   _data: Object.create(null),
-  
-  getData: function(entries) {
+
+  getData: function(entry) {
     return new Promise(function(resolve, reject) {
-      var id = entries[0].entryData[0].uid;
-      
+      var id = entry.entryData[0].uid;
+
       resolve(MockMultiContact._data[id]);
     });
   }

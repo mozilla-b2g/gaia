@@ -40,7 +40,7 @@ module.exports = Settings;
 
 Settings.Selectors = {
   'menuItemsSection': '#root',
-  'bluetoothMenuItem': '#menuItem-bluetooth',
+  'bluetoothMenuItem': '.menuItem-bluetooth',
   'doNotTrackMenuItem': '#menuItem-doNotTrack',
   'hotspotMenuItem': '#menuItem-internetSharing',
   'hotspotPanel': '#hotspot',
@@ -50,7 +50,7 @@ Settings.Selectors = {
   'notificationsMenuItem': '#menuItem-notifications',
   'improvePanel': '#menuItem-improveBrowserOS',
   'improveSection': '#improveBrowserOS',
-  'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]',
+  'feedbackPanel': 'a[href="#improveBrowserOS-chooseFeedback"]',
   'soundMenuItem': '#menuItem-sound',
   'languageMenuItem': '.menuItem-languageAndRegion',
   'screenLockMenuItem': '#menuItem-screenLock',

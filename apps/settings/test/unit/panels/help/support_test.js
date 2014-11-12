@@ -2,21 +2,22 @@
 
 suite('Help > ', function() {
   var Help;
-  var MockLoadJSON, MockSettingsCache;
+  var MockLazyLoader, MockSettingsCache;
 
   suiteSetup(function(done) {
     testRequire([
-        'unit/mock_load_json',
+        'shared_mocks/mock_lazy_loader',
         'unit/mock_settings_cache',
         'panels/help/support'
       ],
       { //mock map
         'panels/help/support': {
-          'module/settings_cache': 'unit/mock_settings_cache'
+          'module/settings_cache': 'unit/mock_settings_cache',
+          'shared/lazy_loader': 'shared_mocks/mock_lazy_loader'
         }
       },
-      function(mockLoadJSON, mockSettingsCache, support) {
-        MockLoadJSON = mockLoadJSON;
+      function(mockLazyLoader, mockSettingsCache, support) {
+        MockLazyLoader = mockLazyLoader;
         MockSettingsCache = mockSettingsCache;
 
         Help = support();
@@ -27,11 +28,7 @@ suite('Help > ', function() {
 
   suite('initiation', function() {
     var stubGetSupportInfo;
-    var RealLoadJSON;
     setup(function() {
-      RealLoadJSON = window.loadJSON;
-      window.loadJSON = MockLoadJSON.loadJSON;
-
       var div = document.createElement('div');
       var mock_elements = {};
       mock_elements.userGuide = div;
@@ -44,7 +41,6 @@ suite('Help > ', function() {
     });
 
     teardown(function() {
-      window.loadJSON = RealLoadJSON;
       stubGetSupportInfo.restore();
       Help.uninit();
     });
@@ -55,31 +51,26 @@ suite('Help > ', function() {
   });
 
   suite('getSupportInfo', function() {
-    var stubLoadJSON, stubCallback;
+    var stubCallback;
     setup(function() {
-      window.loadJSON = function(){};
-      // window.loadJSON = MockLoadJSON.loadJSON;
-      stubLoadJSON = this.sinon.stub(window, 'loadJSON');
-      // window.loadJSON = this.sinon.stub();
+      this.sinon.stub(MockLazyLoader, 'getJSON', function() {
+        return Promise.resolve({});
+      });
       stubCallback = this.sinon.stub();
     });
 
-    teardown(function() {
-      stubLoadJSON.restore();
-    });
-
-    test('we would call loadJSON in getSupportInfo', function() {
+    test('we would call getJSON in getSupportInfo', function() {
       Help._getSupportInfo(stubCallback);
-      assert.ok(stubLoadJSON.called);
+      assert.ok(MockLazyLoader.getJSON.called);
     });
 
-    test('we would not call loadJSON when _supportInfo exist', function() {
+    test('we would not call getJSON when _supportInfo exist', function() {
       Help._supportInfo = {
         'onlinesupport': '',
         'callsupport': ''
       };
       Help._getSupportInfo(stubCallback);
-      assert.ok(!stubLoadJSON.called);
+      assert.ok(!MockLazyLoader.getJSON.called);
     });
   });
 

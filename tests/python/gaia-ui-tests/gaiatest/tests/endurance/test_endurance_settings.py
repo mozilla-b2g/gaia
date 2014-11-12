@@ -15,7 +15,7 @@ class TestEnduranceSettings(GaiaEnduranceTestCase):
                      {"menu_locator": ('id', 'menuItem-wifi'), "screen_locator": ('css selector', '.wifi-enabled input')},
                      {"menu_locator": ('id', 'menuItem-callSettings'), "screen_locator": ('id', 'menuItem-callWaiting')},
                      {"menu_locator": ('id', 'menuItem-cellularAndData'), "screen_locator": ('id', 'dataConnection-desc')},
-                     {"menu_locator": ('id', 'menuItem-bluetooth'), "screen_locator": ('css selector', '#bluetooth-status input')},
+                     {"menu_locator": ('css selector', 'menuItem-bluetooth'), "screen_locator": ('css selector', '#bluetooth-status input')},
                      {"menu_locator": ('id', 'menuItem-internetSharing'), "screen_locator": ('xpath', '//button[@data-l10n-id="hotspotSettings"]')},
                      {"menu_locator": ('id', 'menuItem-sound'), "screen_locator": ('xpath', '//button[@data-l10n-id="change"]')},
                      {"menu_locator": ('id', 'menuItem-display'), "screen_locator": ('css selector', '#display.current')},
@@ -67,8 +67,6 @@ class TestEnduranceSettings(GaiaEnduranceTestCase):
         self.wait_for_element_present(settings_menu_locator[0], settings_menu_locator[1])
         menu_item = self.marionette.find_element(settings_menu_locator[0], settings_menu_locator[1])
 
-        # Need explicit scroll because of bug 833370
-        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [menu_item])
         time.sleep(1)
         menu_item.tap()
         time.sleep(2)

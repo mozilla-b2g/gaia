@@ -561,8 +561,8 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
   },
 
   /**
-   * Initiates a request to download all body reps. If a snippet has not yet
-   * been generated this will also generate the snippet...
+   * Initiates a request to download all body reps for a single message. If a
+   * snippet has not yet been generated this will also generate the snippet...
    */
   _lazyDownloadBodyReps: function(header, options, callback) {
     if (typeof(options) === 'function') {
@@ -585,6 +585,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
 
       // build the list of requests based on downloading required.
       var requests = [];
+      var latch = $allback.latch();
       bodyInfo.bodyReps.forEach(function(rep, idx) {
         // attempt to be idempotent by only requesting the bytes we need if we
         // actually need them...
@@ -595,7 +596,8 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
           uid: header.srvid,
           partInfo: rep._partInfo,
           bodyRepIndex: idx,
-          createSnippet: idx === bodyRepIdx
+          createSnippet: idx === bodyRepIdx,
+          headerUpdatedCallback: latch.defer(header.srvid + '-' + rep._partInfo)
         };
 
         // default to the entire remaining email. We use the estimate * largish
@@ -655,8 +657,9 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
         requests
       );
 
-      self._handleBodyFetcher(fetch, header, bodyInfo, function(err) {
-        callback(err, bodyInfo);
+      self._handleBodyFetcher(fetch, header, bodyInfo, latch.defer('body'));
+      latch.then(function(results) {
+        callback($allback.extractErrFromCallbackArgs(results), bodyInfo);
       });
     };
 
@@ -664,58 +667,24 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
   },
 
   /**
-   * Download a snippet and a portion of the bodyRep to go along with it... In
-   * all cases we expect the bodyReps to be completely empty as we also will
-   * generate the snippet in the case of completely downloading a snippet.
-   */
-  _downloadSnippet: function(header, callback) {
-    var self = this;
-    this._storage.getMessageBody(header.suid, header.date, function(body) {
-      // attempt to find a rep
-      var bodyRepIndex = $imapchew.selectSnippetBodyRep(header, body);
-
-      // no suitable snippet we are done.
-      if (bodyRepIndex === -1)
-        return callback();
-
-      var rep = body.bodyReps[bodyRepIndex];
-      var requests = [{
-        uid: header.srvid,
-        bodyRepIndex: bodyRepIndex,
-        partInfo: rep._partInfo,
-        bytes: [0, NUMBER_OF_SNIPPET_BYTES],
-        createSnippet: true
-      }];
-
-      var fetch = new $imapbodyfetcher.BodyFetcher(
-        self._conn,
-        $imapsnippetparser.SnippetParser,
-        requests
-      );
-
-      self._handleBodyFetcher(
-        fetch,
-        header,
-        body,
-        callback
-      );
-    });
-  },
-
-  /**
    * Wrapper around common bodyRep updates...
    */
-  _handleBodyFetcher: function(fetcher, header, body, callback) {
+  _handleBodyFetcher: function(fetcher, header, body, bodyUpdatedCallback) {
     var event = {
       changeDetails: {
         bodyReps: []
       }
     };
 
-    var self = this;
+    // This will be invoked once per body part that is successfully downloaded
+    // or fails to download.
+    fetcher.onparsed = function(err, req, resp) {
+      if (err) {
+        req.headerUpdatedCallback(err);
+        return;
+      }
 
-    fetcher.onparsed = function(req, resp) {
-      $imapchew.updateMessageWithFetch(header, body, req, resp, self._LOG);
+      $imapchew.updateMessageWithFetch(header, body, req, resp, this._LOG);
 
       header.bytesToDownloadForBodyDisplay =
         $imapchew.calculateBytesToDownloadForImapBodyDisplay(body);
@@ -723,31 +692,30 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
       // Always update the header so that we can save
       // bytesToDownloadForBodyDisplay, which will tell the UI whether
       // or not we can show the message body right away.
-      self._storage.updateMessageHeader(
+      this._storage.updateMessageHeader(
         header.date,
         header.id,
         false,
         header,
-        body
+        body,
+        req.headerUpdatedCallback.bind(null, null) // no error
       );
 
       event.changeDetails.bodyReps.push(req.bodyRepIndex);
-    };
+    }.bind(this);
 
-    fetcher.onerror = function(e) {
-      callback(e);
-    };
-
+    // This will be invoked after all of the onparsed events have fired.
     fetcher.onend = function() {
-      self._storage.updateMessageBody(
+      // Since we no longer have any updates to make to the body, we want to
+      // finally update it now.
+      this._storage.updateMessageBody(
         header,
         body,
         {},
-        event
+        event,
+        bodyUpdatedCallback.bind(null, null) // we do not/cannot error
       );
-
-      self._storage.runAfterDeferredCalls(callback);
-    };
+    }.bind(this);
   },
 
   /**
@@ -755,21 +723,8 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
    * module deps are loaded.
    */
   _lazyDownloadBodies: function(headers, options, callback) {
-    var pending = 1, downloadsNeeded = 0;
-
-    var self = this;
-    var anyErr;
-    function next(err) {
-      if (err && !anyErr)
-        anyErr = err;
-
-      if (!--pending) {
-        self._storage.runAfterDeferredCalls(function() {
-          callback(anyErr, /* number downloaded */ downloadsNeeded - pending);
-        });
-      }
-    }
-
+    var downloadsNeeded = 0;
+    var latch = $allback.latch();
     for (var i = 0; i < headers.length; i++) {
       // We obviously can't do anything with null header references.
       // To avoid redundant work, we also don't want to do any fetching if we
@@ -777,21 +732,19 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
       // potential for a caller to spam multiple requests at us before we
       // service any of them.  (Callers should only have one or two outstanding
       // jobs of this and do their own suppression tracking, but bugs happen.)
-      if (!headers[i] || headers[i].snippet !== null) {
+      var header = headers[i];
+      if (!header || header.snippet !== null) {
         continue;
       }
 
-      pending++;
       // This isn't absolutely guaranteed to be 100% correct, but is good enough
       // for indicating to the caller that we did some work.
       downloadsNeeded++;
-      this.downloadBodyReps(headers[i], options, next);
+      this.downloadBodyReps(headers[i], options, latch.defer(header.suid));
     }
-
-    // by having one pending item always this handles the case of not having any
-    // snippets needing a download and also returning in the next tick of the
-    // event loop.
-    window.setZeroTimeout(next);
+    latch.then(function(results) {
+      callback($allback.extractErrFromCallbackArgs(results), downloadsNeeded);
+    });
   },
 
   /**

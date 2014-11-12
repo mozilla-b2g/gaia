@@ -19,7 +19,7 @@ class Settings(Base):
     _usb_storage_text_locator = (By.CSS_SELECTOR, '.usb-desc')
     _screen_lock_text_locator = (By.CSS_SELECTOR, '.screenLock-desc')
     _language_text_locator = (By.ID, 'language-desc')
-    _bluetooth_text_locator = (By.ID, 'bluetooth-desc')
+    _bluetooth_text_locator = (By.CSS_SELECTOR, '.bluetooth-desc')
 
     _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
     _airplane_switch_locator = (By.XPATH, "//input[contains(@class, 'airplaneMode-input')]/..")
@@ -28,7 +28,7 @@ class Settings(Base):
     _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
     _accessibility_menu_item_locator = (By.ID, 'menuItem-accessibility')
     _cell_data_menu_item_locator = (By.ID, 'menuItem-cellularAndData')
-    _bluetooth_menu_item_locator = (By.ID, 'menuItem-bluetooth')
+    _bluetooth_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-bluetooth')
     _keyboard_menu_item_locator = (By.ID, "menuItem-keyboard")
     _language_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-languageAndRegion')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
@@ -39,10 +39,15 @@ class Settings(Base):
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
     _battery_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
+    _homescreen_menu_item_locator = (By.ID, 'menuItem-homescreen')
 
     def launch(self):
         Base.launch(self)
         self.wait_for_element_present(*self._app_loaded_locator)
+
+    def switch_to_settings_app(self):
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        self.apps.switch_to_displayed_app()
 
     def wait_for_airplane_toggle_ready(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
@@ -122,10 +127,7 @@ class Settings(Base):
 
     def open_bluetooth_settings(self):
         from gaiatest.apps.settings.regions.bluetooth import Bluetooth
-        # this is technically visible, but needs scroll to be tapped
-        # TODO Remove when bug 937053 is resolved
         bluetooth_menu_item = self.marionette.find_element(*self._bluetooth_menu_item_locator)
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [bluetooth_menu_item])
         self._tap_menu_item(self._bluetooth_menu_item_locator)
         return Bluetooth(self.marionette)
 
@@ -180,6 +182,23 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.sim_manager import SimManager
         self._tap_menu_item(self._sim_manager_menu_item_locator)
         return SimManager(self.marionette)
+
+    def open_homescreen_settings(self):
+        from gaiatest.apps.settings.regions.homescreen_settings import HomescreenSettings
+        self._tap_menu_item(self._homescreen_menu_item_locator)
+        return HomescreenSettings(self.marionette)
+
+    @property
+    def is_airplane_mode_visible(self):
+        return self.is_element_displayed(*self._airplane_switch_locator)
+
+    @property
+    def is_wifi_menu_visible(self):
+        return self.is_element_displayed(*self._wifi_menu_item_locator)
+
+    @property
+    def is_cell_data_menu_visible(self):
+        return self.is_element_displayed(*self._cell_data_menu_item_locator)
 
     def _wait_for_menu_item(self, menu_item_locator):
         menu_item = self.marionette.find_element(*menu_item_locator)

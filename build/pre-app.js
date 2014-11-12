@@ -1,9 +1,10 @@
-/* global exports */
-/* global require */
 'use strict';
+
+/* global require, exports */
 
 function execute(options) {
   require('./clean-stage-app').execute(options);
+
   require('./svoperapps').execute(options);
 
   // Generate $(PROFILE_FOLDER)/webapps/
@@ -31,5 +32,8 @@ function execute(options) {
 
   // Generate user.js
   require('./preferences').execute(options);
+
+  // Copy common files such as settings.json and webapps.json
+  require('./copy-common-files').execute(options);
 }
 exports.execute = execute;

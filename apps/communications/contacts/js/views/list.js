@@ -906,7 +906,7 @@ contacts.List = (function() {
     icon.src = '/contacts/style/images/icon_ice.png';
     var p = document.createElement('p');
     p.classList.add('contact-text');
-    p.textContent = 'ICE contacts';
+    p.setAttribute('data-l10n-id', 'ICEContactsGroup');
 
     groupsList.insertBefore(iceGroup,
      groupsList.firstChild).appendChild(list).appendChild(elem);

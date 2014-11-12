@@ -1,5 +1,5 @@
 'use strict';
-/* global applications, BrowserConfigHelper, AppWindowManager, AppWindow */
+/* global applications, BrowserConfigHelper, AppWindow */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -99,7 +99,7 @@
 
     handleEvent: function awf_handleEvent(evt) {
       var detail = evt.detail;
-      if (!detail.url) {
+      if (!detail.url && !detail.manifestURL) {
         return;
       }
 
@@ -181,7 +181,8 @@
           config.url.indexOf('newtab.html') === -1) {
         return;
       }
-      var app = AppWindowManager.getApp(config.origin, config.manifestURL);
+      var app = window.appWindowManager.getApp(config.origin,
+        config.manifestURL);
       if (app) {
         if (config.evtType == 'appopenwindow') {
           app.browser.element.src = config.url;

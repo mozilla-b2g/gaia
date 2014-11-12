@@ -87,11 +87,11 @@ var SimManager = (function() {
     this.alreadyImported = false;
   },
 
-  handleUnlockError: function sm_handleUnlockError(data) {
-    var l10nArgs = {n: data.retryCount};
-    switch (data.lockType) {
+  handleUnlockError: function sm_handleUnlockError(lockType, retryCount) {
+    var l10nArgs = {n: retryCount};
+    switch (lockType) {
       case 'pin':
-        if (data.retryCount === 0) {
+        if (retryCount === 0) {
           this.showPukScreen(this._unlockingIcc);
           break;
         }
@@ -103,12 +103,14 @@ var SimManager = (function() {
           'pinAttemptMsg2',
           l10nArgs
         );
-        navigator.mozL10n.setAttributes(UIManager.pinRetriesLeft,
-                                          'inputCodeRetriesLeft', l10nArgs);
-        UIManager.pinRetriesLeft.classList.remove('hidden');
-        if (data.retryCount == 1) {
+
+        if (retryCount === 1) {
           UIManager.pinError.
             querySelector('.lastchance').classList.remove('hidden');
+        } else {
+          navigator.mozL10n.setAttributes(UIManager.pinRetriesLeft,
+                                            'inputCodeRetriesLeft', l10nArgs);
+          UIManager.pinRetriesLeft.classList.remove('hidden');
         }
         break;
       case 'puk':
@@ -121,12 +123,14 @@ var SimManager = (function() {
           'pukAttemptMsg2',
           l10nArgs
         );
-        navigator.mozL10n.setAttributes(UIManager.pukRetriesLeft,
-                                          'inputCodeRetriesLeft', l10nArgs);
-        UIManager.pukRetriesLeft.classList.remove('hidden');
-        if (data.retryCount == 1) {
+
+        if (retryCount === 1) {
           UIManager.pukError.
             querySelector('.lastchance').classList.remove('hidden');
+        } else {
+          navigator.mozL10n.setAttributes(UIManager.pukRetriesLeft,
+                                            'inputCodeRetriesLeft', l10nArgs);
+          UIManager.pukRetriesLeft.classList.remove('hidden');
         }
         // TODO what if counter gets to 0 ??
         break;
@@ -142,12 +146,14 @@ var SimManager = (function() {
           'nckAttemptMsg2',
           l10nArgs
         );
-        navigator.mozL10n.setAttributes(UIManager.xckRetriesLeft,
-                                          'inputCodeRetriesLeft', l10nArgs);
-        UIManager.xckRetriesLeft.classList.remove('hidden');
-        if (data.retryCount == 1) {
+
+        if (retryCount === 1) {
           UIManager.xckError.
             querySelector('.lastchance').classList.remove('hidden');
+        } else {
+          navigator.mozL10n.setAttributes(UIManager.xckRetriesLeft,
+                                            'inputCodeRetriesLeft', l10nArgs);
+          UIManager.xckRetriesLeft.classList.remove('hidden');
         }
         break;
     }
@@ -708,7 +714,7 @@ var SimManager = (function() {
       this.handleCardState();
     }).bind(this);
     req.onerror = (function sm_unlockError() {
-      this.handleUnlockError(req.error);
+      this.handleUnlockError(options.lockType, req.error.retryCount);
     }).bind(this);
   },
 

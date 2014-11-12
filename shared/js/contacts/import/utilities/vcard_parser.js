@@ -524,9 +524,17 @@ var VCFReader = (function _VCFReader() {
     if (photoContents && photo.meta && photo.meta.encoding === 'base64') {
       var blob = b64toBlob(photoContents, photo.meta.type);
       if (blob) {
-        contactObj.photo = [blob];
+        utils.thumbnailImage(blob, function gotThumbnail(thumbnail) {
+          if (blob !== thumbnail) {
+            contactObj.photo = [blob, thumbnail];
+          } else {
+            contactObj.photo = [blob];
+          }
+          cb(contactObj);
+        });
+      } else {
+        cb(contactObj);
       }
-      cb(contactObj);
     }
     // Else we assume it is a http url
     else {

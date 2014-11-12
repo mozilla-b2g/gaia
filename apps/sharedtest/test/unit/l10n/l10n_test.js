@@ -1,7 +1,6 @@
 suite('L10n', function() {
   var _;
   var _translateFragment;
-  var _localize;
 
   var l10props = [
     'cropimage                 = Crop',
@@ -24,7 +23,8 @@ suite('L10n', function() {
     'update.innerHTML[other]   = <strong>{{n}} updates available.</strong> \\',
     '                            <span>Tap for more info.</span>',
     'inline-translation-test   = static content provided by inlined JSON',
-    'a11y-label.ariaLabel      = label via ARIA'
+    'a11y-label.ariaLabel      = label via ARIA',
+    'a11y-label.ariaValueText  = valuetext via ARIA'
   ].join('\n');
 
   var inlineL10Props = {
@@ -52,7 +52,6 @@ suite('L10n', function() {
 
     _ = navigator.mozL10n.get;
     _translateFragment = navigator.mozL10n.translateFragment;
-    _localize = navigator.mozL10n.localize;
 
     // en-US has already been loaded in setup.js and l10n.js is smart enough
     // not to re-fetch resources;  hence, set the lang to something new
@@ -134,6 +133,12 @@ suite('L10n', function() {
       _translateFragment(elem);
       assert.equal(elem.getAttribute('aria-label'), 'label via ARIA');
     });
+
+    test('ARIA valuetext', function() {
+      elem.dataset.l10nId = 'a11y-label';
+      _translateFragment(elem);
+      assert.equal(elem.getAttribute('aria-valuetext'), 'valuetext via ARIA');
+    });
   });
 
   suite('localize + translate', function() {
@@ -143,20 +148,20 @@ suite('L10n', function() {
     });
 
     test('text content', function() {
-      _localize(elem, 'textcontent-test');
+      navigator.mozL10n.setAttributes(elem, 'textcontent-test');
       _translateFragment(elem);
       assert.equal(elem.textContent, 'this is text content');
     });
 
     test('properties', function() {
-      _localize(elem, 'prop-test');
+      navigator.mozL10n.setAttributes(elem, 'prop-test');
       _translateFragment(elem);
       assert.equal(elem.getAttribute('prop'), 'this is a property');
     });
 
     suite('properties + pluralization', function() {
       test('n=0', function() {
-        _localize(elem, 'update', { n: 0 });
+        navigator.mozL10n.setAttributes(elem, 'update', { n: 0 });
         _translateFragment(elem);
         var info = elem.querySelector('strong');
         var span = elem.querySelector('span');
@@ -166,7 +171,7 @@ suite('L10n', function() {
       });
 
       test('n=1', function() {
-        _localize(elem, 'update', { n: 1 });
+        navigator.mozL10n.setAttributes(elem, 'update', { n: 1 });
         _translateFragment(elem);
         var info = elem.querySelector('strong');
         var span = elem.querySelector('span');
@@ -176,7 +181,7 @@ suite('L10n', function() {
       });
 
       test('n=2', function() {
-        _localize(elem, 'update', { n: 2 });
+        navigator.mozL10n.setAttributes(elem, 'update', { n: 2 });
         _translateFragment(elem);
         var info = elem.querySelector('strong');
         var span = elem.querySelector('span');
@@ -188,7 +193,7 @@ suite('L10n', function() {
 
     test('element with child', function() {
       elem.innerHTML = 'here is a button <button>(foo)</button>';
-      _localize(elem, 'textcontent-test');
+      navigator.mozL10n.setAttributes(elem, 'textcontent-test');
 
       /* jshint -W083 */
       assert.throws(function() {

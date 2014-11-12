@@ -78,8 +78,7 @@
     "desktop-notification":{},
     "alarms": {},
     "systemXHR": {},
-    "audio-channel-telephony":{},
-    "audio-channel-notification":{},
+    "audio-channel-content":{},
     "idle":{},
     "storage": {},
     "device-storage:sdcard": { "access": "readcreate" },
@@ -109,7 +108,7 @@
     },
     "open": {
       "filters": {
-        "type": "webcontacts/contact"
+        "type": ["webcontacts/contact", "text/vcard"]
       },
       "disposition": "inline",
       "href": "/contacts/index.html?open",

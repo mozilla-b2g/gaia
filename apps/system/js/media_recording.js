@@ -142,7 +142,6 @@
       this.messages.push(item);
 
       // attach panel
-      var _ = navigator.mozL10n.get;
       var panelElement, iconElement, titleContainerElement, originElement,
           messageElement, timerElement;
       /* create panel
@@ -181,7 +180,7 @@
 
       messageElement = document.createElement('div');
       messageElement.className = 'message detail';
-      messageElement.textContent = _(item.message);
+      messageElement.setAttribute('data-l10n-id', item.message);
       panelElement.appendChild(messageElement);
 
       // remember element in item

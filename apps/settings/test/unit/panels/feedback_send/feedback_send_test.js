@@ -7,7 +7,7 @@ suite('sendFeedback > ', function() {
   suiteSetup(function(done) {
     navigator.addIdleObserver = sinon.spy();
     testRequire([
-        'unit/mock_l10n',
+        'shared_mocks/mock_l10n',
         'unit/mock_async_storage',
         'unit/mock_xml_http_request',
         'panels/feedback_send/feedback_send'

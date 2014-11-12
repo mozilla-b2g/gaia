@@ -35,6 +35,8 @@ function OverlayController(app) {
 OverlayController.prototype.bindEvents = function() {
   this.app.on('storage:changed', this.onStorageChanged);
   this.app.on('change:batteryStatus', this.onBatteryChanged);
+  this.app.on('camera:requesting', this.onCameraRequesting);
+  this.app.on('camera:error', this.onCameraError);
 };
 
 /**
@@ -87,12 +89,40 @@ OverlayController.prototype.onBatteryChanged = function(state) {
   }
 };
 
-OverlayController.prototype.createOverlay = function(type, callback) {
-  var data;
-  var self = this;
-  var isClosable = this.activity.pick;
-  var overlay;
+/**
+ * Respond to camera `requesting`
+ * events by destroying overlays
+ * from the app.
+ *
+ * @param  {String} state  ['start'|'success'|'fail']
+ */
+OverlayController.prototype.onCameraRequesting = function() {
+  if (this.cameraErrorOverlay) {
+    this.cameraErrorOverlay.destroy();
+    this.cameraErrorOverlay = null;
+  }
+};
 
+/**
+ * Respond to camera `error`
+ * events by inserting overlays
+ * into the app.
+ *
+ * @param  {String} state  ['start'|'success'|'fail']
+ */
+OverlayController.prototype.onCameraError = function(type) {
+  var self = this;
+  debug('camera error type: \'%s\'', type);
+
+  this.createOverlay(type, onOverlayCreated);
+
+  function onOverlayCreated(overlay) {
+    self.cameraErrorOverlay = overlay;
+  }
+};
+
+OverlayController.prototype.createOverlay = function(type, callback) {
+  var self = this;
   if (!this.app.localized()) {
     this.app.showSpinner();
     this.app.on('localized', onLocalized);
@@ -100,21 +130,23 @@ OverlayController.prototype.createOverlay = function(type, callback) {
   }
 
   function onLocalized() {
+    self.app.clearSpinner();
     self.createOverlay(type, callback);
   }
 
-  data = this.getOverlayData(type);
-
+  var data = this.getOverlayData(type);
   if (!data) {
-    if (callback) {
+    if (typeof callback === 'function') {
       callback(null);
     }
     return;
   }
 
-  overlay = new Overlay({
+  var closable = this.activity.pick && type !== 'request-fail';
+
+  var overlay = new Overlay({
     type: type,
-    closable: isClosable,
+    closable: closable,
     data: data
   }).appendTo(document.body)
     .on('click:close-btn', function() {
@@ -123,7 +155,7 @@ OverlayController.prototype.createOverlay = function(type, callback) {
 
   debug('inserted \'%s\' overlay', type);
 
-  if (callback) {
+  if (typeof callback === 'function') {
     callback(overlay);
   }
 };
@@ -154,6 +186,10 @@ OverlayController.prototype.getOverlayData = function(type) {
     case 'shutdown':
       data.title = this.l10nGet('battery-shutdown-title');
       data.body = this.l10nGet('battery-shutdown-text');
+    break;
+    case 'request-fail':
+      data.title = this.l10nGet('camera-unavailable-title');
+      data.body = this.l10nGet('camera-unavailable-text');
     break;
     default:
       return false;

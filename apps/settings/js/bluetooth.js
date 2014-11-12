@@ -13,7 +13,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
   var _ = navigator.mozL10n.get;
   var settings = Settings.mozSettings;
-  var bluetooth = getBluetooth();
+  var bluetooth = navigator.mozBluetooth;
   var defaultAdapter = null;
 
   var MAX_DEVICE_NAME_LENGTH = 20;
@@ -336,7 +336,6 @@ navigator.mozL10n.once(function bluetoothSettings() {
       var deviceName = document.createElement('span');
       if (device.name !== '') {
         deviceName.textContent = device.name;
-        deviceName.removeAttribute('data-l10n-id');
       } else {
         deviceName.setAttribute('data-l10n-id', 'unnamed-device');
       }
@@ -344,9 +343,6 @@ navigator.mozL10n.once(function bluetoothSettings() {
       var deviceDesc = document.createElement('small');
       if (descL10nId) {
         deviceDesc.setAttribute('data-l10n-id', descL10nId);
-      } else {
-        deviceDesc.textContent = '';
-        deviceDesc.removeAttribute('data-l10n-id');
       }
 
       var li = document.createElement('li');
@@ -577,7 +573,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
         if (device.name && existingItem) {
           var deviceName = existingItem.querySelector('span');
           if (deviceName) {
-            deviceName.dataset.l10nId = '';
+            deviceName.removeAttribute('data-l10n-id');
             deviceName.textContent = device.name;
           }
         }
@@ -708,8 +704,8 @@ navigator.mozL10n.once(function bluetoothSettings() {
             // Clear the text of connecting status.
             var small =
               pairList.index[connectingAddress].item.querySelector('small');
+            small.removeAttribute('data-l10n-id');
             small.textContent = '';
-            small.dataset.l10nId = '';
             connectingAddress = null;
             window.alert(_('error-connect-msg'));
           }
@@ -786,8 +782,8 @@ navigator.mozL10n.once(function bluetoothSettings() {
       if (l10nId) {
         small.setAttribute('data-l10n-id', l10nId);
       } else {
-        small.textContent = '';
         small.removeAttribute('data-l10n-id');
+        small.textContent = '';
       }
     }
 
@@ -804,6 +800,11 @@ navigator.mozL10n.once(function bluetoothSettings() {
       };
       req.onerror = function bt_discoveryFailed() {
         console.error('Can not discover nearby device');
+
+        // reset search button and searching description
+        // when request startDiscovery failed
+        searchAgainBtn.disabled = false;
+        searchingItem.hidden = true;
       };
     }
 

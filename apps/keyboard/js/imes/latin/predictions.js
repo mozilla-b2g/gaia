@@ -124,6 +124,7 @@ var Predictions = function() {
   var INSERTION_MULTIPLIER = .3;
   var SUBSTITUTION_MULTIPLIER = .2;            // for keys that are not nearby
   var DELETION_MULTIPLIER = .1;
+  var ZERO_CORRECTION_PREFIX_MULTIPLIER = 10;
   // profane words don't have a frequency themselves, so we bump their
   // frequency to a value which will make it pop up (only do if matches input)
   // 15 is a value that still allows very obvious corrections to be made
@@ -220,7 +221,7 @@ var Predictions = function() {
       'p': 'ṔṕṖṗꝒꝓƤƥⱣᵽꝐꝑ',
       'q': 'Ꝗꝗ',
       'r': 'ŔŕŘřŖŗṘṙṚṛȐȑȒȓṞṟɌɍⱤɽ',
-      's': 'ŚśŠšŞşŜŝȘșṠṡṢṣß$',
+      's': 'ŚśŠšŞşŜŝȘșṠṡṢṣß',
       't': 'ŤťŢţṰṱȚțȾⱦṪṫṬṭƬƭṮṯƮʈŦŧ',
       'u': 'ÚúŬŭǓǔÛûṶṷÜüṲṳỤụŰűȔȕÙùỦủƯưȖȗŪūŲųŮůŨũṴṵ',
       'v': 'ṾṿƲʋṼṽ',
@@ -472,6 +473,11 @@ var Predictions = function() {
       if (corrections === 0 &&
           multiplier > WORD_EXTENSION_MULTIPLIER * WORD_EXTENSION_MULTIPLIER) {
         weight += 100;
+      }
+      // Give it a little boost if corrections are 0 but more than one
+      // character has been added to the input, boost depends on freq
+      else if (corrections === 0) {
+        weight += ((frequency / 32) * ZERO_CORRECTION_PREFIX_MULTIPLIER);
       }
 
       // If this candidate could never become a word, don't add it

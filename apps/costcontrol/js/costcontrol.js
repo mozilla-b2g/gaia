@@ -46,10 +46,7 @@ var CostControl = (function() {
       costcontrol = {
         iccId: iccId,
         request: request,
-        isBalanceRequestSMS: isBalanceRequestSMS,
-        getDataUsageWarning: function _getDataUsageWarning() {
-          return 0.8;
-        }
+        isBalanceRequestSMS: isBalanceRequestSMS
       };
 
       debug('Cost Control ready!');
@@ -494,7 +491,7 @@ var CostControl = (function() {
         }
       };
 
-      function saveLastDataUsage() {
+      function saveLastDataUsage(perApp) {
         // XXX: raw samples are apparently too much to persist,
         //      so we only store aggregate totals
 
@@ -502,6 +499,13 @@ var CostControl = (function() {
         Object.keys(lastDataUsage).forEach(function(key) {
           var value = lastDataUsage[key];
           if (key === 'wifi' || key === 'mobile') {
+
+            // If saving per app totals we should retain the totals for the
+            // global query, persisted in settings by the time of this call.
+            if (perApp) {
+              value = settings.lastDataUsage[key];
+            }
+
             savedUsage[key] = { apps: {}, total: value.total };
             Object.keys(value.apps).forEach(function(manifest) {
               savedUsage[key].apps[manifest] = {
@@ -575,7 +579,8 @@ var CostControl = (function() {
         var result = request.result;
         var data = adaptData(result);
         var manifestURL = request.result.appManifestURL;
-        if (manifestURL) {
+        // ignore the 'null' manifestURL
+        if (manifestURL && manifestURL !== 'null') {
           network.apps[manifestURL] = {
             samples: data[0],
             total: data[1]
@@ -600,7 +605,8 @@ var CostControl = (function() {
         aggregateSamples(lastDataUsage.wifi);
       }
 
-      saveLastDataUsage();
+      var perApp = apps && apps.length > 0;
+      saveLastDataUsage(perApp);
 
       result.status = 'success';
       result.data = lastDataUsage;

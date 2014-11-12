@@ -26,8 +26,8 @@ progress[value] {
   width: 100%;
   background: #333;
   border: none;
-  border-radius: 0.3rem;
-  height: 0.3rem;
+  border-radius: 0;
+  height: 0.4rem;
   display: block;
 }
 
@@ -38,10 +38,9 @@ progress[value]::-moz-progress-bar {
 
 /* Progress bar */
 progress[value].pack-activity {
-  background-image: url(progress_activity/images/ui/activity.png);
-  background-repeat: repeat;
-  background-size: 1rem auto;
-  animation: 0.5s move infinite steps(15);
+  background-size: 15rem;
+  background-image: repeating-linear-gradient( 135deg, #92F4FE, #92F4FE 5rem, #00CDF0 5rem, #00CDF0 10rem );
+  animation: move 1.5s steps(15) infinite;
 }
 
 /* Labels */
@@ -65,11 +64,6 @@ p[role="status"] span {
   display: inline-block;
   vertical-align: middle;
   margin-bottom: 0.5rem;
-}
-
-/* Light Activity bar */
-progress[value].pack-activity.light {
-  background-color: #f4f4f4;
 }
 
 /* Progress steps */
@@ -110,5 +104,5 @@ progress[value].pack-activity.light {
 
 @keyframes move {
   from { background-position: 0 0; }
-  to   { background-position: 1rem 0; }
+  to   { background-position: -15rem 0; }
 }

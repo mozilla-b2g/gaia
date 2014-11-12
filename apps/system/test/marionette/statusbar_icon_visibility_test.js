@@ -2,6 +2,7 @@
 
 var Actions = require('marionette-client').Actions;
 var System = require('../../../system/test/marionette/lib/system');
+var StatusBar = require('./lib/statusbar');
 
 marionette('Statusbar Visibility', function() {
   var client = marionette.client({
@@ -10,12 +11,14 @@ marionette('Statusbar Visibility', function() {
     },
     settings: {
       'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+      'lockscreen.enabled': false,
+      'nfc.enabled': true
     }
   });
 
   var actions = new Actions(client);
   var system = new System(client);
+  var statusBar = new StatusBar(client);
   var halfScreenHeight;
 
   setup(function() {
@@ -41,4 +44,7 @@ marionette('Statusbar Visibility', function() {
     });
   });
 
+  test('NFC icon is visible', function() {
+    statusBar.nfc.waitForIconToAppear();
+  });
 });

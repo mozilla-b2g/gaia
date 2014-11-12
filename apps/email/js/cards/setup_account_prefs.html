@@ -1,8 +1,9 @@
-<section class="card-setup-account-prefs card-settings-account-common card skin-organic"
-         role="region">
+<!-- need this section element to keep building blocks happy. Too bad it
+  expects a section element -->
+<section class="skin-organic bbshim settings-account-common" role="region">
   <header class="sup-account-header">
     <menu type="toolbar">
-      <button class="sup-info-next-btn">
+      <button data-event="click:onNext" class="sup-info-next-btn">
         <span data-l10n-id="setup-info-next">NexT</span>
       </button>
     </menu>

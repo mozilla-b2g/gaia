@@ -73,6 +73,8 @@ var Dialog = function(params) {
   this.form.dataset.type = 'confirm';
   this.form.setAttribute('role', 'dialog');
   this.form.tabIndex = -1;
+  // Pick up option_menu.css styling
+  this.form.dataset.subtype = 'menu';
 
   // We fill the main info
 
@@ -117,6 +119,16 @@ var Dialog = function(params) {
     event.preventDefault();
   });
 
+  this.form.addEventListener('transitionend', function(event) {
+    if (!event.target.classList.contains('visible') &&
+        event.target.parentNode) {
+      document.body.removeChild(event.target);
+    }
+    // If we add a class, the animation will not be perform properly.
+    // see Bug 1095338 for further information
+    document.body.style.pointerEvents = 'initial';
+  });
+
   menu.addEventListener('click', function(event) {
     var action = handlers.get(event.target);
 
@@ -140,12 +152,22 @@ var Dialog = function(params) {
 
 // We prototype functions to show/hide the UI of action-menu
 Dialog.prototype.show = function() {
-  document.body.appendChild(this.form);
+  if (!this.form.parentNode) {
+    document.body.appendChild(this.form);
+
+    // Flush style on form so that the show transition plays once we add
+    // the visible class.
+    this.form.clientTop;
+  }
+  this.form.classList.add('visible');
+  // If we add a class, the animation will not be perform properly.
+  // see Bug 1095338 for further information
+  document.body.style.pointerEvents = 'none';
   this.form.focus();
 };
 
 Dialog.prototype.hide = function() {
-  document.body.removeChild(this.form);
+  this.form.classList.remove('visible');
 };
 
 exports.Dialog = Dialog;

@@ -60,19 +60,19 @@ body[role="application"] menu:not([type="toolbar"]) {
 }
 
 body[role="application"] menu:not([type="toolbar"]) button:last-child,
-body[role="application"] menu:not([type="toolbar"]) a[role="button"]:last-child {
+body[role="application"] menu:not([type="toolbar"]) a.bb-button:last-child {
   margin-left: 1rem;
 }
 
 body[role="application"] menu:not([type="toolbar"]) button,
-body[role="application"] menu:not([type="toolbar"]) a[role="button"],
+body[role="application"] menu:not([type="toolbar"]) a.bb-button,
 body[role="application"] menu:not([type="toolbar"]) button:first-child,
-body[role="application"] menu:not([type="toolbar"]) a[role="button"]:first-child {
+body[role="application"] menu:not([type="toolbar"]) a.bb-button:first-child {
   margin: 0;
 }
 
 body[role="application"] menu:not([type="toolbar"])[data-items="2"] button,
-body[role="application"] menu:not([type="toolbar"])[data-items="2"] a[role="button"] {
+body[role="application"] menu:not([type="toolbar"])[data-items="2"] a.bb-button {
   width: -moz-calc((100% - 1rem) / 2);
 }
 

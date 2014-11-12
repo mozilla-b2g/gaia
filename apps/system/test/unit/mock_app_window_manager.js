@@ -1,6 +1,7 @@
 'use strict';
 
-var MockAppWindowManager = {
+var MockAppWindowManager = function() {};
+MockAppWindowManager.prototype = {
   isRunning: function(config) {
     return (config.origin in this.mRunningApps);
   },
@@ -55,5 +56,5 @@ var MockAppWindowManager = {
     }
   },
 
-  init: function() {}
+  start: function() {}
 };

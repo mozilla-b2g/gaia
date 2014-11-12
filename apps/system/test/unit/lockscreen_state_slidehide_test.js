@@ -1,6 +1,9 @@
 /* global LockScreenStateSlideHide */
 
 'use strict';
+
+// Must mock dependencies here.
+window.LockScreenBaseState = function() {};
 requireApp('system/lockscreen/js/lockscreen_state_slidehide.js');
 suite('sytem/LockScreenStateSlideHide', function() {
   var subject;

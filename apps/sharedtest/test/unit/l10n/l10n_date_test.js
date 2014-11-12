@@ -2,7 +2,6 @@
 
 require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
-//mocha.setup({globals: ['jsCount', 'totalResult']});
 
 suite('l10n date', function(done) {
 

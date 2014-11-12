@@ -1,9 +1,13 @@
+define(function(require) {
+'use strict';
+
+var object = require('object');
+
 suite('Object', function() {
-  'use strict';
   var subject;
 
   setup(function() {
-    subject = Calendar.Object;
+    subject = object;
   });
 
   test('#filter', function() {
@@ -54,4 +58,6 @@ suite('Object', function() {
     var result = subject.values(input);
     assert.deepEqual(result, ['b', 'q', 'y']);
   });
+});
+
 });

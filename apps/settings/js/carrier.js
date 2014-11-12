@@ -42,11 +42,10 @@ var CarrierSettings = (function(window, document, undefined) {
   /** Flag */
   var _restartingDataConnection = false;
 
-  /* Store the states of automatic operator selection */
-  var _opAutoSelectStates = null;
-
   var dataInput = null;
   var dataRoamingInput = null;
+
+  var gOperatorNetworkList = null;
 
   /**
    * Init function.
@@ -453,9 +452,6 @@ var CarrierSettings = (function(window, document, undefined) {
     var opAutoSelectInput = opAutoSelect.querySelector('input');
     var opAutoSelectState = opAutoSelect.querySelector('small');
 
-    _opAutoSelectStates =
-      Array.prototype.map.call(_mobileConnections, function() { return true; });
-
     /**
      * Update selection mode.
      */
@@ -481,17 +477,9 @@ var CarrierSettings = (function(window, document, undefined) {
      */
     opAutoSelectInput.onchange = function() {
       var targetIndex = DsdsSettings.getIccCardIndexForCellAndDataSettings();
-      _opAutoSelectStates[targetIndex] = opAutoSelectInput.checked;
 
-      if (opAutoSelectInput.checked) {
-        gOperatorNetworkList.stop();
-        var req = _mobileConnection.selectNetworkAutomatically();
-        req.onsuccess = function() {
-          updateSelectionMode(false);
-        };
-      } else {
-        gOperatorNetworkList.scan();
-      }
+      gOperatorNetworkList.setAutomaticSelection(targetIndex,
+        this.checked);
     };
 
     /**
@@ -536,7 +524,7 @@ var CarrierSettings = (function(window, document, undefined) {
     }
 
     // operator network list
-    var gOperatorNetworkList = (function operatorNetworkList(list) {
+    gOperatorNetworkList = (function operatorNetworkList(list) {
       // get the "Searching..." and "Search Again" items, respectively
       var infoItem = list.querySelector('li[data-state="on"]');
       var scanItem = list.querySelector('li[data-state="ready"]');
@@ -547,6 +535,9 @@ var CarrierSettings = (function(window, document, undefined) {
       var operatorItemMap = {};
 
       var scanRequest = null;
+
+      var opAutoSelectStates = Array.prototype.map.call(_mobileConnections,
+        function() { return true; });
 
       /**
        * Clear the list.
@@ -611,9 +602,11 @@ var CarrierSettings = (function(window, document, undefined) {
                                       'operator-status-connected');
           updateSelectionMode(false);
           connecting = false;
+          checkAutomaticSelection();
         };
         req.onerror = function onerror() {
           connecting = false;
+          checkAutomaticSelection();
           messageElement.setAttribute('data-l10n-id',
                                       'operator-status-connectingfailed');
           if (currentConnectedNetwork) {
@@ -681,10 +674,49 @@ var CarrierSettings = (function(window, document, undefined) {
         scanRequest = null;
       }
 
+      var pendingAutomaticSelectionRequest = false;
+      function checkAutomaticSelection() {
+        if (pendingAutomaticSelectionRequest) {
+          doEnableAutomaticSelection();
+          pendingAutomaticSelectionRequest = false;
+        }
+      }
+
+      function doEnableAutomaticSelection() {
+        var req = _mobileConnection.selectNetworkAutomatically();
+        req.onsuccess = function() {
+          updateSelectionMode(false);
+        };
+      }
+
+      function setAutomaticSelection(index, enabled) {
+        opAutoSelectStates[index] = enabled;
+        if (enabled) {
+          stop();
+          // When RIL is actively connecting to an operator, we are not able
+          // to set automatic selection. Instead we set a flag indicating that
+          // there is a pending automatic selection request.
+          if (connecting) {
+            pendingAutomaticSelectionRequest = true;
+          } else {
+            doEnableAutomaticSelection();
+          }
+        } else {
+          pendingAutomaticSelectionRequest = false;
+          scan();
+        }
+      }
+
+      function getAutomaticSelection(index) {
+        return opAutoSelectStates[index];
+      }
+
       // API
       return {
         stop: stop,
-        scan: scan
+        scan: scan,
+        setAutomaticSelection: setAutomaticSelection,
+        getAutomaticSelection: getAutomaticSelection
       };
     })(document.getElementById('availableOperators'));
 
@@ -698,7 +730,8 @@ var CarrierSettings = (function(window, document, undefined) {
     var opAutoSelectInput =
       document.querySelector('#operator-autoSelect input');
     var targetIndex = DsdsSettings.getIccCardIndexForCellAndDataSettings();
-    opAutoSelectInput.checked = _opAutoSelectStates[targetIndex];
+    opAutoSelectInput.checked =
+      gOperatorNetworkList.getAutomaticSelection(targetIndex);
     opAutoSelectInput.dispatchEvent(new Event('change'));
   }
 

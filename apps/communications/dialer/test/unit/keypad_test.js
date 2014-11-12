@@ -1,24 +1,24 @@
 /* globals CallHandler, CallLogDBManager, FontSizeManager, gTonesFrequencies,
-           KeypadManager, MockCall, MockCallsHandler, MockDialerIndexHtml,
-           MockIccManager, MockNavigatorMozTelephony, MockNavigatorSettings,
-           MockSettingsListener, MocksHelper, MockTonePlayer, SimPicker,
-           telephonyAddCall, MockMultiSimActionButtonSingleton, MockMozL10n,
-           CustomDialog, MockMozActivity
+           KeypadManager, MockCall, MockCallsHandler, MockIccManager,
+           MockNavigatorMozTelephony, MockNavigatorSettings,
+           MockSettingsListener, MocksHelper, MockTonePlayer, telephonyAddCall,
+           MockMultiSimActionButtonSingleton, MockMozL10n,  CustomDialog,
+           MockMozActivity, CustomElementsHelper
 */
 
 'use strict';
 
+require('/shared/js/dialer/dtmf_tone.js');
 require('/shared/js/dialer/keypad.js');
 
-require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_call_handler.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/shared/test/unit/mocks/mock_sim_picker.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
@@ -30,6 +30,8 @@ require('/shared/test/unit/mocks/mock_custom_dialog.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 require('/dialer/test/unit/mock_dialer_index.html.js');
+require(
+  '/shared/test/unit/mocks/elements/gaia_sim_picker/mock_gaia_sim_picker.js');
 
 var mocksHelperForKeypad = new MocksHelper([
   'LazyL10n',
@@ -41,16 +43,19 @@ var mocksHelperForKeypad = new MocksHelper([
   'CallLogDBManager',
   'HandledCall',
   'SettingsListener',
-  'SimPicker',
+  'GaiaSimPicker',
   'TonePlayer',
   'CustomDialog',
   'MozActivity',
   'FontSizeManager'
 ]).init();
 
+var customElementsHelperForKeypad = new CustomElementsHelper([
+  'GaiaSimPicker'
+]);
+
 suite('dialer/keypad', function() {
   var subject;
-  var previousBody;
   var realMozActivity;
   var realMozIccManager;
   var realMozL10n;
@@ -73,10 +78,12 @@ suite('dialer/keypad', function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
-    previousBody = document.body.innerHTML;
-    document.body.innerHTML = MockDialerIndexHtml;
+    loadBodyHTML('/dialer/test/unit/mock_dialer_index.html');
+
     subject = KeypadManager;
-    subject.init(false);
+    subject.init(/* oncall */ false);
+
+    customElementsHelperForKeypad.resolve();
   });
 
   suiteTeardown(function() {
@@ -86,8 +93,6 @@ suite('dialer/keypad', function() {
     MockNavigatorSettings.mSyncRepliesOnly = false;
     MockNavigatorMozTelephony.mSuiteTeardown();
     navigator.mozTelephony = realMozTelephony;
-
-    document.body.innerHTML = previousBody;
   });
 
   setup(function() {
@@ -99,6 +104,14 @@ suite('dialer/keypad', function() {
   });
 
   suite('Keypad Manager', function() {
+    test('initializates the TonePlayer to use the "content" channel',
+    function() {
+      this.sinon.spy(MockTonePlayer, 'init');
+      KeypadManager.init(/* oncall */ false);
+
+      sinon.assert.calledWith(MockTonePlayer.init, 'content');
+    });
+
     test('sanitizePhoneNumber', function(done) {
       var testCases = {
           '111-111-1111': '111-111-1111',
@@ -322,12 +335,12 @@ suite('dialer/keypad', function() {
 
         this.sinon.stub(document, 'elementFromPoint');
 
-        subject.init(true);
+        subject.init(/* oncall */ true);
         subject.render('oncall');
       });
 
       teardown(function() {
-        subject.init(false);
+        subject.init(/* oncall */ false);
       });
 
       suite('Audible and DTMF tones', function() {
@@ -450,74 +463,6 @@ suite('dialer/keypad', function() {
       });
     });
 
-    suite('TonePlayer channel management', function() {
-      var realHidden, stubHidden, mockCall;
-
-      setup(function() {
-        realHidden = document.hidden;
-
-        Object.defineProperty(document, 'hidden', {
-          configurable: true,
-          get: function() { return stubHidden; }
-        });
-
-        stubHidden = true;
-
-        this.sinon.spy(MockTonePlayer, 'init');
-        this.sinon.spy(MockTonePlayer, 'setChannel');
-        subject.init(true);
-
-        mockCall = new MockCall('12345', 'connected', 0);
-      });
-
-      teardown(function() {
-        Object.defineProperty(document, 'hidden', {
-          configurable: true,
-          get: function() { return realHidden; }
-        });
-        subject.init(false);
-      });
-
-      test('should be on the normal channel at init', function() {
-        sinon.assert.calledOnce(MockTonePlayer.init);
-        sinon.assert.calledWith(MockTonePlayer.init, 'normal');
-      });
-
-      test('should switch to telephony when it gets displayed', function() {
-        stubHidden = false;
-        window.dispatchEvent(new CustomEvent('visibilitychange'));
-        var lastCall = MockTonePlayer.setChannel.lastCall;
-        assert.equal(lastCall.args[0], 'telephony');
-      });
-
-      test('should switch back to normal when it gets hidden', function() {
-        stubHidden = true;
-        window.dispatchEvent(new CustomEvent('visibilitychange'));
-        var lastCall = MockTonePlayer.setChannel.lastCall;
-        assert.equal(lastCall.args[0], 'normal');
-      });
-
-      test('should stay on the telephony channel if a call is ongoing',
-      function() {
-        MockNavigatorMozTelephony.calls = [mockCall];
-
-        stubHidden = true;
-        window.dispatchEvent(new CustomEvent('visibilitychange'));
-        var lastCall = MockTonePlayer.setChannel.lastCall;
-        assert.equal(lastCall.args[0], 'telephony');
-      });
-
-      test('should stay on the telephony channel if a conference is ongoing',
-      function() {
-        MockNavigatorMozTelephony.conferenceGroup.calls = [mockCall];
-
-        stubHidden = true;
-        window.dispatchEvent(new CustomEvent('visibilitychange'));
-        var lastCall = MockTonePlayer.setChannel.lastCall;
-        assert.equal(lastCall.args[0], 'telephony');
-      });
-    });
-
     suite('voiceMail hotkey', function() {
       var fakeVoicemail;
 
@@ -532,6 +477,9 @@ suite('dialer/keypad', function() {
 
       setup(function() {
         fakeVoicemail = '888';
+        KeypadManager._phoneNumber = '';
+
+        doLongPress = doLongPress.bind(this);
 
         this.sinon.spy(CallHandler, 'call');
 
@@ -542,10 +490,11 @@ suite('dialer/keypad', function() {
         MockMozActivity.mTeardown();
       });
 
-      var doLongPress = function() {
-        subject._touchStart('1', true);
-        this.sinon.clock.tick(1500);
-        subject._touchEnd('1');
+      var doLongPress = function(digit, time) {
+        time = time || 400;
+        subject._touchStart(digit);
+        this.sinon.clock.tick(time);
+        subject._touchEnd(digit);
       };
 
       var shouldRemove1FromPhoneNumber = function() {
@@ -571,7 +520,7 @@ suite('dialer/keypad', function() {
           navigator.mozIccManager.iccIds[0] = 0;
           MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
 
-          doLongPress.bind(this)();
+          doLongPress('1');
 
           MockNavigatorSettings.mReplyToRequests();
         });
@@ -587,7 +536,7 @@ suite('dialer/keypad', function() {
           var showSpy = this.sinon.spy(CustomDialog, 'show');
           MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = '';
 
-          doLongPress.bind(this)();
+          doLongPress('1');
           MockNavigatorSettings.mReplyToRequests();
 
           var expectedVoicemailDialog = {
@@ -615,6 +564,7 @@ suite('dialer/keypad', function() {
 
       suite('DualSIM', function() {
         var fakeVoicemail2 = '666';
+        var simPicker;
 
         setup(function() {
           navigator.mozIccManager.iccIds[0] = 0;
@@ -624,24 +574,25 @@ suite('dialer/keypad', function() {
             fakeVoicemail, fakeVoicemail2];
           MockNavigatorSettings.mSettings['ril.voicemail.defaultServiceId'] = 1;
 
-          this.sinon.spy(SimPicker, 'getOrPick');
-          doLongPress.bind(this)();
+          simPicker = document.getElementById('sim-picker');
+          this.sinon.spy(simPicker, 'getOrPick');
+          doLongPress('1');
 
           MockNavigatorSettings.mReplyToRequests();
         });
 
         test('should show the SIM picker for favorite SIM', function() {
-          sinon.assert.calledWith(SimPicker.getOrPick, 1, 'voiceMail');
+          sinon.assert.calledWith(simPicker.getOrPick, 1, 'voiceMail');
         });
 
         test('should call voicemail for SIM1', function() {
-          SimPicker.getOrPick.yield(0);
+          simPicker.getOrPick.yield(0);
           MockNavigatorSettings.mReplyToRequests();
           sinon.assert.calledWith(CallHandler.call, fakeVoicemail, 0);
         });
 
         test('should call voicemail for SIM2', function() {
-          SimPicker.getOrPick.yield(1);
+          simPicker.getOrPick.yield(1);
           MockNavigatorSettings.mReplyToRequests();
           sinon.assert.calledWith(CallHandler.call, fakeVoicemail2, 1);
         });
@@ -650,6 +601,29 @@ suite('dialer/keypad', function() {
 
         test('should open settings app with MozActivity when no voicemail set',
              shouldOpenSettingsAppWithMozActivity);
+      });
+
+      test('pressing less than 400ms should not call', function() {
+        navigator.mozIccManager.iccIds[0] = 0;
+        MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
+
+        doLongPress('1', 399);
+        MockNavigatorSettings.mReplyToRequests();
+
+        sinon.assert.notCalled(CallHandler.call);
+      });
+
+      test('pressing after another digit should not call', function() {
+        navigator.mozIccManager.iccIds[0] = 0;
+        MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
+
+        doLongPress('2');
+        MockNavigatorSettings.mReplyToRequests();
+
+        doLongPress('1');
+        MockNavigatorSettings.mReplyToRequests();
+
+        sinon.assert.notCalled(CallHandler.call);
       });
     });
   });
@@ -664,7 +638,7 @@ suite('dialer/keypad', function() {
       addEventListenerSpy = this.sinon.spy(callBarCallActionButton,
                                            'addEventListener');
 
-      subject.init(false);
+      subject.init(/* oncall */ false);
     });
 
     test('Should initialize MultiSimActionButton', function() {

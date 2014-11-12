@@ -2,9 +2,9 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_download.js');
-requireApp('settings/test/unit/mock_l10n.js');
 require('/shared/js/download/download_formatter.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 
 suite('DownloadFormatter', function() {

@@ -125,7 +125,7 @@ var FxaModuleEnterPassword = (function() {
 
     var helloUserText = _('fxa-hello-user');
     helloUserText = helloUserText.replace(
-      '{{email}}',
+      /{{\s*email\s*}}/,
       '<a id="fxa-known-user-email">' + this.email + '</a>'
     );
     this.fxaHelloKnownUser.innerHTML = helloUserText;
@@ -140,7 +140,7 @@ var FxaModuleEnterPassword = (function() {
   };
 
   Module.onNext = function onNext(gotoNextStepCallback) {
-    FxaModuleOverlay.show(_('fxa-connecting'));
+    FxaModuleOverlay.show('fxa-connecting');
 
     FxaModuleManager.setParam('success', true);
     FxModuleServerRequest.signIn(

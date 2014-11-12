@@ -1,20 +1,17 @@
-requireLib('format.js');
-requireLib('template.js');
+define(function(require) {
+'use strict';
+
+var Template = require('template');
+var format = require('format');
 
 suite('calendar/template', function() {
-  'use strict';
-
-  var Template, subject,
+  var subject,
       tplStr = '%s foo %h',
       support;
 
 
-  suiteSetup(function() {
+  setup(function() {
     support = testSupport.calendar;
-  });
-
-  suiteSetup(function() {
-    Template = Calendar.Template;
   });
 
   suite('Template.create', function() {
@@ -189,6 +186,13 @@ suite('calendar/template', function() {
       assert.equal(output, '');
     });
 
+    test('l10nId', function() {
+      var tpl = new Template(function() {
+        return this.l10nId('state');
+      });
+      assert.equal(tpl.render({state: 'past other-month'}), 'past-other-month');
+    });
+
     suite('l10n', function() {
       var realL10n;
       var lookup = {
@@ -259,7 +263,7 @@ suite('calendar/template', function() {
         },
 
         format: function() {
-          Calendar.format(tpl, 'Sahaja', 'Lal');
+          format(tpl, 'Sahaja', 'Lal');
         }
       });
 
@@ -312,8 +316,7 @@ suite('calendar/template', function() {
 
       container.parentNode.removeChild(container);
     });
-
   });
-
 });
 
+});

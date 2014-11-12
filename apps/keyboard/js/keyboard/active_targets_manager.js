@@ -1,6 +1,7 @@
 'use strict';
 
-/* global UserPressManager, AlternativesCharMenuManager */
+/* global UserPressManager, AlternativesCharMenuManager,
+   HandwritingPadsManager */
 
 (function(exports) {
 
@@ -20,10 +21,12 @@ var ActiveTargetsManager = function(app) {
 
   this.userPressManager = null;
   this.alternativesCharMenuManager = null;
+  this.handwritingPadsManager = null;
 
   this.longPressTimer = undefined;
 
-  this.doubleTapTimers = null;
+  this.doubleTapTimer = undefined;
+  this.doubleTapPreviousTarget = null;
 };
 
 ActiveTargetsManager.prototype.ontargetactivated = null;
@@ -33,6 +36,7 @@ ActiveTargetsManager.prototype.ontargetmovedin = null;
 ActiveTargetsManager.prototype.ontargetcommitted = null;
 ActiveTargetsManager.prototype.ontargetcancelled = null;
 ActiveTargetsManager.prototype.ontargetdoubletapped = null;
+ActiveTargetsManager.prototype.onnewtargetwillactivate = null;
 
 // Show accent char menu (if there is one) or do other stuff
 // after LONG_PRESS_TIMEOUT
@@ -45,7 +49,6 @@ ActiveTargetsManager.prototype.DOUBLE_TAP_TIMEOUT = 450;
 ActiveTargetsManager.prototype.start = function() {
   this.app.console.log('ActiveTargetsManager.start()');
   this.activeTargets = new Map();
-  this.doubleTapTimers = new WeakMap();
 
   var userPressManager =
     this.userPressManager = new UserPressManager(this.app);
@@ -57,6 +60,9 @@ ActiveTargetsManager.prototype.start = function() {
   this.alternativesCharMenuManager =
     new AlternativesCharMenuManager(this.app);
   this.alternativesCharMenuManager.start();
+
+  this.handwritingPadsManager = new HandwritingPadsManager(this.app);
+  this.handwritingPadsManager.start();
 };
 
 ActiveTargetsManager.prototype.stop = function() {
@@ -69,7 +75,12 @@ ActiveTargetsManager.prototype.stop = function() {
   this.alternativesCharMenuManager.stop();
   this.alternativesCharMenuManager = null;
 
+  this.handwritingPadsManager.stop();
+  this.handwritingPadsManager = null;
+
   clearTimeout(this.longPressTimer);
+  this.doubleTapTimer = undefined;
+  this.doubleTapPreviousTarget = null;
 };
 
 ActiveTargetsManager.prototype.clearAllTargets = function() {
@@ -99,14 +110,25 @@ ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
     return;
   }
 
-  // All targets before the new touch need to be committed,
-  // according to UX requirement.
-  this.activeTargets.forEach(function(target, id) {
-    this._handlePressEnd(press, id);
-  }, this);
+  // Ignore new touches when user is writing.
+  if (this.handwritingPadsManager.isWriting) {
+    return;
+  }
+
+  // Notify current targets about the new touch.
+  if (typeof this.onnewtargetwillactivate === 'function') {
+    this.activeTargets.forEach(function(target, id) {
+      this.onnewtargetwillactivate(target);
+    }, this);
+  }
 
   var target = press.target;
   this.activeTargets.set(id, target);
+
+  if (this.handwritingPadsManager.isHandwritingPad(press.target)) {
+    this.handwritingPadsManager.handlePressStart(press);
+    return;
+  }
 
   if (typeof this.ontargetactivated === 'function') {
     this.ontargetactivated(target);
@@ -150,6 +172,10 @@ ActiveTargetsManager.prototype._handlePressMove = function(press, id) {
     this.alternativesCharMenuManager.hide();
     clearTimeout(this.longPressTimer);
 
+    return;
+  }
+
+  if (this._handlePressMoveOnHandwritingPad(press, target)) {
     return;
   }
 
@@ -210,30 +236,61 @@ ActiveTargetsManager.prototype._handlePressEnd = function(press, id) {
   var target = this.activeTargets.get(id);
   this.activeTargets.delete(id);
 
+  if (this.handwritingPadsManager.isWriting) {
+    this.handwritingPadsManager.handlePressEnd(target);
+    return;
+  }
+
   this.alternativesCharMenuManager.hide();
   clearTimeout(this.longPressTimer);
 
   // Target should be either committed or doubled tapped here.
-  var timer;
-  if (this.doubleTapTimers.has(target)) {
-    timer = this.doubleTapTimers.get(target);
-    clearTimeout(timer);
-    this.doubleTapTimers.delete(target);
+  if (this.doubleTapTimer && this.doubleTapPreviousTarget === target) {
+    window.clearTimeout(this.doubleTapTimer);
+    this.doubleTapTimer = undefined;
 
     if (typeof this.ontargetdoubletapped === 'function') {
       this.ontargetdoubletapped(target);
     }
   } else {
-    timer = setTimeout(function() {
-      this.doubleTapTimers.delete(target);
+    this.doubleTapTimer = window.setTimeout(function() {
+      this.doubleTapTimer = undefined;
+      this.doubleTapPreviousTarget = null;
     }.bind(this), this.DOUBLE_TAP_TIMEOUT);
-    this.doubleTapTimers.set(target, timer);
+
+    this.doubleTapPreviousTarget = target;
 
     if (typeof this.ontargetcommitted === 'function') {
       this.ontargetcommitted(target);
     }
   }
 };
+
+ActiveTargetsManager.prototype._handlePressMoveOnHandwritingPad =
+  function(press, target) {
+    // User press moving on handwriting pad.
+    if (this.handwritingPadsManager.isWriting &&
+        this.handwritingPadsManager.isHandwritingPad(target)) {
+      this.handwritingPadsManager.handlePressMove(press);
+      return true;
+    }
+
+    // For UX team's requirement
+    // When moving out from handwriting pad, keep event's target to handwriting
+    // pad, make sure avoid invoking ontargetmovedin for the new target.
+    if (this.handwritingPadsManager.isWriting &&
+        !this.handwritingPadsManager.isHandwritingPad(target)) {
+      return true;
+    }
+
+    // When moving into handwriting pad, update event's target to handwriting
+    // pad and ensure that invoke ontargetmovedout for the original target.
+    if (!this.handwritingPadsManager.isWriting &&
+        this.handwritingPadsManager.isHandwritingPad(target)) {
+      this.handwritingPadsManager.handlePressStart(press);
+    }
+    return false;
+  };
 
 exports.ActiveTargetsManager = ActiveTargetsManager;
 

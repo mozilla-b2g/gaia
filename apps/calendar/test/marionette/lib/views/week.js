@@ -13,46 +13,54 @@ Week.prototype = {
   selector: '#week-view',
 
   get sideBarHours() {
-    return this.findElements('.sidebar .hour .display-hour');
+    return this.findElements('.md__sidebar .md__hour .md__display-hour');
   },
 
   get events() {
-    return this.findElements('.event');
+    return this.findElements('.md__event');
   },
 
   get todayDates() {
-    return this.findElements('.sticky .allday h1.is-today');
+    return this.findElements('.md__sticky .md__allday h1.is-today');
   },
 
   get dayNames() {
-    return this.findElements('.day-name').map(function(el) {
+    return this.findElements('.md__day-name').map(function(el) {
       return el.text();
     });
   },
 
   get days() {
-    return this.findElements('.day');
+    return this.findElements('.md__day');
   },
 
   get hours() {
-    return this.findElements('.hour');
+    return this.findElements('.md__hour');
   },
 
   get currentTime() {
-    return this.findElement('.current-time');
+    return this.findElement('.md__current-time');
   },
 
   get currentHour() {
     var now = new Date();
-    return this.findElement('.hour-'+ now.getHours());
+    return this.findElement('.md__hour-'+ now.getHours());
   },
 
   get currentDisplayHour() {
-    return this.currentHour.findElement('.display-hour');
+    return this.currentHour.findElement('.md__display-hour');
   },
 
   get main() {
-    return this.findElement('.main');
+    return this.findElement('.md__main');
+  },
+
+  get allDayIcon() {
+    return this.findElement('.md__all-day');
+  },
+
+  get allDay() {
+    return this.findElements('.md__allday')[1];
   },
 
   get scrollTop() {

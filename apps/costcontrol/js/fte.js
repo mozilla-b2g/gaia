@@ -195,11 +195,6 @@
   // NAVIGATION
 
   function reset(track) {
-    // Set wizard progess section
-    wizard.classList.add('total-steps-' + track.length);
-    wizard.classList.remove('step-' + (step + 1));
-    wizard.classList.add('step-1');
-
     // Reposition screens
     var currentScreen = document.getElementById(currentTrack[step]);
     var newStartScreen = document.getElementById(track[0]);
@@ -236,10 +231,6 @@
     delete nextScreen.dataset.viewport;
     currentScreen.dataset.viewport = 'left';
 
-    // Advance progress bar
-    wizard.classList.remove('step-' + (step + 1));
-    wizard.classList.add('step-' + (step + 2));
-
     step += 1;
 
     // Validate when in step 2 in order to restore buttons and errors
@@ -262,10 +253,6 @@
     // Enter the previous screen
     delete prevScreen.dataset.viewport;
     currentScreen.dataset.viewport = 'right';
-
-    // Back progress bar
-    wizard.classList.remove('step-' + (step + 1));
-    wizard.classList.add('step-' + step);
 
     step -= 1;
   }

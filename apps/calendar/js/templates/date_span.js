@@ -1,45 +1,47 @@
-(function(window) {
-  'use strict';
+define(function(require, exports, module) {
+'use strict';
 
-  var _ = navigator.mozL10n.get;
-  var Calc = Calendar.Calc;
+var Calc = require('calc');
+var create = require('template').create;
+var dateFormat = require('date_format');
 
-  var DateSpan = Calendar.Template.create({
-    time: function() {
-      var time = this.arg('time');
-      var format = Calc.getTimeL10nLabel(this.h('format'));
-      var displayTime = Calendar.App.dateFormat.localeFormat(time, _(format));
+var l10n = navigator.mozL10n;
 
-      return `<span data-l10n-date-format="${format}"
-                data-date="${time}">
-                ${displayTime}
-              </span>`;
-    },
+module.exports = create({
+  time: function() {
+    var time = this.arg('time');
+    var format = Calc.getTimeL10nLabel(this.h('format'));
+    var displayTime = dateFormat.localeFormat(time, l10n.get(format));
 
-    hour: function() {
-      var hour = this.h('hour');
-      var format = Calc.getTimeL10nLabel(this.h('format'));
-      var className = this.h('className');
-      var date = new Date();
-      date.setHours(hour, 0, 0, 0);
+    return `<span data-l10n-date-format="${format}"
+                  data-date="${time}">${displayTime}</span>`;
+  },
 
-      var l10nLabel = _(format);
-      if (this.arg('addAmPmClass')) {
-        l10nLabel =
-          l10nLabel.replace(/\s*%p\s*/, '<span class="ampm">%p</span>');
-      }
-      var displayHour = Calendar.App.dateFormat.localeFormat(date, l10nLabel);
+  hour: function() {
+    var hour = this.h('hour');
+    var format = Calc.getTimeL10nLabel(this.h('format'));
+    var className = this.h('className');
+    var date = new Date();
+    date.setHours(hour, 0, 0, 0);
 
-      // remove leading zero
-      displayHour = displayHour.replace(/^0/, '');
-      var l10n = (hour === Calendar.Calc.ALLDAY) ?
-        'data-l10n-id="hour-allday"' :
-        `data-l10n-date-format="${format}"`;
-      return `<span class="${className}" data-date="${date}" ${l10n}>
-                ${displayHour}
-              </span>`;
+    var l10nLabel = l10n.get(format);
+    if (this.arg('addAmPmClass')) {
+      l10nLabel = l10nLabel.replace(
+        /\s*%p\s*/,
+        '<span class="ampm">%p</span>'
+      );
     }
-  });
 
-  Calendar.ns('Templates').DateSpan = DateSpan;
-}(this));
+    var displayHour = dateFormat.localeFormat(date, l10nLabel);
+    // remove leading zero
+    displayHour = displayHour.replace(/^0/, '');
+    var l10nAttr = (hour === Calc.ALLDAY) ?
+      'data-l10n-id="hour-allday"' :
+      `data-l10n-date-format="${format}"`;
+    return `<span class="${className}" data-date="${date}" ${l10nAttr}>
+              ${displayHour}
+            </span>`;
+  }
+});
+
+});

@@ -31,3 +31,7 @@ class Media(PageRegion):
     def tap_first_song(self):
         self.marionette.find_element(*self._media_link_locator).tap()
         return PlayerView(self.marionette)
+
+    def tap_first_artist(self):
+        self.marionette.find_element(*self._media_link_locator).tap()
+        return SublistView(self.marionette)

@@ -1,16 +1,13 @@
-/*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
+/*global MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
          MockOptionMenu, Utils, Contacts, MockContact, Navigation,
          MockSettings,
-         Dialog
+         Dialog,
+         InterInstanceEventDispatcher
          */
 
 'use strict';
-
-// remove this when https://github.com/visionmedia/mocha/issues/819 is merged in
-// mocha and when we have that new mocha in test agent
-mocha.setup({ globals: ['alert', 'confirm'] });
 
 requireApp('sms/js/utils.js');
 require('/js/dialog.js');
@@ -37,6 +34,9 @@ require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_settings.js');
+require('/test/unit/mock_inter_instance_event_dispatcher.js');
+require('/test/unit/mock_selection_handler.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',
@@ -50,7 +50,10 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'OptionMenu',
   'PerformanceTestingHelper',
   'StickyHeader',
-  'Navigation'
+  'Navigation',
+  'InterInstanceEventDispatcher',
+  'SelectionHandler',
+  'LazyLoader'
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -66,6 +69,7 @@ suite('thread_list_ui', function() {
     mainWrapper = document.getElementById('main-wrapper');
 
     this.sinon.stub(MessageManager, 'on');
+    this.sinon.stub(InterInstanceEventDispatcher, 'on');
 
     ThreadListUI.init();
 
@@ -618,11 +622,15 @@ suite('thread_list_ui', function() {
 
         assert.isNotNull(document.getElementById('thread-' +thread.id));
       });
+
+      ThreadListUI.selectionHandler = null;
+      ThreadListUI.startEdit();
     });
 
     teardown(function() {
       ThreadListUI.container = '';
       Drafts.clear();
+      ThreadListUI.cancelEdit();
     });
 
     suite('confirm true', function() {
@@ -637,11 +645,9 @@ suite('thread_list_ui', function() {
       }
 
       function selectThreadsAndDelete(threadIds) {
-        threadIds.forEach((threadId) => {
-          ThreadListUI.container.querySelector(
-            '#thread-' + threadId + ' input[type=checkbox]'
-          ).checked = true;
-        });
+        var selectedIds = threadIds.map(threadId => '' + threadId);
+
+        ThreadListUI.selectionHandler.selected = new Set(selectedIds);
 
         Dialog.firstCall.args[0].options.confirm.method();
       }
@@ -1421,6 +1427,13 @@ suite('thread_list_ui', function() {
       document.querySelector('#thread-101 a').click();
       assert.equal(ThreadUI.draft, draft);
     });
+
+    test('should re-request drafts if they are changed by another app instance',
+    function() {
+      InterInstanceEventDispatcher.on.withArgs('drafts-changed').yield();
+
+      sinon.assert.calledWith(Drafts.request, sinon.match.func, true);
+    });
   });
 
   suite('draftSaved', function() {
@@ -1580,12 +1593,10 @@ suite('thread_list_ui', function() {
     });
 
     test('display correctly a group MMS thread', function(done) {
-      var threadTitleNode = groupThread.node.querySelector('.name');
-
       Object.defineProperty(window, 'innerWidth', {
         configurable: true,
-        get: () => 400 }
-      );
+        get: () => 400
+      });
       ThreadListUI.init();
 
       Contacts.findByAddress.withArgs('555').yields(MockContact.list([{
@@ -1599,6 +1610,10 @@ suite('thread_list_ui', function() {
       }]));
 
       ThreadListUI.setContact(groupThread.node).then(() => {
+        var threadTitleNode = groupThread.node.querySelector(
+          '.threadlist-item-title'
+        );
+
         assert.isFalse(
           groupThread.picture.style.backgroundImage.contains('blob:')
         );
@@ -1609,18 +1624,23 @@ suite('thread_list_ui', function() {
           groupThread.pictureContainer.classList.contains('has-picture')
         );
         assert.equal(groupThread.picture.textContent, '2');
-        assert.equal(threadTitleNode.textContent, 'James Bond, Bond James');
+        assert.equal(
+          threadTitleNode.innerHTML,
+          '<span>' +
+            '<bdi>James Bond</bdi>' +
+            '<span data-l10n-id="thread-participant-separator"></span>' +
+            '<bdi>Bond James</bdi>' +
+          '</span>'
+        );
       }).then(done, done);
     });
 
     test('display correctly a group MMS thread with lots of participants',
     function(done) {
-      var threadTitleNode = groupThread.node.querySelector('.name');
-
       Object.defineProperty(window, 'innerWidth', {
         configurable: true,
-        get: () => 200 }
-      );
+        get: () => 200
+      });
       ThreadListUI.init();
 
       Contacts.findByAddress.withArgs('555').yields(MockContact.list([{
@@ -1629,6 +1649,10 @@ suite('thread_list_ui', function() {
       }]));
 
       ThreadListUI.setContact(groupThread.node).then(() => {
+        var threadTitleNode = groupThread.node.querySelector(
+          '.threadlist-item-title'
+        );
+
         sinon.assert.calledOnce(Contacts.findByAddress);
         sinon.assert.calledWith(Contacts.findByAddress, '555');
         assert.isFalse(
@@ -1641,7 +1665,10 @@ suite('thread_list_ui', function() {
           groupThread.pictureContainer.classList.contains('has-picture')
         );
         assert.equal(groupThread.picture.textContent, '2');
-        assert.equal(threadTitleNode.textContent, 'James Bond');
+        assert.equal(
+          threadTitleNode.innerHTML,
+          '<span><bdi>James Bond</bdi></span>'
+        );
       }).then(done, done);
     });
   });
@@ -1731,13 +1758,19 @@ suite('thread_list_ui', function() {
       thread2 = document.getElementById('thread-2');
     });
 
+    teardown(function() {
+      ThreadListUI.inEditMode = false;
+    });
+
     test('clicking on a list item', function() {
+      ThreadListUI.inEditMode = false;
       thread1.querySelector('a').click();
 
       sinon.assert.calledWith(Navigation.toPanel, 'thread', { id: 1 });
     });
 
     test('clicking on a list item in edit mode', function() {
+      ThreadListUI.inEditMode = true;
       thread1.querySelector('label').click();
 
       sinon.assert.notCalled(Navigation.toPanel);

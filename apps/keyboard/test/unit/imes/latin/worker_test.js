@@ -332,6 +332,10 @@ suite('Latin en_us worker', function() {
       prediction('sadjasuufehwuefhwejfd', [], next);
     });
 
+    test('$ should not yield autosuggest', function(next) {
+      prediction('$', [], next);
+    });
+
     suite('Capitalization and suggestions', function() {
       test('virgule', function(next) {
         prediction('virgule', ['virgule', 'virgules', 'Virgil'], next);
@@ -371,6 +375,10 @@ suite('Latin en_us worker', function() {
 
       test('As', function(next) {
         prediction('As', ['As', 'Ask', 'Ash'], next);
+      });
+
+      test('keyboa', function(next) {
+        prediction('keyboa', ['keyboard', null, null], next);
       });
     });
 

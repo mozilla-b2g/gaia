@@ -1,10 +1,9 @@
 'use strict';
 /* global MockImportStatusData, Mockfb, MockContacts, MockNavigationStack,
-   MockCookie, DeferredActions*/
+   MockCookie, DeferredActions, fb */
 
 require('/shared/js/lazy_loader.js');
 requireApp('communications/contacts/test/unit/mock_import_status_data.js');
-requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
@@ -154,6 +153,73 @@ suite('Post rendering', function() {
       });
 
       DeferredActions.execute();
+    });
+
+    suite('Facebook sanity checks', function() {
+      var spy;
+
+      suiteSetup(function() {
+        fb.utils = {
+          clearFbData: function() {
+            return {
+              result: {
+                set onsuccess(cb2) {
+                  cb2();
+                }
+              },
+              set onsuccess(cb) {
+                cb();
+              }
+            };
+          }
+        };
+
+        spy = sinon.spy(fb.utils, 'clearFbData');
+      });
+
+      suiteTeardown(function() {
+        // Left things as they were
+        spy.restore();
+        delete fb.utils;
+      });
+
+      test('Not called when not needed', function() {
+        spy.reset();
+
+        MockCookie.update({
+          fbCleaningInProgress: 0
+        });
+
+        DeferredActions.execute();
+
+        assert.isFalse(spy.calledOnce);
+        assert.equal(MockCookie.data.fbCleaningInProgress, 0);
+      });
+
+      test('Clear Facebook data called when needed', function() {
+        MockCookie.update({
+          fbCleaningInProgress: 1
+        });
+
+        DeferredActions.execute();
+
+        assert.isTrue(spy.calledOnce);
+        assert.equal(MockCookie.data.fbCleaningInProgress, 0);
+      });
+
+      test('Not called when num retries exceeded', function() {
+        var times = 5;
+        spy.reset();
+
+        MockCookie.update({
+          fbCleaningInProgress: times
+        });
+
+        DeferredActions.execute();
+
+        assert.isFalse(spy.calledOnce);
+        assert.equal(MockCookie.data.fbCleaningInProgress, times);
+      });
     });
   });
 });

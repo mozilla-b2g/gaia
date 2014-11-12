@@ -27,6 +27,7 @@ function CameraController(app) {
   this.settings = app.settings;
   this.activity = app.activity;
   this.hdrDisabled = this.settings.hdr.get('disabled');
+  this.notification = app.views.notification;
   this.l10nGet = app.l10nGet;
   this.configure();
   this.bindEvents();
@@ -49,12 +50,14 @@ CameraController.prototype.bindEvents = function() {
   camera.on('facesdetected', app.firer('camera:facesdetected'));
   camera.on('willrecord', app.firer('camera:willrecord'));
   camera.on('configured', app.firer('camera:configured'));
+  camera.on('requesting', app.firer('camera:requesting'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
   camera.on('newvideo', app.firer('camera:newvideo'));
   camera.on('shutter', app.firer('camera:shutter'));
   camera.on('loaded', app.firer('camera:loaded'));
+  camera.on('error', app.firer('camera:error'));
   camera.on('ready', app.firer('ready'));
   camera.on('busy', app.firer('busy'));
 
@@ -209,6 +212,7 @@ CameraController.prototype.showSizeLimitAlert = function() {
 CameraController.prototype.setMode = function(mode) {
   debug('set mode: %s', mode);
   var self = this;
+  var html;
 
   // Abort if didn't change.
   //
@@ -222,6 +226,14 @@ CameraController.prototype.setMode = function(mode) {
     debug('mode didn\'t change');
     return;
   }
+
+  if (mode == 'video') {
+    html = this.l10nGet('Video-Mode');
+  }
+  else {
+    html = this.l10nGet('Photo-Mode');
+  }
+  this.notification.display({ text: html });
 
   this.setFlashMode();
   this.app.emit('camera:willchange');
@@ -471,7 +483,7 @@ CameraController.prototype.updateZoomForMako = function() {
     // stream does not automatically reflect the current zoom value.
     self.settings.zoom.set('useZoomPreviewAdjustment', true);
     self.camera.set('maxHardwareZoom', maxHardwareZoom);
-    self.camera.emit('zoomconfigured');
+    self.camera.emit('zoomconfigured', self.camera.getZoom());
     debug('zoom reconfigured for mako');
   }
 };

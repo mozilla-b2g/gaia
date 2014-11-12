@@ -39,6 +39,7 @@ class TestGalleryEditPhoto(GaiaTestCase):
 
         # TBD. Verify the photo is changed.
 
+        edit_image.tap_edit_tool_apply_button()
         gallery = edit_image.tap_edit_save_button()
         gallery.wait_for_files_to_load(2)
 

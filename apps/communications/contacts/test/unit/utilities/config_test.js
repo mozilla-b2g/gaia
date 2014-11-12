@@ -19,6 +19,7 @@ suite('> Config Utilities', function() {
       case 'file1.json':
         setTimeout(function() {
           request.response = configObj;
+          request.status = 200;
           request.onload();
         });
       break;

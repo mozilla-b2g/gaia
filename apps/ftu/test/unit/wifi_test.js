@@ -1,24 +1,28 @@
 'use strict';
 
-requireApp('ftu/test/unit/mock_l10n.js');
 requireApp('ftu/test/unit/mock_utils.js');
 requireApp('ftu/test/unit/mock_wifi_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('ftu/test/unit/mock_moz_wifi_network.js');
 
 requireApp('ftu/js/wifi.js');
+requireApp('ftu/js/ui.js');
 
 var mocksHelperForWifi = new MocksHelper([
   'utils',
-  'WifiHelper'
+  'WifiHelper',
+  'MozWifiNetwork'
 ]).init();
 
 suite('wifi > ', function() {
-  var realL10n;
+  var realL10n, realMozWifiNetwork;
 
   var fakeNetworks = [
       {
         ssid: 'Mozilla Guest',
         bssid: 'xx:xx:xx:xx:xx:xx',
+        security: [],
         capabilities: [],
         relSignalStrength: 98,
         connected: false
@@ -26,21 +30,24 @@ suite('wifi > ', function() {
       {
         ssid: 'Livebox 6752',
         bssid: 'xx:xx:xx:xx:xx:xx',
-        capabilities: ['WEP'],
+        security: ['WEP'],
+        capabilities: [],
         relSignalStrength: 89,
         connected: false
       },
       {
         ssid: 'Mozilla-G',
         bssid: 'xx:xx:xx:xx:xx:xx',
-        capabilities: ['WPA-EAP'],
+        security: ['WPA-EAP'],
+        capabilities: [],
         relSignalStrength: 67,
         connected: false
       },
       {
         ssid: 'Freebox 8953',
         bssid: 'xx:xx:xx:xx:xx:xx',
-        capabilities: ['WPA2-PSK'],
+        security: ['WPA2-PSK'],
+        capabilities: [],
         relSignalStrength: 32,
         connected: false
       }
@@ -103,7 +110,7 @@ suite('wifi > ', function() {
     '        Password' +
     '      </label>' +
     '      <input type="password" id="hidden-wifi-password" maxlength="63" />' +
-    '      <label id="label_show_password">' +
+    '      <label id="label_hidden_show_password">' +
     '        <input type="checkbox" id="hidden-wifi-show-password" />' +
     '        <span></span>' +
     '        <p>Show Password</p>' +
@@ -130,6 +137,8 @@ suite('wifi > ', function() {
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    realMozWifiNetwork = window.mozWifiNetwork;
+    window.mozWifiNetwork = MockMozWifiNetwork;
   });
 
   setup(function() {
@@ -139,10 +148,13 @@ suite('wifi > ', function() {
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     realL10n = null;
+    window.mozWifiNetwork = realMozWifiNetwork;
+    realMozWifiNetwork = null;
   });
 
   suite('scan networks', function() {
     var showOverlayStub;
+    var clock = sinon.useFakeTimers();
 
     setup(function() {
       showOverlayStub = this.sinon.spy(utils.overlay, 'show');
@@ -174,40 +186,101 @@ suite('wifi > ', function() {
 
     test('error while scanning', function(done) {
       var consoleSpy = this.sinon.spy(console, 'error');
-      var stub = this.sinon.stub(MockNavigatorMozWifiManager, 'getNetworks',
-        function() {
-          return {
-            set onerror(callback) {
-              this.error = {
-                name: 'error'
-              };
-              callback();
-            }
-          };
+      var stub = this.sinon.stub(MockNavigatorMozWifiManager, 'getNetworks');
+      stub.onFirstCall().returns(
+        {
+          set onerror(callback) {
+            this.error = {
+              name: 'error'
+            };
+            callback();
+          }
         }
       );
+
+      stub.onSecondCall().returns(
+        {
+          set onsuccess(callback) {
+            this.result = fakeNetworks;
+            callback();
+          }
+        }
+      );
+
       WifiManager.scan(function(networks) {
-        assert.ok(showOverlayStub.calledOnce, 'shows loading overlay');
-        assert.isUndefined(networks, 'no networks returned');
+        assert.ok(stub.calledTwice);
+        assert.ok(showOverlayStub.called, 'shows loading overlay');
+        assert.isDefined(networks, 'networks eventually returned');
         assert.ok(consoleSpy.calledOnce);
         done();
       });
+
+      //simulate a status change
+      WifiManager.api.onstatuschange({status: 'disconnected'});
     });
 
     test('timeout error', function(done) {
-      var clock = this.sinon.useFakeTimers();
       var consoleSpy = this.sinon.spy(console, 'warn');
       var stub = this.sinon.stub(MockNavigatorMozWifiManager, 'getNetworks',
         function() {
           return {};
       });
       WifiManager.scan(function(networks) {
-        assert.ok(showOverlayStub.calledOnce, 'shows loading overlay');
+        assert.ok(showOverlayStub.called, 'shows loading overlay');
         assert.isUndefined(networks, 'no networks returned');
         assert.ok(consoleSpy.calledOnce);
         done();
       });
       clock.tick(10000);
+    });
+  });
+
+  suite('Join networks', function() {
+    var connectStub;
+    setup(function() {
+      connectStub = this.sinon.stub(WifiUI, 'connect',
+        function(ssid, password, user) {
+          return;
+      });
+      createDOM();
+    });
+
+    test('Should join to a wifi network', function() {
+      var password =
+        document.getElementById('wifi_password');
+      var ssid = document.getElementById('wifi_ssid');
+      var user = document.getElementById('wifi_user');
+
+      ssid.value = 'testSSID';
+      password.value = 'testPassword';
+
+      WifiUI.joinNetwork();
+      assert.isTrue(connectStub.called, 'WifiUI.connect should be called');
+    });
+
+    test('Should creates a hidden network', function() {
+      UIManager.hiddenWifiPassword =
+        document.getElementById('hidden-wifi-password');
+      UIManager.hiddenWifiIdentity =
+        document.getElementById('hidden-wifi-identity');
+      UIManager.hiddenWifiSsid = document.getElementById('wifi_ssid');
+      UIManager.hiddenWifiSecurity =
+        document.getElementById('hidden-wifi-security');
+
+      UIManager.hiddenWifiSsid.value = 'testSSID';
+      UIManager.hiddenWifiPassword.value = 'testPassword';
+      UIManager.hiddenWifiSecurity.options[2].selected = true;
+
+      var oldNetworks = WifiManager.networks.length;
+
+      WifiUI.joinHiddenNetwork();
+
+      var currentNetworks = WifiManager.networks.length;
+
+      assert.isTrue(currentNetworks > oldNetworks);
+
+      var hiddenNetwork = document.querySelector('#testSSID');
+      assert.isNotNull(hiddenNetwork, 'hidden network should be rendered');
     });
   });
 });

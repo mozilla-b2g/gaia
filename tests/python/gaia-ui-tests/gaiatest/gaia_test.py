@@ -91,10 +91,6 @@ class GaiaApps(object):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("GaiaApps.locateWithName('%s')" % app_name)
 
-    def uninstall(self, name):
-        self.marionette.switch_to_frame()
-        self.marionette.execute_async_script("GaiaApps.uninstallWithName('%s')" % name)
-
     def kill(self, app):
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("GaiaApps.kill('%s');" % app.origin)
@@ -377,6 +373,15 @@ class GaiaData(object):
         self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +
                                        "if(telephony.active) telephony.active.hangUp();")
 
+    def kill_conference_call(self):
+        self.marionette.execute_script("""
+        var callsToEnd = window.navigator.mozTelephony.conferenceGroup.calls;
+        for (var i = (callsToEnd.length - 1); i >= 0; i--) {
+            var call = callsToEnd[i];
+            call.hangUp();
+        }
+        """)
+
     @property
     def music_files(self):
         return self.marionette.execute_async_script(
@@ -541,7 +546,7 @@ class GaiaDevice(object):
         time.sleep(2)
         self.start_b2g()
 
-    def start_b2g(self, timeout=60):
+    def start_b2g(self, timeout=120):
         if self.marionette.instance:
             # launch the gecko instance attached to marionette
             self.marionette.instance.start()
@@ -557,7 +562,7 @@ class GaiaDevice(object):
         # Reset the storage path for desktop B2G
         self._set_storage_path()
 
-    def wait_for_b2g_ready(self, timeout=60):
+    def wait_for_b2g_ready(self, timeout=120):
         # Wait for the homescreen to finish loading
         Wait(self.marionette, timeout).until(expected.element_present(
             By.CSS_SELECTOR, '#homescreen[loading-state=false]'))
@@ -592,26 +597,23 @@ class GaiaDevice(object):
 
     def press_sleep_button(self):
         self.marionette.execute_script("""
-            window.wrappedJSObject.dispatchEvent(new CustomEvent('mozChromeEvent', {
-              detail: {
-                type: 'sleep-button-press'
-              }
+            window.wrappedJSObject.dispatchEvent(new KeyboardEvent('mozbrowserbeforekeydown', {
+              key: 'Power'
             }));""")
 
     def press_release_volume_up_then_down_n_times(self, n_times):
         self.marionette.execute_script("""
-            function sendEvent(aName, aType) {
-              window.wrappedJSObject.dispatchEvent(new CustomEvent('mozChromeEvent', {
-                detail: {
-                  type: aName + '-button-' + aType
-                }
+            function sendEvent(key, aType) {
+              var type = aType === 'press' ? 'mozbrowserafterkeydown' : 'mozbrowserafterkeyup';
+              window.wrappedJSObject.dispatchEvent(new KeyboardEvent(type, {
+                key: key
               }));
             }
             for (var i = 0; i < arguments[0]; ++i) {
-              sendEvent('volume-up', 'press');
-              sendEvent('volume-up', 'release');
-              sendEvent('volume-down', 'press');
-              sendEvent('volume-down', 'release');
+              sendEvent('VolumeUp', 'press');
+              sendEvent('VolumeUp', 'release');
+              sendEvent('VolumeDown', 'press');
+              sendEvent('VolumeDown', 'release');
             };""", script_args=[n_times])
 
     def turn_screen_off(self):
@@ -637,7 +639,7 @@ class GaiaDevice(object):
             mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('class')
             self._dispatch_home_button_event()
             apps.switch_to_displayed_app()
-            if mode == 'edit-mode':
+            if 'edit-mode' in mode:
                 # touching home button will exit edit mode
                 Wait(self.marionette).until(lambda m: m.find_element(
                     By.TAG_NAME, 'body').get_attribute('class') != mode)
@@ -785,6 +787,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.device.file_manager.remove('/data/local/OfflineCache')
         self.device.file_manager.remove('/data/local/permissions.sqlite')
         self.device.file_manager.remove('/data/local/storage/persistent')
+        self.device.file_manager.remove('/data/local/webapps')
         # remove remembered networks
         self.device.file_manager.remove('/data/misc/wifi/wpa_supplicant.conf')
 
@@ -869,18 +872,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 self.data_layer.set_bool_pref(name, value)
             else:
                 self.data_layer.set_char_pref(name, value)
-
-    def connect_to_network(self):
-        if not self.device.is_online:
-            try:
-                self.connect_to_local_area_network()
-            except:
-                self.marionette.log('Failed to connect to wifi, trying cell data instead.')
-                if self.device.has_mobile_connection:
-                    self.data_layer.connect_to_cell_data()
-                else:
-                    raise Exception('Unable to connect to network')
-        assert self.device.is_online
 
     def connect_to_local_area_network(self):
         if not self.device.is_online:

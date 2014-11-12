@@ -1,0 +1,45 @@
+ul {
+  list-style-type: none;
+}
+
+ul, li {
+  margin: 0;
+  padding: 0;
+  /* have a default height for setting vertical align */
+  height: 4rem;
+}
+
+.menu-item {
+  width: calc(100% - 4.4rem);
+  height: 4rem;
+  font-size: 20px;
+  color: black;
+  display: inline-block;
+  /* add padding 4rem for left space for icon */
+  padding: 0.2rem 4.2rem 0.2rem 0.2rem;
+}
+
+.menu-item span {
+  width: 100%;
+  display: inline-block;
+  line-height: 4rem;
+}
+
+.settings-group .menu-item span {
+  text-align: right;
+}
+
+.settings-items .menu-item {
+  width: calc(100% - 6rem);
+  padding-left: 1rem;
+  padding-right: 5rem;
+}
+
+body[data-active='list'] .settings-group .menu-item {
+  width: calc(100% - 4rem);
+  padding: 0 4rem 0 0;
+}
+
+body[data-active='list'] .settings-group span {
+  display: none;
+}

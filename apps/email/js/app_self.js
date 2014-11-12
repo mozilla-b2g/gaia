@@ -1,6 +1,3 @@
-/*jshint browser: true */
-/*globals define */
-
 /**
  * Provides a wrapper over the mozApps.getSelf() API. Structured as an
  * evt emitter, with "latest" support, and "latest" is overridden so
@@ -12,6 +9,7 @@
  * latest, delaying the work until it is actually needed. Once getSelf()
  * is fetched once, the result is reused.
  */
+'use strict';
 define(function(require, exports, module) {
   var evt = require('evt');
 
@@ -37,11 +35,13 @@ define(function(require, exports, module) {
   // Override latest to only do the work when something actually wants to
   // listen.
   appSelf.latest = function(id) {
-    if (!loaded)
+    if (!loaded) {
       loadSelf();
+    }
 
-    if (id !== 'self')
+    if (id !== 'self') {
       throw new Error(module.id + ' only supports "self" property');
+    }
 
     return oldLatest.apply(this, arguments);
   };

@@ -10,24 +10,30 @@ var Rocketbar = require(
 var Search = require('../../../../apps/search/test/marionette/lib/search.js');
 var System = require('../../../../apps/system/test/marionette/lib/system');
 var Server = require('../../../../shared/test/integration/server');
+var EmeServer = require(
+  '../../../../shared/test/integration/eme_server/parent');
 
 marionette('Vertical - Search', function() {
 
   var client = marionette.client(Home2.clientOptions);
-  var home, rocketbar, search, system, server;
+  var home, rocketbar, search, system, server, emeServer;
   var phoneIdentifier =
     'app://communications.gaiamobile.org/manifest.webapp-dialer';
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
       server = _server;
-      done();
+      EmeServer(client, function(err, _server) {
+        emeServer = _server;
+        done(err);
+      });
     });
     system = new System(client);
   });
 
-  suiteTeardown(function() {
+  suiteTeardown(function(done) {
     server.stop();
+    emeServer.close(done);
   });
 
   setup(function() {
@@ -37,6 +43,7 @@ marionette('Vertical - Search', function() {
     system = new System(client);
     system.waitForStartup();
     search.removeGeolocationPermission();
+    EmeServer.setServerURL(client, emeServer);
   });
 
   test('Search notification', function() {

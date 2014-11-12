@@ -7,7 +7,7 @@ require('/shared/js/template.js');
 require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 require('/shared/js/media/media_utils.js');
-requireApp('/video/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('/video/test/unit/mock_thumbnail_item.js');
 requireApp('/video/js/thumbnail_date_group.js');
 requireApp('/video/js/thumbnail_item.js');
@@ -130,7 +130,7 @@ suite('Thumbnail Date Group Unit Tests', function() {
 
     test('#normal', function() {
       assert.equal(domNode.firstElementChild.textContent,
-                   '1375873140000,date-group-header');
+                   '"2013-08-07T10:59:00.000Z"date-group-header');
     });
   });
 

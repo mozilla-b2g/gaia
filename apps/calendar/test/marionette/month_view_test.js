@@ -22,10 +22,10 @@ marionette('month view', function() {
 
   setup(function() {
     app = new Calendar(client);
-    app.launch({ hideSwipeHint: true });
+    app.launch();
   });
 
-  test('#months-day-view scroll', function() {
+  test('#month-day-agenda scroll', function() {
     // Create a lot of events so we can scroll so fun!
     for (var i = 0; i < 5; i++) {
       app.createEvent({

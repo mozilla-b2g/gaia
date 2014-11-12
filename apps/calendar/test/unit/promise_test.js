@@ -1,6 +1,7 @@
+define(function(require) {
 'use strict';
 
-requireLib('promise.js');
+var promise = require('promise');
 
 function errorOrFive(shouldError, callback) {
   var error;
@@ -17,7 +18,7 @@ suite('denodeify', function() {
   var subject;
 
   setup(function() {
-    subject = Calendar.Promise.denodeify(errorOrFive);
+    subject = promise.denodeify(errorOrFive);
   });
 
   test('node-style error', function(done) {
@@ -61,7 +62,7 @@ suite('denodeify', function() {
 
 function SlowCalculator() {
   this.currentValue = 0;
-  Calendar.Promise.denodeifyAll(this, [
+  promise.denodeifyAll(this, [
     'add',
     'multiply'
   ]);
@@ -140,4 +141,6 @@ suite('denodeifyAll', function() {
     // Should not hiccup.
     subject.multiply(3.14);
   });
+});
+
 });

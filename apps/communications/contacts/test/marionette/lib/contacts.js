@@ -89,6 +89,8 @@ Contacts.Selectors = {
   clearOrgButton: '#clear-org',
   setIceButton: '#set-ice',
   iceHeader: '#ice-header',
+  iceSettingsHeader: '#ice-settings-header',
+  iceSettings: '#ice-settings',
   iceSwitch1: '#ice-contacts-1-switch',
   iceInputSwitch1: '#ice-contacts-1-switch input[type="checkbox"]',
   iceSwitch2: '#ice-contacts-2-switch',
@@ -119,7 +121,7 @@ Contacts.prototype = {
    * @param {String} key of the string to lookup.
    */
   l10n: function(file, key) {
-    var string = this.client.executeScript(function(file, key) {
+    var ast = this.client.executeScript(function(file, key) {
       var xhr = new XMLHttpRequest();
       var data;
       xhr.open('GET', file, false); // Intentional sync
@@ -130,7 +132,11 @@ Contacts.prototype = {
       return data;
     }, [file, key]);
 
-    return string[key];
+    for (var i = 0; i < ast.length; i++) {
+      if (ast[i].$i === key) {
+        return ast[i].$v;
+      }
+    }
   },
 
   waitSlideLeft: function(elementKey) {
@@ -155,6 +161,16 @@ Contacts.prototype = {
   waitForSlideUp: function(element) {
     var test = function() {
       return element.location().y <= 0;
+    };
+    this.client.waitFor(test);
+  },
+
+  waitForFadeIn: function(element) {
+    var test = function() {
+      var opacity = element.cssProperty('opacity');
+      var pointerEvents = element.cssProperty('pointer-events');
+
+      return opacity == 1 && pointerEvents == 'auto';
     };
     this.client.waitFor(test);
   },

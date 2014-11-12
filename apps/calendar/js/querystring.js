@@ -1,5 +1,5 @@
 /* global Buffer */
-(function(exports) {
+define(function(require, exports) {
 'use strict';
 
 // Copyright Joyent, Inc. and other Node contributors.
@@ -216,4 +216,4 @@ exports.parse = exports.decode = function(qs, sep, eq, options) {
   return obj;
 };
 
-}(Calendar.QueryString = {}));
+});

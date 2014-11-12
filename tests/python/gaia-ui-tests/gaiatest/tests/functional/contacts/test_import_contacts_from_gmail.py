@@ -15,7 +15,7 @@ class TestImportContactsFromGmail(GaiaTestCase):
             self.testvars['email']['gmail']
         except KeyError:
             raise SkipTest('account details not present in test variables')
-        self.connect_to_network()
+        self.connect_to_local_area_network()
 
     def test_import_contacts_from_gmail(self):
 

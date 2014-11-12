@@ -37,7 +37,7 @@ AlternativesCharMenuManager.prototype.show = function(target) {
 
   // Get the targetRect before menu is shown.
   var targetRect =
-    IMERender.getDomElemFromTargetObject(target).getBoundingClientRect();
+    IMERender.targetObjDomMap.get(target).getBoundingClientRect();
 
   // XXX: Remove reference to IMERender in the global in the future.
   this._currentMenuView = IMERender.showAlternativesCharMenu(target,
@@ -78,8 +78,8 @@ function _getAlternativesForTarget(key) {
 
   if (this.app.upperCaseStateManager.isUpperCaseLocked) {
     origKey = key.uppercaseValue;
-    alternatives = altMap[origKey].upperCaseLocked ||
-                   altMap[origKey];
+    alternatives = altMap[origKey] &&
+      (altMap[origKey].upperCaseLocked || altMap[origKey]);
   } else if (this.app.upperCaseStateManager.isUpperCase) {
     origKey = key.uppercaseValue;
     alternatives = altMap[origKey];
@@ -117,7 +117,7 @@ AlternativesCharMenuManager.prototype.isMenuTarget = function(target) {
     return false;
   }
 
-  return (IMERender.getDomElemFromTargetObject(target).parentNode ===
+  return (IMERender.targetObjDomMap.get(target).parentNode ===
           this._currentMenuView.getMenuContainer());
 };
 

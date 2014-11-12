@@ -19,6 +19,10 @@
 }
 */
 
+#screen > #system-update-splash {
+  z-index: 65538;
+}
+
 /* Home gesture panel should not be covered by any element of system */
 #screen > #bottom-panel.visible {
   z-index: 2147483647;
@@ -50,6 +54,10 @@
 }
 
 #screen > [data-z-index-level="sleep-menu"] {
+  z-index: 65536;
+}
+
+#screen > [data-z-index-level="accessibility-quicknav-menu"] {
   z-index: 65536;
 }
 
@@ -113,7 +121,7 @@
  * the status bar */
 
 #screen > [data-z-index-level="utility-tray"] {
-  z-index: 16384;
+  z-index: 16385;
 }
 
 #screen > [data-z-index-level="utility-tray-notifications"] {
@@ -122,6 +130,10 @@
 
 
 /* Level 4: Attention window */
+#screen > [data-z-index-level="permission-screen"] {
+  z-index: 8194;
+}
+
 #screen > [data-z-index-level="app"] > .appWindow.attentionWindow.active.top-most {
   z-index: 8193;
 }
@@ -130,12 +142,8 @@
   z-index: 8192;
 }
 
-/* Level 5: Activity menu, context menu, value selector, and permissions */
+/* Level 5: Activity menu, context menu, value selector */
 #screen > [data-z-index-level="action-menu"] {
-  z-index: 4096;
-}
-
-#screen > [data-z-index-level="permission-screen"] {
   z-index: 4096;
 }
 
@@ -156,6 +164,13 @@
   z-index: 4098 !important;
 }
 
+/* Need raise zIndex when in normal mode, or the animation would be hidden */
+#screen > [data-z-index-level="app"] > .lockScreenInputWindow
+{
+  /* Or the .appWindow one would be first adopted.*/
+  z-index: 2049 !important;
+}
+
 #screen > [data-z-index-level="app"] > .lockScreenWindow.active
 {
   /* Or the .appWindow one would be first adopted.*/
@@ -166,7 +181,8 @@
   z-index: 2046;
 }
 
-#screen > [data-z-index-level="system-dialog"] {
+#screen > [data-z-index-level="system-dialog"],
+#screen > [data-z-index-level="text-selection-dialog"] {
   z-index: 2045;
 }
 
@@ -202,15 +218,12 @@
 #screen > [data-z-index-level="app"] > .appWindow.active > [data-z-index-level="value-selector"],
 #screen > [data-z-index-level="ime-layout-dialog"],
 #screen > [data-z-index-level="app-install-dialog"],
+#screen > [data-z-index-level="app-uninstall-dialog"],
 #screen > [data-z-index-level="updates-download-dialog"],
 #screen > [data-z-index-level="updates-viaDataConnection-dialog"],
 #screen > [data-z-index-level="emergency-callback-dialog"],
 #screen > [data-z-index-level="quick-setting-data-enabled-dialog"] {
   z-index: 1024;
-}
-
-#screen > [data-z-index-level="ext-selection-dialog"] {
-  z-index: 10;
 }
 
 /* Level 8 */
@@ -243,7 +256,7 @@
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen):not(.attentionWindow),
-#screen > [data-z-index-level="app"] > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow),
+#screen > [data-z-index-level="app"] > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow),
 #screen > [data-z-index-level="app"] > .appWindow.will-become-active {
   z-index: 6;
 }
@@ -286,6 +299,7 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="cards-view"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="app-uninstall-dialog"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="ime-layout-dialog"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="gesture-panel"],

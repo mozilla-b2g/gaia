@@ -1,15 +1,15 @@
-requireLib('template.js');
-requireLib('templates/date_span.js');
-requireLib('templates/duration_time.js');
+define(function(require) {
+'use strict';
 
-suiteGroup('Templates.DurationTime', function() {
-  'use strict';
+var DurationTime = require('templates/duration_time');
+var app = require('app');
 
+suite('DurationTime', function() {
   var subject;
 
   suiteSetup(function() {
-    Calendar.App.dateFormat = navigator.mozL10n.DateTimeFormat();
-    subject = Calendar.Templates.DurationTime;
+    app.dateFormat = navigator.mozL10n.DateTimeFormat();
+    subject = DurationTime;
   });
 
   function renderDurationTime(options) {
@@ -106,4 +106,6 @@ suiteGroup('Templates.DurationTime', function() {
       );
     });
   });
+});
+
 });

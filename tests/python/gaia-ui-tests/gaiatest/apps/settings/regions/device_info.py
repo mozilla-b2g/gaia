@@ -11,7 +11,7 @@ class DeviceInfo(Base):
     _phone_number_locator = (By.ID, 'deviceInfo-msisdns')
     _model_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.hardware"]')
     _software_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.software"]')
-    _more_info_button_locator = (By.CSS_SELECTOR, '#about button[data-l10n-id="more-info"]')
+    _more_info_button_locator = (By.CSS_SELECTOR, 'a[href="#about-moreInfo"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -43,6 +43,7 @@ class DeviceInfo(Base):
         _iccid_locator = (By.ID, 'deviceInfo-iccids')
         _platform_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_version"]')
         _build_id_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_build_id"]')
+        _build_number_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.build_number"]')
         _update_channel_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="app.update.channel"]')
         _git_commit_timestamp_locator = (By.ID, 'gaia-commit-date')
         _git_commit_hash_locator = (By.ID, 'gaia-commit-hash')
@@ -82,6 +83,10 @@ class DeviceInfo(Base):
         @property
         def build_id(self):
             return self.marionette.find_element(*self._build_id_locator).text
+
+        @property
+        def build_number(self):
+            return self.marionette.find_element(*self._build_number_locator).text
 
         @property
         def update_channel(self):

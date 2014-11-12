@@ -85,7 +85,7 @@ ul li > small:not(:empty) + a {
  */
 
 ul li button,
-ul li a[role="button"] {
+ul li a.bb-button {
   position: relative;
   top: 1rem;
   left: 2rem;
@@ -239,7 +239,7 @@ html[dir="rtl"] ul li p + select {
 /* boolean inputs */
 
 html[dir="rtl"] ul li button,
-html[dir="rtl"] ul li a[role="button"] {
+html[dir="rtl"] ul li a.bb-button {
   left: inherit;
   right: 2rem;
 }

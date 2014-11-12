@@ -1,6 +1,6 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global AlternativesCharMenuView */
+/* global AlternativesCharMenuView, HandwritingPadView */
 
 'use strict';
 
@@ -20,7 +20,7 @@ var IMERender = (function() {
   var alternativesCharMenu = null;
   var _menuKey = null;
   var renderingManager = null;
-  var currentDrawnKeyboardClass = null;
+  var viewMap = null;
 
   // a WeakMap to map target key object onto the DOM element it's associated
   // with; essentially the revrse mapping of |renderingManager._domObjectMap|.
@@ -73,6 +73,7 @@ var IMERender = (function() {
     cachedWindowWidth = window.innerWidth;
 
     targetObjDomMap = new WeakMap();
+    viewMap = new WeakMap();
   };
 
   var setInputMethodName = function(name) {
@@ -99,6 +100,11 @@ var IMERender = (function() {
   //   Set isUpperCase to true when uppercase is enabled
   //   Use false on both of these properties when uppercase is disabled
   var setUpperCaseLock = function kr_setUpperCaseLock(state) {
+    // Toggle the entire container in case this layout require different
+    // rendering for upper case state, i.e. |secondLayout = true|.
+    activeIme.classList.toggle('lowercase',
+      !(state.isUpperCaseLocked || state.isUpperCase));
+
     var capsLockKey = activeIme.querySelector(
       'button:not([disabled])' +
       '[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
@@ -133,11 +139,8 @@ var IMERender = (function() {
       layout.pageIndex,
       ('' + flags.inputType).substr(0, 1),
       ('' + flags.showCandidatePanel).substr(0, 1),
-      ('' + flags.uppercase).substr(0, 1),
       supportsSwitching
     ].join('-');
-
-    currentDrawnKeyboardClass = keyboardClass;
 
     // lets see if we have this keyboard somewhere already...
     var container = document.getElementsByClassName(keyboardClass)[0];
@@ -151,6 +154,9 @@ var IMERender = (function() {
       buildKeyboard(container, flags, layout);
       ime.appendChild(container);
     }
+
+    // Make sure the container is switched to the current uppercase state.
+    container.classList.toggle('lowercase', !flags.uppercase);
 
     if (activeIme !== container) {
       if (activeIme) {
@@ -179,6 +185,18 @@ var IMERender = (function() {
     }
   };
 
+  var drawHandwritingPad = function kr_drawHandwritingPad(press,
+                                                          start,
+                                                          strokeWidth) {
+    var handwritingPadView = viewMap.get(press.target);
+    return handwritingPadView.drawHandwritingPad(press, start, strokeWidth);
+  };
+
+  var clearHandwritingPad = function kr_clearHandwritingPad(target) {
+    var handwritingPadView = viewMap.get(target);
+    return handwritingPadView.clearHandwritingPad();
+  };
+
   /**
    * Build keyboard HTML structure
    * Pass a container element
@@ -198,6 +216,20 @@ var IMERender = (function() {
     layout.upperCase = layout.upperCase || {};
 
     var content = document.createDocumentFragment();
+
+    // Create canvas for handwriting.
+    if ('handwritingPadOptions' in layout) {
+      var handwritingPadView = new HandwritingPadView();
+      var canvas = handwritingPadView.getHandwritingPad();
+      content.appendChild(canvas);
+
+      var target = {
+        isHandwritingPad: true
+      };
+
+      setDomElemViewTargetObject(canvas, target, handwritingPadView);
+    }
+
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
       var kbRow = document.createElement('div');
       var rowLayoutWidth = 0;
@@ -244,8 +276,6 @@ var IMERender = (function() {
         var ratio = key.ratio || 1;
         rowLayoutWidth += ratio;
 
-        var outputChar = flags.uppercase ? key.uppercaseValue : key.value;
-
         var keyWidth = placeHolderWidth * ratio;
 
         if (key.disabled) {
@@ -267,6 +297,12 @@ var IMERender = (function() {
           });
         }
 
+        // If this layout requires different rendering for uppercase/lowercase
+        // buttons, we will set the outputChar as an array, and buildKey()
+        // would be smart enough to put two label <span>s in the DOM.
+        var outputChar = (!layout.secondLayout) ?
+          key.uppercaseValue : [key.uppercaseValue, key.value];
+
         var keyElement = buildKey(outputChar, className, keyWidth + 'px',
           key, key.longPressValue, attributeList);
 
@@ -287,10 +323,22 @@ var IMERender = (function() {
         setDomElemTargetObject(keyElement, key);
       }));
 
+      if ('handwritingPadOptions' in layout &&
+          nrow < layout.handwritingPadOptions.rowspan) {
+        rowLayoutWidth += layout.handwritingPadOptions.ratio;
+      }
+
       kbRow.dataset.layoutWidth = rowLayoutWidth;
 
       content.appendChild(kbRow);
     }));
+
+    // If this layout does not require different rendering for lowercase state,
+    // we default to uppercase rendering -- this class will tell CSS file to
+    // never toggle button label <span> elements.
+    if (!layout.secondLayout) {
+      container.classList.add('uppercase-only');
+    }
 
     container.innerHTML = '';
 
@@ -310,24 +358,16 @@ var IMERender = (function() {
   };
 
   // Highlight the key according to the case.
-  var highlightKey = function kr_updateKeyHighlight(key, options) {
-    var keyElem = getDomElemFromTargetObject(key);
-
-    options = options || {};
+  var highlightKey = function kr_updateKeyHighlight(key) {
+    var keyElem = targetObjDomMap.get(key);
 
     keyElem.classList.add('highlighted');
-
-    // Show lowercase pop.
-    if (!options.showUpperCase) {
-      keyElem.classList.add('lowercase');
-    }
   };
 
   // Unhighlight a key
   var unHighlightKey = function kr_unHighlightKey(key) {
-    var keyElem = getDomElemFromTargetObject(key);
+    var keyElem = targetObjDomMap.get(key);
     keyElem.classList.remove('highlighted');
-    keyElem.classList.remove('lowercase');
   };
 
   var toggleCandidatePanel = function(expand) {
@@ -613,7 +653,7 @@ var IMERender = (function() {
                                                         altChars,
                                                         renderer);
     alternativesCharMenu.show(key);
-    getDomElemFromTargetObject(key).classList.add('kbr-menu-on');
+    targetObjDomMap.get(key).classList.add('kbr-menu-on');
     _menuKey = key;
 
     return alternativesCharMenu;
@@ -622,7 +662,7 @@ var IMERender = (function() {
   // Hide the alternative menu
   var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {
     alternativesCharMenu.hide();
-    getDomElemFromTargetObject(_menuKey).classList.remove('kbr-menu-on');
+    targetObjDomMap.get(_menuKey).classList.remove('kbr-menu-on');
   };
 
   var _keyArray = []; // To calculate proximity info for predictive text
@@ -741,6 +781,21 @@ var IMERender = (function() {
     var rows = activeIme.querySelectorAll('.keyboard-row');
 
     setKeyWidth();
+
+    // Set width and height for handwriting pad.
+    if ('handwritingPadOptions' in layout) {
+      var canvas = activeIme.querySelectorAll('.handwriting-pad')[0];
+
+      var width = Math.floor(placeHolderWidth *
+                             layout.handwritingPadOptions.ratio);
+      canvas.width = width * window.devicePixelRatio;
+      canvas.style.width = width + 'px';
+
+      var rowHeight = rows[0].clientHeight;
+      var height = Math.floor(rowHeight * layout.handwritingPadOptions.rowspan);
+      canvas.height = height * window.devicePixelRatio;
+      canvas.style.height = height + 'px';
+    }
   };
 
   //
@@ -832,14 +887,26 @@ var IMERender = (function() {
     var labelNode = document.createElement('span');
     // Using innerHTML here because some labels (so far only the &nbsp; in the
     // space key) can be HTML entities.
-    labelNode.innerHTML = label;
+    labelNode.innerHTML = Array.isArray(label) ? label[0] : label;
     labelNode.className = 'key-element';
-    labelNode.dataset.label = label;
+    labelNode.dataset.label = Array.isArray(label) ? label[0] : label;
     vWrapperNode.appendChild(labelNode);
+
+    // If the |label| argument is an array, that means we need to insert another
+    // DOM element represents the lowercase label so that container styling can
+    // toggle between two.
+    if (Array.isArray(label)) {
+      // Create a lowercase label element
+      var labelNode = document.createElement('span');
+      labelNode.innerHTML = label[1];
+      labelNode.className = 'key-element lowercase';
+      labelNode.dataset.label = label[1];
+      vWrapperNode.appendChild(labelNode);
+    }
 
     // Add uppercase and lowercase pop-up for highlighted key
     labelNode = document.createElement('span');
-    labelNode.innerHTML = label;
+    labelNode.innerHTML = Array.isArray(label) ? label[0] : label;
     labelNode.className = 'uppercase popup';
     vWrapperNode.appendChild(labelNode);
 
@@ -915,19 +982,23 @@ var IMERender = (function() {
   // and renderer's reverse map.
   // ideally this should only be used with views (renderer & alt_char_menu.js).
   var setDomElemTargetObject = function setDomElemTargetObject(elem, obj) {
-    renderingManager.domObjectMap.set(elem, obj);
-    var domElemDict = targetObjDomMap.get(obj) || {};
-    domElemDict[currentDrawnKeyboardClass] = elem;
-    targetObjDomMap.set(obj, domElemDict);
+    // since a target object of one layout may map to multiple rendered DOM
+    // layouts (by different |keyboardClass|'es above), we need to create a
+    // "reference stub" of the target object; each rendered DOM layout key
+    // has a reference stub unique from that key of another rendered DOM layout.
+    // So, a DOM element may forward map to a target object, and then reverse
+    // map back to the DOM element correctly.
+    var objRef = Object.freeze(Object.create(obj));
+    renderingManager.domObjectMap.set(elem, objRef);
+    targetObjDomMap.set(objRef, elem);
   };
 
-  // a helper function to set both rendering manager's forward map,
-  // and renderer's reverse map.
-  // ideally this should only be used with views (render.js & ./js/views/*).
-  var getDomElemFromTargetObject = function getDomElemFromTargetObject(obj) {
-    var domElemDict = targetObjDomMap.get(obj) || {};
-    return domElemDict[currentDrawnKeyboardClass];
-  };
+  var setDomElemViewTargetObject =
+    function setDomElemViewTargetObject(elem, obj, view) {
+      var objRef = Object.freeze(Object.create(obj));
+      renderingManager.domObjectMap.set(elem, objRef);
+      viewMap.set(objRef, view);
+    };
 
   // Measure the width of the element, and return the scale that
   // we can use to make it fit in the container. The return values
@@ -982,6 +1053,8 @@ var IMERender = (function() {
     'init': init,
     'setInputMethodName': setInputMethodName,
     'draw': draw,
+    'drawHandwritingPad': drawHandwritingPad,
+    'clearHandwritingPad': clearHandwritingPad,
     get ime() {
       return ime;
     },
@@ -999,7 +1072,6 @@ var IMERender = (function() {
     'getKeyHeight': getKeyHeight,
     'getScale': getScale,
     'setDomElemTargetObject': setDomElemTargetObject,
-    'getDomElemFromTargetObject': getDomElemFromTargetObject,
     'showMoreCandidates': showMoreCandidates,
     'toggleCandidatePanel': toggleCandidatePanel,
     'isFullCandidataPanelShown': isFullCandidataPanelShown,
@@ -1013,6 +1085,9 @@ var IMERender = (function() {
     },
     get candidatePanel() {
       return activeIme && activeIme.querySelector('.keyboard-candidate-panel');
+    },
+    get targetObjDomMap() {
+      return targetObjDomMap;
     },
     setCachedWindowSize: function(width, height) {
       cachedWindowWidth = width;

@@ -12,6 +12,10 @@ marionette('editing an image', function() {
       'device.storage.testing': true,
       'device.storage.prompt.testing': true,
       'webgl.force-enabled': true
+    },
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
 
@@ -28,65 +32,73 @@ marionette('editing an image', function() {
     app.launch();
   });
 
-  test.skip('should have different options', function() {
-    // You should be able to switch between the different 'operations'
-    // in the image editor.
-    app.thumbnail.click();
-    app.editButton.click();
-    app.waitForImageEditor();
-    assert.ok(app.exposureOptions.displayed());
-
+  test('should have crop options', function() {
+    app.enterMainEditScreen();
     app.editCropButton.click();
     assert.ok(app.cropOptions.displayed());
 
+  });
+
+  test('should have exposure options', function() {
+    app.enterMainEditScreen();
+    app.editExposureButton.click();
+    assert.ok(app.exposureOptions.displayed());
+
+  });
+
+  test('should have effect options', function() {
+    app.enterMainEditScreen();
     app.editEffectButton.click();
     assert.ok(app.effectOptions.displayed());
-
-    app.editEnhanceButton.click();
-    assert.ok(app.enhanceOptions.displayed());
   });
 
-  test.skip('should change exposure', function() {
+  test('should change exposure', function() {
     // Changing the exposure of an image creates a new modified
     // version of original.
-    app.thumbnail.click();
-    app.editButton.click();
-    app.waitForImageEditor();
+    app.enterMainEditScreen();
     app.editExposureButton.click();
+
+    //Change Exposure and get the updated value
     actions.flick(app.exposureSlider, 0, 0, 50, 0).perform();
-    app.editSaveButton.click();
-    client.waitFor(function() {
-      return app.thumbnails.length == 2;
-    });
-    assert.strictEqual(app.thumbnails.length, 2);
+    var current = app.getExposureSliderPosition();
+    assert.ok(
+      current == 0.8125,
+      'Exposure slider is at updated position'
+    );
   });
 
-  test.skip('should crop it', function() {
+  test('should crop image', function() {
     // Croping an image creates a new modified version of original.
-    app.thumbnail.click();
-    app.editButton.click();
+    app.enterMainEditScreen();
     app.editCropButton.click();
-    app.waitForImageEditor();
+
+    //Choose crop aspect portrait crop option
     app.editCropAspectPortraitButton.click();
-    app.editSaveButton.click();
-    client.waitFor(function() {
-      return app.thumbnails.length == 2;
-    });
-    assert.strictEqual(app.thumbnails.length, 2);
+    app.applyEditToolOptions();
+
+    // Enter Crop edit tool to check selected crop option
+    app.editCropButton.click();
+    // Check crop aspect portrait is selected
+    app.waitForCropAspectPortraitSelected();
   });
 
-  test.skip('should apply an effect', function() {
-    // Applying a sepia effect creates a new modified version of original.
-    app.thumbnail.click();
-    app.editButton.click();
+  test('should apply effect', function() {
+    app.enterMainEditScreen();
     app.editEffectButton.click();
-    app.waitForImageEditor();
+
+    // Choose sepia effect edit option
     app.editEffectSepiaButton.click();
-    app.editSaveButton.click();
-    client.waitFor(function() {
-      return app.thumbnails.length == 2;
-    });
-    assert.strictEqual(app.thumbnails.length, 2);
+    app.applyEditToolOptions();
+
+    // Enter effect edit tool to check selected effect
+    app.editEffectButton.click();
+    // Check Sepia Effect is selected
+    app.waitForSepiaEffectSelected();
   });
 
+  test('check default enhance', function() {
+    app.enterMainEditScreen();
+    // Check auto enhance is turned off
+    app.waitForAutoEnhanceButtonOff();
+  });
 });

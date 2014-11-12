@@ -1,5 +1,5 @@
 'use strict';
-
+/* global require, module */
 /*
  * You need the following pref for this to work.
  * 'devtools.debugger.forbid-certified-apps': false

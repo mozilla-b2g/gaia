@@ -37,14 +37,6 @@ suite('ShiftKey', function() {
       detail: key }));
   }
 
-  mocha.setup({
-    globals: [
-      'ShiftKey'
-    ]
-  });
-
-
-
   suiteTeardown(function() {
   });
 

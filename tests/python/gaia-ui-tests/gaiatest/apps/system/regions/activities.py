@@ -4,6 +4,8 @@
 
 from marionette.by import By
 from gaiatest.apps.base import Base
+from marionette import Wait
+from marionette import expected
 
 
 class Activities(Base):
@@ -17,15 +19,13 @@ class Activities(Base):
     _camera_button_locator = (By.XPATH, '//*[text()="Camera"]')
     _cancel_button_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button[data-action="cancel"]')
 
+    _save_image_locator = (By.CSS_SELECTOR, 'button[data-id="save-image"]')
+
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         self.marionette.switch_to_frame()
         view = self.marionette.find_element(*self._actions_menu_locator)
-        if 'contextmenu' in view.get_attribute('class'):
-            # final position is below the status bar
-            self.wait_for_condition(lambda m: view.location['y'] == 24)
-        else:
-            self.wait_for_condition(lambda m: view.location['y'] == 0)
+        Wait(self.marionette).until(lambda m: view.location['y'] == 0)
 
     def tap_wallpaper(self):
         self.marionette.find_element(*self._wallpaper_button_locator).tap()
@@ -59,6 +59,11 @@ class Activities(Base):
         self.marionette.find_element(*self._cancel_button_locator).tap()
         self.wait_for_element_not_displayed(*self._actions_menu_locator)
         self.apps.switch_to_displayed_app()
+
+    def tap_save_image(self):
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(*self._save_image_locator))))
+        self.marionette.find_element(*self._save_image_locator).tap()
 
     @property
     def options_count(self):

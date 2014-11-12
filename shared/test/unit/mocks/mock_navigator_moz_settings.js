@@ -62,15 +62,20 @@
     }
 
     var req = {
-      onsuccess: null,
-      onerror: null
+      addEventListener: function(name, cb) {
+        req['on' + name] = cb;
+      }
     };
 
-    timeouts.push(setTimeout(function() {
-      if (req.onsuccess) {
-        req.onsuccess();
-      }
-    }));
+    if (!_mSyncRepliesOnly) {
+      timeouts.push(setTimeout(function() {
+        if (req.onsuccess) {
+          req.onsuccess();
+        }
+      }));
+    } else {
+      requests.push(req);
+    }
 
     return req;
   }
@@ -111,7 +116,6 @@
         settingsRequest['on' + name] = cb;
       }
     };
-
     if (!_mSyncRepliesOnly) {
       timeouts.push(setTimeout(function() {
         if (settingsRequest.onsuccess) {
@@ -131,6 +135,9 @@
   }
 
   function mns_removeObserver(name, cb) {
+    if (!observers[name]) {
+      return;
+    }
     removedObservers[name] = removedObservers[name] || [];
     removedObservers[name].push(cb);
 
@@ -149,6 +156,7 @@
 
   function mns_mTriggerObservers(name, args) {
     var theseObservers = observers[name];
+    args.settingName = name;
     if (theseObservers) {
       theseObservers.forEach(function(func) {
         func(args);

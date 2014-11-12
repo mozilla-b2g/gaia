@@ -109,6 +109,7 @@ MailAccount.prototype = {
   __update: function(wireRep) {
     this.enabled = wireRep.enabled;
     this.problems = wireRep.problems;
+    this.syncRange = wireRep.syncRange;
     this.syncInterval = wireRep.syncInterval;
     this.notifyOnNew = wireRep.notifyOnNew;
     this.playSoundOnSend = wireRep.playSoundOnSend;
@@ -694,13 +695,24 @@ var ContactCache = exports.ContactCache = {
       this._contactCache[emailAddress] = null;
 
       this.pendingLookupCount++;
+
+      // Search contacts, but use an all lower-case name, since the contacts
+      // API's search plumbing uses a lowercase version of the email address
+      // for these search comparisons. However, the actual display of the
+      // contact in the contact app has casing preserved.
       var req = contactsAPI.find({
                   filterBy: ['email'],
                   filterOp: 'equals',
-                  filterValue: emailAddress
+                  filterValue: emailAddress.toLowerCase()
                 });
       var self = this, handleResult = function() {
         if (req.result && req.result.length) {
+          // CONSIDER TODO SOMEDAY: since the search is done witha a
+          // toLowerCase() call, it is conceivable that we could get multiple
+          // results with slightly different casing. It might be nice to try
+          // to find the best casing match, but the payoff for that is likely
+          // small, and the common case will be that the first one is good to
+          // use.
           var contact = req.result[0];
 
           ContactCache._contactCache[emailAddress] = contact;
@@ -2633,7 +2645,7 @@ MailAPI.prototype = {
       this._liveBodies[msg.handle] = body;
     }
 
-    req.callback.call(null, body);
+    req.callback.call(null, body, req.suid);
 
     return true;
   },

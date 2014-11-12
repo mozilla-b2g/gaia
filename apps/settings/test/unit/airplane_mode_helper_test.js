@@ -93,8 +93,7 @@ suite('AirplaneModeHelper > ', function() {
               return updateSettings(false, 'disabled');
             }).then(function() {
               assert.isTrue(readyCallback.calledOnce);
-              done();
-            });
+            }).then(done, done);
           });
         };
       }

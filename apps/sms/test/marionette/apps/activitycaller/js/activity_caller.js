@@ -51,6 +51,23 @@
         console.warn('share activity error:', activity.error.name);
       };
     });
+
+    var sendMessageButton = document.getElementById('send-message');
+
+    sendMessageButton.addEventListener('click', function() {
+      var activity = new MozActivity({
+        name: 'new',
+        data: {
+          type: 'websms/sms',
+          number: this.dataset.number,
+          body: this.dataset.body
+        }
+      });
+
+      activity.onerror = function() {
+        console.warn('new activity error:', activity.error.name);
+      };
+    });
   });
 
   window.navigator.mozSetMessageHandler('activity', function(activity) {

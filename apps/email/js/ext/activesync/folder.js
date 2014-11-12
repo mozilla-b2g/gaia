@@ -3,6 +3,7 @@ define(
     'rdcommon/log',
     '../date',
     '../syncbase',
+    '../allback',
     '../db/mail_rep',
     'activesync/codepages/AirSync',
     'activesync/codepages/AirSyncBase',
@@ -19,6 +20,7 @@ define(
     $log,
     $date,
     $sync,
+    allback,
     mailRep,
     $AirSync,
     $AirSyncBase,
@@ -844,44 +846,30 @@ ActiveSyncFolderConn.prototype = {
     if (this._account.conn.currentVersion.lt('12.0'))
       return this._syncBodies(headers, callback);
 
-    var anyErr,
-        pending = 1,
-        downloadsNeeded = 0,
+    var downloadsNeeded = 0,
         folderConn = this;
 
-    function next(err) {
-      if (err && !anyErr)
-        anyErr = err;
-
-      if (!--pending) {
-        folderConn._storage.runAfterDeferredCalls(function() {
-          callback(anyErr, /* number downloaded */ downloadsNeeded - pending);
-        });
-      }
-    }
-
+    var latch = allback.latch();
     for (var i = 0; i < headers.length; i++) {
+      var header = headers[i];
       // We obviously can't do anything with null header references.
       // To avoid redundant work, we also don't want to do any fetching if we
       // already have a snippet.  This could happen because of the extreme
       // potential for a caller to spam multiple requests at us before we
       // service any of them.  (Callers should only have one or two outstanding
       // jobs of this and do their own suppression tracking, but bugs happen.)
-      if (!headers[i] || headers[i].snippet !== null) {
+      if (!header || header.snippet !== null) {
         continue;
       }
 
-      pending++;
       // This isn't absolutely guaranteed to be 100% correct, but is good enough
       // for indicating to the caller that we did some work.
       downloadsNeeded++;
-      this.downloadBodyReps(headers[i], options, next);
+      this.downloadBodyReps(header, options, latch.defer(header.suid));
     }
-
-    // by having one pending item always this handles the case of not having any
-    // snippets needing a download and also returning in the next tick of the
-    // event loop.
-    window.setZeroTimeout(next);
+    latch.then(function(results) {
+      callback(allback.extractErrFromCallbackArgs(results), downloadsNeeded);
+    });
   },
 
   downloadBodyReps: lazyConnection(1, function(header, options, callback) {
@@ -1024,20 +1012,8 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      var status, anyErr,
-          i = 0,
-          pending = 1;
-
-      function next(err) {
-        if (err && !anyErr)
-          anyErr = err;
-
-        if (!--pending) {
-          folderConn._storage.runAfterDeferredCalls(function() {
-            callback(anyErr);
-          });
-        }
-      }
+      var latch = allback.latch();
+      var iHeader = 0;
 
       var e = new $wbxml.EventParser();
       var base = [as.Sync, as.Collections, as.Collection];
@@ -1045,27 +1021,30 @@ ActiveSyncFolderConn.prototype = {
         folderConn.syncKey = node.children[0].textContent;
       });
       e.addEventListener(base.concat(as.Status), function(node) {
-        status = node.children[0].textContent;
+        var status = node.children[0].textContent;
+        if (status !== asEnum.Status.Success) {
+          latch.defer('status')('unknown');
+        }
       });
       e.addEventListener(base.concat(as.Responses, as.Fetch,
                                      as.ApplicationData, em.Body),
                          function(node) {
         // We assume the response is in the same order as the request!
-        var header = headers[i++];
+        var header = headers[iHeader++];
         var bodyContent = node.children[0].textContent;
+        var latchCallback = latch.defer(header.suid);
 
-        pending++;
         folderConn._storage.getMessageBody(header.suid, header.date,
                                            function(body) {
-          folderConn._updateBody(header, body, bodyContent, false, next);
+          folderConn._updateBody(header, body, bodyContent, false,
+                                 latchCallback);
         });
       });
       e.run(aResponse);
 
-      if (status !== asEnum.Status.Success)
-        return next('unknown');
-
-      next(null);
+      latch.then(function(results) {
+        callback(allback.extractErrFromCallbackArgs(results));
+      });
     });
   },
 
@@ -1105,10 +1084,12 @@ ActiveSyncFolderConn.prototype = {
       }
     };
 
+    var latch = allback.latch();
     this._storage.updateMessageHeader(header.date, header.id, false, header,
-                                      bodyInfo);
-    this._storage.updateMessageBody(header, bodyInfo, {}, event);
-    this._storage.runAfterDeferredCalls(callback.bind(null, null, bodyInfo));
+                                      bodyInfo, latch.defer('header'));
+    this._storage.updateMessageBody(header, bodyInfo, {}, event,
+                                    latch.defer('body'));
+    latch.then(callback.bind(null, null, bodyInfo, /* flushed */ false));
   },
 
   sync: lazyConnection(1, function asfc_sync(accuracyStamp, doneCallback,
@@ -1140,6 +1121,7 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
+      var latch = allback.latch();
       for (var iter in Iterator(added)) {
         var message = iter[1];
         // If we already have this message, it's probably because we moved it as
@@ -1148,8 +1130,8 @@ ActiveSyncFolderConn.prototype = {
         if (storage.hasMessageWithServerId(message.header.srvid))
           continue;
 
-        storage.addMessageHeader(message.header, message.body);
-        storage.addMessageBody(message.header, message.body);
+        storage.addMessageHeader(message.header, message.body, latch.defer());
+        storage.addMessageBody(message.header, message.body, latch.defer());
         addedMessages++;
       }
 
@@ -1175,7 +1157,7 @@ ActiveSyncFolderConn.prototype = {
         // Previously, this callback was called without safeguards in place
         // to prevent issues caused by the message variable changing,
         // so it is now bound to the function.
-        }.bind(null, message), /* body hint */ null);
+        }.bind(null, message), /* body hint */ null, latch.defer());
         changedMessages++;
         // XXX: update bodies
       }
@@ -1187,7 +1169,7 @@ ActiveSyncFolderConn.prototype = {
         if (!storage.hasMessageWithServerId(messageGuid))
           continue;
 
-        storage.deleteMessageByServerId(messageGuid);
+        storage.deleteMessageByServerId(messageGuid, latch.defer());
         deletedMessages++;
       }
 
@@ -1195,9 +1177,9 @@ ActiveSyncFolderConn.prototype = {
         var messagesSeen = addedMessages + changedMessages + deletedMessages;
 
         // Do not report completion of sync until all of our operations have
-        // been persisted to our in-memory database.  (We do not wait for
-        // things to hit the disk.)
-        storage.runAfterDeferredCalls(function() {
+        // been persisted to our in-memory database.  We tell this via their
+        // callbacks having completed.
+        latch.then(function() {
           // Note: For the second argument here, we report the number of
           // messages we saw that *changed*. This differs from IMAP, which
           // reports the number of messages it *saw*.

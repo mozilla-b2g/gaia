@@ -15,15 +15,15 @@ module.exports = System;
 
 // Selectors for the DOM in system app.
 System.Selector = Object.freeze({
-  keyboards: '#keyboards',
+  inputWindows: '#keyboards .inputWindow',
   imeMenu: 'form.ime-menu',
   imeNotification: '#keyboard-show-ime-list'
 });
 
 System.prototype = {
   // getters for DOM elements in keyboard app
-  get keyboards() {
-    return this.client.findElement(System.Selector.keyboards);
+  get inputWindows() {
+    return this.client.findElements(System.Selector.inputWindows);
   },
 
   get imeMenu() {
@@ -48,28 +48,35 @@ System.prototype = {
     client.switchToFrame();
 
     // Wait for the keyboard pop up and switch to it.
-    var keyboards = this.keyboards;
+    // This is satisfied as long as one inputWindow pops up.
+    var inputWindows = this.inputWindows;
 
-    var currentTransform = keyboards.cssProperty('transform');
     var expectedTransform = 'matrix(1, 0, 0, 1, 0, 0)';
 
-    return (currentTransform === expectedTransform);
+    return inputWindows.some(function(inputWindow) {
+      var currentTransform = inputWindow.cssProperty('transform');
+      return (currentTransform === expectedTransform);
+    });
   },
 
   keyboardFrameHidden: function() {
     // Switch to System app.
     client.switchToFrame();
 
-    var keyboards = this.keyboards;
+    // This is satisfied only when all inputWindows are regarded as
+    // having slided to the bottom.
+    var inputWindows = this.inputWindows;
 
-    var height = keyboards.scriptWith(function(frame) {
-      return frame.clientHeight;
+    return inputWindows.every(function(inputWindow) {
+      var height = inputWindow.scriptWith(function(frame) {
+        return frame.clientHeight;
+      });
+
+      var currentTransform = inputWindow.cssProperty('transform');
+      var expectedTransform = 'matrix(1, 0, 0, 1, 0, '+ height +')';
+
+      return (currentTransform === expectedTransform);
     });
-
-    var currentTransform = keyboards.cssProperty('transform');
-    var expectedTransform = 'matrix(1, 0, 0, 1, 0, '+ height +')';
-
-    return (currentTransform === expectedTransform);
   },
 
   /**
@@ -79,7 +86,8 @@ System.prototype = {
     var client = this.client;
     // Don't call switchToApp here, since keyboard frame itself would not
     // follow the rule of AppWindow.
-    var keyboardFrame = client.findElement('#keyboards iframe:not(.hide)');
+    var keyboardFrame =
+      client.findElement('#keyboards .inputWindow.active iframe');
     client.switchToFrame(keyboardFrame);
   },
 
@@ -96,14 +104,13 @@ System.prototype = {
     chain.release().perform();
 
     var utilityTray = client.findElement('#utility-tray');
-    var trayHeight = utilityTray.scriptWith(function(tray) {
-      return tray.clientHeight;
-    });
+    var ambientIndicator = client.findElement('#ambient-indicator');
+    var trayHeight = utilityTray.size().height - ambientIndicator.size().height;
 
     // wait for utility tray to show completely
     client.waitFor(function() {
       var currentTransform = utilityTray.cssProperty('transform');
-      var expectedTransform = 'matrix(1, 0, 0, 1, 0, '+ trayHeight +')';
+      var expectedTransform = 'matrix(1, 0, 0, 1, 0, ' + trayHeight + ')';
       return (currentTransform === expectedTransform);
     });
   }

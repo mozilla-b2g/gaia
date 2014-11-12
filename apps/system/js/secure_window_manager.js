@@ -1,5 +1,4 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global System */
 'use strict';
 
 (function(exports) {
@@ -19,8 +18,10 @@
   var SecureWindowManager = function() {
     this.initElements();
     this.initEvents();
+    System.request('registerHierarchy', this);
   };
   SecureWindowManager.prototype = {
+    name: 'SecureWindowManager',
 
     /**
      * @memberof SecureWindowManager#
@@ -58,6 +59,19 @@
                 'home'
                ]
     }
+  };
+
+  SecureWindowManager.prototype.setHierarchy = function(active) {
+    if (!this.states.activeApp) {
+      return;
+    }
+    if (active) {
+      this.states.activeApp.focus();
+    }
+    this.states.activeApp.setVisibleForScreenReader(active);
+  };
+  SecureWindowManager.prototype.getActiveWindow = function() {
+    return this.isActive() ? this.states.activeApp : null;
   };
 
   /**
@@ -278,6 +292,15 @@
         return false;
       }
       return true;
+    };
+
+  SecureWindowManager.prototype.isActive =
+    function swm_isActive() {
+      if (!this.states.activeApp) {
+        return false;
+      } else {
+        return this.states.activeApp.isActive();
+      }
     };
 
   /** @exports SecureWindowManager */

@@ -15,6 +15,9 @@ class TestFtu(GaiaTestCase):
         self.ftu.launch()
 
     def test_ftu_with_tour(self):
+        """
+        https://moztrap.mozilla.org/manage/case/6119/
+        """
 
         # Go through the FTU setup as quickly as possible to get to the Tour section
         self.ftu.run_ftu_setup_with_default_values()

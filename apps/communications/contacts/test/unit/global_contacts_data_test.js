@@ -124,6 +124,27 @@ suite('Global Contacts Data', function() {
     assertNewEntry(contact, 2, originStore1, expectedNumbers, 2, done);
   });
 
+  test('Getting entry data from the datastore', function(done) {
+    GlobalContacts.getEntry(2).then(function(data) {
+      done(function() {
+        assert.equal(data.length, 1);
+        assert.equal(data[0].origin, originStore1.owner);
+        assert.equal(data[0].uid, '1234');
+      });
+    }).catch(done);
+  });
+
+  test('Getting contact data', function(done) {
+    var multiContactObj = Object.create(contact);
+    multiContactObj.id = 2;
+    MockMultiContact._data['1234'] = multiContactObj;
+
+    GlobalContacts.getData(2).then(function(data) {
+      done(function() {
+      });
+    }).catch(done);
+  });
+
   test('New Contact matches existing > entry is updated ', function(done) {
     var multiContactObj = Object.create(contact);
     multiContactObj.id = 2;

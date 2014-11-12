@@ -5,7 +5,7 @@
 
   <title>Buttons</title>
   <link rel="stylesheet" href="../buttons.css">
-
+  <link rel="stylesheet" href="../../elements/gaia-icons/gaia-icons-embedded.css">
   <!--
     This <style>, <script> and <link> is only used for the example code,
     is no needed for the real case use
@@ -57,6 +57,11 @@
       height: 100%;
       position: relative;
     }
+
+    [data-icon]:before {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
   </style>
   <script>
     window.onload = function(){
@@ -77,12 +82,19 @@
     <button>Default</button>
     <button class="recommend">Recommend</button>
     <button class="danger">Danger</button>
-   </div>
+  </div>
+
+  <h2 class="bb-docs">Buttons with icons</h2>
+  <div class="bb-docs skin-organic">
+    <button data-icon="forward">Default</button>
+    <button data-icon="forward" class="recommend">Recommend</button>
+    <button data-icon="forward" class="danger">Danger</button>
+  </div>
 
   <h2 class="bb-docs">Disabled</h2>
   <div class="bb-docs skin-organic">
     <button disabled>Default</button>
-    <a href="#" role="button" aria-disabled="true" class="recommend">Recommend</a>
+    <a href="#" role="button" aria-disabled="true" class="recommend bb-button">Recommend</a>
     <button disabled class="danger">Danger</button>
   </div>
 
@@ -96,7 +108,7 @@
   <h2 class="bb-docs">Disabled</h2>
   <div class="bb-docs skin-dark">
     <button disabled>Default</button>
-    <a href="#" role="button" aria-disabled="true" class="recommend">Recommend</a>
+    <a href="#" role="button" aria-disabled="true" class="recommend bb-button">Recommend</a>
     <button disabled class="danger">Danger</button>
   </div>
 
@@ -110,23 +122,23 @@
         <button disabled>Disabled</button>
       </li>
       <li>
-        <button class="icon icon-view">
+        <button data-icon="forward">
           Side navigation
         </button>
       </li>
       <li>
-        <button disabled class="icon icon-view">
+        <button disabled data-icon="forward">
           Side navigation
         </button>
       </li>
       <li>
-        <a role="button" class="icon icon-dialog">
+        <a role="button" data-icon="expand" class="bb-button">
           Tuesday Sept. 18, 2012
         </a>
       </li>
       <li>
-        <a role="button" aria-disabled="true" class="icon icon-dialog">
-          Tuesday Sept. 18, 2012
+        <a role="button" aria-disabled="true" data-icon="expand" class="bb-button">
+            Tuesday Sept. 18, 2012
         </a>
       </li>
     </ul>
@@ -142,22 +154,22 @@
         <button disabled>Disabled</button>
       </li>
       <li>
-        <button class="icon icon-view">
+        <button data-icon="forward">
           Side navigation
         </button>
       </li>
       <li>
-        <button disabled class="icon icon-view">
+        <button disabled data-icon="forward">
           Side navigation
         </button>
       </li>
       <li>
-        <a role="button" class="icon icon-dialog">
+        <a role="button" data-icon="expand" class="bb-button">
           Tuesday Sept. 18, 2012
         </a>
       </li>
       <li>
-        <a role="button" aria-disabled="true" class="icon icon-dialog">
+        <a role="button" aria-disabled="true" data-icon="expand" class="bb-button">
           Tuesday Sept. 18, 2012
         </a>
       </li>
@@ -176,7 +188,7 @@
   <div class="bb-docs">
     <ul>
       <li>
-        <span class="button icon icon-dialog">
+        <span class="bb-button" data-icon="expand">
           <select>
             <option>option 1</option>
             <option>option 2</option>
@@ -190,7 +202,7 @@
   <div class="bb-docs">
     <ul>
       <li>
-        <span aria-disabled="true" class="button icon icon-dialog">
+        <span aria-disabled="true" class="bb-button" data-icon="expand">
           <select>
             <option>option 1</option>
             <option>option 2</option>
@@ -212,7 +224,7 @@
   <div class="bb-docs skin-dark">
     <ul>
       <li>
-        <span class="button icon icon-dialog">
+        <span class="bb-button" data-icon="expand">
           <select>
             <option>option 1</option>
             <option>option 2</option>
@@ -220,7 +232,7 @@
         </span>
       </li>
       <li>
-        <span aria-disabled="true" class="button icon icon-dialog">
+        <span aria-disabled="true" class="bb-button" data-icon="expand">
           <select>
             <option>option 1</option>
             <option>option 2</option>

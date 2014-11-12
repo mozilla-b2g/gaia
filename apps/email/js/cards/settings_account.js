@@ -1,182 +1,146 @@
-/*global define*/
 'use strict';
 define(function(require) {
 
-var templateNode = require('tmpl!./settings_account.html'),
-    tngAccountSettingsServerNode =
+var tngAccountSettingsServerNode =
                              require('tmpl!./tng/account_settings_server.html'),
     tngAccountDeleteConfirmNode =
                               require('tmpl!./tng/account_delete_confirm.html'),
     evt = require('evt'),
-    common = require('mail_common'),
     mozL10n = require('l10n!'),
-    prefsMixin = require('./account_prefs_mixins'),
-    mix = require('mix'),
-    Cards = common.Cards,
-    ConfirmDialog = common.ConfirmDialog;
+    cards = require('cards'),
+    ConfirmDialog = require('confirm_dialog');
 
-/**
- * Per-account settings, maybe some metadata.
- */
-function SettingsAccountCard(domNode, mode, args) {
-  this.domNode = domNode;
-  this.account = args.account;
-  this.identity = this.account.identities[0];
+return [
+  require('./base')(require('template!./settings_account.html')),
+  require('./account_prefs_mixins'),
+  {
+    onArgs: function(args) {
+      this.account = args.account;
+      this.identity = this.account.identities[0];
 
-  var serversContainer = this.nodeFromClass('tng-account-server-container');
+      this.headerLabel.textContent = args.account.name;
 
-  this.nodeFromClass('tng-account-header-label').
-       textContent = args.account.name;
+      this._bindPrefs('tng-account-check-interval',
+                      'tng-notify-mail',
+                      'tng-sound-onsend',
+                      'tng-signature-input',
+                      'signature-button');
 
-  this._bindPrefs('tng-account-check-interval',
-                  'tng-notify-mail',
-                  'tng-sound-onsend',
-                  'tng-signature-input',
-                  'signature-button');
+      this.accountNameNode.textContent =
+                     (this.identity && this.identity.name) || this.account.name;
 
-  this.nodeFromClass('tng-back-btn')
-    .addEventListener('click', this.onBack.bind(this), false);
+      // ActiveSync, IMAP and SMTP are protocol names, no need to be localized
+      this.accountTypeNode.textContent =
+        (this.account.type === 'activesync') ? 'ActiveSync' :
+        (this.account.type === 'imap+smtp') ? 'IMAP+SMTP' : 'POP3+SMTP';
 
-  this.nodeFromClass('tng-account-delete')
-    .addEventListener('click', this.onDelete.bind(this), false);
-
-  this.nodeFromClass('tng-account-name').
-       textContent = (this.identity && this.identity.name) || this.account.name;
-
-  // ActiveSync, IMAP and SMTP are protocol names, no need to be localized
-  this.nodeFromClass('tng-account-type').textContent =
-    (this.account.type === 'activesync') ? 'ActiveSync' :
-    (this.account.type === 'imap+smtp') ? 'IMAP+SMTP' : 'POP3+SMTP';
-
-  // Handle default account checkbox. If already a default, then the
-  // checkbox cannot be unchecked. The default is changed by going to an
-  // account that is not the default and checking that checkbox.
-  this.defaultLabelNode = this.nodeFromClass('tng-default-label');
-  this.defaultInputNode = this.nodeFromClass('tng-default-input');
-  if (this.account.isDefault) {
-    this.defaultInputNode.disabled = true;
-    this.defaultInputNode.checked = true;
-  } else {
-    this.defaultLabelNode.addEventListener('click',
-                                  this.onChangeDefaultAccount.bind(this),
-                                  false);
-  }
-
-  if (this.account.type === 'activesync') {
-    var synchronizeNode = this.nodeFromClass('tng-account-synchronize');
-    synchronizeNode.value = this.account.syncRange;
-    synchronizeNode.addEventListener(
-      'change', this.onChangeSynchronize.bind(this), false);
-  } else {
-    // Remove it from the DOM so that css selectors for last-child can work
-    // efficiently. Also, it just makes the overall DOM smaller.
-    var syncSettingNode = this.nodeFromClass('synchronize-setting');
-        syncSettingNode.parentNode.removeChild(syncSettingNode);
-  }
-
-  this.account.servers.forEach(function(server, index) {
-    var serverNode = tngAccountSettingsServerNode.cloneNode(true);
-    var serverLabel =
-      serverNode.getElementsByClassName('tng-account-server-label')[0];
-
-    mozL10n.setAttributes(serverLabel, 'settings-' + server.type + '-label');
-    serverLabel.addEventListener('click',
-      this.onClickServers.bind(this, index), false);
-
-    serversContainer.appendChild(serverNode);
-  }.bind(this));
-
-  this.accountCredNode = this.nodeFromClass('tng-account-credentials');
-  var credL10nId = 'settings-account-userpass';
-  if (this.account.authMechanism === 'oauth2') {
-    credL10nId = 'settings-account-useroauth2';
-  }
-  mozL10n.setAttributes(this.accountCredNode, credL10nId);
-  this.accountCredNode
-      .addEventListener('click', this.onClickCredentials.bind(this), false);
-}
-
-SettingsAccountCard.prototype = {
-
-  onBack: function() {
-    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
-  },
-
-  onCardVisible: function() {
-    this.updateSignatureButton();
-  },
-
-  onClickCredentials: function() {
-    Cards.pushCard(
-      'settings_account_credentials', 'default', 'animate',
-      {
-        account: this.account
-      },
-      'right');
-  },
-
-  onClickServers: function(index) {
-    Cards.pushCard(
-      'settings_account_servers', 'default', 'animate',
-      {
-        account: this.account,
-        index: index
-      },
-      'right');
-  },
-
-  onChangeDefaultAccount: function(event) {
-    event.stopPropagation();
-    if (event.preventBubble) {
-      event.preventBubble();
-    }
-
-    if (!this.defaultInputNode.disabled) {
-      this.defaultInputNode.disabled = true;
-      this.defaultInputNode.checked = true;
-      this.account.modifyAccount({ setAsDefault: true });
-    }
-  },
-
-  onChangeSynchronize: function(event) {
-    this.account.modifyAccount({syncRange: event.target.value});
-  },
-
-  onDelete: function() {
-    var account = this.account;
-
-    var dialog = tngAccountDeleteConfirmNode.cloneNode(true);
-    var content = dialog.getElementsByTagName('p')[0];
-    mozL10n.setAttributes(content, 'settings-account-delete-prompt',
-                          { account: account.name });
-    ConfirmDialog.show(dialog,
-      { // Confirm
-        id: 'account-delete-ok',
-        handler: function() {
-          account.deleteAccount();
-          evt.emit('accountDeleted', account);
-        }
-      },
-      { // Cancel
-        id: 'account-delete-cancel',
-        handler: null
+      // Handle default account checkbox. If already a default, then the
+      // checkbox cannot be unchecked. The default is changed by going to an
+      // account that is not the default and checking that checkbox.
+      if (this.account.isDefault) {
+        this.defaultInputNode.disabled = true;
+        this.defaultInputNode.checked = true;
+      } else {
+        this.defaultLabelNode.addEventListener('click',
+                                      this.onChangeDefaultAccount.bind(this),
+                                      false);
       }
-    );
-  },
 
-  die: function() {
+      if (this.account.type === 'activesync') {
+        this.synchronizeNode.value = this.account.syncRange;
+      } else {
+        // Remove it from the DOM so that css selectors for last-child can work
+        // efficiently. Also, it just makes the overall DOM smaller.
+        this.syncSettingNode.parentNode.removeChild(this.syncSettingNode);
+      }
+
+      this.account.servers.forEach(function(server, index) {
+        var serverNode = tngAccountSettingsServerNode.cloneNode(true);
+        var serverLabel = serverNode.querySelector('.tng-account-server-label');
+
+        mozL10n.setAttributes(serverLabel,
+                              'settings-' + server.type + '-label');
+        serverLabel.addEventListener('click',
+          this.onClickServers.bind(this, index), false);
+
+        this.serversContainer.appendChild(serverNode);
+      }.bind(this));
+
+      var credL10nId = 'settings-account-userpass';
+      if (this.account.authMechanism === 'oauth2') {
+        credL10nId = 'settings-account-useroauth2';
+      }
+      mozL10n.setAttributes(this.accountCredNode, credL10nId);
+    },
+
+    onBack: function() {
+      cards.removeCardAndSuccessors(this, 'animate', 1);
+    },
+
+    onCardVisible: function() {
+      this.updateSignatureButton();
+    },
+
+    onClickCredentials: function() {
+      cards.pushCard(
+        'settings_account_credentials', 'animate',
+        {
+          account: this.account
+        },
+        'right');
+    },
+
+    onClickServers: function(index) {
+      cards.pushCard(
+        'settings_account_servers', 'animate',
+        {
+          account: this.account,
+          index: index
+        },
+        'right');
+    },
+
+    onChangeDefaultAccount: function(event) {
+      event.stopPropagation();
+      if (event.preventBubble) {
+        event.preventBubble();
+      }
+
+      if (!this.defaultInputNode.disabled) {
+        this.defaultInputNode.disabled = true;
+        this.defaultInputNode.checked = true;
+        this.account.modifyAccount({ setAsDefault: true });
+      }
+    },
+
+    onChangeSynchronize: function(event) {
+      this.account.modifyAccount({syncRange: event.target.value});
+    },
+
+    onDelete: function() {
+      var account = this.account;
+
+      var dialog = tngAccountDeleteConfirmNode.cloneNode(true);
+      var content = dialog.getElementsByTagName('p')[0];
+      mozL10n.setAttributes(content, 'settings-account-delete-prompt',
+                            { account: account.name });
+      ConfirmDialog.show(dialog,
+        { // Confirm
+          id: 'account-delete-ok',
+          handler: function() {
+            account.deleteAccount();
+            evt.emit('accountDeleted', account);
+          }
+        },
+        { // Cancel
+          id: 'account-delete-cancel',
+          handler: null
+        }
+      );
+    },
+
+    die: function() {
+    }
   }
-};
-
-// Wire up some common pref handlers.
-mix(SettingsAccountCard.prototype, prefsMixin);
-
-Cards.defineCardWithDefaultMode(
-    'settings_account',
-    { tray: false },
-    SettingsAccountCard,
-    templateNode
-);
-
-return SettingsAccountCard;
+];
 });

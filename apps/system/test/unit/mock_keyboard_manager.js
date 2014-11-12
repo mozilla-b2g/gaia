@@ -1,6 +1,7 @@
 MockKeyboardManager = {
   mHeight: 0,
   init: function() {},
+  removeKeyboard: function() {},
   hideKeyboard: function() {},
   getHeight: function() {
     return this.mHeight;
@@ -8,10 +9,8 @@ MockKeyboardManager = {
   mTeardown: function() {
     this.mHeight = 0;
   },
+  _onKeyboardReady: function() {},
   inputTypeTable: {},
   isOutOfProcessEnabled: false,
-  totalMemory: 0,
-  keyboardFrameContainer: null,
-  resizeKeyboard: function() {},
-  setHasActiveKeyboard: function() {}
+  totalMemory: 0
 };

@@ -107,9 +107,7 @@ Pop3FolderSyncer.prototype = {
       for (var k in results) {
         err = results[k][0];
       }
-      storage.runAfterDeferredCalls(function() {
-        callback(err, headers.length);
-      });
+      callback(err, headers.length);
     });
   }),
 
@@ -538,9 +536,7 @@ Pop3FolderSyncer.prototype = {
         checkpoint: function(next) {
           // Every N messages, wait for everything to be stored to
           // disk and saved in the database. Then proceed.
-          this.storage.runAfterDeferredCalls(function() {
-            this.account.__checkpointSyncCompleted(next, 'syncBatch');
-          }.bind(this));
+          this.account.__checkpointSyncCompleted(next, 'syncBatch');
         }.bind(this),
         progress: function fetchProgress(evt) {
           // Store each message as it is retrieved.
@@ -582,7 +578,7 @@ Pop3FolderSyncer.prototype = {
 
         // When all of the messages have been persisted to disk, indicate
         // that we've successfully synced. Refresh our view of the world.
-        this.storage.runAfterDeferredCalls(fetchDoneCb);
+        fetchDoneCb();
       }.bind(this));
     }
 

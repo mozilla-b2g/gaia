@@ -3,7 +3,7 @@
 /* exported MultiContact */
 /* globals Promise, LazyLoader, contacts */
 
-// ATTENTION: This library lazy loads contacts_merger.js 
+// ATTENTION: This library lazy loads contacts_merger.js
 
 var MultiContact = (function() {
   var datastores = Object.create(null);
@@ -81,7 +81,7 @@ var MultiContact = (function() {
         name: 'InvalidEntry'
       });
     }
-    
+
     return new Promise(function(resolve, reject) {
       var operations = [];
 
@@ -93,7 +93,7 @@ var MultiContact = (function() {
         if (owner === MOZ_CONTACTS_OWNER) {
           mozContactId = aEntry.uid;
         }
-    
+
         getDatastore(owner).then(function success(datastore) {
           operations.push(datastore.get(aEntry.uid));
           // It is needed to wait to have all operations ready
@@ -110,11 +110,12 @@ var MultiContact = (function() {
       });
     });
   }
-  
+
 
   function execute(operations, resolve, reject, options) {
     Promise.all(operations).then(function success(results) {
       if (results.length === 1) {
+        results[0].id = options.targetId;
         resolve(results[0]);
         return;
       }

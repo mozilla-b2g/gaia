@@ -18,16 +18,6 @@ requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/js/async_semaphore.js');
 requireApp('system/js/sound_manager.js');
 
-mocha.globals([
-  'SettingsListener',
-  'Bluetooth',
-  'CustomDialog',
-  'FtuLauncher',
-  'ScreenManager',
-  'SoundManager',
-  'system'
-]);
-
 var mocksForSoundManager = new MocksHelper([
   'asyncStorage',
   'Bluetooth',
@@ -178,7 +168,29 @@ suite('system/sound manager', function() {
         });
       });
 
+      test('volume up to vibrate', function() {
+        var spy = this.sinon.spy(soundManager, 'notifyByVibrating');
+        soundManager.currentChannel = 'notification';
+        soundManager.currentVolume.notification = -1;
+        soundManager.vibrationEnabled = false;
+        window.dispatchEvent(new CustomEvent('volumeup'));
+        checkVolume({
+          'alarm': 5,
+          'bt_sco': 5,
+          'content': 5,
+          'notification': 0,
+          'telephony': 5
+        });
+        assert.equal('MUTE', soundManager.muteState);
+        assert.isTrue(soundManager.vibrationEnabled);
+        assert.isTrue(MockNavigatorSettings.mSettings['vibration.enabled']);
+        var vibrationClassList = document.getElementById('volume').classList;
+        assert.isTrue(vibrationClassList.contains('vibration'));
+        assert.isTrue(spy.calledOnce);
+      });
+
       test('volume down to vibrate', function() {
+        var spy = this.sinon.spy(soundManager, 'notifyByVibrating');
         soundManager.currentChannel = 'notification';
         soundManager.currentVolume.notification = 1;
         soundManager.vibrationEnabled = false;
@@ -195,6 +207,7 @@ suite('system/sound manager', function() {
         assert.isTrue(MockNavigatorSettings.mSettings['vibration.enabled']);
         var vibrationClassList = document.getElementById('volume').classList;
         assert.isTrue(vibrationClassList.contains('vibration'));
+        assert.isTrue(spy.calledOnce);
       });
 
       test('volume down to silent', function() {

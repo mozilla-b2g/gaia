@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette import Wait
+from marionette import expected
 from marionette.by import By
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -19,7 +20,7 @@ class Email(Base):
     _email_locator = (By.CSS_SELECTOR, '#cardContainer .msg-header-item:not([data-index="-1"])')
     _syncing_locator = (By.CSS_SELECTOR, '#cardContainer .msg-messages-syncing > .small')
     _manual_setup_locator = (By.CSS_SELECTOR, '#cardContainer .sup-manual-config-btn')
-    _message_list_locator = (By.CSS_SELECTOR, '.card-message-list')
+    _message_list_locator = (By.CSS_SELECTOR, 'cards-message-list')
     _refresh_button_locator = (By.CLASS_NAME, 'msg-refresh-btn')
 
     def basic_setup_email(self, name, email, password):
@@ -71,6 +72,7 @@ class Email(Base):
         setup.type_smtp_port(imap['smtp_port'])
 
         setup.tap_next()
+        setup.check_for_emails_interval('20000')
 
         setup.tap_account_prefs_next()
 
@@ -248,10 +250,8 @@ class Message(PageRegion):
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [self.root_element])
 
     def tap_subject(self):
-        el = self.root_element.find_element(*self._subject_locator)
-        # TODO: Remove scrollIntoView when bug #877163 is fixed
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [el])
-        self.wait_for_element_displayed(*self._subject_locator)
-        self.root_element.find_element(*self._subject_locator).tap()
+        subject = self.root_element.find_element(*self._subject_locator)
+        Wait(self.marionette).until(expected.element_enabled(subject))
+        subject.tap()
         from gaiatest.apps.email.regions.read_email import ReadEmail
         return ReadEmail(self.marionette)

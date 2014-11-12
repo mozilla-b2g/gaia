@@ -116,6 +116,8 @@ define(function(require) {
       var name = document.createTextNode(itemData.name);
       icon.src = itemData.iconSrc;
       link.dataset.appIndex = itemData.index;
+      link.href = '#';
+      link.classList.add('menu-item');
       link.appendChild(icon);
       link.appendChild(name);
       item.appendChild(link);

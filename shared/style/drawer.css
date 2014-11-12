@@ -250,5 +250,5 @@ html[dir="rtl"] section[data-type="sidebar"]:after {
 html[dir="rtl"] section[data-type="sidebar"] > nav > h2 {
   background-position: right top;
   padding-left: 0.8rem;
-  padding-right: auto;
+  padding-right: unset;
 }

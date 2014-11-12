@@ -19,6 +19,7 @@
    *
    */
   var MockDOMRequest = function MockDOMRequest() {
+    this._promise = null;
   };
 
   MockDOMRequest.prototype = new MockEventTarget();
@@ -83,6 +84,8 @@
     // Remove callbacks since we will never file them again.
     this._captureCallbacks = [];
     this._bubbleCallbacks = [];
+
+    this._getInternalPromise().resolve(result);
   };
 
   /**
@@ -108,6 +111,38 @@
     // Remove callbacks since we will never file them again.
     this._captureCallbacks = [];
     this._bubbleCallbacks = [];
+
+    this._getInternalPromise().reject(error);
+  };
+
+  /**
+   * The then-able interface of DOMRequest. See bug 839838 for real impl.
+   * @returns {Mixed} A Promise instance returned by the then() method.
+   */
+  MockDOMRequest.prototype.then = function(fulfillCallback, rejectCallback) {
+    return this._getInternalPromise().then(fulfillCallback, rejectCallback);
+  };
+
+  /**
+   * Get the internal promise instance. Internal only.
+   * Create the instance when being required for the first time.
+   * @returns {Mixed} A Promise instance.
+   */
+  MockDOMRequest.prototype._getInternalPromise = function() {
+    if (this._promise) {
+      return this._promise;
+    }
+
+    var oResolve, oReject;
+    var p = this._promise = new Promise(function(resolve, reject) {
+      oResolve = resolve;
+      oReject = reject;
+    });
+
+    p.resolve = oResolve;
+    p.reject = oReject;
+
+    return p;
   };
 
   exports.MockDOMRequest = MockDOMRequest;

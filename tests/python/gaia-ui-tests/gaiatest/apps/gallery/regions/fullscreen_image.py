@@ -20,6 +20,7 @@ class FullscreenImage(Base):
     _confirm_delete_locator = (By.ID, 'confirm-ok')
     _edit_photo_locator = (By.ID, 'fullscreen-edit-button-tiny')
     _tile_view_locator = (By.ID, 'fullscreen-back-button-tiny')
+    _photo_toolbar_options_locator = (By.CSS_SELECTOR, '#fullscreen-toolbar > a')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -72,3 +73,7 @@ class FullscreenImage(Base):
     @property
     def photo_toolbar_width(self):
         return self.marionette.execute_script('return document.getElementById("fullscreen-toolbar").offsetWidth')
+
+    @property
+    def photo_toolbar_options(self):
+        return self.marionette.find_elements(*self._photo_toolbar_options_locator)

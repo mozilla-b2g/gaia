@@ -86,6 +86,7 @@ function startup(data, reason) {
         dump(e);
       }
     });
+    identity.add(scheme,  'theme.' + host, port);
 
     let commonjs = {
       GAIA_BUILD_DIR: 'file://' + GAIA_DIR.replace(/\\/g, '/') + '/build/'

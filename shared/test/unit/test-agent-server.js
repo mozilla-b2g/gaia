@@ -6,6 +6,7 @@ var Agent = TestAgent,
     Suite = Agent.Suite,
     suite = new Suite({
       paths: [fsPath.resolve(__dirname + '/../../../apps/'),
+              fsPath.resolve(__dirname + '/../../../tv_apps/'),
               fsPath.resolve(__dirname + '/../../../dev_apps/')],
       strictMode: false,
       testDir: '/test/unit/',

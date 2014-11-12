@@ -1,14 +1,14 @@
 'use strict';
 /* global MocksHelper, ActivityWindowManager, ActivityWindow,
-   AppWindow, MockAppWindowManager */
+   AppWindow, MockSystem */
 
-requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 
 var mocksForActivityWindowManager = new MocksHelper([
-  'AppWindow', 'ActivityWindow', 'PopupWindow', 'AppWindowManager'
+  'AppWindow', 'ActivityWindow', 'PopupWindow', 'System'
 ]).init();
 
 suite('system/ActivityWindowManager', function() {
@@ -100,6 +100,7 @@ suite('system/ActivityWindowManager', function() {
     teardown(function() {
       subject.stop();
       subject = null;
+      MockSystem.currentApp = null;
     });
 
     test('maintain activity: created', function() {
@@ -203,7 +204,7 @@ suite('system/ActivityWindowManager', function() {
         [app1.instanceID, true]
       ]);
 
-      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app2);
+      MockSystem.currentApp = app2;
       this.sinon.stub(app2, 'getTopMostWindow').returns(app2);
 
       subject.handleEvent({
@@ -222,8 +223,7 @@ suite('system/ActivityWindowManager', function() {
         [app1.instanceID, true]
       ]);
 
-      console.log(subject.activityPool.size);
-      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app2);
+      MockSystem.currentApp = app2;
       this.sinon.stub(app2, 'getTopMostWindow').returns(app2);
 
       subject.handleEvent({

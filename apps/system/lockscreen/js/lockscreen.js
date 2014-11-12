@@ -143,11 +143,6 @@
     */
     HANDLE_MAX: 70,
 
-    _passcodePadVibrationEnabled: false,
-
-    // Keep in sync with Dialer and Keyboard vibration
-    _passcodePadVibrationDuration: 50,
-
     /**
      * Object used for handling the clock UI element, wraps all related timers
      */
@@ -210,26 +205,6 @@
           this.handleIconClick(evt.target);
           break;
         }
-
-        var key = evt.target.dataset.key;
-        if (!key &&
-            ('div' === evt.target.tagName.toLowerCase() &&
-             'a' === evt.target.parentNode.tagName.toLowerCase())
-           ) {
-          key = evt.target.parentNode.dataset.key;
-        }
-        if (!key) {
-          break;
-        }
-
-        // Cancel the default action of <a>
-        evt.preventDefault();
-        this.handlePassCodeInput(key);
-        window.dispatchEvent(new window.CustomEvent(
-          'lockscreen-keypad-input', { detail: {
-            key: key
-          }
-        }));
         break;
 
       case 'touchstart':
@@ -282,14 +257,6 @@
         evt.stopPropagation();
         break;
 
-      case 'callschanged':
-        var emergencyCallBtn = this.passcodePad.querySelector('a[data-key=e]');
-        if (!!navigator.mozTelephony.calls.length) {
-          emergencyCallBtn.classList.add('disabled');
-        } else {
-          emergencyCallBtn.classList.remove('disabled');
-        }
-        break;
       case 'lockscreenslide-unlocker-initializer':
         this._unlockerInitialized = true;
         break;
@@ -390,7 +357,6 @@
       document.getElementById('notifications-lockscreen-container');
 
     this.lockIfEnabled(true);
-    this.writeSetting(this.enabled);
     this.initUnlockerEvents();
 
     /* Status changes */
@@ -401,14 +367,6 @@
     /* Incoming and normal mode would be different */
     window.addEventListener('lockscreen-mode-switch', this);
 
-    /* Telephony changes */
-    if (navigator.mozTelephony) {
-      this.initEmergencyCallEvents();
-      navigator.mozTelephony.addEventListener('callschanged', this);
-    } else {
-      this.passcodePad.querySelector('a[data-key=e]').classList.add('disabled');
-    }
-
     /* Gesture */
     this.area.addEventListener('touchstart', this);
     this.areaCamera.addEventListener('click', this);
@@ -418,9 +376,6 @@
 
     /* Unlock & camera panel clean up */
     this.overlay.addEventListener('transitionend', this);
-
-    /* Passcode input pad*/
-    this.passcodePad.addEventListener('click', this);
 
     /* switching panels */
     window.addEventListener('home', this);
@@ -480,10 +435,6 @@
       this.setLockMessage(value);
     }).bind(this));
 
-    window.SettingsListener.observe('keyboard.vibration',
-      false, (function(value) {
-      this._passcodePadVibrationEnabled = !!value;
-    }).bind(this));
 
     // FIXME(ggp) this is currently used by Find My Device
     // to force locking. Should be replaced by a proper IAC API in
@@ -548,8 +499,10 @@
     this.refreshClock(new Date());
 
     // mobile connection state on lock screen.
-    // It needs L10n too.
-    if (window.navigator.mozMobileConnections) {
+    // It needs L10n too. But it's not a re-entrable function,
+    // so we need to check if it's already initialized.
+    if (window.navigator.mozMobileConnections &&
+        !this._lockscreenConnInfoManager) {
       this._lockscreenConnInfoManager =
         new window.LockScreenConnInfoManager(this.connStates);
     }
@@ -681,7 +634,7 @@
     var url =
           window.parent.location.href.replace('system', name),
         manifestUrl =
-          url.replace(/(\/)*(index.html)*$/, '/manifest.webapp');
+          url.replace(/(\/)*(index.html#?)*$/, '/manifest.webapp');
 
     url += '#secure';
     window.dispatchEvent(new window.CustomEvent('secure-launchapp',
@@ -692,46 +645,6 @@
         }
       }
     ));
-  };
-
-  LockScreen.prototype.handlePassCodeInput =
-  function ls_handlePassCodeInput(key) {
-    switch (key) {
-      case 'e': // 'E'mergency Call
-        this.invokeSecureApp('emergency-call');
-        break;
-
-      case 'c': // 'C'ancel
-        // Delegate to LockScreenStateManager
-        break;
-
-      case 'b': // 'B'ackspace for correction
-        if (this.overlay.dataset.passcodeStatus) {
-          return;
-        }
-
-        this.passCodeEntered =
-          this.passCodeEntered.substr(0, this.passCodeEntered.length - 1);
-        this.updatePassCodeUI();
-
-        break;
-      default:
-        if (this.overlay.dataset.passcodeStatus) {
-          return;
-        }
-
-        this.passCodeEntered += key;
-        this.updatePassCodeUI();
-
-        if (this._passcodePadVibrationEnabled) {
-          navigator.vibrate(this._passcodePadVibrationDuration);
-        }
-
-        if (this.passCodeEntered.length === 4) {
-          this.checkPassCode();
-        }
-        break;
-    }
   };
 
   LockScreen.prototype.lockIfEnabled =
@@ -759,8 +672,6 @@
     if (wasAlreadyUnlocked) {
       return;
     }
-
-    this.writeSetting(false);
 
     if (this.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
@@ -805,7 +716,6 @@
       // Any changes made to this,
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('secure-modeon');
-      this.writeSetting(true);
 
       if(this._checkGenerateMaskedBackgroundColor()){
         this._generateMaskedBackgroundColor();
@@ -839,21 +749,6 @@
 
         delete this.overlay.dataset.passcodeStatus;
         this.passCodeEntered = '';
-        this.updatePassCodeUI();
-        break;
-
-      case 'camera':
-        this.mainScreen.classList.remove('lockscreen-camera');
-        this.overlay.classList.remove('unlocked');
-        this.overlay.hidden = false;
-        break;
-
-      case 'emergency-call':
-        var ecPanel = this.panelEmergencyCall;
-        ecPanel.addEventListener('transitionend', function unloadPanel() {
-          ecPanel.removeEventListener('transitionend', unloadPanel);
-          ecPanel.removeChild(ecPanel.firstElementChild);
-        });
         break;
 
       case 'main':
@@ -934,41 +829,15 @@
     this.date.textContent = f.localeFormat(now, dateFormat);
   };
 
-  LockScreen.prototype.updatePassCodeUI =
-  function lockscreen_updatePassCodeUI() {
-    var overlay = this.overlay;
-
-    if (overlay.dataset.passcodeStatus) {
-      return;
-    }
-
-    if (this.passCodeEntered) {
-      overlay.classList.add('passcode-entered');
-    } else {
-      overlay.classList.remove('passcode-entered');
-    }
-    var i = 4;
-    while (i--) {
-      var span = this.passcodeCode.childNodes[i];
-      if (span) {
-        if (this.passCodeEntered.length > i) {
-          span.dataset.dot = true;
-        } else {
-          delete span.dataset.dot;
-        }
-      }
-    }
-  };
-
   /**
    * This function would fire an event to validate the passcode.
    * The validator is a component in System app, and LockScreen should
    * not validate it.
    */
   LockScreen.prototype.checkPassCode =
-  function lockscreen_checkPassCode() {
+  function lockscreen_checkPassCode(passcode) {
     var request = {
-      passcode: this.passCodeEntered,
+      passcode: passcode,
       onsuccess: this.onPasscodeValidationSuccess.bind(this),
       onerror: this.onPasscodeValidationFailed.bind(this),
     };
@@ -1148,17 +1017,6 @@
     window.dispatchEvent(evt);
   };
 
-  LockScreen.prototype.writeSetting =
-  function ls_writeSetting(value) {
-    if (!window.navigator.mozSettings) {
-      return;
-    }
-
-    window.SettingsListener.getSettingsLock().set({
-      'lockscreen.locked': value
-    });
-  };
-
   /**
    * @param {boolean} switcher - true if mode is on, false if off.
    */
@@ -1211,6 +1069,10 @@
   LockScreen.prototype.onPasscodeValidationFailed =
     function ls_onPasscodeValidationFailed() {
       this.overlay.dataset.passcodeStatus = 'error';
+      // To let passcode pad handle it.
+      window.dispatchEvent(new CustomEvent(
+        'lockscreen-notify-passcode-validationfailed'));
+
       this.kPassCodeErrorCounter++;
       //double delay if >5 failed attempts
       if (this.kPassCodeErrorCounter > 5) {
@@ -1219,11 +1081,8 @@
       if ('vibrate' in navigator) {
         navigator.vibrate([50, 50, 50]);
       }
-
       setTimeout(() => {
         delete this.overlay.dataset.passcodeStatus;
-        this.passCodeEntered = '';
-        this.updatePassCodeUI();
       }, this.kPassCodeErrorTimeout);
     };
 
@@ -1232,10 +1091,12 @@
    */
   LockScreen.prototype.onPasscodeValidationSuccess =
     function ls_onPasscodeValidationSuccess() {
+      window.dispatchEvent(new CustomEvent(
+        'lockscreen-notify-passcode-validationsuccess'));
       this.passCodeError = 0;
       this.kPassCodeErrorTimeout = 500;
       this.kPassCodeErrorCounter = 0;
-      this.unlock();
+      // delegate the unlocking function call to panel state.
     };
 
   /** @exports LockScreen */

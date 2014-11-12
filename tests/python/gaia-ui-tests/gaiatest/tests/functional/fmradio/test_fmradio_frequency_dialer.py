@@ -16,7 +16,9 @@ class TestFMRadioFreqDialer(GaiaTestCase):
         self.fm_radio.launch()
 
     def test_radio_frequency_dialer(self):
-        # https://moztrap.mozilla.org/manage/case/2461/
+        """
+        https://moztrap.mozilla.org/manage/case/2461/
+        """
 
         # Access to the FM hardware radio requires the use of headphones
         self.assertTrue(self.data_layer.is_antenna_available, 'Antenna (headphones) not plugged in')

@@ -1,72 +1,65 @@
 /* Message information page for report details*/
 .report-view {
+  display: flex;
+  flex-direction: column;
   background-color: #fff;
 }
 
-.report-view > div {
-  padding: 1.5rem 1.5rem 0 3rem;
-  font-size: 1.8rem;
+.report-view > .description {
+  padding-top: 2rem;
+  -moz-padding-end: 1.5rem;
+  padding-bottom: 3rem;
+  -moz-padding-start: 3rem;
 }
 
-.report-view  p, .report-view  span {
-  font-family: sans-serif;
-}
-
-.report-view .description > .type {
+.report-view p,
+.report-view span {
   font-size: 1.5rem;
-  color: #ff4e00;
-}
-
-.report-view .description > .subject {
-  font-size: 1.9rem;
-  font-style: italic;
-}
-
-.report-view .datetime,
-.report-view .received-detail {
-  font-size: 1.5rem;
+  line-height: 1rem;
   color: #858585;
 }
 
-.report-view .sent-detail {
+.report-view p {
+  padding-top: 1.5rem;
+}
+
+.report-view .description > .type {
   padding-top: 0;
+
+  font-size: 1.6rem;
+  color: #ff4e00;
+}
+
+.report-view .description .detail {
+  color: #333;
+}
+
+.report-view .description > .type[data-l10n-id="message-type-sms"] {
+  color: #000;
 }
 
 /* Default layout (sent message) */
-.report-view .received-detail {
+.report-view .received-block,
+.report-view[data-delivery="error"] .sent-title,
+.report-view[data-delivery="sending"] .sent-timestamp {
   display: none;
-}
-
-.report-view .sent-detail {
-  padding-bottom: 3rem;
 }
 
 /* Layout for received message */
-.report-view.received .sent-detail {
-  display: none;
-}
-
-.report-view.received .received-detail {
+.report-view[data-delivery="received"] .received-block,
+.report-view[data-delivery="not-downloaded"] .received-block {
   display: block;
 }
 
 /* Hide sent timestamp label if we don't have valid value to display */
-.report-view.no-valid-sent-timestamp .sent-timestamp-label {
+.report-view.no-valid-sent-timestamp .sent-block {
   display: none;
 }
 
-.report-view.received .description {
-  padding-bottom: 3rem;
-}
-
-.report-view .status-container {
-  padding-top: 1rem;
-}
-
 .report-view .contact-title {
-  color: #6a6a6a;
+  color: #008787;
   font-size: 1.6rem;
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
 }
 
 .report-view > ul.contact-list {
@@ -74,77 +67,111 @@
      contains more than 4 contacts */
   position: static;
 
-  max-height: 27rem;
-  margin: 0.5rem 0 1.5rem 0;
+  margin-top: 0.5rem;
+  flex-grow: 1;
 
   /* Avoid any pointer event on contact list in report view  */
   pointer-events: none;
 }
 
-.report-view > ul.contact-list > li,
-.report-view > ul.contact-list a {
-  min-height: 6rem;
+.report-view > .contact-list > li {
+  height: auto;
+  min-height: 9rem;
+  padding: 1rem;
+  -moz-padding-end: 0;
+  -moz-padding-start: 1.5rem;
+}
+
+.report-view > .contact-list a {
   height: auto;
 }
 
-.report-view > ul.contact-list > li {
-  padding: 1.0rem 0 1.0rem 1.5rem;
+.report-view > .contact-list > :first-child {
+  border-top: solid 0.1rem #e7e7e7;
 }
 
-.report-view > ul.contact-list > li:first-child {
-  border-top: solid 0.1rem #bdbdbd;
+.report-view > .contact-list p,
+.report-view > .contact-list span {
+  font-size: 1.4rem;
+  line-height: 1.6rem;
 }
 
-.report-view > ul.contact-list > li {
-  border-bottom: solid 0.1rem #e7e7e7;
-}
+.report-view > .contact-list .suggestion .name {
+  padding-top: 0;
 
-.report-view > ul.contact-list > li p.name {
-  font-size: 1.9rem;
-  font-weight: bold;
-}
-
-.report-view .suggestion div > p {
-  padding-top: 2.0rem;
-
-  color: #5b5b5b;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
+  font-weight: 500;
   line-height: 2rem;
-  white-space: normal;
 }
 
-.report-view .suggestion div > p:not(.hide) ~ p {
-  padding-top: 0;
+.report-view > .contact-list aside {
+  /* margin-top = (li - padding - aside) / 2 = (9rem - 2rem - 5.5rem) / 2 */
+  margin-top: 0.8rem;
 }
 
-.report-view span ~ aside {
-  background-size: 2.2rem;
-  width: 2.2rem;
-  height: 2.2rem;
+.report-view > .contact-list .number {
+  padding-top: 0.9rem;
 }
 
-.report-view span[data-type="received"] ~ aside,
-.report-view span[data-type="sent"] ~ aside {
-  background: url('images/icons/report_delivered.png') no-repeat center center / 3rem transparent;
+.report-view > .contact-list div {
+  padding-top: 0.7rem;
 }
 
-.report-view span[data-type="error"] ~ aside {
-  background: url('images/icons/report_exclamation.png') no-repeat center center / 3rem transparent;
+.report-view > .contact-list .name + div {
+  padding-top: 1rem;
 }
 
-.report-view span[data-type="not-downloaded"] ~ aside {
-  background: url('images/icons/download.png') no-repeat center center / 3rem transparent;
-  opacity: 0.5;
+.report-view > .contact-list div,
+.report-view > .contact-list div span {
+  line-height: 1.4rem;
 }
 
-.report-view .size-block,
-.report-view .received-detail,
-.report-view .sim-info {
-  padding-top: 0;
+.contact-list p.number .phone-carrier {
+  color: #008787;
 }
 
-.report-view .size-block span,
-.report-view .sim-info span{
-  font-size: 1.5rem;
-  color: #858585;
+.report-view > .contact-list .icon {
+  float: left;
+
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: -0.1rem 0.7rem 0.1rem 0;
+
+  background: no-repeat center center / 1.6rem transparent;
+}
+
+.contact-list [data-delivery-status="delivered"] .icon {
+  background-image: url('images/icons/deliveredtick.png');
+}
+
+.contact-list [data-delivery-status="read"] .icon {
+  background-image: url('images/icons/message_read.png');
+}
+
+.contact-list [data-delivery-status="error"] .icon {
+  background-image: url('images/icons/exclamation.png');
+}
+
+.contact-list [data-delivery-status="not-applicable"],
+.contact-list [data-delivery-status="pending"] .icon,
+.contact-list [data-delivery-status="pending"] .timestamp,
+.contact-list [data-delivery-status="error"] .timestamp,
+.contact-list [data-delivery-status="rejected"] .icon,
+.contact-list [data-delivery-status="rejected"] .timestamp{
+  display: none;
+}
+
+.report-view .resend-btn {
+  display: none;
+  width: calc(100% - 3rem);
+
+  flex-shrink: 0;
+  margin: 0 1.5rem 2rem;
+
+  background-color: #00caf2;
+  color: #fff;
+}
+
+.report-view[data-delivery="error"] .resend-btn {
+  display: block;
 }

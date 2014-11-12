@@ -65,15 +65,6 @@ contacts.BulkDelete = (function() {
       progress.update();
     };
 
-    contactsRemoverObj.onCancelled = function onCancelled() {
-      Contacts.hideOverlay();
-      Contacts.showStatus({
-        id: 'DeletedTxt',
-        args: {n: contactsRemoverObj.getDeletedCount()}
-      });
-      contacts.Settings.refresh();
-    };
-
     contactsRemoverObj.onError = function onError() {
       Contacts.hideOverlay();
       Contacts.showStatus('deleteError-general');
@@ -92,6 +83,8 @@ contacts.BulkDelete = (function() {
         done();
       }
     };
+
+    contactsRemoverObj.onCancelled = contactsRemoverObj.onFinished;
 
   };
   // Start the delete of the contacts

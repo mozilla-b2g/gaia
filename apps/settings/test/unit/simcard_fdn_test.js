@@ -2,7 +2,7 @@
    setup, assert, MockSimPinDialog */
 'use strict';
 
-require('/apps/settings/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/apps/settings/test/unit/mock_sim_pin_dialog.js');
 require('/shared/test/unit/load_body_html_helper.js');
 

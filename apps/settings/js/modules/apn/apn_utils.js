@@ -8,6 +8,7 @@ define(function(require) {
   var ApnHelper = require('shared/apn_helper');
   var ApnConst = require('modules/apn/apn_const');
   var ApnItem = require('modules/apn/apn_item');
+  var LazyLoader = require('shared/lazy_loader');
 
   var CP_APN_KEY = ApnConst.CP_APN_KEY;
   var DEFAULT_APN_KEY = ApnConst.DEFAULT_APN_KEY;
@@ -103,7 +104,7 @@ define(function(require) {
     if (_euApnChecked) {
       return Promise.resolve(_euApns);
     } else {
-      return _loadJSON(EU_ROAMING_FILE_PATH).then(function(result) {
+      return LazyLoader.getJSON(EU_ROAMING_FILE_PATH).then(function(result) {
         _euApnChecked = true;
         // Only return eu apns when both home and foreign operators are
         // specified.
@@ -182,21 +183,6 @@ define(function(require) {
 
   function _clone(apn) {
     return JSON.parse(JSON.stringify(apn));
-  }
-
-  function _loadJSON(path) {
-    return new Promise(function(resolve, reject) {
-      var xhr = new XMLHttpRequest();
-      xhr.onerror = function() {
-        reject('Failed to fetch file: ' + path, xhr.statusText);
-      };
-      xhr.onload = function() {
-        resolve(xhr.response);
-      };
-      xhr.open('GET', path, true); // async
-      xhr.responseType = 'json';
-      xhr.send();
-    });
   }
 
   return {

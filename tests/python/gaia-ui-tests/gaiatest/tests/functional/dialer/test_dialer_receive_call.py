@@ -30,7 +30,7 @@ class TestReceiveCall(GaiaTestCase):
             self.testvars['plivo']['phone_number']
         )
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['carrier']['phone_number'].replace('+', ''),
+            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''),
             timeout=PLIVO_TIMEOUT)
 
         call_screen = CallScreen(self.marionette)
@@ -49,10 +49,9 @@ class TestReceiveCall(GaiaTestCase):
 
         call_screen.hang_up()
 
-        # Wait for Plivo to report the call as completed
         Wait(self.plivo, timeout=PLIVO_TIMEOUT).until(
             lambda p: p.is_call_completed(self.call_uuid),
-            message='The call was not completed.')
+            message="Plivo didn't report the call as completed")
         self.call_uuid = None
 
     def tearDown(self):

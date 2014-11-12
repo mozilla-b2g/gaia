@@ -181,7 +181,7 @@ marionette('Alarm', function() {
 
   test('Fire an alarm', function() {
     alarm.create();
-    alarm.fire(0, function() {
+    alarm.fire(0, new Date(), function() {
       // Click the "stop" button
       var el = $('#ring-button-stop');
       try {

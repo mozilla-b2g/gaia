@@ -108,6 +108,15 @@
       mmsport="8080"
       type="default,supl,mms"
   />
+  
+  <apn carrier="MVNO NL"
+     mcc="204"
+     mnc="03"
+     apn="internet.mvno.mobi"
+     type="default,supl"
+     mvno_match_data="20403"
+     mvno_type="imsi"
+  />
 
   <apn carrier="Truphone"
       mcc="204"
@@ -158,6 +167,15 @@
       mmsproxy="10.10.100.20"
       mmsport="5080"
       type="default,supl,mms"
+  />
+
+  <apn carrier="MVNO NL"
+     mcc="204"
+     mnc="08"
+     apn="internet.mvno.mobi"
+     type="default,supl"
+     mvno_match_data="204080950"
+     mvno_type="imsi"
   />
 
   <apn carrier="Rabo Mobiel Int."
@@ -4269,6 +4287,42 @@
       mmsport="8080"
       type="default,supl,mms"
       mvno_match_data="2620749"
+      mvno_type="imsi"
+  />
+
+  <apn carrier="Fonic Prepaid"
+      mcc="262"
+      mnc="07"
+      apn="pinternet.interkom.de"
+      mmsc="http://10.81.0.7:8002"
+      mmsproxy="82.113.100.6"
+      mmsport="8080"
+      type="default,supl,mms"
+      mvno_match_data="26207515"
+      mvno_type="imsi"
+  />
+
+  <apn carrier="Lidl Mobile"
+      mcc="262"
+      mnc="07"
+      apn="pinternet.interkom.de"
+      mmsc="http://10.81.0.7:8002"
+      mmsproxy="82.113.100.6"
+      mmsport="8080"
+      type="default,supl,mms"
+      mvno_match_data="26207520"
+      mvno_type="imsi"
+  />
+
+  <apn carrier="Tchibo Internet"
+      mcc="262"
+      mnc="07"
+      apn="webmobil1"
+      mmsc="http://10.81.0.7:8002"
+      mmsproxy="82.113.100.8"
+      mmsport="8080"
+      type="default,supl,mms"
+      mvno_match_data="26207500"
       mvno_type="imsi"
   />
 
@@ -19522,8 +19576,6 @@
       apn="wap.gprs.unifon.com.ar"
       user="wap"
       password="wap"
-      proxy="200.5.68.10"
-      port="8080"
       authtype="1"
       type="default,supl,dun"
   />

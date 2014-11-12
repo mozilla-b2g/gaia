@@ -1,6 +1,7 @@
-/* globals MultiSimActionButton, MockSimPicker, MocksHelper, MockMozL10n,
+/* globals MultiSimActionButton, MocksHelper, MockMozL10n,
            MockNavigatorMozIccManager, MockNavigatorMozTelephony,
-           MockSettingsListener, MockTelephonyHelper, ALWAYS_ASK_OPTION_VALUE
+           MockSettingsListener, MockTelephonyHelper, CustomElementsHelper,
+           ALWAYS_ASK_OPTION_VALUE
 */
 
 'use strict';
@@ -8,19 +9,24 @@
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-require('/shared/test/unit/mocks/mock_sim_picker.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
+require(
+  '/shared/test/unit/mocks/elements/gaia_sim_picker/mock_gaia_sim_picker.js');
 
 require('/shared/js/multi_sim_action_button.js');
 
 var mocksHelperForMultiSimActionButton = new MocksHelper([
   'LazyL10n',
   'LazyLoader',
-  'SimPicker',
+  'GaiaSimPicker',
   'SettingsListener'
 ]).init();
+
+var customElementsHelperForMultiSimActionButton = new CustomElementsHelper([
+  'GaiaSimPicker'
+]);
 
 suite('multi SIM action button', function() {
   var subject;
@@ -31,6 +37,7 @@ suite('multi SIM action button', function() {
   var realTelephonyHelper;
   var phoneNumber;
   var button;
+  var simPicker;
   var expectedCardIndex;
   var setCardIndex;
 
@@ -113,6 +120,11 @@ suite('multi SIM action button', function() {
   });
 
   setup(function() {
+    document.body.innerHTML =
+      '<gaia-sim-picker id="sim-picker"></gaia-sim-picker>';
+    customElementsHelperForMultiSimActionButton.resolve();
+    simPicker = document.getElementById('sim-picker');
+
     phoneNumber = '';
     initSubject();
 
@@ -120,6 +132,8 @@ suite('multi SIM action button', function() {
   });
 
   teardown(function() {
+    document.body.innerHTML = '';
+
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozIccManager.mTeardown();
     MockTelephonyHelper.mTeardown();
@@ -134,7 +148,7 @@ suite('multi SIM action button', function() {
 
     test('should not show SIM picker menu when long pressing', function() {
       phoneNumber = '15555555555';
-      var showSpy = this.sinon.spy(MockSimPicker, 'getOrPick');
+      var showSpy = this.sinon.spy(simPicker, 'getOrPick');
       simulateContextMenu();
       sinon.assert.notCalled(showSpy);
     });
@@ -153,7 +167,7 @@ suite('multi SIM action button', function() {
 
       test('should not show SIM picker menu when long pressing', function() {
         phoneNumber = '15555555555';
-        var showSpy = this.sinon.spy(MockSimPicker, 'getOrPick');
+        var showSpy = this.sinon.spy(simPicker, 'getOrPick');
         simulateContextMenu();
         sinon.assert.notCalled(showSpy);
       });
@@ -180,7 +194,7 @@ suite('multi SIM action button', function() {
           noSettingsTriggerCallback: true
         });
 
-        this.sinon.spy(MockSimPicker, 'getOrPick');
+        this.sinon.spy(simPicker, 'getOrPick');
       });
 
       test('should queue one tap until settings are loaded', function() {
@@ -195,7 +209,7 @@ suite('multi SIM action button', function() {
 
       test('should ignore long taps until settings are loaded', function() {
         simulateContextMenu();
-        sinon.assert.notCalled(MockSimPicker.getOrPick);
+        sinon.assert.notCalled(simPicker.getOrPick);
       });
     });
 
@@ -207,13 +221,13 @@ suite('multi SIM action button', function() {
 
       test('should show SIM picker menu when long pressing', function() {
         phoneNumber = '15555555555';
-        var showSpy = this.sinon.spy(MockSimPicker, 'getOrPick');
+        var showSpy = this.sinon.spy(simPicker, 'getOrPick');
         simulateContextMenu();
         sinon.assert.calledWith(showSpy, expectedCardIndex, phoneNumber);
       });
 
       test('should fire SIM selected callback', function() {
-        var showSpy = this.sinon.spy(MockSimPicker, 'getOrPick');
+        var showSpy = this.sinon.spy(simPicker, 'getOrPick');
 
         phoneNumber = '15555555555';
         simulateContextMenu();
@@ -233,7 +247,7 @@ suite('multi SIM action button', function() {
 
       test('should show SIM picker when clicked', function() {
         phoneNumber = '15555555555';
-        var showSpy = this.sinon.spy(MockSimPicker, 'getOrPick');
+        var showSpy = this.sinon.spy(simPicker, 'getOrPick');
         simulateClick();
         sinon.assert.calledWith(showSpy, expectedCardIndex, phoneNumber);
       });
@@ -256,7 +270,7 @@ suite('multi SIM action button', function() {
       });
 
       test('should not open SIM picker on (long) tap', function() {
-        var showSpy = this.sinon.spy(MockSimPicker, 'getOrPick');
+        var showSpy = this.sinon.spy(simPicker, 'getOrPick');
         simulateClick();
         simulateContextMenu();
         sinon.assert.notCalled(showSpy);
@@ -282,9 +296,14 @@ suite('multi SIM action button', function() {
     var initWithIndicationElement = function() {
       document.body.className = '';
       document.body.innerHTML =
-        '<div id="container"><div class="js-sim-indication"></div></div>';
+        '<div id="container">' +
+          '<gaia-sim-picker id="sim-picker"></gaia-sim-picker>' +
+          '<div class="js-sim-indication"></div>' +
+        '</div>';
       button = document.getElementById('container');
       simIndication = button.querySelector('.js-sim-indication');
+      customElementsHelperForMultiSimActionButton.resolve();
+      simPicker = document.getElementById('sim-picker');
       initSubject({ button: button });
     };
 
@@ -314,7 +333,7 @@ suite('multi SIM action button', function() {
       test('has a default localized SIM indicator', function() {
         sinon.assert.calledWith(setAttributesSpy,
                                 simIndication,
-                                'sim-picker-button',
+                                'gaia-sim-picker-button',
                                 {n: expectedCardIndex+1});
       });
 
@@ -332,7 +351,7 @@ suite('multi SIM action button', function() {
 
         sinon.assert.calledWith(setAttributesSpy,
                                 simIndication,
-                                'sim-picker-button',
+                                'gaia-sim-picker-button',
                                 {n: 2});
       });
 
@@ -362,7 +381,7 @@ suite('multi SIM action button', function() {
           MockNavigatorMozTelephony.mTriggerEvent({type: 'callschanged'});
 
           sinon.assert.calledWith(setAttributesSpy, simIndication,
-                                  'sim-picker-button', {n: 2});
+                                  'gaia-sim-picker-button', {n: 2});
         });
 
         test('SIM indicator should go back to default serviceId when call over',
@@ -374,7 +393,7 @@ suite('multi SIM action button', function() {
           MockNavigatorMozTelephony.mTriggerEvent({type: 'callschanged'});
 
           sinon.assert.calledWith(setAttributesSpy, simIndication,
-                                  'sim-picker-button', {n: 1});
+                                  'gaia-sim-picker-button', {n: 1});
         });
       });
     });
@@ -382,9 +401,14 @@ suite('multi SIM action button', function() {
     suite('without SIM indication', function() {
       setup(function() {
         document.body.className = '';
-        document.body.innerHTML = '<div id="container"></div>';
+        document.body.innerHTML =
+          '<div id="container">' +
+            '<gaia-sim-picker id="sim-picker"></gaia-sim-picker>' +
+          '</div>';
         button = document.getElementById('container');
         simIndication = button.querySelector('.js-sim-indication');
+        customElementsHelperForMultiSimActionButton.resolve();
+        simPicker = document.getElementById('sim-picker');
 
         initSubject();
       });

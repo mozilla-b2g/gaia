@@ -71,5 +71,4 @@ mozilla-b2g-gaia-node-modules-*
 /.settings
 
 venv/
-travis_venv/
 

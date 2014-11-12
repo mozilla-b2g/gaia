@@ -1,4 +1,4 @@
-/*global define */
+'use strict';
 define(function(require) {
   var array = {
     /**

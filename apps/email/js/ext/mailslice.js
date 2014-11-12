@@ -1057,6 +1057,7 @@ FolderStorage.prototype = {
       headerBlocks: this._dirtyHeaderBlocks,
       bodyBlocks: this._dirtyBodyBlocks,
     };
+    this._LOG.generatePersistenceInfo(pinfo);
     this._dirtyHeaderBlocks = {};
     this._dirtyBodyBlocks = {};
     this._dirty = false;
@@ -2048,6 +2049,17 @@ FolderStorage.prototype = {
                                                         date, uid),
         iInfo = infoTuple[0], info = infoTuple[1];
 
+    // For database consistency reasons in the worst-case we want to make sure
+    // that we don't update the block info structure until we are also
+    // simultaneously updating the block itself.  We use null for sentinel
+    // values.  We only update when non-null.
+    var updateInfo = {
+      startTS: null,
+      startUID: null,
+      endTS: null,
+      endUID: null
+    };
+
     // -- not in a block, find or create one
     if (!info) {
       // - Create a block if no blocks exist at all.
@@ -2065,12 +2077,12 @@ FolderStorage.prototype = {
         // We are chronologically/UID-ically more recent, so check the end range
         // for expansion needs.
         if (STRICTLY_AFTER(date, info.endTS)) {
-          info.endTS = date;
-          info.endUID = uid;
+          updateInfo.endTS = date;
+          updateInfo.endUID = uid;
         }
         else if (date === info.endTS &&
                  uid > info.endUID) {
-          info.endUID = uid;
+          updateInfo.endUID = uid;
         }
       }
       // - Is there a preceding/younger dude and we fit?
@@ -2082,12 +2094,12 @@ FolderStorage.prototype = {
         // We are chronologically less recent, so check the start range for
         // expansion needs.
         if (BEFORE(date, info.startTS)) {
-          info.startTS = date;
-          info.startUID = uid;
+          updateInfo.startTS = date;
+          updateInfo.startUID = uid;
         }
         else if (date === info.startTS &&
                  uid < info.startUID) {
-          info.startUID = uid;
+          updateInfo.startUID = uid;
         }
       }
       // Any adjacent blocks at this point are overflowing, so it's now a
@@ -2100,12 +2112,12 @@ FolderStorage.prototype = {
         // We are chronologically less recent, so check the start range for
         // expansion needs.
         if (BEFORE(date, info.startTS)) {
-          info.startTS = date;
-          info.startUID = uid;
+          updateInfo.startTS = date;
+          updateInfo.startUID = uid;
         }
         else if (date === info.startTS &&
                  uid < info.startUID) {
-          info.startUID = uid;
+          updateInfo.startUID = uid;
         }
       }
       // - It must be the trailing dude
@@ -2114,12 +2126,12 @@ FolderStorage.prototype = {
         // We are chronologically/UID-ically more recent, so check the end range
         // for expansion needs.
         if (STRICTLY_AFTER(date, info.endTS)) {
-          info.endTS = date;
-          info.endUID = uid;
+          updateInfo.endTS = date;
+          updateInfo.endUID = uid;
         }
         else if (date === info.endTS &&
                  uid > info.endUID) {
-          info.endUID = uid;
+          updateInfo.endUID = uid;
         }
       }
     }
@@ -2127,11 +2139,26 @@ FolderStorage.prototype = {
 
     function processBlock(block) { // 'this' gets explicitly bound
       // -- perform the insertion
+      // - update block info
+      if (updateInfo.startTS !== null) {
+        info.startTS = updateInfo.startTS;
+      }
+      if (updateInfo.startUID !== null) {
+        info.startUID = updateInfo.startUID;
+      }
+      if (updateInfo.endTS !== null) {
+        info.endTS = updateInfo.endTS;
+      }
+      if (updateInfo.endUID !== null) {
+        info.endUID = updateInfo.endUID;
+      }
       // We could do this after the split, but this makes things simpler if
       // we want to factor in the newly inserted thing's size in the
       // distribution of bytes.
       info.estSize += estSizeCost;
       info.count++;
+
+      // - actual insertion
       insertInBlock(thing, uid, info, block);
 
       // -- split if necessary
@@ -2175,26 +2202,6 @@ FolderStorage.prototype = {
       processBlock.call(this, blockMap[info.blockId]);
     else
       this._loadBlock(type, info, processBlock.bind(this));
-  },
-
-  /**
-   * Run the given callback after all pending deferred calls have run.
-   *
-   * @param {Function} callback
-   * @param {Boolean} [alwaysDefer=false]
-   *   Should we defer the callback to the next turn of the event loop even
-   *   if there's no reason to wait?  Arguably this is what we should always
-   *   do (at least by default) for human sanity purposes, but existing code
-   *   would need to be audited.
-   */
-  runAfterDeferredCalls: function(callback, alwaysDefer) {
-    if (this._deferredCalls.length) {
-      this._deferredCalls.push(callback);
-    } else if (alwaysDefer) {
-      window.setZeroTimeout(callback);
-    } else {
-      callback();
-    }
   },
 
   /**
@@ -4082,10 +4089,11 @@ FolderStorage.prototype = {
    * Retrieve and update a header by locating it
    */
   updateMessageHeaderByServerId: function(srvid, partOfSync,
-                                          headerOrMutationFunc, body) {
+                                          headerOrMutationFunc, body,
+                                          callback) {
     if (this._pendingLoads.length) {
       this._deferredCalls.push(this.updateMessageHeaderByServerId.bind(
-        this, srvid, partOfSync, headerOrMutationFunc));
+        this, srvid, partOfSync, headerOrMutationFunc, body, callback));
       return;
     }
 
@@ -4103,7 +4111,8 @@ FolderStorage.prototype = {
           // future work: this method will duplicate some work to re-locate
           // the header; we could try and avoid doing that.
           this.updateMessageHeader(
-            header.date, header.id, partOfSync, headerOrMutationFunc, body);
+            header.date, header.id, partOfSync, headerOrMutationFunc, body,
+            callback);
           return;
         }
       }
@@ -4225,12 +4234,13 @@ FolderStorage.prototype = {
    * Currently, the mapping is a naive, always-in-memory (at least as long as
    * the FolderStorage is in memory) map.
    */
-  deleteMessageByServerId: function(srvid) {
+  deleteMessageByServerId: function(srvid, callback) {
     if (!this._serverIdHeaderBlockMapping)
       throw new Error('Server ID mapping not supported for this storage!');
 
     if (this._pendingLoads.length) {
-      this._deferredCalls.push(this.deleteMessageByServerId.bind(this, srvid));
+      this._deferredCalls.push(this.deleteMessageByServerId.bind(this, srvid,
+                                                                 callback));
       return;
     }
 
@@ -4245,7 +4255,7 @@ FolderStorage.prototype = {
       for (var i = 0; i < headers.length; i++) {
         var header = headers[i];
         if (header.srvid === srvid) {
-          this.deleteMessageHeaderAndBodyUsingHeader(header);
+          this.deleteMessageHeaderAndBodyUsingHeader(header, callback);
           return;
         }
       }
@@ -4661,6 +4671,8 @@ var LOGFAB = exports.LOGFAB = $log.register(module, {
       updateMessageHeader: { date: false, id: false, srvid: false },
       updateMessageBody: { date: false, id: false },
 
+      generatePersistenceInfo: {},
+
       // For now, logging date and uid is useful because the general logging
       // level will show us if we are trying to redundantly delete things.
       // Also, date and uid are opaque identifiers with very little entropy
@@ -4680,7 +4692,8 @@ var LOGFAB = exports.LOGFAB = $log.register(module, {
       syncedToDawnOfTime: {},
     },
     TEST_ONLY_events: {
-      addMessageBody: { body: false }
+      addMessageBody: { body: false },
+      generatePersistenceInfo: { details: false }
     },
     asyncJobs: {
       loadBlock: { type: false, blockId: false },

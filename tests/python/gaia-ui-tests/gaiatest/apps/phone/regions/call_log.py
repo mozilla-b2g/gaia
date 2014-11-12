@@ -4,6 +4,7 @@
 
 from marionette.by import By
 from gaiatest.apps.phone.app import Phone
+from gaiatest.apps.base import PageRegion
 
 
 class CallLog(Phone):
@@ -18,7 +19,8 @@ class CallLog(Phone):
     _call_log_edit_select_all_button_locator = (By.ID, 'select-all-threads')
 
     _all_calls_tab_link_locator = (By.CSS_SELECTOR, '#all-filter a')
-    _all_calls_list_item_locator = (By.CSS_SELECTOR, 'li.log-item')
+    _missed_calls_tab_link_locator = (By.CSS_SELECTOR, '#missed-filter a')
+    _calls_list_item_locator = (By.CSS_SELECTOR, 'li.log-item')
     _all_calls_list_item_button_locator = (By.CSS_SELECTOR, 'li.log-item a')
     _all_calls_list_item_checkbox_locator = (By.CSS_SELECTOR, 'li.log-item input[type="checkbox"]')
 
@@ -30,6 +32,9 @@ class CallLog(Phone):
     def tap_all_calls_tab(self):
         self.marionette.find_element(*self._all_calls_tab_link_locator).tap()
 
+    def tap_missed_calls_tab(self):
+        self.marionette.find_element(*self._missed_calls_tab_link_locator).tap()
+
     def a11y_click_all_calls_tab(self):
         self.accessibility.click(self.marionette.find_element(*self._all_calls_tab_link_locator))
 
@@ -38,14 +43,22 @@ class CallLog(Phone):
         return self.marionette.find_element(*self._all_calls_tab_link_locator).get_attribute('aria-selected') == 'true'
 
     @property
-    def all_calls_count(self):
-        return len(self._all_calls)
+    def is_missed_calls_tab_selected(self):
+        return self.marionette.find_element(*self._missed_calls_tab_link_locator).get_attribute('aria-selected') == 'true'
 
     @property
-    def first_all_call_text(self):
-        return self._all_calls[0].text
+    def call_list(self):
+        return [LogEntries(self.marionette, element)
+                for element in self.marionette.find_elements(*self._calls_list_item_locator)
+                if element.is_displayed()]
 
-    # TODO: Add a subregion for each call in the call log, when we have tests that need to work with more than 1 call
+
+class LogEntries(PageRegion):
+
     @property
-    def _all_calls(self):
-        return self.marionette.find_elements(*self._all_calls_list_item_locator)
+    def phone_number(self):
+        return self.root_element.text
+
+    @property
+    def call_type(self):
+        return self.root_element.get_attribute('data-type')

@@ -91,39 +91,58 @@
         }, timeout);
       }
 
+      //
+      // Since homescreen is the only app contains transparent background,
+      // we only store png screenshot for homescreen to save more memory.
+      //
+      var type = this.isHomescreen ?
+        'image/png' : 'image/jpeg';
+
       var req = this.iframe.getScreenshot(
         width || this.width || layoutManager.width,
-        height || this.height || layoutManager.height);
+        height || this.height || layoutManager.height,
+        type);
 
-      req.onsuccess = function gotScreenshotFromFrame(evt) {
-        var result = evt.target.result;
+      var success = function(result) {
         if (!width) {
           // Refresh _screenshotBlob when no width/height is specified.
           self._screenshotBlob = result;
         }
 
         self.debug('getScreenshot succeed!');
-        if (invoked)
+        if (invoked) {
           return;
+        }
         self.debug('get screenshot success!!!!');
         invoked = true;
-        if (timer)
+        if (timer) {
           window.clearTimeout(timer);
-        if (callback)
+        }
+        if (callback) {
           callback(result);
+        }
       };
-
-      req.onerror = function gotScreenshotFromFrameError(evt) {
-
+      var error = function() {
         self.debug('getScreenshot failed!');
-        if (invoked)
+        if (invoked) {
           return;
+        }
         invoked = true;
-        if (timer)
+        if (timer) {
           window.clearTimeout(timer);
-        if (callback)
+        }
+        if (callback) {
           callback();
+        }
       };
+      if (req.then) {
+        req.then(success, error);
+      } else {
+        req.onsuccess = function(evt) {
+          success(evt.target.result);
+        };
+        req.onerror = error;
+      }
     },
 
     focus: function bm_focus() {
@@ -164,6 +183,14 @@
       }
     },
 
+    _setActive: function bm__setActive(active) {
+      if (this.browser && this.browser.element &&
+          'setActive' in this.browser.element) {
+        this.debug('setActive on browser element:' + active);
+        this.browser.element.setActive(active);
+      }
+    },
+
     /**
      * Set aria-hidden attribute on browser's element to handle its screen
      * reader visibility.
@@ -186,18 +213,29 @@
       var self = this;
       if (this.browser.element) {
         var r = this.browser.element.getCanGoBack();
-        r.onsuccess = function(evt) {
-          self._backable = evt.target.result;
-          if (callback)
-            callback(evt.target.result);
+        var success = function(result) {
+          self._backable = result;
+          if (callback) {
+            callback(result);
+          }
         };
-        r.onerror = function(evt) {
-          if (callback)
+        var error = function() {
+          if (callback) {
             callback();
+          }
         };
+        if (r.then) {
+          r.then(success, error);
+        } else {
+          r.onsuccess = function(evt) {
+            success(evt.target.result);
+          };
+          r.onerror = error;
+        }
       } else {
-        if (callback)
+        if (callback) {
           callback();
+        }
       }
     },
 
@@ -209,15 +247,25 @@
       var self = this;
       if (this.browser.element) {
         var r = this.browser.element.getCanGoForward();
-        r.onsuccess = function(evt) {
-          self._forwardable = evt.target.result;
-          if (callback)
-            callback(evt.target.result);
+        var success = function(result) {
+          self._forwardable = result;
+          if (callback) {
+            callback(result);
+          }
         };
-        r.onerror = function(evt) {
-          if (callback)
+        var error = function() {
+          if (callback) {
             callback();
+          }
         };
+        if (r.then) {
+          r.then(success, error);
+        } else {
+          r.onsuccess = function(evt) {
+            success(evt.target.result);
+          };
+          r.onerror = error;
+        }
       } else {
         if (callback)
           callback();

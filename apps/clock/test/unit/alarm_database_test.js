@@ -69,7 +69,7 @@ suite('AlarmDatabase Test Suite', function() {
        minute: 43,
        enabled: true,
        repeat: '0000000',
-       sound: 'ac_awake.opus',
+       sound: 'OUTDATED_SOUND_FILE.opus',
        snooze: 5 },
      { registeredAlarms: { normal: 7, snooze: 42 },
        repeat: { },
@@ -87,7 +87,7 @@ suite('AlarmDatabase Test Suite', function() {
        minute: 43,
        enabled: true,
        repeat: '0101100',
-       sound: 'ac_awake.opus',
+       sound: 'ac_cycle.opus',
        snooze: 5 },
      { registeredAlarms: { normal: 7, snooze: 42 },
        repeat: {
@@ -99,7 +99,7 @@ suite('AlarmDatabase Test Suite', function() {
        hour: 15,
        vibrate: false,
        minute: 43,
-       sound: 'ac_awake.opus',
+       sound: 'ac_cycle.opus',
        snooze: 5 } ]
   ];
 

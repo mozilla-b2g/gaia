@@ -49,8 +49,7 @@
   #views,
   #lockscreen-header,
   #group-call-details,
-  .additionalContactInfo,
-  .merge-button {
+  .additionalContactInfo {
     display: none;
   }
 
@@ -121,14 +120,6 @@
     background-size: contain;
     margin-right: 0.5rem;
     background-image: url('images/status_bar/actionicon_activecall_mute_small_active.png');
-  }
-
-  .fake-number {
-    position: absolute;
-    left: 4.5rem;
-    line-height: 0;
-    visibility: hidden;
-    white-space: nowrap;
   }
 
   /* Don't display held calls unless there is only one call */

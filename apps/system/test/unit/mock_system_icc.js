@@ -33,7 +33,15 @@ function MockSystemICC(iccManager) {
       callback(true);   // User accepted the message
     },
 
-    hideViews: function() {}
+    hideView: function() {},
+
+    isViewActive: function() {},
+
+    addPendingMessage: function(message) {},
+
+    canProcessMessage: function(message) {
+      return true;
+    }
   };
 }
 

@@ -31,7 +31,8 @@ function getLayoutEntry(layout, webappsMapping) {
 // Generate the default layout mapping from language-> keyboard layouts
 // config:  the build config
 // webappsMapping: all the webapps mapping
-function genDefaultLayouts(config, webappsMapping) {
+// allLayouts: all the preloaded keyboard layouts
+function genDefaultLayouts(config, webappsMapping, allLayouts) {
   let layoutDefFile = utils.resolve(config.KEYBOARD_LAYOUTS_PATH,
     config.GAIA_DIR);
 
@@ -49,13 +50,21 @@ function genDefaultLayouts(config, webappsMapping) {
   // handle language -> layouts mapping
   let mapping = defaultKeyboards.layout;
 
-  function parseLayout(layout) {
-    return getLayoutEntry(layout, webappsMapping);
-  }
+  Object.keys(defaultKeyboards.layout).forEach(function(lang) {
+    // Remove those mappings without the layouts preloaded
+    var filteredLayouts = mapping[lang].filter(function(layoutEntry) {
+      return (allLayouts.indexOf(layoutEntry.layoutId) != -1);
+    });
 
-  for (var key in mapping) {
-    result.layout[key] = mapping[key].map(parseLayout);
-  }
+    // Put a fallback layout to avoid an empty layout set
+    if (filteredLayouts.length === 0) {
+      filteredLayouts = defaultKeyboards.fallbackLayouts;
+    }
+
+    result.layout[lang] = filteredLayouts.map(function parseLayout(layout) {
+      return getLayoutEntry(layout, webappsMapping);
+    });
+  });
 
   // handle language-independent layouts
   let langIndLayouts = defaultKeyboards.langIndependentLayouts;
@@ -64,10 +73,17 @@ function genDefaultLayouts(config, webappsMapping) {
   });
 
   // Write the result to file
+  let content = JSON.stringify(result, null, 2);
   let resultFile = utils.resolve(
     utils.joinPath('shared', 'resources', 'keyboard_layouts.json'),
     config.GAIA_DIR);
-  utils.writeContent(resultFile, JSON.stringify(result));
+  if (resultFile.exists()) {
+    let prev = utils.getFileContent(resultFile);
+    if (prev === content) {
+      return;
+    }
+  }
+  utils.writeContent(resultFile, content);
 }
 
 function execute(options) {
@@ -84,8 +100,9 @@ function execute(options) {
   }
 
   let webappsMapping = utils.getJSON(webappsMappingFile);
+  let allLayouts = options.GAIA_KEYBOARD_LAYOUTS.split(',');
 
-  genDefaultLayouts(options, webappsMapping);
+  genDefaultLayouts(options, webappsMapping, allLayouts);
 }
 
 exports.execute = execute;

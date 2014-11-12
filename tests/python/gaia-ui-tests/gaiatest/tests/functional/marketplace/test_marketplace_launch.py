@@ -14,7 +14,7 @@ class TestMarketplaceLaunch(GaiaTestCase):
     
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.connect_to_network()
+        self.connect_to_local_area_network()
     
     def test_marketplace_launch(self):
         

@@ -17,7 +17,9 @@ class TestGallery(GaiaTestCase):
         self.push_resource('IMG_0001.jpg')
 
     def test_gallery_view(self):
-        """https://moztrap.mozilla.org/manage/case/2476/"""
+        """
+        https://moztrap.mozilla.org/manage/case/14645/
+        """
 
         gallery = Gallery(self.marionette)
         gallery.launch()
@@ -25,6 +27,9 @@ class TestGallery(GaiaTestCase):
 
         image = gallery.tap_first_gallery_item()
         self.assertIsNotNone(image.current_image_source)
+
+        # Check that there are 5 options displayed beneath the picture
+        self.assertEqual(len(image.photo_toolbar_options), 5)
 
         #  Verify that the screen orientation is in portrait mode
         self.assertTrue(image.is_photo_toolbar_displayed)

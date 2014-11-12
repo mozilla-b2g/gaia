@@ -42,9 +42,7 @@ suite('search/search', function() {
     clock = sinon.useFakeTimers();
 
     requireApp('search/js/search.js', function() {
-      // Bug 1025499 - We need to ensure that the search notice defaults to
-      // true, so it will always show for integration tests.
-      assert.equal(Search.toShowNotice, true);
+      assert.equal(Search.toShowNotice, null);
       Search.toShowNotice = false;
 
       Search._port = { postMessage: function() {} };

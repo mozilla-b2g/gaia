@@ -1,5 +1,5 @@
 'use strict';
-/* globals Promise, AppWindowManager, asyncStorage */
+/* globals Promise, appWindowManager, asyncStorage */
 /* exported Places */
 
 (function(exports) {
@@ -142,7 +142,7 @@
      * @memberof Places.prototype
      */
     screenshotRequested: function(url) {
-      var app = AppWindowManager.getAppByURL(url);
+      var app = appWindowManager.getAppByURL(url);
       if (!app || app.loading) {
         this.screenshotQueue[url] = setTimeout(() => {
           this.takeScreenshot(url);
@@ -158,7 +158,7 @@
         delete this.screenshotQueue[url];
       }
 
-      var app = AppWindowManager.getAppByURL(url);
+      var app = appWindowManager.getAppByURL(url);
       if (!app) {
         console.error('Couldnt find app for:', url);
         return false;
@@ -223,7 +223,7 @@
     setVisits: function(url, visits) {
       return this.editPlace(url, (place, cb) => {
         place.visits = place.visits || [];
-        place.visits.concat(visits);
+        place.visits = place.visits.concat(visits);
         place.visits.sort((a, b) => {
           return b - a;
         });
@@ -383,8 +383,14 @@
         if (edits.visited) {
           place.visited = edits.visited;
         }
+        if (!place.frecency) {
+          place.frecency = 0;
+        }
         place.frecency += edits.frecency;
 
+        if (!place.icons) {
+          place.icons = {};
+        }
         for (var iconUri in edits.icons) {
           place.icons[iconUri] = edits.icons[iconUri];
         }

@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Utils, MessageManager, Compose, OptionMenu, NotificationHelper,
-         Attachment, Template, Notify, SilentSms, Threads, SMIL, Contacts,
+         Attachment, Notify, SilentSms, Threads, SMIL, Contacts,
          ThreadUI, Notification, Settings, Navigation */
 /*exported ActivityHandler */
 
@@ -281,7 +281,7 @@ var ActivityHandler = {
 
     this.isLocked = false;
     var threadId = message.threadId ? message.threadId : null;
-    var body = message.body ? Template.escape(message.body) : '';
+    var body = message.body || '';
     var number = message.number ? message.number : '';
     var contact = message.contact ? message.contact : null;
 

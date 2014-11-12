@@ -15,6 +15,7 @@ var ValuePicker = (function() {
     this._upper = unitStyle.valueDisplayedText.length - 1;
     this._range = unitStyle.valueDisplayedText.length;
     this._currentIndex = 0;
+    this._unitHeight = 0;
     this.init();
   }
 
@@ -38,11 +39,13 @@ var ValuePicker = (function() {
       tunedIndex = Math.floor(tunedIndex);
     }
 
-    if (tunedIndex < this._lower)
+    if (tunedIndex < this._lower) {
       tunedIndex = this._lower;
+    }
 
-    if (tunedIndex > this._upper)
+    if (tunedIndex > this._upper) {
       tunedIndex = this._upper;
+    }
 
     var beforeIndex = this._currentIndex;
     if (this._currentIndex != tunedIndex) {
@@ -117,12 +120,6 @@ var ValuePicker = (function() {
     for (var i = 0; i < unitCount; ++i) {
       this.addPickerUnit(i);
     }
-    // cache the size of picker
-    this._pickerUnits = this.element.children;
-    this._pickerUnitsHeight = this._pickerUnits[0].clientHeight;
-    this._pickerHeight = this._pickerUnits[0].clientHeight *
-                                     this._pickerUnits.length;
-    this._space = this._pickerHeight / this._range;
   };
 
   VP.prototype.addPickerUnit = function(index) {
@@ -135,7 +132,13 @@ var ValuePicker = (function() {
 
   VP.prototype.updateUI = function(index, ignorePicker) {
     if (true !== ignorePicker) {
-      this._top = -index * this._space;
+      // Bug 1075200 get unit height when needed and
+      // retry next time when dom is not rendered
+      if (this._unitHeight === 0) {
+        this._unitHeight = this.element.firstChild.clientHeight *
+          this.element.children.length / this._range;
+      }
+      this._top = -index * this._unitHeight;
       this.element.style.transform = 'translateY(' + this._top + 'px)';
       this.container.setAttribute('aria-valuenow', index);
       this.container.setAttribute('aria-valuetext',
@@ -181,8 +184,9 @@ var ValuePicker = (function() {
   }
 
   function empty(element) {
-    while (element.hasChildNodes())
+    while (element.hasChildNodes()) {
       element.removeChild(element.lastChild);
+    }
     element.innerHTML = '';
   }
 
@@ -228,11 +232,12 @@ var ValuePicker = (function() {
     this._top = this._top + getMovingSpace();
     this.element.style.transform = 'translateY(' + this._top + 'px)';
 
-    tunedIndex = calcTargetIndex(this._space);
+    tunedIndex = calcTargetIndex(this._unitHeight);
     var roundedIndex = Math.round(tunedIndex * 10) / 10;
 
-    if (roundedIndex != this._currentIndex)
+    if (roundedIndex != this._currentIndex) {
       this.setSelectedIndex(toFixed(roundedIndex), true);
+    }
 
     startEvent = currentEvent;
   }
@@ -262,10 +267,11 @@ var ValuePicker = (function() {
   }
 
   function vp_keypress(event) {
-    if (event.keyCode == KeyEvent.DOM_VK_DOWN)
+    if (event.keyCode == KeyEvent.DOM_VK_DOWN) {
       this.setSelectedIndex(this._currentIndex - 1);
-    else
+    } else {
       this.setSelectedIndex(this._currentIndex + 1);
+    }
   }
 
   return VP;

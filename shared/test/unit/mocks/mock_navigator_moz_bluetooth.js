@@ -9,6 +9,7 @@
     ignoreWaitingCall: function mba_ignoreWaitingCall() {},
     toggleCalls: function mba_toggleCalls() {},
     getConnectedDevices: function mba_getConnectedDevices() {},
+    getPairedDevices: function mba_getPairedDevices() {},
     connectSco: function mba_connectSco() {},
     disconnectSco: function mba_disconnectSco() {},
     setPairingConfirmation: function mba_setPairingConfirmation() {},
@@ -50,7 +51,6 @@
       }
     });
   }
-
 
   window.MockMozBluetooth = {
     addEventListener: mmb_addEventListener,

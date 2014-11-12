@@ -30,7 +30,7 @@ marionette('configure CalDAV accounts', function() {
 
   setup(function(done) {
     app = new Calendar(client);
-    app.launch({ hideSwipeHint: true });
+    app.launch();
 
     serverHelper.start(function(error, port) {
       if (error) {

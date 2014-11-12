@@ -130,6 +130,16 @@ var AppInstallManager = {
   handleHomeButtonPressed: function ai_handleHomeButtonPressed(e) {
     this.dialog.classList.remove('visible');
     this.handleInstallCancel();
+
+    // hide IME setup dialog if presented
+    if (this.setupInstalledAppDialog.classList.contains('visible') ) {
+      this.handleSetupCancelAction();
+    }
+
+    // hide IME layout list if presented
+    if (this.imeLayoutDialog.classList.contains('visible')) {
+      this.hideIMEList();
+    }
   },
 
   handleApplicationReady: function ai_handleApplicationReady(e) {
@@ -265,7 +275,7 @@ var AppInstallManager = {
     }
 
     var dialog = new ConfirmDialogHelper(dialogConfig);
-    dialog.show(document.body);
+    dialog.show(document.getElementById('app-uninstall-dialog'));
   },
 
   prepareForDownload: function ai_prepareForDownload(app) {
@@ -514,14 +524,13 @@ var AppInstallManager = {
     var newNode = this.notifContainer.firstElementChild;
     newNode.dataset.manifest = manifestURL;
 
-    var _ = navigator.mozL10n.get;
-
     var manifest = app.manifest || app.updateManifest;
-    var message = _('downloadingAppMessage', {
-      appName: new ManifestHelper(manifest).name
-    });
 
-    newNode.querySelector('.title-container').textContent = message;
+    navigator.mozL10n.setAttributes(
+      newNode.querySelector('.title-container'),
+      'downloadingAppMessage',
+      { appName: new ManifestHelper(manifest).name }
+    );
 
     var progressNode = newNode.querySelector('progress');
     if (app.updateManifest && app.updateManifest.size) {
@@ -550,25 +559,34 @@ var AppInstallManager = {
 
     var progressNode = this.getNotificationProgressNode(app);
     var message;
-    var _ = navigator.mozL10n.get;
 
     if (isNaN(app.progress) || app.progress == null) {
       // now we get NaN if there is no progress information but let's
       // handle the null and undefined cases as well
-      message = _('downloadingAppProgressIndeterminate');
+      message = {
+        id: 'downloadingAppProgressIndeterminate',
+        args: null
+      };
       progressNode.removeAttribute('value'); // switch to indeterminate state
     } else if (appInfo.hasMax) {
-      message = _('downloadingAppProgress',
-        {
+      message = {
+        id: 'downloadingAppProgress',
+        args: {
           progress: this.humanizeSize(app.progress),
           max: this.humanizeSize(progressNode.max)
-        });
+        }
+      };
       progressNode.value = app.progress;
     } else {
-      message = _('downloadingAppProgressNoMax',
-                 { progress: this.humanizeSize(app.progress) });
+      message = {
+        id: 'downloadingAppProgressNoMax',
+        args: { progress: this.humanizeSize(app.progress) }
+      };
     }
-    progressNode.textContent = message;
+    navigator.mozL10n.setAttributes(
+      progressNode,
+      message.id,
+      message.args);
   },
 
   removeNotification: function ai_removeNotification(app) {
@@ -663,7 +681,7 @@ var AppInstallManager = {
 
     var title = dialog.querySelector('h1');
 
-    title.textContent = navigator.mozL10n.get('stopDownloading', {
+    navigator.mozL10n.setAttributes(title, 'stopDownloading', {
       app: new ManifestHelper(manifest).name
     });
 

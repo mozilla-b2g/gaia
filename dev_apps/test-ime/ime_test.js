@@ -1,6 +1,5 @@
 /*global mocha requireApp suite test assert setup suiteTeardown */
 
-mocha.setup({ ui: 'tdd', ignoreLeaks: true });
 window.assert = chai.assert;
 
 /**

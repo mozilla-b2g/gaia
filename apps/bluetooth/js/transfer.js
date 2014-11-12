@@ -2,9 +2,9 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
+/* global gDeviceList */
 
 navigator.mozL10n.once(function showPanel() {
-  var _ = navigator.mozL10n.get;
   var settings = window.navigator.mozSettings;
   var bluetooth = window.navigator.mozBluetooth;
   var defaultAdapter = null;
@@ -36,8 +36,9 @@ navigator.mozL10n.once(function showPanel() {
   var alertOkButton = document.getElementById('alert-button-ok');
 
   function debug(msg) {
-    if (!_debug)
+    if (!_debug) {
       return;
+    }
 
     console.log('[Bluetooth APP Send File]: ' + msg);
   }
@@ -92,8 +93,9 @@ navigator.mozL10n.once(function showPanel() {
   }
 
   function turnOnBluetooth(evt) {
-    if (evt)
+    if (evt) {
       evt.preventDefault();
+    }
 
     dialogConfirmBluetooth.hidden = true;
     bluetooth.onadapteradded = function bt_adapterAdded() {
@@ -137,8 +139,9 @@ navigator.mozL10n.once(function showPanel() {
   }
 
   function cancelTransfer(evt) {
-    if (evt)
+    if (evt) {
       evt.preventDefault();
+    }
 
     dialogConfirmBluetooth.hidden = true;
     gDeviceList.uninit();

@@ -1,4 +1,4 @@
-/* globals CallscreenWindow, MocksHelper, MockApplications,
+/* globals CallscreenWindow, MocksHelper, MockApplications, MockLayoutManager,
            System, MockL10n */
 'use strict';
 
@@ -22,6 +22,7 @@ suite('system/CallscreenWindow', function() {
   mocksForCallscreenWindow.attachTestHelpers();
   var stubById;
   var realApplications;
+  var realLayoutManager;
   var realL10n;
   var CSORIGIN = window.location.origin.replace('system', 'callscreen') + '/';
   var fakeAppConfig = {
@@ -45,6 +46,8 @@ suite('system/CallscreenWindow', function() {
     MockApplications.mRegisterMockApp(fakeAppConfig);
     realApplications = window.applications;
     window.applications = MockApplications;
+    realLayoutManager = window.layoutManager;
+    window.layoutManager = new MockLayoutManager();
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     this.sinon.useFakeTimers();
@@ -65,6 +68,7 @@ suite('system/CallscreenWindow', function() {
   teardown(function() {
     navigator.mozL10n = realL10n;
     window.applications = realApplications;
+    window.layoutManager = realLayoutManager;
     stubById.restore();
   });
 

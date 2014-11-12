@@ -1,7 +1,60 @@
 'use strict';
 
-// Parse the specified blob and pass an object of metadata to the
-// metadataCallback, or invoke the errorCallback with an error message.
+// When we generate our own thumbnails, aim for this size
+var THUMBNAIL_WIDTH = 300;
+var THUMBNAIL_HEIGHT = 300;
+
+var pictureStorage = navigator.getDeviceStorage('pictures');
+
+// A cache of metadata Picture objects for albums with external cover art. The
+// key is the directory name for the song in question.
+var externalCoverCache = {};
+
+// A cache of filenames for saved cover art (generated from unsycned ID3 tags).
+// The value is the absolute path name.
+var savedCoverCache = new Set();
+
+// XXX We're hiding the fact that these are JSdoc comments because our linter
+// refuses to accept "property" as a valid tag. Grumble grumble.
+
+/*
+ * Metadata for a track.
+ *
+ * @typedef {Object} Metadata
+ * @property {String} tag_format The format of the tag (e.g. id3v2.4).
+ * @property {string} artist The track's artist.
+ * @property {string} album The track's album.
+ * @property {number} tracknum The number of the track on the album.
+ * @property {string} title The track's title.
+ * @property {Picture} [picture] The cover art, if any.
+ * @property {number} rated The track's rating; starts at 0.
+ * @property {number} played The track's play count; starts at 0.
+ */
+
+/*
+ * Metadata describing the cover art for a track. Cover art comes in one of
+ * three flavors: embedded (stored in the audio track's metadata), unsynced
+ * (like embedded, but stored in an unsynchronized block of ID3 data; we
+ * ultimately save it in an external file), or external (stored as a separate
+ * file in the same directory as the audio track).
+ *
+ * @typedef {Object} Picture
+ * @property {string} flavor How the art was stored; one of "embedded",
+ *   "unsynced", or "external".
+ * @property {number} [start] The offset in bytes to where the picture is
+ *   stored in the audio file; only applies when flavor="embedded".
+ * @property {number} [end] The offset in bytes to the end of where the
+ *   picture is stored in the audio file; only applies when flavor="embedded".
+ * @property {number} [type] The mimetype of the picture; only applies when
+ *   flavor="embedded".
+ * @property {string} [filename] The path on the filesystem to the original
+ *   (full-size) picture; only applies when flavor="external" or "unsynced".
+ */
+
+/**
+ * Parse the specified blob and pass an object of metadata to the
+ * metadataCallback, or invoke the errorCallback with an error message.
+ */
 function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var filename = blob.name;
 
@@ -33,19 +86,28 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   }
 
   // These are the property names we use in the returned metadata object
+  var TAG_FORMAT = 'tag_format';
   var TITLE = 'title';
   var ARTIST = 'artist';
   var ALBUM = 'album';
   var TRACKNUM = 'tracknum';
+  var TRACKCOUNT = 'trackcount';
+  var DISCNUM = 'discnum';
+  var DISCCOUNT = 'disccount';
   var IMAGE = 'picture';
+
+  // Fields that should be stored as integers, not strings
+  var INTFIELDS = [
+    TRACKNUM, TRACKCOUNT, DISCNUM, DISCCOUNT
+  ];
 
   // These two properties are for playlist functionalities
   // not originally metadata from the files
   var RATED = 'rated';
   var PLAYED = 'played';
 
-  // Map id3v2 tag ids to metadata property names
-  var ID3V2TAGS = {
+  // Map id3v2 frame ids to metadata property names
+  var ID3V2FRAMES = {
     TIT2: TITLE,
     TT2: TITLE,
     TPE1: ARTIST,
@@ -54,26 +116,32 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     TAL: ALBUM,
     TRCK: TRACKNUM,
     TRK: TRACKNUM,
+    TPA: DISCNUM,
+    TPOS: DISCNUM,
     APIC: IMAGE,
     PIC: IMAGE
   };
 
-  // Map ogg tagnames to metadata property names
-  var OGGTAGS = {
+  // Map ogg field names to metadata property names
+  var OGGFIELDS = {
     title: TITLE,
     artist: ARTIST,
     album: ALBUM,
-    tracknumber: TRACKNUM
+    tracknumber: TRACKNUM,
+    tracktotal: TRACKCOUNT,
+    discnumber: DISCNUM,
+    disctotal: DISCCOUNT
   };
 
   // Map MP4 atom names to metadata property names
-  var MP4TAGS = {
+  var MP4ATOMS = {
     '\xa9alb': ALBUM,
     '\xa9art': ARTIST,
     '\xa9ART': ARTIST,
     'aART': ARTIST,
     '\xa9nam': TITLE,
     'trkn': TRACKNUM,
+    'disk': DISCNUM,
     'covr': IMAGE
   };
 
@@ -138,7 +206,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
 
       if (magic.substring(0, 3) === 'ID3') {
-        // parse ID3v2 tags in an MP3 file
+        // parse ID3v2 tag in an MP3 file
         parseID3v2Metadata(header);
       }
       else if (magic.substring(0, 4) === 'OggS') {
@@ -163,7 +231,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
       else if ((header.getUint16(0, false) & 0xFFFE) === 0xFFFA) {
         // If this looks like an MP3 file, then look for ID3v1 metadata
-        // tags at the end of the file. But even if there is no metadata
+        // tag at the end of the file. But even if there is no metadata
         // treat this as a playable file.
 
         BlobView.get(blob, blob.size - 128, 128, function(footer, error) {
@@ -175,7 +243,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           try {
             var magic = footer.getASCIIText(0, 3);
             if (magic === 'TAG') {
-              // It is an MP3 file with ID3v1 tags
+              // It is an MP3 file with an ID3v1 tag
               parseID3v1Metadata(footer);
             }
             else {
@@ -247,6 +315,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     if (p !== -1)
       album = album.substring(0, p);
 
+    metadata[TAG_FORMAT] = 'id3v1';
     metadata[TITLE] = title || undefined;
     metadata[ARTIST] = artist || undefined;
     metadata[ALBUM] = album || undefined;
@@ -276,20 +345,13 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     }
 
     var id3revision = header.readUnsignedByte();
+
+    metadata[TAG_FORMAT] = 'id3v2.' + id3version + '.' + id3revision;
+
     var id3flags = header.readUnsignedByte();
-    var needs_unsynchronization = ((id3flags & 0x80) !== 0);
+    var tag_unsynchronized = ((id3flags & 0x80) !== 0);
     var has_extended_header = ((id3flags & 0x40) !== 0);
     var length = header.readID3Uint28BE();
-
-    // XXX
-    // For now, we just punt if unsynchronization is required.
-    // That's what the old metadata parser did, too.
-    // I don't think it is very common in mp3 files today.
-    if (needs_unsynchronization) {
-      console.warn('mp3 file uses unsynchronization. Can\'t read metadata');
-      metadataCallback(metadata);
-      return;
-    }
 
     // Get the entire ID3 data block and pass it to parseID3()
     // May be async, or sync, depending on whether we read enough
@@ -297,14 +359,36 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     header.getMore(header.index, length, parseID3);
 
     function parseID3(id3) {
+      // In id3v2.3, the "unsynchronized" flag in the tag header applies to
+      // the whole tag (excluding the tag header). In id3v2.4, the flag is just
+      // an indicator that we should expect to see the "unsynchronized" flag
+      // set on all the frames.
+      if (tag_unsynchronized && id3version === 3)
+        id3 = deunsync(id3, length);
+
       // skip the extended header, if there is one
       if (has_extended_header) {
-        id3.advance(id3.readUnsignedInt());
+        if (id3version === 4) {
+          var extended_header_size = id3.readID3Uint28BE();
+          // In id3v2.4, the size includes itself, i.e. the rest of the header
+          // is |extended_header_size - 4|.
+          id3.advance(extended_header_size - 4);
+        }
+        else { // id3version === 3
+          var extended_header_size = id3.readUnsignedInt();
+          // In id3v2.3, the size *excludes* itself, i.e. the rest of the header
+          // is |extended_header_size|.
+          id3.advance(extended_header_size);
+        }
       }
 
-      // Now we have a series of frames, each of which is one ID3 tag
+      // If this tag has cover art in an unsynchronized block, we'll store it
+      // here. Otherwise, this will be null.
+      var coverBlob;
+
+      // Now we have a series of frames, each of which is one ID3 field
       while (id3.index < id3.byteLength) {
-        var tagid, tagsize, tagflags;
+        var frameid, framesize, frameflags, frame_unsynchronized = false;
 
         // If there is a null byte here, then we've found padding
         // and we're done
@@ -313,82 +397,154 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
         switch (id3version) {
         case 2:
-          tagid = id3.readASCIIText(3);
-          tagsize = id3.readUint24();
-          tagflags = 0;
+          frameid = id3.readASCIIText(3);
+          framesize = id3.readUint24();
+          frameflags = 0;
           break;
         case 3:
-          tagid = id3.readASCIIText(4);
-          tagsize = id3.readUnsignedInt();
-          tagflags = id3.readUnsignedShort();
+          frameid = id3.readASCIIText(4);
+          framesize = id3.readUnsignedInt();
+          frameflags = id3.readUnsignedShort();
           break;
         case 4:
-          tagid = id3.readASCIIText(4);
-          tagsize = id3.readID3Uint28BE();
-          tagflags = id3.readUnsignedShort();
+          frameid = id3.readASCIIText(4);
+          framesize = id3.readID3Uint28BE();
+          frameflags = id3.readUnsignedShort();
+          frame_unsynchronized = ((frameflags & 0x02) !== 0);
           break;
         }
 
-        var nexttag = id3.index + tagsize;
-        var tagname = ID3V2TAGS[tagid];
+        var nextframe = id3.index + framesize;
+        var propname = ID3V2FRAMES[frameid];
 
-        // Skip tags we don't care about
-        if (!tagname) {
-          id3.index = nexttag;
+        // Skip frames we don't care about
+        if (!propname) {
+          id3.index = nextframe;
           continue;
         }
 
-        // Skip compressed, encrypted, grouped, or synchronized tags that
+        // Skip compressed, encrypted, or grouped frames that
         // we can't decode
-        if ((tagflags & 0xFF) !== 0) {
-          console.warn('Skipping', tagid, 'tag with flags', tagflags);
-          id3.index = nexttag;
+        if ((frameflags & 0xFD) !== 0) {
+          console.warn('Skipping', frameid, 'frame with flags', frameflags);
+          id3.index = nextframe;
           continue;
         }
 
-        // Wrap it in try so we don't crash the whole thing on one bad tag
+        // Wrap it in try so we don't crash the whole thing on one bad frame
         try {
-          // Now get the tag value
-          var tagvalue = null;
+          var frameview, framevalue, frametext;
+          var framevalue2, propname2;
+          framevalue2 = null;
+          propname2 = null;
 
-          switch (tagid) {
+          if (frame_unsynchronized) {
+            frameview = deunsync(id3, framesize);
+            framesize = frameview.sliceLength;
+          }
+          else {
+            frameview = id3;
+          }
+
+          // Now get the frame value
+          switch (frameid) {
           case 'TIT2':
           case 'TT2':
           case 'TPE1':
           case 'TP1':
           case 'TALB':
           case 'TAL':
-            tagvalue = readText(id3, tagsize);
+            framevalue = readTextFrame(frameview, framesize);
             break;
           case 'TRCK':
           case 'TRK':
-            tagvalue = parseInt(readText(id3, tagsize));
+          case 'TPOS':
+          case 'TPA':
+            frametext = readTextFrame(frameview, framesize);
+            framevalue = parseInt(frametext, 10);
+            // in id3 the count is in the second part of the frame
+            // after '/'
+            var idx = frametext.indexOf('/');
+            if (idx != -1) {
+              var s = frametext.substring(idx + 1);
+              framevalue2 = parseInt(s, 10);
+
+              switch (frameid) {
+              case 'TRCK':
+              case 'TRK':
+                propname2 = TRACKCOUNT;
+                break;
+              case 'TPOS':
+              case 'TPA':
+                propname2 = DISCCOUNT;
+                break;
+              }
+            }
             break;
           case 'APIC':
           case 'PIC':
-            tagvalue = readPic(id3, tagsize, tagid);
+            framevalue = readPicFrame(frameview, framesize, frameid);
+
+            // If the picture is unsynchronized, we need to grab the slice for
+            // it immediately, before we lose the deunsynced state.
+            if (tag_unsynchronized || frame_unsynchronized) {
+              coverBlob = new Blob(
+                [frameview.buffer.slice(framevalue.start, framevalue.end)],
+                { type: framevalue.type }
+              );
+              framevalue = { flavor: 'unsynced' };
+            }
             break;
           }
 
-          if (tagvalue !== null)
-            metadata[tagname] = tagvalue;
+          if (framevalue !== null)
+            metadata[propname] = framevalue;
+          if (framevalue2 !== null && propname2 !== null)
+            metadata[propname2] = framevalue2;
         }
         catch (e) {
-          console.warn('Error parsing mp3 metadata tag', tagid, ':', e);
+          console.warn('Error parsing mp3 metadata frame', frameid, ':', e);
         }
 
-        // Make sure we're at the start of the next tag before continuing
-        id3.index = nexttag;
+        // Make sure we're at the start of the next frame before continuing
+        id3.index = nextframe;
       }
 
-      handleCoverArt(metadata);
+      handleCoverArt(metadata, coverBlob);
     }
 
-    function readPic(view, size, id) {
+    /**
+     * Reverse the ID3 unsynchronization so that we get the unescaped data. This
+     * will advance the view to the end of the unsynchronized block so that you
+     * can continue to use the original view once you're finished with the
+     * deunsynced view.
+     *
+     * @param {BlobView} view The original BlobView for the ID3 tag.
+     * @param {Number} framesize The size of the unsynchronized frame.
+     * @return {BlobView} A new BlobView with the deunsynced data.
+     */
+    function deunsync(view, framesize) {
+      // To de-unsychronize a frame, we need to convert all instances of
+      // |0xff 00| to |0xff|.
+      var data = new Uint8Array(framesize), was0xff = false, dataIndex = 0;
+      for (var i = 0; i < framesize; i++) {
+        var b = view.readUnsignedByte();
+        if (was0xff && b === 0x00)
+          continue;
+        was0xff = (b === 0xff);
+        data[dataIndex++] = b;
+      }
+
+      // Create a new BlobView with the de-unsynchronized data.
+      return new BlobView.getFromArrayBuffer(data.buffer, 0, dataIndex,
+                                             view.littleEndian);
+    }
+
+    function readPicFrame(view, size, id) {
       var start = view.index;
       var encoding = view.readUnsignedByte();
       var mimetype;
-      // mimetype is different for old PIC tags and new APIC tags
+      // mimetype is different for old PIC frames and new APIC frames
       if (id === 'PIC') {
         mimetype = view.readASCIIText(3);
         if (mimetype === 'JPG')
@@ -402,7 +558,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
       // We ignore these next two fields
       var kind = view.readUnsignedByte();
-      var desc = readText(view, size - (view.index - start), encoding);
+      var desc = readEncodedText(view, size - (view.index - start), encoding);
 
       var picstart = view.sliceOffset + view.viewOffset + view.index;
       var piclength = size - (view.index - start);
@@ -410,17 +566,59 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       // Now return an object that specifies where to pull the image from
       // The properties of this object can be passed to blob.slice()
       return {
+        flavor: 'embedded',
         start: picstart,
         end: picstart + piclength,
         type: mimetype
       };
     }
 
-    function readText(view, size, encoding) {
+    function readTextFrame(view, size, encoding) {
       if (encoding === undefined) {
         encoding = view.readUnsignedByte();
         size = size - 1;
       }
+      if (id3version === 4) {
+        // In id3v2.4, all text frames can have multiple values, separated by
+        // the null character. For now, we join them together to make one big
+        // string.
+        return readEncodedTextArray(view, size, encoding);
+      }
+      else {
+        // In id3v2.3, some text frames can have multiple values, separated by
+        // '/', so we don't need to do anything special here. In fact, even if
+        // we start treating multi-value text frames as an array, we probably
+        // shouldn't do anything, since '/' is a bad delimiter.
+        return readEncodedText(view, size, encoding);
+      }
+    }
+
+    function readEncodedTextArray(view, size, encoding) {
+      var text;
+      switch (encoding) {
+      case 0:
+        text = view.readASCIIText(size);
+        break;
+      case 1:
+        text = view.readUTF16Text(size, undefined);
+        break;
+      case 2:
+        text = view.readUTF16Text(size, false);
+        break;
+      case 3:
+        text = view.readUTF8Text(size);
+        break;
+      default:
+        throw Error('unknown text encoding');
+      }
+
+      // Remove any trailing nulls and replace nulls in the middle with ' / '.
+      // XXX: When the database supports arrays of values for each field, we
+      // should split this into a proper array!
+      return text.replace(/\0+$/, '').replace('\0', ' / ');
+    }
+
+    function readEncodedText(view, size, encoding) {
       switch (encoding) {
       case 0:
         return view.readNullTerminatedLatin1Text(size);
@@ -473,9 +671,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       switch (first_byte) {
         case 3:
           valid = page.readASCIIText(6) === 'vorbis';
+          metadata[TAG_FORMAT] = 'vorbis';
           break;
         case 79:
           valid = page.readASCIIText(7) === 'pusTags';
+          metadata[TAG_FORMAT] = 'opus';
           break;
       }
       if (!valid) {
@@ -505,13 +705,17 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         var comment = page.readUTF8Text(comment_length);
         var equal = comment.indexOf('=');
         if (equal !== -1) {
-          var tag = comment.substring(0, equal).toLowerCase().replace(' ', '');
-          var propname = OGGTAGS[tag];
-          if (propname) { // Do we care about this tag?
+          var fieldname = comment.substring(0, equal).toLowerCase()
+                                 .replace(' ', '');
+          var propname = OGGFIELDS[fieldname];
+          if (propname) { // Do we care about this field?
             var value = comment.substring(equal + 1);
+            if (INTFIELDS.indexOf(propname) !== -1) {
+              value = parseInt(value, 10);
+            }
             if (seen_fields.hasOwnProperty(propname)) {
               // If we already have a value, append this new one.
-              metadata[propname] += ' ' + value;
+              metadata[propname] += ' / ' + value;
             }
             else {
               // Otherwise, just save the single value.
@@ -567,6 +771,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   // http://atomicparsley.sourceforge.net/mpeg-4files.html
   //
   function parseMP4Metadata(header) {
+    metadata[TAG_FORMAT] = 'mp4';
     //
     // XXX
     // I think I could probably restructure this somehow. The atoms or "boxes"
@@ -755,11 +960,22 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         var size = data.readUnsignedInt();
         var type = data.readASCIIText(4);
         var next = data.index + size - 8;
-        var tagname = MP4TAGS[type];
-        if (tagname) {
+        var propname = MP4ATOMS[type];
+        if (propname) {
           try {
             var value = getMetadataValue(data, next, type);
-            metadata[tagname] = value;
+            // Track number and disc number are of the form
+            // "x/y".
+            if (type === 'trkn' || type === 'disk') {
+              metadata[propname] = value.number;
+              if (value.count) {
+                metadata[(propname === TRACKNUM) ? TRACKCOUNT : DISCCOUNT] =
+                  value.count;
+              }
+            }
+            else {
+              metadata[propname] = value;
+            }
           }
           catch (e) {
             console.warn('skipping', type, ':', e);
@@ -771,7 +987,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
     // Find the data atom and return its value or throw an error
     // We handle UTF-8 strings, numbers, and blobs
-    function getMetadataValue(data, end, tagtype) {
+    function getMetadataValue(data, end, atomtype) {
       // Loop until we find a data atom
       while (data.index < end) {
         var size = data.readUnsignedInt();
@@ -788,10 +1004,13 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
         var datasize = size - 16; // the rest of the atom is the value
 
-        // Special case for track number
-        if (tagtype === 'trkn') {
+        // Special case for track number and disk number
+        // They have two values: number and count.
+        if (atomtype === 'trkn' || atomtype === 'disk') {
           data.advance(2);
-          return data.readUnsignedShort();
+          var number = data.readUnsignedShort();
+          var count = data.readUnsignedShort();
+          return { number: number, count: count };
         }
 
         switch (datatype) {
@@ -799,12 +1018,14 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           return data.readUTF8Text(datasize);
         case 13: // jpeg
           return {
+            flavor: 'embedded',
             start: data.sliceOffset + data.viewOffset + data.index,
             end: data.sliceOffset + data.viewOffset + data.index + datasize,
             type: 'image/jpeg'
           };
         case 14: // png
           return {
+            flavor: 'embedded',
             start: data.sliceOffset + data.viewOffset + data.index,
             end: data.sliceOffset + data.viewOffset + data.index + datasize,
             type: 'image/png'
@@ -815,23 +1036,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
       throw Error('no data atom found');
     }
-  }
-
-  // Before we call the metadataCallback, we create a thumbnail
-  // for the song, if there is not already one cached.  In the normal
-  // (cache hit) case, this happens synchronously.
-  function handleCoverArt(metadata) {
-    var fileinfo = {
-      name: blob.name,
-      blob: blob,
-      metadata: metadata
-    };
-    // We call getThumbnailURL here even though we don't need the url yet.
-    // We do it here to force the thumbnail to be cached now while
-    // we know there is just going to be one file at a time.
-    getThumbnailURL(fileinfo, function(url) {
-      metadataCallback(metadata);
-    });
   }
 
   function handleLockedFile(locked) {
@@ -857,136 +1061,345 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
     });
   }
+
+  function handleCoverArt(metadata, coverBlob) {
+    // Media files that aren't backed by actual files get the picture as a Blob,
+    // since they're just temporary. We also use this in our tests.
+    if (!filename) {
+      if (coverBlob) {
+        metadata.picture.blob = coverBlob;
+      } else if (metadata.picture) {
+        metadata.picture.blob = blob.slice(
+          metadata.picture.start, metadata.picture.end, metadata.picture.type
+        );
+      }
+      metadataCallback(metadata);
+      return;
+    }
+
+    if (coverBlob) {
+      // We have album art in a separate blob that we need to save somewhere;
+      // generally, this is because we had an unsynced ID3 frame with the art
+      // and needed to de-unsync it.
+      //
+      // First, try to make a unique filename for the image based on the artist,
+      // album, and file size. The file size is essentially a poor man's
+      // checksum to make sure we aren't reusing an inappropriate image, such as
+      // if the user updated the embedded art.
+      var albumKey;
+      if (metadata.artist || metadata.album) {
+        // Don't let the artist or album strings be too long; VFAT has a maximum
+        // of 255 characters for the path, and we need some room for the rest of
+        // it!
+        var artist = (metadata.artist || '').substr(0, 64);
+        var album = (metadata.album || '').substr(0, 64);
+        albumKey = artist + '.' + album;
+      } else {
+        // If there's no album or artist, use the path to the file instead; we
+        // truncate from the end to help ensure uniqueness.
+        albumKey = filename.substr(-128);
+      }
+
+      // coverBlob is always a JPEG or PNG.
+      var extension = coverBlob.type === 'image/jpeg' ? '.jpg' : '.png';
+      var imageFilename = vfatEscape(albumKey) + '.' + coverBlob.size +
+                          extension;
+      checkSaveCover(coverBlob, imageFilename, function() {
+        metadataCallback(metadata);
+      });
+    } else if (!metadata.picture) {
+      // We don't have any embedded album art; see if there's any external album
+      // art in the same directory.
+      var lastSlash = filename.lastIndexOf('/');
+      var dirName = filename.substring(0, lastSlash + 1);
+
+      // First, check if we've recently fetched this cover; if so, just use the
+      // cached results so we're not going out to the disk more than necessary.
+      if (dirName in externalCoverCache) {
+        metadata.picture = externalCoverCache[dirName];
+        metadataCallback(metadata);
+        return;
+      }
+
+      // Try to find external album art using a handful of common names. The
+      // possibilities listed here appear to be the most common, based on a
+      // brief survey of what people use in the wild.
+      var possibleFilenames = ['folder.jpg', 'cover.jpg', 'front.jpg'];
+      var tryFetchExternalCover = function(index) {
+        if (index === possibleFilenames.length) {
+          externalCoverCache[dirName] = null;
+          metadataCallback(metadata);
+          return;
+        }
+
+        var externalCoverFilename = dirName + possibleFilenames[index];
+        var getcoverrequest = pictureStorage.get(externalCoverFilename);
+        getcoverrequest.onsuccess = function() {
+          metadata.picture = { flavor: 'external',
+                               filename: externalCoverFilename };
+          // Cache the picture object we generated to make things faster.
+          externalCoverCache[dirName] = metadata.picture;
+          metadataCallback(metadata);
+        };
+        getcoverrequest.onerror = function() {
+          tryFetchExternalCover(index + 1);
+        };
+      };
+      tryFetchExternalCover(0);
+    } else {
+      // We have embedded album art! All the processing is already done, so we
+      // can just return.
+      metadataCallback(metadata);
+    }
+
+    /**
+     * Escape any characters that are illegal on the VFAT filesystem.
+     *
+     * @param {string} str The string to escape.
+     * @return {string} The escaped string.
+     */
+    function vfatEscape(str) {
+      return str.replace(/["*\/:<>?\|]/g, '_');
+    }
+
+    /**
+     * Check for the existence of an image on the audio file's storage area,
+     * and if it's not present, try to save it.
+     *
+     * @param {Blob} coverBlob The blob for the full-size cover art.
+     * @param {string} imageFilename A relative filename for the image.
+     * @param {function} callback A callback to call when finished.
+     */
+    function checkSaveCover(coverBlob, imageFilename, callback) {
+      var storageName = '';
+
+      // We want to put the image in the same storage area as the audio track
+      // it's for. Since the audio track could be in any storage area, we'll
+      // examine its filename to get the storage name; the storage name is
+      // always the first part of the (absolute) filename, so we'll grab that
+      // and build an absolute path for the image. This will ensure that the
+      // generic deviceStorage we use for pictures ("pictureStorage") puts the
+      // image where we want it.
+      //
+      // Filename is usually a fully qualified name (perhaps something like
+      // /sdcard/Music/file.mp3). On desktop, it's a relative name, but desktop
+      // only has one storage area anyway.
+      if (filename[0] === '/') {
+        var slashIndex = filename.indexOf('/', 1);
+        if (slashIndex < 0) {
+          console.error("handleCoverArt: Bad filename: '" + filename + "'");
+          delete metadata.picture;
+          callback();
+          return;
+        }
+
+        // Get the storage name, e.g. /sdcard/
+        var storageName = filename.substring(0, slashIndex + 1);
+      }
+
+      var imageAbsPath = storageName + '.music/covers/' + imageFilename;
+      if (savedCoverCache.has(imageAbsPath)) {
+        metadata.picture.filename = imageAbsPath;
+        callback();
+        return;
+      }
+
+      var getrequest = pictureStorage.get(imageAbsPath);
+
+      // We already have the image. We're done!
+      getrequest.onsuccess = function() {
+        savedCoverCache.add(imageAbsPath);
+        metadata.picture.filename = imageAbsPath;
+        callback();
+      };
+
+      // We don't have the image yet. Let's save it.
+      getrequest.onerror = function() {
+        var saverequest = pictureStorage.addNamed(coverBlob, imageAbsPath);
+        saverequest.onerror = function() {
+          console.error('Could not save cover image', filename);
+        };
+
+        // Don't bother waiting for saving to finish. Just return.
+        savedCoverCache.add(imageAbsPath);
+        metadata.picture.filename = imageAbsPath;
+        callback();
+      };
+    }
+  }
 }
 
-// When we generate our own thumbnails, aim for this size
-var THUMBNAIL_WIDTH = 300;
-var THUMBNAIL_HEIGHT = 300;
-var offscreenImage = new Image();
-var thumbnailCache = {};  // maps keys to blob urls
+// The level one cache for thumbnails; maps a cache key (see below) to a blob:
+// URL. There's also a level two cache, backed by asyncStorage.
+var thumbnailL1Cache = {};
 
-// Get a thumbnail image for the specified song (reading from the
-// cache if possible and storing to the cache if necessary) and pass a
-// blob URL for it it to the specified callback. fileinfo is an object
-// with metadata from the MediaDB.
+/**
+ * Get a blob: URL for a thumbnailized version of the album art for a given file
+ * (if any).
+ *
+ * @param {Object} fileinfo The info for the file we want album art for.
+ * @param {Function} callback A callback that will receive a blob: URL or null
+ *   if there's no album art.
+ */
 function getThumbnailURL(fileinfo, callback) {
-  function cacheThumbnail(key, blob, url) {
-    asyncStorage.setItem(key, blob);
-    thumbnailCache[key] = url;
-  }
-
-  var metadata = fileinfo.metadata;
-
-  // If the file doesn't have an embedded image, just pass null
-  if (!metadata.picture) {
+  if (!fileinfo.metadata.picture) {
     callback(null);
     return;
   }
 
-  // We cache thumbnails based on the song artist, album, and image size.
-  // If there is no album name, we use the directory name instead.
-  var key = 'thumbnail';
-  var album = metadata.album;
-  var artist = metadata.artist;
-  var size = metadata.picture.end - metadata.picture.start;
-
-  if (album || artist) {
-    key = 'thumbnail.' + album + '.' + artist + '.' + size;
-  }
-  else {
-    key = 'thumbnail.' + (fileinfo.name || fileinfo.blob.name);
-  }
-
-  // If we have the thumbnail url locally, just call the callback
-  var url = thumbnailCache[key];
-  if (url) {
-    callback(url);
+  // See if we've already made a URL for this album.
+  var cacheKey = makeCacheKey(fileinfo.metadata);
+  if (cacheKey && cacheKey in thumbnailL1Cache) {
+    callback(thumbnailL1Cache[cacheKey]);
     return;
   }
 
-  // Otherwise, see if we've saved a blob in asyncStorage
-  asyncStorage.getItem(key, function(blob) {
-    if (blob) {
-      // If we get a blob, save the URL locally and return the url.
-      var url = URL.createObjectURL(blob);
-      thumbnailCache[key] = url;
-      callback(url);
-      return;
-    }
-    else {
-      // Otherwise, create the thumbnail image
-      createAndCacheThumbnail();
-    }
+  // Otherwise, see if we've saved a blob in asyncStorage.
+  checkL2Cache(cacheKey).then(function(cachedBlob) {
+    return cachedBlob || createThumbnail(cacheKey, fileinfo);
+  }).then(function(blob) {
+    callback(makeURL(cacheKey, blob));
   });
 
-  function createAndCacheThumbnail() {
-    if (fileinfo.blob) {       // this can happen for the open activity
-      getImage(fileinfo.blob);
+  /**
+   * Create a cache key for this file. The cache key should be unique for each
+   * album, and (hopefully) the same for tracks in a given album.
+   *
+   * @param {Object} metadata The file's metadata.
+   * @return {String} A cache key for the file, or null if we couldn't generate
+   *   one.
+   */
+  function makeCacheKey(metadata) {
+    if (metadata.picture.filename) {
+      return 'external.' + metadata.picture.filename;
+    } else if (metadata.picture.flavor === 'embedded') {
+      var album = metadata.album;
+      var artist = metadata.artist;
+      var size = metadata.picture.end - metadata.picture.start;
+
+      if (album || artist) {
+        return 'thumbnail.' + album + '.' + artist + '.' + size;
+      } else {
+        return 'thumbnail.' + (fileinfo.name || fileinfo.blob.name);
+      }
     }
-    else {                     // this is the normal case
-      musicdb.getFile(fileinfo.name, function(file) {
-        getImage(file);
+    return null;
+  }
+
+  /**
+   * Check the L2 cache (asyncStorage) to see if we already have a thumbnailized
+   * version of the album art.
+   *
+   * @param {String} cacheKey The cache key generated by makeCacheKey.
+   * @return {Promise} A promise returning either the Blob for the thumbnail, or
+   *   null.
+   */
+  function checkL2Cache(cacheKey) {
+    if (!cacheKey) {
+      return Promise.resolve(null);
+    } else {
+      return new Promise(function(resolve, reject) {
+        asyncStorage.getItem(cacheKey, function(blob) {
+          resolve(blob);
+        });
       });
     }
+  }
 
-    function getImage(file) {
-      // Get the embedded image from the music file
-      var embedded = file.slice(metadata.picture.start,
-                                metadata.picture.end,
-                                metadata.picture.type);
-      // Convert to a blob url
-      var embeddedURL = URL.createObjectURL(embedded);
-      // Load it into an image element
-      offscreenImage.src = embeddedURL;
-      offscreenImage.onerror = function() {
-        URL.revokeObjectURL(embeddedURL);
-        offscreenImage.removeAttribute('src');
-        // Something went wrong reading the embedded image.
-        // Return a default one instead
-        console.warn('Album cover art failed to load', file.name);
-        callback(null);
-      };
-      offscreenImage.onload = function() {
-        // We've loaded the image, now copy it to a canvas
-        var canvas = document.createElement('canvas');
-        canvas.width = THUMBNAIL_WIDTH;
-        canvas.height = THUMBNAIL_HEIGHT;
-        var context = canvas.getContext('2d');
-        var scalex = canvas.width / offscreenImage.width;
-        var scaley = canvas.height / offscreenImage.height;
-
-        // Take the larger of the two scales: we crop the image to the thumbnail
-        var scale = Math.max(scalex, scaley);
-
-        // If the image was already thumbnail size, it is its own thumbnail
-        if (scale >= 1) {
-          offscreenImage.removeAttribute('src');
-          cacheThumbnail(key, embedded, embeddedURL);
-          callback(embeddedURL);
-          return;
-        }
-
-        // Calculate the region of the image that will be copied to the
-        // canvas to create the thumbnail
-        var w = Math.round(THUMBNAIL_WIDTH / scale);
-        var h = Math.round(THUMBNAIL_HEIGHT / scale);
-        var x = Math.round((offscreenImage.width - w) / 2);
-        var y = Math.round((offscreenImage.height - h) / 2);
-
-        // Draw that region of the image into the canvas, scaling it down
-        context.drawImage(offscreenImage, x, y, w, h,
-                          0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-
-        // We're done with the image now
-        offscreenImage.removeAttribute('src');
-        URL.revokeObjectURL(embeddedURL);
-
-        canvas.toBlob(function(blob) {
-          var url = URL.createObjectURL(blob);
-          cacheThumbnail(key, blob, url);
-          callback(url);
-        }, 'image/jpeg');
-      };
+  /**
+   * Create a blob: URL for a Blob and store the URL in our L1 cache.
+   *
+   * @param {String} cacheKey The cache key generated by makeCacheKey.
+   * @param {Blob} blob The blob.
+   * @return {String} The blob: URL.
+   */
+  function makeURL(cacheKey, blob) {
+    var url = URL.createObjectURL(blob);
+    if (cacheKey) {
+      thumbnailL1Cache[cacheKey] = url;
     }
+    return url;
+  }
+
+  /**
+   * Create a thumbnail for the album art and store the Blob in our L2 cache.
+   *
+   * @param {String} cacheKey The cache key generated by makeCacheKey.
+   * @param {Object} fileinfo The file's info.
+   * @return {Promise} A promise returning the thumbnailized Blob.
+   */
+  function createThumbnail(cacheKey, fileinfo) {
+    // We don't have a saved blob yet, so grab it, thumbnailize it, and store
+    // it in asyncStorage.
+    return getAlbumArtBlob(fileinfo).then(function(blob) {
+      return ImageUtils.resizeAndCropToCover(
+        blob, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT
+      );
+    }).then(function(thumbnailBlob) {
+      if (cacheKey) {
+        asyncStorage.setItem(cacheKey, thumbnailBlob);
+      }
+      return thumbnailBlob;
+    });
+  }
+
+  /**
+   * Get the (full-size) Blob for this file's album art.
+   *
+   * @param {Object} fileinfo The file's info.
+   * @return {Promise} A promise returning the full-size Blob.
+   */
+  function getAlbumArtBlob(fileinfo) {
+    var picture = fileinfo.metadata.picture;
+    return new Promise(function(resolve, reject) {
+      if (picture.blob) {
+        // Audio tracks without an associated file are just temporary, so they
+        // store their art in a blob.
+        resolve(picture.blob);
+      } else if (picture.filename) {
+        // Some audio tracks have an external file for their album art, so we
+        // need to grab it from deviceStorage.
+        var getreq = pictureStorage.get(picture.filename);
+        getreq.onsuccess = function() {
+          resolve(this.result);
+        };
+        getreq.onerror = function() {
+          reject(this.error);
+        };
+      } else if (picture.flavor === 'embedded') {
+        // Other audio tracks have the album art embedded in the file, so we
+        // need to splice out the part we want.
+        getSongBlob(fileinfo).then(function(blob) {
+          var embedded = blob.slice(
+            picture.start, picture.end, picture.type
+          );
+          resolve(embedded);
+        });
+      } else {
+        var err = new Error('unknown picture flavor: ' + picture.flavor);
+        console.error(err);
+        reject(err);
+      }
+    });
+  }
+
+  /**
+   * Get the Blob for this file (i.e. the audio track itself).
+   *
+   * @param {Object} fileinfo The file's info.
+   * @return {Promise} A promise returning the audio track's Blob.
+   */
+  function getSongBlob(fileinfo) {
+    return new Promise(function(resolve, reject) {
+      if (fileinfo.blob) {
+        // This can happen for the open activity.
+        resolve(fileinfo.blob);
+      } else {
+        // This is the normal case.
+        musicdb.getFile(fileinfo.name, function(file) {
+          resolve(file);
+        });
+      }
+    });
   }
 }

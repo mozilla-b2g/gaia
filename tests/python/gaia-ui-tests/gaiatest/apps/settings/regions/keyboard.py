@@ -9,7 +9,7 @@ from gaiatest.apps.base import Base
 class Keyboard(Base):
 
     _section_locator = (By.ID, 'keyboard')
-    _add_more_keyboards_button_locator = (By.CSS_SELECTOR, "button[data-l10n-id='selectKeyboards']")
+    _add_more_keyboards_button_locator = (By.CSS_SELECTOR, "a[href='#keyboard-selection-addMore']")
     _built_in_keyboard_list_element_locator = (By.CSS_SELECTOR, '.enabledKeyboardList > li > span')
 
     def __init__(self, marionette):
@@ -53,9 +53,6 @@ class KeyboardAddMoreKeyboards(Base):
         )
         self.wait_for_element_displayed(*language_locator)
         selected_language = self.marionette.find_element(*language_locator)
-        # TODO bug 878017 - remove the explicit scroll once bug is fixed
-        # We still need this unfortunately
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [selected_language])
         selected_language.tap()
         checkbox = selected_language.find_element(By.TAG_NAME, 'input')
         self.wait_for_condition(lambda m: checkbox.is_selected())

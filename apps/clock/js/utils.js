@@ -596,7 +596,7 @@ Utils.summarizeDaysOfWeek = function(repeat) {
     var repeatStrings = [];
     allDays.forEach(function(day, idx) {
       if (days.indexOf(day) !== -1) {
-        repeatStrings.push(_('weekday-' + idx + '-short'));
+        repeatStrings.push(_(constants.DAY_STRING_TO_L10N_ID[day]));
       }
     });
 

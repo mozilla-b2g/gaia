@@ -19,6 +19,21 @@ if (typeof utils.config === 'undefined') {
       initialized = {};
     };
 
+    function onLoad(xhr, file, resolveCb) {
+      configs[file] = xhr.response;
+
+      delete initializing[file];
+      initialized[file] = true;
+
+      document.dispatchEvent(new CustomEvent(EVENT_INITIALIZED, {
+        detail: {
+          file: file,
+          success: true
+        }
+      }));
+      resolveCb(configs[file]);
+    }
+
     utils.config.load = function(file) {
       return new Promise(function(resolve, reject) {
         var isInitialized = initialized[file];
@@ -55,21 +70,15 @@ if (typeof utils.config === 'undefined') {
         xhr.responseType = 'json';
 
         xhr.onload = function() {
-          configs[file] = xhr.response;
-          delete initializing[file];
-          initialized[file] = true;
-
-          document.dispatchEvent(new CustomEvent(EVENT_INITIALIZED, {
-            detail: {
-              file: file,
-              success: true
-            }
-          }));
-          resolve(configs[file]);
+          var resolvedCb = resolve;
+          if (xhr.status !== 200) {
+            resolvedCb = reject;
+          }
+          onLoad(xhr, file, resolvedCb);
         };
 
         xhr.onerror = function() {
-           document.dispatchEvent(new CustomEvent(EVENT_INITIALIZED, {
+          document.dispatchEvent(new CustomEvent(EVENT_INITIALIZED, {
             detail: {
               file: file,
               success: false
@@ -79,7 +88,14 @@ if (typeof utils.config === 'undefined') {
           reject(xhr.error);
         };
 
-        xhr.send(null);
+        // If there is any exception we consider the file does not exist
+        try {
+          xhr.send(null);
+        }
+        catch(e) {
+          console.error('Error while loading config file: ', e.message);
+          onLoad({ status: 404 }, file, reject);
+        }
       });
     };
   })();

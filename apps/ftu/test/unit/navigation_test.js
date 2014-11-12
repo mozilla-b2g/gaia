@@ -4,11 +4,11 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
 
-requireApp('ftu/test/unit/mock_l10n.js');
 requireApp('ftu/test/unit/mock_wifi_manager.js');
 requireApp('ftu/test/unit/mock_data_mobile.js');
 requireApp('ftu/test/unit/mock_sim_manager.js');
@@ -136,6 +136,7 @@ suite('navigation >', function() {
   });
 
   test('navigates backwards', function() {
+    MockIccHelper.setProperty('cardState', 'ready');
     Navigation.simMandatory = true;
     Navigation.totalSteps = numSteps; // explicitly set the total steps
 
@@ -300,7 +301,7 @@ suite('navigation >', function() {
             'aboutBrowser');
           var linkRef = document.getElementById('external-link-privacy');
           assert.equal(linkRef.getAttribute('data-l10n-id'),
-            'learn-more-privacy');
+            'learn-more-privacy2');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);

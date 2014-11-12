@@ -236,6 +236,7 @@ span.line-break {
  * is displayed.
  */
 #overlay,
+#in-use-overlay,
 #confirm-dialog {
   /* it takes up the whole screen */
   position: absolute;
@@ -249,11 +250,23 @@ span.line-break {
 }
 
 /*
+ * In view.html (but not index.html) we put the in-use-overlay element
+ * inside videoControls. In that case there is a 5rem title bar that needs
+ * to be visible, so we alter the top position. And if we're handling
+ * a pick activity, we also need the title bar with the back button to show.
+ */
+#videoControls > #in-use-overlay,
+body.pick-activity > #in-use-overlay {
+  top: 5rem;
+}
+
+
+/*
  * The overlay content area holds the text of the overlay.
  * It has borders and a less transparent background so that
  * the overlay text shows up more clearly
  */
-#overlay-content {
+#overlay-content, #in-use-overlay-content {
   background:
   url(images/ui/pattern.png) repeat left top,
   url(images/ui/gradient.png) no-repeat left top;
@@ -274,7 +287,7 @@ span.line-break {
   padding: 11rem 2.5rem 0 2.5rem;
 }
 
-#overlay-title {
+#overlay-title, #in-use-overlay-title {
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
@@ -282,7 +295,7 @@ span.line-break {
   padding: 0;
 }
 
-#overlay-text {
+#overlay-text, #in-use-overlay-text {
   padding: 1rem 0.5rem 0 0.5rem;
   border-top: 0.1rem solid #686868;
   font-weight: 300;
@@ -477,33 +490,31 @@ header .icon:after {
 
 #elapsed-text, #duration-text {
   color: #ffffff;
-  text-align: center;
   font-size: 1.4rem;
 }
 
 #elapsed-text {
-  width: 3.2rem;
-  margin-left: 2.0rem;
+  width: 5.3rem;
+  padding-left: 1.5rem;
 }
 
 #duration-text {
-  width: 3.2rem;
-  margin-right: 2.0rem;
+  text-align: right;
+  width: 5.3rem;
+  padding-right: 1.5rem;
 }
 
 /* time slider */
 #timeSlider {
   position: relative;
-  /* 12.4rem means width of button 4.4rem + right padding 4rem + left padding 4rem */
-  width: calc(100% - 12.4rem);
+  width: 100%;
   z-index: 10;
 }
 
 #slider-wrapper {
-  width: 100%;
-  height: 4.1rem;
-  margin-left: 1.0rem;
-  margin-right: 1.0rem;
+  /* Take into account width and padding of elapsed and duration text */
+  width: calc(100% - 13.6rem);
+  height: 4.2rem;
 }
 
 #slider-wrapper div {
@@ -604,6 +615,7 @@ header .icon:after {
   top: calc(50% - 1.15rem);
   width: 2.3rem;
   height: 2.3rem;
+  margin-left: -1.15rem;
   border: none;
   background: none;
   pointer-events: none;

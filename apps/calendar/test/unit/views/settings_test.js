@@ -1,18 +1,18 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireLib('models/calendar.js');
-requireLib('models/account.js');
+var CalendarTemplate = require('templates/calendar');
+var Factory = require('test/support/factory');
+var Settings = require('views/settings');
+var View = require('view');
+var nextTick = require('next_tick');
+var suiteGroup = require('test/support/suite_group');
+
 requireCommon('test/synthetic_gestures.js');
 
-suiteGroup('Views.Settings', function() {
-  'use strict';
-
-  ['Provider.Local', 'Provider.Caldav'].forEach(function(name) {
-    suiteSetup(function(done) {
-      Calendar.App.loadObject(name, done);
-    });
-  });
-
+suiteGroup('views/settings', function() {
+  /* jshint -W027 */
+  return;
   var subject;
   var app;
   var store;
@@ -20,6 +20,7 @@ suiteGroup('Views.Settings', function() {
   var template;
   var triggerEvent;
   var account;
+  var models;
 
   function stageModels(list) {
     var object = Object.create(null);
@@ -95,9 +96,9 @@ suiteGroup('Views.Settings', function() {
     app = testSupport.calendar.app();
     controller = app.timeController;
     store = app.store('Calendar');
-    template = Calendar.Templates.Calendar;
+    template = CalendarTemplate;
 
-    subject = new Calendar.Views.Settings({
+    subject = new Settings({
       app: app,
       syncProgressTarget: div,
       // normally this is higher in production but
@@ -105,7 +106,37 @@ suiteGroup('Views.Settings', function() {
       waitBeforePersist: 10
     });
 
+    subject.calendarList = {
+      first: {
+        localDisplayed: true,
+        _id: 'first',
+        remote: {
+          name: 'first'
+        }
+      },
+      local: {
+        localDisplayed: true,
+        _id: 'local-first',
+        remote: {
+          name: 'this should not be used!!!!'
+        }
+      }
+    };
+
     app.db.open(done);
+
+    models = stageModels({
+      displayed: {
+        localDisplayed: true,
+        _id: 1
+      },
+
+      hidden: {
+        localDisplayed: false,
+        _id: 'hidden'
+      }
+    });
+
   });
 
   teardown(function(done) {
@@ -120,7 +151,7 @@ suiteGroup('Views.Settings', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.View);
+    assert.instanceOf(subject, View);
     assert.equal(subject.app, app);
     assert.equal(
       subject.element, document.querySelector('#settings')
@@ -184,29 +215,12 @@ suiteGroup('Views.Settings', function() {
   });
 
   suite('#_observeCalendarStore', function() {
-    var models = subject.calendarList = {
-      first: {
-        localDisplayed: true,
-        _id: 'first',
-        remote: {
-          name: 'first'
-        }
-      },
-      local: {
-        localDisplayed: true,
-        _id: 'local-first',
-        remote: {
-          name: 'this should not be used!!!!'
-        }
-      }
-    };
-
     var children;
     setup(function(done) {
       // we must wait until rendering completes
       subject.onrender = function() {
         children = subject.calendars.children;
-        Calendar.nextTick(done);
+        nextTick(done);
       };
 
       subject.render();
@@ -335,18 +349,6 @@ suiteGroup('Views.Settings', function() {
   });
 
   suite('#_onCalendarDisplayToggle', function() {
-    var models = stageModels({
-      displayed: {
-        localDisplayed: true,
-        _id: 1
-      },
-
-      hidden: {
-        localDisplayed: false,
-        _id: 'hidden'
-      }
-    });
-
     var checkboxes;
     setup(function(done) {
       subject.render();
@@ -364,7 +366,7 @@ suiteGroup('Views.Settings', function() {
     });
 
     function checkAsync(id, value) {
-      Calendar.nextTick(function() {
+      nextTick(function() {
         checkboxes[id].checked = !!value;
         triggerEvent(checkboxes[id], 'change');
       });
@@ -491,4 +493,6 @@ suiteGroup('Views.Settings', function() {
     });
 
   });
+});
+
 });

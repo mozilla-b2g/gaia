@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -20,19 +22,23 @@ class GmailLogin(Base):
         self.marionette.switch_to_frame(gmail_sign_in)
 
     def gmail_login(self, user, passwd):
-        self.wait_for_element_displayed(*self._email_locator)
-        self.marionette.find_element(*self._email_locator).tap()
-        self.marionette.find_element(*self._email_locator).send_keys(user)
-        self.marionette.find_element(*self._password_locator).tap()
-        self.marionette.find_element(*self._password_locator).send_keys(passwd)
+        email = Wait(self.marionette).until(
+            expected.element_present(*self._email_locator))
+        Wait(self.marionette).until(expected.element_displayed(email))
+        email.tap()
+        email.send_keys(user)
+        password = self.marionette.find_element(*self._password_locator)
+        password.tap()
+        password.send_keys(passwd)
         self.keyboard.dismiss()
         self.marionette.find_element(*self._sign_in_locator).tap()
 
     def tap_grant_access(self):
-        self.wait_for_condition(lambda m: m.find_element(*self._grant_access_button_locator).is_enabled())
-        self.marionette.find_element(*self._grant_access_button_locator).tap()
+        grant_access = self.marionette.find_element(*self._grant_access_button_locator)
+        Wait(self.marionette).until(expected.element_enabled(grant_access))
+        grant_access.tap()
         # Go back to displayed Contacts app before waiting for the picker
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'Contacts')
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == 'Contacts')
         self.apps.switch_to_displayed_app()
         from gaiatest.apps.contacts.regions.contact_import_picker import ContactImportPicker
         return ContactImportPicker(self.marionette)

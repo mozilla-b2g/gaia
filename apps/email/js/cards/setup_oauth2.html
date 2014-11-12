@@ -1,10 +1,15 @@
-<section class="card-setup-oauth2 card skin-organic" role="region">
+<!-- need this section element to keep building blocks happy. Too bad it
+  expects a section element -->
+<section class="skin-organic bbshim" role="region">
   <header class="sup-account-header">
-    <a href="#" class="sup-back-btn">
+    <a data-event="click:onBack"
+       href="#" class="sup-back-btn">
       <span class="icon icon-back"></span>
     </a>
-    <h1 class="sup-account-header-label header-label"></h1>
+    <h1 data-prop="headerLabel"
+        class="sup-account-header-label header-label"></h1>
   </header>
-  <section class="scrollregion-below-header skin-organic" role="region">
+  <section data-prop="scrollRegion"
+           class="scrollregion-below-header skin-organic" role="region">
   </section>
 </section>

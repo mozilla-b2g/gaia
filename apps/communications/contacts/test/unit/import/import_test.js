@@ -2,7 +2,8 @@
 
 /* global utils, importer, MockAlphaScroll, MockImageLoader */
 /* global MockSearch, MockasyncStorage, MockOauthflow, MockImportHtml */
-/* global MockConnector, MockImportedContacts, MockCurtain */
+/* global MockConnector, MockImportedContacts, MockCurtain, MockLazyLoader */
+/* global MockConfirmDialog */
 
 require('/shared/js/text_normalizer.js');
 require('/shared/js/contacts/search.js');
@@ -11,6 +12,8 @@ require('/shared/js/contacts/import/importer_ui.js');
 require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/contacts/utilities/templates.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 
 requireApp('communications/contacts/test/unit/import/mock_import.html.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
@@ -30,6 +33,9 @@ var realSearch,
     realAsyncStorage,
     realOauthflow,
     realCurtain,
+    realLazyLoader,
+    realConfirmDialog,
+    realParentLazyLoader,
     groupsListChild, groupsList;
 
 if (!window.asyncStorage) {
@@ -50,6 +56,14 @@ if (!window.onrendered) {
 
 if (!window.oauthflow) {
   window.oauthflow = null;
+}
+
+if (!window.LazyLoader) {
+  window.LazyLoader = null;
+}
+
+if (!window.ConfirmDialog) {
+  window.ConfirmDialog = null;
 }
 
 setup(function() {
@@ -78,6 +92,15 @@ suite('Import Friends Test Suite', function() {
     realOauthflow = window.oauthflow;
     window.oauthflow = MockOauthflow;
 
+    realLazyLoader = window.LazyLoader;
+    window.LazyLoader = MockLazyLoader;
+
+    realConfirmDialog = window.ConfirmDialog;
+    window.ConfirmDialog = MockConfirmDialog;
+
+    realParentLazyLoader = window.parent.LazyLoader;
+    window.parent.LazyLoader = MockLazyLoader;
+
     document.body.innerHTML = MockImportHtml;
 
     groupsList = document.body.querySelector('#groups-list');
@@ -104,7 +127,7 @@ suite('Import Friends Test Suite', function() {
                        querySelector('section#group-P li[data-uuid="1xz"]'));
       assert.isNotNull(document.
                        querySelector('section#group-A li[data-uuid="2abc"]'));
-       assert.isNotNull(document.
+      assert.isNotNull(document.
                        querySelector('section#group-Ψ li[data-uuid="3cde"]'));
 
       assert.equal(document.querySelectorAll('section#group-G *').length, 0);
@@ -231,12 +254,16 @@ suite('Import Friends Test Suite', function() {
       }
     );
 
+    var spy = sinon.spy(window.ConfirmDialog, 'show');
+
     importer.start('mock_token', MockConnector, '*', function() {
-      var friendsMsgElement = document.querySelector('#friends-msg');
-      assert.equal(friendsMsgElement.getAttribute('data-l10n-id'),
-                   'fbNoFriends');
-      done();
+      done(function() {
+        assert.isTrue(spy.called);
+        assert.isTrue(spy.calledWith(null, 'emptyAccount'));
+      });
     });
+
+    spy.restore();
     MockConnector.listDeviceContacts = listDeviceContacts;
   });
 
@@ -250,18 +277,16 @@ suite('Import Friends Test Suite', function() {
       callbacks.success({ data: []});
     };
 
+    var spy = sinon.spy(window.ConfirmDialog, 'show');
+
     importer.start('mock_token', MockConnector, '*', function() {
-
-      assert.isTrue(document.getElementById('deselect-all').disabled === true);
-      assert.isTrue(document.getElementById('select-all').disabled === false);
-
-      var friendsElement = document.getElementById('friends-msg');
-      assert.equal(friendsElement.getAttribute('data-l10n-id'),
-                  'fbNoFriends');
-
-      done();
+      done(function() {
+        assert.isTrue(spy.called);
+        assert.isTrue(spy.calledWith(null, 'emptyAccount'));
+      });
     });
 
+    spy.restore();
     MockConnector.listAllContacts = listAllContacts;
   });
 
@@ -438,6 +463,9 @@ suite('Import Friends Test Suite', function() {
     window.asyncStorage = realAsyncStorage;
     window.oauthflow = realOauthflow;
     window.curtain = realCurtain;
+    window.LazyLoader = realLazyLoader;
+    window.ConfirmDialog = realConfirmDialog;
+    window.parent.LazyLoader = realParentLazyLoader;
   });
 
 });

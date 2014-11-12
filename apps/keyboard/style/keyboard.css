@@ -118,6 +118,14 @@ button::-moz-focus-inner {
   border-left: 0.1rem solid transparent;
 }
 
+.keyboard-type-container:not(.lowercase) .key-element.lowercase {
+  visibility: hidden;
+}
+
+.keyboard-type-container:not(.uppercase-only).lowercase .key-element:not(.lowercase) {
+  visibility: hidden;
+}
+
 .popup {
   position: absolute;
   top: -5.8rem;
@@ -158,16 +166,16 @@ button::-moz-focus-inner {
 /* Special rules for lowercase and uppercase popups */
 
 /* Default is uppercase, so hide the lowercase popup */
-.keyboard-key.highlighted > .visual-wrapper > .popup.lowercase {
+.keyboard-type-container:not(.lowercase) .popup.lowercase {
   visibility: hidden;
 }
 
 /* For lowercase, hide the uppercase popup and show the lowercase one */
-.keyboard-key.highlighted.lowercase > .visual-wrapper > .popup.lowercase {
+.keyboard-type-container.lowercase > .popup.lowercase {
   visibility: visible;
 }
 
-.keyboard-key.highlighted.lowercase > .visual-wrapper > .popup.uppercase {
+.keyboard-type-container.lowercase > .popup.uppercase {
   visibility: hidden;
 }
 
@@ -253,12 +261,12 @@ button::-moz-focus-inner {
 }
 
 /* Caps lock case */
-.keyboard-key.special-key.kbr-key-hold > .visual-wrapper > .key-element {
+.keyboard-key.special-key.kbr-key-hold:not(.highlighted) > .visual-wrapper > .key-element {
   color: #00caf2;
 }
 
 /* The underline for caps lock */
-.keyboard-key.kbr-key-hold > .visual-wrapper {
+.keyboard-key.kbr-key-hold:not(.highlighted) > .visual-wrapper {
   box-shadow: 0 0.4rem 0 #00caf2;
 }
 
@@ -303,7 +311,7 @@ and displays the list of alternatives. */
   overflow: hidden;
   text-align: left;
   /* Special hack to make the keys in the menu flow upwards. */
-  transform: rotateX(180deg); 
+  transform: rotateX(180deg);
   margin-left: -1.0rem; /* because the last child is wider than others */
 }
 
@@ -765,6 +773,13 @@ bubble above the key when you tap and hold. */
 
 .keyboard-key > .visual-wrapper > span[data-label="া"] {
   font-size: 1.7rem;
+}
+
+/* Handwriting */
+.handwriting-pad {
+  background-color: #ebeced;
+  margin: -1px;
+  float: left;
 }
 
 /* Hindi */

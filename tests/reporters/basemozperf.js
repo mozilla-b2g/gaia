@@ -7,7 +7,7 @@
 
 'use strict';
 
-exports = module.exports = BaseMozPerfReporter;
+module.exports = BaseMozPerfReporter;
 
 var Mocha = require('mocha'),
     util = require('util');
@@ -39,7 +39,8 @@ function BaseMozPerfReporter(runner) {
 
   runner.on('pass', function(test) {
 
-    if (mozPerfDurations === null || Object.keys(mozPerfDurations).length == 0) {
+    if (mozPerfDurations === null ||
+        Object.keys(mozPerfDurations).length === 0) {
       // this stuff is specific to mocha implementation. It might break.
       --self.stats.passes;
 
@@ -124,7 +125,7 @@ function cleanErr(test) {
 }
 
 function average(arr) {
-  if (arr.length == 0) {
+  if (arr.length === 0) {
     return 0;
   }
   var sum = arr.reduce(function(i, j) {

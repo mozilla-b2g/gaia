@@ -81,8 +81,10 @@ define(function(require) {
      * have a chance to present the attention alert window.
      */
     onMozAlarm: function(message) {
+      // message.detail in only for marionette test.
+      // We pass it via AlarmActions.fire method.
       var data = message.data || message.detail;
-      data.date = message.date || new Date();
+      data.date = message.date || message.detail.date;
 
       console.log('[Clock] ### ALARM FIRED! ### Details:',
                   JSON.stringify(message));

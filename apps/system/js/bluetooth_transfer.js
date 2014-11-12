@@ -610,5 +610,3 @@ var BluetoothTransfer = {
   }
 
 };
-
-BluetoothTransfer.init();

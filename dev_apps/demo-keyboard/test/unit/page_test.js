@@ -1,14 +1,6 @@
 'use strict';
 
 suite('Page', function() {
-  mocha.setup({
-    globals: [
-      'Key',
-      'KeyboardPage',
-      'KeyboardLayout'
-    ]
-  });
-
   var KeyboardPage;
   var keyCtor;
 

@@ -79,6 +79,7 @@ define(
   [
     'rdcommon/log',
     './util',
+    './allback',
     './syncbase',
     './date',
     './htmlchew',
@@ -88,6 +89,7 @@ define(
   function(
     $log,
     $util,
+    allback,
     $syncbase,
     $date,
     htmlchew,
@@ -545,15 +547,40 @@ console.log('sf: creating SearchSlice:', phrase);
   if (whatToSearch.subject)
     filters.push(new SubjectFilter(
                    phrase, 1, CONTEXT_CHARS_BEFORE, CONTEXT_CHARS_AFTER));
-  if (whatToSearch.body)
+  if (whatToSearch.body) {
     filters.push(new BodyFilter(
                    phrase, whatToSearch.body === 'yes-quotes',
                    1, CONTEXT_CHARS_BEFORE, CONTEXT_CHARS_AFTER));
+    // A latch for use to make sure that _gotMessages' checkHandle calls are
+    // sequential even when _gotMessages is invoked with no headers and
+    // !moreMessagesComing.
+    //
+    // (getBody calls are inherently ordered, but if we have no headers, then
+    // the function call that decides whether we fetch more messages needs some
+    // way to wait for the body loads to occur.  Previously we used
+    // storage.runAfterDeferredCalls, but that's now removed because it was a
+    // footgun and its semantics were slightly broken to boot.)
+    //
+    // TODO: In the future, refactor this logic into a more reusable
+    // iterator/stream mechanism so that this class doesn't have to deal with
+    // it.
+    //
+    // The usage pattern is this:
+    // - Whenever we have any bodies to fetch, we create a latch and assign it
+    //   here.
+    // - Whenever we don't have any bodies to fetch, we use a .then() on the
+    //   current value of the latch, if there is one.
+    // - We clear this in _gotMessages' checkHandle in the case we are calling
+    //   reqGrow.  This avoids the latch hanging around with potential GC
+    //   implications and provides a nice invariant.
+    this._pendingBodyLoadLatch = null;
+  }
 
   this.filterer = new MessageFilterer(filters);
 
   this._bound_gotOlderMessages = this._gotMessages.bind(this, 1);
   this._bound_gotNewerMessages = this._gotMessages.bind(this, -1);
+
 
   this.desiredHeaders = $syncbase.INITIAL_FILL_SIZE;
   this.reset();
@@ -652,7 +679,17 @@ SearchSlice.prototype = {
       }
     }
 
-    var checkHandle = function checkHandle(headers, bodies) {
+    /**
+     * Called once we have all the data needed to actually check for matches.
+     * Specifically, we may have had to fetch the bodies.
+     *
+     * @param {MailHeader[]} headers
+     * @param {Object} [resolvedGetBodyCalls]
+     *   The results of an allback.latch() resolved by getBody calls.  The
+     *   keys are the headers' suid's and the values are the gotBody argument
+     *   callback list, which will look like [MailBody, header/message suid].
+     */
+    var checkHandle = function checkHandle(headers, resolvedGetBodyCalls) {
       if (!this._bridgeHandle) {
         return;
       }
@@ -661,7 +698,8 @@ SearchSlice.prototype = {
       var matchPairs = [];
       for (i = 0; i < headers.length; i++) {
         var header = headers[i],
-            body = bodies ? bodies[i] : null;
+            body = resolvedGetBodyCalls ? resolvedGetBodyCalls[header.id][0] :
+                                          null;
         this._headersChecked++;
         var matchObj = this.filterer.testMessage(header, body);
         if (matchObj)
@@ -718,6 +756,7 @@ SearchSlice.prototype = {
         if (wantMore) {
           console.log(logPrefix,
                       'requesting more because no matches but want more');
+          this._pendingBodyLoadLatch = null;
           this.reqGrow(dir, false, true);
         }
         else {
@@ -736,30 +775,25 @@ SearchSlice.prototype = {
     if (this.filterer.bodiesNeeded) {
       // To batch our updates to the UI, just get all the bodies then advance
       // to the next stage of processing.
-      var bodies = [];
-      var gotBody = function(body) {
-        if (!body) {
-          console.log(logPrefix, 'failed to get a body for: ',
-                      headers[bodies.length].suid,
-                      headers[bodies.length].subject);
+
+      // See the docs in the constructor on _pendingBodyLoadLatch.
+      if (headers.length) {
+        var latch = this._pendingBodyLoadLatch = allback.latch();
+        for (var i = 0; i < headers.length; i++) {
+          var header = headers[i];
+          this._storage.getMessageBody(
+            header.suid, header.date, latch.defer(header.id));
         }
-        bodies.push(body);
-        if (bodies.length === headers.length) {
-          checkHandle(headers, bodies);
+        latch.then(checkHandle.bind(null, headers));
+      } else {
+        // note that we are explicitly binding things so the existing result
+        // from _pendingBodyLoadLatch will be positionally extra and unused.
+        var deferredCheck = checkHandle.bind(null, headers, null);
+        if (this._pendingBodyLoadLatch) {
+          this._pendingBodyLoadLatch.then(deferredCheck);
+        } else {
+          deferredCheck();
         }
-      };
-      for (var i = 0; i < headers.length; i++) {
-        var header = headers[i];
-        this._storage.getMessageBody(header.suid, header.date, gotBody);
-      }
-      if (!headers.length) {
-        // To maintain consistent ordering for correctness we need to make sure
-        // we won't call checkHeaders (to trigger additional fetches if
-        // required) before any outstanding getMessageBody calls return.
-        // runAfterDeferredCalls guarantees us consistency with how
-        // getMessageBody operates in this scenario.
-        this._storage.runAfterDeferredCalls(
-          checkHandle.bind(null, headers, null));
       }
     }
     else {

@@ -1,9 +1,10 @@
-/* global StackManager, AppWindow, AppWindowManager, Event, MocksHelper,
-          MockAppWindowManager, HomescreenLauncher, MockSheetsTransition */
+/* global StackManager, AppWindow, MockAppWindowManager, Event, MocksHelper,
+          MockSystem, HomescreenLauncher, MockSheetsTransition */
 'use strict';
 
 requireApp('system/js/stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_layout_manager.js');
@@ -12,7 +13,7 @@ requireApp('system/test/unit/mock_sheets_transition.js');
 var mocksForStackManager = new MocksHelper([
   'AppWindow', 'AppWindowManager',
   'HomescreenLauncher', 'LayoutManager',
-  'SheetsTransition'
+  'SheetsTransition', 'System'
 ]).init();
 
 suite('system/StackManager >', function() {
@@ -118,12 +119,14 @@ suite('system/StackManager >', function() {
     settings_sheet_1.groupID = settings.groupID;
     settings_sheet_2.groupID = settings.groupID;
     settings_sheet_3.groupID = settings.groupID;
+    window.appWindowManager = new MockAppWindowManager();
   });
 
   teardown(function() {
     this.sinon.clock.tick(800); // Making sure everything got broadcasted
     window.homescreenLauncher = undefined;
     StackManager.__clearAll();
+    MockSystem.currentApp = null;
   });
 
   function appLaunch(app, warm) {
@@ -200,7 +203,7 @@ suite('system/StackManager >', function() {
       setup(function() {
         appLaunch(settings);
         appLaunch(operatorVariant);
-        MockAppWindowManager.mActiveApp = operatorVariant;
+        MockSystem.currentApp = operatorVariant;
 
         this.sinon.stub(settings, 'getActiveWindow').returns(null);
       });
@@ -378,7 +381,7 @@ suite('system/StackManager >', function() {
         contactCancelQueuedShow = this.sinon.stub(contact, 'cancelQueuedShow');
         settingsQueueHide = this.sinon.stub(settings, 'queueHide');
 
-        sendStopRecordingRequest = this.sinon.stub(AppWindowManager,
+        sendStopRecordingRequest = this.sinon.stub(window.appWindowManager,
                                                    'sendStopRecordingRequest');
 
         StackManager.goPrev();

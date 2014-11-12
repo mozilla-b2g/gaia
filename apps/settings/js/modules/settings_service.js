@@ -26,6 +26,8 @@ define(function(require) {
     var _cachedNavigation = null;
     var _cachedNavigationOptions = {};
 
+    var _activityHandler = null;
+
     var _getAppNameToLink = function ss_get_app_name_to_link(panelId) {
       var reAppName = /app:(\w+)/;
       var name = reAppName.exec(panelId);
@@ -57,6 +59,34 @@ define(function(require) {
 
     var _isTabletAndLandscape = function ss_is_tablet_and_landscape() {
       return ScreenLayout.getCurrentLayout('tabletAndLandscaped');
+    };
+
+    var _retriveParentPanelId = function ss_retriveParentPanelId(panelId) {
+      var headerSelector = '#' + panelId + ' > gaia-header';
+      var header = document.querySelector(headerSelector);
+      return (header && header.dataset.href || '').replace('#', '');
+    };
+
+    var _shallCloseActivity = function ss_shallCloseActivity(panelId) {
+      // If we're handling an activity and the 'back' button is hit, close the
+      // activity if the panel id to be navigated equals the parent panel id.
+
+      // This is for the root panel
+      if (panelId === 'home') {
+        return true;
+      }
+
+      if (!_currentNavigation) {
+        return false;
+      }
+
+      // Get the parent panel id of the current panel.
+      var parentPanelId = _retriveParentPanelId(_currentNavigation.panelId);
+
+      // Close the activity if the current panel is the original target panel,
+      // and the new panel is the parent panel of the current panel.
+      return _currentNavigation.panelId === _activityHandler.targetPanelId &&
+        panelId === parentPanelId;
     };
 
     var _transit = function ss_transit(oldPanel, newPanel, callback) {
@@ -223,6 +253,7 @@ define(function(require) {
         _currentNavigation = null;
         _cachedNavigation = null;
         _cachedNavigationOptions = {};
+        _activityHandler = null;
         _navigating = false;
         _pendingNavigationRequest = null;
         window.removeEventListener('visibilitychange', _onVisibilityChange);
@@ -232,13 +263,24 @@ define(function(require) {
        * Init SettingsService.
        *
        * @alias module:SettingsService#init
-       * @param {String} rootPanelId
+       * @param {Object} options
+       * @param {String} options.rootPanelId
        *                 Panel with the specified id is assumed to be be kept on
        *                 on the screen always. We don't call to its hide and
        *                 beforeHide functions.
+       * @param {Object} options.context
+       *                 The launch context specifying the default panel and the
+       *                 activity handler if the app is invoked by web
+       *                 activities.
+       * @param {String} options.context.initialPanelId
+       * @param {ActivityHandler} options.context.activityHandler
        */
-      init: function ss_init(rootPanelId) {
-        _rootPanelId = rootPanelId;
+      init: function ss_init(options) {
+        if (options) {
+          _rootPanelId = options.rootPanelId || 'root';
+          _activityHandler = options.context && options.context.activityHandler;
+        }
+
         window.addEventListener('visibilitychange', _onVisibilityChange);
       },
 
@@ -252,6 +294,12 @@ define(function(require) {
        * @param {Function} callback
        */
       navigate: function ss_navigate(panelId, options, callback) {
+        // Check if the app is invoked by web activity and shall post result.
+        if (_activityHandler && _shallCloseActivity(panelId)) {
+          _activityHandler.postResult();
+          return;
+        }
+
         // Cache the navigation request if it is navigating.
         if (_navigating) {
           _pendingNavigationRequest = arguments;

@@ -1,15 +1,15 @@
-requireLib('template.js');
-requireLib('templates/alarm.js');
+define(function(require) {
+'use strict';
 
-suiteGroup('Templates.Alarm', function() {
-  'use strict';
+var Alarm = require('templates/alarm');
 
+suite('Templates.Alarm', function() {
   var subject;
   var app;
 
   suiteSetup(function() {
     app = testSupport.calendar.app();
-    subject = Calendar.Templates.Alarm;
+    subject = Alarm;
   });
 
   function renderOption(value, layout, selected) {
@@ -19,6 +19,40 @@ suiteGroup('Templates.Alarm', function() {
       selected: selected
     });
   }
+
+  function renderDescription(layout, trigger) {
+    return subject.description.render({
+      layout: layout,
+      trigger: trigger
+    });
+  }
+
+  suite('description', function() {
+    test('minutes', function() {
+      assert.include(renderDescription('allday', -600), 'minutes');
+      assert.include(renderDescription('allday', -600), 'role="listitem"');
+      assert.include(renderDescription('standard', -600), 'role="listitem"');
+    });
+
+    test('hours', function() {
+      assert.include(renderDescription('allday', -6000), 'hour');
+      assert.include(renderDescription('allday', -6000), 'role="listitem"');
+      assert.include(renderDescription('standard', -6000), 'role="listitem"');
+    });
+
+    test('years', function() {
+      assert.include(renderDescription('allday', -6000000), 'months');
+      assert.include(renderDescription('allday', -6000000), 'role="listitem"');
+      assert.include(renderDescription('standard', -6000000),
+        'role="listitem"');
+    });
+
+    test('none', function() {
+      assert.include(renderDescription('allday', 'none'), 'None');
+      assert.include(renderDescription('allday', 'none'), 'role="listitem"');
+      assert.include(renderDescription('standard', 'none'), 'role="listitem"');
+    });
+  });
 
   suite('#option', function() {
     test('minutes', function() {
@@ -116,4 +150,6 @@ suiteGroup('Templates.Alarm', function() {
       });
     });
   });
+});
+
 });

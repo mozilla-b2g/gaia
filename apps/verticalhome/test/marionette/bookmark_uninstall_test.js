@@ -10,13 +10,7 @@ var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Bookmark Uninstall', function() {
 
-  // Bug 1007352 - homescreen URL is hard-coded so we run this test with the
-  // old homescreen, then launch the new homescreen as an app. This is only
-  // needed because we lauch other applications.
-  var options = JSON.parse(JSON.stringify(Home2.clientOptions));
-  delete options.settings['homescreen.manifestURL'];
-
-  var client = marionette.client(options);
+  var client = marionette.client(Home2.clientOptions);
   var bookmark, home, server, system;
 
   suiteSetup(function(done) {
@@ -50,6 +44,7 @@ marionette('Vertical - Bookmark Uninstall', function() {
   test('removal of bookmark', function() {
     // select the icon in edit mode and click remove
     var icon = home.getIcon(url);
+    home.moveIconToIndex(icon, 0);
     var remove = icon.findElement('.remove');
     remove.tap();
     home.confirmDialog('remove');

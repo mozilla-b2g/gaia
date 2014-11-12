@@ -30,8 +30,6 @@ class Wifi(Base):
         # Wait for the networks to be found
         this_network_locator = ('xpath', "//li/a/span[text()='%s']" % network_info['ssid'])
         this_network = self.wait_for_element_present(*this_network_locator)
-
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [this_network])
         this_network.tap()
 
         if network_info.get('keyManagement'):

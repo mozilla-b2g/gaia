@@ -583,7 +583,10 @@ var CallLogDBManager = {
       retryCount: group.retryCount,
       contact: contact,
       emergency: group.emergency,
-      voicemail: group.voicemail,
+      // bug 1078663: The voicemail field was polluted with withheld numbers
+      // being registered as voicemail numbers. To get around this, we check if
+      // there is a number as well as the voicemail flag being set.
+      voicemail: !!(group.id[1] && group.voicemail),
       calls: group.calls
     };
   },

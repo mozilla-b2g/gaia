@@ -1,16 +1,19 @@
 'use strict';
-/* global MocksHelper */
-/* global MockMozL10n */
-/* global utils */
+/* global MocksHelper, MockMozL10n, utils, MockMatcher, MockMozContacts */
 
 require('/shared/js/contacts/import/utilities/import_from_vcard.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_moz_contact.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 
+requireApp('communications/contacts/test/unit/mock_contacts_match.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
-requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
+requireApp('communications/contacts/test/unit/mock_vcard_reader.js');
 requireApp('communications/contacts/test/unit/mock_file_reader.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('/shared/test/unit/mocks/mock_moz_contact.js');
 
 if (!window._) {
   window._ = null;
@@ -21,8 +24,10 @@ if (!window.utils) {
 }
 
 var mocksHelperForImportVcard = new MocksHelper([
+  'LazyLoader',
+  'mozContact',
   'Contacts',
-  'VCFReader',
+  'VCardReader',
   'ConfirmDialog',
   'FileReader'
 ]).init();
@@ -86,13 +91,14 @@ var vcardMultiple = 'BEGIN:VCARD\n' +
 var vcardError = 'error';
 
 var contact1 = {
-      id: '1'
+      id: '0'
     };
 
 suite('Import from vcard', function() {
   var realMozL10n,
       real_,
       realStatus,
+      realMatcher,
       realOverlay;
 
   suiteSetup(function() {
@@ -104,6 +110,23 @@ suite('Import from vcard', function() {
 
     realStatus = window.utils.status;
     realOverlay = window.utils.overlay;
+
+    navigator.mozContacts = MockMozContacts;
+    sinon.stub(navigator.mozContacts, 'find', function mockMozContactsFind() {
+      var self = this;
+      var req = {
+        set onsuccess(cb) {
+          req.result = self.contacts;
+          cb();
+        },
+        set onerror(cb) {},
+      };
+      return req;
+    });
+
+    window.contacts = window.contacts || {};
+    realMatcher = window.contacts.Matcher;
+    window.contacts.Matcher = MockMatcher;
 
     window.utils.overlay = {
       total: 0,
@@ -129,12 +152,14 @@ suite('Import from vcard', function() {
 
   setup(function() {
     window.utils.overlay.total = 0;
+    navigator.mozContacts.contacts = [];
     mocksHelperForImportVcard.setup();
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
     window._ = real_;
+    window.contacts.Matcher = realMatcher;
     window.utils.status = realStatus;
     window.utils.overlay = realOverlay;
     mocksHelperForImportVcard.suiteTeardown();

@@ -7,17 +7,20 @@
   const mozSettings = navigator.mozSettings;
 
   const DEBUG = true;
-  const API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
 
   var initPromise = null;
   var slice = Function.call.bind(Array.prototype.slice);
 
   exports.eme = {
     config: {
-      apiUrl: API_URL
+      apiUrl: null
     },
 
     init: function init() {
+      if (initPromise) {
+        return initPromise;
+      }
+
       initPromise = this.readSettings()
       .then(
         function success(settings) {

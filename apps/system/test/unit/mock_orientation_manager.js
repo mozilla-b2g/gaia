@@ -17,6 +17,7 @@ var MockOrientationManager = {
   },
 
   fetchCurrentOrientation: function sl_fetchDefaultOrientation() {
+    return this.mCurrentOrientation || this.defaultOrientation;
   },
 
   mTeardown: function mom_mTeardown() {

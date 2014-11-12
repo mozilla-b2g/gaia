@@ -1,10 +1,12 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireLib('timespan.js');
+var Abstract = require('provider/abstract');
+var Factory = require('test/support/factory');
+var Local = require('provider/local');
+var Timespan = require('timespan');
 
-suiteGroup('Provider.Local', function() {
-  'use strict';
-
+suite('provider/local', function() {
   var subject;
   var app;
   var db;
@@ -13,9 +15,7 @@ suiteGroup('Provider.Local', function() {
 
   setup(function(done) {
     app = testSupport.calendar.app();
-    subject = new Calendar.Provider.Local({
-      app: app
-    });
+    subject = new Local({ app: app });
 
     controller = app.timeController;
     shouldDisplay = controller._shouldDisplayBusytime;
@@ -45,7 +45,7 @@ suiteGroup('Provider.Local', function() {
 
   test('initialization', function() {
     assert.equal(subject.app, app);
-    assert.instanceOf(subject, Calendar.Provider.Abstract);
+    assert.instanceOf(subject, Abstract);
   });
 
   test('#getAccount', function(done) {
@@ -89,10 +89,7 @@ suiteGroup('Provider.Local', function() {
       events = app.store('Event');
       busytimes = app.store('Busytime');
 
-      var span = new Calendar.Timespan(
-        0, Infinity
-      );
-
+      var span = new Timespan(0, Infinity);
       controller.observeTime(span, function(e) {
         switch (e.type) {
           case 'add':
@@ -237,6 +234,7 @@ suiteGroup('Provider.Local', function() {
         });
       });
     });
-
   });
+});
+
 });

@@ -18,7 +18,6 @@ body {
   color: #000;
   font-size: 1.6rem;
   line-height: 2.2rem;
-  text-align: center;
   vertical-align: middle;
   background-color: #FFF;
 }
@@ -97,37 +96,6 @@ a img {
 
 a abbr {
   cursor: pointer;
-}
-
-/* Icons */
-span[role="button"] {
-  font-style: normal;
-}
-
-span[role="button"] + b, span[role="button"] + span {
-  vertical-align: middle;
-}
-
-/* Tables */
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-  width: 100%;
-}
-
-td {
-  vertical-align: top;
-}
-
-caption, th {
-  text-align: left;
-}
-
-caption {
-  text-indent: -9999rem;
-  width: 0;
-  height: 0;
-  overflow: hidden;
 }
 
 /* Forms */

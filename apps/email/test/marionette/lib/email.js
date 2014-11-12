@@ -8,10 +8,10 @@ module.exports = Email;
 Email.EMAIL_ORIGIN = 'app://email.gaiamobile.org';
 
 var Selector = {
-  setupNameInput: '.card-setup-account-info .sup-info-name',
-  setupEmailInput: '.card-setup-account-info .sup-info-email',
-  nextButton: '.card-setup-account-info .sup-info-next-btn',
-  prefsNextButton: '.card-setup-account-prefs .sup-info-next-btn',
+  setupNameInput: 'cards-setup-account-info .sup-info-name',
+  setupEmailInput: 'cards-setup-account-info .sup-info-email',
+  nextButton: 'cards-setup-account-info .sup-info-next-btn',
+  prefsNextButton: 'cards-setup-account-prefs .sup-info-next-btn',
   manualSetupNameInput: '.sup-manual-form .sup-info-name',
   manualSetupEmailInput: '.sup-manual-form .sup-info-email',
   manualSetupImapPasswordInput:
@@ -27,32 +27,32 @@ var Selector = {
   manualSetupSmtpPasswordInput: '.sup-manual-form .sup-manual-smtp-password',
   manualSetupSmtpPortInput: '.sup-manual-form .sup-manual-smtp-port',
   manualSetupSmtpSocket: '.sup-manual-form .sup-manual-smtp-socket',
-  manualNextButton: '.card-setup-manual-config .sup-manual-next-btn',
-  msgDownBtn: '.card-message-reader .msg-down-btn',
-  msgListScrollOuter: '.card-message-list .msg-list-scrollouter',
-  editMode: '.card-message-list .msg-edit-btn',
+  manualNextButton: 'cards-setup-manual-config .sup-manual-next-btn',
+  msgDownBtn: 'cards-message-reader .msg-down-btn',
+  msgListScrollOuter: 'cards-message-list .msg-list-scrollouter',
+  editMode: 'cards-message-list .msg-edit-btn',
   editModeCheckBoxes:
-    '.card-message-list .msg-header-item[data-index="0"] label.pack-checkbox',
-  editModeTrash: '.card-message-list button.msg-delete-btn',
-  msgUpBtn: '.card-message-reader .msg-up-btn',
-  msgEnvelopeSubject: '.card-message-reader .msg-envelope-subject',
-  showMailButton: '.card-setup-done .sup-show-mail-btn',
+    'cards-message-list .msg-header-item[data-index="0"] label.pack-checkbox',
+  editModeTrash: 'cards-message-list button.msg-delete-btn',
+  msgUpBtn: 'cards-message-reader .msg-up-btn',
+  msgEnvelopeSubject: 'cards-message-reader .msg-envelope-subject',
+  showMailButton: 'cards-setup-done .sup-show-mail-btn',
   confirmDialogOkButton: '.confirm-dialog-form .confirm-dialog-ok',
   manualConfigButton: '.scrollregion-below-header .sup-manual-config-btn',
   composeButton: '.msg-list-header .msg-compose-btn',
-  composeEmailContainer: '.card-compose .cmp-to-container',
-  composeEmailInput: '.card-compose .cmp-addr-text',
-  composeSubjectInput: '.card-compose .cmp-subject-text',
-  composeBodyInput: '.card-compose .cmp-body-text',
-  composeSendButton: '.card-compose .cmp-send-btn',
-  composeBackButton: '.card-compose .cmp-back-btn',
+  composeEmailContainer: 'cards-compose .cmp-to-container',
+  composeEmailInput: 'cards-compose .cmp-addr-text',
+  composeSubjectInput: 'cards-compose .cmp-subject-text',
+  composeBodyInput: 'cards-compose .cmp-body-text',
+  composeSendButton: 'cards-compose .cmp-send-btn',
+  composeBackButton: 'cards-compose .cmp-back-btn',
   composeDraftDiscard: '#cmp-draft-discard',
   composeDraftSave: '#cmp-draft-save',
-  composeErrorMessage: '.card-compose .cmp-error-message',
+  composeErrorMessage: 'cards-compose .cmp-error-message',
   refreshButton: '.card.center .msg-refresh-btn',
   messageHeaderItem:
   '.msg-messages-container .msg-header-item',
-  cardMessageReader: '.card-message-reader',
+  cardMessageReader: 'cards-message-reader',
   currentCardInputs: '.card.center input[type="text"]',
   replyMenuButton: '.msg-reply-btn',
   replyMenu: '.msg-reply-menu',
@@ -60,13 +60,13 @@ var Selector = {
   replyMenuForward: '.msg-reply-menu-forward',
   replyMenuAll: '.msg-reply-menu-reply-all',
   searchTextTease: '.msg-search-text-tease',
-  searchCard: '.card[data-mode="search"]',
+  searchCard: 'cards-message-list-search',
   folderListButton: '.msg-list-header .msg-folder-list-btn',
-  folderListCloseButton: '.card-folder-picker .fld-header-back',
-  folderListContents: '.card-folder-picker .fld-acct-scrollinner',
+  folderListCloseButton: 'cards-folder-picker .fld-header-back',
+  folderListContents: 'cards-folder-picker .fld-acct-scrollinner',
   settingsButton: '.fld-nav-toolbar',
-  settingsDoneButton: '.card-settings-main [data-l10n-id="settings-done"]',
-  addAccountButton: '.card-settings-main .tng-account-add',
+  settingsDoneButton: 'cards-settings-main [data-l10n-id="settings-done"]',
+  addAccountButton: 'cards-settings-main .tng-account-add',
   accountListButton: '.fld-acct-header',
   accountListContainer: '.fld-accountlist-container',
   settingsMainAccountItems: '.tng-accounts-container .tng-account-item',
@@ -74,7 +74,7 @@ var Selector = {
   // Checkboxes are weird: hidden to marionette, but the associated label
   // is clickable and does the job.
   notifyEmailCheckbox: '.tng-notify-mail-label',
-  accountSettingsBackButton: '.card-settings-account .tng-back-btn',
+  accountSettingsBackButton: 'cards-settings-account .tng-back-btn',
   localDraftsItem: '.fld-folders-container a[data-type=localdrafts]',
   outboxItem: '.fld-folders-container a[data-type=outbox]',
   outboxItemSyncIcon: '.msg-header-syncing-section',
@@ -335,14 +335,13 @@ Email.prototype = {
    */
   getComposeBody: function() {
     return this.client.executeScript(function() {
-      var Cards = window.wrappedJSObject.require('mail_common').Cards,
-          card = Cards._cardStack[Cards.activeCardIndex];
-      if (card.cardDef.name !== 'compose') {
+      var cards = window.wrappedJSObject.require('cards'),
+          card = cards._cardStack[cards.activeCardIndex];
+      if (cards.cardName(card) !== 'cards-compose') {
         throw new Error('active card should be compose!');
       }
 
-      var composeCard = card.cardImpl;
-      return composeCard.fromEditor();
+      return card.fromEditor();
     }, []);
   },
 
@@ -462,7 +461,7 @@ Email.prototype = {
 
     this.client.helper
       .waitForElement(Selector.searchCard);
-    this._waitForTransitionEnd('message_list');
+    this._waitForTransitionEnd('message_list_search');
   },
 
   waitForMessageList: function() {
@@ -599,15 +598,14 @@ Email.prototype = {
 
   _onTransitionEndScriptTimeout: function(cardId) {
     var result = this.client.executeScript(function(cardId) {
-      var Cards = window.wrappedJSObject.require('mail_common').Cards,
-          card = Cards._cardStack[Cards.activeCardIndex],
-          cardNode = card && card.domNode;
+      var cards = window.wrappedJSObject.require('cards'),
+          cardNode = cards._cardStack[cards.activeCardIndex];
 
       return {
         cardNode: !!cardNode,
         centered: cardNode && cardNode.classList.contains('center'),
         correctId: cardNode && cardNode.dataset.type === cardId,
-        eventsClear: !Cards._eatingEventsUntilNextCard
+        eventsClear: !cards._eatingEventsUntilNextCard
       };
     }, [cardId]);
 
@@ -625,13 +623,12 @@ Email.prototype = {
 
     client.waitFor(function() {
       return client.executeScript(function(cardId) {
-        var Cards = window.wrappedJSObject.require('mail_common').Cards,
-            card = Cards._cardStack[Cards.activeCardIndex],
-            cardNode = card && card.domNode;
+        var cards = window.wrappedJSObject.require('cards'),
+            cardNode = cards._cardStack[cards.activeCardIndex];
 
         return !!cardNode && cardNode.classList.contains('center') &&
                cardNode.dataset.type === cardId &&
-               !Cards._eatingEventsUntilNextCard;
+               !cards._eatingEventsUntilNextCard;
       }, [cardId]);
     });
 
@@ -640,11 +637,11 @@ Email.prototype = {
 
   _onNoTransitionScriptTimeout: function() {
     var result = this.client.executeScript(function() {
-      var Cards = window.wrappedJSObject.require('mail_common').Cards;
+      var cards = window.wrappedJSObject.require('cards');
 
       return {
-        cards: !!Cards,
-        eventsClear: !!Cards && !Cards._eatingEventsUntilNextCard
+        cards: !!cards,
+        eventsClear: !!cards && !cards._eatingEventsUntilNextCard
       };
     });
 
@@ -662,8 +659,8 @@ Email.prototype = {
 
     client.waitFor(function() {
       return client.executeScript(function() {
-        var Cards = window.wrappedJSObject.require('mail_common').Cards;
-        return !Cards._eatingEventsUntilNextCard;
+        var cards = window.wrappedJSObject.require('cards');
+        return !cards._eatingEventsUntilNextCard;
       });
     });
 

@@ -34,9 +34,9 @@
 
     <!-- Web Components -->
     <script defer src="shared/elements/config.js"></script>
-    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" />
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" />
+    <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <script defer src="js/metadata.js"></script>
     <script defer src="js/db.js"></script>
@@ -45,6 +45,7 @@
     <script defer src="js/thumbnail_item.js"></script>
     <script defer src="js/video_utils.js"></script>
     <script defer src="js/forward_rewind_controller.js"></script>
+    <script defer src="js/video_loading_checker.js"></script>
     <script defer src="js/video.js"></script>
   </head>
   <body role="application" class="skin-dark theme-media">
@@ -84,10 +85,9 @@
         <section role="region">
           <gaia-header id="player-header" action="back">
             <h1 id="video-title"></h1>
-            <a id="options" data-icon="more"></a>
-            <button id="picker-done">Done</button>
+            <button id="options" data-icon="more"></button>
+            <button id="picker-done" data-l10n-id="done">Done</button>
           </gaia-header>
-          </header>
           <footer id="videoBar">
             <div id="timeSlider">
               <span id="elapsed-text"></span>
@@ -197,6 +197,13 @@
         <button id="confirm-cancel"></button>
         <button id="confirm-ok"></button>
       </menu>
+    </form>
+    <!-- display "Cannot load video because it is in use" here -->
+    <form id="in-use-overlay" role="dialog" data-type="confirm" class="hidden">
+      <section id="in-use-overlay-content">
+        <h1 id="in-use-overlay-title"></h1>
+        <p id="in-use-overlay-text"></p>
+      </section>
     </form>
   </body>
 </html>

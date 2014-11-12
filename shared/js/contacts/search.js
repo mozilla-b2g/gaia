@@ -151,19 +151,19 @@ contacts.Search = (function() {
   };
 
   var highlightNode = function(node) {
-    var normalizedText = getSearchText(node);
-    var displayedText = node.querySelector('.contact-text').textContent;
+    var textNode = node.querySelector('.contact-text');
+    var displayedText = textNode.textContent;
 
     currentSearchTerms.forEach(function(term) {
       var hRegEx = new RegExp(term, 'gi');
       var newTerms = [], newTerm;
 
-      var result = hRegEx.exec(normalizedText);
+      var result = hRegEx.exec(displayedText);
       while (result) {
         newTerm = displayedText.substr(result.index, term.length);
         newTerm = Normalizer.escapeRegExp(newTerm).toLowerCase();
         newTerms.push(newTerm);
-        result = hRegEx.exec(normalizedText);
+        result = hRegEx.exec(displayedText);
       }
 
       newTerms = newTerms.filter(function removeDuplicates(elem, pos) {
@@ -171,10 +171,10 @@ contacts.Search = (function() {
       });
 
       newTerms.forEach(function replaceWithHighlight(term) {
-        node.innerHTML = node.innerHTML.replace(
-          new RegExp('(' + term + ')(?=[^>]*<)', 'gi'),
+        textNode.firstChild.innerHTML = textNode.textContent.replace(
+          new RegExp('(' + term + ')', 'i'),
           '<span class="' + highlightClass + '">$1</span>');
-      });
+       });
     });
   };
 
@@ -349,7 +349,7 @@ contacts.Search = (function() {
     }
   };
 
-  function fillInitialSearchPage() {
+  function fillInitialSearchPage(done) {
     hideProgressResults();
 
     var startContact = source.getFirstNode();
@@ -371,6 +371,10 @@ contacts.Search = (function() {
 
     fillIdentityResults(startContact, numToFill);
 
+    if (typeof done === 'function') {
+      done();
+    }
+
     imgLoader.reload();
   }
 
@@ -388,6 +392,9 @@ contacts.Search = (function() {
     for (var c = from; c < end && c < contacts.length; c++) {
       var contact = contacts[c].node || contacts[c];
       var contactText = contacts[c].text || getSearchText(contacts[c]);
+      contactText = contactText.replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
       if (!checkContactMatch(currentSearchTerms, contactText)) {
         if (contact.dataset.uuid in currentSet) {
           searchList.removeChild(currentSet[contact.dataset.uuid]);
@@ -525,7 +532,7 @@ contacts.Search = (function() {
 
     if (thisSearchText.length === 0) {
       resetState();
-      window.setTimeout(fillInitialSearchPage, 0);
+      window.setTimeout(fillInitialSearchPage, 0, searchDoneCb);
     }
     else {
       showProgress();

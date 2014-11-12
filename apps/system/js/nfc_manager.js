@@ -65,9 +65,6 @@
      */
     TECH_PRIORITY: {
       P2P: 1,
-      NDEF: 2,
-      NDEF_WRITEABLE: 3,
-      NDEF_FORMATABLE: 4,
       Unsupported: 20
     },
 
@@ -115,6 +112,7 @@
       window.navigator.mozSetMessageHandler('nfc-manager-tech-lost', null);
 
       window.removeEventListener('screenchange', this);
+      window.removeEventListener('activeappchanged', this);
       window.removeEventListener('lockscreen-appopened', this);
       window.removeEventListener('lockscreen-appclosed', this);
 
@@ -161,24 +159,19 @@
       switch (tech) {
         case 'P2P':
           if (!msg.records.length) {
-            this._triggerP2PUI();
+            this.checkP2PRegistration();
           } else {
             // if there are records in the msg we've got NDEF message shared
             // by other device via P2P, this should be handled as regular NDEF
             this._fireNDEFDiscovered(msg, tech);
           }
           break;
-        case 'NDEF':
-        case 'NDEF_WRITEABLE':
-          this._fireNDEFDiscovered(msg, tech);
-          break;
-        case 'NDEF_FORMATABLE':
-          // not moving to default for readability
-          this._fireTagDiscovered(msg, tech);
-          break;
         default:
-          this._debug('Tag tech: ' + tech + ', fire Tag-Discovered.');
-          this._fireTagDiscovered(msg, tech);
+          if (msg.records.length) {
+            this._fireNDEFDiscovered(msg, tech);
+          } else {
+            this._fireTagDiscovered(msg, tech);
+          }
           break;
       }
     },
@@ -226,8 +219,8 @@
         case 'shrinking-sent':
           window.removeEventListener('shrinking-sent', this);
           // Notify lower layers that User has acknowledged to send NDEF msg
-          window.dispatchEvent(new CustomEvent(
-            'dispatch-p2p-user-response-on-active-app', {detail: this}));
+          this.dispatchP2PUserResponse();
+
           // Stop the P2P UI
           window.dispatchEvent(new CustomEvent('shrinking-stop'));
           break;
@@ -338,11 +331,14 @@
      * @memberof NfcManager.prototype
      * @param {string} manifestURL - manifest url of app to check
      */
-    checkP2PRegistration: function nm_checkP2PRegistration(manifestURL) {
+    checkP2PRegistration: function nm_checkP2PRegistration() {
       var nfcdom = window.navigator.mozNfc;
       if (!nfcdom) {
         return;
       }
+      var activeApp = window.System.currentApp;
+      var manifestURL = activeApp.getTopMostWindow().manifestURL ||
+        window.System.manifestURL;
 
       var status = nfcdom.checkP2PRegistration(manifestURL);
       status.onsuccess = () => {
@@ -369,12 +365,14 @@
      * @memberof NfcManager.prototype
      * @param {string} manifestURL - manifest url of the sharing app
      */
-    dispatchP2PUserResponse: function nm_dispatchP2PUserResponse(manifestURL) {
+    dispatchP2PUserResponse: function nm_dispatchP2PUserResponse() {
       var nfcdom = window.navigator.mozNfc;
       if (!nfcdom) {
         return;
       }
-
+      var activeApp = window.System.currentApp;
+      var manifestURL = activeApp.getTopMostWindow().manifestURL ||
+        window.System.manifestURL;
       nfcdom.notifyUserAcceptedP2P(manifestURL);
     },
 
@@ -500,12 +498,11 @@
     },
 
     /**
-     * Fires nfc-tag-discovered activity to pass unsupported
-     * or NDEF_FORMATABLE tags to an app which can do some
-     * further processing.
-     * @memberof NfcManager.prototype
+     * Fires nfc-tag-discovered activity. Should be used when NFC tag with no
+     * NDEF content is detected.
      * @param {Object} msg
      * @param {string} type - tech with highest priority; for filtering
+     * @todo consider removing type param
      */
     _fireTagDiscovered: function nm_fireTagDiscovered(msg, type) {
       this._debug('_fireTagDiscovered, type: ' + type + ', msg: ', msg);
@@ -514,10 +511,7 @@
         name: 'nfc-tag-discovered',
         data: {
           type: type,
-          techList: msg.techList,
-          // it might be possible we will have some content
-          // so app might handle it, real world testing needed
-          records: msg.records
+          techList: msg.techList
         }
       });
 

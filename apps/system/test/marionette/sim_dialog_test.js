@@ -56,10 +56,7 @@ marionette('Sim Dialog:', function() {
 
       win.SimPinDialog.init();
       win.SimPinDialog.show(slot);
-      win.SimPinDialog.handleError({
-        retryCount: 1,
-        lockType: 'pin'
-      });
+      win.SimPinDialog.handleError('pin', 1);
     });
 
     client.findElement(pinInput).tap();

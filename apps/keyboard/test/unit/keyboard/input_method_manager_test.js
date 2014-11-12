@@ -429,8 +429,8 @@ suite('InputMethodManager', function() {
     assert.isTrue(app.inputContext.getText.calledOnce);
 
     manager.updateInputContextData();
-    assert.isTrue(app.inputContext.getText.calledOnce,
-      'Should not getText() twice if we have already do so.');
+    assert.isTrue(app.inputContext.getText.calledTwice,
+      'Should getText() twice when calling updateInputContextData again.');
 
     var p = manager.switchCurrentIMEngine('foo');
     p.then(function() {
@@ -531,40 +531,6 @@ suite('InputMethodManager', function() {
         correctPunctuation: true
       }));
       assert.equal(activateStub.getCall(0).thisValue, imEngine);
-    }, function(e) {
-      if (e) {
-        throw e;
-      }
-      assert.isTrue(false, 'should not reject');
-    }).then(done, done);
-  });
-
-  test('switchCurrentIMEngine (twice)', function(done) {
-    app.inputContext.getText.returns(Promise.resolve('foobar'));
-
-    manager.updateInputContextData();
-    assert.isTrue(app.inputContext.getText.calledOnce);
-
-    var p1 = manager.switchCurrentIMEngine('foo');
-
-    manager.updateInputContextData();
-    assert.isTrue(app.inputContext.getText.calledTwice);
-
-    var p2 = manager.switchCurrentIMEngine('foo');
-    p1.then(function() {
-      assert.isTrue(false, 'should not resolve');
-
-      return p2;
-    }, function() {
-      assert.isTrue(true, 'rejected');
-
-      return p2;
-    }).then(function() {
-      assert.isTrue(true, 'resolved');
-      assert.isTrue(!!manager.loader.getInputMethod('foo'), 'foo loaded');
-      assert.equal(manager.currentIMEngine,
-        manager.loader.getInputMethod('foo'),
-        'currentIMEngine is set');
     }, function(e) {
       if (e) {
         throw e;

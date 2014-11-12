@@ -9,7 +9,6 @@ define(function(require) {
       mozL10n = require('l10n!'),
       notificationHelper = require('shared/js/notification_helper'),
       queryString = require('query_string'),
-      Promise = require('prim'),
       newLineRegExp = /\n/g;
 
   // Version marker for the notification data format. It is a string because
@@ -427,7 +426,10 @@ define(function(require) {
         return;
       }
 
-      data.localizedDescription = mozL10n.get(descId);
+      // Only get localized description if we have a descId
+      if (descId) {
+        data.localizedDescription = mozL10n.get(descId);
+      }
 
       // If the message sent successfuly, and we're sending this as a
       // side-effect of the user hitting "send" on the compose screen,

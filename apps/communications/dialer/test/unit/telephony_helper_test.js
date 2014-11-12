@@ -5,8 +5,8 @@
 'use strict';
 
 
-require('/dialer/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
@@ -154,23 +154,26 @@ suite('telephony helper', function() {
     assert.isNull(mockActive.onheld);
   });
 
-  test('should NOT hold the active line before dialing in CDMA mode',
-  function() {
-    MockNavigatorMozMobileConnections[0].voice.type = 'evdoa';
-    var dialNumber = '123456';
-    var holdStub = this.sinon.stub();
-    var mockActive = {
-      number: '1111',
-      state: 'connected',
-      hold: holdStub
-    };
-    MockNavigatorMozTelephony.active = mockActive;
+  ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b', 'ehrpd'].forEach(
+  function(type) {
+    test('should NOT hold the active line before dialing in CDMA mode ' + type,
+    function() {
+      MockNavigatorMozMobileConnections[0].voice.type = type;
+      var dialNumber = '123456';
+      var holdStub = this.sinon.stub();
+      var mockActive = {
+        number: '1111',
+        state: 'connected',
+        hold: holdStub
+      };
+      MockNavigatorMozTelephony.active = mockActive;
 
-    subject.call(dialNumber, 0);
-    delete MockNavigatorMozTelephony.active;
-    sinon.assert.calledWith(navigator.mozTelephony.dial, dialNumber);
+      subject.call(dialNumber, 0);
+      delete MockNavigatorMozTelephony.active;
+      sinon.assert.calledWith(navigator.mozTelephony.dial, dialNumber);
 
-    assert.isFalse(holdStub.calledBefore(navigator.mozTelephony.dial));
+      assert.isFalse(holdStub.calledBefore(navigator.mozTelephony.dial));
+    });
   });
 
   test('should hold the active group call before dialing (if there is one)',
@@ -357,47 +360,51 @@ suite('telephony helper', function() {
     suite('promise errors', function() {
       test('should display the BadNumber message', function(done) {
         mockPromise = Promise.reject('BadNumberError');
-        this.sinon.spy(MockTelephonyMessages, 'handleError');
+        this.sinon.stub(MockTelephonyMessages, 'handleError',
+        function(errorName, number, messageType) {
+          assert.equal(errorName, 'BadNumberError');
+          assert.equal(number, '123');
+          assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
+          done();
+        });
         subject.call('123', 0);
-        mockPromise.catch(function() {
-          sinon.assert.calledWith(MockTelephonyMessages.handleError,
-                                  'BadNumberError', '123',
-                                  MockTelephonyMessages.REGULAR_CALL);
-        }).then(done, done);
       });
 
       test('should handle RadioNotAvailable', function(done) {
         mockPromise = Promise.reject('RadioNotAvailable');
-        this.sinon.spy(MockTelephonyMessages, 'handleError');
+        this.sinon.stub(MockTelephonyMessages, 'handleError',
+        function(errorName, number, messageType) {
+          assert.equal(errorName, 'RadioNotAvailable');
+          assert.equal(number, '123');
+          assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
+          done();
+        });
         subject.call('123', 0);
-        mockPromise.catch(function() {
-          sinon.assert.calledWith(MockTelephonyMessages.handleError,
-                                  'RadioNotAvailable', '123',
-                                  MockTelephonyMessages.REGULAR_CALL);
-        }).then(done, done);
       });
 
       test('should handle OtherConnectionInUse', function(done) {
         mockPromise = Promise.reject('OtherConnectionInUse');
-        this.sinon.spy(MockTelephonyMessages, 'handleError');
+        this.sinon.stub(MockTelephonyMessages, 'handleError',
+        function(errorName, number, messageType) {
+          assert.equal(errorName, 'OtherConnectionInUse');
+          assert.equal(number, '123');
+          assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
+          done();
+        });
         subject.call('123', 0);
-        mockPromise.catch(function() {
-          sinon.assert.calledWith(MockTelephonyMessages.handleError,
-                                  'OtherConnectionInUse', '123',
-                                  MockTelephonyMessages.REGULAR_CALL);
-        }).then(done, done);
       });
 
       test('should handle unknown errors', function(done) {
         mockPromise = Promise.reject('Gloubiboulga');
+        this.sinon.stub(MockTelephonyMessages, 'handleError',
+        function(errorName, number, messageType) {
+          assert.equal(errorName, 'Gloubiboulga');
+          assert.equal(number, '123');
+          assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
+          done();
+        });
         var onerrorStub = this.sinon.stub();
-        this.sinon.spy(MockTelephonyMessages, 'handleError');
         subject.call('123', 0, null, null, null, onerrorStub);
-        mockPromise.catch(function() {
-          sinon.assert.calledWith(MockTelephonyMessages.handleError,
-                                  'Gloubiboulga', '123',
-                                  MockTelephonyMessages.REGULAR_CALL);
-        }).then(done, done);
       });
     });
   });
@@ -405,12 +412,14 @@ suite('telephony helper', function() {
   test('should display a message if we didn\'t get a call back',
        function(done) {
     mockPromise = Promise.reject('');
-    this.sinon.spy(MockTelephonyMessages, 'handleError');
+    this.sinon.stub(MockTelephonyMessages, 'handleError',
+    function(errorName, number, messageType) {
+      assert.equal(errorName, '');
+      assert.equal(number, '123');
+      assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
+      done();
+    });
     subject.call('123', 0);
-    mockPromise.catch(function() {
-      sinon.assert.calledWith(MockTelephonyMessages.handleError,
-                              '', '123', MockTelephonyMessages.REGULAR_CALL);
-    }).then(done, done);
   });
 
   test('should dial with correct card index', function() {

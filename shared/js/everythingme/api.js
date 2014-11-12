@@ -46,6 +46,13 @@
    * respectively
    */
   function Request(service, method, options) {
+
+    if (!eme.config.apiUrl) {
+      return new Promise(function(resolve, reject) {
+        reject('eme.config.apiUrl not defined');
+      });
+    }
+
     var resource = service + '/' + method;
     var url = eme.config.apiUrl.replace('{resource}', resource);
     var payload = '';

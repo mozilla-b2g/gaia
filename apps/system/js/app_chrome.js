@@ -74,7 +74,7 @@
 
     if (this.isSearchApp()) {
       this.app.element.classList.add('search-app');
-      this.title.textContent = _('search-or-enter-address');
+      this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
     } else {
       this.app.element.classList.remove('search-app');
     }
@@ -110,7 +110,7 @@
                 <div class="urlbar">
                   <div class="title" data-ssl=""></div>
                   <button type="button" class="reload-button"
-                          data-l10n-id="reload-button"></button>
+                          data-l10n-id="reload-button" disabled></button>
                   <button type="button" class="stop-button"
                           data-l10n-id="stop-button"></button>
                 </div>
@@ -177,11 +177,15 @@
     if (this.bar) {
       this.header = this.element.querySelector('gaia-header');
     }
+
+    if (this.reloadButton) {
+      this.reloadButton.disabled = !this.hasNavigation();
+    }
   };
 
   AppChrome.prototype.handleEvent = function ac_handleEvent(evt) {
     switch (evt.type) {
-      case 'rocketbar-overlayopened':
+      case 'rocketbar-overlayclosed':
         this.collapse();
         break;
 
@@ -309,10 +313,11 @@
     // XXX Open a bug since I wonder if there is scrollgrab rounding issue
     // somewhere. While panning from the bottom to the top, there is often
     // a scrollTop position of scrollTopMax - 1, which triggers the transition!
+    var element = this.element;
     if (this.scrollable.scrollTop >= this.scrollable.scrollTopMax - 1) {
-      this.element.classList.remove('maximized');
+      element.classList.remove('maximized');
     } else {
-      this.element.classList.add('maximized');
+      element.classList.add('maximized');
     }
 
     if (this.app.isActive()) {
@@ -349,6 +354,18 @@
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_namechanged', this);
+
+    var element = this.element;
+
+    var animEnd = function(evt) {
+      if (evt && evt.target !== element) {
+        return;
+      }
+      var publishEvent = this.isMaximized() ? 'expanded' : 'collapsed';
+      this.app.publish('chrome' + publishEvent);
+    }.bind(this);
+
+    element.addEventListener('transitionend', animEnd);
   };
 
   AppChrome.prototype._unregisterEvents = function ac__unregisterEvents() {
@@ -560,10 +577,16 @@
 
       if (this.backButton && this.forwardButton) {
         this.app.canGoForward(function forwardSuccess(result) {
+          if (!this.hasNavigation()) {
+            return;
+          }
           this.forwardButton.disabled = !result;
         }.bind(this));
 
         this.app.canGoBack(function backSuccess(result) {
+          if (!this.hasNavigation()) {
+            return;
+          }
           this.backButton.disabled = !result;
         }.bind(this));
       }
@@ -600,7 +623,7 @@
   AppChrome.prototype.maximize = function ac_maximize(callback) {
     var element = this.element;
     element.classList.add('maximized');
-    window.addEventListener('rocketbar-overlayopened', this);
+    window.addEventListener('rocketbar-overlayclosed', this);
 
     if (!callback) {
       return;
@@ -621,7 +644,7 @@
   };
 
   AppChrome.prototype.collapse = function ac_collapse() {
-    window.removeEventListener('rocketbar-overlayopened', this);
+    window.removeEventListener('rocketbar-overlayclosed', this);
     this.element.classList.remove('maximized');
   };
 
@@ -637,6 +660,11 @@
   AppChrome.prototype.isSearchApp = function() {
     return this.app.config.manifest &&
       this.app.config.manifest.role === 'search';
+  };
+
+  AppChrome.prototype.hasNavigation = function ac_hasNavigation(evt) {
+    return this.app.isBrowser() ||
+      (this.app.config.chrome && this.app.config.chrome.navigation);
   };
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {

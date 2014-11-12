@@ -29,13 +29,13 @@ suite('attachment_menu_test.js', function() {
     setup(function() {
       this.sinon.stub(AttachmentMenu.el, 'focus');
 
-      document.querySelector('#attachment-options-menu').className = 'hide';
+      document.querySelector('#attachment-options').className = '';
       // clear out a bunch of fields to make sure open uses localization
       AttachmentMenu.header.textContent = '';
       AttachmentMenu.open(this.attachment);
     });
-    test('removes hide class', function() {
-      assert.isFalse(AttachmentMenu.el.classList.contains('hide'));
+    test('Adds visible class', function() {
+      assert.isTrue(AttachmentMenu.el.classList.contains('visible'));
     });
     test('sets header text', function() {
       assert.equal(AttachmentMenu.header.textContent, this.attachment.name);
@@ -77,11 +77,11 @@ suite('attachment_menu_test.js', function() {
 
   test('close', function() {
     AttachmentMenu.open(this.attachment);
-    assert.equal(document.querySelector('#attachment-options-menu').className,
-      '');
+    assert.equal(document.querySelector('#attachment-options').className,
+      'visible');
     AttachmentMenu.close();
-    assert.equal(document.querySelector('#attachment-options-menu').className,
-      'hide');
+    assert.equal(document.querySelector('#attachment-options').className,
+      '');
   });
 
 });

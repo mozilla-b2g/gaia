@@ -8,7 +8,7 @@
 var AttachmentMenu = {
 
   init: function(id) {
-    this.el = document.getElementById(id);
+    this.el = document.getElementById(id).querySelector('#attachment-options');
     ['view', 'remove', 'replace', 'cancel'].forEach(function(button) {
       this[button + 'Button'] =
         this.el.querySelector('#attachment-options-' + button);
@@ -46,7 +46,7 @@ var AttachmentMenu = {
       'replace-attachment-' + fileType
     );
 
-    this.el.className = '';
+    this.el.classList.add('visible');
 
     // focus the menu so we can lose focus on anything with the keyboard
     // when we gain focus through longpress/contextmenu the keyboard
@@ -55,7 +55,7 @@ var AttachmentMenu = {
   },
 
   close: function() {
-    this.el.className = 'hide';
+    this.el.classList.remove('visible');
   }
 
 };

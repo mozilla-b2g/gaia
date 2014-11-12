@@ -35,7 +35,7 @@ var FxaModuleSetPassword = (function() {
   }
 
   function _showRegistering() {
-    FxaModuleOverlay.show(_('fxa-connecting'));
+    FxaModuleOverlay.show('fxa-connecting');
   }
 
   function _hideRegistering() {
@@ -88,7 +88,7 @@ var FxaModuleSetPassword = (function() {
 
     var helloUserText = _('fxa-hello-user');
     helloUserText = helloUserText.replace(
-      '{{email}}',
+      /{{\s*email\s*}}/,
       '<a id="fxa-user-set-email">' + this.email + '</a>'
     );
     this.fxaHelloUser.innerHTML = helloUserText;

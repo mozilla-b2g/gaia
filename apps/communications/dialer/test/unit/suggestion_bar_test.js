@@ -5,7 +5,7 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
-require('/dialer/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_call_handler.js');
 // FIXME : This should be a mock
 require('/shared/js/simple_phone_matcher.js');
@@ -142,7 +142,8 @@ suite('suggestion Bar', function() {
     domSuggestionItem.id = 'contact-in-overlay-template';
     domSuggestionItem.setAttribute('role', 'button');
     domSuggestionItem.setAttribute('is', 'contact-in-overlay');
-    domSuggestionItem.classList.add('js-suggestion-item', 'contact-item');
+    domSuggestionItem.classList.add('js-suggestion-item', 'contact-item',
+      'bb-button');
     domSuggestionItem.hidden = true;
     document.body.appendChild(domSuggestionItem);
     domSuggestionItem.innerHTML = suggestionItemTemplate;

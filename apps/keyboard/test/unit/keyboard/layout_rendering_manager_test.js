@@ -52,7 +52,7 @@ suite('LayoutRenderingManager', function() {
         }
       },
       upperCaseStateManager: {
-
+        isUpperCase: true
       }
     };
 
@@ -96,7 +96,22 @@ suite('LayoutRenderingManager', function() {
       }).then(done, done);
     });
 
-    test('w/o secondLayout & autoCorrectLanguage', function() {
+    test('isUpperCase = false', function() {
+      app.upperCaseStateManager.isUpperCase = false;
+      p = manager.updateLayoutRendering();
+
+      assert.isTrue(IMERender.draw.calledWith(
+        app.layoutManager.currentPage,
+        {
+          uppercase: false,
+          inputType: 'foo',
+          showCandidatePanel: false
+        }));
+
+      assert.isTrue(IMERender.setInputMethodName.calledWith('default'));
+    });
+
+    test('w/o autoCorrectLanguage, w/o displaysCandidates()', function() {
       p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
@@ -108,21 +123,6 @@ suite('LayoutRenderingManager', function() {
         }));
 
       assert.isTrue(IMERender.setInputMethodName.calledWith('default'));
-    });
-
-    test('w/ secondLayout', function() {
-      app.layoutManager.currentPage.secondLayout = true;
-      app.upperCaseStateManager.isUpperCase = false;
-
-      p = manager.updateLayoutRendering();
-
-      assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentPage,
-        {
-          uppercase: false,
-          inputType: 'foo',
-          showCandidatePanel: false
-        }));
     });
 
     test('w/ autoCorrectLanguage, w/o displaysCandidates()', function() {
@@ -206,25 +206,12 @@ suite('LayoutRenderingManager', function() {
       assert.isFalse(IMERender.showCandidates.calledOnce);
     });
 
-    suite('updateUpperCaseRendering', function() {
-      setup(function() {
-        window.requestAnimationFrame = this.sinon.stub();
-      });
+    test('updateUpperCaseRendering', function() {
+      window.requestAnimationFrame = this.sinon.stub();
 
-      test('w/o secondLayout', function() {
-        manager.updateUpperCaseRendering();
+      manager.updateUpperCaseRendering();
 
-        assert.isFalse(window.requestAnimationFrame.calledOnce);
-      });
-
-      test('w/ secondLayout', function() {
-        app.layoutManager.currentPage.secondLayout = true;
-        this.sinon.stub(manager, 'updateLayoutRendering');
-
-        manager.updateUpperCaseRendering();
-
-        assert.isFalse(manager.updateLayoutRendering.calledOnce);
-      });
+      assert.isFalse(window.requestAnimationFrame.calledOnce);
     });
   });
 
@@ -271,29 +258,16 @@ suite('LayoutRenderingManager', function() {
         app.candidatePanelManager.currentCandidates);
     });
 
-    suite('updateUpperCaseRendering', function() {
-      setup(function() {
-        window.requestAnimationFrame = this.sinon.stub();
-      });
+    test('updateUpperCaseRendering', function() {
+      window.requestAnimationFrame = this.sinon.stub();
 
-      test('w/o secondLayout', function() {
-        manager.updateUpperCaseRendering();
+      manager.updateUpperCaseRendering();
 
-        window.requestAnimationFrame.getCall(0).args[0].call(window);
+      window.requestAnimationFrame.getCall(0).args[0].call(window);
 
-        assert.isTrue(IMERender.setUpperCaseLock.calledTwice);
-        assert.equal(IMERender.setUpperCaseLock.secondCall.args[0],
-          app.upperCaseStateManager);
-      });
-
-      test('w/ secondLayout', function() {
-        app.layoutManager.currentPage.secondLayout = true;
-        this.sinon.stub(manager, 'updateLayoutRendering');
-
-        manager.updateUpperCaseRendering();
-
-        assert.isTrue(manager.updateLayoutRendering.calledOnce);
-      });
+      assert.isTrue(IMERender.setUpperCaseLock.calledTwice);
+      assert.equal(IMERender.setUpperCaseLock.secondCall.args[0],
+        app.upperCaseStateManager);
     });
   });
 

@@ -2,7 +2,7 @@
 define(function(require) {
   var queryString = require('query_string');
   var services = require('services');
-  var Cards = require('mail_common').Cards;
+  var cards = require('cards');
 
   // All of the oauthSecrets we know.
   var oauthSecrets = services.oauth2;
@@ -218,7 +218,7 @@ define(function(require) {
       }
     }
 
-    Cards.pushCard('setup_oauth2', 'default', 'animate', {
+    cards.pushCard('setup_oauth2', 'animate', {
       url: url,
       onBrowserComplete: onBrowserComplete
     });

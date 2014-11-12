@@ -10,11 +10,7 @@ suite('VisualHighlightManager', function() {
   var target;
 
   setup(function() {
-    app = {
-      upperCaseStateManager: {
-        isUpperCase: false
-      }
-    };
+    app = {};
 
     // Create fake IMERender
     window.IMERender = {
@@ -36,19 +32,10 @@ suite('VisualHighlightManager', function() {
     app = null;
   });
 
-  test('show (lower case)', function() {
+  test('show', function() {
     manager.show(target);
 
-    assert.isTrue(window.IMERender.highlightKey
-      .calledWith(target, { showUpperCase: false }));
-  });
-
-  test('show (upper case)', function() {
-    app.upperCaseStateManager.isUpperCase = true;
-    manager.show(target);
-
-    assert.isTrue(window.IMERender.highlightKey
-      .calledWith(target, { showUpperCase: true }));
+    assert.isTrue(window.IMERender.highlightKey.calledWith(target));
   });
 
   test('show after hide', function() {
@@ -56,14 +43,12 @@ suite('VisualHighlightManager', function() {
 
     var target2 = {};
 
-    app.upperCaseStateManager.isUpperCase = false;
     manager.show(target2);
 
     assert.isTrue(window.IMERender.unHighlightKey.calledWith(target),
       'The first target highlight should be hidden immediately.');
 
-    assert.isTrue(window.IMERender.highlightKey
-      .calledWith(target2, { showUpperCase: false }));
+    assert.isTrue(window.IMERender.highlightKey.calledWith(target2));
   });
 
   test('hide', function() {

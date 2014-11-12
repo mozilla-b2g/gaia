@@ -37,7 +37,8 @@
     },
 
     search: function(input) {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) =>
+        eme.init().then(() => {
         this.clear();
         if (!eme.api.Search) {
           reject();
@@ -62,7 +63,7 @@
         }, (reason) => {
           reject();
         });
-      });
+      }));
     },
 
     render: function(items) {

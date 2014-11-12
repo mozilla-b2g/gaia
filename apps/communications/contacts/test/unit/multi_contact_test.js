@@ -9,9 +9,6 @@ require('/shared/js/contacts/multi_contact.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 
-mocha.globals(['contacts']);
-
-
 suite('Getting MultiContact Data', function() {
 
   var datastore1, datastore2;
@@ -46,6 +43,16 @@ suite('Getting MultiContact Data', function() {
         origin: EXAMPLE1_APP,
         uid: ds1Id
       },
+      {
+        origin: CONTACTS_APP,
+        uid: 'abcdef'
+      }
+    ]
+  };
+
+  var onlyMozContactEntry = {
+    id: globalEntryId,
+    entryData: [
       {
         origin: CONTACTS_APP,
         uid: 'abcdef'
@@ -122,6 +129,25 @@ suite('Getting MultiContact Data', function() {
         assert.equal(data.givenName[0], 'Jose');
         assert.equal(data.tel.length, 1);
         assert.equal(data.email.length, 1);
+      });
+    }, function error(err) {
+        done(function() {
+          assert.fail('Error while getting data');
+        });
+    });
+  });
+
+  test('Getting data only from mozContacts', function(done) {
+    MultiContact.getData(onlyMozContactEntry).then(function success(data) {
+      done(function() {
+        assert.equal(data.id, globalEntryId);
+
+        assert.equal(data.familyName[0], aMozTestContact.familyName[0]);
+        assert.equal(data.givenName[0], aMozTestContact.givenName[0]);
+        assert.equal(JSON.stringify(data.tel),
+                     JSON.stringify(aMozTestContact.tel));
+        assert.equal(JSON.stringify(data.email),
+                     JSON.stringify(aMozTestContact.email));
       });
     }, function error(err) {
         done(function() {

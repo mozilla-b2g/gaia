@@ -6,17 +6,18 @@
   /**
    * The relative size of icons when in a collapsed group.
    */
-  const COLLAPSE_RATIO = 0.375;
+  const COLLAPSE_RATIO = 0.33;
 
   /**
    * Maximum number of icons that are visible in a collapsed group.
    */
-  const COLLAPSED_GROUP_SIZE = 8;
+  const COLLAPSED_GROUP_SIZE = 6;
 
   /**
    * Space to be reserved at the sides of collapsed group items, in pixels.
    */
-  const COLLAPSED_GROUP_MARGIN = 4;
+  const COLLAPSED_GROUP_MARGIN_LEFT = 23;
+  const COLLAPSED_GROUP_MARGIN_RIGHT = 53;
 
   /**
    * A replacement for the default Divider class that implements group
@@ -38,7 +39,9 @@
     /**
      * Height in pixels of the header part of the group.
      */
-    headerHeight: 47,
+    get headerHeight() {
+      return this.detail.collapsed ? 20 : 30;
+    },
 
     /**
      * Height in pixels of the background of the group.
@@ -51,6 +54,11 @@
     separatorHeight: 0,
 
     /**
+     * The scale used for collapsed icons, taking into account column size.
+     */
+    collapseRatio: COLLAPSE_RATIO,
+
+    /**
      * Height in pixels of the group. When collapsed, this includes the
      * icons associated with the group.
      */
@@ -58,16 +66,6 @@
       return this.detail.collapsed ?
         this.backgroundHeight :
         this.separatorHeight;
-    },
-
-    get name() {
-      return this.detail.name;
-    },
-
-    set name(value) {
-      this.detail.name = value;
-      this.updateTitle();
-      window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
     },
 
     /**
@@ -87,7 +85,7 @@
      * Creates the element and its children for this group item.
      */
     _createElement: function() {
-      var group = this.element = document.createElement('div');
+      var group = this.element = document.createElement('section');
       group.className = 'divider group newly-created';
 
       // Create the background (only seen in edit mode)
@@ -102,7 +100,7 @@
       group.appendChild(span);
       this.shadowSpanElement = span;
 
-      // Create the header (container for the move gripper, title and
+      // Create the header (container for the move gripper and
       // expand/collapse toggle)
       span = document.createElement('span');
       span.className = 'header';
@@ -113,13 +111,6 @@
       span = document.createElement('span');
       span.className = 'gripper';
       this.headerSpanElement.appendChild(span);
-
-      // Create the title span
-      span = document.createElement('span');
-      span.className = 'title';
-      this.headerSpanElement.appendChild(span);
-      this.titleElement = span;
-      this.updateTitle();
 
       // Create the expand/collapse toggle
       span = document.createElement('span');
@@ -159,16 +150,21 @@
       var index = this.detail.index;
 
       var width = Math.round(
-        (this.grid.layout.gridItemWidth * this.grid.layout.cols -
-         COLLAPSED_GROUP_MARGIN * 2) / COLLAPSED_GROUP_SIZE);
-      var x = COLLAPSED_GROUP_MARGIN +
-        Math.round(Math.max(0, (COLLAPSED_GROUP_SIZE - nApps) * width / 2));
+        (this.grid.layout.gridWidth -
+         COLLAPSED_GROUP_MARGIN_LEFT - COLLAPSED_GROUP_MARGIN_RIGHT) /
+        COLLAPSED_GROUP_SIZE);
+      var x = COLLAPSED_GROUP_MARGIN_LEFT;
       y += this.headerHeight;
+
+      var maxGridItemWidth =
+        this.grid.layout.gridWidth / this.grid.layout.minIconsPerRow;
+      this.collapseRatio =
+        (maxGridItemWidth / this.grid.layout.gridItemWidth) * COLLAPSE_RATIO;
 
       for (var i = index - nApps; i < index; i++) {
         var item = this.grid.items[i];
         if (this.detail.collapsed) {
-          item.scale = COLLAPSE_RATIO;
+          item.scale = this.collapseRatio;
 
           var itemVisible = (i - (index - nApps)) < COLLAPSED_GROUP_SIZE;
           if (!itemVisible) {
@@ -218,7 +214,7 @@
       // Calculate the height of the background span
       if (this.detail.collapsed) {
         this.backgroundHeight =
-          Math.round(COLLAPSE_RATIO * this.grid.layout.gridIconSize * 1.5);
+          Math.round(this.collapseRatio * this.grid.layout.gridIconSize * 1.5);
       } else {
         var height = Math.ceil(nApps / this.grid.layout.cols);
         this.backgroundHeight = (height || 1) * this.grid.layout.gridItemHeight;
@@ -273,25 +269,6 @@
       GaiaGrid.GridItem.prototype.setActive.call(this, active);
     },
 
-    updateTitle: function() {
-      var titleElement = this.titleElement;
-      if (!titleElement) {
-        return;
-      }
-
-      if (this.name && this.name.trim() !== '') {
-        titleElement.classList.remove('empty');
-        titleElement.removeAttribute('data-l10n-id');
-        titleElement.textContent = this.name;
-        return;
-      }
-
-      titleElement.classList.add('empty');
-      titleElement.textContent = 'Enter a group name';
-      titleElement.setAttribute('data-l10n-id',
-                                     'gaia-grid-enter-group-name');
-    },
-
     collapse: function() {
       if (this.detail.collapsed) {
         return;
@@ -332,10 +309,7 @@
     },
 
     launch: function(target) {
-      var inEditMode = this.grid.dragdrop && this.grid.dragdrop.inEditMode;
-      if (inEditMode && target === this.headerSpanElement) {
-        this.edit();
-      } else if (this.detail.collapsed) {
+      if (this.detail.collapsed) {
         this.expand();
       } else if (target === this.toggleElement) {
         this.collapse();
@@ -346,15 +320,6 @@
       if (this.element) {
         this.element.parentNode.removeChild(this.element);
       }
-    },
-
-    /**
-     * It dispatches an edititem event.
-     */
-    edit: function() {
-      this.grid.element.dispatchEvent(new CustomEvent('edititem', {
-        detail: this
-      }));
     },
 
     isDraggable: function() {

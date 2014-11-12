@@ -18,21 +18,13 @@
     this._normalAudioChannelActive = false;
     this._deviceLockedTimer = 0;
     this.overlayEvents = [
-      'cardviewshown',
-      'cardviewclosed',
       'lockscreen-appopened',
       'lockscreen-request-unlock',
-      'attention-inactive',
+      'attentionwindowmanager-deactivated',
       'attentionopened',
       'mozChromeEvent',
       'appclosing',
       'homescreenopened',
-      'rocketbar-overlayopened',
-      'rocketbar-overlayclosed',
-      'utility-tray-overlayopened',
-      'utility-tray-overlayclosed',
-      'system-dialog-show',
-      'system-dialog-hide',
       'searchrequestforeground',
       'apprequestforeground',
       'lockscreen-apprequestforeground',
@@ -84,12 +76,9 @@
       // is opened.
       case 'appclosing':
       case 'homescreenopened':
-        if (window.taskManager.isShown()) {
-          this.publish('hidewindowforscreenreader');
-        }
         this._normalAudioChannelActive = false;
         break;
-      case 'attention-inactive':
+      case 'attentionwindowmanager-deactivated':
         if (window.System.locked) {
           this.publish('showlockscreenwindow');
           return;
@@ -132,18 +121,6 @@
         if (!System.locked) {
           this.publish('hidewindow', { type: evt.type });
         }
-        break;
-      case 'rocketbar-overlayopened':
-      case 'utility-tray-overlayopened':
-      case 'cardviewshown':
-      case 'system-dialog-show':
-        this.publish('hidewindowforscreenreader');
-        break;
-      case 'rocketbar-overlayclosed':
-      case 'utility-tray-overlayclosed':
-      case 'cardviewclosed':
-      case 'system-dialog-hide':
-        this.publish('showwindowforscreenreader');
         break;
       case 'mozChromeEvent':
         if (evt.detail.type == 'visible-audio-channel-changed') {

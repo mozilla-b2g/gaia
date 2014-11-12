@@ -41,7 +41,15 @@
         return this.ensure().validateElement(element);
       }).bind(this))
       .filter((function (element) {
-        return this.compareNotificationDetails(detail, this.toDetail(element));
+        // We wrap this in a try/catch in case this is called after a .not().
+        // Otherwise if the element does not exist in the DOM after being
+        // removed it may throw a stale element exception.
+        try {
+          return this.compareNotificationDetails(detail,
+            this.toDetail(element));
+        } catch (e) {
+          return false;
+        }
       }).bind(this)).length;
   };
 

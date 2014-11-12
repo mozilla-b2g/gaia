@@ -54,6 +54,10 @@ class Notification(PageRegion):
     _title_locator = (By.CSS_SELECTOR, 'div.title')
 
     @property
+    def title(self):
+        return self.root_element.find_element(*self._title_locator).text
+
+    @property
     def content(self):
         return self.root_element.find_element(*self._body_locator).text
 

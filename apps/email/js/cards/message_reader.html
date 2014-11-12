@@ -1,68 +1,69 @@
-<div class="card-message-reader card" data-statuscolor="default">
-  <section class="msg-reader-header" role="region">
-    <header>
-      <a href="#" class="msg-back-btn">
-        <span class="icon icon-back"></span>
-      </a>
-      <menu type="toolbar">
-        <button class="msg-up-btn">
-          <span class="icon icon-up"></span>
-        </button>
-        <button class="msg-down-btn">
-          <span class="icon icon-down"></span>
-        </button>
-      </menu>
-      <h1 class="msg-reader-header-label"></h1>
-    </header>
-  </section>
-  <div class="scrollregion-below-header scrollregion-horizontal-too">
-    <div class="msg-envelope-bar">
-      <div class="msg-envelope-line msg-envelope-from-line">
+<section class="msg-reader-header" role="region" data-statuscolor="default">
+  <header>
+    <a data-event="click:onBack" href="#" class="msg-back-btn">
+      <span class="icon icon-back"></span>
+    </a>
+    <menu type="toolbar">
+      <button data-prop="previousBtn" class="msg-up-btn">
+        <span data-prop="previousIcon" class="icon icon-up"></span>
+      </button>
+      <button data-prop="nextBtn" class="msg-down-btn">
+        <span data-prop="nextIcon" class="icon icon-down"></span>
+      </button>
+    </menu>
+    <h1 class="msg-reader-header-label"></h1>
+  </header>
+</section>
+<div data-prop="scrollContainer"
+     class="scrollregion-below-header scrollregion-horizontal-too">
+  <div data-prop="envelopeBar" class="msg-envelope-bar">
+    <div class="msg-envelope-line msg-envelope-from-line">
+      <span class="msg-envelope-key"
+             data-l10n-id="envelope-from">FroM</span>
+    </div>
+    <!-- the details starts out collapsed, but can be toggled -->
+    <div class="msg-envelope-details">
+      <div class="msg-envelope-line msg-envelope-to-line">
         <span class="msg-envelope-key"
-               data-l10n-id="envelope-from">FroM</span>
+               data-l10n-id="envelope-to">tO</span>
       </div>
-      <!-- the details starts out collapsed, but can be toggled -->
-      <div class="msg-envelope-details">
-        <div class="msg-envelope-line msg-envelope-to-line">
-          <span class="msg-envelope-key"
-                 data-l10n-id="envelope-to">tO</span>
-        </div>
-        <div class="msg-envelope-line msg-envelope-cc-line">
-          <span class="msg-envelope-key"
-                 data-l10n-id="envelope-cc">cC</span>
-        </div>
-        <div class="msg-envelope-line msg-envelope-bcc-line">
-          <span class="msg-envelope-key"
-                 data-l10n-id="envelope-bcc">BcC</span>
-        </div>
+      <div class="msg-envelope-line msg-envelope-cc-line">
+        <span class="msg-envelope-key"
+               data-l10n-id="envelope-cc">cC</span>
       </div>
-      <div class="msg-envelope-subject-container">
-        <h3 class="msg-envelope-subject"></h3>
-        <span class="msg-envelope-date"></span>
+      <div class="msg-envelope-line msg-envelope-bcc-line">
+        <span class="msg-envelope-key"
+               data-l10n-id="envelope-bcc">BcC</span>
       </div>
     </div>
-    <ul class="msg-attachments-container collapsed">
-    </ul>
-    <!-- Tells us about remote/not downloaded images, asks to show -->
-    <div class="msg-reader-load-infobar collapsed">
-      <p class="msg-reader-load-infobar-text"></p>
-      <button class="msg-reader-load-infobar-button"></button>
+    <div class="msg-envelope-subject-container">
+      <h3 class="msg-envelope-subject"></h3>
+      <span class="msg-envelope-date"></span>
     </div>
-    <div class="msg-body-container"><progress></progress></div>
   </div>
-
-  <ul class="bb-tablist msg-reader-action-toolbar">
-    <li role="presentation">
-      <button class="icon msg-delete-btn"></button>
-    </li>
-    <li role="presentation">
-      <button class="icon msg-star-btn"></button>
-    </li>
-    <li role="presentation">
-      <button class="icon msg-move-btn"></button>
-    </li>
-    <li role="presentation">
-      <button class="icon msg-reply-btn"></button>
-    </li>
+  <ul data-prop="attachmentsContainer"
+      class="msg-attachments-container collapsed">
   </ul>
+  <!-- Tells us about remote/not downloaded images, asks to show -->
+  <div data-prop="loadBar" class="msg-reader-load-infobar collapsed">
+    <p data-prop="loadBarText" class="msg-reader-load-infobar-text"></p>
+    <button class="msg-reader-load-infobar-button"></button>
+  </div>
+  <div data-prop="rootBodyNode"
+       class="msg-body-container"><progress></progress></div>
 </div>
+
+<ul class="bb-tablist msg-reader-action-toolbar">
+  <li role="presentation">
+    <button data-prop="deleteBtn" class="icon msg-delete-btn"></button>
+  </li>
+  <li role="presentation">
+    <button data-prop="starBtn" class="icon msg-star-btn"></button>
+  </li>
+  <li role="presentation">
+    <button data-prop="moveBtn" class="icon msg-move-btn"></button>
+  </li>
+  <li role="presentation">
+    <button data-prop="replyBtn" class="icon msg-reply-btn"></button>
+  </li>
+</ul>

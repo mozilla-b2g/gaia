@@ -15,7 +15,6 @@
  */
 
 var Widget = (function() {
-
   var costcontrol, activity;
   function checkSIMStatus(dataSim) {
     var dataSimIcc = dataSim.icc;
@@ -48,6 +47,11 @@ var Widget = (function() {
     if (!cardState || cardState === 'absent') {
       debug('There is no SIM');
       Widget.showSimError('no-sim2');
+
+    // SIM is not initialized correctly
+    } else if (cardState === 'unknown') {
+      debug('Unknow state fo the sim');
+      Widget.showSimError('unknown');
 
     // SIM is locked
     } else if (
@@ -337,7 +341,7 @@ var Widget = (function() {
             views.limitedDataUsage.classList.add('reached-limit');
 
           //  Warning percentage of the limit reached
-          } else if (current >= limit * costcontrol.getDataUsageWarning()) {
+          } else if (current >= limit * Common.DATA_USAGE_WARNING) {
             views.limitedDataUsage.classList.add('nearby-limit');
           }
 

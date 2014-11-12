@@ -24,7 +24,7 @@ require('/js/si_sl_screen_helper.js');
 require('/js/utils.js');
 require('/js/wappush.js');
 
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_link_action_handler.js');
 require('/test/unit/mock_whitelist.js');
 require('/test/unit/mock_parsed_doc.js');

@@ -42,12 +42,6 @@ var mocksHelperForEnterPasswordModule = new MocksHelper([
   'FtuLauncher'
 ]);
 
-mocha.globals([
-  'FxModuleServerRequest',
-  'FxaModuleErrors',
-  'FtuLauncher'
-]);
-
 suite('Screen: Enter password', function() {
   var realL10n;
   suiteSetup(function(done) {

@@ -1,5 +1,4 @@
-/* global KeyboardManager, softwareButtonManager, System,
-          AppWindowManager */
+/* global KeyboardManager, softwareButtonManager, System */
 'use strict';
 
 (function(exports) {
@@ -49,7 +48,7 @@
      * @memberOf LayoutManager
      */
     get height() {
-      var activeApp = AppWindowManager.getActiveApp();
+      var activeApp = System.currentApp;
       var isFullScreenLayout = activeApp && activeApp.isFullScreenLayout();
       var softwareButtonHeight = System.locked || isFullScreenLayout ?
         0 : softwareButtonManager.height;
@@ -74,8 +73,8 @@
      */
     get width() {
       return window.innerWidth -
-        ((AppWindowManager.getActiveApp() &&
-          AppWindowManager.getActiveApp().isFullScreenLayout()) ?
+        ((System.currentApp &&
+          System.currentApp.isFullScreenLayout()) ?
           0 : softwareButtonManager.width);
     },
 
@@ -110,7 +109,8 @@
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
-      window.addEventListener('attention-inactive', this);
+      window.addEventListener('attentionwindowmanager-deactivated', this);
+      window.addEventListener('lockscreen-appclosed', this);
     },
 
     handleEvent: function lm_handleEvent(evt) {
@@ -130,6 +130,13 @@
         case 'resize':
           this.publish('system-resize');
           this.publish('orientationchange');
+          break;
+        case 'lockscreen-appclosed':
+          // If the software button is enabled it will be un-hidden when
+          // the lockscreen is closed and trigger a system level resize.
+          if (softwareButtonManager.enabled) {
+            this.publish('system-resize');
+          }
           break;
         default:
           if (evt.type === 'keyboardhide') {

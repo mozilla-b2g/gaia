@@ -6,10 +6,11 @@
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
-         Thread, MultiSimActionButton, LazyLoader, Navigation, Promise,
+         Thread, MultiSimActionButton, Navigation, Promise, LazyLoader,
          Dialog, SharedComponents,
          Errors,
-         EventDispatcher
+         EventDispatcher,
+         SelectionHandler
 */
 /*exported ThreadUI */
 
@@ -89,7 +90,8 @@ var ThreadUI = {
       'message-status',
       'not-downloaded',
       'recipient',
-      'date-group'
+      'date-group',
+      'header'
     ];
 
     AttachmentMenu.init('attachment-options-menu');
@@ -139,10 +141,6 @@ var ThreadUI = {
 
     this.container.addEventListener(
       'scroll', this.manageScroll.bind(this)
-    );
-
-    this.checkUncheckAllButton.addEventListener(
-      'click', this.toggleCheckedAll.bind(this)
     );
 
     this.editHeader.addEventListener(
@@ -418,16 +416,6 @@ var ThreadUI = {
     }
   },
 
-  getSelectedInputs: function thui_getSelectedInputs() {
-    if (this.container) {
-      return Array.prototype.slice.call(
-        this.container.querySelectorAll('input[type=checkbox]:checked')
-      );
-    } else {
-      return [];
-    }
-  },
-
   setHeaderAction: function thui_setHeaderAction(icon) {
     this.header.setAttribute('action', icon);
   },
@@ -510,8 +498,6 @@ var ThreadUI = {
           Settings.SERVICE_ID_KEYS.smsServiceId
       );
 
-      var simPickerElt = document.getElementById('sim-picker');
-      LazyLoader.load([simPickerElt]);
       this.initSentAudio();
     }
 
@@ -617,6 +603,16 @@ var ThreadUI = {
     // to slide correctly. Bug 1009541
     this.cancelEdit();
 
+    if (Navigation.isCurrentPanel('thread')) {
+      // Revoke thumbnail URL for every image attachment rendered within thread
+      var nodes = this.container.querySelectorAll(
+        '.attachment-container[data-thumbnail]'
+      );
+      Array.from(nodes).forEach((node) => {
+        window.URL.revokeObjectURL(node.dataset.thumbnail);
+      });
+    }
+
     // TODO move most of back() here: Bug 1010223
   },
 
@@ -635,6 +631,7 @@ var ThreadUI = {
     }
 
     if (!Navigation.isCurrentPanel('thread')) {
+      this.headerText.textContent = '';
       this.threadMessages.classList.remove('has-carrier');
       this.callNumberButton.classList.add('hide');
     }
@@ -815,11 +812,21 @@ var ThreadUI = {
     TimeHeaders.updateAll('header[data-time-update]');
   },
 
+  isCurrentThread: function thui_isCurrentThread(threadId) {
+    return Navigation.isCurrentPanel('thread', { id: threadId }) ||
+      Navigation.isCurrentPanel('report-view', {
+        threadId: threadId
+      }) ||
+      Navigation.isCurrentPanel('group-view', {
+        id: threadId
+      });
+  },
+
   onMessageReceived: function thui_onMessageReceived(e) {
     var message = e.message;
 
     // If user currently in other thread then there is nothing to do here
-    if (!Navigation.isCurrentPanel('thread', { id: message.threadId })) {
+    if (!this.isCurrentThread(message.threadId)) {
       return;
     }
 
@@ -834,7 +841,7 @@ var ThreadUI = {
 
   onMessageSending: function thui_onMessageReceived(e) {
     var message = e.message;
-    if (Navigation.isCurrentPanel('thread', { id: message.threadId })) {
+    if (this.isCurrentThread(message.threadId)) {
       this.onMessage(message);
       this.forceScrollViewToBottom();
     } else {
@@ -1280,7 +1287,7 @@ var ThreadUI = {
 
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData() {
-    var thread, number, others;
+    var thread, number;
 
     thread = Threads.active;
 
@@ -1289,7 +1296,6 @@ var ThreadUI = {
     }
 
     number = thread.participants[0];
-    others = thread.participants.length - 1;
 
     // Add data to contact activity interaction
     this.headerText.dataset.number = number;
@@ -1307,14 +1313,15 @@ var ThreadUI = {
         var contactName = details.title || number;
         this.headerText.dataset.isContact = !!details.isContact;
         this.headerText.dataset.title = contactName;
-        navigator.mozL10n.setAttributes(
-          this.headerText,
-          'thread-header-text',
-          {
-            name: contactName,
-            n: others
-          }
+
+        this.headerText.classList.toggle(
+          'thread-group-header',
+          thread.participants.length > 1
         );
+        this.headerText.innerHTML = this.tmpl.header.interpolate({
+          name: contactName,
+          participantCount: (thread.participants.length - 1).toString()
+        });
 
         this.updateCarrier(thread, contacts);
         resolve();
@@ -1325,7 +1332,7 @@ var ThreadUI = {
   initializeRendering: function thui_initializeRendering() {
     // Clean fields
     this.cleanFields();
-    this.checkInputs();
+
     // Clean list of messages
     this.container.innerHTML = '';
     // Initialize infinite scroll params
@@ -1351,7 +1358,6 @@ var ThreadUI = {
 
   createMmsContent: function thui_createMmsContent(dataArray) {
     var container = document.createDocumentFragment();
-    var scrollViewToBottom = ThreadUI.scrollViewToBottom.bind(ThreadUI);
 
     dataArray.forEach(function(messageData) {
 
@@ -1359,7 +1365,7 @@ var ThreadUI = {
         var attachment = new Attachment(messageData.blob, {
           name: messageData.name
         });
-        var mediaElement = attachment.render(scrollViewToBottom);
+        var mediaElement = attachment.render();
         container.appendChild(mediaElement);
         attachmentMap.set(mediaElement, attachment);
       }
@@ -1429,7 +1435,7 @@ var ThreadUI = {
   _createNotDownloadedHTML:
   function thui_createNotDownloadedHTML(message, classNames) {
     // default strings:
-    var messageL10nId = 'not-downloaded-attachment';
+    var messageL10nId = 'tobedownloaded-attachment';
     var downloadL10nId = 'download-attachment';
 
     // assuming that incoming message only has one deliveryInfo
@@ -1586,8 +1592,9 @@ var ThreadUI = {
     }
 
     if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
-      SMIL.parse(message, function(slideArray) {
+      SMIL.parse(message, (slideArray) => {
         pElement.appendChild(ThreadUI.createMmsContent(slideArray));
+        this.scrollViewToBottom();
       });
     }
 
@@ -1621,7 +1628,7 @@ var ThreadUI = {
     var messageContainer = this.getMessageContainer(timestamp, hidden);
     this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
 
-    if (this.mainWrapper.classList.contains('edit')) {
+    if (this.inEditMode) {
       this.checkInputs();
     }
   },
@@ -1671,35 +1678,6 @@ var ThreadUI = {
     }
   },
 
-  cleanForm: function thui_cleanForm() {
-    // Reset all inputs
-    var inputs = this.allInputs;
-    for (var i = 0; i < inputs.length; i++) {
-      inputs[i].checked = false;
-      inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
-    }
-    // Reset vars for deleting methods
-    this.checkInputs();
-  },
-
-  // if no message or few are checked : select all the messages
-  // and if all messages are checked : deselect them all.
-  toggleCheckedAll: function thui_select() {
-    var selected = this.selectedInputs;
-    var allInputs = this.allInputs;
-    var allSelected = (selected.length === allInputs.length);
-    var inputs = this.container.querySelectorAll(
-      'input[type="checkbox"]' +
-      (!allSelected ? ':not(:checked)' : ':checked')
-    );
-    var length = inputs.length;
-    for (var i = 0; i < length; i++) {
-      inputs[i].checked = !allSelected;
-      this.chooseMessage(inputs[i]);
-    }
-    this.checkInputs();
-  },
-
   showOptions: function thui_showOptions() {
     /**
       * Different situations depending on the state
@@ -1744,10 +1722,33 @@ var ThreadUI = {
   },
 
   startEdit: function thui_edit() {
-    this.inEditMode = true;
-    this.cleanForm();
+    function editModeSetup() {
+      /*jshint validthis:true */
+      this.inEditMode = true;
+      this.selectionHandler.cleanForm();
+      this.mainWrapper.classList.toggle('edit');
+    }
 
-    this.mainWrapper.classList.toggle('edit');
+    if (!this.selectionHandler) {
+      LazyLoader.load('js/selection_handler.js', () => {
+        this.selectionHandler = new SelectionHandler({
+          // Elements
+          container: this.container,
+          checkUncheckAllButton: this.checkUncheckAllButton,
+          // Methods
+          checkInputs: this.checkInputs.bind(this),
+          getAllInputs: this.getAllInputs.bind(this),
+          isInEditMode: this.isInEditMode.bind(this)
+        });
+        editModeSetup.call(this);
+      });
+    } else {
+      editModeSetup.call(this);
+    }
+  },
+
+  isInEditMode: function thui_isInEditMode() {
+    return this.inEditMode;
   },
 
   deleteUIMessages: function thui_deleteUIMessages(list, callback) {
@@ -1796,13 +1797,12 @@ var ThreadUI = {
 
   delete: function thui_delete() {
     function performDeletion() {
+      /* jshint validthis: true */
+
       WaitingScreen.show();
-      var delNumList = [];
-      var inputs = ThreadUI.selectedInputs;
-      var length = inputs.length;
-      for (var i = 0; i < length; i++) {
-        delNumList.push(+inputs[i].value);
-      }
+      var items = this.selectionHandler.selectedList;
+      var delNumList = items.map(item => +item);
+
       // Complete deletion in DB and in UI
       MessageManager.deleteMessages(delNumList,
         function onDeletionDone() {
@@ -1831,7 +1831,7 @@ var ThreadUI = {
           text: {
             l10nId: 'delete'
           },
-          method: performDeletion,
+          method: performDeletion.bind(this),
           className: 'danger'
         }
       }
@@ -1847,21 +1847,14 @@ var ThreadUI = {
     }
   },
 
-  chooseMessage: function thui_chooseMessage(target) {
-    // Toggling red bubble
-    // TODO: Can we replace that 'parentNode.parentNode' with something more
-    // readable?
-    target.parentNode.parentNode.classList.toggle('selected', target.checked);
-  },
-
   checkInputs: function thui_checkInputs() {
-    var selected = this.selectedInputs;
+    var selected = this.selectionHandler.selectedCount;
     var allInputs = this.allInputs;
 
-    var isAnySelected = selected.length > 0;
+    var isAnySelected = selected > 0;
 
     // Manage buttons enabled\disabled state
-    if (selected.length === allInputs.length) {
+    if (selected === allInputs.length) {
       this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
     } else {
       this.checkUncheckAllButton.setAttribute('data-l10n-id', 'select-all');
@@ -1870,7 +1863,7 @@ var ThreadUI = {
     if (isAnySelected) {
       this.deleteButton.disabled = false;
       navigator.mozL10n.setAttributes(this.editMode, 'selected-messages',
-        {n: selected.length});
+        {n: selected});
     } else {
       this.deleteButton.disabled = true;
       navigator.mozL10n.setAttributes(this.editMode, 'deleteMessages-title');
@@ -1963,11 +1956,6 @@ var ThreadUI = {
     switch (evt.type) {
       case 'click':
         if (this.inEditMode) {
-          var input = evt.target.parentNode.querySelector('input');
-          if (input) {
-            this.chooseMessage(input);
-            this.checkInputs();
-          }
           return;
         }
 
@@ -2013,9 +2001,12 @@ var ThreadUI = {
           {
             l10nId: 'view-message-report',
             method: function showMessageReport(messageId) {
-              // Fetch the message by id and display report
+              // Fetch the message by id for displaying corresponding message
+              // report. threadId here is to make sure thread is updatable
+              // when current view report panel.
               Navigation.toPanel('report-view', {
-                id: messageId
+                id: messageId,
+                threadId: Threads.currentId
               });
             },
             params: [messageId]
@@ -2654,7 +2645,7 @@ var ThreadUI = {
       this.prompt({
         number: tel,
         email: email,
-        header: fragment || number,
+        header: fragment,
         contactId: id,
         isContact: isContact,
         inMessage: inMessage
@@ -2674,7 +2665,7 @@ var ThreadUI = {
     var email = opt.email || '';
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
-    var header = opt.header || number || email || '';
+    var header = opt.header;
     var items = [];
     var params, props;
 
@@ -2685,10 +2676,16 @@ var ThreadUI = {
     //      in the header of the option menu
     //  - items: array of options to display in menu
     //
+    if (!header && (number || email)) {
+      header = document.createElement('bdi');
+      header.className = 'unknown-contact-header';
+      header.textContent = number || email;
+    }
+
     params = {
       classes: ['contact-prompt'],
       complete: complete,
-      header: header,
+      header: header || '',
       items: null
     };
 
@@ -2702,6 +2699,15 @@ var ThreadUI = {
         },
         params: [email]
       });
+      if (Settings.supportEmailRecipient) {
+        items.push({
+          l10nId: 'sendMMSToEmail',
+          method: function oMMS(param) {
+            ActivityPicker.sendMessage(param);
+          },
+          params: [email]
+        });
+      }
     } else {
       // Multi-participant activations or in-message numbers
       // will include a "Call" and "Send Message" options in the menu
@@ -2907,12 +2913,6 @@ var ThreadUI = {
 Object.defineProperty(ThreadUI, 'allInputs', {
   get: function() {
     return this.getAllInputs();
-  }
-});
-
-Object.defineProperty(ThreadUI, 'selectedInputs', {
-  get: function() {
-    return this.getSelectedInputs();
   }
 });
 

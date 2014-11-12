@@ -64,8 +64,9 @@ var Marquee = {
    *                           start of the animation.
    */
   activate: function marquee_activate(behavior, timingFun) {
-    if (!this._headerNode || !this._headerWrapper)
+    if (!this._headerNode || !this._headerWrapper) {
       return;
+    }
 
     // Set defaults for arguments
     var mode = behavior || 'scroll';
@@ -74,6 +75,7 @@ var Marquee = {
     var marqueeCssClass = 'marquee';
 
     var titleText = document.getElementById('marquee-h-text');
+    var cssClass, width;
 
     // Check if the title text overflows, and if so, add the marquee class
     // NOTE: this can only be checked it the DOM structure is updated
@@ -83,9 +85,9 @@ var Marquee = {
       this._marqueeCssClassList = [];
       switch (mode) {
         case 'scroll':
-          var cssClass = marqueeCssClass + '-rtl';
+          cssClass = marqueeCssClass + '-rtl';
           // Set the width of the marquee to match the text contents length
-          var width = this._headerWrapper.scrollWidth;
+          width = this._headerWrapper.scrollWidth;
           titleText.style.width = width + 'px';
           // Start the marquee animation (aligned left with delay)
           titleText.classList.add(cssClass + '-start-' + timing);
@@ -104,9 +106,9 @@ var Marquee = {
           });
           break;
         case 'alternate':
-          var cssClass = marqueeCssClass + '-alt-';
+          cssClass = marqueeCssClass + '-alt-';
           // Set the width of the marquee to match the text contents length
-          var width =
+          width =
               this._headerWrapper.scrollWidth - this._headerWrapper.clientWidth;
           titleText.style.width = width + 'px';
 
@@ -115,11 +117,13 @@ var Marquee = {
           break;
       }
     } else {
-      if (!this._marqueeCssClassList)
+      if (!this._marqueeCssClassList) {
         return;
+      }
       // Remove the active marquee CSS classes
-      for (var cssClass in this._marqueeCssClassList)
-        titleText.classList.remove(cssClass);
+      for (var titleCssClass in this._marqueeCssClassList) {
+        titleText.classList.remove(titleCssClass);
+      }
 
       titleText.style.transform = '';
     }

@@ -34,6 +34,7 @@ suite('ApnSelections', function() {
 
   suiteSetup(function() {
     mockMozSettings = {
+      _mObservers: {},
       createLock: function() {
         return {
           set: function() {
@@ -44,6 +45,17 @@ suite('ApnSelections', function() {
             return obj;
           }
         };
+      },
+      addObserver: function(name, callback) {
+        this._mObservers[name] = this._mObservers[name] || [];
+        this._mObservers[name].push(callback);
+      },
+      mTriggerObservers: function(name, value) {
+        this._mObservers[name].forEach(function(callback) {
+          callback({
+            settingValue: value
+          });
+        });
       }
     };
     realMozSettings = navigator.mozSettings;
@@ -77,18 +89,18 @@ suite('ApnSelections', function() {
         this.ApnSelections = ApnSelections;
         this.ApnConst = ApnConst;
         this.MockSettingsCache = MockSettingsCache;
+
+        this.apnSelections = new this.ApnSelections();
+        this.mockApnSelections =
+          createMockApnSelections(this.ApnConst.APN_TYPES);
+        this.mockSettingsDB[this.ApnConst.APN_SELECTIONS_KEY] =
+          this.mockApnSelections;
+
         done();
     }.bind(this));
   });
 
   suite('get', function() {
-    setup(function() {
-      this.apnSelections = new this.ApnSelections();
-      this.mockApnSelections = createMockApnSelections(this.ApnConst.APN_TYPES);
-      this.mockSettingsDB[this.ApnConst.APN_SELECTIONS_KEY] =
-        this.mockApnSelections;
-    });
-
     test('should get correct apn selections', function(done) {
       var isTheSameSelection = (function(selection1, selection2) {
         return this.ApnConst.APN_TYPES.every(function(apnType) {
@@ -148,13 +160,6 @@ suite('ApnSelections', function() {
   });
 
   suite('clear', function() {
-    setup(function() {
-      this.apnSelections = new this.ApnSelections();
-      this.mockApnSelections = createMockApnSelections(this.ApnConst.APN_TYPES);
-      this.mockSettingsDB[this.ApnConst.APN_SELECTIONS_KEY] =
-        this.mockApnSelections;
-    });
-
     test('should clear selection correctly', function(done) {
       this.apnSelections.clear(0).then(function() {
         this.ApnConst.APN_TYPES.forEach(function(apnType) {
@@ -165,5 +170,17 @@ suite('ApnSelections', function() {
         assert.isTrue(false);
       }).then(done, done);
     });
+  });
+
+  test('The ready promise should be set to null when the field of ' +
+    'apn.selections is cleared', function(done) {
+      this.apnSelections._ready().then(function() {
+        mockMozSettings
+          .mTriggerObservers(this.ApnConst.APN_SELECTIONS_KEY, null);
+        assert.equal(this._readyPromise, null);
+      }.bind(this), function() {
+        // This function does not reject.
+        assert.isTrue(false);
+      }).then(done, done);
   });
 });

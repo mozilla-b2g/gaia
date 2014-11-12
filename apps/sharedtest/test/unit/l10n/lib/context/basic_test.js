@@ -1,4 +1,4 @@
-/* global it, assert, describe, beforeEach */
+/* global assert:true, it, describe, beforeEach */
 /* global navigator, process, __dirname */
 'use strict';
 
@@ -10,6 +10,7 @@ if (typeof navigator !== 'undefined') {
     }
   };
 } else {
+  var assert = require('assert');
   var L20n = process.env.L20N_COV ?
     require('../../../build/cov/lib/l20n')
     : require('../../../lib/l20n');

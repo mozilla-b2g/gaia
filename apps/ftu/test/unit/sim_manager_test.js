@@ -8,7 +8,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('ftu/test/unit/mock_ui_manager.js');
-requireApp('ftu/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('ftu/js/sim_manager.js');
 requireApp('ftu/js/navigation.js');

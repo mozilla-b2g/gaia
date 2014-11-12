@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals ConfirmDialog, LazyLoader, TonePlayer */
+/* globals ConfirmDialog, LazyLoader */
 /* exported TelephonyMessages */
 
 var TelephonyMessages = {
@@ -82,6 +82,13 @@ var TelephonyMessages = {
   },
 
   handleError: function(errorName, number, emergencyOptions) {
+    // We ignore this error because some networks generate this with
+    // STK CallControl when calling Voicemail pilots (e.g. TMobile)
+    if (errorName === 'ModifiedDialError') {
+      console.log('ModifiedDialError');
+      return;
+    }
+
     if (errorName === 'BadNumberError') {
       if (emergencyOptions === this.REGULAR_CALL) {
         this.displayMessage('BadNumber');
@@ -97,7 +104,6 @@ var TelephonyMessages = {
     } else if (errorName === 'RadioNotAvailable') {
       this.displayMessage('FlightMode');
     } else if (errorName === 'BusyError') {
-      this.notifyBusyLine();
       this.displayMessage('NumberIsBusy');
     } else if (errorName === 'FDNBlockedError' ||
                errorName === 'FdnCheckFailure') {
@@ -111,18 +117,4 @@ var TelephonyMessages = {
       this.displayMessage('UnableToCall');
     }
   },
-
-  notifyBusyLine: function() {
-    // ANSI call waiting tone for a 6 seconds window.
-    var sequence = [[480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500],
-                    [480, 620, 500], [0, 0, 500]];
-
-    TonePlayer.setChannel('telephony');
-    TonePlayer.playSequence(sequence);
-    TonePlayer.setChannel('normal');
-  }
 };

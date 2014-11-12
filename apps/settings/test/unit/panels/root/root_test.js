@@ -1,7 +1,6 @@
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
-mocha.globals(['MockL10n', 'LazyLoader']);
 
 suite('Root', function() {
   var realL10n;
@@ -11,7 +10,7 @@ suite('Root', function() {
     }
   };
   var modules = [
-    'unit/mock_l10n',
+    'shared_mocks/mock_l10n',
     'panels/root/root',
     'MockLazyLoader'
   ];

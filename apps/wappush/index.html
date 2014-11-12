@@ -26,9 +26,9 @@
     <script defer src="shared/js/lazy_loader.js"></script>
     <!-- Web Components -->
     <script defer src="shared/elements/config.js"></script>
-    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
-    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" /> -->
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
+    <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/activity_picker.js"></script>
@@ -103,7 +103,7 @@
             <p data-l10n-id="cp-container-title"> OTA Access Point Configuration </p>
             <input type="hidden" data-l10n-id="cp-pin" placeholder="PIN" required="">
             <p id="cp-auth-failure" data-l10n-id="cp-auth-failure" hidden>PIN is not correct.</p>
-            <p id="cp-done-help" data-l10n-id="cp-accept-help">Configuration message received, click on 'Done' to continue.</p>
+            <p id="cp-done-help" data-l10n-id="cp-accept-help"></p>
           </div>
         </section>
       </article>
@@ -142,7 +142,7 @@
       <section>
         <h1 data-l10n-id="cp-container-title"> OTA Access Point Configuration </h1>
         <p>
-          <strong data-l10n-id="cp-finish-confirm-dialog-message">We are done, the APN(s) are now stored.</strong>
+          <strong data-l10n-id="cp-finish-confirm-dialog-message-apn-saved">APN(s) saved.</strong>
         </p>
       </section>
       <menu>

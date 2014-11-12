@@ -4,9 +4,6 @@
 'use strict';
 
 (function(exports) {
-
-  var _ = navigator.mozL10n.get;
-
   var Errors = {
     CONNECTION_ERROR: {
       title: 'fxa-connection-error-title',
@@ -44,25 +41,25 @@
 
   function _getError(error) {
     var l10nKeys = Errors[error] || Errors.UNKNOWN;
-    var msg;
-    if (error == 'COPPA_ERROR') {
-      msg = _getCoppaError();
-    }
     return {
-      title: _(l10nKeys.title),
-      message: error == 'COPPA_ERROR' ? _getCoppaError() : _(l10nKeys.message)
+      title: l10nKeys.title,
+      message: error == 'COPPA_ERROR' ? _getCoppaError() : l10nKeys.message
     };
   }
 
   function _getCoppaError() {
+    var _ = navigator.mozL10n.get;
+
     var coppaLink = 'http://www.ftc.gov/news-events/media-resources/' +
                     'protecting-consumer-privacy/kids-privacy-coppa';
     var errorText = _('fxa-coppa-failure-error-message');
     var learnMore = _('fxa-learn-more');
-    var learnMorePlaceholder = '{{learnmore}}';
+    var learnMorePlaceholder = /{{\s*learnmore\s*}}/;
     var learnMoreLink = '<a href="' + coppaLink + '">' + learnMore + '</a>';
     // return as a string. fxam_error_overlay will innerHTML the whole message.
-    return errorText.replace(learnMorePlaceholder, learnMoreLink);
+    return {
+      html: errorText.replace(learnMorePlaceholder, learnMoreLink)
+    };
   }
 
   var FxaModuleErrors = {

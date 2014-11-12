@@ -120,7 +120,7 @@
 }
 
 .outgoing .file-name {
-  text-align: right;
+  text-align: end;
 }
 
 .nopreview .file-name {

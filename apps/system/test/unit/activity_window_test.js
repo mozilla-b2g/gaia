@@ -31,7 +31,7 @@ suite('system/ActivityWindow', function() {
   setup(function(done) {
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       var element = document.createElement('div');
-      if (id.indexOf('AppWindow') >= 0 || id.indexOf('activity-window') >= 0) {
+      if (id.indexOf('AppWindow') >= 0 || id.indexOf('ActivityWindow') >= 0) {
         var container = document.createElement('div');
         container.className = 'browser-container';
         element.appendChild(container);

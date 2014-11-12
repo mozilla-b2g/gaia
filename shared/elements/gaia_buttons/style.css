@@ -225,3 +225,17 @@ gaia-buttons[skin="dark"] {
   }
 
 }
+
+/* RTl View */
+html[dir="rtl"] a.icon-next:before,
+html[dir="rtl"] button.icon-next:before {
+  transform: rotate(180deg);
+  left: 0.5rem;
+}
+
+html[dir="rtl"] a.icon-previous:before,
+html[dir="rtl"] button.icon-previous:before {
+  transform: unset;
+  left: unset;
+  right: 0.5rem;
+}

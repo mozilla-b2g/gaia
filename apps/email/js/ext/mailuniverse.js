@@ -1191,7 +1191,8 @@ MailUniverse.prototype = {
         localQueue = queues.local;
 
     var removeFromServerQueue = false,
-        completeOp = false;
+        completeOp = false,
+        wasMode = 'local_' + op.localStatus.slice(0, -3);
     if (err) {
       switch (err) {
         // Only defer is currently supported as a recoverable local failure
@@ -1242,6 +1243,10 @@ MailUniverse.prototype = {
         serverQueue.splice(idx, 1);
     }
     localQueue.shift();
+
+    console.log('runOp_end(' + wasMode + ': ' +
+                JSON.stringify(op).substring(0, 160) + ')\n');
+    account._LOG.runOp_end(wasMode, op.type, err, op);
 
     var callback;
     if (completeOp) {
@@ -1337,6 +1342,7 @@ MailUniverse.prototype = {
     var consumeOp = true;
     // Generate completion notifications for the op?
     var completeOp = true;
+    var wasMode = op.serverStatus.slice(0, -3);
     if (err) {
       switch (err) {
         case 'defer':
@@ -1444,6 +1450,11 @@ MailUniverse.prototype = {
     if (consumeOp)
       serverQueue.shift();
 
+    console.log('runOp_end(' + wasMode + ': ' +
+                JSON.stringify(op).substring(0, 160) + ')\n');
+    account._LOG.runOp_end(wasMode, op.type, err, op);
+
+
     // Some completeOp callbacks want to wait for account
     // save but they are triggered before save is attempted,
     // for the account to properly trigger runAfterSaves
@@ -1536,6 +1547,7 @@ MailUniverse.prototype = {
         this._opCompletionListenersByAccount[account.id](account);
         this._opCompletionListenersByAccount[account.id] = null;
       }
+      slog.log('allOpsCompleted', { account: account.id });
 
       // - Tell the account so it can clean-up its connections, etc.
       // (We do this after notifying listeners for the connection cleanup case

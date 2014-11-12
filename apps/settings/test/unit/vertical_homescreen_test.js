@@ -3,7 +3,7 @@
 /* global verticalPreferences, verticalHomescreen, requireElements,
           suiteTemplate, MockNavigatorSettings, MockL10n */
 
-requireApp('settings/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/js/homescreens/vertical_preferences.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/js/settings_listener.js');

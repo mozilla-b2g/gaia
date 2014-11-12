@@ -8,7 +8,7 @@
 
 var GaiaLockScreen = {
 
-  unlock: function() {
+  unlock: function(forcibly) {
     let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
     let system = window.wrappedJSObject.System;
     let obj = {'screen.timeout': 0};
@@ -16,7 +16,7 @@ var GaiaLockScreen = {
 
     waitFor(
       function() {
-        system.request('unlock', { forcibly: true });
+        system.request('unlock', { forcibly: forcibly });
         waitFor(
           function() {
             finish(system.locked);
@@ -32,14 +32,14 @@ var GaiaLockScreen = {
     );
   },
 
-  lock: function() {
+  lock: function(forcibly) {
     let system = window.wrappedJSObject.System;
     let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
     let obj = {'screen.timeout': 0};
     setlock.set(obj);
     waitFor(
       function() {
-      system.request('lock', { forcibly: true });
+      system.request('lock', { forcibly: forcibly });
         waitFor(
           function() {
             finish(!system.locked);

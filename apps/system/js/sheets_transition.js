@@ -17,12 +17,14 @@ var SheetsTransition = {
     // Homescreen App would fade in next time it's opened automatically.
     var home = homescreenLauncher.getHomescreen();
     home && home.fadeOut();
-    var currentSheet = StackManager.getCurrent();
-    var newSheet = (direction == 'ltr') ?
+    var currentApp = StackManager.getCurrent();
+    var newApp = (direction == 'ltr') ?
       StackManager.getPrev() : StackManager.getNext();
 
-    this._current = currentSheet ? currentSheet.element : null;
-    this._new = newSheet ? newSheet.element : null;
+    newApp && newApp.broadcast('sheetdisplayed');
+
+    this._current = currentApp ? currentApp.element : null;
+    this._new = newApp ? newApp.element : null;
 
     if (this._current) {
       this._setDuration(this._current, 0);

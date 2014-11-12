@@ -46,6 +46,7 @@
   <script src="/shared/js/l10n.js"></script>
   <script src="/shared/js/l10n_date.js"></script>
   <script src="/shared/js/tz_select.js"></script>
+  <script defer src="/shared/js/input_mgmt/input_app_list.js"></script>
   <script defer src="/shared/js/keyboard_helper.js"></script>
   <script defer src="/shared/js/language_list.js"></script>
   <script defer src="/shared/js/version_helper.js"></script>
@@ -104,9 +105,9 @@
   <script defer src="/shared/elements/gaia_buttons/script.js"></script>
   <script defer src="/shared/elements/gaia_subheader/script.js"></script>
   <script defer src="/shared/elements/config.js"></script>
-  <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
-  <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
-  <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" /> -->
+  <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css" /> -->
+  <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
+  <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
 
   <!--
     <link href="/shared/pages/import/import.html">
@@ -330,8 +331,8 @@
                 <label id="label_hidden_wifi_password" for="hidden-wifi-password" data-l10n-id="password">
                   Password
                 </label>
-                <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value="" maxlength="63" />
-                <label class="pack-checkbox" id="label_show_password" for="hidden-wifi-show-password">
+                <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value="" x-inputmode="verbatim" maxlength="63" />
+                <label class="pack-checkbox" id="label_hidden_show_password" for="hidden-wifi-show-password">
                   <input type="checkbox" id="hidden-wifi-show-password">
                   <span data-l10n-id="showPassword">
                     Show Password
@@ -585,7 +586,7 @@
         <section id="browser_logo_horizontal">
           <img src="/shared/resources/branding/logosmall.png" role="presentation">
         </section>
-        <p id="browser_os_welcome" data-l10n-id="htmlWelcome">
+        <p id="browser_os_welcome">
           Welcome to Browser OS, the free and
           open source operating system from
           Mozilla. Our mission is to promote
@@ -593,7 +594,7 @@
           by keeping the power of the Web in
           your hands.
         </p>
-        <p id="browser_os_improve" data-l10n-id="helpImprove">
+        <p id="browser_os_improve">
           You can help us improve our products and services by automatically
           sending analytics data. See our Privacy Notice to learn how we
           handle data from your device.

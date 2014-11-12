@@ -1795,14 +1795,13 @@ exports.DEBUG_realtimeLogEverything = function(dumpFunc) {
     reportNewLogger: function(logger, parentLogger) {
       logger._actor = {
         __loggerFired: function() {
-          // Destructively pop it off the end of the list; inductively this
-          // should always be index 0, but you never know!
-          var entry = logger._entries.pop();
+          var entry = logger._entries[logger._entries.length - 1];
           // Let's look like: LoggerType(semanticIdent)["name", ...]
           dumpFunc(logger.__defName + '(' + logger._ident + ')' +
                    JSON.stringify(entry) + '\n');
         }
       };
+      return parentLogger;
     }
   };
   UNDER_TEST_DEFAULT = EverythingTester;

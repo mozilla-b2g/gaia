@@ -103,18 +103,12 @@
 }
 
 .message-details {
+  display: flex;
+
   margin-top: 0.5rem;
 
   font-size: 1.4rem;
   line-height: 2rem;
-}
-
-.message-details > * {
-  float: left;
-}
-
-.message-details time {
-  display: unset;
 }
 
 .message.sending time,
@@ -139,7 +133,7 @@
 }
 
 .message-sim-information {
-  margin-right: 0.4rem;
+  -moz-margin-end: 0.4rem;
 }
 
 .message-sim-information::after {

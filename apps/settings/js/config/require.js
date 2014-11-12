@@ -6,9 +6,6 @@ require.config({
     'shared': '../shared/js'
   },
   shim: {
-    'connectivity': {
-      exports: 'Connectivity'
-    },
     'settings': {
       exports: 'Settings'
     },
@@ -22,7 +19,8 @@ require.config({
       exports: 'IccHelper'
     },
     'shared/keyboard_helper': {
-      exports: 'KeyboardHelper'
+      exports: 'KeyboardHelper',
+      deps: ['shared/input_mgmt/input_app_list']
     },
     'shared/language_list': {
       exports: 'LanguageList'
@@ -47,6 +45,12 @@ require.config({
     },
     'shared/toaster': {
       exports: 'Toaster'
+    },
+    'shared/template': {
+      exports: 'Template'
+    },
+    'shared/sim_settings_helper': {
+      exports: 'SimSettingsHelper'
     },
     'shared/tz_select': {
       exports: 'tzSelect'
@@ -93,7 +97,9 @@ require.config({
       name: 'panels/root/panel',
       exclude: [
         'main',
-        'modules/battery'
+        'modules/battery',
+        'modules/bluetooth/bluetooth_v1',
+        'modules/bluetooth/bluetooth'
       ]
     },
     {
@@ -231,7 +237,32 @@ require.config({
     },
     {
       name: 'panels/homescreens/panel',
+      exclude: [
+        'main',
+        'modules/apps_cache'
+      ]
+    },
+    {
+      name: 'panels/sound/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/simcard_manager/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/hotspot/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/observable'
+      ]
+    },
+    {
+      name: 'panels/hotspot_wifi_settings/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/observable'
+      ]
     }
   ]
 });

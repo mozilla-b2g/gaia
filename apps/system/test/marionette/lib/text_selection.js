@@ -48,10 +48,7 @@ TextSelection.prototype = {
     var displayApp;
     this.client.waitFor(function() {
       displayApp = this.client.executeScript(function() {
-        var manager = window.wrappedJSObject.AppWindowManager ||
-                      window.wrappedJSObject.WindowManager;
-        var app = ('getActiveApp' in manager) ? manager.getActiveApp() :
-                  manager.getCurrentDisplayedApp();
+        var app = window.wrappedJSObject.System.currentApp;
         var frame = (app.browser) ? app.browser.element : app.frame.firstChild;
         return {
           appWindowId: frame.id,

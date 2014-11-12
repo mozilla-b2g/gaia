@@ -29,7 +29,7 @@ suite('SubjectComposer >', function() {
   test('correctly instantiate', function() {
     assert.throws(
       () => new SubjectComposer(),
-      'Should throw if container was not passed'
+      'Subject node is required'
     );
 
     assert.ok(new SubjectComposer(node));
@@ -96,7 +96,7 @@ suite('SubjectComposer >', function() {
 
     test('correctly sets and gets value', function() {
       assert.throws(
-        () => subjectComposer.setValue(), 'Value should be valid string'
+        () => subjectComposer.setValue(), 'Value should be a valid string'
       );
       assert.equal(subjectComposer.getValue(), '');
 

@@ -2,7 +2,6 @@ var assert = require('chai').assert;
 var fs = require('fs');
 var path = require('path');
 var AdmZip = require('adm-zip');
-var dive = require('dive');
 var helper = require('./helper');
 
 suite('Integration tests', function() {
@@ -151,27 +150,13 @@ suite('Integration tests', function() {
     });
   });
 
-  suite('Build file inclusion tests', function() {
-    test('build includes elements folder and sim_picker', function(done) {
-      helper.exec('make', function(error, stdout, stderr) {
-        var pathInZip = 'shared/elements/sim_picker.html';
-        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-          'communications.gaiamobile.org', 'application.zip');
-        var expectedSimPickerPath = path.join(process.cwd(),
-          'shared', 'elements', 'sim_picker.html');
-        helper.checkFileInZip(zipPath, pathInZip, expectedSimPickerPath);
-        done();
-      });
-    });
-  });
-
   test('make test-l10n-optimize build noFetch file', function(done) {
     helper.exec('APP=test-l10n-optimize make',
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
         var expectedScript = '<script type="application/l10n" lang="en-US">\n'+
-                             '  {"entity1":"My Entity"}\n' +
+                             '  [{"$i":"entity1","$v":"My Entity"}]\n' +
                              '</script>';
         var testZip = new AdmZip(path.join(process.cwd(), 'profile',
           'webapps', 'test-l10n-optimize.gaiamobile.org', 'application.zip'));

@@ -407,8 +407,19 @@ var MmiManager = {
       // If we're on a CDMA network USSD/MMI numbers are not available
       return false;
     } else {
-      // A valid USSD/MMI code is any 'number' ending in '#'.
-      return (number.charAt(number.length - 1) === '#');
+      var telephony = navigator.mozTelephony;
+      var onCall = telephony && !!(telephony.calls.length ||
+                                   telephony.conferenceGroup.calls.length);
+      var shortString = (number.length <= 2);
+      var doubleDigitAndStartsWithOne = (number.length === 2) &&
+                                        number.startsWith('1');
+
+      /* A valid USSD/MMI code is any 'number' ending in '#' or made of only
+       * one or two characters with the exception of two-character codes
+       * starting with 1 which are considered MMI codes only when dialed during
+       * a call (see 3GPP TS 20.030 6.3.5.2). */
+      return (number.charAt(number.length - 1) === '#') ||
+             (shortString && (onCall || !doubleDigitAndStartsWithOne));
     }
   },
 

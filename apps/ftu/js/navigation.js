@@ -2,8 +2,7 @@
           SdManager, UIManager, WifiManager, WifiUI,
           ImportIntegration,
           OperatorVariant,
-          getLocalizedLink,
-          utils */
+          getLocalizedLink */
 /* exported Navigation */
 'use strict';
 /*
@@ -199,7 +198,7 @@ var Navigation = {
         // appears so that it doesn't delay the appearance of the page.
         // This is the last good opportunity to call it.
 
-        WifiManager.scan((networks) => {
+        WifiManager.getNetworks(networks => {
           this.ensureTZInitialized().then(() => {
             WifiUI.renderNetworks(networks);
           });
@@ -225,7 +224,7 @@ var Navigation = {
         if (!WifiManager.api) {
           // Desktop
           ImportIntegration.checkImport('enabled');
-          return;
+          break;
         }
 
         fbState = window.navigator.onLine ? 'enabled' : 'disabled';
@@ -237,20 +236,17 @@ var Navigation = {
       case '#welcome_browser':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
         var welcome = document.getElementById('browser_os_welcome');
-        navigator.mozL10n.setAttributes(welcome, 'htmlWelcome', {
-          link: getLocalizedLink('htmlWelcome')
-        });
+        navigator.mozL10n.setAttributes(welcome, 'htmlWelcome2',
+          getLocalizedLink('htmlWelcome'));
         var improve = document.getElementById('browser_os_improve');
-        navigator.mozL10n.setAttributes(improve, 'helpImprove', {
-          link: getLocalizedLink('helpImprove')
-        });
+        navigator.mozL10n.setAttributes(improve, 'helpImprove2',
+          getLocalizedLink('helpImprove'));
         break;
       case '#browser_privacy':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
         var linkPrivacy = document.getElementById('external-link-privacy');
-        navigator.mozL10n.setAttributes(linkPrivacy, 'learn-more-privacy', {
-          link: getLocalizedLink('learn-more-privacy')
-        });
+        navigator.mozL10n.setAttributes(linkPrivacy, 'learn-more-privacy2',
+          getLocalizedLink('learn-more-privacy'));
         break;
       case '#SIM_mandatory':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'SIM_mandatory');
@@ -264,13 +260,11 @@ var Navigation = {
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
         UIManager.navBar.classList.add('back-only');
         var linkTelemetry = document.getElementById('external-link-telemetry');
-        navigator.mozL10n.setAttributes(linkTelemetry, 'learn-more-telemetry', {
-          link: getLocalizedLink('learn-more-telemetry')
-        });
+        navigator.mozL10n.setAttributes(linkTelemetry, 'learn-more-telemetry2',
+          getLocalizedLink('learn-more-telemetry'));
         var linkInfo = document.getElementById('external-link-information');
-        navigator.mozL10n.setAttributes(linkInfo, 'learn-more-information', {
-          link: getLocalizedLink('learn-more-information')
-        });
+        navigator.mozL10n.setAttributes(linkInfo, 'learn-more-information2',
+          getLocalizedLink('learn-more-information'));
         break;
     }
 
@@ -285,8 +279,9 @@ var Navigation = {
 
     // Managing options button
     if (this.currentStep <= numSteps &&
-        steps[this.currentStep].hash !== '#wifi') {
-      UIManager.activationScreen.classList.add('no-options');
+        (steps[this.currentStep].hash === '#wifi') ===
+          UIManager.activationScreen.classList.contains('no-options')) {
+      UIManager.activationScreen.classList.toggle('no-options');
     }
 
     // Managing nav buttons when coming back from out-of-steps (privacy)
@@ -344,11 +339,6 @@ var Navigation = {
 
     // Retrieve future location
     var futureLocation = steps[self.currentStep];
-
-    // There is some locations which need a 'loading'
-    if (futureLocation.hash === '#wifi') {
-      utils.overlay.show('scanningNetworks', 'spinner');
-    }
 
     // If SIMcard is mandatory and no SIM, go to message window
     if (this.simMandatory &&
@@ -421,11 +411,11 @@ var Navigation = {
           //if you are online you can get a more accurate guess for the time
           //time you just need to trigger it
           UIManager.updateSetting(
-            'time.timezone.automatic-update.enabled', 
+            'time.timezone.automatic-update.enabled',
             true
           );
           UIManager.updateSetting(
-            'time.clock.automatic-update.enabled', 
+            'time.clock.automatic-update.enabled',
             true
           );
         }

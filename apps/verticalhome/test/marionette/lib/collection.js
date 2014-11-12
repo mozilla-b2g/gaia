@@ -40,6 +40,8 @@ Collection.Selectors = {
   allIcons: 'gaia-grid .icon',
 
   offlineMessage: '#offline-message',
+  updateDoneButton: '#done-button',
+  updateTitle: '#collection-title',
 
   mozbrowser: '.inline-activity.active iframe[mozbrowser]',
 };
@@ -241,6 +243,25 @@ Collection.prototype = {
     );
 
     bookmark.addButton.click();
+  },
+
+  /**
+   * Renames a collection and presses enter.
+   * @param {String} newName
+   */
+  renameAndPressEnter: function(newName) {
+    this.client.switchToFrame();
+    this.client.apps.switchToApp(Collection.URL);
+
+    var title = this.client.helper.waitForElement(
+      Collection.Selectors.updateTitle);
+    title.clear();
+    title.sendKeys(newName + '\uE006');
+
+    this.client.helper.waitForElement(
+      Collection.Selectors.updateDoneButton).click();
+
+    this.client.switchToFrame();
   }
 };
 

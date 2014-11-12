@@ -387,7 +387,8 @@ gaia-header [data-icon] {
 
 #view-settings .view-body-inner,
 #import-settings .view-body-inner,
-#view-contact-form .view-body-inner {
+#view-contact-form .view-body-inner,
+#ice-settings .view-body-inner {
   background: #f4f4f4;
 }
 #view-contact-form #thumbnail-photo {
@@ -606,6 +607,7 @@ gaia-header [data-icon] {
   font-size: 1.3rem;
   line-height: 1.9rem;
   color: #858585;
+  margin: 0;
   padding: 0;
 }
 
@@ -692,7 +694,8 @@ gaia-header [data-icon] {
 
 #groups-container {
   height: 100%;
-  overflow: scroll;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 /* Bug 967274 - Background doesn't scroll with the contacts causing
@@ -784,6 +787,10 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) gaia-he
 /* Photo by default is displayed when it is visited by image loader component */
 [data-type="list"] .contact-item[data-visited="true"] > aside > span {
   display: block;
+}
+
+#view-contacts-list [data-type="list"] aside span[data-type=img] {
+  image-rendering: auto;
 }
 
 html[dir="rtl"] #no-contacts .icon {
@@ -907,4 +914,55 @@ form[role="combobox"] span[data-field="type"] {
 .textfield.tagItem {
   margin: 1rem;
   width: calc(100% - 2rem);
+}
+
+/* We need this rule because these views are going to be in the bottom */
+/* This will avoid a repainting and a flash to the user when we fade-out */
+/* particulary in the flow: settings -> back() -> contact list */
+#view-settings.fade-in, #view-contact-form.fade-in {
+  transform: translateY(0);
+}
+
+/* Animations over the contact form when adding new group fields */
+.field-template.inserted {
+  opacity: 0;
+}
+
+.field-template.inserted.displayed {
+  animation: add-field 0.25s ease-in-out 1 forwards;
+}
+
+.field-template.inserted .first-row,
+.field-template.inserted .second-row,
+.field-template.inserted .third-row {
+  opacity: 0;
+  animation: add-field 0.20s linear 1 forwards;
+}
+
+@keyframes add-field {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.field-template.inserted.displayed .first-row {
+  animation-delay: 0.15s;
+}
+
+.field-template.inserted.displayed .second-row {
+  animation-delay: 0.25s;
+}
+
+.field-template.inserted.displayed .third-row {
+  animation-delay: 0.35s;
+}
+
+/* Avoid the activate state on '+ Add xx' buttons */
+li button[data-field-type]:active {
+  background: transparent;
+  color: #5F5F5F;
 }

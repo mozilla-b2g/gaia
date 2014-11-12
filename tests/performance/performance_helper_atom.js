@@ -1,3 +1,6 @@
+'use strict';
+/* global Components, dump, Services */
+
 Components.utils.import('resource://gre/modules/Services.jsm');
 
 function _registerListener(document) {
@@ -33,7 +36,7 @@ function _registerListener(document) {
 
     debug('got', evtName);
 
-    perfMeasurements[evtName] = window.performance.now();
+    perfMeasurements[evtName] = e.detail.epoch;
     checkFinish();
   }
 
@@ -60,7 +63,7 @@ function _registerListener(document) {
     }
     debug('registering');
     perfMeasurements = Object.create(null);
-    perfMeasurements.start = window.performance.now();
+    perfMeasurements.start = Date.now();
     window.epochEnd = Date.now();
 
     window.addEventListener(PERF_EVENT_NAME, handlePerfEvent);
@@ -109,8 +112,9 @@ function _registerListener(document) {
 }
 
 Services.obs.addObserver(function(document) {
-  if (!document || !document.location)
+  if (!document || !document.location) {
     return;
+  }
 
   _registerListener(document);
 }, 'document-element-inserted', false);

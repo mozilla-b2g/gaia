@@ -8,15 +8,15 @@
     <section class="content">
       <div class="errors"></div>
 
-      <gaia-subheader class="account-list-header" skin="organic">
+      <gaia-subheader id="account-list-header" class="account-list-header" skin="organic" role="heading" aria-level="2">
         <span data-l10n-id="account-list-header">Accounts</span>
       </gaia-subheader>
 
-      <ol class="account-list link-list">
+      <ol class="account-list link-list" aria-labelledby="account-list-header" role="listbox">
       </ol>
 
-      <ol>
-        <li class="create-account-item">
+      <ol role="presentation">
+        <li class="create-account-item" role="presentation">
           <button class="create-account" href="/select-preset/"
                   data-l10n-id="advanced-settings-add-account">
             Add Account
@@ -24,12 +24,12 @@
         </li>
       </ol>
 
-      <gaia-subheader skin="organic">
+      <gaia-subheader skin="organic" role="heading" aria-level="2">
         <span data-l10n-id="advanced-settings-personalization">Personalization</span>
       </gaia-subheader>
 
-      <ol class="settings-list link-list">
-        <li>
+      <ol class="settings-list link-list" role="presentation">
+        <li role="presentation">
           <label>
             <span data-l10n-id="sync-frequency">Sync Calendar</span>
             <span class="button icon icon-dialog">
@@ -43,18 +43,18 @@
         </li>
       </ol>
 
-      <gaia-subheader skin="organic">
+      <gaia-subheader skin="organic" role="heading" aria-level="2">
         <span data-l10n-id="advanced-settings-reminders">Reminders</span>
       </gaia-subheader>
 
-      <ol class="settings-list link-list">
-        <li>
+      <ol class="settings-list link-list" role="presentation">
+        <li role="presentation">
           <label id="default-event-alarm">
             <span data-l10n-id="events">Events</span>
             <span class="button icon icon-dialog"></span>
           </label>
         </li>
-        <li>
+        <li role="presentation">
           <label id="default-allday-alarm">
             <span data-l10n-id="allday-events">All-day Events</span>
             <span class="button icon icon-dialog"></span>

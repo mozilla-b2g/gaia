@@ -1,4 +1,4 @@
-/* global Card, AppWindowManager, SettingsListener,
+/* global Card, SettingsListener,
           System, homescreenLauncher, StackManager */
 
 (function(exports) {
@@ -62,6 +62,9 @@
     }
   });
 
+  TaskManager.prototype.EVENT_PREFIX = 'taskmanager';
+  TaskManager.prototype.name = 'TaskManager';
+
   /**
    * initialize
    * @memberOf TaskManager.prototype
@@ -69,10 +72,12 @@
   TaskManager.prototype.start = function() {
     this._fetchElements();
     this._registerEvents();
+    System.request('registerHierarchy', this);
   };
 
   TaskManager.prototype.stop = function() {
     this._unregisterEvents();
+    System.request('unregisterHierarchy', this);
   };
 
   TaskManager.prototype._fetchElements = function() {
@@ -116,6 +121,9 @@
     if (this.isShown()) {
       return;
     }
+    if (document.mozFullScreen) {
+      document.mozCancelFullScreen();
+    }
     this.calculateDimensions();
     this.newStackPosition = null;
     this._registerShowingEvents();
@@ -141,7 +149,7 @@
     this.setActive(true);
 
     var screenElement = this.screenElement;
-    var activeApp = AppWindowManager.getActiveApp();
+    var activeApp = System.currentApp;
     if (!activeApp) {
       screenElement.classList.add('cards-view');
       return;
@@ -240,6 +248,11 @@
       return;
     }
     this._active = active;
+    if (active) {
+      this.publish(this.EVENT_PREFIX + '-activated');
+    } else {
+      this.publish(this.EVENT_PREFIX + '-deactivated');
+    }
     this.element.classList.toggle('active', active);
     this.element.classList.toggle('empty', !this.stack.length && active);
 
@@ -591,7 +604,7 @@
           filter = (evt.detail && evt.detail.filter) || null;
         }
 
-        app = AppWindowManager.getActiveApp();
+        app = System.currentApp;
         if (app && !app.isHomescreen) {
           app.getScreenshot(function onGettingRealtimeScreenshot() {
             this.show(filter);

@@ -1,6 +1,6 @@
-/* globals CallsHandler, CallScreen, Contacts, ContactPhotoHelper,
-           FontSizeManager, LazyL10n, Utils, Voicemail, TonePlayer,
-           AudioCompetingHelper */
+/* globals AudioCompetingHelper, CallsHandler, CallScreen,
+           ConferenceGroupHandler, Contacts, ContactPhotoHelper,
+           FontSizeManager, LazyL10n, Utils, Voicemail, TonePlayer */
 
 'use strict';
 
@@ -10,13 +10,21 @@ function HandledCall(aCall) {
   this.call = aCall;
 
   aCall.addEventListener('statechange', this);
-  aCall.addEventListener('statechange', CallsHandler.updatePlaceNewCall);
 
   aCall.ongroupchange = (function onGroupChange() {
     if (this.call.group) {
-      CallScreen.moveToGroup(this.node);
+      ConferenceGroupHandler.addToGroupDetails(this.node);
       this._leftGroup = false;
     } else if (this._wasUnmerged()) {
+      if (ConferenceGroupHandler.isGroupDetailsShown()) {
+        // Since the call has been unmerged and its node will be moved from the
+        // participant list overlay to the main call screen, the call node is
+        // cloned and added to the call node parent so it is kept in the
+        // participant list overlay until it is hidden.
+        this.node.parentNode.insertBefore(this.node.cloneNode(true), this.node);
+      }
+      // Move the call node from the conference call participant list overlay
+      //  to the main call screen page.
       CallScreen.insertCall(this.node);
       this._leftGroup = false;
     } else {
@@ -50,13 +58,6 @@ function HandledCall(aCall) {
   this.hangupButton.onclick = (function() {
     this.call.hangUp();
   }.bind(this));
-  this.mergeButton = this.node.querySelector('.merge-button');
-  this.mergeButton.onclick = (function(evt) {
-    if (evt) {
-      evt.stopPropagation();
-    }
-    CallsHandler.mergeActiveCallWith(this.call);
-  }).bind(this);
 
   this.updateCallNumber();
 
@@ -90,6 +91,8 @@ HandledCall.prototype._wasUnmerged = function hc_wasUnmerged() {
 };
 
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
+  CallsHandler.updatePlaceNewCall();
+  CallsHandler.updateMergeAndOnHoldStatus();
   switch (evt.call.state) {
     case 'connected':
       // The dialer agent in the system app plays and stops the ringtone once
@@ -154,7 +157,8 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     return;
   }
 
-  Voicemail.check(number, function(isVoicemailNumber) {
+  Voicemail.check(number, this.call.serviceId).then(
+  function(isVoicemailNumber) {
     if (isVoicemailNumber) {
       LazyL10n.get(function localized(_) {
         node.textContent = _('voiceMail');
@@ -266,6 +270,8 @@ HandledCall.prototype.formatPhoneNumber =
       scenario, this.numberNode, false, ellipsisSide);
     if (this.node.classList.contains('additionalInfo')) {
       FontSizeManager.ensureFixedBaseline(scenario, this.numberNode);
+    } else {
+      FontSizeManager.resetFixedBaseline(this.numberNode);
     }
 };
 
@@ -308,17 +314,19 @@ HandledCall.prototype.remove = function hc_remove() {
 
   var self = this;
   CallScreen.stopTicker(this.durationNode);
-  var currentDuration = this.durationChildNode.textContent;
+  var currentDuration = ConferenceGroupHandler.isGroupDetailsShown() ?
+    ConferenceGroupHandler.currentDuration : this.durationChildNode.textContent;
   // FIXME/bug 1007148: Refactor duration element structure. No number or ':'
   //  existence checking will be necessary.
-  this.totalDurationNode.textContent =
-    !!currentDuration.match(/\d+/g) ? currentDuration : '';
+  var totalDuration = !!currentDuration.match(/\d+/g) ? currentDuration : '';
+  this.totalDurationNode.textContent = totalDuration;
+  this.node.classList.add('ended');
 
   LazyL10n.get(function localized(_) {
     self.durationNode.classList.remove('isTimer');
     self.durationChildNode.textContent = _('callEnded');
   });
-  this.node.classList.add('ended');
+
   setTimeout(function(evt) {
     CallScreen.removeCall(self.node);
     self.node = null;

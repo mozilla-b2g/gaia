@@ -5,21 +5,22 @@
 
 'use strict';
 
-requireApp('sms/js/attachment.js');
-requireApp('sms/js/attachment_renderer.js');
-requireApp('sms/js/utils.js');
+require('/js/attachment.js');
+require('/js/utils.js');
 
-requireApp('sms/test/unit/mock_attachment_menu.js');
+require('/test/unit/mock_attachment_menu.js');
+require('/test/unit/mock_attachment_renderer.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('sms/test/unit/mock_utils.js');
-requireApp('sms/test/unit/mock_moz_activity.js');
-requireApp('sms/test/unit/mock_mime_mapper.js');
+require('/test/unit/mock_utils.js');
+require('/test/unit/mock_moz_activity.js');
+require('/test/unit/mock_mime_mapper.js');
 
 var MocksHelperForAttachment = new MocksHelper([
   'AttachmentMenu',
   'Utils',
   'MozActivity',
-  'MimeMapper'
+  'MimeMapper',
+  'AttachmentRenderer'
 ]).init();
 
 suite('attachment_test.js', function() {
@@ -61,26 +62,36 @@ suite('attachment_test.js', function() {
     assert.typeOf(attachment.name, 'string');
   });
 
+  test('correct enumerable properties', function() {
+    var expectedProperties = ['name', 'blob', 'isDraft'];
+    var attachment = new Attachment(new Blob());
+    attachment.render();
+
+    expectedProperties.forEach((prop) => assert.ok(prop in attachment));
+
+    var keys = Object.keys(attachment);
+    assert.equal(keys.length, expectedProperties.length);
+  });
+
   suite('render attachment', function() {
-    var attachmentRendererMock = {
-      render: function() {
-        return Promise.resolve();
-      },
-      getAttachmentContainer: function() {}
-    };
+    var attachmentRendererMock;
+
+    var attachmentContainer;
 
     setup(function() {
-      this.sinon.stub(AttachmentRenderer, 'for', function() {
-        return attachmentRendererMock;
-      });
-    });
-
-    test('returns attachment container', function() {
-      var attachmentContainer = document.createElement('x-container');
-      this.sinon.stub(attachmentRendererMock, 'getAttachmentContainer').returns(
+      attachmentContainer = document.createElement('x-container');
+      this.sinon.stub(AttachmentRenderer.prototype, 'getAttachmentContainer');
+      AttachmentRenderer.prototype.getAttachmentContainer.returns(
         attachmentContainer
       );
 
+      attachmentRendererMock = new AttachmentRenderer();
+      this.sinon.stub(AttachmentRenderer, 'for').returns(
+        attachmentRendererMock
+      );
+    });
+
+    test('returns attachment container', function() {
       var attachment = new Attachment(new Blob(), {
         name: 'Image attachment'
       });
@@ -89,12 +100,7 @@ suite('attachment_test.js', function() {
     });
 
     test('calls ready callback in fail and success cases', function(done) {
-      var attachmentContainer = document.createElement('x-container'),
-          attachmentRendererResult = Promise.resolve();
-
-      this.sinon.stub(attachmentRendererMock, 'getAttachmentContainer').returns(
-        attachmentContainer
-      );
+      var attachmentRendererResult = Promise.resolve();
 
       this.sinon.stub(attachmentRendererMock, 'render', function() {
         return attachmentRendererResult;
@@ -118,6 +124,29 @@ suite('attachment_test.js', function() {
 
       successfulDeferred.promise.then(() => failedDeferred.promise).
         then(done, done);
+    });
+
+    test('updateFileSize delegates to the renderer', function() {
+      var firstAttachmentRenderer = new AttachmentRenderer();
+      AttachmentRenderer.for.onCall(0).returns(
+        firstAttachmentRenderer
+      );
+
+      this.sinon.spy(AttachmentRenderer.prototype, 'render');
+      this.sinon.spy(AttachmentRenderer.prototype, 'updateFileSize');
+
+      var attachment = new Attachment(new Blob());
+
+      attachment.render();
+      attachment.updateFileSize();
+
+      sinon.assert.calledOnce(AttachmentRenderer.for);
+      sinon.assert.alwaysCalledOn(
+        firstAttachmentRenderer.render, firstAttachmentRenderer
+      );
+      sinon.assert.alwaysCalledOn(
+        firstAttachmentRenderer.updateFileSize, firstAttachmentRenderer
+      );
     });
   });
 

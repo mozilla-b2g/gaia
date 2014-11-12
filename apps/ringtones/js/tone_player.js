@@ -15,9 +15,6 @@ function TonePlayer() {
   // background, so here we use audio context to occupy the channel until the
   // user leaves the ringtones app, see bug 958470 for details.
   this._player = new Audio();
-  this._context = new AudioContext();
-  this._source = this._context.createMediaElementSource(this._player);
-  this._source.connect(this._context.destination);
 
   this._player.addEventListener('loadedmetadata', function() {
     if (this._player.src) { // Null URLs don't need to be validated here.
@@ -34,6 +31,9 @@ function TonePlayer() {
         'validated', { detail: this._isValid }
       ));
     }
+  }.bind(this));
+  this._player.addEventListener('ended', function() {
+    this._firePlayingCallback(false);
   }.bind(this));
 
   window.addEventListener('visibilitychange', function() {
@@ -54,14 +54,20 @@ TonePlayer.prototype = {
    * silence, since it stops it, but you'd expect it to replay the tone.
    *
    * @param {Object} tone The tone to select and preview.
+   * @param {Function} [callback] The callback to call when the playback status
+   *   of the tone changes; takes a boolean value to indicate if the tone is
+   *   currently playing.
    */
-  setTone: function(tone) {
+  setTone: function(tone, callback) {
     if (tone !== this._currentTone) {
+      this._firePlayingCallback(false);
       this._currentTone = tone;
+      this._playingCallback = callback;
       if (tone && tone.url) {
         this._isValid = undefined;
         this._player.src = tone.url;
         this._player.play();
+        this._firePlayingCallback(true);
         this._setExclusiveMode(true);
       } else {
         this._isValid = true;
@@ -75,20 +81,24 @@ TonePlayer.prototype = {
       if (this._player.paused || this._player.ended) {
         this._player.currentTime = 0;
         this._player.play();
+        this._firePlayingCallback(true);
         this._setExclusiveMode(true);
       } else {
         this._player.pause();
+        this._firePlayingCallback(false);
       }
     }
   },
 
   /**
-   * Stop playing the current tone (if any).
+   * Stop playing the current tone (if any). If we start playing it again,
+   * setTone will reset the current time to 0. Note: even though we're stopping,
+   * we don't want to clear the player's src URL, since we might need that to
+   * restart playback of the same song.
    */
   stop: function() {
     this._player.pause();
-    this._player.removeAttribute('src');
-    this._player.load();
+    this._firePlayingCallback(false);
   },
 
   /**
@@ -116,14 +126,33 @@ TonePlayer.prototype = {
     });
   },
 
+  _firePlayingCallback: function(playing) {
+    if (this._playingCallback) {
+      this._playingCallback(playing);
+    }
+  },
+
   /**
-   * Set the audio context's channel to "ringer" to stop any background audio
-   * from playing once we've started previewing ringtones, or reset the channel
-   * to "normal" to let background audio resume.
+   * Creates an AudioContext with "ringer" priority to stop any background audio
+   * from playing once we've started previewing ringtones, or destroys the
+   * context.
    *
-   * @param {Boolean} exclusive true to enable exclusive mode, false otherwise.
+   * @param {Boolean} exclusive true to create the AudioContext, false to
+   *   destroy.
    */
   _setExclusiveMode: function(exclusive) {
-    this._context.mozAudioChannelType = exclusive ? 'ringer' : 'normal';
+    if (exclusive) {
+      if (!this._source) {
+        this._context = new AudioContext('ringer');
+        this._source = this._context.createMediaElementSource(this._player);
+        this._source.connect(this._context.destination);
+      }
+    } else {
+      if (this._source) {
+        this._source.disconnect();
+        this._context = null;
+        this._source = null;
+      }
+    }
   }
 };

@@ -21,6 +21,7 @@ module.exports = View.extend({
 
   initialize: function(options) {
     this.drag = options && options.drag; // test hook
+    this.once('inserted', this.setupSwitch);
     this.render();
   },
 
@@ -44,8 +45,6 @@ module.exports = View.extend({
       camera: this.find('.js-icon-camera'),
       video: this.find('.js-icon-video')
     };
-
-    this.setupSwitch();
 
     // Clean up
     delete this.template;
@@ -84,10 +83,18 @@ module.exports = View.extend({
   setupSwitch: function() {
     debug('setup dragger');
 
+    // Wait until the document is complete
+    // to avoid any forced sync reflows.
+    if (document.readyState !== 'complete') {
+      window.addEventListener('load', this.setupSwitch);
+      debug('deferred switch setup till after load');
+      return;
+    }
+
     // Prefer existing drag (test hook)
     this.drag = this.drag || new Drag({
       handle: this.els.switchHandle,
-      container: this.els.switch,
+      container: this.els.switch
     });
 
     this.drag.on('tapped', debounce(this.onSwitchTapped, 300, true));
@@ -95,7 +102,11 @@ module.exports = View.extend({
     this.drag.on('translate', this.onSwitchTranslate);
     this.drag.on('snapped', this.onSwitchSnapped);
 
+    this.drag.updateDimensions();
     this.updateSwitchPosition();
+
+    // Tidy up
+    window.removeEventListener('load', this.setupSwitch);
   },
 
   onSwitchSnapped: function(edges) {
@@ -126,7 +137,7 @@ module.exports = View.extend({
     var video = Math.max(0, -1 + ratioSkewed);
     this.els.icons.camera.style.opacity = camera;
     this.els.icons.video.style.opacity = video;
-    debug('opacity camera: %s, video: %s', camera, video);
+    debug('set switch icon camera: %s, video: %s', camera, video);
   },
 
   onButtonClick: function(e) {
@@ -137,16 +148,20 @@ module.exports = View.extend({
   },
 
   setMode: function(mode) {
+    debug('set mode: %s', mode);
     this.set('mode', mode);
     this.switchPosition = this.switchPositions[mode];
+    var ratio = { left: 0, right: 1 }[this.switchPosition];
     this.updateSwitchPosition();
-    this.setSwitchIcon({ left: 0, right: 1 }[this.switchPosition]);
-    debug('setMode mode: %s, pos: %s', mode);
+    this.setSwitchIcon(ratio);
+    debug('mode set pos: %s', this.switchPosition);
   },
 
   updateSwitchPosition: function() {
+    debug('updateSwitchPosition');
     if (!this.drag) { return; }
     this.drag.set({ x: this.switchPosition });
+    debug('updated switch position: %s', this.switchPosition);
   },
 
   setThumbnail: function(blob) {

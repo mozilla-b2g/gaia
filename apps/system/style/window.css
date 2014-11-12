@@ -1,4 +1,4 @@
-.appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen):not(.attentionWindow) {
+.appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen):not(.attentionWindow):not(.lockScreenInputWindow) {
   opacity: 0;
   transform: none;
 }
@@ -7,7 +7,7 @@
   pointer-events: none;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow) {
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow) {
   background-color: black;
 }
 
@@ -494,14 +494,14 @@
 }
 
 /* Edges */
-#windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow) {
+#windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow) {
   /* not in the viewport */
   transform: translateX(-100%);
   opacity: 1;
 }
 
 /* making the appWindows moz-elementable for the cardview */
-#screen #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow).in-task-manager {
+#screen #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow).in-task-manager {
   transform: none;
 }
 
@@ -530,6 +530,13 @@
   transform: translateX(calc(100% + 2rem));
 }
 
+#screen #windows > .appWindow.will-become-active,
+#screen #windows > .appWindow.inside-edges,
+#screen #windows > .appWindow.outside-edges-left,
+#screen #windows > .appWindow.outside-edges-right {
+  will-change: transform;
+}
+
 @media (orientation: landscape) {
   #screen.software-button-enabled:not(.fullscreen-layout-app) #windows > .appWindow.outside-edges-right {
     transform: translateX(calc(100% + var(--software-home-button-height)));
@@ -549,7 +556,18 @@
   pointer-events: none;
 }
 
-/* Hide chrome UI of attention window */
+/* Hide chrome UI of windows */
 .appWindow.attentionWindow > .chrome > .controls > .urlbar > .title {
   display: none;
+}
+
+/* Hide chrome UI of lockScreenInputWindow since we don't need */
+.appWindow.lockScreenInputWindow > .titlebar,
+.appWindow.lockScreenInputWindow > .chrome {
+  display: none;
+}
+
+.appWindow.lockScreenInputWindow {
+  background: none;
+  pointer-events: none;
 }

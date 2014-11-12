@@ -146,7 +146,7 @@ var TrustedUIManager = {
   },
 
   _hideCallerApp: function trui_hideCallerApp(origin, callback) {
-    var app = AppWindowManager.getApp(origin);
+    var app = appWindowManager.getApp(origin);
     if (app == null || app.isHomescreen) {
       return;
     }
@@ -175,13 +175,13 @@ var TrustedUIManager = {
   },
 
   _restoreCallerApp: function trui_restoreCallerApp(origin) {
-    var frame = AppWindowManager.getApp(origin).frame;
+    var frame = appWindowManager.getApp(origin).frame;
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
-    if (!AppWindowManager.getActiveApp().isHomescreen) {
+    if (!System.currentApp.isHomescreen) {
       this.publish('trusteduihide', { origin: origin });
     }
-    if (AppWindowManager.getActiveApp().origin == origin) {
+    if (System.currentApp.origin == origin) {
       frame.classList.add('restored');
       frame.addEventListener('transitionend', function removeRestored() {
         frame.removeEventListener('transitionend', removeRestored);
@@ -359,10 +359,17 @@ var TrustedUIManager = {
     }
 
     var name = dialog.name;
-    var _ = navigator.mozL10n.get;
 
-    this.errorTitle.textContent = _('error-title', {name: name});
-    this.errorMessage.textContent = _(errorProperty, {name: name});
+    navigator.mozL10n.setAttributes(
+      this.errorTitle,
+      'error-title',
+      { name: name }
+    );
+    navigator.mozL10n.setAttributes(
+      this.errorTitle,
+      errorProperty,
+      { name: name }
+    );
 
     this.container.classList.add('error');
   },

@@ -1,11 +1,14 @@
 /* global AppChrome */
+/* global applications */
 /* global BrowserFrame */
 /* global layoutManager */
 /* global ManifestHelper */
 /* global OrientationManager */
 /* global ScreenLayout */
 /* global SettingsListener */
+/* global StatusBar */
 /* global System */
+/* global DUMP */
 'use strict';
 
 (function(exports) {
@@ -195,7 +198,7 @@
    *
    * When 'cardviewclosed' is received, the screenshotOverlay is hidden.
    *
-   * When 'sheetsgesturebegin' is received, the screenshotOverlay is shown.
+   * When 'sheetdisplayed' is received, the screenshotOverlay is shown.
    *
    * When 'sheetsgestureend' is received the screenshotOverlay is hidden.
    *
@@ -208,6 +211,7 @@
     function aw_setVisible(visible) {
       this.debug('set visibility -> ', visible);
       this.setVisibleForScreenReader(visible);
+      this._setActive(visible);
       if (visible) {
         // If this window is not the lockscreen, and the screen is locked,
         // we need to aria-hide the window.
@@ -228,6 +232,9 @@
    */
   AppWindow.prototype.setVisibleForScreenReader =
     function aw_setVisibleForScreenReader(visible) {
+      if (!this.element) {
+        return;
+      }
       this.element.setAttribute('aria-hidden', !visible);
     };
 
@@ -342,6 +349,7 @@
     this.suspended = false;
     this.element.classList.remove('suspended');
     // Launch as background by default.
+    this.browser.element.classList.add('hidden');
     this._setVisible(false);
     this.publish('resumed');
   };
@@ -360,6 +368,7 @@
     this.element.classList.add('suspended');
     this.browserContainer.removeChild(this.browser.element);
     this.browser = null;
+    this.iframe = null;
     this.publish('suspended');
   };
 
@@ -414,23 +423,29 @@
     }
 
     // If the app is the currently displayed app, switch to the homescreen
-    if (this.isActive() && !this.isHomescreen) {
+    if (this.isActive() && this.getBottomMostWindow().isActive() &&
+        !this.isHomescreen) {
 
-      var fallbackTimeout;
       var onClosed = function() {
-        clearTimeout(fallbackTimeout);
         this.element.removeEventListener('_closed', onClosed);
         this.destroy();
       }.bind(this);
 
       this.element.addEventListener('_closed', onClosed);
-      fallbackTimeout = setTimeout(onClosed,
-        this.transitionController.CLOSING_TRANSITION_TIMEOUT);
 
       if (this.previousWindow) {
         this.previousWindow.getBottomMostWindow().open('in-from-left');
         this.close('out-to-right');
       } else {
+        if (this.transitionController) {
+          // In normal case,
+          // the window manager will call this.close() to response
+          // the requestClose(), and when the timeout here is reached,
+          // it will not close again because transition controller
+          // is taking care of that.
+          setTimeout(this.close.bind(this, 'immediate'),
+            this.transitionController.CLOSING_TRANSITION_TIMEOUT);
+        }
         this.requestClose();
       }
     } else {
@@ -691,7 +706,7 @@
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
-     '_orientationchange', '_focus', '_hidewindow', '_sheetsgesturebegin',
+     '_orientationchange', '_focus', '_blur',  '_hidewindow', '_sheetdisplayed',
      '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
      '_closed', '_shrinkingstart', '_shrinkingstop'];
 
@@ -731,6 +746,10 @@
             new this.constructor.SUB_COMPONENTS[componentName](this);
           this[componentName].start && this[componentName].start();
         }
+      }
+
+      if (this.isInputMethod) {
+        return;
       }
 
       if (this.manifest) {
@@ -775,7 +794,7 @@
   };
 
   AppWindow.prototype._handle__orientationchange = function() {
-    if (this.isActive()) {
+    if (this.isActive() && !this.isHomescreen) {
       // Will be resized by the AppWindowManager
       return;
     }
@@ -1043,6 +1062,12 @@
       if (TRACE) {
         console.trace();
       }
+    } else if (window.DUMP) {
+      DUMP('[' + this.CLASS_NAME + ']' +
+        '[' + (this.name || this.origin) + ']' +
+        '[' + this.instanceID + ']' +
+        '[' + System.currentTime() + '] ' +
+        Array.slice(arguments).concat());
     }
   };
 
@@ -1362,6 +1387,14 @@
 
     // If we have sidebar in the future, change layoutManager then.
     width = layoutManager.width;
+
+    // Adjust height for activity windows which open while rocketbar is open.
+    if (this.parentApp) {
+      var parent = applications.getByManifestURL(this.parentApp);
+      if (parent.manifest.role === 'search') {
+        height += StatusBar.height * window.devicePixelRatio;
+      }
+    }
 
     this.width = width;
     this.height = height;
@@ -1694,6 +1727,9 @@
     if (!this.element) {
       return;
     }
+    if (this._screenshotBlob) {
+      this._showScreenshotOverlay();
+    }
 
     this.debug('requesting to open');
     if (!this.loaded ||
@@ -1765,16 +1801,16 @@
     }
   };
 
-  AppWindow.prototype._handle__sheetsgesturebegin = function aw_sgbegin() {
+  AppWindow.prototype._handle__sheetdisplayed = function aw_sheetdisplayed() {
     // If we're the active we shouldn't do anything at this point. We'll get
     // our frame hidden on swipeout.
     if (this.isActive()) {
-      this.debug('no screenshot for active app during sheetsgesturebegin');
+      this.debug('no screenshot for active app during sheetdisplayed');
       return;
     }
 
     // For inactive apps we'll already have a screenshot blob ready for use.
-    this.debug('showing screenshot during sheetsgesturebegin');
+    this.debug('showing screenshot during sheetdisplayed');
     this._showScreenshotOverlay();
   };
 
@@ -1798,19 +1834,9 @@
   };
 
   AppWindow.prototype._handle__closed = function aw_closed() {
-    //
-    // Never take screenshots of the homescreen.
-    //
-    // We don't need the screenshot of homescreen because:
-    // 1. Homescreen background is transparent,
-    //    currently gecko only sends JPG to us.
-    //    See bug 878003.
-    // 2. Homescreen screenshot isn't required by card view.
-    //    Since getScreenshot takes additional memory usage,
-    //    let's early return here.
-    // 3. We want to remove this long term, see bug 1072781.
-    //
-    if (this.getBottomMostWindow().isHomescreen) {
+    if (System.isBusyLoading() && this.getBottomMostWindow().isHomescreen) {
+      // We will eventually get screenshot when being requested from
+      // task manager.
       return;
     }
     // Update screenshot blob here to avoid slowing down closing transitions.
@@ -1829,6 +1855,7 @@
    * @memberOf AppWindow.prototype
    */
   AppWindow.prototype._handle__shrinkingstart = function aw_shrinkingstart() {
+    this.broadcast('blur');
     this.getScreenshot(() => {
       this._showScreenshotOverlay();
       this.setVisible(false);
@@ -1842,6 +1869,7 @@
    */
   AppWindow.prototype._handle__shrinkingstop = function aw_shrinkingstop() {
     this.setVisible(true);
+    this.broadcast('focus');
   };
 
   /**
@@ -2055,6 +2083,14 @@
     }
   };
 
+  AppWindow.prototype._handle__blur = function() {
+    var win = this;
+    while (win.frontWindow && win.frontWindow.isActive()) {
+      win = win.frontWindow;
+    }
+    win.blur();
+  };
+
   AppWindow.prototype._handle__focus = function() {
     var win = this;
     while (win.frontWindow && win.frontWindow.isActive()) {
@@ -2132,7 +2168,9 @@
         attention.parentWindow.instanceID === this.instanceID) {
       return;
     }
-
+    if (!this.isActive()) {
+      return;
+    }
     this.setVisible(false);
   };
   exports.AppWindow = AppWindow;

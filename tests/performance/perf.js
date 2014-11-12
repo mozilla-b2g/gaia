@@ -1,3 +1,6 @@
+'use strict';
+/* global global */
+
 var perfUtils = require('./perf-utils');
 
 global.config = perfUtils.configure( require('./config.json') );
@@ -32,14 +35,6 @@ var Manifests = requireGaia('tests/performance/manifests.js');
 var appManifest = Manifests.readForApp(appPath);
 if (appManifest == null) {
   console.error('Manifest for "%s" not found.', appPath);
-
-  handleExcludedApp();
-}
-
-if (appManifest.role) {
-  if (config.verbose) {
-    console.error('Found role "%s". Skipping %s', appManifest.role, appPath);
-  }
 
   handleExcludedApp();
 }

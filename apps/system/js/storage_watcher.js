@@ -83,12 +83,16 @@ var DeviceStorageWatcher = {
 
   updateAvailableSpace: function dsw_updateAvailableSpace(space) {
     if (space && typeof space.size !== 'undefined' && space.unit) {
-      this._availableSpace.textContent = this._('free-space', {
-        value: space.size,
-        unit: space.unit
-      });
+      navigator.mozL10n.setAttributes(
+        this._availableSpace,
+        'free-space',
+        {
+          value: space.size,
+          unit: space.unit
+        }
+      );
     } else {
-      this._availableSpace.textContent = this._('unknown-free-space');
+      this._availableSpace.setAttribute('data-l10n-id', 'unknown-free-space');
     }
   },
 

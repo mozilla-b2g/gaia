@@ -166,6 +166,7 @@ window.SMIL = {
     var slides = [];
     var activeReaders = 0;
     var attachmentsNotFound = false;
+    var smilMismatched = false;
     var doc;
     var parTags;
 
@@ -325,13 +326,23 @@ window.SMIL = {
     if (smil) {
       doc = (new DOMParser()).parseFromString(smil, 'application/xml');
       parTags = doc.documentElement.getElementsByTagName('par');
-      Array.prototype.forEach.call(parTags, SMIL_parseHandleParTag);
+
+      // Check if attachments are all listed in smil.
+      var elements = Array.reduce(
+        parTags, (count, par) => count + par.childElementCount, 0
+      );
+
+      if (elements !== attachments.length) {
+        smilMismatched = true;
+      } else {
+        Array.prototype.forEach.call(parTags, SMIL_parseHandleParTag);
+      }
     }
 
     // handle MMS attachments without SMIL / malformed SMIL
-    if (!smil || attachmentsNotFound || !slides.length) {
+    if (!smil || attachmentsNotFound || !slides.length || smilMismatched) {
       // reset slides in the attachments not found case
-      slides = [];
+      slides = Array(attachments.length);
       attachments.forEach(SMIL_parseWithoutSMIL);
     }
     exitPoint();

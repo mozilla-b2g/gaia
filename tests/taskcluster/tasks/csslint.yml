@@ -5,8 +5,15 @@ task:
 
   workerType: '{{workerType}}'
   provisionerId: '{{provisionerId}}'
+  scopes:
+    # Source caches contains various sources (including a tarball of gaia source
+    # tree)
+    - docker-worker:cache:gaia-misc-caches
 
   payload:
+    cache:
+      gaia-misc-caches: /home/tester/caches/
+
     command:
       - entrypoint
       - ./bin/ci run csslint

@@ -1,5 +1,5 @@
 'use strict';
-/* global AppWindowManager, SearchWindow, places */
+/* global System, SearchWindow, places */
 
 (function(exports) {
 
@@ -36,6 +36,30 @@
   }
 
   Rocketbar.prototype = {
+    EVENT_PREFIX: 'rocketbar',
+    name: 'Rocketbar',
+
+    publish: function(name) {
+      window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + name, {
+        detail: this
+      }));
+    },
+
+    isActive: function() {
+      return this.active;
+    },
+
+    getActiveWindow: function() {
+      return this.isActive() ? this.searchWindow : null;
+    },
+
+    setHierarchy: function(active) {
+      if (active) {
+        this.focus();
+      }
+      this.searchWindow &&
+      this.searchWindow.setVisibleForScreenReader(active);
+    },
 
     /**
      * Starts Rocketbar.
@@ -44,6 +68,7 @@
     start: function() {
       this.addEventListeners();
       this.enabled = true;
+      System.request('registerHierarchy', this);
     },
 
     /**
@@ -61,6 +86,9 @@
         }
         return;
       }
+
+      window.addEventListener('system-resize', this, true);
+
       this.active = true;
       this.rocketbar.classList.add('active');
       this.form.classList.remove('hidden');
@@ -70,9 +98,13 @@
       // before moving on (and triggering the callback).
       var searchLoaded = false;
       var transitionEnded = false;
+      var self = this;
       var waitOver = function() {
-        if (searchLoaded && transitionEnded && callback) {
-          callback();
+        if (searchLoaded && transitionEnded) {
+          if (callback) {
+            callback();
+          }
+          self.publish('-activated');
         }
       };
 
@@ -97,6 +129,7 @@
         searchLoaded = true;
         waitOver();
       });
+      this.publish('-activating');
     },
 
     /**
@@ -111,8 +144,11 @@
       }
       this.active = false;
 
+      window.removeEventListener('system-resize', this, true);
+
       var backdrop = this.backdrop;
       var finishTimeout;
+      var self = this;
       var finish = (function() {
         clearTimeout(finishTimeout);
         this.form.classList.add('hidden');
@@ -124,6 +160,7 @@
         backdrop.addEventListener('transitionend', function trWait() {
           backdrop.removeEventListener('transitionend', trWait);
           window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
+          self.publish('-deactivated');
         });
       }).bind(this);
 
@@ -138,6 +175,7 @@
       } else {
         finish();
       }
+      this.publish('-deactivating');
     },
 
     /**
@@ -257,34 +295,39 @@
             this.focus();
           }
           break;
+        case 'system-resize':
+          if (this.searchWindow.frontWindow) {
+            this.searchWindow.frontWindow.resize();
+          }
+          break;
         case 'global-search-request':
           // XXX: fix the WindowManager coupling
           // but currently the transition sequence is crucial for performance
-          var app = AppWindowManager.getActiveApp();
+          var app = System.currentApp;
+          var afterActivate;
 
           // If the app is not a browser, retain the search value and activate.
           if (app && !app.isBrowser()) {
-            this.activate(this.focus.bind(this));
-            return;
+            afterActivate = this.focus.bind(this);
+          } else {
+            // Set the input to be the URL in the case of a browser.
+            this.setInput(app.config.url);
+
+            afterActivate = () => {
+              this.hideResults();
+              setTimeout(() => {
+                this.focus();
+                this.selectAll();
+              });
+            };
           }
-
-          // Set the input to be the URL in the case of a browser.
-          this.setInput(app.config.url);
-
-          var focusAndSelect = () => {
-            this.hideResults();
-            setTimeout(() => {
-              this.focus();
-              this.selectAll();
-            });
-          };
 
           if (app && app.appChrome && !app.appChrome.isMaximized()) {
             app.appChrome.maximize(() => {
-              this.activate(focusAndSelect);
+              this.activate(afterActivate);
             });
           } else {
-            this.activate(focusAndSelect);
+            this.activate(afterActivate);
           }
           break;
       }

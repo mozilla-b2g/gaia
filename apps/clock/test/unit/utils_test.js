@@ -3,12 +3,14 @@
 suite('Time functions', function() {
   var Utils;
   var MockRequestWakeLock;
+  var mozL10n;
 
   suiteSetup(function(done) {
-    require(['utils', 'mocks/mock_request_wake_lock'],
-      function(utils, _MockRequestWakeLock) {
+    require(['utils', 'mocks/mock_request_wake_lock', 'l10n'],
+      function(utils, _MockRequestWakeLock, l10n) {
         Utils = utils;
         MockRequestWakeLock = _MockRequestWakeLock;
+        mozL10n = l10n;
         done();
     });
   });
@@ -666,6 +668,30 @@ suite('Time functions', function() {
     assert.equal(Utils.summarizeDaysOfWeek({
       monday: true, wednesday: true, friday: true
     }), 'weekday-1-short, weekday-3-short, weekday-5-short');
+  });
+
+  test('summarizeDaysOfWeek handles weekStartsOnMonday', function() {
+
+    mozL10n.setResources('en-US', {
+      'weekStartsOnMonday': '0',
+    });
+
+    mozL10n.setResources('fr', {
+      'weekStartsOnMonday': '1',
+    });
+
+    mozL10n.language.code = 'fr';
+
+    assert.equal(Utils.summarizeDaysOfWeek({
+      monday: true
+    }), 'weekday-1-short');
+
+    mozL10n.language.code = 'en-US';
+
+    assert.equal(Utils.summarizeDaysOfWeek({
+      monday: true
+    }), 'weekday-1-short');
+
   });
 
 });

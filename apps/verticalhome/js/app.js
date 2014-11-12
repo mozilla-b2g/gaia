@@ -1,5 +1,5 @@
 'use strict';
-/* global ItemStore, LazyLoader, Configurator, SettingsListener, groupEditor */
+/* global ItemStore, LazyLoader, Configurator, groupEditor */
 
 (function(exports) {
 
@@ -9,29 +9,6 @@
   function App() {
     window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
     this.grid = document.getElementById('icons');
-
-    SettingsListener.observe('verticalhome.grouping.enabled', false,
-      (value) => {
-        var groupingEnabled = value;
-        if (typeof this.grouping !== 'undefined') {
-          if (groupingEnabled != this.grouping) {
-            window.location.reload();
-            return;
-          }
-        }
-
-        this.grouping = groupingEnabled;
-        if (groupingEnabled) {
-          document.body.classList.add('grouping');
-          LazyLoader.load(
-            ['shared/elements/gaia_grid/js/items/group.js'],
-            () => {
-              this.init();
-            });
-        } else {
-          this.init();
-        }
-      });
 
     this.grid.addEventListener('iconblobdecorated', this);
     this.grid.addEventListener('gaiagrid-iconbloberror', this);
@@ -126,7 +103,7 @@
         window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
         window.addEventListener('localized', this.onLocalized.bind(this));
-        LazyLoader.load(['shared/elements/gaia-header/dist/script.js',
+        LazyLoader.load(['shared/elements/gaia-header/dist/gaia-header.js',
                          'js/contextmenu_handler.js',
                          '/shared/js/homescreens/confirm_dialog_helper.js'],
           function() {
@@ -259,7 +236,7 @@
             return;
           }
 
-          window.scrollTo(0, 0, {behavior: 'smooth'});
+          window.scrollTo({left: 0, top: 0, behavior: 'smooth'});
       }
     }
   };
@@ -280,5 +257,6 @@
     }
   };
   exports.app = new App();
+  exports.app.init();
 
 }(window));

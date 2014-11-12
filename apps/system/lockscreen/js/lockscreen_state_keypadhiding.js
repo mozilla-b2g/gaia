@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/* global Promise */
+/* global Promise, LockScreenBaseState */
 
 'use strict';
 
@@ -23,7 +23,12 @@
  */
 (function(exports) {
 
-  var LockScreenStateKeypadHiding = function() {};
+  var LockScreenStateKeypadHiding = function() {
+    LockScreenBaseState.apply(this, arguments);
+  };
+  LockScreenStateKeypadHiding.prototype =
+    Object.create(LockScreenBaseState.prototype);
+
   LockScreenStateKeypadHiding.prototype.start = function(lockScreen) {
     this.type = 'keypadHiding';
     this.lockScreen = lockScreen;
@@ -33,22 +38,18 @@
   LockScreenStateKeypadHiding.prototype.transferTo =
   function lsskh_transferTo() {
     return new Promise((resolve, reject) => {
-      var transitionEnd = (evt) => {
-        // XXX: keyboard animation would affect panel, but the target would
-        // not be 'this.lockScreen.overlay'.
-        if (evt.target.classList.contains('lockscreen-panel')) {
-          window.removeEventListener('transitionend', transitionEnd);
-          // We must map this native event to avoid listen 'transitionend'
-          // in the manager cause racing problem (the event and transferring
-          // done event).
-          resolve( {'transitionEnd': true} );
-        }
-      };
       // Copy from the original switching method.
       this.lockScreen.overlay.classList.remove('no-transition');
-      window.addEventListener('transitionend', transitionEnd);
       // Trigger the transition.
       this.lockScreen.overlay.dataset.panel = 'main';
+      window.dispatchEvent(
+        new CustomEvent('lockscreen-request-inputpad-close'));
+      // XXX: We need a overall refactoring about panel and
+      // panel styling in the future.
+      this.lockScreen.overlay.classList.remove('passcode-unlocking');
+      // XXX: We assume this is sync in order. But if we use real
+      // input window this would be broken.
+      resolve();
     });
   };
   exports.LockScreenStateKeypadHiding = LockScreenStateKeypadHiding;

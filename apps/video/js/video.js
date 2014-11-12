@@ -27,7 +27,8 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'picker-close', 'picker-title',
            'picker-header', 'picker-done', 'options', 'options-view',
-           'options-cancel-button', 'seek-backward', 'seek-forward'];
+           'options-cancel-button', 'seek-backward', 'seek-forward',
+           'in-use-overlay', 'in-use-overlay-title', 'in-use-overlay-text'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -78,10 +79,11 @@ var sliderRect;
 var thumbnailList;
 
 var pendingPick;
-// This app uses deprecated-hwvideo permission to access video decoding hardware
-// But Camera and Gallery also need to use that hardware, and those three apps
-// may only have one video playing at a time among them. So we need to be
-// careful to relinquish the hardware when we are not visible.
+
+// Before launching a share activity we may need to release the video hardware
+// If so we need to remember the playback time so we can resume at the
+// right time. See releaseVideo() and restoreVideo().
+var videoHardwareReleased = false;
 var restoreTime = null;
 
 var isPhone;
@@ -98,20 +100,23 @@ var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
 var videoControlsAutoHidingMsOverride;
 
+// We have a single instance of the loading checker because it is used
+// across functions
+var loadingChecker =
+  new VideoLoadingChecker(dom.player, dom.inUseOverlay, dom.inUseOverlayTitle,
+                          dom.inUseOverlayText);
+
 // Pause on visibility change
 document.addEventListener('visibilitychange', function visibilityChange() {
   if (document.hidden) {
     stopParsingMetadata();
-    if (playing)
+    if (playing) {
       pause();
-
-    if (playerShowing)
-      releaseVideo();
+    }
   }
   else {
     if (playerShowing) {
       setControlsVisibility(true);
-      restoreVideo();
     } else {
       // We only start parsing metadata when player is not shown.
       startParsingMetadata();
@@ -454,6 +459,15 @@ function hideSelectView() {
 }
 
 function showOptionsView() {
+  // If the user is about to share a video we should stop playing it because
+  // sometimes we won't go to the background when the activity starts and
+  // we keep playing. This will cause problems if the receiving app also tries
+  // to play it. Similarly, if the user is going to delete the video there is
+  // no point in continuing to play it. And if they care enough about it to
+  // look for more info about it, they probably don't want to miss anything.
+  if (playing) {
+    pause();
+  }
   dom.optionsView.classList.remove('hidden');
 }
 
@@ -623,6 +637,10 @@ function share(blobs) {
     names.push(name);
   });
 
+  if (playerShowing) {
+    releaseVideo();
+  }
+
   var a = new MozActivity({
     name: 'share',
     data: {
@@ -634,6 +652,8 @@ function share(blobs) {
     }
   });
 
+  a.onsuccess = restoreVideo;
+
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
@@ -641,6 +661,7 @@ function share(blobs) {
     } else {
       console.warn('share activity error:', a.error.name);
     }
+    restoreVideo();
   };
 }
 
@@ -671,9 +692,10 @@ function updateLoadingSpinner() {
     dom.spinnerOverlay.classList.add('hidden');
     dom.playerView.classList.remove('disabled');
     if (thumbnailList.count) {
-      // Load the first video item to player when we are in tablet and landscape
-      // mode.
-      currentVideo = thumbnailList.itemGroups[0].thumbnails[0].data;
+      // Initialize currentVideo to first video item if it doesn't have a value.
+      currentVideo = currentVideo ||
+                     thumbnailList.itemGroups[0].thumbnails[0].data;
+      // Load current video to player when we are in tablet and landscape.
       if (!isPhone && !isPortrait) {
         showPlayer(currentVideo, false, /* autoPlay */
                                  false, /* enterFullscreen */
@@ -898,18 +920,32 @@ function handleSliderTouchStart(event) {
 }
 
 function setVideoUrl(player, video, callback) {
+
+  function handleLoadedMetadata() {
+    // We only want the 'loadedmetadata' handler to execute when the video
+    // app explicitly loads a video. To prevent unwanted side affects, for
+    // example, when the video app is sent to the background and then to the
+    // foreground, where gecko sends a 'loadedmetadata' event (among others),
+    // we clear the 'loadedmetadata' event handler after the event fires.
+    dom.player.onloadedmetadata = null;
+    callback();
+  }
+
+  function loadVideo(url) {
+    loadingChecker.ensureVideoLoads(handleLoadedMetadata);
+    player.src = url;
+  }
+
   if ('name' in video) {
     videodb.getFile(video.name, function(file) {
       var url = URL.createObjectURL(file);
-      player.onloadedmetadata = callback;
-      player.src = url;
+      loadVideo(url);
 
       if (pendingPick)
         currentVideoBlob = file;
     });
   } else if ('url' in video) {
-    player.onloadedmetadata = callback;
-    player.src = video.url;
+    loadVideo(video.url);
   }
 }
 
@@ -1034,11 +1070,7 @@ function hidePlayer(updateVideoMetadata, callback) {
     playerShowing = false;
     updateDialog();
 
-    // Unload the video. This releases the video decoding hardware
-    // so other apps can use it. Note that any time the video app is hidden
-    // (by switching to another app) we leave player mode, and this
-    // code gets triggered, so if the video app is not visible it should
-    // not be holding on to the video hardware
+    // The video is no longer being played; unload the it.
     dom.player.removeAttribute('src');
     dom.player.load();
 
@@ -1122,6 +1154,7 @@ function playerEnded() {
 }
 
 function play() {
+  loadingChecker.ensureVideoPlays();
   // Switch the button icon
   dom.play.classList.remove('paused');
 
@@ -1132,12 +1165,13 @@ function play() {
   // by setting the media.mediasource.enabled pref to true.
   VideoStats.start(dom.player);
 
-  // Start playing
   dom.player.play();
   playing = true;
 }
 
 function pause() {
+  loadingChecker.cancelEnsureVideoPlays();
+
   // Switch the button icon
   dom.play.classList.add('paused');
 
@@ -1240,54 +1274,6 @@ function toCamelCase(str) {
   });
 }
 
-// Call this when the app is hidden
-function releaseVideo() {
-  // readyState = 0: no metadata loaded, we don't need to save the currentTime
-  // of player. It is always 0 and can't be used to restore the state of video.
-  if (dom.player.readyState > 0) {
-    restoreTime = dom.player.currentTime;
-  }
-  dom.player.removeAttribute('src');
-  dom.player.load();
-}
-
-// Call this when the app becomes visible again
-function restoreVideo() {
-  // When restoreVideo is called, we assume we have currentVideo because the
-  // playerShowing is true.
-
-  function doneRestoreSeeking() {
-    dom.player.onseeked = null;
-    dom.player.hidden = false;
-  }
-
-  //hide video player before setVideoUrl
-  dom.player.hidden = true;
-  setVideoUrl(dom.player, currentVideo, function() {
-    VideoUtils.fitContainer(dom.videoContainer, dom.player,
-                            currentVideo.metadata.rotation || 0);
-
-    // Everything is ready, start to restore last playing time.
-    if (restoreTime !== null) {
-      // restore to the last time when we have a valid restoreTime.
-      dom.player.currentTime = restoreTime;
-    } else {
-      // When we don't have valid restoreTime, we need to restore to the last
-      // viewing position from metadata. When user taps on a unwatched video and
-      // presses home quickly, the dom.player may not finish the loading of
-      // video and the restoreTime is null. At the same case, the currentTime of
-      // metadata is still undefined because we haven't updateMetadata.
-      dom.player.currentTime = currentVideo.metadata.currentTime || 0;
-    }
-
-    if (dom.player.seeking) {
-      dom.player.onseeked = doneRestoreSeeking;
-    } else {
-      doneRestoreSeeking();
-    }
-  });
-}
-
 //
 // Pick activity
 //
@@ -1325,3 +1311,68 @@ function hideThrobber() {
   dom.throbber.classList.add('hidden');
   dom.throbber.classList.remove('throb');
 }
+
+// This function unloads the current video to release the decoder
+// hardware.  We use it when invoking a share activity because if the
+// share activity is inline, then we won't go to the background and
+// the receiving app won't be able to play the video.
+function releaseVideo() {
+  if (videoHardwareReleased) {
+    return;
+  }
+  videoHardwareReleased = true;
+
+  // readyState = 0: no metadata loaded, we don't need to save the currentTime
+  // of player. It is always 0 and can't be used to restore the state of video.
+  if (dom.player.readyState > 0) {
+    restoreTime = dom.player.currentTime;
+  }
+  else {
+    restoreTime = 0;
+  }
+  dom.player.removeAttribute('src');
+  dom.player.load();
+}
+
+// We call this to load and seek the video again when the share activity
+// is complete.
+function restoreVideo() {
+  if (!videoHardwareReleased) {
+    return;
+  }
+  videoHardwareReleased = false;
+
+  // When restoreVideo is called, we assume we have currentVideo because the
+  // playerShowing is true.
+  setVideoUrl(dom.player, currentVideo, function() {
+    VideoUtils.fitContainer(dom.videoContainer, dom.player,
+                            currentVideo.metadata.rotation || 0);
+    dom.player.currentTime = restoreTime;
+  });
+}
+
+//
+// Bug 1088456: when the view activity is launched by the bluetooth transfer
+// app (when the user taps on a downloaded file in the notification tray) the
+// view.html file can be launched while index.html is still running as the
+// foreground app. Since the video app does not get sent to the background in
+// this case, the currently playing video (if there is one) is not
+// unloaded. And so, in the case of videos that require decoder hardware, the
+// view activity cannot play the video. For this workaround, we have view.js
+// set a localStorage property when it starts. And here we listen for changes
+// to that property. When we see a change we unload the video so that the view
+// activity can play its video. We intentionally do not make any effort to
+// automatically restart the video.
+//
+// Bug 1085212: if we already released the video hardware (when starting a
+// share activity) then we don't need to respond to this localStorage hack.
+//
+window.addEventListener('storage', function(e) {
+  if (e.key === 'view-activity-wants-to-use-hardware' && e.newValue &&
+      !document.hidden && playerShowing && !videoHardwareReleased) {
+    console.log('The video app view activity needs to play a video.');
+    console.log('Pausing the video and returning to the thumbnails.');
+    console.log('See bug 1088456.');
+    handleCloseButtonClick();
+  }
+});

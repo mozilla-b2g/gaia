@@ -1,9 +1,6 @@
-Calendar.Template = (function() {
+define(function(require, exports, module) {
 'use strict';
 
-/**
- * Constants
- */
 var POSSIBLE_HTML = /[&<>"'`]/;
 
 var span = document.createElement('span');
@@ -23,6 +20,7 @@ function create(templates) {
 function Template(fn) {
   this.template = fn;
 }
+module.exports = Template;
 
 Template.prototype = {
   arg: function(key) {
@@ -74,6 +72,10 @@ Template.prototype = {
     return navigator.mozL10n.get(value);
   },
 
+  l10nId: function(a) {
+    return this.s(a).replace(/\s/g, '-');
+  },
+
   /**
    * Renders template with given slots.
    *
@@ -108,6 +110,5 @@ Template.prototype = {
 };
 
 Template.create = create;
-return Template;
 
-}());
+});

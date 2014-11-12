@@ -94,6 +94,11 @@ var LazyLoader = (function() {
     },
 
     load: function(files, callback) {
+      var deferred = {};
+      deferred.promise = new Promise(resolve => {
+        deferred.resolve = resolve;
+      });
+
       if (!Array.isArray(files)) {
         files = [files];
       }
@@ -106,6 +111,7 @@ var LazyLoader = (function() {
         self._loaded[file] = true;
 
         if (--loadsRemaining === 0) {
+          deferred.resolve();
           if (callback) {
             callback();
           }
@@ -133,6 +139,8 @@ var LazyLoader = (function() {
           this['_' + method](file, perFileCallback.bind(null, idx));
         }
       }
+
+      return deferred.promise;
     }
   };
 

@@ -1,8 +1,10 @@
-requireLib('timespan.js');
+define(function(require) {
+'use strict';
+
+var Calc = require('calc');
+var Timespan = require('timespan');
 
 suite('timespan', function() {
-  'use strict';
-
   var subject;
   var startDate;
   var endDate;
@@ -11,7 +13,7 @@ suite('timespan', function() {
     startDate = new Date(2012, 1, 1);
     endDate = new Date(2012, 12, 1);
 
-    subject = new Calendar.Timespan(
+    subject = new Timespan(
       startDate,
       endDate
     );
@@ -30,17 +32,17 @@ suite('timespan', function() {
   });
 
   test('#isEqual', function() {
-    var span = new Calendar.Timespan(
+    var span = new Timespan(
       new Date(2012, 1, 1),
       new Date(2012, 1, 5)
     );
 
-    var eqlSpan = new Calendar.Timespan(
+    var eqlSpan = new Timespan(
       new Date(2012, 1, 1),
       new Date(2012, 1, 5)
     );
 
-    var notEqualSpan = new Calendar.Timespan(
+    var notEqualSpan = new Timespan(
       new Date(2012, 1, 1),
       new Date(2012, 1, 6)
     );
@@ -50,12 +52,12 @@ suite('timespan', function() {
   });
 
   test('#daysBetween', function() {
-    var range = new Calendar.Timespan(
+    var range = new Timespan(
       new Date(2012, 1, 1),
       new Date(2012, 1, 3)
     );
 
-    var dates = range.daysBetween();
+    var dates = Calc.daysBetween(range);
     assert.deepEqual(
       dates[0],
       new Date(2012, 1, 1)
@@ -78,19 +80,19 @@ suite('timespan', function() {
     var none;
 
     setup(function() {
-      none = new Calendar.Timespan(
+      none = new Timespan(
         new Date(2012, 5, 1),
         new Date(2012, 5, 15)
       );
 
-      before = new Calendar.Timespan(
+      before = new Timespan(
         // July 1
         new Date(2012, 6, 1),
         // Aug 4th
         new Date(2012, 7, 4)
       );
 
-      subject = new Calendar.Timespan(
+      subject = new Timespan(
         // July 29th
         new Date(2012, 6, 29),
         // Aug 31
@@ -99,12 +101,12 @@ suite('timespan', function() {
     });
 
     test('middle', function() {
-      var long = new Calendar.Timespan(
+      var long = new Timespan(
         new Date(2012, 0, 1),
         new Date(2012, 0, 31)
       );
 
-      var short = new Calendar.Timespan(
+      var short = new Timespan(
         new Date(2012, 0, 5),
         new Date(2012, 0, 10)
       );
@@ -137,7 +139,7 @@ suite('timespan', function() {
 
       end.setMilliseconds(-1);
 
-      var expected = new Calendar.Timespan(
+      var expected = new Timespan(
         start, end
       );
 
@@ -158,7 +160,7 @@ suite('timespan', function() {
         2012, 7, 31
       );
 
-      var expected = new Calendar.Timespan(
+      var expected = new Timespan(
         start, end
       );
 
@@ -174,7 +176,7 @@ suite('timespan', function() {
       dates = {
         'range: inside': {
           assert: true,
-          value: new Calendar.Timespan(
+          value: new Timespan(
             startDate,
             endDate
           )
@@ -182,7 +184,7 @@ suite('timespan', function() {
 
         'range: starts on end date': {
           assert: false,
-          value: new Calendar.Timespan(
+          value: new Timespan(
             endDate,
             new Date(2015, 1, 1)
           )
@@ -190,7 +192,7 @@ suite('timespan', function() {
 
         'range: outside before': {
           assert: false,
-          value: new Calendar.Timespan(
+          value: new Timespan(
             new Date(1991, 1, 1),
             new Date(2000, 1, 1)
           )
@@ -198,7 +200,7 @@ suite('timespan', function() {
 
         'range: outside after': {
           assert: false,
-          value: new Calendar.Timespan(
+          value: new Timespan(
             new Date(2015, 1, 1),
             new Date(2016, 1, 1)
           )
@@ -206,7 +208,7 @@ suite('timespan', function() {
 
         'range: greater': {
           assert: true,
-          value: new Calendar.Timespan(
+          value: new Timespan(
             new Date(2011, 12, 31),
             new Date(2012, 12, 2)
           )
@@ -214,7 +216,7 @@ suite('timespan', function() {
 
         'range overlap: start before': {
           assert: true,
-          value: new Calendar.Timespan(
+          value: new Timespan(
             new Date(2011, 1, 1),
             new Date(2012, 1, 15)
           )
@@ -222,7 +224,7 @@ suite('timespan', function() {
 
         'range overlap: end before': {
           assert: true,
-          value: new Calendar.Timespan(
+          value: new Timespan(
             new Date(2012, 1, 2),
             new Date(2012, 11, 12)
           )
@@ -298,7 +300,7 @@ suite('timespan', function() {
     });
 
     test('timespan in range', function() {
-      var span = new Calendar.Timespan(
+      var span = new Timespan(
         new Date(2012, 1, 1),
         new Date(2012, 1, 5)
       );
@@ -351,5 +353,6 @@ suite('timespan', function() {
       testWith('contains', false);
     });
   });
+});
 
 });

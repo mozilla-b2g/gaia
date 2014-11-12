@@ -5,14 +5,17 @@
 
 .menu-item {
   position: static;
-  padding-left: 5.5rem;
   background-repeat: no-repeat;
   background-position: 1.4rem center;
 }
 
+.menu-item[data-icon] {
+  padding-left: 5.5rem;
+}
+
 a.menu-item:after  {
   font-family: "gaia-icons";
-  content: "forward";
+  content: "forward-light";
   position: absolute;
   top: 0;
   right: 0.3rem;
@@ -321,6 +324,11 @@ html[dir="rtl"] aside.pack-end {
   margin-left: 0;
   margin-right: .5rem;
   text-align: left;
+}
+
+html[dir="rtl"] section#downloads aside.pack-end {
+  left: auto;
+  right: 0;
 }
 
 html[dir="rtl"] #menuItem-callWaiting .alert-label > span {

@@ -62,13 +62,17 @@ var FontSizeManager = (function fontSizeManager() {
      If the content is still too large within the size contraints, it will add
      an ellipsis */
   function adaptToSpace(scenario, view, forceMaxFontSize, ellipsisSide) {
-    // We don't care about the font size of empty views
-    if (!view.value && !view.textContent) {
+    // Bug 1082139 - JavascriptException: JavascriptException: TypeError:
+    //  window.getComputedStyle(...) is null at://
+    //  app://callscreen.gaiamobile.org/gaia_build_defer_index.js line: 146
+    var computedStyle = window.getComputedStyle(view);
+    if ((!view.value && !view.textContent) || !computedStyle) {
+      // We don't care about the font size of empty views
       return;
     }
 
     var viewWidth = view.getBoundingClientRect().width;
-    var viewFont = window.getComputedStyle(view).fontFamily;
+    var viewFont = computedStyle.fontFamily;
 
     var allowedSizes;
     if (forceMaxFontSize) {
@@ -131,6 +135,10 @@ var FontSizeManager = (function fontSizeManager() {
                             (maxFontSize - fontSize) / 2 + 'px';
   }
 
+  function resetFixedBaseline(view) {
+    view.style.removeProperty('line-height');
+  }
+
   return {
     DIAL_PAD: DIAL_PAD,
     SINGLE_CALL: SINGLE_CALL,
@@ -138,6 +146,7 @@ var FontSizeManager = (function fontSizeManager() {
     STATUS_BAR: STATUS_BAR,
     SECOND_INCOMING_CALL: SECOND_INCOMING_CALL,
     adaptToSpace: adaptToSpace,
-    ensureFixedBaseline: ensureFixedBaseline
+    ensureFixedBaseline: ensureFixedBaseline,
+    resetFixedBaseline: resetFixedBaseline
   };
 })();

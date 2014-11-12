@@ -48,9 +48,7 @@ marionette('Vertical - Localization', function() {
       });
     });
 
-    // Long press on the first divider to bring up the context menu
-    var divider = client.helper.waitForElement(selectors.dividers);
-    actions.longPress(divider, 1).perform();
+    home.openContextMenu();
 
     // Element.text() does not return the content of the shadow dom,
     // so enter the shadow dom manually for now to get the text.

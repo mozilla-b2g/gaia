@@ -19,7 +19,6 @@ var UpdateManager = {
   _errorTimeout: null,
   _wifiLock: null,
   _systemUpdateDisplayed: false,
-  _dataConnectionWarningEnabled: true,
   _startedDownloadUsingDataConnection: false,
   _settings: null,
   UPDATE_NOTIF_ID: 'update-notification',
@@ -116,10 +115,6 @@ var UpdateManager = {
     window.addEventListener('wifi-statuschange', this);
     this.updateWifiStatus();
     this.updateOnlineStatus();
-
-    // Always display the warning after users reboot the phone.
-    this._dataConnectionWarningEnabled = true;
-    this.downloadDialog.dataset.dataConnectionInlineWarning = false;
   },
 
   requestDownloads: function um_requestDownloads(evt) {
@@ -185,6 +180,11 @@ var UpdateManager = {
   promptOrDownload: function um_promptOrDownload() {
     var self = this;
 
+    if (self.downloadDialog.dataset.online == 'false') {
+      self.showPromptNoConnection();
+      return;
+    }
+
     if (self._wifiAvailable()) {
       self._startedDownloadUsingDataConnection = false;
       self.startDownloads();
@@ -240,11 +240,7 @@ var UpdateManager = {
 
       //2G connection
       if (self.connection2G) {
-        if (prioritized) {
-          self.showPromptWifiPrioritized(self.showForbiddenDownload);
-        } else {
-          self.showForbiddenDownload();
-        }
+        self.showForbiddenDownload();
         return;
       }
 
@@ -300,6 +296,21 @@ var UpdateManager = {
 
     CustomDialog
       .show('systemUpdate', 'downloadUpdatesVia2GForbidden3', ok, null, screen)
+      .setAttribute('data-z-index-level', 'system-dialog');
+  },
+
+  showPromptNoConnection: function um_showPromptNoConnection() {
+    //Close any dialog if there is any open
+    CustomDialog.hide();
+    var ok = {
+      title: 'ok',
+      callback: this.cancelPrompt.bind(this)
+    };
+
+    var screen = document.getElementById('screen');
+
+    CustomDialog
+      .show('systemUpdate', 'downloadOfflineWarning2', ok, null, screen)
       .setAttribute('data-z-index-level', 'system-dialog');
   },
 
@@ -495,8 +506,6 @@ var UpdateManager = {
   downloaded: function um_downloaded(udatable) {
     if (this._startedDownloadUsingDataConnection) {
       this._startedDownloadUsingDataConnection = false;
-      this._dataConnectionWarningEnabled = false;
-      this.downloadDialog.dataset.dataConnectionInlineWarning = true;
     }
   },
 
@@ -736,12 +745,6 @@ var UpdateManager = {
   updateOnlineStatus: function su_updateOnlineStatus() {
     var online = (navigator && 'onLine' in navigator) ? navigator.onLine : true;
     this.downloadDialog.dataset.online = online;
-
-    if (online) {
-      this.laterButton.classList.remove('full');
-    } else {
-      this.laterButton.classList.add('full');
-    }
   },
 
   _wifiAvailable: function su_wifiAvailable() {

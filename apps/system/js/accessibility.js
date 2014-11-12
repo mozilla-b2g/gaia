@@ -1,5 +1,6 @@
 'use strict';
 /* global SettingsListener */
+/* global AccessibilityQuicknavMenu */
 
 (function(exports) {
 
@@ -56,7 +57,7 @@
      * @memberof Accessibility.prototype
      */
     expectedEvent: {
-      type: 'volume-up-button-press',
+      type: 'volumeup',
       timeStamp: 0
     },
 
@@ -92,7 +93,8 @@
     sounds: {
       clickedAudio: null,
       vcKeyAudio: null,
-      vcMoveAudio: null
+      vcMoveAudio: null,
+      noMoveAudio: null
     },
 
     /**
@@ -103,7 +105,8 @@
     soundURLs: {
       clickedAudio: './resources/sounds/screen_reader_clicked.ogg',
       vcKeyAudio: './resources/sounds/screen_reader_virtual_cursor_key.ogg',
-      vcMoveAudio: './resources/sounds/screen_reader_virtual_cursor_move.ogg'
+      vcMoveAudio: './resources/sounds/screen_reader_virtual_cursor_move.ogg',
+      noMoveAudio: './resources/sounds/screen_reader_no_move.ogg'
     },
 
     /**
@@ -117,6 +120,8 @@
       this.speechSynthesizer = speechSynthesizer;
 
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('volumeup', this);
+      window.addEventListener('volumedown', this);
       window.addEventListener('logohidden', this);
 
       // Attach all observers.
@@ -142,7 +147,8 @@
                   'layers.effect.grayscale': aValue ?
                     this.settings['accessibility.colors.grayscale'] : false,
                   'layers.effect.contrast': aValue ?
-                    this.settings['accessibility.colors.contrast'] : '0.0'
+                    this.settings['accessibility.colors.contrast'] *
+                    this.CONTRAST_CAP : '0.0'
                 });
                 break;
 
@@ -180,7 +186,7 @@
      */
     reset: function ar_resetEvent() {
       this.expectedEvent = {
-        type: 'volume-up-button-press',
+        type: 'volumeup',
         timeStamp: 0
       };
       this.counter = 0;
@@ -198,24 +204,25 @@
     },
 
     /**
-     * Handle volume up and volume down mozChromeEvents.
-     * @param  {Object} aEvent a mozChromeEvent object.
+     * Handle volumeup and volumedown events generated from HardwareButtons.
+     * @param  {Object} aEvent a high-level key event object generated from
+     * HardwareButtons.
      * @memberof Accessibility.prototype
      */
     handleVolumeButtonPress: function ar_handleVolumeButtonPress(aEvent) {
-      var type = aEvent.detail.type;
+      var type = aEvent.type;
       var timeStamp = aEvent.timeStamp;
       var expectedEvent = this.expectedEvent;
       if (type !== expectedEvent.type || timeStamp > expectedEvent.timeStamp) {
         this.reset();
-        if (type !== 'volume-up-button-press') {
+        if (type !== 'volumeup') {
           return;
         }
       }
 
       this.expectedEvent = {
-        type: type === 'volume-up-button-press' ? 'volume-down-button-press' :
-          'volume-up-button-press',
+        type: type === 'volumeup' ? 'volumedown' :
+          'volumeup',
         timeStamp: timeStamp + this.REPEAT_INTERVAL
       };
 
@@ -297,11 +304,23 @@
             return;
           }
           break;
+        case 'no-move':
+          this._playSound('noMoveAudio');
+          return;
       }
 
       this.speak(aDetails.data, null, {
         enqueue: options.enqueue
       });
+    },
+
+    handleAccessFuControl: function ar_handleAccessFuControls(aDetails) {
+      if (aDetails.eventType === 'quicknav-menu') {
+        if (!this.quicknav) {
+          this.quicknav = new AccessibilityQuicknavMenu();
+        }
+        this.quicknav.show();
+      }
     },
 
     /**
@@ -317,8 +336,8 @@
     },
 
     /**
-     * Handle a mozChromeEvent event.
-     * @param  {Object} aEvent mozChromeEvent.
+     * Handle event.
+     * @param  {Object} aEvent mozChromeEvent/logohidden/volumeup/volumedown.
      * @memberof Accessibility.prototype
      */
     handleEvent: function ar_handleEvent(aEvent) {
@@ -331,11 +350,14 @@
             case 'accessibility-output':
               this.handleAccessFuOutput(JSON.parse(aEvent.detail.details));
               break;
-            case 'volume-up-button-press':
-            case 'volume-down-button-press':
-              this.handleVolumeButtonPress(aEvent);
+            case 'accessibility-control':
+              this.handleAccessFuControl(JSON.parse(aEvent.detail.details));
               break;
           }
+          break;
+        case 'volumeup':
+        case 'volumedown':
+          this.handleVolumeButtonPress(aEvent);
           break;
       }
     },

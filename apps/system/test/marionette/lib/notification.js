@@ -16,6 +16,9 @@ function NotificationTest(client, details, delay_create) {
 }
 
 NotificationTest.prototype = {
+  Selectors: {
+    toaster: '#notification-toaster'
+  },
   client: null,
   tag: null,
   close: function() {
@@ -37,6 +40,7 @@ NotificationTest.prototype = {
     }, [this.tag], function(err, value) {
       ret = value;
     });
+
     return ret;
   },
   dumpContainer: function() {
@@ -71,9 +75,11 @@ function NotificationList(client) {
 NotificationList.Selector = Object.freeze((function() {
   var listSelector = '#desktop-notifications-container';
   var itemsSelector = listSelector + ' .notification';
+  var countSelector = '#notification-some';
 
   return {
-    items: itemsSelector
+    items: itemsSelector,
+    notificationsCount: countSelector
   };
 })());
 
@@ -147,7 +153,7 @@ NotificationList.prototype = {
 
   // perform a tap action on the notification list
   tap: function(notificationDetails) {
-    this.client.findElement(notificationDetails.query).tap(1, 1);
+    this.client.helper.waitForElement(notificationDetails.query).tap(1, 1);
   },
 
   // make sure we have an item with given title and body
@@ -161,6 +167,23 @@ NotificationList.prototype = {
       }
     }).bind(this));
     return true;
+  },
+
+  waitForNotificationCount: function(expected) {
+    var count;
+    this.client.waitFor(function() {
+      count = this.client.executeScript(
+        this._getNotificationsCountText,
+        [this.selectors.notificationsCount]);
+      return expected === count;
+    }.bind(this));
+    return true;
+  },
+
+  _getNotificationsCountText: function(selector) {
+    var element = document.querySelector(selector);
+    var args = JSON.parse(element.dataset.l10nArgs);
+    return parseInt(args.n);
   }
 };
 

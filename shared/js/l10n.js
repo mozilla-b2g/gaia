@@ -570,36 +570,53 @@
 
 
 
-  function PropertiesParser() {
-    var parsePatterns = {
-      comment: /^\s*#|^\s*$/,
-      entity: /^([^=\s]+)\s*=\s*(.+)$/,
-      multiline: /[^\\]\\$/,
-      index: /\{\[\s*(\w+)(?:\(([^\)]*)\))?\s*\]\}/i,
-      unicode: /\\u([0-9a-fA-F]{1,4})/g,
-      entries: /[\r\n]+/,
-      controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g
-    };
+  var MAX_PLACEABLES = 100;
 
-    this.parse = function (ctx, source) {
-      var ast = Object.create(null);
 
-      var entries = source.split(parsePatterns.entries);
+  var PropertiesParser = {
+    patterns: null,
+    entryIds: null,
+
+    init: function() {
+      this.patterns = {
+        comment: /^\s*#|^\s*$/,
+        entity: /^([^=\s]+)\s*=\s*(.+)$/,
+        multiline: /[^\\]\\$/,
+        index: /\{\[\s*(\w+)(?:\(([^\)]*)\))?\s*\]\}/i,
+        unicode: /\\u([0-9a-fA-F]{1,4})/g,
+        entries: /[^\r\n]+/g,
+        controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g,
+        placeables: /\{\{\s*([^\s]*?)\s*\}\}/,
+      };
+    },
+
+    parse: function(ctx, source) {
+      if (!this.patterns) {
+        this.init();
+      }
+
+      var ast = [];
+      this.entryIds = Object.create(null);
+
+      var entries = source.match(this.patterns.entries);
+      if (!entries) {
+        return ast;
+      }
       for (var i = 0; i < entries.length; i++) {
         var line = entries[i];
 
-        if (parsePatterns.comment.test(line)) {
+        if (this.patterns.comment.test(line)) {
           continue;
         }
 
-        while (parsePatterns.multiline.test(line) && i < entries.length) {
+        while (this.patterns.multiline.test(line) && i < entries.length) {
           line = line.slice(0, -1) + entries[++i].trim();
         }
 
-        var entityMatch = line.match(parsePatterns.entity);
+        var entityMatch = line.match(this.patterns.entity);
         if (entityMatch) {
           try {
-            parseEntity(entityMatch[1], entityMatch[2], ast);
+            this.parseEntity(entityMatch[1], entityMatch[2], ast);
           } catch (e) {
             if (ctx) {
               ctx._emitter.emit('error', e);
@@ -610,37 +627,9 @@
         }
       }
       return ast;
-    };
+    },
 
-    function setEntityValue(id, attr, key, value, ast) {
-      var obj = ast;
-      var prop = id;
-
-      if (attr) {
-        if (!(id in obj)) {
-          obj[id] = {};
-        }
-        if (typeof(obj[id]) === 'string') {
-          obj[id] = {'_': obj[id]};
-        }
-        obj = obj[id];
-        prop = attr;
-      }
-
-      if (!key) {
-        obj[prop] = value;
-        return;
-      }
-
-      if (!(prop in obj)) {
-        obj[prop] = {'_': {}};
-      } else if (typeof(obj[prop]) === 'string') {
-        obj[prop] = {'_index': parseIndex(obj[prop]), '_': {}};
-      }
-      obj[prop]._[key] = value;
-    }
-
-    function parseEntity(id, value, ast) {
+    parseEntity: function(id, value, ast) {
       var name, key;
 
       var pos = id.indexOf('[');
@@ -663,119 +652,232 @@
       if (nameElements.length > 1) {
         name = nameElements[0];
         attr = nameElements[1];
+
+        if (attr[0] === '$') {
+          throw new L10nError('Attribute can\'t start with "$"', id);
+        }
       } else {
         attr = null;
       }
 
-      setEntityValue(name, attr, key, unescapeString(value), ast);
-    }
+      this.setEntityValue(name, attr, key, this.unescapeString(value), ast);
+    },
 
-    function unescapeControlCharacters(str) {
-      return str.replace(parsePatterns.controlChars, '$1');
-    }
+    setEntityValue: function(id, attr, key, value, ast) {
+      var pos, v;
 
-    function unescapeUnicode(str) {
-      return str.replace(parsePatterns.unicode, function(match, token) {
+      if (value.indexOf('{{') !== -1) {
+        value = this.parseString(value);
+      }
+
+      if (attr) {
+        pos = this.entryIds[id];
+        if (pos === undefined) {
+          v = {$i: id};
+          if (key) {
+            v[attr] = {};
+            v[attr][key] = value;
+          } else {
+            v[attr] = value;
+          }
+          ast.push(v);
+          this.entryIds[id] = ast.length - 1;
+          return;
+        }
+        if (key) {
+          if (typeof(ast[pos][attr]) === 'string') {
+            ast[pos][attr] = {
+              $x: this.parseIndex(ast[pos][attr]),
+              $v: {}
+            };
+          }
+          ast[pos][attr].$v[key] = value;
+          return;
+        }
+        ast[pos][attr] = value;
+        return;
+      }
+
+      // Hash value
+      if (key) {
+        pos = this.entryIds[id];
+        if (pos === undefined) {
+          v = {};
+          v[key] = value;
+          ast.push({$i: id, $v: v});
+          this.entryIds[id] = ast.length - 1;
+          return;
+        }
+        if (typeof(ast[pos].$v) === 'string') {
+          ast[pos].$x = this.parseIndex(ast[pos].$v);
+          ast[pos].$v = {};
+        }
+        ast[pos].$v[key] = value;
+        return;
+      }
+
+      // simple value
+      ast.push({$i: id, $v: value});
+      this.entryIds[id] = ast.length - 1;
+    },
+
+    parseString: function(str) {
+      var chunks = str.split(this.patterns.placeables);
+      var complexStr = [];
+
+      var len = chunks.length;
+      var placeablesCount = (len - 1) / 2;
+
+      if (placeablesCount >= MAX_PLACEABLES) {
+        throw new L10nError('Too many placeables (' + placeablesCount +
+                            ', max allowed is ' + MAX_PLACEABLES + ')');
+      }
+
+      for (var i = 0; i < chunks.length; i++) {
+        if (chunks[i].length === 0) {
+          continue;
+        }
+        if (i % 2 === 1) {
+          complexStr.push({t: 'idOrVar', v: chunks[i]});
+        } else {
+          complexStr.push(chunks[i]);
+        }
+      }
+      return complexStr;
+    },
+
+    unescapeString: function(str) {
+      if (str.lastIndexOf('\\') !== -1) {
+        str = str.replace(this.patterns.controlChars, '$1');
+      }
+      return str.replace(this.patterns.unicode, function(match, token) {
         return unescape('%u' + '0000'.slice(token.length) + token);
       });
-    }
+    },
 
-    function unescapeString(str) {
-      if (str.lastIndexOf('\\') !== -1) {
-        str = unescapeControlCharacters(str);
-      }
-      return unescapeUnicode(str);
-    }
-
-    function parseIndex(str) {
-      var match = str.match(parsePatterns.index);
+    parseIndex: function(str) {
+      var match = str.match(this.patterns.index);
       if (!match) {
         throw new L10nError('Malformed index');
       }
-      var parts = Array.prototype.slice.call(match, 1);
-      return parts.filter(function(part) {
-        return !!part;
-      });
+      if (match[2]) {
+        return [{t: 'idOrVar', v: match[1]}, match[2]];
+      } else {
+        return [{t: 'idOrVar', v: match[1]}];
+      }
     }
-  }
+  };
 
 
 
   var KNOWN_MACROS = ['plural'];
 
   var MAX_PLACEABLE_LENGTH = 2500;
-  var MAX_PLACEABLES = 100;
   var rePlaceables = /\{\{\s*(.+?)\s*\}\}/g;
 
-  function Entity(id, node, env) {
-    this.id = id;
-    this.env = env;
-    // the dirty guard prevents cyclic or recursive references from other
-    // Entities; see Entity.prototype.resolve
-    this.dirty = false;
-    if (typeof node === 'string') {
-      this.value = node;
-    } else {
-      // it's either a hash or it has attrs, or both
-      var keys = Object.keys(node);
+  function createEntry(node, env) {
+    var keys = Object.keys(node);
 
-      /* jshint -W084 */
-      for (var i = 0, key; key = keys[i]; i++) {
-        if (key[0] !== '_') {
-          if (!this.attributes) {
-            this.attributes = Object.create(null);
-          }
-          this.attributes[key] = new Entity(this.id + '.' + key, node[key],
-                                            env);
-        }
-      }
-      this.value = node._ || null;
-      this.index = node._index;
+    // the most common scenario: a simple string with no arguments
+    if (typeof node.$v === 'string' && keys.length === 2) {
+      return node.$v;
     }
+
+    var attrs;
+
+    /* jshint -W084 */
+    for (var i = 0, key; key = keys[i]; i++) {
+      if (key[0] === '$') {
+        continue;
+      }
+
+      if (!attrs) {
+        attrs = Object.create(null);
+      }
+      attrs[key] = createAttribute(node[key], env, node.$i + '.' + key);
+    }
+
+    return {
+      id: node.$i,
+      value: node.$v || null,
+      index: node.$x || null,
+      attrs: attrs || null,
+      env: env,
+      // the dirty guard prevents cyclic or recursive references
+      dirty: false
+    };
   }
 
-  Entity.prototype.resolve = function E_resolve(ctxdata) {
-    if (this.dirty) {
+  function createAttribute(node, env, id) {
+    if (typeof node === 'string') {
+      return node;
+    }
+
+    var value;
+    if (Array.isArray(node)) {
+      value = node;
+    }
+
+    return {
+      id: id,
+      value: value || node.$v || null,
+      index: node.$x || null,
+      env: env,
+      dirty: false
+    };
+  }
+
+
+  function format(entity, ctxdata) {
+    if (typeof entity === 'string') {
+      return entity;
+    }
+
+    if (entity.dirty) {
       return undefined;
     }
 
-    this.dirty = true;
+    entity.dirty = true;
     var val;
-    // if resolve fails, we want the exception to bubble up and stop the whole
+    // if format fails, we want the exception to bubble up and stop the whole
     // resolving process;  however, we still need to clean up the dirty flag
     try {
-      val = resolveValue(ctxdata, this.env, this.value, this.index);
+      val = resolveValue(ctxdata, entity.env, entity.value, entity.index);
     } finally {
-      this.dirty = false;
+      entity.dirty = false;
     }
     return val;
-  };
+  }
 
-  Entity.prototype.toString = function E_toString(ctxdata) {
+  function formatValue(entity, ctxdata) {
+    if (typeof entity === 'string') {
+      return entity;
+    }
+
     try {
-      return this.resolve(ctxdata);
+      return format(entity, ctxdata);
     } catch (e) {
       return undefined;
     }
-  };
+  }
 
-  Entity.prototype.valueOf = function E_valueOf(ctxdata) {
-    if (!this.attributes) {
-      return this.toString(ctxdata);
+  function formatEntity(entity, ctxdata) {
+    if (!entity.attrs) {
+      return formatValue(entity, ctxdata);
     }
 
-    var entity = {
-      value: this.toString(ctxdata),
-      attributes: Object.create(null)
+    var formatted = {
+      value: formatValue(entity, ctxdata),
+      attrs: Object.create(null)
     };
 
-    for (var key in this.attributes) {
+    for (var key in entity.attrs) {
       /* jshint -W089 */
-      entity.attributes[key] = this.attributes[key].toString(ctxdata);
+      formatted.attrs[key] = formatValue(entity.attrs[key], ctxdata);
     }
 
-    return entity;
-  };
+    return formatted;
+  }
 
   function resolveIdentifier(ctxdata, env, id) {
     if (KNOWN_MACROS.indexOf(id) > -1) {
@@ -791,16 +893,13 @@
     // XXX: special case for Node.js where still:
     // '__proto__' in Object.create(null) => true
     if (id in env && id !== '__proto__') {
-      if (!(env[id] instanceof Entity)) {
-        env[id] = new Entity(id, env[id], env);
-      }
-      return env[id].resolve(ctxdata);
+      return format(env[id], ctxdata);
     }
 
     return undefined;
   }
 
-  function subPlaceable(ctxdata, env, match, id) {
+  function subPlaceable(ctxdata, env, id) {
     var value = resolveIdentifier(ctxdata, env, id);
 
     if (typeof value === 'number') {
@@ -817,27 +916,24 @@
       return value;
     }
 
-    return match;
+    return '{{ ' + id + ' }}';
   }
 
-  function interpolate(ctxdata, env, str) {
-    var placeablesCount = 0;
-    var value = str.replace(rePlaceables, function(match, id) {
-      // prevent Quadratic Blowup attacks
-      if (placeablesCount++ >= MAX_PLACEABLES) {
-        throw new L10nError('Too many placeables (' + placeablesCount +
-                            ', max allowed is ' + MAX_PLACEABLES + ')');
+  function interpolate(ctxdata, env, arr) {
+    return arr.reduce(function(prev, cur) {
+      if (typeof cur === 'string') {
+        return prev + cur;
+      } else if (cur.t === 'idOrVar'){
+        return prev + subPlaceable(ctxdata, env, cur.v);
       }
-      return subPlaceable(ctxdata, env, match, id);
-    });
-    placeablesCount = 0;
-    return value;
+    }, '');
   }
 
   function resolveSelector(ctxdata, env, expr, index) {
-      var selector = resolveIdentifier(ctxdata, env, index[0]);
+      var selectorName = index[0].v;
+      var selector = resolveIdentifier(ctxdata, env, selectorName);
       if (selector === undefined) {
-        throw new L10nError('Unknown selector: ' + index[0]);
+        throw new L10nError('Unknown selector: ' + selectorName);
       }
 
       if (typeof selector !== 'function') {
@@ -847,7 +943,7 @@
 
       var argLength = index.length - 1;
       if (selector.length !== argLength) {
-        throw new L10nError('Macro ' + index[0] + ' expects ' +
+        throw new L10nError('Macro ' + selectorName + ' expects ' +
                             selector.length + ' argument(s), yet ' + argLength +
                             ' given');
       }
@@ -871,14 +967,15 @@
   }
 
   function resolveValue(ctxdata, env, expr, index) {
-    if (typeof expr === 'string') {
-      return interpolate(ctxdata, env, expr);
-    }
-
-    if (typeof expr === 'boolean' ||
+    if (typeof expr === 'string' ||
+        typeof expr === 'boolean' ||
         typeof expr === 'number' ||
         !expr) {
       return expr;
+    }
+
+    if (Array.isArray(expr)) {
+      return interpolate(ctxdata, env, expr);
     }
 
     // otherwise, it's a dict
@@ -898,14 +995,13 @@
     return undefined;
   }
 
-  function compile(env, ast) {
-    /* jshint -W089 */
-    env = env || Object.create(null);
-    for (var id in ast) {
-      env[id] = new Entity(id, ast[id], env);
-    }
-    return env;
-  }
+  var Resolver = {
+    createEntry: createEntry,
+    format: format,
+    formatValue: formatValue,
+    formatEntity: formatEntity,
+    rePlaceables: rePlaceables
+  };
 
 
 
@@ -917,9 +1013,17 @@
       return fn(node);
     }
 
-    var rv = {};
-    for (var key in node) {
-      if (key === '_index') {
+    if (node.t === 'idOrVar') {
+      return node;
+    }
+
+    var rv = Array.isArray(node) ? [] : {};
+    var keys = Object.keys(node);
+
+    /* jshint boss:true */
+    for (var i = 0, key; key = keys[i]; i++) {
+      // don't change identifier ($i) nor indices ($x)
+      if (key === '$i' || key === '$x') {
         rv[key] = node[key];
       } else {
         rv[key] = walkContent(node[key], fn);
@@ -1009,8 +1113,8 @@
     });
   }
 
-  // strftime tokens (%a, %Eb), {{ placeables }} and template {vars}
-  var reExcluded = /(%[EO]?\w|\{\{?\s*.+?\s*\}?\})/;
+  // strftime tokens (%a, %Eb) and template {vars}
+  var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\})/;
 
   function mapContent(fn, val) {
     if (!val) {
@@ -1043,8 +1147,6 @@
 
 
 
-  var propertiesParser = null;
-
   function Locale(id, ctx) {
     this.id = id;
     this.ctx = ctx;
@@ -1054,22 +1156,6 @@
     this.entries.__plural = getPluralRule(this.isPseudo ?
                                           this.ctx.defaultLocale : id);
   }
-
-  Locale.prototype.getEntry = function L_getEntry(id) {
-    /* jshint -W093 */
-
-    var entries = this.entries;
-
-    if (!(id in entries)) {
-      return undefined;
-    }
-
-    if (entries[id] instanceof Entity) {
-      return entries[id];
-    }
-
-    return entries[id] = new Entity(id, entries[id], entries);
-  };
 
   Locale.prototype.build = function L_build(callback) {
     var sync = !callback;
@@ -1104,10 +1190,7 @@
 
     function onPropLoaded(err, source) {
       if (!err && source) {
-        if (!propertiesParser) {
-          propertiesParser = new PropertiesParser();
-        }
-        var ast = propertiesParser.parse(ctx, source);
+        var ast = PropertiesParser.parse(ctx, source);
         self.addAST(ast);
       }
       onL10nLoaded(err);
@@ -1129,27 +1212,26 @@
     }
   };
 
+  function createPseudoEntry(node, entries) {
+    return Resolver.createEntry(
+      walkContent(node, PSEUDO_STRATEGIES[this.id].translate),
+      entries);
+  }
+
   Locale.prototype.addAST = function(ast) {
     /* jshint -W084 */
-    var keys = Object.keys(ast);
-    var i = 0, key;
 
-    if (this.isPseudo) {
-      for (; key = keys[i]; i++) {
-        this.entries[key] = walkContent(ast[key],
-                                        PSEUDO_STRATEGIES[this.id].translate);
-      }
-    } else {
-      for (; key = keys[i]; i++) {
-        this.entries[key] = ast[key];
-      }
+    var createEntry = this.isPseudo ?
+      createPseudoEntry.bind(this) : Resolver.createEntry;
+
+    for (var i = 0, node; node = ast[i]; i++) {
+      this.entries[node.$i] = createEntry(node, this.entries);
     }
   };
 
 
 
   function Context(id) {
-
     this.id = id;
     this.isReady = false;
     this.isLoading = false;
@@ -1162,177 +1244,175 @@
     this.locales = {};
 
     this._emitter = new EventEmitter();
+  }
 
 
-    // Getting translations
+  // Getting translations
 
-    function getWithFallback(id) {
-      /* jshint -W084 */
+  function getWithFallback(id) {
+    /* jshint -W084 */
 
-      if (!this.isReady) {
-        throw new L10nError('Context not ready');
+    if (!this.isReady) {
+      throw new L10nError('Context not ready');
+    }
+
+    var cur = 0;
+    var loc;
+    var locale;
+    while (loc = this.supportedLocales[cur]) {
+      locale = this.getLocale(loc);
+      if (!locale.isReady) {
+        // build without callback, synchronously
+        locale.build(null);
       }
-
-      var cur = 0;
-      var loc;
-      var locale;
-      while (loc = this.supportedLocales[cur]) {
-        locale = this.getLocale(loc);
-        if (!locale.isReady) {
-          // build without callback, synchronously
-          locale.build(null);
-        }
-        var entry = locale.getEntry(id);
-        if (entry === undefined) {
-          cur++;
-          warning.call(this, new L10nError(id + ' not found in ' + loc, id,
-                                           loc));
-          continue;
-        }
-        return entry;
+      var entry = locale.entries[id];
+      if (entry === undefined) {
+        cur++;
+        warning.call(this, new L10nError(id + ' not found in ' + loc, id,
+                                         loc));
+        continue;
       }
+      return entry;
+    }
 
-      error.call(this, new L10nError(id + ' not found', id));
+    console.warn('mozL10n: A non-existing entity requested: ' + id);
+    error.call(this, new L10nError(id + ' not found', id));
+    return null;
+  }
+
+  Context.prototype.get = function(id, ctxdata) {
+    var entry = getWithFallback.call(this, id);
+    if (entry === null) {
+      return '';
+    }
+
+    return Resolver.formatValue(entry, ctxdata) || '';
+  };
+
+  Context.prototype.getEntity = function(id, ctxdata) {
+    var entry = getWithFallback.call(this, id);
+    if (entry === null) {
       return null;
     }
 
-    this.get = function get(id, ctxdata) {
-      var entry = getWithFallback.call(this, id);
-      if (entry === null) {
-        return '';
-      }
+    return Resolver.formatEntity(entry, ctxdata);
+  };
 
-      return entry.toString(ctxdata) || '';
-    };
+  Context.prototype.getLocale = function getLocale(code) {
+    /* jshint -W093 */
 
-    this.getEntity = function getEntity(id, ctxdata) {
-      var entry = getWithFallback.call(this, id);
-      if (entry === null) {
-        return null;
-      }
-
-      return entry.valueOf(ctxdata);
-    };
-
-
-    // Helpers
-
-    this.getLocale = function getLocale(code) {
-      /* jshint -W093 */
-
-      var locales = this.locales;
-      if (locales[code]) {
-        return locales[code];
-      }
-
-      return locales[code] = new Locale(code, this);
-    };
-
-
-    // Getting ready
-
-    function negotiate(available, requested, defaultLocale) {
-      if (available.indexOf(requested[0]) === -1 ||
-          requested[0] === defaultLocale) {
-        return [defaultLocale];
-      } else {
-        return [requested[0], defaultLocale];
-      }
+    var locales = this.locales;
+    if (locales[code]) {
+      return locales[code];
     }
 
-    function freeze(supported) {
-      var locale = this.getLocale(supported[0]);
-      if (locale.isReady) {
-        setReady.call(this, supported);
-      } else {
-        locale.build(setReady.bind(this, supported));
-      }
+    return locales[code] = new Locale(code, this);
+  };
+
+
+  // Getting ready
+
+  function negotiate(available, requested, defaultLocale) {
+    if (available.indexOf(requested[0]) === -1 ||
+        requested[0] === defaultLocale) {
+      return [defaultLocale];
+    } else {
+      return [requested[0], defaultLocale];
     }
+  }
 
-    function setReady(supported) {
-      this.supportedLocales = supported;
-      this.isReady = true;
-      this._emitter.emit('ready');
+  function freeze(supported) {
+    var locale = this.getLocale(supported[0]);
+    if (locale.isReady) {
+      setReady.call(this, supported);
+    } else {
+      locale.build(setReady.bind(this, supported));
     }
+  }
 
-    this.registerLocales = function (defLocale, available) {
-      /* jshint boss:true */
-      this.availableLocales = [this.defaultLocale = defLocale];
+  function setReady(supported) {
+    this.supportedLocales = supported;
+    this.isReady = true;
+    this._emitter.emit('ready');
+  }
 
-      if (available) {
-        for (var i = 0, loc; loc = available[i]; i++) {
-          if (this.availableLocales.indexOf(loc) === -1) {
-            this.availableLocales.push(loc);
-          }
+  Context.prototype.registerLocales = function(defLocale, available) {
+    /* jshint boss:true */
+    this.availableLocales = [this.defaultLocale = defLocale];
+
+    if (available) {
+      for (var i = 0, loc; loc = available[i]; i++) {
+        if (this.availableLocales.indexOf(loc) === -1) {
+          this.availableLocales.push(loc);
         }
       }
-    };
+    }
+  };
 
-    this.requestLocales = function requestLocales() {
-      if (this.isLoading && !this.isReady) {
-        throw new L10nError('Context not ready');
-      }
-
-      this.isLoading = true;
-      var requested = Array.prototype.slice.call(arguments);
-      if (requested.length === 0) {
-        throw new L10nError('No locales requested');
-      }
-
-      var reqPseudo = requested.filter(function(loc) {
-        return loc in PSEUDO_STRATEGIES;
-      });
-
-      var supported = negotiate(this.availableLocales.concat(reqPseudo),
-                                requested,
-                                this.defaultLocale);
-      freeze.call(this, supported);
-    };
-
-
-    // Events
-
-    this.addEventListener = function addEventListener(type, listener) {
-      this._emitter.addEventListener(type, listener);
-    };
-
-    this.removeEventListener = function removeEventListener(type, listener) {
-      this._emitter.removeEventListener(type, listener);
-    };
-
-    this.ready = function ready(callback) {
-      if (this.isReady) {
-        setTimeout(callback);
-      }
-      this.addEventListener('ready', callback);
-    };
-
-    this.once = function once(callback) {
-      /* jshint -W068 */
-      if (this.isReady) {
-        setTimeout(callback);
-        return;
-      }
-
-      var callAndRemove = (function() {
-        this.removeEventListener('ready', callAndRemove);
-        callback();
-      }).bind(this);
-      this.addEventListener('ready', callAndRemove);
-    };
-
-
-    // Errors
-
-    function warning(e) {
-      this._emitter.emit('warning', e);
-      return e;
+  Context.prototype.requestLocales = function requestLocales() {
+    if (this.isLoading && !this.isReady) {
+      throw new L10nError('Context not ready');
     }
 
-    function error(e) {
-      this._emitter.emit('error', e);
-      return e;
+    this.isLoading = true;
+    var requested = Array.prototype.slice.call(arguments);
+    if (requested.length === 0) {
+      throw new L10nError('No locales requested');
     }
+
+    var reqPseudo = requested.filter(function(loc) {
+      return loc in PSEUDO_STRATEGIES;
+    });
+
+    var supported = negotiate(this.availableLocales.concat(reqPseudo),
+                              requested,
+                              this.defaultLocale);
+    freeze.call(this, supported);
+  };
+
+
+  // Events
+
+  Context.prototype.addEventListener = function(type, listener) {
+    this._emitter.addEventListener(type, listener);
+  };
+
+  Context.prototype.removeEventListener = function(type, listener) {
+    this._emitter.removeEventListener(type, listener);
+  };
+
+  Context.prototype.ready = function(callback) {
+    if (this.isReady) {
+      setTimeout(callback);
+    }
+    this.addEventListener('ready', callback);
+  };
+
+  Context.prototype.once = function(callback) {
+    /* jshint -W068 */
+    if (this.isReady) {
+      setTimeout(callback);
+      return;
+    }
+
+    var callAndRemove = (function() {
+      this.removeEventListener('ready', callAndRemove);
+      callback();
+    }).bind(this);
+    this.addEventListener('ready', callAndRemove);
+  };
+
+
+  // Errors
+
+  function warning(e) {
+    this._emitter.emit('warning', e);
+    return e;
+  }
+
+  function error(e) {
+    this._emitter.emit('error', e);
+    return e;
   }
 
 
@@ -1358,9 +1438,6 @@
     ctx: new Context(window.document ? document.URL : null),
     get: function get(id, ctxdata) {
       return navigator.mozL10n.ctx.get(id, ctxdata);
-    },
-    localize: function localize(element, id, args) {
-      return localizeElement.call(navigator.mozL10n, element, id, args);
     },
     translateFragment: function (fragment) {
       return translateFragment.call(navigator.mozL10n, fragment);
@@ -1393,14 +1470,13 @@
         Error: L10nError,
         Context: Context,
         Locale: Locale,
-        Entity: Entity,
+        Resolver: Resolver,
         getPluralRule: getPluralRule,
         rePlaceables: rePlaceables,
         translateDocument: translateDocument,
         onManifestInjected: onManifestInjected,
         onMetaInjected: onMetaInjected,
         PropertiesParser: PropertiesParser,
-        compile: compile,
         walkContent: walkContent
       };
     }
@@ -1698,21 +1774,10 @@
     return element ? element.querySelectorAll('*[data-l10n-id]') : [];
   }
 
-  function localizeElement(element, id, args) {
-    if (!id) {
-      element.removeAttribute('data-l10n-id');
-      element.removeAttribute('data-l10n-args');
-      setTextContent.call(this, id, element, '');
-      return;
-    }
-
-    element.setAttribute('data-l10n-id', id);
-    if (args && typeof args === 'object') {
-      element.setAttribute('data-l10n-args', JSON.stringify(args));
-    } else {
-      element.removeAttribute('data-l10n-args');
-    }
-  }
+  var allowedHtmlAttrs = {
+    'ariaLabel': 'aria-label',
+    'ariaValueText': 'aria-valuetext'
+  };
 
   function translateElement(element) {
     if (!this.ctx.isReady) {
@@ -1744,10 +1809,10 @@
       setTextContent.call(this, l10n.id, element, entity.value);
     }
 
-    for (var key in entity.attributes) {
-      var attr = entity.attributes[key];
-      if (key === 'ariaLabel') {
-        element.setAttribute('aria-label', attr);
+    for (var key in entity.attrs) {
+      var attr = entity.attrs[key];
+      if (allowedHtmlAttrs.hasOwnProperty(key)) {
+        element.setAttribute(allowedHtmlAttrs[key], attr);
       } else if (key === 'innerHTML') {
         // XXX: to be removed once bug 994357 lands
         element.innerHTML = attr;

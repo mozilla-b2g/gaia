@@ -19,13 +19,16 @@ class TestSetupAndSendActiveSyncEmail(GaiaTestCase):
             raise SkipTest('account details not present in test variables')
 
         GaiaTestCase.setUp(self)
-        self.connect_to_network()
+        self.connect_to_local_area_network()
 
         self.email = Email(self.marionette)
         self.email.launch()
 
     def test_setup_and_send_active_sync_email(self):
-
+        """
+        https://moztrap.mozilla.org/manage/case/2474/
+        https://moztrap.mozilla.org/manage/case/2475/
+        """
         # setup ActiveSync account
         self.email.setup_active_sync_email(self.account)
 

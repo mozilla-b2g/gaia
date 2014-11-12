@@ -3,7 +3,6 @@
 
 
 /* global EventDispatcher,
-    MozSmsFilter,
     Promise,
     Settings,
     SMIL,
@@ -16,12 +15,7 @@
 'use strict';
 (function(exports) {
 var MessageManager = {
-  init: function mm_init(callback) {
-    if (this.initialized) {
-      return;
-    }
-    this.initialized = true;
-
+  init: function mm_init() {
     this._mozMobileMessage = navigator.mozMobileMessage;
 
     this._mozMobileMessage.addEventListener(
@@ -45,11 +39,6 @@ var MessageManager = {
     this._mozMobileMessage.addEventListener(
       'deleted', this.onDeleted.bind(this)
     );
-
-    // Callback if needed
-    if (typeof callback === 'function') {
-      callback();
-    }
   },
 
   onMessageSending: function mm_onMessageSending(e) {
@@ -176,19 +165,6 @@ var MessageManager = {
     var endArgs = options.endArgs;
     var done = options.done;
     var filter = options.filter;
-    if (filter && 'MozSmsFilter' in window) {
-      // 'MozSmsFilter' has been obsoleted in favor of WebIDL dictionary
-      // 'MobileMessageFilter'. If somehow we're running with an out-dated
-      // Gecko, use 'MozSmsFilter' instead.
-      var f = new MozSmsFilter();
-      if ('threadId' in filter && filter.threadId) {
-        f.threadId = filter.threadId;
-      }
-      if ('read' in filter) {
-        f.read = filter.read;
-      }
-      filter = f;
-    }
     var cursor = this._mozMobileMessage.getMessages(filter, !invert);
 
     cursor.onsuccess = function onsuccess() {

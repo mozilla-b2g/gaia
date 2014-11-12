@@ -17,9 +17,8 @@ define(function() {
  *    // in all examples item is a single element in the
  *    // array (third argument).
  *
- *    fetcher.onerror = function(err, item) {};
- *    fetcher.ondata = function(parsed, item) {}
- *    fetcher.onend = function() {}
+ *    fetcher.onparsed = function(parsed, item) {}
+ *    fetcher.onend = function(err) {}
  *
  */
 function BodyFetcher(connection, parserClass, list) {
@@ -29,8 +28,7 @@ function BodyFetcher(connection, parserClass, list) {
 
   this.pending = list.length;
 
-  this.onerror = null;
-  this.ondata = null;
+  this.onparsed = null;
   this.onend = null;
 
   list.forEach(this._fetch, this);
@@ -38,8 +36,6 @@ function BodyFetcher(connection, parserClass, list) {
 
 BodyFetcher.prototype = {
   _fetch: function(request) {
-    var self = this;
-
     this.connection.listMessages(
       request.uid,
       [
@@ -51,9 +47,7 @@ BodyFetcher.prototype = {
       { byUid: true },
       function (err, messages) {
         if (err) {
-          // if fetch provides an error we expect this request to be
-          // completed so we resolve here...
-          self._resolve(err, request);
+          this._resolve(err, request, null);
         } else {
           var parser = new this.parserClass(request.partInfo);
           var msg = messages[0];
@@ -66,32 +60,19 @@ BodyFetcher.prototype = {
           }
 
           if (!body) {
-            self.resolve('no body', request);
+            this.resolve('no body', request);
           } else {
             parser.parse(body);
-            self._resolve(null, request, parser.complete());
+            this._resolve(null, request, parser.complete());
           }
         }
       }.bind(this));
   },
 
-  _resolve: function() {
-    var args = Array.slice(arguments);
-    var err = args[0];
-
-    if (err) {
-      if (this.onerror) {
-        this.onerror.apply(this, args);
-      }
-    } else {
-      if (this.onparsed) {
-        // get rid of the error object
-        args.shift();
-
-        this.onparsed.apply(this, args);
-      }
+  _resolve: function(err, req, result) {
+    if (this.onparsed) {
+      this.onparsed(err, req, result);
     }
-
     if (!--this.pending && this.onend) {
       this.onend();
     }

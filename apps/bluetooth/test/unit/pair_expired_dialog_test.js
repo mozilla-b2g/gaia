@@ -2,9 +2,7 @@
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
-requireApp('bluetooth/test/unit/mock_l10n.js');
-
-mocha.globals(['PairExpiredDialog']);
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('Bluetooth app > PairExpiredDialog ', function() {
   var realL10n;

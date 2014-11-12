@@ -1,7 +1,6 @@
 'use strict';
 
-/* globals MocksHelper, TelephonyMessages, MockConfirmDialog, LazyLoader,
-           MockTonePlayer */
+/* globals MocksHelper, TelephonyMessages, MockConfirmDialog, LazyLoader */
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
@@ -199,10 +198,9 @@ suite('Telephony messages', function() {
         subject.displayMessage, 'FixedDialingNumbers', '123');
     });
 
-    test('BusyError plays busy tone', function() {
-      this.sinon.spy(subject, 'notifyBusyLine', subject.REGULAR_CALL);
+    test('BusyError displays NumberIsBusy error', function() {
       subject.handleError('BusyError');
-      sinon.assert.calledOnce(subject.notifyBusyLine);
+      sinon.assert.calledWith(subject.displayMessage, 'NumberIsBusy');
     });
 
     test('BadNumberError displays NoNetwork error (no network)', function() {
@@ -215,32 +213,10 @@ suite('Telephony messages', function() {
       subject.handleError('BadNumberError', '123', subject.EMERGENCY_ONLY);
       sinon.assert.calledWith(subject.displayMessage, 'EmergencyCallOnly');
     });
-  });
 
-  suite('Busy tone', function() {
-    setup(function() {
-      this.sinon.spy(MockTonePlayer, 'playSequence');
-    });
-
-    test('Busy tone should be played in telephony channel', function() {
-      this.sinon.spy(MockTonePlayer, 'setChannel');
-      var setTelephonySpy = MockTonePlayer.setChannel.withArgs('telephony');
-      var setNormalSpy = MockTonePlayer.setChannel.withArgs('normal');
-      subject.handleError('BusyError');
-      assert.isTrue(setTelephonySpy.calledBefore(MockTonePlayer.playSequence));
-      assert.isTrue(setNormalSpy.calledAfter(MockTonePlayer.playSequence));
-    });
-
-    test('Plays correct sequence', function() {
-      var sequence = [[480, 620, 500], [0, 0, 500],
-                      [480, 620, 500], [0, 0, 500],
-                      [480, 620, 500], [0, 0, 500],
-                      [480, 620, 500], [0, 0, 500],
-                      [480, 620, 500], [0, 0, 500],
-                      [480, 620, 500], [0, 0, 500]];
-
-      subject.handleError('BusyError');
-      sinon.assert.calledWith(MockTonePlayer.playSequence, sequence);
+    test('ModifiedDialError not displayed', function() {
+      subject.handleError('ModifiedDialError');
+      sinon.assert.notCalled(subject.displayMessage);
     });
   });
 });

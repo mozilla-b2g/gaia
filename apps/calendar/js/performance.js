@@ -1,12 +1,14 @@
-(function(exports) {
+define(function(require, exports) {
 'use strict';
+
+require('shared/performance_testing_helper');
 
 // Helper for the performance testing events. we created
 // this dedicated module since we need some "state machine" logic to avoid
 // race conditions and the app contains way too many async operations during
 // startup and no simple way to listen to these events.
 
-exports._isDayBaseInteractive = false;
+exports._isMonthAgendaInteractive = false;
 exports._isMonthReady = false;
 exports._isVisuallyActive = false;
 exports._isPendingReady = false;
@@ -38,15 +40,15 @@ exports.chromeInteractive = function() {
 };
 
 /**
- * Should be called when the DayBased view (inherited by MonthsDayView)
+ * Should be called when the MonthsDayView
  * rendered all the busytimes for that day.
  */
-exports.dayBasedReady = function() {
-  if (exports._isDayBaseInteractive) {
+exports.monthsDayReady = function() {
+  if (exports._isMonthAgendaInteractive) {
     return;
   }
 
-  exports._isDayBaseInteractive = true;
+  exports._isMonthAgendaInteractive = true;
   dispatchVisuallyCompleteAndInteractive();
 };
 
@@ -70,7 +72,7 @@ exports.monthReady = function() {
  */
 function dispatchVisuallyCompleteAndInteractive() {
   if (exports._isVisuallyActive ||
-      !exports._isDayBaseInteractive ||
+      !exports._isMonthAgendaInteractive ||
       !exports._isMonthReady) {
     return;
   }
@@ -105,7 +107,7 @@ exports.pendingReady = function() {
 };
 
 /**
- * App is only considered "loaded" after the MonthView and MonthsDayView
+ * App is only considered "loaded" after the MonthView and MonthDayAgenda
  * are "ready" and the first pending operations batch is completed (loading
  * events from DB and recurring events expansion).
  */
@@ -125,4 +127,4 @@ function dispatchAppLoad() {
   dispatch('moz-app-loaded');
 }
 
-}(Calendar.performance = {}));
+});

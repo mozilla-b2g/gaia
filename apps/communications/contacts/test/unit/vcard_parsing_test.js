@@ -1,13 +1,14 @@
 /* global MockMatcher, MockMozContacts, MocksHelper,
 mozContact, VCFReader, require, assert, b64Photo,
 suite, setup, suiteSetup, suiteTeardown, test, MockRest,
-MockAdaptAndMerge */
+MockAdaptAndMerge, MockThumbnailImage, utils */
 
 'use strict';
 
 require('/shared/js/mime_mapper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_moz_contact.js');
+requireApp('communications/contacts/test/unit/mock_image_thumbnail.js');
 require('/shared/js/contacts/import/utilities/vcard_parser.js');
 
 requireApp('communications/contacts/test/unit/mock_contacts_match.js');
@@ -18,6 +19,7 @@ requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('/shared/test/unit/mocks/mock_moz_contact.js');
 requireApp('communications/contacts/test/unit/import/mock_rest.js');
 requireApp('communications/contacts/test/unit/base64_photo.js');
+
 
 function toDataUri(photo, cb) {
   var reader = new window.FileReader();
@@ -110,7 +112,8 @@ suite('vCard parsing settings', function() {
           'toMozContact': function(c) {
             return c;
           }
-        }
+        },
+        'thumbnailImage': MockThumbnailImage
       };
 
       realRest = window.Rest;
@@ -526,6 +529,7 @@ suite('vCard parsing settings', function() {
       });
     });
     test('- vcard 2.1 with embedded photo', function(done) {
+      this.sinon.spy(utils, 'thumbnailImage');
       initializeVCFReader('vcard_21_photo.vcf', function(reader) {
         reader.onread = stub();
         reader.onimported = stub();
@@ -533,6 +537,8 @@ suite('vCard parsing settings', function() {
 
         reader.process(function import_finish(result) {
           assert.equal(4, result.length);
+          // Checking utils.thumbnailImage was called
+          assert.ok(utils.thumbnailImage.called);
           var req = navigator.mozContacts.find();
           req.onsuccess = function() {
             var contact = req.result[0];
@@ -540,6 +546,9 @@ suite('vCard parsing settings', function() {
               assert.strictEqual(b64Photo,
                VCFReader.utils.parseDataUri(r.result).value);
               assert.strictEqual('image/bmp', contact.photo[0].type);
+              // No thumbnailImage was created because the thumbnail is equal
+              // to the blob image
+              assert.equal(1, contact.photo.length);
               done();
             });
           };
@@ -605,6 +614,27 @@ suite('vCard parsing settings', function() {
         });
       });
     });
+    test('- vcard 2.1 with embedded photo generates thumbnail', function(done) {
+      var fakeThumbnail = 'thumbnail create correctly';
+      this.sinon.stub(utils, 'thumbnailImage', function(blob, callback) {
+        callback(fakeThumbnail);
+      });
+      initializeVCFReader('vcard_21_photo.vcf', function(reader) {
+        reader.onread = stub();
+        reader.onimported = stub();
+        reader.onerror = stub();
+
+        reader.process(function import_finish(result) {
+          assert.equal(4, result.length);
+          var contact = result[3];
+          assert.equal(2, contact.photo.length);
+          assert.equal(fakeThumbnail, contact.photo[1]);
+          done();
+        });
+      });
+    });
+
+
 
     test('- vcard parser must return id of matched contact', function(done) {
       // Force the matcher to find a contact with a known id

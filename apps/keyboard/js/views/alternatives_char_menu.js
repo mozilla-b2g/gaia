@@ -30,7 +30,7 @@ AlternativesCharMenuView.prototype.MENU_LINE_HEIGHT = 6;   // in rem
 
 AlternativesCharMenuView.prototype.show = function(key) {
   var content = document.createDocumentFragment();
-  var keyElem = IMERender.getDomElemFromTargetObject(key);
+  var keyElem = IMERender.targetObjDomMap.get(key);
 
   // XXX: should not cause reflow by ref. innerWidth
   var cachedWindowWidth = window.innerWidth;

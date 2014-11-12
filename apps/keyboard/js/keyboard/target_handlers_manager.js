@@ -39,6 +39,8 @@ TargetHandlersManager.prototype.start = function() {
     this._callTargetAction.bind(this, 'cancel', false, true);
   activeTargetsManager.ontargetdoubletapped =
     this._callTargetAction.bind(this, 'doubleTap', false, true);
+  activeTargetsManager.onnewtargetwillactivate =
+    this._callTargetAction.bind(this, 'newTargetActivate', false, false);
   activeTargetsManager.start();
 };
 
@@ -61,12 +63,15 @@ TargetHandlersManager.prototype.stop = function() {
 // "longpress" is noticeably an optional step during the life cycle and does
 // not start or end the handler/active target, so it was not mentioned in the
 // above list.
+// "newTargetActivate" is similar to "longpress",  it is an optional step too,
+// so it was not mentioned in the above list. newTargetActivate is called on
+// the current target(s) when there is a new target is about to be activated.
 //
 // Please note that since we are using target (an abstract key object associated
 // with one DOM element) as the identifier of handlers, we do not assign new
-// handler if there are two touches on the same element. Currently that cannot
-// happen because of what done in bug 985855, however in the future that will
-// change (and these handlers needs to) to adopt bug 985853 (Combo key).
+// handler if there are two touches on the same element. If two touches happens
+// on one (maybe quite big) button, the same method on the same handler will
+// be called again with a console warning.
 TargetHandlersManager.prototype._callTargetAction = function(action,
                                                              setHandler,
                                                              deleteHandler,

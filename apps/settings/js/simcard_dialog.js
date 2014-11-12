@@ -93,20 +93,19 @@ function SimPinDialog(dialog) {
   }
 
   // card lock error messages
-  function handleCardLockError(event) {
-    var type = event.lockType; // expected: 'pin', 'fdn', 'puk'
-    if (!type) {
+  function handleCardLockError(lockType, retryCount) {
+    // expected: 'pin', 'fdn', 'puk'
+    if (!lockType) {
       skip();
       return;
     }
 
     // after three strikes, ask for PUK/PUK2
-    var count = event.retryCount;
-    if (count <= 0) {
-      if (type === 'pin') {
+    if (retryCount <= 0) {
+      if (lockType === 'pin') {
         // we leave this for system app
         skip();
-      } else if (type === 'fdn' || type === 'pin2') {
+      } else if (lockType === 'fdn' || lockType === 'pin2') {
         _action = initUI('unlock_puk2');
         pukInput.focus();
       } else { // out of PUK/PUK2: we're doomed
@@ -116,13 +115,13 @@ function SimPinDialog(dialog) {
       return;
     }
 
-    var msgId = (count > 1) ? 'AttemptMsg3' : 'LastChanceMsg';
-    showMessage(type + 'ErrorMsg', type + msgId, { n: count });
+    var msgId = (retryCount > 1) ? 'AttemptMsg3' : 'LastChanceMsg';
+    showMessage(lockType + 'ErrorMsg', lockType + msgId, { n: retryCount });
     showRetryCount(count);
 
-    if (type === 'pin' || type === 'fdn') {
+    if (lockType === 'pin' || lockType === 'fdn') {
       pinInput.focus();
-    } else if (type === 'puk') {
+    } else if (lockType === 'puk') {
       pukInput.focus();
     }
   }
@@ -165,7 +164,7 @@ function SimPinDialog(dialog) {
       _onsuccess();
     };
     req.onerror = function sp_unlockError() {
-      handleCardLockError(req.error);
+      handleCardLockError(options.lockType, req.error.retryCount);
     };
   }
 
@@ -216,8 +215,8 @@ function SimPinDialog(dialog) {
       close();
       _onsuccess();
     };
-    req.onerror = function sp_unlockError() {
-      handleCardLockError(req.error);
+    req.onerror = function sp_enableError() {
+      handleCardLockError(options.lockType, req.error.retryCount);
     };
   }
 

@@ -201,6 +201,7 @@ suite('system/AppChrome', function() {
     test('location changed', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
+      this.sinon.stub(app, 'isBrowser').returns(true);
       var stub1 = this.sinon.stub(app, 'canGoForward');
       var stub2 = this.sinon.stub(app, 'canGoBack');
 
@@ -214,6 +215,29 @@ suite('system/AppChrome', function() {
 
       stub2.getCall(0).args[0](true);
       assert.equal(chrome.backButton.disabled, false);
+      stub2.getCall(0).args[0](false);
+      assert.equal(chrome.backButton.disabled, true);
+    });
+
+    test('location changed - without navigation', function() {
+      var app = new AppWindow(fakeAppWithName);
+      var chrome = new AppChrome(app);
+      this.sinon.stub(app, 'isBrowser').returns(false);
+      var stub1 = this.sinon.stub(app, 'canGoForward');
+      var stub2 = this.sinon.stub(app, 'canGoBack');
+
+      var evt = new CustomEvent('mozbrowserlocationchange', {
+        detail: 'http://mozilla.org'
+      });
+      app.element.dispatchEvent(evt);
+
+      stub1.getCall(0).args[0](true);
+      assert.equal(chrome.forwardButton.disabled, true);
+      stub1.getCall(0).args[0](false);
+      assert.equal(chrome.forwardButton.disabled, true);
+
+      stub2.getCall(0).args[0](true);
+      assert.equal(chrome.backButton.disabled, true);
       stub2.getCall(0).args[0](false);
       assert.equal(chrome.backButton.disabled, true);
     });
@@ -360,7 +384,8 @@ suite('system/AppChrome', function() {
         detail: 'Bing'
       });
       chrome.app.element.dispatchEvent(titleEvent);
-      assert.equal(chrome.title.textContent, 'search-or-enter-address');
+      assert.equal(chrome.title.getAttribute('data-l10n-id'),
+        'search-or-enter-address');
     });
 
     test('should expand if collapsed', function() {
@@ -414,12 +439,12 @@ suite('system/AppChrome', function() {
       assert.isFalse(subject.element.classList.contains('maximized'));
     });
 
-    test('rocketbar-overlayopened should collapse the urlbar', function() {
+    test('rocketbar-overlayclosed should collapse the urlbar', function() {
       var app = new AppWindow(fakeWebSite);
       var subject = new AppChrome(app);
       subject.maximize();
 
-      window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
+      window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
       assert.isFalse(subject.element.classList.contains('maximized'));
     });
   });
@@ -623,6 +648,38 @@ suite('system/AppChrome', function() {
       chrome.app.config.manifest = null;
       chrome.reConfig();
       assert.isFalse(chrome.app.element.classList.contains('search-app'));
+    });
+  });
+
+  suite('transition events', function() {
+    var app, chrome;
+    setup(function() {
+      app = new AppWindow(fakeAppMaximized);
+      chrome = new AppChrome(app);
+      this.sinon.stub(app, 'publish');
+      this.sinon.stub(app, 'isActive').returns(true);
+
+      for (var i = 0; i < 10; i++) {
+        chrome.handleEvent({ type: 'scroll' });
+      }
+    });
+
+    test('should not publish when a control transition ends', function() {
+      // Can not fire transitionend events on disabled buttons.
+      chrome.reloadButton.disabled = false;
+      chrome.reloadButton.dispatchEvent(new CustomEvent('transitionend'));
+      sinon.assert.notCalled(app.publish.withArgs('chromecollapsed'));
+    });
+
+    test('should publish when the element transition ends', function() {
+      chrome.element.dispatchEvent(new CustomEvent('transitionend'));
+      sinon.assert.calledOnce(app.publish.withArgs('chromecollapsed'));
+    });
+
+    test('should only publish once', function() {
+      chrome.element.dispatchEvent(new CustomEvent('transitionend'));
+      this.sinon.clock.tick(250);
+      sinon.assert.calledOnce(app.publish.withArgs('chromecollapsed'));
     });
   });
 });

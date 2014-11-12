@@ -22,17 +22,20 @@ suite('system/SheetsTransition >', function() {
   mocksForSheetsTransition.attachTestHelpers();
 
   var dialer = {
-    origin: 'app://dialer.gaiamobile.org'
+    origin: 'app://dialer.gaiamobile.org',
+    broadcast: function() {}
   };
   var dialerFrame;
 
   var settings = {
-    origin: 'app://settings.gaiamobile.org'
+    origin: 'app://settings.gaiamobile.org',
+    broadcast: function() {}
   };
   var settingsFrame;
 
   var contacts = {
-    origin: 'app://contacts.gaiamobile.org'
+    origin: 'app://contacts.gaiamobile.org',
+    broadcast: function() {}
   };
   var contactsFrame;
 
@@ -62,6 +65,7 @@ suite('system/SheetsTransition >', function() {
 
   suite('Begining the transition', function() {
     setup(function() {
+      this.sinon.spy(dialer, 'broadcast');
       SheetsTransition.begin('ltr');
     });
 
@@ -95,6 +99,11 @@ suite('system/SheetsTransition >', function() {
     function() {
       var transition = 'transform 0ms linear 0s';
       assert.equal(dialerFrame.style.transition, transition);
+    });
+
+    test('it should let the new sheet know that it\'s going to be displayed',
+    function() {
+      sinon.assert.calledWith(dialer.broadcast, 'sheetdisplayed');
     });
 
     test('it should set the transitioning flag', function() {

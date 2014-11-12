@@ -178,7 +178,7 @@ suite('timezones >', function() {
     suite('> SIM ready, connection avaiable', function() {
       var conn;
 
-      suiteSetup(function() {
+      setup(function() {
         // we need a live connection for this test (network)
         conn = new window.MockMobileconnection();
         conn.voice = {
@@ -192,7 +192,7 @@ suite('timezones >', function() {
         MockNavigatorMozMobileConnections.mAddMobileConnection(conn, 0);
       });
 
-      suiteTeardown(function() {
+      teardown(function() {
         conn = null;
         MockNavigatorMozMobileConnections.mRemoveMobileConnection();
       });
@@ -236,6 +236,7 @@ suite('timezones >', function() {
         conn = new window.MockMobileconnection();
         conn.voice = null;
         MockNavigatorMozMobileConnections.mAddMobileConnection(conn, 0);
+
         // but access to the SIM data
         IccHelper.setProperty('cardstate', 'ready');
       });
@@ -243,7 +244,6 @@ suite('timezones >', function() {
      teardown(function() {
         conn = null;
         MockNavigatorMozMobileConnections.mRemoveMobileConnection();
-        IccHelper.mSuiteSetup(); // reset the object properties
       });
 
       test('get timezone from SIM', function(done) {
@@ -290,12 +290,12 @@ suite('timezones >', function() {
         MockNavigatorMozMobileConnections.mAddMobileConnection(conn, 0);
 
         // but access to the SIM data
+
         IccHelper.setProperty('cardstate', 'pin_required');
       });
 
       teardown(function() {
         MockNavigatorMozMobileConnections.mRemoveMobileConnection();
-        IccHelper.mSuiteSetup(); // reset the object properties
       });
 
       test('> default is used while waiting for access', function(done) {
@@ -316,13 +316,15 @@ suite('timezones >', function() {
         function tzLoaded(timezone, needsConfirmation) {
           calls++;
           IccHelper.mTriggerEventListeners('iccinfochange', {});
-          var currentValues = getTextFromSelectors();
-          assert.equal(currentValues.region, 'Europe');
-          assert.equal(currentValues.city, 'London');
-          assert.isTrue(needsConfirmation);
+
           // we expect 2 calls before finishing
           if (calls === 2) {
-            done();
+            var currentValues = getTextFromSelectors();
+            done(function check_asserts() {
+              assert.equal(currentValues.region, 'Europe');
+              assert.equal(currentValues.city, 'London');
+              assert.isTrue(needsConfirmation);
+            });
           }
         }
 
@@ -336,19 +338,14 @@ suite('timezones >', function() {
   });
 
   suite('> user chose previously', function() {
-    // var addEventListenerSpy;
 
-    suiteSetup(function() {
+    setup(function() {
       MockNavigatorSettings.mSettings['time.timezone.user-selected'] =
         'Europe/Madrid';
     });
-    suiteTeardown(function() {
+    teardown(function() {
       MockNavigatorSettings.mSettings['time.timezone.user-selected'] = null;
     });
-
-    // setup(function() {
-    //   addEventListenerSpy = this.sinon.spy(window, 'addEventListener');
-    // });
 
     test('> previous selection prevails', function(done) {
       function tzLoaded(timezone, needsConfirmation) {
@@ -360,7 +357,6 @@ suite('timezones >', function() {
       }
 
       tzSelect(regionSelector, citySelector, tzLoaded, tzLoaded);
-      // addEventListenerSpy.yield({target: window});
     });
   });
 });

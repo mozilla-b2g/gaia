@@ -1,14 +1,16 @@
-Calendar.ns('Views').MultiDay = (function() {
+define(function(require, exports, module) {
 'use strict';
 
-var HourDoubleTap = Calendar.Views.HourDoubleTap;
-var Pan = Calendar.Views.Pan;
-var SingleDay = Calendar.Views.SingleDay;
-var Timespan = Calendar.Timespan;
-var View = Calendar.View;
-var DateSpan = Calendar.Templates.DateSpan;
-var createDay = Calendar.Calc.createDay;
-var throttle = Calendar.Utils.mout.throttle;
+var Calc = require('calc');
+var CurrentTime = require('./current_time');
+var DateSpan = require('templates/date_span');
+var HourDoubleTap = require('./hour_double_tap');
+var Pan = require('./pan');
+var SingleDay = require('./single_day');
+var Timespan = require('timespan');
+var View = require('view');
+var createDay = require('calc').createDay;
+var throttle = require('utils/mout').throttle;
 
 function MultiDay(opts) {
   this.app = opts.app;
@@ -16,13 +18,16 @@ function MultiDay(opts) {
   this.children = [];
   this._render = throttle(this._render, 200);
 }
+module.exports = MultiDay;
 
 MultiDay.prototype = {
 
-  // override this on child classes to change the behavior!
+  // override these properties on child classes to change the behavior!
   scale: 'week',
   visibleCells: 5,
   element: null,
+  _hourFormat: 'hour-format',
+  _addAmPmClass: false,
 
   childClass: SingleDay,
   children: null,
@@ -43,23 +48,23 @@ MultiDay.prototype = {
   },
 
   get daysHolder() {
-    return this.element.querySelector('.days');
+    return this.element.querySelector('.md__days');
   },
 
   get alldaysHolder() {
-    return this.element.querySelector('.alldays');
+    return this.element.querySelector('.md__alldays');
   },
 
   get main() {
-    return this.element.querySelector('.main');
+    return this.element.querySelector('.md__main');
   },
 
   get mainContent() {
-    return this.element.querySelector('.main-content');
+    return this.element.querySelector('.md__main-content');
   },
 
   get sidebar() {
-    return this.element.querySelector('.sidebar');
+    return this.element.querySelector('.md__sidebar');
   },
 
   onactive: function() {
@@ -74,10 +79,15 @@ MultiDay.prototype = {
     controller.scale = this.scale;
     controller.moveToMostRecentDay();
 
+    var previousBaseDate = this.baseDate;
     this.baseDate = this._calcBaseDate(controller.position);
     this._render();
-    this._resetScroll();
-    this._scrollToHour();
+    // Do not scroll when come back from any other screen.
+    if (!(previousBaseDate &&
+          Calc.isSameDate(previousBaseDate, this.baseDate))) {
+      this._resetScroll();
+      this._scrollToHour();
+    }
 
     // add listeners afterwards to avoid calling render twice
     controller.on('dayChange', this);
@@ -110,10 +120,11 @@ MultiDay.prototype = {
       targets: [
         this.alldaysHolder,
         this.daysHolder
-      ],
-      onDragRelease: this._updateBaseDateAfterScroll.bind(this)
+      ]
     });
     this._pan.setup();
+    this._pan.on('start', () => this._hourDoubleTap.removeAddEventLink());
+    this._pan.on('release', obj => this._updateBaseDateAfterScroll(obj.diff));
   },
 
   _setupHours: function() {
@@ -131,19 +142,19 @@ MultiDay.prototype = {
 
   _createHour: function(hour) {
     var el = document.createElement('li');
-    el.className = 'hour hour-' + hour;
+    el.className = 'md__hour md__hour-' + hour;
     el.innerHTML = DateSpan.hour.render({
       hour: hour,
-      format: 'week-hour-format',
-      addAmPmClass: true,
-      className: 'display-hour'
+      format: this._hourFormat,
+      addAmPmClass: this._addAmPmClass,
+      className: 'md__display-hour'
     });
     return el;
   },
 
   _setupCurrentTime: function() {
-    this._currentTime = new Calendar.Views.CurrentTime({
-      container: this.element.querySelector('.main-content'),
+    this._currentTime = new CurrentTime({
+      container: this.element.querySelector('.md__main-content'),
       sticky: this.alldaysHolder
     });
   },
@@ -240,7 +251,7 @@ MultiDay.prototype = {
   },
 
   _getPendingDates: function(range) {
-    var dates = range.daysBetween();
+    var dates = Calc.daysBetween(range);
     if (this._prevRange) {
       dates = dates.filter(date => {
         return !this._prevRange.contains(date);
@@ -330,5 +341,4 @@ function createDayDiff(date, diff) {
   return createDay(date, date.getDate() + diff);
 }
 
-return MultiDay;
-}());
+});

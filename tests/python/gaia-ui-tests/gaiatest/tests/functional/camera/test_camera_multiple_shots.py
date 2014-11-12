@@ -15,7 +15,9 @@ class TestCameraMultipleShots(GaiaTestCase):
         self.apps.set_permission('Camera', 'geolocation', 'deny')
 
     def test_capture_multiple_shots(self):
-        """https://moztrap.mozilla.org/manage/case/1325/"""
+        """
+        https://moztrap.mozilla.org/manage/case/1325/
+        """
         self.previous_number_of_pictures = len(self.data_layer.picture_files)
 
         self.camera = Camera(self.marionette)

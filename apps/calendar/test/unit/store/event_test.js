@@ -1,20 +1,14 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireLib('timespan.js');
-requireLib('interval_tree.js');
-requireLib('responder.js');
-requireLib('calc.js');
-requireLib('store/event.js');
+var Abstract = require('store/abstract');
+var AccountModel = require('models/account');
+var Calc = require('calc');
+var CalendarModel = require('models/calendar');
+var Factory = require('test/support/factory');
+var providerFactory = require('provider/provider_factory');
 
 suite('store/event', function() {
-  'use strict';
-
-  testSupport.calendar.loadObjects(
-    'Models.Account',
-    'Model.Calendar',
-    'Provider.Local'
-  );
-
   var subject;
   var db;
   var app;
@@ -25,9 +19,7 @@ suite('store/event', function() {
       date = new Date();
     }
 
-    return Factory('event', {
-      remote: { startDate: date, _id: ++id }
-    });
+    return Factory('event', { remote: { startDate: date, _id: ++id } });
   }
 
   setup(function(done) {
@@ -59,7 +51,7 @@ suite('store/event', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.Store.Abstract);
+    assert.instanceOf(subject, Abstract);
     assert.equal(subject._store, 'events');
     assert.equal(subject.db, db);
   });
@@ -72,17 +64,13 @@ suite('store/event', function() {
 
     assert.deepEqual(
       output.remote.startDate,
-      Calendar.Calc.dateFromTransport(
-        output.remote.start
-      ),
+      Calc.dateFromTransport(output.remote.start),
       'startDate'
     );
 
     assert.deepEqual(
       output.remote.endDate,
-      Calendar.Calc.dateFromTransport(
-        output.remote.end
-      ),
+      Calc.dateFromTransport(output.remote.end),
       'endDate'
     );
   });
@@ -99,22 +87,21 @@ suite('store/event', function() {
     });
 
     test('#ownersOf', function(done) {
-      subject.ownersOf(event, function(err, owners) {
-        done(function() {
-          assert.instanceOf(owners.calendar, Calendar.Models.Calendar);
-          assert.instanceOf(owners.account, Calendar.Models.Account);
-
-          assert.equal(owners.calendar._id, this.calendar._id, 'calendar id');
+      subject.ownersOf(event, (err, owners) => {
+        done(() => {
+          assert.instanceOf(owners.account, AccountModel);
+          assert.instanceOf(owners.calendar, CalendarModel);
           assert.equal(owners.account._id, this.account._id, 'account id');
-        }.bind(this));
-      }.bind(this));
+          assert.equal(owners.calendar._id, this.calendar._id, 'calendar id');
+        });
+      });
     });
 
     test('#providerFor', function(done) {
       subject.providerFor(event, function(err, provider) {
         assert.equal(
           provider,
-          Calendar.App.provider('Mock')
+          providerFactory.get('Mock')
         );
         done();
       });
@@ -341,5 +328,6 @@ suite('store/event', function() {
       });
     });
   });
+});
 
 });

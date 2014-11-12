@@ -60,6 +60,10 @@ marionette('Browser Chrome - Share Web Result', function() {
   test('share web result via e-mail', function() {
     var linkIdentifier = 'mozilla1.org/';
 
+    home.waitForLaunch();
+    home.focusRocketBar();
+    search.triggerFirstRun(rocketbar);
+
     // Use the home-screen search box to open up the system browser
     rocketbar.homescreenFocus();
     rocketbar.enterText('mozilla');

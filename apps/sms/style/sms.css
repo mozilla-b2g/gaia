@@ -9,6 +9,22 @@ html, body {
 }
 
 
+/* Style for the attachment options menu, mimics style for shared
+ * options menu element.
+ * TODO: We should remove this once we used the shared options menu for the
+ *       attachment menu.
+ */
+#attachment-options {
+  visibility: hidden;
+  transform: translateY(100%);
+  transition: transform ease-in-out .3s, visibility .3s;
+}
+
+#attachment-options.visible {
+  visibility: visible;
+  transform: translateY(0);
+}
+
 /*
   Override BB. Some CSS tweaks for having a better confirm readability
 */
@@ -30,7 +46,7 @@ gaia-header {
   z-index: 10;
 }
 
-/* Override Building Block [Imput areas] styles */
+/* Override Building Block [Input areas] styles */
 form.bottom[role="search"] {
   z-index: 3;
 }
@@ -47,7 +63,6 @@ form[role="dialog"][data-type="edit"] > menu {
 /* Override Building Block [Lists] styles */
 [data-type="list"] {
   padding: 0;
-  text-align: left;
 }
 
 #main-wrapper.edit [data-type="list"] li a {
@@ -56,7 +71,7 @@ form[role="dialog"][data-type="edit"] > menu {
 
 #threads-container[data-type="list"] .mms-icon {
   display: none;
-  margin-left: 0.3rem;
+  -moz-margin-start: 0.3rem;
 
   font-size: 1.5rem;
   color: #ff6622;
@@ -81,17 +96,29 @@ form[role="dialog"][data-type="edit"] > menu {
   top: 5rem;
 
   /* The width is not 100% so the scrollbar is visible. */
-  width: calc(100% - 1.5rem);
+  width: calc(100% - 2rem);
 
   /* The height needs to be kept in sync with the header height. */
   height: 3.1rem;
 
+  /* Leaving 1rem margin for both side to makes scrollbar visible in LTR/RTL */
+  margin: 0 1rem;
+
   /* The sticky element needs to be above the list. */
   z-index: 2;
 
-  /* Those style will affect the bagroundImage: -moz-element. */
+  /* Hide sticky header when content is not ready */
+  visibility: hidden;
+
+  /* Those style will affect the backgroundImage: -moz-element. */
   background-repeat: no-repeat;
-  background-position: 1.5rem 0;
+  background-position: center top;
+  background-color: white;
+}
+
+#sticky.has-content {
+  /* Set sticky header visible only when content is ready */
+  visibility: visible;
 }
 
 .edit #threads-container[data-type="list"] {
@@ -157,7 +184,6 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 [data-type="list"] li > label {
-  right: 5rem;
   display: block;
   overflow: hidden;
   opacity: 0;
@@ -170,7 +196,8 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 [data-type="list"] aside.pack-end {
-  margin: 0 5px 0 0.5px;
+  margin: 0;
+  -moz-margin-end: .5rem;
 }
 
 [data-type="list"] .unread aside.icon-unread {
@@ -230,11 +257,11 @@ form[role="dialog"][data-type="edit"] > menu {
 
 .edit [data-type="list"] li > a > p {
   transform: translateX(5.0rem);
-  margin-right: 3.4rem;
+  -moz-margin-end: 3.4rem;
 }
 
 .edit #threads-container aside.pack-end {
-  margin-left: 4rem;
+  -moz-margin-start: 4rem;
 }
 
 .edit #threads-container[data-type="list"] aside.pack-end span {
@@ -282,13 +309,14 @@ form[role="dialog"][data-type="edit"] > menu {
   display: flex;
   flex-direction: row;
 
-  padding: 1rem 1.5rem 1rem 2rem;
+  padding: 1rem;
+  -moz-padding-start: 2rem;
+  -moz-padding-end: 1.5rem;
   overflow: hidden;
 
   white-space: nowrap;
   line-height: 2rem;
   font-size: 1.8rem;
-  text-align: left;
 }
 
 #messages-new-message-notice a {
@@ -311,7 +339,9 @@ form[role="dialog"][data-type="edit"] > menu {
 #messages-new-message-notice > div:nth-child(2) {
   flex: none;
 
-  padding: 0.2rem 0 0.2rem 1.5rem;
+  padding: 0.2rem;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 0;
 }
 
 /*
@@ -332,21 +362,6 @@ form[role="dialog"][data-type="edit"] {
 
 .edit form[role="dialog"][data-type="edit"] gaia-header {
   transform: translateY(0);
-}
-
-.edit #threads-container .checkbox-container {
-  pointer-events:auto;
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.edit .undo-candidate {
-  display: none;
-}
-
-.edit .message-block {
-  border-top: .1rem solid #DBDBDB;
-  margin-bottom: 0;
 }
 
 /*
@@ -413,7 +428,7 @@ section[role="region"].new > header:first-child form {
 
   font-size: 1.4rem;
   line-height: 2.2rem;
-  text-align: left;
+  text-align: start;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -485,6 +500,11 @@ section[role="region"].new > header:first-child form {
   width: auto;
 }
 
+/* transition in and out edit mode, both for LTR and RTL contexts */
+.message .bubble {
+  transition: transform 0.4s ease 0s;
+}
+
 /*
   Styles for Edit mode in Messages Container
 */
@@ -506,7 +526,6 @@ section[role="region"].new > header:first-child form {
 }
 
 .edit .message.incoming .bubble {
-  transition: transform 0.4s ease 0s;
   transform: translateX(2.5rem);
 }
 
@@ -538,7 +557,7 @@ section[role="region"].new > header:first-child form {
 }
 
 .loading-header {
-  text-align: left;
+  text-align: start;
 }
 
 #loading [role="status"] {
@@ -575,7 +594,7 @@ section[role="region"].new > header:first-child form {
   border-top: .1rem solid rgba(96,96,96,.5);
 
   line-height: 3rem;
-  text-align: left;
+  text-align: start;
   font-weight: 300;
   font-size: 2.2rem;
   color: #606060;
@@ -597,7 +616,7 @@ section[role="region"].new .subheader {
   display: none;
   min-height: 5.5rem;
 
-  text-align: left;
+  text-align: start;
   color: black;
   font-size: 1.465rem;
   background-color: #f2f2f2;
@@ -623,8 +642,8 @@ section[role="region"].new #messages-to-field.multiline {
   flex-shrink: 0;
 
   height: 4rem;
-  padding-left: 1.5rem;
-  padding-right: 0.7rem;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 0.7rem;
 
   line-height: 4rem;
   font-weight: 200;
@@ -643,7 +662,11 @@ section[role="region"].new #messages-to-field.multiline {
 #messages-recipients-list {
   box-sizing: border-box;
   min-height: 4rem;
-  padding: 0 0.6rem 0.6rem 0;
+  padding-top: 0;
+  -moz-padding-end: 0.6rem;
+  padding-bottom: 0.6rem;
+  -moz-padding-start: 0;
+
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -668,25 +691,29 @@ Do not remove.
 
 .recipient[contenteditable] {
   overflow: hidden;
-  /* Editable recipients have no `padding-left` so that they align with
+  /* Editable recipients have no `padding-start` so that they align with
   * "assimilated" recipients (see `ThreadUI.assimilateRecipients`), but they
-  * maintain twice the `padding-right` so they wrap as if "assimilated". For
+  * maintain twice the `padding-end` so they wrap as if "assimilated". For
   * discussion of this behavior, see "Bug 905260 - [messages] padding issues
   * in the recipient panel". */
-  margin: 0.6rem 0.6rem 0 0;
-  padding-right: 1.6rem;
+  margin-top: 0.6rem;
+  -moz-margin-end: 0.6rem;
+  margin-bottom: 0;
+  -moz-margin-start: 0;
+
+  -moz-padding-end: 1.6rem;
 
   display: block;
   float: left;
 
-   /* override BB [role="button"] selector (bug 1055363) */
+   /* override BB selector */
   height: auto;
   width: auto;
 }
 
 .recipient[contenteditable].email {
-  padding-right: 3.8rem;
-  background: white url(images/icons/icon_sms_compose_email.png) calc(100% - 1.5rem) center no-repeat;
+  -moz-padding-end: 3.8rem;
+  background: white url(images/icons/icon_sms_compose_email.png) right 1.5rem center / 1.7rem no-repeat;
 }
 
 #messages-recipients-list > .recipient[contenteditable=true] {
@@ -706,20 +733,20 @@ Do not remove.
   display: none;
 }
 
-/* Disable padding and give negative margin-right on empty contenteditable
+/* Disable padding and give negative margin-end on empty contenteditable
  * recipients when they do not have focus. This allows the Recipients List
  * to intelligently collapse when the final row contains no "assimilated"
  * (i.e. non-contenteditable) recipients. */
 .recipient[contenteditable=true]:empty {
-  margin-right: -0.5rem;
+  -moz-margin-end: -0.5rem;
   padding: 0;
 }
 
 .recipient[contenteditable=true]:focus,
 .recipient[contenteditable=true]:hover,
 .recipient[contenteditable=true]:empty:focus {
-  margin-right: 0.5rem;
-  padding-right: 0.3rem;
+  -moz-margin-end: 0.5rem;
+  -moz-padding-end: 0.3rem;
 }
 
 #messages-recipient-suggestions {
@@ -731,6 +758,10 @@ Do not remove.
 
   max-height: calc(100% - 9rem);
   width: 100%;
+}
+
+.recipient-suggestions-list {
+  border-bottom: 0.1rem solid #E7E7E7;
 }
 
 .multiline-recipients-mode #messages-recipient-suggestions {
@@ -757,13 +788,23 @@ body[role="application"] form[role="dialog"][data-type="action"] > section:first
   height: auto;
   border-bottom: 0.1rem solid #616262;
   padding-bottom: 1rem;
-  padding-left: 2.5rem;
+  -moz-padding-start: 2.5rem;
 }
 
 form[role="dialog"][data-type="action"].contact-prompt > header {
   height: auto;
   min-height: 5rem;
-  font-weight: 100;
+  font-weight: 300;
+}
+
+.unknown-contact-header {
+  line-height: 2.5rem;
+  padding: 1.3rem 0;
+  margin: 0;
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  font-size: 2.3rem;
 }
 
 .contact-header {
@@ -801,7 +842,7 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
 
 .contact-header aside.pack-end {
   float: right;
-  margin-right: -1.5rem; /* compensate the header's 3rem padding */
+  -moz-margin-end: -1.5rem; /* compensate the header's 3rem padding */
 }
 
 section[role="region"].new .article-list[data-type="list"] li:first-child {
@@ -816,6 +857,18 @@ section[role="region"].new .article-list[data-type="list"]  li {
   pointer-events: none;
 }
 
+.thread-participant-count {
+  display: none;
+}
+
+/**
+ * In RTL mode location of this counter should be changed accordingly, but
+ * indicator itself (eg. "(+3)") should be always LTR
+ */
+.thread-group-header > .thread-participant-count {
+  display: unset;
+}
+
 .subheader {
   position: absolute;
   z-index: 6; /* should be between 4 and 9 (inclusive). 3 is the z-index for
@@ -826,7 +879,7 @@ section[role="region"].new .article-list[data-type="list"]  li {
 }
 
 body[role="application"] form[role="dialog"][data-type="action"] > header:first-child{
- text-align: left;
+ text-align: start;
 }
 
 .subheader menu {
@@ -847,10 +900,10 @@ body[role="application"] form[role="dialog"][data-type="action"] > header:first-
  */
 
 /* Elements related to information view */
-section[role="region"][class$='information'] #messages-options-button,
-section[role="region"][class$='information'] #messages-subheader,
-section[role="region"][class$='information'] #messages-container,
-section[role="region"][class$='information'] #messages-compose-form {
+section[role="region"][class*='-information'] #messages-options-button,
+section[role="region"][class*='-information'] #messages-subheader,
+section[role="region"][class*='-information'] #messages-container,
+section[role="region"][class*='-information'] #messages-compose-form {
   display: none !important; /* 1 */
 }
 
@@ -874,4 +927,80 @@ section[role="region"][class$='information'] #messages-compose-form {
 .phone-details.has-phone-carrier > .phone-carrier,
 .phone-details.has-phone-carrier > .phone-carrier-separator {
   display: inline;
+}
+
+/* RTL View */
+/* RTL for lists and edit mode */
+html[dir="rtl"] [data-type="list"] .unread aside.icon-unread,
+html[dir="rtl"] [data-type="list"] .draft .icon-draft {
+  background-position: right center;
+}
+
+html[dir="rtl"] .edit [data-type="list"] li > a {
+  transform: translateX(1.5rem);
+}
+
+html[dir="rtl"] .edit [data-type="list"] li > label {
+  transform: translateX(-2rem);
+}
+
+html[dir="rtl"] .edit [data-type="list"] .danger {
+  transform: translateX(-2.5rem);
+}
+
+html[dir="rtl"] .edit [data-type="list"] li > .pack-checkbox input ~ span:after {
+  transform: translateX(-2.5rem);
+}
+
+html[dir="rtl"] .edit [data-type="list"] li > a > aside.icon-unread {
+  transform: translateX(-5rem);
+}
+
+html[dir="rtl"] .edit [data-type="list"] li > a > p {
+  transform: translateX(-5rem);
+}
+
+html[dir="rtl"] .edit #threads-container[data-type="list"] aside.pack-end span {
+  transform: translateX(-1.5rem);
+}
+
+/* RTL for thread view */
+
+html[dir="rtl"] .edit .message.incoming .bubble {
+  transform: translateX(0);
+}
+
+html[dir="rtl"] .edit .message.outgoing .bubble {
+  transform: translateX(-2.5rem);
+}
+
+/* RTL for panel position */
+html[dir="rtl"] #main-wrapper,
+html[dir="rtl"] .panel:first-child {
+  left: unset;
+  right: 0;
+}
+
+html[dir="rtl"] .panel {
+  left: unset;
+  right: 100%;
+}
+
+html[dir="rtl"] #main-wrapper[data-position='left'] .panel {
+  transform: translateX(100%);
+}
+
+html[dir="rtl"] #messages-contact-pick-button .icon-user {
+  left: 1rem;
+  right: unset;
+}
+
+/* RTL for recipient panel */
+html[dir="rtl"] .recipient[contenteditable] {
+  float: right;
+}
+
+/* RTL for contact prompt header */
+html[dir="rtl"] .contact-header aside.pack-end {
+  float: left;
 }

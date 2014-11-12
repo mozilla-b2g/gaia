@@ -236,15 +236,13 @@ suite('system/NotificationScreen >', function() {
       NotificationScreen.updateNotificationIndicator();
     });
 
-    function localizeAmbientIndicatorLabel(n) {
-      return 'statusbarNotifications-unread' + JSON.stringify({n: n});
-    }
-
     test('should clear unread notifications after open tray', function() {
       incrementNotications(2);
       assert.equal(NotificationScreen.unreadNotifications.length, 2);
-      assert.equal(NotificationScreen.ambientIndicator.getAttribute(
-        'aria-label'), localizeAmbientIndicatorLabel(2));
+
+      var l10nAttrs = navigator.mozL10n.getAttributes(
+        NotificationScreen.ambientIndicator);
+      assert.deepEqual(l10nAttrs.args, { n : 2 });
       var event = new CustomEvent('utilitytrayshow');
       window.dispatchEvent(event);
       assert.equal(document.body.getElementsByClassName('unread').length, 0);
@@ -253,39 +251,12 @@ suite('system/NotificationScreen >', function() {
         'aria-label'));
     });
 
-    test('should show a small ambient indicator', function() {
-      incrementNotications(2);
-      assert.equal(document.body.getElementsByClassName('small').length, 1);
-      assert.equal(NotificationScreen.ambientIndicator.getAttribute(
-        'aria-label'), localizeAmbientIndicatorLabel(2));
-    });
-
-    test('should show a medium ambient indicator', function() {
-      incrementNotications(4);
-      assert.equal(document.body.getElementsByClassName('medium').length, 1);
-      assert.equal(NotificationScreen.ambientIndicator.getAttribute(
-        'aria-label'), localizeAmbientIndicatorLabel(4));
-    });
-
-    test('should show a big ambient indicator', function() {
-      incrementNotications(6);
-      assert.equal(document.body.getElementsByClassName('big').length, 1);
-      assert.equal(NotificationScreen.ambientIndicator.getAttribute(
-        'aria-label'), localizeAmbientIndicatorLabel(6));
-    });
-
-    test('should show a full ambient indicator', function() {
-      incrementNotications(7);
-      assert.equal(document.body.getElementsByClassName('full').length, 1);
-      assert.equal(NotificationScreen.ambientIndicator.getAttribute(
-        'aria-label'), localizeAmbientIndicatorLabel(7));
-    });
-
     test('should change the read status', function() {
       incrementNotications(1);
       assert.equal(document.body.getElementsByClassName('unread').length, 1);
-      assert.equal(NotificationScreen.ambientIndicator.getAttribute(
-        'aria-label'), localizeAmbientIndicatorLabel(1));
+      var l10nAttrs = navigator.mozL10n.getAttributes(
+        NotificationScreen.ambientIndicator);
+      assert.deepEqual(l10nAttrs.args, { n : 1 });
     });
 
     test('should not increment if the tray is open', function() {
@@ -311,8 +282,9 @@ suite('system/NotificationScreen >', function() {
         'aria-label'));
       NotificationScreen.removeUnreadNotification('other-id');
       assert.equal(NotificationScreen.unreadNotifications.length, 1);
-      assert.equal(NotificationScreen.ambientIndicator.getAttribute(
-        'aria-label'), localizeAmbientIndicatorLabel(1));
+      var l10nAttrs = navigator.mozL10n.getAttributes(
+        NotificationScreen.ambientIndicator);
+      assert.deepEqual(l10nAttrs.args, { n : 1 });
     });
 
   });

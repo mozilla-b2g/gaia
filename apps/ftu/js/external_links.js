@@ -30,15 +30,21 @@ function getLocalizedLink(key) {
     }
   };
 
-  // Returning the HTML code for link "key"
-  var link = document.createElement('a');
+  // Returning the data-l10n attributes for link "key"
   var linkRef = refs[key];
+  var dataL10nAttrs = {};
+  var _ = navigator.mozL10n.get;
   for (var prop in linkRef) {
     if (prop == 'l10nId') {
-      link.setAttribute('data-l10n-id', linkRef.l10nId);
+      dataL10nAttrs.textContent = _(linkRef.l10nId);
     } else {
-      link[prop] = linkRef[prop];
+      dataL10nAttrs[prop] = linkRef[prop];
     }
   }
-  return link.outerHTML;
+
+  if (!dataL10nAttrs.hasOwnProperty('className')) {
+    dataL10nAttrs.className = '';
+  }
+
+  return dataL10nAttrs;
 }

@@ -18,14 +18,14 @@ navigator.mozL10n.once(function deviceList() {
   }
 
   function debug(msg) {
-    if (!_debug)
+    if (!_debug) {
       return;
-
+    }
     console.log('[Bluetooth APP Device List]: ' + msg);
   }
 
   // device list
-  gDeviceList = (function deviceList() {
+  gDeviceList = (function devicesList() {
     var deviceList = document.getElementById('devices-list-view');
     var bluetoothSearch = document.getElementById('bluetooth-search');
     var searchAgainBtn = document.getElementById('search-device');
@@ -178,14 +178,15 @@ navigator.mozL10n.once(function deviceList() {
     }
 
     function getPairedDevice() {
-      if (!bluetooth.enabled || !defaultAdapter)
+      if (!bluetooth.enabled || !defaultAdapter) {
         return;
+      }
       var req = defaultAdapter.getPairedDevices();
       req.onsuccess = function bt_getPairedSuccess() {
         // copy for sorting
         var paired = req.result.slice();
         var length = paired.length;
-        if (length == 0) {
+        if (length === 0) {
           pairList.show(false);
           return;
         }
@@ -193,8 +194,9 @@ navigator.mozL10n.once(function deviceList() {
         paired.sort(function(a, b) {
           return a.name > b.name;
         });
-        for (var i = 0; i < length; i++) {
-          (function(device) {
+
+        function deviceStatus(){
+          return (function(device) {
             var stateL10nId = (device.address === connectedAddress) ?
               'device-status-connected' : '';
             var aItem = newListItem(device, stateL10nId);
@@ -214,7 +216,11 @@ navigator.mozL10n.once(function deviceList() {
             };
             pairList.list.appendChild(aItem);
             pairList.index[device.address] = [device, aItem];
-          })(paired[i]);
+          });
+        }
+
+        for (var i = 0; i < length; i++) {
+          deviceStatus()(paired[i]);
         }
         pairList.show(true);
       };
@@ -321,29 +327,25 @@ navigator.mozL10n.once(function deviceList() {
     }
 
     function startDiscovery() {
-      if (!bluetooth.enabled || !defaultAdapter || discoverTimeout)
+      if (!bluetooth.enabled || !defaultAdapter || discoverTimeout) {
         return;
+      }
 
       var req = defaultAdapter.startDiscovery();
       req.onsuccess = function bt_discoveryStart() {
-        if (!discoverTimeout)
+        if (!discoverTimeout) {
           discoverTimeout = setTimeout(stopDiscovery, discoverTimeoutTime);
+        }
       };
       req.onerror = function bt_discoveryFailed() {
         console.error('Can not discover nearby device');
       };
     }
 
-    function stopDiscoveryWhenLeaveApp() {
-      //only stop discovery when Bluetooth app is hidden
-      if (!document.hidden)
-        return;
-      stopDiscovery();
-    }
-
     function stopDiscovery() {
-      if (!bluetooth.enabled || !defaultAdapter || !discoverTimeout)
+      if (!bluetooth.enabled || !defaultAdapter || !discoverTimeout) {
         return;
+      }
 
       var req = defaultAdapter.stopDiscovery();
       req.onerror = function bt_discoveryStopFailed() {

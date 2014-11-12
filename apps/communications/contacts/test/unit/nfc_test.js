@@ -12,13 +12,14 @@ require('/shared/js/nfc_utils.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
+require('/shared/test/unit/mocks/mock_moz_contact.js');
 
 if (!window.contacts) {
   window.contacts = null;
 }
 
 var mocksHelperForNFC = new MocksHelper([
-  'fb', 'Contacts', 'LazyLoader'
+  'fb', 'Contacts', 'LazyLoader', 'mozContact'
 ]);
 mocksHelperForNFC.init();
 

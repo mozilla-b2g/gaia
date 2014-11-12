@@ -24,11 +24,11 @@ MockDump.disable();
 
 var realDUMP = null;
 
-MockDump.mSetup = function() {
+MockDump.mSuiteSetup = function() {
   realDUMP = window.DUMP;
   window.DUMP = MockDump.disable();
 };
 
-MockDump.mTeardown = function() {
+MockDump.mSuiteTeardown = function() {
   window.DUMP = realDUMP;
 };

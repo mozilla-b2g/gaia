@@ -1,3 +1,5 @@
+'use strict';
+
 var fs = require('fs');
 
 function GetAppName(app)

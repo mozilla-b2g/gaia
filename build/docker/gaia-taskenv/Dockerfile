@@ -27,5 +27,6 @@ run git config --global user.email "gaia@mozilla.com"
 run git config --global user.name "gaia-taskenv"
 
 # run some more root commands which change frequently
-add ./bin/entrypoint /home/tester/bin/entrypoint
+copy ./bin/entrypoint /home/tester/bin/entrypoint
+copy ./bin/buildbot_step /home/tester/bin/buildbot_step
 run chmod a+x /home/tester/bin/entrypoint

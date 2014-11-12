@@ -36,7 +36,7 @@ suite('Gmail Connector', function() {
         'success': function onSuccess(result) {
           assert.isNotNull(result);
           assert.isNotNull(result.data);
-          assert.length(result.data, 2);
+          assert.lengthOf(result.data, 2);
           done();
         },
         'error': function onError(error) {
@@ -102,22 +102,22 @@ suite('Gmail Connector', function() {
 
       assert.isNotNull(result);
       assert.isNotNull(result.givenName);
-      assert.length(result.givenName, 1);
+      assert.lengthOf(result.givenName, 1);
       assert.equal(result.givenName[0], 'My');
 
       assert.isNotNull(result.familyName);
-      assert.length(result.familyName, 1);
+      assert.lengthOf(result.familyName, 1);
       assert.equal(result.familyName[0], 'Contact');
 
       assert.isNotNull(result.email);
-      assert.length(result.email, 2);
+      assert.lengthOf(result.email, 2);
       assert.equal('juan@palomo.es', result.email[0].value);
       assert.equal('home', result.email[0].type);
       assert.equal('workemail@email.com', result.email[1].value);
       assert.equal('work', result.email[1].type);
 
       assert.isNotNull(result.adr);
-      assert.length(result.adr, 1);
+      assert.lengthOf(result.adr, 1);
       assert.equal('This is the Street', result.adr[0].streetAddress);
       assert.equal('The City', result.adr[0].locality);
       assert.equal('The State', result.adr[0].region);
@@ -125,32 +125,32 @@ suite('Gmail Connector', function() {
       assert.equal('The Country', result.adr[0].countryName);
 
       assert.isNotNull(result.tel);
-      assert.length(result.tel, 1);
+      assert.lengthOf(result.tel, 1);
       assert.equal('+1555111333444222', result.tel[0].value);
       assert.equal('work', result.tel[0].type);
 
       assert.isNotNull(result.org);
-      assert.length(result.org, 1);
+      assert.lengthOf(result.org, 1);
       assert.equal('The Company', result.org[0]);
 
       assert.isNotNull(result.jobTitle);
-      assert.length(result.jobTitle, 1);
+      assert.lengthOf(result.jobTitle, 1);
       assert.equal('Title in Company', result.jobTitle[0]);
 
       assert.isNotNull(result.bday);
       assert.deepEqual(new Date('1990-01-01'), result.bday);
 
       assert.isNotNull(result.note);
-      assert.length(result.note, 1);
+      assert.lengthOf(result.note, 1);
       assert.equal('This is a Note', result.note[0]);
 
       assert.isNotNull(result.category);
-      assert.length(result.category, 1);
+      assert.lengthOf(result.category, 1);
       assert.equal('gmail', result.category[0]);
 
       assert.isNotNull(result.url);
-      assert.length(result.url, 1);
-      assert.length(result.url[0].type, 1);
+      assert.lengthOf(result.url, 1);
+      assert.lengthOf(result.url[0].type, 1);
       assert.equal('source', result.url[0].type[0]);
       assert.equal('urn:service:gmail:uid:' +
         'http://www.google.com/m8/feeds/contacts/' +
@@ -167,14 +167,14 @@ suite('Gmail Connector', function() {
       assert.isTrue(!result.familyName);
 
       assert.isNotNull(result.email);
-      assert.length(result.email, 2);
+      assert.lengthOf(result.email, 2);
       assert.equal('juan@palomo.es', result.email[0].value);
       assert.equal('home', result.email[0].type);
       assert.equal('workemail@email.com', result.email[1].value);
       assert.equal('work', result.email[1].type);
 
       assert.isNotNull(result.adr);
-      assert.length(result.adr, 1);
+      assert.lengthOf(result.adr, 1);
       assert.equal('This is the Street', result.adr[0].streetAddress);
       assert.equal('The City', result.adr[0].locality);
       assert.equal('The State', result.adr[0].region);
@@ -182,32 +182,32 @@ suite('Gmail Connector', function() {
       assert.equal('The Country', result.adr[0].countryName);
 
       assert.isNotNull(result.tel);
-      assert.length(result.tel, 1);
+      assert.lengthOf(result.tel, 1);
       assert.equal('+1555111333444222', result.tel[0].value);
       assert.equal('work', result.tel[0].type);
 
       assert.isNotNull(result.org);
-      assert.length(result.org, 1);
+      assert.lengthOf(result.org, 1);
       assert.equal('The Company', result.org[0]);
 
       assert.isNotNull(result.jobTitle);
-      assert.length(result.jobTitle, 1);
+      assert.lengthOf(result.jobTitle, 1);
       assert.equal('Title in Company', result.jobTitle[0]);
 
       assert.isNotNull(result.bday);
       assert.deepEqual(new Date('1990-01-01'), result.bday);
 
       assert.isNotNull(result.note);
-      assert.length(result.note, 1);
+      assert.lengthOf(result.note, 1);
       assert.equal('This is a Note', result.note[0]);
 
       assert.isNotNull(result.category);
-      assert.length(result.category, 1);
+      assert.lengthOf(result.category, 1);
       assert.equal('gmail', result.category[0]);
 
       assert.isNotNull(result.url);
-      assert.length(result.url, 1);
-      assert.length(result.url[0].type, 1);
+      assert.lengthOf(result.url, 1);
+      assert.lengthOf(result.url[0].type, 1);
       assert.equal('source', result.url[0].type[0]);
       assert.equal('urn:service:gmail:uid:' +
         'http://www.google.com/m8/feeds/contacts/' +
@@ -222,22 +222,22 @@ suite('Gmail Connector', function() {
 
       assert.isNotNull(result);
       assert.isNotNull(result.givenName);
-      assert.length(result.givenName, 1);
+      assert.lengthOf(result.givenName, 1);
       assert.equal(result.givenName[0], 'My');
 
       assert.isNotNull(result.familyName);
-      assert.length(result.familyName, 1);
+      assert.lengthOf(result.familyName, 1);
       assert.equal(result.familyName[0], 'Contact');
 
       assert.isNotNull(result.email);
-      assert.length(result.email, 2);
+      assert.lengthOf(result.email, 2);
       assert.equal('juan@palomo.es', result.email[0].value);
       assert.equal('home', result.email[0].type);
       assert.equal('workemail@email.com', result.email[1].value);
       assert.equal('work', result.email[1].type);
 
       assert.isNotNull(result.adr);
-      assert.length(result.adr, 1);
+      assert.lengthOf(result.adr, 1);
       assert.equal('This is the Street', result.adr[0].streetAddress);
       assert.equal('The City', result.adr[0].locality);
       assert.equal('The State', result.adr[0].region);
@@ -245,31 +245,31 @@ suite('Gmail Connector', function() {
       assert.equal('The Country', result.adr[0].countryName);
 
       assert.isNotNull(result.tel);
-      assert.length(result.tel, 1);
+      assert.lengthOf(result.tel, 1);
       assert.equal('+1555111333444222', result.tel[0].value);
       assert.equal('work', result.tel[0].type);
 
       assert.isNotNull(result.org);
-      assert.length(result.org, 1);
+      assert.lengthOf(result.org, 1);
       assert.equal('The Company', result.org[0]);
 
       assert.isNotNull(result.jobTitle);
-      assert.length(result.jobTitle, 1);
+      assert.lengthOf(result.jobTitle, 1);
       assert.equal('Title in Company', result.jobTitle[0]);
 
       assert.isUndefined(result.bday);
 
       assert.isNotNull(result.note);
-      assert.length(result.note, 1);
+      assert.lengthOf(result.note, 1);
       assert.equal('This is a Note', result.note[0]);
 
       assert.isNotNull(result.category);
-      assert.length(result.category, 1);
+      assert.lengthOf(result.category, 1);
       assert.equal('gmail', result.category[0]);
 
       assert.isNotNull(result.url);
-      assert.length(result.url, 1);
-      assert.length(result.url[0].type, 1);
+      assert.lengthOf(result.url, 1);
+      assert.lengthOf(result.url[0].type, 1);
       assert.equal('source', result.url[0].type[0]);
       assert.equal('urn:service:gmail:uid:' +
         'http://www.google.com/m8/feeds/contacts/' +

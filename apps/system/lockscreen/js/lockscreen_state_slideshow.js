@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/* global Promise */
+/* global Promise, LockScreenBaseState */
 
 'use strict';
 
@@ -23,7 +23,12 @@
  */
 (function(exports) {
 
-  var LockScreenStateSlideShow = function() {};
+  var LockScreenStateSlideShow = function() {
+    LockScreenBaseState.apply(this, arguments);
+  };
+  LockScreenStateSlideShow.prototype =
+    Object.create(LockScreenBaseState.prototype);
+
   LockScreenStateSlideShow.prototype.start = function(lockScreen) {
     this.type = 'slideShow';
     this.lockScreen = lockScreen;
@@ -34,8 +39,8 @@
   function lssss_transferTo(inputs) {
     return new Promise((resolve, reject) => {
       // Clear passcode while the keypad is hiding.
-      this.lockScreen.passCodeEntered = '';
-      this.lockScreen.updatePassCodeUI();
+      window.dispatchEvent(
+        new CustomEvent('lockscreen-request-inputpad-close'));
       // Resetting slider before we want to show it again
       this.lockScreen._unlocker.reset();
       // Copy from the original switching method.

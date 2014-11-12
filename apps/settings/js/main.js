@@ -8,9 +8,9 @@ require(['config/require'], function() {
     require('utils');
     require('shared/async_storage');
     require('shared/settings_listener');
-    // used by connectivity.js, wifi.js, wifi_select_certificate_file.js
+    // used by wifi.js, wifi_select_certificate_file.js
     require('shared/wifi_helper');
-    // used by security_privacy.js, messaging.js
+    // used by messaging.js
     require('shared/icc_helper');
     // used by all header building blocks
     require('shared/font_size_utils');
@@ -21,13 +21,13 @@ require(['config/require'], function() {
     var LazyLoader = require('shared/lazy_loader');
     var ScreenLayout = require('shared/screen_layout');
     var Settings = require('settings');
-    var Connectivity = require('connectivity');
 
     function isInitialPanel(panel) {
-      var isTabletAndLandscape = Settings.isTabletAndLandscape();
-
-      return (!isTabletAndLandscape && panel === '#root') ||
-        (isTabletAndLandscape && panel === '#wifi');
+      if (Settings.isTabletAndLandscape()) {
+        return panel === Settings.initialPanelForTablet;
+      } else {
+        return panel === ('#' + window.LaunchContext.initialPanelId);
+      }
     }
 
     window.addEventListener('panelready', function onPanelReady(e) {
@@ -37,9 +37,11 @@ require(['config/require'], function() {
 
       window.removeEventListener('panelready', onPanelReady);
 
+      // Activate the animation and user interaction.
+      document.body.dataset.ready = true;
+
       // The loading of the first panel denotes that we are ready for display
       // and ready for user interaction
-      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
       window.dispatchEvent(new CustomEvent('moz-content-interactive'));
     }, false);
 
@@ -61,15 +63,17 @@ require(['config/require'], function() {
      *      two column layout, so that the root panel will not be deactivated
      *      in one column layout.
      */
-    SettingsService.init('root');
+    SettingsService.init({
+      rootPanelId: 'root',
+      context: window.LaunchContext
+    });
 
     var options = {
       SettingsUtils: SettingsUtils,
       SettingsService: SettingsService,
       PageTransitions: PageTransitions,
       LazyLoader: LazyLoader,
-      ScreenLayout: ScreenLayout,
-      Connectivity: Connectivity
+      ScreenLayout: ScreenLayout
     };
 
     if (document && (document.readyState === 'complete' ||

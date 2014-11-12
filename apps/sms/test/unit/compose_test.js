@@ -70,6 +70,7 @@ suite('compose_test.js', function() {
     var attachment = isOversized ?
       new MockAttachment(oversizedImageBlob, { name: 'oversized.jpg' }) :
       new MockAttachment(smallImageBlob, { name: 'small.jpg' });
+    attachment.mNextRender.dataset.thumbnail = 'blob:fake' + Math.random();
     return attachment;
   }
 
@@ -246,6 +247,7 @@ suite('compose_test.js', function() {
         Compose.clear();
 
         this.sinon.stub(SubjectComposer.prototype, 'reset');
+        this.sinon.stub(window.URL, 'revokeObjectURL');
       });
 
       test('Clear removes text', function() {
@@ -258,11 +260,41 @@ suite('compose_test.js', function() {
       });
       test('Clear removes attachment', function() {
         Compose.append(mockAttachment());
-        var txt = Compose.getContent();
-        assert.equal(txt.length, 1, 'One line in txt');
+
+        assert.equal(Compose.getContent().length, 1, 'One line in text');
+
         Compose.clear();
-        txt = Compose.getContent();
-        assert.equal(txt.length, 0, 'No lines in the txt');
+
+        assert.equal(Compose.getContent().length, 0, 'No lines in the text');
+        sinon.assert.notCalled(
+          window.URL.revokeObjectURL,
+          'Should not revoke anything for non-image attachment'
+        );
+      });
+      test('Clear properly revokes thumbnail URLs', function() {
+        var attachments = [
+          mockAttachment(), mockImgAttachment(), mockImgAttachment()
+        ];
+
+        attachments.forEach((attachment) => Compose.append(attachment));
+        assert.equal(Compose.getContent().length, 3, 'Three lines in text');
+
+        // Remove one attachment manually
+        attachments[2].mNextRender.remove();
+
+        Compose.clear();
+
+        assert.equal(Compose.getContent().length, 0, 'No lines in the text');
+        sinon.assert.calledTwice(
+          window.URL.revokeObjectURL,
+          'Should revoke object URL for all image attachments'
+        );
+        attachments.slice(1).forEach((attachment) => {
+          sinon.assert.calledWith(
+            window.URL.revokeObjectURL,
+            attachment.mNextRender.dataset.thumbnail
+          );
+        });
       });
       test('Resets subject', function() {
         Compose.clear();
@@ -592,17 +624,6 @@ suite('compose_test.js', function() {
     });
 
     suite('requestAttachment', function() {
-      var originalLimit;
-
-      setup(function() {
-        this.sinon.spy(Utils, 'cloneBlob');
-        originalLimit = Settings.mmsSizeLimitation;
-      });
-
-      teardown(function() {
-        Settings.mmsSizeLimitation = originalLimit;
-      });
-
       test('correctly invokes the "pick" MozActivity', function() {
         Compose.requestAttachment();
         assert.equal(MockMozActivity.calls.length, 1);
@@ -612,98 +633,29 @@ suite('compose_test.js', function() {
         assert.isArray(call.data.type);
         assert.include(call.data.type, 'image/*');
       });
-
-      test('Invokes "onsuccess" handler with image attachment instance ' +
-        'which need copy for image size not over the limit)', function(done) {
+      test('Invokes the provided "onsuccess" handler with an appropriate ' +
+        'Attachment instance', function(done) {
         var req = Compose.requestAttachment();
         req.onsuccess = function(attachment) {
-          done(function() {
-            assert.instanceOf(attachment, Attachment);
+          assert.instanceOf(attachment, Attachment);
 
-            // TODO: Move these assertions to a higher-level test suite that
-            // concerns interactions between disparate units.
-            // See: Bug 868056
-            assert.equal(attachment.name, activity.result.name);
+          // TODO: Move these assertions to a higher-level test suite that
+          // concerns interactions between disparate units.
+          // See: Bug 868056
+          assert.equal(attachment.name, activity.result.name);
+          assert.equal(attachment.blob, activity.result.blob);
 
-            // The blob in the attachment may be a copy of the blob in the
-            // activity result, but the size and type must be the same.
-            sinon.assert.calledWith(Utils.cloneBlob, activity.result.blob);
-            assert.equal(attachment.blob.type, activity.result.blob.type);
-            assert.equal(attachment.blob.size, activity.result.blob.size);
-          });
+          done();
         };
 
         // Simulate a successful 'pick' MozActivity
         var activity = MockMozActivity.instances[0];
         activity.result = {
           name: 'test',
-          blob: new Blob(['fake jpeg'], { type: 'image/jpeg' })
+          blob: new Blob()
         };
         activity.onsuccess();
       });
-
-      test('Invokes "onsuccess" handler with image attachment instance ' +
-        'which does not need copy for size over limit)', function(done) {
-        var req = Compose.requestAttachment();
-        req.onsuccess = function(attachment) {
-          done(function() {
-            assert.instanceOf(attachment, Attachment);
-
-            // TODO: Move these assertions to a higher-level test suite that
-            // concerns interactions between disparate units.
-            // See: Bug 868056
-            assert.equal(attachment.name, activity.result.name);
-
-            // The image blob in the attachment doesn't need a copy of the blob
-            // if it need resize later.
-            sinon.assert.notCalled(Utils.cloneBlob);
-            assert.equal(attachment.blob, activity.result.blob);
-          });
-        };
-
-        Settings.mmsSizeLimitation = 1;
-
-        // Simulate a successful 'pick' MozActivity
-        var activity = MockMozActivity.instances[0];
-        activity.result = {
-          name: 'test',
-          blob: new Blob(['fake jpeg'], { type: 'image/jpeg' })
-        };
-        activity.onsuccess();
-      });
-
-      test('Invokes "onsuccess" handler with non-image attachment instance ',
-        function(done) {
-
-        var req = Compose.requestAttachment();
-        req.onsuccess = function(attachment) {
-          done(function() {
-            assert.instanceOf(attachment, Attachment);
-
-            // TODO: Move these assertions to a higher-level test suite that
-            // concerns interactions between disparate units.
-            // See: Bug 868056
-            assert.equal(attachment.name, activity.result.name);
-
-            // The  blob in the attachment doesn't need a copy of the blob
-            // if it's not image.
-            sinon.assert.notCalled(Utils.cloneBlob);
-            assert.equal(attachment.blob, activity.result.blob);
-          });
-        };
-
-        // Simulate a successful 'pick' MozActivity
-        var activity = MockMozActivity.instances[0];
-        activity.result = {
-          name: 'test',
-          blob: {
-            size: 100,
-            type: 'video/mp4'
-          }
-        };
-        activity.onsuccess();
-      });
-
       test('Invokes the provided "failure" handler when the MozActivity fails',
         function(done) {
         var req = Compose.requestAttachment();
@@ -792,23 +744,49 @@ suite('compose_test.js', function() {
         Compose.clear();
       });
 
-      test('Attaching one image', function(done) {
+      test('Attaching one small image', function(done) {
+        var initialSize;
+        var attachment = mockImgAttachment();
+
+        function onInput() {
+          done(function() {
+            Compose.off('input', onInput);
+            var img = Compose.getContent();
+            assert.equal(img.length, 1, 'One image');
+            assert.notEqual(Compose.size, initialSize,
+              'the size was recalculated');
+          });
+        }
+        // we store this so we can make sure it's recalculated
+        initialSize = Compose.size;
+
+        Compose.on('input', onInput);
+        Compose.append(attachment);
+      });
+
+      test('Attaching one oversized image', function(done) {
         var actualSize;
+        var attachment = mockImgAttachment(true);
+        sinon.spy(attachment, 'updateFileSize');
+
         function onInput() {
           if (!Compose.isResizing) {
             done(function() {
               Compose.off('input', onInput);
               var img = Compose.getContent();
               assert.equal(img.length, 1, 'One image');
-              assert.notEqual(actualSize, Compose.size,
+              assert.notEqual(Compose.size, actualSize,
                 'the size was recalculated after resizing');
+              assert.equal(attachment.blob, smallImageBlob);
+              sinon.assert.called(attachment.updateFileSize);
             });
           }
         }
         Compose.on('input', onInput);
-        Compose.append(mockImgAttachment());
+        Compose.append(attachment);
         // we store this so we can make sure it gets resized
         actualSize = Compose.size;
+        Utils.getResizedImgBlob.lastCall.yield(smallImageBlob);
       });
 
       test('Attaching another oversized image', function(done) {
@@ -968,20 +946,36 @@ suite('compose_test.js', function() {
     });
 
     suite('Compose fromMessage', function() {
+      var xssString = '<img src="/" onerror="delete window.Compose;" />';
+      var escapedXssString =
+        '&lt;img src="/" onerror="delete window.Compose;" /&gt;';
+
       setup(function() {
         this.sinon.spy(Compose, 'append');
         this.sinon.spy(HTMLElement.prototype, 'focus');
         this.sinon.stub(SMIL, 'parse');
       });
+
       test('from sms', function() {
-        Compose.fromMessage({type: 'sms', body: 'test'});
+        var body = 'It\'s http:\\mozilla.org' + xssString;
+
+        Compose.fromMessage({type: 'sms', body: body });
+
         sinon.assert.called(Compose.append);
         sinon.assert.notCalled(message.focus);
+        assert.isDefined(Compose, 'XSS should not be successful');
+        assert.equal(message.textContent, body);
+        assert.equal(
+          message.innerHTML,
+          'It\'s http:\\mozilla.org' + escapedXssString + '<br>'
+        );
       });
 
       test('from mms', function() {
-        var testString = ['test\nstring 1\nin slide 1',
-                          'test\nstring 2\nin slide 2'];
+        var testString = [
+          'test\nstring 1\nin slide 1' + xssString,
+          'It\'s test\nstring 2\nin slide 2'
+        ];
         Compose.fromMessage({type: 'mms'});
 
         // Should not be focused before parse complete.
@@ -992,6 +986,16 @@ suite('compose_test.js', function() {
         sinon.assert.called(Compose.append);
         sinon.assert.notCalled(message.focus);
         assert.isFalse(message.classList.contains('ignoreEvents'));
+        assert.isDefined(Compose, 'XSS should not be successful');
+        assert.equal(
+          message.textContent,
+          testString.join('').replace(/\n/g, '')
+        );
+        assert.equal(
+          message.innerHTML,
+          'test<br>string 1<br>in slide 1' + escapedXssString +
+          'It\'s test<br>string 2<br>in slide 2<br>'
+        );
       });
 
       test('empty body', function() {
@@ -1414,6 +1418,7 @@ suite('compose_test.js', function() {
       this.attachmentSize = Compose.size;
       this.sinon.stub(AttachmentMenu, 'open');
       this.sinon.stub(AttachmentMenu, 'close');
+      this.sinon.stub(window.URL, 'revokeObjectURL');
 
       // trigger a click on attachment
       this.attachment.mNextRender.click();
@@ -1444,7 +1449,11 @@ suite('compose_test.js', function() {
           document.getElementById('attachment-options-remove').click();
         });
         test('removes the original attachment', function() {
-          assert.ok(!this.attachment.mNextRender.parentNode);
+          sinon.assert.calledWith(
+            window.URL.revokeObjectURL,
+            this.attachment.mNextRender.dataset.thumbnail
+          );
+          assert.isFalse(document.body.contains(this.attachment.mNextRender));
         });
         test('closes the menu', function() {
           assert.isTrue(AttachmentMenu.close.called);
@@ -1488,7 +1497,11 @@ suite('compose_test.js', function() {
             assert.isTrue(Compose.requestAttachment.called);
           });
           test('removes the original attachment', function() {
-            assert.ok(!this.attachment.mNextRender.parentNode);
+            sinon.assert.calledWith(
+              window.URL.revokeObjectURL,
+              this.attachment.mNextRender.dataset.thumbnail
+            );
+            assert.isFalse(document.body.contains(this.attachment.mNextRender));
           });
           test('inserts the new attachment', function() {
             assert.ok(this.replacement.mNextRender.parentNode);
@@ -1528,6 +1541,11 @@ suite('compose_test.js', function() {
               window.alert,
               'files-too-large{"n":1}'
             );
+          });
+
+          test('does not remove original attachment', function() {
+            sinon.assert.notCalled(window.URL.revokeObjectURL);
+            assert.isTrue(document.body.contains(this.attachment.mNextRender));
           });
 
           test('other errors are logged', function() {

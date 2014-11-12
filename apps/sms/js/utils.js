@@ -1,12 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper,
-           FileReader,
-           Notification,
-           Promise,
-           Settings,
-           Threads */
+/* globals ContactPhotoHelper, Notification, Promise, Threads, Settings */
 
 (function(exports) {
   'use strict';
@@ -435,6 +430,7 @@
         case 'video':
         case 'audio':
         case 'text':
+        case 'application':
           return mainPart;
         default:
           return null;
@@ -673,26 +669,6 @@
           }
         };
       }
-    },
-
-    /**
-     * Make a local copy of data to prevent any possible access violation while
-     * using the data returning from other activity.
-     * @param {Blob} blob Target blob which we want to make a clone in local.
-     * @returns {Promise}
-     */
-    cloneBlob: function(blob) {
-      return new Promise(function(resolve, reject) {
-        var reader = new FileReader();
-
-        reader.onload = function() {
-          resolve(new Blob([reader.result], { type: blob.type }));
-        };
-
-        reader.onerror = reject;
-
-        reader.readAsArrayBuffer(blob);
-      });
     }
   };
 

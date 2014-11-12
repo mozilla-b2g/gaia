@@ -4,6 +4,7 @@
   // container for icc instances
   var iccs = {};
   var iccIds = [];
+  var timeouts = [];
 
   var MockIccManager = {
     _eventListeners: {},
@@ -71,7 +72,6 @@
       object.setCardLock = function(options) {
         var handlers = {
           error: {
-            lockType: options.lockType,
             retryCount: object.retryCount
           }
         };
@@ -84,27 +84,26 @@
 
       object.getCardLock = function(type) {
         object._getCardLockType = type;
-        var obj = {
-          onsuccess: null,
-          result: {
-            enabled: true
+        var req = {};
+
+        timeouts.push(setTimeout(function() {
+          req.result = { enabled: true };
+          if (req.onsuccess) {
+            req.onsuccess();
           }
-        };
-        setTimeout(function() {
-          if (obj.onsuccess) {
-            obj.onsuccess();
-          }
-        });
-        return obj;
+        }));
+        return req;
       };
 
       object.getCardLockRetryCount = function(type) {
-        var req = {
-          result: { retryCount: 3 }
-        };
-        setTimeout(function() {
-          req.onsuccess && req.onsuccess();
-        });
+        var req = {};
+
+        timeouts.push(setTimeout(function() {
+          if (req.onsuccess) {
+            req.result = { retryCount: 3 };
+            req.onsuccess && req.onsuccess();
+          }
+        }));
         return req;
       };
 
@@ -165,6 +164,8 @@
     mTeardown: function iccm_teardown() {
       iccIds = [];
       iccs = {};
+      timeouts.forEach(clearTimeout);
+      timeouts = [];
     },
 
     // STK Constants

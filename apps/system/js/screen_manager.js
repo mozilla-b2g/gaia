@@ -1,9 +1,10 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
 
+/* globals SettingsListener, Bluetooth, StatusBar, System,
+           ScreenBrightnessTransition, ScreenWakeLockManager */
+
 var ScreenManager = {
+
   /*
    * return the current screen status
    * Must not mutate directly - use toggleScreen/turnScreenOff/turnScreenOn.
@@ -26,11 +27,6 @@ var ScreenManager = {
    *
    */
   _inTransition: false,
-
-  /*
-   * Whether the wake lock is enabled or not
-   */
-  _screenWakeLocked: false,
 
   /*
    * Whether the device light is enabled or not
@@ -66,19 +62,20 @@ var ScreenManager = {
    * At a value of about .3, the screen will typically be at maximum
    * brightness in outdoor daylight conditions, even when overcast.
    */
-  AUTO_BRIGHTNESS_CONSTANT: .27,
+  AUTO_BRIGHTNESS_CONSTANT: 0.27,
 
   /*
-   * When we change brightness we animate it smoothly.
-   * This constant is the number of milliseconds between adjustments
+   * This property will host a ScreenBrightnessTransition instance
+   * and control the brightness transition for us.
+   * Eventually we want to move all brightness controls
+   * (including auto-brightness toggle and calculation) out of this module.
    */
-  BRIGHTNESS_ADJUST_INTERVAL: 20,
+  _screenBrightnessTransition: null,
 
-  /*
-   * When brightening or dimming the screen, this is how much we adjust
-   * the brightness value at a time.
+  /**
+   * Timeout to black the screen when locking.
    */
-  BRIGHTNESS_ADJUST_STEP: 0.01,
+  LOCKING_TIMEOUT: 10,
 
   /*
    * Wait for _dimNotice milliseconds during idle-screen-off
@@ -117,35 +114,39 @@ var ScreenManager = {
     window.addEventListener('unlocking-start', this);
     window.addEventListener('unlocking-stop', this);
 
+    // When secure app is on, do not turn the screen off.
+    // And when it's down, reset the timeout.
+    window.addEventListener('secure-appopened', this);
+    window.addEventListener('secure-appterminated', this);
+
     // User is actively using the screen reader.
     window.addEventListener('accessibility-action', this);
 
     this.screen = document.getElementById('screen');
 
+    this._screenBrightnessTransition = new ScreenBrightnessTransition();
+
     var self = this;
     var power = navigator.mozPower;
 
-    if (power) {
-      power.addWakeLockListener(function scm_handleWakeLock(topic, state) {
-        if (topic == 'screen') {
-          self._screenWakeLocked = (state == 'locked-foreground');
-
-          if (self._screenWakeLocked)
-            // Turn screen on if wake lock is acquire
-            self.turnScreenOn();
-          self._reconfigScreenTimeout();
-        } else if (topic == 'cpu') {
-          power.cpuSleepAllowed = (state != 'locked-foreground' &&
-                                    state != 'locked-background');
-        }
-      });
-    }
+    // Start the screen wake lock manager so it will monitor screen wake lock
+    // for us. We will need to re-config the screen timeout when the lock state
+    // is changed.
+    //
+    // Noted that getting a lock while the screen is off will not
+    // turn on the screen, since no frame is considered visible by Gecko when
+    // the screen is off. See discussion in bug 818840.
+    this._wakeLockManager = new ScreenWakeLockManager();
+    this._wakeLockManager.onwakelockchange =
+      this._reconfigScreenTimeout.bind(this);
+    this._wakeLockManager.start();
 
     this._firstOn = false;
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
-      if (typeof value !== 'number')
+      if (typeof value !== 'number') {
         value = parseInt(value);
+      }
       self._idleTimeout = value;
       self._setIdleTimeout(self._idleTimeout);
 
@@ -186,8 +187,9 @@ var ScreenManager = {
   autoAdjustBrightness: function scm_adjustBrightness(lux) {
     var currentBrightness = this._targetBrightness;
 
-    if (lux < 1)  // Can't take the log of 0 or negative numbers
+    if (lux < 1) { // Can't take the log of 0 or negative numbers
       lux = 1;
+    }
 
     var computedBrightness =
       Math.log(lux) / Math.LN10 * this.AUTO_BRIGHTNESS_CONSTANT;
@@ -196,13 +198,17 @@ var ScreenManager = {
                                      Math.min(1.0, computedBrightness));
 
     // If nothing changed, we're done.
-    if (clampedBrightness === currentBrightness)
+    if (clampedBrightness === currentBrightness) {
       return;
+    }
 
     this.setScreenBrightness(clampedBrightness, false);
   },
 
   handleEvent: function scm_handleEvent(evt) {
+    var telephony = window.navigator.mozTelephony;
+    var call;
+
     switch (evt.type) {
       case 'attentionopening':
       case 'attentionopened':
@@ -212,8 +218,9 @@ var ScreenManager = {
         break;
       case 'devicelight':
         if (!this._deviceLightEnabled || !this.screenEnabled ||
-            this._inTransition)
+            this._inTransition) {
           return;
+        }
         this.autoAdjustBrightness(evt.value);
         break;
 
@@ -242,12 +249,17 @@ var ScreenManager = {
         this._setUnlocking();
         break;
 
+      // When secure app is on, do not turn the screen off.
+      // And when it's down, reset the timeout.
+      case 'secure-appopened':
+      case 'secure-appterminated':
+        this._reconfigScreenTimeout();
+        break;
       case 'unlocking-stop':
         this._resetUnlocking();
         break;
 
       case 'userproximity':
-        var telephony = window.navigator.mozTelephony;
         if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) ||
             telephony.speakerEnabled ||
             StatusBar.headphonesActive) {
@@ -267,14 +279,11 @@ var ScreenManager = {
         break;
 
       case 'callschanged':
-        var telephony = window.navigator.mozTelephony;
         if (!telephony.calls.length &&
             !(telephony.conferenceGroup &&
               telephony.conferenceGroup.calls.length)) {
 
-          if (this._screenOffBy == 'proximity') {
-            this.turnScreenOn();
-          }
+          this.turnScreenOn();
 
           window.removeEventListener('userproximity', this);
 
@@ -292,13 +301,13 @@ var ScreenManager = {
         }
 
         // Enable the user proximity sensor once the call is connected.
-        var call = telephony.calls[0];
+        call = telephony.calls[0];
         call.addEventListener('statechange', this);
 
         break;
 
       case 'statechange':
-        var call = evt.target;
+        call = evt.target;
         if (['connected', 'alerting', 'dialing'].indexOf(call.state) === -1) {
           break;
         }
@@ -338,12 +347,14 @@ var ScreenManager = {
   },
 
   turnScreenOff: function scm_turnScreenOff(instant, reason) {
-    if (!this.screenEnabled)
+    if (!this.screenEnabled) {
       return false;
+    }
 
     var self = this;
-    if (reason)
+    if (reason) {
       this._screenOffBy = reason;
+    }
 
     // Remember the current screen brightness. We will restore it when
     // we turn the screen back on.
@@ -360,8 +371,9 @@ var ScreenManager = {
     var screenOff = function scm_screenOff() {
       self._setIdleTimeout(0);
 
-      if (self._deviceLightEnabled)
+      if (self._deviceLightEnabled) {
         window.removeEventListener('devicelight', self);
+      }
 
       window.removeEventListener('lockscreen-appclosing', self);
       window.removeEventListener('lockpanelchange', self);
@@ -393,8 +405,9 @@ var ScreenManager = {
     this.setScreenBrightness(0.1, false);
     this._inTransition = true;
     setTimeout(function noticeTimeout() {
-      if (!self._inTransition)
+      if (!self._inTransition) {
         return;
+      }
 
       screenOff();
     }, self._dimNotice);
@@ -440,15 +453,17 @@ var ScreenManager = {
 
     // Actually turn the screen on.
     var power = navigator.mozPower;
-    if (power)
+    if (power) {
       power.screenEnabled = true;
+    }
     this.screenEnabled = true;
     this.screen.classList.remove('screenoff');
 
     // Attaching the event listener effectively turn on the hardware
     // device light sensor, which _must be_ done after power.screenEnabled.
-    if (this._deviceLightEnabled)
+    if (this._deviceLightEnabled) {
       window.addEventListener('devicelight', this);
+    }
 
     this._reconfigScreenTimeout();
     this.fireScreenChangeEvent();
@@ -459,14 +474,13 @@ var ScreenManager = {
   _reconfigScreenTimeout: function scm_reconfigScreenTimeout() {
     // Remove idle timer if screen wake lock is acquired or
     // if no app has been displayed yet.
-    if (this._screenWakeLocked || typeof(AppWindowManager) !== 'object' ||
-        !AppWindowManager.getActiveApp()) {
+    if (this._wakeLockManager.isHeld || !System.currentApp) {
       this._setIdleTimeout(0);
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
     } else if (!this._unlocking) {
-      if (window.System.locked) {
-        this._setIdleTimeout(10, true);
+      if (window.System.locked && !window.secureWindowManager.isActive()) {
+        this._setIdleTimeout(this.LOCKING_TIMEOUT, true);
         window.addEventListener('lockscreen-appclosing', this);
         window.addEventListener('lockpanelchange', this);
       } else {
@@ -500,51 +514,25 @@ var ScreenManager = {
   setScreenBrightness: function scm_setScreenBrightness(brightness, instant) {
     this._targetBrightness = brightness;
     var power = navigator.mozPower;
-    if (!power)
+    if (!power) {
       return;
-
-    // Make sure we don't have another brightness change scheduled
-    if (this._transitionBrightnessTimer) {
-      clearTimeout(this._transitionBrightnessTimer);
-      this._transitionBrightnessTimer = null;
     }
 
-    if (typeof instant !== 'boolean')
+    // Stop the current transition
+    if (this._screenBrightnessTransition.isRunning) {
+      this._screenBrightnessTransition.abort();
+    }
+
+    if (typeof instant !== 'boolean') {
       instant = true;
+    }
 
     if (instant) {
       power.screenBrightness = brightness;
       return;
     }
 
-    // transitionBrightness() is a looping function that will
-    // gracefully tune the brightness to _targetBrightness for us.
-    this.transitionBrightness();
-  },
-
-  transitionBrightness: function scm_transitionBrightness() {
-    var self = this;
-    var power = navigator.mozPower;
-    var screenBrightness = power.screenBrightness;
-    var delta = this.BRIGHTNESS_ADJUST_STEP;
-
-    // Is this the last time adjustment we need to make?
-    if (Math.abs(this._targetBrightness - screenBrightness) <= delta) {
-      power.screenBrightness = this._targetBrightness;
-      this._transitionBrightnessTimer = null;
-      return;
-    }
-
-    if (screenBrightness > this._targetBrightness)
-      delta *= -1;
-
-    screenBrightness += delta;
-    power.screenBrightness = screenBrightness;
-
-    this._transitionBrightnessTimer =
-      setTimeout(function transitionBrightnessTimeout() {
-        self.transitionBrightness();
-      }, this.BRIGHTNESS_ADJUST_INTERVAL);
+    this._screenBrightnessTransition.transitionTo(this._targetBrightness);
   },
 
   setDeviceLightEnabled: function scm_setDeviceLightEnabled(enabled) {
@@ -554,8 +542,9 @@ var ScreenManager = {
     }
     this._deviceLightEnabled = enabled;
 
-    if (!this.screenEnabled)
+    if (!this.screenEnabled) {
       return;
+    }
 
     // Disable/enable device light sensor accordingly.
     // This will also toggle the actual hardware, which
@@ -574,8 +563,9 @@ var ScreenManager = {
     this._idled = false;
 
     // 0 is the value used to disable idle timer by user and by us.
-    if (time === 0)
+    if (time === 0) {
       return;
+    }
 
     var self = this;
     var idleCallback = function idle_proxy() {

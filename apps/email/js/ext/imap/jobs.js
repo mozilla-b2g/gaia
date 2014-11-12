@@ -886,7 +886,7 @@ ImapJobDriver.prototype = {
   },
 
   check_syncFolderList: function(op, doneCallback) {
-    doneCallback('idempotent');
+    doneCallback(null, 'coherent-notyet');
   },
 
   local_undo_syncFolderList: function(op, doneCallback) {

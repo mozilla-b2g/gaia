@@ -5,6 +5,7 @@
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_speech_synthesis.js');
 requireApp('system/js/accessibility.js');
+requireApp('system/js/accessibility_quicknav_menu.js');
 
 var mocksForA11y = new MocksHelper([
   'SettingsListener'
@@ -35,6 +36,10 @@ suite('system/Accessibility', function() {
     options: { enqueue: true }
   };
 
+  var quicknavShowDetails = {
+    eventType: 'quicknav-menu'
+  };
+
   var fakeLogoHidden = {
     type: 'logohidden'
   };
@@ -49,18 +54,26 @@ suite('system/Accessibility', function() {
     };
   }
 
-  function getVolumeUp() {
+  function getAccessFuControl(aDetails) {
     return {
       type: 'mozChromeEvent',
-      detail: { type: 'volume-up-button-press' },
+      detail: {
+        type: 'accessibility-control',
+        details: JSON.stringify(aDetails)
+      }
+    };
+  }
+
+  function getVolumeUp() {
+    return {
+      type: 'volumeup',
       timeStamp: Date.now() * 1000
     };
   }
 
   function getVolumeDown() {
     return {
-      type: 'mozChromeEvent',
-      detail: { type: 'volume-down-button-press' },
+      type: 'volumedown',
       timeStamp: Date.now() * 1000
     };
   }
@@ -237,6 +250,43 @@ suite('system/Accessibility', function() {
       assert.isTrue(stubSpeak.calledWith(liveRegionDetails.data, null,
         liveRegionDetails.options));
     });
+
+    test('no-move event', function() {
+      var stub_playSound = this.sinon.stub(accessibility,
+        '_playSound');
+      accessibility.handleEvent(getAccessFuOutput({ eventType: 'no-move' }));
+      assert.isTrue(stub_playSound.called);
+      assert.isTrue(stub_playSound.calledWith('noMoveAudio'));
+    });
+
   });
 
+  suite('quicknav menu', function() {
+    var screenNode;
+    setup(function() {
+      screenNode = document.createElement('div');
+      screenNode.id = 'screen';
+      document.body.appendChild(screenNode);
+    });
+
+    teardown(function() {
+      screenNode.parentNode.removeChild(screenNode);
+    });
+
+    test('handle show quicknav menu event', function() {
+      var stubHandleAccessFuControl = this.sinon.stub(accessibility,
+        'handleAccessFuControl');
+      accessibility.handleEvent(getAccessFuControl(quicknavShowDetails));
+      assert.isTrue(stubHandleAccessFuControl.called);
+      assert.isTrue(stubHandleAccessFuControl.calledWith(quicknavShowDetails));
+    });
+
+    test('show quicknav menu', function() {
+      assert.isFalse(!!accessibility.quicknav);
+      accessibility.handleAccessFuControl(quicknavShowDetails);
+      assert.isTrue(!!accessibility.quicknav);
+      assert.isTrue(
+        accessibility.quicknav.element.classList.contains('visible'));
+    });
+  });
 });

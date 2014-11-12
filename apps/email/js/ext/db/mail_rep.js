@@ -107,10 +107,6 @@ function makeHeaderInfo(raw) {
  *     from the body without this.
  *   }
  *   @key[size Number]
- *   @key[to @listof[NameAddressPair]]
- *   @key[cc @listof[NameAddressPair]]
- *   @key[bcc @listof[NameAddressPair]]
- *   @key[replyTo NameAddressPair]
  *   @key[attaching #:optional AttachmentInfo]{
  *     Because of memory limitations, we need to encode and attach attachments
  *     in small pieces.  An attachment in the process of being attached is

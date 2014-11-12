@@ -21,9 +21,16 @@ class CallScreen(Phone):
     _bluetooth_menu_locator = (By.ID, 'bluetooth-menu')
     _views_locator = (By.ID, 'views')
     _incoming_container_locator = (By.ID, 'incoming-container')
+    _incoming_answer_while_on_call_locator = (By.ID, 'incoming-answer')
+    _incoming_info_while_on_call_locator = (By.ID, 'incoming-info')
+    _incoming_number_while_on_call_locator = (By.ID, 'incoming-number')
     _hangup_button_locator = (By.CSS_SELECTOR, '.handled-call .hangup-button')
     _keypad_hangup_button_locator = (By.ID, 'keypad-hidebar-hang-up-action-wrapper')
     _keypad_visibility_button_locator = (By.ID, 'keypad-visibility')
+    _merge_calls_button_locator = (By.ID, 'merge')
+    _conference_call_label_locator = (By.ID, 'group-call-label')
+    _conference_call_locator = (By.ID, 'group-call')
+    _contact_background_locator = (By.ID, 'contact-background')
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
@@ -47,8 +54,24 @@ class CallScreen(Phone):
         return self.marionette.find_element(*self._incoming_call_locator).find_element(*self._calling_contact_locator).text
 
     @property
+    def incoming_calling_contact_while_on_call(self):
+        return self.marionette.find_element(*self._incoming_number_while_on_call_locator).text
+
+    @property
     def calling_contact_information(self):
         return self.marionette.find_element(*self._outgoing_call_locator).find_element(*self._calling_contact_information_locator).text
+
+    @property
+    def calling_contact_information(self):
+        return self.marionette.find_element(*self._outgoing_call_locator).find_element(*self._calling_contact_information_locator).text
+
+    @property
+    def conference_label(self):
+        return self.marionette.find_element(*self._conference_call_label_locator).text
+
+    @property
+    def contact_background_style(self):
+        return self.marionette.find_element(*self._contact_background_locator).get_attribute('style')
 
     def wait_for_outgoing_call(self):
         outgoing_call = self.marionette.find_element(*self._outgoing_call_locator)
@@ -60,12 +83,19 @@ class CallScreen(Phone):
         self.wait_for_condition(lambda m: incoming_call.location['y'] == 0)
         self.wait_for_condition(lambda m: self.incoming_calling_contact != u'')
 
+    def wait_for_incoming_call_while_on_call(self):
+        self.wait_for_condition(lambda m: self.is_element_displayed(*self._incoming_info_while_on_call_locator))
+        self.wait_for_condition(lambda m: self.incoming_calling_contact_while_on_call != u'')
+
     def wait_for_incoming_call_with_locked_screen(self):
         self.wait_for_condition(lambda m: self.is_element_displayed(*self._incoming_call_locator))
         self.wait_for_condition(lambda m: self.incoming_calling_contact != u'')
 
     def answer_call(self):
         self.marionette.find_element(*self._answer_bar_locator).tap()
+
+    def answer_call_while_on_call(self):
+        self.marionette.find_element(*self._incoming_answer_while_on_call_locator).tap()
 
     def a11y_click_hang_up(self):
         self.accessibility.click(self.marionette.find_element(*self._hangup_bar_locator))
@@ -107,7 +137,12 @@ class CallScreen(Phone):
         self.wait_for_element_displayed(*self._lockscreen_handle_locator)
         self._handle_incoming_call('reject')
         self.marionette.switch_to_frame()
+        self.wait_for_element_not_displayed(*self._call_screen_locator)
 
     def a11y_click_keypad_visibility_button(self):
         self.accessibility.click(self.marionette.find_element(
             *self._keypad_visibility_button_locator))
+
+    def merge_calls(self):
+        self.marionette.find_element(*self._merge_calls_button_locator).tap()
+        self.wait_for_condition(lambda m: self.marionette.find_element(*self._conference_call_locator).is_displayed())

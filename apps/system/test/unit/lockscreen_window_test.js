@@ -1,4 +1,4 @@
-/* global layoutManager, LayoutManager, MockL10n */
+/* global LayoutManager, MockL10n */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -94,7 +94,6 @@ suite('system/LockScreenWindow', function() {
       // Or the AppWindow would look for it.
       app.element = document.createElement('div');
       parentElement.appendChild(app.element);
-      app.transitionController = {};
       app.kill();
       assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
           function(e) {
@@ -113,9 +112,6 @@ suite('system/LockScreenWindow', function() {
       // Or the AppWindow would look for it.
       app.element = document.createElement('div');
       parentElement.appendChild(app.element);
-      app.transitionController = {
-        requireClose: function() {}
-      };
       app.kill();
       app.close();
       assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
@@ -136,10 +132,15 @@ suite('system/LockScreenWindow', function() {
   });
 
   test('Resize', function() {
+    var originalLockScreenWindowManager = window.lockScreenWindowManager;
     var app = new window.LockScreenWindow();
+    app.inputWindow = {
+      isActive() { return false; }
+    };
     var stubIsActive = this.sinon.stub(app, 'isActive');
     stubIsActive.returns(true);
     app.resize();
-    assert.equal(app.height, layoutManager.height);
+    assert.equal(app.height, app.layoutHeight());
+    window.lockScreenWindowManager = originalLockScreenWindowManager;
   });
 });

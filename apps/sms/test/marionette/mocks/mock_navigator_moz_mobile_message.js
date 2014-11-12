@@ -1,14 +1,15 @@
 /* global Components, Services */
 'use strict';
 
-Components.utils.import('resource://gre/modules/Services.jsm');
+const Cu = Components.utils;
+Cu.import('resource://gre/modules/Services.jsm');
 
 Services.obs.addObserver(function(document) {
   if (!document || !document.location) {
     return;
   }
 
-  var window = document.defaultView.wrappedJSObject;
+  var window = document.defaultView;
 
   var delayMs = 100,
       eventHandlers = new Map(),
@@ -21,7 +22,7 @@ Services.obs.addObserver(function(document) {
 
     if (handlers) {
       handlers.forEach(function(handler) {
-        handler.call(null, exposeObject(parameters));
+        handler.call(null, parameters);
       });
     }
   }
@@ -31,54 +32,28 @@ Services.obs.addObserver(function(document) {
 
     if (!threadId) {
       threadId = recipientToThreadId.size + 1;
-      threads.set(threadId, {
+      threads.set(threadId, Cu.waiveXrays(Cu.cloneInto({
         id: threadId,
         messages: []
-      });
+      }, window)));
     }
 
     return threads.get(threadId);
   }
 
-  function exposeObject(object, permission) {
-    if (!object || typeof object !== 'object') {
-      return object;
-    }
-
-    if (Array.isArray(object)) {
-      object.forEach(function(item) {
-        exposeObject(item, permission);
-      });
-      return object;
-    }
-
-    try {
-      object.__exposedProps__ = Object.keys(object).reduce(
-        function(props, key) {
-          props[key] = permission || 'r';
-
-          exposeObject(object[key]);
-
-          return props;
-        }, {}
-      );
-    } catch(e) {
-      window.console.error(e);
-    }
-
-    return object;
-  }
-
   function createMessage(parameters) {
-    var thread = getOrCreateThreadForRecipient(parameters.receivers[0]);
+    var thread = getOrCreateThreadForRecipient(
+        parameters.receiver || parameters.receivers[0]
+    );
 
-    var message = {
+    var message = Cu.waiveXrays(Cu.cloneInto({
       id: ++messageIdUniqueCounter,
       iccId: null,
       threadId: thread.id,
       sender: null,
       receivers: parameters.receivers,
-      type: 'mms',
+      receiver: parameters.receiver,
+      type: parameters.type,
       delivery: 'sending',
       deliveryInfo: [{
         receiver: null,
@@ -87,11 +62,12 @@ Services.obs.addObserver(function(document) {
       }],
       subject: parameters.subject,
       smil: parameters.smil,
+      body: parameters.body,
       attachments: parameters.attachments,
       timestamp: Date.now(),
       sentTimestamp: Date.now(),
       read: true
-    };
+    }, window));
 
     thread.messages.push(message);
 
@@ -100,10 +76,10 @@ Services.obs.addObserver(function(document) {
 
   var MobileMessage = {
     getSegmentInfoForText: function(text) {
-      var request = exposeObject({
+      var request = Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null
-      }, 'wr');
+      }, window));
 
       window.setTimeout(function() {
         var length = text.length;
@@ -111,7 +87,7 @@ Services.obs.addObserver(function(document) {
         var charsUsedInLastSegment = (length % segmentLength);
         var segments = Math.ceil(length / segmentLength);
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(request, exposeObject({
+          request.onsuccess.call(request, Cu.cloneInto({
             target: {
               result: {
                 segments: segments,
@@ -119,7 +95,7 @@ Services.obs.addObserver(function(document) {
                   segmentLength - charsUsedInLastSegment : 0
               }
             }
-          }));
+          }, window));
         }
       }, delayMs);
 
@@ -127,30 +103,62 @@ Services.obs.addObserver(function(document) {
     },
 
     sendMMS: function(parameters, options) {
-      var request = exposeObject({
+      var request = Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null
-      }, 'wr');
+      }, window));
 
       window.setTimeout(function() {
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(request, exposeObject({
+          request.onsuccess.call(request, Cu.cloneInto({
             target: { result: null }
-          }));
+          }, window));
         }
-        callEventHandlers('sending', exposeObject({
+
+        parameters.type = 'mms';
+
+        callEventHandlers('sending', Cu.waiveXrays(Cu.cloneInto({
           message: createMessage(parameters, options)
-        }));
+        }, window)));
       }, delayMs);
 
       return request;
     },
 
-    getThreads: function() {
-      var cursor = exposeObject({
+    send: function(recipients, content, options) {
+      var requests = Cu.waiveXrays(Cu.cloneInto(recipients.map(() => ({
         onsuccess: null,
         onerror: null
-      }, 'wr');
+      })), window));
+
+      requests.forEach((request, index) => {
+        window.setTimeout(function() {
+          if (typeof request.onsuccess === 'function') {
+            request.onsuccess.call(request, Cu.cloneInto({
+              target: { result: null }
+            }, window));
+          }
+          var parameters = {
+            type: 'sms',
+            body: content,
+            receiver: recipients[index]
+          };
+
+          var o = new window.Object();
+          o.message = createMessage(parameters, options);
+
+          callEventHandlers('sending', o);
+        }, delayMs);
+      });
+
+      return requests;
+    },
+
+    getThreads: function() {
+      var cursor = Cu.waiveXrays(Cu.cloneInto({
+        onsuccess: null,
+        onerror: null
+      }, window));
 
       window.setTimeout(function() {
         if (typeof cursor.onsuccess === 'function') {
@@ -162,13 +170,13 @@ Services.obs.addObserver(function(document) {
     },
 
     getMessages: function(filter) {
-      var cursor = exposeObject({
+      var cursor = Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null,
         result: null,
         continue: null,
         done: false
-      }, 'wr');
+      }, window));
 
       window.setTimeout(function() {
         if (typeof cursor.onsuccess === 'function') {
@@ -194,11 +202,11 @@ Services.obs.addObserver(function(document) {
     },
 
     getMessage: function(id) {
-      var request = exposeObject({
+      var request = Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null,
         result: null
-      }, 'wr');
+      }, window));
 
       window.setTimeout(function() {
         if (typeof request.onsuccess === 'function') {
@@ -217,10 +225,10 @@ Services.obs.addObserver(function(document) {
     },
 
     markMessageRead: function() {
-      var request = exposeObject({
+      var request = Cu.waiveXrays(Cu.cloneInto({
         onsuccess: null,
         onerror: null
-      }, 'wr');
+      }, window));
 
       window.setTimeout(function() {
         if (typeof request.onsuccess === 'function') {
@@ -238,7 +246,9 @@ Services.obs.addObserver(function(document) {
     }
   };
 
-  window.navigator.__defineGetter__('mozMobileMessage', function() {
-    return exposeObject(MobileMessage);
+  Object.defineProperty(window.wrappedJSObject.navigator, 'mozMobileMessage', {
+    configurable: false,
+    writable: true,
+    value: Cu.cloneInto(MobileMessage, window, {cloneFunctions: true})
   });
 }, 'document-element-inserted', false);

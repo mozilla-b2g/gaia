@@ -1,18 +1,18 @@
-/* global MocksHelper, UtilityTray, MockAppWindowManager */
+/* global MocksHelper, UtilityTray */
 
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_software_button_manager.js');
 require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
-  'AppWindowManager',
   'LazyLoader',
   'System',
-  'StatusBar'
+  'StatusBar',
+  'SoftwareButtonManager'
 ]);
 mocksHelperForUtilityTray.init();
 
@@ -21,6 +21,7 @@ suite('system/UtilityTray', function() {
   var fakeEvt;
   var fakeElement;
   var originalLocked;
+  var originalSoftwareButtonManager;
   mocksHelperForUtilityTray.attachTestHelpers();
 
   function createEvent(type, bubbles, cancelable, detail) {
@@ -53,6 +54,9 @@ suite('system/UtilityTray', function() {
   }
 
   setup(function(done) {
+    originalSoftwareButtonManager = window.softwareButtonManager;
+    window.softwareButtonManager = window.MocksoftwareButtonManager;
+
     var statusbar = document.createElement('div');
     statusbar.style.cssText = 'height: 100px; display: block;';
 
@@ -77,6 +81,9 @@ suite('system/UtilityTray', function() {
     var topPanel = document.createElement('div');
     topPanel.style.cssText = 'height: 20px; display: block;';
 
+    var ambientIndicator = document.createElement('div');
+    ambientIndicator.style.cssText = 'height: 2px; display: block;';
+
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       switch (id) {
         case 'statusbar':
@@ -95,6 +102,8 @@ suite('system/UtilityTray', function() {
           return notifications;
         case 'top-panel':
           return topPanel;
+        case 'ambient-indicator':
+          return ambientIndicator;
         default:
           return null;
       }
@@ -108,6 +117,9 @@ suite('system/UtilityTray', function() {
   teardown(function() {
     stubById.restore();
     window.System.locked = false;
+    window.System.currentApp = null;
+
+    window.softwareButtonManager = originalSoftwareButtonManager;
   });
 
   suite('show', function() {
@@ -187,7 +199,7 @@ suite('system/UtilityTray', function() {
             oop: true
           }
         };
-        this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+        window.System.currentApp = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);
@@ -207,7 +219,7 @@ suite('system/UtilityTray', function() {
             oop: false
           }
         };
-        this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+        window.System.currentApp = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);
@@ -377,6 +389,7 @@ suite('system/UtilityTray', function() {
   suite('handleEvent: touchstart', function() {
     mocksHelperForUtilityTray.attachTestHelpers();
     setup(function() {
+      UtilityTray.hide();
       fakeEvt = createEvent('touchstart', false, true);
       fakeEvt.touches = [0];
     });
@@ -430,6 +443,13 @@ suite('system/UtilityTray', function() {
               it works in local test but breaks in travis. */
       // assert.equal(UtilityTray.active, true);
     });
+
+    test('onTouchStart is not called if already opened', function() {
+      UtilityTray.show();
+      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      UtilityTray.topPanel.dispatchEvent(fakeEvt);
+      assert.ok(stub.notCalled);
+    });
   });
 
   suite('handleEvent: touchend', function() {
@@ -468,6 +488,18 @@ suite('system/UtilityTray', function() {
     test('Test utilitytrayhide is correcly dispatched', function() {
       assert.equal(UtilityTray.screen.
         classList.contains('utility-tray'), false);
+    });
+  });
+
+  suite('handleEvent: activityopening', function() {
+    setup(function() {
+      fakeEvt = createEvent('activityopening');
+      UtilityTray.show();
+      UtilityTray.handleEvent(fakeEvt);
+    });
+
+    test('should be hidden', function() {
+      assert.equal(UtilityTray.shown, false);
     });
   });
 

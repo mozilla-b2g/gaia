@@ -25,6 +25,7 @@ var CollectionEditor = {
 
     this.form = document.querySelector('form');
     this.form.addEventListener('input', this._checkDoneButton.bind(this));
+    this.form.addEventListener('submit', this._submit.bind(this));
     
     this.clearButton = document.getElementById('collection-title-clear');
     this.clearButton.addEventListener('touchstart',
@@ -52,6 +53,15 @@ var CollectionEditor = {
     // If name ﬁeld is blank, the “Done” button should be dimmed and inactive
     var title = this.collectionTitle.value.trim();
     this.saveButton.disabled = title === '';
+  },
+
+  /**
+   * Handles the submit case for the form when the user presses the enter key.
+   * @param {Event} event The form submit event.
+   */
+  _submit: function(event) {
+    event.preventDefault();
+    this.save();
   },
 
   save: function() {

@@ -1,9 +1,9 @@
+define(function(require) {
+'use strict';
 
-requireLib('views/current_time.js');
+var CurrentTime = require('views/current_time');
 
-suiteGroup('Views.CurrentTime', function() {
-  'use strict';
-
+suite('Views.CurrentTime', function() {
   var app;
   var subject;
   var container;
@@ -34,10 +34,7 @@ suiteGroup('Views.CurrentTime', function() {
       'removeChild': sinon.spy()
     };
 
-    subject = new Calendar.Views.CurrentTime({
-      container: container,
-      timespan: timespan
-    });
+    subject = new CurrentTime({ container: container, timespan: timespan });
   });
 
   suite('#_create', function() {
@@ -462,5 +459,6 @@ suiteGroup('Views.CurrentTime', function() {
       assert.ok(container.removeChild.calledWithExactly(el), 'removeChild');
     });
   });
+});
 
 });

@@ -39,17 +39,18 @@
   visibility: hidden;
 }
 
-#screen:not(.cards-view) #statusbar.maximized #statusbar-maximized-wrapper {
+#screen:not(.cards-view):not(.fullscreen-app):not(.fullscreen-layout-app) #statusbar.maximized #statusbar-maximized-wrapper {
   opacity: 1;
   visibility: visible;
 }
 
-#screen:not(.cards-view) #statusbar:not(.maximized) #statusbar-minimized-wrapper {
+#screen:not(.cards-view):not(.fullscreen-app):not(.fullscreen-layout-app) #statusbar:not(.maximized) #statusbar-minimized-wrapper {
   opacity: 1;
   visibility: visible;
 }
 
-#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar {
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar,
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-layout-app #statusbar {
   opacity: 0;
   visibility: hidden;
 }
@@ -89,7 +90,8 @@
 }
 
 #screen.utility-tray #statusbar {
-  background-color: #333;
+  background-color: transparent;
+  top: -3rem;
 }
 
 /* When the utility tray is displayed, the title bar is hidden, so we only show
@@ -135,11 +137,12 @@ body #statusbar {
 }
 
 #statusbar-minimized {
-  width: calc(100% - 100% * var(--rocketbar-scale) + 8rem * var(--rocketbar-scale) - 0.5rem);
+  width: 100%;
   padding-top: 0;
   padding-bottom: 0;
   -moz-padding-start: 0;
   -moz-padding-end: 0.3rem;
+  box-sizing: border-box;
 }
 
 .statusbar > * {
@@ -592,6 +595,16 @@ body .utility-tray .statusbar > .sb-start {
 
 .sb-icon-nfc {
   background-position: -26rem -8rem;
+}
+
+.sb-icon-debugging {
+  background: none;
+  text-align: center;
+}
+
+.sb-icon-debugging::before {
+  font-size: 1.6rem;
+  line-height: 1.6rem;
 }
 
 /* Hide icons applying a class to the status bar */

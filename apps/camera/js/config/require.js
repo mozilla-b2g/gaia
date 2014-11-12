@@ -35,12 +35,17 @@ requirejs.config({
     {
       name: 'gaia-header',
       location: '../bower_components/gaia-header',
-      main: 'script'
+      main: 'gaia-header'
     },
     {
       name: 'gaia-icons',
       location: '../bower_components/gaia-icons',
-      main: 'script'
+      main: 'gaia-icons'
+    },
+    {
+      name: 'pressed',
+      location: '../bower_components/pressed',
+      main: 'pressed'
     }
   ],
 

@@ -23,7 +23,13 @@ Keyboard.Selector = Object.freeze({
   returnKey: '.keyboard-type-container[data-active] ' +
     '.keyboard-key[data-l10n-id="returnKey2"]',
   dismissSuggestionsButton: '.keyboard-type-container[data-active] ' +
-    '.dismiss-suggestions-button'
+    '.dismiss-suggestions-button',
+  shiftKey: '.keyboard-type-container[data-active] ' +
+    'button.keyboard-key[data-l10n-id="upperCaseKey2"]',
+  key: '.keyboard-type-container[data-active] ' +
+    'button.keyboard-key[data-keycode="%s"], ' +
+    '.keyboard-type-container[data-active] ' +
+    'button.keyboard-key[data-keycode-upper="%s"]'
 });
 
 Keyboard.prototype = {
@@ -40,5 +46,14 @@ Keyboard.prototype = {
 
   get currentPanel() {
     return this.client.findElement(Keyboard.Selector.currentPanel);
+  },
+
+  get shiftKey() {
+    return this.client.findElement(Keyboard.Selector.shiftKey);
+  },
+
+  getKey: function getKey(key) {
+    return this.client.findElement(
+      Keyboard.Selector.key.replace(/%s/g, key.charCodeAt(0)));
   }
 };

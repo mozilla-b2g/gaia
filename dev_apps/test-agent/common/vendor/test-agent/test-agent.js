@@ -3034,7 +3034,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         return Promise.all(tests.sort().map(load));
       })
       .then(() => worker.loader.done())
-      .then(() => box.mocha.run(done));
+      .then(() => {
+        box.mocha.run(done);
+        box.dispatchEvent(new Event('mocha-run'));
+      });
     }
   };
 
@@ -3072,10 +3075,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     /**
      * Default config when config file not found.
      */
-    _defaultConfig: {
+    defaultConfig: {
       'data-cover-only': 'js/',
-      'data-cover-never': 'test/unit/',
-      'data-cover-flags': 'lazyload'
+      'data-cover-never': 'test/unit/'
     },
 
     enhance: function enhance(worker) {
@@ -3083,7 +3085,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       this.worker = worker;
       worker.coverageRunner = this._coverageRunner.bind(this);
       this.load(function(data) {
-        self.blanketConfig = data;
+        self.blanketConfig = data || self.defaultConfig;
       });
     },
 
@@ -3091,7 +3093,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       var box = worker.sandbox.getWindow();
       box.require(this.blanketUrl, function() {
         // Using custom reporter to replace blanket defaultReporter
-        // Send coverage result from each sandbox to the top window for aggregating the result
+        // Send coverage result from each sandbox to the top window for
+        // aggregating the result
         box.blanket.options('reporter', function(data) {
           data = JSON.stringify(['coverage report', data]);
           window.top.postMessage(data, "http://test-agent.gaiamobile.org:8080");
@@ -3109,11 +3112,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       if (xhr.responseText) {
         response = JSON.parse(xhr.responseText);
-        //only return files for now...
+        // Only return files for now...
         return response;
       }
 
-      return this._defaultConfig;
+      return this.defaultConfig;
     },
 
     /**
@@ -3128,8 +3131,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       xhr.onload = function onload() {
         if (xhr.status === 200 || xhr.status === 0) {
           response = self._parseResponse(xhr);
-        } else {
-          response = self._defaultConfig;
         }
 
         callback.call(this, response);

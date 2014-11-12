@@ -1,6 +1,7 @@
 /*global loadBodyHTML,
    Dialog,
-   MockL10n
+   MockL10n,
+   TransitionEvent
 */
 'use strict';
 
@@ -54,8 +55,7 @@ suite('Dialog', function() {
     // - "loading"
     // - "attachment"
     // - "threads-edit-form"
-    // - "sim-picker"
-    assert.equal(previouslyDefinedForms, 6);
+    assert.equal(previouslyDefinedForms, 5);
     // Now we create the new element
     var dialog = new Dialog(params);
     // We check if the object is appended to the DOM
@@ -63,12 +63,15 @@ suite('Dialog', function() {
     // Is appended properly?
     var currentlyDefinedForms = document.getElementsByTagName('form');
     var currentlyDefinedFormsLength = currentlyDefinedForms.length;
-    assert.equal(currentlyDefinedFormsLength, 7);
+    assert.equal(currentlyDefinedFormsLength, 6);
     // We check the type
     var dialogForm = currentlyDefinedForms[currentlyDefinedFormsLength - 1];
     assert.equal(dialogForm.dataset.type, 'confirm');
   });
 
+  test('Has GaiaSimPicker', function() {
+    assert.ok(document.getElementById('sim-picker'));
+  });
 
   test('Focus', function() {
     var dialog = new Dialog(params);
@@ -78,6 +81,32 @@ suite('Dialog', function() {
     dialog.show();
 
     assert.ok(dialog.form.focus.called);
+  });
+
+  test('Redundant shows have no effect', function() {
+    var dialog = new Dialog(params);
+
+    var spy = this.sinon.spy(document.body, 'appendChild');
+
+    dialog.show();
+    dialog.show();
+
+    assert.ok(spy.calledOnce);
+  });
+
+  test('Hiding removes element after transition', function() {
+    var dialog = new Dialog(params);
+
+    dialog.show();
+    assert.notEqual(dialog.form.parentElement, null);
+
+    dialog.hide();
+    assert.notEqual(dialog.form.parentElement, null);
+
+    var transitionend =
+      new CustomEvent('transitionend', { target: dialog.form });
+    dialog.form.dispatchEvent(transitionend);
+    assert.equal(dialog.form.parentElement, null);
   });
 
   test('Checking the structure. Default.', function() {
@@ -226,5 +255,19 @@ suite('Dialog', function() {
     // We check localization
     assert.equal(bodyDOM.getAttribute('data-l10n-id'), params.body.l10nId,
       'Body DOM localized with proper string');
+  });
+
+  test('Should prevent pointer events before transitionend', function() {
+    // Now we create the new element
+    var dialog = new Dialog(params);
+    // We append the element to the DOM
+    dialog.show();
+    assert.equal(document.body.style.pointerEvents, 'none');
+    var transitionend = new TransitionEvent('transitionend', {
+      bubbles: true,
+      propertyName: 'transform'
+    });
+    dialog.form.dispatchEvent(transitionend);
+    assert.equal(document.body.style.pointerEvents, 'initial');
   });
 });

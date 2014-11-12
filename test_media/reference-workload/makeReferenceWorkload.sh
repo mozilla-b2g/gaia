@@ -154,7 +154,7 @@ for app in $APPS; do
       ATTACHMENT_DIR=$SCRIPT_DIR/contactsDb-$CONTACT_COUNT
       tar -xvzf $SCRIPT_DIR/ContactPictures-$CONTACT_COUNT.tar.gz -C $SCRIPT_DIR
       adb shell "rm $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/*"
-      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/ || exit 1
+      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ $IDB_BASE/chrome$IDB_PATH/3406066227csotncta.files/ || exit 1
       rm -rf $ATTACHMENT_DIR/
       LINE=" Contacts:       $(printf "%4d" $CONTACT_COUNT)"
       ;;
@@ -165,7 +165,7 @@ for app in $APPS; do
       ATTACHMENT_DIR=$SCRIPT_DIR/smsDb-$SMS_COUNT
       tar -xvzf $SCRIPT_DIR/Attachments-$SMS_COUNT.tar.gz -C $SCRIPT_DIR
       adb shell "rm $IDB_BASE/chrome$IDB_PATH/226660312ssm/*"
-      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ $IDB_BASE/chrome$IDB_PATH/226660312ssm/ || exit 1
+      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ $IDB_BASE/chrome$IDB_PATH/226660312ssm.files/ || exit 1
       rm -rf $ATTACHMENT_DIR/
       LINE=" Sms Messages:   $(printf "%4d" $SMS_COUNT)"
       ;;

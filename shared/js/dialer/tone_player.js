@@ -13,19 +13,67 @@ const kReleaseDuration = 0.05;
 
 var TonePlayer = {
   _audioContext: null,
+  _channel: null,
   _gainNode: null,
   _playingNodes: [],
+  _maybeTrashAudio: null,
 
+  /**
+   * Initializes the tone player by specifying which channel will be used to
+   * play sounds. The TonePlayer will lazily create an AudioContext to play
+   * sounds when needed and automatically dispose of it when the application is
+   * hidden. However if the 'telephony' channel is used then we'll keep the
+   * AudioContext around as long as there's an active call.
+   *
+   * @param channel {String} The default channel used to play sounds.
+   */
   init: function tp_init(channel) {
-    if (document.hidden) {
-      // We don't create an AudioContext because it will be trashed right away
-      this._channel = channel;
-    } else {
-      this.setChannel(channel);
-    }
+    var telephony = navigator.mozTelephony;
+
+    this._reset();
+    this._channel = channel;
+    this._maybeTrashAudio = (function tp_maybeTrashAudio() {
+      var callIsActive = telephony && (telephony.calls.length ||
+                                       telephony.conferenceGroup.calls.length);
+
+      /* If the application is hidden dispose of the audio context unless we're
+       * in a call and we're using the 'telephony' channel. */
+      if (document.hidden &&
+          !((this._channel === 'telephony') && callIsActive)) {
+        this._trashAudio();
+      }
+    }).bind(this);
+
+    window.addEventListener('visibilitychange', this._maybeTrashAudio);
+    telephony && telephony.addEventListener('callschanged',
+                                            this._maybeTrashAudio);
   },
 
-  ensureAudio: function tp_ensureAudio() {
+  /**
+   * Tears down the tone player and removes the registered event listeners,
+   * mostly used for unit-testing.
+   */
+  teardown: function tp_teardown() {
+    var telephony = navigator.mozTelephony;
+
+    telephony && telephony.removeEventListener('callschanged',
+                                               this._maybeTrashAudio);
+    window.removeEventListener('visibilitychange', this._maybeTrashAudio);
+    this._reset();
+  },
+
+  /**
+   * Reset all internal state to its default value.
+   */
+  _reset: function tp_reset() {
+    this._audioContext = null;
+    this._channel = null;
+    this._gainNode = null;
+    this._playingNodes = [];
+    this._maybeTrashAudio = null;
+  },
+
+  _ensureAudio: function tp_ensureAudio() {
     if (this._audioContext || !this._channel) {
       return;
     }
@@ -33,11 +81,8 @@ var TonePlayer = {
     this._audioContext = new AudioContext(this._channel);
   },
 
-  trashAudio: function tp_trashAudio() {
+  _trashAudio: function tp_trashAudio() {
     this.stop();
-    if (this._channel === 'telephony' && this._audioContext) {
-      this._audioContext.mozAudioChannelType = 'normal';
-    }
     this._audioContext = null;
   },
 
@@ -106,6 +151,7 @@ var TonePlayer = {
   },
 
   start: function tp_start(frequencies, shortPress) {
+    this._ensureAudio();
     this._startAt(frequencies, 0, shortPress ? kShortPressDuration : 0);
   },
 
@@ -146,7 +192,7 @@ var TonePlayer = {
   // - frequency for channel 2
   // - duration
   playSequence: function tp_playSequence(sequence) {
-    this.ensureAudio();
+    this._ensureAudio();
     // AudioContext.currentTime is the last time received on the main thread
     // from the audio graph.  Trying to start a tone at currentTime will not
     // start playing until this main thread returns to the event loop and
@@ -163,17 +209,5 @@ var TonePlayer = {
       this._startAt(frequencies, when, duration);
       when += duration;
     }
-  },
-
-  _channel: null,
-  setChannel: function tp_setChannel(channel) {
-    var ctx = this._audioContext;
-    if (!channel || (ctx && ctx.mozAudioChannelType === channel)) {
-      return;
-    }
-
-    this.trashAudio();
-    this._channel = channel;
-    this.ensureAudio();
   }
 };

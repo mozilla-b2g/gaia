@@ -1,4 +1,4 @@
-/* globals CallScreen, FontSizeManager, MockCallsHandler, Utils,
+/* globals CallScreen, FontSizeManager, MockCall, MockCallsHandler, Utils,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
            MockMozL10n, MocksHelper, MockSettingsListener, performance */
 
@@ -8,15 +8,18 @@ require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
+require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/lockscreen_connection_info_manager.js');
+require('/test/unit/mock_conference_group_ui.js');
 
 var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
+  'ConferenceGroupUI',
   'MozActivity',
   'LazyL10n',
   'FontSizeManager',
@@ -54,6 +57,8 @@ suite('call screen', function() {
   var incomingContainer;
   var bluetoothButton,
       bluetoothMenu;
+  var holdButton;
+  var mergeButton;
 
   mocksHelperForCallScreen.attachTestHelpers();
 
@@ -137,6 +142,14 @@ suite('call screen', function() {
     bluetoothButton.id = 'bt';
     screen.appendChild(bluetoothButton);
 
+    holdButton = document.createElement('button');
+    holdButton.id = 'on-hold';
+    screen.appendChild(holdButton);
+
+    mergeButton = document.createElement('button');
+    mergeButton.id = 'merge';
+    screen.appendChild(mergeButton);
+
     bluetoothMenu = document.createElement('form');
     bluetoothMenu.id = 'bluetooth-menu';
     bluetoothMenu.dataset.dummy = 'dummy';
@@ -178,13 +191,15 @@ suite('call screen', function() {
 
   suite('call screen initialize', function() {
     var mockElements = ['keypadButton', 'placeNewCallButton', 'answerButton',
-      'rejectButton', 'holdButton', 'showGroupButton', 'hideGroupButton',
-      'incomingAnswer', 'incomingEnd', 'incomingIgnore'];
+      'rejectButton', 'holdButton', 'mergeButton', 'showGroupButton',
+      'hideGroupButton', 'incomingAnswer', 'incomingEnd', 'incomingIgnore'];
 
     setup(function() {
       this.sinon.stub(CallScreen, 'showClock');
       this.sinon.stub(CallScreen, 'initLockScreenSlide');
       this.sinon.stub(CallScreen, 'render');
+      this.sinon.spy(MockCallsHandler, 'holdOrResumeSingleCall');
+      this.sinon.spy(MockCallsHandler, 'mergeCalls');
       mockElements.forEach(function(name) {
         CallScreen[name] = document.createElement('button');
       });
@@ -195,6 +210,8 @@ suite('call screen', function() {
       sinon.assert.notCalled(CallScreen.showClock);
       sinon.assert.notCalled(CallScreen.initLockScreenSlide);
       sinon.assert.notCalled(CallScreen.render);
+      sinon.assert.notCalled(MockCallsHandler.holdOrResumeSingleCall);
+      sinon.assert.notCalled(MockCallsHandler.mergeCalls);
     });
 
     suite('incoming-locked screen initialize', function() {
@@ -222,6 +239,29 @@ suite('call screen', function() {
         sinon.assert.called(CallScreen.showClock);
         sinon.assert.called(CallScreen.initLockScreenSlide);
         sinon.assert.notCalled(CallScreen.render);
+      });
+    });
+
+    suite('button listeners successfully added and notified', function() {
+      var event;
+
+      setup(function() {
+        CallScreen.init();
+        event = new MouseEvent('click', {
+          'view': window,
+          'bubbles': true,
+          'cancelable': true
+        });
+      });
+
+      test('hold button successfully added and notified', function() {
+        CallScreen.holdButton.dispatchEvent(event);
+        sinon.assert.calledOnce(MockCallsHandler.holdOrResumeSingleCall);
+      });
+
+      test('merge button successfully added and notified', function() {
+        CallScreen.mergeButton.dispatchEvent(event);
+        sinon.assert.calledOnce(MockCallsHandler.mergeCalls);
       });
     });
   });
@@ -336,21 +376,6 @@ suite('call screen', function() {
         CallScreen.removeCall(fakeNode);
         assert.equal(fakeNode.parentNode, null);
         assert.isTrue(singleLineStub.calledOnce);
-      });
-
-      test('should remove the node in the groupList',
-      function() {
-        CallScreen.moveToGroup(fakeNode);
-        CallScreen.removeCall(fakeNode);
-        assert.equal(fakeNode.parentNode, null);
-      });
-    });
-
-    suite('moveToGroup', function() {
-      test('should insert the node in the group calls article', function() {
-        var fakeNode = document.createElement('section');
-        CallScreen.moveToGroup(fakeNode);
-        assert.equal(fakeNode.parentNode, CallScreen.groupCallsList);
       });
     });
   });
@@ -645,6 +670,99 @@ suite('call screen', function() {
     });
   });
 
+  suite('toggleOnHold', function() {
+    test('should put active-state class when there is an active call',
+    function() {
+      var mockCall = new MockCall('12334', 'connected');
+      navigator.mozTelephony.active = mockCall;
+
+      CallScreen.toggleOnHold();
+      assert.isTrue(CallScreen.holdButton.classList.contains('active-state'));
+    });
+
+    test('should remove active-state class when there isn\'t an active call',
+    function() {
+      navigator.mozTelephony.active = null;
+
+      CallScreen.toggleOnHold();
+      assert.isFalse(CallScreen.holdButton.classList.contains('active-state'));
+    });
+
+    test('should put active-state class with conferenceCall on holding',
+    function() {
+      navigator.mozTelephony.conferenceGroup.state = 'holding';
+
+      CallScreen.toggleOnHold();
+      assert.isTrue(CallScreen.holdButton.classList.contains('active-state'));
+    });
+
+    test('should remove active-state class with conferenceCall on connected',
+    function() {
+      navigator.mozTelephony.conferenceGroup.state = 'connected';
+
+      CallScreen.toggleOnHold();
+      assert.isFalse(CallScreen.holdButton.classList.contains('active-state'));
+    });
+  });
+
+  suite('enable and disable button mute', function() {
+    test('should add the disabled attribute', function() {
+      CallScreen.disableMuteButton();
+      assert.equal(CallScreen.muteButton.getAttribute('disabled'), 'disabled');
+    });
+    test('should remove the disabled attribute', function() {
+      CallScreen.enableMuteButton();
+      assert.equal(CallScreen.muteButton.getAttribute('disabled'), null);
+    });
+  });
+
+  suite('enable and disable place new call button', function() {
+    test('should add the disabled attribute', function() {
+      CallScreen.disablePlaceNewCallButton();
+      assert.equal(
+        CallScreen.placeNewCallButton.getAttribute('disabled'), 'disabled');
+    });
+    test('should remove the disabled attribute', function() {
+      CallScreen.enablePlaceNewCallButton();
+      assert.equal(
+        CallScreen.placeNewCallButton.getAttribute('disabled'), null);
+    });
+  });
+
+  suite('enable and disable speaker button', function() {
+    test('should add the disabled attribute', function() {
+      CallScreen.disableSpeakerButton();
+      assert.equal(
+        CallScreen.speakerButton.getAttribute('disabled'), 'disabled');
+    });
+    test('should remove the disabled attribute', function() {
+      CallScreen.enableSpeakerButton();
+      assert.equal(CallScreen.speakerButton.getAttribute('disabled'), null);
+    });
+  });
+
+  suite('show and hide on hold button', function() {
+    test('should add the hide class', function() {
+      CallScreen.showOnHoldButton();
+      assert.isFalse(CallScreen.holdButton.classList.contains('hide'));
+    });
+    test('should remove the hide class', function() {
+      CallScreen.hideOnHoldButton();
+      assert.isTrue(CallScreen.holdButton.classList.contains('hide'));
+    });
+  });
+
+  suite('enable and disable merge button', function() {
+    test('should add the hide class', function() {
+      CallScreen.hideMergeButton();
+      assert.isTrue(CallScreen.mergeButton.classList.contains('hide'));
+    });
+    test('should remove the hide class', function() {
+      CallScreen.showMergeButton();
+      assert.isFalse(CallScreen.mergeButton.classList.contains('hide'));
+    });
+  });
+
   suite('resizeHandler', function() {
     test('updateCallsDisplay is called with the right arguments', function() {
       this.sinon.stub(CallScreen, 'updateCallsDisplay');
@@ -741,18 +859,6 @@ suite('call screen', function() {
     });
   });
 
-  suite('Toggling the group details screen', function() {
-    test('should show group details', function() {
-      CallScreen.showGroupDetails();
-      assert.isTrue(groupCalls.classList.contains('display'));
-    });
-
-    test('should hide group details', function() {
-      CallScreen.hideGroupDetails();
-      assert.isFalse(groupCalls.classList.contains('display'));
-    });
-  });
-
   suite('showClock in screen locked status', function() {
     var formatArgs = [],
         currentDate,
@@ -838,26 +944,6 @@ suite('call screen', function() {
       CallScreen.stopTicker(durationNode);
       assert.isUndefined(durationNode.dataset.tickerId);
       assert.isFalse(durationNode.classList.contains('isTimer'));
-    });
-  });
-
-  suite('set end conference call', function() {
-    var fakeNode1 = document.createElement('section');
-    var fakeNode2 = document.createElement('section');
-    var fakeNode3 = document.createElement('section');
-
-    setup(function() {
-      CallScreen.moveToGroup(fakeNode1);
-      CallScreen.moveToGroup(fakeNode2);
-      CallScreen.moveToGroup(fakeNode3);
-    });
-
-    test('should set groupHangup to all nodes in group detail lists',
-    function() {
-      CallScreen.setEndConferenceCall();
-      assert.equal(fakeNode1.dataset.groupHangup, 'groupHangup');
-      assert.equal(fakeNode2.dataset.groupHangup, 'groupHangup');
-      assert.equal(fakeNode3.dataset.groupHangup, 'groupHangup');
     });
   });
 

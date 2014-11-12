@@ -2,12 +2,13 @@
 
 /* global BookmarkEditor, msgHandler, realMozSetMessageHandler, utils, 
           BookmarkRemover */
-/* global requireApp, suite, suiteTeardown, suiteSetup, test, assert,
-          MocksHelper, sinon */
+/* global requireApp, require, suite, suiteTeardown, suiteSetup, test, assert,
+          MocksHelper, MockL10n, sinon */
+
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('bookmark/test/unit/mock_mozsetmessagehandler.js');
 requireApp('bookmark/test/unit/mock_bookmark_editor.js');
-requireApp('bookmark/test/unit/mock_l10n.js');
 
 requireApp('bookmark/js/bookmark_remover.js');
 requireApp('bookmark/js/components/status.js');
@@ -22,9 +23,16 @@ mocksHelperForSaveBookmark.init();
 suite('activity_handler.js >', function() {
 
   mocksHelperForSaveBookmark.attachTestHelpers();
+  var realMozL10n;
+
+  suiteSetup(function() {
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
 
   suiteTeardown(function() {
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
+    navigator.mozL10n = realMozL10n;
     msgHandler.activity = null;
   });
 

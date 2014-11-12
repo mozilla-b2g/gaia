@@ -6,8 +6,7 @@
  * This is because all the tests are synchronous.
  */
 
-var fs = require('fs'),
-    execSync = require('./exec-sync.js')
+var execSync = require('./exec-sync.js');
 
 function b2ginfo() {
   var adb = execSync('adb shell b2g-info', true);
@@ -15,7 +14,7 @@ function b2ginfo() {
 }
 
 function isNotEmpty(str) {
-  return str != '';
+  return str !== '';
 }
 
 var MemInfo = {
@@ -76,7 +75,7 @@ var MemInfo = {
         break;
 
       case 'ps':
-        if (line == '') {
+        if (line === '') {
           // an empty line means we are done with ps.
           // if we need more info change the state to something else.
           _state = 'done';

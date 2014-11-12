@@ -30,6 +30,11 @@ var MockDateFactory = (function(realDate) {
         return realDate.apply(this, arguments);
       }
     }
+
+    FakeDate.prototype.toUTCString = function() {
+      return realDate.prototype.toUTCString.apply(this, arguments);
+    };
+
     return FakeDate;
   }
   buildFakeDateConstructor.realDate = realDate;

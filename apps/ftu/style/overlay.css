@@ -10,11 +10,13 @@
 }
 
 #loading-overlay h1,
-#loading-overlay p {
+#loading-overlay p,
+#loading-overlay span {
     color: #000000;
 }
 
 #loading-overlay menu {
+  background-color: #f4f4f4;
   display: none;
 }
 

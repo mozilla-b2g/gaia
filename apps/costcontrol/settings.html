@@ -15,8 +15,9 @@
     <link rel="stylesheet" type="text/css" href="shared/style/layout.css">
 
     <!-- Gaia Components -->
-    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" />
-    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
+
 
     <!-- App and Views -->
     <link rel="stylesheet" type="text/css" href="style/app.css">
@@ -39,7 +40,7 @@
     <!-- Gaia Components -->
     <script defer src="/shared/elements/config.js"></script>
     <script defer src="/shared/js/component_utils.js"></script>
-    <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
+    <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
     <script defer src="shared/elements/gaia_subheader/script.js"></script>
 
     <!-- Specific scripts -->
@@ -68,7 +69,7 @@
           </ul>
 
           <!-- Phone activity -->
-          <gaia-subheader id="phone-activity-settings" aria-hidden="true" skin="organic">
+          <gaia-subheader id="phone-activity-settings" aria-hidden="true" aria-level="2" role="heading" skin="organic">
             <span data-l10n-id="phone-activity">Phone Activity</span>
           </gaia-subheader>
           <ul class="settings" aria-hidden="true">
@@ -82,7 +83,7 @@
           </ul>
 
           <!-- Balance alerts -->
-          <gaia-subheader id="balance-settings" aria-hidden="true" skin="organic">
+          <gaia-subheader id="balance-settings" aria-hidden="true" aria-level="2" role="heading" skin="organic">
             <span data-l10n-id="balance">balance</span>
           </gaia-subheader>
           <ul class="settings" aria-hidden="true">
@@ -106,7 +107,7 @@
           </ul>
 
           <!-- Data usage limits -->
-          <gaia-subheader id="data-usage-settings" skin="organic">
+          <gaia-subheader id="data-usage-settings" aria-level="2" role="heading" skin="organic">
             <span data-l10n-id="data-usage">Data Usage</span>
           </gaia-subheader>
           <ul class="settings">
@@ -135,7 +136,7 @@
           </ul>
 
           <!-- Tracking period -->
-          <gaia-subheader id="phone-internet-settings" aria-hidden="true" skin="organic">
+          <gaia-subheader id="phone-internet-settings" aria-hidden="true" aria-level="2" role="heading" skin="organic">
             <span data-l10n-id="internet-data-report">Internet data report</span>
           </gaia-subheader>
           <ul class="settings">
@@ -206,9 +207,9 @@
       </section>
 
       <!-- Data usage limits -->
-      <section role="region" id="data-limit-dialog" class="view" data-viewport="bottom">
+      <section aria-labelledby="limit-dialog-heading" role="dialog" id="data-limit-dialog" class="view" data-viewport="bottom">
         <gaia-header id="limit-dialog-header" action="close">
-          <h1 data-l10n-id="data-limit-header">Data Usage Limit</h1>
+          <h1 id="limit-dialog-heading" data-l10n-id="data-limit-header">Data Usage Limit</h1>
           <button id="data-usage-done-button" data-l10n-id="done" class="recommend">Done</button>
         </gaia-header>
         <section class="content">
@@ -222,14 +223,16 @@
         <form>
           <ul class="buttons-list">
             <li>
+              <label for="data-limit-input">
+                <input id="data-limit-input" type="text" x-inputmode="numeric" maxlength="6" />
+              </label>
+            </li>
+            <li>
               <button type="button" class="icon icon-dialog switch-unit-button">
                 <span class="tag"></span>
               </button>
             </li>
           </ul>
-          <label for="data-limit-input">
-            <input id="data-limit-input" type="number" step="any" />
-          </label>
         </form>
       </section>
 

@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import json
 import os
 
 from marionette import BaseMarionetteOptions, HTMLReportingOptionsMixin, \
@@ -11,6 +12,7 @@ from marionette import MarionetteTestResult
 from marionette import MarionetteTextTestRunner
 from marionette import BaseMarionetteTestRunner
 from marionette.runtests import cli
+import mozlog
 
 from gaiatest import __name__
 from gaiatest import GaiaTestCase, GaiaOptionsMixin, GaiaTestRunnerMixin, \
@@ -52,7 +54,33 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
         if not kwargs.get('server_root'):
             kwargs['server_root'] = os.path.abspath(os.path.join(
                 os.path.dirname(__file__), 'resources'))
-        BaseMarionetteTestRunner.__init__(self, **kwargs)
+
+        def gather_debug(test, status):
+            rv = {}
+            marionette = test._marionette_weakref()
+
+            # In the event we're gathering debug without starting a session, skip marionette commands
+            if marionette.session is not None:
+                try:
+                    marionette.switch_to_frame()
+                    rv['settings'] = json.dumps(marionette.execute_async_script("""
+SpecialPowers.pushPermissions([
+  {type: 'settings-read', allow: true, context: document},
+  {type: 'settings-api-read', allow: true, context: document},
+], function() {
+  var req = window.navigator.mozSettings.createLock().get('*');
+  req.onsuccess = function() {
+    marionetteScriptFinished(req.result);
+  }
+});""", special_powers=True), sort_keys=True, indent=4, separators=(',', ': '))
+                except:
+                    logger = mozlog.structured.get_default_logger()
+                    if not logger:
+                        logger = mozlog.getLogger('gaiatest')
+                    logger.warning('Failed to gather test failure debug.', exc_info=True)
+            return rv
+
+        BaseMarionetteTestRunner.__init__(self, result_callbacks=[gather_debug], **kwargs)
         GaiaTestRunnerMixin.__init__(self, **kwargs)
         HTMLReportingTestRunnerMixin.__init__(self, name=__name__,
                                               version=__version__, **kwargs)

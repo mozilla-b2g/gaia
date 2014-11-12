@@ -83,6 +83,12 @@ var emeServer = new EmeServer(process.argv[2], {
     writeJSON(res, json);
   },
 
+  '/Search/suggestions': function(req, res) {
+    var file = fs.readFileSync(this.root + 'search_suggestions.json');
+    var json = JSON.parse(file);
+    writeJSON(res, json);
+  },
+
   '/settings/failAll': function(req, res) {
     this.fail = true;
     writeJSON(res);

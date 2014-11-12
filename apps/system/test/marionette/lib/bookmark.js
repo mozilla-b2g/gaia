@@ -16,6 +16,7 @@ Bookmark.prototype = {
 
   Selectors: {
     'bookmarkAddButton': '#done-button',
+    'bookmarkTitle': '#bookmark-title',
     'mozbrowser': '.inline-activity.active iframe[mozbrowser]',
   },
 
@@ -27,6 +28,11 @@ Bookmark.prototype = {
   get currentTabFrame() {
     return this.client.helper.waitForElement(
       this.Selectors.mozbrowser);
+  },
+
+  get bookmarkTitle() {
+    return this.client.helper.waitForElement(
+      this.Selectors.bookmarkTitle);
   },
 
   /**
@@ -55,6 +61,19 @@ Bookmark.prototype = {
     this.system.appChromeContextMenuBookmark.click();
 
     this.add();
+  },
+
+  /**
+   * Renames a bookmark and emulates pressing the 'enter' key after doing so.
+   */
+  renameAndPressEnter: function(newName) {
+    this.client.switchToFrame(this.currentTabFrame);
+    this.bookmarkTitle.clear();
+    this.bookmarkTitle.sendKeys(newName + '\uE006');
+    this.addButton.click();
+
+    this.client.switchToFrame();
+    this.client.helper.waitForElementToDisappear(this.currentTabFrame);
   }
 };
 

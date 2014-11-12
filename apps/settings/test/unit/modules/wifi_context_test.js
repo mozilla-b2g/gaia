@@ -1,10 +1,8 @@
 /* global MockL10n, MockNavigatorSettings, MockNavigatorMozWifiManager */
-requireApp('settings/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_wifi_manager.js');
-
-mocha.globals(['Settings']);
 
 suite('WifiContext', function() {
   'use strict';
@@ -147,14 +145,36 @@ suite('WifiContext', function() {
   });
 
   suite('associateNetwork', function() {
+    var fakeCb;
+
     setup(function() {
+      fakeCb = sinon.spy();
       this.sinon.spy(wifiManager, 'associate');
+      this.sinon.spy(wifiManager, 'forget');
+      wifiContext.addEventListener('wifiWrongPassword', fakeCb);
     });
+
     test('will bypass to wifiManager', function() {
-      var fakeNetowrk = {};
-      wifiContext.associateNetwork(fakeNetowrk);
-      assert.isTrue(wifiManager.associate.calledWith(fakeNetowrk));
-      assert.equal(wifiContext.currentNetwork, fakeNetowrk);
+      var fakeNetwork = {
+        known: false,
+        password: '1234',
+        ssid: 'fake-network'
+      };
+      wifiContext.associateNetwork(fakeNetwork);
+
+      assert.isTrue(wifiManager.associate.calledWith(fakeNetwork));
+      assert.equal(wifiContext.currentNetwork, fakeNetwork);
+
+      wifiManager.enabled = true;
+      wifiManager.connection.status = 'connected';
+      wifiManager.onstatuschange({
+        network: {
+          ssid: fakeNetwork.ssid
+        },
+        status: wifiManager.connection.status
+      });
+      assert.isFalse(fakeCb.calledWith());
+      assert.isFalse(wifiManager.forget.calledWith(fakeNetwork));
     });
   });
 
@@ -182,7 +202,12 @@ suite('WifiContext', function() {
 
       wifiManager.enabled = true;
       wifiManager.connection.status = 'connectingfailed';
-      wifiManager.onstatuschange();
+      wifiManager.onstatuschange({
+        network: {
+          ssid: fakeNetwork.ssid
+        },
+        status: wifiManager.connection.status
+      });
       assert.isTrue(fakeCb.calledWith());
       assert.isTrue(wifiManager.forget.calledWith(fakeNetwork));
     });

@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals KeypadManager, ICEContacts, LazyLoader, SimSettingsHelper, SimPicker,
+/* globals KeypadManager, ICEContacts, LazyLoader, SimSettingsHelper,
            TelephonyMessages */
 /* exported CallHandler */
 
@@ -16,12 +16,11 @@ var CallHandler = {
         SimSettingsHelper.getCardIndexFrom('outgoingCall',
         function(defaultCardIndex) {
           if (defaultCardIndex == SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
-            var simPickerElt = document.getElementById('sim-picker');
-            var simFiles = [simPickerElt,
-                            '/shared/js/sim_picker.js',
-                            '/shared/style/sim_picker.css'];
-            LazyLoader.load(simFiles, function() {
-              SimPicker.getOrPick(defaultCardIndex, number, function(ci) {
+            LazyLoader.load(['/shared/js/component_utils.js',
+                             '/shared/elements/gaia_sim_picker/script.js'],
+            function() {
+              var simPicker = document.getElementById('sim-picker');
+              simPicker.getOrPick(defaultCardIndex, number, function(ci) {
                 var callPromise = self._telephony.dial(number, ci);
                 self._handleCallPromise(callPromise, sanitizedNumber);
               });
@@ -69,7 +68,13 @@ var CallHandler = {
 window.CallHandler = CallHandler;
 
 window.addEventListener('load', function onload() {
+  /* Tell the audio channel manager that we want to adjust the "notification"
+   * channel when the user presses the volumeup/volumedown buttons. */
+  if (navigator.mozAudioChannelManager) {
+    navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+  }
+
   window.removeEventListener('load', onload);
   window.ICEContacts.updateICEContacts();
-  window.KeypadManager.init();
+  window.KeypadManager.init(/* oncall */ false);
 });

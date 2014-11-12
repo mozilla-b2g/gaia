@@ -4,7 +4,7 @@
 var utils = window.utils || {};
 
 // Scale ratio for different devices
-var SCALE_RATIO = window.innerWidth / 320;
+var SCALE_RATIO = window.devicePixelRatio || 1;
 
 var LAST_IMPORT_TIMESTAMP_SUFFIX = '_last_import_timestamp';
 

@@ -129,18 +129,14 @@ var StoreProvisioning = (function() {
           parameters.forEach(function(apn) {
             var apnEnabled =  false;
             for (var i = 0; i < apnList.length; i++) {
-              if (apnList[i].types[0] === apn.type[0]) {
-                apn.types = apn.type;
-                delete apn.type;
-                apnList[i]  = apn;
+              if (apnList[i].types[0] === apn.types[0]) {
+                apnList[i] = apn;
                 apnEnabled = true;
                 break;
               }
             }
 
             if (!apnEnabled) {
-              apn.types = apn.type;
-              delete apn.type;
               apnList.push(apn);
             }
           });

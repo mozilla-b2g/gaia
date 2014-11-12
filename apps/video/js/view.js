@@ -31,6 +31,21 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var isPausedWhileDragging;
   var sliderRect;
 
+  //
+  // Bug 1088456: when the view activity is launched by the bluetooth transfer
+  // app (when the user taps on a downloaded file in the notification tray)
+  // this code starts running while the regular video app is still running as
+  // the foreground app. Since the video app does not get sent to the
+  // background in this case, the currently playing video (if there is one) is
+  // not paused. And so, in the case of videos that require decoder hardware,
+  // the view activity cannot play the video. For this workaround, we have set
+  // a localStorage property here. The video.js file should receive an event
+  // when we do that and will use that as a signal to unload its video. We use
+  // Date.now() as the value of the property so we get a different value and
+  // generate an event each time we run.
+  //
+  localStorage.setItem('view-activity-wants-to-use-hardware', Date.now());
+
   initUI();
 
   // If blob exists, video should be launched by open activity
@@ -113,7 +128,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
                'save', 'banner', 'message', 'seek-forward',
-               'seek-backward', 'videoControlBar'];
+               'seek-backward', 'videoControlBar', 'in-use-overlay',
+               'in-use-overlay-title', 'in-use-overlay-text'];
 
     ids.forEach(function createElementRef(name) {
       dom[toCamelCase(name)] = document.getElementById(name);
@@ -236,6 +252,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     // End the activity
     activity.postResult({saved: saved});
+
+    // Undo the bug 1088456 workaround hack.
+    localStorage.removeItem('view-activity-wants-to-use-hardware');
   }
 
   function save() {
@@ -263,10 +282,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   // show video player
   function showPlayer(url, title) {
-
-    dom.videoTitle.textContent = title || '';
-    dom.player.src = url;
-    dom.player.onloadedmetadata = function() {
+    function handleLoadedMetadata() {
       dom.durationText.textContent = MediaUtils.formatDuration(
         dom.player.duration);
       timeUpdated();
@@ -278,13 +294,24 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       dom.player.currentTime = 0;
 
       // Show the controls briefly then fade out
-      setControlsVisibility(true);
       controlFadeTimeout = setTimeout(function() {
         setControlsVisibility(false);
       }, 2000);
 
       play();
-    };
+    }
+
+    dom.videoTitle.textContent = title || '';
+    setControlsVisibility(true);
+
+    var loadingChecker =
+      new VideoLoadingChecker(dom.player, dom.inUseOverlay,
+                              dom.inUseOverlayTitle,
+                              dom.inUseOverlayText);
+    loadingChecker.ensureVideoLoads(handleLoadedMetadata);
+
+    dom.player.src = url;
+
     dom.player.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
     dom.player.onerror = function(evt) {
       var errorid = '';

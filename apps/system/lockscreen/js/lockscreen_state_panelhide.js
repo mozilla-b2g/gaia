@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/* global Promise */
+/* global Promise, LockScreenBaseState */
 
 'use strict';
 
@@ -23,7 +23,12 @@
  */
 (function(exports) {
 
-  var LockScreenStatePanelHide = function() {};
+  var LockScreenStatePanelHide = function() {
+    LockScreenBaseState.apply(this, arguments);
+  };
+  LockScreenStatePanelHide.prototype =
+    Object.create(LockScreenBaseState.prototype);
+
   LockScreenStatePanelHide.prototype.start = function(lockScreen) {
     this.type = 'panelHide';
     this.lockScreen = lockScreen;
@@ -39,7 +44,6 @@
       // To have 'passcodeStatus' would make UI don't update.
       delete this.lockScreen.overlay.dataset.passcodeStatus;
       this.lockScreen.passCodeEntered = '';
-      this.lockScreen.updatePassCodeUI();
       // XXX: even though we set the no-transition, it still do transition.
       this.lockScreen.overlay.dataset.panel = 'passcode';
       this.lockScreen.overlay.dataset.passcodeStatus = 'success';

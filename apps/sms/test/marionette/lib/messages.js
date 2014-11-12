@@ -16,10 +16,11 @@
 
     optionMenu: 'body > form[data-type=action] menu',
     systemMenu: 'form[data-z-index-level="action-menu"]',
-    attachmentMenu: '#attachment-options-menu',
+    attachmentMenu: '#attachment-options',
 
     Composer: {
       recipientsInput: '#messages-to-field [contenteditable=true]',
+      recipient: '#messages-recipients-list .recipient[contenteditable=false]',
       messageInput: '#messages-input',
       subjectInput: '.subject-composer-input',
       sendButton: '#messages-send-button',
@@ -37,7 +38,12 @@
       headerTitle: '#messages-header-text'
     },
 
+    Message: {
+      content: '.message-content > p:first-child'
+    },
+
     ThreadList: {
+      firstThread: '.threadlist-item',
       navigateToComposerHeaderButton: '#icon-add'
     },
 
@@ -60,6 +66,10 @@
             return client.helper.waitForElement(
               SELECTORS.Composer.recipientsInput
             );
+          },
+
+          get recipients() {
+            return client.findElements(SELECTORS.Composer.recipient);
           },
 
           get messageInput() {
@@ -118,10 +128,22 @@
 
           get headerTitle() {
             return client.helper.waitForElement(SELECTORS.Thread.headerTitle);
+          },
+
+          getMessageContent: function(message) {
+            return client.helper.waitForElement(
+              message.findElement(SELECTORS.Message.content)
+            );
           }
         },
 
         ThreadList: {
+          get firstThread() {
+            return client.helper.waitForElement(
+              SELECTORS.ThreadList.firstThread
+            );
+          },
+
           navigateToComposer: function() {
             client.helper.waitForElement(
               SELECTORS.ThreadList.navigateToComposerHeaderButton
@@ -193,8 +215,8 @@
             var menuOption = menuOptions[i];
             if (menuOption.text().toLowerCase() === text.toLowerCase()) {
               // XXX: Workaround util http://bugzil.la/912873 is fixed.
-              // Wait for 500ms to let the element be clickable
-              client.helper.wait(500);
+              // Wait for 750ms to let the element be clickable
+              client.helper.wait(750);
               menuOption.tap();
               break;
             }

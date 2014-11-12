@@ -96,6 +96,19 @@
   display: none;
 }
 
+#screen.software-button-enabled #updates-viaDataConnection-dialog,
+#screen.software-button-enabled #updates-download-dialog {
+  bottom: var(--software-home-button-height);
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #updates-viaDataConnection-dialog,
+  #screen.software-button-enabled #updates-download-dialog {
+    bottom: 0;
+    right: var(--software-home-button-height);
+  }
+}
+
 #updates-viaDataConnection-dialog.visible,
 #updates-download-dialog.visible {
   display: inline-block;
@@ -182,19 +195,49 @@
   max-height: calc(100% - 15rem - 3rem);
 }
 
-#updates-download-dialog #updates-download-button[data-online="false"] {
-  visibility: collapse;
+/* System update splash screen */
+
+#system-update-splash
+{
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: #2d2d2d;
 }
 
-#updates-download-dialog #updates-offline-warning,
-#updates-download-dialog #updates-data-connection-warning,
-#updates-download-dialog[data-online="false"] #updates-download-button {
-  visibility: collapse;
+#system-update-splash > div
+{
+  position: absolute;
 }
 
-#updates-download-dialog[data-online="false"] #updates-offline-warning,
-#updates-download-dialog[data-online="true"][data-nowifi="true"][data-data-connection-inline-warning="true"] #updates-data-connection-warning {
-  visibility: visible;
+#system-update-splash > #label
+{
+  top: 23rem;
+  left: 3rem;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: white;
+}
+
+#system-update-splash > #divider
+{
+  top: 26rem;
+  left: 1.5rem;
+  width: calc(100% - 3rem);
+  height: 0.05rem;
+  background-color: #676767;
+  box-shadow: 0 0 0.1rem rgba(0, 0, 0, 0.5);
+}
+
+#system-update-splash > #icon
+{
+  top: 27rem;
+  width: 100%;
+  height: 7.6rem;
+  background-image: url(images/system_update.png);
+  background-size: 7.6rem;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* RTL View */

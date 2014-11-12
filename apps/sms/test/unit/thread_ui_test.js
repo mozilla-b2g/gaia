@@ -1,4 +1,4 @@
-/*global mocha, MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
+/*global MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
          Contacts, Compose, MockErrorDialog,
          Template, MockSMIL, Utils, MessageManager, LinkActionHandler,
          LinkHelper, Attachment, MockContact, MockOptionMenu,
@@ -11,12 +11,11 @@
          DocumentFragment,
          Errors,
          MockCompose,
-         AssetsHelper
+         AssetsHelper,
+         SMIL
 */
 
 'use strict';
-
-mocha.setup({ globals: ['alert'] });
 
 require('/js/event_dispatcher.js');
 require('/js/subject_composer.js');
@@ -55,6 +54,7 @@ require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_waiting_screen.js');
 require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_thread_list_ui.js');
+require('/test/unit/mock_selection_handler.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -94,7 +94,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'WaitingScreen',
   'Navigation',
   'Notification',
-  'ThreadListUI'
+  'ThreadListUI',
+  'SelectionHandler'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -2344,14 +2345,14 @@ suite('thread_ui.js >', function() {
         ids = [ids];
       }
 
-      var message, checkbox;
-      for (var i = 0; i < ids.length; i++) {
-        message = container.querySelector('#message-' + ids[i]);
-        checkbox = message.querySelector('input[type=checkbox]');
-        checkbox.checked = true;
-      }
+      var selectedIds = ids.map(id => '' + id);
+
+      ThreadUI.selectionHandler = null;
+      ThreadUI.startEdit();
+      ThreadUI.selectionHandler.selected = new Set(selectedIds);
       ThreadUI.delete();
       MockDialog.triggers.confirm();
+      ThreadUI.cancelEdit();
     };
 
     setup(function() {
@@ -2558,7 +2559,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -2613,7 +2614,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -2809,7 +2810,7 @@ suite('thread_ui.js >', function() {
       test('message is correct', function() {
         assert.equal(
           notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-attachment',
+          'tobedownloaded-attachment',
           'localization id set correctly'
         );
         assert.equal(
@@ -3702,12 +3703,18 @@ suite('thread_ui.js >', function() {
     });
 
     suite('after rendering a MMS', function() {
+      var inputArray = [{
+        name: 'imageTest.jpg',
+        blob: testImageBlob
+      }];
+
       setup(function() {
         this.sinon.spy(Attachment.prototype, 'render');
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
         this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
+        this.sinon.stub(SMIL, 'parse');
 
         // fake content so that there is something to scroll
         container.innerHTML = ThreadUI.tmpl.message.interpolate({
@@ -3715,11 +3722,8 @@ suite('thread_ui.js >', function() {
           bodyHTML: 'test #1'
         });
 
-        var inputArray = [{
-          name: 'imageTest.jpg',
-          blob: testImageBlob
-        }];
-        ThreadUI.createMmsContent(inputArray);
+        var message = MockMessages.mms();
+        ThreadUI.buildMessageDOM(message);
       });
 
       teardown(function() {
@@ -3728,20 +3732,20 @@ suite('thread_ui.js >', function() {
 
       test('should scroll when the view is scrolled to the bottom', function() {
         ThreadUI.isScrolledManually = false;
-        Attachment.prototype.render.yield();
+        SMIL.parse.yield(inputArray);
         sinon.assert.called(HTMLElement.prototype.scrollIntoView);
       });
 
       test('should not scroll when the user scrolled up the view', function() {
         ThreadUI.isScrolledManually = true;
-        Attachment.prototype.render.yield();
+        SMIL.parse.yield(inputArray);
         sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
       });
 
       test('should not scroll if not in the right panel', function() {
         Navigation.isCurrentPanel.withArgs('thread').returns(false);
         ThreadUI.isScrolledManually = false;
-        Attachment.prototype.render.yield();
+        SMIL.parse.yield(inputArray);
         sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
       });
     });
@@ -3821,8 +3825,10 @@ suite('thread_ui.js >', function() {
             var items = call.items;
 
             // Ensures that the OptionMenu was given
-            // the phone number to diplay
-            assert.equal(call.header, '999');
+            // the phone number to display
+            assert.equal(call.header.textContent, '999');
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
+            assert.equal(call.header.tagName, 'BDI');
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3853,8 +3859,10 @@ suite('thread_ui.js >', function() {
             var items = call.items;
 
             // Ensures that the OptionMenu was given
-            // the email address to diplay
-            assert.equal(call.header, 'a@b.com');
+            // the email address to display
+            assert.equal(call.header.textContent, 'a@b.com');
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
+            assert.equal(call.header.tagName, 'BDI');
 
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
@@ -3877,6 +3885,60 @@ suite('thread_ui.js >', function() {
 
             // The fourth and last item is a "cancel" option
             assert.equal(items[3].l10nId, 'cancel');
+          });
+
+          test('Unknown recipient (email and support for email recipients)',
+          function() {
+            MockSettings.supportEmailRecipient = true;
+
+            this.sinon.spy(ActivityPicker, 'email');
+            this.sinon.spy(ActivityPicker, 'sendMessage');
+
+            ThreadUI.prompt({
+              email: 'a@b.com',
+              isContact: false
+            });
+
+            assert.equal(MockOptionMenu.calls.length, 1);
+
+            var call = MockOptionMenu.calls[0];
+            var items = call.items;
+
+            // Ensures that the OptionMenu was given
+            assert.equal(call.header.tagName, 'BDI');
+            // the email address to display
+            assert.equal(call.header.textContent, 'a@b.com');
+            assert.ok(call.header.classList.contains('unknown-contact-header'));
+
+            // Only known Contact details should appear in the "section"
+            assert.isUndefined(call.section);
+
+            assert.equal(items.length, 5);
+
+            // The first item is a "sendEmail" option
+            assert.equal(items[0].l10nId, 'sendEmail');
+
+            // Trigger the option to ensure that correct Activity is used.
+            items[0].method();
+
+            sinon.assert.called(ActivityPicker.email);
+
+            // The second item is a "sendMMSToEmail" option
+            assert.equal(items[1].l10nId, 'sendMMSToEmail');
+
+            // Trigger the option to ensure that correct Activity is used.
+            items[1].method();
+
+            sinon.assert.called(ActivityPicker.sendMessage);
+
+            // The third item is a "createNewContact" option
+            assert.equal(items[2].l10nId, 'createNewContact');
+
+            // The fourth item is a "addToExistingContact" option
+            assert.equal(items[3].l10nId, 'addToExistingContact');
+
+            // The fifth and last item is a "cancel" option
+            assert.equal(items[4].l10nId, 'cancel');
           });
 
         });
@@ -3911,7 +3973,6 @@ suite('thread_ui.js >', function() {
           });
 
           test('Unknown recipient', function() {
-
             Threads.set(1, {
               participants: ['777']
             });
@@ -3924,7 +3985,11 @@ suite('thread_ui.js >', function() {
             var calls = MockOptionMenu.calls;
 
             assert.equal(calls.length, 1);
-            assert.equal(calls[0].header, '777');
+            assert.equal(calls[0].header.textContent, '777');
+            assert.ok(
+              calls[0].header.classList.contains('unknown-contact-header')
+            );
+            assert.equal(calls[0].header.tagName, 'BDI');
             assert.equal(calls[0].items.length, 3);
             assert.equal(typeof calls[0].complete, 'function');
           });
@@ -3954,7 +4019,7 @@ suite('thread_ui.js >', function() {
               target: calls[0].header
             });
 
-            assert.equal(calls[0].items.length, 3);
+            assert.equal(calls[0].items.length, 4);
             assert.equal(typeof calls[0].complete, 'function');
           });
 
@@ -3973,8 +4038,12 @@ suite('thread_ui.js >', function() {
             var calls = MockOptionMenu.calls;
 
             assert.equal(calls.length, 1);
-            assert.equal(calls[0].header, 'a@b');
-            assert.equal(calls[0].items.length, 4);
+            assert.equal(calls[0].header.textContent, 'a@b');
+            assert.ok(
+              calls[0].header.classList.contains('unknown-contact-header')
+            );
+            assert.equal(calls[0].header.tagName, 'BDI');
+            assert.equal(calls[0].items.length, 5);
             assert.equal(typeof calls[0].complete, 'function');
           });
         });
@@ -4033,8 +4102,10 @@ suite('thread_ui.js >', function() {
           var items = call.items;
 
           // Ensures that the OptionMenu was given
-          // the phone number to diplay
-          assert.equal(call.header, '999');
+          // the phone number to display
+          assert.equal(call.header.textContent, '999');
+          assert.ok(call.header.classList.contains('unknown-contact-header'));
+          assert.equal(call.header.tagName, 'BDI');
 
           assert.equal(items.length, 5);
 
@@ -5441,12 +5512,44 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('isCurrentThread(current threadId is 1)', function() {
+    setup(function() {
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+    });
+
+    [1, 2].forEach((id) => {
+      test('check thread panel with threadId is' + id, function() {
+        Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+
+        assert.equal(ThreadUI.isCurrentThread(id), id === 1);
+      });
+
+      test('check report panel with threadId is' + id, function() {
+        Navigation.isCurrentPanel.withArgs(
+          'report-view',
+          { threadId: 1 }
+        ).returns(true);
+
+        assert.equal(ThreadUI.isCurrentThread(id), id === 1);
+      });
+
+      test('check group panel with threadId is' + id, function() {
+        Navigation.isCurrentPanel.withArgs(
+          'group-view',
+          { id: 1 }
+        ).returns(true);
+
+        assert.equal(ThreadUI.isCurrentThread(id), id === 1);
+      });
+    });
+  });
+
   suite('onMessageSending()', function() {
     // some more tests are in the "sending behavior" part
 
     setup(function() {
       this.sinon.stub(ThreadUI, 'appendMessage');
-      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      this.sinon.stub(ThreadUI, 'isCurrentThread').returns(false);
 
       this.sinon.spy(Navigation, 'toPanel');
     });
@@ -5459,7 +5562,7 @@ suite('thread_ui.js >', function() {
     test('should append message if the user is in correct thread', function() {
       // not implemented yet: https://github.com/cjohansen/Sinon.JS/issues/461
       // Navigation.isCurrentPanel.withExactArgs('thread').returns(true);
-      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+      ThreadUI.isCurrentThread.withArgs(1).returns(true);
 
       var message = MockMessages.sms({
         threadId: 1
@@ -5473,27 +5576,8 @@ suite('thread_ui.js >', function() {
     });
 
     test('should do nothing if the user is not in correct thread', function() {
-      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
-
       var message = MockMessages.sms({
         threadId: 2
-      });
-
-      MessageManager.on.withArgs('message-sending').yield({
-        message: message
-      });
-
-      sinon.assert.notCalled(ThreadUI.appendMessage);
-
-      // should not change the panel since we didn't click the send button
-      sinon.assert.notCalled(Navigation.toPanel);
-    });
-
-    test('should not change panel if the user is in the composer', function() {
-      Navigation.isCurrentPanel.withArgs('composer').returns(true);
-
-      var message = MockMessages.sms({
-        threadId: 1
       });
 
       MessageManager.on.withArgs('message-sending').yield({
@@ -5509,17 +5593,13 @@ suite('thread_ui.js >', function() {
 
   suite('onMessageReceived >', function() {
     setup(function() {
-      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      this.sinon.stub(ThreadUI, 'isCurrentThread').returns(false);
       this.sinon.spy(MessageManager, 'markMessagesRead');
     });
 
     test('should not mark message as read if message from other thread',
     function() {
-      var message = MockMessages.sms({
-        threadId: 2
-      });
-
-      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+      var message = MockMessages.sms();
 
       MessageManager.on.withArgs('message-received').yield({
         message: message
@@ -5534,7 +5614,7 @@ suite('thread_ui.js >', function() {
         threadId: 1
       });
 
-      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+      ThreadUI.isCurrentThread.withArgs(1).returns(true);
 
       MessageManager.on.withArgs('message-received').yield({
         message: message
@@ -5757,6 +5837,43 @@ suite('thread_ui.js >', function() {
 
       assert.isFalse(mainWrapper.classList.contains('edit'));
     });
+
+    test('revokes all attachment thumbnail URLs', function() {
+      this.sinon.stub(window.URL, 'revokeObjectURL');
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
+      var attachments = [{
+        location: 'image',
+        content: testImageBlob
+      }, {
+        location: 'image',
+        content: testImageBlob
+      }, {
+        location: 'video',
+        content: testVideoBlob
+      }];
+
+      attachments.forEach((attachment, index) => {
+        ThreadUI.appendMessage(MockMessages.mms({
+          id: index + 1,
+          attachments: [attachment]
+        }));
+
+        if (attachment.content.type.indexOf('image') >= 0) {
+          var attachmentContainer = ThreadUI.container.querySelector(
+            '[data-message-id="' + (index + 1) + '"] .attachment-container'
+          );
+          attachmentContainer.dataset.thumbnail = 'blob:fake' + index;
+        }
+      });
+
+      ThreadUI.beforeLeave();
+
+      sinon.assert.calledTwice(window.URL.revokeObjectURL);
+      sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake0');
+      sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake1');
+    });
   });
 
   suite('afterLeave()', function() {
@@ -5860,12 +5977,6 @@ suite('thread_ui.js >', function() {
         Recipients.View.isFocusable = false;
         ThreadUI.beforeEnter(transitionArgs);
         assert.isTrue(Recipients.View.isFocusable);
-      });
-
-      test('loads and translates SIM picker', function() {
-        var simPickerElt = document.getElementById('sim-picker');
-
-        sinon.assert.calledWith(MockLazyLoader.load, [simPickerElt]);
       });
 
       test('loads the audio played when a message is sent', function() {

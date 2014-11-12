@@ -1,5 +1,4 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global SimPinDialog */
 'use strict';
 
 (function(exports) {
@@ -25,6 +24,16 @@
   SimPinSystemDialog.prototype.customID = 'simpin-dialog';
 
   SimPinSystemDialog.prototype.DEBUG = false;
+
+  SimPinSystemDialog.prototype.focus = function() {
+    // We will combine SimPinDialog and SimPinSystemDialog in
+    // mobile connection subsystem
+    SimPinDialog.focus();
+  };
+
+  SimPinSystemDialog.prototype.requestFocus = function() {
+    this.publish('requestfocus');
+  };
 
   SimPinSystemDialog.prototype.view = function spd_view() {
     return '<div id="' + this.instanceID + '" role="dialog" ' +

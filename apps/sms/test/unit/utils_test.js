@@ -907,7 +907,8 @@ suite('Utils', function() {
       'audio/ogg': 'audio',
       'not-a-mime': null,
       'text': null,
-      'appplication/video': null
+      'application/video': 'application',
+      'multipart/form-data': null
     };
 
     Object.keys(tests).forEach(function(testIndex) {
@@ -1223,23 +1224,6 @@ suite('Utils', function() {
           ).
           then(done, done);
       });
-    });
-  });
-
-  suite('Utils.cloneBlob', function() {
-    test('return blob copy while success', function(done) {
-      var testBlob = new Blob(['test blob'], { type: 'text/plain' });
-
-      Utils.cloneBlob(testBlob).then(function(blob) {
-        assert.equal(testBlob.size, blob.size);
-        assert.equal(testBlob.type, blob.type);
-      }).then(done, done);
-    });
-
-    test('return error while failed to make a copy', function(done) {
-      Utils.cloneBlob('invalid blob').catch(function(error) {
-        assert.instanceOf(error, Error);
-      }).then(done, done);
     });
   });
 });

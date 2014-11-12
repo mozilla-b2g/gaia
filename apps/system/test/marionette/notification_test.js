@@ -31,7 +31,7 @@ marionette('notification tests', function() {
 
   test('swipe up should hide the toast', function() {
     var toaster = dispatchNotification(client);
-    actions.flick(toaster, 50, 30, 50, 1, 300).perform(function() {
+    actions.flick(toaster, 50, 30, 50, -30, 300).perform(function() {
       assert.equal(toaster.displayed(), false);
     });
   });

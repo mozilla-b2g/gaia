@@ -1,4 +1,4 @@
-/*global Promise, Template, Utils,
+/*global Promise, Template,
          ImageUtils
 */
 
@@ -8,7 +8,7 @@
   'use strict';
   // do not create thumbnails for too big attachments
   // (see bug 805114 for a similar issue in Gallery)
-  const MAX_THUMBNAIL_GENERATION_SIZE = 1.5 * 1024 * 1024; // 1.5MB
+  const MAX_THUMBNAIL_GENERATION_SIZE = 5 * 1024 * 1024; // 5MB
 
   // Actual thumbnails size should be 10 rem (100px) * devicePixelRatio
   const THUMBNAIL_SIZE = 100 * window.devicePixelRatio;
@@ -49,43 +49,78 @@
        * for the attachment base HTML markup that allows consumer code to
        * perform post processing DOM operations.
        */
-      renderTo: function(baseMarkup, attachmentContainer) {
-        var deferred = Utils.Promise.defer();
-        // append the source when it's appended to the dom and loaded
-        attachmentContainer.addEventListener('load', function onload() {
-          try {
-            this.removeEventListener('load', onload);
+      renderTo: function(data, attachmentContainer) {
+        attachmentContainer.classList.add(data.cssClass);
 
-            var documentElement = this.contentDocument.documentElement;
+        var template = Template('attachment-draft-tmpl');
+        var markup = template.interpolate({
+          baseURL: location.protocol + '//' + location.host + '/',
+          baseHTML: data.markup,
+          cssClass: data.cssClass
+        }, { safe: ['baseHTML'] });
 
-            var template = Template('attachment-draft-tmpl');
-            documentElement.innerHTML = template.interpolate({
-              baseURL: location.protocol + '//' + location.host + '/',
-              baseHTML: baseMarkup
-            }, { safe: ['baseHTML'] });
+        var blob = new Blob([markup], { type: 'text/html' });
+        var blobUrl = window.URL.createObjectURL(blob);
 
-            navigator.mozL10n.translateFragment(documentElement);
+        attachmentContainer.src = blobUrl;
 
-            // Attach click listeners and fire the callback when rendering is
-            // complete: we can't bind `readyCallback' to the `load' event
-            // listener because it would break our unit tests.
-            // Bubble click events from inside the iframe.
-            this.contentDocument.addEventListener(
-              'click',
-              this.click.bind(this)
-            );
+        return this._whenLoaded(attachmentContainer).then(function onload() {
+          // do some postprocessing after it's loaded
+          window.URL.revokeObjectURL(blobUrl);
 
-            // Return actual content container node to allow postprocessing of
-            // DOM content without dealing with iframe structure.
-            deferred.resolve(this.contentDocument.body);
-          } catch(e) {
-            deferred.reject(e);
-          }
+          var contentDocument = attachmentContainer.contentDocument;
+          var documentElement = contentDocument.documentElement;
+          navigator.mozL10n.translateFragment(documentElement);
+
+          // Attach click listeners and fire the callback when rendering is
+          // complete: we can't bind `readyCallback' to the `load' event
+          // listener because it would break our unit tests.
+          // Bubble click events from inside the iframe.
+          contentDocument.addEventListener(
+            'click',
+            () => attachmentContainer.click()
+          );
+
+          // Return actual content container node to allow postprocessing of
+          // DOM content without dealing with iframe structure.
+          return contentDocument.body;
         });
+      },
 
-        attachmentContainer.src = 'about:blank';
+      _whenLoaded: function(iframe) {
+        var innerDocument = iframe.contentDocument;
+        // checking for the class is a way to check that the correct content is
+        // loaded. If the IFrame is inserted to the DOM before we change the
+        // src, its default src about:blank is loaded and we have a body, albeit
+        // a bad one.
+        if (innerDocument && innerDocument.body &&
+            innerDocument.body.classList.contains('attachment-draft')) {
+          return Promise.resolve();
+        }
 
-        return deferred.promise;
+        return new Promise((resolve) => {
+          iframe.addEventListener('load', function onload() {
+            this.removeEventListener('load', onload);
+            resolve();
+          });
+        });
+      },
+
+      /**
+       * Returns the inner DOM node.
+       */
+      getContentNode: function(attachmentContainer) {
+        return this._whenLoaded(attachmentContainer).then(
+          () => attachmentContainer.contentDocument.documentElement
+        );
+      },
+
+      setL10nAttributes: function(element, l10nId, l10nArgs) {
+        navigator.mozL10n.setAttributes(
+          element, l10nId, l10nArgs
+        );
+        // l10n library can't see changes inside iframes yet
+        navigator.mozL10n.translateFragment(element);
       }
     },
 
@@ -94,10 +129,21 @@
         return document.createElement('div');
       },
 
-      renderTo: function(baseMarkup, attachmentContainer) {
-        attachmentContainer.innerHTML = baseMarkup;
+      renderTo: function(data, attachmentContainer) {
+        attachmentContainer.classList.add(data.cssClass);
+        attachmentContainer.innerHTML = data.markup;
 
         return Promise.resolve(attachmentContainer);
+      },
+
+      getContentNode: function(attachmentContainer) {
+        return Promise.resolve(attachmentContainer);
+      },
+
+      setL10nAttributes: function(element, l10nId, l10nArgs) {
+        navigator.mozL10n.setAttributes(
+          element, l10nId, l10nArgs
+        );
       }
     }
   };
@@ -155,11 +201,11 @@
         this.getThumbnail() : Promise.reject();
 
     return thumbnailPromise.
-      then(function(url) {
+      then(function(thumbnail) {
         return {
           markup: this._getBaseMarkup('attachment-preview-tmpl'),
           cssClass: 'preview',
-          url: url
+          thumbnail: thumbnail
         };
       }.bind(this)).
       catch(function(error) {
@@ -169,22 +215,35 @@
         };
       }.bind(this)).
       then(function(data) {
-        attachmentContainer.classList.add(data.cssClass);
-
-        return this._renderer.renderTo(data.markup, attachmentContainer).
+        return this._renderer.renderTo(data, attachmentContainer).
           then(function(contentContainer) {
-            // Since content container may differ from attachment container
-            // (e.g. content container is "body" element inside iframe),
-            // preview class should be applied to both to have effect.
-            contentContainer.classList.add(data.cssClass);
-
             var thumbnailNode = contentContainer.querySelector('.thumbnail');
             if (thumbnailNode) {
               thumbnailNode.style.backgroundImage =
-                'url("' + data.url + '")';
+                'url("' + data.thumbnail.url + data.thumbnail.fragment + '")';
+
+              // It's essential to remember real image URL to revoke it later
+              attachmentContainer.dataset.thumbnail = data.thumbnail.url;
             }
           });
       }.bind(this));
+  };
+
+  AttachmentRenderer.prototype.updateFileSize = function() {
+    var attachmentContainer = this.getAttachmentContainer();
+    return this._renderer.getContentNode(attachmentContainer).then(
+      (contentNode) => {
+        var sizeIndicator = contentNode.querySelector('.js-size-indicator');
+        if (!sizeIndicator) {
+          throw new Error('updateFileSize should be called after a render().');
+        }
+
+        var sizeL10n = getSizeForL10n(this._attachment.size);
+        this._renderer.setL10nAttributes(
+          sizeIndicator, sizeL10n.l10nId, sizeL10n.l10nArgs
+        );
+      }
+    );
   };
 
   /**
@@ -204,7 +263,10 @@
           THUMBNAIL_SIZE / Math.min(data.width, data.height)
         );
 
-        return window.URL.createObjectURL(blob) + fragment;
+        return {
+          url: window.URL.createObjectURL(blob),
+          fragment: fragment
+        };
       }
     );
   };
@@ -230,7 +292,7 @@
    */
   AttachmentRenderer.prototype._getBaseMarkup = function(templateId, hasError) {
     // interpolate the #attachment-[no]preview-tmpl template
-    var sizeL10n = getSizeForL10n(this._attachment.blob.size);
+    var sizeL10n = getSizeForL10n(this._attachment.size);
     return Template(templateId).interpolate({
       type: this._attachment.type,
       errorClass: hasError ? 'corrupted' : '',

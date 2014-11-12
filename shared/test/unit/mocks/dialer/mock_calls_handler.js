@@ -26,12 +26,14 @@ var MockCallsHandler = {
   switchToDefaultOut: function() {},
   switchToReceiver: function() {},
   checkCalls: function() {},
-  mergeActiveCallWith: function() {},
-  mergeConferenceGroupWithActiveCall: function() {},
   end: function() {},
   answer: function() {},
   updateAllPhoneNumberDisplays: function() {},
   updatePlaceNewCall: function() {},
+  mergeCalls: function() {},
+  holdOrResumeSingleCall: function() {},
+  updateMergeAndOnHoldStatus: function() {},
+  setup: function () {},
 
   mTeardown: function() {
     this.mActiveCall = null;

@@ -3,7 +3,7 @@
 
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/load_body_html_helper.js');
-requireApp('bluetooth/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('bluetooth/test/unit/mock_pair_manager.js');
 
 function switchReadOnlyProperty(originObject, propName, targetObj) {
@@ -75,13 +75,14 @@ suite('Bluetooth app > Pairview ', function() {
       name: 'device-01',
       icon: 'device'
     };
-    setup(function() {
+    setup(function(done) {
       this.sinon.stub(Pairview, 'show');
       this.sinon.stub(Pairview, '_pairMode');
       this.sinon.stub(Pairview, '_pairMethod');
       this.sinon.stub(Pairview, '_device');
       this.sinon.stub(Pairview, '_passkey');
       Pairview.init('passive', 'passkey', device, 123456);
+      setTimeout(done);
     });
 
     test('pairing info should be inited after init() ', function() {

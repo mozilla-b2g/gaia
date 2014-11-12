@@ -1,13 +1,13 @@
 
 .settings {
   position: absolute;
-  left: 0; top: 0;
+  left: 0;
+  top: 0;
   z-index: 2;
   width: 100%;
   height: 100%;
   font-size: 1.6rem;
   color: #FFF;
-  white-space: nowrap;
   background: rgba(0,0,0,0.85);
   overflow: hidden;
   opacity: 1;
@@ -71,21 +71,12 @@
  ---------------------------------------------------------*/
 
 .pane {
-  display: inline-block;
-  vertical-align: top;
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
   padding: 0 1.5rem;
-  transform: translateX(0);
-  /*transition: transform 300ms;*/
-}
-
-/**
- * @show-pane=2
- */
-
-[show-pane=pane-2] .pane {
-  transform: translateX(-100%);
 }
 
 .pane > .inner {
@@ -108,6 +99,32 @@
   padding-left: 7rem;
 }
 
+/** Pane 1
+ ---------------------------------------------------------*/
+
+/**
+ * [show-pane=2]
+ */
+
+[show-pane=pane-2] .pane-1 {
+  transform: translateX(-100%);
+}
+
+/** Pane 2
+ ---------------------------------------------------------*/
+
+.pane-2 {
+  transform: translateX(100%);
+}
+
+/**
+ * [show-pane=2]
+ */
+
+[show-pane=pane-2] .pane-2 {
+  transform: translateX(0);
+}
+
 /** Inner
  ---------------------------------------------------------*/
 
@@ -117,27 +134,43 @@
   height: 100%;
 }
 
+/** Header
+ ---------------------------------------------------------*/
+
+/**
+ * 1. Space it out from under the
+ *    setting menu button.
+ */
+
+.settings_header {
+  position: relative;
+  height: 9rem;
+  margin-right: 5rem; /* 1 */
+  line-height: 9rem;
+}
+
 /** Title
  ---------------------------------------------------------*/
 
 .settings_title {
-  position: relative;
-  height: 9rem;
   padding: 0 1.5rem;
   font-size: 2.4rem;
   font-weight: 300;
   font-style: italic;
   line-height: 9rem;
   color: rgba(255,255,255,0.8);
+  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /**
- * @deg270
+ * [dir=rtl]
  */
 
-/*.deg270 .settings_title {
-  padding-left: 10.5rem;
-}*/
+[dir="rtl"] .settings_title {
+  text-align: center;
+}
 
 /** Items
  ---------------------------------------------------------*/

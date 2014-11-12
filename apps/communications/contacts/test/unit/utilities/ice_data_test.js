@@ -29,50 +29,47 @@ suite('ICE Data', function() {
 
   suite('> Load data', function() {
     test('> Check data from async storage', function(done) {
-      subject.load().then(function() {
+      subject.load().then(done(function() {
         var iceContacts = subject.iceContacts;
-        assert.length(iceContacts, 2);
+        assert.lengthOf(iceContacts, 2);
         assert.isTrue(iceContacts[0].active);
         assert.equal(iceContacts[0].id, 1);
         assert.isFalse(iceContacts[1].active);
-        done();
-      }, done);
+      }), done);
     });
 
     test('> With no ice local async data', function(done) {
       window.asyncStorage.keys = {};
-      subject.load().then(function() {
+      subject.load().then(done(function() {
         var iceContacts = subject.iceContacts;
         assert.isFalse(iceContacts[0].active);
         assert.isFalse(iceContacts[1].active);
-        done();
-      }, done);
+      }), done);
     });
   });
 
   suite('> Set ice contact', function() {
     test('> Adding a new contact', function(done) {
-      subject.setICEContact(2, 1, true).then(function() {
+      subject.setICEContact(2, 1, true).then(done(function() {
         var iceContacts = subject.iceContacts;
         assert.equal(iceContacts[1].id, 2);
         assert.isTrue(iceContacts[1].active);
-        done();
-      }, done);
+      }), done);
     });
 
     test('> Change an existing ice contact', function(done) {
-      subject.setICEContact(1, 0, false).then(function() {
+      subject.setICEContact(1, 0, false).then(done(function() {
         var iceContacts = subject.iceContacts;
         assert.isFalse(iceContacts[0].active);
-        done();
-      },done);
+      }),done);
     });
 
     test('> Data sent to DS is valid', function(done) {
       subject.load().then(function() {
         subject.setICEContact(2, 1, true).then(function(data) {
-          assert.length(data, 2);
-          done();
+          done(function() {
+            assert.lengthOf(data, 2);
+          });
         });
       }, done);
     });

@@ -14,7 +14,7 @@ var MockMozActivity = function(info) {
   var data = info.data;
   return {
     set onsuccess(cb) {
-      setTimeout(cb, 50);
+      MockMozActivity.timeouts.push(setTimeout(cb, 50));
     },
     set onerror(cb) {
       MockMozActivity.errorCallback = cb;
@@ -32,6 +32,7 @@ MockMozActivity.mSetup = function() {
   MockMozActivity.calls = [];
   MockMozActivity.instances = [];
   MockMozActivity.successResult = null;
+  MockMozActivity.timeouts = [];
 };
 
 MockMozActivity.mTriggerOnError = function() {
@@ -42,4 +43,7 @@ MockMozActivity.mTriggerOnError = function() {
 MockMozActivity.mTeardown = function() {
   delete MockMozActivity.calls;
   delete MockMozActivity.instances;
+
+  MockMozActivity.timeouts.forEach(clearTimeout);
+  MockMozActivity.timeouts = [];
 };

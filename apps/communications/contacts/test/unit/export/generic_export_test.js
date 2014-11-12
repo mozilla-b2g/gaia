@@ -155,7 +155,7 @@ suite('Contacts Exporter', function() {
   test('Correct initialization given an array of ids', function(done) {
     subject.init(ids, function onInitDone(contacts) {
       var expectedContacts = getContactsForIds(ids);
-      assert.length(contacts, 2);
+      assert.lengthOf(contacts, 2);
       assert.notStrictEqual(expectedContacts, contacts);
       done();
     });

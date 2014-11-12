@@ -1,6 +1,8 @@
 'use strict';
 define(function(require) {
 
+  var sounds = require('./sounds');
+
   /**
    * The AlarmDatabase stores a list of alarms in IndexedDB. All
    * mutation operations return Promises, for easy chaining and state
@@ -96,7 +98,8 @@ define(function(require) {
 
       // Pre-April-2014 code may have stored 'vibrate' and 'sound' as
       // the string "0", and hour/minute as strings.
-      alarm.sound = (alarm.sound !== '0' ? alarm.sound : null);
+      alarm.sound = sounds.normalizeSound(
+        alarm.sound !== '0' ? alarm.sound : null);
       alarm.vibrate = (alarm.vibrate && alarm.vibrate !== '0') || false;
       alarm.hour = parseInt(alarm.hour, 10);
       alarm.minute = parseInt(alarm.minute, 10);

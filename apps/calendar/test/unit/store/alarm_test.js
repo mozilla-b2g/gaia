@@ -1,29 +1,24 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireLib('calc.js');
-requireLib('db.js');
-requireLib('store/abstract.js');
-requireLib('store/alarm.js');
+var Abstract = require('store/abstract');
+var Calc = require('calc');
+var Factory = require('test/support/factory');
+var Responder = require('responder');
+var notificationsController = require('controllers/notifications');
 
 suite('store/alarm', function() {
-  'use strict';
-
   var subject;
   var db;
   var app;
-  var controller;
-
 
   setup(function(done) {
     app = testSupport.calendar.app();
     db = app.db;
-    controller = app.alarmController;
     subject = db.getStore('Alarm');
+    subject.app = app;
 
-    db.open(function(err) {
-      assert.ok(!err);
-      done();
-    });
+    db.open(done);
   });
 
   teardown(function(done) {
@@ -42,9 +37,7 @@ suite('store/alarm', function() {
     suite('existing', function() {
       var alarms;
       var busytimeId = 'xfoo';
-      var busytime = {
-        _id: busytimeId
-      };
+      var busytime = { _id: busytimeId };
 
       setup(function(done) {
         alarms = [];
@@ -148,7 +141,7 @@ suite('store/alarm', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.Store.Abstract);
+    assert.instanceOf(subject, Abstract);
     assert.equal(subject.db, db);
     assert.deepEqual(subject._cached, {});
   });
@@ -163,7 +156,7 @@ suite('store/alarm', function() {
 
       if (floating) {
         record.startDate.offset = 0;
-        record.startDate.tzid = Calendar.Calc.FLOATING;
+        record.startDate.tzid = Calc.FLOATING;
       }
 
       subject.persist(record, done);
@@ -174,13 +167,12 @@ suite('store/alarm', function() {
     var getAllResults = [];
     var added = [];
     var lastId = 0;
-
     var now = new Date(2018, 0, 1);
     var realApi;
-    var mockApi = {
 
+    var mockApi = {
       getAll: function() {
-        var req = new Calendar.Responder();
+        var req = new Responder();
 
         setTimeout(function() {
           req.result = getAllResults.concat([]);
@@ -193,7 +185,6 @@ suite('store/alarm', function() {
           }
 
           req.emit('success', event);
-
         }, 1);
 
         return req;
@@ -201,7 +192,7 @@ suite('store/alarm', function() {
 
       add: function(date, tz, data) {
         added.push(Array.prototype.slice.call(arguments));
-        var req = new Calendar.Responder();
+        var req = new Responder();
 
         setTimeout(function() {
           lastId++;
@@ -211,7 +202,6 @@ suite('store/alarm', function() {
           }
 
           req.emit('success', lastId);
-
         }, 1);
 
         return req;
@@ -226,17 +216,24 @@ suite('store/alarm', function() {
       navigator.mozAlarms = realApi;
     });
 
-    var handleAlarm;
+    var allAlarms, handleAlarm, onAlarm;
 
     setup(function() {
+      allAlarms = [];
       handleAlarm = null;
       added.length = 0;
       getAllResults.length = 0;
       navigator.mozAlarms = mockApi;
-
-      controller.handleAlarm = function() {
+      onAlarm = notificationsController.onAlarm;
+      notificationsController.onAlarm = function() {
         handleAlarm = arguments;
+        allAlarms.push(handleAlarm);
       };
+    });
+
+    teardown(function() {
+      // Restore notificationsController.onAlarm
+      notificationsController.onAlarm = onAlarm;
     });
 
     suite('without alarm api', function() {
@@ -251,11 +248,16 @@ suite('store/alarm', function() {
     suite('alarm in the past', function() {
       var now = new Date();
       now.setMilliseconds(-1);
-
       add(now, 'busyMe');
 
+      // Bug 857284 - We should only fire one alarm when there are multiple
+      // valid alarms for a single event.
+      var duplicate = new Date();
+      duplicate.setMilliseconds(-61);
+      add(duplicate, 'busyMe');
+
       setup(function(done) {
-        subject.workQueue(done);
+        subject.workQueue(() => done());
       });
 
       test('passing alarm directly to controller', function() {
@@ -263,6 +265,9 @@ suite('store/alarm', function() {
 
         // verify right alarm is sent
         assert.equal(alarm.busytimeId, 'busyMe');
+
+        // verify only one alarm sent
+        assert.lengthOf(allAlarms, 1);
       });
     });
 
@@ -277,7 +282,7 @@ suite('store/alarm', function() {
           })
         });
 
-        subject.workQueue(now, done);
+        subject.workQueue(now, () => done());
       });
 
       test('after', function() {
@@ -292,7 +297,8 @@ suite('store/alarm', function() {
         getAllResults.push({
           data: { _randomField: true }
         });
-        subject.workQueue(now, done);
+
+        subject.workQueue(now, () => done());
       });
 
       test('after complete', function() {
@@ -310,7 +316,7 @@ suite('store/alarm', function() {
       add(new Date(2018, 0, 3), 3);
 
       setup(function(done) {
-        subject.workQueue(now, done);
+        subject.workQueue(now, () => done());
       });
 
       test('after complete', function() {
@@ -321,7 +327,6 @@ suite('store/alarm', function() {
           new Date(2018, 0, 3)
         );
       });
-
     });
 
     suite('initial add', function() {
@@ -337,7 +342,7 @@ suite('store/alarm', function() {
       add(new Date(2018, 0, 3), 3);
 
       setup(function(done) {
-        subject.workQueue(now, done);
+        subject.workQueue(now, () => done());
       });
 
       /*
@@ -420,7 +425,7 @@ suite('store/alarm', function() {
     */
 
     });
-
   });
+});
 
 });

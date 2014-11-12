@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Object menu</title>
   <meta name="description" content="Presenting a list of actions related to the App content">
 
   <link rel="stylesheet" href="../object_menu.css">
+  <link rel="stylesheet" href="../input_areas.css">
+  <link rel="stylesheet" href="../../elements/gaia-icons/gaia-icons-embedded.css">
   <!--
     - This <style> element is only used for the example code;
     - it is not required for the real use case.
@@ -46,6 +48,9 @@
           <p>Two Paragraphs (one empty)</p>
           <p></p>
         </li>
+      </ul>
+      <h2>Buttons</h2>
+      <ul>
         <li><button>Button</button></li>
         <li><a href="#">Anchor</a></li>
         <li>
@@ -60,9 +65,58 @@
           </a>
         </li>
       </ul>
+      <h2>Radio buttons</h2>
+      <ul class="bb-radio">
+        <li>
+          <label>
+            <input type="radio" name="radio-example">
+            <span data-icon="tick">Radio button text</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="radio-example">
+            <span data-icon="tick">Radio button text</span>
+          </label>
+        </li>
+      </ul>
+      <h2>Checkboxes</h2>
+      <ul class="bb-checkbox">
+        <li>
+          <label>
+            <input type="checkbox">
+            <span data-icon="tick">Checkbox button text</span>
+          </label>
+        </li>
+        <li class="inactive">
+          <label>
+            <input type="checkbox">
+            <span data-icon="tick">Checkbox button textCheckbox button text Checkbox button textCheckbox button text</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox">
+            <span data-icon="tick">Checkbox button textCheckbox button text Checkbox button textCheckbox button text</span>
+          </label>
+        </li>
+      </ul>
+      <h2>inputs</h2>
+      <ul>
+        <li class="inactive">
+           <p>
+              <input type="text" placeholder="Placeholder">
+              <button type="reset"></button>
+            </p>
+
+            <p>
+              <textarea placeholder="Placeholder in textarea"></textarea>
+            </p>
+        </li>
+      </ul>
     </section>
-    <menu type="toolbar">
-      <button class="full">Cancel</button>
+    <menu>
+      <button>Cancel</button>
     </menu>
   </form>
 

@@ -1,5 +1,6 @@
 // Loader plugin for loading CSS. Does not guarantee loading via onload
 // watching, just inserts link tag.
+'use strict';
 define({
   load: function(id, require, onload, config) {
     if (config.isBuild) {

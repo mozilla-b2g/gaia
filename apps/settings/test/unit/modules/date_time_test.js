@@ -1,9 +1,5 @@
 'use strict';
 
-mocha.globals([
-  'MockSettingsListener'
-]);
-
 suite('Date & Time > ', function() {
   var realSettings, realTime, realL10n;
   var DateTime;
@@ -18,7 +14,7 @@ suite('Date & Time > ', function() {
   suiteSetup(function(done) {
     var modules = [
       'shared_mocks/mock_navigator_moz_settings',
-      'unit/mock_l10n',
+      'shared_mocks/mock_l10n',
       'modules/date_time'
     ];
     var maps = {

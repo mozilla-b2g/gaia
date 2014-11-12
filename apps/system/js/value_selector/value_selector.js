@@ -90,6 +90,7 @@
         }
         break;
       case 'timeformatchange':
+        // invalidate the current time picker when time format changes
         if (this._timePicker) {
           this._timePicker.uninit();
           this._timePicker = null;
@@ -238,9 +239,6 @@
     }
     this.element.blur();
     this.element.hidden = true;
-    if (this.app) {
-      this.app.focus();
-    }
     this.publish('hidden');
   };
 
@@ -601,14 +599,14 @@
           (localeTimeFormat.indexOf('%p') < localeTimeFormat.indexOf('%M'));
         style = (reversedPeriod) ? 'format12hrev' : 'format12h';
 
-        if ('format12' === style) {
+        if ('format12h' === style) {
           this.element.classList.remove('format12hhrev');
           this.element.classList.remove('format24h');
           if (!this.element.classList.contains(style)) {
             this.element.classList.add(style);
           }
         } else {
-          this.element.classList.remove('format12');
+          this.element.classList.remove('format12h');
           this.element.classList.remove('format24h');
           if (!this.element.classList.contains(style)) {
             this.element.classList.add(style);
@@ -627,7 +625,7 @@
 
     getHour: function tp_getHours() {
       var hour = 0;
-      if (this.is12hFormat) {
+      if (this.is12hFormat) { // hour + 12 if is PM
         var hour24Offset = 12 * this.hour24State.getSelectedIndex();
         hour = this.hour.getSelectedDisplayedText();
         hour = (hour == 12) ? 0 : hour;

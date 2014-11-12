@@ -1,14 +1,15 @@
 /* global MockFxAccountsIACHelper, MocksHelper, MockL10n, MockMozApps,
-          MockTzSelect, Navigation, UIManager */
+          MockTzSelect, Navigation, UIManager, WifiUI */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('ftu/js/ui.js');
 requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
+requireApp('ftu/js/wifi.js');
 
-requireApp('ftu/test/unit/mock_l10n.js');
 requireApp('ftu/test/unit/mock_tutorial.js');
 requireApp('ftu/test/unit/mock_mozapps.js');
 requireApp('ftu/test/unit/mock_time_manager.js');
@@ -16,12 +17,16 @@ requireApp('ftu/test/unit/mock_wifi_manager.js');
 requireApp('ftu/test/unit/mock_tz_select.js');
 requireApp('ftu/test/unit/mock_operatorVariant.js');
 requireApp('ftu/test/unit/mock_fx_accounts_iac_helper.js');
+requireApp('ftu/test/unit/mock_utils.js');
+requireApp('ftu/test/unit/mock_data_mobile.js');
 
 var mocksHelperForUI = new MocksHelper([
   'Tutorial',
   'TimeManager',
   'WifiManager',
-  'OperatorVariant'
+  'OperatorVariant',
+  'utils',
+  'DataMobile'
 ]).init();
 
 if (!window.tzSelect) {
@@ -271,6 +276,45 @@ suite('UI Manager > ', function() {
       UIManager.changeStatusBarColor('black');
       assert.equal(meta.getAttribute('content'), 'black');
     });
+  });
+
+  suite('Wifi section', function() {
+    var joinHiddenNetworkStub;
+
+    suiteSetup(function() {
+      Navigation.currentStep = 3;
+      Navigation.manageStep();
+    });
+
+    suiteTeardown(function() {
+      Navigation.currentStep = 1;
+      Navigation.manageStep();
+    });
+
+    setup(function() {
+      joinHiddenNetworkStub = this.sinon.stub(WifiUI, 'joinHiddenNetwork',
+        function() {
+          return;
+      });
+    });
+
+    test('Join hidden network button click > ', function() {
+      var spy = this.sinon.spy(WifiUI, 'addHiddenNetwork');
+      UIManager.joinHiddenButton.click();
+      assert.isTrue(spy.calledOnce,
+        'on click, addHiddenNetwork should be called');
+      assert.equal(window.location.hash, '#hidden-wifi-authentication');
+      assert.equal(UIManager.mainTitle.dataset.l10nId, 'authentication');
+      UIManager.hiddenWifiPassword.value = 'testPassword';
+      UIManager.hiddenWifiSsid.value = 'testSSID';
+      // Checks WPA-PSK
+      UIManager.hiddenWifiSecurity.options[2].selected = true;
+      UIManager.wifiJoinButton.disabled = false;
+      UIManager.wifiJoinButton.click();
+      assert.ok(joinHiddenNetworkStub.called,
+        'joinHiddenNetwork should be called');
+    });
+
   });
 
 });

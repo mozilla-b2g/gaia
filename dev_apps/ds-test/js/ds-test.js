@@ -10,8 +10,10 @@ function humanBytes(bytes) {
 }
 
 var gStorageType;
+var gStorageTypes = ['pictures', 'sdcard', 'videos', 'music']
 var gDefaultStorage;
 var gVolumeStorages;
+var gListenerStorages;
 
 function ds_getStorageType() {
   var typeElt = document.getElementById('ds.type');
@@ -19,7 +21,8 @@ function ds_getStorageType() {
   return typeElt.options[typeIdx].value;
 }
 
-function ds_changeHandler(label, e) {
+function ds_changeHandler(storageType, storageName, e) {
+  var label = storageType + '/' + storageName;
   switch (e.reason) {
     case 'created':
     case 'modified':
@@ -43,16 +46,24 @@ function ds_defaultStorageChanged(setting) {
 }
 
 function AddListeners() {
-  for (i = 0; i < gVolumeStorages.length; i++) {
-    gVolumeStorages[i].addEventListener('change',
-      ds_changeHandler.bind(this, gVolumeStorages[i].storageName));
+  gListenerStorages = [];
+  for (st = 0; st < gStorageTypes.length; st++) {
+    var storageType = gStorageTypes[st];
+    storages = navigator.getDeviceStorages(storageType);
+    for (i = 0; i < storages.length; i++) {
+      var storage = storages[i];
+      gListenerStorages.push(storage);
+      log('Adding listener for ' + storageType + '/' + storage.storageName);
+      storage.addEventListener('change',
+        ds_changeHandler.bind(this, storageType, storage.storageName));
+    }
   }
   navigator.mozSettings.addObserver('device.storage.writable.name', ds_defaultStorageChanged);
 }
 
 function RemoveListeners() {
-  for (i = 0; i < gVolumeStorages.length; i++) {
-    gVolumeStorages[i].removeEventListener('change', ds_changeHandler);
+  for (i = 0; i < gListenerStorages.length; i++) {
+    gListenerStorages[i].removeEventListener('change', ds_changeHandler);
   }
   navigator.mozSettings.removeObserver('device.storage.writable.name', ds_defaultStorageChanged);
 }
@@ -284,7 +295,7 @@ Enumerate.prototype = {
     return this.storage.enumerate(this.dir);
   },
   onnext: function enumerate_next(e) {
-     log('  ' + e.target.result.name);
+     log('  ' + e.target.result.name + ' ' + e.target.result.type);
      this.fileCount += 1;
   },
   onnextdone: function enumerate_onnextdone() {
@@ -539,7 +550,8 @@ function ds_getDeviceStorages() {
 
 var logElt;
 function log(msg) {
-  console.log(msg);
+  //console.log(msg);
+  dump(msg + '\n');
   if (!logElt) {
     logElt = document.getElementById('log');
   }
@@ -608,7 +620,8 @@ function ds_doit() {
       case 'test':
         //ds_test();
         //ds_test_enumerate();
-        ds_test_enumerate_dcim();
+        //ds_test_enumerate_dcim();
+        ds_test_enumerate_since();
         //ds_test_dotdot();
         //ds_test_watch();
         //ds_test_823965();
@@ -783,6 +796,41 @@ function ds_test_enumerate() {
    request.onsuccess = addSuccess;
    request.onerror = addError;
   }
+}
+
+function ds_test_enumerate_since() {
+  log('ds_test_enumerate_since');
+
+  var storage = navigator.getDeviceStorage('sdcard');
+  var cursor = storage.enumerate();
+  var timestamp = null
+  var do_since = true;
+  cursor.onsuccess = function enumSuccess(e) {
+    if (e.target.result == null) {
+      if (do_since) {
+        do_since = false;
+        if (timestamp) {
+          log('===== since.txt timestamp = ' + timestamp + ' =====');
+          var cursor_since = storage.enumerate({'since' : timestamp});
+          cursor_since.onsuccess = cursor.onsuccess;
+          cursor_since.onerror = cursor.onerror;
+        } else {
+          log("since.txt file not found");
+        }
+      } else {
+        log('===== Done =====');
+      }
+      return;
+    }
+    log(e.target.result.name + ' - ' + e.target.result.lastModifiedDate);
+    if (e.target.result.name.slice(-9) == 'since.txt') {
+      timestamp = e.target.result.lastModifiedDate;
+    }
+    e.target.continue();
+  };
+  cursor.onerror = function enumError(e) {
+    log('enumError');
+  };
 }
 
 function ds_test_enumerate_dcim() {

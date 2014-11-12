@@ -1,10 +1,9 @@
 'use strict';
 
 /* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
-          KeypadManager,LazyL10n, LazyLoader, MmiManager, Notification,
-          NotificationHelper, SettingsListener, SimPicker, SimSettingsHelper,
-          SuggestionBar, TelephonyHelper, TonePlayer, Utils, Voicemail,
-          MozActivity */
+          KeypadManager, LazyL10n, LazyLoader, MmiManager, Notification,
+          NotificationHelper, SettingsListener, SimSettingsHelper,
+          SuggestionBar, TelephonyHelper, Utils, Voicemail, MozActivity */
 
 var NavbarManager = {
   init: function nm_init() {
@@ -278,7 +277,7 @@ var CallHandler = (function callHandler() {
         sendNotification(number, data.serviceId);
       }
 
-      Voicemail.check(number, function(isVoicemailNumber) {
+      Voicemail.check(number, data.serviceId).then(function(isVoicemailNumber) {
         var entry = {
           date: Date.now() - parseInt(data.duration),
           duration: data.duration,
@@ -376,8 +375,11 @@ var CallHandler = (function callHandler() {
         SimSettingsHelper.getCardIndexFrom('outgoingCall',
         function(defaultCardIndex) {
           if (defaultCardIndex === SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
-            LazyLoader.load(['/shared/js/sim_picker.js'], function() {
-              SimPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
+            LazyLoader.load(['/shared/js/component_utils.js',
+                             '/shared/elements/gaia_sim_picker/script.js'],
+            function() {
+              var simPicker = document.getElementById('sim-picker');
+              simPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
                 CallHandler.call(phoneNumber, ci);
               });
               // Show the dialer so the user can select the SIM.
@@ -397,7 +399,8 @@ var CallHandler = (function callHandler() {
     // Dialing from the call log
     // ATD>3 means we have to call the 3rd recent number.
     var position = isAtd ? parseInt(command.substring(4), 10) : 1;
-    CallLogDBManager.getGroupAtPosition(position, 'lastEntryDate', true, null,
+    CallLogDBManager.getGroupAtPosition(
+      position, 'lastEntryDate', true, 'dialing',
     function(result) {
       if (result && (typeof result === 'object') && result.number) {
         LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
@@ -546,23 +549,3 @@ window.onresize = function(e) {
     NavbarManager.show();
   }
 };
-
-// If the app loses focus, close the audio stream.
-document.addEventListener('visibilitychange', function visibilitychanged() {
-  // Don't bother stopping the tone player if it's not been started
-  if (!TonePlayer) {
-    return;
-  }
-
-  if (!document.hidden) {
-    TonePlayer.ensureAudio();
-  } else {
-    // Reset the audio stream. This ensures that the stream is shutdown
-    // *immediately*.
-    TonePlayer.trashAudio();
-    // Just in case stop any dtmf tone
-    if (navigator.mozTelephony && navigator.mozTelephony.stopTone) {
-      navigator.mozTelephony.stopTone();
-    }
-  }
-});

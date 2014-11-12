@@ -35,7 +35,7 @@ marionette('Fullscreen status bar >', function() {
     var top = sys.topPanel;
     var titlebar = sys.appTitlebar;
 
-    actions.press(top, 100, 0).moveByOffset(0, 250).release().perform();
+    actions.flick(top, 100, 0, 100, 250).perform();
     client.waitFor(function() {
       var rect = titlebar.scriptWith(function(el) {
         return el.getBoundingClientRect();

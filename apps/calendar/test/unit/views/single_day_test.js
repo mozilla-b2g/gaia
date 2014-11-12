@@ -1,31 +1,26 @@
+define(function(require) {
 'use strict';
 
-requireLib('timespan.js');
-requireLib('utils/overlap.js');
-requireLib('day_observer.js');
-requireLib('views/single_day.js');
+var Calc = require('calc');
+var SingleDay = require('views/single_day');
+var dayObserver = require('day_observer');
 
-suiteGroup('Views.SingleDay', function() {
-
+suite('Views.SingleDay', function() {
   var alldaysHolder;
   var app;
   var date;
   var dayId;
-  var dayObserver = Calendar.dayObserver;
   var daysHolder;
   var subject;
 
-  suiteSetup(function() {
+  setup(function(done) {
     app = testSupport.calendar.app();
-  });
-
-  setup(function() {
     daysHolder = document.createElement('div');
     alldaysHolder = document.createElement('div');
     date = new Date(2014, 6, 23);
-    dayId = Calendar.Calc.getDayId(date);
+    dayId = Calc.getDayId(date);
 
-    subject = new Calendar.Views.SingleDay({
+    subject = new SingleDay({
       date: date,
       daysHolder: daysHolder,
       alldaysHolder: alldaysHolder,
@@ -40,6 +35,7 @@ suiteGroup('Views.SingleDay', function() {
     this.sinon.spy(window, 'removeEventListener');
     this.sinon.spy(subject, 'onactive');
     this.sinon.spy(subject, 'oninactive');
+    app.db.open(done);
   });
 
   teardown(function() {
@@ -50,6 +46,7 @@ suiteGroup('Views.SingleDay', function() {
     subject.onactive.restore();
     subject.oninactive.restore();
     subject.destroy();
+    app.db.close();
   });
 
   test('#setup', function() {
@@ -116,15 +113,15 @@ suiteGroup('Views.SingleDay', function() {
 
     assert.equal(
       daysHolder.innerHTML,
-      '<div data-date="' + d + '" class="day"></div>',
+      '<div data-date="' + d + '" class="md__day"></div>',
       'should add day node'
     );
 
     assert.equal(
       alldaysHolder.innerHTML,
-      '<div data-date="' + d + '" class="allday">' +
-        '<h1 class="day-name">Wed 23</h1>' +
-        '<div class="allday-events"></div>' +
+      '<div data-date="' + d + '" class="md__allday">' +
+        '<h1 class="md__day-name">Wed 23</h1>' +
+        '<div class="md__allday-events"></div>' +
       '</div>'
     );
   });
@@ -154,11 +151,16 @@ suiteGroup('Views.SingleDay', function() {
 
     // notice that we are testing the method indirectly (the important thing to
     // check is if the view updates when the dayObserver emits events)
-    dayObserver.emitter.emit(dayId, [
-      makeRecord('Lorem Ipsum', '5:00', '6:00'),
-      makeRecord('Dolor Amet', '4:00', '6:00', 1),
-      makeAlldayRecord('Curabitur')
-    ]);
+    dayObserver.emitter.emit(dayId, {
+      amount: 3,
+      events: [
+        makeRecord('Dolor Amet', '4:00', '6:00', 1),
+        makeRecord('Lorem Ipsum', '5:00', '6:00')
+      ],
+      allday: [
+        makeAlldayRecord('Curabitur')
+      ]
+    });
 
     // testing the whole markup is enough to check if position and overlaps are
     // handled properly and also makes sure all the data is passed to the
@@ -166,59 +168,63 @@ suiteGroup('Views.SingleDay', function() {
     // the tests (might catch differences that are not regressions)
     assert.equal(
       daysHolder.innerHTML,
-      '<div data-date="' + date.toString() +'" class="day">' +
-      '<a style="height: 49.9px; top: 250px; width: 50%; left: 50%;" ' +
-        'class="event calendar-id-local-first calendar-border-color ' +
-        'calendar-bg-color has-overlaps" ' +
-        'href="/event/show/Lorem Ipsum-5:00-6:00">' +
-        '<span class="event-title">Lorem Ipsum</span>' +
-        '<span class="event-location">Mars</span>' +
-      '</a>' +
-      '<a style="height: 99.9px; top: 200px; width: 50%; left: 0%;" ' +
-        'class="event calendar-id-local-first calendar-border-color ' +
+      '<div data-date="' + date.toString() +'" class="md__day">' +
+      '<a style="height: 99.9px; top: 200px; width: 50%; left: 50%;" ' +
+        'class="md__event calendar-id-local-first calendar-border-color ' +
         'calendar-bg-color has-alarms has-overlaps" ' +
         'href="/event/show/Dolor Amet-4:00-6:00">' +
-        '<span class="event-title">Dolor Amet</span>' +
-        '<span class="event-location">Mars</span>' +
+        '<span class="md__event-title">Dolor Amet</span>' +
+        '<span class="md__event-location">Mars</span>' +
         '<i class="gaia-icon icon-calendar-alarm calendar-text-color"></i>' +
+      '</a>' +
+      '<a style="height: 49.9px; top: 250px; width: 50%; left: 0%;" ' +
+        'class="md__event calendar-id-local-first calendar-border-color ' +
+        'calendar-bg-color has-overlaps" ' +
+        'href="/event/show/Lorem Ipsum-5:00-6:00">' +
+        '<span class="md__event-title">Lorem Ipsum</span>' +
+        '<span class="md__event-location">Mars</span>' +
       '</a></div>',
       'days: first render'
     );
 
     assert.equal(
       alldaysHolder.innerHTML,
-      '<div data-date="' + date.toString() + '" class="allday">' +
-        '<h1 class="day-name">Wed 23</h1>' +
-        '<div class="allday-events">' +
-        '<a class="event calendar-id-local-first calendar-border-color ' +
+      '<div data-date="' + date.toString() + '" class="md__allday">' +
+        '<h1 class="md__day-name">Wed 23</h1>' +
+        '<div class="md__allday-events">' +
+        '<a class="md__event calendar-id-local-first calendar-border-color ' +
         'calendar-bg-color is-allday" href="/event/show/Curabitur-0:00-0:00">' +
-        '<span class="event-title">Curabitur</span>' +
-        '<span class="event-location">Mars</span>' +
+        '<span class="md__event-title">Curabitur</span>' +
+        '<span class="md__event-location">Mars</span>' +
         '</a></div></div>',
       'alldays: first render'
     );
 
     // we always send all the events for that day and redraw whole view
-    dayObserver.emitter.emit(dayId, [
-      makeRecord('Lorem Ipsum', '5:00', '6:00'),
-      makeRecord('Maecennas', '6:00', '17:00', 1)
-    ]);
+    dayObserver.emitter.emit(dayId, {
+      amount: 2,
+      events: [
+        makeRecord('Lorem Ipsum', '5:00', '6:00'),
+        makeRecord('Maecennas', '6:00', '17:00', 1)
+      ],
+      allday: []
+    });
 
     assert.equal(
       daysHolder.innerHTML,
-      '<div data-date="' + date.toString() +'" class="day">' +
+      '<div data-date="' + date.toString() +'" class="md__day">' +
       '<a style="height: 49.9px; top: 250px;" ' +
-        'class="event calendar-id-local-first calendar-border-color ' +
+        'class="md__event calendar-id-local-first calendar-border-color ' +
         'calendar-bg-color" href="/event/show/Lorem Ipsum-5:00-6:00">' +
-        '<span class="event-title">Lorem Ipsum</span>' +
-        '<span class="event-location">Mars</span>' +
+        '<span class="md__event-title">Lorem Ipsum</span>' +
+        '<span class="md__event-location">Mars</span>' +
       '</a>' +
       '<a style="height: 549.9px; top: 300px;" ' +
-        'class="event calendar-id-local-first calendar-border-color ' +
+        'class="md__event calendar-id-local-first calendar-border-color ' +
         'calendar-bg-color has-alarms" ' +
         'href="/event/show/Maecennas-6:00-17:00">' +
-        '<span class="event-title">Maecennas</span>' +
-        '<span class="event-location">Mars</span>' +
+        '<span class="md__event-title">Maecennas</span>' +
+        '<span class="md__event-location">Mars</span>' +
         '<i class="gaia-icon icon-calendar-alarm calendar-text-color"></i>' +
       '</a></div>',
       'second render'
@@ -226,9 +232,9 @@ suiteGroup('Views.SingleDay', function() {
 
     assert.equal(
       alldaysHolder.innerHTML,
-      '<div data-date="' + date.toString() + '" class="allday">' +
-        '<h1 class="day-name">Wed 23</h1>' +
-        '<div class="allday-events"></div></div>',
+      '<div data-date="' + date.toString() + '" class="md__allday">' +
+        '<h1 class="md__day-name">Wed 23</h1>' +
+        '<div class="md__allday-events"></div></div>',
       'alldays: second render'
     );
   });
@@ -237,34 +243,38 @@ suiteGroup('Views.SingleDay', function() {
     subject.setup();
     subject.append();
 
-    dayObserver.emitter.emit(dayId, [
-      makeRecord('Lorem Ipsum', '5:00', '5:15'),
-      makeRecord('Maecennas', '6:00', '6:25'),
-      makeRecord('Dolor', '6:30', '7:00'),
-      makeRecord('Amet', '7:00', '7:50')
-    ]);
+    dayObserver.emitter.emit(dayId, {
+      amount: 4,
+      events: [
+        makeRecord('Lorem Ipsum', '5:00', '5:15'),
+        makeRecord('Maecennas', '6:00', '6:25'),
+        makeRecord('Dolor', '6:30', '7:00'),
+        makeRecord('Amet', '7:00', '7:50')
+      ],
+      allday: []
+    });
 
     assert.include(
       daysHolder.innerHTML,
-      'partial-hour partial-hour-micro',
+      'is-partial is-partial-micro',
       'smaller than 18min'
     );
 
     assert.include(
       daysHolder.innerHTML,
-      'partial-hour partial-hour-tiny',
+      'is-partial is-partial-tiny',
       'between 18-30min'
     );
 
     assert.include(
       daysHolder.innerHTML,
-      'partial-hour partial-hour-small',
+      'is-partial is-partial-small',
       'between 30-45min'
     );
 
     assert.include(
       daysHolder.innerHTML,
-      'partial-hour"',
+      'is-partial"',
       'longer than 45min'
     );
   });
@@ -301,5 +311,6 @@ suiteGroup('Views.SingleDay', function() {
     endDate.setDate(endDate.getDate() + 1);
     return record;
   }
+});
 
 });

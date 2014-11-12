@@ -66,7 +66,14 @@ navigator.mozSettings.addObserver('geolocation.enabled', function(event) {
   wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_STALE_REGISTRATION);
 });
 
-window.addEventListener('lockscreen-appclosing', function(event) {
+window.addEventListener('lockscreen-request-unlock', function(event) {
+  if (event.detail && event.detail.activity &&
+      'record' === event.detail.activity.name) {
+    // Let's make sure we won't start FMD when user triggers Camera from
+    // the lockscreen.
+    return;
+  }
+
   // clear the lockscreen lock message
   var helper = SettingsHelper('lockscreen.lock-message');
   helper.set('');

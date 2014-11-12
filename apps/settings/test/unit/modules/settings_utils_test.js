@@ -1,8 +1,6 @@
 /* global Settings, MockSettings */
 requireApp('settings/test/unit/mock_settings.js');
 
-mocha.globals(['Settings']);
-
 suite('SettingsUtils', function() {
   'use strict';
 

@@ -1,34 +1,42 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-suiteGroup('Models.Event', function() {
-  'use strict';
+var Calc = require('calc');
+var Event = require('models/event');
+var Factory = require('test/support/factory');
 
+suite('Models.Event', function() {
   var subject;
   var rawEvent;
   var remote;
 
-  var start = new Date(2012, 0, 1);
-  var end = new Date(2012, 0, 1, 12);
+  var start;
+  var end;
+  var originalDates;
 
-  var originalDates = {
-    start: start,
-    end: end
-  };
+  suiteSetup(function() {
+    start = new Date(2012, 0, 1);
+    end = new Date(2012, 0, 1, 12);
+
+    originalDates = {
+      start: start,
+      end: end
+    };
+  });
 
   setup(function() {
-
     rawEvent = Factory.create('event', {
       remote: {
         syncToken: '7ee',
         startDate: start,
         endDate: end,
-        start: Calendar.Calc.dateToTransport(start),
-        end: Calendar.Calc.dateToTransport(end)
+        start: Calc.dateToTransport(start),
+        end: Calc.dateToTransport(end)
       }
     });
 
     remote = rawEvent.remote;
-    subject = new Calendar.Models.Event(rawEvent);
+    subject = new Event(rawEvent);
   });
 
 
@@ -45,15 +53,12 @@ suiteGroup('Models.Event', function() {
         }
       });
 
-      var subject = new Calendar.Models.Event(
-        data
-      );
-
+      var subject = new Event(data);
       assert.isTrue(subject.isAllDay, 'is all day');
     });
 
     test('from existing model without .startDate/.endDate', function() {
-      var event = new Calendar.Models.Event();
+      var event = new Event();
       var start = new Date(2012, 0, 1);
       var end = new Date(2012, 0, 5);
 
@@ -64,13 +69,13 @@ suiteGroup('Models.Event', function() {
       delete data.remote.startDate;
       delete data.remote.endDate;
 
-      var newEvent = new Calendar.Models.Event(data);
+      var newEvent = new Event(data);
       assert.deepEqual(newEvent.startDate, start);
       assert.deepEqual(newEvent.endDate, end);
     });
 
     test('from new model', function() {
-      subject = new Calendar.Models.Event();
+      subject = new Event();
       assert.ok(subject.data, 'has data');
       assert.ok(subject.data.remote, 'has remote');
 
@@ -112,8 +117,7 @@ suiteGroup('Models.Event', function() {
 
       test('set value', function() {
         var date = new Date(2012, 0, 1, 2);
-        var transport =
-          Calendar.Calc.dateToTransport(date);
+        var transport = Calc.dateToTransport(date);
 
         subject[remoteDateField] = date;
         assert.deepEqual(
@@ -134,7 +138,7 @@ suiteGroup('Models.Event', function() {
 
         var date = new Date(2012, 1, 1, 1, 5);
         var expected = new Date(2012, 1, 1);
-        var transport = Calendar.Calc.dateToTransport(
+        var transport = Calc.dateToTransport(
           expected, null, true
         );
 
@@ -156,7 +160,7 @@ suiteGroup('Models.Event', function() {
       test('clears when is .allDay', function() {
         subject.isAllDay = true;
         assert.isTrue(
-          Calendar.Calc.isOnlyDate(subject[remoteDateField]),
+          Calc.isOnlyDate(subject[remoteDateField]),
           'is only date'
         );
 
@@ -172,12 +176,12 @@ suiteGroup('Models.Event', function() {
     subject.isAllDay = true;
 
     assert.isTrue(
-      Calendar.Calc.isOnlyDate(subject.startDate),
+      Calc.isOnlyDate(subject.startDate),
       'removes time from start'
     );
 
     assert.isTrue(
-      Calendar.Calc.isOnlyDate(subject.endDate),
+      Calc.isOnlyDate(subject.endDate),
       'removes time from end'
     );
 
@@ -212,7 +216,7 @@ suiteGroup('Models.Event', function() {
 
   suite('#validationErrors', function() {
     test('no errors', function() {
-      var event = new Calendar.Models.Event();
+      var event = new Event();
       event.startDate = new Date(2012, 0, 1);
       event.endDate = new Date(2012, 0, 2);
 
@@ -231,15 +235,15 @@ suiteGroup('Models.Event', function() {
     }
 
     test('start date >(=) end date', function() {
-      var event = new Calendar.Models.Event();
+      var event = new Event();
       event.startDate = new Date(2020, 0, 2);
       event.endDate = new Date(2012, 0, 1);
 
       // start date > end date
-      hasError(event, 'start-date-after-end-date');
+      hasError(event, 'start-after-end');
       // start date == end date
       event.startDate = new Date(event.endDate.valueOf());
-      hasError(event, 'start-date-after-end-date');
+      hasError(event, 'start-after-end');
     });
   });
 
@@ -248,17 +252,18 @@ suiteGroup('Models.Event', function() {
     var eventWithErrors;
     var event;
     var model;
+
     setup(function() {
       event = Factory.create('event', {
         remote: {
           syncToken: '7ee',
           startDate: new Date(2019, 1, 2),
           endDate: new Date(2020, 0, 2),
-          start: Calendar.Calc.dateToTransport(start),
-          end: Calendar.Calc.dateToTransport(end)
+          start: Calc.dateToTransport(start),
+          end: Calc.dateToTransport(end)
         }
       });
-      model = new Calendar.Models.Event(event);
+      model = new Event(event);
       eventWithoutErrors = {
         startDate: new Date(2019, 1, 2),
         endDate: new Date(2020, 1, 2)
@@ -272,7 +277,7 @@ suiteGroup('Models.Event', function() {
     test('does not update attributes', function() {
       var errors = model.updateAttributes(eventWithErrors);
       assert.ok(errors);
-      assert.deepEqual(errors[0].name, 'start-date-after-end-date');
+      assert.deepEqual(errors[0].name, 'start-after-end');
     });
 
     test('will update attributes', function() {
@@ -287,4 +292,6 @@ suiteGroup('Models.Event', function() {
   remoteSetter('description');
   remoteSetter('title');
   remoteSetter('alarms');
- });
+});
+
+});

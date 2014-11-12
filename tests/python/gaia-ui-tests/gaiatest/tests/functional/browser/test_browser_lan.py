@@ -15,13 +15,12 @@ class TestBrowserLAN(GaiaTestCase):
         self.connect_to_local_area_network()
         self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
-        if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
-            self.test_url = self.marionette.absolute_url('mozilla.html')
-        else:
-            self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
+        self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
 
     def test_browser_lan(self):
-        """https://moztrap.mozilla.org/manage/case/1327/"""
+        """
+        https://moztrap.mozilla.org/manage/case/1327/
+        """
         search = Search(self.marionette)
         search.launch()
         browser = search.go_to_url(self.test_url)

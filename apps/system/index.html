@@ -4,12 +4,13 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <!-- Icons -->
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
 
     <!-- Init Logo -->
     <link rel="stylesheet" type="text/css" href="style/system/initlogo.css">
 
     <!-- Shared code -->
+    <script src="shared/js/performance_testing_helper.js"></script>
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
     <script src="shared/js/idletimer.js"></script>
@@ -46,15 +47,19 @@
 
     <script defer src="js/orientation_manager.js"></script>
     <!--
+    <script defer src="shared/js/input_mgmt/input_app_list.js"></script>
     <script defer src="shared/js/keyboard_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
     -->
 
+    <!-- Battery Overlay -->
+    <link rel="stylesheet" type="text/css" href="style/battery_overlay/battery_overlay.css">
+    <script defer src="js/power_save.js"></script>
+    <script defer src="js/battery_overlay.js"></script>
+
     <!-- SIMSlot -->
     <script type="text/javascript" defer src="shared/js/simslot.js"></script>
     <script type="text/javascript" defer src="shared/js/simslot_manager.js"></script>
-    <script type="text/javascript" defer src="js/sim_settings_helper.js"></script>
-
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -71,7 +76,6 @@
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
-    <link rel="stylesheet" type="text/css" href="style/sound_manager/sound_manager.css">
     <link rel="stylesheet" type="text/css" href="style/ime_menu.css">
 
     <!-- Include shared building blocks -->
@@ -85,8 +89,8 @@
 
     <!-- Include shared web components -->
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia_progress/style/external.css">
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css">
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css">
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
 
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
 
@@ -98,7 +102,7 @@
     <script defer src="shared/elements/gaia_buttons/script.js"></script>
     <script defer src="shared/elements/gaia_progress/script.js"></script>
     <script defer src="shared/elements/gaia_subheader/script.js"></script>
-    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -117,6 +121,14 @@
     <script src="js/logo_loader.js"></script>
     <script src="js/init_logo_handler.js"></script>
 
+    <script defer src="js/base_module.js"></script>
+    <script defer src="js/core.js"></script>
+
+    <!-- wake lock managers, used by ScreenManager/Wifi/CpuManager -->
+    <script defer src="js/wake_lock_manager.js"></script>
+
+    <script defer src="js/cpu_manager.js"></script>
+    <script defer src="js/screen_brightness_transition.js"></script>
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/activities.js"></script>
     <script defer src="js/usb_storage.js"></script>
@@ -127,6 +139,7 @@
     <script defer src="js/async_semaphore.js"></script>
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
+    <script defer src="js/browser_key_event_manager.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/home_gesture.js"></script>
@@ -143,19 +156,15 @@
     <!-- Accessibility -->
     <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
     <script defer src="js/accessibility.js"></script>
+    <script defer src="js/accessibility_quicknav_menu.js"></script>
 
     <!-- Sleep Menu -->
     <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
     <script defer src="js/sleep_menu.js"></script>
 
-    <!-- Battery Manager -->
-    <link rel="stylesheet" type="text/css" href="style/battery_manager/battery_manager.css">
-    <script defer src="js/battery_manager.js"></script>
-
     <!-- Keyboard -->
-    <script defer src="js/input_transition.js"></script>
     <script defer src="js/ime_switcher.js"></script>
-    <script defer src="js/input_frame_manager.js"></script>
+    <script defer src="js/input_window_manager.js"></script>
     <script defer src="js/input_layouts.js"></script>
     <script defer src="js/keyboard_manager.js"></script>
 
@@ -214,7 +223,6 @@
     <script defer src="js/lockscreen_notification_builder.js"></script>
 
     <!-- Airplane Mode -->
-    <script defer src="js/airplane_mode.js"></script>
     <link rel="stylesheet" type="text/css" href="style/textselection_dialog/textselection_dialog.css">
 
     <!-- Modal Dialog -->
@@ -295,9 +303,6 @@
     <!-- Wifi -->
     <script defer src="js/wifi.js"></script>
 
-    <!-- Radio  -->
-    <script defer src="js/radio.js"></script>
-
     <!-- Update Manager -->
     <script defer src="js/updatable.js"></script>
     <script defer src="js/update_manager.js"></script>
@@ -332,8 +337,6 @@
 
     <!-- Operator Variant Mechanism -->
     <script defer src="shared/js/operator_variant_helper.js"></script>
-    <script defer src="js/operator_variant/operator_variant.js"></script>
-    <script defer src="js/operator_variant/operator_variant_iccs.js"></script>
 
     <!-- Voicemail -->
     <script defer src="js/voicemail.js"></script>
@@ -351,8 +354,11 @@
     <script defer src="js/captive_portal.js"></script>
 
     <!-- CDMA Emergency Callback Mode Manager-->
-    <script defer src="js/emergency_callback_manager.js"></script>
     <link rel="stylesheet" type="text/css" href="style/emergency_callback_manager/emergency_callback_manager.css">
+
+    <!-- Shrinking UI -->
+    <link rel="stylesheet" type="text/css" href="shared/style/shrinking_ui.css">
+    <script defer src="shared/js/shrinking_ui.js"></script>
 
     <!-- Windows -->
     <!-- Any module that wants to intercept the Home button and prevent the -->
@@ -371,8 +377,6 @@
     <script defer src="js/text_selection_dialog.js"></script>
     <script defer src="js/app_window.js"></script>
     <script defer src="js/popup_window.js"></script>
-    <script defer src="js/shrinking_ui.js"></script>
-    <link rel="stylesheet" type="text/css" href="style/shrinking_ui/shrinking_ui.css">
     <script defer src="js/browser_mixin.js"></script>
     <script defer src="js/wrapper_factory.js"></script>
     <script defer src="js/homescreen_window.js"></script>
@@ -392,14 +396,15 @@
     <script defer src="js/secure_window_manager.js"></script>
     <script defer src="js/system_dialog.js"></script>
     <script defer src="js/system_dialog_manager.js"></script>
-    <script defer src="js/system_simcard_dialog.js"></script>
     <script defer src="js/system_nfc_connect_dialog.js"></script>
     <script defer src="js/fxa_dialog.js"></script>
     <script defer src="js/lockscreen_window.js"></script>
+    <script defer src="js/lockscreen_input_window.js"></script>
     <script defer src="js/lockscreen_window_manager.js"></script>
     <script defer src="js/visibility_manager.js"></script>
     <script defer src="js/layout_manager.js"></script>
     <script defer src="js/suspending_app_priority_manager.js"></script>
+    <script defer src="js/input_window.js"></script>
 
     <!-- Edge Gestures -->
     <script defer src="js/stack_manager.js"></script>
@@ -417,18 +422,6 @@
     <script defer src="js/devtools/developer_hud.js"></script>
     <link rel="stylesheet" type="text/css" href="style/devtools/developer_hud.css">
 
-    <!-- Call Forwarding  -->
-    <script defer src="js/call_forwarding.js"></script>
-
-    <!-- Telephony Settings  -->
-    <script defer src="js/telephony_settings.js"></script>
-
-    <!-- EU Roaming -->
-    <script defer src="js/eu_roaming_manager.js"></script>
-
-    <!-- Internet Sharing  -->
-    <script defer src="js/internet_sharing.js"></script>
-
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
@@ -445,9 +438,7 @@
     <!-- <script defer src="shared/js/icons_helper.js"></script> -->
 
     <!-- PIN Unlocking -->
-    <script defer src="js/sim_lock.js"></script>
     <link rel="stylesheet" type="text/css" href="style/simcard.css">
-    <script defer src="js/simcard_dialog.js"></script>
 
     <!-- Bluetooth Connect via NFC -->
     <link rel="stylesheet" type="text/css" href="style/nfcconnect.css">
@@ -508,6 +499,7 @@
               <!-- See note on <img> above. -->
               <img id="statusbar-system-downloads" src="style/statusbar/images/system-downloads.png" class="sb-icon-system-downloads" hidden role="listitem" data-l10n-id="statusbarDownloads">
               <div id="statusbar-emergency-cb-notification" class="sb-icon sb-icon-emergency-cb-notification" hidden role="listitem" data-l10n-id="statusbarEmergencyCBNotification"></div>
+              <div id="statusbar-debugging" data-icon="bug" class="sb-icon sb-icon-debugging" hidden role="listitem"></div>
 
               <!-- Connectivity -->
               <div id="statusbar-nfc" class="sb-icon sb-icon-nfc" hidden role="listitem" data-l10n-id="statusbarNfc"></div>
@@ -536,95 +528,99 @@
       </div>
       <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
 
-      <!-- Utility Tray -->
       <div id="utility-tray" data-z-index-level="utility-tray">
-        <!-- Placeholder for notifications -->
-        <div id="notifications-placeholder"></div>
-        <div id="utility-tray-grippy">
-        </div>
-      </div>
+        <div id="notifications">
+          <!-- Notifications -->
+          <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
+            <div id="statusbar-tray"></div>
+            <div id="notification-bar" class="fake-notification">
+              <div data-icon="notifications"></div>
+              <div class="title-container">
+                <div id="notification-some" class="title" data-l10n-id="statusbarNotifications" data-l10n-args='{"n": "0"}'></div>
+                <button id="notification-clear" data-l10n-id="clear-all" disabled>Clear all</button>
+              </div>
+            </div>
 
-      <!-- Notifications -->
-      <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
-        <div id="notification-bar" class="fake-notification">
-          <div data-icon="notifications"></div>
-          <div class="title-container">
-            <div id="notification-some" class="title" data-l10n-id="statusbarNotifications" data-l10n-args='{"n": "0"}'></div>
-            <button id="notification-clear" data-l10n-id="clear-all" disabled>Clear all</button>
-          </div>
-        </div>
+            <div id="notifications-container">
+              <!-- Attention Windows -->
+              <div id="attention-window-notifications-container"></div>
+              <!-- Update Manager -->
+              <div id="update-manager-container" class="fake-notification" role="link">
+                <div data-icon="download-circle"></div>
+                <div class="title-container"></div>
+                <progress></progress>
+              </div>
+              <!-- Emergency callback manager -->
+              <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
+                <div data-icon="call-emergency" class="alert"></div>
+                <div class="title-container" data-l10n-id="emergency-callback-mode"></div>
+                <div class="timer detail"></div>
+              </div>
+              <!-- Storage watcher notification -->
+              <div id="storage-watcher-container" class="fake-notification" role="link">
+                <div data-icon="storage-circle"></div>
+                <div class="title-container"></div>
+                <div class="detail"></div>
+              </div>
+              <!-- App install manager notification -->
+              <div id="install-manager-notification-container">
+              </div>
+              <!-- Bluetooth transfer -->
+              <div id="bluetooth-transfer-status-list">
+              </div>
+              <!-- IME list -->
+              <div id="keyboard-show-ime-list">
+                <div class="fake-notification" role="link">
+                  <div data-icon="keyboard-circle"></div>
+                  <div class="title-container"></div>
+                  <div class="detail"></div>
+                </div>
+              </div>
+              <!-- Media recording status -->
+              <div id="media-recording-status-list" role="list">
+              </div>
+              <!-- Notifications container -->
+              <div id="desktop-notifications-container">
+                <div class="priority-notifications"></div>
+                <div class="other-notifications"></div>
+              </div>
+            </div>
 
-        <div id="notifications-container">
-          <!-- Attention Windows -->
-          <div id="attention-window-notifications-container"></div>
-          <!-- Update Manager -->
-          <div id="update-manager-container" class="fake-notification" role="link">
-            <div data-icon="download-circle"></div>
-            <div class="title-container"></div>
-            <progress></progress>
-          </div>
-          <!-- Emergency callback manager -->
-          <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
-            <div data-icon="call-emergency" class="alert"></div>
-            <div class="title-container" data-l10n-id="emergency-callback-mode"></div>
-            <div class="timer detail"></div>
-          </div>
-          <!-- Storage watcher notification -->
-          <div id="storage-watcher-container" class="fake-notification" role="link">
-            <div data-icon="storage-circle"></div>
-            <div class="title-container"></div>
-            <div class="detail"></div>
-          </div>
-          <!-- App install manager notification -->
-          <div id="install-manager-notification-container">
-          </div>
-          <!-- Bluetooth transfer -->
-          <div id="bluetooth-transfer-status-list">
-          </div>
-          <!-- IME list -->
-          <div id="keyboard-show-ime-list">
-            <div class="fake-notification" role="link">
-              <div data-icon="keyboard-circle"></div>
-              <div class="title-container"></div>
-              <div class="detail"></div>
+            <div id="utility-tray-footer">
+              <!-- Media playback notification -->
+              <div id="media-playback-container" class="media-playback-container fake-notification" hidden>
+                <div class="media-playback-nowplaying">
+                  <div class="track" data-l10n-id="mediaPlaybackTrack"></div>
+                </div>
+                <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
+                  <!-- XXX: These used to be button elements for prev/pause/next buttons but we are not able to receive contextmenu event from them. Change to div elements to make it work and able to fast seek from it (Bug 1017294) -->
+                  <div data-icon="skip-back" class="previous" data-l10n-id="mediaPlaybackPrevious"></div>
+                  <div data-icon="play" class="play-pause"></div>
+                  <div data-icon="skip-forward" class="next" data-l10n-id="mediaPlaybackNext"></div>
+                </div>
+              </div>
+
+              <!-- Credit module -->
+              <div id="cost-control-widget"></div>
+
+              <!-- Quick settings -->
+              <div id="quick-settings" role="toolbar">
+                <li>
+                  <ul><a href="#" id="quick-settings-wifi" class="icon bb-button" data-icon="wifi-4" data-enabled="false" role="button"></a></ul>
+                  <ul><a href="#" id="quick-settings-airplane-mode" class="icon bb-button" data-icon="airplane" data-enabled="false" role="button"></a></ul>
+                  <ul><a href="#" id="quick-settings-bluetooth" class="icon bb-button" data-icon="bluetooth" data-enabled="false" role="button"></a></ul>
+                  <ul><a href="#" id="quick-settings-data" class="icon bb-button" data-icon="data" data-enabled="false" role="button"></a></ul>
+                  <ul><a href="#" id="quick-settings-full-app" class="icon bb-button" data-icon="settings" data-enabled="false" role="button" data-l10n-id="settingsButton"></a></ul>
+                </li>
+              </div>
             </div>
           </div>
-          <!-- Media recording status -->
-          <div id="media-recording-status-list" role="list">
-          </div>
-          <!-- Notifications container -->
-          <div id="desktop-notifications-container">
-            <div class="priority-notifications"></div>
-            <div class="other-notifications"></div>
-          </div>
         </div>
 
-        <div id="utility-tray-footer">
-          <!-- Media playback notification -->
-          <div id="media-playback-container" class="media-playback-container fake-notification" hidden>
-            <div class="media-playback-nowplaying">
-              <div class="track" data-l10n-id="mediaPlaybackTrack"></div>
-            </div>
-            <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
-              <button data-icon="skip-back" class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
-              <button data-icon="play" class="play-pause"></button>
-              <button data-icon="skip-forward" class="next" data-l10n-id="mediaPlaybackNext"></button>
-            </div>
-          </div>
-
-          <!-- Credit module -->
-          <div id="cost-control-widget"></div>
-
-          <!-- Quick settings -->
-          <div id="quick-settings" role="toolbar">
-            <li>
-              <ul><a href="#" id="quick-settings-wifi" class="icon" data-icon="wifi-4" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-airplane-mode" class="icon" data-icon="airplane" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-bluetooth" class="icon" data-icon="bluetooth" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-data" class="icon" data-icon="data" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-full-app" class="icon" data-icon="settings" data-enabled="false" role="button" data-l10n-id="settingsButton"></a></ul>
-            </li>
-          </div>
+        <div id="utility-tray-grippy"></div>
+        <div class="ambient-indicator" id="ambient-indicator" data-z-index-level="notification-toaster">
+            <div class="handle handle1"></div>
+            <div class="handle handle2"></div>
         </div>
       </div>
 
@@ -638,7 +634,6 @@
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <!-- Unlock SIM Pin dialog -->
         <!-- Add the dialog via SystemDialog dynamically. -->
-        <!-- <div id="system-dialog" role="dialog" class="generic-dialog" data-z-index-level="simpin-dialog" hidden></div> -->
 
         <!-- Crash reporter -->
         <div id="crash-dialog">
@@ -880,6 +875,9 @@
       -->
       </div>
 
+      <div id="app-uninstall-dialog" data-z-index-level="app-uninstall-dialog">
+      </div>
+
       <form id="app-install-dialog" class='app-install-dialog generic-dialog'
             data-type="confirm" role="dialog"
             data-z-index-level="app-install-dialog">
@@ -944,12 +942,6 @@
           <ul>
           </ul>
         </section>
-        <p id="updates-data-connection-warning" data-l10n-id="downloadDataConnectionWarning">
-          Updates are downloaded via data connection when Wi-Fi is not available. Additional data charges may apply.
-        </p>
-        <p id="updates-offline-warning" data-l10n-id="downloadOfflineWarning">
-          Connection unavailable. Connect to a network to download updates.
-        </p>
         <menu data-items="2">
           <button id="updates-later-button" type="reset"
                   data-l10n-id="later">Later</button>
@@ -1032,7 +1024,7 @@
       <form data-type="confirm" role="dialog" id="quick-setting-data-enabled-dialog" class="generic-dialog" data-z-index-level="quick-setting-data-enabled-dialog">
         <section>
           <h1 data-l10n-id="data-roaming-enabled-title"></h1>
-          <p data-l10n-id="data-roaming-enabled-warning"></p>
+          <p data-l10n-id="data-roaming-enabled-warning2"></p>
         </section>
         <menu>
           <button type="button" class="quick-setting-data-cancel-btn recommend" data-l10n-id="notNow">Not now</button>
@@ -1065,10 +1057,8 @@
         </div>
       </div>
 
-      <div id="ambient-indicator" data-z-index-level="notification-toaster"></div>
-
       <!-- keyboard -->
-      <div id="keyboards" class="hide" data-z-index-level="keyboards"></div>
+      <div id="keyboards" data-z-index-level="keyboards"></div>
 
       <!-- template for IME Menu. -->
       <div id="ime-menu-template" hidden>
@@ -1189,6 +1179,9 @@
         </div>
 
         <div id="volume" class="vibration">
+          <style scoped>
+            @import url("style/sound_manager/sound_manager.css");
+          </style>
           <span class="channel-type"></span>
           <section>
             <div class="active"></div>
@@ -1211,7 +1204,7 @@
         </div>
       </div>
 
-      <div id="TextSelectionDialogRoot" data-z-index-level="text-selection-dialog"></div>
+      <div id="text-selection-dialog-root" data-z-index-level="text-selection-dialog"></div>
 
       <div id="software-buttons" data-z-index-level="software-buttons">
         <button id="software-home-button" data-l10n-id="softwareHomeButton"></button>

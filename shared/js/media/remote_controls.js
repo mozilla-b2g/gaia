@@ -124,7 +124,6 @@ MediaRemoteControls.prototype.removeCommandListener = function(name, listener) {
 MediaRemoteControls.prototype.start = function(callback) {
   this._setupBluetooth(callback);
   this._setupIAC();
-  this._setupWired();
 };
 
 /*
@@ -176,8 +175,6 @@ MediaRemoteControls.prototype._setupBluetooth = function(callback) {
     var isConnected = event.status;
     if (isConnected && self._commandListeners['updatemetadata'].length > 0)
       self._commandHandler(REMOTE_CONTROLS.UPDATE_METADATA);
-    else
-      self._commandHandler(AVRCP.PAUSE_PRESS);
   }
 
   // Also expose the SCO status with the custom event because the SCO connection
@@ -228,43 +225,6 @@ MediaRemoteControls.prototype._setupIAC = function() {
       self._queuedMessages = null;
     });
   };
-};
-
-/*
- * Setup and configure the wired controls.
- */
-MediaRemoteControls.prototype._setupWired = function() {
-  var self = this;
-  var acm = navigator.mozAudioChannelManager;
-
-  if (acm) {
-    acm.addEventListener('headphoneschange', onheadphoneschange);
-  }
-
-  function onheadphoneschange() {
-    if (!acm.headphones) {
-      if (self.defaultAdapter) {
-        var Profiles = {
-          'A2DP': 0x110D
-        };
-
-        var request = self.defaultAdapter.isConnected(Profiles.A2DP);
-        request.onsuccess = function(event) {
-          var isA2DPConnected = event.target.result;
-          if (!isA2DPConnected) {
-            // Send pause command if no a2dp connection is connected.
-            self._commandHandler(AVRCP.PAUSE_PRESS);
-          }
-        };
-        request.onerror = function(event) {
-          // Assuming a2dp connection has problem so also send pause command.
-          self._commandHandler(AVRCP.PAUSE_PRESS);
-        };
-      } else {
-        self._commandHandler(AVRCP.PAUSE_PRESS);
-      }
-    }
-  }
 };
 
 // Synchronous connection-oriented(SCO) link is the type of radio link used

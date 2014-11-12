@@ -1,9 +1,8 @@
 // these methods are all borrowed from MOUT.js (released under MIT license)
-(function(exports) {
+define(function(require, exports) {
 'use strict';
 
-// TODO: add MOUT.js as a dependency after AMD module conversion!!!! this is
-// just a temporary solution
+// TODO: add MOUT.js as a dependency!!!! this is just a temporary solution
 
 exports.norm = function norm(val, min, max){
   // 0 / 0 === NaN
@@ -91,4 +90,4 @@ exports.throttle = function throttle(fn, delay) {
   return throttled;
 };
 
-}(Calendar.ns('Utils').mout = {}));
+});

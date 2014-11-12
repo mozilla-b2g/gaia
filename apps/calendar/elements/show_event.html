@@ -1,7 +1,7 @@
 <element name="show-event" extends="section">
   <template>
     <gaia-header id="show-event-header" action="back">
-      <h1 data-l10n-id="view-event-header">
+      <h1 id="view-event-header" data-l10n-id="view-event-header">
         Event
       </h1>
       <button class="edit">
@@ -10,31 +10,31 @@
     </gaia-header>
 
     <section data-type="list">
-      <ul>
+      <ul aria-labelledby="view-event-header">
         <li class="title">
-          <h1><span class="content"></span></h1>
+          <h1 role="presentation"><span data-l10n-id="title" class="content"></span></h1>
         </li>
 
         <li class="location">
-          <span class="content"></span>
+          <span class="content" data-l10n-id="location"></span>
         </li>
 
         <li class="duration-time">
-          <span class="content"></span>
+          <span class="content" data-l10n-id="duration"></span>
         </li>
 
         <li class="current-calendar">
-          <div class="gaia-icon icon-calendar-dot calendar-text-color"></div>
-          <span class="content"></span>
+          <div class="gaia-icon icon-calendar-dot calendar-text-color" aria-hidden="true"></div>
+          <span class="content" data-l10n-id="calendar"></span>
         </li>
 
         <li class="alarms">
           <span data-l10n-id="reminder">Reminder:</span>
-          <span class="content"></span>
+          <span class="content" role="list" data-l10n-id="alarms"></span>
         </li>
 
         <li class="description">
-          <span class="content"></span>
+          <span class="content" data-l10n-id="description"></span>
         </li>
       </ul>
     </section>

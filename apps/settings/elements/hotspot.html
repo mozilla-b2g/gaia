@@ -24,7 +24,7 @@
         <li>
           <a>
             <span data-l10n-id="wifi-name">Name</span>
-            <span data-name="tethering.wifi.ssid"></span>
+            <span class="hotspotSSID"></span>
           </a>
         </li>
         <li>
@@ -34,8 +34,9 @@
           </a>
         </li>
         <li id="hotspot-settings-section">
-          <button class="icon icon-view"
-            data-l10n-id="hotspotSettings">Hotspot Settings</button>
+          <a class="menu-item" href="#">
+            <span data-l10n-id="hotspotSettings">Hotspot Settings</span>
+          </a>
         </li>
       </ul>
 
@@ -57,7 +58,7 @@
       </ul>
     </div>
 
-    <script src="js/hotspot.js"></script>
+    <panel data-path="panels/hotspot/panel"></panel>
 
   </template>
 </element>

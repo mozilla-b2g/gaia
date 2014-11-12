@@ -679,7 +679,7 @@
       },
       {
         id: 5,
-        participants: ['14886783487'],
+        participants: ['+14886783487'],
         lastMessageType: 'sms',
         body: 'Hello world!',
         timestamp: now - 600000000,
@@ -736,6 +736,22 @@
         timestamp: now - (60000000 * 10),
         unreadCount: 0
       },
+      {
+        id: 13,
+        participants: ['+97121111111'],
+        body: 'مرحبا!',
+        lastMessageType: 'sms',
+        timestamp: now - (60000000 * 20),
+        unreadCount: 0
+      },
+      {
+        id: 14,
+        participants: ['+97121111111', '+15551237890'],
+        body: 'مرحبا! and Hello!',
+        lastMessageType: 'mms',
+        timestamp: now - (60000000 * 20),
+        unreadCount: 0
+      }
     ]
   };
 
@@ -750,7 +766,7 @@
   for (i = 0; i < 150; i++) {
     messagesDb.messages.push({
       threadId: 5,
-      sender: '14886783487',
+      sender: '+14886783487',
       read: i < 147 ? true : false,
       body: 'Hello world!',
       delivery: 'received',
@@ -843,6 +859,38 @@
     }],
     timestamp: now,
     sentTimestamp: now - 100000
+  });
+
+  messagesDb.messages.push({
+    threadId: 13,
+    sender: null,
+    receiver: '+197121111111',
+    read: true,
+    body: 'مرحبا!',
+    delivery: 'sent',
+    deliveryStatus: 'success',
+    deliveryTimestamp: now - (60000000 * 20),
+    type: 'sms',
+    timestamp: now - (60000000 * 20)
+  });
+
+  messagesDb.messages.push({
+    threadId: 14,
+    sender: null,
+    receivers: ['+97121111111', '+15551237890'],
+    read: true,
+    smil: '<smil><body><par><text src="text1"/></par></body></smil>',
+    attachments: [{
+      location: 'text1',
+      content: new Blob(
+        ['مرحبا! and Hello!'],
+        { type: 'text/plain' }
+      )
+    }],
+    delivery: 'sent',
+    deliveryInfo: [{deliveryStatus: 'success'}],
+    type: 'mms',
+    timestamp: now - (60000000 * 20)
   });
 
 

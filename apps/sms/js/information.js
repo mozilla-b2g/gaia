@@ -1,5 +1,7 @@
 /*global Utils, Template, Threads, ThreadUI, MessageManager, ContactRenderer,
-         Contacts, Settings, Navigation */
+         Contacts, Settings, Navigation
+ */
+
 /*exported Information */
 
 (function(exports) {
@@ -30,6 +32,47 @@ var TMPL = function createTemplate(tmpls) {
   report: 'information-report-tmpl'
 });
 
+/*
+ Summarized single status based on delivery and read status for mms.
+ The 1st level properties represents delivery status and 2nd level properties
+ represents read status.
+ */
+const REPORT_MAP = {
+  'not-applicable': {
+    'not-applicable': 'not-applicable',
+    'pending' : 'pending',
+    'success' : 'read',
+    'error' : 'error'
+  },
+  'pending' : {
+    'not-applicable': 'pending',
+    'pending': 'pending',
+    'success' : 'read',   // should not possible
+    'error' : 'error'
+  },
+  'success' : {
+    'not-applicable': 'delivered',
+    'pending': 'delivered',
+    'success' : 'read',
+    'error' : 'error'
+  },
+  'error' : {
+    'not-applicable': 'error',
+    'pending': 'error',
+    'success' : 'error', // should not possible
+    'error' : 'error'    // should not possible
+  }
+};
+
+// Register the message events we wanted for report view refresh
+const MESSAGE_EVENTS = [
+  'message-failed-to-send',
+  'message-delivered',
+  'message-read',
+  'message-sent',
+  'message-sending'
+];
+
 function completeLocaleFormat(timestamp) {
   return Utils.date.format.localeFormat(
     new Date(+timestamp),
@@ -52,50 +95,46 @@ function l10nContainsDateSetup(element, timestamp) {
 function createReportDiv(reports) {
   var reportDiv = document.createElement('div');
   var data = {
-    deliveryClass: '',
-    deliveryL10n: '',
-    deliveryDateL10n: '',
-    deliveryTimestamp: '',
-    readClass: '',
-    readL10n: '',
-    readDateL10n: '',
-    readTimestamp: '',
+    titleL10n: '',
+    reportDateL10n: '',
+    timestamp: '',
     messageL10nDateFormat12: 'report-dateTimeFormat12',
     messageL10nDateFormat24: 'report-dateTimeFormat24'
   };
+  var status;
+  var deliveryStatus = reports.deliveryStatus;
+  var readStatus = reports.readStatus;
 
-  switch (reports.deliveryStatus) {
-    case 'pending':
-      data.deliveryL10n = 'message-requested';
-      break;
-    case 'success':
-      data.deliveryTimestamp = '' + reports.deliveryTimestamp;
-      data.deliveryDateL10n = completeLocaleFormat(reports.deliveryTimestamp);
-      break;
-    case 'error':
-      data.deliveryL10n = 'message-status-error';
-      break;
-    //'not-applicable' and other unknown status should hide the field
-    default:
-      data.deliveryClass = 'hide';
+  if (!readStatus) {  // sms
+    status = deliveryStatus === 'success' ?
+      'delivered' :
+      deliveryStatus;
+  } else if (deliveryStatus === 'rejected') {
+    // Status = 'rejected' when receiver is not allowed to download any mms
+    status = 'rejected';
+  } else if (deliveryStatus in REPORT_MAP) {
+    status = REPORT_MAP[deliveryStatus][readStatus];
+  } else {
+    console.error('Invalid message report status: ' + deliveryStatus);
+    return reportDiv;    
   }
+  reportDiv.dataset.deliveryStatus = status;
 
-  switch (reports.readStatus) {
-    case 'pending':
-      data.readL10n = 'message-requested';
+  switch (status) {
+    case 'not-applicable':
+      return reportDiv;
+    case 'delivered':
+      data.timestamp = '' + reports.deliveryTimestamp;
+      data.reportDateL10n = completeLocaleFormat(reports.deliveryTimestamp);
       break;
-    case 'success':
-      data.readTimestamp = '' + reports.readTimestamp;
-      data.readDateL10n = completeLocaleFormat(reports.readTimestamp);
+    case 'read':
+      data.timestamp = '' + reports.readTimestamp;
+      data.reportDateL10n = completeLocaleFormat(reports.readTimestamp);
       break;
-    case 'error':
-      data.readL10n = 'message-status-error';
-      break;
-    //'not-applicable' and other unknown status should hide the field
-    default:
-      data.readClass = 'hide';
   }
+  data.titleL10n = 'report-status-' + status;
   reportDiv.innerHTML = TMPL.report.interpolate(data);
+
   return reportDiv;
 }
 
@@ -209,43 +248,48 @@ var VIEWS = {
     name: 'report',
 
     init: function() {
-      this.onDeliverySuccess = this.onDeliverySuccess.bind(this);
-      this.onReadSuccess = this.onReadSuccess.bind(this);
+      this.onStatusChanged = this.onStatusChanged.bind(this);
     },
 
     beforeEnter: function() {
-      MessageManager.on('message-delivered', this.onDeliverySuccess);
-      MessageManager.on('message-read', this.onReadSuccess);
+      MESSAGE_EVENTS.forEach((event) => {
+        MessageManager.on(event, this.onStatusChanged);
+      });
     },
 
     afterLeave: function() {
-      MessageManager.off('message-delivered', this.onDeliverySuccess);
-      MessageManager.off('message-read', this.onReadSuccess);
+      MESSAGE_EVENTS.forEach((event) => {
+        MessageManager.off(event, this.onStatusChanged);
+      });
     },
 
     render: function renderReport() {
       var setL10nAttributes = navigator.mozL10n.setAttributes;
       var request = MessageManager.getMessage(this.id);
 
+      // Hide these dynamic fields to avoid incorrect info displayed at first
+      this.subject.classList.add('hide');
+      this.sizeBlock.classList.add('hide');
+
       request.onsuccess = (function() {
         var message = request.result;
         var type = message.type;
+        var delivery = message.delivery;
 
-        var isIncoming = message.delivery === 'received' ||
-            message.delivery === 'not-downloaded';
-
-        this.subject.textContent = '';
+        var isIncoming = delivery === 'received' ||
+            delivery === 'not-downloaded';
 
         // Fill in the description/status/size
         if (type === 'sms') {
           setL10nAttributes(this.type, 'message-type-sms');
-          this.sizeBlock.classList.add('hide');
         } else { //mms
           setL10nAttributes(this.type, 'message-type-mms');
           // subject text content
           var subject = message.subject;
+
+          this.subject.classList.toggle('hide', !subject);
           if (subject) {
-            this.subject.textContent = subject;
+            this.subject.querySelector('.detail').textContent = subject;
           }
 
           // Message total size show/hide
@@ -253,15 +297,9 @@ var VIEWS = {
             var params = sizeL10nParam(message.attachments);
             setL10nAttributes(this.size, params.l10nId, params.l10nArgs);
             this.sizeBlock.classList.remove('hide');
-          } else {
-            this.sizeBlock.classList.add('hide');
           }
         }
-        this.status.dataset.type = message.delivery;
-        setL10nAttributes(this.status, 'message-status-' + message.delivery);
-
-        // Set different layout/value for received and sent message
-        this.container.classList.toggle('received', isIncoming);
+        this.container.dataset.delivery = delivery;
 
         // If incoming message is migrated from the database where sentTimestamp
         // hadn't been supported yet then we won't have valid value for it.
@@ -272,14 +310,20 @@ var VIEWS = {
 
         setL10nAttributes(
           this.contactTitle,
-          isIncoming ? 'report-from' : 'report-recipients'
+          isIncoming ? 'report-from-title' : 'report-to-title'
         );
 
         if (isIncoming) {
-          l10nContainsDateSetup(this.receivedTimeStamp, message.timestamp);
-          l10nContainsDateSetup(this.sentTimeStamp, message.sentTimestamp);
+          l10nContainsDateSetup(this.receivedTimestamp, message.timestamp);
+          l10nContainsDateSetup(this.sentTimestamp, message.sentTimestamp);
+          setL10nAttributes(this.sentTitle, 'message-sent');
         } else {
-          l10nContainsDateSetup(this.datetime, message.timestamp);
+          if (delivery === 'sending' || delivery === 'sent') {
+            setL10nAttributes(this.sentTitle, 'message-' + delivery);
+          }
+          if (delivery === 'error' || delivery === 'sent') {
+            l10nContainsDateSetup(this.sentTimestamp, message.timestamp);
+          }
         }
 
         //show sim information for dual sim device
@@ -294,21 +338,38 @@ var VIEWS = {
       ThreadUI.setHeaderAction('close');
     },
 
-    onDeliverySuccess: function report_onDeliverySuccess(e) {
-      if (Navigation.isCurrentPanel('report-view', { id: e.message.id })) {
-        this.refresh();
-      }
+    // Set this flag to true only when resend is triggered.
+    messageResending: false,
+
+    setEventListener: function report_setEventListener() {
+      this.resendBtn.addEventListener('click', () => {
+        this.messageResending = true;
+        ThreadUI.resendMessage(this.id);
+      });
     },
 
-    onReadSuccess: function report_onReadSuccess(e) {
-      if (Navigation.isCurrentPanel('report-view', { id: e.message.id })) {
-        this.refresh();
-      }
+    isReportForMessage: function report_isReportForMessage(id) {
+      return Navigation.isCurrentPanel('report-view', { id: id }) ||
+        (Navigation.isCurrentPanel('report-view') &&
+         this.id === id);
     },
 
-    elements: ['contact-list', 'status', 'size', 'size-block', 'sent-detail',
-      'type', 'subject', 'datetime', 'contact-title', 'received-detail',
-      'sent-timeStamp', 'received-timeStamp', 'sim-info']
+    onStatusChanged: function report_onStatusChanged(e) {
+      // If we got sending status change in report view after resend clicked
+      // (messageResending is true), we should change report panel id, reset
+      // messageResending flag and refresh for new message report.
+      if (e.message.delivery === 'sending' && this.messageResending) {
+        this.id = e.message.id;
+        this.messageResending = false;
+      }
+
+      this.isReportForMessage(e.message.id) && this.refresh();
+    },
+
+    elements: ['contact-list', 'size', 'size-block', 'type', 'sent-title',
+      'sent-timestamp', 'received-timestamp', 'subject', 'sim-info',
+      'contact-title', 'resend-btn'
+    ]
   }
 };
 
@@ -367,7 +428,18 @@ Information.prototype = {
     }
     // Restore message list view UI elements
     this.parent.classList.remove(this.name + '-information');
+
+    // Header is shared with Thread and Composer panels, so let's cleanup,
+    // it should be removed once bug 961572 is landed.
+    ThreadUI.headerText.removeAttribute('data-l10n-id');
+    ThreadUI.headerText.removeAttribute('data-l10n-args');
   },
+
+  // Incrementing ID for each rendering request to avoid possible race when next
+  // renderContactList request earlier than list item appended to contact list
+  // ul. Ignoring the rendering/appending request if the rendering ID doesn't
+  // match the latest rendering ID.
+  renderingId: 0,
 
   // Param participants could be:
   //   - Array of contact number string or
@@ -376,9 +448,10 @@ Information.prototype = {
   renderContactList: function(participants) {
     var ul = this.contactList;
     var renderer = ContactRenderer.flavor('group-view');
+    var currentRenderingId = ++this.renderingId;
 
     ul.textContent = '';
-    participants.forEach(function(participant) {
+    participants.forEach((participant) => {
       var number, infoBlock, selector;
 
       if (typeof participant === 'object') {
@@ -388,7 +461,13 @@ Information.prototype = {
       } else {
         number = participant;
       }
-      Contacts.findByAddress(number, function(results) {
+      Contacts.findByAddress(number, (results) => {
+        // If the current rendering ID doesn't match the latest ID, skip current
+        // one and only render for ID which matches latest request ID.
+        if (currentRenderingId !== this.renderingId) {
+          return;
+        }
+
         var isContact = results !== null && !!results.length;
 
         if (isContact) {
@@ -401,6 +480,7 @@ Information.prototype = {
           });
         } else {
           var li = document.createElement('li');
+          li.role = 'presentation';
           li.innerHTML = TMPL.number.interpolate({
             number: number
           });
@@ -412,7 +492,7 @@ Information.prototype = {
           ul.appendChild(li);
         }
       });
-    }.bind(this));
+    });
   }
 };
 

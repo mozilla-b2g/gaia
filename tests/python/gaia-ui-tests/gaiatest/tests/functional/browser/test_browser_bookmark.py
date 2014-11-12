@@ -15,13 +15,10 @@ class TestBrowserBookmark(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.connect_to_network()
+        self.connect_to_local_area_network()
         self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
-        if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
-            self.test_url = self.marionette.absolute_url('mozilla.html')
-        else:
-            self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
+        self.test_url = self.marionette.absolute_url('mozilla.html')
 
         curr_time = repr(time.time()).replace('.', '')
         self.bookmark_title = 'gaia%s' % curr_time[10:]
@@ -45,3 +42,15 @@ class TestBrowserBookmark(GaiaTestCase):
         self._bookmark_added = homescreen.is_app_installed(self.bookmark_title)
 
         self.assertTrue(self._bookmark_added, 'The bookmark %s was not found to be installed on the home screen.' % self.bookmark_title)
+
+        # Delete the bookmark
+        homescreen.activate_edit_mode()
+        homescreen.bookmark(self.bookmark_title).tap_delete_app().tap_confirm(bookmark=True)
+
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)
+        self.apps.switch_to_displayed_app()
+        homescreen.wait_for_bookmark_icon_not_present(self.bookmark_title)
+
+        # Check that the bookmark icon is no longer displayed on the homescreen
+        self._bookmark_added = homescreen.is_app_installed(self.bookmark_title)
+        self.assertFalse(self._bookmark_added, 'The bookmark %s was not successfully removed from homescreen.' % self.bookmark_title)

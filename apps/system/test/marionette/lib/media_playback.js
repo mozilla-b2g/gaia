@@ -1,5 +1,7 @@
 'use strict';
 
+var UtilityTray = require('./lib/utility_tray');
+
 function click(client, element) {
   // Make sure the element is displayed first. This seems really unnecessary
   // and is probably masking a bug in Marionette, since all the elements we're
@@ -12,9 +14,12 @@ function click(client, element) {
   element.click();
 }
 
+var utilityTray;
+
 function MediaPlaybackContainer(client, container) {
   this.client = client;
   this.containerElement = container;
+  utilityTray = new UtilityTray(client);
 }
 
 MediaPlaybackContainer.Selector = Object.freeze({
@@ -135,24 +140,12 @@ MediaPlayback.prototype = {
     return container;
   },
 
-  openUtilityTray: function() {
-    this.client.executeScript(function() {
-      window.wrappedJSObject.UtilityTray.show();
-    });
-  },
-
-  closeUtilityTray: function() {
-    this.client.executeScript(function() {
-      window.wrappedJSObject.UtilityTray.hide();
-    });
-  },
-
   inUtilityTray: function(callback) {
-    this.openUtilityTray();
+    utilityTray.open();
     callback(new MediaPlaybackContainer(
       this.client, this.notificationContainerElement
     ));
-    this.closeUtilityTray();
+    utilityTray.close();
   },
 
   lockScreen: function() {

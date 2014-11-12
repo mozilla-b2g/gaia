@@ -1,8 +1,8 @@
-/*global requireApp suite test assert setup teardown IMERender sinon */
+'use strict';
+/* global IMERender */
 
 requireApp('keyboard/js/render.js');
-
-mocha.globals(['perfTimer']);
+require('/js/views/handwriting_pad_view.js');
 
 suite('Renderer', function() {
   suiteSetup(function() {
@@ -26,6 +26,17 @@ suite('Renderer', function() {
       },
       domObjectMap: new WeakMap()
     };
+
+    // Tests in CI do not necessarily run at the same resolution as a device.
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      get: () => 320 }
+    );
+
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      get: () => 480 }
+    );
 
     stubRequestAnimationFrame =
       this.sinon.stub(window, 'requestAnimationFrame');
@@ -447,7 +458,8 @@ suite('Renderer', function() {
       assert.equal(keys[1].dataset.keycode, 98);
     });
 
-    test('On uppercase flag, uppercase visually', function() {
+    test('On uppercase flag, uppercase on keys, ' +
+          'no lowercase class on container', function() {
       var layout = {
         width: 2,
         keys: [
@@ -462,13 +474,18 @@ suite('Renderer', function() {
       var keys = document.querySelectorAll('.keyboard-key .key-element');
       assert.equal(keys[0].firstChild.textContent, 'A');
       assert.equal(keys[1].firstChild.textContent, 'B');
+
+      var container = document.querySelector('.keyboard-type-container');
+      assert.isFalse(container.classList.contains('lowercase'));
     });
 
-    test('No uppercase flag, don\'t uppercase visually', function() {
+    test('No uppercase flag, uppercase on keys, ' +
+          'lowercase class on container', function() {
       var layout = {
         width: 2,
         keys: [
-          [{ value: 'a' }, { value: 'b' }]
+          [{ value: 'a', uppercaseValue: 'A' },
+           { value: 'b', uppercaseValue: 'B' }]
         ]
       };
 
@@ -476,8 +493,34 @@ suite('Renderer', function() {
       IMERender.draw(layout, { uppercase: false });
 
       var keys = document.querySelectorAll('.keyboard-key .key-element');
-      assert.equal(keys[0].firstChild.textContent, 'a');
-      assert.equal(keys[1].firstChild.textContent, 'b');
+      assert.equal(keys[0].firstChild.textContent, 'A');
+      assert.equal(keys[1].firstChild.textContent, 'B');
+
+      var container = document.querySelector('.keyboard-type-container');
+      assert.isTrue(container.classList.contains('lowercase'));
+    });
+
+    test('w/ secondLayout, two label DOMs on buttons', function() {
+      var layout = {
+        width: 2,
+        secondLayout: true,
+        keys: [
+          [{ value: 'a', uppercaseValue: 'A' },
+           { value: 'b', uppercaseValue: 'B' }]
+        ]
+      };
+
+      IMERender.init(fakeRenderingManager);
+      IMERender.draw(layout, { uppercase: false });
+
+      var keys = document.querySelectorAll('.keyboard-key .key-element');
+      assert.equal(keys[0].firstChild.textContent, 'A');
+      assert.equal(keys[1].firstChild.textContent, 'a');
+      assert.equal(keys[2].firstChild.textContent, 'B');
+      assert.equal(keys[3].firstChild.textContent, 'b');
+
+      var container = document.querySelector('.keyboard-type-container');
+      assert.isTrue(container.classList.contains('lowercase'));
     });
 
     test('candidate-panel class should be set if flag is set', function() {
@@ -501,6 +544,29 @@ suite('Renderer', function() {
       };
       IMERender.draw(layout);
       assert.equal(ime.classList.contains('candidate-panel'), false);
+    });
+
+    test('create keyboard with handwriting pad', function() {
+      var layout = {
+        handwritingPadOptions: {
+          ratio: 8.5,
+          rowspan: 3
+        },
+        keys: [
+          [
+            { value: 'a', ratio: 1.5 }
+          ], [
+            { value: 'b', ratio: 1.5 }
+          ], [
+            { value: 'c', ratio: 1.5 }
+          ], [
+            { value: 'd', ratio: 10 }
+          ]
+        ]
+      };
+      IMERender.draw(layout);
+      var pads = document.querySelectorAll('.handwriting-pad');
+      assert.equal(pads.length, 1);
     });
 
     suite('CSS classes on activeIme', function() {
@@ -701,131 +767,6 @@ suite('Renderer', function() {
         next();
       });
     });
-
-
-    suite('Switching to different inputTypes/showCandidatePanel/uppercase/' +
-          'supportsSwitching,and switching back,' +
-          'the target object mapping should work.', function() {
-      var layout = {
-        layoutName: 'some',
-        width: 2,
-        pageIndex: 0,
-        keys: [
-          [{ value: 'a' }, { value: 'b' }],
-          [{ value: 'c' }, { value: 'd' }],
-          [{ value: 'e' }, { value: 'f' }]
-        ]
-      };
-
-      var targetKey = layout.keys[0][0];
-      var oldMozInputMethod;
-      var defaultFlags;
-
-      setup(function() {
-        oldMozInputMethod = navigator.mozInputMethod;
-        navigator.mozInputMethod = {
-          mgmt: {
-            supportsSwitching: this.sinon.stub().returns(false)
-          }
-        };
-
-        defaultFlags = {
-          inputType: 'some-type',
-          showCandidatePanel: false,
-          uppercase: false
-        };
-      });
-
-      teardown(function() {
-        navigator.mozInputMethod = oldMozInputMethod;
-      });
-
-      test('input types', function() {
-        defaultFlags.inputType = 'some-type';
-        IMERender.draw(layout, defaultFlags);
-
-        defaultFlags.inputType = 'another-type';
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-a-f-f-false'),
-          'Should map into another-type\'s DOM element'
-        );
-
-        defaultFlags.inputType = 'some-type';
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-f-false'),
-          'Should map into one-type\'s DOM element'
-        );
-      });
-
-      test('showCandidatePanel', function() {
-        defaultFlags.showCandidatePanel = true;
-        IMERender.draw(layout, defaultFlags);
-
-        defaultFlags.showCandidatePanel = false;
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-f-false'),
-          'Should map into false-showCandidatePanel\'s DOM element'
-        );
-
-        defaultFlags.showCandidatePanel = true;
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-t-f-false'),
-          'Should map into true-showCandidatePanel\'s DOM element'
-        );
-      });
-
-      test('uppercase', function() {
-        defaultFlags.uppercase = true;
-        IMERender.draw(layout, defaultFlags);
-
-        defaultFlags.uppercase = false;
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-f-false'),
-          'Should map into false-uppercase\'s DOM element'
-        );
-
-        defaultFlags.uppercase = true;
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-t-false'),
-          'Should map into true-uppercase\'s DOM element'
-        );
-      });
-
-      test('supportsSwitching', function() {
-        navigator.mozInputMethod.mgmt.supportsSwitching.returns(true);
-        IMERender.draw(layout, defaultFlags);
-
-        navigator.mozInputMethod.mgmt.supportsSwitching.returns(false);
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-f-false'),
-          'Should map into false-supportsSwitching\'s DOM element'
-        );
-
-        navigator.mozInputMethod.mgmt.supportsSwitching.returns(true);
-        IMERender.draw(layout, defaultFlags);
-        assert.isTrue(
-          IMERender.getDomElemFromTargetObject(targetKey).parentNode.parentNode
-            .classList.contains('some-0-s-f-f-true'),
-          'Should map into true-supportsSwitching\'s DOM element'
-        );
-
-        navigator.mozInputMethod = oldMozInputMethod;
-      });
-    });
   });
 
   suite('Highlight Keys', function() {
@@ -833,24 +774,17 @@ suite('Renderer', function() {
       dummy: 'dummy'
     };
 
-    test('Highlight a key with uppercase', function() {
-      var keyElem = document.createElement('div');
-
-      IMERender.setDomElemTargetObject(keyElem, dummyKey);
-      IMERender.highlightKey(dummyKey, { showUpperCase: true });
-
-      assert.isTrue(keyElem.classList.contains('highlighted'));
-      assert.isFalse(keyElem.classList.contains('lowercase'));
+    setup(function() {
+      IMERender.init(fakeRenderingManager);
     });
 
-    test('Highlight a key with lowercase', function() {
+    test('Highlight a key', function() {
       var keyElem = document.createElement('div');
 
       IMERender.setDomElemTargetObject(keyElem, dummyKey);
-      IMERender.highlightKey(dummyKey, { showUpperCase: false });
+      IMERender.highlightKey(fakeRenderingManager.getTargetObject(keyElem));
 
       assert.isTrue(keyElem.classList.contains('highlighted'));
-      assert.isTrue(keyElem.classList.contains('lowercase'));
     });
   });
 });

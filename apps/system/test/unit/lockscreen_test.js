@@ -133,45 +133,57 @@ suite('system/LockScreen >', function() {
     subject.lock();
   });
 
-  test('Emergency call: should disable when has no telephony', function() {
-    navigator.mozTelephony = null;
-    var stubGetAll = this.sinon.stub(subject, 'getAllElements',
-                      mockGetAllElements);
-    var spyEmergencyCallEvents = this.sinon.spy(subject,
-                                  'initEmergencyCallEvents');
-    subject.init();
-    assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
-    assert.isFalse(spyEmergencyCallEvents.calledOnce);
+  test('L10n initialization: it should NOT init the conn info manager if ' +
+       'there is already one', function() {
+    var stubConnInfoManager = this.sinon.stub(window,
+      'LockScreenConnInfoManager');
+    var originalMozl10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = {
+      get: function() { return ''; }
+    };
+    var originalMozMobileConnections = window.navigator.mozMobileConnections;
+    window.navigator.mozMobileConnections = {};
+    subject._lockscreenConnInfoManager = {};
+    assert.isTrue(!!(window.navigator.mozMobileConnections),
+                  'the first condition is not satisfied: ' +
+                   !!(window.navigator.mozMobileConnections));
+    assert.isTrue(!!(subject._lockscreenConnInfoManager),
+                  'the second condition is not satisfied: ' +
+                  !!(subject._lockscreenConnInfoManager));
+    this.sinon.stub(subject, 'refreshClock');
+    subject.l10nInit();
+    assert.isFalse(stubConnInfoManager.called,
+      'the l10nInit still instantiate the conn info manager even it\'s NOT' +
+      'undefined');
+    window.navigator.mozMobileConnections = originalMozMobileConnections;
+    window.navigator.mozL10n = originalMozl10n;
+    delete subject._lockscreenConnInfoManager;
   });
 
-  test('Emergency call: should enable when has telephony', function() {
-    var stubGetAll = this.sinon.stub(subject, 'getAllElements',
-                      mockGetAllElements);
-    var spyEmergencyCallEvents = this.sinon.spy(subject,
-                                  'initEmergencyCallEvents');
-    subject.init();
-    assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
-    assert.isTrue(spyEmergencyCallEvents.calledOnce);
-  });
-
-  test('Emergency call: should disable emergency-call button',
-    function() {
-      var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
-      navigator.mozTelephony.calls = {length: 1};
-      var evt = {type: 'callschanged'};
-      subject.handleEvent(evt);
-      assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
-      stubSwitchPanel.restore();
-  });
-
-  test('Emergency call: should enable emergency-call button',
-    function() {
-      var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
-      navigator.mozTelephony.calls = {length: 0};
-      var evt = {type: 'callschanged'};
-      subject.handleEvent(evt);
-      assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
-      stubSwitchPanel.restore();
+  test('L10n initialization: it should init the conn info manager if it\'s' +
+       ' undefined', function() {
+    var stubConnInfoManager = this.sinon.stub(window,
+      'LockScreenConnInfoManager');
+    var originalMozl10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = {
+      get: function() { return ''; }
+    };
+    var originalMozMobileConnections = window.navigator.mozMobileConnections;
+    window.navigator.mozMobileConnections = {};
+    assert.isTrue(!!(window.navigator.mozMobileConnections),
+                  'the first condition is not satisfied: ' +
+                   !!(window.navigator.mozMobileConnections));
+    assert.isTrue(!subject._lockscreenConnInfoManager,
+                  'the second condition is not satisfied: ' +
+                  !(subject._lockscreenConnInfoManager));
+    this.sinon.stub(subject, 'refreshClock');
+    subject.l10nInit();
+    assert.isTrue(stubConnInfoManager.called,
+       'the l10nInit doesn\'t instantiate the conn info manager even it\'s ' +
+       'undefined');
+    window.navigator.mozMobileConnections = originalMozMobileConnections;
+    window.navigator.mozL10n = originalMozl10n;
+    delete subject._lockscreenConnInfoManager;
   });
 
   test('Lock: can actually lock', function() {
@@ -188,8 +200,7 @@ suite('system/LockScreen >', function() {
 
   test('Passcode: enter passcode should fire the validation event', function() {
     var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-    subject.passCodeEntered = 'foobar';
-    subject.checkPassCode();
+    subject.checkPassCode('foobar');
     assert.isTrue(stubDispatchEvent.calledWithMatch(function(event) {
       return 'lockscreen-request-passcode-validate' === event.type &&
         'foobar' === event.detail.passcode;
@@ -269,6 +280,24 @@ suite('system/LockScreen >', function() {
         subject.handleEvent(new CustomEvent('timeformatchange'));
         assert.isTrue(stubRefreshClock.called,
           'the refreshClock wasn\'t called even after the time format changed');
+      });
+
+  test('invokeSecureApp: checking manifest and app URL of the fired Event' +
+       'on secure mode',
+        function() {
+          var urlSamples = [
+            'app://system.gaiamobile.org/index.html',
+            'app://system.gaiamobile.org/index.html#'
+          ];
+          var expectedManifest =
+            'app://system.gaiamobile.org/manifest.webapp';
+
+          urlSamples.forEach(function(url) {
+            var manifestUrl = url.replace(/(\/)*(index.html#?)*$/,
+                                          '/manifest.webapp');
+            assert.equal(manifestUrl, expectedManifest,
+                         'the manifestURL generated is not correct');
+          });
       });
 
   test('Handle event: when lock,' +

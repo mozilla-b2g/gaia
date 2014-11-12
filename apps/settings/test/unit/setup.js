@@ -27,14 +27,11 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'shared/tz_select': {
         exports: 'tzSelect'
       },
-      'unit/mock_l10n': {
-        exports: 'MockL10n'
+      'shared/template': {
+        exports: 'Template'
       },
       'unit/mock_async_storage': {
         exports: 'MockAsyncStorage'
-      },
-      'unit/mock_load_json': {
-        exports: 'MockLoadJSON'
       },
       'unit/mock_settings_cache': {
         exports: 'MockSettingsCache'
@@ -54,8 +51,14 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_airplane_mode_helper': {
         exports: 'MockAirplaneModeHelper'
       },
+      'unit/mock_apps_cache': {
+        exports: 'MockAppsCache'
+      },
       'shared_mocks/mock_navigator_moz_settings': {
         exports: 'MockNavigatorSettings'
+      },
+      'shared_mocks/mock_l10n': {
+        exports: 'MockL10n'
       },
       'shared_mocks/mock_language_list': {
         exports: 'MockLanguageList'
@@ -85,6 +88,12 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'shared_mocks/mock_navigator_moz_wifi_manager': {
         exports: 'MockNavigatorMozWifiManager'
       },
+      'shared_mocks/mock_bluetooth_helper': {
+        exports: 'MockBluetoothHelper'
+      },
+      'shared_mocks/mock_navigator_moz_bluetooth': {
+        exports: 'MockMozBluetooth'
+      },
       'shared_mocks/mock_enumerate_all': {
         exports: 'MockEnumerateAll'
       },
@@ -96,6 +105,18 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       },
       'shared_mocks/mock_mobile_operator': {
         exports: 'MockMobileOperator'
+      },
+      'shared_mocks/mock_sim_settings_helper': {
+        exports: 'MockSimSettingsHelper'
+      },
+      'shared_mocks/mock_navigator_moz_set_message_handler': {
+        exports: 'MockNavigatormozSetMessageHandler'
+      },
+      'shared_mocks/mock_performance_testing_helper': {
+        exports: 'MockPerformanceTestingHelper'
+      },
+      'shared_mocks/mock_screen_layout': {
+        exports: 'MockScreenLayout'
       }
     },
     modules: [

@@ -31,7 +31,7 @@ input[type="text"] {
 }
 
 button,
-a[role="button"] {
+a.bb-button {
   margin: 0;
 }
 
@@ -40,11 +40,11 @@ a[role="button"] {
 }
 
 section[data-items="2"] button,
-section[data-items="2"] a[role="button"] {
+section[data-items="2"] a.bb-button {
   width: auto;
 }
 
 section[data-items="3"] button,
-section[data-items="3"] a[role="button"] {
+section[data-items="3"] a.bb-button {
   width: auto;
 }

@@ -373,7 +373,6 @@ suite('preferences.js', function() {
         'webgl.verbose': true,
         'dom.max_script_run_time': 0,
         'toolkit.identity.debug': true,
-        'network.http.use-cache': false,
         'extensions.gaia.dir': preferences.config.GAIA_DIR,
         'extensions.gaia.domain': preferences.config.GAIA_DOMAIN,
         'extensions.gaia.port': 8080,
@@ -388,6 +387,7 @@ suite('preferences.js', function() {
           '@' + preferences.config.GAIA_DEV_PIXELS_PER_PX + 'x',
         'extensions.autoDisableScopes': 0
       });
+      assert.isUndefined(preferences.userPrefs['network.http.use-cache']);
     });
 
     test('editDeviceDebugPref', function () {

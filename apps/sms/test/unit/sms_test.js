@@ -22,7 +22,10 @@ requireApp('sms/test/unit/mock_dialog.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/test/unit/mock_settings.js');
+require('/test/unit/mock_inter_instance_event_dispatcher.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
+require('/js/selection_handler.js');
 require('/js/event_dispatcher.js');
 require('/js/navigation.js');
 requireApp('sms/js/link_helper.js');
@@ -51,7 +54,9 @@ var MocksHelperForSmsUnitTest = new MocksHelper([
   'TimeHeaders',
   'Information',
   'ContactPhotoHelper',
-  'Dialog'
+  'Dialog',
+  'InterInstanceEventDispatcher',
+  'LazyLoader'
 ]).init();
 
 suite('SMS App Unit-Test', function() {
@@ -181,7 +186,6 @@ suite('SMS App Unit-Test', function() {
         callback(MockContact.list());
       }
     });
-
   });
 
   // Let's go with tests!
@@ -192,6 +196,8 @@ suite('SMS App Unit-Test', function() {
     // Setup. We need an async. way due to threads are rendered
     // async.
     setup(function(done) {
+      this.sinon.spy(ThreadListUI, 'setContact');
+
       ThreadListUI.renderThreads(done);
       _tci = ThreadListUI.checkInputs;
     });
@@ -269,13 +275,16 @@ suite('SMS App Unit-Test', function() {
         assertNumOfElementsByClass(ThreadListUI.container, 1, 'unread');
       });
 
-      test('Update thread with contact name', function() {
+      test('Update thread with contact name', function(done) {
         // Given a number, we should retrieve the contact and update the info
         var threadWithContact = document.getElementById('thread-1');
-        assert.equal(
-          threadWithContact.querySelector('.name').textContent,
-          'Pepito O\'Hare'
-        );
+        var spy = ThreadListUI.setContact.withArgs(threadWithContact);
+        spy.firstCall.returnValue.then(() => {
+          assert.equal(
+            threadWithContact.querySelector('.threadlist-item-title').innerHTML,
+            '<bdi>Pepito O\'Hare</bdi>'
+          );
+        }).then(done, done);
       });
     });
 
@@ -283,6 +292,9 @@ suite('SMS App Unit-Test', function() {
     suite('Threads-list edit mode', function() {
 
       setup(function() {
+        // ThreadListUI.setContact is already a spy, but here we need a stub.
+        // So we restore the original function first, and then create a stub.
+        ThreadListUI.setContact.restore();
         this.sinon.stub(ThreadListUI, 'setContact');
       });
 
@@ -301,6 +313,7 @@ suite('SMS App Unit-Test', function() {
         // Activate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
+          ThreadListUI.selectionHandler.select(inputs[i].value);
         }
         var checkUncheckAllButton =
           document.getElementById('threads-check-uncheck-all-button');
@@ -313,6 +326,7 @@ suite('SMS App Unit-Test', function() {
         // Deactivate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = false;
+          ThreadListUI.selectionHandler.unselect(inputs[i].value);
         }
         ThreadListUI.checkInputs();
         assert.equal(
@@ -322,6 +336,7 @@ suite('SMS App Unit-Test', function() {
         assert.isFalse(checkUncheckAllButton.disabled);
         // Activate only one
         inputs[0].checked = true;
+        ThreadListUI.selectionHandler.select(inputs[0].value);
         ThreadListUI.checkInputs();
         assert.equal(
           checkUncheckAllButton.getAttribute('data-l10n-id'),
@@ -332,7 +347,7 @@ suite('SMS App Unit-Test', function() {
 
       test('Select all while receiving new thread', function(done) {
         ThreadListUI.startEdit();
-        ThreadListUI.toggleCheckedAll(true);
+        ThreadListUI.selectionHandler.toggleCheckedAll(true);
 
         var checkboxes =
           ThreadListUI.container.querySelectorAll('input[type=checkbox]');
@@ -445,6 +460,11 @@ suite('SMS App Unit-Test', function() {
         ThreadUI.renderMessages(1, function() {
           done();
         });
+        ThreadUI.startEdit();
+      });
+
+      teardown(function() {
+        ThreadUI.cancelEdit();
       });
 
       test('Check edit mode form', function() {
@@ -457,7 +477,7 @@ suite('SMS App Unit-Test', function() {
         // Activate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
-          ThreadUI.chooseMessage(inputs[i]);
+          ThreadUI.selectionHandler.select(inputs[i].value);
         }
 
         var checkUncheckAllButton =
@@ -469,21 +489,20 @@ suite('SMS App Unit-Test', function() {
         // Deactivate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = false;
-          ThreadUI.chooseMessage(inputs[i]);
+          ThreadUI.selectionHandler.unselect(inputs[i].value);
         }
         ThreadUI.checkInputs();
         assert.isFalse(checkUncheckAllButton.disabled);
 
         // Activate only one
         inputs[0].checked = true;
-        ThreadUI.chooseMessage(inputs[0]);
+        ThreadUI.selectionHandler.select(inputs[0].value);
         ThreadUI.checkInputs();
         assert.isFalse(checkUncheckAllButton.disabled);
       });
 
       test('Select all while receiving new message', function(done) {
-        ThreadUI.startEdit();
-        ThreadUI.toggleCheckedAll(true);
+        ThreadUI.selectionHandler.toggleCheckedAll(true);
 
         var checkboxes =
           ThreadUI.container.querySelectorAll('input[type=checkbox]');

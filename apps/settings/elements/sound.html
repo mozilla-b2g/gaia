@@ -8,7 +8,7 @@
 
     <div>
       <ul>
-        <li id="vibration-setting">
+        <li class="vibration-setting">
           <label class="pack-switch">
             <input type="checkbox" name="vibration.enabled" checked class="uninit">
             <span data-l10n-id="vibrate">Vibrate</span>
@@ -23,18 +23,21 @@
         <li class="sound-setting">
           <label class="range-icons volume media">
             <p data-l10n-id="media-sound">Media</p>
+            <span data-icon="sound-max"></span>
             <input type="range" step="1" min="0" value="8" max="15">
           </label>
         </li>
         <li class="sound-setting">
           <label class="range-icons volume notification">
             <p data-l10n-id="ringtone-and-notification-sound">Ringtones & Notifications</p>
+            <span data-icon="call-ringing"></span>
             <input type="range" step="1" min="0" value="8" max="15">
           </label>
         </li>
         <li class="sound-setting">
           <label class="range-icons volume alarm">
             <p data-l10n-id="alarm-sound">Alarm</p>
+            <span data-icon="alarm-clock"></span>
             <input type="range" step="1" min="0" value="8" max="15">
           </label>
         </li>
@@ -44,15 +47,19 @@
         <h2 data-l10n-id="tones">Tones</h2>
       </header>
       <ul>
-        <li id="ringer" hidden>
-          <p data-l10n-id="ringtones">Ringtones</p>
-          <button id="ring-tone-selection" class="icon icon-view"></button>
+        <li class="ringer" hidden>
+          <a class="menu-item ring-tone-selection" href="#">
+            <span data-l10n-id="ringtones">Ringtones</span>
+            <small class="desc"></small>
+          </a>
         </li>
         <li id="alerts">
-          <p data-l10n-id="alerts">Alerts</p>
-          <button id="alert-tone-selection" class="icon icon-view"></button>
+          <a class="menu-item alert-tone-selection" href="#">
+            <span data-l10n-id="alerts">Alerts</span>
+            <small class="desc"></small>
+          </a>
         </li>
-        <li id="touch-tone-selector" hidden>
+        <li class="touch-tone-selector" hidden>
           <a data-l10n-id="touch-tones">Audible touch tones</a>
           <span class="button icon icon-dialog">
             <select name="phone.dtmf.type">
@@ -62,8 +69,9 @@
           </span>
         </li>
         <li id="manage-tones">
-          <a id="manage-tones-button" class="menu-item"
-             data-l10n-id="manage-tones"></a>
+          <a class="manage-tones-button menu-item" href="#">
+            <span data-l10n-id="manage-tones">Manage Tones</span>
+          </a>
         </li>
       </ul>
 
@@ -98,8 +106,7 @@
       </ul>
     </div>
 
-    <script src="shared/js/omadrm/fl.js"></script>
-    <script src="js/sound.js"></script>
+    <panel data-path="panels/sound/panel"></panel>
 
   </template>
 </element>

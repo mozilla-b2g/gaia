@@ -4,7 +4,7 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mocks_helper.js');
-requireApp('bluetooth/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('bluetooth/test/unit/mock_pair_view.js');
 requireApp('bluetooth/test/unit/mock_pair_expired_dialog.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -19,9 +19,6 @@ function switchReadOnlyProperty(originObject, propName, targetObj) {
     get: function() { return targetObj; }
   });
 }
-
-mocha.globals(['PairManager', 'BluetoothHelper', 'open', 'Pairview',
-               'PairExpiredDialog']);
 
 var mocksForPairManagerHelper = new MocksHelper([
   'BluetoothHelper',

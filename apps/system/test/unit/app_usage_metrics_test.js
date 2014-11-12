@@ -19,7 +19,16 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
  *    retries are handled correctly after a transmission failure.
  */
 suite('AppUsageMetrics:', function() {
-  var realMozSettings;
+  var realMozSettings, realOnLine;
+  var isOnLine = true;
+
+  function navigatorOnLine() {
+    return isOnLine;
+  }
+
+  function setNavigatorOnLine(value) {
+    isOnLine = value;
+  }
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
@@ -33,6 +42,13 @@ suite('AppUsageMetrics:', function() {
     };
     navigator.removeIdleObserver = function() {};
 
+    realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
+    Object.defineProperty(navigator, 'onLine', {
+      configurable: true,
+      get: navigatorOnLine,
+      set: setNavigatorOnLine
+    });
+
     AppUsageMetrics.DEBUG = false; // Shut up console output in test logs
   });
 
@@ -42,6 +58,12 @@ suite('AppUsageMetrics:', function() {
 
     delete navigator.addIdleObserver;
     delete navigator.removeIdleObserver;
+
+    if (realOnLine) {
+      Object.defineProperty(navigator, 'onLine', realOnLine);
+    } else {
+      delete navigator.onLine;
+    }
   });
 
   /*
@@ -145,8 +167,10 @@ suite('AppUsageMetrics:', function() {
       recordStuff(data1);
       recordStuff(data2);
 
-      // They should be equal
-      assert.deepEqual(data1, data2);
+      // They should be equal.
+      // They will have different relativeStartTime properties, so we
+      // only compare the data part of the two objects.
+      assert.deepEqual(data1.data, data2.data);
 
       // Change the clock and create a new data structure
       clock.tick(100);
@@ -157,11 +181,11 @@ suite('AppUsageMetrics:', function() {
       recordStuff(data3);
 
       // They're not equal now
-      assert.notDeepEqual(data1, data2);
+      assert.notDeepEqual(data1.data, data2.data);
 
       // Merge data 3 into data2 and they should be equal again
       data2.merge(data3);
-      assert.deepEqual(data1, data2);
+      assert.deepEqual(data1.data, data2.data);
 
       // merging with an empty object is a no-op
       var copy1 = JSON.parse(JSON.stringify(data1.data));
@@ -176,7 +200,7 @@ suite('AppUsageMetrics:', function() {
       data1.save();
       clock.tick(100000);
       UsageData.load(function(data2) {
-        done(assert.deepEqual(data1, data2));
+        done(assert.deepEqual(data1.data, data2.data));
       });
     });
   });
@@ -184,11 +208,13 @@ suite('AppUsageMetrics:', function() {
   /*
    * This second suite follows up on the first. It tests that window management
    * events produce the expected calls to the record functions of the UsageData
-   * class.
+   * class. In this suite we used fake timers, so we have to also fake
+   * performance.now in order to get away with that.
    */
   suite('event handling:', function() {
     var aum;
     var realSettingsListener;
+    var realPerformanceNow;
     var installSpy, uninstallSpy, invocationSpy, activitySpy;
     var clock;
 
@@ -199,6 +225,9 @@ suite('AppUsageMetrics:', function() {
         observe: function() {},
         unobserve: function() {}
       };
+
+      realPerformanceNow = window.performance.now;
+      window.performance.now = function() { return Date.now(); };
 
       // Monitor UsageData calls
       var proto = AppUsageMetrics.UsageData.prototype;
@@ -220,6 +249,7 @@ suite('AppUsageMetrics:', function() {
 
     teardown(function() {
       window.SettingsListener = realSettingsListener;
+      window.performance.now = realPerformanceNow;
       aum.stop();
     });
 
@@ -373,6 +403,72 @@ suite('AppUsageMetrics:', function() {
 
       assert.equal(installSpy.callCount, 0);
       assert.equal(uninstallSpy.callCount, 0);
+    });
+
+    test('attention windows', function() {
+      // Test for multiple attention windows on top of the currently running
+      // application
+      dispatch('appopened', { manifestURL: 'app1' });
+      clock.tick(1000);
+
+      dispatch('attentionopened', { manifestURL: 'callscreen' });
+      assert.ok(invocationSpy.calledWith('app1', 1000));
+
+      clock.tick(2000);
+      dispatch('attentionopened', { manifestURL: 'attention1' });
+      assert.ok(invocationSpy.calledWith('callscreen', 2000));
+
+      clock.tick(3000);
+      dispatch('attentionclosed', { manifestURL: 'attention1' });
+      assert.ok(invocationSpy.calledWith('attention1', 3000));
+
+      clock.tick(4000);
+      dispatch('attentionclosed', { manifestURL: 'callscreen' });
+      assert.ok(invocationSpy.calledWith('callscreen', 4000));
+
+      clock.tick(5000);
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
+      assert.ok(invocationSpy.calledWith('app1', 5000));
+    });
+
+    test('proximity screenchange', function() {
+      // Test to make sure proximity sensor based screen changes don't stop
+      // collecting metrics for the currently running app / attention window
+      dispatch('appopened', { manifestURL: 'app1' });
+      clock.tick(1000);
+
+      dispatch('attentionopened', { manifestURL: 'callscreen' });
+      assert.ok(invocationSpy.calledWith('app1', 1000));
+
+      var lastCallCount = invocationSpy.callCount;
+      dispatch('screenchange', {
+        screenEnabled: false,
+        screenOffBy: 'proximity'
+      });
+      assert.equal(invocationSpy.callCount, lastCallCount);
+
+      clock.tick(2000);
+      dispatch('screenchange', {
+        screenEnabled: true,
+        screenOffBy: 'proximity'
+      });
+      assert.equal(invocationSpy.callCount, lastCallCount);
+
+      clock.tick(3000);
+
+      dispatch('screenchange', {
+        screenEnabled: false,
+        screenOffBy: 'lockscreen'
+      });
+      assert.ok(invocationSpy.calledWith('callscreen', 5000));
+      lastCallCount = invocationSpy.callCount;
+
+      clock.tick(4000);
+      dispatch('screenchange', {
+        screenEnabled: true,
+        screenOffBy: 'lockscreen'
+      });
+      assert.equal(invocationSpy.callCount, lastCallCount);
     });
   });
 
@@ -552,7 +648,7 @@ suite('AppUsageMetrics:', function() {
       transmit = this.sinon.spy(AppUsageMetrics.prototype, 'transmit');
 
       aum.idle = true;
-      aum.online = true;
+      isOnLine = true;
       clock.tick(); // to make the start call complete
     });
 
@@ -607,7 +703,7 @@ suite('AppUsageMetrics:', function() {
     test('Don\'t transmit if offline', function() {
       // Record some data
       aum.metrics.recordInvocation('app1', 10000);
-
+      isOnLine = false;
       dispatch('offline');
 
       // Exceed the reporting interval

@@ -19,8 +19,8 @@
   <link rel="stylesheet" type="text/css" href="style/views/datalimits.css">
 
   <!-- Gaia Components -->
-  <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
-  <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" />
+  <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
+  <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
 
   <!-- Localization -->
   <link rel="manifest" href="manifest.webapp">
@@ -39,7 +39,7 @@
   <!-- Gaia Components -->
   <script defer src="/shared/elements/config.js"></script>
   <script defer src="/shared/js/component_utils.js"></script>
-  <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
+  <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
   <script defer src="/shared/elements/gaia_buttons/script.js"></script>
 
   <!-- Specific code -->
@@ -50,11 +50,6 @@
 
   <!-- First time experience -->
   <section id="firsttime-view" class="view step-1">
-    <ol class="step-state">
-      <li>Select plan type</li>
-      <li>Set balance reminders</li>
-      <li>Set data report and alert</li>
-    </ol>
 
    <!-- Global Step 1 -->
     <section role="region" class="view step" data-viewport="" id="step-1">
@@ -459,9 +454,9 @@
   </section>
 
   <!-- Data usage limits -->
-  <section role="region" id="data-limit-dialog" class="view" data-viewport="bottom">
+  <section aria-labelledby="limit-dialog-heading" id="data-limit-dialog" role="dialog" class="view" data-viewport="bottom">
     <gaia-header id="limit-dialog-header" action="close">
-      <h1 data-l10n-id="data-limit-header">Data Usage Limit</h1>
+      <h1 id="limit-dialog-heading" data-l10n-id="data-limit-header">Data Usage Limit</h1>
       <button id="data-usage-done-button" data-l10n-id="done" class="recommend">Done</button>
     </gaia-header>
     <section class="content" class="vbox">
@@ -475,14 +470,16 @@
     <form>
       <ul class="buttons-list">
         <li>
+          <label for="data-limit-input">
+            <input id="data-limit-input" type="text" x-inputmode="numeric" maxlength="6" />
+          </label>
+        </li>
+        <li>
           <button class="icon icon-dialog switch-unit-button">
             <span class="tag"></span>
           </button>
         </li>
       </ul>
-      <label for="data-limit-input">
-        <input id="data-limit-input" type="number" step="any" />
-      </label>
     </form>
   </section>
 

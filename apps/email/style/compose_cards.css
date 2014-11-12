@@ -46,11 +46,13 @@
 }
 
 /* Override base shared style that adds a focus highlight */
-.card-compose input {
+body cards-compose input[type="text"],
+body cards-compose input[type="email"] {
   margin-bottom: 0;
   padding: 0;
 }
-.card-compose input:focus {
+body cards-compose input:invalid:focus,
+body cards-compose input:focus {
   box-shadow: none;
   border-bottom: 0;
 }

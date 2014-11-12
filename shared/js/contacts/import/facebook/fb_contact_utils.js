@@ -1,6 +1,6 @@
 'use strict';
 
-/* global fb */
+/* global fb, utils  */
 
 /* jshint ignore:start */
 var fb = this.fb || {};
@@ -229,4 +229,32 @@ fb.markAsUnlinked = function(devContact) {
   devContact.category = updatedCategory;
 
   return devContact;
+};
+
+// Unlinks a FB Contact. This must only be called from the clean all process
+fb.unlinkClearAll = function(devContact) {
+  fb.resetNames(devContact);
+  fb.markAsUnlinked(devContact);
+};
+
+// Reset givenName and familyName if it is needed after unlinking
+fb.resetNames = function resetNames(dContact) {
+  if (fb.isPropagated('givenName', dContact)) {
+    dContact.givenName = [''];
+    fb.removePropagatedFlag('givenName', dContact);
+  }
+
+  if (fb.isPropagated('familyName', dContact)) {
+    dContact.familyName = [''];
+    fb.removePropagatedFlag('familyName', dContact);
+  }
+
+  dContact.name = [dContact.givenName[0] + ' ' + dContact.familyName[0]];
+};
+
+// Marks that FB Cleaning is in progress or not
+fb.markFbCleaningInProgress = function(value) {
+  utils.cookie.update({
+    fbCleaningInProgress: value
+  });
 };

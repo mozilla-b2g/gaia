@@ -1,5 +1,5 @@
-/*jshint browser: true */
 /*global define, console, Notification */
+'use strict';
 define(function(require) {
   var appSelf = require('app_self'),
       evt = require('evt'),

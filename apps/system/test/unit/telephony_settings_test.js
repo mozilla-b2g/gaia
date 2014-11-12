@@ -1,7 +1,9 @@
 'use strict';
-/* global MocksHelper, MockSettingsHelper, TelephonySettings */
+/* global MocksHelper, MockSettingsHelper, BaseModule */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
+requireApp('system/js/system.js');
+requireApp('system/js/base_module.js');
 requireApp('system/js/telephony_settings.js');
 
 var mocksForTelephonySettings = new MocksHelper([
@@ -10,7 +12,6 @@ var mocksForTelephonySettings = new MocksHelper([
 
 suite('system/TelephonySettings', function() {
   var subject;
-  var originalMobileConnections;
   mocksForTelephonySettings.attachTestHelpers();
 
   var functionsUnderTest = [
@@ -51,40 +52,25 @@ suite('system/TelephonySettings', function() {
     });
   };
 
-  setup(function() {
-    originalMobileConnections = navigator.mozMobileConnections;
-  });
-
-  teardown(function() {
-    navigator.mozMobileConnections = originalMobileConnections;
-  });
-
   suite('constructor', function() {
     test('sets connections', function() {
-      navigator.mozMobileConnections = ['foo'];
-      subject = new TelephonySettings();
+      subject = BaseModule.instantiate('TelephonySettings',
+        { mobileConnections: ['foo'] });
       assert.deepEqual(subject.connections, ['foo']);
     });
 
     test('defaults to empty', function() {
-      navigator.mozMobileConnections = null;
-      subject = new TelephonySettings();
+      subject = BaseModule.instantiate('TelephonySettings',
+        { mobileConnections: null });
       assert.deepEqual(subject.connections, []);
     });
   });
 
   suite('start', function() {
-    test('does not call methods if no connections', function() {
-      navigator.mozMobileConnections = null;
-      subject = new TelephonySettings();
-      var stubs = stubFunctions(subject);
-      subject.start();
-      assert.ok(stubs.every(stub => stub.notCalled));
-    });
-
     test('calls init methods', function() {
       navigator.mozMobileConnections = fakeConnections;
-      subject = new TelephonySettings();
+      subject = BaseModule.instantiate('TelephonySettings',
+        { mobileConnections: fakeConnections });
       var stubs = stubFunctions(subject);
       subject.start();
       assert.ok(stubs.every(stub => stub.calledOnce));
@@ -98,7 +84,8 @@ suite('system/TelephonySettings', function() {
       stub = this.sinon.stub(fakeConnections[0], 'setVoicePrivacyMode')
         .returns(reqResponse);
 
-      subject = new TelephonySettings();
+      subject = BaseModule.instantiate('TelephonySettings',
+        { mobileConnections: fakeConnections });
       stubFunctions(subject, 'initVoicePrivacy');
     });
 
@@ -126,7 +113,8 @@ suite('system/TelephonySettings', function() {
       stub = this.sinon.stub(fakeConnections[0], 'setRoamingPreference')
         .returns(reqResponse);
 
-      subject = new TelephonySettings();
+      subject = BaseModule.instantiate('TelephonySettings',
+        { mobileConnections: fakeConnections });
       stubFunctions(subject, 'initRoaming');
     });
 
@@ -159,7 +147,8 @@ suite('system/TelephonySettings', function() {
         value: ['custom-value-clir']
       };
 
-      subject = new TelephonySettings();
+      subject = BaseModule.instantiate('TelephonySettings',
+        { mobileConnections: fakeConnections });
       stubFunctions(subject, 'initCallerIdPreference');
       sinon.spy(subject, '_registerListenerForCallerIdPreference');
     });
@@ -190,6 +179,26 @@ suite('system/TelephonySettings', function() {
         subject.start();
         assert.ok(setStub.notCalled);
     });
+
+    test('_syncCallerIdPreferenceWithCarrier should set a default value when ' +
+      'necessary', function() {
+        MockSettingsHelper.instances['ril.clirMode'] = {
+          value: null
+        };
+
+        var fakeValue = 1;
+        var mockSettingsHelper = MockSettingsHelper('ril.clirMode');
+
+        this.sinon.stub(subject, '_getCallerIdPreference',
+          function(conn, callback) {
+            callback(fakeValue);
+        });
+        this.sinon.stub(mockSettingsHelper, 'set');
+
+        subject._syncCallerIdPreferenceWithCarrier({}, 0, mockSettingsHelper);
+        assert.deepEqual(
+          mockSettingsHelper.set.getCall(0).args[0], [fakeValue]);
+    });
   });
 
   suite('initPreferredNetworkType', function() {
@@ -199,7 +208,8 @@ suite('system/TelephonySettings', function() {
       stub = this.sinon.stub(fakeConnections[0], 'setPreferredNetworkType')
         .returns(reqResponse);
 
-      subject = new TelephonySettings();
+      subject = BaseModule.instantiate('TelephonySettings',
+        { mobileConnections: fakeConnections });
       stubFunctions(subject, 'initPreferredNetworkType');
     });
 

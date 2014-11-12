@@ -42,6 +42,9 @@
   "02": [
     {"carrier":"Tele2 GPRS","apn":"internet.tele2.nl","mmsc":"http://mmsc.tele2.nl","mmsproxy":"193.12.40.64","mmsport":"8080","type":["default","supl","mms"]}
   ],
+  "03": [
+    {"carrier":"MVNO NL","apn":"internet.mvno.mobi","type":["default","supl"],"mvno_match_data":"20403","mvno_type":"imsi"}
+  ],
   "04": [
     {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"],"mvno_match_data":"204043914","mvno_type":"imsi"},
     {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"],"mvno_match_data":"20404794","mvno_type":"imsi"},
@@ -51,6 +54,7 @@
   "08": [
     {"carrier":"KPN/Hi 4G LTE Mobiel internet","apn":"KPN4G.nl","mmsc":"http://mp.mobiel.kpn/mmsc","mmsproxy":"10.10.100.20","mmsport":"5080","type":["default","supl","mms"]},
     {"carrier":"KPN/Hi Mobiel Internet","apn":"portalmmm.nl","mmsc":"http://mp.mobiel.kpn/mmsc","mmsproxy":"10.10.100.20","mmsport":"5080","type":["default","supl","mms"]},
+    {"carrier":"MVNO NL","apn":"internet.mvno.mobi","type":["default","supl"],"mvno_match_data":"204080950","mvno_type":"imsi"},
     {"carrier":"Rabo Mobiel Int.","apn":"rabo","type":["default","supl"],"mvno_match_data":"Rabo Mobiel","mvno_type":"spn"},
     {"carrier":"Rabo Mobiel MMS","apn":"rabo","mmsc":"http://mp.mobiel.kpn/mmsc","mmsproxy":"10.10.100.10","mmsport":"5080","type":["mms"],"mvno_match_data":"Rabo Mobiel","mvno_type":"spn"}
   ]
@@ -808,7 +812,10 @@
   "07": [
     {"carrier":"o2 Internet","apn":"internet","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.5","mmsport":"8080","type":["default","supl","mms"],"mvno_match_data":"2620739","mvno_type":"imsi"},
     {"voicemail":"333","enableStrict7BitEncodingForSms":true,"operatorSizeLimitation":614400,"type":["operatorvariant"]},
-    {"carrier":"o2 Internet Prepaid","apn":"pinternet.interkom.de","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.6","mmsport":"8080","type":["default","supl","mms"],"mvno_match_data":"2620749","mvno_type":"imsi"}
+    {"carrier":"o2 Internet Prepaid","apn":"pinternet.interkom.de","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.6","mmsport":"8080","type":["default","supl","mms"],"mvno_match_data":"2620749","mvno_type":"imsi"},
+    {"carrier":"Fonic Prepaid","apn":"pinternet.interkom.de","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.6","mmsport":"8080","type":["default","supl","mms"],"mvno_match_data":"26207515","mvno_type":"imsi"},
+    {"carrier":"Lidl Mobile","apn":"pinternet.interkom.de","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.6","mmsport":"8080","type":["default","supl","mms"],"mvno_match_data":"26207520","mvno_type":"imsi"},
+    {"carrier":"Tchibo Internet","apn":"webmobil1","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.8","mmsport":"8080","type":["default","supl","mms"],"mvno_match_data":"26207500","mvno_type":"imsi"}
   ]
 },
 "268": {
@@ -4509,7 +4516,7 @@
     {"carrier":"Personal MMS","apn":"mms","user":"mms","password":"mms","mmsproxy":"172.25.7.31","mmsport":"8080","mmsc":"http://mms.personal.com","authtype":"1","type":["mms"]}
   ],
   "07": [
-    {"carrier":"Movistar WAP","apn":"wap.gprs.unifon.com.ar","user":"wap","password":"wap","proxy":"200.5.68.10","port":"8080","authtype":"1","type":["default","supl","dun"]},
+    {"carrier":"Movistar WAP","apn":"wap.gprs.unifon.com.ar","user":"wap","password":"wap","authtype":"1","type":["default","supl","dun"]},
     {"voicemail":"555","enableStrict7BitEncodingForSms":true,"operatorSizeLimitation":614400,"type":["operatorvariant"]},
     {"carrier":"Movistar MMS","apn":"mms.gprs.unifon.com.ar","user":"mms","password":"mms","mmsproxy":"200.68.32.239","mmsport":"8080","mmsc":"http://mms.movistar.com.ar","authtype":"1","type":["mms"]}
   ]

@@ -24,13 +24,17 @@
  *    init(keyboard):
  *      Keyboard is the object that the IM uses to communicate with the keyboard
  *
- *    activate(language, suggestionsEnabled, inputstate):
+ *    activate(language, inputData, options):
  *      The keyboard calls this method when it becomes active.
- *      language is the current language.  suggestionsEnabled
- *      specifies whether the user wants word suggestions inputstate
- *      is an object that holds the state of the input field or
- *      textarea being typed into.  it includes content, cursor
- *      position and type and inputmode attributes.
+ *      language is the current language. inputData is an object
+ *      that holds the infomation of the input field or textarea
+ *      being typed into. it includes type, inputmode, value,
+ *      inputContext and selectionStart, selectionEnd attributes.
+ *      options is also an object, it includes suggest, correct,
+ *      layoutName attributes. suggest specifies whether the user
+ *      wants word suggestions and correct specifies whether auto
+ *      correct user's spelling mistakes, and layoutName is used
+ *      for handwriting input methods only.
  *
  *    deactivate():
  *      Called when the keyboard is hidden.
@@ -60,6 +64,10 @@
  *    getMoreCandidates(indicator, maxCount, callback):
  *      (optional) Called when the render needs more candidates to show on the
  *      candidate panel.
+ *
+ *    sendStrokePoints(strokePoints):
+ *      (optional) Send stroke points to handwriting input method engine.
+ *      Only handwrting input methods use it.
  *
  * The init method of each IM is passed an object that it uses to
  * communicate with the keyboard. That interface object defines the following
@@ -363,8 +371,6 @@ InputMethodManager.prototype.start = function() {
   });
 
   this.currentIMEngine = this.loader.getInputMethod('default');
-
-  this._switchStateId = 0;
   this._inputContextData = null;
 };
 
@@ -377,7 +383,7 @@ InputMethodManager.prototype.start = function() {
 InputMethodManager.prototype.updateInputContextData = function() {
   this.app.console.log('InputMethodManager.updateInputContextData()');
   // Do nothing if there is already a promise or there is no inputContext
-  if (!this.app.inputContext || this._inputContextData) {
+  if (!this.app.inputContext) {
     return;
   }
 
@@ -427,15 +433,8 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
   this.app.console.log(
     'InputMethodManager.switchCurrentIMEngine()', imEngineName);
 
-  var switchStateId = ++this._switchStateId;
-  this.app.console.time('switchCurrentIMEngine' + switchStateId);
-
   // dataPromise is the one we previously created with updateInputContextData()
   var dataPromise = this._inputContextData;
-
-  // Unset the used promise so it will get filled when
-  // updateInputContextData() is called.
-  this._inputContextData = null;
 
   if (!dataPromise && imEngineName !== 'default') {
     console.warn('InputMethodManager: switchCurrentIMEngine() called ' +
@@ -461,18 +460,13 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
 
   var p = Promise.all([loaderPromise, dataPromise, settingsPromise])
   .then(function(values) {
-    if (switchStateId !== this._switchStateId) {
-      console.warn('InputMethodManager: ' +
-        'Promise is resolved after another switchCurrentIMEngine() call.');
-
-      return Promise.reject();
-    }
-
     var imEngine = values[0];
     if (typeof imEngine.activate === 'function') {
       var dataValues = values[1];
       var settingsValues = values[2];
       var currentPage = this.app.layoutManager.currentPage;
+      var lang = this.app.layoutManager.currentPage.autoCorrectLanguage ||
+                 this.app.layoutManager.currentPage.handwritingLanguage;
       var correctPunctuation =
         'autoCorrectPunctuation' in currentPage ?
           currentPage.autoCorrectPunctuation :
@@ -480,15 +474,11 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
 
       this.app.console.log(
         'InputMethodManager::currentIMEngine.activate()');
-      imEngine.activate(
-        this.app.layoutManager.currentPage.autoCorrectLanguage,
-        dataValues,
-        {
-          suggest: settingsValues.suggestionsEnabled,
-          correct: settingsValues.correctionsEnabled,
-          correctPunctuation: correctPunctuation
-        }
-      );
+      imEngine.activate(lang, dataValues, {
+        suggest: settingsValues.suggestionsEnabled,
+        correct: settingsValues.correctionsEnabled,
+        correctPunctuation: correctPunctuation
+      });
     }
 
     if (typeof imEngine.selectionChange === 'function') {
@@ -499,7 +489,10 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
       this.app.inputContext.addEventListener('surroundingtextchange', this);
     }
     this.currentIMEngine = imEngine;
-    this.app.console.timeEnd('switchCurrentIMEngine' + switchStateId);
+
+    // Unset the used promise so it will get filled when
+    // updateInputContextData() is called.
+    this._inputContextData = null;
   }.bind(this));
 
   return p;

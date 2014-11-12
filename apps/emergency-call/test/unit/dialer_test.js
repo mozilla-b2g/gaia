@@ -1,24 +1,31 @@
 'use strict';
 
 /* global CallHandler, KeypadManager, MockNavigatorMozTelephony, MocksHelper,
-          Promise, MockICEContacts, MockSimSettingsHelper, MockSimPicker */
+          Promise, MockICEContacts, MockSimSettingsHelper, CustomElementsHelper
+*/
+
 require('/test/unit/mock_keypad.js');
 require('/test/unit/mock_ice_contacts.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
-require('/shared/test/unit/mocks/mock_sim_picker.js');
+require(
+  '/shared/test/unit/mocks/elements/gaia_sim_picker/mock_gaia_sim_picker.js');
 
 require('/js/dialer.js');
 
 var mocksHelperForDialer = new MocksHelper([
+  'GaiaSimPicker',
   'KeypadManager',
   'ICEContacts',
   'LazyLoader',
-  'SimSettingsHelper',
-  'SimPicker'
+  'SimSettingsHelper'
 ]).init();
+
+var customElementsForDialer = new CustomElementsHelper([
+  'GaiaSimPicker'
+]);
 
 suite('Emergency Dialer', function() {
   var realMozTelephony;
@@ -26,6 +33,8 @@ suite('Emergency Dialer', function() {
   var num = '123';
   var mockCall;
   var mockPromise;
+
+  var simPicker;
 
   mocksHelperForDialer.attachTestHelpers();
 
@@ -38,6 +47,17 @@ suite('Emergency Dialer', function() {
 
   suiteTeardown(function() {
     navigator.mozTelephony = realMozTelephony;
+  });
+
+  setup(function() {
+    simPicker = document.createElement('gaia-sim-picker');
+    simPicker.id = 'sim-picker';
+    document.body.appendChild(simPicker);
+    customElementsForDialer.resolve();
+  });
+
+  teardown(function() {
+    document.body.removeChild(simPicker);
   });
 
   suite('> Telephony API', function() {
@@ -96,13 +116,13 @@ suite('Emergency Dialer', function() {
     function() {
       MockSimSettingsHelper._defaultCards.outgoingCall =
         MockSimSettingsHelper.ALWAYS_ASK_OPTION_VALUE;
-      this.sinon.stub(MockSimPicker, 'getOrPick');
+      this.sinon.stub(simPicker, 'getOrPick');
       MockICEContacts.isFromICEContact.returns(true);
 
       CallHandler.call(num);
-      MockSimPicker.getOrPick.yield(0);
+      simPicker.getOrPick.yield(0);
       sinon.assert.calledWith(navigator.mozTelephony.dial, num);
-      sinon.assert.calledWith(MockSimPicker.getOrPick,
+      sinon.assert.calledWith(simPicker.getOrPick,
                               MockSimSettingsHelper.ALWAYS_ASK_OPTION_VALUE,
                               num);
     });
@@ -127,11 +147,11 @@ suite('Emergency Dialer', function() {
     test('> SimPicker NOT called when Emergency number is dialed',
     function() {
       MockICEContacts.isFromICEContact.returns(false);
-      this.sinon.spy(MockSimPicker, 'getOrPick');
+      this.sinon.spy(simPicker, 'getOrPick');
 
       CallHandler.call(num);
       sinon.assert.calledOnce(navigator.mozTelephony.dialEmergency);
-      sinon.assert.notCalled(MockSimPicker.getOrPick);
+      sinon.assert.notCalled(simPicker.getOrPick);
     });
   });
 });

@@ -25,7 +25,8 @@ Search.Selectors = {
   firstPlace: '#places div .title',
   firstPlaceContainer: '#places',
   firstRunConfirm: '#suggestions-notice-confirm',
-  topSites: '.top-site'
+  topSites: '.top-site',
+  historyResults: '#history .result'
 };
 
 Search.prototype = {
@@ -53,6 +54,10 @@ Search.prototype = {
   getResult: function(identifier) {
     var selector = '.icon[data-identifier="' + identifier + '"]';
     return this.client.findElements(selector);
+  },
+
+  getHistoryResults: function() {
+    return this.client.findElements(Search.Selectors.historyResults);
   },
 
   getTopSites: function() {
@@ -92,11 +97,13 @@ Search.prototype = {
    * trigger this notice and confirm it.
    */
   triggerFirstRun: function(rocketbar) {
-    rocketbar.enterText('abc');
+    rocketbar.enterText('a');
     this.goToResults();
-    this.client.helper
-      .waitForElement(Search.Selectors.firstRunConfirm)
-      .click();
+
+    this.client.executeScript(function() {
+      window.wrappedJSObject.Search.toShowNotice = false;
+    });
+
     this.client.switchToFrame();
     rocketbar.enterText('');
   },

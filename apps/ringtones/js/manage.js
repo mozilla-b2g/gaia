@@ -66,7 +66,9 @@ navigator.mozSetMessageHandler('activity', function(activity) {
     var item = ToneList.prototype.makeItem.call(this, tone);
 
     item.querySelector('.desc').addEventListener('click', function() {
-      tonePlayer.setTone(tone);
+      tonePlayer.setTone(tone, function(playing) {
+        item.dataset.playing = playing;
+      });
     });
 
     var self = this;

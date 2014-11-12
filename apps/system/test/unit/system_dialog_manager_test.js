@@ -42,7 +42,48 @@ suite('system/SystemDialogManager', function() {
   });
 
   teardown(function() {
+    window.systemDialogManager.states.activeDialog = null;
     stubById.restore();
+  });
+
+  suite('Hierarchy functions', function() {
+    test('setHierarchy', function() {
+      this.sinon.stub(dialogFake, '_setVisibleForScreenReader');
+      this.sinon.stub(dialogFake, 'focus');
+      window.systemDialogManager.activateDialog(dialogFake);
+      window.systemDialogManager.setHierarchy(true);
+      assert.isTrue(dialogFake._setVisibleForScreenReader.calledWith(true));
+      assert.isTrue(dialogFake.focus.called);
+
+      window.systemDialogManager.setHierarchy(false);
+      assert.isTrue(dialogFake._setVisibleForScreenReader.calledWith(false));
+    });
+
+    test('Should be inactive', function() {
+      assert.isFalse(window.systemDialogManager.isActive());
+    });
+
+    test('Should be active', function() {
+      window.systemDialogManager.states.activeDialog = dialogFake;
+      assert.isTrue(window.systemDialogManager.isActive());
+    });
+
+    test('Should publish activated when activateDialog is called',
+      function() {
+        this.sinon.stub(window.systemDialogManager, 'publish');
+        window.systemDialogManager.activateDialog(dialogFake);
+        assert.isTrue(
+          window.systemDialogManager.publish.calledWith('-activated'));
+      });
+
+    test('Should publish deactivated when deactivateDialog is called',
+      function() {
+        window.systemDialogManager.activateDialog(dialogFake);
+        this.sinon.stub(window.systemDialogManager, 'publish');
+        window.systemDialogManager.deactivateDialog(dialogFake);
+        assert.isTrue(
+          window.systemDialogManager.publish.calledWith('-deactivated'));
+      });
   });
 
   suite('Handle events', function() {

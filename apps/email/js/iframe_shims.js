@@ -1,6 +1,3 @@
-/*jshint browser: true */
-/*global console, define */
-
 define(['shared/js/gesture_detector'], function() {
 
 'use strict';
@@ -349,19 +346,18 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
   iframe.contentDocument.write(htmlStr);
   iframe.contentDocument.write('</body>');
   iframe.contentDocument.close();
-  var iframeHtml = iframe.contentDocument.documentElement;
   var iframeBody = iframe.contentDocument.body;
 
   // NOTE.  This has gone through some historical iterations here AKA is
   // evolved.  Technically, getBoundingClientRect() may be superior since it can
-  // have fractional parts.  I believe I tried using it with iframeHtml and it
-  // ended up betraying me by reporting clientWidth/clientHeight instead of
-  // scrollWidth, whereas scrollWidth/scrollHeight worked better.  However I was
-  // trying a lot of things; I might just have been confused by some APZ
-  // glitches where panning right would not work immediately after zooming and
-  // you'd have to pan left first in order to pan all the way to the newly
-  // expaned right.  What we know right now is this gives the desired behaviour
-  // sizing behaviour.
+  // have fractional parts.  I believe I tried using it with
+  // iframe.contentDocument.documentElement and it ended up betraying me by
+  // reporting clientWidth/clientHeight instead of scrollWidth, whereas
+  // scrollWidth/scrollHeight worked better.  However I was trying a lot of
+  // things; I might just have been confused by some APZ glitches where panning
+  // right would not work immediately after zooming and you'd have to pan left
+  // first in order to pan all the way to the newly expaned right.  What we know
+  // right now is this gives the desired behaviour sizing behaviour.
   var scrollWidth = iframeBody.scrollWidth;
   var scrollHeight = iframeBody.scrollHeight;
 
@@ -418,8 +414,9 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
     // There is nothing to do if we are actually already at this scale level.
     // (Note that there still is something to do if newScale ===
     //  lastRequestedScale, though!)
-    if (newScale === scale)
+    if (newScale === scale) {
       return;
+    }
     lastRequestedScale = newScale;
     lastCenterX = centerX;
     lastCenterY = centerY;
@@ -654,7 +651,7 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
   var root, title, header, attachmentsContainer, msgBodyContainer,
       titleHeight, headerHeight, attachmentsHeight,
       msgBodyMarginTop, msgBodyMarginLeft, attachmentsMarginTop,
-      iframeDoc, inputStyle;
+      iframeDoc, inputStyle, loadBar, loadBarHeight;
   // Tap gesture event for HTML type mail and click event for plain text mail
   if (iframe) {
     root = document.getElementsByClassName('scrollregion-horizontal-too')[0];
@@ -662,6 +659,7 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
     header = document.getElementsByClassName('msg-envelope-bar')[0];
     attachmentsContainer =
       document.getElementsByClassName('msg-attachments-container')[0];
+    loadBar = document.getElementsByClassName('msg-reader-load-infobar')[0];
     msgBodyContainer = document.getElementsByClassName('msg-body-container')[0];
     inputStyle = window.getComputedStyle(msgBodyContainer);
     msgBodyMarginTop = parseInt(inputStyle.marginTop);
@@ -677,6 +675,11 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
     eventType,
     function clicked(event) {
       if (iframe) {
+        // Because the "show (external) images" loadBar could be opened or
+        // closed depending on what the user does relative to this click, get
+        // the client height at the time of click.
+        loadBarHeight = loadBar.clientHeight;
+
         // Because the attachments are updating late,
         // get the client height while clicking iframe.
         attachmentsHeight = attachmentsContainer.clientHeight;
@@ -688,7 +691,7 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
         var scale = transform.match(/(\d|\.)+/g)[0];
         dx = event.detail.clientX + root.scrollLeft - msgBodyMarginLeft;
         dy = event.detail.clientY + root.scrollTop -
-             titleHeight - headerHeight -
+             titleHeight - headerHeight - loadBarHeight -
              attachmentsHeight - attachmentsMarginTop - msgBodyMarginTop;
         node = iframeDoc.elementFromPoint(dx / scale, dy / scale);
       } else {

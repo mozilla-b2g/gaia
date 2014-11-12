@@ -5,16 +5,17 @@
          SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         VisibilityManager, UsbStorage, InternetSharing, TaskManager,
-         TelephonySettings, SuspendingAppPriorityManager, TTLView,
+         VisibilityManager, UsbStorage, TaskManager,
+         SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
-         TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
+         SoftwareButtonManager, Accessibility, NfcUtils,
+         TextSelectionDialog, SleepMenu, AppUsageMetrics,
          LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor,
-         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
-         CellBroadcastSystem, EdgeSwipeDetector, QuickSettings */
+         BrowserSettings, AppMigrator, SettingsMigrator,
+         CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
+         BatteryOverlay, BaseModule, AppWindowManager */
 'use strict';
 
 
@@ -40,8 +41,12 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
+    window.appWindowManager = new AppWindowManager();
+
+    /** @global */
     window.activityWindowManager = new ActivityWindowManager();
     window.activityWindowManager.start();
+
     /** @global */
     window.secureWindowManager = window.secureWindowManager ||
       new SecureWindowManager();
@@ -59,12 +64,9 @@ window.addEventListener('load', function startup() {
     window.lockScreenWindowManager = new window.LockScreenWindowManager();
     window.lockScreenWindowManager.start();
 
-    // To initilaize it after LockScreenWindowManager to block home button
-    // when the screen is locked.
-    window.AppWindowManager.init();
-
-    window.homescreenWindowManager = new HomescreenWindowManager();
-    window.homescreenWindowManager.start();
+    // Let systemDialogManager handle inputmethod-contextchange event before
+    // starting appWindowManager. See bug 1082741.
+    window.appWindowManager.start();
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
@@ -116,7 +118,13 @@ window.addEventListener('load', function startup() {
   window.addEventListener('ftuskip', doneWithFTU);
 
   Shortcuts.init();
+
   ScreenManager.turnScreenOn();
+
+  // To make sure homescreen window manager can intercept webapps-launch event,
+  // we need to move the code here.
+  window.homescreenWindowManager = new HomescreenWindowManager();
+  window.homescreenWindowManager.start();
 
   // Please sort it alphabetically
   window.activities = new Activities();
@@ -128,8 +136,12 @@ window.addEventListener('load', function startup() {
   window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
   window.appWindowFactory.start();
+  window.batteryOverlay = new BatteryOverlay();
+  window.batteryOverlay.start();
   window.cellBroadcastSystem = new CellBroadcastSystem();
   window.cellBroadcastSystem.start();
+  window.cpuManager = new CpuManager();
+  window.cpuManager.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
   /** @global */
@@ -139,8 +151,6 @@ window.addEventListener('load', function startup() {
   window.dialerAgent.start();
   window.edgeSwipeDetector = new EdgeSwipeDetector();
   window.edgeSwipeDetector.start();
-  window.euRoamingManager = new EuRoamingManager();
-  window.euRoamingManager.start();
   window.externalStorageMonitor = new ExternalStorageMonitor();
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
@@ -151,8 +161,6 @@ window.addEventListener('load', function startup() {
     // here.
     window.homescreenLauncher = new HomescreenLauncher();
   }
-  window.internetSharing = new InternetSharing();
-  window.internetSharing.start();
   window.lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
   window.lockScreenPasscodeValidator.start();
   window.layoutManager = new LayoutManager();
@@ -166,8 +174,6 @@ window.addEventListener('load', function startup() {
   window.places.start();
   window.remoteDebugger = new RemoteDebugger();
   window.rocketbar = new Rocketbar();
-  window.shrinkingUI = new ShrinkingUI();
-  window.shrinkingUI.start();
   window.sleepMenu = new SleepMenu();
   window.sleepMenu.start();
   window.softwareButtonManager = new SoftwareButtonManager();
@@ -175,8 +181,6 @@ window.addEventListener('load', function startup() {
   window.sourceView = new SourceView();
   window.taskManager = new TaskManager();
   window.taskManager.start();
-  window.telephonySettings = new TelephonySettings();
-  window.telephonySettings.start();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager();
   window.visibilityManager.start();
@@ -207,6 +211,12 @@ window.addEventListener('load', function startup() {
       { bubbles: true, cancelable: false,
         detail: { type: 'system-message-listener-ready' } });
   window.dispatchEvent(evt);
+
+
+  window.mozPerformance.timing.mozSystemLoadEnd = Date.now();
+
+  window.core = BaseModule.instantiate('Core');
+  window.core && window.core.start();
 });
 
 window.usbStorage = new UsbStorage();

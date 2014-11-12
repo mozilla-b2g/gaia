@@ -39,7 +39,7 @@
      * on first use
      */
     suggestionNotice: document.getElementById('suggestions-notice-wrapper'),
-    toShowNotice: true,
+    toShowNotice: null,
     NOTICE_KEY: 'notice-shown',
 
     init: function() {
@@ -107,7 +107,10 @@
     resize: function() {
       var grid = document.getElementById('icons');
       if (grid && grid.render) {
-        grid.render({rerender: true});
+        grid.render({
+          rerender: true,
+          skipDivider: true
+        });
       }
     },
 
@@ -185,7 +188,9 @@
       confirm.addEventListener('click', this.discardNotice.bind(this, true));
 
       asyncStorage.getItem(this.NOTICE_KEY, function(value) {
-        this.toShowNotice = !value;
+        if (this.toShowNotice === null) {
+          this.toShowNotice = !value;
+        }
       }.bind(this));
     },
 

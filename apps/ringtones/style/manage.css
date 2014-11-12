@@ -56,6 +56,21 @@ li {
   content: '';
 }
 
+li .play-icon {
+  display: none;
+  float: right;
+  width: 2.4rem;
+  height: 6rem;
+  background: url("images/now_playing.png") no-repeat center center / 2.4rem;
+  /* We already have a 1rem right margin on the parent node, so we only need to
+     add 0.5rem here. */
+  margin: 0 0.5rem 0 1.5rem;
+}
+
+li[data-playing="true"] .play-icon {
+  display: block;
+}
+
 [data-type="list"] aside.pack-end {
   margin-right: -1.5rem;
   padding-left: 0.1rem;

@@ -28,6 +28,7 @@ class TestGalleryCropPhoto(GaiaTestCase):
         edit_image.tap_edit_crop_button()
         # portrait crop is 2:3 and will retain the image's height
         edit_image.tap_portrait_crop()
+        edit_image.tap_edit_tool_apply_button()
 
         gallery = edit_image.tap_edit_save_button()
         gallery.wait_for_files_to_load(2)

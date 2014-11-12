@@ -4,6 +4,7 @@
     "define",
     "require",
     "Settings",
+    "TextEncoder",
     "Promise"
   ]
 }

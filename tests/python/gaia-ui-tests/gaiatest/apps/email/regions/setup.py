@@ -8,14 +8,14 @@ from gaiatest.apps.base import Base
 
 class SetupEmail(Base):
 
-    _name_locator = (By.CSS_SELECTOR, 'section.card-setup-account-info input.sup-info-name')
-    _email_locator = (By.CSS_SELECTOR, 'section.card-setup-account-info input.sup-info-email')
+    _name_locator = (By.CSS_SELECTOR, 'cards-setup-account-info input.sup-info-name')
+    _email_locator = (By.CSS_SELECTOR, 'cards-setup-account-info input.sup-info-email')
     _next_locator = (By.CSS_SELECTOR, '.sup-info-next-btn')
     _continue_button_locator = ('class name', 'sup-show-mail-btn sup-form-btn recommend')
     _check_for_new_messages_locator = (By.CSS_SELECTOR, '.tng-account-check-interval.mail-select')
-    _account_prefs_section_locator = (By.CSS_SELECTOR, 'section.card-setup-account-prefs')
-    _account_prefs_next_locator = (By.CSS_SELECTOR, '.card-setup-account-prefs .sup-info-next-btn')
-    _done_section_locator = (By.CSS_SELECTOR, 'section.card-setup-done')
+    _account_prefs_section_locator = (By.CSS_SELECTOR, 'cards-setup-account-prefs section')
+    _account_prefs_next_locator = (By.CSS_SELECTOR, 'cards-setup-account-prefs .sup-info-next-btn')
+    _done_section_locator = (By.CSS_SELECTOR, 'cards-setup-done section')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -45,32 +45,32 @@ class ManualSetupEmail(Base):
 
     name = 'E-Mail'  # hack to be able to use select
 
-    _name_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config input.sup-info-name')
-    _email_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config input.sup-info-email')
-    _password_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config input.sup-info-password')
+    _name_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config input.sup-info-name')
+    _email_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config input.sup-info-email')
+    _password_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config input.sup-info-password')
 
-    _account_type_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-account-type')
+    _account_type_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-account-type')
 
-    _imap_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-username')
-    _imap_password_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-password')
-    _imap_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-hostname')
-    _imap_port_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-port')
+    _imap_username_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-composite-username')
+    _imap_password_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-composite-password')
+    _imap_hostname_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-composite-hostname')
+    _imap_port_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-composite-port')
 
-    _smtp_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-username')
-    _smtp_password_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-password')
-    _smtp_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-hostname')
-    _smtp_port_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-port')
+    _smtp_username_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-smtp-username')
+    _smtp_password_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-smtp-password')
+    _smtp_hostname_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-smtp-hostname')
+    _smtp_port_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-smtp-port')
 
-    _activesync_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-activesync-hostname')
-    _activesync_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-activesync-username')
+    _activesync_hostname_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-activesync-hostname')
+    _activesync_username_locator = (By.CSS_SELECTOR, 'cards-setup-manual-config .sup-manual-activesync-username')
 
     _next_locator = (By.CSS_SELECTOR, '.sup-manual-next-btn')
     _continue_button_locator = (By.CLASS_NAME, 'sup-show-mail-btn sup-form-btn recommend')
 
     _check_for_new_messages_locator = (By.CSS_SELECTOR, '.tng-account-check-interval.mail-select')
-    _account_prefs_section_locator = (By.CSS_SELECTOR, 'section.card-setup-account-prefs')
-    _account_prefs_next_locator = (By.CSS_SELECTOR, '.card-setup-account-prefs .sup-info-next-btn')
-    _done_section_locator = (By.CSS_SELECTOR, 'section.card-setup-done')
+    _account_prefs_section_locator = (By.CSS_SELECTOR, 'cards-setup-account-prefs')
+    _account_prefs_next_locator = (By.CSS_SELECTOR, 'cards-setup-account-prefs .sup-info-next-btn')
+    _done_section_locator = (By.CSS_SELECTOR, 'cards-setup-done section')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -96,8 +96,6 @@ class ManualSetupEmail(Base):
 
     def select_account_type(self, value):
         account_type = self.marionette.find_element(*self._account_type_locator)
-        # TODO: remove the explicit scroll once bug 833370 is fixed
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [account_type])
         account_type.click()
         self.select(value)
 
@@ -155,7 +153,6 @@ class ManualSetupEmail(Base):
 
     def tap_next(self):
         self.wait_for_condition(lambda m: m.find_element(*self._next_locator).get_attribute('disabled') != 'true')
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [self.marionette.find_element(*self._next_locator)])
         self.marionette.find_element(*self._next_locator).tap()
         self.wait_for_condition(lambda m: m.find_element(
             *self._account_prefs_section_locator).location['x'] == 0)

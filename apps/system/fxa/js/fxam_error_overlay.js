@@ -31,11 +31,15 @@ var FxaModuleErrorOverlay = {
     this.initialized = true;
   },
 
-  show: function fxam_error_overlay_show(title, message) {
+  show: function fxam_error_overlay_show(titleL10n, messageL10n) {
     this.init();
 
-    this.fxaErrorTitle.textContent = title || '';
-    this.fxaErrorMsg.innerHTML = message || '';
+    this.fxaErrorTitle.setAttribute('data-l10n-id', titleL10n);
+    if (typeof(messageL10n) === 'object') {
+      this.fxaErrorMsg.innerHTML = messageL10n.html;
+    } else {
+      this.fxaErrorMsg.setAttribute('data-l10n-id', messageL10n);
+    }
 
     this.fxaErrorOverlay.classList.add('show');
   },

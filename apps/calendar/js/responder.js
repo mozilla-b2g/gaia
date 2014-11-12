@@ -1,6 +1,6 @@
-//this code is from test-agent might use native dom events
-//or something else in the future to replace this.
-Calendar.Responder = (function() {
+// this code is from test-agent might use native dom events
+// or something else in the future to replace this.
+define(function(require, exports, module) {
 'use strict';
 
 /**
@@ -13,6 +13,7 @@ function Responder(events) {
     this.addEventListener(events);
   }
 }
+module.exports = Responder;
 
 /**
  * Stringifies request to websocket
@@ -196,7 +197,6 @@ Responder.prototype = {
 };
 
 Responder.prototype.on = Responder.prototype.addEventListener;
+Responder.prototype.off = Responder.prototype.removeEventListener;
 
-return Responder;
-
-}());
+});

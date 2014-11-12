@@ -5,7 +5,7 @@ var MockSimplePhoneMatcher;
 function MockSimplePhoneMatcherObj() {
 }
 
-MockSimplePhoneMatcherObj.prototype =  {
+MockSimplePhoneMatcherObj.prototype = {
   generateVariants: function(number) {
     return number;
   },
@@ -27,3 +27,11 @@ MockSimplePhoneMatcherObj.prototype =  {
 };
 
 MockSimplePhoneMatcher = new MockSimplePhoneMatcherObj();
+
+function MockSimplePhoneMatcherBestMatches() {
+}
+
+MockSimplePhoneMatcherBestMatches.prototype = {
+  totalMatchNum: 1,
+  allMatches: [[0]]
+};

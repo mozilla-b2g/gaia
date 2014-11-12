@@ -2,10 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import Wait
 from marionette.by import By
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
+import urllib
 
 
 class SearchPanel(Base):
@@ -14,10 +16,27 @@ class SearchPanel(Base):
     _search_results_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
     _search_suggestion_ok_button_locator = (By.ID, 'suggestions-notice-confirm')
     _rocketbar_input_locator = (By.ID, 'rocketbar-input')
+    _search_results_offline_locator = (By.ID, 'offline-message')
+    _search_results_offline_settings_locator = (By.ID, 'settings-connectivity')
 
     def _switch_to_search_results_frame(self):
         self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.marionette.find_element(*self._search_results_app_frame_locator))
+
+    @property
+    def offline_search_message(self):
+        return self.marionette.find_element(*self._search_results_offline_locator).text
+
+    @property
+    def is_offline_message_visible(self):
+        return self.is_element_displayed(*self._search_results_offline_locator)
+
+    def tap_offline_settings_button(self):
+        self.marionette.find_element(*self._search_results_offline_settings_locator).tap()
+        from gaiatest.apps.settings.app import Settings
+        settings = Settings(self.marionette)
+        settings.switch_to_settings_app()
+        return settings
 
     def type_into_search_box(self, search_term):
         self.keyboard.send(search_term)
@@ -35,7 +54,7 @@ class SearchPanel(Base):
 
         self.wait_for_condition(lambda m: self.keyboard.is_keyboard_displayed)
         self.keyboard.tap_enter()
-        self.wait_for_condition(lambda m: url in self.apps.displayed_app.name)
+        Wait(self.marionette).until(lambda m: urllib.quote(url, safe=':/?=&~') in self.apps.displayed_app.name)
 
         from gaiatest.apps.search.regions.browser import Browser
         return Browser(self.marionette)

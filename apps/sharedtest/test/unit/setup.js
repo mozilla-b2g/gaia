@@ -1,4 +1,5 @@
 (function(window) {
+  'use strict';
 
   /* require most of the coupled / util objects */
 
@@ -20,5 +21,6 @@
 
   require('/shared/js/l10n_date.js');
   require('/shared/test/unit/mocks/mocks_helper.js');
+  require('/shared/test/unit/mocks/elements/custom_elements_helper.js');
 
 }(this));

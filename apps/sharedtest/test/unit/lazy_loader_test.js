@@ -1,7 +1,9 @@
+/* global LazyLoader */
+
+'use strict';
+
 require('/shared/js/lazy_loader.js');
 require('/shared/js/html_imports.js');
-
-mocha.setup({globals: ['jsCount', 'totalResult']});
 
 suite('lazy loader', function() {
 
@@ -11,9 +13,9 @@ suite('lazy loader', function() {
 
   function addNodeToLazyLoad() {
     document.body.innerHTML = [
-    "<div id='parent'>",
+    '<div id="parent">',
       '<!-- ',
-        "<div id='lazyload-me'>",
+        '<div id="lazyload-me">',
           'content',
         '</div>',
       '-->',
@@ -27,6 +29,11 @@ suite('lazy loader', function() {
 
   suiteTeardown(function() {
     delete window.jsCount;
+  });
+
+  var stub;
+  setup(function() {
+    stub = sinon.stub();
   });
 
   test('everything looks ok', function() {
@@ -76,37 +83,37 @@ suite('lazy loader', function() {
   });
 
   test('append single js script', function(done) {
-    LazyLoader.load('support/inc.js', function() {
+    LazyLoader.load('support/inc.js', stub).then(function() {
       assert.equal(window.jsCount, 1);
-      done();
-    });
+      sinon.assert.calledOnce(stub);
+    }).then(done, done);
   });
 
   test('append the same js script', function(done) {
-    LazyLoader.load('support/inc.js', function() {
+    LazyLoader.load('support/inc.js', stub).then(function() {
       assert.equal(window.jsCount, 1);
-      done();
-    });
+      sinon.assert.calledOnce(stub);
+    }).then(done, done);
   });
 
   test('append css script', function(done) {
     var numStyles = countStyles();
-    LazyLoader.load('support/styles.css', function() {
+    LazyLoader.load('support/styles.css', stub).then(function() {
       assert.equal(countStyles(), (numStyles + 1));
-      done();
-    });
+      sinon.assert.calledOnce(stub);
+    }).then(done, done);
   });
 
   test('lazyload HTML node', function(done) {
     addNodeToLazyLoad();
     var parent = document.getElementById('parent');
-    LazyLoader.load(parent, function() {
+    LazyLoader.load(parent, stub).then(function() {
       assert.equal(
         document.getElementById('lazyload-me').toString(),
         '[object HTMLDivElement]'
       );
-      done();
-    });
+      sinon.assert.calledOnce(stub);
+    }).then(done, done);
   });
 
   test('lazyload the same HTML node', function(done) {
@@ -114,39 +121,29 @@ suite('lazy loader', function() {
     var child = document.getElementById('lazyload-me');
 
     child.innerHTML = 'New Content';
-    LazyLoader.load(parent, function() {
+    LazyLoader.load(parent, stub).then(function() {
       assert.equal(child.innerHTML, 'New Content');
-      done();
-    });
+      sinon.assert.calledOnce(stub);
+    }).then(done, done);
   });
 
   test('append the same css script', function(done) {
     var numStyles = countStyles();
-    LazyLoader.load('support/styles.css', function() {
+    LazyLoader.load('support/styles.css', stub).then(function() {
       assert.equal(countStyles(), numStyles);
-      done();
-    });
+      sinon.assert.calledOnce(stub);
+    }).then(done, done);
   });
 
   test('Loaded callback is invoked correctly if node already exists on the DOM',
        function(done) {
-    var responses = 0;
-    LazyLoader.load(['support/long_load.js'], function() {
+    Promise.all([
+      LazyLoader.load(['support/long_load.js'], stub),
+      LazyLoader.load(['support/long_load.js'], stub)
+    ]).then(function() {
       assert.equal(window.totalResult, 10000);
-      responses++;
-      if (responses === 2) {
-        done();
-      }
-    });
-
-    LazyLoader.load(['support/long_load.js'], function() {
-      assert.equal(window.totalResult, 10000);
-
-      responses++;
-      if (responses === 2) {
-        done();
-      }
-    });
+      sinon.assert.calledTwice(stub);
+    }).then(done, done);
   });
 
   test('appending multiple nodes works', function(done) {
@@ -164,18 +161,18 @@ suite('lazy loader', function() {
     var parent = document.getElementById('parent');
 
     LazyLoader.load([
-        'support/styles.css',
-        'support/inc.js',
-        parent
-      ], function() {
+      'support/styles.css',
+      'support/inc.js',
+      parent
+    ], stub).then(function() {
       assert.equal(window.jsCount, 2);
       assert.equal(countStyles(), numStyles);
       assert.equal(
         document.getElementById('lazyload-me').toString(),
         '[object HTMLDivElement]'
       );
-      done();
-    });
+      sinon.assert.calledOnce(stub);
+    }).then(done, done);
   });
 
   test('populate web components', function(done) {
@@ -186,9 +183,9 @@ suite('lazy loader', function() {
 
     var wrapper = document.getElementById('wrapper');
 
-    LazyLoader.load(wrapper, function() {
+    LazyLoader.load(wrapper, stub).then(function() {
       assert.equal(wrapper.innerHTML, 'hello.');
-      done();
-    });
+      sinon.assert.calledOnce(stub);
+    }).then(done, done);
   });
 });

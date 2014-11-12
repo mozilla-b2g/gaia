@@ -6301,11 +6301,11 @@ window._proxyReplaceChild = Element.prototype.replaceChild;
             opts.coverage = typeof opts.coverage === "undefined" ? true : opts.coverage;
 
             if (opts.coverage) {
-                if (blanket.options("lazyload")) {
-                    _blanket.utils.lazyLoadCoverage();
-                }
-
                 _blanket._bindStartTestRunner(opts.bindEvent, function() {
+                    if (blanket.options("lazyload")) {
+                        _blanket.utils.lazyLoadCoverage();
+                    }
+
                     _blanket._loadSourceFiles(function() {
                         var allLoaded = function() {
                             return opts.condition ? opts.condition() : _blanket.requireFilesLoaded();
@@ -6695,9 +6695,10 @@ blanket.defaultReporter = function(coverage) {
     var newOptions = {},
         // http://stackoverflow.com/a/2954896
         toArray = Array.prototype.slice,
-        scripts = toArray.call(document.scripts);
+        scripts = toArray.call(document.scripts),
+        currentScript = document.currentScript || scripts[scripts.length - 1];
 
-    toArray.call(scripts[scripts.length - 1].attributes)
+    toArray.call(currentScript.attributes)
         .forEach(function(es) {
             if (es.nodeName === "data-cover-only") {
                 newOptions.filter = es.value;
@@ -7343,73 +7344,3 @@ blanket.defaultReporter = function(coverage) {
     })();
 
 })(blanket);
-
-(function() {
-
-    if (!mocha) {
-        throw new Exception("mocha library does not exist in global namespace!");
-    }
-
-    /*
-     * Mocha Events:
-     *
-     *   - `start`  execution started
-     *   - `end`  execution complete
-     *   - `suite`  (suite) test suite execution started
-     *   - `suite end`  (suite) all tests (and sub-suites) have finished
-     *   - `test`  (test) test execution started
-     *   - `test end`  (test) test completed
-     *   - `hook`  (hook) hook execution started
-     *   - `hook end`  (hook) hook complete
-     *   - `pass`  (test) test passed
-     *   - `fail`  (test, err) test failed
-     *
-     */
-
-    var OriginalReporter = mocha._reporter;
-
-    var BlanketReporter = function(runner) {
-        runner.on('start', function() {
-            blanket.setupCoverage();
-        });
-
-        runner.on('end', function() {
-            blanket.onTestsDone();
-        });
-
-        runner.on('suite', function() {
-            blanket.onModuleStart();
-        });
-
-        runner.on('test', function() {
-            blanket.onTestStart();
-        });
-
-        runner.on('test end', function(test) {
-            blanket.onTestDone(test.parent.tests.length, test.state === 'passed');
-        });
-
-        // NOTE: this is an instance of BlanketReporter
-        OriginalReporter.apply(this, arguments);
-    };
-
-    mocha.reporter(BlanketReporter);
-
-    var oldRun = mocha.run,
-        oldCallback = null;
-
-    mocha.run = function(finishCallback) {
-        oldCallback = finishCallback;
-        console.log("waiting for blanket...");
-    };
-
-    blanket.beforeStartTestRunner({
-        callback: function() {
-            if (!blanket.options("existingRequireJS")) {
-                oldRun(oldCallback);
-            }
-            mocha.run = oldRun;
-        }
-    });
-
-})();

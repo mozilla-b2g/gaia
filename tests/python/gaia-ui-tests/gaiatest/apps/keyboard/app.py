@@ -81,8 +81,8 @@ class Keyboard(Base):
     _space_key = '32'
 
     # keyboard app locators
-    _keyboards_locator = (By.ID, 'keyboards')
-    _keyboard_frame_locator = (By.CSS_SELECTOR, '#keyboards iframe:not([hidden])')
+    _keyboard_active_frame_locator = (By.CSS_SELECTOR, '#keyboards .inputWindow.active iframe')
+    _input_window_locator = (By.CSS_SELECTOR, '#keyboards .inputWindow')
     _button_locator = (By.CSS_SELECTOR, '.keyboard-type-container[data-active] button.keyboard-key[data-keycode="%s"], .keyboard-type-container[data-active] button.keyboard-key[data-keycode-upper="%s"]')
     _highlight_key_locator = (By.CSS_SELECTOR, '#keyboard-accent-char-menu button')
     _predicted_word_locator = (By.CSS_SELECTOR, '.autocorrect')
@@ -101,6 +101,7 @@ class Keyboard(Base):
     def _switch_to_correct_layout(self, val):
         layout_page = self._layout_page
         current_input_type = self._current_input_type
+        current_input_mode = self._current_input_mode
         if val.isspace():
             # Space is available on every keyboard panel
             pass
@@ -119,7 +120,7 @@ class Keyboard(Base):
         else:
             # If it's not space or alpha then it must be in Alternate or Symbol.
             # It can't be in Basic so let's go into Alternate and then try to find it
-            if not current_input_type == 'number' and layout_page == 0:
+            if layout_page == 0 and not current_input_type == 'number' and not current_input_mode == 'numeric':
                 self._tap_page_switching_key(1)
                 page_0_key_locator = (self._page_switching_key_locator[0], self._page_switching_key_locator[1] % (0))
                 self.wait_for_element_displayed(*page_0_key_locator)
@@ -152,22 +153,27 @@ class Keyboard(Base):
     def _layout_page(self):
         return self.marionette.execute_script('return window.wrappedJSObject.app.layoutManager.currentPageIndex;')
 
+    @property
+    def _current_input_mode(self):
+        return self.marionette.execute_script('return window.wrappedJSObject.app.inputContext.inputMode;')
+
     # this is to switch to the frame of keyboard
     def switch_to_keyboard(self):
         self.marionette.switch_to_frame()
-        keyboards = self.marionette.find_element(*self._keyboards_locator)
-        self.wait_for_condition(lambda m: 'hide' not in keyboards.get_attribute('class') and \
-            keyboards.location['y'] == 0,
-            message="Keyboard not interpreted as displayed. Debug is_displayed(): %s"
-                %keyboards.is_displayed())
+        input_window = self.marionette.find_element(*self._input_window_locator)
 
-        keybframe = self.marionette.find_element(*self._keyboard_frame_locator)
+        self.wait_for_condition(lambda m: 'active' in input_window.get_attribute('class') and \
+            (input_window.location['y'] == 0),
+            message="Keyboard inputWindow not interpreted as displayed. Debug is_displayed(): %s, class: %s."
+                    %(input_window.is_displayed(), input_window.get_attribute('class')))
+
+        keybframe = self.marionette.find_element(*self._keyboard_active_frame_locator)
         return self.marionette.switch_to_frame(keybframe, focus=False)
 
     @property
     def current_keyboard(self):
         self.marionette.switch_to_frame()
-        keyboard = self.marionette.find_element(*self._keyboard_frame_locator).get_attribute('data-frame-name')
+        keyboard = self.marionette.find_element(*self._keyboard_active_frame_locator).get_attribute('data-frame-name')
         return keyboard
 
     # this is to get the locator of desired key on keyboard
@@ -249,6 +255,10 @@ class Keyboard(Base):
                 self._switch_to_correct_layout(val)
                 self._tap(val)
 
+                # when we tap on '@' the layout switches to the default keyboard - Bug 996332
+                if val == '@':
+                    self.wait_for_condition(lambda m: self._layout_page == 0)
+
         self.apps.switch_to_displayed_app()
 
     # Switch keyboard language
@@ -324,13 +334,13 @@ class Keyboard(Base):
         self.marionette.execute_script("""
 var keyboard = navigator.mozKeyboard || navigator.mozInputMethod;
 keyboard.removeFocus();""")
-        keyboards = self.marionette.find_element(*self._keyboards_locator)
+        input_window = self.marionette.find_element(*self._input_window_locator)
         Wait(self.marionette).until(
-            lambda m: 'hide' in keyboards.get_attribute('class') and
-            not keyboards.is_displayed() and
-            int(keyboards.location['y']) == int(keyboards.size['height']),
+            lambda m: 'active' not in input_window.get_attribute('class') and
+            not input_window.is_displayed() and
+            (int(input_window.location['y']) == int(input_window.size['height'])),
             message="Keyboard was not dismissed. Debug is_displayed(): %s, class: %s."
-                    %(keyboards.is_displayed(), keyboards.get_attribute('class')))
+                    %(input_window.is_displayed(), input_window.get_attribute('class')))
         self.apps.switch_to_displayed_app()
 
     def tap_first_predictive_word(self):
@@ -419,4 +429,4 @@ keyboard.removeFocus();""")
 
     @property
     def is_keyboard_displayed(self):
-        return 'hide' not in self.marionette.find_element(*self._keyboards_locator).get_attribute('class')
+        return 'active' in self.marionette.find_element(*self._input_window_locator).get_attribute('class')

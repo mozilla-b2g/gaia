@@ -1,21 +1,15 @@
-/* global CallForwarding, asyncStorage, SIMSlotManager, SettingsHelper */
+/* global BaseModule, asyncStorage, SIMSlotManager, SettingsHelper */
 'use strict';
 
-(function(exports) {
-  if (!window.navigator.mozSettings) {
-    return;
-  }
-
-  if (!window.navigator.mozMobileConnections) {
-    return;
-  }
-
+(function() {
   // Must be in sync with nsIDOMMozMobileCFInfo interface.
   var _cfReason = {
     CALL_FORWARD_REASON_UNCONDITIONAL: 0,
     CALL_FORWARD_REASON_MOBILE_BUSY: 1,
     CALL_FORWARD_REASON_NO_REPLY: 2,
-    CALL_FORWARD_REASON_NOT_REACHABLE: 3
+    CALL_FORWARD_REASON_NOT_REACHABLE: 3,
+    CALL_FORWARD_REASON_ALL_CALL_FORWARDING: 4,
+    CALL_FORWARD_REASON_ALL_CONDITIONAL_CALL_FORWARDING: 5
   };
   var _cfAction = {
     CALL_FORWARD_ACTION_DISABLE: 0,
@@ -44,7 +38,8 @@
     this._callForwardingIconInitializedStates = null;
   }
 
-  CallForwarding.prototype = {
+  BaseModule.create(CallForwarding, {
+    name: 'CallForwarding',
 
     /**
      * Add related event handlers. The sim cards may not be ready when starting.
@@ -123,7 +118,8 @@
      */
     _updateCallForwardingIconState: function(slot, event) {
       if (!event ||
-          event.reason != _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL) {
+          (event.reason != _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL &&
+           event.reason != _cfReason.CALL_FORWARD_REASON_ALL_CALL_FORWARDING)) {
         return;
       }
 
@@ -131,10 +127,17 @@
       var simCard = slot.simCard;
 
       var enabled = false;
-      if (event.success &&
-          (event.action == _cfAction.CALL_FORWARD_ACTION_REGISTRATION ||
-           event.action == _cfAction.CALL_FORWARD_ACTION_ENABLE)) {
-        enabled = true;
+      switch (event.action) {
+        case _cfAction.CALL_FORWARD_ACTION_REGISTRATION:
+        case _cfAction.CALL_FORWARD_ACTION_ENABLE:
+          enabled = true;
+          break;
+        case _cfAction.CALL_FORWARD_ACTION_ERASURE:
+          enabled = false;
+          break;
+        default:
+          enabled = false;
+          break;
       }
 
       this._callForwardingHelper.get((function(states) {
@@ -174,12 +177,7 @@
      * Start the module.
      * @memberof CallForwarding.prototype
      */
-    start: function() {
-      if (this._started) {
-        return;
-      }
-      this._started = true;
-
+    _start: function() {
       this._slots = SIMSlotManager.getSlots();
       this._defaultCallForwardingIconStates =
         Array.prototype.map.call(this._slots, function() { return false; });
@@ -198,13 +196,5 @@
         this._initCallForwardingState(slot);
       }, this);
     }
-  };
-
-  exports.CallForwarding = CallForwarding;
-
-})(window);
-
-if (CallForwarding) {
-  window.callForwarding = new CallForwarding();
-  window.callForwarding.start();
-}
+  });
+})();

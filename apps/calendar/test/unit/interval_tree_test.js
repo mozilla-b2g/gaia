@@ -1,11 +1,13 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireLib('interval_tree.js');
-requireLib('timespan.js');
+var Factory = require('test/support/factory');
+var IntervalTree = require('interval_tree');
+var Timespan = require('timespan');
+var binsearch = require('binsearch');
+var compare = require('compare');
 
 suite('interval_tree', function() {
-  'use strict';
-
   var subject;
   var items;
   var list;
@@ -22,11 +24,11 @@ suite('interval_tree', function() {
   }
 
   suiteSetup(function() {
-    Node = Calendar.IntervalTree.Node;
+    Node = IntervalTree.Node;
   });
 
   setup(function() {
-    Calendar.IntervalTree.overlapTime = 0;
+    IntervalTree.overlapTime = 0;
     // we use this range as a baseline
     // through the less complicated tests
     expectedRange = {
@@ -34,10 +36,7 @@ suite('interval_tree', function() {
       end: 1300
     };
 
-    span = new Calendar.Timespan(
-      expectedRange.start,
-      expectedRange.end
-    );
+    span = new Timespan(expectedRange.start, expectedRange.end);
 
     // setup the basic list of items
     items = {};
@@ -55,11 +54,11 @@ suite('interval_tree', function() {
       items.after
     ];
 
-    subject = new Calendar.IntervalTree(list);
+    subject = new IntervalTree(list);
   });
 
   test('integration', function() {
-    var span = new Calendar.Timespan(
+    var span = new Timespan(
       100,
       800
     );
@@ -97,7 +96,7 @@ suite('interval_tree', function() {
   });
 
   test('init without list', function() {
-    var subject = new Calendar.IntervalTree();
+    var subject = new IntervalTree();
     assert.deepEqual(subject.items, []);
   });
 
@@ -165,6 +164,12 @@ suite('interval_tree', function() {
           items.after
         ]
       );
+    });
+
+    test('yahoo recurring allday', function() {
+      var allday = factory(555, 1000, 1000);
+      subject.add(allday);
+      assert.deepEqual(subject.items, [allday, items.after]);
     });
   });
 
@@ -403,7 +408,7 @@ suite('interval_tree', function() {
 
       subject.traverse(span, function(item, node) {
         results.push(item);
-        assert.instanceOf(node, Calendar.IntervalTree.Node);
+        assert.instanceOf(node, IntervalTree.Node);
       });
 
       assert.deepEqual(
@@ -421,18 +426,18 @@ suite('interval_tree', function() {
         sublist = [];
       });
 
-      function compare(aObj, bObj) {
+      function compareDateMS(aObj, bObj) {
         var a = aObj._startDateMS;
         var b = bObj._startDateMS;
 
-        return Calendar.compare(a, b);
+        return compare(a, b);
       }
 
       function orderedAdd(item, arr) {
-        var idx = Calendar.binsearch.insert(
+        var idx = binsearch.insert(
           arr,
           item,
-          compare
+          compareDateMS
         );
         arr.splice(idx, 0, item);
       }
@@ -471,13 +476,16 @@ suite('interval_tree', function() {
         orderedAdd(add(10400, 10500), expected);
         orderedAdd(add(10000, 10800), expected);
 
+        // yahoo recurring all day events have same start/end dates
+        orderedAdd(add(10000, 10000), expected);
+
         // create some out of range in upper bounds
         for (i = 0; i < 1021; i++) {
           add(i + 2500, i + 2505);
         }
 
-        subject = new Calendar.IntervalTree(sublist);
-        var result = subject.query(new Calendar.Timespan(
+        subject = new IntervalTree(sublist);
+        var result = subject.query(new Timespan(
           5201,
           11750
         ));
@@ -492,7 +500,7 @@ suite('interval_tree', function() {
       });
 
       test('basic start range query', function() {
-        var range = new Calendar.Timespan(
+        var range = new Timespan(
           80,
           900
         );
@@ -504,7 +512,7 @@ suite('interval_tree', function() {
       });
 
       test('basic end range query', function() {
-        var range = new Calendar.Timespan(
+        var range = new Timespan(
           1600,
           1800
         );
@@ -516,7 +524,7 @@ suite('interval_tree', function() {
       });
 
       test('basic middle query', function() {
-        var range = new Calendar.Timespan(
+        var range = new Timespan(
           expectedRange.start,
           expectedRange.end
         );
@@ -590,4 +598,6 @@ suite('interval_tree', function() {
       assert.ok(!subject.index('eventId', one.eventId));
     });
   });
+});
+
 });

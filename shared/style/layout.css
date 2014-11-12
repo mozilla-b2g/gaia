@@ -110,7 +110,7 @@ p {
   pointer-events: none;
 }
 
-.gaia-list li:last-of-type:not(.not-last):after {
+.gaia-list li:last-of-type:after {
   display: none;
 }
 
@@ -176,15 +176,24 @@ p {
 .gaia-list label.pack-radio,
 .gaia-list label.pack-switch {
   width: 100%;
+  overflow: hidden;
   display: flex;
   align-items: center;
-  height: 60px;
+  height: auto;
+  min-height: 40px;
+  padding: 10px 0;
   margin: -10px 0 -10px 15px;
-  -moz-user-select: none;
+}
+
+.gaia-list label.vbox.pack-checkbox,
+.gaia-list label.vbox.pack-radio,
+.gaia-list label.vbox.pack-switch {
+  align-items: flex-start;
+  justify-content: center;
 }
 
 .gaia-list label.pack-checkbox:not(.reverse) {
-  text-indent: 15px;
+  padding-left: 30px;
   margin-left: 0;
 }
 
@@ -197,6 +206,33 @@ p {
 .gaia-list label.pack-switch span:after {
   left: auto;
   right: 0;
+}
+
+.gaia-list label.pack-radio span,
+.gaia-list label.pack-checkbox span,
+.gaia-list label.pack-switch span,
+.gaia-list label p {
+  word-wrap: break-word;
+  width: 100%;
+}
+
+.gaia-list label.pack-radio span,
+.gaia-list label.pack-checkbox.reverse span,
+.gaia-list label.pack-radio p,
+.gaia-list label.pack-checkbox.reverse p {
+  width: calc(100% - 30px);
+}
+
+.gaia-list label.pack-switch span,
+.gaia-list label.pack-switch p {
+  width: calc(100% - 70px);
+}
+
+.gaia-list label p {
+  color: #858585;
+  font-size: 15px;
+  line-height: 20px;
+  margin-left: 0;
 }
 
 .gaia-list li.icon {
@@ -234,8 +270,7 @@ p {
 .gaia-list li button + p,
 .gaia-list li .button + p,
 .gaia-list li label + button,
-.gaia-list li label + .button,
-.gaia-list li label + input {
+.gaia-list li label + .button {
   margin-top: 10px;
 }
 

@@ -50,7 +50,7 @@ marionette('interop basic', function() {
   function onServerUp(callback) {
     debug('Launch calendar.');
     app = new Calendar(client);
-    app.launch({ hideSwipeHint: true });
+    app.launch();
 
     app.setupAccount({
       accountType: 'caldav',

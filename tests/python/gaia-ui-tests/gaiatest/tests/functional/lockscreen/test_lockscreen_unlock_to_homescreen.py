@@ -15,7 +15,9 @@ class TestLockScreen(GaiaTestCase):
         self.device.lock()
 
     def test_unlock_to_homescreen(self):
-        """https://moztrap.mozilla.org/manage/case/1296/"""
+        """
+        https://moztrap.mozilla.org/manage/case/6784/
+        """
 
         lock_screen = LockScreen(self.marionette)
         lock_screen.switch_to_frame()

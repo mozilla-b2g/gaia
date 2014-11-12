@@ -3,60 +3,14 @@
 #firsttime-view, #firsttime-view .view {
   top: 0;
   transform: translate(0, 0);
+  transition: none;
 }
 
 #firsttime-view .view[data-viewport="right"] {
   transform: translateX(100%);
 }
 
-/* Steps state */
-#firsttime-view .step-state {
-  height: 0;
-  font: 0/0 a;
-  border-top: solid 0.1rem #b7b7b7;
-  border-bottom: solid 0.1rem #fff;
-  position: absolute;
-  top: 5.5rem;
-  left: 1.5rem;
-  right: 1.5rem;
-  z-index: 100;
-}
-
-#firsttime-view .step-state:before {
-  content: "";
-  width: calc(100% / 3);
-  height: 0.3rem;
-  position: absolute;
-  top: 50%;
-  left: 0;
-  margin-top: -0.2rem;
-  background: #858585;
-  transition: all 0.35s cubic-bezier(0.000, 1.000, 0.535, 1.110);
-}
-
-#firsttime-view[data-steps="4"] .step-state:before {
-  width: calc(100% / 4);
-}
-
-/* STATES */
-#firsttime-view.step-1 .step-state:before {
-  transform: translateX(0);
-}
-
-#firsttime-view.step-2 .step-state:before {
-  transform: translateX(100%);
-}
-
-#firsttime-view.step-3 .step-state:before {
-  transform: translateX(200%);
-}
-
-#firsttime-view.step-4 .step-state:before {
-  transform: translateX(300%);
-}
-
 /* Content */
-
 #firsttime-view .content:not(gaia-header) {
   padding: 0;
   margin-top: 1.5rem;
@@ -66,7 +20,7 @@
 /* Wrapper with scroll */
 #firsttime-view section.content {
   -moz-box-sizing: border-box;
-  max-height: calc(100% - 5rem - 1.5rem - 6.8rem); /* window height - header height - steps progress - menu height  */
+  max-height: calc(100% - 5rem - 6.8rem); /* window height - header height - menu height  */
   overflow-x: auto;
 }
 
@@ -82,4 +36,3 @@
   font-size: 1.6rem;
   padding: 0 3rem;
 }
-

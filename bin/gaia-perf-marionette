@@ -14,19 +14,18 @@ fi
 # where all gaia specific customizations for mocha-marionette live.
 SHARED=$GAIA_DIR/shared/test/integration
 
-# make sure node_modules are 100% up to date
+# Install prerequisites
 make node_modules || exit 1
+make -C $GAIA_DIR/ b2g_sdk || exit 1
+if [ ! -d $GAIA_DIR/profile-test ]; then
+  # Making the profile-test here instead of letting the child process create it,
+  # which causes problems on Linux (Segmentation Fault) Bug 1067625
+  PROFILE_FOLDER=profile-test make -C $GAIA_DIR/ profile-dir || exit 1
+fi
 
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
   # download b2g-desktop (if its not present)
   make -C $GAIA_DIR/ b2g || exit 1
-fi
-
-if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
-  # tests can timeout without the profile-test folder so build it here.
-  if [ ! -d $DIR/../profile-test ]; then
-    PROFILE_FOLDER=profile-test make -C $DIR/../
-  fi
 fi
 
 if [ -z "$XULRUNNER_DIRECTORY" ] ; then
@@ -72,25 +71,33 @@ esac
 # All echo calls help create a JSON array
 echo '[' >&3
 SHARED_PERF=`find tests/performance -name "*_test.js" -type f`
+OLD_RESTART_B2G="$RESTART_B2G"
 for app in $APPS; do
   if [ -z "$FIRST_LOOP_ITERATION" ]; then
     FIRST_LOOP_ITERATION=done
   else
     echo ',' >&3
   fi
-  FILES_PERF=`test -d apps/$app/test/performance && find apps/$app/test/performance -name "*_test.js" -type f`
+  if [[ "$app" == "system" ]] && [[ "$TEST_BOOT" -eq 2 ]] ; then
+    # The system boot test manually manages the reboot/restart lifecycle
+    # Using the TEST_BOOT=2 flag forces an opt-in to manually run this test
+    FILES_PERF=`test -d apps/$app/test/performance && find apps/$app/test/performance -name "*_test.js" -type f`
+    export RESTART_B2G=0
+  else
+    FILES_PERF=`test -d apps/$app/test/performance && find apps/$app/test/performance -name "*_test.js" \( ! -name "system_startup_test.js" \) -type f`
+    export RESTART_B2G=$OLD_RESTART_B2G
+  fi
   # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
   # xpcshell in available for email fake servers.
   export CURRENT_APP="$app"
   OUT=`PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
-    --timeout 10s \
-    --ui tdd \
+    --timeout 60s \
     --profile-builder $SHARED/profile_builder.js \
     --profile-base $SHARED/profile.js \
     --host $MARIONETTE_RUNNER_HOST \
+    --reporter $MOZPERFREPORTER \
     $SHARED/setup.js \
     $GAIA_DIR/tests/performance/perf.js $SHARED_PERF $FILES_PERF \
-    -R $MOZPERFREPORTER \
     $@`
   # Bug 987383 if there is no output report an error.
   if [ -z "$OUT" ]; then

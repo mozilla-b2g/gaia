@@ -15,10 +15,10 @@ function DeviceInfoPanel(client) {
 module.exports = DeviceInfoPanel;
 
 DeviceInfoPanel.Selectors = {
-  'moreInfoBtn': '#about button[data-l10n-id="more-info"]',
-  'yourRightsBtn': '#about button[data-l10n-id="your-rights"]',
-  'yourPrivacyBtn': '#about button[data-l10n-id="your-privacy"]',
-  'legalInfoBtn': '#about button[data-l10n-id="about-legal-info"]',
+  'moreInfoBtn': '#about a[href="#about-moreInfo"]',
+  'yourRightsBtn': '#about a[href="#about-yourRights"]',
+  'yourPrivacyBtn': '#about a[href="#about-yourPrivacy"]',
+  'legalInfoBtn': '#about a[href="#about-legal"]',
   'resetPhoneBtn': '#about button#reset-phone',
   'resetPhoneDialog': '#reset-phone-dialog',
   'cancelResetPhoneBtn': '#cancel-reset-phone',
@@ -30,7 +30,8 @@ DeviceInfoPanel.Selectors = {
   'developerMenuItem': 'li > #menuItem-developer',
   'aboutPanel': '#about',
   'rootPanel': '#root',
-  'header': 'gaia-header'
+  'deviceInfoBackBtn': '#about-moreInfo gaia-header',
+  'openSourceNoticesBackBtn': '#about-licensing gaia-header'
 };
 
 DeviceInfoPanel.prototype = {
@@ -98,7 +99,11 @@ DeviceInfoPanel.prototype = {
     return this.findElement('developerMenuItem').displayed();
   },
 
-  tapBackBtn: function() {
-    this.waitForElement('header').tap(25, 25);
+  tapDeviceInfoBackBtn: function() {
+    this.waitForElement('deviceInfoBackBtn').tap(25, 25);
+  },
+
+  tapOpenSourceNoticesBackBtn: function() {
+    this.waitForElement('openSourceNoticesBackBtn').tap(25, 25);
   }
 };

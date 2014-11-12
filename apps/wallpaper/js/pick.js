@@ -1,3 +1,6 @@
+'use strict';
+/* global Downsample, LazyLoader */
+
 var Wallpaper = {
   // We're reducing each image to 1/3rd of its original size by displaying
   // 3 wallpaper images in each row, decoding each image at 3/8ths of the
@@ -11,8 +14,9 @@ var Wallpaper = {
     if (navigator.mozSetMessageHandler) {
       navigator.mozSetMessageHandler('activity', function handler(request) {
         var activityName = request.source.name;
-        if (activityName !== 'pick')
+        if (activityName !== 'pick') {
           return;
+        }
         self.startPick(request);
       });
     }
@@ -60,8 +64,9 @@ var Wallpaper = {
     // Get the wallpaper file name
     var src = e.target.dataset.filename;
     // Ignore clicks that are not on one of the images
-    if (src == '')
+    if (src === '') {
       return;
+    }
 
     if (!this.pickActivity) { return; }
 

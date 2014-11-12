@@ -1,8 +1,8 @@
-.card-folder-picker .fld-header-placeholder {
+cards-folder-picker .fld-header-placeholder {
   height: 5rem;
 }
 
-.card-folder-picker .fld-header-placeholder .fld-header-back {
+cards-folder-picker.card .fld-header-placeholder .fld-header-back {
   width: 5rem;
   height: 5rem;
   background: transparent;
@@ -10,7 +10,7 @@
   font-size: 0;
 }
 
-.card-folder-picker .fld-acct-header {
+cards-folder-picker .fld-acct-header {
   position: relative;
   display: block;
   clear: both;
@@ -22,12 +22,12 @@
   border-bottom: 0.1rem solid #dfdfdf;
 }
 
-.card-folder-picker.one-account .fld-acct-header,
-.card-folder-picker.one-account .fld-accountlist-container {
+cards-folder-picker.one-account .fld-acct-header,
+cards-folder-picker.one-account .fld-accountlist-container {
   display: none;
 }
 
-.card-folder-picker.one-account .fld-folders-container {
+cards-folder-picker.one-account .fld-folders-container {
   border-top: 0;
 }
 
@@ -57,7 +57,7 @@
   transition-delay: 0s;
 }
 
-.card-folder-picker.opened .fld-content {
+cards-folder-picker.opened .fld-content {
   transform: translateY(0);
 }
 
@@ -77,7 +77,7 @@
   transition-delay: 0s;
 }
 
-.card-folder-picker.opened .fld-shield {
+cards-folder-picker.opened .fld-shield {
   opacity: .6;
 }
 
@@ -86,7 +86,7 @@
   opacity: 0;
 }
 
-.card-folder-picker .fld-acct-scrollouter {
+cards-folder-picker .fld-acct-scrollouter {
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
@@ -132,12 +132,11 @@
   transform: translateY(0);
 }
 */
-.card-folder-picker.one-account .fld-folders-container {
+cards-folder-picker.one-account .fld-folders-container {
   padding-top: 0;
 }
 
-.card-folder-picker,
-.card-account-picker {
+cards-folder-picker.card {
   background-color: transparent;
   color: white;
 }

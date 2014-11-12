@@ -22,6 +22,7 @@ NonReadyScreen.prototype.updateForState = function(cardState) {
   switch (cardState) {
     case null:
     case 'absent':
+    case 'unknown':
     case 'pinRequired':
     case 'pukRequired':
     case 'airplaneMode':
@@ -71,6 +72,8 @@ NonReadyScreen.prototype.getMessageIdFor = function(cardState) {
     message = 'sim-locked';
   } else if (cardState === 'airplaneMode') {
     message = 'airplane-mode';
+  } else if (cardState === 'unknown') {
+    message = 'unknown';
   }
 
   return message;

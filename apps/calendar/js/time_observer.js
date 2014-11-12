@@ -1,14 +1,12 @@
-Calendar.TimeObserver = (function() {
+define(function(require, exports, module) {
 'use strict';
 
-/**
- * Module dependencies
- */
-var Timespan = Calendar.Timespan;
+var Timespan = require('timespan');
 
 function TimeObserver() {
   this._timeObservers = [];
 }
+module.exports = TimeObserver;
 
 TimeObserver.enhance = function(given) {
   var key;
@@ -51,7 +49,7 @@ TimeObserver.prototype = {
   observeTime: function(timespan, callback) {
     if (!(timespan instanceof Timespan)) {
       throw new Error(
-        'must pass an instance of Calendar.Timespan as first argument'
+        'must pass an instance of Timespan as first argument'
       );
     }
     this._timeObservers.push([timespan, callback]);
@@ -137,6 +135,4 @@ TimeObserver.prototype = {
   }
 };
 
-return TimeObserver;
-
-}(Calendar));
+});
