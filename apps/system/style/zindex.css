@@ -181,7 +181,8 @@
   z-index: 2046;
 }
 
-#screen > [data-z-index-level="system-dialog"] {
+#screen > [data-z-index-level="system-dialog"],
+#screen > [data-z-index-level="text-selection-dialog"] {
   z-index: 2045;
 }
 
@@ -223,10 +224,6 @@
 #screen > [data-z-index-level="emergency-callback-dialog"],
 #screen > [data-z-index-level="quick-setting-data-enabled-dialog"] {
   z-index: 1024;
-}
-
-#screen > [data-z-index-level="ext-selection-dialog"] {
-  z-index: 10;
 }
 
 /* Level 8 */
