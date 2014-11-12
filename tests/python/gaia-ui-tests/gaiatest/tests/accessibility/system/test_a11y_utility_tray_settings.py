@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.app import System
+from marionette.wait import Wait
 
 
 class TestUtilityTraySettingsAccessibility(GaiaTestCase):
@@ -21,4 +22,4 @@ class TestUtilityTraySettingsAccessibility(GaiaTestCase):
         settings = utility_tray.a11y_click_quick_settings_full_app()
 
         # Make sure that Settings is the currently displayed app.
-        self.assertEquals(self.apps.displayed_app.name, settings.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == settings.name)
