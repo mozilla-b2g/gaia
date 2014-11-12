@@ -2,7 +2,8 @@
 
 suite('about > update_check', function() {
   var updateCheck;
-  var realL10n, realNavigatorSettings;
+  var realL10n;
+  var realNavigatorSettings;
   var geckoUpdateSetting = 'gecko.updateStatus';
   var appsUpdateSetting = 'apps.updateStatus';
 
@@ -11,9 +12,7 @@ suite('about > update_check', function() {
     'shared_mocks/mock_navigator_moz_settings',
     'panels/about/update_check'
   ];
-  var maps = {
-    '*': {}
-  };
+  var maps = {};
 
   var elements = {
     updateStatus: document.createElement('li'),

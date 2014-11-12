@@ -6,9 +6,7 @@ suite('about > factory_reset', function() {
   var modules = [
     'panels/about/factory_reset'
   ];
-  var maps = {
-    '*': {}
-  };
+  var maps = {};
 
   var MockPower = {
     factoryReset: function() {}
@@ -22,18 +20,18 @@ suite('about > factory_reset', function() {
   };
   elements.resetDialog.hidden = true;
 
-  suiteSetup(function(done) {
+  setup(function(done) {
     testRequire(modules, maps,
-      function(module) {
+      function(FactoryReset) {
         realNavigatorPower = navigator.mozPower;
         navigator.mozPower = MockPower;
 
-        factoryReset = module();
+        factoryReset = FactoryReset();
         done();
     });
   });
 
-  suiteTeardown(function() {
+  teardown(function() {
     navigator.mozPower = realNavigatorPower;
     realNavigatorPower = null;
   });

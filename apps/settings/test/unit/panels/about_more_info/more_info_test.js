@@ -25,7 +25,7 @@ suite('about more info >', function() {
 
   var elements = {};
 
-  suiteSetup(function(done) {
+  setup(function(done) {
     this.MockBluetoothVersionDetector = {
       version: 1
     };
@@ -46,7 +46,7 @@ suite('about more info >', function() {
       return this.MockBluetoothVersionDetector;
     }.bind(this));
 
-    requireCtx(modules, function(MockL10n, module) {
+    requireCtx(modules, function(MockL10n, MoreInfo) {
       realL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
 
@@ -56,12 +56,12 @@ suite('about more info >', function() {
       realTelephony = navigator.mozTelephony;
       navigator.mozTelephony = MockNavigatorMozTelephony;
 
-      moreInfo = module();
+      moreInfo = MoreInfo();
       done();
     });
   });
 
-  suiteTeardown(function() {
+  teardown(function() {
     navigator.mozTelephony.mTeardown();
     navigator.mozMobileConnections.mTeardown();
 
@@ -118,10 +118,6 @@ suite('about more info >', function() {
 
     elements.deviceInfoImeis = document.querySelector('.deviceInfo-imeis');
     elements.deviceInfoIccIds = document.querySelector('.deviceInfo-iccids');
-  });
-
-  teardown(function() {
-    document.body.innerHTML = '';
   });
 
   suite('Initialization >', function() {

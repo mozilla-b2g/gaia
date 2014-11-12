@@ -17,9 +17,7 @@ suite('about > hardware_info', function() {
     'shared_mocks/mock_navigator_moz_settings',
     'panels/about/hardware_info'
   ];
-  var maps = {
-    '*': {}
-  };
+  var maps = {};
 
   var elements = {
     updateStatus: document.createElement('li'),
@@ -27,9 +25,9 @@ suite('about > hardware_info', function() {
     deviceInfoMsisdns: document.createElement('li')
   };
 
-  suiteSetup(function(done) {
+  setup(function(done) {
     testRequire(modules, maps,
-      function(MockL10n, MockNavigatorSettings, module) {
+      function(MockL10n, MockNavigatorSettings, HardwareInfo) {
         realL10n = navigator.mozL10n;
         navigator.mozL10n = MockL10n;
 
@@ -42,12 +40,13 @@ suite('about > hardware_info', function() {
         realNavigatorSettings = navigator.mozSettings;
         navigator.mozSettings = MockNavigatorSettings;
 
-        hardwareInfo = module();
+        hardwareInfo = HardwareInfo();
+        hardwareInfo._elements = elements;
         done();
     });
   });
 
-  suiteTeardown(function() {
+  teardown(function() {
     navigator.mozL10n = realL10n;
     realL10n = null;
 
