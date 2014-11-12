@@ -16,7 +16,6 @@
   position: relative;
   flex: 1;
   border: none;
-  border-left: 1px solid #e5e5e5;
   background-color: transparent;
   background-repeat: no-repeat;
   margin: 0;
@@ -26,11 +25,6 @@
   border-radius: 0;
   height: 100%;
   font-size: 0;
-}
-
-[role="toolbar"] button:first-child,
-[role="toolbar"] a:first-child {
-  border-left: none;
 }
 
 [role="toolbar"] button:active,

@@ -153,6 +153,14 @@ not actually shown since the top header should be transparent.
   bottom: 0;
 }
 
+#settings [role="toolbar"] .toolbar-item {
+  border-left: 0.1rem solid #e5e5e5;
+}
+
+#settings [role="toolbar"] .toolbar-item:first-child {
+  border-left: 0;
+}
+
 #settings [role="toolbar"].noaccount .settings {
   width: 100%;
 }
