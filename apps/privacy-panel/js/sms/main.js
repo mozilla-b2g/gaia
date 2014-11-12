@@ -19,6 +19,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
   const LOCATE_ENABLED = 'rpp.locate.enabled';
   const PASSCODE_ENABLED = 'lockscreen.passcode-lock.enabled';
   const LOCKSCREEN_ENABLED = 'lockscreen.enabled';
+  const LOCKSCREEN_LOCKED = 'lockscreen.locked';
 
   var RPPExecuteCommands = {
 
@@ -55,6 +56,12 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
 
       SettingsListener.observe(LOCATE_ENABLED, false, value => {
         this._locateEnabled = value;
+      });
+
+      SettingsListener.observe(LOCKSCREEN_LOCKED, false, value => {
+        if (!value) {
+          Commands.invokeCommand('ring', [0]);
+        }
       });
     },
 

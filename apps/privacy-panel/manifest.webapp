@@ -40,5 +40,6 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/style/icons/privacy-panel.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }
