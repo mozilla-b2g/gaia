@@ -1,11 +1,11 @@
 define(function(require) {
 'use strict';
 
-var MonthsDay = require('templates/months_day');
+var MonthDayAgenda = require('templates/month_day_agenda');
 
-suite('templates/months_day', function() {
+suite('templates/month_day_agenda', function() {
   function renderHTML(type, options) {
-    return MonthsDay[type].render(options);
+    return MonthDayAgenda[type].render(options);
   }
 
   suite('#event', function() {

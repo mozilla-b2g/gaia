@@ -11,7 +11,7 @@ module.exports = MonthDay;
 MonthDay.prototype = {
   __proto__: View.prototype,
 
-  selector: '#months-day-view',
+  selector: '#month-day-agenda',
 
   get container() {
     return this.findElement('#event-list');
@@ -40,7 +40,7 @@ MonthDay.prototype = {
     }
 
     event.scriptWith(function(element) {
-      var container = document.getElementById('months-day-view');
+      var container = document.getElementById('month-day-agenda');
       container.scrollTop = element.offsetTop;
     });
   }
