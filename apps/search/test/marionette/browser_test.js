@@ -31,15 +31,6 @@ marionette('Browser test', function() {
     search.removeGeolocationPermission();
   });
 
-  test('Ensure preloaded sites exist', function() {
-    client.apps.launch(Search.URL);
-    client.apps.switchToApp(Search.URL);
-
-    client.waitFor(function() {
-      return search.getTopSites().length == 2;
-    });
-  });
-
   test.skip('Large Icon', function() {
 
     var url = server.url('largeicon.html');
@@ -89,7 +80,7 @@ marionette('Browser test', function() {
     client.apps.switchToApp(Search.URL);
 
     client.waitFor(function() {
-      return search.getTopSites().length == 3;
+      return search.getTopSites().length == 1;
     });
 
     var topSite = search.getTopSites()[0];
