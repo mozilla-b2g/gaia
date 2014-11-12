@@ -15,6 +15,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
 
   var dialog = document.getElementById('data-limit-dialog');
   var dataLimitInput = dialog.querySelector('input');
+  var dataLimitNote = document.getElementById('data-limit-error-note');
   var format = function ccal_formatterDataUnit(value) {
     var unit = settings.option('dataLimitUnit');
     return Formatting.formatData([value, _(unit)]);
@@ -47,6 +48,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
         settings.option('dataLimitValue', oldValue);
         settings.option('dataLimitUnit', oldUnit);
         dataLimitInput.classList.remove('error');
+        dataLimitNote.setAttribute('aria-hidden', true);
         okButton.disabled = false;
         viewManager.closeCurrentView();
       }
@@ -92,8 +94,10 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
 
       if (isValidValue) {
         dataLimitInput.classList.remove('error');
+        dataLimitNote.setAttribute('aria-hidden', true);
       } else {
         dataLimitInput.classList.add('error');
+        dataLimitNote.removeAttribute('aria-hidden');
       }
       okButton.disabled = (!isValidValue);
     }
