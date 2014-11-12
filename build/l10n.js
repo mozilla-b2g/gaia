@@ -85,6 +85,8 @@
       throw new L10n.Error('Context not ready');
     }
 
+    var sourceEntity = this.getLocale('en-US').astById[id];
+
     var cur = 0;
     var loc;
     var locale;
@@ -96,7 +98,12 @@
       }
 
       if (locale.astById && id in locale.astById) {
-        return locale.astById[id];
+        var entity = locale.astById[id];
+        if (loc === 'en-US' || areEntityStructsEqual(sourceEntity, entity)) {
+          return entity;
+        } else {
+          return sourceEntity;
+        }
       }
 
       var e = new L10n.Error(id + ' not found in ' + loc, id, loc);
@@ -155,6 +162,23 @@
         buildMessages[type] = [];
       }
     }
+  }
+
+  function areEntityStructsEqual(entity1, entity2) {
+    var keys1 = Object.keys(entity1);
+    var keys2 = Object.keys(entity2);
+
+    if (keys1.length !== keys2.length) {
+      return false;
+    }
+
+    for (var i = 0; i < keys1.length; i++) {
+      if (keys2.indexOf(keys1[i]) === -1) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
 })(this);
