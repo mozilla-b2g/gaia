@@ -441,6 +441,7 @@
      *  - rerender {Boolean} Whether we should clean elements and re-render.
      */
     render: function(options) {
+console.log('OMFG RENDERED!!!!!')
       var self = this;
       options = options || {};
 

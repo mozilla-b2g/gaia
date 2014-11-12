@@ -10,7 +10,7 @@
 
   const DB_VERSION = 1;
 
-  const DB_NAME = 'verticalhome';
+  const DB_NAME = 'verticalhome23';
 
   const DB_ITEM_STORE = 'items';
   const DB_SV_APP_STORE_NAME = 'svAppsInstalled';
@@ -39,6 +39,7 @@
           return lookFor.manifestURL === compareWith.detail.manifestURL;
         }
       } else if (compareWith instanceof GaiaGrid.Collection ||
+                 compareWith instanceof GaiaGrid.Shelf ||
                  compareWith instanceof GaiaGrid.Bookmark) {
         if (!lookFor.id || !compareWith.detail.id) {
           return false;
@@ -195,6 +196,7 @@
     request.onsuccess = function _onsuccess() {
       onsuccess && onsuccess(isEmpty);
       db = request.result;
+
       var cb = self.fetch.bind(self, self.synchronize.bind(self));
 
       if (isEmpty) {
@@ -361,6 +363,9 @@
           } else if (thisItem.type === 'collection') {
             var collection = new GaiaGrid.Collection(thisItem);
             addIfUnique.call(this, collection);
+          } else if (thisItem.type === 'shelf') {
+            var shelf = new GaiaGrid.Shelf(thisItem);
+            addIfUnique.call(this, shelf);
           }
         }
 
