@@ -3,7 +3,7 @@
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockSystem, MockTouchForwarder, StatusBar, System,
            MockNfcManager, MockMobileconnection, MockAppWindowManager,
-           UtilityTray */
+           MockNavigatorBattery, UtilityTray */
 
 'use strict';
 
@@ -24,6 +24,7 @@ require('/test/unit/mock_nfc_manager.js');
 require('/test/unit/mock_touch_forwarder.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_layout_manager.js');
+require('/test/unit/mock_navigator_battery.js');
 
 var mocksForStatusBar = new MocksHelper([
   'FtuLauncher',
@@ -33,7 +34,8 @@ var mocksForStatusBar = new MocksHelper([
   'AppWindowManager',
   'TouchForwarder',
   'UtilityTray',
-  'LayoutManager'
+  'LayoutManager',
+  'NavigatorBattery'
 ]).init();
 
 suite('system/Statusbar', function() {
@@ -44,7 +46,7 @@ suite('system/Statusbar', function() {
       fakeStatusBarConnections, fakeStatusBarCallForwardings, fakeStatusBarTime,
       fakeStatusBarLabel, fakeStatusBarBattery;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [],
-      realNfcManager, realLayoutManager;
+      realNfcManager, realLayoutManager, realNavigatorBattery;
 
   function prepareDOM() {
     for (var i = 1; i < mobileConnectionCount; i++) {
@@ -118,6 +120,11 @@ suite('system/Statusbar', function() {
     navigator.mozTelephony = MockNavigatorMozTelephony;
     realLayoutManager = window.layoutManager;
     window.layoutManager = MockLayoutManager;
+    realNavigatorBattery = navigator.battery;
+    Object.defineProperty(navigator, 'battery', {
+      writable: true
+    });
+    navigator.battery = MockNavigatorBattery;
 
     realNfcManager = window.nfcManager;
     window.nfcManager = new MockNfcManager();
@@ -182,12 +189,14 @@ suite('system/Statusbar', function() {
     fakeStatusBarNode.parentNode.removeChild(fakeStatusBarNode);
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozMobileConnections.mTeardown();
+    MockNavigatorBattery.mTeardown();
     System.locked = false;
     System.currentApp = null;
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
     window.layoutManager = realLayoutManager;
+    navigator.battery = realNavigatorBattery;
     window.nfcManager.isActive.restore();
     window.nfcManager = realNfcManager;
   });
@@ -2450,6 +2459,45 @@ suite('system/Statusbar', function() {
       StatusBar.update.time.call(StatusBar, '***');
 
       assert.notEqual(originalWidth, StatusBar.PRIORITIES[labelIndex][1]);
+    });
+  });
+
+  suite('Battery icon', function() {
+    var cloneStatusbarSpy;
+
+    setup(function() {
+      MockNavigatorBattery.level = 0.95;
+      MockNavigatorBattery.charging = false;
+      StatusBar.update.battery.call(StatusBar);
+      cloneStatusbarSpy = this.sinon.spy(StatusBar, 'cloneStatusbar');
+    });
+
+    test('should not reprioritize icons when doesn\'t change', function() {
+      StatusBar.update.battery.call(StatusBar);
+
+      assert.isFalse(cloneStatusbarSpy.called);
+    });
+
+    test('should not reprioritize icons when computed level doesn\'t change',
+      function() {
+        MockNavigatorBattery.level = 0.9;
+        StatusBar.update.battery.call(StatusBar);
+
+        assert.isFalse(cloneStatusbarSpy.called);
+      });
+
+    test('should reprioritize icons when battery changes', function() {
+      MockNavigatorBattery.level = 0.5;
+      StatusBar.update.battery.call(StatusBar);
+
+      assert.isTrue(cloneStatusbarSpy.called);
+    });
+
+    test('should reprioritize icons when charging state changes', function() {
+      MockNavigatorBattery.charging = true;
+      StatusBar.update.battery.call(StatusBar);
+
+      assert.isTrue(cloneStatusbarSpy.called);
     });
   });
 
