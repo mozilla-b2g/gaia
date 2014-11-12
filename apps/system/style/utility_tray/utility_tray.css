@@ -4,24 +4,77 @@
 
 #utility-tray {
   position: absolute;
-  top: calc(-100% + 6rem);
-  width: calc(100%);
-  height: calc(100% - 3rem);
+  top: calc(-100% + .2rem);
+  width: 100%;
+  height: 100%;
   background-color: hsla(0, 0%, 20%, .95);
   margin: 0;
 
-  transform: translateY(-4rem);
+  transform: translateY(0);
   visibility: hidden;
+}
+
+#statusbar-tray {
+  background-image: -moz-element(#statusbar);
+  width: 100%;
+  top: 0;
+  height: 3rem;
+}
+
+#ambient-indicator {
+  height: .2rem;
+  width: 100%;
+  opacity: 0;
+  background-color: #00D3FF;
+  transform: translateY(0);
+  transition: opacity .5s ease .5s;
+  position: absolute;
+  bottom: 0;
+}
+
+#ambient-indicator.unread {
+  opacity: 1;
+  visibility: visible;
+}
+
+#ambient-indicator.active {
+  background: none #006e86 repeat;
+  display: block;
+  transition: none;
+  opacity: 1;
+  visibility: visible;
+}
+
+#ambient-indicator.active > .handle {
+  border-top: 0.2rem #00d3ff solid;
+  border-left: 0.2rem transparent solid;
+  border-right: 0.2rem transparent solid;
+  animation: handle 1s infinite;
+  height: 0.2rem;
+  width: 8.6rem;
+  margin: 0 auto;
+  visibility: visible;
+}
+
+#ambient-indicator.active > .handle2 {
+  animation-delay: 0.5ms;
+  margin: -0.4rem auto;
 }
 
 .utility-tray #utility-tray {
   visibility: visible;
 }
 
+@keyframes handle {
+  0%   { transform: scaleX(1.0); opacity: 1;}
+  100% { transform: scaleX(4.0); opacity: 0;}
+}
+
+
 @media (orientation: portrait) {
   #screen.software-button-enabled #utility-tray {
-    top: calc(-100% + 6rem + var(--software-home-button-height));
-    height: calc(100% - 3rem - var(--software-home-button-height));
+    top: calc(-100% + .2rem + var(--software-home-button-height));
+    height: calc(100% - var(--software-home-button-height));
   }
 }
 

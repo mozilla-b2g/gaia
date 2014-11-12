@@ -532,6 +532,7 @@
         <div id="notifications">
           <!-- Notifications -->
           <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
+            <div id="statusbar-tray"></div>
             <div id="notification-bar" class="fake-notification">
               <div data-icon="notifications"></div>
               <div class="title-container">
@@ -617,6 +618,10 @@
         </div>
 
         <div id="utility-tray-grippy"></div>
+        <div class="ambient-indicator" id="ambient-indicator" data-z-index-level="notification-toaster">
+            <div class="handle handle1"></div>
+            <div class="handle handle2"></div>
+        </div>
       </div>
 
       <div id="windows" data-z-index-level="app">
@@ -1051,8 +1056,6 @@
           <div id="toaster-detail" class="toaster-detail"></div>
         </div>
       </div>
-
-      <div id="ambient-indicator" data-z-index-level="notification-toaster"></div>
 
       <!-- keyboard -->
       <div id="keyboards" data-z-index-level="keyboards"></div>

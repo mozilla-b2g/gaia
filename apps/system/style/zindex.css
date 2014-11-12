@@ -121,7 +121,7 @@
  * the status bar */
 
 #screen > [data-z-index-level="utility-tray"] {
-  z-index: 16384;
+  z-index: 16385;
 }
 
 #screen > [data-z-index-level="utility-tray-notifications"] {

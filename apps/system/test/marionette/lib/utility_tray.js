@@ -26,7 +26,7 @@
         var rect = element.scriptWith(function(el) {
           return el.getBoundingClientRect();
         });
-        var expectedTop = 30;
+        var expectedTop = 0;
         return (rect.top === expectedTop);
       }.bind(this));
     },
@@ -37,7 +37,7 @@
         var rect = element.scriptWith(function(el) {
           return el.getBoundingClientRect();
         });
-        var expectedTop = -460;
+        var expectedTop = -478;
         return (rect.top === expectedTop);
       }.bind(this));
     },
