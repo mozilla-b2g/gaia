@@ -3,6 +3,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
+
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.base import Base
 from gaiatest.apps.cost_control.regions.ftu_step2 import FTUStep2
@@ -15,12 +18,14 @@ class FTUStep1(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_condition(lambda m: m.find_element(*self._welcome_title_locator).location['x'] == 0)
+        title = self.marionette.find_element(*self._welcome_title_locator)
+        Wait(self.marionette).until(lambda m: title.location['x'] == 0)
 
     def tap_next(self):
         # TODO Remove the sleep when Bug 1013249 is fixed
         time.sleep(2)
-
-        self.wait_for_element_displayed(*self._next_button_locator)
-        self.marionette.find_element(*self._next_button_locator).tap()
+        next = Wait(self.marionette).until(
+            expected.element_present(*self._next_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(next))
+        next.tap()
         return FTUStep2(self.marionette)

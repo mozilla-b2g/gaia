@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.cost_control.app import CostControl
 from gaiatest.apps.cost_control.regions.ftu_step3 import FTUStep3
@@ -16,7 +17,7 @@ class FTUStep2(CostControl):
     def __init__(self, marionette):
         CostControl.__init__(self, marionette)
         view = self.marionette.find_element(*self._view_locator)
-        self.wait_for_condition(lambda m: view.location['x'] == 0)
+        Wait(self.marionette).until(lambda m: view.location['x'] == 0)
 
     def select_reset_report_value(self, value):
         self.marionette.find_element(
