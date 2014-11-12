@@ -145,6 +145,9 @@ var PlayerView = {
     // A timer we use to work around
     // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
     this.endedTimer = null;
+
+    // Listen to language changes to update the language direction accordingly
+    navigator.mozL10n.ready(this.updateL10n.bind(this));
   },
 
   // When SCO is connected, music is unable to play sounds even it's in the
@@ -777,7 +780,18 @@ var PlayerView = {
     // The width of the seek indicator must be also considered
     // so we divide the width of seek indicator by 2 to find the center point
     var x = (ratio * this.seekBar.offsetWidth -
-      this.seekIndicator.offsetWidth / 2) + 'px';
+      this.seekIndicator.offsetWidth / 2);
+
+    if (this.isLTR) {
+      x = x + 'px';
+    } else {
+      if (x < 0) {
+        x = Math.abs(x) + 'px';
+      } else {
+        x = '-' + x + 'px';
+      }
+    }
+
     this.seekIndicator.style.transform = 'translateX(' + x + ')';
 
     this.seekElapsed.textContent = formatTime(currentTime);
@@ -994,7 +1008,12 @@ var PlayerView = {
           if (x > 1) {
             x = 1;
           }
-          this.seekTime = x * this.seekBar.max;
+
+          if (this.isLTR) {
+            this.seekTime = x * this.seekBar.max;
+          } else {
+            this.seekTime = this.audio.duration - x * this.seekBar.max;
+          }
           this.setSeekBar(this.audio.startTime,
             this.audio.duration, this.seekTime);
         }
@@ -1086,5 +1105,9 @@ var PlayerView = {
       default:
         return;
     }
+  },
+
+  updateL10n: function pv_updateL10n() {
+    this.isLTR = navigator.mozL10n.language.direction === 'ltr' ? true : false;
   }
 };
