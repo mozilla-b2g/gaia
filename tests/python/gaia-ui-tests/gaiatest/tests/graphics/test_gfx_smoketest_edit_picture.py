@@ -11,7 +11,7 @@ class TestGalleryEditPhoto(GalleryEditPhotoBase):
         GaiaImageCompareTestCase.setUp(self)
 
     def test_gallery_edit_photo(self):
-        self.gallery_edit_photo('smallfile.png')
+        self.gallery_edit_photo('smallfile.png','/storage/sdcard1')
 
     def tearDown(self):
         # In case the assertion fails this will still kill the call

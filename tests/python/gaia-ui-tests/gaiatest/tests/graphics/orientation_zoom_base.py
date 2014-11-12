@@ -16,7 +16,6 @@ class OrientationZoomBase(GaiaImageCompareTestCase):
     image_count = 4
     _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"]')
 
-
     def orientation_zoom_check(self):
         self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
         self.push_resource(self.images, count=self.image_count)
