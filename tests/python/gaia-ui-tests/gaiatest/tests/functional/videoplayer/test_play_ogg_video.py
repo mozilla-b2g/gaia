@@ -33,9 +33,12 @@ class TestPlayOGGVideo(GaiaTestCase):
         # Video will play automatically
         # We'll wait for the controls to clear so we're 'safe' to proceed
         time.sleep(2)
+        self.assertFalse(fullscreen_video.is_video_controls_visible)
 
         # We cannot tap the toolbar so let's just enable it with javascript
         fullscreen_video.show_controls()
+
+        self.assertTrue(fullscreen_video.is_video_controls_visible)
 
         # The elapsed time > 0:00 denote the video is playing
         zero_time = time.strptime('00:00', '%M:%S')
