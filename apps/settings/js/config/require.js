@@ -249,6 +249,20 @@ require.config({
     {
       name: 'panels/simcard_manager/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/hotspot/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/observable'
+      ]
+    },
+    {
+      name: 'panels/hotspot_wifi_settings/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/observable'
+      ]
     }
   ]
 });
