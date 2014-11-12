@@ -47,7 +47,9 @@ SearchAppBuilder.prototype.initTopsitesJSON = function() {
 SearchAppBuilder.prototype.execute = function(options) {
   this.options = options;
   this.setOptions(options);
-  this.initTopsitesJSON();
+  if (options.PROFILE_FOLDER !== 'profile-test') {
+    this.initTopsitesJSON();
+  }
 };
 
 exports.execute = function(options) {
