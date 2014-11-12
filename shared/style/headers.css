@@ -117,23 +117,6 @@ section[role="region"] header h2 {
   line-height: 1.8rem;
 }
 
-/* ----------------------------------
-  right-to-left
----------------------------------- */
-
-html[dir="rtl"] section[role="region"] > header:first-child menu {
-  float: left;
-}
-
-html[dir="rtl"] section[role="region"] > header:first-child button,
-html[dir="rtl"] section[role="region"] > header:first-child a {
-  float: right;
-}
-
-html[dir="rtl"] section[role="region"] > header:first-child .icon-back {
-  transform: rotate(180deg);
-}
-
 /* -----------------------------------------------------------------
   HEADER SKIN: default
   Default values in case we are not overriding them using

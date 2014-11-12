@@ -1,5 +1,4 @@
-/* globals System, homescreenLauncher, SettingsListener,
-           AttentionIndicator */
+/* globals System, homescreenLauncher, SettingsListener */
 'use strict';
 
 (function(exports) {
@@ -58,8 +57,6 @@
     start: function attwm_start() {
       this._instances = [];
       this._openedInstances = new Map();
-      this.attentionIndicator = new AttentionIndicator(this);
-      this.attentionIndicator.start();
       window.addEventListener('attentioncreated', this);
       window.addEventListener('attentionterminated', this);
       window.addEventListener('attentionshown', this);
@@ -83,10 +80,6 @@
     stop: function attwm_stop() {
       this._instances = null;
       this._openedInstances = null;
-      if (this.attentionIndicator) {
-        this.attentionIndicator.stop();
-        this.attentionIndicator = null;
-      }
       window.removeEventListener('attentioncreated', this);
       window.removeEventListener('attentionterminated', this);
       window.removeEventListener('attentionshow', this);
@@ -257,9 +250,9 @@
     },
     updateAttentionIndicator: function() {
       if (this._openedInstances.size == this._instances.length) {
-        this.attentionIndicator.hide();
+        System.request('makeAmbientIndicatorInactive');
       } else {
-        this.attentionIndicator.show();
+        System.request('makeAmbientIndicatorActive');
       }
     },
     closeAllAttentionWindows: function() {

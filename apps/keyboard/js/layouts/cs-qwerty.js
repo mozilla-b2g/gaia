@@ -1,4 +1,4 @@
-Keyboards.cs = {
+Keyboards['cs-qwerty'] = {
   label: 'Czech (QWERTY)',
   shortLabel: 'Cs',
   menuLabel: 'Česká (QWERTY)',

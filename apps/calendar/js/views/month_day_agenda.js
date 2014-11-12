@@ -7,22 +7,22 @@ var dateFormat = require('date_format');
 var dayObserver = require('day_observer');
 var isAllDay = require('calc').isAllDay;
 var performance = require('performance');
-var template = require('templates/months_day');
+var template = require('templates/month_day_agenda');
 
-function MonthsDay() {
+function MonthDayAgenda() {
   Parent.apply(this, arguments);
   this._render = this._render.bind(this);
   this.controller = this.app.timeController;
 }
-module.exports = MonthsDay;
+module.exports = MonthDayAgenda;
 
-MonthsDay.prototype = {
+MonthDayAgenda.prototype = {
   __proto__: Parent.prototype,
 
   date: null,
 
   selectors: {
-    element: '#months-day-view',
+    element: '#month-day-agenda',
     events: '.day-events',
     currentDate: '#event-list-date',
     emptyMessage: '#empty-message'

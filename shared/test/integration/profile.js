@@ -4,10 +4,11 @@
 module.exports = {
   settings: {
     'cdn.url': 'http://localhost',
-    'everythingme.api.url': null
+    'everythingme.api.url': null,
+    'search.marketplace.url': null
   },
   prefs: {
     'geo.wifi.uri': 'http://localhost'
-  },
+  }
   // apps: {}
 };

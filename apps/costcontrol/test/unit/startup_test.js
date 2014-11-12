@@ -109,11 +109,11 @@ suite('Application Startup Modes Test Suite >', function() {
   setup(function() {
     SimManager.reset();
     navigator.mozIccManager = window.MockNavigatorMozIccManager;
-    CostControlApp.reset();
     window.dispatchEvent(new Event('localized'));
   });
 
   teardown(function() {
+    CostControlApp.reset();
     window.location.hash = '';
   });
 

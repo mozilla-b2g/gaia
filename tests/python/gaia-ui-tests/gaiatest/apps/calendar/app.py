@@ -17,7 +17,7 @@ class Calendar(Base):
     name = 'Calendar'
 
     _current_month_year_locator = (By.ID, 'current-month-year')
-    _current_months_day_locator = (By.ID, 'months-day-view')
+    _current_month_day_agenda_locator = (By.ID, 'month-day-agenda')
     _current_monthly_calendar_locator = (By.ID, 'month-view')
     _add_event_button_locator = (By.XPATH, "//a[@href='/event/add/']")
 
@@ -66,7 +66,7 @@ class Calendar(Base):
 
     @property
     def current_month_day(self):
-        return self.marionette.find_element(*self._current_months_day_locator).get_attribute('data-date')
+        return self.marionette.find_element(*self._current_month_day_agenda_locator).get_attribute('data-date')
 
     @property
     def event_list_date(self):
@@ -133,7 +133,7 @@ class Calendar(Base):
                 *self._current_monthly_calendar_locator))))
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
-                *self._current_months_day_locator))))
+                *self._current_month_day_agenda_locator))))
 
     def a11y_click_day_display_button(self):
         self.accessibility.click(self.marionette.find_element(*self._day_display_button_locator))

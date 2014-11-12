@@ -28,7 +28,7 @@ marionette('Software Home Button - Modal Dialog', function() {
   });
 
   test('Proper layout for homescreen dialogs', function() {
-    actions.longPress(home.dividers[0], 1.5).perform();
+    home.openContextMenu();
     var contextMenuHeight = home.contextMenu.size().height;
     client.switchToFrame();
     assert.ok(contextMenuHeight === expectedHeight());

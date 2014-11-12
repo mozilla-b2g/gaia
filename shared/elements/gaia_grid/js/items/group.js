@@ -85,7 +85,7 @@
      * Creates the element and its children for this group item.
      */
     _createElement: function() {
-      var group = this.element = document.createElement('div');
+      var group = this.element = document.createElement('section');
       group.className = 'divider group newly-created';
 
       // Create the background (only seen in edit mode)

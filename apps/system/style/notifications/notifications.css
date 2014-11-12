@@ -59,10 +59,6 @@
   position: relative;
 }
 
-.utility-tray #ambient-indicator {
-  top: 0;
-}
-
 #toaster-icon {
   position: absolute;
   width: 2.4rem;
@@ -111,17 +107,6 @@
   visibility: visible;
 }
 
-#ambient-indicator {
-  position: absolute;
-  top: -.2rem;
-  height: .2rem;
-  width: 100%;
-  opacity: 0;
-  background-color: #00D3FF;
-  transform: translateY(-.2rem);
-  transition: opacity .5s ease .5s, transform 0s ease 1s, background-color 0s ease 1s;
-}
-
 #notification-toaster.displayed:after {
   position: absolute;
   right: 0;
@@ -145,12 +130,6 @@
   border-color: #00BCE2;
   transform: translateY(.2rem);
   transition: border-color 0s ease 1.2s;
-}
-
-#ambient-indicator.unread {
-  transform: translateY(0);
-  transition: background-color .3s ease .3s;
-  opacity: 1;
 }
 
 #notification-bar {

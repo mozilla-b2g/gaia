@@ -1,12 +1,12 @@
 define(function(require) {
 'use strict';
 
-var MonthsDay = require('views/months_day');
+var MonthDayAgenda = require('views/month_day_agenda');
 var dateFormat = require('date_format');
 var dayObserver = require('day_observer');
-var template = require('templates/months_day');
+var template = require('templates/month_day_agenda');
 
-suite('Views.MonthsDay', function() {
+suite('Views.MonthDayAgenda', function() {
   var subject,
       app;
 
@@ -21,7 +21,7 @@ suite('Views.MonthsDay', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div id="months-day-view">',
+      '<div id="month-day-agenda">',
         '<div class="day-events"></div>',
       '</div>'
     ].join(' ');
@@ -29,7 +29,7 @@ suite('Views.MonthsDay', function() {
     document.body.appendChild(div);
 
     app = testSupport.calendar.app();
-    subject = new MonthsDay({ app: app });
+    subject = new MonthDayAgenda({ app: app });
     app.db.open(done);
   });
 

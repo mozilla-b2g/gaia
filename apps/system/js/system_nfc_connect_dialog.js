@@ -69,6 +69,7 @@
       this.setMessage(localName);
       this.element.hidden = false;
       this.publish('show');
+      this.resize();
   };
 
   NfcConnectSystemDialog.prototype.view = function ncsd_view() {

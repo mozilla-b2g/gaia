@@ -25,6 +25,11 @@
   z-index: 0;
 }
 
+/* RTL support in gaia right now keeps buttons in same direction as LTR */
+html[dir="rtl"] .bb-tablist {
+  flex-direction: row-reverse;
+}
+
 .bb-tablist > li {
   -moz-box-sizing: content-box;
   margin: 0;

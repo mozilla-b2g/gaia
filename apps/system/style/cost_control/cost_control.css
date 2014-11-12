@@ -9,6 +9,6 @@
 
 #cost-control-widget iframe {
   margin: 0 1.5rem;
-  width: calc(100% - 3rem);
+  width: 100%;
   border-bottom: .1rem solid rgba(255, 255, 255, .05);
 }

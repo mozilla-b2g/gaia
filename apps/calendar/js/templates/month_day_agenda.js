@@ -4,7 +4,7 @@ define(function(require, exports, module) {
 var DateSpan = require('./date_span');
 var create = require('template').create;
 
-var MonthsDay = create({
+var MonthDayAgenda = create({
   event: function() {
     var calendarId = this.h('calendarId');
     var busytimeId = this.h('busytimeId');
@@ -48,7 +48,7 @@ var MonthsDay = create({
       </a>`;
   }
 });
-module.exports = MonthsDay;
+module.exports = MonthDayAgenda;
 
 function formatTime(time) {
   return DateSpan.time.render({

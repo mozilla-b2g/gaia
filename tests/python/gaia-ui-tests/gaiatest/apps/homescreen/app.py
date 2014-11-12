@@ -21,6 +21,7 @@ class Homescreen(Base):
     _landing_page_locator = (By.ID, 'icons')
     _bookmark_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .bookmark')
     _divider_locator = (By.CSS_SELECTOR, 'section.divider')
+    _divider_separator_locator = (By.CSS_SELECTOR, 'section.divider .separator > span')
 
     def launch(self):
         Base.launch(self)
@@ -91,7 +92,7 @@ class Homescreen(Base):
 
     def move_to_divider(self, app_position, divider_position):
         app_element = self.app_elements[app_position]
-        divider_element = self.divider_elements[divider_position]
+        separator_element = self.marionette.find_elements(*self._divider_separator_locator)[divider_position]
 
         self.marionette.execute_script(
             'arguments[0].scrollIntoView(false);', [app_element])
@@ -99,7 +100,7 @@ class Homescreen(Base):
         Actions(self.marionette).\
             press(app_element).\
             wait(3).\
-            move(divider_element).\
+            move(separator_element).\
             wait(1).\
             release().\
             wait(1).\

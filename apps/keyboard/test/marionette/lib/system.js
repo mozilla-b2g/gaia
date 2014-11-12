@@ -104,14 +104,13 @@ System.prototype = {
     chain.release().perform();
 
     var utilityTray = client.findElement('#utility-tray');
-    var trayHeight = utilityTray.scriptWith(function(tray) {
-      return tray.clientHeight;
-    });
+    var ambientIndicator = client.findElement('#ambient-indicator');
+    var trayHeight = utilityTray.size().height - ambientIndicator.size().height;
 
     // wait for utility tray to show completely
     client.waitFor(function() {
       var currentTransform = utilityTray.cssProperty('transform');
-      var expectedTransform = 'matrix(1, 0, 0, 1, 0, '+ trayHeight +')';
+      var expectedTransform = 'matrix(1, 0, 0, 1, 0, ' + trayHeight + ')';
       return (currentTransform === expectedTransform);
     });
   }

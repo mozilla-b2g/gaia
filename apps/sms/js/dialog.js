@@ -124,6 +124,9 @@ var Dialog = function(params) {
         event.target.parentNode) {
       document.body.removeChild(event.target);
     }
+    // If we add a class, the animation will not be perform properly.
+    // see Bug 1095338 for further information
+    document.body.style.pointerEvents = 'initial';
   });
 
   menu.addEventListener('click', function(event) {
@@ -157,6 +160,9 @@ Dialog.prototype.show = function() {
     this.form.clientTop;
   }
   this.form.classList.add('visible');
+  // If we add a class, the animation will not be perform properly.
+  // see Bug 1095338 for further information
+  document.body.style.pointerEvents = 'none';
   this.form.focus();
 };
 
