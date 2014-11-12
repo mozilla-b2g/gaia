@@ -16,10 +16,6 @@ section[role="region"].skin-organic {
   vertical-align: middle;
 }
 
-.sup-form-item .end {
-  float: right;
-}
-
 .sup-form-btn {
   width: calc(100% - 3rem);
 }
@@ -60,7 +56,7 @@ section[role="region"].skin-organic {
   word-spacing: 0.1rem;
 }
 .sup-progress-spinner {
-  margin-right: 1.2rem;
+  -moz-margin-end: 1.2rem;
 }
 
 cards-setup-done .sup-progress-label {
@@ -155,8 +151,8 @@ li button.signature-button.icon:before {
 li button.signature-button.button.icon {
   width: 100%;
   margin: 0 auto 2rem auto;
-  padding-right: 3rem;
-  padding-left: 0;
+  -moz-padding-start: 0;
+  -moz-padding-end: 3rem;
 }
 
 .signature-button-content {
@@ -164,7 +160,14 @@ li button.signature-button.button.icon {
   white-space: nowrap;
   width: 100%;
   overflow: hidden;
+  /* Explicit left for RTL right alignment regardless of user input */
   margin-left: 1rem;
+  text-align: left;
+}
+
+html:-moz-dir(rtl) .signature-button-content {
+  margin-right: 1rem;
+  text-align: right;
 }
 
 .signature-button-content.empty-placeholder {
@@ -181,6 +184,20 @@ li:not([role]) {
   border-bottom: 0;
 }
 
+.tng-account-type {
+  padding-right: 1.2rem;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #52B6CC;
+  font-size: 1.8rem;
+}
+html:-moz-dir(rtl) .tng-account-type {
+  padding-left: 1.2rem;
+  padding-right: 0;
+}
+
 /* Special override because delete button follows the
    tng-acccount-server-container, and cannot place the button inside that ul
    since items are dynamically appended to it. So just explicitly state the
@@ -194,8 +211,37 @@ li a:active {
   background-color: #008AAA;
 }
 
+/* A style for a list item where there is a text label and text value that is
+  not editable by the user. The text value is underneath (sub) the label part.
+  The label should be a span with class "list-text" and the value should be a
+  span with "list-sub-text". */
 .list-text-with-sub {
   padding: 1.5rem 0;
+}
+
+/* A style for a list item where there is a label and a value pair, and the
+   name value pair is laid out via flexbox so that the label can be as long
+   as it wants, possibly multiple lines, and the value stays vertically centered
+   in relation to the label. */
+.list-text-pair {
+  padding: 1.5rem 0;
+  display: flex;
+  align-items: center;
+}
+
+.list-text-pair .aside.start {
+  flex-grow: 2;
+  -moz-margin-end: 1.5rem;
+  line-height: inherit;
+}
+
+.list-text-pair .aside.end .pack-switch {
+  width: 6rem;
+  height: 3rem;
+}
+
+.list-text-pair .aside.end .pack-checkbox {
+  height: 3rem;
 }
 
 .list-text-with-sub .list-text {
@@ -212,23 +258,18 @@ li.select-item {
   overflow: hidden;
   text-overflow: ellipsis;
   color: #000;
+  /* Explicit -left used since RTL cases always want right alignment, regardless
+     of direction of user input string. See rtl style overrides below */
   padding-left: 1.5rem;
   line-height: 5.5rem;
   font-size: 1.8rem;
   outline: 0 none;
+  text-align: left;
 }
 
-.list-value {
-  position: absolute;
-  right: 0;
-  padding-right: 1.2rem;
-  text-decoration: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #52B6CC;
-  font-size: 1.8rem;
-  line-height: 5.5rem;
+html:-moz-dir(rtl) .list-text {
+  padding-right: 1.5rem;
+  text-align: right;
 }
 
 .list-sub-text {
@@ -238,21 +279,15 @@ li.select-item {
   word-wrap: break-word;
   color: #5b5b5b;
   font-size: 1.6rem;
+  /* Explicit left usage, want RTL UI to be right aligned no matter dir="auto"
+     user input text direction */
   padding-left: 1.5rem;
+  text-align: left;
 }
 
-.sup-no-list .list-text,
-.sup-no-list .list-sub-text {
-  padding-left: 0;
-}
-
-li .aside.start {
-  float: left;
-  width: calc(100% - 9.5rem);
-}
-
-li .aside.end {
-  float: right;
+html:-moz-dir(rtl) .list-sub-text {
+  padding-right: 1.5rem;
+  text-align: right;
 }
 
 li.align-center {
@@ -267,6 +302,11 @@ li.align-center {
   top: calc(50% - 1.5rem);
   right: 0;
   background: url(/shared/style/buttons/images/next.png) no-repeat center / 3rem auto;
+}
+
+html:-moz-dir(rtl) .item-with-children::after  {
+  left: 0;
+  right: auto;
 }
 
 .mail-select {
@@ -329,10 +369,6 @@ section.settings-account-common li {
   margin: 0 auto 1rem auto;
 }
 
-.settings-account-common li .pack-checkbox {
-  margin-top: 0.2rem;
-}
-
 .tng-account-check-interval,
 .tng-account-synchronize {
   background: none;
@@ -347,7 +383,7 @@ section.settings-account-common li {
   font-weight: bold;
   background: none;
   border: transparent;
-  margin-left: -1.5rem;
+  -moz-margin-start: -1.5rem;
   padding: 0.7rem 0 0.7rem 1.5rem;
 }
 

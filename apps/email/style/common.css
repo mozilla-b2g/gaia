@@ -308,33 +308,33 @@ the list of folders.
 */
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth0,
 .fld-folder-depth0 {
-  padding-left: 1.5rem;
+  -moz-padding-start: 1.5rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth1,
 .fld-folder-depth1 {
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth2,
 .fld-folder-depth2 {
-  padding-left: 4.5rem;
+  -moz-padding-start: 4.5rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth3,
 .fld-folder-depth3 {
-  padding-left: 6rem;
+  -moz-padding-start: 6rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth4,
 .fld-folder-depth4 {
-  padding-left: 6.5rem;
+  -moz-padding-start: 6.5rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth5,
 .fld-folder-depth5 {
-  padding-left: 9.5rem;
+  -moz-padding-start: 9.5rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth6,
 .fld-folder-depth6,
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depthmax,
 .fld-folder-depthmax {
-  padding-left: 11rem;
+  -moz-padding-start: 11rem;
 }
 
 .email-value-selector[role="dialog"][data-type="value-selector"] menu {

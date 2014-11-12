@@ -8,9 +8,9 @@ define(function(require) {
      * things in kilobytes because we are targeting a mobile device and we
      * want bigger sizes (like megabytes) to be obviously large numbers.
      */
-    fileSize: function(sizeInBytes) {
+    fileSize: function(node, sizeInBytes) {
       var kilos = Math.ceil(sizeInBytes / 1024);
-      return mozL10n.get('attachment-size-kib', { kilobytes: kilos });
+      mozL10n.setAttributes(node, 'attachment-size-kib', { kilobytes: kilos });
     }
   };
 });
