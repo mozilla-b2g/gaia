@@ -1,0 +1,34 @@
+<element name="call-cb-passcode" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#call-cbSettings">
+      <h1 data-l10n-id="callBarring-current-passcode" data-mode="edit">Current Passcode</h1>
+      <h1 data-l10n-id="callBarring-new-passcode" data-mode="new">New Passcode</h1>
+      <button id="passcode-confirm" class="passcode-change" data-mode="new" data-l10n-id="change">Change</button>
+    </gaia-header>
+
+    <div class="passcode-overlay">
+      <input type="number" x-inputmode="digit" class="passcode-input" />
+      <div class="passcode-container">
+        <div class="passcode" id="passcode-pseudo-input">
+          <label data-l10n-id="callBarring-create-passcode" data-mode="new">Create a Passcode</label>
+          <label data-l10n-id="callBarring-passcode" data-mode="edit">Passcode</label>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+        </div>
+        <div class="passcode" data-mode="new" id="passcode-pseudo-confirm-input">
+          <label data-l10n-id="callBarring-confirm-passcode" data-mode="new">Confirm Passcode</label>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+        </div>
+        <div class="passcode-error" data-l10n-id="callBarring-passcode-error-incorrect" data-type="incorrect">Passcode is incorrect</div>
+        <div class="passcode-error" data-l10n-id="callBarring-passcode-error-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
+      </div>
+    </div>
+
+  </template>
+</element>
