@@ -704,6 +704,9 @@ Camera.prototype.release = function(done) {
   this.releasing = true;
   this.mozCamera = null;
 
+  // Reset cached parameters
+  delete this.pictureSize;
+
   function onSuccess() {
     debug('successfully released');
     self.ready();
