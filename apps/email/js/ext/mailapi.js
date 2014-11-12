@@ -699,11 +699,19 @@ var ContactCache = exports.ContactCache = {
       // Search contacts, but use an all lower-case name, since the contacts
       // API's search plumbing uses a lowercase version of the email address
       // for these search comparisons. However, the actual display of the
-      // contact in the contact app has casing preserved.
+      // contact in the contact app has casing preserved. emailAddress could
+      // be undefined though if a group/undisclosed-recipients case, so guard
+      // against that (deeper normalization fix tracked in bug 1097820). Using
+      // empty string in the undefined emailAddress case because passing the
+      // value of undefined directly in the filterValue results in some contacts
+      // being returned. Potentially all contacts. However passing empty string
+      // gives back no results, even if there is a contact with no email address
+      // assigned to it.
+      var filterValue = emailAddress ? emailAddress.toLowerCase() : '';
       var req = contactsAPI.find({
                   filterBy: ['email'],
                   filterOp: 'equals',
-                  filterValue: emailAddress.toLowerCase()
+                  filterValue: filterValue
                 });
       var self = this, handleResult = function() {
         if (req.result && req.result.length) {
