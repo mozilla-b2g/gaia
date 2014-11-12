@@ -1,14 +1,32 @@
 'use strict';
 
 var Contacts = require('./lib/contacts');
+var ContactsData = require('./lib/contacts_data');
 var Actions = require('marionette-client').Actions;
 var assert = require('assert');
 
 marionette('Contacts > ICE contacts', function() {
   var client = marionette.client(Contacts.config);
-  var subject;
-  var selectors;
   var actions = new Actions(client);
+  var contactsData = new ContactsData(client);
+  var subject, selectors;
+
+  var testContactTelNumber = '655555555';
+
+  var testContact = {
+    givenName: ['Hello'],
+    tel: [{
+      type: ['mobile'],
+      value: testContactTelNumber
+    }]
+  };
+
+  setup(function() {
+    subject = new Contacts(client);
+    subject.actions = actions;
+    subject.launch();
+    selectors = Contacts.Selectors;
+  });
 
   function setFirstContactAsICE() {
     openICESettings();
@@ -40,7 +58,7 @@ marionette('Contacts > ICE contacts', function() {
   }
 
   function addTestContact(addTelephone) {
-    var tel = addTelephone ? '655555555' : undefined;
+    var tel = addTelephone ? testContactTelNumber : undefined;
     subject.addContact({
       givenName: 'Hello',
       tel: tel
@@ -60,11 +78,77 @@ marionette('Contacts > ICE contacts', function() {
     }, [selectors.iceGroupOpen]);
   }
 
-  setup(function() {
-    subject = new Contacts(client);
-    subject.launch();
-    selectors = Contacts.Selectors;
-  });
+  function assertICEContact(position, name) {
+    var iceContact = client.helper.waitForElement(
+                       selectors['iceButton' + position]);
+    assert.equal(iceContact.text(), name);
+
+    var checked = client.executeScript(function(selector) {
+      return document.querySelector(selector).checked;
+    }, [selectors['iceInputSwitch' + position]]);
+    assert.ok(checked);
+  }
+
+  function assertICEContactNotSet(position) {
+    var checked = client.executeScript(function(selector) {
+      return document.querySelector(selector).checked;
+    }, [selectors['iceInputSwitch' + position]]);
+
+    assert.ok(!checked);
+  }
+
+  // Creates a mozContact by calling the mozContacts API
+  function createMozContact(contactData) {
+    return contactsData.createMozContact(contactData);
+  }
+
+  function setICEContacts(iceContactsList) {
+    var doSetICEContacts = function(iceContactsList) {
+      var LazyLoader = window.wrappedJSObject.LazyLoader;
+
+      LazyLoader.load([
+        '/shared/js/contacts/utilities/ice_store.js',
+        '/contacts/js/utilities/ice_data.js',
+        '/shared/js/async_storage.js'
+      ], function() {
+          var ICEData = window.wrappedJSObject.ICEData;
+          ICEData.setICEContacts(iceContactsList).then(function() {
+            marionetteScriptFinished(true);
+          }, function(error) {
+              console.error('Error while setting ICE ', error);
+              marionetteScriptFinished(false);
+          });
+      });
+    };
+
+    var iceContactsSet = false;
+    client.executeAsyncScript(doSetICEContacts, [iceContactsList],
+      function(err, val) {
+        iceContactsSet = val;
+    });
+
+    client.waitFor(function() {
+      return iceContactsSet;
+    });
+  }
+
+  function setICEContact(position, contact) {
+    var contactId = createMozContact(contact || testContact);
+    var iceContacts = [null, null];
+    iceContacts[position - 1] = contactId;
+
+    setICEContacts(iceContacts);
+  }
+
+  function createAndSetICEContacts(contactList) {
+    var iceList = [];
+    contactList.forEach(function(aContact) {
+      var contactId = createMozContact(aContact);
+      iceList.push(contactId);
+    });
+
+    setICEContacts(iceList);
+  }
 
   suite('ICE settings', function() {
     test('Check ICE settings transition', function() {
@@ -201,6 +285,238 @@ marionette('Contacts > ICE contacts', function() {
       dismissAndGoBack();
       client.helper.waitForElement(selectors.contactListHeader);
       assert.ok(isIceContactsGroupHidden());
+    });
+  });
+
+  suite('ICE contacts and Merge', function() {
+    // Merges a duplicate contact and closes the duplicates iframe
+    function mergeDuplicate() {
+      var duplicateFrame = client.findElement(selectors.duplicateFrame);
+      subject.waitForSlideUp(duplicateFrame);
+      client.switchToFrame(duplicateFrame);
+      var mergeAction = client.helper.waitForElement(selectors.duplicateMerge);
+      subject.clickOn(mergeAction);
+
+      client.switchToFrame();
+      client.apps.switchToApp(Contacts.URL, 'contacts');
+      subject.waitForSlideDown(duplicateFrame);
+    }
+
+    function setTwoICEDuplicates() {
+      var duplicateContact = testContact;
+
+      var contactId1 = createMozContact(duplicateContact);
+      var contactId2 = createMozContact(duplicateContact);
+
+      setICEContacts([contactId1, contactId2]);
+    }
+
+    function addNewAndMatchTest(position) {
+      addTestContact(true);
+
+      mergeDuplicate();
+
+      // Now we go back to the ICE settings and check that our ICE remains
+      subject.waitForFadeIn(client.helper.waitForElement(selectors.list));
+      openICESettings();
+      assertICEContact(position, 'Hello');
+    }
+
+    function findDuplicatesAndMatchTest(position) {
+      var secondContactID = createMozContact({
+        givenName: ['Hello'],
+        tel: [{
+          type: ['mobile'],
+          value: testContactTelNumber
+        }]
+      });
+
+      var selectorForSecondContact = 'li[data-uuid="' + secondContactID + '"]';
+
+      // Going to the recently created contact
+      var listContactElement =
+              client.helper.waitForElement(selectorForSecondContact);
+      subject.clickOn(listContactElement);
+      subject.waitSlideLeft('details');
+
+      var findDups = client.helper.waitForElement(selectors.findDupsButton);
+      subject.clickOn(findDups);
+
+      mergeDuplicate();
+
+      subject.backToList();
+
+      openICESettings();
+      assertICEContact(position, 'Hello');
+    }
+
+    function editAndMatchTest(position) {
+      subject.addContact({
+        givenName: 'Good Bye',
+        tel: '+34638883074'
+      });
+
+      var selectorForSecondContact = 'li[data-group="G"].contact-item';
+
+      // Going to the recently created contact
+      var listContactElement =
+              client.helper.waitForElement(selectorForSecondContact);
+      subject.clickOn(listContactElement);
+
+      // Editing contact
+      subject.editContact();
+      // Adding a tel number equal to the tel number of 'Hello'
+      client.findElement(selectors.formAddNewTel).click();
+      client.helper.waitForElement(selectors.formTelNumberSecond).
+                                              sendKeys(testContactTelNumber);
+      // Saving the contact
+      var save = client.findElement(selectors.formSave);
+      save.enabled();
+      save.click();
+
+      mergeDuplicate();
+
+      subject.backToList();
+
+      openICESettings();
+      assertICEContact(position, 'Good Bye');
+    }
+
+    suite('> 1 ICE Contact. Position 1', function() {
+      setup(function() {
+        setICEContact(1);
+      });
+
+      test('> Add a new Contact that matches ICE Contact', function() {
+        addNewAndMatchTest(1);
+        assertICEContactNotSet(2);
+      });
+
+      test('> Find duplicates. ICE Contact Matches', function() {
+        findDuplicatesAndMatchTest(1);
+        assertICEContactNotSet(2);
+      });
+
+      test('> Edit existing, change data. ICE Matches. ICE changed',
+        function() {
+          editAndMatchTest(1);
+          assertICEContactNotSet(2);
+      });
+    });
+
+    suite('> 1 ICE Contact. Position 2', function() {
+      setup(function() {
+        setICEContact(2);
+      });
+
+      test('> Add a new Contact that matches ICE Contact', function() {
+        addNewAndMatchTest(2);
+        assertICEContactNotSet(1);
+      });
+
+      test('> Find duplicates. ICE Contact Matches', function() {
+        findDuplicatesAndMatchTest(2);
+        assertICEContactNotSet(1);
+      });
+
+      test('> Edit existing, change data. ICE Matches. ICE changed',
+        function() {
+          editAndMatchTest(2);
+          assertICEContactNotSet(1);
+      });
+    });
+
+    suite('> 2 ICE Contacts. Change position 1. Keep Position 2', function() {
+      setup(function() {
+        createAndSetICEContacts([testContact, {
+          givenName: ['Aufwiedersehen'],
+          tel: [{
+            type: ['mobile'],
+            value: '9999999'
+          }]
+        }]);
+      });
+
+      test('> Add a new Contact that matches ICE Contact', function() {
+        addNewAndMatchTest(1);
+        assertICEContact(2, 'Aufwiedersehen');
+      });
+
+      test('> Find duplicates. ICE Contact Matches', function() {
+        findDuplicatesAndMatchTest(1);
+        assertICEContact(2, 'Aufwiedersehen');
+      });
+
+      test('> Edit existing, change data. ICE Matches. ICE changed',
+        function() {
+          editAndMatchTest(1);
+          assertICEContact(2, 'Aufwiedersehen');
+      });
+    });
+
+    suite('> 2 ICE Contacts. Change position 2. Keep Position 1', function() {
+      setup(function() {
+        createAndSetICEContacts([{
+          givenName: ['Aufwiedersehen'],
+          tel: [{
+            type: ['mobile'],
+            value: '9999999'
+          }]
+        }, testContact]);
+      });
+
+      test('> Add a new Contact that matches ICE Contact', function() {
+        addNewAndMatchTest(2);
+        assertICEContact(1, 'Aufwiedersehen');
+      });
+
+      test('> Find duplicates. ICE Contact Matches', function() {
+        findDuplicatesAndMatchTest(2);
+        assertICEContact(1, 'Aufwiedersehen');
+      });
+
+      test('> Edit existing, change data. ICE Matches. ICE changed',
+        function() {
+          editAndMatchTest(2);
+          assertICEContact(1, 'Aufwiedersehen');
+      });
+    });
+
+    suite('> 2 ICE Contacts which are merged', function() {
+      setup(function() {
+        setTwoICEDuplicates();
+      });
+
+      test('> Two ICE Contacts are merged into 1', function() {
+        // Going to the recently created contact
+        var listContactElement =
+                client.helper.waitForElement(selectors.listContactFirst);
+        subject.clickOn(listContactElement);
+        subject.waitSlideLeft('details');
+
+        var findDups = client.helper.waitForElement(selectors.findDupsButton);
+        subject.clickOn(findDups);
+
+        mergeDuplicate();
+
+        subject.backToList();
+
+        openICESettings();
+        assertICEContact(1, 'Hello');
+        assertICEContactNotSet(2);
+      });
+
+      test('> A third incoming Contact merges two ICE contacts', function() {
+        addTestContact(true);
+
+        mergeDuplicate();
+
+        // Now we go back to the ICE settings and check that our ICE remains
+        subject.waitForFadeIn(client.helper.waitForElement(selectors.list));
+        openICESettings();
+        assertICEContact(1, 'Hello');
+        assertICEContactNotSet(2);
+      });
     });
   });
 });

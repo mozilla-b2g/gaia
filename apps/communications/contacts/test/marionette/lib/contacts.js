@@ -41,6 +41,7 @@ Contacts.Selectors = {
   detailsFavoriteButton: '#toggle-favorite',
   detailsContactName: '#contact-name-title',
   detailsHeader: '#details-view-header',
+  findDupsButton: '#details-list #find-merge-button',
 
   duplicateFrame: 'iframe[src*="matching_contacts.html"]',
   duplicateHeader: '#title',
@@ -65,6 +66,7 @@ Contacts.Selectors = {
   formTelNumberSecond: '#number_1',
   formEmailFirst: '#email_0',
   formPhotoButton: '#photo-button',
+  formAddNewTel: '#add-new-phone',
 
   groupList: ' #groups-list',
   list: '#view-contacts-list',
@@ -95,6 +97,7 @@ Contacts.Selectors = {
   iceSwitch1: '#ice-contacts-1-switch',
   iceInputSwitch1: '#ice-contacts-1-switch input[type="checkbox"]',
   iceSwitch2: '#ice-contacts-2-switch',
+  iceInputSwitch2: '#ice-contacts-2-switch input[type="checkbox"]',
   iceButton1: '#select-ice-contact-1',
   iceButton2: '#select-ice-contact-2',
   iceGroupOpen: '#section-group-ice',
@@ -194,6 +197,25 @@ Contacts.prototype = {
     var selectors = Contacts.Selectors,
         form = this.client.findElement(selectors.form);
     this.client.helper.waitForElementToDisappear(form);
+  },
+
+  editContact: function() {
+    var selectors = Contacts.Selectors;
+
+    var edit = this.client.helper.waitForElement(selectors.detailsEditContact);
+    this.clickOn(edit);
+    this.waitForFadeIn(this.client.helper.waitForElement(selectors.form));
+  },
+
+  // Goes back to the Contact List view from a Details view
+  backToList: function() {
+    var selectors = Contacts.Selectors;
+
+    // Now we go back to the ICE settings and check that our ICE remains
+    this.waitForFadeIn(this.client.helper.waitForElement(selectors.details));
+    var header = this.client.helper.waitForElement(selectors.detailsHeader);
+    this.actions.wait(0.5).tap(header, 10, 10).perform();
+    this.waitSlideLeft('list');
   },
 
   enterContactDetails: function(details) {

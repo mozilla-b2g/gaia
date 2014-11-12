@@ -73,6 +73,17 @@ suite('ICE Data', function() {
         });
       }, done);
     });
+
+    test('> Setting ICE Contacts', function(done) {
+      var newIceContacts = ['aaa'];
+
+      subject.setICEContacts(newIceContacts).then(done(function() {
+        var iceContacts = subject.iceContacts;
+        assert.equal(iceContacts[0].id, 'aaa');
+        assert.isTrue(iceContacts[0].active);
+        assert.isUndefined(iceContacts[1].id);
+      }), done);
+    });
   });
 
   suite('> Listen for changes', function() {
