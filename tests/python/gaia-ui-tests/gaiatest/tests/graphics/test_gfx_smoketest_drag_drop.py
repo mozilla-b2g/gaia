@@ -11,7 +11,7 @@ import pdb
 
 
 class testGfxSmokeTestDragDrop(GaiaImageCompareTestCase):
-    _homescreen_locator = (By.ID, 'icons')
+    _homescreen_locator = (By.CLASS_NAME, 'theme-media')
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
@@ -46,10 +46,10 @@ class testGfxSmokeTestDragDrop(GaiaImageCompareTestCase):
         # Exit edit mode
         self.device.touch_home_button()
         self.assertFalse(self.homescreen.is_edit_mode_active, "Edit mode should not be active")
-        self.scroll(self.marionette,self._homescreen_locator,'down',6)
-        self.invoke_screen_capture()
-        self.scroll(self.marionette,self._homescreen_locator,'down',6)
-        self.invoke_screen_capture()
+        #self.scroll(self._homescreen_locator,'up',6)
+        #self.invoke_screen_capture()
+        #self.scroll(self._homescreen_locator,'down',6)
+        #self.invoke_screen_capture()
 
     def tearDown(self):
 
