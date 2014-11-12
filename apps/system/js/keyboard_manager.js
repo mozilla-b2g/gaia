@@ -256,7 +256,8 @@ var KeyboardManager = {
         }
         break;
       case 'lockscreen-appopened':
-        /* falls through */
+        navigator.mozInputMethod.removeFocus();
+        break;
       case 'sheets-gesture-begin':
         if (this.inputWindowManager.hasActiveKeyboard()) {
           // Instead of hideKeyboard(), we should removeFocus() here.
