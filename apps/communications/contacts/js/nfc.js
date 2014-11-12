@@ -64,14 +64,22 @@ contacts.NFC = (function() {
      });
 
      var res = mozNfcPeer.sendNDEF([NDEFRecord]);
-     res.onsuccess = function() {
-       console.log('Contact succesfuly sent');
-     };
+     if ("onsuccess" in res) {
+       res.onsuccess = function() {
+         console.log('Contact succesfuly sent');
+       };
 
-     res.onerror = function() {
-       console.log('Something goes wrong');
-     };
-   };
+       res.onerror = function() {
+         console.log('Something goes wrong');
+       };
+     } else {
+       res.then(() => {
+         console.log('Contact succesfuly sent');
+       }).catch(e => {
+         console.log('Something goes wrong');
+       });
+     }
+  };
 
   var handlePeerReadyForFb = function() {
     Contacts.showStatus('facebook-export-forbidden');

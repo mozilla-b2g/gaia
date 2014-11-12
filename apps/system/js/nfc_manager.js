@@ -276,13 +276,21 @@
       });
       window.dispatchEvent(event);
 
-      req.onsuccess = () => {
-        this._debug('_changeHardwareState ' + state + ' success');
-      };
-      req.onerror = () => {
-        this._logVisibly('_changeHardwareState ' + state + ' error ' +
-                         req.error.name);
-      };
+      if ("onsuccess" in req) {
+        req.onsuccess = () => {
+          this._debug('_changeHardwareState ' + state + ' success');
+        };
+        req.onerror = () => {
+          this._logVisibly('_changeHardwareState ' + state + ' error ' +
+                           req.error.name);
+        };
+      } else {
+        req.then(() => {
+          this._debug('_changeHardwareState ' + state + ' success');
+        }).catch(e => {
+          this._logVisibly('_changeHardwareState ' + state + ' error ' + e);
+        });
+      }
     },
 
     /**
@@ -341,21 +349,39 @@
         window.System.manifestURL;
 
       var status = nfcdom.checkP2PRegistration(manifestURL);
-      status.onsuccess = () => {
-        if (status.result) {
-          // Top visible application's manifest Url is registered;
-          // Start Shrink / P2P UI and wait for user to accept P2P event
-          window.dispatchEvent(new CustomEvent('shrinking-start'));
+      if ("onsuccess" in status) {
+        status.onsuccess = () => {
+          if (status.result) {
+            // Top visible application's manifest Url is registered;
+            // Start Shrink / P2P UI and wait for user to accept P2P event
+            window.dispatchEvent(new CustomEvent('shrinking-start'));
 
-          // Setup listener for user response on P2P UI now
-          window.addEventListener('shrinking-sent', this);
-        } else {
-          // Clean up P2P UI events
-          this._logVisibly('CheckP2PRegistration failed');
-          window.removeEventListener('shrinking-sent', this);
-          window.dispatchEvent(new CustomEvent('shrinking-stop'));
-        }
-      };
+            // Setup listener for user response on P2P UI now
+            window.addEventListener('shrinking-sent', this);
+          } else {
+            // Clean up P2P UI events
+            this._logVisibly('CheckP2PRegistration failed');
+            window.removeEventListener('shrinking-sent', this);
+            window.dispatchEvent(new CustomEvent('shrinking-stop'));
+          }
+        };
+      } else {
+      status.then(result => {
+        if (result) {
+            // Top visible application's manifest Url is registered;
+            // Start Shrink / P2P UI and wait for user to accept P2P event
+            window.dispatchEvent(new CustomEvent('shrinking-start'));
+
+            // Setup listener for user response on P2P UI now
+            window.addEventListener('shrinking-sent', this);
+          } else {
+            // Clean up P2P UI events
+            this._logVisibly('CheckP2PRegistration failed');
+            window.removeEventListener('shrinking-sent', this);
+            window.dispatchEvent(new CustomEvent('shrinking-stop'));
+          }
+        });
+      }
     },
 
     /**
