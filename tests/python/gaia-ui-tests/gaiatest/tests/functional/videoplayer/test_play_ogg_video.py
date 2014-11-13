@@ -27,6 +27,10 @@ class TestPlayOGGVideo(GaiaTestCase):
 
         first_video_name = video_player.first_video_name
 
+        frame = self.marionette.get_active_frame()
+        self.assertEqual('none', self.data_layer.current_audio_channel)
+        self.marionette.switch_to_frame(frame)
+
         # Click on the first video.
         fullscreen_video = video_player.tap_first_video_item()
 
@@ -43,3 +47,5 @@ class TestPlayOGGVideo(GaiaTestCase):
 
         # Check the name too. This will only work if the toolbar is visible.
         self.assertEqual(first_video_name, fullscreen_video.name)
+
+        self.assertEqual('content', self.data_layer.current_audio_channel)
