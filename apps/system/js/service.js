@@ -132,8 +132,8 @@
       if (!this._services.has(service)) {
         this._services.set(service, server);
       } else {
-        console.warn('the service [' + service + '] has already been ' +
-          'registered by other server.');
+        this.debug('the service [' + service + '] has already been ' +
+          'registered by other server:', this._services.get(service).name);
         return;
       }
 
@@ -151,12 +151,14 @@
     /* Helper function to unwrap the promise in service request */
     _unwrapPromise: function(returnValue, resolve, reject) {
       if (returnValue && returnValue.then && returnValue.catch) {
+        this.debug('return value is promise', returnValue);
         returnValue.then(function(result) {
           resolve(result);
         }).catch(function(error) {
           reject(error);
         });
       } else {
+        this.debug('return value is non-promise', returnValue);
         resolve(returnValue);
       }
     },
@@ -218,7 +220,8 @@
         return undefined;
       }
       if (typeof(provider[state]) === 'function') {
-        return provider[state]();
+        var functionArgs = Array.prototype.slice.call(arguments, 1);
+        return provider[state].apply(provider, functionArgs);
       } else {
         return provider[state];
       }

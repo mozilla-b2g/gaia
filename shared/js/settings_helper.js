@@ -101,6 +101,7 @@
           _return(callback, _value ? _value : _defaultValue);
         });
       },
+
       /**
        * Set the setting value.
        *
