@@ -373,6 +373,13 @@ var Common = {
         }
       }
       nextReset = new Date(year, month, monthday);
+      if (monthday !== nextReset.getDate()) {
+        var LAST_DAY_OF_PREVIOUS_MONTH = 0;
+        // If monthday is not equal to nextReset day, it means that the selected
+        // reset day does not exist (e.g. 30 Feb). In this case, the reset day
+        // must be the last day of the previous month
+        nextReset.setDate(LAST_DAY_OF_PREVIOUS_MONTH);
+      }
 
     // Recalculate with week period
     } else if (trackingPeriod === 'weekly') {
