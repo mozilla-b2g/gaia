@@ -12,6 +12,8 @@ require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
+requireApp('system/js/base_ui.js');
+requireApp('system/js/app_chrome.js');
 
 var MockBookmarksDatabase = {
   get: function(resolve, reject) {
@@ -28,15 +30,13 @@ suite('system/AppChrome', function() {
   var stubById, realL10n;
   mocksForAppChrome.attachTestHelpers();
 
-  setup(function(done) {
+  setup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     this.sinon.useFakeTimers();
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
-    requireApp('system/js/base_ui.js');
-    requireApp('system/js/app_chrome.js', done);
 
     window.SettingsListener = { observe: function() {} };
   });

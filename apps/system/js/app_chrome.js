@@ -11,10 +11,10 @@
 
 (function(exports) {
   var _id = 0;
-  var _ = navigator.mozL10n.get;
 
   var newTabManifestURL = null;
-  SettingsListener.observe('rocketbar.newTabAppURL', '',
+  window.SettingsListener && SettingsListener.observe(
+    'rocketbar.newTabAppURL', '',
     function(url) {
       // The application list in applications.js is not yet ready, so we store
       // only the manifestURL for now and we look up the application whenever
@@ -769,6 +769,8 @@
         self.addBookmark();
       }
     }
+
+    var _ = navigator.mozL10n.get;
 
     var data = {
       title: _('add-to-home-screen'),
