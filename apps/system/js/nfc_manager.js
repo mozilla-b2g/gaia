@@ -1,6 +1,3 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 /* Copyright © 2013, Deutsche Telekom, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +14,8 @@
  */
 
 /* globals CustomEvent, MozActivity, Service,
-           NfcUtils, NDEF, ScreenManager, BaseModule */
+           NfcUtils, NDEF, ScreenManager, BaseModule, NfcIcon,
+           LazyLoader */
 
 'use strict';
 
@@ -94,6 +92,12 @@
     _start: function nm_start() {
       this._debug('Starting NFC Manager');
       this._hwState = this.NFC_HW_STATE.OFF;
+      LazyLoader.load(['js/nfc_icon.js']).then(function() {
+        this.icon = new NfcIcon(this);
+        this.icon.start();
+      }.bind(this)).catch(function(err) {
+        console.error(err);
+      });
 
       window.navigator.mozSetMessageHandler('nfc-manager-tech-discovered',
         (msg) => this._handleTechDiscovered(msg));
@@ -313,6 +317,7 @@
       this._debug('_handleNFCOnOf is on:' + isOn);
 
       this._hwState = (isOn) ? this.NFC_HW_STATE.ON : this.NFC_HW_STATE.OFF;
+      this.icon && this.icon.update();
       this.writeSetting({'nfc.status': (isOn) ? 'enabled' : 'disabled'});
 
       // event dispatching to handle statusbar change
