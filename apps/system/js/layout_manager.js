@@ -128,6 +128,7 @@
           this.publish('system-resize');
           break;
         case 'resize':
+          this.keyboardEnabled = false;
           this.publish('system-resize');
           this.publish('orientationchange');
           break;

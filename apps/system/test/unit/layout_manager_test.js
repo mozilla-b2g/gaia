@@ -37,6 +37,7 @@ suite('system/LayoutManager >', function() {
       layoutManager.handleEvent({
         type: 'resize'
       });
+      assert.isFalse(layoutManager.keyboardEnabled);
       assert.isTrue(stubPublish.calledWith('system-resize'));
       assert.isTrue(stubPublish.calledWith('orientationchange'));
     });
