@@ -231,10 +231,10 @@ var Widget = (function() {
       var rightPanel = document.getElementById('right-panel');
 
       if (!updateTextOnly) {
-        widget.setAttribute('aria-hidden', false);
-        fte.setAttribute('aria-hidden', false);
-        leftPanel.setAttribute('aria-hidden', true);
-        rightPanel.setAttribute('aria-hidden', true);
+        widget.hidden = false;
+        fte.hidden = false;
+        leftPanel.hidden = true;
+        rightPanel.hidden = true;
       }
       var className = 'widget-' + status;
       Common.localize(fte.querySelector('p:first-child'), className +
@@ -246,10 +246,10 @@ var Widget = (function() {
 
   function setupFte(provider, mode) {
 
-    widget.setAttribute('aria-hidden', false);
-    fte.setAttribute('aria-hidden', false);
-    leftPanel.setAttribute('aria-hidden', true);
-    rightPanel.setAttribute('aria-hidden', true);
+    widget.hidden = false;
+    fte.hidden = false;
+    leftPanel.hidden = true;
+    rightPanel.hidden = true;
 
     fte.addEventListener('click', function launchFte() {
       fte.removeEventListener('click', launchFte);
@@ -290,28 +290,28 @@ var Widget = (function() {
       }
 
       // Layout
-      widget.setAttribute('aria-hidden', true);
-      fte.setAttribute('aria-hidden', true);
-      leftPanel.setAttribute('aria-hidden', false);
-      rightPanel.setAttribute('aria-hidden', false);
+      widget.hidden = true;
+      fte.hidden = true;
+      leftPanel.hidden = false;
+      rightPanel.hidden = false;
 
       var isLimited = settings.dataLimit;
-      views.dataUsage.setAttribute('aria-hidden', isLimited);
-      views.limitedDataUsage.setAttribute('aria-hidden', !isLimited);
+      views.dataUsage.hidden = isLimited;
+      views.limitedDataUsage.hidden = !isLimited;
 
       // Always data usage
-      rightPanel.setAttribute('aria-hidden', isDataUsageOnly);
+      rightPanel.hidden = isDataUsageOnly;
 
       // And the other view if applies...
       if (isDataUsageOnly) {
         widget.classList.add('full');
-        widget.setAttribute('aria-hidden', false);
+        widget.hidden = false;
 
       } else {
         widget.classList.remove('full');
-        views.balance.setAttribute('aria-hidden', !isPrepaid);
-        views.telephony.setAttribute('aria-hidden', isPrepaid);
-        widget.setAttribute('aria-hidden', false);
+        views.balance.hidden = !isPrepaid;
+        views.telephony.hidden = isPrepaid;
+        widget.hidden = false;
       }
 
       // Content for data statistics

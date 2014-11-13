@@ -53,39 +53,39 @@ suite('Settings Test Suite >', function() {
     {
       name: 'planTypeSelector',
       selector: '#plantype-settings',
-      isHiddenOnPostpaidLayout: 'false',
-      isHiddenOnPrepaidLayout: 'false',
-      isHiddenOnDataUsageOnlyLayout: 'true'
+      isHiddenOnPostpaidLayout: false,
+      isHiddenOnPrepaidLayout: false,
+      isHiddenOnDataUsageOnlyLayout: true
     }, {
       name: 'phoneActivitySettings',
       selector: '#phone-activity-settings + .settings',
-      isHiddenOnPostpaidLayout: 'false',
-      isHiddenOnPrepaidLayout: 'true',
-      isHiddenOnDataUsageOnlyLayout: 'true'
+      isHiddenOnPostpaidLayout: false,
+      isHiddenOnPrepaidLayout: true,
+      isHiddenOnDataUsageOnlyLayout: true
     }, {
       name: 'phoneActivityTitle',
       selector: '#phone-activity-settings',
-      isHiddenOnPostpaidLayout: 'false',
-      isHiddenOnPrepaidLayout: 'true',
-      isHiddenOnDataUsageOnlyLayout: 'true'
+      isHiddenOnPostpaidLayout: false,
+      isHiddenOnPrepaidLayout: true,
+      isHiddenOnDataUsageOnlyLayout: true
     }, {
       name: 'balanceTitle',
       selector: '#balance-settings',
-      isHiddenOnPostpaidLayout: 'true',
-      isHiddenOnPrepaidLayout: 'false',
-      isHiddenOnDataUsageOnlyLayout: 'true'
+      isHiddenOnPostpaidLayout: true,
+      isHiddenOnPrepaidLayout: false,
+      isHiddenOnDataUsageOnlyLayout: true
     }, {
       name: 'balanceSettings',
       selector: '#balance-settings + .settings',
-      isHiddenOnPostpaidLayout: 'true',
-      isHiddenOnPrepaidLayout: 'false',
-      isHiddenOnDataUsageOnlyLayout: 'true'
+      isHiddenOnPostpaidLayout: true,
+      isHiddenOnPrepaidLayout: false,
+      isHiddenOnDataUsageOnlyLayout: true
     }, {
       name: 'reportsTitle',
       selector: '#phone-internet-settings',
-      isHiddenOnPostpaidLayout: 'false',
-      isHiddenOnPrepaidLayout: 'true',
-      isHiddenOnDataUsageOnlyLayout: 'false'
+      isHiddenOnPostpaidLayout: false,
+      isHiddenOnPrepaidLayout: true,
+      isHiddenOnDataUsageOnlyLayout: false
     }
   ];
 
@@ -172,8 +172,7 @@ suite('Settings Test Suite >', function() {
   function assertPostpaidLayout(done) {
     domSelectorsForLayout.forEach(function checkVisibility(element) {
       var domElement = document.querySelector(element.selector);
-      assert.equal(domElement.getAttribute('aria-hidden'),
-                   element.isHiddenOnPostpaidLayout,
+      assert.equal(domElement.hidden, element.isHiddenOnPostpaidLayout,
                    'The visibility of ' + element.name + 'is incorrect');
     });
     done();
@@ -182,8 +181,7 @@ suite('Settings Test Suite >', function() {
   function assertPrepaidLayout(done) {
     domSelectorsForLayout.forEach(function checkVisibility(element) {
       var domElement = document.querySelector(element.selector);
-      assert.equal(domElement.getAttribute('aria-hidden'),
-                   element.isHiddenOnPrepaidLayout,
+      assert.equal(domElement.hidden, element.isHiddenOnPrepaidLayout,
                    'The visibility of ' + element.name + 'is incorrect');
     });
     done();
@@ -192,8 +190,7 @@ suite('Settings Test Suite >', function() {
   function assertDataUsageOnlyLayout(done) {
     domSelectorsForLayout.forEach(function checkVisibility(element) {
       var domElement = document.querySelector(element.selector);
-      assert.equal(domElement.getAttribute('aria-hidden'),
-                   element.isHiddenOnDataUsageOnlyLayout,
+      assert.equal(domElement.hidden, element.isHiddenOnDataUsageOnlyLayout,
                    'The visibility of ' + element.name + 'is incorrect');
     });
     done();

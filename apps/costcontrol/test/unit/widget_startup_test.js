@@ -85,9 +85,9 @@ suite('Widget Startup Modes Test Suite >', function() {
     leftPanel = document.getElementById('left-panel');
     rightPanel = document.getElementById('right-panel');
     // Hide all panels
-    fte.setAttribute('aria-hidden', 'true');
-    leftPanel.setAttribute('aria-hidden', 'true');
-    rightPanel.getAttribute('aria-hidden', 'true');
+    fte.hidden = true;
+    leftPanel.hidden = true;
+    rightPanel.hidden = true;
     showSimErrorSpy = this.sinon.spy(Widget, 'showSimError');
   });
 
@@ -122,9 +122,9 @@ suite('Widget Startup Modes Test Suite >', function() {
 
   function assertErrorMessage(errorTag) {
     assert.ok(fte.textContent.trim().contains(errorTag));
-    assert.equal(fte.getAttribute('aria-hidden'), 'false');
-    assert.equal(leftPanel.getAttribute('aria-hidden'), 'true');
-    assert.equal(rightPanel.getAttribute('aria-hidden'), 'true');
+    assert.ok(!fte.hidden);
+    assert.ok(leftPanel.hidden);
+    assert.ok(rightPanel.hidden);
   }
 
   var requestDataUsageResult = {
@@ -167,24 +167,24 @@ suite('Widget Startup Modes Test Suite >', function() {
   };
 
   function assertDataUseOnlyLayout(dataTag) {
-    assert.equal(fte.getAttribute('aria-hidden'), 'true');
-    assert.equal(leftPanel.getAttribute('aria-hidden'), 'false');
-    assert.equal(rightPanel.getAttribute('aria-hidden'), 'true');
+    assert.ok(fte.hidden);
+    assert.ok(!leftPanel.hidden);
+    assert.ok(rightPanel.hidden);
     assert.ok(leftPanel.textContent.trim().contains(dataTag));
   }
 
   function assertNonDataUseOnlyLayout(leftDataTag, rightDataTag) {
-    assert.equal(fte.getAttribute('aria-hidden'), 'true');
-    assert.equal(leftPanel.getAttribute('aria-hidden'), 'false');
-    assert.equal(rightPanel.getAttribute('aria-hidden'), 'false');
+    assert.ok(fte.hidden);
+    assert.ok(!leftPanel.hidden);
+    assert.ok(!rightPanel.hidden);
     assert.ok(rightPanel.textContent.trim().contains(rightDataTag));
     assert.ok(leftPanel.textContent.trim().contains(leftDataTag));
   }
 
   function assertFTELayout(dataTag) {
-    assert.equal(fte.getAttribute('aria-hidden'), 'false');
-    assert.equal(leftPanel.getAttribute('aria-hidden'), 'true');
-    assert.equal(rightPanel.getAttribute('aria-hidden'), 'true');
+    assert.ok(!fte.hidden);
+    assert.ok(leftPanel.hidden);
+    assert.ok(rightPanel.hidden);
     assert.ok(fte.textContent.trim().contains(dataTag));
   }
 

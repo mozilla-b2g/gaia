@@ -20,10 +20,7 @@ suite('Top Up layout attending to configuration >', function() {
 
   function assertElementIs(element, state) {
     assert.equal(element.disabled, !state);
-    assert.equal(
-      element.getAttribute('aria-hidden'),
-      !state ? 'true' : 'false'
-    );
+    assert.equal(!!element.hidden, !state);
   }
 
   function assertAllTopUpMethodsDisabled() {

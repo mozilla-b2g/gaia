@@ -366,21 +366,21 @@ var BalanceTab = (function() {
     var incorrectCodeMessage = document.getElementById('topup-incorrect-code');
 
     isShown = (mode === 'default' || mode === 'topup_timeout');
-    defaultMessage.setAttribute('aria-hidden', !isShown);
+    defaultMessage.hidden = !isShown;
 
     isShown = (mode === 'in_progress');
-    inprogressMessage.setAttribute('aria-hidden', !isShown);
+    inprogressMessage.hidden = !isShown;
 
     isShown = (mode === 'request_fail' || mode === 'no_service');
-    errorMessage.setAttribute('aria-hidden', !isShown);
+    errorMessage.hidden = !isShown;
 
     isShown = (mode === 'incorrect_code');
-    incorrectCodeMessage.setAttribute('aria-hidden', !isShown);
+    incorrectCodeMessage.hidden = !isShown;
 
     // Count down
     var countdownArea = document.getElementById('cost-control-topup-countdown');
     isShown = (mode === 'in_progress');
-    countdownArea.setAttribute('aria-hidden', !isShown);
+    countdownArea.hidden = !isShown;
     if (isShown) {
       resetTopUpCountdown();
     }
@@ -439,11 +439,11 @@ var BalanceTab = (function() {
     var message = document.getElementById('error-message-placeholder');
 
     if (!error) {
-      messageArea.setAttribute('aria-hidden', true);
+      messageArea.hidden = true;
       message.removeAttribute('data-l10n-id');
       message.textContent = '';
     } else {
-      messageArea.setAttribute('aria-hidden', false);
+      messageArea.hidden = false;
       var curPriority = currentError ? ERRORS[currentError].priority : 0;
       var newPriority = ERRORS[error] ? ERRORS[error].priority : 0;
       if (newPriority >= curPriority) {

@@ -158,9 +158,9 @@
 
     if (window.location.hash === '#PREPAID' ||
         window.location.hash === '#POSTPAID') {
-      wizard.querySelector('.authed-sim').setAttribute('aria-hidden', false);
+      wizard.querySelector('.authed-sim').hidden = false;
     } else {
-      wizard.querySelector('.nonauthed-sim').setAttribute('aria-hidden', false);
+      wizard.querySelector('.nonauthed-sim').hidden = false;
     }
   }
 

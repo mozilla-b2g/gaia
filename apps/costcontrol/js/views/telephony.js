@@ -109,9 +109,9 @@ var TelephonyTab = (function() {
   function updateNextReset(reset, old, key, settings) {
     var billingCycle = document.getElementById('billing-cycle');
     if (settings.trackingPeriod === 'never') {
-      billingCycle.setAttribute('aria-hidden', true);
+      billingCycle.hidden = true;
     } else {
-      billingCycle.setAttribute('aria-hidden', false);
+      billingCycle.hidden = false;
       var content = Formatting.getFormattedDate(settings.nextReset,
         _('short-date-format'));
       resetDate.textContent = content;
