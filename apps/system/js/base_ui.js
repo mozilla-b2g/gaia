@@ -22,6 +22,9 @@
    * Overwrite `_registerEvents` to register event handler.
    */
   BaseUI.prototype.render = function bu_render() {
+    if (this.element) {
+      return;
+    }
     this.publish('willrender');
     this.containerElement.insertAdjacentHTML('afterbegin', this.view());
     this._fetchElements();

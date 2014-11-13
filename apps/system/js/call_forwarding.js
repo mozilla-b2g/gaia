@@ -37,6 +37,9 @@
     this._defaultCallForwardingIconStates = null;
     this._callForwardingIconInitializedStates = null;
   }
+  CallForwarding.STATES = [
+    'enabled'
+  ];
 
   BaseModule.create(CallForwarding, {
     name: 'CallForwarding',
@@ -171,6 +174,10 @@
       }
       var iccid = simCard.iccInfo && simCard.iccInfo.iccid;
       asyncStorage.setItem('ril.cf.enabled.' + iccid, enabled);
+    },
+
+    enabled: function() {
+      return this._defaultCallForwardingIconStates;
     },
 
     /**

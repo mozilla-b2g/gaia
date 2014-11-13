@@ -224,7 +224,7 @@
 
         case 'launchapp':
           if (evt.detail && evt.detail.stayBackground) {
-            break; 
+            break;
           } // jshint ignore:line
         case 'holdhome':
         case 'emergencyalert':
