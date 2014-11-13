@@ -341,7 +341,7 @@ var CostControlApp = (function() {
       ConfigManager.requestSettings(dataSim.iccId,
                                     function _onSettings(settings) {
         var mode = ConfigManager.getApplicationMode();
-        var newHash;
+        var newHash = window.location.hash;
         debug('App UI mode: ', mode);
 
         // Layout
