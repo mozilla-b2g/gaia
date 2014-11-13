@@ -3,7 +3,13 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth.js');
+requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
+requireApp('system/js/base_ui.js');
+requireApp('system/js/base_icon.js');
+requireApp('system/js/bluetooth_icon.js');
+requireApp('system/js/bluetooth_transfer_icon.js');
+requireApp('system/js/bluetooth_headphone_icon.js');
 
 function switchReadOnlyProperty(originObject, propName, targetObj) {
   Object.defineProperty(originObject, propName, {
@@ -25,7 +31,6 @@ suite('system/BluetoothCore', function() {
     window.BluetoothTransfer = { init: function() {} };
     window.NfcHandoverManager = { init: function() {} };
 
-    requireApp('system/js/service.js');
     requireApp('system/js/bluetooth_core.js', done);
   });
 

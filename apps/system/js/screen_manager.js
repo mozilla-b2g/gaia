@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals SettingsListener, Bluetooth, StatusBar, Service,
+/* globals SettingsListener, Bluetooth, Service,
            ScreenBrightnessTransition, ScreenWakeLockManager */
 
 var ScreenManager = {
@@ -275,7 +275,7 @@ var ScreenManager = {
       case 'userproximity':
         if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) ||
             telephony.speakerEnabled ||
-            StatusBar.headphonesActive) {
+            Service.query('isHeadsetConnected')) {
             // XXX: Remove this hack in Bug 868348
             // We shouldn't access headset status from statusbar.
           if (this._screenOffBy == 'proximity') {
