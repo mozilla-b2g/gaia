@@ -13,12 +13,17 @@ requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_notification_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_bluetooth.js');
+requireApp('system/js/service.js');
+requireApp('system/js/base_ui.js');
+requireApp('system/js/base_icon.js');
+requireApp('system/js/battery_icon.js');
 requireApp('system/js/power_save.js');
 requireApp('system/js/battery_overlay.js');
 
 var mocksForPowerSave = new MocksHelper([
-  'SettingsListener', 'NotificationHelper'
+  'SettingsListener', 'NotificationHelper', 'LazyLoader'
 ]).init();
 
 suite('power save >', function() {

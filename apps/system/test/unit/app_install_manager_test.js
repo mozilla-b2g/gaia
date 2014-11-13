@@ -1,10 +1,9 @@
-/* global InputWindowManager, inputWindowManager */
+/* global InputWindowManager, inputWindowManager, Service */
 
 'use strict';
 
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_chrome_event.js');
-requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -13,6 +12,7 @@ requireApp('system/test/unit/mock_modal_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 require('/js/input_window_manager.js');
+require('/js/service.js');
 
 require('/shared/js/template.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -24,7 +24,6 @@ require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 requireApp('system/js/app_install_manager.js');
 
 var mocksForAppInstallManager = new MocksHelper([
-  'StatusBar',
   'SystemBanner',
   'NotificationScreen',
   'Applications',
@@ -99,6 +98,7 @@ suite('system/AppInstallManager >', function() {
   });
 
   setup(function() {
+    this.sinon.stub(Service, 'request');
     fakeDialog = document.createElement('form');
     fakeDialog.id = 'app-install-dialog';
     fakeDialog.innerHTML = [
@@ -654,7 +654,7 @@ suite('system/AppInstallManager >', function() {
       });
 
       test('should not show the icon', function() {
-        assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+        assert.isFalse(Service.request.calledWith('incDownloads'));
       });
 
       test('should not add a notification', function() {
@@ -671,8 +671,8 @@ suite('system/AppInstallManager >', function() {
     function beforeFirstProgressSuite() {
       suite('before first progress >', function() {
         test('should not show the icon', function() {
-          var method = 'incSystemDownloads';
-          assert.isUndefined(MockStatusBar.wasMethodCalled[method]);
+          var method = 'incDownloads';
+          assert.isFalse(Service.request.calledWith(method));
         });
 
         test('should not add a notification', function() {
@@ -683,8 +683,8 @@ suite('system/AppInstallManager >', function() {
           setup(function() {
             // reseting these mocks as we want to test only one call
             MockNotificationScreen.mTeardown();
-            MockStatusBar.mTeardown();
-
+            Service.request.restore();
+            this.sinon.stub(Service, 'request');
             mockApp.mTriggerDownloadSuccess();
           });
 
@@ -694,8 +694,8 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('should not remove the download icon', function() {
-            var method = 'decSystemDownloads';
-            assert.isUndefined(MockStatusBar.wasMethodCalled[method]);
+            var method = 'decDownloads';
+            assert.isFalse(Service.request.calledWith(method));
           });
 
           test('should display a confirmation', function() {
@@ -709,8 +709,8 @@ suite('system/AppInstallManager >', function() {
           setup(function() {
             // reseting these mocks as we want to test only one call
             MockNotificationScreen.mTeardown();
-            MockStatusBar.mTeardown();
-
+            Service.request.restore();
+            this.sinon.stub(Service, 'request');
             mockApp.mTriggerDownloadError();
           });
 
@@ -720,8 +720,8 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('should not remove the download icon', function() {
-            var method = 'decSystemDownloads';
-            assert.isUndefined(MockStatusBar.wasMethodCalled[method]);
+            var method = 'decDownloads';
+            assert.isFalse(Service.request.calledWith(method));
           });
         });
       });
@@ -732,7 +732,9 @@ suite('system/AppInstallManager >', function() {
         setup(function() {
           // reseting these mocks as we only want to test the
           // following call
-          MockStatusBar.mTeardown();
+
+          Service.request.restore();
+          this.sinon.stub(Service, 'request');
           MockSystemBanner.mTeardown();
           MockModalDialog.mTeardown();
         });
@@ -785,8 +787,8 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('should remove the icon', function() {
-            var method = 'decSystemDownloads';
-            assert.ok(MockStatusBar.wasMethodCalled[method]);
+            var method = 'decDownloads';
+            assert.isTrue(Service.request.calledWith(method));
           });
 
           beforeFirstProgressSuite();
@@ -826,8 +828,8 @@ suite('system/AppInstallManager >', function() {
             // reseting these mocks as we want to test only the following
             // calls
             MockNotificationScreen.mTeardown();
-            MockStatusBar.mTeardown();
-
+            Service.request.restore();
+            this.sinon.stub(Service, 'request');
             mockApp.mTriggerDownloadProgress(NaN);
           });
 
