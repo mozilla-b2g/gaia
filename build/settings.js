@@ -201,11 +201,20 @@ function setHomescreenURL(settings, config) {
 
 function writeSettings(settings, config) {
   // Finally write the settings file
-  let settingsFile = utils.getFile(config.STAGE_DIR, 'settings_stage.json');
-  utils.log('settings.js', 'Writing settings file: ' + settingsFile.path);
+  let profileDir = utils.getFile(config.PROFILE_DIR);
+  let settingsFile = utils.getFile(config.PROFILE_DIR, 'settings.json');
+  let defaultsSettings = utils.getFile(
+    config.PROFILE_DIR, 'defaults', 'settings.json');
+
+  utils.ensureFolderExists(profileDir);
   let content = JSON.stringify(settings);
   utils.writeContent(settingsFile, content + '\n');
-  utils.log('settings.js', 'Settings file has been written');
+  utils.log('settings.js', 'Writing settings file: ' + settingsFile.path);
+
+  profileDir.append('defaults');
+  utils.ensureFolderExists(profileDir);
+  utils.writeContent(defaultsSettings, content + '\n');
+  utils.log('settings.js', 'Writing settings file: ' + defaultsSettings.path);
 }
 
 function execute(config) {
@@ -292,7 +301,6 @@ function execute(config) {
   }).then(function() {
     overrideSettings(settings, config);
   }).then(function() {
-    // Set the homescreen URL
     setHomescreenURL(settings, config);
   }).then(function() {
     writeSettings(settings, config);
