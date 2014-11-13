@@ -1,9 +1,8 @@
 /* global MockL10n, MockNavigatorMozMobileConnections,
-          MockNavigatorMozTelephony, AboutMoreInfo */
+          MockNavigatorMozTelephony */
 'use strict';
 
 requireApp('settings/test/unit/mocks_helper.js');
-requireApp('settings/js/about_more_info.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
@@ -11,6 +10,9 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('about >', function() {
   var realL10n, realMobileConnections, realTelephony;
+  var AboutMoreInfo;
+  var MockVersionDetector;
+  var MockBluetooth1, MockBluetooth2;
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -30,8 +32,46 @@ suite('about >', function() {
     realTelephony = null;
   });
 
-  setup(function() {
+  setup(function(done) {
     loadBodyHTML('./_about_more_info.html');
+
+    var map = {
+      '*': {
+        'modules/bluetooth/version_detector': 'MockVersionDetector',
+        'modules/bluetooth/bluetooth_v1': 'MockBluetooth1',
+        'modules/bluetooth/bluetooth': 'MockBluetooth2'
+      }
+    };
+
+    var requireCtx = testRequire([], map, function() {});
+
+    MockVersionDetector = {
+      getVersion: function() {}
+    };
+    define('MockVersionDetector', function() {
+      return MockVersionDetector;
+    });
+
+    MockBluetooth1 = {
+      observe: function() {},
+      address: ''
+    };
+    define('MockBluetooth1', function() {
+      return MockBluetooth1;
+    });
+
+    MockBluetooth2 = {
+      observe: function() {},
+      address: ''
+    };
+    define('MockBluetooth2', function() {
+      return MockBluetooth2;
+    });
+
+    requireCtx(['about_more_info'], function(AboutMoreInfoModule) {
+      AboutMoreInfo = AboutMoreInfoModule;
+      done();
+    });
   });
 
   teardown(function() {
@@ -221,6 +261,60 @@ suite('about >', function() {
               'IMEI ' + (index + 1) + ': fakeImei' + (index + 1));
             assert.equal(spans[index].dataset.slot, index);
           });
+        }).then(done, done);
+      });
+    });
+  });
+
+  suite('loadBluetoothAddress >', function() {
+    test('should show bluetooth address', function(done) {
+      var fakeAddress = 'fakeAddress';
+      MockBluetooth1.address = fakeAddress;
+      this.sinon.stub(MockBluetooth1, 'observe');
+      this.sinon.stub(MockVersionDetector, 'getVersion').returns(1);
+      this.sinon.spy(AboutMoreInfo, '_refreshBluetoothAddress');
+
+      AboutMoreInfo.loadBluetoothAddress().then(function() {
+        sinon.assert.calledWith(MockBluetooth1.observe, 'address');
+        assert.equal(AboutMoreInfo._refreshBluetoothAddress.args[0][0],
+          fakeAddress);
+
+        // Ensure the observer works
+        var fakeAddress2 = 'fakeAddress2';
+        MockBluetooth1.observe.args[0][1](fakeAddress2);
+        assert.equal(AboutMoreInfo._refreshBluetoothAddress.args[1][0],
+          fakeAddress2);
+      }, function() {
+        // This function does not reject.
+        assert.isTrue(false);
+      }).then(done, done);
+    });
+
+    suite('should use correct bluetooth module', function() {
+      setup(function() {
+        this.sinon.stub(MockBluetooth1, 'observe');
+        this.sinon.stub(MockBluetooth2, 'observe');
+      });
+
+      test('bluetooth version 1', function(done) {
+        this.sinon.stub(MockVersionDetector, 'getVersion').returns(1);
+        AboutMoreInfo.loadBluetoothAddress().then(function() {
+          assert.isTrue(MockBluetooth1.observe.called);
+          assert.isTrue(MockBluetooth2.observe.notCalled);
+        }, function() {
+          // This function does not reject.
+          assert.isTrue(false);
+        }).then(done, done);
+      });
+
+      test('bluetooth version 2', function(done) {
+        this.sinon.stub(MockVersionDetector, 'getVersion').returns(2);
+        AboutMoreInfo.loadBluetoothAddress().then(function() {
+          assert.isTrue(MockBluetooth1.observe.notCalled);
+          assert.isTrue(MockBluetooth2.observe.called);
+        }, function() {
+          // This function does not reject.
+          assert.isTrue(false);
         }).then(done, done);
       });
     });
