@@ -254,11 +254,12 @@ suite('Settings Test Suite >', function() {
 
   suite('Data Limit Configurator Test Suite >', function() {
     var dataLimitDialog, dataLimitInput, dataLimitOkButton, limitUnitValue,
-        dataLimitSwitchUnitButton, dataLimitHeader;
+        dataLimitSwitchUnitButton, dataLimitHeader, dataLimitNote;
     var evtInput = new CustomEvent('input', {});
 
     setup(function() {
       dataLimitDialog = document.getElementById('data-limit-dialog');
+      dataLimitNote = document.getElementById('data-limit-error-note');
       dataLimitInput = dataLimitDialog.querySelector('input');
       dataLimitOkButton = dataLimitDialog.querySelector('button.recommend');
       dataLimitHeader = document.getElementById('limit-dialog-header');
@@ -284,11 +285,13 @@ suite('Settings Test Suite >', function() {
 
     function assertDataLimitInputInvalid() {
       assert.isTrue(dataLimitInput.classList.contains('error'));
+      assert.isNull(dataLimitNote.getAttribute('aria-hidden'));
       assert.isTrue(dataLimitOkButton.disabled);
     }
 
     function assertDataLimitInputValid() {
       assert.isFalse(dataLimitInput.classList.contains('error'));
+      assert.equal(dataLimitNote.getAttribute('aria-hidden'), 'true');
       assert.isFalse(dataLimitOkButton.disabled);
     }
 
