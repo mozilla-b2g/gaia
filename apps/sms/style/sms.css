@@ -717,7 +717,6 @@ Do not remove.
 }
 
 #messages-recipients-list > .recipient[contenteditable=true] {
-  flex-grow: 1;
   height: 2.8rem;
   line-height: 2.8rem;
   border-radius: 0;

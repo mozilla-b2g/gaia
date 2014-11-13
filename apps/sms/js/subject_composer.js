@@ -82,6 +82,13 @@
     return newValue;
   }
 
+  function clearInput(input) {
+    // Currently Gecko doesn't insert automatically <br> inside empty content
+    // editable element, but to be compliant with the editor spec it should.
+    // Once Gecko is fixed we should remove this hack. See bug 1098151.
+    input.innerHTML = '<br />';
+  }
+
   var SubjectComposer = function(node) {
     EventDispatcher.mixin(this, [
       'focus',
@@ -161,13 +168,21 @@
       throw new Error('Value should be a valid string!');
     }
 
-    priv.input.textContent = priv.updateValue(value);
+    var updatedValue = priv.updateValue(value);
+
+    if (updatedValue) {
+      priv.input.textContent = updatedValue;
+    } else {
+      clearInput(priv.input);
+    }
   };
 
   SubjectComposer.prototype.reset = function ms_reset() {
     var priv = privateMembers.get(this);
 
-    priv.value = priv.input.textContent = '';
+    clearInput(priv.input);
+
+    priv.value = '';
     priv.node.classList.add('hide');
     priv.isVisible = false;
 

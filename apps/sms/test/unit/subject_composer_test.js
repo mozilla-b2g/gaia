@@ -99,6 +99,8 @@ suite('SubjectComposer >', function() {
         () => subjectComposer.setValue(), 'Value should be a valid string'
       );
       assert.equal(subjectComposer.getValue(), '');
+      // See bug bug 1098151 for details
+      assert.equal(input.innerHTML.trim(), '<br>');
 
       subjectComposer.setValue('test');
 
@@ -132,6 +134,11 @@ suite('SubjectComposer >', function() {
         subjectComposer.getValue(),
         'Line 1<br> Line 2<br><br><br><br> Line 3<br>'
       );
+
+      subjectComposer.setValue('');
+      assert.equal(subjectComposer.getValue(), '');
+      // See bug bug 1098151 for details
+      assert.equal(input.innerHTML.trim(), '<br>');
 
       subjectComposer.setValue('');
       input.innerHTML = content;
@@ -346,6 +353,8 @@ suite('SubjectComposer >', function() {
 
     assert.equal(subjectComposer.getValue(), '');
     assert.equal(input.textContent, '');
+    // See bug bug 1098151 for details
+    assert.equal(input.innerHTML.trim(), '<br>');
     assert.isFalse(subjectComposer.isVisible());
     // Visibility change and change events should not be fired on reset
     sinon.assert.notCalled(onChangeStub);
