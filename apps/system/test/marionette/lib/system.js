@@ -49,6 +49,9 @@ System.Selector = Object.freeze({
   softwareHomeFullscreen: '#fullscreen-software-home-button',
   softwareHomeFullscreenLayout: '#software-buttons-fullscreen-layout',
   statusbar: '#statusbar',
+  statusbarShadow: '.appWindow.active .statusbar-shadow',
+  statusbarShadowTray: '#statusbar-tray',
+  statusbarShadowActivity: '.activityWindow.active .statusbar-shadow',
   statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',
   statusbarMinimizedWrapper: '#statusbar-minimized-wrapper',
   statusbarLabel: '#statusbar-label',
@@ -260,6 +263,18 @@ System.prototype = {
 
   get nfcIcon() {
     return this.client.findElement(System.Selector.nfcIcon);
+  },
+
+  get statusbarShadow() {
+    return this.client.findElement(System.Selector.statusbarShadow);
+  },
+
+  get statusbarShadowTray() {
+    return this.client.findElement(System.Selector.statusbarShadowTray);
+  },
+
+  get statusbarShadowActivity() {
+    return this.client.findElement(System.Selector.statusbarShadowActivity);
   },
 
   getAppIframe: function(url) {
