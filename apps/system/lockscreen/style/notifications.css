@@ -1,13 +1,3 @@
-/**
- * For all LockScreen notifications related styles.
- */
-:root {
-  --width-actionable-button: 8.3rem;
-  --padleft-button: 1.1rem;
-  --button-label-size: 1.4rem;
-}
-
-
 /* Individual style; to avoid utility tray patches breark lockscreen notitifications. */
 #notifications-lockscreen-container .notification {
   position: relative;
@@ -177,6 +167,9 @@
  */
 
 #notifications-lockscreen-container {
+  --width-actionable-button: 8.3rem;
+  --padleft-button: 1.1rem;
+  --button-label-size: 1.4rem;
   z-index: 1;
   position: absolute;
   top: calc(50% - 7.65rem);
