@@ -66,6 +66,24 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
       return self.config.GAIA_CONCAT_LOCALES === '1' &&
         /locales[^-]/.test(file.path);
     },
+    function isSpecificProperties(file) {
+      var options = self.config;
+      if(utils.getExtension(file.path) === 'properties' &&
+        file.path.indexOf('locales') !== -1 &&
+        options.GAIA_CONCAT_LOCALES === '0' &&
+        options.LOCALE_BASEDIR && options.LOCALES_FILE) {
+        let localesFile = utils.resolve(options.LOCALES_FILE, options.GAIA_DIR);
+        if (!localesFile.exists()) {
+          throw new Error('file not found: ' + localesFile.path);
+        }
+        let locales = Object.keys(utils.getJSON(localesFile));
+
+        return !locales.some(function(locale) {
+          return file.path.indexOf(locale + '.properties') !== -1;
+        });
+      }
+      return false;
+    },
     function isBuild(file) {
       var appDirPath = self.webapp.sourceDirectoryName;
       return new RegExp(utils.joinPath(appDirPath, 'build')
