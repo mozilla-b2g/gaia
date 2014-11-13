@@ -35,7 +35,7 @@ marionette('Music ui tests', function() {
     });
 
     test('Overlay should be shown when storage has no songs', function() {
-      music.launch();
+      music.launch({ waitForFirstTile: false });
       music.waitForMessageOverlayShown(true);
     });
   });

@@ -7,22 +7,24 @@ function Statusbar(client) {
 
 module.exports = Statusbar;
 
-Statusbar.Selector = Object.freeze({
-  playingIndicator: '#statusbar-playing'
-});
-
 Statusbar.prototype = {
-  client: null,
-
-  get playingIndicator() {
+  get element() {
     this.client.switchToFrame();
-    return this.client.findElement(Statusbar.Selector.playingIndicator);
+    return this.client.findElement('#statusbar');
+  },
+
+  get maxPlayingIndicator() {
+    return this.element.findElement('#statusbar-maximized #statusbar-playing');
+  },
+
+  get minPlayingIndicator() {
+    return this.element.findElement('#statusbar-minimized #statusbar-playing');
   },
 
   waitForPlayingIndicatorShown: function(shouldBeShown) {
     this.client.waitFor(function() {
-      var shown = this.playingIndicator.displayed();
-      return shown === shouldBeShown;
+      return this.maxPlayingIndicator.displayed() === shouldBeShown ||
+             this.minPlayingIndicator.displayed() === shouldBeShown;
     }.bind(this));
   }
 };
