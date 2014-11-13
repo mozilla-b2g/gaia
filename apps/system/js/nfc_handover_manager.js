@@ -320,12 +320,12 @@ var NfcHandoverManager = {
    * @memberof NfcHandoverManager.prototype
    */
   _showFailedNotification: function _showFailedNotification(title, name) {
-    var _ = navigator.mozL10n.get;
     var fileName = (name !== undefined) ? name : '';
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
-    NotificationHelper.send(_(title),
-                            fileName,
-                            icon);
+    NotificationHelper.send(title, {
+      body: fileName,
+      icon: icon
+    });
   },
 
   /**

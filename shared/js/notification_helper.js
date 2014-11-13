@@ -1,71 +1,59 @@
 /* exported NotificationHelper */
-'use strict';
+(function(window) {
+  'use strict';
 
-/**
- * Keeping a reference on all active notifications to avoid weird GC issues.
- * See https://bugzilla.mozilla.org/show_bug.cgi?id=755402
- */
+  window.NotificationHelper = {
+    getIconURI: function nh_getIconURI(app, entryPoint) {
+      var icons = app.manifest.icons;
 
-var NotificationHelper = {
-  _referencesArray: [],
-
-  getIconURI: function nc_getIconURI(app, entryPoint) {
-    var icons = app.manifest.icons;
-
-    if (entryPoint) {
-      icons = app.manifest.entry_points[entryPoint].icons;
-    }
-
-    if (!icons) {
-      return null;
-    }
-
-    var sizes = Object.keys(icons).map(function parse(str) {
-      return parseInt(str, 10);
-    });
-    sizes.sort(function(x, y) { return y - x; });
-
-    var HVGA = document.documentElement.clientWidth < 480;
-    var index = sizes[HVGA ? sizes.length - 1 : 0];
-    return app.installOrigin + icons[index];
-  },
-
-  send: function nc_send(title, body, icon, clickCB, closeCB) {
-    if (!('mozNotification' in navigator)) {
-      return;
-    }
-
-    var notification = navigator.mozNotification.createNotification(title,
-                                                                    body, icon);
-
-    notification.onclick = (function() {
-      if (clickCB) {
-        clickCB();
+      if (entryPoint) {
+        icons = app.manifest.entry_points[entryPoint].icons;
       }
 
-      this._forget(notification);
-    }).bind(this);
-
-    notification.onclose = (function() {
-      if (closeCB) {
-        closeCB();
+      if (!icons) {
+        return null;
       }
 
-      this._forget(notification);
-    }).bind(this);
+      var sizes = Object.keys(icons).map(function parse(str) {
+        return parseInt(str, 10);
+      });
+      sizes.sort(function(x, y) { return y - x; });
 
-    notification.show();
-    this._keep(notification);
-  },
+      var HVGA = document.documentElement.clientWidth < 480;
+      var index = sizes[HVGA ? sizes.length - 1 : 0];
+      return app.installOrigin + icons[index];
+    },
 
-  _keep: function nc_keep(notification) {
-    this._referencesArray.push(notification);
-  },
-  _forget: function nc_forget(notification) {
-    var idx = this._referencesArray.indexOf(notification);
-    if (idx >= 0) {
-      this._referencesArray.splice(idx, 1);
+    // titleL10n and options.bodyL10n may be:
+    // a string -> l10nId
+    // an object -> {id: l10nId, args: l10nArgs}
+    // an object -> {raw: string}
+    send: function nh_send(titleL10n, options) {
+      return new Promise(function(resolve, reject) {
+        navigator.mozL10n.once(function() {
+          var title = getL10n(titleL10n);
+
+          if (options.bodyL10n) {
+            options.body = getL10n(options.bodyL10n);
+          }
+
+          options.dir = navigator.mozL10n.language.direction;
+          options.lang = navigator.mozL10n.language.code;
+
+          var notification = new window.Notification(title, options);
+          resolve(notification);
+        });
+      });
+    },
+  };
+
+  function getL10n(l10nAttrs) {
+    if (typeof l10nAttrs === 'string') {
+      return navigator.mozL10n.get(l10nAttrs);
     }
+    if (l10nAttrs.raw) {
+      return l10nAttrs.raw;
+    }
+    return navigator.mozL10n.get(l10nAttrs.id, l10nAttrs.args);
   }
-};
-
+})(this);
