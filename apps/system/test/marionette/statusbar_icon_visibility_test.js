@@ -17,7 +17,7 @@ marionette('Statusbar Visibility', function() {
 
   var actions = new Actions(client);
   var statusBar = new StatusBar(client);
-  var halfScreenHeight, system;
+  var halfScreenHeight, system, grippyHeight;
 
   setup(function() {
     system = client.loader.getAppClass('system');
@@ -25,6 +25,8 @@ marionette('Statusbar Visibility', function() {
     halfScreenHeight = client.executeScript(function() {
       return window.innerHeight;
     }) / 2;
+    var grippy = client.findElement('#utility-tray-grippy');
+    grippyHeight = grippy.size().height;
   });
 
   test('Visibility of date in utility tray', function() {
@@ -37,6 +39,36 @@ marionette('Statusbar Visibility', function() {
       // The element is rendered with moz-element so we can't use
       // marionette's .displayed()
       var visibility = system.statusbarLabel.scriptWith(function(element) {
+        return window.getComputedStyle(element).visibility;
+      });
+      return (visibility == 'visible');
+    });
+  });
+
+  test('Shadow visibility is hidden when passing the grippyHeight', function() {
+    actions
+      .press(system.topPanel)
+      .moveByOffset(0, grippyHeight + 1)
+      .perform();
+    client.waitFor(function() {
+      // The element is rendered with moz-element so we can't use
+      // marionette's .displayed()
+      var visibility = system.statusbarShadow.scriptWith(function(element) {
+        return window.getComputedStyle(element).visibility;
+      });
+      return (visibility == 'hidden');
+    });
+  });
+
+  test('Shadow visibility is visible before the grippyHeight', function() {
+    actions
+      .press(system.topPanel)
+      .moveByOffset(0, grippyHeight - 1)
+      .perform();
+    client.waitFor(function() {
+      // The element is rendered with moz-element so we can't use
+      // marionette's .displayed()
+      var visibility = system.statusbarShadow.scriptWith(function(element) {
         return window.getComputedStyle(element).visibility;
       });
       return (visibility == 'visible');

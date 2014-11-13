@@ -240,7 +240,10 @@
         return function() {
           var icon = this.icon;
           self.client.waitFor(function() {
-            return icon.displayed();
+            var display = icon.scriptWith(function(element) {
+              return window.getComputedStyle(element).display;
+            });
+            return display !== 'none';
           });
           return icon;
         };
@@ -250,7 +253,10 @@
         return function() {
           var icon = this.icon;
           self.client.waitFor(function() {
-            return !icon.displayed();
+            var display = icon.scriptWith(function(element) {
+              return window.getComputedStyle(element).display;
+            });
+            return display === 'none';
           });
           return icon;
         };
