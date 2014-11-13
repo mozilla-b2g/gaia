@@ -349,6 +349,7 @@
       window.addEventListener('permissiondialoghide', this);
       window.addEventListener('appopening', this);
       window.addEventListener('localized', this);
+      window.addEventListener('launchtrusted', this);
       window.addEventListener('taskmanager-activated', this);
 
       this._settingsObserveHandler = {
@@ -437,6 +438,7 @@
       window.removeEventListener('shrinking-start', this);
       window.removeEventListener('shrinking-stop', this);
       window.removeEventListener('taskmanager-activated', this);
+      window.removeEventListener('launchtrusted', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -635,6 +637,11 @@
           this.launch(config);
           break;
 
+        case 'launchtrusted':
+          if (evt.detail.chromeId) {
+            this._launchTrustedWindow(evt);
+          }
+          break;
         case 'cardviewbeforeshow':
           if (this._activeApp) {
             this._activeApp.getTopMostWindow().blur();
@@ -691,6 +698,12 @@
         return false;
       }
       return true;
+    },
+
+    _launchTrustedWindow: function(evt) {
+      if (this._activeApp) {
+        this._activeApp.broadcast('launchtrusted', evt.detail);
+      }
     },
 
     _dumpAllWindows: function() {
