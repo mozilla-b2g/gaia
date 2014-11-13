@@ -300,24 +300,6 @@ suite('Contacts', function() {
 
         window.ActivityHandler.currentlyHandling = false;
       });
-
-      test('>selecting from the list', function() {
-        window.contacts.List.isSelecting = true;
-
-        Contacts.checkCancelableActivity();
-
-        // Cancel is hidden
-        assert.isFalse(header.hasAttribute('action'));
-        // Settings is visible
-        assert.isFalse(addButton.classList.contains('hide'));
-        // Add contact is visible
-        assert.isFalse(settingsButton.classList.contains('hide'));
-        // Title shows SELECT
-        assert.equal(appTitleElement.getAttribute('data-l10n-id'),
-          'selectContact');
-
-        window.contacts.List.isSelecting = false;
-      });
     });
   });
 
