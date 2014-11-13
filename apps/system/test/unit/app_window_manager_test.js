@@ -175,6 +175,18 @@ suite('system/AppWindowManager', function() {
       assert.ok(stubBroadcastMessage.calledWith('localized'));
     });
 
+    test('launchtrusted event', function() {
+      var testEvt = new CustomEvent('launchtrusted', {
+        detail: {
+          chromeId: 'testchromeid'
+        }
+      });
+      var stubLaunchTrustedWindow = this.sinon.stub(appWindowManager,
+        '_launchTrustedWindow');
+      appWindowManager.handleEvent(testEvt);
+      assert.isTrue(stubLaunchTrustedWindow.calledWith(testEvt));
+    });
+
     test('Active app should be updated once any app is opening.', function() {
       var stub_updateActiveApp = this.sinon.stub(appWindowManager,
         '_updateActiveApp');
@@ -874,6 +886,14 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubApp2broadcast.calledWith('fake-message', undefined));
       assert.isTrue(stubApp3broadcast.calledWith('fake-message', undefined));
     });
+  });
+
+  test('launchTrustedWindow', function() {
+    var testDetail = 'testdetail';
+    appWindowManager._activeApp = app1;
+    var stubBroadcast = this.sinon.stub(app1, 'broadcast');
+    appWindowManager._launchTrustedWindow({ detail: testDetail});
+    assert.isTrue(stubBroadcast.calledWith('launchtrusted', testDetail));
   });
 
   suite('Launch()', function() {

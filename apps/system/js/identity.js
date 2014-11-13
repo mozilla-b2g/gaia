@@ -25,9 +25,9 @@ var Identity = (function() {
       switch (e.detail.type) {
         // Chrome asks Gaia to show the identity dialog.
         case 'id-dialog-open':
-          if (!chromeEventId)
+          if (!chromeEventId) {
             return;
-
+          }
           // When opening the dialog, we record the chrome event id, which
           // we will need to send back to the TrustedUIManager when asking
           // to close.
@@ -48,7 +48,7 @@ var Identity = (function() {
             (e.detail.showUI ? kIdentityScreen : kIdentityFrame);
           frame.dataset.url = frame.src;
           frame.addEventListener('mozbrowserloadstart',
-              function loadStart(evt) {
+            function loadStart(evt) {
             // After creating the new frame containing the identity flow, we
             // send it back to chrome so the identity callbacks can be injected.
             this._dispatchEvent({
@@ -59,10 +59,14 @@ var Identity = (function() {
 
 
           if (e.detail.showUI) {
-            // The identity flow is shown within the trusted UI.
-            TrustedUIManager.open(navigator.mozL10n.get('persona-signin'),
-                                  frame,
-                                  this.trustedUILayers[requestId]);
+            window.dispatchEvent(new CustomEvent('launchtrusted', {
+              detail: {
+                name: navigator.mozL10n.get('persona-signin'),
+                frame: frame,
+                requestId: requestId,
+                chromeId: chromeEventId
+              }
+            }));
           } else {
             var container = document.getElementById('screen');
             container.appendChild(frame);
@@ -73,10 +77,12 @@ var Identity = (function() {
 
         case 'id-dialog-done':
           if (e.detail.showUI) {
-            TrustedUIManager.close(this.trustedUILayers[requestId],
-                                   (function dialogClosed() {
-              delete this.trustedUILayers[requestId];
-            }).bind(this));
+            window.dispatchEvent(new CustomEvent('killtrusted', {
+              detail: {
+                requestId: requestId,
+                chromeId: chromeEventId
+              }
+            }));
           }
           this._dispatchEvent({ id: chromeEventId });
           break;

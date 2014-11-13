@@ -175,12 +175,14 @@
   height: 100%;
 }
 
-/* The popup window does not collapse the rocketbar and has a static header. */
-.popupWindow .browser-container {
+/* The popup and trusted window does not collapse the rocketbar and has a static header. */
+.popupWindow .browser-container,
+.trustedwindow .browser-container {
   /* 5rem header + statusbar height */
   top: calc(5rem + var(--statusbar-height));
   height: calc(100% - 5rem - var(--statusbar-height));
 }
+
 
 /*****************************************************************************\
 | Scrollable Layout

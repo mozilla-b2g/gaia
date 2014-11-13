@@ -12,11 +12,10 @@
          SoftwareButtonManager, Accessibility, NfcUtils,
          TextSelectionDialog, SleepMenu, AppUsageMetrics,
          LockScreenPasscodeValidator, NfcManager,
-         ExternalStorageMonitor,
+         ExternalStorageMonitor, TrustedWindowManager,
          BrowserSettings, AppMigrator, SettingsMigrator,
          CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
-         BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager,
-         TrustedUIManager */
+         BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager */
 'use strict';
 
 /* === Shortcuts === */
@@ -43,9 +42,6 @@ window.addEventListener('load', function startup() {
     /** @global */
     KeyboardManager.init();
 
-    // Must load after KeyboardManager for correct handling mozChromeEvent.
-    TrustedUIManager.start();
-
     /** @global */
     window.appWindowManager = new AppWindowManager();
 
@@ -70,6 +66,11 @@ window.addEventListener('load', function startup() {
     /** @global */
     window.systemDialogManager = window.systemDialogManager ||
       new SystemDialogManager();
+
+    /** @global */
+    window.trustedWindowManager = window.trustedWindowManager ||
+      new TrustedWindowManager();
+    window.trustedWindowManager.start();
 
     /** @global */
     window.lockScreenWindowManager = new window.LockScreenWindowManager();

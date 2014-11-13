@@ -1,6 +1,6 @@
 'use strict';
 /* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
-          AttentionWindow, MozActivity, GlobalOverlayWindow */
+          AttentionWindow, MozActivity, GlobalOverlayWindow, TrustedWindow */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -36,6 +36,8 @@
     this.app.element.addEventListener('mozbrowseropenwindow', this);
     this.app.element.addEventListener('_launchactivity',
       this.createActivityWindow.bind(this));
+    this.app.element.addEventListener('_launchtrusted',
+      this.createTrustedWindow.bind(this));
   };
 
   ChildWindowFactory.prototype.handleEvent =
@@ -255,6 +257,14 @@
     var activity = new ActivityWindow(configuration, top);
     activity.element.addEventListener('_closing', this);
     activity.open();
+  };
+
+  ChildWindowFactory.prototype.createTrustedWindow = function(evt) {
+    var configuration = evt.detail;
+    var top = this.app.getTopMostWindow();
+    var trusted = new TrustedWindow(configuration, top);
+    trusted.element.addEventListener('_closing', this);
+    trusted.open();
   };
 
   ChildWindowFactory.prototype.launchActivity = function(evt) {

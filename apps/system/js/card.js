@@ -1,4 +1,4 @@
-/* globals BaseUI, CardsHelper, Tagged, TrustedUIManager */
+/* globals BaseUI, CardsHelper, Tagged */
 
 /* exported Card */
 
@@ -141,7 +141,6 @@
     }
 
     var origin = app.origin;
-    var popupFrame;
     var frameForScreenshot = app.getFrameForScreenshot();
 
     if (frameForScreenshot &&
@@ -150,12 +149,13 @@
                         frameForScreenshot.src, origin);
     }
 
-    if (TrustedUIManager.hasTrustedUI(app.origin)) {
-      popupFrame = TrustedUIManager.getDialogFromOrigin(app.origin);
-      this.title = CardsHelper.escapeHTML(popupFrame.name || '', true);
+    var topMostWindow = app.getTopMostWindow();
+    if (topMostWindow && topMostWindow.CLASS_NAME === 'TrustedWindow') {
+      var name = topMostWindow.name;
+      this.title = CardsHelper.escapeHTML(name || '', true);
       this.viewClassList.push('trustedui');
     } else if (!this.app.killable()) {
-      // unclosable app
+      // unclosable app   
       this.closeButtonVisibility = 'hidden';
     }
   };

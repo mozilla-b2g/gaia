@@ -44,14 +44,6 @@ suite('system/OrientationManager >', function() {
       assert.isTrue(stubPublish.calledWith('reset-orientation'));
     });
 
-    test('trusteduiclose', function() {
-      var stubPublish = this.sinon.stub(OrientationManager, 'publish');
-      OrientationManager.handleEvent({
-        type: 'trusteduiclose'
-      });
-      assert.isTrue(stubPublish.calledWith('reset-orientation'));
-    });
-
     test('lockscreen-appclosing', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
       OrientationManager.handleEvent({
