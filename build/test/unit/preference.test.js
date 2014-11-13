@@ -385,7 +385,9 @@ suite('preferences.js', function() {
         'extensions.gaia.locale_basedir': preferences.config.LOCALE_BASEDIR,
         'extensions.gaia.device_pixel_suffix':
           '@' + preferences.config.GAIA_DEV_PIXELS_PER_PX + 'x',
-        'extensions.autoDisableScopes': 0
+        'extensions.autoDisableScopes': 0,
+        'browser.tabs.remote.autostart': false,
+        'browser.tabs.remote.autostart.1': false,
       });
       assert.isUndefined(preferences.userPrefs['network.http.use-cache']);
     });
