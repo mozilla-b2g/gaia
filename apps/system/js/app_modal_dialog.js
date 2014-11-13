@@ -23,6 +23,7 @@
     // One to one mapping.
     this.instanceID = _id++;
     this._injected = false;
+    this._visible = false;
     app.element.addEventListener('mozbrowsershowmodalprompt', this);
     return this;
   };
@@ -46,11 +47,16 @@
     evt.preventDefault();
     evt.stopPropagation();
     this.events.push(evt);
+    this.menuHeight = 0;
     if (!this._injected) {
       this.render();
     }
     this.show();
     this._injected = true;
+  };
+
+  AppModalDialog.prototype.isVisible = function amd_isVisible() {
+    return this._visible;
   };
 
   AppModalDialog.prototype._fetchElements = function amd__fetchElements() {
@@ -77,6 +83,8 @@
       this.elements[toCamelCase(name)] =
         this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
     }, this);
+
+    this.elements.menu = this.element.querySelector('menu');
   };
 
   AppModalDialog.prototype._registerEvents = function amd__registerEvents() {
@@ -180,6 +188,7 @@
   };
 
   AppModalDialog.prototype.kill = function amd_kill() {
+    this._visible = false;
     this.containerElement.removeChild(this.element);
   };
 
@@ -189,6 +198,7 @@
       return;
     }
 
+    this._visible = true;
     var evt = this.events[0];
 
     var message = evt.detail.message || '';
@@ -216,6 +226,8 @@
         elements.alert.classList.add('visible');
         elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.alert.focus();
+
+        this.updateMaxHeight();
         break;
 
       case 'prompt':
@@ -296,6 +308,7 @@
   };
 
   AppModalDialog.prototype.hide = function amd_hide() {
+    this._visible = false;
     this.element.blur();
     this.app.browser.element.removeAttribute('aria-hidden');
     this.element.classList.remove('visible');
@@ -307,7 +320,7 @@
     }
 
     var evt = this.events[0];
-    var type = evt.detail.promptType;
+    var type = evt.detail.promptType || evt.detail.type;
     if (type === 'prompt') {
       this.elements.promptInput.blur();
     }
@@ -426,6 +439,20 @@
 
       this.processNextEvent();
     };
+
+  AppModalDialog.prototype.updateMaxHeight = function() {
+    // Setting maxHeight for being able to scroll long
+    // texts: formHeight - menuHeight - titleHeight - margin
+    // We should fix this in a common way for all the dialogs
+    // in the building blocks layer: Bug 1096902
+    this.menuHeight = this.menuHeight || this.elements.menu.offsetHeight;
+    var messageHeight = this.element.offsetHeight - this.menuHeight;
+    messageHeight -= this.elements.alertTitle.offsetHeight;
+    var margin = window.getComputedStyle(this.elements.alertTitle).marginBottom;
+    var messageContainer = this.elements.alert.querySelector('.inner p');
+    var calc = 'calc(' + messageHeight + 'px - ' + margin + ')';
+    messageContainer.style.maxHeight = calc;
+  };
 
   AppModalDialog.prototype._getTitle =
     function amd__getTitle(title) {
