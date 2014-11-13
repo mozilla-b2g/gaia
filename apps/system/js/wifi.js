@@ -171,12 +171,21 @@ var Wifi = {
     // But if wifi wake lock is held, turn wifi into power save mode instead of
     // turning wifi off.
     if (!ScreenManager.screenEnabled && !battery.charging) {
+      // When the screen is off and the phone is not charging,
+      // go to power save mode. It will be restored when screen
+      // is turned on or the phone is charging.
+      if (this.wifiEnabled && wifiManager.setPowerSavingMode) {
+        wifiManager.setPowerSavingMode(true);
+      }
+
       // Wifi wake lock is held while screen and wifi are off, turn on wifi and
       // get into power save mode.
       if (!this.wifiEnabled && this.wifiWakeLocked) {
         lock.set({ 'wifi.enabled': true });
         window.addEventListener('wifi-enabled', function() {
-          wifiManager.setPowerSavingMode(true);
+          if (wifiManager.setPowerSavingMode) {
+            wifiManager.setPowerSavingMode(true);
+          }
           releaseCpuLock();
         });
         return;
@@ -216,6 +225,12 @@ var Wifi = {
         this._alarmId = null;
       }
 
+      if (this.wifiEnabled && wifiManager.setPowerSavingMode) {
+        // Restore from power save mode before the possible scan request if
+        // wifi is already enabled.
+        wifiManager.setPowerSavingMode(false);
+      }
+
       // If wifi is enabled but disconnected.
       // we would need to call getNetworks() so we could join known wifi network
       if (this.wifiEnabled && wifiManager.connection.status == 'disconnected') {
@@ -230,7 +245,7 @@ var Wifi = {
 
       this.wifiDisabledByWakelock = false;
 
-      if (this.wifiEnabled) {
+      if (this.wifiEnabled && wifiManager.setPowerSavingMode) {
         // Restore from power save mode is wifi is already enabled.
         wifiManager.setPowerSavingMode(false);
         releaseCpuLock();
@@ -278,7 +293,7 @@ var Wifi = {
     // disable it.
     if (this.wifiWakeLocked) {
       var wifiManager = window.navigator.mozWifiManager;
-      if (wifiManager) {
+      if (wifiManager && wifiManager.setPowerSavingMode) {
         request = wifiManager.setPowerSavingMode(true);
         request.onsuccess = releaseWakeLockForWifi;
         request.onerror = releaseWakeLockForWifi;
