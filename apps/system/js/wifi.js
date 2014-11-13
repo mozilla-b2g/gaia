@@ -162,6 +162,13 @@ var Wifi = {
     // But if wifi wake lock is held, turn wifi into power save mode instead of
     // turning wifi off.
     if (!ScreenManager.screenEnabled && !battery.charging) {
+      // When the screen is off and the phone is not charging,
+      // go to power save mode. It will be restored when screen
+      // is turned on or the phone is charging.
+      if (this.wifiEnabled) {
+        wifiManager.setPowerSavingMode(true);
+      }
+
       // Wifi wake lock is held while screen and wifi are off, turn on wifi and
       // get into power save mode.
       if (!this.wifiEnabled && this._wakeLockManager.isHeld) {
@@ -205,6 +212,12 @@ var Wifi = {
       if (this._alarmId) {
         navigator.mozAlarms.remove(this._alarmId);
         this._alarmId = null;
+      }
+
+      if (this.wifiEnabled) {
+        // Restore from power save mode before the possible scan request if
+        // wifi is already enabled.
+        wifiManager.setPowerSavingMode(false);
       }
 
       // If wifi is enabled but disconnected.
