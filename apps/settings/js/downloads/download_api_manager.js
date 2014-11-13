@@ -6,7 +6,6 @@
 (function(exports) {
 
   var downloadsCache = {};
-  var downloadsListener = null;
 
   var COMPLETE_STATE = 'finalized';
   var SUCCEEDED_STATE = 'succeeded';
@@ -27,48 +26,6 @@
 
   function _resetDownloadsCache() {
     downloadsCache = {};
-  }
-
-  function _getTypeFromOperation(operation) {
-    var TYPES = { added: 'added' };
-    return TYPES[operation] || 'unknown';
-  }
-
-  function _updateDownloadsCacheWithDataStoreDownload(dsChange) {
-    var getReq = DownloadStore.get(dsChange.id);
-    getReq.onsuccess = function(event) {
-      var entries = Object.keys(downloadsCache);
-      var download = event.target.result;
-
-      var cachedDownload = null;
-      for (var i = 0; i < entries.length; i++) {
-        var downloadCacheEntry = downloadsCache[entries[i]];
-        if (downloadCacheEntry.storageName == download.storageName &&
-            downloadCacheEntry.storagePath == download.storagePath) {
-          cachedDownload = downloadCacheEntry;
-          break;
-        }
-      }
-
-      var changeEvent = {
-        type: _getTypeFromOperation(dsChange.operation),
-        download: download
-      };
-
-      if (cachedDownload) {
-        changeEvent.downloadApiId = cachedDownload.id;
-        _deleteFromDownloadsCache(cachedDownload.id);
-        _setDownload(download);
-      }
-
-      _callListener(changeEvent);
-    };
-    getReq.onerror = function(e) {
-      console.error('Failed to get download with id = ',
-                    dsChange.id,
-                    ' -- ',
-                    e);
-    };
   }
 
   function getDownloadId(download) {
@@ -116,43 +73,7 @@
     }
   }
 
-  function _dataStoreChangeHandler(dsChange) {
-    switch (dsChange.operation) {
-      case 'added':
-        // Update function will call the listener when appropriate.
-        window.setTimeout(function nextTickUpdated() {
-          _updateDownloadsCacheWithDataStoreDownload(dsChange);
-        }, 0);
-        break;
-    }
-  }
-
-  function _callListener(data) {
-    downloadsListener && downloadsListener(data);
-  }
-
   var DownloadApiManager = {
-    _initialized: false,
-
-    init: function() {
-      if (this._initialized) {
-        return;
-      }
-
-      // Add a listener to track when Download objects get added to the
-      // Download Store. This is when we'll update our Download Item to use
-      // the DataStore representation instead of the Download API DOM Download
-      // object.
-      var req = DownloadStore.addListener(_dataStoreChangeHandler);
-
-      req.onsuccess = (function() {
-        this._initialized = true;
-      }.bind(this));
-      req.onerror = (function(e) {
-        console.error('Failed to initialize DownloadApiManager properly.', e);
-      });
-    },
-
     getDownloads: function(onsuccess, onerror, oncomplete) {
       var promise = navigator.mozDownloadManager.getDownloads();
       promise.then(
@@ -251,10 +172,6 @@
 
     updateDownload: function(download) {
       _setDownload(download);
-    },
-
-    setListener: function(listener) {
-      downloadsListener = listener;
     }
   };
 

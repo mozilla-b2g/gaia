@@ -387,7 +387,7 @@ var DownloadHelper = (function() {
   }
 
   /*
-   * This method allows clients to remove a download, from the
+   * This method allows clients to remove a downlaod, from the
    * list and the phone.
    *
    * @param{Object} It represents a DOMDownload object
@@ -402,27 +402,13 @@ var DownloadHelper = (function() {
         if (!navigator.mozDownloadManager) {
           sendError(req, 'DownloadManager not present', CODE.INVALID_STATE);
         } else {
-          // First we pause the download so that everyone knows it's being
-          // stopped. The Downloads API itself won't stop the download first,
-          // it will simply kill it.
-          // XXXAus: Remove when we fix bug #1090551
-          download.pause().then(
-            function() {
-              navigator.mozDownloadManager.remove(download).then(
-                function success() {
-                  req.done(download);
-                },
-                function error() {
-                  sendError(req,
-                            'DownloadManager doesnt know about this download',
-                            CODE.INVALID_STATE);
-                }
-              );
+          navigator.mozDownloadManager.remove(download).then(
+            function success() {
+              req.done(download);
             },
-            function() {
-              sendError(req,
-                        'Failed to pause download before removal',
-                        CODE.INVALID_STATE);
+            function error() {
+              sendError(req, 'DownloadManager doesnt know about this download',
+                CODE.INVALID_STATE);
             }
           );
         }

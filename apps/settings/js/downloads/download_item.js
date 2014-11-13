@@ -154,20 +154,10 @@ var DownloadItem = (function DownloadItem() {
     return domNodes;
   };
 
+  // TODO: Keep this function until the api returns valid dom id
+  // values on the id field.
   var getDownloadId = function getDownloadId(download) {
-    // We need to use this to generate our id because datastore ids are not
-    // compatible with dom element ids.
     return DownloadFormatter.getUUID(download);
-  };
-
-  var updateDownloadId = function updateDownloadId(download,
-                                                   domElement) {
-    // Get our new element id.
-    var id = getDownloadId(download);
-    // Update all the relevant instances of the item id.
-    domElement.id = id;
-    domElement.dataset.id = id;
-    domElement.getElementsByTagName('input')[0].value = id;
   };
 
   var getDownloadState = function getDownloadState(download) {
@@ -188,8 +178,7 @@ var DownloadItem = (function DownloadItem() {
   return {
     'create': create,
     'refresh': update,
-    'getDownloadId': getDownloadId,
-    'updateDownloadId': updateDownloadId
+    'getDownloadId': getDownloadId
   };
 
 }());
