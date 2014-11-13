@@ -168,23 +168,20 @@ window.KeyboardManager = {
       group = 'text';
     }
 
-    // Get the last keyboard the user used for this group
-    var currentActiveLayout = KeyboardHelper.getCurrentActiveLayout(group);
-    var currentActiveLayoutIdx;
-    if (currentActiveLayout && this.inputLayouts.layouts[group]) {
-      for (var i = 0; i < this.inputLayouts.layouts[group].length; i++) {
-        // See if we still have that keyboard in our current layouts
-        var layout = this.inputLayouts.layouts[group][i];
-        if (layout.manifestURL === currentActiveLayout.manifestURL &&
-            layout.id === currentActiveLayout.id) {
-          // If so, default to that, saving the users choice
-          currentActiveLayoutIdx = i;
-          break;
-        }
-      }
+    if (this.inputLayouts.layouts[group].activeLayout !== undefined) {
+      this._setKeyboardToShow(group);
+    } else {
+      this.inputLayouts.getGroupCurrentActiveLayoutIndexAsync(group)
+        .then(currentActiveLayoutIdx => {
+          this._setKeyboardToShow(group, currentActiveLayoutIdx);
+        })
+        .catch(e => {
+          console.error(`KeyboardManager: failed to retrieve
+                         currentActiveLayoutIdx`, e);
+          // launch keyboard anyway, just don't assign a default layout
+          this._setKeyboardToShow(group);
+        });
     }
-
-    this._setKeyboardToShow(group, currentActiveLayoutIdx);
   },
 
   _inputFocusChange: function km_inputFocusChange(evt) {
@@ -238,7 +235,7 @@ window.KeyboardManager = {
     }
 
     if (undefined === index) {
-      index = this.inputLayouts.layouts[group].activeLayout;
+      index = this.inputLayouts.layouts[group].activeLayout || 0;
     }
     this._debug('set layout to display: group=' + group + ' index=' + index);
     var layout = this.inputLayouts.layouts[group][index];
@@ -248,14 +245,10 @@ window.KeyboardManager = {
     } else {
       inputWindowManager.showInputWindow(layout);
 
-      this.inputLayouts.layouts[group].activeLayout = index;
-      KeyboardHelper.saveCurrentActiveLayout(group,
-        layout.id, layout.manifestURL);
+      this.inputLayouts.saveGroupsCurrentActiveLayout(layout);
     }
 
     this._setShowingLayoutInfo(group, index, layout);
-
-    this.inputLayouts.setGroupsActiveLayout(layout);
   },
 
   /**

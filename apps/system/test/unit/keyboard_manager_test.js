@@ -1,12 +1,14 @@
 /*global KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
   MocksHelper, MockNavigatorSettings, Applications, MockL10n,
-  MockImeMenu, InputWindowManager, inputWindowManager, TYPE_GROUP_MAPPING */
+  MockImeMenu, InputWindowManager, inputWindowManager, TYPE_GROUP_MAPPING,
+  InputLayouts, MockPromise */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_promise.js');
 require('/test/unit/mock_applications.js');
 require('/test/unit/mock_homescreen_launcher.js');
 require('/test/unit/mock_ime_switcher.js');
@@ -14,6 +16,7 @@ require('/test/unit/mock_ime_menu.js');
 require('/js/input_layouts.js');
 require('/js/input_window_manager.js');
 require('/js/keyboard_manager.js');
+
 
 var mocksHelperForKeyboardManager = new MocksHelper([
     'KeyboardHelper',
@@ -52,6 +55,7 @@ suite('KeyboardManager', function() {
   mocksHelperForKeyboardManager.attachTestHelpers();
 
   var realMozSettings = null;
+  var stubGetGroupCurrentActiveLayoutIndexAsync;
 
   suiteSetup(function() {
     document.body.innerHTML += '<div id="run-container"></div>';
@@ -80,6 +84,12 @@ suite('KeyboardManager', function() {
       this.sinon.stub(Object.create(InputWindowManager.prototype));
     inputWindowManager.getLoadedManifestURLs.returns([]);
 
+    // we test these InputLayouts methods separately in input_layouts_test.js
+    this.sinon.stub(InputLayouts.prototype, '_getSettings');
+    stubGetGroupCurrentActiveLayoutIndexAsync =
+      this.sinon.stub(InputLayouts.prototype,
+                      'getGroupCurrentActiveLayoutIndexAsync');
+
     KeyboardManager.init();
 
     window.applications = Applications;
@@ -95,6 +105,10 @@ suite('KeyboardManager', function() {
         type: 'certified'
       }
     });
+  });
+
+  teardown(function() {
+    stubGetGroupCurrentActiveLayoutIndexAsync.restore();
   });
 
   suite('Switching keyboard focus', function() {
@@ -113,16 +127,31 @@ suite('KeyboardManager', function() {
     });
 
     suite('Switching inputType', function() {
+      var p1;
+      var p2;
+
       setup(function() {
         this.getLayouts = this.sinon.stub(KeyboardHelper, 'getLayouts');
         this.checkDefaults = this.sinon.stub(KeyboardHelper, 'checkDefaults');
         MockKeyboardHelper.watchCallback(KeyboardHelper.layouts,
           { apps: true });
+
+        p1 = new MockPromise();
+        p2 = new MockPromise();
+
+        stubGetGroupCurrentActiveLayoutIndexAsync
+          .onFirstCall().returns(p1)
+          .onSecondCall().returns(p2);
       });
       test('Switching from "text" to "number"', function() {
+
         simulateInputChangeEvent('text');
 
+        p1.then.getCall(0).args[0](undefined);
+
         simulateInputChangeEvent('number');
+
+        p2.then.getCall(0).args[0](undefined);
 
         sinon.assert.calledWith(KeyboardManager._setKeyboardToShow, 'text');
         sinon.assert.calledWith(KeyboardManager._setKeyboardToShow, 'number');
@@ -130,13 +159,21 @@ suite('KeyboardManager', function() {
 
       test('Switching from "text" to "text"', function() {
         simulateInputChangeEvent('text');
+
+        p1.then.getCall(0).args[0](undefined);
+
         simulateInputChangeEvent('text');
+
+        p2.then.getCall(0).args[0](undefined);
 
         sinon.assert.calledWith(KeyboardManager._setKeyboardToShow, 'text');
       });
 
       test('Switching from "text" to "select-one"', function() {
         simulateInputChangeEvent('text');
+
+        p1.then.getCall(0).args[0](undefined);
+
         simulateInputChangeEvent('select-one');
 
         sinon.assert.called(inputWindowManager.hideInputWindow);
@@ -150,7 +187,12 @@ suite('KeyboardManager', function() {
         MockKeyboardHelper.watchCallback(KeyboardHelper.layouts,
           { apps: true });
 
+        var p = new MockPromise();
+        stubGetGroupCurrentActiveLayoutIndexAsync.returns(p);
+
         simulateInputChangeEvent('url');
+
+        p.then.getCall(0).args[0](undefined);
       });
       test('does not request layouts or defaults', function() {
         assert.isFalse(this.getLayouts.called);
@@ -170,6 +212,12 @@ suite('KeyboardManager', function() {
 
         // trigger no keyboards in the first place
         MockKeyboardHelper.watchCallback([], { apps: true, settings: true });
+
+        KeyboardManager.inputLayouts.layouts = {
+          text: {
+            activeLayout: undefined
+          }
+        };
       });
       teardown(function() {
         MockKeyboardHelper.watchCallback(KeyboardHelper.layouts,
@@ -179,9 +227,14 @@ suite('KeyboardManager', function() {
         setup(function() {
           this.checkDefaults = this.sinon.stub(KeyboardHelper, 'checkDefaults');
 
+          var p = new MockPromise();
+          stubGetGroupCurrentActiveLayoutIndexAsync.returns(p);
+
           simulateInputChangeEvent('url');
 
           this.checkDefaults.getCall(0).args[0]();
+
+          p.then.getCall(0).args[0](undefined);
         });
 
         test('requests defaults', function() {
@@ -202,7 +255,13 @@ suite('KeyboardManager', function() {
               this.getLayouts.yields([KeyboardHelper.layouts[0]]);
               callback();
             }.bind(this));
+
+          var p = new MockPromise();
+          stubGetGroupCurrentActiveLayoutIndexAsync.returns(p);
+
           simulateInputChangeEvent('url');
+
+          p.then.getCall(0).args[0](undefined);
         });
 
         test('requests layouts', function() {
@@ -224,11 +283,11 @@ suite('KeyboardManager', function() {
     });
 
     suite('Restore user selection from settings', function() {
-      var mkh, km;
+      var km, p;
 
       setup(function() {
-        mkh = MockKeyboardHelper;
         km = KeyboardManager;
+        p = new MockPromise();
 
         TYPE_GROUP_MAPPING.chocola = 'chocola';
 
@@ -237,50 +296,42 @@ suite('KeyboardManager', function() {
           { id: 'trahlah', manifestURL: 'app://yolo' },
           { id: 'another', manifestURL: 'app://yolo' }
         ];
-      });
 
-      teardown(function() {
-        mkh.getCurrentActiveLayout = function() {};
+        stubGetGroupCurrentActiveLayoutIndexAsync.returns(p);
       });
 
       test('Selection is present', function() {
-        mkh.getCurrentActiveLayout = sinon.stub().returns(
-          { id: 'trahlah', manifestURL: 'app://yolo' }
-        );
-
         simulateInputChangeEvent('chocola');
+
+        p.then.getCall(0).args[0](1);
 
         sinon.assert.calledWith(km._setKeyboardToShow, 'chocola', 1);
       });
 
       test('Selection is present, multiple from same manifest', function() {
-        mkh.getCurrentActiveLayout = sinon.stub().returns(
-          { id: 'another', manifestURL: 'app://yolo' }
-        );
-
         simulateInputChangeEvent('chocola');
+
+        p.then.getCall(0).args[0](2);
 
         sinon.assert.calledWith(km._setKeyboardToShow, 'chocola', 2);
       });
 
-      test('Selection is not present', function() {
-        mkh.getCurrentActiveLayout = sinon.stub().returns(
-          { id: 'trahlah', manifestURL: 'app://dontexist' }
-        );
-
+      test('Selection is not present or not set', function() {
         simulateInputChangeEvent('chocola');
 
-        sinon.assert.calledWith(km._setKeyboardToShow, 'chocola');
+        p.then.getCall(0).args[0](undefined);
+
+        sinon.assert.calledWithExactly(
+          km._setKeyboardToShow, 'chocola', undefined
+        );
       });
 
-      test('No selection set', function() {
-        mkh.getCurrentActiveLayout = sinon.stub().returns(null);
-
+      test('Error should still trigger _setKeyboardToShow', function() {
         simulateInputChangeEvent('chocola');
 
-        sinon.assert.callCount(mkh.getCurrentActiveLayout, 1);
-        sinon.assert.calledWith(mkh.getCurrentActiveLayout, 'chocola');
-        sinon.assert.calledWith(km._setKeyboardToShow, 'chocola');
+        p.mGetNextPromise().catch.getCall(0).args[0]('error');
+
+        sinon.assert.calledWithExactly(km._setKeyboardToShow, 'chocola');
       });
     });
   });
@@ -607,11 +658,16 @@ suite('KeyboardManager', function() {
 
     test('Do not save activeLayout to settings if setKeyboardToShow is called' +
          'with launchOnly=true', function() {
-      MockKeyboardHelper.saveCurrentActiveLayout = this.sinon.stub();
+
+      var stubSaveGroupsCurrentActiveLayout =
+        this.sinon.stub(InputLayouts.prototype,
+          'saveGroupsCurrentActiveLayout');
 
       KeyboardManager._setKeyboardToShow('text', undefined, true);
 
-      sinon.assert.notCalled(MockKeyboardHelper.saveCurrentActiveLayout);
+      assert.isFalse(stubSaveGroupsCurrentActiveLayout.called);
+
+      stubSaveGroupsCurrentActiveLayout.restore();
     });
   });
 
@@ -912,8 +968,6 @@ suite('KeyboardManager', function() {
     });
 
     test('Switching stores new layout in settings', function() {
-      MockKeyboardHelper.saveCurrentActiveLayout = this.sinon.stub();
-
       KeyboardManager._showingLayoutInfo.index = 0;
       KeyboardManager.inputLayouts.
         _layoutToGroupMapping['app://unreal/manifest.webapp/ur'] =
@@ -922,12 +976,21 @@ suite('KeyboardManager', function() {
             index: 3
           }];
 
+      var stubSaveGroupsCurrentActiveLayout =
+        this.sinon.stub(InputLayouts.prototype,
+          'saveGroupsCurrentActiveLayout');
+
       KeyboardManager._switchToNext();
       this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
 
-      sinon.assert.callCount(MockKeyboardHelper.saveCurrentActiveLayout, 1);
-      sinon.assert.calledWith(MockKeyboardHelper.saveCurrentActiveLayout,
-        'text', 'ur', 'app://unreal/manifest.webapp');
+      assert.isTrue(stubSaveGroupsCurrentActiveLayout.calledOnce);
+      assert.isTrue(
+        stubSaveGroupsCurrentActiveLayout.calledWith(
+          {id: 'ur', manifestURL: 'app://unreal/manifest.webapp'}
+        )
+      );
+
+      stubSaveGroupsCurrentActiveLayout.restore();
     });
 
     test('Switching calls setKeyboardToShow', function() {

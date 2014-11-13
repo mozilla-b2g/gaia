@@ -20,8 +20,7 @@ var BASE_TYPES = new Set([
  */
 var SETTINGS_KEYS = {
   ENABLED: 'keyboard.enabled-layouts',
-  DEFAULT: 'keyboard.default-layouts',
-  CURRENT_ACTIVE: 'keyboard.current-active-layouts'
+  DEFAULT: 'keyboard.default-layouts'
 };
 
 var DEPRECATE_KEYBOARD_SETTINGS = {
@@ -60,9 +59,7 @@ var defaultKeyboardManifestURL =
 
 // Stores a local copy of whatever is in the settings database
 var currentSettings = {
-  defaultLayouts: {},
-  // type -> active layout mapping (e.g. { text: { id, manifestURL } })
-  currentActiveLayouts: {}
+  defaultLayouts: {}
 };
 
 // until we read otherwise, asssume the default keyboards are en and number
@@ -183,7 +180,6 @@ function kh_getSettings() {
   var lock = window.navigator.mozSettings.createLock();
   lock.get(SETTINGS_KEYS.DEFAULT).onsuccess = kh_parseDefault;
   lock.get(SETTINGS_KEYS.ENABLED).onsuccess = kh_parseEnabled;
-  lock.get(SETTINGS_KEYS.CURRENT_ACTIVE).onsuccess = kh_parseCurrentActive;
 }
 
 /**
@@ -197,16 +193,6 @@ function kh_parseDefault() {
   kh_loadedSetting(SETTINGS_KEYS.DEFAULT);
 }
 
-/**
- * Parse the result from the settings query for current active layouts
- */
-function kh_parseCurrentActive() {
-  var value = this.result[SETTINGS_KEYS.CURRENT_ACTIVE];
-  if (value) {
-    currentSettings.currentActiveLayouts = value;
-  }
-  kh_loadedSetting(SETTINGS_KEYS.CURRENT_ACTIVE);
-}
 
 /**
  * Parse the result from the settings query for enabled layouts
@@ -431,6 +417,7 @@ Object.defineProperties(KeyboardLayout.prototype, {
 /**
  * Exposed as KeyboardHelper.settings this gives us a fairly safe way to read
  * and write to the settings data structures directly.
+ * XXX: is this really used anywhere?
  */
 var kh_SettingsHelper = {};
 Object.defineProperties(kh_SettingsHelper, {
@@ -449,15 +436,6 @@ Object.defineProperties(kh_SettingsHelper, {
     },
     set: function(value) {
       currentSettings.enabledLayouts = map2dClone(value);
-    },
-    enumerable: true
-  },
-  'active': {
-    get: function() {
-      return map2dClone(currentSettings.currentActiveLayouts);
-    },
-    set: function(value) {
-      currentSettings.currentActiveLayouts = map2dClone(value);
     },
     enumerable: true
   }
@@ -605,7 +583,6 @@ var KeyboardHelper = exports.KeyboardHelper = {
     var toSet = {};
     toSet[SETTINGS_KEYS.ENABLED] = currentSettings.enabledLayouts;
     toSet[SETTINGS_KEYS.DEFAULT] = currentSettings.defaultLayouts;
-    toSet[SETTINGS_KEYS.CURRENT_ACTIVE] = currentSettings.currentActiveLayouts;
     window.navigator.mozSettings.createLock().set(toSet);
   },
 
@@ -826,26 +803,6 @@ var KeyboardHelper = exports.KeyboardHelper = {
 
       this.saveToSettings(); // save changes to settings
     }.bind(this));
-  },
-
-  getCurrentActiveLayout: function kh_getActive(type) {
-    return currentSettings.currentActiveLayouts[type];
-  },
-
-  saveCurrentActiveLayout: function kh_saveActive(type, id, manifestURL) {
-    var curr = currentSettings.currentActiveLayouts[type];
-    if (curr && curr.id === id && curr.manifestURL === manifestURL) {
-      return;
-    }
-
-    currentSettings.currentActiveLayouts[type] = {
-      id: id,
-      manifestURL: manifestURL
-    };
-
-    var toSet = {};
-    toSet[SETTINGS_KEYS.CURRENT_ACTIVE] = currentSettings.currentActiveLayouts;
-    window.navigator.mozSettings.createLock().set(toSet);
   }
 };
 
