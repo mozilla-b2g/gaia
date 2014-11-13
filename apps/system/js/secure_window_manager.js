@@ -1,5 +1,5 @@
-/* global System */
 'use strict';
+/* global Service */
 
 (function(exports) {
 
@@ -18,7 +18,7 @@
   var SecureWindowManager = function() {
     this.initElements();
     this.initEvents();
-    System.request('registerHierarchy', this);
+    Service.request('registerHierarchy', this);
   };
   SecureWindowManager.prototype = {
     name: 'SecureWindowManager',

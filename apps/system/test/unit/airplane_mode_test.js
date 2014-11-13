@@ -10,7 +10,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_airplane_mode_service_helper.js');
-requireApp('system/js/system.js');
+requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/airplane_mode.js');
 

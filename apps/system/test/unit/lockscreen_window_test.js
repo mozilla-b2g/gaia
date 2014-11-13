@@ -57,7 +57,7 @@ suite('system/LockScreenWindow', function() {
     realL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = MockL10n;
 
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/app_window.js');

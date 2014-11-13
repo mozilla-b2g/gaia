@@ -163,7 +163,7 @@ marionette('App Usage Metrics >', function() {
 
     function lockScreen() {
       client.executeScript(function() {
-        window.wrappedJSObject.System.request('lock', { 'forcibly': true });
+        window.wrappedJSObject.Service.request('lock', { 'forcibly': true });
       });
       waitForEvent('lockscreen-appopened', checkMetrics);
     }
@@ -173,7 +173,7 @@ marionette('App Usage Metrics >', function() {
       assert.ok(metrics.getAppUsageTime(MEDIA_MANIFEST) > 0);
 
       client.executeScript(function() {
-        window.wrappedJSObject.System.request('unlock', { 'forcibly': true });
+        window.wrappedJSObject.Service.request('unlock', { 'forcibly': true });
       });
 
       client.apps.close(MEDIA_APP);

@@ -16,7 +16,7 @@ suite('system/AppModalDialog', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
 
     requireApp('system/js/app_modal_dialog.js',

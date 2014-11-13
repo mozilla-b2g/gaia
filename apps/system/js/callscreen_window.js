@@ -1,4 +1,4 @@
-/* global AttentionWindow, System */
+/* global AttentionWindow, Service */
 'use strict';
 
 (function(exports) {
@@ -117,7 +117,7 @@
     }
     var timestamp = new Date().getTime();
     var src = this.config.url + '#' +
-              (System.locked ? 'locked' : '');
+              (Service.locked ? 'locked' : '');
     src = src + '&timestamp=' + timestamp;
     this.browser.element.src = src;
     this._terminated = false;

@@ -1,19 +1,19 @@
-/* globals System, MocksHelper, MockAppWindowManager */
+/* globals Service, MocksHelper, MockAppWindowManager */
 'use strict';
 
 requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
-var mocksForSystem = new MocksHelper([
+var mocksForService = new MocksHelper([
   'AppWindowManager', 'LazyLoader'
 ]).init();
 
-suite('system/System', function() {
+suite('system/Service', function() {
   var clock;
-  mocksForSystem.attachTestHelpers();
+  mocksForService.attachTestHelpers();
   setup(function(done) {
     clock = this.sinon.useFakeTimers();
-    requireApp('system/js/system.js', done);
+    requireApp('system/js/service.js', done);
     window.appWindowManager = new MockAppWindowManager();
   });
 
@@ -21,7 +21,7 @@ suite('system/System', function() {
     window.appWindowManager.mActiveApp = {
       loaded: false
     };
-    assert.isTrue(System.isBusyLoading());
+    assert.isTrue(Service.isBusyLoading());
   });
 
   suite('States', function() {
@@ -38,35 +38,35 @@ suite('system/System', function() {
     });
 
     teardown(function() {
-      System._states.clear();
-      System._statesByState.clear();
+      Service._states.clear();
+      Service._statesByState.clear();
     });
 
     test('State provider is valid', function() {
-      System.registerState('isFtuRunning', fakeFtuLauncher);
-      System.registerState('isUpgrading', fakeFtuLauncher);
-      assert.equal(System.query('isFtuRunning'), false);
-      assert.equal(System.query('isUpgrading'), false);
-      assert.equal(System.query('FakeFtuLauncher.isFtuRunning'), false);
-      assert.equal(System.query('FakeFtuLauncher.isUpgrading'), false);
+      Service.registerState('isFtuRunning', fakeFtuLauncher);
+      Service.registerState('isUpgrading', fakeFtuLauncher);
+      assert.equal(Service.query('isFtuRunning'), false);
+      assert.equal(Service.query('isUpgrading'), false);
+      assert.equal(Service.query('FakeFtuLauncher.isFtuRunning'), false);
+      assert.equal(Service.query('FakeFtuLauncher.isUpgrading'), false);
       fakeFtuLauncher.isFtuRunning = true;
-      assert.equal(System.query('isFtuRunning'), true);
-      assert.equal(System.query('FakeFtuLauncher.isFtuRunning'), true);
+      assert.equal(Service.query('isFtuRunning'), true);
+      assert.equal(Service.query('FakeFtuLauncher.isFtuRunning'), true);
       fakeFtuLauncher._upgrading = true;
-      assert.equal(System.query('isUpgrading'), true);
-      assert.equal(System.query('FakeFtuLauncher.isUpgrading'), true);
+      assert.equal(Service.query('isUpgrading'), true);
+      assert.equal(Service.query('FakeFtuLauncher.isUpgrading'), true);
     });
 
     test('State provider is invalid', function() {
-      assert.equal(System.query('isFtuRunning'), undefined);
-      assert.equal(System.query('FakeFtuLauncher.isFtuRunning'), undefined);
+      assert.equal(Service.query('isFtuRunning'), undefined);
+      assert.equal(Service.query('FakeFtuLauncher.isFtuRunning'), undefined);
     });
   });
 
   suite('Services', function() {
     teardown(function() {
-      System._services.clear();
-      System._providers.clear();
+      Service._services.clear();
+      Service._providers.clear();
     });
 
     suite('Promise in Promise', function() {
@@ -81,8 +81,8 @@ suite('system/System', function() {
       };
 
       test('Success', function(done) {
-        System.register('get', fakeSettingsServer);
-        System.request('get').then(function(result) {
+        Service.register('get', fakeSettingsServer);
+        Service.request('get').then(function(result) {
           assert.equal(result, 2);
           done();
         });
@@ -90,8 +90,8 @@ suite('system/System', function() {
       });
 
       test('Error', function(done) {
-        System.register('get', fakeSettingsServer);
-        System.request('get').then(function(result) {
+        Service.register('get', fakeSettingsServer);
+        Service.request('get').then(function(result) {
           assert.isFalse(true);
         }).catch(function(error) {
           assert.equal(error, 'uhhhhh');
@@ -101,22 +101,22 @@ suite('system/System', function() {
       });
 
       test('Success: offline and then online', function(done) {
-        System.request('get').then(function(result) {
+        Service.request('get').then(function(result) {
           assert.equal(result, 3);
           done();
         });
-        System.register('get', fakeSettingsServer);
+        Service.register('get', fakeSettingsServer);
         fakeSettingsServer.resolve(3);
       });
 
       test('Error: offline and then online', function(done) {
-        System.request('get').then(function(result) {
+        Service.request('get').then(function(result) {
           assert.isFalse(true);
         }).catch(function(error) {
           assert.equal(error, 'oooooh');
           done();
         });
-        System.register('get', fakeSettingsServer);
+        Service.register('get', fakeSettingsServer);
         fakeSettingsServer.reject('oooooh');
       });
     });
@@ -126,21 +126,21 @@ suite('system/System', function() {
       var fakeLockscreenWindowManager = {
         lock: spy
       };
-      System.register('lock', fakeLockscreenWindowManager);
-      System.request('lock').then(function() {
+      Service.register('lock', fakeLockscreenWindowManager);
+      Service.request('lock').then(function() {
         assert.isTrue(spy.called);
         done();
       });
     });
 
     test('Service provider is offline.', function() {
-      System.request('lock');
+      Service.request('lock');
       var fakeLockscreenWindowManager = {
         name: 'fakeLWM',
         lock: function() {}
       };
       var stubLock = this.sinon.stub(fakeLockscreenWindowManager, 'lock');
-      System.register('lock', fakeLockscreenWindowManager);
+      Service.register('lock', fakeLockscreenWindowManager);
       assert.isTrue(stubLock.called);
     });
 
@@ -149,9 +149,9 @@ suite('system/System', function() {
         name: 'fakeLWM',
         lock: function() {}
       };
-      System.register('lock', fakeLockscreenWindowManager);
+      Service.register('lock', fakeLockscreenWindowManager);
       var stubLock = this.sinon.stub(fakeLockscreenWindowManager, 'lock');
-      System.request('fakeLWM:lock');
+      Service.request('fakeLWM:lock');
       assert.isTrue(stubLock.called);
     });
 
@@ -160,21 +160,21 @@ suite('system/System', function() {
         name: 'fakeLWM',
         lock: function() {}
       };
-      System.register('lock', fakeLockscreenWindowManager);
+      Service.register('lock', fakeLockscreenWindowManager);
       var stubLock = this.sinon.stub(fakeLockscreenWindowManager, 'lock');
-      System.unregister('lock', fakeLockscreenWindowManager);
-      System.request('fakeLWM:lock');
+      Service.unregister('lock', fakeLockscreenWindowManager);
+      Service.request('fakeLWM:lock');
       assert.isFalse(stubLock.called);
     });
 
     test('Specific service provider is offline.', function() {
-      System.request('fakeLWM:lock');
+      Service.request('fakeLWM:lock');
       var fakeLockscreenWindowManager = {
         name: 'fakeLWM',
         lock: function() {}
       };
       var stubLock = this.sinon.stub(fakeLockscreenWindowManager, 'lock');
-      System.register('lock', fakeLockscreenWindowManager);
+      Service.register('lock', fakeLockscreenWindowManager);
       assert.isTrue(stubLock.called);
     });
 
@@ -185,14 +185,14 @@ suite('system/System', function() {
           this.value = value;
         }
       };
-      System.request('addObserver', client);
+      Service.request('addObserver', client);
       var fakeSettingsServer = {
         name: 'fakeSettingsServer',
         addObserver: function(client) {
           this.client = client;
         }
       };
-      System.register('addObserver', fakeSettingsServer);
+      Service.register('addObserver', fakeSettingsServer);
       fakeSettingsServer.client.observe(2);
       assert.equal(client.value, 2);
     });
@@ -202,7 +202,7 @@ suite('system/System', function() {
         value: 1,
         read: function(value) {
           var self = this;
-          System.request('read').then(function(value) {
+          Service.request('read').then(function(value) {
             self.value = value;
             assert.equal(self.value, 2);
 
@@ -219,7 +219,7 @@ suite('system/System', function() {
         }
       };
       client.read();
-      System.register('read', fakeSettingsServer);
+      Service.register('read', fakeSettingsServer);
     });
   });
 });

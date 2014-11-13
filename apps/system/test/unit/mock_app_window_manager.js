@@ -33,6 +33,8 @@ MockAppWindowManager.prototype = {
   // reference to active appWindow instance.
   mActiveApp: null,
 
+  slowTransition: false,
+
   // Switch to a different app
   display: function mawm_display(origin, callback) {
     this.mActiveApp = this.mRunningApps[origin];

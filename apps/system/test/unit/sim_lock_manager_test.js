@@ -1,12 +1,12 @@
-/* global MocksHelper, System, MockSimLockSystemDialog */
-/* global MockSIMSlotManager, BaseModule, MockSystem */
+/* global MocksHelper, Service, MockSimLockSystemDialog */
+/* global MockSIMSlotManager, BaseModule, MockService */
 
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_simcard_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_version_helper.js');
 requireApp('system/test/unit/mock_sim_lock_system_dialog.js');
 requireApp('/system/shared/test/unit/mocks/mock_ftu_launcher.js');
@@ -15,7 +15,7 @@ requireApp('system/js/base_module.js');
 requireApp('system/js/sim_lock_manager.js');
 
 var mocksHelperForSimLockManager = new MocksHelper([
-  'System',
+  'Service',
   'SIMSlotManager'
 ]).init();
 
@@ -48,7 +48,7 @@ suite('SimLockManager', function() {
     subject = BaseModule.instantiate('SimLockManager', {
       mobileConnections: []
     });
-    subject.service = MockSystem;
+    subject.service = MockService;
     subject.start();
     subject.simLockSystemDialog = new MockSimLockSystemDialog();
     this.sinon.stub(subject.simLockSystemDialog, 'show', function() {
@@ -57,7 +57,7 @@ suite('SimLockManager', function() {
   });
 
   teardown(function() {
-    MockSystem.mTeardown();
+    MockService.mTeardown();
     subject.stop();
     subject.simLockSystemDialog.show.restore();
   });
@@ -78,15 +78,15 @@ suite('SimLockManager', function() {
     });
 
     test('no simpin dialog would show up on first run', function() {
-      MockSystem.mUpgrading = false;
-      MockSystem.runningFTU = true;
+      MockService.mUpgrading = false;
+      MockService.runningFTU = true;
       window.dispatchEvent(new window.CustomEvent('ftuopen'));
       assert.isTrue(subject.simLockSystemDialog.close.called);
     });
 
     test('simpin dialog would show up on upgrade', function() {
-      MockSystem.mUpgrading = true;
-      MockSystem.runningFTU = true;
+      MockService.mUpgrading = true;
+      MockService.runningFTU = true;
       window.dispatchEvent(new CustomEvent('ftuopen'));
       assert.isTrue(subject.simLockSystemDialog.show.called);
     });
@@ -128,15 +128,15 @@ suite('SimLockManager', function() {
     });
 
     test('should not show if locked', function() {
-      System.locked = true;
+      Service.locked = true;
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);
-      System.locked = false;
+      Service.locked = false;
     });
 
     test('should not show on Ftu', function() {
-      MockSystem.mUpgrading = false;
-      MockSystem.runningFTU = true;
+      MockService.mUpgrading = false;
+      MockService.runningFTU = true;
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);
     });

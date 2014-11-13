@@ -33,7 +33,7 @@ suite('system/BrowserContextMenu', function() {
       }
     };
 
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/browser_context_menu.js', done);
     realMozActivity = window.MozActivity;

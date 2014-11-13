@@ -1,5 +1,5 @@
 'use strict';
-/* global System, SearchWindow, places */
+/* global Service, SearchWindow, places */
 
 (function(exports) {
 
@@ -68,7 +68,7 @@
     start: function() {
       this.addEventListeners();
       this.enabled = true;
-      System.request('registerHierarchy', this);
+      Service.request('registerHierarchy', this);
     },
 
     /**
@@ -303,7 +303,7 @@
         case 'global-search-request':
           // XXX: fix the WindowManager coupling
           // but currently the transition sequence is crucial for performance
-          var app = System.currentApp;
+          var app = Service.currentApp;
           var afterActivate;
 
           // If the app is not a browser, retain the search value and activate.

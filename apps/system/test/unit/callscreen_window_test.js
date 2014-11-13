@@ -1,5 +1,5 @@
 /* globals CallscreenWindow, MocksHelper, MockApplications, MockLayoutManager,
-           System, MockL10n */
+           Service, MockL10n */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -10,11 +10,11 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForCallscreenWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'System',
+  'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'Service',
   'AppChrome'
 ]).init();
 
@@ -124,11 +124,11 @@ suite('system/CallscreenWindow', function() {
 
     suite('> When the lockscreen is locked', function() {
       setup(function() {
-        System.locked = true;
+        Service.locked = true;
       });
 
       teardown(function() {
-        System.locked = false;
+        Service.locked = false;
       });
 
       test('it should open the call screen on #locked', function() {

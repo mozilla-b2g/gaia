@@ -10,7 +10,7 @@ suite('WallpaperManager', function() {
 
   var subject;  // The WallpaperManager instance we're testing.
   var wallpaperBlob, bigWallpaperBlob, smallWallpaperBlob;
-  var dataURL, bigDataURL, smallDataURL;
+  var dataURL, bigDataURL, smallDataURL, mockPublish;
 
   const DEFAULT_WALLPAPER = 'resources/images/backgrounds/default.png';
 
@@ -78,25 +78,23 @@ suite('WallpaperManager', function() {
     this.xhr.restore();
   });
 
-
   setup(function() {
     var self = this;
     // Mock settings
     this.realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
-    // Mock System.publish function
-    window.System = {
-      publish: function(type, data) {
-        if (self.onWallpaperChange) {
-          setTimeout(function() {
-            if (self.onWallpaperChange) {
-              self.onWallpaperChange(type, data);
-            }
-          });
-        }
+    mockPublish = function(e) {
+      if (self.onWallpaperChange) {
+        setTimeout(function() {
+          if (self.onWallpaperChange) {
+            self.onWallpaperChange('wallpaperchange', e.detail);
+          }
+        });
       }
     };
+
+    window.addEventListener('wallpaperchange', mockPublish);
 
     // Mock LazyLoader
     window.LazyLoader = { };
@@ -123,10 +121,11 @@ suite('WallpaperManager', function() {
     this.validateSpy.restore();
     this.publishSpy.restore();
 
+    window.removeEventListener('wallpaperchange', mockPublish);
+
     navigator.mozSettings = this.realMozSettings;
     MockNavigatorSettings.mTeardown();
 
-    delete window.System;
     this.onWallpaperChange = null;
   });
 

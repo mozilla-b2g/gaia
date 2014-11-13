@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global System, ScreenManager*/
+/*global Service, ScreenManager*/
 
 'use strict';
 
@@ -101,7 +101,7 @@
       document.body.appendChild(viewsource);
     }
 
-    var url = System.currentApp.origin;
+    var url = Service.currentApp.origin;
     if (!url) {
       // Assume the home screen is the visible app.
       url = window.location.toString();

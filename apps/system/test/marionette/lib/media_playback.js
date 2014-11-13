@@ -150,13 +150,13 @@ MediaPlayback.prototype = {
 
   lockScreen: function() {
     this.client.executeScript(function() {
-      window.wrappedJSObject.System.request('lock', { 'forcibly': true });
+      window.wrappedJSObject.Service.request('lock', { 'forcibly': true });
     });
   },
 
   unlockScreen: function() {
     this.client.executeScript(function() {
-      window.wrappedJSObject.System.request('unlock', { 'forcibly': true });
+      window.wrappedJSObject.Service.request('unlock', { 'forcibly': true });
     });
   },
 

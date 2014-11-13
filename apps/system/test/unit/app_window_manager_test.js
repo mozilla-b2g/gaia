@@ -1,11 +1,11 @@
 /* global appWindowManager, AppWindow, HomescreenWindowManager, MockShrinkingUI,
-          HomescreenWindow, MocksHelper, MockSettingsListener, System,
+          HomescreenWindow, MocksHelper, MockSettingsListener, Service,
           MockRocketbar, rocketbar, homescreenWindowManager,
           MockTaskManager */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_activity_window.js');
@@ -19,7 +19,7 @@ requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_nfc_handler.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_task_manager.js');
-requireApp('system/js/system.js');
+requireApp('system/js/service.js');
 requireApp('system/shared/test/unit/mocks/mock_shrinking_ui.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
@@ -27,7 +27,7 @@ var mocksForAppWindowManager = new MocksHelper([
   'OrientationManager', 'ActivityWindow', 'ShrinkingUI',
   'Applications', 'SettingsListener', 'HomescreenWindowManager',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
-  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System', 'NfcHandler',
+  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'Service', 'NfcHandler',
   'TaskManager'
 ]).init();
 
@@ -347,13 +347,13 @@ suite('system/AppWindowManager', function() {
     });
 
     test('FTU is skipped when lockscreen is active', function() {
-      System.locked = true;
+      Service.locked = true;
       injectRunningApps();
       var stubDisplay = this.sinon.stub(appWindowManager, 'display');
 
       appWindowManager.handleEvent({ type: 'ftuskip' });
       assert.isFalse(stubDisplay.calledWith());
-      System.locked = false;
+      Service.locked = false;
     });
 
     test('System resize', function() {

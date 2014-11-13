@@ -1,12 +1,12 @@
 'use strict';
 /* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow,
-   MockSystem, MockPromise */
+   MockService, MockPromise */
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_search_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_promise.js');
 requireApp('system/test/unit/mock_iac_handler.js');
 
@@ -15,7 +15,7 @@ var mocksForRocketbar = new MocksHelper([
   'SearchWindow',
   'SettingsListener',
   'SettingsURL',
-  'System',
+  'Service',
   'IACPort'
 ]).init();
 
@@ -46,7 +46,7 @@ suite('system/Rocketbar', function() {
     stubById.restore();
     MockIACPort.mTearDown();
     subject._port = null;
-    MockSystem.currentApp = null;
+    MockService.currentApp = null;
   });
 
   suite('Hierarchy functions', function() {
@@ -69,10 +69,10 @@ suite('system/Rocketbar', function() {
     });
 
     test('Should register hierarchy on start', function() {
-      this.sinon.stub(MockSystem, 'request');
+      this.sinon.stub(MockService, 'request');
       subject.start();
       assert.isTrue(
-        MockSystem.request.calledWith('registerHierarchy', subject));
+        MockService.request.calledWith('registerHierarchy', subject));
     });
 
     test('isActive', function() {
@@ -440,7 +440,7 @@ suite('system/Rocketbar', function() {
       config: {url: 'app.url'},
       isBrowser: function() {}
     };
-    MockSystem.currentApp = activeApp;
+    MockService.currentApp = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate');
@@ -462,7 +462,7 @@ suite('system/Rocketbar', function() {
         isMaximized: function() {}
       }
     };
-    MockSystem.currentApp = activeApp;
+    MockService.currentApp = activeApp;
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
     this.sinon.stub(subject, 'activate', function(cb) {
       cb();
@@ -499,7 +499,7 @@ suite('system/Rocketbar', function() {
         isMaximized: function() {}
       }
     };
-    MockSystem.currentApp = activeApp;
+    MockService.currentApp = activeApp;
 
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
     this.sinon.stub(subject, 'activate', function(cb) {

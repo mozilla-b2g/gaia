@@ -7,7 +7,7 @@
 /* global ScreenLayout */
 /* global SettingsListener */
 /* global StatusBar */
-/* global System */
+/* global Service */
 /* global DUMP */
 'use strict';
 
@@ -1056,7 +1056,7 @@
       console.log('[' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
         '[' + this.instanceID + ']' +
-        '[' + System.currentTime() + '] ' +
+        '[' + Service.currentTime() + '] ' +
         Array.slice(arguments).concat());
 
       if (TRACE) {
@@ -1066,7 +1066,7 @@
       DUMP('[' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
         '[' + this.instanceID + ']' +
-        '[' + System.currentTime() + '] ' +
+        '[' + Service.currentTime() + '] ' +
         Array.slice(arguments).concat());
     }
   };
@@ -1075,7 +1075,7 @@
   AppWindow.prototype.forceDebug = function aw_debug(msg) {
     console.log('[Dump:' + this.CLASS_NAME + ']' +
       '[' + (this.name || this.origin) + ']' +
-      '[' + System.currentTime() + ']' +
+      '[' + Service.currentTime() + ']' +
       Array.slice(arguments).concat());
   };
 
@@ -1834,7 +1834,7 @@
   };
 
   AppWindow.prototype._handle__closed = function aw_closed() {
-    if (System.isBusyLoading() && this.getBottomMostWindow().isHomescreen) {
+    if (Service.isBusyLoading() && this.getBottomMostWindow().isHomescreen) {
       // We will eventually get screenshot when being requested from
       // task manager.
       return;

@@ -116,7 +116,7 @@
     });
 
     this.client.executeScript(function() {
-      window.wrappedJSObject.System.request('lock', {
+      window.wrappedJSObject.Service.request('lock', {
         forcibly: true
       });
     });
@@ -139,7 +139,7 @@
   function() {
     this.ensure().frame();
     this.client.executeScript(function() {
-      window.wrappedJSObject.System.request('unlock', {
+      window.wrappedJSObject.Service.request('unlock', {
         forcibly: true
       });
     });

@@ -1,6 +1,6 @@
-/* exported MockSystem */
+/* exported MockService */
 'use strict';
-var MockSystem = {
+var MockService = {
   mTeardown: function() {
     this.runningFTU = false;
     this.mUpgrading = false;
@@ -28,11 +28,6 @@ var MockSystem = {
     return false;
   },
   currentTime: function() {},
-  slowTransition: false,
-  publish: function(eventName, detail) {
-    var evt = new CustomEvent(eventName, { detail: detail });
-    window.dispatchEvent(evt);
-  },
   locked: false,
   runningFTU: false,
   manifestURL: 'app://system.gaiamobile.org/manifest.webapp',

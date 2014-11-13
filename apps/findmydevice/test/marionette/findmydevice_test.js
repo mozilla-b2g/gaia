@@ -70,17 +70,17 @@ marionette('Find My Device lock >', function() {
 
     // now unlock the screen and re-lock it, the message should disappear
     client.executeScript(function() {
-      window.wrappedJSObject.System.request('unlock');
+      window.wrappedJSObject.Service.request('unlock');
     });
 
     client.waitFor(function() {
       return client.executeScript(function() {
-        return !window.wrappedJSObject.System.locked;
+        return !window.wrappedJSObject.Service.locked;
       });
     });
 
     client.executeScript(function() {
-      window.wrappedJSObject.System.request('lock');
+      window.wrappedJSObject.Service.request('lock');
     });
 
     // XXX: After we make LockScreen as an iframe or app, this should be the

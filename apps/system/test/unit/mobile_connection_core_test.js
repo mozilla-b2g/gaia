@@ -5,7 +5,7 @@
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_promise.js');
-requireApp('system/js/system.js');
+requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/mobile_connection_core.js');
 

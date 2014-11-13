@@ -1,15 +1,15 @@
 'use strict';
-/* global MocksHelper, System, HomescreenWindow, HomescreenLauncher,
+/* global MocksHelper, Service, HomescreenWindow, HomescreenLauncher,
           HomescreenWindowManager */
 
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/js/homescreen_window_manager.js');
 
 var mocksForHomescreenWindowManager = new MocksHelper([
-  'HomescreenWindow', 'HomescreenLauncher', 'System'
+  'HomescreenWindow', 'HomescreenLauncher', 'Service'
 ]).init();
 
 suite('system/HomescreenWindowManager', function() {
@@ -92,9 +92,9 @@ suite('system/HomescreenWindowManager', function() {
       stubFadeOut.restore();
     });
 
-    test('ftuskip event with System.locked = true', function() {
+    test('ftuskip event with Service.locked = true', function() {
       var stubSetVisible = this.sinon.stub(fakeHome, 'setVisible');
-      System.locked = true;
+      Service.locked = true;
       
       homescreenWinMgr.handleEvent({type: 'ftuskip'});
       
@@ -105,9 +105,9 @@ suite('system/HomescreenWindowManager', function() {
       stubSetVisible.restore();
     });
 
-    test('ftuskip event with System.locked = false', function() {
+    test('ftuskip event with Service.locked = false', function() {
       var stubSetVisible = this.sinon.stub(fakeHome, 'setVisible');
-      System.locked = false;
+      Service.locked = false;
       
       homescreenWinMgr.handleEvent({type: 'ftuskip'});
 

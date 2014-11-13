@@ -1,6 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global System */
+/* global Service */
 'use strict';
 
 (function(exports) {
@@ -17,7 +17,7 @@
    *                 for options `onHide` attribute.
    *
    * @class SystemDialogManager
-   * @requires module:System
+   * @requires module:Service
    */
   var SystemDialogManager = function SystemDialogManager() {
     this.init();
@@ -111,7 +111,7 @@
         if (evt.detail !== this.states.activeDialog) {
           return;
         }
-        System.request('focus', this);
+        Service.request('focus', this);
         break;
       case 'system-dialog-created':
         dialog = evt.detail;
@@ -188,7 +188,7 @@
     this.configs.listens.forEach((function _initEvent(type) {
       self.addEventListener(type, this);
     }).bind(this));
-    System.request('registerHierarchy', this);
+    Service.request('registerHierarchy', this);
   };
 
   /**
@@ -273,7 +273,7 @@
   SystemDialogManager.prototype.debug = function sd_debug() {
     if (DEBUG) {
       console.log('[SystemDialogManager]' +
-        '[' + System.currentTime() + ']' +
+        '[' + Service.currentTime() + ']' +
         '[' + Array.slice(arguments).concat() + ']');
     }
   };

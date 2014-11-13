@@ -12,7 +12,7 @@ require('/test/unit/mock_bluetooth.js');
 require('/test/unit/mock_navigator_moz_power.js');
 require('/test/unit/mock_sleep_menu.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 function switchProperty(originObject, prop, stub, reals, useDefineProperty) {
   if (!useDefineProperty) {
@@ -39,7 +39,7 @@ function restoreProperty(originObject, prop, reals, useDefineProperty) {
 
 var mocksForScreenManager = new MocksHelper([
   'SettingsListener', 'Bluetooth', 'StatusBar',
-  'System'
+  'Service'
 ]).init();
 
 require('/js/screen_brightness_transition.js');

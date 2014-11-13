@@ -5,9 +5,9 @@
   /**
    * Shared some global property.
    * @type {Object}
-   * @module  System
+   * @module Service
    */
-  exports.System = {
+  exports.Service = {
     /**
      * Stores the servers by the server name.
      * @type {Map}
@@ -33,12 +33,12 @@
     _requestsByProvider: new Map(),
 
     /**
-     * Request a service to System and get a promise.
+     * Request a service and get a promise.
      * The service name may include the name of server or not if it is unique.
      * @example
-     * System.request('locked').then(function() {});
-     * System.request('addObserver', 'test.enabled', this).then(function() {});
-     * System.request('StatusBar:height').then(function() {});
+     * Service.request('locked').then(function() {});
+     * Service.request('addObserver', 'test.enabled', this).then(function() {});
+     * Service.request('StatusBar:height').then(function() {});
      *
      * @param  {String} service Service name
      * @return {Promise}
@@ -102,7 +102,7 @@
     },
 
     /**
-     * Register an asynchronous service to System.
+     * Register an asynchronous service.
      * If there is any client awaiting this service, they will be executed after
      * registration.
      * @param  {String} service Service name
@@ -162,7 +162,7 @@
     },
 
     /**
-     * Unregister an asynchronous service to System
+     * Unregister an asynchronous service.
      * @param  {String} service The name of the service
      * @param  {Object} server  The server
      */
@@ -196,8 +196,8 @@
      * you will get undefined.
      *
      * @example
-     * System.query('FtuLauncher.isFtuRunning');
-     * System.query('isFtuRunning');
+     * Service.query('FtuLauncher.isFtuRunning');
+     * Service.query('isFtuRunning');
      * 
      * @param  {String} state The machine name and the state name.
      * @return {String|Boolean|Number}       
@@ -226,7 +226,7 @@
 
     /**
      * XXX: applications should register a service
-     * for ready check by System.register('ready', applications).
+     * for ready check by Service.register('ready', applications).
      */
     get applicationReady() {
       return window.applications && window.applications.ready;
@@ -238,7 +238,7 @@
      *
      * XXX: AppWindowManager should register a service
      * for isBusyLoading query by
-     * System.register('isBusyLoading', appWindowManager).
+     * Service.register('isBusyLoading', appWindowManager).
      */
     isBusyLoading: function() {
       var app = this.currentApp;
@@ -249,56 +249,25 @@
      * Record the start time of the system for later debugging usage.
      * @access private
      * @type {Number}
-     * @memberOf module:System
+     * @memberOf module:Service
      */
     _start: new Date().getTime() / 1000,
 
     /**
      * Get current time offset from the start.
      * @return {Number} The time offset.
-     * @memberOf module:System
+     * @memberOf module:Service
      */
     currentTime: function() {
       return (new Date().getTime() / 1000 - this._start).toFixed(3);
     },
 
-    /**
-     * Enable slow transition or not for debugging.
-     * Note: Turn on this would make app opening/closing durations become 3s.
-     * @type {Boolean}
-     * @memberOf module:System
-     */
-    slowTransition: false,
-
     debug: function sys_debug() {
       if (DEBUG) {
         console.log('[System]' +
-          '[' + window.System.currentTime() + ']' +
+          '[' + window.Service.currentTime() + ']' +
           Array.slice(arguments).concat());
       }
-    },
-
-    forceDebug: function sys_debug() {
-      console.log('[System]' +
-        '[' + window.System.currentTime() + ']' +
-        Array.slice(arguments).concat());
-    },
-
-    _dump: function sys__dump() {
-      try {
-        throw new Error('dump');
-      } catch (e) {
-        console.log(e.stack);
-      }
-    },
-
-    publish: function sys_publish(eventName, detail) {
-      var evt = new CustomEvent(eventName, {
-        bubbles: true,
-        cancelable: false,
-        detail: detail
-      });
-      window.dispatchEvent(evt);
     },
 
     /**

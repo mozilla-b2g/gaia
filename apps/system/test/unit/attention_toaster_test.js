@@ -1,12 +1,12 @@
-/* global MocksHelper, MockAppWindow, MockSystem, AttentionToaster */
+/* global MocksHelper, MockAppWindow, MockService, AttentionToaster */
 'use strict';
 
 requireApp('system/test/unit/mock_app_window.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 
 var mocksForAttentionToaster = new MocksHelper([
-  'AppWindow', 'System'
+  'AppWindow', 'Service'
 ]).init();
 
 suite('system/AttentionToaster', function() {
@@ -81,7 +81,7 @@ suite('system/AttentionToaster', function() {
       at1.start();
       at1._currentToasterState = 'opened';
       at1._enter_opened();
-      MockSystem.locked = false;
+      MockService.locked = false;
       this.sinon.clock.tick(at1.TOASTER_TIMEOUT);
       assert.equal(at1._currentToasterState, 'closing');
     });
@@ -130,7 +130,7 @@ suite('system/AttentionToaster', function() {
   test('Should not enter closing state if system is locked', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var at1 = new AttentionToaster(app1);
-    MockSystem.locked = true;
+    MockService.locked = true;
     at1._currentToasterState = 'opened';
     at1._enter_opened();
     this.sinon.clock.tick(at1.TOASTER_TIMEOUT);

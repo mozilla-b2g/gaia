@@ -3,14 +3,14 @@
 /* globals NfcUtils, MockAppWindowManager, MockNfc, MocksHelper */
 require('/shared/js/utilities.js');
 require('/shared/js/nfc_utils.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 requireApp('system/test/unit/mock_nfc.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 
 var mocksForNfcManager = new MocksHelper([
   'AppWindowManager',
-  'System',
+  'Service',
   'MozNDEFRecord'
 ]).init();
 

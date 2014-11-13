@@ -5,7 +5,7 @@
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');
@@ -14,7 +14,7 @@ requireApp('system/js/icc_worker.js');
 
 var mocksForIcc = new MocksHelper([
   'AppWindowManager',
-  'System',
+  'Service',
   'L10n',
   'Dump',
   'Notification'

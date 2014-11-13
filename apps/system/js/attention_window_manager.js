@@ -1,4 +1,4 @@
-/* globals System, homescreenLauncher, SettingsListener */
+/* globals Service, homescreenLauncher, SettingsListener */
 'use strict';
 
 (function(exports) {
@@ -20,7 +20,7 @@
     debug: function aw_debug() {
       if (this.DEBUG) {
         console.log('[' + this.name + ']' +
-          '[' + System.currentTime() + '] ' +
+          '[' + Service.currentTime() + '] ' +
           Array.slice(arguments).concat());
         if (this.TRACE) {
           console.trace();
@@ -74,7 +74,7 @@
       window.addEventListener('lockscreen-appclosed', this);
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('rocketbar-overlayopened', this);
-      System.request('registerHierarchy', this);
+      Service.request('registerHierarchy', this);
     },
 
     stop: function attwm_stop() {
@@ -97,7 +97,7 @@
       window.removeEventListener('lockscreen-appclosed', this);
       window.removeEventListener('lockscreen-appopened', this);
       window.removeEventListener('rocketbar-overlayopened', this);
-      System.request('unregisterHierarchy', this);
+      Service.request('unregisterHierarchy', this);
     },
 
     handleEvent: function attwm_handleEvent(evt) {
@@ -132,7 +132,7 @@
           var candidate = null;
           if (this._openedInstances.size === 0) {
             this._topMostWindow = null;
-            candidate = System.currentApp;
+            candidate = Service.currentApp;
           } else {
             this._openedInstances.forEach(function(instance) {
               candidate = instance;
@@ -213,7 +213,7 @@
           }
           this._topMostWindow = null;
           var nextApp = homescreenLauncher.getHomescreen();
-          if (System.locked) {
+          if (Service.locked) {
             this.closeAllAttentionWindows();
           } else if (nextApp && !nextApp.isDead()) {
             nextApp.ready(this.closeAllAttentionWindows.bind(this));
@@ -250,9 +250,9 @@
     },
     updateAttentionIndicator: function() {
       if (this._openedInstances.size == this._instances.length) {
-        System.request('makeAmbientIndicatorInactive');
+        Service.request('makeAmbientIndicatorInactive');
       } else {
-        System.request('makeAmbientIndicatorActive');
+        Service.request('makeAmbientIndicatorActive');
       }
     },
     closeAllAttentionWindows: function() {

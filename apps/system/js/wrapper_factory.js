@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, System, appWindowManager, AppWindow */
+/*global applications, Service, appWindowManager, AppWindow */
 
 (function(window) {
   /**
@@ -73,7 +73,7 @@
 
         // If we already have a browser and we receive an open request,
         // display it in the current browser frame.
-        var activeApp = System.currentApp;
+        var activeApp = Service.currentApp;
         var isSearchApp = (activeApp.manifest &&
           activeApp.manifest.role === 'search');
         if (activeApp && (activeApp.isBrowser() || isSearchApp)) {

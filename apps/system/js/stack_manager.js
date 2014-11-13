@@ -1,6 +1,5 @@
 'use strict';
-
-/* global SheetsTransition, System, appWindowManager */
+/* global SheetsTransition, Service, appWindowManager */
 
 var StackManager = {
   init: function sm_init() {
@@ -23,7 +22,7 @@ var StackManager = {
     // Until then we can get into edge cases where the app currently
     // displayed is not part of the stack and we don't want to break.
     if (!app) {
-      app = System.currentApp;
+      app = Service.currentApp;
     }
 
     return app;

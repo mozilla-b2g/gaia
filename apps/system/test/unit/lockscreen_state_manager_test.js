@@ -2,11 +2,10 @@
 
 'use strict';
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/lockscreen/js/lockscreen_state_manager.js');
 
 var mocksHelper = new window.MocksHelper([
-  'SettingsListener', 'System'
+  'SettingsListener'
 ]).init();
 
 suite('system/LockScreenStateManager', function() {
@@ -14,7 +13,6 @@ suite('system/LockScreenStateManager', function() {
   var mockState, mockLockScreen;
   mocksHelper.attachTestHelpers();
   setup(function() {
-    window.System.locked = true;
     mockState = function() {
       this.start = () => {
         return this; };

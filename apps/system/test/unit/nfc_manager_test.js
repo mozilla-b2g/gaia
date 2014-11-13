@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals MockDOMRequest, MockNfc, MocksHelper, NDEF, MockSystem,
+/* globals MockDOMRequest, MockNfc, MocksHelper, NDEF, MockService,
            NfcUtils, NfcManager, MozActivity, NfcHandoverManager */
 
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -14,15 +14,15 @@ requireApp('system/test/unit/mock_nfc.js');
 requireApp('system/test/unit/mock_nfc_handover_manager.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_bluetooth.js');
-require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForNfcManager = new MocksHelper([
+  'AppWindow',
   'MozActivity',
   'ScreenManager',
   'SettingsListener',
   'NfcHandoverManager',
-  'System',
-  'AppWindow'
+  'Service'
 ]).init();
 
 var MockMessageHandlers = {};
@@ -52,7 +52,7 @@ suite('Nfc Manager Functions', function() {
     realMozBluetooth = window.navigator.mozBluetooth;
     window.navigator.mozBluetooth = window.MockBluetooth;
     nfcUtils = new NfcUtils();
-    MockSystem.currentApp = fakeApp;
+    MockService.currentApp = fakeApp;
     requireApp('system/js/nfc_manager.js', function() {
       nfcManager = new NfcManager();
       nfcManager.start();
@@ -112,12 +112,12 @@ suite('Nfc Manager Functions', function() {
       assert.equal(stubChangeHardwareState.getCall(1).args[0],
                    nfcManager.NFC_HW_STATE.OFF);
 
-      window.System.locked = true;
+      window.Service.locked = true;
       window.MockSettingsListener.mCallbacks['nfc.enabled'](true);
       assert.isTrue(stubChangeHardwareState.calledThrice);
       assert.equal(stubChangeHardwareState.getCall(2).args[0],
                    nfcManager.NFC_HW_STATE.DISABLE_DISCOVERY);
-      window.System.locked = false;
+      window.Service.locked = false;
     });
   });
 
@@ -185,7 +185,7 @@ suite('Nfc Manager Functions', function() {
 
       // screen lock when NFC ON
       nfcManager._hwState = nfcManager.NFC_HW_STATE.ON;
-      window.System.locked = true;
+      window.Service.locked = true;
       nfcManager.handleEvent(new CustomEvent('lockscreen-appopened'));
       assert.isTrue(stubChangeHardwareState.calledOnce);
       assert.equal(stubChangeHardwareState.getCall(0).args[0],
@@ -197,7 +197,7 @@ suite('Nfc Manager Functions', function() {
       assert.isTrue(stubChangeHardwareState.calledOnce);
 
       // screen unlock
-      window.System.locked = false;
+      window.Service.locked = false;
       nfcManager.handleEvent(new CustomEvent('lockscreen-appclosed'));
       assert.isTrue(stubChangeHardwareState.calledTwice);
       assert.equal(stubChangeHardwareState.getCall(1).args[0],
@@ -952,16 +952,16 @@ suite('Nfc Manager Functions', function() {
       stubChangeHWState.restore();
     });
 
-    test('enable NFC, System.locked false', function() {
-      window.System.locked = false;
+    test('enable NFC, Service.locked false', function() {
+      window.Service.locked = false;
 
       nfcManager._nfcSettingsChanged(true);
       assert.isTrue(stubChangeHWState.withArgs(nfcManager.NFC_HW_STATE.ON)
                                      .calledOnce);
     });
 
-    test('enable NFC, System.locked true', function() {
-      window.System.locked = true;
+    test('enable NFC, Service.locked true', function() {
+      window.Service.locked = true;
 
       nfcManager._nfcSettingsChanged(true);
       assert.isTrue(stubChangeHWState

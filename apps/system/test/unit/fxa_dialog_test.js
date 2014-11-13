@@ -5,7 +5,7 @@ require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_layout_manager.js');
 require('/test/unit/mock_system_dialog_manager.js');
 require('/test/unit/mock_keyboard_manager.js');
-require('/js/system.js');
+require('/js/service.js');
 require('/js/base_ui.js');
 require('/js/system_dialog.js');
 require('/js/fxa_dialog.js');

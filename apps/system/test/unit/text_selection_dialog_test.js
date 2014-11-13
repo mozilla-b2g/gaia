@@ -26,7 +26,7 @@ suite('system/TextSelectionDialog', function() {
       isCollapsed: false
     };
 
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
 
     requireApp('system/js/text_selection_dialog.js',

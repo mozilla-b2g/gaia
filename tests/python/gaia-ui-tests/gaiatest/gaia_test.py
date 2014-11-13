@@ -663,7 +663,7 @@ class GaiaDevice(object):
     @property
     def is_locked(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_script('return window.wrappedJSObject.System.locked')
+        return self.marionette.execute_script('return window.wrappedJSObject.Service.locked')
 
     def lock(self):
         self.turn_screen_off()

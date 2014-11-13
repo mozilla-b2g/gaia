@@ -136,7 +136,7 @@ suite('system/AppWindowFactory', function() {
     window.homescreenLauncher.start();
 
     window.appWindowManager = new MockAppWindowManager();
-    requireApp('system/js/system.js');
+    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window_factory.js', function() {
       window.appWindowFactory = new AppWindowFactory();
