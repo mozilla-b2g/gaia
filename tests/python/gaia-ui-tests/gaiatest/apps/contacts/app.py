@@ -5,6 +5,7 @@
 from marionette import expected
 from marionette.by import By
 from marionette.errors import JavascriptException
+from marionette import expected
 from marionette import Wait
 
 from gaiatest.apps.base import Base
@@ -127,6 +128,7 @@ class Contacts(Base):
 
         def _return_class_from_tap(self, return_class='ContactDetails'):
             if return_class == 'ContactDetails':
+                Wait(self.marionette).until(lambda m: expected.element_not_displayed(self.root_element))
                 from gaiatest.apps.contacts.regions.contact_details import ContactDetails
                 return ContactDetails(self.marionette)
             elif return_class == 'EditContact':
