@@ -36,9 +36,26 @@ DownloadNotification.prototype = {
   },
 
   /**
+   * This method is in charge of incrementing/decrementing the system downloads
+   * according to previous and current states
+   */
+  _updateSystemDownloads: function dn_updateSystemDownloads() {
+    var prevState = this.state;
+    var newState = this.download.state;
+    if (prevState !== newState) {
+      if (newState === 'downloading') {
+        StatusBar.incSystemDownloads();
+      } else if (prevState === 'downloading') {
+        StatusBar.decSystemDownloads();
+      }
+    }
+  },
+
+  /**
    * It updates the notification when the download state changes.
    */
   _update: function dn_update() {
+    this._updateSystemDownloads();
     if (this.download.state === 'finalized') {
       // In theory we should never see this, but, we know that if we were
       // to see this we want to do nothing.

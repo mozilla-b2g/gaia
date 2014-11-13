@@ -139,7 +139,6 @@ var StatusBar = {
    * it triggers the icon "systemDownloads"
    */
   systemDownloadsCount: 0,
-  systemDownloads: {},
 
   _minimizedStatusBarWidth: window.innerWidth,
 
@@ -295,13 +294,6 @@ var StatusBar = {
     window.addEventListener('sheets-gesture-begin', this);
     window.addEventListener('sheets-gesture-end', this);
     window.addEventListener('stackchanged', this);
-
-    // Track Downloads via the Downloads API.
-    var mozDownloadManager = navigator.mozDownloadManager;
-    if (mozDownloadManager) {
-      mozDownloadManager.addEventListener('downloadstart',
-                                          this.handleEvent.bind(this));
-    }
 
     // We need to preventDefault on mouse events until
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1005815 lands
@@ -551,44 +543,6 @@ var StatusBar = {
         // the bottom window as it will *become* the shown window.
         this.setAppearance(evt.detail, true);
         this.element.classList.remove('hidden');
-        break;
-      case 'downloadstart':
-        // New download, track it so we can show or hide the active downloads
-        // indicator. If you think this logic needs to change, think really hard
-        // about it and then come and ask @nullaus
-        evt.download.onstatechange = function(downloadEvent) {
-          var download = downloadEvent.download;
-          switch(download.state) {
-            case 'downloading':
-              // If this download has not already been tracked as actively
-              // downloading we'll add it to our list and increment the
-              // downloads counter.
-              if (!this.systemDownloads[download.id]) {
-                this.incSystemDownloads();
-                this.systemDownloads[download.id] = true;
-              }
-              break;
-            // Once the download is finalized, and only then, is it safe to
-            // remove our state change listener. If we remove it before then
-            // we are likely to miss paused or errored downloads being restarted
-            case 'finalized':
-              download.onstatechange = null;
-              break;
-            // All other state changes indicate the download is no longer
-            // active, if we were previously tracking the download as active
-            // we'll decrement the counter now and remove it from active
-            // download status.
-            case 'stopped':
-            case 'succeeded':
-              if (this.systemDownloads[download.id]) {
-                this.decSystemDownloads();
-                delete this.systemDownloads[download.id];
-              }
-              break;
-            default:
-              console.warn('Unexpected download state = ', download.state);
-          }
-        }.bind(this);
         break;
     }
   },
