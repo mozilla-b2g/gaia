@@ -424,6 +424,15 @@ suite('system/AppWindowManager', function() {
       Service.locked = false;
     });
 
+    test('FTU is skipped when active app is not homescreen', function() {
+      injectRunningApps(app1);
+      appWindowManager._activeApp = app1;
+      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+
+      appWindowManager.handleEvent({ type: 'ftuskip' });
+      assert.isFalse(stubDisplay.calledWith());
+    });
+
     test('System resize', function() {
       appWindowManager._activeApp = app1;
       var stubResize = this.sinon.stub(app1, 'resize');
