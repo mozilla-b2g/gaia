@@ -38,9 +38,6 @@ suite('DownloadHelper', function() {
 
   mocksHelperForDownloadHelper.attachTestHelpers();
 
-  var clock;
-  var TICK = 1000;
-
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -73,23 +70,19 @@ suite('DownloadHelper', function() {
 
   setup(function() {
     download = new MockDownload();
-    clock = this.sinon.useFakeTimers();
   });
 
   teardown(function() {
     download = null;
-    clock.restore();
   });
 
   suite('Launch', function() {
     setup(function() {
       download = new MockDownload();
-      clock = this.sinon.useFakeTimers();
     });
 
     teardown(function() {
       download = null;
-      clock.restore();
     });
 
     function getStorage(state) {
@@ -97,7 +90,7 @@ suite('DownloadHelper', function() {
         'get' : function(path) {
           return {
             set onsuccess(cb) {},
-            set onerror(cb) {setTimeout(cb, 0)},
+            set onerror(cb) {setTimeout(cb, 100)},
             error: { 'name': 'custom error' }
           };
         },
@@ -124,8 +117,6 @@ suite('DownloadHelper', function() {
         assert.ok(false);
         done();
       };
-
-      clock.tick(TICK);
     }
 
     function assertIncompleteDownloadRemoved(state, done) {
@@ -163,8 +154,6 @@ suite('DownloadHelper', function() {
         stubGetDeviceStorages.restore();
         done();
       };
-
-      clock.tick(TICK);
     }
 
     test('Invalid state download', function(done) {
@@ -179,8 +168,6 @@ suite('DownloadHelper', function() {
         assert.equal(evt.target.error.code, DownloadHelper.CODE.INVALID_STATE);
         done();
       };
-
-      clock.tick(TICK);
     });
 
     test('Unknown download type', function(done) {
@@ -205,8 +192,6 @@ suite('DownloadHelper', function() {
                   'All content types should be openable via third party apps.');
         done();
       };
-
-      clock.tick(TICK);
     });
 
     test('Missing file', function(done) {

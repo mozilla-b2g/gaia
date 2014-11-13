@@ -376,39 +376,15 @@
     numberOfCheckedDownloads = 0;
   }
 
-  function _downloadApiManagerListener(changeEvent) {
-    switch (changeEvent.type) {
-      case 'added':
-        // First we'll try and find an existing item with the download api id.
-        var element = null;
-        if (changeEvent.downloadApiId &&
-            (element = _getElementForId(changeEvent.downloadApiId))) {
-          // If we find one, we'll want to update it's id before updating the
-          // content.
-          DownloadItem.updateDownloadId(changeEvent.download, element);
-        }
-        else if ((element = _getElementForId(changeEvent.download.id))) {
-          // Secondly, try and find it by it's download id.
-          _update(changeEvent.download);
-        }
-        else {
-          // Lastly, if we didn't find it by downloadApiId or id, it's truly
-          // new to the user so we need to add it to the download list.
-          _newDownload(changeEvent.download);
-        }
-        break;
-    }
-  }
-
   var DownloadsList = {
     init: function(oncomplete) {
       var scripts = [
-        'shared/js/download/download_store.js', // Must be loaded first.
+        'js/downloads/download_api_manager.js',
+        'shared/js/download/download_store.js',
         'shared/js/download/download_ui.js',
         'shared/js/mime_mapper.js',
         'shared/js/download/download_helper.js',
         'shared/js/download/download_formatter.js',
-        'js/downloads/download_api_manager.js',
         'js/downloads/download_item.js'
       ];
 
@@ -437,10 +413,6 @@
         // Localization of the nodes for avoiding weird repaintings
         var noDownloadsTextEl = document.getElementById('dle-text');
         var editModeTitle = document.getElementById('downloads-title-edit');
-
-        // Initialize the Api Manager and set our listener.
-        DownloadApiManager.init();
-        DownloadApiManager.setListener(_downloadApiManagerListener.bind(this));
 
         // Render the entire list
         DownloadApiManager.getDownloads(
