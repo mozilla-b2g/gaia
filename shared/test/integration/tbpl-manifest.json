@@ -36,8 +36,9 @@
     "apps/settings/test/marionette/tests/message_settings_test.js": "",
     "apps/system/test/marionette/app_usage_metrics_test.js": "Bug 1049137 - Intermittent failing test, TEST-UNEXPECTED-FAIL | App Usage Metrics > Uninstalled apps are counted",
     "apps/system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
+    "apps/system/test/marionette/notification_test.js": "Bug 1091484 - TEST-UNEXPECTED-FAIL | null | notification tests swipe up should hide the toast",
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
-    "apps/verticalhome/test/marionette/collection_rename_test.js": "Bug 1090756 - TEST-UNEXPECTED-FAIL | Vertical - Collection Rename rename collection",
-    "apps/system/test/marionette/notification_test.js": "Bug 1091484 - TEST-UNEXPECTED-FAIL | null | notification tests swipe up should hide the toast"
+    "apps/verticalhome/test/marionette/collection_pin_result_uninstall_test.js": "Bug 1098310 - TEST-UNEXPECTED-FAIL | Vertical - Collection uninstall pinned collection web result",
+    "apps/verticalhome/test/marionette/collection_rename_test.js": "Bug 1090756 - TEST-UNEXPECTED-FAIL | Vertical - Collection Rename rename collection"
   }
 }
