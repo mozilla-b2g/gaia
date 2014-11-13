@@ -98,7 +98,7 @@
       return;
     }
 
-    iframe.sendTouchEvent.apply(null, unsynthetizeEvent(e));
+    iframe.sendTouchEvent.apply(iframe, unsynthetizeEvent(e));
   }
 
   function unsynthetizeEvent(e) {
@@ -112,6 +112,7 @@
     var rys = [];
     var rs = [];
     var fs = [];
+    var modifiers = 0;
 
     for (var i = 0; i < relevantTouches.length; i++) {
       var t = relevantTouches[i];
@@ -125,7 +126,7 @@
       fs.push(t.force);
     }
 
-    return [type, identifiers, xs, ys, rxs, rys, rs, fs, xs.length];
+    return [type, identifiers, xs, ys, rxs, rys, rs, fs, xs.length, modifiers];
   }
 
   function sendTapMouseEvents(iframe, x, y) {
