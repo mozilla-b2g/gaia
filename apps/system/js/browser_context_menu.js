@@ -274,7 +274,8 @@
         }, {
           id: 'save-link',
           label: _('save-link'),
-          callback: this.app.browser.element.download.bind(this, uri)
+          callback: this.app.browser.element.download.bind(
+            this.app.browser.element, uri)
         }, {
           id: 'share-link',
           label: _('share-link'),
