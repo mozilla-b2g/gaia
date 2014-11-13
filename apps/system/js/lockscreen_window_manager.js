@@ -124,8 +124,10 @@
           break;
         case 'ftuopen':
           this.states.FTUOccurs = true;
-          // Need immediatly unlocking (hide window).
-          this.closeApp(true);
+          if (this.isActive()) {
+            // Need immediatly unlocking (hide window).
+            this.closeApp(true);
+          }
           break;
         case 'ftudone':
           this.states.FTUOccurs = false;
@@ -157,8 +159,12 @@
           if ('proximity' !== evt.detail.screenOffBy &&
               !this.states.FTUOccurs &&
               this.states.ready) {
-            // The app would be inactive while screen off.
-            this.openApp();
+            if (evt.detail.screenEnabled && !this.isActive()) {
+              // The app would be inactive while screen off.
+              this.openApp();
+            } else if (!evt.detail.screenEnabled && this.isActive()) {
+              this.closeApp();
+            }
             if (evt.detail.screenEnabled && this.states.instance &&
                 this.isActive() && !secureWindowManager.isActive()) {
               // In theory listen to 'visibilitychange' event can solve this
@@ -397,7 +403,10 @@
                    'false' === req.result['lockscreen.enabled']) {
           this.states.enabled = false;
         }
-        this.openApp();
+        // 'if' to prevent racing of FTU and LWM.
+        if (!this.states.FTUOccurs) {
+          this.openApp();
+        }
       };
     };
 
