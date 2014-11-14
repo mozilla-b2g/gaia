@@ -57,6 +57,13 @@ ul li > label {
   justify-content: center;
 }
 
+ul li > a,
+ul li > label {
+  min-height: 6rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
 ul li[hidden] {
   display: none;
 }
@@ -134,7 +141,6 @@ ul li > label {
   line-height: 1.9rem;
   font-weight: 400;
   margin: 0;
-  padding: 1.5rem 1.5rem 1rem;
 }
 
 ul li > label ~ input {
@@ -231,15 +237,15 @@ ul li > label:not([for]),
 ul li > label.pack-checkbox,
 ul li > label.pack-radio,
 ul li > label.pack-switch {
-  padding: 0 1.5rem;
-  margin: 0 -1.5rem;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
   width: 100%;
-  height: 100%;
-  min-height: 6rem;
+  height: calc(100% - 1rem);
+  min-height: 5rem;
   overflow: visible;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 
 ul li > label:not([for]) > span,
@@ -288,10 +294,8 @@ ul li.pack-split .name:active {
 }
 
 ul li.pack-split .name {
-  position: absolute;
-  top: 0;
+  position: relative;
   width: calc(100% - 9rem);
-  padding-left: 1.5rem;
 }
 
 ul li.pack-split:after {
@@ -307,6 +311,11 @@ ul li.pack-split:after {
 ul li.pack-split > span {
   background-color: transparent;
 }
+
+ul li.pack-split > label.pack-switch {
+  position: absolute;
+}
+
 
 /******************************************************************************
  * Field inputs
@@ -528,4 +537,9 @@ html[dir="rtl"] ul li > label.pack-checkbox > .color-preview:before {
 html[dir="rtl"] ul li > label.pack-checkbox > .memory-item:before {
   margin-left: 0;
   margin-right: -3rem;
+}
+
+html[dir="rtl"] ul li.pack-split:after {
+  right: unset;
+  left: 7.5rem;
 }
