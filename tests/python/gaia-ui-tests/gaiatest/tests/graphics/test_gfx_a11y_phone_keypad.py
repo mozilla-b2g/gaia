@@ -2,16 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.mocks.mock_contact import MockContact
 from gaiatest.apps.phone.app import Phone
+from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 
-
-class TestAccessibilityPhoneKeypad(GaiaTestCase):
+class TestAccessibilityPhoneKeypad(GaiaImageCompareTestCase):
 
     def setUp(self):
-        GaiaTestCase.setUp(self)
+        GaiaImageCompareTestCase.setUp(self)
         self.contact = MockContact()
 
         self.phone = Phone(self.marionette)
@@ -26,15 +25,18 @@ class TestAccessibilityPhoneKeypad(GaiaTestCase):
         self.assertTrue(self.accessibility.is_disabled(self.marionette.find_element(
             *self.phone.keypad._add_new_contact_button_locator)))
 
-        number_to_verify = self.contact['tel']['value']
+        self.invoke_screen_capture()
+
+        number_to_verify = '1234567890'
 
         # Screen reader dial number
         self.phone.keypad.a11y_dial_phone_number(number_to_verify)
 
         # Check that the number was entered correctly.
+        self.invoke_screen_capture()
         self.assertEqual(self.phone.keypad.phone_number, number_to_verify)
         # Delete is visible to the screen reader.
-        self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
+        self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
             *self.phone.keypad._keypad_delete_locator)))
         # Call button is enabled for the screen reader.
         self.assertFalse(self.accessibility.is_disabled(self.marionette.find_element(
@@ -42,3 +44,10 @@ class TestAccessibilityPhoneKeypad(GaiaTestCase):
         # Add contact button is enabled for the screen reader.
         self.assertFalse(self.accessibility.is_disabled(self.marionette.find_element(
             *self.phone.keypad._add_new_contact_button_locator)))
+
+
+    def tearDown(self):
+
+        # In case the assertion fails this will still kill the call
+        # An open call creates problems for future tests
+        GaiaImageCompareTestCase.tearDown(self)
