@@ -2,15 +2,20 @@
 
 /* global CallHandler, CallLog, CallLogDBManager, Contacts, KeypadManager,
           MockMozL10n, MockNavigatorMozIccManager,
+          MockCallGroupMenu, MockOptionMenu,
           MocksHelper, MockSimSettingsHelper, Notification,
-          CallGroupMenu, Utils, MockMozContacts */
+          Utils, MockMozContacts  */
 
 require('/shared/js/dialer/utils.js');
 require('/shared/js/usertiming.js');
 
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_performance_testing_helper.js');
+
+// New tests.
+require('/shared/test/unit/mocks/mock_option_menu.js');
 require('/dialer/test/unit/mock_call_group_menu.js');
+
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
@@ -30,12 +35,17 @@ require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 
+
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
   'CallLogDBManager',
   'Contacts',
   'AccessibilityHelper',
+  
   'CallGroupMenu',
+  'OptionMenu',
+  'ConfirmDialog',
+
   'PerformanceTestingHelper',
   'LazyLoader',
   'LazyL10n',
@@ -759,7 +769,9 @@ suite('dialer/call_log', function() {
 
   suite('Opening contact details', function() {
     var groupDOM;
+    var evt;
     var callGroupMenuSpy;
+    
 
     setup(function() {
       callGroupMenuSpy = this.sinon.spy(CallGroupMenu, 'show');
@@ -767,28 +779,55 @@ suite('dialer/call_log', function() {
 
     test('regular number', function() {
       groupDOM = CallLog.createGroup(incomingGroup);
-      CallLog.handleEvent({target: groupDOM, preventDefault: function() {}});
+      evt = {target: groupDOM, preventDefault: function() {}};
+      CallLog.handleEvent(evt);
 
       sinon.assert.calledWith(
         callGroupMenuSpy,
         incomingGroup.contact.primaryInfo,
         incomingGroup.contact.matchingTel.value,
         incomingGroup.lastEntryDate.toString(),
-        incomingGroup.type
+        incomingGroup.type,
+        incomingGroup.status,
+        evt
       );
     });
 
     test('missed number', function() {
       groupDOM = CallLog.createGroup(missedGroup);
-      CallLog.handleEvent({target: groupDOM, preventDefault: function() {}});
+      evt = {target: groupDOM, preventDefault: function() {}};
+      CallLog.handleEvent(evt);
 
       sinon.assert.calledWith(
         callGroupMenuSpy,
         missedGroup.contact.primaryInfo,
         missedGroup.contact.matchingTel.value,
         missedGroup.lastEntryDate.toString(),
-        missedGroup.type
+        missedGroup.type,
+        missedGroup.status,
+        evt
       );
+    });
+
+    test('missed number, and tapping delete option', function() {
+      
+      groupDOM = CallLog.createGroup(missedGroup);
+      evt = {target: groupDOM, preventDefault: function() {}};
+      CallLog.handleEvent(evt);
+
+      sinon.assert.calledWith(
+        callGroupMenuSpy,
+        missedGroup.contact.primaryInfo,
+        missedGroup.contact.matchingTel.value,
+        missedGroup.lastEntryDate.toString(),
+        missedGroup.type,
+        missedGroup.status,
+        evt
+      );
+
+      // Fake clicking on the third button `Delete`
+      console.log('-----', CallGroupMenu, OptionMenu)
+
     });
   });
 

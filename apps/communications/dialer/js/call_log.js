@@ -684,7 +684,8 @@ var CallLog = {
           phoneNumber,
           dataset.timestamp,
           dataset.type,
-          dataset.status);
+          dataset.status,
+          evt);
       });
     }
   },
