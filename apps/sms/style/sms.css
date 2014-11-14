@@ -1041,3 +1041,11 @@ html[dir="rtl"] #messages-contact-pick-button .icon-user {
 html[dir="rtl"] .contact-header aside.pack-end {
   float: left;
 }
+
+/* Text selection control */
+#main-wrapper {
+  -moz-user-select: none;
+}
+.editable-select-mode [contenteditable] {
+  -moz-user-select: text;
+}

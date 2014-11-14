@@ -17,6 +17,10 @@
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
 }
 
+.bubble .message-content-body:focus {
+  -moz-user-select: text;
+}
+
 .message.outgoing .bubble {
   float: right;
 
@@ -43,14 +47,18 @@
   color: #fff;
 }
 
-/* BB overrides */
+.message p.message-content-body {
+  white-space: pre-wrap;
 
+  outline: none;
+}
+
+/* BB overrides */
 .message.outgoing p:first-of-type:last-of-type,
 .message.incoming p:first-of-type:last-of-type {
   padding-top: 0.5rem;
 
   line-height: 2rem;
-  white-space: pre-wrap;
 }
 
 .message.incoming p:first-of-type {

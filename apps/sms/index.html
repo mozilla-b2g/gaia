@@ -151,7 +151,7 @@
         <div id="sticky"></div>
       </section>
 
-      <section id="thread-messages" class="panel" role="region" aria-hidden="true">
+      <section id="thread-messages" class="panel editable-select-mode" role="region" aria-hidden="true">
         <gaia-header id="messages-header" class="view-header regular-header" action="back">
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide"></button>
@@ -448,7 +448,7 @@
           ${subject}
         </h1>
         <div class="message-content">
-          <p>${bodyHTML}</p>
+          <p class="message-content-body" tabindex="-1">${bodyHTML}</p>
           <div class="message-details">
             ${simInformationHTML}
             <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>

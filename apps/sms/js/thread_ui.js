@@ -2016,6 +2016,15 @@ var ThreadUI = {
 
         params.items.push(
           {
+            l10nId: 'select-text',
+            method: (node) => {
+              this.enableBubbleSelection(
+                node.querySelector('.message-content-body')
+              );
+            },
+            params: [messageBubble.node]
+          },
+          {
             l10nId: 'view-message-report',
             method: function showMessageReport(messageId) {
               // Fetch the message by id for displaying corresponding message
@@ -2928,6 +2937,32 @@ var ThreadUI = {
       contactList.appendChild(suggestions);
       this.recipientSuggestions.scrollTop = 0;
     }
+  },
+
+  /**
+   * If the bubble selection mode is disabled, all the non-editable element
+   * should be set to user-select: none to prevent selection triggered
+   * unexpectedly. Selection functionality should be enabled only by bubble
+   * context menu.
+   * Since long press is used for context menu first, selection need to be
+   * triggered by selection API manually. Focus/blur events are used for
+   * simulating selection changed event, which is only been used in system.
+   * When the node gets blur event, bubble selection mode should be dismissed.
+   * @param {Object} node element that contains message bubble text content.
+   */
+  enableBubbleSelection: function(node) {
+    var threadMessagesClass = this.threadMessages.classList;
+    node.addEventListener('blur', function disable() {
+      node.removeEventListener('blur', disable);
+      threadMessagesClass.add('editable-select-mode');
+      // TODO: Remove this once the gecko could clear selection automatically
+      // in bug 1101376.
+      window.getSelection().removeAllRanges();
+    });
+
+    threadMessagesClass.remove('editable-select-mode');
+    node.focus();
+    window.getSelection().selectAllChildren(node);
   }
 };
 
