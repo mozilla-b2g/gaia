@@ -1,4 +1,4 @@
-/* global MocksHelper, MockNavigatorMozIccManager, icc,
+/* global MocksHelper, MockNavigatorMozIccManager, icc, InputWindowManager,
           MockNavigatorMozMobileConnections, MockNavigatormozSetMessageHandler,
           MockL10n, MockFtuLauncher, MockNavigatorSettings, KeyboardEvent */
 'use strict';
@@ -7,7 +7,6 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc_worker.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_statusbar.js');
-requireApp('system/test/unit/mock_keyboard_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -15,13 +14,13 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/lazy_loader.js');
+require('/js/input_window_manager.js');
 
 var mocksForIcc = new MocksHelper([
   'Dump',
   'FtuLauncher',
   'SystemICCWorker',
-  'StatusBar',
-  'KeyboardManager'
+  'StatusBar'
 ]).init();
 
 suite('STK (icc) >', function() {
@@ -140,6 +139,9 @@ suite('STK (icc) >', function() {
     xhrFake.onCreate = function (xhr) {
       xhrRequests.push(xhr);
     };
+
+    window.inputWindowManager =
+      this.sinon.stub(Object.create(InputWindowManager.prototype));
 
     requireApp('system/js/icc.js', done);
   });

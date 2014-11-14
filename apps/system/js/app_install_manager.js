@@ -2,7 +2,7 @@
 /* global ConfirmDialogHelper */
 /* global FtuLauncher */
 /* global KeyboardHelper */
-/* global KeyboardManager */
+/* global inputWindowManager */
 /* global LazyLoader */
 /* global ManifestHelper */
 /* global ModalDialog */
@@ -14,18 +14,6 @@
 /* global applications */
 
 'use strict';
-/* global ModalDialog */
-/* global SystemBanner */
-/* global StatusBar */
-/* global KeyboardManager */
-/* global LazyLoader */
-/* global ManifestHelper */
-/* global FtuLauncher */
-/* global Template */
-/* global NotificationScreen */
-/* global KeyboardHelper */
-/* global UtilityTray */
-/* global applications */
 
 var AppInstallManager = {
   mapDownloadErrorsToMessage: {
@@ -300,7 +288,7 @@ var AppInstallManager = {
 
     // We must stop 3rd-party keyboard app from being installed
     // if the feature is not enabled.
-    if (role === 'input' && !KeyboardManager.isOutOfProcessEnabled) {
+    if (role === 'input' && !inputWindowManager.isOutOfProcessEnabled) {
       navigator.mozApps.mgmt.uninstall(app);
 
       return;

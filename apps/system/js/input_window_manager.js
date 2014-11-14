@@ -1,6 +1,6 @@
 'use strict';
 
-/* global applications, InputWindow */
+/* global applications, InputWindow, SettingsListener, KeyboardManager */
 
 (function(exports) {
 
@@ -44,8 +44,13 @@
    *   We show the new InputWindow without animation, and hide the old
    *   InputWindow, without animation, when the new InputWIndow is ready.
    */
-  var InputWindowManager = function(keyboardManager) {
-    this._keyboardManager = keyboardManager;
+  var InputWindowManager = function() {
+    this.isOutOfProcessEnabled = false;
+    this._totalMemory = 0;
+
+    this._getMemory();
+
+    this._oopSettingCallbackBind = null;
 
     /*
      * The collection of loaded InputWindows.
@@ -85,85 +90,205 @@
   };
 
   InputWindowManager.prototype.start = function iwm_start() {
+    // 3rd-party keyboard apps must be run out-of-process.
+    this._oopSettingCallbackBind = this._oopSettingCallback.bind(this);
+    SettingsListener.observe('keyboard.3rd-party-app.enabled', true,
+      this._oopSettingCallbackBind);
+
     window.addEventListener('input-appopened', this);
     window.addEventListener('input-appclosing', this);
     window.addEventListener('input-appclosed', this);
+    window.addEventListener('input-apprequestclose', this);
     window.addEventListener('input-appready', this);
     window.addEventListener('input-appheightchanged', this);
     window.addEventListener('input-appterminated', this);
+    // For Bug 812115: hide the keyboard when the app is closed here,
+    // since it would take a longer round-trip to receive focuschange
+    // Also in Bug 856692 we realise that we need to close the keyboard
+    // when an inline activity goes away.
+    window.addEventListener('activityrequesting', this);
+    window.addEventListener('activityopening', this);
+    window.addEventListener('activityclosing', this);
+    window.addEventListener('attentionrequestopen', this);
+    window.addEventListener('attentionrecovering', this);
+    window.addEventListener('attentionopening', this);
+    window.addEventListener('attentionopened', this);
+    window.addEventListener('attentionclosing', this);
+    window.addEventListener('attentionclosed', this);
+    window.addEventListener('notification-clicked', this);
+    window.addEventListener('applicationsetupdialogshow', this);
+    window.addEventListener('sheets-gesture-begin', this);
+    window.addEventListener('lockscreen-appopened', this);
+    window.addEventListener('mozmemorypressure', this);
   };
 
   InputWindowManager.prototype.stop = function iwm_stop() {
+    SettingsListener.unobserve('keyboard.3rd-party-app.enabled',
+      this._oopSettingCallbackBind);
+    this._oopSettingCallbackBind = null;
+
     window.removeEventListener('input-appopened', this);
     window.removeEventListener('input-appclosing', this);
     window.removeEventListener('input-appclosed', this);
+    window.removeEventListener('input-apprequestclose', this);
     window.removeEventListener('input-appready', this);
     window.removeEventListener('input-appheightchanged', this);
     window.removeEventListener('input-appterminated', this);
+    window.removeEventListener('activityrequesting', this);
+    window.removeEventListener('activityopening', this);
+    window.removeEventListener('activityclosing', this);
+    window.removeEventListener('attentionrequestopen', this);
+    window.removeEventListener('attentionrecovering', this);
+    window.removeEventListener('attentionopening', this);
+    window.removeEventListener('attentionopened', this);
+    window.removeEventListener('attentionclosing', this);
+    window.removeEventListener('attentionclosed', this);
+    window.removeEventListener('notification-clicked', this);
+    window.removeEventListener('applicationsetupdialogshow', this);
+    window.removeEventListener('sheets-gesture-begin', this);
+    window.removeEventListener('lockscreen-appopened', this);
+    window.removeEventListener('mozmemorypressure', this);
   };
 
   InputWindowManager.prototype.handleEvent = function iwm_handleEvent(evt) {
-    var inputWindow = evt.detail;
+    var inputWindow;
+    var manifestURL;
+    if (evt.type.startsWith('input-app')) {
+      inputWindow = evt.detail;
+    }
     switch (evt.type) {
       case 'input-appopened':
       case 'input-appheightchanged':
         // for opened/ready/heightchanged events, make sure the originating
         // InputWindow is the displayed one
-        if (inputWindow === this._currentWindow){
+        if (inputWindow === this._currentWindow) {
           this._kbPublish('keyboardchange', inputWindow.height);
         }
         break;
       case 'input-appready':
-        if (inputWindow === this._currentWindow){
-          // XXX: keyboard manager should listen to event
-          this._keyboardManager._onKeyboardReady();
+        if (inputWindow === this._currentWindow) {
+          KeyboardManager._onKeyboardReady();
         }
-        if (this._lastWindow){
-          this._lastWindow.close('immediate');
+        // don't bother close the last window if it's been killed
+        // (happens when last window was replaced due to OOM-kill)
+        if (this._lastWindow) {
+          if (!this._lastWindow.isDead()) {
+            this._lastWindow.close('immediate');
+          }
           this._lastWindow = null;
         }
         break;
       case 'input-appclosing':
         // for closing/closed events, make sure we don't have any displayed
         // InputWindow, to send out this system-wide event.
-        if (!this._currentWindow){
+        if (!this._currentWindow) {
           this._kbPublish('keyboardhide', undefined);
         }
         break;
       case 'input-appclosed':
         inputWindow._setAsActiveInput(false);
-        if (!this._currentWindow){
+        if (!this._currentWindow) {
           this._kbPublish('keyboardhidden', undefined);
         }
         break;
       case 'input-appterminated':
-        this._keyboardManager.removeKeyboard(inputWindow.manifestURL, true);
+        // input app is OOM-killed...
+        manifestURL = inputWindow.manifestURL;
+
+        // We always destroy the reference of all current InputWindows for that
+        // input app.
+        this._removeInputApp(manifestURL);
+
+        // if the showing window is the killed window,
+        // we need to notify KeyboardManager to relaunch something.
+        if (this._currentWindow &&
+            this._currentWindow.manifestURL === manifestURL) {
+          KeyboardManager._onKeyboardKilled(manifestURL);
+        }
+        break;
+      case 'activityrequesting':
+      case 'activityopening':
+      case 'activityclosing':
+      case 'attentionrequestopen':
+      case 'attentionrecovering':
+      case 'attentionopening':
+      case 'attentionclosing':
+      case 'attentionopened':
+      case 'attentionclosed':
+      case 'notification-clicked':
+      case 'applicationsetupdialogshow':
+        this.hideInputWindowImmediately();
+        break;
+      case 'lockscreen-appopened':
+      case 'sheets-gesture-begin':
+        if (this._hasActiveInputApp()) {
+          // Instead of hideInputWindow(), we should removeFocus() here.
+          // (and removing the focus cause Gecko to ask us to hideInputWindow())
+          navigator.mozInputMethod.removeFocus();
+        }
+        break;
+      case 'mozmemorypressure':
+        // Memory pressure event. If input apps are loaded but not active,
+        // get rid of them.
+        // We only do that when we don't run input apps OOP.
+        this._debug('mozmemorypressure event');
+        if (!this.isOutOfProcessEnabled && !this._hasActiveInputApp()) {
+          this.getLoadedManifestURLs().forEach(manifestURL => {
+            this._removeInputApp(manifestURL);
+          });
+          this._debug('mozmemorypressure event; keyboards removed');
+        }
         break;
     }
   };
 
-  // XXX: change it to removeInputApp
-  InputWindowManager.prototype.removeKeyboard =
-  function iwm_removeKeyboard(kbManifestURL) {
-    if (!this._inputWindows[kbManifestURL]) {
+  InputWindowManager.prototype._getMemory = function iwm_getMemory() {
+    if ('getFeature' in navigator) {
+      navigator.getFeature('hardware.memory').then(mem => {
+        this._totalMemory = mem;
+      }, () => {
+        console.error('InputWindowManager: ' +
+          'Failed to retrieve total memory of the device.');
+      });
+    }
+  };
+
+  InputWindowManager.prototype._oopSettingCallback =
+  function iwm_oopSettingCallback(value) {
+    this.isOutOfProcessEnabled = value;
+  };
+
+  InputWindowManager.prototype._onInputLayoutsRemoved =
+  function iwm_onInputLayoutsRemoved(manifestURLs) {
+    manifestURLs.forEach(manifestURL => {
+      if (this._currentWindow &&
+          this._currentWindow.manifestURL === manifestURL) {
+        this.hideInputWindow();
+      }
+      this._removeInputApp(manifestURL);
+    });
+  };
+
+  InputWindowManager.prototype._removeInputApp =
+  function iwm_removeInputApp(manifestURL) {
+    if (!this._inputWindows[manifestURL]) {
       return;
     }
 
-    for (var pathInitial in this._inputWindows[kbManifestURL]) {
-      this._inputWindows[kbManifestURL][pathInitial].destroy();
-      delete this._inputWindows[kbManifestURL][pathInitial];
+    for (var pathInitial in this._inputWindows[manifestURL]) {
+      this._inputWindows[manifestURL][pathInitial].destroy();
+      delete this._inputWindows[manifestURL][pathInitial];
     }
 
-    delete this._inputWindows[kbManifestURL];
+    delete this._inputWindows[manifestURL];
   };
 
   InputWindowManager.prototype.getHeight = function iwm_getHeight() {
-    return this._currentWindow ? this._currentWindow.height : undefined;
+    return this._currentWindow ? this._currentWindow.height : 0;
   };
 
-  // XXX: change it to hasActiveInputApp
-  InputWindowManager.prototype.hasActiveKeyboard =
-    function iwm_hasActiveKeyboard() {
+  InputWindowManager.prototype._hasActiveInputApp =
+    function iwm_hasActiveInputApp() {
       return !!this._currentWindow;
   };
 
@@ -206,11 +331,15 @@
   function iwm_makeInputWindow(configs){
     var isCertifiedApp = (configs.manifest.type === 'certified');
 
+    if (0 === this._totalMemory){
+      console.warn('InputWindowManager: totalMemory is 0');
+    }
+
     // oop is always enabled for non-certified app,
     // and optionally enabled to certified apps if
     // available memory is more than 512MB.
-    if (this._keyboardManager.isOutOfProcessEnabled &&
-        (!isCertifiedApp || this._keyboardManager.totalMemory >= 512)) {
+    if (this.isOutOfProcessEnabled &&
+        (!isCertifiedApp || this._totalMemory >= 512)) {
       this._debug('=== Enable keyboard: ' +
                   configs.origin + ' run as OOP ===');
       configs.oop = true;
@@ -298,7 +427,8 @@
     return Object.keys(this._inputWindows);
   };
 
-  // broadcast system-wide keyboard-related events
+  // As per bug 952441, we want to use a special way to broadcast system-wide
+  // keyboard-related events
   InputWindowManager.prototype._kbPublish =
   function iwm_kbPublish(type, height){
     var eventInitDict = {

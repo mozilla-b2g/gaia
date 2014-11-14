@@ -234,7 +234,7 @@ suite('system/InputWindow', function() {
         stubRemoveEventListener.calledWith('mozbrowserresize', app, true)
       );
 
-      assert.strictEqual(app.height, undefined);
+      assert.strictEqual(app.height, 0);
     });
   });
 

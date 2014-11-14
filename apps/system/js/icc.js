@@ -1,6 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global LazyLoader, DUMP */
+/* global LazyLoader, DUMP, inputWindowManager */
 'use strict';
 
 var icc = {
@@ -266,7 +266,7 @@ var icc = {
   keyboardChangedEvent: function(viewId, hidden) {
     var keyboardHeight = 0;
     if (!hidden) {
-      keyboardHeight = KeyboardManager.getHeight() || 0;
+      keyboardHeight = inputWindowManager.getHeight();
     }
     var form = viewId.getElementsByTagName('form');
     var height = (window.innerHeight - keyboardHeight - StatusBar.height);
