@@ -2,7 +2,9 @@
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
          MockOptionMenu, Utils, Contacts, MockContact, Navigation, MockDialog,
-         MockSettings
+         MockSettings,
+         MockStickyHeader,
+         StickyHeader
          */
 
 'use strict';
@@ -198,6 +200,7 @@ suite('thread_list_ui', function() {
         '<h2 id="header-2"></h2>' +
         '<ul id="list-2"><li id="thread-3"></li></ul>';
 
+      ThreadListUI.sticky = new MockStickyHeader();
       this.sinon.stub(ThreadListUI.sticky, 'refresh');
       this.sinon.stub(window.URL, 'revokeObjectURL');
     });
@@ -304,6 +307,8 @@ suite('thread_list_ui', function() {
       this.sinon.spy(ThreadListUI, 'appendThread');
       this.sinon.spy(ThreadListUI, 'mark');
       this.sinon.spy(ThreadListUI, 'setEmpty');
+      // This is normally created by renderThreads
+      ThreadListUI.sticky = new MockStickyHeader();
       this.sinon.spy(ThreadListUI.sticky, 'refresh');
     });
 
@@ -1075,7 +1080,8 @@ suite('thread_list_ui', function() {
       this.sinon.spy(ThreadListUI, 'createThread');
       this.sinon.spy(ThreadListUI, 'setContact');
       this.sinon.spy(ThreadListUI, 'renderDrafts');
-      this.sinon.spy(ThreadListUI.sticky, 'refresh');
+      this.sinon.spy(MockStickyHeader.prototype, 'refresh');
+      this.sinon.spy(window, 'StickyHeader');
       firstViewDone = sinon.stub();
 
       Threads.clear();
@@ -1087,11 +1093,11 @@ suite('thread_list_ui', function() {
         options.done();
       });
 
-      ThreadListUI.renderThreads(firstViewDone ,function() {
+      ThreadListUI.renderThreads(firstViewDone, function() {
         done(function checks() {
           sinon.assert.called(firstViewDone);
           sinon.assert.called(ThreadListUI.renderDrafts);
-          sinon.assert.called(ThreadListUI.sticky.refresh);
+          sinon.assert.called(StickyHeader);
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, true);
           assert.isFalse(ThreadListUI.noMessages.classList.contains('hide'));
           assert.isTrue(ThreadListUI.container.classList.contains('hide'));
@@ -1141,6 +1147,8 @@ suite('thread_list_ui', function() {
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, false);
           assert.isTrue(ThreadListUI.noMessages.classList.contains('hide'));
           assert.isFalse(ThreadListUI.container.classList.contains('hide'));
+          sinon.assert.called(StickyHeader);
+          sinon.assert.called(ThreadListUI.sticky.refresh);
 
           var mmsThreads = container.querySelectorAll(
             '[data-last-message-type="mms"]'
