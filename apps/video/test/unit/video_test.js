@@ -1370,7 +1370,7 @@ suite('Video App Unit Tests', function() {
 
   suite('handleScreenLayoutChange flows', function() {
 
-    var updateAllThumbnailTitleSpy;
+    var updateAllThumbnailTitlesSpy;
     var rescaleSpy;
     var HAVE_METADATA = 1;
 
@@ -1384,8 +1384,8 @@ suite('Video App Unit Tests', function() {
       thumbnailList = new ThumbnailList(MockThumbnailGroup, dummyContainer);
       thumbnailList.addItem({'name': videoName});
 
-      updateAllThumbnailTitleSpy = sinon.spy(thumbnailList,
-                                             'updateAllThumbnailTitle');
+      updateAllThumbnailTitlesSpy = sinon.spy(thumbnailList,
+                                             'updateAllThumbnailTitles');
       rescaleSpy = sinon.spy(VideoUtils, 'fitContainer');
 
       getAsset('/test/unit/media/test.webm', function(blob) {
@@ -1395,7 +1395,7 @@ suite('Video App Unit Tests', function() {
     });
 
     teardown(function() {
-      updateAllThumbnailTitleSpy.reset();
+      updateAllThumbnailTitlesSpy.reset();
       rescaleSpy.reset();
     });
 
@@ -1494,7 +1494,7 @@ suite('Video App Unit Tests', function() {
 
       handleScreenLayoutChange();
 
-      assert.isTrue(updateAllThumbnailTitleSpy.calledOnce);
+      assert.isTrue(updateAllThumbnailTitlesSpy.calledOnce);
     });
 
     test('#handleScreenLayoutChange: update thumbnail title text later',
@@ -1506,7 +1506,7 @@ suite('Video App Unit Tests', function() {
 
       handleScreenLayoutChange();
 
-      assert.equal(updateAllThumbnailTitleSpy.callCount, 0);
+      assert.equal(updateAllThumbnailTitlesSpy.callCount, 0);
       assert.isTrue(pendingUpdateTitleText);
     });
 
@@ -1520,9 +1520,9 @@ suite('Video App Unit Tests', function() {
 
       handleScreenLayoutChange();
 
-      // Shouldn't have invoked updateAllThumbnailTitle nor
+      // Shouldn't have invoked updateAllThumbnailTitles nor
       // should have set pendingUpdateTitleText
-      assert.equal(updateAllThumbnailTitleSpy.callCount, 0);
+      assert.equal(updateAllThumbnailTitlesSpy.callCount, 0);
       assert.isFalse(pendingUpdateTitleText);
     });
 
