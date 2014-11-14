@@ -39,3 +39,7 @@ body[data-mode="put"] #edit-bookmark-header {
   display: block;
   margin-bottom: 2.4rem;
 }
+
+#app-installation.hidden {
+  display: none;
+}

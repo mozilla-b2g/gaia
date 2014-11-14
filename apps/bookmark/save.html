@@ -19,14 +19,17 @@
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
 
     <!-- Link to component just to copy the default_icon here -->
+    <script src="/shared/js/component_utils.js"></script>
     <!-- <script defer src="shared/elements/gaia_grid/script.js"></script> -->
     <script defer src="shared/elements/gaia_grid/js/grid_icon_renderer.js"></script>
+    <script defer src="shared/elements/gaia_switch/script.js"></script>
     <script defer src="shared/js/homescreens/icon.js"></script>
 
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/bookmark_editor.js"></script>
     <script type="text/javascript" defer src="js/components/status.js"></script>
     <script type="text/javascript" defer src="js/activity_handler.js"></script>
+    <script type="text/javascript" defer src="js/web_manifest_helper.js"></script>
 
     <link rel="manifest" href="manifest.webapp">
     <link rel="localization" href="locales/bookmark.{locale}.properties">
@@ -48,6 +51,12 @@
         <p>
           <input type="text" id="bookmark-title" dir="auto"></input>
           <button id="bookmark-title-clear" type="reset">Clear</button>
+        </p>
+        <p id="app-installation" class="hidden">
+          <gaia-switch id="install-app-switch">
+            <label data-l10n-id="install-application">Install application</label>
+          </gaia-switch>
+          <span data-l10n-id="application-available">An application is available for this web site.</span>
         </p>
       </form>
     </section>

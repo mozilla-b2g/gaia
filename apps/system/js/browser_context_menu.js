@@ -1,6 +1,5 @@
 /* global MozActivity, IconsHelper, LazyLoader */
 /* global applications */
-/* global BookmarksDatabase */
 
 (function(window) {
   'use strict';
@@ -229,6 +228,10 @@
       name: name,
       iconable: false
     };
+    
+    if(this.app.webManifestURL) {
+      data.manifestURL = this.app.webManifestURL; 
+    }
 
     LazyLoader.load('shared/js/icons_helper.js', (() => {
       IconsHelper.getIcon(url, null, {icons: favicons}).then(icon => {
@@ -327,24 +330,19 @@
         callback: this.showWindows.bind(this)
       });
 
-      BookmarksDatabase.get(config.url).then((result) => {
-        if (!result) {
-          menuData.push({
-            id: 'add-to-homescreen',
-            label: _('add-to-home-screen'),
-            callback: this.bookmarkUrl.bind(this, config.url, name)
-          });
-        }
-
-        menuData.push({
-          id: 'share',
-          label: _('share'),
-          callback: this.shareUrl.bind(this, config.url)
-        });
-
-        this.showMenu(menuData);
-        resolve();
+      menuData.push({
+        id: 'add-to-homescreen',
+        label: _('add-to-home-screen'),
+        callback: this.bookmarkUrl.bind(this, config.url, name)
       });
+
+      menuData.push({
+        id: 'share',
+        label: _('share'),
+        callback: this.shareUrl.bind(this, config.url)
+      });
+
+      this.showMenu(menuData);
     });
   };
 
