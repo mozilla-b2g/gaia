@@ -55,23 +55,31 @@ class TestReceiveCallFromKnownContactNotification(GaiaTestCase):
             message="Plivo didn't report the call as completed")
         self.call_uuid = None
 
+        lock_screen = LockScreen(self.marionette)
+        lock_screen.switch_to_frame()
+        lock_screen.wait_for_notification()
+
+        # Check if the screen is turned on
+        self.assertTrue(self.device.is_screen_enabled)
+
         # Verify the user sees a missed call notification message
         # and the known contacts info is shown.
+        self.assertTrue(lock_screen.notifications[0].is_visible)
+        self.assertEqual(lock_screen.notifications[0].title, 'Missed call')
+        self.assertTrue(self.contact.givenName in lock_screen.notifications[0].content)
+
+        self.device.unlock()
+
         system = System(self.marionette)
-        self.marionette.switch_to_frame()
-        system.wait_for_notification_toaster_displayed()
-        lock_screen = LockScreen(self.marionette)
-        notifications = lock_screen.notifications
-        self.assertEqual(notifications[0].title, 'Missed call')
-        self.assertTrue(self.contact.givenName in notifications[0].content)
         system.wait_for_notification_toaster_not_displayed()
 
-        # Verify the user sees the missed call event in the notification center
-        # and the known contacts info is shown.
-        self.device.unlock()
+        # Expand the notification bar
         system.wait_for_status_bar_displayed()
         utility_tray = system.open_utility_tray()
         utility_tray.wait_for_notification_container_displayed()
+
+        # Verify the user sees the missed call event in the notification center
+        # and the known contacts info is shown.
         notifications = utility_tray.notifications
         self.assertEqual(notifications[0].title, 'Missed call')
         self.assertTrue(self.contact.givenName in notifications[0].content)
