@@ -46,26 +46,54 @@ suite('keyboard-layouts.js', function() {
             'zh-TW': [
               {'layoutId': 'zhuyin', 'app': ['apps', 'keyboard']},
               {'layoutId': 'en', 'app': ['apps', 'keyboard']}
+            ],
+            'es': [
+              {'layoutId': 'es', 'app': ['apps', 'keyboard']}
             ]
           },
           'langIndependentLayouts':
             [{'layoutId': 'number', 'app': ['apps', 'keyboard']}]
+          ,
+          'fallbackLayouts':
+            [{'layoutId': 'preload', 'app': ['apps', 'keyboard']}]
       };
     };
   });
 
   test('Check the generated keyboard_layouts.json', function() {
-    app.genDefaultLayouts(config, webappsMapping);
+    var preloadSet = ['en', 'zhuyin', 'es'];
+    app.genDefaultLayouts(config, webappsMapping, preloadSet);
 
     var expectedResult = {
       'layout': {
         'en-US': [{'layoutId': 'en', 'appManifestURL': defaultManifestURL}],
         'zh-TW': [{'layoutId': 'zhuyin', 'appManifestURL': defaultManifestURL},
-                 {'layoutId': 'en', 'appManifestURL': defaultManifestURL}]},
+                 {'layoutId': 'en', 'appManifestURL': defaultManifestURL}],
+        'es': [{'layoutId': 'es', 'appManifestURL': defaultManifestURL}],
+      },
       'langIndependentLayouts':
         [{'layoutId': 'number', 'appManifestURL': defaultManifestURL}]
     };
 
-    assert.equal(result, JSON.stringify(expectedResult));
+    assert.equal(result, JSON.stringify(expectedResult, null, 2));
+  });
+
+  test('Check the generatedkeyboard_layouts.json with a minimal' +
+       ' preloaded layout set', function() {
+
+    var preloadSet = ['en'];
+    app.genDefaultLayouts(config, webappsMapping, preloadSet);
+
+    var expectedResult = {
+      'layout': {
+        'en-US': [{'layoutId': 'en', 'appManifestURL': defaultManifestURL}],
+        'zh-TW': [{'layoutId': 'en', 'appManifestURL': defaultManifestURL}],
+        'es': [{'layoutId': 'preload', 'appManifestURL': defaultManifestURL}]
+      },
+      'langIndependentLayouts':
+        [{'layoutId': 'number', 'appManifestURL': defaultManifestURL}]
+    };
+
+    assert.equal(result, JSON.stringify(expectedResult, null, 2));
   });
 });

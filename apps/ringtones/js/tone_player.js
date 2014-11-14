@@ -15,9 +15,6 @@ function TonePlayer() {
   // background, so here we use audio context to occupy the channel until the
   // user leaves the ringtones app, see bug 958470 for details.
   this._player = new Audio();
-  this._context = new AudioContext();
-  this._source = this._context.createMediaElementSource(this._player);
-  this._source.connect(this._context.destination);
 
   this._player.addEventListener('loadedmetadata', function() {
     if (this._player.src) { // Null URLs don't need to be validated here.
@@ -83,7 +80,10 @@ TonePlayer.prototype = {
   },
 
   /**
-   * Stop playing the current tone (if any).
+   * Stop playing the current tone (if any). If we start playing it again,
+   * setTone will reset the current time to 0. Note: even though we're stopping,
+   * we don't want to clear the player's src URL, since we might need that to
+   * restart playback of the same song.
    */
   stop: function() {
     this._player.pause();
@@ -115,13 +115,26 @@ TonePlayer.prototype = {
   },
 
   /**
-   * Set the audio context's channel to "ringer" to stop any background audio
-   * from playing once we've started previewing ringtones, or reset the channel
-   * to "normal" to let background audio resume.
+   * Creates an AudioContext with "ringer" priority to stop any background audio
+   * from playing once we've started previewing ringtones, or destroys the
+   * context.
    *
-   * @param {Boolean} exclusive true to enable exclusive mode, false otherwise.
+   * @param {Boolean} exclusive true to create the AudioContext, false to
+   *   destroy.
    */
   _setExclusiveMode: function(exclusive) {
-    this._context.mozAudioChannelType = exclusive ? 'ringer' : 'normal';
+    if (exclusive) {
+      if (!this._source) {
+        this._context = new AudioContext('ringer');
+        this._source = this._context.createMediaElementSource(this._player);
+        this._source.connect(this._context.destination);
+      }
+    } else {
+      if (this._source) {
+        this._source.disconnect();
+        this._context = null;
+        this._source = null;
+      }
+    }
   }
 };

@@ -1,6 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
+/* global secureWindowManager */
 
 (function(exports) {
   /**
@@ -139,6 +140,16 @@
           if (evt.detail.screenEnabled) {
             // The app would be inactive while screen off.
             this.openApp();
+            if (this.states.instance &&
+                this.states.instance.isActive() &&
+                !secureWindowManager.isActive()) {
+              // In theory listen to 'visibilitychange' event can solve this
+              // issue, since it would be fired at the correct moment that
+              // we can lock the orientation successfully, but this event
+              // would not be received when user press the button twice
+              // quickly, so we need to keep this workaround.
+              this.states.instance.lockOrientation();
+            }
           } else if (!evt.detail.screenEnabled) {
             // If user turn off the screen while we're unlocking
             // (animation performaing), close it immediately,
