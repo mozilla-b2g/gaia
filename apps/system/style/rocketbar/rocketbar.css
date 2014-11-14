@@ -62,7 +62,7 @@ body:not(.rb-enabled) #rocketbar {
 #rocketbar-title-content {
   font-size: 1.8rem;
   font-style: italic;
-  font-weight: lighter;
+  font-weight: 300;
   transform: scale(1.33);
   transform-origin: left center;
   transition: transform 0.5s;
@@ -87,7 +87,7 @@ body:not(.rb-enabled) #rocketbar {
 
 #rocketbar-input::-moz-placeholder {
   font-style: italic;
-  font-weight: lighter;
+  font-weight: 300;
   opacity: 1;
   color: #e7e7e7;
 }

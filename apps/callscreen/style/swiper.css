@@ -56,7 +56,7 @@
   #lockscreen-header {
     text-shadow: 0 0 0.5rem #111111;
     padding-left: 6rem;
-    font-weight: lighter;
+    font-weight: 300;
   }
 
   #lockscreen-date {
