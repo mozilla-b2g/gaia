@@ -218,6 +218,7 @@
   pointer-events: all;
 }
 
+.appWindow.overlay .touch-blocker,
 .appWindow.transition-closing .touch-blocker,
 .appWindow.enlarge .touch-blocker,
 .appWindow.transition-opening .touch-blocker {
@@ -311,16 +312,16 @@
 }
 
 .appWindow.suspended > .identification-overlay,
-.appWindow:not(.active):not(.in-task-manager) > .identification-overlay.visible {
+.appWindow:not(.active):not(.in-task-manager).overlay > .identification-overlay {
   visibility: visible;
   opacity: 1;
 }
 
 /* we don't want to show the overlay at all during the opening
    transition (from the homescreen and from the cardview) */
-#screen .appWindow.in-task-manager > .identification-overlay.visible,
-.appWindow.enlarge > .identification-overlay.visible,
-.appWindow.from-cardview > .identification-overlay.visible {
+#screen .appWindow.in-task-manager.overlay > .identification-overlay,
+.appWindow.enlarge.overlay > .identification-overlay,
+.appWindow.from-cardview.overlay > .identification-overlay {
   opacity: 0 !important;
   transition: none !important;
 }
