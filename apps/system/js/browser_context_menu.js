@@ -1,6 +1,7 @@
 /* global MozActivity, IconsHelper, LazyLoader */
 /* global applications */
 /* global BookmarksDatabase */
+/* global WebManifestHelper */
 
 (function(window) {
   'use strict';
@@ -243,6 +244,26 @@
     }));
   };
 
+  BrowserContextMenu.prototype.installApp = function(url, name) {
+    var webManifestURL = this.app.webManifestURL;
+    WebManifestHelper.getManifest(webManifestURL).then(webManifestData => {
+      // If valid display mode other than 'browser' then install app
+      if (webManifestData.display == 'fullscreen' ||
+        webManifestData.display == 'standalone' ||
+        webManifestData.display == 'minimal-ui') {
+        window.navigator.mozApps.install(webManifestURL);
+      // If display mode is 'browser' then add bookmark
+      } else if (webManifestData.display == 'browser') {
+        name = webManifestData.short_name || webManifestData.name || name;
+        this.bookmarkUrl(url, name);
+      } else {
+        console.error('Tried to install manifest with invalid display mode');
+      }
+    }, function(error) {
+       console.error('Unable to get web manifest: ' + error);
+    });
+  };
+
   BrowserContextMenu.prototype.newWindow = function(manifest) {
     var newTabApp = applications.getByManifestURL(manifest);
     newTabApp.launch();
@@ -330,9 +351,17 @@
       BookmarksDatabase.get(config.url).then((result) => {
         if (!result) {
           menuData.push({
-            id: 'add-to-homescreen',
-            label: _('add-to-home-screen'),
+            id: 'add-page-to-homescreen',
+            label: _('add-page-to-home-screen'),
             callback: this.bookmarkUrl.bind(this, config.url, name)
+          });
+        }
+
+        if(this.app.webManifestURL) {
+          menuData.push({
+            id: 'add-app-to-homescreen',
+            label: _('add-app-to-home-screen'),
+            callback: this.installApp.bind(this, config.url, name)
           });
         }
 
