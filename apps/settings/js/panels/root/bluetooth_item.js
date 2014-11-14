@@ -7,8 +7,17 @@ define(function(require) {
   'use strict';
 
   var APIVersionDetector = require('modules/bluetooth/version_detector');
-  
+  var SettingsService = require('modules/settings_service');
+
   var APIVersion = APIVersionDetector.getVersion();
+
+  var _debug = false;
+  var Debug = function bti_debug(msg) {
+    if (_debug) {
+      console.log('--> [BluetoothItem]: ' + msg);
+    }
+  };
+
   /**
    * @alias module:panels/root/bluetooth_item
    * @class BluetoothItem
@@ -60,7 +69,8 @@ define(function(require) {
           if (this._APIVersion() === 1) {
             bluetoothModulePath = 'modules/bluetooth/bluetooth_v1';
           } else if (this._APIVersion() === 2) {
-            bluetoothModulePath = 'modules/bluetooth/bluetooth';
+            Debug('loading.. modules/bluetooth/bluetooth_context');
+            bluetoothModulePath = 'modules/bluetooth/bluetooth_context';
           }
 
           require([bluetoothModulePath], resolve);
@@ -84,6 +94,7 @@ define(function(require) {
       }
 
       this._getBluetooth().then(function(bluetooth) {
+        Debug('Got bluetooth context');
         if (bluetooth.enabled) {
           if (bluetooth.numberOfPairedDevices === 0) {
             element.setAttribute('data-l10n-id', 'bt-status-nopaired');
@@ -129,6 +140,25 @@ define(function(require) {
             this._boundRefreshMenuDescription);
         }
       }.bind(this));
+    },
+
+    /**
+     * Navigate new/old Bluetooth panel via version of mozBluetooth API.
+     *
+     * @access private
+     * @memberOf BluetoothItem.prototype
+     * @type {Function}
+     */
+    _navigatePanelWithVersionCheck:
+    function bt__navigatePanelWithVersionCheck() {
+      if (this._APIVersion() === 1) {
+        // navigate old bluetooth panel..
+        SettingsService.navigate('bluetooth');
+      } else if (this._APIVersion() === 2) {
+        // navigate new bluetooth panel..
+        Debug('navigate bluetooth_v2 panel');
+        SettingsService.navigate('bluetooth_v2');
+      }
     }
   };
 

@@ -330,7 +330,7 @@ require.config({
         'main',
         'modules/bluetooth/version_detector',
         'modules/bluetooth/bluetooth_v1',
-        'modules/bluetooth/bluetooth'
+        'modules/bluetooth/bluetooth_context'
       ]
     },
     {
