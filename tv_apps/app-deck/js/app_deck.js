@@ -1,43 +1,65 @@
-/* global SpatialNavigator, SharedUtils, Applications, URL */
+/* global SpatialNavigator, SharedUtils, Applications, URL,
+  KeyNavigationAdapter, ContextMenu */
 
 (function(exports) {
   'use strict';
 
   var AppDeck = function() {
-
   };
 
-  AppDeck.prototype = {
+  AppDeck.prototype = evt({
     _navigableElements: [],
 
     _spatialNavigator: undefined,
 
+    _keyNavigationAdapter: undefined,
+
     _selectionBorder: undefined,
+
+    _contextMenu: undefined,
 
     _focusElem: undefined,
 
     _appDeckGridViewElem: document.getElementById('app-deck-grid-view'),
 
+    _appDeckListScrollable: undefined,
+
     init: function ad_init() {
       var that = this;
+      this._keyNavigationAdapter = new KeyNavigationAdapter();
+      this._keyNavigationAdapter.init();
+
       Applications.init(function() {
         var apps = Applications.getAllAppEntries();
         var appGridElements = apps.map(that._createAppGridElement.bind(that));
         appGridElements.forEach(function(appGridElem) {
           that._appDeckGridViewElem.appendChild(appGridElem);
         });
+        that._appDeckListScrollable = new XScrollable({
+          frameElem: 'app-deck-list-frame',
+          listElem: 'app-deck-list',
+          itemClassName: 'app-banner'
+        });
         that._navigableElements =
           SharedUtils.nodeListToArray(document.querySelectorAll('.navigable'))
             .concat(appGridElements);
+        that._navigableElements.unshift(that._appDeckListScrollable);
         that._spatialNavigator = new SpatialNavigator(that._navigableElements);
         that._selectionBorder = new SelectionBorder({
             multiple: false,
             container: document.getElementById('main-section'),
             forground: true });
 
-        window.addEventListener('keydown', that);
-        that._spatialNavigator.on('focus', that.handleFocus.bind(that));
+        that._keyNavigationAdapter.on('move', that.onMove.bind(that));
+        that._keyNavigationAdapter.on('enter', that.onEnter.bind(that));
+        that._spatialNavigator.on('focus', that.onFocus.bind(that));
+        that._appDeckListScrollable.on('focus', function(scrollable, elem) {
+          that._selectionBorder.select(elem, scrollable.getItemRect(elem));
+          that._focusElem = elem;
+        });
         that._spatialNavigator.focus();
+        that._contextMenu = new ContextMenu();
+        that._contextMenu.init(that);
       });
     },
 
@@ -53,6 +75,8 @@
 
       container.className = 'app navigable';
       container.dataset.manifestURL = app.manifestURL;
+      container.dataset.entryPoint = app.entryPoint;
+      container.dataset.name = app.name;
       appNameElem.className = 'app-name';
       appNameTextElem.className = 'app-name-text';
       appNameTextElem.textContent = app.name;
@@ -80,44 +104,45 @@
       return container;
     },
 
-    handleFocus: function ad_handleFocus(elem) {
-      if (elem.nodeName) {
+    onFocus: function ad_onFocus(elem) {
+      if (elem instanceof XScrollable) {
+        elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
+      } else if (elem.nodeName) {
         this._selectionBorder.select(elem);
         this._focusElem = elem;
       } else {
         this._selectionBorder.selectRect(elem);
       }
-    },
 
-    handleEvent: function ad_handleEvent(evt) {
-      switch(evt.type) {
-        case 'keydown':
-          this.handleKeyEvent(evt);
-          break;
+      if (elem.dataset && elem.dataset.manifestURL) {
+        this.fire('focus-on-pinable', {
+          manifestURL: elem.dataset.manifestURL,
+          entryPoint: elem.dataset.entryPoint,
+          name: elem.dataset.name
+        });
+      } else {
+        this.fire('focus-on-nonpinable');
       }
     },
 
-    handleKeyEvent: function ad_handleKeyEvent(evt) {
-      switch(evt.key) {
-        case 'Down':
-        case 'ArrowDown':
-          this._spatialNavigator.move('down');
-          break;
-        case 'Up':
-        case 'ArrowUp':
-          this._spatialNavigator.move('up');
-          break;
-        case 'Right':
-        case 'ArrowRight':
-          this._spatialNavigator.move('right');
-          break;
-        case 'Left':
-        case 'ArrowLeft':
-          this._spatialNavigator.move('left');
-          break;
+    onEnter: function ad_onEnter() {
+      var focused = this._spatialNavigator.getFocusedElement();
+      if (focused.dataset && focused.dataset.manifestURL) {
+        Applications.launch(
+          focused.dataset.manifestURL, focused.dataset.entryPoint);
       }
+    },
+
+    onMove: function ad_onMove(key) {
+      var focused = this._spatialNavigator.getFocusedElement();
+      if (focused instanceof XScrollable) {
+        if (focused.spatialNavigator.move(key)) {
+          return;
+        }
+      }
+      this._spatialNavigator.move(key);
     }
-  };
+  });
 
   exports.appDeck = new AppDeck();
   exports.appDeck.init();

@@ -1,5 +1,5 @@
 'use strict';
-/* global evt */
+/* global evt, ManifestHelper */
 
 (function(exports) {
 
@@ -25,6 +25,7 @@
    * - launch app
    *
    * @namespace Applications
+   * @requires ManifestHelper
    */
   var Applications = evt({
     /**
@@ -34,7 +35,7 @@
      * @type {Array}
      * @memberof Applications
      */
-    HIDDEN_ROLES: ['system', 'homescreen', 'deck'],
+    HIDDEN_ROLES: ['system', 'homescreen', 'input', 'deck'],
 
     /**
      * Default icon url.
@@ -267,18 +268,20 @@
       var entries = [];
 
       if (!entryPoints || manifest.type !== 'certified') {
+        var helper = new ManifestHelper(manifest);
         entries.push({
           manifestURL: manifestURL,
           entryPoint: '',
-          name: manifest.name
+          name: helper.name
         });
       } else {
         for (var entryPoint in entryPoints) {
           if (entryPoints[entryPoint].icons) {
+            var helper = new ManifestHelper(entryPoints[entryPoint]);
             entries.push({
               manifestURL: manifestURL,
               entryPoint: entryPoint,
-              name: entryPoints[entryPoint].name
+              name: helper.name
             });
           }
         }
@@ -372,7 +375,7 @@
       if (!entry_manifest) {
         return '';
       }
-      return entry_manifest.name;
+      return new ManifestHelper(entry_manifest).name;
     },
 
     /**
