@@ -690,7 +690,9 @@
         }
       }
 
-      if (this.config.chrome) {
+      if (this.config.chrome &&
+          (this.config.chrome.navigation ||
+           this.config.chrome.rocketbar)) {
         this.appChrome.destroy();
         this.appChrome = null;
       }
