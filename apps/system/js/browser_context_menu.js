@@ -298,7 +298,8 @@
         return [{
           id: 'save-' + type,
           label: _('save-' + type),
-          callback: this.app.browser.element.download.bind(this, uri)
+          callback: this.app.browser.element.download.bind(
+            this.app.browser.element, uri)
         }, {
           id: 'share-' + type,
           label: _('share-' + type),
