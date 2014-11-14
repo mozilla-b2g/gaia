@@ -53,23 +53,30 @@ define(function(require) {
      * @access private
      * @memberOf wallpaperPrototype
      * @param {String} secret
+     * @type {Promise}
      */
     _triggerActivity: function w__trigger_activity(secret) {
-      var mozActivity = new MozActivity({
-        name: 'pick',
-        data: {
-          type: ['wallpaper', 'image/*'],
-          includeLocked: (secret !== null),
-          // XXX: This will not work with Desktop Fx / Simulator.
-          width: Math.ceil(window.screen.width * window.devicePixelRatio),
-          height: Math.ceil(window.screen.height * window.devicePixelRatio)
-        }
-      });
-      mozActivity.onsuccess = function() {
-        this._onPickSuccess(mozActivity.result.blob, secret);
-      }.bind(this);
+      return new Promise((resolve, reject) => {
+        var mozActivity = new MozActivity({
+          name: 'pick',
+          data: {
+            type: ['wallpaper', 'image/*'],
+            includeLocked: (secret !== null),
+            // XXX: This will not work with Desktop Fx / Simulator.
+            width: Math.ceil(window.screen.width * window.devicePixelRatio),
+            height: Math.ceil(window.screen.height * window.devicePixelRatio)
+          }
+        });
+        mozActivity.onsuccess = function() {
+          this._onPickSuccess(mozActivity.result.blob, secret);
+          resolve();
+        }.bind(this);
 
-      mozActivity.onerror = this._onPickError;
+        mozActivity.onerror = function() {
+          this._onPickError();
+          reject();
+        }.bind(this);
+      });
     },
 
     /**
@@ -127,13 +134,41 @@ define(function(require) {
     wallpaperSrc: '',
 
     /**
+     * Flag indicating if we are selecting wallpaper.
+     *
+     * @access private
+     * @memberOf wallpaperPrototype
+     * @type {Boolean}
+     */
+    _selectingWallpaper: false,
+
+    /**
      * Start to select wallpaper.
      *
      * @access public
      * @memberOf wallpaperPrototype
+     * @type {Promise}
      */
     selectWallpaper: function w_select_wallpaper() {
-      ForwardLock.getKey(this._triggerActivity.bind(this));
+      return new Promise((resolve, reject) => {
+        if (this._selectingWallpaper) {
+          reject();
+        } else {
+          this._selectingWallpaper = true;
+
+          ForwardLock.getKey((secret) => {
+            this._triggerActivity(secret)
+              .then(() => {
+                this._selectingWallpaper = false;
+                resolve();
+              })
+              .catch(() => {
+                this._selectingWallpaper = false;
+                reject();
+              });
+          });
+        }
+      });
     }
   };
 
