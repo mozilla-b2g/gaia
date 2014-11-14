@@ -35,7 +35,7 @@ define(function(require) {
       }.bind(this));
     },
 
-    _keepAllInputs: function() {
+    keepAllInputs: function() {
       window.asyncStorage.setItem('feedback', this._inputData);
     },
 
@@ -131,7 +131,7 @@ define(function(require) {
     },
 
     back: function() {
-      this._keepAllInputs();
+      this.keepAllInputs();
       this._SettingsService.navigate('improveBrowserOS-chooseFeedback');
     },
 
@@ -162,7 +162,7 @@ define(function(require) {
       if (type === 'success') {
         this.elements.doneDialog.hidden = false;
       } else {
-        this._keepAllInputs();
+        this.keepAllInputs();
         this.elements.alertMsg.setAttribute('data-l10n-id',
           'feedback-errormessage-' + type);
         this.elements.alertDialog.hidden = false;
