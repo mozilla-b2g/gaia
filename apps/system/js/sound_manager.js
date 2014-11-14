@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
-          SettingsListener, System */
+          SettingsListener, Service */
 
 (function(exports) {
   'use strict';
@@ -54,6 +54,8 @@
     'content': 15,
     'bt_sco': 15
   };
+
+  SoundManager.prototype.name = 'SoundManager';
 
   /**
    * Store the current active channel;
@@ -232,6 +234,14 @@
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
 
+    // mozChromeEvent fired from Gecko is earlier been loaded,
+    // so we use mozAudioChannelManager to
+    // check the headphone plugged or not when booting up
+    var acm = navigator.mozAudioChannelManager;
+    if (acm) {
+      this.isHeadsetConnected = acm.headphones;
+    }
+
     this.initVibrationUserPref();
     this.bindVolumeSettingsHandlers();
 
@@ -248,6 +258,9 @@
         self.CEAccumulatorTime = value;
       }
     });
+
+    Service.registerState('isHeadsetConnected', this);
+    Service.registerState('currentChannel', this);
   };
 
   /**
@@ -267,6 +280,9 @@
     window.removeEventListener('holdhome', this);
     window.removeEventListener('homescreenopening', this);
     window.removeEventListener('homescreenopened', this);
+
+    Service.unregisterState('isHeadsetConnected', this);
+    Service.unregisterState('currentChannel', this);
   };
 
   /**
@@ -299,10 +315,16 @@
           case 'audio-channel-changed':
             this.currentChannel = e.detail.channel;
             this.ceAccumulator();
+            window.dispatchEvent(new CustomEvent('audio-channel-changed', {
+              detail: this.currentChannel
+            }));
             break;
           case 'headphones-status-changed':
             this.isHeadsetConnected = (e.detail.state !== 'off');
             this.ceAccumulator();
+            window.dispatchEvent(new CustomEvent('headphones-status-changed', {
+              detail: this.isHeadsetConnected
+            }));
             break;
           case 'default-volume-channel-changed':
             this.defaultVolumeControlChannel = e.detail.channel;

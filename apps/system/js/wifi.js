@@ -4,6 +4,8 @@
 'use strict';
 
 var Wifi = {
+  name: 'Wifi',
+
   wifiEnabled: true,
 
   wifiDisabledByWakelock: false,
@@ -18,6 +20,12 @@ var Wifi = {
   kScanInterval: 20 * 1000,
 
   _scanTimer: null,
+
+  _enabled: false,
+
+  get enabled() {
+    return this._enabled;
+  },
 
   init: function wf_init() {
     if (!window.navigator.mozSettings)
@@ -57,6 +65,7 @@ var Wifi = {
     var wifiManager = window.navigator.mozWifiManager;
     // when wifi is really enabled, emit event to notify QuickSettings
     wifiManager.onenabled = function onWifiEnabled() {
+      this._enabled = true;
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('wifi-enabled',
         /* canBubble */ true, /* cancelable */ false, null);
@@ -65,6 +74,7 @@ var Wifi = {
 
     // when wifi is really disabled, emit event to notify QuickSettings
     wifiManager.ondisabled = function onWifiDisabled() {
+      this._enabled = false;
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('wifi-disabled',
         /* canBubble */ true, /* cancelable */ false, null);
@@ -83,6 +93,8 @@ var Wifi = {
       'wifi.screen_off_timeout', 600000, function(value) {
         self.screenOffTimeout = value;
       });
+
+    Service.registerState('enabled', this);
 
     // Track the wifi.enabled mozSettings value
     SettingsListener.observe('wifi.enabled', true, function(value) {

@@ -75,8 +75,6 @@ var StatusBar = {
     '1xrtt': true, 'is95a': true, 'is95b': true  // data call or voice call
   },
 
-  headphonesActive: false,
-
   /**
    * this keeps how many current installs/updates we do
    * it triggers the icon "systemDownloads"
@@ -99,7 +97,10 @@ var StatusBar = {
   },
 
   init: function sb_init() {
-    this.lableIcon = new LabelIcon(this);
+    this.labelIcon = new LabelIcon(this);
+    this.alarmIcon = new AlarmIcon(this);
+    this.playingIcon = new PlayingIcon(this);
+    this.headphoneIcon = new HeadphoneIcon(this);
     this.wifiIcon = new WifiIcon(this);
     this.nfcIcon = new NfcIcon(this);
     this.muteIcon = new MuteIcon(this);
@@ -116,7 +117,10 @@ var StatusBar = {
     this.emergencyCallbackIcon = new EmergencyCallbackIcon(this);
 
     // Render by order 
-    this.lableIcon.render();
+    this.labelIcon.render();
+    this.alarmIcon.render();
+    this.playingIcon.render();
+    this.headphoneIcon.render();
     this.geolocationIcon.render();
     this.bluetoothIcon.render();
     this.nfcIcon.render();
@@ -169,15 +173,6 @@ var StatusBar = {
 
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
-
-    // mozChromeEvent fired from Gecko is earlier been loaded,
-    // so we use mozAudioChannelManager to
-    // check the headphone plugged or not when booting up
-    var acm = navigator.mozAudioChannelManager;
-    if (acm) {
-      this.headphonesActive = acm.headphones;
-      this.update.headphones.call(this);
-    }
 
     // Listen to 'lockscreen-appopened', 'lockscreen-appclosing', and
     // 'lockpanelchange' in order to correctly set the visibility of
