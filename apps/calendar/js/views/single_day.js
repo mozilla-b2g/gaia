@@ -87,13 +87,11 @@ SingleDay.prototype = {
   },
 
   _render: function(records) {
-    // we always remove all elements and then again since it's simpler and we
-    // should not have that many busytimes on a single day.
     this._alldayEvents.innerHTML = '';
     records.allday.forEach(this._renderAlldayEvent, this);
     this.overlaps.reset();
     this.day.innerHTML = '';
-    records.events.forEach(this._renderEvent, this);
+    records.basic.forEach(this._renderEvent, this);
     if (this._alldayEvents.children.length > 0) {
       // If there are all day events, the section acts as a listbox.
       this._alldayEvents.setAttribute('role', 'listbox');

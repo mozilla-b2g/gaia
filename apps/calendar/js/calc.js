@@ -133,23 +133,21 @@ exports.spanOfDay = function(date, includeTime) {
  * last day, minute, second of given month.
  */
 exports.spanOfMonth = function(month) {
-  month = new Date(
-    month.getFullYear(),
-    month.getMonth(),
-    1
-  );
-
+  month = exports.monthStart(month);
   var startDay = exports.getWeekStartDate(month);
-
-  var endDay = new Date(
-    month.getFullYear(),
-    month.getMonth() + 1,
-    1
-  );
-
-  endDay.setMilliseconds(-1);
+  var endDay = exports.monthEnd(month);
   endDay = exports.getWeekEndDate(endDay);
   return new Timespan(startDay, endDay);
+};
+
+exports.monthEnd = function(date, diff = 0) {
+  var endDay = new Date(
+    date.getFullYear(),
+    date.getMonth() + diff + 1,
+    1
+  );
+  endDay.setMilliseconds(-1);
+  return endDay;
 };
 
 /**
@@ -411,7 +409,7 @@ exports.daysBetween = function(start, end, includeTime) {
     if (includeTime) {
       list.push(end);
     } else {
-      list.push(this.createDay(start));
+      list.push(exports.createDay(start));
     }
     return list;
   }

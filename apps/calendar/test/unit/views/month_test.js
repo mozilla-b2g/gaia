@@ -15,7 +15,6 @@ suite('Views.Month', function() {
   suiteSetup(function(done) {
     triggerEvent = testSupport.calendar.triggerEvent;
     app = testSupport.calendar.app();
-    // db is needed by dayObserver :(
     app.db.open(done);
   });
 

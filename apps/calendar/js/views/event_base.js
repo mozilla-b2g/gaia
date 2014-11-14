@@ -3,6 +3,7 @@ define(function(require, exports, module) {
 
 var Event = require('models/event');
 var View = require('view');
+var dayObserver = require('day_observer');
 var nextTick = require('next_tick');
 var providerFactory = require('provider/provider_factory');
 
@@ -193,28 +194,25 @@ EventBase.prototype = {
   _loadModel: function(id, callback) {
     var self = this;
     var token = ++this._changeToken;
-    var time = this.app.timeController;
     var classList = this.element.classList;
 
     classList.add(this.LOADING);
 
-    time.findAssociated(id, function(err, list) {
-      if (err) {
-        classList.remove(this.LOADING);
-        console.error('Error looking up records for id: ', id);
-      }
-
-      var records = list[0];
+    dayObserver.findAssociated(id).then(record => {
       if (token === self._changeToken) {
         self.useModel(
-          records.busytime,
-          records.event,
+          record.busytime,
+          record.event,
           callback
         );
       } else {
         // ensure loading is removed
         classList.remove(this.LOADING);
       }
+    })
+    .catch(() => {
+      classList.remove(this.LOADING);
+      console.error('Error looking up records for id: ', id);
     });
   },
 

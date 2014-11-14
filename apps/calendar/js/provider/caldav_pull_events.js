@@ -208,7 +208,6 @@ PullEvents.prototype = {
       }
     }
 
-    this.app.timeController.cacheBusytime(item);
     this.busytimeQueue.push(item);
   },
 
@@ -233,9 +232,6 @@ PullEvents.prototype = {
     // related to this event as we will be adding new
     // ones as part of the sync.
     this._busytimeStore.removeEvent(id);
-    // remove details of past cached events....
-    this.app.timeController.removeCachedEvent(event._id);
-    this.app.timeController.cacheEvent(event);
 
     this.eventQueue.push(event);
 

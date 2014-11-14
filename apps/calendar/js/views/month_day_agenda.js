@@ -85,7 +85,7 @@ MonthDayAgenda.prototype = {
 
     // we should always render allday events at the top, so do it first
     records.allday.forEach(this._renderEvent, this);
-    records.events.forEach(this._renderEvent, this);
+    records.basic.forEach(this._renderEvent, this);
 
     this.emptyMessage.classList.toggle('active', records.amount === 0);
 

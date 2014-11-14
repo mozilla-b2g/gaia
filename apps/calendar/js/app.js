@@ -70,8 +70,11 @@ module.exports = {
     notificationsController.app = this;
     periodicSyncController.app = this;
 
-    dayObserver.timeController = this.timeController;
+    dayObserver.busytimeStore = this.store('Busytime');
     dayObserver.calendarStore = this.store('Calendar');
+    dayObserver.eventStore = this.store('Event');
+    dayObserver.syncController = this.syncController;
+    dayObserver.timeController = this.timeController;
 
     // observe sync events
     this.observePendingObject(this.syncController);
@@ -234,7 +237,6 @@ module.exports = {
     // re-localize dates on screen
     this.observeDateLocalization();
 
-    this.timeController.observe();
     notificationsController.observe();
     periodicSyncController.observe();
 
@@ -318,9 +320,15 @@ module.exports = {
     // start the workers
     this.serviceController.start(false);
 
-    var l10n = navigator.mozL10n;
-    l10n.once(next);
-    this.db.load(next);
+    navigator.mozL10n.once(next);
+    this.db.load(() => {
+      next();
+      // it should only start listening for month change after we have the
+      // calendars data, otherwise we might display events from calendars that
+      // are not visible. this also makes sure we load the calendars as soon as
+      // possible
+      this.store('Calendar').all(() => dayObserver.init());
+    });
   },
 
   _initView: function(name) {

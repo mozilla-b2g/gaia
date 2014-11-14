@@ -7,34 +7,18 @@ var dayObserver = require('day_observer');
 suite('day_observer', function() {
   var app;
   var busyToday1, busyToday2, busyTomorrow, busyTodayAllday;
-  var calendarStore;
-  var delay;
-  var findAssociated;
-  var _records;
+  var event1, event2, event3, event4;
+  var calendar, hiddenCalendar;
   var subject;
-  var timeController;
   var today;
   var tomorrow;
   var yesterday;
+  var oneHour = 60 * 60 * 1000;
 
-  setup(function(done) {
+  suiteSetup(function(done) {
     app = testSupport.calendar.app();
     subject = dayObserver;
-    delay = subject.DISPATCH_DELAY + 5;
-    timeController = app.timeController;
-    findAssociated = timeController.findAssociated;
 
-    // yes, this is weird but was the "best" way to ensure we are returning
-    // only the cached busytimes. we can't talk to the DB for now (we need to
-    // check if event handlers are called at the right time)
-    _records = new Map();
-    timeController.findAssociated = function(busytimes, callback) {
-      setTimeout(function() {
-        callback(null, busytimes.map((busy) => _records.get(busy)));
-      });
-    };
-
-    subject.timeController = timeController;
     today = new Date();
     today.setHours(8, 0, 0, 0);
     yesterday = new Date();
@@ -44,33 +28,66 @@ suite('day_observer', function() {
     tomorrow.setHours(8, 0, 0, 0);
     tomorrow.setDate(today.getDate() + 1);
 
-    calendarStore = timeController.calendarStore;
-    timeController.calendarStore = {
-      shouldDisplayCalendar: function() {
-        return true;
-      },
-      on: function() {}
-    };
+    subject.busytimeStore = app.store('Busytime');
+    subject.calendarStore = app.store('Calendar');
+    subject.eventStore = app.store('Event');
+    subject.syncController = app.syncController;
+    subject.timeController = app.timeController;
+
     app.db.open(done);
   });
 
-  setup(function() {
-    var event1 = Factory('event');
-    var event2 = Factory('event');
-    var event3 = Factory('event');
-    var event4 = Factory('event');
+  suiteSetup(function(done) {
+    subject.calendarStore.all((err) => {
+      done(err);
+    });
+  });
+
+  // we add the events to the DB before calling subject.init() on purpose, just
+  // to simulate the app start
+  suiteSetup(function(done) {
+    calendar = Factory('calendar', {
+      localDisplayed: true
+    });
+    hiddenCalendar = Factory('calendar', {
+      localDisplayed: false
+    });
+
+    var calendarId = calendar._id;
+
+    event1 = Factory('event', {
+      _id: 'foo',
+      calendarId: calendarId
+    });
+    event2 = Factory('event', {
+      _id: 'bar',
+      calendarId: calendarId
+    });
+    event3 = Factory('event', {
+      _id: 'baz',
+      calendarId: calendarId
+    });
+    event4 = Factory('event', {
+      _id: 'bag',
+      calendarId: calendarId
+    });
 
     busyToday1 = Factory('busytime', {
+      calendarId: calendarId,
       eventId: event1._id,
       startDate: today
     });
 
+    // tests events that spans thru multiple days
     busyToday2 = Factory('busytime', {
+      calendarId: calendarId,
       eventId: event2._id,
-      startDate: today
+      startDate: new Date(today.getTime() + oneHour),
+      endDate: tomorrow
     });
 
     busyTomorrow = Factory('busytime', {
+      calendarId: calendarId,
       eventId: event3._id,
       startDate: tomorrow
     });
@@ -80,183 +97,230 @@ suite('day_observer', function() {
     var tomorrowStart = new Date(todayStart.getTime());
     tomorrowStart.setHours(24);
     busyTodayAllday = Factory('busytime', {
+      calendarId: calendarId,
       eventId: event4._id,
       startDate: todayStart,
       endDate: tomorrowStart
     });
 
-    _records.set(busyToday1, {
-      busytime: busyToday1,
-      event: event1
-    });
-    _records.set(busyToday2, {
-      busytime: busyToday2,
-      event: event2
-    });
-    _records.set(busyTomorrow, {
-      busytime: busyTomorrow,
-      event: event3
-    });
-    _records.set(busyTodayAllday, {
-      busytime: busyTodayAllday,
-      event: event4
+    var eventStore = subject.eventStore;
+    var busytimeStore = subject.busytimeStore;
+    var calendarStore = subject.calendarStore;
+
+    // events should be persisted before the busytimes
+    Promise.all([
+      calendarStore.persist(calendar),
+      calendarStore.persist(hiddenCalendar),
+      eventStore.persist(event1),
+      eventStore.persist(event2),
+      eventStore.persist(event3),
+      eventStore.persist(event4)
+    ]).then(function() {
+      Promise.all([
+        busytimeStore.persist(busyToday1),
+        busytimeStore.persist(busyToday2),
+        busytimeStore.persist(busyTomorrow),
+        busytimeStore.persist(busyTodayAllday)
+      ]).then(function() {
+        subject.init();
+        done();
+      });
     });
   });
 
-  teardown(function() {
-    timeController.purgeCache();
-    subject.removeAllListeners();
-    timeController.calendarStore = calendarStore;
-    timeController.findAssociated = findAssociated;
+  suiteTeardown(function(done) {
+    testSupport.calendar.clearStore(
+      app.db,
+      ['events', 'busytimes', 'calendars'],
+      done
+    );
+  });
+
+  suiteTeardown(function() {
     app.db.close();
   });
 
-  suite('#on', function() {
-    var clock;
+  teardown(function() {
+    subject.removeAllListeners();
+  });
 
-    setup(function() {
-      clock = sinon.useFakeTimers();
-    });
-
-    teardown(function() {
-      clock.restore();
-    });
-
-    test('cached', function(done) {
-      timeController.cacheBusytime(busyTomorrow);
-      timeController.cacheBusytime(busyToday1);
+  suite('empty cache', function() {
+    test('#on: today', function(done) {
       subject.on(today, function(records) {
-        assert.deepEqual(records, {
-          amount: 1,
-          allday: [],
-          events: [ _records.get(busyToday1) ]
-        });
-      });
-      clock.tick(delay);
-      // this catches the case where 2 listeners are added to same day but
-      // after the first dispatch
-      subject.on(today, function(records) {
-        assert.deepEqual(records, {
-          amount: 1,
-          allday: [],
-          events: [ _records.get(busyToday1) ]
-        });
+        assert.equal(records.amount, 0);
+        assert.deepEqual(records.basic, []);
+        assert.deepEqual(records.allday, []);
         done();
       });
     });
 
-    test('not cached', function(done) {
-      // we should call the handler even if no records because events might be
-      // deleted while the view is not active. that way we use the same code
-      // path for all cases (first render and updates)
-      timeController.cacheBusytime(busyToday1);
-      subject.on(yesterday, function(records) {
-        assert.deepEqual(records, {
-          amount: 0,
-          allday: [],
-          events: []
-        }, 'no records');
+    test('#findAssociated', function(done) {
+      subject.findAssociated(busyTomorrow._id).then(function(record) {
+        assert.deepEqual(record.busytime, busyTomorrow);
+        assert.deepEqual(record.event, event3);
         done();
       });
-      clock.tick(delay);
-    });
-
-    test('add more', function(done) {
-      timeController.cacheBusytime(busyToday1);
-      subject.on(today, function(records) {
-        assert.include(records.events, _records.get(busyToday1));
-        assert.include(records.events, _records.get(busyToday2));
-        assert.equal(records.amount, 2);
-        done();
-      });
-      timeController.cacheBusytime(busyToday2);
-      timeController.cacheBusytime(busyTomorrow);
-      clock.tick(delay);
-    });
-
-    test('multiple days', function() {
-      var event = Factory('event');
-      var multi = Factory('busytime', {
-        eventId: event._id,
-        startDate: yesterday,
-        endDate: tomorrow
-      });
-
-      _records.set(multi, {
-        event: event,
-        busytime: multi
-      });
-      var multiRecord = _records.get(multi);
-
-      var busies = [];
-      var alldays = [];
-
-      subject.on(yesterday, function(records) {
-        busies = busies.concat(records.events);
-      });
-      subject.on(today, function(records) {
-        alldays = alldays.concat(records.allday);
-      });
-      subject.on(tomorrow, function(records) {
-        busies = busies.concat(records.events);
-      });
-
-      timeController.cacheBusytime(multi);
-
-      clock.tick(delay);
-      assert.deepEqual(busies, [ multiRecord, multiRecord ]);
-      // on "today" event lasts the whole day
-      assert.deepEqual(alldays, [ multiRecord ]);
-    });
-
-    test('allday', function(done) {
-      timeController.cacheBusytime(busyToday1);
-      timeController.cacheBusytime(busyToday2);
-      timeController.cacheBusytime(busyTodayAllday);
-      subject.on(today, function(records) {
-        assert.deepEqual(records, {
-          allday: [ _records.get(busyTodayAllday) ],
-          events: [ _records.get(busyToday2), _records.get(busyToday1) ],
-          amount: 3
-        });
-        done();
-      });
-      clock.tick(delay);
     });
   });
 
-  suite('remove', function() {
-    var clock;
-    var callback = function() {
-      throw new Error('this should not be called');
-    };
-
-    setup(function() {
-      // it's very important to mock clock BEFORE adding listener!!! otherwise
-      // we might get an intermittent race condition (easier to reproduce on
-      // gaia-try and also when running these tests multiple times in a row)
-      clock = sinon.useFakeTimers();
-      subject.on(today, callback);
+  suite('cached', function() {
+    suiteSetup(function(done) {
+      // make sure we wait enough time until all records are loaded from DB
+      function onRecords(records) {
+        if (records.amount > 0) {
+          subject.off(today, onRecords);
+          done();
+        }
+      }
+      // ensures 'monthChange' triggers the load of busytimes, we are not
+      // calling `move()` because this is more flexible and less error prone
+      subject.timeController.emit('monthChange', today);
+      subject.on(today, onRecords);
     });
 
-    teardown(function() {
-      clock.restore();
+    test('#on: today', function(done) {
+      subject.on(today, function(records) {
+        assert.equal(records.amount, 3);
+        assert.deepEqual(records.basic, [
+          {
+            event: event1,
+            busytime: busyToday1
+          },
+          {
+            event: event2,
+            busytime: busyToday2
+          }
+        ]);
+        assert.deepEqual(records.allday, [
+          {
+            event: event4,
+            busytime: busyTodayAllday
+          }
+        ]);
+        done();
+      });
     });
 
-    test('off', function(done) {
-      subject.off(today, callback);
-      timeController.cacheBusytime(busyToday1);
-      clock.tick(delay);
-      done();
+    test('#on: tomorrow', function(done) {
+      subject.on(tomorrow, function(records) {
+        assert.equal(records.amount, 2);
+        assert.deepEqual(records.basic, [
+          {
+            event: event2,
+            busytime: busyToday2
+          },
+          {
+            event: event3,
+            busytime: busyTomorrow
+          }
+        ]);
+        assert.deepEqual(records.allday, []);
+        done();
+      });
     });
 
-    test('removeAllListeners', function(done) {
-      subject.removeAllListeners();
-      timeController.cacheBusytime(busyToday1);
-      clock.tick(delay);
-      done();
+    test('#on: yesterday', function(done) {
+      subject.on(yesterday, function(records) {
+        assert.equal(records.amount, 0);
+        assert.deepEqual(records.basic, []);
+        assert.deepEqual(records.allday, []);
+        done();
+      });
+    });
+
+    test('#on: yesterday + persist + remove + visibility', function(done) {
+      var count = 0;
+      var busyYesterday = Factory('busytime', {
+        calendarId: calendar._id,
+        eventId: event3._id,
+        startDate: yesterday
+      });
+      var busyYesterday2 = Factory('busytime', {
+        calendarId: calendar._id,
+        eventId: event4._id,
+        startDate: new Date(yesterday.getTime() + oneHour)
+      });
+      // events from hidden calendars should not be displayed
+      var busyYesterdayHidden = Factory('busytime', {
+        calendarId: hiddenCalendar._id,
+        eventId: event4._id,
+        startDate: new Date(yesterday.getTime() + oneHour)
+      });
+
+      subject.on(yesterday, function(records) {
+        count += 1;
+
+        // it should call it once without the new events to make sure our views
+        // are "eventually" in sync
+        if (count === 1) {
+          assert.equal(records.amount, 0);
+          assert.deepEqual(records.basic, []);
+          assert.deepEqual(records.allday, []);
+          return;
+        }
+
+        if (count === 2) {
+          assert.equal(records.amount, 2);
+          assert.deepEqual(records.basic, [
+            {
+              event: event3,
+              busytime: busyYesterday
+            },
+            {
+              event: event4,
+              busytime: busyYesterday2
+            }
+          ]);
+          assert.deepEqual(records.allday, []);
+          // remove busytime
+          subject.busytimeStore.remove(busyYesterday2._id);
+          return;
+        }
+
+        if (count === 3) {
+          assert.equal(records.amount, 1);
+          assert.deepEqual(records.basic, [
+            {
+              event: event3,
+              busytime: busyYesterday
+            }
+          ]);
+          assert.deepEqual(records.allday, []);
+          // toggle calendar visibility
+          subject.calendarStore.persist(Factory('calendar', {
+            _id: hiddenCalendar._id,
+            localDisplayed: true
+          }));
+          return;
+        }
+
+        assert.equal(records.amount, 2);
+        assert.deepEqual(records.basic, [
+          {
+            event: event3,
+            busytime: busyYesterday
+          },
+          {
+            event: event4,
+            busytime: busyYesterdayHidden
+          }
+        ]);
+        assert.deepEqual(records.allday, []);
+        done();
+      });
+
+      subject.busytimeStore.persist(busyYesterday);
+      subject.busytimeStore.persist(busyYesterday2);
+      subject.busytimeStore.persist(busyYesterdayHidden);
+    });
+
+    test('#findAssociated', function(done) {
+      subject.findAssociated(busyToday1._id).then(function(record) {
+        assert.deepEqual(record.busytime, busyToday1);
+        assert.deepEqual(record.event, event1);
+        done();
+      });
     });
   });
 });
-
 });
