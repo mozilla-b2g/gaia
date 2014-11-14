@@ -35,11 +35,14 @@ function addHandwritingSettings(appDirPath, distDirPath) {
   var content = utils.getFileContent(settings);
   var domDoc = parser.parseFromString(content, 'text/html');
 
-  // Add handwriting-settings.js
+  // Add handwriting_settings.js
+
+  var firstScriptElInHead = domDoc.head.querySelector('script');
+
   var script = domDoc.createElement('script');
   script.defer = 'defer';
-  script.src = 'js/settings/handwriting-settings.js';
-  domDoc.head.appendChild(script);
+  script.src = 'js/settings/handwriting_settings.js';
+  domDoc.head.insertBefore(script, firstScriptElInHead);
 
   // Modify html for handwriting settings.
   // If parse handwriting-settings.html to dom element, and
