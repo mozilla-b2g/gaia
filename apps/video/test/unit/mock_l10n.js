@@ -18,6 +18,7 @@
   };
 
   var MockL10n = {
+
     get: function get(key, params) {
       if (params) {
         return key + JSON.stringify(params);
@@ -31,7 +32,9 @@
     },
 
     ready: function ready() {
-    }
+    },
+
+    language: {direction: 'ltr'}
   };
 
   exports.MockL10n = MockL10n;

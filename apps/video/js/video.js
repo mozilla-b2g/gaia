@@ -800,6 +800,15 @@ function setControlsVisibility(visible) {
   }
 }
 
+function movePlayHead(percent) {
+  if (navigator.mozL10n.language.direction === 'ltr') {
+    dom.playHead.style.left = percent;
+  }
+  else {
+    dom.playHead.style.right = percent;
+  }
+}
+
 function updateVideoControlSlider() {
   // We update the slider when we get a 'seeked' event.
   // Don't do updates while we're seeking because the position we fastSeek()
@@ -821,7 +830,7 @@ function updateVideoControlSlider() {
   dom.elapsedTime.style.width = percent;
   // Don't move the play head if the user is dragging it.
   if (!dragging) {
-    dom.playHead.style.left = percent;
+    movePlayHead(percent);
   }
 }
 
@@ -1254,7 +1263,15 @@ function handleSliderTouchMove(event) {
     return;
   }
 
-  var pos = (touch.clientX - sliderRect.left) / sliderRect.width;
+  function getTouchPos() {
+    return (navigator.mozL10n.language.direction === 'ltr') ?
+       (touch.clientX - sliderRect.left) :
+       (sliderRect.right - touch.clientX);
+  }
+
+  var touchPos = getTouchPos();
+
+  var pos = touchPos / sliderRect.width;
   pos = Math.max(pos, 0);
   pos = Math.min(pos, 1);
 
@@ -1263,7 +1280,7 @@ function handleSliderTouchMove(event) {
   // we actually get a 'seeked' event.
   var percent = pos * 100 + '%';
   dom.playHead.classList.add('active');
-  dom.playHead.style.left = percent;
+  movePlayHead(percent);
   dom.elapsedTime.style.width = percent;
   dom.player.fastSeek(dom.player.duration * pos);
 }
