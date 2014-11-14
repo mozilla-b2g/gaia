@@ -293,6 +293,11 @@ PreferencesBuilder.prototype.setDebugPref = function() {
                '' : '@' + this.config.GAIA_DEV_PIXELS_PER_PX + 'x';
   this.userPrefs['extensions.gaia.device_pixel_suffix'] = suffix;
   this.userPrefs['extensions.autoDisableScopes'] = 0;
+
+  // electrolysis breaks the app:// protocol as registered by httpd.js
+  // see Bug 1097912
+  this.userPrefs['browser.tabs.remote.autostart'] = false;
+  this.userPrefs['browser.tabs.remote.autostart.1'] = false;
 };
 
 PreferencesBuilder.prototype.setDeviceDebugPref = function() {
