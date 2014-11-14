@@ -1,5 +1,3 @@
-/* global console */
-
 /**
  * VersionDetector:
  *   - VersionDetector is an detector that identify the version of platform
@@ -14,6 +12,14 @@ define(function(require) {
 
   var NavigatorBluetooth = require('modules/navigator/mozBluetooth');
 
+  var _debug = false;
+  var Debug = function() {};
+  if (_debug) {
+    Debug = function vd_debug(msg) {
+      console.log('--> [VersionDetector]: ' + msg);
+    };
+  }
+
   var VersionDetector = {
     /**
      * The value indicates whether the API version is responding.
@@ -22,17 +28,18 @@ define(function(require) {
      * @memberOf VersionDetector
      * @return {number}
      */
-    getVersion: function() {
+    getVersion: function vd_getVersion() {
       if (!NavigatorBluetooth) {
-        console.error('[VersionDetector]: ' +
-                      'navigator.mozBluetooth is not existed!!');
+        Debug('[VersionDetector]: navigator.mozBluetooth is not existed!!');
         // Since there is no navigator.mozBluetooth on B2G Desktop,
         // we workaround to return version 1 for Gaia UI test case.
         return 1;
       } else if
         (typeof(NavigatorBluetooth.onattributechanged) !== 'undefined') {
+        Debug('[VersionDetector]: navigator.mozBluetooth is version 2!!');
         return 2;
       } else {
+        Debug('[VersionDetector]: navigator.mozBluetooth is version 1!!');
         return 1;
       }
     }
