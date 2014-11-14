@@ -59,7 +59,7 @@
     },
     "share": {
       "filters": {
-        "type": ["audio/*", "image/*", "url", "video/*"]
+        "type": ["audio/*", "image/*", "url", "video/*", "application/*"]
       },
       "disposition": "window",
       "returnValue": true
