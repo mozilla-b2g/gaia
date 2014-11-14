@@ -31,6 +31,7 @@ System.Selector = Object.freeze({
   appChromeForward: '.appWindow.active .forward-button',
   appChromeContextLink: '.appWindow.active .menu-button',
   appChromeContextMenu: '.appWindow.active .contextmenu',
+  appChromeContextNewPrivate: '.appWindow.active [data-id=new-private-window]',
   appChromeContextMenuNewWindow: '.appWindow.active [data-id=new-window]',
   appChromeContextMenuBookmark: '.appWindow.active [data-id=add-to-homescreen]',
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
@@ -133,6 +134,11 @@ System.prototype = {
   get appChromeContextMenu() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeContextMenu);
+  },
+
+  get appChromeContextNewPrivate() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextNewPrivate);
   },
 
   get appChromeContextMenuNewWindow() {

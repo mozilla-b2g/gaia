@@ -48,6 +48,10 @@
       browser.setAttribute('remote', 'true');
     }
 
+    if (config.isPrivate) {
+      browser.setAttribute('mozprivatebrowsing', 'true');
+    }
+
     if (config.manifestURL) {
       browser.setAttribute('mozapp', config.manifestURL);
 

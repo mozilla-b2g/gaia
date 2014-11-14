@@ -582,6 +582,10 @@
       this.element.classList.add('browser');
     }
 
+    if (this.isPrivateBrowser()) {
+      this.element.classList.add('private');
+    }
+
     this.browserContainer = this.element.querySelector('.browser-container');
     this.browserContainer.appendChild(this.browser.element);
 
@@ -629,6 +633,15 @@
    */
   AppWindow.prototype.isBrowser = function aw_isbrowser() {
     return !this.manifestURL;
+  };
+
+  /**
+   * Checks if an appWindow is a private window.
+   *
+   * @return {Boolean} is the current instance a private window.
+   */
+  AppWindow.prototype.isPrivateBrowser = function aw_isprivate() {
+    return !!this.browser_config.isPrivate;
   };
 
   /**

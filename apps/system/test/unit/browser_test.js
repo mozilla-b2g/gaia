@@ -54,4 +54,21 @@ suite('system/Browser', function() {
     assert.equal(app.url, 'http://arandomurl.com/');
     assert.equal(app.origin, 'http://arandomurl.com/');
   });
+
+  test('when private browsing is requested', function() {
+    MockNavigatormozSetMessageHandler.mTrigger('activity', {
+      source: {
+        data: {
+          name: 'view',
+          type: 'url',
+          url: 'http://arandomurl.com',
+          isPrivate: true
+        }
+      }
+    });
+
+    assert.equal(MockAppWindowHelper.mInstances.length, 1);
+    var app = MockAppWindowHelper.mLatest;
+    assert.equal(app.isPrivate, true);
+  });
 });
