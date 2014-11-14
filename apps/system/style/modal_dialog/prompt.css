@@ -6,7 +6,7 @@
  * ---------------------------------- */
 
 [role="dialog"] p {
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.2rem;
   color: #FAFAFA;
   margin: 1rem 0 0 0;
@@ -20,7 +20,7 @@
 }
 
 [role="dialog"] .content {
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.2rem;
   color: #fff;
   border-bottom: 0.1rem solid #777;
@@ -34,7 +34,7 @@
 }
 
 [role="dialog"] .content strong {
-  font-weight: lighter;
+  font-weight: 300;
 }
 
 [role="dialog"] .content small {

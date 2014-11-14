@@ -7,7 +7,7 @@
   letter-spacing: -0.5rem;
   font-variant-numeric: tabular-nums;
   -moz-font-feature-settings: "tnum";
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 8.6rem;
   color: #CFE2E6;
   pointer-events: none;

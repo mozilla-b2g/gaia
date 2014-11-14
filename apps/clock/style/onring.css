@@ -50,20 +50,20 @@ html.ready {
 }
 
 #ring-clock-time {
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 3.13rem;
   line-height: 5.63rem;
   width: 100%;
 }
 
 #ring-clock-time small {
-  font-weight: lighter;
+  font-weight: 300;
   font-size: inherit;
   line-height: 5rem;
 }
 
 #ring-label {
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.50rem;
   line-height: 3.25rem;
   text-overflow: ellipsis;
