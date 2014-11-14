@@ -164,8 +164,26 @@ suite('system/InputWindow', function() {
   });
 
   suite('setHeight()', function() {
-    setup(function() {
-      this.sinon.stub(app, '_getDpx').returns(2.5);
+    var oldDevicePixelRatio;
+
+    suiteSetup(function() {
+      oldDevicePixelRatio = window.devicePixelRatio;
+
+      Object.defineProperty(window, 'devicePixelRatio', {
+        get: function() {
+          return 2.5;
+        },
+        configurable: true
+      });
+    });
+
+    suiteTeardown(function() {
+      Object.defineProperty(window, 'devicePixelRatio', {
+        get: function() {
+          return oldDevicePixelRatio;
+        },
+        configurable: true
+      });
     });
 
     test('without rounding', function () {
