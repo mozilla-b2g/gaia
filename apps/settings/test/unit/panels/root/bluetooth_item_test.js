@@ -11,7 +11,7 @@ suite('BluetoothItem', function() {
       'modules/bluetooth/version_detector': 'MockVersionDetector',
       'modules/settings_service': 'MockSettingsService',
       'modules/bluetooth/bluetooth_v1': 'MockBluetooth_v1',
-      'modules/bluetooth/bluetooth': 'MockBluetooth_v2'
+      'modules/bluetooth/bluetooth_context': 'MockBluetooth_v2'
     }
   };
 
