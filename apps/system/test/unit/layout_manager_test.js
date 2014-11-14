@@ -32,14 +32,94 @@ suite('system/LayoutManager >', function() {
   });
 
   suite('handle events', function() {
-    test('resize', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
-        type: 'resize'
+    suite('resize', function() {
+      var oldMozOrientation;
+      var stubPublish;
+
+      setup(function() {
+        oldMozOrientation = screen.mozOrientation;
+        stubPublish = this.sinon.stub(layoutManager, 'publish');
       });
-      assert.isFalse(layoutManager.keyboardEnabled);
-      assert.isTrue(stubPublish.calledWith('system-resize'));
-      assert.isTrue(stubPublish.calledWith('orientationchange'));
+
+      teardown(function() {
+        Object.defineProperty(screen, 'mozOrientation', {
+          get: function(){
+            return oldMozOrientation;
+          }
+        });
+      });
+
+      var setMozOrientation = function (orientation) {
+        Object.defineProperty(screen, 'mozOrientation', {
+          get: function(){
+            return orientation;
+          },
+          configurable: true
+        });
+      };
+
+      test('Do not publish system-resize if keyboard is showing and' +
+           'orientation has changed', function() {
+        layoutManager.keyboardEnabled = true;
+        layoutManager._lastOrientation = 'portrait-secondary';
+
+        setMozOrientation('landscape-secondary');
+
+        layoutManager.handleEvent({
+          type: 'resize'
+        });
+        assert.isFalse(stubPublish.calledWith('system-resize'));
+        assert.isTrue(stubPublish.calledWith('orientationchange'));
+      });
+
+      test('Publish system-resize if keyboard is showing and' +
+           'orientation has not changed', function() {
+        layoutManager.keyboardEnabled = true;
+        layoutManager._lastOrientation = 'portrait-secondary';
+
+        setMozOrientation('portrait-secondary');
+
+        layoutManager.handleEvent({
+          type: 'resize'
+        });
+        assert.isTrue(stubPublish.calledWith('system-resize'));
+        assert.isTrue(stubPublish.calledWith('orientationchange'));
+      });
+
+      test('Publish system-resize if keyboard is not showing', function() {
+        layoutManager.keyboardEnabled = false;
+        layoutManager._lastOrientation = 'portrait-secondary';
+
+        setMozOrientation('landscape-secondary');
+
+        layoutManager.handleEvent({
+          type: 'resize'
+        });
+        assert.isTrue(stubPublish.calledWith('system-resize'));
+        assert.isTrue(stubPublish.calledWith('orientationchange'));
+
+        stubPublish.reset();
+
+        // this time orientation isn't changed; we send system-resize too.
+        layoutManager.handleEvent({
+          type: 'resize'
+        });
+        assert.isTrue(stubPublish.calledWith('system-resize'));
+        assert.isTrue(stubPublish.calledWith('orientationchange'));
+      });
+
+      test('_lastOrientation is correctly remembered', function() {
+        layoutManager.keyboardEnabled = false;
+        layoutManager._lastOrientation = 'portrait-secondary';
+
+        setMozOrientation('landscape-secondary');
+
+        layoutManager.handleEvent({
+          type: 'resize'
+        });
+
+        assert.equal(layoutManager._lastOrientation, 'landscape-secondary');
+      });
     });
 
     test('attentionwindowmanager-deactivated', function() {

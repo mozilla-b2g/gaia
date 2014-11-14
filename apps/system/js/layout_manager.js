@@ -98,6 +98,13 @@
     keyboardEnabled: false,
 
     /**
+     * The orientation we keep each time we encounter resize event.
+     * @type {String}
+     * @memberOf LayoutManager
+     */
+    _lastOrientation: undefined,
+
+    /**
      * Startup. Adds all event listeners needed.
      * @return {LayoutManager} this object
      * @memberOf LayoutManager
@@ -111,6 +118,8 @@
       window.addEventListener('software-button-disabled', this);
       window.addEventListener('attentionwindowmanager-deactivated', this);
       window.addEventListener('lockscreen-appclosed', this);
+
+      this._lastOrientation = screen.mozOrientation;
     },
 
     handleEvent: function lm_handleEvent(evt) {
@@ -128,9 +137,15 @@
           this.publish('system-resize');
           break;
         case 'resize':
-          this.keyboardEnabled = false;
-          this.publish('system-resize');
+          // bug 1073806: do not publish |system-resize| if keyboard is showing
+          // and we've just changed orientation: |keyboardchange| will trigger
+          // later and we'll resize then.
+          if (!(screen.mozOrientation !== this._lastOrientation &&
+                this.keyboardEnabled)) {
+            this.publish('system-resize');
+          }
           this.publish('orientationchange');
+          this._lastOrientation = screen.mozOrientation;
           break;
         case 'lockscreen-appclosed':
           // If the software button is enabled it will be un-hidden when
