@@ -40,6 +40,7 @@ class Settings(Base):
     _battery_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
     _homescreen_menu_item_locator = (By.ID, 'menuItem-homescreen')
+    _browsing_privacy_item_locator = (By.ID, 'menuItem-browsingPrivacy')
 
     def launch(self):
         Base.launch(self)
@@ -187,6 +188,11 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.homescreen_settings import HomescreenSettings
         self._tap_menu_item(self._homescreen_menu_item_locator)
         return HomescreenSettings(self.marionette)
+
+    def open_browsing_privacy_settings(self):
+        from gaiatest.apps.settings.regions.browsing_privacy import BrowsingPrivacy
+        self._tap_menu_item(self._browsing_privacy_item_locator)
+        return BrowsingPrivacy(self.marionette)
 
     @property
     def is_airplane_mode_visible(self):

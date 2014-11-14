@@ -3,7 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from gaiatest.apps.base import Base
+
 from marionette.by import By
+from marionette.wait import Wait
+from marionette import expected
 
 
 class Search(Base):
@@ -12,6 +15,7 @@ class Search(Base):
     manifest_url = "app://search.gaiamobile.org/manifest.webapp"
 
     _url_bar_locator = (By.CSS_SELECTOR, 'div.search-app .urlbar .title')
+    _history_item_locator = (By.CSS_SELECTOR, '#history .result')
 
     def go_to_url(self, url):
         # The URL bar shown is actually in the system app not in this Search app.
@@ -23,3 +27,13 @@ class Search(Base):
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
         search_panel = SearchPanel(self.marionette)
         return search_panel.go_to_url(url)
+
+    @property
+    def history_items_count(self):
+        return len(self.marionette.find_elements(*self._history_item_locator))
+
+    def wait_for_history_to_load(self, number_of_items=1):
+        if number_of_items == 0:
+            self.wait_for_element_not_displayed(*self._history_item_locator)
+        else:
+            Wait(self.marionette).until(lambda m: len(m.find_elements(*self._history_item_locator)) == number_of_items)
