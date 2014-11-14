@@ -328,8 +328,8 @@ span.icon.icon-delete {
 span.icon.icon-addimage {
   background-image: url(/contacts/style/gphx/bitmap/default/forms/add.png);
   background-size: 3rem;
-  width: 3rem;
-  height: 2.9rem;
+  width: 7rem;
+  height: 3rem;
 }
 
 span.icon.icon-address {
@@ -469,22 +469,14 @@ li button.icon-find-and-merge:before {
 }
 
 .fillflow-media .edit-photo {
-  top: 0;
-  right: 5rem;
   z-index: 1;
-  margin: 0;
   display: none;
   pointer-events: none;
-}
-
-.fillflow-media .edit-photo em {
-  color: #858585;
-  margin-top: 7rem;
+  margin-top: 3.6rem;
 }
 
 .with-photo .edit-photo {
   display: block;
-  width: 7rem;
 }
 
 .fillflow-media #photo-button {
