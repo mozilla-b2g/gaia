@@ -1401,6 +1401,7 @@ var ThreadUI = {
         // stop the iteration
         return false;
       }
+      Threads.registerMessage(message);
       this.appendMessage(message,/*hidden*/ true);
       this.messageIndex++;
       if (this.messageIndex === this.CHUNK_SIZE) {
@@ -1774,7 +1775,9 @@ var ThreadUI = {
     // Do we remove all messages of the Thread?
     if (!ThreadUI.container.firstElementChild) {
       // Remove the thread from DOM and go back to the thread-list
-      ThreadListUI.removeThread(Threads.currentId);
+      var threadId = Threads.currentId;
+      ThreadListUI.removeThread(threadId);
+      Threads.delete(threadId);
       callback();
       this.backOrClose();
     } else {
@@ -1806,6 +1809,10 @@ var ThreadUI = {
       // Complete deletion in DB and in UI
       MessageManager.deleteMessages(delNumList,
         function onDeletionDone() {
+
+          // Unregister message(s) from cache
+          delNumList.forEach(Threads.unregisterMessage);
+
           ThreadUI.deleteUIMessages(delNumList, function uiDeletionDone() {
             ThreadUI.cancelEdit();
             WaitingScreen.hide();
@@ -2805,8 +2812,8 @@ var ThreadUI = {
     if (this.draft) {
       Drafts.delete(this.draft).store();
       if (Threads.active) {
-        Threads.active.timestamp = Date.now();
-        ThreadListUI.updateThread(Threads.active);
+        Threads.active.timestamp = Threads.active.lastMessageTimestamp;
+        ThreadListUI.updateThread(Threads.active, {restore: true});
       } else {
         ThreadListUI.removeThread(this.draft.id);
       }
