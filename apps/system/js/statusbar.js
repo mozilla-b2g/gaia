@@ -1024,14 +1024,21 @@ var StatusBar = {
       }
 
       var icon = this.icons.battery;
+      var previousLevel = parseInt(icon.dataset.level, 10);
+      var previousCharging = icon.dataset.charging === 'true';
 
       icon.dataset.charging = battery.charging;
       var level = Math.floor(battery.level * 10) * 10;
-      icon.dataset.level = level;
-      icon.setAttribute('aria-label', navigator.mozL10n.get(battery.charging ?
-        'statusbarBatteryCharging' : 'statusbarBattery', {
+
+      if (previousLevel !== level || previousCharging !== battery.charging) {
+        icon.dataset.level = level;
+        icon.setAttribute('aria-label', navigator.mozL10n.get(battery.charging ?
+          'statusbarBatteryCharging' : 'statusbarBattery', {
           level: level
         }));
+
+        this.cloneStatusbar();
+      }
     },
 
     networkActivity: function sb_updateNetworkActivity() {
