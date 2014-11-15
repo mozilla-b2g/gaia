@@ -584,9 +584,9 @@
   #calls:not(.big-duration) > section.ended,
   #calls.big-duration:not(.big-duration) > section.held .numberWrapper,
   #calls.big-duration:not(.big-duration) > section.held .additionalContactInfo,
-  #calls.big-duration:not(.single-line) > section.held .numberWrapper,
-  #calls.big-duration:not(.single-line) > section.held .additionalContactInfo,
-  #calls.big-duration:not(.single-line) > section.held .switch-calls,
+  body:not(.single-line) #calls.big-duration > section.held .numberWrapper,
+  body:not(.single-line) #calls.big-duration > section.held .additionalContactInfo,
+  body:not(.single-line) #calls.big-duration > section.held .switch-calls,
   #calls.big-duration > section.held .switch-calls,
   #calls.big-duration > section.ended .numberWrapper,
   #calls.big-duration > section.ended .additionalContactInfo {
@@ -610,7 +610,7 @@
   #calls > section.ended .numberWrapper .number,
   #calls > section.ended .additionalContactInfo,
   #calls.big-duration > section.ended .additionalContactInfo,
-  #calls.big-duration:not(.single-line) > section.held .additionalContactInfo {
+  body:not(.single-line) #calls.big-duration > section.held .additionalContactInfo {
     color: rgba(255, 255, 255, 0.6);
   }
 
