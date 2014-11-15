@@ -148,6 +148,10 @@
   z-index: 4093;
 }
 
+#screen > .selection-border {
+  z-index: 4098;
+}
+
 /* Level 6: Lock Screen */
 
 #screen > [data-z-index-level="app"] > .secureAppWindow.active:not(.homescreen)
