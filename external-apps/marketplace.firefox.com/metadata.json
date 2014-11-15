@@ -1,9 +1,9 @@
 {
-  "etag": "\"fe5d6eff5e2bddd6ce6eb87ca3927693588a1edd4e0175d8c6326a26ea205ce3\"",
+  "etag": "\"587adcbc96af96c8ccbde792e75fd2ec6d3dbbe04c468228384582d78df0e13e\"",
   "installOrigin": "https://marketplace.firefox.com",
-  "manifestURL": "https://marketplace.firefox.com/marketplace-package.webapp",
-  "origin": "app://marketplace.firefox.com",
-  "packageEtag": "\"158bd89c73634551c1f1dd73d2cc7876871a8667fcf74934f2b21c79e684c78a\"",
+  "manifestURL": "https://marketplace.firefox.com/marketplace-tarako.webapp",
+  "origin": "app://tarako.marketplace.firefox.com",
+  "packageEtag": "\"5666672d756bb21ee8002b4249d94817d408d4cefe61cef26ab581b9bbcc52a5\"",
   "removable": false,
   "type": "privileged"
 }
