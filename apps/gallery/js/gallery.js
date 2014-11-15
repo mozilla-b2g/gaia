@@ -106,9 +106,6 @@ var videostorage;
 
 var isInitThumbnail = false;
 
-// If we're doing a pick activity, this variable will be true
-var picking;
-
 // Flag that indicates that we've edited a picture and just saved it
 var justSavedEditedImage = false;
 
@@ -166,7 +163,7 @@ function init() {
   $('thumbnails-share-button').onclick = shareSelectedItems;
 
   Overlay.addEventListener('cancel', function() {
-    if (picking) {
+    if (Pick.isPicking()) {
       Pick.cancel();
     }
   });
@@ -211,9 +208,8 @@ function init() {
       }
       break;
     case 'pick':
-      picking = true;
       initDB();
-      LazyLoader.load('js/pick.js', function() { Pick.start(a); });
+      Pick.start(a);
       break;
     }
   });
@@ -264,7 +260,7 @@ function initDB() {
     // Switch back to the thumbnail view unless it is a pick activity.
     // If we were viewing or editing an image it might not be there
     // anymore when the MediaDB becomes available again.
-    if (!pendingPick) {
+    if (!Pick.isPicking()) {
       setView(LAYOUT_MODE.list);
     } else {
       setView(LAYOUT_MODE.pick);
@@ -330,7 +326,7 @@ function initDB() {
   // a photo that is no longer available.
   photodb.oncardremoved = function oncardremoved() {
     // If the user pulls the sdcard while trying to pick an image, give up
-    if (picking) {
+    if (Pick.isPicking()) {
       Pick.cancel();
       return;
     }
@@ -438,7 +434,7 @@ function initThumbnails() {
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
     if (fileinfo) {
       // For a pick activity, don't display videos
-      if (picking && fileinfo.metadata.video)
+      if (Pick.isPicking() && fileinfo.metadata.video)
         return;
 
       // Bug 1003036 fixed an issue where explicitly created preview
@@ -605,7 +601,7 @@ function deleteFile(n) {
 function fileCreated(fileinfo) {
   // If the new file is a video and we're handling an image pick activity
   // then we won't display the new file.
-  if (picking && fileinfo.metadata.video)
+  if (Pick.isPicking() && fileinfo.metadata.video)
     return;
 
   // The fileinfo object that MediaDB sends us has a thumbnail blob in it,
@@ -767,7 +763,7 @@ function thumbnailClickHandler(evt) {
     return;
 
   var index = getFileIndex(target.dataset.filename);
-  if (picking && currentView === LAYOUT_MODE.pick && index >= 0) {
+  if (Pick.isPicking() && currentView === LAYOUT_MODE.pick && index >= 0) {
       Pick.select(files[index]);
   } else if (currentView === LAYOUT_MODE.select) {
     updateSelection(target);

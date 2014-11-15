@@ -30,6 +30,7 @@
  *  Pick.start() and Pick.crop().
  */
 var Pick = (function() {
+  var picking;
   var request;
   var pickType;
   var pickWidth, pickHeight;
@@ -39,6 +40,7 @@ var Pick = (function() {
 
   // Called when we are first start up with the activity request object
   function start(activity) {
+    picking = true;
     request = activity;
     pickType = request.source.data.type;
 
@@ -323,11 +325,16 @@ var Pick = (function() {
     setView(LAYOUT_MODE.pick);
   }
 
+  function isPicking() {
+    return picking;
+  }
+
   return {
     start: start,
     select: select,
     cancel: cancel,
     restart: restart,
-    end: end
+    end: end,
+    isPicking: isPicking
   };
 }());
