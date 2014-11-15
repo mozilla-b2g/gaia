@@ -124,11 +124,6 @@
                                  );
   };
 
-  // wrap it so we can mock it for testing
-  InputWindow.prototype._getDpx = function iw_getDpx() {
-    return window.devicePixelRatio;
-  };
-
   InputWindow.prototype._setHeight = function iw_setHeight(height) {
     // bug 1059683: when we're on a HiDPI device with non-integer
     // devicePixelRatio the system may calculate (from available screen height
@@ -139,7 +134,7 @@
     // height if it sees that the height of the keyboard is a fraction when
     // expressed in device pixel.
 
-    var dpx = this._getDpx();
+    var dpx = window.devicePixelRatio;
     if ((height * dpx) % 1 !== 0) {
       height = Math.floor(height * dpx) / dpx;
     }
