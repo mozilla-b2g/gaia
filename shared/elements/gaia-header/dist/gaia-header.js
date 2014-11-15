@@ -154,6 +154,8 @@ var actionTypes = {
   close: true
 };
 
+const KNOWN_ATTRIBUTES = ['start', 'end', 'action'];
+
 /**
  * Called when the element is first created.
  *
@@ -163,6 +165,8 @@ var actionTypes = {
  * @private
  */
 proto.createdCallback = function() {
+  KNOWN_ATTRIBUTES.forEach((name) => this._updateAttribute(name));
+
   this.createShadowRoot().innerHTML = template;
 
   // Get els
@@ -177,8 +181,6 @@ proto.createdCallback = function() {
   this.setupInteractionListeners();
   this.configureActionButton();
   this.shadowStyleHack();
-  this.runFontFit();
-  this.setupRtl();
 };
 
 /**
@@ -189,7 +191,7 @@ proto.createdCallback = function() {
  */
 proto.attachedCallback = function() {
   this.restyleShadowDom();
-  this.rerunFontFit();
+  this.runFontFit();
   this.setupRtl();
 };
 
@@ -248,7 +250,7 @@ proto.setupRtl = function() {
     mutations.forEach(function(mutation) {
       if (mutation.attributeName !== 'dir') { return; }
       this.configureRtl();
-      this.rerunFontFit();
+      this.runFontFit();
     }, self);
   }
 };
@@ -313,6 +315,17 @@ proto.restyleShadowDom = function() {
 };
 
 /**
+ * Initialize the text node observer
+ *
+ * @private
+ */
+proto.initFontFit = function() {
+  for (var i = 0; i < this.els.headings.length; i++) {
+    fontFit.observeHeadingChanges(this.els.headings[i]);
+  }
+}
+
+/**
  * Runs the logic to size and position
  * header text inside the available space.
  *
@@ -321,20 +334,6 @@ proto.restyleShadowDom = function() {
 proto.runFontFit = function() {
   for (var i = 0; i < this.els.headings.length; i++) {
     fontFit.reformatHeading(this.els.headings[i]);
-    fontFit.observeHeadingChanges(this.els.headings[i]);
-  }
-};
-
-/**
- * Rerun font-fit logic.
- *
- * TODO: We really need an official API for this.
- *
- * @private
- */
-proto.rerunFontFit = function() {
-  for (var i = 0; i < this.els.headings.length; i++) {
-    this.els.headings[i].textContent = this.els.headings[i].textContent;
   }
 };
 
@@ -345,10 +344,31 @@ proto.rerunFontFit = function() {
  * @private
  */
 proto.attributeChangedCallback = function(attr, oldVal, newVal) {
+  if (KNOWN_ATTRIBUTES.indexOf(attr) === -1) {
+    return;
+  }
+
+  this._updateAttribute(attr);
+
   if (attr === 'action') {
     this.configureActionButton();
     fontFit.reformatHeading(this._heading);
   }
+};
+
+
+proto._updateAttribute = function(name) {
+  var newVal = this.getAttribute(name);
+  switch (name) {
+    case 'start':
+    case 'end':
+      if (newVal === null) {
+        newVal = 0;
+      }
+      break;
+    default:
+  }
+  this['_' + name] = newVal;
 };
 
 /**
@@ -358,7 +378,7 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
  * @public
  */
 proto.triggerAction = function() {
-  if (this.isSupportedAction(this.getAttribute('action'))) {
+  if (this.isSupportedAction(this._action)) {
     this.els.actionButton.click();
   }
 };
@@ -372,7 +392,7 @@ proto.triggerAction = function() {
  */
 proto.configureActionButton = function() {
   var old = this.els.actionButton.getAttribute('icon');
-  var type = this.getAttribute('action');
+  var type = this._action;
   var supported = this.isSupportedAction(type);
   this.els.actionButton.classList.remove('icon-' + old);
   this.els.actionButton.setAttribute('icon', type);
@@ -400,7 +420,7 @@ proto.isSupportedAction = function(action) {
  * @private
  */
 proto.onActionButtonClick = function(e) {
-  var config = { detail: { type: this.getAttribute('action') } };
+  var config = { detail: { type: this._action } };
   var actionEvent = new CustomEvent('action', config);
   setTimeout(this.dispatchEvent.bind(this, actionEvent));
 };
