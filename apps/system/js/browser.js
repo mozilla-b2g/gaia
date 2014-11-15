@@ -1,17 +1,15 @@
-/* global UrlHelper */
+/* global UrlHelper, BrowserConfigHelper */
 
 (function() {
 
   'use strict';
 
   function handleOpenUrl(url) {
-    var configObject = {
-      oop: true,
-      useAsyncPanZoom: true,
-      url: url
-    };
+    var config = new BrowserConfigHelper({url: url});
+    config.useAsyncPanZoom = true;
+    config.oop = true;
     window.dispatchEvent(new CustomEvent('openwindow', {
-      detail: configObject
+      detail: config
     }));
   }
 
