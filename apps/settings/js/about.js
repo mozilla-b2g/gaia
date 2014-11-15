@@ -12,8 +12,9 @@ var About = {
 
   loadLastUpdated: function about_loadLastUpdated() {
     var settings = Settings.mozSettings;
-    if (!settings)
+    if (!settings){
       return;
+    }
 
     var lastUpdateDate = document.getElementById('last-update-date');
     var lock = settings.createLock();
@@ -110,25 +111,49 @@ var About = {
     };
 
     updateStatus.classList.add('checking', 'visible');
+    systemStatus.setAttribute('data-l10n-id', 'checking-for-update');
 
     function checkIfStatusComplete() {
-      var hasAllCheckComplete =
-        Object.keys(checkStatus).every(function(setting) {
-          return checkStatus[setting].value === 'check-complete';
+
+      var l10nValues = [
+        'check-complete',
+        'retry-when-online',
+        'already-latest-version',
+        'no-updates'
+      ];
+
+      var getReponses = function() {
+        var responses = Object.keys(checkStatus).map(function(setting) {
+          return checkStatus[setting];
         });
+
+        var responseIndexes = responses.map(function(status) {
+          //the order of elements in l10nValues implies its priority to be shown
+          return l10nValues.indexOf(status.value);
+        });
+
+        var overallStatusIndex = Math.min.apply(Math, responseIndexes);
+        if (overallStatusIndex == -1) {
+          return 'check-error';
+        }
+        else {
+          return l10nValues[overallStatusIndex];
+        }
+      };
 
       var hasAllResponses =
         Object.keys(checkStatus).every(function(setting) {
           return !!checkStatus[setting].value;
         });
 
-      if (hasAllCheckComplete) {
-        updateStatus.classList.remove('visible');
-        systemStatus.textContent = '';
-      }
-
       if (hasAllResponses) {
         updateStatus.classList.remove('checking');
+        var response = getReponses();
+        if (response != 'check-error') {
+            systemStatus.setAttribute('data-l10n-id', response);
+            return;
+        }
+        console.error('Error checking for system update:', response);
       }
     }
 
@@ -140,6 +165,7 @@ var About = {
        * possible return values:
        *
        * - for system updates:
+       *   - active-update
        *   - no-updates
        *   - already-latest-version
        *   - check-complete
@@ -155,25 +181,11 @@ var About = {
        * to check if this is still current
        */
 
-      var l10nValues = [
-        'no-updates', 'already-latest-version', 'retry-when-online'];
-
-      if (value !== 'check-complete') {
-        var id = l10nValues.indexOf(value) !== -1 ? value : 'check-error';
-        systemStatus.setAttribute('data-l10n-id', id);
-        if (id == 'check-error') {
-          console.error('Error checking for system update:', value);
-        }
-      }
-
       checkIfStatusComplete();
 
       settings.removeObserver(setting, checkStatus[setting].cb);
       checkStatus[setting].cb = null;
     }
-
-    /* remove whatever was there before */
-    systemStatus.textContent = '';
 
     for (var setting in checkStatus) {
       checkStatus[setting].cb = onUpdateStatus.bind(null, setting);
