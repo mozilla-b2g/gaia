@@ -1036,6 +1036,12 @@ suite('lib/camera/camera', function() {
         done();
       });
     });
+
+    test('Should clear cached camera parameters', function() {
+      this.camera.pictureSize = { width: 400, height: 300 };
+      this.camera.release();
+      assert.ok(!this.camera.pictureSize);
+    });
   });
 
   suite('Camera#firstLoad()', function() {
