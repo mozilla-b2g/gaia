@@ -10,6 +10,9 @@ var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 marionette('mozChromeNotifications:', function() {
 
   var client = marionette.client({
+    prefs: {
+      'dom.notifications.mozchromenotifications.allow_resend_overwrite': true
+    },
     settings: {
       'ftu.manifestURL': null,
       'lockscreen.enabled': false
@@ -199,7 +202,8 @@ marionette('mozChromeNotifications:', function() {
           'Unexpected number of notifications: expected 1');
       }
 
-      nodes = container.removeChild(nodes[0]).querySelectorAll(selector);
+      nodes[0].remove();
+      nodes = container.querySelectorAll(selector);
       if (nodes.length !== 0) {
         marionetteScriptFinished('Node should have disappeared');
       }
