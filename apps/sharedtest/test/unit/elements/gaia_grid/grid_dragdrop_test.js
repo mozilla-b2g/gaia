@@ -57,8 +57,10 @@ suite('GaiaGrid > DragDrop', function() {
   mocksHelperForDragDrop.attachTestHelpers();
 
   suiteSetup(function() {
-    document.body.innerHTML = '<div id="zoom"><div class="arrows">' +
-    '</div><div class="curtain"></div><div class="indicator"></div></div>';
+    document.head.innerHTML += '<meta name="urlbar-control">';
+    document.body.innerHTML = `<div class="arrows"></div>
+      <div class="curtain"></div>
+      <div class="indicator"></div>`;
     this.container = document.createElement('div');
 
     this.container.innerHTML = '<gaia-grid dragdrop group></gaia-grid>';

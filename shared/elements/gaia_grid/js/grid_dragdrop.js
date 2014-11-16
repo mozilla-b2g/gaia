@@ -91,6 +91,13 @@
     },
 
     /**
+     * Gets the urlbar control meta tag.
+     */
+    get urlbarControlMeta() {
+     return document.head.querySelector('meta[name="urlbar-control"]');
+    },
+
+    /**
      * Begins the drag/drop interaction.
      * Enlarges the icon.
      * Sets additional data to make the touchmove handler faster.
@@ -548,7 +555,22 @@
       this.gridView.render();
     },
 
+    minimizeRocketbar: function() {
+      var meta = this.urlbarControlMeta;
+      if (meta) {
+        meta.setAttribute('content', 'minimized');
+      }
+    },
+
+    restoreRocketbar: function() {
+      var meta = this.urlbarControlMeta;
+      if (meta) {
+        this.urlbarControlMeta.setAttribute('content', 'default');
+      }
+    },
+
     enterEditMode: function() {
+      this.minimizeRocketbar();
       this.inEditMode = true;
       this.container.classList.add('edit-mode');
       document.body.classList.add('edit-mode');
@@ -564,6 +586,8 @@
         this.finish();
         this.finalize();
       }
+
+      this.restoreRocketbar();
 
       this.inEditMode = false;
       this.container.classList.remove('edit-mode');

@@ -11,7 +11,7 @@
   };
 
   function StatusBar() {
-    this.threshold = document.getElementById('search').clientHeight;
+    this.threshold = 0;
 
     if (!appManager.app) {
       window.addEventListener('appmanager-ready', function onReady() {
@@ -109,7 +109,7 @@
       if (value == APPEARANCE.OPAQUE) {
         meta.content = 'black';
       } else {
-        meta.content = 'transparent';
+        meta.content = 'rgba(0,0,0,0.1)';
       }
     }
   };
