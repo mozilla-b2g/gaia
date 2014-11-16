@@ -30,9 +30,9 @@ marionette('check ala main panel', function() {
     var geolocationSwitcher = client.findElement(
       'span[data-l10n-id="use-geolocation"]');
     var alaSwitcher = client.findElement(
-      'span[data-l10n-id="use-location-blur"]');
+      'span[data-l10n-id="use-location-adjustment"]');
 
-    assert.ok( ! useLocationBlurBox.displayed());
+    assert.ok(!useLocationBlurBox.displayed());
 
 
     // turn geolocation on
@@ -41,7 +41,7 @@ marionette('check ala main panel', function() {
       return useLocationBlurBox.displayed();
     });
     assert.ok(description1.displayed());
-    assert.ok( ! description2.displayed());
+    assert.ok(!description2.displayed());
 
 
     // turn use location adjustment on
@@ -49,10 +49,10 @@ marionette('check ala main panel', function() {
     client.waitFor(function() {
       return geolocationTypeBox.displayed();
     });
-    assert.ok( ! description1.displayed());
+    assert.ok(!description1.displayed());
     assert.ok(description2.displayed());
-    assert.ok( ! typeBlur.displayed());
-    assert.ok( ! typeCustom.displayed());
+    assert.ok(!typeBlur.displayed());
+    assert.ok(!typeCustom.displayed());
 
     
     /**@todo: test select values change */
@@ -61,9 +61,9 @@ marionette('check ala main panel', function() {
     // turn geolocation off
     geolocationSwitcher.click();
     client.waitFor(function() {
-      return ! useLocationBlurBox.displayed();
+      return !useLocationBlurBox.displayed();
     });
-    assert.ok( ! geolocationTypeBox.displayed());
+    assert.ok(!geolocationTypeBox.displayed());
 
     
     // turn geolocation on
@@ -71,25 +71,25 @@ marionette('check ala main panel', function() {
     client.waitFor(function() {
       return useLocationBlurBox.displayed();
     });
-    assert.ok( geolocationTypeBox.displayed());
+    assert.ok(geolocationTypeBox.displayed());
 
 
     // turn use location adjustment off
     alaSwitcher.click();
     client.waitFor(function() {
-      return ! geolocationTypeBox.displayed();
+      return !geolocationTypeBox.displayed();
     });
     assert.ok(description1.displayed());
-    assert.ok( ! description2.displayed());
-    assert.ok( ! typeBlur.displayed());
-    assert.ok( ! typeCustom.displayed());
-    assert.ok( ! addExceptionBox.displayed());
+    assert.ok(!description2.displayed());
+    assert.ok(!typeBlur.displayed());
+    assert.ok(!typeCustom.displayed());
+    assert.ok(!addExceptionBox.displayed());
 
 
     // turn geolocation off
     geolocationSwitcher.click();
     client.waitFor(function() {
-      return ! useLocationBlurBox.displayed();
+      return !useLocationBlurBox.displayed();
     });
   });
 });

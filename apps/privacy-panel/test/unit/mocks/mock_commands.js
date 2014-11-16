@@ -52,6 +52,7 @@ function(SettingsListener, SettingsHelper) {
 
     _commands: {
       locate: function fmdc_track(duration, reply) {
+        reply = reply || function() {};
         reply(true, {
           coords: {
             latitude: 51,
@@ -61,10 +62,12 @@ function(SettingsListener, SettingsHelper) {
       },
 
       lock: function fmdc_lock(message, passcode, reply) {
+        reply = reply || function() {};
         reply(true);
       },
 
       ring: function fmdc_ring(duration, reply) {
+        reply = reply || function() {};
         reply(true);
       }
     }

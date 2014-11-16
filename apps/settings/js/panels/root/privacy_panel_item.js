@@ -9,7 +9,7 @@ define(function(require) {
 
   function PrivacyPanelItem(element) {
     this._element = element;
-    this._ppApp = null;
+    this._app = null;
 
     this._privacyPanelManifestURL = document.location.protocol +
       '//privacy-panel.gaiamobile.org' +
@@ -57,11 +57,12 @@ define(function(require) {
     _getApp: function pp_getApp() {
       navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
         var apps = evt.target.result;
-        for (var i = 0; i < apps.length && this._ppApp === null; i++) {
+        for (var i = 0; i < apps.length; i++) {
           var app = apps[i];
           if (app.manifestURL === this._privacyPanelManifestURL) {
-            this._ppApp = app;
+            this._app = app;
             this._element.removeAttribute('hidden');
+            return;
           }
         }
       }.bind(this);
@@ -74,23 +75,24 @@ define(function(require) {
      * @method _launch
      */
     _launch: function pp_launch(event) {
+      // Stop propagation & prevent default not to block other settings events.
       event.stopImmediatePropagation();
       event.preventDefault();
       
-      if (this._ppApp) {
+      if (this._app) {
         // Let privacy-panel app know that we launched it from settings
         // so the app can show us a back button pointing to settings app.
         var flag = navigator.mozSettings.createLock().set({
-          'pp.launched.by.settings': true
+          'privacypanel.launched.by.settings': true
         });
         flag.onsuccess = function() {
-          this._ppApp.launch();
+          this._app.launch();
         }.bind(this);
         flag.onerror = function() {
           console.error('Problem with launching Privacy Panel');
         };
       } else {
-        alert(navigator.mozL10n.get('no-privacypanel'));
+        alert(navigator.mozL10n.get('no-privacy-panel'));
       }
     },
 

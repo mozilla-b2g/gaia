@@ -120,15 +120,15 @@ section[data-geolocation="true"][data-ala="true"][data-type="user-defined"] .typ
   display: block;
 }
 
-#ala-custom[data-type="cc"] .dcl-gps-area,
-#ala-custom[data-type="gps"] .dcl-cc-country,
-#ala-custom[data-type="gps"] .dcl-cc-city {
+#ala-custom[data-type="rc"] .dcl-gps-area,
+#ala-custom[data-type="gps"] .dcl-rc-region,
+#ala-custom[data-type="gps"] .dcl-rc-city {
   opacity: 0.3;
 }
 
 #ala-custom[data-type="gps"] .dcl-gps-area,
-#ala-custom[data-type="cc"] .dcl-cc-country,
-#ala-custom[data-type="cc"] .dcl-cc-city {
+#ala-custom[data-type="rc"] .dcl-rc-region,
+#ala-custom[data-type="rc"] .dcl-rc-city {
   opacity: 1;
 }
 
@@ -383,6 +383,17 @@ section[data-section="gt"] .btn {
 
 .overlay .modal-alert h1 {
   color: #e30613;
+}
+
+/**
+ * RPP auth
+ */
+#rpp-main[data-login-box="true"] #rpp-login {
+  display: block;
+}
+
+#rpp-main[data-login-box="false"] #rpp-register {
+  display: block;
 }
 
 

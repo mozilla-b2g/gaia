@@ -43,7 +43,7 @@ function(panels, SettingsListener, SettingsHelper) {
 
       // Reset launch flag when app is not active.
       window.addEventListener('blur', function() {
-        SettingsHelper('pp.launched.by.settings').set(false);
+        SettingsHelper('privacypanel.launched.by.settings').set(false);
       });
 
       this.backBtn.addEventListener('click', function(event) {
@@ -57,7 +57,7 @@ function(panels, SettingsListener, SettingsHelper) {
     observers: function() {
       // Observe 'privacy-panel.launched-by-settings' setting to be able to
       // detect launching point.
-      SettingsListener.observe('pp.launched.by.settings', false,
+      SettingsListener.observe('privacypanel.launched.by.settings', false,
         function(value) {
           this.panel.dataset.settings = value;
         }.bind(this)

@@ -20,13 +20,13 @@ function(panels, SettingsListener, SettingsHelper) {
 
     this.listeners = {
       typeChange: this.toggleType.bind(this),
-      countryChange: this.toggleCountry.bind(this),
+      regionChange: this.toggleRegion.bind(this),
       cityChange: this.toggleCity.bind(this),
       longitudeChange: this.toggleLongitude.bind(this),
       latitudeChange: this.toggleLatitude.bind(this)
     };
 
-    this.citiesList = {};
+    this.selectedRegionCities = {};
     this.config = {};
   }
 
@@ -40,15 +40,15 @@ function(panels, SettingsListener, SettingsHelper) {
      */
     init: function() {
       this.panel =      document.getElementById('ala-custom');
-      this.typeCC =     this.panel.querySelector('.dcl-type-cc');
+      this.typeRC =     this.panel.querySelector('.dcl-type-rc');
       this.typeGPS =    this.panel.querySelector('.dcl-type-gps');
-      this.countries =  this.panel.querySelector('.dcl-country');
+      this.regions =    this.panel.querySelector('.dcl-region');
       this.cities =     this.panel.querySelector('.dcl-city');
       this.longitude =  this.panel.querySelector('.dcl-longitude');
       this.latitude =   this.panel.querySelector('.dcl-latitude');
 
       panels.loadJSON('resources/countries.json', function(data) {
-        this.countriesAndCities = data;
+        this.regionsAndCities = data;
       }.bind(this));
 
       this.observers();
@@ -72,10 +72,10 @@ function(panels, SettingsListener, SettingsHelper) {
      * Register events.
      */
     events: function() {
-      this.typeCC.addEventListener('change', this.listeners.typeChange);
+      this.typeRC.addEventListener('change', this.listeners.typeChange);
       this.typeGPS.addEventListener('change', this.listeners.typeChange);
 
-      this.countries.addEventListener('change', this.listeners.countryChange);
+      this.regions.addEventListener('change', this.listeners.regionChange);
       this.cities.addEventListener('change', this.listeners.cityChange);
 
       this.longitude.addEventListener('change', this.listeners.longitudeChange);
@@ -98,12 +98,12 @@ function(panels, SettingsListener, SettingsHelper) {
       this.context = event.detail || null;
 
       this.config = this.context.getDCLData();
-      this.config.type = this.config.type || 'cc';
+      this.config.type = this.config.type || 'rc';
 
       this.callback =
         this.context.saveDCLData.bind(this.context) || function(){};
 
-      this.updateCountriesList();
+      this.updateRegionsList();
       this.updateType();
 
       this.saveConfig();
@@ -115,9 +115,9 @@ function(panels, SettingsListener, SettingsHelper) {
       this.saveConfig();
     },
 
-    toggleCountry: function(event) {
-      this.config.country = event.target.value;
-      this.updateCountry();
+    toggleRegion: function(event) {
+      this.config.region = event.target.value;
+      this.updateRegion();
       this.updateLongitudeAndLatitudeForCity();
       this.saveConfig();
     },
@@ -139,95 +139,93 @@ function(panels, SettingsListener, SettingsHelper) {
       this.saveConfig();
     },
 
-    updateCountriesList: function() {
-      this.citiesList = this.countriesAndCities[this.config.country];
+    updateRegionsList: function() {
+      // set new list of cities for selected region
+      this.selectedRegionCities = this.regionsAndCities[this.config.region];
 
-      this.countries.innerHTML = '';
+      var options = document.createDocumentFragment();
+      Object.keys(this.regionsAndCities).forEach(function(regionName) {
+        var option = document.createElement('option');
+        option.value = regionName;
+        option.setAttribute('data-l10n-id', regionName);
+        options.appendChild(option);
+      }.bind(this));
 
-      for (var countryName in this.countriesAndCities) {
-        if (this.countriesAndCities.hasOwnProperty(countryName)) {
-          var option = document.createElement('option');
-          option.value = countryName;
-          option.setAttribute('data-l10n-id', countryName);
-          this.countries.add(option);
-        }
-      }
+      // prepare new regions list
+      this.regions.innerHTML = '';
+      this.regions.appendChild(options);
     },
 
     updateType: function() {
-      this.config.type =
-        this.config.type === undefined ? 'gps' : this.config.type;
+      // gps will be enabled by default
+      this.config.type = this.config.type || 'gps';
 
       this.panel.dataset.type = this.config.type;
 
-      this.updateCountry();
+      this.updateRegion();
 
-      var modeCC = (this.config.type === 'cc');
+      var modeRC = (this.config.type === 'rc');
 
-      if (modeCC) {
+      if (modeRC) {
         this.updateLongitudeAndLatitudeForCity();
       } else {
         this.updateLongitudeAndLatitude();
       }
 
-      this.typeCC.checked = modeCC;
-      this.longitude.disabled = modeCC;
-      this.latitude.disabled = modeCC;
+      this.typeRC.checked = modeRC;
+      this.longitude.disabled = modeRC;
+      this.latitude.disabled = modeRC;
 
-      this.typeGPS.checked = ! modeCC;
-      this.countries.disabled = ! modeCC;
-      this.cities.disabled = ! modeCC;
+      this.typeGPS.checked = !modeRC;
+      this.regions.disabled = !modeRC;
+      this.cities.disabled = !modeRC;
     },
 
-    updateCountry: function() {
-      if ( ! this.countriesAndCities[this.config.country] ||
-        this.config.country === undefined) {
-        this.config.country =
+    updateRegion: function() {
+      if (!this.regionsAndCities[this.config.region] ||
+        this.config.region === undefined) {
+        this.config.region =
           (this.timeZone &&
-          this.countriesAndCities.hasOwnProperty(this.timeZone.region)) ?
+          this.regionsAndCities[this.timeZone.region]) ?
             this.timeZone.region :
-            this.getFirstCountry();
+            this.getFirstRegion();
       }
 
-      this.countries.value = this.config.country;
+      this.regions.value = this.config.region;
 
       this.updateCitiesList();
       this.updateCity();
     },
 
-    getFirstCountry: function() {
-      for (var countryName in this.countriesAndCities) {
-        if (this.countriesAndCities.hasOwnProperty(countryName)) {
-          return countryName;
-        }
-      }
-
-      return null;
+    getFirstRegion: function() {
+      return Object.keys(this.regionsAndCities)[0] || null;
     },
 
     updateCitiesList: function() {
-      this.citiesList = this.countriesAndCities[this.config.country];
+      this.selectedRegionCities = this.regionsAndCities[this.config.region];
 
+      var options = document.createDocumentFragment();
+
+      Object.keys(this.selectedRegionCities).forEach(function(cityName) {
+        var option = document.createElement('option');
+        option.value = cityName;
+        option.setAttribute('data-l10n-id', cityName);
+        options.appendChild(option);
+      }.bind(this));
+
+      // prepare new cities list
       this.cities.innerHTML = '';
-
-      for (var cityName in this.citiesList) {
-        if (this.citiesList.hasOwnProperty(cityName)) {
-          var option = document.createElement('option');
-          option.value = cityName;
-          option.setAttribute('data-l10n-id', cityName);
-          this.cities.add(option);
-        }
-      }
+      this.cities.appendChild(options);
     },
 
     updateCity: function() {
       if (this.config.city === undefined ||
-        ! this.citiesList.hasOwnProperty(this.config.city)) {
+        !this.selectedRegionCities[this.config.city]) {
         this.config.city =
           (this.timeZone &&
-          this.citiesList.hasOwnProperty(this.timeZone.city)) ?
+          this.selectedRegionCities[this.timeZone.city]) ?
             this.timeZone.city :
-            this.getFirstCityFromCountry();
+            this.getFirstCityFromRegion();
       }
 
       if (this.config.city !== null) {
@@ -237,7 +235,7 @@ function(panels, SettingsListener, SettingsHelper) {
 
     updateLongitudeAndLatitudeForCity: function() {
       if (this.config.city !== null) {
-        var city = this.citiesList[this.config.city];
+        var city = this.selectedRegionCities[this.config.city];
         this.config.longitude = city.lon;
         this.config.latitude = city.lat;
       } else {
@@ -248,14 +246,8 @@ function(panels, SettingsListener, SettingsHelper) {
       this.updateLongitudeAndLatitude();
     },
 
-    getFirstCityFromCountry: function() {
-      for (var cityName in this.citiesList) {
-        if (this.citiesList.hasOwnProperty(cityName)) {
-          return cityName;
-        }
-      }
-
-      return null;
+    getFirstCityFromRegion: function() {
+      return Object.keys(this.selectedRegionCities)[0] || null;
     },
 
     updateLongitudeAndLatitude: function() {

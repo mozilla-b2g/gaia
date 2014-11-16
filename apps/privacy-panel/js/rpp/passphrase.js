@@ -41,7 +41,7 @@ function(asyncStorage) {
 
     verify: function(password) {
       return this._mac().then(mac => {
-        if ( ! mac) {
+        if (!mac) {
           return false;
         }
 

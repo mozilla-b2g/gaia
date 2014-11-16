@@ -37,11 +37,11 @@ suite('PrivacyPanelItem', function() {
   });
 
   test('search for privacy-panel app (_getApp method)', function() {
-    assert.isNotNull(this.subject._ppApp);
+    assert.isNotNull(this.subject._app);
   });
 
   test('launch privacy panel app (_launch method)', function() {
     this.element.click();
-    sinon.assert.called(this.subject._ppApp.launch);
+    sinon.assert.called(this.subject._app.launch);
   });
 });

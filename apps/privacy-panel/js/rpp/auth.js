@@ -95,34 +95,8 @@ function(panels, PassPhrase, SettingsListener) {
      */
     defineFTU: function() {
       this.passphrase.exists().then(function(status) {
-        if (status) {
-          this.displayLoginBox();
-        } else {
-          this.displayRegisterBox();
-        }
+        this.mainPanel.dataset.loginBox = status;
       }.bind(this));
-    },
-
-    /**
-     * Each time we enters rpp panel we need to login to be able to change rpp
-     * settings.
-     * 
-     * @method displayLoginBox
-     */
-    displayLoginBox: function() {
-      this.mainPanel.querySelector('#rpp-login').style.display = 'block';
-      this.mainPanel.querySelector('#rpp-register').style.display = 'none';
-    },
-
-    /**
-     * When user is using rpp for the first time, he needs to register to be
-     * able to use all rpp functions.
-     * 
-     * @method displayRegisterBox
-     */
-    displayRegisterBox: function() {
-      this.mainPanel.querySelector('#rpp-login').style.display = 'none';
-      this.mainPanel.querySelector('#rpp-register').style.display = 'block';
     },
 
     /**
@@ -132,7 +106,7 @@ function(panels, PassPhrase, SettingsListener) {
     getSIMCards: function() {
       var mc = navigator.mozMobileConnections;
 
-      if ( ! mc) {
+      if (!mc) {
         return;
       }
 
@@ -188,7 +162,7 @@ function(panels, PassPhrase, SettingsListener) {
     comparePasswords: function(pass1, pass2) {
       var rgx = /^([a-z0-9]+)$/i;
 
-      if ( ! pass1) {
+      if (!pass1) {
         return 'passphrase-empty';
       }
 
@@ -196,7 +170,7 @@ function(panels, PassPhrase, SettingsListener) {
         return 'passphrase-too-long';
       }
 
-      if ( ! rgx.test(pass1)) {
+      if (!rgx.test(pass1)) {
         return 'passphrase-invalid'; 
       }
 
@@ -217,11 +191,11 @@ function(panels, PassPhrase, SettingsListener) {
     comparePINs: function(pass1, pass2) {
       var rgx = /^([0-9]{1,4})$/i;
 
-      if ( ! pass1) {
+      if (!pass1) {
         return 'pin-empty';
       }
 
-      if ( ! rgx.test(pass1)) {
+      if (!rgx.test(pass1)) {
         return 'pin-invalid'; 
       }
 
@@ -286,7 +260,7 @@ function(panels, PassPhrase, SettingsListener) {
       event.preventDefault();
 
       this.passphrase.verify(pass).then(function(status) {
-        if ( ! status) {
+        if (!status) {
           message.setAttribute('data-l10n-id', 'passphrase-wrong');
           return;
         }

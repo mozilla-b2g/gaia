@@ -88,7 +88,7 @@ function(panels, BlurSlider, appList, alaExceptions, SettingsListener,
       this.currentAppSettings =
         alaExceptions.exceptionsList[this.itemData.origin];
 
-      if ( ! this.currentAppSettings) {
+      if (!this.currentAppSettings) {
         // set default value (from general settings)
         this.appType.value = 'system-settings';
 
@@ -123,7 +123,7 @@ function(panels, BlurSlider, appList, alaExceptions, SettingsListener,
       switch (value) {
         case 'user-defined':
           /** @TODO: add alert */
-          if ( ! (alaExceptions.exceptionsList[this.currentApp] &&
+          if (!(alaExceptions.exceptionsList[this.currentApp] &&
             alaExceptions.exceptionsList[this.currentApp].coords)) {
 
             // show alert if geolocation is not set
@@ -164,7 +164,7 @@ function(panels, BlurSlider, appList, alaExceptions, SettingsListener,
 
         coords:       extraSettings.coords || current.coords || null,
         cl_type:      extraSettings.cl_type || current.cl_type || null,
-        cl_country:   extraSettings.cl_country || current.cl_country || null,
+        cl_region:    extraSettings.cl_region || current.cl_region || null,
         cl_city:      extraSettings.cl_city || current.cl_city || null,
         cl_longitude: extraSettings.cl_longitude || current.cl_longitude ||null,
         cl_latitude:  extraSettings.cl_latitude || current.cl_latitude || null
@@ -193,7 +193,7 @@ function(panels, BlurSlider, appList, alaExceptions, SettingsListener,
         alaExceptions.exceptionsList[this.currentApp];
       return {
         type: this.currentAppSettings.cl_type,
-        country: this.currentAppSettings.cl_country,
+        region: this.currentAppSettings.cl_region,
         city: this.currentAppSettings.cl_city,
         longitude: this.currentAppSettings.cl_longitude,
         latitude: this.currentAppSettings.cl_latitude
@@ -210,7 +210,7 @@ function(panels, BlurSlider, appList, alaExceptions, SettingsListener,
       this.saveExceptions({
         coords:       flag ? '@'+settings.latitude+','+settings.longitude : '',
         cl_type:      settings.type,
-        cl_country:   settings.country,
+        cl_region:    settings.region,
         cl_city:      settings.city,
         cl_longitude: settings.longitude,
         cl_latitude:  settings.latitude

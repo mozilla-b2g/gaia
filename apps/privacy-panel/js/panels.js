@@ -54,7 +54,7 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
      * @param {Mixed}   p.options [optional] Passed parameters
      */
     show: function(p) {
-      if (p.id && ! p.el) {
+      if (p.id && !p.el) {
         p.el = document.getElementById(p.id);
       }
       _showSection(p.el, p.back, p.options);
@@ -71,7 +71,7 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
 
       event.preventDefault();
 
-      if ( ! id) {
+      if (!id) {
         return;
       }
 
@@ -115,9 +115,10 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
      * @param {Function} callback
      */
     loadJSON: function(href, callback) {
-      if ( ! callback) {
+      if (!callback) {
         return;
       }
+
       var xhr = new XMLHttpRequest();
       xhr.onerror = function() {
         console.error('Failed to fetch file: ' + href, xhr.statusText);

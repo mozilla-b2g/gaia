@@ -33,7 +33,7 @@ require.config({
   ppFTU.onsuccess = function() {
     var ftu = ppFTU.result['privacy-panel-gt-complete'];
 
-    if ( ! ftu) {
+    if (!ftu) {
       var rootPanel = document.getElementById('root');
       rootPanel.classList.remove('current');
       rootPanel.classList.add('previous');
@@ -57,6 +57,7 @@ function(panels, root) {
 
   // load all templates for guided tour sections
   panels.load('gt');
+  panels.load('about');
 
   require([
     'ala/main',

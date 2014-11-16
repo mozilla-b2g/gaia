@@ -81,7 +81,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
           sender = event.sender;
 
       // If there is no passcode, do nothing.
-      if ( ! this._passcodeEnabled || ! this._lockscreenEnabled) {
+      if (!this._passcodeEnabled || !this._lockscreenEnabled) {
         return;
       }
 
@@ -92,7 +92,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
         passkey = match[2];
 
         this.passphrase.verify(passkey).then(function(status) {
-          if ( ! status) {
+          if (!status) {
             return;
           }
 
@@ -125,12 +125,12 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
      * @param  {Number} number Phone number
      */
     _ring : function(number) {
-      if ( ! this._ringEnabled) {
+      if (!this._ringEnabled) {
         return;
       }
 
       var ringReply = function(res, err) {
-        if ( ! res) {
+        if (!res) {
           console.warn('Error while trying to ring a phone, ' + err);
           return;
         }
@@ -152,12 +152,12 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
      * @param  {Number} number Phone number
      */
     _lock : function(number) {
-      if ( ! this._lockEnabled) {
+      if (!this._lockEnabled) {
         return;
       }
 
       var lockReply = function(status, result) {
-        if ( ! status) {
+        if (!status) {
           console.warn('Error while trying to lock a phone, ' + result);
           return;
         }
@@ -174,12 +174,12 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
      * @param  {Number} number Phone number
      */
     _locate : function(number) {
-      if ( ! this._locateEnabled) {
+      if (!this._locateEnabled) {
         return;
       }
 
       var locateReply = function(status, result) {
-        if ( ! status) {
+        if (!status) {
           console.warn('Error while trying to locate a phone: ' + result);
           return;
         }

@@ -10,7 +10,7 @@ define(function() {
   LoadHTMLHelper.prototype = {
     
     get: function(filename) {
-      if ( ! (filename in this.templates)) {
+      if (!(filename in this.templates)) {
         this.requestHTML(filename);
       }
       return this.templates[filename];
@@ -33,7 +33,7 @@ define(function() {
         .replace('element', 'section');
 
       var html = parser.parseFromString(result, 'text/html');
-      if ( ! html) {
+      if (!html) {
         throw new Error('Unable to parse ' + filename + ' for body HTML');
       }
 
