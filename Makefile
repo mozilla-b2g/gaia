@@ -670,10 +670,6 @@ endif # USE_LOCAL_XULRUNNER_SDK
 preferences: profile-dir b2g_sdk
 	@$(call run-js-command,preferences)
 
-# Generate profile/settings.json
-settings: profile-dir b2g_sdk $(STAGE_DIR)
-	@$(call run-js-command,settings)
-
 # Generate $(PROFILE_FOLDER)/extensions
 EXT_DIR=$(PROFILE_FOLDER)/extensions
 extensions: $(STAGE_DIR)/additional-extensions/downloaded.json
@@ -1016,8 +1012,10 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
+$(PROFILE_FOLDER)/settings.json: b2g_sdk profile-dir app
+
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
-install-default-data: settings contacts app
+install-default-data: $(PROFILE_FOLDER)/settings.json contacts
 	$(ADB) shell stop b2g
 	$(ADB) remount
 	$(ADB) push $(PROFILE_FOLDER)/settings.json $(MSYS_FIX)/system/b2g/defaults/settings.json
