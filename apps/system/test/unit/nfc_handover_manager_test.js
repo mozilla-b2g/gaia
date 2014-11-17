@@ -193,8 +193,8 @@ suite('Nfc Handover Manager Functions', function() {
         MockBluetooth.defaultAdapter.address);
       assert.deepEqual(OOB.slice(2, 8), myMAC);
 
-      var ndefRequest = spySendNDEF.returnValues[0];
-      ndefRequest.fireSuccess();
+      var ndefPromise = spySendNDEF.returnValues[0];
+      ndefPromise.mFulfillToValue();
       assert.isTrue(NfcHandoverManager.incomingFileTransferInProgress);
     });
 
@@ -263,8 +263,8 @@ suite('Nfc Handover Manager Functions', function() {
 
       assert.isTrue(NfcHandoverManager.isHandoverInProgress());
 
-      var ndefReq = spySendNDEF.returnValues[0];
-      ndefReq.fireSuccess();
+      var ndefPromise = spySendNDEF.returnValues[0];
+      ndefPromise.mFulfillToValue();
       assert.equal(1, NfcHandoverManager.sendFileQueue.length);
     });
 
@@ -275,8 +275,8 @@ suite('Nfc Handover Manager Functions', function() {
 
       var spyNotify = this.sinon.spy(MockMozNfc, 'notifySendFileStatus');
 
-      var ndefReq = spySendNDEF.returnValues[0];
-      ndefReq.fireError();
+      var ndefPromise = spySendNDEF.returnValues[0];
+      ndefPromise.mRejectToError();
       assert.equal(0, NfcHandoverManager.sendFileQueue.length);
       assert.isTrue(spyNotify.calledOnce);
       assert.equal(spyNotify.firstCall.args[0], 1);
@@ -431,7 +431,8 @@ suite('Nfc Handover Manager Functions', function() {
 
       // This will actually send the handover request message.
       var ndefRequest = spySendNDEF.returnValues[0];
-      ndefRequest.fireSuccess();
+      ndefRequest.mFulfillToValue();
+      //ndefRequest.fireSuccess();
     };
 
     var finalizeFileTransfer = function() {

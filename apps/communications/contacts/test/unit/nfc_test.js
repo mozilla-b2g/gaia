@@ -109,7 +109,7 @@ suite('NFC', function() {
       assert.isTrue(nfcUtils.equalArrays(actual, name));
 
       done();
-      return {};
+      return Promise.resolve();
     };
 
     contacts.NFC.startListening(contact);
