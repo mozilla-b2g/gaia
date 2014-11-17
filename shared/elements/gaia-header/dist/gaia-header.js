@@ -815,7 +815,9 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       this._resetCentering(heading);
 
       // Cache the element style properties to avoid reflows.
+      console.time('getStyleProperties');
       var style = this._getStyleProperties(heading);
+      console.timeEnd('getStyleProperties');
 
       // If the document is inside a hidden iframe
       // `window.getComputedStyle()` returns null,
@@ -990,7 +992,9 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
      * @private
      */
     _getStyleProperties: function(heading) {
+      console.time('getComputedStyle');
       var style = getComputedStyle(heading) || {};
+      console.timeEnd('getComputedStyle');
       var contentWidth = this._getContentWidth(style);
       if (isNaN(contentWidth)) {
         contentWidth = 0;
