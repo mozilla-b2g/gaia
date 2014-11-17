@@ -7,8 +7,7 @@
 define(function(require) {
   'use strict';
 
-  var mozApps = window.navigator.mozApps;
-  var appsMgmt = mozApps && mozApps.mgmt;
+  var AppsCache = require('modules/apps_cache');
 
   function ThemesItem(element) {
     this._enabled = false;
@@ -52,19 +51,20 @@ define(function(require) {
      *
      * @access private
      * @memberOf ThemesItem
+     * @return {Promise}
      */
     init: function() {
       var self = this;
-      appsMgmt.addEventListener('install', this._boundUpdateThemes);
-      appsMgmt.addEventListener('uninstall', this._boundUpdateThemes);
-      appsMgmt.getAll().onsuccess = function onGetAllSuccess(evt) {
-        evt.target.result.some(function(app) {
+      AppsCache.addEventListener('install', this._boundUpdateThemes);
+      AppsCache.addEventListener('uninstall', this._boundUpdateThemes);
+      return AppsCache.apps().then(function(apps) {
+        apps.some(function(app) {
           if (self._isThemeApp(app)) {
             self._themeCount += 1;
           }
         });
         self._updateThemeSectionVisibility();
-      };
+      });
     },
 
     /**

@@ -1,6 +1,7 @@
 define(function(require) {
   'use strict';
 
+  var AppsCache = require('modules/apps_cache');
   var ManifestHelper = require('shared/manifest_helper');
   var SettingsCache = require('modules/settings_cache');
   var ListView = require('modules/mvvm/list_view');
@@ -28,29 +29,30 @@ define(function(require) {
       },
 
       getInstalledThemes: function th_getInstalledThemes(callback) {
-        window.navigator.mozApps.mgmt.getAll().onsuccess =
-          function mozAppGotAll(evt) {
-            var apps = evt.target.result.filter(function(app) {
-              var manifest = app.manifest || app.updateManifest;
-              return manifest && manifest.type &&
-                manifest.type === 'certified' &&
-                manifest.role && manifest.role === 'theme';
-            });
-            for (var app in apps) {
-              var manifest = new ManifestHelper(apps[app].manifest);
-              var theme = {
-                'name': manifest.name,
-                'manifestURL': apps[app].manifestURL,
-                'onclick': callback.bind(this)
-              };
-              this._themes.push(theme);
-            }
+        AppsCache.apps().then(function(apps) {
+          apps = apps.filter(function(app) {
+            var manifest = app.manifest || app.updateManifest;
+            return manifest && manifest.type &&
+              manifest.type === 'certified' &&
+              manifest.role && manifest.role === 'theme';
+          });
 
-            this._themes.sort(function(a, b) {
-              return a.name.localeCompare(b.name);
-            });
-            this.renderThemes();
-          }.bind(this);
+          for (var app in apps) {
+            var manifest = new ManifestHelper(apps[app].manifest);
+            var theme = {
+              'name': manifest.name,
+              'manifestURL': apps[app].manifestURL,
+              'onclick': callback.bind(this)
+            };
+            this._themes.push(theme);
+          }
+
+          this._themes.sort(function(a, b) {
+            return a.name.localeCompare(b.name);
+          });
+
+          this.renderThemes();
+        }.bind(this));
       },
 
       renderThemes: function th_renderThemes() {

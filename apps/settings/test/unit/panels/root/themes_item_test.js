@@ -1,28 +1,30 @@
-/* global MockMozApps */
 'use strict';
-
-requireApp('settings/test/unit/mock_moz_apps.js');
 
 suite('ThemesItem', function() {
 
-  var modules = ['panels/root/themes_item'];
-  var realMozApps;
+  var modules = [
+    'panels/root/themes_item',
+    'unit/mock_apps_cache'
+  ];
+
+  var map = {
+    '*': {
+      'modules/apps_cache': 'unit/mock_apps_cache'
+    }
+  };
+
   var themesItem;
-
-  suiteSetup(function() {
-    realMozApps = window.navigator.mozApps;
-  });
-
-  suiteTeardown(function() {
-    window.navigator.mozApps = realMozApps;
-  });
+  var mockAppsCache;
 
   setup(function(done) {
-    window.navigator.mozApps = MockMozApps;
-    window.navigator.mozApps.mgmt.addEventListener = this.sinon.spy();
-    window.navigator.mozApps.mgmt.removeEventListener = this.sinon.spy();
-    var requireCtx = testRequire([], {}, function() {});
-    requireCtx(modules, function(ThemesItem) {
+    var self = this;
+    var requireCtx = testRequire([], map, function() {});
+
+    requireCtx(modules, function(ThemesItem, MockAppsCache) {
+      mockAppsCache = MockAppsCache;
+      self.sinon.stub(mockAppsCache, 'addEventListener');
+      self.sinon.stub(mockAppsCache, 'removeEventListener');
+
       var element = document.createElement('div');
       themesItem = ThemesItem(element);
       done();
@@ -44,26 +46,29 @@ suite('ThemesItem', function() {
     setup(function() {
       this.sinon.stub(themesItem, '_updateThemeSectionVisibility');
       // We assumed we did install two theme apps by default
-      window.navigator.mozApps.mApps = [
+      mockAppsCache._apps = [
         { manifest: { role: 'theme' } },
         { manifest: { role: 'theme' } },
         { manifest: { role: 'homescreen' } },
       ];
-      themesItem.init();
-      window.navigator.mozApps.mTriggerGetAllAppsCallback();
     });
 
-    test('we will do related works', function() {
-      assert.equal(
-        window.navigator.mozApps.mgmt.addEventListener.getCall(0).args[1],
-        themesItem._boundUpdateThemes);
+    test('we will do related works', function(done) {
+      themesItem.init().then(function() {
+        assert.equal(
+          mockAppsCache.addEventListener.getCall(0).args[1],
+            themesItem._boundUpdateThemes);
 
-      assert.equal(
-        window.navigator.mozApps.mgmt.addEventListener.getCall(1).args[1],
-        themesItem._boundUpdateThemes);
+        assert.equal(
+          mockAppsCache.addEventListener.getCall(1).args[1],
+            themesItem._boundUpdateThemes);
 
-      assert.isTrue(themesItem._updateThemeSectionVisibility.called);
-      assert.equal(themesItem._themeCount, 2);
+        assert.isTrue(themesItem._updateThemeSectionVisibility.called);
+        assert.equal(themesItem._themeCount, 2);
+      }, function() {
+        // This callback should not be executed
+        assert.isTrue(false);
+      }).then(done, done);
     });
   });
 

@@ -99,7 +99,8 @@ require.config({
         'main',
         'modules/battery',
         'modules/bluetooth/bluetooth_v1',
-        'modules/bluetooth/bluetooth'
+        'modules/bluetooth/bluetooth',
+        'modules/apps_cache'
       ]
     },
     {
@@ -132,7 +133,10 @@ require.config({
     },
     {
       name: 'panels/app_permissions_list/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/apps_cache'
+      ]
     },
     {
       name: 'panels/screen_lock/panel',
