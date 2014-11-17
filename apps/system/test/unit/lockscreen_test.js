@@ -345,6 +345,16 @@ suite('system/LockScreen >', function() {
       'it didn\'t lock after the lock-immediately setting got changed');
   });
 
+  test('Unlock when FTU opens', function() {
+    // raise an ftuopen event,
+    this.sinon.stub(subject, 'unlock');
+    subject.init();
+    window.FtuLauncher.mIsRunning = true;
+    window.dispatchEvent(new CustomEvent('ftuopen'));
+    assert.isTrue(subject.unlock.calledOnce,
+                  'ftuopen caused unlock to be called');
+  });
+
   // XXX: Test 'Screen off: by proximity sensor'.
 
   suite('Background functionality', function() {
