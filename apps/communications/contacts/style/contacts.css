@@ -184,6 +184,35 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 .item.first {
   width: 30rem;
   padding: 1rem 1rem 0 1rem;
+  /* We enable overflow wrt bug 1094709 */
+  overflow: inherit;
+}
+
+/* Bug 1094709. We can now click on rightmost part and the reset will work */
+#contact-form div.with-overflow {
+  overflow: inherit;
+}
+
+#contact-form div.with-overflow button[type="reset"] {
+  width: 5rem;     /* The affordance is increased by 1 rem */
+  right: calc(-0.5rem + -0.3rem); 
+}
+
+#contact-form div.with-overflow input {
+  width: 20rem;
+}
+
+#contact-form div.with-overflow input[name="org"] {
+  width: 30rem;
+}
+
+/* this is needed because it overflows the photo container */
+div.with-overflow > p.input-container {
+  pointer-events: none;
+}
+
+div.with-overflow > p.input-container > input {
+  pointer-events: auto;
 }
 
 .view-edit-contact .tail-actions {
