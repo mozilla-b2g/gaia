@@ -1,10 +1,15 @@
 /* exported MP4Metadata */
 'use strict';
 
-// https://developer.apple.com/library/mac/#documentation/QuickTime/QTFF/QTFFChap1/qtff1.html
-// http://en.wikipedia.org/wiki/MPEG-4_Part_14
-// http://atomicparsley.sourceforge.net/mpeg-4files.html
-
+/**
+ * Parse files with MP4 metadata.
+ *
+ * Format information:
+ *   https://developer.apple.com/library/mac/#documentation/QuickTime/QTFF/
+ *     QTFFChap1/qtff1.html
+ *   http://en.wikipedia.org/wiki/MPEG-4_Part_14
+ *   http://atomicparsley.sourceforge.net/mpeg-4files.html
+ */
 var MP4Metadata = (function() {
   // Map MP4 atom names to metadata property names
   var MP4ATOMS = {
@@ -52,6 +57,13 @@ var MP4Metadata = (function() {
     'sawp' : true  // Extended AMR wide-band audio
   };
 
+  /**
+   * Parse a file and return a Promise with the metadata.
+   *
+   * @param {BlobView} blobview The audio file to parse.
+   * @param {Metadata} metadata The (partially filled-in) metadata object.
+   * @return {Promise} A Promise returning the parsed metadata object.
+   */
   function parse(blobview, metadata) {
     if (!checkMP4Type(blobview, MP4Types)) {
       // The MP4 file might be a video or it might be some
@@ -72,9 +84,15 @@ var MP4Metadata = (function() {
     });
   }
 
-  // MP4 files use 'ftyp' to identify the type of encoding.
-  // 'ftyp' information
-  //   http://www.ftyps.com/what.html
+  /**
+   * Check the type of MP4 file to ensure we should play it. (MP4 files use
+   * 'ftyp' to identify the type of encoding. For more information, see:
+   * <http://www.ftyps.com/what.html>.)
+   *
+   * @param {BlobView} blobview The audio file to parse.
+   * @param {Object} types A list of types we support.
+   * @return {Boolean} True if the file should be parsed, false otherwise.
+   */
   function checkMP4Type(blobview, types) {
     // The major brand is the four bytes right after 'ftyp'.
     var majorbrand = blobview.getASCIIText(8, 4);
@@ -82,11 +100,11 @@ var MP4Metadata = (function() {
     if (majorbrand in types) {
       return true;
     } else {
-      // Check the rest part for the compatible brands,
-      // they are every four bytes after the version of major brand.
-      // Usually there are two optional compatible brands,
-      // but arbitrary number of other compatible brands are also acceptable,
-      // so we will check all the compatible brands until the header ends.
+      // Check the rest for the compatible brands. They are every four bytes
+      // after the version of major brand. Usually there are two optional
+      // compatible brands, but an arbitrary number of other compatible brands
+      // are also acceptable, so we will check all the compatible brands until
+      // the header ends.
       var index = 16;
       var size = blobview.getUint32(0);
 
@@ -101,14 +119,19 @@ var MP4Metadata = (function() {
     }
   }
 
-  // XXX
-  // I think I could probably restructure this somehow. The atoms or "boxes"
-  // we're reading and parsing here for a tree that I need to traverse.
-  // Maybe nextBox() and firstChildBox() functions would be helpful.
-  // Or even make these methods of BlobView?  Not sure if it is worth
-  // the time to refactor, though... See also the approach in
-  // shared/js/get_video_rotation.js
+  /**
+   * Find the "moov" atom in the MP4 container.
+   *
+   * @param {BlobView} atom The file we're parsing.
+   * @return {Promise} A promise that resolves when we've found the move atom.
+   */
   function findMoovAtom(atom) {
+    // XXX: I think I could probably restructure this somehow. The atoms or
+    // "boxes" we're reading and parsing here for a tree that I need to
+    // traverse. Maybe nextBox() and firstChildBox() functions would be
+    // helpful. Or even make these methods of BlobView? Not sure if it is worth
+    // the time to refactor, though... See also the approach in
+    // shared/js/get_video_rotation.js
     return new Promise(function(resolve, reject) {
       var offset = atom.sliceOffset + atom.viewOffset; // position in blob
       var size = atom.readUnsignedInt();
@@ -147,10 +170,16 @@ var MP4Metadata = (function() {
     });
   }
 
-  // Once we've found the moov atom, here's what we do with it.
-  // This function, and the ones that follow are all synchronous.
-  // We've read the entire moov atom, so we've got all the bytes
-  // we need and don't have to do an async read again.
+  /**
+   * Parse the moov atom. This function, and the ones that follow are all
+   * synchronous. We've read the entire moov atom, so we've got all the bytes
+   * we need and don't have to do an async read again.
+   *
+   * @param {BlobView} data The data for the moov atom.
+   * @param {Number} end The offset at which the moov atom ends.
+   * @param {Metadata} metadata The (partially filled-in) metadata object.
+   * @return {Metadata} The completed metadata object.
+   */
   function parseMoovAtom(data, end, metadata) {
     data.advance(8); // skip the size and type of this atom
 
@@ -189,15 +218,27 @@ var MP4Metadata = (function() {
     return metadata;
   }
 
+  /**
+   * Find the specified hierarchy of atoms and stop at the last one's file
+   * offset.
+   *
+   * @param {BlobView} data The data for the moov atom.
+   * @param {Array} atoms The names of the atoms to find.
+   * @return {Boolean} True if we found the atoms, false otherwise.
+   */
   function seekChildAtoms(data, atoms) {
-    for (var i = 0; i < atoms.length; i++) {
-      if (seekChildAtom(data, atoms[i]) === null) {
-        return false;
-      }
-    }
-    return true;
+    return atoms.every(function(atom) {
+      return seekChildAtom(data, atom);
+    });
   }
 
+  /**
+   * Find a child atom and stop at its file offset.
+   *
+   * @param {BlobView} data The data for the moov atom.
+   * @param {String} atom The name of the atom to find.
+   * @return {Boolean} True if we found the atom, false otherwise.
+   */
   function seekChildAtom(data, atom) {
     var start = data.index;
     var length = data.readUnsignedInt();
@@ -215,12 +256,16 @@ var MP4Metadata = (function() {
       }
     }
 
-    return false;  // not found
+    return false;
   }
 
-  // This function searches the child atom just like findChildAtom().
-  // But the internal pointer/index will be reset to the start
-  // after the searching finishes.
+  /**
+   * Find a child atom, but reset the file offset to the start after completion.
+   *
+   * @param {BlobView} data The data for the moov atom.
+   * @param {String} atom The name of the atom to find.
+   * @return {Boolean} True if we found the atom, false otherwise.
+   */
   function searchChildAtom(data, atom) {
     var start = data.index;
     var result = seekChildAtom(data, atom);
@@ -229,6 +274,13 @@ var MP4Metadata = (function() {
     return result;
   }
 
+  /**
+   * Parse the udta atom.
+   *
+   * @param {BlobView} data The data for the moov atom.
+   * @param {Number} end The offset at which the moov atom ends.
+   * @param {Metadata} metadata The (partially filled-in) metadata object.
+   */
   function parseUdtaAtom(data, end, metadata) {
     // Find the meta atom within the udta atom
     while (data.index < end) {
@@ -244,6 +296,13 @@ var MP4Metadata = (function() {
     }
   }
 
+  /**
+   * Parse the meta atom.
+   *
+   * @param {BlobView} data The data for the moov atom.
+   * @param {Number} end The offset at which the moov atom ends.
+   * @param {Metadata} metadata The (partially filled-in) metadata object.
+   */
   function parseMetaAtom(data, end, metadata) {
     // The meta atom apparently has a slightly different structure.
     // Have to skip flag bytes before reading children atoms
@@ -264,6 +323,13 @@ var MP4Metadata = (function() {
     }
   }
 
+  /**
+   * Parse the ilst atom, which (finally) contains all our metadata atom.
+   *
+   * @param {BlobView} data The data for the moov atom.
+   * @param {Number} end The offset at which the moov atom ends.
+   * @param {Metadata} metadata The (partially filled-in) metadata object.
+   */
   function parseIlstAtom(data, end, metadata) {
     // Now read all child atoms of ilst, looking for metadata
     // we care about
@@ -292,8 +358,14 @@ var MP4Metadata = (function() {
     }
   }
 
-  // Find the data atom and return its value or throw an error
-  // We handle UTF-8 strings, numbers, and blobs
+  /**
+   * Get the value for a single metadata atom.
+   *
+   * @param {BlobView} data The data for the moov atom.
+   * @param {Number} end The offset at which the moov atom ends.
+   * @param {String} atomtype The name of this atom.
+   * @return {Object} The parsed value.
+   */
   function getMetadataValue(data, end, atomtype) {
     // Loop until we find a data atom
     while (data.index < end) {

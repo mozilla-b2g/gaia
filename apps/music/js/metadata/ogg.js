@@ -1,6 +1,12 @@
 /* exported OggMetadata */
 'use strict';
 
+/**
+ * Parse files with Ogg metadata (e.g. Vorbis comments or Opus tags).
+ *
+ * Format information:
+ *   http://wiki.xiph.org/VorbisComment
+ */
 var OggMetadata = (function() {
   // Fields that should be stored as integers, not strings
   var INTFIELDS = [
@@ -18,13 +24,29 @@ var OggMetadata = (function() {
     disctotal: 'disccount'
   };
 
+  /**
+   * A sentinal object thrown if we walk off the end of an Ogg page.
+   */
   function EndOfPageError() {}
 
+  /**
+   * Parse a file and return a Promise with the metadata.
+   *
+   * @param {BlobView} blobview The audio file to parse.
+   * @param {Metadata} metadata The (partially filled-in) metadata object.
+   * @return {Promise} A Promise returning the parsed metadata object.
+   */
   function parse(blobview, metadata) {
     readIdentificationHeader(blobview);
     return readCommentHeader(blobview, metadata);
   }
 
+  /**
+   * Read the identification header of an Ogg container. It's always the first
+   * page.
+   *
+   * @param {BlobView} page The audio file being parsed.
+   */
   function readIdentificationHeader(page) {
     var header = readPageHeader(page);
     if (header.segment_table.length !== 1) {
@@ -36,6 +58,13 @@ var OggMetadata = (function() {
     page.advance(header.segment_table[0]);
   }
 
+  /**
+   * Read the comment header of an Ogg container.
+   *
+   * @param {BlobView} page The audio file being parsed.
+   * @param {Metadata} metadata The (partially filled-in) metadata object.
+   * @return {Promise} A Promise that resolves with the completed metadata.
+   */
   function readCommentHeader(page, metadata) {
     var header = readPageHeader(page);
 
@@ -73,6 +102,12 @@ var OggMetadata = (function() {
     });
   }
 
+  /**
+   * Read the header for an Ogg page.
+   *
+   * @param {BlobView} page The audio file being parsed.
+   * @return {Object} An object containing the page's segment table.
+   */
   function readPageHeader(page) {
     var capture_pattern = page.readASCIIText(4);
     if (capture_pattern !== 'OggS') {
@@ -90,6 +125,12 @@ var OggMetadata = (function() {
     };
   }
 
+  /**
+   * Read all the comments in an Ogg container.
+   *
+   * @param {BlobView} page The audio file being parsed.
+   * @param {Metadata} metadata The (partially filled-in) metadata object.
+   */
   function readAllComments(page, metadata) {
     var vendor_string_length = page.readUnsignedInt(true);
     page.advance(vendor_string_length); // skip libvorbis vendor string
@@ -121,6 +162,11 @@ var OggMetadata = (function() {
     }
   }
 
+  /**
+   * Read a single comment field.
+   *
+   * @param {BlobView} page The audio file being parsed.
+   */
   function readComment(page) {
     if (page.remaining() < 4) { // 4 bytes for comment-length variable
       // TODO: handle metadata that uses multiple pages
@@ -149,7 +195,6 @@ var OggMetadata = (function() {
     }
 
     // XXX: Suport album art.
-    // http://wiki.xiph.org/VorbisComment
     // http://flac.sourceforge.net/format.html#metadata_block_picture
   }
 

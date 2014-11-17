@@ -39,6 +39,9 @@
  *   (full-size) picture; only applies when flavor="external" or "unsynced".
  */
 
+/**
+ * Parse the metadata for an audio file.
+ */
 var AudioMetadata = (function() {
   var pictureStorage = navigator.getDeviceStorage('pictures');
 
@@ -51,8 +54,10 @@ var AudioMetadata = (function() {
   var savedCoverCache = new Set();
 
   /**
-   * Parse the specified blob and pass an object of metadata to the
-   * metadataCallback, or invoke the errorCallback with an error message.
+   * Parse the specified blob and return a Promise with the metadata.
+   *
+   * @param {Blob} blob The audio file to parse.
+   * @return {Promise} A Promise returning the parsed metadata object.
    */
   function parse(blob) {
     var filename = blob.name;
@@ -129,6 +134,13 @@ var AudioMetadata = (function() {
     });
   }
 
+  /**
+   * Check if a blob can be played as an audio file.
+   *
+   * @param {Blob} blob The file to test.
+   * @return {Promise} A promise that resolves successfully if the file is
+   *   playable.
+   */
   function checkPlayability(blob) {
     var player = new Audio();
     player.mozAudioChannelType = 'content';
@@ -157,6 +169,15 @@ var AudioMetadata = (function() {
     }
   }
 
+  /**
+   * Perform additional processing for cover art, such as checking for external
+   * artwork and saving temporary image blobs (for unsynchronized ID3 data).
+   *
+   * @param {Blob} blob The audio file.
+   * @param {Metadata} metadata The metadata for the file.
+   * @return {Promise} A Promise resolving to the metadata object with any
+   *   additional cover art fields added as necessary.
+   */
   function handleCoverArt(blob, metadata) {
     // Media files that aren't backed by actual files get the picture as a Blob,
     // since they're just temporary. We also use this in our tests.

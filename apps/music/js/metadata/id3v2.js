@@ -2,6 +2,12 @@
 /* exported ID3v2Metadata */
 'use strict';
 
+/**
+ * Parse files with ID3v2 metadata.
+ *
+ * Format information:
+ *   http://id3.org/Developer%20Information
+ */
 var ID3v2Metadata = (function() {
   // Map id3v2 frame ids to metadata property names. Each line has two mappings:
   // one for id3v2.3+ and one for id3v2.2.
@@ -18,6 +24,13 @@ var ID3v2Metadata = (function() {
     TPOS: 'disccount',  TPA: 'disccount'
   };
 
+  /**
+   * Parse a file and return a Promise with the metadata.
+   *
+   * @param {BlobView} blobview The audio file to parse.
+   * @param {Metadata} metadata The (partially filled-in) metadata object.
+   * @return {Promise} A Promise returning the parsed metadata object.
+   */
   function parse(blobview, metadata) {
     var header = parseHeader(blobview);
     if (header.version > 4) {
@@ -37,6 +50,12 @@ var ID3v2Metadata = (function() {
     });
   }
 
+  /**
+   * Parse the header of an ID3 tag.
+   *
+   * @param {BlobView} blobview The audio file to parse.
+   * @return {Object} An object describing the header's values.
+   */
   function parseHeader(blobview) {
     // First three bytes are "ID3" or we wouldn't be here
     blobview.index = 3;
@@ -64,6 +83,14 @@ var ID3v2Metadata = (function() {
     return header;
   }
 
+  /**
+   * Parse all the ID3 frames in this tag.
+   *
+   * @param {Object} header The header object for this ID3 tag.
+   * @param {BlobView} blobview The audio file to parse.
+   * @param {Metadata} metadata The (partially filled-in) metadata object.
+   * @return {Promise} A Promise returning the parsed metadata object.
+   */
   function parseFrames(header, blobview, metadata) {
     // In id3v2.3, the "unsynchronized" flag in the tag header applies to
     // the whole tag (excluding the tag header). In id3v2.4, the flag is just
@@ -98,6 +125,14 @@ var ID3v2Metadata = (function() {
     }
   }
 
+  /**
+   * Parse an individual ID3 frame.
+   *
+   * @param {Object} header The header object for this ID3 tag.
+   * @param {BlobView} blobview The audio file being parsed.
+   * @param {Metadata} metadata The (partially filled-in) metadata object.
+   * @return {Promise} A Promise returning the parsed metadata object.
+   */
   function parseFrame(header, blobview, metadata) {
     var frameid, framesize, frameflags, frame_unsynchronized = false;
 
@@ -209,6 +244,18 @@ var ID3v2Metadata = (function() {
     return deunsynced_view;
   }
 
+  /**
+   * Read the value from a textual ID3 frame (one whose name starts with "T",
+   * and isn't "TXXX").
+   *
+   * @param {Object} header The header object for this ID3 tag.
+   * @param {BlobView} view The audio file being parsed.
+   * @param {Number} size The size in bytes of this frame's value.
+   * @param {Number} encoding The encoding for this string (0: ascii, 1: utf16,
+   *   2: utf16-be, 3: utf-8). If null, determine the encoding from the first
+   *   bytes of the value.
+   * @param {String} The value of this frame.
+   */
   function readTextFrame(header, view, size, encoding) {
     if (encoding === undefined) {
       encoding = view.readUnsignedByte();
@@ -228,6 +275,17 @@ var ID3v2Metadata = (function() {
     }
   }
 
+  /**
+   * Read the value from a numeric pair frame (track number or disc number).
+   *
+   * @param {Object} header The header object for this ID3 tag.
+   * @param {BlobView} view The audio file being parsed.
+   * @param {Number} size The size in bytes of this frame's value.
+   * @param {Number} encoding The encoding for this string (0: ascii, 1: utf16,
+   *   2: utf16-be, 3: utf-8). If null, determine the encoding from the first
+   *   bytes of the value.
+   * @param {Array} The value of this frame, as two Numbers.
+   */
   function readNumericPairFrame(header, view, size, encoding) {
     var text = readTextFrame(header, view, size, encoding);
     var pair = text.split('/', 2).map(function(val) {
@@ -240,6 +298,14 @@ var ID3v2Metadata = (function() {
     return pair;
   }
 
+  /**
+   * Read the value from a picture frame.
+   *
+   * @param {Object} header The header object for this ID3 tag.
+   * @param {BlobView} view The audio file being parsed.
+   * @param {Number} size The size in bytes of this frame's value.
+   * @param {Picture} The value of this frame.
+   */
   function readPicFrame(header, view, size) {
     var start = view.index;
     var encoding = view.readUnsignedByte();
@@ -284,6 +350,16 @@ var ID3v2Metadata = (function() {
     }
   }
 
+  /**
+   * Read an array of strings from a frame.
+   *
+   * @param {BlobView} view The audio file being parsed.
+   * @param {Number} size The size in bytes of this frame's value.
+   * @param {Number} encoding The encoding for this string (0: ascii, 1: utf16,
+   *   2: utf16-be, 3: utf-8). If null, determine the encoding from the first
+   *   bytes of the value.
+   * @param {String} The strings, joined by " / ".
+   */
   function readEncodedTextArray(view, size, encoding) {
     var text;
     switch (encoding) {
@@ -309,6 +385,16 @@ var ID3v2Metadata = (function() {
     return text.replace(/\0+$/, '').replace('\0', ' / ');
   }
 
+  /**
+   * Read a single string from a frame.
+   *
+   * @param {BlobView} view The audio file being parsed.
+   * @param {Number} size The size in bytes of this frame's value.
+   * @param {Number} encoding The encoding for this string (0: ascii, 1: utf16,
+   *   2: utf16-be, 3: utf-8). If null, determine the encoding from the first
+   *   bytes of the value.
+   * @param {String} The string.
+   */
   function readEncodedText(view, size, encoding) {
     switch (encoding) {
     case 0:

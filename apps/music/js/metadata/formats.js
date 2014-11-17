@@ -3,6 +3,10 @@
 /* exported MetadataFormats */
 'use strict';
 
+/**
+ * Delegates metadata parsing to the appropriate parser based on magic header
+ * values.
+ */
 var MetadataFormats = (function() {
 
   var BASEDIR = 'js/metadata/';
@@ -45,11 +49,26 @@ var MetadataFormats = (function() {
     }
   ];
 
+  /**
+   * Create a new metadata parser for a particular file format.
+   *
+   * @param {Object} formatInfo A description of the file format containing a
+   *   `file` attribute for the file to load, and a `module` attribute returning
+   *   the module that contains the parse() method we should call.
+   */
   function MetadataParser(formatInfo) {
     this._formatInfo = formatInfo;
   }
 
   MetadataParser.prototype = {
+    /**
+     * Parse a file and return a Promise with the metadata.
+     *
+     * @param {BlobView} header The file in question.
+     * @param {Metadata} metadata The (partially filled-in) metadata object.
+     * @return {Promise} A Promise that resolves with the completed metadata
+     *   object.
+     */
     parse: function(header, metadata) {
       var info = this._formatInfo;
       return new Promise(function(resolve, reject) {
@@ -60,6 +79,12 @@ var MetadataFormats = (function() {
     }
   };
 
+  /**
+   * Find the appropriate metadata parser for a given file.
+   *
+   * @param {BlobView} header The file in question.
+   * @return {MetadataParser} The metadata parser to use for this file.
+   */
   function findParser(header) {
     for (var i = 0; i < formats.length; i++) {
       if (formats[i].match(header)) {

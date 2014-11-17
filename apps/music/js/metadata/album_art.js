@@ -2,6 +2,10 @@
 /* exported AlbumArt */
 'use strict';
 
+/**
+ * Handle fetching album art and thumbnail management for already-parsed audio
+ * files.
+ */
 var AlbumArt = (function() {
 
   // When we generate our own thumbnails, aim for this size
@@ -20,7 +24,7 @@ var AlbumArt = (function() {
    * @param {Boolean} noPlaceholder False if this function should return a
    *   placeholder image if there's no cover art for the file. Otherwise, this
    *   function will return null if there's no cover art.
-   * @return {Promise} A promise returning either the Blob for the thumbnail, or
+   * @return {Promise} A promise returning either the URL for the thumbnail, or
    *   null.
    */
   function getCoverURL(fileinfo, noPlaceholder) {
@@ -44,6 +48,17 @@ var AlbumArt = (function() {
     });
   }
 
+  /**
+   * Get a Blob for a thumbnailized version of the cover art for a given file
+   * (if any).
+   *
+   * @param {Object} fileinfo The info for the file we want album art for.
+   * @param {Boolean} noPlaceholder False if this function should return a
+   *   placeholder image if there's no cover art for the file. Otherwise, this
+   *   function will return null if there's no cover art.
+   * @return {Promise} A promise returning either the Blob for the thumbnail, or
+   *   null.
+   */
   function getCoverBlob(fileinfo, noPlaceholder) {
     return getCoverURL(fileinfo, noPlaceholder).then(function(url) {
       return getBlobFromURL(url);
@@ -222,6 +237,12 @@ var AlbumArt = (function() {
     });
   }
 
+  /**
+   * Get the Blob for a URL.
+   *
+   * @param {String} url The URL to fetch.
+   * @return {Promise} A promise returning the Blob.
+   */
   function getBlobFromURL(url) {
     return new Promise(function(resolve, reject) {
       var xhr = new XMLHttpRequest();

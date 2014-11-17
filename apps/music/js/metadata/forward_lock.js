@@ -2,8 +2,18 @@
 /* exported ForwardLockMetadata */
 'use strict';
 
+/**
+ * Parse metadata for ForwardLocked files. Generally, this will forward on to
+ * the metadata parser for the underlying format.
+ */
 var ForwardLockMetadata = (function() {
 
+  /**
+   * Parse a file and return a Promise with the metadata.
+   *
+   * @param {BlobView} locked The audio file to parse.
+   * @return {Promise} A Promise returning the parsed metadata object.
+   */
   function parse(locked) {
     return new Promise(function(resolve, reject) {
       ForwardLock.getKey(function(secret) {
