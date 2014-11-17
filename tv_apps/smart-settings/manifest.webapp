@@ -29,9 +29,6 @@
   "orientation": "default",
   "activities": {
     "configure": {
-      "filters": {
-        "target": "device"
-      },
       "disposition": "inline",
       "href": "/index.html"
     }
