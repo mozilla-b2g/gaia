@@ -4,7 +4,7 @@
           SettingsPromiseManager, L10nLoader, TargetHandlersManager,
           FeedbackManager, VisualHighlightManager, CandidatePanelManager,
           UpperCaseStateManager, LayoutRenderingManager, StateManager,
-          MockInputMethodManager */
+          MockInputMethodManager, HandwritingPadsManager */
 
 require('/js/keyboard/console.js');
 require('/js/keyboard/input_method_manager.js');
@@ -12,6 +12,7 @@ require('/js/keyboard/layout_manager.js');
 require('/js/keyboard/settings.js');
 require('/js/keyboard/l10n_loader.js');
 require('/js/keyboard/target_handlers_manager.js');
+require('/js/keyboard/handwriting_pads_manager.js');
 require('/js/keyboard/feedback_manager.js');
 require('/js/keyboard/visual_highlight_manager.js');
 require('/js/keyboard/candidate_panel_manager.js');
@@ -31,6 +32,7 @@ suite('KeyboardApp', function() {
   var settingsPromiseManagerStub;
   var l10nLoaderStub;
   var targetHandlersManagerStub;
+  var handwritingPadsManagerStub;
   var feedbackManagerStub;
   var visualHighlightManagerStub;
   var candidatePanelManagerStub;
@@ -69,6 +71,11 @@ suite('KeyboardApp', function() {
       this.sinon.stub(TargetHandlersManager.prototype);
     this.sinon.stub(window, 'TargetHandlersManager')
       .returns(targetHandlersManagerStub);
+
+    handwritingPadsManagerStub =
+      this.sinon.stub(HandwritingPadsManager.prototype);
+    this.sinon.stub(window, 'HandwritingPadsManager')
+      .returns(handwritingPadsManagerStub);
 
     feedbackManagerStub = this.sinon.stub(FeedbackManager.prototype);
     this.sinon.stub(window, 'FeedbackManager').returns(feedbackManagerStub);
@@ -132,6 +139,7 @@ suite('KeyboardApp', function() {
     assert.isTrue(inputMethodManagerStub.start.calledOnce);
     assert.isTrue(layoutManagerStub.start.calledOnce);
     assert.isTrue(targetHandlersManagerStub.start.calledOnce);
+    assert.isTrue(handwritingPadsManagerStub.start.calledOnce);
     assert.isTrue(feedbackManagerStub.start.calledOnce);
     assert.isTrue(visualHighlightManagerStub.start.calledOnce);
     assert.isTrue(candidatePanelManagerStub.start.calledOnce);
@@ -144,6 +152,7 @@ suite('KeyboardApp', function() {
     app.stop();
 
     assert.isTrue(targetHandlersManagerStub.stop.calledOnce);
+    assert.isTrue(handwritingPadsManagerStub.stop.calledOnce);
     assert.isTrue(feedbackManagerStub.stop.calledOnce);
     assert.isTrue(visualHighlightManagerStub.stop.calledOnce);
     assert.isTrue(candidatePanelManagerStub.stop.calledOnce);

@@ -5,7 +5,8 @@
           CandidateSelectionTargetHandler, CompositeTargetHandler,
           PageSwitchingTargetHandler, CapsLockTargetHandler,
           SwitchKeyboardTargetHandler, ToggleCandidatePanelTargetHandler,
-          DismissSuggestionsTargetHandler, BackspaceTargetHandler */
+          DismissSuggestionsTargetHandler, BackspaceTargetHandler,
+          HandwritingPadTargetHandler */
 
 (function(exports) {
 
@@ -29,6 +30,8 @@ TargetHandlersManager.prototype.start = function() {
     this._callTargetAction.bind(this, 'activate', true, false);
   activeTargetsManager.ontargetlongpressed =
     this._callTargetAction.bind(this, 'longPress', false, false);
+  activeTargetsManager.ontargetmoved =
+    this._callTargetAction.bind(this, 'move', false, false);
   activeTargetsManager.ontargetmovedout =
     this._callTargetAction.bind(this, 'moveOut', false, true);
   activeTargetsManager.ontargetmovedin =
@@ -60,12 +63,11 @@ TargetHandlersManager.prototype.stop = function() {
 //
 // An active target and it's handler enjoys a life cycle that beginning with
 // "activate" or "moveIn", and end with "commit", "cancel", or "moveout".
-// "longpress" is noticeably an optional step during the life cycle and does
-// not start or end the handler/active target, so it was not mentioned in the
-// above list.
-// "newTargetActivate" is similar to "longpress",  it is an optional step too,
-// so it was not mentioned in the above list. newTargetActivate is called on
-// the current target(s) when there is a new target is about to be activated.
+// The optional steps are "longpress", "newTargetActivate", and "move".
+// They happen respectively when the target is long pressed, the target is
+// pressed while there a new target is about to be activated, or when the
+// touch moves within the target. These events are optional and don't affect
+// the life cycle of the handler.
 //
 // Please note that since we are using target (an abstract key object associated
 // with one DOM element) as the identifier of handlers, we do not assign new
@@ -75,9 +77,12 @@ TargetHandlersManager.prototype.stop = function() {
 TargetHandlersManager.prototype._callTargetAction = function(action,
                                                              setHandler,
                                                              deleteHandler,
-                                                             target) {
+                                                             target,
+                                                             press) {
   this.app.console.log('TargetHandlersManager._callTargetAction()',
     action, setHandler, deleteHandler, target);
+
+  this._preprocessActions(action, target);
 
   var handler;
   if (this.handlers.has(target)) {
@@ -100,7 +105,7 @@ TargetHandlersManager.prototype._callTargetAction = function(action,
     }
   }
 
-  handler[action]();
+  handler[action](press);
 };
 
 // This method decide which of the TargetHandler is the right one to
@@ -121,6 +126,8 @@ TargetHandlersManager.prototype._createHandlerForTarget = function(target) {
     handler = new CandidateSelectionTargetHandler(target, this.app);
   } else if ('compositeKey' in target) {
     handler = new CompositeTargetHandler(target, this.app);
+  } else if (target.isHandwritingPad) {
+    handler = new HandwritingPadTargetHandler(target, this.app);
   } else if ('keyCode' in target) {
     switch (target.keyCode) {
       // Delete is a special key, it reacts when pressed not released
@@ -156,6 +163,26 @@ TargetHandlersManager.prototype._createHandlerForTarget = function(target) {
   }
 
   return handler;
+};
+
+// Preprocess actions, change controlling states of activeTargetsManager
+TargetHandlersManager.prototype._preprocessActions = function(action,target) {
+  switch(action) {
+    case 'activate':
+    case 'moveIn':
+      if (target.isHandwritingPad) {
+        this.activeTargetsManager.blockNewUserPress = true;
+        this.activeTargetsManager.blockTargetMovedOut = true;
+      }
+      break;
+    case 'commit':
+    case 'doubleTap':
+      if (target.isHandwritingPad) {
+        this.activeTargetsManager.blockNewUserPress = false;
+        this.activeTargetsManager.blockTargetMovedOut = false;
+      }
+      break;
+  }
 };
 
 exports.TargetHandlersManager = TargetHandlersManager;

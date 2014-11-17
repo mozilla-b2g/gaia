@@ -1,7 +1,7 @@
 'use strict';
 
 /* global ActiveTargetsManager, AlternativesCharMenuManager, UserPressManager,
-          KeyboardConsole, HandwritingPadsManager */
+          KeyboardConsole */
 
 require('/js/keyboard/active_targets_manager.js');
 require('/js/keyboard/alternatives_char_menu_manager.js');
@@ -14,7 +14,6 @@ suite('ActiveTargetsManager', function() {
   var manager;
   var userPressManagerStub;
   var alternativesCharMenuManagerStub;
-  var handwritingPadsManagerStub;
 
   setup(function() {
     // Stub the depending constructors and have them returns a stub instance.
@@ -24,10 +23,6 @@ suite('ActiveTargetsManager', function() {
       .returns(alternativesCharMenuManagerStub);
     userPressManagerStub = this.sinon.stub(UserPressManager.prototype);
     this.sinon.stub(window, 'UserPressManager').returns(userPressManagerStub);
-    handwritingPadsManagerStub =
-      this.sinon.stub(HandwritingPadsManager.prototype);
-    this.sinon.stub(window, 'HandwritingPadsManager')
-      .returns(handwritingPadsManagerStub);
 
     this.sinon.stub(window, 'setTimeout', function () {
       return 1;
@@ -41,6 +36,7 @@ suite('ActiveTargetsManager', function() {
     manager = new ActiveTargetsManager(app);
     manager.ontargetactivated = this.sinon.stub();
     manager.ontargetlongpressed = this.sinon.stub();
+    manager.ontargetmoved = this.sinon.stub();
     manager.ontargetmovedout = this.sinon.stub();
     manager.ontargetmovedin = this.sinon.stub();
     manager.ontargetcommitted = this.sinon.stub();
@@ -56,10 +52,6 @@ suite('ActiveTargetsManager', function() {
     assert.isTrue(window.AlternativesCharMenuManager.calledWithNew());
     assert.isTrue(window.AlternativesCharMenuManager.calledWith(app));
     assert.isTrue(alternativesCharMenuManagerStub.start.calledOnce);
-
-    assert.isTrue(window.HandwritingPadsManager.calledWithNew());
-    assert.isTrue(window.HandwritingPadsManager.calledWith(app));
-    assert.isTrue(handwritingPadsManagerStub.start.calledOnce);
   });
 
   test('stop', function() {
@@ -67,7 +59,6 @@ suite('ActiveTargetsManager', function() {
 
     assert.isTrue(userPressManagerStub.stop.calledOnce);
     assert.isTrue(alternativesCharMenuManagerStub.stop.calledOnce);
-    assert.isTrue(handwritingPadsManagerStub.stop.calledOnce);
     assert.isTrue(window.clearTimeout.calledOnce);
   });
 
@@ -85,7 +76,7 @@ suite('ActiveTargetsManager', function() {
       userPressManagerStub.onpressstart(press0, id0);
 
       assert.isTrue(
-        manager.ontargetactivated.calledWith(press0.target));
+        manager.ontargetactivated.calledWith(press0.target, press0));
       assert.isTrue(window.clearTimeout.calledOnce);
       assert.isTrue(window.setTimeout.calledOnce);
       assert.equal(
@@ -100,6 +91,8 @@ suite('ActiveTargetsManager', function() {
       assert.isFalse(manager.ontargetmovedout.called);
       assert.isFalse(manager.ontargetmovedin.called);
       assert.isFalse(alternativesCharMenuManagerStub.hide.calledTwice);
+      assert.isTrue(
+        manager.ontargetmoved.calledWith(press0.target, press0));
 
       var pressEnd = {
         target: {
@@ -152,7 +145,6 @@ suite('ActiveTargetsManager', function() {
       };
       userPressManagerStub.onpressmove(pressMove, id0);
 
-      assert.isTrue(handwritingPadsManagerStub.isHandwritingPad.called);
       assert.isTrue(window.clearTimeout.calledTwice);
       assert.isTrue(window.setTimeout.calledTwice);
       assert.isTrue(manager.ontargetmovedout.called);
@@ -649,18 +641,18 @@ suite('ActiveTargetsManager', function() {
 
     setup(function() {
       alternativesCharMenuManagerStub.isShown = false;
-      handwritingPadsManagerStub.isWriting = false;
 
       userPressManagerStub.onpressstart(press0, id0);
 
-      assert.isTrue(handwritingPadsManagerStub.isHandwritingPad.called);
       assert.isTrue(
         manager.ontargetactivated.calledWith(press0.target));
       assert.isTrue(window.clearTimeout.calledOnce);
       assert.isTrue(window.setTimeout.calledOnce);
       assert.equal(
         window.setTimeout.getCall(0).args[1], manager.LONG_PRESS_TIMEOUT);
-      handwritingPadsManagerStub.isWriting = true;
+
+      manager.blockNewUserPress = true;
+      manager.blockTargetMovedOut = true;
     });
 
     test('ignore new press after start handwriting', function() {
@@ -683,16 +675,17 @@ suite('ActiveTargetsManager', function() {
 
       assert.isFalse(window.setTimeout.calledTwice);
       assert.isFalse(manager.ontargetmovedout.called);
+      assert.isTrue(manager.ontargetmoved.called);
       assert.isFalse(manager.ontargetmovedin.called);
       assert.isFalse(alternativesCharMenuManagerStub.hide.called);
 
       // Press end
       userPressManagerStub.onpressend(press0, id0);
 
-      assert.isFalse(alternativesCharMenuManagerStub.hide.calledOnce);
-      assert.isFalse(window.clearTimeout.calledTwice);
-      assert.isFalse(window.setTimeout.calledTwice);
-      assert.isFalse(manager.ontargetcommitted.called);
+      assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
+      assert.isTrue(window.clearTimeout.calledTwice);
+      assert.isTrue(window.setTimeout.calledTwice);
+      assert.isTrue(manager.ontargetcommitted.called);
     });
 
     test('press move out handwriting pad, press end', function() {
@@ -712,10 +705,10 @@ suite('ActiveTargetsManager', function() {
       // Press end
       userPressManagerStub.onpressend(press0, id0);
 
-      assert.isFalse(alternativesCharMenuManagerStub.hide.calledOnce);
-      assert.isFalse(window.clearTimeout.calledTwice);
-      assert.isFalse(window.setTimeout.calledTwice);
-      assert.isFalse(manager.ontargetcommitted.called);
+      assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
+      assert.isTrue(window.clearTimeout.calledTwice);
+      assert.isTrue(window.setTimeout.calledTwice);
+      assert.isTrue(manager.ontargetcommitted.called);
     });
   });
 });
