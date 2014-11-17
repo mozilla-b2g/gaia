@@ -19,16 +19,43 @@
     uninit: function cm_uninit() {
       this.mainSection.removeEventListener('contextmenu', this);
     },
+
+    // XXX: We should move this function to AppDeck with appropriate parameters
+    // once it's finished.
     pinToCard: function cm_pinToCard() {
-      var activity = new MozActivity({
-        name: 'pin',
-        data: {
-          name: 'title',
-          type: 'AppBookmark',
-          manifestURL: 'app://communications.gaiamobile.org/manifest.webapp',
-          launchURL: 'app://communications.gaiamobile.org/onring.html',
-          thumbnail: 'This is my thumbnail'
-        }
+      new Promise(function(resolve, reject) {
+        navigator.mozApps.getSelf().onsuccess = function(evt) {
+          resolve(evt.target.result);
+        };
+      }).then(function(app) {
+        return app.connect('screenshot');
+      }).then(function(ports) {
+        return new Promise(function(resolve, reject) {
+          var port = ports[0];
+          port.postMessage({
+            name: 'screenshot',
+            data: {
+              url: window.location.href,
+              maxWidth: 300,
+              maxHeight: 300
+            }
+          });
+          port.onmessage = function(message) {
+            resolve(message.data);
+            this.close();
+          };
+        });
+      }).then(function(background) {
+        new MozActivity({
+          name: 'pin',
+          data: {
+            name: 'title',
+            type: 'AppBookmark',
+            manifestURL: 'app://communications.gaiamobile.org/manifest.webapp',
+            launchURL: 'app://communications.gaiamobile.org/onring.html',
+            thumbnail: background
+          }
+        });
       });
     },
     removeCard: function cm_removeCard() {
