@@ -966,11 +966,11 @@ html[dir="rtl"] .edit #threads-container[data-type="list"] aside.pack-end span {
 
 /* RTL for thread view */
 
-html[dir="rtl"] .edit .message.incoming .bubble {
+html[dir="rtl"] .edit .message.outgoing .bubble {
   transform: translateX(0);
 }
 
-html[dir="rtl"] .edit .message.outgoing .bubble {
+html[dir="rtl"] .edit .message.incoming .bubble {
   transform: translateX(-2.5rem);
 }
 
