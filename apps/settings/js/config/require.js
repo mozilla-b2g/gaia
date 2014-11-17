@@ -263,6 +263,19 @@ require.config({
         'main',
         'modules/mvvm/observable'
       ]
+    },
+    {
+      name: 'panels/about/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/about_more_info/panel',
+      exclude: [
+        'main',
+        'modules/bluetooth/version_detector',
+        'modules/bluetooth/bluetooth_v1',
+        'modules/bluetooth/bluetooth'
+      ]
     }
   ]
 });

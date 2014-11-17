@@ -1,33 +1,76 @@
-/* global MockL10n, MockNavigatorMozMobileConnections,
-          MockNavigatorMozTelephony */
+/* global MockNavigatorMozMobileConnections, MockNavigatorMozTelephony */
 'use strict';
 
-requireApp('settings/test/unit/mocks_helper.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
 
-suite('about >', function() {
-  var realL10n, realMobileConnections, realTelephony;
-  var AboutMoreInfo;
-  var MockVersionDetector;
-  var MockBluetooth1, MockBluetooth2;
+suite('about more info >', function() {
+  var moreInfo;
+  var realL10n;
+  var realMobileConnections;
+  var realTelephony;
 
-  suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-    realMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-    realTelephony = navigator.mozTelephony;
-    navigator.mozTelephony = MockNavigatorMozTelephony;
+  var modules = [
+    'shared_mocks/mock_l10n',
+    'panels/about_more_info/more_info'
+  ];
+  var maps = {
+    '*': {
+      'modules/bluetooth/version_detector': 'MockBluetoothVersionDetector',
+      'modules/bluetooth/bluetooth': 'MockBluetooth',
+      'modules/bluetooth/bluetooth_v1': 'MockBluetooth'
+    }
+  };
+
+  var elements = {};
+
+  setup(function(done) {
+    this.MockBluetoothVersionDetector = {
+      version: 1
+    };
+
+    this.MockBluetooth = {
+      enabled: false,
+      numberOfPairedDevices: 0,
+      observe: function() {},
+      unobserve: function() {}
+    };
+
+    var requireCtx = testRequire([], maps, function() {});
+    define('MockBluetooth', function() {
+      return this.MockBluetooth;
+    }.bind(this));
+
+    define('MockBluetoothVersionDetector', function() {
+      return this.MockBluetoothVersionDetector;
+    }.bind(this));
+
+    requireCtx(modules, function(MockL10n, MoreInfo) {
+      realL10n = navigator.mozL10n;
+      navigator.mozL10n = MockL10n;
+
+      realMobileConnections = navigator.mozMobileConnections;
+      navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+
+      realTelephony = navigator.mozTelephony;
+      navigator.mozTelephony = MockNavigatorMozTelephony;
+
+      moreInfo = MoreInfo();
+      done();
+    });
   });
 
-  suiteTeardown(function() {
+  teardown(function() {
+    navigator.mozTelephony.mTeardown();
+    navigator.mozMobileConnections.mTeardown();
+
     navigator.mozL10n = realL10n;
     realL10n = null;
+
     navigator.mozMobileConnections = realMobileConnections;
     realMobileConnections = null;
+
     navigator.mozTelephony = realTelephony;
     realTelephony = null;
   });
@@ -72,58 +115,67 @@ suite('about >', function() {
       AboutMoreInfo = AboutMoreInfoModule;
       done();
     });
+
+    elements.deviceInfoImeis = document.querySelector('.deviceInfo-imeis');
+    elements.deviceInfoIccIds = document.querySelector('.deviceInfo-iccids');
   });
 
-  teardown(function() {
-    MockNavigatorMozTelephony.mTeardown();
-    MockNavigatorMozMobileConnections.mTeardown();
-    document.body.innerHTML = '';
+  suite('Initialization >', function() {
+    setup(function() {
+      this.sinon.stub(moreInfo, '_loadImei');
+      this.sinon.stub(moreInfo, '_loadIccId');
+      this.sinon.stub(moreInfo, '_loadGaiaCommit');
+      this.sinon.stub(moreInfo, '_loadMacAddress');
+      this.sinon.stub(moreInfo, '_loadBluetoothAddress');
+      moreInfo.init(elements);
+    });
+
+    test('function called', function() {
+      assert.ok(moreInfo._loadImei.called);
+      assert.ok(moreInfo._loadIccId.called);
+      assert.ok(moreInfo._loadGaiaCommit.called);
+      assert.ok(moreInfo._loadMacAddress.called);
+      assert.ok(moreInfo._loadBluetoothAddress.called);
+    });
   });
 
   suite('loadIccId >', function() {
-    var deviceInfoIccIds;
     var iccIds = ['12345', '22345'];
-    var sandbox = sinon.sandbox.create();
 
     setup(function() {
-      deviceInfoIccIds = document.getElementById('deviceInfo-iccids');
-      MockNavigatorMozMobileConnections[0].iccId = iccIds[0];
-    });
-
-    teardown(function() {
-      sandbox.restore();
+      navigator.mozMobileConnections[0].iccId = iccIds[0];
     });
 
     suite('single sim', function() {
       test('the list item should be hidden when mozMobileConnections is ' +
         'unavailable', function() {
           navigator.mozMobileConnections = null;
-          AboutMoreInfo.loadIccId();
-          assert.isTrue(deviceInfoIccIds.parentNode.hidden);
+          moreInfo._loadIccId();
+          assert.isTrue(moreInfo._elements.deviceInfoIccIds.parentNode.hidden);
           navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
       });
 
       test('the list item should be hidden when mozTelephony is unavalilable',
         function() {
           navigator.mozTelephony = null;
-          AboutMoreInfo.loadIccId();
-          assert.isTrue(deviceInfoIccIds.parentNode.hidden);
+          moreInfo._loadIccId();
+          assert.isTrue(moreInfo._elements.deviceInfoIccIds.parentNode.hidden);
           navigator.mozTelephony = MockNavigatorMozTelephony;
       });
 
       test('should show "Not available" when iccid is unavalilable',
         function() {
           MockNavigatorMozMobileConnections[0].iccId = null;
-          sandbox.spy(MockL10n, 'setAttributes');
-          AboutMoreInfo.loadIccId();
-          var span = deviceInfoIccIds.querySelector('span');
-          sinon.assert.calledWith(MockL10n.setAttributes, span, 'unavailable');
+          moreInfo._loadIccId();
+          var span = moreInfo._elements.deviceInfoIccIds.querySelector('span');
+          this.sinon.spy(span, 'setAttribute');
+          assert.equal(span.getAttribute('data-l10n-id'), 'unavailable');
       });
 
       test('should show correct value when with iccid', function() {
         MockNavigatorMozMobileConnections[0].iccId = iccIds[0];
-        AboutMoreInfo.loadIccId();
-        var span = deviceInfoIccIds.querySelector('span');
+        moreInfo._loadIccId();
+        var span = moreInfo._elements.deviceInfoIccIds.querySelector('span');
         assert.equal(span.textContent, iccIds[0]);
       });
     });
@@ -136,8 +188,9 @@ suite('about >', function() {
       });
 
       test('should show correct sim indicator', function() {
-        AboutMoreInfo.loadIccId();
-        var spans = deviceInfoIccIds.querySelectorAll('span');
+        moreInfo._loadIccId();
+        var spans = moreInfo._elements.deviceInfoIccIds
+          .querySelectorAll('span');
         assert.equal(spans[0].textContent, 'SIM 1: ' + iccIds[0]);
         assert.equal(spans[1].textContent, 'SIM 2: ' + iccIds[1]);
       });
@@ -145,22 +198,15 @@ suite('about >', function() {
   });
 
   suite('loadImei >', function() {
-    var deviceInfoImeis;
-    var sandbox = sinon.sandbox.create();
-
-    setup(function() {
-      deviceInfoImeis = document.getElementById('deviceInfo-imeis');
-    });
-
     teardown(function() {
-      sandbox.restore();
+      navigator.mozMobileConnections.mTeardown();
     });
 
     test('the list item should be hidden when mozMobileConnections is ' +
       'unavailable', function(done) {
         navigator.mozMobileConnections = null;
-        AboutMoreInfo.loadImei().then(function() {
-          assert.isTrue(deviceInfoImeis.parentNode.hidden);
+        moreInfo._loadImei().then(function() {
+          assert.isTrue(moreInfo._elements.deviceInfoImeis.parentNode.hidden);
           navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
         }).then(done, done);
     });
@@ -168,8 +214,8 @@ suite('about >', function() {
     test('the list item should be hidden when mozTelephony is unavalilable',
       function(done) {
         navigator.mozTelephony = null;
-        AboutMoreInfo.loadImei().then(function() {
-          assert.isTrue(deviceInfoImeis.parentNode.hidden);
+        moreInfo._loadImei().then(function() {
+          assert.isTrue(moreInfo._elements.deviceInfoImeis.parentNode.hidden);
           navigator.mozTelephony = MockNavigatorMozTelephony;
         }).then(done, done);
     });
@@ -182,15 +228,15 @@ suite('about >', function() {
             statusMessage: 'fakeImei'
           }
         };
-        sandbox.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
+        this.sinon.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
           function() {
             return req;
         });
-        var promise = AboutMoreInfo.loadImei();
+        var promise = moreInfo._loadImei();
         req.onsuccess();
 
         promise.then(function() {
-          var span = deviceInfoImeis.querySelector('span');
+          var span = moreInfo._elements.deviceInfoImeis.querySelector('span');
           assert.equal(span.textContent, 'fakeImei');
           assert.equal(span.dataset.slot, 0);
         }).then(done, done);
@@ -199,15 +245,15 @@ suite('about >', function() {
     test('should show correct value when without correct result',
       function(done) {
         var req = {};
-        sandbox.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
+        this.sinon.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
           function() {
             return req;
         });
-        var promise = AboutMoreInfo.loadImei();
+        var promise = moreInfo._loadImei();
         req.onsuccess();
 
         promise.then(function() {
-          var span = deviceInfoImeis.querySelector('span');
+          var span = moreInfo._elements.deviceInfoImeis.querySelector('span');
           assert.equal(span.getAttribute('data-l10n-id'), 'unavailable');
         }).then(done, done);
     });
@@ -215,15 +261,15 @@ suite('about >', function() {
     test('should show correct value when with getting imei failed',
       function(done) {
         var req = {};
-        sandbox.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
+        this.sinon.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
           function() {
             return req;
         });
-        var promise = AboutMoreInfo.loadImei();
+        var promise = moreInfo._loadImei();
         req.onerror();
 
         promise.then(function() {
-          var span = deviceInfoImeis.querySelector('span');
+          var span = moreInfo._elements.deviceInfoImeis.querySelector('span');
           assert.equal(span.getAttribute('data-l10n-id'), 'unavailable');
         }).then(done, done);
     });
@@ -247,15 +293,16 @@ suite('about >', function() {
         }];
 
         reqs.forEach(function(val, index) {
-          sandbox.stub(MockNavigatorMozMobileConnections[index], 'sendMMI',
+          this.sinon.stub(MockNavigatorMozMobileConnections[index], 'sendMMI',
             function() { return val; });
-        });
+        }.bind(this));
 
-        var promise = AboutMoreInfo.loadImei();
+        var promise = moreInfo._loadImei();
         reqs.forEach(function(req) { req.onsuccess(); });
 
         promise.then(function() {
-          var spans = deviceInfoImeis.querySelectorAll('span');
+          var spans = moreInfo._elements.deviceInfoImeis
+            .querySelectorAll('span');
           reqs.forEach(function(reqs, index) {
             assert.equal(spans[index].textContent,
               'IMEI ' + (index + 1) + ': fakeImei' + (index + 1));
