@@ -110,6 +110,11 @@ OperatorVariantHelper.prototype = {
     return 'operatorvariant.mnc';
   },
 
+  // The mozSettings key for the saved SPNs.
+  get SPN_SETTINGS_KEY() {
+    return 'operatorvariant.spn';
+  },
+
   // The prefs key for disabling all customizations.
   get OPERATOR_VARIANT_DISABLE_ALL_KEY() {
     return 'operatorvariant.disableAll';
@@ -151,11 +156,17 @@ OperatorVariantHelper.prototype = {
         } else {
           this._iccSettings.mnc = mncs[this._iccCardIndex];
         }
-        var iccIdsRequest = transaction.get(this.ICCID_SETTINGS_KEY);
-        iccIdsRequest.onsuccess = (function() {
-          var iccIds = iccIdsRequest.result[this.ICCID_SETTINGS_KEY];
-          this._iccSettings.iccId = iccIds && iccIds[this._iccCardIndex];
-          this.checkICCInfo();
+        var spnRequest = transaction.get(this.SPN_SETTINGS_KEY);
+        spnRequest.onsuccess = (function() {
+          var spns = spnRequest.result[this.SPN_SETTINGS_KEY];
+          this._iccSettings.spn = spns && spns[this._iccCardIndex];
+
+          var iccIdsRequest = transaction.get(this.ICCID_SETTINGS_KEY);
+          iccIdsRequest.onsuccess = (function() {
+            var iccIds = iccIdsRequest.result[this.ICCID_SETTINGS_KEY];
+            this._iccSettings.iccId = iccIds && iccIds[this._iccCardIndex];
+            this.checkICCInfo();
+          }).bind(this);
         }).bind(this);
       }).bind(this);
     }).bind(this);
@@ -180,6 +191,7 @@ OperatorVariantHelper.prototype = {
     // XXX sometimes we get 000/00 for mcc/mnc, even when cardState === 'ready'
     var mcc = this._iccCard.iccInfo.mcc || '000';
     var mnc = this._iccCard.iccInfo.mnc || '00';
+    var spn = this._iccCard.iccInfo.spn;
     var iccId = this._iccId;
     if (mcc === '000') {
       return;
@@ -190,11 +202,11 @@ OperatorVariantHelper.prototype = {
       return;
     }
 
-    if (iccId !== this._iccSettings.iccId) {
+    if (iccId !== this._iccSettings.iccId || spn != this._iccSettings.spn) {
       if (this._addedListener) {
         try {
           // apply new settings
-          this._listener(mcc, mnc);
+          this._listener(mcc, mnc, spn);
         }
         catch (e) {
           console.error('Listener threw an error!', e);
@@ -212,7 +224,7 @@ OperatorVariantHelper.prototype = {
           if (this._addedListener) {
             try {
               // apply new APN settings
-              this._listener(mcc, mnc, true);
+              this._listener(mcc, mnc, spn, true);
             }
             catch (e) {
               console.error('Listener threw an error!', e);
@@ -248,20 +260,33 @@ OperatorVariantHelper.prototype = {
         mncSettings[this.MNC_SETTINGS_KEY] = mncs;
         transaction.set(mncSettings);
 
-        var iccIdsRequest = transaction.get(this.ICCID_SETTINGS_KEY);
-        iccIdsRequest.onsuccess = (function() {
-          var iccIds = iccIdsRequest.result[this.ICCID_SETTINGS_KEY];
-          if (!iccIds || !Array.isArray(iccIds)) {
-            iccIds = [null, null];
+        var spnRequest = transaction.get(this.SPN_SETTINGS_KEY);
+        spnRequest.onsuccess = (function() {
+          var spns = mncRequest.result[this.SPN_SETTINGS_KEY];
+          if (!spns || !Array.isArray(spns)) {
+            spns = [null, null];
           }
-          iccIds[this._iccCardIndex] = iccId;
-          var iccIdSettings = {};
-          iccIdSettings[this.ICCID_SETTINGS_KEY] = iccIds;
-          transaction.set(iccIdSettings);
+          spns[this._iccCardIndex] = spn;
+          var spnSettings = {};
+          spnSettings[this.SPN_SETTINGS_KEY] = spns;
+          transaction.set(spnSettings);
 
-          this._iccSettings.mcc = mcc;
-          this._iccSettings.mnc = mnc;
-          this._iccSettings.iccId = iccId;
+          var iccIdsRequest = transaction.get(this.ICCID_SETTINGS_KEY);
+          iccIdsRequest.onsuccess = (function() {
+            var iccIds = iccIdsRequest.result[this.ICCID_SETTINGS_KEY];
+            if (!iccIds || !Array.isArray(iccIds)) {
+              iccIds = [null, null];
+            }
+            iccIds[this._iccCardIndex] = iccId;
+            var iccIdSettings = {};
+            iccIdSettings[this.ICCID_SETTINGS_KEY] = iccIds;
+            transaction.set(iccIdSettings);
+
+            this._iccSettings.mcc = mcc;
+            this._iccSettings.mnc = mnc;
+            this._iccSettings.spn = spn;
+            this._iccSettings.iccId = iccId;
+          }).bind(this);
         }).bind(this);
       }).bind(this);
     }).bind(this);
@@ -376,24 +401,6 @@ OperatorVariantHelper.prototype = {
         }).bind(this);
       }
       return;
-    }
-
-    if (this._addedListener) {
-      var iccManager = window.navigator.mozIccManager;
-      this._iccCard = iccManager.getIccById(this._iccId);
-      if (this._iccCard) {
-        // Otherwise, unregister.
-        this._iccCard.removeEventListener(
-          'iccinfochange',
-          this._addedListener
-        );
-        this._iccCard.removeEventListener(
-          'cardstatechange',
-          this._addedListener
-        );
-      }
-      // Clear our reference to the bound listener.
-      this._addedListener = null;
     }
   }
 };
