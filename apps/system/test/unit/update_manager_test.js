@@ -1213,7 +1213,18 @@ suite('system/UpdateManager', function() {
     var getDataRoamingSettingSpy;
     var checkUpdate2gEnabled;
     var showPromptNoConnectionSpy;
+    var mockMozWifiManager;
     var mockMozMobileConnections;
+    var realOnLine;
+    var isOnLine = true;
+
+    function navigatorOnLine() {
+      return isOnLine;
+    }
+
+    function setNavigatorOnLine(value) {
+      isOnLine = value;
+    }
 
     setup(function() {
       this.sinon.useFakeTimers();
@@ -1222,7 +1233,14 @@ suite('system/UpdateManager', function() {
         UpdateManager.downloadDialog.classList.remove('visible');
         return true;
       };
+      mockMozWifiManager = navigator.mozWifiManager;
       mockMozMobileConnections = navigator.mozMobileConnections;
+      realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
+      Object.defineProperty(navigator, 'onLine', {
+        configurable: true,
+        get: navigatorOnLine,
+        set: setNavigatorOnLine
+      });
 
       showForbiddenDwnSpy =
         this.sinon.spy(UpdateManager, 'showForbiddenDownload');
@@ -1247,6 +1265,11 @@ suite('system/UpdateManager', function() {
       this.sinon.clock.restore();
       UpdateManager.startDownloads = realStartDownloadsFunc;
       UpdateManager.downloadDialog.dataset.online = true;
+
+      if (realOnLine) {
+        Object.defineProperty(navigator, 'onLine', realOnLine);
+      }
+      navigator.mozWifiManager = mockMozWifiManager;
       navigator.mozMobileConnections = mockMozMobileConnections;
       navigator.mozWifiManager.connection.status = 'connected';
     });
@@ -1512,6 +1535,17 @@ suite('system/UpdateManager', function() {
         testResult: 'noConnection'
       },
       {
+        title: 'B2G/Mulet download, navigator online -> download available',
+        onLine: true,
+        testResult: 'startDownloads'
+      },
+      {
+        title: 'B2G/Mulet download, navigator offline' +
+          '-> download not available',
+        onLine: false,
+        testResult: 'noConnection'
+      },
+      {
         title: 'Connections undefined -> download not available',
         testResult: 'noConnection'
       }
@@ -1532,10 +1566,15 @@ suite('system/UpdateManager', function() {
           MockNavigatorSettings.mSettings[UpdateManager.WIFI_PRIORITIZED_KEY] =
             testCase.wifiPrioritized;
         }
+        if (testCase.onLine === undefined) {
+          navigator.mozWifiManager.connection.status =
+            testCase.wifi ? 'connected' : 'disconnected';
+        } else {
+          navigator.mozWifiManager = null;
+          navigator.onLine = testCase.onLine ? true : false;
+        }
         MockNavigatorSettings.mSettings['ril.data.roaming_enabled'] =
           testCase.roaming ? true : false;
-        navigator.mozWifiManager.connection.status =
-          testCase.wifi ? 'connected' : 'disconnected';
 
         if (testCase.conns === undefined) {
           navigator.mozMobileConnections = null;
