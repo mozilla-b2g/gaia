@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette.marionette import Actions
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 from gaiatest.apps.messages.app import Messages
@@ -12,6 +13,7 @@ class MessageThread(Base):
 
     _all_messages_locator = (By.CSS_SELECTOR, '#messages-container li.message')
     _received_message_content_locator = (By.CSS_SELECTOR, "#messages-container li.message.received")
+    _sent_message_locator = (By.CSS_SELECTOR, '#messages-container li.message.sent')
     _header_link_locator = (By.ID, 'messages-header')
     _message_header_locator = (By.ID, 'messages-header-text')
     _call_button_locator = (By.ID, 'messages-call-number-button')
@@ -32,6 +34,10 @@ class MessageThread(Base):
     @property
     def received_messages(self):
         return [Message(self.marionette, message) for message in self.marionette.find_elements(*self._received_message_content_locator)]
+
+    @property
+    def sent_messages(self):
+        return [Message(self.marionette, message) for message in self.marionette.find_elements(*self._sent_message_locator)]
 
     @property
     def all_messages(self):
@@ -62,6 +68,7 @@ class Message(PageRegion):
 
     _text_locator = (By.CSS_SELECTOR, '.bubble p')
     _attachments_locator = (By.CSS_SELECTOR, '.bubble .attachment-container.preview')
+    _message_section_locator = (By.CSS_SELECTOR, '.bubble')
 
     @property
     def text(self):
@@ -84,3 +91,14 @@ class Message(PageRegion):
     @property
     def id(self):
         return self.root_element.get_attribute('id')
+
+    def long_press_message(self):
+        message = self.root_element.find_element(*self._message_section_locator)
+        Actions(self.marionette).\
+            press(message).\
+            wait(3).\
+            release().\
+            perform()
+
+        from gaiatest.apps.messages.regions.activities import Activities
+        return Activities(self.marionette)

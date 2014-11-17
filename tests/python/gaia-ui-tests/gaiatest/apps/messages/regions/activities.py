@@ -15,6 +15,7 @@ class Activities(Base):
     _add_subject_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="add-subject"]')
     _add_to_contact_button_locator = (By.XPATH, '//*[text()="Add to an existing contact"]')
     _create_new_contact_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="createNewContact"]')
+    _forward_message_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="forward"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -47,3 +48,8 @@ class Activities(Base):
         new_contact = NewContact(self.marionette)
         new_contact.switch_to_new_contact_form()
         return new_contact
+
+    def tap_forward_message(self):
+        self.marionette.find_element(*self._forward_message_button_locator).tap()
+        from gaiatest.apps.messages.regions.new_message import NewMessage
+        return NewMessage(self.marionette)
