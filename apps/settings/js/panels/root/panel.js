@@ -12,6 +12,7 @@ define(function(require) {
   var WifiItem = require('panels/root/wifi_item');
   var ScreenLockItem = require('panels/root/screen_lock_item');
   var ThemesItem = require('panels/root/themes_item');
+  var PrivacyPanelItem = require('panels/root/privacy_panel_item');
 
   return function ctor_root_panel() {
     var root = Root();
@@ -24,6 +25,7 @@ define(function(require) {
     var wifiItem;
     var screenLockItem;
     var themesItem;
+    var privacyPanelItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
@@ -50,6 +52,8 @@ define(function(require) {
           ScreenLockItem(panel.querySelector('.screenLock-desc'));
         themesItem =
           ThemesItem(panel.querySelector('.themes-section'));
+        privacyPanelItem =
+          PrivacyPanelItem(panel.querySelector('.privacy-panel-item'));
 
         // We will initialize after idling
         navigator.addIdleObserver({
@@ -69,6 +73,7 @@ define(function(require) {
         wifiItem.enabled = true;
         screenLockItem.enabled = true;
         themesItem.enabled = true;
+        privacyPanelItem.enabled = true;
       },
       onShow: function rp_onShow() {
         // XXX: Set data-ready to true to indicate that the first panel is
@@ -86,6 +91,7 @@ define(function(require) {
         wifiItem.enabled = false;
         screenLockItem.enabled = false;
         themesItem.enabled = false;
+        privacyPanelItem.enabled = false;
       }
     });
   };
