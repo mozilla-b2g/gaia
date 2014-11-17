@@ -107,7 +107,7 @@ var videostorage;
 var isInitThumbnail = false;
 
 // If we're doing a pick activity, this variable will be true
-var picking;
+var picking = false;
 
 // Flag that indicates that we've edited a picture and just saved it
 var justSavedEditedImage = false;
@@ -264,7 +264,7 @@ function initDB() {
     // Switch back to the thumbnail view unless it is a pick activity.
     // If we were viewing or editing an image it might not be there
     // anymore when the MediaDB becomes available again.
-    if (!pendingPick) {
+    if (!picking) {
       setView(LAYOUT_MODE.list);
     } else {
       setView(LAYOUT_MODE.pick);
