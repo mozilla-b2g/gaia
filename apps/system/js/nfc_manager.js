@@ -254,17 +254,17 @@
         return;
       }
 
-      var req;
+      var promise;
       switch (state) {
         case this.NFC_HW_STATE.OFF:
-          req = nfcdom.powerOff();
+          promise = nfcdom.powerOff();
           break;
         case this.NFC_HW_STATE.DISABLE_DISCOVERY:
-          req = nfcdom.stopPoll();
+          promise = nfcdom.stopPoll();
           break;
         case this.NFC_HW_STATE.ON:
         case this.NFC_HW_STATE.ENABLE_DISCOVERY:
-          req = nfcdom.startPoll();
+          promise = nfcdom.startPoll();
           break;
       }
 
@@ -276,13 +276,11 @@
       });
       window.dispatchEvent(event);
 
-      req.onsuccess = () => {
+      promise.then(() => {
         this._debug('_changeHardwareState ' + state + ' success');
-      };
-      req.onerror = () => {
-        this._logVisibly('_changeHardwareState ' + state + ' error ' +
-                         req.error.name);
-      };
+      }).catch(e => {
+        this._logVisibly('_changeHardwareState ' + state + ' error ' + e);
+      });
     },
 
     /**
@@ -340,9 +338,9 @@
       var manifestURL = activeApp.getTopMostWindow().manifestURL ||
         window.Service.manifestURL;
 
-      var status = nfcdom.checkP2PRegistration(manifestURL);
-      status.onsuccess = () => {
-        if (status.result) {
+      var promise = nfcdom.checkP2PRegistration(manifestURL);
+      promise.then(result => {
+        if (result) {
           // Top visible application's manifest Url is registered;
           // Start Shrink / P2P UI and wait for user to accept P2P event
           window.dispatchEvent(new CustomEvent('shrinking-start'));
@@ -355,7 +353,7 @@
           window.removeEventListener('shrinking-sent', this);
           window.dispatchEvent(new CustomEvent('shrinking-stop'));
         }
-      };
+      });
     },
 
     /**
