@@ -219,6 +219,18 @@ suite('system/AppChrome', function() {
       assert.equal(chrome.backButton.disabled, true);
     });
 
+    test('location#anchor changed', function() {
+      var app = new AppWindow(fakeWebSite);
+      var chrome = new AppChrome(app);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+
+      chrome._currentURL = fakeWebSite.url;
+      chrome.containerElement.classList.add('scrollable');
+      chrome.handleEvent({ type: 'mozbrowserlocationchange',
+                           detail: fakeWebSite.url + '#anchor' });
+      assert.isTrue(chrome.containerElement.classList.contains('scrollable'));
+    });
+
     test('location changed - without navigation', function() {
       var app = new AppWindow(fakeAppWithName);
       var chrome = new AppChrome(app);
