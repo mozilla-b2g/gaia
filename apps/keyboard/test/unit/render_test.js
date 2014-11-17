@@ -3,6 +3,7 @@
 
 requireApp('keyboard/js/render.js');
 require('/js/views/handwriting_pad_view.js');
+require('/js/views/key_view.js');
 
 suite('Renderer', function() {
   suiteSetup(function() {
@@ -360,54 +361,6 @@ suite('Renderer', function() {
       assert.equal(rows[2].classList.contains('keyboard-last-row'), true);
       var keys = document.querySelectorAll('.keyboard-key');
       assert.equal(keys.length, 6);
-    });
-
-    test('Hidden should be respected', function() {
-      var layout = {
-        width: 2,
-        keys: [
-          [{ value: 'a', hidden: ['jan', 'piet']}, { value: 'b' }],
-          [{ value: 'c' }, { value: 'd' }],
-          [{ value: 'e' }, { value: 'f' }]
-        ]
-      };
-
-      IMERender.draw(layout, { inputType: 'jan' });
-
-      var rows = document.querySelectorAll('.keyboard-row');
-      assert.equal(rows[0].querySelectorAll('.keyboard-key').length, 1);
-    });
-
-    test('Key shouldn\'t be shown if visible present and no match', function() {
-      var layout = {
-        width: 2,
-        keys: [
-          [{ value: 'a', visible: ['jan'] }, { value: 'b' }],
-          [{ value: 'c' }, { value: 'd' }],
-          [{ value: 'e' }, { value: 'f' }]
-        ]
-      };
-
-      IMERender.draw(layout, { inputType: 'notjan' });
-
-      var rows = document.querySelectorAll('.keyboard-row');
-      assert.equal(rows[0].querySelectorAll('.keyboard-key').length, 1);
-    });
-
-    test('Key should be shown if visible present and match', function() {
-      var layout = {
-        width: 2,
-        keys: [
-          [{ value: 'a', visible: ['jan'] }, { value: 'b' }],
-          [{ value: 'c' }, { value: 'd' }],
-          [{ value: 'e' }, { value: 'f' }]
-        ]
-      };
-
-      IMERender.draw(layout, { inputType: 'jan' });
-
-      var rows = document.querySelectorAll('.keyboard-row');
-      assert.equal(rows[0].querySelectorAll('.keyboard-key').length, 2);
     });
 
     test('layout.keyClassName should be added to all keys', function() {
@@ -774,17 +727,21 @@ suite('Renderer', function() {
       dummy: 'dummy'
     };
 
+
     setup(function() {
       IMERender.init(fakeRenderingManager);
     });
 
     test('Highlight a key', function() {
-      var keyElem = document.createElement('div');
+      var keyView = {
+        highlight: this.sinon.stub(),
+        element: {}
+      };
 
-      IMERender.setDomElemTargetObject(keyElem, dummyKey);
-      IMERender.highlightKey(fakeRenderingManager.getTargetObject(keyElem));
+      IMERender.registerView(dummyKey, keyView);
+      IMERender.highlightKey(dummyKey);
 
-      assert.isTrue(keyElem.classList.contains('highlighted'));
+      assert.isTrue(keyView.highlight.called);
     });
   });
 });

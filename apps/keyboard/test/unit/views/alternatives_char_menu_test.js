@@ -1,18 +1,13 @@
 'use strict';
 
-/* global AlternativesCharMenuView, IMERender */
+/* global AlternativesCharMenuView */
 
-require('/js/views/alternatives_char_menu.js');
-require('/js/render.js');
+require('/js/views/alternatives_char_menu_view.js');
+require('/js/views/key_view.js');
 
 suite('Views > AlternativesCharMenuView', function() {
   var menu = null;
-  var renderer = {
-    buildKey: function(alt) {
-      var button = document.createElement('button');
-      button.textContent = alt;
-      return button;
-    }
+  var options = {
   };
 
   var KEY_WIDTH = 30;
@@ -20,36 +15,18 @@ suite('Views > AlternativesCharMenuView', function() {
   var altChars = ['a', 'b', 'c'];
   var fakeMenu;
 
-  var fakeLayoutRenderingManager;
-
   var rootElement = document.createElement('div');
   document.body.appendChild(rootElement);
 
-  var key = {
-    dummy: 'dummy'
-  };
-
-  setup(function(){
-    fakeLayoutRenderingManager = {
-      domObjectMap: new WeakMap(),
-      getTargetObject: function(elem){
-        return this.domObjectMap.get(elem);
-      }
-    };
-
-    IMERender.init(fakeLayoutRenderingManager);
-
-    var keyElem = document.createElement('button');
-    IMERender.targetObjDomMap.set(key, keyElem);
-  });
+  var dummyKeyElement = document.createElement('button');
 
   suite('basic show/hide testing', function() {
     setup(function() {
-      menu = new AlternativesCharMenuView(rootElement, altChars, renderer);
+      menu = new AlternativesCharMenuView(rootElement, altChars, options);
     });
 
     test(' > show()', function() {
-      menu.show(key);
+      menu.show(dummyKeyElement);
 
       assert.equal(rootElement.firstElementChild,
                    menu.getMenuContainer(),
@@ -58,7 +35,7 @@ suite('Views > AlternativesCharMenuView', function() {
     });
 
     test(' > hide()', function() {
-      menu.show(key);
+      menu.show(dummyKeyElement);
       menu.hide();
 
       assert.equal(rootElement.childElementCount, 0,
@@ -67,14 +44,10 @@ suite('Views > AlternativesCharMenuView', function() {
   });
 
   suite(' > getMenuTarget() - single row case', function() {
-    var childObjs = [];
-
     setup(function() {
       fakeMenu = document.createElement('div');
       fakeMenu.style.position = 'absolute';
       fakeMenu.style.fontSize = 0;
-
-      childObjs = [];
 
       // insert 3 keys for 1 row
       for (var i = 0; i < 3; i++) {
@@ -84,20 +57,11 @@ suite('Views > AlternativesCharMenuView', function() {
         child.style.height = KEY_HEIGHT + 'px';
 
         fakeMenu.appendChild(child);
-
-        var childObj = {
-          dummy: i
-        };
-
-        IMERender.setDomElemTargetObject(child, childObj);
-
-        childObjs.push(fakeLayoutRenderingManager.getTargetObject(child));
       }
 
       rootElement.appendChild(fakeMenu);
 
-      menu = new AlternativesCharMenuView(rootElement, altChars, renderer);
-      menu.renderingManager = fakeLayoutRenderingManager;
+      menu = new AlternativesCharMenuView(rootElement, altChars, options);
 
       this.sinon.stub(menu, 'getMenuContainer');
       menu.getMenuContainer.returns(fakeMenu);
@@ -107,9 +71,6 @@ suite('Views > AlternativesCharMenuView', function() {
 
       this.sinon.stub(menu, 'getLineHeight');
       menu.getLineHeight.returns(KEY_HEIGHT);
-
-      var keyElem = document.createElement('button');
-      IMERender.targetObjDomMap.set(key, keyElem);
     });
 
     teardown(function() {
@@ -117,48 +78,44 @@ suite('Views > AlternativesCharMenuView', function() {
     });
 
     test('the first element', function() {
-      menu.show(key);
+      menu.show(dummyKeyElement);
 
       var rect = fakeMenu.getBoundingClientRect();
       var target = menu.getMenuTarget(rect.left, rect.top);
-      var expectedTarget = childObjs[0];
 
-      assert.equal(target, expectedTarget, 'Should map to the first element');
+      assert.equal(target, menu.altKeyTargets[0],
+                   'Should map to the first element');
     });
 
     test('the second element', function() {
-      menu.show(key);
+      menu.show(dummyKeyElement);
 
       var rect = fakeMenu.getBoundingClientRect();
       var target = menu.getMenuTarget(fakeMenu.offsetLeft + KEY_WIDTH +
         rect.left, rect.top);
-      var expectedTarget = childObjs[1];
 
-      assert.equal(target, expectedTarget, 'Should map to the second element');
+      assert.equal(target, menu.altKeyTargets[1],
+                   'Should map to the second element');
     });
 
     test('the last element', function() {
-      menu.show(key);
+      menu.show(dummyKeyElement);
 
       var rect = fakeMenu.getBoundingClientRect();
       var target = menu.getMenuTarget(fakeMenu.offsetLeft +
                                       fakeMenu.offsetWidth +
                                       rect.left, rect.top);
-      var expectedTarget = childObjs[2];
 
-      assert.equal(target, expectedTarget, 'Should map to the last element');
+      assert.equal(target, menu.altKeyTargets[menu.altKeyTargets.length -1],
+                   'Should map to the last element');
     });
   });
 
   suite(' > getMenuTarget() - 2 row case', function() {
-    var childObjs = [];
-
     setup(function() {
       fakeMenu = document.createElement('div');
       fakeMenu.style.position = 'absolute';
       fakeMenu.style.width = KEY_WIDTH * 3 + 'px';  // 2 row
-
-      childObjs = [];
 
       // insert 6 keys for 2 rows
       for (var i = 0; i < 6; i++) {
@@ -168,20 +125,12 @@ suite('Views > AlternativesCharMenuView', function() {
          child.style.height = KEY_HEIGHT + 'px';
 
          fakeMenu.appendChild(child);
-
-        var childObj = {
-          dummy: i
-        };
-
-        IMERender.setDomElemTargetObject(child, childObj);
-
-        childObjs.push(fakeLayoutRenderingManager.getTargetObject(child));
       }
 
       rootElement.appendChild(fakeMenu);
 
-      menu = new AlternativesCharMenuView(rootElement, altChars, renderer);
-      menu.renderingManager = fakeLayoutRenderingManager;
+      var altChars = ['a', 'b', 'c', 'd', 'e', 'f'];
+      menu = new AlternativesCharMenuView(rootElement, altChars, options);
 
       this.sinon.stub(menu, 'getMenuContainer');
       menu.getMenuContainer.returns(fakeMenu);
@@ -191,9 +140,6 @@ suite('Views > AlternativesCharMenuView', function() {
 
       this.sinon.stub(menu, 'getLineHeight');
       menu.getLineHeight.returns(KEY_HEIGHT);
-
-      var keyElem = document.createElement('button');
-      IMERender.targetObjDomMap.set(key, keyElem);
     });
 
     teardown(function() {
@@ -201,20 +147,20 @@ suite('Views > AlternativesCharMenuView', function() {
     });
 
     test('2 row - the first element', function() {
-      menu.show(key);
+      menu.show(dummyKeyElement);
 
       var rect = fakeMenu.getBoundingClientRect();
 
       var target = menu.getMenuTarget(rect.left, fakeMenu.offsetTop +
                                          fakeMenu.offsetHeight +
                                          rect.top);
-      var expectedTarget = childObjs[0];
 
-      assert.equal(target, expectedTarget, 'Should map to the first element');
+      assert.equal(target, menu.altKeyTargets[0],
+                   'Should map to the first element');
     });
 
     test('2 row - the second element', function() {
-      menu.show(key);
+      menu.show(dummyKeyElement);
 
       var rect = fakeMenu.getBoundingClientRect();
       var target = menu.getMenuTarget(fakeMenu.offsetLeft + KEY_WIDTH +
@@ -223,31 +169,26 @@ suite('Views > AlternativesCharMenuView', function() {
                                       fakeMenu.offsetHeight +
                                       rect.top);
 
-      var expectedTarget = childObjs[1];
-
-      assert.equal(target, expectedTarget, 'Should map to the second element');
+      assert.equal(target, menu.altKeyTargets[1],
+                   'Should map to the second element');
     });
 
     test('2 row - the 4th element in the upper row', function() {
-      menu.show(key);
+      menu.show(dummyKeyElement);
 
       var rect = fakeMenu.getBoundingClientRect();
       var target = menu.getMenuTarget(rect.left, rect.top);
-      var expectedTarget = childObjs[3];
 
-      assert.equal(target, expectedTarget, 'Should map to the 4th element');
+      assert.equal(target, menu.altKeyTargets[3],
+                   'Should map to the 4th element');
     });
   });
 
   suite(' > getMenuTarget() - 2 row with one empty cell case', function() {
-    var childObjs = [];
-
     setup(function() {
       fakeMenu = document.createElement('div');
       fakeMenu.style.position = 'absolute';
       fakeMenu.style.width = KEY_WIDTH * 3 + 'px';  // 2 row
-
-      childObjs = [];
 
       // insert 5 keys for 2 rows
       // (would result in 3x2 cells with top top-right one being empty)
@@ -258,20 +199,12 @@ suite('Views > AlternativesCharMenuView', function() {
          child.style.height = KEY_HEIGHT + 'px';
 
          fakeMenu.appendChild(child);
-
-        var childObj = {
-          dummy: i
-        };
-
-        IMERender.setDomElemTargetObject(child, childObj);
-
-        childObjs.push(fakeLayoutRenderingManager.getTargetObject(child));
       }
 
       rootElement.appendChild(fakeMenu);
 
-      menu = new AlternativesCharMenuView(rootElement, altChars, renderer);
-      menu.renderingManager = fakeLayoutRenderingManager;
+      var altChars = ['a', 'b', 'c', 'd', 'e'];
+      menu = new AlternativesCharMenuView(rootElement, altChars, options);
 
       this.sinon.stub(menu, 'getMenuContainer');
       menu.getMenuContainer.returns(fakeMenu);
@@ -281,9 +214,6 @@ suite('Views > AlternativesCharMenuView', function() {
 
       this.sinon.stub(menu, 'getLineHeight');
       menu.getLineHeight.returns(KEY_HEIGHT);
-
-      var keyElem = document.createElement('button');
-      IMERender.targetObjDomMap.set(key, keyElem);
     });
 
     teardown(function() {
@@ -291,14 +221,24 @@ suite('Views > AlternativesCharMenuView', function() {
     });
 
     test('2 row - the empty element', function() {
-      menu.show(key);
+      menu.show(dummyKeyElement);
 
       var rect = fakeMenu.getBoundingClientRect();
       var target = menu.getMenuTarget(fakeMenu.offsetLeft + rect.left +
         KEY_WIDTH * 2, rect.top);
-      var expectedTarget = childObjs[4];
 
-      assert.equal(target, expectedTarget, 'Should map to the last element');
+      assert.equal(target, menu.altKeyTargets[4],
+                   'Should map to the last element');
+    });
+  });
+
+  suite(' isMenuTarget()', function() {
+    test('isMenuTarget() returns true', function() {
+      assert.isTrue(menu.isMenuTarget(menu.altKeyTargets[0]));
+    });
+
+    test('isMenuTarget() returns false', function() {
+      assert.isFalse(menu.isMenuTarget({dummy: 'dummy'}));
     });
   });
 });

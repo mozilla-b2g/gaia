@@ -1,19 +1,14 @@
 'use strict';
 
-/* global HandwritingPadView, IMERender */
+/* global HandwritingPadView */
 
 require('/js/views/handwriting_pad_view.js');
-require('/js/render.js');
 
 suite('Views > HandwritingPadView', function() {
   var handwritingPadView;
   var canvas;
 
   var STROKE_WIDTH = 6;
-
-  var target = {
-    isHandwritingPad: true
-  };
 
   var pressStart = {
     moved: false,
@@ -34,19 +29,16 @@ suite('Views > HandwritingPadView', function() {
 
   suite('basic testing', function() {
     setup(function() {
-      IMERender.init(null);
       handwritingPadView = new HandwritingPadView();
-      canvas = handwritingPadView.getHandwritingPad();
+      canvas = handwritingPadView.element;
     });
 
-    test(' > getHandwritingPad()', function() {
+    test(' > get element', function() {
       assert.equal(canvas instanceof HTMLCanvasElement, true);
     });
 
     test(' > drawHandwritingPad()', function() {
       rootElement.appendChild(canvas);
-
-      IMERender.targetObjDomMap.set(target, canvas);
 
       var point = handwritingPadView.drawHandwritingPad(pressStart, true,
                                                         STROKE_WIDTH);

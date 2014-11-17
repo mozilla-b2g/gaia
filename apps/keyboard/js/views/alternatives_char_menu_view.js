@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals IMERender */
+/* globals KeyView */
 
 (function(exports) {
 
@@ -9,28 +9,27 @@
  * The interaction is handled by AlternativesCharMenuManager, so this module
  * could focus on UI rendering.
  */
-function AlternativesCharMenuView(rootElement, altChars, renderer) {
+function AlternativesCharMenuView(rootElement, altChars, options, viewManager) {
   this.rootElement = rootElement;
   this.altChars = altChars;
 
   // XXX: need a better to load the dependencies
-  this.ARIA_LABELS = renderer.ARIA_LABELS;
-  this.buildKey = renderer.buildKey;
-  this.keyWidth = renderer.keyWidth;
-  this.screenInPortraitMode = renderer.screenInPortraitMode;
-  this.renderingManager = renderer.renderingManager;
+  this.keyWidth = options.keyWidth;
+  this.screenInPortraitMode = options.screenInPortraitMode;
 
   this.menu = null;
   this._rowCount = 0;
+  this.altKeyTargets = [];
+
+  this.viewManager = viewManager;
 }
 
 exports.AlternativesCharMenuView = AlternativesCharMenuView;
 
 AlternativesCharMenuView.prototype.MENU_LINE_HEIGHT = 6;   // in rem
 
-AlternativesCharMenuView.prototype.show = function(key) {
+AlternativesCharMenuView.prototype.show = function(keyElem) {
   var content = document.createDocumentFragment();
-  var keyElem = IMERender.targetObjDomMap.get(key);
 
   // XXX: should not cause reflow by ref. innerWidth
   var cachedWindowWidth = window.innerWidth;
@@ -89,10 +88,12 @@ AlternativesCharMenuView.prototype.show = function(key) {
     // TODO: the renderer should not be creating a business logic object,
     // let's move it to somewhere else, and/or allow normalization directly
     // to take place at LayoutNormalizer
-    var altKeyObj = alt.length == 1 ? {
+    var altKeyTarget = alt.length == 1 ? {
+      value: alt,
       keyCode: alt.charCodeAt(0),
       keyCodeUpper: alt.toUpperCase().charCodeAt(0)
-    } : {'compositeKey': alt };
+    } : { 'compositeKey': alt,
+          value: alt };
 
     // Make each of these alternative keys as wide as the key that
     // it is an alternative for, but adjust for the relative number of
@@ -107,39 +108,13 @@ AlternativesCharMenuView.prototype.show = function(key) {
       width = Math.max(width, this.keyWidth);
     }
 
-    var attributeList = [];
+    var altKey = new KeyView(altKeyTarget,
+                             {keyWidth: width},
+                             this.viewManager);
+    altKey.render();
+    content.appendChild(altKey.element);
 
-    if (this.ARIA_LABELS && this.ARIA_LABELS[alt]) {
-      attributeList.push({
-        key: 'data-l10n-id',
-        value: this.ARIA_LABELS[alt]
-      });
-    } else {
-      attributeList.push({
-        key: 'aria-label',
-        value: alt
-      });
-    }
-
-    attributeList.push({
-      key: 'role',
-      value: 'key'
-    });
-
-    var altKeyElement =
-      this.buildKey(alt, '', width + 'px', altKeyObj, null, attributeList);
-
-    // ui/integration test needs these attributes
-    if ('compositeKey' in altKeyObj){
-      altKeyElement.dataset.compositeKey = altKeyObj.compositeKey;
-    } else {
-      altKeyElement.dataset.keycode = altKeyObj.keyCode;
-      altKeyElement.dataset.keycodeUpper = altKeyObj.keyCodeUpper;
-    }
-
-    content.appendChild(altKeyElement);
-
-    IMERender.setDomElemTargetObject(altKeyElement, altKeyObj);
+    this.altKeyTargets.push(altKeyTarget);
   }.bind(this));
 
   menu.appendChild(content);
@@ -215,17 +190,17 @@ AlternativesCharMenuView.prototype.getMenuTarget = function(x, y) {
     targetIndex += columnCount;
   }
 
-  var menuContainer = this.getMenuContainer();
-
   // UX spec: if the targetIndex is out of the length of the alt chars,
   // we want to highlight the last alt char.
-  if (targetIndex >= menuContainer.children.length) {
-    targetIndex = menuContainer.children.length - 1;
+  if (targetIndex >= this.altKeyTargets.length) {
+    targetIndex = this.altKeyTargets.length - 1;
   }
 
-  return this.renderingManager.getTargetObject(
-           menuContainer.children[targetIndex]
-         );
+  return this.altKeyTargets[targetIndex];
+};
+
+AlternativesCharMenuView.prototype.isMenuTarget = function(target) {
+  return (this.altKeyTargets.indexOf(target) !== -1);
 };
 
 })(window);
