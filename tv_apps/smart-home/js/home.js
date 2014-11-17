@@ -16,6 +16,7 @@
 
     cardListElem: document.getElementById('card-list'),
     cardManager: undefined,
+    settingsButton: document.getElementById('settings-button'),
 
     init: function() {
       var that = this;
@@ -49,6 +50,11 @@
           scrollable.on('focus', handleScrollableItemFocusBound);
         });
         that.spatialNavigator.focus();
+
+        that.settingsButton.addEventListener('click', function clickSettings() {
+          that.spatialNavigator.focus(that.settingsButton);
+          that.handleEnter('enter');
+        });
       });
     },
 
@@ -116,21 +122,33 @@
         case 'down':
         case 'left':
         case 'right':
-          var focus = this.spatialNavigator.getFocusedElement();
-          if (focus.CLASS_NAME == 'XScrollable') {
-            if (focus.spatialNavigator.move(key)) {
-              return;
-            }
-          }
-          this.spatialNavigator.move(key);
+          this.handleMove(key)
           break;
         case 'enter':
-          var cardId = this.focusElem.dataset.cardId;
-          var card = this.cardManager.findCardFromCardList({cardId: cardId});
-          if (card) {
-            card.launch();
-          }
+          this.handleEnter(key);
           break;
+      }
+    },
+
+    handleMove: function(key) {
+      var focus = this.spatialNavigator.getFocusedElement();
+      if (focus.CLASS_NAME == 'XScrollable') {
+        if (focus.spatialNavigator.move(key)) {
+          return;
+        }
+      }
+      this.spatialNavigator.move(key);
+    },
+
+    handleEnter: function(key) {
+      if (this.focusElem === this.settingsButton) {
+        this.openSettings();
+      } else {
+        var cardId = this.focusElem.dataset.cardId;
+        var card = this.cardManager.findCardFromCardList({cardId: cardId});
+        if (card) {
+          card.launch();
+        }
       }
     },
 
@@ -188,6 +206,13 @@
     handleScrollableItemFocus: function(scrollable, elem) {
       this.selectionBorder.select(elem, scrollable.getItemRect(elem));
       this._focus = elem;
+    },
+
+    openSettings: function() {
+      new MozActivity({
+        name: 'configure',
+        data: {}
+      });
     },
 
     get focusElem() {
