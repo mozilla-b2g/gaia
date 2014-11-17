@@ -135,6 +135,34 @@
     });
   };
 
+  /**
+   * Prepares object that can provide either interpolated template string with
+   * values provided by data object or ready DocumentFragment. Optionally allows
+   * properties to retain HTML that is known to be safe.
+   *
+   * @param {Object} data Properties correspond to substitution i.e. identifiers
+   * in the template string.
+   * @param {Object} options Optional options object. Currently supported only
+   * "safe" option - a list of properties that contain HTML that is known to be
+   * safe and don't need to be additionally escaped.
+   * @return {{ toString: function, toDocumentFragment: function }}
+   */
+  Template.prototype.prepare = function(data, options) {
+    var self = this;
+
+    return {
+      toString: function t_toString() {
+        return self.interpolate(data, options);
+      },
+
+      toDocumentFragment: function t_toDocumentFragment() {
+        var template = document.createElement('template');
+        template.innerHTML = this.toString();
+        return template.content.cloneNode(true);
+      }
+    };
+  };
+
   Template.escape = function escape(str) {
     if (typeof str !== 'string') {
       return '';

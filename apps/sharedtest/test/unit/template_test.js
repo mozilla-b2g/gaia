@@ -1,3 +1,7 @@
+'use strict';
+
+/* global Template */
+
 require('/shared/js/template.js');
 
 suite('Template', function() {
@@ -174,6 +178,81 @@ suite('Template', function() {
         interpolated,
         '&lt;script&gt;alert(&quot;hi!&quot;)&lt;/script&gt;<p>this is ok</p>'
       );
+    });
+  });
+
+  suite('prepare', function() {
+    var htmlTemplate, cssTemplate;
+
+    setup(function() {
+      var html = document.createElement('div');
+      var css = document.createElement('div');
+
+      html.appendChild(document.createComment('<span>${str}</span>'));
+      css.appendChild(document.createComment('#foo { height: ${height}px; }'));
+
+      htmlTemplate = Template(html);
+      cssTemplate = Template(css);
+    });
+
+    test('prepare(data).toString => html', function() {
+      var interpolated = htmlTemplate.prepare({
+        str: 'test'
+      }).toString();
+      assert.equal(typeof interpolated, 'string');
+      assert.equal(interpolated, '<span>test</span>');
+    });
+
+    test('prepare(data).toString => css', function() {
+      var interpolated = cssTemplate.prepare({
+        height: '100'
+      }).toString();
+      assert.equal(typeof interpolated, 'string');
+      assert.equal(interpolated, '#foo { height: 100px; }');
+    });
+
+    test('prepare(data).toDocumentFragment => html', function() {
+      var interpolated = htmlTemplate.prepare({
+        str: 'test'
+      }).toDocumentFragment();
+      assert.instanceOf(interpolated, DocumentFragment);
+      assert.equal(interpolated.children.length, 1);
+      assert.equal(interpolated.querySelector('span').textContent, 'test');
+    });
+
+    test('prepare(data).toDocumentFragment => css', function() {
+      var interpolated = cssTemplate.prepare({
+        height: '100'
+      }).toDocumentFragment();
+      assert.instanceOf(interpolated, DocumentFragment);
+      assert.equal(interpolated.childNodes.length, 1);
+      assert.equal(interpolated.firstChild.nodeType, Node.TEXT_NODE);
+      assert.equal(
+        interpolated.firstChild.textContent,
+        '#foo { height: 100px; }'
+      );
+    });
+
+    test('prepare.toDocumentFragment returns clone on every call', function() {
+      var interpolated = htmlTemplate.prepare({
+        str: 'test'
+      });
+
+      var documentFragments = new Set();
+
+      for (var i = 0; i < 5; i++) {
+        documentFragments.add(interpolated.toDocumentFragment());
+      }
+
+      // Verify that all document fragments aren't equal, so Set should have
+      // separate entry for every new fragment
+      assert.equal(documentFragments.size, 5);
+
+      documentFragments.forEach(function(fragment) {
+        assert.instanceOf(fragment, DocumentFragment);
+        assert.equal(fragment.children.length, 1);
+        assert.equal(fragment.querySelector('span').textContent, 'test');
+      });
     });
   });
 
