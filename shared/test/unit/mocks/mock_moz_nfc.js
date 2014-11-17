@@ -1,7 +1,7 @@
 'use strict';
 
 /* exported MockMozNfc */
-/* global MockDOMRequest */
+require('/shared/test/unit/mocks/mock_promise.js');
 
 var MockMozNfc = {
   onpeerready: null,
@@ -12,7 +12,7 @@ var MockMozNfc = {
   },
   MockNFCPeer: {
     sendNDEF: function(records) {
-      return new MockDOMRequest();
+      return new MockPromise();
     }
   }
 };
