@@ -302,7 +302,7 @@ var UtilityTray = {
         app.iframe.sendTouchEvent('touchcancel', [touch.identifier],
                                   [touch.pageX], [touch.pageY],
                                   [touch.radiusX], [touch.radiusY],
-                                  [touch.rotationAngle], [touch.force], 1, 0);
+                                  [touch.rotationAngle], [touch.force], 1);
       }
     }
 
