@@ -283,7 +283,6 @@ var ThreadUI = {
 
       if (isAutoSaveRequired) {
         ThreadUI.saveDraft({preserve: true, autoSave: true});
-        Drafts.store();
       }
     }
   },
@@ -1042,7 +1041,8 @@ var ThreadUI = {
   },
 
   close: function thui_close() {
-    return this._onNavigatingBack().then(function() {
+    return this._onNavigatingBack().then(() => {
+      this.cleanFields();
       ActivityHandler.leaveActivity();
     }).catch(function(e) {
       // If we don't have any error that means that action was rejected
@@ -2053,6 +2053,10 @@ var ThreadUI = {
 
   cleanFields: function thui_cleanFields() {
     this.previousSegment = 0;
+
+    if (this.recipients) {
+      this.recipients.length = 0;
+    }
 
     Compose.clear();
   },
