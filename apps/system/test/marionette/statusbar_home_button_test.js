@@ -63,7 +63,7 @@ marionette('Closing statusbar via home button >', function() {
            .perform();
 
     // click home button
-    system.goHome();
+    system.tapHome();
     waitForHome();
     assert.ok(getScrollTop() === lastScrollTop);
   });

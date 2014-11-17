@@ -58,7 +58,7 @@ marionette('Vertical - Collection Pin Bookmark', function() {
     collection.bookmark(bookmark, selectors.firstWebResultNoPinned);
 
     client.switchToFrame();
-    system.goHome();
+    system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
   });
 

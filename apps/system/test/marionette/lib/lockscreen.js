@@ -43,7 +43,7 @@
   LockScreen.prototype.setEnable =
   function(value) {
     this.ensure().settings();
-    this.client.executeScript(function(value) {
+    this.client.executeAsyncScript(function(value) {
       var settings = window.wrappedJSObject.navigator.mozSettings;
       var lock = settings.createLock();
       var result = lock.set({
@@ -53,8 +53,10 @@
         result = null;
         lock = null;
         settings = null;
+        marionetteScriptFinished();
       };
       result.onerror = function() {
+        marionetteScriptFinished();
         throw new Error('Cannot set LockScreen as ' + value);
       };
     }, [value]);

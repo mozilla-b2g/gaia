@@ -303,7 +303,29 @@ System.prototype = {
     });
   },
 
+  // Since the getScreenshot call is asynchronous and does not have any
+  // external side effect, we're just queuing another screenshot request
+  // afterward to be sure it's done.
+  waitUntilScreenshotable: function(iframe) {
+    this.client.executeAsyncScript(function(iframe) {
+      iframe.wrappedJSObject.getScreenshot(1, 1).then(marionetteScriptFinished,
+                                                      marionetteScriptFinished);
+    }, [iframe]);
+  },
+
   goHome: function() {
+    this.client.switchToFrame();
+    this.client.executeAsyncScript(function() {
+      var win = window.wrappedJSObject;
+      win.addEventListener('homescreenopened', function trWait() {
+        win.removeEventListener('homescreenopened', trWait);
+        marionetteScriptFinished();
+      });
+      win.dispatchEvent(new CustomEvent('home'));
+    });
+  },
+
+  tapHome: function() {
     this.client.switchToFrame();
     this.client.executeScript(function() {
       window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));

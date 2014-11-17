@@ -34,14 +34,14 @@ marionette('Vertical - Bookmark Favicon Failure', function() {
   });
 
   test('Invalid icons get default icon assigned', function() {
-    system.goHome();
+    system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
     var url = server.url('sample.html');
 
     client.switchToFrame();
     bookmark.openAndSave(url);
 
-    system.goHome();
+    system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
 
     var icon = home.getIcon(url);
