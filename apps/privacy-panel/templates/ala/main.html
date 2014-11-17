@@ -1,0 +1,71 @@
+<element name="ala-main" extends="section">
+  <template>
+    <header>
+      <a class="pp-link back" href="#root">
+        <span class="icon icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="location-accuracy">Location Accuracy</h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <label class="pack-switch">
+            <input type="checkbox" class="uninit" name="geolocation.enabled">
+            <span data-l10n-id="use-geolocation">Use geolocation</span>
+          </label>
+        </li>
+        <li class="show-when-geolocation-on">
+          <label class="pack-switch">
+            <input type="checkbox" class="uninit" name="ala.settings.enabled">
+            <span data-l10n-id="use-location-adjustment">Use location adjustment</span>
+          </label>
+        </li>
+        <li class="hide-when-ala-on description">
+          <p>
+          <small data-l10n-id="location-blur-information">Remember: Location Adjustment influences the location Firefox OS provides to apps. It will not affect your IP-address or locale settings, so some services might still be able to locate you.
+          </small>
+          </p>
+        </li>
+        <li class="show-when-ala-on description">
+          <p>
+            <small data-l10n-id="location-blur-description">Adjust the global accuracy level of your current location for all apps, define and set a permanent fixed location and add exceptions for single apps.</small>
+          </p>
+        </li>
+        <li class="show-when-ala-on geolocation-type-box">
+          <p></p>
+          <span class="button icon icon-dialog">
+            <select name="geolocation.type">
+              <option value="blur" data-l10n-id="adjustment">Adjustment</option>
+              <option value="user-defined" data-l10n-id="custom-location">Custom Location</option>
+              <option value="no-location" data-l10n-id="no-location" selected>No Location</option>
+              <option value="precise" data-l10n-id="precise">Precise</option>
+            </select>
+          </span>
+        </li>
+        <li class="type-blur type-box show-when-ala-on">
+          <label>
+            <p class="blur-label"></p>
+            <input class="blur-slider" name="geolocation.blur.slider" type="range" step="1" min="1" max="12" data-default="1">
+          </label>
+        </li>
+        <li class="type-custom-location type-box show-when-ala-on">
+          <a class="menu-item set-custom-location" data-icon="notifications" href="#">
+            <span data-l10n-id="set-custom-location">Set custom location</span>
+          </a>
+        </li>
+        <li class="show-when-ala-on add-exception-box">
+          <a class="menu-item pp-link" data-icon="notifications" href="#ala-exceptions">
+            <span data-l10n-id="add-exception">Add exceptions</span>
+          </a>
+        </li>
+        <div class="custom-location-alert overlay" hidden>
+          <div class="modal modal-alert">
+            <h1 data-l10n-id="attention">Attention!</h1>
+            <p data-l10n-id="ala-custom-location-alert">You haven't set a custom location yet. Please set this before working on other settings!</p>
+            <button class="btn btn-blue">Set custom location</button>
+          </div>
+        </div>
+      </ul>
+    </div>
+  </template>
+</element>
