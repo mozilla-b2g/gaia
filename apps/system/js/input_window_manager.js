@@ -5,6 +5,9 @@
 (function(exports) {
 
   /**
+   * For some flow diagrams related to input management, please refer to
+   * https://wiki.mozilla.org/Gaia/System/InputManagement#Flow_Diagrams .
+   *
    * InputWindowManager manages all the InputWindow-related operations. It shows
    * /hides/preloads/kills InputWindows for KeyboardManager as specified by
    * keyboard layouts, and internally book-keeps those InputWindows and the

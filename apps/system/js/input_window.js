@@ -7,6 +7,9 @@
    * This window inherits the AppWindow, and modifies some properties
    * different from the later.
    *
+   * For some flow diagrams related to input management, please refer to
+   * https://wiki.mozilla.org/Gaia/System/InputManagement#Flow_Diagrams .
+   *
    * @class InputWindow
    * @param {OBject} configs The configuration of the input app
    * @augments AppWindow
