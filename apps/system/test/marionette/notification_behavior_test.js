@@ -87,12 +87,18 @@ marionette('notification behavior tests', function() {
     notificationList.refresh();
     assert.equal(notificationList.notifications.length, 2,
                  'unexpected number of notifications');
-
-    client.executeScript(function() {
+    // Adding a new notification (to be sure it's the last one),
+    // once is shown triggers a `click` event on the `Clear all` button
+    // which starts the closing animation.
+    // The animation finish when the last `close` event is fired.
+    client.executeAsyncScript(function() {
       var clearAll = document.getElementById('notification-clear');
       var event = document.createEvent('CustomEvent');
       event.initCustomEvent('click', true, true, {});
-      clearAll.dispatchEvent(event);
+      var notification;
+      notification = new Notification('title 3');
+      notification.onclose = function(){ marionetteScriptFinished(true); };
+      notification.onshow = function(){ clearAll.dispatchEvent(event); };
     });
 
     notificationList.refresh();
@@ -169,4 +175,3 @@ marionette('notification behavior tests', function() {
     done();
   });
 });
-
