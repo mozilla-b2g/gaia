@@ -15,15 +15,15 @@ GuidedTourPanels.prototype = {
   selectors: {
     rootPanel:       '#root',
     gtWelcome:       '#gt-main',
-    gtAlaExplain:    '#la-explain',
-    gtAlaBlur:       '#la-blur',
-    gtAlaCustom:     '#la-custom',
-    gtAlaExceptions: '#la-exceptions',
-    gtRppExplain:    '#rpp-explain',
-    gtRppPassphrase: '#rpp-passphrase',
-    gtRppLocate:     '#rpp-locate',
-    gtRppRing:       '#rpp-ring',
-    gtRppLock:       '#rpp-lock'
+    gtAlaExplain:    '#gt-ala-explain',
+    gtAlaBlur:       '#gt-ala-blur',
+    gtAlaCustom:     '#gt-ala-custom',
+    gtAlaExceptions: '#gt-ala-exceptions',
+    gtRppExplain:    '#gt-rpp-explain',
+    gtRppPassphrase: '#gt-rpp-passphrase',
+    gtRppLocate:     '#gt-rpp-locate',
+    gtRppRing:       '#gt-rpp-ring',
+    gtRppLock:       '#gt-rpp-lock'
   },
 
   init: function() {

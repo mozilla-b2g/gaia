@@ -47,6 +47,7 @@ ul li {
 
 ul li:first-child {
   border-bottom: none;
+  border-top: none;
 }
 
 input[type="range"].blur-slider {
