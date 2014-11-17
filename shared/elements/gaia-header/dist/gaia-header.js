@@ -334,7 +334,10 @@ proto.initFontFit = function() {
 proto.runFontFit = function() {
   for (var i = 0; i < this.els.headings.length; i++) {
     var heading = this.els.headings[i];
-    heading.dataset.start = this._start;
+    var start = parseInt(this._start);
+    var end = parseInt(this._end);
+    heading.dataset.start = isNaN(start) ? '' : start;
+    heading.dataset.end = isNaN(end) ? '' : end;
     fontFit.reformatHeading(heading);
   }
 };
@@ -811,13 +814,24 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
         return;
       }
 
-      // Reset our centering styles.
-      this._resetCentering(heading);
+      var style;
+      var hasSizeInformation = heading.dataset.start || heading.dataset.end;
 
-      // Cache the element style properties to avoid reflows.
-      console.time('getStyleProperties');
-      var style = this._getStyleProperties(heading);
-      console.timeEnd('getStyleProperties');
+      if (hasSizeInformation) {
+        style = {
+          fontFamily: 'sans-serif',
+          contentWidth: this._getWindowWidth() - heading.dataset.start || 0 - heading.dataset.end || 0,
+          paddingRight: 0,
+          paddingLeft: 0,
+          offsetLeft: heading.dataset.start || 0
+        };
+      } else {
+        // Reset our centering styles.
+        this._resetCentering(heading);
+
+        // Cache the element style properties to avoid reflows.
+        style = this._getStyleProperties(heading);
+      }
 
       // If the document is inside a hidden iframe
       // `window.getComputedStyle()` returns null,
@@ -992,9 +1006,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
      * @private
      */
     _getStyleProperties: function(heading) {
-      console.time('getComputedStyle');
       var style = getComputedStyle(heading) || {};
-      console.timeEnd('getComputedStyle');
       var contentWidth = this._getContentWidth(style);
       if (isNaN(contentWidth)) {
         contentWidth = 0;
@@ -1005,7 +1017,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
         contentWidth: contentWidth,
         paddingRight: parseInt(style.paddingRight, 10),
         paddingLeft: parseInt(style.paddingLeft, 10),
-        offsetLeft: heading.dataset.start || heading.offsetLeft
+        offsetLeft: heading.offsetLeft
       };
     },
 
@@ -1083,6 +1095,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       // To center, we need to make sure the space to the left of the header
       // is the same as the space to the right, so take the largest of the two.
       var margin = Math.max(sideSpaceLeft, sideSpaceRight);
+      console.log('>>> margin=', margin, '; sideSpaceLeft=', sideSpaceLeft, '; sideSpaceRight=', sideSpaceRight, '; minHeaderWidth=', minHeaderWidth);
 
       // If the minimum amount of space our header needs plus the max margins
       // fits inside the width of the window, we can center this header.
