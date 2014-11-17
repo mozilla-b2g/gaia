@@ -200,7 +200,7 @@ var UpdateManager = {
     if (!conns) {
       console.error('mozMobileConnections is not available we can ' +
                     'not update the phone.');
-      self.showForbiddenDownload();
+      self.showPromptNoConnection();
       return;
     }
 
