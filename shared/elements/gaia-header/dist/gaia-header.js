@@ -820,7 +820,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       if (hasSizeInformation) {
         style = {
           fontFamily: 'sans-serif',
-          contentWidth: this._getWindowWidth() - heading.dataset.start || 0 - heading.dataset.end || 0,
+          contentWidth: this._getWindowWidth() - (heading.dataset.start || 0) - (heading.dataset.end || 0),
           paddingRight: 0,
           paddingLeft: 0,
           offsetLeft: heading.dataset.start || 0
@@ -1095,7 +1095,6 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       // To center, we need to make sure the space to the left of the header
       // is the same as the space to the right, so take the largest of the two.
       var margin = Math.max(sideSpaceLeft, sideSpaceRight);
-      console.log('>>> margin=', margin, '; sideSpaceLeft=', sideSpaceLeft, '; sideSpaceRight=', sideSpaceRight, '; minHeaderWidth=', minHeaderWidth);
 
       // If the minimum amount of space our header needs plus the max margins
       // fits inside the width of the window, we can center this header.
