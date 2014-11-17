@@ -52,12 +52,10 @@ PreferencesBuilder.prototype.writeDefaultUserJs = function() {
     return;
   }
 
-  // create a clean folder to store data for B2G, this folder will copy to
+  // create a folder to store data for B2G, this folder will copy to
   // b2g output folder.
   let defaultsDir = utils.getFile(this.config.PROFILE_DIR, 'defaults');
-  if (defaultsDir.exists()) {
-    defaultsDir.remove(true);
-  }
+
   defaultsDir.append('pref');
   utils.ensureFolderExists(defaultsDir);
   let userJs = defaultsDir.clone();

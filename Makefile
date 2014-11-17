@@ -563,6 +563,10 @@ LANG=POSIX # Avoiding sort order differences between OSes
 app: b2g_sdk profile-dir
 	@$(call run-js-command,app)
 
+.PHONY: pre-app
+pre-app: b2g_sdk profile-dir
+	@$(call run-js-command,pre-app)
+
 # Keep old targets just for people/scripts still using it
 .PHONY: post-manifest
 post-manifest: app
@@ -669,6 +673,9 @@ endif # USE_LOCAL_XULRUNNER_SDK
 # Generate profile/prefs.js
 preferences: profile-dir b2g_sdk
 	@$(call run-js-command,preferences)
+
+# Generate profile/settings.json
+settings: pre-app
 
 # Generate $(PROFILE_FOLDER)/extensions
 EXT_DIR=$(PROFILE_FOLDER)/extensions
@@ -1012,10 +1019,8 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
-$(PROFILE_FOLDER)/settings.json: b2g_sdk profile-dir app
-
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
-install-default-data: $(PROFILE_FOLDER)/settings.json contacts
+install-default-data: settings contacts app
 	$(ADB) shell stop b2g
 	$(ADB) remount
 	$(ADB) push $(PROFILE_FOLDER)/settings.json $(MSYS_FIX)/system/b2g/defaults/settings.json
