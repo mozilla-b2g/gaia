@@ -173,7 +173,7 @@ var CostControlApp = (function() {
     if (newHash.length < 3) {
       vmanager.closeCurrentView();
     } else {
-      vmanager.changeViewTo(newHash[2]);
+      vmanager.changeViewTo(newHash[2], '#tabpanel');
     }
   }
 

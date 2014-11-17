@@ -37,6 +37,7 @@ var ViewManager = (function() {
   //   If it is a tab: it returns the current overlay view id or null
   //   If it is not a tab: it returns the previous ovrlay view or null
   ViewManager.prototype.changeViewTo = function _changeViewTo(viewHash,
+                                                              obstructed,
                                                               callback) {
     var hashParts = viewHash.split('?');
     var viewId = hashParts[0];
@@ -86,11 +87,15 @@ var ViewManager = (function() {
         previousViewId = self._currentView ? self._currentView.id : '';
         self._currentView = {
           id: viewId,
-          defaultViewport: view.dataset.viewport
+          defaultViewport: view.dataset.viewport,
+          obstructed: obstructed
         };
 
         // With a combination of CSS, we actually animate and display the view
         delete view.dataset.viewport;
+        if (obstructed) {
+          document.querySelector(obstructed).classList.add('behind');
+        }
       }
 
       if (typeof callback === 'function') {
@@ -198,6 +203,11 @@ var ViewManager = (function() {
     // With a combination of CSS, Restoring the last viewport we actually
     // animate and hide the current view
     view.dataset.viewport = this._currentView.defaultViewport;
+
+    if (this._currentView.obstructed) {
+      var obstructed = document.querySelector(this._currentView.obstructed);
+      obstructed.classList.remove('behind');
+    }
     this._currentView = null;
   };
 
