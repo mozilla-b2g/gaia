@@ -63,15 +63,13 @@ contacts.NFC = (function() {
        payload: nfcUtils.fromUTF8(vCardContact)
      });
 
-     var res = mozNfcPeer.sendNDEF([NDEFRecord]);
-     res.onsuccess = function() {
+     var promise = mozNfcPeer.sendNDEF([NDEFRecord]);
+     promise.then(() => {
        console.log('Contact succesfuly sent');
-     };
-
-     res.onerror = function() {
-       console.log('Something goes wrong');
-     };
-   };
+     }).catch(e => {
+       console.log('Something goes wrong : ' + e);
+     });
+  };
 
   var handlePeerReadyForFb = function() {
     Contacts.showStatus('facebook-export-forbidden');
