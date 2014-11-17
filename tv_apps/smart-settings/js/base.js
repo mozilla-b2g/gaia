@@ -18,6 +18,24 @@
     })
   };
 
+  Base.prototype.simulateKeyEvent = function b_simulateKeyEvent(keyCode,
+      charCode, ctrl, alt, shift, meta) {
+    var evt = document.createEvent("KeyboardEvent");
+    evt.initKeyEvent('keydown', true, true, null, ctrl || false, alt || false,
+                     shift || false, meta || false, keyCode, charCode || 0);
+    window.dispatchEvent(evt);
+
+    evt = document.createEvent("KeyboardEvent");
+    evt.initKeyEvent('keyup', true, true, null, ctrl || false, alt || false,
+                     shift || false, meta || false, keyCode, charCode || 0);
+    window.dispatchEvent(evt);
+
+    evt = document.createEvent("KeyboardEvent");
+    evt.initKeyEvent('keypress', true, true, null, ctrl || false, alt || false,
+                     shift || false, meta || false, keyCode, charCode || 0);
+    window.dispatchEvent(evt);
+  };
+
   exports.Base = Base;
 
 })(window);

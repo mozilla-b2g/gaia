@@ -24,6 +24,21 @@
 	position: absolute;
 	padding: 0 0.4rem;
 	text-align: center;
+}
+
+.menu-item[data-icon]:after {
 	line-height: 4rem;
 	width: 4rem;
+}
+
+.option-menu[data-icon]:after {
+	width: 4rem;
+	/* use flex to align center */
+	display: flex;
+	justify-content: center; /* align horizontal */
+	align-items: center; /* algin vertical */
+	height: 100%;
+	top: 0;
+	bottom: 0;
+	left: 0;
 }

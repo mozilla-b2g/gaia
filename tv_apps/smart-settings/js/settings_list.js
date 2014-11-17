@@ -1,5 +1,5 @@
 'use strict';
-/* global evt, Base, LazyLoader, SelectionBorder, SpatialNavigator */
+/* global evt, Base, LazyLoader, SelectionBorder, SpatialNavigator, KeyEvent */
 (function(exports) {
 
   function SettingsList() {
@@ -35,13 +35,19 @@
       self.spatialNavigation.on('focus', self.handleChoosed);
       self.spatialNavigation.on('unfocus', self.handleUnchoosed);
       self.spatialNavigation.focus();
+      self.ready = true;
+      self.fire('ready');
     });
   };
 
   proto.handleEvent = function sl_handleEvent(evt) {
     switch(evt.type) {
       case 'click':
-        this.handleChoosed(evt.target);
+        if (this.spatialNavigation.getFocusedElement() === evt.currentTarget) {
+          this.simulateKeyEvent(KeyEvent.DOM_VK_RETURN);
+        } else {
+          this.spatialNavigation.focus(evt.currentTarget);
+        }
         evt.preventDefault();
         break;
     }
@@ -53,7 +59,9 @@
     }
     this.selectionBorder.select(dom);
     dom.classList.add('focused');
-    this.fire('itemChoosed', dom);
+    this.fire('itemChoosed', {
+      'dom': dom
+    });
   };
 
   proto.handleUnchoosed = function sl_handleUnchoosed(dom) {
@@ -61,6 +69,7 @@
       return;
     }
     dom.classList.remove('focused');
+    this.selectionBorder.deselectAll();
   };
 
   proto.move = function sl_move(direction) {
@@ -76,14 +85,12 @@
 
   proto.setActive = function sl_setActive(active) {
     if (active && this.spatialNavigation.getFocusedElement()) {
-      this.selectionBorder.select(this.spatialNavigation.getFocusedElement());
+      this.handleChoosed(this.spatialNavigation.getFocusedElement());
+    } else if (document.body.dataset.active === 'group') {
+      this.handleUnchoosed(this.spatialNavigation.getFocusedElement());
     } else {
-      this.selectionBorder.deselectAll();
+      this.handleChoosed(this.spatialNavigation.getFocusedElement());
     }
-  };
-
-  proto.confirmSelection = function sl_confirmSelection(key) {
-    // A virtual function for overriding.
   };
 
   exports.SettingsList = SettingsList;
