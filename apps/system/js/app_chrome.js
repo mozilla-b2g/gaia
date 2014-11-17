@@ -581,6 +581,14 @@
         return;
       }
 
+      // Check if this is just a location-change to an anchor tag.
+      var anchorChange = false;
+      if (this._currentURL && evt.detail) {
+        anchorChange =
+          this._currentURL.replace(/#.*/g, '') ===
+          evt.detail.replace(/#.*/g, '');
+      }
+
       // We wait a small while because if we get a title/name it's even better
       // and we don't want the label to flash
       setTimeout(this._updateLocation.bind(this, evt.detail),
@@ -612,15 +620,17 @@
       // We havent got a name for this location
       this._gotName = false;
 
-      // Make the rocketbar unscrollable until the page resizes to the
-      // appropriate height.
-      this.containerElement.classList.remove('scrollable');
+      if (!anchorChange) {
+        // Make the rocketbar unscrollable until the page resizes to the
+        // appropriate height.
+        this.containerElement.classList.remove('scrollable');
 
-      // Expand
-      if (!this.isMaximized()) {
-        this.element.classList.add('maximized');
+        // Expand
+        if (!this.isMaximized()) {
+          this.element.classList.add('maximized');
+        }
+        this.scrollable.scrollTop = 0;
       }
-      this.scrollable.scrollTop = 0;
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
