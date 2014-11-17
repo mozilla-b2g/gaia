@@ -333,7 +333,9 @@ proto.initFontFit = function() {
  */
 proto.runFontFit = function() {
   for (var i = 0; i < this.els.headings.length; i++) {
-    fontFit.reformatHeading(this.els.headings[i]);
+    var heading = this.els.headings[i];
+    heading.dataset.start = this._start;
+    fontFit.reformatHeading(heading);
   }
 };
 
@@ -352,10 +354,10 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
 
   if (attr === 'action') {
     this.configureActionButton();
-    fontFit.reformatHeading(this._heading);
   }
-};
 
+  this.runFontFit();
+};
 
 proto._updateAttribute = function(name) {
   var newVal = this.getAttribute(name);
@@ -999,7 +1001,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
         contentWidth: contentWidth,
         paddingRight: parseInt(style.paddingRight, 10),
         paddingLeft: parseInt(style.paddingLeft, 10),
-        offsetLeft: heading.offsetLeft
+        offsetLeft: heading.dataset.start || heading.offsetLeft
       };
     },
 
