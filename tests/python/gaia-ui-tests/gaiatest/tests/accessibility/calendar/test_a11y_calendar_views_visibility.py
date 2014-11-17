@@ -34,11 +34,7 @@ class TestCalendarViewsVisibilityAccessibility(GaiaTestCase):
         }
 
         self.event_title = 'title'
-        new_event = self.calendar.a11y_click_add_event_button()
-        # create a new event
-        new_event.a11y_fill_event_title(self.event_title)
-        new_event.a11y_click_save_event()
-        self.calendar.wait_for_events(1)
+        self.calendar.a11y_create_event(self.event_title)
 
     def test_a11y_calendar_views_visibility(self):
 

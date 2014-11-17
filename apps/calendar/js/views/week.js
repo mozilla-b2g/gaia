@@ -17,6 +17,7 @@ WeekView.prototype = {
   scale: 'week',
   visibleCells: 5,
   _hourFormat: 'week-hour-format',
+  _oneDayLabelFormat: 'week-event-one-day-duration',
   _addAmPmClass: true,
 
   get element() {

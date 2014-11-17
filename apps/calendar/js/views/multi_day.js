@@ -27,6 +27,7 @@ MultiDay.prototype = {
   visibleCells: 5,
   element: null,
   _hourFormat: 'hour-format',
+  _oneDayLabelFormat: 'event-one-day-duration',
   _addAmPmClass: false,
 
   childClass: SingleDay,
@@ -65,6 +66,10 @@ MultiDay.prototype = {
 
   get sidebar() {
     return this.element.querySelector('.md__sidebar');
+  },
+
+  get allDayIcon() {
+    return this.element.querySelector('.icon-calendar-allday');
   },
 
   onactive: function() {
@@ -106,6 +111,8 @@ MultiDay.prototype = {
     // we keep the localized listener even when view is inactive to avoid
     // rebuilding the hours/dates every time we switch between views
     window.addEventListener('localized', this);
+    // When screen reader is used, scrolling is done using wheel events.
+    this.element.addEventListener('wheel', this);
   },
 
   _setupPan: function() {
@@ -149,6 +156,7 @@ MultiDay.prototype = {
       addAmPmClass: this._addAmPmClass,
       className: 'md__display-hour'
     });
+    el.setAttribute('aria-label', el.textContent);
     return el;
   },
 
@@ -178,7 +186,19 @@ MultiDay.prototype = {
       case 'localized':
         this._localize();
         break;
+      case 'wheel':
+        this._onwheel(e);
+        break;
     }
+  },
+
+  _onwheel: function(event) {
+    if (event.deltaMode !== event.DOM_DELTA_PAGE || event.deltaX === 0) {
+      return;
+    }
+    // Update dates based on the number of visible cells after screen reader
+    // wheel.
+    this._updateBaseDateAfterScroll(event.deltaX * this.visibleCells);
   },
 
   _onDayChange: function(date) {
@@ -215,13 +235,21 @@ MultiDay.prototype = {
     this._prevRange = currentRange;
     this._visibleRange = this._getVisibleRange();
     this._sortDays();
+    this._setVisibleForScreenReader();
     this._pan.refresh();
     this._refreshCurrentTime();
+
+    this.allDayIcon.id = 'md__all-day-icon-' + this.scale;
   },
 
   _refreshCurrentTime: function() {
     this._currentTime.timespan = this._visibleRange;
     this._currentTime.refresh();
+  },
+
+  _setVisibleForScreenReader: function() {
+    this.children.forEach(
+      child => child.setVisibleForScreenReader(this._visibleRange));
   },
 
   _removeDatesOutsideRange: function(range) {
@@ -243,7 +271,9 @@ MultiDay.prototype = {
           date: date,
           daysHolder: this.daysHolder,
           alldaysHolder: this.alldaysHolder,
-          hourHeight: this._hourHeight
+          allDayIcon: this.allDayIcon,
+          hourHeight: this._hourHeight,
+          oneDayLabelFormat: this._oneDayLabelFormat
         });
         day.setup();
         this.children.push(day);

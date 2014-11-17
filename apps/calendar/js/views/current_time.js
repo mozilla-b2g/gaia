@@ -23,6 +23,7 @@ CurrentTime.prototype = {
     }
 
     this.element = document.createElement('div');
+    this.element.setAttribute('aria-hidden', true);
     this.element.classList.add('md__current-time');
     this._container.appendChild(this.element);
   },
@@ -119,6 +120,7 @@ CurrentTime.prototype = {
     );
     this.element.dataset.date = now;
     this.element.dataset.l10nDateFormat = format;
+    this.element.id = 'current-time-indicator';
 
     var hour = now.getHours();
     var elapsedMinutes = (hour * 60) + now.getMinutes();
