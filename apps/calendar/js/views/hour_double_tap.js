@@ -69,10 +69,10 @@ HourDoubleTap.prototype = {
       isAllDay: true,
       startDate: startDate.toString(),
       endDate: createDay(startDate, startDate.getDate() + 1).toString()
-    });
+    }, null, evt.mozInputSource);
   },
 
-  _onTap: function(container, data, hour) {
+  _onTap: function(container, data, hour, source) {
     hour = hour || 0;
 
     if (this._addEventLink) {
@@ -91,6 +91,12 @@ HourDoubleTap.prototype = {
 
     container.appendChild(link);
     this._addEventLink = link;
+
+    // Initiated by a screen reader on double tap.
+    if (source === 0) {
+      link.click();
+      return;
+    }
 
     // opacity will trigger transition, needs to happen after nextTick
     setTimeout(() => {
