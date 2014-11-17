@@ -74,7 +74,7 @@ gaia-tests-zip:
 
 .PHONY: gaia-prefs
 gaia-prefs:
-	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) preferences
+	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) preferences settings
 
 .PHONY: $(LOCAL_PATH)/profile.tar.gz
 $(LOCAL_PATH)/profile.tar.gz: gaia-prefs

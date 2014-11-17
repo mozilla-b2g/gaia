@@ -335,7 +335,7 @@ OperatorAppBuilder.prototype.setOptions = function(options) {
 
   this.gaia = utils.gaia.getInstance(options);
 
-  var settingsFile = utils.getFile(options.STAGE_DIR, 'settings_stage.json');
+  var settingsFile = utils.getFile(options.PROFILE_DIR, 'settings.json');
   if (!settingsFile.exists()) {
     throw new Error('file not found: ' + settingsFile.path);
   }
