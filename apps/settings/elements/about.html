@@ -2,118 +2,111 @@
   <template>
 
     <gaia-header action="back" data-href="#root">
-      <h1 data-l10n-id="deviceInfo-header">Device Information</h1>
+      <h1 data-l10n-id="deviceInfo-header"></h1>
     </gaia-header>
 
     <div>
       <ul>
-        <li id="deviceinfo-phone-num">
-          <span data-l10n-id="deviceInfo-MSISDN">Phone number</span>
-          <small id="deviceInfo-msisdns" class="multiline"></small>
+        <li class="deviceinfo-phone-num">
+          <span data-l10n-id="deviceInfo-MSISDN"></span>
+          <small class="deviceInfo-msisdns multiline"></small>
         </li>
         <li>
-          <span id="model-name" data-l10n-id="model-name">Model</span>
+          <span id="model-name" data-l10n-id="model-name"></span>
           <small data-name="deviceinfo.hardware"></small>
         </li>
         <li>
-          <span id="os-version" data-l10n-id="software">Software</span>
+          <span id="os-version" data-l10n-id="software"></span>
           <small data-name="deviceinfo.software"></small>
         </li>
         <li>
-          <span data-l10n-id="last-updated">Last Updated</span>
-          <small id="last-update-date"></small>
+          <span data-l10n-id="last-updated"></span>
+          <small class="last-update-date"></small>
         </li>
         <li>
           <a class="menu-item" href="#about-moreInfo">
-            <span data-l10n-id="more-info">More Information</span>
+            <span data-l10n-id="more-info"></span>
           </a>
         </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="softwareUpdates">Software Updates</h2>
+        <h2 data-l10n-id="softwareUpdates"></h2>
       </header>
       <ul>
         <li>
-          <p data-l10n-id="check-for-updates">Check for Updates</p>
+          <p data-l10n-id="check-for-updates"></p>
           <span class="button icon icon-dialog">
             <select name="app.update.interval">
-              <option value="86400"   data-l10n-id="check-update-daily" selected>Daily</option>
-              <option value="604800"  data-l10n-id="check-update-weekly">Weekly</option>
-              <option value="2592000" data-l10n-id="check-update-monthly">Monthly</option>
+              <option value="86400" data-l10n-id="check-update-daily" selected></option>
+              <option value="604800" data-l10n-id="check-update-weekly"></option>
+              <option value="2592000" data-l10n-id="check-update-monthly"></option>
             </select>
           </span>
         </li>
         <li>
-          <button id="check-update-now"
-            data-l10n-id="check-update-now">Check Now</button>
+          <button class="check-update-now"
+            data-l10n-id="check-update-now"></button>
         </li>
-        <li id="update-status" class="description update-status">
+        <li class="update-status description update-status">
           <p>
             <span class="general-information"
-              data-l10n-id="checking-for-update">Checking for updates…</span>
+              data-l10n-id="checking-for-update"></span>
             <span class="system-update-status"></span>
           </p>
         </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="aboutBrowserOS">About B2G OS</h2>
+        <h2 data-l10n-id="aboutBrowserOS"></h2>
       </header>
       <ul>
         <li class="description">
-          <p data-l10n-id="browser-os-desc">
-            Browser OS is the free and open source operating system from Mozilla.
-            Our mission is to promote openness, innovation and opportunity by
-            keeping the power of the Web in your hands.
-          </p>
+          <p data-l10n-id="browser-os-desc"></p>
         </li>
         <li>
           <a class="menu-item" href="#about-yourRights">
-            <span data-l10n-id="your-rights">Your Rights</span>
+            <span data-l10n-id="your-rights"></span>
           </a>
         </li>
         <li>
           <a class="menu-item" href="#about-yourPrivacy">
-            <span data-l10n-id="your-privacy">Your Privacy</span>
+            <span data-l10n-id="your-privacy"></span>
           </a>
         </li>
         <li>
           <a class="menu-item" href="#about-legal">
-            <span data-l10n-id="about-legal-info">Legal Information</span>
+            <span data-l10n-id="about-legal-info"></span>
           </a>
         </li>
         <li>
           <a class="menu-item" href="https://www.mozilla.org/credits/">
-            <span data-l10n-id="about-credit-info">Credits</span>
+            <span data-l10n-id="about-credit-info"></span>
           </a>
         </li>
       </ul>
       <header>
-        <h2 data-l10n-id="reset-head">Reset</h2>
+        <h2 data-l10n-id="reset-head"></h2>
       </header>
       <ul>
         <li>
-          <button id="reset-phone" data-l10n-id="reset-device">Reset Phone</button>
+          <button class="reset-phone" data-l10n-id="reset-device"></button>
         </li>
       </ul>
     </div>
 
-    <form role="dialog" data-type="confirm" id="reset-phone-dialog" hidden>
+    <form role="dialog" data-type="confirm" class="reset-phone-dialog" hidden>
       <section>
-        <h1 data-l10n-id="reset-warning-title">CAUTION</h1>
-        <p data-l10n-id="reset-warning-body">
-          Resetting will erase all your data, including any apps you’ve purchased. The phone will be restored to its factory condition. None of your settings or data will be saved.
-        </p>
+        <h1 data-l10n-id="reset-warning-title"></h1>
+        <p data-l10n-id="reset-warning-body"></p>
       </section>
       <menu>
-        <button data-l10n-id="cancel" id="cancel-reset-phone">Cancel</button>
-        <button data-l10n-id="reset" id="confirm-reset-phone" class="danger">Reset</button>
+        <button data-l10n-id="cancel" class="cancel-reset-phone"></button>
+        <button data-l10n-id="reset" class="confirm-reset-phone danger"></button>
       </menu>
     </form>
 
-    <script src="js/about.js"></script>
-    <script src="js/factory_reset.js"></script>
+    <panel data-path="panels/about/panel"></panel>
 
   </template>
 </element>

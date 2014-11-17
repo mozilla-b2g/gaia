@@ -183,7 +183,6 @@ apps/keyboard/test/unit/imes/latin/worker_test.js
 apps/keyboard/test/unit/setup_engine.js
 apps/keyboard/test/unit/suggest_test.js
 apps/music/js/metadata.js
-apps/settings/js/about.js
 apps/settings/js/bluetooth.js
 apps/settings/js/call.js
 apps/settings/js/call_iccs.js
