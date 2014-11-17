@@ -30,8 +30,7 @@ suite('settings.js', function() {
         GAIA_DISTRIBUTION_DIR: 'testDistributionDir',
         GAIA_DIR: 'testGaia',
         SETTINGS_PATH: 'testSettingsPath',
-        STAGE_DIR: 'testStageDir',
-        PROFILE_DIR: 'testProfileDir'
+        STAGE_DIR: 'testStageDir'
       };
       mockUtils.resolve = function(file, baseLink) {
         var fileExist = false;
@@ -186,22 +185,21 @@ suite('settings.js', function() {
     });
 
     test('writeSettings', function () {
-      var settingsFile = { result: '' };
+      var settingsFile = {result: ''};
       var settings = { 'testKey': 'testValue' };
-      mockUtils.getFile = function() {
-        var args = Array.prototype.slice.call(arguments);
+      mockUtils.getFile = function(dir, file) {
         return {
-          path: args.join('/'),
-          append: function() {}
+          path: dir + '/' + file
         };
       };
       mockUtils.writeContent = function(target, string) {
-        if (target.path === config.PROFILE_DIR + '/settings.json') {
+        if (target.path === config.STAGE_DIR + '/settings_stage.json') {
           settingsFile.result = string;
         }
       };
       app.writeSettings(settings, config);
-      assert.deepEqual(JSON.parse(settingsFile.result), settings);
+      assert.deepEqual(JSON.parse(settingsFile.result),
+        settings);
     });
 
     test('setHomescreenURL with default homescreen', function() {
@@ -249,8 +247,7 @@ suite('settings.js', function() {
         return {
           exists: function() {
             return true;
-          },
-          append: function() {}
+          }
         };
       };
       mockUtils.getJSON = function(json) {
