@@ -4,20 +4,6 @@
 
 const utils = require('./utils');
 
-/**
- * Copy settings_stage.json under stage to settings.json under profile.
- */
-function copySettingsJStoProfile(stageDir, profileDir) {
-  var settingsFile = stageDir.clone();
-  var defaultsDir = profileDir.clone();
-  settingsFile.append('settings_stage.json');
-  settingsFile.copyTo(profileDir, 'settings.json');
-
-  defaultsDir.append('defaults');
-  utils.ensureFolderExists(defaultsDir);
-  settingsFile.copyTo(defaultsDir, 'settings.json');
-}
-
 function cleanProfile(webappsDir) {
   // Profile can contain folders with a generated uuid that need to be deleted
   // or apps will be duplicated.
@@ -51,10 +37,6 @@ function execute(options) {
   var gaia = utils.gaia.getInstance(options);
   var webappsBaseDir = utils.getFile(options.PROFILE_DIR);
   var stageDir = gaia.stageDir;
-
-  if (options.BUILD_APP_NAME === '*') {
-    copySettingsJStoProfile(stageDir, webappsBaseDir);
-  }
 
   var webappsJSONFile = stageDir.clone();
   webappsJSONFile.append('webapps_stage.json');
