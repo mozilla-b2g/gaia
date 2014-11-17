@@ -2,9 +2,11 @@
 
 requireApp('ftu/test/unit/mock_utils.js');
 requireApp('ftu/test/unit/mock_wifi_helper.js');
+requireApp('ftu/test/unit/mock_ui_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('ftu/test/unit/mock_moz_wifi_network.js');
+requireApp('ftu/test/unit/mock_wifi.html.js');
 
 requireApp('ftu/js/wifi.js');
 requireApp('ftu/js/ui.js');
@@ -12,11 +14,12 @@ requireApp('ftu/js/ui.js');
 var mocksHelperForWifi = new MocksHelper([
   'utils',
   'WifiHelper',
-  'MozWifiNetwork'
+  'MozWifiNetwork',
+  'UIManager'
 ]).init();
 
 suite('wifi > ', function() {
-  var realL10n, realMozWifiNetwork;
+  var realL10n, realMozWifiNetwork, realHTML;
 
   var fakeNetworks = [
       {
@@ -52,85 +55,6 @@ suite('wifi > ', function() {
         connected: false
       }
     ];
-
-  function createDOM() {
-    var markup =
-    '<section id="activation-screen">' +
-    ' <gaia-header>' +
-    '  <h1 id="main-title"></h1>' +
-    ' </gaia-header>' +
-    ' <section id="wifi">' +
-    '  <div id="wifi-wrapper">' +
-    '    <article id="networks">' +
-    '    </article>' +
-    '    <button id="join-hidden-button">' +
-    '      Join hidden network' +
-    '    </button>' +
-    '  </div>' +
-    ' </section>' +
-    ' <section id="configure_network">' +
-    '  <section id="configure_network_params">' +
-    '    <form>' +
-    '      <input type="text" id="wifi_ssid" class="hidden"></input>' +
-    '      <label id="label_wifi_user">User</label>' +
-    '      <input type="text" id="wifi_user"></input>' +
-    '      <label>Password</label>' +
-    '      <input type="password" id="wifi_password" maxlength="63"></input>' +
-    '      <label id="label_show_password">' +
-    '        <input type="checkbox" data-ignore name="show_password" />' +
-    '        <span></span>' +
-    '        <p id="wifi_show_password">Show Password</p>' +
-    '      </label>' +
-    '    </form>' +
-    '  </section>' +
-    ' </section>' +
-    ' <section id="hidden-wifi-authentication">' +
-    '  <div>' +
-    '    <form>' +
-    '      <label id="label_wifi_ssid">' +
-    '        SSID Network Name' +
-    '      </label>' +
-    '      <input type="text" name="wifi_ssid" id="hidden-wifi-ssid"/>' +
-    '      <label id="label_wifi_security">' +
-    '        Security' +
-    '      </label>' +
-    '      <select id="hidden-wifi-security">' +
-    '        <option>none</option>' +
-    '        <option>WEP</option>' +
-    '        <option>WPA-PSK</option>' +
-    '        <option>WPA-EAP</option>' +
-    '      </select>' +
-    '      <div class="hidden" id="hidden-wifi-identity-box">' +
-    '        <label id="label_wifi_identity">' +
-    '          Identity' +
-    '        </label>' +
-    '        <input type="text" id="hidden-wifi-identity"/>' +
-    '      </div>' +
-    '      <label id="label_hidden_wifi_password">' +
-    '        Password' +
-    '      </label>' +
-    '      <input type="password" id="hidden-wifi-password" maxlength="63" />' +
-    '      <label id="label_hidden_show_password">' +
-    '        <input type="checkbox" id="hidden-wifi-show-password" />' +
-    '        <span></span>' +
-    '        <p>Show Password</p>' +
-    '      </label>' +
-    '    </form>' +
-    '  </div>' +
-    ' </section>' +
-    ' <menu id="nav-bar">' +
-    '   <button id="back">Back</button>' +
-    '   <button id="forward">Next</button>' +
-    '   <button id="wifi-join-button">Join</button>' +
-    '   <button id="unlock-sim-button">Send</button>' +
-    '   <button id="skip-pin-button">Skip</button>' +
-    ' </menu>' +
-    '</section>';
-
-    var container = document.createElement('div');
-    container.insertAdjacentHTML('beforeend', markup);
-    document.body.appendChild(container);
-  }
 
   mocksHelperForWifi.attachTestHelpers();
 
@@ -242,7 +166,8 @@ suite('wifi > ', function() {
         function(ssid, password, user) {
           return;
       });
-      createDOM();
+      realHTML = document.body.innerHTML;
+      document.body.innerHTML = MockImportWifiHTML;
     });
 
     test('Should join to a wifi network', function() {
