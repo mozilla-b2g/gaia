@@ -279,7 +279,7 @@ apps/system/test/unit/fxa_test/screens/fxam_signup_success_test.js
 apps/system/test/unit/iac_handler_test.js
 apps/system/test/unit/identity_test.js
 apps/system/test/unit/keyboard_helper_test.js
-apps/system/test/unit/lockscreen_test.js
+apps/system/test/unit/lockscreen/lockscreen_test.js
 apps/system/test/unit/mobile_operator_test.js
 apps/system/test/unit/mock_applications.js
 apps/system/test/unit/mock_apps_mgmt.js
