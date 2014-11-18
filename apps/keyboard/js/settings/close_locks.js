@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * CloseLockManager manage requests from multiple modules on on whether we
+ * CloseLockManager manages requests from multiple modules on whether we
  * should close ourselves *now* or wait for the "stayAwake" lock to unlock.
  * The "requestClose" request is a lock too because one might ask to close
  * the app but decide not to do that later.
