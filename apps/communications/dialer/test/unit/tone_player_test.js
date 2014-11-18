@@ -45,10 +45,16 @@ suite('shared/dialer/TonePlayer', function() {
   });
 
   suite('init', function() {
-    test('should not instantiate an audio context', function() {
+    setup(function() {
       TonePlayer.init('telephony');
+    });
 
+    test('should not instantiate an audio context', function() {
       assert.equal(MockAudioContext.instances.length, 0);
+    });
+
+    test('should mark the object as initialized', function() {
+      assert.isTrue(TonePlayer._initialized);
     });
   });
 

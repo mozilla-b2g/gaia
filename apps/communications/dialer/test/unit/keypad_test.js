@@ -104,12 +104,13 @@ suite('dialer/keypad', function() {
   });
 
   suite('Keypad Manager', function() {
-    test('initializates the TonePlayer to use the "content" channel',
+    test('initializates the TonePlayer to use the default audio channel',
     function() {
       this.sinon.spy(MockTonePlayer, 'init');
       KeypadManager.init(/* oncall */ false);
 
-      sinon.assert.calledWith(MockTonePlayer.init, 'content');
+      sinon.assert.calledOnce(MockTonePlayer.init);
+      sinon.assert.calledWithExactly(MockTonePlayer.init, null);
     });
 
     test('sanitizePhoneNumber', function(done) {
