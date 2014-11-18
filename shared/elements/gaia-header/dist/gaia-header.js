@@ -1072,8 +1072,11 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
     _resetCentering: function(heading) {
       // We need to set the lateral margins to 0 to be able to measure the
       // element width properly. All previously set values are ignored.
-      heading.style.marginLeft = heading.style.marginRight = '0';
-      heading.style.MozMarginStart = heading.style.MozMarginEnd = '0';
+      if (heading.dataset.rtlFriendly) {
+        heading.style.MozMarginStart = heading.style.MozMarginEnd = '0';
+      } else {
+        heading.style.marginLeft = heading.style.marginRight = '0';
+      }
     },
 
     /**
@@ -1107,8 +1110,16 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
         return;
       }
 
-      var propLeft = styleOptions.rtlFriendly ? 'MozMarginStart' : 'marginLeft';
-      var propRight = styleOptions.rtlFriendly ? 'MozMarginEnd' : 'marginRight';
+      var propLeft, propRight;
+      if (styleOptions.rtlFriendly) {
+        propLeft = 'MozMarginStart';
+        propRight = 'MozMarginEnd';
+        heading.dataset.rtlFriendly = 'true';
+      } else {
+        propLeft = 'marginLeft';
+        propRight = 'marginRight';
+        delete heading.dataset.rtlFriendly;
+      }
 
       // To center, we need to make sure the space to the left of the header
       // is the same as the space to the right, so take the largest of the two.
