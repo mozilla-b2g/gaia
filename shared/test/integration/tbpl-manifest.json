@@ -40,6 +40,7 @@
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
     "apps/verticalhome/test/marionette/collection_pin_result_uninstall_test.js": "Bug 1098310 - TEST-UNEXPECTED-FAIL | Vertical - Collection uninstall pinned collection web result",
     "apps/verticalhome/test/marionette/collection_rename_test.js": "Bug 1090756 - TEST-UNEXPECTED-FAIL | Vertical - Collection Rename rename collection",
-    "apps/system/test/marionette/browser_navigate_landing_page_test.js": "Bug 1100305 - TEST-UNEXPECTED-FAIL | apps/system/test/marionette/browser_navigate_landing_page_test.js"
+    "apps/system/test/marionette/browser_navigate_landing_page_test.js": "Bug 1100305 - TEST-UNEXPECTED-FAIL | apps/system/test/marionette/browser_navigate_landing_page_test.js",
+    "apps/sms/test/marionette/composer_test.js": "Bug 1094076 - TEST-UNEXPECTED-FAIL | apps/sms/test/marionette/composer_test.js | Messages Composer Messages Composer Test Suite Message char counter and MMS label"
   }
 }
