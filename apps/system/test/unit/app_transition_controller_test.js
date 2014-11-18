@@ -273,12 +273,14 @@ suite('system/AppTransitionController', function() {
       stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
       stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
       stubShow = this.sinon.stub(app1, 'show');
+      this.sinon.stub(app1, 'reviveBrowser');
     });
     test('Handle opened', function() {
       acn1.handle_opened();
       assert.isTrue(stubRequestForeground.calledOnce);
       assert.isTrue(stubShow.called);
       assert.isTrue(stubSetOrientation.called);
+      assert.isTrue(app1.reviveBrowser.called);
     });
 
     test('Handle opened if the new window is callscreenWindow', function() {
