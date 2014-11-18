@@ -27,7 +27,9 @@ suite('system/LockScreenStateLogger', function() {
 
   test('when it comes with the graph flag, it should log transferring',
   function() {
+    this.sinon.stub(console, 'log');  // to prevent it really print the message
     subject.start({
+      debug: true,
       graph: true
     });
     var stubPush = this.sinon.stub(subject.stateStack, 'push');
