@@ -43,8 +43,8 @@ class TestPreviewDelete(GaiaTestCase):
         Wait(self.marionette).until(lambda m: self.preview.is_video_preview_visible is True)
 
         # Play video, then pause it
-        self.preview.tap_videoPlayer_play_button()
-        self.preview.tap_videoPlayer_pause_button()
+        self.preview.tap_video_player_play_button()
+        self.preview.tap_video_player_pause_button()
 
         # Tape the options icon, and delete the file
         self.preview.delete_file()
