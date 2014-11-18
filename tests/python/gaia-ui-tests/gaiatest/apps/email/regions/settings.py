@@ -2,7 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
+
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
@@ -13,7 +16,9 @@ class Settings(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._email_account_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._email_account_locator))))
 
     @property
     def email_accounts(self):
@@ -34,7 +39,9 @@ class EmailAccountSettings(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._delete_account_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._delete_account_locator))))
 
     def tap_delete(self):
         self.marionette.find_element(*self._delete_account_locator).tap()
@@ -48,7 +55,9 @@ class DeleteConfirmation(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._delete_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._delete_locator))))
 
     def tap_delete(self):
         self.marionette.find_element(*self._delete_locator).tap()

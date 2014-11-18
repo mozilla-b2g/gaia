@@ -2,7 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import Wait
 from marionette.by import By
+
 from gaiatest.apps.base import Base
 
 
@@ -20,7 +22,7 @@ class NewEmail(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         view = self.marionette.find_element(*self._view_locator)
-        self.wait_for_condition(lambda m: view.location['x'] == 0)
+        Wait(self.marionette).until(lambda m: view.location['x'] == 0)
 
     def type_to(self, value):
         self.marionette.find_element(*self._to_locator).tap()

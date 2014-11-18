@@ -2,7 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
+
 from gaiatest.apps.base import Base
 
 
@@ -19,7 +22,9 @@ class SetupEmail(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._name_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._name_locator))))
 
     def type_name(self, value):
         self.marionette.find_element(*self._name_locator).send_keys(value)
@@ -31,11 +36,16 @@ class SetupEmail(Base):
         self.marionette.find_element(*self._next_locator).tap()
 
     def tap_account_prefs_next(self):
-        self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
-        self.marionette.find_element(*self._account_prefs_next_locator).tap()
+        next = Wait(self.marionette, timeout=120).until(
+            expected.element_present(*self._account_prefs_next_locator))
+        Wait(self.marionette, timeout=120).until(
+            expected.element_displayed(next))
+        next.tap()
 
     def wait_for_setup_complete(self):
-        self.wait_for_condition(lambda m: m.find_element(*self._done_section_locator).location['x'] == 0)
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._done_section_locator))
+        Wait(self.marionette).until(lambda m: element.location['x'] == 0)
 
     def tap_continue(self):
         self.marionette.find_element(*self._continue_button_locator).tap()
@@ -74,7 +84,9 @@ class ManualSetupEmail(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._name_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._name_locator))))
 
     def type_name(self, value):
         el = self.marionette.find_element(*self._name_locator)
@@ -152,11 +164,17 @@ class ManualSetupEmail(Base):
         el.send_keys(value)
 
     def tap_next(self):
-        self.wait_for_condition(lambda m: m.find_element(*self._next_locator).get_attribute('disabled') != 'true')
-        self.marionette.find_element(*self._next_locator).tap()
-        self.wait_for_condition(lambda m: m.find_element(
-            *self._account_prefs_section_locator).location['x'] == 0)
-        self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
+        next = Wait(self.marionette).until(expected.element_present(*self._next_locator))
+        Wait(self.marionette).until(lambda m: next.get_attribute('disabled') != 'true')
+        next.tap()
+
+        account = Wait(self.marionette).until(
+            expected.element_present(*self._account_prefs_section_locator))
+        Wait(self.marionette).until(lambda m: account.location['x'] == 0)
+
+        Wait(self.marionette, timeout=120).until(expected.element_displayed(
+            Wait(self.marionette, timeout=120).until(expected.element_present(
+                *self._account_prefs_next_locator))))
 
     def check_for_emails_interval(self, value):
         self.marionette.execute_script('document.querySelector("[data-l10n-id = settings-check-every-5min]").value = "%s";' % value)
@@ -167,7 +185,9 @@ class ManualSetupEmail(Base):
         self.marionette.find_element(*self._account_prefs_next_locator).tap()
 
     def wait_for_setup_complete(self):
-        self.wait_for_condition(lambda m: m.find_element(*self._done_section_locator).location['x'] == 0)
+        done = Wait(self.marionette).until(
+            expected.element_present(*self._done_section_locator))
+        Wait(self.marionette).until(lambda m: done.location['x'] == 0)
 
     def tap_continue(self):
         self.marionette.find_element(*self._continue_button_locator).tap()

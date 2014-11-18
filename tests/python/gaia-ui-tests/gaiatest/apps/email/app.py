@@ -112,8 +112,10 @@ class Email(Base):
         delete_confirmation.tap_delete()
 
     def tap_manual_setup(self):
-        self.wait_for_element_displayed(*self._manual_setup_locator)
-        self.marionette.find_element(*self._manual_setup_locator).tap()
+        manual_setup = Wait(self.marionette).until(
+            expected.element_present(*self._manual_setup_locator))
+        Wait(self.marionette).until(expected.element_displayed(manual_setup))
+        manual_setup.tap()
         return ManualSetupEmail(self.marionette)
 
     @property
@@ -130,13 +132,13 @@ class Email(Base):
 
     def wait_for_emails_to_sync(self):
         element = self.marionette.find_element(*self._refresh_button_locator)
-        self.wait_for_condition(
+        Wait(self.marionette).until(
             lambda m: element.get_attribute(
                 'data-state') == 'synchronized')
 
     def wait_for_message_list(self):
         element = self.marionette.find_element(*self._message_list_locator)
-        self.wait_for_condition(
+        Wait(self.marionette).until(
             lambda m: element.is_displayed() and
             element.location['x'] == 0)
 
@@ -169,7 +171,7 @@ class Header(Base):
     def tap_menu(self):
         self.marionette.find_element(*self._menu_button_locator).tap()
         toolbar = ToolBar(self.marionette)
-        self.wait_for_condition(lambda m: toolbar.is_visible)
+        Wait(self.marionette).until(lambda m: toolbar.is_visible)
         return toolbar
 
     def tap_compose(self):
@@ -198,20 +200,28 @@ class ToolBar(Base):
     _settings_locator = (By.CSS_SELECTOR, '#cardContainer .card.center .fld-nav-settings-btn')
 
     def tap_refresh(self):
-        self.wait_for_element_displayed(*self._refresh_locator)
-        self.marionette.find_element(*self._refresh_locator).tap()
+        refresh = Wait(self.marionette).until(
+            expected.element_present(*self._refresh_locator))
+        Wait(self.marionette).until(expected.element_displayed(refresh))
+        refresh.tap()
 
     def tap_search(self):
-        self.wait_for_element_displayed(*self._search_locator)
-        self.marionette.find_element(*self._search_locator).tap()
+        search = Wait(self.marionette).until(
+            expected.element_present(*self._search_locator))
+        Wait(self.marionette).until(expected.element_displayed(search))
+        search.tap()
 
     def tap_edit(self):
-        self.wait_for_element_displayed(*self._edit_locator)
-        self.marionette.find_element(*self._edit_locator).tap()
+        edit = Wait(self.marionette).until(
+            expected.element_present(*self._edit_locator))
+        Wait(self.marionette).until(expected.element_displayed(edit))
+        edit.tap()
 
     def tap_settings(self):
-        self.wait_for_element_displayed(*self._settings_locator)
-        self.marionette.find_element(*self._settings_locator).tap()
+        settings = Wait(self.marionette).until(
+            expected.element_present(*self._settings_locator))
+        Wait(self.marionette).until(expected.element_displayed(settings))
+        settings.tap()
 
     @property
     def is_visible(self):
