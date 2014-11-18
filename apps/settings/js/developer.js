@@ -15,6 +15,19 @@ var Developer = {
         document.getElementById('homegesture').style.display = 'none';
       }
     }
+
+    this._elements = {
+      resetButton: document.querySelector('.root-phone'),
+    };
+
+    if (navigator.mozPower) {
+      this._elements.resetButton.disabled = false;
+      this._elements.resetButton.addEventListener('click',
+        this._wipeClick.bind(this));
+    } else {
+      // disable button if mozPower is undefined or can't be used
+      this._elements.resetButton.disabled = true;
+    }
   },
 
   launchFTU: function about_launchFTU() {
@@ -54,6 +67,37 @@ var Developer = {
         });
       };
     });
+  },
+
+  _wipeClick: function about_wipeClick() {
+    require(['modules/dialog_service'], (DialogService) => {
+      DialogService.confirm(navigator.mozL10n.get('root-warning-body'), {
+        title: navigator.mozL10n.get('root-warning-title'),
+        submitButtonText: navigator.mozL10n.get('reset'),
+        cancelButtonText: navigator.mozL10n.get('cancel')
+      })
+      .then(function(result) {
+        var type = result.type;
+        if (type == 'submit') {
+          this._wipe();
+        }
+      }.bind(this));
+    });
+  },
+
+  _wipe: function about_wipe() {
+    var power = navigator.mozPower;
+    if (!power) {
+      console.error('Cannot get mozPower');
+      return;
+    }
+
+    if (!power.factoryReset) {
+      console.error('Cannot invoke mozPower.factoryReset()');
+      return;
+    }
+
+    power.factoryReset('root');
   }
 };
 
