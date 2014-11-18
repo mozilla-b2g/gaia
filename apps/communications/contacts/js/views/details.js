@@ -436,10 +436,6 @@ contacts.Details = (function() {
         if (socialLabel) {
           socialLabel.setAttribute('data-l10n-id', 'facebook');
         }
-
-        // Check whether the social buttons that require to be online
-        // should be there
-        disableButtons(social, socialButtonIds);
     }
 
     // If it is a FB Contact but not linked unlink must be hidden
@@ -456,24 +452,10 @@ contacts.Details = (function() {
     var socialTemplate = document.querySelector(
                                         ':not([data-template])[data-social]');
 
-    if (socialTemplate) {
-      if (isFbContact) {
-         disableButtons(socialTemplate, socialButtonIds);
-      }
-      else {
-        disableButtons(socialTemplate, ['#link_button']);
-      }
+    if (socialTemplate && !isFbContact) {
+      doDisableButton(socialTemplate.querySelector('#link_button'));
     }
   };
-
-  function disableButtons(tree, buttonIds) {
-    buttonIds.forEach(function enable(id) {
-      var button = tree.querySelector(id);
-      if (button) {
-        doDisableButton(button);
-      }
-    });
-  }
 
   function doDisableButton(buttonElement) {
     if (navigator.onLine === true) {
