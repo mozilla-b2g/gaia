@@ -42,6 +42,7 @@ requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/helper.js');
+requireApp('communications/contacts/js/utilities/extract_params.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
@@ -641,7 +642,7 @@ suite('Render contact', function() {
       subject.setContact(contact);
       var observer = new MutationObserver(function() {
         assert.isTrue(contactDetails.classList.contains('up'));
-        // assert.include worked only for string and arrays!! 
+        // assert.include worked only for string and arrays!!
         // in new version chaijs fail
         //assert.include(dom.innerHTML, contact.photo[0]);
 
@@ -708,6 +709,19 @@ suite('Render contact', function() {
       ActivityHandler.activityName = 'view';
     });
 
+    suite('back_to_previous_tab set', function() {
+      setup(function() {
+        window.location.hash = '#nothing?back_to_previous_tab=1';
+      });
+      teardown(function() {
+        window.location.hash = '';
+      });
+
+      test('> should not navigate back', function() {
+        triggerEvent(header, 'action');
+        sinon.assert.notCalled(Contacts.navigation.back);
+      });
+    });
   });
 
 });

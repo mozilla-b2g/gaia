@@ -129,13 +129,14 @@ contacts.Details = (function() {
   var doHandleDetailsBack = function() {
     var hashParams = window.location.hash.split('?');
     var params = hashParams.length > 1 ?
-                      utils.extractParams(hashParams[1]) : -1;
+                 utils.extractParams(hashParams[1]) : -1;
 
-    Contacts.navigation.back(resetPhoto);
     // post message to parent page included Contacts app.
     if (params.back_to_previous_tab === '1') {
       var message = { 'type': 'contactsiframe', 'message': 'back' };
       window.parent.postMessage(message, COMMS_APP_ORIGIN);
+    } else {
+      Contacts.navigation.back(resetPhoto);
     }
   };
 

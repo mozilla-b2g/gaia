@@ -2,6 +2,9 @@
 /* global MockNavigationStack */
 /* global ConfirmDialog */
 /* exported MockContacts */
+/* exported COMMS_APP_ORIGIN */
+
+var COMMS_APP_ORIGIN = location.origin;
 
 var MockContacts = {
   getLength: function(prop) {
@@ -53,7 +56,7 @@ var MockContacts = {
     }
   },
   setCurrent: function(ct) {
-    
+
   },
   setCancelableHeader: function() {}
 };
