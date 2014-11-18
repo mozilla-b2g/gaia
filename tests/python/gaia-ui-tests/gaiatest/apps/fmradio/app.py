@@ -2,9 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from marionette.marionette import Actions
-from marionette import Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -23,8 +24,9 @@ class FmRadio(Base):
 
     def launch(self):
         Base.launch(self)
-        Wait(self.marionette).until(
-            lambda m: m.find_element(*self._power_button_locator).get_attribute('data-enabled') == "true")
+        power = Wait(self.marionette).until(
+            expected.element_present(*self._power_button_locator))
+        Wait(self.marionette).until(lambda m: power.get_attribute('data-enabled') == 'true')
 
     def flick_frequency_dialer_up(self):
         dialer = self.marionette.find_element(*self._frequency_dialer_locator)
@@ -34,25 +36,33 @@ class FmRadio(Base):
         Actions(self.marionette).flick(dialer, dialer_x_center, dialer_y_center, 0, 800, 800).perform()
 
     def tap_next(self):
-        current_frequency = self.frequency
+        frequency = Wait(self.marionette).until(
+            expected.element_present(*self._frequency_display_locator))
+        current = frequency.text
         self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_condition(lambda m: self.frequency != current_frequency)
+        Wait(self.marionette).until(lambda m: frequency.text != current)
 
     def tap_previous(self):
-        current_frequency = self.frequency
+        frequency = Wait(self.marionette).until(
+            expected.element_present(*self._frequency_display_locator))
+        current = frequency.text
         self.marionette.find_element(*self._prev_button_locator).tap()
-        self.wait_for_condition(lambda m: self.frequency != current_frequency)
+        Wait(self.marionette).until(lambda m: frequency.text != current)
 
     def tap_power_button(self):
         self.marionette.find_element(*self._power_button_locator).tap()
 
     def wait_for_radio_off(self):
-        self.wait_for_condition(lambda m: self.is_power_button_on is False)
+        power = Wait(self.marionette).until(
+            expected.element_present(*self._power_button_locator))
+        Wait(self.marionette).until(
+            lambda m: not power.get_attribute('data-enabled') == 'true')
 
     def tap_add_favorite(self):
-        current_favorite_channel_count = len(self.favorite_channels)
+        current = len(self.favorite_channels)
         self.marionette.find_element(*self._favorite_button_locator).tap()
-        self.wait_for_condition(lambda m: current_favorite_channel_count + 1 == len(self.favorite_channels))
+        Wait(self.marionette).until(
+            lambda m: len(self.favorite_channels) == current + 1)
 
     @property
     def is_power_button_on(self):
@@ -75,5 +85,6 @@ class FmRadio(Base):
             return float(self.root_element.find_element(*self._frequency_locator).text)
 
         def remove(self):
+            frequency = self.marionette.find_element(*self._frequency_locator)
             self.root_element.find_element(*self._remove_locator).tap()
-            self.wait_for_element_not_present(*self._frequency_locator)
+            Wait(self.marionette).until(expected.element_not_displayed(frequency))
