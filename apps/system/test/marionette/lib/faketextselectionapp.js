@@ -97,7 +97,7 @@ FakeTextSelectionApp.prototype = {
                                        boxInfoLeft, boxInfoRight) {
       window.dispatchEvent(new CustomEvent('mozChromeEvent', {
         detail: {
-          type: 'selectionchange',
+          type: 'selectionstatechanged',
           detail: {
             commands: {
               canPaste: true,
@@ -114,7 +114,7 @@ FakeTextSelectionApp.prototype = {
               left: boxInfoLeft,
               right: boxInfoRight
             },
-            reasons: ['mouseup']
+            states: ['mouseup']
           }
         }
       }));
