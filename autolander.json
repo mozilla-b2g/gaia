@@ -1,0 +1,333 @@
+{
+  "tasks": [
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "kevin@mozilla.com"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_unit"
+          ],
+          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBU"
+          }
+        }
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 1",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "kevin@mozilla.com"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "1",
+            "TOTAL_CHUNKS": "4"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI1"
+          }
+        }
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 2",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "kevin@mozilla.com"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "2",
+            "TOTAL_CHUNKS": "4"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI2"
+          }
+        }
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 3",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "kevin@mozilla.com"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "3",
+            "TOTAL_CHUNKS": "4"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI3"
+          }
+        }
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 4",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "kevin@mozilla.com"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "4",
+            "TOTAL_CHUNKS": "4"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI4"
+          }
+        }
+      }
+    },
+    {
+      "task": {
+        "metadata": {
+          "name": "Gaia CSS Lint",
+          "description": "CSS linter",
+          "source": "http://todo.com/soon",
+          "owner": "kevin@mozilla.com"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run csslint"
+          ],
+          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "maxRunTime": 1800,
+          "env": {}
+        },
+        "extra": {
+          "treeherder": {
+            "symbol": "CSS",
+            "groupSymbol": "LINT",
+            "groupName": "Linters"
+          }
+        }
+      }
+    },
+    {
+      "task": {
+        "metadata": {
+          "name": "Gaia JSON Lint",
+          "description": "JSON linter",
+          "source": "http://todo.com/soon",
+          "owner": "kevin@mozilla.com"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run jsonlint"
+          ],
+          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "maxRunTime": 1800,
+          "env": {}
+        },
+        "extra": {
+          "treeherder": {
+            "symbol": "JSON",
+            "groupSymbol": "LINT",
+            "groupName": "Linters"
+          }
+        }
+      }
+    },
+    {
+      "task": {
+        "metadata": {
+          "name": "Gaia GJSLint",
+          "description": "GJSLint",
+          "source": "http://todo.com/soon",
+          "owner": "kevin@mozilla.com"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gjslint"
+          ],
+          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "maxRunTime": 1800,
+          "env": {}
+        },
+        "extra": {
+          "treeherder": {
+            "symbol": "GJSLint",
+            "groupSymbol": "LINT",
+            "groupName": "Linters"
+          }
+        }
+      }
+    },
+    {
+      "task": {
+        "metadata": {
+          "name": "Gaia JSHint",
+          "description": "JSHint",
+          "source": "http://todo.com/soon",
+          "owner": "kevin@mozilla.com"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run jshint"
+          ],
+          "image": "quay.io/mozilla/gaia-taskenv:0.7.2",
+          "maxRunTime": 1800,
+          "env": {}
+        },
+        "extra": {
+          "treeherder": {
+            "symbol": "JSHint",
+            "groupSymbol": "LINT",
+            "groupName": "Linters"
+          }
+        }
+      }
+    }
+  ]
+}
