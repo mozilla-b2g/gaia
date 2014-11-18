@@ -26,13 +26,11 @@ function _fetch(url) {
 }
 
 function parseMetadata(filename) {
+  var songBlob;
   return _fetch(filename).then(function(data) {
-    var blob = new Blob([data]);
-    return {blob: blob, metadata: AudioMetadata.parse(blob)};
-  }).then(function(result) {
-    var songBlob = result.blob;
-    var metadata = result.metadata;
-
+    songBlob = new Blob([data]);
+    return AudioMetadata.parse(songBlob);
+  }).then(function(metadata) {
     if (metadata.picture) {
       return new Promise(function(resolve, reject) {
         var reader = new FileReader();

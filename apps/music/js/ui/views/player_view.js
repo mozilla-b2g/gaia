@@ -1,6 +1,6 @@
 /* exported PlayerView */
 /* global TitleBar, MusicComms, musicdb, ModeManager, App, AlbumArt,
-          parseAudioMetadata, ListView, ForwardLock, formatTime, MozActivity,
+          AudioMetadata, ListView, ForwardLock, formatTime, MozActivity,
           asyncStorage, SETTINGS_OPTION_KEY, MODE_PLAYER */
 'use strict';
 
