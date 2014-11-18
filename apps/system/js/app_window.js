@@ -300,6 +300,10 @@
       return true;
     }
 
+    if (this.element.classList.contains('will-become-inactive')) {
+      return false;
+    }
+
     if (this.transitionController) {
       return (this.transitionController._transitionState == 'opened' ||
               this.transitionController._transitionState == 'opening');
@@ -1182,7 +1186,7 @@
       }
 
       if (this.identificationOverlay) {
-        this.identificationOverlay.classList.add('visible');
+        this.element.classList.add('overlay');
       }
 
       this.screenshotOverlay.classList.add('visible');
@@ -1208,11 +1212,11 @@
       this.screenshotOverlay.style.backgroundImage = '';
 
       if (this.identificationOverlay) {
-        var overlay = this.identificationOverlay;
+        var element = this.element;
         // A white flash can occur when removing the screenshot
         // so we trigger this transition after a tick to hide it.
         setTimeout(function nextTick() {
-          overlay.classList.remove('visible');
+          element.classList.remove('overlay');
         });
       }
     };
