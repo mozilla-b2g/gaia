@@ -1,5 +1,5 @@
 /* Handling the status bar mode */
-@media (max-height: 4.5em) {
+@media (max-height: 5.5em) {
   html {
     font-size: 10px;
   }
@@ -8,40 +8,23 @@
     margin: 0;
   }
 
-  .total-duration {
-    display: none;
-    padding-left: 0.5rem;
-  }
-
   .handled-call,
   #group-call {
-    background-color: #00adad;
-    background-repeat: repeat-x;
-    background-size: auto 4rem;
+    background-color: #00bce3;
+    background-size: auto 5rem;
     color: white;
-    font-size: 1.7rem;
-    padding-left: 1rem;
-    padding-right: 2rem;
-    height: 40px;
+    font-size: 1.8rem;
+    padding-right: 1.5rem;
+    height: 5rem;
   }
 
   .handled-call.ended {
     background-color: rgba(107, 0, 0, 0.9);
-    background-image: none;
-  }
-
-  .handled-call.ended .duration > span {
-    font-weight: 500;
-  }
-
-  .handled-call.ended .total-duration {
-    display: inline;
   }
 
   .handled-call.held,
   #group-call.held {
     background-color: #333;
-    background-image: none;
   }
 
   #main-container,
@@ -49,25 +32,26 @@
   #views,
   #lockscreen-header,
   #group-call-details,
-  .additionalContactInfo {
+  .duration {
     display: none;
   }
-
+   
+  .additionalContactInfo {
+    display: block;
+    margin-top: -2.4rem;
+    margin-left: 5.6rem;
+    font-size: 1.4rem;
+  }
+  
   #calls .handled-call,
   #calls #group-call:not([hidden]) {
-    display: flex;
     align-items: center;
   }
 
   .numberWrapper {
-    flex: 1;
-    display: flex;
-    align-items: center;
-  }
-
-  .duration {
-    display: flex;
-    align-items: flex-end;
+    display: block;
+    height: 100%;
+    width: 100%;
   }
 
   .number {
@@ -75,51 +59,27 @@
     overflow: hidden;
     text-overflow: ellipsis;
     padding-right: 0.5rem;
+    margin-left: 5.6rem;
+    font-size: 1.8rem;
+    line-height: 3.2rem;
     font-style: italic;
   }
 
   .direction-status-bar:before {
     content: "";
     display: block;
-    width: 3rem;
-    height: 3rem;
+    position: absolute;
+    top: 0;
+    right: 5.6rem;
+    bottom: 0;
+    left: 0;
     background-repeat: no-repeat;
-    background-size: 3rem;
-    margin-right: 0.5rem;
-    flex-shrink: 0;
+    background-position: left 1.5rem center;
+    background-size: 2.4rem;
   }
 
-  .incoming .direction-status-bar:before {
-    background-image: url('images/status_bar/actionicon_activecall_incomingcall_active.png');
-  }
-
-  .outgoing .direction-status-bar:before {
-    background-image: url('images/status_bar/actionicon_activecall_outgoingcall_active.png');
-  }
-
-  .held .direction-status-bar:before {
-    background-image: url('images/status_bar/actionicon_activecall_paused_active.png');
-  }
-
-  .ended .direction-status-bar:before {
-    background-image: url('images/shared/actionicon_activecall_hangup_small.png');
-  }
-
-  .isTimer {
-    display: flex;
-    align-items: center;
-    font-feature-settings: "tnum";
-  }
-
-  .muted .isTimer:before {
-    content: "";
-    display: block;
-    width: 3rem;
-    height: 3rem;
-    background-repeat: no-repeat;
-    background-size: contain;
-    margin-right: 0.5rem;
-    background-image: url('images/status_bar/actionicon_activecall_mute_small_active.png');
+  .direction-status-bar:before {
+    background-image: url('icons/dialer_84.png');
   }
 
   /* Don't display held calls unless there is only one call */

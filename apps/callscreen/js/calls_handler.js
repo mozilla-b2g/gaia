@@ -358,7 +358,6 @@ var CallsHandler = (function callsHandler() {
       }
     });
   }
-  window.addEventListener('resize', updateAllPhoneNumberDisplays);
 
   /* === Bluetooth Headset support ===*/
   function handleBTCommand(message) {
@@ -869,6 +868,11 @@ var CallsHandler = (function callsHandler() {
     }
   }
 
+  function activeCallResize() {
+    var active = activeCall();
+    active.textStatusBarNotification();
+  }
+
   return {
     setup: setup,
 
@@ -892,6 +896,7 @@ var CallsHandler = (function callsHandler() {
     updatePlaceNewCall: updatePlaceNewCall,
     exitCallScreenIfNoCalls: exitCallScreenIfNoCalls,
     updateMergeAndOnHoldStatus: updateMergeAndOnHoldStatus,
+    activeCallResize: activeCallResize,
 
     get activeCall() {
       return activeCall();

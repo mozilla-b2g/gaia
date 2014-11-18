@@ -307,6 +307,16 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
   }
 };
 
+HandledCall.prototype.textStatusBarNotification = 
+function hc_textStatusBarNotification() {
+  this.numberNode.textContent = 'Active Call';
+  if(this._cachedAdditionalInfo){
+    this.additionalInfoNode.textContent = this._cachedInfo[0];
+  } else {
+    this.additionalInfoNode.textContent = this._cachedInfo;
+  }
+};
+
 HandledCall.prototype.remove = function hc_remove() {
   this._removed = true;
   this.call.removeEventListener('statechange', this);
