@@ -32,6 +32,7 @@ var TonePlayer = {
     '/shared/resources/media/tones/tone_hash.opus': [941, 1477]
   },
   _maybeTrashAudio: null,
+  _initialized: false,
 
   /**
    * Initializes the tone player by specifying which channel will be used to
@@ -62,6 +63,8 @@ var TonePlayer = {
     window.addEventListener('visibilitychange', this._maybeTrashAudio);
     telephony && telephony.addEventListener('callschanged',
                                             this._maybeTrashAudio);
+
+    this._initialized = true;
   },
 
   /**
@@ -75,6 +78,7 @@ var TonePlayer = {
                                                this._maybeTrashAudio);
     window.removeEventListener('visibilitychange', this._maybeTrashAudio);
     this._reset();
+    this._initialized = false;
   },
 
   /**
@@ -89,11 +93,16 @@ var TonePlayer = {
   },
 
   _ensureAudio: function tp_ensureAudio() {
-    if (this._audioContext || !this._channel) {
+    if (this._audioContext || !this._initialized) {
       return;
     }
 
-    this._audioContext = new AudioContext(this._channel);
+    if (this._channel) {
+      this._audioContext = new AudioContext(this._channel);
+    } else {
+      // If no channel was specified stick with the default one.
+      this._audioContext = new AudioContext();
+    }
   },
 
   _trashAudio: function tp_trashAudio() {
