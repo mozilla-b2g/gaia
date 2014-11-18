@@ -21,6 +21,8 @@ class Email(Base):
     _syncing_locator = (By.CSS_SELECTOR, '#cardContainer .msg-messages-syncing > .small')
     _manual_setup_locator = (By.CSS_SELECTOR, '#cardContainer .sup-manual-config-btn')
     _message_list_locator = (By.CSS_SELECTOR, 'cards-message-list')
+    _setup_account_info = (By.TAG_NAME, 'cards-setup-account-info')
+    _setup_manual_config = (By.TAG_NAME, 'cards-setup-manual-config')
     _refresh_button_locator = (By.CLASS_NAME, 'msg-refresh-btn')
 
     def basic_setup_email(self, name, email, password):
@@ -117,6 +119,19 @@ class Email(Base):
         Wait(self.marionette).until(expected.element_displayed(manual_setup))
         manual_setup.tap()
         return ManualSetupEmail(self.marionette)
+
+    def a11y_click_manual_setup(self):
+        manual_setup = Wait(self.marionette).until(
+            expected.element_present(*self._manual_setup_locator))
+        Wait(self.marionette).until(expected.element_displayed(manual_setup))
+        self.accessibility.click(manual_setup)
+        return ManualSetupEmail(self.marionette)
+
+    def a11y_navigate_to_manual_setup(self, name, email):
+        setup = SetupEmail(self.marionette)
+        setup.type_name(name)
+        setup.type_email(email)
+        setup = self.a11y_click_manual_setup()
 
     @property
     def header(self):

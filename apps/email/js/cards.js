@@ -623,6 +623,9 @@ var cards = {
           break;
       }
     }
+
+    // Reset aria-hidden attributes to handle cards visibility.
+    this._setScreenReaderVisibility();
   },
 
   /**
@@ -768,6 +771,17 @@ var cards = {
     toaster.hide();
 
     this.activeCardIndex = cardIndex;
+
+    // Reset aria-hidden attributes to handle cards visibility.
+    this._setScreenReaderVisibility();
+  },
+
+  _setScreenReaderVisibility: function() {
+    // We use aria-hidden to handle visibility instead of CSS because there are
+    // semi-transparent cards, such as folder picker.
+    this._cardStack.forEach(function(card, index) {
+      card.setAttribute('aria-hidden', index !== this.activeCardIndex);
+    }, this);
   },
 
   _onTransitionEnd: function(event) {
