@@ -8,6 +8,7 @@ from marionette import expected
 from marionette import Wait
 from marionette.by import By
 from marionette.marionette import Actions
+from marionette.errors import FrameSendFailureError
 
 from gaiatest.apps.base import Base
 
@@ -82,7 +83,13 @@ class Camera(Base):
     def tap_select_button(self):
         select = self.marionette.find_element(*self._select_button_locator)
         Wait(self.marionette).until(expected.element_enabled(select))
-        select.tap()
+
+        try:
+            select.tap()
+        except FrameSendFailureError:
+            # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
+            pass
+
         # Fall back to app beneath the picker
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)
         self.apps.switch_to_displayed_app()
