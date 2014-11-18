@@ -256,8 +256,7 @@ function(panels, SettingsListener, SettingsHelper) {
 
     validate: function() {
       var lat = /^[-+]?(([0-8]\d|\d)(\.\d{1,6})?|90(\.0{1,6})?)$/;
-      // jshint ignore:
-      var lon = /^[-+]?((1[0-7]\d(\.\d{1,6})?)|(180(\.0+)?)|(\d\d(\.\d{1,6})?)|(\d(\.\d{1,6})?))$/;
+      var lon = /^[-+]?((1[0-7]\d(\.\d{1,6})?)|(180(\.0+)?)|(\d\d(\.\d{1,6})?)|(\d(\.\d{1,6})?))$/; //jshint ignore: line
 
       return lat.test(this.config.latitude) && lon.test(this.config.longitude);
     },
