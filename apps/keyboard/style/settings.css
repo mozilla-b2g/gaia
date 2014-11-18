@@ -91,6 +91,10 @@ input[type=range] {
   height: 3rem;
 }
 
+input[type=range]:disabled {
+  opacity: 0.4;
+}
+
 input[type=range]:-moz-focusring {
   outline: none;
 }
@@ -123,7 +127,7 @@ input[type=range]::-moz-range-thumb {
   background-size: 2.8rem 2.8rem;
 }
 
-input[type=range]:active::-moz-range-thumb {
+input[type=range]:not(:disabled):active::-moz-range-thumb {
   border: solid 0.4rem #01c5ed;
 }
 
