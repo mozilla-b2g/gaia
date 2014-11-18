@@ -10,9 +10,10 @@ require('/shared/js/input_mgmt/mock_navigator_mozsettings.js');
 
 require('/shared/js/input_mgmt/input_app_list.js');
 
-suite('InputAppListSettings', function() {
-  var KEY = 'keyboard.3rd-party-app.enabled';
+var KEY_THIRD_PARTY_APP_ENABLED = 'keyboard.3rd-party-app.enabled';
+var KEY_DYNAMIC_INPUTS = 'keyboard.dynamic-inputs';
 
+suite('InputAppListSettings', function() {
   var realMozSettings;
   var lockGetSpy;
   var settings;
@@ -37,10 +38,11 @@ suite('InputAppListSettings', function() {
     settings.onchange = this.sinon.stub();
     settings.start();
 
-    assert.isTrue(addObserverSpy.calledOnce);
+    assert.isTrue(addObserverSpy.calledTwice);
     assert.isTrue(createLockStub.calledOnce);
-    assert.isTrue(lockGetSpy.calledOnce);
-    assert.isTrue(lockGetSpy.calledWith(KEY));
+    assert.isTrue(lockGetSpy.calledTwice);
+    assert.isTrue(lockGetSpy.firstCall.calledWith(KEY_THIRD_PARTY_APP_ENABLED));
+    assert.isTrue(lockGetSpy.secondCall.calledWith(KEY_DYNAMIC_INPUTS));
   });
 
   teardown(function() {
@@ -49,7 +51,7 @@ suite('InputAppListSettings', function() {
 
     settings.stop();
 
-    assert.isTrue(removeObserverSpy.calledOnce);
+    assert.isTrue(removeObserverSpy.calledTwice);
   });
 
   test('getSettings before ready', function(done) {
@@ -61,26 +63,39 @@ suite('InputAppListSettings', function() {
 
     var req = lockGetSpy.getCall(0).returnValue;
     var obj = {};
-    obj[KEY] = true;
+    obj[KEY_THIRD_PARTY_APP_ENABLED] = true;
     req.fireSuccess(obj);
+
+    var req2 = lockGetSpy.getCall(1).returnValue;
+    var obj2 = {};
+    obj2[KEY_DYNAMIC_INPUTS] = {};
+    req2.fireSuccess(obj2);
 
     p.then(function (val) {
       assert.isTrue(settings.ready);
-
-      assert.deepEqual(val, { enable3rdPartyApps: true });
+      assert.deepEqual(val, {
+        enable3rdPartyApps: true,
+        dynamicInputs: {} });
     }).then(done, done);
   });
 
   test('getSettings after ready', function(done) {
     var req = lockGetSpy.getCall(0).returnValue;
     var obj = {};
-    obj[KEY] = true;
+    obj[KEY_THIRD_PARTY_APP_ENABLED] = true;
     req.fireSuccess(obj);
+
+    var req2 = lockGetSpy.getCall(1).returnValue;
+    var obj2 = {};
+    obj2[KEY_DYNAMIC_INPUTS] = {};
+    req2.fireSuccess(obj2);
 
     settings.getSettings().then(function(val) {
       assert.isTrue(settings.ready);
 
-      assert.deepEqual(settings.getSettings(), { enable3rdPartyApps: true });
+      assert.deepEqual(settings.getSettings(), {
+        enable3rdPartyApps: true,
+        dynamicInputs: {} });
     }).then(done, done);
   });
 
@@ -89,25 +104,43 @@ suite('InputAppListSettings', function() {
     var error = {};
     req.fireError(error);
 
+    var req2 = lockGetSpy.getCall(1).returnValue;
+    var error2 = {};
+    req2.fireError(error2);
+
     settings.getSettings().then(function(val) {
       assert.isTrue(settings.ready);
 
-      assert.deepEqual(val, { enable3rdPartyApps: false });
-      assert.deepEqual(settings.getSettings(), { enable3rdPartyApps: false },
-        'Set to false.');
+      assert.deepEqual(val, {
+        enable3rdPartyApps: false,
+        dynamicInputs: {} });
+      assert.deepEqual(settings.getSettings(), {
+        enable3rdPartyApps: false,
+        dynamicInputs: {} }, 'Set to false and empty.');
     }).then(done, done);
   });
 
-  test('Observer change', function() {
-    navigator.mozSettings.dispatchSettingChange(KEY, false);
+  test('Observer change to KEY_THIRD_PARTY_APP_ENABLED', function() {
+    navigator.mozSettings.dispatchSettingChange(
+      KEY_THIRD_PARTY_APP_ENABLED, false);
 
-    assert.isTrue(settings.onchange.calledWith({ enable3rdPartyApps: false }));
+    assert.isTrue(settings.onchange.calledWith({
+      enable3rdPartyApps: false,
+      dynamicInputs: undefined }));
+  });
+
+  test('Observer change to KEY_DYNAMIC_INPUTS', function() {
+    navigator.mozSettings.dispatchSettingChange(
+      KEY_DYNAMIC_INPUTS, {});
+
+    assert.isTrue(settings.onchange.calledWith({
+      enable3rdPartyApps: undefined,
+      dynamicInputs: {} }));
   });
 });
 
 suite('InputAppList', function() {
-  var KEY = 'keyboard.3rd-party-app.enabled';
-  var INPUT_APP_MANIFEST = {
+  var INPUT_APP = {
     manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
     manifest: {
       role: 'input',
@@ -137,6 +170,7 @@ suite('InputAppList', function() {
 
   var realMozSettings;
   var lockGetReq;
+  var lockGetReq2;
   var getAllReq;
 
   var list;
@@ -176,59 +210,68 @@ suite('InputAppList', function() {
     list.start();
 
     lockGetReq = lockGetSpy.getCall(0).returnValue;
+    lockGetReq2 = lockGetSpy.getCall(1).returnValue;
     getAllReq = getAllSpy.getCall(0).returnValue;
   });
 
   test('getList before ready', function(done) {
     list.getList().then(function(inputApps) {
-      assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST ]);
+      assert.deepEqual(inputApps, [ INPUT_APP ]);
     }).then(done, done);
 
     var obj = {};
-    obj[KEY] = true;
+    obj[KEY_THIRD_PARTY_APP_ENABLED] = true;
     lockGetReq.fireSuccess(obj);
 
+    var obj2 = {};
+    obj2[KEY_DYNAMIC_INPUTS] = {};
+    lockGetReq2.fireSuccess(obj2);
+
     getAllReq.fireSuccess([
-      INPUT_APP_MANIFEST
+      INPUT_APP
     ]);
   });
 
   suite('after ready', function(done) {
     setup(function(done) {
       var obj = {};
-      obj[KEY] = true;
+      obj[KEY_THIRD_PARTY_APP_ENABLED] = true;
       lockGetReq.fireSuccess(obj);
 
+      var obj2 = {};
+      obj2[KEY_DYNAMIC_INPUTS] = {};
+      lockGetReq2.fireSuccess(obj2);
+
       getAllReq.fireSuccess([
-        INPUT_APP_MANIFEST
+        INPUT_APP
       ]);
 
       list.onready = function(inputApps) {
         return Promise.resolve().then(function() {
-          assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST ]);
+          assert.deepEqual(inputApps, [ INPUT_APP ]);
         }).then(done, done);
       };
     });
 
     test('getList()', function(done) {
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST ]);
+        assert.deepEqual(inputApps, [ INPUT_APP ]);
       }).then(done, done);
     });
 
     test('getListSync()', function() {
       var inputApps = list.getListSync();
 
-      assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST ]);
+      assert.deepEqual(inputApps, [ INPUT_APP ]);
     });
 
     test('install app', function(done) {
-      var newApp = Object.create(INPUT_APP_MANIFEST);
+      var newApp = Object.create(INPUT_APP);
       newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
 
       list.onupdate = function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST, newApp ]);
-        assert.deepEqual(list.getListSync(), [ INPUT_APP_MANIFEST, newApp ]);
+        assert.deepEqual(inputApps, [ INPUT_APP, newApp ]);
+        assert.deepEqual(list.getListSync(), [ INPUT_APP, newApp ]);
 
         done();
       };
@@ -240,8 +283,8 @@ suite('InputAppList', function() {
     });
 
     test('install non-input app', function() {
-      var newApp = Object.create(INPUT_APP_MANIFEST);
-      newApp.manifest = Object.create(INPUT_APP_MANIFEST.manifest);
+      var newApp = Object.create(INPUT_APP);
+      newApp.manifest = Object.create(INPUT_APP.manifest);
 
       newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
       newApp.manifest.role = undefined;
@@ -255,7 +298,7 @@ suite('InputAppList', function() {
         application: newApp
       });
 
-      assert.deepEqual(list.getListSync(), [ INPUT_APP_MANIFEST ]);
+      assert.deepEqual(list.getListSync(), [ INPUT_APP ]);
     });
 
     test('uninstall app', function(done) {
@@ -268,7 +311,7 @@ suite('InputAppList', function() {
 
       navigator.mozApps.mgmt.dispatchEvent({
         type: 'uninstall',
-        application: INPUT_APP_MANIFEST
+        application: INPUT_APP
       });
     });
   });
@@ -276,63 +319,67 @@ suite('InputAppList', function() {
   suite('input app checks w/ 3rd-party app enabled', function() {
     setup(function() {
       var obj = {};
-      obj[KEY] = true;
+      obj[KEY_THIRD_PARTY_APP_ENABLED] = true;
       lockGetReq.fireSuccess(obj);
+
+      var obj2 = {};
+      obj2[KEY_DYNAMIC_INPUTS] = {};
+      lockGetReq2.fireSuccess(obj2);
     });
 
     test('role=input', function(done) {
-      var newApp = Object.create(INPUT_APP_MANIFEST);
-      newApp.manifest = Object.create(INPUT_APP_MANIFEST.manifest);
+      var newApp = Object.create(INPUT_APP);
+      newApp.manifest = Object.create(INPUT_APP.manifest);
 
       newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
       newApp.manifest.role = undefined;
 
-      getAllReq.fireSuccess([ INPUT_APP_MANIFEST, newApp ]);
+      getAllReq.fireSuccess([ INPUT_APP, newApp ]);
 
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST ]);
+        assert.deepEqual(inputApps, [ INPUT_APP ]);
       }).then(done, done);
     });
 
     test('type=privileged', function(done) {
-      var newApp = Object.create(INPUT_APP_MANIFEST);
-      newApp.manifest = Object.create(INPUT_APP_MANIFEST.manifest);
+      var newApp = Object.create(INPUT_APP);
+      newApp.manifest = Object.create(INPUT_APP.manifest);
 
       newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
       newApp.manifest.type = 'privileged';
 
-      getAllReq.fireSuccess([ INPUT_APP_MANIFEST, newApp ]);
+      getAllReq.fireSuccess([ INPUT_APP, newApp ]);
 
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST, newApp ]);
+        assert.deepEqual(inputApps, [ INPUT_APP, newApp ]);
       }).then(done, done);
     });
 
     test('with input permission', function(done) {
-      var newApp = Object.create(INPUT_APP_MANIFEST);
-      newApp.manifest = Object.create(INPUT_APP_MANIFEST.manifest);
+      var newApp = Object.create(INPUT_APP);
+      newApp.manifest = Object.create(INPUT_APP.manifest);
 
       newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
       newApp.manifest.permissions = {};
 
-      getAllReq.fireSuccess([ INPUT_APP_MANIFEST, newApp ]);
+      getAllReq.fireSuccess([ INPUT_APP, newApp ]);
 
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST ]);
+        assert.deepEqual(inputApps, [ INPUT_APP ]);
       }).then(done, done);
     });
 
     test('with no inputs', function(done) {
-      var newApp = Object.create(INPUT_APP_MANIFEST);
-      newApp.manifest = Object.create(INPUT_APP_MANIFEST.manifest);
+      var newApp = Object.create(INPUT_APP);
+      newApp.manifest = Object.create(INPUT_APP.manifest);
 
       newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
       newApp.manifest.inputs = undefined;
 
-      getAllReq.fireSuccess([ INPUT_APP_MANIFEST, newApp ]);
+      getAllReq.fireSuccess([ INPUT_APP, newApp ]);
 
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST ]);
+        assert.deepEqual(inputApps, [ INPUT_APP ]);
       }).then(done, done);
     });
   });
@@ -340,59 +387,201 @@ suite('InputAppList', function() {
   suite('input app checks w/ 3rd-party app disabled', function() {
     setup(function() {
       var obj = {};
-      obj[KEY] = false;
+      obj[KEY_THIRD_PARTY_APP_ENABLED] = false;
       lockGetReq.fireSuccess(obj);
+
+      var obj2 = {};
+      obj2[KEY_DYNAMIC_INPUTS] = {};
+      lockGetReq2.fireSuccess(obj2);
     });
 
     test('type=privileged', function(done) {
-      var newApp = Object.create(INPUT_APP_MANIFEST);
-      newApp.manifest = Object.create(INPUT_APP_MANIFEST.manifest);
+      var newApp = Object.create(INPUT_APP);
+      newApp.manifest = Object.create(INPUT_APP.manifest);
 
       newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
       newApp.manifest.type = 'privileged';
 
-      getAllReq.fireSuccess([ INPUT_APP_MANIFEST, newApp ]);
+      getAllReq.fireSuccess([ INPUT_APP, newApp ]);
 
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST ]);
+        assert.deepEqual(inputApps, [ INPUT_APP ]);
       }).then(done, done);
     });
   });
 
-  test('setting changes', function(done) {
+  test('insert dynamic inputs', function(done) {
+    var newApp = Object.create(INPUT_APP);
+    newApp.manifest = Object.create(INPUT_APP.manifest);
+    newApp.manifest.inputs = Object.create(INPUT_APP.manifest.inputs);
+    var FOO_INPUT_MANIFEST = newApp.manifest.inputs.foo = {
+      types: ['url', 'text'],
+      launch_path: '/index.html#foo'
+    };
+
+    list.getList().then(function(inputApps) {
+      assert.deepEqual(inputApps, [ newApp ]);
+    }).then(done, done);
+
     var obj = {};
-    obj[KEY] = false;
+    obj[KEY_THIRD_PARTY_APP_ENABLED] = true;
     lockGetReq.fireSuccess(obj);
 
-    var newApp = Object.create(INPUT_APP_MANIFEST);
-    newApp.manifest = Object.create(INPUT_APP_MANIFEST.manifest);
+    var obj2 = {};
+    obj2[KEY_DYNAMIC_INPUTS] = {
+      'app://keyboard.gaiamobile.org/manifest.webapp': {
+        foo: FOO_INPUT_MANIFEST
+      }
+    };
+    lockGetReq2.fireSuccess(obj2);
+
+    getAllReq.fireSuccess([ INPUT_APP ]);
+  });
+
+  test('KEY_THIRD_PARTY_APP_ENABLED setting changes', function(done) {
+    var obj = {};
+    obj[KEY_THIRD_PARTY_APP_ENABLED] = false;
+    lockGetReq.fireSuccess(obj);
+
+    var obj2 = {};
+    obj2[KEY_DYNAMIC_INPUTS] = {};
+    lockGetReq2.fireSuccess(obj2);
+
+    var newApp = Object.create(INPUT_APP);
+    newApp.manifest = Object.create(INPUT_APP.manifest);
 
     newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
     newApp.manifest.type = 'privileged';
 
-    getAllReq.fireSuccess([ INPUT_APP_MANIFEST, newApp ]);
+    getAllReq.fireSuccess([ INPUT_APP, newApp ]);
 
     var updatePromise = new Promise(function(resolve) {
       list.onupdate = resolve;
     });
 
     list.getList().then(function(inputApps) {
-      assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST ]);
+      assert.deepEqual(inputApps, [ INPUT_APP ]);
     }).then(function() {
       var p = updatePromise.then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST, newApp ],
+        assert.deepEqual(inputApps, [ INPUT_APP, newApp ],
           'onupdate does not receive the right list');
 
         return list.getList().then(function(inputApps) {
-          assert.deepEqual(inputApps, [ INPUT_APP_MANIFEST, newApp ],
+          assert.deepEqual(inputApps, [ INPUT_APP, newApp ],
             'getList() follows does not receive the right list');
         });
       });
 
-      navigator.mozSettings.dispatchSettingChange(KEY, true);
+      navigator.mozSettings.dispatchSettingChange(
+        KEY_THIRD_PARTY_APP_ENABLED, true);
 
       var getAllReq2 = navigator.mozApps.mgmt.getAll.getCall(1).returnValue;
-      getAllReq2.fireSuccess([ INPUT_APP_MANIFEST, newApp ]);
+      getAllReq2.fireSuccess([ INPUT_APP, newApp ]);
+
+      return p;
+    }).then(done, done);
+  });
+
+  test('KEY_DYNAMIC_INPUTS setting changes: add an input', function(done) {
+    var obj = {};
+    obj[KEY_THIRD_PARTY_APP_ENABLED] = true;
+    lockGetReq.fireSuccess(obj);
+
+    var obj2 = {};
+    obj2[KEY_DYNAMIC_INPUTS] = {};
+    lockGetReq2.fireSuccess(obj2);
+
+    var newApp = Object.create(INPUT_APP);
+    newApp.manifest = Object.create(INPUT_APP.manifest);
+    newApp.manifest.inputs = Object.create(INPUT_APP.manifest.inputs);
+    var FOO_INPUT_MANIFEST = newApp.manifest.inputs.foo = {
+      types: ['url', 'text'],
+      launch_path: '/index.html#foo'
+    };
+
+    getAllReq.fireSuccess([ INPUT_APP ]);
+
+    var updatePromise = new Promise(function(resolve) {
+      list.onupdate = resolve;
+    });
+
+    list.getList().then(function(inputApps) {
+      assert.deepEqual(inputApps, [ INPUT_APP ]);
+    }).then(function() {
+      var p = updatePromise.then(function(inputApps) {
+        assert.deepEqual(inputApps, [ newApp ],
+          'onupdate does not receive the right list');
+
+        return list.getList().then(function(inputApps) {
+          assert.deepEqual(inputApps, [ newApp ],
+            'getList() follows does not receive the right list');
+        });
+      });
+
+      navigator.mozSettings.dispatchSettingChange(
+        KEY_DYNAMIC_INPUTS, {
+          'app://keyboard.gaiamobile.org/manifest.webapp': {
+            foo: FOO_INPUT_MANIFEST
+          }
+        });
+
+      var getAllReq2 = navigator.mozApps.mgmt.getAll.getCall(1).returnValue;
+      getAllReq2.fireSuccess([ INPUT_APP ]);
+
+      return p;
+    }).then(done, done);
+  });
+
+  test('KEY_DYNAMIC_INPUTS setting changes: remove an input', function(done) {
+    var FOO_INPUT_MANIFEST = {
+      types: ['url', 'text'],
+      launch_path: '/index.html#foo'
+    };
+
+    var obj = {};
+    obj[KEY_THIRD_PARTY_APP_ENABLED] = true;
+    lockGetReq.fireSuccess(obj);
+
+    var obj2 = {};
+    obj2[KEY_DYNAMIC_INPUTS] = {
+      'app://keyboard.gaiamobile.org/manifest.webapp': {
+        foo: FOO_INPUT_MANIFEST
+      }
+    };
+    lockGetReq2.fireSuccess(obj2);
+
+    var newApp = Object.create(INPUT_APP);
+    newApp.manifest = Object.create(INPUT_APP.manifest);
+    newApp.manifest.inputs = Object.create(INPUT_APP.manifest.inputs);
+    newApp.manifest.inputs.foo = FOO_INPUT_MANIFEST;
+
+    getAllReq.fireSuccess([ INPUT_APP ]);
+
+    var updatePromise = new Promise(function(resolve) {
+      list.onupdate = resolve;
+    });
+
+    list.getList().then(function(inputApps) {
+      assert.deepEqual(inputApps, [ newApp ]);
+      assert.isTrue('foo' in INPUT_APP.manifest.inputs,
+        'Modified object in place.');
+    }).then(function() {
+      var p = updatePromise.then(function(inputApps) {
+        assert.deepEqual(inputApps, [ INPUT_APP ],
+          'onupdate does not receive the right list');
+
+        return list.getList().then(function(inputApps) {
+          assert.deepEqual(inputApps, [ INPUT_APP ],
+            'getList() follows does not receive the right list');
+          assert.isFalse('foo' in INPUT_APP.manifest.inputs,
+            'Does not remove modification in place.');
+        });
+      });
+
+      navigator.mozSettings.dispatchSettingChange(KEY_DYNAMIC_INPUTS, {});
+
+      var getAllReq2 = navigator.mozApps.mgmt.getAll.getCall(1).returnValue;
+      getAllReq2.fireSuccess([ INPUT_APP ]);
 
       return p;
     }).then(done, done);

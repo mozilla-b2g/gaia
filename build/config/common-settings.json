@@ -98,6 +98,7 @@
    "in-app-sheet.enabled": false,
    "keyboard.vibration": true,
    "keyboard.clicksound": false,
+   "keyboard.dynamic-inputs": {},
    "keyboard.autocorrect": true,
    "keyboard.wordsuggestion": true,
    "keyboard.handwriting.strokeWidth": 10,

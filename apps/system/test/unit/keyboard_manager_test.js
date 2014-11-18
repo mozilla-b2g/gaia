@@ -56,6 +56,9 @@ suite('KeyboardManager', function() {
   suiteSetup(function() {
     document.body.innerHTML += '<div id="run-container"></div>';
     navigator.mozSettings = MockNavigatorSettings;
+
+    window.DynamicInputRegistry = function() {};
+    window.DynamicInputRegistry.prototype.start = function() {};
   });
 
   suiteTeardown(function() {

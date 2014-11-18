@@ -123,9 +123,6 @@ function map2dClone(obj) {
 // callbacks when something changes
 var watchQueries = [];
 
-// InputAppList manages the current input apps for us.
-var inputAppList;
-
 // holds the result of keyboard_layouts.json
 var defaultLayoutConfig;
 
@@ -478,16 +475,19 @@ var KeyboardHelper = exports.KeyboardHelper = {
 
   fallbackLayouts: {},
 
+  // InputAppList manages the current input apps for us.
+  inputAppList: null,
+
   /**
    * Listen for changes in settings or apps and read the deafault settings
    */
   init: function kh_init() {
     watchQueries = [];
 
-    inputAppList = new InputAppList();
-    inputAppList.onupdate =
+    this.inputAppList = new InputAppList();
+    this.inputAppList.onupdate =
       kh_updateWatchers.bind(undefined, { apps: true });
-    inputAppList.start();
+    this.inputAppList.start();
 
     // load the current settings, and watch for changes to settings
     var settings = window.navigator.mozSettings;
@@ -613,7 +613,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
    * Get a list of current keyboard applications.
    */
   getApps: function kh_getApps(callback) {
-    inputAppList.getList().then(function(inputApps) {
+    this.inputAppList.getList().then(function(inputApps) {
       // every time we get a list of apps, clean up the settings
       Object.keys(currentSettings.enabledLayouts)
         .concat(Object.keys(currentSettings.defaultLayouts))
