@@ -201,10 +201,8 @@
     min-height: 6rem;
   }
 
-  ul li > label.range-icons.volume.alarm:before,
-  ul li > label.range-icons.volume.media:before,
-  ul li > label.range-icons.volume.notification:before {
-    background: none;
+  ul li > label.range-icons.volume span {
+    display: none;
   }
 
   ul li > label.range-icons.volume input {
