@@ -267,6 +267,12 @@ require.config({
         'main',
         'modules/mvvm/observable'
       ]
+    },
+    {
+      name: 'panels/about/panel',
+      exclude: [
+        'main'
+      ]
     }
   ]
 });
