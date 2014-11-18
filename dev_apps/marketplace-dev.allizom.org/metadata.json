@@ -1,9 +1,9 @@
 {
   "external": true,
-  "etag": "\"5b96d5bb1b2f546607d12f4ce9e3181e8e3030cfd4d28d88ef434c3ab7026d02\"",
-  "installOrigin": "https://marketplace-dev.allizom.org",
-  "manifestURL": "https://marketplace-dev.allizom.org/packaged.webapp",
-  "packageEtag": "\"28bdeddd738acb55425ced9476abee8797a8074cc6604dd617124f4e6d0c5e24\"",
-  "removable": false,
+  "etag": "\"47f90b5b91d38b74a1ad574ba682ecd878a2e7e29f3b567c9eaf36de1e9b8ff2\"",
+  "manifestURL": "https://marketplace.firefox.com/app/965bbfd7-936d-451d-bebf-fafdc7ce8d9e/manifest.webapp",
+  "packageEtag": "\"ae81d8dbea2a17cb88a429d4f2ed95805af403b090a405cbe3d330b1a7ad87ec\"",
+  "installOrigin": "https://marketplace.firefox.com",
+  "removable": true,
   "type": "privileged"
 }
