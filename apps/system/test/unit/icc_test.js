@@ -124,6 +124,19 @@ suite('STK (icc) >', function() {
         }
       },
 
+      STK_CMD_SET_UP_CALL: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_SET_UP_CALL,
+          commandQualifier: 0,
+          options: {
+            confirmMessage: 'STK_CMD_SET_UP_IDLE_MODE_TEXT Unit Test',
+            address: '990022'
+          }
+        }
+      },
+
       STK_CMD_REFRESH: {
         iccId: '1010011010',
         command: {
@@ -433,4 +446,26 @@ suite('STK (icc) >', function() {
     };
     launchStkCommand(stkTestCommands.STK_CMD_REFRESH);
   });
+
+  test('settings visibilitychange - STK_CMD_GET_INPUT', function(done) {
+    var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
+    window.icc.input(testCmd, testCmd.command.options.text, 40000,
+      stkTestCommands.STK_CMD_GET_INPUT.command.options,
+      function(resultObject) {
+        assert.equal(resultObject, null);
+        done();
+    });
+    window.dispatchEvent(new CustomEvent('stkMenuHidden'));
+  });
+
+  test('settings visibilitychange - STK_CMD_SET_UP_CALL', function(done) {
+    var testCmd = stkTestCommands.STK_CMD_SET_UP_CALL;
+    window.icc.asyncConfirm(testCmd, testCmd.command.options.confirmMessage,
+      function(resultBoolean) {
+        assert.equal(resultBoolean, false);
+        done();
+    });
+    window.dispatchEvent(new CustomEvent('stkMenuHidden'));
+  });
+
 });

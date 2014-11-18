@@ -118,6 +118,10 @@
       "description": "Communication with bluetooth apps for sending files info",
       "rules": {}
     },
+    "settingsstk": {
+      "description": "Communicate between Settings app and System app for SIM Toolkit.",
+      "rules": {}
+    },
     "fxa-mgmt": {
       "description": "Firefox Accounts management API",
       "rules": {
