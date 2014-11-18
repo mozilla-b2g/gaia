@@ -49,7 +49,7 @@ var AudioMetadata = (function() {
   // key is the directory name for the song in question.
   var externalCoverCache = {};
 
-  // A cache of filenames for saved cover art (generated from unsycned ID3
+  // A cache of filenames for saved cover art (generated from unsynced ID3
   // tags). The value is the absolute path name.
   var savedCoverCache = new Set();
 
@@ -72,13 +72,6 @@ var AudioMetadata = (function() {
           filename.slice(-4).toLowerCase() === '.3gp') {
         return Promise.reject('skipping 3gp video file');
       }
-
-      // If the file has a .m4v extension then it is almost certainly a video.
-      // Device Storage should not even return these files to us:
-      // see https://bugzilla.mozilla.org/show_bug.cgi?id=826024
-      if (filename.slice(-4).toLowerCase() === '.m4v') {
-        return Promise.reject('skipping m4v video file');
-      }
     }
 
     // If the file is too small to be a music file then ignore it
@@ -96,7 +89,7 @@ var AudioMetadata = (function() {
     if (filename) {
       var p1 = filename.lastIndexOf('/');
       var p2 = filename.lastIndexOf('.');
-      if (p2 === -1) {
+      if (p2 <= p1) {
         p2 = filename.length;
       }
       metadata.title = filename.substring(p1 + 1, p2);
@@ -122,9 +115,9 @@ var AudioMetadata = (function() {
           } else {
             // This is some kind of file that we don't know about.
             // Let's see if we can play it.
-            resolve(checkPlayability(blob)).then(function() {
+            resolve(checkPlayability(blob).then(function() {
               return metadata;
-            });
+            }));
           }
         } catch (e) {
           console.error('AudioMetadata.parse:', e, e.stack);
@@ -146,7 +139,7 @@ var AudioMetadata = (function() {
     player.mozAudioChannelType = 'content';
     var canplay = blob.type && player.canPlayType(blob.type);
     if (canplay === 'probably') {
-      Promise.resolve();
+      return Promise.resolve();
     } else {
       return new Promise(function(resolve, reject) {
         var url = URL.createObjectURL(blob);
@@ -179,15 +172,10 @@ var AudioMetadata = (function() {
    *   additional cover art fields added as necessary.
    */
   function handleCoverArt(blob, metadata) {
-    // Media files that aren't backed by actual files get the picture as a Blob,
-    // since they're just temporary. We also use this in our tests.
+    // If a blob isn't backed by an actual file, we can't do anything here
+    // except return what we have.
     var filename = blob.name;
     if (!filename) {
-      if (metadata.picture && !metadata.picture.blob) {
-        metadata.picture.blob = blob.slice(
-          metadata.picture.start, metadata.picture.end, metadata.picture.type
-        );
-      }
       return Promise.resolve(metadata);
     }
 
@@ -211,6 +199,7 @@ var AudioMetadata = (function() {
         var possibleFilenames = ['folder.jpg', 'cover.jpg', 'front.jpg'];
         var tryFetchExternalCover = function(index) {
           if (index === possibleFilenames.length) {
+            // We couldn't find any external album art.
             externalCoverCache[dirName] = null;
             resolve(metadata);
             return;

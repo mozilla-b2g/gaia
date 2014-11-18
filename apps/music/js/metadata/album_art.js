@@ -14,33 +14,36 @@ var AlbumArt = (function() {
 
   // The level one cache for thumbnails; maps a cache key (see below) to a blob:
   // URL. There's also a level two cache, backed by asyncStorage.
-  var thumbnailL1Cache = {};
+  var L1Cache = {};
 
   /**
    * Get a URL for a thumbnailized version of the cover art for a given file
    * (if any).
    *
    * @param {Object} fileinfo The info for the file we want album art for.
-   * @param {Boolean} noPlaceholder False if this function should return a
-   *   placeholder image if there's no cover art for the file. Otherwise, this
-   *   function will return null if there's no cover art.
+   * @param {Boolean} noPlaceholder True if this function should only return an
+   *   image if there's cover art for the file. Otherwise, this function will
+   *   return a placeholder image if there's no cover art.
    * @return {Promise} A promise returning either the URL for the thumbnail, or
    *   null.
    */
   function getCoverURL(fileinfo, noPlaceholder) {
+    // If there's no picture info in the metadata, return null or a placeholder.
     if (!fileinfo.metadata.picture) {
       return Promise.resolve(
         noPlaceholder ? null : getDefaultCoverURL(fileinfo)
       );
     }
 
-    // See if we've already made a URL for this album.
+    // See if we've already made a URL for this album. If so, return it.
     var cacheKey = makeCacheKey(fileinfo);
-    if (cacheKey && cacheKey in thumbnailL1Cache) {
-      return Promise.resolve(thumbnailL1Cache[cacheKey]);
+    if (cacheKey && cacheKey in L1Cache) {
+      return Promise.resolve(L1Cache[cacheKey]);
     }
 
-    // Otherwise, see if we've saved a blob in asyncStorage.
+    // Otherwise, see if we've saved a blob in asyncStorage. If not, create a
+    // thumbnail blob and store it in the cache. Finally, create a URL for the
+    // blob and return it in the Promise.
     return checkL2Cache(cacheKey).then(function(cachedBlob) {
       return cachedBlob || createThumbnail(cacheKey, fileinfo);
     }).then(function(blob) {
@@ -53,15 +56,29 @@ var AlbumArt = (function() {
    * (if any).
    *
    * @param {Object} fileinfo The info for the file we want album art for.
-   * @param {Boolean} noPlaceholder False if this function should return a
-   *   placeholder image if there's no cover art for the file. Otherwise, this
-   *   function will return null if there's no cover art.
+   * @param {Boolean} noPlaceholder True if this function should only return an
+   *   image if there's cover art for the file. Otherwise, this function will
+   *   return a placeholder image if there's no cover art.
    * @return {Promise} A promise returning either the Blob for the thumbnail, or
    *   null.
    */
   function getCoverBlob(fileinfo, noPlaceholder) {
-    return getCoverURL(fileinfo, noPlaceholder).then(function(url) {
-      return getBlobFromURL(url);
+    // If there's no picture info in the metadata, return null or a placeholder.
+    if (!fileinfo.metadata.picture) {
+      if (noPlaceholder) {
+        return Promise.resolve(null);
+      }
+      return getBlobFromURL(getDefaultCoverURL(fileinfo));
+    }
+
+    // Skip the L1 cache, since we want to return a blob, not a URL.
+
+    // See if we've saved a blob in asyncStorage. If not, create a
+    // thumbnail blob and store it in the cache. In either case, return the
+    // blob.
+    var cacheKey = makeCacheKey(fileinfo);
+    return checkL2Cache(cacheKey).then(function(cachedBlob) {
+      return cachedBlob || createThumbnail(cacheKey, fileinfo);
     });
   }
 
@@ -134,6 +151,7 @@ var AlbumArt = (function() {
     } else {
       return new Promise(function(resolve, reject) {
         asyncStorage.getItem(cacheKey, function(blob) {
+          // Note that this can resolve to null if the blob wasn't cached yet.
           resolve(blob);
         });
       });
@@ -150,7 +168,7 @@ var AlbumArt = (function() {
   function makeURL(cacheKey, blob) {
     var url = URL.createObjectURL(blob);
     if (cacheKey) {
-      thumbnailL1Cache[cacheKey] = url;
+      L1Cache[cacheKey] = url;
     }
     return url;
   }
@@ -187,12 +205,13 @@ var AlbumArt = (function() {
     var picture = fileinfo.metadata.picture;
     return new Promise(function(resolve, reject) {
       if (picture.blob) {
-        // Audio tracks without an associated file are just temporary, so they
-        // store their art in a blob.
+        // We must have an unsynced picture that came from a temporary blob
+        // (i.e. from the open activity or a unit test).
         resolve(picture.blob);
       } else if (picture.filename) {
         // Some audio tracks have an external file for their album art, so we
-        // need to grab it from deviceStorage.
+        // need to grab it from deviceStorage. This could also be an unsynced
+        // picture that came from a regular file.
         var getreq = AudioMetadata.pictureStorage.get(picture.filename);
         getreq.onsuccess = function() {
           resolve(this.result);
@@ -200,16 +219,17 @@ var AlbumArt = (function() {
         getreq.onerror = function() {
           reject(this.error);
         };
-      } else if (picture.flavor === 'embedded') {
+      } else if (picture.start) {
         // Other audio tracks have the album art embedded in the file, so we
-        // need to splice out the part we want.
+        // just need to splice out the part we want.
         getSongBlob(fileinfo).then(function(blob) {
           var embedded = blob.slice(
             picture.start, picture.end, picture.type
           );
           resolve(embedded);
-        });
+        }).catch(reject);
       } else {
+        // If we got here, something strange happened...
         var err = new Error('unknown picture flavor: ' + picture.flavor);
         console.error(err);
         reject(err);
@@ -231,7 +251,11 @@ var AlbumArt = (function() {
       } else {
         // This is the normal case.
         musicdb.getFile(fileinfo.name, function(file) {
-          resolve(file);
+          if (file) {
+            resolve(file);
+          } else {
+            reject('unable to get file: ' + fileinfo.name);
+          }
         });
       }
     });

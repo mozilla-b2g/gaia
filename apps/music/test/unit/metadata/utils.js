@@ -27,16 +27,23 @@ function _fetch(url) {
 
 function parseMetadata(filename) {
   return _fetch(filename).then(function(data) {
-    return AudioMetadata.parse(new Blob([data]));
-  }).then(function(metadata) {
+    var blob = new Blob([data]);
+    return {blob: blob, metadata: AudioMetadata.parse(blob)};
+  }).then(function(result) {
+    var songBlob = result.blob;
+    var metadata = result.metadata;
+
     if (metadata.picture) {
       return new Promise(function(resolve, reject) {
         var reader = new FileReader();
-        reader.readAsArrayBuffer(metadata.picture.blob);
+        var coverBlob = metadata.picture.blob || songBlob.slice(
+          metadata.picture.start, metadata.picture.end, metadata.picture.type
+        );
+        reader.readAsArrayBuffer(coverBlob);
         reader.onload = function(event) {
           metadata.picture = {
             flavor: metadata.picture.flavor,
-            type: metadata.picture.blob.type,
+            type: coverBlob.type,
             data: new Uint8Array(event.target.result)
           };
           resolve(metadata);
