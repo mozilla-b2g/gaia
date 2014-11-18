@@ -83,6 +83,7 @@
 
     _start: function() {
       this._watchList = {};
+      this.icon = new AirplaneModeIcon(this);
     },
 
     _stop: function() {

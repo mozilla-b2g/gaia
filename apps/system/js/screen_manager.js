@@ -178,6 +178,9 @@ var ScreenManager = {
     if (telephony) {
       telephony.addEventListener('callschanged', this);
     }
+
+    this._screensavers = new Map();
+    Service.register('screensave', this);
   },
 
   //
@@ -590,6 +593,22 @@ var ScreenManager = {
       { bubbles: true, cancelable: false,
         detail: detail });
     window.dispatchEvent(evt);
+    this.updateScreensavers();
+  },
+
+  screensave: function(module) {
+    this._screensavers.set(module.name, module);
+    this.updateScreensavers();
+  },
+
+  updateScreensavers: function() {
+    this._screensavers.forEach(module, name) {
+      if (this.screenEnabled) {
+        module.start();
+      } else {
+        module.stop();
+      }
+    }, this);
   }
 };
 

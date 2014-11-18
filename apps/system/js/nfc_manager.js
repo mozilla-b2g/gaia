@@ -82,6 +82,7 @@
     start: function nm_start() {
       this._debug('Starting NFC Manager');
       this._hwState = this.NFC_HW_STATE.OFF;
+      this.icon = new NfcIcon(this);
 
       window.navigator.mozSetMessageHandler('nfc-manager-tech-discovered',
         (msg) => this._handleTechDiscovered(msg));
@@ -249,6 +250,9 @@
     _changeHardwareState: function nm_changeHardwareState(state) {
       this._debug('_changeHardwareState - state : ' + state);
       this._hwState = state;
+      if (this.icon) {
+        this.icon.update();
+      }
       var nfcdom = window.navigator.mozNfc;
       if (!nfcdom) {
         return;

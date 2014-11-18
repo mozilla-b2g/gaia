@@ -2,54 +2,19 @@
 'use strict';
 
 (function(exports) {
-  var WifiIcon = function(manager) {
-    this.manager = manager;
-    this.wifiManager = window.navigator.mozWifiManager;
-  };
+  var WifiIcon = function() {};
   WifiIcon.prototype = Object.create(BaseIcon.prototype);
-  WifiIcon.prototype.constructor = WifiIcon;
-  WifiIcon.prototype.view = function() {
-    return '<div id="' + this.instanceID + '" class="sb-icon sb-icon-wifi" ' +
-            'data-level="4" hidden role="listitem"></div>';
+  WifiIcon.prototype.determine = function() {
+    return this.manager.enabled;
   };
-  WifiIcon.prototype.instanceID = 'statusbar-wifi';
-  WifiIcon.prototype.start = function() {
-    window.addEventListener('wifi-statuschange', this);
-    window.addEventListener('wifi-enabled', this);
-    window.addEventListener('wifi-disabled', this);
-    var wifiManager = 
-    if (this.wifiManager) {
-      this.wifiManager.connectionInfoUpdate = this.update.bind(this);
-    }
-    this.update();
-  };
-  WifiIcon.prototype.stop = function() {
-    window.removeEventListener('wifi-statuschange', this);
-    window.removeEventListener('wifi-enabled', this);
-    window.removeEventListener('wifi-disabled', this);
-  };
-  WifiIcon.prototype.update = function() {
-    if (!this.wifiManager) {
-      return;
-    }
-
+  WifiIcon.prototype.updateLevel = function() {
     var icon = this.element;
-    var wasHidden = icon.hidden;
-
-    var enabled = Service.query('Wifi.enabled');
-    if (!enabled) {
-      this.hide();
+    if (!icon) {
       return;
     }
-
-    switch (this.wifiManager.connection.status) {
-      case 'disconnected':
-        this.hide();
-        break;
-
+    switch (this.manager.wifiManager.connection.status) {
       case 'connecting':
       case 'associated':
-        this.show();
         icon.dataset.connecting = true;
         icon.dataset.level = 0;
         icon.setAttribute('aria-label', navigator.mozL10n.get(
@@ -57,8 +22,6 @@
         break;
 
       case 'connected':
-        this.show();
-
         if (icon.dataset.connecting) {
           delete icon.dataset.connecting;
         }
@@ -70,4 +33,5 @@
         break;
     }
   };
+  exports.WifiIcon = WifiIcon;
 }(window));

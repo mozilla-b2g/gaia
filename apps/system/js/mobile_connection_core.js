@@ -35,6 +35,7 @@
           this.simSettingsHelper.start();
         }.bind(this));
       }
+      this.icon = new MobileConnectionIcon(this);
     }
   });
 }());

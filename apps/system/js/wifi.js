@@ -34,6 +34,9 @@ var Wifi = {
     if (!window.navigator.mozWifiManager)
       return;
 
+    this.wifiManager = window.navigator.mozWifiManager;
+    this.icon = new WifiIcon(this);
+
     window.addEventListener('screenchange', this);
 
     var battery = window.navigator.battery;
@@ -70,7 +73,11 @@ var Wifi = {
       evt.initCustomEvent('wifi-enabled',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
-    };
+      if (this.icon) {
+        this.icon.update();
+        this.icon.updateLevel();
+      }
+    }.bind(this);
 
     // when wifi is really disabled, emit event to notify QuickSettings
     wifiManager.ondisabled = function onWifiDisabled() {
@@ -79,7 +86,10 @@ var Wifi = {
       evt.initCustomEvent('wifi-disabled',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
-    };
+      if (this.icon) {
+        this.icon.update();
+      }
+    }.bind(this);
 
     // when wifi status change, emit event to notify StatusBar/UpdateManager
     wifiManager.onstatuschange = function onWifiDisabled() {
@@ -87,7 +97,11 @@ var Wifi = {
       evt.initCustomEvent('wifi-statuschange',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
-    };
+      if (this.icon) {
+        this.icon.update();
+        this.icon.updateLevel();
+      }
+    }.bind(this);
 
     SettingsListener.observe(
       'wifi.screen_off_timeout', 600000, function(value) {

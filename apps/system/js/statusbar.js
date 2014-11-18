@@ -99,41 +99,11 @@ var StatusBar = {
   init: function sb_init() {
     this.labelIcon = new LabelIcon(this);
     this.alarmIcon = new AlarmIcon(this);
-    this.playingIcon = new PlayingIcon(this);
-    this.headphoneIcon = new HeadphoneIcon(this);
-    this.wifiIcon = new WifiIcon(this);
-    this.nfcIcon = new NfcIcon(this);
-    this.muteIcon = new MuteIcon(this);
-    this.recordingIcon = new RecordingIcon(this);
-    this.airplaneModeIcon = new AirplaneModeIcon(this);
-    this.bluetoothHeadphoneIcon = new BluetoothHeadphoneIcon(this);
-    this.bluetoothTransferIcon = new BluetoothTransferIcon(this);
-    this.bluetoothIcon = new BluetoothIcon(this);
-    this.geolocationIcon = new GeolocationIcon(this);
     this.mobileConnectionIcon = new MobileConnectionIcon(this);
     this.callForwardingIcon = new CallForwardingIcon(this);
     this.timeIcon = new TimeIcon(this);
     this.tetheringIcon = new TetheringIcon(this);
     this.emergencyCallbackIcon = new EmergencyCallbackIcon(this);
-
-    // Render by order 
-    this.labelIcon.render();
-    this.alarmIcon.render();
-    this.playingIcon.render();
-    this.headphoneIcon.render();
-    this.geolocationIcon.render();
-    this.bluetoothIcon.render();
-    this.nfcIcon.render();
-    this.bluetoothHeadphoneIcon.render();
-    this.bluetoothTransferIcon.render();
-    this.wifiIcon.render();
-    this.muteIcon.render();
-    this.emergencyCallbackIcon.render();
-    this.recordingIcon.render();
-    this.mobileConnectionIcon.render();
-    this.airplaneModeIcon.render();
-    this.tetheringIcon.render();
-    this.timeIcon.render();
 
     this.getAllElements();
 
@@ -146,6 +116,9 @@ var StatusBar = {
     window.addEventListener('apptitlestatechanged', this);
     window.addEventListener('activitytitlestatechanged', this);
     window.addEventListener('appchromecollapsed', this);
+    window.addEventListener('iconcreated', this);
+    window.addEventListener('iconshown', this);
+    window.addEventListener('iconhidden', this);
   },
 
   /**
@@ -208,6 +181,14 @@ var StatusBar = {
 
   handleEvent: function sb_handleEvent(evt) {
     switch (evt.type) {
+      case 'iconcreated':
+        var icon = evt.detail;
+        this._icons.push(icon);
+        break;
+      case 'iconshown':
+      case 'iconhidden':
+        this._updateIconVisibility();
+        break;
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
         break;
@@ -265,7 +246,7 @@ var StatusBar = {
         } else {
           // When first launching FTU, only show battery icon
           // and listen for iac step events to show more icons.
-          this.setActiveBattery(true);
+          // this._icons.get('BatteryIcon').start();
           this._updateIconVisibility();
           window.addEventListener('iac-ftucomms', this);
         }
@@ -442,9 +423,9 @@ var StatusBar = {
 
     this.PRIORITIES.forEach(function sb_updateIconVisibilityForEach(iconObj) {
       var iconId = iconObj[0];
-      var icon = this.icons[this.toCamelCase(iconId)];
+      var icon = this._icons.get(this.toCamelCase(iconId) + 'Icon');
 
-      if (!icon || icon.hidden) {
+      if (!icon.element || !icon.isVisible()) {
         return;
       }
 
@@ -665,18 +646,17 @@ var StatusBar = {
   handleFtuStep: function sb_handleFtuStep(stepHash) {
     switch (stepHash) {
       case '#languages':
-        this.mobileConnectionIcon.createElements();
+        this._icons.get('MobileConnectionIcon').start();
         this._updateIconVisibility();
-        this.mobileConnectionIcon.start();
         break;
 
       case '#wifi':
-        this.setActiveWifi(true);
+        this._icons.get('WifiIcon').start();
         this._updateIconVisibility();
         break;
 
       case '#date_and_time':
-        this.timeIcon.toggle(true);
+        this._icons.get('TimeIcon').start();
         this._updateIconVisibility();
         break;
     }
@@ -688,36 +668,15 @@ var StatusBar = {
     this.setActiveBattery(active);
 
     if (active) {
-      this.nfcIcon.update();
-
       this.mobileConnectionIcon.start();
-
-      window.addEventListener('simslot-iccinfochange', this);
 
       this.setActiveWifi(true);
 
-      this.networkActivityIcon.start();
-
       this.refreshCallListener();
-      this.timeIcon.toggle(!this.isLocked());
     } else {
       this.mobileConnectionIcon.stop();
 
-      window.removeEventListener('simslot-iccinfochange', this);
-
-      this.networkActivityIcon.stop();
-
       this.removeCallListener();
-      // Always prevent the clock from refreshing itself when the screen is off
-      this.timeIcon.toggle(false);
-    }
-  },
-
-  setActiveBattery: function sb_setActiveBattery(active) {
-    if (active) {
-      this.batteryIcon.start();
-    } else {
-      this.batteryIcon.stop();
     }
   },
 

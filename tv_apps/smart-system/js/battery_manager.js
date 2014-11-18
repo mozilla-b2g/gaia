@@ -9,9 +9,9 @@ var BatteryManager = {
   TRANSITION_FRACTION: 0.30,
 
   AUTO_SHUTDOWN_LEVEL: 0.00,
-  EMPTY_BATTERY_LEVEL: 0.1,
+  EMPTYbattery_LEVEL: 0.1,
 
-  _battery: window.navigator.battery,
+  battery: window.navigator.battery,
   _notification: null,
 
   getAllElements: function bm_getAllElements() {
@@ -21,7 +21,7 @@ var BatteryManager = {
   },
 
   checkBatteryDrainage: function bm_checkBatteryDrainage() {
-    var battery = this._battery;
+    var battery = this.battery;
     if (!battery)
       return;
     if (battery.level <= this.AUTO_SHUTDOWN_LEVEL && !battery.charging) {
@@ -31,8 +31,9 @@ var BatteryManager = {
   },
 
   init: function bm_init() {
+    this.icon = new BatteryIcon(this);
     this.getAllElements();
-    var battery = this._battery;
+    var battery = this.battery;
     if (battery) {
       // When the device is booted, check if the battery is drained.
       // If so, batteryshutdown would be triggered to inform sleepMenu shutdown.
@@ -58,7 +59,7 @@ var BatteryManager = {
         break;
 
       case 'levelchange':
-        var battery = this._battery;
+        var battery = this.battery;
         if (!battery)
           return;
 
@@ -66,11 +67,14 @@ var BatteryManager = {
         this.displayIfNecessary();
 
         PowerSaveHandler.onBatteryChange();
+        if (this.icon) {
+          this.icon.updateLevel();
+        }
         break;
       case 'chargingchange':
         PowerSaveHandler.onBatteryChange();
 
-        var battery = this._battery;
+        var battery = this.battery;
         // We turn the screen on if needed in order to let
         // the user knows the device is charging
 
@@ -84,19 +88,22 @@ var BatteryManager = {
         } else {
           this.displayIfNecessary();
         }
+        if (this.icon) {
+          this.icon.updateLevel();
+        }
         break;
     }
   },
 
   _shouldWeDisplay: function bm_shouldWeDisplay() {
-    var battery = this._battery;
+    var battery = this.battery;
     if (!battery) {
       return false;
     }
 
     return (!this._wasEmptyBatteryNotificationDisplayed &&
         !battery.charging &&
-        battery.level <= this.EMPTY_BATTERY_LEVEL &&
+        battery.level <= this.EMPTYbattery_LEVEL &&
         this._screenOn);
   },
 
@@ -106,7 +113,7 @@ var BatteryManager = {
     }
 
     // we know it's here, it's checked in shouldWeDisplay()
-    var level = this._battery.level;
+    var level = this.battery.level;
 
     this.overlay.classList.add('battery');
 
@@ -225,7 +232,7 @@ var PowerSaveHandler = (function PowerSaveHandler() {
   }
 
   function onBatteryChange() {
-    var battery = BatteryManager._battery;
+    var battery = BatteryManager.battery;
 
     if (battery.charging) {
       if (_powerSaveEnabled)

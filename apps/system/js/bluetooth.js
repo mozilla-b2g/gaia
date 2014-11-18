@@ -27,6 +27,12 @@ var Bluetooth = {
           connected: connected
         });
       window.dispatchEvent(evt);
+      if (profile === 'opp' && this.transferringIcon) {
+        this.transferringIcon.update();
+      }
+      if (profile === 'a2dp' && this.headphonesIcon) {
+        this.headphonesIcon.update();
+      }
     }
   },
 
@@ -130,6 +136,10 @@ var Bluetooth = {
         window.dispatchEvent(evt);
       }
     );
+
+    this.icon = new BluetoothIcon(this);
+    this.transferringIcon = new BluetoothTransferringIcon(this);
+    this.headphonesIcon = new BluetoothHeadphonesIcon(this);
   },
 
   // Get adapter for BluetoothTransfer when everytime bluetooth is enabled
@@ -190,6 +200,9 @@ var Bluetooth = {
         /* canBubble */ true, /* cancelable */ false,
         {deviceConnected: this.connected});
       window.dispatchEvent(evt);
+      if (this.icon) {
+        this.icon.update();
+      }
     }
   },
 

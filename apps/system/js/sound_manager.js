@@ -57,6 +57,34 @@
 
   SoundManager.prototype.name = 'SoundManager';
 
+  SoundManager.prototype.publish = function(evtName, detail) {
+    window.dispatchEvent(new CustomEvent(evtName), {
+      detail: detail || this
+    });
+  };
+
+  SoundManager.prototype.setHeadsetState = function(enabled) {
+    if (this.isHeadsetConnected === enabled) {
+      return;
+    }
+    this.isHeadsetConnected = enabled;
+    if (this.headphoneIcon) {
+      this.headphoneIcon.update();
+    }
+    this.publish('headphones-status-changed', this.isHeadsetConnected);
+  };
+
+  SoundManager.prototype.setAudioChannel = function(channel) {
+    if (this.currentChannel === channel) {
+      return;
+    }
+    this.currentChannel = channel;
+    if (this.playingIcon) {
+      this.playingIcon.update();
+    }
+    this.publish('audio-channel-changed', this.currentChannel);
+  };
+
   /**
    * Store the current active channel;
    * change with 'audio-channel-changed' mozChromeEvent
@@ -222,6 +250,9 @@
    * @returns {SoundManager}
    */
   SoundManager.prototype.start = function sm_start() {
+    this.playingIcon = new PlayingIcon(this);
+    this.headphoneIcon = new HeadphoneIcon(this);
+    this.muteIcon = new MuteIcon(this);
     window.addEventListener('volumeup', this);
     window.addEventListener('volumedown', this);
     window.addEventListener('mute', this);
@@ -239,7 +270,7 @@
     // check the headphone plugged or not when booting up
     var acm = navigator.mozAudioChannelManager;
     if (acm) {
-      this.isHeadsetConnected = acm.headphones;
+      this.setHeadsetState(acm.headphones);
     }
 
     this.initVibrationUserPref();
@@ -313,18 +344,12 @@
                               'bt_sco');
             break;
           case 'audio-channel-changed':
-            this.currentChannel = e.detail.channel;
+            this.setAudioChannel(e.detail.channel);
             this.ceAccumulator();
-            window.dispatchEvent(new CustomEvent('audio-channel-changed', {
-              detail: this.currentChannel
-            }));
             break;
           case 'headphones-status-changed':
-            this.isHeadsetConnected = (e.detail.state !== 'off');
+            this.setHeadsetState(e.detail.state !== 'off');
             this.ceAccumulator();
-            window.dispatchEvent(new CustomEvent('headphones-status-changed', {
-              detail: this.isHeadsetConnected
-            }));
             break;
           case 'default-volume-channel-changed':
             this.defaultVolumeControlChannel = e.detail.channel;
@@ -476,6 +501,9 @@
           self.writeVibrationUserPref(vibration);
         }
         self.vibrationEnabled = vibration;
+        if (self.muteIcon) {
+          self.muteIcon.update();
+        }
       };
 
       if (self.setVibrationEnabledCount > 0) {
@@ -715,6 +743,10 @@
 
           if (!self.volumeFetched && ++callbacksReceived === callsMade) {
             self.fetchCachedVolume();
+          }
+
+          if (channel === 'content') {
+            this.muteIcon && this.muteIcon.update();
           }
         };
 

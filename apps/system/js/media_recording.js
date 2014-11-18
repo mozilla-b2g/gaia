@@ -33,6 +33,7 @@
       this.container = document.getElementById('media-recording-status-list');
 
       window.addEventListener('mozChromeEvent', this);
+      this.icon = new RecordingIcon(this);
     },
 
     /**
@@ -234,6 +235,9 @@
         }
       });
       window.dispatchEvent(event);
+      if (this.icon) {
+        this.icon.update();
+      }
     },
 
     /**

@@ -1,58 +1,18 @@
-/* global System, BaseUI */
+/* global BaseIcon */
 'use strict';
 
 (function(exports) {
-  var BluetoothIcon = function(manager) {
-    this.manager = manager;
-  };
-  BluetoothIcon.prototype = Object.create(BaseUI.prototype);
-  BluetoothIcon.prototype.constructor = BluetoothIcon;
-  BluetoothIcon.prototype.EVENT_PREFIX = 'BluetoothIcon';
-  BluetoothIcon.prototype.containerElement = document.getElementById('statusbar');
-  BluetoothIcon.prototype.view = function() {
-    return '<div id="' + this.instanceID + '" class="sb-icon sb-icon-bluetooth" hidden ' +
-            'role="listitem"></div>'
-  };
-  BluetoothIcon.prototype.instanceID = 'statusbar-bluetooth';
-  BluetoothIcon.prototype._fetchElements = function() {
-    this.element = document.getElementById(this.instanceID);
-  };
-  BluetoothIcon.prototype.show = function() {
-    var hidden = this.element.hidden;
-    if (!hidden) {
-      return;
-    }
-    this.element.hidden = false;
-    this.publish('shown');
-  };
-  BluetoothIcon.prototype.hide = function() {
-    var hidden = this.element.hidden;
-    if (hidden) {
-      return;
-    }
-    this.element.hidden = true;
-    this.publish('hidden');
-  };
-  BluetoothIcon.prototype.start = function() {
-    window.addEventListener('bluetoothconnectionchange', this);
-  };
-  BluetoothIcon.prototype.stop = function() {
-    window.removeEventListener('bluetoothconnectionchange', this);
-  };
-  BluetoothIcon.prototype.handleEvent = function() {
-    this.update();
-  };
-  BluetoothIcon.prototype.isVisible = function() {
-    return this.element && !this.element.hidden;
-  };
+  var BluetoothIcon = function() {};
+  BluetoothIcon.prototype = Object.create(BaseIcon.prototype);
+  BluetoothIcon.prototype.name = 'BluetoothIcon';
   BluetoothIcon.prototype.update = function() {
     var icon = this.element;
-
-    icon.hidden = !System.query('Bluetooth.enabled');
-    icon.dataset.active = System.query('Bluetooth.connected');
-    this.updateIconLabel(icon, 'bluetooth', icon.dataset.active);
-
-    this.manager._updateIconVisibility();
+    if (!icon || !this.enabled()) {
+      return;
+    }
+    this.manager.enabled ? this.show() : this.hide();
+    icon.dataset.active = this.manager.connected;
+    this.updateIconLabel('bluetooth', icon.dataset.active);
   };
   exports.BluetoothIcon = BluetoothIcon;
 }(window));

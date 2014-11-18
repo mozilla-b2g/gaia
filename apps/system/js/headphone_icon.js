@@ -2,17 +2,11 @@
 'use strict';
 
 (function(exports) {
-  var HeadphoneIcon = function(manager) {
-    this.manager = manager;
+  var HeadphonesIcon = function() {};
+  HeadphonesIcon.prototype = Object.create(BaseIcon.prototype);
+  HeadphonesIcon.prototype.name = 'HeadphoneIcon';
+  HeadphonesIcon.prototype.determine = function() {
+    return this.manager.isHeadsetConnected;
   };
-  HeadphoneIcon.prototype = Object.create(BaseIcon.prototype);
-  HeadphoneIcon.prototype.constructor = HeadphoneIcon;
-  HeadphoneIcon.prototype.CLASS_LIST = 'sb-icon sb-icon-headphones';
-  HeadphoneIcon.prototype.l10nId = 'statusbarHeadphones';
-  HeadphoneIcon.prototype.instanceID = 'statusbar-headphones';
-  HeadphoneIcon.prototype.update = function() {
-    var icon = this.element;
-    Service.query('isHeadsetConnected') ? this.show() : this.hide();
-  };
-  exports.HeadphoneIcon = HeadphoneIcon;
+  exports.HeadphonesIcon = HeadphonesIcon;
 }(window));
