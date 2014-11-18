@@ -43,12 +43,6 @@ suite('index.js', function() {
       navigator.mozAudioChannelManager = realMozAudioChannelManager;
     });
 
-    test('the default volume control is set to the "content" channel',
-    function() {
-      assert.equal(navigator.mozAudioChannelManager.volumeControlChannel,
-                   'content');
-    });
-
     test('the KeypadManager is setup for use outside of a call',
     function() {
       sinon.assert.calledWith(MockKeypadManager.init, /* oncall */ false);
