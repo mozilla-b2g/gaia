@@ -44,6 +44,8 @@ suite('TargetHandlersManager', function() {
       .returns(handlerStub);
     this.sinon.stub(window, 'DismissSuggestionsTargetHandler')
       .returns(handlerStub);
+    this.sinon.stub(window, 'HandwritingPadTargetHandler')
+      .returns(handlerStub);
 
     app = {
       console: this.sinon.stub(KeyboardConsole.prototype),
@@ -81,6 +83,12 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(handlerStub.commit.calledOnce);
     });
 
+    test('move', function() {
+      activeTargetsManagerStub.ontargetmoved(target);
+
+      assert.isTrue(handlerStub.move.calledOnce);
+    });
+
     test('moveOut', function() {
       activeTargetsManagerStub.ontargetmovedout(target);
 
@@ -116,6 +124,12 @@ suite('TargetHandlersManager', function() {
         activeTargetsManagerStub.ontargetcommitted(target);
 
         assert.isTrue(handlerStub.commit.calledOnce);
+      });
+
+      test('move', function() {
+        activeTargetsManagerStub.ontargetmoved(target);
+
+        assert.isTrue(handlerStub.move.calledOnce);
       });
 
       test('moveOut', function() {
@@ -169,6 +183,12 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(handlerStub.commit.calledOnce);
     });
 
+    test('move', function() {
+      activeTargetsManagerStub.ontargetmoved(target);
+
+      assert.isTrue(handlerStub.move.calledOnce);
+    });
+
     test('moveOut', function() {
       activeTargetsManagerStub.ontargetmovedout(target);
 
@@ -204,6 +224,12 @@ suite('TargetHandlersManager', function() {
         activeTargetsManagerStub.ontargetcommitted(target);
 
         assert.isTrue(handlerStub.commit.calledOnce);
+      });
+
+      test('move', function() {
+        activeTargetsManagerStub.ontargetmoved(target);
+
+        assert.isTrue(handlerStub.move.calledOnce);
       });
 
       test('moveOut', function() {
@@ -374,6 +400,27 @@ suite('TargetHandlersManager', function() {
         window.NullTargetHandler.calledWith(target, app));
 
       assert.isTrue(handlerStub.activate.calledOnce);
+    });
+
+    test('HandwritingPadTargetHandler', function() {
+      var target = {
+        isHandwritingPad: true
+      };
+
+      activeTargetsManagerStub.ontargetactivated(target);
+
+      assert.isTrue(
+        window.HandwritingPadTargetHandler.calledWith(target, app));
+
+      assert.isTrue(handlerStub.activate.calledOnce);
+      assert.isTrue(activeTargetsManagerStub.blockNewUserPress);
+      assert.isTrue(activeTargetsManagerStub.blockTargetMovedOut);
+
+      activeTargetsManagerStub.ontargetcommitted(target);
+
+      assert.isTrue(handlerStub.commit.calledOnce);
+      assert.isFalse(activeTargetsManagerStub.blockNewUserPress);
+      assert.isFalse(activeTargetsManagerStub.blockTargetMovedOut);
     });
   });
 });

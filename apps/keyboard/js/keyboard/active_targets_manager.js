@@ -1,7 +1,6 @@
 'use strict';
 
-/* global UserPressManager, AlternativesCharMenuManager,
-   HandwritingPadsManager */
+/* global UserPressManager, AlternativesCharMenuManager */
 
 (function(exports) {
 
@@ -14,14 +13,21 @@
  * It is not responsible of user feedbacks because they can be depend on
  * the properties of target itself.
  *
+ * The caller of ActiveTargetsManager can set the following properties to alter
+ * its behavior:
+ *   blockNewUserPress: when set to true, any new press is not handled.
+ *   blockTargetMovedOut: when set to true, presses won't be able to move out
+ *   of current target.
  */
 var ActiveTargetsManager = function(app) {
   this.app = app;
   this.activeTargets = null;
 
+  this.blockNewUserPress = false;
+  this.blockTargetMovedOut = false;
+
   this.userPressManager = null;
   this.alternativesCharMenuManager = null;
-  this.handwritingPadsManager = null;
 
   this.longPressTimer = undefined;
 
@@ -31,6 +37,7 @@ var ActiveTargetsManager = function(app) {
 
 ActiveTargetsManager.prototype.ontargetactivated = null;
 ActiveTargetsManager.prototype.ontargetlongpressed = null;
+ActiveTargetsManager.prototype.ontargetmoved = null;
 ActiveTargetsManager.prototype.ontargetmovedout = null;
 ActiveTargetsManager.prototype.ontargetmovedin = null;
 ActiveTargetsManager.prototype.ontargetcommitted = null;
@@ -60,9 +67,6 @@ ActiveTargetsManager.prototype.start = function() {
   this.alternativesCharMenuManager =
     new AlternativesCharMenuManager(this.app);
   this.alternativesCharMenuManager.start();
-
-  this.handwritingPadsManager = new HandwritingPadsManager(this.app);
-  this.handwritingPadsManager.start();
 };
 
 ActiveTargetsManager.prototype.stop = function() {
@@ -74,9 +78,6 @@ ActiveTargetsManager.prototype.stop = function() {
 
   this.alternativesCharMenuManager.stop();
   this.alternativesCharMenuManager = null;
-
-  this.handwritingPadsManager.stop();
-  this.handwritingPadsManager = null;
 
   clearTimeout(this.longPressTimer);
   this.doubleTapTimer = undefined;
@@ -105,13 +106,10 @@ ActiveTargetsManager.prototype.clearAllTargets = function() {
 
 ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
   this.app.console.log('ActiveTargetsManager._handlePressStart()');
-  // Ignore new touches if menu is shown
-  if (this.alternativesCharMenuManager.isShown) {
-    return;
-  }
 
-  // Ignore new touches when user is writing.
-  if (this.handwritingPadsManager.isWriting) {
+  // Ignore any new user press when blockNewUserPress property is true or
+  // alternatives menu is shown.
+  if (this.blockNewUserPress || this.alternativesCharMenuManager.isShown) {
     return;
   }
 
@@ -125,13 +123,8 @@ ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
   var target = press.target;
   this.activeTargets.set(id, target);
 
-  if (this.handwritingPadsManager.isHandwritingPad(press.target)) {
-    this.handwritingPadsManager.handlePressStart(press);
-    return;
-  }
-
   if (typeof this.ontargetactivated === 'function') {
-    this.ontargetactivated(target);
+    this.ontargetactivated(target, press);
   }
 
   clearTimeout(this.longPressTimer);
@@ -175,12 +168,14 @@ ActiveTargetsManager.prototype._handlePressMove = function(press, id) {
     return;
   }
 
-  if (this._handlePressMoveOnHandwritingPad(press, target)) {
+  if (target === oldTarget) {
+    if (typeof this.ontargetmoved === 'function') {
+      this.ontargetmoved(target, press);
+    }
     return;
   }
 
-  // Do nothing if the element is unchanged.
-  if (target === oldTarget) {
+  if (this.blockTargetMovedOut) {
     return;
   }
 
@@ -191,7 +186,7 @@ ActiveTargetsManager.prototype._handlePressMove = function(press, id) {
   }
 
   if (typeof this.ontargetmovedin === 'function') {
-    this.ontargetmovedin(target);
+    this.ontargetmovedin(target, press);
   }
 
   // Hide of alternatives menu if the touch moved out of it
@@ -236,11 +231,6 @@ ActiveTargetsManager.prototype._handlePressEnd = function(press, id) {
   var target = this.activeTargets.get(id);
   this.activeTargets.delete(id);
 
-  if (this.handwritingPadsManager.isWriting) {
-    this.handwritingPadsManager.handlePressEnd(target);
-    return;
-  }
-
   this.alternativesCharMenuManager.hide();
   clearTimeout(this.longPressTimer);
 
@@ -265,32 +255,6 @@ ActiveTargetsManager.prototype._handlePressEnd = function(press, id) {
     }
   }
 };
-
-ActiveTargetsManager.prototype._handlePressMoveOnHandwritingPad =
-  function(press, target) {
-    // User press moving on handwriting pad.
-    if (this.handwritingPadsManager.isWriting &&
-        this.handwritingPadsManager.isHandwritingPad(target)) {
-      this.handwritingPadsManager.handlePressMove(press);
-      return true;
-    }
-
-    // For UX team's requirement
-    // When moving out from handwriting pad, keep event's target to handwriting
-    // pad, make sure avoid invoking ontargetmovedin for the new target.
-    if (this.handwritingPadsManager.isWriting &&
-        !this.handwritingPadsManager.isHandwritingPad(target)) {
-      return true;
-    }
-
-    // When moving into handwriting pad, update event's target to handwriting
-    // pad and ensure that invoke ontargetmovedout for the original target.
-    if (!this.handwritingPadsManager.isWriting &&
-        this.handwritingPadsManager.isHandwritingPad(target)) {
-      this.handwritingPadsManager.handlePressStart(press);
-    }
-    return false;
-  };
 
 exports.ActiveTargetsManager = ActiveTargetsManager;
 

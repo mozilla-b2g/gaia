@@ -86,6 +86,8 @@ DefaultTargetHandler.prototype.newTargetActivate = function() {
   // Ignore addition calls on commit().
   this.ignoreCommitActions = true;
 };
+DefaultTargetHandler.prototype.move = function() {
+};
 
 var NullTargetHandler = function(target, app) {
   DefaultTargetHandler.apply(this, arguments);
@@ -359,6 +361,28 @@ DismissSuggestionsTargetHandler.prototype.commit = function() {
   this.app.visualHighlightManager.hide(this.target);
 };
 
+var HandwritingPadTargetHandler = function(target, app) {
+  DefaultTargetHandler.apply(this, arguments);
+};
+HandwritingPadTargetHandler.prototype =
+  Object.create(DefaultTargetHandler.prototype);
+HandwritingPadTargetHandler.prototype.activate = function(press) {
+  this.app.handwritingPadsManager.handlePressStart(press);
+};
+HandwritingPadTargetHandler.prototype.move = function(press) {
+  this.app.handwritingPadsManager.handlePressMove(press);
+};
+HandwritingPadTargetHandler.prototype.moveOut = function(press) {
+};
+HandwritingPadTargetHandler.prototype.moveIn = function(press) {
+  this.app.handwritingPadsManager.handlePressStart(press);
+};
+HandwritingPadTargetHandler.prototype.commit = function() {
+  this.app.handwritingPadsManager.handlePressEnd();
+};
+HandwritingPadTargetHandler.prototype.newTargetActivate = function() {
+};
+
 exports.DefaultTargetHandler = DefaultTargetHandler;
 exports.NullTargetHandler = NullTargetHandler;
 exports.SpaceKeyTargetHandler = SpaceKeyTargetHandler;
@@ -370,5 +394,6 @@ exports.CapsLockTargetHandler = CapsLockTargetHandler;
 exports.SwitchKeyboardTargetHandler = SwitchKeyboardTargetHandler;
 exports.ToggleCandidatePanelTargetHandler = ToggleCandidatePanelTargetHandler;
 exports.DismissSuggestionsTargetHandler = DismissSuggestionsTargetHandler;
+exports.HandwritingPadTargetHandler = HandwritingPadTargetHandler;
 
 })(window);

@@ -18,7 +18,6 @@ var HandwritingPadsManager = function(app) {
   this._currentTarget = null;
   this._cleared = false;
 
-  this.isWriting = false;
   this.app = app;
 };
 
@@ -75,7 +74,6 @@ HandwritingPadsManager.prototype.handlePressStart = function(press) {
     this._currentTarget = press.target;
   }
 
-  this.isWriting = true;
   this._cleared = false;
   var point = this.app.layoutRenderingManager.drawHandwritingPad(press,
                                                true, this._strokeWidth);
@@ -91,15 +89,7 @@ HandwritingPadsManager.prototype.handlePressMove = function(press) {
 HandwritingPadsManager.prototype.handlePressEnd = function() {
   this._timeOutId = setTimeout(this._sendStrokePoints.bind(this),
                                this.MAX_RESPONSE_TIME - this._responseTime);
-  this.isWriting = false;
   this._strokePoints.push(-1, 0);
-};
-
-HandwritingPadsManager.prototype.isHandwritingPad = function(target) {
-  if (target.isHandwritingPad) {
-    return true;
-  }
-  return false;
 };
 
 HandwritingPadsManager.prototype._sendStrokePoints = function() {
