@@ -2048,6 +2048,48 @@ suite('system/AppWindow', function() {
     });
   });
 
+  suite('isTransitioning', function() {
+    var testApp;
+    setup(function() {
+      testApp = new AppWindow(fakeAppConfig1);
+    });
+
+    test('app is inside-edges', function() {
+      testApp.element.classList.add('inside-edges');
+      assert.isTrue(testApp.isTransitioning());
+    });
+
+    test('app is opening', function() {
+      testApp.transitionController = null;
+      testApp.element.classList.add('transition-opening');
+      assert.isTrue(testApp.isTransitioning());
+
+      testApp.transitionController = {
+        _transitionState: undefined
+      };
+      assert.isFalse(testApp.isTransitioning());
+
+      testApp.transitionController._transitionState = 'opening';
+      assert.isTrue(testApp.isTransitioning());
+
+    });
+
+    test('app is closing', function() {
+      testApp.transitionController = null;
+      testApp.element.classList.add('transition-closing');
+      assert.isTrue(testApp.isTransitioning());
+
+      testApp.transitionController = {
+        _transitionState: undefined
+      };
+      assert.isFalse(testApp.isTransitioning());
+
+      testApp.transitionController._transitionState = 'closing';
+      assert.isTrue(testApp.isTransitioning());
+    });
+
+  });
+
   test('isBrowser', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var app2 = new AppWindow(fakeAppConfig4);
