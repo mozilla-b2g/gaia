@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -54,8 +56,10 @@ class CostControl(Base):
         ftu_step3.tap_lets_go()
 
     def tap_settings(self):
-        self.wait_for_element_displayed(*self._settings_button_locator)
-        self.marionette.find_element(*self._settings_button_locator).tap()
+        settings = Wait(self.marionette).until(
+            expected.element_present(*self._settings_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(settings))
+        settings.tap()
         from gaiatest.apps.cost_control.regions.settings import Settings
         return Settings(self.marionette)
 
@@ -69,6 +73,7 @@ class CostControl(Base):
 
     def switch_to_ftu(self):
         ftu_iframe = self.marionette.find_element(*self._ftu_frame_locator)
-        self.wait_for_condition(lambda m: 'non-ready' not in ftu_iframe.get_attribute('class')
-                                and ftu_iframe.is_displayed())
+        Wait(self.marionette).until(
+            lambda m: 'non-ready' not in ftu_iframe.get_attribute('class') and
+            ftu_iframe.is_displayed())
         self.marionette.switch_to_frame(ftu_iframe)

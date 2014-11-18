@@ -4,6 +4,8 @@
 
 import time
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.cost_control.app import CostControl
 
@@ -26,28 +28,31 @@ class FTUStep3(CostControl):
     def __init__(self, marionette):
         CostControl.__init__(self, marionette)
         view = self.marionette.find_element(*self._view_locator)
-        self.wait_for_condition(lambda m: view.location['x'] == 0)
+        Wait(self.marionette).until(lambda m: view.location['x'] == 0)
 
     def enable_data_alert_toggle(self):
         switch = self.marionette.find_element(*self._data_alert_switch_locator)
         if not switch.is_selected():
-            label = self.marionette.find_element(*self._data_alert_label_locator)
-            label.tap()
+            self.marionette.find_element(*self._data_alert_label_locator).tap()
         # Wait for Usage section to hide/display as required
-        self.wait_for_element_displayed(*self._data_alert_selector_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._data_alert_selector_locator))))
 
     def select_when_use_is_above_unit_and_value(self, unit, value):
         self.marionette.find_element(*self._data_alert_selector_locator).tap()
 
         data_limit_view = self.marionette.find_element(
             *self._data_limit_view_locator)
-        self.wait_for_condition(lambda m: data_limit_view.location['y'] == 0)
-        self.wait_for_element_displayed(*self._data_limit_switch_unit_locator)
+        Wait(self.marionette).until(lambda m: data_limit_view.location['y'] == 0)
 
-        current_unit = self.marionette.find_element(*self._data_limit_switch_unit_locator)
+        current_unit = Wait(self.marionette).until(
+            expected.element_present(*self._data_limit_switch_unit_locator))
+        Wait(self.marionette).until(expected.element_displayed(current_unit))
+
         if current_unit.text != unit:
             current_unit.tap()
-            self.wait_for_condition(lambda m: current_unit.text == unit)
+            Wait(self.marionette).until(lambda m: current_unit.text == unit)
 
         # clear the original assigned value and set it to the new value
         self.marionette.find_element(*self._data_limit_dialog_input_locator).clear()
@@ -57,7 +62,7 @@ class FTUStep3(CostControl):
 
         data_limit_view = self.marionette.find_element(
             *self._data_limit_view_locator)
-        self.wait_for_condition(lambda m: int(data_limit_view.location['y']) == int(data_limit_view.size['height']))
+        Wait(self.marionette).until(lambda m: int(data_limit_view.location['y']) == int(data_limit_view.size['height']))
 
     def tap_lets_go(self):
         self.marionette.find_element(*self._go_button_locator).tap()
