@@ -6,10 +6,22 @@
  * HandwritingPadView handles the rendering of handwriting pad and
  * interactions on it. Handwriting pad is a canvas element in DOM.
  */
-var HandwritingPadView = function() {
+var HandwritingPadView = function(target, options, viewManager) {
+  this.target = target;
+  // Not used for now, added to comply with the ViewClass interface.
+  this.options = options;
+  this.viewManager = viewManager;
+  this.element = null;
+  this.lastX = this.lastY = 0;
+};
+
+HandwritingPadView.prototype.render = function render() {
   this.element = document.createElement('canvas');
   this.element.className = 'handwriting-pad';
-  this.lastX = this.lastY = 0;
+
+  if (this.viewManager) {
+    this.viewManager.registerView(this.target, this);
+  }
 };
 
 HandwritingPadView.prototype.drawHandwritingPad =

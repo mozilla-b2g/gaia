@@ -37,6 +37,11 @@ button::-moz-focus-inner {
   visibility: visible;
 }
 
+/* To show/hide the layout page view */
+.keyboard-type-container:not([data-active]) {
+  display: none;
+}
+
 /* Row styles */
 .keyboard-row {
   text-align: center;

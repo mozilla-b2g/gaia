@@ -2,8 +2,8 @@
 /* global IMERender */
 
 requireApp('keyboard/js/render.js');
-require('/js/views/handwriting_pad_view.js');
 require('/js/views/key_view.js');
+require('/js/views/layout_page_view.js');
 
 suite('Renderer', function() {
   suiteSetup(function() {
@@ -344,152 +344,6 @@ suite('Renderer', function() {
       loadKeyboardStyle(next);
     });
 
-    test('Should add last-row class to last row', function() {
-      var layout = {
-        width: 2,
-        keys: [
-          [{ value: 'a' }, { value: 'b' }],
-          [{ value: 'c' }, { value: 'd' }],
-          [{ value: 'e' }, { value: 'f' }]
-        ]
-      };
-
-      IMERender.draw(layout);
-
-      var rows = document.querySelectorAll('.keyboard-row');
-      assert.equal(rows.length, 3);
-      assert.equal(rows[2].classList.contains('keyboard-last-row'), true);
-      var keys = document.querySelectorAll('.keyboard-key');
-      assert.equal(keys.length, 6);
-    });
-
-    test('layout.keyClassName should be added to all keys', function() {
-      var layout = {
-        width: 2,
-        keys: [
-          [{ value: 'a' }, { value: 'b' }]
-        ],
-        keyClassName: 'c9'
-      };
-
-      IMERender.draw(layout);
-
-      assert.equal(document.querySelectorAll('.keyboard-key').length, 2);
-      assert.equal(document.querySelectorAll('.keyboard-key.c9').length, 2);
-    });
-
-    test('rowLayoutWidth should be sum of all key ratios', function() {
-      var layout = {
-        width: 9,
-        keys: [
-          [{ value: 'a', ratio: 3 }, { value: 'b', ratio: 2 }],
-          [{ value: 'a' }, { value: 'b' }],
-          [{ value: 'a', ratio: 5 }, { value: 'b' }]
-        ]
-      };
-
-      IMERender.draw(layout);
-
-      var rows = document.querySelectorAll('.keyboard-row');
-      assert.equal(rows[0].dataset.layoutWidth, 5);
-      assert.equal(rows[1].dataset.layoutWidth, 2);
-      assert.equal(rows[2].dataset.layoutWidth, 6);
-    });
-
-    test('Keycode should be set or default to char0', function() {
-      var layout = {
-        width: 9,
-        keys: [
-          [{ value: 'a', keyCode: 3 }, { value: 'b', keyCode: 98 }]
-        ]
-      };
-
-      IMERender.draw(layout);
-
-      var keys = document.querySelectorAll('.keyboard-key');
-      assert.equal(keys[0].dataset.keycode, 3);
-      assert.equal(keys[1].dataset.keycode, 98);
-    });
-
-    test('On uppercase flag, uppercase on keys, ' +
-          'no lowercase class on container', function() {
-      var layout = {
-        width: 2,
-        keys: [
-          [{ value: 'a', uppercaseValue: 'A' },
-           { value: 'b', uppercaseValue: 'B' }]
-        ]
-      };
-
-      IMERender.init(fakeRenderingManager);
-      IMERender.draw(layout, { uppercase: true });
-
-      var keys = document.querySelectorAll('.keyboard-key .key-element');
-      assert.equal(keys[0].firstChild.textContent, 'A');
-      assert.equal(keys[1].firstChild.textContent, 'B');
-
-      var container = document.querySelector('.keyboard-type-container');
-      assert.isFalse(container.classList.contains('lowercase'));
-    });
-
-    test('No uppercase flag, uppercase on keys, ' +
-          'lowercase class on container', function() {
-      var layout = {
-        width: 2,
-        keys: [
-          [{ value: 'a', uppercaseValue: 'A' },
-           { value: 'b', uppercaseValue: 'B' }]
-        ]
-      };
-
-      IMERender.init(fakeRenderingManager);
-      IMERender.draw(layout, { uppercase: false });
-
-      var keys = document.querySelectorAll('.keyboard-key .key-element');
-      assert.equal(keys[0].firstChild.textContent, 'A');
-      assert.equal(keys[1].firstChild.textContent, 'B');
-
-      var container = document.querySelector('.keyboard-type-container');
-      assert.isTrue(container.classList.contains('lowercase'));
-    });
-
-    test('w/ secondLayout, two label DOMs on buttons', function() {
-      var layout = {
-        width: 2,
-        secondLayout: true,
-        keys: [
-          [{ value: 'a', uppercaseValue: 'A' },
-           { value: 'b', uppercaseValue: 'B' }]
-        ]
-      };
-
-      IMERender.init(fakeRenderingManager);
-      IMERender.draw(layout, { uppercase: false });
-
-      var keys = document.querySelectorAll('.keyboard-key .key-element');
-      assert.equal(keys[0].firstChild.textContent, 'A');
-      assert.equal(keys[1].firstChild.textContent, 'a');
-      assert.equal(keys[2].firstChild.textContent, 'B');
-      assert.equal(keys[3].firstChild.textContent, 'b');
-
-      var container = document.querySelector('.keyboard-type-container');
-      assert.isTrue(container.classList.contains('lowercase'));
-    });
-
-    test('candidate-panel class should be set if flag is set', function() {
-      // Clear out the ime panel
-      IMERender.activeIme = null;
-      ime.innerHTML = '';
-
-      var layout = {
-        width: 1,
-        keys: []
-      };
-      IMERender.draw(layout, { showCandidatePanel: true });
-      assert.equal(ime.querySelector('.keyboard-type-container')
-        .classList.contains('candidate-panel'), true);
-    });
-
     test('candidate-panel class shouldnt be set if flag isnt set', function() {
       var layout = {
         width: 1,
@@ -497,53 +351,6 @@ suite('Renderer', function() {
       };
       IMERender.draw(layout);
       assert.equal(ime.classList.contains('candidate-panel'), false);
-    });
-
-    test('create keyboard with handwriting pad', function() {
-      var layout = {
-        handwritingPadOptions: {
-          ratio: 8.5,
-          rowspan: 3
-        },
-        keys: [
-          [
-            { value: 'a', ratio: 1.5 }
-          ], [
-            { value: 'b', ratio: 1.5 }
-          ], [
-            { value: 'c', ratio: 1.5 }
-          ], [
-            { value: 'd', ratio: 10 }
-          ]
-        ]
-      };
-      IMERender.draw(layout);
-      var pads = document.querySelectorAll('.handwriting-pad');
-      assert.equal(pads.length, 1);
-    });
-
-    suite('CSS classes on activeIme', function() {
-      test('with specificCssRule', function() {
-        var layout = {
-          width: 1,
-          keys: [],
-          layoutName: 'ar',
-          specificCssRule: true
-        };
-        IMERender.draw(layout);
-        assert.equal(IMERender.activeIme.classList.contains('ar'), true);
-      });
-
-      test('without specificCssRule', function() {
-        var layout = {
-          width: 1,
-          keys: [],
-          layoutName: 'ar',
-          specificCssRule: false
-        };
-        IMERender.draw(layout);
-        assert.equal(IMERender.activeIme.classList.contains('ar'), false);
-      });
     });
 
     suite('showCandidates', function() {
@@ -727,7 +534,6 @@ suite('Renderer', function() {
       dummy: 'dummy'
     };
 
-
     setup(function() {
       IMERender.init(fakeRenderingManager);
     });
@@ -745,4 +551,3 @@ suite('Renderer', function() {
     });
   });
 });
-
