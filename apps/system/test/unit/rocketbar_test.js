@@ -438,8 +438,7 @@ suite('system/Rocketbar', function() {
   test('handleEvent() - global-search-request: is app', function() {
     var activeApp = {
       config: {url: 'app.url'},
-      isBrowser: function() {},
-      isActive: function() { return true; }
+      isBrowser: function() {}
     };
     MockService.currentApp = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
@@ -449,22 +448,6 @@ suite('system/Rocketbar', function() {
     subject.handleEvent(event);
     assert.ok(setInputStub.calledWith('app.url'));
     assert.ok(activateStub.calledOnce);
-  });
-
-  test('handleEvent() - global-search-request: inactive app', function() {
-    var activeApp = {
-      config: {url: 'app.url'},
-      isBrowser: function() {},
-      isActive: function() { return false; }
-    };
-    MockService.currentApp = activeApp;
-    this.sinon.stub(activeApp, 'isBrowser').returns(true);
-    var setInputStub = this.sinon.stub(subject, 'setInput');
-    var activateStub = this.sinon.stub(subject, 'activate');
-    var event = {type: 'global-search-request'};
-    subject.handleEvent(event);
-    assert.ok(setInputStub.notCalled);
-    assert.ok(activateStub.notCalled);
   });
 
   test('handleEvent() - global-search-request: non app', function() {
@@ -477,8 +460,7 @@ suite('system/Rocketbar', function() {
       appChrome: {
         maximize: function() {},
         isMaximized: function() {}
-      },
-      isActive: function() { return true; }
+      }
     };
     MockService.currentApp = activeApp;
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
@@ -515,8 +497,7 @@ suite('system/Rocketbar', function() {
       appChrome: {
         maximize: function() {},
         isMaximized: function() {}
-      },
-      isActive: function() { return true; }
+      }
     };
     MockService.currentApp = activeApp;
 
@@ -543,8 +524,7 @@ suite('system/Rocketbar', function() {
       isBrowser: function() {},
       isPrivateBrowser: function() {
         return true;
-      },
-      isActive: function() { return true; }
+      }
     };
     MockService.currentApp = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);

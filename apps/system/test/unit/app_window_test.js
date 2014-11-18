@@ -667,24 +667,24 @@ suite('system/AppWindow', function() {
 
     test('hideScreenshotOverlay', function() {
       app1.screenshotOverlay.classList.add('visible');
-      app1.element.classList.add('overlay');
+      app1.identificationOverlay.classList.add('visible');
       app1._hideScreenshotOverlay();
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
 
-      assert.isTrue(app1.element.classList.contains('overlay'));
+      assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
       this.sinon.clock.tick(); // We wait for the next tick
-      assert.isFalse(app1.element.classList.contains('overlay'));
+      assert.isFalse(app1.identificationOverlay.classList.contains('visible'));
     });
 
     test('hideScreenshotOverlay noop when the screenshot is not displayed',
     function() {
       app1._screenshotOverlayState = 'none';
       app1.screenshotOverlay.classList.remove('visible');
-      app1.element.classList.add('overlay');
+      app1.identificationOverlay.classList.add('visible');
       app1._hideScreenshotOverlay();
 
       this.sinon.clock.tick(); // We wait for the next tick
-      assert.isTrue(app1.element.classList.contains('overlay'));
+      assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
     });
 
     test('Request screenshotURL', function() {
@@ -704,7 +704,7 @@ suite('system/AppWindow', function() {
 
     test('Show identification overlay when showing screenshot', function() {
       app1._showScreenshotOverlay();
-      assert.isTrue(app1.element.classList.contains('overlay'));
+      assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
     });
   });
 
@@ -2019,14 +2019,6 @@ suite('system/AppWindow', function() {
     test('app is in queue to show', function() {
       testApp.element.classList.add('will-become-active');
       assert.isTrue(testApp.isActive());
-    });
-
-    test('app is in queue to hide', function() {
-      testApp.transitionController = {
-        '_transitionState': 'opened'
-      };
-      testApp.element.classList.add('will-become-inactive');
-      assert.isFalse(testApp.isActive());
     });
 
     test('app doesnot have transitionController', function() {

@@ -43,8 +43,7 @@ Rocketbar.prototype = {
     clear: '#rocketbar-clear',
     backdrop: '#rocketbar-backdrop',
     results: '#rocketbar-results',
-    appTitle: '.appWindow.active .chrome .title',
-    permissionOk: '#permission-yes'
+    appTitle: '.appWindow.active .chrome .title'
   },
 
   /**
@@ -162,10 +161,6 @@ Rocketbar.prototype = {
     });
   },
 
-  goThroughPermissionPrompt: function() {
-    this.client.helper.waitForElement(this.selectors.permissionOk).click();
-  },
-
   get rocketbar() {
     return this.client.findElement(this.selectors.rocketbar);
   },
@@ -196,9 +191,5 @@ Rocketbar.prototype = {
 
   get backdrop() {
     return this.client.findElement(this.selectors.backdrop);
-  },
-
-  get permissionOk() {
-    return this.client.findElement(this.selectors.permissionOk);
   }
 };
