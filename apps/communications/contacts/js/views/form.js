@@ -1322,13 +1322,22 @@ contacts.Form = (function() {
     return out;
   };
 
-  function photoAction() {
-    var hasPhoto = getCurrentPhoto() !== null;
+  function canRemovePhoto() {
+    var out = getCurrentPhoto() !== null;
 
-    if (!hasPhoto) {
-      pickImage();
-    } else {
+    if (fb.isFbContact(currentContact)) {
+      out = Array.isArray(deviceContact.photo) && deviceContact.photo[0];
+    }
+
+    return out;
+  }
+
+  function photoAction() {
+    if (canRemovePhoto()) {
       removeOrUpdatePhoto();
+    }
+    else {
+      pickImage();
     }
   }
 
@@ -1345,11 +1354,21 @@ contacts.Form = (function() {
 
   function removePhoto() {
     currentPhoto = null;
+    // If photo is removed, the FB photo of a contact is always restoredf
+    if (fb.isFbContact(currentContact)) {
+      // The local contact now does not have a photo
+      deviceContact.photo = null;
+      var fbPhoto = ContactPhotoHelper.getFullResolution(fbContact);
+      Contacts.updatePhoto(fbPhoto, thumb);
+    }
+    else {
+      thumbAction.classList.remove('with-photo');
+      Contacts.updatePhoto(null, thumb);
+    }
+
     if (!emptyForm()) {
       saveButton.removeAttribute('disabled');
     }
-    thumbAction.classList.remove('with-photo');
-    Contacts.updatePhoto(null, thumb);
   }
 
   var pickImage = function pickImage() {
@@ -1375,6 +1394,8 @@ contacts.Form = (function() {
                  function(resized) {
                    Contacts.updatePhoto(resized, thumb);
                    currentPhoto = resized;
+                   // We temporarily mark that there is a local photo chosen
+                   deviceContact.photo = [currentPhoto];
                  });
     };
 

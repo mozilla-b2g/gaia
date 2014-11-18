@@ -64,6 +64,7 @@ Contacts.Selectors = {
   formTelLabelFirst: '#tel_type_0',
   formTelNumberSecond: '#number_1',
   formEmailFirst: '#email_0',
+  formPhotoButton: '#photo-button',
 
   groupList: ' #groups-list',
   list: '#view-contacts-list',
@@ -97,7 +98,11 @@ Contacts.Selectors = {
   iceButton1: '#select-ice-contact-1',
   iceButton2: '#select-ice-contact-2',
   iceGroupOpen: '#section-group-ice',
-  iceContact: '#ice-group .contact-item'
+  iceContact: '#ice-group .contact-item',
+
+  activityChooser: 'form[data-type="action"]',
+  buttonActivityChooser: 'form[data-type="action"] button',
+  actionMenu: '#action-menu'
 };
 
 Contacts.prototype = {
