@@ -12,7 +12,8 @@ marionette('Global search >', function() {
   var client = marionette.client({
     prefs: {
       'dom.w3c_touch_events.enabled': 1,
-      'devtools.debugger.forbid-certified-apps': false
+      'devtools.debugger.forbid-certified-apps': false,
+      'focusmanager.testmode': true
     },
     settings: {
       'ftu.manifestURL': null,
