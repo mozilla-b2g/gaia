@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 # All options are passed to `./node_modules/.bin/marionette-mocha` so
 # you can also use mocha commands like `--grep`, `--timeout` see `--help`
@@ -52,11 +52,6 @@ make node_modules
 if [ "$BUILDAPP" == "desktop" ]; then
     # download b2g-desktop (if its not present)
     make -C $DIR/../ b2g
-fi
-
-# tests can timeout without the profile-test folder so build it here.
-if [ ! -d $DIR/../profile-test ]; then
-  PROFILE_FOLDER=profile-test make -C $DIR/../
 fi
 
 if [ -z "$TEST_FILES" ]; then
