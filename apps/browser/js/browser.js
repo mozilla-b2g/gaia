@@ -439,7 +439,9 @@ var Browser = {
 
         // We always show the address bar when loading
         // After loading we might need to hide it
-        this.handleScroll({ detail: { top: this.lastScrollOffset } });
+        if (this.currentScreen === this.PAGE_SCREEN) {
+          this.handleScroll({ detail: { top: this.lastScrollOffset } });
+        }
 
         break;
 
