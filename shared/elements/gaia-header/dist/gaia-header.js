@@ -154,7 +154,7 @@ var actionTypes = {
   close: true
 };
 
-const KNOWN_ATTRIBUTES = ['start', 'end', 'action'];
+const KNOWN_ATTRIBUTES = ['start', 'end', 'action', 'skip-fit'];
 
 /**
  * Called when the element is first created.
@@ -191,10 +191,22 @@ proto.createdCallback = function() {
  */
 proto.attachedCallback = function() {
   this.restyleShadowDom();
+  this.init();
+};
+
+/**
+ * Called when the lement is attached to the DOM unless the skip-fit attribute
+ * is set.
+ */
+proto.init = function() {
+  if (this['_skip-fit'] !== null) {
+    return;
+  }
+
   this.runFontFit();
   this.addFontFitObserver();
   this.setupRtl();
-};
+}
 
 /**
  * Called when the element is detached
@@ -365,6 +377,11 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
   }
 
   this._updateAttribute(attr);
+
+  if (attr === 'skip-fit') {
+    setTimeout(() => this.init());
+    return;
+  }
 
   if (attr === 'action') {
     this.configureActionButton();

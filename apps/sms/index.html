@@ -117,7 +117,7 @@
   <body role="application" class="skin-comms theme-communications">
     <article id="main-wrapper" class="wrapper" data-position='right'>
       <section id="thread-list" class="panel" role="region">
-        <gaia-header class="view-header regular-header" start='0' end='100'>
+        <gaia-header class="view-header regular-header" start="0" end="100">
           <h1 data-l10n-id="messages"></h1>
           <a href="#composer" id="icon-add" data-icon="compose"></a>
           <a id="threads-options-icon" data-icon="more"></a>
@@ -134,7 +134,7 @@
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
           <section role="region" class="theme-settings">
-            <gaia-header id="threads-edit-header" action="close" start='0' end='0'>
+            <gaia-header id="threads-edit-header" action="close" skip-fit>
               <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title"></h1>
               <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
@@ -152,7 +152,7 @@
       </section>
 
       <section id="thread-messages" class="panel" role="region" aria-hidden="true">
-        <gaia-header id="messages-header" class="view-header regular-header" action="back" start='0' end='0'>
+        <gaia-header id="messages-header" class="view-header regular-header" action="back" skip-fit>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide"></button>
           <button id="messages-options-button" data-icon="more"></button>
@@ -292,7 +292,7 @@
         </article>
         <form role="dialog" id="messages-edit-form" data-type="edit" >
           <section role="region" class="theme-settings">
-            <gaia-header id="messages-edit-header" action="close" start='0' end='0'>
+            <gaia-header id="messages-edit-header" action="close" skip-fit>
               <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title"></h1>
               <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>

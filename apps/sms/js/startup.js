@@ -49,6 +49,7 @@ var Startup = {
   ],
 
   _lazyLoadInit: function() {
+    this._initHeaders();
     LazyLoader.load(this._lazyLoadScripts, function() {
       LocalizationHelper.init();
 
@@ -72,6 +73,13 @@ var Startup = {
 
       PerformanceTestingHelper.dispatch('objects-init-finished');
     });
+  },
+
+  _initHeaders: function() {
+    var headers = document.querySelectorAll('gaia-header[skip-fit]');
+    for (var i = 0, l = headers.length; i < l; i++) {
+      headers[i].removeAttribute('skip-fit');
+    }
   },
 
   init: function() {
