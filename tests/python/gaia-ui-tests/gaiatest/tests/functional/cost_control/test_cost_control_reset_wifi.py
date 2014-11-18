@@ -28,6 +28,10 @@ class TestCostControlReset(GaiaTestCase):
         cost_control.toggle_mobile_data_tracking(False)
         cost_control.toggle_wifi_data_tracking(True)
 
+        # If we don't kill the app manually it might get killed by the oom process.
+        # In that case when we re-launch the app it has a hash attached at the end of the src. - Bug 1091676
+        self.apps.kill(cost_control.app)
+
         # open browser to get some data downloaded
         search = Search(self.marionette)
         search.launch()
