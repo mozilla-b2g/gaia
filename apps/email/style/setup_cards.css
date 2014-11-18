@@ -140,6 +140,7 @@ cards-setup-done .sup-form-btn.recommend {
   word-wrap: break-word;
   padding: 1rem 1.5rem 0;
   font-size: 1.6rem;
+  -moz-user-select: text;
 }
 
 .tng-list {

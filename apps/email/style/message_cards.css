@@ -318,6 +318,7 @@ reflows. Foreground/background colors should be safe.
   font-weight: 500;
   color: #5f5f5f;
   word-wrap: break-word;
+  -moz-user-select: text;
 }
 
 .msg-body-container {
@@ -326,6 +327,12 @@ reflows. Foreground/background colors should be safe.
   line-height: 2rem;
   margin: 1rem 1.5rem;
   word-wrap: break-word;
+}
+
+/* Plain text emails with their structured DOM created for the reader should
+   all have selectable text. */
+.msg-body-container * {
+  -moz-user-select: text;
 }
 
 .msg-peep-bubble {
