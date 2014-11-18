@@ -315,6 +315,9 @@
    * @return {Boolean} The instance is transitioning or not.
    */
   AppWindow.prototype.isTransitioning = function aw_isTransitioning() {
+    if (this.element.classList.contains('inside-edges')) {
+      return true;
+    }
     if (this.transitionController) {
       return (this.transitionController._transitionState == 'opening' ||
               this.transitionController._transitionState == 'closing');
