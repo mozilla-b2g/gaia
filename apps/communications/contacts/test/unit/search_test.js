@@ -14,7 +14,7 @@ suite('Search mode', function() {
   var searchBox, searchList, noResults;
   var contact = {
     id: 'b1ae8e148bd14560aaa9d7265bb39b0f',
-    givenName: ['Aaeéií() BC'],
+    givenName: ['Aaeéií(") BC'],
     familyName: ['Surname'],
     tel: [{ value:'555555555'}]
   };
@@ -74,6 +74,15 @@ suite('Search mode', function() {
 
   test('Search non-alphabetical characters', function(done) {
     searchBox.value = ')';
+    contacts.Search.search(function search_finished() {
+      done(function() {
+        assertContactFound(contact.id, 1);
+      });
+    });
+  });
+
+  test('Search for quotes', function(done) {
+    searchBox.value = '"';
     contacts.Search.search(function search_finished() {
       done(function() {
         assertContactFound(contact.id, 1);

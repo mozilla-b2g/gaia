@@ -401,9 +401,7 @@ contacts.Search = (function() {
     for (var c = from; c < end && c < contacts.length; c++) {
       var contact = contacts[c].node || contacts[c];
       var contactText = contacts[c].text || getSearchText(contacts[c]);
-      contactText = contactText.replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>');
+      contactText = Normalizer.unescapeHTML(contactText);
       if (!checkContactMatch(currentSearchTerms, contactText)) {
         if (contact.dataset.uuid in currentSet) {
           searchList.removeChild(currentSet[contact.dataset.uuid]);
@@ -513,7 +511,7 @@ contacts.Search = (function() {
     // new nodes should show up in that search.
     for (var i = 0, n = nodes.length; i < n; ++i) {
       var node = nodes[i];
-      var nodeText = getSearchText(node);
+      var nodeText = Normalizer.unescapeHTML(getSearchText(node));
       if (!checkContactMatch(currentSearchTerms, nodeText)) {
         searchableNodes.push({
           node: node,

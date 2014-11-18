@@ -131,6 +131,14 @@ var Normalizer = {
     return escaped;
   },
 
+  unescapeHTML: function normalizer_unescapeHTML(text) {
+    return text.replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#x27;/g, '\'');
+  },
+
   /**
    * Escape regular expressions in a string of characters
    * @param {string} str a string of characters.
