@@ -313,7 +313,8 @@ var GaiaApps = {
             },
             function() {
               // wait for the displayed app to have the expected source URL
-              return GaiaApps.getDisplayedApp().src == (origin + launchPath);
+              // in case the app has a hash added to its src, we should ignore the hash
+              return GaiaApps.getDisplayedApp().src.split('#')[0] == (origin + launchPath);
             }
           );
         });
