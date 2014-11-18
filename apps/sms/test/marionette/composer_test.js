@@ -86,7 +86,6 @@ marionette('Messages Composer', function() {
 
       assert.equal(composer.subjectInput.text(), '');
       assertIsNotDisplayed(composer.mmsLabel);
-      assertIsNotDisplayed(composer.subjectMmsLabel);
       assertIsNotDisplayed(composer.charCounter);
 
       // Case #6: Enter some text to message input to show available char
@@ -96,38 +95,33 @@ marionette('Messages Composer', function() {
       client.helper.waitForElement(composer.charCounter);
       assert.equal(composer.charCounter.text(), '19/1');
       assertIsNotDisplayed(composer.mmsLabel);
-      assertIsNotDisplayed(composer.subjectMmsLabel);
 
       // Case #7: Enter some text to subject input. Message should be converted
       // to MMS and appropriate label should appear near subject field,
       // available char counter should disappear
       composer.subjectInput.sendKeys('subject');
 
-      client.helper.waitForElement(composer.subjectMmsLabel);
+      client.helper.waitForElement(composer.mmsLabel);
       client.helper.waitForElementToDisappear(composer.charCounter);
-      assertIsNotDisplayed(composer.mmsLabel);
 
       // Case #8: Enter some text to message input while subject is not empty
       // and visible. In this case we still update available char counter, but
       // doesn't display it to the user as currently message is MMS
       composer.messageInput.sendKeys('cd');
 
-      assertIsDisplayed(composer.subjectMmsLabel);
-      assertIsNotDisplayed(composer.mmsLabel);
+      assertIsDisplayed(composer.mmsLabel);
       assertIsNotDisplayed(composer.charCounter);
 
       // Case #9: Remove subject when there is enough text to show available
       // char counter (with actual value), message converted to SMS
       messagesApp.hideSubject();
 
-      client.helper.waitForElementToDisappear(composer.subjectMmsLabel);
+      client.helper.waitForElementToDisappear(composer.mmsLabel);
       client.helper.waitForElement(composer.charCounter);
       assert.equal(composer.charCounter.text(), '17/1');
-      assertIsNotDisplayed(composer.mmsLabel);
 
       // Case #10: Add attachment, message is converted to MMS and appropriate
-      // label should appear on the same place where available char counter was
-      // displayed previously
+      // label appears in the subject line.
       client.waitFor(function() {
         return composer.attachButton.enabled();
       }.bind(this));
@@ -146,19 +140,17 @@ marionette('Messages Composer', function() {
       assert.equal(composer.charCounter.text(), '');
 
       // Case #11: show subject when we have an attachment, message is still
-      // MMS, but we should display MMS label near subject instead
+      // MMS.
       messagesApp.showSubject();
 
-      client.helper.waitForElement(composer.subjectMmsLabel);
-      client.helper.waitForElementToDisappear(composer.mmsLabel);
+      assertIsDisplayed(composer.mmsLabel);
       assertIsNotDisplayed(composer.charCounter);
 
       // Case #12: remove subject when we have an attachment, message is still
-      // MMS, but appropriate label should be displayed near message input
+      // MMS
       messagesApp.hideSubject();
 
-      client.helper.waitForElementToDisappear(composer.subjectMmsLabel);
-      client.helper.waitForElement(composer.mmsLabel);
+      assertIsDisplayed(composer.mmsLabel);
       assertIsNotDisplayed(composer.charCounter);
 
       // Case #13: edit some text and remove attachment, in this case message is
