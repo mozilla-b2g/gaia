@@ -197,7 +197,7 @@ var NfcHandoverManager = {
     window.navigator.mozSetMessageHandler('nfc-manager-send-file',
       function(msg) {
         self._debug('In New event nfc-manager-send-file' + JSON.stringify(msg));
-        self.handleFileTransfer(msg.sessionToken, msg.blob, msg.requestId);
+        self.handleFileTransfer(msg.peer, msg.blob, msg.requestId);
     });
 
     SettingsListener.observe('nfc.debugging.enabled', false,
@@ -421,13 +421,13 @@ var NfcHandoverManager = {
   /**
    * Initiate a file transfer by sending a Handover Request to the
    * remote device.
-   * @param {String} session NFC session ID.
+   * @param {MozNFCPeer} An instance of MozNFCPeer object.
    * @param {Blob} blob File to be sent.
    * @param {String} requestId Request ID.
    * @memberof NfcHandoverManager.prototype
    */
   _initiateFileTransfer:
-    function _initiateFileTransfer(session, blob, requestId) {
+    function _initiateFileTransfer(nfcPeer, blob, requestId) {
       this._debug('initiateFileTransfer');
       /*
        * Initiate a file transfer by sending a Handover Request to the
@@ -440,8 +440,7 @@ var NfcHandoverManager = {
       var onerror = function() {
         self._dispatchSendFileStatus(1, requestId);
       };
-      var nfcPeer = this.nfc.getNFCPeer(session);
-      if (nfcPeer === null) {
+      if (nfcPeer.isLost) {
         this._logVisibly('NFC peer went away during initiateFileTransfer');
         onerror();
         this._restoreBluetoothStatus();
@@ -449,7 +448,7 @@ var NfcHandoverManager = {
                                      blob.name);
         return;
       }
-      var job = {session: session, blob: blob, requestId: requestId,
+      var job = {nfcPeer: nfcPeer, blob: blob, requestId: requestId,
                  onsuccess: onsuccess, onerror: onerror};
       this.sendFileQueue.push(job);
       var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
@@ -639,15 +638,15 @@ var NfcHandoverManager = {
 
   /**
    * Trigger a file transfer with a remote device via BT.
-   * @param {String} session NFC session ID.
+   * @param {MozNFCPeer} An instance of MozNFCPeer object.
    * @param {Blob} blob File to be sent.
    * @param {String} requestId Request ID.
    * @memberof NfcHandoverManager.prototype
    */
-  handleFileTransfer: function handleFileTransfer(session, blob, requestId) {
+  handleFileTransfer: function handleFileTransfer(nfcPeer, blob, requestId) {
     this._debug('handleFileTransfer');
     this._saveBluetoothStatus();
-    this._doAction({callback: this._initiateFileTransfer, args: [session, blob,
+    this._doAction({callback: this._initiateFileTransfer, args: [nfcPeer, blob,
                                                                  requestId]});
   },
 
