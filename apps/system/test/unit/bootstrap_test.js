@@ -1,7 +1,8 @@
 'use strict';
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n,
          MockApplications, Applications, MockNavigatormozSetMessageHandler,
-         MockGetDeviceStorages, MockVersionHelper */
+         MockGetDeviceStorages, MockVersionHelper, MockKeyboardManager,
+         MockTrustedUIManager */
 
 requireApp('system/shared/js/performance_testing_helper.js');
 requireApp('system/shared/js/async_storage.js');
@@ -83,6 +84,8 @@ requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_version_helper.js');
 requireApp('system/js/base_module.js');
+requireApp('system/test/unit/mock_keyboard_manager.js');
+requireApp('system/test/unit/mock_trusted_ui_manager.js');
 
 var mocksForBootstrap = new MocksHelper([
   'AirplaneMode',
@@ -112,6 +115,8 @@ suite('system/Bootstrap', function() {
   var realApplications;
   var realVersionHelper;
   var fakeElement;
+  var realKeyboardManager;
+  var realTrustedUIManager;
 
   mocksForBootstrap.attachTestHelpers();
 
@@ -156,6 +161,12 @@ suite('system/Bootstrap', function() {
     realVersionHelper = window.VersionHelper;
     window.VersionHelper = MockVersionHelper(false);
 
+    realKeyboardManager = window.KeyboardManager;
+    window.KeyboardManager = MockKeyboardManager;
+
+    realTrustedUIManager = window.TrustedUIManager;
+    window.TrustedUIManager = MockTrustedUIManager;
+
     requireApp('system/js/bootstrap.js', done);
   });
 
@@ -177,6 +188,9 @@ suite('system/Bootstrap', function() {
 
     navigator.getDeviceStorages = realNavigatorGetDeviceStorages;
     realNavigatorGetDeviceStorages = null;
+
+    window.KeyboardManager = realKeyboardManager;
+    window.TrustedUIManager = realTrustedUIManager;
 
     document.documentElement.dir = realDocumentElementDir;
     document.documentElement.lang = realDocumentElementLang;
