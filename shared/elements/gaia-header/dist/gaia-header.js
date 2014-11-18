@@ -192,6 +192,7 @@ proto.createdCallback = function() {
 proto.attachedCallback = function() {
   this.restyleShadowDom();
   this.runFontFit();
+  this.addFontFitObserver();
   this.setupRtl();
 };
 
@@ -243,15 +244,23 @@ proto.setupRtl = function() {
 
   var self = this;
   this.observerRtl = new MutationObserver(onAttributeChanged);
-  this.observerRtl.observe(document.documentElement, { attributes: true });
+  this.observerRtl.observe(document.documentElement, {
+    attributes: true,
+    attributeOldValue: true,
+    attributeFilter: ['dir']
+  });
   this.configureRtl();
 
   function onAttributeChanged(mutations) {
-    mutations.forEach(function(mutation) {
-      if (mutation.attributeName !== 'dir') { return; }
-      this.configureRtl();
-      this.runFontFit();
-    }, self);
+    var firstMutation = mutations[0];
+    var lastMutation = mutations[mutations.length - 1];
+
+    var previousValue = firstMutation.oldValue || 'ltr';
+    var newValue = lastMutation.target.getAttribute('dir') || 'ltr'
+    if (previousValue !== newValue) {
+      self.configureRtl();
+      self.runFontFit();
+    }
   }
 };
 
@@ -319,7 +328,7 @@ proto.restyleShadowDom = function() {
  *
  * @private
  */
-proto.initFontFit = function() {
+proto.addFontFitObserver = function() {
   for (var i = 0; i < this.els.headings.length; i++) {
     fontFit.observeHeadingChanges(this.els.headings[i]);
   }
@@ -332,6 +341,7 @@ proto.initFontFit = function() {
  * @private
  */
 proto.runFontFit = function() {
+  console.log('>> runFontFit', new Error().stack.replace(/\n/g, '|'));
   for (var i = 0; i < this.els.headings.length; i++) {
     var heading = this.els.headings[i];
     var start = parseInt(this._start);
@@ -340,6 +350,7 @@ proto.runFontFit = function() {
     heading.dataset.end = isNaN(end) ? '' : end;
     fontFit.reformatHeading(heading);
   }
+  console.log('>> end runFontFit');
 };
 
 /**
@@ -364,15 +375,6 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
 
 proto._updateAttribute = function(name) {
   var newVal = this.getAttribute(name);
-  switch (name) {
-    case 'start':
-    case 'end':
-      if (newVal === null) {
-        newVal = 0;
-      }
-      break;
-    default:
-  }
   this['_' + name] = newVal;
 };
 
@@ -809,8 +811,10 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
      * @param {HTMLHeadingElement} heading h1 text inside header to reformat.
      */
     reformatHeading: function(heading) {
+      console.log('reformating heading for header', heading);
       // Skip resize logic if header has no content, ie before localization.
       if (!heading || heading.textContent.trim() === '') {
+        console.log('will do nothing for header', heading);
         return;
       }
 
@@ -823,7 +827,8 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
           contentWidth: this._getWindowWidth() - (heading.dataset.start || 0) - (heading.dataset.end || 0),
           paddingRight: 0,
           paddingLeft: 0,
-          offsetLeft: heading.dataset.start || 0
+          offsetLeft: heading.dataset.start || 0,
+          rtlFriendly: true
         };
       } else {
         // Reset our centering styles.
@@ -912,14 +917,23 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
 
     /**
      * Auto-resize all text changes.
+     * We reformat only once even if several mutations occur for one target.
      *
      * @param {Array} mutations A MutationRecord list.
      * @private
      */
     _handleTextChanges: function(mutations) {
+      console.log('>> handle text changes');
+      var targets = new Set();
+
       for (var i = 0; i < mutations.length; i++) {
-        this.reformatHeading(mutations[i].target);
+        targets.add(mutations[i].target);
       }
+
+      for (var target of targets) {
+        this.reformatHeading(target);
+      }
+      console.log('>> end handle text changes');
     },
 
     /**
@@ -1059,6 +1073,7 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       // We need to set the lateral margins to 0 to be able to measure the
       // element width properly. All previously set values are ignored.
       heading.style.marginLeft = heading.style.marginRight = '0';
+      heading.style.MozMarginStart = heading.style.MozMarginEnd = '0';
     },
 
     /**
@@ -1092,6 +1107,9 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
         return;
       }
 
+      var propLeft = styleOptions.rtlFriendly ? 'MozMarginStart' : 'marginLeft';
+      var propRight = styleOptions.rtlFriendly ? 'MozMarginEnd' : 'marginRight';
+
       // To center, we need to make sure the space to the left of the header
       // is the same as the space to the right, so take the largest of the two.
       var margin = Math.max(sideSpaceLeft, sideSpaceRight);
@@ -1102,10 +1120,10 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       // See https://bugzil.la/1026955
       if (minHeaderWidth + (margin * 2) < this._getWindowWidth() - 1) {
         if (sideSpaceLeft < sideSpaceRight) {
-          heading.style.marginLeft = (sideSpaceRight - sideSpaceLeft) + 'px';
+          heading.style[propLeft] = (sideSpaceRight - sideSpaceLeft) + 'px';
         }
         if (sideSpaceRight < sideSpaceLeft) {
-          heading.style.marginRight = (sideSpaceLeft - sideSpaceRight) + 'px';
+          heading.style[propRight] = (sideSpaceLeft - sideSpaceRight) + 'px';
         }
       }
     },

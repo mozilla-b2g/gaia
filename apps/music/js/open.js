@@ -23,7 +23,6 @@ function handleOpenActivity(request) {
   if (data.allowSave && data.filename && checkFilename()) {
     saveButton.hidden = false;
     saveButton.disabled = true;
-    header.initFontFit();
     header.runFontFit();
 
     getStorageIfAvailable('music', blob.size, function(ds) {
