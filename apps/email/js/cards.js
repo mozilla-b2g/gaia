@@ -574,7 +574,14 @@ var cards = {
       numCards = this._cardStack.length - firstIndex;
     }
 
-    if (showMethod !== 'none') {
+    if (showMethod === 'none') {
+      // If a 'none' remove, and the remove is for a DOM node that used
+      // anim-overlay, which would have increased the _zIndex when added, adjust
+      // the zIndex appropriately.
+      if (cardDomNode && cardDomNode.classList.contains('anim-overlay')) {
+        this._zIndex -= 10;
+      }
+    } else {
       var nextCardIndex = -1;
       if (nextCardSpec) {
         nextCardIndex = this._findCard(nextCardSpec);

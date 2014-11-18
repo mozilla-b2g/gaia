@@ -32,6 +32,17 @@ body {
   height: 100%;
 }
 
+/* Set an explicit z-index of 0 so that #cardContainer gets its own stacking
+   context. Without this, the z-index usage inside it by .card nodes could lead
+   to a z-index that is quite high and may hide other elements like dialogs,
+   that could be placed outside #cardContainer at a z-index value, but not with
+   as high of value as the topmost card. Creating a stacking context for
+   #cardContainer avoids that by keeping the stacking context for the .card
+   elements as a child context of this one. */
+#cardContainer {
+  z-index: 0;
+}
+
 .card {
   position: absolute;
   top: 0;
