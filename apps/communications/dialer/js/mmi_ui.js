@@ -85,6 +85,7 @@ var MmiUI = {
   },
 
   showMessage: function mui_showMessage(message, header) {
+    console.log('[MMI] [showMessage] message: ' + message + ', header: ' + header);
     this.showWindow();
     this.hideLoading();
     this.responseTextNode.removeAttribute('disabled');
@@ -97,6 +98,7 @@ var MmiUI = {
 
     // Make sure the app is displayed
     navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      console.log('[MMI] [showMessage] launch dialer');
       evt.target.result.launch('dialer');
     };
   },
@@ -164,15 +166,18 @@ var MmiUI = {
 
     switch (data.type) {
       case 'mmi-success':
+        console.log('[MMI] [handleEvent] mmi-success');
         this.hideResponseForm();
         var msg = data.result ? data.result : this._('mmi-successfully-sent');
         var header = data.title ? data.title : undefined;
         this.showMessage(msg, header);
         break;
       case 'mmi-error':
+        console.log('[MMI] [handleEvent] mmi-error');
         this.handleError(data);
         break;
       case 'mmi-received-ui':
+        console.log('[MMI] [handleEvent] mmi-received-ui');
         if (data.sessionEnded) {
           this.hideResponseForm();
           if (data.message == null) {
@@ -184,6 +189,7 @@ var MmiUI = {
         this.showMessage(data.message, data.title);
         break;
       case 'mmi-loading':
+        console.log('[MMI] [handleEvent] mmi-loading');
         this.showLoading();
         break;
     }

@@ -456,20 +456,13 @@ var CallHandler = (function callHandler() {
        * then this is most likely an unsollicited message. To prevent
        * interrupting the user we post a notification for it instead of
        * displaying the dialer UI. */
+      console.log('[MMI] [onUssdReceived] dialer hidden and session ended');
       MmiManager.sendNotification(evt.message, evt.serviceId)
                 .then(releaseWakeLock);
     } else {
+      console.log('[MMI] [onUssdReceived] dialer not hidden or session not ended');
       MmiManager.handleMMIReceived(evt.message, evt.sessionEnded,
                                    evt.serviceId);
-      // If the dialer is not visible and the session not ended, it may requires
-      // user interaction with an unsolicited message. Therefore brings up
-      // dialer app to have user interact with it.
-      if (document.hidden) {
-        window.navigator.mozApps.getSelf().onsuccess = function(evt) {
-          var app = evt.target.result;
-          app.launch('dialer');
-        }
-      }
     }
   }
 
