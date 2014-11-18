@@ -8,7 +8,8 @@
  */
 var AlbumArt = (function() {
 
-  // When we generate our own thumbnails, aim for this size
+  // When we generate our own thumbnails, aim for this size. XXX: This should be
+  // improved to pick a size based on the resolution of our device.
   var THUMBNAIL_WIDTH = 300;
   var THUMBNAIL_HEIGHT = 300;
 
