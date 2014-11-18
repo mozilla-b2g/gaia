@@ -1,4 +1,3 @@
-/*global: MockNavigatorMozTelephony*/
 'use strict';
 
 suite('Sound > ToneManager', function() {
