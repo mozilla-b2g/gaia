@@ -7,7 +7,8 @@ requireApp('privacy-panel/js/vendor/alameda.js', () => {
       shared: '../shared/js',
       mocks: '../shared/test/unit/mocks',
       mymocks: '/test/unit/mocks',
-      html_helper: '../test/unit/html_helper'
+      html_helper: '../test/unit/html_helper',
+      shared_mocks: '../../../../../shared/test/unit/mocks/'
     },
     shim: {
       'mocks/mock_navigator_moz_apps': {
@@ -32,7 +33,7 @@ requireApp('privacy-panel/js/vendor/alameda.js', () => {
     urlArgs: 'cache_bust=' + Date.now(),
     map: {
       '*': {
-        'shared/async_storage': 'mymocks/mock_async_storage',
+        'shared/async_storage': 'shared_mocks/mock_async_storage',
         'sms/commands': 'mymocks/mock_commands'
       }
     }
