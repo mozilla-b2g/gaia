@@ -13,14 +13,18 @@
     <!-- Shared libraries -->
     <script src="shared/js/l10n.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/manifest_helper.js"></script>
 
     <!-- Helper libraries -->
     <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="tv_shared/js/selection_border.js"></script>
     <script defer src="tv_shared/js/spatial_navigator.js"></script>
+    <script defer src="tv_shared/js/applications.js"></script>
+    <script defer src="tv_shared/js/settings_cache.js"></script>
 
     <!-- main -->
     <script defer src="js/base.js"></script>
+    <script defer src="js/option_menu.js"></script>
     <script defer src="js/settings_list.js"></script>
     <script defer src="js/settings_group.js"></script>
     <script defer src="js/setup_group_list.js"></script>
@@ -66,6 +70,9 @@
       <header>
         <h2 id="detail-panel-title" class="panel-title"></h2>
       </header>
+      <section id="option-menu" class="option-menu menu-container" data-icon="forward">
+        <section id="option-menu-list" class="menu-list"></section>
+      </section>
     </section>
   </body>
 

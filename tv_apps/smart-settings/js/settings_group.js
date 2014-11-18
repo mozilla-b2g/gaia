@@ -8,14 +8,12 @@
     })
   }
 
-  function SettingsGroup(dom, lazyDOMId) {
+  function SettingsGroup() {
     var self = this;
-    this.container = dom;
     this.bindSelf();
-    this.on('itemChoosed', function translateItemToGroup(dom) {
-      self.fire('groupChoosed', dom.dataset.group);
+    this.on('itemChoosed', function translateItemToGroup(data) {
+      self.fire('groupChoosed', data.dom.dataset.group);
     });
-    this.init(document.getElementById(lazyDOMId));
   }
 
   var proto = SettingsGroup.prototype = new SettingsList();
@@ -23,7 +21,13 @@
   proto.setActive = function sg_setActive(active) {
     // no matter activate or not, we should reselect the dom node.
     this.selectionBorder.select(this.spatialNavigation.getFocusedElement());
-  }
+  };
+
+  proto.init = function sg_init(dom, lazyDOMId) {
+    this.container = dom;
+    SettingsList.prototype.init.apply(this,
+                                      [document.getElementById(lazyDOMId)]);
+  };
 
   exports.SettingsGroup = SettingsGroup;
 })(window);
