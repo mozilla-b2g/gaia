@@ -37,6 +37,7 @@ OverlayController.prototype.bindEvents = function() {
   this.app.on('change:batteryStatus', this.onBatteryChanged);
   this.app.on('camera:requesting', this.onCameraRequesting);
   this.app.on('camera:error', this.onCameraError);
+  this.app.on('camera:closed', this.onCameraError);
 };
 
 /**
@@ -108,7 +109,7 @@ OverlayController.prototype.onCameraRequesting = function() {
  * events by inserting overlays
  * into the app.
  *
- * @param  {String} state  ['start'|'success'|'fail']
+ * @param  {String} type  ['nospace'|'unavailable'|'request-fail'|'mediaserver']
  */
 OverlayController.prototype.onCameraError = function(type) {
   var self = this;
@@ -142,15 +143,16 @@ OverlayController.prototype.createOverlay = function(type, callback) {
     return;
   }
 
-  var closable = this.activity.pick && type !== 'request-fail';
-
   var overlay = new Overlay({
     type: type,
-    closable: closable,
     data: data
   }).appendTo(document.body)
-    .on('click:close-btn', function() {
+    .on('click:close', function() {
       self.app.emit('activitycanceled');
+    })
+    .on('click:reboot', function() {
+      self.app.emit('activitycanceled');
+      self.app.emit('reboot');
     });
 
   debug('inserted \'%s\' overlay', type);
@@ -169,6 +171,12 @@ OverlayController.prototype.createOverlay = function(type, callback) {
  */
 OverlayController.prototype.getOverlayData = function(type) {
   var data = {};
+
+  if (this.activity.pick && type !== 'request-fail') {
+    data.action = 'close';
+  }
+
+  data.actionButtonText = this.l10nGet('close-button');
 
   switch (type) {
     case 'unavailable':
@@ -191,11 +199,15 @@ OverlayController.prototype.getOverlayData = function(type) {
       data.title = this.l10nGet('camera-unavailable-title');
       data.body = this.l10nGet('camera-unavailable-text');
     break;
+    case 'mediaserver-fail':
+      data.title = this.l10nGet('camera-fatal-error-title');
+      data.body = this.l10nGet('camera-mediaserver-fail-text');
+      data.action = 'reboot';
+      data.actionButtonText = this.l10nGet('reboot-button');
+    break;
     default:
       return false;
   }
-
-  data.closeButtonText = this.l10nGet('close-button');
 
   return data;
 };

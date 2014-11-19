@@ -57,6 +57,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('newvideo', app.firer('camera:newvideo'));
   camera.on('shutter', app.firer('camera:shutter'));
   camera.on('loaded', app.firer('camera:loaded'));
+  camera.on('closed', app.firer('camera:closed'));
   camera.on('error', app.firer('camera:error'));
   camera.on('ready', app.firer('ready'));
   camera.on('busy', app.firer('busy'));
@@ -355,9 +356,7 @@ CameraController.prototype.setFlashMode = function() {
 
 CameraController.prototype.onHidden = function() {
   debug('app hidden');
-  this.camera.stopRecording();
-  this.camera.set('focus', 'none');
-  this.camera.release();
+  this.camera.shutdown();
 };
 
 CameraController.prototype.setISO = function() {
@@ -428,10 +427,7 @@ CameraController.prototype.onFocusPointChanged = function(focusPoint) {
 };
 
 CameraController.prototype.shutdownCamera = function() {
-  this.camera.stopRecording();
-  this.camera.set('previewActive', false);
-  this.camera.set('focus', 'none');
-  this.camera.release();
+  this.camera.shutdown();
 };
 
 /**
