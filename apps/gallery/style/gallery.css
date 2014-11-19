@@ -173,7 +173,7 @@ body.pickView #thumbnails {
   font-size: 1.6rem;
   font-weight: 400;
   color: #8a9699;
-  padding: 0 0 0 0.5rem;
+  -moz-padding-start: 0.5rem;
   height: 4rem;
   line-height: 4rem;
   width:100%;
@@ -206,7 +206,7 @@ body.pickView #thumbnails {
 }
 
 .thumbnail {
-  margin-right: 0.1rem;
+  -moz-margin-end: 0.1rem;
   margin-bottom: 0.1rem;
   padding: 0;
   /* default to left-to-right, but overridden for rtl languages below */
@@ -239,7 +239,7 @@ body.pickView #thumbnails {
 }
 
 .thumbnail:nth-child(3n) {
-  margin-right: 0;
+  -moz-margin-end: 0;
 }
 
 .thumbnailImage{
@@ -266,10 +266,10 @@ body.pickView #thumbnails {
     padding-bottom: calc((100%  - 0.3rem) / 4);
   }
   .thumbnail:nth-child(3n) {
-    margin-right: 0.1rem;
+    -moz-margin-end: 0.1rem;
   }
   .thumbnail:nth-child(4n) {
-    margin-right: 0;
+    -moz-margin-end: 0;
   }
 }
 
