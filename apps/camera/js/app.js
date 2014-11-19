@@ -168,6 +168,7 @@ App.prototype.bindEvents = function() {
   this.on('ready', this.clearSpinner);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
+  this.on('reboot', this.onReboot);
   this.on('busy', this.onBusy);
 
   // Pinch
@@ -213,6 +214,18 @@ App.prototype.onHidden = function() {
   orientation.stop();
   debug('hidden');
 };
+
+
+/**
+ * Reboots the application
+ *
+ * @private
+ */
+App.prototype.onReboot = function() {
+  debug('reboot');
+  window.location.reload();
+};
+
 
 /**
  * Emit a click event that other

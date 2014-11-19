@@ -333,6 +333,7 @@ Camera.prototype.setupNewCamera = function(mozCamera) {
 
   // Bind to some events
   this.mozCamera.onShutter = this.onShutter;
+  this.mozCamera.onClosed = this.onClosed;
   this.mozCamera.onPreviewStateChange = this.onPreviewStateChange;
   this.mozCamera.onRecorderStateChange = this.onRecorderStateChange;
 
@@ -431,6 +432,13 @@ Camera.prototype.configureFocus = function() {
   this.focus.configure(this.mozCamera, this.mode);
   this.focus.onFacesDetected = this.onFacesDetected;
   this.focus.onAutoFocusChanged = this.onAutoFocusChanged;
+};
+
+Camera.prototype.shutdown = function() {
+  this.stopRecording();
+  this.set('previewActive', false);
+  this.set('focus', 'none');
+  this.release();
 };
 
 Camera.prototype.onAutoFocusChanged = function(state) {
@@ -1097,6 +1105,18 @@ Camera.prototype.onRecordingError = function(id) {
  */
 Camera.prototype.onShutter = function() {
   this.emit('shutter');
+};
+
+
+/**
+ * Emit a 'closed' event when camera controller
+ * closes
+ *
+ * @private
+ */
+Camera.prototype.onClosed = function(reason) {
+  this.shutdown();
+  this.emit('closed', reason);
 };
 
 /**
