@@ -11,5 +11,11 @@ var MockWifiHelper = {
   },
   isConnected: function(network) {
     return false;
+  },
+  isOpen: function(network) {
+    return false;
+  },
+  isEap: function(network) {
+    return false;
   }
 };
