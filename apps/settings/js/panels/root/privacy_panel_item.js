@@ -10,6 +10,7 @@ define(function(require) {
 
   function PrivacyPanelItem(element) {
     this._element = element;
+    this._element.link = element.querySelector('a');
     this._app = null;
 
     this._privacyPanelManifestURL = document.location.protocol +
@@ -90,6 +91,7 @@ define(function(require) {
         }.bind(this);
         flag.onerror = function() {
           console.error('Problem with launching Privacy Panel');
+          alert('Problem with launching Privacy Panel');
         };
       } else {
         alert(navigator.mozL10n.get('no-privacy-panel'));
@@ -103,7 +105,7 @@ define(function(require) {
      * @method _updateSelection
      */
     _updateSelection: function() {
-      this._element.querySelector('a').blur();
+      this._element.link.blur();
     }
   };
 

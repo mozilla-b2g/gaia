@@ -49,15 +49,18 @@ require.config({
 require([
   'panels',
   'root/main',
+  'about/main',
   'shared/l10n'
 ],
 
-function(panels, root) {
+function(panels, root, about) {
   root.init();
 
   // load all templates for guided tour sections
   panels.load('gt');
-  panels.load('about');
+  panels.load('about', function() {
+    about.init();
+  });
 
   require([
     'ala/main',
