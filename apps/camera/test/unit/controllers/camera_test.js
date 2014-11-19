@@ -74,7 +74,7 @@ suite('controllers/camera', function() {
 
   suite('CameraController()', function() {
     setup(function() {
-      this.sandbox.stub(this.CameraController.prototype, 'onHidden');
+      this.sandbox.stub(this.CameraController.prototype, 'shutdownCamera');
     });
 
     test('Should filter the `cameras` setting based on the camera list', function() {
@@ -86,7 +86,7 @@ suite('controllers/camera', function() {
     });
 
     test('Should teardown camera on app `hidden`', function() {
-      assert.isTrue(this.app.on.calledWith('hidden', this.controller.onHidden));
+      assert.isTrue(this.app.on.calledWith('hidden', this.controller.shutdownCamera));
     });
 
     test('Should relay focus change events', function() {
@@ -465,18 +465,15 @@ suite('controllers/camera', function() {
     });
   });
 
-  suite('CameraController#onHidden()', function() {
+  suite('CameraController#shutdownCamera()', function() {
     setup(function() {
-      this.controller.onHidden();
+      this.controller.shutdownCamera();
     });
 
-    test('Should stop recording if recording', function() {
-      assert.isTrue(this.camera.stopRecording.called);
+    test('Should stop shutdown the camera', function() {
+      assert.isTrue(this.camera.shutdown.called);
     });
 
-    test('Should release the camera hardware', function() {
-      assert.isTrue(this.camera.release.called);
-    });
   });
 
   suite('CameraController#onStorageChanged()', function() {
