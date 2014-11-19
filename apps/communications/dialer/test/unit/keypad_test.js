@@ -139,28 +139,52 @@ suite('dialer/keypad', function() {
       done();
     });
 
-    test('Get IMEI via send MMI', function() {
-      var callSpy =
+    suite('IMEI', function() {
+      var mmi = '*#06#';
+      var node;
+      var fakeEventStart;
+      var fakeEventEnd;
+
+      setup(function() {
+        subject._phoneNumber = '';
+        node = document.createElement('div');
+        fakeEventStart = {
+          target: node,
+          stopPropagation: function() {},
+          type: 'touchstart'
+        };
+        fakeEventEnd = {
+          target: node,
+          stopPropagation: function() {},
+          type: 'touchend'
+        };
+      });
+
+      test('Get IMEI via send MMI', function() {
         this.sinon.spy(MockMultiSimActionButtonSingleton, 'performAction');
 
-      var mmi = '*#06#';
-      var fakeEvent = {
-        target: {
-          dataset: {
-            value: null
-          }
-        },
-        stopPropagation: function() {},
-        type: null
-      };
+        for (var i = 0, end = mmi.length; i < end; i++) {
+          fakeEventStart.target.dataset.value = mmi.charAt(i);
+          subject.keyHandler(fakeEventStart);
+          fakeEventEnd.target.dataset.value = mmi.charAt(i);
+          subject.keyHandler(fakeEventEnd);
+        }
 
-      for (var i = 0, end = mmi.length; i < end; i++) {
-        fakeEvent.target.dataset.value = mmi.charAt(i);
-        subject._phoneNumber += mmi.charAt(i);
-        subject.keyHandler(fakeEvent);
-      }
+        sinon.assert.calledOnce(
+          MockMultiSimActionButtonSingleton.performAction);
+      });
 
-      sinon.assert.calledOnce(callSpy);
+      test('Properly highlight the keys when typing the IMEI code(s)',
+      function() {
+        for (var i = 0, end = mmi.length; i < end; i++) {
+          fakeEventStart.target.dataset.value = mmi.charAt(i);
+          subject.keyHandler(fakeEventStart);
+          assert.isTrue(node.classList.contains('active'));
+          fakeEventEnd.target.dataset.value = mmi.charAt(i);
+          subject.keyHandler(fakeEventEnd);
+          assert.isFalse(node.classList.contains('active'));
+        }
+      });
     });
 
     test('Call button pressed with no calls in Call Log', function() {
