@@ -45,7 +45,7 @@ body {
   -moz-user-select: none;
 }
 
-#frame > img {
+#frame > .image-view {
   top: 0;  /* javascript modifies this position with a transform */
   left: 0;
   position: absolute;
