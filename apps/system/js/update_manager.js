@@ -198,6 +198,11 @@ var UpdateManager = {
     // is not forbidden for download
     var conns = window.navigator.mozMobileConnections;
     if (!conns) {
+      // B2G desktop/Mulet
+      if (navigator.onLine) {
+        self.startDownloads();
+        return;
+      }
       console.error('mozMobileConnections is not available we can ' +
                     'not update the phone.');
       self.showPromptNoConnection();
