@@ -352,11 +352,9 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
   var doc = this.win.document;
   var scripts = Array.prototype.slice.call(
     doc.head.querySelectorAll('script[src]'));
-  scripts.forEach(function(script, idx) {
+  Array.from(scripts).forEach(function(script, idx) {
     // per-script out see comment in function header.
-    dump('>>> script src is ' + script.src + '\n');
-    if (('skipOptimize' in script.dataset)) {
-      dump('>>> is async\n');
+    if (('skipOptimize' in script.dataset) || script.hasAttribute('async')) {
       scripts.splice(idx, 1);
       return;
     }
