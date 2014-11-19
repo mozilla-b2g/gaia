@@ -1,7 +1,9 @@
 /* exported PlayerView */
-/* global TitleBar, MusicComms, musicdb, ModeManager, App, AlbumArt,
-          AudioMetadata, ListView, ForwardLock, formatTime, MozActivity,
-          asyncStorage, SETTINGS_OPTION_KEY, MODE_PLAYER */
+/* global TitleBar, MusicComms, musicdb, ModeManager, App,
+          getThumbnailURL,
+          generateDefaultThumbnailURL, parseAudioMetadata, getAlbumArtBlob,
+          ListView, ForwardLock, formatTime, MozActivity, asyncStorage,
+          SETTINGS_OPTION_KEY, MODE_PLAYER */
 'use strict';
 
 // We have four types of the playing sources
@@ -248,7 +250,8 @@ var PlayerView = {
     this.offscreenImage.src = '';
     this.coverImage.classList.remove('fadeIn');
 
-    AlbumArt.getCoverURL(fileinfo).then(function(url) {
+    getThumbnailURL(fileinfo, function(url) {
+      url = url || generateDefaultThumbnailURL(fileinfo.metadata);
       this.offscreenImage.addEventListener('load', pv_showImage.bind(this));
       this.offscreenImage.src = url;
     }.bind(this));
@@ -355,7 +358,7 @@ var PlayerView = {
   },
 
   getMetadata: function pv_getMetadata(blob, callback) {
-    AudioMetadata.parse(blob).then(pv_gotMetadata, pv_metadataError.bind(this));
+    parseAudioMetadata(blob, pv_gotMetadata, pv_metadataError.bind(this));
 
     function pv_gotMetadata(metadata) {
       callback(metadata);
@@ -429,8 +432,14 @@ var PlayerView = {
     // picture. If .picture is null, something went wrong and listeners should
     // probably use a blank picture (or their own placeholder).
     if (this.audio.currentTime === 0) {
-      AlbumArt.getCoverBlob(fileinfo).then(function(blob) {
-        notifyMetadata.picture = blob;
+      getAlbumArtBlob(fileinfo, function(err, blob) {
+        if (!err) {
+          if (blob) {
+            notifyMetadata.picture = blob;
+          }
+        } else {
+          notifyMetadata.picture = null;
+        }
         MusicComms.notifyMetadataChanged(notifyMetadata);
       });
     }
@@ -805,7 +814,7 @@ var PlayerView = {
     }
 
     musicdb.getFile(songData.name, function(file) {
-      AlbumArt.getCoverBlob(songData).then(function(pictureBlob) {
+      getAlbumArtBlob(songData, function(err, pictureBlob) {
         var filename = songData.name,
         name = filename.substring(filename.lastIndexOf('/') + 1);
 

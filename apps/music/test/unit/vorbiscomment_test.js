@@ -1,28 +1,11 @@
-/* global parseMetadata, MockLazyLoader, MockGetDeviceStorage */
+/* global parseMetadata */
 'use strict';
 
-require('/test/unit/metadata/utils.js');
-require('/js/metadata/ogg.js');
+require('/test/unit/metadata_utils.js');
 
-suite('ogg tags', function() {
-  var RealLazyLoader, RealGetDeviceStorage;
-
-  setup(function(done) {
+suite('vorbis comment', function() {
+  setup(function() {
     this.timeout(1000);
-    RealLazyLoader = window.LazyLoader;
-    window.LazyLoader = MockLazyLoader;
-
-    RealGetDeviceStorage = navigator.getDeviceStorage;
-    navigator.getDeviceStorage = MockGetDeviceStorage;
-
-    require('/js/metadata_scripts.js', function() {
-      done();
-    });
-  });
-
-  teardown(function() {
-    window.LazyLoader = RealLazyLoader;
-    navigator.getDeviceStorage = RealGetDeviceStorage;
   });
 
   test('vorbis comment', function(done) {
