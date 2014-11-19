@@ -259,6 +259,32 @@ suite('system/UtilityTray', function() {
     });
   });
 
+  // handleEvent
+  suite('handleEvent: sheets-gesture-begin', function() {
+    setup(function() {
+      fakeEvt = createEvent('sheets-gesture-begin');
+      UtilityTray.show();
+      UtilityTray.handleEvent(fakeEvt);
+    });
+
+    test('should hide the ambientIndicator', function() {
+      assert.isTrue(UtilityTray.overlay.classList.contains('hidden'));
+    });
+  });
+
+  // handleEvent
+  suite('handleEvent: sheets-gesture-end', function() {
+    setup(function() {
+      fakeEvt = createEvent('sheets-gesture-end');
+      UtilityTray.show();
+      UtilityTray.handleEvent(fakeEvt);
+    });
+
+    test('should unhide the ambientIndicator', function() {
+      assert.isFalse(UtilityTray.overlay.classList.contains('hidden'));
+    });
+  });
+
   suite('handleEvent: cardviewbeforeshow', function() {
     setup(function() {
       fakeEvt = createEvent('cardviewbeforeshow');
