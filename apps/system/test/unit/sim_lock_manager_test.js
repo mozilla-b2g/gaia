@@ -1,5 +1,5 @@
 /* global MocksHelper, Service, MockSimLockSystemDialog */
-/* global MockSIMSlotManager, BaseModule, MockService */
+/* global MockSIMSlotManager, BaseModule, MockService, MockApplications */
 
 'use strict';
 
@@ -8,6 +8,7 @@ requireApp('system/test/unit/mock_simcard_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_version_helper.js');
+requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_sim_lock_system_dialog.js');
 requireApp('/system/shared/test/unit/mocks/mock_ftu_launcher.js');
 requireApp('/shared/js/lazy_loader.js');
@@ -45,6 +46,8 @@ suite('SimLockManager', function() {
   setup(function() {
     // inject one instance
     addSimSlot();
+    window.applications = MockApplications;
+    window.applications.ready = true;
     subject = BaseModule.instantiate('SimLockManager', {
       mobileConnections: []
     });
@@ -125,6 +128,13 @@ suite('SimLockManager', function() {
       subject.showIfLocked();
       assert.isTrue(subject.simLockSystemDialog.show.calledOnce);
       assert.isFalse(subject.simLockSystemDialog.show.calledTwice);
+    });
+
+    test('should do nothing if !applications.ready', function() {
+      window.applications.ready = false;
+      subject.showIfLocked();
+      assert.isFalse(subject.simLockSystemDialog.show.called);
+      window.applications.ready = true;
     });
 
     test('should not show if locked', function() {
