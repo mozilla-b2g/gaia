@@ -61,7 +61,7 @@
                 'simlockshow',
                 'simlockhide',
                 'system-resize',
-                'system-dialog-requestfocus',
+                'simlockrequestfocus',
                 'home',
                 'holdhome',
                 'mozChromeEvent']
@@ -107,7 +107,7 @@
   SystemDialogManager.prototype.handleEvent = function sdm_handleEvent(evt) {
     var dialog = null;
     switch (evt.type) {
-      case 'system-dialog-requestfocus':
+      case 'simlockrequestfocus':
         if (evt.detail !== this.states.activeDialog) {
           return;
         }

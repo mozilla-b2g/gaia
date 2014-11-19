@@ -1,4 +1,4 @@
-/* global SystemDialog, SIMSlotManager */
+/* global SystemDialog, SIMSlotManager, applications */
 'use strict';
 
 (function(exports) {
@@ -465,7 +465,14 @@
     };
 
   SimLockSystemDialog.prototype.requestFocus = function() {
-    this.publish('requestfocus');
+    if (applications.ready) {
+      this.publish('requestfocus');
+    } else {
+      window.addEventListener('bootstrap-events-registered', function onBoot() {
+        window.removeEventListener('bootstrap-events-registered', onBoot);
+        this.publish('requestfocus');
+      }.bind(this));
+    }
   };
 
   exports.SimLockSystemDialog = SimLockSystemDialog;
