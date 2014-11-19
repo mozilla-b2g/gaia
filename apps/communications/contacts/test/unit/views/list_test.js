@@ -25,7 +25,6 @@ require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/contacts/utilities/templates.js');
 require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
-require('/shared/js/contacts/search.js');
 require('/shared/js/contacts/utilities/ice_store.js');
 requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
@@ -89,7 +88,6 @@ suite('Render contacts list', function() {
       container,
       containerSection,
       selectSection,
-      searchList,
       realL10n,
       realContacts,
       realFb,
@@ -118,10 +116,7 @@ suite('Render contacts list', function() {
       containerUnd,
       list,
       loading,
-      searchBox,
-      noResults,
       settings,
-      searchSection,
       noContacts,
       realMozContacts,
       fastScroll;
@@ -178,32 +173,6 @@ suite('Render contacts list', function() {
     assert.equal(totalC, lengthContacts);
   }
 
-  function assertContactFound(contact) {
-    var selectorStr = 'li.contact-item';
-
-    var showContact = searchList.querySelectorAll(selectorStr);
-    assert.lengthOf(showContact, 1);
-    assert.equal(showContact[0].dataset.uuid, contact.id);
-    assert.isTrue(noResults.classList.contains('hide'));
-  }
-
-  function assertHighlight(phrase) {
-    var selectorStr = 'li.contact-item';
-    var showContact = searchList.querySelectorAll(selectorStr);
-    assert.isTrue(showContact.length > 0);
-
-    var regExp = new RegExp('^' + phrase + '$', 'i');
-    var highlightClass = contacts.Search.getHighlightClass();
-    var highlightedNodes = searchList.getElementsByClassName(highlightClass);
-    for (var i = 0, l = highlightedNodes.length; i < l; i++) {
-      // we want to be non-case-sensitive so simple comparision
-      // of string will not work here. There could also be problems
-      // with different languages when using String.toLowerCase(),
-      // thats why we use Regular Expressions
-      assert.isTrue(regExp.test(highlightedNodes[i].innerHTML));
-    }
-  }
-
   function getStringToBeOrdered(contact, orderByLastName) {
     var ret = [];
 
@@ -244,10 +213,6 @@ suite('Render contacts list', function() {
 
     if (loading) {
       document.body.removeChild(loading);
-    }
-
-    if (searchSection) {
-      document.body.removeChild(searchSection);
     }
 
     if (selectSection) {
@@ -296,35 +261,6 @@ suite('Render contacts list', function() {
     document.body.appendChild(noContacts);
     document.body.appendChild(fastScroll);
 
-    searchSection = document.createElement('section');
-    searchSection.id = 'search-view';
-    searchSection.innerHTML =
-        '<form id="searchview-container" class="search" role="search">' +
-          '<button id="cancel-search" data-l10n-id="cancel" type="submit">' +
-            'Cancel</button>' +
-          '<p>' +
-            '<label for="search-contact">' +
-              '<input type="search" name="search" class="textfield"' +
-                ' placeholder="Search" id="search-contact"' +
-                ' data-l10n-id="search-contact">' +
-              '<button type="reset">Clear</button>' +
-            '</label>' +
-          '</p>' +
-        '</form>';
-    searchSection.innerHTML += '<section id="groups-list-search">';
-    searchSection.innerHTML += '<ol id="search-list" data-type="list"></ol>';
-    searchSection.innerHTML += '</section>';
-    searchSection.innerHTML += '<section>';
-    searchSection.innerHTML +=
-      '<p id="no-result" class="hide" data-l10n-id="noResults">' +
-        'No contacts found</p>';
-    searchSection.innerHTML +=
-      '<p id="search-progress" class="hidden" role="status">';
-    searchSection.innerHTML += '<progress class="small"></progress></p>';
-    searchSection.innerHTML += '</section>';
-
-    document.body.appendChild(searchSection);
-
     selectSection = document.createElement('form');
     selectSection.id = 'selectable-form';
     selectSection.innerHTML = '<section role="region">' +
@@ -340,10 +276,6 @@ suite('Render contacts list', function() {
 
     document.body.appendChild(selectSection);
 
-
-    searchBox = document.getElementById('search-contact');
-    searchList = document.getElementById('search-list');
-    noResults = document.getElementById('no-result');
     noContacts = document.getElementById('no-contacts');
 
     updateDomReferences();
@@ -412,9 +344,6 @@ suite('Render contacts list', function() {
 
     subject.setOrderByLastName(true);
     subject.init(list);
-
-    contacts.Search.init(list);
-    subject.initSearch();
   });
 
   suiteTeardown(function() {
@@ -1077,298 +1006,6 @@ suite('Render contacts list', function() {
       });
     }); // test ends
 
-    test('enter search mode', function() {
-      contacts.List.initSearch(function onInit() {
-        contacts.Search.enterSearchMode({preventDefault: function() {}});
-        assert.equal(window.Contacts.navigation.getCurrentView(),
-                     'search-view');
-        assert.equal(window.Contacts.navigation.getCurrentTransition(),
-                     'none');
-      });
-    });
-
-    test('check empty search', function(done) {
-      mockContacts = new MockContactsList();
-
-      doLoad(subject, mockContacts, function() {
-        searchBox.value = 'YYY';
-        contacts.Search.search(function search_finished() {
-          var selectorStr = 'li.contact-item';
-          var contacts = searchList.querySelectorAll(selectorStr);
-          done(function() {
-            assert.lengthOf(contacts, 0);
-            assert.isFalse(noResults.classList.contains('hide'));
-          });     
-        });
-      });
-    });
-
-    test('Search by name and surname with trailing whitespaces',
-        function(done) {
-      mockContacts = new MockContactsList();
-      var contactIndex = Math.floor(Math.random() * mockContacts.length);
-      var contact = mockContacts[contactIndex];
-
-      doLoad(subject, mockContacts, function() {
-        searchBox.value = contact.givenName[0] + ' ' +
-                          contact.familyName[0] + '  ';
-        contacts.Search.search(function search_finished() {
-          done(function() {
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-          });
-        });
-      });
-    });
-
-    test('Search gets updated if contact changes',
-        function(done) {
-      mockContacts = new MockContactsList();
-      var contact = mockContacts[0];
-
-      doLoad(subject, mockContacts, function() {
-        contacts.Search.enterSearchMode({preventDefault: function() {}});
-        // Search by the first character
-        searchBox.value = contact.givenName[0][0];
-        contacts.Search.search(function search_finished() {
-          assertContactFound(contact);
-          // Keep the first character to have the same search valid
-          contact.givenName[0] = contact.givenName[0][0] + ' New Name';
-          sinon.spy(contacts.Search, 'updateSearchList');
-          subject.refresh(contact, function() {
-            var listStr = list.textContent;
-            assert.isTrue(listStr.indexOf(contact.givenName[0]) !== -1);
-            var searchListStr = searchList.textContent;
-            assert.isTrue(searchListStr.indexOf(contact.givenName[0]) !== -1);
-            done();
-          });
-        });
-      });
-    });
-
-    test('Search non-alphabetical characters', function(done) {
-      mockContacts = new MockContactsList();
-
-      doLoad(subject, mockContacts, function() {
-        searchBox.value = '(';
-        contacts.Search.search(function search_finished() {
-          done(function() {
-            assert.isFalse(noResults.classList.contains('hide'));
-            contacts.Search.invalidateCache();
-          });
-        });
-      });
-    });
-
-    test('Search non-alphabetical characters with results', function(done) {
-      mockContacts = new MockContactsList();
-      var contactIndex = Math.floor(Math.random() * mockContacts.length);
-      var contact = mockContacts[contactIndex];
-      mockContacts[contactIndex].givenName[0] =
-        '(' + contact.givenName[0] + ')';
-
-      doLoad(subject, mockContacts, function() {
-        contacts.List.initSearch(function onInit() {
-          searchBox.value = '(';
-          contacts.Search.search(function search_finished() {
-            done(function() {
-              assert.isTrue(noResults.classList.contains('hide'));
-              assertContactFound(contact);
-              contacts.Search.invalidateCache();
-            });
-          });
-        });
-      });
-    });
-
-    test('Search non-ASCII (accented characters) with ASCII results',
-        function(done) {
-      mockContacts = new MockContactsList();
-      var contactIndex = Math.floor(Math.random() * mockContacts.length);
-      var contact = mockContacts[contactIndex];
-
-      var accentedCharName = '';
-      var givenName = contact.givenName[0];
-      var inChars = 'äçêìñõșțüÿÀÇÊÎÑÒȘȚÚÝ';
-      var outChars = 'aceinostuyACEINOSTUY';
-      for (var i = 0, len = givenName.length; i < len; i++) {
-        accentedCharName +=
-          inChars[outChars.indexOf(givenName[i])] || givenName[i];
-      }
-
-      doLoad(subject, mockContacts, function() {
-        contacts.List.initSearch(function onInit() {
-          searchBox.value = accentedCharName + ' ' + contact.familyName[0];
-          contacts.Search.search(function search_finished() {
-            done(function() {
-              assert.isTrue(noResults.classList.contains('hide'));
-              assertContactFound(contact);
-              contacts.Search.invalidateCache();
-            });
-          });
-        });
-      });
-    });
-
-    test('Search ASCII (non-accented characters) with non-ASCII results',
-        function(done) {
-      mockContacts = new MockContactsList();
-      var contactIndex = Math.floor(Math.random() * mockContacts.length);
-      var contact = mockContacts[contactIndex];
-
-      var accentedCharName = '';
-      var givenName = contact.givenName[0];
-      var familyName = contact.familyName[0];
-      var inChars = 'äçêìñõșțüÿÀÇÊÎÑÒȘȚÚÝ';
-      var outChars = 'aceinostuyACEINOSTUY';
-      for (var i = 0, len = givenName.length; i < len; i++) {
-        accentedCharName +=
-          inChars[outChars.indexOf(givenName[i])] || givenName[i];
-      }
-
-      mockContacts[contactIndex].givenName[0] = accentedCharName;
-
-      doLoad(subject, mockContacts, function() {
-        contacts.List.initSearch(function onInit() {
-          searchBox.value = givenName + ' ' + familyName;
-          contacts.Search.search(function search_finished() {
-            done(function() {
-              assert.isTrue(noResults.classList.contains('hide'));
-              assertContactFound(contact);
-              contacts.Search.invalidateCache();
-            });
-          });
-        });
-      });
-    });
-
-    test('Search phone number', function(done) {
-      mockContacts = new MockContactsList();
-      var contactIndex = Math.floor(Math.random() * mockContacts.length);
-      var contact = mockContacts[contactIndex];
-
-      doLoad(subject, mockContacts, function() {
-        contacts.List.initSearch(function onInit() {
-          searchBox.value = contact.tel[0].value;
-          contacts.Search.search(function search_finished() {
-            done(function() {
-              assert.isTrue(noResults.classList.contains('hide'));
-              assertContactFound(contact);
-              contacts.Search.invalidateCache();
-            });
-          });
-        });
-      });
-    });
-
-    test('Search for empty contact', function(done) {
-      mockContacts = new MockContactsList();
-
-      doLoad(subject, mockContacts, function() {
-        var empty = new MockContactAllFields();
-        empty.id = '99';
-        empty.familyName = null;
-        empty.givenName = null;
-        empty.name = null;
-        empty.category = ['favorite'];
-        empty.tel = null;
-        empty.org = null;
-        empty.email = null;
-        doRefreshContact(subject, empty);
-        contacts.List.initSearch(function onInit() {
-          searchBox.value = 'noName';
-          contacts.Search.search(function search_finished() {
-            done(function() {
-              assert.isTrue(noResults.classList.contains('hide'));
-              assertContactFound(empty);
-              contacts.Search.invalidateCache();
-              contacts.Search.exitSearchMode({preventDefault: function() {}});
-            });
-          });
-        });
-      });
-    });
-
-    test('Search for contacts with middle names', function(done) {
-      mockContacts = new MockContactsList();
-      var contactIndex = Math.floor(Math.random() * mockContacts.length);
-      var contact = mockContacts[contactIndex];
-      contact.givenName[1] = 'Juan';
-      contact.name = contact.givenName[0] + ' ' + contact.givenName[1] +  ' ' +
-                     contact.familyName[0];
-
-      doLoad(subject, mockContacts, function() {
-        contacts.List.initSearch(function onInit() {
-          searchBox.value = contact.givenName[0][0] + ' ' +
-              contact.familyName[0][0];
-          contacts.Search.search(function search_finished() {
-            contacts.Search.invalidateCache();
-            done(function() {
-              assert.isTrue(noResults.classList.contains('hide'));
-              assertContactFound(contact);
-              contact.givenName[1] = null;
-            });
-          });
-        });
-      });
-    });
-
-    test('Search phrase highlightded correctly for first letter',
-        function(done) {
-      mockContacts = new MockContactsList();
-      var contactIndex = Math.floor(Math.random() * mockContacts.length);
-      var contact = mockContacts[contactIndex];
-
-      doLoad(subject, mockContacts, function() {
-        var firstLetter = contact.givenName[0].charAt(0);
-        searchBox.value = firstLetter;
-        contacts.Search.search(function search_finished() {
-          done(function() { 
-            assertHighlight(firstLetter);
-            contacts.Search.invalidateCache();
-          });
-        });
-      });
-    });
-
-    test('Search phrase highlightded correctly for more than one letter',
-        function(done) {
-      mockContacts = new MockContactsList();
-      var contactIndex = Math.floor(Math.random() * mockContacts.length);
-      var contact = mockContacts[contactIndex];
-
-      doLoad(subject, mockContacts, function() {
-        var firstLetter = contact.givenName[0];
-        searchBox.value = firstLetter;
-        contacts.Search.search(function search_finished() {
-          done(function() {
-            assertHighlight(firstLetter);
-            contacts.Search.invalidateCache();
-          });
-        });
-      });
-    });
-
-    test('Search phrase highlights accented equivalent characters',
-        function(done) {
-      mockContacts = new MockContactsList();
-      var contactIndex = Math.floor(Math.random() * mockContacts.length);
-      var contact = mockContacts[contactIndex];
-      contact.givenName[0] = 'Aáeéi';
-      contact.name[0] = contact.givenName[0] + ' ' + contact.familyName[0];
-      contact.id = 'test-contact';
-
-      doLoad(subject, mockContacts, function() {
-        searchBox.value = 'ae';
-        contacts.Search.search(function search_finished() {
-          done(function() {
-            assertHighlight('áe');
-            contacts.Search.invalidateCache();
-          }); 
-        });
-      });
-    });
-
     test('Order string lazy calculated', function(done) {
       mockContacts = new MockContactsList();
       doLoad(subject, mockContacts, function() {
@@ -1468,6 +1105,8 @@ suite('Render contacts list', function() {
   });
 
   suite('Select mode', function() {
+    var searchList;
+
     var elements = {
       'selectForm': {
         'id': 'selectable-form',
@@ -1478,12 +1117,20 @@ suite('Render contacts list', function() {
     var mockNavigationStack;
 
     suiteSetup(function(done) {
+      searchList = document.createElement('ol');
+      searchList.id = 'search-list';
+      document.body.appendChild(searchList);
+
       window.fb.isEnabled = false;
       //resetDom(document);
       mockContacts = new MockContactsList();
       doLoad(subject, mockContacts, function() {
         done();
       });
+    });
+
+    suiteTeardown(function() {
+      searchList.remove();
     });
 
     test('enter select mode', function(done) {
