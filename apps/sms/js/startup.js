@@ -74,6 +74,12 @@ var Startup = {
     });
   },
 
+  /**
+   * We wait for the DOMContentLoaded event in the event sequence. After we
+   * loaded the first panel of threads, we lazy load all non-critical JS files.
+   * As a result, if the 'load' event was not sent yet, this will delay it even
+   * more until all these non-critical JS files are loaded. This is fine.
+   */
   init: function() {
     var loaded = function() {
       window.removeEventListener('DOMContentLoaded', loaded);
