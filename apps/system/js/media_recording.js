@@ -42,6 +42,9 @@
      */
     stop: function mr_stop() {
       this.isRecording = false;
+      if (this.icon) {
+        this.icon.update();
+      }
       this.messages = [];
       this.container = null;
 
@@ -119,6 +122,9 @@
 
       if (evt.detail.active) {
         this.isRecording = true;
+        if (this.icon) {
+          this.icon.update();
+        }
         var isAlreadyActive = this.messages.some(function(message) {
           if (message.requestURL === evt.detail.requestURL &&
               message.isApp === evt.detail.isApp) {
@@ -222,6 +228,9 @@
         }
       } else { // hide
         this.isRecording = false;
+        if (this.icon) {
+          this.icon.update();
+        }
         if (this.container.classList.contains('displayed')) {
           this.container.classList.remove('displayed');
         }

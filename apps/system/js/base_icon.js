@@ -51,10 +51,6 @@
   BaseIcon.prototype.name = 'BaseIcon';
   BaseIcon.prototype.containerElement = document.getElementById('statusbar');
   // Overload me
-  BaseIcon.prototype.view = function() {
-    return '<div id="' + instanceID + '" class="' + this.CLASS_LIST + ' hidden ' +
-            'role="' + this.role + '" data-l10n-id="' + this.l10nId + '" ' + this.additionalProperties + '></div>';
-  };
   BaseIcon.prototype.instanceID = 'statusbar-base';
   BaseIcon.prototype.additionalProperties = '';
   BaseIcon.prototype.role = 'listitem';
@@ -77,6 +73,14 @@
     this.element.hidden = true;
     this.publish('hidden');
   };
+  BaseIcon.prototype.render = function() {
+    // XXX: To prevent icon ordering regression,
+    // we are waiting statusbar rendered and fetch the element here.
+    Service.request('Statusbar:getIcon', this.instanceID).then(function(element) {
+      this.element = element;
+      this.onrender && this.onrender();
+    }.bind(this));
+  };
   BaseIcon.prototype.start = function() {
     if (this._started) {
       return;
@@ -95,6 +99,9 @@
     }
     Service.registerState('isVisible', this);
     this._start();
+    this.render();
+  };
+  BaseIcon.prototype.onrender = function() {
     this.update();
   };
   BaseIcon.prototype._start = function() {};

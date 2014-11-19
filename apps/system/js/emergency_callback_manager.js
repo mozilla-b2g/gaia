@@ -50,6 +50,8 @@
         document.getElementById('emergency-callback-stay-button');
       this.warningTimer = this.warningDialog.querySelector('p');
 
+      this.icon = new EmergencyCallbackIcon(this);
+
       // Event handler
       this._conn.addEventListener('emergencycbmodechange',
         this.onEmergencyCbModeChange.bind(this));
@@ -112,6 +114,9 @@
         this.notification.hidden = true;
         this.publish('statechanged', false);
       }
+      if (this.icon) {
+        this.icon.update();
+      }
     },
 
     displayNotificationIfHidden: function() {
@@ -119,6 +124,9 @@
         this.notification.classList.add('displayed');
         this.notification.hidden = false;
         this.publish('statechanged', true);
+      }
+      if (this.icon) {
+        this.icon.update();
       }
     },
 
@@ -142,6 +150,7 @@
 
     onEmergencyCbModeChange: function(evt) {
       var active = evt.active;
+      this.active = active;
       if (active) {
         if (this.timeoutController) {
           window.clearInterval(this.timeoutController);

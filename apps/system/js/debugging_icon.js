@@ -2,9 +2,7 @@
 'use strict';
 
 (function(exports) {
-  var DebuggingIcon = function(manager) {
-    this.manager = manager;
-  };
+  var DebuggingIcon = function() {};
   DebuggingIcon.prototype = Object.create(BaseUI.prototype);
   DebuggingIcon.prototype.constructor = DebuggingIcon;
   DebuggingIcon.prototype.EVENT_PREFIX = 'DebuggingIcon';

@@ -4,6 +4,7 @@
 (function(exports) {
   var BatteryIcon = function() {};
   BatteryIcon.prototype = Object.create(BaseIcon.prototype);
+  BatteryIcon.prototype.name = 'BatteryIcon';
   BatteryIcon.prototype.determine = function() {
     return this.manager;
   };

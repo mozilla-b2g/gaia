@@ -1,56 +1,22 @@
-/* global System, BaseUI */
+/* global Service, BaseIcon */
 'use strict';
 
 (function(exports) {
-  var TetheringIcon = function(manager) {
-    this.manager = manager;
-  };
-  TetheringIcon.prototype = Object.create(BaseUI.prototype);
-  TetheringIcon.prototype.constructor = TetheringIcon;
-  TetheringIcon.prototype.EVENT_PREFIX = 'TetheringIcon';
-  TetheringIcon.prototype.containerElement = document.getElementById('statusbar');
-  TetheringIcon.prototype.view = function() {
-    return '<div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden role="listitem">' +
-          '</div>';
-  };
-  TetheringIcon.prototype.instanceID = 'statusbar-tethering';
-  TetheringIcon.prototype._fetchElements = function() {
-    this.element = document.getElementById(this.instanceID);
-  };
-  TetheringIcon.prototype.show = function() {
-    var hidden = this.element.hidden;
-    if (!hidden) {
-      return;
-    }
-    this.element.hidden = false;
-    this.publish('shown');
-  };
-  TetheringIcon.prototype.hide = function() {
-    var hidden = this.element.hidden;
-    if (hidden) {
-      return;
-    }
-    this.element.hidden = true;
-    this.publish('hidden');
-  };
+  var TetheringIcon = function() {};
+  TetheringIcon.prototype = Object.create(BaseIcon.prototype);
+  TetheringIcon.prototype.name = 'TetheringIcon';
   TetheringIcon.prototype.start = function() {
-    System.request('addObserver', 'tethering.usb.enabled', this);
-    System.request('addObserver', 'tethering.wifi.enabled', this);
-    System.request('addObserver', 'tethering.wifi.connectedClients', this);
-    System.request('addObserver', 'tethering.usb.connectedClients', this);
+    Service.request('addObserver', 'tethering.usb.enabled', this);
+    Service.request('addObserver', 'tethering.wifi.enabled', this);
+    Service.request('addObserver', 'tethering.wifi.connectedClients', this);
+    Service.request('addObserver', 'tethering.usb.connectedClients', this);
+    this.render();
   };
   TetheringIcon.prototype.stop = function() {
-    System.request('removeObserver', 'tethering.usb.enabled', this);
-    System.request('removeObserver', 'tethering.wifi.enabled', this);
-    System.request('removeObserver', 'tethering.wifi.connectedClients', this);
-    System.request('removeObserver', 'tethering.usb.connectedClients', this);
-  };
-  TetheringIcon.prototype.isVisible = function() {
-    return this.element && !this.element.hidden;
-  };
-  TetheringIcon.prototype.observe = function(key, value) {
-    this._settings[key] = value;
-    this.update();
+    Service.request('removeObserver', 'tethering.usb.enabled', this);
+    Service.request('removeObserver', 'tethering.wifi.enabled', this);
+    Service.request('removeObserver', 'tethering.wifi.connectedClients', this);
+    Service.request('removeObserver', 'tethering.usb.connectedClients', this);
   };
   TetheringIcon.prototype.updateIconLabel = function(type, active) {
     if (this.element.hidden) {
@@ -61,6 +27,9 @@
   };
   TetheringIcon.prototype.update = function() {
     var icon = this.element;
+    if (!this.element) {
+      return;
+    }
     icon.hidden = !(this._settings['tethering.usb.enabled'] ||
                     this._settings['tethering.wifi.enabled']);
 
@@ -69,8 +38,6 @@
       (this._settings['tethering.usb.connectedClients'] !== 0);
 
     this.updateIconLabel('tethering', icon.dataset.active);
-
-    this.manager._updateIconVisibility();
   };
   exports.TetheringIcon = TetheringIcon;
 }(window));

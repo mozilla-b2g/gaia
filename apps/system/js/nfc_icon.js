@@ -1,4 +1,4 @@
-/* global System, BaseIcon */
+/* global BaseIcon */
 'use strict';
 
 (function(exports) {

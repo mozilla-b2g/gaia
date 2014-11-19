@@ -22,8 +22,10 @@
 'use strict';
 
 var StatusBar = {
+  name: 'Statusbar',
+
   /* all elements that are children nodes of the status bar */
-  ELEMENTS: ['emergency-cb-notification', 'time', 'connections', 'battery',
+  ELEMENTS: ['emergency-callback-notification', 'time', 'connections', 'battery',
     'wifi', 'data', 'flight-mode', 'network-activity', 'tethering', 'alarm',
     'debugging', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
     'bluetooth-transferring', 'recording', 'geolocation', 'usb',
@@ -34,7 +36,7 @@ var StatusBar = {
   // * Index 0 is the icon id
   // * Index 1 is the icon element width or null if size is variable
   PRIORITIES: [
-    ['emergency-cb-notification', 16 + 4],
+    ['emergency-callbak-notification', 16 + 4],
     ['battery', 25 + 4],
     ['recording', 16 + 4],
     ['flight-mode', 16 + 4],
@@ -96,15 +98,72 @@ var StatusBar = {
     }
   },
 
-  init: function sb_init() {
-    this.labelIcon = new LabelIcon(this);
-    this.alarmIcon = new AlarmIcon(this);
-    this.mobileConnectionIcon = new MobileConnectionIcon(this);
-    this.callForwardingIcon = new CallForwardingIcon(this);
-    this.timeIcon = new TimeIcon(this);
-    this.tetheringIcon = new TetheringIcon(this);
-    this.emergencyCallbackIcon = new EmergencyCallbackIcon(this);
+  iconView: function() {
+    return `<!-- Carrier & date label -->
+    <div id="statusbar-label" class="sb-start-upper sb-icon-label" role="listitem"></div>
+    <!-- Unused -->
+    <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden role="listitem"></div>
 
+    <!-- System -->
+    <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" 
+      hidden role="listitem" data-l10n-id="statusbarAlarm"></div>
+    <div id="statusbar-playing" class="sb-icon sb-icon-playing"
+      hidden role="listitem" data-l10n-id="statusbarPlaying"></div>
+    <div id="statusbar-headphones" class="sb-icon sb-icon-headphones"
+      hidden role="listitem" data-l10n-id="statusbarHeadphones"></div>
+    <div id="statusbar-bluetooth-headphones" class="sb-icon sb-icon-bluetooth-headphones"
+      role="listitem" hidden data-l10n-id="statusbarBluetoothHeadphones"></div>
+    <div id="statusbar-call-forwardings" class="sb-icon-call-forwardings"
+      hidden role="presentation"></div>
+    <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation"
+      hidden role="listitem" data-l10n-id="statusbarGeolocation"></div>
+    <div id="statusbar-recording" class="sb-icon sb-icon-recording"
+      hidden role="listitem" data-l10n-id="statusbarRecording"></div>
+    <div id="statusbar-mute" class="sb-icon sb-icon-mute"
+      hidden role="listitem"></div>
+    <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden role="listitem"
+      data-l10n-id="statusbarUsb"></div>
+    <!-- See note on <img> above. -->
+    <img id="statusbar-system-downloads" src="style/statusbar/images/system-downloads.png"
+      class="sb-icon-system-downloads" hidden role="listitem" data-l10n-id="statusbarDownloads">
+    <div id="statusbar-emergency-callback-notification"
+      class="sb-icon sb-icon-emergency-callback-notification"
+      hidden role="listitem" data-l10n-id="statusbarEmergencyCBNotification"></div>
+    <div id="statusbar-debugging" data-icon="bug"
+      class="sb-icon sb-icon-debugging" hidden role="listitem"></div>
+
+    <!-- Connectivity -->
+    <div id="statusbar-nfc" class="sb-icon sb-icon-nfc" hidden role="listitem"
+      data-l10n-id="statusbarNfc"></div>
+    <div id="statusbar-bluetooth-transferring" class="sb-icon sb-icon-bluetooth-transferring"
+      role="listitem" hidden data-l10n-id="statusbarBluetoothTransferring"></div>
+    <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden role="listitem"></div>
+    <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden role="listitem"></div>
+    <!-- HACK: We use images instead of divs to enforce allocation of a
+         dedicated layer just for this animated icons, remove after
+         https://bugzil.la/717872 gets fixed -->
+    <img id="statusbar-network-activity" src="style/statusbar/images/network-activity.png"
+      class="sb-icon-network-activity" hidden role="listitem" data-l10n-id="statusbarNetworkActivity">
+    <div id="statusbar-connections" class="sb-icon-connections" hidden role="presentation"></div>
+    <div id="statusbar-wifi" class="sb-icon sb-icon-wifi" data-level="4" hidden role="listitem"></div>
+    <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden role="listitem" data-l10n-id="statusbarFlightMode"></div>
+
+    <!-- General -->
+    <div id="statusbar-battery" class="sb-icon sb-icon-battery" role="listitem"></div>
+    <div id="statusbar-time" class="sb-icon-time" role="listitem"></div>`;
+  },
+
+  renderIcons: function() {
+    this.statusbarIconsMax.insertAdjacentHTML('afterbegin', this.view());
+    Service.register('getIcon', this);
+  },
+
+  getIcon: function(id) {
+    return this.statusbarIconsMax.querySelector('#' + id);
+  },
+
+  init: function sb_init() {
+    this.render();
     this.getAllElements();
 
     // cache height.
@@ -710,6 +769,7 @@ var StatusBar = {
     this.background = document.getElementById('statusbar-background');
     this.statusbarIcons = document.getElementById('statusbar-icons');
     this.statusbarIconsMax = document.getElementById('statusbar-maximized');
+    this.renderIcons();
     this.screen = document.getElementById('screen');
     this.topPanel = document.getElementById('top-panel');
 
