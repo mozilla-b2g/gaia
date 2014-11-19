@@ -925,6 +925,10 @@ li.list-item {
   background-repeat: no-repeat;
 }
 
+html[dir="rtl"] li.list-item {
+  background-position: calc(0% + 2.5rem) -0.1rem;
+}
+
 li.list-item a {
   display: block;
   color: #fff;
