@@ -145,8 +145,10 @@ var App = (function() {
   }
 
   function showCurrentView(callback) {
-    // We will need AlbumArt.getCoverURL() to display thumbnails in TilesView.
-    // It's possibly not loaded, so load it.
+    // We need AlbumArt.getCoverURL() to display thumbnails; it might not have
+    // been loaded yet, so make sure we load it first. This should prevent us
+    // from having to worry about loading it anywhere else in the code, since
+    // showCurrentView is called pretty early in the startup process.
     LazyLoader.load('js/metadata/album_art.js', function() {
       function showListView() {
         var option = TabBar.option;

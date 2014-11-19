@@ -9,39 +9,49 @@
  */
 var MetadataFormats = (function() {
 
-  var BASEDIR = 'js/metadata/';
-
+  /*
+   * This is the list of formats that we know how to parse. Each format has
+   * three properties:
+   *
+   * @property {String} file The path to the file for parsing this metadata
+   *   format.
+   * @property {Object} module A getter that returns the module object for this
+   *   parser. Note: It *must* be a getter because it needs to be evaluated
+   *   *after* the file is loaded.
+   * @property {Function} match A function that takes a BlobView of the file
+   *   and returns true if the file uses this metadata format.
+   */
   var formats = [
     {
-      file: 'forward_lock.js',
+      file: 'js/metadata/forward_lock.js',
       get module() { return ForwardLockMetadata; },
       match: function(header) {
         return header.getASCIIText(0, 9) === 'LOCKED 1 ';
       }
     },
     {
-      file: 'id3v2.js',
+      file: 'js/metadata/id3v2.js',
       get module() { return ID3v2Metadata; },
       match: function(header) {
         return header.getASCIIText(0, 3) === 'ID3';
       }
     },
     {
-      file: 'ogg.js',
+      file: 'js/metadata/ogg.js',
       get module() { return OggMetadata; },
       match: function(header) {
         return header.getASCIIText(0, 4) === 'OggS';
       }
     },
     {
-      file: 'mp4.js',
+      file: 'js/metadata/mp4.js',
       get module() { return MP4Metadata; },
       match: function(header) {
         return header.getASCIIText(4, 4) === 'ftyp';
       }
     },
     {
-      file: 'id3v1.js',
+      file: 'js/metadata/id3v1.js',
       get module() { return ID3v1Metadata; },
       match: function(header) {
         return (header.getUint16(0, false) & 0xFFFE) === 0xFFFA;
@@ -72,7 +82,7 @@ var MetadataFormats = (function() {
     parse: function(header, metadata) {
       var info = this._formatInfo;
       return new Promise(function(resolve, reject) {
-        LazyLoader.load(BASEDIR + info.file, function() {
+        LazyLoader.load(info.file, function() {
           resolve(info.module.parse(header, metadata));
         });
       });

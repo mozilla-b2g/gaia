@@ -213,7 +213,7 @@ var MP4Metadata = (function() {
           throw Error('Not enough metadata in MP4 container!');
         }
       }
-      data.index = nextindex;
+      data.seek(nextindex);
     }
     return metadata;
   }
@@ -269,7 +269,7 @@ var MP4Metadata = (function() {
   function searchChildAtom(data, atom) {
     var start = data.index;
     var result = seekChildAtom(data, atom);
-    data.index = start;
+    data.seek(start);
 
     return result;
   }
@@ -288,7 +288,7 @@ var MP4Metadata = (function() {
       var type = data.readASCIIText(4);
       if (type === 'meta') {
         parseMetaAtom(data, data.index + size - 8, metadata);
-        data.index = end;
+        data.seek(end);
         return;
       } else {
         data.advance(size - 8);
@@ -314,7 +314,7 @@ var MP4Metadata = (function() {
       var type = data.readASCIIText(4);
       if (type === 'ilst') {
         parseIlstAtom(data, data.index + size - 8, metadata);
-        data.index = end;
+        data.seek(end);
         return;
       }
       else {
@@ -354,7 +354,7 @@ var MP4Metadata = (function() {
           console.warn('skipping', type, ':', e);
         }
       }
-      data.index = next;
+      data.seek(next);
     }
   }
 

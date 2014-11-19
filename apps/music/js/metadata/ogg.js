@@ -25,7 +25,7 @@ var OggMetadata = (function() {
   };
 
   /**
-   * A sentinal object thrown if we walk off the end of an Ogg page.
+   * A type thrown if we walk off the end of an Ogg page.
    */
   function EndOfPageError() {}
 
@@ -158,6 +158,7 @@ var OggMetadata = (function() {
         if (e instanceof EndOfPageError) {
           return;
         }
+        console.warn('Error parsing ogg metadata frame', e);
       }
     }
   }
@@ -194,7 +195,7 @@ var OggMetadata = (function() {
       return {field: propname, value: value};
     }
 
-    // XXX: Suport album art.
+    // XXX: Support album art.
     // http://flac.sourceforge.net/format.html#metadata_block_picture
   }
 

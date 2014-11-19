@@ -318,13 +318,12 @@ var AudioMetadata = (function() {
    *   filename of the saved image.
    */
   function checkSaveCover(coverBlob, imageFilename, storageName) {
-    // We want to put the image in the same storage area as the audio track
-    // it's for. Since the audio track could be in any storage area, we'll
-    // examine its filename to get the storage name; the storage name is
-    // always the first part of the (absolute) filename, so we'll grab that
-    // and build an absolute path for the image. This will ensure that the
-    // generic deviceStorage we use for pictures ("pictureStorage") puts the
-    // image where we want it.
+    // We want to put the image in the same storage area as the audio track it's
+    // for. Since the audio track could be in any storage area, we examine its
+    // filename to get the storage name; the storage name is always the first
+    // part of the (absolute) filename, so we grab that and build an absolute
+    // path for the image. This will ensure that the generic deviceStorage we
+    // use for pictures ("pictureStorage") puts the image where we want it.
     var imageAbsPath = storageName + '.music/covers/' + imageFilename;
     if (savedCoverCache.has(imageAbsPath)) {
       return Promise.resolve(imageAbsPath);

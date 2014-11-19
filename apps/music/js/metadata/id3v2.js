@@ -58,7 +58,7 @@ var ID3v2Metadata = (function() {
    */
   function parseHeader(blobview) {
     // First three bytes are "ID3" or we wouldn't be here
-    blobview.index = 3;
+    blobview.seek(3);
 
     var header = {
       get versionString() {
@@ -160,14 +160,14 @@ var ID3v2Metadata = (function() {
 
     // Skip frames we don't care about
     if (!propname) {
-      blobview.index = nextframe;
+      blobview.seek(nextframe);
       return;
     }
 
     // Skip compressed, encrypted, or grouped frames that we can't decode.
     if ((frameflags & 0xFD) !== 0) {
       console.warn('Skipping', frameid, 'frame with flags', frameflags);
-      blobview.index = nextframe;
+      blobview.seek(nextframe);
       return;
     }
 
@@ -210,7 +210,7 @@ var ID3v2Metadata = (function() {
     }
 
     // Make sure we're at the start of the next frame before continuing
-    blobview.index = nextframe;
+    blobview.seek(nextframe);
   }
 
   /**
@@ -290,7 +290,7 @@ var ID3v2Metadata = (function() {
     var text = readTextFrame(header, view, size, encoding);
     var pair = text.split('/', 2).map(function(val) {
       var i = parseInt(val, 10);
-      return isNaN(i) ? null : i;
+      return isNaN(i) || !isFinite(i) ? null : i;
     });
     if (pair.length === 1) {
       pair.push(null);
