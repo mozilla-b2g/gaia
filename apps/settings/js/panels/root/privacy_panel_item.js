@@ -6,6 +6,7 @@
 
 define(function(require) {
   'use strict';
+  var AppsCache = require('modules/apps_cache');
 
   function PrivacyPanelItem(element) {
     this._element = element;
@@ -52,11 +53,10 @@ define(function(require) {
 
     /**
      * Search from privacy-panel app and grab it's instance.
-     * @method _getApp
+     * @memberOf PrivacyPanelItem
      */
     _getApp: function pp_getApp() {
-      navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
-        var apps = evt.target.result;
+      return AppsCache.apps().then(function(apps) {
         for (var i = 0; i < apps.length; i++) {
           var app = apps[i];
           if (app.manifestURL === this._privacyPanelManifestURL) {
@@ -65,7 +65,7 @@ define(function(require) {
             return;
           }
         }
-      }.bind(this);
+      });
     },
 
     /**
@@ -100,6 +100,7 @@ define(function(require) {
      * Update theme section visibility based on _themeCount
      *
      * @memberOf PrivacyPanelItem
+     * @method _updateSelection
      */
     _updateSelection: function() {
       this._element.querySelector('a').blur();

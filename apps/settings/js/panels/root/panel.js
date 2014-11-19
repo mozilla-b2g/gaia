@@ -67,8 +67,9 @@ define(function(require) {
           ThemesItem(panel.querySelector('.themes-section'));
         homescreenItem =
           HomescreenItem(panel.querySelector('#homescreens-section'));
-        privacyPanelItem =
-          PrivacyPanelItem(panel.querySelector('.privacy-panel-item'));
+        privacyPanelItem = PrivacyPanelItem({
+          privacyPanelPanel: panel.querySelector('.privacy-panel-item')
+        });
       },
       onBeforeShow: function rp_onBeforeShow() {
         bluetoothItem.enabled = true;
@@ -82,7 +83,7 @@ define(function(require) {
         simSecurityItem.enabled = true;
         airplaneModeItem.enabled = true;
         themesItem.enabled = true;
-	privacyPanelItem.enabled = true;
+        privacyPanelItem.enabled = true;
       },
       onShow: function rp_onShow() {
         homescreenItem.enabled = true;
@@ -100,7 +101,7 @@ define(function(require) {
         airplaneModeItem.enabled = false;
         themesItem.enabled = false;
         homescreenItem.enabled = false;
-	privacyPanelItem.enabled = true;
+        privacyPanelItem.enabled = false;
       }
     });
   };
