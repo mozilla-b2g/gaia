@@ -540,7 +540,8 @@ define BUILD_CONFIG
   "BUILD_DEBUG" : "$(BUILD_DEBUG)", \
   "VARIANT_PATH" : "$(VARIANT_PATH)", \
   "REBUILD": "$(REBUILD)", \
-  "P" : "$(P)"
+  "P" : "$(P)", \
+  "VERBOSE" : "$(VERBOSE)"
 }
 endef
 
@@ -924,6 +925,7 @@ endif
 
 ifdef VERBOSE
 	JSHINT_ARGS := $(JSHINT_ARGS) --verbose
+	VERBOSE=1
 endif
 
 hint: node_modules/.bin/jshint

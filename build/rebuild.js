@@ -64,8 +64,12 @@ function buildConfigChanged(previous, current) {
 
   let flags = [];
 
+  // We don't detect FLAGS in blackList because we don't have to rebuild again 
+  // if someone specifies them.
+  let blackList = ['REBUILD', 'P', 'VERBOSE'];
+
   for (let flag in current) {
-    if (flag !== 'REBUILD' && current[flag] !== previous[flag]) {
+    if (blackList.indexOf(flag) === -1 && current[flag] !== previous[flag]) {
       flags.push(flag);
     }
   }
