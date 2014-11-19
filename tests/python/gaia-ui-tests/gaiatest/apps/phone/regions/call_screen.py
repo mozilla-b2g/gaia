@@ -3,13 +3,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette import expected
+from marionette import Wait
 from marionette.marionette import Actions
 from gaiatest.apps.phone.app import Phone
 
 
 class CallScreen(Phone):
 
-    _call_screen_locator = (By.CSS_SELECTOR, "iframe[name='call_screen']")
+    _call_screen_locator = (By.CSS_SELECTOR, "iframe[src*='app://callscreen.gaiamobile.org/index.html']")
     _call_options_locator = (By.ID, 'call-options')
     _calling_contact_locator = (By.CSS_SELECTOR, 'div.number')
     _calling_contact_information_locator = (By.CSS_SELECTOR, 'div.additionalContactInfo')
@@ -40,9 +42,8 @@ class CallScreen(Phone):
     def switch_to_call_screen_frame(self):
         self.marionette.switch_to_frame()
 
-        self.wait_for_element_present(*self._call_screen_locator, timeout=30)
+        call_screen = self.wait_for_element_present(*self._call_screen_locator, timeout=30)
 
-        call_screen = self.marionette.find_element(*self._call_screen_locator)
         self.marionette.switch_to_frame(call_screen)
 
     @property
@@ -137,7 +138,8 @@ class CallScreen(Phone):
         self.wait_for_element_displayed(*self._lockscreen_handle_locator)
         self._handle_incoming_call('reject')
         self.marionette.switch_to_frame()
-        self.wait_for_element_not_displayed(*self._call_screen_locator)
+        element = Wait(self.marionette).until(expected.element_present(*self._call_screen_locator))
+        Wait(self.marionette).until(expected.element_not_displayed(element))
 
     def a11y_click_keypad_visibility_button(self):
         self.accessibility.click(self.marionette.find_element(
