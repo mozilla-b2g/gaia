@@ -3,6 +3,11 @@
 /* global IMESwitcher, ImeMenu, KeyboardHelper, inputWindowManager,
           InputLayouts, LazyLoader */
 
+/**
+ * For some flow diagrams related to input management, please refer to
+ * https://wiki.mozilla.org/Gaia/System/InputManagement#Flow_Diagrams .
+ */
+
 // If we get a inputmethod-contextchange chrome event for an element with
 // one of these types, we'll just ignore it.
 // XXX we won't skip these types in the future when we move value selector
