@@ -1,6 +1,7 @@
 /* exported musicdb, initDB */
-/* global App, AudioMetadata, LazyLoader, MediaDB, ModeManager, MODE_LIST,
-          MODE_PICKER, MODE_TILES, MusicComms, PlayerView, TabBar, TilesView */
+/* global MediaDB, LazyLoader, parseAudioMetadata, PlayerView,
+          TabBar, ModeManager, MODE_TILES, TilesView,
+          App, MusicComms, MODE_LIST, MODE_PICKER */
 'use strict';
 
 // The MediaDB object that manages the filesystem and the database of metadata
@@ -40,7 +41,7 @@ function initDB() {
 
   function metadataParserWrapper(file, onsuccess, onerror) {
     LazyLoader.load('js/metadata_scripts.js', function() {
-      AudioMetadata.parse(file).then(onsuccess, onerror);
+      parseAudioMetadata(file, onsuccess, onerror);
     });
   }
 
