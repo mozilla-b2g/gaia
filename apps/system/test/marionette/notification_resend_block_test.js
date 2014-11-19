@@ -4,6 +4,9 @@
 
 var assert = require('assert');
 
+var System = require('./lib/system');
+var Home = require('../../../verticalhome/test/marionette/lib/home2');
+
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 
 marionette('mozChromeNotifications:', function() {
@@ -18,10 +21,20 @@ marionette('mozChromeNotifications:', function() {
     }
   });
 
-  test('Sending one notification, resends none', function(done) {
+  var home, system;
+
+  setup(function() {
+    home = new Home(client);
+    system = new System(client);
+    system.waitForStartup();
+    home.waitForLaunch();
+  });
+
+  test.skip('Sending one notification, resends none', function(done) {
     var notificationTitle = 'Title:' + Date.now();
 
     // switch to calendar app and send notification
+    client.switchToFrame();
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
     var error = client.executeAsyncScript(function(title) {
