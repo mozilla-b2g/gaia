@@ -1,12 +1,28 @@
-/* global parseMetadata */
+/* global parseMetadata, MockLazyLoader, MockGetDeviceStorage */
 'use strict';
 
+require('/test/unit/metadata/utils.js');
+require('/js/metadata/mp4.js');
 
-require('/test/unit/metadata_utils.js');
+suite('mp4 tags', function() {
+  var RealLazyLoader, RealGetDeviceStorage;
 
-suite('m4a tags', function() {
-  setup(function() {
+  setup(function(done) {
     this.timeout(1000);
+    RealLazyLoader = window.LazyLoader;
+    window.LazyLoader = MockLazyLoader;
+
+    RealGetDeviceStorage = navigator.getDeviceStorage;
+    navigator.getDeviceStorage = MockGetDeviceStorage;
+
+    require('/js/metadata_scripts.js', function() {
+      done();
+    });
+  });
+
+  teardown(function() {
+    window.LazyLoader = RealLazyLoader;
+    navigator.getDeviceStorage = RealGetDeviceStorage;
   });
 
   test('m4a tags', function(done) {
