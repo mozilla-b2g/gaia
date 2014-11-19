@@ -33,7 +33,10 @@ Home2.clientOptions = {
   settings: {
     'homescreen.manifestURL': Home2.URL,
     'ftu.manifestURL': null,
-    'lockscreen.enabled': false
+    'keyboard.ftu.enabled': false,
+    'lockscreen.enabled': false,
+    'devtools.qps.enabled': false,
+    'language.current': 'en-US'
   }
 };
 
@@ -283,10 +286,10 @@ Home2.prototype = {
       entryPoint = null;
     }
 
-    var client = this.client.scope({context: 'chrome'});
-
     var file = 'app://' + app + '.gaiamobile.org/manifest.webapp';
-    var manifest = client.executeAsyncScript(function(file) {
+    // use a chrome-scoped Marionette client for the cross-domain XHR
+    var chromeClient = this.client.scope({context: 'chrome'});
+    var manifest = chromeClient.executeAsyncScript(function(file) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', file, true);
       xhr.onload = function(o) {
@@ -302,30 +305,31 @@ Home2.prototype = {
     } else {
       locales = manifest.locales;
     }
-    return locales && locales[locale].name;
+
+    if (!locales) {
+      return false;
+    }
+
+    if (locale.indexOf('qps') === 0) {
+      return this.client.executeScript(function(locale, name) {
+        var mozL10n = window.wrappedJSObject.navigator.mozL10n;
+        return mozL10n.qps[locale].translate(name);
+      }, [locale, locales['en-US'].name]);
+    }
+
+    return locales[locale].name;
   },
 
   /**
-   * Returns a localized string from a JSON file.
-   * @param {String} file to open.
+   * Returns a localized string from a properties file.
    * @param {String} key of the string to lookup.
    */
-  l10n: function(file, key) {
-    var ast = this.client.executeAsyncScript(function(file, key) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', file, true);
-      xhr.onload = function(o) {
-        var data = JSON.parse(xhr.response);
-        marionetteScriptFinished(data);
-      };
-      xhr.send(null);
-    }, [file, key]);
+  l10n: function(key) {
+    var string = this.client.executeScript(function(key) {
+      return window.wrappedJSObject.navigator.mozL10n.get(key);
+    }, [key]);
 
-    for (var i = 0; i < ast.length; i++) {
-      if (ast[i].$i === key) {
-        return ast[i].$v;
-      }
-    }
+    return string;
   },
 
   containsClass: function(selector, clazz) {
