@@ -1,4 +1,4 @@
-# Gaia
+# Gaia [![Codacy Badge](https://www.codacy.com/project/badge/d095744191c94e66b969b7516b5bf780)](https://www.codacy.com/public/gasolin_1667/gaia_2)
 
 Gaia is Mozilla's Phone UX for the Boot to Gecko (B2G) project.
 
