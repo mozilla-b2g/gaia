@@ -20,7 +20,12 @@
     }
     return ch;
   };
-  var BaseIcon = function(manager) {
+  var BaseIcon = function(manager, index) {
+    if (index) {
+      this.index = index;
+    } else {
+      this.index = 0;
+    }
     this.amendProperty();
     this.manager = manager;
     this.publish('created');

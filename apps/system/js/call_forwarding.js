@@ -31,7 +31,6 @@
    * @requires SettingsHelper
    */
   function CallForwarding() {
-    this._started = false;
     this._slots = null;
     this._callForwardingHelper = null;
     this._defaultCallForwardingIconStates = null;
@@ -145,6 +144,7 @@
 
       this._callForwardingHelper.get((function(states) {
         states[index] = enabled;
+        this._iconCollection.update();
         this._callForwardingHelper.set(states);
       }).bind(this));
 
@@ -185,6 +185,7 @@
      * @memberof CallForwarding.prototype
      */
     _start: function() {
+      this._iconCollection = new BaseIconCollection(this, CallForwardingIcon, 2);
       this._slots = SIMSlotManager.getSlots();
       this._defaultCallForwardingIconStates =
         Array.prototype.map.call(this._slots, function() { return false; });
