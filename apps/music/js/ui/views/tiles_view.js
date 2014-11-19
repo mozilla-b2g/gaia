@@ -1,6 +1,5 @@
 /* exported TilesView */
-/* global musicdb, TabBar, App,
-          generateDefaultThumbnailURL, getThumbnailURL, SearchView, ModeManager,
+/* global musicdb, TabBar, App, AlbumArt, SearchView, ModeManager,
           MODE_SEARCH_FROM_TILES, IDBKeyRange, MODE_PLAYER, PlayerView,
           musicdb, TYPE_LIST */
 'use strict';
@@ -128,19 +127,17 @@ var TilesView = {
     var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
 
     var setTileBackgroundClosure = function(url) {
-      url = url || generateDefaultThumbnailURL(result.metadata);
       tile.style.backgroundImage = 'url(' + url + ')';
     };
 
     if (this.index <= NUM_INITIALLY_VISIBLE_TILES) {
       // Load this tile's background now, because it's visible.
-      getThumbnailURL(result, setTileBackgroundClosure);
+      AlbumArt.getCoverURL(result).then(setTileBackgroundClosure);
     } else {
       // Defer loading hidden tiles until the visible ones are done.
       setTimeout(function() {
-          getThumbnailURL(result, setTileBackgroundClosure);
-        },
-        INITIALLY_HIDDEN_TILE_WAIT_TIME_MS);
+        AlbumArt.getCoverURL(result).then(setTileBackgroundClosure);
+      }, INITIALLY_HIDDEN_TILE_WAIT_TIME_MS);
     }
 
     container.dataset.index = this.index;

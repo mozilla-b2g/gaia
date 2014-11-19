@@ -145,10 +145,11 @@ var App = (function() {
   }
 
   function showCurrentView(callback) {
-    // We will need getThumbnailURL()
-    // to display thumbnails in TilesView
-    // it's possibly not loaded so load it
-    LazyLoader.load('js/metadata_scripts.js', function() {
+    // We need AlbumArt.getCoverURL() to display thumbnails; it might not have
+    // been loaded yet, so make sure we load it first. This should prevent us
+    // from having to worry about loading it anywhere else in the code, since
+    // showCurrentView is called pretty early in the startup process.
+    LazyLoader.load('js/metadata/album_art.js', function() {
       function showListView() {
         var option = TabBar.option;
         var info = {
@@ -160,50 +161,47 @@ var App = (function() {
 
         ListView.activate(info);
       }
-      // If it's in picking mode we will just enumerate all the songs
-      // and don't need to enumerate data for TilesView
-      // because mix page is not needed in picker mode
+      // If it's in picking mode, we will just enumerate all the songs. We don't
+      // need to enumerate data for TilesView because the mix page is not needed
+      // in picker mode.
       if (app.pendingPick) {
         showListView();
-
         if (callback) {
           callback();
         }
-
         return;
       }
 
-      // If music is not in tiles mode and showCurrentView is called
-      // that might be an user has mount/unmount his sd card
-      // and modified the songs so musicdb will be updated
-      // then we should update the list view if music app is in list mode
-      if (ModeManager.currentMode === MODE_LIST && TabBar.option !== 'playlist')
-      {
+      // If music is not in tiles mode and showCurrentView is called, that might
+      // be because the user has (un)mounted his SD card and modified the
+      // songs. musicdb will be updated, and then we should update the list view
+      // if music app is in list mode.
+      if (ModeManager.currentMode === MODE_LIST &&
+          TabBar.option !== 'playlist') {
         showListView();
       }
 
-      // Enumerate existing song entries in the database
-      // List them all, and sort them in ascending order by album.
-      // Use enumerateAll() here so that we get all the results we want
-      // and then pass them synchronously to the update() functions.
-      // If we do it asynchronously, then we'll get one redraw for
-      // every song.
-      // * Note that we need to update tiles view every time this happens
-      // because it's the top level page and an independent view
+      // Enumerate existing song entries in the database. List them all, and
+      // sort them in ascending order by album. Use enumerateAll() here so that
+      // we get all the results we want and then pass them synchronously to the
+      // update() functions. If we do it asynchronously, then we'll get one
+      // redraw for every song.
+      //
+      // Note: we need to update tiles view every time this happens because it's
+      // the top level page and an independent view
       TilesView.handle = musicdb.enumerateAll(
         'metadata.album', null, 'nextunique',
         function(songs) {
-          // Add null to the array of songs
-          // this is a flag that tells update()
-          // to show or hide the 'empty' overlay
+          // Add null to the array of songs. This is a flag that tells update()
+          // to show or hide the 'empty' overlay.
           songs.push(null);
           TilesView.clean();
 
           app.knownSongs.length = 0;
           songs.forEach(function(song) {
             TilesView.update(song);
-            // Push the song to knownSongs then
-            // we can display a correct overlay
+            // Push the song to knownSongs. Then we can display a correct
+            // overlay.
             app.knownSongs.push(song);
           });
 
