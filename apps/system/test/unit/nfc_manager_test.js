@@ -1,12 +1,12 @@
 'use strict';
 
-/* globals MockDOMRequest, MockNfc, MocksHelper, NDEF, MockService,
+/* globals MockPromise, MockNfc, MocksHelper, NDEF, MockService,
            NfcUtils, NfcManager, MozActivity, NfcHandoverManager */
 
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
-require('/shared/test/unit/mocks/mock_dom_request.js');
+require('/shared/test/unit/mocks/mock_promise.js');
 require('/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_activity.js');
@@ -872,7 +872,7 @@ suite('Nfc Manager Functions', function() {
 
     test('calls proper mozNfc method', function() {
       var stubCheckP2P = this.sinon.stub(MockNfc, 'checkP2PRegistration',
-                                         () => { return {}; });
+                                         () => { return Promise.resolve(); });
 
       nfcManager.checkP2PRegistration();
       assert.isTrue(stubCheckP2P.withArgs(fakeAppConfig.manifestURL)
@@ -880,10 +880,10 @@ suite('Nfc Manager Functions', function() {
     });
 
     test('app registered onpeerready handler - success', function() {
-      // Setup Fake DOMRequest to stub with:
-      var fakeDOMRequest = new MockDOMRequest();
+      // Setup Fake Promise to stub with:
+      var fakePromise = new MockPromise();
       this.sinon.stub(MockNfc, 'checkP2PRegistration',
-                      (manifest) => fakeDOMRequest);
+                      (manifest) => fakePromise);
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       var spyAddEventListener = this.sinon.spy(window, 'addEventListener');
 
@@ -891,17 +891,18 @@ suite('Nfc Manager Functions', function() {
       // P2P registration in the stubbed DOM.
       nfcManager.checkP2PRegistration('dummyManifestUrl');
 
-      fakeDOMRequest.fireSuccess(true);
+      fakePromise.mFulfillToValue(true);
+
       stubDispatchEvent.getCall(0).calledWith({ type: 'shrinking-start',
                                                 bubbles: false });
       assert.isTrue(spyAddEventListener.withArgs('shrinking-sent').calledOnce);
     });
 
     test('app not registered for onpeerready event - error', function() {
-      // Setup Fake DOMRequest to stub with:
-      var fakeDOMRequest = new MockDOMRequest();
+      // Setup Fake Promise to stub with:
+      var fakePromise = new MockPromise();
       this.sinon.stub(MockNfc, 'checkP2PRegistration',
-                      (manifestURL) => fakeDOMRequest);
+                      (manifestURL) => fakePromise);
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       var spyRemoveEventListener = this.sinon.spy(window,
                                                   'removeEventListener');
@@ -911,7 +912,7 @@ suite('Nfc Manager Functions', function() {
       nfcManager.checkP2PRegistration('dummyManifestUrl');
 
       // Note: Error status is fired through the success code path.
-      fakeDOMRequest.fireSuccess(false);
+      fakePromise.mFulfillToValue(false);
       stubDispatchEvent.getCall(0).calledWith({ type: 'shrinking-stop',
                                                 bubbles: false });
       assert.isTrue(

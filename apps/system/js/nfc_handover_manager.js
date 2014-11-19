@@ -402,17 +402,16 @@ var NfcHandoverManager = {
     var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
     var mac = this.defaultAdapter.address;
     var hs = NDEFUtils.encodeHandoverSelect(mac, cps);
-    var req = nfcPeer.sendNDEF(hs);
-    var self = this;
-    req.onsuccess = function() {
-      self._debug('sendNDEF(hs) succeeded');
-      self.incomingFileTransferInProgress = true;
-    };
-    req.onerror = function() {
-      self._logVisibly('sendNDEF(hs) failed');
-      self._clearTimeout();
-      self._restoreBluetoothStatus();
-    };
+    var promise = nfcPeer.sendNDEF(hs);
+    promise.then(() => {
+      this._debug('sendNDEF(hs) succeeded');
+      this.incomingFileTransferInProgress = true;
+    }).catch(e => {
+      this._logVisibly('sendNDEF(hs) failed : ' + e);
+      this._clearTimeout();
+      this._restoreBluetoothStatus();
+    });
+
     this._clearTimeout();
     this.responseTimeoutFunction =
       setTimeout(this._cancelIncomingFileTransfer.bind(this),
@@ -456,19 +455,18 @@ var NfcHandoverManager = {
       var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
       var mac = this.defaultAdapter.address;
       var hr = NDEFUtils.encodeHandoverRequest(mac, cps);
-      var req = nfcPeer.sendNDEF(hr);
-      req.onsuccess = function() {
-        self._debug('sendNDEF(hr) succeeded');
-      };
-      req.onerror = function() {
-        self._debug('sendNDEF(hr) failed');
+      var promise = nfcPeer.sendNDEF(hr);
+      promise.then(() => {
+        this._debug('sendNDEF(hr) succeeded');
+      }).catch(e => {
+        this._debug('sendNDEF(hr) failed : ' + e);
         onerror();
-        self.sendFileQueue.pop();
-        self._clearTimeout();
-        self._restoreBluetoothStatus();
-        self._showFailedNotification('transferFinished-sentFailed-title',
+        this.sendFileQueue.pop();
+        this._clearTimeout();
+        this._restoreBluetoothStatus();
+        this._showFailedNotification('transferFinished-sentFailed-title',
                                      blob.name);
-      };
+      });
       this._clearTimeout();
       this.responseTimeoutFunction =
         setTimeout(this._cancelSendFileTransfer.bind(this),
