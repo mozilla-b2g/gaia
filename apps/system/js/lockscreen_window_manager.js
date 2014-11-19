@@ -130,8 +130,10 @@
           this.states.instance.lockOrientation();
           break;
         case 'system-resize':
-          if (this.states.instance && this.states.instance.isActive()) {
+          if (this.states.instance && this.states.instance.isActive() &&
+              !window.layoutManager.keyboardEnabled) {
             this.states.instance.resize();
+            evt.stopImmediatePropagation();
           }
           break;
         case 'screenchange':
