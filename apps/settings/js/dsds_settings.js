@@ -24,6 +24,7 @@ var DsdsSettings = (function(window, document, undefined) {
     if (!_settings || !_mobileConnections || !_iccManager) {
       return;
     }
+    ds_handleDefaultIccCard();
     ds_handleCallSettingSimPanel();
     ds_handleCellAndDataSettingSimPanel();
   }
@@ -76,6 +77,18 @@ var DsdsSettings = (function(window, document, undefined) {
    */
   function ds_getIccCardIndexForCellAndDataSettings() {
     return _iccCardIndexForCellAndDataSettings;
+  }
+
+  /**
+   * Find out first available iccID for default iccID
+   */
+  function ds_handleDefaultIccCard() {
+    for (var i = 0, len = _mobileConnections.length; i < len; i++) {
+      if (_mobileConnections[i].iccId !== null) {
+        ds_setIccCardIndexForCellAndDataSettings(i);
+        break;
+      }
+    }
   }
 
   /**
