@@ -1,7 +1,6 @@
 /* exported SubListView */
-/* global musicdb, TabBar, getThumbnailURL,
-          generateDefaultThumbnailURL,
-          createListElement, ModeManager, MODE_PLAYER, PlayerView, TYPE_LIST */
+/* global musicdb, TabBar, AlbumArt, createListElement, ModeManager,
+          MODE_PLAYER, PlayerView, TYPE_LIST */
 'use strict';
 
 var SubListView = {
@@ -64,8 +63,7 @@ var SubListView = {
     this.offscreenImage.src = '';
     this.albumImage.classList.remove('fadeIn');
 
-    getThumbnailURL(fileinfo, function(url) {
-      url = url || generateDefaultThumbnailURL(fileinfo.metadata);
+    AlbumArt.getCoverURL(fileinfo).then(function(url) {
       this.offscreenImage.addEventListener('load', slv_showImage.bind(this));
       this.offscreenImage.src = url;
     }.bind(this));
