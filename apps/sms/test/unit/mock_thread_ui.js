@@ -68,6 +68,7 @@ var MockThreadUI = {
   appendMessage: function() {},
   showChunkOfMessages: function() {},
   setHeaderAction: function() {},
+  setHeaderContent: function() {},
   cleanForm: function() {},
   clear: function() {},
   toggleCheckedAll: function() {},

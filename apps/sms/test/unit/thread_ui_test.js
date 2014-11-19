@@ -4260,6 +4260,55 @@ suite('thread_ui.js >', function() {
 
       });
     });
+
+    suite('setHeaderContent', function() {
+      test('Removes l10n attributes if content is HTML', function() {
+        headerText.textContent = 'Header';
+        headerText.setAttribute('data-l10n-id', 'header-id');
+        headerText.setAttribute('data-l10n-args', '{ args: "header-args" }');
+
+        ThreadUI.setHeaderContent('<bdi>BiDi Header</bdi>');
+
+        assert.equal(headerText.innerHTML, '<bdi>BiDi Header</bdi>');
+        assert.isFalse(headerText.hasAttribute('data-l10n-id'));
+        assert.isFalse(headerText.hasAttribute('data-l10n-args'));
+      });
+
+      test('Removes nested HTML if content is l10n attributes', function() {
+        this.sinon.spy(navigator.mozL10n, 'setAttributes');
+        headerText.innerHTML = '<bdi>BiDi Header</bdi>';
+
+        ThreadUI.setHeaderContent({
+          id: 'header-l10n-id',
+          args: { arg: 'header-l10n-arg' }
+        });
+
+        assert.equal(headerText.innerHTML, '');
+        sinon.assert.calledWithExactly(
+          navigator.mozL10n.setAttributes,
+          headerText,
+          'header-l10n-id',
+          { arg: 'header-l10n-arg' }
+        );
+
+        // If previous header content isn't HTML then content isn't manually
+        // cleared, but rather left for l10n lib to update it
+        headerText.textContent = 'Header';
+
+        ThreadUI.setHeaderContent({
+          id: 'other-header-l10n-id',
+          args: { arg: 'other-header-l10n-arg' }
+        });
+
+        assert.equal(headerText.innerHTML, 'Header');
+        sinon.assert.calledWithExactly(
+          navigator.mozL10n.setAttributes,
+          headerText,
+          'other-header-l10n-id',
+          { arg: 'other-header-l10n-arg' }
+        );
+      });
+    });
   });
 
   suite('Sending Behavior (onSendClick)', function() {
