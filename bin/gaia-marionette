@@ -153,6 +153,10 @@ if [ "$DUMP_PATH" ]; then
   DEVICE_OPTS="$ADDITIONAL_OPTS --dump-path $DUMP_PATH"
 fi
 
+# Run test for 100 times.
+TEST_FILES="apps/email/test/marionette/message_list_test.js"
+for i in {1..100}
+do
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.
 PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
@@ -166,3 +170,12 @@ PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
   $SHARED/setup.js \
   $TEST_FILES \
   $@
+done
+
+if [ $SPAWNED_PID ]; then
+  ps ux | grep $SPAWNED_PID | grep -v grep
+  if [ $? -eq 0 ]; then
+    echo "killing $SPAWNED_PID"
+    kill $SPAWNED_PID
+  fi
+fi
