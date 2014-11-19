@@ -464,6 +464,7 @@ var KeypadManager = {
     // the "*#06#" MMI string. See bug 857944.
     if (key === '#' && this._phoneNumber === '*#06#') {
       this.multiSimActionButton.performAction();
+      event.target.classList.remove('active');
       return;
     }
 
