@@ -388,7 +388,9 @@ return [
         var op = this.header.moveMessage(folder);
         cards.removeCardAndSuccessors(this, 'animate');
         toaster.toastOperation(op);
-      }.bind(this));
+      }.bind(this), function(folder) {
+        return folder.isValidMoveTarget;
+      });
     },
 
     /**
