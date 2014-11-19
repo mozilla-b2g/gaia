@@ -44,6 +44,15 @@
    */
   LockScreenWindow.prototype = Object.create(AppWindow.prototype);
 
+  LockScreenWindow.prototype.constructor = LockScreenWindow;
+
+  LockScreenWindow.SUB_COMPONENTS = {
+    'transitionController': window.AppTransitionController,
+    'statusbar': window.AppStatusbar
+  };
+
+  LockScreenWindow.REGISTERED_EVENTS = AppWindow.REGISTERED_EVENTS;
+
   /**
    * We still need this before we put the lockreen inside an iframe.
    *

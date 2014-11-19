@@ -115,9 +115,7 @@ suite('system/TaskManager >', function() {
       'http://sms.gaiamobile.org': new AppWindow({
         launchTime: 5,
         name: 'SMS',
-        element: document.createElement('div'),
         frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'portrait-primary'
         },
@@ -137,9 +135,6 @@ suite('system/TaskManager >', function() {
       'http://game.gaiamobile.org': new AppWindow({
         launchTime: 4,
         name: 'GAME',
-        element: document.createElement('div'),
-        frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'landscape-primary'
         },
@@ -156,9 +151,6 @@ suite('system/TaskManager >', function() {
       'browser1': new AppWindow({
         launchTime: 4,
         name: 'BROWSER1',
-        element: document.createElement('div'),
-        frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         rotatingDegree: 0,
         isBrowser: function() {
           return true;
@@ -175,9 +167,6 @@ suite('system/TaskManager >', function() {
       'http://game2.gaiamobile.org': new AppWindow({
         launchTime: 3,
         name: 'GAME2',
-        element: document.createElement('div'),
-        frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'landscape-secondary'
         },
@@ -193,9 +182,6 @@ suite('system/TaskManager >', function() {
       }),
       'browser2': new AppWindow({
         name: 'BROWSER2',
-        element: document.createElement('div'),
-        frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         rotatingDegree: 0,
         isBrowser: function() {
           return true;
@@ -211,9 +197,6 @@ suite('system/TaskManager >', function() {
       }),
       'search': new AppWindow({
         name: 'search',
-        element: document.createElement('div'),
-        frame: document.createElement('div'),
-        iframe: document.createElement('iframe'),
         rotatingDegree: 0,
         isBrowser: function() {
           return true;
@@ -236,9 +219,6 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-0',
       launchTime: 5,
       name: 'SMS',
-      element: document.createElement('div'),
-      frame: document.createElement('div'),
-      iframe: document.createElement('iframe'),
       manifest: {
         orientation: 'portrait-primary'
       },
@@ -257,9 +237,6 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-1',
       launchTime: 5,
       name: 'GAME',
-      element: document.createElement('div'),
-      frame: document.createElement('div'),
-      iframe: document.createElement('iframe'),
       manifest: {
         orientation: 'portrait-primary'
       },
@@ -278,9 +255,6 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-2',
       launchTime: 5,
       name: 'GAME2',
-      element: document.createElement('div'),
-      frame: document.createElement('div'),
-      iframe: document.createElement('iframe'),
       manifest: {
         orientation: 'portrait-primary'
       },

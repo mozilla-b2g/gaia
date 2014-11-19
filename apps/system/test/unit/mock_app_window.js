@@ -10,7 +10,11 @@
   var MockAppWindow = function AppWindow(config) {
     if (config) {
       for (var key in config) {
-        this[key] = config[key];
+        try {
+          this[key] = config[key];
+        } catch (e) {
+          
+        }
       }
       this.config = config;
     }
@@ -37,6 +41,12 @@
       }
       return this._element;
     },
+    get titleBar() {
+      if (!this._titleBar) {
+        this._titleBar = document.createElement('div');
+      }
+      return this._titleBar;
+    },
     get browser() {
       if (!this._iframe) {
         this._iframe = document.createElement('iframe');
@@ -45,6 +55,16 @@
       return {
         element: this._iframe
       };
+    },
+    get frame() {
+      return this.element;
+    },
+    get iframe() {
+      if (!this._iframe) {
+        this._iframe = document.createElement('iframe');
+        this._iframe.download = function() {};
+      }
+      return this._iframe;
     },
     render: function() {},
     open: function() {},
@@ -120,7 +140,8 @@
     '_resize': function() {},
     isForeground: function() {},
     killable: function() {},
-    setVisibileForScreenReader: function() {}
+    setVisibileForScreenReader: function() {},
+    handleStatusbarTouch: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];

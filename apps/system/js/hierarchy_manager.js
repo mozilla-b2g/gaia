@@ -8,6 +8,9 @@
     'registerHierarchy',
     'unregisterHierarchy'
   ];
+  HierarchyManager.STATES = [
+    'getTopMostWindow'
+  ];
   BaseModule.create(HierarchyManager, {
     name: 'HierarchyManager',
     EVENT_PREFIX: 'hierachy',

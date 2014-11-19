@@ -88,6 +88,8 @@
 
   ActivityWindow.prototype = Object.create(AppWindow.prototype);
 
+  ActivityWindow.prototype.constructor = ActivityWindow;
+
   ActivityWindow.prototype.eventPrefix = 'activity';
 
   ActivityWindow.prototype.CLASS_NAME = 'ActivityWindow';
@@ -166,11 +168,6 @@
     _id++;
     return '<div class="appWindow activityWindow inline-activity' +
             '" id="' + this.instanceID + '">' +
-            '<div class="titlebar">' +
-            ' <div class="notifications-shadow"></div>' +
-            ' <div class="statusbar-shadow titlebar-maximized"></div>' +
-            ' <div class="statusbar-shadow titlebar-minimized"></div>' +
-            '</div>' +
             '<div class="fade-overlay"></div>' +
             '<div class="browser-container">' +
             ' <div class="screenshot-overlay"></div>' +
@@ -184,13 +181,11 @@
     'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
-    'childWindowFactory': window.ChildWindowFactory
+    'childWindowFactory': window.ChildWindowFactory,
+    'statusbar': window.AppStatusbar
   };
 
-  ActivityWindow.REGISTERED_EVENTS =
-    ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
-      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
-      '_localized'];
+  ActivityWindow.REGISTERED_EVENTS = AppWindow.REGISTERED_EVENTS;
 
   ActivityWindow.prototype._handle_mozbrowseractivitydone =
     function aw__handle_mozbrowseractivitydone() {

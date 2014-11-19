@@ -1,9 +1,9 @@
 /* globals FtuLauncher, MockL10n, MockMobileOperator, MockLayoutManager,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           MockService, MockTouchForwarder, StatusBar, Service,
+           MockService, StatusBar, Service,
            MockNfcManager, MockMobileconnection, MockAppWindowManager,
-           MockNavigatorBattery, UtilityTray */
+           MockNavigatorBattery, UtilityTray, MockAppWindow */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -24,17 +24,18 @@ require('/test/unit/mock_touch_forwarder.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_layout_manager.js');
 require('/test/unit/mock_navigator_battery.js');
+require('/test/unit/mock_app_window.js');
 
 var mocksForStatusBar = new MocksHelper([
-  'FtuLauncher',
   'SettingsListener',
   'MobileOperator',
   'SIMSlotManager',
-  'AppWindowManager',
-  'TouchForwarder',
   'UtilityTray',
   'LayoutManager',
-  'NavigatorBattery'
+  'NavigatorBattery',
+  'AppWindow',
+  'Service',
+  'FtuLauncher'
 ]).init();
 
 suite('system/Statusbar', function() {
@@ -1505,21 +1506,21 @@ suite('system/Statusbar', function() {
 
   suite('fullscreen mode >', function() {
     function forgeTouchEvent(type, x, y) {
-        var touch = document.createTouch(window, null, 42, x, y,
-                                         x, y, x, y,
-                                         0, 0, 0, 0);
-        var touchList = document.createTouchList(touch);
-        var touches = (type == 'touchstart' || type == 'touchmove') ?
-                           touchList : null;
-        var changed = (type == 'touchmove') ?
-                           null : touchList;
+      var touch = document.createTouch(window, null, 42, x, y,
+                                       x, y, x, y,
+                                       0, 0, 0, 0);
+      var touchList = document.createTouchList(touch);
+      var touches = (type == 'touchstart' || type == 'touchmove') ?
+                         touchList : null;
+      var changed = (type == 'touchmove') ?
+                         null : touchList;
 
-        var e = document.createEvent('TouchEvent');
-        e.initTouchEvent(type, true, true,
-                         null, null, false, false, false, false,
-                         touches, null, changed);
+      var e = document.createEvent('TouchEvent');
+      e.initTouchEvent(type, true, true,
+                       null, null, false, false, false, false,
+                       touches, null, changed);
 
-        return e;
+      return e;
     }
 
     function forgeMouseEvent(type, x, y) {
@@ -1545,37 +1546,9 @@ suite('system/Statusbar', function() {
 
     var app;
     setup(function() {
-      app = {
-        isFullScreen: function() {
-          return true;
-        },
-        titleBar: {
-          element: document.createElement('div')
-        },
-        iframe: document.createElement('iframe'),
-        getTopMostWindow: function() {
-          return app;
-        },
-        config: {},
-        _element: null,
-        get element() {
-          if (!this._element) {
-            var element = document.createElement('div');
-            var title = document.createElement('div');
-            title.classList.add('titlebar');
-            element.appendChild(title);
-
-            var chrome = document.createElement('div');
-            chrome.className = 'chrome';
-            element.appendChild(chrome);
-            this._element = element;
-          }
-
-          return this._element;
-        }
-      };
-
-      Service.currentApp = app;
+      app = new MockAppWindow();
+      MockService.mTopMostWindow = app;
+      this.sinon.stub(app, 'handleStatusbarTouch');
       this.sinon.stub(StatusBar.element, 'getBoundingClientRect').returns({
         height: 10
       });
@@ -1584,21 +1557,9 @@ suite('system/Statusbar', function() {
     });
 
     suite('Revealing the StatusBar >', function() {
-      var transitionEndSpy;
-      var element;
       setup(function() {
         StatusBar._cacheHeight = 24;
-        element = Service.currentApp.element
-                                                 .querySelector('.titlebar');
-        transitionEndSpy = this.sinon.spy(element, 'addEventListener');
       });
-
-      function assertStatusBarReleased() {
-        assert.equal(StatusBar.element.style.transform, '');
-        assert.equal(StatusBar.element.style.transition, '');
-
-        assert.isFalse(element.classList.contains('dragged'));
-      }
 
       teardown(function() {
         this.sinon.clock.tick(10000);
@@ -1606,40 +1567,24 @@ suite('system/Statusbar', function() {
         StatusBar.element.style.transform = '';
       });
 
-      test('it should stop the propagation of the events at first', function() {
-        var fakeEvt = {
-          stopImmediatePropagation: function() {},
-          preventDefault: function() {},
-          type: 'fake'
-        };
-        this.sinon.spy(fakeEvt, 'stopImmediatePropagation');
-        StatusBar.panelHandler(fakeEvt);
-        sinon.assert.calledOnce(fakeEvt.stopImmediatePropagation);
-      });
-
       test('it should translate the statusbar on touchmove', function() {
         fakeDispatch('touchstart', 100, 0);
-        fakeDispatch('touchmove', 100, 5);
-        var transform = 'translateY(calc(5px - 100%))';
-        assert.equal(element.style.transform, transform);
+        var evt = fakeDispatch('touchmove', 100, 5);
+        assert.isTrue(app.handleStatusbarTouch.calledWith(evt, 24));
         fakeDispatch('touchend', 100, 5);
       });
 
-      test('it should set the dragged class on touchstart', function() {
-        fakeDispatch('touchstart', 100, 0);
-        assert.isFalse(element.classList.contains('dragged'));
-        fakeDispatch('touchmove', 100, 24);
-        fakeDispatch('touchend', 100, 25);
-        assert.isTrue(element.classList.contains('dragged'));
+      test('it should bypass touchstart event', function() {
+        var evt = fakeDispatch('touchstart', 100, 0);
+        assert.isTrue(app.handleStatusbarTouch.calledWith(evt, 24));
       });
 
       test('it should not translate the statusbar more than its height',
       function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 5);
-        fakeDispatch('touchmove', 100, 15);
-        var transform = 'translateY(calc(15px - 100%))';
-        assert.equal(element.style.transform, transform);
+        var evt = fakeDispatch('touchmove', 100, 15);
+        assert.isTrue(app.handleStatusbarTouch.calledWith(evt, 24));
         fakeDispatch('touchend', 100, 15);
       });
 
@@ -1664,10 +1609,8 @@ suite('system/Statusbar', function() {
         FtuLauncher.mIsRunning = true;
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 100);
-
-        var titleEl = Service.currentApp.element
-                                       .querySelector('.titlebar');
-        assert.equal(titleEl.style.transform, '');
+        
+        assert.isFalse(app.handleStatusbarTouch.called);
         FtuLauncher.mIsRunning = false;
       });
 
@@ -1676,139 +1619,8 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 100);
 
-        var titleEl = Service.currentApp.element
-                                       .querySelector('.titlebar');
-        assert.equal(titleEl.style.transform, '');
+        assert.isFalse(app.handleStatusbarTouch.called);
         UtilityTray.active = false;
-      });
-
-
-      suite('after the gesture', function() {
-        suite('when the StatusBar is not fully displayed', function() {
-          setup(function() {
-            fakeDispatch('touchstart', 100, 0);
-            fakeDispatch('touchmove', 100, 5);
-            fakeDispatch('touchend', 100, 5);
-          });
-
-          test('it should hide it right away', function() {
-            assertStatusBarReleased();
-          });
-        });
-
-        suite('when the StatusBar is fully displayed', function() {
-          setup(function() {
-            fakeDispatch('touchstart', 100, 0);
-            fakeDispatch('touchmove', 100, 5);
-            fakeDispatch('touchmove', 100, 24);
-            fakeDispatch('touchend', 100, 24);
-          });
-
-          test('it should not hide it right away', function() {
-            var titleEl = Service.currentApp.element
-                                          .querySelector('.titlebar');
-            assert.equal(titleEl.style.transform, '');
-            assert.equal(titleEl.style.transition, '');
-            assert.ok(titleEl.classList.contains('dragged'));
-          });
-
-          test('but after 5 seconds', function() {
-            this.sinon.clock.tick(5000);
-            assertStatusBarReleased();
-          });
-
-          test('or if the user interacts with the app', function() {
-            // We're faking a touchstart event on the app iframe
-            var iframe = StatusBar._touchForwarder.destination;
-            StatusBar._touchForwarder.destination = window;
-
-            var e = forgeTouchEvent('touchstart', 100, 100);
-            window.dispatchEvent(e);
-
-            assertStatusBarReleased();
-            StatusBar._touchForwarder.destination = iframe;
-          });
-        });
-      });
-    });
-
-    test('it should prevent default on mouse events keep the focus on the app',
-    function() {
-      var mousedown = fakeDispatch('mousedown', 100, 0);
-      var mousemove = fakeDispatch('mousemove', 100, 2);
-      var mouseup = fakeDispatch('mouseup', 100, 2);
-
-      assert.isTrue(mousedown.defaultPrevented);
-      assert.isTrue(mousemove.defaultPrevented);
-      assert.isTrue(mouseup.defaultPrevented);
-    });
-
-    suite('Touch forwarding in fullscreen >', function() {
-      var forwardSpy;
-
-      setup(function() {
-        StatusBar._cacheHeight = 24;
-        forwardSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
-      });
-
-      test('it should prevent default on all touch events to prevent reflows',
-      function() {
-        var touchstart = fakeDispatch('touchstart', 100, 0);
-        var touchmove = fakeDispatch('touchmove', 100, 2);
-        var touchend = fakeDispatch('touchend', 100, 2);
-
-        assert.isTrue(touchstart.defaultPrevented);
-        assert.isTrue(touchmove.defaultPrevented);
-        assert.isTrue(touchend.defaultPrevented);
-      });
-
-      test('it should set the destination of the TouchForwarder on touchstart',
-      function() {
-        fakeDispatch('touchstart', 100, 0);
-        assert.equal(StatusBar._touchForwarder.destination, app.iframe);
-        fakeDispatch('touchend', 100, 0);
-      });
-
-      test('it should forward taps to the app', function() {
-        var touchstart = fakeDispatch('touchstart', 100, 0);
-        fakeDispatch('touchmove', 100, 2);
-        var touchend = fakeDispatch('touchend', 100, 2);
-
-        assert.isTrue(forwardSpy.calledTwice);
-        var call = forwardSpy.firstCall;
-        assert.equal(call.args[0], touchstart);
-        call = forwardSpy.getCall(1);
-        assert.equal(call.args[0], touchend);
-      });
-
-      suite('if it\'s not a tap and the statusbar is not fully displayed',
-      function() {
-        test('it should not forward any events', function() {
-          fakeDispatch('touchstart', 100, 0);
-          fakeDispatch('touchmove', 100, 8);
-          fakeDispatch('touchend', 100, 8);
-
-          assert.isTrue(forwardSpy.notCalled);
-        });
-      });
-
-      test('it should forward touchmove once the statusbar is shown',
-      function() {
-        var touchstart = fakeDispatch('touchstart', 100, 0);
-        fakeDispatch('touchmove', 100, 6);
-        var secondMove = fakeDispatch('touchmove', 100, 26);
-        var thirdMove = fakeDispatch('touchmove', 100, 28);
-        var touchend = fakeDispatch('touchend', 100, 2);
-
-        assert.equal(forwardSpy.callCount, 4);
-        var call = forwardSpy.firstCall;
-        assert.equal(call.args[0], touchstart);
-        call = forwardSpy.getCall(1);
-        assert.equal(call.args[0], secondMove);
-        call = forwardSpy.getCall(2);
-        assert.equal(call.args[0], thirdMove);
-        call = forwardSpy.getCall(3);
-        assert.equal(call.args[0], touchend);
       });
     });
   });

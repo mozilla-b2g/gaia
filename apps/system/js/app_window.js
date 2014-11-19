@@ -520,11 +520,6 @@
     return '<div class=" ' + this.CLASS_LIST +
             ' " id="' + this.instanceID +
             '" transition-state="closed">' +
-              '<div class="titlebar">' +
-              ' <div class="notifications-shadow"></div>' +
-              ' <div class="statusbar-shadow titlebar-maximized"></div>' +
-              ' <div class="statusbar-shadow titlebar-minimized"></div>' +
-              '</div>' +
               '<div class="identification-overlay">' +
                 '<div>' +
                   '<div class="icon"></div>' +
@@ -733,6 +728,7 @@
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
+    'statusbar': window.AppStatusbar
   };
 
   AppWindow.prototype.openAnimation = 'enlarge';
@@ -2192,6 +2188,17 @@
       return;
     }
     this.setVisible(false);
+  };
+
+  /**
+   * Statusbar will bypass touch event to us via this method
+   * @param  {Object} evt       Touch event object
+   * @param  {Number} barHeight The height of the statusbar
+   */
+  AppWindow.prototype.handleStatusbarTouch = function(evt, barHeight) {
+    if (this.statusbar) {
+      this.statusbar.handleStatusbarTouch(evt, barHeight);
+    }
   };
   exports.AppWindow = AppWindow;
 }(window));
