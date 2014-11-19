@@ -88,6 +88,7 @@ class ContactDetails(Base):
         button = self.marionette.find_element(*self._add_remove_favorite_button_locator)
         # Capture the current state of the element
         initial_state = button.get_attribute('data-l10n-id')
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [button])
         button.tap()
         # Wait for it to have toggled
         Wait(self.marionette).until(lambda m: button.get_attribute('data-l10n-id') != initial_state)
