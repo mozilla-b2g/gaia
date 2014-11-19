@@ -354,12 +354,11 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
   var doc = this.win.document;
   var scripts = Array.prototype.slice.call(
     doc.head.querySelectorAll('script[src]'));
-  scripts.forEach(function(script, idx) {
-    // per-script out see comment in function header.
-    if ('skipOptimize' in script.dataset) {
-      scripts.splice(idx, 1);
-      return;
+  scripts = scripts.filter(function(script, idx) {
+    if ('skipOptimize' in script.dataset || script.hasAttribute('async')) {
+      return false;
     }
+
     var html = script.outerHTML;
     // we inject the whole outerHTML into the comment for debugging so
     // if there is something valuable in the html that effects the script
@@ -399,6 +398,8 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
     if (script.type.indexOf('version') !== -1) {
       scriptConfig.specs.type = script.type;
     }
+
+    return true;
   }, this);
 
   this.writeAggregatedContent(deferred);
