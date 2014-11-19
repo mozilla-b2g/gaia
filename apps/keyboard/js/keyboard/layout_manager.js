@@ -1,6 +1,6 @@
 'use strict';
 
-/* global KeyboardEvent, LayoutLoader */
+/* global KeyboardEvent, LayoutLoader, LayoutKeyNormalizer */
 
 /** @fileoverview These are special keyboard layouts.
  * Language-specific layouts are in individual js files in layouts/ .
@@ -145,6 +145,8 @@ LayoutManager.prototype._updateCurrentPage = function() {
   // to prevent from modifying it.
   page = this.currentPage = Object.create(page);
 
+  var keyNormalizer = new LayoutKeyNormalizer(page);
+
   // These properties needs to be carry over to the page from the layout
   // regardless where the page is come from.
   ['imEngine', 'autoCorrectLanguage',
@@ -201,29 +203,27 @@ LayoutManager.prototype._updateCurrentPage = function() {
   // Insert switch-to-symbol-and-back keys
   if (!layout.disableAlternateLayout) {
     spaceKeyObject.ratio -= 2;
+    pageSwitchingKeyObject = {
+      keyCode: KeyboardEvent.DOM_VK_ALT,
+      ratio: 2,
+      className: 'page-switch-key'
+    };
     if (this.currentPageIndex === this.PAGE_INDEX_DEFAULT) {
-      pageSwitchingKeyObject = {
-        keyCode: KeyboardEvent.DOM_VK_ALT,
+      Object.assign(pageSwitchingKeyObject, {
         value: layout.alternateLayoutKey || '12&',
-        uppercaseValue: layout.alternateLayoutKey || '12&',
-        ratio: 2,
         ariaLabel: 'alternateLayoutKey2',
-        className: 'page-switch-key',
-        targetPage: 1,
-        isSpecialKey: true
-      };
+        targetPage: 1
+      });
     } else {
-      pageSwitchingKeyObject = {
-        keyCode: KeyboardEvent.DOM_VK_ALT,
+      Object.assign(pageSwitchingKeyObject, {
         value: layout.basicLayoutKey || 'ABC',
-        uppercaseValue: layout.basicLayoutKey || 'ABC',
-        ratio: 2,
         ariaLabel: 'basicLayoutKey2',
-        className: 'page-switch-key',
-        targetPage: this.PAGE_INDEX_DEFAULT,
-        isSpecialKey: true
-      };
+        targetPage: this.PAGE_INDEX_DEFAULT
+      });
     }
+
+    pageSwitchingKeyObject =
+      keyNormalizer.normalizeKey(pageSwitchingKeyObject, false);
 
     spaceKeyRow.splice(spaceKeyCount, 0, pageSwitchingKeyObject);
     spaceKeyCount++;
@@ -273,19 +273,9 @@ LayoutManager.prototype._updateCurrentPage = function() {
 
   // Respond to different input types
   if (!page.typeInsensitive) {
-    var periodKey = {
-      value: '.',
-      keyCode: 46,
-      keyCodeUpper: 46,
-      lowercaseValue: '.',
-      uppercaseValue: '.',
-      isSpecialKey: false
-    };
-    if (page.alt && page.alt['.']) {
-      periodKey.className = 'alternate-indicator';
-    }
-
-
+    var periodKey = keyNormalizer.normalizeKey({
+      value: '.'
+    }, !!(page.alt && page.alt['.']));
 
     var modifyType = 'default';
     // We have different rules to handle the default layout page and
@@ -319,14 +309,9 @@ LayoutManager.prototype._updateCurrentPage = function() {
       case 'url':
         spaceKeyObject.ratio -= 2.0;
         // Add '/' key when we are at the default page
-        spaceKeyRow.splice(spaceKeyCount, 0, {
-          value: '/',
-          keyCode: 47,
-          keyCodeUpper: 47,
-          lowercaseValue: '/',
-          uppercaseValue: '/',
-          isSpecialKey: false
-        });
+        spaceKeyRow.splice(spaceKeyCount, 0, keyNormalizer.normalizeKey(
+          { value: '/' }, false
+        ));
         spaceKeyCount++;
 
         // period key (after space key)
@@ -337,14 +322,9 @@ LayoutManager.prototype._updateCurrentPage = function() {
       case 'email':
         spaceKeyObject.ratio -= 2;
         // Add '@' key when we are at the default page
-        spaceKeyRow.splice(spaceKeyCount, 0, {
-          value: '@',
-          keyCode: 64,
-          keyCodeUpper: 64,
-          lowercaseValue: '@',
-          uppercaseValue: '@',
-          isSpecialKey: false
-        });
+        spaceKeyRow.splice(spaceKeyCount, 0, keyNormalizer.normalizeKey(
+          { value: '@' }, false
+        ));
         spaceKeyCount++;
 
         // period key (after space key)
@@ -373,14 +353,9 @@ LayoutManager.prototype._updateCurrentPage = function() {
           if (overwrites[',']) {
             commaKey = overwrites[','];
           } else {
-            commaKey = {
-              value: ',',
-              keyCode: 44,
-              keyCodeUpper: 44,
-              lowercaseValue: ',',
-              uppercaseValue: ',',
-              isSpecialKey: false
-            };
+            commaKey = keyNormalizer.normalizeKey(
+              {value: ','}, !!(page.alt && page.alt[','])
+            );
           }
 
           spaceKeyObject.ratio -= 1;
