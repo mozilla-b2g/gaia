@@ -347,6 +347,9 @@
           navigator.mozL10n.get('shortTimeFormat24');
         this.refreshClock(new Date());
         break;
+      case 'ftuopen':
+        this.lockIfEnabled(true);
+        break;
     }
   };  // -- LockScreen#handleEvent --
 
@@ -417,6 +420,7 @@
 
     /* blocking holdhome and prevent Cards View from show up */
     window.addEventListener('holdhome', this, true);
+    /* ensure we unlock if ftu wasnt yet running  */
     window.addEventListener('ftuopen', this);
     window.addEventListener('timeformatchange', this);
 
