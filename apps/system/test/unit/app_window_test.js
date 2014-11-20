@@ -1,4 +1,4 @@
-/* global AppWindow, ScreenLayout, MockOrientationManager,
+/* global AppWindow, ScreenLayout, MockOrientationManager, MockService,
       LayoutManager, MocksHelper, MockContextMenu, layoutManager, Service,
       MockAppTransitionController, MockPermissionSettings, DocumentFragment */
 'use strict';
@@ -13,12 +13,13 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_app_transition_controller.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'AppChrome',
-  'AppTransitionController'
+  'AppTransitionController', 'Service'
 ]).init();
  
 suite('system/AppWindow', function() {
@@ -41,6 +42,7 @@ suite('system/AppWindow', function() {
   setup(function(done) {
     this.sinon.useFakeTimers();
 
+    window.Service = MockService;
     window.layoutManager = new LayoutManager();
     window.layoutManager.start();
 
@@ -67,6 +69,7 @@ suite('system/AppWindow', function() {
   teardown(function() {
     navigator.mozPermissionSettings = realPermissionSettings;
     delete window.layoutManager;
+    delete window.Service;
   });
 
   var fakeAppConfig1 = {
@@ -1842,21 +1845,28 @@ suite('system/AppWindow', function() {
 
     test('Orientation change event on active homescreen app', function() {
       var app1 = new AppWindow(fakeAppConfig1);
+      var stubLockOrientation = this.sinon.stub(app1, 'lockOrientation');
       this.sinon.stub(app1, 'isActive').returns(true);
       app1.isHomescreen = true;
       app1.width = 320;
       app1.height = 460;
+
       layoutManager.width = 460;
       layoutManager.height = 320;
+      MockService.currentApp = app1;
 
       app1.handleEvent({
         type: '_orientationchange'
       });
 
+      assert.isTrue(stubLockOrientation.calledOnce,
+        'when active app is homescreen, we should call lockOrientation to' +
+        'prevent it is modified by other background app');
       assert.equal(app1.element.style.width, '460px');
       assert.equal(app1.element.style.height, '320px');
       assert.equal(app1.iframe.style.width, '320px');
       assert.equal(app1.iframe.style.height, '460px');
+      MockService.currentApp = null;
     });
 
     test('Orientation change event on fullscreen app', function() {
