@@ -1,4 +1,4 @@
-/* global homescreenLauncher, System, LazyLoader, LandingAppLauncher */
+/* global homescreenLauncher, Service, LazyLoader, LandingAppLauncher */
 
 'use strict';
 (function(exports) {
@@ -9,7 +9,7 @@
    * @class HomescreenWindowManager
    * @requires HomescreenLauncher
    * @requires LandingAppLauncher
-   * @requires System
+   * @requires Service
    */
   function HomescreenWindowManager() {}
 
@@ -36,7 +36,7 @@
     debug: function hwm_debug() {
       if (this.DEBUG) {
         console.log('[' + this.CLASS_NAME + ']' +
-          '[' + System.currentTime() + ']' +
+          '[' + Service.currentTime() + ']' +
           Array.slice(arguments).concat());
       }
     },

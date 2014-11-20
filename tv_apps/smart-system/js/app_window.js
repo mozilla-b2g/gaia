@@ -5,7 +5,7 @@
 /* global OrientationManager */
 /* global ScreenLayout */
 /* global SettingsCache */
-/* global System */
+/* global Service */
 'use strict';
 
 (function(exports) {
@@ -1035,7 +1035,7 @@
       console.log('[' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
         '[' + this.instanceID + ']' +
-        '[' + System.currentTime() + '] ' +
+        '[' + Service.currentTime() + '] ' +
         Array.slice(arguments).concat());
 
       if (TRACE) {
@@ -1048,7 +1048,7 @@
   AppWindow.prototype.forceDebug = function aw_debug(msg) {
     console.log('[Dump:' + this.CLASS_NAME + ']' +
       '[' + (this.name || this.origin) + ']' +
-      '[' + System.currentTime() + ']' +
+      '[' + Service.currentTime() + ']' +
       Array.slice(arguments).concat());
   };
 

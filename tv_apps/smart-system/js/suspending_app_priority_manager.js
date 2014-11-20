@@ -14,7 +14,7 @@
    *
    * @module  SuspendingAppPriorityManager
    * @requires module:StackManager
-   * @requires module:System
+   * @requires module:Service
    */
   var SuspendingAppPriorityManager = function() {
     this.init();
@@ -78,7 +78,7 @@
   SuspendingAppPriorityManager.prototype.debug = function() {
     if (this._DEBUG) {
       console.log('[SuspendingAppPriorityManager]' +
-        '[' + self.System.currentTime() + '] ' +
+        '[' + self.Service.currentTime() + '] ' +
         Array.slice(arguments).concat());
     }
   };

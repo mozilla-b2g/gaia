@@ -1,5 +1,4 @@
-/* global KeyboardManager, System,
-          AppWindowManager */
+/* global KeyboardManager, Service, AppWindowManager */
 'use strict';
 
 (function(exports) {
@@ -22,7 +21,7 @@
    *
    * @class LayoutManager
    * @requires KeyboardManager
-   * @requires System
+   * @requires Service
    */
   var LayoutManager = function LayoutManager() {};
 
@@ -143,7 +142,7 @@
     debug: function lm_debug() {
       if (this.DEBUG) {
         console.log('[' + this.CLASS_NAME + ']' +
-          '[' + System.currentTime() + '] ' +
+          '[' + Service.currentTime() + '] ' +
           Array.slice(arguments).concat());
       }
     }

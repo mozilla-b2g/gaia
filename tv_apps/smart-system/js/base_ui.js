@@ -1,3 +1,4 @@
+/* global Service */
 'use strict';
 
 (function(window) {
@@ -114,7 +115,7 @@
   BaseUI.prototype.debug = function bu_debug(msg) {
     if (DEBUG && ('DEBUG' in this.constructor && this.constructor.DEBUG)) {
       console.log('[' + this.CLASS_NAME + '][' + this.customID() + ']' +
-        '[' + System.currentTime() + ']' +
+        '[' + Service.currentTime() + ']' +
         Array.slice(arguments).concat());
     }
   };

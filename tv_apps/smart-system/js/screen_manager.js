@@ -359,7 +359,7 @@ var ScreenManager = {
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
     } else if (!this._unlocking) {
-      if (window.System.locked) {
+      if (window.Service.locked) {
         this._setIdleTimeout(10, true);
         window.addEventListener('lockscreen-appclosing', this);
         window.addEventListener('lockpanelchange', this);
