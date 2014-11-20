@@ -54,7 +54,10 @@ ContactsData.prototype = {
 
     var fbContactData;
     this.client.executeAsyncScript(saveFBContact, function(err, val) {
-      console.error(err);
+      if (err) {
+        console.error(err);
+      }
+
       fbContactData = val;
     });
 
