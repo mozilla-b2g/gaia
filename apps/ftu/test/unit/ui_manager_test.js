@@ -10,6 +10,8 @@ requireApp('ftu/js/navigation.js');
 requireApp('ftu/test/unit/mock_l10n.js');
 requireApp('ftu/test/unit/mock_tutorial.js');
 requireApp('ftu/test/unit/mock_mozapps.js');
+requireApp('ftu/test/unit/mock_data_mobile.js');
+requireApp('ftu/test/unit/mock_sim_manager.js');
 requireApp('ftu/test/unit/mock_time_manager.js');
 requireApp('ftu/test/unit/mock_wifi_manager.js');
 requireApp('ftu/test/unit/mock_tz_select.js');
@@ -17,6 +19,8 @@ requireApp('ftu/test/unit/mock_operatorVariant.js');
 requireApp('ftu/test/unit/mock_fx_accounts_iac_helper.js');
 
 var mocksHelperForUI = new MocksHelper([
+  'DataMobile',
+  'SimManager',
   'Tutorial',
   'TimeManager',
   'WifiManager',
@@ -71,6 +75,58 @@ suite('UI Manager > ', function() {
 
     window.FxAccountsIACHelper = realFxAccountsIACHelper;
     realFxAccountsIACHelper = null;
+  });
+
+  suite('Data 3G section', function() {
+    suiteSetup(function() {
+      Navigation.currentStep = 2;
+      Navigation.manageStep();
+    });
+
+    suiteTeardown(function() {
+      Navigation.currentStep = 1;
+      Navigation.manageStep();
+    });
+
+    suite('Enable data connection', function() {
+      var event;
+      var stubSimAvailable;
+
+      setup(function() {
+        this.sinon.spy(DataMobile, 'toggle');
+        this.sinon.stub(SimManager, 'handleCardState', function() {});
+        event = {
+          target: {
+            checked: true,
+            id: 'data-connection-switch'
+          }
+        };
+        stubSimAvailable = this.sinon.stub(SimManager, 'available');
+      });
+
+      test('Should not enable data when SIM lock', function() {
+        stubSimAvailable.returns(false);
+        UIManager.handleEvent(event);
+        sinon.assert.calledOnce(SimManager.handleCardState);
+        sinon.assert.notCalled(DataMobile.toggle);
+      });
+
+      test('Should enable data after SIM unlock', function() {
+        stubSimAvailable.onCall(0).returns(false);
+        stubSimAvailable.onCall(1).returns(true);
+        UIManager.handleEvent(event);
+        SimManager.publish('iccUnlockSuccess');
+        sinon.assert.calledOnce(SimManager.handleCardState);
+        sinon.assert.calledOnce(DataMobile.toggle);
+      });
+
+      test('Should enable data when SIM is available', function() {
+        stubSimAvailable.returns(true);
+        UIManager.handleEvent(event);
+        sinon.assert.calledOnce(DataMobile.toggle);
+        sinon.assert.calledWith(DataMobile.toggle, event.target.checked);
+      });
+    });
   });
 
   suite('Date & Time >', function() {

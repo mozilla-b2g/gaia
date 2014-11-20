@@ -341,9 +341,18 @@ var UIManager = {
         break;
       // 3G
       case 'data-connection-switch':
-        this.dataConnectionChangedByUsr = true;
         var status = event.target.checked;
-        DataMobile.toggle(status);
+        if (SimManager.available()) {
+          this.changeDataConnection(status);
+        } else {
+          // Switch data connection back when SIM is not available
+          event.target.checked = !status;
+          SimManager.addUnlockSuccessCallback(function() {
+            this.changeDataConnection(status);
+            event.target.checked = status;
+          }.bind(this));
+          SimManager.handleCardState();
+        }
         break;
       // WIFI
       case 'wifi-refresh-button':
@@ -389,6 +398,11 @@ var UIManager = {
         }
         break;
     }
+  },
+
+  changeDataConnection: function ui_changeDataConnection(status) {
+    this.dataConnectionChangedByUsr = true;
+    DataMobile.toggle(status);
   },
 
   updateSetting: function ui_updateSetting(name, value) {
