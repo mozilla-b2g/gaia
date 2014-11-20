@@ -4,7 +4,7 @@
 /* global ModalDialog */
 /* global MozActivity */
 /* global SettingsCache */
-/* global System */
+/* global Service */
 
 'use strict';
 
@@ -252,7 +252,7 @@
         break;
 
       case this.title:
-        if (System && System.locked) {
+        if (Service && Service.locked) {
           return;
         }
         window.dispatchEvent(new CustomEvent('global-search-request'));

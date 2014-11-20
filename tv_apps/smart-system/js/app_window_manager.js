@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenWindowManager, KeyboardManager,
-          layoutManager, System, SettingsCache */
+          layoutManager, Service, SettingsCache */
 'use strict';
 
 (function(exports) {
@@ -20,6 +20,13 @@
     DEBUG: false,
     CLASS_NAME: 'AppWindowManager',
     continuousTransition: false,
+    /**
+     * Enable slow transition or not for debugging.
+     * Note: Turn on this would make app opening/closing durations become 3s.
+     * @type {Boolean}
+     * @memberOf AppWindowManager
+     */
+    slowTransition: false,
 
     element: document.getElementById('windows'),
 
@@ -245,7 +252,7 @@
      * @memberOf module:AppWindowManager
      */
     init: function awm_init() {
-      if (System.slowTransition) {
+      if (this.slowTransition) {
         this.element.classList.add('slow-transition');
       } else {
         this.element.classList.remove('slow-transition');
@@ -674,7 +681,7 @@
     debug: function awm_debug() {
       if (this.DEBUG) {
         console.log('[' + this.CLASS_NAME + ']' +
-          '[' + System.currentTime() + ']' +
+          '[' + Service.currentTime() + ']' +
           Array.slice(arguments).concat());
       }
     },

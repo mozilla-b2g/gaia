@@ -5,9 +5,9 @@
   /**
    * Shared some global property.
    * @type {Object}
-   * @module  System
+   * @module  Service
    */
-  exports.System = {
+  exports.Service = {
     /**
      * Indicates the system is busy doing something.
      * Now it stands for the foreground app is not loaded yet.
@@ -20,38 +20,30 @@
      * Record the start time of the system for later debugging usage.
      * @access private
      * @type {Number}
-     * @memberOf module:System
+     * @memberOf module:Service
      */
     _start: new Date().getTime() / 1000,
 
     /**
      * Get current time offset from the start.
      * @return {Number} The time offset.
-     * @memberOf module:System
+     * @memberOf module:Service
      */
     currentTime: function() {
       return (new Date().getTime() / 1000 - this._start).toFixed(3);
     },
 
-    /**
-     * Enable slow transition or not for debugging.
-     * Note: Turn on this would make app opening/closing durations become 3s.
-     * @type {Boolean}
-     * @memberOf module:System
-     */
-    slowTransition: false,
-
     debug: function sys_debug() {
       if (DEBUG) {
-        console.log('[System]' +
-          '[' + window.System.currentTime() + ']' +
+        console.log('[Service]' +
+          '[' + window.Service.currentTime() + ']' +
           Array.slice(arguments).concat());
       }
     },
 
     forceDebug: function sys_debug() {
-      console.log('[System]' +
-        '[' + window.System.currentTime() + ']' +
+      console.log('[Service]' +
+        '[' + window.Service.currentTime() + ']' +
         Array.slice(arguments).concat());
     },
 

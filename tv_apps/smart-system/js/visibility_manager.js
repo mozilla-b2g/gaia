@@ -1,4 +1,4 @@
-/* global attentionWindowManager, System */
+/* global attentionWindowManager, Service */
 'use strict';
 
 (function(exports) {
@@ -12,7 +12,7 @@
    *
    * @class VisibilityManager
    * @requires attentionWindowManager
-   * @requires System
+   * @requires Service
    */
   var VisibilityManager = function VisibilityManager() {
     this._normalAudioChannelActive = false;
@@ -70,7 +70,7 @@
         break;
       case 'apprequestforeground':
         // XXX: Use hierachy manager to know who is top most.
-        if (!System.locked &&
+        if (!Service.locked &&
             !attentionWindowManager.hasActiveWindow()) {
           evt.detail.setVisible(true);
         }
@@ -107,7 +107,7 @@
         break;
 
       case 'attentionopened':
-        if (!System.locked) {
+        if (!Service.locked) {
           this.publish('hidewindow', { type: evt.type });
         }
         break;
@@ -126,9 +126,9 @@
           this._resetDeviceLockedTimer();
 
           if (this._normalAudioChannelActive &&
-              evt.detail.channel !== 'normal' && window.System.locked) {
+              evt.detail.channel !== 'normal' && window.Service.locked) {
             this._deviceLockedTimer = setTimeout(function setVisibility() {
-              if (window.System.locked) {
+              if (window.Service.locked) {
                 this.publish('hidewindow',
                   { screenshoting: false, type: evt.type });
               }
@@ -160,7 +160,7 @@
   VisibilityManager.prototype.debug = function vm_debug() {
     if (this.DEBUG) {
       console.log('[' + this.CLASS_NAME + ']' +
-        '[' + System.currentTime() + ']' +
+        '[' + Service.currentTime() + ']' +
         Array.slice(arguments).concat());
     }
   };
