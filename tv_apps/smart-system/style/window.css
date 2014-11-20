@@ -557,3 +557,8 @@
 .appWindow.attentionWindow > .chrome > .controls > .urlbar > .title {
   display: none;
 }
+
+#screen #windows .transparent-inline-activity.render > div.browser-container,
+#screen #windows .transparent-inline-activity.render > div.browser-container > iframe.browser {
+  background-color: transparent;
+}
