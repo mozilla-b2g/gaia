@@ -66,14 +66,14 @@ ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
   // and it has an origin in its manifest file it'll be able to specify a custom
   // folder name. Otherwise, generate an UUID to use as folder name.
 
-  var uuid = this.uuidMapping[webapp.sourceDirectoryName] ||
-    utils.generateUUID().toString();
-
-  var webappTargetDirName = uuid;
+  var webappTargetDirName;
   if (type === 2 && isPackaged && webapp.pckManifest.origin) {
     webappTargetDirName = utils.getNewURI(webapp.pckManifest.origin).host;
   } else {
     // uuid is used for webapp directory name, save it for further usage
+    var uuid = this.uuidMapping[webapp.sourceDirectoryName] ||
+      utils.generateUUID().toString();
+    webappTargetDirName = uuid;
     this.uuidMapping[webapp.sourceDirectoryName] = uuid;
   }
 
