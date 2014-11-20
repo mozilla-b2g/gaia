@@ -30,7 +30,8 @@ marionette('mozChromeNotifications:', function() {
     home.waitForLaunch();
   });
 
-  test('Sending one notification, resends none', function(done) {
+  // Skipping until gecko patch lands from bug 1088224
+  test.skip('Sending one notification, resends none', function(done) {
     var notificationTitle = 'Title:' + Date.now();
 
     // switch to calendar app and send notification
