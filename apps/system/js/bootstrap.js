@@ -44,7 +44,7 @@ window.addEventListener('load', function startup() {
     KeyboardManager.init();
 
     // Must load after KeyboardManager for correct handling mozChromeEvent.
-    TrustedUIManager.init();
+    TrustedUIManager.start();
 
     /** @global */
     window.appWindowManager = new AppWindowManager();
