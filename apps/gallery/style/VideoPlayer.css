@@ -129,8 +129,18 @@ button::-moz-focus-inner {
   left: 1rem;
 }
 
+html[dir="rtl"] .videoPlayerElapsedText {
+  right: 1rem;
+  left: unset;
+}
+
 .videoPlayerDurationText {
   right: 1rem;
+}
+
+html[dir="rtl"] .videoPlayerDurationText {
+  left: 1rem;
+  right: unset;
 }
 
 .videoPlayerProgress {
@@ -170,7 +180,8 @@ button::-moz-focus-inner {
   border-radius: 2.5rem;
   background-color: white;
   top: 50%;
-  margin: -1rem 0 0 -1.2rem;
+  margin-top: -1rem;
+  -moz-margin-start: -1.2rem;
 }
 
 
