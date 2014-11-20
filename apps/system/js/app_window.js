@@ -8,6 +8,7 @@
 /* global SettingsListener */
 /* global StatusBar */
 /* global System */
+/* global AppWindowManager */
 'use strict';
 
 (function(exports) {
@@ -784,10 +785,15 @@
 
   AppWindow.prototype._handle__orientationchange = function() {
     if (this.isActive()) {
-      // Will be resized by the AppWindowManager
-      return;
+      if (!this.isHomescreen) {
+        return;
+      // XXX: Preventing orientaiton of homescreen app is changed by background
+      //      app. It's a workaround for bug 1089951.
+      //      It should be remove once bug 1043102 is done.
+      } else if (AppWindowManager && AppWindowManager.getActiveApp() === this) {
+        this.lockOrientation();
+      }
     }
-
     // Resize only the overlays not the app
     var width = layoutManager.width;
     var height = layoutManager.height;
@@ -1463,6 +1469,7 @@
                       OrientationManager.globalOrientation;
     if (orientation) {
       var rv = screen.mozLockOrientation(orientation);
+
       if (rv === false) {
         console.warn('screen.mozLockOrientation() returned false for',
                      this.origin, 'orientation', orientation);
