@@ -147,7 +147,7 @@ suite('GaiaGrid', function() {
       assert.equal(items[items.length - 1], divider);
     });
 
-    test('appendItemToExpandedGroup adds after collapsed divider', function() {
+    test('appendItemToExpandedGroup expands collapsed divider', function() {
       element.clear();
 
       var divider = new GaiaGrid.Divider();
@@ -160,7 +160,7 @@ suite('GaiaGrid', function() {
 
       var items = element.getItems();
       assert.ok(items.length > itemLength);
-      assert.equal(items[itemLength], fakeBookmarkItem2);
+      assert.notEqual(divider.detail.collapsed, true);
     });
 
     test('clear will dereference item elements', function() {

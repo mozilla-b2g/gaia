@@ -133,8 +133,8 @@ window.GaiaGrid = (function(win) {
   };
 
   /**
-   * If the last item is a collapsed divider, appends the item after said
-   * divider. Otherwise falls back to appendItem().
+   * If the last item is a collapsed divider, expand that divider before
+   * appending the item.
    */
   proto.appendItemToExpandedGroup = function(item) {
     var items = this._grid.items;
@@ -142,10 +142,10 @@ window.GaiaGrid = (function(win) {
 
     if (items[lastIndex].detail.type === 'divider' &&
         items[lastIndex].detail.collapsed) {
-      this.add(item);
-    } else {
-      this.appendItem(item);
+      items[lastIndex].expand();
     }
+
+    this.appendItem(item);
   };
 
   /**
