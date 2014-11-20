@@ -6,6 +6,12 @@ html, body {
   font-size: 10px;
   overflow: hidden;
   background: white;
+
+  -moz-user-select: none;
+}
+
+label {
+  -moz-user-select: none;
 }
 
 /**
