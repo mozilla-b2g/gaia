@@ -187,6 +187,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     if (self._iccCallMessage) {
       return;
     }
+    self._matchingTel = matchingTel;
     if (contact) {
       var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
       var contactCopy = {
@@ -305,6 +306,17 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
   if (this.call.state == 'connected') {
     classList.add('ongoing');
   }
+};
+
+HandledCall.prototype.setStatusBarNotification =
+function hc_setStatusBarNotification() {
+  this.replaceAdditionalContactInfo(
+    this._cachedInfo + (this._cachedAdditionalInfo ?
+      ' / ' + Utils.getPhoneNumberType(this._matchingTel) : ''));
+  var self = this;
+  LazyL10n.get(function localized(_) {
+    self.replacePhoneNumber(_('activeCall'));
+  });
 };
 
 HandledCall.prototype.remove = function hc_remove() {

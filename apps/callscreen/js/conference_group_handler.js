@@ -19,9 +19,13 @@ var ConferenceGroupHandler = (function() {
    * Object initialization.
    */
 
+  var cachedInfo = '';
+  var cachedAdditionalInfo = '';
+
   var groupLine = document.getElementById('group-call');
   var groupLabel = document.getElementById('group-call-label');
   // FIXME/bug 1007148: Refactor duration element structure
+  var groupSummary = document.getElementById('group-call-summary');
   var groupDuration = document.querySelector('#group-call > .duration');
   var groupDurationChildNode = groupDuration.querySelector('span');
   var groupTotalDurationChildNode =
@@ -51,6 +55,7 @@ var ConferenceGroupHandler = (function() {
       var groupDetailsHeaderText = _('conferenceCall', {n: calls.length});
       ConferenceGroupUI.setGroupDetailsHeader(groupDetailsHeaderText);
       groupLabel.textContent = groupDetailsHeaderText;
+      cachedInfo = groupDetailsHeaderText;
     });
 
     // When hanging up phones on conferenceGroup.calls.length >= 2,
@@ -143,6 +148,25 @@ var ConferenceGroupHandler = (function() {
     return ConferenceGroupUI.isGroupDetailsShown();
   }
 
+  function setStatusBarNotification() {
+    cachedAdditionalInfo = groupSummary.textContent;
+    groupSummary.textContent = groupLabel.textContent;
+    groupLine.classList.add('additionalInfo');
+    LazyL10n.get(function localized(_) {
+      cachedInfo = groupLabel.textContent;
+      groupLabel.textContent = _('activeCall');
+    });
+  }
+
+  function restorePhoneNumber() {
+    groupLabel.textContent = cachedInfo;
+  }
+
+  function restoreAdditionalContactInfo() {
+    groupSummary.textContent = cachedAdditionalInfo;
+    groupLine.classList.toggle('additionalInfo', groupSummary.textContent);
+  }
+
   return {
     addToGroupDetails: addToGroupDetails,
     removeFromGroupDetails: removeFromGroupDetails,
@@ -150,6 +174,9 @@ var ConferenceGroupHandler = (function() {
     isGroupDetailsShown: isGroupDetailsShown,
     get currentDuration() {
       return groupDurationChildNode.textContent;
-    }
+    },
+    setStatusBarNotification: setStatusBarNotification,
+    restorePhoneNumber: restorePhoneNumber,
+    restoreAdditionalContactInfo: restoreAdditionalContactInfo
   };
 })();

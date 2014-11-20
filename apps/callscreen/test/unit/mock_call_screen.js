@@ -107,7 +107,7 @@ var MockCallScreen = {
   },
   mCdmaCallWaiting: false,
 
-  get inStatusBarMode() {
+  inStatusBarMode: function() {
     return this.mInStatusBarMode;
   },
   mInStatusBarMode: false,

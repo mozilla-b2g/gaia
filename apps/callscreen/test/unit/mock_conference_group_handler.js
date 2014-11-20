@@ -9,6 +9,9 @@ var MockConferenceGroupHandler = {
   signalConferenceEnded: function() {},
   addToGroupDetails: function() {},
   isGroupDetailsShown: function() {},
+  setStatusBarNotification: function() {},
+  restorePhoneNumber: function() {},
+  restoreAdditionalContactInfo: function() {},
   mTeardown: function() {
     this.mCurrentDuration = '12:34';
   }

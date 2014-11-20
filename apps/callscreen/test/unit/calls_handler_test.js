@@ -2051,37 +2051,166 @@ suite('calls handler', function() {
     });
 
     suite('> CallsHandler.updateAllPhoneNumberDisplays', function() {
-      var firstCall, secondCall, firstHC, secondHC, firstSpy, secondSpy;
+      var firstCall, firstHC, secondCall, secondHC, thirdCall, thirdHC;
 
-      setup(function() {
-        firstCall = new MockCall('543552', 'incoming');
-        secondCall = new MockCall('12334', 'incoming');
-        firstHC = telephonyAddCall.call(this, firstCall);
-        secondHC = telephonyAddCall.call(this, secondCall);
-        firstSpy = this.sinon.spy(firstHC, 'restorePhoneNumber');
-        secondSpy = this.sinon.spy(secondHC, 'restorePhoneNumber');
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
+      suite('in status bar mode', function() {
+        setup(function() {
+          this.sinon.stub(MockCallScreen, 'inStatusBarMode', function() {
+            return true;
+          });
+          this.sinon.spy(
+            MockConferenceGroupHandler, 'setStatusBarNotification');
+          firstCall = new MockCall('543552', 'incoming');
+          firstHC = telephonyAddCall.call(this, firstCall, {trigger: true});
+        });
+
+        test('should set the status bar notification content if there\'s an ' +
+             'active 1 to 1 call', function() {
+          MockNavigatorMozTelephony.active = firstCall;
+          this.sinon.spy(firstHC, 'setStatusBarNotification');
+          CallsHandler.updateAllPhoneNumberDisplays();
+          sinon.assert.calledOnce(firstHC.setStatusBarNotification);
+        });
+
+        test('should set the status bar notification content if there\'s a ' +
+             'held 1 to 1 call', function() {
+          MockNavigatorMozTelephony.active = null;
+          this.sinon.spy(firstHC, 'setStatusBarNotification');
+          CallsHandler.updateAllPhoneNumberDisplays();
+          sinon.assert.calledOnce(firstHC.setStatusBarNotification);
+        });
+
+        test('should set the status bar notification content if there\'s an ' +
+             'active conference call', function() {
+          secondCall = new MockCall('12334', 'incoming');
+          secondHC = telephonyAddCall.call(this, secondCall, {trigger: true});
+          MockNavigatorMozTelephony.calls = [];
+          MockNavigatorMozTelephony.conferenceGroup.calls =
+            [firstCall, secondCall];
+            MockNavigatorMozTelephony.active =
+            MockNavigatorMozTelephony.conferenceGroup;
+          CallsHandler.updateAllPhoneNumberDisplays();
+          sinon.assert.calledOnce(
+            MockConferenceGroupHandler.setStatusBarNotification);
+        });
+
+        test('should set the status bar notification content if there\'s a ' +
+             'held conference call', function() {
+          secondCall = new MockCall('12334', 'incoming');
+          secondHC = telephonyAddCall.call(this, secondCall, {trigger: true});
+          MockNavigatorMozTelephony.calls = [];
+          MockNavigatorMozTelephony.conferenceGroup.calls =
+          [firstCall, secondCall];
+          MockNavigatorMozTelephony.conferenceGroup.state = 'held';
+          MockNavigatorMozTelephony.active = null;
+          CallsHandler.updateAllPhoneNumberDisplays();
+          sinon.assert.calledOnce(
+            MockConferenceGroupHandler.setStatusBarNotification);
+        });
+
+        test('should set the status bar notification content of the active ' +
+             'call if two 1 to 1 ongoing calls', function() {
+          secondCall = new MockCall('12334', 'incoming');
+          secondHC = telephonyAddCall.call(this, secondCall, {trigger: true});
+          MockNavigatorMozTelephony.active = secondCall;
+          this.sinon.spy(firstHC, 'setStatusBarNotification');
+          this.sinon.spy(secondHC, 'setStatusBarNotification');
+          CallsHandler.updateAllPhoneNumberDisplays();
+          sinon.assert.notCalled(firstHC.setStatusBarNotification);
+          sinon.assert.calledOnce(secondHC.setStatusBarNotification);
+        });
+
+        test('should set the status bar notification content of the active ' +
+             '1 to 1 call if held conference call', function() {
+          secondCall = new MockCall('12334', 'incoming');
+          secondHC = telephonyAddCall.call(this, secondCall, {trigger: true});
+          MockNavigatorMozTelephony.calls = [];
+          MockNavigatorMozTelephony.conferenceGroup.calls =
+            [firstCall, secondCall];
+          thirdCall = new MockCall('65789', 'incoming');
+          thirdHC = telephonyAddCall.call(this, thirdCall, {trigger: true});
+          MockNavigatorMozTelephony.active = thirdCall;
+          this.sinon.spy(thirdHC, 'setStatusBarNotification');
+          CallsHandler.updateAllPhoneNumberDisplays();
+          sinon.assert.calledOnce(thirdHC.setStatusBarNotification);
+          sinon.assert.notCalled(
+            MockConferenceGroupHandler.setStatusBarNotification);
+        });
+
+        test('should set the status bar notification content of the active ' +
+             'conferece call if held 1 to 1 call', function() {
+          secondCall = new MockCall('12334', 'incoming');
+          secondHC = telephonyAddCall.call(this, secondCall, {trigger: true});
+          MockNavigatorMozTelephony.calls = [];
+          MockNavigatorMozTelephony.conferenceGroup.calls =
+            [firstCall, secondCall];
+          thirdCall = new MockCall('65789', 'incoming');
+          thirdHC = telephonyAddCall.call(this, thirdCall, {trigger: true});
+          MockNavigatorMozTelephony.active =
+            MockNavigatorMozTelephony.conferenceGroup;
+          this.sinon.spy(thirdHC, 'setStatusBarNotification');
+          CallsHandler.updateAllPhoneNumberDisplays();
+          sinon.assert.calledOnce(
+            MockConferenceGroupHandler.setStatusBarNotification);
+          sinon.assert.notCalled(thirdHC.setStatusBarNotification);
+        });
       });
 
-      test('should restore phone number for every 1 to 1 handled call',
-      function() {
-        CallsHandler.updateAllPhoneNumberDisplays();
-        assert.isTrue(firstSpy.calledOnce);
-        assert.isTrue(secondSpy.calledOnce);
-      });
+      suite('not in status bar mode', function() {
+        setup(function() {
+          this.sinon.stub(MockCallScreen, 'inStatusBarMode', function() {
+            return false;
+          });
+          firstCall = new MockCall('543552', 'incoming');
+          secondCall = new MockCall('12334', 'incoming');
+          firstHC = telephonyAddCall.call(this, firstCall);
+          secondHC = telephonyAddCall.call(this, secondCall);
+          this.sinon.spy(firstHC, 'restorePhoneNumber');
+          this.sinon.spy(firstHC, 'restoreAdditionalContactInfo');
+          this.sinon.spy(secondHC, 'restorePhoneNumber');
+          this.sinon.spy(secondHC, 'restoreAdditionalContactInfo');
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+        });
 
-      test('should not restore the phone number of calls leaving a ' +
-           'conference call',
-      function() {
-        // Data when the conference call is finished because the second call
-        //  left the conference.
-        MockNavigatorMozTelephony.calls = [firstCall];
-        MockNavigatorMozTelephony.conferenceGroup.calls = [];
-        secondHC._leftGroup = true;
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-        CallsHandler.updateAllPhoneNumberDisplays();
-        sinon.assert.calledOnce(firstSpy);
-        sinon.assert.notCalled(secondSpy);
+        test('should restore the information of ongoing 1 to 1 calls',
+        function() {
+          CallsHandler.updateAllPhoneNumberDisplays();
+          sinon.assert.calledOnce(firstHC.restorePhoneNumber);
+          sinon.assert.calledOnce(firstHC.restoreAdditionalContactInfo);
+          sinon.assert.calledOnce(secondHC.restorePhoneNumber);
+          sinon.assert.calledOnce(secondHC.restoreAdditionalContactInfo);
+        });
+
+        test('should not restore the information of calls leaving a ' +
+             'conference call',
+        function() {
+          // Data when the conference call is finished because the second call
+          //  left the conference.
+          MockNavigatorMozTelephony.calls = [firstCall];
+          MockNavigatorMozTelephony.conferenceGroup.calls = [];
+          secondHC._leftGroup = true;
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          CallsHandler.updateAllPhoneNumberDisplays();
+          sinon.assert.calledOnce(firstHC.restorePhoneNumber);
+          sinon.assert.calledOnce(firstHC.restoreAdditionalContactInfo);
+          sinon.assert.notCalled(secondHC.restorePhoneNumber);
+          sinon.assert.notCalled(secondHC.restoreAdditionalContactInfo);
+        });
+
+        test('should restore the information of conference calls',
+        function() {
+          this.sinon.spy(MockConferenceGroupHandler, 'restorePhoneNumber');
+          this.sinon.spy(
+            MockConferenceGroupHandler, 'restoreAdditionalContactInfo');
+          MockNavigatorMozTelephony.conferenceGroup.calls =
+            [firstCall, secondCall];
+          MockNavigatorMozTelephony.calls = [];
+          CallsHandler.updateAllPhoneNumberDisplays();
+          sinon.assert.calledOnce(
+            MockConferenceGroupHandler.restorePhoneNumber);
+          sinon.assert.calledOnce(
+            MockConferenceGroupHandler.restoreAdditionalContactInfo);
+        });
       });
     });
 
