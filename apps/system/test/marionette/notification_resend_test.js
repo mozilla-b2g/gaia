@@ -10,6 +10,9 @@ var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 marionette('mozChromeNotifications:', function() {
 
   var client = marionette.client({
+    prefs: {
+      'dom.notifications.mozchromenotifications.allow_resend_overwrite': true
+    },
     settings: {
       'ftu.manifestURL': null,
       'lockscreen.enabled': false
