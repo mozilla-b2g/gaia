@@ -7,6 +7,7 @@
         Navigation,
         Promise,
         ThreadUI,
+        Threads,
         EventDispatcher,
         DOMError
 */
@@ -652,9 +653,10 @@ var Compose = (function() {
       /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
        * property
        */
-      var hasEmailRecipient = ThreadUI.recipients.list.some(
-        function(recipient) { return recipient.isEmail; }
-      );
+      var recipients = Threads.active ?
+        Threads.active.participants :
+        ThreadUI.recipients.numbers;
+      var hasEmailRecipient = recipients.some(Utils.isEmailAddress);
 
       /* Note: in the future, we'll maybe want to force 'mms' from the UI */
       var newType =

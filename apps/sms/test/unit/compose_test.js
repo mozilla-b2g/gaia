@@ -1,6 +1,7 @@
 /* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
          AttachmentMenu, Draft, Blob,
+         Threads,
          ThreadUI, SMIL,
          InputEvent,
          MessageManager,
@@ -24,6 +25,7 @@ requireApp('sms/js/drafts.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
 require('/test/unit/mock_message_manager.js');
+require('/test/unit/mock_threads.js');
 require('/test/unit/mock_navigation.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
@@ -39,6 +41,7 @@ var mocksHelperForCompose = new MocksHelper([
   'asyncStorage',
   'AttachmentMenu',
   'MessageManager',
+  'Threads',
   'Navigation',
   'Settings',
   'Recipients',
@@ -128,6 +131,8 @@ suite('compose_test.js', function() {
   });
 
   setup(function() {
+    Threads.active = undefined;
+
     clock = this.sinon.useFakeTimers();
 
     this.sinon.stub(SubjectComposer.prototype, 'on');
@@ -907,6 +912,14 @@ suite('compose_test.js', function() {
 
         ThreadUI.on.withArgs('recipientschange').yield();
 
+        sinon.assert.calledOnce(typeChangeStub);
+        assert.equal(Compose.type, 'mms');
+      });
+
+      test('Message switches type when there is an e-mail among the ' +
+      'participants of the active thread', function() {
+        Threads.active = { participants: ['foo@bar.com'] };
+        Compose.updateType();
         sinon.assert.calledOnce(typeChangeStub);
         assert.equal(Compose.type, 'mms');
       });
