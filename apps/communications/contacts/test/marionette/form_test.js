@@ -1,71 +1,57 @@
 'use strict';
 
 var Contacts = require('./lib/contacts'),
+    ContactsData = require('./lib/contacts_data'),
     Dialer = require('../../../dialer/test/marionette/lib/dialer'),
-    assert = require('assert'),
-    fs = require('fs');
+    assert = require('assert');
 
 marionette('Contacts > Form', function() {
   var client = marionette.client(Contacts.config),
     subject,
+    contactsData,
     dialerSubject,
     dialerSelectors,
     selectors;
 
   setup(function() {
     subject = new Contacts(client);
+    contactsData = new ContactsData(client);
     selectors = Contacts.Selectors;
     dialerSubject = new Dialer(client);
     dialerSelectors = Dialer.Selectors;
     subject.launch();
   });
 
-  suite('Review fields', function() {
-    test('Add and delete contact details', function() {
-      var givenName = 'Hello';
-      var familyName = 'World';
-      var org = 'Example Enterprise';
+  var contactData = {
+    givenName: ['Jose'],
+    familyName: ['Cantera'],
+    org: ['EDM'],
+    tel: [{
+      type: ['mobile'],
+      value: '637654321'
+    }]
+  };
 
-      subject.addContact({
-        givenName: givenName,
-        familyName: familyName,
-        org: org
-      });
+  function editFirstContact() {
+    var firstContact = client.helper.waitForElement(selectors.listContactFirst);
+    subject.clickOn(firstContact);
 
-      client.helper.waitForElement(selectors.listContactFirstText)
-        .click();
+    subject.waitSlideLeft('details');
 
-      subject.waitSlideLeft('details');
+    var edit = client.helper.waitForElement(selectors.detailsEditContact);
+    subject.clickOn(edit);
+    subject.waitForFadeIn(client.helper.waitForElement(selectors.form));
+  }
 
-      client.helper.waitForElement(selectors.detailsEditContact)
-        .click();
+  function editContactPhoto() {
+    editFirstContact();
 
-      subject.waitForFormShown();
+    var photoChangeButton = client.helper.waitForElement(
+                                                    selectors.formPhotoButton);
+    subject.clickOn(photoChangeButton);
+  }
 
-      client.helper.waitForElement(selectors.formOrg).click();
-
-      client.helper.waitForElement(selectors.clearOrgButton).tap();
-
-      client.helper.waitForElement(selectors.formSave)
-        .click();
-
-      subject.waitForFormTransition();
-
-      client.helper.waitForElement(selectors.detailsEditContact)
-        .click();
-
-      subject.waitForFormShown();
-
-      client.waitFor(function waiting() {
-        var label = client.helper.
-          waitForElement(selectors.formOrg);
-        return label.text() === '';
-      });
-      assert.ok(true, 'custom label is updated.');
-    });
-  });
-
-  suite('Click phone number', function() {
+  suite('> Add Contact', function() {
     test('Add a simple contact', function() {
       var givenName = 'Hello';
       var familyName = 'World';
@@ -78,40 +64,43 @@ marionette('Contacts > Form', function() {
       var listView = client.helper.waitForElement(selectors.list);
       assert.ok(listView.displayed(), 'List view is shown.');
 
-      var listElementText = client.helper
-        .waitForElement(selectors.listContactFirst)
-        .text();
+      var listElementText = client.helper.waitForElement(
+        selectors.listContactFirst).text();
 
       assert.notEqual(listElementText.indexOf(givenName), -1);
       assert.notEqual(listElementText.indexOf(familyName), -1);
     });
+  });
+
+  suite('> Edit Contact', function() {
+    test('Simple edition of contact details. ORG field', function() {
+      contactsData.createMozContact(contactData);
+
+      editFirstContact();
+
+      client.helper.waitForElement(selectors.formOrg).sendKeys('v2');
+      client.helper.waitForElement(selectors.formSave).click();
+
+      subject.waitForFadeIn(client.helper.waitForElement(selectors.details));
+      var edit = client.helper.waitForElement(selectors.detailsEditContact);
+      subject.clickOn(edit);
+      subject.waitForFadeIn(client.helper.waitForElement(selectors.form));
+
+      var orgField = client.helper.waitForElement(selectors.formOrg);
+      var orgFieldValue = orgField.getAttribute('value');
+
+      assert.ok(orgFieldValue.trim() === 'v2EDM');
+    });
 
     test('Can create custom label', function() {
-      subject.addContact({
-        givenName: 'Custom Label Test',
-        tel: 1231231234
-      });
+      contactsData.createMozContact(contactData);
+      editFirstContact();
 
-      client.helper.waitForElement(selectors.listContactFirstText)
-        .click();
-
-      subject.waitSlideLeft('details');
-
-      client.helper.waitForElement(selectors.detailsEditContact)
-        .click();
-
-      subject.waitForFormShown();
-
-      client.helper.waitForElement(selectors.formTelLabelFirst)
-        .click();
-
+      client.helper.waitForElement(selectors.formTelLabelFirst).click();
       subject.waitSlideLeft('formCustomTagPage');
 
-      client.helper.waitForElement(selectors.formCustomTag)
-        .sendKeys('BFF');
-
-      client.helper.waitForElement(selectors.formCustomTagDone)
-        .click();
+      client.helper.waitForElement(selectors.formCustomTag).sendKeys('BFF');
+      client.helper.waitForElement(selectors.formCustomTagDone).click();
 
       // Wait for the custom tag page to disappear
       var bodyWidth = client.findElement(selectors.body).size().width;
@@ -121,10 +110,9 @@ marionette('Contacts > Form', function() {
         return location.x >= bodyWidth;
       });
 
-      client.findElement(selectors.formSave)
-        .click();
+      client.findElement(selectors.formSave).click();
+      subject.waitForFadeIn(client.helper.waitForElement(selectors.details));
 
-      subject.waitForFormTransition();
       client.helper.waitForElement(selectors.detailsTelLabelFirst);
       client.waitFor(function waiting() {
         var label = client.helper.
@@ -133,42 +121,62 @@ marionette('Contacts > Form', function() {
       });
       assert.ok(true, 'custom label is updated.');
     });
+
+    suite('> Edit Contact Photo', function() {
+      setup(function() {
+        // We create a mozContact with a photo
+        contactsData.createMozContact(contactData, true);
+      });
+
+      function areRemoveAndChangePresent() {
+        return client.executeScript(function(selector) {
+          var buttons = document.querySelectorAll(selector);
+          var out = 0;
+          for(var j = 0; j < buttons.length; j++) {
+            if (buttons[j].textContent === 'Remove photo') {
+              out++;
+            }
+            if (buttons[j].textContent === 'Change photo') {
+              out++;
+            }
+          }
+          return out === 2;
+        }, ['#value-menu button']);
+      }
+
+      test('Edit regular Contact with image', function() {
+        editContactPhoto();
+
+        client.helper.waitForElement(selectors.actionMenu);
+
+        assert.ok(areRemoveAndChangePresent());
+      });
+
+    });
   });
 
-  suite('Facebook contacts', function() {
+  suite('> Facebook contacts', function() {
+    var fbContactData;
+
+    setup(function() {
+      fbContactData = contactsData.createFbContact();
+    });
+
+    function isGalleryButtonPresent() {
+      return client.executeScript(function(selector) {
+        var buttons = document.querySelectorAll(selector);
+        var out = false;
+        for(var j = 0; j < buttons.length; j++) {
+          if (buttons[j].textContent === 'Gallery') {
+            out = true;
+          }
+        }
+        return out;
+      }, [selectors.buttonActivityChooser]);
+    }
+
     test('Add phone number from Dialer to existing Facebook contact',
       function() {
-        client.importScript(fs.readFileSync(__dirname +
-                                            '/data/facebook_contact_data.js',
-                                            'utf8'));
-
-        var saveFBContact = function() {
-          var fb = window.wrappedJSObject.fb,
-              data = window.wrappedJSObject.data;
-
-          var fbContact = new fb.Contact();
-          fbContact.setData(data.fbContactData);
-
-          var savingFBContact = fbContact.save();
-
-          savingFBContact.onsuccess = function() {
-            marionetteScriptFinished(data.fbContactData);
-          };
-
-          savingFBContact.onerror = function() {
-            marionetteScriptFinished();
-          };
-        };
-
-        var fbContactData;
-        client.executeAsyncScript(saveFBContact, function(err, val) {
-          fbContactData = val;
-        });
-
-        client.waitFor(function() {
-          return fbContactData;
-        });
-
         client.apps.close(Contacts.URL, 'contacts');
 
         dialerSubject.launch();
@@ -192,7 +200,7 @@ marionette('Contacts > Form', function() {
         addContact.tap();
 
         var addToExistingContact = dialerSubject.client.helper.waitForElement(
-          dialerSelectors.addToExistintContactMenuItem);
+                                  dialerSelectors.addToExistingContactMenuItem);
         addToExistingContact.tap();
 
         client.switchToFrame();
@@ -211,6 +219,17 @@ marionette('Contacts > Form', function() {
                fbContactData.tel[0].value);
         assert.equal(formEmailFirst.getAttribute('value'),
                fbContactData.email[0].value);
-      });
-  });
+    });
+
+    test('Contact Photo cannot be removed', function() {
+      editContactPhoto();
+
+      // As it is a Facebook contact it should appear the activity window
+      // to choose the source for the image
+      client.switchToFrame();
+      client.helper.waitForElement(selectors.activityChooser);
+
+      assert.ok(isGalleryButtonPresent());
+    });
+  }); // Facebook Contacts
 });

@@ -46,7 +46,7 @@ Dialer.Selectors = {
   contactsTabItem: '#option-contacts',
   contactsIframe: '#iframe-contacts',
 
-  addToExistintContactMenuItem: '#add-to-existing-contact-menuitem'
+  addToExistingContactMenuItem: 'button[data-l10n-id="addToExistingContact"]'
 };
 
 /**
