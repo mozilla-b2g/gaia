@@ -40,6 +40,5 @@ exports.execute = function(options) {
   var helperPath = utils.joinPath('..', '..', 'tv_apps', 'tv_build',
                                   'tv_shared_helper.js');
   require(helperPath).TVSharedHelper.execute(options);
-
   (new SystemAppBuilder()).execute(options);
 };
