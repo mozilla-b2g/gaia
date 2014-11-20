@@ -72,9 +72,11 @@ define(function(require) {
       }
 
       link.appendChild(icon);
-      var name = document.createTextNode(manifest.name);
-      link.appendChild(name);
+      var span = document.createElement('span');
+      span.textContent = manifest.name;
+      link.appendChild(span);
       link.dataset.appIndex = index;
+      link.href = '#';
       item.appendChild(link);
       return item;
     },

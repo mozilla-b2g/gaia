@@ -182,13 +182,14 @@ define(function(require) {
       var icon = document.createElement('img');
       var item = document.createElement('li');
       var link = document.createElement('a');
-      var name = document.createTextNode(itemData.name);
+      var span = document.createElement('span');
+      span.textContent = itemData.name;
       icon.src = itemData.iconSrc;
       link.dataset.appIndex = itemData.index;
       link.href = '#';
       link.classList.add('menu-item');
       link.appendChild(icon);
-      link.appendChild(name);
+      link.appendChild(span);
       item.appendChild(link);
       return item;
     },
