@@ -426,7 +426,7 @@ suite('system/UtilityTray', function() {
       assert.ok(stub.notCalled);
     });
 
-    test('Dont preventDefault if the target is the overlay', function() {
+    test('Don\'t preventDefault if the target is the overlay', function() {
       assert.isTrue(UtilityTray.overlay.dispatchEvent(fakeEvt));
     });
 
@@ -450,6 +450,42 @@ suite('system/UtilityTray', function() {
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);
     });
+
+    suite('Custom events', function() {
+      setup(function() {
+        UtilityTray.active = false;
+        UtilityTray.shown = false;
+      });
+
+      test('should fire a utility-tray-overlayopening event', function(done) {
+        window.addEventListener('utility-tray-overlayopening',
+          function gotIt() {
+            window.removeEventListener('utility-tray-overlayopening', gotIt);
+            assert.isTrue(true, 'got the event');
+            done();
+          });
+        UtilityTray.overlay.dispatchEvent(fakeEvt);
+      });
+
+      test('should fire a utilitytraywillhide event', function(done) {
+        window.addEventListener('utilitytraywillhide', function gotIt() {
+          window.removeEventListener('utilitytraywillhide', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+        UtilityTray.shown = true;
+        UtilityTray.grippy.dispatchEvent(fakeEvt);
+      });
+
+      test('should fire a utilitytraywillshow event', function(done) {
+        window.addEventListener('utilitytraywillshow', function gotIt() {
+          window.removeEventListener('utilitytraywillshow', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+        UtilityTray.overlay.dispatchEvent(fakeEvt);
+      });
+    });
   });
 
   suite('handleEvent: touchend', function() {
@@ -460,7 +496,7 @@ suite('system/UtilityTray', function() {
       UtilityTray.active = true;
     });
 
-    test('Dont preventDefault if the target is the overlay', function() {
+    test('Don\'t preventDefault if the target is the overlay', function() {
       assert.isTrue(UtilityTray.overlay.dispatchEvent(fakeEvt));
     });
 
