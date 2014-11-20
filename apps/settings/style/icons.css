@@ -5,8 +5,6 @@
 
 .menu-item {
   position: static;
-  background-repeat: no-repeat;
-  background-position: 1.4rem center;
 }
 
 .menu-item[data-icon] {
@@ -27,11 +25,10 @@ a.menu-item:after  {
 .menu-item::before {
   position: absolute;
   left: 0;
-  top: 0;
+  top: 50%;
   width: 3rem;
-  height: 100%;
   text-align: center;
-  line-height: 6rem;
+  line-height: 0;
   color: #657073;
 }
 
