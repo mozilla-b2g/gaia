@@ -111,6 +111,7 @@
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
+      this._lastOrientation = screen.mozOrientation;
       return this;
     },
 
@@ -129,8 +130,11 @@
           this.publish('system-resize');
           break;
         case 'resize':
-          this.publish('system-resize');
+          if (screen.mozOrientation === this._lastOrientation) {
+            this.publish('system-resize');
+          }
           this.publish('orientationchange');
+          this._lastOrientation = screen.mozOrientation;
           break;
         default:
           if (evt.type === 'keyboardhide') {

@@ -23,12 +23,33 @@ suite('system/LayoutManager >', function() {
   });
 
   suite('handle events', function() {
+    var setMozOrientation = function (orientation) {
+      Object.defineProperty(screen, 'mozOrientation', {
+        get: function(){
+          return orientation;
+        },
+        configurable: true
+      });
+    };
+
     test('resize', function() {
       var stubPublish = this.sinon.stub(layoutManager, 'publish');
       layoutManager.handleEvent({
         type: 'resize'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
+      assert.isTrue(stubPublish.calledWith('orientationchange'));
+    });
+
+    test('Do not publish system-resize if orientation has changed', function() {
+      var stubPublish = this.sinon.stub(layoutManager, 'publish');
+      layoutManager._lastOrientation = 'portrait-secondary';
+      setMozOrientation('landscape-secondary');
+
+      layoutManager.handleEvent({
+        type: 'resize'
+      });
+      assert.isFalse(stubPublish.calledWith('system-resize'));
       assert.isTrue(stubPublish.calledWith('orientationchange'));
     });
 
