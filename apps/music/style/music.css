@@ -916,6 +916,10 @@ li.list-header {
   pointer-events: none;
 }
 
+html[dir="rtl"] li.list-header {
+  margin: 0 3rem 0 8rem;
+}
+
 li.list-item {
   list-style-type: none;
   position: relative;
@@ -973,12 +977,20 @@ li.list-item a:active {
   color: white;
 }
 
+html[dir="rtl"] .list-main-title {
+  padding: 0 3rem 0 0.5rem;
+}
+
 .list-sub-title {
   top: 3rem;
   width: calc(100% - 12rem);
   padding: 0 0.5rem 0 3rem;
   font-size: 1.7rem;
   color: #8a9699;
+}
+
+html[dir="rtl"] .list-sub-title {
+  padding: 0 3rem 0 0.5rem;
 }
 
 .list-single-title {
@@ -988,6 +1000,10 @@ li.list-item a:active {
   padding: 0 0.5rem 0 3rem;
   font-size: 1.9rem;
   color: white;
+}
+
+html[dir="rtl"] .list-single-title {
+  padding: 0 3rem 0 0.5rem;
 }
 
 .list-playlist-title {
@@ -1001,6 +1017,11 @@ li.list-item a:active {
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
 }
 
+html[dir="rtl"] .list-playlist-title {
+  padding-left: 0.5rem;
+  padding-right: 3rem;
+}
+
 .list-playlist-icon {
   position: absolute;
   top: 0;
@@ -1009,6 +1030,11 @@ li.list-item a:active {
   height: 6rem;
   line-height: 6rem;
   pointer-events: none;
+}
+
+html[dir="rtl"] .list-playlist-icon {
+  right: unset;
+  left: 2rem;
 }
 
 .list-song-index,
