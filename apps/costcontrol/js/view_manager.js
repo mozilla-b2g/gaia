@@ -125,44 +125,45 @@ var ViewManager = (function() {
     }
 
     LazyLoader.load(panel, function() {
-      var styles = panel.querySelectorAll('link');
-      var scripts = panel.querySelectorAll('script');
+      var resourceRemaining = 0;
 
-      var styleCount = styles.length;
-      var scriptCount = scripts.length;
-      var assetsRemaining = 0;
-
-      //activate all styles
-      for (var i = 0; i < styleCount; i++) {
-        var styleHref = styles[i].href;
-        if (!document.getElementById(styleHref)) {
-          var style = document.createElement('link');
-          style.href = style.id = styleHref;
-          style.rel = 'stylesheet';
-          style.type = 'text/css';
-          style.media = 'all';
-          style.onload = onAssetLoaded;
-          document.head.appendChild(style);
-          assetsRemaining++;
-        }
+      function loadResource(node) {
+        node.onload = onResourceLoaded;
+        document.head.appendChild(node);
+        resourceRemaining++;
       }
+
+      // activate all styles
+      Array.from(panel.querySelectorAll('link')).forEach((node) => {
+        if (!document.querySelector('head > link[href="' + node.href + '"]')) {
+          var styleLink = document.createElement('link');
+          styleLink.href = node.href;
+          styleLink.media = node.media;
+          styleLink.rel = node.rel;
+          styleLink.type = node.type;
+
+          loadResource(styleLink);
+        }
+        node.remove();
+      });
 
       // activate all scripts
-      for (var j = 0; j < scriptCount; j++) {
-        var src = scripts[j].getAttribute('src');
-        if (!document.getElementById(src)) {
-          var script = document.createElement('script');
-          script.type = 'application/javascript';
-          script.src = script.id = src;
-          script.onload = onAssetLoaded;
-          document.head.appendChild(script);
-          assetsRemaining++;
-        }
-      }
+      Array.from(panel.querySelectorAll('script')).forEach((node) => {
+        if (!document.querySelector('head > script[src="' + node.src + '"]')) {
+          var scriptLink = document.createElement('script');
+          scriptLink.src = node.src;
+          scriptLink.type = node.type;
 
-      //add listeners
-      var headers = panel.querySelectorAll('gaia-header[action="close"]');
-      [].forEach.call(headers, function(headerWithClose) {
+          loadResource(scriptLink);
+        }
+        node.remove();
+      });
+
+      // add listeners
+      var headers = Array.from(
+        panel.querySelectorAll('gaia-header[action="close"]')
+      );
+      headers.forEach((headerWithClose) => {
         headerWithClose.addEventListener('action', function() {
           window.parent.location.hash = '#';
         });
@@ -173,13 +174,13 @@ var ViewManager = (function() {
       checkCallback();
 
       function checkCallback() {
-        if (assetsRemaining === 0 && typeof callback === 'function') {
+        if (resourceRemaining === 0 && typeof callback === 'function') {
           callback();
         }
       }
 
-      function onAssetLoaded() {
-        assetsRemaining--;
+      function onResourceLoaded() {
+        resourceRemaining--;
         checkCallback();
       }
     });
