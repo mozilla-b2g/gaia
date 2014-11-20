@@ -4,6 +4,7 @@ apps/calendar
 apps/camera
 apps/clock
 apps/communications
+apps/default_theme
 apps/email
 apps/fl
 apps/ftu
