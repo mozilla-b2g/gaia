@@ -32,4 +32,4 @@ class TestCamera(GaiaTestCase):
         # Check that video saved to SD card
         self.wait_for_condition(lambda m: len(self.data_layer.video_files) == self.previous_number_of_videos + 1, 15)
         self.assertEqual(len(self.data_layer.video_files), self.previous_number_of_videos + 1)
-
+        self.assertTrue(self.data_layer.video_files[0]["size"] > 1000)

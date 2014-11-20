@@ -401,7 +401,7 @@ class GaiaData(object):
         files = self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllSDCardFiles();')
         if len(extension):
-            return [filename for filename in files if filename.endswith(extension)]
+            return [file for file in files if file['name'].endswith(extension)]
         return files
 
     def send_sms(self, number, message):
