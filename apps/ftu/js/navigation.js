@@ -224,8 +224,13 @@ var Navigation = {
         UIManager.mainTitle.setAttribute('data-l10n-id', 'firefox-accounts');
         break;
       case '#welcome_browser':
-        // TODO: need to localize sharePerformanceAndUsageData,
-        //       and 'learn more'link inside it?
+        UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
+        var welcome = document.getElementById('browser_os_welcome');
+        navigator.mozL10n.setAttributes(welcome, 'htmlWelcome2',
+          getLocalizedLink('htmlWelcome'));
+        var improve = document.getElementById('browser_os_improve');
+        navigator.mozL10n.setAttributes(improve, 'helpImprove2',
+          getLocalizedLink('helpImprove'));
         break;
       case '#browser_privacy':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');

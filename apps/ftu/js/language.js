@@ -50,12 +50,11 @@ var LanguageManager = {
   },
 
   buildLanguageList: function settings_buildLanguageList() {
-    var me = this;
+    var self = this;
     var container = document.querySelector('#languages ul');
     container.innerHTML = '';
     LanguageList.get(function fillLanguageList(allLanguages, currentLanguage) {
       for (var lang in allLanguages) {
-
         var span = document.createElement('span');
         var p = document.createElement('p');
         // wrap the name of the language in Unicode control codes which force
@@ -68,7 +67,7 @@ var LanguageManager = {
         li.appendChild(span);
         li.appendChild(p);
         li.classList.add('nav-item');
-        li.addEventListener('click', me.onLanguageSelection.bind(me, lang));
+        li.addEventListener('click', self.onLanguageSelection.bind(self, lang));
         container.appendChild(li);
       }
     });

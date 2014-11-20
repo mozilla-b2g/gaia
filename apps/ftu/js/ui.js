@@ -2,7 +2,7 @@
           Basket, ConfirmDialog, ScreenLayout,
           DataMobile, SimManager, SdManager,
           Tutorial, TimeManager, WifiManager,
-          WifiUI, WifiHelper, FxAccountsIACHelper, 
+          WifiUI, WifiHelper, FxAccountsIACHelper,
           Navigation */
 /* exported UIManager */
 'use strict';
@@ -374,6 +374,7 @@ var UIManager = {
           WifiUI.joinNetwork();
         break;
       case 'hidden-wifi-join-button':
+          console.log('handleEvent hidden-wifi-join-button click');
           WifiUI.joinHiddenNetwork();
         break;
       case 'join-hidden-button':
@@ -596,6 +597,7 @@ var UIManager = {
   end: function ui_end() {
     this.activationScreen.classList.remove('show');
     this.finishScreen.classList.add('show');
+    this.changeStatusBarColor(this.DARK_THEME);
     this.hideActivationScreenFromScreenReader();
   }
 };

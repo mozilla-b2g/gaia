@@ -54,8 +54,15 @@ suite('UI Manager > ', function() {
     window.FxAccountsIACHelper = MockFxAccountsIACHelper;
 
     mocksHelper.suiteSetup();
-    loadBodyHTML('/index.html');
 
+    loadBodyHTML('/index.html');
+    var themeMeta = document.createElement('meta');
+    document.head.appendChild(themeMeta);
+    themeMeta.content = '#eeeeee';
+    themeMeta.name = 'theme-color';
+
+    console.log('theme-color: ',
+                document.querySelector('meta[name="theme-color"]'));
     UIManager.init();
     Navigation.init();
     UIManager.activationScreen.classList.add('show');
@@ -260,16 +267,17 @@ suite('UI Manager > ', function() {
   });
 
   suite('Change app theme', function() {
-    var meta;
-    suiteSetup(function() {
-      meta = document.createElement('meta');
+    var meta, themeColor;
+    setup(function() {
+      meta = document.querySelector('meta[name="theme-color"]');
+      themeColor = meta.content;
       meta.content = 'red';
       meta.name = 'theme-color';
       document.head.appendChild(meta);
     });
 
     teardown(function() {
-      document.head.removeChild(meta);
+      meta.content = themeColor;
     });
 
     test('Should change the theme color of the app', function() {
@@ -297,10 +305,9 @@ suite('UI Manager > ', function() {
           return;
       });
     });
-
     test('Join hidden network button click > ', function() {
       var spy = this.sinon.spy(WifiUI, 'addHiddenNetwork');
-      UIManager.joinHiddenButton.click();
+      UIManager.hiddenWifiJoinButton.click();
       assert.isTrue(spy.calledOnce,
         'on click, addHiddenNetwork should be called');
       assert.equal(window.location.hash, '#hidden-wifi-authentication');

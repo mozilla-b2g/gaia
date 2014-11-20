@@ -52,7 +52,7 @@ Ftu.prototype = {
     this.client.helper.waitForElement(panel_id);
     if (button_id) {
       var button = this.client.helper.waitForElement(button_id);
-      button.click();
+      button.tap();
     }
   }
 };

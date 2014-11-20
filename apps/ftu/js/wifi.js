@@ -172,6 +172,7 @@ var WifiUI = {
     var ssid = UIManager.hiddenWifiSsid.value;
     var security = UIManager.hiddenWifiSecurity.value;
     var network;
+    console.log('Wifi joinHiddenNetwork, ssid: ' + ssid);
     if (ssid.length) {
       if (!Array.isArray(WifiManager.networks)) {
         WifiManager.networks = [];
@@ -183,7 +184,9 @@ var WifiUI = {
         relSignalStrength: 0
       });
       WifiManager.networks.push(network);
+      console.log('Wifi joinHiddenNetwork, calling renderNetworks');
       this.renderNetworks(WifiManager.networks);
+      console.log('Wifi joinHiddenNetwork, calling WifiUI.connect');
       WifiUI.connect(ssid, password, user);
     }
 
@@ -213,7 +216,7 @@ var WifiUI = {
         securityLevelDOM.setAttribute('data-l10n-id', security);
       }
     }
-
+    console.log('connect: ', ssid, password, user);
     // And then end we update the selected network
     var newWifi = document.getElementById(ssid);
     newWifi.dataset.wifiSelected = true;
@@ -254,6 +257,7 @@ var WifiUI = {
     var userInput = document.getElementById('wifi_user');
     var passwordInput = document.getElementById('wifi_password');
     var showPassword = document.querySelector('input[name=show_password]');
+    console.log('Wifi chooseNetwork');
     var joinButton = UIManager.wifiJoinButton;
 
     joinButton.disabled = true;
@@ -276,6 +280,7 @@ var WifiUI = {
     passwordInput.value = '';
     ssidHeader.value = ssid;
 
+    console.log('Wifi chooseNetwork, using ssid: ' + ssid);
     // Activate secondary menu
     // Update changes in form
     if (WifiHelper.isEap(WifiManager.getNetwork(ssid))) {
@@ -294,6 +299,7 @@ var WifiUI = {
     // Update title
     UIManager.mainTitle.setAttribute('data-l10n-id', 'authentication');
     // Reset join button state
+    console.log('Wifi addHiddenNetwork, disabling wifiJoinButton');
     UIManager.wifiJoinButton.disabled = true;
     window.location.hash = '#hidden-wifi-authentication';
   },
