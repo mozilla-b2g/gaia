@@ -266,8 +266,10 @@ function VideoPlayer(container) {
         return;
 
       var percent = (player.currentTime / player.duration) * 100 + '%';
+      var startEdge =
+        navigator.mozL10n.language.direction === 'ltr' ? 'left' : 'right';
       elapsedBar.style.width = percent;
-      playHead.style.left = percent;
+      playHead.style[startEdge] = percent;
     }
 
     // Since we don't always get reliable 'ended' events, see if
@@ -434,6 +436,11 @@ function VideoPlayer(container) {
     var rect = backgroundBar.getBoundingClientRect();
     var position = computePosition(e.detail.position, rect);
     var pos = Math.min(Math.max(position, 0), 1);
+    // Handle pos so that slider moves correct way
+    // when user drags it for RTL locales
+    if (navigator.mozL10n.language.direction === 'rtl') {
+      pos = 1 - pos;
+    }
     player.currentTime = player.duration * pos;
     updateTime();
   });
