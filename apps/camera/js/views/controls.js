@@ -45,6 +45,10 @@ module.exports = View.extend({
       camera: this.find('.js-icon-camera'),
       video: this.find('.js-icon-video')
     };
+    this.els.radios = {
+      camera: this.find('.js-radio-camera'),
+      video: this.find('.js-radio-video')
+    };
 
     // Clean up
     delete this.template;
@@ -157,6 +161,7 @@ module.exports = View.extend({
   },
 
   setMode: function(mode) {
+    mode = mode || 'picture';
     debug('set mode: %s', mode);
     this.set('mode', mode);
     this.switchPosition = this.switchPositions[mode];
@@ -166,10 +171,30 @@ module.exports = View.extend({
     debug('mode set pos: %s', this.switchPosition);
   },
 
+  /**
+   * Set ariaLabels for radios
+   *
+   * @param  { controlName: ariaLabel } ariaLabels
+   */
+  setAriaLabels: function(ariaLabels) {
+    ariaLabels = ariaLabels || {};
+
+    for (controlName in ariaLabels) {
+      var control = this.els.radios[controlName];
+      if (control) {
+        control.setAttribute('aria-label', ariaLabels[controlName]);
+      }
+    }
+  },
+
   updateSwitchPosition: function() {
+    var mode = this.get('mode');
+
     debug('updateSwitchPosition');
     if (!this.drag) { return; }
     this.drag.set({ x: this.switchPosition });
+    this.els.radios.camera.setAttribute('aria-checked', mode === 'picture');
+    this.els.radios.video.setAttribute('aria-checked', mode === 'video');
     debug('updated switch position: %s', this.switchPosition);
   },
 
@@ -260,10 +285,10 @@ module.exports = View.extend({
     '</div>' +
     '<div class="controls-right">' +
       '<div class="mode-switch test-switch" name="switch">' +
-        '<div class="inner js-switch">' +
-          '<div class="mode-switch_bg-icon rotates" data-icon="camera"></div>' +
-          '<div class="mode-switch_bg-icon rotates" data-icon="video"></div>' +
-          '<div class="mode-switch_handle js-switch-handle">' +
+        '<div class="inner js-switch" role="radiogroup">' +
+          '<div class="mode-switch_bg-icon js-radio-camera rotates" data-icon="camera" role="radio"></div>' +
+          '<div class="mode-switch_bg-icon js-radio-video rotates" data-icon="video" role="radio"></div>' +
+          '<div class="mode-switch_handle js-switch-handle" role="presentation" aria-hidden="true">' +
             '<div class="mode-switch_current-icon camera rotates js-icon-camera" data-icon="camera"></div>' +
             '<div class="mode-switch_current-icon video rotates js-icon-video" data-icon="video"></div>' +
           '</div>' +

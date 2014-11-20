@@ -27,8 +27,29 @@ function ControlsController(app) {
   this.activity = app.activity;
   this.createView();
   this.bindEvents();
+  this.l10nGet = app.l10nGet;
   debug('initialized');
 }
+
+/**
+ * Set initial a11y labels on the camera view elements
+ *
+ * @private
+ */
+ControlsController.prototype.updateA11yLabels = function() {
+  // We need the app to be first localized
+  // before setting proper aria-Labels
+  if (!this.app.localized()) {
+    return;
+  }
+
+  // we need to set proper ariaLabels for the controls after
+  // l10nGet is loaded async
+  this.view.setAriaLabels({
+    camera: this.l10nGet('camera-mode-radio-button'),
+    video: this.l10nGet('video-mode-radio-button')
+  });
+};
 
 /**
  * Event bindings.
@@ -60,6 +81,9 @@ ControlsController.prototype.bindEvents = function() {
   // Settings
   this.app.on('settings:opened', this.onSettingsOpened);
   this.app.on('settings:closed', this.onSettingsClosed);
+
+  // Localization
+  this.app.on('localized', this.updateA11yLabels);
 
   debug('events bound');
 };
