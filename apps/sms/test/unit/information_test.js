@@ -1058,6 +1058,7 @@ suite('Information view', function() {
       });
       groupView = new Information('group');
       this.sinon.spy(groupView, 'renderContactList');
+      this.sinon.spy(ThreadUI, 'setHeaderContent');
       groupView.render();
     });
 
@@ -1067,10 +1068,8 @@ suite('Information view', function() {
     test('view status before show method', function() {
       sinon.assert.calledWith(groupView.renderContactList, participants);
       sinon.assert.calledWithMatch(
-        navigator.mozL10n.setAttributes,
-        ThreadUI.headerText,
-        'participant',
-        {n: participants.length}
+        ThreadUI.setHeaderContent,
+        { id: 'participant', args: { n: participants.length } }
       );
     });
   });

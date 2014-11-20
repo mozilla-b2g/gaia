@@ -223,8 +223,9 @@ var VIEWS = {
     render: function renderGroup() {
       var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
-      navigator.mozL10n.setAttributes(ThreadUI.headerText, 'participant', {
-        n: participants.length
+      ThreadUI.setHeaderContent({
+        id: 'participant',
+        args: { n: participants.length }
       });
       ThreadUI.setHeaderAction('back');
     },
@@ -334,7 +335,7 @@ var VIEWS = {
         this.renderContactList(createListWithMsgInfo(message));
       }).bind(this);
 
-      setL10nAttributes(ThreadUI.headerText, 'message-report');
+      ThreadUI.setHeaderContent({ id: 'message-report' });
       ThreadUI.setHeaderAction('close');
     },
 
@@ -428,11 +429,6 @@ Information.prototype = {
     }
     // Restore message list view UI elements
     this.parent.classList.remove(this.name + '-information');
-
-    // Header is shared with Thread and Composer panels, so let's cleanup,
-    // it should be removed once bug 961572 is landed.
-    ThreadUI.headerText.removeAttribute('data-l10n-id');
-    ThreadUI.headerText.removeAttribute('data-l10n-args');
   },
 
   // Incrementing ID for each rendering request to avoid possible race when next
