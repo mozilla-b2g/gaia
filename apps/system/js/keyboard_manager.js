@@ -1,7 +1,7 @@
 'use strict';
 
 /* global IMESwitcher, ImeMenu, KeyboardHelper, inputWindowManager,
-          InputLayouts, LazyLoader */
+          InputLayouts, LazyLoader, DynamicInputRegistry */
 
 /**
  * For some flow diagrams related to input management, please refer to
@@ -80,9 +80,17 @@ window.KeyboardManager = {
 
     // get enabled keyboard from mozSettings, parse their manifest
     LazyLoader.load([
+      'js/dynamic_input_registry.js',
       'shared/js/input_mgmt/input_app_list.js',
       'shared/js/keyboard_helper.js'
     ], function() {
+      // Defer the loading of DynamicInputRegistry only after
+      // KeyboardHelper is present. Not that is possible we could miss some
+      // mozChromeEvent because of this but let's not deal with that kind of
+      // extreme case.
+      this.dynamicInputRegistry = new DynamicInputRegistry();
+      this.dynamicInputRegistry.start();
+
       KeyboardHelper.watchLayouts(
         { enabled: true }, this._updateLayouts.bind(this)
       );

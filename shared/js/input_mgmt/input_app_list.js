@@ -8,7 +8,8 @@
 
 var InputAppListSettings = function() {
   this._values = {
-    enable3rdPartyApps: undefined
+    enable3rdPartyApps: undefined,
+    dynamicInputs: undefined
   };
 
   this._bindCallback = null;
@@ -21,6 +22,8 @@ InputAppListSettings.prototype.onchange = null;
 
 InputAppListSettings.prototype.SETTINGS_KEY_THIRD_PARTY_APP_ENABLED =
   'keyboard.3rd-party-app.enabled';
+InputAppListSettings.prototype.SETTINGS_KEY_DYNAMIC_INPUTS =
+  'keyboard.dynamic-inputs';
 
 InputAppListSettings.prototype.start = function() {
   if (navigator.mozSettings) {
@@ -28,6 +31,8 @@ InputAppListSettings.prototype.start = function() {
     this._bindCallback = this.callback.bind(this);
     navigator.mozSettings.addObserver(
       this.SETTINGS_KEY_THIRD_PARTY_APP_ENABLED, this._bindCallback);
+    navigator.mozSettings.addObserver(
+      this.SETTINGS_KEY_DYNAMIC_INPUTS, this._bindCallback);
   }
 
   this.getSettings().then(function() {
@@ -56,11 +61,16 @@ InputAppListSettings.prototype.getSettingsAsync = function() {
     return this._promise;
   }
 
-  var p = this._promise = navigator.mozSettings.createLock()
-    .get(this.SETTINGS_KEY_THIRD_PARTY_APP_ENABLED)
-    .then(function(value) {
+  var lock = navigator.mozSettings.createLock();
+
+  var p = this._promise = Promise.all([
+    lock.get(this.SETTINGS_KEY_THIRD_PARTY_APP_ENABLED),
+    lock.get(this.SETTINGS_KEY_DYNAMIC_INPUTS)])
+    .then(function(values) {
       this._values.enable3rdPartyApps =
-        value[this.SETTINGS_KEY_THIRD_PARTY_APP_ENABLED];
+        values[0][this.SETTINGS_KEY_THIRD_PARTY_APP_ENABLED];
+      this._values.dynamicInputs =
+        values[1][this.SETTINGS_KEY_DYNAMIC_INPUTS];
 
       return this._values;
     }.bind(this))
@@ -68,6 +78,7 @@ InputAppListSettings.prototype.getSettingsAsync = function() {
       console.error('InputAppListSettings: Fail to get setting.', e);
       this._promise = null;
       this._values.enable3rdPartyApps = false;
+      this._values.dynamicInputs = {};
 
       return this._values;
     }.bind(this));
@@ -77,7 +88,15 @@ InputAppListSettings.prototype.getSettingsAsync = function() {
 
 // Callback for mozSettings.addObserver()
 InputAppListSettings.prototype.callback = function(obj) {
-  this._values.enable3rdPartyApps = obj.settingValue;
+  switch (obj.settingName) {
+    case this.SETTINGS_KEY_THIRD_PARTY_APP_ENABLED:
+      this._values.enable3rdPartyApps = obj.settingValue;
+      break;
+
+    case this.SETTINGS_KEY_DYNAMIC_INPUTS:
+      this._values.dynamicInputs = obj.settingValue;
+      break;
+  }
 
   if (typeof this.onchange === 'function') {
     this.onchange(this._values);
@@ -86,7 +105,8 @@ InputAppListSettings.prototype.callback = function(obj) {
 
 InputAppListSettings.prototype.stop = function() {
   this._values = {
-    enable3rdPartyApps: undefined
+    enable3rdPartyApps: undefined,
+    dynamicInputs: undefined
   };
 
   this.ready = false;
@@ -95,6 +115,8 @@ InputAppListSettings.prototype.stop = function() {
   if (navigator.mozSettings) {
     navigator.mozSettings.removeObserver(
       this.SETTINGS_KEY_THIRD_PARTY_APP_ENABLED, this._bindCallback);
+    navigator.mozSettings.removeObserver(
+      this.SETTINGS_KEY_DYNAMIC_INPUTS, this._bindCallback);
     this._bindCallback = null;
   }
 };
@@ -154,7 +176,7 @@ InputAppList.prototype.getList = function() {
       this._getListPromise = null;
 
       console.error(e);
-    });
+    }.bind(this));
 
   return p;
 };
@@ -217,8 +239,35 @@ InputAppList.prototype._getAllApps = function() {
 
 InputAppList.prototype._setInputApps = function(values) {
   var apps = values[1];
+  var dynamicInputs = this.settings.getSettingsSync().dynamicInputs || {};
 
-  var inputApps = apps.filter(this._isInputApp, this);
+  var inputApps = apps.filter(this._isInputApp, this).map(function(inputApp) {
+    // Remove the dynamic layouts we have added in place (see below)
+    Object.keys(inputApp.manifest.inputs).forEach(function(inputId) {
+      if (inputApp.manifest.inputs[inputId].isDynamic) {
+        delete inputApp.manifest.inputs[inputId];
+      }
+    });
+
+    if (inputApp.manifestURL in dynamicInputs) {
+      Object.keys(dynamicInputs[inputApp.manifestURL]).forEach(
+        function(inputId) {
+          if (inputId in inputApp.manifest.inputs) {
+            // Staticly declaired?
+            return;
+          }
+
+          // XXX: We are in fact modifying the manifest exposed in
+          // DOMApplication in place, but the modification is arguably harmless.
+          // Also, there is no alternatives (trust me, I tried).
+          inputApp.manifest.inputs[inputId] =
+            dynamicInputs[inputApp.manifestURL][inputId];
+          inputApp.manifest.inputs[inputId].isDynamic = true;
+        });
+    }
+
+    return inputApp;
+  });
 
   if (inputApps.length === 0) {
     console.error('InputAppList: No input apps installed?');
