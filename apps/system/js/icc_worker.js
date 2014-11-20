@@ -66,11 +66,6 @@ var icc_worker = {
     var _ = navigator.mozL10n.get;
     DUMP('STK_CMD_SET_UP_CALL:', message.command.options);
     var options = message.command.options;
-
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
     if (!options.confirmMessage) {
       options.confirmMessage = _(
         'icc-confirmCall-defaultmessage', {
@@ -91,11 +86,6 @@ var icc_worker = {
   '0x11': function STK_CMD_SEND_SS(message) {
     DUMP('STK_CMD_SEND_SS:', message.command.options);
     var options = message.command.options;
-
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
     icc.responseSTKCommand(message, {
       resultCode: icc._iccManager.STK_RESULT_OK
     });
@@ -116,11 +106,6 @@ var icc_worker = {
   '0x13': function STK_CMD_SEND_SMS(message) {
     DUMP('STK_CMD_SEND_SMS:', message.command.options);
     var options = message.command.options;
-
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
     icc.responseSTKCommand(message, {
       resultCode: icc._iccManager.STK_RESULT_OK
     });
@@ -136,11 +121,6 @@ var icc_worker = {
   '0x14': function STK_CMD_SEND_DTMF(message) {
     DUMP('STK_CMD_SEND_DTMF:', message.command.options);
     var options = message.command.options;
-
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
     icc.responseSTKCommand(message, {
       resultCode: icc._iccManager.STK_RESULT_OK
     });
@@ -196,10 +176,6 @@ var icc_worker = {
     DUMP('STK_CMD_PLAY_TONE:', message.command.options);
     var options = message.command.options;
 
-    if (options.text && !icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
     var tonePlayer = new Audio();
     tonePlayer.src = getPhoneSound(options.tone);
     tonePlayer.loop = true;
@@ -251,10 +227,6 @@ var icc_worker = {
   '0x21': function STK_CMD_DISPLAY_TEXT(message) {
     DUMP('STK_CMD_DISPLAY_TEXT:', message.command.options);
     var options = message.command.options;
-
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
 
     // Check if device is idle or settings
     var activeApp = AppWindowManager.getActiveApp();
@@ -317,10 +289,6 @@ var icc_worker = {
     DUMP('STK_CMD_GET_INPUT:', message.command.options);
     var options = message.command.options;
 
-    if (!icc.canProcessMessage(message)) {
-      return DUMP('Message active, delaying STK...');
-    }
-
     DUMP('STK Input title: ' + options.text);
 
     document.addEventListener('visibilitychange',
@@ -331,7 +299,7 @@ var icc_worker = {
           resultCode:
             icc._iccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER
         });
-        icc.hideView();
+        icc.hideViews();
       }, true);
 
     var duration = options.duration;
@@ -581,9 +549,6 @@ var icc_worker = {
       });
     this.idleTextNotifications[message.iccId].onclick =
       function onClickSTKNotification() {
-        if (!icc.canProcessMessage(message)) {
-          return DUMP('Message active, delaying STK...');
-        }
         icc.alert(message, options.text);
       };
     this.idleTextNotifications[message.iccId].onshow =
