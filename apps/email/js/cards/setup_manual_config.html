@@ -2,7 +2,8 @@
   expects a section element -->
 <section class="skin-organic form-card bbshim" role="region">
   <header class="sup-account-header">
-    <a data-event="click:onBack" href="#" class="sup-back-btn">
+    <a data-event="click:onBack" href="#" class="sup-back-btn" role="button"
+       data-l10n-id="back-button">
       <span class="icon icon-back"></span>
     </a>
     <h1 class="sup-account-header-label header-label"
@@ -48,6 +49,7 @@
           <span class="button icon icon-dialog">
             <select data-prop="accountTypeNode"
                     data-event="change:onChangeAccountType"
+                    data-l10n-id="setup-manual-account-type-select"
                     class="mail-select sup-manual-account-type">
               <option value="imap+smtp">IMAP+SMTP</option>
               <option value="pop3+smtp">POP3+SMTP</option>
@@ -93,7 +95,8 @@
           </p>
           <li class="sup-socket-select-container">
             <span class="button icon icon-dialog">
-              <select class="mail-select sup-manual-composite-socket sup-socket-select">
+              <select class="mail-select sup-manual-composite-socket sup-socket-select"
+                      data-l10n-id="setup-manual-socket-select">
                 <option value="SSL" data-l10n-id="setup-manual-socket-ssl">
                   SsL</option>
                 <option value="STARTTLS" data-l10n-id="setup-manual-socket-starttls">
@@ -139,7 +142,8 @@
           </p>
           <li class="sup-socket-select-container">
             <span class="button icon icon-dialog">
-              <select class="mail-select sup-manual-smtp-socket sup-socket-select">
+              <select class="mail-select sup-manual-smtp-socket sup-socket-select"
+                      data-l10n-id="setup-manual-socket-select">
                 <option value="SSL" data-l10n-id="setup-manual-socket-ssl">
                   SsL</option>
                 <option value="STARTTLS" data-l10n-id="setup-manual-socket-starttls">
