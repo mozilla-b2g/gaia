@@ -186,6 +186,7 @@ suite('thread_ui.js >', function() {
 
     this.sinon.stub(MessageManager, 'on');
     this.sinon.stub(Compose, 'on');
+    this.sinon.stub(Compose, 'off');
     this.sinon.useFakeTimers();
 
     ThreadUI.recipients = null;
@@ -481,6 +482,7 @@ suite('thread_ui.js >', function() {
         'visibilitychange', ThreadUI.onVisibilityChange
       );
       ThreadUI.init();
+      ThreadUI.enableConvertNoticeBanners();
 
       banner = document.getElementById('messages-max-length-notice');
       convertBanner = document.getElementById('messages-convert-notice');
@@ -805,6 +807,7 @@ suite('thread_ui.js >', function() {
       );
 
       ThreadUI.init();
+      ThreadUI.enableConvertNoticeBanners();
 
       convertBanner = document.getElementById('messages-convert-notice');
       convertBannerText = convertBanner.querySelector('p');
@@ -946,7 +949,7 @@ suite('thread_ui.js >', function() {
         source: 'manual'
       });
     });
-    
+
     test('Recipient assimilation is called when container is clicked',
       function() {
       Navigation.isCurrentPanel.withArgs('composer').returns(true);
@@ -965,7 +968,7 @@ suite('thread_ui.js >', function() {
         source: 'manual'
       });
     });
-    
+
     suite('Recipients.View.isFocusable', function() {
 
       setup(function() {
@@ -3456,11 +3459,11 @@ suite('thread_ui.js >', function() {
     test(' "long-press" on empty area return null',
       function() {
       assert.doesNotThrow(() => {
-        ThreadUI.handleEvent({ 
-          type: 'contextmenu', 
-          target: document.getElementById('messages-container'), 
-          preventDefault: sinon.stub(), 
-          stopPropagation: sinon.stub() 
+        ThreadUI.handleEvent({
+          type: 'contextmenu',
+          target: document.getElementById('messages-container'),
+          preventDefault: sinon.stub(),
+          stopPropagation: sinon.stub()
         });
       });
     });
@@ -6099,6 +6102,16 @@ suite('thread_ui.js >', function() {
           'the file is not preloaded'
         );
       });
+
+      test('clear convert banners', function() {
+        var convertBanner = document.getElementById('messages-convert-notice');
+        convertBanner.classList.remove('hide');
+        ThreadUI.beforeEnter(transitionArgs);
+        assert.ok(
+          convertBanner.classList.contains('hide'),
+          'the conversion notice cleared'
+        );
+      });
     });
   }
 
@@ -6285,6 +6298,27 @@ suite('thread_ui.js >', function() {
           // Hidden for email participant thread
           assert.isTrue(ThreadUI.callNumberButton.classList.contains('hide'));
         });
+
+        suite('conversion banner activation', function () {
+          setup(function () {
+            Compose.on.reset();
+          });
+
+          test('coming from composer, won\'t show banners', function() {
+            transitionArgs.meta.prev.panel = 'composer';
+            ThreadUI.beforeEnter(transitionArgs);
+
+            var onMessageTypeChange = ThreadUI.onMessageTypeChange;
+            assert.isFalse(Compose.on.calledWith('type', onMessageTypeChange));
+          });
+
+          test('coming from elsewhere, it will show banners', function() {
+            ThreadUI.beforeEnter(transitionArgs);
+
+            var onMessageTypeChange = ThreadUI.onMessageTypeChange;
+            sinon.assert.calledWith(Compose.on, 'type', onMessageTypeChange);
+          });
+        });
       });
     });
 
@@ -6316,6 +6350,20 @@ suite('thread_ui.js >', function() {
         ThreadUI.afterEnter(transitionArgs);
 
         sinon.assert.calledWith(Utils.closeNotificationsForThread, threadId);
+      });
+
+      suite('entering from composer', function() {
+        setup(function() {
+          Compose.on.reset();
+          transitionArgs.meta.prev.panel = 'composer';
+        });
+
+        test('will show conversion banners', function() {
+          ThreadUI.afterEnter(transitionArgs);
+
+          var onMessageTypeChange = ThreadUI.onMessageTypeChange;
+          sinon.assert.calledWith(Compose.on, 'type', onMessageTypeChange);
+        });
       });
 
       suite('recalls draft for this thread >', function() {

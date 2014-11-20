@@ -229,7 +229,6 @@ var ThreadUI = {
 
     // In case of input, we have to resize the input following UX Specs.
     Compose.on('input', this.messageComposerInputHandler.bind(this));
-    Compose.on('type', this.onMessageTypeChange.bind(this));
     Compose.on('subject-change', this.onSubjectChange.bind(this));
     Compose.on('segmentinfochange', this.onSegmentInfoChange.bind(this));
 
@@ -269,6 +268,9 @@ var ThreadUI = {
     this.shouldChangePanelNextEvent = false;
 
     this.showErrorInFailedEvent = '';
+
+    // Bound methods to be detachables
+    this.onMessageTypeChange = this.onMessageTypeChange.bind(this);
   },
 
   onVisibilityChange: function thui_onVisibilityChange(e) {
@@ -487,6 +489,7 @@ var ThreadUI = {
    * visible.
    */
   beforeEnter: function thui_beforeEnter(args) {
+    this.clearConvertNoticeBanners();
     this.setHeaderAction(ActivityHandler.isInActivity() ? 'close' : 'back');
 
     Recipients.View.isFocusable = true;
@@ -524,6 +527,13 @@ var ThreadUI = {
     Threads.currentId = args.id;
 
     var prevPanel = args.meta.prev && args.meta.prev.panel;
+
+    // If transitioning from composer, we don't need to notify about type
+    // conversion but only after the type of the thread is set
+    // (afterEnterThread)
+    if (prevPanel !== 'composer') {
+      this.enableConvertNoticeBanners();
+    }
 
     if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
       this.initializeRendering();
@@ -599,10 +609,17 @@ var ThreadUI = {
     // nothing urgent, let's do it when the main thread has some time
     setTimeout(MessageManager.markThreadRead.bind(MessageManager, threadId));
 
+    // Enable notifications redirected from composer only after the user enters.
+    if (prevPanel === 'composer') {
+      this.enableConvertNoticeBanners();
+    }
+
     return Utils.closeNotificationsForThread(threadId);
   },
 
   beforeLeave: function thui_beforeLeave(args) {
+    this.disableConvertNoticeBanners();
+
     // This should be in afterLeave, but the edit mode interface does not seem
     // to slide correctly. Bug 1009541
     this.cancelEdit();
@@ -618,6 +635,7 @@ var ThreadUI = {
     }
 
     // TODO move most of back() here: Bug 1010223
+    this.cleanFields();
   },
 
   afterLeave: function thui_afterLeave(args) {
@@ -740,6 +758,8 @@ var ThreadUI = {
   },
 
   beforeEnterComposer: function thui_beforeEnterComposer(args) {
+    this.enableConvertNoticeBanners();
+
     // TODO add the activity/forward/draft stuff here
     // instead of in afterEnter: Bug 1010223
 
@@ -886,9 +906,22 @@ var ThreadUI = {
       clearTimeout(this._convertNoticeTimeout);
     }
 
-    this._convertNoticeTimeout = setTimeout(function hideConvertNotice() {
-      this.convertNotice.classList.add('hide');
-    }.bind(this), this.CONVERTED_MESSAGE_DURATION);
+    this._convertNoticeTimeout = setTimeout(
+      this.clearConvertNoticeBanners.bind(this),
+      this.CONVERTED_MESSAGE_DURATION
+    );
+  },
+
+  clearConvertNoticeBanners: function thui_clearConvertNoticeBanner() {
+    this.convertNotice.classList.add('hide');
+  },
+
+  enableConvertNoticeBanners: function thui_enableConvertNoticeBanner() {
+    Compose.on('type', this.onMessageTypeChange);
+  },
+
+  disableConvertNoticeBanners: function thui_disableConvertNoticeBanner() {
+    Compose.off('type', this.onMessageTypeChange);
   },
 
   onSubjectChange: function thui_onSubjectChange() {
@@ -1068,7 +1101,6 @@ var ThreadUI = {
     }
 
     return this._onNavigatingBack().then(function() {
-      this.cleanFields();
       Navigation.toPanel('thread-list');
     }.bind(this)).catch(function(e) {
       e && console.error('Unexpected error while navigating back: ', e);
@@ -2125,7 +2157,9 @@ var ThreadUI = {
     }
 
     // Clean composer fields (this lock any repeated click in 'send' button)
+    this.disableConvertNoticeBanners();
     this.cleanFields();
+    this.enableConvertNoticeBanners();
 
     // If there was a draft, it just got sent
     // so delete it
