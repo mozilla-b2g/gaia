@@ -223,6 +223,38 @@ suite('ViewManager suite >', function() {
       });
     });
 
+    test('does not activate already activated nested resources', function() {
+      var scriptLinks = fillPanelWithScriptLinks(panel);
+      var styleLinks = fillPanelWithStyleLinks(panel);
+
+      // Register resources in head, so that they are considered as activated
+      scriptLinks.concat(styleLinks).forEach((node) => {
+        var headNode = node.cloneNode();
+        headNode.id = headNode.src || headNode.href;
+        document.head.appendChild(headNode);
+      });
+
+      // Remember how many links we had before
+      var styleLinkCount = document.querySelectorAll('head > link').length;
+      var scriptLinkCount = document.querySelectorAll('head > script').length;
+
+      viewManager.loadPanel(panel, callbackStub);
+      sinon.assert.notCalled(callbackStub);
+
+      LazyLoader.load.callArg(1);
+
+      // No new resources are added, so callback is called immediately
+      sinon.assert.calledOnce(callbackStub);
+      assert.equal(
+        document.querySelectorAll('head > link').length,
+        styleLinkCount
+      );
+      assert.equal(
+        document.querySelectorAll('head > script').length,
+        scriptLinkCount
+      );
+    });
+
     test('attaches gaia-header close action callbacks', function() {
       var gaiaHeaders = fillPanelWithGaiaHeaders(panel);
 
