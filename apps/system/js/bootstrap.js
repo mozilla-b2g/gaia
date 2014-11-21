@@ -13,7 +13,8 @@
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor, LockScreenNotificationBuilder,
-         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager */
+         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
+         KeyboardManager, TrustedUIManager */
 'use strict';
 
 
@@ -38,6 +39,12 @@ window.addEventListener('load', function startup() {
    * Register global instances and constructors here.
    */
   function registerGlobalEntries() {
+    /** @global */
+    KeyboardManager.init();
+
+    // Must load after KeyboardManager for correct handling mozChromeEvent.
+    TrustedUIManager.init();
+
     /** @global */
     window.activityWindowManager = new ActivityWindowManager();
     window.activityWindowManager.start();
