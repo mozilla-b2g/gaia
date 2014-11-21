@@ -22,6 +22,7 @@ class NewMessage(Messages):
     _message_resize_notice_locator = (By.ID, 'messages-resize-notice')
     _subject_input_locator = (By.CSS_SELECTOR, '.subject-composer-input')
     _image_attachment_locator = (By.CSS_SELECTOR, '.attachment-container.preview')
+    _recipients_locator = (By.CSS_SELECTOR, '#messages-recipients-list span')
 
 
     def __init__(self, marionette):
@@ -125,3 +126,7 @@ class NewMessage(Messages):
 
     def tap_recipient_name(self):
         self.marionette.find_element(*self._receiver_input_locator).tap()
+
+    @property
+    def recipients(self):
+        return self.marionette.find_elements(*self._recipients_locator)
