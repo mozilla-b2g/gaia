@@ -319,9 +319,17 @@ function panHandler(event) {
   }
 
   // Don't swipe past the end of the last item or past the start of the first
-  if ((currentFileIndex === 0 && frameOffset > 0) ||
-      (currentFileIndex === files.length - 1 && frameOffset < 0)) {
-    frameOffset = 0;
+  // Handle frameOffset reset in RTL when directions are reversed. See 1099458
+  if (navigator.mozL10n.language.direction === 'ltr') {
+    if ((currentFileIndex === 0 && frameOffset > 0) ||
+        (currentFileIndex === files.length - 1 && frameOffset < 0)) {
+      frameOffset = 0;
+    }
+  } else {
+    if ((currentFileIndex === 0 && frameOffset < 0) ||
+        (currentFileIndex === files.length - 1 && frameOffset > 0)) {
+      frameOffset = 0;
+    }
   }
 
   // If the frameOffset has changed since we started, reposition the frames
@@ -456,14 +464,22 @@ var FRAME_BORDER_WIDTH = 3;
 var frameOffset = 0; // how far are the frames swiped side-to-side?
 
 function setFramesPosition() {
-  // XXX for RTL languages we should swap next and previous sides
   var width = window.innerWidth + FRAME_BORDER_WIDTH;
   currentFrame.container.style.transform =
     'translateX(' + frameOffset + 'px)';
-  nextFrame.container.style.transform =
-    'translateX(' + (frameOffset + width) + 'px)';
-  previousFrame.container.style.transform =
-    'translateX(' + (frameOffset - width) + 'px)';
+  if (navigator.mozL10n.language.direction === 'ltr') {
+    nextFrame.container.style.transform =
+      'translateX(' + (frameOffset + width) + 'px)';
+    previousFrame.container.style.transform =
+      'translateX(' + (frameOffset - width) + 'px)';
+  }
+  else {
+    // For RTL languages we swap next and previous sides
+    nextFrame.container.style.transform =
+      'translateX(' + (frameOffset - width) + 'px)';
+    previousFrame.container.style.transform =
+      'translateX(' + (frameOffset + width) + 'px)';
+  }
 
   // XXX Bug 1021782 add 'current' class to currentFrame
   nextFrame.container.classList.remove('current');
