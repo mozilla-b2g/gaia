@@ -46,6 +46,7 @@ var CostControl = (function() {
       costcontrol = {
         iccId: iccId,
         request: request,
+        lastDataResults: {},
         isBalanceRequestSMS: isBalanceRequestSMS
       };
 
@@ -615,6 +616,8 @@ var CostControl = (function() {
 
       result.status = 'success';
       result.data = lastDataUsage;
+
+      costcontrol.lastDataResults = lastDataUsage;
 
       debug('Returning up to date statistics.');
       if (callback) {
