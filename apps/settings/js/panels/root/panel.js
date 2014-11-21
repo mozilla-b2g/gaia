@@ -68,7 +68,8 @@ define(function(require) {
         homescreenItem =
           HomescreenItem(panel.querySelector('#homescreens-section'));
         privacyPanelItem = PrivacyPanelItem({
-          privacyPanelPanel: panel.querySelector('.privacy-panel-item')
+          element: panel.querySelector('.privacy-panel-item'),
+          link: panel.querySelector('.privacy-panel-item a')
         });
       },
       onBeforeShow: function rp_onBeforeShow() {

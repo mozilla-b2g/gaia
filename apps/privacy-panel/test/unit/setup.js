@@ -28,6 +28,9 @@ requireApp('privacy-panel/js/vendor/alameda.js', () => {
       },
       'shared/settings_url': {
         exports: 'SettingsURL'
+      },
+      'mocks/mock_l10n': {
+        exports: 'MockL10n'
       }
     },
     urlArgs: 'cache_bust=' + Date.now(),

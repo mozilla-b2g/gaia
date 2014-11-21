@@ -1,19 +1,21 @@
 'use strict';
 
-var passphrase, realMozSettings, realMozSetMessageHandler;
+var passphrase, realMozSettings, realMozSetMessageHandler, realL10n;
 
 suite('SMS Main', function() {
   suiteSetup(function(done) {
     require([
       'mymocks/mock_passphrase',
       'mocks/mock_navigator_moz_settings',
-      'mocks/mock_navigator_moz_set_message_handler'
+      'mocks/mock_navigator_moz_set_message_handler',
+      'mocks/mock_l10n'
     ],
-    function(PassPhrase, mozSettings, mozSetMessageHandler) {
+    function(PassPhrase, mozSettings, mozSetMessageHandler, MockL10n) {
       realMozSettings = navigator.mozSettings;
       navigator.mozSettings = mozSettings;
 
-      navigator.mozL10n = { get: function() {} };
+      realL10n = navigator.mozL10n;
+      navigator.mozL10n = MockL10n;
 
       realMozSetMessageHandler = navigator.mozSetMessageHandler;
       navigator.mozSetMessageHandler = mozSetMessageHandler;
@@ -57,6 +59,7 @@ suite('SMS Main', function() {
     navigator.mozSetMessageHandler.mTeardown();
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozSettings = realMozSettings;
+    navigator.mozL10n = realL10n;
   });
 
   suite('Handling SMS response', function() {
@@ -65,7 +68,7 @@ suite('SMS Main', function() {
       this.sandbox.spy(this.subject, '_ring');
       this.sandbox.spy(this.subject, '_lock');
       this.sandbox.spy(this.subject, '_locate');
-      this.sandbox.spy(navigator.mozL10n, 'get');
+      this.sandbox.spy(this.subject, '_sendSMS');
 
       navigator.mozSettings.createLock().set({
         'lockscreen.enabled': false,
@@ -146,7 +149,7 @@ suite('SMS Main', function() {
       sinon.assert.called(this.subject._ring);
       sinon.assert.notCalled(this.subject._lock);
       sinon.assert.notCalled(this.subject._locate);
-      sinon.assert.calledWith(navigator.mozL10n.get, 'sms-ring');
+      sinon.assert.calledWith(this.subject._sendSMS, 123456789, 'sms-ring');
     });
 
     test('should lock device, lock feature enabled', function() {
@@ -161,7 +164,7 @@ suite('SMS Main', function() {
       sinon.assert.notCalled(this.subject._ring);
       sinon.assert.called(this.subject._lock);
       sinon.assert.notCalled(this.subject._locate);
-      sinon.assert.calledWith(navigator.mozL10n.get, 'sms-lock');
+      sinon.assert.calledWith(this.subject._sendSMS, 123456789, 'sms-lock');
     });
 
     test('should locate device, locate feature enabled', function() {
@@ -176,9 +179,12 @@ suite('SMS Main', function() {
       sinon.assert.notCalled(this.subject._ring);
       sinon.assert.notCalled(this.subject._lock);
       sinon.assert.called(this.subject._locate);
-      sinon.assert.calledWith(navigator.mozL10n.get, 'sms-locate', {
-        latitude: 51,
-        longitude: 13
+      sinon.assert.calledWith(this.subject._sendSMS, 123456789, {
+        id: 'sms-locate',
+        args: {
+          latitude: 51,
+          longitude: 13
+        }
       });
     });
 

@@ -113,7 +113,16 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
       }
     },
 
-    _sendSMS : function(number, message) {
+    _sendSMS : function(number, messageL10n) {
+      var message;
+      if (typeof(messageL10n) === 'string') {
+        message = navigator.mozL10n.get(messageL10n);
+      } else if (messageL10n.id) {
+        message = navigator.mozL10n.get(messageL10n.id, messageL10n.args);
+      } else {
+        return;
+      }
+
       if (navigator.mozMobileMessage) {
         navigator.mozMobileMessage.send(number, message);
       }
@@ -135,7 +144,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
           return;
         }
 
-        this._sendSMS(number, navigator.mozL10n.get('sms-ring'));
+        this._sendSMS(number, 'sms-ring');
 
         // Lock phone
         setTimeout(function() {
@@ -161,7 +170,7 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
           console.warn('Error while trying to lock a phone, ' + result);
           return;
         }
-        this._sendSMS(number, navigator.mozL10n.get('sms-lock'));
+        this._sendSMS(number, 'sms-lock');
       }.bind(this);
 
       // Lock screen
@@ -184,10 +193,13 @@ function(Commands, PassPhrase, SettingsListener, SettingsHelper) {
           return;
         }
 
-        this._sendSMS(number, navigator.mozL10n.get('sms-locate', {
-          latitude: result.coords.latitude,
-          longitude: result.coords.longitude
-        }));
+        this._sendSMS(number, {
+          id: 'sms-locate',
+          args: {
+            latitude: result.coords.latitude,
+            longitude: result.coords.longitude
+          }
+        });
 
         // Lock phone
         setTimeout(function() {
