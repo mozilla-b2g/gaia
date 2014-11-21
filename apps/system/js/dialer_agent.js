@@ -114,6 +114,10 @@
     this._callscreenWindow = new CallscreenWindow();
     this._callscreenWindow.hide();
 
+    if (this._callscreenWindow) {
+      this.screen = document.getElementById('screen');
+    }
+
     if (applications && applications.ready) {
       this.makeFakeNotification();
     } else {
@@ -215,6 +219,8 @@
 
   DialerAgent.prototype.openCallscreen = function() {
     if (this._callscreenWindow) {
+      this.screen.classList.add('dialer');
+
       this._callscreenWindow.ensure();
       this._callscreenWindow.requestOpen();
     }

@@ -86,6 +86,8 @@
 
   CallscreenWindow.prototype.render = function cw_render() {
     this.publish('willrender');
+    this.screen = document.getElementById('screen');
+
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
 
     this.element =
@@ -143,6 +145,10 @@
       this.hide();
       this.reloadWindow();
     }
+
+    // This CSS class is appended by DialerAgent.
+    this.screen.classList.remove('dialer');
+
     // XXX: We are leaving the focus in the callscreen iframe
     if (document.activeElement === this.browser.element) {
       document.activeElement.blur();
