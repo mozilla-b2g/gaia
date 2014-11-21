@@ -253,8 +253,8 @@ function execute(config) {
   settings['rocketbar.newTabAppURL'] = utils.gaiaOriginURL('search',
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
 
-  settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'
-                                                            : 'disabled';
+  settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER === '1' ? 
+    'adb-only' : 'disabled';
 
   if (config.PRODUCTION === '1') {
     settings['feedback.url'] = 'https://input.mozilla.org/api/v1/feedback/';
@@ -268,17 +268,18 @@ function execute(config) {
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
 
-  if (config.DEVICE_DEBUG) {
+  if (config.DEVICE_DEBUG === '1') {
     settings['debugger.remote-mode'] = 'adb-devtools';
   }
 
-  if (config.NO_LOCK_SCREEN) {
+  if (config.NO_LOCK_SCREEN === '1') {
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;
   }
 
-  if (config.SCREEN_TIMEOUT >= 0) {
-    settings['screen.timeout'] = config.SCREEN_TIMEOUT;
+  var screenTimeout = parseInt(config.SCREEN_TIMEOUT);
+  if (screenTimeout >= 0) {
+    settings['screen.timeout'] = screenTimeout;
   }
 
   setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);

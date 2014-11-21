@@ -29,7 +29,7 @@ PreferencesBuilder.prototype.setConfig = function(config) {
     this.extenedPrefFiles.push('dogfood-prefs.js');
   }
 
-  if (config.DEBUG === 1) {
+  if (config.DEBUG === '1') {
     this.extenedPrefFiles.push('debug-prefs.js');
   }
 };
@@ -162,16 +162,16 @@ PreferencesBuilder.prototype.preparePref = function() {
   //       here.
   // @see Bug 790056 - Enable WPA Enterprise
   this.userPrefs['b2g.wifi.allow_unsafe_wpa_eap'] = true;
-  if (this.config.LOCAL_DOMAINS) {
+  if (this.config.LOCAL_DOMAINS === '1') {
     this.setLocalDomainPref();
   }
-  if (this.config.DESKTOP) {
+  if (this.config.DESKTOP === '1') {
     this.setDesktopPref();
   }
-  if (this.config.DEBUG) {
+  if (this.config.DEBUG === '1') {
     this.setDebugPref();
   }
-  if (this.config.DEVICE_DEBUG) {
+  if (this.config.DEVICE_DEBUG === '1') {
     this.setDeviceDebugPref();
   }
 };
