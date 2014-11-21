@@ -4,9 +4,8 @@
 'use strict';
 
 var DsdsSettings = (function(window, document, undefined) {
-  var _settings = null;
-  var _iccManager = null;
-  var _mobileConnections = null;
+  var _settings = window.navigator.mozSettings;
+  var _mobileConnections = window.navigator.mozMobileConnections;
 
   /** */
   var _iccCardIndexForCallSettings = 0;
@@ -18,10 +17,7 @@ var DsdsSettings = (function(window, document, undefined) {
    * Init function.
    */
   function ds_init() {
-    _settings = window.navigator.mozSettings;
-    _iccManager = window.navigator.mozIccManager;
-    _mobileConnections = window.navigator.mozMobileConnections;
-    if (!_settings || !_mobileConnections || !_iccManager) {
+    if (!_settings || !_mobileConnections) {
       return;
     }
     ds_handleCallSettingSimPanel();
