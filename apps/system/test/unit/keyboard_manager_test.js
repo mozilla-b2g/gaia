@@ -710,10 +710,10 @@ suite('KeyboardManager', function() {
       KeyboardManager.hasActiveKeyboard = realActive;
     });
 
-    test('lock event: do nothing if no keyboard', function() {
+    test('lock event: remove focus even without hasActiveKeyboard', function() {
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
       trigger('lockscreen-appopened');
-      assert.ok(spy.notCalled);
+      assert.ok(spy.called);
     });
 
     test('lock event: hide keyboard if needed', function() {

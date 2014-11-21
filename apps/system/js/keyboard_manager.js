@@ -444,11 +444,10 @@ var KeyboardManager = {
         }
         break;
       case 'lockscreen-appopened':
-        /* falls through */
+        navigator.mozInputMethod.removeFocus();
+        break;
       case 'sheets-gesture-begin':
         if (this.hasActiveKeyboard) {
-          // Instead of hideKeyboard(), we should removeFocus() here.
-          // (and, removing the focus cause Gecko to ask us to hideKeyboard())
           navigator.mozInputMethod.removeFocus();
         }
         break;
