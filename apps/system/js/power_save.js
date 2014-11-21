@@ -1,8 +1,6 @@
 'use strict';
-/* global batteryOverlay */
-/* global MozActivity */
-/* global NotificationHelper */
-/* global SettingsListener */
+/* global batteryOverlay, MozActivity, NotificationHelper,
+   SettingsListener */
 
 (function(exports) {
 
@@ -50,9 +48,13 @@
     setMozSettings: function(keypairs) {
       var setlock = SettingsListener.getSettingsLock();
       for (var key in keypairs) {
-        var obj = {};
-        obj[key] = keypairs[key];
-        setlock.set(obj);
+        // not set bluetooth key because we'll handle it separately
+        // for API compatibility
+        if ('bluetooth.enabled' !== key) {
+          var obj = {};
+          obj[key] = keypairs[key];
+          setlock.set(obj);
+        }
       }
     },
 
@@ -67,13 +69,13 @@
         'wifi.enabled': false,
         // Turn off Data
         'ril.data.enabled': false,
-        // Turn off Bluetooth
-        'bluetooth.enabled': false,
         // Turn off Geolocation
         'geolocation.enabled': false
       };
 
       this.setMozSettings(settingsToSet);
+      // Turn off Bluetooth
+      window.dispatchEvent(new CustomEvent('request-disable-bluetooth'));
 
       this._powerSaveEnabledLock = false;
     },
@@ -87,6 +89,8 @@
           settingsToSet[state] = true;
         }
       }
+      // Turn on Bluetooth
+      window.dispatchEvent(new CustomEvent('request-enable-bluetooth'));
 
       this.setMozSettings(settingsToSet);
     },

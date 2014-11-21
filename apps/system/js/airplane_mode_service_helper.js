@@ -66,9 +66,14 @@
 
       // switch the state to false if necessary
       if (enabled) {
-        var eset = {};
-        eset[key + '.enabled'] = false;
-        this.writeSetting(eset);
+        // make sure both BT API and settings key are handled
+        if ('bluetooth' === key) {
+          window.dispatchEvent(new CustomEvent('request-disable-bluetooth'));
+        } else {
+          var eset = {};
+          eset[key + '.enabled'] = false;
+          this.writeSetting(eset);
+        }
       }
     },
     // turn on the mozSetting corresponding to `key'
@@ -84,9 +89,14 @@
 
       // switch the state to true if it was suspended
       if (suspended) {
-        var rset = {};
-        rset[key + '.enabled'] = true;
-        this.writeSetting(rset);
+        // make sure both BT API and settings key are handled
+        if ('bluetooth' === key) {
+          window.dispatchEvent(new CustomEvent('request-enable-bluetooth'));
+        } else {
+          var rset = {};
+          rset[key + '.enabled'] = true;
+          this.writeSetting(rset);
+        }
       }
     },
     _unsuspend: function(settingSuspendedID) {
