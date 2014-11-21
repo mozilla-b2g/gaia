@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette import Wait
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 from gaiatest.apps.settings.app import Settings
@@ -21,8 +22,9 @@ class UtilityTray(Base):
         # Marionette cannot read the displayed state of the notification
         # container so we wait for the gripper to reach its expanded state
         utility_tray = self.marionette.find_element(*self._notifications_locator)
-        utility_tray_bottom = utility_tray.location['y'] + utility_tray.size['height'];
-        self.wait_for_condition(lambda m: m.find_element(*self._grippy_locator).location['y'] >= utility_tray_bottom)
+        grippy = self.marionette.find_element(*self._grippy_locator)
+
+        Wait(self.marionette).until(lambda m: grippy.location['y'] == utility_tray.size['height'])
 
     @property
     def notifications(self):
