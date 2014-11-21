@@ -76,6 +76,8 @@
   CallscreenWindow.prototype.openAnimation = 'slide-from-top';
   CallscreenWindow.prototype.closeAnimation = 'slide-to-top';
 
+  AttentionWindow.prototype.closedHeight = 50;
+
   CallscreenWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'attentionToaster': window.AttentionToaster

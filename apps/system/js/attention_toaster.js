@@ -110,7 +110,7 @@
         return;
       }
 
-      this.app.element.classList.remove('displayed');
+      //this.app.element.classList.remove('displayed');
     },
 
     _enter_closed: function(evt) {
