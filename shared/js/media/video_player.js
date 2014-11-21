@@ -267,7 +267,7 @@ function VideoPlayer(container) {
 
       var percent = (player.currentTime / player.duration) * 100 + '%';
       elapsedBar.style.width = percent;
-      playHead.style.left = percent;
+      playHead.style.MozMarginStart = percent;
     }
 
     // Since we don't always get reliable 'ended' events, see if

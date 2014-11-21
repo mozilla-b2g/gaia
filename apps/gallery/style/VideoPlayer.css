@@ -105,48 +105,61 @@ button::-moz-focus-inner {
   border: none;
 }
 
+.videoPlayerSlider,
+.videoPlayerElapsedText,
+.videoPlayerDurationText,
+.videoPlayerProgress {
+  display: inline-block;
+  position: relative;
+  line-height: 5rem;
+  vertical-align: top;
+}
+
 /* time slider */
 .videoPlayerSlider {
-  position: absolute;
-  left: 11rem;
-  top: 0;
-  right: 0;
+  position: relative;
+  -moz-margin-start: 12rem;
+  -moz-margin-end: unset;
   height: 100%;
+  /* Take into account width of videoPlayerPauseButton */
+  width: calc(100% - 10rem);
+}
+
+html[dir="rtl"] .videoPlayerSlider {
+  -moz-margin-end: 12rem;
+  -moz-margin-start: unset;
 }
 
 .videoPlayerSlider > span {
-  display: block;
-  width: 4.5rem;
-  position: absolute;
   color: white;
   height: 100%;
-  line-height: 5rem;
   text-align: center;
+  line-height: 5rem;
   font-size: 1.5rem;
 }
 
 .videoPlayerElapsedText {
-  left: 1rem;
+  width: 4.5rem;
+  -moz-padding-end: 1.5rem;
 }
 
 .videoPlayerDurationText {
-  right: 1rem;
+  width: 4.5rem;
+  -moz-padding-start: 1.5rem;
 }
 
 .videoPlayerProgress {
-  position: absolute;
-  top: 0;
-  left: 7rem;
-  right: 7rem;
+  /* Take into account width and padding of elapsed and duration text */
+  width: calc(100% - 12rem);
   height: 100%;
 }
 
 .videoPlayerProgress > div {
-  position: absolute;
   pointer-events: none;
 }
 
 .videoPlayerElapsedBar, .videoPlayerBackgroundBar {
+  position: absolute;
   height: 0.4rem;
   width: 0;
   top: 50%;
@@ -164,13 +177,13 @@ button::-moz-focus-inner {
 }
 
 .videoPlayerPlayHead {
+  position:relative;
   display: block;
   height: 2rem;
   width: 2.5rem;
   border-radius: 2.5rem;
   background-color: white;
-  top: 50%;
-  margin: -1rem 0 0 -1.2rem;
+  margin-top: 1.2rem;
 }
 
 
