@@ -8,6 +8,7 @@ var icc = {
   _defaultURL: null,
   _inputTimeout: 40000,
   _toneDefaultTimeout: 5000,
+  _screen: null,
 
   checkPlatformCompatibility: function icc_checkPlatformCompat() {
     // The STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE constant will be added
@@ -25,6 +26,7 @@ var icc = {
     if (!this._iccManager) {
       return;
     }
+    this._screen = document.getElementById('screen');
     this.checkPlatformCompatibility();
     var self = this;
     this.clearMenuCache(function() {
@@ -254,6 +256,7 @@ var icc = {
     if (!this.icc_view) {
       this.icc_view = document.getElementById('icc-view');
     }
+    this._screen.classList.remove('icc');
     this.icc_view.classList.remove('visible');
     var icc_view_boxes = this.icc_view.children;
     for (var i = 0; i < icc_view_boxes.length; i++) {
@@ -321,6 +324,7 @@ var icc = {
     };
 
     this.icc_alert_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_alert.classList.add('visible');
     this.icc_view.classList.add('visible');
   },
@@ -387,6 +391,7 @@ var icc = {
     };
 
     this.icc_confirm_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_confirm.classList.add('visible');
     this.icc_view.classList.add('visible');
   },
@@ -430,6 +435,7 @@ var icc = {
     };
 
     this.icc_asyncconfirm_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_asyncconfirm.classList.add('visible');
     this.icc_view.classList.add('visible');
   },
@@ -599,6 +605,7 @@ var icc = {
 
     this.icc_input_box.value = '';
     this.icc_input_msg.textContent = message;
+    this._screen.classList.add('icc');
     this.icc_input.classList.add('visible');
     this.icc_view.classList.add('visible');
 
