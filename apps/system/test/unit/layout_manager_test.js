@@ -9,6 +9,9 @@ requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
+require('/test/unit/mock_app_window.js');
+require('/test/unit/mock_attention_window.js');
+require('/js/input_window_manager.js');
 
 var mocksForLayoutManager = new MocksHelper([
   'AppWindowManager',
@@ -16,6 +19,8 @@ var mocksForLayoutManager = new MocksHelper([
   'softwareButtonManager',
   'LockScreen',
   'System'
+  'Service',
+  'AttentionWindow'
 ]).init();
 
 suite('system/LayoutManager >', function() {
@@ -196,7 +201,7 @@ suite('system/LayoutManager >', function() {
     });
   });
 
-  suite('dimentions >', () => {
+  suite('dimensions >', () => {
     var H, W, _w;
     setup(() => {
       H = window.innerHeight;
@@ -222,6 +227,30 @@ suite('system/LayoutManager >', function() {
     test('width calculation', () => {
       assert.equal(layoutManager.width, W - 50);
       assert.equal(layoutManager.clientWidth, _w);
+    });
+  });
+
+  suite('getHeightFor()', function() {
+    setup(function() {
+      MocksoftwareButtonManager.height = 50;
+      MockService.locked = false;
+    });
+
+    test('should return the height for regular windows', function() {
+      assert.equal(layoutManager.height, layoutManager.getHeightFor({}));
+    });
+
+    test('should return the height for regular windows on lockscreen',
+      function() {
+        MockService.locked = true;
+        assert.equal(layoutManager.height, layoutManager.getHeightFor({}));
+      });
+
+    test('should consider SHB on attention windows and lockscreen', function() {
+      MockService.locked = true;
+      var attentionWindow = new window.AttentionWindow();
+      assert.operator(layoutManager.getHeightFor({}), '>',
+        layoutManager.getHeightFor(attentionWindow));
     });
   });
 });

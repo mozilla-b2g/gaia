@@ -1,5 +1,5 @@
 /* global KeyboardManager, softwareButtonManager, System,
-          AppWindowManager */
+          AppWindowManager, AttentionWindow */
 'use strict';
 
 (function(exports) {
@@ -77,6 +77,25 @@
         ((AppWindowManager.getActiveApp() &&
           AppWindowManager.getActiveApp().isFullScreenLayout()) ?
           0 : softwareButtonManager.width);
+    },
+
+    getHeightFor: function(currentWindow) {
+      if (currentWindow instanceof AttentionWindow) {
+        var keyboardHeight = this.keyboardEnabled ?
+          inputWindowManager.getHeight() : 0;
+        var height = window.innerHeight - keyboardHeight -
+          softwareButtonManager.height;
+
+        // Normalizing the height so that it always translates to an integral
+        // number of device pixels
+        var dpx = window.devicePixelRatio;
+        if ((height * dpx) % 1 !== 0) {
+          height = Math.ceil(height * dpx) / dpx;
+        }
+
+        return height;
+      }
+      return this.height;
     },
 
     /**
