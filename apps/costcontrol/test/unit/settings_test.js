@@ -15,6 +15,8 @@ require('/test/unit/mock_cost_control.js');
 require('/test/unit/mock_config_manager.js');
 require('/js/utils/formatting.js');
 require('/js/views/BalanceLowLimitView.js');
+require('/js/views/ResetMenuDialog.js');
+require('/js/views/ConfirmDialog.js');
 require('/js/settings/limitdialog.js');
 require('/js/settings/autosettings.js');
 require('/js/settings/settings.js');
