@@ -149,12 +149,25 @@ module.exports = View.extend({
 
   setMode: function(mode) {
     debug('set mode: %s', mode);
+    //var l10n = navigator.mozL10n;
+    //this.els.capture.setAttribute('aria-label', l10n.get(mode == 'picture' ?
+    // 'capture-button-shutter' : 'capture-button-start-video')); // this line will break UI
+    //this.els.capture.setAttribute('aria-label', mode == 'picture' ?
+    //  'Shutter' : l10n.get('capture-button-start-video'));
+    //this.els.capture.dataset.l10nId = recording ?
+    //  'capture-button-shutter' : 'capture-button-start-video';
     this.set('mode', mode);
     this.switchPosition = this.switchPositions[mode];
     var ratio = { left: 0, right: 1 }[this.switchPosition];
     this.updateSwitchPosition();
     this.setSwitchIcon(ratio);
     debug('mode set pos: %s', this.switchPosition);
+  },
+
+  setRecording: function(recording) {
+    //this.els.capture.dataset.l10nId = recording ?
+    //  'capture-button-stop-video' : 'capture-button-start-video';
+    this.set('recording', recording);
   },
 
   updateSwitchPosition: function() {
@@ -239,11 +252,11 @@ module.exports = View.extend({
   template: function() {
     /*jshint maxlen:false*/
     return '<div class="controls-left">' +
-      '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail rotates" name="thumbnail"></div>' +
+      '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail rotates" name="thumbnail" role="button" data-l10n-id="thumbnail-button" aria-label="Photo Thumbnail"></div>' +
       '<div class="controls-button controls-cancel-pick-button test-cancel-pick rotates js-cancel" name="cancel" data-icon="close"></div>' +
     '</div>' +
     '<div class="controls-middle">' +
-      '<div class="capture-button test-capture rotates js-capture" name="capture">' +
+      '<div class="capture-button test-capture rotates js-capture" name="capture" role="button" data-l10n-id="capture-button" aria-label="Shutter">' +
         '<div class="circle outer-circle"></div>' +
         '<div class="circle inner-circle"></div>' +
         '<div class="center" data-icon="camera"></div>' +
