@@ -242,7 +242,9 @@ var IMERender = (function() {
       }));
 
       if ('handwritingPadOptions' in layout &&
-          nrow < layout.handwritingPadOptions.rowspan) {
+          nrow >= layout.handwritingPadOptions.topRows &&
+          nrow < layout.handwritingPadOptions.topRows +
+                 layout.handwritingPadOptions.rowspan) {
         rowLayoutWidth += layout.handwritingPadOptions.ratio;
       }
 
@@ -604,14 +606,38 @@ var IMERender = (function() {
           var wrapperRatio = key.ratio || 1;
           var keyRatio = wrapperRatio;
 
-          // First and last keys should fill up space
-          if (kIx === 0) {
-            keyEl.classList.add('float-key-first');
-            keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
-          }
-          else if (kIx === keysInRow - 1) {
-            keyEl.classList.add('float-key-last');
-            keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
+          // Traverse keys beside handwriting pad.
+          if ('handwritingPadOptions' in layout &&
+              rIx >= layout.handwritingPadOptions.topRows &&
+              rIx < layout.handwritingPadOptions.rowspan +
+                    layout.handwritingPadOptions.topRows) {
+            // If there were keys on left side of handwriting pad,
+            // margin right the closest key to handwriting pad.
+            if (layout.handwritingPadOptions.leftKeys > 0 &&
+                kIx === layout.handwritingPadOptions.leftKeys - 1) {
+              keyEl.style.marginRight = layout.handwritingPadOptions.ratio *
+                                        placeHolderWidth + 'px';
+            }
+            // If there were no key on left side of handwriting pad,
+            // margin left the first key.
+            if (layout.handwritingPadOptions.leftKeys === 0 &&
+                kIx === 0) {
+              keyEl.style.marginLeft = layout.handwritingPadOptions.ratio *
+                                       placeHolderWidth + 'px';
+            }
+            if (kIx === keysInRow - 1) {
+              keyEl.classList.add('float-key-last');
+            }
+          } else {
+            // First and last keys should fill up space
+            if (kIx === 0) {
+              keyEl.classList.add('float-key-first');
+              keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
+            }
+            else if (kIx === keysInRow - 1) {
+              keyEl.classList.add('float-key-last');
+              keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
+            }
           }
 
           keyEl.style.width = (placeHolderWidth | 0) * keyRatio + 'px';
@@ -715,6 +741,18 @@ var IMERender = (function() {
       var height = Math.floor(rowHeight * layout.handwritingPadOptions.rowspan);
       canvas.height = height * window.devicePixelRatio;
       canvas.style.height = height + 'px';
+
+      canvas.style.left = placeHolderWidth *
+                          layout.handwritingPadOptions.leftRatio + 'px';
+
+      var candidatePanel = activeIme.querySelector('.keyboard-candidate-panel');
+      var candidatePanelHeight = candidatePanel ?
+                                 candidatePanel.offsetHeight +
+                                 candidatePanel.offsetTop : 0;
+
+      canvas.style.top = candidatePanelHeight +
+                         rowHeight * layout.handwritingPadOptions.topRows +
+                         'px';
     }
   };
 

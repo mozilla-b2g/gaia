@@ -19,7 +19,15 @@ Keyboards['zh-Hans-Handwriting'] = {
     },
     handwritingLanguage: 'zh-Hans',
     handwritingPadOptions: {
+      // Rows number above handwriting pad.
+      topRows: 0,
+      // Keys number on left side of handwriting pad.
+      leftKeys: 0,
+      // The total width ratio of keys on left side of handwriting pad.
+      leftRatio: 0,
+      // Handwriting pad width ratio.
       ratio: 8.5,
+      // Row span of handwriting pad.
       rowspan: 3
     },
     keys: [

@@ -759,8 +759,8 @@ bubble above the key when you tap and hold. */
 /* Handwriting */
 .handwriting-pad {
   background-color: #ebeced;
-  margin: -1px;
-  float: left;
+  position: absolute;
+  margin-top: 0.1rem;
 }
 
 /* Hindi */
