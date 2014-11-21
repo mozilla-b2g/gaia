@@ -31,10 +31,10 @@ class TestNotificationBar(GaiaTestCase):
 
         # Assert there is one notification is listed in notifications-container
         notifications = utility_tray.notifications
-        self.assertEqual(1, len(notifications), 'Expected one notification.')
 
         # Assert notification is listed in notifications-container
-        self.assertEqual(self._notification_body, notifications[0].content)
+        self.wait_for_condition(lambda m: self._notification_body == notifications[0].content)
+        self.assertEqual(1, len(notifications), 'Expected one notification.')
 
         # We cannot disable app update yet so let's wait for it to pass
         if system.is_app_update_notification_displayed:
