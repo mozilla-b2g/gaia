@@ -16,7 +16,8 @@
         <label data-l10n-id="settings-account-check-mail" class="list-text">
           ChecK FoR NeW MessageS</label>
         <span class="button icon icon-dialog">
-          <select class="tng-account-check-interval mail-select">
+          <select class="tng-account-check-interval mail-select"
+                  data-l10n-id="settings-account-check-mail-select">
             <option value="0" data-l10n-id="settings-check-every-manual">
               ManuallY</option>
             <option value="300000" data-l10n-id="settings-check-every-5min">
@@ -32,44 +33,32 @@
           </select>
         </span>
       </li>
-      <li class="list-text-pair">
-        <span data-l10n-id="settings-account-display-notifications"
-              class="list-text aside start">
-          DisplaY NotificationS FoR NeW MessageS</span>
-        <em class="aside end">
-          <label class="tng-notify-mail-label pack-switch">
-            <input class="tng-notify-mail" type="checkbox">
-            <span></span>
-          </label>
-        </em>
-
+      <li>
+        <label class="tng-notify-mail-label pack-switch list-pack-switch">
+          <input class="tng-notify-mail" type="checkbox" />
+          <span data-l10n-id="settings-account-display-notifications"
+                class="list-text list-pack-switch-text">
+            DisplaY NotificationS FoR NeW MessageS</span>
+        </label>
       </li>
-      <li class="list-text-pair">
-        <span data-l10n-id="settings-account-play-sound-onsend"
-              class="list-text aside start">
-          PlaY SounD AfteR MessagE SenT</span>
-        <em class="aside end">
-          <label class="tng-sound-onsend-label pack-switch">
-            <input class="tng-sound-onsend" type="checkbox">
-            <span></span>
-          </label>
-        </em>
+      <li>
+        <label class="tng-sound-onsend-label pack-switch list-pack-switch">
+          <input class="tng-sound-onsend" type="checkbox" />
+          <span data-l10n-id="settings-account-play-sound-onsend"
+                class="list-text list-pack-switch-text">
+            PlaY SounD AfteR MessagE SenT</span>
+        </label>
       </li>
       <li class="settings-signature settings-input-list">
-          <div class="list-text-pair">
-            <span data-l10n-id="settings-account-signature-label"
-                class="list-text aside start">
-              SignaturE</span>
-            <em class="aside end">
-              <label class="pack-switch tng-default-label">
-                <input class="tng-signature-input" type="checkbox">
-                <span></span>
-              </label>
-            </em>
-          </div>
-          <button class="signature-button button icon">
-            <div dir="auto" class="signature-button-content"></div>
-          </button>
+        <label class="pack-switch tng-default-label list-pack-switch">
+          <input class="tng-signature-input" type="checkbox">
+          <span data-l10n-id="settings-account-signature-label"
+                class="list-text list-pack-switch-text">
+            SignaturE</span>
+        </label>
+        <button class="signature-button button icon">
+          <div dir="auto" class="signature-button-content"></div>
+        </button>
       </li>
     </ul>
   </section>
