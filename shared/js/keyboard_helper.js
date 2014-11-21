@@ -613,8 +613,8 @@ var KeyboardHelper = exports.KeyboardHelper = {
    * Get a list of current keyboard applications.
    */
   getApps: function kh_getApps(callback) {
-    this.inputAppList.getList().then(function(inputApps) {
-      // every time we get a list of apps, clean up the settings
+    // every time we get a list of apps, clean up the settings
+    var cleanupSettings = function(inputApps) {
       Object.keys(currentSettings.enabledLayouts)
         .concat(Object.keys(currentSettings.defaultLayouts))
         .forEach(function(manifestURL) {
@@ -627,6 +627,20 @@ var KeyboardHelper = exports.KeyboardHelper = {
             delete currentSettings.defaultLayouts[manifestURL];
           }
         });
+    };
+
+    // XXX We have to preserve the original getApps() behavior here,
+    // i.e. call the sync callback when we already have the data.
+    if (this.inputAppList.ready) {
+      var inputApps = this.inputAppList.getListSync();
+      cleanupSettings(inputApps);
+      callback(inputApps);
+
+      return;
+    }
+
+    this.inputAppList.getList().then(function(inputApps) {
+      cleanupSettings(inputApps);
       callback(inputApps);
     })['catch'](function(e) { // workaround gjslint error
       console.error(e);
