@@ -261,10 +261,7 @@ body.pick-activity .single-info-button {
   .layout-list #thumbnail-select-view,
   .layout-list #switch-fullscreen,
   .layout-list #videoControls #videoActionBar,
-  .layout-list #videoControls #close,
-  .layout-list .single-delete-button,
-  .layout-list .single-share-button,
-  .layout-list .single-info-button {
+  .layout-list #videoControls #close {
     display: none;
   }
 
