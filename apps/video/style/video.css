@@ -493,15 +493,18 @@ header .icon:after {
   font-size: 1.4rem;
 }
 
+/* elapsed-text and duration-text have padding on left and right
+   to support ltr and rtl locales */
 #elapsed-text {
-  width: 5.3rem;
-  padding-left: 1.5rem;
+  width: 3.8rem;
+  padding: 0 1.5rem;
+  text-align: center;
 }
 
 #duration-text {
-  text-align: right;
-  width: 5.3rem;
-  padding-right: 1.5rem;
+  width: 3.8rem;
+  padding: 0 1.5rem;
+  text-align: center;
 }
 
 /* time slider */
