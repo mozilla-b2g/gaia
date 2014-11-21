@@ -6,8 +6,6 @@
 .menu-item {
   position: static;
   padding-left: 5.5rem;
-  background-repeat: no-repeat;
-  background-position: 1.4rem center;
 }
 
 a.menu-item:after  {
@@ -24,11 +22,10 @@ a.menu-item:after  {
 .menu-item::before {
   position: absolute;
   left: 0;
-  top: 0;
+  top: 50%;
   width: 3rem;
-  height: 100%;
   text-align: center;
-  line-height: 6rem;
+  line-height: 0;
   color: #657073;
 }
 
@@ -309,6 +306,10 @@ html[dir="rtl"] .menu-item::before {
 html[dir="rtl"] label > .menu-item::before {
   right: 1.5rem;
   left: auto;
+}
+
+html[dir="rtl"] label > .menu-item + small {
+  margin: 0 4rem 0 0;
 }
 
 html[dir="rtl"] aside.pack-end {
