@@ -161,6 +161,10 @@ marionette('Messages Composer', function() {
         el.scrollIntoView(false);
       });
 
+      // Remove this workaround once Marionette bug is resolved:
+      // "Bug 1046706 - "tap" does not find the element after scrolling in APZC"
+      client.helper.wait(600);
+
       composer.attachment.tap();
       messagesApp.selectAttachmentMenuOption('Remove image');
 
