@@ -83,7 +83,11 @@
   transition: background-color 0.2s ease;
 }
 
-[role="dialog"][data-type="object"] ul li:not(.inactive):before {
+[role="dialog"][data-type="object"] ul li.input {
+  margin: 0;
+}
+
+[role="dialog"][data-type="object"] ul li:not(.input):before {
   position: absolute;
   content: "";
   top: 0;
@@ -107,6 +111,15 @@
   display: none;
 }
 
+[role="dialog"][data-type="object"] ul + ul li:first-child:after {
+  display: block;
+}
+
+[role="dialog"][data-type="object"] ul + ul li.input:first-child:after {
+  left: 1.5rem;
+  right: 1.5rem;
+}
+
 [role="dialog"][data-type="object"] ul li a {
   color: #fff;
   text-decoration: none;
@@ -116,11 +129,15 @@
   font-family: sans-serif;
   color: #fff;
   border: none;
-  background: none;
+  background-color: transparent;
   text-align: left;
   font-size: 2.2rem;
   font-weight: 300;
   padding: 0;
+}
+
+[role="dialog"][data-type="object"] ul li button[type="reset"] {
+  font-size: 0;
 }
 
 [role="dialog"][data-type="object"] ul li p {
@@ -177,6 +194,7 @@
   margin-top: -1.7rem;
   opacity: 0;
   color: #00ABCD;
+  line-height: 3rem;
   transition: opacity 0.2s ease 0s;
 }
 
@@ -196,8 +214,8 @@
   background-color: #00aacc;
 }
 
-[role="dialog"][data-type="object"] ul li:not(.inactive):active:after,
-[role="dialog"][data-type="object"] ul li:not(.inactive):active + li:after {
+[role="dialog"][data-type="object"] ul li:not(.input):active:after,
+[role="dialog"][data-type="object"] ul li:not(.input):active + li:after {
   display: none;
 }
 
