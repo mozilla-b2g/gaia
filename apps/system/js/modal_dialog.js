@@ -153,10 +153,8 @@ var ModalDialog = {
   },
 
   updateHeight: function sd_updateHeight() {
-    if (this.isVisible()) {
-      var height = window.layoutManager.height - StatusBar.height;
-      this.overlay.style.height = height + 'px';
-    }
+    var height = window.layoutManager.height - StatusBar.height;
+    this.overlay.style.height = height + 'px';
   },
 
   // Show relative dialog and set message/input value well
