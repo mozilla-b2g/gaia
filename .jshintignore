@@ -43,6 +43,7 @@ apps/keyboard/js/imes/handwriting/hwr/**
 shared/js/setImmediate.js
 shared/test/unit/test-agent-server.js
 shared/elements/gaia-header/dist/gaia-header.js
+shared/elements/gaia-component/gaia-component.js
 shared/elements/gaia-icons/gaia-icons.js
 shared/pages/import/js/parameters.js
 apps/sharedtest/test/unit/setImmediate_test.js
