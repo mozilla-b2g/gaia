@@ -1,5 +1,4 @@
 from gaiatest import GaiaTestCase
-
 from gaiatest.apps.contacts.app import Contacts
 
 
@@ -9,8 +8,8 @@ class TestImportContactsFromSDCard(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         # remove existing vcf files from sdcard
-        for filename in self.data_layer.sdcard_files('.vcf'):
-            self.device.file_manager.remove(filename)
+        for file in self.data_layer.sdcard_files('.vcf'):
+            self.device.file_manager.remove(file.name)
 
         # add .vcf file to SD card
         self.push_resource('gaia061281_test.vcf')

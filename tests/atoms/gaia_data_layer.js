@@ -477,7 +477,7 @@ var GaiaDataLayer = {
         }
         else {
           // File.name returns a fully qualified path
-          files.push(file.name);
+          files.push({'name': file.name, 'size': file.size});
           req.continue();
         }
       }
