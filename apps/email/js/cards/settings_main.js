@@ -55,7 +55,10 @@ return [
           accountNode.querySelector('.tng-account-item-label');
 
         accountLabel.textContent = account.name;
-        accountLabel.addEventListener('click',
+        accountNode.setAttribute('aria-label', account.name);
+        // Attaching a listener to account node with the role="option" to
+        // enable activation with the screen reader.
+        accountNode.addEventListener('click',
           this.onClickEnterAccount.bind(this, account), false);
       }
     },
