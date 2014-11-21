@@ -123,7 +123,9 @@ HTMLOptimizer.prototype._proceedLocales = function() {
     mozL10n.ctx.requestLocales(this.locales[processedLocales]);
 
     // create JSON dicts for the current language for locales-obj/
-    this.asts[mozL10n.language.code] = this.getAST();
+    if (this.config.GAIA_CONCAT_LOCALES === '1') {
+      this.asts[mozL10n.language.code] = this.getAST();
+    }
     processedLocales++;
   }
 

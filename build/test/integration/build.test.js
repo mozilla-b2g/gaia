@@ -150,21 +150,4 @@ suite('Integration tests', function() {
     });
   });
 
-  test('make test-l10n-optimize build noFetch file', function(done) {
-    helper.exec('APP=test-l10n-optimize make',
-      function(error, stdout, stderr) {
-        helper.checkError(error, stdout, stderr);
-
-        var expectedScript = '<script type="application/l10n" lang="en-US">\n'+
-                             '  [{"$i":"entity1","$v":"My Entity"}]\n' +
-                             '</script>';
-        var testZip = new AdmZip(path.join(process.cwd(), 'profile',
-          'webapps', 'test-l10n-optimize.gaiamobile.org', 'application.zip'));
-        var indexHtml =
-          testZip.readAsText(testZip.getEntry('index.html'));
-        assert.ok(indexHtml.indexOf(expectedScript) !== -1);
-        done();
-      }
-    );
-  });
 });

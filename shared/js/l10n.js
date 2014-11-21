@@ -619,7 +619,7 @@
             this.parseEntity(entityMatch[1], entityMatch[2], ast);
           } catch (e) {
             if (ctx) {
-              ctx._emitter.emit('error', e);
+              ctx._emitter.emit('parseerror', e);
             } else {
               throw e;
             }
@@ -644,7 +644,7 @@
       var nameElements = name.split('.');
 
       if (nameElements.length > 2) {
-        throw new Error('Error in ID: "' + name + '".' +
+        throw new L10nError('Error in ID: "' + name + '".' +
             ' Nested attributes are not supported.');
       }
 
@@ -1166,7 +1166,7 @@
 
     function onL10nLoaded(err) {
       if (err) {
-        ctx._emitter.emit('error', err);
+        ctx._emitter.emit('fetcherror', err);
       }
       if (--l10nLoads <= 0) {
         self.isReady = true;
@@ -1268,15 +1268,18 @@
       var entry = locale.entries[id];
       if (entry === undefined) {
         cur++;
-        warning.call(this, new L10nError(id + ' not found in ' + loc, id,
-                                         loc));
+        this._emitter.emit('notfounderror', new L10nError(
+          '"' + id + '"' + ' not found in ' + loc + ' in ' + this.id,
+          id, loc));
         continue;
       }
       return entry;
     }
 
     console.warn('mozL10n: A non-existing entity requested: ' + id);
-    error.call(this, new L10nError(id + ' not found', id));
+    this._emitter.emit('notfounderror', new L10nError(
+      '"' + id + '"' + ' missing from all supported locales in ' + this.id,
+      id));
     return null;
   }
 
@@ -1401,20 +1404,6 @@
     }).bind(this);
     this.addEventListener('ready', callAndRemove);
   };
-
-
-  // Errors
-
-  function warning(e) {
-    this._emitter.emit('warning', e);
-    return e;
-  }
-
-  function error(e) {
-    this._emitter.emit('error', e);
-    return e;
-  }
-
 
 
   var DEBUG = false;
@@ -1625,7 +1614,7 @@
       }
 
       if (err) {
-        this.ctx._emitter.emit('error', err);
+        this.ctx._emitter.emit('fetcherror', err);
         this.ctx.registerLocales(this.ctx.defaultLocale);
         if (callback) {
           callback.call(this);
@@ -1641,7 +1630,8 @@
         } else {
           manifest.defaultLocale = this.ctx.defaultLocale;
           this.ctx._emitter.emit(
-            'warning', new L10nError('default_locale missing from manifest'));
+            'manifesterror',
+            new L10nError('default_locale missing from manifest'));
         }
       }
       if (!('locales' in manifest)) {
@@ -1649,7 +1639,8 @@
           manifest.locales = Object.keys(json.locales);
         } else {
           this.ctx._emitter.emit(
-            'warning', new L10nError('locales missing from manifest'));
+            'manifesterror',
+            new L10nError('locales missing from manifest'));
         }
       }
 

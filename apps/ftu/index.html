@@ -137,7 +137,7 @@
     <article role="main">
       <section id="pincode-screen" role="region">
         <label id="pin-label"></label>
-        <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
+        <label id="pin-retries-left" class="retries hidden"></label>
         <section class="input-wrapper">
           <input id="pin-input" name="simpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
           <label id="pin-error" class="hidden error">
@@ -149,7 +149,7 @@
 
       <section id="pukcode-screen" role="region">
         <label id="puk-label"></label>
-        <label id="puk-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
+        <label id="puk-retries-left" class="retries hidden"></label>
         <section class="input-wrapper">
           <input id="puk-input" name="simpuk" type="password" x-inputmode="digit" size="8" maxlength="8" />
           <div id="puk-info" data-l10n-id="pukInfo" class="info">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
@@ -172,7 +172,7 @@
 
       <section id="xckcode-screen" role="region">
         <label id="xck-label" data-l10n-id="type_nck">Type your NCK code</label>
-        <label id="xck-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden retries">Unknown tries left</label>
+        <label id="xck-retries-left" class="hidden retries"></label>
         <section class="input-wrapper">
           <input id="xck-input" name="simxck" type="password"  x-inputmode="digit" size="16" maxlength="16" />
           <label id="xck-error" class="hidden error">
@@ -717,7 +717,7 @@
   <form role='dialog' data-type='confirm' id='offline-error-dialog'>
     <section>
       <h1 data-l10n-id='offline-dialog-title'>You must be connected to the Internet to view the page.</h1>
-      <p><small data-l10n-id='offline-dialog-text'>Please go back and connect to
+      <p><small>Please go back and connect to
         the Internet. You can also view the page later from Settings or by
         entering {{url}} in any browser.</small></p>
       <gaia-buttons skin="dark">
