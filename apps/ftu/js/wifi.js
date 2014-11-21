@@ -238,7 +238,7 @@ var WifiUI = {
     // Remove refresh option
     UIManager.activationScreen.classList.add('no-options');
     // Update title
-    UIManager.mainTitle.setAttribute('data-l10n-id', ssid);
+    UIManager.mainTitle.textContent = ssid;
 
     // Update network
     var selectedNetwork = WifiManager.getNetwork(ssid);

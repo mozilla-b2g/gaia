@@ -279,9 +279,8 @@ var Navigation = {
 
     // Managing options button
     if (this.currentStep <= numSteps &&
-        (steps[this.currentStep].hash === '#wifi') ===
-          UIManager.activationScreen.classList.contains('no-options')) {
-      UIManager.activationScreen.classList.toggle('no-options');
+        (steps[this.currentStep].hash !== '#wifi')) {
+      UIManager.activationScreen.classList.add('no-options');
     }
 
     // Managing nav buttons when coming back from out-of-steps (privacy)

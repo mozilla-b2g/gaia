@@ -283,4 +283,35 @@ suite('wifi > ', function() {
       assert.isNotNull(hiddenNetwork, 'hidden network should be rendered');
     });
   });
+
+  suite('Choose networks', function() {
+    setup(function() {
+      WifiUI.renderNetworks(fakeNetworks);
+      UIManager.activationScreen =
+        document.getElementById('activation-screen');
+      UIManager.mainTitle = document.getElementById('main-title');
+      UIManager.wifiJoinButton = document.getElementById('wifi-join-button');
+      UIManager.navBar = document.getElementById('nav-bar');
+    });
+
+    teardown(function() {
+      UIManager.activationScreen = null;
+      UIManager.mainTitle = null;
+      UIManager.wifiJoinButton = null;
+      UIManager.navBar = null;
+    });
+
+    test('Should set header properly', function() {
+      var network = document.querySelector('li[data-ssid="Mozilla Guest"]');
+      var header = UIManager.mainTitle;
+      var event = {
+        target: network
+      };
+
+      WifiUI.chooseNetwork(event);
+      assert.equal(header.textContent, network.dataset.ssid);
+      assert.isTrue(UIManager.activationScreen.
+        classList.contains('no-options'));
+    });
+  });
 });
