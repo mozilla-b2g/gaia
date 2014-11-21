@@ -20,8 +20,12 @@ class Ftu(Base):
 
     # Step Languages section
     _section_languages_locator = (By.ID, 'languages')
-    _us_languages_option_locator = (By.ID, 'en-US')
     _listed_languages_locator = (By.CSS_SELECTOR, "#languages ul li")
+    _language_locator = (By.CSS_SELECTOR, "#languages ul li#%s ~ p")
+    _language_input_locator = (By.CSS_SELECTOR,
+                               "#languages ul li input[name='language.current'][value='%s']")
+    _selected_language_input_locator = (By.CSS_SELECTOR, "#languages ul li input:checked")
+    _us_languages_option_locator = (By.ID, 'en-US')
 
     # Step Cell data section
     _section_cell_data_locator = (By.ID, 'data_3g')
@@ -97,6 +101,10 @@ class Ftu(Base):
     @property
     def languages_list(self):
         return len(self.marionette.find_elements(*self._listed_languages_locator))
+
+    @property
+    def selected_language(self):
+        return self.marionette.find_element(*self._selected_language_input_locator).get_attribute('value')
 
     def tap_language(self, language):
         self.marionette.find_element(self._language_locator[0], self._language_locator[1] % language).tap()

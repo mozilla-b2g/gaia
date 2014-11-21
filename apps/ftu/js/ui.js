@@ -371,11 +371,10 @@ var UIManager = {
         WifiManager.scan(WifiUI.renderNetworks);
         break;
       case 'wifi-join-button':
-          WifiUI.joinNetwork();
+        WifiUI.joinNetwork();
         break;
       case 'hidden-wifi-join-button':
-          console.log('handleEvent hidden-wifi-join-button click');
-          WifiUI.joinHiddenNetwork();
+        WifiUI.joinHiddenNetwork();
         break;
       case 'join-hidden-button':
         WifiUI.addHiddenNetwork();

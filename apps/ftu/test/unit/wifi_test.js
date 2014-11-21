@@ -216,21 +216,20 @@ suite('wifi > ', function() {
         document.getElementById('activation-screen');
       UIManager.mainTitle = document.getElementById('main-title');
       UIManager.wifiJoinButton = document.getElementById('wifi-join-button');
-      UIManager.navBar = document.getElementById('nav-bar');
     });
 
     teardown(function() {
       UIManager.activationScreen = null;
       UIManager.mainTitle = null;
       UIManager.wifiJoinButton = null;
-      UIManager.navBar = null;
     });
 
     test('Should set header properly', function() {
       var network = document.querySelector('li[data-ssid="Mozilla Guest"]');
+
       var header = UIManager.mainTitle;
       var event = {
-        target: network
+        target: network.querySelector('p')
       };
 
       WifiUI.chooseNetwork(event);

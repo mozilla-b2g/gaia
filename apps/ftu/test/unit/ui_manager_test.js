@@ -307,7 +307,7 @@ suite('UI Manager > ', function() {
     });
     test('Join hidden network button click > ', function() {
       var spy = this.sinon.spy(WifiUI, 'addHiddenNetwork');
-      UIManager.hiddenWifiJoinButton.click();
+      UIManager.joinHiddenButton.click();
       assert.isTrue(spy.calledOnce,
         'on click, addHiddenNetwork should be called');
       assert.equal(window.location.hash, '#hidden-wifi-authentication');
@@ -316,8 +316,8 @@ suite('UI Manager > ', function() {
       UIManager.hiddenWifiSsid.value = 'testSSID';
       // Checks WPA-PSK
       UIManager.hiddenWifiSecurity.options[2].selected = true;
-      UIManager.wifiJoinButton.disabled = false;
-      UIManager.wifiJoinButton.click();
+      UIManager.hiddenWifiJoinButton.disabled = false;
+      UIManager.hiddenWifiJoinButton.click();
       assert.ok(joinHiddenNetworkStub.called,
         'joinHiddenNetwork should be called');
     });

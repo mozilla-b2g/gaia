@@ -247,7 +247,6 @@ var Navigation = {
         break;
       case '#sharing-performance-data':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
-        UIManager.navBar.classList.add('back-only');
         var linkTelemetry = document.getElementById('external-link-telemetry');
         navigator.mozL10n.setAttributes(linkTelemetry, 'learn-more-telemetry2',
           getLocalizedLink('learn-more-telemetry'));

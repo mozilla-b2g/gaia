@@ -301,7 +301,7 @@ var WifiUI = {
     // Reset join button state
     console.log('Wifi addHiddenNetwork, disabling wifiJoinButton');
     UIManager.wifiJoinButton.disabled = true;
-    window.location.hash = '#hidden-wifi-authentication';
+    window.location.hash = '#hidden-wifi-auth entication';
   },
 
   handleHiddenWifiSecurity: function wui_handleSecurity(securityType) {
