@@ -62,7 +62,7 @@ var Contacts = (function() {
   var contactsDetails;
   var contactsForm;
 
-  var customTag, customTagReset, tagDone, tagHeader, lazyLoadedTagsDom = false;
+  var customTag, customTagReset, tagDone, tagCancel, lazyLoadedTagsDom = false;
 
   // Shows the edit form for the current contact being in an update activity
   // It receives an array of two elements with the facebook data && values
@@ -439,12 +439,12 @@ var Contacts = (function() {
       customTagReset.addEventListener('touchstart', handleCustomTagReset);
     }
     if (!tagDone) {
-      tagDone = document.querySelector('#settings-done');
+      tagDone = document.querySelector('#button-done');
       tagDone.addEventListener('click', handleSelectTagDone);
     }
-    if (!tagHeader) {
-      tagHeader = document.querySelector('#settings-header');
-      tagHeader.addEventListener('action', handleBack);
+    if (!tagCancel) {
+      tagCancel = document.querySelector('#button-cancel');
+      tagCancel.addEventListener('click', handleCancel);
     }
 
     ContactsTag.setCustomTag(customTag);
@@ -452,10 +452,9 @@ var Contacts = (function() {
     // This is needed for dates as we only support bday and anniversary
     // and not custom dates
     ContactsTag.setCustomTagVisibility(isCustomTagVisible);
-
     ContactsTag.fillTagOptions(tagsList, contactTag, options);
 
-    navigation.go('view-select-tag', 'right-left');
+    navigation.go('view-select-tag', 'fade-in');
     if (document.activeElement) {
       document.activeElement.blur();
     }
@@ -487,7 +486,11 @@ var Contacts = (function() {
     navigation.back(cb);
   };
 
-  var handleCancel = function handleCancel() {
+  var handleCancel = function handleCancel(event) {
+    if (typeof event !== 'undefined') {
+      event.preventDefault();
+    }
+
     //If in an activity, cancel it
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postCancel();
@@ -497,7 +500,8 @@ var Contacts = (function() {
     }
   };
 
-  var handleSelectTagDone = function handleSelectTagDone() {
+  var handleSelectTagDone = function handleSelectTagDone(event) {
+    event.preventDefault();
     var prevValue = contactTag.textContent;
     ContactsTag.clickDone(function() {
       var valueModifiedEvent = new CustomEvent('ValueModified', {
