@@ -129,7 +129,9 @@
       assert.equal(getTopMost(), 'Rocketbar');
       assert.equal(getActiveAppWindowAriaHidden(), 'true');
       rocketbar.cancel.click();
-      assert.equal(getTopMost(), 'AppWindowManager');
+      client.waitFor(function() {
+        return getTopMost() === 'AppWindowManager';
+      });
       assert.equal(getActiveAppWindowAriaHidden(), 'false');
     });
 
