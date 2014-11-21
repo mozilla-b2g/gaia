@@ -30,11 +30,26 @@ suite('Views > HandwritingPadView', function() {
   suite('basic testing', function() {
     setup(function() {
       handwritingPadView = new HandwritingPadView();
+      handwritingPadView.render();
       canvas = handwritingPadView.element;
     });
 
     test(' > get element', function() {
       assert.equal(canvas instanceof HTMLCanvasElement, true);
+    });
+
+    test('invoke viewManager.registerView', function() {
+      var mockViewManager = {
+        registerView: this.sinon.stub()
+      };
+
+      var target = {};
+      var padView = new HandwritingPadView(target, {}, mockViewManager);
+      padView.render();
+
+      assert.isTrue(mockViewManager.registerView.calledOnce);
+      assert.isTrue(mockViewManager.registerView.calledWith(target,
+                                                            padView));
     });
 
     test(' > drawHandwritingPad()', function() {
