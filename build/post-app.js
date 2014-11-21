@@ -25,7 +25,7 @@ exports.execute = function(options) {
   // etc..).
   require('./webapp-optimize').execute(options);
 
-  if (!options.DEBUG) {
+  if (options.DEBUG === '0') {
     // Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
     require('./webapp-zip').execute(options);
   }

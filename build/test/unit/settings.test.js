@@ -237,9 +237,9 @@ suite('settings.js', function() {
         GAIA_DIR: 'testGaia',
         SETTINGS_PATH: 'testSettingsPath',
         GAIA_SCHEME: 'testScheme',
-        GAIA_PORT: 9999,
+        GAIA_PORT: '9999',
         GAIA_DEFAULT_LOCALE: 'testLocale',
-        REMOTE_DEBUGGER: true,
+        REMOTE_DEBUGGER: '1',
         GAIA_DOMAIN: 'testDomain'
       };
       mockUtils.getFileAsDataURI = function() {
@@ -386,8 +386,8 @@ suite('settings.js', function() {
       });
     });
 
-    test('DEVICE_DEBUG === true', function(done) {
-      config.DEVICE_DEBUG = true;
+    test('DEVICE_DEBUG === 1', function(done) {
+      config.DEVICE_DEBUG = '1';
       config.NO_LOCK_SCREEN = '1';
       config.TARGET_BUILD_VARIANT = 'user';
       var queue = app.execute(config);
@@ -423,8 +423,8 @@ suite('settings.js', function() {
     });
 
     test('SCREEN_TIMEOUT === 600', function(done) {
-      config.DEVICE_DEBUG = true;
-      config.SCREEN_TIMEOUT = 600;
+      config.DEVICE_DEBUG = '1';
+      config.SCREEN_TIMEOUT = '600';
       config.TARGET_BUILD_VARIANT = 'user';
       var queue = app.execute(config);
       queue.done(function(result) {
