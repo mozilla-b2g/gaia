@@ -1,4 +1,4 @@
-/* global SIMSlotManager, Service, BaseModule */
+/* global SIMSlotManager, Service, BaseModule, applications */
 'use strict';
 
 (function(exports) {
@@ -160,6 +160,15 @@
     },
 
     showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
+      if (!applications.ready) {
+        // Bug 1102965 - We are not handling properly the startup events for
+        // the SIM dialog. We probably will need to retry these discarded
+        // calls after the device is ready, but with the current code, retrying
+        // after appplicationready is not enough.
+        this.warn('Device not ready yet.');
+        return false;
+      }
+
       if (!SIMSlotManager.ready) {
         this.warn('SIMSlot not ready yet.');
         return false;

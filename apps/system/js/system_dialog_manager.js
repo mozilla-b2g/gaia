@@ -58,10 +58,12 @@
       listens: ['system-dialog-created',
                 'system-dialog-show',
                 'system-dialog-hide',
+                'simlockcreated',
                 'simlockshow',
                 'simlockhide',
                 'system-resize',
                 'system-dialog-requestfocus',
+                'simlockrequestfocus',
                 'home',
                 'holdhome',
                 'mozChromeEvent']
@@ -108,11 +110,13 @@
     var dialog = null;
     switch (evt.type) {
       case 'system-dialog-requestfocus':
+      case 'simlockrequestfocus':
         if (evt.detail !== this.states.activeDialog) {
           return;
         }
         Service.request('focus', this);
         break;
+      case 'simlockcreated':
       case 'system-dialog-created':
         dialog = evt.detail;
         this.registerDialog(dialog);

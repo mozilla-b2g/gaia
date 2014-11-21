@@ -1,4 +1,4 @@
-/* global SystemDialog, SIMSlotManager */
+/* global SystemDialog, SIMSlotManager, applications */
 'use strict';
 
 (function(exports) {
@@ -15,7 +15,7 @@
      * render the dialog
      */
     this.render();
-    this.publish('created');
+    this._dispatchEvent('created');
   };
 
   SimLockSystemDialog.prototype = Object.create(SystemDialog.prototype,
@@ -428,7 +428,7 @@
   };
 
   SimLockSystemDialog.prototype.requestClose = function() {
-    this.publish('requestclose');
+    this._dispatchEvent('requestclose');
   };
 
   SimLockSystemDialog.prototype.hide = function() {
@@ -437,17 +437,17 @@
   };
 
   SimLockSystemDialog.prototype.close = function() {
-    this.publish('close');
+    this._dispatchEvent('close');
     this.hide();
     this._visible = false;
   };
 
   SimLockSystemDialog.prototype.skip = function() {
-    this.publish('skip');
+    this._dispatchEvent('skip');
   };
 
   SimLockSystemDialog.prototype.back = function() {
-    this.publish('back');
+    this._dispatchEvent('back');
   };
 
   // With the keyboard active the inputs, ensure they get scrolled
@@ -465,7 +465,19 @@
     };
 
   SimLockSystemDialog.prototype.requestFocus = function() {
-    this.publish('requestfocus');
+    this._dispatchEvent('requestfocus');
+  };
+
+  SimLockSystemDialog.prototype._dispatchEvent = function _dispatchEvent(name) {
+    var self = this;
+    if (applications.ready) {
+      this.publish(name);
+    } else {
+      window.addEventListener('applicationready', function onReady() {
+        window.removeEventListener('applicationready', onReady);
+        self.publish(name);
+      });
+    }
   };
 
   exports.SimLockSystemDialog = SimLockSystemDialog;
