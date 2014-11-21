@@ -342,6 +342,7 @@
      * @param {Boolean} reboot Whether or not to reboot the phone.
      */
     startPowerOff: function sm_startPowerOff(reboot) {
+      this.publish('will-shutdown');
       var power = navigator.mozPower;
       var self = this;
       if (!power) {

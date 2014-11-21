@@ -109,101 +109,107 @@ suite('system/SleepMenu', function() {
     assert.ok(!subject.visible);
   });
 
-  test('restart requested', function() {
-    subject.start();
-    subject.show();
+  suite('After showing the menu', function() {
     var myLogoLoader = {};
-    this.sinon.stub(window, 'LogoLoader')
-      .returns(myLogoLoader);
 
-    var stub = this.sinon.stub(navigator.mozPower, 'reboot');
-    subject.handleEvent({
-      type: 'click',
-      target: {
-        dataset: {
-          value: 'restart'
-        }
-      }
+    setup(function() {
+      subject.start();
+      subject.show();
+      myLogoLoader = {};
+      this.sinon.stub(window, 'LogoLoader')
+        .returns(myLogoLoader);
     });
 
-    var element = document.createElement('div');
-    var transitionStub = this.sinon.stub(element, 'addEventListener');
-    myLogoLoader.onload(element);
-    transitionStub.getCall(0).args[1]();
-    assert.ok(stub.calledOnce);
-  });
-
-  test('hide on attention window is opened', function() {
-    subject.start();
-    subject.show();
-    window.dispatchEvent(new CustomEvent('attentionopened'));
-    assert.isFalse(subject.visible);
-  });
-
-  test('hide on home button pressed', function() {
-    subject.start();
-    subject.show();
-    window.dispatchEvent(new CustomEvent('home'));
-    assert.isFalse(subject.visible);
-  });
-
-  test('Turn on airplane mode request', function() {
-    subject.start();
-    subject.show();
-    subject.isFlightModeEnabled = false;
-    this.sinon.stub(subject, 'publish');
-
-    subject.handleEvent({
-      type: 'click',
-      target: {
-        dataset: {
-          value: 'airplane'
+    test('restart requested', function() {
+      var stub = this.sinon.stub(navigator.mozPower, 'reboot');
+      subject.handleEvent({
+        type: 'click',
+        target: {
+          dataset: {
+            value: 'restart'
+          }
         }
-      }
+      });
+
+      var element = document.createElement('div');
+      var transitionStub = this.sinon.stub(element, 'addEventListener');
+      myLogoLoader.onload(element);
+      transitionStub.getCall(0).args[1]();
+      assert.ok(stub.calledOnce);
     });
 
-    assert.isTrue(subject.publish.calledWith('request-airplane-mode-enable'));
-  });
-
-  test('Turn off airplane mode request', function() {
-    subject.start();
-    subject.show();
-    subject.isFlightModeEnabled = true;
-    this.sinon.stub(subject, 'publish');
-
-    subject.handleEvent({
-      type: 'click',
-      target: {
-        dataset: {
-          value: 'airplane'
-        }
-      }
+    test('hide on attention window is opened', function() {
+      window.dispatchEvent(new CustomEvent('attentionopened'));
+      assert.isFalse(subject.visible);
     });
 
-    assert.isTrue(subject.publish.calledWith('request-airplane-mode-disable'));
-  });
-
-  test('poweroff requested', function() {
-    subject.start();
-    subject.show();
-    var myLogoLoader = {};
-    this.sinon.stub(window, 'LogoLoader')
-      .returns(myLogoLoader);
-
-    var stub = this.sinon.stub(navigator.mozPower, 'powerOff');
-    subject.handleEvent({
-      type: 'click',
-      target: {
-        dataset: {
-          value: 'power'
-        }
-      }
+    test('hide on home button pressed', function() {
+      window.dispatchEvent(new CustomEvent('home'));
+      assert.isFalse(subject.visible);
     });
 
-    var element = document.createElement('div');
-    var transitionStub = this.sinon.stub(element, 'addEventListener');
-    myLogoLoader.onload(element);
-    transitionStub.getCall(0).args[1]();
-    assert.ok(stub.calledOnce);
+    test('triggers will-shutdown event on shutdown', function() {
+      this.sinon.stub(subject, 'publish');
+      subject.handleEvent({
+        type: 'click',
+        target: {
+          dataset: {
+            value: 'restart'
+          }
+        }
+      });
+      assert.isTrue(subject.publish.calledWith('will-shutdown'));
+    });
+
+    test('Turn on airplane mode request', function() {
+      subject.isFlightModeEnabled = false;
+      this.sinon.stub(subject, 'publish');
+
+      subject.handleEvent({
+        type: 'click',
+        target: {
+          dataset: {
+            value: 'airplane'
+          }
+        }
+      });
+
+      assert.isTrue(subject.publish.calledWith('request-airplane-mode-enable'));
+    });
+
+    test('Turn off airplane mode request', function() {
+      subject.isFlightModeEnabled = true;
+      this.sinon.stub(subject, 'publish');
+
+      subject.handleEvent({
+        type: 'click',
+        target: {
+          dataset: {
+            value: 'airplane'
+          }
+        }
+      });
+      var airplaneDisableEvent = 'request-airplane-mode-disable';
+      assert.isTrue(subject.publish.calledWith(airplaneDisableEvent));
+    });
+
+    test('poweroff requested', function() {
+      var stub = this.sinon.stub(navigator.mozPower, 'powerOff');
+      subject.handleEvent({
+        type: 'click',
+        target: {
+          dataset: {
+            value: 'power'
+          }
+        }
+      });
+
+      var element = document.createElement('div');
+      var transitionStub = this.sinon.stub(element, 'addEventListener');
+      myLogoLoader.onload(element);
+      transitionStub.getCall(0).args[1]();
+      assert.ok(stub.calledOnce);
+    });
+
   });
 });
