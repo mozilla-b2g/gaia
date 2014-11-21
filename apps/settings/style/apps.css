@@ -18,14 +18,9 @@
 }
 
 .uninstall-app {
-  display: block;
-  margin: auto;
-  position: relative;
-  top: 1.5rem;
-  font-size: 1.6rem;
-  line-height: 1em;
-  width: calc(100% - 3rem);
-  height: calc(6rem - 2rem);
+  margin: 1rem 1.5rem 0;
+  padding: 1.5rem 0 0.5rem;
+  border-top: 0.1rem solid #E6E6E3;
 }
 
 #appPermissions .cb-alert {
