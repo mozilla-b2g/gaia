@@ -2,9 +2,10 @@
 
 var assert = require('assert');
 var System = require('./lib/system');
-var FakeDialerApp = require('./lib/fakedialerapp.js');
+var LockScreen = require('./lib/lockscreen');
+var FakeDialerApp = require('./lib/fakedialerapp');
 
-marionette('Software Home Button - Lockscreen Appearance', function() {
+marionette('Software Home Button - Attention window', function() {
   var apps = {};
   apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/fakedialerapp';
 
@@ -21,23 +22,24 @@ marionette('Software Home Button - Lockscreen Appearance', function() {
     apps: apps
   });
   var system;
+  var lockScreen;
   var fakedialer;
 
   setup(function() {
     system = new System(client);
-    system.waitForStartup();
-
     fakedialer = new FakeDialerApp(client);
+    lockScreen = (new LockScreen()).start(client);
+    system.waitForStartup();
   });
 
-  test('Call screen should be full height', function() {
-    fakedialer.launch();
-    fakedialer.waitForTitleShown(true);
-    client.switchToFrame();
-
+  function checkHeight() {
     function rect(el) {
       return el.getBoundingClientRect();
     }
+
+    fakedialer.launch();
+    fakedialer.waitForTitleShown(true);
+    client.switchToFrame();
 
     var winHeight = client.findElement('body').size().height;
     client.waitFor(function() {
@@ -45,16 +47,18 @@ marionette('Software Home Button - Lockscreen Appearance', function() {
         client.helper.waitForElement('.attentionWindow.active');
       var attentionWindowRect = attentionWindow.scriptWith(rect);
 
-      return winHeight === attentionWindowRect.height;
+      return winHeight >= attentionWindowRect.height;
     });
+
+    assert.ok(system.softwareHome.displayed());
+  }
+
+  test('should show the SHB on locked screen', function() {
+    checkHeight();
   });
 
-  test('Does not appear on lockscreen with an incoming call', function() {
-    var buttons = [
-      'softwareHome', 'softwareHomeFullscreen', 'softwareHomeFullscreenLayout'
-    ];
-    buttons.forEach(function(buttonName) {
-      assert.ok(!system[buttonName].displayed());
-    });
+  test('should show the SHB on unlocked screen', function() {
+    lockScreen.unlock();
+    checkHeight();
   });
 });

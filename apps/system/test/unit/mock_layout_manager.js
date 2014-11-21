@@ -9,6 +9,9 @@
     match: function() {
       return true;
     },
+    getHeightFor: function() {
+      return this.height;
+    },
     start: function() {
       return this;
     },

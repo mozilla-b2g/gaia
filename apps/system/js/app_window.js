@@ -813,7 +813,7 @@
 
     // Resize only the overlays not the app
     var width = layoutManager.width;
-    var height = layoutManager.height;
+    var height = layoutManager.getHeightFor(this);
 
     this.iframe.style.width = this.width + 'px';
     this.iframe.style.height = this.height + 'px';
@@ -1395,7 +1395,7 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = layoutManager.height;
+    height = layoutManager.getHeightFor(this);
 
     // If we have sidebar in the future, change layoutManager then.
     width = layoutManager.width;
