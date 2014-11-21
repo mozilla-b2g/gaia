@@ -392,7 +392,9 @@ MessageReaderCard.prototype = {
       var op = this.header.moveMessage(folder);
       Cards.removeCardAndSuccessors(this.domNode, 'animate');
       Toaster.toastOperation(op);
-    }.bind(this));
+    }.bind(this), function(folder) {
+      return folder.isValidMoveTarget;
+    });
   },
 
   /**
