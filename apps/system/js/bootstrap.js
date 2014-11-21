@@ -81,6 +81,8 @@ window.addEventListener('load', function startup() {
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
+
+    window.dispatchEvent(new CustomEvent('bootstrap-events-registered'));
   }
 
   function safelyLaunchFTU() {
