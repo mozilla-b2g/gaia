@@ -127,7 +127,7 @@
               break;
             case 'static-bookmark':
               window.open('http://www.mozilla.org', '_blank',
-                          'remote=true,useAsyncPanZoom=true');
+                          'remote=true');
               break;
           }
           break;

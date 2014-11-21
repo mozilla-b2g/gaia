@@ -251,7 +251,6 @@
     if (isPrivate) {
       var privateBrowserUrl = location.origin + '/private_browser.html';
       var config = new BrowserConfigHelper({url: privateBrowserUrl});
-      config.useAsyncPanZoom = true;
       config.oop = true;
       config.isPrivate = true;
       var newApp = new AppWindow(config);

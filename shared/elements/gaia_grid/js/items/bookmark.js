@@ -92,8 +92,7 @@
       var features = {
         name: this.name,
         icon: this.icon,
-        remote: true,
-        useAsyncPanZoom: true
+        remote: true
       };
 
       var url = this.detail.url;

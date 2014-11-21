@@ -66,12 +66,6 @@
       browser.setAttribute('parentapp', config.parentApp);
     }
 
-    if (config.useAsyncPanZoom) {
-      // XXX: Move this dataset assignment into app window object.
-      browser.dataset.useAsyncPanZoom = true;
-      browser.setAttribute('mozasyncpanzoom', 'true');
-    }
-
     if (config.isInputMethod) {
       browser.setAttribute('mozpasspointerevents', 'true');
       browser.setAttribute('ignoreuserfocus', 'true');

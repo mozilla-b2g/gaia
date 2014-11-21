@@ -640,7 +640,6 @@
             url: url,
             name: name,
             icon: icon,
-            useAsyncPanZoom: dataset.useAsyncPanZoom,
             iconable: false
           }
         });

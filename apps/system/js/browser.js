@@ -6,7 +6,6 @@
 
   function handleOpenUrl(url, isPrivate) {
     var config = new BrowserConfigHelper({url: url});
-    config.useAsyncPanZoom = true;
     config.oop = true;
     config.isPrivate = isPrivate;
     var newApp = new AppWindow(config);
