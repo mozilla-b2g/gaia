@@ -215,6 +215,34 @@ suite('KeyboardHelper', function() {
     });
   });
 
+  suite('getApps', function() {
+    test('inputAppList is not ready', function(done) {
+      KeyboardHelper.inputAppList.ready = false;
+      KeyboardHelper.inputAppList.getList.returns(Promise.resolve([
+        standardKeyboards
+      ]));
+
+      var callback = this.sinon.spy(function callback(inputApps) {
+        assert.deepEqual(inputApps, [standardKeyboards]);
+
+        done();
+      });
+      KeyboardHelper.getApps(callback);
+      assert.isFalse(callback.calledOnce);
+    });
+
+    test('inputAppList is ready', function() {
+      KeyboardHelper.inputAppList.ready = true;
+      KeyboardHelper.inputAppList.getListSync.returns([standardKeyboards]);
+
+      var callback = this.sinon.spy(function callback(inputApps) {
+        assert.deepEqual(inputApps, [standardKeyboards]);
+      });
+      KeyboardHelper.getApps(callback);
+      assert.isTrue(callback.calledOnce);
+    });
+  });
+
   suite('getLayouts', function() {
     setup(function() {
       MockNavigatorSettings.mRequests[0].result[DEFAULT_KEY] =
