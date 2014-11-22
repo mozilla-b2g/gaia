@@ -115,6 +115,9 @@
     "lij": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
+     "lv": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "mk": [
         {"layoutId": "mk", "app": ["apps", "keyboard"]}
     ],
