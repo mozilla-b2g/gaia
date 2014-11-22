@@ -309,8 +309,11 @@
 
 .capture-button .inner-circle {
   background-color: white;
-  transform: scale(0.76);
-  transition: transform 150ms ease-in;
+  width: 76%;
+  height: 76%;
+  top: 12%;
+  left: 12%;
+  transition: all 150ms ease-in;
 }
 
 /**
@@ -324,7 +327,10 @@
 .capture-active .capture-button .inner-circle {
   background-color: #00caf2;
   color: white;
-  transform: scale(1.0);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /**
