@@ -1,6 +1,5 @@
 'use strict';
 
-var Search = require('./lib/search');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 
 marionette('Search - App search', function() {
@@ -10,7 +9,7 @@ marionette('Search - App search', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system.waitForStartup();
     search.removeGeolocationPermission();

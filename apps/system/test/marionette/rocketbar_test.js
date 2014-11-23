@@ -2,7 +2,6 @@
 /* global __dirname */
 
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
-var Search = require('../../../search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
 
 marionette('Rocketbar', function() {
@@ -22,7 +21,7 @@ marionette('Rocketbar', function() {
 
   setup(function() {
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
     search.removeGeolocationPermission();
