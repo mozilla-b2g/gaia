@@ -1,7 +1,5 @@
 'use strict';
 
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
 
@@ -35,7 +33,7 @@ marionette('App Authentication Dialog',
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 

@@ -1,6 +1,5 @@
 'use strict';
 
-var Search = require('./lib/search');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 var Server = require('../../../../shared/test/integration/server');
 var assert = require('assert');
@@ -23,7 +22,7 @@ marionette('Places tests', function() {
 
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
     system.waitForStartup();
@@ -82,7 +81,7 @@ marionette('Places tests', function() {
     rocketbar.focus();
     rocketbar.enterText('non_matching_string');
     search.goToResults();
-    assert.equal(client.findElements(Search.Selectors.firstPlace).length, 0);
+    assert.equal(client.findElements(search.Selectors.firstPlace).length, 0);
   });
 
   test.skip('Ensures urls visited twice only show in results once', function() {
@@ -101,12 +100,12 @@ marionette('Places tests', function() {
 
     // Wait to get the correct amount of results
     client.waitFor(function() {
-      return client.findElements(Search.Selectors.firstPlace).length === 1;
+      return client.findElements(search.Selectors.firstPlace).length === 1;
     }.bind(this));
 
     // Wait for a second and check we dont get extra results
     client.helper.wait(1000);
-    assert.equal(client.findElements(Search.Selectors.firstPlace).length, 1);
+    assert.equal(client.findElements(search.Selectors.firstPlace).length, 1);
   });
 
   test.skip('Ensure favicon is loaded', function() {

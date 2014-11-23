@@ -6,7 +6,6 @@ var assert = require('assert');
 
 var Rocketbar = require(
   '../../../../apps/system/test/marionette/lib/rocketbar.js');
-var Search = require('../../../../apps/search/test/marionette/lib/search.js');
 var Server = require('../../../../shared/test/integration/server');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
@@ -35,7 +34,7 @@ marionette('Vertical - Search', function() {
 
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
     system.waitForStartup();
@@ -51,7 +50,7 @@ marionette('Vertical - Search', function() {
     home.waitForLaunch();
     home.focusRocketBar();
 
-    var confirmSelector = Search.Selectors.firstRunConfirm;
+    var confirmSelector = search.Selectors.firstRunConfirm;
     // Notice should not be displayed if we type < 3 characters
     rocketbar.enterText('ab');
     rocketbar.enterText('cd');

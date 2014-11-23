@@ -1,8 +1,6 @@
 'use strict';
 
 var Rocketbar = require('./lib/rocketbar');
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
 var Actions = require('marionette-client').Actions;
 var assert = require('chai').assert;
@@ -25,7 +23,7 @@ marionette('Software Home Button - File Open Error', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     actions = new Actions(client);
     system.waitForStartup();

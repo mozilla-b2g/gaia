@@ -2,12 +2,11 @@
 /* global module */
 
 var Rocketbar = require('./rocketbar');
-var Search = require('../../../../../apps/search/test/marionette/lib/search');
 
 function Bookmark(client) {
   this.client = client;
   this.rocketbar = new Rocketbar(client);
-  this.search = new Search(client);
+  this.search = client.loader.getAppClass('search');
   this.system = client.loader.getAppClass('system');
 }
 

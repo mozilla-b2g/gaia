@@ -7,8 +7,6 @@ var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
 var launchIcon = require(
   '../../../../apps/verticalhome/test/marionette/lib/launch_icon');
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
 var Rocketbar = require(
   '../../../../apps/system/test/marionette/lib/rocketbar');
 
@@ -41,7 +39,7 @@ marionette('Bookmark Web Result', function() {
     bookmark = new Bookmark(client);
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 

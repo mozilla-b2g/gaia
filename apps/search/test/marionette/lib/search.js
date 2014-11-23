@@ -31,6 +31,9 @@ Search.Selectors = {
 
 Search.prototype = {
 
+  URL: Search.URL,
+  Selectors: Search.Selectors,
+
   /**
    * Navigates to the search results frame.
    */

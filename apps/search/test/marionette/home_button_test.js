@@ -1,7 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Search = require('./lib/search');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 
 marionette('Search - Home Button Press', function() {
@@ -11,7 +10,7 @@ marionette('Search - Home Button Press', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system.waitForStartup();
     search.removeGeolocationPermission();
@@ -30,10 +29,10 @@ marionette('Search - Home Button Press', function() {
 
     // Emulate the home button and ensure the home screen is displayed.
     client.switchToFrame();
-    assert.ok(client.findElement(Search.Selectors.iframe).displayed());
+    assert.ok(client.findElement(search.Selectors.iframe).displayed());
     system.tapHome();
     client.waitFor(function(){
-      return !client.findElement(Search.Selectors.iframe).displayed();
+      return !client.findElement(search.Selectors.iframe).displayed();
     });
   });
 });

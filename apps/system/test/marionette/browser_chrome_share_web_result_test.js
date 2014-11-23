@@ -8,8 +8,6 @@ var EmailServer = require(
   '../../../../apps/email/test/marionette/lib/server_helper');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
 var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser Chrome - Share Web Result', function() {
@@ -46,7 +44,7 @@ marionette('Browser Chrome - Share Web Result', function() {
     email = new Email(client);
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 

@@ -1,6 +1,5 @@
 'use strict';
 
-var Search = require('./lib/search');
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 
@@ -20,7 +19,7 @@ marionette('Browser test', function() {
 
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
     system.waitForStartup();
@@ -44,8 +43,8 @@ marionette('Browser test', function() {
     client.switchToFrame();
     home.pressHomeButton();
 
-    client.apps.launch(Search.URL);
-    client.apps.switchToApp(Search.URL);
+    client.apps.launch(search.URL);
+    client.apps.switchToApp(search.URL);
 
     client.waitFor(function() {
       return search.getHistoryResults().length == 1;
@@ -73,8 +72,8 @@ marionette('Browser test', function() {
     client.switchToFrame();
     home.pressHomeButton();
 
-    client.apps.launch(Search.URL);
-    client.apps.switchToApp(Search.URL);
+    client.apps.launch(search.URL);
+    client.apps.switchToApp(search.URL);
 
     client.waitFor(function() {
       return search.getHistoryResults().length == 1;
@@ -103,8 +102,8 @@ marionette('Browser test', function() {
     client.switchToFrame();
     home.pressHomeButton();
 
-    client.apps.launch(Search.URL);
-    client.apps.switchToApp(Search.URL);
+    client.apps.launch(search.URL);
+    client.apps.switchToApp(search.URL);
 
     client.waitFor(function() {
       return search.getTopSites().length == 1;

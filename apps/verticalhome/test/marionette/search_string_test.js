@@ -4,7 +4,6 @@
 
 var Rocketbar = require(
   '../../../../apps/system/test/marionette/lib/rocketbar.js');
-var Search = require('../../../../apps/search/test/marionette/lib/search.js');
 var Server = require('../../../../shared/test/integration/server');
 
 marionette('Vertical - Search Terms: URI scheme', function() {
@@ -25,7 +24,7 @@ marionette('Vertical - Search Terms: URI scheme', function() {
 
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
     system.waitForStartup();
