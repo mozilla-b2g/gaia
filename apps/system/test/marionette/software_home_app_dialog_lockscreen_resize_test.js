@@ -1,6 +1,4 @@
 'use strict';
-
-var System = require('./lib/system');
 var LockScreen = require('./lib/lockscreen.js');
 
 var ALERT_APP_URL = 'app://fakeapp.gaiamobile.org';
@@ -24,7 +22,7 @@ marionette('Software Home Button - Dialog Lockscreen Resize', function() {
   var system, lockscreen;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     lockscreen = (new LockScreen()).start(client);

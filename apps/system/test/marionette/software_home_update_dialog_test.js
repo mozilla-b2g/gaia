@@ -2,7 +2,6 @@
 
 var Home = require(
   '../../../verticalhome/test/marionette/lib/home2');
-var System = require('./lib/system');
 
 marionette('Software Home Button - Update Dialog', function() {
 
@@ -21,7 +20,7 @@ marionette('Software Home Button - Update Dialog', function() {
 
   setup(function() {
     home = new Home(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     home.waitForLaunch();
     client.switchToFrame();

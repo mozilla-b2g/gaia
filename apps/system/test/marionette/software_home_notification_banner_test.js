@@ -5,7 +5,6 @@ var Home = require(
   '../../../verticalhome/test/marionette/lib/home2');
 var createAppServer = require(
   '../../../verticalhome/test/marionette/server/parent');
-var System = require('./lib/system');
 
 marionette('Software Home Button - Notification Banner Test', function() {
 
@@ -38,7 +37,7 @@ marionette('Software Home Button - Notification Banner Test', function() {
   setup(function() {
     appInstall = new AppInstall(client);
     home = new Home(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     home.waitForLaunch();
     client.switchToFrame();

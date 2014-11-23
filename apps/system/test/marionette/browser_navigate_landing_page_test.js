@@ -6,7 +6,6 @@ var Home = require(
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
-var System = require('./lib/system');
 var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser - Navigating from the landing page',
@@ -39,7 +38,7 @@ marionette('Browser - Navigating from the landing page',
     home = new Home(client);
     rocketbar = new Rocketbar(client);
     search = new Search(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     search.removeGeolocationPermission();
@@ -69,7 +68,7 @@ marionette('Browser - Navigating from the landing page',
       'expected number of browsers');
 
     // Verify visual components are reset
-    var sel = System.Selector;
+    var sel = system.Selector;
     client.waitFor(function() {
       return !client.findElement(sel.appChromeWindowsButton).displayed();
     });

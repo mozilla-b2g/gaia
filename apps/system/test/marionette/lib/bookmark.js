@@ -3,13 +3,12 @@
 
 var Rocketbar = require('./rocketbar');
 var Search = require('../../../../../apps/search/test/marionette/lib/search');
-var System = require('./system');
 
 function Bookmark(client) {
   this.client = client;
   this.rocketbar = new Rocketbar(client);
   this.search = new Search(client);
-  this.system = new System(client);
+  this.system = client.loader.getAppClass('system');
 }
 
 Bookmark.prototype = {

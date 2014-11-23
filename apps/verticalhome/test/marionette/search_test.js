@@ -8,7 +8,6 @@ var Home2 = require('./lib/home2');
 var Rocketbar = require(
   '../../../../apps/system/test/marionette/lib/rocketbar.js');
 var Search = require('../../../../apps/search/test/marionette/lib/search.js');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 var Server = require('../../../../shared/test/integration/server');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
@@ -28,7 +27,6 @@ marionette('Vertical - Search', function() {
         done(err);
       });
     });
-    system = new System(client);
   });
 
   suiteTeardown(function(done) {
@@ -40,7 +38,7 @@ marionette('Vertical - Search', function() {
     home = new Home2(client);
     search = new Search(client);
     rocketbar = new Rocketbar(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     search.removeGeolocationPermission();
     EmeServer.setServerURL(client, emeServer);

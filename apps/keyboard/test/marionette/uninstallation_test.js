@@ -9,7 +9,6 @@
 var KeyboardTestApp = require('./lib/keyboard_test_app');
 var ImeTestApp = require('./lib/ime_test_app');
 var Keyboard = require('./lib/keyboard');
-var System = require('./lib/system');
 var assert = require('assert');
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
@@ -70,7 +69,7 @@ marionette('Show Keyboard App after uninstallation', function() {
 
   setup(function() {
     keyboard =  new Keyboard(client);
-    system =  new System(client);
+    system = client.loader.getAppClass('keyboard', 'system');
     imeTestApp = new ImeTestApp(client);
 
     // create a keyboard test app

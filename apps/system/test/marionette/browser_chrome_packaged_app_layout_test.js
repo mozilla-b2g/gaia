@@ -1,8 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var System = require('./lib/system');
-
 marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
   var client = marionette.client({
@@ -21,7 +19,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
   var system;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
   });
 

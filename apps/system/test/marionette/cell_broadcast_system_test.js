@@ -1,7 +1,6 @@
 'use strict';
 
 var assert = require('chai').assert;
-var System = require('./lib/system');
 var CellBroadcastSystem = require('./lib/cell_broadcast_system');
 
 marionette('mozApps', function() {
@@ -13,9 +12,12 @@ marionette('mozApps', function() {
     }
   });
 
-  var system = new System(client);
   var cellBroadcastSystem = new CellBroadcastSystem(client);
-  var event;
+  var event, system;
+
+  setup(function() {
+    system = client.loader.getAppClass('system');
+  });
 
   suite('CellBroadcastSystem', function() {
     setup(function() {

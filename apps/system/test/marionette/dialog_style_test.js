@@ -1,6 +1,5 @@
 'use strict';
 
-var System = require('../../../system/test/marionette/lib/system');
 var Dialog = require('../../../system/test/marionette/lib/dialog');
 var assert = require('assert');
 
@@ -14,7 +13,7 @@ marionette('Dialogs', function() {
   var dialog, system;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     dialog = new Dialog(client);
     system.waitForStartup();
     client.switchToFrame(system.getHomescreenIframe());

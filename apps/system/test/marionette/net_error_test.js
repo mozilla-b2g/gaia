@@ -1,5 +1,4 @@
 var assert = require('assert');
-var System = require('./lib/system');
 var APP_FAKE = 'http://fake.fake.fake';
 
 marionette('net_error.html:', function() {
@@ -12,7 +11,7 @@ marionette('net_error.html:', function() {
   var system;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
   });
 

@@ -1,6 +1,4 @@
 'use strict';
-
-var System = require('./lib/system');
 var Server = require('../../../../shared/test/integration/server');
 var AppInstall = require('./lib/app_install');
 var assert = require('assert');
@@ -22,8 +20,6 @@ marionette('IME installation', function() {
       server = _server;
       done();
     });
-
-    system = new System(client);
   });
 
   suiteTeardown(function() {
@@ -32,6 +28,7 @@ marionette('IME installation', function() {
 
   setup(function() {
     appInstall = new AppInstall(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
   });
 

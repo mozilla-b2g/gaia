@@ -5,7 +5,6 @@ var ReflowHelper =
 
 var assert = require('assert');
 var Actions = require('marionette-client').Actions;
-var System = require('./lib/system.js');
 
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
@@ -33,7 +32,7 @@ marionette('Edges gesture >', function() {
   setup(function() {
     actions = new Actions(client);
 
-    sys = new System(client);
+    sys = client.loader.getAppClass('system');
     sys.waitForStartup();
 
     settings = sys.waitForLaunch(SETTINGS_APP);
@@ -79,7 +78,7 @@ marionette('Edges gesture >', function() {
     assert(calendar.displayed(), 'calendar is visible');
     assert(!settings.displayed(), 'settings is invisible');
 
-    reflowHelper.startTracking(System.URL);
+    reflowHelper.startTracking(sys.URL);
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, settings);
     assert(true, 'swiped to settings');
 

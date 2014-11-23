@@ -6,7 +6,6 @@ var Home = require(
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
-var System = require('./lib/system');
 var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser - Site loading background', function() {
@@ -38,7 +37,7 @@ marionette('Browser - Site loading background', function() {
     home = new Home(client);
     rocketbar = new Rocketbar(client);
     search = new Search(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     // Need to wait for the homescreen to be ready as this test takes a

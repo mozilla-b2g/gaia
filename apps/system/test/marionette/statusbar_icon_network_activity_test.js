@@ -1,6 +1,5 @@
 'use strict';
 
-var System = require('./lib/system');
 var StatusBar = require('./lib/statusbar');
 
 marionette('Status Bar icons - Network Activity', function() {
@@ -19,7 +18,7 @@ marionette('Status Bar icons - Network Activity', function() {
   var statusBar;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     statusBar = new StatusBar(client);
     system.waitForStartup();
     statusBar.networkActivity.hide();
