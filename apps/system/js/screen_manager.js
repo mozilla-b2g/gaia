@@ -65,6 +65,18 @@ var ScreenManager = {
   AUTO_BRIGHTNESS_CONSTANT: 0.27,
 
   /*
+   * We won't set a new brightness value if the difference between the old and
+   * new ambient light sensor values is lower than this constant.
+   */
+  AUTO_BRIGHTNESS_MIN_DELTA: 10,
+
+  /*
+   * This variable contains the latest ambient light sensor value that was used
+   * to set a brightness.
+   */
+  _previousLux: null,
+
+  /*
    * This property will host a ScreenBrightnessTransition instance
    * and control the brightness transition for us.
    * Eventually we want to move all brightness controls
@@ -185,22 +197,23 @@ var ScreenManager = {
   // light (in lux) measured by the device light sensor
   //
   autoAdjustBrightness: function scm_adjustBrightness(lux) {
-    var currentBrightness = this._targetBrightness;
-
     if (lux < 1) { // Can't take the log of 0 or negative numbers
       lux = 1;
     }
 
+    if (this._previousLux) {
+      var brightnessDelta = Math.abs(this._previousLux - lux);
+      if (brightnessDelta <= this.AUTO_BRIGHTNESS_MIN_DELTA) {
+        return;
+      }
+    }
+    this._previousLux = lux;
+
     var computedBrightness =
-      Math.log(lux) / Math.LN10 * this.AUTO_BRIGHTNESS_CONSTANT;
+      Math.log10(lux) * this.AUTO_BRIGHTNESS_CONSTANT;
 
     var clampedBrightness = Math.max(this.AUTO_BRIGHTNESS_MINIMUM,
                                      Math.min(1.0, computedBrightness));
-
-    // If nothing changed, we're done.
-    if (clampedBrightness === currentBrightness) {
-      return;
-    }
 
     this.setScreenBrightness(clampedBrightness, false);
   },
