@@ -1,8 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Home = require(
-  '../../../verticalhome/test/marionette/lib/home2');
 var Actions = require('marionette-client').Actions;
 var appUrl = 'app://fullscreen_layout.gaiamobile.org';
 
@@ -30,7 +28,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
   var home, system, actions, screenSize, shbSize;
 
   setup(function() {
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     actions = new Actions(client);
     system.waitForStartup();

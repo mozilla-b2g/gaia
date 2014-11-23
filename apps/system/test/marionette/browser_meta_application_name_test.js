@@ -1,8 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Home = require(
-  '../../../../apps/verticalhome/test/marionette/lib/home2');
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
@@ -34,7 +32,7 @@ marionette('Browser - Site loading background', function() {
   });
 
   setup(function() {
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = new Search(client);
     system = client.loader.getAppClass('system');
@@ -43,7 +41,7 @@ marionette('Browser - Site loading background', function() {
     // Need to wait for the homescreen to be ready as this test takes a
     // screenshot. Without the homescreen, we may take a screenshot of the
     // system boot screen.
-    client.apps.launch(Home.URL);
+    client.apps.launch(home.URL);
     home.waitForLaunch();
     client.switchToFrame();
 

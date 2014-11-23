@@ -3,20 +3,18 @@
 var Actions = require('marionette-client').Actions;
 var assert = require('assert');
 
-var Home2 = require('./lib/home2');
-
 marionette('Vertical - Group', function() {
 
-  var client = marionette.client(Home2.clientOptionsWithGroups);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var actions, home, system;
 
   setup(function() {
     actions = new Actions(client);
-    home = new Home2(client);
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 
-    client.apps.launch(Home2.URL);
+    client.apps.launch(home.URL);
     home.waitForLaunch();
   });
 
@@ -26,13 +24,13 @@ marionette('Vertical - Group', function() {
     }
 
     // Store a reference to the first icon
-    var firstIcon = client.helper.waitForElement(Home2.Selectors.firstIcon);
-    var secondIcon = client.findElements(Home2.Selectors.firstIcon)[1];
+    var firstIcon = client.helper.waitForElement(home.Selectors.firstIcon);
+    var secondIcon = client.findElements(home.Selectors.firstIcon)[1];
     var collapse = client.findElement('.group .toggle');
 
     // Enter edit mode
     home.enterEditMode();
-    var header = client.helper.waitForElement(Home2.Selectors.editHeaderText);
+    var header = client.helper.waitForElement(home.Selectors.editHeaderText);
 
     // Drag icon to its own group
     actions.press(firstIcon).wait(1).move(header).release().wait(1).perform();

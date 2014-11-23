@@ -78,9 +78,7 @@ Rocketbar.prototype = {
    * the homescreen app. If we move it to the system app we can remove this.
    */
   homescreenFocus: function() {
-    var HomeLib = require(
-      '../../../../../apps/verticalhome/test/marionette/lib/home2');
-    var homeLib = new HomeLib(this.client);
+    var homeLib = this.client.loader.getAppClass('verticalhome');
     homeLib.waitForLaunch();
     homeLib.focusRocketBar();
   },

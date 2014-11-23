@@ -3,8 +3,6 @@
 var url = require('url');
 
 var AppInstall = require('./lib/app_install');
-var Home = require(
-  '../../../verticalhome/test/marionette/lib/home2');
 var Server = require('../../../../shared/test/integration/server');
 marionette('Software Home Button - App Install Dialog', function() {
 
@@ -39,7 +37,7 @@ marionette('Software Home Button - App Install Dialog', function() {
 
   setup(function() {
     appInstall = new AppInstall(client);
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
     home.waitForLaunch();

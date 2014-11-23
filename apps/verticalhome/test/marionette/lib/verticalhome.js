@@ -1,5 +1,4 @@
 'use strict';
-/* global module */
 
 var Actions = require('marionette-client').Actions;
 var getIconId = require('./icon_id');
@@ -8,11 +7,11 @@ var getIconId = require('./icon_id');
  * Abstraction around homescreen.
  * @constructor
  */
-function Home2(client) {
+function VerticalHome(client) {
   this.client = client;
   this.system = client.loader.getAppClass('system');
 
-  // For all home2 tests we disable geolocation for smart collections because
+  // For all home tests we disable geolocation for smart collections because
   // there is a nasty bug where we show a prompt on desktop but not a device.
   // This will go away once bug 1022768 lands.
   var chromeClient = this.client.scope({ context: 'chrome' });
@@ -25,39 +24,12 @@ function Home2(client) {
   });
 }
 
-Home2.clientOptions = {
-  prefs: {
-    'dom.inter-app-communication-api.enabled': true,
-    'dom.w3c_touch_events.enabled': 1
-  },
-  settings: {
-    'homescreen.manifestURL': Home2.URL,
-    'ftu.manifestURL': null,
-    'keyboard.ftu.enabled': false,
-    'lockscreen.enabled': false,
-    'devtools.qps.enabled': false,
-    'language.current': 'en-US'
-  }
-};
-
-Home2.clientOptionsWithGroups = {
-  prefs: Home2.clientOptions.prefs,
-  settings: {
-    'verticalhome.grouping.enabled': true
-  }
-};
-
-Object.keys(Home2.clientOptions.settings).forEach(function(prop) {
-  Home2.clientOptionsWithGroups.settings[prop] = 
-                                Home2.clientOptions.settings[prop];
-});
-
 /**
- * @type String Origin of Home2 app
+ * @type String Origin of VerticalHome app
  */
-Home2.URL = 'app://verticalhome.gaiamobile.org';
+VerticalHome.URL = 'app://verticalhome.gaiamobile.org';
 
-Home2.Selectors = {
+VerticalHome.Selectors = {
   editHeaderText: '#edit-header h1',
   editHeaderDone: '#exit-edit-mode',
   editGroup: '#edit-group',
@@ -79,10 +51,13 @@ Home2.Selectors = {
 /**
  * Launches our new homescreen and focuses on it.
  */
-Home2.prototype = {
+VerticalHome.prototype = {
+
+  URL: VerticalHome.URL,
+  Selectors: VerticalHome.Selectors,
 
   get numIcons() {
-    return this.client.findElements(Home2.Selectors.firstIcon).length;
+    return this.client.findElements(VerticalHome.Selectors.firstIcon).length;
   },
 
   get numDividers() {
@@ -90,19 +65,20 @@ Home2.prototype = {
   },
 
   get dividers() {
-    return this.client.findElements(Home2.Selectors.dividers);
+    return this.client.findElements(VerticalHome.Selectors.dividers);
   },
 
   get contextMenu() {
-    return this.client.findElement(Home2.Selectors.contextmenu);
+    return this.client.findElement(VerticalHome.Selectors.contextmenu);
   },
 
   get collections() {
-    return this.client.findElements(Home2.Selectors.collections);
+    return this.client.findElements(VerticalHome.Selectors.collections);
   },
 
   get removeCollectionConfirm() {
-    return this.client.findElement(Home2.Selectors.removeCollectionConfirm);
+    return this.client.findElement(
+      VerticalHome.Selectors.removeCollectionConfirm);
   },
 
   /**
@@ -153,10 +129,10 @@ Home2.prototype = {
   enterEditMode: function(icon) {
     var actions = new Actions(this.client);
     var firstIcon = icon ||
-      this.client.helper.waitForElement(Home2.Selectors.firstIcon);
+      this.client.helper.waitForElement(VerticalHome.Selectors.firstIcon);
 
     actions.longPress(firstIcon, 1).perform();
-    this.client.helper.waitForElement(Home2.Selectors.editHeaderText);
+    this.client.helper.waitForElement(VerticalHome.Selectors.editHeaderText);
   },
 
   /**
@@ -164,7 +140,7 @@ Home2.prototype = {
    * to disappear.
    */
   exitEditMode: function() {
-    var done = this.client.findElement(Home2.Selectors.editHeaderDone);
+    var done = this.client.findElement(VerticalHome.Selectors.editHeaderDone);
     done.click();
     this.client.helper.waitForElementToDisappear(done);
   },
@@ -180,7 +156,7 @@ Home2.prototype = {
   },
 
   focusRocketBar: function() {
-    this.client.helper.waitForElement(Home2.Selectors.search).tap();
+    this.client.helper.waitForElement(VerticalHome.Selectors.search).tap();
     this.client.switchToFrame();
   },
 
@@ -262,7 +238,7 @@ Home2.prototype = {
   @return {String}
   */
   getThemeColor: function() {
-    var meta = this.client.findElement(Home2.Selectors.themeColor);
+    var meta = this.client.findElement(VerticalHome.Selectors.themeColor);
     return meta.getAttribute('content');
   },
 
@@ -271,7 +247,7 @@ Home2.prototype = {
    */
   waitForLaunch: function() {
     this.client.helper.waitForElement('body');
-    this.client.apps.switchToApp(Home2.URL);
+    this.client.apps.switchToApp(VerticalHome.URL);
   },
 
   /**
@@ -379,7 +355,7 @@ Home2.prototype = {
       return !!document.querySelector('#icons .placeholder');
     }
 
-    var selectors = Home2.Selectors;
+    var selectors = VerticalHome.Selectors;
     var actions = new Actions(this.client);
 
     if (!this.client.executeScript(placeholderExists)) {
@@ -396,4 +372,4 @@ Home2.prototype = {
   }
 };
 
-module.exports = Home2;
+module.exports = VerticalHome;

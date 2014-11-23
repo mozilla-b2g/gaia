@@ -4,8 +4,6 @@ var Actions = require('marionette-client').Actions;
 var Bookmark = require('./lib/bookmark');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
-var Home = require(
-  '../../../../apps/verticalhome/test/marionette/lib/home2');
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
 var Rocketbar = require('./lib/rocketbar');
@@ -38,7 +36,7 @@ marionette('Rocketbar - Opened Activity From Search', function() {
   setup(function() {
     actions = new Actions(client);
     bookmark = new Bookmark(client);
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = new Search(client);
     system = client.loader.getAppClass('system');

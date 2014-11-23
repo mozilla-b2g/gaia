@@ -4,7 +4,6 @@
 var assert = require('assert');
 var Actions = require('marionette-client').Actions;
 
-var Home2 = require('./lib/home2');
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
 
@@ -13,7 +12,7 @@ var getIconId = require('./lib/icon_id');
 
 marionette('Vertical - App Uninstall', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var actions, home, system, appInstall;
   var selectors;
 
@@ -27,15 +26,16 @@ marionette('Vertical - App Uninstall', function() {
   });
 
   setup(function() {
-    selectors = Home2.Selectors;
     appInstall = new AppInstall(client);
 
     actions = new Actions(client);
-    home = new Home2(client);
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 
-    client.apps.launch(Home2.URL);
+    selectors = home.Selectors;
+
+    client.apps.launch(home.URL);
     home.waitForLaunch();
 
     // install an app

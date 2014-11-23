@@ -1,7 +1,5 @@
 'use strict';
 
-var Home = require(
-  '../../../verticalhome/test/marionette/lib/home2');
 var assert = require('chai').assert;
 
 marionette('Software Home Button - App Crash Report Layout', function() {
@@ -16,7 +14,7 @@ marionette('Software Home Button - App Crash Report Layout', function() {
   var home, system;
 
   setup(function() {
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
     home.waitForLaunch();

@@ -2,14 +2,13 @@
 'use strict';
 
 var assert = require('assert');
-var Home2 = require('./lib/home2');
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
 var iconAppState = require('./lib/icon_app_state');
 var createAppServer = require('./server/parent');
 
 marionette('Vertical Home - Packaged App Install', function() {
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var server;
   setup(function(done) {
     var app = __dirname + '/fixtures/template_app';
@@ -23,7 +22,7 @@ marionette('Vertical Home - Packaged App Install', function() {
   var system;
   var appInstall;
   setup(function() {
-    subject = new Home2(client);
+    subject = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
 
