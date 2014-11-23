@@ -297,7 +297,7 @@
 }
 
 .appWindow.collapsible:not(.active) .screenshot-overlay {
-  margin-top: 4.6rem;
+  margin-top: var(--rocketbar-urlbar-height);
 }
 
 .appWindow > .identification-overlay {

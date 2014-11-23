@@ -7,4 +7,5 @@
   /* The scale factor for the shrinking rocketbar */
   /* 0.682 = --statusbar-height (3rem) / rocketbar height (4.4rem) */
   --rocketbar-scale: 0.682;
+  --rocketbar-urlbar-height: 4.4rem;
 }
