@@ -1,7 +1,7 @@
 'use strict';
 
 var MockTrustedUIManager = {
-  init: function() {
+  start: function() {
   },
 
   open: function(name, frame, chromeEventId) {
