@@ -85,6 +85,7 @@ var UtilityTray = {
   screenHeight: 0,
   grippyHeight: 0,
   placeholderHeight: 0,
+  touchEndTimeout: null,
 
   handleEvent: function ut_handleEvent(evt) {
     var target = evt.target;
@@ -269,6 +270,8 @@ var UtilityTray = {
   },
 
   onTouchStart: function ut_onTouchStart(touch) {
+    clearTimeout(this.touchEndTimeout);
+
     this.validateCachedSizes();
     this.active = true;
     this.startY = touch.pageY;
@@ -291,6 +294,8 @@ var UtilityTray = {
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
+    clearTimeout(this.touchEndTimeout);
+
     if (!this.active) {
       return;
     }
@@ -323,9 +328,17 @@ var UtilityTray = {
     var notificationBottom = Math.max(0, dy - this.grippyHeight);
     this.notifications.style.clip =
       'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
+
+    // Sometimes touchEnd events are not fired, so we force call onTouchEnd if
+    // there are no new touchMove events in a second.
+    this.touchEndTimeout = setTimeout(function() {
+      this.onTouchEnd();
+    }.bind(this), 1000);
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {
+    clearTimeout(this.touchEndTimeout);
+
     // Prevent utility tray shows while the screen got black out.
     if (window.System.locked) {
       this.hide(true);

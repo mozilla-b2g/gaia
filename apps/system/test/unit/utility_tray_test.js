@@ -231,6 +231,44 @@ suite('system/UtilityTray', function() {
         assert.equal(UtilityTray.shown, false);
       });
     });
+
+    suite('when touchEnd is not fired', function() {
+      var clock;
+
+      function fakeTouchesNoTouchEnd(start, end) {
+        var target = UtilityTray.topPanel;
+
+        UtilityTray.onTouchStart({ target: target, pageX: 42, pageY: start });
+        UtilityTray.screenHeight = 480;
+
+        var y = start;
+        while (y != end) {
+          UtilityTray.onTouchMove({ target: target, pageX: 42, pageY: y });
+
+          if (y < end) {
+            y++;
+          } else {
+            y--;
+          }
+        }
+      }
+
+      setup(function() {
+        clock = sinon.useFakeTimers();
+        UtilityTray.hide();
+      });
+
+      teardown(function() {
+        clock.restore();
+      });
+
+      test('should be force called after a delay', function() {
+        var stub = this.sinon.stub(UtilityTray, 'onTouchEnd');
+        fakeTouchesNoTouchEnd(0, 100);
+        clock.tick(2000);
+        assert.ok(stub.calledOnce);
+      });
+    });
   });
 
 
