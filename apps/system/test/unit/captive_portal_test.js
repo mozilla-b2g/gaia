@@ -20,7 +20,6 @@ requireApp('system/test/unit/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('system/shared/test/unit/mocks/mock_notification.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
@@ -32,7 +31,6 @@ requireApp('system/js/ftu_launcher.js');
 
 var mocksForCaptivePortal = new MocksHelper([
   'SettingsListener',
-  'Notification',
   'AppWindowManager'
 ]).init();
 
@@ -126,12 +124,16 @@ suite('captive portal > ', function() {
   });
 
   test('system/captive portal login', function() {
-    var sendSpy = this.sinon.spy(window, 'Notification');
+    var sendSpy = this.sinon.stub(window, 'Notification').returns({
+      addEventListener: function() {},
+      close: function() {}
+    });
     CaptivePortal.handleEvent(event);
     sinon.assert.called(sendSpy);
-    var notification = sendSpy.firstCall.thisValue;
+    var notification = sendSpy.firstCall.args[1];
     assert.equal(notification.body, expectedBody);
     assert.equal(notification.tag, expectedTag);
+    assert.equal(notification.mozbehavior.showOnlyOnce, true);
   });
 
   test('system/captive portal open activity url', function() {
@@ -153,12 +155,16 @@ suite('captive portal > ', function() {
   });
 
   test('system/captive portal login again', function() {
-    var sendSpy = this.sinon.spy(window, 'Notification');
+    var sendSpy = this.sinon.stub(window, 'Notification').returns({
+      addEventListener: function() {},
+      close: function() {}
+    });
     CaptivePortal.handleEvent(event);
     sinon.assert.called(sendSpy);
-    var notification = sendSpy.firstCall.thisValue;
+    var notification = sendSpy.firstCall.args[1];
     assert.equal(notification.body, expectedBody);
     assert.equal(notification.tag, expectedTag);
+    assert.equal(notification.mozbehavior.showOnlyOnce, true);
   });
 
   test('system/captive portal login abort', function() {

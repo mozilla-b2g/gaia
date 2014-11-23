@@ -267,7 +267,10 @@
       var options = {
         body: _('euRoamingNotificationMsg'),
         icon: iconUrl,
-        tag: this.TAG_PREFIX + serviceId
+        tag: this.TAG_PREFIX + serviceId,
+        mozbehavior: {
+          showOnlyOnce: true
+        }
       };
       var notification =
         new Notification(_('euRoamingNotificationTitle'), options);

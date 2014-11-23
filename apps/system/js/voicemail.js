@@ -93,7 +93,10 @@ var Voicemail = {
     var notifOptions = {
       body: text,
       icon: this.icon,
-      tag: this.tagPrefix + serviceId
+      tag: this.tagPrefix + serviceId,
+      mozbehavior: {
+        showOnlyOnce: true
+      }
     };
 
     var notification = new Notification(title, notifOptions);

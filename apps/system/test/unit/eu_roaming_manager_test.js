@@ -546,6 +546,7 @@ suite('system/EuRoamingManager', function() {
         this.euRoamingManager.TAG_PREFIX + this.targetIndex);
       assert.equal(notificationOption.body,
         'euRoamingNotificationMsg');
+      assert.equal(notificationOption.mozbehavior.showOnlyOnce, true);
     });
 
     test('should trigger settings activity when clicking on it', function() {
