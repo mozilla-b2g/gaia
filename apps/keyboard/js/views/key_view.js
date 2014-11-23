@@ -152,12 +152,22 @@ KeyView.prototype.render = function render() {
   }
 };
 
-KeyView.prototype.highlight = function highlight() {
+KeyView.prototype.highlight = function highlight(options) {
+  options = options || {};
+  if (options.upperCase) {
+    this.element.classList.add('uppercase-popup');
+  } else {
+    this.element.classList.add('lowercase-popup');
+  }
+
   this.element.classList.add('highlighted');
 };
 
 KeyView.prototype.unHighlight = function unHighlight() {
   this.element.classList.remove('highlighted');
+
+  this.element.classList.remove('uppercase-popup');
+  this.element.classList.remove('lowercase-popup');
 };
 
 exports.KeyView = KeyView;

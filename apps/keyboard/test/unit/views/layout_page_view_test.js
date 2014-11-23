@@ -124,7 +124,10 @@ suite('Views > LayoutPageView', function() {
 
       var pageView = new LayoutPageView(layout, {});
       pageView.render();
-      pageView.toggleCase({upperCase: true});
+      pageView.setUpperCaseLock({
+        isUpperCase: true,
+        isUpperCaseLocked: false
+      });
 
       var container = pageView.element;
 
@@ -147,7 +150,10 @@ suite('Views > LayoutPageView', function() {
 
       var pageView = new LayoutPageView(layout, {});
       pageView.render();
-      pageView.toggleCase({upperCase: false});
+      pageView.setUpperCaseLock({
+        isUpperCase: false,
+        isUpperCaseLocked: false
+      });
 
       var container = pageView.element;
 
@@ -170,7 +176,10 @@ suite('Views > LayoutPageView', function() {
 
       var pageView = new LayoutPageView(layout, {});
       pageView.render();
-      pageView.toggleCase({upperCase: false});
+      pageView.setUpperCaseLock({
+        isUpperCase: false,
+        isUpperCaseLocked: false
+      });
 
       var container = pageView.element;
 
@@ -314,6 +323,53 @@ suite('Views > LayoutPageView', function() {
       assert.isTrue(capsLockKey.classList.contains('kbr-key-hold'));
 
       assert.equal(capsLockKey.getAttribute('aria-pressed'), 'true');
+    });
+  });
+
+  suite(' > highlightKey() and unHighlightKey()', function() {
+    var pageView  = null;
+    var keyView;
+
+    setup(function() {
+      var layout = {
+        width: 2,
+        keys: []
+      };
+
+      keyView = {
+        highlight: sinon.stub(),
+        unHighlight: sinon.stub()
+      };
+
+      var viewManager = {
+        getView: function() {
+          return keyView;
+        }
+      };
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+    });
+
+    test('highlightKey() with upperCase', function() {
+      pageView.isUpperCase = true;
+      pageView.highlightKey({});
+
+      assert.isTrue(keyView.highlight.calledOnce);
+      assert.isTrue(keyView.highlight.calledWith({upperCase: true}));
+    });
+
+    test('highlightKey() with upperCase', function() {
+      pageView.isUpperCase = false;
+      pageView.highlightKey({});
+
+      assert.isTrue(keyView.highlight.calledOnce);
+      assert.isTrue(keyView.highlight.calledWith({upperCase: false}));
+    });
+
+    test('unHighlightKey()', function() {
+      pageView.unHighlightKey({});
+      assert.isTrue(keyView.unHighlight.calledOnce);
     });
   });
 });

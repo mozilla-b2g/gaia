@@ -12,6 +12,7 @@ function LayoutPageView(layout, options, viewManager) {
   this.layout = layout;
   this.options = options;
   this.viewManager = viewManager;
+  this.isUpperCase = undefined;
 }
 
 LayoutPageView.prototype.render = function render() {
@@ -97,21 +98,17 @@ LayoutPageView.prototype.render = function render() {
   this.element = container;
 };
 
-LayoutPageView.prototype.toggleCase = function toggleCase(options) {
-  this.element.classList.toggle('lowercase', !options.upperCase);
-};
-
 // Accepts a state object with two properties.
 //   Set isUpperCaseLocked to true if locked
 //   Set isUpperCase to true when uppercase is enabled
 //   Use false on both of these properties when uppercase is disabled
 LayoutPageView.prototype.setUpperCaseLock = function setUpperCaseLock(state) {
+  this.isUpperCase = (state.isUpperCase || state.isUpperCaseLocked);
+
   // Toggle the entire container in case this layout require different
   // rendering for upper case state, i.e. |secondLayout = true|.
   var container = this.element;
-
-  container.classList.toggle('lowercase',
-    !(state.isUpperCaseLocked || state.isUpperCase));
+  container.classList.toggle('lowercase', !this.isUpperCase);
 
   //XXX: this should be changed to accessing the KeyView directly.
   var capsLockKey = container.querySelector(
@@ -145,6 +142,16 @@ LayoutPageView.prototype.hide = function hide() {
 LayoutPageView.prototype.show = function show() {
   // For automated testing to locate the active pageView
   this.element.dataset.active = true;
+};
+
+LayoutPageView.prototype.highlightKey = function highlightKey(target) {
+  var keyView = this.viewManager.getView(target);
+  keyView.highlight({upperCase: this.isUpperCase});
+};
+
+LayoutPageView.prototype.unHighlightKey = function unHighlightKey(target) {
+  var keyView = this.viewManager.getView(target);
+  keyView.unHighlight();
 };
 
 exports.LayoutPageView = LayoutPageView;
