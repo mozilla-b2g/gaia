@@ -671,36 +671,38 @@ suite('call screen', function() {
   });
 
   suite('toggleOnHold', function() {
-    test('should put active-state class when there is an active call',
+    test('should remove active-state class when there is an active call',
     function() {
       var mockCall = new MockCall('12334', 'connected');
       navigator.mozTelephony.active = mockCall;
-
-      CallScreen.toggleOnHold();
-      assert.isTrue(CallScreen.holdButton.classList.contains('active-state'));
-    });
-
-    test('should remove active-state class when there isn\'t an active call',
-    function() {
-      navigator.mozTelephony.active = null;
-
+      
       CallScreen.toggleOnHold();
       assert.isFalse(CallScreen.holdButton.classList.contains('active-state'));
     });
 
-    test('should put active-state class with conferenceCall on holding',
+    test('should put active-state class when there isn\'t an active call',
     function() {
-      navigator.mozTelephony.conferenceGroup.state = 'holding';
+      navigator.mozTelephony.active = null;
 
       CallScreen.toggleOnHold();
       assert.isTrue(CallScreen.holdButton.classList.contains('active-state'));
     });
 
-    test('should remove active-state class with conferenceCall on connected',
+    test('should remove active-state class with conferenceCall on holding',
+    function() {
+      navigator.mozTelephony.conferenceGroup.state = 'holding';
+      
+      CallScreen.toggleOnHold();
+      
+      assert.isTrue(CallScreen.holdButton.classList.contains('active-state'));
+    });
+
+    test('should put active-state class with conferenceCall on connected',
     function() {
       navigator.mozTelephony.conferenceGroup.state = 'connected';
-
+      
       CallScreen.toggleOnHold();
+     
       assert.isFalse(CallScreen.holdButton.classList.contains('active-state'));
     });
   });
