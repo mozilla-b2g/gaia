@@ -663,6 +663,7 @@ suite('system/ScreenManager', function() {
 
     setup(function() {
       ScreenManager._targetBrightness = -1;
+      ScreenManager._previousLux = null;
       stubSetBrightness = this.sinon.stub(ScreenManager, 'setScreenBrightness');
     });
 
@@ -692,9 +693,17 @@ suite('system/ScreenManager', function() {
     });
 
     test('auto adjust to same value as current brightness', function() {
-      ScreenManager._targetBrightness = 0.1;
+      ScreenManager._previousLux = 1;
       ScreenManager.autoAdjustBrightness(1);
       assert.isFalse(stubSetBrightness.called);
+    });
+
+    test('auto adjust is not triggered if the change is too small', function() {
+      ScreenManager._previousLux = 1;
+      ScreenManager.autoAdjustBrightness(8);
+      sinon.assert.notCalled(stubSetBrightness);
+      ScreenManager.autoAdjustBrightness(12);
+      sinon.assert.called(stubSetBrightness);
     });
   });
 
