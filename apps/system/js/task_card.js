@@ -1,4 +1,4 @@
-/* globals Card */
+/* globals Card, Tagged */
 
 /* exported TaskCard */
 
@@ -56,23 +56,29 @@
     this.favoriteButtonVisibility = 'visible';
   };
 
-  TaskCard.prototype._template = '<section class="card-inner">' +
-    '<header class="card-header"><h1 class="title">{title}</h1>' +
-    '<p class="subtitle">{subTitle}</p></header>' +
-    '<div class="appPreview"></div>' +
-    '<footer class="card-tray">'+
-      '<button class="appIcon" data-button-action="select" ' +
-      '   style="background-image:{iconValue}">' +
-      '</button>' +
-      '<menu class="buttonbar">' +
-        '<button class="close-button" data-button-action="close" ' +
-        '   role="button" ' +
-        '   style="visibility: {closeButtonVisibility}"></button>' +
-        '<button class="favorite-button" data-button-action="favorite" ' +
-        '   role="button" ' +
-        '   style="visibility: {favoriteButtonVisibility}"></button>' +
-    '</menu></footer>' +
-  '</section>';
+  TaskCard.prototype.template = function() {
+    // fix a jshint issue with tagged template strings
+    // https://github.com/jshint/jshint/issues/2000
+    /* jshint -W033 */
+    return Tagged.escapeHTML `<section class="card-inner">
+      <header class="card-header"><h1 class="title">${this.title}</h1>
+      <p class="subtitle">${this.subTitle}</p></header>
+      <div class="appPreview"></div>
+      <footer class="card-tray">
+        <button class="appIcon" data-button-action="select"
+           style="background-image:${this.iconValue}">
+        </button>
+        <menu class="buttonbar">
+          <button class="close-button" data-button-action="close"
+             role="button"
+             style="visibility: ${this.closeButtonVisibility}"></button>
+          <button class="favorite-button" data-button-action="favorite"
+             role="button"
+             style="visibility: ${this.favoriteButtonVisibility}"></button>
+      </menu></footer>
+    </section>`;
+    /* jshint +W033 */
+  };
 
   /**
    * Build a card representation of an app window.
