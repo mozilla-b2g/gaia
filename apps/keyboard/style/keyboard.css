@@ -148,7 +148,6 @@ button::-moz-focus-inner {
   text-align: center;
 }
 
-
 .keyboard-key.highlighted {
   background-color: #4a5255;
 }
@@ -164,26 +163,18 @@ button::-moz-focus-inner {
 /* Show the bubble text when the button is highlighted. */
 .keyboard-key.highlighted > .visual-wrapper > .popup {
   z-index: 1;
-  visibility: visible;
 }
-
 
 /* Special rules for lowercase and uppercase popups */
-
-/* Default is uppercase, so hide the lowercase popup */
-.keyboard-type-container:not(.lowercase) .popup.lowercase {
-  visibility: hidden;
-}
-
-/* For lowercase, hide the uppercase popup and show the lowercase one */
-.keyboard-type-container.lowercase > .popup.lowercase {
+.keyboard-key.highlighted.uppercase-popup .popup.uppercase {
   visibility: visible;
 }
 
-.keyboard-type-container.lowercase > .popup.uppercase {
-  visibility: hidden;
+.keyboard-key.highlighted.lowercase-popup .popup.lowercase {
+  visibility: visible;
 }
 
+/* Special rules for popups near the screen edge */
 .keyboard-row button:last-child.highlighted > .visual-wrapper > .popup {
   left: -2.4rem;
 }
@@ -191,7 +182,6 @@ button::-moz-focus-inner {
 .keyboard-row button:first-child.highlighted > .visual-wrapper > .popup {
   left: 0;
 }
-
 
 /* Special keys */
 .keyboard-key.special-key > .visual-wrapper > .key-element {

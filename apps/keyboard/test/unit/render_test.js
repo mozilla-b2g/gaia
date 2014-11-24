@@ -538,16 +538,42 @@ suite('Renderer', function() {
       IMERender.init(fakeRenderingManager);
     });
 
-    test('Highlight a key', function() {
+    test('Highlight a key with uppercase', function() {
       var keyView = {
         highlight: this.sinon.stub(),
         element: {}
       };
 
       IMERender.registerView(dummyKey, keyView);
+
+      IMERender.setUpperCaseLock({
+        isUpperCase: true,
+        isUpperCaseLocked: false
+      });
+
       IMERender.highlightKey(dummyKey);
 
       assert.isTrue(keyView.highlight.called);
+      assert.isTrue(keyView.highlight.calledWith({upperCase: true}));
+    });
+
+    test('Highlight a key with lowercase', function() {
+      var keyView = {
+        highlight: this.sinon.stub(),
+        element: {}
+      };
+
+      IMERender.registerView(dummyKey, keyView);
+
+      IMERender.setUpperCaseLock({
+        isUpperCase: false,
+        isUpperCaseLocked: false
+      });
+
+      IMERender.highlightKey(dummyKey);
+
+      assert.isTrue(keyView.highlight.called);
+      assert.isTrue(keyView.highlight.calledWith({upperCase: false}));
     });
   });
 });

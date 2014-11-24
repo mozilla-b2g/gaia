@@ -137,7 +137,10 @@ var IMERender = (function() {
     }
 
     // Make sure the container is switched to the current uppercase state.
-    pageView.toggleCase({upperCase: flags.uppercase});
+    pageView.setUpperCaseLock({
+      isUpperCase: flags.uppercase,
+      isUpperCaseLocked: false
+    });
 
     // The page view has been switched
     if (currentPageView !== pageView) {
@@ -180,22 +183,22 @@ var IMERender = (function() {
 
   // Highlight the key according to the case.
   var highlightKey = function kr_updateKeyHighlight(target) {
-    var keyView = viewMap.get(target);
-    if (!keyView) {
+    if (!currentPageView) {
+      console.error('No current page view!');
       return;
     }
 
-    keyView.highlight();
+    currentPageView.highlightKey(target);
   };
 
   // Unhighlight a key
   var unHighlightKey = function kr_unHighlightKey(target) {
-    var keyView = viewMap.get(target);
-    if (!keyView) {
+    if (!currentPageView) {
+      console.error('No current page view!');
       return;
     }
 
-    keyView.unHighlight();
+    currentPageView.unHighlightKey(target);
   };
 
   var toggleCandidatePanel = function(expand) {

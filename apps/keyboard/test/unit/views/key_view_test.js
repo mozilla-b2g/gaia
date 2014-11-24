@@ -21,12 +21,22 @@ suite('Views > KeyView', function() {
       assert.notEqual(keyView.element, null);
     });
 
-    test(' > highlight()', function() {
+    test(' > highlight() with upper case', function() {
       keyView.render();
       assert.isFalse(keyView.element.classList.contains('highlighted'));
 
-      keyView.highlight();
+      keyView.highlight({upperCase: true});
       assert.isTrue(keyView.element.classList.contains('highlighted'));
+      assert.isTrue(keyView.element.classList.contains('uppercase-popup'));
+    });
+
+    test(' > highlight() with lower case', function() {
+      keyView.render();
+      assert.isFalse(keyView.element.classList.contains('highlighted'));
+
+      keyView.highlight({upperCase: false});
+      assert.isTrue(keyView.element.classList.contains('highlighted'));
+      assert.isTrue(keyView.element.classList.contains('lowercase-popup'));
     });
 
     test(' > unHighlight()', function() {
@@ -37,6 +47,8 @@ suite('Views > KeyView', function() {
 
       keyView.unHighlight();
       assert.isFalse(keyView.element.classList.contains('highlighted'));
+      assert.isFalse(keyView.element.classList.contains('uppercase-popup'));
+      assert.isFalse(keyView.element.classList.contains('lowercase-popup'));
     });
   });
 
