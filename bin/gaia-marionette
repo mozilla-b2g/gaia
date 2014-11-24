@@ -3,6 +3,7 @@
 # All options are passed to `./node_modules/.bin/marionette-mocha` so
 # you can also use mocha commands like `--grep`, `--timeout` see `--help`
 # for more options.
+export VERBOSE=1
 export MOZ_DISABLE_NONLOCAL_CONNECTIONS=1
 
 # Find the source of this file
