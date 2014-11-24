@@ -51,19 +51,23 @@ var WifiManager = {
       return;
     }
 
-    req.onsuccess = function onScanSuccess() {
+    var handleRequest = function handleRequest() {
       self._scanning = false;
-      self.networks = req.result;
       clearTimeout(self.scanTimeout);
       self.scanTimeout = null;
       self.onScan(self.networks);
       self.onScan = null;
     };
 
+    req.onsuccess = function onScanSuccess() {
+      self.networks = req.result;
+      handleRequest();
+    };
+
     req.onerror = function onScanError() {
-      self._scanning = false;
       console.error('Error reading networks: ' + req.error.name);
-      self.onScan = callback;
+      self.networks = [];
+      handleRequest();
     };
 
     // Timeout in case of scanning errors not thrown by the API

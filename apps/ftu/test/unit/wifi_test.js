@@ -198,25 +198,32 @@ suite('wifi > ', function() {
         }
       );
 
-      stub.onSecondCall().returns(
+      WifiManager.scan(function(networks) {
+        assert.ok(stub.calledOnce);
+        assert.ok(showOverlayStub.called, 'shows loading overlay');
+        assert.equal(networks.length, 0, 'no networks returned');
+        assert.ok(consoleSpy.calledOnce);
+        done();
+      });
+    });
+
+    test('should execute callback when scan fails', function() {
+      var fakeCallback = this.sinon.spy();
+
+      var stub = this.sinon.stub(MockNavigatorMozWifiManager, 'getNetworks');
+      stub.onFirstCall().returns(
         {
-          set onsuccess(callback) {
-            this.result = fakeNetworks;
+          set onerror(callback) {
+            this.error = {
+              name: 'error'
+            };
             callback();
           }
         }
       );
 
-      WifiManager.scan(function(networks) {
-        assert.ok(stub.calledTwice);
-        assert.ok(showOverlayStub.called, 'shows loading overlay');
-        assert.isDefined(networks, 'networks eventually returned');
-        assert.ok(consoleSpy.calledOnce);
-        done();
-      });
-
-      //simulate a status change
-      WifiManager.api.onstatuschange({status: 'disconnected'});
+      WifiManager.scan(fakeCallback);
+      assert.isTrue(fakeCallback.calledOnce);
     });
 
     test('timeout error', function(done) {
