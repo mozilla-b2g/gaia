@@ -130,6 +130,15 @@
 
 
 /* Level 4: Attention window */
+/*
+ * Promote keyboards to stk message screen level even
+ * when device is locked
+ */
+#screen.icc > [data-z-index-level="keyboards"],
+#screen.icc.locked > [data-z-index-level="keyboards"] {
+ z-index: 8196;
+}
+
 #screen > [data-z-index-level="icc-view"] {
   z-index: 8195;
 }
