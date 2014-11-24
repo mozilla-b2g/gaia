@@ -40,7 +40,7 @@
     <script defer src="/shared/elements/config.js"></script>
     <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css" /> -->
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
-    <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script async src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_sim_picker/locales/gaia_sim_picker.{locale}.properties">
     <!--
@@ -117,8 +117,8 @@
   <body role="application" class="skin-comms theme-communications">
     <article id="main-wrapper" class="wrapper" data-position='right'>
       <section id="thread-list" class="panel" role="region">
-        <gaia-header class="view-header regular-header">
-          <h1 data-l10n-id="messages">Messages</h1>
+        <gaia-header class="view-header regular-header" start="0" end="100">
+          <h1 data-l10n-id="messages"></h1>
           <a href="#composer" id="icon-add" data-icon="compose"></a>
           <a id="threads-options-icon" data-icon="more"></a>
         </gaia-header>
@@ -134,8 +134,8 @@
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
           <section role="region" class="theme-settings">
-            <gaia-header id="threads-edit-header" action="close">
-              <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title">Select</h1>
+            <gaia-header id="threads-edit-header" action="close" skip-fit>
+              <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title"></h1>
               <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>
@@ -152,7 +152,7 @@
       </section>
 
       <section id="thread-messages" class="panel" role="region" aria-hidden="true">
-        <gaia-header id="messages-header" class="view-header regular-header" action="back">
+        <gaia-header id="messages-header" class="view-header regular-header" action="back" skip-fit>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide"></button>
           <button id="messages-options-button" data-icon="more"></button>
@@ -292,8 +292,8 @@
         </article>
         <form role="dialog" id="messages-edit-form" data-type="edit" >
           <section role="region" class="theme-settings">
-            <gaia-header id="messages-edit-header" action="close">
-              <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title">Delete Messages</h1>
+            <gaia-header id="messages-edit-header" action="close" skip-fit>
+              <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title"></h1>
               <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>

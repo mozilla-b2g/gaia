@@ -154,6 +154,8 @@ var actionTypes = {
   close: true
 };
 
+const KNOWN_ATTRIBUTES = ['start', 'end', 'action', 'skip-fit'];
+
 /**
  * Called when the element is first created.
  *
@@ -163,6 +165,8 @@ var actionTypes = {
  * @private
  */
 proto.createdCallback = function() {
+  KNOWN_ATTRIBUTES.forEach((name) => this._updateAttribute(name));
+
   this.createShadowRoot().innerHTML = template;
 
   // Get els
@@ -177,8 +181,6 @@ proto.createdCallback = function() {
   this.setupInteractionListeners();
   this.configureActionButton();
   this.shadowStyleHack();
-  this.runFontFit();
-  this.setupRtl();
 };
 
 /**
@@ -189,9 +191,22 @@ proto.createdCallback = function() {
  */
 proto.attachedCallback = function() {
   this.restyleShadowDom();
-  this.rerunFontFit();
-  this.setupRtl();
+  this.init();
 };
+
+/**
+ * Called when the lement is attached to the DOM unless the skip-fit attribute
+ * is set.
+ */
+proto.init = function() {
+  if (this['_skip-fit'] !== null) {
+    return;
+  }
+
+  this.runFontFit();
+  this.addFontFitObserver();
+  this.setupRtl();
+}
 
 /**
  * Called when the element is detached
@@ -241,15 +256,23 @@ proto.setupRtl = function() {
 
   var self = this;
   this.observerRtl = new MutationObserver(onAttributeChanged);
-  this.observerRtl.observe(document.documentElement, { attributes: true });
+  this.observerRtl.observe(document.documentElement, {
+    attributes: true,
+    attributeOldValue: true,
+    attributeFilter: ['dir']
+  });
   this.configureRtl();
 
   function onAttributeChanged(mutations) {
-    mutations.forEach(function(mutation) {
-      if (mutation.attributeName !== 'dir') { return; }
-      this.configureRtl();
-      this.rerunFontFit();
-    }, self);
+    var firstMutation = mutations[0];
+    var lastMutation = mutations[mutations.length - 1];
+
+    var previousValue = firstMutation.oldValue || 'ltr';
+    var newValue = lastMutation.target.getAttribute('dir') || 'ltr'
+    if (previousValue !== newValue) {
+      self.configureRtl();
+      self.runFontFit();
+    }
   }
 };
 
@@ -313,29 +336,33 @@ proto.restyleShadowDom = function() {
 };
 
 /**
+ * Initialize the text node observer
+ *
+ * @private
+ */
+proto.addFontFitObserver = function() {
+  for (var i = 0; i < this.els.headings.length; i++) {
+    fontFit.observeHeadingChanges(this.els.headings[i]);
+  }
+}
+
+/**
  * Runs the logic to size and position
  * header text inside the available space.
  *
  * @private
  */
 proto.runFontFit = function() {
+  console.log('>> runFontFit', new Error().stack.replace(/\n/g, '|'));
   for (var i = 0; i < this.els.headings.length; i++) {
-    fontFit.reformatHeading(this.els.headings[i]);
-    fontFit.observeHeadingChanges(this.els.headings[i]);
+    var heading = this.els.headings[i];
+    var start = parseInt(this._start);
+    var end = parseInt(this._end);
+    heading.dataset.start = isNaN(start) ? '' : start;
+    heading.dataset.end = isNaN(end) ? '' : end;
+    fontFit.reformatHeading(heading);
   }
-};
-
-/**
- * Rerun font-fit logic.
- *
- * TODO: We really need an official API for this.
- *
- * @private
- */
-proto.rerunFontFit = function() {
-  for (var i = 0; i < this.els.headings.length; i++) {
-    this.els.headings[i].textContent = this.els.headings[i].textContent;
-  }
+  console.log('>> end runFontFit');
 };
 
 /**
@@ -345,10 +372,27 @@ proto.rerunFontFit = function() {
  * @private
  */
 proto.attributeChangedCallback = function(attr, oldVal, newVal) {
+  if (KNOWN_ATTRIBUTES.indexOf(attr) === -1) {
+    return;
+  }
+
+  this._updateAttribute(attr);
+
+  if (attr === 'skip-fit') {
+    setTimeout(() => this.init());
+    return;
+  }
+
   if (attr === 'action') {
     this.configureActionButton();
-    fontFit.reformatHeading(this._heading);
   }
+
+  this.runFontFit();
+};
+
+proto._updateAttribute = function(name) {
+  var newVal = this.getAttribute(name);
+  this['_' + name] = newVal;
 };
 
 /**
@@ -358,7 +402,7 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
  * @public
  */
 proto.triggerAction = function() {
-  if (this.isSupportedAction(this.getAttribute('action'))) {
+  if (this.isSupportedAction(this._action)) {
     this.els.actionButton.click();
   }
 };
@@ -372,7 +416,7 @@ proto.triggerAction = function() {
  */
 proto.configureActionButton = function() {
   var old = this.els.actionButton.getAttribute('icon');
-  var type = this.getAttribute('action');
+  var type = this._action;
   var supported = this.isSupportedAction(type);
   this.els.actionButton.classList.remove('icon-' + old);
   this.els.actionButton.setAttribute('icon', type);
@@ -400,7 +444,7 @@ proto.isSupportedAction = function(action) {
  * @private
  */
 proto.onActionButtonClick = function(e) {
-  var config = { detail: { type: this.getAttribute('action') } };
+  var config = { detail: { type: this._action } };
   var actionEvent = new CustomEvent('action', config);
   setTimeout(this.dispatchEvent.bind(this, actionEvent));
 };
@@ -784,16 +828,32 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
      * @param {HTMLHeadingElement} heading h1 text inside header to reformat.
      */
     reformatHeading: function(heading) {
+      console.log('reformating heading for header', heading);
       // Skip resize logic if header has no content, ie before localization.
       if (!heading || heading.textContent.trim() === '') {
+        console.log('will do nothing for header', heading);
         return;
       }
 
-      // Reset our centering styles.
-      this._resetCentering(heading);
+      var style;
+      var hasSizeInformation = heading.dataset.start || heading.dataset.end;
 
-      // Cache the element style properties to avoid reflows.
-      var style = this._getStyleProperties(heading);
+      if (hasSizeInformation) {
+        style = {
+          fontFamily: 'sans-serif',
+          contentWidth: this._getWindowWidth() - (heading.dataset.start || 0) - (heading.dataset.end || 0),
+          paddingRight: 0,
+          paddingLeft: 0,
+          offsetLeft: heading.dataset.start || 0,
+          rtlFriendly: true
+        };
+      } else {
+        // Reset our centering styles.
+        this._resetCentering(heading);
+
+        // Cache the element style properties to avoid reflows.
+        style = this._getStyleProperties(heading);
+      }
 
       // If the document is inside a hidden iframe
       // `window.getComputedStyle()` returns null,
@@ -874,14 +934,23 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
 
     /**
      * Auto-resize all text changes.
+     * We reformat only once even if several mutations occur for one target.
      *
      * @param {Array} mutations A MutationRecord list.
      * @private
      */
     _handleTextChanges: function(mutations) {
+      console.log('>> handle text changes');
+      var targets = new Set();
+
       for (var i = 0; i < mutations.length; i++) {
-        this.reformatHeading(mutations[i].target);
+        targets.add(mutations[i].target);
       }
+
+      for (var target of targets) {
+        this.reformatHeading(target);
+      }
+      console.log('>> end handle text changes');
     },
 
     /**
@@ -1020,7 +1089,11 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
     _resetCentering: function(heading) {
       // We need to set the lateral margins to 0 to be able to measure the
       // element width properly. All previously set values are ignored.
-      heading.style.marginLeft = heading.style.marginRight = '0';
+      if (heading.dataset.rtlFriendly) {
+        heading.style.MozMarginStart = heading.style.MozMarginEnd = '0';
+      } else {
+        heading.style.marginLeft = heading.style.marginRight = '0';
+      }
     },
 
     /**
@@ -1054,6 +1127,17 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
         return;
       }
 
+      var propLeft, propRight;
+      if (styleOptions.rtlFriendly) {
+        propLeft = 'MozMarginStart';
+        propRight = 'MozMarginEnd';
+        heading.dataset.rtlFriendly = 'true';
+      } else {
+        propLeft = 'marginLeft';
+        propRight = 'marginRight';
+        delete heading.dataset.rtlFriendly;
+      }
+
       // To center, we need to make sure the space to the left of the header
       // is the same as the space to the right, so take the largest of the two.
       var margin = Math.max(sideSpaceLeft, sideSpaceRight);
@@ -1064,10 +1148,10 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       // See https://bugzil.la/1026955
       if (minHeaderWidth + (margin * 2) < this._getWindowWidth() - 1) {
         if (sideSpaceLeft < sideSpaceRight) {
-          heading.style.marginLeft = (sideSpaceRight - sideSpaceLeft) + 'px';
+          heading.style[propLeft] = (sideSpaceRight - sideSpaceLeft) + 'px';
         }
         if (sideSpaceRight < sideSpaceLeft) {
-          heading.style.marginRight = (sideSpaceLeft - sideSpaceRight) + 'px';
+          heading.style[propRight] = (sideSpaceLeft - sideSpaceRight) + 'px';
         }
       }
     },
