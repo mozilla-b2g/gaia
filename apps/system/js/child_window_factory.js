@@ -141,9 +141,9 @@
     var configObject = {
       url: evt.detail.url,
       name: evt.detail.name,
-      iframe: evt.detail.frameElement
+      iframe: evt.detail.frameElement,
+      isPrivate: this.app.isPrivateBrowser()
     };
-
     window.dispatchEvent(new CustomEvent('openwindow', {
       detail: configObject
     }));
@@ -158,7 +158,8 @@
       url: evt.detail.url,
       name: this.app.name,
       iframe: evt.detail.frameElement,
-      origin: this.app.origin
+      origin: this.app.origin,
+      isPrivate: this.app.isPrivateBrowser()
     };
     if (this._sameOrigin(this.app.origin, evt.detail.url)) {
       configObject.manifestURL = this.app.manifestURL;
