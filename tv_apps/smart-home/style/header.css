@@ -18,3 +18,13 @@
 .search-button.focused {
   background-image: url('images/ic_search_s.png');
 }
+
+/* icon sits at before */
+.settings-group:before {
+  display: block;
+  background-image: url('images/ic_setting.png');
+}
+
+.settings-group {
+  margin-left: 1.6rem;
+}
