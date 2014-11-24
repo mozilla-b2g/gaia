@@ -8,20 +8,28 @@
   <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" /> -->
   <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
+  <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/lists.css"/>
+  <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+  <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
   <link rel="stylesheet" type="text/css" href="style/settings.css"/>
   <link rel="manifest" href="manifest.webapp">
   <link rel="localization" href="locales/keyboard.{locale}.properties">
 
   <!-- Web Components -->
   <script defer src="shared/elements/config.js"></script>
+
+  <script defer src="shared/js/component_utils.js"></script>
   <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+  <script defer src="shared/elements/gaia_buttons/script.js"></script>
+  <script defer src="shared/elements/gaia_confirm/script.js"></script>
 
   <!-- L10n -->
   <script defer src="shared/js/l10n.js"></script>
 
   <!-- Settings panel -->
   <script defer src="js/keyboard/settings.js"></script>
+  <script defer src="js/shared/promise_storage.js"></script>
   <script defer src="js/settings/close_locks.js"></script>
   <script defer src="js/settings/settings_view.js"></script>
   <script defer src="js/settings/general_settings.js"></script>
@@ -29,14 +37,14 @@
   <script defer src="js/settings/bootstrap.js"></script>
 </head>
 <body class="skin-organic theme-settings">
-  <section role="region">
-    <gaia-header id="header" action="back">
+  <section role="region" id="root" class="current">
+    <gaia-header id="root-header" action="back">
       <h1 data-l10n-id="settingsPageTitle"></h1>
     </gaia-header>
     <!-- Don't change the div.id attribute below, if you want to modify it,
          you should modify build/settings-config.js to keep consistence.
          Handwriting settings will be added at the end of it. -->
-    <div id="container">
+    <div id="root-container">
       <section data-type="list" id="general-settings">
         <ul>
           <li>
@@ -78,10 +86,50 @@
             </aside>
             <p><label data-l10n-id="wordSuggestion" for="cb-wordSuggestion"></label></p>
           </li>
+
+          <!-- User dictionary settings <li> will be added here. -->
         </ul>
       </section>
       <!-- Handwriting settings section will be added here. -->
     </div>
+  </section>
+  <section role="region" id="panel-ud-wordlist">
+    <gaia-header id="ud-wordlist-header" action="back">
+      <h1 data-l10n-id="userDictionary"></h1>
+      <button id="ud-addword-btn" data-icon="add" data-href="#ud-editword" data-l10n-id="userDictionaryAddButton"></button>
+    </gaia-header>
+    <div id="ud-wordlist-container">
+      <div id="ud-wordlist-noword">
+        <div data-l10n-id="userDictionaryNoWord"></div>
+        <div data-l10n-id="userDictionaryAddNow"></div>
+      </div>
+      <section data-type="list">
+        <ul id="ud-wordlist-list"></ul>
+      </section>
+    </div>
+  </section>
+  <section role="dialog" id="panel-ud-editword">
+    <gaia-header id="ud-editword-header" action="close">
+      <h1 data-l10n-id="userDictionaryAdd" id="ud-editword-add-header"></h1>
+      <h1 data-l10n-id="userDictionaryEdit" id="ud-editword-edit-header"></h1>
+      <button id="ud-saveword-btn" data-l10n-id="userDictionarySaveButton"></button>
+    </gaia-header>
+    <div id="ud-editword-container">
+      <div>
+        <input type="text" id="ud-editword-input" x-inputmode="verbatim">
+      </div>
+      <div>
+        <button id="ud-editword-delete-btn" class="danger" data-l10n-id="userDictionaryDeleteButton"></button>
+      </div>
+    </div>
+    <gaia-confirm id="ud-editword-delete-dialog" hidden>
+      <h1 data-l10n-id="userDictionary"></h1>
+      <p id="ud-editword-delete-prompt"></p>
+      <gaia-buttons skin="dark">
+        <button data-l10n-id="cancel" id="ud-editword-dialog-cancel-btn"></button>
+        <button data-l10n-id="delete" class="danger" id="ud-editword-dialog-delete-btn"></button>
+      </gaia-buttons>
+    </gaia-confirm>
   </section>
 </body>
 </html>
