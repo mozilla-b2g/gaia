@@ -369,6 +369,14 @@ class GaiaData(object):
         """The call log needs to be open and focused in order for this to work."""
         self.marionette.execute_script('window.wrappedJSObject.RecentsDBManager.deleteAll();')
 
+    def insert_call_entry(self, call):
+        """The call log needs to be open and focused in order for this to work."""
+        self.marionette.execute_script('window.wrappedJSObject.CallLogDBManager.add(%s);' % (json.dumps(call)))
+
+        # TODO Replace with proper wait when possible
+        import time
+        time.sleep(1)
+
     def kill_active_call(self):
         self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +
                                        "if(telephony.active) telephony.active.hangUp();")
