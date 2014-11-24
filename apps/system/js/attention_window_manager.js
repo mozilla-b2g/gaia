@@ -251,8 +251,21 @@
           break;
       }
     },
+    /**
+     * Traverse the instances list to get the count of displayed window.
+     * @return {Number} The count of displayed window
+     */
+    getShownWindowCount: function() {
+      var count = this._instances.length;
+      this._instances.forEach(function(attention) {
+        if (attention.isHidden()) {
+          count--;
+        }
+      });
+      return count;
+    },
     updateAttentionIndicator: function() {
-      if (this._openedInstances.size == this._instances.length) {
+      if (this._openedInstances.size == this.getShownWindowCount()) {
         Service.request('makeAmbientIndicatorInactive');
       } else {
         Service.request('makeAmbientIndicatorActive');
