@@ -31,6 +31,37 @@ marionette('Browser test', function() {
     search.removeGeolocationPermission();
   });
 
+
+  test.skip('Test title injecting html', function() {
+    var url = server.url('xsstitle.html');
+
+    // Launch the rocketbar and trigger its first run notice
+    home.waitForLaunch();
+    home.focusRocketBar();
+    search.triggerFirstRun(rocketbar);
+
+    // Input a url and press enter to visit
+    rocketbar.enterText(url + '\uE006');
+    rocketbar.switchToBrowserFrame(url);
+
+    // Go home
+    client.switchToFrame();
+    home.pressHomeButton();
+
+    client.apps.launch(Search.URL);
+    client.apps.switchToApp(Search.URL);
+
+    client.waitFor(function() {
+      return search.getHistoryResults().length == 1;
+    });
+
+    var title = client.executeScript(function() {
+      return document.querySelector('#history .title').innerHTML;
+    });
+
+    assert.equal(title, '&lt;em&gt;test&lt;/em&gt;');
+  });
+
   test.skip('Large Icon', function() {
 
     var url = server.url('largeicon.html');

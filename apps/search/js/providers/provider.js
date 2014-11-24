@@ -95,9 +95,9 @@ Provider.prototype = {
         result.dataset[i] = config.dataset[i];
       }
 
-      title.innerHTML = config.title || config.url;
+      title.textContent = config.title || config.url;
       if (config.meta) {
-        meta.innerHTML = config.meta;
+        meta.textContent = config.meta;
         // Expose meta infrormation as a helpful description for each result.
         if (config.description) {
           meta.id = this.name + '-description-' + index;
