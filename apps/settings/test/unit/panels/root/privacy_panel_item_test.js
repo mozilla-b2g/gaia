@@ -5,7 +5,8 @@ suite('PrivacyPanelItem', function() {
     var modules = [
       'panels/root/privacy_panel_item',
       'unit/mock_apps_cache',
-      'shared_mocks/mock_navigator_moz_settings'
+      'shared_mocks/mock_navigator_moz_settings',
+      'shared_mocks/mock_l10n'
     ];
 
     var maps = {
@@ -15,11 +16,12 @@ suite('PrivacyPanelItem', function() {
     };
 
     testRequire(modules, maps, function(PrivacyPanelItem, MockAppsCache,
-      MockNavigatorSettings) {
+      MockNavigatorSettings, MockL10n) {
       navigator.mozSettings = MockNavigatorSettings;
+      navigator.mozL10n = MockL10n;
 
       MockAppsCache._apps = [{
-        manifestURL: document.location.protocol + 
+        manifestURL: document.location.protocol +
           '//privacy-panel.gaiamobile.org' +
           (location.port ? (':' + location.port) : '') + '/manifest.webapp',
         launch: function() {}
@@ -38,16 +40,23 @@ suite('PrivacyPanelItem', function() {
       element: this.element,
       link: this.link
     });
-    
+
     // lets wait till Promise resolve privacy-panel app.
-    this.subject._getApp().then(function() {
-      done();
-    });
+    this.subject._getApp().then(done, done);
   });
 
-  test('search for privacy-panel app (_getApp method)', function() {
-    assert.isNotNull(this.subject._app);
-    assert.isDefined(this.subject._app.launch);
+    test('search for privacy-panel app (_getApp method)', function(done) {
+    // lets wait till Promise resolve privacy-panel app
+    this.subject._getApp().then(
+      function() {
+        assert.isNotNull(this.subject._app);
+        assert.isDefined(this.subject._app.launch);
+      }.bind(this),
+      function() {
+        // This function does not reject.
+        assert.isTrue(false);
+      }
+    ).then(done, done);
   });
 
   test('launch privacy panel app (_launch method)', function(done) {

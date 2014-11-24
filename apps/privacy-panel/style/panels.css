@@ -23,18 +23,6 @@ section[data-settings="true"] #back-to-settings {
   visibility: visible;
 }
 
-.icon-ala {
-  background-image: url("images/ala.png");
-}
-
-.icon-rpp {
-  background-image: url("images/rpp.png");
-}
-
-.icon-gt {
-  background-image: url("images/gt.png");
-}
-
 
 /**
  * Lists
@@ -543,3 +531,41 @@ span.passcode-digit[data-dot]::before {
   margin-top: -0.75rem;
 }
 
+/** Icons
+ ---------------------------------------------------------*/
+
+[class^="gaia-icon-"]:before,
+[class*="gaia-icon-"]:before {
+  font-family: "gaia-icons";
+  position: relative;
+  top: 0;
+  left: 0;
+  font-size: 3rem;
+  line-height: 5rem;
+  color: #657073;
+  font-style: normal;
+}
+
+.gaia-icon-close:before {
+  content: 'close';
+  color: #fff;
+}
+
+.gaia-icon-back:before {
+  content: 'back';
+}
+
+.gaia-icon-about:before {
+  content: 'info';
+}
+
+/**
+ * [dir='rtl']
+ *
+ * Switch to use the 'forward' icon
+ * when in right-to-left direction.
+ */
+
+[dir='rtl'] .icon-back:before {
+  content: 'forward';
+}

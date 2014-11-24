@@ -83,42 +83,16 @@ section[role="region"] > div > ul {
 .explanation {
   padding: 0.5rem 3rem;
   font-style: italic;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   color: #505859;
 }
 
 .description {
-  font-size: 1.7rem;
-  line-height: 2.3rem;
+  color: #505758;
+  font-size: 1.3rem;
+  line-height: 1.8rem;
   white-space: normal;
   -moz-hyphens: auto;
-}
-
-.description p,
-.description a,
-.description label {
-  font-size: 1.7rem;
-  line-height: 2.3rem;
-  white-space: normal;
-}
-
-.description label {
-    padding: 0;
-}
-
-.description label span {
-  height: auto;
-  min-height: 6rem;
-  padding-top: 1.2rem;
-  padding-bottom: 1.2rem;
-  font-size: 1.7rem;
-  line-height: 2.3rem;
-  white-space: normal;
-}
-
-.description small {
-  font-size: 1.7rem;
-  color: #505859;
 }
 
 .link-text {

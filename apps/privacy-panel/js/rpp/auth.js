@@ -133,7 +133,9 @@ function(panels, PassPhrase, SettingsListener) {
           element = document.createElement('option');
           element.value = simcard;
           element.textContent = simcard;
-          element.setAttribute('data-l10n-id', simcard);
+
+          var simcardL10n = simcard.toLowerCase().replace(' ', '');
+          element.setAttribute('data-l10n-id', simcardL10n);
           select.appendChild(element);
         }
       }

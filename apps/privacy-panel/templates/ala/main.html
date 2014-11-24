@@ -2,7 +2,7 @@
   <template>
     <header>
       <a class="pp-link back" href="#root">
-        <span class="icon icon-back">back</span>
+        <span class="icon gaia-icon-back">back</span>
       </a>
       <h1 data-l10n-id="location-accuracy">Location Accuracy</h1>
     </header>
@@ -20,15 +20,14 @@
             <span data-l10n-id="use-location-adjustment">Use location adjustment</span>
           </label>
         </li>
-        <li class="hide-when-ala-on description">
-          <p>
-          <small data-l10n-id="location-adjustment-information">Remember: Location Adjustment influences the location Firefox OS provides to apps. It will not affect your IP-address or locale settings, so some services might still be able to locate you.
-          </small>
+        <li class="hide-when-ala-on">
+          <p class="description" data-l10n-id="location-adjustment-information">
+            Remember: Location Adjustment influences the location Firefox OS provides to apps. It will not affect your IP-address or locale settings, so some services might still be able to locate you.
           </p>
         </li>
-        <li class="show-when-ala-on description">
-          <p>
-            <small data-l10n-id="location-adjustment-description">Adjust the global accuracy level of your current location for all apps, define and set a permanent fixed location and add exceptions for single apps.</small>
+        <li class="show-when-ala-on">
+          <p class="description" data-l10n-id="location-adjustment-description">
+            Adjust the global accuracy level of your current location for all apps, define and set a permanent fixed location and add exceptions for single apps.
           </p>
         </li>
         <li class="show-when-ala-on geolocation-type-box">
