@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette.errors import FrameSendFailureError
 from gaiatest.apps.base import Base
 
 
@@ -18,7 +19,12 @@ class CropView(Base):
         self.wait_for_condition(lambda m: m.find_element(*self._crop_done_button_locator).is_enabled())
 
     def tap_crop_done(self):
-        self.marionette.find_element(*self._crop_done_button_locator).tap()
+        try:
+            self.marionette.find_element(*self._crop_done_button_locator).tap()
+        except FrameSendFailureError:
+            # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
+            pass
+
         # Fall back to the app underneath
         self.wait_for_condition(lambda m: self.apps.displayed_app.src != self._src)
         self.apps.switch_to_displayed_app()
