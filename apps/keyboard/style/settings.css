@@ -10,18 +10,52 @@ html, body {
   -moz-user-select: none;
 }
 
-label {
+label, a {
   -moz-user-select: none;
+}
+
+section[role="region"], section[role="dialog"] {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #f4f4f4;
+}
+
+section[role="region"] {
+  transition: transform 0.4s ease, visibility 0.4s;
+  transform: translateX(100%);
+  visibility: hidden;
+}
+
+section[role="region"].prev {
+  transform: translateX(-100%);
+  visibility: hidden;
+}
+
+section[role="region"].current {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+section[role="dialog"] {
+  transition: visibility 0.5s, opacity 0.5s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+
+section[role="dialog"].displayed {
+  opacity: 1;
+  visibility: visible;
 }
 
 /**
  * Headers should not scroll with the rest of the page, except for #root.
  */
-section[role="region"] > header {
+section[role="region"] > header, section[role="dialog"] > header {
   position: absolute;
 }
 
-section[role="region"] > div {
+section[role="region"] > div, section[role="dialog"] > div {
   position: absolute;
   top: 5rem;
   right: 0;
@@ -41,8 +75,17 @@ section[data-type="list"] p>label {
   display: inline-block;
 }
 
-section[role="region"] header h2 {
+section[role="region"] header h2, section[role="dialog"] header h2 {
   padding: 0.8rem 1.5rem;
+}
+
+/* XXX we're trying to offset what we have inherted from lists.css only to make
+   things look like Settings app more. We actually need to restructure the
+   kb settings DOM & this CSS to make such mimicking easier */
+
+[data-type="list"] header {
+  padding: 0 0;
+  text-transform: none;
 }
 
 ul {
@@ -56,7 +99,6 @@ ul li {
   -moz-box-sizing: border-box;
   position: relative;
   min-height: 6rem;
-  margin: 0 1.5rem;
   border-bottom: 0.1rem solid #e6e6e3;
   color: #000;
 }
@@ -78,15 +120,6 @@ ul li > *, ul li > label > * {
 
 ul li label {
   text-transform: none;
-}
-
-ul li p {
-  font-size: 1.8rem;
-  line-height: 1.8rem;
-  font-weight: 400;
-  margin: 0;
-  padding: 1.5rem 0 1rem;
-  color: #333333;
 }
 
 input[type=range] {
@@ -140,4 +173,90 @@ input[type=range]:not(:disabled):active::-moz-range-thumb {
 input:focus {
   box-shadow: inset 0 -0.1rem 0 #00caf2;
   border-bottom-color: #00caf2;
+}
+
+[data-type="list"] {
+  padding: 0;
+}
+
+[data-type="list"] li {
+  margin: 0 1.5rem;
+  width: calc(100% - 3rem);
+  height: auto;
+}
+
+[data-type="list"] li p:first-of-type, [data-type="list"] li a {
+  font-size: 1.9rem;
+  line-height: 1.9rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1rem 1.5rem;
+  color: #333333;
+}
+
+[data-type="list"] li > a {
+  height: 2rem;
+  padding: 2rem 1.5rem;
+}
+
+[data-type="list"] li > a.menu-item:after {
+  font-family: "gaia-icons";
+  content: "forward-light";
+  left: auto; /* overrides lists.css */
+  right: 2.2rem;
+  font-size: 25px;
+  line-height: 6rem;
+  color: #657073;
+}
+
+[data-type="list"] li > a.menu-item:active:after {
+  /* the background specified in shared lists.css is semi-transparent
+     so you'd see extra background on the icon if we don't disable it */
+  background: none;
+}
+
+[data-type="list"] li > a.menu-item:active {
+  background-color: #b2f2ff;
+  color: #222;
+}
+
+#panel-ud-wordlist #ud-wordlist-noword {
+  font-size: 1.9rem;
+  font-weight: 400;
+  margin: 4rem 2rem;
+  color: #333333;
+
+  display: none;
+}
+
+#panel-ud-wordlist.empty #ud-wordlist-noword {
+  display: block;
+}
+
+#panel-ud-wordlist.empty section {
+  display: none;
+}
+
+#panel-ud-editword #ud-editword-add-header {
+  display: none;
+}
+
+#panel-ud-editword.add-mode #ud-editword-add-header {
+  display: block;
+}
+
+#panel-ud-editword.add-mode #ud-editword-edit-header {
+  display: none;
+}
+
+#panel-ud-editword.add-mode #ud-editword-delete-btn {
+  display: none;
+}
+
+#ud-editword-container {
+  padding: 3rem 0;
+}
+
+#ud-editword-container div {
+  padding: 0 1.5rem;
 }
