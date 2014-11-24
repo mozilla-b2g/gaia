@@ -22,11 +22,26 @@ define(function(require) {
             panel.querySelector('[data-setting="tethering.wifi.ssid"]'),
           backBtn: panel.querySelector('button[type="reset"]')
         };
+
+        this._initSecurityOptions();
       },
 
       onBeforeShow: function(panel, options) {
         hotspotSettings = options.settings;
         this._initWifiSettingsDialog();
+      },
+
+      _initSecurityOptions: function() {
+        var types = ['open', 'wpa-psk', 'wpa2-psk'];
+        types.forEach((type) => {
+          var prefix = (type === 'open') ? '\u202b' : '\u202a' ;
+          var suffix = '\u202c';
+          var option = document.createElement('option');
+          option.value = type;
+          option.innerHTML = prefix +
+            navigator.mozL10n.get('hotspot-'+ type) + suffix;
+          elements.securityTypeSelector.appendChild(option);
+        });
       },
 
       _initWifiSettingsDialog: function() {
