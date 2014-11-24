@@ -26,6 +26,7 @@ section[role="region"] {
   height: 100%;
   border: 0;
   overflow: hidden;
+  z-index: 1;
 }
 
 /**
@@ -55,6 +56,19 @@ section[role="region"].previous {
 section[role="region"].current {
   transform: translateX(0);
   visibility: visible;
+}
+
+/**
+ * We have to make icon-back as a `x` icon
+ * Notice, we have to differenate with section[data-dialog] to make sure
+ * we won't mess up the style together.
+ */
+.skin-organic section.dialog > header:first-child .icon.icon-back {
+  background-image: url(/shared/style/headers/images/icons/organic/close.png);
+}
+
+section.dialog > header:first-child .icon.icon-back {
+  background-image: url(/shared/style/headers/images/icons/close.png);
 }
 
 /**
