@@ -293,6 +293,7 @@ XPCSHELL_GUESS = $(firstword $(wildcard \
     $(XULRUNNER_DIRECTORY)/B2G.app/Contents/MacOS/xpcshell \
     $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell \
     $(XULRUNNER_DIRECTORY)/bin/xpcshell* \
+    $(XULRUNNER_DIRECTORY)/b2g/xpcshell* \
   ))
 ifneq (,$(XPCSHELL_GUESS))
 XPCSHELLSDK := $(abspath $(XPCSHELL_GUESS))
