@@ -93,7 +93,14 @@
       // for now, we only create card element for Application and Deck
       if (card instanceof Application || card instanceof Deck) {
         var manifestURL = card.nativeApp && card.nativeApp.manifestURL;
-        if (!card.cachedIconBlob && !card.cachedIconURL) {
+        if (card.thumbnail) {
+          try {
+            cardThumbnailElem.style.backgroundImage =
+            'url("' + URL.createObjectURL(card.thumbnail) + '")';
+          } catch (e) {
+            cardThumbnailElem.style.background = 'white';
+          }
+        } else if (!card.cachedIconBlob && !card.cachedIconURL) {
           this.cardManager.getIconBlob({
             manifestURL: manifestURL,
             entryPoint: card.entryPoint,
