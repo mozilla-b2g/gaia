@@ -49,7 +49,7 @@ Icon.prototype = {
   // element dataset and allow us to uniquely look up the Icon object from
   // the HTML element.
   _descriptorIdentifiers: ['manifestURL', 'entry_point', 'bookmarkURL',
-                           'useAsyncPanZoom', 'desiredPos', 'desiredScreen',
+                           'desiredPos', 'desiredScreen',
                            'type'],
 
   /**

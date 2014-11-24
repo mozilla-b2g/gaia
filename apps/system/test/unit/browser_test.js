@@ -49,7 +49,6 @@ suite('system/Browser', function() {
 
     assert.equal(MockAppWindowHelper.mInstances.length, 1);
     var app = MockAppWindowHelper.mLatest;
-    assert.equal(app.useAsyncPanZoom, true);
     assert.equal(app.oop, true);
     assert.equal(app.url, 'http://arandomurl.com/');
     assert.equal(app.origin, 'http://arandomurl.com/');

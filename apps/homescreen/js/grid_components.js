@@ -46,8 +46,6 @@ var GridItem = function GridItem(params) {
   if (params.apps) {
     this.manifest.apps = params.apps;
   }
-
-  this.useAsyncPanZoom = 'useAsyncPanZoom' in params && params.useAsyncPanZoom;
 };
 
 GridItem.prototype = {
@@ -65,7 +63,6 @@ GridItem.prototype = {
       name: this.getName(),
       icon: this.getIcon(),
       remote: true,
-      useAsyncPanZoom: this.useAsyncPanZoom,
       features: this.features
     };
   },
@@ -92,7 +89,6 @@ GridItem.prototype = {
       name: this.getName(),
       icon: this.getIcon(),
       iconable: this.iconable,
-      useAsyncPanZoom: this.useAsyncPanZoom,
       type: this.type
     };
 
