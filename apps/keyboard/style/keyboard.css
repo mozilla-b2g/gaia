@@ -46,6 +46,7 @@ button::-moz-focus-inner {
 .keyboard-row {
   text-align: center;
   font-size: 0;
+  display: flex;
 }
 .row1 {
   background-color: #5b6668;
@@ -93,6 +94,7 @@ button::-moz-focus-inner {
   /* In case the keys are nested, for example in the alt char menu,
      they need to be tappable. */
   pointer-events: auto;
+  flex: auto;
 }
 
 /* Visible keys */
@@ -144,7 +146,7 @@ button::-moz-focus-inner {
   background-color: #00aacc;
   visibility: hidden;
 
-  /* To override the text-align in .float-key-first and .float-key-last */
+  /* To override the text-align in .keyboard-key:first-child or :last-child */
   text-align: center;
 }
 
@@ -616,10 +618,10 @@ bubble above the key when you tap and hold. */
 
 /* Increase tap area for first / last keys in a row that
   doesn't fill full width */
-.keyboard-key.float-key-first {
+.keyboard-key:first-child {
   text-align: right;
 }
-.keyboard-key.float-key-last {
+.keyboard-key:last-child {
   text-align: left;
 }
 

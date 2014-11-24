@@ -79,6 +79,16 @@ HandwritingPadView.prototype._getPressPoint =
     };
   };
 
+HandwritingPadView.prototype.resize = function resize(width, height) {
+  var canvas = this.element;
+
+  canvas.width = width * window.devicePixelRatio;
+  canvas.style.width = width + 'px';
+
+  canvas.height = height * window.devicePixelRatio;
+  canvas.style.height = height + 'px';
+};
+
 exports.HandwritingPadView = HandwritingPadView;
 
 })(window);

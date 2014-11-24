@@ -13,19 +13,21 @@ function LayoutPageView(layout, options, viewManager) {
   this.options = options;
   this.viewManager = viewManager;
   this.isUpperCase = undefined;
+
+  this.rows = new Map();
+  // Each row would contain the following info:
+  //{ element:   ,  // DOM element for this row
+  //  keys:      ,  // A map to store all the keys.
+  //}
 }
 
 LayoutPageView.prototype.render = function render() {
   var layout = this.layout;
-
-  var layoutWidth = layout.width || 10;
-  var placeHolderWidth = this.options.totalWidth / layoutWidth;
-
   var content = document.createDocumentFragment();
 
   var container = document.createElement('div');
-  if (this.options.classList) {
-    container.classList.add.apply(container.classList, this.options.classList);
+  if (this.options.classNames) {
+    container.classList.add.apply(container.classList, this.options.classNames);
   }
 
   if (layout.specificCssRule) {
@@ -42,6 +44,7 @@ LayoutPageView.prototype.render = function render() {
                                                     this.viewManager);
     handwritingPadView.render();
     content.appendChild(handwritingPadView.element);
+    this.handwritingPadView = handwritingPadView;
   }
 
   layout.keys.forEach((function buildKeyboardRow(row, nrow) {
@@ -54,18 +57,46 @@ LayoutPageView.prototype.render = function render() {
       kbRow.classList.add('keyboard-last-row');
     }
 
-    row.forEach((function buildKeyboardColumns(key) {
+    var keyCount = 0;
+    var keyMap = new Map();
+
+    // Calculate the layout width for each row first.
+    row.forEach(function calcRowRatio(key, keyIndex) {
       var ratio = key.ratio || 1;
       rowLayoutWidth += ratio;
+    });
+
+    if ('handwritingPadOptions' in layout &&
+        nrow < layout.handwritingPadOptions.rowspan) {
+      rowLayoutWidth += layout.handwritingPadOptions.ratio;
+    }
+
+    row.forEach((function buildKeyboardColumns(key, keyIndex) {
+      var ratio = key.ratio || 1;
 
       // One key in layout may be used to create multiple keyViews in
       // different pages, so create a unique instance here.
       var target = Object.freeze(Object.create(key));
+
       var options = {
-        keyClassName: layout.keyClassName,
+        classNames: [],
         outputChar: key.uppercaseValue,
-        keyWidth: (placeHolderWidth * ratio)
+        outerRatio: ratio,
+        innerRatio: ratio
       };
+
+      if (layout.keyClassName) {
+        options.classNames = options.classNames.concat(
+          layout.keyClassName.split(' '));
+      }
+
+      var layoutWidth = layout.width || 10;
+      // Adjust the width of the first and the last key if there are less keys
+      // in this row.
+      if (layoutWidth != rowLayoutWidth &&
+          (keyIndex === 0 || keyIndex === row.length - 1)) {
+        options.outerRatio = ratio + ((layoutWidth - rowLayoutWidth) / 2);
+      }
 
       if (layout.secondLayout) {
         options.altOutputChar = key.value;
@@ -74,14 +105,16 @@ LayoutPageView.prototype.render = function render() {
       var keyView = new KeyView(target, options, this.viewManager);
       keyView.render();
       kbRow.appendChild(keyView.element);
+
+      keyMap.set(keyCount, keyView);
+      keyCount++;
     }.bind(this)));
 
-    if ('handwritingPadOptions' in layout &&
-        nrow < layout.handwritingPadOptions.rowspan) {
-      rowLayoutWidth += layout.handwritingPadOptions.ratio;
-    }
 
-    kbRow.dataset.layoutWidth = rowLayoutWidth;
+    this.rows.set(nrow, {
+      element: kbRow,
+      keys: keyMap
+    });
 
     content.appendChild(kbRow);
   }).bind(this));
@@ -152,6 +185,43 @@ LayoutPageView.prototype.highlightKey = function highlightKey(target) {
 LayoutPageView.prototype.unHighlightKey = function unHighlightKey(target) {
   var keyView = this.viewManager.getView(target);
   keyView.unHighlight();
+};
+
+LayoutPageView.prototype.resize = function resize(totalWidth) {
+  // Set width and height for handwriting pad.
+  if (this.handwritingPadView) {
+    var placeHolderWidth = totalWidth / (this.layout.width || 10);
+    var width = Math.floor(placeHolderWidth *
+                             this.layout.handwritingPadOptions.ratio);
+
+    // Get row height
+    var height = this.rows.get(0).element.clientHeight *
+                 this.layout.handwritingPadOptions.rowspan;
+    this.handwritingPadView.resize(width, height);
+  }
+};
+
+LayoutPageView.prototype.getVisualData = function getVisualData() {
+  // Now that key sizes have been set and adjusted for the row,
+  // loop again and record the size and position of each. If we
+  // do this as part of the loop above, we get bad position data.
+  // We do this in a seperate loop to avoid reflowing
+  var keyArray = [];
+
+  this.rows.forEach(function (row) {
+    row.keys.forEach(function(keyView) {
+      var visualKey = keyView.element.querySelector('.visual-wrapper');
+      keyArray.push({
+        code: keyView.target.keyCode,
+        x: visualKey.offsetLeft,
+        y: visualKey.offsetTop,
+        width: visualKey.clientWidth,
+        height: visualKey.clientHeight
+      });
+    });
+  });
+
+  return keyArray;
 };
 
 exports.LayoutPageView = LayoutPageView;
