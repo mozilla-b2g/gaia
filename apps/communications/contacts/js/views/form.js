@@ -12,6 +12,7 @@
 /* global TAG_OPTIONS */
 /* global ActionMenu */
 /* global ICEData */
+/* global MergeHelper */
 
 var contacts = window.contacts || {};
 
@@ -936,9 +937,8 @@ contacts.Form = (function() {
       }
     };
 
-    LazyLoader.load(['/shared/js/contacts/contacts_merger.js',
-                     '/shared/js/contacts/merger_adapter.js'], function() {
-      contacts.Merger.merge(contact, list, callbacks);
+    LazyLoader.load('/contacts/js/utilities/merge_helper.js', function() {
+      MergeHelper.merge(contact, list).then(callbacks.success, callbacks.error);
     });
   };
 

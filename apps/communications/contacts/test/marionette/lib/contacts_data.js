@@ -106,7 +106,9 @@ ContactsData.prototype = {
     var contactID;
     client.executeAsyncScript(saveMozContact, [contactData, withPhoto],
       function(err, val) {
-        console.error(err);
+        if (err) {
+          console.error(err);
+        }
         contactID = val;
     });
 
