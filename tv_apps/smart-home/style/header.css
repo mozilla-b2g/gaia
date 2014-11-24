@@ -1,0 +1,20 @@
+.left-top-panel {
+  left: 6rem;
+  top: 4rem;
+  position: absolute;
+}
+
+/**
+ * search button
+ **/
+.search-button {
+  background-image: url('images/ic_search_n.png');
+}
+
+.search-button.pressed {
+  background-image: url('images/ic_search_p.png');
+}
+
+.search-button.focused {
+  background-image: url('images/ic_search_s.png');
+}
