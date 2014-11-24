@@ -1,14 +1,12 @@
 {
-  "name": "pressed",
-  "main": "pressed.js",
-  "version": "0.1.1",
+  "name": "gaia-component",
+  "version": "0.1.3",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
   ],
   "license": "MIT",
   "ignore": [
     "**/.*",
-    "!.jshintrc",
     "node_modules",
     "bower_components",
     "test",
