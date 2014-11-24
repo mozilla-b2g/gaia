@@ -1620,16 +1620,10 @@ var Browser = {
       this.tab.style.left = e.detail.absolute.dx + 'px';
     },
 
-    tap: function tabSwipe_tap(e) {
+    tap: function tabSwipe_tap() {
       if (this.browser.inTransition) {
         return;
       }
-
-      this.isCloseButton = e.target.nodeName === 'BUTTON';
-      this.tab = this.isCloseButton ? e.target.parentNode : e.target;
-      this.id = this.tab.getAttribute('data-id');
-      this.containerWidth = this.tab.parentNode.clientWidth;
-
       if (this.isCloseButton) {
         this.tab.style.left = '0px';
         this.deleteTab(100, this.containerWidth);
