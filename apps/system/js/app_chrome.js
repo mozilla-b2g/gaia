@@ -544,6 +544,14 @@
   };
 
   AppChrome.prototype.useLightTheming = function ac_useLightTheming() {
+    // The rear window should dictate the status bar color when the front
+    // window is a popup.
+    if (this.app.CLASS_NAME == 'PopupWindow' &&
+        this.app.rearWindow &&
+        this.app.rearWindow.appChrome) {
+      return this.app.rearWindow.appChrome.useLightTheming();
+    }
+    // All other cases can use the front window.
     return this.app.element.classList.contains('light');
   };
 
