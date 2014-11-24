@@ -1,26 +1,25 @@
 'use strict';
 
-/* globals NfcConnectSystemDialog, document, MockL10n, MocksHelper,
-   MockService */
+/* globals NfcConnectSystemDialog, document, MockL10n,
+            MockBluetooth  */
 
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/shared/test/unit/mocks/mock_service.js');
-
-var mocksForNfcConnectDialog = new MocksHelper([
-  'Service',
-]).init();
+requireApp('system/test/unit/mock_bluetooth.js');
 
 suite('NfcConnectSystemDialog', function() {
-  mocksForNfcConnectDialog.attachTestHelpers();
+
   var realMozL10n;
+  var realMozBluetooth;
 
   var stubGetElementById;
   var stubQuerySelector;
 
   setup(function(done) {
     realMozL10n = navigator.mozL10n;
+    realMozBluetooth = navigator.mozBluetooth;
 
     navigator.mozL10n = MockL10n;
+    navigator.mozBluetooth = MockBluetooth;
 
     // Stub necessary DOM calls.
     stubGetElementById = this.sinon.stub(document, 'getElementById',
@@ -40,6 +39,7 @@ suite('NfcConnectSystemDialog', function() {
 
   teardown(function() {
     navigator.mozL10n = realMozL10n;
+    navigator.mozBluetooth = realMozBluetooth;
     stubGetElementById.restore();
     stubQuerySelector.restore();
   });
@@ -161,8 +161,7 @@ suite('NfcConnectSystemDialog', function() {
     });
 
     var assertTextContent = function(btEnabled, btName, el, expected) {
-      // mock bt stat
-      MockService.btEnabled = btEnabled;
+      MockBluetooth.enabled = btEnabled;
       nfcDialog.show(btName);
       if (typeof expected === 'string') {
         assert.equal(nfcDialog[el].getAttribute('data-l10n-id'), expected);

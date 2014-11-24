@@ -1,4 +1,3 @@
-/* globals Service */
 'use strict';
 
 (function(exports) {
@@ -18,7 +17,7 @@
   NfcConnectSystemDialog.prototype.DEBUG = false;
 
   NfcConnectSystemDialog.prototype.setMessage = function ncsd_setMessage(name) {
-    var enabled = Service.query('Bluetooth.isEnabled');
+    var enabled = window.navigator.mozBluetooth.enabled;
     var l10nArgs = { deviceName: name };
 
     var msgId;

@@ -4,7 +4,6 @@ var MockService = {
   mTeardown: function() {
     this.runningFTU = false;
     this.mUpgrading = false;
-    this.btEnabled = false;
   },
   lowerCapital: function() {
     return 'a';
@@ -23,8 +22,6 @@ var MockService = {
         return this.mUpgrading;
       case 'getTopMostWindow':
         return this.mTopMostWindow;
-      case 'Bluetooth.isEnabled':
-        return this.btEnabled;
     }
     return undefined;
   },
@@ -35,7 +32,6 @@ var MockService = {
   currentTime: function() {},
   locked: false,
   runningFTU: false,
-  btEnabled: false,
   manifestURL: 'app://system.gaiamobile.org/manifest.webapp',
   currentApp: null
 };

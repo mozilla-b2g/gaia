@@ -99,24 +99,16 @@ suite('system/airplane_mode_service_helper.js', function() {
             settingValue: false
           });
         });
-        sinon.spy(window, 'dispatchEvent');
-      });
-      teardown(function() {
-        window.dispatchEvent.restore();
       });
       test('turn on airplane mode, thus all ".enabled" should be false ' +
         'and all ".suspended" should be true', function() {
           subject.updateStatus(true);
           MockNavigatorSettings.mReplyToRequests();
           services.forEach(function(key) {
-            if (key === 'bluetooth') {
-              assert.ok(window.dispatchEvent.calledTwice);
-            } else {
-              assert.equal(
-                MockNavigatorSettings.mSettings[key + '.enabled'], false);
-              assert.equal(
-                MockNavigatorSettings.mSettings[key + '.suspended'], true);
-            }
+            assert.equal(
+              MockNavigatorSettings.mSettings[key + '.enabled'], false);
+            assert.equal(
+              MockNavigatorSettings.mSettings[key + '.suspended'], true);
           });
       });
     });
@@ -148,10 +140,6 @@ suite('system/airplane_mode_service_helper.js', function() {
           settingValue: true
         });
       });
-      sinon.spy(window, 'dispatchEvent');
-    });
-    teardown(function() {
-      window.dispatchEvent.restore();
     });
     test('turn on all services, then turn on airplane mode, ' +
       'and turn off airplane mode. All ".suspended" and ".enabled" ' +
@@ -159,14 +147,9 @@ suite('system/airplane_mode_service_helper.js', function() {
         subject.updateStatus(false);
         MockNavigatorSettings.mReplyToRequests();
         services.forEach(function(key) {
-          if (key === 'bluetooth') {
-            assert.ok(window.dispatchEvent.calledTwice);
-          } else {
-            assert.equal(MockNavigatorSettings.mSettings[key + '.enabled'],
-              true);
-            assert.equal(
-              MockNavigatorSettings.mSettings[key + '.suspended'], false);
-          }
+          assert.equal(MockNavigatorSettings.mSettings[key + '.enabled'], true);
+          assert.equal(
+            MockNavigatorSettings.mSettings[key + '.suspended'], false);
         });
     });
   });
