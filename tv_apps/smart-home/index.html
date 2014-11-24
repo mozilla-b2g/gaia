@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <title>Home</title>
 
+    <link rel="stylesheet" type="text/css" href="style/header.css">
     <link rel="stylesheet" type="text/css" href="style/home.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
 
@@ -16,6 +17,10 @@
     <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="tv_shared/js/shared_utils.js"></script>
     <script defer src="js/piped_promise.js"></script>
+
+    <!-- building blocks -->
+    <script defer src="/components/smart-button/script.js"></script>
+
     <!-- Shared TV library for keyboard-based navigating -->
     <script defer src="tv_shared/js/selection_border.js"></script>
     <script defer src="tv_shared/js/spatial_navigator.js"></script>
@@ -45,8 +50,8 @@
 
   <body>
     <article role="region" class="skin-dark" id="main-section" contextmenu="mymenu">
-      <section id="clock">
-        <span id="time">10:30</span><span id="day-period" data-l10n-id="time_am">am</span>
+      <section id="header-buttons" class="left-top-panel">
+        <smart-button id="search-button" class="search-button"></smart-button>
       </section>
       <section id="search">
         <div id="search-container" role="button">

@@ -1,0 +1,48 @@
+/**
+ * Button state:
+ *    1. normal
+ *        In this state, we don't add any class.
+ *    2. focused (class name: focused)
+ *        The focused state may be triggered by keyboard or touch/mouse.
+ *    3. pressed (class name: pressed)
+ *        This state is triggered by user pressed confirm button, mousedown,
+ *        and touchdown.
+ *    4. released (class name: released)
+ *        This state is only for changing duration of transition. We enter this
+ *        state when user release the button. After transitionend, we goes back
+ *        to focused state.
+**/
+smart-button {
+  display: inline-block;
+  width: 8rem;
+  height: 8rem;
+  /* we need to set border to none to remove the button border */
+  border: none;
+  /* the radius is still make button as round even if we don't have border */
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  background-repeat: no-repeat;
+  background-size: 5.4rem auto;
+  background-position: center center;
+
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0.42s;
+}
+
+smart-button.focused {
+  outline: 0;
+  background-color: #FFFFFF;
+  transform: scale(1.2);
+  transition-duration: 0.42s;
+}
+
+smart-button.released {
+  transition-duration: 0.16s;
+}
+
+smart-button.pressed {
+  background-color: #00caf2;
+  transform: scale(0.8);
+  transition-duration: 0.06s;
+}
