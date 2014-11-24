@@ -123,8 +123,8 @@ var CallScreen = {
                                         this.toggleSpeaker.bind(this));
     this.bluetoothButton.addEventListener('click',
                                           this.toggleBluetoothMenu.bind(this));
-    this.holdButton.addEventListener('click',
-                               CallsHandler.holdOrResumeSingleCall.bind(this));
+    this.holdButton.addEventListener(
+      'click', CallsHandler.holdOrResumeCallByUser);
     this.mergeButton.addEventListener('click',
                                       CallsHandler.mergeCalls.bind(this));
     this.answerButton.addEventListener('click',
@@ -320,10 +320,8 @@ var CallScreen = {
     this.toggleBluetoothMenu(false);
   },
 
-  toggleOnHold: function cs_toggleOnHold() {
-    this.holdButton.classList.toggle('active-state',
-      navigator.mozTelephony.active ||
-      navigator.mozTelephony.conferenceGroup.state == 'holding');
+  setShowIsHeld: function cs_setShowIsHeld(enabled) {
+    this.holdButton.classList.toggle('active-state', enabled);
   },
 
   // when BT device available: switch to BT
