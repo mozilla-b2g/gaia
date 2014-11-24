@@ -1,4 +1,4 @@
-/* global AppWindow, AppChrome, MocksHelper, MockL10n,
+/* global AppWindow, AppChrome, MocksHelper, MockL10n, PopupWindow,
           MockModalDialog, MockService */
 /* exported MockBookmarksDatabase */
 'use strict';
@@ -531,6 +531,20 @@ suite('system/AppChrome', function() {
       assert.isTrue(stubRequestAnimationFrame.called);
       assert.isTrue(app.element.classList.contains('light'));
       assert.isTrue(chrome.useLightTheming());
+      assert.isTrue(appPublishStub.called);
+      assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
+    });
+
+    test('popup window will use rear window color theme', function() {
+      var popup = new PopupWindow(fakeWebSite);
+      var popupChrome = new AppChrome(popup);
+      chrome.setThemeColor('black');
+      popupChrome.setThemeColor('white');
+      popup.appChrome = popupChrome;
+      app.appChrome = chrome;
+      popup.rearWindow = app;
+      assert.isTrue(stubRequestAnimationFrame.called);
+      assert.isTrue(popupChrome.useLightTheming());
       assert.isTrue(appPublishStub.called);
       assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
     });
