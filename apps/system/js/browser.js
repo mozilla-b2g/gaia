@@ -1,4 +1,4 @@
-/* global UrlHelper, BrowserConfigHelper */
+/* global UrlHelper, AppWindow, BrowserConfigHelper */
 
 (function() {
 
@@ -8,9 +8,9 @@
     var config = new BrowserConfigHelper({url: url});
     config.useAsyncPanZoom = true;
     config.oop = true;
-    window.dispatchEvent(new CustomEvent('openwindow', {
-      detail: config
-    }));
+    var newApp = new AppWindow(config);
+
+    newApp.requestOpen();
   }
 
   function handleActivity(activity) {
