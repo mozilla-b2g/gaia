@@ -344,9 +344,10 @@
 
   position: relative;
   top: -0.8rem;
+  transition: opacity 0.25s;
 }
 
-.edit-mode.dragging::after {
+.edit-mode.hover-over-top::after {
   opacity: 1;
 }
 

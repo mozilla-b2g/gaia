@@ -80,5 +80,17 @@ marionette('Vertical - Collection', function() {
       'items are on the same x-axis');
     assert.ok(firstWebPosition.y > firstPinnedPosition.y,
       'the web result is below the pinned item');
+
+    // Bug 1096538 - Ensure you can't drag the item to the top to create a
+    // new section.
+    var firstIcon = client.findElement(selectors.firstPinnedResult);
+
+    actions.longPress(firstIcon, 1).perform();
+    var headerText =
+      client.helper.waitForElement(Home2.Selectors.editHeaderText);
+
+    actions.press(firstIcon).wait(1).move(headerText).release().perform();
+    assert.equal(client.findElements(selectors.allDividers).length, 1,
+                 'there is only one divider');
   });
 });

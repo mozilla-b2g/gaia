@@ -324,7 +324,8 @@
       // Find the icon with the closest X/Y position of the move,
       // and insert ours before it.
       var foundIndex = 0;
-      var insertDividerAtTop = !iconIsDivider;
+      var insertDividerAtTop =
+        !iconIsDivider && !this.gridView.config.features.disableSections;
       pageX += this.gridView.layout.gridItemWidth / 2;
       pageY += this.icon.pixelHeight / 2;
       if (pageY >= 0) {
