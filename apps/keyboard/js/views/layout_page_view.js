@@ -13,6 +13,13 @@ function LayoutPageView(layout, options, viewManager) {
   this.options = options;
   this.viewManager = viewManager;
   this.isUpperCase = undefined;
+
+  this.rows = new Map();
+  // Each row would contain the following info:
+  //{ width: '10',  // the width ratio of this row.
+  //  element:   ,  // DOM element for this row
+  //  keys:      ,  // A map to store all the keys.
+  //}
 }
 
 LayoutPageView.prototype.render = function render() {
@@ -54,18 +61,33 @@ LayoutPageView.prototype.render = function render() {
       kbRow.classList.add('keyboard-last-row');
     }
 
-    row.forEach((function buildKeyboardColumns(key) {
+    var keyCount = 0;
+    var keyMap = new Map();
+
+    row.forEach((function buildKeyboardColumns(key, keyIndex) {
       var ratio = key.ratio || 1;
       rowLayoutWidth += ratio;
 
       // One key in layout may be used to create multiple keyViews in
       // different pages, so create a unique instance here.
       var target = Object.freeze(Object.create(key));
+
       var options = {
-        keyClassName: layout.keyClassName,
+        classList: [],
         outputChar: key.uppercaseValue,
         keyWidth: (placeHolderWidth * ratio)
       };
+
+      if (layout.keyClassName) {
+        options.classList = options.classList.concat(
+          layout.keyClassName.split(' '));
+      }
+
+      if (keyIndex === 0) {
+        options.classList.push('float-key-first');
+      } else if (keyIndex === row.length - 1) {
+        options.classList.push('float-key-last');
+      }
 
       if (layout.secondLayout) {
         options.altOutputChar = key.value;
@@ -74,6 +96,9 @@ LayoutPageView.prototype.render = function render() {
       var keyView = new KeyView(target, options, this.viewManager);
       keyView.render();
       kbRow.appendChild(keyView.element);
+
+      keyMap.set(keyCount, keyView);
+      keyCount++;
     }.bind(this)));
 
     if ('handwritingPadOptions' in layout &&
@@ -82,6 +107,11 @@ LayoutPageView.prototype.render = function render() {
     }
 
     kbRow.dataset.layoutWidth = rowLayoutWidth;
+    this.rows.set(nrow, {
+      width: rowLayoutWidth,
+      element: kbRow,
+      keys: keyMap
+    });
 
     content.appendChild(kbRow);
   }).bind(this));
@@ -152,6 +182,67 @@ LayoutPageView.prototype.highlightKey = function highlightKey(target) {
 LayoutPageView.prototype.unHighlightKey = function unHighlightKey(target) {
   var keyView = this.viewManager.getView(target);
   keyView.unHighlight();
+};
+
+LayoutPageView.prototype.resize = function resize(totalWidth) {
+  var layoutWidth = this.layout.width || 10;
+  var placeHolderWidth = totalWidth / layoutWidth;
+
+  this.rows.forEach(function(row, rIx) {
+    row.keys.forEach(function(keyView, kIx) {
+      var wrapperRatio = keyView.target.ratio || 1;
+      var keyRatio = wrapperRatio;
+
+      // First and last keys should fill up space
+      if (kIx === 0 ||
+          kIx === row.keys.size - 1) {
+        keyRatio = wrapperRatio + ((layoutWidth - row.width) / 2);
+      }
+
+      keyView.resize((placeHolderWidth | 0) * keyRatio,
+                     (placeHolderWidth | 0) * wrapperRatio);
+    }, this);
+  }, this);
+
+  // Set width and height for handwriting pad.
+  /*
+  if ('handwritingPadOptions' in layout) {
+    var canvas = activeIme.querySelectorAll('.handwriting-pad')[0];
+
+    var width = Math.floor(placeHolderWidth *
+        layout.handwritingPadOptions.ratio);
+    canvas.width = width * window.devicePixelRatio;
+    canvas.style.width = width + 'px';
+
+    var rowHeight = rows[0].clientHeight;
+    var height = Math.floor(rowHeight * layout.handwritingPadOptions.rowspan);
+    canvas.height = height * window.devicePixelRatio;
+    canvas.style.height = height + 'px';
+  }
+  */
+};
+
+LayoutPageView.prototype.getVisualData = function getVisualData() {
+  // Now that key sizes have been set and adjusted for the row,
+  // loop again and record the size and position of each. If we
+  // do this as part of the loop above, we get bad position data.
+  // We do this in a seperate loop to avoid reflowing
+  var keyArray = [];
+
+  this.rows.forEach(function (row) {
+    row.keys.forEach(function(keyView) {
+      var visualKey = keyView.element.querySelector('.visual-wrapper');
+      keyArray.push({
+        code: keyView.target.keyCode,
+        x: visualKey.offsetLeft,
+        y: visualKey.offsetTop,
+        width: visualKey.clientWidth,
+        height: visualKey.clientHeight
+      });
+    });
+  });
+
+  return keyArray;
 };
 
 exports.LayoutPageView = LayoutPageView;

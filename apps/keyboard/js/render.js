@@ -500,79 +500,8 @@ var IMERender = (function() {
     // 2. getVisualData (stores visual offsets in internal array)
     // these are seperated into separate groups because they do similar
     // operations and minimizing reflow causes because of this
-    function setKeyWidth() {
-      [].forEach.call(rows, function(rowEl, rIx) {
-        var rowLayoutWidth = parseInt(rowEl.dataset.layoutWidth, 10);
-        var keysInRow = rowEl.childNodes.length;
-
-        [].forEach.call(rowEl.childNodes, function(keyEl, kIx) {
-          var key = layout.keys[rIx][kIx];
-          var wrapperRatio = key.ratio || 1;
-          var keyRatio = wrapperRatio;
-
-          // First and last keys should fill up space
-          if (kIx === 0) {
-            keyEl.classList.add('float-key-first');
-            keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
-          }
-          else if (kIx === keysInRow - 1) {
-            keyEl.classList.add('float-key-last');
-            keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
-          }
-
-          keyEl.style.width = (placeHolderWidth | 0) * keyRatio + 'px';
-
-          // Default aligns 100%, if they differ set width on the wrapper
-          if (keyRatio !== wrapperRatio) {
-            var wrapperEl = keyEl.querySelector('.visual-wrapper');
-            wrapperEl.style.width =
-              (placeHolderWidth * wrapperRatio | 0) + 'px';
-          }
-        });
-      });
-
-      requestAnimationFrame(getVisualData);
-    }
-
-    function getVisualData() {
-      // Now that key sizes have been set and adjusted for the row,
-      // loop again and record the size and position of each. If we
-      // do this as part of the loop above, we get bad position data.
-      // We do this in a seperate loop to avoid reflowing
-      for (var r = 0, row; row = rows[r]; r++) {
-        for (var k = 0, key; key = row.childNodes[k]; k++) {
-          var visualKey = key.querySelector('.visual-wrapper');
-          _keyArray.push({
-            code: renderingManager.getTargetObject(key).keyCode,
-            x: visualKey.offsetLeft,
-            y: visualKey.offsetTop,
-            width: visualKey.clientWidth,
-            height: visualKey.clientHeight
-          });
-        }
-      }
-
-      candidateUnitWidth =
-        Math.floor(ime.clientWidth / numberOfCandidatesPerRow);
-
-      [].forEach.call(
-        ime.querySelectorAll('.candidate-row span'),
-        function(item) {
-          var unit = (item.textContent.length >> 1) + 1;
-          if (inputMethodName == 'vietnamese') {
-            unit = 1;
-          }
-          item.style.width = (unit * candidateUnitWidth - 2) + 'px';
-        }
-      );
-
-      if (callback) {
-        callback();
-      }
-    }
-
+    //
     var changeScale;
-
     // Font size recalc
     if (screenInPortraitMode()) {
       changeScale = cachedWindowWidth / 32;
@@ -586,8 +515,6 @@ var IMERender = (function() {
       ime.classList.add('landscape');
     }
 
-    _keyArray = [];
-
     // Width calc
     if (!layout || !activeIme) {
       return;
@@ -599,29 +526,29 @@ var IMERender = (function() {
         item.style.width = '';
       });
 
-    layoutWidth = layout.width || 10;
     // Hack alert! we always use 100% of width so we avoid calling
     // keyboard.clientWidth because that causes a costy reflow...
-    var totalWidth = cachedWindowWidth;
-    var placeHolderWidth = totalWidth / layoutWidth;
-    var rows = activeIme.querySelectorAll('.keyboard-row');
+    currentPageView.resize(cachedWindowWidth);
 
-    setKeyWidth();
+    // Resize candidatePanel
+    candidateUnitWidth =
+      Math.floor(ime.clientWidth / numberOfCandidatesPerRow);
 
-    // Set width and height for handwriting pad.
-    if ('handwritingPadOptions' in layout) {
-      var canvas = activeIme.querySelectorAll('.handwriting-pad')[0];
+    [].forEach.call(ime.querySelectorAll('.candidate-row span'),
+        function(item) {
+          var unit = (item.textContent.length >> 1) + 1;
+          if (inputMethodName == 'vietnamese') {
+            unit = 1;
+          }
+          item.style.width = (unit * candidateUnitWidth - 2) + 'px';
+        });
 
-      var width = Math.floor(placeHolderWidth *
-                             layout.handwritingPadOptions.ratio);
-      canvas.width = width * window.devicePixelRatio;
-      canvas.style.width = width + 'px';
-
-      var rowHeight = rows[0].clientHeight;
-      var height = Math.floor(rowHeight * layout.handwritingPadOptions.rowspan);
-      canvas.height = height * window.devicePixelRatio;
-      canvas.style.height = height + 'px';
-    }
+    window.requestAnimationFrame(function() {
+      _keyArray = currentPageView.getVisualData();
+      if (callback) {
+        callback();
+      }
+    });
   };
 
   //
