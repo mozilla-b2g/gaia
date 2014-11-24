@@ -314,7 +314,7 @@ var CallsHandler = (function callsHandler() {
         } else {
           document.body.classList.toggle('no-handled-calls', false);
         }
-      }, timeout);
+      }, CallScreen.callEndPromptTime);
     }
   }
 
