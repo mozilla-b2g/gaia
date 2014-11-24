@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+
 from gaiatest.apps.base import Base
 
 
@@ -29,6 +30,7 @@ class Settings(Base):
     _accessibility_menu_item_locator = (By.ID, 'menuItem-accessibility')
     _cell_data_menu_item_locator = (By.ID, 'menuItem-cellularAndData')
     _bluetooth_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-bluetooth')
+    _sound_menu_item_locator = (By.ID, 'menuItem-sound')
     _keyboard_menu_item_locator = (By.ID, "menuItem-keyboard")
     _language_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-languageAndRegion')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
@@ -131,6 +133,11 @@ class Settings(Base):
         bluetooth_menu_item = self.marionette.find_element(*self._bluetooth_menu_item_locator)
         self._tap_menu_item(self._bluetooth_menu_item_locator)
         return Bluetooth(self.marionette)
+
+    def open_sound_settings(self):
+        from gaiatest.apps.settings.regions.sound import Sound
+        self._tap_menu_item(self._sound_menu_item_locator)
+        return Sound(self.marionette)
 
     def open_keyboard_settings(self):
         from gaiatest.apps.settings.regions.keyboard import Keyboard
