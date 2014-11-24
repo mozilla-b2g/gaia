@@ -132,6 +132,8 @@
   SimLockSystemDialog.prototype._registerEvents = function() {
     this.dialogDone.onclick = this.verify.bind(this);
     this.dialogSkip.onclick = this.skip.bind(this);
+    this.dialogDone.onmousedown = this._handle_mousedown.bind(this);
+    this.dialogSkip.onmousedown = this._handle_mousedown.bind(this);
     this.header.addEventListener('action', this.back.bind(this));
     this.pinInput = this.getNumberPasswordInputField('simpin');
     this.pukInput = this.getNumberPasswordInputField('simpuk');
@@ -365,6 +367,10 @@
       this.confirmPinArea.hidden = !isNewPin;
       this.requestFocus();
     };
+
+  SimLockSystemDialog.prototype._handle_mousedown = function(evt) {
+    evt.preventDefault();
+  };
 
   SimLockSystemDialog.prototype.verify = function() {
     if (this.lockType === 'pin') {

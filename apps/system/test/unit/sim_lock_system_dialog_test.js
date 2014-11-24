@@ -49,6 +49,20 @@ suite('sim lock dialog', function() {
     stubById.restore();
   });
 
+  test('done: should prevent default to keep keyboard open', function() {
+    var fakeMouseDownEvt = new CustomEvent('mousedown');
+    this.sinon.stub(fakeMouseDownEvt, 'preventDefault');
+    subject.dialogDone.dispatchEvent(fakeMouseDownEvt);
+    assert.isTrue(fakeMouseDownEvt.preventDefault.called);
+  });
+
+  test('skip: should prevent default to keep keyboard open', function() {
+    var fakeMouseDownEvt = new CustomEvent('mousedown');
+    this.sinon.stub(fakeMouseDownEvt, 'preventDefault');
+    subject.dialogSkip.dispatchEvent(fakeMouseDownEvt);
+    assert.isTrue(fakeMouseDownEvt.preventDefault.called);
+  });
+
   test('requestFocus should be called when inputFieldControl is called',
     function() {
       this.sinon.stub(subject, 'requestFocus');
