@@ -230,6 +230,7 @@
         this.element.setAttribute('aria-hidden', !visible);
       } catch (e) {
         console.log(e);
+        throw new Error('bug 1102794');
       }
     };
 
