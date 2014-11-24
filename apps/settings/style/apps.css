@@ -34,7 +34,7 @@
 html[dir="rtl"] #appPermissions ul li img,
 html[dir="rtl"] #homescreens ul li img {
   margin-left: 1.4rem;
-  margin-right: auto;
+  margin-right: -3rem;
 }
 
 /**
