@@ -33,7 +33,9 @@ define(function(require) {
       },
       onBeforeShow: function(panel, options) {
         this._cleanupApList();
-        this._updateApList(options.wpsAvailableNetworks);
+        options.wpsAvailableNetworks().then((networks) => {
+          this._updateApList(networks);
+        });
       },
       onBeforeHide: function() {
         // Store information on the context to make them accessible from
