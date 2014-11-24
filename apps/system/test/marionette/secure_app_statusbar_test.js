@@ -30,6 +30,7 @@ marionette('Secure app (camera from lockscreen) statusbar icons', function() {
     statusbar = new StatusBar(client);
 
     system.waitForStartup();
+    lockscreen.setEnable(true);
   });
 
   function launchApp(url) {
@@ -41,7 +42,9 @@ marionette('Secure app (camera from lockscreen) statusbar icons', function() {
     statusbar.waitForAppear();
     launchApp('app://fullscreen_request.gaiamobile.org');
     statusbar.waitForDisappear();
-    lockscreen.relock();
+    client.executeScript(function() {
+      window.wrappedJSObject.lockScreenWindowManager.openApp();
+    });
     statusbar.waitForAppear();
   });
 
