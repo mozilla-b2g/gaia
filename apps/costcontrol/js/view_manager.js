@@ -1,4 +1,4 @@
-/* global AccessibilityHelper */
+/* global AccessibilityHelper, LazyLoader */
 /* exported ViewManager */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
@@ -124,72 +124,63 @@ var ViewManager = (function() {
       return;
     }
 
-    // apply the HTML markup stored in the first comment node
-    for (var idx = 0; idx < panel.childNodes.length; idx++) {
-      if (panel.childNodes[idx].nodeType == document.COMMENT_NODE) {
-        // XXX: Note we use innerHTML precisely because we need to parse the
-        // content and we want to avoid overhead introduced by DOM
-        // manipulations.
-        panel.innerHTML = panel.childNodes[idx].nodeValue;
-        break;
+    LazyLoader.load(panel, function() {
+      var styles = panel.querySelectorAll('link');
+      var scripts = panel.querySelectorAll('script');
+
+      var styleCount = styles.length;
+      var scriptCount = scripts.length;
+      var assetsRemaining = styleCount + scriptCount;
+
+      //activate all styles
+      for (var i = 0; i < styleCount; i++) {
+        var styleHref = styles[i].href;
+        if (!document.getElementById(styleHref)) {
+          var style = document.createElement('link');
+          style.href = style.id = styleHref;
+          style.rel = 'stylesheet';
+          style.type = 'text/css';
+          style.media = 'all';
+          style.onload = onAssetLoaded;
+          document.head.appendChild(style);
+        }
       }
-    }
 
-    var styles = panel.querySelectorAll('link');
-    var scripts = panel.querySelectorAll('script');
-
-    var styleCount = styles.length;
-    var scriptCount = scripts.length;
-    var assetsRemaining = styleCount + scriptCount;
-
-    //activate all styles
-    for (var i = 0; i < styleCount; i++) {
-      var styleHref = styles[i].href;
-      if (!document.getElementById(styleHref)) {
-        var style = document.createElement('link');
-        style.href = style.id = styleHref;
-        style.rel = 'stylesheet';
-        style.type = 'text/css';
-        style.media = 'all';
-        style.onload = onAssetLoaded;
-        document.head.appendChild(style);
+      // activate all scripts
+      for (var j = 0; j < scriptCount; j++) {
+        var src = scripts[j].getAttribute('src');
+        if (!document.getElementById(src)) {
+          var script = document.createElement('script');
+          script.type = 'application/javascript';
+          script.src = script.id = src;
+          script.onload = onAssetLoaded;
+          document.head.appendChild(script);
+        }
       }
-    }
 
-    // activate all scripts
-    for (var j = 0; j < scriptCount; j++) {
-      var src = scripts[j].getAttribute('src');
-      if (!document.getElementById(src)) {
-        var script = document.createElement('script');
-        script.type = 'application/javascript';
-        script.src = script.id = src;
-        script.onload = onAssetLoaded;
-        document.head.appendChild(script);
-      }
-    }
-
-    //add listeners
-    var headers = panel.querySelectorAll('gaia-header[action="close"]');
-    [].forEach.call(headers, function(headerWithClose) {
-      headerWithClose.addEventListener('action', function() {
-        window.parent.location.hash = '#';
+      //add listeners
+      var headers = panel.querySelectorAll('gaia-header[action="close"]');
+      [].forEach.call(headers, function(headerWithClose) {
+        headerWithClose.addEventListener('action', function() {
+          window.parent.location.hash = '#';
+        });
       });
-    });
 
-    panel.hidden = false;
+      panel.hidden = false;
 
-    checkCallback();
-
-    function checkCallback() {
-      if (assetsRemaining === 0 && typeof callback === 'function') {
-        callback();
-      }
-    }
-
-    function onAssetLoaded() {
-      assetsRemaining--;
       checkCallback();
-    }
+
+      function checkCallback() {
+        if (assetsRemaining === 0 && typeof callback === 'function') {
+          callback();
+        }
+      }
+
+      function onAssetLoaded() {
+        assetsRemaining--;
+        checkCallback();
+      }
+    });
   };
 
   // Close the current view returning to the previous one
