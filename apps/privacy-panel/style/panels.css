@@ -121,6 +121,23 @@ section[data-geolocation="true"][data-ala="true"][data-type="user-defined"] .typ
   opacity: 1;
 }
 
+.panel-link {
+  padding-left: 30px;
+}
+
+.blur-label {
+  padding-top: 5px;
+}
+
+.custom-location-description {
+  min-height: 0;
+}
+
+.custom-location-description p {
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
 /**
  * Guided tour
  */
