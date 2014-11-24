@@ -469,19 +469,42 @@ var Widget = (function() {
 
   function initWidget() {
     var isWaitingForIcc = false;
+    var iccManager = window.navigator.mozIccManager;
+
+    function _addListeners() {
+      console.log('Adding Listeners');
+      iccManager.addEventListener('iccdetected', _onIccEventReceived);
+
+      for (var i=0; i < navigator.mozMobileConnections.length; i++) {
+        var conn = navigator.mozMobileConnections[i];
+        conn.addEventListener('iccchange', _onIccEventReceived);
+      }
+    }
+
+    function _removeListeners() {
+      console.log('removing_listeners ');
+      for (var i=0; i < navigator.mozMobileConnections.length; i++) {
+        var conn = navigator.mozMobileConnections[i];
+        conn.removeEventListener('iccchange', _onIccEventReceived);
+      }
+      iccManager.removeEventListener('iccdetected', _onIccEventReceived);
+    }
+
+
+    function _onIccEventReceived(evt) {
+      console.log('ICC_EVENT_RECEIVED-----------'+evt.type);
+      isWaitingForIcc = false;
+      _removeListeners();
+      SimManager.requestDataSimIcc(checkSIMStatus);
+    }
+
     function waitForIccAndCheckSim() {
       if (!isWaitingForIcc) {
-        var iccManager = window.navigator.mozIccManager;
-        iccManager.addEventListener('iccdetected',
-          function _oniccdetected() {
-            isWaitingForIcc = false;
-            iccManager.removeEventListener('iccdetected', _oniccdetected);
-            SimManager.requestDataSimIcc(checkSIMStatus);
-          }
-        );
+        _addListeners();
         isWaitingForIcc = true;
       }
     }
+
     SimManager.requestDataSimIcc(checkSIMStatus, function _errorNoSim() {
       AirplaneModeHelper.ready(function() {
         waitForIccAndCheckSim();
