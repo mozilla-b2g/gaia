@@ -139,7 +139,6 @@
      * @param {Object} msg gecko originated message
      * @param {Array} msg.records NDEF records
      * @param {Array} msg.techList
-     * @param {string} msg.sessionToken
      * @param {string} msg.type set to 'techDiscovered'
      */
     _handleTechDiscovered: function nm_handleTechDiscovered(msg) {
@@ -151,7 +150,7 @@
       window.dispatchEvent(new CustomEvent('nfc-tech-discovered'));
       window.navigator.vibrate([25, 50, 125]);
 
-      if (NfcHandoverManager.tryHandover(msg.records, msg.sessionToken)) {
+      if (NfcHandoverManager.tryHandover(msg.records, msg.peer)) {
         return;
       }
 
@@ -384,7 +383,6 @@
      * @param {Object} msg
      * @param {Array} msg.records - NDEF Message
      * @param {Array} msg.techList - tech list
-     * @param {string} msg.sessionToken - session token
      * @param {string} tech - tech from tech list with highest priority
      */
     _fireNDEFDiscovered: function nm_fireNDEFDiscovered(msg, tech) {

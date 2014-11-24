@@ -378,10 +378,10 @@ var NfcHandoverManager = {
   /**
    * Performs tha actual handover request
    * @param {Array} ndef NDEF message conating the handover request record
-   * @param {string} session  session token
+   * @param {MozNFCPeer} MozNFCPeer object.
    * @memberof NfcHandoverManager.prototype
    */
-  _doHandoverRequest: function _doHandoverRequest(ndef, session) {
+  _doHandoverRequest: function _doHandoverRequest(ndef, nfcPeer) {
     this._debug('doHandoverRequest');
     if (this._getBluetoothSSP(ndef) == null) {
       /*
@@ -391,8 +391,7 @@ var NfcHandoverManager = {
       return;
     }
 
-    var nfcPeer = this.nfc.getNFCPeer(session);
-    if (nfcPeer === null) {
+    if (nfcPeer.isLost) {
       this._logVisibly('NFC peer went away during doHandoverRequest');
       this._showFailedNotification('transferFinished-receivedFailed-title');
       this._restoreBluetoothStatus();
@@ -594,24 +593,25 @@ var NfcHandoverManager = {
   /**
    * Handles NDEF Handover Request message.
    * @param {Array} ndef NDEF message containing handover request record
+   * @param {MozNFCPeer} MozNFCPeer object.
    * @memberof NfcHandoverManager.prototype
    */
-  _handleHandoverRequest: function _handleHandoverRequest(ndef, session) {
+  _handleHandoverRequest: function _handleHandoverRequest(ndef, nfcPeer) {
     this._debug('_handleHandoverRequest');
     this._saveBluetoothStatus();
-    this._doAction({callback: this._doHandoverRequest, args: [ndef, session]});
+    this._doAction({callback: this._doHandoverRequest, args: [ndef, nfcPeer]});
   },
 
   /**
    * Checks if the first record of NDEF message is a handover record.
    * If yes the NDEF message is handled according to handover record type.
    * @param {Array} ndefMsg array of NDEF records
-   * @param {string} session session token
+   * @param {MozNFCPeer} MozNFCPeer object.
    * @returns {boolean} true if handover record was found and handled, false
    * if no handover record was found
    * @memberof NfcHandoverManager.prototype
    */
-  tryHandover: function(ndefMsg, session) {
+  tryHandover: function(ndefMsg, nfcPeer) {
     this._debug('tryHandover: ', ndefMsg);
     var nfcUtils = new NfcUtils();
     if (!Array.isArray(ndefMsg) || !ndefMsg.length) {
@@ -624,7 +624,7 @@ var NfcHandoverManager = {
         this._handleHandoverSelect(ndefMsg);
         return true;
       } else if (nfcUtils.equalArrays(record.type, NDEF.RTD_HANDOVER_REQUEST)) {
-        this._handleHandoverRequest(ndefMsg, session);
+        this._handleHandoverRequest(ndefMsg, nfcPeer);
         return true;
       }
     } else if ((record.tnf === NDEF.TNF_MIME_MEDIA) &&
