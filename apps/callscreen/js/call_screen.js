@@ -108,8 +108,8 @@ var CallScreen = {
     this.callToolbar.classList.toggle('no-add-call', enabled);
   },
 
-  get inStatusBarMode() {
-    return window.innerHeight <= 40;
+  inStatusBarMode: function cs_inStatusBarMode() {
+    return window.innerHeight <= 50;
   },
 
   init: function cs_init() {
@@ -257,11 +257,12 @@ var CallScreen = {
   resizeHandler: function cs_resizeHandler() {
     // If a user has the keypad opened, we want to display the number called
     // while in status bar mode. And restore the digits typed when exiting.
-    if (!this.body.classList.contains('showKeypad')) {
-      this.updateCallsDisplay(this.inStatusBarMode);
-    } else if (this.inStatusBarMode) {
+    if (this.inStatusBarMode()) {
       this._typedNumber = KeypadManager._phoneNumber;
       KeypadManager.restorePhoneNumber();
+      this.updateCallsDisplay();
+    } else if (!this.body.classList.contains('showKeypad')) {
+      this.updateCallsDisplay();
     } else {
       KeypadManager.updatePhoneNumber(this._typedNumber, 'begin', true);
     }
@@ -576,7 +577,7 @@ var CallScreen = {
 
   getScenario: function cs_getScenario() {
     var scenario;
-    if (this.inStatusBarMode) {
+    if (this.inStatusBarMode()) {
       scenario = FontSizeManager.STATUS_BAR;
     } else if (this.body.classList.contains('single-line')) {
       scenario = FontSizeManager.SINGLE_CALL;

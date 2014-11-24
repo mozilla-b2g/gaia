@@ -352,13 +352,40 @@ var CallsHandler = (function callsHandler() {
   }
 
   function updateAllPhoneNumberDisplays() {
-    handledCalls.forEach(function(call) {
-      if (!call._leftGroup) {
-        call.restorePhoneNumber();
+    if (CallScreen.inStatusBarMode()) {
+      // The call screen is in status bar mode.
+      var callOrHandler = activeCall();
+      if (!callOrHandler) {
+        // There's no 1 to 1 active call.
+        if (telephony.active || (telephony.conferenceGroup &&
+          telephony.conferenceGroup.state === 'held')) {
+          // The active call is a conference call or there's a held conference
+          // call going on.
+          callOrHandler = ConferenceGroupHandler;
+        } else {
+          // There's only one 1 to 1 held call going on.
+          callOrHandler = handledCalls[0];
+        }
       }
-    });
+      if (callOrHandler) {
+        callOrHandler.setStatusBarNotification();
+      }
+    } else {
+      // The call screen is not in status bar mode.
+      // Restore the data of all the 1 to 1 ongoing calls.
+      handledCalls.forEach(function(call) {
+        if (!call._leftGroup) {
+          call.restoreAdditionalContactInfo();
+          call.restorePhoneNumber();
+        }
+      });
+      // Restore the data of the conference call if any.
+      if (telephony.conferenceGroup) {
+        ConferenceGroupHandler.restoreAdditionalContactInfo();
+        ConferenceGroupHandler.restorePhoneNumber();
+      }
+    }
   }
-  window.addEventListener('resize', updateAllPhoneNumberDisplays);
 
   /* === Bluetooth Headset support ===*/
   function handleBTCommand(message) {

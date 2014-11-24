@@ -48,7 +48,7 @@ var Utils = {
     } else {
       l10nId += h > 0 ? 'Hours' : 'Minutes';
     }
- 
+
     navigator.mozL10n.setAttributes(node, l10nId, durationL10n);
   },
 
@@ -100,7 +100,7 @@ var Utils = {
     });
   },
 
-  _getPhoneNumberType: function ut_getPhoneNumberType(matchingTel) {
+  getPhoneNumberType: function ut_getPhoneNumberType(matchingTel) {
     // In case that there is no stored type for this number, we default to
     // "Mobile".
     var type = matchingTel.type;
@@ -131,7 +131,7 @@ var Utils = {
    */
   getPhoneNumberAdditionalInfo:
     function ut_getPhoneNumberAdditionalInfo(matchingTel) {
-    var result = this._getPhoneNumberType(matchingTel);
+    var result = this.getPhoneNumberType(matchingTel);
 
     var carrier = matchingTel.carrier;
     if (carrier) {
@@ -142,6 +142,6 @@ var Utils = {
   },
 
   getPhoneNumberAndType: function ut_getPhoneNumberAndType(matchingTel) {
-    return this._getPhoneNumberType(matchingTel) + ', ' + matchingTel.value;
+    return this.getPhoneNumberType(matchingTel) + ', ' + matchingTel.value;
   }
 };

@@ -1,6 +1,7 @@
-/* globals CallScreen, FontSizeManager, MockCall, MockCallsHandler, Utils,
-           MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
-           MockMozL10n, MocksHelper, MockSettingsListener, performance */
+/* globals CallScreen, FontSizeManager, MockCall, MockCallsHandler,
+           MockKeypadManager, MockHandledCall, MockMozActivity,
+           MockNavigatorMozTelephony, MockMozL10n, MocksHelper,
+           MockSettingsListener, performance, Utils */
 
 'use strict';
 
@@ -764,10 +765,18 @@ suite('call screen', function() {
   });
 
   suite('resizeHandler', function() {
-    test('updateCallsDisplay is called with the right arguments', function() {
-      this.sinon.stub(CallScreen, 'updateCallsDisplay');
+    test('update phone number if keypad is shown', function() {
+        CallScreen.showKeypad();
+        this.sinon.spy(MockKeypadManager, 'updatePhoneNumber');
+        CallScreen.resizeHandler();
+        sinon.assert.calledOnce(MockKeypadManager.updatePhoneNumber);
+    });
+
+    test('update calls display if keypad is not shown', function() {
+      CallScreen.hideKeypad();
+      this.sinon.spy(CallScreen, 'updateCallsDisplay');
       CallScreen.resizeHandler();
-      sinon.assert.calledWith(CallScreen.updateCallsDisplay, false);
+      sinon.assert.calledOnce(CallScreen.updateCallsDisplay);
     });
   });
 

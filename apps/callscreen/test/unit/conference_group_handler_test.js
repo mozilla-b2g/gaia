@@ -33,6 +33,7 @@ suite('conference group handler', function() {
   var fakeDOM;
   var fakeGroupLine;
   var fakeGroupLabel;
+  var fakeGroupSummary;
   var fakeGroupDetails;
   var fakeDurationChildNode;
   var fakeTotalDurationChildNode;
@@ -74,6 +75,7 @@ suite('conference group handler', function() {
     document.body.appendChild(fakeDOM);
     fakeGroupLine = document.getElementById('group-call');
     fakeGroupLabel = document.getElementById('group-call-label');
+    fakeGroupSummary = document.getElementById('group-call-summary');
     fakeGroupDetails = document.getElementById('group-call-details');
     fakeDurationChildNode =
         document.querySelector('#group-call > .duration > span');
@@ -410,6 +412,13 @@ suite('conference group handler', function() {
       this.sinon.spy(MockConferenceGroupUI ,'markCallsAsEnded');
       ConferenceGroupHandler.signalConferenceEnded();
       sinon.assert.calledOnce(MockConferenceGroupUI.markCallsAsEnded);
+    });
+
+    test('setStatusBarNotification()', function() {
+      fakeGroupLabel.textContent = 'Conference (5)';
+      ConferenceGroupHandler.setStatusBarNotification();
+      assert.equal(fakeGroupLabel.textContent, 'activeCall');
+      assert.equal(fakeGroupSummary.textContent, 'Conference (5)');
     });
   });
 });

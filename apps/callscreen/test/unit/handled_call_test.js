@@ -977,4 +977,16 @@ suite('dialer/handled_call', function() {
       });
     });
   });
+
+  suite('setStatusBarNotification', function() {
+    test('should replace the phone number and the additional info', function() {
+      mockCall = new MockCall('888', 'outgoing');
+      subject = new HandledCall(mockCall);
+      this.sinon.spy(subject, 'replacePhoneNumber');
+      this.sinon.spy(subject, 'replaceAdditionalContactInfo');
+      subject.setStatusBarNotification();
+      sinon.assert.calledOnce(subject.replacePhoneNumber);
+      sinon.assert.calledOnce(subject.replaceAdditionalContactInfo);
+    });
+  });
 });

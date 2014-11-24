@@ -58,6 +58,9 @@ MockHandledCall.prototype.show = function hc_show() {
 MockHandledCall.prototype.hide = function hc_hide() {
 };
 
+MockHandledCall.prototype.setStatusBarNotification =
+  function hc_setStatusBarNotification() {};
+
 // Should be called in the context of a suite
 function telephonyAddCall(mockCall, opt) {
   MockNavigatorMozTelephony.calls.push(mockCall);
