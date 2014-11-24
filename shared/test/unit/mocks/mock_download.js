@@ -25,32 +25,17 @@ function MockDownload(params) {
   this.contentType = params.contentType || DEFAULT_PARAMS.contentType;
   this.startTime = params.startTime || DEFAULT_PARAMS.startTime;
   this.error = params.error || DEFAULT_PARAMS.error;
-
-  this.listeners = [];
 }
 
 MockDownload.prototype = {
-  addEventListener: function(type, listener) {
-    if(this.listeners.indexOf(listener) == -1) {
-      this.listeners.push(listener);
-    }
-  },
-
-  removeEventListener: function(type, listener) {
-    var index = this.listeners.indexOf(listener);
-    if (index > -1) {
-      this.listeners.splice(index, 1);
-    }
-  },
-
   pause: function() {
     return {
-      then: function(success, error) { setTimeout(success, 0); }
+      then: function() {}
     };
   },
   resume: function() {
     return {
-      then: function(success, error) { setTimeout(success, 0); }
+      then: function() {}
     };
   }
 };
