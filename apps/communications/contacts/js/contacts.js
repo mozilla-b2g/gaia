@@ -263,10 +263,13 @@ var Contacts = (function() {
     checkCancelableActivity();
   };
 
-  function setupCancelableHeader() {
+  function setupCancelableHeader(alternativeTitle) {
     header.setAttribute('action', 'close');
     settingsButton.hidden = true;
     addButton.hidden = true;
+    if (alternativeTitle) {
+      appTitleElement.setAttribute('data-l10n-id', alternativeTitle);
+    }
     // Trigger the title to re-run font-fit/centering logic
     appTitleElement.textContent = appTitleElement.textContent;
   }
@@ -281,8 +284,8 @@ var Contacts = (function() {
 
   var lastCustomHeaderCallback;
 
-  var setCancelableHeader = function setCancelableHeader(cb) {
-    setupCancelableHeader();
+  var setCancelableHeader = function setCancelableHeader(cb, titleId) {
+    setupCancelableHeader(titleId);
     header.removeEventListener('action', handleCancel);
     lastCustomHeaderCallback = cb;
     header.addEventListener('action', cb);
@@ -295,20 +298,16 @@ var Contacts = (function() {
   };
 
   var checkCancelableActivity = function cancelableActivity() {
-    var selecting = (contactsList && contactsList.isSelecting);
-
     if (ActivityHandler.currentlyHandling) {
-      setupCancelableHeader();
+      var alternativeTitle = null;
       var activityName = ActivityHandler.activityName;
       if (activityName === 'pick' || activityName === 'update') {
-        selecting = true;
+        alternativeTitle = 'selectContact';
       }
+      setupCancelableHeader(alternativeTitle);
     } else {
-        setupActionableHeader();
+      setupActionableHeader();
     }
-
-    var l10nId =  selecting ? 'selectContact' : 'contacts';
-    appTitleElement.setAttribute('data-l10n-id', l10nId);
   };
 
 
