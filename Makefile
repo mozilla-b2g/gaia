@@ -90,7 +90,7 @@ GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 
 # Parallel build for multicores CPU
-P?=0
+P?=1
 
 # Alias
 ifdef GAIA_DPPX
