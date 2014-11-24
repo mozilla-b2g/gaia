@@ -237,6 +237,7 @@ apps/sharedtest/test/unit/wifi_helper_test.js
 apps/system/js/airplane_mode.js
 apps/system/js/app_modal_dialog.js
 apps/system/js/base_ui.js
+apps/system/js/bluetooth.js
 apps/system/js/bluetooth_transfer.js
 apps/system/js/browser_config_helper.js
 apps/system/js/browser_frame.js
