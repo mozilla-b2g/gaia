@@ -6,17 +6,25 @@ from marionette.by import By
 from gaiatest.apps.phone.app import Phone
 from gaiatest.apps.base import PageRegion
 
+from marionette import Wait
+from marionette import expected
+from marionette.errors import StaleElementException
+
 
 class CallLog(Phone):
 
     _upgrade_progress_locator = (By.ID, 'call-log-upgrading')
     _call_log_edit_button_locator = (By.ID, 'call-log-icon-edit')
+    _call_log_header_locator = (By.ID, 'header-edit-mode-text')
+    _no_logs_message_locator = (By.ID, 'no-result-msg1')
 
     _call_log_edit_dialog_locator = (By.ID, 'edit-mode')
     _call_log_edit_delete_button_locator = (By.ID, 'delete-button')
     _call_log_edit_close_button_locator = (By.ID, 'call-log-icon-close')
     _call_log_edit_deselect_all_button_locator = (By.ID, 'deselect-all-threads')
     _call_log_edit_select_all_button_locator = (By.ID, 'select-all-threads')
+
+    _call_log_delete_confirmation_locator = (By.CSS_SELECTOR, 'button.danger[data-l10n-id="delete"]')
 
     _all_calls_tab_link_locator = (By.CSS_SELECTOR, '#all-filter a')
     _missed_calls_tab_link_locator = (By.CSS_SELECTOR, '#missed-filter a')
@@ -38,6 +46,36 @@ class CallLog(Phone):
     def a11y_click_all_calls_tab(self):
         self.accessibility.click(self.marionette.find_element(*self._all_calls_tab_link_locator))
 
+    def tap_edit_button(self):
+        self.marionette.find_element(*self._call_log_edit_button_locator).tap()
+
+    def tap_select_all_button(self):
+        # TODO Add a wait for the element to be displayed and a proper tap when Bug 1101504 is fixed
+        Wait(self.marionette).until(expected.element_present(
+            *self._call_log_edit_select_all_button_locator))
+        self.marionette.execute_script('document.getElementById("%s").click()' %
+                                       self._call_log_edit_select_all_button_locator[1])
+
+    def tap_delete_button(self):
+        # TODO Add a wait for the element to be displayed and a proper tap when Bug 1101504 is fixed
+        Wait(self.marionette).until(expected.element_present(
+            *self._call_log_edit_delete_button_locator))
+        self.marionette.execute_script('document.getElementById("%s").click()' %
+                                       self._call_log_edit_delete_button_locator[1])
+
+    def tap_delete_confirmation_button(self):
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._call_log_delete_confirmation_locator))))
+        self.marionette.find_element(*self._call_log_delete_confirmation_locator).tap()
+
+        Wait(self.marionette, ignored_exceptions=[StaleElementException])\
+            .until(lambda m: len(self.call_list) == 0)
+
+    @property
+    def header_text(self):
+        return self.marionette.find_element(*self._call_log_header_locator).text
+
     @property
     def is_all_calls_tab_selected(self):
         return self.marionette.find_element(*self._all_calls_tab_link_locator).get_attribute('aria-selected') == 'true'
@@ -52,8 +90,14 @@ class CallLog(Phone):
                 for element in self.marionette.find_elements(*self._calls_list_item_locator)
                 if element.is_displayed()]
 
+    @property
+    def no_logs_message(self):
+        return self.marionette.find_element(*self._no_logs_message_locator).text
+
 
 class LogEntries(PageRegion):
+
+    _edit_mode_checkbox_locator = (By.CSS_SELECTOR, '.call-log-selection input')
 
     @property
     def phone_number(self):
@@ -62,3 +106,7 @@ class LogEntries(PageRegion):
     @property
     def call_type(self):
         return self.root_element.get_attribute('data-type')
+
+    @property
+    def is_checked(self):
+        return self.root_element.find_element(*self._edit_mode_checkbox_locator).is_selected()
