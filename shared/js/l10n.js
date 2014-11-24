@@ -1198,7 +1198,8 @@
 
     var idToFetch = this.isPseudo ? ctx.defaultLocale : this.id;
     for (var i = 0; i < ctx.resLinks.length; i++) {
-      var path = ctx.resLinks[i].replace('{locale}', idToFetch);
+      var resLink = decodeURI(ctx.resLinks[i]);
+      var path = resLink.replace('{locale}', idToFetch);
       var type = path.substr(path.lastIndexOf('.') + 1);
 
       switch (type) {
