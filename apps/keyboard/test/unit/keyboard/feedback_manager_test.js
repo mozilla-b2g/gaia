@@ -2,13 +2,15 @@
 
 /* global VibrationFeedback, SoundFeedback, FeedbackManager,
           MockNavigatorMozSettings, MockNavigatorMozSettingsLock,
-          SettingsPromiseManager */
+          SettingsPromiseManager, SoundFeedbackPlayer */
 
 require('/js/keyboard/feedback_manager.js');
 require('/js/keyboard/settings.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
 require('/shared/js/input_mgmt/mock_navigator_mozsettings.js');
+
+require('/js/keyboard/sound_feedback_player.js');
 
 suite('VibrationFeedback', function() {
   var realMozSettings;
@@ -108,6 +110,8 @@ suite('SoundFeedback', function() {
   var normalTarget;
   var specialTarget;
 
+  var stubSoundFeedbackPlayer;
+
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
   });
@@ -124,6 +128,11 @@ suite('SoundFeedback', function() {
     createLockStub.returns(lock);
 
     var promiseManager = new SettingsPromiseManager();
+
+    stubSoundFeedbackPlayer =
+      this.sinon.stub(Object.create(SoundFeedbackPlayer.prototype));
+    this.sinon.stub(window, 'SoundFeedbackPlayer')
+      .returns(stubSoundFeedbackPlayer);
 
     normalTarget = {
       keyCode: 60,
@@ -149,40 +158,29 @@ suite('SoundFeedback', function() {
       req1.fireSuccess({ 'audio.volume.notification': 10 });
 
       feedback.settings.initSettings().then(function() {
+      }).then(function() {
+        assert.isTrue(stubSoundFeedbackPlayer.prepare.calledOnce);
       }).then(done, done);
     });
 
     test('sound (normal key)', function() {
-      var newAudio = {};
-      this.sinon.stub(window, 'Audio').returns(newAudio);
-      var clicker = feedback.clicker;
-      this.sinon.stub(clicker, 'play');
-
       feedback.triggerFeedback(normalTarget);
-      assert.isTrue(clicker.play.calledOnce);
-      assert.equal(feedback.clicker, newAudio);
+      assert.isTrue(stubSoundFeedbackPlayer.play.calledWith(false));
     });
 
     test('sound (special key)', function() {
-      var newAudio = {};
-      this.sinon.stub(window, 'Audio').returns(newAudio);
-      var clicker = feedback.specialClicker;
-      this.sinon.stub(clicker, 'play');
-
       feedback.triggerFeedback(specialTarget);
-      assert.isTrue(clicker.play.calledOnce);
-      assert.equal(feedback.specialClicker, newAudio);
+      assert.isTrue(stubSoundFeedbackPlayer.play.calledWith(true));
     });
 
     test('change to sound=false', function() {
       mozSettings.dispatchSettingChange('keyboard.clicksound', false);
 
-      assert.equal(feedback.clicker, null, 'clicker should be dropped');
-      assert.equal(feedback.specialClicker, null,
-        'special clicker should be dropped');
+      assert.equal(feedback.player, null, 'player should be dropped');
 
       feedback.triggerFeedback(normalTarget);
       feedback.triggerFeedback(specialTarget);
+      assert.isFalse(stubSoundFeedbackPlayer.play.called);
     });
   });
 
@@ -194,46 +192,41 @@ suite('SoundFeedback', function() {
       req1.fireSuccess({ 'audio.volume.notification': 10 });
 
       feedback.settings.initSettings().then(function() {
+      }).then(function() {
+        assert.isFalse(stubSoundFeedbackPlayer.prepare.calledOnce);
       }).then(done, done);
     });
 
     test('sound (normal key)', function() {
-      assert.equal(feedback.clicker, null, 'clicker should be dropped');
+      assert.equal(feedback.player, null, 'player should be dropped');
 
       feedback.triggerFeedback(normalTarget);
+      assert.isFalse(stubSoundFeedbackPlayer.play.called);
     });
 
     test('sound (special key)', function() {
-      assert.equal(feedback.specialClicker, null,
-        'special clicker should be dropped');
+      assert.equal(feedback.player, null, 'player should be dropped');
 
       feedback.triggerFeedback(specialTarget);
+      assert.isFalse(stubSoundFeedbackPlayer.play.called);
     });
 
     test('change to sound=true and sound (normal key)', function() {
       mozSettings.dispatchSettingChange('keyboard.clicksound', true);
 
-      var newAudio = {};
-      this.sinon.stub(window, 'Audio').returns(newAudio);
-      var clicker = feedback.clicker;
-      this.sinon.stub(clicker, 'play');
+      assert.isTrue(stubSoundFeedbackPlayer.prepare.calledOnce);
 
       feedback.triggerFeedback(normalTarget);
-      assert.isTrue(clicker.play.calledOnce);
-      assert.equal(feedback.clicker, newAudio);
+      assert.isTrue(stubSoundFeedbackPlayer.play.calledWith(false));
     });
 
     test('change to sound=true and sound (special key)', function() {
       mozSettings.dispatchSettingChange('keyboard.clicksound', true);
 
-      var newAudio = {};
-      this.sinon.stub(window, 'Audio').returns(newAudio);
-      var clicker = feedback.specialClicker;
-      this.sinon.stub(clicker, 'play');
+      assert.isTrue(stubSoundFeedbackPlayer.prepare.calledOnce);
 
       feedback.triggerFeedback(specialTarget);
-      assert.isTrue(clicker.play.calledOnce);
-      assert.equal(feedback.specialClicker, newAudio);
+      assert.isTrue(stubSoundFeedbackPlayer.play.calledWith(true));
     });
   });
 });
@@ -243,6 +236,11 @@ suite('FeedbackManager', function() {
     var mozSettings = navigator.mozSettings = new MockNavigatorMozSettings();
     var createLockStub = this.sinon.stub(mozSettings, 'createLock');
     var lock = new MockNavigatorMozSettingsLock();
+    var stubSoundFeedbackPlayer =
+      this.sinon.stub(Object.create(SoundFeedbackPlayer.prototype));
+    this.sinon.stub(window, 'SoundFeedbackPlayer')
+      .returns(stubSoundFeedbackPlayer);
+
     this.sinon.spy(lock, 'get');
     createLockStub.returns(lock);
 
@@ -272,19 +270,15 @@ suite('FeedbackManager', function() {
 
     feedbackManager.soundFeedback.settings.initSettings().then(function() {
       this.sinon.stub(navigator, 'vibrate');
-      var clicker = feedbackManager.soundFeedback.clicker;
-      this.sinon.stub(clicker, 'play');
-      var specialClicker = feedbackManager.soundFeedback.specialClicker;
-      this.sinon.stub(specialClicker, 'play');
 
       feedbackManager.triggerFeedback(normalTarget);
 
-      assert.isTrue(clicker.play.calledOnce);
+      assert.isTrue(stubSoundFeedbackPlayer.play.calledWith(false));
       assert.isTrue(navigator.vibrate.calledOnce);
 
       feedbackManager.triggerFeedback(specialTarget);
 
-      assert.isTrue(specialClicker.play.calledOnce);
+      assert.isTrue(stubSoundFeedbackPlayer.play.calledWith(true));
       assert.isTrue(navigator.vibrate.calledTwice);
 
       feedbackManager.stop();
