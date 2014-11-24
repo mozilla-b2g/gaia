@@ -39,59 +39,28 @@ class TimePicker(Base):
     def hour(self):
         return self.marionette.find_element(*self._current_element(*self._hour_picker_locator)).text
 
-    def spin_hour(self):
-        old_hour = self.hour
-        if int(self.hour) > 6:
-            self._flick_menu_down(self._hour_picker_locator)
-        else:
-            self._flick_menu_up(self._hour_picker_locator)
-        self.wait_for_condition(lambda m: self.hour != old_hour)
-
     @property
     def minute(self):
         return self.marionette.find_element(*self._current_element(*self._minutes_picker_locator)).text
 
     def spin_minute(self):
         old_minute = self.minute
-        if int(self.minute) > 30:
-            self._flick_menu_down(self._minutes_picker_locator)
-        else:
-            self._flick_menu_up(self._minutes_picker_locator)
-
+        self._flick_menu_up(self._minutes_picker_locator)
         self.wait_for_condition(lambda m: self.minute != old_minute)
 
     @property
     def hour24(self):
         return self.marionette.find_element(*self._current_element(*self._hour24_picker_locator)).text
 
-    def spin_hour24(self):
-        old_hour24 = self.hour24
-        if self.hour24 == 'AM':
-            self._flick_menu_up(self._hour24_picker_locator)
-        else:
-            self._flick_menu_down(self._hour24_picker_locator)
-
-        self.wait_for_condition(lambda m: self.hour24 != old_hour24)
-
     def _flick_menu_up(self, locator):
         current_element = self.marionette.find_element(*self._current_element(*locator))
 
-        current_element_move_y = current_element.size['height'] * 2.5
+        current_element_move_y = current_element.size['height'] * 7
         current_element_mid_x = current_element.size['width'] / 2
         current_element_mid_y = current_element.size['height'] / 2
         # TODO: update this with more accurate Actions
         Actions(self.marionette).flick(current_element, current_element_mid_x, current_element_mid_y,
                                        current_element_mid_x, current_element_mid_y - current_element_move_y).perform()
-
-    def _flick_menu_down(self, locator):
-        current_element = self.marionette.find_element(*self._current_element(*locator))
-
-        current_element_move_y = current_element.size['height'] * 2.5
-        current_element_mid_x = current_element.size['width'] / 2
-        current_element_mid_y = current_element.size['height'] / 2
-        # TODO: update this with more accurate Actions
-        Actions(self.marionette).flick(current_element, current_element_mid_x, current_element_mid_y,
-                                       current_element_mid_x, current_element_mid_y + current_element_move_y).perform()
 
     def _current_element(self, method, target):
         return (method, '%s.picker-unit.selected' % target)
