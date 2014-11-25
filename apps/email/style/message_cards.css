@@ -41,7 +41,7 @@ section[role="region"] > header:first-child h1.msg-list-header-folder-label {
 /* Display unread messages number */
 .msg-list-header-folder-unread {
   display: inline-block;
-  margin-left: 0.5rem;
+  -moz-margin-start: 0.5rem;
   padding: 0 1rem;
   border-radius: 1.3rem;
   background-color: #E06F14;
@@ -121,6 +121,11 @@ reflows. Foreground/background colors should be safe.
   border-radius: 50%;
 }
 
+html:-moz-dir(rtl) .msg-header-unread-section {
+  right: 1rem;
+  left: auto;
+}
+
 .msg-header-item.unread .msg-header-unread-section {
   background-color: #2fc9ec;
 }
@@ -169,6 +174,13 @@ reflows. Foreground/background colors should be safe.
   padding: 1rem 0 0 1.5rem;
   border-bottom: 0.1rem solid #f2f2f1;
 }
+
+html:-moz-dir(rtl) .msg-header-details-section {
+  right: 1.5rem;
+  left: auto;
+  padding: 1rem 1.5rem 0 0;
+}
+
 .msg-header-icons-section {
   display: block;
   position: absolute;
@@ -178,6 +190,12 @@ reflows. Foreground/background colors should be safe.
   height: 100%;
   padding-top: 2.5rem;
 }
+
+html:-moz-dir(rtl) .msg-header-icons-section {
+  left: 2.8rem; /* The width of the avatar-section. */
+  right: auto;
+}
+
 .msg-header-avatar-section {
   display: block;
   position: absolute;
@@ -185,6 +203,11 @@ reflows. Foreground/background colors should be safe.
   right: 0;
   width: 2.8rem;
   height: 100%;
+}
+
+html:-moz-dir(rtl) .msg-header-avatar-section {
+  left: 0;
+  right: auto;
 }
 
 .msg-header-author-and-date {
@@ -202,6 +225,11 @@ reflows. Foreground/background colors should be safe.
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
+}
+
+html:-moz-dir(rtl) .msg-header-author {
+  text-align: right;
 }
 
 .msg-header-item.unread .msg-header-author {
@@ -209,6 +237,7 @@ reflows. Foreground/background colors should be safe.
 }
 
 .msg-header-date {
+  -moz-padding-start: 0.5rem;
   color: #8f8f8f;
   font-size: 1.5rem;
   font-weight: 400;
@@ -228,7 +257,13 @@ reflows. Foreground/background colors should be safe.
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
 }
+
+html:-moz-dir(rtl) .msg-header-subject {
+  text-align: right;
+}
+
 .msg-header-snippet {
   display: block;
   color: #858585;
@@ -237,11 +272,22 @@ reflows. Foreground/background colors should be safe.
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
 }
+
+html:-moz-dir(rtl) .msg-header-snippet {
+  text-align: right;
+}
+
 /* Give space for icons on right if they need to be displayed. */
 .msg-header-subject.icon-short,
 .msg-header-snippet.icon-short {
   margin-right: 1.6rem;
+}
+html:-moz-dir(rtl) .msg-header-subject.icon-short,
+html:-moz-dir(rtl) .msg-header-snippet.icon-short {
+  margin-left: 1.6rem;
+  margin-right: 0;
 }
 
 .msg-header-star {
@@ -249,6 +295,7 @@ reflows. Foreground/background colors should be safe.
   color: #888844;
   font-size: 150%;
 }
+
 .msg-header-star-starred {
   background: url("images/icons/message-list-star.png") no-repeat center / 2rem;
   position: absolute;
@@ -257,9 +304,16 @@ reflows. Foreground/background colors should be safe.
   height: 2rem;
   top: 3rem;
 }
+
+html:-moz-dir(rtl) .msg-header-star-starred {
+  left: -2rem;
+  right: auto;
+}
+
 .msg-header-attachments {
   display: block;
 }
+
 .msg-header-attachments-yes {
   background: url("images/icons/message-list-attachment.png") no-repeat center / 2rem;
   position: absolute;
@@ -267,6 +321,11 @@ reflows. Foreground/background colors should be safe.
   width: 2rem;
   height: 2rem;
   top: 5rem;
+}
+
+html:-moz-dir(rtl) .msg-header-attachments-yes {
+  left: -2rem;
+  right: auto;
 }
 
 .msg-envelope-bar {
@@ -365,6 +424,8 @@ cards-message-reader .scrollregion-below-header {
 
 /* More specific selector to override shared styles */
 .msg-attachments-container .msg-attachment-item {
+  display: flex;
+  align-items: center;
   list-style-type: none;
   height: 4rem;
   min-height: 4rem;
@@ -373,11 +434,15 @@ cards-message-reader .scrollregion-below-header {
 
 .msg-attachment-icon {
   display: block;
-  float: left;
   background: url("images/icons/icon_default.png") no-repeat center left / 3rem auto;
   width: 3.6rem;
   height: 4rem;
 }
+
+html:-moz-dir(rtl) .msg-attachment-icon {
+  background-position: center right;
+}
+
 .mime-image .msg-attachment-icon {
   background-image: url("images/icons/icon_image.png");
 }
@@ -388,21 +453,26 @@ cards-message-reader .scrollregion-below-header {
   background-image: url("images/icons/icon_video.png");
 }
 
+.msg-attachment-fileinfo {
+  max-width: calc(100% - 7rem);
+  flex-grow: 2;
+}
+
 .msg-attachment-filename,
 .msg-attachment-filesize {
   display: block;
-  clear: right;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: calc(100% - 9rem);
   white-space: nowrap;
   font-size: 1.4rem;
   font-weight: normal;
   color: #393d3e;
+  text-align: left;
 }
 
-.msg-attachment-filename {
-  padding-top: 0.4rem;
+html:-moz-dir(rtl) .msg-attachment-filename,
+html:-moz-dir(rtl) .msg-attachment-filesize {
+  text-align: right;
 }
 
 .msg-attachment-filesize {
@@ -423,28 +493,20 @@ cards-message-reader .scrollregion-below-header {
 .msg-attachment-download {
   display: none;
   width: 3.5rem;
-  margin-bottom: 0;
-  position: absolute;
-  top: 0;
-  right: -0.3rem;
+  margin: 0;
   border: 0;
   background: transparent;
   overflow: hidden;
 }
 .msg-attachment-downloading {
   display: none;
-  margin-bottom: 0;
-  position: absolute;
-  top: 0.6rem;
-  right: 0;
+  width: 3.5rem;
+  text-align: center;
 }
 .msg-attachment-view {
   display: none;
   width: 3.5rem;
-  margin-bottom: 0;
-  position: absolute;
-  top: 0;
-  right: -0.3rem;
+  margin: 0;
   border: 0;
   background: transparent;
   overflow: hidden;
@@ -452,7 +514,7 @@ cards-message-reader .scrollregion-below-header {
 
 .msg-attachment-too-large { display: none; }
 .msg-attachment-item[state="toolarge"] { height: auto; }
-.msg-attachment-item[state="toolarge"] > .msg-attachment-too-large {
+.msg-attachment-item[state="toolarge"] .msg-attachment-too-large {
   display: block;
   line-height: 1;
   color: rgba(0, 0, 0, 0.5);
@@ -653,14 +715,29 @@ cards-message-reader .scrollregion-below-header {
   display: inline-block;
 }
 
+html:-moz-dir(rtl) .msg-messages-container.show-edit label.negative {
+  right: 2rem;
+}
+
 .msg-messages-container.show-edit .msg-header-unread-section {
   left: 3.9rem;
 }
+html:-moz-dir(rtl) .msg-messages-container.show-edit .msg-header-unread-section {
+  right: 3.9rem;
+  left: auto;
+}
+
 .msg-messages-container.show-edit .msg-header-syncing-section {
   left: 3.5rem;
 }
+
+html:-moz-dir(rtl) .msg-messages-container.show-edit .msg-header-syncing-section {
+  right: 3.5rem;
+  left: auto;
+}
+
 .msg-messages-container.show-edit .msg-header-details-section {
-  padding-left: 4.5rem;
+  -moz-padding-start: 4.5rem;
 }
 
 /*
@@ -723,8 +800,12 @@ cards-message-list-search .msg-list-empty-message-text {
 
 .msg-messages-sync-more > span {
   margin: 0 auto;
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
   background: url("images/icons/download_trimmed.png") no-repeat center left / 2rem;
+}
+
+html:-moz-dir(rtl) .msg-messages-sync-more > span {
+  background-position: center right;
 }
 
 .message-list-topbar {
@@ -758,6 +839,12 @@ cards-message-list-search .msg-list-empty-message-text {
   font-size: 0;
 }
 
+html:-moz-dir(rtl) .message-list-topbar[data-state="top"] {
+  left: 0;
+  right: auto;
+  margin: 1.5rem 0 0 1.5rem;
+}
+
 .message-list-topbar.horiz-message,
 .message-list-topbar.closing[data-state="message"] {
   transform: translate(-50%, -6.5rem);
@@ -787,6 +874,11 @@ cards-message-list-search .msg-list-empty-message-text {
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 3rem auto;
+}
+
+html:-moz-dir(rtl) .msg-reply-menu button:before {
+  float: right;
+  margin: 0.5rem 0 0 1rem;
 }
 
 .msg-reply-menu-reply:before {

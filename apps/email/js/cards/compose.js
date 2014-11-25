@@ -731,8 +731,7 @@ return [
           var attachment = this.composer.attachments[i];
 
           filenameTemplate.textContent = attachment.name;
-          filesizeTemplate.textContent =
-                                     fileDisplay.fileSize(attachment.blob.size);
+          fileDisplay.fileSize(filesizeTemplate, attachment.blob.size);
           var attachmentNode = attTemplate.cloneNode(true);
           this.attachmentsContainer.appendChild(attachmentNode);
 
@@ -773,7 +772,7 @@ return [
           totalSize += this.composer.attachments[i].blob.size;
         }
 
-        this.attachmentsSize.textContent = fileDisplay.fileSize(totalSize);
+        fileDisplay.fileSize(this.attachmentsSize, totalSize);
       }
 
       // Only display the total size when the number of attachments is more

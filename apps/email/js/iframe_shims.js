@@ -15,7 +15,7 @@ var DEFAULT_STYLE_TAG =
   'blockquote {' +
   'margin: 0; ' +
   // so, this is quoting styling, which makes less sense to have in here.
-  'border-left: 0.2rem solid gray;' +
+  '-moz-border-start: 0.2rem solid gray;' +
   // padding-start isn't a thing yet, somehow.
   'padding: 0; -moz-padding-start: 0.5rem; ' +
   '}\n' +
@@ -322,7 +322,8 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
     // scrolly, but I wouldn't remove this without some testing...
     'overflow: hidden; ' +
     // When scaling, use the top-left for math sanity.
-    'transform-origin: top left; ' +
+    'transform-origin: top ' +
+    (document.documentElement.dir === 'rtl' ? 'right' : 'left') + '; ' +
     // The iframe does not want to process its own clicks!  that's what
     // bindSanitizedClickHandler is for!
     'pointer-events: none;');

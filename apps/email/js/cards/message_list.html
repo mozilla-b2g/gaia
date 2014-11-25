@@ -15,6 +15,7 @@
     <h1 data-prop="folderLabel"
         class="msg-list-header-folder-label header-label">
       <span data-prop="folderNameNode"
+            dir="auto"
             class="msg-list-header-folder-name"></span>
       <span data-prop="folderUnread"
             class="msg-list-header-folder-unread collapsed"></span>
@@ -43,10 +44,10 @@
     <p>
       <input data-prop="searchInput" data-event="input:onSearchTextChange"
              type="text" required="required" class="msg-search-text"
-             dir="auto"
              autocorrect="off"
              inputmode="verbatim"
              x-inputmode="verbatim"
+             dir="auto"
              data-l10n-id="message-search-input" />
       <button type="reset" data-l10n-id="form-clear-input"></button>
     </p>
@@ -90,7 +91,8 @@
       <p>
         <input data-event="focus:onSearchButton"
                class="msg-search-text-tease" type="text"
-               dir="auto" data-l10n-id="message-search-input" />
+               dir="auto"
+               data-l10n-id="message-search-input" />
       </p>
     </form>
     <div data-prop="messagesContainer" class="msg-messages-container">

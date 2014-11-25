@@ -28,6 +28,7 @@
           <div class="cmp-bubble-container">
               <input data-prop="toNode"
                      data-event="keydown:onAddressKeydown,input:onAddressInput"
+                     dir="auto"
                      class="cmp-to-text cmp-addr-text" type="email" />
           </div>
         </div>
@@ -45,6 +46,7 @@
           <div class="cmp-bubble-container">
             <input data-prop="ccNode"
                    data-event="keydown:onAddressKeydown,input:onAddressInput"
+                   dir="auto"
                    class="cmp-cc-text cmp-addr-text" type="email" />
           </div>
         </div>
@@ -59,6 +61,7 @@
           <div class="cmp-bubble-container">
             <input data-prop="bccNode"
                    data-event="keydown:onAddressKeydown,input:onAddressInput"
+                   dir="auto"
                    class="cmp-bcc-text cmp-addr-text" type="email" />
           </div>
         </div>
@@ -70,7 +73,8 @@
       <span class="cmp-subject-label"
              data-l10n-id="compose-subject">SubjecT:</span>
       <input data-prop="subjectNode"
-             class="cmp-subject-text" type="text" dir="auto" />
+             dir="auto"
+             class="cmp-subject-text" type="text" />
     </div>
     <div data-prop="errorMessage" class="cmp-error-message collapsed"></div>
     <div data-prop="attachmentTotal"
@@ -86,6 +90,7 @@
   <div data-prop="textBodyNode" class="cmp-body-text" contenteditable="true"></div>
   <div data-prop="htmlBodyContainer"
        data-event="click:_focusEditorWithCursorAtEnd"
+       dir="auto"
        class="cmp-body-html">
   </div>
 </div>

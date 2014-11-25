@@ -24,6 +24,10 @@
   float: left;
 }
 
+html:-moz-dir(rtl) .cmp-bubble-container {
+  float: right;
+}
+
 /* Make sure these styles take precedence over the base msg-peep-bubble styles
    by using both class names */
 .cmp-peep-bubble.msg-peep-bubble {
@@ -36,6 +40,11 @@
   color: #2c2c2c;
   background-color: white;
 }
+
+html:-moz-dir(rtl) .cmp-peep-bubble.msg-peep-bubble {
+  float: right;
+}
+
 .cmp-peep-bubble.msg-peep-bubble:active {
   color: white;
   background-color: #00aacc;
@@ -59,7 +68,7 @@ body cards-compose input:focus {
 
 input.cmp-addr-text, input.cmp-subject-text {
   height: 3.3rem;
-  margin-left: 0.5rem;
+  -moz-margin-start: 0.5rem;
   font-size: 1.4rem;
   border: 0;
   background: none;
@@ -73,6 +82,10 @@ input.cmp-addr-text, input.cmp-dot-text {
   overflow: hidden;
   word-wrap: normal;
   white-space: nowrap;
+}
+
+html:-moz-dir(rtl) input.cmp-addr-text, input.cmp-dot-text {
+  float: right;
 }
 
 input.cmp-subject-text {
@@ -157,7 +170,7 @@ section[role="region"] .cmp-attachment-btn .icon.icon-attachment {
   white-space: nowrap;
   text-align: left;
   line-height: 1.4rem;
-  padding-left: 0.5rem;
+  -moz-padding-start: 0.5rem;
 }
 
 .cmp-attachment-container {
@@ -177,6 +190,8 @@ section[role="region"] .cmp-attachment-btn .icon.icon-attachment {
 
 /* More specific selector to override shared styles */
 .cmp-attachment-container .cmp-attachment-item {
+  display: flex;
+  align-items: center;
   list-style-type: none;
   height: 4rem;
   min-height: 4rem;
@@ -184,12 +199,15 @@ section[role="region"] .cmp-attachment-btn .icon.icon-attachment {
 }
 
 .cmp-attachment-icon {
-  display: block;
-  float: left;
   background: url("images/icons/icon_default.png") no-repeat center left / 3rem auto;
   width: 3.6rem;
   height: 4rem;
 }
+
+html:-moz-dir(rtl) .cmp-attachment-icon {
+  background-position: center right;
+}
+
 .mime-image .cmp-attachment-icon {
   background-image: url("images/icons/icon_image.png");
 }
@@ -200,21 +218,26 @@ section[role="region"] .cmp-attachment-btn .icon.icon-attachment {
   background-image: url("images/icons/icon_video.png");
 }
 
+.cmp-attachment-fileinfo {
+  flex-grow: 2;
+  max-width: calc(100% - 6.4rem);
+}
+
 .cmp-attachment-filename,
 .cmp-attachment-filesize {
   display: block;
-  clear: right;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: calc(100% - 8rem);
   white-space: nowrap;
   font-size: 1.4rem;
   font-weight: normal;
   color: #393d3e;
+  text-align: left;
 }
 
-.cmp-attachment-filename {
-  padding-top: 0.4rem;
+html:-moz-dir(rtl) .cmp-attachment-filename,
+html:-moz-dir(rtl) .cmp-attachment-filesize {
+  text-align: right;
 }
 
 .cmp-attachment-filesize {
@@ -225,12 +248,7 @@ section[role="region"] .cmp-attachment-btn .icon.icon-attachment {
 .cmp-attachment-remove {
   background: url("images/icons/actionicon_email_removeattachment.png") no-repeat scroll center / 2rem;
   width: 2rem;
-  height: 2rem;
-  top: calc(50% - 1.6rem); /* (100% - 2rem - 0.6rem x 2)/2 */
-  border: 0.6rem solid transparent;
-  border-radius: 50%;
-  position: absolute;
-  right: -0.1rem;
+  border: 0.4rem solid transparent;
 }
 
 .cmp-messages-sending p {

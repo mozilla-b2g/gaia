@@ -999,8 +999,8 @@ return [
             }
             attTemplate.setAttribute('state', state);
             filenameTemplate.textContent = attachment.filename;
-            filesizeTemplate.textContent = fileDisplay.fileSize(
-              attachment.sizeEstimateInBytes);
+            fileDisplay.fileSize(filesizeTemplate,
+                                 attachment.sizeEstimateInBytes);
 
             var attachmentNode = attTemplate.cloneNode(true);
             attachmentNode.classList.add(mimeClass);
