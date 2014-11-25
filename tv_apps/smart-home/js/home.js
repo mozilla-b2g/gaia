@@ -7,7 +7,7 @@
   function Home() {}
 
   Home.prototype = {
-    navigableIds: ['search-input'],
+    navigableIds: ['search-button', 'search-input'],
     navigableClasses: ['filter-tab', 'command-button'],
     navigableScrollable: [],
     cardScrollable: undefined,
@@ -181,6 +181,10 @@
         elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
       } else if (elem.nodeName) {
         this.selectionBorder.select(elem);
+        if (this._focus) {
+          this._focus.blur();
+        }
+        elem.focus();
         this._focus = elem;
         this._focusScrollable = undefined;
       } else {
