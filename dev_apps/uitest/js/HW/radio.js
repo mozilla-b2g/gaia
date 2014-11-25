@@ -1,14 +1,16 @@
 'use strict';
 
-function IMEI(conn) {
+function IMEI(serviceId) {
   var IMEIText = document.getElementById('IMEI');
 
-  var req = conn.sendMMI('*#06#');
-  req.onsuccess = function getIMEI() {
-    if (req.result && req.result.statusMessage) {
-      IMEIText.textContent = req.result.statusMessage;
-    }
-  };
+  navigator.mozTelephony.dial('*#06#', serviceId).then(function(call) {
+    return call.result.then(function getIMEI(message) {
+      if (message && (message.serviceCode === 'scImei') &&
+          message.statusMessage) {
+        IMEIText.textContent = message.statusMessage;
+      }
+    });
+  });
 }
 
 // SIM card information such as ICCID, MSISDN
@@ -95,7 +97,7 @@ function radioTest() {
     var iccManager = navigator.mozIccManager;
 
     // IMEI should be the same no matter which connection is used
-    IMEI(navigator.mozMobileConnections[0]);
+    IMEI(0);
 
     var template = document.getElementById('connection-template');
     template.hidden = true;
