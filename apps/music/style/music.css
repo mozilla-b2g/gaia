@@ -712,6 +712,10 @@ button::-moz-focus-inner {
   background-size: 2.2rem;
 }
 
+html[dir="rtl"] .rating-star {
+  float: right;
+}
+
 .star-on {
   background-image: url('./images/star_on.png');
 }
