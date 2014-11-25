@@ -1,4 +1,4 @@
-/* global AppWindow, ScreenLayout, MockOrientationManager,
+/* global AppWindow, ScreenLayout, MockOrientationManager, MockAppWindowManager,
       LayoutManager, MocksHelper, MockContextMenu, layoutManager,
       MockAppTransitionController, MockPermissionSettings */
 'use strict';
@@ -13,12 +13,14 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_app_transition_controller.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
+
 requireApp('system/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'AppChrome',
-  'AppTransitionController'
+  'AppTransitionController', 'AppWindowManager'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -1741,6 +1743,32 @@ suite('system/AppWindow', function() {
       assert.equal(app1.element.style.height, '');
       assert.equal(app1.iframe.style.width, '');
       assert.equal(app1.iframe.style.height, '');
+    });
+
+    test('Orientation change event on active homescreen app', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubLockOrientation = this.sinon.stub(app1, 'lockOrientation');
+      this.sinon.stub(app1, 'isActive').returns(true);
+      app1.isHomescreen = true;
+      app1.width = 320;
+      app1.height = 460;
+
+      layoutManager.width = 460;
+      layoutManager.height = 320;
+      MockAppWindowManager.mActiveApp = app1;
+
+      app1.handleEvent({
+        type: '_orientationchange'
+      });
+
+      assert.isTrue(stubLockOrientation.calledOnce,
+        'when active app is homescreen, we should call lockOrientation to' +
+        'prevent it is modified by other background app');
+      assert.equal(app1.element.style.width, '460px');
+      assert.equal(app1.element.style.height, '320px');
+      assert.equal(app1.iframe.style.width, '320px');
+      assert.equal(app1.iframe.style.height, '460px');
+      MockAppWindowManager.mActiveApp = null;
     });
 
     test('Orientation change event on fullscreen app', function() {
