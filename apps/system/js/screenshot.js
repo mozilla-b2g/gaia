@@ -1,4 +1,4 @@
-/* global MozActivity */
+/* global MozActivity, Notification, Service */
 
 'use strict';
 
@@ -47,6 +47,7 @@
       }
       this._started = true;
 
+      Service.request('handleSystemMessageNotification', 'screenshot', this);
       window.addEventListener('volumedown+sleep', this);
       window.addEventListener('mozChromeEvent', this);
     },
@@ -61,6 +62,7 @@
       }
       this._started = false;
 
+      Service.request('unhandleSystemMessageNotification', 'screenshot', this);
       window.removeEventListener('volumedown+sleep', this);
       window.removeEventListener('mozChromeEvent', this);
     },
@@ -83,7 +85,38 @@
             this._notify('screenshotFailed', evt.detail.error);
           }
           break;
+
+        default:
+          console.debug('Unhandled event: ' + evt.type);
+          break;
       }
+    },
+
+    /**
+     * Gets called when a system message notification for a screenshots is being
+     * hit.
+     **/
+    handleSystemMessageNotification: function(message) {
+      this.openImage(message.body);
+      this.closeSystemMessageNotification(message);
+    },
+
+    closeSystemMessageNotification: function(msg) {
+      Notification.get({ tag: msg.tag }).then(notifs => {
+        notifs.forEach(notif => {
+          if (notif.tag) {
+            // Close notification with the matching tag
+            if (notif.tag === msg.tag) {
+              notif.close && notif.close();
+            }
+          } else {
+            // If we have notification without a tag, check on the body
+            if (notif.body === msg.body) {
+              notif.close && notif.close();
+            }
+          }
+        });
+      });
     },
 
     /**
@@ -112,6 +145,25 @@
       });
     },
 
+    openImage: function(filename) {
+      this._getDeviceStorage(function(storage) {
+        var request = storage.get(filename);
+        request.onsuccess = function() {
+          var imgblob = this.result;
+          /*jshint nonew: false */
+          new MozActivity({
+            name: 'open',
+            data: {
+              type: imgblob.type,
+              filename: filename,
+              blob: imgblob,
+              exitWhenHidden: true
+            }
+          });
+        };
+      });
+    },
+
     /**
      * Handle the take-screenshot-success mozChromeEvent.
      * @param  {Blob} file Blob object received from the event.
@@ -126,30 +178,13 @@
             d.toISOString().slice(0, -5).replace(/[:T]/g, '-') + '.png';
 
           var saveRequest = storage.addNamed(file, filename);
-
-          var openImage = function openImage() {
-            var request = storage.get(filename);
-            request.onsuccess = function() {
-              var imgblob = this.result;
-              /*jshint nonew: false */
-              new MozActivity({
-                name: 'open',
-                data: {
-                  type: imgblob.type,
-                  filename: filename,
-                  blob: imgblob,
-                  exitWhenHidden: true
-                }
-              });
-            };
-          };
-
           saveRequest.onsuccess = (function ss_onsuccess() {
             // Vibrate again when the screenshot is saved
             navigator.vibrate(100);
 
             // Display filename in a notification
-            this._notify('screenshotSaved', filename, null, openImage);
+            this._notify('screenshotSaved', filename, null,
+                         this.openImage.bind(this, filename));
           }).bind(this);
 
           saveRequest.onerror = (function ss_onerror() {
@@ -216,7 +251,11 @@
       body = body || navigator.mozL10n.get(bodyid);
       var notification = new window.Notification(title, {
         body: body,
-        icon: '/style/icons/Gallery.png'
+        icon: '/style/icons/Gallery.png',
+        tag: 'screenshot:' + (new Date().getTime()),
+        data: {
+          systemMessageTarget: 'screenshot'
+        }
       });
 
       notification.onclick = function() {
