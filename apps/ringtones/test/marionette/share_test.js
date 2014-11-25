@@ -21,6 +21,7 @@ marionette('Share as ringtone', function() {
   setup(function() {
     app = new Ringtones(client);
 
+    client = client.scope({ searchTimeout: 5000 });
     client.fileManager.removeAllFiles();
     client.fileManager.add([
       { type: 'music', filePath: 'test_media/samples/Music/b2g.ogg' }
