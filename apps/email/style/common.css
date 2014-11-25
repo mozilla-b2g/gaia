@@ -7,6 +7,20 @@
   visibility: hidden !important;
 }
 
+* {
+  /* By default do not allow any user text selection, only enable for certain
+     parts on a per-element/region area */
+  -moz-user-select: none;
+}
+
+/* Allow inputs to be selectable, and to allow cut/copy operations */
+input[type="email"],
+input[type="search"],
+input[type="text"],
+input[type="url"] {
+  -moz-user-select: text;
+}
+
 html {
   width: 100%;
   height: 100%;

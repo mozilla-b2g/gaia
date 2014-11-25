@@ -141,6 +141,7 @@ input.cmp-subject-text {
   outline: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
+  -moz-user-select: text;
 }
 
 .cmp-body-html {
