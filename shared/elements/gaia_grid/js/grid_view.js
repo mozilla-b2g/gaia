@@ -133,14 +133,25 @@
       for (var i = 0, iLen = this.items.length; i < iLen; i++) {
         var item = this.items[i];
 
-        var middleX = item.x + itemMiddleOffset;
-        var middleY = item.y + item.pixelHeight / 2;
+        // Don't consider items that can't be dragged
+        if (!item.isDraggable()) {
+          continue;
+        }
+
+        // If sections are disabled, don't consider dividers
+        if (this.config.features.disableSections &&
+            item.detail.type === 'divider') {
+          continue;
+        }
 
         // Do not consider collapsed items, unless they are dividers.
         if (item.detail.type !== 'divider' &&
             item.element.classList.contains('collapsed')) {
           continue;
         }
+
+        var middleX = item.x + itemMiddleOffset;
+        var middleY = item.y + item.pixelHeight / 2;
 
         var xDistance = (isRow || item.detail.type === 'divider') ?
           0 : x - middleX;

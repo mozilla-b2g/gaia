@@ -62,14 +62,12 @@ suite('GaiaGrid', function() {
       assert.ok(grid.layout);
     });
 
-    test('/w grouping', function() {
-      this.container.innerHTML = '<gaia-grid group></gaia-grid>';
+    test('/w dragdrop and disable-sections', function() {
+      this.container.innerHTML =
+        '<gaia-grid dragdrop disable-sections></gaia-grid>';
       var grid = this.container.firstElementChild._grid;
       grid.render();
-      assert.equal(grid.dragdrop, undefined);
-      assert.equal(grid.zoom, undefined);
-      assert.ok(grid.layout);
-      assert.ok(document.querySelector('.divider.group'));
+      assert.ok(grid.config.features.disableSections);
     });
   });
 
