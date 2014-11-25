@@ -83,7 +83,7 @@
     "storage": {},
     "device-storage:sdcard": { "access": "readcreate" },
     "phonenumberservice": {},
-    "nfc":{ "access": "readwrite" }
+    "nfc-share":{}
   },
   "orientation": "default",
   "activities": {
