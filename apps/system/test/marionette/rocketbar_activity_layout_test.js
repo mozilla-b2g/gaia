@@ -59,6 +59,13 @@ marionette('Rocketbar - Opened Activity From Search', function() {
     actions.longPress(result, 1).perform();
     client.switchToFrame();
 
+    // Bug 1104314 - On v2.1 b2g-desktop, the search app has a bug where
+    // the keyboard does not dismiss when long pressing a bookmark. Since
+    // this does not reprodue on device or master, we work around it here.
+    client.executeScript(function() {
+      window.wrappedJSObject.KeyboardManager.hideKeyboardImmediately();
+    });
+
     client.helper.waitForElement('#search .contextmenu-list button').click();
     client.switchToFrame(bookmark.currentTabFrame);
     bookmark.bookmarkTitle.click();
