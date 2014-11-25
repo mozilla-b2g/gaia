@@ -32,6 +32,10 @@ return [
       cards.pushCard('setup_done', 'animate');
     },
 
+    onCardVisible: function() {
+      this.updateSignatureButton();
+    },
+
     die: function() {
     }
   }
