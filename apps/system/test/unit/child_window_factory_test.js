@@ -268,7 +268,8 @@ suite('system/ChildWindowFactory', function() {
     assert.deepEqual(stubDispatchEvent.getCall(0).args[0].detail, {
       url: fakeWindowOpenBlank.url,
       name: fakeWindowOpenBlank.name,
-      iframe: fakeWindowOpenBlank.frameElement
+      iframe: fakeWindowOpenBlank.frameElement,
+      isPrivate: false
     });
   });
 

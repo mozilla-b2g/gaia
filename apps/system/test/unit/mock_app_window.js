@@ -99,7 +99,7 @@
     reload: function() {},
     stop: function() {},
     isBrowser: function() {},
-    isPrivateBrowser: function() {},
+    isPrivateBrowser: function() { return false; },
     isCertified: function() {},
     navigate: function() {},
     isFullScreen: function() {},

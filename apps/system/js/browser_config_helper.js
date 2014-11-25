@@ -107,6 +107,7 @@
       this.manifest = manifest;
     } else {
       this.iframe = config.iframe;
+      this.isPrivate = config.isPrivate;
       this.name = config.name || '';
       this.origin = config.url;
       this.manifestURL = '';
