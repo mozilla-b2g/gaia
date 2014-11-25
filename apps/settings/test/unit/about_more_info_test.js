@@ -176,18 +176,17 @@ suite('about >', function() {
 
     test('should show correct value when getting an IMEI successfully',
       function(done) {
-        var req = {
-          result: {
-            serviceCode: 'scImei',
-            statusMessage: 'fakeImei'
-          }
-        };
-        sandbox.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
-          function() {
-            return req;
-        });
+        sandbox.stub(MockNavigatorMozTelephony, 'dial');
+        MockNavigatorMozTelephony.dial.returns(
+          Promise.resolve({
+            result: Promise.resolve({
+              success: true,
+              serviceCode: 'scImei',
+              statusMessage: 'fakeImei'
+            })
+          })
+        );
         var promise = AboutMoreInfo.loadImei();
-        req.onsuccess();
 
         promise.then(function() {
           var span = deviceInfoImeis.querySelector('span');
@@ -198,13 +197,13 @@ suite('about >', function() {
 
     test('should show correct value when without correct result',
       function(done) {
-        var req = {};
-        sandbox.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
-          function() {
-            return req;
-        });
+        sandbox.stub(MockNavigatorMozTelephony, 'dial');
+        MockNavigatorMozTelephony.dial.returns(
+          Promise.resolve({
+            result: Promise.resolve({})
+          })
+        );
         var promise = AboutMoreInfo.loadImei();
-        req.onsuccess();
 
         promise.then(function() {
           var span = deviceInfoImeis.querySelector('span');
@@ -214,13 +213,16 @@ suite('about >', function() {
 
     test('should show correct value when with getting imei failed',
       function(done) {
-        var req = {};
-        sandbox.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
-          function() {
-            return req;
-        });
+        sandbox.stub(MockNavigatorMozTelephony, 'dial');
+        MockNavigatorMozTelephony.dial.returns(
+          Promise.resolve({
+            result: Promise.reject({
+              success: false,
+              statusMessage: 'error'
+            })
+          })
+        );
         var promise = AboutMoreInfo.loadImei();
-        req.onerror();
 
         promise.then(function() {
           var span = deviceInfoImeis.querySelector('span');
@@ -229,38 +231,37 @@ suite('about >', function() {
     });
 
     suite('multiple sim', function() {
+      var imeisNum = 2;
+
       setup(function() {
         MockNavigatorMozMobileConnections.mAddMobileConnection();
       });
 
       test('should show multiple IMEI codes', function(done) {
-        var reqs = [{
-          result: {
-            serviceCode: 'scImei',
-            statusMessage: 'fakeImei1'
-          }
-        }, {
-          result: {
-            serviceCode: 'scImei',
-            statusMessage: 'fakeImei2'
-          }
-        }];
+        sandbox.stub(MockNavigatorMozTelephony, 'dial');
 
-        reqs.forEach(function(val, index) {
-          sandbox.stub(MockNavigatorMozMobileConnections[index], 'sendMMI',
-            function() { return val; });
-        });
+        for (var index = 0; index < imeisNum; index++) {
+          MockNavigatorMozTelephony.dial.onCall(index).returns(
+            Promise.resolve({
+              result: Promise.resolve({
+                success: true,
+                serviceCode: 'scImei',
+                statusMessage: 'fakeImei' + (index + 1)
+              })
+            })
+          );
+        }
 
         var promise = AboutMoreInfo.loadImei();
-        reqs.forEach(function(req) { req.onsuccess(); });
 
         promise.then(function() {
           var spans = deviceInfoImeis.querySelectorAll('span');
-          reqs.forEach(function(reqs, index) {
+
+          for (var index = 0; index < imeisNum; index++) {
             assert.equal(spans[index].textContent,
               'IMEI ' + (index + 1) + ': fakeImei' + (index + 1));
             assert.equal(spans[index].dataset.slot, index);
-          });
+          }
         }).then(done, done);
       });
     });
