@@ -15,7 +15,7 @@
     "settings":{ "access": "readonly" },
     "bluetooth":{},
     "audio-channel-content":{},
-    "nfc":{ "access": "readwrite" }
+    "nfc-share":{}
   },
   "activities": {
     "pick": {
