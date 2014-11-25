@@ -1,9 +1,12 @@
-/*exported MockasyncStorage */
-
 'use strict';
-
+/* exported MockasyncStorage */
 var MockasyncStorage = {
-  getItem: function(key, callback) {},
-  setItem: function(key, value) {},
-  removeItem: function() {}
+  data: {},
+  getItem: function(key, callback) {
+    callback(this.data[key]);
+  },
+  setItem: function(key, value, callback) {
+    this.data[key] = value;
+    callback();
+  }
 };
