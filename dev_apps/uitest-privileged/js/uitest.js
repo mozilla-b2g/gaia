@@ -156,6 +156,8 @@ var UITest = {
     var self = this;
     window.setTimeout(function openTestPage() {
       self.iframe.src = './tests_html/' + name + '.html';
+      // we need to focus the iframe to let the key event send to it.
+      self.iframe.focus();
     }, 200);
   },
   closeTest: function ut_closeTest() {
