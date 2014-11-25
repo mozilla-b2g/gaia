@@ -34,7 +34,7 @@
     "audio-channel-notification":{},
     "audio-channel-alarm":{},
     "downloads":{},
-    "nfc":{ "access": "readonly" },
+    "nfc":{},
     "sms":{},
     "firefox-accounts": {}
   },
