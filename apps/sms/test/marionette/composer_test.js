@@ -157,9 +157,13 @@ marionette('Messages Composer', function() {
       // converted to SMS and we should show actual available char counter
       composer.messageInput.sendKeys('ef');
 
-      composer.attachment.scriptWith(function(el) {
-        el.scrollIntoView(false);
-      });
+      // Ideally here we should scroll attachment into view and tap on it. But
+      // it does not work presumably because of bug 1046706 that causing "tap"
+      // to not find the element after scrolling with APZC. So as a workaround
+      // we just tap on MMS label to blur message input and wait until keyboard
+      // is fully hidden, and only then we perform tap on attachment.
+      composer.mmsLabel.tap();
+      messagesApp.waitForKeyboardToDisappear();
 
       // Remove this workaround once Marionette bug is resolved:
       // "Bug 1046706 - "tap" does not find the element after scrolling in APZC"

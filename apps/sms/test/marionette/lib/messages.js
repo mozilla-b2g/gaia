@@ -58,6 +58,7 @@
   module.exports = {
     create: function(client) {
       var actions = new Actions(client);
+      var originalHeight;
 
       return {
         Composer: {
@@ -176,7 +177,13 @@
           client.switchToFrame();
           client.apps.launch(ORIGIN_URL);
           client.apps.switchToApp(ORIGIN_URL);
-          client.helper.waitForElement(SELECTORS.main);
+
+          // Wait for main element and remember app original height, it's used
+          // later to determine whether keyboard frame is shown.
+          var mainElement = client.helper.waitForElement(SELECTORS.main);
+          originalHeight = mainElement.scriptWith(function() {
+            return document.defaultView.innerHeight;
+          });
         },
 
         switchTo: function() {
@@ -190,6 +197,15 @@
           client.scope({ searchTimeout: 50 }).helper.waitForElementToDisappear(
             'iframe[src*="' + ORIGIN_URL + '"]'
           );
+        },
+
+        waitForKeyboardToDisappear: function() {
+          var mainElement = client.helper.waitForElement(SELECTORS.main);
+          client.waitFor(function() {
+            return originalHeight === mainElement.scriptWith(function(el) {
+              return document.defaultView.innerHeight;
+            });
+          });
         },
 
         selectAppMenuOption: function(text) {
