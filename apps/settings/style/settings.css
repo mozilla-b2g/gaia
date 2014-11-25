@@ -1073,3 +1073,10 @@ html[dir="rtl"] #developer-hud ul li > label > span.color-preview {
   padding-left: 0;
   padding-right: 5rem;
 }
+
+section[role="region"][data-first-transition] > * {
+  visibility: hidden !important;
+}
+section[role="region"][data-first-transition] > gaia-header {
+  visibility: visible !important;
+}

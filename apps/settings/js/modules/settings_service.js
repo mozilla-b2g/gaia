@@ -11,7 +11,6 @@ define(function(require) {
     var PageTransitions = require('modules/page_transitions');
     var PanelCache = require('modules/panel_cache');
     var ScreenLayout = require('shared/screen_layout');
-    var LazyLoader = require('shared/lazy_loader');
     var Settings = require('settings');
 
     var _rootPanelId = null;
@@ -107,27 +106,27 @@ define(function(require) {
       return promise;
     };
 
-    var _loadPanel = function ss_loadPanel(panelId, callback) {
+    var _loadPanel = function ss_loadPanel(panelId) {
       var panelElement = document.getElementById(panelId);
       if (panelElement.dataset.rendered) { // already initialized
-        callback();
         return;
       }
       panelElement.dataset.rendered = true;
 
-      // XXX remove SubPanel loader once sub panel are modulized
-      if (panelElement.dataset.requireSubPanels) {
-        // load the panel and its sub-panels (dependencies)
-        // (load the main panel last because it contains the scripts)
-        var selector = 'section[id^="' + panelElement.id + '-"]';
-        var subPanels = document.querySelectorAll(selector);
-        for (var i = 0, il = subPanels.length; i < il; i++) {
-          LazyLoader.load([subPanels[i]]);
+      panelElement.innerHTML = panelElement.firstChild.textContent;
+    };
+
+    var _loadSubpanels = function(panel, callback) {
+      requestAnimationFrame(function() {
+        var sub = document.querySelector('section[id^="' + panel.id + '-"]');
+        [].forEach.call(sub, function(p) {
+          _loadPanel(p.id);
+        });
+
+        if (callback) {
+          requestAnimationFrame(callback);
         }
-        LazyLoader.load([panelElement], callback);
-      } else {
-        LazyLoader.load([panelElement], callback);
-      }
+      });
     };
 
     var _onVisibilityChange = function ss_onVisibilityChange() {
@@ -170,81 +169,73 @@ define(function(require) {
         return;
       }
 
-      _loadPanel(panelId, function() {
-        // We have to make sure l10n is ready before navigations
-        navigator.mozL10n.once(function() {
+      function go() {
+        var newPanelElement = document.getElementById(panelId);
+        var isFirstRender = !newPanelElement.dataset.rendered;
+
+        _loadPanel(panelId);
+
+        var currentPanelId =
+           _currentNavigation && _currentNavigation.panelId;
+        var currentPanel = _currentNavigation && _currentNavigation.panel;
+        var currentPanelElement =
+          _currentNavigation && _currentNavigation.panelElement;
+
+        _cachedNavigation = _currentNavigation;
+        _cachedNavigationOptions = options;
+
+        options = options || {};
+
+        if (isFirstRender) {
+          newPanelElement.dataset.firstTransition = true;
+        }
+
+        requestAnimationFrame(function() {
+          var transitAnim = _transit(currentPanelElement, newPanelElement);
+
           PanelCache.get(panelId, function(panel) {
-            var newPanelElement = document.getElementById(panelId);
-            var currentPanelId =
-               _currentNavigation && _currentNavigation.panelId;
-            var currentPanelElement =
-              _currentNavigation && _currentNavigation.panelElement;
-            var currentPanel = _currentNavigation && _currentNavigation.panel;
+            var hideEvents = currentPanel && currentPanelId !== _rootPanelId;
 
-            // Keep these to make sure we can use when going back
-            _cachedNavigation = _currentNavigation;
-            _cachedNavigationOptions = options;
-
-            // Prepare options and calls to the panel object's before
-            // show function.
-            options = options || {};
-
-            // 0. start the chain
-            Promise.resolve()
-            // 1. beforeHide previous panel
-            .then(function() {
-              // We don't deactivate the root panel.
-              if (currentPanel && currentPanelId !== _rootPanelId) {
-                return currentPanel.beforeHide();
-              }
-            })
-            // 2. beforeShow next panel
-            .then(function() {
+            var showHideChain = Promise.resolve().then(function() {
+              return hideEvents && currentPanel.beforeHide();
+            }).then(function() {
               return panel.beforeShow(newPanelElement, options);
-            })
-            // 3. add a timeout for smoother transition.
-            .then(function() {
-              var promise = new Promise(function(resolve) {
-                setTimeout(function timeout() {
-                  resolve();
-                });
-              });
-              return promise;
-            })
-            // 4. do the transition
-            .then(function() {
-              return _transit(currentPanelElement, newPanelElement);
-            })
-            // 5. hide previous panel
-            .then(function() {
-              // We don't deactivate the root panel.
-              if (currentPanel && currentPanelId !== _rootPanelId) {
-                return currentPanel.hide();
-              }
-            })
-            // 6. show next panel
-            .then(function() {
+            }).then(function() {
               return panel.show(newPanelElement, options);
-            })
-            // 7. keep information
-            .then(function() {
-              // Update the current navigation object
-              _currentNavigation = {
-                panelId: panelId,
-                panelElement: newPanelElement,
-                panel: panel,
-                options: options
-              };
-
-              // XXX we need to remove this line in the future
-              // to make sure we won't manipulate Settings
-              // directly
-              Settings._currentPanel = '#' + panelId;
+            }).then(function() {
+              delete newPanelElement.dataset.firstTransition;
+            }).then(function() {
+              return hideEvents && currentPanel.hide();
+            }).then(function() {
               callback();
             });
+
+            if (newPanelElement.dataset.requireSubPanels) {
+              Promise.all([ showHideChain, transitAnim ]).then(function() {
+                _loadSubpanels(newPanelElement);
+              });
+            }
+
+            _currentNavigation = {
+              panelId: panelId,
+              panel: panel,
+              panelElement: newPanelElement,
+              options: options
+            };
+
+            // XXX we need to remove this line in the future
+            // to make sure we won't manipulate Settings
+            // directly
+            Settings._currentPanel = '#' + panelId;
           });
         });
-      });
+      }
+
+      if (navigator.mozL10n.readyState === 'complete') {
+        go();
+      } else {
+        navigator.mozL10n.once(go);
+      }
     };
 
     return {
