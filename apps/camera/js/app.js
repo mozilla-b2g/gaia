@@ -52,6 +52,7 @@ function App(options) {
   this.pinch = options.pinch || new Pinch(this.el); // Test hook
   this.require = options.require || window.requirejs; // Test hook
   this.LoadingView = options.LoadingView || LoadingView; // test hook
+  this.orientation = options.orientation || orientation; // test hook
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.controllers = options.controllers;
   this.geolocation = options.geolocation;
@@ -199,7 +200,8 @@ App.prototype.bindEvents = function() {
  */
 App.prototype.onVisible = function() {
   this.geolocationWatch();
-  orientation.start();
+  this.orientation.start();
+  this.orientation.lock();
   debug('visible');
 };
 
@@ -211,7 +213,7 @@ App.prototype.onVisible = function() {
  */
 App.prototype.onHidden = function() {
   this.geolocation.stopWatching();
-  orientation.stop();
+  this.orientation.stop();
   debug('hidden');
 };
 
@@ -339,7 +341,6 @@ App.prototype.onVisibilityChange = function() {
  * @private
  */
 App.prototype.onBeforeUnload = function() {
-  this.views.viewfinder.stopStream();
   this.emit('beforeunload');
   debug('beforeunload');
 };
