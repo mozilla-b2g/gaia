@@ -63,6 +63,8 @@ var UtilityTray = {
     window.addEventListener('activityopening', this);
     window.addEventListener('resize', this);
     window.addEventListener('cardviewbeforeshow', this);
+    window.addEventListener('sheets-gesture-begin', this);
+    window.addEventListener('sheets-gesture-end', this);
 
     // Listen for screen reader edge gestures
     window.addEventListener('mozChromeEvent', this);
@@ -136,6 +138,13 @@ var UtilityTray = {
         if (this.shown) {
           this.hide();
         }
+        break;
+
+      case 'sheets-gesture-begin':
+        this.overlay.classList.add('hidden');
+        break;
+      case 'sheets-gesture-end':
+        this.overlay.classList.remove('hidden');
         break;
 
       case 'launchapp':
