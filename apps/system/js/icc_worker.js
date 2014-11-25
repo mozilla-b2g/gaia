@@ -397,26 +397,26 @@ var icc_worker = {
         break;
 
       case icc._iccManager.STK_LOCAL_INFO_IMEI:
-        var req = conn.sendMMI('*#06#');
-        req.onsuccess = function getIMEI() {
-          if (req.result && req.result.statusMessage) {
-            icc.responseSTKCommand(message, {
-              localInfo: {
-                imei: req.result.statusMessage
-              },
-              resultCode: icc._iccManager.STK_RESULT_OK
-            });
-          }
-        };
-        req.onerror = function errorIMEI() {
-          icc.responseSTKCommand(message, {
-              localInfo: {
-                imei: '0'
-              },
-            resultCode:
-              icc._iccManager.STK_RESULT_REQUIRED_VALUES_MISSING
+        // XXX: This should be made DSDS-aware, see also bug 980391
+        navigator.mozTelephony.dial('*#06#').then(function(call) {
+          return call.result.then(function getIMEI(result) {
+            if (result.success && (result.serviceCode === 'scImei') &&
+                result.statusMessage) {
+              return result.statusMessage;
+            } else {
+              return 0;
+            }
           });
-        };
+        }).then(function(imei) {
+          icc.responseSTKCommand(message, {
+            localInfo: {
+              imei: imei
+            },
+            resultCode:
+              imei ? icc._iccManager.STK_RESULT_OK :
+                     icc._iccManager.STK_RESULT_REQUIRED_VALUES_MISSING
+          });
+        });
         break;
 
       case icc._iccManager.STK_LOCAL_INFO_DATE_TIME_ZONE:
