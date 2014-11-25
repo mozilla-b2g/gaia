@@ -1,0 +1,76 @@
+/**
+ * Button state:
+ *    1. normal
+ *        In this state, we don't add any class.
+ *    2. focused (class name: focused)
+ *        The focused state may be triggered by keyboard or touch/mouse.
+ *    3. pressed (class name: pressed)
+ *        This state is triggered by user pressed confirm button, mousedown,
+ *        and touchdown.
+ *    4. released (class name: released)
+ *        This state is only for changing duration of transition. We enter this
+ *        state when user release the button. After transitionend, we goes back
+ *        to focused state.
+**/
+smart-button {
+  display: inline-block;
+  width: 8rem;
+  height: 8rem;
+  /* we need to set border to none to remove the button border */
+  border: none;
+  /* the radius is still make button as round even if we don't have border */
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  background-repeat: no-repeat;
+  background-size: 5.4rem auto;
+  background-position: center center;
+
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0.42s;
+}
+
+smart-button.focused {
+  outline: 0;
+  background-color: #FFFFFF;
+  transform: scale(1.2);
+  transition-duration: 0.42s;
+}
+
+smart-button.released {
+  transition-duration: 0.16s;
+}
+
+smart-button.checked,
+smart-button.pressed {
+  background-color: #00caf2;
+  transform: scale(0.8);
+  transition-duration: 0.06s;
+}
+
+smart-button[type="simple-text"] {
+  color: #dddddd;
+  background: none;
+  border: none;
+  border-radius: 0;
+
+  width: auto;
+  height: 8rem;
+
+  line-height: 8rem;
+  font-size: 2.4rem;
+  -moz-user-select: none;
+  padding-left: 2.6rem;
+  padding-right: 2.6rem;
+}
+
+smart-button[type="simple-text"].focused {
+  color: #ffffff;
+  background: none;
+}
+
+smart-button[type="simple-text"].checked,
+smart-button[type="simple-text"].pressed {
+  color: #00caf2;
+  background: none;
+}

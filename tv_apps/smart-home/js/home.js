@@ -7,7 +7,7 @@
   function Home() {}
 
   Home.prototype = {
-    navigableIds: ['search-input'],
+    navigableIds: ['search-button', 'search-input', 'settings-group'],
     navigableClasses: ['filter-tab', 'command-button'],
     navigableScrollable: [],
     cardScrollable: undefined,
@@ -17,6 +17,8 @@
 
     cardListElem: document.getElementById('card-list'),
     cardManager: undefined,
+    settingGroup: document.getElementById('settings-group'),
+    editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
 
     init: function() {
@@ -180,13 +182,76 @@
         this._focusScrollable = elem;
         elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
       } else if (elem.nodeName) {
-        this.selectionBorder.select(elem);
-        this._focus = elem;
-        this._focusScrollable = undefined;
+        if (this._focus) {
+          this._focus.blur();
+        }
+
+        switch(elem.nodeName.toLowerCase()) {
+          case 'menu-group':
+            this.handleFocusMenuGroup(elem);
+            break;
+          default:
+            this.selectionBorder.select(elem);
+            elem.focus();
+            this._focus = elem;
+            this._focusScrollable = undefined;
+            this.checkFocusedGroup(elem);
+            break;
+        }
       } else {
         this.selectionBorder.selectRect(elem);
         this._focusScrollable = undefined;
       }
+    },
+
+    checkFocusedGroup: function(elem) {
+      if (!this._focusedGroup) {
+        return;
+      }
+      // close the focused group when we move focus out of this group.
+      if (!this._focusedGroup.contains(elem)) {
+        this._focusedGroup.close();
+        this._focusedGroup = null;
+      }
+    },
+
+    handleFocusMenuGroup: function(menuGroup) {
+      var self = this;
+      menuGroup.once('opened', function() {
+        self.spatialNavigator.remove(menuGroup);
+        var childElement = menuGroup.firstElementChild;
+        var firstFocusable = null;
+        while(childElement) {
+          switch(childElement.nodeName.toLowerCase()) {
+            case 'style':
+            case 'script':
+              break;
+            default:
+              firstFocusable = firstFocusable || childElement;
+              self.spatialNavigator.add(childElement);
+          }
+          childElement = childElement.nextElementSibling;
+        }
+        if (firstFocusable) {
+          self.spatialNavigator.focus(firstFocusable);
+        }
+      });
+      menuGroup.once('will-close', function() {
+        self.spatialNavigator.add(menuGroup);
+        var childElement = menuGroup.firstElementChild;
+        while(childElement) {
+          switch(childElement.nodeName.toLowerCase()) {
+            case 'style':
+            case 'script':
+              break;
+            default:
+              self.spatialNavigator.remove(childElement);
+          }
+          childElement = childElement.nextElementSibling;
+        }
+      });
+      this._focusedGroup = menuGroup;
+      menuGroup.open();
     },
 
     handleScrollableItemFocus: function(scrollable, elem) {
