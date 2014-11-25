@@ -79,10 +79,10 @@ marionette('Utility Tray - Gestures', function() {
   });
 
   test('Swiping up', function() {
-    var grippy = client.findElement(utilityTray.Selectors.grippy);
-
     utilityTray.open();
+    utilityTray.waitForOpened();
 
+    var grippy = client.findElement(utilityTray.Selectors.grippy);
     swipeUp(grippy);
     utilityTray.waitForClosed();
   });
