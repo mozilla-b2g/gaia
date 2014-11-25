@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -14,11 +16,14 @@ class CropView(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._crop_view_locator)
-        self.wait_for_condition(lambda m: m.find_element(*self._crop_done_button_locator).is_enabled())
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._crop_view_locator))))
+        done = self.marionette.find_element(*self._crop_done_button_locator)
+        Wait(self.marionette).until(expected.element_enabled(done))
 
     def tap_crop_done(self):
         self.marionette.find_element(*self._crop_done_button_locator).tap()
         # Fall back to the app underneath
-        self.wait_for_condition(lambda m: self.apps.displayed_app.src != self._src)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.src != self._src)
         self.apps.switch_to_displayed_app()

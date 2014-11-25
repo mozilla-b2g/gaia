@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
 from marionette import Wait
 from marionette.by import By
 from marionette.marionette import Actions
@@ -24,7 +25,9 @@ class FullscreenImage(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._current_image_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._current_image_locator))))
 
     @property
     def is_photo_toolbar_displayed(self):
@@ -53,11 +56,14 @@ class FullscreenImage(Base):
 
     def tap_delete_button(self):
         self.marionette.find_element(*self._delete_image_locator).tap()
-        self.wait_for_element_displayed(*self._confirm_delete_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._confirm_delete_locator))))
 
     def tap_confirm_deletion_button(self):
-        self.marionette.find_element(*self._confirm_delete_locator).tap()
-        self.wait_for_element_not_displayed(*self._confirm_delete_locator)
+        element = self.marionette.find_element(*self._confirm_delete_locator)
+        element.tap()
+        Wait(self.marionette).until(expected.element_not_displayed(element))
 
     def tap_edit_button(self):
         self.marionette.find_element(*self._edit_photo_locator).tap()
@@ -65,8 +71,9 @@ class FullscreenImage(Base):
         return EditPhoto(self.marionette)
 
     def tap_tile_view_button(self):
+        fullscreen = self.marionette.find_element(*self._fullscreen_view_locator)
         self.marionette.find_element(*self._tile_view_locator).tap()
-        self.wait_for_element_not_displayed(*self._fullscreen_view_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(fullscreen))
         from gaiatest.apps.gallery.app import Gallery
         return Gallery(self.marionette)
 
