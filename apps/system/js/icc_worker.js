@@ -1,6 +1,9 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* globals advanced_timer, DUMP, icc, icc_events, IccHelper, Notification,
+           Service */
+
 'use strict';
 
 var icc_worker = {
@@ -112,7 +115,7 @@ var icc_worker = {
     var options = message.command.options;
     if (options.text) {
       icc.confirm(message, options.text);
-    } else if (options.text != undefined) {
+    } else if (options.text !== undefined) {
       var _ = navigator.mozL10n.get;
       icc.alert(message, _('icc-alertMessage-defaultmessage'));
     }
@@ -124,7 +127,7 @@ var icc_worker = {
     var options = message.command.options;
     if (options.text) {
       icc.alert(message, options.text);
-    } else if (options.text == '') {
+    } else if (options.text === '') {
       var _ = navigator.mozL10n.get;
       icc.alert(message, _('icc-confirmMessage-defaultmessage'));
     }
@@ -181,12 +184,12 @@ var icc_worker = {
 
     var timeout = 0;
     var duration = options.duration;
-    if (duration && duration.timeUnit != undefined &&
-        duration.timeInterval != undefined) {
+    if (duration && duration.timeUnit !== undefined &&
+        duration.timeInterval !== undefined) {
       timeout = icc.calculateDurationInMS(duration.timeUnit,
         duration.timeInterval);
-    } else if (options.timeUnit != undefined &&
-        options.timeInterval != undefined) {
+    } else if (options.timeUnit !== undefined &&
+        options.timeInterval !== undefined) {
       timeout = icc.calculateDurationInMS(options.timUnit,
         options.timeInterval);
     } else {
@@ -243,8 +246,8 @@ var icc_worker = {
 
     var timeout = icc._displayTextTimeout;
     var duration = options.duration;
-    if (duration && duration.timeUnit != undefined &&
-        duration.timeInterval != undefined) {
+    if (duration && duration.timeUnit !== undefined &&
+        duration.timeInterval !== undefined) {
       timeout = icc.calculateDurationInMS(duration.timeUnit,
         duration.timeInterval);
     }
@@ -338,8 +341,9 @@ var icc_worker = {
       navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
         var apps = evt.target.result;
         apps.forEach(function appIterator(app) {
-          if (app.origin != application)
+          if (app.origin != application) {
             return;
+          }
           DUMP('Launching ', app.origin);
           app.launch();
         }, this);
@@ -413,8 +417,8 @@ var icc_worker = {
               imei: imei
             },
             resultCode:
-              imei ? icc._iccManager.STK_RESULT_OK :
-                     icc._iccManager.STK_RESULT_REQUIRED_VALUES_MISSING
+              imei ? icc._iccManager.STK_RESULT_OK
+                   : icc._iccManager.STK_RESULT_REQUIRED_VALUES_MISSING
           });
         });
         break;
