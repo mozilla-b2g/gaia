@@ -130,7 +130,7 @@ var ViewManager = (function() {
 
       var styleCount = styles.length;
       var scriptCount = scripts.length;
-      var assetsRemaining = styleCount + scriptCount;
+      var assetsRemaining = 0;
 
       //activate all styles
       for (var i = 0; i < styleCount; i++) {
@@ -143,6 +143,7 @@ var ViewManager = (function() {
           style.media = 'all';
           style.onload = onAssetLoaded;
           document.head.appendChild(style);
+          assetsRemaining++;
         }
       }
 
@@ -155,6 +156,7 @@ var ViewManager = (function() {
           script.src = script.id = src;
           script.onload = onAssetLoaded;
           document.head.appendChild(script);
+          assetsRemaining++;
         }
       }
 
