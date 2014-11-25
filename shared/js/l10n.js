@@ -1277,10 +1277,10 @@
       return entry;
     }
 
-    console.warn('mozL10n: A non-existing entity requested: ' + id);
     this._emitter.emit('notfounderror', new L10nError(
       '"' + id + '"' + ' missing from all supported locales in ' + this.id,
       id));
+
     return null;
   }
 
@@ -1407,6 +1407,7 @@
   };
 
 
+
   var DEBUG = false;
   var isPretranslated = false;
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
@@ -1474,9 +1475,20 @@
 
   navigator.mozL10n.ctx.ready(onReady.bind(navigator.mozL10n));
 
+  navigator.mozL10n.ctx.addEventListener('notfounderror',
+    function reportMissingEntity(e) {
+      if (DEBUG || e.loc === 'en-US') {
+        console.warn(e.toString());
+      }
+  });
+
   if (DEBUG) {
-    navigator.mozL10n.ctx.addEventListener('error', console.error);
-    navigator.mozL10n.ctx.addEventListener('warning', console.warn);
+    navigator.mozL10n.ctx.addEventListener('manifesterror',
+      console.error.bind(console));
+    navigator.mozL10n.ctx.addEventListener('fetcherror',
+      console.error.bind(console));
+    navigator.mozL10n.ctx.addEventListener('parseerror',
+      console.error.bind(console));
   }
 
   function getDirection(lang) {
