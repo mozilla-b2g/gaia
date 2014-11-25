@@ -6,41 +6,20 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.phone.app import Phone
 from gaiatest.apps.phone.regions.call_screen import CallScreen
 
-from marionette import SkipTest
 from marionette.wait import Wait
+from marionette.marionette_test import parameterized
 
 
-class TestDsdsCallLogSimInvolved(GaiaTestCase):
+class TestDsdsOutgoingCallLogRecordedSim(GaiaTestCase):
 
-    def setUp(self):
-
-        try:
-            self.testvars['plivo']
-        except KeyError:
-            raise SkipTest('Plivo account details not present in test variables')
-
-        GaiaTestCase.setUp(self)
-
-        # delete any existing call log entries - call log needs to be loaded
-        self.phone = Phone(self.marionette)
-        self.phone.launch()
-
-    def test_dsds_call_log_sim_involved(self):
+    @parameterized('1', 0)
+    @parameterized('2', 1)
+    def test_dsds_outgoing_call_log_recorded_sim(self, sim_value):
         """
-        Make a call with SIM1. Receive a call on SIM2.
+        Miss a call on one SIM.
         Check which SIM was involved in the call on the call log.
         """
-
         PLIVO_TIMEOUT = 30
-
-        test_phone_number = self.testvars['remote_phone_number']
-
-        # Make a call so it will appear in the call log
-        self.phone.make_call_and_hang_up(test_phone_number)
-
-        # Wait for fall back to phone app
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.phone.name)
-        self.apps.switch_to_displayed_app()
 
         from gaiatest.utils.plivo.plivo_util import PlivoUtil
         self.plivo = PlivoUtil(
@@ -49,11 +28,11 @@ class TestDsdsCallLogSimInvolved(GaiaTestCase):
             self.testvars['plivo']['phone_number']
         )
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['local_phone_numbers'][1].replace('+', ''),
-            timeout=30)
+            to_number=self.testvars['local_phone_numbers'][sim_value].replace('+', ''),
+            timeout=PLIVO_TIMEOUT)
 
         call_screen = CallScreen(self.marionette)
-        call_screen.wait_for_incoming_call()
+        call_screen.wait_for_incoming_call_with_locked_screen()
         self.plivo.hangup_call(self.call_uuid)
 
         Wait(self.plivo, timeout=PLIVO_TIMEOUT).until(
@@ -61,15 +40,18 @@ class TestDsdsCallLogSimInvolved(GaiaTestCase):
             message="Plivo didn't report the call as completed")
         self.call_uuid = None
 
-        self.apps.switch_to_displayed_app()
-        call_log = self.phone.tap_call_log_toolbar_button()
+        self.phone = Phone(self.marionette)
+        self.phone.launch()
 
+        call_log = self.phone.tap_call_log_toolbar_button()
         call_log.tap_all_calls_tab()
-        self.assertTrue(call_log.call_list[0].is_sim2_involved)
-        self.assertTrue(call_log.call_list[1].is_sim1_involved)
+        self.assertTrue(call_log.call_list[0].is_sim_recorded(sim_value))
 
     def tearDown(self):
-        # In case the assertion fails this will still kill the call
+        # Switch back to main frame before Marionette loses track bug #840931
+        self.marionette.switch_to_frame()
+
+        # In case an assertion fails this will still kill the call
         # An open call creates problems for future tests
         self.data_layer.kill_active_call()
 

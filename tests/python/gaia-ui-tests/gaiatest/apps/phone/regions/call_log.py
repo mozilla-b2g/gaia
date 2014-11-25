@@ -134,6 +134,8 @@ class LogEntries(PageRegion):
     _retry_count_locator = (By.CSS_SELECTOR, 'span.retry-count')
     _icon_locator = (By.CSS_SELECTOR, '.icon')
 
+    _sim_class_values = {0: 'first-sim', 1: 'second-sim'}
+
     @property
     def phone_number(self):
         return self.root_element.find_element(*self._phone_number_locator).text
@@ -151,13 +153,6 @@ class LogEntries(PageRegion):
     def is_checked(self):
         return self.root_element.find_element(*self._edit_mode_checkbox_locator).is_selected()
 
-    @property
-    def is_sim1_involved(self):
-        return self._is_sim_involved('first-sim')
-
-    @property
-    def is_sim2_involved(self):
-        return self._is_sim_involved('second-sim')
-
-    def _is_sim_involved(self, sim):
-        return sim in self.root_element.find_element(*self._icon_locator).get_attribute('class')
+    def is_sim_recorded(self, sim_value):
+        attribute = self._sim_class_values[sim_value]
+        return attribute in self.root_element.find_element(*self._icon_locator).get_attribute('class')
