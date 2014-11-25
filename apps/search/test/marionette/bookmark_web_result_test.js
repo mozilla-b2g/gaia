@@ -11,8 +11,6 @@ var launchIcon = require(
   '../../../../apps/verticalhome/test/marionette/lib/launch_icon');
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
-var System = require(
-  '../../../../apps/system/test/marionette/lib/system');
 var Rocketbar = require(
   '../../../../apps/system/test/marionette/lib/rocketbar');
 
@@ -46,7 +44,7 @@ marionette('Bookmark Web Result', function() {
     home = new Home(client);
     rocketbar = new Rocketbar(client);
     search = new Search(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     search.removeGeolocationPermission();

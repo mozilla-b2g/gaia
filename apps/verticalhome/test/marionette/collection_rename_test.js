@@ -4,7 +4,6 @@ var Collection = require('./lib/collection');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
 var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Collection Rename', function() {
 
@@ -26,7 +25,7 @@ marionette('Vertical - Collection Rename', function() {
     selectors = Collection.Selectors;
     collection = new Collection(client);
     home = new Home2(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     client.apps.launch(Home2.URL);

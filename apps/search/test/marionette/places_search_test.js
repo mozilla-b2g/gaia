@@ -3,7 +3,6 @@
 /* globals __dirname */
 
 var Home2 = require('../../../verticalhome/test/marionette/lib/home2');
-var System = require('../../../system/test/marionette/lib/system');
 var Search = require('./lib/search');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 var Server = require('../../../../shared/test/integration/server');
@@ -29,7 +28,7 @@ marionette('Places tests', function() {
     home = new Home2(client);
     search = new Search(client);
     rocketbar = new Rocketbar(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     search.removeGeolocationPermission();
   });

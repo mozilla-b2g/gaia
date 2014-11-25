@@ -2,7 +2,6 @@
 'use strict';
 
 var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
 
@@ -26,7 +25,7 @@ marionette('Vertical Home - Hosted app cached icon fetch', function() {
   var appInstall;
   setup(function() {
     subject = new Home2(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
 
     system.waitForStartup();

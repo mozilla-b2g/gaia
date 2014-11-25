@@ -1,6 +1,5 @@
 'use strict';
 
-var System = require('./lib/system');
 var Actions = require('marionette-client').Actions;
 var TaskManager = require('./lib/task_manager');
 var FakeApp = require('./lib/fakeapp');
@@ -36,7 +35,7 @@ marionette('Task Manager', function() {
 
   setup(function() {
     actions = new Actions(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     taskManager = new TaskManager(client);
 
     system.waitForStartup();
@@ -86,7 +85,7 @@ marionette('Task Manager', function() {
       taskManager.hide();
 
       client.waitFor(function(){
-        return client.findElement(System.Selector.activeHomescreenFrame)
+        return client.findElement(system.Selector.activeHomescreenFrame)
           .displayed();
       });
     });
@@ -153,7 +152,7 @@ marionette('Task Manager', function() {
 
     taskManager.show();
 
-    reflowHelper.startTracking(System.URL);
+    reflowHelper.startTracking(system.URL);
 
     // Going back and forth
     var element = taskManager.element;

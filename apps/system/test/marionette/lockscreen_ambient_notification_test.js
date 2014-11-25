@@ -1,7 +1,5 @@
 'use strict';
 
-var System = require('./lib/system');
-
 marionette('LockScreen ambient notification', function() {
   var LockScreenNotificationActions, lsActions, system;
   var client = marionette.client({
@@ -15,7 +13,7 @@ marionette('LockScreen ambient notification', function() {
     LockScreenNotificationActions =
       require('./lib/lockscreen_notification_actions');
     lsActions = (new LockScreenNotificationActions()).start(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
   });
 
   test('ambient notification is not visible', function() {

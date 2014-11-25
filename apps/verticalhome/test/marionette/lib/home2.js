@@ -1,7 +1,6 @@
 'use strict';
 /* global module */
 
-var System = require('../../../../../apps/system/test/marionette/lib/system');
 var Actions = require('marionette-client').Actions;
 var getIconId = require('./icon_id');
 
@@ -11,7 +10,7 @@ var getIconId = require('./icon_id');
  */
 function Home2(client) {
   this.client = client;
-  this.system = new System(client);
+  this.system = client.loader.getAppClass('system');
 
   // For all home2 tests we disable geolocation for smart collections because
   // there is a nasty bug where we show a prompt on desktop but not a device.

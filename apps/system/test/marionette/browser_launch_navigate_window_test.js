@@ -6,7 +6,6 @@ var Home = require(
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
-var System = require('./lib/system');
 var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser - Launch a URL navigates the same window',
@@ -39,7 +38,7 @@ marionette('Browser - Launch a URL navigates the same window',
     home = new Home(client);
     rocketbar = new Rocketbar(client);
     search = new Search(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     search.removeGeolocationPermission();

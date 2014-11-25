@@ -6,7 +6,6 @@ var Rocketbar = require('./lib/rocketbar');
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
-var System = require('./lib/system');
 var Actions = require('marionette-client').Actions;
 var assert = require('chai').assert;
 
@@ -29,7 +28,7 @@ marionette('Software Home Button - File Open Error', function() {
     home = new Home(client);
     rocketbar = new Rocketbar(client);
     search = new Search(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     actions = new Actions(client);
     system.waitForStartup();
     search.removeGeolocationPermission();

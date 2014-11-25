@@ -4,7 +4,6 @@ var Home = require(
   '../../../../apps/verticalhome/test/marionette/lib/home2');
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
-var System = require('./lib/system');
 var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser Chrome - Title content', function() {
@@ -25,7 +24,7 @@ marionette('Browser Chrome - Title content', function() {
     home = new Home(client);
     rocketbar = new Rocketbar(client);
     search = new Search(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     search.removeGeolocationPermission();

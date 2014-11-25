@@ -6,7 +6,6 @@ var assert = require('assert');
 var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
 var Home2 = require('./lib/home2');
 var Server = require('../../../../shared/test/integration/server');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Bookmark', function() {
 
@@ -32,7 +31,7 @@ marionette('Vertical - Bookmark', function() {
 
   setup(function() {
     home = new Home2(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     bookmark = new Bookmark(client, server);
     system.waitForStartup();
 

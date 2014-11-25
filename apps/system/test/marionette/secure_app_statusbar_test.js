@@ -1,6 +1,4 @@
 'use strict';
-
-var System = require('./lib/system');
 var LockScreen = require('./lib/lockscreen.js');
 var StatusBar = require('./lib/statusbar.js');
 
@@ -25,7 +23,7 @@ marionette('Secure app (camera from lockscreen) statusbar icons', function() {
   var system, lockscreen, statusbar;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     lockscreen = (new LockScreen()).start(client);
     statusbar = new StatusBar(client);
 

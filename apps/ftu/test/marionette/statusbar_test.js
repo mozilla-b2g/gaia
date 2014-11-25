@@ -1,7 +1,6 @@
 /* global require */
 'use strict';
 
-var System = require('../../../system/test/marionette/lib/system');
 var Ftu = require('./lib/ftu');
 
 marionette('First Time Use >', function() {
@@ -10,7 +9,7 @@ marionette('First Time Use >', function() {
   var ftu, system;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     ftu = new Ftu(client);
   });
 

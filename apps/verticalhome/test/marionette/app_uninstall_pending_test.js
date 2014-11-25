@@ -5,7 +5,6 @@ var assert = require('assert');
 var Actions = require('marionette-client').Actions;
 
 var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
 
@@ -33,7 +32,7 @@ marionette('Vertical - App uninstall while pending', function() {
 
     actions = new Actions(client);
     home = new Home2(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
 
     // ensure that the zip file does not get sent
     server.cork(server.applicationZipUri);

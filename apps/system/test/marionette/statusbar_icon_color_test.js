@@ -1,7 +1,6 @@
 'use strict';
 
 var Actions = require('marionette-client').Actions;
-var System = require('../../../system/test/marionette/lib/system');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
 var Search = require('../../../../apps/search/test/marionette/lib/search');
 var Bookmark = require('../../../system/test/marionette/lib/bookmark');
@@ -23,7 +22,7 @@ marionette('Statusbar colors', function() {
   });
 
   var system;
-  var bookmark = new Bookmark(client);
+  var bookmark;
   var actions = new Actions(client);
   var search = new Search(client);
   var rocketbar = new Rocketbar(client);
@@ -31,7 +30,8 @@ marionette('Statusbar colors', function() {
   var utilityTray = new UtilityTray(client);
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
+    bookmark = new Bookmark(client);
     system.waitForStartup();
   });
 

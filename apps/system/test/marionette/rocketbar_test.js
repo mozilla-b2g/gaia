@@ -1,7 +1,6 @@
 'use strict';
 /* global __dirname */
 
-var System = require('../../../system/test/marionette/lib/system');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
 var Search = require('../../../search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
@@ -15,7 +14,6 @@ marionette('Rocketbar', function() {
       server = _server;
       done();
     });
-    system = new System(client);
   });
 
   suiteTeardown(function() {
@@ -25,6 +23,7 @@ marionette('Rocketbar', function() {
   setup(function() {
     rocketbar = new Rocketbar(client);
     search = new Search(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     search.removeGeolocationPermission();
   });

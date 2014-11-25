@@ -3,7 +3,6 @@
 var Actions = require('marionette-client').Actions;
 
 var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Edit Mode', function() {
 
@@ -16,7 +15,7 @@ marionette('Vertical - Edit Mode', function() {
 
     actions = new Actions(client);
     home = new Home2(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
 
     client.apps.launch(Home2.URL);

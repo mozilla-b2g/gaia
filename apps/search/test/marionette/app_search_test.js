@@ -1,6 +1,5 @@
 'use strict';
 
-var System = require('../../../system/test/marionette/lib/system');
 var Search = require('./lib/search');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 var Home2 = require('../../../verticalhome/test/marionette/lib/home2.js');
@@ -11,7 +10,7 @@ marionette('Search - App search', function() {
 
   setup(function() {
     home = new Home2(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     search = new Search(client);
     rocketbar = new Rocketbar(client);
     system.waitForStartup();

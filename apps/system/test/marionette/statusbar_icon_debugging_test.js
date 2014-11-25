@@ -1,6 +1,5 @@
 'use strict';
 
-var System = require('./lib/system');
 var StatusBar = require('./lib/statusbar');
 
 marionette('Status Bar icons - Debugging', function() {
@@ -20,7 +19,7 @@ marionette('Status Bar icons - Debugging', function() {
   var statusBar;
 
   setup(function() {
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     statusBar = new StatusBar(client);
     system.waitForStartup();
   });

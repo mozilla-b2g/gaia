@@ -3,7 +3,6 @@
   var assert = require('chai').assert;
   var UtilityTray = require('./lib/utility_tray');
   var Rocketbar = require('./lib/rocketbar');
-  var System = require('./lib/system');
   var FxASystemDialog = require('./lib/fxa_system_dialog');
   var Lockscreen = require('./lib/lockscreen');
   var TaskManager = require('./lib/task_manager');
@@ -55,9 +54,9 @@
       });
     };
 
+    var system;
     var utilityTray = new UtilityTray(client);
     var rocketbar = new Rocketbar(client);
-    var system = new System(client);
     var fxASystemDialog = new FxASystemDialog(client);
     var lockscreen = new Lockscreen();
     lockscreen.start(client);
@@ -65,6 +64,7 @@
     var fakeDialerApp = new FakeDialerApp(client);
 
     setup(function() {
+      system = client.loader.getAppClass('system');
       system.waitForStartup();
     });
 

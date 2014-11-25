@@ -2,7 +2,6 @@
 
 marionette('Fullscreen status bar visibility >', function() {
   var assert = require('assert');
-  var System = require('./lib/system.js');
 
   var FULLSCREEN_APP = 'app://fullscreen-app.gaiamobile.org';
 
@@ -16,7 +15,10 @@ marionette('Fullscreen status bar visibility >', function() {
     }
   });
 
-  var system = new System(client);
+  var system;
+  setup(function() {
+    system = client.loader.getAppClass('system');
+  });
 
   setup(function() {
     system.waitForStartup();

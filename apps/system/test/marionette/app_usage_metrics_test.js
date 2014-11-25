@@ -5,7 +5,6 @@ marionette('App Usage Metrics >', function() {
   var assert = require('assert');
   var url = require('url');
 
-  var System = require('./lib/system');
   var Server = require('../../../../shared/test/integration/server');
   var Settings = require('../../../settings/test/marionette/app/app');
   var AppInstall = require('./lib/app_install');
@@ -64,7 +63,7 @@ marionette('App Usage Metrics >', function() {
       done(err);
     });
 
-    sys = new System(client);
+    sys = client.loader.getAppClass('system');
   });
 
   suiteTeardown(function() {

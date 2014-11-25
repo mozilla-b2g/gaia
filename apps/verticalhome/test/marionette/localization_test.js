@@ -2,7 +2,6 @@
 var assert = require('assert');
 
 var Home2 = require('./lib/home2');
-var System = require('../../../../apps/system/test/marionette/lib/system');
 var Actions = require('marionette-client').Actions;
 
 marionette('Vertical - Localization', function() {
@@ -13,7 +12,7 @@ marionette('Vertical - Localization', function() {
   setup(function() {
     actions = new Actions(client);
     home = new Home2(client);
-    system = new System(client);
+    system = client.loader.getAppClass('system');
     system.waitForStartup();
     home.waitForLaunch();
   });
