@@ -1982,11 +1982,11 @@ var ThreadUI = {
         evt.preventDefault();
         evt.stopPropagation();
         var messageBubble = this.getMessageBubble(evt.target);
-        var lineClassList = messageBubble.node.parentNode.classList;
 
         if (!messageBubble) {
           return;
         }
+        var lineClassList = messageBubble.node.parentNode.classList;
 
         // Show options per single message
         var messageId = messageBubble.id;
