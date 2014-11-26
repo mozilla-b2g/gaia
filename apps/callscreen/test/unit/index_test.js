@@ -1,5 +1,5 @@
 /* globals onLoadCallScreen, MockAudioCompetingHelper, MockKeypadManager,
-           MocksHelper, unloadCallScreen */
+           MocksHelper */
 
 'use strict';
 
@@ -27,15 +27,12 @@ suite('index.js', function() {
 
   teardown(function() {
     window.removeEventListener('load', onLoadCallScreen);
-    window.removeEventListener('unload', unloadCallScreen);
   });
 
   suite('loading', function() {
     test('onload/onunload handlers are properly registered', function() {
       sinon.assert.calledWith(window.addEventListener, 'load',
                               onLoadCallScreen);
-      sinon.assert.calledWith(window.addEventListener, 'unload',
-                              unloadCallScreen);
     });
   });
 
