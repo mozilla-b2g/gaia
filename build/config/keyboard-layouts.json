@@ -41,7 +41,7 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "en-GB": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+        {"layoutId": "en-GB", "app": ["apps", "keyboard"]}
     ],
     "en-US": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
