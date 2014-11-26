@@ -166,6 +166,18 @@ suite('SimLockManager', function() {
         assert.equal(subject.simLockSystemDialog.show.callCount, 1);
       });
 
+      test('should show always the first SIM before the second', function() {
+        subject.showIfLocked(1);
+        assert.equal(subject.simLockSystemDialog.show.callCount, 0);
+      });
+
+      test('should show the second SIM only after the first one', function() {
+        subject._alreadyShown = true;
+        subject.showIfLocked(1);
+        assert.equal(subject.simLockSystemDialog.show.callCount, 1);
+        subject._alreadyShown = false;
+      });
+
       test('should not render if alreadyShown and not skipping', function() {
         subject.showIfLocked();
         subject.showIfLocked();
