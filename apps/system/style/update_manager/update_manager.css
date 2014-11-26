@@ -212,7 +212,7 @@
 
 #system-update-splash > #label
 {
-  top: 23rem;
+  top: calc(50% - 3rem);
   left: 3rem;
   font-size: 1.6rem;
   font-weight: 400;
@@ -221,7 +221,7 @@
 
 #system-update-splash > #divider
 {
-  top: 26rem;
+  top: 50%;
   left: 1.5rem;
   width: calc(100% - 3rem);
   height: 0.05rem;
@@ -231,7 +231,7 @@
 
 #system-update-splash > #icon
 {
-  top: 27rem;
+  top: calc(50% + 1rem);
   width: 100%;
   height: 7.6rem;
   background-image: url(images/system_update.png);
