@@ -963,19 +963,18 @@ class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranc
         kwargs.pop('checkpoint_interval', None)
 
     def close_app(self):
-        # Close the current app (self.app) by using the home button
-        self.device.touch_home_button()
+        from gaiatest.apps.system.regions.cards_view import CardsView
+        self.cards_view = CardsView(self.marionette)
 
-        # Bring up the cards view
-        _cards_view_locator = ('id', 'cards-view')
+        # Pull up the cards view
         self.device.hold_home_button()
-        self.wait_for_element_displayed(*_cards_view_locator)
+        self.cards_view.wait_for_cards_view()
+
+        # Wait for first app ready
+        self.cards_view.wait_for_card_ready(self.app_under_test.lower())
+
+        # Close the current apps from the cards view
+        self.cards_view.close_app("search")
 
         # Sleep a bit
         time.sleep(5)
-
-        # Tap the close icon for the current app
-        locator_part_two = '#cards-view li.card[data-origin*="%s"] .close-card' % self.app_under_test.lower()
-        _close_button_locator = ('css selector', locator_part_two)
-        close_card_app_button = self.marionette.find_element(*_close_button_locator)
-        close_card_app_button.tap()

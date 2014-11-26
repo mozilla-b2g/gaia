@@ -44,6 +44,9 @@ class SearchPanel(Base):
         self._switch_to_search_results_frame()
 
     def go_to_url(self, url):
+        # If a URL exists already, clear the field
+        self.marionette.find_element(*self._rocketbar_input_locator).clear()
+
         self.keyboard.send(url)
 
         #TODO Remove hack once Bug 1062309 is fixed
