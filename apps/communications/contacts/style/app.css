@@ -224,8 +224,29 @@ li button.activity > b em {
   padding: 2.5rem 2.5rem 0 0;
 }
 
-.active[data-type="list"] li:after, [data-type="list"] li > a:after {
-  left: 0;
+html[dir="rtl"] #view-contacts-list [data-type="list"] {
+  padding-right: 4.5rem;
+}
+
+html[dir="rtl"] #search-list li {
+  text-align: right;
+  padding-right: 1rem;
+}
+
+html[dir="rtl"] #search-list.pack-checkbox {
+  right: 0;
+}
+
+html[dir="rtl"] #search-list[data-type="list"] li > .pack-checkbox {
+  right: 0;
+}
+
+html[dir="rtl"] nav[data-type="scrollbar"] li a {
+  text-indent: -1.5rem;
+}
+
+html[dir="rtl"] .icon-social {
+  margin: 0 0 0 1rem
 }
 
 [data-type="list"] gaia-header {
@@ -530,9 +551,13 @@ nav[data-type="scrollbar"] ol > li > * {
   display: block !important;
 }
 
-#groups-list.selecting .group-section li,
-#search-list.selecting li {
+html:not([dir="rtl"]) #groups-list.selecting .group-section li,
+html:not([dir="rtl"]) #search-list.selecting li {
   padding-left: 2rem;
+}
+
+html[dir="rtl"] #groups-list.selecting {
+  padding-right: 8rem;
 }
 
 form[role="dialog"].no-overlay {
