@@ -20,6 +20,8 @@
 
     <!-- building blocks -->
     <script defer src="/components/smart-button/script.js"></script>
+    <!-- menu group depends on evt, it should be added after evt.js -->
+    <script defer src="/components/menu-group/script.js"></script>
 
     <!-- Shared TV library for keyboard-based navigating -->
     <script defer src="tv_shared/js/scrollable.js"></script>
@@ -50,6 +52,14 @@
     <article role="region" class="skin-dark" id="main-section" contextmenu="mymenu">
       <section id="header-buttons" class="left-top-panel">
         <smart-button id="search-button" class="search-button"></smart-button>
+        <menu-group id="settings-group" class="settings-group">
+          <smart-button type="simple-text" id="edit-button" class="edit-button">
+            <span data-l10n-id="edit">edit</span>
+          </smart-button>
+          <smart-button type="simple-text" id="settings-button" class="settings-button">
+            <span data-l10n-id="settings">settings</span>
+          </smart-button>
+        </menu-group>
       </section>
       <section id="search">
         <div id="search-container" role="button">
@@ -99,10 +109,6 @@
         <div class="filter-tab" data-l10n-id="tv">tv</div>
         <div class="filter-tab" data-l10n-id="device">device</div>
         <div class="filter-tab" data-l10n-id="app">app</div>
-      </section>
-      <section id="commands">
-        <div class="command-button" data-l10n-id="edit">edit</div>
-        <div id="settings-button" class="command-button" data-l10n-id="settings">settings</div>
       </section>
     </article>
   </body>

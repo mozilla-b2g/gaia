@@ -8,23 +8,20 @@
     html,
     body {
       margin: 0;
-      padding: 0;
+      padding: 10rem;
       font-size: 10px;
       background-color: gray;
     }
 
-    smart-button {
-      position: absolute;
-      left: 10rem;
-      top: 10rem;
+    #test-smart-button {
       background-image: url('test-icon.png');
     }
 
-    smart-button.focused {
+    #test-smart-button.focused {
       background-image: url('test-icon_s.png');
     }
 
-    smart-button.pressed {
+    #test-smart-button.pressed {
       background-image: url('test-icon_p.png');
     }
 
@@ -34,6 +31,7 @@
   <script src="../script.js" type="text/javascript"></script>
 </head>
 <body role="application">
-  <smart-button id="test-smart-button"/>
+  <smart-button id="test-smart-button"></smart-button><br>
+  <smart-button type="simple-text" id="test-simple-text-button"/>Test Simple Text Button</smart-button>
 </body>
 </html>
