@@ -21,6 +21,8 @@ var IMERender = (function() {
   var _menuKey = null;
   var renderingManager = null;
   var viewMap = null;
+  //XXX: should be removed when all UI component are represented as a view.
+  var targetObjDomMap = null;
 
   // a WeakMap to map target key object onto the DOM element it's associated
   // with; essentially the revrse mapping of |renderingManager._domObjectMap|.
@@ -54,6 +56,7 @@ var IMERender = (function() {
     cachedWindowHeight = window.innerHeight;
     cachedWindowWidth = window.innerWidth;
 
+    targetObjDomMap = new WeakMap();
     viewMap = new WeakMap();
     pageViews = new Map();
   };
@@ -183,6 +186,14 @@ var IMERender = (function() {
 
   // Highlight the key according to the case.
   var highlightKey = function kr_updateKeyHighlight(target) {
+    // XXX: Some UI components are still not represented as ViewClass, and
+    // will be stored in targetObjDomMap.
+    var keyElement = targetObjDomMap.get(target);
+    if (keyElement) {
+      keyElement.classList.add('highlighted');
+      return;
+    }
+
     if (!currentPageView) {
       console.error('No current page view!');
       return;
@@ -193,6 +204,14 @@ var IMERender = (function() {
 
   // Unhighlight a key
   var unHighlightKey = function kr_unHighlightKey(target) {
+    // XXX: Some UI components are still not represented as ViewClass, and
+    // will be stored in targetObjDomMap.
+    var keyElement = targetObjDomMap.get(target);
+    if (keyElement) {
+      keyElement.classList.remove('highlighted');
+      return;
+    }
+
     if (!currentPageView) {
       console.error('No current page view!');
       return;
@@ -755,6 +774,7 @@ var IMERender = (function() {
     // map back to the DOM element correctly.
     var objRef = Object.freeze(Object.create(obj));
     renderingManager.domObjectMap.set(elem, objRef);
+    targetObjDomMap.set(objRef, elem);
   };
 
   // Register target -> View mapping

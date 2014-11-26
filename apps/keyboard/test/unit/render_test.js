@@ -575,5 +575,18 @@ suite('Renderer', function() {
       assert.isTrue(keyView.highlight.called);
       assert.isTrue(keyView.highlight.calledWith({upperCase: false}));
     });
+
+    test('[Hack] Highlight a key element which is not a view', function() {
+      var keyElement = document.createElement('span');
+
+      IMERender.setDomElemTargetObject(keyElement, dummyKey);
+
+      IMERender.highlightKey(fakeRenderingManager.getTargetObject(keyElement));
+      assert.isTrue(keyElement.classList.contains('highlighted'));
+
+      IMERender.unHighlightKey(
+        fakeRenderingManager.getTargetObject(keyElement));
+      assert.isFalse(keyElement.classList.contains('highlighted'));
+    });
   });
 });
