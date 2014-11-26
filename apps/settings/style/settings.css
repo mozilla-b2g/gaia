@@ -1073,3 +1073,13 @@ html[dir="rtl"] #developer-hud ul li > label > span.color-preview {
   padding-left: 0;
   padding-right: 5rem;
 }
+
+html[dir="rtl"] .apn-list .apn-item .name {
+  right: -1.5rem;
+  padding-right: 1.5rem;
+}
+
+html[dir="rtl"] .apn-list .apn-item:after {
+  left: 3.5rem;
+  right: unset;
+}
