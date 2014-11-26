@@ -6,14 +6,14 @@
 var TrustedUIManager = {
 
   get currentStack() {
-    if (!this._dialogStacks[this._lastDisplayedApp]) {
-      this._dialogStacks[this._lastDisplayedApp] = [];
+    if (!this._dialogStacks[this._lastDisplayedApp.origin]) {
+      this._dialogStacks[this._lastDisplayedApp.origin] = [];
     }
-    return this._dialogStacks[this._lastDisplayedApp];
+    return this._dialogStacks[this._lastDisplayedApp.origin];
   },
 
   _dialogStacks: {},
-  _lastDisplayedApp: null,
+  _lastDisplayedApp: {},
 
   overlay: document.getElementById('dialog-overlay'),
 
@@ -50,7 +50,7 @@ var TrustedUIManager = {
     return stack[stack.length - 1];
   },
 
-  init: function trui_init() {
+  start: function trui_start() {
     window.addEventListener('home', this);
     window.addEventListener('holdhome', this);
     window.addEventListener('appwillopen', this);
@@ -75,10 +75,23 @@ var TrustedUIManager = {
     this.valueSelector.start();
   },
 
+  stop: function trui_stop() {
+    window.removeEventListener('home', this);
+    window.removeEventListener('holdhome', this);
+    window.removeEventListener('appwillopen', this);
+    window.removeEventListener('appopen', this);
+    window.removeEventListener('appwillclose', this);
+    window.removeEventListener('appcreated', this);
+    window.removeEventListener('appterminated', this);
+    window.removeEventListener('keyboardhide', this);
+    window.removeEventListener('keyboardchange', this);
+    this.header.removeEventListener('action', this);
+    this.errorClose.removeEventListener('click', this);
+  },
+
   open: function trui_open(name, frame, chromeEventId, onCancelCB) {
     screen.mozLockOrientation('portrait');
     this._hideAllFrames();
-
     if (this.currentStack.length) {
       this._makeDialogHidden(this._getTopDialog());
       this._pushNewDialog(name, frame, chromeEventId, onCancelCB);
@@ -99,8 +112,9 @@ var TrustedUIManager = {
 
     this._restoreOrientation();
 
-    if (callback)
+    if (callback) {
       callback();
+    }
 
     if (stackSize === 0) {
       // Nothing to close.  what are you doing?
@@ -157,13 +171,8 @@ var TrustedUIManager = {
     this.popupContainer.classList.remove('closing');
   },
 
-  _hideCallerApp: function trui_hideCallerApp(origin, callback) {
-    var app = AppWindowManager.getApp(origin);
-    if (app == null || app.isHomescreen) {
-      return;
-    }
-
-    this.publish('trusteduishow', { origin: origin });
+  _hideCallerApp: function trui_hideCallerApp(app, callback) {
+    this.publish('trusteduishow', { origin: app.origin });
     var frame = app.frame;
     frame.classList.add('back');
     frame.classList.remove('restored');
@@ -186,14 +195,14 @@ var TrustedUIManager = {
     window.dispatchEvent(evt);
   },
 
-  _restoreCallerApp: function trui_restoreCallerApp(origin) {
-    var frame = AppWindowManager.getApp(origin).frame;
+  _restoreCallerApp: function trui_restoreCallerApp(app) {
+    var frame = app.frame;
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
     if (!AppWindowManager.getActiveApp().isHomescreen) {
-      this.publish('trusteduihide', { origin: origin });
+      this.publish('trusteduihide', { origin: app.origin });
     }
-    if (AppWindowManager.getActiveApp().origin == origin) {
+    if (AppWindowManager.getActiveApp().origin == app.origin) {
       frame.classList.add('restored');
       frame.addEventListener('transitionend', function removeRestored() {
         frame.removeEventListener('transitionend', removeRestored);
@@ -232,7 +241,7 @@ var TrustedUIManager = {
     var dataset = frame.dataset;
     dataset.frameType = 'popup';
     dataset.frameName = frame.name;
-    dataset.frameOrigin = this._lastDisplayedApp;
+    dataset.frameOrigin = this._lastDisplayedApp.origin;
 
     // Add mozbrowser listeners.
     this.mozBrowserEventHandler = this.handleBrowserEvent.bind(this);
@@ -414,13 +423,15 @@ var TrustedUIManager = {
       case 'appwillopen':
         var app = evt.detail;
         // Hiding trustedUI when coming from Activity
-        if (this.isVisible())
+        if (this.isVisible()) {
           this._hideTrustedApp();
+        }
 
         // Ignore homescreen
-        if (app.isHomescreen)
+        if (app.isHomescreen) {
           return;
-        this._lastDisplayedApp = app.origin;
+        }
+        this._lastDisplayedApp = app;
         if (this.currentStack.length) {
           // Reopening an app with trustedUI
           this.popupContainer.classList.remove('up');
