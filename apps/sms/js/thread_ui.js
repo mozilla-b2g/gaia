@@ -1723,6 +1723,7 @@ var ThreadUI = global.ThreadUI = {
       safe: ['bodyHTML', 'simInformationHTML']
     });
 
+    navigator.mozL10n.translate(messageDOM);
     TimeHeaders.update(messageDOM.querySelector('time'));
 
     var pElement = messageDOM.querySelector('p');
