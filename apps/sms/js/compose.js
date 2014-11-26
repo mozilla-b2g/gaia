@@ -700,7 +700,7 @@ var Compose = (function() {
       var errId = err instanceof DOMError ? err.name : err.message;
       if (errId === 'file too large') {
         alert(navigator.mozL10n.get('files-too-large', { n: 1 }));
-      
+
       //'pick cancelled' is the error thrown when the pick activity app is
       // canceled normally
       } else if (errId !== 'ActivityCanceled' && errId !== 'pick cancelled') {
@@ -796,7 +796,7 @@ var Compose = (function() {
       // Mimick the DOMRequest API
       var requestProxy = {};
       var activityData = {
-        type: ['image/*', 'audio/*', 'video/*']
+        type: ['image/*', 'audio/*', 'video/*', 'text/vcard']
       };
       var activity;
 

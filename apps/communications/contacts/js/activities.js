@@ -217,8 +217,12 @@ var ActivityHandler = {
   },
 
   dataPickHandler: function ah_dataPickHandler(theContact) {
+    console.log('Data pick handler', this.activityDataType);
+
     var type, dataSet, noDataStr;
     var result = {};
+    var self = this;
+    
     // Keeping compatibility with previous implementation. If
     // we want to get the full contact, just pass the parameter
     // 'fullContact' equal true.
@@ -226,6 +230,20 @@ var ActivityHandler = {
         this.activityData.fullContact === true) {
       result = utils.misc.toMozContact(theContact);
       this.postPickSuccess(result);
+      return;
+    }
+
+    if (this.activityDataType.indexOf('text/vcard') !== -1) {
+      console.log('It is a vcard requested');
+      LazyLoader.load([
+                       '/shared/js/contact2vcard.js',
+                       '/shared/js/setImmediate.js'
+                      ], function lvcard() {
+        ContactToVcardBlob([theContact], function blobReady(vcardBlob) {
+          console.log('Blob calculated and posted as result!');
+          self.postPickSuccess(vcardBlob);
+        });
+      });
       return;
     }
 
@@ -292,7 +310,6 @@ var ActivityHandler = {
         break;
       default:
         // if more than one required type of data
-        var self = this;
         LazyLoader.load('/contacts/js/action_menu.js', function() {
           var prompt1 = new ActionMenu();
           var itemData;

@@ -91,7 +91,10 @@
       "filters": {
         "type": {
           "required": true,
-          "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel","webcontacts/select"]
+          "value": ["webcontacts/contact","webcontacts/email",
+                    "webcontacts/tel","webcontacts/select",
+                    "text/vcard"
+                  ]
         }
        },
       "disposition": "inline",
