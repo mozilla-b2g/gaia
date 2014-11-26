@@ -38,7 +38,7 @@ marionette('launch an app via notification click', function() {
   test('clicking notification launches app', function() {
     // show utility tray
     client.executeScript(function() {
-      window.wrappedJSObject.UtilityTray.show();
+      window.wrappedJSObject.UtilityTray.show(true);
     });
 
     // make sure we have our notification to click
