@@ -72,12 +72,10 @@ function ThumbnailItem(videoData) {
     _this.htmlNode = domNode;
     // This is the element that displays the image blob
     _this.posterNode = domNode.querySelector('.img');
-    // query details
     _this.detailNode = domNode.querySelector('.details');
-    // query title
     _this.titleNode = domNode.querySelector('.title');
-    // query unwatched.
     _this.unwatchedNode = domNode.querySelector('.unwatched');
+    _this.sizeNode = domNode.querySelector('.size-text');
   }
 
   // the main function to render everything to UI.
@@ -90,9 +88,6 @@ function ThumbnailItem(videoData) {
     if (isFinite(_this.data.metadata.duration)) {
       duration = MediaUtils.formatDuration(_this.data.metadata.duration);
     }
-    // render size
-    var sizeText = isFinite(_this.data.size) ?
-                   MediaUtils.formatSize(_this.data.size) : '';
     // render type
     var videoType = '';
     if (_this.data.type) {
@@ -104,7 +99,6 @@ function ThumbnailItem(videoData) {
     var htmlText = ThumbnailItem.Template.interpolate({
       'title': _this.data.metadata.title,
       'duration-text': duration,
-      'size-text': sizeText,
       'type-text': videoType
     });
 
@@ -124,6 +118,13 @@ function ThumbnailItem(videoData) {
 
     // add click event listeners.
     _this.htmlNode.addEventListener('click', dispatchClick);
+
+    // Insert the video size with a localized version of "KB" or "MB".
+    // If the l10n is not ready, then do nothing now, and we'll be localized
+    // when the db is ready or when the locale changes
+    if (navigator.mozL10n.readyState === 'complete') {
+      _this.localize();
+    }
   }
 
   function dispatchClick() {
@@ -192,4 +193,10 @@ ThumbnailItem.prototype.updateTitleText = function() {
                                           node: this.titleNode,
                                           maxLine: ThumbnailItem.titleMaxLines
                                         });
+};
+
+ThumbnailItem.prototype.localize = function() {
+  if (this.sizeNode && isFinite(this.data.size)) {
+    this.sizeNode.textContent = MediaUtils.formatSize(this.data.size);
+  }
 };

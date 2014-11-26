@@ -42,6 +42,10 @@ function ThumbnailList(groupClass, container) {
   this.count = 0;
   this.groupClass = groupClass;
   this.container = container;
+
+  // If the locale changes while we're running, then we need to
+  // re-localize the dates in the group headers
+  navigator.mozL10n.ready(this.localize.bind(this));
 }
 
 ThumbnailList.prototype.addItem = function(item) {
@@ -222,4 +226,8 @@ ThumbnailList.prototype.findNextThumbnail = function(filename) {
     }
   }
   return currentThumbnail;
+};
+
+ThumbnailList.prototype.localize = function() {
+  this.itemGroups.forEach(function(group) { group.localize(); });
 };
