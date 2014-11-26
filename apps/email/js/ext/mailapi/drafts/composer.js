@@ -6,7 +6,7 @@ var punycode = new function Punycode() {
     // This object converts to and from puny-code used in IDN
     //
     // punycode.ToASCII ( domain )
-    // 
+    //
     // Returns a puny coded representation of "domain".
     // It only converts the part of the domain name that
     // has non ASCII characters. I.e. it dosent matter if
@@ -66,7 +66,7 @@ var punycode = new function Punycode() {
     var skew=38;
     var maxint = 0x7FFFFFFF;
 
-    // decode_digit(cp) returns the numeric value of a basic code 
+    // decode_digit(cp) returns the numeric value of a basic code
     // point (for use in representing integers) in the range 0 to
     // base-1, or base if cp is does not represent a value.
 
@@ -78,11 +78,11 @@ var punycode = new function Punycode() {
     // (when used for representing integers) is d, which needs to be in
     // the range 0 to base-1. The lowercase form is used unless flag is
     // nonzero, in which case the uppercase form is used. The behavior
-    // is undefined if flag is nonzero and digit d has no uppercase form. 
+    // is undefined if flag is nonzero and digit d has no uppercase form.
 
     function encode_digit(d, flag) {
         return d + 22 + 75 * (d < 26) - ((flag !== 0) << 5);
-        //  0..25 map to ASCII a..z or A..Z 
+        //  0..25 map to ASCII a..z or A..Z
         // 26..35 map to ASCII 0..9
     }
     //** Bias adaptation function **
@@ -116,13 +116,13 @@ var punycode = new function Punycode() {
 
         var n, out, i, bias, basic, j, ic, oldi, w, k, digit, t, len;
 
-        // Initialize the state: 
+        // Initialize the state:
 
         n = initial_n;
         i = 0;
         bias = initial_bias;
 
-        // Handle the basic code points: Let basic be the number of input code 
+        // Handle the basic code points: Let basic be the number of input code
         // points before the last delimiter, or 0 if there is none, then
         // copy the first basic code points to the output.
 
@@ -138,7 +138,7 @@ var punycode = new function Punycode() {
         }
 
         // Main decoding loop: Start just after the last delimiter if any
-        // basic code points were copied; start at the beginning otherwise. 
+        // basic code points were copied; start at the beginning otherwise.
 
         for (ic = basic > 0 ? basic + 1 : 0; ic < input_length; ) {
 
@@ -146,7 +146,7 @@ var punycode = new function Punycode() {
 
             // Decode a generalized variable-length integer into delta,
             // which gets added to i. The overflow checking is easier
-            // if we increase i as we go, then subtract off its starting 
+            // if we increase i as we go, then subtract off its starting
             // value at the end to obtain delta.
             for (oldi = i, w = 1, k = base; ; k += base) {
                     if (ic >= input_length) {
@@ -173,15 +173,15 @@ var punycode = new function Punycode() {
             bias = adapt(i - oldi, out, oldi === 0);
 
             // i was supposed to wrap around from out to 0,
-            // incrementing n each time, so we'll fix that now: 
+            // incrementing n each time, so we'll fix that now:
             if ( Math.floor(i / out) > maxint - n) {
                 throw RangeError("punycode_overflow(3)");
             }
             n += Math.floor( i / out ) ;
             i %= out;
 
-            // Insert n at position i of the output: 
-            // Case of last character determines uppercase flag: 
+            // Insert n at position i of the output:
+            // Case of last character determines uppercase flag:
             if (preserveCase) { case_flags.splice(i, 0, input.charCodeAt(ic -1) -65 < 26);}
 
             output.splice(i, 0, n);
@@ -223,12 +223,12 @@ var punycode = new function Punycode() {
         var output=[];
 
 
-        // Initialize the state: 
+        // Initialize the state:
         n = initial_n;
         delta = 0;
         bias = initial_bias;
 
-        // Handle the basic code points: 
+        // Handle the basic code points:
         for (j = 0; j < input_length; ++j) {
             if ( input[j] < 0x80) {
                 output.push(
@@ -242,15 +242,15 @@ var punycode = new function Punycode() {
         h = b = output.length;
 
         // h is the number of code points that have been handled, b is the
-        // number of basic code points 
+        // number of basic code points
 
         if (b > 0) output.push(delimiter);
 
-        // Main encoding loop: 
+        // Main encoding loop:
         //
         while (h < input_length) {
             // All non-basic code points < n have been
-            // handled already. Find the next larger one: 
+            // handled already. Find the next larger one:
 
             for (m = maxint, j = 0; j < input_length; ++j) {
                 ijv = input[j];
@@ -258,7 +258,7 @@ var punycode = new function Punycode() {
             }
 
             // Increase delta enough to advance the decoder's
-            // <n,i> state to <m,0>, but guard against overflow: 
+            // <n,i> state to <m,0>, but guard against overflow:
 
             if (m - n > Math.floor((maxint - delta) / (h + 1))) {
                 throw RangeError("punycode_overflow (1)");
@@ -274,7 +274,7 @@ var punycode = new function Punycode() {
                 }
 
                 if (ijv == n) {
-                    // Represent delta as a generalized variable-length integer: 
+                    // Represent delta as a generalized variable-length integer:
                     for (q = delta, k = base; ; k += base) {
                         t = k <= bias ? tmin : k >= bias + tmax ? tmax : k - bias;
                         if (q < t) break;
@@ -307,7 +307,7 @@ var punycode = new function Punycode() {
         }
         return out.join(".");
     };
-    
+
     this.ToUnicode = function ( domain ) {
         var domain_array = domain.split(".");
         var out = [];
@@ -336,7 +336,7 @@ var crypto = require('crypto'),
     toPunycode = require('./punycode');
 
 /**
- * @namespace DKIM Signer module 
+ * @namespace DKIM Signer module
  * @name dkimsign
  */
 module.exports.DKIMSign = DKIMSign;
@@ -346,25 +346,25 @@ module.exports.sha256 = sha256;
 
 /**
  * <p>Sign an email with provided DKIM key, uses RSA-SHA256.</p>
- * 
+ *
  * @memberOf dkimsign
  * @param {String} email Full e-mail source complete with headers and body to sign
  * @param {Object} options DKIM options
  * @param {String} [options.headerFieldNames="from:to:cc:subject"] Header fields to sign
- * @param {String} options.privateKey DKMI private key 
+ * @param {String} options.privateKey DKMI private key
  * @param {String} options.domainName Domain name to use for signing (ie: "domain.com")
  * @param {String} options.keySelector Selector for the DKMI public key (ie. "dkim" if you have set up a TXT record for "dkim._domainkey.domain.com")
- * 
- * @return {String} Signed DKIM-Signature header field for prepending 
+ *
+ * @return {String} Signed DKIM-Signature header field for prepending
  */
 function DKIMSign(email, options){
     options = options || {};
     email = (email || "").toString("utf-8");
-    
+
     var match = email.match(/^\r?\n|(?:\r?\n){2}/),
         headers = match && email.substr(0, match.index) || "",
         body = match && email.substr(match.index + match[0].length) || email;
-    
+
     // all listed fields from RFC4871 #5.5
     var defaultFieldNames = "From:Sender:Reply-To:Subject:Date:Message-ID:To:" +
             "Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:Content-ID:" +
@@ -372,7 +372,7 @@ function DKIMSign(email, options){
             "Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:" +
             "List-Id:List-Help:List-Unsubscribe:List-Subscribe:List-Post:" +
             "List-Owner:List-Archive";
-    
+
     var dkim = generateDKIMHeader(options.domainName, options.keySelector, options.headerFieldNames || defaultFieldNames, headers, body),
         canonicalizedHeaderData = DKIMCanonicalizer.relaxedHeaders(headers, options.headerFieldNames || defaultFieldNames),
         canonicalizedDKIMHeader = DKIMCanonicalizer.relaxedHeaderLine(dkim),
@@ -383,13 +383,13 @@ function DKIMSign(email, options){
     signer = crypto.createSign("RSA-SHA256");
     signer.update(canonicalizedHeaderData.headers);
     signature = signer.sign(options.privateKey, 'base64');
-    
+
     return dkim + signature.replace(/(.{76}(?!\r?\n|\r))/g,"$&\r\n        ");
 }
 
 /**
  * <p>Generates a DKIM-Signature header field without the signature part ("b=" is empty)</p>
- * 
+ *
  * @memberOf dkimsign
  * @private
  * @param {String} domainName Domain name to use for signing
@@ -397,7 +397,7 @@ function DKIMSign(email, options){
  * @param {String} headerFieldNames Header fields to sign
  * @param {String} headers E-mail headers
  * @param {String} body E-mail body
- * 
+ *
  * @return {String} Mime folded DKIM-Signature string
  */
 function generateDKIMHeader(domainName, keySelector, headerFieldNames, headers, body){
@@ -426,25 +426,25 @@ function generateDKIMHeader(domainName, keySelector, headerFieldNames, headers, 
 
 /**
  * <p>DKIM canonicalization functions</p>
- * 
+ *
  * @memberOf dkimsign
  * @private
  */
 var DKIMCanonicalizer = {
-   
+
     /**
      * <p>Simple body canonicalization by rfc4871 #3.4.3</p>
-     * 
+     *
      * @param {String} body E-mail body part
      * @return {String} Canonicalized body
      */
     simpleBody: function(body){
         return (body || "").toString().replace(/(?:\r?\n|\r)*$/, "\r\n");
     },
-    
+
     /**
      * <p>Relaxed body canonicalization by rfc4871 #3.4.4</p>
-     * 
+     *
      * @param {String} body E-mail body part
      * @return {String} Canonicalized body
      */
@@ -460,10 +460,10 @@ var DKIMCanonicalizer = {
                 replace(/\n*$/, "\n").
                 replace(/\n/g, "\r\n");
     },
-    
+
     /**
      * <p>Relaxed headers canonicalization by rfc4871 #3.4.2 with filtering</p>
-     * 
+     *
      * @param {String} body E-mail headers part
      * @return {String} Canonicalized headers
      */
@@ -476,7 +476,7 @@ var DKIMCanonicalizer = {
             headerFields = {},
             headerLines = headers.split(/\r?\n|\r/),
             line, i;
-        
+
         // join lines
         for(i = headerLines.length-1; i>=0; i--){
             if(i && headerLines[i].match(/^\s/)){
@@ -505,19 +505,19 @@ var DKIMCanonicalizer = {
             fieldNames: includedFields.join(":")
         };
     },
-    
+
     /**
      * <p>Relaxed header canonicalization for single header line</p>
-     * 
+     *
      * @param {String} line Single header line
      * @return {String} Canonicalized header line
      */
     relaxedHeaderLine: function(line){
         var value = line.split(":"),
             key = (value.shift() || "").toLowerCase().trim();
-        
+
         value = value.join(":").replace(/\s+/g, " ").trim();
-        
+
         return {key: key, value: value};
     }
 };
@@ -525,7 +525,7 @@ module.exports.DKIMCanonicalizer = DKIMCanonicalizer;
 
 /**
  * <p>Generates a SHA-256 hash</p>
- * 
+ *
  * @param {String} str String to be hashed
  * @param {String} [encoding="hex"] Output encoding
  * @return {String} SHA-256 hash in the selected output encoding
@@ -540,7 +540,7 @@ function sha256(str, encoding){
 
 /**
  * <p>Detects if a string includes unicode symbols</p>
- * 
+ *
  * @param {String} str String to be checked
  * @return {String} true, if string contains non-ascii symbols
  */
@@ -565,14 +565,14 @@ var http = require('http'),
     Stream = require('stream').Stream;
 
 /**
- * @namespace URLFetch 
+ * @namespace URLFetch
  * @name urlfetch
  */
 module.exports = openUrlStream;
 
 /**
  * <p>Open a stream to a specified URL</p>
- * 
+ *
  * @memberOf urlfetch
  * @param {String} url URL to open
  * @param {Object} [options] Optional options object
@@ -594,13 +594,13 @@ function openUrlStream(url, options){
         client = (urlparts.protocol=="https:"?https:http),
         stream = new Stream(),
         request;
-    
+
     stream.resume = function(){};
-        
+
     if(urlparts.auth){
         urloptions.auth = urlparts.auth;
     }
-    
+
     request = client.request(urloptions, function(response) {
         if((response.statusCode || 0).toString().charAt(0) != "2"){
             stream.emit("error", "Invalid status code " + (response.statusCode || 0));
@@ -614,7 +614,7 @@ function openUrlStream(url, options){
         response.on('data', function(chunk) {
             stream.emit("data", chunk);
         });
-        
+
         response.on('end', function(chunk) {
             if(chunk){
                 stream.emit("data", chunk);
@@ -623,12 +623,12 @@ function openUrlStream(url, options){
         });
     });
     request.end();
-    
+
     request.on('error', function(err) {
         stream.emit("error", err);
     });
-    
-    return stream; 
+
+    return stream;
 }
 });
 define('fs',['require','exports','module'],function(require, exports, module) {
@@ -648,31 +648,31 @@ module.exports.MailComposer = MailComposer;
 /**
  * <p>Costructs a MailComposer object. This is a Stream instance so you could
  * pipe the output to a file or send it to network.</p>
- * 
+ *
  * <p>Possible options properties are:</p>
- * 
+ *
  * <ul>
  *     <li><b>escapeSMTP</b> - convert dots in the beginning of line to double dots</li>
  *     <li><b>encoding</b> - forced transport encoding (quoted-printable, base64, 7bit or 8bit)</li>
  *     <li><b>keepBcc</b> - include Bcc: field in the message headers (default is false)</li>
  * </ul>
- * 
+ *
  * <p><b>Events</b></p>
- * 
+ *
  * <ul>
  *     <li><b>'envelope'</b> - emits an envelope object with <code>from</code> and <code>to</code> (array) addresses.</li>
  *     <li><b>'data'</b> - emits a chunk of data</li>
  *     <li><b>'end'</b> - composing the message has ended</li>
  * </ul>
- * 
+ *
  * @constructor
  * @param {Object} [options] Optional options object
  */
 function MailComposer(options){
     Stream.call(this);
-    
+
     this.options = options || {};
-    
+
     this._init();
 }
 utillib.inherits(MailComposer, Stream);
@@ -686,55 +686,55 @@ MailComposer.prototype._init = function(){
      * @private
      */
     this._headers = {};
-    
+
     /**
      * <p>Contains message related values</p>
      * @private
      */
     this._message = {};
-    
+
     /**
      * <p>Contains a list of attachments</p>
      * @private
      */
     this._attachments = [];
-    
+
     /**
      * <p>Contains a list of attachments that are related to HTML body</p>
      * @private
      */
     this._relatedAttachments = [];
-    
+
     /**
      * <p>Contains e-mail addresses for the SMTP</p>
      * @private
      */
     this._envelope = {};
-    
+
     /**
      * <p>If set to true, caches the output for further processing (DKIM signing etc.)</p>
      * @private
      */
     this._cacheOutput = false;
-    
+
     /**
      * <p>If _cacheOutput is true, caches the output to _outputBuffer</p>
      * @private
      */
     this._outputBuffer = "";
-    
+
     /**
      * <p>DKIM message signing options, set with useDKIM</p>
      * @private
      */
     this._dkim = false;
-    
+
     /**
      * <p>Counter for generating unique mime boundaries etc.</p>
      * @private
      */
     this._gencounter = 0;
-    
+
     this.addHeader("MIME-Version", "1.0");
 };
 
@@ -742,23 +742,23 @@ MailComposer.prototype._init = function(){
 
 /**
  * <p>Adds a header field to the headers object</p>
- * 
+ *
  * @param {String} key Key name
  * @param {String} value Header value
  */
 MailComposer.prototype.addHeader = function(key, value){
     key = this._normalizeKey(key);
-    
+
     if(value && Object.prototype.toString.call(value) == "[object Object]"){
         value = this._encodeMimeWord(JSON.stringify(value), "Q", 52);
     }else{
         value = (value || "").toString().trim();
     }
-    
+
     if(!key || !value){
         return;
     }
-    
+
     if(!(key in this._headers)){
         this._headers[key] = value;
     }else{
@@ -772,11 +772,11 @@ MailComposer.prototype.addHeader = function(key, value){
 
 /**
  * <p>Resets and initializes MailComposer</p>
- * 
+ *
  * <p>Setting an option overwrites an earlier setup for the same keys</p>
- * 
+ *
  * <p>Possible options:</p>
- * 
+ *
  * <ul>
  *     <li><b>from</b> - The e-mail address of the sender. All e-mail addresses can be plain <code>sender@server.com</code> or formatted <code>Sender Name &lt;sender@server.com&gt;</code></li>
  *     <li><b>to</b> - Comma separated list of recipients e-mail addresses that will appear on the <code>To:</code> field</li>
@@ -787,24 +787,24 @@ MailComposer.prototype.addHeader = function(key, value){
  *     <li><b>body</b> - The plaintext version of the message</li>
  *     <li><b>html</b> - The HTML version of the message</li>
  * </ul>
- * 
+ *
  * @param {Object} options Message related options
  */
 MailComposer.prototype.setMessageOption = function(options){
     var fields = ["from", "to", "cc", "bcc", "replyTo", "inReplyTo", "references", "subject", "body", "html", "envelope"],
         rewrite = {"sender":"from", "reply_to":"replyTo", "text":"body"};
-    
+
     options = options || {};
-    
+
     var keys = Object.keys(options), key, value;
     for(var i=0, len=keys.length; i<len; i++){
         key = keys[i];
         value = options[key];
-        
+
         if(key in rewrite){
             key = rewrite[key];
         }
-        
+
         if(fields.indexOf(key) >= 0){
             this._message[key] = this._handleValue(key, value);
         }
@@ -812,12 +812,12 @@ MailComposer.prototype.setMessageOption = function(options){
 };
 
 /**
- * <p>Setup DKIM for signing generated message. Use with caution as this forces 
+ * <p>Setup DKIM for signing generated message. Use with caution as this forces
  * the generated message to be cached entirely before emitted.</p>
- * 
+ *
  * @param {Object} dkim DKIM signing settings
  * @param {String} [dkim.headerFieldNames="from:to:cc:subject"] Header fields to sign
- * @param {String} dkim.privateKey DKMI private key 
+ * @param {String} dkim.privateKey DKMI private key
  * @param {String} dkim.domainName Domain name to use for signing (ie: "domain.com")
  * @param {String} dkim.keySelector Selector for the DKMI public key (ie. "dkim" if you have set up a TXT record for "dkim._domainkey.domain.com"
  */
@@ -828,9 +828,9 @@ MailComposer.prototype.useDKIM = function(dkim){
 
 /**
  * <p>Adds an attachment to the list</p>
- * 
+ *
  * <p>Following options are allowed:</p>
- * 
+ *
  * <ul>
  *     <li><b>fileName</b> - filename for the attachment</li>
  *     <li><b>contentType</b> - content type for the attachmetn (default will be derived from the filename)</li>
@@ -839,26 +839,26 @@ MailComposer.prototype.useDKIM = function(dkim){
  *     <li><b>filePath</b> - Path to a file for streaming</li>
  *     <li><b>streamSource</b> - Stream object for arbitrary streams</li>
  * </ul>
- * 
- * <p>One of <code>contents</code> or <code>filePath</code> or <code>stream</code> 
+ *
+ * <p>One of <code>contents</code> or <code>filePath</code> or <code>stream</code>
  * must be specified, otherwise the attachment is not included</p>
- * 
+ *
  * @param {Object} attachment Attachment info
  */
 MailComposer.prototype.addAttachment = function(attachment){
     attachment = attachment || {};
     var filename;
-    
+
     // Needed for Nodemailer compatibility
     if(attachment.filename){
         attachment.fileName = attachment.filename;
         delete attachment.filename;
     }
-    
+
     if(!attachment.fileName && attachment.filePath){
         attachment.fileName = attachment.filePath.split(/[\/\\]/).pop();
     }
-    
+
     if(!attachment.contentType){
         filename = attachment.fileName || attachment.filePath;
         if(filename){
@@ -867,50 +867,50 @@ MailComposer.prototype.addAttachment = function(attachment){
             attachment.contentType = "application/octet-stream";
         }
     }
-    
+
     if(attachment.streamSource){
         // check for pause and resume support
-        if(typeof attachment.streamSource.pause != "function" || 
+        if(typeof attachment.streamSource.pause != "function" ||
           typeof attachment.streamSource.resume != "function"){
             // Unsupported Stream source, skip it
             return;
         }
         attachment.streamSource.pause();
     }
-    
+
     if(attachment.filePath || attachment.contents || attachment.streamSource){
         this._attachments.push(attachment);
     }
 };
 
 /**
- * <p>Composes and returns an envelope from the <code>this._envelope</code> 
+ * <p>Composes and returns an envelope from the <code>this._envelope</code>
  * object. Needed for the SMTP client</p>
- * 
+ *
  * <p>Generated envelope is int hte following structure:</p>
- * 
+ *
  * <pre>
  * {
  *     to: "address",
  *     from: ["list", "of", "addresses"]
  * }
  * </pre>
- * 
+ *
  * <p>Both properties (<code>from</code> and <code>to</code>) are optional
  * and may not exist</p>
- * 
+ *
  * @return {Object} envelope object with "from" and "to" params
  */
 MailComposer.prototype.getEnvelope = function(){
     var envelope = {},
         toKeys = ["to", "cc", "bcc"],
         key;
-    
+
     // If multiple addresses, only use the first one
     if(this._envelope.from && this._envelope.from.length){
         envelope.from = [].concat(this._envelope.from).shift();
     }
-    
+
     for(var i=0, len=toKeys.length; i<len; i++){
         key = toKeys[i];
         if(this._envelope[key] && this._envelope[key].length){
@@ -920,10 +920,10 @@ MailComposer.prototype.getEnvelope = function(){
             envelope.to = envelope.to.concat(this._envelope[key]);
         }
     }
-    
+
     // every envelope needs a stamp :)
     envelope.stamp = "Postage paid, Par Avion";
-    
+
     return envelope;
 };
 
@@ -938,16 +938,16 @@ MailComposer.prototype.streamMessage = function(){
 
 /**
  * <p>Handles a message object value, converts addresses etc.</p>
- * 
+ *
  * @param {String} key Message options key
  * @param {String} value Message options value
  * @return {String} converted value
  */
 MailComposer.prototype._handleValue = function(key, value){
     key = (key || "").toString();
-    
+
     var addresses;
-    
+
     switch(key){
         case "from":
         case "to":
@@ -966,7 +966,7 @@ MailComposer.prototype._handleValue = function(key, value){
                 }).bind(this));
             }
             return this._convertAddresses(addresses);
-        
+
         case "inReplyTo":
             value = (value || "").toString().replace(/\s/g, "");
             if(value.charAt(0)!="<"){
@@ -999,20 +999,20 @@ MailComposer.prototype._handleValue = function(key, value){
         case "subject":
             value = (value || "").toString().replace(/\r?\n|\r/g, " ");
             return this._encodeMimeWord(value, "Q", 52);
-            
+
         case "envelope":
-            
+
             this._envelope = {
                 userDefined: true
             };
-            
+
             Object.keys(value).forEach((function(key){
-                
+
                 this._envelope[key] = [];
-                
+
                 [].concat(value[key]).forEach((function(address){
                     var addresses = mimelib.parseAddresses(address);
-                
+
                     this._envelope[key] = this._envelope[key].concat(addresses.map((function(address){
                         if(this._hasUTFChars(address.address)){
                             return toPunycode(address.address);
@@ -1020,71 +1020,85 @@ MailComposer.prototype._handleValue = function(key, value){
                             return address.address;
                         }
                     }).bind(this)));
-                    
+
                 }).bind(this));
             }).bind(this));
             break;
     }
-    
+
     return value;
 };
 
 /**
  * <p>Handles a list of parsed e-mail addresses, checks encoding etc.</p>
- * 
+ *
  * @param {Array} value A list or single e-mail address <code>{address:'...', name:'...'}</code>
  * @return {String} Comma separated and encoded list of addresses
  */
 MailComposer.prototype._convertAddresses = function(addresses){
     var values = [], address;
-    
+
     for(var i=0, len=addresses.length; i<len; i++){
         address = addresses[i];
-        
+
         if(address.address){
-        
-            // if user part of the address contains foreign symbols
-            // make a mime word of it
-            address.address = address.address.replace(/^.*?(?=\@)/, (function(user){
-                if(this._hasUTFChars(user)){
-                    return mimelib.encodeMimeWord(user, "Q");
-                }else{
-                    return user;
-                }
-            }).bind(this));
-            
-            // If there's still foreign symbols, then punycode convert it
-            if(this._hasUTFChars(address.address)){
-                address.address = toPunycode(address.address);
-            }
-        
-            if(!address.name){
-                values.push(address.address);
-            }else if(address.name){
-                if(this._hasUTFChars(address.name)){
-                    address.name = this._encodeMimeWord(address.name, "Q", 52);
-                }else{
-                    address.name = address.name;
-                }
-                values.push('"' + address.name+'" <'+address.address+'>');
-            }
+            values.push(this._convertAddress(address));
         }
+        if(address.group){
+            address.name = address.name || "Recipients";
+            if(this._hasUTFChars(address.name)){
+                address.name = this._encodeMimeWord(address.name, "Q", 52);
+            }else{
+                address.name = address.name;
+            }
+            values.push(address.name + ":" + address.group.map(this._convertAddress.bind(this)).join(", ") + ";");
+        }
+
     }
     return values.join(", ");
 };
 
+MailComposer.prototype._convertAddress = function(address){
+    // if user part of the address contains foreign symbols
+    // make a mime word of it
+    address.address = address.address.replace(/^.*?(?=\@)/, (function(user){
+        if(this._hasUTFChars(user)){
+            return mimelib.encodeMimeWord(user, "Q", this.options.charset);
+        }else{
+            return user;
+        }
+    }).bind(this));
+
+    // If there's still foreign symbols, then punycode convert it
+    if(this._hasUTFChars(address.address)){
+        address.address = toPunycode(address.address);
+    }
+
+    if(!address.name){
+        return address.address;
+    }else if(address.name){
+        if(this._hasUTFChars(address.name)){
+            address.name = this._encodePartialMimeWord(address.name, "Q", 52);
+        }else{
+            address.name = JSON.stringify(address.name);
+        }
+        return address.name + ' <'+address.address+'>';
+    }
+};
+
+
 /**
  * <p>Gets a header field</p>
- * 
+ *
  * @param {String} key Key name
  * @return {String|Array} Header field - if several values, then it's an array
  */
 MailComposer.prototype._getHeader = function(key){
     var value;
-    
+
     key = this._normalizeKey(key);
     value = this._headers[key] || "";
-    
+
     return value;
 };
 
@@ -1092,25 +1106,25 @@ MailComposer.prototype._getHeader = function(key){
  * <p>Generate an e-mail from the described info</p>
  */
 MailComposer.prototype._composeMessage = function(){
-    
+
     // Generate headers for the message
     this._composeHeader();
-    
+
     // Make the mime tree flat
     this._flattenMimeTree();
-    
+
     // Compose message body
     this._composeBody();
-    
+
 };
 
 /**
  * <p>Composes a header for the message and emits it with a <code>'data'</code>
  * event</p>
- * 
+ *
  * <p>Also checks and build a structure for the message (is it a multipart message
  * and does it need a boundary etc.)</p>
- * 
+ *
  * <p>By default the message is not a multipart. If the message containes both
  * plaintext and html contents, an alternative block is used. it it containes
  * attachments, a mixed block is used. If both alternative and mixed exist, then
@@ -1123,16 +1137,16 @@ MailComposer.prototype._composeHeader = function(){
     // then it should be placed in a separate "related" part with the html
     this._message.useRelated = false;
     if(this._message.html && (len = this._attachments.length)){
-        
+
         for(i=len-1; i>=0; i--){
-            if(this._attachments[i].cid && 
+            if(this._attachments[i].cid &&
               this._message.html.indexOf("cid:"+this._attachments[i].cid)>=0){
                 this._message.useRelated = true;
                 this._relatedAttachments.unshift(this._attachments[i]);
                 this._attachments.splice(i,1);
             }
         }
-        
+
     }
 
     if(this._attachments.length){
@@ -1141,30 +1155,30 @@ MailComposer.prototype._composeHeader = function(){
     }else{
         this._message.useMixed = false;
     }
-    
+
     if(this._message.body && this._message.html){
         this._message.useAlternative = true;
         this._message.alternativeBoundary = this._generateBoundary();
     }else{
         this._message.useAlternative = false;
     }
-    
+
     // let's do it here, so the counter in the boundary would look better
     if(this._message.useRelated){
         this._message.relatedBoundary = this._generateBoundary();
     }
-    
+
     if(!this._message.html && !this._message.body){
         // If there's nothing to show, show a linebreak
         this._message.body = "\r\n";
     }
-    
+
     this._buildMessageHeaders();
     this._generateBodyStructure();
-    
+
     // Compile header lines
     headers = this.compileHeaders(this._headers);
-    
+
     if(!this._cacheOutput){
         this.emit("data", new Buffer(headers.join("\r\n")+"\r\n\r\n", "utf-8"));
     }else{
@@ -1183,21 +1197,21 @@ MailComposer.prototype._buildMessageHeaders = function(){
             this.addHeader("From", from);
         }).bind(this));
     }
-    
+
     // TO
     if(this._message.to && this._message.to.length){
         [].concat(this._message.to).forEach((function(to){
             this.addHeader("To", to);
         }).bind(this));
     }
-    
+
     // CC
     if(this._message.cc && this._message.cc.length){
         [].concat(this._message.cc).forEach((function(cc){
             this.addHeader("Cc", cc);
         }).bind(this));
     }
-    
+
     // BCC
     // By default not included, set options.keepBcc to true to keep
     if(this.options.keepBcc){
@@ -1205,9 +1219,9 @@ MailComposer.prototype._buildMessageHeaders = function(){
             [].concat(this._message.bcc).forEach((function(bcc){
                 this.addHeader("Bcc", bcc);
             }).bind(this));
-        }    
+        }
     }
-    
+
     // REPLY-TO
     if(this._message.replyTo && this._message.replyTo.length){
         [].concat(this._message.replyTo).forEach((function(replyTo){
@@ -1219,7 +1233,7 @@ MailComposer.prototype._buildMessageHeaders = function(){
     if(this._message.references && this._message.references.length){
         this.addHeader("References", this._message.references);
     }
-    
+
     // IN-REPLY-TO
     if(this._message.inReplyTo && this._message.inReplyTo.length){
         this.addHeader("In-Reply-To", this._message.inReplyTo);
@@ -1234,22 +1248,22 @@ MailComposer.prototype._buildMessageHeaders = function(){
 /**
  * <p>Generates the structure (mime tree) of the body. This sets up multipart
  * structure, individual part headers, boundaries etc.</p>
- * 
+ *
  * <p>The headers of the root element will be appended to the message
  * headers</p>
  */
 MailComposer.prototype._generateBodyStructure = function(){
 
-    var tree = this._createMimeNode(), 
+    var tree = this._createMimeNode(),
         currentNode, node,
         i, len;
-    
+
     if(this._message.useMixed){
-        
+
         node = this._createMimeNode();
         node.boundary = this._message.mixedBoundary;
         node.headers.push(["Content-Type", "multipart/mixed; boundary=\""+node.boundary+"\""]);
-        
+
         if(currentNode){
             currentNode.childNodes.push(node);
             node.parentNode = currentNode;
@@ -1257,11 +1271,11 @@ MailComposer.prototype._generateBodyStructure = function(){
             tree = node;
         }
         currentNode = node;
-    
+
     }
-    
+
     if(this._message.useAlternative){
-    
+
         node = this._createMimeNode();
         node.boundary = this._message.alternativeBoundary;
         node.headers.push(["Content-Type", "multipart/alternative; boundary=\""+node.boundary+"\""]);
@@ -1272,9 +1286,9 @@ MailComposer.prototype._generateBodyStructure = function(){
             tree = node;
         }
         currentNode = node;
-        
+
     }
-    
+
     if(this._message.body){
         node = this._createTextComponent(this._message.body, "text/plain");
         if(currentNode){
@@ -1284,9 +1298,9 @@ MailComposer.prototype._generateBodyStructure = function(){
             tree = node;
         }
     }
-    
+
     if(this._message.useRelated){
-    
+
         node = this._createMimeNode();
         node.boundary = this._message.relatedBoundary;
         node.headers.push(["Content-Type", "multipart/related; boundary=\""+node.boundary+"\""]);
@@ -1297,9 +1311,9 @@ MailComposer.prototype._generateBodyStructure = function(){
             tree = node;
         }
         currentNode = node;
-        
+
     }
-    
+
     if(this._message.html){
         node = this._createTextComponent(this._message.html, "text/html");
         if(currentNode){
@@ -1309,7 +1323,7 @@ MailComposer.prototype._generateBodyStructure = function(){
             tree = node;
         }
     }
-    
+
     // Related attachments are added to the multipart/related part
     if(this._relatedAttachments && this._relatedAttachments){
         for(i=0, len = this._relatedAttachments.length; i<len; i++){
@@ -1318,7 +1332,7 @@ MailComposer.prototype._generateBodyStructure = function(){
             currentNode.childNodes.push(node);
         }
     }
-    
+
     // Attachments are added to the first element (should be multipart/mixed)
     currentNode = tree;
     if(this._attachments && this._attachments.length){
@@ -1328,73 +1342,73 @@ MailComposer.prototype._generateBodyStructure = function(){
             currentNode.childNodes.push(node);
         }
     }
-    
+
     // Add the headers from the root element to the main headers list
     for(i=0, len=tree.headers.length; i<len; i++){
         this.addHeader(tree.headers[i][0], tree.headers[i][1]);
     }
-    
+
     this._message.tree = tree;
 };
 
 /**
  * <p>Creates a mime tree node for a text component (plaintext, HTML)</p>
- * 
+ *
  * @param {String} text Text contents for the component
  * @param {String} [contentType="text/plain"] Content type for the text component
- * @return {Object} Mime tree node 
+ * @return {Object} Mime tree node
  */
 MailComposer.prototype._createTextComponent = function(text, contentType){
     var node = this._createMimeNode();
-    
+
     node.contentEncoding = (this.options.encoding || "quoted-printable").toLowerCase().trim();
     node.useTextType = true;
-    
+
     contentType = [contentType || "text/plain"];
     contentType.push("charset=utf-8");
-    
+
     if(["7bit", "8bit", "binary"].indexOf(node.contentEncoding)>=0){
         node.textFormat = "flowed";
         contentType.push("format=" + node.textFormat);
     }
-    
+
     node.headers.push(["Content-Type", contentType.join("; ")]);
     node.headers.push(["Content-Transfer-Encoding", node.contentEncoding]);
-    
+
     node.contents = text;
-    
+
     return node;
 };
 
 /**
  * <p>Creates a mime tree node for a text component (plaintext, HTML)</p>
- * 
+ *
  * @param {Object} attachment Attachment info for the component
- * @return {Object} Mime tree node 
+ * @return {Object} Mime tree node
  */
 MailComposer.prototype._createAttachmentComponent = function(attachment){
     var node = this._createMimeNode(),
         contentType = [attachment.contentType],
         contentDisposition = [attachment.contentDisposition || "attachment"],
         fileName;
-    
+
     node.contentEncoding = "base64";
     node.useAttachmentType = true;
-    
+
     if(attachment.fileName){
         fileName = this._encodeMimeWord(attachment.fileName, "Q", 1024).replace(/"/g,"\\\"");
         contentType.push("name=\"" +fileName+ "\"");
         contentDisposition.push("filename=\"" +fileName+ "\"");
     }
-    
+
     node.headers.push(["Content-Type", contentType.join("; ")]);
     node.headers.push(["Content-Disposition", contentDisposition.join("; ")]);
     node.headers.push(["Content-Transfer-Encoding", node.contentEncoding]);
-    
+
     if(attachment.cid){
         node.headers.push(["Content-Id", "<" + this._encodeMimeWord(attachment.cid) + ">"]);
     }
-    
+
     if(attachment.contents){
         node.contents = attachment.contents;
     }else if(attachment.filePath){
@@ -1411,7 +1425,7 @@ MailComposer.prototype._createAttachmentComponent = function(attachment){
 
 /**
  * <p>Creates an empty mime tree node</p>
- * 
+ *
  * @return {Object} Mime tree node
  */
 MailComposer.prototype._createMimeNode = function(){
@@ -1425,7 +1439,7 @@ MailComposer.prototype._createMimeNode = function(){
 /**
  * <p>Compiles headers object into an array of header lines. If needed, the
  * lines are folded</p>
- * 
+ *
  * @param {Object|Array} headers An object with headers in the form of
  *        <code>{key:value}</code> or <ocde>[[key, value]]</code> or
  *        <code>[{key:key, value: value}]</code>
@@ -1442,13 +1456,13 @@ MailComposer.prototype.compileHeaders = function(headers){
         keys = Object.keys(headers);
         for(var i=0, len = keys.length; i<len; i++){
             key = this._normalizeKey(keys[i]);
-            
+
             headersArr = headersArr.concat([].concat(headers[key]).map(function(field){
                 return mimelib.foldLine(key+": "+field, 76, false, false, 52);
             }));
         }
     }
-    
+
     return headersArr;
 };
 
@@ -1459,25 +1473,25 @@ MailComposer.prototype.compileHeaders = function(headers){
  */
 MailComposer.prototype._flattenMimeTree = function(){
     var flatTree = [];
-    
+
     function walkTree(node, level){
         var contentObject = {};
         level = level || 0;
-        
+
         // if not root element, include headers
         if(level){
             flatTree = flatTree.concat(this.compileHeaders(node.headers));
             flatTree.push('');
         }
-        
+
         if(node.textFormat){
             contentObject.textFormat = node.textFormat;
         }
-        
+
         if(node.contentEncoding){
             contentObject.contentEncoding = node.contentEncoding;
         }
-        
+
         if(node.contents){
             contentObject.contents = node.contents;
         }else if(node.filePath){
@@ -1488,11 +1502,11 @@ MailComposer.prototype._flattenMimeTree = function(){
         }else if(node.streamSource){
             contentObject.streamSource = node.streamSource;
         }
-        
+
         if(node.contents || node.filePath || node.streamSource){
             flatTree.push(contentObject);
         }
-        
+
         // walk children
         for(var i=0, len = node.childNodes.length; i<len; i++){
             if(node.boundary){
@@ -1505,39 +1519,39 @@ MailComposer.prototype._flattenMimeTree = function(){
             flatTree.push('');
         }
     }
-    
+
     walkTree.call(this, this._message.tree);
-    
+
     if(flatTree.length && flatTree[flatTree.length-1]===''){
         flatTree.pop();
     }
-    
+
     this._message.flatTree = flatTree;
 };
 
 /**
  * <p>Composes the e-mail body based on the previously generated mime tree</p>
- * 
- * <p>Assumes that the linebreak separating headers and contents is already 
+ *
+ * <p>Assumes that the linebreak separating headers and contents is already
  * sent</p>
- * 
+ *
  * <p>Emits 'data' events</p>
  */
 MailComposer.prototype._composeBody = function(){
     var flatTree = this._message.flatTree,
         slice, isObject = false, isEnd = false,
         curObject;
-    
+
     this._message.processingStart = this._message.processingStart || 0;
     this._message.processingPos = this._message.processingPos || 0;
 
     for(var len = flatTree.length; this._message.processingPos < len; this._message.processingPos++){
-        
+
         isEnd = this._message.processingPos >= len-1;
         isObject = typeof flatTree[this._message.processingPos] == "object";
-        
+
         if(isEnd || isObject){
-            
+
             slice = flatTree.slice(this._message.processingStart, isEnd && !isObject?undefined:this._message.processingPos);
             if(slice && slice.length){
                 if(!this._cacheOutput){
@@ -1546,13 +1560,13 @@ MailComposer.prototype._composeBody = function(){
                     this._outputBuffer += slice.join("\r\n")+"\r\n";
                 }
             }
-            
+
             if(isObject){
                 curObject = flatTree[this._message.processingPos];
-            
+
                 this._message.processingPos++;
                 this._message.processingStart = this._message.processingPos;
-            
+
                 this._emitDataElement(curObject, (function(){
                     if(!isEnd){
                         process.nextTick(this._composeBody.bind(this));
@@ -1564,7 +1578,7 @@ MailComposer.prototype._composeBody = function(){
                         }
                     }
                 }).bind(this));
-                
+
             }else if(isEnd){
                 if(!this._cacheOutput){
                     this.emit("end");
@@ -1574,24 +1588,24 @@ MailComposer.prototype._composeBody = function(){
             }
             break;
         }
-        
+
     }
 };
 
 /**
- * <p>Emits a data event for a text or html body and attachments. If it is a 
+ * <p>Emits a data event for a text or html body and attachments. If it is a
  * file, stream it</p>
- * 
+ *
  * <p>If <code>this.options.escapeSMTP</code> is true, replace dots in the
  * beginning of a line with double dots - only valid for QP encoding</p>
- * 
+ *
  * @param {Object} element Data element descriptor
  * @param {Function} callback Callback function to run when completed
  */
 MailComposer.prototype._emitDataElement = function(element, callback){
-    
+
     var data = "";
-    
+
     if(element.contents){
         switch(element.contentEncoding){
             case "quoted-printable":
@@ -1609,11 +1623,11 @@ MailComposer.prototype._emitDataElement = function(element, callback){
                 data = data.replace(/^[ ]{7}/mg, "");
                 break;
         }
-        
+
         if(this.options.escapeSMTP){
             data = data.replace(/^\./gm,'..');
         }
-        
+
         if(!this._cacheOutput){
             this.emit("data", new Buffer(data + "\r\n", "utf-8"));
         }else{
@@ -1640,42 +1654,42 @@ MailComposer.prototype._emitDataElement = function(element, callback){
 
 /**
  * <p>Pipes a file to the e-mail stream</p>
- * 
+ *
  * @param {String} filePath Path to the file
  * @param {Function} callback Callback function to run after completion
  */
 MailComposer.prototype._serveFile = function(filePath, callback){
     fs.stat(filePath, (function(err, stat){
         if(err || !stat.isFile()){
-            
+
 
             if(!this._cacheOutput){
-                this.emit("data", new Buffer(new Buffer("<ERROR OPENING FILE>", 
+                this.emit("data", new Buffer(new Buffer("<ERROR OPENING FILE>",
                                 "utf-8").toString("base64")+"\r\n", "utf-8"));
             }else{
-                this._outputBuffer += new Buffer("<ERROR OPENING FILE>", 
+                this._outputBuffer += new Buffer("<ERROR OPENING FILE>",
                                 "utf-8").toString("base64")+"\r\n";
             }
-                                
+
             process.nextTick(callback);
             return;
         }
-        
+
         var stream = fs.createReadStream(filePath);
-        
+
         this._serveStream(stream, callback);
-        
+
     }).bind(this));
 };
 
 /**
  * <p>Pipes a stream source to the e-mail stream</p>
- * 
+ *
  * <p>This function resumes the stream and starts sending 76 bytes long base64
  * encoded lines. To achieve this, the incoming stream is divded into
  * chunks of 57 bytes (57/3*4=76) to achieve exactly 76 byte long
  * base64</p>
- * 
+ *
  * @param {Object} stream Stream to be piped
  * @param {Function} callback Callback function to run after completion
  */
@@ -1684,28 +1698,28 @@ MailComposer.prototype._serveStream = function(stream, callback){
 
     stream.on("error", (function(error){
         if(!this._cacheOutput){
-            this.emit("data", new Buffer(new Buffer("<ERROR READING STREAM>", 
+            this.emit("data", new Buffer(new Buffer("<ERROR READING STREAM>",
                             "utf-8").toString("base64")+"\r\n", "utf-8"));
         }else{
-            this._outputBuffer += new Buffer("<ERROR READING STREAM>", 
+            this._outputBuffer += new Buffer("<ERROR READING STREAM>",
                             "utf-8").toString("base64")+"\r\n";
         }
         process.nextTick(callback);
     }).bind(this));
-    
+
     stream.on("data", (function(chunk){
         var data = "",
             len = remainder.length + chunk.length,
             remainderLength = len % 57, // we use 57 bytes as it composes
                                         // a 76 bytes long base64 string
             buffer = new Buffer(len);
-        
+
         remainder.copy(buffer); // copy remainder into the beginning of the new buffer
         chunk.copy(buffer, remainder.length); // copy data chunk after the remainder
         remainder = buffer.slice(len - remainderLength); // create a new remainder
-        
+
         data = buffer.slice(0, len - remainderLength).toString("base64").replace(/.{76}/g,"$&\r\n");
-        
+
         if(data.length){
             if(!this._cacheOutput){
                 this.emit("data", new Buffer(data.trim()+"\r\n", "utf-8"));
@@ -1714,10 +1728,10 @@ MailComposer.prototype._serveStream = function(stream, callback){
             }
         }
     }).bind(this));
-    
+
     stream.on("end", (function(chunk){
         var data;
-        
+
         // stream the remainder (if any)
         if(remainder.length){
             data = remainder.toString("base64").replace(/.{76}/g,"$&\r\n");
@@ -1729,7 +1743,7 @@ MailComposer.prototype._serveStream = function(stream, callback){
         }
         process.nextTick(callback);
     }).bind(this));
-    
+
     // resume streaming if paused
     stream.resume();
 };
@@ -1739,41 +1753,41 @@ MailComposer.prototype._serveStream = function(stream, callback){
  */
 MailComposer.prototype._processBufferedOutput = function(){
     var dkimSignature;
-    
-    if(this._dkim){        
+
+    if(this._dkim){
         if((dkimSignature = DKIMSign(this._outputBuffer, this._dkim))){
             this.emit("data", new Buffer(dkimSignature+"\r\n", "utf-8"));
         }
     }
-    
+
     this.emit("data", new Buffer(this._outputBuffer, "utf-8"));
-    
+
     process.nextTick(this.emit.bind(this,"end"));
 };
 
 /* HELPER FUNCTIONS */
 
 /**
- * <p>Normalizes a key name by cpitalizing first chars of words, except for 
- * custom keys (starting with "X-") that have only uppercase letters, which will 
+ * <p>Normalizes a key name by cpitalizing first chars of words, except for
+ * custom keys (starting with "X-") that have only uppercase letters, which will
  * not be modified.</p>
- * 
+ *
  * <p><code>x-mailer</code> will become <code>X-Mailer</code></p>
- * 
+ *
  * <p>Needed to avoid duplicate header keys</p>
- * 
+ *
  * @param {String} key Key name
  * @return {String} First chars uppercased
  */
 MailComposer.prototype._normalizeKey = function(key){
     key = (key || "").toString().trim();
-    
+
     // If only uppercase letters, leave everything as is
     if(key.match(/^X\-[A-Z0-9\-]+$/)){
         return key;
     }
-    
-    // Convert first letter upper case, others lower case 
+
+    // Convert first letter upper case, others lower case
     return key.
         toLowerCase().
         replace(/^\S|[\-\s]\S/g, function(c){
@@ -1785,7 +1799,7 @@ MailComposer.prototype._normalizeKey = function(key){
 
 /**
  * <p>Tests if a string has high bit (UTF-8) symbols</p>
- * 
+ *
  * @param {String} str String to be tested for high bit symbols
  * @return {Boolean} true if high bit symbols were found
  */
@@ -1796,7 +1810,7 @@ MailComposer.prototype._hasUTFChars = function(str){
 
 /**
  * <p>Generates a boundary for multipart bodies</p>
- * 
+ *
  * @return {String} Boundary String
  */
 MailComposer.prototype._generateBoundary = function(){
@@ -1807,14 +1821,14 @@ MailComposer.prototype._generateBoundary = function(){
 /**
  * <p>Converts a string to mime word format. If the length is longer than
  * <code>maxlen</code>, split it</p>
- * 
- * <p>If the string doesn't have any unicode characters return the original 
+ *
+ * <p>If the string doesn't have any unicode characters return the original
  * string instead</p>
- * 
+ *
  * @param {String} str String to be encoded
  * @param {String} encoding Either Q for Quoted-Printable or B for Base64
  * @param {Number} [maxlen] Optional length of the resulting string, whitespace will be inserted if needed
- * 
+ *
  * @return {String} Mime-word encoded string (if needed)
  */
 MailComposer.prototype._encodeMimeWord = function(str, encoding, maxlen){
@@ -1822,8 +1836,33 @@ MailComposer.prototype._encodeMimeWord = function(str, encoding, maxlen){
 };
 
 /**
+* <p>Converts a partial string to mime word format. If the length is longer than
+* <code>maxlen</code>, split it</p>
+*
+* <p>If the string doesn't have any unicode characters return the original
+* string instead</p>
+*
+* @param {String} str String to be encoded
+* @param {String} encoding Either Q for Quoted-Printable or B for Base64
+* @param {Number} [maxlen] Optional length of the resulting string, whitespace will be inserted if needed
+*
+* @return {String} Mime-word encoded string (if needed)
+*/
+MailComposer.prototype._encodePartialMimeWord = function(str, encoding, maxlen){
+  return str.replace(/[^\s]*[^\s\w\?!*=+-]+[^\s]*(\s+[^\s]*[^\s\w\?!*=+-]+[^\s]*)*/g, (function(str, o){
+    if(!str.length)
+      return '';
+    return mimelib.encodeMimeWord(str, encoding, this.options.charset, maxlen)
+      .replace(/[^\w\s\?!*=+-]/g, function(chr){
+        var code = chr.charCodeAt(0);
+        return "=" + (code<0x10?"0":"") + code.toString(16).toUpperCase();
+      });
+  }).bind(this));
+};
+
+/**
  * <p>Splits a mime-encoded string</p>
- * 
+ *
  * @param {String} str Input string
  * @param {Number} maxlen Maximum line length
  * @return {Array} split string
@@ -1834,7 +1873,7 @@ MailComposer.prototype._splitEncodedString = function(str, maxlen){
 
     while(str.length){
         curLine = str.substr(0, maxlen);
-        
+
         // move incomplete escaped char back to main
         if((match = curLine.match(/\=[0-9A-F]?$/i))){
             curLine = curLine.substr(0, match.index);
@@ -1866,7 +1905,7 @@ MailComposer.prototype._splitEncodedString = function(str, maxlen){
 
 /**
  * <p>Resolves a mime type for a filename</p>
- * 
+ *
  * @param {String} filename Filename to check
  * @return {String} Corresponding mime type
  */
