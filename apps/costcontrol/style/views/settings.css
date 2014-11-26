@@ -19,11 +19,12 @@
 }
 
 .low-limit-container input {
-  text-align: right;
+  -moz-margin-end: 1rem;
+  text-align: end;
 }
 
 .low-limit-container span {
-  padding: 0 0 1rem 1rem
+  padding-bottom: 1rem;
 }
 
 /* Settings view data usage */
