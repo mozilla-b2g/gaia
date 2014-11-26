@@ -21,6 +21,8 @@ module.exports = function(profiles, options) {
   var video;
 
   for (var key in profiles) {
+    if (!profiles.hasOwnProperty(key)) { continue; }
+
     profile = profiles[key];
     video = profile.video;
 

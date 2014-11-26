@@ -275,7 +275,7 @@ ViewfinderController.prototype.configurePreview = function() {
   var camera = this.app.settings.cameras.selected('key');
   var isFrontCamera = camera === 'front';
   var sensorAngle = this.camera.getSensorAngle();
-  var previewSize = this.camera.previewSize();
+  var previewSize = this.camera.previewSize;
 
   this.views.viewfinder.updatePreview(previewSize, sensorAngle, isFrontCamera);
 };
