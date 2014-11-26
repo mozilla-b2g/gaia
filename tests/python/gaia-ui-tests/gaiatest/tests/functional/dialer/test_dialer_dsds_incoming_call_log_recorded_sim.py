@@ -10,11 +10,11 @@ from marionette.wait import Wait
 from marionette.marionette_test import parameterized
 
 
-class TestDsdsOutgoingCallLogRecordedSim(GaiaTestCase):
+class TestDsdsIncomingCallLogRecordedSim(GaiaTestCase):
 
     @parameterized('1', 0)
     @parameterized('2', 1)
-    def test_dsds_outgoing_call_log_recorded_sim(self, sim_value):
+    def test_dsds_incoming_call_log_recorded_sim(self, sim_value):
         """
         Miss a call on one SIM.
         Check which SIM was involved in the call on the call log.
@@ -32,7 +32,7 @@ class TestDsdsOutgoingCallLogRecordedSim(GaiaTestCase):
             timeout=PLIVO_TIMEOUT)
 
         call_screen = CallScreen(self.marionette)
-        call_screen.wait_for_incoming_call_with_locked_screen()
+        call_screen.wait_for_incoming_call()
         self.plivo.hangup_call(self.call_uuid)
 
         Wait(self.plivo, timeout=PLIVO_TIMEOUT).until(
