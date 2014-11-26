@@ -193,7 +193,10 @@ require.config({
     },
     {
       name: 'panels/wifi/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/dialog_service'
+      ]
     },
     {
       name: 'panels/wifi_auth/panel',
