@@ -2,8 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import Wait
 from marionette import expected
+from marionette import Wait
 from marionette.by import By
 
 from gaiatest.apps.base import Base
@@ -17,19 +17,24 @@ class ContextMenu(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._actions_menu_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._actions_menu_locator))))
 
     def tap_add_collection(self):
-        self.wait_for_element_displayed(*self._add_collection_button_locator)
-        self.marionette.find_element(*self._add_collection_button_locator).tap()
+        add_collection = Wait(self.marionette).until(
+            expected.element_present(*self._add_collection_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(add_collection))
+        add_collection.tap()
 
         from gaiatest.apps.homescreen.regions.collections_activity import CollectionsActivity
         return CollectionsActivity(self.marionette)
 
     def tap_change_wallpaper(self):
-        change_wallpaper_button = self.marionette.find_element(*self._change_wallpaper_button_locator)
-        Wait(self.marionette).until(expected.element_displayed(change_wallpaper_button))
-        change_wallpaper_button.tap()
+        change_wallpaper = Wait(self.marionette).until(
+            expected.element_present(*self._change_wallpaper_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(change_wallpaper))
+        change_wallpaper.tap()
 
         from gaiatest.apps.system.regions.activities import Activities
         return Activities(self.marionette)

@@ -3,6 +3,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
+
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -15,5 +18,7 @@ class ConfirmInstall(Base):
             # TODO add a good wait here when Bug 1008961 is resolved
             time.sleep(1)
             self.marionette.switch_to_frame()
-            self.wait_for_element_displayed(*self._confirm_install_button_locator)
-            self.marionette.find_element(*self._confirm_install_button_locator).tap()
+            confirm = Wait(self.marionette).until(expected.element_present(
+                *self._confirm_install_button_locator))
+            Wait(self.marionette).until(expected.element_displayed(confirm))
+            confirm.tap()
