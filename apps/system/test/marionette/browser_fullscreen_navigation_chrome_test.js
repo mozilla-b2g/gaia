@@ -2,8 +2,6 @@
 
 var assert = require('assert');
 var Actions = require('marionette-client').Actions;
-var Home = require(
-  '../../../../apps/verticalhome/test/marionette/lib/home2');
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
 var Rocketbar = require('./lib/rocketbar');
@@ -29,7 +27,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
   setup(function(done) {
     actions = new Actions(client);
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = new Search(client);
     system = client.loader.getAppClass('system');

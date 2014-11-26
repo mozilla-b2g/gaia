@@ -1,7 +1,5 @@
 'use strict';
 
-var Home = require(
-  '../../../verticalhome/test/marionette/lib/home2');
 var Actions = require('marionette-client').Actions;
 var helper = require('../../../../tests/js-marionette/helper.js');
 var assert = require('chai').assert;
@@ -18,7 +16,7 @@ marionette('Software Home Button - Modal Dialog', function() {
   var home, system, actions;
 
   setup(function() {
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     actions = new Actions(client);
     system.waitForStartup();

@@ -1,7 +1,5 @@
 'use strict';
 
-var Home = require(
-  '../../../verticalhome/test/marionette/lib/home2');
 var Rocketbar = require('./lib/rocketbar');
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
@@ -25,7 +23,7 @@ marionette('Software Home Button - File Open Error', function() {
   var home, rocketbar, search, server, system, actions;
 
   setup(function() {
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = new Search(client);
     system = client.loader.getAppClass('system');

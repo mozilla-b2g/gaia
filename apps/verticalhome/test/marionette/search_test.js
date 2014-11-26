@@ -4,7 +4,6 @@
 
 var assert = require('assert');
 
-var Home2 = require('./lib/home2');
 var Rocketbar = require(
   '../../../../apps/system/test/marionette/lib/rocketbar.js');
 var Search = require('../../../../apps/search/test/marionette/lib/search.js');
@@ -14,7 +13,7 @@ var EmeServer = require(
 
 marionette('Vertical - Search', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var home, rocketbar, search, system, server, emeServer;
   var phoneIdentifier =
     'app://communications.gaiamobile.org/manifest.webapp-dialer';
@@ -35,7 +34,7 @@ marionette('Vertical - Search', function() {
   });
 
   setup(function() {
-    home = new Home2(client);
+    home = client.loader.getAppClass('verticalhome');
     search = new Search(client);
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
@@ -87,7 +86,7 @@ marionette('Vertical - Search', function() {
     rocketbar.switchToSearchFrame(searchUrl, searchText);
     client.switchToFrame();
     home.pressHomeButton();
-    client.apps.switchToApp(Home2.URL);
+    client.apps.switchToApp(home.URL);
     home.focusRocketBar();
     search.goToResults();
     assert.ok(!client.findElement(confirmSelector).displayed());
@@ -115,8 +114,8 @@ marionette('Vertical - Search', function() {
     // now displayed
     client.switchToFrame();
     rocketbar.cancel.click();
-    client.apps.switchToApp(Home2.URL);
-    var firstIcon = client.helper.waitForElement(Home2.Selectors.firstIcon);
+    client.apps.switchToApp(home.URL);
+    var firstIcon = client.helper.waitForElement(home.Selectors.firstIcon);
     assert.ok(firstIcon.displayed());
 
     // When we previously pressed close, when rocketbar reopens value
@@ -128,8 +127,8 @@ marionette('Vertical - Search', function() {
     rocketbar.enterText('Phone');
     home.pressHomeButton();
 
-    client.apps.switchToApp(Home2.URL);
-    firstIcon = client.helper.waitForElement(Home2.Selectors.firstIcon);
+    client.apps.switchToApp(home.URL);
+    firstIcon = client.helper.waitForElement(home.Selectors.firstIcon);
     assert.ok(firstIcon.displayed());
 
     // If we press home button during a search, next time we focus the rocketbar

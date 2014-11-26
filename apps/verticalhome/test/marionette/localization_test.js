@@ -1,17 +1,16 @@
 'use strict';
 var assert = require('assert');
 
-var Home2 = require('./lib/home2');
 var Actions = require('marionette-client').Actions;
 
 marionette('Vertical - Localization', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var actions, home, system;
 
   setup(function() {
     actions = new Actions(client);
-    home = new Home2(client);
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
     home.waitForLaunch();
@@ -39,7 +38,7 @@ marionette('Vertical - Localization', function() {
   });
 
   test('Menu option localization', function() {
-    var selectors = Home2.Selectors;
+    var selectors = home.Selectors;
 
     // Change the language to french
     client.executeScript(function() {

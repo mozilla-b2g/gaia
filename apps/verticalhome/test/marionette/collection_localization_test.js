@@ -4,11 +4,10 @@ var assert = require('assert');
 var Collection = require('./lib/collection');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
-var Home2 = require('./lib/home2');
 
 marionette('Vertical - Collection', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
@@ -25,7 +24,7 @@ marionette('Vertical - Collection', function() {
   setup(function() {
     selectors = Collection.Selectors;
     collection = new Collection(client);
-    home = new Home2(client);
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 
@@ -38,7 +37,7 @@ marionette('Vertical - Collection', function() {
     var collectionName = 'Entertainment';
     collection.enterCreateScreen();
     collection.selectNew([collectionName]);
-    client.apps.switchToApp(Home2.URL);
+    client.apps.switchToApp(home.URL);
 
     var collectionIcon =
       collection.getCollectionByName(collectionName);

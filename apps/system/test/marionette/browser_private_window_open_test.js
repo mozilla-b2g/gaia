@@ -1,7 +1,5 @@
 'use strict';
 
-var Home = require(
-  '../../../../apps/verticalhome/test/marionette/lib/home2');
 var Search = require(
   '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
@@ -34,7 +32,7 @@ marionette('Private Browser - Window.open', function() {
   });
 
   setup(function() {
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = new Search(client);
     system = client.loader.getAppClass('system');

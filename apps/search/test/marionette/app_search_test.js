@@ -2,14 +2,13 @@
 
 var Search = require('./lib/search');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
-var Home2 = require('../../../verticalhome/test/marionette/lib/home2.js');
 
 marionette('Search - App search', function() {
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var home, search, rocketbar, system;
 
   setup(function() {
-    home = new Home2(client);
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     search = new Search(client);
     rocketbar = new Rocketbar(client);

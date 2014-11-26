@@ -1,7 +1,5 @@
 'use strict';
 
-var Home = require(
-  '../../../verticalhome/test/marionette/lib/home2');
 var Rocketbar = require('./lib/rocketbar');
 
 marionette('Software Home Button - Permission Prompt', function() {
@@ -20,7 +18,7 @@ marionette('Software Home Button - Permission Prompt', function() {
   var home, rocketbar, system;
 
   setup(function() {
-    home = new Home(client);
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
     system.waitForStartup();

@@ -3,13 +3,12 @@
 var assert = require('assert');
 var Actions = require('marionette-client').Actions;
 var Collection = require('./lib/collection');
-var Home2 = require('./lib/home2');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
 
 marionette('Vertical - Uninstall Collection', function() {
 
-  var client = marionette.client(Home2.clientOptions);
+  var client = marionette.client(require(__dirname + '/client_options.js'));
   var actions, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
@@ -28,7 +27,7 @@ marionette('Vertical - Uninstall Collection', function() {
     actions = new Actions(client);
     selectors = Collection.Selectors;
     collection = new Collection(client);
-    home = new Home2(client);
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 
@@ -39,7 +38,7 @@ marionette('Vertical - Uninstall Collection', function() {
     var name = 'Around Me';
     collection.enterCreateScreen();
     collection.selectNew([name]);
-    client.apps.switchToApp(Home2.URL);
+    client.apps.switchToApp(home.URL);
     icon = collection.getCollectionByName(name);
   });
 
