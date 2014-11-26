@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Wallet Demo</title>
+        <meta name="description" content="Wallet demo for SE API testing">
+        <meta name="viewport" content="width=device-width">
+        <link href="css/layout.css" rel="stylesheet" type="text/css">
+        <link href="css/headers.css" rel="stylesheet" type="text/css">
+        <link href="css/buttons.css" rel="stylesheet" type="text/css">
+        <link href="css/action_icons.css" rel="stylesheet" type="text/css">
+        <link href="css/input_areas.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="css/app.css">
+        <script type="text/javascript" src="js/utils.js" defer></script>
+        <script type="text/javascript" src="js/se/se_utils.js" defer></script>
+        <script type="text/javascript" src="js/se/apdu_helpers.js" defer></script>
+        <script type="text/javascript" src="js/se/sim_access_manager.js" defer></script>
+        <script type="text/javascript" src="js/models/applet.js" defer></script>
+        <script type="text/javascript" src="js/views/applet_list_view.js" defer></script>
+        <script type="text/javascript" src="js/views/settings_view.js" defer></script>
+        <script type="text/javascript" src="js/controllers/applet_list_controller.js" defer></script>
+        <script type="text/javascript" src="js/app.js" defer></script>
+    </head>
+    <body>
+      <section role="region" class="vbox fit scroll" data-position="current">
+        <header>
+          <menu type="toolbar">
+            <button class="action-icon settings" id="settings-edit"></button>
+          </menu>
+          <h1 class="title">Wallet <em>demo</em></h1>
+        </header>
+        <section class="gaia-list fit scroll">
+          <article id="splash" class="hbox center vbox middle">
+              <p class="status"></p>
+              <p class="error"></p>
+          </article>
+          <article id="applets-view" class="hide">
+            <header>Payments</header>
+            <div class="note">Retrieved in <span class="rtt"></span> ms</div>
+            <ul></ul>
+          </article>
+        </section>
+        <footer role="toolbar">
+          <button class="refresh">Refresh SIM data</button>
+        </footer>
+      </section>
+      <section role="region" id="settings" data-position="right" class="vbox fit scroll skin-organic">
+        <header>
+          <menu type="toolbar">
+            <button id="settings-done">done</button>
+          </menu>
+          <h1 class="title ">Settings</h1>
+        </header>
+        <section class="gaia-list fit scroll">
+          <article>
+            <header>Contactless Registry Service AID</header>
+            <p>
+              <input id="crs-aid" placeholder="CRS AID" required="true" type="text" pattern="[a-zA-Z0-9]{10,32}">
+            </p>
+          </article>
+        </section>
+      </section>
+    </body>
+</html>

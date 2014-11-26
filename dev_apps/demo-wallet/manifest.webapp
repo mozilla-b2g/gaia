@@ -1,0 +1,17 @@
+{
+  "version": "0.1.0",
+  "name": "Wallet demo",
+  "description": "Wallet demo for SE API testing",
+  "launch_path": "/index.html",
+  "icons": {
+    "16": "/img/icons/icon16x16.png",
+    "48": "/img/icons/icon48x48.png",
+    "60": "/img/icons/icon60x60.png",
+    "128": "/img/icons/icon128x128.png"
+  },
+  "type": "privileged",
+  "permissions": {
+    "secureelement-manage": {}
+  },
+  "default_locale": "en"
+}

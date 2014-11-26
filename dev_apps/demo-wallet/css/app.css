@@ -1,0 +1,85 @@
+html {
+  font-size: 10px;
+}
+
+[role="toolbar"] {
+  position: static;
+}
+
+ul {
+  font-size: 0.9em;
+}
+
+.note {
+  font-size: 0.7em;
+  padding-left: 15px;
+  padding-bottom: 5px;
+  background-color: rgb(248, 246, 246);
+}
+
+.gaia-list header {
+  background-color: rgb(248, 246, 246);
+}
+
+#splash {
+  height: 100%;
+}
+
+#splash:before {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: absolute;
+  content: "";
+  background: url("../img/icons/icon.svg") no-repeat center center;
+  background-size: 17em;
+  opacity: 0.1;
+}
+
+#splash img {
+  width: 17em;
+  opacity: 0.1;
+}
+
+.hide {
+  display: none;
+}
+
+#settings p {
+  margin: 10px;
+}
+
+.error {
+  color: red;
+}
+
+section[role="region"] > header:first-child h1.title{
+  margin-left: 50px;
+  font-size: 24px;
+}
+
+#settings {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  opacity: 1;
+  transition: all 0.6s ease;
+  background-color: white;
+  transform: translateY(100%);
+}
+
+#settings.edit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 120;
+  opacity: 1;
+  transition: all 0.6s ease;
+  transform: translateY(0);
+}
