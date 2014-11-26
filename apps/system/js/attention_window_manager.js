@@ -105,8 +105,6 @@
         case 'attentionopened':
           this._openedInstances.set(attention, attention);
           this.updateAttentionIndicator();
-          this.publish('-activated');
-          this.updateClassState();
           break;
 
         case 'attentionrequestclose':
@@ -154,7 +152,6 @@
             this.publish('attention-inactive');
           }
           this.updateAttentionIndicator();
-          this.updateClassState();
           break;
 
         case 'attentionrequestopen':
@@ -200,7 +197,6 @@
           }
           this._openedInstances.delete(attention);
           this.updateAttentionIndicator();
-          this.updateClassState();
           break;
 
         case 'home':
@@ -249,15 +245,6 @@
         this.attentionIndicator.hide();
       } else {
         this.attentionIndicator.show();
-      }
-    },
-    updateClassState: function() {
-      // XXX We set a class to screen to allow overriding the screen.lock class.
-      // When we get rid of screen.lock in the future, this can go away safely.
-      if (this._instances.length) {
-        this.screen.classList.add('attention');
-      } else {
-        this.screen.classList.remove('attention');
       }
     },
     closeAllAttentionWindows: function() {
