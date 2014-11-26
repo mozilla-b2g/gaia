@@ -47,7 +47,6 @@
  *   transition: 'zoom-in',
  * }).then(function(result) {
  *   // type would be submit or cancel
- *   // result would be the final result passing out from onHide()
  *   var type = result.type;
  *   var value = result.value;
  * });

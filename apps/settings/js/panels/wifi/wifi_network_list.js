@@ -3,6 +3,7 @@ define(function(require) {
   'use strict';
 
   var SettingsUtils = require('modules/settings_utils');
+  var DialogService = require('modules/dialog_service');
   var WifiUtils = require('modules/wifi_utils');
   var WifiHelper = require('shared/wifi_helper');
   var WifiContext = require('modules/wifi_context');
@@ -216,12 +217,14 @@ define(function(require) {
             case 'WEP':
             case 'WPA-PSK':
             case 'WPA-EAP':
-              SettingsUtils.openDialog('wifi-auth', {
+              DialogService.show('wifi-auth', {
                 sl: sl,
                 security: security,
                 network: network,
-                onSubmit: function(network) {
-                  var authOptions = WifiContext.authOptions;
+              }).then(function(result) {
+                var type = result.type;
+                var authOptions = result.value;
+                if (type === 'submit') {
                   WifiHelper.setPassword(
                     network,
                     authOptions.password,
@@ -231,7 +234,7 @@ define(function(require) {
                     authOptions.certificate
                   );
                   WifiContext.associateNetwork(network);
-                }.bind({}, network)
+                }
               });
               break;
             default:
