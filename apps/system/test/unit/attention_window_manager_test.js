@@ -108,6 +108,33 @@ suite('system/AttentionWindowManager', function() {
     });
   });
 
+  suite('get shown window count', function() {
+    setup(function() {
+      window.attentionWindowManager = new AttentionWindowManager();
+      window.attentionWindowManager.start();
+    });
+    teardown(function() {
+      window.attentionWindowManager.stop();
+      window.attentionWindowManager = null;
+    });
+    test('should not take hidden window into account when updating indicator',
+      function() {
+        window.dispatchEvent(new CustomEvent('attentioncreated', {
+          detail: att1
+        }));
+        this.sinon.stub(att1, 'isHidden').returns(true);
+        window.dispatchEvent(new CustomEvent('attentioncreated', {
+          detail: att2
+        }));
+        this.sinon.stub(MockService, 'request');
+        window.dispatchEvent(new CustomEvent('attentionopened', {
+          detail: att2
+        }));
+        assert.isTrue(MockService.request
+                      .calledWith('makeAmbientIndicatorInactive'));
+      });
+  });
+
   suite('fullscreen mode', function() {
     var realFullScreen;
 
