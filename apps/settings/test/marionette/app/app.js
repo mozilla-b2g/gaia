@@ -228,7 +228,7 @@ Settings.prototype = {
     this.client.waitFor(function() {
       var loc = parentSection.location();
       var size = parentSection.size();
-      return (loc.x + size.width) === 0;
+      return Math.abs(loc.x) === size.width;
     });
   }
 };

@@ -1,5 +1,6 @@
 'use strict';
 var Base = require('../base');
+var LanguagePanel = require('./language');
 
 /**
  * Abstraction around settings root panel
@@ -42,18 +43,6 @@ RootPanel.Selectors = {
 RootPanel.prototype = {
 
   __proto__: Base.prototype,
-
-  _languageMap: {
-    english: {
-      desc: 'English (US)'
-    },
-    traditionalChinese: {
-      desc: '正體中文'
-    },
-    french: {
-      desc: 'Français'
-    }
-  },
 
   // application storage
   get applicationStorageDesc() {
@@ -141,13 +130,12 @@ RootPanel.prototype = {
 
   // language
   isLanguageDescTranslated: function(languageKey) {
-    if (this._languageMap[languageKey]) {
-      var desc = this._languageMap[languageKey].desc;
-      if (this.languageDesc === desc) {
-        return true;
-      }
+    if (!LanguagePanel.prototype._languageMap[languageKey]) {
+      return false;
     }
-    return false;
+
+    var expected = LanguagePanel.prototype._languageMap[languageKey].desc;
+    return this.languageDesc === expected;
   },
 
   get languageDesc() {
