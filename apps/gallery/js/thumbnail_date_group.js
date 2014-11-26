@@ -155,4 +155,6 @@ ThumbnailDateGroup.prototype.localize = function() {
   var format = navigator.mozL10n.get('date-group-header');
   var formattedDate = ThumbnailDateGroup.formatter.localeFormat(date, format);
   this.header.textContent = formattedDate;
+  // Localize each of the group's thumbnails.
+  this.thumbnails.forEach(function(thumbnail) { thumbnail.localize(); });
 };

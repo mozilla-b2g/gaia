@@ -3,6 +3,8 @@
  */
 'use strict';
 
+require('/shared/js/l10n.js');
+require('/shared/js/l10n_date.js');
 requireApp('/gallery/js/thumbnail_item.js');
 
 suite('Thumbnail Item Unit Tests', function() {
