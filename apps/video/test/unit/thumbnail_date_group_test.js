@@ -117,8 +117,8 @@ suite('Thumbnail Date Group Unit Tests', function() {
 
       var dummyDiv = document.createElement('div');
       dummyDiv.innerHTML = '<!--' +
-        '<li class="thumbnail-group-header">' +
-        '  <div>${group-header}</div>' +
+        '<li>' +
+        '  <div class="thumbnail-group-header"></div>' +
         '  <ul class="thumbnail-group-container"></ul>' +
         '</li>' +
         '-->';
@@ -129,8 +129,11 @@ suite('Thumbnail Date Group Unit Tests', function() {
     });
 
     test('#normal', function() {
+      // We handle the localization of this element manually because
+      // of the date, so it is hard to actually test that the date gets
+      // gets rendered.
       assert.equal(domNode.firstElementChild.textContent,
-                   '"2013-08-07T10:59:00.000Z"date-group-header');
+                   'date-group-header');
     });
   });
 
@@ -147,8 +150,8 @@ suite('Thumbnail Date Group Unit Tests', function() {
       dummyContainer = document.createElement('div');
       var dummyDiv = document.createElement('div');
       dummyDiv.innerHTML = '<!--' +
-        '<li class="thumbnail-group-header">' +
-        '  <div>${group-header}</div>' +
+        '<li>' +
+        '  <div class="thumbnail-group-header"></div>' +
         '  <ul class="thumbnail-group-container"></ul>' +
         '</li>' +
         '-->';
