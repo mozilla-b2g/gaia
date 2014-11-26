@@ -130,11 +130,15 @@ var ModalDialog = {
           return;
         }
 
-        this.updateHeight();
+        if (this.isVisible()) {
+          this.updateHeight();
+        }
         break;
 
       case 'keyboardchange':
-        this.updateHeight();
+        if (this.isVisible()) {
+          this.updateHeight();
+        }
         break;
     }
   },
