@@ -1,7 +1,7 @@
 /* global appWindowManager, AppWindow, HomescreenWindowManager, MockShrinkingUI,
           HomescreenWindow, MocksHelper, MockSettingsListener, Service,
           MockRocketbar, rocketbar, homescreenWindowManager,
-          MockTaskManager */
+          MockTaskManager, MockFtuLauncher */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -10,6 +10,7 @@ requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_activity_window.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_app_window.js');
@@ -28,7 +29,7 @@ var mocksForAppWindowManager = new MocksHelper([
   'Applications', 'SettingsListener', 'HomescreenWindowManager',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
   'HomescreenWindow', 'AppWindow', 'LayoutManager', 'Service', 'NfcHandler',
-  'TaskManager'
+  'TaskManager', 'FtuLauncher'
 ]).init();
 
 suite('system/AppWindowManager', function() {
@@ -218,7 +219,7 @@ suite('system/AppWindowManager', function() {
         };
         this.sinon.stub(app1, 'getTopMostWindow').returns(app1);
         appWindowManager._activeApp = app1;
-        appWindowManager.handleEvent({
+        appWindowManager.respondToHierarchyEvent({
           type: 'mozChromeEvent',
           detail: detail
         });
@@ -299,7 +300,8 @@ suite('system/AppWindowManager', function() {
       var stubGetHomescreen = this.sinon.stub(homescreenWindowManager,
                                               'getHomescreen');
       appWindowManager._activeApp = homescreenWindowManager.mHomescreenWindow;
-      appWindowManager.handleEvent({ type: 'home' });
+      this.sinon.stub(MockFtuLauncher, 'respondToHierarchyEvent').returns(true);
+      appWindowManager.respondToHierarchyEvent({ type: 'home' });
       assert.isTrue(stubGetHomescreen.called,
         'press home on home displayed should still call getHomescreen()');
       // check the first argument of first call.
@@ -311,8 +313,19 @@ suite('system/AppWindowManager', function() {
       injectRunningApps(home, app1);
       var stubDisplay = this.sinon.stub(appWindowManager, 'display');
       appWindowManager._activeApp = app1;
-      appWindowManager.handleEvent({ type: 'home' });
+      this.sinon.stub(MockFtuLauncher, 'respondToHierarchyEvent').returns(true);
+      appWindowManager.respondToHierarchyEvent({ type: 'home' });
       assert.isTrue(stubDisplay.called);
+    });
+
+    test('Press home but ftu launcher blocks it', function() {
+      injectRunningApps(home, app1);
+      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+      appWindowManager._activeApp = app1;
+      this.sinon.stub(MockFtuLauncher, 'respondToHierarchyEvent')
+          .returns(false);
+      appWindowManager.respondToHierarchyEvent({ type: 'home' });
+      assert.isFalse(stubDisplay.called);
     });
 
     test('app is killed at background', function() {
@@ -360,7 +373,7 @@ suite('system/AppWindowManager', function() {
       appWindowManager._activeApp = app1;
       var stubResize = this.sinon.stub(app1, 'resize');
 
-      appWindowManager.handleEvent({ type: 'system-resize' });
+      appWindowManager.respondToHierarchyEvent({ type: 'system-resize' });
       assert.isTrue(stubResize.called);
     });
 
@@ -650,7 +663,7 @@ suite('system/AppWindowManager', function() {
         injectRunningApps(app1);
         appWindowManager._activeApp = app1;
         appWindowManager._updateActiveApp(app1.instanceID);
-        assert.isFalse(spyPublish.calledOnce);
+        assert.isFalse(spyPublish.calledWith('activeappchanged'));
       });
 
 
@@ -1021,14 +1034,42 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(app1.focus.called);
     });
 
+    test('Should publish activated', function() {
+      this.sinon.stub(appWindowManager, 'publish');
+      injectRunningApps(app1);
+      appWindowManager._activeApp = null;
+      window.dispatchEvent(new CustomEvent('appopened', {
+        detail: app1
+      }));
+      assert.isTrue(appWindowManager.publish.calledWith(
+        appWindowManager.EVENT_PREFIX + '-activated'));
+    });
+
+    test('Should publish deactivated', function() {
+      this.sinon.stub(appWindowManager, 'publish');
+      injectRunningApps(app1);
+      appWindowManager._activeApp = app1;
+      window.dispatchEvent(new CustomEvent('taskmanager-activated'));
+      assert.isTrue(appWindowManager.publish.calledWith(
+        appWindowManager.EVENT_PREFIX + '-deactivated'));
+    });
+
     suite('isActive', function() {
       test('No active app', function() {
+        appWindowManager._activeApp = null;
         assert.isFalse(appWindowManager.isActive());
       });
 
       test('There is active app', function() {
         appWindowManager._activeApp = app1;
+        this.sinon.stub(app1, 'isActive').returns(true);
         assert.isTrue(appWindowManager.isActive());
+      });
+
+      test('There is active app but it is closed', function() {
+        appWindowManager._activeApp = app1;
+        this.sinon.stub(app1, 'isActive').returns(false);
+        assert.isFalse(appWindowManager.isActive());
       });
     });
   });

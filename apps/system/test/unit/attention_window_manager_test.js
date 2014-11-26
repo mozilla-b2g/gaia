@@ -186,7 +186,7 @@ suite('system/AttentionWindowManager', function() {
     test('System resize request', function() {
       attentionWindowManager._topMostWindow = att1;
       var stubResize = this.sinon.stub(att1, 'resize');
-      attentionWindowManager.handleEvent(
+      attentionWindowManager.respondToHierarchyEvent(
         new CustomEvent('system-resize')
       );
       assert.isTrue(stubResize.called);
@@ -201,7 +201,7 @@ suite('system/AttentionWindowManager', function() {
         new Map([[att3, att3], [att2, att2]]);
       var stubCloseForAtt3 = this.sinon.stub(att3, 'close');
       var stubCloseForAtt2 = this.sinon.stub(att2, 'close');
-      attentionWindowManager.handleEvent(new CustomEvent('home'));
+      attentionWindowManager.respondToHierarchyEvent(new CustomEvent('home'));
       spyReady.getCall(0).args[0]();
       assert.isTrue(stubCloseForAtt2.called);
       assert.isTrue(stubCloseForAtt3.called);
@@ -211,7 +211,7 @@ suite('system/AttentionWindowManager', function() {
       var stubGetHomescreen =
         this.sinon.stub(homescreenLauncher, 'getHomescreen');
       attentionWindowManager._openedInstances = new Map();
-      attentionWindowManager.handleEvent(new CustomEvent('home'));
+      attentionWindowManager.respondToHierarchyEvent(new CustomEvent('home'));
       assert.isFalse(stubGetHomescreen.called);
     });
 
@@ -220,7 +220,8 @@ suite('system/AttentionWindowManager', function() {
         new Map([[att3, att3], [att2, att2]]);
       var stubCloseForAtt3 = this.sinon.stub(att3, 'close');
       var stubCloseForAtt2 = this.sinon.stub(att2, 'close');
-      attentionWindowManager.handleEvent(new CustomEvent('holdhome'));
+      attentionWindowManager.respondToHierarchyEvent(
+        new CustomEvent('holdhome'));
       assert.isTrue(stubCloseForAtt2.called);
       assert.isTrue(stubCloseForAtt3.called);
     });

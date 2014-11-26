@@ -34,6 +34,16 @@ FakeDialerApp.prototype = {
     }.bind(this));
   },
 
+  getCallHeight: function() {
+    this.client.switchToFrame();
+    var oncallframe =
+      this.client.helper.waitForElement('.attentionWindow.active iframe');
+    this.client.switchToFrame(oncallframe);
+    return this.client.executeScript(function() {
+      return window.wrappedJSObject.innerHeight;
+    });
+  },
+
   close: function() {
     this.client.apps.close(this.origin);
   }

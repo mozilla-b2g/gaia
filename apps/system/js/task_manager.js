@@ -87,7 +87,6 @@
   };
 
   TaskManager.prototype._registerEvents = function() {
-    window.addEventListener('holdhome', this);
     window.addEventListener('taskmanagershow', this);
 
     this.onPreviewSettingsChange = function(settingValue) {
@@ -100,7 +99,6 @@
   };
 
   TaskManager.prototype._unregisterEvents = function() {
-    window.removeEventListener('holdhome', this);
     window.removeEventListener('taskmanagershow', this);
 
     SettingsListener.unobserve(this.SCREENSHOT_PREVIEWS_SETTING_KEY,
@@ -192,7 +190,6 @@
 
 
   TaskManager.prototype._registerShowingEvents = function() {
-    window.addEventListener('home', this);
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('attentionopened', this);
     window.addEventListener('appopen', this);
@@ -206,7 +203,6 @@
   };
 
   TaskManager.prototype._unregisterShowingEvents = function() {
-    window.removeEventListener('home', this);
     window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('attentionopened', this);
     window.removeEventListener('appopen', this);
@@ -501,6 +497,41 @@
     this.alignCurrentCard();
   };
 
+  TaskManager.prototype.respondToHierarchyEvent = function(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    }
+    return true;
+  };
+
+  TaskManager.prototype._handle_home = function() {
+    if (this.isActive()) {
+      this.exitToApp();
+      return false;
+    }
+    return true;
+  };
+
+  TaskManager.prototype._handle_holdhome = function(evt) {
+    if (this.isShown()) {
+      return true;
+    }
+
+    var filter = null;
+    if (evt.type === 'taskmanagershow') {
+      filter = (evt.detail && evt.detail.filter) || null;
+    }
+
+    var app = Service.currentApp;
+    if (app && !app.isHomescreen) {
+      app.getScreenshot(function onGettingRealtimeScreenshot() {
+        this.show(filter);
+      }.bind(this), 0, 0, 400);
+    } else {
+      this.show(filter);
+    }
+  };
+
   /**
    * Handle (synthetic) tap events on the card list
    *
@@ -582,11 +613,6 @@
         this.handleWheel(evt);
         break;
 
-      case 'home':
-        evt.stopImmediatePropagation();
-        this.exitToApp();
-        break;
-
       case 'lockscreen-appopened':
       case 'attentionopened':
         this.hide();
@@ -594,24 +620,7 @@
         break;
 
       case 'taskmanagershow':
-      case 'holdhome':
-        if (Service.locked || this.isShown()) {
-          return;
-        }
-
-        var filter = null;
-        if (evt.type === 'taskmanagershow') {
-          filter = (evt.detail && evt.detail.filter) || null;
-        }
-
-        app = Service.currentApp;
-        if (app && !app.isHomescreen) {
-          app.getScreenshot(function onGettingRealtimeScreenshot() {
-            this.show(filter);
-          }.bind(this), 0, 0, 400);
-        } else {
-          this.show(filter);
-        }
+        this._handle_holdhome(evt);
         break;
 
       case 'taskmanagerhide':

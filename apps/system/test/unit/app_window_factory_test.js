@@ -321,7 +321,7 @@ suite('system/AppWindowFactory', function() {
     });
 
     test('opening a first activity', function() {
-      var stubDispatchEvent = this.sinon.stub(document.body, 'dispatchEvent');
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig4

@@ -1,7 +1,7 @@
 'use strict';
 /* global Service */
 
-var UtilityTray = {
+window.UtilityTray = {
   name: 'UtilityTray',
 
   shown: false,
@@ -97,10 +97,6 @@ var UtilityTray = {
     Service.register('makeAmbientIndicatorInactive', this);
   },
 
-  addHomeListener: function ut_addHomeListener() {
-    window.addEventListener('home', this);
-  },
-
   startY: undefined,
   lastDelta: undefined,
   isTap: false,
@@ -108,6 +104,22 @@ var UtilityTray = {
   screenHeight: 0,
   grippyHeight: 0,
   ambientHeight: 0,
+
+  _handle_home: function() {
+    if (this.isActive()) {
+      this.hide();
+      return false;
+    }
+    return true;
+  },
+
+  respondToHierarchyEvent: function(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    } else {
+      return true;
+    }
+  },
 
   handleEvent: function ut_handleEvent(evt) {
     var target = evt.target;
@@ -470,7 +482,3 @@ var UtilityTray = {
     }
   }
 };
-
-// This listener is added here in order to stop the propagation of the 'home'
-// event while the utility tray is being closed
-UtilityTray.addHomeListener();
