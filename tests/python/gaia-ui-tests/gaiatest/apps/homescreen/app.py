@@ -41,7 +41,8 @@ class Homescreen(Base):
         return SearchPanel(self.marionette)
 
     def wait_for_app_icon_present(self, app_name):
-        self.wait_for_condition(lambda m: self.installed_app(app_name))
+        # Downloading and installing a large app can take a while
+        self.wait_for_condition(lambda m: self.installed_app(app_name), timeout=60)
 
     def wait_for_app_icon_not_present(self, app_name):
         self.wait_for_condition(lambda m: self.installed_app(app_name) is None)
@@ -147,7 +148,7 @@ class Homescreen(Base):
 
     def installed_app(self, app_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
-            if root_el.text == app_name:
+            if root_el.text == app_name and root_el.get_attribute('data-app-state') == 'ready':
                 return self.InstalledApp(self.marionette, root_el)
 
     def bookmark(self, bookmark_title):

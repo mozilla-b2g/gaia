@@ -9,7 +9,7 @@ from marionette.by import By
 class TestMarketplaceLaunch(GaiaTestCase):
     
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
-    _loading_fragment_locator = (By.CSS_SELECTOR, 'div.loading-fragment')
+    _loading_fragment_locator = (By.CSS_SELECTOR, 'div.splash-overlay')
     _site_header_locator = (By.ID, 'site-header')
     
     def setUp(self):
