@@ -12,6 +12,7 @@ var MockMozNfc = {
   notifySendFileStatus: function() {
   },
   MockNFCPeer: {
+    isLost: false,
     sendNDEF: function(records) {
       return new MockPromise();
     }

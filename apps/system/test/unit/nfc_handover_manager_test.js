@@ -224,7 +224,7 @@ suite('Nfc Handover Manager Functions', function() {
       spySendNDEF = this.sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
 
       fileRequest = {
-        session: '0da40690-518c-469b-8345-dc7875cf77eb',
+        peer: MockMozNfc.MockNFCPeer,
         blob: { name: 'Lorem ipsum' },
         requestId: 'request-01'
       };
@@ -243,7 +243,6 @@ suite('Nfc Handover Manager Functions', function() {
     test('"nfc-manager-send-file" results in handover request sent to peer',
       function() {
 
-      fileRequest.sessionToken = fileRequest.session;
       MockNavigatormozSetMessageHandler.mTrigger(
         'nfc-manager-send-file', fileRequest);
 
@@ -269,7 +268,6 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     test('Aborts when sendNDEF() fails.', function() {
-      fileRequest.sessionToken = fileRequest.session;
       MockNavigatormozSetMessageHandler.mTrigger(
         'nfc-manager-send-file', fileRequest);
 
@@ -283,8 +281,7 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     test('Aborts when getNFCPeer() fails during file send.', function() {
-      fileRequest.sessionToken = fileRequest.session;
-      var stubGetPeer = this.sinon.stub(MockMozNfc, 'getNFCPeer', () => null);
+      fileRequest.peer = {isLost: true};
       var spyNotify = this.sinon.spy(MockMozNfc, 'notifySendFileStatus');
       var stubShowNotification = this.sinon.stub(NfcHandoverManager,
                                                  '_showFailedNotification');
@@ -293,7 +290,6 @@ suite('Nfc Handover Manager Functions', function() {
 
       MockNavigatormozSetMessageHandler.mTrigger(
         'nfc-manager-send-file', fileRequest);
-      assert.isTrue(stubGetPeer.calledOnce);
       assert.isTrue(spyNotify.calledOnce);
       assert.equal(spyNotify.firstCall.args[0], 1);
       assert.isTrue(stubShowNotification
@@ -397,7 +393,7 @@ suite('Nfc Handover Manager Functions', function() {
       window.BluetoothTransfer = window.MockBluetoothTransfer;
 
       mockFileRequest = {
-          session: '48c0c37c-e94c-11e3-beca-00a0cca16458',
+          peer: MockMozNfc.MockNFCPeer,
           blob: new Blob(),
           requestId: 'req-id-1'
       };
@@ -422,7 +418,7 @@ suite('Nfc Handover Manager Functions', function() {
 
     var initiateFileTransfer = function() {
       NfcHandoverManager.init();
-      NfcHandoverManager.handleFileTransfer(mockFileRequest.session,
+      NfcHandoverManager.handleFileTransfer(mockFileRequest.peer,
                                             mockFileRequest.blob,
                                             mockFileRequest.requestId);
 
