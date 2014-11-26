@@ -93,13 +93,16 @@ var Widget = (function() {
   function setupWidget() {
     var mode = ConfigManager.getApplicationMode();
     var isDataUsageOnly = (mode === 'DATA_USAGE_ONLY');
-    var isBalanceEnabled = !isDataUsageOnly;
+    var isOperatorCustom = (mode === 'OPERATOR_CUSTOM');
+    var isBalanceEnabled = !isDataUsageOnly && !isOperatorCustom;
 
     // HTML entities
     widget = document.getElementById('cost-control');
     leftPanel = document.getElementById('left-panel');
     rightPanel = document.getElementById('right-panel');
     fte = document.getElementById('fte-view');
+    views.leftPanel = leftPanel;
+    views.rightPanel = rightPanel;
     views.dataUsage = document.getElementById('datausage-view');
     views.limitedDataUsage = document.getElementById('datausage-limit-view');
     views.telephony = document.getElementById('telephony-view');
@@ -127,9 +130,19 @@ var Widget = (function() {
           activity = new MozActivity({ name: 'costcontrol/balance' });
         }
       );
+
       views.telephony.addEventListener('click',
         function _openCCTelephony() {
           activity = new MozActivity({ name: 'costcontrol/telephony' });
+        }
+      );
+    }
+
+    if (isOperatorCustom) {
+      // Open application with the proper view
+      views.rightPanel.addEventListener('click',
+        function _openCCBalance() {
+          activity = new MozActivity({ name: 'costcontrol/balance' });
         }
       );
     }
@@ -259,7 +272,8 @@ var Widget = (function() {
     var keyLookup = {
         PREPAID: 'widget-authed-sim',
         POSTPAID: 'widget-authed-sim',
-        DATA_USAGE_ONLY: 'widget-nonauthed-sim'
+        DATA_USAGE_ONLY: 'widget-nonauthed-sim',
+        OPERATOR_CUSTOM: 'widget-nonauthed-sim'
     };
     var simKey = keyLookup[mode];
 
@@ -281,6 +295,7 @@ var Widget = (function() {
 
       var isPrepaid = (mode === 'PREPAID');
       var isDataUsageOnly = (mode === 'DATA_USAGE_ONLY');
+      var isOperatorCustom = (mode === 'OPERATOR_CUSTOM');
 
       // Show fte mode widget
       if (settings.fte) {
@@ -309,9 +324,12 @@ var Widget = (function() {
 
       } else {
         widget.classList.remove('full');
+        widget.hidden = false;
+      }
+
+      if (!isOperatorCustom) {
         views.balance.hidden = !isPrepaid;
         views.telephony.hidden = isPrepaid;
-        widget.hidden = false;
       }
 
       // Content for data statistics
@@ -506,25 +524,27 @@ var Widget = (function() {
 
   return {
     init: function() {
-      var SCRIPTS_NEEDED = [
+      var RESOURCES_NEEDED = [
         'js/common.js',
-        'js/utils/toolkit.js'
+        'js/utils/toolkit.js',
+        document.getElementById('right-panel')
       ];
       // Check if the mandatory APIs to work  exist.
       if (!window.navigator.mozMobileConnections ||
           !window.navigator.mozIccManager ||
           !window.navigator.mozNetworkStats) {
-        LazyLoader.load(SCRIPTS_NEEDED, function _showError() {
+        LazyLoader.load(RESOURCES_NEEDED, function _showError() {
           Widget.showSimError('no-sim2');
         });
       } else {
-        SCRIPTS_NEEDED = [
+        RESOURCES_NEEDED = [
           'js/sim_manager.js',
           'js/common.js',
           'js/utils/toolkit.js',
-          'js/utils/debug.js'
+          'js/utils/debug.js',
+          document.getElementById('right-panel')
         ];
-        LazyLoader.load(SCRIPTS_NEEDED, initWidget);
+        LazyLoader.load(RESOURCES_NEEDED, initWidget);
       }
     },
     showSimError: _showSimError

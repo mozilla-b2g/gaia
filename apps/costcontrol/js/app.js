@@ -362,7 +362,7 @@ var CostControlApp = (function() {
           // Two tabs mode
           } else {
             document.getElementById('balance-tab-filter')
-              .hidden = (mode !== 'PREPAID');
+              .hidden = (mode !== 'PREPAID' && mode !== 'OPERATOR_CUSTOM');
 
             document.getElementById('telephony-tab-filter')
               .hidden = (mode !== 'POSTPAID');
@@ -370,8 +370,8 @@ var CostControlApp = (function() {
             // If it was showing the left tab, force changing to the
             // proper left view
             if (!isDataUsageTabShown()) {
-              newHash = (mode === 'PREPAID') ? '#balance-tab#' :
-                        '#telephony-tab#';
+              newHash = (mode === 'PREPAID' || mode === 'OPERATOR_CUSTOM') ?
+                        '#balance-tab#' : '#telephony-tab#';
             }
           }
           window.location.hash = hashFromLastRun || newHash;

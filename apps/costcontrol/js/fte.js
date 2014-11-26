@@ -69,7 +69,7 @@
       LazyLoader.load(SCRIPTS_NEEDED, function onScriptsLoaded() {
         Common.loadNetworkInterfaces(function() {
           AutoSettings.addType('data-limit', dataLimitConfigurer);
-          if (mode === 'DATA_USAGE_ONLY') {
+          if (mode === 'DATA_USAGE_ONLY' || mode === 'OPERATOR_CUSTOM') {
             AutoSettings.initialize(ConfigManager, vmanager,
                                     '#non-vivo-step-2');
           }
@@ -83,7 +83,7 @@
           configuration.credit.currency;
       }
 
-      if (mode === 'DATA_USAGE_ONLY') {
+      if (mode === 'DATA_USAGE_ONLY' || mode === 'OPERATOR_CUSTOM') {
         debug('FTE for non supported SIM');
         wizard.dataset.steps = '3';
         reset(['step-1', 'non-vivo-step-1', 'non-vivo-step-2']);

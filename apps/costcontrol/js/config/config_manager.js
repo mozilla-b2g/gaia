@@ -57,13 +57,20 @@ var ConfigManager = (function() {
   };
 
   function getApplicationMode() {
+    if (operatorCustomMode) {
+      return 'OPERATOR_CUSTOM';
+    }
     if (noConfigFound) {
       return 'DATA_USAGE_ONLY';
     }
     return settings.plantype.toUpperCase();
   }
 
-  var configuration, configurationIndex, noConfigFound = false;
+  var configuration,
+      configurationIndex,
+      noConfigFound = false,
+      operatorCustomMode = false;
+
   function setConfig(newConfiguration) {
     configuration = newConfiguration;
     debug('Provider configuration done!');
@@ -108,7 +115,8 @@ var ConfigManager = (function() {
     var mnc = currentDataIcc.iccInfo.mnc;
     var key = mcc + '_' + mnc;
     var configDir = configurationIndex[key];
-    if (!configDir) {
+    operatorCustomMode = (configDir === 'operator_custom');
+    if (!configDir || operatorCustomMode) {
       configDir = 'default';
       noConfigFound = true;
     }
@@ -118,9 +126,9 @@ var ConfigManager = (function() {
   function loadConfigurationIndex(callback) {
     LazyLoader.getJSON('/js/config/index.json').then(function(json) {
       configurationIndex = json;
-      if (configurationIndex === null) { // TODO Remove workaround when 
+      if (configurationIndex === null) { // TODO Remove workaround when
 					 // Bug 1069808 is fixed.
-        console.error('Error loading the configuration index!' + 
+        console.error('Error loading the configuration index!' +
                       'Response from LazyLoader was null.');
         configurationIndex = {};
       }
@@ -131,7 +139,7 @@ var ConfigManager = (function() {
         });
       }
     }, function(error) {
-      console.error('Error loading the configuration index! ' + 
+      console.error('Error loading the configuration index! ' +
                     'Error code: ' + error);
       configurationIndex = {};
     });

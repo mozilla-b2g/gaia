@@ -268,7 +268,8 @@ var Settings = (function() {
       var mode = ConfigManager.getApplicationMode();
       if (currentMode !== mode) {
         currentMode = mode;
-        var hidePlantypeSelector = (mode === 'DATA_USAGE_ONLY');
+        var hidePlantypeSelector =
+          (mode === 'DATA_USAGE_ONLY' || mode === 'OPERATOR_CUSTOM');
         var hidePhoneActivity = (mode !== 'POSTPAID');
         var hideBalance = (mode !== 'PREPAID');
         var hideReportsTitle = (mode === 'PREPAID');
