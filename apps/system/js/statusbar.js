@@ -174,6 +174,7 @@ var StatusBar = {
     window.addEventListener('apptitlestatechanged', this);
     window.addEventListener('activitytitlestatechanged', this);
     window.addEventListener('appchromecollapsed', this);
+    window.addEventListener('appchromeexpanded', this);
     window.addEventListener('emergencycallbackstatechanged', this);
   },
 
@@ -559,6 +560,7 @@ var StatusBar = {
         break;
 
       case 'appopened':
+      case 'appchromeexpanded':
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
         this._updateMinimizedStatusBarWidth();

@@ -1609,7 +1609,7 @@ suite('system/Statusbar', function() {
         FtuLauncher.mIsRunning = true;
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 100);
-        
+
         assert.isFalse(app.handleStatusbarTouch.called);
         FtuLauncher.mIsRunning = false;
       });
@@ -2177,6 +2177,10 @@ suite('system/Statusbar', function() {
 
     test('appopened', function() {
       testEventThatShows.bind(this)('appopened');
+    });
+
+    test('appchromeexpanded', function() {
+      testEventThatShows.bind(this)('appchromeexpanded');
     });
 
     test('apptitlestatechanged', function() {
