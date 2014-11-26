@@ -46,6 +46,11 @@
   line-height: 5.6rem;
 }
 
+/* to override the .fake-notification [data-icon] rule */
+html[dir="rtl"] .media-playback-controls [data-icon] {
+  float: left;
+}
+
 .media-playback-controls > .previous {
   text-align: left;
 }
