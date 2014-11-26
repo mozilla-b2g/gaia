@@ -375,5 +375,44 @@ suite('system/TrustedUIManager', function() {
       });
       assert.isTrue(stubSetHeight.calledWith(currentWindowHeight - 123));
     });
+
+    suite('handle keyboard events when not visible', function() {
+      setup(function() {
+        TrustedUIManager.screen.classList.remove('trustedui');
+      });
+
+      teardown(function() {
+        TrustedUIManager.screen.classList.add('trustedui');
+      });
+
+      test('keyboardchange', function() {
+        var stubSetHeight = this.sinon.stub(TrustedUIManager,
+          '_setHeight');
+        var currentWindowHeight = window.innerHeight;
+        MockStatusBar.height = 123;
+
+        inputWindowManager.mHeight = 55;
+        TrustedUIManager.handleEvent({
+          type: 'keyboardchange'
+        });
+        var overlayHeight = parseInt(TrustedUIManager.overlay.style.height);
+        var calculatedHeight = currentWindowHeight - 123 - 55;
+        assert.isTrue(stubSetHeight.calledWith(calculatedHeight));
+        assert.notEqual(calculatedHeight, overlayHeight);
+      });
+
+      test('keyboardhide and not visible', function() {
+        var stubSetHeight = this.sinon.stub(TrustedUIManager,
+          '_setHeight');
+        var currentWindowHeight = window.innerHeight;
+        MockStatusBar.height = 123;
+        TrustedUIManager.handleEvent({
+          type: 'keyboardhide'
+        });
+        assert.isTrue(stubSetHeight.calledWith(currentWindowHeight - 123));
+        var overlayHeight = parseInt(TrustedUIManager.overlay.style.height);
+        assert.notEqual(currentWindowHeight - 123, overlayHeight);
+      });
+    });
   });
 });

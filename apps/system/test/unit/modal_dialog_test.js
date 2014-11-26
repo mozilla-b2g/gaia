@@ -223,11 +223,11 @@ suite('system/ModalDialog >', function() {
       ModalDialogCleanUp();
     });
 
-    test('updateHeight on resize event and not visible', function() {
+    test('should not updateHeight on resize event and not visible', function() {
       ModalDialog.overlay.style.height = '';
       this.sinon.stub(ModalDialog, 'isVisible').returns(false);
       window.dispatchEvent(new CustomEvent('resize'));
-      assert.ok(parseInt(ModalDialog.overlay.style.height, 10) > 0);
+      assert.isFalse(parseInt(ModalDialog.overlay.style.height, 10) > 0);
     });
   });
 });
