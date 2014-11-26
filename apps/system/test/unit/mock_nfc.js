@@ -28,7 +28,8 @@
       MockNfc.onpeerready(detail);
     },
 
-    mSentRequest: null
+    mSentRequest: null,
+    MockNFCPeer: {}
   };
 
   exports.MockNfc = MockNfc;

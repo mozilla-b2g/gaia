@@ -240,7 +240,7 @@ suite('Nfc Manager Functions', function() {
         type: 'techDiscovered',
         techList: [],
         records: [],
-        sessionToken: 'sessionToken'
+        peer: MockNfc.MockNFCPeer
       };
 
       // NDEF TNF well know uri unabbreviated
@@ -326,7 +326,7 @@ suite('Nfc Manager Functions', function() {
       assert.equal(stubDispatchEvent.firstCall.args[0].type,
                    'nfc-tech-discovered');
       assert.isTrue(stubTryHandover
-                    .withArgs(sampleMsg.records, sampleMsg.sessionToken)
+                    .withArgs(sampleMsg.records, sampleMsg.peer)
                     .calledOnce, 'tryHandover');
       assert.isTrue(spyGetTech.withArgs(sampleMsg.techList).calledOnce,
                     '_getPrioritizedTech');
@@ -491,7 +491,7 @@ suite('Nfc Manager Functions', function() {
         type: 'techDiscovered',
         techList: [],
         records: [],
-        sessionToken: 'sessionToken'
+        peer: MockNfc.MockNFCPeer
       };
 
       uriRecord = {
