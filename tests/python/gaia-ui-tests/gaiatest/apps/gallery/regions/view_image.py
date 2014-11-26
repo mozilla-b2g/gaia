@@ -22,8 +22,8 @@ class ViewImage(Base):
         self.apps.switch_to_displayed_app()
 
         Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(
-                expected.element_present(*self._image_locator))))
+            Wait(self.marionette).until(expected.element_present(
+                *self._image_locator))))
 
     @property
     def is_image_visible(self):
@@ -31,7 +31,8 @@ class ViewImage(Base):
 
     @property
     def banner_message(self):
-        element = Wait(self.marionette).until(expected.element_present(*self._banner_message_locator))
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._banner_message_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
         return element.text
 
