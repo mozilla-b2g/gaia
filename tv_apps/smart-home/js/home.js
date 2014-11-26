@@ -34,7 +34,6 @@
                 frameElem: 'folder-list-frame',
                 listElem: 'folder-list',
                 itemClassName: 'folder-card-thumbnail'}),
-
         that.navigableScrollable = [that.cardScrollable, that.folderScrollable];
         var collection = that.getNavigateElements();
 
