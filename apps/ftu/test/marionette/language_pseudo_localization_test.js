@@ -18,6 +18,14 @@ marionette('First Time Use > Pseudo Localization', function() {
     quickly.helper.client = quickly;
   });
 
+  test('FTU Languages with pseudo localization', function() {
+    quickly.settings.set('devtools.qps.enabled', true);
+    quickly.apps.switchToApp(Ftu.URL);
+    quickly.helper.waitForElement('#languages');
+    quickly.findElement('#en-US');
+    quickly.findElement('#qps-ploc');
+  });
+
   test('FTU Languages without pseudo localization', function() {
     quickly.settings.set('devtools.qps.enabled', false);
     quickly.apps.switchToApp(Ftu.URL);
@@ -26,15 +34,8 @@ marionette('First Time Use > Pseudo Localization', function() {
     assert.ok(panel.displayed());
 
     // the input is hidden so we can't use waitForElement
-    quickly.findElement('input[value="en-US"]');
-    quickly.helper.waitForElementToDisappear('input[value="qps-ploc"]');
+    quickly.findElement('#en-US');
+    quickly.helper.waitForElementToDisappear('#qps-ploc');
   });
 
-  test('FTU Languages with pseudo localization', function() {
-    quickly.settings.set('devtools.qps.enabled', true);
-    quickly.apps.switchToApp(Ftu.URL);
-    quickly.helper.waitForElement('#languages');
-    quickly.findElement('input[value="en-US"]');
-    quickly.findElement('input[value="qps-ploc"]');
-  });
 });

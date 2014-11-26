@@ -1,67 +1,561 @@
-<gaia-header>
-    <h1 id="main-title"></h1>
-    <button id="wifi-refresh-button" data-l10n-id="refresh">Refresh</button>
-</gaia-header>
-<section id="unlock-sim-screen" role="region" class="skin-organic">
-    <gaia-buttons>
-        <button id="skip-pin-button" class="button-left" data-l10n-id="skip">
-            Skip
-        </button>
-        <button id="back-sim-button" class="button-left back hidden" data-l10n-id="back">
-            Back
-        </button>
-        <button id="unlock-sim-button" class="recommend" data-l10n-id="send">
-            Send
-        </button>
-    </gaia-buttons>
-</section>
-<section id="activation-screen" role="region" class="skin-organic no-options">
-    <article>
-        <section id="languages">
-            <ul>
-                <!-- filled by js/language.js -->
-            </ul>
+  <section id="unlock-sim-screen" role="region" class="skin-organic">
+    <gaia-header id="unlock-sim-action" action="back">
+      <h1 id="unlock-sim-header"></h1>
+    </gaia-header>
+    <article role="main">
+      <section id="pincode-screen" role="region">
+        <label id="pin-label"></label>
+        <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
+        <section class="input-wrapper">
+          <input id="pin-input" name="simpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
+          <label id="pin-error" class="hidden error">
+            <span data-l10n-id="pinError" class="main">The PIN was incorrect.</span>
+            <span data-l10n-id="pinLastChanceMsg" class="lastchance hidden"></span>
+          </label>
         </section>
-        <section id="wifi">
-            <div id="wifi-wrapper">
-                <article id="networks">
-                </article>
-                <button id="join-hidden-button">
-                    Join hidden network
-                </button>
-            </div>
+      </section>
+
+      <section id="pukcode-screen" role="region">
+        <label id="puk-label"></label>
+        <label id="puk-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
+        <section class="input-wrapper">
+          <input id="puk-input" name="simpuk" type="password" x-inputmode="digit" size="8" maxlength="8" />
+          <div id="puk-info" data-l10n-id="pukInfo" class="info">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
+          <div id="puk-error" class="hidden error">
+            <span data-l10n-id="pukError" class="main">The PUK was incorrect.</span>
+            <span data-l10n-id="pukLastChanceMsg" class="lastchance hidden"></span>
+          </div>
         </section>
+        <label id="newpin" data-l10n-id="create_newpin">Create new PIN (4 to 8 digits)</label>
+        <section class="input-wrapper">
+          <input id="newpin-input" name="newpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
+          <label id="newpin-error" data-l10n-id="pinValidation" class="hidden error">PIN must have between 4 and 8 characters.</label>
+        </section>
+        <label id="confirm-newpin" data-l10n-id="confirm_newpin">Confirm new PIN</label>
+        <section class="input-wrapper">
+          <input id="confirm-newpin-input" name="confirm-newpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
+          <label id="confirm-newpin-error" data-l10n-id="confirm_newpin" class="hidden error">Confirm new PIN</label>
+        </section>
+      </section>
+
+      <section id="xckcode-screen" role="region">
+        <label id="xck-label" data-l10n-id="type_nck">Type your NCK code</label>
+        <label id="xck-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden retries">Unknown tries left</label>
+        <section class="input-wrapper">
+          <input id="xck-input" name="simxck" type="password"  x-inputmode="digit" size="16" maxlength="16" />
+          <label id="xck-error" class="hidden error">
+            <span data-l10n-id="confirm_newpin" class="main"></span>
+            <span data-l10n-id="nckLastChanceMsg" class="lastchance hidden"></span>
+          </label>
+        </section>
+      </section>
     </article>
-    <gaia-buttons id="nav-bar" class="forward-only">
-        <button id="back" class="button-left back">
-            Back
-            <span></span>
-        </button>
-        <button class="recommend forward" id="forward">
-            Next
-            <span></span>
-        </button>
-        <button class="recommend" id="wifi-join-button">
-            Join
-        </button>
+
+    <gaia-buttons>
+      <button id="skip-pin-button" class="button-left" data-l10n-id="skip">
+        Skip
+      </button>
+      <button id="back-sim-button" class="button-left back hidden" data-l10n-id="back">
+        Back
+      </button>
+      <button id="unlock-sim-button" class="recommend" data-l10n-id="ok">
+        OK
+      </button>
     </gaia-buttons>
-    <a href="https://www.mozilla.org/privacy/firefox-os/"
-    class="external" title="URL title">url text</a>
-    <section role="region" id="sharing-performance-data">
-        <p id='external-link-telemetry'></p>
-        <p id='external-link-information'></p>
+  </section>
+
+  <section id="sim-info-screen" role="region" class="skin-organic">
+    <gaia-header>
+      <h1 id="sim-info-header" data-l10n-id="simManager">SIM Manager</h1>
+    </gaia-header>
+    <article role="main">
+      <section>
+        <section id="sim-info-1" class="sim-info">
+          <div class="sim-image"></div>
+          <p class="sim-title">
+            <span data-l10n-id="simDetail" data-l10n-args='{"n": "1"}'>SIM 1</span>
+            <span data-l10n-id="simDefault" class="default">(default)</span>
+          </p>
+          <p id="sim-carrier-1"  class="sim-carrier"></p>
+          <p id="sim-number-1" class="sim-number"></p>
+        </section>
+        <section id="sim-info-2" class="sim-info">
+          <div class="sim-image"></div>
+          <p class="sim-title">
+            <span data-l10n-id="simDetail" data-l10n-args='{"n": "2"}'>SIM 2</span>
+          </p>
+          <p id="sim-carrier-2"  class="sim-carrier"></p>
+          <p id="sim-number-2" class="sim-number"></p>
+        </section>
+      </section>
+      <section id="sim-info-messages">
+        <p id="sim-default-message" data-l10n-id="simDefaultMessage">
+          Outgoing calls, outgoing messages and data connection are set to SIM 1 as default
+        </p>
+        <p id="sim-settings-message" data-l10n-id="simSettingsMessage">
+          You can change default settings at Settings &gt; SIM manager
+        </p>
+      </section>
+    </article>
+
+    <gaia-buttons>
+      <button id="sim-info-back" class="button-left back" data-l10n-id="navbar-back">Back</button>
+      <button id="sim-info-forward" class="recommend forward" data-l10n-id="navbar-next">Next</button>
+    </gaia-buttons>
+  </section>
+
+  <section id="activation-screen" role="region" class="skin-organic no-options">
+    <gaia-header>
+      <a id="back-button"><span class="icon icon-back"></span></a>
+      <h1 id="main-title"></h1>
+      <button id="wifi-refresh-button"></button>
+    </gaia-header>
+    <article role="main">
+      <section role="region" id="languages">
+        <article data-type="nav-list">
+          <ul>
+            <!-- filled by js/language.js -->
+          </ul>
+        </article>
+      </section>
+      <section role="region" id="data_3g">
+        <section class="content">
+          <p id="dataExplanation" data-l10n-id="dataConnectionInfo">Some text here</p>
+        </section>
+        <article data-type="nav-list">
+          <ul>
+            <li class="forward nav-item" id="enable-data" data-l10n-id="enableData">
+            </li>
+            <li class="forward nav-item" id="disable-data" data-l10n-id="disableData">
+            </li>
+          </ul>
+        </article>
+      </section>
+      <section role="region" id="wifi">
+        <div id="wifi-wrapper" role="main">
+          <div id="no-result-container" class="hidden">
+           <div id="no-result-message">
+             <p data-l10n-id='noWifiFound3'></p>
+           </div>
+          </div>
+          <ul data-type="nav-list">
+            <li class="forward nav-item" data-l10n-id="navbar-next">
+            </li>
+          </ul>
+          <article id="networks">
+          </article>
+          <ul data-type="nav-list">
+            <li id="join-hidden-button" class="nav-item" data-l10n-id="join-hidden-button">
+            </li>
+          </ul>
+        </div>
+      </section>
+      <section role="region" id="configure_network">
+        <section id="configure_network_params">
+          <form data-type="list">
+            <ul>
+              <li class="hidden">
+                <input type="text" id="wifi_ssid" value="" dir="auto"></input>
+              </li>
+              <li>
+                <label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User</label>
+                <input type="text" id="wifi_user" data-l10n-id="identityInput" placeholder="User" x-inputmode="verbatim" dir="auto"></input>
+              </li>
+              <li>
+                <label for="wifi_password" data-l10n-id="password">Password</label>
+                <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value="" maxlength="63" x-inputmode="verbatim"></input>
+                <label class="pack-checkbox" id="label_show_password">
+                  <input type="checkbox" data-ignore name="show_password" />
+                  <span id="wifi_show_password" data-l10n-id="showPassword">Show Password</span>
+                </label>
+              </li>
+            </ul>
+            <button id="wifi-join-button" class="recommend" data-l10n-id="navbar-join">Join</button>
+          </form>
+        </section>
+      </section>
+      <section role="region" id="hidden-wifi-authentication">
+        <div>
+          <form data-type="list">
+            <ul>
+              <li>
+                <label id="label_wifi_ssid" for="hidden-wifi-ssid" data-l10n-id="ssid-name">
+                  SSID Network Name
+                </label>
+                <input type="text" name="wifi_ssid" id="hidden-wifi-ssid" dir="auto"/>
+              </li>
+              <li>
+                <label id="label_wifi_security" for="hidden-wifi-security" data-l10n-id="security">
+                  Security
+                </label>
+                <span class="button icon icon-dialog">
+                  <select id="hidden-wifi-security">
+                    <option data-l10n-id="securityNone">none</option>
+                    <option data-l10n-id="securityWEP">WEP</option>
+                    <option data-l10n-id="securityWPA-PSK" selected>WPA-PSK</option>
+                    <option data-l10n-id="securityWPA-EAP">WPA-EAP</option>
+                  </select>
+                </span>
+              </li>
+              <li class="hidden" id="hidden-wifi-identity-box">
+                <label id="label_wifi_identity" for="hidden-wifi-identity" data-l10n-id="identity">
+                  Identity
+                </label>
+                <input type="text" name="wifi_identity" id="hidden-wifi-identity" dir="auto"/>
+              </li>
+              <li>
+                <label id="label_hidden_wifi_password" for="hidden-wifi-password" data-l10n-id="password">
+                  Password
+                </label>
+                <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value="" x-inputmode="verbatim" maxlength="63" />
+                <label class="pack-checkbox" id="label_hidden_show_password" for="hidden-wifi-show-password">
+                  <input type="checkbox" id="hidden-wifi-show-password">
+                  <span data-l10n-id="showPassword">
+                    Show Password
+                  </span>
+                </label>
+              </li>
+            </ul>
+          </form>
+        </div>
+        <button id="hidden-wifi-join-button" class="recommend" data-l10n-id="navbar-join">Join</button>
+      </section>
+
+      <section role="region" id="date_and_time">
+        <section id="time_zone_overlay" class="gmt0">
+        </section>
+        <section id="time_zone_map">
+          <h1 data-l10n-id="timeZone">
+            Time zone
+          </h1>
+          <h2 id="time-zone-title">
+            UTC +00:00 Greenwich Mean Time
+          </h2>
+        </section>
+        <form id="time-form" data-type="list">
+          <ul>
+            <!-- timezones -->
+            <li>
+              <p id="tz-region-label" aria-label="region" data-l10n-id="region"></p>
+              <select id="tz-region" class="invisible"></select>
+              <button id="tz-region-button" class="change icon icon-dialog" data-l10n-id="change" type="button" aria-describedby="tz-region-label">
+                Change
+              </button>
+            </li>
+            <li>
+              <p id="tz-city-label" aria-label="city" data-l10n-id="city">GMT</p>
+              <select id="tz-city" class="invisible"></select>
+              <button id="tz-city-button" class="change icon icon-dialog" data-l10n-id="change" type="button" aria-describedby="tz-city-label">
+                Change
+              </button>
+            </li>
+            <!-- date/time -->
+            <li>
+              <p id="date-configuration-label" aria-label="date" data-l10n-id="date"></p>
+              <input id="date-configuration" class="invisible" type="date" min="1970-1-1" max="2037-12-31"></input>
+              <button id="date-configuration-button" class="change icon icon-dialog" data-l10n-id="change" aria-describedby="date-configuration-label">
+                Change
+              </button>
+            </li>
+            <li>
+              <p id="time-configuration-label" aria-label="time" data-l10n-id="time">00:00</p>
+              <input id="time-configuration" class="invisible" type="time"></input>
+              <button id="time-configuration-button" class="change icon icon-dialog" data-l10n-id="change" type="button" aria-describedby="time-configuration-label">
+                Change
+              </button>
+            </li>
+          </ul>
+        </form>
+        <article data-type="nav-list">
+          <ul>
+            <li id="dt_skip" class="forward nav-item" data-l10n-id="navbar-next">
+            </li>
+          </ul>
+        </article>
+      </section>
+      <section role="region" id="geolocation">
+        <section class="content">
+          <p id="geolocationInfo" data-l10n-id="geolocationInfo2">Some text here</p>
+        </section>
+        <article data-type="nav-list">
+          <ul>
+            <li class="forward nav-item" id="enable-geolocation" data-l10n-id="enableGeolocation">
+            </li>
+            <li class="forward nav-item" id="disable-geolocation" data-l10n-id="disableGeolocation">
+            </li>
+          </ul>
+        </article>
+        <section class="content">
+          <p id="geolocationInfoMore" data-l10n-id="geolocationInfoMore">Some text here</p>
+        </section>
+        <p id="privacy-link"><a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy">Your Privacy</a></p>
+      </section>
+      <section role="region" id="import_contacts">
+        <article data-type="nav-list">
+          <ul>
+            <li id="sim-import" class="nav-item icon-sim">
+              <p id="sim-import-button" data-l10n-id="importSim2">
+                  SIM card
+              </p>
+              <p id="no-sim" data-l10n-id="noSimMsg"></p>
+            </li>
+            <li id="sd_import" class="nav-item icon-sd">
+              <p id="sd-import-button" data-l10n-id="importMemoryCard">
+                  SD card
+              </p>
+              <p id="no-memorycard" data-l10n-id="noMemoryCardMsg">To import insert a SD card</p>
+            </li>
+            <li id="gmail_import" class="nav-item icon-gmail">
+              <p id="gmail-import-button" data-l10n-id="importGmail">
+                  GMail
+              </p>
+            </li>
+            <li id="live_import" class="nav-item icon-wlive">
+              <p id="live-import-button" data-l10n-id="importOutlook">
+                Outlook
+              </p>
+            </li>
+            <li id="fb_import" class="nav-item icon-fb">
+              <p id="fb-import-button" class="icon icon-fb" data-l10n-id="importFb2">
+                  Facebook
+              </p>
+            </li>
+            <li id="fb_after_import1" class="hidden">
+              <p data-l10n-id="importFb2">Facebook</p>
+              <p id="fb_import_feedback"></p>
+            </li>
+            <li class="forward nav-item" data-l10n-id="navbar-next">
+            </li>
+          </ul>
+        </article>
+      </section>
+
+      <section role="region" id="firefox_accounts">
+        <div class="fxa-logo"></div>
+
+        <article id="fxa-options" data-type="nav-list">
+          <ul>
+            <li id="fxa-create-account" class="nav-item" data-l10n-id="fxa-create-account-or-sign-in">
+            </li>
+            <li id="fxa-no" class="forward nav-item" data-l10n-id="skip">
+            </li>
+          </ul>
+        </article>
+
+        <p data-l10n-id="fxa-upsell" id="fxa-intro">
+          A Firefox Account lets you find a lost phone and buy apps from
+          the Firefox Marketplace.
+        </p>
+      </section>
+
+      <section role="region" id="about-your-rights">
+        <p data-l10n-id="about-your-rights-0">
+          Browser OS is built on free and open source software
+          by a community of thousands from all over the world.
+          There are a few things you should know:
+        </p>
+        <p data-l10n-id="about-your-rights-1">
+          Browser OS is made available to you under the terms of several
+          open source licenses including the Mozilla Public License.
+          A device running Browser OS may also contain proprietary
+          software from third parties. Any code provided under open licenses
+          give you the right to modify the source code and distribute your
+          modified versions as long as you comply with their terms.
+        </p>
+        <p data-l10n-id="about-your-rights-2">
+          You are not granted any trademark rights or licenses to the trademarks
+          of the Mozilla Foundation or any party, including without limitation
+          the Browser OS name or logo.
+        </p>
+        <p data-l10n-id="about-your-rights-3">
+          Some features in Browser OS, such as the Crash Reporter,
+          give you the option to provide feedback to Mozilla.
+          By choosing to submit feedback, you give Mozilla permission to use
+          the feedback to improve its products, to publish the feedback
+          on its websites, and to distribute the feedback.
+        </p>
+      </section>
+      <section role="region" id="about-your-privacy">
+        <i class='hack-first-child'></i> <!-- see Bug 819886 -->
+        <gaia-subheader skin="organic">
+          <span>Mozilla</span>
+        </gaia-subheader>
+        <article data-type="list">
+          <ul>
+            <li>
+              <a class="privacy-menuitem privacy-browserOS external"
+                href="https://www.mozilla.org/privacy/firefox-os/"
+                data-l10n-id="privacy-b2g"
+                title="B2G OS">Browser OS</a>
+            </li>
+            <li>
+              <a class="privacy-menuitem privacy-marketPlace external"
+                 href="https://marketplace.firefox.com/privacy-policy"
+                 data-l10n-id="privacy-marketplace"
+                 title="Marketplace">
+                Marketplace
+              </a>
+            </li>
+          </ul>
+        </article>
+        <gaia-subheader skin="organic">
+          <span data-l10n-id="about-other">Other</span>
+        </gaia-subheader>
+        <article data-type="list">
+          <ul>
+            <li>
+              <a class="privacy-menuitem privacy-everythingME external"
+                href="http://everything.me/privacy"
+                data-l10n-id="privacy-eme"
+                title="EverythingMe">EverythingMe</a>
+            </li>
+          </ul>
+        </article>
+      </section>
+      <section role="region" id="sharing-performance-data">
+        <p data-l10n-id='telemetry-sends2'>
+          Telemetry sends Mozilla data about performance, hardware,
+          configurations, customizations and app usage in your
+          Browser OS device. We use this to make our products better,
+          faster and more responsive.
+        </p>
+        <!-- Links destinations are discussed in https://bugzilla.mozilla.org/show_bug.cgi?id=812956 -->
+        <p id='external-link-telemetry'>
+          Learn more at www.mozilla.org/telemetry
+        </p>
+        <p id='external-link-information'>Learn how Mozilla handles your
+          information at www.mozilla.org/privacy
+        </p>
+      </section>
+      <section role="region" id="SIM_mandatory">
+        <p data-l10n-id="SIM_mandatory_warm">
+          Please, insert a SIM card to continue.
+        </p>
+      </section>
+      <section role="region" id="browser_privacy">
+        <section id="browser_privacy_content">
+          <p data-l10n-id="mozillaCommunity2" class="content">
+            When you use Browser OS, you become
+            part of a global community helping to
+            build a brighter future for the Web.
+            If you’d like to know more about the
+            Mozilla community, our other products
+            and events near you, please enter your
+            email address below.
+          </p>
+          <section id="newsletter-form">
+            <input type="email" data-l10n-id="emailAddress" placeholder="Email address" id="newsletter-input"></input>
+          </section>
+          <section id="newsletter-success-screen">
+            <p data-l10n-id="email-successfully-added">
+              Email successfully added!
+            </p>
+          </section>
+        </section>
+        <article data-type="nav-list">
+          <ul>
+            <li class="nav-item">
+              <p id="newsletter-submit" class="disabled" data-l10n-id="join-community">
+              </p>
+            </li>
+            <li class="forward nav-item" data-l10n-id="dont-join-community">
+            </li>
+          </ul>
+        </article>
+        <section id="bottom_link">
+          <p id="external-link-privacy">
+            Learn how Mozilla handles your information in our privacy policy.
+          </p>
+        </section>
+      </section>
+      <section role="region" id="welcome_browser">
+        <section id="welcome_browser_content">
+          <section id="browser_logo_horizontal">
+            <img src="/shared/resources/branding/logosmall.png" role="presentation">
+          </section>
+          <p id="browser_os_welcome" class="content"></p>
+          <article data-type="nav-list">
+            <ul>
+              <li class="forward nav-item" id="share-performance" data-l10n-id="send-data">
+              </li>
+              <li class="forward nav-item" id="noshare-performance" data-l10n-id="dont-send-data">
+              </li>
+            </ul>
+          </article>
+          <section id="form_share_statistics" class="content">
+            <p id="browser_os_improve">
+              I want to help improve Browser OS by sharing data about
+              my phone and the way I use it.
+              <a href='#sharing-performance-data' data-l10n-id="learnMore">Learn more.</a>
+            </p>
+          </section>
+        </section>
+
+        <section id="browser_os_privacy_links">
+          <a href="#about-your-rights" data-l10n-id="aboutBrowser"> About Your Rights </a>
+          <a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy2">Your Privacy</a>
+        </section>
+      </section>
+    </article>
+  </section>
+
+  <section id="finish-screen" class="finish-screen-base" role="region">
+    <section class="content">
+
+      <!-- for tiny devices -->
+      <div class="for-tiny">
+        <h1 data-l10n-id="startYourPhone">
+          Start your Phone Tour!
+        </h1>
+        <h2 data-l10n-id="joinTutorial">
+          Join us for a quick tutorial about your new phone.
+        </h2>
+        <p data-l10n-id="optionsAvailable">
+          You can alter the language, Date / Time, Wi-Fi connection in the settings area.
+        </p>
+      </div>
+
+      <!-- for large devices -->
+      <div class="for-large">
+        <p data-l10n-id="startYourTablet">
+          Start your tablet tour!
+        </p>
+      </div>
+
+      </section>
+      <gaia-buttons skin="dark">
+        <button id="skip-tutorial-button" class="button-left" data-l10n-id="skip">
+          Skip
+        </button>
+        <button id="lets-go-button" class="recommend" data-l10n-id="startTour">
+          Start Tour!
+        </button>
+      </gaia-buttons>
     </section>
-    <section role="region" id="browser_privacy">
-        <p id='external-link-privacy'></p>
+  </section>
+
+  <section id="update-screen" class="finish-screen-base" role="region">
+    <section class="content">
+      <h1 data-l10n-id="startYourPhone">
+        Start your phone tour!
+      </h1>
+      <p data-l10n-id="joinTutorialUpdated">
+        Join us for a quick tutorial about the updates to your phone!
+      </p>
     </section>
-    <section role="region" id="welcome_browser">
-        <p id="browser_os_welcome"></p>
-        <p id="browser_os_improve"></p>
-    </section>
-</section>
-<section id="finish-screen" role="region">
-</section>
-<section id="tutorial-screen" role="region">
-</section>
-<section id="external-url-loader" class="external">
-</section>
+    <gaia-buttons skin="dark">
+      <button id="update-skip-tutorial-button" class="button-left" data-l10n-id="skip">
+        Skip
+      </button>
+      <button id="update-lets-go-button" class="recommend" data-l10n-id="startTour">
+        Start Tour!
+      </button>
+    </gaia-buttons>
+  </section>
+
+  <section id="tutorial" role="region" data-step="1">
+  </section>
+  <section id="tutorial-finish-tiny" class="tutorial-finish-base" role="region">
+  </section>
+  <section id="tutorial-finish-large" class="tutorial-finish-base" role="region">
+  </section>

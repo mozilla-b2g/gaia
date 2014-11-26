@@ -1,5 +1,5 @@
 /* global MockL10n, MockNavigatorSettings, MockLanguageList,
-          LanguageManager, LanguageList, KeyboardHelper, 
+          LanguageManager, LanguageList, KeyboardHelper,
           MockImportNavigationHTML, dispatchEvent */
 'use strict';
 
@@ -50,18 +50,12 @@ suite('languages >', function() {
   });
 
   test('build language list', function(done) {
-    var section = document.createElement('section');
-    section.id = 'languages';
-    document.body.appendChild(section);
-    var list = document.createElement('ul');
-    section.appendChild(list);
+    var list = document.querySelector('#languages ul');
+    assert.ok(list);
 
     LanguageManager.buildLanguageList();
-    assert.equal(document.querySelectorAll('li').length,
+    assert.equal(list.querySelectorAll('li').length,
                  Object.keys(LanguageList._languages).length);
-    var selected = document.querySelectorAll('input[type="radio"]:checked');
-    assert.equal(selected.length, 1);
-    assert.equal(selected[0].value, 'en-US');
     done();
   });
 

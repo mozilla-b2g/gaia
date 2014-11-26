@@ -22,13 +22,22 @@ class TestFtuAccessibility(GaiaTestCase):
                                 message='No languages listed on screen')
 
         # Select different languages
-        self.assertEqual(self.ftu.selected_language, 'en-US')
-        self.ftu.a11y_click_language('fr')
-        self.assertEqual(self.ftu.selected_language, 'fr')
-        self.ftu.a11y_click_language('en-US')
-        self.assertEqual(self.ftu.selected_language, 'en-US')
 
-        self.ftu.a11y_click_next_to_wifi_section()
+        self.wait_for_condition(
+            lambda m: self.data_layer.get_setting('language.current') == 'en-US',
+            message='Language not correct')
+
+        self.ftu.a11y_click_language('fr')
+        self.wait_for_condition(
+            lambda m: self.data_layer.get_setting('language.current') == 'fr',
+            message='Language not correct')
+        self.ftu.a11y_click_back()
+
+        self.ftu.a11y_click_language('en-US')
+        self.wait_for_condition(
+            lambda m: self.data_layer.get_setting('language.current') == 'en-US',
+            message='Language not correct')
+
         self.ftu.a11y_click_next_to_timezone_section()
         self.ftu.a11y_click_next_to_geolocation_section()
         self.ftu.a11y_click_next_to_import_contacts_section()
@@ -36,16 +45,16 @@ class TestFtuAccessibility(GaiaTestCase):
         self.ftu.a11y_click_next_to_welcome_browser_section()
 
         # Tap the statistics box and check that it sets a setting
-        self.ftu.a11y_click_statistics_checkbox()
+        self.ftu.a11y_click_next_to_privacy_browser_section()
         self.wait_for_condition(
             lambda m: self.data_layer.get_setting('debug.performance_data.shared'),
             message='Share performance data was not set')
-        self.ftu.a11y_click_statistics_checkbox()
+        self.ftu.a11y_click_back()
+        self.ftu.a11y_click_next_to_privacy_browser_noshare_section()
         self.wait_for_condition(
             lambda m: not self.data_layer.get_setting('debug.performance_data.shared'),
             message='Share performance data was not unset')
 
-        self.ftu.a11y_click_next_to_privacy_browser_section()
         self.ftu.a11y_click_next_to_finish_section()
 
         # Skip the tour

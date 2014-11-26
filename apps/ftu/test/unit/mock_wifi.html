@@ -1,0 +1,98 @@
+  <section id="activation-screen" role="region" class="skin-organic no-options">
+    <gaia-header>
+      <a id="back-button"><span class="icon icon-back"></span></a>
+      <h1 id="main-title"></h1>
+      <button id="wifi-refresh-button"></button>
+    </gaia-header>
+    <article role="main">
+      <section role="region" id="wifi">
+        <div id="wifi-wrapper" role="main">
+          <div id="no-result-container" class="hidden">
+           <div id="no-result-message">
+             <p data-l10n-id='noWifiFound3'></p>
+           </div>
+          </div>
+          <ul data-type="nav-list">
+            <li class="forward nav-item" data-l10n-id="navbar-next">
+            </li>
+          </ul>
+          <article id="networks">
+          </article>
+          <ul data-type="nav-list">
+            <li id="join-hidden-button" class="nav-item" data-l10n-id="join-hidden-button">
+            </li>
+          </ul>
+        </div>
+      </section>
+      <section role="region" id="configure_network">
+        <section id="configure_network_params">
+          <form data-type="list">
+            <ul>
+              <li class="hidden">
+                <input type="text" id="wifi_ssid" value="" dir="auto"></input>
+              </li>
+              <li>
+                <label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User</label>
+                <input type="text" id="wifi_user" data-l10n-id="identityInput" placeholder="User" x-inputmode="verbatim" dir="auto"></input>
+              </li>
+              <li>
+                <label for="wifi_password" data-l10n-id="password">Password</label>
+                <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value="" maxlength="63" x-inputmode="verbatim"></input>
+                <label class="pack-checkbox" id="label_show_password">
+                  <input type="checkbox" data-ignore name="show_password" />
+                  <span id="wifi_show_password" data-l10n-id="showPassword">Show Password</span>
+                </label>
+              </li>
+            </ul>
+            <button id="wifi-join-button" class="recommend" data-l10n-id="navbar-join">Join</button>
+          </form>
+        </section>
+      </section>
+      <section role="region" id="hidden-wifi-authentication">
+        <div>
+          <form data-type="list">
+            <ul>
+              <li>
+                <label id="label_wifi_ssid" for="hidden-wifi-ssid" data-l10n-id="ssid-name">
+                  SSID Network Name
+                </label>
+                <input type="text" name="wifi_ssid" id="hidden-wifi-ssid" dir="auto"/>
+              </li>
+              <li>
+                <label id="label_wifi_security" for="hidden-wifi-security" data-l10n-id="security">
+                  Security
+                </label>
+                <span class="button icon icon-dialog">
+                  <select id="hidden-wifi-security">
+                    <option data-l10n-id="securityNone">none</option>
+                    <option data-l10n-id="securityWEP">WEP</option>
+                    <option data-l10n-id="securityWPA-PSK" selected>WPA-PSK</option>
+                    <option data-l10n-id="securityWPA-EAP">WPA-EAP</option>
+                  </select>
+                </span>
+              </li>
+              <li class="hidden" id="hidden-wifi-identity-box">
+                <label id="label_wifi_identity" for="hidden-wifi-identity" data-l10n-id="identity">
+                  Identity
+                </label>
+                <input type="text" name="wifi_identity" id="hidden-wifi-identity" dir="auto"/>
+              </li>
+              <li>
+                <label id="label_hidden_wifi_password" for="hidden-wifi-password" data-l10n-id="password">
+                  Password
+                </label>
+                <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value="" x-inputmode="verbatim" maxlength="63" />
+                <label class="pack-checkbox" id="label_hidden_show_password" for="hidden-wifi-show-password">
+                  <input type="checkbox" id="hidden-wifi-show-password">
+                  <span data-l10n-id="showPassword">
+                    Show Password
+                  </span>
+                </label>
+              </li>
+            </ul>
+          </form>
+        </div>
+        <button id="hidden-wifi-join-button" class="recommend" data-l10n-id="navbar-join">Join</button>
+      </section>
+    </article>
+  </section>

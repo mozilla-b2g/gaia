@@ -2,7 +2,8 @@
           Basket, ConfirmDialog, ScreenLayout,
           DataMobile, SimManager, SdManager,
           Tutorial, TimeManager, WifiManager,
-          WifiUI, WifiHelper, FxAccountsIACHelper  */
+          WifiUI, WifiHelper, FxAccountsIACHelper,
+          Navigation */
 /* exported UIManager */
 'use strict';
 
@@ -19,8 +20,8 @@ var UIManager = {
     'activation-screen',
     'finish-screen',
     'update-screen',
-    'nav-bar',
     'main-title',
+    'back-button',
     // Unlock SIM Screen
     'unlock-sim-screen',
     'unlock-sim-header',
@@ -70,11 +71,14 @@ var UIManager = {
     // Fxa Intro
     'fxa-create-account',
     'fxa-intro',
+    'fxa-options',
+    'fxa-no',
     // Wifi
     'networks',
     'wifi-refresh-button',
     'wifi-join-button',
     'join-hidden-button',
+    'no-result-container',
     // Hidden Wifi
     'hidden-wifi-authentication',
     'hidden-wifi-ssid',
@@ -83,6 +87,7 @@ var UIManager = {
     'hidden-wifi-identity',
     'hidden-wifi-identity-box',
     'hidden-wifi-show-password',
+    'hidden-wifi-join-button',
     //Date & Time
     'date-configuration',
     'time-configuration',
@@ -90,9 +95,11 @@ var UIManager = {
     'time-configuration-label',
     'time-form',
     // 3G
-    'data-connection-switch',
+    'enable-data',
+    'disable-data',
     // Geolocation
-    'geolocation-switch',
+    'enable-geolocation',
+    'disable-geolocation',
     // Tutorial
     'lets-go-button',
     'update-lets-go-button',
@@ -100,10 +107,12 @@ var UIManager = {
     'update-skip-tutorial-button',
     // Privacy Settings
     'share-performance',
+    'noshare-performance',
     'offline-error-dialog',
     // Browser privacy newsletter subscription
     'newsletter-form',
     'newsletter-input',
+    'newsletter-submit',
     'newsletter-success-screen',
     'offline-newsletter-error-dialog',
     'invalid-email-error-dialog'
@@ -139,10 +148,12 @@ var UIManager = {
     this.simInfoBack.addEventListener('click', this);
     this.simInfoForward.addEventListener('click', this);
 
-    this.dataConnectionSwitch.addEventListener('click', this);
+    this.enableData.addEventListener('click', this);
+    this.disableData.addEventListener('click', this);
 
     this.wifiRefreshButton.addEventListener('click', this);
     this.wifiJoinButton.addEventListener('click', this);
+    this.hiddenWifiJoinButton.addEventListener('click', this);
     this.networks.addEventListener('click', this);
 
     this.joinHiddenButton.addEventListener('click', this);
@@ -164,9 +175,12 @@ var UIManager = {
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
 
-    this.geolocationSwitch.addEventListener('click', this);
+    this.enableGeolocation.addEventListener('click', this);
+    this.disableGeolocation.addEventListener('click', this);
 
     this.fxaCreateAccount.addEventListener('click', this);
+
+    this.newsletterSubmit.addEventListener('click', this);
 
     // Prevent form submit in case something tries to send it
     this.timeForm.addEventListener('submit', function(event) {
@@ -185,19 +199,13 @@ var UIManager = {
       });
     });
 
-    this.offlineNewsletterErrorDialog
-      .querySelector('button')
-      .addEventListener('click',
-        function offlineDialogClick() {
-          this.offlineNewsletterErrorDialog.classList.remove('visible');
-        }.bind(this));
-
-    this.invalidEmailErrorDialog
-      .querySelector('button')
-      .addEventListener('click',
-        function invalidEmailDialogClick() {
-          this.invalidEmailErrorDialog.classList.remove('visible');
-        }.bind(this));
+    this.newsletterInput.addEventListener('input', function(evt) {
+      var submitClasses = UIManager.newsletterSubmit.classList;
+      if (submitClasses.contains('disabled') ===
+          (evt.target.checkValidity() && evt.target.value.length !== 0)) {
+        UIManager.toggleNewsletter();
+      }
+    });
 
     var skipTutorialAction = function() {
       // Stop Wifi Manager
@@ -231,6 +239,7 @@ var UIManager = {
 
     // Enable sharing performance data (saving to settings)
     this.sharePerformance.addEventListener('click', this);
+    this.nosharePerformance.addEventListener('click', this);
     var button = this.offlineErrorDialog.querySelector('button');
     button.addEventListener('click',
                             this.onOfflineDialogButtonClick.bind(this));
@@ -349,21 +358,23 @@ var UIManager = {
         window.setTimeout(SdManager.importContacts, 0);
         break;
       // 3G
-      case 'data-connection-switch':
+      case 'enable-data':
         this.dataConnectionChangedByUsr = true;
-        var status = event.target.checked;
-        DataMobile.toggle(status);
+        DataMobile.toggle(true);
+        break;
+      case 'disable-data':
+        this.dataConnectionChangedByUsr = true;
+        DataMobile.toggle(false);
         break;
       // WIFI
       case 'wifi-refresh-button':
         WifiManager.scan(WifiUI.renderNetworks);
         break;
       case 'wifi-join-button':
-        if (window.location.hash === '#hidden-wifi-authentication') {
-          WifiUI.joinHiddenNetwork();
-        } else {
-          WifiUI.joinNetwork();
-        }
+        WifiUI.joinNetwork();
+        break;
+      case 'hidden-wifi-join-button':
+        WifiUI.joinHiddenNetwork();
         break;
       case 'join-hidden-button':
         WifiUI.addHiddenNetwork();
@@ -380,20 +391,37 @@ var UIManager = {
         this.setDate();
         break;
       // Geolocation
-      case 'geolocation-switch':
-        this.updateSetting(event.target.name, event.target.checked);
+      case 'enable-geolocation':
+        this.updateSetting('geolocation.enabled', true);
+        break;
+      case 'disable-geolocation':
+        this.updateSetting('geolocation.enabled', false);
         break;
       // Privacy
       case 'share-performance':
-        this.updateSetting(event.target.name, event.target.checked);
+        this.updateSetting('debug.performance_data.shared', true);
+        break;
+      case 'noshare-performance':
+        this.updateSetting('debug.performance_data.shared', false);
         break;
       // Fxa Intro
       case 'fxa-create-account':
-        this.createFirefoxAccount();
+        if (!event.target.classList.contains('disabled')) {
+          this.createFirefoxAccount();
+        }
+        break;
+      case 'newsletter-submit':
+        // Try to send Newsletter here
+        UIManager.sendNewsletter(function newsletterSent(result) {
+          if (result) { // sending process ok, we advance
+            UIManager.end();
+          }
+          // error on sending, we stay where we are
+        });
         break;
       default:
         // wifi selection
-        if (event.target.parentNode.id === 'networks-list') {
+        if (document.getElementById('networks-list').contains(event.target)) {
           WifiUI.chooseNetwork(event);
         }
         break;
@@ -423,8 +451,11 @@ var UIManager = {
     if (!acct) {
       return;
     }
+    // We were successful and we should move on
+    Navigation.forward();
     // Update the email
     UIManager.newsletterInput.value = acct.email;
+    UIManager.enableNewsletter();
     // Update the string
     UIManager.fxaIntro.innerHTML = '';
     navigator.mozL10n.setAttributes(
@@ -434,27 +465,25 @@ var UIManager = {
         email: acct.email
       }
     );
-    // Disable the button
-    UIManager.fxaCreateAccount.disabled = true;
-    // Change the Skip button label
-    var nextButton = document.getElementById('forward');
-    nextButton.setAttribute('data-l10n-id', 'navbar-next');
+    // Change the navigation
+    UIManager.fxaCreateAccount.classList.add('disabled');
+    UIManager.fxaNo.setAttribute('data-l10n-id', 'navbar-next');
   },
 
   fxaShowError: function ui_fxaShowError(response) {
     console.error('Create FxA Error: ' + JSON.stringify(response));
     // Clean fields
     UIManager.newsletterInput.value = '';
+    UIManager.disableNewsletter();
+    // Update the string
     // Reset the field
     navigator.mozL10n.setAttributes(
       UIManager.fxaIntro,
       'fxa-upsell'
     );
     // Enable the button
-    UIManager.fxaCreateAccount.disabled = false;
-    // Change the Skip button label
-    var nextButton = document.getElementById('forward');
-    nextButton.setAttribute('data-l10n-id', 'skip');
+    UIManager.fxaCreateAccount.classList.remove('disabled');
+    UIManager.fxaNo.setAttribute('data-l10n-id', 'navbar-next');
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
@@ -546,8 +575,30 @@ var UIManager = {
   changeStatusBarColor: function ui_csbc(color) {
     var themeMeta = document.head.querySelector('meta[name="theme-color"]');
     themeMeta.setAttribute('content', color);
-  }
+  },
 
+  enableNewsletter: function ui_enableNewsletter() {
+    var button = this.newsletterSubmit;
+    button.classList.remove('disabled');
+  },
+
+  disableNewsletter: function ui_disableNewsletter() {
+    var button = this.newsletterSubmit;
+    button.classList.add('disabled');
+  },
+
+  toggleNewsletter: function ui_toggleNewsletter() {
+    var button = this.newsletterSubmit;
+    button.classList.contains('disabled') ?
+      this.enableNewsletter() : this.disableNewsletter();
+  },
+
+  end: function ui_end() {
+    this.activationScreen.classList.remove('show');
+    this.finishScreen.classList.add('show');
+    this.changeStatusBarColor(this.DARK_THEME);
+    this.hideActivationScreenFromScreenReader();
+  }
 };
 
 function toCamelCase(str) {

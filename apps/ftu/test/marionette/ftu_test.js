@@ -15,15 +15,16 @@ marionette('First Time Use >', function() {
   });
 
   test('FTU click thru', function() {
-    client.apps.switchToApp(Ftu.URL);
-    ftu.clickThruPanel('#languages', '#forward');
-    ftu.clickThruPanel('#wifi', '#forward');
-    ftu.clickThruPanel('#date_and_time', '#forward');
-    ftu.clickThruPanel('#geolocation', '#forward');
-    ftu.clickThruPanel('#import_contacts', '#forward');
-    ftu.clickThruPanel('#firefox_accounts', '#forward');
-    ftu.clickThruPanel('#welcome_browser', '#forward');
-    ftu.clickThruPanel('#browser_privacy', '#forward');
+    ftu.client.apps.switchToApp(Ftu.URL);
+    ftu.clickThruPanel('#languages', '#languages .nav-item');
+
+    ftu.clickThruPanel('#wifi', '#wifi .forward');
+    ftu.clickThruPanel('#date_and_time', '#date_and_time .forward');
+    ftu.clickThruPanel('#geolocation', '#disable-geolocation');
+    ftu.clickThruPanel('#import_contacts', '#import_contacts .forward');
+    ftu.clickThruPanel('#firefox_accounts', '#fxa-options .forward');
+    ftu.clickThruPanel('#welcome_browser', '#welcome_browser .forward');
+    ftu.clickThruPanel('#browser_privacy', '#browser_privacy .forward');
     ftu.clickThruPanel('#finish-screen', undefined);
   });
 

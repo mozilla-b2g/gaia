@@ -1,4 +1,4 @@
-/* global KeyboardHelper, LanguageList */
+/* global KeyboardHelper, LanguageList, Navigation */
 /* exported LanguageManager */
 'use strict';
 
@@ -15,6 +15,14 @@ var LanguageManager = {
       });
     window.addEventListener('localized',
       this.localizedEventListener.bind(this));
+  },
+
+  onLanguageSelection: function onLanguageSelection(lang) {
+    this.settings.createLock().set({'language.current': lang});
+    //wait to translate before moving forward
+    //currently buggy, moves forward too early
+    navigator.mozL10n.once(Navigation.forward.bind(Navigation));
+    return false;
   },
 
   handleEvent: function handleEvent(evt) {
@@ -42,16 +50,11 @@ var LanguageManager = {
   },
 
   buildLanguageList: function settings_buildLanguageList() {
+    var self = this;
     var container = document.querySelector('#languages ul');
     container.innerHTML = '';
     LanguageList.get(function fillLanguageList(allLanguages, currentLanguage) {
       for (var lang in allLanguages) {
-        var input = document.createElement('input');
-        input.type = 'radio';
-        input.name = 'language.current';
-        input.value = lang;
-        input.checked = (lang === currentLanguage);
-
         var span = document.createElement('span');
         var p = document.createElement('p');
         // wrap the name of the language in Unicode control codes which force
@@ -59,14 +62,12 @@ var LanguageManager = {
         // the whole app
         p.textContent = LanguageList.wrapBidi(lang, allLanguages[lang]);
 
-        var label = document.createElement('label');
-        label.classList.add('pack-radio');
-        label.appendChild(input);
-        label.appendChild(span);
-        label.appendChild(p);
-
         var li = document.createElement('li');
-        li.appendChild(label);
+        li.setAttribute('id', lang);
+        li.appendChild(span);
+        li.appendChild(p);
+        li.classList.add('nav-item');
+        li.addEventListener('click', self.onLanguageSelection.bind(self, lang));
         container.appendChild(li);
       }
     });

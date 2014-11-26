@@ -92,10 +92,10 @@ suite('navigation >', function() {
     }
   });
 
-  var setStepState = function(current, callback) {
+  var setStepState = function(current) {
     Navigation.currentStep = current;
     Navigation.previousStep = current != 1 ? current - 1 : 1;
-    Navigation.manageStep(callback);
+    Navigation.manageStep();
   };
 
 
@@ -174,10 +174,10 @@ suite('navigation >', function() {
     Navigation.currentStep = numSteps;
     window.location.hash = steps[Navigation.currentStep].hash;
     UIManager.activationScreen.classList.add('show');
+    UIManager.end = sinon.stub();
 
     Navigation.forward();
-    assert.isTrue(UIManager.finishScreen.classList.contains('show'));
-    assert.isFalse(UIManager.activationScreen.classList.contains('show'));
+    sinon.assert.calledOnce(UIManager.end);
   });
 
   suite('UI changes>', function() {
@@ -224,7 +224,6 @@ suite('navigation >', function() {
           observer.disconnect();
           assert.equal(UIManager.mainTitle.getAttribute('data-l10n-id'),
             'selectNetwork');
-          assert.isFalse(UIManager.navBar.classList.contains('secondary-menu'));
           assert.isFalse(UIManager.activationScreen.classList.contains(
                         'no-options'));
         });

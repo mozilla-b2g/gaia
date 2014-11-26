@@ -54,8 +54,15 @@ suite('UI Manager > ', function() {
     window.FxAccountsIACHelper = MockFxAccountsIACHelper;
 
     mocksHelper.suiteSetup();
-    loadBodyHTML('/index.html');
 
+    loadBodyHTML('/index.html');
+    var themeMeta = document.createElement('meta');
+    document.head.appendChild(themeMeta);
+    themeMeta.content = '#eeeeee';
+    themeMeta.name = 'theme-color';
+
+    console.log('theme-color: ',
+                document.querySelector('meta[name="theme-color"]'));
     UIManager.init();
     Navigation.init();
     UIManager.activationScreen.classList.add('show');
@@ -168,7 +175,7 @@ suite('UI Manager > ', function() {
 
     setup(function() {
       localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
-      nextButton = document.getElementById('forward');
+      nextButton = document.getElementById('fxa-no');
     });
 
     teardown(function() {
@@ -260,16 +267,17 @@ suite('UI Manager > ', function() {
   });
 
   suite('Change app theme', function() {
-    var meta;
-    suiteSetup(function() {
-      meta = document.createElement('meta');
+    var meta, themeColor;
+    setup(function() {
+      meta = document.querySelector('meta[name="theme-color"]');
+      themeColor = meta.content;
       meta.content = 'red';
       meta.name = 'theme-color';
       document.head.appendChild(meta);
     });
 
     teardown(function() {
-      document.head.removeChild(meta);
+      meta.content = themeColor;
     });
 
     test('Should change the theme color of the app', function() {
@@ -297,7 +305,6 @@ suite('UI Manager > ', function() {
           return;
       });
     });
-
     test('Join hidden network button click > ', function() {
       var spy = this.sinon.spy(WifiUI, 'addHiddenNetwork');
       UIManager.joinHiddenButton.click();
@@ -309,8 +316,8 @@ suite('UI Manager > ', function() {
       UIManager.hiddenWifiSsid.value = 'testSSID';
       // Checks WPA-PSK
       UIManager.hiddenWifiSecurity.options[2].selected = true;
-      UIManager.wifiJoinButton.disabled = false;
-      UIManager.wifiJoinButton.click();
+      UIManager.hiddenWifiJoinButton.disabled = false;
+      UIManager.hiddenWifiJoinButton.click();
       assert.ok(joinHiddenNetworkStub.called,
         'joinHiddenNetwork should be called');
     });

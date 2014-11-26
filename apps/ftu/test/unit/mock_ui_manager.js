@@ -7,12 +7,12 @@ var MockUIManager = {
     'activation-screen',
     'finish-screen',
     'update-screen',
-    'nav-bar',
     'main-title',
+    'back-button',
     // Unlock SIM Screen
     'unlock-sim-screen',
     'unlock-sim-header',
-    'unlock-sim-back',
+    'unlock-sim-action',
     // PIN Screen
     'pincode-screen',
     'pin-label',
@@ -58,11 +58,14 @@ var MockUIManager = {
     // Fxa Intro
     'fxa-create-account',
     'fxa-intro',
+    'fxa-options',
+    'fxa-no',
     // Wifi
     'networks',
     'wifi-refresh-button',
     'wifi-join-button',
     'join-hidden-button',
+    'no-result-container',
     // Hidden Wifi
     'hidden-wifi-authentication',
     'hidden-wifi-ssid',
@@ -71,6 +74,7 @@ var MockUIManager = {
     'hidden-wifi-identity',
     'hidden-wifi-identity-box',
     'hidden-wifi-show-password',
+    'hidden-wifi-join-button',
     //Date & Time
     'date-configuration',
     'time-configuration',
@@ -78,9 +82,11 @@ var MockUIManager = {
     'time-configuration-label',
     'time-form',
     // 3G
-    'data-connection-switch',
+    'enable-data',
+    'disable-data',
     // Geolocation
-    'geolocation-switch',
+    'enable-geolocation',
+    'disable-geolocation',
     // Tutorial
     'lets-go-button',
     'update-lets-go-button',
@@ -92,6 +98,7 @@ var MockUIManager = {
     // Browser privacy newsletter subscription
     'newsletter-form',
     'newsletter-input',
+    'newsletter-submit',
     'newsletter-success-screen',
     'offline-newsletter-error-dialog',
     'invalid-email-error-dialog'
