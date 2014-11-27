@@ -9,7 +9,8 @@
     'unregisterHierarchy'
   ];
   HierarchyManager.STATES = [
-    'getTopMostWindow'
+    'getTopMostWindow',
+    'getTopMostUI'
   ];
   HierarchyManager.EVENTS = [
     'home',
