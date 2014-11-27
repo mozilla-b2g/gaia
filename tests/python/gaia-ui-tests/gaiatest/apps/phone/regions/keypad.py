@@ -6,6 +6,7 @@ import time
 
 from marionette.by import By
 from marionette.marionette import Actions
+from marionette.wait import Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.phone.app import Phone
@@ -14,7 +15,6 @@ from gaiatest.apps.phone.regions.call_screen import CallScreen
 
 class Keypad(Phone):
 
-    #locators
     _keyboard_container_locator = (By.ID, 'keyboard-container')
     _phone_number_view_locator = (By.ID, 'phone-number-view')
     _keypad_delete_locator = (By.ID, 'keypad-delete')
@@ -97,10 +97,12 @@ class Keypad(Phone):
 
 class AddNewNumber(Base):
     _create_new_contact_locator = (By.CSS_SELECTOR, '[data-l10n-id=createNewContact]')
+    _form_locator = (By.CSS_SELECTOR, 'form.visible[data-type="action"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._create_new_contact_locator)
+        form = self.marionette.find_element(*self._form_locator)
+        Wait(self.marionette).until(lambda m: form.location['y'] == 0)
 
     def tap_create_new_contact(self):
         self.marionette.find_element(*self._create_new_contact_locator).tap()
