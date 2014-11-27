@@ -59,7 +59,7 @@ suite('System Browser Nfc Handler tests', function() {
   test('send NDEF request to peer', function() {
     var sentRequest = {'testkey': 'testvalue'};
     nfcHandler.sendNDEFMessageToNFCPeer(sentRequest,
-                                        {peer: MockNfc.getNFCPeer()});
+                                        {peer: MockNfc.MockNFCPeer});
     assert.deepEqual(MockNfc.mSentRequest, sentRequest);
   });
 });
