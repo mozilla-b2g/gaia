@@ -9,6 +9,8 @@ requireApp('system/fxa/js/fxam_module.js');
 requireApp('system/fxa/js/fxam_states.js');
 requireApp('system/fxa/js/fxam_manager.js');
 requireApp('system/fxa/js/fxam_overlay.js');
+requireApp('system/js/browser_frame.js');
+requireApp('system/js/entry_sheet.js');
 requireApp('system/fxa/js/fxam_error_overlay.js');
 
 // Mockuped code
@@ -69,6 +71,67 @@ suite('Screen: Enter email', function() {
     mocksHelperForEmailModule.suiteTeardown();
   });
 
+  suite(' > External links EntrySheet ', function() {
+    var privacyLink, termsLink, showErrorOverlaySpy, clickEvent,
+      closeEntrySheetSpy, mockEntrySheet;
+
+    setup(function() {
+      privacyLink = document.getElementById('fxa-privacy');
+      termsLink = document.getElementById('fxa-terms');
+      showErrorOverlaySpy = this.sinon.spy(FxaModuleErrorOverlay, 'show');
+      clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+      closeEntrySheetSpy = sinon.spy();
+      mockEntrySheet = {close: closeEntrySheetSpy};
+      FxaModuleEnterEmail.entrySheet = mockEntrySheet;
+    });
+
+    teardown(function() {
+      FxaModuleErrorOverlay.show.restore();
+      privacyLink = termsLink = showErrorOverlaySpy = clickEvent = null;
+      FxaModuleEnterEmail.entrySheet = null;
+    });
+
+    test(' > Should not be shown if navigator.onLine is false', function() {
+      var realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
+      Object.defineProperty(navigator, 'onLine', {
+        configurable: true,
+        get: function() {
+          return false;
+        },
+        set: function() {}
+      });
+      var showErrorSpy = this.sinon.spy(FxaModuleEnterEmail,
+        'showErrorResponse');
+      privacyLink.dispatchEvent(clickEvent);
+      termsLink.dispatchEvent(clickEvent);
+      assert.ok(showErrorSpy.calledTwice);
+      FxaModuleEnterEmail.showErrorResponse.restore();
+      realOnLine ? Object.defineProperty(navigator, 'onLine', realOnLine) :
+        delete navigator.onLine;
+    });
+
+    test(' > Should be dismissed on "home" event', function() {
+      window.dispatchEvent(new CustomEvent('home'));
+      assert.ok(closeEntrySheetSpy.calledOnce);
+      assert.isNull(FxaModuleEnterEmail.entrySheet);
+    });
+
+    test(' > Should be dismissed on "holdhome" event', function() {
+      window.dispatchEvent(new CustomEvent('holdhome'));
+      assert.ok(closeEntrySheetSpy.calledOnce);
+      assert.isNull(FxaModuleEnterEmail.entrySheet);
+    });
+
+    test(' > Should be dismissed on "activityrequesting" event', function() {
+      window.dispatchEvent(new CustomEvent('activityrequesting'));
+      assert.ok(closeEntrySheetSpy.calledOnce);
+      assert.isNull(FxaModuleEnterEmail.entrySheet);
+    });
+  });
 
   suite(' > email input ', function() {
     var emailInput;
