@@ -10,6 +10,10 @@ define(function(require) {
     // We have to extend two more functions for it
     panel.onSubmit = options.onSubmit || _emptyFunc;
     panel.onCancel = options.onCancel || _emptyFunc;
+
+    // Let's rebind the scope on options
+    panel.onSubmit = panel.onSubmit.bind(options);
+    panel.onCancel = panel.onCancel.bind(options);
     return panel;
   };
 

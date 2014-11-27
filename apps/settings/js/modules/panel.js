@@ -3,8 +3,8 @@
  * functions: show, hide, beforeShow, beforeHide, init, and uninit for
  * navigation. These functions are called by `SettingsService` during the
  * navigation.
- * Internal functions _onShow, _onHide, _onBeforeShow, _onBeforeHide, _onInit,
- * and _onUninit are called respectively in the basic functions.
+ * Internal functions onShow, onHide, onBeforeShow, onBeforeHide, onInit,
+ * and onUninit are called respectively in the basic functions.
  *
  * @module Panel
  */
@@ -23,12 +23,12 @@ define(function() {
     var _initialized = false;
 
     options = options || {};
-    var _onInit = options.onInit || _emptyFunc;
-    var _onUninit = options.onUninit || _emptyFunc;
-    var _onShow = options.onShow || _emptyFunc;
-    var _onHide = options.onHide || _emptyFunc;
-    var _onBeforeShow = options.onBeforeShow || _emptyFunc;
-    var _onBeforeHide = options.onBeforeHide || _emptyFunc;
+    options.onInit = options.onInit || _emptyFunc;
+    options.onUninit = options.onUninit || _emptyFunc;
+    options.onShow = options.onShow || _emptyFunc;
+    options.onHide = options.onHide || _emptyFunc;
+    options.onBeforeShow = options.onBeforeShow || _emptyFunc;
+    options.onBeforeHide = options.onBeforeHide || _emptyFunc;
 
     return {
       /**
@@ -54,7 +54,7 @@ define(function() {
         }
         _initialized = true;
 
-        return _onInit(panel, initOptions);
+        return options.onInit(panel, initOptions);
       },
 
       /**
@@ -68,7 +68,7 @@ define(function() {
         }
         _initialized = false;
 
-        _onUninit();
+        options.onUninit();
       },
 
       /**
@@ -81,7 +81,7 @@ define(function() {
       show: function(panel, showOptions) {
         // Initialize at the first call to show if necessary.
         return Promise.resolve(this.init(panel, showOptions)).then(function() {
-          return _onShow(panel, showOptions);
+          return options.onShow(panel, showOptions);
         });
       },
 
@@ -91,7 +91,7 @@ define(function() {
        * @alias module:Panel#hide
        */
       hide: function() {
-        return _onHide();
+        return options.onHide();
       },
 
       /**
@@ -105,7 +105,7 @@ define(function() {
         // Initialize at the first call to beforeShow.
         return Promise.resolve(this.init(panel, beforeShowOptions)).then(
           function() {
-            return _onBeforeShow(panel, beforeShowOptions);
+            return options.onBeforeShow(panel, beforeShowOptions);
         });
       },
 
@@ -117,7 +117,7 @@ define(function() {
        * @param {Object} beforeShowOptions
        */
       beforeHide: function() {
-        return _onBeforeHide();
+        return options.onBeforeHide();
       }
     };
   };
