@@ -161,11 +161,12 @@
 
     showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
       if (!applications.ready) {
-        // Bug 1102965 - We are not handling properly the startup events for
-        // the SIM dialog. We probably will need to retry these discarded
-        // calls after the device is ready, but with the current code, retrying
-        // after appplicationready is not enough.
         this.warn('Device not ready yet.');
+        var self = this;
+        window.addEventListener('applicationready', function onReady() {
+          window.removeEventListener('applicationready', onReady);
+          self.showIfLocked(currentSlotIndex, skipped);
+        });
         return false;
       }
 
@@ -220,7 +221,7 @@
         }
 
         // Always showing the first slot first.
-        if (!this._alreadyShown && index > 1) {
+        if (!this._alreadyShown && index > 0) {
           return false;
         }
 
