@@ -3,7 +3,7 @@
    IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
    IAC_API_WAKEUP_REASON_STALE_REGISTRATION,
    IAC_API_WAKEUP_REASON_ENABLED_CHANGED,
-   IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED
+   IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED, FMDInit
 */
 
 'use strict';
@@ -17,6 +17,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/js/findmydevice_iac_api.js');
+require('/js/findmydevice_launcher.js');
 
 const FMD_RETRIES = 5;
 
@@ -24,20 +25,19 @@ var mocksForFindMyDevice = new MocksHelper([
   'Dump', 'Notification', 'SettingsHelper', 'MozActivity'
 ]).init();
 
-suite('FindMyDevice Launcher >', function(done) {
+suite('FindMyDevice Launcher >', function() {
   var realMozSettings;
   var realMozL10n;
   var realMozSetMessageHandler;
 
   mocksForFindMyDevice.attachTestHelpers();
 
-  suiteSetup(function(done) {
+  suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
     realMozL10n = navigator.mozL10n;
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
 
     navigator.mozSettings = MockNavigatorSettings;
-    MockNavigatorSettings.mSetup();
 
     MockMozActivity.mSetup();
 
@@ -45,11 +45,6 @@ suite('FindMyDevice Launcher >', function(done) {
     MockNavigatormozSetMessageHandler.mSetup();
 
     navigator.mozL10n = MockL10n;
-
-    // We need to load this after setting up MockNavigatorSettings
-    require('/js/findmydevice_launcher.js', function() {
-      done();
-    });
   });
 
   suiteTeardown(function() {
@@ -61,7 +56,13 @@ suite('FindMyDevice Launcher >', function(done) {
   });
 
   setup(function() {
+    MockNavigatorSettings.mSetup();
+    FMDInit();
     this.sinon.stub(window, 'wakeUpFindMyDevice');
+  });
+
+  teardown(function() {
+    MockNavigatorSettings.mTeardown();
   });
 
   test('send ENABLED_CHANGED wakeup message when enabled', function() {
