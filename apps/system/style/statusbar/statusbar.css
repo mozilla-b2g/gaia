@@ -619,6 +619,7 @@ body .utility-tray .statusbar > .sb-start {
 .sb-hide-tethering .sb-icon-tethering,
 .sb-hide-bluetooth .sb-icon-bluetooth,
 .sb-hide-nfc .sb-icon-nfc,
+.sb-hide-debugging .sb-icon-debugging,
 .sb-hide-emergency-cb-notification .sb-icon-emergency-cb-notification,
 .sb-hide-system-downloads .sb-icon-system-downloads,
 .sb-hide-usb .sb-icon-usb,
