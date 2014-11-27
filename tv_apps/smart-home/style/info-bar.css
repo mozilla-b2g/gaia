@@ -1,0 +1,64 @@
+
+.information-bar {
+  position: absolute;
+  right: 2.4rem;
+  top: 1.4rem;
+  color: #FFFFFF;
+}
+
+.weather-info {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 25rem;
+  height: 11.6rem;
+}
+
+.weather-image {
+  display: inline-block;
+  position: absolute;
+  top: 1.6rem;
+  left: 0;
+  width: 10rem;
+  height: 10rem;
+  background-image: url(images/img_weather-cloudy.png);
+  background-size: 10rem auto;
+  background-repeat: no-repeat;
+}
+
+.temperature {
+  display: inline-block;
+  position: absolute;
+  
+  top: 0;
+  left: 10rem; /* sit at the right of weather-image */
+  height: 10.6rem;
+  line-height: 10.6rem;
+  
+  font-size: 6rem;
+}
+
+.weather-text {
+  display: inline-block;
+  position: absolute;
+  
+  bottom: 0.2rem;
+  left: 10rem; /* sit at the right of weather-image */
+  
+  font-size: 1.8rem;
+  font-style: italic;
+}
+
+.clock-info {
+  position: absolute;
+  top: 2.4rem;
+  /* right align to weather-info(25rem) + 1rem spacing */
+  right: 26rem;
+  width: 25.2rem;
+  height: 9rem;
+  line-height: 9rem;
+
+  font-size: 10.6rem;
+
+  border-right: solid 0.1rem #FFFFFF;
+}
