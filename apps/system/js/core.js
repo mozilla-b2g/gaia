@@ -22,7 +22,8 @@
     'TetheringMonitor',
     'UsbCore',
     'CameraTrigger',
-    'FeatureDetector'
+    'FeatureDetector',
+    'AudioChannelManager'
   ];
 
   Core.SERVICES = [

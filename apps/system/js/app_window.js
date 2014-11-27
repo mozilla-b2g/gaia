@@ -1,4 +1,5 @@
 /* global AppChrome */
+/* global AudioChannelController */
 /* global applications */
 /* global BrowserFrame */
 /* global layoutManager */
@@ -838,6 +839,17 @@
         }
       }
 
+      // Register audio channels.
+      this.audioChannels = new Map();
+      var audioChannels = this.browser.element.allowedAudioChannels;
+      audioChannels && audioChannels.forEach((audioChannel) => {
+        this.audioChannels.set(
+          audioChannel.name,
+          new AudioChannelController(this, audioChannel)
+        );
+        this.debug('Registered ' + audioChannel.name + ' audio channel');
+      });
+
       if (this.isInputMethod) {
         return;
       }
@@ -871,6 +883,8 @@
         }
         this[componentName] = null;
       }
+
+      this.audioChannels = null;
 
       if (this.appChrome) {
         this.appChrome.destroy();
