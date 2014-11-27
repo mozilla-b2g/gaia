@@ -234,7 +234,7 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal {
-  -moz-margin-start: 0.8rem;
+  margin-left: 0.8rem;
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
@@ -655,18 +655,9 @@ html[dir="rtl"] .statusbar > .sb-start-upper {
   right: 0
 }
 
-html[dir="rtl"] #statusbar-connections > * {
-  float: left;
-}
-
-html[dir="rtl"] #statusbar-connections .sb-icon-roaming {
-  left: unset;
-  right: 0;
-}
-
 html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
-  left: unset;
-  right: -0.6rem;
+  left: -0.6rem;;
+  right: unset;
 }
 
 html[dir="rtl"] #statusbar-connections .statusbar-signal .statusbar-data {
@@ -677,7 +668,7 @@ html[dir="rtl"] #statusbar-connections .statusbar-signal .statusbar-data {
 
 html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-signal .statusbar-data {
   left: unset;
-  right: -.7rem;
+  right: .7rem;
   text-align: right;
 }
 
