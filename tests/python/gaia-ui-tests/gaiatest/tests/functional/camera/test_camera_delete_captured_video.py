@@ -33,7 +33,7 @@ class TestPreviewDelete(GaiaTestCase):
         self.camera.tap_switch_source()
 
         # Record 5 seconds of video
-        self.camera.record_video(5)
+        self.camera.record_video(10)
 
         # Check that video saved to SD card
         self.wait_for_condition(lambda m: len(self.data_layer.video_files) == self.previous_number_of_videos + 1, 15)
