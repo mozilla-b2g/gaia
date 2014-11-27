@@ -1,6 +1,6 @@
 'use strict';
 /* global SpatialNavigator, KeyEvent, SelectionBorder, XScrollable */
-/* global CardManager, URL, Application */
+/* global CardManager, URL, Application, Clock */
 
 (function(exports) {
 
@@ -21,6 +21,8 @@
 
     init: function() {
       var that = this;
+
+      this.initClock();
 
       this.cardManager = new CardManager();
       this.cardManager.init();
@@ -63,6 +65,21 @@
           that.spatialNavigator.focus(that.settingsButton);
           that.handleEnter('enter');
         });
+      });
+    },
+
+    initClock: function() {
+      var that = this;
+      navigator.mozL10n.ready(function() {
+        that.clock = new Clock();
+        that.clock.start(that.updateClock.bind(that));
+        // Listen to 'moztimechange'
+        window.addEventListener('moztimechange',
+                                that.restartClock.bind(restartClock));
+        // Listen to 'timeformatchange'
+        window.addEventListener('timeformatchange',
+                                that.restartClock.bind(restartClock));
+
       });
     },
 
@@ -202,6 +219,30 @@
         name: 'configure',
         data: {}
       });
+    },
+
+    updateClock: function() {
+      var now = new Date();
+      var _ = navigator.mozL10n.get;
+
+      var f = new navigator.mozL10n.DateTimeFormat();
+
+      // Keep the follow code for supporting 24-hour format in the fure.
+      // We had discussed 12/24 hour formats with visual and we will have it
+      // in recent few weeks.
+      // var timeFormat = window.navigator.mozHour12 ?
+      //   _('shortTimeFormat12') : _('shortTimeFormat24');
+      var timeFormat = _('shortTimeFormat24').replace('%p', '').trim();
+      var formatted = f.localeFormat(now, timeFormat);
+      document.getElementById('time').innerHTML = formatted;
+    },
+
+    restartClock: function() {
+      navigator.mozL10n.ready((function() {
+        // restart clcok
+        this.clock.stop();
+        this.clock.start(this.updateClock.bind(this));
+      }).bind(this));
     },
 
     get focusElem() {

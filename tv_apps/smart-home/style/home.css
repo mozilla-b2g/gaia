@@ -30,16 +30,6 @@ section {
   font-size: 1.6rem;
 }
 
-#time {
-  font-size: 4rem;
-}
-
-#clock {
-  position: absolute;
-  left: 2rem;
-  top: 2rem;
-}
-
 #search {
   position: absolute;
   width: 100%;
