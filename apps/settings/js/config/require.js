@@ -262,7 +262,8 @@ require.config({
       name: 'panels/hotspot/panel',
       exclude: [
         'main',
-        'modules/mvvm/observable'
+        'modules/mvvm/observable',
+        'modules/dialog_service'
       ]
     },
     {
