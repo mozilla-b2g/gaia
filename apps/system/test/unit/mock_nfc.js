@@ -16,20 +16,16 @@
 
     onpeerready: function() {},
 
-    getNFCPeer: function() {
-      return {
-        sendNDEF: function(req) {
-          MockNfc.mSentRequest = req;
-        }
-      };
-    },
-
     mTriggerOnpeerready: function(detail) {
       MockNfc.onpeerready(detail);
     },
 
     mSentRequest: null,
-    MockNFCPeer: {}
+    MockNFCPeer: {
+      sendNDEF: function(req) {
+        MockNfc.mSentRequest = req;
+      }
+    }
   };
 
   exports.MockNfc = MockNfc;

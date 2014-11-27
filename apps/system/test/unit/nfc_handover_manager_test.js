@@ -281,7 +281,7 @@ suite('Nfc Handover Manager Functions', function() {
       assert.equal(spyNotify.firstCall.args[0], 1);
     });
 
-    test('Aborts when getNFCPeer() fails during file send.', function() {
+    test('Aborts when MozNFCPeer lost during file send.', function() {
       fileRequest.peer = {isLost: true};
       var spyNotify = this.sinon.spy(MockMozNfc, 'notifySendFileStatus');
       var stubShowNotification = this.sinon.stub(NfcHandoverManager,
@@ -301,7 +301,7 @@ suite('Nfc Handover Manager Functions', function() {
       assert.isTrue(stubRestoreBT.calledOnce, 'BT status not restored');
     });
 
-    test('Aborts when getNFCPeer() fails during file receive.', function() {
+    test('Aborts when MozNFCPeer lost during file receive.', function() {
       var cps = NDEF.CPS_ACTIVE;
       var mac = '01:23:45:67:89:AB';
       var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
