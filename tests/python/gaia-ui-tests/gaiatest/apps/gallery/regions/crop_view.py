@@ -5,6 +5,7 @@
 from marionette import expected
 from marionette import Wait
 from marionette.by import By
+from marionette.errors import FrameSendFailureError
 from gaiatest.apps.base import Base
 
 
@@ -23,7 +24,12 @@ class CropView(Base):
         Wait(self.marionette).until(expected.element_enabled(done))
 
     def tap_crop_done(self):
-        self.marionette.find_element(*self._crop_done_button_locator).tap()
+        try:
+            self.marionette.find_element(*self._crop_done_button_locator).tap()
+        except FrameSendFailureError:
+            # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
+            pass
+
         # Fall back to the app underneath
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.src != self._src)
         self.apps.switch_to_displayed_app()
