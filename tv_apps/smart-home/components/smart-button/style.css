@@ -41,8 +41,42 @@ smart-button.released {
   transition-duration: 0.16s;
 }
 
+smart-button.toggled {
+  background-color: #00caf2;
+}
+
 smart-button.pressed {
   background-color: #00caf2;
   transform: scale(0.8);
   transition-duration: 0.06s;
+}
+
+smart-button[type="simple-text"] {
+  color: #dddddd;
+  background: none;
+  border: none;
+  border-radius: 0;
+
+  width: auto;
+  height: 8rem;
+
+  line-height: 8rem;
+  font-size: 2.4rem;
+  -moz-user-select: none;
+  padding-left: 2.6rem;
+  padding-right: 2.6rem;
+}
+
+smart-button[type="simple-text"].focused {
+  color: #ffffff;
+  background: none;
+}
+
+smart-button[type="simple-text"].toggled {
+  color: #00caf2;
+}
+
+smart-button[type="simple-text"].pressed {
+  color: #00caf2;
+  background: none;
 }

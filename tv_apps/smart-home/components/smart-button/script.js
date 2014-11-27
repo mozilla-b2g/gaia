@@ -56,6 +56,8 @@ window.SmartButton = (function(win) {
         this.classList.add('focused');
         break;
       case 'blur':
+        this.classList.remove('pressed');
+        this.classList.remove('released');
         this.classList.remove('focused');
         break;
     }
