@@ -43,7 +43,10 @@ marionette('Statusbar Visibility', function() {
     });
   });
 
-  test('NFC icon is visible', function() {
+  // skipping since nfc.enabled triggers HW change and icon is updated
+  // on success. Status bar needs to observe nfc.status setting.
+  // This will be fixed and reenabled in Bug 1103874
+  test.skip('NFC icon is visible', function() {
     statusBar.nfc.waitForIconToAppear();
   });
 });
