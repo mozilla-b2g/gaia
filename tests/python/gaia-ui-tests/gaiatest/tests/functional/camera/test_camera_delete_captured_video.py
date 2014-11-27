@@ -2,9 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.camera.app import Camera
 from gaiatest.apps.camera.app import ImagePreview
+
 from marionette.wait import Wait
 
 
@@ -37,13 +40,13 @@ class TestPreviewDelete(GaiaTestCase):
         self.assertEqual(len(self.data_layer.video_files), self.previous_number_of_videos + 1)
 
         # Tap preview icon to see the video that's just taken
-        self.camera.wait_for_thumbnail_visible()
         self.camera.tap_thumbnail()
         self.preview = ImagePreview(self.marionette)
         Wait(self.marionette).until(lambda m: self.preview.is_video_preview_visible is True)
 
         # Play video, then pause it
         self.preview.tap_video_player_play_button()
+        time.sleep(5)
         self.preview.tap_video_player_pause_button()
 
         # Tape the options icon, and delete the file
@@ -54,3 +57,4 @@ class TestPreviewDelete(GaiaTestCase):
 
         # Verify the video is deleted now
         self.assertEqual(len(self.data_layer.video_files), self.previous_number_of_videos)
+        
