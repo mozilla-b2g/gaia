@@ -111,6 +111,9 @@ var FxaModuleEnterEmail = (function() {
       /*jshint validthis:true */
       e.stopPropagation();
       e.preventDefault();
+      if (!navigator.onLine) {
+        return this.showErrorResponse({error: 'OFFLINE'});
+      }
       var url = e.target.href;
       if (this.entrySheet) {
         this.entrySheet.close();
@@ -138,6 +141,21 @@ var FxaModuleEnterEmail = (function() {
           this.entrySheet = null;
         }
       }
+    }
+
+    window.addEventListener('holdhome', hideEntrySheet.bind(this));
+    window.addEventListener('home', hideEntrySheet.bind(this));
+    window.addEventListener('activityrequesting', hideEntrySheet.bind(this));
+
+    function hideEntrySheet() {
+      /*jshint validthis:true */
+      if (this.entrySheet) {
+        this.entrySheet.close();
+        this.entrySheet = null;
+      }
+      window.removeEventListener('holdhome', hideEntrySheet);
+      window.removeEventListener('home', hideEntrySheet);
+      window.removeEventListener('activityrequesting', hideEntrySheet);
     }
 
     // Ensure that pressing 'ENTER' (keycode 13) we send the form
