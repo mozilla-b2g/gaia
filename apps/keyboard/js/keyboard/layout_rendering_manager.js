@@ -138,11 +138,6 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
   // Make sure JS error is not sliently ignored.
   p.catch(function(e) { console.error(e); });
 
-  // Tell the renderer what input method we're using. This will set a CSS
-  // classname that can be used to style the keyboards differently
-  IMERender.setInputMethodName(
-    this.app.layoutManager.currentPage.imEngine || 'default');
-
   this.app.console.timeEnd('LayoutRenderingManager.updateLayoutRendering()');
 
   return p;

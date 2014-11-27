@@ -3,7 +3,11 @@
 
 requireApp('keyboard/js/render.js');
 require('/js/views/key_view.js');
+require('/js/views/base_view.js');
 require('/js/views/layout_page_view.js');
+require('/js/views/candidate_panel_view.js');
+require('/js/views/latin_candidate_panel_view.js');
+require('/js/views/view_utils.js');
 
 suite('Renderer', function() {
   suiteSetup(function() {
@@ -278,115 +282,17 @@ suite('Renderer', function() {
       assert.equal(ime.classList.contains('candidate-panel'), false);
     });
 
-    suite('showCandidates', function() {
-      test('Has dismiss-suggestions-button', function() {
-        var el = IMERender.candidatePanelCode();
-        activeIme.appendChild(el);
-
-        IMERender.setInputMethodName('latin');
-        IMERender.showCandidates(['trah', 'lah', 'lo'], true);
-
-        assert.equal(el.querySelectorAll('.dismiss-suggestions-button').length,
-          1, 'Dismiss suggestions button present');
-      });
-
-      test('Three candidates', function() {
-        var el = IMERender.candidatePanelCode();
-        activeIme.appendChild(el);
-
-        IMERender.setInputMethodName('latin');
-        IMERender.showCandidates(['trah', 'lah', 'lo'], true);
-
-        var spans = el.querySelectorAll('span');
-        assert.equal(spans.length, 3);
-        assert.equal(spans[0].textContent, 'trah', 'textContent 0');
-        assert.equal(spans[0].dataset.data, 'trah', 'data 0');
-        assert.equal(spans[1].textContent, 'lah', 'textContent 1');
-        assert.equal(spans[1].dataset.data, 'lah', 'data 1');
-        assert.equal(spans[2].textContent, 'lo', 'textContent 2');
-        assert.equal(spans[2].dataset.data, 'lo', 'data 2');
-      });
-
-      test('Zero candidates', function() {
-        var el = IMERender.candidatePanelCode();
-        activeIme.appendChild(el);
-
-        IMERender.setInputMethodName('latin');
-        IMERender.showCandidates([], true);
-
-        var spans = el.querySelectorAll('span');
-        assert.equal(spans.length, 0);
-      });
-
-      test('Candidate with star', function() {
-        var el = IMERender.candidatePanelCode();
-        activeIme.appendChild(el);
-
-        var can = ['*awesome', 'moar', 'whoo'];
-        IMERender.setInputMethodName('latin');
-        IMERender.showCandidates(can, true);
-
-        var spans = el.querySelectorAll('span');
-        assert.equal(spans.length, 3);
-        assert.equal(spans[0].classList.contains('autocorrect'), true);
-        assert.equal(spans[1].classList.contains('autocorrect'), false);
-        assert.equal(spans[2].classList.contains('autocorrect'), false);
-      });
-
-      test('Scaling to 0.6', function() {
-        var el = IMERender.candidatePanelCode();
-        activeIme.appendChild(el);
-
-        IMERender.setInputMethodName('latin');
-
-        IMERender.getScale = function() {
-          return 0.6;
-        };
-
-        var can = ['thisisverylongword', 'alsoverylongword', 'whatup'];
-        IMERender.showCandidates(can, true);
-
-        var spans = el.querySelectorAll('span');
-        assert.equal(spans[0].textContent, can[0]);
-        assert.equal(spans[1].textContent, can[1]);
-        assert.equal(spans[2].textContent, can[2]);
-        assert.equal(spans[0].style.width, '166.667%');
-        assert.equal(spans[0].style.transformOrigin, 'left center 0px');
-        assert.equal(spans[0].style.transform, 'scale(0.6)');
-      });
-
-      test('Scaling to 0.5', function() {
-        var el = IMERender.candidatePanelCode();
-        activeIme.appendChild(el);
-
-        IMERender.setInputMethodName('latin');
-
-        IMERender.getScale = function() {
-          return 0.5;
-        };
-
-        var can = ['thisisverylongword', 'alsoverylongword', 'whatup'];
-        IMERender.showCandidates(can, true);
-
-        var spans = el.querySelectorAll('span');
-        assert.equal(spans[0].textContent, 't…d');
-        assert.equal(spans[1].textContent, 'a…d');
-        assert.equal(spans[2].textContent, 'w…p');
-        assert.equal(spans[0].style.width, '200%');
-        assert.equal(spans[0].style.transformOrigin, 'left center 0px');
-        assert.equal(spans[0].style.transform, 'scale(0.5)');
-      });
-    });
-
     suite('Dimensions', function() {
-      function createDimensionTest(rows, orientation, suggest, latin, next) {
+      function createDimensionTest(rowCount, orientation, suggest, latin,
+                                   next) {
         var layout = {
           width: (Math.random() * 8 | 0) + 2,
           keys: [],
-          layoutName: 'test'
+          layoutName: 'test',
+          imEngine: latin ? 'latin' : 'nonLatin'
         };
 
-        for (var ri = 0; ri < rows.length; ri++) {
+        for (var ri = 0; ri < rowCount; ri++) {
           var r = [];
           for (var ki = 0, kl = (Math.random() * 8 | 0) + 2; ki < kl; ki++) {
             r.push({ value: (Math.random() * 26 | 0) + 97 });
@@ -408,12 +314,16 @@ suite('Renderer', function() {
           {};
 
         IMERender.draw(layout, flags, function() {
-          if (latin) {
-            IMERender.setInputMethodName('latin');
+
+          var imeHeight = IMERender.activeIme.scrollHeight;
+          // it seems the margin would collapse for zero row count,
+          // need to plus 2
+          if (!latin && suggest && rowCount === 0) {
+            imeHeight += 2;
           }
 
-          assert.equal(
-            IMERender.activeIme.scrollHeight, IMERender.getHeight());
+          assert.equal(imeHeight, IMERender.getHeight());
+
           next();
         });
         stubRequestAnimationFrame.getCall(0).args[0]();
@@ -499,19 +409,6 @@ suite('Renderer', function() {
 
       assert.isTrue(keyView.highlight.called);
       assert.isTrue(keyView.highlight.calledWith({upperCase: false}));
-    });
-
-    test('[Hack] Highlight a key element which is not a view', function() {
-      var keyElement = document.createElement('span');
-
-      IMERender.setDomElemTargetObject(keyElement, dummyKey);
-
-      IMERender.highlightKey(fakeRenderingManager.getTargetObject(keyElement));
-      assert.isTrue(keyElement.classList.contains('highlighted'));
-
-      IMERender.unHighlightKey(
-        fakeRenderingManager.getTargetObject(keyElement));
-      assert.isFalse(keyElement.classList.contains('highlighted'));
     });
   });
 });

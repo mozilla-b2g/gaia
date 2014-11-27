@@ -1,6 +1,7 @@
 'use strict';
 
-/* global HandwritingPadView, KeyView, KeyboardEvent */
+/* global HandwritingPadView, KeyView, KeyboardEvent,
+   LatinCandidatePanelView, CandidatePanelView */
 
 (function(exports) {
 /**
@@ -19,6 +20,8 @@ function LayoutPageView(layout, options, viewManager) {
   //{ element:   ,  // DOM element for this row
   //  keys:      ,  // A map to store all the keys.
   //}
+
+  this.candidatePanel = null;
 }
 
 LayoutPageView.prototype.render = function render() {
@@ -32,6 +35,15 @@ LayoutPageView.prototype.render = function render() {
 
   if (layout.specificCssRule) {
     container.classList.add(layout.layoutName);
+  }
+
+  // Render candidate panel
+  if (this.options.showCandidatePanel) {
+    var candidatePanel = this.createCandidatePanel(this.layout.imEngine);
+    candidatePanel.render();
+
+    container.appendChild(candidatePanel.element);
+    this.candidatePanel = candidatePanel;
   }
 
   // Create canvas for handwriting.
@@ -222,6 +234,70 @@ LayoutPageView.prototype.getVisualData = function getVisualData() {
   });
 
   return keyArray;
+};
+
+// A factory method to create different instances of candidate panel.
+// Right now, it depends on the input method name to show different types
+// of candidate panels.
+LayoutPageView.prototype.createCandidatePanel = function(inputMethodName) {
+  var candidatePanel;
+  var target = {};
+  var options = {
+    className: inputMethodName,
+    totalWidth: this.options.totalWidth
+  };
+
+  switch (inputMethodName) {
+    case 'latin':
+      candidatePanel =
+        new LatinCandidatePanelView(target, options, this.viewManager);
+      break;
+
+    case 'vietnamese':
+      options.widthUnit = 1;
+      candidatePanel =
+        new CandidatePanelView(target, options, this.viewManager);
+      break;
+
+    default:
+      candidatePanel =
+        new CandidatePanelView(target, options, this.viewManager);
+      break;
+  }
+
+  return candidatePanel;
+};
+
+LayoutPageView.prototype.resetCandidatePanel = function() {
+  if (!this.candidatePanel) {
+    return;
+  }
+
+  this.candidatePanel.resetScroll();
+};
+
+LayoutPageView.prototype.showCandidates = function(candidates) {
+  if (!this.candidatePanel) {
+    return;
+  }
+
+  this.candidatePanel.showCandidates(candidates);
+};
+
+LayoutPageView.prototype.showMoreCandidates = function(rowLimit, candidates) {
+  if (!this.candidatePanel) {
+    return;
+  }
+
+  this.candidatePanel.showMoreCandidates(rowLimit, candidates);
+};
+
+LayoutPageView.prototype.getNumberOfCandidatesPerRow = function() {
+  if (!this.candidatePanel) {
+    return;
+  }
+
+  return this.candidatePanel.countPerRow;
 };
 
 exports.LayoutPageView = LayoutPageView;

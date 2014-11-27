@@ -107,8 +107,6 @@ suite('LayoutRenderingManager', function() {
           inputType: 'foo',
           showCandidatePanel: false
         }));
-
-      assert.isTrue(IMERender.setInputMethodName.calledWith('default'));
     });
 
     test('w/o autoCorrectLanguage, w/o displaysCandidates()', function() {
@@ -121,8 +119,6 @@ suite('LayoutRenderingManager', function() {
           inputType: 'foo',
           showCandidatePanel: false
         }));
-
-      assert.isTrue(IMERender.setInputMethodName.calledWith('default'));
     });
 
     test('w/ autoCorrectLanguage, w/o displaysCandidates()', function() {
