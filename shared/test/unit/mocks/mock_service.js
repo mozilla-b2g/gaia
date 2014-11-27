@@ -25,6 +25,8 @@ var MockService = {
         return this.mTopMostWindow;
       case 'Bluetooth.isEnabled':
         return this.mBtEnabled;
+      case 'getTopMostUI':
+        return this.mTopMostUI;
     }
     return undefined;
   },

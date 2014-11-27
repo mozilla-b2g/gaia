@@ -1,7 +1,7 @@
 /* global appWindowManager, AppWindow, HomescreenWindowManager, MockShrinkingUI,
           HomescreenWindow, MocksHelper, MockSettingsListener, Service,
           MockRocketbar, rocketbar, homescreenWindowManager,
-          MockTaskManager, MockFtuLauncher */
+          MockTaskManager, MockFtuLauncher, MockService */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -20,7 +20,6 @@ requireApp('system/test/unit/mock_homescreen_window_manager.js');
 requireApp('system/test/unit/mock_nfc_handler.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_task_manager.js');
-requireApp('system/js/service.js');
 requireApp('system/shared/test/unit/mocks/mock_shrinking_ui.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
@@ -230,6 +229,7 @@ suite('system/AppWindowManager', function() {
     test('When receiving shrinking-start, we need to blur the active app',
       function() {
         var stubFocus = this.sinon.stub(app1, 'broadcast');
+        MockService.mTopMostUI = appWindowManager;
         appWindowManager._activeApp = app1;
         appWindowManager.handleEvent({
           type: 'shrinking-start'
@@ -240,6 +240,20 @@ suite('system/AppWindowManager', function() {
           .backgroundElement, app1.getBottomMostWindow().element.parentNode);
         assert.isTrue(appWindowManager.shrinkingUI.mStarted);
         assert.isTrue(stubFocus.calledWith('shrinkingstart'));
+      });
+
+    test('When receiving shrinking-start and top-most ui is not ' +
+         'appWindowManager',
+      function() {
+        var stubFocus = this.sinon.stub(app1, 'broadcast');
+        MockService.mTopMostUI = {
+          name: 'UtilityTray'
+        };
+        appWindowManager._activeApp = app1;
+        appWindowManager.handleEvent({
+          type: 'shrinking-start'
+        });
+        assert.isFalse(stubFocus.calledWith('shrinkingstart'));
       });
 
     test('When receiving shrinking-stop, we need to focus the active app',
