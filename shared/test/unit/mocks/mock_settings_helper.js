@@ -20,7 +20,8 @@ function MockSettingsHelper(aSetting, defaultValue) {
     set: function (value, callback) {
       MockSettingsHelper.instances[setting].value = value;
       callback && callback();
-    }
+    },
+    uninit: function() { }
   };
 }
 
