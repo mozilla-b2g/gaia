@@ -290,17 +290,6 @@ var icc_worker = {
 
     DUMP('STK Input title: ' + options.text);
 
-    document.addEventListener('visibilitychange',
-      function stkInputNoAttended() {
-        document.removeEventListener('visibilitychange', stkInputNoAttended,
-          true);
-        icc.responseSTKCommand(message, {
-          resultCode:
-            icc._iccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER
-        });
-        icc.hideViews();
-      }, true);
-
     var duration = options.duration;
     var timeout = (duration &&
       icc.calculateDurationInMS(duration.timeUnit, duration.timeInterval)) ||

@@ -52,6 +52,12 @@
       "disposition": "window"
     }
   },
+  "connections": {
+    "settingsstk": {
+      "description": "Communicate between Settings app and System app for SIM Toolkit.",
+      "rules": {}
+    }
+  },
   "locales": {
     "ar": {
       "name": "الضبط",
