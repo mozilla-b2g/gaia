@@ -135,7 +135,8 @@
 
   width: 1.6rem;
   height: 1.6rem;
-  margin: -0.1rem 0.7rem 0.1rem 0;
+  margin: -0.1rem 0 0.1rem;
+  -moz-margin-end: 0.7rem;
 
   background: no-repeat center center / 1.6rem transparent;
 }
@@ -174,4 +175,9 @@
 
 .report-view[data-delivery="error"] .resend-btn {
   display: block;
+}
+
+/* RTL modifications */
+.contact-list:-moz-dir(rtl) .icon {
+  float: right;
 }
