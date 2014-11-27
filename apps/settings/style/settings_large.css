@@ -201,10 +201,16 @@
     min-height: 6rem;
   }
 
-  ul li > label.range-icons.volume.alarm:before,
-  ul li > label.range-icons.volume.media:before,
-  ul li > label.range-icons.volume.notification:before {
-    background: none;
+  ul li > label.range-icons.volume span {
+    position: absolute;
+    left: unset;
+    right: 50%;
+    height: 100%;
+    line-height: 6rem;
+  }
+
+  ul li > label.range-icons.volume span:before {
+    display: none;
   }
 
   ul li > label.range-icons.volume input {
@@ -213,6 +219,11 @@
 
   ul li > label.range-icons.volume p {
     padding-left: 0;
+  }
+
+  ul li > label.range-icons span {
+    margin: 0;
+    text-align: center;
   }
 
   /**
@@ -279,18 +290,17 @@
     display: inline;
     width: calc(100% - 8rem);
     left: 4rem;
-    top: calc(50% - 1rem);
   }
 
   /**
    * slider
    */
   section[role="region"] ul li > label input[type='range'] {
-    top: 1.5rem;
+    top: 0;
     width: 49.5%;
-    height: 2rem;
+    height: 100%;
     left: 50%;
-    position: absolute
+    position: absolute;
   }
 
   /**
