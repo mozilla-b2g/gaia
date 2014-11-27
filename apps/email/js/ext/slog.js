@@ -245,4 +245,20 @@ define('slog', function(require, exports, module) {
       }));
     };
   });
+
+  /**
+   * Provide a slog.debug for things that are *only* logged when sensitive
+   * logging is enabled.  This exists right now mainly for the benefit of the
+   * email.js libs.  We're tying "debug" to logSensitiveData both because we
+   * haven't audited the use of debug and also because it is indeed a bit
+   * chatty.
+   *
+   * TODO: Address the logging detail level as a separate issue, ideally while
+   * working with whiteout.io to fancify the email.js logging slightly.
+   */
+  exports.debug = function(logName, details) {
+    if (logSensitiveData) {
+      exports.log(logName, details);
+    }
+  };
 });

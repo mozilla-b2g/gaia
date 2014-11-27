@@ -537,8 +537,12 @@ exports.calculateBytesToDownloadForImapBodyDisplay = function(body) {
 // ( ?\d|\d{2}) = day number; technically it's either "SP DIGIT" or "2DIGIT"
 // but there's no harm in us accepting a single digit without whitespace;
 // it's conceivable the caller might have trimmed whitespace.
+//
+// The timezone can, as unfortunately demonstrated by net-c.com/netc.fr, be
+// omitted.  So we allow it to be optional and assume its value was zero if
+// omitted.
 var reDateTime =
-      /^( ?\d|\d{2})-(.{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}) ([+-]\d{4})$/;
+      /^( ?\d|\d{2})-(.{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2})(?: ([+-]\d{4}))?$/;
 var HOUR_MILLIS = 60 * 60 * 1000;
 var MINUTE_MILLIS = 60 * 1000;
 var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
@@ -577,7 +581,7 @@ var parseImapDateTime = exports.parseImapDateTime = function(dstr) {
       timestamp = Date.UTC(year, zeroMonth, day, hours, minutes, seconds),
       // to reduce string garbage creation, we use one string. (we have to
       // play math games no matter what, anyways.)
-      zoneDelta = parseInt(match[7], 10),
+      zoneDelta = match[7] ? parseInt(match[7], 10) : 0,
       zoneHourDelta = Math.floor(zoneDelta / 100),
       // (the negative sign sticks around through the mod operation)
       zoneMinuteDelta = zoneDelta % 100;

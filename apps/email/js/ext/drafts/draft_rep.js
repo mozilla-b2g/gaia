@@ -128,7 +128,8 @@ function convertHeaderAndBodyToDraftRep(account, header, body) {
 /**
  * Given the HeaderInfo and BodyInfo for a draft, create a new header and body
  * suitable for saving to the sent folder for a POP3 account.  Specifically:
- * - make sure we body.attaching does not make it through
+ * - mark the message as read
+ * - make sure body.attaching does not make it through
  * - strip the Blob references so we don't accidentally keep the base64
  *   encoded attachment parts around forever and clog up the disk.
  * - avoid accidental use of the same instances between the drafts folder and
@@ -148,6 +149,9 @@ function cloneDraftMessageForSentFolderWithoutAttachments(header, body,
   // clobber the id/suid
   newHeader.id = newInfo.id;
   newHeader.suid = newInfo.suid;
+  // Mark the message as read.  We are clobbering other flags, but we don't
+  // currently support a way for them to exist.
+  newHeader.flags = ['\\Seen'];
 
   // clone the body, dropping excess fields like "attaching".
   var newBody = mailRep.makeBodyInfo(body);

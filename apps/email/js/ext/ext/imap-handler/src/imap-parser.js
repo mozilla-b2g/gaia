@@ -59,7 +59,7 @@
             case "BAD":
             case "PREAUTH":
             case "BYE":
-                responseCode = this.remainder.match(/^ \[[^\]]*\]/);
+                responseCode = this.remainder.match(/^ \[(?:[^\]]*\])+/);
                 if (responseCode) {
                     this.humanReadable = this.remainder.substr(responseCode[0].length).trim();
                     this.remainder = responseCode[0];
@@ -261,7 +261,7 @@
 
                             // ) closes a list
                         case ")":
-                            if (this.currentNode.type  !==  "LIST") {
+                            if (this.currentNode.type !== "LIST") {
                                 throw new Error("Unexpected list terminator ) at position " + (this.pos + i));
                             }
 
@@ -274,7 +274,7 @@
 
                             // ] closes section group
                         case "]":
-                            if (this.currentNode.type  !==  "SECTION") {
+                            if (this.currentNode.type !== "SECTION") {
                                 throw new Error("Unexpected section terminator ] at position " + (this.pos + i));
                             }
                             this.currentNode.closed = true;
@@ -285,7 +285,7 @@
 
                             // < starts a new partial
                         case "<":
-                            if (this.str.charAt(i - 1)  !==  "]") {
+                            if (this.str.charAt(i - 1) !== "]") {
                                 this.currentNode = this.createNode(this.currentNode, this.pos + i);
                                 this.currentNode.type = "ATOM";
                                 this.currentNode.value = chr;
@@ -322,7 +322,8 @@
 
                             // [ starts section
                         case "[":
-                            if (["OK", "NO", "BAD", "BYE", "PREAUTH"].indexOf(this.parent.command.toUpperCase()) >= 0) {
+                            // If it is the *first* element after response command, then process as a response argument list
+                            if (["OK", "NO", "BAD", "BYE", "PREAUTH"].indexOf(this.parent.command.toUpperCase()) >= 0 && this.currentNode === this.tree) {
                                 this.currentNode.endPos = this.pos + i;
 
                                 this.currentNode = this.createNode(this.currentNode, this.pos + i);
@@ -332,19 +333,14 @@
                                 this.currentNode.type = "SECTION";
                                 this.currentNode.closed = false;
                                 this.state = "NORMAL";
-                            }else{
-                                this.currentNode = this.createNode(this.currentNode, this.pos + i);
-                                this.currentNode.type = "ATOM";
-                                this.currentNode.value = chr;
-                                this.state = "ATOM";
+                                break;
                             }
-                            break;
-
-                        // Any ATOM supported char starts a new Atom sequence, otherwise throw an error
+                            /* falls through */
                         default:
+                            // Any ATOM supported char starts a new Atom sequence, otherwise throw an error
                             // Allow \ as the first char for atom to support system flags
                             // Allow % to support LIST "" %
-                            if (imapFormalSyntax["ATOM-CHAR"]().indexOf(chr) < 0 && chr  !==  "\\" && chr  !==  "%") {
+                            if (imapFormalSyntax["ATOM-CHAR"]().indexOf(chr) < 0 && chr !== "\\" && chr !== "%") {
                                 throw new Error("Unexpected char at position " + (this.pos + i));
                             }
 
@@ -360,9 +356,6 @@
 
                     // space finishes an atom
                     if (chr === " ") {
-                        if ([")", "]"].indexOf(this.str.charAt(i + 1)) >= 0) {
-                            throw new Error("Unexpected whitespace at position " + (this.pos + i + 1));
-                        }
                         this.currentNode.endPos = this.pos + i - 1;
                         this.currentNode = this.currentNode.parentNode;
                         this.state = "NORMAL";
@@ -414,7 +407,7 @@
                     }
 
                     // if the char is not ATOM compatible, throw. Allow \* as an exception
-                    if (imapFormalSyntax["ATOM-CHAR"]().indexOf(chr) < 0 && chr  !==  "]" && !(chr === "*" && this.currentNode.value === "\\")) {
+                    if (imapFormalSyntax["ATOM-CHAR"]().indexOf(chr) < 0 && chr !== "]" && !(chr === "*" && this.currentNode.value === "\\")) {
                         throw new Error("Unexpected char at position " + (this.pos + i));
                     } else if (this.currentNode.value === "\\*") {
                         throw new Error("Unexpected char at position " + (this.pos + i));
@@ -469,11 +462,11 @@
                         throw new Error("Unexpected partial separator . at position " + this.pos);
                     }
 
-                    if (imapFormalSyntax.DIGIT().indexOf(chr) < 0 && chr  !==  ".") {
+                    if (imapFormalSyntax.DIGIT().indexOf(chr) < 0 && chr !== ".") {
                         throw new Error("Unexpected char at position " + (this.pos + i));
                     }
 
-                    if (this.currentNode.value.match(/^0$|\.0$/) && chr  !==  ".") {
+                    if (this.currentNode.value.match(/^0$|\.0$/) && chr !== ".") {
                         throw new Error("Invalid partial at position " + (this.pos + i));
                     }
 
@@ -516,6 +509,16 @@
                         }
                         this.currentNode.literalLength = Number(this.currentNode.literalLength);
                         this.currentNode.started = true;
+
+                        if (!this.currentNode.literalLength) {
+                            // special case where literal content length is 0
+                            // close the node right away, do not wait for additional input
+                            this.currentNode.endPos = this.pos + i;
+                            this.currentNode.closed = true;
+                            this.currentNode = this.currentNode.parentNode;
+                            this.state = "NORMAL";
+                            checkSP();
+                        }
                         break;
                     }
                     if (imapFormalSyntax.DIGIT().indexOf(chr) < 0) {
@@ -530,11 +533,11 @@
                 case "SEQUENCE":
                     // space finishes the sequence set
                     if (chr === " ") {
-                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1)  !==  "*") {
+                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1) !== "*") {
                             throw new Error("Unexpected whitespace at position " + (this.pos + i));
                         }
 
-                        if (this.currentNode.value.substr(-1) === "*" && this.currentNode.value.substr(-2, 1)  !==  ":") {
+                        if (this.currentNode.value.substr(-1) === "*" && this.currentNode.value.substr(-2, 1) !== ":") {
                             throw new Error("Unexpected whitespace at position " + (this.pos + i));
                         }
 
@@ -546,7 +549,7 @@
                     }
 
                     if (chr === ":") {
-                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1)  !==  "*") {
+                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1) !== "*") {
                             throw new Error("Unexpected range separator : at position " + (this.pos + i));
                         }
                     } else if (chr === "*") {
@@ -554,10 +557,10 @@
                             throw new Error("Unexpected range wildcard at position " + (this.pos + i));
                         }
                     } else if (chr === ",") {
-                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1)  !==  "*") {
+                        if (!this.currentNode.value.substr(-1).match(/\d/) && this.currentNode.value.substr(-1) !== "*") {
                             throw new Error("Unexpected sequence separator , at position " + (this.pos + i));
                         }
-                        if (this.currentNode.value.substr(-1) === "*" && this.currentNode.value.substr(-2, 1)  !==  ":") {
+                        if (this.currentNode.value.substr(-1) === "*" && this.currentNode.value.substr(-2, 1) !== ":") {
                             throw new Error("Unexpected sequence separator , at position " + (this.pos + i));
                         }
                     } else if (!chr.match(/\d/)) {

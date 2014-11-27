@@ -447,12 +447,12 @@
                     break;
                 default:
                     if (flowed) {
-                        lines.push(mimefuncs.foldLines(this.content.
+                        lines.push(mimefuncs.foldLines(this.content.replace(/\r?\n/g, '\r\n').
                             // space stuffing http://tools.ietf.org/html/rfc3676#section-4.2
                             replace(/^( |From|>)/igm, ' $1'),
                             76, true));
                     } else {
-                        lines.push(this.content);
+                        lines.push(this.content.replace(/\r?\n/g, '\r\n'));
                     }
             }
             if (this.multipart) {
@@ -545,11 +545,9 @@
             // filename might include unicode characters so it is a special case
             if (param === 'filename') {
                 mimefuncs.continuationEncode(param, structured.params[param], 50).forEach(function(encodedParam) {
-                    if (encodedParam.key === param) {
-                        paramsArray.push(encodedParam.key + '=' + encodedParam.value);
-                    } else {
-                        paramsArray.push(encodedParam.key + '="' + encodedParam.value + '"');
-                    }
+                    // continuation encoded strings are always escaped, so no need to use enclosing quotes
+                    // in fact using quotes might end up with invalid filenames in some clients
+                    paramsArray.push(encodedParam.key + '=' + encodedParam.value);
                 });
             } else {
                 paramsArray.push(param + '=' + this._escapeHeaderArgument(structured.params[param]));

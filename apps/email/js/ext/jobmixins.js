@@ -393,7 +393,7 @@ exports.local_do_downloadBodies = function(op, callback) {
 };
 
 exports.do_downloadBodies = function(op, callback) {
-  var aggrErr, totalDownloaded = 0;
+  var aggrErr = null, totalDownloaded = 0;
   this._partitionAndAccessFoldersSequentially(
     op.messages,
     true,

@@ -60,10 +60,16 @@ define(function(require, exports) {
         conn = new SmtpClient(
           connInfo.hostname, connInfo.port,
           {
+            auth: auth,
             useSecureTransport: (connInfo.crypto === 'ssl' ||
                                  connInfo.crypto === true),
-            starttls: connInfo.crypto === 'starttls',
-            auth: auth
+            requireTLS: connInfo.crypto === 'starttls',
+            // In the case no encryption is explicitly requested (either for
+            // testing or because a user regrettably chose to disable it via
+            // manual config), we want to avoid opportunistic encryption
+            // since in the latter case the user may have done this because
+            // the server's certificates are invalid.
+            ignoreTLS: connInfo.crypto === 'plain'
           });
 
         var connectTimeout = setTimeout(function() {
@@ -156,41 +162,6 @@ define(function(require, exports) {
     this.close();
   };
 
-
-  // STARTTLS support. Send upstream when possible.
-  var origHELO = SmtpClient.prototype._actionEHLO;
-  SmtpClient.prototype._actionEHLO = function(command) {
-    // If the server doesn't support EHLO, it can't support STARTTLS.
-    if (this.options.starttls && !this._sentSTARTTLS) {
-      if (!command.success) {
-        slog.error('smtp:no-ehlo-support', {
-          reason: 'EHLO is a prerequisite for STARTTLS'
-        });
-        this._onError('bad-security');
-      } else {
-        this._sendCommand("STARTTLS");
-        this._sentSTARTTLS = true;
-        this._currentAction = this._actionSTARTTLS;
-      }
-    } else {
-      origHELO.apply(this, arguments);
-    }
-  };
-
-  SmtpClient.prototype._actionSTARTTLS = function(command) {
-    // STARTTLS is a requirement, not a suggestion.
-    if (!command.success) {
-      slog.error('smtp:no-starttls-support');
-      this._onError('bad-security');
-    } else {
-      this._secureMode = true;
-      this.socket.upgradeToSecure();
-      // restart session
-      this._currentAction = this._actionEHLO;
-      this._sendCommand('EHLO ' + this.options.name);
-    }
-  };
-
   /**
    * Analyze a connection error for its cause and true nature,
    * returning a plain-old string. The error could come from the SMTP
@@ -227,43 +198,69 @@ define(function(require, exports) {
     // If we were able to extract a negative SMTP response, we can
     // analyze the statusCode:
     if (err.statusCode) {
-      // Example SMTP error:
-      //   { "statusCode": 535,
-      //     "enhancedStatus": "5.7.8",
-      //     "data": "Wrong username or password, crook!",
-      //     "line": "535 5.7.8 Wrong username or password, crook!",
-      //     "success": false }
-      switch (err.statusCode) {
-      case 535:
-        if (wasOauth) {
-          normalizedError = 'needs-oauth-reauth';
-        } else {
+      // If we were processing startTLS then any failure where the server told
+      // us something means it's a security problem.  Connection loss is
+      // ambiguous, which is why we only do this when there's a statusCode.
+      //
+      // Likewise, if we were in EHLO and we generate an error, it's because
+      // EHLO failed which implies no HELO.  (Note!  As of writing this comment,
+      // I've just submitted the fix to smtpclient to generate the error and
+      // have updated our local copy of smtpclient appropriately.  In that fix
+      // I have the error messages mention STARTTLS; we could key off that, but
+      // I'm expecting that might end up working differently at some point, so
+      // this is potentially slightly less brittle.
+      if (conn._currentAction === conn._actionSTARTTLS ||
+          conn._currentAction === conn._actionEHLO) {
+        normalizedError = 'bad-security';
+      } else {
+        // Example SMTP error:
+        //   { "statusCode": 535,
+        //     "enhancedStatus": "5.7.8",
+        //     "data": "Wrong username or password, crook!",
+        //     "line": "535 5.7.8 Wrong username or password, crook!",
+        //     "success": false }
+        switch (err.statusCode) {
+        case 535:
+          if (wasOauth) {
+            normalizedError = 'needs-oauth-reauth';
+          } else {
+            normalizedError = 'bad-user-or-pass';
+          }
+          break;
+        // This technically means that the auth mechanism is weaker than
+        // required.  We've only seen this for the gmail case where two
+        // factor is needed, we're not doing oauth, and the user is using
+        // their normal password instead of an application-specific password
+        // (and we've now removed support for providing a special error for
+        // that).  We're calling this bad-user-or-pass because it's less
+        // misleading than 'unknown' is.
+        case 534:
           normalizedError = 'bad-user-or-pass';
+          break;
+        case 501: // Invalid Syntax
+          if (wasSending) {
+            normalizedError = 'bad-message';
+          } else {
+            normalizedError = 'server-maybe-offline';
+          }
+          break;
+        case 550: // Mailbox Unavailable
+        case 551: // User not local, will not send
+        case 553: // Mailbox name not allowed
+        case 554: // Transaction failed (in response to bad addresses)
+          normalizedError = 'bad-address';
+          break;
+        case 500:
+          normalizedError = 'server-problem';
+          break;
+        default:
+          if (wasSending) {
+            normalizedError = 'bad-message';
+          } else {
+            normalizedError = 'unknown';
+          }
+          break;
         }
-        break;
-      case 501: // Invalid Syntax
-        if (wasSending) {
-          normalizedError = 'bad-message';
-        } else {
-          normalizedError = 'server-maybe-offline';
-        }
-        break;
-      case 550: // Mailbox Unavailable
-      case 551: // User not local, will not send
-      case 553: // Mailbox name not allowed
-      case 554: // Transaction failed (in response to bad addresses)
-        normalizedError = 'bad-address';
-        break;
-      case 500:
-        normalizedError = 'server-problem';
-        break;
-      default:
-        if (wasSending) {
-          normalizedError = 'bad-message';
-        } else {
-          normalizedError = 'unknown';
-        }
-        break;
       }
     }
     // Socket errors only have a name:

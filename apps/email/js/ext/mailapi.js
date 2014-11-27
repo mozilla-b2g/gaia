@@ -3379,15 +3379,6 @@ MailAPI.prototype = {
     return true;
   },
 
-  createFolder: function(account, parentFolder, containOnlyOtherFolders) {
-    this.__bridgeSend({
-      type: 'createFolder',
-      accountId: account.id,
-      parentFolderId: parentFolder ? parentFolder.id : null,
-      containOnlyOtherFolders: containOnlyOtherFolders
-    });
-  },
-
   /**
    * Parse a structured email address
    * into a display name and email address parts.
