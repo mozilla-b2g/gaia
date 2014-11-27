@@ -93,9 +93,6 @@ var icc_worker = {
   '0x11': function STK_CMD_SEND_SS(message) {
     DUMP('STK_CMD_SEND_SS:', message.command.options);
     var options = message.command.options;
-    icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
-    });
     if (!options.text) {
       var _ = navigator.mozL10n.get;
       options.text = _('icc-alertMessage-defaultmessage');
@@ -113,9 +110,6 @@ var icc_worker = {
   '0x13': function STK_CMD_SEND_SMS(message) {
     DUMP('STK_CMD_SEND_SMS:', message.command.options);
     var options = message.command.options;
-    icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
-    });
     if (options.text) {
       icc.confirm(message, options.text);
     } else if (options.text != undefined) {
@@ -128,9 +122,6 @@ var icc_worker = {
   '0x14': function STK_CMD_SEND_DTMF(message) {
     DUMP('STK_CMD_SEND_DTMF:', message.command.options);
     var options = message.command.options;
-    icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
-    });
     if (options.text) {
       icc.alert(message, options.text);
     } else if (options.text == '') {
