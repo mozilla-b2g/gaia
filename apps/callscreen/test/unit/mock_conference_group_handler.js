@@ -9,6 +9,7 @@ var MockConferenceGroupHandler = {
   signalConferenceEnded: function() {},
   addToGroupDetails: function() {},
   isGroupDetailsShown: function() {},
+  hideGroupDetails: function() {},
   mTeardown: function() {
     this.mCurrentDuration = '12:34';
   }

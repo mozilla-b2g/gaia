@@ -217,7 +217,7 @@ suite('conference group handler', function() {
           this.sinon.useFakeTimers();
           flush();
           this.sinon.clock.tick();
-          sinon.assert.calledOnce(MockConferenceGroupUI.hideGroupDetails);
+          sinon.assert.calledWith(MockConferenceGroupUI.hideGroupDetails, true);
         });
 
         test('should update the calls display', function() {
