@@ -182,6 +182,20 @@ suite('SoundFeedback', function() {
       feedback.triggerFeedback(specialTarget);
       assert.isFalse(stubSoundFeedbackPlayer.play.called);
     });
+
+    suite('activate', function() {
+      setup(function() {
+        feedback.activate();
+
+        assert.isTrue(stubSoundFeedbackPlayer.activate.called);
+      });
+
+      test('deactivate', function() {
+        feedback.deactivate();
+
+        assert.isTrue(stubSoundFeedbackPlayer.deactivate.called);
+      });
+    });
   });
 
   suite('init with sound=false', function() {
@@ -228,6 +242,17 @@ suite('SoundFeedback', function() {
       feedback.triggerFeedback(specialTarget);
       assert.isTrue(stubSoundFeedbackPlayer.play.calledWith(true));
     });
+
+
+    suite('activate', function() {
+      setup(function() {
+        feedback.activate();
+      });
+
+      test('deactivate', function() {
+        feedback.deactivate();
+      });
+    });
   });
 });
 
@@ -260,6 +285,7 @@ suite('FeedbackManager', function() {
 
     var feedbackManager = new FeedbackManager(app);
     feedbackManager.start();
+    feedbackManager.activate();
 
     var req = lock.get.getCall(0).returnValue;
     req.fireSuccess({ 'keyboard.vibration': true });
@@ -269,6 +295,8 @@ suite('FeedbackManager', function() {
     req2.fireSuccess({ 'audio.volume.notification': 10 });
 
     feedbackManager.soundFeedback.settings.initSettings().then(function() {
+      assert.isTrue(stubSoundFeedbackPlayer.activate.called);
+
       this.sinon.stub(navigator, 'vibrate');
 
       feedbackManager.triggerFeedback(normalTarget);
