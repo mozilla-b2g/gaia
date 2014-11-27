@@ -527,6 +527,7 @@
         case 'appcreated':
           var app = evt.detail;
           this._apps[evt.detail.instanceID] = app;
+          Service.request('registerAudioChannel', app);
           break;
 
         case 'appterminated':
@@ -536,6 +537,7 @@
             activeApp = null;
           }
           delete this._apps[instanceID];
+          Service.request('unregisterAudioChannel', app);
           break;
 
         case 'reset-orientation':
