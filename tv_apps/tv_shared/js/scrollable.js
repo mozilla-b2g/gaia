@@ -104,6 +104,7 @@
       this.scale = scale;
       this.translateX = 0;
       this.scrollTo(this.currentItem);
+      this._setNodesPosition();
     },
 
     _getScrollOffset: function(itemElem) {
@@ -127,6 +128,20 @@
       } else {
         return this.translateX;
       }
+    },
+
+    // When nodes occupy less space than whole scrollable, we calculate left
+    // margin such that nodes are center-aligned.
+    _getLeftMargin: function() {
+      if (!this.nodes[0]) {
+        return 0;
+      }
+      var unitLength =
+        (this.nodes[0].offsetWidth + this.margin * 10) * this.scale;
+      var frameWidth = this.frameElem.offsetWidth;
+      return Math.max(0,
+        (frameWidth - unitLength * this.nodes.length - this.margin * 10) / 2 /
+                                                                    this.scale);
     },
 
     getNodeFromItem: function(itemElem) {
@@ -300,7 +315,7 @@
       this.nodes[idx].dataset.idx = idx;
       this.getNodeFromItem(this.nodes[idx]).style.transform =
           'translateX(calc((100% + ' + this.margin + 'rem) * ' + idx + ' + ' +
-                                                         this.margin + 'rem))';
+                                        (this._getLeftMargin() / 10) + 'rem))';
 
     },
 
