@@ -37,24 +37,27 @@
   font-size: 1.4rem;
 }
 
+.call-duration > p {
+  align-self: center;
+}
+
 .cd__duration {
   text-align: right;
 }
 
 .ci__direction-icon {
   width: 2rem;
-  height: 2rem;
   background-size: cover;
 }
 
 .icon-outgoing {
-  background-image: url(images/call_info/callinfo_ic_outgoing.png);
+  background: url(images/call_info/callinfo_ic_outgoing.png) no-repeat center center;
 }
 
 .icon-incoming {
-  background-image: url(images/call_info/callinfo_ic_incoming.png);
+  background: url(images/call_info/callinfo_ic_incoming.png) no-repeat center center;
 }
 
 .icon-missed {
-  background-image: url(images/call_info/callinfo_ic_missed.png);
+  background: url(images/call_info/callinfo_ic_missed.png) no-repeat center center;
 }
