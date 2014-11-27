@@ -88,7 +88,7 @@ KeyView.prototype.render = function render() {
     contentNode.classList.add.apply(contentNode.classList, this.classNames);
   }
 
-  if (this.outerRatio != 1) {
+  if (this.outerRatio && this.outerRatio != 1) {
     contentNode.style.flex = this.outerRatio;
   }
 
@@ -160,10 +160,7 @@ KeyView.prototype.render = function render() {
   }
 
   this.element = contentNode;
-
-  if (this.viewManager) {
-    this.viewManager.registerView(this.target, this);
-  }
+  this.viewManager.registerView(this.target, this);
 };
 
 KeyView.prototype.highlight = function highlight(options) {
