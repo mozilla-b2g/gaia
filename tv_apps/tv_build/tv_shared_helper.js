@@ -12,7 +12,7 @@
   // regex for finding import in css
   var CSS_IMPORT =
      /@import (?:url\()?['"].*tv_shared\/([^\/]+)\/([^'"\s]+)['"](?:\))?.*;$/gm;
-      
+
   exports.TVSharedHelper = {
     execute: function(options) {
       this.sourceDir = utils.getFile(options.APP_DIR);
@@ -76,6 +76,18 @@
           this.analyzeHtml(sourceFile);
         } else if (matches[2].endsWith('.css')) {
           this.analyzeCss(sourceFile);
+
+          // copy corresponding directory of css (if exists)
+          sourceFile = sourceFile.parent;
+          targetFile = targetFile.parent;
+          var cssDirectory = matches[2].slice(0, -4);
+          sourceFile.append(cssDirectory);
+          targetFile.append(cssDirectory);
+          dump(sourceFile.path + '\n');
+          dump(sourceFile.exists() + '\n\n');
+          if (sourceFile.exists()) {
+            this.copyFileToStage(sourceFile, targetFile);
+          }
         }
       }
     },

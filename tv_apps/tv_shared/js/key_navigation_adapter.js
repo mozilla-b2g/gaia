@@ -35,6 +35,8 @@
         case 'enter':
           this.fire('enter');
           break;
+        case 'esc':
+          this.fire('esc');
       }
     },
 
