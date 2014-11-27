@@ -353,6 +353,9 @@ and displays the list of alternatives. */
   line-height: 6rem;
   font-weight: 500;
   color: #fff;
+
+  /* XXX: to override the .lowercase show/hide control for each key, see Bug 1091018. */
+  visibility: visible;
 }
 
 #keyboard-accent-char-menu .keyboard-key:first-child > .visual-wrapper > .key-element {
