@@ -343,13 +343,11 @@ suite('Nfc Manager Functions', function() {
 
     test('valid message, proper methods called', function() {
       sampleMsg.records.push(sampleURIRecord);
-      sampleMsg.techList.push('NDEF');
 
       var stubVibrate = this.sinon.stub(window.navigator, 'vibrate');
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       var stubTryHandover = this.sinon.stub(NfcHandoverManager, 'tryHandover');
       var spyGetTech = this.sinon.spy(nfcManager, '_getPrioritizedTech');
-      var stubFireNDEF = this.sinon.stub(nfcManager, '_fireNDEFDiscovered');
 
       nfcManager._handleTechDiscovered(sampleMsg);
       assert.isTrue(stubVibrate.withArgs([25, 50, 125]).calledOnce, 'vibrate');
@@ -360,8 +358,6 @@ suite('Nfc Manager Functions', function() {
                     .calledOnce, 'tryHandover');
       assert.isTrue(spyGetTech.withArgs(sampleMsg.techList).calledOnce,
                     '_getPrioritizedTech');
-      assert.isTrue(stubFireNDEF.withArgs(sampleMsg, 'NDEF').calledOnce,
-                    '_fireNDEFDiscovered');
     });
 
     test('invalid message handling', function() {
@@ -369,25 +365,6 @@ suite('Nfc Manager Functions', function() {
       execInvalidMessageTest.call(this, {});
       execInvalidMessageTest.call(this, {techList: 'invalid'});
       execInvalidMessageTest.call(this, {techList: []});
-    });
-
-    // triggering of P2P UI
-    test('message tech [P2P], no records', function() {
-      sampleMsg.techList.push('P2P');
-
-      var spyTriggerP2PUI = this.sinon.spy(nfcManager, 'checkP2PRegistration');
-
-      nfcManager._handleTechDiscovered(sampleMsg);
-      assert.isTrue(spyTriggerP2PUI.calledOnce);
-    });
-
-    // P2P shared NDEF received
-    test('message tech [P2P, NFC_A], one NDEF record', function() {
-      sampleMsg.techList.push('P2P');
-      sampleMsg.techList.push('NFC_A');
-      sampleMsg.records.push(sampleMimeRecord);
-
-      execNDEFMessageTest.call(this, sampleMsg, 'P2P');
     });
 
     test('message tech [NFC_A], one NDEF URI record', function() {
@@ -561,7 +538,6 @@ suite('Nfc Manager Functions', function() {
       test('Multiple records, first record decoded', function() {
         msg.records.push(uriRecord);
         msg.records.push({tnf: NDEF.TNF_EMPTY});
-        msg.techList.push('NDEF');
 
         nfcManager._fireNDEFDiscovered(msg, msg.techList[0]);
         assert.isTrue(stubDecodePayload.withArgs(uriRecord.tnf,
@@ -573,7 +549,6 @@ suite('Nfc Manager Functions', function() {
       test('SP (Smart Poster) takes precedence over URI record', function() {
         msg.records.push(uriRecord);
         msg.records.push(smartPoster);
-        msg.techList.push('NDEF');
 
         nfcManager._fireNDEFDiscovered(msg, msg.techList[0]);
         assert.isTrue(stubDecodePayload.withArgs(smartPoster.tnf,
@@ -585,7 +560,6 @@ suite('Nfc Manager Functions', function() {
       test('SP doesnt take precedence over other records', function() {
         msg.records.push({tnf: NDEF.TNF_EMPTY});
         msg.records.push(smartPoster);
-        msg.techList.push('NDEF');
 
         nfcManager._fireNDEFDiscovered(msg, msg.techList[0]);
         assert.isTrue(stubDecodePayload.withArgs(NDEF.TNF_EMPTY,
@@ -595,8 +569,6 @@ suite('Nfc Manager Functions', function() {
       });
 
       test('Empty NDEF message', function() {
-        msg.techList.push('NDEF');
-
         nfcManager._fireNDEFDiscovered(msg, msg.techList[0]);
         assert.isTrue(stubDecodePayload.withArgs(NDEF.TNF_EMPTY,
                                                  undefined,
@@ -607,7 +579,6 @@ suite('Nfc Manager Functions', function() {
 
     test('_getSmartPoster called with proper arg', function() {
       msg.records.push(uriRecord);
-      msg.techList.push('NDEF');
 
       var spyGetSmartPoster = this.sinon.spy(nfcManager, '_getSmartPoster');
 
@@ -617,7 +588,6 @@ suite('Nfc Manager Functions', function() {
 
     test('_createNDEFActivityOptions called with proper args', function() {
       msg.records.push(uriRecord);
-      msg.techList.push('NDEF');
 
       this.sinon.stub(NDEF.payload, 'decode', () => 'decoded');
       var spyCreateOptions = this.sinon.spy(nfcManager,
@@ -629,7 +599,6 @@ suite('Nfc Manager Functions', function() {
 
     test('MozActivity called with proper args, valid NDEF', function() {
       msg.records.push(uriRecord);
-      msg.techList.push('NDEF');
 
       nfcManager._fireNDEFDiscovered(msg, msg.techList[0]);
       assert.deepEqual(MozActivity.firstCall.args[0], {
@@ -646,8 +615,6 @@ suite('Nfc Manager Functions', function() {
     });
 
     test('MozActivity called with proper args, invalid NDEF', function() {
-      msg.techList.push('NDEF');
-
       this.sinon.stub(NDEF.payload, 'decode', () => null);
 
       nfcManager._fireNDEFDiscovered(msg, msg.techList[0]);
@@ -952,22 +919,16 @@ suite('Nfc Manager Functions', function() {
   });
 
   suite('_getPrioritizedTech', function() {
-    var techList1 = ['NFC_ISO_DEP','NFC_A', 'P2P'];
-    var techList2 = ['NFC_ISO_DEP', 'NFC_A'];
-    var techList3 = [];
-
-    test('techList P2P test', function() {
-      var tech = nfcManager._getPrioritizedTech(techList1);
-      assert.equal(tech, 'P2P');
-    });
+    var techList1 = ['NFC_ISO_DEP','NFC_A'];
+    var techList2 = [];
 
     test('techList Unsupported technology test', function() {
-      var tech = nfcManager._getPrioritizedTech(techList2);
+      var tech = nfcManager._getPrioritizedTech(techList1);
       assert.equal(tech, 'NFC_ISO_DEP');
     });
 
     test('techList empty', function() {
-      var tech = nfcManager._getPrioritizedTech(techList3);
+      var tech = nfcManager._getPrioritizedTech(techList2);
       assert.equal(tech, 'Unknown');
     });
   });
