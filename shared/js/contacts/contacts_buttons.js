@@ -2,8 +2,8 @@
 
 /* exported ContactsButtons */
 
-/* globals TelephonyHelper, LazyLoader, MozActivity, Contacts, Normalizer,
-           utils, MmiManager, MultiSimActionButton, SmsIntegration */
+/* globals Contacts, LazyLoader, MozActivity, MultiSimActionButton, Normalizer,
+           SmsIntegration, TelephonyHelper, utils */
 
 var ContactsButtons = {
   DEFAULT_TEL_TYPE: 'other',
@@ -35,26 +35,31 @@ var ContactsButtons = {
                          enableCalls, enableCalls);
   },
 
+  /* For security reasons we cannot directly call MmiManager.send() thus we
+   * need to special-case MMI numbers. This function detects MMI numbers in
+   * their most common form; other forms (such as short-string MMI codes)
+   * don't make sense for the contacts app and thus aren't considered. */
+  _isMMI: function _isMMI(number) {
+    return number.charAt(number.length - 1) === '#';
+  },
+
   // Check current situation and setup different listener for the button
   _setupPhoneButtonListener: function setupPhoneButtonListener(button, number) {
     var self = this;
-    LazyLoader.load(['/dialer/js/mmi.js'], function() {
-      if (self._activityHandler &&
-          self._activityHandler.currentActivityIsNot(['open'])) {
-        button.addEventListener('click', self._onPickNumber.bind(self));
-      } else if ((window.navigator.mozMobileConnections &&
-          window.navigator.mozMobileConnections[0]) &&
-          MmiManager.isMMI(number)) {
-        button.addEventListener('click', self._onMMICode.bind(self));
-      } else if (navigator.mozTelephony) {
-        LazyLoader.load(['/shared/js/multi_sim_action_button.js'], function() {
-          /* jshint nonew: false */
-          new MultiSimActionButton(button, self._call.bind(self),
-                                   'ril.telephony.defaultServiceId',
-                                   function() { return number; });
-        });
-      }
-    });
+
+    if (this._activityHandler &&
+        this._activityHandler.currentActivityIsNot(['open'])) {
+      button.addEventListener('click', this._onPickNumber.bind(this));
+    } else if (this._isMMI(number)) {
+      button.addEventListener('click', this._onMMICode.bind(this));
+    } else if (navigator.mozTelephony) {
+      LazyLoader.load(['/shared/js/multi_sim_action_button.js'], function() {
+        /* jshint nonew: false */
+        new MultiSimActionButton(button, self._call.bind(self),
+                                 'ril.telephony.defaultServiceId',
+                                 () => number);
+      });
+    }
   },
 
   // If we are currently handing an activity, send the phone
