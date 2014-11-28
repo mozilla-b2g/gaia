@@ -325,7 +325,7 @@ var ActivityHandler = {
         return;
       }
 
-      Navigation.toPanel('thread', { id: threadId });
+      Navigation.toPanel('thread', { id: threadId }).then(Compose.focus);
     };
 
     navigator.mozL10n.once(function waitLocalized() {

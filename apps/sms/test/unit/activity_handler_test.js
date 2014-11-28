@@ -856,6 +856,18 @@ suite('ActivityHandler', function() {
       }).then(done,done);
     });
 
+    test('when there is an existing thread, Composer should be focused',
+    function(done) {
+      // succeed only if Compose.focus is called
+      this.sinon.stub(Compose, 'focus', function() {
+        done();
+      });
+
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+      // we found a thread
+      threadDeferred.resolve(42);
+    });
+
   });
 
   suite('When compose is not empty', function() {
