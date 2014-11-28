@@ -1,3 +1,26 @@
+.scrolling #call-log-filter {
+  transform: translateY(-100%);
+
+}
+
+#call-log-filter {
+  will-change: transform;
+  z-index: -1;
+  position: relative;
+  transform: translateY(0%);
+  transition: transform 0.5s;
+}
+
+.scrolling .view-body {
+  height: calc(100% - 5.1rem);
+  transform: translateY(-4rem);
+}
+
+/* for preventing scroll when .scrolling .view-body is transitioning */
+#recents-panel {
+  overflow: hidden;
+}
+
 /* Overriding BB styles for headers */
 section[role="region"] > header:first-child .icon {
   pointer-events: auto;
@@ -102,6 +125,8 @@ ol, ul {
   position: absolute;
   overflow: hidden;
   width: 100%;
+  will-change: height, transform;
+  transition: transform 0.5s;
 }
 
 .view-body-inner {
