@@ -373,7 +373,10 @@ class Ftu(Base):
                 break
 
     def tap_take_tour(self):
-        self.marionette.find_element(*self._take_tour_button_locator).tap()
+        take_tour = Wait(self.marionette).until(
+            expected.element_present(*self._take_tour_button_locator))
+        Wait(self.marionette).until(expected.element_enabled(take_tour))
+        take_tour.tap()
 
     @property
     def step1_header_text(self):
