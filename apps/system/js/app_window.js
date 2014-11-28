@@ -244,6 +244,7 @@
    */
   AppWindow.prototype._showFrame = function aw__showFrame() {
     this.debug('before showing frame');
+    this.reviveBrowser();
 
     // If we're already showing, do nothing!
     if (!this.browser.element.classList.contains('hidden')) {
@@ -273,7 +274,7 @@
     this.debug('before hiding frame');
 
     // If we're already hidden, we have nothing to do!
-    if (this.browser.element.classList.contains('hidden')) {
+    if (!this.browser || this.browser.element.classList.contains('hidden')) {
       return;
     }
 
@@ -824,8 +825,10 @@
     var width = layoutManager.width;
     var height = layoutManager.getHeightFor(this);
 
-    this.iframe.style.width = this.width + 'px';
-    this.iframe.style.height = this.height + 'px';
+    if (this.browser) {
+      this.iframe.style.width = this.width + 'px';
+      this.iframe.style.height = this.height + 'px';
+    }
 
     this.element.style.width = width + 'px';
     this.element.style.height = height + 'px';
@@ -1422,6 +1425,7 @@
     this.element.style.width = this.width + 'px';
     this.element.style.height = this.height + 'px';
 
+    this.reviveBrowser();
     this.iframe.style.width = '';
     this.iframe.style.height = '';
 
