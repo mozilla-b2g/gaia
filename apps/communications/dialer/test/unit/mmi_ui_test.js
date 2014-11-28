@@ -199,4 +199,29 @@ suite('dialer/mmi UI', function() {
       }).then(done, done);
     });
   });
+
+  suite('MMI screen close >', function() {
+    var responseText;
+
+    setup(function(done) {
+      var data = {
+        type: 'mmi-received-ui',
+        message: 'received ui',
+        title: 'Received UI Title'
+      };
+      waitForMMI(data).then(function() {
+        responseText = 'some response';
+        MmiUI.responseTextNode.value = responseText;
+      }).then(done, done);
+    });
+
+    test('Dialer is hidden and response is empty', function() {
+      MmiUI.closeWindow();
+
+      // Message is hidden
+      assert.isTrue(MmiUI.mmiScreen.hidden);
+      // Response is empty
+      assert.equal(MmiUI.responseTextNode.value, '');
+    });
+  });
 });

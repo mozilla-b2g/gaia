@@ -76,6 +76,7 @@ var MmiUI = {
     window.postMessage({
       type: 'mmi-cancel'
     }, this.COMMS_APP_ORIGIN);
+    this.resetResponse();
     this.mmiScreen.hidden = true;
   },
 
