@@ -1,3 +1,20 @@
+.scrolling #call-log-filter {
+  transform: translateY(-100%);
+}
+
+#call-log-filter {
+  will-change: transform;
+  z-index: -1;
+  position: relative;
+  transform: translateY(0%);
+  transition: transform 0.5s;
+}
+
+/* for preventing scroll when .scrolling .view-body is transitioning */
+#recents-panel {
+  overflow: hidden;
+}
+
 /* Overriding BB styles for headers */
 section[role="region"] > header:first-child .icon {
   pointer-events: auto;
@@ -16,7 +33,7 @@ form[role="dialog"][data-type="edit"] gaia-header {
   position: absolute;
 
   /* The sticky element is positioned at the beginning of the list. */
-  top: 0;
+  top: 4rem;
 
   /* The width is not 100% so the scrollbar is visible. */
   width: calc(100% - 1.5rem);
@@ -98,10 +115,18 @@ ol, ul {
 
 .view-body {
   color: black;
-  height: -moz-calc(100% - 9.1rem);
+  height: calc(100% - 5rem);
   position: absolute;
+  top: 5rem;
+  z-index: -2;
   overflow: hidden;
   width: 100%;
+  will-change: height, transform;
+  transition: transform 0.5s;
+}
+
+#call-log-container {
+  padding-top: 4rem !important;
 }
 
 .view-body-inner {
