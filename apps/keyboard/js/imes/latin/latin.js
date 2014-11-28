@@ -685,7 +685,7 @@
       words[0] = '*' + words[0];
     }
     else {
-      autoCorrect = null;
+      autoCorrection = null;
     }
 
     keyboard.sendCandidates(words);
