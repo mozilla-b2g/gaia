@@ -1,3 +1,5 @@
+/* global IccHelper */
+
 /*
  * XXX
  * This module should be used only by `messaging` and `messaging_detail`
@@ -12,7 +14,6 @@ define(function(require) {
   var CMAS_KEY = 'cmas.enabled';
   var CMAS_PREF_KEY = 'cmas.user-pref.enabled';
 
-  var IccHelper = require('shared/icc_helper');
   var asyncStorage = require('shared/async_storage');
   var SettingsUtils = require('modules/settings_utils');
   var SettingsListener = require('shared/settings_listener');
