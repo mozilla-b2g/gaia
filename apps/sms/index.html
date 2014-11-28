@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="style/root.css">
     <!-- Stable Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/option_menu.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
@@ -115,7 +116,7 @@
         <gaia-header class="view-header regular-header">
           <h1 data-l10n-id="messages">Messages</h1>
           <a href="#composer" id="icon-add" data-icon="compose"></a>
-          <a id="threads-options-icon" data-icon="more"></a>
+          <button id="icon-options" data-icon="more"></button>
         </gaia-header>
         <article id="threads-container" class="view-body edit-container" data-type="list">
         </article>
@@ -316,7 +317,7 @@
       </form>
     </article>
 
-    <menu id="attachment-options-menu" class="hide" tabindex="-1">
+    <menu id="attachment-options-menu" tabindex="-1">
       <div>
         <form id="attachment-options" role="dialog" data-type="action">
           <header></header>
