@@ -1,5 +1,7 @@
 'use strict';
 
+require('/shared/test/unit/load_body_html_helper.js');
+
 suite('Root', function() {
   var realL10n;
   var map = {
@@ -36,6 +38,14 @@ suite('Root', function() {
     window.navigator.mozL10n = realL10n;
   });
 
+  setup(function() {
+    loadBodyHTML('./_root.html');
+  });
+
+  teardown(function() {
+    document.body.innerHTML = '';
+  });
+
   suite('init', function() {
     var sandbox;
     var fakeTimer;
@@ -45,6 +55,7 @@ suite('Root', function() {
       sandbox = sinon.sandbox.create();
       fakeTimer = sinon.useFakeTimers();
       root = this.Root();
+      sandbox.stub(root, '_initSimItems');
       sandbox.stub(root, '_loadScripts');
       root.init();
     });
@@ -54,9 +65,66 @@ suite('Root', function() {
       fakeTimer.restore();
     });
 
+    test('_initSimItems should be called', function() {
+      sinon.assert.called(root._initSimItems);
+    });
+
     test('_loadScripts should be called', function() {
       fakeTimer.tick();
       sinon.assert.called(root._loadScripts);
+    });
+  });
+
+  suite('_initSimItems', function() {
+    var realMobileConnections;
+    var items;
+    var root;
+
+    setup(function() {
+      realMobileConnections = navigator.mozMobileConnections;
+      items = {
+        callSettings: document.getElementById('call-settings'),
+        dataConnectivity: document.getElementById('data-connectivity'),
+        messagingSettings: document.getElementById('messaging-settings'),
+        simSecuritySettings: document.getElementById('simSecurity-settings'),
+        simManagerSettings: document.getElementById('simCardManager-settings')
+      };
+
+      root = this.Root();
+    });
+
+    teardown(function() {
+      navigator.mozMobileConnections = realMobileConnections;
+    });
+
+    test('when there is no mobile connction', function() {
+      navigator.mozMobileConnections = null;
+
+      root._initSimItems();
+      // Should hide all mobile connection related items.
+      Object.keys(items).forEach(function(key) {
+        assert.ok(items[key].hidden);
+      });
+    });
+
+    test('when there is only one mobile connction', function() {
+      navigator.mozMobileConnections = [{}];
+
+      root._initSimItems();
+      assert.ok(items.simManagerSettings.hidden,
+        'should hide sim card manager item');
+      assert.ok(!items.simSecuritySettings.hidden,
+        'should show sim security item');
+    });
+
+    test('when there are multiple mobile connctions', function() {
+      navigator.mozMobileConnections = [{}, {}];
+
+      root._initSimItems();
+      assert.ok(!items.simManagerSettings.hidden,
+        'should show sim manager item');
+      assert.ok(items.simSecuritySettings.hidden,
+        'should hide sim security item');
     });
   });
 });

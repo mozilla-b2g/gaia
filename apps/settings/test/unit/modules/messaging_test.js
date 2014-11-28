@@ -1,13 +1,17 @@
-/* global MockNavigatorSettings */
+/* global MockNavigatorSettings, MocksHelper, MockIccHelper */
 'use strict';
 
+requireApp('settings/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+
+var mocksForMessaging = new MocksHelper([
+  'IccHelper'
+]).init();
 
 suite('messaging', function() {
 
   var map = {
     '*': {
-      'shared/icc_helper': 'IccHelper',
       'shared/async_storage': 'unit/mock_async_storage',
       'modules/settings_utils': 'unit/mock_settings_utils',
       'shared/settings_listener': 'shared_mocks/mock_settings_listener'
@@ -17,7 +21,8 @@ suite('messaging', function() {
   var realSettings;
   var messaging;
   var mockSettingsUtils;
-  var mockIccHelper;
+
+  mocksForMessaging.attachTestHelpers();
 
   suiteSetup(function() {
     realSettings = window.navigator.mozSettings;
@@ -29,20 +34,10 @@ suite('messaging', function() {
   });
 
   setup(function(done) {
-    var requireCtx = testRequire([], map, function() {});
-
-    mockIccHelper = {
-      addEventListener: function() {},
-      cardState: null
-    };
-    define('IccHelper', function() {
-      return mockIccHelper;
-    });
-
-    requireCtx([
+    testRequire([
       'modules/messaging',
       'unit/mock_settings_utils'
-    ], function(Messaging, MockSettingsUtils) {
+    ], map, function(Messaging, MockSettingsUtils) {
       messaging = Messaging;
       mockSettingsUtils = MockSettingsUtils;
       done();
@@ -57,13 +52,13 @@ suite('messaging', function() {
     });
 
     test('card state: ready would enable items', function() {
-      mockIccHelper.cardState = 'ready';
+      MockIccHelper.mProps.cardState = 'ready';
       messaging.disableItems(fakePanel);
       assert.isTrue(messaging._disableItems.calledWith(fakePanel, false));
     });
 
     test('card state: non-ready would disable items', function() {
-      mockIccHelper.cardState = 'unknown';
+      MockIccHelper.mProps.cardState = 'unknown';
       messaging.disableItems(fakePanel);
       assert.isTrue(messaging._disableItems.calledWith(fakePanel, true));
     });

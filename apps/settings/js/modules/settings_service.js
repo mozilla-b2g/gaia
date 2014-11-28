@@ -28,8 +28,6 @@ define(function(require) {
 
     var _activityHandler = null;
 
-    var _loadModulesForSubPanelsPromise = null;
-
     var _getAppNameToLink = function ss_get_app_name_to_link(panelId) {
       var reAppName = /app:(\w+)/;
       var name = reAppName.exec(panelId);
@@ -132,26 +130,6 @@ define(function(require) {
       }
     };
 
-
-    var _loadModulesForSubPanels = function ss_loadModules(panelId) {
-      if (panelId === _rootPanelId) {
-        return Promise.resolve();
-      } else {
-        if (!_loadModulesForSubPanelsPromise) {
-          _loadModulesForSubPanelsPromise = new Promise(function(resolve) {
-            require([
-              // XXX: It is assumed that the string for the header of the root
-              //      panel always fits and the font size utils are not
-              //      required.
-              'shared/font_size_utils', // used by all header building blocks
-              'shared/async_storage'
-            ], resolve);
-          });
-        }
-        return _loadModulesForSubPanelsPromise;
-      }
-    };
-
     var _onVisibilityChange = function ss_onVisibilityChange() {
       _handleVisibilityChange(!document.hidden);
     };
@@ -212,7 +190,7 @@ define(function(require) {
             options = options || {};
 
             // 0. start the chain
-            _loadModulesForSubPanels(panelId)
+            Promise.resolve()
             // 1. beforeHide previous panel
             .then(function() {
               // We don't deactivate the root panel.
@@ -224,22 +202,31 @@ define(function(require) {
             .then(function() {
               return panel.beforeShow(newPanelElement, options);
             })
-            // 3. do the transition
+            // 3. add a timeout for smoother transition.
+            .then(function() {
+              var promise = new Promise(function(resolve) {
+                setTimeout(function timeout() {
+                  resolve();
+                });
+              });
+              return promise;
+            })
+            // 4. do the transition
             .then(function() {
               return _transit(currentPanelElement, newPanelElement);
             })
-            // 4. hide previous panel
+            // 5. hide previous panel
             .then(function() {
               // We don't deactivate the root panel.
               if (currentPanel && currentPanelId !== _rootPanelId) {
                 return currentPanel.hide();
               }
             })
-            // 5. show next panel
+            // 6. show next panel
             .then(function() {
               return panel.show(newPanelElement, options);
             })
-            // 6. keep information
+            // 7. keep information
             .then(function() {
               // Update the current navigation object
               _currentNavigation = {
