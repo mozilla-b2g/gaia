@@ -157,11 +157,9 @@
    * button
    */
   section[role="region"]:not([id='root']) ul li button,
-  section[role="region"]:not([id='root']) ul li div.button,
-  section[role="region"]:not([id='root']) ul li span.button,
-  section[role="region"]:not([id='root']) ul li a.bb-button {
-    width: 20rem;
-    left: calc(100% - 20rem);
+  section[role="region"]:not([id='root']) ul li .button {
+    width: 29rem;
+    left: calc(100% - 29rem);
     height: 3.5rem;
   }
 
@@ -306,7 +304,7 @@
   /**
    * button
    */
-  section[role="region"]:not([id='root']) ul li p + span.button {
+  section[role="region"]:not([id='root']) ul li p + .button {
     position: absolute;
     top: 1.2rem;
   }
@@ -320,6 +318,30 @@
    */
   section[role="region"]:not([id='root']) .two-column-description {
     color: #6d7374;
+  }
+
+
+  /**
+   * RTL
+   */
+  html[dir="rtl"] section[role="region"]#root {
+    left: unset;
+    right: 0;
+  }
+
+  html[dir="rtl"] section[role="region"],
+  html[dir="rtl"] section[role="region"].previous,
+  html[dir="rtl"] section[role="region"].current {
+    left: 0;
+  }
+
+  html[dir="rtl"] .menu-item {
+    padding-right: 7.5rem;
+  }
+
+  html[dir="rtl"] section[role="region"]:not([id='root']) ul li button,
+  html[dir="rtl"] section[role="region"]:not([id='root']) ul li .button {
+    left: 0;
   }
 }
 

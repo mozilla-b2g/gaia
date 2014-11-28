@@ -44,14 +44,16 @@ define(function(require) {
         batteryItem = BatteryItem(panel.querySelector('.battery-desc'));
         findMyDeviceItem = FindMyDeviceItem(
           panel.querySelector('.findmydevice-desc'));
+
+        var storageDialog = document.querySelector('.turn-on-ums-dialog');
         storageUsbItem = StorageUSBItem({
           mediaStorageDesc: panel.querySelector('.media-storage-desc'),
           usbEnabledCheckBox: panel.querySelector('.usb-switch'),
           usbStorage: panel.querySelector('#menuItem-enableStorage'),
           usbEnabledInfoBlock: panel.querySelector('.usb-desc'),
-          umsWarningDialog: panel.querySelector('.turn-on-ums-dialog'),
-          umsConfirmButton: panel.querySelector('.ums-confirm-option'),
-          umsCancelButton: panel.querySelector('.ums-cancel-option'),
+          umsWarningDialog: storageDialog,
+          umsConfirmButton: storageDialog.querySelector('.ums-confirm-option'),
+          umsCancelButton: storageDialog.querySelector('.ums-cancel-option'),
           mediaStorageSection: panel.querySelector('.media-storage-section')
         });
         storageAppItem = StorageAppItem(
