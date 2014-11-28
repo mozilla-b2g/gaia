@@ -59,8 +59,8 @@
     <script defer src="js/battery_overlay.js"></script>
 
     <!-- SIMSlot -->
-    <script type="text/javascript" defer src="shared/js/simslot.js"></script>
-    <script type="text/javascript" defer src="shared/js/simslot_manager.js"></script>
+    <script defer src="shared/js/simslot.js"></script>
+    <script defer src="shared/js/simslot_manager.js"></script>
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -72,7 +72,6 @@
     -->
 
     <link rel="stylesheet" type="text/css" href="style/definitions.css">
-    <link rel="stylesheet" type="text/css" href="style/attention_indicator.css">
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
@@ -391,7 +390,6 @@
     <script defer src="js/attention_window.js"></script>
     <script defer src="js/callscreen_window.js"></script>
     <script defer src="js/dialer_agent.js"></script>
-    <script defer src="js/attention_indicator.js"></script>
     <script defer src="js/attention_window_manager.js"></script>
     <script defer src="js/app_window_manager.js"></script>
     <script defer src="js/secure_window.js"></script>
@@ -472,8 +470,7 @@
         <div id="rocketbar">
           <form id="rocketbar-form" class="hidden">
             <input id="rocketbar-input" type="search" x-inputmode="verbatim" dir="auto"
-              placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
-            </input>
+              placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" />
             <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
             <button type="button" id="rocketbar-cancel" data-l10n-id="close"></button>
           </form>
@@ -645,7 +642,7 @@
               <p data-l10n-id="crash-dialog-message"></p>
               <p><a id="crash-info-link" data-l10n-id="crash-info-link"></a></p>
               <p>
-                <input id="always-send" type="checkbox" checked="true"/>
+                <input id="always-send" type="checkbox" checked="true" />
                 <label for="always-send" data-l10n-id="crash-always-report"></label>
               <p>
             </section>
@@ -879,7 +876,7 @@
       <div id="app-uninstall-dialog" data-z-index-level="app-uninstall-dialog">
       </div>
 
-      <form id="app-install-dialog" class='app-install-dialog generic-dialog'
+      <form id="app-install-dialog" class="app-install-dialog generic-dialog"
             data-type="confirm" role="dialog"
             data-z-index-level="app-install-dialog">
         <section>
@@ -893,14 +890,14 @@
                 <span id="app-install-author-url"></span>
               </dd>
           </dl>
-          <menu data-items="2">
-            <button id="app-install-cancel-button" data-l10n-id="cancel">Cancel</button>
-            <button id="app-install-install-button" class="recommend" data-l10n-id="install">Install</button>
-          </menu>
         </section>
+        <menu data-items="2">
+          <button id="app-install-cancel-button" data-l10n-id="cancel">Cancel</button>
+          <button id="app-install-install-button" class="recommend" data-l10n-id="install">Install</button>
+        </menu>
       </form>
 
-      <form id="app-install-cancel-dialog" class='app-install-dialog generic-dialog'
+      <form id="app-install-cancel-dialog" class="app-install-dialog generic-dialog"
             data-type="confirm" role="dialog"
             data-z-index-level="app-install-dialog">
         <section>
@@ -910,27 +907,25 @@
             <small data-l10n-id="apps-can-be-installed-later">Apps can be installed later from the original installation source.</small>
           </p>
           <p data-l10n-id="are-you-sure-you-want-to-cancel">Are you sure you want to cancel this install?</p>
-          <menu data-items="2">
-            <button id="app-install-confirm-cancel-button" type="reset" data-l10n-id="cancel-install-button">Cancel Install</button>
-            <button id="app-install-resume-button" type="submit" data-l10n-id="resume">Resume</button>
-          </menu>
         </section>
+        <menu data-items="2">
+          <button id="app-install-confirm-cancel-button" type="reset" data-l10n-id="cancel-install-button">Cancel Install</button>
+          <button id="app-install-resume-button" type="submit" data-l10n-id="resume">Resume</button>
+        </menu>
       </form>
 
-      <form id="app-download-cancel-dialog" class='app-install-dialog generic-dialog'
+      <form id="app-download-cancel-dialog" class="app-install-dialog generic-dialog"
         data-type="confirm" role="dialog"
         data-z-index-level="app-install-dialog">
         <section>
           <h1></h1>
           <p data-l10n-id="app-download-can-be-restarted">The download can
           be restarted later.</p>
-          <menu data-items="2">
-            <button id="app-download-stop-button" class="danger confirm"
-              data-l10n-id="app-download-stop-button">Stop Download</button>
-            <button id="app-download-continue-button" class="cancel"
-              type="reset" data-l10n-id="continue">Continue</button>
-          </menu>
         </section>
+        <menu data-items="2">
+          <button id="app-download-stop-button" class="danger confirm" data-l10n-id="app-download-stop-button">Stop Download</button>
+          <button id="app-download-continue-button" class="cancel" type="reset" data-l10n-id="continue">Continue</button>
+        </menu>
       </form>
 
       <form id="updates-download-dialog" data-type="confirm" role="dialog"
@@ -944,10 +939,8 @@
           </ul>
         </section>
         <menu data-items="2">
-          <button id="updates-later-button" type="reset"
-                  data-l10n-id="later">Later</button>
-          <button id="updates-download-button" type="submit"
-            data-l10n-id="download">Download</button>
+          <button id="updates-later-button" type="reset" data-l10n-id="later">Later</button>
+          <button id="updates-download-button" type="submit" data-l10n-id="download">Download</button>
         </menu>
       </form>
 
@@ -983,17 +976,17 @@
         </menu>
       </form>
 
-      <form id="setup-installed-app-dialog" class='setup-installed-app-dialog'
+      <form id="setup-installed-app-dialog" class="setup-installed-app-dialog"
             data-type="confirm" role="dialog"
             data-z-index-level="setup-installed-app-dialog">
         <section>
           <h1 id="setup-app-name"></h1>
           <p id="setup-app-description"></p>
-          <menu data-items="2">
-            <button id="setup-cancel-button" type="button" data-l10n-id="later">Later</button>
-            <button id="setup-confirm-button" class="recommend" type="button" data-l10n-id="setup">Setup</button>
-          </menu>
         </section>
+        <menu data-items="2">
+          <button id="setup-cancel-button" type="button" data-l10n-id="later">Later</button>
+          <button id="setup-confirm-button" class="recommend" type="button" data-l10n-id="setup">Setup</button>
+        </menu>
       </form>
 
       <form id="ime-layout-dialog" class="ime-layout-dialog"
@@ -1015,11 +1008,11 @@
           </div>
           <ul id="ime-list">
           </ul>
-          <menu data-items="2">
-            <button id="ime-cancel-button" type="button" data-l10n-id="cancel">Cancel</button>
-            <button id="ime-confirm-button" class="recommend" type="button" data-l10n-id="confirm">Confirm</button>
-          </menu>
         </section>
+        <menu data-items="2">
+          <button id="ime-cancel-button" type="button" data-l10n-id="cancel">Cancel</button>
+          <button id="ime-confirm-button" class="recommend" type="button" data-l10n-id="confirm">Confirm</button>
+        </menu>
       </form>
 
       <form data-type="confirm" role="dialog" id="quick-setting-data-enabled-dialog" class="generic-dialog" data-z-index-level="quick-setting-data-enabled-dialog">
@@ -1140,7 +1133,7 @@
           <gaia-subheader skin="organic"><span id="icc-input-subtitle"></span></gaia-subheader>
           <form>
             <p id="icc-input-msg"></p>
-            <input id="icc-input-box" required="" type="text" dir="auto"></input>
+            <input id="icc-input-box" required="" type="text" dir="auto" />
           </form>
           <menu>
             <button type="button" data-l10n-id="close" id="icc-input-btn_close"></button>

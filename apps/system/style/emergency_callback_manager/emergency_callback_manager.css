@@ -97,7 +97,7 @@
 
 #emergency-callback-dialog-wrapper > :not(img) {
   display: block;
-  margin-left: 8rem;
+  -moz-margin-start: 8rem;
 }
 
 #emergency-callback-icon {
