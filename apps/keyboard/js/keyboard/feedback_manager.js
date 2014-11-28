@@ -52,6 +52,8 @@ VibrationFeedback.prototype.triggerFeedback = function() {
 var SoundFeedback = function(app) {
   this.app = app;
 
+  this.activated = false;
+
   this.settings = null;
   this.clicker = null;
   this.specialClicker = null;
@@ -73,12 +75,27 @@ SoundFeedback.prototype.stop = function() {
   this.player = null;
 };
 
-SoundFeedback.prototype.SPECIAL_KEY_CLASSNAME = 'special-key';
+SoundFeedback.prototype.activate = function() {
+  this.activated = true;
+  if (this.player) {
+    this.player.activate();
+  }
+};
+
+SoundFeedback.prototype.deactivate = function() {
+  this.activated = false;
+  if (this.player) {
+    this.player.deactivate();
+  }
+};
 
 SoundFeedback.prototype._handleSettingsChange = function(settings) {
   if (settings.clickEnabled && !!settings.isSoundEnabled) {
     this.player = new SoundFeedbackPlayer();
     this.player.prepare();
+    if (this.activated) {
+      this.player.activate();
+    }
   } else {
     this.player = null;
   }
@@ -123,6 +140,14 @@ FeedbackManager.prototype.stop = function() {
 
   this.vibrationFeedback = null;
   this.soundFeedback = null;
+};
+
+FeedbackManager.prototype.activate = function() {
+  this.soundFeedback.activate();
+};
+
+FeedbackManager.prototype.deactivate = function() {
+  this.soundFeedback.deactivate();
 };
 
 FeedbackManager.prototype.triggerFeedback = function(target) {
