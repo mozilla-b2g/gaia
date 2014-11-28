@@ -136,7 +136,18 @@
   #keyboard-container {
     opacity: 0;
     transition: opacity 1.0s ease;
-    background: rgba(0, 0, 255, 0.85);
+    background: #40E0D0;
+  }
+
+  #keypad-hidebar-hide-keypad-action {
+    transform: translateX(-16rem);
+    transition: transform 1s ease, background 2s ease;
+    background: #2D9C92;
+  }
+
+  body.showKeypad #keypad-hidebar-hide-keypad-action {
+    transform: translateX(0);
+    background: #ccc;
   }
 
   body.showKeypad #keyboard-container {
