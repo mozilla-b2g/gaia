@@ -30,33 +30,6 @@ section {
   font-size: 1.6rem;
 }
 
-#search {
-  position: absolute;
-  width: 100%;
-  top: calc(30% - 4rem);
-  height: 4rem;
-}
-
-#search-input {
-  border: 0;
-  background: none;
-  line-height: 3rem;
-  padding-left: 1rem;
-}
-
-#search-container {
-  border-radius: 2rem;
-  height: 3rem;
-  margin-left: calc(50% - 15rem);
-  margin-right: calc(50% - 15rem);
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  width: 30rem;
-  background: url(images/search.png) no-repeat right 0.5rem center / 2rem,
-              RGBA(0, 0, 0, 0.4);
-
-}
-
 /* Card list */
 #card-viewer {
   position: absolute;
@@ -118,13 +91,7 @@ section {
   bottom: 3rem;
 }
 
-#commands {
-  position: absolute;
-  right: 3rem;
-  bottom: 3rem;
-}
-
-.filter-tab, .command-button {
+.filter-tab {
   background: #bbb;
   min-width: 7rem;
   height: 3rem;
