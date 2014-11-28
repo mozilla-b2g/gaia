@@ -20,7 +20,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: bold;
-  padding-right: 4.5rem;
+  -moz-padding-end: 4.5rem;
 }
 
 #group-call-details-list > section:not(.additionalInfo) .number {
@@ -40,6 +40,10 @@
   left: 0;
 }
 
+html[dir="rtl"] #group-call-details .hangup-button {
+  background: url('images/handled_call/actionicon_activecall_hangup.png') no-repeat scroll left 1.8rem center / 4rem auto transparent;
+}
+
 #group-call-details section.ended > .hangup-button {
   background-image: none;
 }
@@ -51,6 +55,11 @@
   right: 1.5rem;
 }
 
+html[dir="rtl"] #group-call-details section.ended > .duration {
+  right: auto;
+  left: 1.5rem;
+}
+
 #group-call-details section.ended > .duration > span {
   font-weight: normal;
 }
@@ -59,6 +68,10 @@
   text-align: right;
   font-weight: 300;
   line-height: 1.7rem;
+}
+
+html[dir="rtl"] #group-call-details section.ended > .duration > .total-duration {
+  text-align: left;
 }
 
 #group-call-details-list .sim {
