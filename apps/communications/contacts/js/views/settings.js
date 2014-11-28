@@ -551,29 +551,10 @@ contacts.Settings = (function() {
     // If the total is not available then an empty string is showed
     var theTotal = total || '';
 
-    var totalsMsgContent = _('facebook-import-msg', {
+    navigator.mozL10n.setAttributes(fbTotalsMsg, 'facebook-import-msg2', {
       'imported': imported,
       'total': theTotal
     });
-
-    // This is to support the case of a long literal, particularly
-    // when 0 or 1 friends are imported
-    var msgPart1 = totalsMsgContent;
-    var msgPart2 = null;
-    if (imported <= 1) {
-      var position = totalsMsgContent.indexOf('(');
-      if (position != -1) {
-        msgPart1 = totalsMsgContent.substring(0, position - 1);
-        msgPart2 = totalsMsgContent.substring(position);
-      }
-    }
-    fbTotalsMsg.innerHTML = '';
-    fbTotalsMsg.appendChild(document.createTextNode(msgPart1));
-    if (msgPart2) {
-      var span = document.createElement('span');
-      span.textContent = msgPart2;
-      fbTotalsMsg.appendChild(span);
-    }
   };
 
   var onFbImport = function onFbImportClick(evt) {
