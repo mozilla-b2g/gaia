@@ -4,7 +4,8 @@
 <section class="skin-organic bbshim" role="region">
   <header class="tng-account-server-header">
     <a data-event="click:onBack"
-       href="#" class="tng-back-btn back-btn header-left-btn">
+       href="#" class="tng-back-btn back-btn header-left-btn"
+       role="button" data-l10n-id="back-button">
       <span class="icon icon-back"></span>
     </a>
     <h1 data-prop="headerLabel"
@@ -20,7 +21,7 @@
     <div class="tng-form">
       <li class="tng-account-server-hostname settings-input-list">
         <h2 data-l10n-id="settings-hostname"
-          class="tng-server-hostname-title">
+          class="tng-server-hostname-title" aria-level="3">
             HostnamE</h2>
         <input data-prop="hostnameNodeInput"
                disabled class="tng-server-hostname-input"
@@ -28,7 +29,7 @@
       </li>
       <li class="tng-account-server-port settings-input-list">
         <h2 data-l10n-id="settings-port"
-          class="tng-server-port-title">PorT</h2>
+          class="tng-server-port-title" aria-level="3">PorT</h2>
         <input data-prop="portNodeInput" disabled class="tng-server-port-input"
           type="text" />
       </li>

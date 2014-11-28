@@ -175,7 +175,7 @@ html:-moz-dir(rtl) .signature-button-content {
   color: #858585;
 }
 
-li:not([role]) {
+li {
   position: relative;
   border-bottom: solid 0.1rem #dbd9d9;
   list-style-type: none;
@@ -236,17 +236,37 @@ li a:active {
   line-height: inherit;
 }
 
-.list-text-pair .aside.end .pack-switch {
-  width: 6rem;
-  height: 3rem;
-}
-
-.list-text-pair .aside.end .pack-checkbox {
-  height: 3rem;
-}
-
 .list-text-with-sub .list-text {
   line-height: 2.2rem;
+}
+
+label.list-pack-switch, label.list-pack-checkbox {
+  padding: 1.5rem 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  height: auto;
+}
+
+label.list-pack-checkbox, .settings-input-list .list-pack-switch {
+  height: 3rem;
+}
+
+.list-pack-switch .list-pack-switch-text,
+.list-pack-checkbox .list-pack-checkbox-text {
+  flex-grow: 2;
+  -moz-margin-end: 9.5rem;
+  line-height: inherit;
+}
+
+.list-pack-checkbox .list-pack-checkbox-text:after {
+  left: auto;
+  right: 1.5rem;
+}
+
+html:-moz-dir(rtl) .list-pack-checkbox .list-pack-checkbox-text:after {
+  right: auto;
+  left: 1.5rem;
 }
 
 li.select-item {

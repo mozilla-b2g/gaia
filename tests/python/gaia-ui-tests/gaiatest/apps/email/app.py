@@ -23,9 +23,14 @@ class Email(Base):
     _message_list_locator = (By.CSS_SELECTOR, 'cards-message-list')
     _setup_account_info = (By.TAG_NAME, 'cards-setup-account-info')
     _setup_manual_config = (By.TAG_NAME, 'cards-setup-manual-config')
+    _folder_picker_locator = (By.TAG_NAME, 'cards-folder-picker')
+    _settings_main_locator = (By.TAG_NAME, 'cards-settings-main')
+    _settings_account_locator = (By.TAG_NAME, 'cards-settings-account')
+    _confirm_dialog_locator = (By.TAG_NAME, 'cards-confirm-dialog')
     _refresh_button_locator = (By.CLASS_NAME, 'msg-refresh-btn')
     _search_textbox_locator = (By.CSS_SELECTOR, 'form[role="search"]')
     _email_subject_locator = (By.XPATH, '//a[@data-index!="-1"]/div/span[text()="%s"]')
+    _back_button_locator = (By.CLASS_NAME, 'sup-back-btn')
 
     def basic_setup_email(self, name, email, password):
 
@@ -197,6 +202,12 @@ class Header(Base):
     _compose_button_locator = (By.CSS_SELECTOR, '.card.center .msg-compose-btn')
     _label_locator = (By.CSS_SELECTOR, '.card.center .msg-list-header-folder-label.header-label')
 
+    def a11y_click_menu(self):
+        self.accessibility.click(self.marionette.find_element(*self._menu_button_locator))
+        toolbar = ToolBar(self.marionette)
+        Wait(self.marionette).until(lambda m: toolbar.is_a11y_visible)
+        return toolbar
+
     def tap_menu(self):
         self.marionette.find_element(*self._menu_button_locator).tap()
         toolbar = ToolBar(self.marionette)
@@ -227,6 +238,8 @@ class ToolBar(Base):
     _search_locator = (By.CSS_SELECTOR, '#cardContainer .card.center .msg-search-btn')
     _edit_locator = (By.CSS_SELECTOR, '#cardContainer .card.center .msg-edit-btn')
     _settings_locator = (By.CSS_SELECTOR, '#cardContainer .card.center .fld-nav-settings-btn')
+    _settings_a11y_locator = (By.CSS_SELECTOR,
+                              '#cardContainer .card.center .fld-nav-toolbar.bottom-toolbar')
 
     def tap_refresh(self):
         refresh = Wait(self.marionette).until(
@@ -246,6 +259,13 @@ class ToolBar(Base):
         Wait(self.marionette).until(expected.element_displayed(edit))
         edit.tap()
 
+    def a11y_click_settings(self):
+        settings = Wait(self.marionette).until(
+            expected.element_present(*self._settings_a11y_locator))
+        Wait(self.marionette).until(lambda m: self.accessibility.is_visible(settings))
+        self.accessibility.click(settings)
+        return Settings(self.marionette)
+
     def tap_settings(self):
         settings = Wait(self.marionette).until(
             expected.element_present(*self._settings_locator))
@@ -255,6 +275,10 @@ class ToolBar(Base):
     @property
     def is_visible(self):
         return self.marionette.find_element(*self._toolbar_locator).location['x'] == 0
+
+    @property
+    def is_a11y_visible(self):
+        return self.accessibility.is_visible(self.marionette.find_element(*self._toolbar_locator))
 
     @property
     def is_refresh_visible(self):
