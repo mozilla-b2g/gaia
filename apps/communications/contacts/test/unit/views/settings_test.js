@@ -570,15 +570,14 @@ suite('Contacts settings >', function() {
       var fbTotalsMsg = document.querySelector('#fb-totals');
 
       var observer = new MutationObserver(function() {
-        if (fbTotalsMsg.innerHTML !== '') {
-          observer.disconnect();
-          done(function() {
-            assert.isTrue(fbTotalsMsg.innerHTML.indexOf('50') !== -1);
-          });
-        }
+        observer.disconnect();
+        done(function() {
+          assert.isTrue(fbTotalsMsg.getAttribute('data-l10n-args').
+                        indexOf('50') !== -1);
+        });
       });
 
-      observer.observe(fbTotalsMsg, {childList: true});
+      observer.observe(fbTotalsMsg, {attributes: true});
 
       MockImportStatusData.put(CACHE_FRIENDS_KEY, 50).then(function() {
         MockImportStatusData.put(STORAGE_KEY, {access_token: '1'})
