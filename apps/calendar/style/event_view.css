@@ -19,6 +19,8 @@
   margin: 0;
   padding: 2rem 1.8rem;
   list-style-type: none;
+  /* allow selection of whole event data */
+  -moz-user-select: all;
 }
 
 #event-view .content {
