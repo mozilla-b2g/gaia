@@ -133,18 +133,24 @@
     z-index: 500;
   }
 
+  #keyboard-container {
+    opacity: 0;
+    transition: opacity 1.0s ease;
+    background: rgba(0, 0, 255, 0.85);
+  }
+
   body.showKeypad #keyboard-container {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     height: calc(100% - 16rem);
-    background: rgba(255, 255, 255, 0.85);
     position: absolute;
     bottom: 0;
+    height: calc(100% - 10rem);
+    opacity: 1;
   }
 
   body.showKeypad.single-line #keyboard-container {
-    height: calc(100% - 10rem);
   }
 
   body.showKeypad #keypad {
