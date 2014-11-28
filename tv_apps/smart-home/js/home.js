@@ -8,7 +8,7 @@
 
   Home.prototype = {
     navigableIds: ['search-button', 'search-input', 'settings-group'],
-    navigableClasses: ['filter-tab', 'command-button'],
+    navigableClasses: ['filter-tab'],
     navigableScrollable: [],
     cardScrollable: undefined,
     folderScrollable: undefined,
