@@ -383,8 +383,8 @@
   }
 
   #calls > section div {
-    padding-left: 2.5rem;
-    padding-right: 2rem;
+    -moz-padding-start: 2.5rem;
+    -moz-padding-end: 2rem;
   }
 
   #calls.big-duration > section {
@@ -949,12 +949,17 @@
   .big-duration .sim {
     display: block;
     position: absolute;
-    top: 17.5rem;
+    top: 18rem;
     left: 0;
 
     font-size: 1.6rem;
     line-height: 2rem;
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  html[dir="rtl"] .big-duration .sim {
+    left: auto;
+    right: 0;
   }
 
   /* Locked incoming call screen */
