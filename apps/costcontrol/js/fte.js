@@ -139,9 +139,9 @@
       document.getElementById('non2-select-weekday'));
 
     function _setResetTimeToDefault(evt) {
-      var firstWeekDay = parseInt(navigator.mozL10n.get('weekStartsOnMonday'),
-                                  10);
-      var defaultResetTime = (evt.target.value === 'weekly') ? firstWeekDay : 1;
+      var today = new Date();
+      var defaultResetTime = (evt.target.value === 'weekly') ?
+        today.getDay() : today.getDate();
       ConfigManager.setOption({ resetTime: defaultResetTime });
     }
 
