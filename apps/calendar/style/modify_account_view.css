@@ -31,7 +31,7 @@
 }
 
 #modify-account-view.in-progress .during-progress > div > span {
-  display: inline-block;
+  display: initial;
   width: calc(100% - 4rem);
   vertical-align: middle;
   font-weight: 300;
