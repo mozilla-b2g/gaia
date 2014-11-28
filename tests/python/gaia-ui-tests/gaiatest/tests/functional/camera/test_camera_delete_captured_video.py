@@ -12,7 +12,6 @@ from marionette.wait import Wait
 
 
 class TestPreviewDelete(GaiaTestCase):
-
     def setUp(self):
         GaiaTestCase.setUp(self)
 
@@ -32,11 +31,12 @@ class TestPreviewDelete(GaiaTestCase):
         # Switch to video mode
         self.camera.tap_switch_source()
 
-        # Record 5 seconds of video
+        # Record 10 seconds of video
         self.camera.record_video(10)
 
         # Check that video saved to SD card
-        self.wait_for_condition(lambda m: len(self.data_layer.video_files) == self.previous_number_of_videos + 1, 15)
+        self.wait_for_condition(lambda m: len(self.data_layer.video_files) ==
+                                          self.previous_number_of_videos + 1, 15)
         self.assertEqual(len(self.data_layer.video_files), self.previous_number_of_videos + 1)
 
         # Tap preview icon to see the video that's just taken
@@ -57,4 +57,3 @@ class TestPreviewDelete(GaiaTestCase):
 
         # Verify the video is deleted now
         self.assertEqual(len(self.data_layer.video_files), self.previous_number_of_videos)
-        
