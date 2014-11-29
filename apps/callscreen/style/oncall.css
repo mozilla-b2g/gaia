@@ -323,10 +323,15 @@
     background-size: auto 100%;
   }
 
+  #callbar-hang-up > .callbar-inner-button,
+  #callbar-answer > .callbar-inner-button {
+    margin: 1rem 1.5rem;
+  }
+
   #callbar-hang-up > .callbar-inner-button {
-    margin: 1rem 1.5rem 1rem 1.5rem;
     background: url('images/handled_call/actionicon_activecall_hangup.png') center / 4rem no-repeat,
                 #e00000;
+    -moz-margin-end: 1rem;
   }
 
   #callbar-hang-up:active > .callbar-inner-button {
@@ -335,9 +340,9 @@
   }
 
   #callbar-answer > .callbar-inner-button {
-    margin: 1rem 1.5rem 1rem .5rem;
     background: url('images/handled_call/actionicon_activecall_pickup.png') center / 4rem no-repeat,
                 #00adad;
+    -moz-margin-start: 1rem;
   }
 
   #callbar-answer:active > .callbar-inner-button {
@@ -351,7 +356,8 @@
     text-align: center;
     font-size: 1.7rem;
     line-height: 4rem;
-    margin: 0 1.5rem 0 0.5rem;
+    margin: 0 1.5rem;
+    -moz-margin-start: 0.5rem;
     font-style: italic;
   }
 
@@ -734,15 +740,16 @@
     background: url('images/handled_call/actionicon_activecall_hold.png'),
                 #00adad;
     background-size: 4rem, auto 100%;
-    margin-left: 1rem;
-    margin-right: 1.5rem;
+    margin: 0 1rem;
+    -moz-margin-end: 1.5rem;
   }
 
   #incoming-end {
     background: url('images/handled_call/actionicon_activecall_hangup.png'),
                 #e00000;
     background-size: 4rem, auto 100%;
-    margin-left: 1.5rem;
+    margin: 0 1rem;
+    -moz-margin-start: 1.5rem;
   }
 
   .incoming-number-info {
