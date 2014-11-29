@@ -138,7 +138,7 @@ exports.configurator = {
                            incomingInfo, smtpConnInfo, incomingConn,
                            timezoneOffset, callback);
       }.bind(this))
-      .catch(function(err) {
+      .catch(function(ambiguousErr) {
         // One of the account sides failed. Normally we leave the
         // IMAP/POP3 side open for reuse, but if the SMTP
         // configuration falied we must close the incoming connection.
@@ -146,9 +146,12 @@ exports.configurator = {
         // `.then` callback.)
         incomingPromise.then(function incomingOkButOutgoingFailed(result) {
           result.conn.close();
-          callback(err, /* conn: */ null, { server: smtpConnInfo.hostname });
-        }).catch(function incomingFailed(/* ignored error */) {
-          callback(err, /* conn: */ null, { server: incomingInfo.hostname });
+          // the error is no longer ambiguous; it was SMTP
+          callback(ambiguousErr, /* conn: */ null,
+                   { server: smtpConnInfo.hostname });
+        }).catch(function incomingFailed(incomingErr) {
+          callback(incomingErr, /* conn: */ null,
+                   { server: incomingInfo.hostname });
         });
      });
  },
