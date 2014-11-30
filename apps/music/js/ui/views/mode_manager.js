@@ -101,11 +101,45 @@ var ModeManager = {
 
   },
 
+  updateSearchInputPlaceholder: function() {
+    //test
+    var placeholder;
+
+    switch (this.currentMode) {
+      case MODE_TILES:
+        placeholder = navigator.mozL10n.get('search-music');
+        break;
+      case MODE_LIST:
+      case MODE_SUBLIST:
+        switch (TabBar.option) {
+          case 'playlist':
+            placeholder = navigator.mozL10n.get('search-music');
+            break;
+          case 'artist':
+            placeholder = navigator.mozL10n.get('search-artist');
+            break;
+          case 'album':
+            placeholder = navigator.mozL10n.get('search-album');
+            break;
+          case 'title':
+            placeholder = navigator.mozL10n.get('search-song');
+            break;
+        }
+        break;
+    }
+
+    if (placeholder) {
+      document.getElementById('views-list-search-input').placeholder = placeholder;
+    }
+
+  },
+
   _updateMode: function(callback) {
     var mode = this.currentMode;
     var playerLoaded = (typeof PlayerView != 'undefined');
 
     this.updateTitle();
+    this.updateSearchInputPlaceholder();
     this.updateBackArrow();
 
     if (mode === MODE_PLAYER) {
