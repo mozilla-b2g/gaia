@@ -102,7 +102,6 @@ var ModeManager = {
   },
 
   updateSearchInputPlaceholder: function() {
-    //test
     var placeholder;
 
     switch (this.currentMode) {
