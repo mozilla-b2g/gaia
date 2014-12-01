@@ -400,6 +400,56 @@ suite('Cost Control Service Hub Suite >', function() {
   );
 
   test(
+    'Get dataUsage works with date parameters',
+    function(done) {
+      var startDate = new Date(2012, 11, 20);
+      var endDate = new Date(2013, 0, 7);
+      var requestParameters =
+        {type: 'datausage', startDate: startDate, endDate: endDate};
+
+      this.sinon.stub(SimManager, 'requestDataSimIcc', function (callback) {
+        (typeof callback === 'function') && callback({iccId:'12345'});
+      });
+
+      this.sinon.spy(window.navigator.mozNetworkStats, 'getSamples');
+      CostControl.getInstance(function(service) {
+        service.request(requestParameters, function(result) {
+          done(function() {
+            sinon.assert.calledWith(window.navigator.mozNetworkStats.getSamples,
+              Common.getWifiInterface(), startDate, endDate);
+          });
+        });
+      });
+    }
+  );
+
+  test(
+    'Get dataUsage when start date is higher than end date',
+    function(done) {
+      var startDate = new Date(2012, 11, 20);
+      var endDate = new Date(2012, 11, 13);
+      var endDateExpected =  new Date(2012, 11, 21);
+      var requestParameters =
+        {type: 'datausage', startDate: startDate, endDate: endDate};
+
+      this.sinon.stub(SimManager, 'requestDataSimIcc', function (callback) {
+        (typeof callback === 'function') && callback({iccId:'12345'});
+      });
+
+      this.sinon.spy(window.navigator.mozNetworkStats, 'getSamples');
+      CostControl.getInstance(function(service) {
+        service.request(requestParameters, function(result) {
+          done(function() {
+            sinon.assert.calledWith(window.navigator.mozNetworkStats.getSamples,
+              Common.getWifiInterface(), startDate, endDateExpected);
+          });
+        });
+      });
+    }
+  );
+
+
+  test(
     'Get datausage per app',
     function(done) {
       var expectedLastDataUsage = {
