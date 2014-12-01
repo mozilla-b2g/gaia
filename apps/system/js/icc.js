@@ -312,15 +312,12 @@ var icc = {
   alert: function icc_alert(stkMessage, message) {
     if (!this.icc_alert) {
       this.icc_alert = document.getElementById('icc-alert');
-      this.icc_alert_maintitle = document.getElementById('icc-alert-maintitle');
       this.icc_alert_subtitle = document.getElementById('icc-alert-subtitle');
       this.icc_alert_msg = document.getElementById('icc-alert-msg');
       this.icc_alert_btn = document.getElementById('icc-alert-btn');
       this.setupView(this.icc_alert);
     }
 
-    this.icc_alert_maintitle.setAttribute('data-l10n-id',
-      'icc-message-maintitle');
     navigator.mozL10n.setAttributes(
       this.icc_alert_subtitle,
       'icc-message-subtitle',
@@ -344,8 +341,6 @@ var icc = {
   confirm: function(stkMessage, message, timeout, callback) {
     if (!this.icc_confirm) {
       this.icc_confirm = document.getElementById('icc-confirm');
-      this.icc_confirm_maintitle =
-        document.getElementById('icc-confirm-maintitle');
       this.icc_confirm_subtitle =
         document.getElementById('icc-confirm-subtitle');
       this.icc_confirm_msg = document.getElementById('icc-confirm-msg');
@@ -361,8 +356,6 @@ var icc = {
       callback = function() {};
     }
 
-    this.icc_confirm_maintitle.setAttribute('data-l10n-id',
-      'icc-message-maintitle');
     navigator.mozL10n.setAttributes(
       this.icc_confirm_subtitle,
       'icc-message-subtitle',
@@ -412,8 +405,6 @@ var icc = {
     if (!this.icc_asyncconfirm) {
       this.icc_asyncconfirm =
         document.getElementById('icc-asyncconfirm');
-      this.icc_asyncconfirm_maintitle =
-        document.getElementById('icc-asyncconfirm-maintitle');
       this.icc_asyncconfirm_subtitle =
         document.getElementById('icc-asyncconfirm-subtitle');
       this.icc_asyncconfirm_msg =
@@ -425,8 +416,6 @@ var icc = {
       this.setupView(this.icc_asyncconfirm);
     }
 
-    this.icc_asyncconfirm_maintitle.setAttribute('data-l10n-id',
-      'icc-message-maintitle');
     navigator.mozL10n.setAttributes(
       this.icc_asyncconfirm_subtitle,
       'icc-message-subtitle',
