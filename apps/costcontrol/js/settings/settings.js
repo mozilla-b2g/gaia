@@ -20,7 +20,6 @@ var NetworkUsageAlarm = window.parent.NetworkUsageAlarm;
 // Import global functions from parent window
 var addNetworkUsageAlarm = window.parent.addNetworkUsageAlarm;
 var resetTelephony = window.parent.resetTelephony;
-var _ = window.parent._;
 navigator.mozL10n = window.parent.navigator.mozL10n;
 
 
@@ -121,10 +120,9 @@ var Settings = (function() {
       });
 
       function _setResetTimeToDefault(value, old, key, settings) {
-        var firstWeekDay = parseInt(_('weekStartsOnMonday'), 10);
+        var today = new Date();
         var defaultResetTime = (settings.trackingPeriod === 'weekly') ?
-                                                                  firstWeekDay :
-                                                                  1;
+          today.getDay() : today.getDate();
         if (settings.resetTime !== defaultResetTime) {
           ConfigManager.setOption({ resetTime: defaultResetTime });
         } else {

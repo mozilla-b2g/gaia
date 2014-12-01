@@ -1,6 +1,7 @@
 'use strict';
 
-/* global SoundFeedbackPlayer, MockAudioContext, MockAudioBufferSourceNode */
+/* global SoundFeedbackPlayer, MockAudioContext, MockAudioBufferSourceNode,
+          MockOfflineAudioContext */
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/test/unit/mock_audio_context.js');
@@ -9,6 +10,7 @@ require('/js/keyboard/sound_feedback_player.js');
 
 suite('SoundFeedbackPlayer', function() {
   var audioContextStub;
+  var offlineAudioContextStub;
   var stubAudioBufferSourceNode;
   var expectedRequests;
   var audioBuffers;
@@ -36,7 +38,11 @@ suite('SoundFeedbackPlayer', function() {
 
     audioContextStub = new MockAudioContext();
     this.sinon.stub(window, 'AudioContext').returns(audioContextStub);
-    this.sinon.stub(audioContextStub, 'decodeAudioData',
+
+    offlineAudioContextStub = new MockOfflineAudioContext();
+    this.sinon.stub(window, 'OfflineAudioContext')
+      .returns(offlineAudioContextStub);
+    this.sinon.stub(offlineAudioContextStub, 'decodeAudioData',
       function(arrayBuffer, successCallback, errorCallback) {
         var audioBuffer = audioBuffers.get(arrayBuffer);
         // Simulate async callback
@@ -65,23 +71,46 @@ suite('SoundFeedbackPlayer', function() {
     p.then(function() { done(); }, done);
   });
 
-  test('play normal clicker', function() {
-    player.play(false);
+  suite('activate', function() {
+    setup(function() {
+      assert.isFalse(window.AudioContext.called);
+      player.activate();
 
-    var audioBuffer = audioBuffers.get(expectedRequests[0].response);
-    assert.equal(stubAudioBufferSourceNode.buffer, audioBuffer);
-    assert.isTrue(stubAudioBufferSourceNode.connect
-      .calledWith(audioContextStub.destination));
-    assert.isTrue(stubAudioBufferSourceNode.start.calledWith(0));
-  });
+      assert.isTrue(window.AudioContext.calledOnce);
+    });
 
-  test('play special clicker', function() {
-    player.play(true);
+    test('activate again', function() {
+      player.activate();
 
-    var audioBuffer = audioBuffers.get(expectedRequests[1].response);
-    assert.equal(stubAudioBufferSourceNode.buffer, audioBuffer);
-    assert.isTrue(stubAudioBufferSourceNode.connect
-      .calledWith(audioContextStub.destination));
-    assert.isTrue(stubAudioBufferSourceNode.start.calledWith(0));
+      assert.isFalse(window.AudioContext.calledTwice, 'caused a side effect');
+    });
+
+    test('deactivate', function() {
+      player.deactivate();
+
+      // XXX probing "private" variable since there is no way to tell
+      // if the reference has been released without doing so.
+      assert.equal(player._audioCtx, null);
+    });
+
+    test('play normal clicker', function() {
+      player.play(false);
+
+      var audioBuffer = audioBuffers.get(expectedRequests[0].response);
+      assert.equal(stubAudioBufferSourceNode.buffer, audioBuffer);
+      assert.isTrue(stubAudioBufferSourceNode.connect
+        .calledWith(audioContextStub.destination));
+      assert.isTrue(stubAudioBufferSourceNode.start.calledWith(0));
+    });
+
+    test('play special clicker', function() {
+      player.play(true);
+
+      var audioBuffer = audioBuffers.get(expectedRequests[1].response);
+      assert.equal(stubAudioBufferSourceNode.buffer, audioBuffer);
+      assert.isTrue(stubAudioBufferSourceNode.connect
+        .calledWith(audioContextStub.destination));
+      assert.isTrue(stubAudioBufferSourceNode.start.calledWith(0));
+    });
   });
 });

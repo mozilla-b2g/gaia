@@ -99,3 +99,12 @@ MockAudioContext.prototype.createOscillator =
 MockAudioContext.prototype.createPeriodicWave = function() {
   throw 'MockAudioContext: Unimplemented. Stub me?';
 };
+
+var MockOfflineAudioContext = function(numOfChannels, length, sampleRate) {
+  MockAudioContext.call(this);
+};
+MockOfflineAudioContext.prototype = Object.create(MockAudioContext.prototype);
+MockOfflineAudioContext.prototype.oncomplete = null;
+MockOfflineAudioContext.prototype.startRendering = function() {
+  throw 'MockOfflineAudioContext: Unimplemented. Stub me?';
+};

@@ -1,4 +1,3 @@
-apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/test/marionette/lib/dialer.js
 apps/communications/dialer/test/marionette/navigation_test.js
 apps/communications/dialer/test/unit/call_log_db_test.js
@@ -248,7 +247,6 @@ apps/system/js/emergency_callback_manager.js
 apps/system/js/entry_sheet.js
 apps/system/js/icc.js
 apps/system/js/icc_events.js
-apps/system/js/icc_worker.js
 apps/system/js/identity.js
 apps/system/js/init_logo_handler.js
 apps/system/js/notifications.js

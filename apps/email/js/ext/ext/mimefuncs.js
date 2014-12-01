@@ -21,21 +21,32 @@
 (function(root, factory) {
     'use strict';
 
+    var encoding;
+
     if (typeof define === 'function' && define.amd) {
+        // amd for browser
         define(['stringencoding'], function(encoding) {
             return factory(encoding.TextEncoder, encoding.TextDecoder, root.btoa);
         });
+    } else if (typeof exports === 'object' && typeof navigator !== 'undefined') {
+        // common.js for browser
+        encoding = require('wo-stringencoding');
+        module.exports = factory(encoding.TextEncoder, encoding.TextDecoder, root.btoa);
     } else if (typeof exports === 'object') {
-        var encoding = require('wo-stringencoding'),
-            btoaShim = function(str) {
-                return new Buffer(str, 'binary').toString("base64");
-            };
-        module.exports = factory(encoding.TextEncoder, encoding.TextDecoder, btoaShim);
+        // common.js for node.js
+        encoding = require('wo-stringencoding');
+        module.exports = factory(encoding.TextEncoder, encoding.TextDecoder, function(str) {
+            var NodeBuffer = require('buffer').Buffer;
+            return new NodeBuffer(str, 'binary').toString("base64");
+        });
     } else {
+        // global for browser
         root.mimefuncs = factory(root.TextEncoder, root.TextDecoder, root.btoa);
     }
 }(this, function(TextEncoder, TextDecoder, btoa) {
     'use strict';
+
+    btoa = btoa || base64Encode;
 
     var mimefuncs = {
         /**
@@ -647,7 +658,7 @@
                 if (encodedStr.length <= maxLength) {
                     return [{
                         key: key,
-                        value: encodedStr
+                        value: /[\s";=]/.test(encodedStr) ? '"' + encodedStr + '"' : encodedStr
                     }];
                 }
 
@@ -736,7 +747,7 @@
                     // unencoded lines: {name}*{part}
                     // if any line needs to be encoded then the first line (part==0) is always encoded
                     key: key + '*' + i + (item.encoded ? '*' : ''),
-                    value: item.line
+                    value: /[\s";=]/.test(item.line) ? '"' + item.line + '"' : item.line
                 };
             });
         },
@@ -968,7 +979,7 @@
             try {
                 return new TextDecoder(fromCharset).decode(buf);
             } catch (E) {
-                return this.fromTypedArray(buf);
+                return mimefuncs.fromTypedArray(buf);
             }
 
         },
@@ -1132,6 +1143,23 @@
             return arr;
         }
     };
+
+    /*
+     * Encodes a string in base 64. DedicatedWorkerGlobalScope for Safari does not provide btoa.
+     * https://github.com/davidchambers/Base64.js
+     */
+    function base64Encode(input) {
+        var str = String(input);
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+        for (var block, charCode, idx = 0, map = chars, output = ''; str.charAt(idx | 0) || (map = '=', idx % 1); output += map.charAt(63 & block >> 8 - idx % 1 * 8)) {
+            charCode = str.charCodeAt(idx += 3 / 4);
+            if (charCode > 0xFF) {
+                throw new Error("'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
+            }
+            block = block << 8 | charCode;
+        }
+        return output;
+    }
 
     return mimefuncs;
 }));

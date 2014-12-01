@@ -207,9 +207,11 @@ suite('system/AppWindow', function() {
 
     test('Resize in foreground', function() {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
+      this.sinon.stub(app1, 'reviveBrowser');
       stubIsActive.returns(true);
       app1.resize();
       assert.isTrue(app1.resized);
+      assert.isTrue(app1.reviveBrowser.called);
     });
 
     test('Resize in background', function() {
@@ -1096,6 +1098,15 @@ suite('system/AppWindow', function() {
   });
 
   suite('setVisible', function() {
+    test('setVisible: true should revive browser', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+      this.sinon.stub(app1, 'reviveBrowser');
+
+      app1.setVisible(true);
+      assert.isTrue(app1.reviveBrowser.called);
+    });
+
     test('setVisible: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);

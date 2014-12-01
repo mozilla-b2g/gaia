@@ -1,6 +1,6 @@
 'use strict';
 
-/* global AudioContext */
+/* global AudioContext, OfflineAudioContext */
 
 /**
  * SoundFeedbackPlayer is designed to be thrown away when not needed in order
@@ -20,18 +20,27 @@ SoundFeedbackPlayer.prototype.CLICK_SOUND_URL =
 SoundFeedbackPlayer.prototype.SPECIAL_SOUND_URL =
   './resources/sounds/special.wav';
 
-SoundFeedbackPlayer.prototype.prepare = function() {
+SoundFeedbackPlayer.prototype.activate = function() {
   if (this._audioCtx) {
-    throw 'SoundFeedbackPlayer: prepare() should not be called twice.';
+    return;
   }
 
-  if (typeof AudioContext === 'undefined') {
+  // Hold an AudioContext instance implying turing on the audio hardware.
+  this._audioCtx = new AudioContext();
+};
+
+SoundFeedbackPlayer.prototype.deactivate = function() {
+  // Release the instance (thus turing off the audio hardware).
+  this._audioCtx = null;
+};
+
+SoundFeedbackPlayer.prototype.prepare = function() {
+  if (typeof AudioContext === 'undefined' ||
+      typeof OfflineAudioContext === 'undefined') {
     console.error('SoundFeedbackPlayer: No Web Audio API on this platform.');
 
     return;
   }
-
-  this._audioCtx = new AudioContext();
 
   var clickerPromise =
     this._getAudioFileAsArrayBuffer(this.CLICK_SOUND_URL)
@@ -70,7 +79,14 @@ SoundFeedbackPlayer.prototype._getAudioFileAsArrayBuffer = function(url) {
 
 SoundFeedbackPlayer.prototype._decodeAudioData = function(arrayBuffer) {
   return new Promise(function(resolve, reject) {
-    this._audioCtx.decodeAudioData(arrayBuffer, function(audioBuffer) {
+    // We are using OfflineAudioContext here so we could decode audio data
+    // without activating the audio hardware.
+    // The first two arguments (numOfChannels, length) has no meaning in our
+    // use case here.
+    // The 3rd argument (sampleRate) should match the sample rate of the files
+    // so that we don't downgrade the sound quality.
+    var ctx = new OfflineAudioContext(2, 1, 44100);
+    ctx.decodeAudioData(arrayBuffer, function(audioBuffer) {
       resolve(audioBuffer);
     }, function() {
       reject('SoundFeedbackPlayer: decodeAudioData failed.');
@@ -86,6 +102,12 @@ SoundFeedbackPlayer.prototype.play = function(isSpecialKey) {
     // warrant the complexity.
     console.warn('SoundFeedbackPlayer: ' +
       'Sound feedback needed but audio buffer is not available yet.');
+
+    return;
+  }
+
+  if (!this._audioCtx) {
+    console.error('SoundFeedbackPlayer: play() is called but not activated?');
 
     return;
   }

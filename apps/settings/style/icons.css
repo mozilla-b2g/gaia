@@ -292,7 +292,7 @@ html[dir="rtl"] .menu-item {
 
 html[dir="rtl"] a.menu-item::after  {
   right: auto;
-  left: -0.5rem;
+  left: 0.3rem;
   transform: rotate(180deg);
 }
 

@@ -51,6 +51,9 @@
       return event.type === 'keyup' ||
         event.type === 'keydown';
     },
+    _targetToIframe: function bkem_targetToIframe(event) {
+      return (event.target instanceof HTMLIFrameElement);
+    },
     _applyPolicy: function bkem_applyPolicy(event) {
       // all other unknown keys are default to APP-ONLY
       // so we assume there is no translation needed by default
@@ -62,7 +65,14 @@
       } else if (this._isAppCancelledKey(event) && this._isAfterEvent(event)) {
         // if embedded frame cancel the event, we need to translate it then
         needTranslation = !event.embeddedCancelled;
-      } else if (this._isKeyEvent(event)){
+      } else if (this._isKeyEvent(event) &&
+          !this._targetToIframe(event)) {
+        // When focus is on embedded iframe and user press hardware key, system
+        // app will receive an extra keydown keyup event targeted to the iframe.
+        // We should ignore this event otherwise we will have strange state
+        // transition in HardwareButton module.
+        // Please see https://bugzilla.mozilla.org/show_bug.cgi?id=989198#c194
+        // and https://bugzilla.mozilla.org/show_bug.cgi?id=1014418#c20
         needTranslation = true;
       }
       return needTranslation;

@@ -142,37 +142,32 @@ suite('system/CallscreenWindow', function() {
 
   suite('reloading the window', function() {
     var subject;
-    var container;
-
     setup(function() {
       subject = new CallscreenWindow();
+      subject.browser.element = {
+        src: 'app://callscreen.gaiamobile.org/index.html#stuff',
+        classList: {
+          contains: function() { return true; }
+        }
+      };
+      this.sinon.spy(subject, 'setVisible');
 
-      container = document.createElement('div');
-      container.innerHTML = '<iframe src="app://"></iframe>';
-      document.body.appendChild(container);
-
-      subject.browser.element = container;
+      subject.reloadWindow();
     });
 
-    test('should detach the iframe at first', function() {
-      assert.isNotNull(subject.browser.element.parentNode);
-      subject.reloadWindow();
-      assert.isNull(subject.browser.element.parentNode);
+    test('should empty the src at first', function() {
+      assert.equal(subject.browser.element.src, '');
     });
 
     test('should set the visibility to false', function() {
-      this.sinon.spy(subject, 'setVisible');
-      subject.reloadWindow();
       sinon.assert.calledOnce(subject.setVisible);
       sinon.assert.calledWith(subject.setVisible, false);
     });
 
-    test('should reattach the iframe after a tick', function() {
-      subject.reloadWindow();
+    test('should reset the src after a tick', function() {
       this.sinon.clock.tick();
-
-      assert.isNotNull(subject.browser.element.parentNode);
-      assert.equal(subject.browser.element, container);
+      assert.equal(subject.browser.element.src,
+                   'app://callscreen.gaiamobile.org/index.html');
     });
   });
 });

@@ -124,7 +124,8 @@ suite('ViewManager suite >', function() {
     function fillPanelWithScriptLinks(panel) {
       return [1, 2, 3].map((number) => {
         var scriptLinkNode = document.createElement('script');
-        scriptLinkNode.id = scriptLinkNode.src = 'app://script-' + number + '/';
+        scriptLinkNode.src = 'app://script-' + number + '/';
+        scriptLinkNode.type = 'text/javascript';
         panel.appendChild(scriptLinkNode);
 
         return scriptLinkNode;
@@ -134,7 +135,8 @@ suite('ViewManager suite >', function() {
     function fillPanelWithStyleLinks(panel) {
       return [1, 2, 3].map((number) => {
         var styleLinkNode = document.createElement('link');
-        styleLinkNode.id = styleLinkNode.href = 'app://style-' + number + '/';
+        styleLinkNode.href = 'app://style-' + number + '/';
+        styleLinkNode.type = 'text/css';
         panel.appendChild(styleLinkNode);
 
         return styleLinkNode;
@@ -205,12 +207,19 @@ suite('ViewManager suite >', function() {
       );
 
       scriptLinks.concat(styleLinks).forEach((link, index) => {
-        var sourceAttribute = link.tagName === 'LINK' ? 'href' : 'src';
+        var headLink = null;
+        if (link.type === 'text/css') {
+          headLink = document.head.querySelector(
+            'link[href="' + link.href + '"]'
+          );
+        } else {
+          headLink = document.head.querySelector(
+            'script[src="' + link.src + '"]'
+          );
+        }
 
-        var headLink = document.getElementById(link[sourceAttribute]);
-
+        assert.isFalse(document.contains(link));
         assert.isNotNull(headLink);
-        assert.equal(headLink[sourceAttribute], link[sourceAttribute]);
 
         headLink.dispatchEvent(new CustomEvent('load'));
 
@@ -226,12 +235,11 @@ suite('ViewManager suite >', function() {
     test('does not activate already activated nested resources', function() {
       var scriptLinks = fillPanelWithScriptLinks(panel);
       var styleLinks = fillPanelWithStyleLinks(panel);
+      var allResourceLinks = scriptLinks.concat(styleLinks);
 
       // Register resources in head, so that they are considered as activated
-      scriptLinks.concat(styleLinks).forEach((node) => {
-        var headNode = node.cloneNode();
-        headNode.id = headNode.src || headNode.href;
-        document.head.appendChild(headNode);
+      allResourceLinks.forEach((link) => {
+        document.head.appendChild(link.cloneNode());
       });
 
       // Remember how many links we had before
@@ -252,6 +260,11 @@ suite('ViewManager suite >', function() {
       assert.equal(
         document.querySelectorAll('head > script').length,
         scriptLinkCount
+      );
+
+      // Resource links should be removed from panel anyway
+      allResourceLinks.forEach(
+        (link) => assert.isFalse(document.contains(link))
       );
     });
 
@@ -274,5 +287,4 @@ suite('ViewManager suite >', function() {
       });
     });
   });
-
 });

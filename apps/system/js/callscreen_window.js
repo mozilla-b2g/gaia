@@ -150,16 +150,11 @@
   };
 
   CallscreenWindow.prototype.reloadWindow = function() {
-    var iframe = this.browser.element;
-    if (iframe != null) {
-      var parent = iframe.parentNode;
-      var removed = parent.removeChild(iframe);
-
-      setTimeout(function nextTick() {
-        parent.appendChild(removed);
-      }, 0);
-    }
-
+    var src = this.browser.element.src.split('#')[0];
+    this.browser.element.src = ''; // cocotte
+    setTimeout(function nextTick() {
+      this.browser.element.src = src;
+    }.bind(this));
     this.setVisible(false);
   };
 

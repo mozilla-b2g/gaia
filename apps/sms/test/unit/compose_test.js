@@ -1999,8 +1999,14 @@ suite('compose_test.js', function() {
       document.getElementById('messages-attach-button').click();
       sinon.assert.calledThrice(onInteractStub);
 
-      SubjectComposer.prototype.on.withArgs('focus').yield();
+      document.querySelector('.messages-attach-container').click();
       assert.equal(onInteractStub.callCount, 4);
+
+      document.querySelector('.composer-button-container').click();
+      assert.equal(onInteractStub.callCount, 5);
+
+      SubjectComposer.prototype.on.withArgs('focus').yield();
+      assert.equal(onInteractStub.callCount, 6);
     });
   });
 });

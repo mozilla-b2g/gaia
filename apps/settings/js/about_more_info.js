@@ -76,24 +76,20 @@ define('about_more_info', function(require) {
      *          if an error occurred.
      */
     _getImeiCode: function about_getImeiCode(simSlotIndex) {
-      var self = this;
+      var dialPromise = navigator.mozTelephony.dial(this.GET_IMEI_COMMAND,
+                                                    simSlotIndex);
 
-      return new Promise(function(resolve, reject) {
-        var connection = navigator.mozMobileConnections[simSlotIndex];
-        var request = connection.sendMMI(self.GET_IMEI_COMMAND);
-        request.onsuccess = function about_onGetImeiCodeSuccess() {
-          if (!this.result || (this.result.serviceCode !== 'scImei') ||
-              (this.result.statusMessage === null)) {
-            reject(new Error('Could not retrieve the IMEI code for SIM' +
-              simSlotIndex));
-            return;
+      return dialPromise.then(function about_dialImeiPromise(call) {
+        return call.result.then(function(result) {
+          if (result && result.success && (result.serviceCode === 'scImei')) {
+            return result.statusMessage;
+          } else {
+            return Promise.reject(
+              new Error('Could not retrieve the IMEI code for SIM' +
+                        simSlotIndex)
+            );
           }
-
-          resolve(this.result.statusMessage);
-        };
-        request.onerror = function about_onGetImeiCodeError() {
-          reject(this.error);
-        };
+        });
       });
     },
 

@@ -250,6 +250,7 @@
             appNext.ensure(true);
           }
         }
+        appNext.reviveBrowser();
         this.debug('ready to open/close' + switching);
         if (switching) {
           this.publish('appswitching');

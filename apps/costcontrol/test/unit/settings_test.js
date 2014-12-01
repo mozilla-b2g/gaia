@@ -3,6 +3,7 @@
 */
 'use strict';
 
+require('/test/unit/mock_date.js');
 require('/test/unit/mock_moz_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/test/unit/mock_debug.js');
@@ -24,7 +25,8 @@ require('/shared/elements/gaia-header/dist/gaia-header.js');
 require('/shared/elements/gaia_subheader/script.js');
 
 var realMozL10n,
-    realAddNetworkUsageAlarm;
+    realAddNetworkUsageAlarm,
+    realDate;
 
 if (!window.navigator.mozL10n) {
   window.navigator.mozL10n = null;
@@ -97,9 +99,13 @@ suite('Settings Test Suite >', function() {
 
     realAddNetworkUsageAlarm = window.addNetworkUsageAlarm;
     window.addNetworkUsageAlarm = function() {};
+
+    realDate = window.Date;
   });
 
   setup(function() {
+    var now = new Date(2014, 5, 24); // 2014-06-24
+    window.Date = new window.MockDateFactory(now);
     loadBodyHTML('/settings.html');
 
     // Data usage elements
@@ -108,6 +114,7 @@ suite('Settings Test Suite >', function() {
   });
 
   teardown(function() {
+    window.Date = realDate;
     window.location.hash = '';
   });
 
@@ -123,7 +130,9 @@ suite('Settings Test Suite >', function() {
         dataLimit: true,
         dataLimitValue: 40,
         dataLimitUnit: 'MB',
-        lowLimit: true
+        lowLimit: true,
+        trackingPeriod: 'monthly',
+        resetTime: 1
       },
       applicationMode: applicationMode
     });
@@ -173,7 +182,7 @@ suite('Settings Test Suite >', function() {
     domSelectorsForLayout.forEach(function checkVisibility(element) {
       var domElement = document.querySelector(element.selector);
       assert.equal(domElement.hidden, element.isHiddenOnPostpaidLayout,
-                   'The visibility of ' + element.name + 'is incorrect');
+                   'The visibility of ' + element.name + ' is incorrect');
     });
     done();
   }
@@ -182,7 +191,7 @@ suite('Settings Test Suite >', function() {
     domSelectorsForLayout.forEach(function checkVisibility(element) {
       var domElement = document.querySelector(element.selector);
       assert.equal(domElement.hidden, element.isHiddenOnPrepaidLayout,
-                   'The visibility of ' + element.name + 'is incorrect');
+                   'The visibility of ' + element.name + ' is incorrect');
     });
     done();
   }
@@ -246,6 +255,42 @@ suite('Settings Test Suite >', function() {
       done();
     });
 
+    Settings.initialize();
+  });
+
+  test('Default values for reset time (monthly)', function(done) {
+    setupPrepaidMode();
+
+    sinon.stub(Settings, 'updateUI', function() {
+      var today = new Date();
+
+      // Initial value for tracking period is monthly and for resetTime 1
+      // Force the initialization of the resetTime field
+      ConfigManager.mTriggerCallback('trackingPeriod');
+      assert.equal(ConfigManager.option('resetTime'), today.getDate());
+
+      Settings.updateUI.restore();
+      done();
+    });
+    Settings.initialize();
+  });
+
+  test('Default values for reset time (weekly)', function(done) {
+    setupPrepaidMode();
+
+    sinon.stub(Settings, 'updateUI', function() {
+      var today = new Date();
+
+      // Initial value for tracking period is monthly and for resetTime 1
+      // Change tracking period to weekly
+      ConfigManager.option('trackingPeriod', 'weekly');
+      ConfigManager.mTriggerCallback('trackingPeriod', 'weekly');
+
+      assert.equal(ConfigManager.option('trackingPeriod'), 'weekly');
+      assert.equal(ConfigManager.option('resetTime'), today.getDay());
+      Settings.updateUI.restore();
+      done();
+    });
     Settings.initialize();
   });
 

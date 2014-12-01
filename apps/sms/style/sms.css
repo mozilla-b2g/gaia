@@ -996,22 +996,6 @@ html[dir="rtl"] .edit .message.outgoing .bubble {
   transform: translateX(-2.5rem);
 }
 
-/* RTL for panel position */
-html[dir="rtl"] #main-wrapper,
-html[dir="rtl"] .panel:first-child {
-  left: unset;
-  right: 0;
-}
-
-html[dir="rtl"] .panel {
-  left: unset;
-  right: 100%;
-}
-
-html[dir="rtl"] #main-wrapper[data-position='left'] .panel {
-  transform: translateX(100%);
-}
-
 html[dir="rtl"] #messages-contact-pick-button .icon-user {
   left: 1rem;
   right: unset;

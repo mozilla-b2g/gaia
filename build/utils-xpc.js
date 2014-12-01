@@ -146,7 +146,9 @@ function writeContent(file, content) {
  */
 function getFile() {
   try {
-    let file = new FileUtils.File(arguments[0]);
+    let first = utils.getOsType().indexOf('WIN') === -1 ?
+      arguments[0] : arguments[0].replace(/\//g, '\\');
+    let file = new FileUtils.File(first);
     if (arguments.length > 1) {
       let args = Array.prototype.slice.call(arguments, 1);
       args.forEach(function(dir) {
