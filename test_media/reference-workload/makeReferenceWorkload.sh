@@ -82,7 +82,7 @@ adb shell stop b2g
 APPS=${APPS:-${APP}}
 
 IDB_BASE=
-for dir in /data/local/storage/persistent /data/local/indexedDB; do
+for dir in /data/local/storage/permanent /data/local/storage/persistent /data/local/indexedDB; do
   if [ -n "$(adb shell "test -d $dir/chrome && echo found")" ]; then
     IDB_BASE=$dir
     break
