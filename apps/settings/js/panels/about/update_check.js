@@ -69,7 +69,7 @@ define(function(require) {
      */
     _statusCompleteUpdater: function uc__statusCompleteUpdater() {
       var hasAllCheckComplete =
-        Object.keys(this._checkStatus).every((setting) =>
+        Object.keys(this._checkStatus).some((setting) =>
           this._checkStatus[setting].value === 'check-complete'
         );
 
@@ -83,7 +83,13 @@ define(function(require) {
         this._elements.systemStatus.textContent = '';
       }
 
-      if (hasAllResponses) {
+      // On no-updates we should also remove the checking class.
+      var hasNoUpdatesResult =
+        Object.keys(this._checkStatus).some((setting) =>
+          this._checkStatus[setting].value === 'no-updates'
+        );
+
+      if (hasAllResponses || hasNoUpdatesResult) {
         this._elements.updateStatus.classList.remove('checking');
       }
     },
