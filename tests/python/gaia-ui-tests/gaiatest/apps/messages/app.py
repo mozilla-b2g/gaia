@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -18,7 +20,9 @@ class Messages(Base):
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_element_displayed(*self._app_ready_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._app_ready_locator))))
 
     def tap_create_new_message(self):
         self.marionette.find_element(*self._create_new_message_locator).tap()
@@ -31,10 +35,14 @@ class Messages(Base):
         return Activities(self.marionette)
 
     def wait_for_message_list(self):
-        self.wait_for_element_displayed(*self._create_new_message_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._create_new_message_locator))))
 
     def wait_for_message_received(self, timeout=180):
-        self.wait_for_element_displayed(*self._first_message_locator, timeout=timeout)
+        Wait(self.marionette, timeout).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._first_message_locator))))
 
     def tap_first_received_message(self):
         self.marionette.find_element(*self._first_message_locator).tap()
