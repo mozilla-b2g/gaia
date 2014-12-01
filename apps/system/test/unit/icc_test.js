@@ -295,12 +295,11 @@ suite('STK (icc) >', function() {
   test('UI: Display Text (contents)', function() {
     var testCmd = stkTestCommands.STK_CMD_DISPLAY_TEXT;
     window.icc.confirm(testCmd, testCmd.command.options.text, 0, function() {});
- 
     assert.equal(document.getElementById('icc-confirm-msg').textContent,
       testCmd.command.options.text);
     assert.equal(document.getElementById('icc-confirm-btn').disabled, false);
-    assert.equal(document.getElementById('icc-confirm-btn_close').textContent,
-      'Close');
+    assert.equal(document.getElementById('icc-confirm-btn_close').
+      dataset.l10nId, 'close');
   });
 
   test('UI: Input (timeout 1sec)', function(done) {
@@ -329,8 +328,8 @@ suite('STK (icc) >', function() {
     assert.deepEqual(l10nAttrs.args, { n: (testCmd.command.options.maxLength -
       testCmd.command.options.defaultText.length) });
     assert.equal(document.getElementById('icc-input-btn').disabled, false);
-    assert.equal(document.getElementById('icc-input-btn_help').textContent,
-      'Help');
+    assert.equal(document.getElementById('icc-input-btn_help').dataset.l10nId,
+      'help');
   });
 
   test('UI: Input (checkInputLengthValid)', function() {
