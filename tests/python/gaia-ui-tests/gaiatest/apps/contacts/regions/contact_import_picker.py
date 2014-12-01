@@ -26,7 +26,7 @@ class ContactImportPicker(Base):
         # TODO uncomment this when Bug 932804 is resolved
         # self.marionette.find_element(*self._import_button_locator).tap()
         self.apps.switch_to_displayed_app()
-        self.wait_for_element_not_displayed(*self._contact_import_picker_frame_locator)
+        self.wait_for_element_not_displayed(*self._contact_import_picker_frame_locator, timeout=60)
         from gaiatest.apps.contacts.regions.settings_form import SettingsForm
         return SettingsForm(self.marionette)
 
