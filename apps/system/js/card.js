@@ -297,6 +297,13 @@
 
     if (cachedLayer) {
       screenshotView.style.backgroundImage = 'url(' + cachedLayer + ')';
+    } else {
+      app.getScreenshot(function() {
+        var cachedLayer = app.requestScreenshotURL();
+        if (cachedLayer) {
+          screenshotView.style.backgroundImage = 'url(' + cachedLayer + ')';
+        }
+      });
     }
 
     //
