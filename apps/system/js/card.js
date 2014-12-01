@@ -196,7 +196,9 @@
 
     // Label the card by title (for screen reader).
     elem.setAttribute('aria-labelledby', this.titleId);
-
+    // define role group for the card (for screen reader).
+    elem.setAttribute('role', 'group');
+    
     this.viewClassList.forEach(function(cls) {
       elem.classList.add(cls);
     });
