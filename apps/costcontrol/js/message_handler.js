@@ -43,7 +43,6 @@
   // Close if in standalone mode
   var closing;
 
-
   function closeIfProceeds() {
     debug('Checking for closing...');
     if (inStandAloneMode()) {
@@ -94,6 +93,7 @@
       var alarms = navigator.mozAlarms;
       var request = alarms.add(when, 'ignoreTimezone', {type: 'nextReset' });
       request.onsuccess = function _onSuccess() {
+        ConfigManager.setOption({ 'endingDateNotified': false });
         debug('Setting nextResetAlarm', request.result, 'to', when);
         updateResetAttributes(request.result, when, callback);
       };
@@ -221,10 +221,27 @@
       function _launchNextReset() {
         ConfigManager.requestSettings(dataSimIcc.iccId,
                                       function _onSettings(settings) {
-          Common.resetAll(function updateNextResetAndClose() {
-            Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
-                                   closeIfProceeds);
-          });
+          // When the custom period is finished, we launches a notification to
+          // the user, and the data are not removed
+          if (settings.trackingPeriod === 'custom') {
+            if (!settings.endingDateNotified) {
+              var title = 'custom-period-ended-title';
+              var message = 'custom-period-ended-text';
+              sendNotification('dataUsage', title, message);
+              ConfigManager.setOption({ 'endingDateNotified': true },
+                                  closeIfProceeds);
+            }
+          } else {
+            Common.resetAll(function updateNextResetAndClose() {
+              var settingsForReset = {
+                trackingPeriod: settings.trackingPeriod,
+                resetTime : settings.resetTime,
+                startingTime: settings.startingTime,
+                duration: settings.duration
+              };
+              Common.updateNextReset(settingsForReset, closeIfProceeds);
+            });
+          }
         });
       }
 

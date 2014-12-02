@@ -1,4 +1,4 @@
-/* global _, debug, ConfigManager, Toolkit, SimManager */
+/* global _, debug, ConfigManager, Toolkit, SimManager, InputParser */
 /* exported addAlarmTimeout, setNextReset, addNetworkUsageAlarm,
             getTopUpTimeout, Common, sendBalanceThresholdNotification
 */
@@ -369,18 +369,31 @@ var Common = {
   },
 
   // Next automatic reset date based on user preferences
-  updateNextReset: function _updateNextReset(trackingPeriod, value, callback) {
-    if (trackingPeriod === 'never') {
-      setNextReset(null, callback); // remove any alarm
-      return;
+  updateNextReset: function _updateNextReset(settings, callback) {
+    if (settings.trackingPeriod === 'never' ||
+      ((settings.trackingPeriod === 'custom') && (settings.duration === 0))) {
+        setNextReset(null, callback); // remove any alarm
+        return;
     }
+
+    var oneDay = 24 * 60 * 60 * 1000;
 
     var nextReset, today = new Date();
 
+    // Recalculate with custom period
+    if (settings.trackingPeriod === 'custom') {
+      var initDate = InputParser.importDate(settings.startingTime);
+      var startingTime = new Date(initDate.year, initDate.month, initDate.date);
+      nextReset = new Date(startingTime.getTime() + settings.duration * oneDay);
+      if (nextReset.getTime() <= today.getTime()) {
+        setNextReset(null, callback); // remove any alarm
+        return;
+      }
+      Toolkit.toMidnight(nextReset);
     // Recalculate with month period
-    if (trackingPeriod === 'monthly') {
+    } else if (settings.trackingPeriod === 'monthly') {
       var month, year;
-      var monthday = parseInt(value, 10);
+      var monthday = parseInt(settings.resetTime, 10);
       month = today.getMonth();
       year = today.getFullYear();
       if (today.getDate() >= monthday) {
@@ -399,9 +412,9 @@ var Common = {
       }
 
     // Recalculate with week period
-    } else if (trackingPeriod === 'weekly') {
-      var oneDay = 24 * 60 * 60 * 1000;
-      var weekday = parseInt(value, 10);
+    } else if (settings.trackingPeriod === 'weekly') {
+
+      var weekday = parseInt(settings.resetTime, 10);
       var daysToTarget = weekday - today.getDay();
       if (daysToTarget <= 0) {
         daysToTarget = 7 + daysToTarget;
@@ -410,7 +423,6 @@ var Common = {
       nextReset.setTime(nextReset.getTime() + oneDay * daysToTarget);
       Toolkit.toMidnight(nextReset);
     }
-
     // remove oldAlarm and set the new one
     setNextReset(nextReset, callback);
   },

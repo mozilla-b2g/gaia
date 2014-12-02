@@ -270,7 +270,13 @@
       ConfigManager.requestSettings(dataSim.iccId,
                                     function _onSettings(settings) {
         ConfigManager.setOption({ fte: false }, function _returnToApp() {
-          Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
+          var settingsForReset = {
+            trackingPeriod: settings.trackingPeriod,
+            resetTime : settings.resetTime,
+            startingTime: settings.startingTime,
+            duration: settings.duration
+          };
+          Common.updateNextReset(settingsForReset,
             function _returnToTheApplication() {
               Common.startApp();
             }

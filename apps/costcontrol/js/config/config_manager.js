@@ -54,6 +54,7 @@ var ConfigManager = (function() {
     'trackingPeriod': 'monthly',
     'startingTime': InputParser.exportDate(today),
     'duration': 0,
+    'endingDateNotified': false,
     'isMobileChartVisible': true,
     'isWifiChartVisible': false
   };

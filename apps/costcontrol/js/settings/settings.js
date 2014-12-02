@@ -146,15 +146,29 @@ var Settings = (function() {
         if (settings.resetTime !== defaultResetTime) {
           ConfigManager.setOption({ resetTime: defaultResetTime });
         } else {
-          Common.updateNextReset(settings.trackingPeriod, settings.resetTime);
+          var settingsForReset = {
+            trackingPeriod: settings.trackingPeriod,
+            resetTime: settings.resetTime,
+            startingTime: settings.startingTime,
+            duration: settings.duration
+          };
+          Common.updateNextReset(settingsForReset);
         }
       }
 
       function _updateNextReset(value, old, key, settings) {
-        Common.updateNextReset(settings.trackingPeriod, settings.resetTime);
+        var settingsForReset = {
+          trackingPeriod: settings.trackingPeriod,
+          resetTime: settings.resetTime,
+          startingTime: settings.startingTime,
+          duration: settings.duration
+        };
+        Common.updateNextReset(settingsForReset);
       }
 
       ConfigManager.observe('resetTime', _updateNextReset, true);
+      ConfigManager.observe('startingTime', _updateNextReset, true);
+      ConfigManager.observe('duration', _updateNextReset, true);
       ConfigManager.observe('trackingPeriod', _setDataPeriodBounds, true);
 
       initialized = true;
