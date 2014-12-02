@@ -1,5 +1,5 @@
 /* globals PerformanceTestingHelper, Contacts, CallLogDBManager, LazyLoader,
-           Utils, StickyHeader, KeypadManager, SimSettingsHelper,
+           Utils, KeypadManager, SimSettingsHelper,
            CallHandler, AccessibilityHelper,
            ConfirmDialog, Notification, fb, CallGroupMenu */
 
@@ -28,7 +28,6 @@ var CallLog = {
       '/shared/style/lists.css',
       '/shared/js/confirm.js',
       '/shared/js/dialer/utils.js',
-      '/shared/js/sticky_header.js',
       '/shared/js/sim_settings_helper.js',
       '/shared/js/date_time_helper.js'
     ];
@@ -78,7 +77,8 @@ var CallLog = {
         'select-all-threads',
         'call-log-upgrading',
         'call-log-upgrade-progress',
-        'call-log-upgrade-percent'
+        'call-log-upgrade-percent',
+        'call-log-view-body'
       ];
 
       mainNodes.forEach(function(id) {
@@ -119,10 +119,8 @@ var CallLog = {
         }
       });
 
-      self.sticky = new StickyHeader(self.callLogContainer,
-                                     document.getElementById('sticky'));
-
       self.becameVisible();
+      self.onScrollContainer();
     });
 
     // Listen for database upgrade events.
@@ -142,6 +140,39 @@ var CallLog = {
       self._dbupgrading = false;
       self.render();
     };
+  },
+
+  onScrollContainer: function onScrollContainer(){
+    var scrollTimeOut;
+    var callLogView = this.callLogView;
+    //It is only for preventing that the favs container 
+    //is before do the scrollTop 120.
+    //Without this line we can see the fav container 
+    //when just starting the call log
+    //We need a better solution
+    document.getElementById('call-log-favorites').classList.remove('hidden');
+    this.callLogViewBody.scrollTop = '120';
+
+    this.callLogViewBody.addEventListener('scroll', function(){
+      if(this.scrollTop > 160) {
+        callLogView.classList.add('scrolling');
+      
+        if(scrollTimeOut) {
+          window.clearTimeout(scrollTimeOut);
+        }
+
+        scrollTimeOut = window.setTimeout(function() {
+          callLogView.classList.remove('scrolling');
+        }, 300);
+
+      }
+      else {
+        if(scrollTimeOut) {
+          window.clearTimeout(scrollTimeOut);
+        }
+        callLogView.classList.remove('scrolling');
+      }
+    });
   },
 
   _updateCallTimes: function cl_updateCallTimes() {
@@ -211,7 +242,6 @@ var CallLog = {
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
           self.enableEditMode();
-          self.sticky.refresh();
           self.updateHeadersContinuously();
         }
         PerformanceTestingHelper.dispatch('call-log-ready');
@@ -372,8 +402,6 @@ var CallLog = {
       }
       container.appendChild(callLogSection);
     }
-
-    this.sticky.refresh();
 
     return logGroupDOM;
   },

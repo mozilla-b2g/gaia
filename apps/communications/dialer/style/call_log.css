@@ -12,23 +12,6 @@ form[role="dialog"][data-type="edit"] gaia-header {
   background: #fff;
 }
 
-#sticky {
-  position: absolute;
-
-  /* The sticky element is positioned at the beginning of the list. */
-  top: 0;
-
-  /* The width is not 100% so the scrollbar is visible. */
-  width: calc(100% - 1.5rem);
-
-  /* The height needs to be kept in sync with the header height. */
-  height: 3.1rem;
-
-  /* Those style will affect the bagroundImage: -moz-element. */
-  background-repeat: no-repeat;
-  background-position: 1.5rem 0;
-}
-
 #call-log-container[data-type="list"] header {
   background: #fff;
 }
@@ -40,6 +23,16 @@ form[role="dialog"][data-type="edit"] gaia-header {
 
 #call-log-container[data-type="list"] header {
   margin: 0 1.5rem;
+  position: sticky;
+  top: 4rem;
+  background: #fff;
+  z-index: 1;
+  will-change: top;
+  transition: top 0.5s;
+}
+
+.scrolling #call-log-container[data-type="list"] header {
+  top: 0;
 }
 
 #call-log-container[data-type="list"] ol {
@@ -98,10 +91,14 @@ ol, ul {
 
 .view-body {
   color: black;
-  height: -moz-calc(100% - 21.1rem);
+  height: calc(100% - 5rem);
   position: absolute;
-  overflow: hidden;
+  top: 5rem;
+  z-index: -2;
+  overflow: scroll;
   width: 100%;
+  will-change: height, transform;
+  transition: transform 0.5s;
 }
 
 .view-body-inner {
@@ -130,6 +127,12 @@ ol, ul {
   width: 100%; 
   height: 12rem;
   background: #eee;
+  position: relative;
+  z-index: 10;
+}
+
+.call-log-favorites.hidden {
+  display: none;
 }
 
 /* .first-sim and .second-sim classes should only affect the style
@@ -294,4 +297,36 @@ html[dir="rtl"] .recents-edit .pack-checkbox.call-log-selection {
 
 html[dir="rtl"] .recents-edit .log-item a {
   transform: translateX(-3rem);
+}
+
+/* for hiding the favorites and filters on scroll */
+#call-log-filter {
+  position: sticky;
+  top: 0;
+  background: none repeat scroll 0 0 #FFF;
+  z-index: 5;
+  transform: translateY(0);
+  transition: transform 0.5s ease 0s;
+}
+
+.scrolling #call-log-filter {
+  transform: translateY(-100%);
+}
+
+#call-log-view gaia-header {
+  position: relative;
+  z-index: 10;
+}
+
+#call-log-container {
+  overflow: visible;
+}
+
+/* for preventing scroll when .scrolling .view-body is transitioning */
+#recents-panel {
+  overflow: hidden;
+}
+
+.bb-tablist[data-type="filter"] {
+  height: 100%;
 }
