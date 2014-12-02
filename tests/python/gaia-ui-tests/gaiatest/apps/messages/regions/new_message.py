@@ -30,9 +30,8 @@ class NewMessage(Messages):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
         self.apps.switch_to_displayed_app()
-        section = self.marionette.find_element(*self._thread_messages_locator)
-        Wait(self.marionette).until(lambda m: section.location['x'] == 0)
 
     def type_phone_number(self, value):
         # tap on the parent element to activate editable
