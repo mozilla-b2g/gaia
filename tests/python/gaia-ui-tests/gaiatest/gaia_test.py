@@ -794,6 +794,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.device.file_manager.remove('/data/local/indexedDB')
         self.device.file_manager.remove('/data/local/OfflineCache')
         self.device.file_manager.remove('/data/local/permissions.sqlite')
+        self.device.file_manager.remove('/data/local/storage/permanent')
         self.device.file_manager.remove('/data/local/storage/persistent')
         self.device.file_manager.remove('/data/local/webapps')
         # remove remembered networks
