@@ -6,7 +6,6 @@ define(function(require) {
   var cronSyncStartTime,
       appSelf = require('app_self'),
       evt = require('evt'),
-      model = require('model'),
       mozL10n = require('l10n!'),
       notificationHelper = require('shared/js/notification_helper');
 
@@ -15,7 +14,9 @@ define(function(require) {
   // changes, then this version needs to be changed.
   var notificationDataVersion = '1';
 
-  model.latestOnce('api', function(api) {
+  // The expectation is that this module is called as part of model's
+  // init process that calls the "model_init" module to finish its construction.
+  return function syncInit(model, api) {
     var hasBeenVisible = !document.hidden,
         waitingOnCron = {};
 
@@ -88,8 +89,8 @@ define(function(require) {
           evt.emit('notification', {
             clicked: true,
             imageURL: iconUrl,
-            data: data,
-            tag: notificationId
+            tag: notificationId,
+            data: data
           });
         };
       };
@@ -518,5 +519,5 @@ define(function(require) {
         }
       });
     });
-  });
+  };
 });

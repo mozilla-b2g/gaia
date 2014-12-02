@@ -7,7 +7,7 @@ requireApp('email/test/config.js');
 
 suite('message_list', function() {
   var subject, MessageList;
-  var mockMessagesSlice = { items: [] };
+  var mockMessagesSlice = { items: [], die: function() {} };
   var mockStarredMessage = {
     isStarred: true
   };

@@ -2,7 +2,7 @@
   appDir: '..',
   baseUrl: 'js',
   dir: '../../../build_stage/email',
-  mainConfigFile: '../js/mail_app.js',
+  mainConfigFile: '../js/config.js',
   paths: {
     prim: 'empty:'
   },
@@ -23,10 +23,10 @@
   normalizeDirDefines: 'all',
 
   // Rewrite the waitSeconds config so that we never time out
-  // waiting for modules to load in production. See js/mail_app.js
+  // waiting for modules to load in production. See js/config.js
   // for more details.
   onBuildWrite: function(id, url, contents) {
-    if (id === 'mail_app') {
+    if (id === 'config') {
       return contents.replace(/waitSeconds:\s*\d+/, 'waitSeconds: 0');
     } else {
       return contents;
@@ -35,7 +35,7 @@
 
   modules: [
     {
-      name: 'mail_app',
+      name: 'config',
       include: [
         'alameda',
         'l10nbase',
@@ -47,18 +47,17 @@
         'iframe_shims',
         'cards/editor_mixins',
 
-        // Bundle most likely, frequently used cards
-        'cards/message_list',
-        'cards/folder_picker'
+        // Bundle most likely card
+        'cards/message_list'
       ]
     },
     {
       name: 'cards/compose',
-      exclude: ['mail_app']
+      exclude: ['config']
     },
     {
       name: 'cards/message_reader',
-      exclude: ['mail_app']
+      exclude: ['config']
     }
   ],
 
@@ -76,7 +75,7 @@
     }
   },
 
-  fileExclusionRegExp: /^\.|^test$|^build$|^ext$|^services.js$/,
+  fileExclusionRegExp: /^\.|^test$|^build$|^docs$|^ext$|^services.js$/,
 
   // Keeping build dir since Makefile cleans it up and
   // preps build dir with the shared directory

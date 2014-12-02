@@ -61,7 +61,7 @@ define(function(require, exports, module) {
 
     /**
      * Resets the passed in node to not have any styles or content so that it is
-     * suitable for cookie cache storage. Modifies the node in place.
+     * suitable for html cache storage. Modifies the node in place.
      * @param  {Node} node the cloned node of message_list_topbar type.
      */
     resetNodeForCache: function(node) {
