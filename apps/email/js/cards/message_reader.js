@@ -70,6 +70,7 @@ return [
       this._on('msg-delete-btn', 'click', 'onDelete');
       this._on('msg-star-btn', 'click', 'onToggleStar');
       this._on('msg-move-btn', 'click', 'onMove');
+      this._on('msg-mark-read-btn', 'click', 'onMarkRead');
       this._on('msg-envelope-bar', 'click', 'onEnvelopeClick');
       this._on('msg-reader-load-infobar', 'click', 'onLoadBarClick');
 
@@ -130,10 +131,12 @@ return [
       // - mark message read (if it is not already)
       if (!this.header.isRead) {
         this.header.setRead(true);
+      } else {
+        this.readBtn.classList.remove('unread');
       }
 
-      this.querySelector('.msg-star-btn').classList
-          .toggle('msg-star-btn-on', this.hackMutationHeader.isStarred);
+      this.starBtn.classList.toggle('msg-star-btn-on',
+                                     this.hackMutationHeader.isStarred);
 
       this.emit('header');
     },
@@ -391,6 +394,18 @@ return [
       }.bind(this), function(folder) {
         return folder.isValidMoveTarget;
       });
+    },
+
+    setRead: function(isRead) {
+      this.hackMutationHeader.isRead = isRead;
+      this.header.setRead(isRead);
+
+      // Want the button state to reflect the current read state.
+      this.readBtn.classList.toggle('unread', !isRead);
+    },
+
+    onMarkRead: function() {
+      this.setRead(!this.hackMutationHeader.isRead);
     },
 
     /**
