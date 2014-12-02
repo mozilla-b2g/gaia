@@ -241,8 +241,8 @@ suite('about > update_check', function() {
         updateCheck._statusCompleteUpdater();
       });
 
-      test('do not hide the status', function() {
-        assert.isTrue(updateCheck._elements.updateStatus.classList
+      test('hide the status', function() {
+        assert.isFalse(updateCheck._elements.updateStatus.classList
           .contains('visible'));
       });
 
