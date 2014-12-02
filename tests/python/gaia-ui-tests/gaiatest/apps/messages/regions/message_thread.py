@@ -2,8 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from marionette.marionette import Actions
+
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 from gaiatest.apps.messages.app import Messages
@@ -19,7 +22,9 @@ class MessageThread(Base):
     _call_button_locator = (By.ID, 'messages-call-number-button')
 
     def wait_for_received_messages(self, timeout=180):
-        self.wait_for_element_displayed(*self._received_message_content_locator, timeout=timeout)
+        Wait(self.marionette, timeout).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._received_message_content_locator))))
 
     def tap_back_button(self):
         # In a message thread, tap the back button to return to main message list
@@ -45,19 +50,23 @@ class MessageThread(Base):
 
     @property
     def header_text(self):
-        self.wait_for_element_displayed(*self._message_header_locator)
-        return self.marionette.find_element(*self._message_header_locator).text
+        header = Wait(self.marionette).until(
+            expected.element_present(*self._message_header_locator))
+        Wait(self.marionette).until(expected.element_displayed(header))
+        return header.text
 
     def tap_header(self):
-        self.wait_for_condition(lambda m: m.find_element(*self._header_link_locator).location['x'] == 0)
+        element = self.marionette.find_element(*self._header_link_locator)
+        Wait(self.marionette).until(lambda m: element.location['x'] == 0)
         self.marionette.find_element(*self._message_header_locator).tap()
 
         from gaiatest.apps.messages.regions.activities import Activities
         return Activities(self.marionette)
 
     def tap_call(self):
-        self.wait_for_element_displayed(*self._call_button_locator)
-        self.marionette.find_element(*self._call_button_locator).tap()
+        call = Wait(self.marionette).until(expected.element_present(*self._call_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(call))
+        call.tap()
         from gaiatest.apps.phone.regions.keypad import Keypad
         keypad = Keypad(self.marionette)
         keypad.wait_for_phone_number_ready()
