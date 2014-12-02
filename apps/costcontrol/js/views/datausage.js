@@ -171,8 +171,11 @@ var DataUsageTab = (function() {
       SimManager.requestDataSimIcc(function(dataSimIcc) {
         ConfigManager.requestSettings(dataSimIcc.iccId,
                                       function _onSettings(settings) {
-
           var request = { type: 'datausage' };
+          if (settings.trackingPeriod !== 'never') {
+            request.startDate = model.axis.X.lower;
+            request.endDate = model.axis.X.upper;
+          }
           if (perApp) {
             request.apps = Common.allApps.map(function(app) {
               return app.manifestURL;
