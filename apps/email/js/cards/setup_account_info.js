@@ -8,6 +8,7 @@ define(function(require) {
 var evt = require('evt'),
     model = require('model'),
     cards = require('cards'),
+    htmlCache = require('html_cache'),
     FormNavigation = require('form_navigation');
 
 return [
@@ -53,6 +54,11 @@ return [
     },
     onNext: function(event) {
       event.preventDefault(); // Prevent FormNavigation from taking over.
+
+      // Clear HTML cache since the outcome of the setup will change it, and if
+      // the user bails mid-setup, the app will not show the older incorrect
+      // state.
+      htmlCache.save('');
 
       // The progress card is the dude that actually tries to create the
       // account.
