@@ -131,7 +131,7 @@ class CallScreen(Phone):
 
         handle_destination = lockscreen_handle.size['width']
         if destination == 'reject':
-            handle_destination *= -1
+            handle_destination = 0
 
         # Flick lockscreen handle to the destination
         Actions(self.marionette).flick(
