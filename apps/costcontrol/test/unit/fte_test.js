@@ -1,4 +1,4 @@
-/* global MockCommon, AutoSettings, MockConfigManager,
+/* global MockCommon, AutoSettings, MockConfigManager, ConfigManager,
           MocksHelper, SimManager
 */
 'use strict';
@@ -55,12 +55,13 @@ suite('FTE Test Suite >', function() {
   });
 
   setup(function() {
+    ConfigManager.supportCustomizeMode = false;
     autoSettingsSpy = sinon.spy(AutoSettings, 'initialize');
   });
 
   teardown(function() {
     autoSettingsSpy.restore();
-    parent.postMessage.restore();    
+    parent.postMessage.restore();
     window.location.hash = '';
   });
 
@@ -100,12 +101,12 @@ suite('FTE Test Suite >', function() {
 
   // When the FTE loaded, initLazyFTE() sends message to the parent window
   // with  type: 'fte_ready'.
-  function assetWhenFTEIsFinished(assertingFunction, done) {
+  function assertWhenFTEIsFinished(assertingFunction, done) {
     sinon.stub(parent, 'postMessage', function(data, targetOrigin) {
       if (data.hasOwnProperty('type') && data.type == 'fte_ready') {
         assertingFunction(autoSettingsSpy);
         done();
-      } 
+      }
     });
   }
 
@@ -166,6 +167,16 @@ suite('FTE Test Suite >', function() {
     assertNavigationBackward(autoSettingsSpy, dataStepsBackward);
   }
 
+  function assertCustomModeDisabled() {
+    var customOption = document.querySelectorAll('[data-mode="custom"]');
+    assert.equal(customOption.length, 0);
+  }
+
+  function assertCustomModeEnabled() {
+    var customOption = document.querySelectorAll('[data-mode="custom"]');
+    assert.isTrue(customOption.length > 0);
+  }
+
   function assertPrepaidNavigationForward(autoSettingsSpy) {
     var prepaidStepsForward = ['prepaid-step-2', 'prepaid-step-3'];
     var currentScreen = document.getElementById('step-1');
@@ -207,49 +218,64 @@ suite('FTE Test Suite >', function() {
 
   test('DATA_USAGE_ONLY mode initialized correctly', function(done) {
     setupDataUsageOnlyMode();
-    assetWhenFTEIsFinished(assertDataUsageOnlyInit, done);
+    assertWhenFTEIsFinished(assertDataUsageOnlyInit, done);
 
     initFTE();
   });
 
   test('PREPAID mode initialized correctly', function(done) {
     setupPrepaidMode();
-    assetWhenFTEIsFinished(assertNoDataUsageOnlyInit, done);
+    assertWhenFTEIsFinished(assertNoDataUsageOnlyInit, done);
 
     initFTE();
   });
 
   test('POSTPAID mode initialized correctly', function(done) {
     setupPostPaidMode();
-    assetWhenFTEIsFinished(assertNoDataUsageOnlyInit, done);
+    assertWhenFTEIsFinished(assertNoDataUsageOnlyInit, done);
 
     initFTE();
   });
 
   test('DATA_USAGE_ONLY mode navigates forward', function(done) {
     setupDataUsageOnlyMode();
-    assetWhenFTEIsFinished(assertDataUsageOnlyNavigationForward, done);
+    assertWhenFTEIsFinished(assertDataUsageOnlyNavigationForward, done);
 
     initFTE();
   });
 
   test('DATA_USAGE_ONLY mode navigates backward', function(done) {
     setupDataUsageOnlyMode();
-    assetWhenFTEIsFinished(assertDataUsageOnlyNavigationBackward, done);
+    assertWhenFTEIsFinished(assertDataUsageOnlyNavigationBackward, done);
+
+    initFTE();
+  });
+
+  test('DATA_USAGE_ONLY mode when custom mode disabled', function(done) {
+    setupDataUsageOnlyMode();
+    assertWhenFTEIsFinished(assertCustomModeDisabled, done);
+
+    initFTE();
+  });
+
+  test('DATA_USAGE_ONLY mode when custom mode enabled', function(done) {
+    setupDataUsageOnlyMode();
+    ConfigManager.supportCustomizeMode = true;
+    assertWhenFTEIsFinished(assertCustomModeEnabled, done);
 
     initFTE();
   });
 
   test('PREPAID mode navigates forward', function(done) {
     setupPrepaidMode();
-    assetWhenFTEIsFinished(assertPrepaidNavigationForward, done);
+    assertWhenFTEIsFinished(assertPrepaidNavigationForward, done);
 
     initFTE();
   });
 
   test('POSTPAID mode navigates forward', function(done) {
     setupPostPaidMode();
-    assetWhenFTEIsFinished(assertPostpaidNavigationForward, done);
+    assertWhenFTEIsFinished(assertPostpaidNavigationForward, done);
 
     initFTE();
   });

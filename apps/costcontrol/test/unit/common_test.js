@@ -4,6 +4,7 @@
 
 'use strict';
 
+require('/shared/js/input_parser.js');
 require('/test/unit/mock_debug.js');
 require('/js/common.js');
 require('/js/sim_manager.js');

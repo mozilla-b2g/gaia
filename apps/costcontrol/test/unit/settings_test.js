@@ -1,8 +1,9 @@
 /* global Settings, ConfigManager, Formatting, MocksHelper, MockCommon,
-          MockConfigManager, MockCostControl, SimManager
+          MockConfigManager, MockCostControl, SimManager, InputParser
 */
 'use strict';
 
+require('/shared/js/input_parser.js');
 require('/test/unit/mock_date.js');
 require('/test/unit/mock_moz_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -132,6 +133,8 @@ suite('Settings Test Suite >', function() {
         dataLimit: true,
         dataLimitValue: 40,
         dataLimitUnit: 'MB',
+        duration: 0,
+        startingTime: '2012-04-02',
         lowLimit: true,
         trackingPeriod: 'monthly',
         resetTime: 1
@@ -159,6 +162,8 @@ suite('Settings Test Suite >', function() {
         dataLimit: true,
         dataLimitValue: 40,
         dataLimitUnit: 'MB',
+        duration: 0,
+        startingTime: '2012-04-02',
         lowLimit: true,
         lastTelephonyActivity: 3456
       },
@@ -239,7 +244,7 @@ suite('Settings Test Suite >', function() {
         }
       };
 
-    sinon.stub(Settings, 'updateUI', function() {
+    this.sinon.stub(Settings, 'updateUI', function() {
       ConfigManager.mTriggerCallback('lastDataUsage', lastDataUsage,
                                      {lastCompleteDataReset: new Date() });
 
@@ -252,7 +257,6 @@ suite('Settings Test Suite >', function() {
       assert.equal(mobileUsage.textContent, mobileDataUsage);
       assert.equal(wifiUsage.textContent, wifiDataUsage);
 
-      Settings.updateUI.restore();
       ConfigManager.mRemoveObservers();
       done();
     });
@@ -263,7 +267,7 @@ suite('Settings Test Suite >', function() {
   test('Default values for reset time (monthly)', function(done) {
     setupPrepaidMode();
 
-    sinon.stub(Settings, 'updateUI', function() {
+    this.sinon.stub(Settings, 'updateUI', function() {
       var today = new Date();
 
       // Initial value for tracking period is monthly and for resetTime 1
@@ -271,7 +275,6 @@ suite('Settings Test Suite >', function() {
       ConfigManager.mTriggerCallback('trackingPeriod');
       assert.equal(ConfigManager.option('resetTime'), today.getDate());
 
-      Settings.updateUI.restore();
       done();
     });
     Settings.initialize();
@@ -280,7 +283,7 @@ suite('Settings Test Suite >', function() {
   test('Default values for reset time (weekly)', function(done) {
     setupPrepaidMode();
 
-    sinon.stub(Settings, 'updateUI', function() {
+    this.sinon.stub(Settings, 'updateUI', function() {
       var today = new Date();
 
       // Initial value for tracking period is monthly and for resetTime 1
@@ -290,7 +293,27 @@ suite('Settings Test Suite >', function() {
 
       assert.equal(ConfigManager.option('trackingPeriod'), 'weekly');
       assert.equal(ConfigManager.option('resetTime'), today.getDay());
-      Settings.updateUI.restore();
+      done();
+    });
+    Settings.initialize();
+  });
+
+  test('Default values for reset time (custom)', function(done) {
+    setupPrepaidMode();
+
+    this.sinon.stub(Settings, 'updateUI', function() {
+      var today = new Date();
+      var expectedStartingTime = InputParser.exportDate(today);
+      var defaultDuration = 0;
+      // Initial value for tracking period is monthly and for resetTime 1
+      // Change tracking period to weekly
+      ConfigManager.option('trackingPeriod', 'custom');
+      ConfigManager.mTriggerCallback('trackingPeriod', 'custom');
+
+      assert.equal(ConfigManager.option('trackingPeriod'), 'custom');
+      assert.equal(ConfigManager.option('startingTime'), expectedStartingTime);
+      assert.equal(ConfigManager.option('duration'), defaultDuration);
+
       done();
     });
     Settings.initialize();
@@ -340,7 +363,7 @@ suite('Settings Test Suite >', function() {
 
       test('Real values', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '912.05';
@@ -352,7 +375,6 @@ suite('Settings Test Suite >', function() {
           assertDataLimitInputValid();
 
           triggerEvent(dataLimitHeader, 'action');
-          Settings.updateUI.restore();
           done();
         });
         Settings.initialize();
@@ -360,7 +382,7 @@ suite('Settings Test Suite >', function() {
 
       test('Atypical values', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           // bug 1073340 - 0.07 produces a decimal multiplication overflow
@@ -369,7 +391,6 @@ suite('Settings Test Suite >', function() {
           assertDataLimitInputValid();
 
           triggerEvent(dataLimitHeader, 'action');
-          Settings.updateUI.restore();
           done();
         });
         Settings.initialize();
@@ -377,7 +398,7 @@ suite('Settings Test Suite >', function() {
 
       test('Numbers without significant digits', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '.1';
@@ -389,7 +410,6 @@ suite('Settings Test Suite >', function() {
           assertDataLimitInputValid();
 
           triggerEvent(dataLimitHeader, 'action');
-          Settings.updateUI.restore();
           done();
         });
         Settings.initialize();
@@ -397,7 +417,7 @@ suite('Settings Test Suite >', function() {
 
       test('Natural numbers', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '120';
@@ -409,7 +429,6 @@ suite('Settings Test Suite >', function() {
           assertDataLimitInputValid();
 
           triggerEvent(dataLimitHeader, 'action');
-          Settings.updateUI.restore();
           done();
         });
         Settings.initialize();
@@ -417,7 +436,7 @@ suite('Settings Test Suite >', function() {
 
       test('Natural numbers with no significant zeros', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '0000456';
@@ -425,7 +444,6 @@ suite('Settings Test Suite >', function() {
           assertDataLimitInputValid();
 
           triggerEvent(dataLimitHeader, 'action');
-          Settings.updateUI.restore();
           done();
         });
         Settings.initialize();
@@ -436,7 +454,7 @@ suite('Settings Test Suite >', function() {
 
       test('Negative Values', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '-12.456';
@@ -444,7 +462,6 @@ suite('Settings Test Suite >', function() {
           assertDataLimitInputInvalid();
 
           triggerEvent(dataLimitHeader, 'action');
-          Settings.updateUI.restore();
           done();
         });
         Settings.initialize();
@@ -452,7 +469,7 @@ suite('Settings Test Suite >', function() {
 
       test('Separator invalid', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '12,456';
@@ -460,7 +477,6 @@ suite('Settings Test Suite >', function() {
           assertDataLimitInputInvalid();
 
           triggerEvent(dataLimitHeader, 'action');
-          Settings.updateUI.restore();
           done();
         });
         Settings.initialize();
@@ -468,7 +484,7 @@ suite('Settings Test Suite >', function() {
 
       test('Too decimal Separators', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '124..56';
@@ -476,7 +492,6 @@ suite('Settings Test Suite >', function() {
           assertDataLimitInputInvalid();
 
           triggerEvent(dataLimitHeader, 'action');
-          Settings.updateUI.restore();
           done();
         });
         Settings.initialize();
@@ -484,7 +499,7 @@ suite('Settings Test Suite >', function() {
 
       test('Not numeric', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = 'a';
@@ -492,7 +507,6 @@ suite('Settings Test Suite >', function() {
           assertDataLimitInputInvalid();
 
           triggerEvent(dataLimitHeader, 'action');
-          Settings.updateUI.restore();
           done();
         });
         Settings.initialize();
@@ -500,7 +514,7 @@ suite('Settings Test Suite >', function() {
 
       test('Too long', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '12456';
@@ -508,7 +522,6 @@ suite('Settings Test Suite >', function() {
           assertDataLimitInputInvalid();
 
           triggerEvent(dataLimitHeader, 'action');
-          Settings.updateUI.restore();
           done();
         });
         Settings.initialize();
@@ -518,7 +531,7 @@ suite('Settings Test Suite >', function() {
     suite('Automatic input corrections >', function() {
       test('No action ', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '12.34';
@@ -531,7 +544,6 @@ suite('Settings Test Suite >', function() {
 
           triggerEvent(dataLimitHeader, 'action');
 
-          Settings.updateUI.restore();
           done();
         });
 
@@ -578,7 +590,7 @@ suite('Settings Test Suite >', function() {
 
       test('Removing left zeros ', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '02.04';
@@ -595,7 +607,6 @@ suite('Settings Test Suite >', function() {
 
           triggerEvent(dataLimitHeader, 'action');
 
-          Settings.updateUI.restore();
           done();
         });
 
@@ -604,7 +615,7 @@ suite('Settings Test Suite >', function() {
 
       test('Removing right zeros ', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '77.60';
@@ -617,7 +628,6 @@ suite('Settings Test Suite >', function() {
 
           triggerEvent(dataLimitHeader, 'action');
 
-          Settings.updateUI.restore();
           done();
         });
 
@@ -626,7 +636,7 @@ suite('Settings Test Suite >', function() {
 
       test('Removing both sides ', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '012.010';
@@ -639,7 +649,6 @@ suite('Settings Test Suite >', function() {
 
           triggerEvent(dataLimitHeader, 'action');
 
-          Settings.updateUI.restore();
           done();
         });
 
@@ -648,7 +657,7 @@ suite('Settings Test Suite >', function() {
 
       test('Fill with left zero ', function(done) {
         setupPrepaidMode();
-        sinon.stub(Settings, 'updateUI', function() {
+        this.sinon.stub(Settings, 'updateUI', function() {
           initDataLimitDialog();
 
           dataLimitInput.value = '.31';
@@ -657,7 +666,6 @@ suite('Settings Test Suite >', function() {
 
           triggerEvent(dataLimitHeader, 'action');
 
-          Settings.updateUI.restore();
           done();
         });
 
@@ -667,19 +675,16 @@ suite('Settings Test Suite >', function() {
 
     test('dataLimitConfigurer Cancel button behaviour', function(done) {
       setupPrepaidMode();
-      sinon.stub(Settings, 'updateUI', function() {
+      this.sinon.stub(Settings, 'updateUI', function() {
         initDataLimitDialog();
 
         dataLimitInput.value = '124.56';
         dataLimitInput.dispatchEvent(evtInput);
 
         // Cancel not update the Config values
-
-
         assert.equal(ConfigManager.option('dataLimitUnit'), 'MB');
         assert.equal(ConfigManager.option('dataLimitValue'), '40');
 
-        Settings.updateUI.restore();
         done();
       });
 
@@ -688,7 +693,7 @@ suite('Settings Test Suite >', function() {
 
     test('dataLimitConfigurer OK button behaviour', function(done) {
       setupPrepaidMode();
-      sinon.stub(Settings, 'updateUI', function() {
+      this.sinon.stub(Settings, 'updateUI', function() {
         initDataLimitDialog();
 
         assert.equal(ConfigManager.option('dataLimitUnit'), 'MB');
@@ -711,8 +716,6 @@ suite('Settings Test Suite >', function() {
         assert.equal(ConfigManager.option('dataLimitValue'), '124.56');
 
         SimManager.requestDataSimIcc.restore();
-
-        Settings.updateUI.restore();
         done();
       });
 
