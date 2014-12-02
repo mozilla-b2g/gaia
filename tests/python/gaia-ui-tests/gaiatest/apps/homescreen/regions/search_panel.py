@@ -64,7 +64,7 @@ class SearchPanel(Base):
         from gaiatest.apps.search.regions.browser import Browser
         return Browser(self.marionette)
 
-    def wait_for_everything_me_results_to_load(self, minimum_expected_results=1):
+    def wait_for_search_results_to_load(self, minimum_expected_results=1):
         Wait(self.marionette).until(lambda m: len(m.find_elements(
             *self._search_results_locator)) > minimum_expected_results)
 
