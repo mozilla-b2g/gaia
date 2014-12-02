@@ -49,8 +49,8 @@ class Calendar(Base):
     _event_list_date_locator = (By.ID, 'event-list-date')
     _event_list_empty_locator = (By.ID, 'empty-message')
     _event_locator = (By.CLASS_NAME, 'event')
-    _today_locator = (By.CLASS_NAME, 'present')
-    _tomorrow_locator = (By.CSS_SELECTOR, '.present + li > .day')
+    _today_locator = (By.CSS_SELECTOR, '.month.active .present')
+    _tomorrow_locator = (By.CSS_SELECTOR, '.month.active .present + li > .day')
 
     def launch(self):
         Base.launch(self)
