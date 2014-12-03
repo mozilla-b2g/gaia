@@ -19,7 +19,7 @@ requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
-
+require('/shared/js/tagged.js');
 
 var mocksForTaskManager = new MocksHelper([
   'GestureDetector',

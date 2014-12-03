@@ -1,4 +1,4 @@
-/* globals BaseUI, CardsHelper, TrustedUIManager */
+/* globals BaseUI, CardsHelper, Tagged, TrustedUIManager */
 
 /* exported Card */
 
@@ -97,25 +97,27 @@
    * Template string representing the innerHTML of the instance's element
    * @memberOf Card.prototype
    */
-  Card.prototype._template =
-    '<div data-l10n-id="closeCard" class="close-card" role="button" ' +
-      'style="visibility: {closeButtonVisibility}"></div>' +
-    '<div class="screenshotView" data-l10n-id="openCard" role="button"></div>' +
-    '<div class="appIconView" style="background-image:{iconValue}"></div>' +
-    '<div class="titles">' +
-    '<h1 id="{titleId}" class="title">{title}</h1>' +
-    '<p class="subtitle">{subTitle}</p>' +
-    '</div>';
+  Card.prototype.template = function() {
+    // fix a jshint issue with tagged template strings
+    // https://github.com/jshint/jshint/issues/2000
+    /* jshint -W033 */
+    return Tagged.escapeHTML `<div data-l10n-id="closeCard" class="close-card"
+     role="button" style="visibility: ${this.closeButtonVisibility}"></div>
+    <div class="screenshotView" data-l10n-id="openCard" role="button"></div>
+    <div class="appIconView" style="background-image:${this.iconValue}"></div>
+    <div class="titles">
+    <h1 id="${this.titleId}" class="title">${this.title}</h1>
+    <p class="subtitle">${this.subTitle}</p>
+    </div>`;
+    /* jshint +W033 */
+  };
 
   /**
    * Card html view - builds the innerHTML for a card element
    * @memberOf Card.prototype
    */
   Card.prototype.view = function c_view() {
-    var viewData = this;
-    return this._template.replace(/\{([^\}]+)\}/g, function(m, key) {
-        return viewData[key];
-    });
+    return this.template();
   };
 
   /**
