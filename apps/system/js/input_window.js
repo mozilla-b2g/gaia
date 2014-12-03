@@ -51,11 +51,10 @@
   InputWindow.prototype.containerElement = document.getElementById('keyboards');
 
   InputWindow.prototype.view = function iw_view() {
-    return '<div class=" ' + this.CLASS_LIST +
-            ' " id="' + this.instanceID +
-            '" transition-state="closed">' +
-              '<div class="browser-container"></div>' +
-           '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}"
+            transition-state="closed">
+              <div class="browser-container"></div>
+           </div>`;
   };
 
   InputWindow.prototype.eventPrefix = 'input-app';

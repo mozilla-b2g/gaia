@@ -320,15 +320,15 @@
   };
 
   TextSelectionDialog.prototype.view = function tsd_view() {
-    var temp = '<div class="textselection-dialog" id="' + this.ID_NAME + '">' +
-              '<div data-action="selectall" ' +
-                'class="textselection-dialog-selectall"></div>' +
-              '<div data-action="cut" class="textselection-dialog-cut"></div>' +
-              '<div data-action="copy" class="textselection-dialog-copy">' +
-                '</div>' +
-              '<div data-action="paste" class="textselection-dialog-paste">' +
-                '</div>' +
-            '</div>';
+    var temp = `<div class="textselection-dialog" id="${this.ID_NAME}">
+              <div data-action="selectall"
+                class="textselection-dialog-selectall"></div>
+              <div data-action="cut" class="textselection-dialog-cut"></div>
+              <div data-action="copy" class="textselection-dialog-copy">
+                </div>
+              <div data-action="paste" class="textselection-dialog-paste">
+                </div>
+            </div>`;
     return temp;
   };
 
