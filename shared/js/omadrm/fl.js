@@ -196,7 +196,7 @@
           callback(secret);
         }
         catch (e) {
-          console.error('Exception in ForwardLock.getKey() callback');
+          console.error('Exception in ForwardLock.getKey() callback', e);
         }
       }
     }
