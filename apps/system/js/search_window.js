@@ -50,11 +50,10 @@
     document.getElementById('rocketbar-results');
 
   SearchWindow.prototype.view = function aw_view() {
-    return '<div class=" ' + this.CLASS_LIST +
-             ' " id="' + this.instanceID +
-             '" transition-state="closed">' +
-             '<div class="browser-container"></div>' +
-           '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}"
+             transition-state="closed">
+             <div class="browser-container"></div>
+           </div>`;
   };
 
   // The search window orientation depends on the orientation of the

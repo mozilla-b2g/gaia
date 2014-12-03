@@ -88,11 +88,10 @@
 
   AttentionWindow.prototype.view = function attw_view() {
     this.debug('intance id: ' + this.instanceID);
-    return '<div class="' + this.CLASS_LIST +
-            '" id="' + this.instanceID + '">' +
-            '<div class="browser-container"></div>' +
-            '<div class="screenshot-overlay"></div>' +
-            '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}">
+            <div class="browser-container"></div>
+            <div class="screenshot-overlay"></div>
+            </div>`;
   };
 
   AttentionWindow.SUB_COMPONENTS = {

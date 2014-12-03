@@ -522,21 +522,20 @@
   AppWindow.prototype.containerElement = document.getElementById('windows');
 
   AppWindow.prototype.view = function aw_view() {
-    return '<div class=" ' + this.CLASS_LIST +
-            ' " id="' + this.instanceID +
-            '" transition-state="closed">' +
-              '<div class="identification-overlay">' +
-                '<div>' +
-                  '<div class="icon"></div>' +
-                  '<span class="title"></span>' +
-                '</div>' +
-              '</div>' +
-              '<div class="fade-overlay"></div>' +
-              '<div class="touch-blocker"></div>' +
-              '<div class="browser-container">' +
-              ' <div class="screenshot-overlay"></div>' +
-              '</div>' +
-           '</div>';
+    return `<div class="${this.CLASS_LIST}" id="${this.instanceID}"
+              transition-state="closed">
+              <div class="identification-overlay">
+                <div>
+                  <div class="icon"></div>
+                  <span class="title"></span>
+                </div>
+              </div>
+              <div class="fade-overlay"></div>
+              <div class="touch-blocker"></div>
+              <div class="browser-container">
+               <div class="screenshot-overlay"></div>
+              </div>
+           </div>`;
   };
 
   /**

@@ -17,11 +17,12 @@
   AppStatusbar.prototype.EVENT_PREFIX = 'appstatusbar';
   AppStatusbar.prototype.DEBUG = false;
   AppStatusbar.prototype.view = function() {
-    return    '<div class="titlebar">' +
-              ' <div class="notifications-shadow"></div>' +
-              ' <div class="statusbar-shadow titlebar-maximized"></div>' +
-              ' <div class="statusbar-shadow titlebar-minimized"></div>' +
-              '</div>';
+    var content = `<div class="titlebar">
+             <div class="notifications-shadow"></div>
+             <div class="statusbar-shadow titlebar-maximized"></div>
+             <div class="statusbar-shadow titlebar-minimized"></div>
+           </div>`;
+    return content;
   };
   AppStatusbar.prototype.RELEASE_TIMEOUT = 5000;
   AppStatusbar.prototype.screen = document.getElementById('screen');

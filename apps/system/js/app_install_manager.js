@@ -501,11 +501,11 @@ var AppInstallManager = {
     }
 
     var newNotif =
-      '<div class="fake-notification" role="link">' +
-        '<div data-icon="rocket" class="alert"></div>' +
-        '<div class="title-container"></div>' +
-        '<progress></progress>' +
-      '</div>';
+      `<div class="fake-notification" role="link">
+        <div data-icon="rocket" class="alert"></div>
+        <div class="title-container"></div>
+        <progress></progress>
+      </div>`;
 
     this.notifContainer.insertAdjacentHTML('afterbegin', newNotif);
 
