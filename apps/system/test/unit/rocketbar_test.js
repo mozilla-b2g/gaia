@@ -49,6 +49,21 @@ suite('system/Rocketbar', function() {
     MockService.currentApp = null;
   });
 
+  function mockCurrentApp() {
+    MockService.currentApp = {
+      appChrome: {
+        title: {
+          getBoundingClientRect: function() {}
+        }
+      }
+    };
+    var title = MockService.currentApp.appChrome.title;
+    sinon.stub(title, 'getBoundingClientRect').returns({
+      left: 15,
+      right: 250
+    });
+  }
+
   suite('Hierarchy functions', function() {
     test('setHierarchy: false', function() {
       var searchWindow = new MockSearchWindow();
@@ -144,9 +159,9 @@ suite('system/Rocketbar', function() {
   test('addEventListeners()', function() {
     var windowAddEventListenerStub = this.sinon.stub(window,
       'addEventListener');
-    var rocketbarAddEventListenerStub = this.sinon.stub(subject.rocketbar,
-      'addEventListener');
     var inputAddEventListenerStub = this.sinon.stub(subject.input,
+      'addEventListener');
+    var topPanelAddEventListenerStub = this.sinon.stub(subject.topPanel,
       'addEventListener');
     var formAddEventListenerStub = this.sinon.stub(subject.form,
       'addEventListener');
@@ -158,13 +173,9 @@ suite('system/Rocketbar', function() {
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
     assert.ok(inputAddEventListenerStub.calledWith('blur'));
     assert.ok(inputAddEventListenerStub.calledWith('input'));
+    assert.ok(topPanelAddEventListenerStub.calledWith('click'));
     assert.ok(formAddEventListenerStub.calledWith('submit'));
     assert.ok(windowAddEventListenerStub.calledWith('iac-search-results'));
-
-    windowAddEventListenerStub.restore();
-    rocketbarAddEventListenerStub.restore();
-    inputAddEventListenerStub.restore();
-    formAddEventListenerStub.restore();
   });
 
   test('showResults()', function() {
@@ -352,6 +363,22 @@ suite('system/Rocketbar', function() {
     subject.handleEvent(event);
     assert.ok(hideResultsStub.calledOnce);
     assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - click topPanel input', function() {
+    mockCurrentApp();
+    var searchRequestStub = this.sinon.stub(subject, '_handleSearchRequest');
+    var event = {type: 'click', target: subject.topPanel, screenX: 20};
+    subject.handleEvent(event);
+    assert.ok(searchRequestStub.calledOnce);
+  });
+
+  test('handleEvent() - click topPanel outside input', function() {
+    mockCurrentApp();
+    var searchRequestStub = this.sinon.stub(subject, '_handleSearchRequest');
+    var event = {type: 'click', target: subject.topPanel, screenX: 300};
+    subject.handleEvent(event);
+    assert.ok(searchRequestStub.notCalled);
   });
 
   test('handleEvent() - launchactivity', function() {
