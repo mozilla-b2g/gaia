@@ -23,7 +23,7 @@ class MessageThread(Base):
 
     def wait_for_received_messages(self, timeout=180):
         Wait(self.marionette, timeout).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
+            Wait(self.marionette, timeout).until(expected.element_present(
                 *self._received_message_content_locator))))
 
     def tap_back_button(self):
