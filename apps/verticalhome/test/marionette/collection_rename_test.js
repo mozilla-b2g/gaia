@@ -43,7 +43,23 @@ marionette('Vertical - Collection Rename', function() {
     home.enterEditMode();
     var icon = collection.getCollectionByName(name);
     home.moveIconToIndex(icon, 0);
-    icon.tap();
+
+    // Try tapping the icon until the dialog opens.
+    // For some reason occasionally a reference to the icon can be stale,
+    // or it won't trigger the collection screen the first time.
+    client.waitFor(function() {
+      icon = collection.getCollectionByName(name);
+
+      icon.tap();
+      client.switchToFrame();
+      try {
+        client.apps.switchToApp(Collection.URL);
+      } catch(e) {
+        client.switchToFrame(system.getHomescreenIframe());
+        return false;
+      }
+      return true;
+    });
 
     collection.renameAndPressEnter('renamed');
     client.switchToFrame(system.getHomescreenIframe());
