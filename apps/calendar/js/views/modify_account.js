@@ -360,6 +360,7 @@ ModifyAccount.prototype = {
     list.remove('provider-' + this.model.providerType);
     list.remove('auth-' + this.authenticationType);
     list.remove('error');
+    list.remove(this.removeDialogClass);
 
     this.fields.user.disabled = false;
     this.saveButton.disabled = false;
