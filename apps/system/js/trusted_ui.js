@@ -338,7 +338,9 @@ var TrustedUIManager = {
   },
 
   _setHeight: function trui_setHeight(height) {
-    this.overlay.style.height = height + 'px';
+    if (this.isVisible()) {
+      this.overlay.style.height = height + 'px';
+    }
   },
 
   /*
