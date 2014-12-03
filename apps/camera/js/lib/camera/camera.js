@@ -291,24 +291,26 @@ Camera.prototype.requestCamera = function(camera, config) {
    * @private
    */
   function request() {
-    navigator.mozCameras.getCamera(camera, config || {}, onSuccess, onError);
+    navigator.mozCameras.getCamera(camera, config || {})
+      .then(onSuccess, onError);
+
     self.emit('requesting');
     debug('camera requested', camera, config);
     attempts--;
   }
 
-  function onSuccess(mozCamera) {
+  function onSuccess(params) {
     debug('successfully got mozCamera');
 
     // release camera when press power key
     // as soon as you open a camera app
     if (document.hidden) {
-      self.mozCamera = mozCamera;
+      self.mozCamera = params.camera;
       self.release();
       return;
     }
 
-    self.setupNewCamera(mozCamera);
+    self.setupNewCamera(params.camera);
     self.configureFocus();
     self.emit('focusconfigured', {
       mode: self.mozCamera.focusMode,
@@ -442,7 +444,8 @@ Camera.prototype.configure = function() {
   };
 
   // Configure the camera hardware
-  this.mozCamera.setConfiguration(this.mozCameraConfig, onSuccess, onError);
+  this.mozCamera.setConfiguration(this.mozCameraConfig)
+    .then(onSuccess, onError);
   debug('mozCamera configuring', this.mozCameraConfig);
 
   function onSuccess() {
@@ -708,7 +711,7 @@ Camera.prototype.release = function(done) {
   this.busy();
   this.stopRecording();
   this.set('focus', 'none');
-  this.mozCamera.release(onSuccess, onError);
+  this.mozCamera.release().then(onSuccess, onError);
   this.releasing = true;
   this.mozCamera = null;
 
@@ -845,7 +848,7 @@ Camera.prototype.takePicture = function(options) {
 
   function takePicture() {
     self.busy('takingPicture');
-    self.mozCamera.takePicture(config, onSuccess, onError);
+    self.mozCamera.takePicture(config).then(onSuccess, onError);
   }
 
   function onError(error) {
@@ -969,12 +972,8 @@ Camera.prototype.startRecording = function(options) {
 
       video.filepath = filepath;
       self.emit('willrecord');
-      self.mozCamera.startRecording(
-        config,
-        storage,
-        filepath,
-        onSuccess,
-        onError);
+      self.mozCamera.startRecording(config, storage, filepath)
+        .then(onSuccess, onError);
     }
   }
 
