@@ -6,9 +6,9 @@
   right: 0;
   height: 4rem;
   -moz-transition: opacity 0.5s ease;
-  pointer-events: none;
   display: none;
   background-image: url("images/header_bg.png");
+  pointer-events: auto;
 }
 
 #volume.visible {
