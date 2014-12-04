@@ -183,6 +183,24 @@ suite('SimLockManager', function() {
         subject.showIfLocked();
         assert.equal(subject.simLockSystemDialog.show.callCount, 1);
       });
+
+      test('should render the second dialog if the first is skipping',
+        function() {
+          subject.showIfLocked();
+          assert.isTrue(subject.simLockSystemDialog.visible);
+          subject.showIfLocked(1, true);
+          assert.equal(subject.simLockSystemDialog.show.callCount, 2);
+      });
+
+      test('should render the first dialog if the user goes back',
+        function() {
+          subject._alreadyShown = true;
+          subject.showIfLocked(1, true);
+          assert.isTrue(subject.simLockSystemDialog.visible);
+          subject.showIfLocked(0, false);
+          assert.equal(subject.simLockSystemDialog.show.callCount, 2);
+          subject._alreadyShown = false;
+      });
     });
   });
 
