@@ -20,7 +20,7 @@ var MP4Metadata = (function() {
     '\xa9nam' : 'title',
     'trkn'    : 'tracknum',
     'disk'    : 'discnum',
-    'covr'    : 'image'
+    'covr'    : 'picture'
   };
 
   // These MP4 atoms are stored as pairs of integers, so they get mapped to
