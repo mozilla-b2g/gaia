@@ -34,7 +34,7 @@
     screen: document.getElementById('screen'),
 
     isActive: function() {
-      return (!!this._activeApp && this._activeApp.isActive());
+      return (!!this._activeApp && !window.taskManager.isActive());
     },
 
     setHierarchy: function(active) {
