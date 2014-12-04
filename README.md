@@ -34,7 +34,7 @@ Features available:
   - Comments in the bug with the landed commit, and marks the bug as fixed.
   - Validates pull request title and commit message formats.
   - Currently only runs a subset of the gaia CI tests which are stable on taskcluster. Ensure you have a green gaia-try run before adding checkin-needed.
-  - See more at: https://github.com/kevingrandon/autolander
+  - See more at: https://github.com/mozilla/autolander
 
 
 ## Tests
