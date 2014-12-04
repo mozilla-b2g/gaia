@@ -8,6 +8,7 @@ require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/js/contacts/utilities/image_loader.js');
 require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/utilities/dom.js');
+require('/shared/js/utilities.js');
 require('/shared/js/contacts/search.js');
 
 suite('Search mode', function() {
@@ -147,8 +148,9 @@ suite('Search mode', function() {
       searchBox.value = contact.givenName[0][0];
       contacts.Search.search(function search_finished() {
         done(function() {
-          assert.equal(contact.givenName[0],
-                                searchList.querySelector('strong').textContent);
+          var selector = '#groups-list-search .contact-item .contact-text';
+          assert.equal(contact.givenName[0] + ' ' + contact.familyName[0],
+                                searchList.querySelector(selector).textContent);
         });
       });
     });
