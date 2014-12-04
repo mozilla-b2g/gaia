@@ -6,7 +6,7 @@ require('/shared/test/unit/mocks/mock_dom_request.js');
 require('/test/unit/mock_navigator_get_device_storage.js');
 require('/test/unit/mock_bluetooth.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_notification_helper.js');
+require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_custom_dialog.js');
 require('/shared/js/mime_mapper.js');
 require('/test/unit/mock_utility_tray.js');
@@ -17,7 +17,7 @@ var realCustomDialog = require('/shared/js/custom_dialog.js');
 
 var mocksForBluetoothTransfer = new MocksHelper([
   'Bluetooth',
-  'NotificationHelper',
+  'Notification',
   'CustomDialog',
   'MozActivity',
   'UtilityTray',
@@ -35,6 +35,8 @@ suite('system/bluetooth_transfer', function() {
 
   var fakePairList;
   var fake_sendingFilesQueue;
+
+  var notificationSpy;
 
   suiteSetup(function(done) {
     realSetMessageHandler = navigator.mozSetMessageHandler;
@@ -152,10 +154,13 @@ suite('system/bluetooth_transfer', function() {
           numUnsuccessful: 0
         }];
         BluetoothTransfer._sendingFilesQueue = fake_sendingFilesQueue;
+
+        notificationSpy = sinon.spy(window, 'Notification');
       });
 
       suiteTeardown(function() {
         BluetoothTransfer._sendingFilesQueue = real_sendingFilesQueue;
+        notificationSpy.restore();
       });
 
       test('push sending files request in queue, then create notification ',
@@ -171,7 +176,15 @@ suite('system/bluetooth_transfer', function() {
         var title = 'transfer-has-started-title';
         BluetoothTransfer.onFilesSending(evt);
         assert.equal(2, BluetoothTransfer._sendingFilesQueue.length);
-        assert.equal(MockNotificationHelper.mTitle, title);
+        sinon.assert.callCount(notificationSpy, 1);
+        sinon.assert.calledWith(notificationSpy, title);
+
+        var notification = notificationSpy.lastCall.thisValue;
+        var stubCloseNotification = this.sinon.stub(notification, 'close');
+        var stubShowUtilityTray = this.sinon.stub(MockUtilityTray, 'show');
+        notification.mEvents['click']();
+        assert.isTrue(stubShowUtilityTray.called);
+        assert.isTrue(stubCloseNotification.called);
       });
 
       test('received onTransferComplete callback for received task, ' +
@@ -182,7 +195,7 @@ suite('system/bluetooth_transfer', function() {
         };
         BluetoothTransfer.summarizeSentFilesReport(transferInfo);
         assert.equal(2, BluetoothTransfer._sendingFilesQueue.length);
-        assert.equal(MockNotificationHelper.mTitle, null);
+        sinon.assert.callCount(notificationSpy, 1);
       });
 
       test('received onTransferComplete callback for the first sent task, ' +
@@ -193,7 +206,7 @@ suite('system/bluetooth_transfer', function() {
         };
         BluetoothTransfer.summarizeSentFilesReport(transferInfo);
         assert.equal(1, BluetoothTransfer._sendingFilesQueue.length);
-        assert.equal(MockNotificationHelper.mTitle, null);
+        sinon.assert.callCount(notificationSpy, 1);
       });
 
       test('received onTransferComplete callback for the second sent task' +
@@ -207,8 +220,7 @@ suite('system/bluetooth_transfer', function() {
         assert.equal(1, BluetoothTransfer._sendingFilesQueue.length);
         assert.equal(1,
           BluetoothTransfer._sendingFilesQueue[0].numUnsuccessful);
-
-        assert.equal(MockNotificationHelper.mTitle, null);
+        sinon.assert.callCount(notificationSpy, 1);
       });
 
       test('received onTransferComplete callback for the second sent task' +
@@ -219,17 +231,28 @@ suite('system/bluetooth_transfer', function() {
           success: true
         };
         var title = 'transferReport-title';
-        var body = 'transferReport-description' +
-                   '{"numSuccessful":1,"numUnsuccessful":1}';
 
         BluetoothTransfer.summarizeSentFilesReport(transferInfo);
         assert.equal(0, BluetoothTransfer._sendingFilesQueue.length);
-        assert.equal(MockNotificationHelper.mTitle, title);
-        assert.equal(MockNotificationHelper.mBody, body);
+        sinon.assert.callCount(notificationSpy, 2);
+        sinon.assert.calledWith(notificationSpy, title);
+
+        var notification = notificationSpy.lastCall.thisValue;
+        var stubCloseNotification = this.sinon.stub(notification, 'close');
+        notification.mEvents['click']();
+        assert.isTrue(stubCloseNotification.called);
       });
     });
 
     suite('confirmation, decline, accept, and storage check', function() {
+      suiteSetup(function() {
+        notificationSpy = sinon.spy(window, 'Notification');
+      });
+
+      suiteTeardown(function() {
+        notificationSpy.restore();
+      });
+
       test('receivingFileConfirmation', function() {
         var stubIsHandOverInProgress =
           this.sinon.stub(MockNfcHandoverManager, 'isHandoverInProgress')
@@ -257,22 +280,13 @@ suite('system/bluetooth_transfer', function() {
 
         assert.isTrue(stubGetDeviceName.calledWith(evt.address));
 
-        assert.equal(
-          MockNotificationHelper.mTitle,
-          _('transfer-confirmation-title', {deviceName: 'nameName'})
-        );
-        assert.equal(
-          MockNotificationHelper.mBody,
-          _('transfer-confirmation-description')
-        );
-        assert.equal(
-          MockNotificationHelper.mIcon,
-          'style/bluetooth_transfer/images/icon_bluetooth.png'
-        );
-        MockNotificationHelper.mClickCB();
+        sinon.assert.callCount(notificationSpy, 1);
+        var notification = notificationSpy.lastCall.thisValue;
+        var stubCloseNotification = this.sinon.stub(notification, 'close');
+        notification.mEvents['click']();
         assert.isTrue(stubMockUtilityTrayHide.called);
         assert.isTrue(stubShowReceivePrompt.called);
-        MockNotificationHelper.mTeardown();
+        assert.isTrue(stubCloseNotification.called);
       });
 
       test('declineReceive', function() {
