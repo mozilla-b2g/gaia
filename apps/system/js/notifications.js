@@ -91,10 +91,6 @@ var NotificationScreen = {
     window.addEventListener('visibilitychange', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
-    window.addEventListener('appforeground',
-      this.clearDesktopNotifications.bind(this));
-    window.addEventListener('appopened',
-      this.clearDesktopNotifications.bind(this));
     window.addEventListener('desktop-notification-resend', this);
 
     this._sound = 'style/notifications/ringtones/notifier_firefox.opus';
@@ -192,20 +188,6 @@ var NotificationScreen = {
           this.clearLockScreen();
         }).bind(this), 400);
         break;
-    }
-  },
-
-  // TODO: Remove this when we ditch mozNotification (bug 952453)
-  clearDesktopNotifications: function ns_handleAppopen(evt) {
-    var manifestURL = evt.detail.manifestURL,
-        selector = '[data-manifest-u-r-l="' + manifestURL + '"]';
-
-    var nodes = this.container.querySelectorAll(selector);
-
-    for (var i = nodes.length - 1; i >= 0; i--) {
-      if (nodes[i].dataset.obsoleteAPI === 'true') {
-        this.closeNotification(nodes[i]);
-      }
     }
   },
 
