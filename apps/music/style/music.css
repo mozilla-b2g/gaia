@@ -595,23 +595,25 @@ body.picker-mode #title-player {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
   text-indent: 3rem;
   text-shadow: black 0.1rem 0.1rem;
   line-height: 2.5rem;
+  width: 75%;
+  height: auto;
 }
 
 #player-cover-artist {
-  width: 75%;
-  height: auto;
-  text-align: left;
   font-size: 1.9rem;
 }
 
 #player-cover-album {
-  width: 75%;
-  height: auto;
-  text-align: left;
   font-size: 1.7rem;
+}
+
+html[dir="rtl"] #player-cover-artist,
+html[dir="rtl"] #player-cover-album {
+  text-align: right;
 }
 
 #player-cover-artist.hidden-cover-share,
@@ -631,6 +633,12 @@ body.picker-mode #title-player {
   right: -2%;
   z-index: 1;
   color: #fff;
+}
+
+html[dir="rtl"] #player-cover-share {
+  right: unset;
+  left: -2%;
+  margin: 0 0 0 1rem;
 }
 
 #player-cover-buttons {
@@ -702,6 +710,10 @@ button::-moz-focus-inner {
   background-repeat: no-repeat;
   background-color: transparent;
   background-size: 2.2rem;
+}
+
+html[dir="rtl"] .rating-star {
+  float: right;
 }
 
 .star-on {
