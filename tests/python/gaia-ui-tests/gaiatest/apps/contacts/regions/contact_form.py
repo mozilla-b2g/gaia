@@ -50,6 +50,7 @@ class ContactForm(Base):
         element = self.marionette.find_element(*self._phone_locator)
         element.clear()
         element.send_keys(value)
+        self.keyboard.dismiss()
 
     @property
     def email(self):
