@@ -15,7 +15,7 @@
     "save-bookmark": {
       "filters": {
         "type": "url",
-        "url": { "required":true, "pattern":"(https?|rtsp):.{1,16384}" }
+        "url": { "required":true, "pattern":"(https?|mailto|rtsp|tel|sms):.{1,16384}" }
       },
       "disposition": "inline",
       "href": "/save.html",
