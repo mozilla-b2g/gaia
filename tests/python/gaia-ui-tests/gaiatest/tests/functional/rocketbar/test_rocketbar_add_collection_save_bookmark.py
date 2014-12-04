@@ -6,14 +6,14 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 
 
-class TestEverythingMeAddCollectionSaveBookmark(GaiaTestCase):
+class TestRocketBarAddCollectionSaveBookmark(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.apps.set_permission('Smart Collections', 'geolocation', 'deny')
         self.connect_to_local_area_network()
 
-    def test_everythingme_add_collection(self):
+    def test_rocketbar_add_collection(self):
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
 
