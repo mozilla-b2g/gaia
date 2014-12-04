@@ -110,16 +110,16 @@ var BluetoothTransfer = {
   },
 
   onFilesSending: function bt_onFilesSending(evt) {
-    var _ = navigator.mozL10n.get;
-
     // Notify user that we are sending files
     var icon = 'style/bluetooth_transfer/images/transfer.png';
-    NotificationHelper.send(_('transfer-has-started-title'),
-                            _('transfer-has-started-description'),
-                            icon,
-                            function() {
-                              UtilityTray.show();
-                            });
+
+    NotificationHelper.send('transfer-has-started-title', {
+      'bodyL10n': 'transfer-has-started-description',
+      'icon': icon
+    }).then(function(notification) {
+      notification.addEventListener('click',
+        UtilityTray.show.bind(UtilityTray));
+    });
 
     // Push sending files request in queue
     var sendingFilesSchedule = evt.detail;
@@ -139,7 +139,6 @@ var BluetoothTransfer = {
     }
 
     // Prompt appears when a transfer request from a paired device is received.
-    var _ = navigator.mozL10n.get;
 
     var address = evt.address;
     var fileSize = evt.fileLength;
@@ -148,14 +147,21 @@ var BluetoothTransfer = {
 
     this.getPairedDevice(function getPairedDeviceComplete() {
       var deviceName = self.getDeviceName(address);
-      NotificationHelper.send(_('transfer-confirmation-title',
-                              { deviceName: deviceName }),
-                              _('transfer-confirmation-description'),
-                              icon,
-                              function() {
-                                UtilityTray.hide();
-                                self.showReceivePrompt(evt);
-                              });
+      var title = {
+        id: 'transfer-confirmation-title',
+        args: { deviceName: deviceName }
+      };
+      var body = 'transfer-confirmation-description';
+
+      NotificationHelper.send(title, {
+        'bodyL10n': body,
+        'icon': icon
+      }).then(function(notification) {
+        notification.addEventListener('click', function(evt) {
+          UtilityTray.hide();
+          self.showReceivePrompt(evt);
+        });
+      });
     });
   },
 
@@ -249,7 +255,6 @@ var BluetoothTransfer = {
     if (!callback)
       return;
 
-    var _ = navigator.mozL10n.get;
     var storage = this._deviceStorage;
 
     var availreq = storage.available();
@@ -400,8 +405,6 @@ var BluetoothTransfer = {
   },
 
   showCancelTransferPrompt: function bt_showCancelTransferPrompt(address) {
-    var _ = navigator.mozL10n.get;
-
     var cancel = {
       title: 'continueFileTransfer',
       callback: this.continueTransfer.bind(this)
@@ -441,35 +444,48 @@ var BluetoothTransfer = {
 
   onTransferComplete: function bt_onTransferComplete(evt) {
     var transferInfo = evt.detail.transferInfo;
-    var _ = navigator.mozL10n.get;
     // Remove transferring progress
     this.removeProgress(transferInfo);
-    var fileName =
-      (transferInfo.fileName) ? transferInfo.fileName : _('unknown-file');
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
     // Show notification
+
+    var nData = {
+      titleL10n: null,
+      icon: icon,
+      onclick: null
+    };
+
+    if (transferInfo.fileName) {
+      nData.body = transferInfo.fileName;
+    } else {
+      nData.bodyL10n = 'unknown-file';
+    }
+
     if (transferInfo.success == true) {
       if (transferInfo.received) {
         // Received file can be opened only
-        NotificationHelper.send(_('transferFinished-receivedSuccessful-title'),
-                                fileName,
-                                icon,
-                                this.openReceivedFile.bind(this, transferInfo));
+        nData.titleL10n = 'transferFinished-receivedSuccessful-title';
+        nData.onclick = this.openReceivedFile.bind(this, transferInfo);
       } else {
-        NotificationHelper.send(_('transferFinished-sentSuccessful-title'),
-                                fileName,
-                                icon);
+        nData.titleL10n = 'transferFinished-sentSuccessful-title';
       }
     } else {
       if (transferInfo.received) {
-        NotificationHelper.send(_('transferFinished-receivedFailed-title'),
-                                fileName,
-                                icon);
+        nData.titleL10n = 'transferFinished-receivedFailed-title';
       } else {
-        NotificationHelper.send(_('transferFinished-sentFailed-title'),
-                                fileName,
-                                icon);
+        nData.titleL10n = 'transferFinished-sentFailed-title';
       }
+    }
+
+    var promise = NotificationHelper.send(nData.titleL10n, {
+      'bodyL10n': nData.bodyL10n,
+      'icon': icon
+    });
+
+    if (nData.onclick) {
+      promise.then(function(notification) {
+        notification.addEventListener('click', nData.onclick);
+      });
     }
 
     var viaHandover = false;
@@ -488,8 +504,6 @@ var BluetoothTransfer = {
   },
 
   summarizeSentFilesReport: function bt_summarizeSentFilesReport(transferInfo) {
-    var _ = navigator.mozL10n.get;
-
     // Ignore received files
     if (transferInfo.received)
       return;
@@ -518,12 +532,16 @@ var BluetoothTransfer = {
       var numUnsuccessful = this._sendingFilesQueue[0].numUnsuccessful;
       if ((numSuccessful + numUnsuccessful) == numberOfFiles) {
         // In this item of queue, all files were sent completely.
-        var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
-        NotificationHelper.send(_('transferReport-title'),
-                                _('transferReport-description',
-                                { numSuccessful: numSuccessful,
-                                  numUnsuccessful: numUnsuccessful }),
-                                icon);
+        NotificationHelper.send('transferReport-title', {
+          'bodyL10n': {
+            id: 'transferReport-description',
+            args: {
+              numSuccessful: numSuccessful,
+              numUnsuccessful: numUnsuccessful
+            }
+          },
+          'icon': 'style/bluetooth_transfer/images/icon_bluetooth.png'
+        });
 
         // Remove the finished sending task from the queue
         this._sendingFilesQueue.shift();

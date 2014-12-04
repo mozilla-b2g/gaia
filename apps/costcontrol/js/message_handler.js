@@ -172,9 +172,12 @@
       }
 
       iconURL += '?topUpError';
-      NotificationHelper.send(_('topup-incorrectcode-title2'),
-                              _('topup-incorrectcode-message3'), iconURL,
-                              goToTopUpCode);
+      NotificationHelper.send('topup-incorrectcode-title2', {
+        'bodyL10n': 'topup-incorrectcode-message3',
+        'icon': iconURL
+      }).then(function(notification) {
+        notification.addEventListener('click', goToTopUpCode);
+      });
 
       if (callback) {
         callback();
@@ -234,14 +237,22 @@
       });
 
       // Compose notification and send it
-      var title = _('low-balance-notification-title');
-      var message = _('low-balance-notification-text',
-                      { remaining: remainingBalance });
+      var title = 'low-balance-notification-title';
+      var message = {
+        id: 'low-balance-notification-text',
+        args: { remaining: remainingBalance }
+      };
       if (type === 'zeroBalance') {
-        title = _('usage');
-        message = _('zero-balance-message');
+        title = 'usage';
+        message = 'zero-balance-message';
       }
-      NotificationHelper.send(title, message, iconURL, goToBalance);
+
+      NotificationHelper.send(title, {
+        'bodyL10n': message,
+        'icon': iconURL
+      }).then(function(notification) {
+        notification.addEventListener('click', goToBalance);
+      });
 
       // Finally mark the notification as sent
       var update = {};
@@ -334,9 +345,17 @@
           }
           var limit = Common.getDataLimit(settings);
           var limitText = Formatting.formatData(Formatting.smartRound(limit));
-          var title = _('data-limit-notification-title2', { limit: limitText });
-          var message = _('data-limit-notification-text2');
-          NotificationHelper.send(title, message, iconURL, goToDataUsage);
+          var title = {
+            id: 'data-limit-notification-title2',
+            args: { limit: limitText }
+          };
+          var message = 'data-limit-notification-text2';
+          NotificationHelper.send(title, {
+            'bodyL10n': message,
+            'icon': iconURL
+          }).then(function(notification) {
+            notification.addEventListener('click', goToDataUsage);
+          });
           ConfigManager.setOption({ 'dataUsageNotified': true },
                                   closeIfProceeds);
           return;

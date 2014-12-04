@@ -2,12 +2,21 @@
 /* exported MockNotificationHelper */
 
 var MockNotificationHelper = {
-  send: function(title, body, icon, clickCB, closeCB) {
-    this.mTitle = title;
-    this.mBody = body;
-    this.mIcon = icon;
-    this.mClickCB = clickCB;
-    this.mCloseCB = closeCB;
+  send: function(titleL10n, options) {
+    this.mOptions = options;
+    this.mTitleL10n = titleL10n;
+    var self = this;
+
+    return {
+      then: function(resolve) {
+        var notification = {
+          addEventListener: function(type, cb) {
+            self.mEvents[type] = cb;
+          }
+        };
+        resolve(notification);
+      }
+    };
   },
 
   getIconURI: function nc_getIconURI(app, entryPoint) {
@@ -18,16 +27,15 @@ var MockNotificationHelper = {
     return result;
   },
 
-  mTitle: null,
-  mBody: null,
-  mIcon: null,
-  mClickCB: null,
-  mCloseCB: null,
+  mEmit: function(type) {
+    this.mEvents[type]();
+  },
+  mEvents: {},
+  mTitleL10n: null,
+  mOptions: null,
   mTeardown: function teardown() {
-    this.mTitle = null;
-    this.mBody = null;
-    this.mIcon = null;
-    this.mClickCB = null;
-    this.mCloseCB = null;
+    this.mTitleL10n = null;
+    this.mOptions = null;
+    this.mEvents = {};
   }
 };
