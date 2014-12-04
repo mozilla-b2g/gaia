@@ -158,7 +158,9 @@ var MP4Metadata = (function() {
         if (offset + size + 16 <= atom.blob.size) {
           atom.getMore(offset + size, 16, function(moov) {
             try {
-              resolve(findMoovAtom(moov));
+              findMoovAtom(moov).then(function(result) {
+                resolve(result);
+              });
             } catch (e) {
               reject(e);
             }
