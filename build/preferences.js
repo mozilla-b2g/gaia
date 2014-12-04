@@ -181,6 +181,70 @@ PreferencesBuilder.prototype.setLocalDomainPref = function() {
 };
 
 PreferencesBuilder.prototype.setDesktopPref = function() {
+  // Set system app as default firefox tab
+  this.userPrefs['browser.startup.homepage'] = this.system;
+  this.userPrefs['startup.homepage_welcome_url'] = '';
+  // Disable dialog asking to set firefox as default OS browser
+  this.userPrefs['browser.shell.checkDefaultBrowser'] = false;
+  // Automatically open devtools on the firefox os panel
+  this.userPrefs['devtools.toolbox.host'] = 'side';
+  this.userPrefs['devtools.toolbox.sidebar.width'] = 800;
+  this.userPrefs['devtools.toolbox.selectedTool'] = 'firefox-os-controls';
+  // Disable session store to ensure having only one tab opened
+  this.userPrefs['browser.sessionstore.max_tabs_undo'] = 0;
+  this.userPrefs['browser.sessionstore.max_windows_undo'] = 0;
+  this.userPrefs['browser.sessionstore.restore_on_demand'] = false;
+  this.userPrefs['browser.sessionstore.resume_from_crash'] = false;
+
+  this.userPrefs['dom.mozBrowserFramesEnabled'] = true;
+  this.userPrefs['b2g.ignoreXFrameOptions'] = true;
+  this.userPrefs['network.disable.ipc.security'] = true;
+
+  this.userPrefs['dom.ipc.tabs.disabled'] = true;
+  this.userPrefs['browser.ignoreNativeFrameTextSelection'] = true;
+  this.userPrefs['ui.dragThresholdX'] = 25;
+  this.userPrefs['dom.w3c_touch_events.enabled'] = 1;
+
+  // Enable apis use on the device
+  this.userPrefs['dom.sms.enabled'] = true;
+  this.userPrefs['dom.mozTCPSocket.enabled'] = true;
+  this.userPrefs['notification.feature.enabled'] = true;
+  this.userPrefs['dom.sysmsg.enabled'] = true;
+  this.userPrefs['dom.mozAlarms.enabled'] = true;
+  this.userPrefs['device.storage.enabled'] = true;
+  this.userPrefs['device.storage.prompt.testing'] = true;
+  this.userPrefs['dom.datastore.enabled'] = true;
+  this.userPrefs['dom.testing.datastore_enabled_for_hosted_apps'] = true;
+  this.userPrefs['dom.inter-app-communication-api.enabled'] = true;
+
+  // WebSettings
+  this.userPrefs['dom.mozSettings.enabled'] = true;
+  this.userPrefs['dom.navigator-property.disable.mozSettings'] = false;
+  this.userPrefs['dom.mozPermissionSettings.enabled'] = true;
+
+  // Contacts
+  this.userPrefs['dom.mozContacts.enabled'] = true;
+  this.userPrefs['dom.navigator-property.disable.mozContacts'] = false;
+  this.userPrefs['dom.global-constructor.disable.mozContact'] = false;
+
+  this.userPrefs['dom.experimental_forms'] = true;
+  this.userPrefs['dom.webapps.useCurrentProfile'] = true;
+
+  // Settings so desktop shims will work
+  this.userPrefs['bluetooth.enabled'] = true;
+  this.userPrefs['bluetooth.visible'] = false;
+  this.userPrefs['wifi.enabled'] = true;
+  this.userPrefs['wifi.suspended'] = false;
+
+  // Partial implementation of gonk fonts
+  // See: http://mxr.mozilla.org/mozilla-central/source/modules/libpref/src/
+  //      init/all.js#3202
+  this.userPrefs['font.default.x-western'] = 'sans-serif';
+
+  this.userPrefs['font.name.serif.x-western'] = 'Charis SIL Compact';
+  this.userPrefs['font.name.sans-serif.x-western'] = 'Fira Sans';
+  this.userPrefs['font.name.monospace.x-western'] = 'Source Code Pro';
+  this.userPrefs['font.name-list.sans-serif.x-western'] = 'Fira Sans, Roboto';
   this.userPrefs['extensions.autoDisableScopes'] = 0;
 };
 
@@ -196,8 +260,13 @@ PreferencesBuilder.prototype.setDebugPref = function() {
   this.userPrefs['dom.report_all_js_exceptions'] = true;
   this.userPrefs['dom.w3c_touch_events.enabled'] = 1;
   this.userPrefs['dom.promise.enabled'] = true;
+  this.userPrefs['dom.wakelock.enabled'] = true;
   this.userPrefs['image.mozsamplesize.enabled'] = true;
   this.userPrefs['webgl.verbose'] = true;
+
+  // Turn off unresponsive script dialogs so test-agent can keep running...
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=872141
+  this.userPrefs['dom.max_script_run_time'] = 0;
 
   // Identity debug messages
   this.userPrefs['toolkit.identity.debug'] = true;
@@ -222,6 +291,11 @@ PreferencesBuilder.prototype.setDebugPref = function() {
                '' : '@' + this.config.GAIA_DEV_PIXELS_PER_PX + 'x';
   this.userPrefs['extensions.gaia.device_pixel_suffix'] = suffix;
   this.userPrefs['extensions.autoDisableScopes'] = 0;
+
+  // electrolysis breaks the app:// protocol as registered by httpd.js
+  // see Bug 1097912
+  this.userPrefs['browser.tabs.remote.autostart'] = false;
+  this.userPrefs['browser.tabs.remote.autostart.1'] = false;
 };
 
 PreferencesBuilder.prototype.setDeviceDebugPref = function() {
