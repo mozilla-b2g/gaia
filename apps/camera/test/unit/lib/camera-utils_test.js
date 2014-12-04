@@ -391,6 +391,36 @@ suite('utils/camera-utils', function() {
                                                              viewportSize);
       assert.equal(optimalPreviewSize.width, 864);
       assert.equal(optimalPreviewSize.height, 480);
+
+      // Flame test case, 720p recording
+      var resolution = {
+        width: 1280,
+        height: 720
+      };
+
+      optimalPreviewSize = CameraUtils.getOptimalPreviewSize(previewSizes,
+                                                             viewportSize,
+                                                             resolution);
+      assert.equal(optimalPreviewSize.width, 768);
+      assert.equal(optimalPreviewSize.height, 432);
+
+      // Flame software home button test case
+      viewportSize = {
+        width: 800,
+        height: 480
+      };
+
+      optimalPreviewSize = CameraUtils.getOptimalPreviewSize(previewSizes,
+                                                             viewportSize);
+      assert.equal(optimalPreviewSize.width, 800);
+      assert.equal(optimalPreviewSize.height, 480);
+
+      // Flame software home button test case, 720p recording
+      optimalPreviewSize = CameraUtils.getOptimalPreviewSize(previewSizes,
+                                                             viewportSize,
+                                                             resolution);
+      assert.equal(optimalPreviewSize.width, 768);
+      assert.equal(optimalPreviewSize.height, 432);
     });
   });
 });
