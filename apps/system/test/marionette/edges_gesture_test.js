@@ -111,13 +111,13 @@ marionette('Edges gesture >', function() {
     assert(calendar.displayed(), 'calendar is still visible');
   });
 
-  // Blocked by bug 874914
-  test.skip('Swiping vertically', function() {
+  test('Swiping vertically', function() {
     // Going to the settings app first
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, settings);
     assert(settings.displayed(), 'settings is visible');
 
-    actions.flick(sys.leftPanel, 10, halfHeight, 10, 0, 300).perform();
+    // Mostly vertical swipe
+    actions.flick(sys.leftPanel, 5, halfHeight, 45, 40, 100).perform();
     assert(settings.displayed(), 'settings is still visible');
 
     // Checking that the settings app scrolled
@@ -127,7 +127,7 @@ marionette('Edges gesture >', function() {
         return document.querySelector('#root > div').scrollTop;
       });
 
-      return scrollY >= 300;
+      return scrollY >= 200; // halfHeight - 40
     });
     assert(true, 'the settings app scrolled');
   });

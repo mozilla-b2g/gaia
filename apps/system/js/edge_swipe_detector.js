@@ -12,6 +12,8 @@
 
   const kEdgeIntertia = 250;
   const kEdgeThreshold = 0.3;
+  const kEdgeAngleThreshold = Math.PI / 6;
+  const kSignificant = 5 * window.devicePixelRatio;
 
   /**
    * Detects user gestures for moving between apps using edge gestures.
@@ -166,6 +168,7 @@
 
     _progress: null,
     _winWidth: null,
+    _beganTransition: null,
     _moved: null,
     _direction: null,
     _forwarding: null,
@@ -185,6 +188,7 @@
       this._startY = touch.clientY;
       this._deltaX = 0;
       this._deltaY = 0;
+      this._beganTransition = false;
       this._moved = false;
       this._forwarding = false;
       this._redispatching = false;
@@ -202,34 +206,41 @@
     _touchMove: function esd_touchMove(e) {
       var touch = e.touches[0];
       this._updateProgress(touch);
+      var delta = Math.max(Math.abs(this._deltaX), Math.abs(this._deltaY));
 
-      if (e.touches.length > 1 && !this._forwarding) {
-        this._startForwarding(e);
-        return;
-      }
-
+      // If we already started forwarding we just continue
       if (this._forwarding) {
         this._forward(e);
         return;
       }
 
-      // Does it quack like a vertical swipe?
-      if ((this._deltaX * 2 < this._deltaY) &&
-          (this._deltaY > 5)) {
+      // If it's a pinch gesture we start forwarding
+      if (e.touches.length > 1) {
         this._startForwarding(e);
-      }
-
-      if (!this._moved && (this._deltaX < 5 || this._outsideApp(e))) {
         return;
       }
 
-      this._clearForwardTimeout();
-
-      if (!this._moved) {
-        SheetsTransition.begin(this._direction);
+      // If the gesture isn't horizontal we start forwarding
+      if (delta > kSignificant && !this._horizontalGesture()) {
+        this._startForwarding(e);
+        return;
       }
-      this._moved = true;
+
+      // Preparing to move the sheets...
+      if (!this._beganTransition) {
+        SheetsTransition.begin(this._direction);
+        this._clearForwardTimeout();
+        this._beganTransition = true;
+      }
+
+      // after a small threshold
+      if ((this._deltaX < kSignificant || this._outsideApp(e)) &&
+          !this._moved) {
+        return;
+      }
+
       SheetsTransition.moveInDirection(this._direction, this._progress);
+      this._moved = true;
     },
 
     _touchEnd: function esd_touchEnd(e) {
@@ -281,6 +292,13 @@
       this._progress = this._deltaX / this._winWidth;
     },
 
+    _horizontalGesture: function esd_horizontalGesture() {
+      var angle = Math.atan2(this._deltaX, this._deltaY);
+      var horizontalAngle = Math.PI / 2;
+
+      return Math.abs(angle - horizontalAngle) < kEdgeAngleThreshold;
+    },
+
     _clearForwardTimeout: function esd_clearForwardTimeout() {
       if (this._forwardTimeout) {
         clearTimeout(this._forwardTimeout);
@@ -295,7 +313,9 @@
 
       this._forward(e);
 
-      SheetsTransition.snapInPlace();
+      if (this._beganTransition) {
+        SheetsTransition.snapInPlace();
+      }
     },
 
     /**
