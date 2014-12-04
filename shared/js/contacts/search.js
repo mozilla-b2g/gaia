@@ -156,7 +156,7 @@ contacts.Search = (function() {
     var normalizedDisplayedText = Normalizer.toAscii(displayedText);
 
     currentSearchTerms.forEach(function(term) {
-      var hRegEx = new RegExp(term, 'gi');
+      var hRegEx = new RegExp(Normalizer.escapeRegExp(term), 'gi');
       var newTerms = [], newTerm;
       // RegExp.exec() saves the index of the last match and the next time it's
       // called starts from there so we iterate over every match in the string.
@@ -387,7 +387,7 @@ contacts.Search = (function() {
     imgLoader.reload();
   }
 
-  function doSearch(contacts, from, searchText, pattern, state) {
+  function doSearch(contacts, from, searchText, state) {
     // Check whether the user enter a new term or not
     if (currentTextToSearch.localeCompare(searchText) !== 0) {
       canReuseSearchables = false;
@@ -397,7 +397,7 @@ contacts.Search = (function() {
 
     // Search the next chunk of contacts
     var end = from + CHUNK_SIZE;
-    currentSearchTerms = pattern.source.split(/\s+/);
+    currentSearchTerms = searchText.split(/\s+/);
     for (var c = from; c < end && c < contacts.length; c++) {
       var contact = contacts[c].node || contacts[c];
       var contactText = contacts[c].text || getSearchText(contacts[c]);
@@ -441,8 +441,7 @@ contacts.Search = (function() {
     if (c < contacts.length) {
       searchTimer = window.setTimeout(function do_search() {
         searchTimer = null;
-        doSearch(contacts, from + CHUNK_SIZE, searchText,
-                 pattern, state);
+        doSearch(contacts, from + CHUNK_SIZE, searchText, state);
       }, 0);
       return;
 
@@ -453,8 +452,7 @@ contacts.Search = (function() {
       // use some delay here to avoid a tight spin loop.
       var delay = 250;
       searchTimer = window.setTimeout(function do_search() {
-        doSearch(contacts, Math.min(end, contacts.length), searchText,
-                 pattern, state);
+        doSearch(contacts, Math.min(end, contacts.length), searchText, state);
       }, delay);
       return;
 
@@ -525,7 +523,7 @@ contacts.Search = (function() {
 
   var checkContactMatch = function checkContactMatch(searchTerms, text) {
     for (var i=0, m=searchTerms.length; i < m; i++){
-      if (!RegExp(searchTerms[i], 'i').test(text)) {
+      if (!RegExp(Normalizer.escapeRegExp(searchTerms[i]), 'i').test(text)) {
         return false;
       }
     }
@@ -536,7 +534,6 @@ contacts.Search = (function() {
     prevTextToSearch = currentTextToSearch;
 
     currentTextToSearch = Normalizer.toAscii(searchBox.value.trim());
-    currentTextToSearch = Normalizer.escapeRegExp(currentTextToSearch);
     var thisSearchText = String(currentTextToSearch);
 
     if (thisSearchText.length === 0) {
@@ -552,7 +549,6 @@ contacts.Search = (function() {
       emptySearch = false;
       // The remaining results have not been added yet
       remainingPending = true;
-      var pattern = new RegExp(thisSearchText, 'i');
       var contactsToSearch = getContactsToSearch(thisSearchText,
                                                prevTextToSearch);
       var state = {
@@ -562,7 +558,7 @@ contacts.Search = (function() {
       };
       searchTimer = window.setTimeout(function do_search() {
         searchTimer = null;
-        doSearch(contactsToSearch, 0, thisSearchText, pattern, state);
+        doSearch(contactsToSearch, 0, thisSearchText, state);
       },0);
     }
   };
