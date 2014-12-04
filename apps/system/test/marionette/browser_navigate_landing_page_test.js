@@ -1,8 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Search = require(
-  '../../../../apps/search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
 
@@ -35,7 +33,7 @@ marionette('Browser - Navigating from the landing page',
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = new Search(client);
+    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
 
@@ -44,8 +42,8 @@ marionette('Browser - Navigating from the landing page',
 
   test('navigates the landing page in place', function() {
     // Open the landing page
-    client.apps.launch(Search.URL);
-    client.apps.switchToApp(Search.URL);
+    client.apps.launch(search.URL);
+    client.apps.switchToApp(search.URL);
     client.helper.waitForElement('body');
     client.switchToFrame();
     var nApps = system.getAppWindows().length;
