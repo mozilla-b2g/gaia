@@ -1,3 +1,5 @@
+/* exported MockConfirmDialog */
+
 'use strict';
 
 var MockConfirmDialog = {

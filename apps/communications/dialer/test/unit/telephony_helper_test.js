@@ -1,6 +1,6 @@
 /* global ConfirmDialog, MocksHelper, MockIccHelper, MockLazyL10n, MockMozL10n,
    MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
-   MockNavigatorSettings, MockTonePlayer, Promise, TelephonyHelper */
+   MockNavigatorSettings, Promise, TelephonyHelper */
 
 'use strict';
 
@@ -12,7 +12,6 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
-require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 
 require('/dialer/test/unit/mock_icc_helper.js');
 
@@ -23,8 +22,7 @@ var mocksHelperForTelephonyHelper = new MocksHelper([
   'ConfirmDialog',
   'LazyL10n',
   'LazyLoader',
-  'IccHelper',
-  'TonePlayer'
+  'IccHelper'
 ]).init();
 
 suite('telephony helper', function() {
@@ -335,28 +333,6 @@ suite('telephony helper', function() {
           mockCall.onerror(createCallError('BusyError'));
           assert.isTrue(spyConfirmShow.calledWith('numberIsBusyTitle',
                                                   'numberIsBusyMessage'));
-        }).then(done, done);
-      });
-
-      test('should play the busy tone', function(done) {
-        var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
-        subject.call('123', 0);
-        mockPromise.then(function() {
-          mockCall.onerror(createCallError('BusyError'));
-          assert.isTrue(playSpy.calledOnce);
-        }).then(done, done);
-      });
-
-      test('Busy tone should be played in telephony channel', function(done) {
-        var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
-        var setChannelSpy = this.sinon.spy(MockTonePlayer, 'setChannel');
-        var setTelephonySpy = setChannelSpy.withArgs('telephony');
-        var setNormalSpy = setChannelSpy.withArgs('normal');
-        subject.call('123', 0);
-        mockPromise.then(function() {
-          mockCall.onerror(createCallError('BusyError'));
-          assert.isTrue(setTelephonySpy.calledBefore(playSpy));
-          assert.isTrue(setNormalSpy.calledAfter(playSpy));
         }).then(done, done);
       });
 

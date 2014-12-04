@@ -205,12 +205,6 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.calls = [];
       });
 
-      test('should not call TonePlayer.setChannel()', function() {
-        this.sinon.spy(MockTonePlayer, 'setChannel');
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-        sinon.assert.notCalled(MockTonePlayer.setChannel);
-      });
-
       test('should close the callscreen app after a delay', function() {
         this.sinon.spy(window, 'close');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
@@ -2050,6 +2044,27 @@ suite('calls handler', function() {
       MockAudioContext.prototype.addEventListener.yield();
       sinon.assert.calledOnce(AudioCompetingHelper.leaveCompetition);
       sinon.assert.calledTwice(AudioCompetingHelper.compete);
+    });
+  });
+
+  suite('> busy tone', function() {
+    var mockCall;
+
+    setup(function() {
+      this.sinon.spy(MockTonePlayer, 'playSequence');
+      mockCall = new MockCall('12334', 'incoming');
+      MockNavigatorMozTelephony.active = mockCall;
+    });
+
+    test('should play the busy tone if we found the line busy', function() {
+      var sequence = [[480, 620, 500], [0, 0, 500],
+                      [480, 620, 500], [0, 0, 500],
+                      [480, 620, 500], [0, 0, 500]];
+
+      MockNavigatorMozTelephony.mTriggerCallsChanged();
+      mockCall.error = { name: 'BusyError' };
+      mockCall.triggerEvent('error');
+      sinon.assert.calledWith(MockTonePlayer.playSequence, sequence);
     });
   });
 });

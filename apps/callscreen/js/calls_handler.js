@@ -94,6 +94,11 @@ var CallsHandler = (function callsHandler() {
       highPriorityWakeLock = null;
     }
 
+    // Make sure we play the busy tone when appropriate
+    if (telephony.active) {
+      telephony.active.addEventListener('error', handleBusyErrorAndPlayTone);
+    }
+
     // Adding any new calls to handledCalls
     telephony.calls.forEach(function callIterator(call) {
       var alreadyAdded = handledCalls.some(function hcIterator(hc) {
@@ -132,7 +137,7 @@ var CallsHandler = (function callsHandler() {
     }
 
     CallScreen.toggle();
-    exitCallScreenIfNoCalls();
+    exitCallScreenIfNoCalls(CallScreen.callEndPromptTime);
   }
 
   function addCall(call) {
@@ -245,6 +250,29 @@ var CallsHandler = (function callsHandler() {
     });
   }
 
+  /**
+   * Play the busy tone in response to the corresponding error being triggered
+   * at the end of a call. Once the tone has finished this will also
+   * automatically close the callscreen.
+   *
+   * @param evt {Object} The event delivered in the TelephonyCall.onerror
+   *        event-handler.
+   */
+  function handleBusyErrorAndPlayTone(evt) {
+    if (evt.call.error.name === 'BusyError') {
+      // ANSI call waiting tone for a 3 seconds window.
+      var sequence = [[480, 620, 500], [0, 0, 500],
+                      [480, 620, 500], [0, 0, 500],
+                      [480, 620, 500], [0, 0, 500]];
+      var sequenceDuration = sequence.reduce(function(prev, curr) {
+        return prev + curr[2];
+      }, 0);
+
+      TonePlayer.playSequence(sequence);
+      exitCallScreenIfNoCalls(sequenceDuration);
+    }
+  }
+
   function handleCallWaiting(call) {
     LazyL10n.get(function localized(_) {
       var number;
@@ -303,8 +331,11 @@ var CallsHandler = (function callsHandler() {
    * Checks now and also in CallScreen.callEndPromptTime seconds if there
    * are no currently handled calls, and if not, exits the app. Resets
    * this timer on each successive invocation.
+   *
+   * @param timeout {Integer} A duration in ms after which the callscreen
+   *        should be closed.
    */
-  function exitCallScreenIfNoCalls() {
+  function exitCallScreenIfNoCalls(timeout) {
     if (handledCalls.length === 0) {
       // Prevent the user from doing anything while we're waiting for the exit
       // timer to fire. This prevents them from taking any actions that would

@@ -1,25 +1,26 @@
 'use strict';
 
-window.addEventListener('load', function dialerSetup() {
+function onLoadDialer() {
   // Dialer chrome UI and keypad UI is visible and already exists in the DOM
   window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
   window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
 
-  window.removeEventListener('load', dialerSetup);
+  window.removeEventListener('load', onLoadDialer);
 
-  KeypadManager.init();
+  /* XXX: Don't specify a default volume control channel as we want to stick
+   * with the default one as a workaround for bug 1092346. Once that bug is
+   * fixed please add back the following line:
+   *
+   * navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+   */
+
+  KeypadManager.init(/* oncall */ false);
   // Keypad (app core content) is now bound
   window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
   NavbarManager.init();
   // Navbar (chrome) events have now been bound
   window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
-
-  // Tell audio channel manager that we want to adjust the notification
-  // channel if the user press the volumeup/volumedown buttons in Dialer.
-  if (navigator.mozAudioChannelManager) {
-    navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
-  }
 
   setTimeout(function nextTick() {
     var lazyPanels = ['confirmation-message',
@@ -49,4 +50,6 @@ window.addEventListener('load', function dialerSetup() {
       lazyPanelsElements.forEach(navigator.mozL10n.translate);
     });
   });
-});
+}
+
+window.addEventListener('load', onLoadDialer);
