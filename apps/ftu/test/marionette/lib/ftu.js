@@ -25,10 +25,20 @@ Ftu.URL = 'app://ftu.gaiamobile.org';
 
 Ftu.Selectors = {
   'languagePanel': '#languages',
-  'wifiPanel': '#wifi'
+  'wifiPanel': '#wifi',
+  'header': '#activation-screen gaia-header h1',
+  'languageItems': '#languages ul > li[data-value]'
 };
 
 Ftu.prototype = {
+  waitForL10nReady: function() {
+    this.client.helper.waitFor(function() {
+      return this.client.executeScript(function() {
+        return window.wrappedJSObject.navigator.mozL10n
+               .readyState === 'complete';
+      });
+    }.bind(this));
+  },
 
   getPanel: function(panel) {
     return this.client.helper.waitForElement(
@@ -48,6 +58,28 @@ Ftu.prototype = {
     if (button_id) {
       var button = this.client.helper.waitForElement(button_id);
       button.click();
+    }
+  },
+  waitForLanguagesToLoad: function() {
+    return this.client.waitFor(function() {
+      return this.client.findElements(Ftu.Selectors.languageItems).length > 1;
+    }.bind(this));
+  },
+  selectLanguage: function(language) {
+    this.waitForL10nReady();
+    this.waitForLanguagesToLoad();
+    this.client.helper.waitForElement('#languages');
+    var item = this.client.findElement(
+                '#languages li[data-value="' + language + '"]');
+    if (item) {
+      // scroll to it..
+      item.scriptWith(function(el){
+        el.scrollIntoView(false);
+      });
+      item.tap();
+    } else {
+      throw new Error('Option '+ language +
+                      ' could not be found in select wrapper');
     }
   }
 };

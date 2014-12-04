@@ -1124,6 +1124,12 @@ i.hack-first-child {
   RTL Tweeks
 */
 
+/* navigational buttons remain right=forward, left=back */
+html[dir="rtl"] gaia-buttons.nav {
+  direction: ltr;
+  unicode-bidi:embed;
+}
+
 html[dir="rtl"] #sim-info-screen .sim-image {
   float: right;
 }
