@@ -799,7 +799,7 @@
 
     return {
       id: node.$i,
-      value: node.$v || null,
+      value: node.$v === undefined ? null : node.$v,
       index: node.$x || null,
       attrs: attrs || null,
       env: env,
@@ -828,13 +828,13 @@
   }
 
 
-  function format(entity, ctxdata) {
+  function format(args, entity) {
     if (typeof entity === 'string') {
       return entity;
     }
 
     if (entity.dirty) {
-      return undefined;
+      throw new L10nError('Cyclic reference detected: ' + entity.id);
     }
 
     entity.dirty = true;
@@ -842,65 +842,43 @@
     // if format fails, we want the exception to bubble up and stop the whole
     // resolving process;  however, we still need to clean up the dirty flag
     try {
-      val = resolveValue(ctxdata, entity.env, entity.value, entity.index);
+      val = resolveValue(args, entity.env, entity.value, entity.index);
     } finally {
       entity.dirty = false;
     }
     return val;
   }
 
-  function formatValue(entity, ctxdata) {
-    if (typeof entity === 'string') {
-      return entity;
-    }
-
-    try {
-      return format(entity, ctxdata);
-    } catch (e) {
-      return undefined;
-    }
-  }
-
-  function formatEntity(entity, ctxdata) {
-    if (!entity.attrs) {
-      return formatValue(entity, ctxdata);
-    }
-
-    var formatted = {
-      value: formatValue(entity, ctxdata),
-      attrs: Object.create(null)
-    };
-
-    for (var key in entity.attrs) {
-      /* jshint -W089 */
-      formatted.attrs[key] = formatValue(entity.attrs[key], ctxdata);
-    }
-
-    return formatted;
-  }
-
-  function resolveIdentifier(ctxdata, env, id) {
+  function resolveIdentifier(args, env, id) {
     if (KNOWN_MACROS.indexOf(id) > -1) {
       return env['__' + id];
     }
 
-    if (ctxdata && ctxdata.hasOwnProperty(id) &&
-        (typeof ctxdata[id] === 'string' ||
-         (typeof ctxdata[id] === 'number' && !isNaN(ctxdata[id])))) {
-      return ctxdata[id];
+    if (args && args.hasOwnProperty(id)) {
+      if (typeof args[id] === 'string' || (typeof args[id] === 'number' &&
+          !isNaN(args[id]))) {
+        return args[id];
+      } else {
+        throw new L10nError('Arg must be a string or a number: ' + id);
+      }
     }
 
     // XXX: special case for Node.js where still:
     // '__proto__' in Object.create(null) => true
     if (id in env && id !== '__proto__') {
-      return format(env[id], ctxdata);
+      return format(args, env[id]);
     }
 
-    return undefined;
+    throw new L10nError('Unknown reference: ' + id);
   }
 
-  function subPlaceable(ctxdata, env, id) {
-    var value = resolveIdentifier(ctxdata, env, id);
+  function subPlaceable(args, env, id) {
+    var value;
+    try {
+      value = resolveIdentifier(args, env, id);
+    } catch (err) {
+      return '{{ ' + id + ' }}';
+    }
 
     if (typeof value === 'number') {
       return value;
@@ -919,25 +897,22 @@
     return '{{ ' + id + ' }}';
   }
 
-  function interpolate(ctxdata, env, arr) {
+  function interpolate(args, env, arr) {
     return arr.reduce(function(prev, cur) {
       if (typeof cur === 'string') {
         return prev + cur;
       } else if (cur.t === 'idOrVar'){
-        return prev + subPlaceable(ctxdata, env, cur.v);
+        return prev + subPlaceable(args, env, cur.v);
       }
     }, '');
   }
 
-  function resolveSelector(ctxdata, env, expr, index) {
+  function resolveSelector(args, env, expr, index) {
       var selectorName = index[0].v;
-      var selector = resolveIdentifier(ctxdata, env, selectorName);
-      if (selector === undefined) {
-        throw new L10nError('Unknown selector: ' + selectorName);
-      }
+      var selector = resolveIdentifier(args, env, selectorName);
 
       if (typeof selector !== 'function') {
-        // selector is a simple reference to an entity or ctxdata
+        // selector is a simple reference to an entity or args
         return selector;
       }
 
@@ -948,7 +923,7 @@
                             ' given');
       }
 
-      var argValue = resolveIdentifier(ctxdata, env, index[1]);
+      var argValue = resolveIdentifier(args, env, index[1]);
 
       if (selector === env.__plural) {
         // special cases for zero, one, two if they are defined on the hash
@@ -966,7 +941,7 @@
       return selector(argValue);
   }
 
-  function resolveValue(ctxdata, env, expr, index) {
+  function resolveValue(args, env, expr, index) {
     if (typeof expr === 'string' ||
         typeof expr === 'boolean' ||
         typeof expr === 'number' ||
@@ -975,31 +950,30 @@
     }
 
     if (Array.isArray(expr)) {
-      return interpolate(ctxdata, env, expr);
+      return interpolate(args, env, expr);
     }
 
     // otherwise, it's a dict
     if (index) {
       // try to use the index in order to select the right dict member
-      var selector = resolveSelector(ctxdata, env, expr, index);
+      var selector = resolveSelector(args, env, expr, index);
       if (expr.hasOwnProperty(selector)) {
-        return resolveValue(ctxdata, env, expr[selector]);
+        return resolveValue(args, env, expr[selector]);
       }
     }
 
     // if there was no index or no selector was found, try 'other'
     if ('other' in expr) {
-      return resolveValue(ctxdata, env, expr.other);
+      return resolveValue(args, env, expr.other);
     }
 
-    return undefined;
+    // XXX Specify entity id
+    throw new L10nError('Unresolvable value');
   }
 
   var Resolver = {
     createEntry: createEntry,
     format: format,
-    formatValue: formatValue,
-    formatEntity: formatEntity,
     rePlaceables: rePlaceables
   };
 
@@ -1232,6 +1206,7 @@
 
 
 
+
   function Context(id) {
     this.id = id;
     this.isReady = false;
@@ -1250,13 +1225,13 @@
 
   // Getting translations
 
+  function reportMissing(id, err) {
+    this._emitter.emit('notfounderror', err);
+    return id;
+  }
+
   function getWithFallback(id) {
     /* jshint -W084 */
-
-    if (!this.isReady) {
-      throw new L10nError('Context not ready');
-    }
-
     var cur = 0;
     var loc;
     var locale;
@@ -1269,7 +1244,7 @@
       var entry = locale.entries[id];
       if (entry === undefined) {
         cur++;
-        this._emitter.emit('notfounderror', new L10nError(
+        reportMissing.call(this, id, new L10nError(
           '"' + id + '"' + ' not found in ' + loc + ' in ' + this.id,
           id, loc));
         continue;
@@ -1277,29 +1252,90 @@
       return entry;
     }
 
-    this._emitter.emit('notfounderror', new L10nError(
-      '"' + id + '"' + ' missing from all supported locales in ' + this.id,
-      id));
-
-    return null;
+    throw new L10nError(
+      '"' + id + '"' + ' missing from all supported locales in ' + this.id, id);
   }
 
-  Context.prototype.get = function(id, ctxdata) {
-    var entry = getWithFallback.call(this, id);
-    if (entry === null) {
+  function formatValue(args, entity) {
+    if (typeof entity === 'string') {
+      return entity;
+    }
+
+    try {
+      return Resolver.format(args, entity);
+    } catch (err) {
+      this._emitter.emit('resolveerror', err);
+      return entity.id;
+    }
+  }
+
+  function formatEntity(args, entity) {
+    if (!entity.attrs) {
+      return {
+        value: formatValue.call(this, args, entity),
+        attrs: null
+      };
+    }
+
+    var formatted = {
+      value: formatValue.call(this, args, entity),
+      attrs: Object.create(null)
+    };
+
+    for (var key in entity.attrs) {
+      /* jshint -W089 */
+      formatted.attrs[key] = formatValue.call(this, args, entity.attrs[key]);
+    }
+
+    return formatted;
+  }
+
+  function formatAsync(fn, id, args) {
+    return Promise.resolve().then(
+      getWithFallback.bind(this, id)).then(
+        fn.bind(this, args),
+        reportMissing.bind(this, id));
+  }
+
+  Context.prototype.formatValue = function(id, args) {
+    return formatAsync.call(this, formatValue, id, args);
+  };
+
+  Context.prototype.formatEntity = function(id, args) {
+    return formatAsync.call(this, formatEntity, id, args);
+  };
+
+  function legacyGet(fn, id, args) {
+    if (!this.isReady) {
+      throw new L10nError('Context not ready');
+    }
+
+    var entry;
+    try {
+      entry = getWithFallback.call(this, id);
+    } catch (err) {
+      // Don't handle notfounderrors in individual locales in any special way
+      if (err.loc) {
+        throw err;
+      }
+      // For general notfounderrors, report them and return legacy fallback
+      reportMissing.call(this, id, err);
+      // XXX legacy compat;  some Gaia code checks if returned value is falsy or
+      // an empty string to know if a translation is available;  this is bad and
+      // will be fixed eventually in https://bugzil.la/1020138
       return '';
     }
 
-    return Resolver.formatValue(entry, ctxdata) || '';
+    // If translation is broken use regular fallback-on-id approach
+    return fn.call(this, args, entry);
+  }
+
+  Context.prototype.get = function(id, args) {
+    return legacyGet.call(this, formatValue, id, args);
   };
 
-  Context.prototype.getEntity = function(id, ctxdata) {
-    var entry = getWithFallback.call(this, id);
-    if (entry === null) {
-      return null;
-    }
-
-    return Resolver.formatEntity(entry, ctxdata);
+  Context.prototype.getEntity = function(id, args) {
+    return legacyGet.call(this, formatEntity, id, args);
   };
 
   Context.prototype.getLocale = function getLocale(code) {
@@ -1429,6 +1465,12 @@
     ctx: new Context(window.document ? document.URL : null),
     get: function get(id, ctxdata) {
       return navigator.mozL10n.ctx.get(id, ctxdata);
+    },
+    formatValue: function(id, ctxdata) {
+      return navigator.mozL10n.ctx.formatValue(id, ctxdata);
+    },
+    formatEntity: function(id, ctxdata) {
+      return navigator.mozL10n.ctx.formatEntity(id, ctxdata);
     },
     translateFragment: function (fragment) {
       return translateFragment.call(navigator.mozL10n, fragment);
@@ -1805,12 +1847,7 @@
       return false;
     }
 
-    if (typeof entity === 'string') {
-      setTextContent.call(this, l10n.id, element, entity);
-      return true;
-    }
-
-    if (entity.value) {
+    if (typeof entity.value === 'string') {
       setTextContent.call(this, l10n.id, element, entity.value);
     }
 

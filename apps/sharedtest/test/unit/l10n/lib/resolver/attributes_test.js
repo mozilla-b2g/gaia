@@ -28,14 +28,13 @@ describe('Attributes', function(){
     });
 
     it('returns the value', function(){
-      var entity = Resolver.formatEntity(env.foo);
-      assert.strictEqual(entity.attrs.attr, 'An attribute');
+      var attr = Resolver.format(null, env.foo.attrs.attr);
+      assert.strictEqual(attr, 'An attribute');
     });
 
     it('returns the value with a placeable', function(){
-      var entity = Resolver.formatEntity(env.foo);
-      assert.strictEqual(entity.attrs.attrComplex,
-                         'An attribute referencing Bar');
+      var attr = Resolver.format(null, env.foo.attrs.attrComplex);
+      assert.strictEqual(attr, 'An attribute referencing Bar');
     });
 
   });
@@ -51,13 +50,13 @@ describe('Attributes', function(){
     });
 
     it('returns the value of the entity', function(){
-      var value = Resolver.formatValue(env.update);
+      var value = Resolver.format(null, env.update);
       assert.strictEqual(value, 'Update');
     });
 
     it('returns the value of the attribute\'s member', function(){
-      var entity = Resolver.formatEntity(env.update, {n: 1});
-      assert.strictEqual(entity.attrs.innerHTML, 'One update available');
+      var attr = Resolver.format({n: 1}, env.update.attrs.innerHTML);
+      assert.strictEqual(attr, 'One update available');
     });
 
   });
@@ -77,13 +76,13 @@ describe('Attributes', function(){
     });
 
     it('returns the value of the entity', function(){
-      var entity = Resolver.formatEntity(env.update, {n: 1, k: 2});
-      assert.strictEqual(entity.value, 'One update');
+      var value = Resolver.format({n: 1, k: 2}, env.update);
+      assert.strictEqual(value, 'One update');
     });
 
     it('returns the value of the attribute', function(){
-      var entity = Resolver.formatEntity(env.update, {n: 1, k: 2});
-      assert.strictEqual(entity.attrs.innerHTML, '2 updates innerHTML');
+      var attr = Resolver.format({n: 1, k: 2}, env.update.attrs.innerHTML);
+      assert.strictEqual(attr, '2 updates innerHTML');
     });
 
   });
@@ -98,13 +97,13 @@ describe('Attributes', function(){
     });
 
     it('returns the value of the entity', function(){
-      var entity = Resolver.formatEntity(env.brandName);
-      assert.strictEqual(entity.value, 'Firefox');
+      var value = Resolver.format(null, env.brandName);
+      assert.strictEqual(value, 'Firefox');
     });
 
     it('returns the value of the attribute', function(){
-      var entity = Resolver.formatEntity(env.brandName);
-      assert.strictEqual(entity.attrs.title, 'Mozilla Firefox');
+      var attr = Resolver.format(null, env.brandName.attrs.title);
+      assert.strictEqual(attr, 'Mozilla Firefox');
     });
 
   });
@@ -119,9 +118,8 @@ describe('Attributes', function(){
     });
 
     it('returns the raw string of the attribute', function(){
-      var entity = Resolver.formatEntity(env.brandName);
-      assert.strictEqual(entity.attrs.title,
-                         'Mozilla {{ brandName.title }}');
+      var attr = Resolver.format(null, env.brandName.attrs.title);
+      assert.strictEqual(attr, 'Mozilla {{ brandName.title }}');
     });
 
   });

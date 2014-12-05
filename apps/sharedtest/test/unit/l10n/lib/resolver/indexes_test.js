@@ -31,21 +31,16 @@ describe('Index', function(){
     });
 
     it('works when the index is a regular entity', function() {
-      var value = Resolver.formatValue(env.indexEntity, {n: 1});
+      var value = Resolver.format({n: 1}, env.indexEntity);
       assert.strictEqual(value, 'One entity');
     });
-    it('throws when the index is an uncalled macro (resolve)', function() {
+    it('throws when the index is an uncalled macro', function() {
       assert.throws(function() {
-        Resolver.format(env.indexUncalledMacro, {n: 1});
+        Resolver.format({n: 1}, env.indexUncalledMacro);
       }, 'Macro plural expects 1 argument(s), yet 0 given');
     });
-    it('returns undefined when the index is an uncalled macro (toString)',
-      function() {
-      var value = Resolver.formatValue(env.indexUncalledMacro, {n: 1});
-      assert.strictEqual(value, undefined);
-    });
     it('works when the index is a called macro', function() {
-      var value = Resolver.formatValue(env.indexCalledMacro, {n: 1});
+      var value = Resolver.format({n: 1}, env.indexCalledMacro);
       assert.strictEqual(value, 'One called macro');
     });
 
@@ -61,8 +56,9 @@ describe('Index', function(){
     });
 
     it('is undefined', function() {
-      var value = Resolver.formatValue(env.foo);
-      assert.strictEqual(value, undefined);
+      assert.throws(function() {
+        Resolver.format(null, env.foo);
+      }, 'Cyclic reference detected: foo');
     });
 
   });
@@ -79,9 +75,10 @@ describe('Index', function(){
     });
 
     it('value of the attribute is undefined', function() {
-      var entity = Resolver.formatEntity(env.foo);
-      assert.strictEqual(entity.value, 'Foo');
-      assert.strictEqual(entity.attrs.attr, undefined);
+      assert.strictEqual(Resolver.format(null, env.foo), 'Foo');
+      assert.throws(function() {
+        Resolver.format(null, env.foo.attrs.attr);
+      }, 'Unresolvable value');
     });
 
   });
