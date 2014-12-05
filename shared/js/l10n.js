@@ -1220,6 +1220,7 @@
     this.locales = {};
 
     this._emitter = new EventEmitter();
+    this._ready = new Promise(this.once.bind(this));
   }
 
 
@@ -1291,7 +1292,7 @@
   }
 
   function formatAsync(fn, id, args) {
-    return Promise.resolve().then(
+    return this._ready.then(
       getWithFallback.bind(this, id)).then(
         fn.bind(this, args),
         reportMissing.bind(this, id));
