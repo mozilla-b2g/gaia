@@ -75,7 +75,6 @@
      * @enum {number}
      */
     TECH_PRIORITY: {
-      P2P: 1,
       Unsupported: 20
     },
 
@@ -177,23 +176,20 @@
       }
 
       var tech = this._getPrioritizedTech(msg.techList);
-      switch (tech) {
-        case 'P2P':
-          if (!msg.records.length) {
-            this.checkP2PRegistration();
-          } else {
-            // if there are records in the msg we've got NDEF message shared
-            // by other device via P2P, this should be handled as regular NDEF
-            this._fireNDEFDiscovered(msg, tech);
-          }
-          break;
-        default:
-          if (msg.records.length) {
-            this._fireNDEFDiscovered(msg, tech);
-          } else {
-            this._fireTagDiscovered(msg, tech);
-          }
-          break;
+      if (msg.isP2P) {
+        if (!msg.records.length) {
+          this.checkP2PRegistration();
+        } else {
+          // if there are records in the msg we've got NDEF message shared
+          // by other device via P2P, this should be handled as regular NDEF
+          this._fireNDEFDiscovered(msg, tech);
+        }
+      } else {
+        if (msg.records.length) {
+          this._fireNDEFDiscovered(msg, tech);
+        } else {
+          this._fireTagDiscovered(msg, tech);
+        }
       }
     },
 
