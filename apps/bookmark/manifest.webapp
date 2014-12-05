@@ -15,7 +15,7 @@
     "save-bookmark": {
       "filters": {
         "type": "url",
-        "url": { "required":true, "pattern":"(https?|rtsp):.{1,16384}" }
+        "url": { "required":true, "pattern":"(https?|rtsp|data):.{1,16384}" }
       },
       "disposition": "inline",
       "href": "/save.html",
@@ -24,7 +24,7 @@
     "remove-bookmark": {
       "filters": {
         "type": "url",
-        "url": { "required":true, "pattern":"(https?|rtsp):.{1,16384}" }
+        "url": { "required":true, "pattern":"(https?|rtsp|data):.{1,16384}" }
       },
       "disposition": "inline",
       "href": "/remove.html",
