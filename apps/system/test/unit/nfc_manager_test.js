@@ -784,6 +784,20 @@ suite('Nfc Manager Functions', function() {
       });
     });
 
+    test('Data-URI -> launch browser', function() {
+      var payload = { type: 'uri', uri: 'data:text/html,<b>Be bold</b>' };
+
+      var options = nfcManager._createNDEFActivityOptions(payload);
+      assert.deepEqual(options, {
+        name: 'view',
+        data: {
+          type: 'url',
+          url: payload.uri,
+          src: 'nfc'
+        }
+      });
+    });
+
     test('URI other', function() {
       var payload = { type: 'uri', uri: 'sip:bob@bob.com' };
 

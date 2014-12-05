@@ -513,7 +513,8 @@
           options.data.type = 'mail';
           options.data.url = payload.uri;
         } else if (payload.uri.indexOf('http://') === 0 ||
-                   payload.uri.indexOf('https://') === 0) {
+                   payload.uri.indexOf('https://') === 0 ||
+                   payload.uri.indexOf('data:text/html') === 0) {
           // launch browser
           options.name = 'view';
           options.data.type = 'url';
