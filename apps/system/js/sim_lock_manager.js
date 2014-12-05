@@ -59,12 +59,12 @@
 
     _handle_simlockback: function(evt) {
       var index = evt.detail._currentSlot.index;
-      this.showIfLocked(index - 1);
+      this.showIfLocked(index - 1, false);
     },
 
     _handle_simlockskip: function(evt) {
       var index = evt.detail._currentSlot.index;
-      if (index + 1 >= this.mobileConnections.length - 1) {
+      if (index + 1 > this.mobileConnections.length - 1) {
         evt.detail.close('skip');
       } else {
         if (!this.showIfLocked(index + 1, true)) {
@@ -75,10 +75,10 @@
 
     _handle_simlockrequestclose: function(evt) {
       var index = evt.detail._currentSlot.index;
-      if (index + 1 >= this.mobileConnections.length - 1) {
+      if (index + 1 > this.mobileConnections.length - 1) {
         evt.detail.close();
       } else {
-        if (!this.showIfLocked(index + 1, true)) {
+        if (!this.showIfLocked(index + 1, false)) {
           evt.detail.close();
         }
       }
@@ -160,16 +160,6 @@
     },
 
     showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
-      if (!applications.ready) {
-        this.warn('Device not ready yet.');
-        var self = this;
-        window.addEventListener('applicationready', function onReady() {
-          window.removeEventListener('applicationready', onReady);
-          self.showIfLocked(currentSlotIndex, skipped);
-        });
-        return false;
-      }
-
       if (!SIMSlotManager.ready) {
         this.warn('SIMSlot not ready yet.');
         return false;
@@ -185,7 +175,7 @@
         return false;
       }
 
-      if (this.simLockSystemDialog.visible) {
+      if (currentSlotIndex === null && this.simLockSystemDialog.visible) {
         this.warn('Already displayed.');
         return false;
       }
@@ -204,7 +194,12 @@
         return false;
       }
 
+      if (!applications.ready) {
+        return false;
+      }
+
       return SIMSlotManager.getSlots().some(function iterator(slot, index) {
+        // If currentSlotIndex is present then we just need to handle this slot
         if (currentSlotIndex && index !== currentSlotIndex) {
           return false;
         }
@@ -216,7 +211,7 @@
 
         // Only render if not already displaying, or
         // displaying and skipping
-        if (this.simLockSystemDialog.hidden ? !skipped : skipped) {
+        if (skipped == null && this.simLockSystemDialog.visible) {
           return false;
         }
 
