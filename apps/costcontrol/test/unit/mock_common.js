@@ -93,6 +93,7 @@ var MockCommon = function(config) {
                        1000000 : 1000000000;
       return settings.dataLimitValue * multiplier;
     },
-    updateNextReset: function() {}
+    updateNextReset: function() {},
+    resetData : function() {}
   };
 };
