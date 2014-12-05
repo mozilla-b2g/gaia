@@ -348,8 +348,7 @@ function getWebapp(app, domain, scheme, port, stageDir) {
   if (metaData.exists()) {
     webapp.pckManifest = readZipManifest(webapp.sourceDirectoryFile);
     webapp.metaData = getJSON(metaData);
-    webapp.appStatus = utils.getAppStatus(webapp.metaData.type ||
-                                          webapp.manifest.type || 'web');
+    webapp.appStatus = utils.getAppStatus(webapp.metaData.type || 'web');
   } else {
     webapp.appStatus = utils.getAppStatus(webapp.manifest.type);
   }
