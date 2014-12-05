@@ -8,25 +8,24 @@ from gaiatest.apps.phone.app import Phone
 
 class TestPlace40PhoneCallsSequentially(GaiaTestCase):
 
-    def setUp(self):
-        GaiaTestCase.setUp(self)
-        self.phone = Phone(self.marionette)
-        self.phone.launch()
-
     def test_place_40_phone_calls_sequentially(self):
         # In bug 1074379 and bug 1081714, we saw a regression that hid the phone
-        # number after placing 25 phones calls on some SIM cards.
+        # number after placing 25 phones calls.
         # This test is here to catch this regression one more time.
 
         NUMBER_OF_PHONE_CALLS = 40
+        remote_phone_number = self.testvars['remote_phone_number']
 
-        call_screen = self.phone.keypad.call_voicemail()
+        phone = Phone(self.marionette)
+        phone.launch()
+
+        call_screen = phone.keypad.call_number(remote_phone_number)
         call_screen.wait_for_outgoing_call()
         call_screen.hang_up()
 
         for i in range(NUMBER_OF_PHONE_CALLS):
             print 'Placing {}/{} phone call'.format(i+1, NUMBER_OF_PHONE_CALLS)
-            call_screen = self.phone.keypad.redial()
+            call_screen = phone.keypad.redial()
             call_screen.wait_for_outgoing_call()
             call_screen.hang_up()
 
