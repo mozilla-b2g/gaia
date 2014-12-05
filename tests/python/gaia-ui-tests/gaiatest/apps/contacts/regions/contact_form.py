@@ -106,6 +106,10 @@ class ContactForm(Base):
         element.clear()
         element.send_keys(value)
 
+    def tap_comment(self):
+        element = self.marionette.find_element(*self._comment_locator)
+        element.tap()
+
     @property
     def picture_style(self):
         return self.marionette.find_element(*self._thumbnail_photo_locator).get_attribute('style')
