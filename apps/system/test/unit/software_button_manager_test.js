@@ -7,6 +7,7 @@
 /* global MockOrientationManager */
 /* global ScreenLayout */
 /* global SoftwareButtonManager */
+/* global Service */
 
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -472,6 +473,33 @@ suite('enable/disable software home button', function() {
       redispatch(this.sinon.clock, 'touchend', 460, 240);
 
       sinon.assert.callOrder(pressSpy, releaseSpy);
+    });
+  });
+
+  suite('handle attention window when locked', function() {
+    setup(function() {
+      subject.element.classList.remove('attention-lockscreen');
+    });
+
+    test('should hide the software button', function() {
+      this.sinon.stub(Service, 'query', function() {
+        return {
+          CLASS_NAME: 'LockScreenWindow'
+        };
+      });
+      subject.handleEvent({type: 'hierachychanged'});
+      assert.isTrue(subject.element.classList.contains('attention-lockscreen'));
+    });
+
+    test('should show the software button', function() {
+      this.sinon.stub(Service, 'query', function() {
+        return {
+          CLASS_NAME: 'CallScreenWindow'
+        };
+      });
+      subject.handleEvent({type: 'hierachychanged'});
+      assert.isFalse(subject.element.classList.
+        contains('attention-lockscreen'));
     });
   });
 });
