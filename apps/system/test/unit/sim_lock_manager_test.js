@@ -202,6 +202,41 @@ suite('SimLockManager', function() {
           subject._alreadyShown = false;
       });
     });
+
+    suite('SIM second slot handling', function() {
+      var mockSIMCard;
+      function removeSIMCardFromFirstSlot() {
+        mockSIMCard = MockSIMSlotManager.mInstances[0].simCard;
+        delete MockSIMSlotManager.mInstances[0].simCard;
+        MockSIMSlotManager.mInstances[0].isAbsent = true;
+      }
+
+      function restoreSIMCardFirstSlot() {
+        MockSIMSlotManager.mInstances[0].simCard = mockSIMCard;
+        MockSIMSlotManager.mInstances[0].isAbsent = false;
+      }
+      setup(function() {
+        MockSIMSlotManager.ready = true;
+        addSimSlot();
+        removeSIMCardFromFirstSlot();
+        subject._alreadyShown = false;
+        this.sinon.stub(MockSIMSlotManager, 'hasOnlyOneSIMCardDetected',
+          function() {
+            return true;
+        });
+      });
+
+      teardown(function() {
+        removeSimSlot();
+        restoreSIMCardFirstSlot();
+      });
+
+      test('should show the second SIM if the first is not inserted',
+        function() {
+          subject.showIfLocked();
+          assert.equal(subject.simLockSystemDialog.show.callCount, 1);
+      });
+    });
   });
 
   suite('lockscreen request to unlock', function() {
