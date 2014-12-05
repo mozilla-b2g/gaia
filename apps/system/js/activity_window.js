@@ -166,13 +166,13 @@
   ActivityWindow.prototype.view = function acw_view() {
     this.instanceID = this.CLASS_NAME + '_' + _id;
     _id++;
-    return '<div class="appWindow activityWindow inline-activity' +
-            '" id="' + this.instanceID + '">' +
-            '<div class="fade-overlay"></div>' +
-            '<div class="browser-container">' +
-            ' <div class="screenshot-overlay"></div>' +
-            '</div>' +
-            '</div>';
+    return `<div id="${this.instanceID}"
+            class="appWindow activityWindow inline-activity">
+            <div class="fade-overlay"></div>
+            <div class="browser-container">
+             <div class="screenshot-overlay"></div>
+            </div>
+            </div>`;
   };
 
   ActivityWindow.SUB_COMPONENTS = {
