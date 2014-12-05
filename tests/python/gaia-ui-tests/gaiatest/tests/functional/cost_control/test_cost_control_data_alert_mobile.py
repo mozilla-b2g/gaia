@@ -2,10 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import Wait
 from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
 from gaiatest.apps.cost_control.app import CostControl
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestCostControlDataAlertMobile(GaiaTestCase):
@@ -38,6 +40,9 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         settings.reset_mobile_usage()
         settings.tap_done()
         self.assertTrue(cost_control.is_mobile_data_tracking_on)
+
+        self.device.touch_home_button()
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == Homescreen.name)
 
         # open browser to get some data downloaded
         search = Search(self.marionette)
