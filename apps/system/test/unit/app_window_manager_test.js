@@ -1072,6 +1072,7 @@ suite('system/AppWindowManager', function() {
       test('There is active app but it is closed', function() {
         appWindowManager._activeApp = app1;
         this.sinon.stub(app1, 'isActive').returns(false);
+        this.sinon.stub(window.taskManager, 'isActive').returns(true);
         assert.isFalse(appWindowManager.isActive());
       });
     });
