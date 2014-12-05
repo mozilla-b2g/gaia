@@ -244,9 +244,16 @@ span.line-break {
   left: 0;
   bottom: 0;
   right: 0;
+}
 
+#overlay,
+#in-use-overlay {
   /* almost transparent gray */
   background-color: rgba(0, 0, 0, 0.4);
+}
+
+#confirm-dialog {
+  background-color: #2d2d2d;
 }
 
 /*
@@ -267,9 +274,7 @@ body.pick-activity > #in-use-overlay {
  * the overlay text shows up more clearly
  */
 #overlay-content, #in-use-overlay-content {
-  background:
-  url(images/ui/pattern.png) repeat left top,
-  url(images/ui/gradient.png) no-repeat left top;
+  background-color: #2d2d2d;
   background-size: auto auto, 100% 100%;
   /* We can't use shortand with background size because is not implemented yet:
   https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
