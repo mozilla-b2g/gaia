@@ -62,7 +62,8 @@ var Contacts = (function() {
   var contactsDetails;
   var contactsForm;
 
-  var customTag, customTagReset, tagDone, tagHeader, lazyLoadedTagsDom = false;
+  var customTag, tagDone, lazyLoadedTagsDom = false;
+  var customTagConfirm, customTagDone, customTagCancel, customTagInput = false;
 
   // Shows the edit form for the current contact being in an update activity
   // It receives an array of two elements with the facebook data && values
@@ -430,31 +431,21 @@ var Contacts = (function() {
 
     if (!customTag) {
       customTag = document.querySelector('#custom-tag');
-      customTag.addEventListener('keydown', handleCustomTag);
-      customTag.addEventListener('touchend', handleCustomTag);
-    }
-    if (!customTagReset) {
-      customTagReset = document.getElementById('custom-tag-reset');
-      customTagReset.addEventListener('touchstart', handleCustomTagReset);
-    }
-    if (!tagDone) {
-      tagDone = document.querySelector('#settings-done');
-      tagDone.addEventListener('click', handleSelectTagDone);
-    }
-    if (!tagHeader) {
-      tagHeader = document.querySelector('#settings-header');
-      tagHeader.addEventListener('action', handleBack);
+      customTag.addEventListener('click', handleCustomTag);
     }
 
+    if (!tagDone) {
+      tagDone = document.querySelector('#button-done');
+      tagDone.addEventListener('click', handleSelectTagDone);
+    }
     ContactsTag.setCustomTag(customTag);
     // Set whether the custom tag is visible or not
     // This is needed for dates as we only support bday and anniversary
     // and not custom dates
     ContactsTag.setCustomTagVisibility(isCustomTagVisible);
-
     ContactsTag.fillTagOptions(tagsList, contactTag, options);
 
-    navigation.go('view-select-tag', 'right-left');
+    navigation.go('view-select-tag', 'fade-in');
     if (document.activeElement) {
       document.activeElement.blur();
     }
@@ -496,7 +487,8 @@ var Contacts = (function() {
     }
   };
 
-  var handleSelectTagDone = function handleSelectTagDone() {
+  var handleSelectTagDone = function handleSelectTagDone(event) {
+    event.preventDefault();
     var prevValue = contactTag.textContent;
     ContactsTag.clickDone(function() {
       var valueModifiedEvent = new CustomEvent('ValueModified', {
@@ -511,18 +503,30 @@ var Contacts = (function() {
     });
   };
 
-  var handleCustomTag = function handleCustomTag(ev) {
-    if (ev.keyCode === 13) {
-      ev.preventDefault();
+  var handleCustomTag = function handleCustomTag() {
+    if(!customTagConfirm) {
+      customTagConfirm = document.getElementById('custom-tag-confirm');
+      customTagDone = document.getElementById('custom-tag-done');
+      customTagCancel = document.getElementById('custom-tag-cancel');
+      customTagInput = document.getElementById('custom-tag-input');
+      customTagDone.addEventListener('click', handleCreateCustomTag);
+      customTagCancel.addEventListener('click', handleCancelCustomTag);
     }
-    ContactsTag.touchCustomTag();
+    customTagConfirm.classList.remove('hide');
   };
 
-  var handleCustomTagReset = function handleCustomTagReset(ev) {
-    ev.preventDefault();
-    if (customTag) {
-      customTag.value = '';
+  var handleCreateCustomTag = function handleCreateCustomTag(event) {
+    if(customTagInput.value.length > 0) {
+      customTag.querySelector('#custom-tag-value')
+                  .textContent = customTagInput.value;
+      ContactsTag.setCustomTag(customTag);
+      handleSelectTagDone(event);
     }
+    customTagConfirm.classList.add('hide');
+  };
+
+  var handleCancelCustomTag = function handleCancelCustomTag() {
+    customTagConfirm.classList.add('hide');
   };
 
   var sendEmailOrPick = function sendEmailOrPick(address) {
@@ -566,7 +570,8 @@ var Contacts = (function() {
       initDetails(function onDetails() {
         LazyLoader.load([
           SHARED_UTILS_PATH + '/misc.js',
-          '/shared/js/contacts/utilities/image_thumbnail.js'],
+          '/shared/js/contacts/utilities/image_thumbnail.js',
+          '/shared/style/object_menu.css'],
         function() {
           Contacts.view('Form', function viewLoaded() {
             formReady = true;

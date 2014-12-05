@@ -280,10 +280,6 @@ html[dir="rtl"] .icon-social {
   background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center / 2rem;
 }
 
-#custom-tag {
-  margin-bottom: 2rem;
-}
-
 /* Body */
 .view-body {
   position: relative;

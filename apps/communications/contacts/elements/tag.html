@@ -1,19 +1,34 @@
 <element name="view-select-tag" extends="section">
   <template>
-    <gaia-header id="settings-header" action="back">
-      <h1 data-l10n-id="label">Label</h1>
-      <button id="settings-done" data-l10n-id="done">Done</button>
-    </gaia-header>
-
-    <article class="view-body">
-      <form class="view-body-inner">
-        <ul id="tags-list" class="selection-list compact" role="listbox">
+    <form class="view-body-inner" role="dialog" data-type="object">
+      <header data-l10n-id="label">Label</header>
+      <section>
+        <ul id="tags-list" role="listbox" class="bb-radio">
         </ul>
-        <p>
-          <input class="textfield tagItem" type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="customTag" dir="auto">
-          <button id="custom-tag-reset" type="reset">Clear</button>
+        <ul id="custom-tag-container" role="listbox" class="bb-radio">
+          <li>
+            <label id="custom-tag">
+              <input data-value="custom" data-l10n-id="custom" name="contact-radio" type="radio" is-custom="true">
+              <span id="custom-tag-value" data-icon="tick">Custom</span>
+            </label>         
+          </li>
+        </ul>
+      </section>
+      <menu>
+        <button id="button-done" class="recommend" data-l10n-id="done">Done</button>
+      </menu>
+    </form>
+    <form id="custom-tag-confirm" class="hide" role="dialog" data-type="confirm">
+      <section>
+        <h1>Create custom</h1>
+        <p class="skin-dark">
+          <input id="custom-tag-input" type="text" data-l10n-id="customTag">
         </p>
-      </form>
-    </article>
+      </section>
+      <menu>
+        <button id="custom-tag-cancel" type="button">Cancel</button>
+        <button id="custom-tag-done" type="button" class="recommend">Done</button>
+      </menu>
+    </form>
   </template>
 </element>

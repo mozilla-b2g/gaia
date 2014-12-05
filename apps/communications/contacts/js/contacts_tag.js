@@ -5,10 +5,14 @@
 var ContactsTag = (function() {
   var originalTag = null;
   var selectedTag = null;
+  var customTagContainer = null;
   var customTag = null;
+  var customTagValue = null;
 
   var setCustomTag = function setCustomTag(element) {
     customTag = element;
+    customTagContainer = element.parentNode;
+    customTagValue = element.querySelector('#custom-tag-value');
   };
 
   var setCustomTagVisibility = function setCustomTagVisibility(value) {
@@ -17,39 +21,15 @@ var ContactsTag = (function() {
     }
 
     if (value) {
-      customTag.classList.remove('hide');
+      customTagContainer.classList.remove('hide');
     }
     else {
-      customTag.classList.add('hide');
+      customTagContainer.classList.add('hide');
     }
   };
 
-  var unMarkTag = function unMarkTag(tag) {
-    if (tag) {
-      tag.classList.remove('icon');
-      tag.classList.remove('icon-selected');
-
-      tag.removeAttribute('aria-selected');
-    }
-  };
-
-   var markTag = function markTag(tag) {
-    if (tag) {
-      tag.classList.add('icon');
-      tag.classList.add('icon-selected');
-
-      tag.setAttribute('aria-selected', true);
-    }
-  };
-
-  var touchCustomTag = function touchCustomTag(callback) {
-    unMarkTag(selectedTag);
-
-    selectedTag = null;
-
-    if (callback !== undefined && typeof callback === 'function') {
-      callback();
-    }
+  var markCustom = function markCustom() {
+    customTag.querySelector('input').setAttribute('checked', '');
   };
 
   var fillTagOptions = function fillTagOptions(target, _originalTag, options) {
@@ -59,21 +39,11 @@ var ContactsTag = (function() {
     var selectedLink;
     /* jshint loopfunc:true */
     for (var option in options) {
-      var tagLink = document.createElement('button');
-      tagLink.dataset.index = option;
-      tagLink.setAttribute('data-l10n-id', options[option].type);
-      tagLink.setAttribute('data-value', options[option].type);
-      tagLink.setAttribute('role', 'option');
-      tagLink.classList.add('tagItem');
-
-      tagLink.addEventListener('click', function(event) {
-        var tag = event.target;
-        selectTag(tag);
-        event.preventDefault();
-      });
+      var tagLink = createLabelOption(option, options[option], tagLink, target);
 
       if (originalTag.dataset.value == options[option].type) {
-        selectedLink = tagLink;
+        selectedLink = tagLink.querySelector('input');
+        tagLink.querySelector('input').setAttribute('checked', '');
       }
 
       var tagItem = document.createElement('li');
@@ -82,36 +52,58 @@ var ContactsTag = (function() {
       target.appendChild(tagItem);
     }
 
-    customTag.value = '';
-    if (!selectedLink && originalTag.textContent) {
-      customTag.value = originalTag.textContent;
+    customTagValue.textContent = '';
+    if (!selectedLink && originalTag.dataset.value) {
+      customTagValue.textContent = originalTag.dataset.value;
+      markCustom();
+    } else {
+      customTagValue.textContent = 'Custom';
     }
     selectTag(selectedLink);
+  };
+
+  var createLabelOption = function createLabelOption(key, option){
+    var tagLabel = document.createElement('label');
+
+    var tagRadio = document.createElement('input');
+    tagRadio.setAttribute('type', 'radio');
+    tagRadio.setAttribute('name', 'contact-radio');
+    tagRadio.dataset.index = key;
+    tagRadio.setAttribute('data-l10n-id', option.type);
+    tagRadio.setAttribute('data-value', option.type);
+    tagRadio.setAttribute('role', 'option');
+    tagLabel.appendChild(tagRadio);
+
+    var tagSpan = document.createElement('span');
+    tagSpan.setAttribute('data-icon', 'tick');
+    var tagSpanText = document.createTextNode(option.value);
+    tagSpan.appendChild(tagSpanText);
+    tagLabel.appendChild(tagSpan);
+    
+    return tagLabel;
   };
 
   var selectTag = function selectTag(tag) {
     if (tag == null) {
       return;
     }
-
+    tag.setAttribute('checked', '');
     //Clean any trace of the custom tag
     customTag.value = '';
-
-    unMarkTag(selectedTag);
-
-    markTag(tag);
     
     selectedTag = tag;
   };
 
   var clickDone = function clickDone(callback) {
-    if (selectedTag) {
-      originalTag.textContent = selectedTag.textContent;
+    selectedTag = 
+      document.querySelector('[type="radio"][name="contact-radio"]:checked');
+    if (selectedTag && !selectedTag.getAttribute('is-custom')) {
+      originalTag.textContent = selectedTag.dataset.value;
       originalTag.dataset.l10nId = selectedTag.dataset.l10nId;
       originalTag.dataset.value = selectedTag.dataset.value;
-    } else if (customTag.value.length > 0) {
-      originalTag.textContent = customTag.value;
-      originalTag.dataset.value = customTag.value;
+    } else if (customTagValue.textContent.length > 0) {
+      originalTag.textContent = customTagValue.textContent;
+      originalTag.dataset.value = customTagValue.textContent;
     }
     originalTag = null;
 
@@ -154,7 +146,6 @@ var ContactsTag = (function() {
 
   return {
     'setCustomTag': setCustomTag,
-    'touchCustomTag': touchCustomTag,
     'fillTagOptions': fillTagOptions,
     'clickDone': clickDone,
     'setCustomTagVisibility': setCustomTagVisibility,
