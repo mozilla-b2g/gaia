@@ -58,11 +58,9 @@
       listens: ['system-dialog-created',
                 'system-dialog-show',
                 'system-dialog-hide',
-                'simlockcreated',
                 'simlockshow',
                 'simlockhide',
                 'system-dialog-requestfocus',
-                'simlockrequestfocus',
                 'home',
                 'holdhome']
     }
