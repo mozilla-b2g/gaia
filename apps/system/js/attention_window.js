@@ -99,7 +99,8 @@
     'modalDialog': window.AppModalDialog,
     'authDialog': window.AppAuthenticationDialog,
     'attentionToaster': window.AttentionToaster,
-    'stautsbar': window.AppStatusbar
+    'stautsbar': window.AppStatusbar,
+    'permissionDialog': window.AppPermissionDialog
   };
 
   AttentionWindow.REGISTERED_EVENTS =

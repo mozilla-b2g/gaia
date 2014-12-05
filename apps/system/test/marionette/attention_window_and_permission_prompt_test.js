@@ -35,7 +35,7 @@ marionette('AttentionWindow - Permission Prompt', function() {
     client.switchToFrame();
 
     // The prompt is displayed
-    var prompt = client.helper.waitForElement('#permission-dialog');
+    var prompt = client.helper.waitForElement('.app-permission-dialog');
     var attention = client.helper.waitForElement('.attentionWindow.active');
 
     client.waitFor(function() {
@@ -43,7 +43,7 @@ marionette('AttentionWindow - Permission Prompt', function() {
     });
     assert(prompt.displayed(), 'The prompt is on top');
 
-    client.helper.waitForElement('#permission-yes').click();
+    client.helper.waitForElement('.permission-yes').click();
 
     client.waitFor(function() {
       return attention.displayed();

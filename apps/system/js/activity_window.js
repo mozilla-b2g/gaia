@@ -182,7 +182,8 @@
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
-    'statusbar': window.AppStatusbar
+    'statusbar': window.AppStatusbar,
+    'permissionDialog': window.AppPermissionDialog
   };
 
   ActivityWindow.REGISTERED_EVENTS = AppWindow.REGISTERED_EVENTS;
