@@ -1214,6 +1214,12 @@ suite('system/AppWindow', function() {
       assert.isNull(sheets[1].previousWindow);
     });
 
+    test('Destroy app with no navigation chrome', function() {
+      var app = new AppWindow(fakeChromeConfigWithoutNavigation);
+      app.destroy();
+      assert.ok(true); // we did not blow up
+    });
+
     test('Error event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubKill = this.sinon.stub(app1, 'kill');

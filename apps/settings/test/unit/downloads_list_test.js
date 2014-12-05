@@ -119,6 +119,8 @@ suite('DownloadList', function() {
         assert.isFalse(editModeHeader.hidden);
         done();
       });
+
+      clock.tick(TICK);
     });
   });
 
