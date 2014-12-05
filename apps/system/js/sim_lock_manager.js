@@ -216,7 +216,8 @@
         }
 
         // Always showing the first slot first.
-        if (!this._alreadyShown && index > 0) {
+        if (!this._alreadyShown &&
+          !SIMSlotManager.hasOnlyOneSIMCardDetected() && index > 0) {
           return false;
         }
 
