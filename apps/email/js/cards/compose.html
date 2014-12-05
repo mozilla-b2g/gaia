@@ -20,8 +20,8 @@
 <div data-prop="scrollContainer" class="scrollregion-below-header">
   <div data-prop="addrBar" class="cmp-envelope-bar">
     <div class="cmp-addr-bar">
-      <div data-event="click:onContainerClick"
-           class="cmp-envelope-line cmp-combo">
+      <div data-event="click:onTo, click:onContainerClick"
+           class="cmp-envelope-line cmp-combo" data-prop="lineTo">
         <span class="cmp-to-label cmp-addr-label"
                data-l10n-id="compose-to">tO:</span>
         <div class="cmp-to-container cmp-addr-container">
@@ -38,7 +38,7 @@
       <!-- XXX: spec calls for showing cc/bcc merged until selected,
            but there is also the case where replying itself might need
            to expand, so we are deferring that feature -->
-      <div data-event="click:onContainerClick"
+      <div data-event="click:onCC, click:onContainerClick"
            class="cmp-envelope-line cmp-combo">
         <span class="cmp-cc-label cmp-addr-label"
                data-l10n-id="compose-cc">cC:</span>
@@ -54,7 +54,7 @@
              class="cmp-cc-add cmp-contact-add"></div>
       </div>
       <div data-event="click:onContainerClick"
-           class="cmp-envelope-line cmp-combo">
+           class="cmp-envelope-line cmp-combo" data-prop="lineBCC">
         <span class="cmp-bcc-label cmp-addr-label"
                data-l10n-id="compose-bcc">BcC:</span>
         <div class="cmp-bcc-container cmp-addr-container">
