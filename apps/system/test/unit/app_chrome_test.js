@@ -1,5 +1,5 @@
 /* global AppWindow, AppChrome, MocksHelper, MockL10n, PopupWindow,
-          MockModalDialog, MockService */
+          MockSystem, MockModalDialog */
 /* exported MockBookmarksDatabase */
 'use strict';
 
