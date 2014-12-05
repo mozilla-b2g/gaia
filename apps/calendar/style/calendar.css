@@ -1,6 +1,10 @@
 * {
   -moz-box-sizing: border-box;
+  /* By default do not allow any user text selection, only enable for certain
+  parts on a per-element/region area */
+  -moz-user-select: none;
 }
+
 html {
   font-size: 10px;
 }
@@ -38,12 +42,14 @@ ol li {
   padding: 0;
 }
 
-
-html, body {
-  padding: 0;
-  margin: 0;
+/* Allow inputs to be selectable (cut/copy/paste operations) */
+input[type="email"],
+input[type="search"],
+input[type="text"],
+input[type="url"],
+textarea {
+ -moz-user-select: text;
 }
-
 
 .ltr {
   text-align: left;
