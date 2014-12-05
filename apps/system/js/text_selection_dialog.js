@@ -82,8 +82,8 @@
         break;
       case 'mozChromeEvent':
         switch (evt.detail.type) {
-          case 'selectionchange':
-            this._onSelectionChange(evt);
+          case 'selectionstatechanged':
+            this._onSelectionStateChanged(evt);
             break;
           case 'scrollviewchange':
             this.debug('scrollviewchange');
@@ -106,6 +106,7 @@
             }
             break;
           case 'touchcarettap':
+            this.debug('touchcarettap');
             this.show(this.textualmenuDetail);
             this._triggerShortcutTimeout();
             break;
@@ -113,8 +114,8 @@
     }
   };
 
-  TextSelectionDialog.prototype._onSelectionChange =
-    function tsd__onSelectionChange(evt) {
+  TextSelectionDialog.prototype._onSelectionStateChanged =
+    function tsd__onSelectionStateChanged(evt) {
       if (this._ignoreSelectionChange) {
         return;
       }
@@ -128,7 +129,7 @@
       this.debug('on receive selection change event');
       this.debug(JSON.stringify(detail));
       var rect = detail.rect;
-      var reasons = detail.reasons;
+      var states = detail.states;
       var commands = detail.commands;
       var isCollapsed = detail.isCollapsed;
       var isTempShortcut = this._hasCutOrCopied && isCollapsed;
@@ -137,26 +138,32 @@
 
       // In collapsed mode, only paste option will be displaed if we have copied
       // or cut before.
-      if (isCollapsed && reasons.indexOf('mouseup') !== -1) {
+      if (isCollapsed && states.indexOf('mouseup') !== -1) {
         this.textualmenuDetail = detail;
         commands.canSelectAll = false;
       }
 
-      // We should hide the bubble when user call selection.collapseToEnd() by
-      // script.
-      if (reasons.indexOf('collapsetoend') !== -1) {
+      // If current element lost focus, we should hide the bubble.
+      if (states.indexOf('blur') !== -1) {
         this.hide();
         return;
       }
 
-      if (reasons.indexOf('mouseup') !== -1 && rectHeight === 0 &&
+      // We should hide the bubble when user call selection.collapseToEnd() by
+      // script.
+      if (states.indexOf('collapsetoend') !== -1) {
+        this.hide();
+        return;
+      }
+
+      if (states.indexOf('mouseup') !== -1 && rectHeight === 0 &&
           rectWidth === 0 && !isTempShortcut) {
         this.hide();
         return;
       }
 
       // We should not do anything if below cases happen.
-      if (reasons.length === 0 || (
+      if (states.length === 0 || (
           rectHeight === 0 && rectWidth === 0 && !isTempShortcut) ||
           !(commands.canPaste || commands.canCut || commands.canSelectAll ||
             commands.canCopy)
@@ -169,8 +176,8 @@
         this._injected = true;
       }
 
-      if (reasons.indexOf('selectall') !== -1 ||
-          reasons.indexOf('mouseup') !== -1) {
+      if (states.indexOf('selectall') !== -1 ||
+          states.indexOf('mouseup') !== -1) {
         if (!isTempShortcut && isCollapsed) {
           this.close();
           return;
