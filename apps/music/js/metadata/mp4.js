@@ -20,7 +20,7 @@ var MP4Metadata = (function() {
     '\xa9nam' : 'title',
     'trkn'    : 'tracknum',
     'disk'    : 'discnum',
-    'covr'    : 'image'
+    'covr'    : 'picture'
   };
 
   // These MP4 atoms are stored as pairs of integers, so they get mapped to
@@ -158,7 +158,9 @@ var MP4Metadata = (function() {
         if (offset + size + 16 <= atom.blob.size) {
           atom.getMore(offset + size, 16, function(moov) {
             try {
-              resolve(findMoovAtom(moov));
+              findMoovAtom(moov).then(function(result) {
+                resolve(result);
+              });
             } catch (e) {
               reject(e);
             }
