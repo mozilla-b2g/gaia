@@ -1109,35 +1109,6 @@ suite('dialer/call_log_db', function() {
     });
   });
 
-  suite('upgrade observers', function() {
-    var onupgradeneededObserved = 0;
-    var onupgradedoneObserved = 0;
-    var onupgradeprogressObserved = 0;
-
-    suiteSetup(function(done) {
-      CallLogDBManager.onupgradeneeded = function() {
-        onupgradeneededObserved++;
-      };
-      CallLogDBManager.onupgradedone = function() {
-        onupgradedoneObserved++;
-      };
-      CallLogDBManager.onupgradeprogress = function() {
-        onupgradeprogressObserved++;
-      };
-      CallLogDBManager._notifyObservers('upgradeneeded');
-      CallLogDBManager._notifyObservers('upgradedone');
-      CallLogDBManager._notifyObservers('upgradeprogress');
-      done();
-    });
-
-    test('notify onupgradeneeded observers', function(done) {
-      assert.equal(onupgradeneededObserved, 1);
-      assert.equal(onupgradedoneObserved, 1);
-      assert.equal(onupgradeprogressObserved, 1);
-      done();
-    });
-  });
-
   suite('getGroup', function() {
     var call = {
       number: numbers[0],
