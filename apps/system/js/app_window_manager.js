@@ -344,9 +344,6 @@
       window.addEventListener('orientationchange', this);
       window.addEventListener('sheets-gesture-begin', this);
       window.addEventListener('sheets-gesture-end', this);
-      // XXX: PermissionDialog is shared so we need AppWindowManager
-      // to focus the active app after it's closed.
-      window.addEventListener('permissiondialoghide', this);
       window.addEventListener('appopening', this);
       window.addEventListener('localized', this);
       window.addEventListener('launchtrusted', this);
@@ -432,7 +429,6 @@
       window.removeEventListener('orientationchange', this);
       window.removeEventListener('sheets-gesture-begin', this);
       window.removeEventListener('sheets-gesture-end', this);
-      window.removeEventListener('permissiondialoghide', this);
       window.removeEventListener('appopening', this);
       window.removeEventListener('localized', this);
       window.removeEventListener('shrinking-start', this);

@@ -299,6 +299,10 @@
   z-index: 0;
 }
 
+#screen > [data-z-index-level="keyboards"].demoted {
+  z-index: 0;
+}
+
 /* We promote the following overlays on top of the fullscreen web content. */
 #screen:-moz-full-screen-ancestor > [data-z-index-level="sleep-menu"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="action-menu"],

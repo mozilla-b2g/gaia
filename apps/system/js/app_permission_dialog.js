@@ -9,7 +9,11 @@
   function AppPermissionDialog(app) {
     this.app = app;
     this.pending = [];
-    this.containerElement = this.app.element;
+    if (this.app.CLASS_NAME !== 'SearchWindow') {
+      this.containerElement = this.app.element;
+    } else {
+      this.containerElement = document.getElementById('system-overlay');
+    }
     this.app.element.addEventListener('mozChromeEvent', this);
     this.app.element.addEventListener('mozbrowserfullscreen-origin-change',
       this);
@@ -125,6 +129,7 @@
    * @param {DOMEvent} evt The event.
    */
   AppPermissionDialog.prototype.handleEvent = function(evt) {
+    this.app.debug('handling ' + evt.type);
     if (!this.element) {
       this.render();
     }
@@ -365,6 +370,7 @@
     if (!this.hideInfoLink.classList.contains('hidden')) {
       this.toggleInfo();
     }
+    this.publish('hidden');
   };
 
   /**
@@ -578,6 +584,7 @@
     }
     // Make the screen visible
     this.overlay.classList.add('visible');
+    this.publish('shown');
   };
 
   /**
