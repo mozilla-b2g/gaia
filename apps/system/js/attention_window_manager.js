@@ -285,7 +285,7 @@
     updateClassState: function() {
       // XXX We set a class to screen to allow overriding the screen.lock class.
       // When we get rid of screen.lock in the future, this can go away safely.
-      if (this._instances.length) {
+      if (this._openedInstances.size !== 0) {
         this.screen.classList.add('attention');
       } else {
         this.screen.classList.remove('attention');
