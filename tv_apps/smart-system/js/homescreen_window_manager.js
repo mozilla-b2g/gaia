@@ -200,8 +200,12 @@
       } else if (homescreenLauncher.manifestURL === manifestURL) {
         // in appX trying to switch to home
         this.publish('home');
+      } else if (this.landingAppLauncher.manifestURL === manifestURL) {
+        // We set the activeHome as normal home and use home event to switch to
+        // landing app
+        this._activeHome = homescreenLauncher;
+        this.publish('home');
       }
-      // We don't support appX trying to switch to landing app
     },
 
     handleHomeEvent: function handleHomeEvent() {
