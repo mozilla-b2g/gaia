@@ -21,6 +21,7 @@
    "audio.volume.content": 8,
    "audio.volume.master": 5,
    "audio.volume.notification": 8,
+   "audio.volume.ringer": 8,
    "audio.volume.tts": 15,
    "audio.volume.telephony": 5,
    "audio.volume.cemaxvol": 11,
