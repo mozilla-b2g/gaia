@@ -42,14 +42,17 @@ suite('Sound > VolumeManager', function() {
         var element = {
           media: dom,
           notification: dom,
+          ringer: dom,
           alarm: dom
         };
         volumeManager.init(element);
-        assert.ok(this.MockSliderHandler.init.calledThrice);
+        assert.ok(this.MockSliderHandler.init.callCount == element.length);
         assert.ok(this.MockSliderHandler.init.calledWith(
           volumeManager._elements.media, 'content'));
         assert.ok(this.MockSliderHandler.init.calledWith(
           volumeManager._elements.notification, 'notification'));
+        assert.ok(this.MockSliderHandler.init.calledWith(
+          volumeManager._elements.ringer, 'ringer'));
         assert.ok(this.MockSliderHandler.init.calledWith(
           volumeManager._elements.alarm, 'alarm'));
     });
