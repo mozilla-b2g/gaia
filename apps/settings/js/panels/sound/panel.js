@@ -25,6 +25,7 @@ define(function(require) {
         var vmElements = {
           media: panel.querySelector('.volume.media input'),
           notification: panel.querySelector('.volume.notification input'),
+          ringer: panel.querySelector('.volume.ringer input'),
           alarm: panel.querySelector('.volume.alarm input')
         };
         volumeManager.init(vmElements);
