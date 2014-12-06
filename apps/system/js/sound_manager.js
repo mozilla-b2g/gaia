@@ -50,6 +50,7 @@
   SoundManager.MAX_VOLUME = {
     'alarm': 15,
     'notification': 15,
+    'ringer': 15,
     'telephony': 5,
     'content': 15,
     'bt_sco': 15
@@ -121,7 +122,8 @@
    */
   SoundManager.prototype.cachedVolume = {
     'content': -1,
-    'notification': -1
+    'notification': -1,
+    'ringer': -1
   };
 
   /**
@@ -130,7 +132,7 @@
    * @type {Array}
    * @see cachedVolume
    */
-  SoundManager.prototype.cachedChannels = ['content', 'notification'];
+  SoundManager.prototype.cachedChannels = ['content', 'notification', 'ringer'];
 
   /**
    * The interval ID of CE accumulator.
@@ -170,6 +172,7 @@
   SoundManager.prototype.currentVolume = {
     'alarm': 15,
     'notification': 15,
+    'ringer': 15,
     'telephony': 5,
     'content': 15,
     'bt_sco': 15
@@ -370,10 +373,12 @@
       // Turn off vibration for really silence.
       this.setVibrationEnabled(false);
       this.enterSilentMode('notification');
+      this.enterSilentMode('ringer');
     } else {
       // Turn on vibration.
       this.setVibrationEnabled(true);
       this.leaveSilentMode('notification');
+      this.leaveSilentMode('ringer');
       this.leaveSilentMode('content');
     }
   };
@@ -402,8 +407,9 @@
       case 'alarm':
         return 'alarm';
       case 'notification':
-      case 'ringer':
           return 'notification';
+      case 'ringer':
+          return 'ringer';
       default:
         if (this.defaultVolumeControlChannel !== 'unknown') {
           return this.defaultVolumeControlChannel;
@@ -685,10 +691,13 @@
           } else if (channel === 'notification' && volume > 0) {
             self.leaveSilentMode('notification',
                             /* skip volume restore */ true);
+            self.leaveSilentMode('ringer',
+                            /* skip volume restore */ false);
           } else if (channel === 'notification' && volume === 0) {
             // Enter silent mode when notification volume is 0
             // no matter who sets this value.
             self.enterSilentMode('notification');
+            self.enterSilentMode('ringer');
           }
 
           if (!self.volumeFetched && ++callbacksReceived === callsMade) {
@@ -937,6 +946,7 @@
       // In the notification silent mode, volume rocker priority is higher
       // than stored notification volume value so we skip the restore.
       this.leaveSilentMode('notification', /*skip volume restore*/ true);
+      this.leaveSilentMode('ringer', /*skip volume restore*/ false);
     }
 
     this.currentVolume[channel] = volume =
