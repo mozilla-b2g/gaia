@@ -40,16 +40,15 @@ var ThreadListUI = {
       'container', 'no-messages',
       'check-uncheck-all-button',
       'delete-button', 'edit-header',
-      'options-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
+      'options-button', 'composer-link',  'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
 
     this.mainWrapper = document.getElementById('main-wrapper');
-    this.composerButton = document.getElementById('icon-add');
 
     // TODO this should probably move to a "WrapperView" class
-    this.composerButton.addEventListener(
+    this.composerLink.addEventListener(
       'click', this.launchComposer.bind(this)
     );
 
@@ -65,7 +64,7 @@ var ThreadListUI = {
       'action', this.cancelEdit.bind(this)
     );
 
-    this.optionsIcon.addEventListener(
+    this.optionsButton.addEventListener(
       'click', this.showOptions.bind(this)
     );
 
