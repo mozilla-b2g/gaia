@@ -168,7 +168,7 @@ var BluetoothTransfer = {
         'bodyL10n': body,
         'icon': icon
       }).then(function(notification) {
-        notification.addEventListener('click', function(evt) {
+        notification.addEventListener('click', function() {
           UtilityTray.hide();
           self.showReceivePrompt(evt);
         });
