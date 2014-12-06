@@ -43,7 +43,7 @@
     },
 
     ThreadList: {
-      navigateToComposerHeaderButton: '#icon-add'
+      navigateToComposerHeaderButton: '#threads-composer-link'
     },
 
     Report: {
