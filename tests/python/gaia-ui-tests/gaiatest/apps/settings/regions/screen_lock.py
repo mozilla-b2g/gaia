@@ -22,9 +22,10 @@ class ScreenLock(Base):
 
     def create_passcode(self, passcode):
 
-        # switch to keyboard, input passcode
-        for times in range(2):
-            self.keyboard.send("".join(passcode))
+        # switch to keyboard, input passcode twice
+        for i in range(0, 2):
+            for character in passcode:
+                self.keyboard.send(character)
 
         # Back to create passcode
         self.wait_for_element_displayed(*self._screen_lock_passcode_section_locator)
