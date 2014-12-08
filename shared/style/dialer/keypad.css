@@ -364,3 +364,10 @@
 .full-height {
   height: 100%;
 }
+
+/* Language-specific */
+/* lang:ar */
+
+html[lang="ar"] .keypad-key span {
+  font-size: 4.5rem;
+}
