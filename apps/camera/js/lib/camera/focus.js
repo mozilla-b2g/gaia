@@ -222,7 +222,7 @@ Focus.prototype.focus = function(done) {
   // the focus ring.
   //
   this.updateFocusState('focusing');
-  this.mozCamera.autoFocus(onSuccess, onError);
+  this.mozCamera.autoFocus().then(onSuccess, onError);
 
   // If focus fails with an error, we still need to signal the
   // caller. Interruptions are a special case, but other errors
@@ -230,7 +230,7 @@ Focus.prototype.focus = function(done) {
   // remaining unfocused.
   function onError(err) {
     self.focused = false;
-    if (err === 'AutoFocusInterrupted') {
+    if (err.name === 'NS_ERROR_IN_PROGRESS') {
       done('interrupted');
     } else {
       done('error');

@@ -18,7 +18,11 @@ suite('lib/camera/focus', function() {
         focusModes : ["auto", "infinity", "normal",
           "macro", "continuous-picture", "continuous-video" ],
       },
-      autoFocus: sinon.stub(),
+      autoFocus: sinon.stub().returns({
+        then: function(onSuccess, onError) {
+          onSuccess(true);
+        }
+      }),
       setFocusAreas: sinon.stub(),
       setMeteringAreas: sinon.stub(),
       stopContinuousFocus: sinon.stub(),
@@ -422,7 +426,11 @@ suite('lib/camera/focus', function() {
       var onFocused = sinon.spy();
       this.mozCamera.autoFocus = sinon.stub();
       this.mozCamera.focusMode = 'auto';
-      this.mozCamera.autoFocus.callsArgWith(0, undefined);
+      this.mozCamera.autoFocus.returns({
+        then: function(resolve, reject) {
+          resolve(false);
+        }
+      });
       this.focus.focus(onFocused);
       assert.ok(this.focus.onAutoFocusChanged.calledWith('focusing'));
       assert.ok(this.mozCamera.autoFocus.called);
@@ -434,7 +442,11 @@ suite('lib/camera/focus', function() {
       var onFocused = sinon.spy();
       this.mozCamera.autoFocus = sinon.stub();
       this.mozCamera.focusMode = 'auto';
-      this.mozCamera.autoFocus.callsArgWith(0, 'success');
+      this.mozCamera.autoFocus.returns({
+        then: function(resolve, reject) {
+          resolve(true);
+        }
+      });
       this.focus.focus(onFocused);
       assert.ok(this.focus.onAutoFocusChanged.calledWith('focusing'));
       assert.ok(this.mozCamera.autoFocus.called);
@@ -461,7 +473,13 @@ suite('lib/camera/focus', function() {
     test('Should call the focus callback with interrupted state if autofocus is interrupted', function() {
       var onFocused = sinon.spy();
       this.mozCamera.autoFocus = sinon.stub();
-      this.mozCamera.autoFocus.callsArgWith(1, 'AutoFocusInterrupted');
+      this.mozCamera.autoFocus.returns({
+        then: function(resolve, reject) {
+          var error = new Error();
+          error.name = 'NS_ERROR_IN_PROGRESS';
+          reject(error);
+        }
+      });
       this.mozCamera.focusMode = 'auto';
       this.focus.focused = true;
       this.focus.focus(onFocused);
