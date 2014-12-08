@@ -16,12 +16,8 @@ class TestDeleteCallLog(GaiaTestCase):
         self.phone = Phone(self.marionette)
         self.phone.launch()
 
-        test_phone_number = self.testvars['remote_phone_number']
-
-        mock_call = MockCall(test_phone_number, 'incoming')
-        self.data_layer.insert_call_entry(mock_call)
-        mock_call = MockCall(test_phone_number, 'dialing')
-        self.data_layer.insert_call_entry(mock_call)
+        self.data_layer.insert_call_entry(MockCall())
+        self.data_layer.insert_call_entry(MockCall(call_type='dialing'))
 
     def test_delete_call_log(self):
         """
