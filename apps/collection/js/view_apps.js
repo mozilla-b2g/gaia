@@ -115,7 +115,7 @@
       var msg = navigator.mozL10n.get('offline-webresults', {
         collectionName: collection.localizedName
       });
-      elements.offlineMessage.innerHTML = msg;
+      elements.offlineMessage.textContent = msg;
       elements.offline.classList.add('show');
     }
 
