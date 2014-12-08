@@ -82,10 +82,19 @@ var ActivityHandler = {
 
     this.isLocked = true;
 
-    var number = activity.source.data.number;
-    var body = activity.source.data.body;
+    var type = activity.source.data.type;
+    var target, contactFinder;
 
-    Contacts.findByPhoneNumber(number, function findContact(results) {
+    if (Settings.supportEmailRecipient && type === 'websms/email') {
+      target = activity.source.data.email;
+      contactFinder = 'findByAddress';
+    } else {
+      target = activity.source.data.number;
+      contactFinder = 'findByPhoneNumber';
+    }
+
+    Contacts[contactFinder](target, function findContact(results) {
+      var body = activity.source.data.body;
       var record, name, contact;
 
       // Bug 867948: results null is a legitimate case
@@ -93,7 +102,7 @@ var ActivityHandler = {
         record = results[0];
         name = record.name.length && record.name[0];
         contact = {
-          number: number,
+          number: target,
           name: name,
           source: 'contacts'
         };
@@ -101,7 +110,7 @@ var ActivityHandler = {
 
       ActivityHandler.toView({
         body: body,
-        number: number,
+        number: target,
         contact: contact || null
       });
     });

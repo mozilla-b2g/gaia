@@ -689,6 +689,17 @@ suite('ActivityHandler', function() {
       postResult: sinon.stub()
     };
 
+    var newActivity_email = {
+      source: {
+        name: 'new',
+        data: {
+          number: 'abc@exmple.com',
+          body: 'foo'
+        }
+      },
+      postResult: sinon.stub()
+    };
+
     var newActivity_empty = {
       source: {
         name: 'new',
@@ -805,6 +816,12 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       assert.isTrue(ActivityHandler.isInActivity());
     });
+
+    test('new message with email', function() {
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_email);
+      assert.isTrue(ActivityHandler.isInActivity());
+    });
+
   });
 
   suite('When compose is not empty', function() {
