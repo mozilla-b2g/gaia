@@ -6,7 +6,6 @@ from marionette import expected
 from marionette import Wait
 from marionette.by import By
 from gaiatest.apps.base import Base
-from gaiatest.apps.base import PageRegion
 
 
 class Messages(Base):
@@ -18,7 +17,6 @@ class Messages(Base):
     _messages_frame_locator = (By.CSS_SELECTOR, 'iframe[data-url*=sms]')
     _options_icon_locator = (By.ID, 'threads-options-icon')
     _app_ready_locator = (By.CLASS_NAME, 'js-app-ready')
-    _draft_message_locator = (By.CSS_SELECTOR, 'li.draft')
 
     def launch(self):
         Base.launch(self)
@@ -50,21 +48,3 @@ class Messages(Base):
         self.marionette.find_element(*self._first_message_locator).tap()
         from gaiatest.apps.messages.regions.message_thread import MessageThread
         return MessageThread(self.marionette)
-
-    @property
-    def draft_message(self):
-        return [DraftMessage(self.marionette, draft_message)
-                for draft_message in self.marionette.find_elements(*self._draft_message_locator)]
-
-
-class DraftMessage(PageRegion):
-    _draft_icon_locator = (By.CSS_SELECTOR, '.icon-draft[data-l10n-id="is-draft"]')
-
-    @property
-    def is_draft_icon_displayed(self):
-        return self.root_element.find_element(*self._draft_icon_locator).is_displayed()
-
-    def tap_draft_message(self):
-        self.root_element.tap()
-        from gaiatest.apps.messages.regions.new_message import NewMessage
-        return NewMessage(self.marionette)
