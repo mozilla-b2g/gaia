@@ -42,9 +42,6 @@ marionette('Dialer > Keypad', function() {
     reflowHelper.startTracking(Dialer.URL + '/manifest.webapp');
     
     var addEntryToCallLog = function() {
-      window.wrappedJSObject.CallLog.sticky = {
-        refresh: function() {}
-      };
       var entry = {
         'date': Date.now(),
         'type': 'incoming',

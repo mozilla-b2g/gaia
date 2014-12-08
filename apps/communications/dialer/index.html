@@ -87,7 +87,6 @@
     <script defer src="/shared/js/fb/fb_reader_utils.js"></script>
     <script defer src="/shared/js/fb/fb_tel_index.js"></script>
     <script defer src="/shared/js/binary_search.js"></script>
-    <script defer src="/shared/js/sticky_header.js"></script>
     <script defer src="/shared/js/sim_settings_helper.js"></script>
     <script defer src="/shared/js/dialer/voicemail.js"></script>
     <script defer src="/shared/js/dialer/contacts.js"></script>
@@ -127,16 +126,19 @@
                 <span data-l10n-id="callLogEdit" aria-disabled="true"></span>
               </button>
             </gaia-header>
-            <section class="call-log-favorites">
-              This blank space added intentionally in bug 1099397
-            </section>
-            <nav id="call-log-filter" class="recents-filter-container">
-              <ul role="tablist" class="bb-tablist" data-type="filter" aria-controls="call-log-container">
-                <li id="all-filter" role="presentation"><a id="all-filter-tab" role="tab" aria-selected="true" data-action="all" data-l10n-id="all"></a></li>
-                <li id="missed-filter" role="presentation"><a id="missed-filter-tab" role="tab" aria-selected="false" data-action="missed" data-l10n-id="missed"></a></li>
-              </ul>
-            </nav>
-            <div class="view-body">
+            
+            <div id="call-log-view-body" class="view-body">
+             <div>
+                <div id="call-log-favorites" class="call-log-favorites hidden">
+                  This blank space added intentionally in bug 1099397
+                </div>
+              </div>
+              <nav id="call-log-filter" class="recents-filter-container">
+                <ul role="tablist" class="bb-tablist" data-type="filter" aria-controls="call-log-container">
+                  <li id="all-filter" role="presentation"><a id="all-filter-tab" role="tab" aria-selected="true" data-action="all" data-l10n-id="all"></a></li>
+                  <li id="missed-filter" role="presentation"><a id="missed-filter-tab" role="tab" aria-selected="false" data-action="missed" data-l10n-id="missed"></a></li>
+                </ul>
+              </nav>
               <article id="call-log-container" role="tabpanel" class="view-body-inner active" data-type="list">
                 <div id="no-result-container" hidden>
                   <div id="no-result-message">
@@ -146,7 +148,6 @@
                   </div>
                 </div>
               </article>
-              <div id="sticky"></div>
             </div>
           </section>
           <section is="call-info-view" id="call-info-view" role="region" hidden></section>
