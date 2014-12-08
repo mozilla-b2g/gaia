@@ -46,7 +46,8 @@ suite('Sound > VolumeManager', function() {
           alarm: dom
         };
         volumeManager.init(element);
-        assert.ok(this.MockSliderHandler.init.callCount == Object.keys(element).length);
+        assert.ok(
+          this.MockSliderHandler.init.callCount == Object.keys(element).length);
         assert.ok(this.MockSliderHandler.init.calledWith(
           volumeManager._elements.media, 'content'));
         assert.ok(this.MockSliderHandler.init.calledWith(
