@@ -1,4 +1,10 @@
-* { -moz-box-sizing: border-box; }
+* { -moz-box-sizing: border-box;
+  /**
+    By default do not allow any user text selection, only enable
+    for certain parts on a per-element/region area
+  */
+    -moz-user-select: none;
+}
 
 html {
   height: 100%;
