@@ -147,6 +147,9 @@ class Camera(Base):
         thumbnail = Wait(self.marionette).until(expected.element_present(*self._thumbnail_button_locator))
         Wait(self.marionette).until(expected.element_displayed(thumbnail))
 
+    def tap_thumbnail(self):
+        self.marionette.find_element(*self._thumbnail_button_locator).tap()
+
     @property
     def is_thumbnail_visible(self):
         return self.is_element_displayed(*self._thumbnail_button_locator)
@@ -177,15 +180,50 @@ class ImagePreview(Base):
     _media_frame_locator = (By.ID, 'preview')
     _image_preview_locator = (By.CSS_SELECTOR, '#media-frame > img')
     _camera_button_locator = (By.ID, 'camera-button')
+    _video_play_button_locator = (By.CLASS_NAME, 'videoPlayerPlayButton')
+    _video_pause_button_locator = (By.CLASS_NAME, 'videoPlayerPauseButton')
+    _video_progress_bar_locator = (By.CLASS_NAME, 'videoPlayerProgress')
+    _options_button_locator = (By.CLASS_NAME, 'preview-option-icon')
+    _delete_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="delete"]')
+    _confirm_delete_button = (By.ID, 'dialog-yes')
+    _option_menu_locator = (By.CLASS_NAME, 'js-menu')
 
     @property
     def is_image_preview_visible(self):
         return self.is_element_displayed(*self._image_preview_locator)
 
+    @property
+    def is_video_play_button_visible(self):
+        return self.is_element_displayed(*self._video_play_button_locator)
+
+    @property
+    def is_progress_bar_showing(self):
+        return self.is_element_displayed(*self._video_progress_bar_locator)
+
     def wait_for_media_frame(self):
         media_frame = self.marionette.find_element(*self._media_frame_locator)
         screen_height = int(self.marionette.execute_script('return window.screen.height;'))
         Wait(self.marionette).until(lambda m: (media_frame.location['y'] + media_frame.size['height']) == screen_height)
+
+    def tap_video_player_play_button(self):
+        self.marionette.find_element(*self._video_play_button_locator).tap()
+        Wait(self.marionette).until(lambda m: self.is_progress_bar_showing is True)
+
+    def tap_video_player_pause_button(self):
+        self.marionette.find_element(*self._video_pause_button_locator).tap()
+        Wait(self.marionette).until(lambda m: self.is_progress_bar_showing is False)
+
+    def tap_options(self):
+        self.marionette.find_element(*self._options_button_locator).tap()
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(*self._option_menu_locator))))
+
+    def delete_file(self):
+        self.tap_options()
+        self.marionette.find_element(*self._delete_button_locator).tap()
+        element = Wait(self.marionette).until(expected.element_present(*self._confirm_delete_button))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def tap_camera(self):
         self.marionette.find_element(*self._camera_button_locator).tap()
