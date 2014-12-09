@@ -8,7 +8,6 @@
    */
   LockScreenMediaPlaybackActions.prototype.start =
   function(client) {
-    this.Actions = require('marionette-client').Actions;
     this.Ensure = require('./ensure.js');
     this.LockScreen = require('./lockscreen.js');
     this.FakeMusic = require('./media_playback_fake_music.js');

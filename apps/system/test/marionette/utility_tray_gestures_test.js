@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var UtilityTray = require('./lib/utility_tray');
 
 marionette('Utility Tray - Gestures', function() {
@@ -21,7 +20,7 @@ marionette('Utility Tray - Gestures', function() {
   var halfHeight;
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     system = client.loader.getAppClass('system');
     utilityTray = new UtilityTray(client);
 

@@ -5,7 +5,6 @@ var Browser = require('./lib/browser');
 var Homescreen = require('./lib/homescreen');
 var Server = require('./lib/server');
 var FlowManager = require('./lib/flow_manager');
-var Actions = require('marionette-client').Actions;
 
 marionette('Remove bookmark on homescreen', function() {
   var client = marionette.client(), browser, homescreen, server;
@@ -38,7 +37,7 @@ marionette('Remove bookmark on homescreen', function() {
       homescreen.launch();
       var icon = homescreen.getHomescreenIcon(title);
       // Edit mode
-      (new Actions(client)).longPress(icon, 1.5).perform();
+      client.loader.getActions().longPress(icon, 1.5).perform();
       var crossElem = homescreen.getCrossElementForIcon(title);
       crossElem.tap();
       homescreen.switchToBookmarkRemoverFrame();

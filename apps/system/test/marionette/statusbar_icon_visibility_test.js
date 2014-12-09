@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var StatusBar = require('./lib/statusbar');
 
 marionette('Statusbar Visibility', function() {
@@ -15,11 +14,11 @@ marionette('Statusbar Visibility', function() {
     }
   });
 
-  var actions = new Actions(client);
   var statusBar = new StatusBar(client);
-  var halfScreenHeight, system, grippyHeight;
+  var actions, halfScreenHeight, system, grippyHeight;
 
   setup(function() {
+    actions = client.loader.getActions();
     system = client.loader.getAppClass('system');
     system.waitForStartup();
     halfScreenHeight = client.executeScript(function() {

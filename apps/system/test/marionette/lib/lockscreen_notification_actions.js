@@ -9,7 +9,7 @@
    */
   LockScreenNotificationActions.prototype.start =
   function (client) {
-    this.Actions = require('marionette-client').Actions;
+    this.actions = client.loader.getActions();
     this.Ensure = require('./ensure.js');
     this.Selector = require('./lockscreen_notification_selector.js');
     this.LockScreen = require('./lockscreen.js');

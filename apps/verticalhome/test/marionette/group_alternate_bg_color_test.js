@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var assert = require('assert');
 
 marionette('Vertical - Group', function() {
@@ -9,7 +8,7 @@ marionette('Vertical - Group', function() {
   var actions, home, system;
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForStartup();

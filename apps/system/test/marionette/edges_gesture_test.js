@@ -4,7 +4,6 @@ var ReflowHelper =
     require('../../../../tests/js-marionette/reflow_helper.js');
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
@@ -30,7 +29,7 @@ marionette('Edges gesture >', function() {
   var halfWidth, halfHeight;
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
 
     sys = client.loader.getAppClass('system');
     sys.waitForStartup();

@@ -1,12 +1,10 @@
 'use strict';
 /* global module */
 
-var Actions = require('marionette-client').Actions;
-
 function Collection(client, server) {
   this.client = client;
   this.server = server;
-  this.actions = new Actions(client);
+  this.actions = client.loader.getActions();
 }
 
 /**

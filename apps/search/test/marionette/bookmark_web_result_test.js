@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var Bookmark = require(
   '../../../../apps/system/test/marionette/lib/bookmark');
 var EmeServer = require(
@@ -35,7 +34,7 @@ marionette('Bookmark Web Result', function() {
   });
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     bookmark = new Bookmark(client);
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);

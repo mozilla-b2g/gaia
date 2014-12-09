@@ -1,7 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 var Rocketbar = require('./lib/rocketbar.js');
 
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
@@ -24,7 +23,7 @@ marionette('Global search >', function() {
   var halfWidth, halfHeight;
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
 
     sys = client.loader.getAppClass('system');
     sys.waitForStartup();

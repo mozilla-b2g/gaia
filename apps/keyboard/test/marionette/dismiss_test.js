@@ -2,14 +2,14 @@
 
 var KeyboardTestApp = require('./lib/keyboard_test_app'),
     Keyboard = require('./lib/keyboard'),
-    assert = require('assert'),
-    Actions = require('marionette-client').Actions;
+    assert = require('assert');
 
 marionette('Dimiss the keyboard', function() {
   var apps = {};
   var keyboardTestApp = null;
   var keyboard = null;
   var system = null;
+  var actions;
 
   apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
 
@@ -24,8 +24,6 @@ marionette('Dimiss the keyboard', function() {
     }
   });
 
-  var actions = new Actions(client);
-
   function longPressSpaceBar(time) {
     var spaceBarSelector = '.keyboard-type-container[data-active]' +
                            ' .keyboard-key[data-keycode="32"]';
@@ -35,6 +33,7 @@ marionette('Dimiss the keyboard', function() {
   }
 
   setup(function() {
+    actions = client.loader.getActions();
     system = client.loader.getAppClass('keyboard', 'system');
     keyboard = new Keyboard(client);
 
