@@ -74,7 +74,7 @@ var ScreenManager = {
    * This variable contains the latest ambient light sensor value that was used
    * to set a brightness.
    */
-  _previousLux: null,
+  _previousLux: undefined,
 
   /*
    * This property will host a ScreenBrightnessTransition instance
@@ -201,7 +201,7 @@ var ScreenManager = {
       lux = 1;
     }
 
-    if (this._previousLux) {
+    if (this._previousLux !== undefined) {
       var brightnessDelta = Math.abs(this._previousLux - lux);
       if (brightnessDelta <= this.AUTO_BRIGHTNESS_MIN_DELTA) {
         return;
@@ -554,6 +554,7 @@ var ScreenManager = {
       this.setScreenBrightness(this._userBrightness, false);
     }
     this._deviceLightEnabled = enabled;
+    this._previousLux = undefined;
 
     if (!this.screenEnabled) {
       return;

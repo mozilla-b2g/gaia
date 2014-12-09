@@ -594,6 +594,7 @@ suite('system/ScreenManager', function() {
       stubSetBrightness = this.sinon.stub(ScreenManager, 'setScreenBrightness');
       stubAddListener = this.sinon.stub(window, 'addEventListener');
       stubRemoveListener = this.sinon.stub(window, 'removeEventListener');
+      ScreenManager._previousLux = 20;
     });
 
     test('if setDeviceLightEnabled(false) and ' +
@@ -607,12 +608,14 @@ suite('system/ScreenManager', function() {
     test('if argument is true', function() {
       ScreenManager.setDeviceLightEnabled(true);
       assert.isFalse(stubSetBrightness.called);
+      assert.isUndefined(ScreenManager._previousLux);
     });
 
     test('if argument is false', function() {
       ScreenManager.setDeviceLightEnabled(false);
       assert.isFalse(stubAddListener.called);
       assert.isTrue(stubRemoveListener.called);
+      assert.isUndefined(ScreenManager._previousLux);
     });
 
     test('if argument & screenEnabled are both true', function() {
@@ -620,6 +623,7 @@ suite('system/ScreenManager', function() {
       ScreenManager.setDeviceLightEnabled(true);
       assert.isTrue(stubAddListener.called);
       assert.isFalse(stubRemoveListener.called);
+      assert.isUndefined(ScreenManager._previousLux);
     });
   });
 
@@ -663,7 +667,7 @@ suite('system/ScreenManager', function() {
 
     setup(function() {
       ScreenManager._targetBrightness = -1;
-      ScreenManager._previousLux = null;
+      ScreenManager._previousLux = undefined;
       stubSetBrightness = this.sinon.stub(ScreenManager, 'setScreenBrightness');
     });
 
