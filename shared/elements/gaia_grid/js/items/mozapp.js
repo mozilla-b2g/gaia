@@ -303,6 +303,10 @@
           return this.cancel();
       }
 
+      if (window.performance.mark) {
+        window.performance.mark('appLaunch@' + app.manifest.name);
+      }
+
       if (this.entryPoint) {
         return app.launch(this.entryPoint);
       }

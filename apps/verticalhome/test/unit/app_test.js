@@ -5,6 +5,7 @@
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/load_body_html_helper.js');
+require('/shared/js/usertiming.js');
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
 require('/shared/elements/gaia_grid/js/grid_layout.js');
