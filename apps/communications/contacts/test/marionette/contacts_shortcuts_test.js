@@ -2,7 +2,6 @@
 
 var Contacts = require('./lib/contacts');
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 
 marionette('Contacts shortcuts > touch', function() {
   var config = Contacts.config;
@@ -12,16 +11,16 @@ marionette('Contacts shortcuts > touch', function() {
   var client = marionette.client(config);
   var subject;
   var selectors;
-  var actions = new Actions(client);
-
-  var scrollbar,
-      overlay;
+  var actions;
+  var scrollbar;
+  var overlay;
 
   function overlayOpacity() {
     return subject.getElementStyle(selectors.overlay, 'opacity');
   }
 
   setup(function() {
+    actions = client.loader.getActions();
     subject = new Contacts(client);
     subject.launch();
 

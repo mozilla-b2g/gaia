@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var TaskManager = require('./lib/task_manager');
 var FakeApp = require('./lib/fakeapp');
 var assert = require('assert');
@@ -34,7 +33,7 @@ marionette('Task Manager', function() {
   var fullWidth, halfWidth, halfHeight;
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     system = client.loader.getAppClass('system');
     taskManager = new TaskManager(client);
 

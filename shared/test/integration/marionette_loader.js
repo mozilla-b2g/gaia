@@ -37,7 +37,15 @@ MarionetteLoader.prototype = {
     var AppClass = require(
       __dirname + '/../../../apps/' + app + '/test/marionette/lib/' + region);
     return new AppClass(this.client);
-  }
+  },
 
+  /**
+   * Gets the marionette-client Actions class and instantiates it.
+   * @param {String} helper.
+   */
+  getActions: function() {
+    var Actions = require('marionette-client').Actions;
+    return new Actions(this.client);
+  }
 };
 

@@ -1,7 +1,6 @@
 'use strict';
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 var appUrl = 'app://fullscreen_layout.gaiamobile.org';
 
 var ReflowHelper =
@@ -30,7 +29,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     system.waitForStartup();
     home.waitForLaunch();
     client.switchToFrame();

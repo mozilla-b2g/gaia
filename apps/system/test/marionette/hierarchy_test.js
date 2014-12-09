@@ -74,7 +74,7 @@
     };
 
     var system;
-    var utilityTray = new UtilityTray(client);
+    var utilityTray;
     var rocketbar = new Rocketbar(client);
     var fxASystemDialog = new FxASystemDialog(client);
     var lockscreen = new Lockscreen();
@@ -84,6 +84,7 @@
 
     suite('Test aria-hidden and top most UI', function() {
       setup(function() {
+        utilityTray = new UtilityTray(client);
         system = client.loader.getAppClass('system');
         system.waitForStartup();
         lockscreen.unlock();

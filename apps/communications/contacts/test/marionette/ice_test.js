@@ -2,14 +2,12 @@
 
 var Contacts = require('./lib/contacts');
 var ContactsData = require('./lib/contacts_data');
-var Actions = require('marionette-client').Actions;
 var assert = require('assert');
 
 marionette('Contacts > ICE contacts', function() {
   var client = marionette.client(Contacts.config);
-  var actions = new Actions(client);
   var contactsData = new ContactsData(client);
-  var subject, selectors;
+  var actions, subject, selectors;
 
   var testContactTelNumber = '655555555';
 
@@ -23,6 +21,7 @@ marionette('Contacts > ICE contacts', function() {
 
   setup(function() {
     subject = new Contacts(client);
+    actions = client.loader.getActions();
     subject.actions = actions;
     subject.launch();
     selectors = Contacts.Selectors;

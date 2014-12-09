@@ -3,10 +3,8 @@
 
   var UtilityTray = function(client) {
     this.client = client;
-    this.actions = new Actions(client);
+    this.actions = client.loader.getActions();
   };
-
-  var Actions = require('marionette-client').Actions;
 
   UtilityTray.prototype = {
     Selectors: {

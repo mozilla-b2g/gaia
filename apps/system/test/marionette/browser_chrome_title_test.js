@@ -1,6 +1,5 @@
 'use strict';
 
-var Actions = require('marionette-client').Actions;
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
 
@@ -33,7 +32,7 @@ marionette('Browser Chrome - Title content', function() {
   });
 
   setup(function() {
-    actions = new Actions(client);
+    actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
