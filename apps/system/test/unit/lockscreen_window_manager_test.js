@@ -291,6 +291,10 @@ suite('system/LockScreenWindowManager', function() {
 
     test('When system resizing event comes, try to resize the window',
     function() {
+      var originalLayoutManager = window.layoutManager;
+      window.layoutManager = {
+        keyboardEnabled: false
+      };
       var handleEvent =
         window.LockScreenWindowManager.prototype.handleEvent;
       var mockSubject = {
@@ -303,11 +307,13 @@ suite('system/LockScreenWindowManager', function() {
       };
       handleEvent.call(mockSubject,
         {
-          type: 'system-resize'
+          type: 'system-resize',
+          stopImmediatePropagation: function() {}
         });
       assert.isTrue(
         mockSubject.states.instance.resize.called,
         'it doesn\'t resize the window while system-resize comes');
+      window.layoutManager = originalLayoutManager;
     });
 
     test('When secure app get killed, try to lock orientation',
