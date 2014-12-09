@@ -1,0 +1,5 @@
+# This includes the packages required to run image comparison gaia-ui-tests
+# Imagemagick needs to be installed separately
+
+# Python imaging framework
+Pillow
