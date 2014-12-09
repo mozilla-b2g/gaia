@@ -28,9 +28,6 @@ class TestPlay3GPVideo(GaiaTestCase):
         first_video_name = video_player.first_video_name
 
         self.assertEqual('none', self.data_layer.current_audio_channel)
-        # See bug 1109203, current_audio_channel switches context to the system
-        # app, so we need to return it back to the displayed app
-        self.apps.switch_to_displayed_app()
 
         # Click on the first video.
         fullscreen_video = video_player.tap_first_video_item()
