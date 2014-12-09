@@ -234,16 +234,6 @@ var CpScreenHelper = (function() {
       }
     }
 
-    // The validation process result should come from gecko.
-    if (!showPINInput && !isDocumentValid) {
-      // Something went wrong (maybe the message the device received could not
-      // be authenticated against the SIM card), show an alter.
-      message = finishConfirmDialog.querySelector('strong');
-      message.textContent = _('cp-finish-confirm-dialog-message-invalid-doc');
-      finishConfirmDialog.hidden = false;
-      return;
-    }
-
     var parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
     apns = parsedProvisioningDoc.getApns();
 
