@@ -9,7 +9,7 @@ var CallLogDBManager = {
   _dbName: 'dialerRecents',
   _dbRecentsStore: 'dialerRecents',
   _dbGroupsStore: 'dialerGroups',
-  _dbVersion: 5,
+  _dbVersion: 6,
   _maxNumberOfGroups: 200,
   _numberOfGroupsToDelete: 30,
 
@@ -86,6 +86,9 @@ var CallLogDBManager = {
                 self._upgradeSchemaVersion5(next);
                 break;
               case 5:
+                self._upgradeSchemaVersion6(db, txn, next);
+                break;
+              case 6:
                 // we have finished the upgrades. please keep this
                 // in sync for future upgrades, since otherwise it
                 // will call the default: and abort the transaction :(
@@ -236,6 +239,8 @@ var CallLogDBManager = {
     groupsStore.createIndex('number', 'number');
     groupsStore.createIndex('contactId', 'contactId');
     groupsStore.createIndex('lastEntryDate', 'lastEntryDate');
+
+    next();
   },
   /**
    * Nothing to be done for version 5 since 'voicemail' and 'emergency' boolean
@@ -243,6 +248,16 @@ var CallLogDBManager = {
    * already existent data.
    */
   _upgradeSchemaVersion5: function upgradeSchemaVersion5(next) {
+    next();
+  },
+  /**
+   * Remove the `dialerRecents' store as it's not used anymore.
+   */
+  _upgradeSchemaVersion6:
+    function upgradeSchemaVersion6(db, transaction, next) {
+    // Remove the unused dialerRecents store
+    db.deleteObjectStore(this._dbRecentsStore);
+
     next();
   },
   /**
@@ -415,15 +430,12 @@ var CallLogDBManager = {
     }
 
     var self = this;
-    this._newTxn('readwrite', [this._dbRecentsStore, this._dbGroupsStore],
-                 function(error, txn, stores) {
+    this._newTxn('readwrite', this._dbGroupsStore,
+                 function(error, txn, groupsStore) {
       if (error) {
         self._asyncReturn(callback, error);
         return;
       }
-
-      var recentsStore = stores[0];
-      var groupsStore = stores[1];
 
       var groupId = self._getGroupId(recentCall);
 
@@ -441,9 +453,6 @@ var CallLogDBManager = {
           // use it again.
           self._createNewGroup(groupId, recentCall, callback);
         }
-
-        recentCall.groupId = groupId;
-        recentsStore.put(recentCall);
       };
     });
   },
@@ -562,8 +571,6 @@ var CallLogDBManager = {
    * param groupId
    *        Identifier of the group to be deleted. We expect a group object or
    *        its identifier.
-   *
-   * return (via callback) count of deleted calls or error if needed.
    */
   deleteGroup: function deleteGroup(group, groupId, callback) {
     // Valid group doesn't need to contain number, we can receive
@@ -576,38 +583,23 @@ var CallLogDBManager = {
 
     var self = this;
 
-    this._newTxn('readwrite', [this._dbGroupsStore, this._dbRecentsStore],
-                 function(error, txn, stores) {
+    this._newTxn('readwrite', this._dbGroupsStore,
+                 function(error, txn, groupsStore) {
       if (error) {
         self._asyncReturn(callback, error);
         return;
       }
 
-      var groupsStore = stores[0];
-      var recentsStore = stores[1];
-
       if (!groupId) {
         groupId = self._getGroupId(group);
       }
 
-      var deleted = 0;
-
       txn.oncomplete = function() {
-        self._asyncReturn(callback, deleted);
+        self._asyncReturn(callback);
       };
 
-      // We delete the given group and all its corresponding calls.
-      groupsStore.delete(groupId).onsuccess = function onsuccess() {
-        recentsStore.index('groupId').openCursor(groupId)
-                    .onsuccess = function onsuccess(event) {
-          var cursor = event.target.result;
-          if (cursor) {
-            cursor.delete();
-            deleted++;
-            cursor.continue();
-          }
-        };
-      };
+      // We delete the given group.
+      groupsStore.delete(groupId);
     });
   },
   /**
@@ -615,18 +607,8 @@ var CallLogDBManager = {
    *
    * param groupList
    *        Array of group objects to be deleted.
-   * param deletedCount
-   *        Accumulator of the number of deleted groups of calls.
-   *
-   * return (via callback) count of deleted calls or an error message if
-   *                       needed.
    */
-  deleteGroupList: function deleteGroupList(groupList, callback,
-                                            deletedCount) {
-    if (!deletedCount) {
-      deletedCount = 0;
-    }
-
+  deleteGroupList: function deleteGroupList(groupList, callback) {
     var self = this;
 
     if (groupList.length > 0) {
@@ -639,17 +621,17 @@ var CallLogDBManager = {
       var ondeleted = function ondeleted(result) {
         // We expect a number. Otherwise that means that we got an error
         // message.
-        if (typeof result !== 'number') {
+        if (result) {
           self._asyncReturn(callback, result);
           return;
         }
-        deletedCount += result;
-        self.deleteGroupList(groupList, callback, deletedCount);
+
+        self.deleteGroupList(groupList, callback);
       };
 
       self.deleteGroup(itemToDelete, null, ondeleted);
     } else {
-      self._asyncReturn(callback, deletedCount);
+      self._asyncReturn(callback);
     }
   },
   /**
@@ -662,23 +644,18 @@ var CallLogDBManager = {
    */
   deleteAll: function deleteAll(callback) {
     var self = this;
-    this._newTxn('readwrite', [this._dbRecentsStore, this._dbGroupsStore],
-                 function(error, txn, stores) {
+    this._newTxn('readwrite', this._dbGroupsStore,
+                 function(error, txn, groupsStore) {
       if (error) {
         self._asyncReturn(callback, error);
         return;
       }
 
-      var recentsStore = stores[0];
-      var groupsStore = stores[1];
-
       txn.oncomplete = function() {
         self._asyncReturn(callback);
       };
 
-      recentsStore.clear().onsuccess = function onsuccess() {
-        groupsStore.clear();
-      };
+      groupsStore.clear();
     });
   },
   /**
@@ -797,31 +774,6 @@ var CallLogDBManager = {
         }
       };
     });
-  },
-  /**
-   * Get the list of recent calls.
-   *
-   * param callback
-   *        Function to be called after getting the list of recent calls or
-   *        the IDB cursor in case of 'getCursor' param is true.
-   * param sortedBy
-   *        Field to sort by. Take into account that sorting by not indexed
-   *        fields is quite slow.
-   * param prev
-   *        Boolean flag to get the list in reverse order.
-   * param getCursor
-   *        Boolean flag to request an IDB cursor instead of the whole list of
-   *        records.
-   * param limit
-   *        Maximum number of records to be fetched from the database.
-   *
-   * return (via callback) the whole list of recent calls, a cursor or an
-   *                        error message if needed.
-   */
-  getRecentList: function getRecentList(callback, sortedBy, prev,
-                                        getCursor, limit) {
-    this._getList(this._dbRecentsStore, callback, sortedBy, prev, getCursor,
-                  limit);
   },
   /**
    * Get the list of groups of calls.
@@ -950,54 +902,22 @@ var CallLogDBManager = {
   },
 
   /**
-   * Get the call with the most recent date.
-   *
-   * param callback
-   *        Function to be called with the last call or an error message if
-   *        needed.
-   *
-   * return (via callback) the last call or an error message if needed.
-   */
-  getLastCall: function getLastCall(callback) {
-    if (!callback || !(callback instanceof Function)) {
-      return;
-    }
-
-    this._newTxn('readonly', [this._dbRecentsStore],
-                 function(error, txn, store) {
-      if (error) {
-        callback(error);
-        return;
-      }
-
-      var cursor = store.openCursor(null, 'prev');
-      cursor.onsuccess = function onsuccess(event) {
-        var item = event.target.result;
-        if (item && item.value) {
-          callback(item.value);
-        } else {
-          callback(null);
-        }
-      };
-      cursor.onerror = function onerror(event) {
-        callback(event.target.error.name);
-      };
-    });
-  },
-
-  /**
    * We store a revision number for the contacts data local cache that we need
    * to keep synced with the Contacts API database.
    * This method stores the revision of the Contacts API database and it will
    * be called after refresing the local cache because of a contact updated, a
    * contact deletion or a cache sync.
+   *
+   * @param {Function} callback A callback to be invoked when the operation is
+   *        complete.
    */
-  _updateCacheRevision: function _updateCacheRevision() {
+  _updateCacheRevision: function _updateCacheRevision(callback) {
     Contacts.getRevision(function(contactsRevision) {
       if (contactsRevision) {
         window.asyncStorage.setItem('contactCacheRevision',
                                     contactsRevision);
       }
+      callback();
     });
   },
 
@@ -1036,7 +956,9 @@ var CallLogDBManager = {
       }
 
       txn.oncomplete = function() {
-        self._asyncReturn(callback, result);
+        self._updateCacheRevision(function() {
+          self._asyncReturn(callback, result);
+        });
       };
 
       var count = 0;
@@ -1071,7 +993,6 @@ var CallLogDBManager = {
           cursor.continue();
         } else {
           result = count;
-          self._updateCacheRevision();
         }
       };
       req.onerror = function onerror(event) {
@@ -1118,8 +1039,9 @@ var CallLogDBManager = {
       var count = 0;
 
       txn.oncomplete = function() {
-        self._asyncReturn(callback, count);
-        self._updateCacheRevision();
+        self._updateCacheRevision(function() {
+          self._asyncReturn(callback, count);
+        });
       };
       txn.onerror = function(event) {
         self._asyncReturn(callback, event.target.error);
@@ -1299,8 +1221,9 @@ var CallLogDBManager = {
         }
 
         txn.oncomplete = function onContactsUpdated() {
-          self._updateCacheRevision();
-          self._asyncReturn(callback);
+          self._updateCacheRevision(function() {
+            self._asyncReturn(callback);
+          });
         };
         txn.onerror = function(event) {
           self._asyncReturn(callback, event.target.error);
