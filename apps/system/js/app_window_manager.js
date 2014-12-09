@@ -308,6 +308,7 @@
         this.element.classList.remove('slow-transition');
       }
       window.addEventListener('cardviewbeforeshow', this);
+      window.addEventListener('cardviewclosed', this);
       window.addEventListener('launchapp', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
@@ -400,6 +401,8 @@
      * @memberOf module:AppWindowManager
      */
     stop: function awm_stop() {
+      window.removeEventListener('cardviewbeforeshow', this);
+      window.removeEventListener('cardviewclosed', this);
       window.removeEventListener('launchapp', this);
       window.removeEventListener('appcreated', this);
       window.removeEventListener('appterminated', this);
