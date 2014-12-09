@@ -183,6 +183,15 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
+    var self = this;
+    if (!applications.ready) {
+      window.addEventListener('applicationready', function onReady() {
+        window.removeEventListener('applicationready', onReady);
+        self.showIfLocked(currentSlotIndex, skipped);
+      });
+      return false;
+    }
+
     if (System.locked)
       return false;
 
