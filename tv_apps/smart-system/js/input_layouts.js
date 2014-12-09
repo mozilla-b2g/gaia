@@ -173,7 +173,7 @@
   InputLayouts.prototype.processLayouts =
     function il_processLayouts(appLayouts) {
     this.layouts = {};
-    this._enabledApps = Set();
+    this._enabledApps = new Set();
 
     this._insertLayouts(appLayouts);
     this._insertFallbackLayouts();
