@@ -3,7 +3,9 @@
 
 function onLoadDialer() {
   // Dialer chrome UI and keypad UI is visible and already exists in the DOM
+  window.performance.mark('navigationLoaded');
   window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+  window.performance.mark('visuallyLoaded');
   window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
 
   window.removeEventListener('load', onLoadDialer);
@@ -17,10 +19,12 @@ function onLoadDialer() {
 
   KeypadManager.init(/* oncall */ false);
   // Keypad (app core content) is now bound
+  window.performance.mark('contentInteractive');
   window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
   NavbarManager.init();
   // Navbar (chrome) events have now been bound
+  window.performance.mark('navigationInteractive');
   window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
   setTimeout(function nextTick() {
@@ -45,6 +49,7 @@ function onLoadDialer() {
         '/shared/elements/gaia-header/dist/gaia-header.js',
         '/shared/style/edit_mode.css'
       ], function fileSetLoaded() {
+        window.performance.mark('fullyLoaded');
         window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       });
     });

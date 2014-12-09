@@ -65,11 +65,13 @@ var Startup = {
 
       // Dispatch post-initialize event for continuing the pending action
       Startup.emit('post-initialize');
+      window.performance.mark('contentInteractive');
       window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
       // Fetch mmsSizeLimitation and max concat
       Settings.init();
 
+      window.performance.mark('objectsInitEnd');
       PerformanceTestingHelper.dispatch('objects-init-finished');
     });
   },
@@ -83,18 +85,21 @@ var Startup = {
   init: function() {
     var loaded = function() {
       window.removeEventListener('DOMContentLoaded', loaded);
+      window.performance.mark('navigationLoaded');
       window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
       MessageManager.init();
       Navigation.init();
       ThreadListUI.init();
       ThreadListUI.renderThreads(this._lazyLoadInit.bind(this), function() {
+        window.performance.mark('fullyLoaded');
         window.dispatchEvent(new CustomEvent('moz-app-loaded'));
         App.setReady();
       });
 
       // dispatch chrome-interactive when thread list related modules
       // initialized
+      window.performance.mark('navigationInteractive');
       window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
     }.bind(this);
 

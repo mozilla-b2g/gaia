@@ -20,6 +20,7 @@ var App = (function() {
   function init() {
     navigator.mozL10n.once(function onLocalizationInit() {
       // Tell performance monitors that our chrome is visible.
+      window.performance.mark('navigationLoaded');
       window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
       initDB();
@@ -40,6 +41,7 @@ var App = (function() {
         if (!chromeInteractive) {
           chromeInteractive = true;
           // Tell performance monitors that our chrome is interactible.
+          window.performance.mark('navigationInteractive');
           window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
         }
       });
@@ -212,7 +214,9 @@ var App = (function() {
           // XXX: Maybe we could emit these events earlier, when we've just
           // finished the "above the fold" content. That's hard to do on
           // arbitrary screen resolutions, though.
+          window.performance.mark('visuallyLoaded');
           window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+          window.performance.mark('contentInteractive');
           window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
           if (callback) {

@@ -382,8 +382,6 @@
       this.removeAllPlaceholders();
       this.cleanItems(options.skipDivider);
 
-
-
       // Reset offset steps
       this.layout.offsetY = 0;
 
@@ -488,6 +486,10 @@
           }
         }
 
+        if (item.detail.type === 'app') {
+          this.logGridItem(item, this.layout.gridItemWidth / 2);
+        }
+
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
@@ -516,6 +518,24 @@
           this.dragdrop = new GridDragDrop(this);
         });
       }
+    },
+
+    /**
+     * Asynchronously create an entry in the log for a supplied item. Used
+     * for determining application coordinates in separate contexts.
+     */
+    logGridItem: function(item, itemMiddleOffset) {
+      setTimeout(function () {
+        var rect = item.element.getBoundingClientRect();
+        var middleX = rect.x + itemMiddleOffset;
+        var middleY = rect.y + item.pixelHeight / 2;
+
+        console.log('App Grid Item: %s|%s|%d|%d',
+          item.detail.manifestURL.replace('manifest.webapp', ''),
+          item.detail.entryPoint || '',
+          middleX,
+          middleY);
+      }, 0);
     }
   };
 

@@ -125,6 +125,7 @@ navigator.mozL10n.once(function showBody() {
   document.body.classList.remove('hidden');
 
   // Tell performance monitors that our chrome is visible
+  window.performance.mark('navigationLoaded');
   window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
   // load frame_script.js for preview mode and show loading background
@@ -175,6 +176,7 @@ function init() {
   window.onresize = resizeHandler;
 
   // Tell performance monitors that our chrome is ready to interact with.
+  window.performance.mark('navigationInteractive');
   window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
   // If we were not invoked by an activity, then start off in thumbnail
@@ -318,6 +320,7 @@ function initDB() {
     // performance monitors that the app is finally fully loaded and stable.
     if (!firstScanDone) {
       firstScanDone = true;
+      window.performance.mark('fullyLoaded');
       window.dispatchEvent(new CustomEvent('moz-app-loaded'));
     }
   };
@@ -470,7 +473,9 @@ function initThumbnails() {
       firstBatchDisplayed = true;
       // Tell performance monitors that "above the fold" content is displayed
       // and is ready to interact with.
+      window.performance.mark('visuallyLoaded');
       window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+      window.performance.mark('contentInteractive');
       window.dispatchEvent(new CustomEvent('moz-content-interactive'));
     }
   }
@@ -492,6 +497,7 @@ function initThumbnails() {
     // enumerating the database at this point. We won't send the final
     // moz-app-loaded event until we're completely stable and have
     // finished scanning.
+    window.performance.mark('mediaEnumerated');
     PerformanceTestingHelper.dispatch('media-enumerated');
 
     // Now that we've enumerated all the photos and videos we already know

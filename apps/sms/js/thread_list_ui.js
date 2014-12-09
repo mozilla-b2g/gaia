@@ -567,6 +567,7 @@ var ThreadListUI = {
   },
 
   renderThreads: function thlui_renderThreads(firstViewDoneCb, allDoneCb) {
+    window.performance.mark('willRenderThreads');
     PerformanceTestingHelper.dispatch('will-render-threads');
 
     var hasThreads = false;
@@ -600,6 +601,7 @@ var ThreadListUI = {
       if (--firstPanelCount === 0) {
         // dispatch visually-complete and content-interactive when rendered
         // threads could fill up the top of the visiable area
+        window.performance.mark('visuallyLoaded');
         window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
         firstViewDone();
       }
@@ -615,6 +617,7 @@ var ThreadListUI = {
       if (firstPanelCount > 0) {
         // dispatch visually-complete and content-interactive when rendering
         // ended but threads could not fill up the top of the visiable area
+        window.performance.mark('visuallyLoaded');
         window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
         firstViewDone();
       }

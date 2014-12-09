@@ -59,6 +59,7 @@ var Settings = {
     }
 
     if (hash === '#wifi') {
+      window.performance.mark('wifiListStart');
       PerformanceTestingHelper.dispatch('start-wifi-list-test');
     }
 
