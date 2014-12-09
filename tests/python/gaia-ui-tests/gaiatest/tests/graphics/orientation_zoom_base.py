@@ -1,0 +1,96 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+import time
+
+from marionette import By
+
+from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
+from gaiatest.apps.gallery.app import Gallery
+from gaiatest.apps.search.app import Search
+
+
+class OrientationZoomBase(GaiaImageCompareTestCase):
+
+    images = 'IMG_0001.jpg'
+    image_count = 4
+    _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"]')
+
+    def orientation_zoom_check(self):
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
+        self.push_resource(self.images, count=self.image_count)
+
+        self.take_screenshot()
+        # flick image, change orientation, pinch zoom, change orientation
+        # launch gallery, load image.
+        gallery = Gallery(self.marionette)
+        gallery.launch()
+        gallery.wait_for_files_to_load(self.image_count)
+
+        self.assertEqual(gallery.gallery_items_number, self.image_count)
+
+        # Tap first image to open full screen view.
+        image = gallery.tap_first_gallery_item()
+        self.assertIsNotNone(image.current_image_source)
+        self.assertTrue(image.is_photo_toolbar_displayed)
+
+        #scroll back and forth in different display mode
+        self.change_orientation('landscape-primary')
+        self.take_screenshot()
+        self.scroll(image._current_image_locator, 'left', 200)
+        self.change_orientation('portrait-primary')
+        self.take_screenshot()
+        self.scroll(image._current_image_locator, 'right', 200)
+
+        #flip A LOT
+        for x in range(0, 4):
+            self.change_orientation('landscape-primary')
+            self.change_orientation('portrait-primary')
+        self.take_screenshot()
+
+        # do pinch zoom while filpping the phone
+        self.pinch(image._current_image_locator, 'in', 100)
+        self.take_screenshot()
+        self.scroll(image._current_image_locator, 'left', 300)
+        self.take_screenshot()
+        self.change_orientation('landscape-primary')
+        self.pinch(image._current_image_locator, 'out', 100)
+        self.take_screenshot()
+        self.change_orientation('portrait-primary')
+
+        image.double_tap_image()
+        self.take_screenshot()
+
+        # go back and forth with flicking then exit gallery app
+        self.scroll(image._current_image_locator, 'left', 150)
+        self.take_screenshot()
+        self.scroll(image._current_image_locator, 'right', 150)
+        self.take_screenshot()
+        self.apps.kill(gallery.app)
+        time.sleep(2)
+        self.take_screenshot()
+
+        # Launch browser.  Go to Mozilla FirefoxOS site
+        # Scroll up/down, change orientation, scroll up/down
+        search = Search(self.marionette)
+        search.launch()
+        browser = search.go_to_url('http://mozilla.org/firefoxos')
+        browser.switch_to_content()
+        time.sleep(15)
+
+        self.take_screenshot()
+        self.marionette.switch_to_frame()
+
+        self.scroll(browser._browser_frame_locator, 'up', 400)
+        self.take_screenshot()
+        self.change_orientation('landscape-primary')
+        self.scroll(browser._browser_frame_locator, 'down', 300)
+        self.take_screenshot()
+        self.scroll(browser._browser_frame_locator, 'down', 300)
+        self.take_screenshot()
+
+    # take screenshot and pause, otherwise there will be a collision
+    def change_orientation(self, orientation, wait=2):
+        self.device.change_orientation(orientation)
+        time.sleep(wait)
