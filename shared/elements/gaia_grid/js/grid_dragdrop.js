@@ -60,6 +60,12 @@
     hoverItem: null,
 
     /**
+     * The group being hovered over.
+     * @type {GaiaGrid.Group}
+     */
+    hoverGroup: null,
+
+    /**
      * A port for IAC to the collections app.
      */
     collectionsPort: null,
@@ -222,6 +228,10 @@
         this.hoverItem.element.classList.remove('hovered');
         this.hoverItem = null;
       }
+      if (this.hoverGroup) {
+        this.hoverGroup.element.classList.remove('drop-target');
+        this.hoverGroup = null;
+      }
     },
 
     /**
@@ -294,6 +304,28 @@
     },
 
     /**
+     * Highlights the group of the given icon index, or the group if the index
+     * belongs to a group.
+     * @param {Integer} index The grid index of the icon or group.
+     */
+    highlightGroup: function(index) {
+      for (var i = index, iLen = this.gridView.items.length;
+           i < iLen; i++) {
+        var item = this.gridView.items[i];
+        if (item.detail.type === 'divider') {
+          if (this.hoverGroup != item) {
+            if (this.hoverGroup) {
+              this.hoverGroup.element.classList.remove('drop-target');
+            }
+            this.hoverGroup = item;
+            item.element.classList.add('drop-target');
+          }
+          break;
+        }
+      }
+    },
+
+    /**
      * Positions an icon on the grid.
      * @param {Integer} pageX The X coordinate of the touch.
      * @param {Integer} pageY The Y coordinate of the touch.
@@ -355,6 +387,9 @@
       // Nothing to do if we find the dragged icon or no icon
       if (foundIndex === null ||
           (!insertDividerAtTop && foundIndex === this.icon.detail.index)) {
+        if (!iconIsDivider) {
+          this.highlightGroup(this.icon.detail.index);
+        }
         return;
       }
       var foundItem = this.gridView.items[foundIndex];
@@ -408,10 +443,22 @@
       }
 
       if (createDivider) {
+        // Remove the group background highlight if we're between groups
+        if (this.hoverGroup) {
+          this.hoverGroup.element.classList.remove('drop-target');
+          this.hoverGroup = null;
+        }
+
         this.doRearrange =
           this.createNewDivider.bind(this,
                                      insertDividerAtTop ? null : foundItem);
       } else {
+        if (!iconIsDivider) {
+          // Change the display of the group the icon is hovering over to
+          // indicate it can be dropped.
+          this.highlightGroup(foundIndex);
+        }
+
         this.doRearrange = this.rearrange.bind(this, foundItem);
 
         if (rearrangeAfterDelay) {
