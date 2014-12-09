@@ -64,7 +64,9 @@ marionette('Show Keyboard App after uninstallation', function() {
     // switch back to system
     client.switchToFrame();
     system.switchToActiveKeyboardFrame();
-    assert.ok(imeTestApp.sendKeyButton.displayed());
+    client.waitFor(function() {
+      return imeTestApp.sendKeyButton.displayed();
+    });
   }
 
   setup(function() {
