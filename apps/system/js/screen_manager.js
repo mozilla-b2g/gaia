@@ -554,6 +554,7 @@ var ScreenManager = {
       this.setScreenBrightness(this._userBrightness, false);
     }
     this._deviceLightEnabled = enabled;
+    this._previousLux = null;
 
     if (!this.screenEnabled) {
       return;
