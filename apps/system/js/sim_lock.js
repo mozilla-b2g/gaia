@@ -183,6 +183,15 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
+    var self = this;
+    if (!applications.ready) {
+      window.addEventListener('applicationready', function onReady() {
+        window.removeEventListener('applicationready', onReady);
+        self.showIfLocked(currentSlotIndex, skipped);
+      });
+      return false;
+    }
+
     if (System.locked)
       return false;
 
@@ -214,7 +223,7 @@ var SimLock = {
       }
 
       // Always showing the first slot first.
-      if (!this._alreadyShown && index > 1) {
+      if (!this._alreadyShown && index > 0) {
         return false;
       }
 
