@@ -274,6 +274,17 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubBlur.called);
     });
 
+    test('Should broadcast cardview events to apps', function() {
+      var stubBroadcastMessage =
+        this.sinon.stub(appWindowManager, 'broadcastMessage');
+
+      appWindowManager.handleEvent({ type: 'cardviewbeforeshow' });
+      assert.isTrue(stubBroadcastMessage.calledWith('cardviewbeforeshow'));
+
+      appWindowManager.handleEvent({ type: 'cardviewclosed' });
+      assert.isTrue(stubBroadcastMessage.calledWith('cardviewclosed'));
+    });
+
     test('Home Gesture enabled', function() {
       var stubBroadcastMessage =
         this.sinon.stub(appWindowManager, 'broadcastMessage');
