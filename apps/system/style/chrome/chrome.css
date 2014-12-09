@@ -260,6 +260,11 @@
   border-radius: 0;
 }
 
+/* Remove focus outline from button */
+.controls button::-moz-focus-inner {
+  border: 0;
+}
+
 .controls .reload-button,
 .controls .stop-button {
   background-size: 3rem auto;
