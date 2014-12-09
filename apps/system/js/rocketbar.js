@@ -273,6 +273,10 @@
           var app = AppWindowManager.getActiveApp();
           var afterActivate;
 
+          if (app && !app.isActive()) {
+            return;
+          }
+
           // If the app is not a browser, retain the search value and activate.
           if (app && !app.isBrowser()) {
             afterActivate = this.focus.bind(this);
