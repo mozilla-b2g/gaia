@@ -155,20 +155,19 @@ var GaiaApps = {
     var callback = aCallback || marionetteScriptFinished;
     var apps = window.wrappedJSObject.applications || window.wrappedJSObject.Applications;
     var app = apps.getByManifestURL(manifestURL);
-    var appName;
+    var appName, launchPath;
 
     if (entryPoint) {
       if (app.manifest.entry_points[entryPoint]) {
-        let appName = app.manifest.entry_points[entryPoint].name;
-        let launchPath = app.manifest.entry_points[entryPoint].launchPath;
+        appName = app.manifest.entry_points[entryPoint].name;
+        launchPath = app.manifest.entry_points[entryPoint].launch_path;
       } else {
         app = null;
       }
     } else {
-      let appName = app.manifest.name;
-      let launchPath = app.manifest.launchPath;
+      appName = app.manifest.name;
+      launchPath = app.manifest.launch_path;
     }
-
     GaiaApps.sendLocateResponse(callback, app, appName, launchPath, entryPoint);
   },
 
