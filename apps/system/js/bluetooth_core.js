@@ -1,5 +1,5 @@
 /* exported BluetoothCore */
-/* global BaseModule, Bluetooth, BluetoothTransfer */
+/* global BaseModule */
 'use strict';
 
 (function() {
@@ -20,8 +20,17 @@
       // init Bluetooth module
       if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
         'undefined') { // APIv1
-          Bluetooth.init();
-          BluetoothTransfer.init();
+          window.Bluetooth = window.Bluetooth1;
+          window.BluetoothTransfer = window.BluetoothTransfer1;
+          window.Bluetooth.init();
+          window.BluetoothTransfer.init();
+      } else { // APIv2
+        window.Bluetooth = window.Bluetooth2;
+        window.BluetoothTransfer = window.BluetoothTransfer2;
+        // window.Bluetooth = new window.Bluetooth2();
+        // window.BluetoothTransfer = new BluetoothTransfer2();
+        window.Bluetooth.start();
+        window.BluetoothTransfer.start();
       }
     }
   });

@@ -1,3 +1,4 @@
+/* globals Promise */
 /* exported MockMozBluetooth, MockBTAdapter */
 
 'use strict';
@@ -13,10 +14,20 @@
     getConnectedDevices: function mba_getConnectedDevices() {},
     connectSco: function mba_connectSco() {},
     disconnectSco: function mba_disconnectSco() {},
-    enable: function mba_enable() {},
-    disable: function mba_disable() {},
+    enable: function mba_enable() {
+      return new Promise(function(resolve) {
+        resolve();
+      });
+    },
+    disable: function mba_disable() {
+      return new Promise(function(resolve) {
+        resolve();
+      });
+    },
 
-    onscostatuschanged: null
+    onscostatuschanged: null,
+    onhfpstatuschanged: null,
+    ona2dpstatuschanged: null
   };
 
   var mEventListeners = [];
