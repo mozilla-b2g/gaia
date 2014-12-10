@@ -146,4 +146,21 @@ suite('dialer/mmi UI', function() {
       assert.isTrue(MmiUI.sendNode.disabled);
     });
   });
+
+  suite('MMI screen close >', function() {
+    setup(function() {
+      var message = 'received ui';
+      var title = 'Received UI Title';
+      MmiUI.received({}, message, title);
+    });
+
+    test('Dialer is hidden and response is empty', function() {
+      MmiUI.closeWindow();
+
+      // Message is hidden
+      assert.isTrue(MmiUI.mmiScreen.hidden);
+      // Response is empty
+      assert.equal(MmiUI.responseTextNode.value, '');
+    });
+  });
 });

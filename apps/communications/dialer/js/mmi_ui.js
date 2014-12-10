@@ -47,6 +47,7 @@ var MmiUI = {
   },
 
   closeWindow: function mui_closeWindow() {
+    this.resetResponse();
     this.mmiScreen.hidden = true;
   },
 
