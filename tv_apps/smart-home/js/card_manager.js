@@ -1,5 +1,5 @@
 /* global evt, addMixin, Promise, PipedPromise, Application, CardStore,
-          Deck, AppBookmark */
+        Deck, AppBookmark, Folder, uuid */
 
 (function(exports) {
   'use strict';
@@ -61,6 +61,12 @@
           manifestURL: card.nativeApp && card.nativeApp.manifestURL,
           type: 'Deck'
         };
+      } else if (card instanceof Folder) {
+        cardEntry = {
+          name: card.name,
+          folderId: card.folderId,
+          type: 'Folder'
+        }
       }
       return cardEntry;
     },
@@ -89,8 +95,70 @@
             thumbnail: cardEntry.thumbnail,
             launchURL: cardEntry.launchURL
           });
+          break;
+        case 'Folder':
+          cardInstance = new Folder({
+            name: cardEntry.name,
+            folderId: cardEntry.folderId,
+            // The content of folder is saved in datastore under key of folderId
+            // thus we are not complete deserialize it yet, mark its state
+            // as 'DESERIALIZING'. Caller needs to put content of the folder
+            // back to its structure. Please refer to _reloadCardList().
+            state: Folder.STATES.DESERIALIZING
+          });
+          // Save the folder into card store whenever we receives
+          // folder-changed event
+          cardInstance.on('folder-changed', this._onFolderChange.bind(this));
+          break;
       }
       return cardInstance;
+    },
+
+    writeFolderInCardStore: function cm_writeFolderInCardStore(folder) {
+      var that = this;
+      return new Promise(function(resolve, reject) {
+        if (folder instanceof Folder && folder.cardsInFolder.length > 0) {
+          var cardEntriesInFolder =
+            folder.cardsInFolder.map(that._serializeCard.bind(that));
+          that._cardStore.saveData(folder.folderId,
+            cardEntriesInFolder).then(function() {
+              folder.state = Folder.STATES.NORMAL;
+            }).then(resolve, reject);
+        } else {
+          reject();
+        }
+      });
+    },
+
+    // XXX: Call this function when you need to write cardList back to datastore
+    // Because when we write cardList to datastore, we need to seperate
+    // first level cards and cards under folder into sperated records in
+    // datastore. A better way whould pull out logic related to cardList
+    // into a standalone module. We will do this later.
+    writeCardlistInCardStore: function cm_writeCardlistInCardStore() {
+      var that = this;
+      return new Promise(function(resolve, reject) {
+        var cardEntries =
+          that._cardList.map(that._serializeCard.bind(that));
+        that._cardStore.saveData('cardList', cardEntries).then(function() {
+          var saveDataPromises = [];
+          // The cards inside of folder are not saved nested in cardList
+          // but we explicit save them under key of folderId.
+          // Here we save content of each folder one by one
+          that._cardList.forEach(function(card, index) {
+            if (card instanceof Folder) {
+              if (card.cardsInFolder.length > 0) {
+                saveDataPromises.push(that.writeFolderInCardStore(card));
+              } else {
+                // remove empty folder
+                that._cardList.splice(index, 1);
+              }
+            }
+          });
+          // resolve current promise only when all saveData is finished
+          Promise.all(saveDataPromises).then(resolve);
+        }, reject);
+      });
     },
 
     _loadDefaultCardList: function cm_loadDefaultCardList() {
@@ -101,14 +169,21 @@
           that._loadFile({
             url: defaultCardListFile,
             responseType: 'json'
-
           }).then(function onFulfill(config) {
             that._cardList =
-              config.card_list.map(that._deserializeCardEntry.bind(that));
-            that._cardStore.saveData('cardList',
-              that._cardList.map(that._serializeCard.bind(that)));
-            resolve();
-
+              config.card_list.map(function(cardEntry) {
+                var card = that._deserializeCardEntry(cardEntry);
+                if (card instanceof Folder &&
+                    card.state === Folder.STATES.DESERIALIZING) {
+                  // to load content of folder from config file
+                  card.cardsInFolder =
+                    cardEntry.cardsInFolder.map(
+                      that._deserializeCardEntry.bind(that));
+                }
+                return card;
+              });
+            // write cardList into data store for the first time
+            that.writeCardlistInCardStore().then(resolve, reject);
           }, function onReject(error) {
             var reason ='request ' + defaultCardListFile +
               ' got reject ' + error;
@@ -120,6 +195,14 @@
     _onCardStoreChange: function cm_onCardStoreChange(evt) {
       if (evt.id === 'cardList' && evt.operation === 'updated') {
         this.fire('card-changed');
+      }
+    },
+
+    _onFolderChange: function cm_onFolderChange(folder) {
+      if (folder && folder.state === Folder.STATES.DETACHED) {
+        this.writeCardlistInCardStore();
+      } else {
+        this.writeFolderInCardStore(folder);
       }
     },
 
@@ -136,6 +219,21 @@
             if (cardList) {
               cardList.forEach(function(cardEntry) {
                 var card = that._deserializeCardEntry(cardEntry);
+                // The cards inside of folder are not saved nested in
+                // datastore 'cardList'. But we explicit save them under key
+                // of folderId. So we need to retrieve them by their folderId
+                // and put them back to folders where they belong.
+                if (card instanceof Folder &&
+                    card.state === Folder.STATES.DESERIALIZING) {
+                  // to load content of folder
+                  that._cardStore.getData(card.folderId).then(
+                    function(innerCardList) {
+                      innerCardList.forEach(function(innerCardEntry) {
+                        card.cardsInFolder.push(
+                          that._deserializeCardEntry(innerCardEntry));
+                      });
+                    });
+                }
                 that._cardList.push(card);
               });
               resolve();
@@ -244,7 +342,22 @@
       }
     },
 
-    insertCard: function cm_addCard(options) {
+    insertNewFolder: function cm_insertFolder(name) {
+      var newFolder = new Folder({
+        name: name,
+        state: Folder.STATES.DETACHED
+      });
+      this._cardList.push(newFolder);
+      // Notice that we are not saving card list yet
+      // Because newFolder is empty, it is meaningless to save it
+      // But we need to hook `folder-changed` event handler in case
+      // we need to save it when its content changed
+      newFolder.on('folder-changed', this._onFolderChange.bind(this));
+      return newFolder;
+    },
+
+    insertCard: function cm_insertCard(options) {
+      var that = this;
       var card = this._deserializeCardEntry(options);
 
       // TODO: If the given card belongs to an app, we assume the app spans a
@@ -253,13 +366,13 @@
 
       // add card to the end of the list
       this._cardList.push(card);
-      this._cardStore.saveData('cardList',
-              this._cardList.map(this._serializeCard.bind(this)));
-
-      this.fire('card-inserted', card, this._cardList.length - 1);
+      this.writeCardlistInCardStore().then(function() {
+        that.fire('card-inserted', card, that._cardList.length - 1);
+      });
     },
 
     removeCard: function cm_removeCard(item) {
+      var that = this;
       var idx;
       if(typeof item === 'number') {
         idx = item;
@@ -268,10 +381,9 @@
         idx = this._cardList.indexOf(item);
         this._cardList.splice(idx, 1);
       }
-      this._cardStore.saveData('cardList',
-              this._cardList.map(this._serializeCard.bind(this)));
-
-      this.fire('card-removed', idx);
+      this.writeCardlistInCardStore().then(function() {
+        that.fire('card-removed', idx);
+      });
     },
 
     init: function cm_init() {
@@ -403,6 +515,17 @@
       var found;
       this._cardList.some(function(card) {
         if (card.cardId === query.cardId) {
+          found = card;
+          return true;
+        }
+      })
+      return found;
+    },
+
+    findFolderFromCardList: function cm_findFolderFromCardList(query) {
+      var found;
+      this._cardList.some(function(card) {
+        if (card instanceof Folder && card.folderId === query.folderId) {
           found = card;
           return true;
         }

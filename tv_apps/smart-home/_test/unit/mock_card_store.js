@@ -26,6 +26,7 @@
       var that = this;
       return new Promise(function(resolve, reject) {
         that._dataInStore[id] = data;
+        resolve();
       });
     }
   };
