@@ -9,6 +9,8 @@ from gaiatest.apps.phone.app import Phone
 
 class CallScreen(Phone):
 
+    MAX_NUMBER_OF_DISPLAYED_DIGITS = 22
+
     _call_screen_locator = (By.CSS_SELECTOR, "iframe[name='call_screen']")
     _call_options_locator = (By.ID, 'call-options')
     _calling_contact_locator = (By.CSS_SELECTOR, 'div.number')

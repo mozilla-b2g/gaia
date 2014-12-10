@@ -47,11 +47,11 @@ class TestDialerFindContact(GaiaTestCase):
             lambda m: self.data_layer.active_telephony_state in active_states,
             timeout=30)
 
-        if len(number_to_verify) <= 12:
+        if len(number_to_verify) <= call_screen.MAX_NUMBER_OF_DISPLAYED_DIGITS:
             # Check the number displayed is the one we dialed
             self.assertEqual(number_to_verify, call_screen.calling_contact_information.split(', ')[1])
         else:
-            self.assertEqual(number_to_verify[:2], call_screen.calling_contact_information.split(', ')[1][:2])
+            self.assertEqual(number_to_verify[2:], call_screen.calling_contact_information.split(', ')[1][2:])
 
     def tearDown(self):
         # Switch back to main frame before Marionette loses track bug #840931
