@@ -244,8 +244,10 @@
       var fontFamily = styleOptions.fontFamily ||
         getComputedStyle(heading).fontFamily;
 
+      var text = heading.textContent.replace(/\s+/g, ' ').trim();
+
       var info = this._getMaxFontSizeInfo(
-        heading.textContent,
+        text,
         this._HEADER_SIZES,
         fontFamily,
         contentWidth

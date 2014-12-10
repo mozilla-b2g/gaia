@@ -316,7 +316,7 @@ module.exports = Component.register('gaia-header', {
    */
   rerunFontFit: function() {
     for (var i = 0; i < this.els.headings.length; i++) {
-      this.els.headings[i].textContent = this.els.headings[i].textContent;
+      fontFit.reformatHeading(this.els.headings[i]);
     }
   },
 
@@ -517,6 +517,7 @@ module.exports = Component.register('gaia-header', {
     font-weight: 300;
     font-style: italic;
     font-size: 24px;
+    -moz-user-select: none;
 
     color:
       var(--header-title-color,
@@ -900,8 +901,10 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
       var fontFamily = styleOptions.fontFamily ||
         getComputedStyle(heading).fontFamily;
 
+      var text = heading.textContent.replace(/\s+/g, ' ').trim();
+
       var info = this._getMaxFontSizeInfo(
-        heading.textContent,
+        text,
         this._HEADER_SIZES,
         fontFamily,
         contentWidth
