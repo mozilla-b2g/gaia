@@ -38,6 +38,8 @@ var ThreadListUI = {
   // Set to |true| when in edit mode
   inEditMode: false,
 
+  renderingQueue: [],
+
   init: function thlui_init() {
     this.tmpl = {
       thread: Template('messages-thread-tmpl')
@@ -566,6 +568,22 @@ var ThreadListUI = {
     this.sticky && this.sticky.refresh();
   },
 
+  addThreadToRenderingQueue: function(thread) {
+    this.renderingQueue.push(thread.id);
+    if (this.renderingQueue.length === 1) {
+      setTimeout(() => this.nextRenderThread(), 100);
+    }
+  },
+
+  nextRenderThread: function() {
+    this.renderingQueue.forEach((threadId) => {
+      var thread = Threads.get(threadId);
+      this.appendThread(thread);
+    });
+
+    this.renderingQueue.length = 0;
+  },
+
   renderThreads: function thlui_renderThreads(firstViewDoneCb, allDoneCb) {
     PerformanceTestingHelper.dispatch('will-render-threads');
 
@@ -596,7 +614,7 @@ var ThreadListUI = {
         this.startRendering();
       }
 
-      this.appendThread(thread);
+      this.addThreadToRenderingQueue(thread);
       if (--firstPanelCount === 0) {
         // dispatch visually-complete and content-interactive when rendered
         // threads could fill up the top of the visiable area
