@@ -14,6 +14,7 @@ suite('lib/camera/focus', function() {
 
     // Fake mozCamera
     this.mozCamera = {
+      _listeners: {},
       capabilities: {
         focusModes : ["auto", "infinity", "normal",
           "macro", "continuous-picture", "continuous-video" ],
@@ -28,7 +29,17 @@ suite('lib/camera/focus', function() {
       stopContinuousFocus: sinon.stub(),
       resumeContinuousFocus: sinon.stub(),
       startFaceDetection: sinon.spy(),
-      stopFaceDetection: sinon.spy()
+      stopFaceDetection: sinon.spy(),
+      addEventListener: function(eventname, listener) {
+        this._listeners[eventname] = listener;
+      },
+      removeEventListener: function(eventname, listener) {
+        if (this._listeners.hasOwnProperty(eventname)) {
+          if (this._listeners[eventname] === listener) {
+            delete this._listeners[eventname];
+          }
+        }
+      }
     };
 
     this.focus = new this.Focus({});
@@ -278,7 +289,7 @@ suite('lib/camera/focus', function() {
     });
   });
 
-  suite('Focus#onAutoFocusMoving', function() {
+  suite('Focus#onfocus', function() {
     setup(function() {
       this.sandbox.spy(this.focus, 'updateFocusState');
     });
@@ -288,29 +299,14 @@ suite('lib/camera/focus', function() {
     });
 
     test('should call updateFocusState', function() {
-      this.focus.onAutoFocusMoving(true);
+      this.focus.configureFocusModes();
+      var listener = this.mozCamera._listeners['focus'];
+      assert.ok(listener);
+      listener({ newState: 'focusing' });
       assert.ok(this.focus.updateFocusState.calledWith('focusing'));
-    });
-
-    test('should not call updateFocusState', function() {
-      this.focus.onAutoFocusMoving(false);
-      assert.ok(!this.focus.updateFocusState.called);
-    });
-  });
-
-  suite('Focus#onAutoFocusCompleted', function() {
-    setup(function() {
-      this.sandbox.spy(this.focus, 'updateFocusState');
-    });
-
-    teardown(function() {
-      this.sandbox.restore();
-    });
-
-    test('should call updateFocusState', function() {
-      this.focus.onAutoFocusCompleted(true);
+      listener({ newState: 'focused' });
       assert.ok(this.focus.updateFocusState.calledWith('focused'));
-      this.focus.onAutoFocusCompleted(false);
+      listener({ newState: 'unfocused' });
       assert.ok(this.focus.updateFocusState.calledWith('fail'));
     });
   });
@@ -370,7 +366,6 @@ suite('lib/camera/focus', function() {
   });
 
   suite('Focus#focusOnLargestFace', function() {
-
     setup(function() {
       this.sandbox.spy(this.focus, 'onFacesDetected');
     });
@@ -393,6 +388,40 @@ suite('lib/camera/focus', function() {
       assert.ok(this.focus.onFacesDetected.calledWith([]));
     });
 
+    test('it should focus on the singleton face', function() {
+      this.focus.touchFocus = true;
+      this.focus.faceDetectionSuspended = false;
+      var face = {
+        id: 3,
+        score: 80,
+        bounds: {
+          height: 300,
+          width: 300
+        }
+      };
+      this.focus.focusOnLargestFace([face]);
+      assert.ok(
+        Object.is(this.focus.onFacesDetected.firstCall.args[0][0], face)
+      );
+    });
+
+    test('it should focus on the singleton face (event)', function() {
+      this.focus.touchFocus = true;
+      this.focus.faceDetectionSuspended = false;
+      var face = {
+        id: 3,
+        score: 80,
+        bounds: {
+          height: 300,
+          width: 300
+        }
+      };
+      var event = { faces: [face] };
+      this.focus.handleFaceDetectionEvent(event);
+      assert.ok(
+        Object.is(this.focus.onFacesDetected.firstCall.args[0][0], face)
+      );
+    });
   });
 
   suite('Focus#focus()', function() {
