@@ -763,6 +763,14 @@ function setView(view) {
 // 3. On tiny/large with listView -> go to fullscreen image
 function thumbnailClickHandler(evt) {
   var target = evt.target;
+  if (!target)
+    return;
+
+  // Bug 1106877 - Handle tap for clicks in gray area of containing
+  // div for thumbnail images smaller than thumbnail container.
+  target = target.classList.contains('thumbnail') ?
+    target.firstElementChild : target;
+
   if (!target || !target.classList.contains('thumbnailImage'))
     return;
 
