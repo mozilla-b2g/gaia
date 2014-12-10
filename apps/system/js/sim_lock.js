@@ -223,7 +223,7 @@ var SimLock = {
       }
 
       // Always showing the first slot first.
-      if (!this._alreadyShown && index > 1) {
+      if (!this._alreadyShown && index > 0) {
         return false;
       }
 
