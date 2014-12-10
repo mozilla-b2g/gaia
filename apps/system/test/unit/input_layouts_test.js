@@ -90,7 +90,7 @@ suite('InputLayouts', function() {
     var stubTransformLayout =
       this.sinon.stub(inputLayouts, '_transformLayout').returns('LAYOUT');
 
-    inputLayouts._enabledApps = Set();
+    inputLayouts._enabledApps = new Set();
 
     inputLayouts._insertLayouts(appLayouts);
 
@@ -127,7 +127,7 @@ suite('InputLayouts', function() {
     var stubTransformLayout =
       this.sinon.stub(inputLayouts, '_transformLayout').returns('LAYOUT');
 
-    inputLayouts._enabledApps = Set();
+    inputLayouts._enabledApps = new Set();
 
     inputLayouts._insertFallbackLayouts();
 
