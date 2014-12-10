@@ -197,12 +197,6 @@ require.config({
       ]
     },
     {
-      name: 'panels/keyboard_enabled_default/dialog',
-      exclude: [
-        'main'
-      ]
-    },
-    {
       name: 'panels/app_storage/panel',
       exclude: [
         'main',

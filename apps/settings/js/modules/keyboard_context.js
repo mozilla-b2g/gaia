@@ -92,7 +92,10 @@ define(function(require) {
           KeyboardHelper.setLayoutEnabled(appManifestURL, id, newValue);
           // only check the defaults if we disabled a checkbox
           if (!newValue) {
-            KeyboardHelper.checkDefaults(notifyDefaultEnabled);
+            KeyboardHelper.checkDefaults(function(layouts, missingTypes) {
+              refreshEnabledLayouts(layouts);
+              notifyDefaultEnabled(layouts, missingTypes);
+            });
           }
         }
       });
@@ -101,6 +104,15 @@ define(function(require) {
   };
 
   var _waitForLayouts;
+
+  function refreshEnabledLayouts(reEnabledLayouts) {
+    reEnabledLayouts.forEach(function(layout) {
+      var app = _layoutDict[layout.app.manifestURL];
+      if (app) {
+        app[layout.layoutId].enabled = true;
+      }
+    });
+  }
 
   function notifyDefaultEnabled(layouts, missingTypes) {
     _defaultEnabledCallbacks.forEach(function withCallbacks(callback) {
