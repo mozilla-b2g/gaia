@@ -80,12 +80,13 @@ Focus.prototype.configureFocusModes = function(mode) {
   // Face detection only enabled on picture mode (disabled on video)
   this.faceDetection =
     faceDetectionUserEnabled && faceDetectionSupported && mode === 'picture';
-  this.mozCamera.addEventListener('focus', this.onAutoFocusStateChange);
+  this.mozCamera.onAutoFocusMoving = this.onAutoFocusMoving;
+  this.mozCamera.onAutoFocusCompleted = this.onAutoFocusCompleted;
 };
 
 Focus.prototype.startFaceDetection = function() {
   if (!this.faceDetection) { return; }
-  this.mozCamera.addEventListener('facesdetected', this.focusOnLargestFace);
+  this.mozCamera.onFacesDetected = this.focusOnLargestFace;
   this.mozCamera.startFaceDetection();
 };
 
@@ -155,12 +156,14 @@ Focus.prototype.updateFocusState = function(state) {
   }
 };
 
-Focus.prototype.onAutoFocusStateChange = function(e) {
-  var state = e.newState;
-  if (state === 'unfocused') {
-    state = 'fail';
+Focus.prototype.onAutoFocusMoving = function(moving) {
+  if (moving) {
+    this.updateFocusState('focusing');
   }
-  this.updateFocusState(state);
+};
+
+Focus.prototype.onAutoFocusCompleted = function(state) {
+  this.updateFocusState(state ? 'focused' : 'fail');
 };
 
 Focus.prototype.onAutoFocusChanged = function(state) {
@@ -176,13 +179,13 @@ Focus.prototype.onFacesDetected = function(faces) {
   // NO OP by default
 };
 
-Focus.prototype.focusOnLargestFace = function(e) {
+Focus.prototype.focusOnLargestFace = function(faces) {
   if (this.faceDetectionSuspended) {
     this.onFacesDetected([]);
     return;
   }
 
-  this.detectedFaces = e.faces;
+  this.detectedFaces = faces;
   this.onFacesDetected(this.detectedFaces);
 };
 

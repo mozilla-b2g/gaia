@@ -368,12 +368,10 @@ Camera.prototype.setupNewCamera = function(mozCamera) {
   this.mozCamera = mozCamera;
 
   // Bind to some events
-  this.mozCamera.addEventListener('shutter', this.onShutter);
-  this.mozCamera.addEventListener('close', this.onClosed);
-  this.mozCamera.addEventListener('previewstatechange',
-                                  this.onPreviewStateChange);
-  this.mozCamera.addEventListener('recorderstatechange',
-                                  this.onRecorderStateChange);
+  this.mozCamera.onShutter = this.onShutter;
+  this.mozCamera.onClosed = this.onClosed;
+  this.mozCamera.onPreviewStateChange = this.onPreviewStateChange;
+  this.mozCamera.onRecorderStateChange = this.onRecorderStateChange;
 
   this.capabilities = this.formatCapabilities(capabilities);
 
@@ -1147,15 +1145,16 @@ Camera.prototype.onShutter = function() {
   this.emit('shutter');
 };
 
+
 /**
  * Emit a 'closed' event when camera controller
  * closes
  *
  * @private
  */
-Camera.prototype.onClosed = function(e) {
+Camera.prototype.onClosed = function(reason) {
   this.shutdown();
-  this.emit('closed', e.reason);
+  this.emit('closed', reason);
 };
 
 /**
@@ -1163,11 +1162,10 @@ Camera.prototype.onClosed = function(e) {
  * from the camera hardware. If 'stopped'
  * or 'paused' the camera must not be used.
  *
- * @param  event with {String} newState ['started', 'stopped', 'paused']
+ * @param  {String} state ['stopped', 'paused']
  * @private
  */
-Camera.prototype.onPreviewStateChange = function(e) {
-  var state = e.newState;
+Camera.prototype.onPreviewStateChange = function(state) {
   debug('preview state change: %s', state);
   this.previewState = state;
   this.emit('preview:' + state);
@@ -1179,8 +1177,7 @@ Camera.prototype.onPreviewStateChange = function(e) {
  * @param  {String} msg
  * @private
  */
-Camera.prototype.onRecorderStateChange = function(e) {
-  var msg = e.newState;
+Camera.prototype.onRecorderStateChange = function(msg) {
   if (msg === 'FileSizeLimitReached') {
     this.emit('filesizelimitreached');
   }

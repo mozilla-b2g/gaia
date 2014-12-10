@@ -14,7 +14,6 @@ suite('lib/camera/focus', function() {
 
     // Fake mozCamera
     this.mozCamera = {
-      _listeners: {},
       capabilities: {
         focusModes : ["auto", "infinity", "normal",
           "macro", "continuous-picture", "continuous-video" ],
@@ -29,10 +28,7 @@ suite('lib/camera/focus', function() {
       stopContinuousFocus: sinon.stub(),
       resumeContinuousFocus: sinon.stub(),
       startFaceDetection: sinon.spy(),
-      stopFaceDetection: sinon.spy(),
-      addEventListener: function(eventname, listener) {
-        this._listeners[eventname] = listener;
-      }
+      stopFaceDetection: sinon.spy()
     };
 
     this.focus = new this.Focus({});
@@ -282,7 +278,7 @@ suite('lib/camera/focus', function() {
     });
   });
 
-  suite('Focus#onfocus', function() {
+  suite('Focus#onAutoFocusMoving', function() {
     setup(function() {
       this.sandbox.spy(this.focus, 'updateFocusState');
     });
@@ -292,14 +288,29 @@ suite('lib/camera/focus', function() {
     });
 
     test('should call updateFocusState', function() {
-      this.focus.configureFocusModes();
-      var listener = this.mozCamera._listeners['focus'];
-      assert.ok(listener);
-      listener({ newState: 'focusing' });
+      this.focus.onAutoFocusMoving(true);
       assert.ok(this.focus.updateFocusState.calledWith('focusing'));
-      listener({ newState: 'focused' });
+    });
+
+    test('should not call updateFocusState', function() {
+      this.focus.onAutoFocusMoving(false);
+      assert.ok(!this.focus.updateFocusState.called);
+    });
+  });
+
+  suite('Focus#onAutoFocusCompleted', function() {
+    setup(function() {
+      this.sandbox.spy(this.focus, 'updateFocusState');
+    });
+
+    teardown(function() {
+      this.sandbox.restore();
+    });
+
+    test('should call updateFocusState', function() {
+      this.focus.onAutoFocusCompleted(true);
       assert.ok(this.focus.updateFocusState.calledWith('focused'));
-      listener({ newState: 'unfocused' });
+      this.focus.onAutoFocusCompleted(false);
       assert.ok(this.focus.updateFocusState.calledWith('fail'));
     });
   });
