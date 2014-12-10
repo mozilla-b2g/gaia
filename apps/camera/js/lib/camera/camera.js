@@ -368,10 +368,12 @@ Camera.prototype.setupNewCamera = function(mozCamera) {
   this.mozCamera = mozCamera;
 
   // Bind to some events
-  this.mozCamera.onShutter = this.onShutter;
-  this.mozCamera.onClosed = this.onClosed;
-  this.mozCamera.onPreviewStateChange = this.onPreviewStateChange;
-  this.mozCamera.onRecorderStateChange = this.onRecorderStateChange;
+  this.mozCamera.addEventListener('shutter', this.onShutter);
+  this.mozCamera.addEventListener('close', this.onClosed);
+  this.mozCamera.addEventListener('previewstatechange',
+                                  this.onPreviewStateChange);
+  this.mozCamera.addEventListener('recorderstatechange',
+                                  this.onRecorderStateChange);
 
   this.capabilities = this.formatCapabilities(capabilities);
 
@@ -1145,16 +1147,15 @@ Camera.prototype.onShutter = function() {
   this.emit('shutter');
 };
 
-
 /**
  * Emit a 'closed' event when camera controller
  * closes
  *
  * @private
  */
-Camera.prototype.onClosed = function(reason) {
+Camera.prototype.onClosed = function(e) {
   this.shutdown();
-  this.emit('closed', reason);
+  this.emit('closed', e.reason);
 };
 
 /**
@@ -1162,10 +1163,11 @@ Camera.prototype.onClosed = function(reason) {
  * from the camera hardware. If 'stopped'
  * or 'paused' the camera must not be used.
  *
- * @param  {String} state ['stopped', 'paused']
+ * @param  event with {String} newState ['started', 'stopped', 'paused']
  * @private
  */
-Camera.prototype.onPreviewStateChange = function(state) {
+Camera.prototype.onPreviewStateChange = function(e) {
+  var state = e.newState;
   debug('preview state change: %s', state);
   this.previewState = state;
   this.emit('preview:' + state);
@@ -1177,7 +1179,8 @@ Camera.prototype.onPreviewStateChange = function(state) {
  * @param  {String} msg
  * @private
  */
-Camera.prototype.onRecorderStateChange = function(msg) {
+Camera.prototype.onRecorderStateChange = function(e) {
+  var msg = e.newState;
   if (msg === 'FileSizeLimitReached') {
     this.emit('filesizelimitreached');
   }
