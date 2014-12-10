@@ -66,23 +66,3 @@ class TestVideo(GaiaTestCase):
         # Tap mute button
         player.tap_mute()
         player.tap_unmute()
-
-        player.tap_full_screen()
-        permission = PermissionDialog(self.marionette)
-        self.marionette.switch_to_default_content()
-        permission.wait_for_permission_dialog_displayed()
-        permission.tap_to_confirm_permission()
-
-        # The interaction with the permission dialog makes us
-        # loose connection to the player frame, so we need to reconnect
-        browser.switch_to_content()
-        player = HTML5Player(self.marionette)
-
-        Wait(self.marionette).until(lambda m: player.is_fullscreen)
-
-        # After tapping full screen, the controls disappear, make them appear again
-        player.invoke_controls()
-        Wait(self.marionette).until(lambda m: player.controls_visible)
-        player.tap_full_screen()
-        Wait(self.marionette).until(lambda m: player.is_fullscreen is False)
-        Wait(self.marionette).until(lambda m: player.controls_visible is False)
