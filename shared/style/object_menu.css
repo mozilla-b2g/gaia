@@ -75,7 +75,7 @@
   min-height: 3.9rem;
   height: auto;
   list-style: none;
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 300;
   color: #fff;
   word-wrap: break-word;
@@ -131,9 +131,11 @@
   border: none;
   background-color: transparent;
   text-align: left;
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 300;
+  font-style: normal;
   padding: 0;
+  margin: 0;
 }
 
 [role="dialog"][data-type="object"] ul li button[type="reset"] {
