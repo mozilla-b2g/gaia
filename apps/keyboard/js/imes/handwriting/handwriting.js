@@ -31,6 +31,11 @@ var HandwritingGaiaKeyboardGlue = function HandwritingGaiaKeyboardGlue() {
   // Current language
   this.language = '';
 
+  this.isPredicting = false;
+
+  // For prediction
+  this.words = '';
+
   this.cachedPoints = [];
 
   this.unloadWorkerTimer = undefined;
@@ -69,10 +74,15 @@ HandwritingGaiaKeyboardGlue.prototype._loadWorker = function hr_loadWorker() {
         }
         break;
       case 'recognize':
-        if (this.firstCandidate) {
-          this.select(this.firstCandidate, {});
-        }
+        this.isPredicting = false;
         this._sendCandidates(JSON.parse(data.value));
+        break;
+      case 'getPrediction':
+        this.isPredicting = true;
+        var predictions = data.value;
+        if (predictions) {
+          this._sendCandidates(predictions.split(' '));
+        }
         break;
       default:
         break;
@@ -96,6 +106,15 @@ HandwritingGaiaKeyboardGlue.prototype.select = function hr_select(text, data) {
   this.callbacks.sendString(text);
   this.empty();
   this._start();
+
+  if (this.isPredicting) {
+    this.words += text;
+  } else {
+    this.words = text;
+    this.isPredicting = true;
+  }
+
+  this.postMessage('getPrediction', this.words);
 };
 
 HandwritingGaiaKeyboardGlue.prototype.click = function hr_click(keyCode) {
@@ -141,7 +160,9 @@ HandwritingGaiaKeyboardGlue.prototype.deactivate = function hr_deactivate() {
 
 HandwritingGaiaKeyboardGlue.prototype.empty = function hr_empty() {
   this.firstCandidate = '';
-  this._sendCandidates([]);
+  this.callbacks.sendCandidates([]);
+  this.callbacks.endComposition();
+  this.callbacks.app.handwritingPadsManager.clear();
 };
 
 HandwritingGaiaKeyboardGlue.prototype.postMessage = function(id, param) {
@@ -175,12 +196,12 @@ HandwritingGaiaKeyboardGlue.prototype._sendCandidates =
 
     this.callbacks.sendCandidates(list);
 
-    // If candidates is not empty, set composition with its first element,
-    // or end composition.
-    if (this._firstCandidate) {
-      this.callbacks.setComposition(this._firstCandidate);
-    } else {
-      this.callbacks.endComposition();
+    if (this.isPredicting) {
+      return;
+    }
+
+    if (this.firstCandidate) {
+      this.callbacks.setComposition(this.firstCandidate);
     }
   };
 
@@ -207,18 +228,20 @@ HandwritingGaiaKeyboardGlue.prototype._next = function hr_next() {
     switch (code) {
       case KeyEvent.DOM_VK_BACK_SPACE:
         sendKey = false;
+        this.empty();
         break;
       case KeyEvent.DOM_VK_RETURN:
       case KeyEvent.DOM_VK_SPACE:
         // candidate list exists; output the first candidate
-        this.callbacks.endComposition(this.firstCandidate);
+        this.select(this.firstCandidate);
+        this.callbacks.app.handwritingPadsManager.clear();
         sendKey = false;
         break;
       default:
         this.callbacks.endComposition(this.firstCandidate);
+        this.empty();
         break;
     }
-    this.empty();
   }
 
   //pass the key to IMEManager for default action

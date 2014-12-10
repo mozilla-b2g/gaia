@@ -1,17 +1,25 @@
 'use strict';
 
-const MAX_STROKE_NUM = 1000;
+var MAX_STROKE_NUM = 1000;
 
 self.onmessage = function(e) {
   var data = e.data;
 
-  if (data.id == 'setLang') {
-    var ret = Recognition.setLang(data.param);
-    post('setLang', ret);
-  }
-  if (data.id == 'recognize') {
-    var words = Recognition.recognize(JSON.parse(data.param));
-    post('recognize', JSON.stringify(words));
+  switch(data.id) {
+    case 'setLang':
+      var ret = Recognition.setLang(data.param);
+      post('setLang', ret);
+      break;
+    case 'recognize':
+      var words = Recognition.recognize(JSON.parse(data.param));
+      post('recognize', JSON.stringify(words));
+      break;
+    case 'getPrediction':
+      var words = Recognition.getPrediction(data.param);
+      post('getPrediction', words);
+      break;
+    default:
+      break;
   }
 };
 
@@ -43,6 +51,12 @@ var Recognition = {
     return this._CharacterRecognize(this._strokeBuffer.byteOffset);
   },
 
+  getPrediction: function(words) {
+    if (this._getPrediction) {
+      return this._getPrediction(words);
+    }
+  },
+
   _init: function(lang) {
     this._inited = false;
     var model = '';
@@ -64,6 +78,14 @@ var Recognition = {
     this._CharacterRecognize =
       Module.cwrap('CharacterRecognize', 'string', ['number']);
 
+    if (Module.ccall('InitPrediction',
+                     'number',
+                     ['string'],
+                     ['dict_pinyin.data'])) {
+      this._getPrediction =
+        Module.cwrap('GetPrediction', 'string', ['string']);
+    }
+
     var buf = Module._malloc((MAX_STROKE_NUM + 1) * 4);
     this._strokeBuffer =
       new Int16Array(Module.HEAPU8.buffer, buf, (MAX_STROKE_NUM + 1) * 2);
@@ -79,7 +101,8 @@ var Recognition = {
 
   _strokeBuffer: null,
   _CharacterRecognize: null,
-  _lang: ''
+  _lang: '',
+  _getPrediction: null
 };
 
 var Module = {

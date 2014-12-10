@@ -8,7 +8,7 @@ var HandwritingPadsManager = function(app) {
   this._started = false;
   this._timeOutId = undefined;
   this._strokeWidth = 5;
-  this._responseTime = 600;
+  this._responseTime = 200;
 
   // It's a one dimension array, contains uer press positions data,
   // and the data in it looks like:
@@ -21,7 +21,7 @@ var HandwritingPadsManager = function(app) {
   this.app = app;
 };
 
-HandwritingPadsManager.prototype.MAX_RESPONSE_TIME = 1100;
+HandwritingPadsManager.prototype.MAX_RESPONSE_TIME = 600;
 
 HandwritingPadsManager.prototype.start = function() {
   if (this._started) {
@@ -101,7 +101,9 @@ HandwritingPadsManager.prototype._sendStrokePoints = function() {
   if (ime.sendStrokePoints) {
     ime.sendStrokePoints(this._strokePoints);
   }
+};
 
+HandwritingPadsManager.prototype.clear = function() {
   this.app.layoutRenderingManager.clearHandwritingPad(this._currentTarget);
   this._strokePoints = [];
   this._cleared = true;
