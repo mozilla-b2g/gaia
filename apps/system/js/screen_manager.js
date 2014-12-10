@@ -385,7 +385,7 @@ var ScreenManager = {
       self._setIdleTimeout(0);
 
       if (self._deviceLightEnabled) {
-        window.removeEventListener('devicelight', self);
+        self._removeDeviceLightEventListener();
       }
 
       window.removeEventListener('lockscreen-appclosing', self);
@@ -475,7 +475,7 @@ var ScreenManager = {
     // Attaching the event listener effectively turn on the hardware
     // device light sensor, which _must be_ done after power.screenEnabled.
     if (this._deviceLightEnabled) {
-      window.addEventListener('devicelight', this);
+      this._addDeviceLightEventListener();
     }
 
     this._reconfigScreenTimeout();
@@ -564,10 +564,18 @@ var ScreenManager = {
     // This will also toggle the actual hardware, which
     // must be done while the screen is on.
     if (enabled) {
-      window.addEventListener('devicelight', this);
+      this._addDeviceLightEventListener();
     } else {
-      window.removeEventListener('devicelight', this);
+      this._removeDeviceLightEventListener();
     }
+  },
+
+  _addDeviceLightEventListener: function scm_addDeviceLightEventListener() {
+    window.addEventListener('devicelight', this);
+  },
+
+  _removeDeviceLightEventListener: function scm_removeDeviceLightEvtListener() {
+    window.removeEventListener('devicelight', this);
   },
 
   _setIdleTimeout: function scm_setIdleTimeout(time, instant) {
