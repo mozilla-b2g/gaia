@@ -576,8 +576,10 @@ var NotificationScreen = {
   },
 
   clearLockScreen: function ns_clearLockScreen() {
-    // The LockScreenWindow may not be instantiated yet.
-    if (!this.lockScreenContainer) {
+    // 1. The LockScreenWindow may not be instantiated yet.
+    // 2. The 'unlock' event will also be triggered when screen is turned off.
+    //    Should not clear the notifications in this circumstance.
+    if (!this.lockScreenContainer || !ScreenManager.screenEnabled) {
       return;
     }
     while (this.lockScreenContainer.firstElementChild) {

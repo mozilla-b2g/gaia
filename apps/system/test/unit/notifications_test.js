@@ -13,6 +13,7 @@ require('/test/unit/mock_screen_manager.js');
 require('/test/unit/mock_statusbar.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_navigator_moz_chromenotifications.js');
+require('/test/unit/mock_lock_screen.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
@@ -293,16 +294,72 @@ suite('system/NotificationScreen >', function() {
         assert.equal(date, '1m ago');
       });
     });
+  });
 
-    test('remove lockscreen notifications at the same time', function() {
+  suite('lockscreen >', function() {
+    function addNotification(id) {
       NotificationScreen.addNotification({
-        id: 'id-10000', title: '', message: ''
+        id: id, title: '', message: ''
       });
-      NotificationScreen.removeNotification('id-10000');
+    }
+
+    suiteSetup(function() {
+      window.lockScreen = MockLockScreen;
+      window.lockScreen.lock();
+
+      window.lockScreenNotifications = {
+        showColoredMaskBG: function() {},
+        hideColoredMaskBG: function() {},
+        scrollToTop: function() {},
+        adjustContainerVisualHints: function() {}
+      };
+    });
+
+    suiteTeardown(function() {
+      window.lockScreen = undefined;
+      window.lockScreenNotifications = undefined;
+    });
+
+    teardown(function() {
+      fakeLockScreenContainer.innerHTML = '';
+    });
+
+    test('add notifications to lockscreen', function() {
+      assert.equal(fakeLockScreenContainer.children.length, 0);
+      addNotification('id-10000');
+      assert.equal(fakeLockScreenContainer.children.length, 1);
       assert.equal(
-        null,
-        fakeLockScreenContainer.querySelector(
-          '[data-notification-i-d="id-10000"]'));
+        1,
+        fakeLockScreenContainer.querySelectorAll(
+          '[data-notification-id="id-10000"]').length);
+    });
+
+    test('remove notifications from lockscreen', function() {
+      addNotification('id-10000');
+      assert.equal(fakeLockScreenContainer.children.length, 1);
+      NotificationScreen.removeNotification('id-10000');
+      assert.equal(fakeLockScreenContainer.children.length, 0);
+      assert.equal(
+        0,
+        fakeLockScreenContainer.querySelectorAll(
+          '[data-notification-id="id-10000"]').length);
+    });
+
+    test('clear all notifications after unlocking', function() {
+      addNotification('id-10000');
+      addNotification('id-10001');
+      assert.equal(fakeLockScreenContainer.children.length, 2);
+      NotificationScreen.clearLockScreen();
+      assert.equal(fakeLockScreenContainer.children.length, 0);
+    });
+
+    test('do not clear notifications if screen is turned off', function() {
+      addNotification('id-10000');
+      addNotification('id-10001');
+      assert.equal(fakeLockScreenContainer.children.length, 2);
+      ScreenManager.screenEnabled = false;
+      NotificationScreen.clearLockScreen();
+      assert.equal(fakeLockScreenContainer.children.length, 2);
     });
   });
 
