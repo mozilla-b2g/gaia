@@ -293,6 +293,18 @@ var MmiManager = {
         return;
       }
 
+      // Establish connection with system app to hide call screen
+      // and show MMI/USSD message during phone call
+      var result = navigator.mozApps.getSelf();
+      result.onsuccess = function() {
+        var app = evt.target.result;
+        app.connect('dialercomms').then(function(ports) {
+          ports.forEach(function(port) {
+            port.postMessage('mmi-received');
+          });
+        });
+      };
+
       var conn = navigator.mozMobileConnections[cardIndex || 0];
       var title = this.prependSimNumber(
         MobileOperator.userFacingInfo(conn).operator, cardIndex);

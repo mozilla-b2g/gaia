@@ -48,6 +48,7 @@ var AttentionScreen = {
       this.appForegroundHandler.bind(this));
 
     window.addEventListener('mozmemorypressure', this.freePreloaded.bind(this));
+    window.addEventListener('iac-dialercomms', this.onDialerMessage.bind(this));
   },
 
   resize: function as_resize(evt) {
@@ -465,6 +466,25 @@ var AttentionScreen = {
     Array.prototype.forEach.call(frames, function resetFrame(frame) {
       frame.src = '';
     });
+  },
+
+  onDialerMessage: function as_onDialerMessage(evt) {
+    var shouldHideCallscreen = evt.detail == 'mmi-received' ? true : false;
+
+    var selector = 'iframe:not([data-hidden])';
+    var frames = this.attentionScreen.querySelectorAll(selector);
+    for (var i = 0; i < frames.length; i++) {
+      var frame = frames[i];
+
+      var frameOrigin = frame.dataset.frameOrigin;
+      if (frameOrigin.startsWith('app://callscreen.gaiamobile.org/')) {
+        if (shouldHideCallscreen) {
+          this.hide(frame);
+        } else {
+          this.show(frame);
+        }
+      }
+    }
   },
 
   getAttentionScreenOrigins: function as_getAttentionScreenOrigins() {
