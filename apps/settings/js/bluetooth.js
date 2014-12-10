@@ -453,7 +453,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
         }
         pairList.clear();
         paired.sort(function(a, b) {
-          return a.name > b.name;
+          return a.name.toLowerCase() > b.name.toLowerCase();
         });
         for (var i = 0; i < length; i++) {
           (function(device) {
