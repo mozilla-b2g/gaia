@@ -1,3 +1,5 @@
+/* globals DeviceLightEvent */
+
 'use strict';
 
 /* globals SettingsListener, Bluetooth, StatusBar, Service,
@@ -572,6 +574,21 @@ var ScreenManager = {
 
   _addDeviceLightEventListener: function scm_addDeviceLightEventListener() {
     window.addEventListener('devicelight', this);
+
+    // Simulate an event if we don't have one before 1 second
+    function onFirstDeviceLight() {
+      window.removeEventListener('devicelight', onFirstDeviceLight);
+      clearTimeout(timeout);
+    }
+
+    var timeout = setTimeout(() => {
+      window.removeEventListener('devicelight', onFirstDeviceLight);
+
+      var event = new DeviceLightEvent('devicelight', { value: 0 });
+      this.handleEvent(event);
+    }, 1000);
+
+    window.addEventListener('devicelight', onFirstDeviceLight);
   },
 
   _removeDeviceLightEventListener: function scm_removeDeviceLightEvtListener() {
