@@ -3,13 +3,16 @@
 /* global CardManager */
 
 require('/tv_shared/js/vendor/evt.js');
-require('/js/utils.js');
+require('/shared/js/uuid.js');
+require('/tv_shared/js/shared_utils.js');
 require('/test/unit/mock_piped_promise.js');
 require('/test/unit/mock_card_store.js');
 require('/test/unit/mock_xml_http_request.js');
 require('/js/card.js');
 require('/js/deck.js');
+require('/js/folder.js');
 require('/js/application.js');
+require('/js/app_bookmark.js');
 
 suite('smart-home/CardManager', function() {
   var realPipedPromise;
@@ -98,6 +101,7 @@ suite('smart-home/CardManager', function() {
       cardManager._cardStore = MockCardStore;
       realXMLHttpRequest = window.XMLHttpRequest;
       window.XMLHttpRequest = MockXMLHttpRequest;
+      this.sinon.spy(cardManager, 'writeCardlistInCardStore');
     });
 
     teardown(function() {
@@ -126,6 +130,7 @@ suite('smart-home/CardManager', function() {
         cardManager._reloadCardList().then(function() {
           assert.isTrue(cardManager._cardList.length > 0);
           assert.equal(cardManager._cardList[0].name, 'Devices');
+          assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
         }, function(reason) {
           assert.fail('should not reject promise due to ' + reason);
         }).then(done, done);
@@ -181,4 +186,49 @@ suite('smart-home/CardManager', function() {
     });
 
   });
+
+  suite('insertNewFolder', function() {
+    var cardManager;
+    var dashboardCardId;
+    setup(function() {
+      cardManager = new CardManager();
+      cardManager._cardStore = MockCardStore;
+      cardManager._cardList = [
+        new Deck({
+          name: 'Dashboard',
+          cachedIconURL: 'style/icons/Blank.png'
+        })
+      ];
+      dashboardCardId = cardManager._cardList[0].cardId;
+
+      this.sinon.spy(cardManager, 'writeFolderInCardStore');
+      this.sinon.spy(cardManager, 'writeCardlistInCardStore');
+    });
+
+    teardown(function() {
+      MockCardStore.mClearData();
+      cardManager = undefined;
+    });
+
+    test('should return new folder instance whenever a new folder is inserted',
+      function() {
+        var newFolder = cardManager.insertNewFolder('an empty folder');
+
+        assert.ok(newFolder.folderId);
+        assert.equal(newFolder.state, Folder.STATES.DETACHED);
+      });
+
+    test('should write to data store when folder has content', function() {
+      var newFolder = cardManager.insertNewFolder('a test folder');
+      assert.isFalse(cardManager.writeCardlistInCardStore.calledOnce);
+      newFolder.addCard(new Application({
+        name: 'Music',
+        cachedIconURL: 'style/icons/Blank.png'
+      }));
+
+      assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
+    });
+
+  });
+
 });
