@@ -1,10 +1,9 @@
 /* globals MockL10n, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           SimPinDialog, MockApplications */
+           SimPinDialog */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot.js');
-requireApp('system/test/unit/mock_applications.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot_manager.js');
 
 var mocksForSIMPINDialog = new MocksHelper([
@@ -40,8 +39,6 @@ suite('simcard dialog', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     MockSIMSlotManager.mInstances = [new MockSIMSlot(null, 0)];
-    window.applications = MockApplications;
-    window.applications.ready = true;
     requireApp('system/js/simcard_dialog.js', function() {
       SimPinDialog.init();
       callback();

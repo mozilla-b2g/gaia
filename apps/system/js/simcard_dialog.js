@@ -1,6 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global SIMSlotManager, SimPinSystemDialog, applications */
+/* global SIMSlotManager, SimPinSystemDialog */
 
 'use strict';
 
@@ -291,7 +291,7 @@ var SimPinDialog = {
       this._currentSlot = slot;
     }
 
-    this._dispatchEvent('simpinshow');
+    window.dispatchEvent(new CustomEvent('simpinshow'));
 
     this.simPinSystemDialog.show();
     this._visible = true;
@@ -313,32 +313,32 @@ var SimPinDialog = {
   },
 
   requestClose: function spl_requestClose(reason) {
-    this._dispatchEvent('simpinrequestclose', {
+    window.dispatchEvent(new CustomEvent('simpinrequestclose', {
       detail: {
         dialog: this,
         reason: reason
       }
-    });
+    }));
   },
 
   close: function spl_close(reason) {
-    this._dispatchEvent('simpinclose', {
+    window.dispatchEvent(new CustomEvent('simpinclose', {
       detail: this
-    });
+    }));
     this.simPinSystemDialog.hide(reason);
     this._visible = false;
   },
 
   skip: function spl_skip() {
-    this._dispatchEvent('simpinskip', {
+    window.dispatchEvent(new CustomEvent('simpinskip', {
       detail: this
-    });
+    }));
   },
 
   back: function spl_back() {
-    this._dispatchEvent('simpinback', {
+    window.dispatchEvent(new CustomEvent('simpinback', {
       detail: this
-    });
+    }));
   },
 
   // With the keyboard active the inputs, ensure they get scrolled
@@ -352,17 +352,6 @@ var SimPinDialog = {
         container.scrollTop = container.offsetHeight;
       });
     });
-  },
-
-  _dispatchEvent: function spl_dispatchEvent(name, detail) {
-    if (applications.ready) {
-      window.dispatchEvent(new CustomEvent(name, detail));
-    } else {
-      window.addEventListener('applicationready', function onReady() {
-        window.removeEventListener('applicationready', onReady);
-        window.dispatchEvent(new CustomEvent(name, detail));
-      });
-    }
   },
 
   init: function spl_init() {
