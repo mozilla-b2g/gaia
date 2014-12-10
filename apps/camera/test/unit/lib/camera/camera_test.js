@@ -37,7 +37,9 @@ suite('lib/camera/camera', function() {
     this.mozCamera = {
       release: sinon.stub(),
       setConfiguration: sinon.stub(),
-      capabilities: {}
+      capabilities: {},
+      addEventListener: sinon.stub(),
+      removeEventListener: sinon.stub()
     };
 
     this.options = {
@@ -659,8 +661,7 @@ suite('lib/camera/camera', function() {
       assert.isTrue(takePicture.calledBefore(resumePreview));
     });
 
-    test('Should call mozCamera.takePicture with the current rotation',
-      function() {
+    test('Should call mozCamera.takePicture with the current rotation', function() {
       this.camera.orientation.get.returns(90);
       this.camera.takePicture();
 
@@ -685,22 +686,22 @@ suite('lib/camera/camera', function() {
 
   suite('Camera#onPreviewStateChange()', function() {
     test('It doesn\'t fire \'busy\' event if \'stopped\' or \'paused\'', function() {
-      this.camera.onPreviewStateChange('stopped');
+      this.camera.onPreviewStateChange({ newState: 'stopped' });
       assert.isFalse(this.camera.emit.calledWith('busy'));
     });
 
     test('It doesn\'t fire \'ready\' event if \'started\'', function() {
-      this.camera.onPreviewStateChange('started');
+      this.camera.onPreviewStateChange({ newState: 'started' });
       assert.isFalse(this.camera.emit.calledWith('ready'));
     });
 
     test('It fire a `preview:*` event', function() {
-      this.camera.onPreviewStateChange('started');
+      this.camera.onPreviewStateChange({ newState: 'started' });
       sinon.assert.calledWith(this.camera.emit, 'preview:started');
     });
 
     test('It stores the last known preview state', function() {
-      this.camera.onPreviewStateChange('started');
+      this.camera.onPreviewStateChange({ newState: 'started' });
       assert.equal(this.camera.previewState, 'started');
     });
   });
@@ -781,7 +782,6 @@ suite('lib/camera/camera', function() {
     });
 
     test('Should call requestCamera with selectedCamera and mozCameraConfig', function() {
-
       this.camera.mozCameraConfig = '<moz-camera-config>';
       this.camera.selectedCamera = '<selected-camera>';
       this.camera.load();
