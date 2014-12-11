@@ -386,6 +386,24 @@
       });
     },
 
+    swapCard: function cm_switchCard(item1, item2) {
+      var idx1, idx2;
+      idx1 = (typeof item1 === 'number') ?
+        idx1 = item1 :
+        this._cardList.indexOf(item1);
+      idx2 = (typeof item2 === 'number') ?
+        idx2 = item2 :
+        this._cardList.indexOf(item2);
+      var tmp = this._cardList[idx1];
+      this._cardList[idx1] = this._cardList[idx2];
+      this._cardList[idx2] = tmp;
+
+      this.writeCardlistInCardStore();
+
+      this.fire('card-swapped',
+                        this._cardList[idx1], this._cardList[idx2], idx1, idx2);
+    },
+
     init: function cm_init() {
       var that = this;
       var appMgmt = navigator.mozApps.mgmt;
