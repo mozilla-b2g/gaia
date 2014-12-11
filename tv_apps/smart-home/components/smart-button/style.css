@@ -32,7 +32,7 @@ smart-button {
 
 smart-button.focused {
   outline: 0;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   transform: scale(1.2);
   transition-duration: 0.42s;
 }
@@ -49,6 +49,39 @@ smart-button.pressed {
   background-color: #00caf2;
   transform: scale(0.8);
   transition-duration: 0.06s;
+}
+
+smart-button.disabled {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+smart-button[data-icon]:before {
+  width: 5.4rem;
+  left: 1.3rem;
+  font-size: 5.4rem;
+  line-height: 8rem;
+  text-align: center;
+  color: #ffffff;
+  white-space: normal;
+  top: 0;
+  position: absolute;
+}
+
+smart-button[data-icon].focused:before {
+  color: #2d2d2d;
+}
+
+smart-button[data-icon].toggled:before {
+  color: #00caf2;
+}
+
+smart-button[data-icon].pressed:before {
+  color: #ffffff;
+}
+
+smart-button[data-icon].disabled:before {
+  color: #ffffff;
+  opacity: 0.3;
 }
 
 smart-button[type="simple-text"] {

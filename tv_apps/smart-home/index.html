@@ -60,9 +60,10 @@
 
   <body>
     <article role="region" class="skin-dark" id="main-section">
+      <section id="background" class="background"></section>
       <section id="header-buttons" class="left-top-panel">
-        <smart-button id="search-button" class="search-button"></smart-button>
-        <menu-group id="settings-group" class="settings-group" rotate>
+        <smart-button data-icon="search" id="search-button" class="search-button"></smart-button>
+        <menu-group data-icon="setting" id="settings-group" class="settings-group" rotate>
           <smart-button type="simple-text" id="edit-button" class="edit-button">
             <span data-l10n-id="edit">edit</span>
           </smart-button>
@@ -77,8 +78,8 @@
           <!-- use span here because we will change to icon font -->
           <span id="weather-image" class="weather-image"></span>
           <span id="temperature" class="temperature">
-            <label class="temperature-number">72</label>
-            <sup class="degree-marker">o</sup>
+            <!-- do not add \n here because it adds a space between temperature-number, degree-marker and degree-system -->
+            <label class="temperature-number">72</label><label class="degree-marker">&#xb0;</label><label class="degree-system">F</label>
           </span>
           <span id="weather-text" class="weather-text">Mostly Cloudy</span>
         </div>
