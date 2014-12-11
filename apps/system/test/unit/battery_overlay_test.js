@@ -3,9 +3,11 @@
 /* global MocksHelper */
 /* global MockL10n */
 /* global MockNavigatorBattery */
+/* global MockNavigatorSettings */
 
 requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
@@ -24,6 +26,7 @@ suite('battery manager >', function() {
   var screenNode, notifNode, overlayNode;
   var tinyTimeout = 10;
 
+  var realMozSettings;
   var realL10n;
   var subject;
 
@@ -32,6 +35,9 @@ suite('battery manager >', function() {
     subject = window.batteryOverlay = new BatteryOverlay();
     realBattery = subject._battery;
     subject._battery = MockNavigatorBattery;
+
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
 
     // must be big enough, otherwise the BatteryOverlay timeout occurs
     // before the different suites execute.
@@ -44,6 +50,7 @@ suite('battery manager >', function() {
   suiteTeardown(function() {
     subject._battery = realBattery;
     realBattery = null;
+    navigator.mozSettings = realMozSettings;
 
     navigator.mozL10n = realL10n;
   });

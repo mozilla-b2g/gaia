@@ -31,6 +31,10 @@
         this._powerSaveEnabled = enabled;
       });
 
+      SettingsListener.observe('powersave.threshold', -1, value => {
+        this.doCheckThreshold(value);
+      });
+
       function getState(state, value) {
         /* jshint validthis: true */
         this._states[state] = value;
@@ -116,6 +120,47 @@
       });
     },
 
+    checkThreshold: function() {
+      var key = 'powersave.threshold';
+      var lock = navigator.mozSettings.createLock();
+      var req = lock.get(key);
+      req.onerror = function(e) {
+        console.error('Error while quering setting ' + key + ': ' + e);
+      };
+
+      req.onsuccess = (function() {
+        this.doCheckThreshold(req.result[key] || -1);
+      }).bind(this);
+    },
+
+    doCheckThreshold: function(value) {
+      var battery = batteryOverlay._battery;
+
+      // If 'turn on automatically' is set to 'never', don't change the
+      // power saving state
+      if (value == -1) {
+        return;
+      }
+
+      if (battery.level <= value && !this._powerSaveEnabled) {
+        this.setMozSettings({
+          'powersave.enabled': true
+        });
+        if (!this._powerSaveEnabledLock) {
+          this.showPowerSavingNotification();
+          this._powerSaveEnabledLock = true;
+        }
+        return;
+      }
+
+      if (battery.level > value && this._powerSaveEnabled) {
+        this.setMozSettings({
+          'powersave.enabled': false
+        });
+        return;
+      }
+    },
+
     onBatteryChange: function() {
       var battery = batteryOverlay._battery;
 
@@ -129,31 +174,7 @@
         return;
       }
 
-      SettingsListener.observe('powersave.threshold', -1, value => {
-        // If 'turn on automatically' is set to 'never', don't change the
-        // power saving state
-        if (value == -1) {
-          return;
-        }
-
-        if (battery.level <= value && !this._powerSaveEnabled) {
-          this.setMozSettings({
-            'powersave.enabled': true
-          });
-          if (!this._powerSaveEnabledLock) {
-            this.showPowerSavingNotification();
-            this._powerSaveEnabledLock = true;
-          }
-          return;
-        }
-
-        if (battery.level > value && this._powerSaveEnabled) {
-          this.setMozSettings({
-            'powersave.enabled': false
-          });
-          return;
-        }
-      });
+      this.checkThreshold();
     }
   };
 
