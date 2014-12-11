@@ -294,17 +294,19 @@
     updateClock: function() {
       var now = new Date();
       var _ = navigator.mozL10n.get;
+      var use12Hour = window.navigator.mozHour12;
 
       var f = new navigator.mozL10n.DateTimeFormat();
 
-      // Keep the follow code for supporting 24-hour format in the fure.
-      // We had discussed 12/24 hour formats with visual and we will have it
-      // in recent few weeks.
-      // var timeFormat = window.navigator.mozHour12 ?
-      //   _('shortTimeFormat12') : _('shortTimeFormat24');
-      var timeFormat = _('shortTimeFormat24').replace('%p', '').trim();
+      var timeFormat = use12Hour ? _('shortTimeFormat12') :
+                                   _('shortTimeFormat24');
+      // remove AM/PM and we use our owned style to show it.
+      var timeFormat = timeFormat.replace('%p', '').trim();
       var formatted = f.localeFormat(now, timeFormat);
-      document.getElementById('time').innerHTML = formatted;
+
+      var timeElem = document.getElementById('time');
+      timeElem.innerHTML = formatted;
+      timeElem.dataset.ampm = use12Hour ? f.localeFormat(now, '%p') : '';
     },
 
     restartClock: function() {
