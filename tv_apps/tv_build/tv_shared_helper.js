@@ -12,6 +12,9 @@
   // regex for finding import in css
   var CSS_IMPORT =
      /@import (?:url\()?['"].*tv_shared\/([^\/]+)\/([^'"\s]+)['"](?:\))?.*;$/gm;
+
+  var CSS_FONT =
+     /src: (?:url\()?['"].*tv_shared\/([^\/]+)\/([^'"\s]+)['"](?:\))?.*;$/gm;
       
   exports.TVSharedHelper = {
     execute: function(options) {
@@ -88,6 +91,7 @@
     analyzeCss: function(file) {
       var content = utils.getFileContent(file).replace(COMMENTED, '');
       this.copyMatchedFilesToStage(CSS_IMPORT, content);
+      this.copyMatchedFilesToStage(CSS_FONT, content);
     },
 
     filterFiles: function(type, file) {

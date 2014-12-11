@@ -47,10 +47,45 @@ menu-group:before {
   position: absolute;
   left: 0;
 
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0.42s;
+}
+
+menu-group[rotate]:before {
   transform: rotate(360deg);
   transition-property: all;
   transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
   transition-duration: 0.42s;
+}
+
+menu-group[data-icon]:before {
+  width: 5.4rem;
+  left: 1.3rem;
+  font-size: 5.4rem;
+  line-height: 8rem;
+  text-align: center;
+  color: #ffffff;
+  white-space: normal;
+  top: 0;
+}
+
+menu-group[data-icon].switching-icon:before {
+  font-size: 5.4rem;
+  line-height: 8rem;
+  text-align: center;
+  color: #ffffff;
+  /**
+   * According to visual spec, we have falling down transition while icon
+   * change.
+   *
+   * The trick is:
+   *   1. to put the next icon at the top of current and slide icons down.
+   *   2. to set transition duration to 0 here to elimiate the slide up
+   *      transition.
+  **/
+  top: -8rem;
+  transition: none;
 }
 
 menu-group.closed {
@@ -64,7 +99,7 @@ menu-group.closed > * {
   display: none;
 }
 
-menu-group.closed:before {
+menu-group[rotate].closed:before {
   transform: rotate(0deg);
 }
 
@@ -84,7 +119,7 @@ menu-group.closing {
   background-color: rgba(0, 0, 0, 0.5);
 }
 
-menu-group.closing:before {
+menu-group[rotate].closing:before {
   transform: rotate(0deg);
   transition-duration: 0.5s;
 }

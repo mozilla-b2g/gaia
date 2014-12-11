@@ -84,24 +84,6 @@ section {
   text-align: center;
 }
 
-/* Filter tab */
-#filter-tab-container {
-  position: absolute;
-  left: 3rem;
-  bottom: 3rem;
-}
-
-.filter-tab {
-  background: #bbb;
-  min-width: 7rem;
-  height: 3rem;
-  border-radius: 3rem;
-  margin-right: 0.5rem;
-  line-height: 3rem;
-  text-align: center;
-  display: inline-block;
-}
-
 /* Folder tab */
 #folder-viewer {
   position: absolute;
@@ -152,4 +134,13 @@ section {
   line-height: 3rem;
   color: white;
   text-align: center;
+}
+
+/**
+ * filters
+**/
+.filter-tab-container {
+  position: absolute;
+  left: 6rem;
+  bottom: 5.4rem;
 }

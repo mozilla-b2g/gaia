@@ -5,6 +5,12 @@
     <meta charset="utf-8">
     <title>Home</title>
 
+    <!-- building blocks -->
+    <link rel="stylesheet" type="text/css" href="tv_shared/font/gaia-device-icons.css">
+    <link rel="stylesheet" type="text/css" href="/components/smart-button/style.css">
+    <link rel="stylesheet" type="text/css" href="/components/menu-group/style.css">
+
+    <!-- home -->
     <link rel="stylesheet" type="text/css" href="style/header.css">
     <link rel="stylesheet" type="text/css" href="style/home.css">
     <link rel="stylesheet" type="text/css" href="tv_shared/style/navigation.css">
@@ -37,6 +43,7 @@
     <script defer src="js/app_bookmark.js"></script>
     <script defer src="js/card_store.js"></script>
     <script defer src="js/card_manager.js"></script>
+    <script defer src="js/card_filter.js"></script>
     <script defer src="js/message_handler.js"></script>
 
     <script defer src="js/home.js"></script>
@@ -55,7 +62,7 @@
     <article role="region" class="skin-dark" id="main-section">
       <section id="header-buttons" class="left-top-panel">
         <smart-button id="search-button" class="search-button"></smart-button>
-        <menu-group id="settings-group" class="settings-group">
+        <menu-group id="settings-group" class="settings-group" rotate>
           <smart-button type="simple-text" id="edit-button" class="edit-button">
             <span data-l10n-id="edit">edit</span>
           </smart-button>
@@ -112,12 +119,24 @@
           </div>
         </div>
       </section>
-      <section id="filter-tab-container">
-        <div class="filter-tab" data-l10n-id="all">all</div>
-        <div class="filter-tab" data-l10n-id="dash">dash</div>
-        <div class="filter-tab" data-l10n-id="tv">tv</div>
-        <div class="filter-tab" data-l10n-id="device">device</div>
-        <div class="filter-tab" data-l10n-id="app">app</div>
+      <section id="filter-tab-container" class="filter-tab-container">
+        <menu-group data-icon="filter" id="filter-tab-group" class="filter-tab-group">
+          <smart-button type="simple-text" id="filter-all-button" data-icon-type="filter">
+            <span data-l10n-id="all">all</span>
+          </smart-button>
+          <smart-button type="simple-text" id="filter-tv-button" data-icon-type="tv">
+            <span data-l10n-id="tv">live-tv</span>
+          </smart-button>
+          <smart-button type="simple-text" id="filter-dashboard-button" data-icon-type="dashboard">
+            <span data-l10n-id="dash">dashboard</span>
+          </smart-button>
+          <smart-button type="simple-text" id="filter-device-button" data-icon-type="device">
+            <span data-l10n-id="device">device</span>
+          </smart-button>
+          <smart-button type="simple-text" id="filter-app-button" data-icon-type="application">
+            <span data-l10n-id="app">app</span>
+          </smart-button>
+        </menu-group>
       </section>
     </article>
   </body>

@@ -52,8 +52,9 @@
   </script>
   <script></script>
   <script src="../../../../tv_shared/js/vendor/evt.js"></script>
-  <script src="../../../../tv_shared/js/shared_utils.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../smart-button/style.css">
   <script src="../../smart-button/script.js" type="text/javascript"></script>
+  <link rel="stylesheet" type="text/css" href="../style.css">
   <script src="../script.js" type="text/javascript"></script>
 </head>
 <body role="application">
@@ -62,7 +63,7 @@
   <button type="button" onclick="focusMenu();">Focus</button>
   <button type="button" onclick="blurMenu();">Blur</button>
   <div>
-    <menu-group id="test-target">
+    <menu-group id="test-target" rotate>
       <smart-button type="simple-text">Text 1</smart-button>
       <smart-button type="simple-text">Text 2</smart-button>
       <smart-button type="simple-text">Text 3</smart-button>
