@@ -9,7 +9,7 @@ try:
     from marionette.marionette import Actions
 except:
     from marionette_driver import (expected,
-                            Wait)
+                                   Wait)
     from marionette_driver.by import By
     from marionette_driver.marionette import Actions
 
@@ -55,11 +55,9 @@ class CallScreen(Phone):
 
     def switch_to_call_screen_frame(self):
         self.marionette.switch_to_frame()
-
-        self.wait_for_element_present(*self._call_screen_locator, timeout=30)
-
-        call_screen = self.marionette.find_element(*self._call_screen_locator)
-        self.marionette.switch_to_frame(call_screen)
+        frame = Wait(self.marionette, timeout=30).until(
+            expected.element_present(*self._call_screen_locator))
+        self.marionette.switch_to_frame(frame)
 
     @property
     def outgoing_calling_contact(self):
@@ -72,10 +70,6 @@ class CallScreen(Phone):
     @property
     def incoming_calling_contact_while_on_call(self):
         return self.marionette.find_element(*self._incoming_number_while_on_call_locator).text
-
-    @property
-    def calling_contact_information(self):
-        return self.marionette.find_element(*self._outgoing_call_locator).find_element(*self._calling_contact_information_locator).text
 
     @property
     def calling_contact_information(self):
@@ -98,19 +92,21 @@ class CallScreen(Phone):
         return self.marionette.find_element(*self._incoming_call_locator).find_element(*self._via_sim_locator).text
 
     def wait_for_outgoing_call(self):
-        outgoing_call = self.marionette.find_element(*self._outgoing_call_locator)
-        self.wait_for_condition(lambda m: outgoing_call.location['y'] == 0)
-        self.wait_for_condition(lambda m: self.outgoing_calling_contact != u'')
+        call = self.marionette.find_element(*self._outgoing_call_locator)
+        contact = call.find_element(*self._calling_contact_locator)
+        Wait(self.marionette).until(lambda m: call.location['y'] == 0 and contact.text)
 
     def wait_for_incoming_call(self):
         main_window = self.marionette.find_element(*self._main_window_locator)
         Wait(self.marionette).until(expected.element_displayed(main_window))
-        Wait(self.marionette).until(lambda m: main_window.location['y'] == 0)
-        Wait(self.marionette).until(lambda m: self.incoming_calling_contact != u'')
+        call = self.marionette.find_element(*self._incoming_call_locator)
+        contact = call.find_element(*self._calling_contact_locator)
+        Wait(self.marionette).until(lambda m: main_window.location['y'] == 0 and contact.text)
 
     def wait_for_incoming_call_while_on_call(self):
-        self.wait_for_condition(lambda m: self.is_element_displayed(*self._incoming_info_while_on_call_locator))
-        self.wait_for_condition(lambda m: self.incoming_calling_contact_while_on_call != u'')
+        call = self.marionette.find_element(*self._incoming_info_while_on_call_locator)
+        contact = self.marionette.find_element(*self._incoming_number_while_on_call_locator)
+        Wait(self.marionette).until(lambda m: call.is_displayed() and contact.text)
 
     def answer_call(self):
         self.marionette.find_element(*self._answer_bar_locator).tap()
@@ -127,17 +123,20 @@ class CallScreen(Phone):
     def hang_up(self):
         self.marionette.find_element(*self._hangup_bar_locator).tap()
         self.marionette.switch_to_frame()
-        self.wait_for_element_not_displayed(*self._call_screen_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._call_screen_locator))
 
     def a11y_hang_up(self):
         self.a11y_click_hang_up()
         self.marionette.switch_to_frame()
-        self.wait_for_element_not_displayed(*self._call_screen_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._call_screen_locator))
 
     def a11y_keypad_hang_up(self):
         self.a11y_click_keypad_hang_up()
         self.marionette.switch_to_frame()
-        self.wait_for_element_not_displayed(*self._call_screen_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._call_screen_locator))
 
     def _handle_incoming_call(self, destination):
 
@@ -155,10 +154,12 @@ class CallScreen(Phone):
         ).perform()
 
     def reject_call(self):
-        self.wait_for_element_displayed(*self._lockscreen_handle_locator)
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._lockscreen_handle_locator))
         self._handle_incoming_call('reject')
         self.marionette.switch_to_frame()
-        self.wait_for_element_not_displayed(*self._call_screen_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._call_screen_locator))
 
     def a11y_click_keypad_visibility_button(self):
         self.accessibility.click(self.marionette.find_element(
@@ -166,4 +167,5 @@ class CallScreen(Phone):
 
     def merge_calls(self):
         self.marionette.find_element(*self._merge_calls_button_locator).tap()
-        self.wait_for_condition(lambda m: self.marionette.find_element(*self._conference_call_locator).is_displayed())
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._conference_call_locator))
