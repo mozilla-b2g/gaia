@@ -21,12 +21,23 @@ class FmRadio(Base):
     _favorite_button_locator = (By.ID, 'bookmark-button')
     _next_button_locator = (By.ID, 'frequency-op-seekup')
     _prev_button_locator = (By.ID, 'frequency-op-seekdown')
+    _airplane_mode_title_locator = (By.CSS_SELECTOR, 'div[data-l10n-id="airplaneModeHeader"]')
+    _airplane_mode_text_locator = (By.CSS_SELECTOR, 'div[data-l10n-id="airplaneModeMsg"]')
 
-    def launch(self):
+    def launch(self, airplane_mode=False):
         Base.launch(self)
         power = Wait(self.marionette).until(
             expected.element_present(*self._power_button_locator))
-        Wait(self.marionette).until(lambda m: power.get_attribute('data-enabled') == 'true')
+        if not airplane_mode:
+            Wait(self.marionette).until(lambda m: power.get_attribute('data-enabled') == 'true')
+
+    @property
+    def airplane_warning_title(self):
+        return self.marionette.find_element(*self._airplane_mode_title_locator).text
+
+    @property
+    def airplane_warning_text(self):
+        return self.marionette.find_element(*self._airplane_mode_text_locator).text
 
     def flick_frequency_dialer_up(self):
         dialer = self.marionette.find_element(*self._frequency_dialer_locator)
