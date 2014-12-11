@@ -32,8 +32,10 @@
     this.keyNavigationAdapter.on('enter', function() {
       this.spatialNavigator.getFocusedElement().click();
     }.bind(this))
+    this.keyNavigationAdapter.on('esc', this.hide.bind(this));
 
     this.spatialNavigator.on('focus', this.handleFocus.bind(this));
+    this.spatialNavigator.on('unfocus', this.handleUnfocus.bind(this));
     return this;
   };
 
@@ -41,9 +43,13 @@
 
   BrowserContextMenu.prototype.handleFocus = function(elem) {
     if (elem.nodeName) {
-      selectionBorder.select(elem);
-    } else {
-      selectionBorder.selectRect(elem);
+      elem.classList.add('hover');
+    }
+  };
+
+  BrowserContextMenu.prototype.handleUnfocus = function(elem) {
+    if (elem.nodeName) {
+      elem.classList.remove('hover');
     }
   };
 
@@ -149,13 +155,6 @@
     this._injected = true;
     this.buildMenu(menu);
     this.element.classList.add('visible');
-    // XXX: Set a reasonable delay to ensure selectionBorder appears after
-    // animation for displaying context menu is ended.
-    // We will introduce new spec that doesn't need selection_border anymore.
-    // After that we won't have to do hard-coded timeout.
-    setTimeout(function firstfocus(evt) {
-      this.spatialNavigator.focus();
-    }.bind(this), 600);
   },
 
   BrowserContextMenu.prototype.buildMenu = function(items) {
@@ -182,6 +181,7 @@
 
     this.elements.cancel.textContent = _('cancel');
     this.elements.list.appendChild(this.elements.cancel);
+
     this.spatialNavigator.setCollection(Array.prototype.slice.call(
                         this.elements.list.getElementsByTagName('button')));
   };
@@ -193,10 +193,11 @@
     // contextmenu.items are specified by the web content via html5
     // context menu api
     if (detail.contextmenu && detail.contextmenu.items.length) {
+      var that = this;
       detail.contextmenu.items.forEach(function(choice, index) {
         items.push({
           label: choice.label,
-          icon: choice.icon,
+          icon: that.app.origin + '/' + choice.icon,
           callback: function() {
             detail.contextMenuItemSelected(choice.id);
           }
@@ -221,8 +222,6 @@
     }
 
     this.keyNavigationAdapter.uninit();
-
-    selectionBorder.deselectAll();
 
     if (evt) {
       evt.preventDefault();
