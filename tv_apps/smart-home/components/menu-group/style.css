@@ -24,7 +24,7 @@ menu-group {
   border: none;
   /* the radius is still make button as round even if we don't have border */
   border-radius: 4rem;
-  background-color: #000000;
+  background-color: rgba(0, 0, 0, 0.5);
 
   word-break: keep-all;
   white-space: nowrap;
