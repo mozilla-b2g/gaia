@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 
 from gaiatest.apps.base import Base, PageRegion
@@ -15,9 +17,10 @@ class ListView(Base):
 
     @property
     def media(self):
-        self.wait_for_element_displayed(*self._list_item_locator)
-        return [Media(self.marionette, media) for media in
-                self.marionette.find_elements(*self._list_item_locator)]
+        elements = Wait(self.marionette).until(
+            expected.elements_present(*self._list_item_locator))
+        Wait(self.marionette).until(expected.element_displayed(elements[0]))
+        return [Media(self.marionette, element) for element in elements]
 
 
 class Media(PageRegion):

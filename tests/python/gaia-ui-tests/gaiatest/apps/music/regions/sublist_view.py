@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import expected
+from marionette import Wait
 from marionette.by import By
 from marionette.marionette import Actions
 
@@ -16,10 +18,12 @@ class SublistView(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_condition(lambda m: m.find_element(*self._song_number_locator).location['x'] == 0)
+        element = self.marionette.find_element(*self._song_number_locator)
+        Wait(self.marionette).until(lambda m: element.location['x'] == 0)
 
     def tap_play(self):
-        play_button = self.wait_for_element_present(*self._play_control_locator)
+        play = Wait(self.marionette).until(
+            expected.element_present(*self._play_control_locator))
         # TODO: Change this to a simple tap when bug 862156 is fixed
-        Actions(self.marionette).tap(play_button).perform()
+        Actions(self.marionette).tap(play).perform()
         return PlayerView(self.marionette)
