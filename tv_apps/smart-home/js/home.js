@@ -1,19 +1,21 @@
 'use strict';
 /* global SpatialNavigator, KeyEvent, SelectionBorder, XScrollable */
-/* global CardManager, URL, Application, Clock */
+/* global CardManager, URL, Application, Clock, CardFilter */
 
 (function(exports) {
 
   function Home() {}
 
   Home.prototype = {
-    navigableIds: ['search-button', 'search-input', 'settings-group'],
-    navigableClasses: ['filter-tab'],
+    navigableIds: ['search-button', 'search-input', 'settings-group', 'filter-tab-group'],
+    navigableClasses: ['filter-tab', 'command-button'],
     navigableScrollable: [],
     cardScrollable: undefined,
     folderScrollable: undefined,
     _focus: undefined,
     _focusScrollable: undefined,
+
+    cardFilter: undefined,
 
     cardListElem: document.getElementById('card-list'),
     cardManager: undefined,
@@ -62,6 +64,12 @@
           scrollable.on('focus', handleScrollableItemFocusBound);
         });
         that.spatialNavigator.focus();
+
+        that.cardFilter = new CardFilter();
+        that.cardFilter.start(document.getElementById('filter-tab-group'));
+        // all's icon name is filter
+        that.cardFilter.filter = CardFilter.FILTERS.ALL;
+        that.cardFilter.on('filterchanged', that.onFilterChanged.bind(that));
       });
     },
 
@@ -72,10 +80,10 @@
         that.clock.start(that.updateClock.bind(that));
         // Listen to 'moztimechange'
         window.addEventListener('moztimechange',
-                                that.restartClock.bind(restartClock));
+                                that.restartClock.bind(that));
         // Listen to 'timeformatchange'
         window.addEventListener('timeformatchange',
-                                that.restartClock.bind(restartClock));
+                                that.restartClock.bind(that));
 
       });
     },
@@ -86,6 +94,10 @@
 
     onCardRemoved: function(card) {
       this.cardScrollable.removeNode(card);
+    },
+
+    onFilterChanged: function(name) {
+      console.log('filter changed to: ' + name);
     },
 
     _createCardNode: function(card) {
@@ -192,6 +204,7 @@
       if (elem.CLASS_NAME == 'XScrollable') {
         this._focusScrollable = elem;
         elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
+        this.checkFocusedGroup();
       } else if (elem.nodeName) {
         if (this._focus) {
           this._focus.blur();
@@ -220,7 +233,7 @@
         return;
       }
       // close the focused group when we move focus out of this group.
-      if (!this._focusedGroup.contains(elem)) {
+      if (!elem || !this._focusedGroup.contains(elem)) {
         this._focusedGroup.close();
         this._focusedGroup = null;
       }
@@ -261,6 +274,7 @@
           childElement = childElement.nextElementSibling;
         }
       });
+      this.checkFocusedGroup(menuGroup);
       this._focusedGroup = menuGroup;
       menuGroup.open();
     },

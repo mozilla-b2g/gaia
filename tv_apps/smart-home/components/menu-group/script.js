@@ -11,7 +11,6 @@ window.MenuGroup = (function(win) {
     '/components/menu-group/';
 
   proto.createdCallback = function() {
-    SharedUtils.injectComponentStyle(this, baseurl);
     this.style.width = '0';
     this.classList.add('closed');
     this.addEventListener('transitionend', this);
@@ -95,6 +94,28 @@ window.MenuGroup = (function(win) {
     this.classList.remove('opening');
     this.classList.add('closing');
     this.style.width = '0';
+  };
+
+  proto.changeIcon = function(icon) {
+    if (!this.dataset.icon) {
+      this.dataset.icon = icon;
+      return;
+    }
+    var current = this.dataset.icon.split(' ')[0];
+    if (current === icon) {
+      return;
+    }
+    this.classList.add('switching-icon');
+    this.dataset.icon = icon + ' ' + current;
+
+    // Let gecko to recalculate the value and remove it.
+    // We shouldn't put any value at the setTimeout, but it doesn't work in some
+    // device, like FirefoxNightly, b2g-desktop. The 100 ms works well in
+    // these environments.
+    var self = this;
+    setTimeout(function() {
+      self.classList.remove('switching-icon');
+    }, 100);
   };
 
   // Register and return the constructor

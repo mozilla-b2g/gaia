@@ -10,7 +10,6 @@ window.SmartButton = (function(win) {
     '/components/smart-button/';
 
   proto.createdCallback = function() {
-    SharedUtils.injectComponentStyle(this, baseurl);
     this.addEventListener('mousedown', this);
     this.addEventListener('mouseup', this);
     this.addEventListener('touchstart', this);
