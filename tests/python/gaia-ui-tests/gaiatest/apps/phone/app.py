@@ -43,7 +43,8 @@ class Phone(Base):
 
     def _switch_to_contacts_frame(self):
         # This is a nested frame and we cannot locate it with AppWindowManager
-        frame = self.wait_for_element_present(*self._contacts_frame_locator)
+        frame = Wait(self.marionette).until(
+            expected.element_present(*self._contacts_frame_locator))
         self.marionette.switch_to_frame(frame)
 
         from gaiatest.apps.contacts.app import Contacts
@@ -75,28 +76,35 @@ class Phone(Base):
         return self.marionette.find_element(*self._dialog_title_locator).text
 
     def wait_for_confirmation_dialog(self):
-        self.wait_for_element_displayed(*self._dialog_locator)
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._dialog_locator))
 
     def tap_call_log_toolbar_button(self):
-        self.wait_for_element_displayed(*self._call_log_toolbar_button_locator)
-        self.marionette.find_element(*self._call_log_toolbar_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._call_log_toolbar_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
         return self.call_log
 
     def a11y_click_call_log_toolbar_button(self):
-        self.wait_for_element_displayed(*self._call_log_toolbar_button_locator)
-        self.accessibility.click(self.marionette.find_element(
-            *self._call_log_toolbar_button_locator))
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._call_log_toolbar_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        self.accessibility.click(element)
         return self.call_log
 
     def tap_keypad_toolbar_button(self):
-        self.wait_for_element_displayed(*self._keypad_toolbar_button_locator)
-        self.marionette.find_element(*self._keypad_toolbar_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._keypad_toolbar_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
         return self.keypad
 
     def a11y_click_keypad_toolbar_button(self):
-        self.wait_for_element_displayed(*self._keypad_toolbar_button_locator)
-        self.accessibility.click(self.marionette.find_element(
-            *self._keypad_toolbar_button_locator))
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._keypad_toolbar_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        self.accessibility.click(element)
         return self.keypad
 
     def make_call_and_hang_up(self, phone_number):

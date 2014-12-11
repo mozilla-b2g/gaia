@@ -3,8 +3,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 try:
+    from marionette import (expected,
+                            Wait)
     from marionette.by import By
 except:
+    from marionette_driver import (expected,
+                                   Wait)
     from marionette_driver.by import By
 
 from gaiatest.apps.base import Base
@@ -16,7 +20,8 @@ class AttentionScreen(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._message_locator)
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._message_locator))
 
     @property
     def message(self):
