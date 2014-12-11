@@ -22,6 +22,18 @@ function setWallpaper(settings, config) {
 
   if (!wallpaper.exists()) {
     wallpaper = utils.resolve(
+      utils.joinPath('build', 'config', 'wallpaper_' +
+        config.GAIA_DEVICE_TYPE + devpixels + '.jpg'), config.GAIA_DIR);
+  }
+
+  if (!wallpaper.exists()) {
+    wallpaper = utils.resolve(
+      utils.joinPath('build', 'config', 'wallpaper_' +
+        config.GAIA_DEVICE_TYPE + '.jpg'), config.GAIA_DIR);
+  }
+
+  if (!wallpaper.exists()) {
+    wallpaper = utils.resolve(
       utils.joinPath('build', 'config', 'wallpaper' + devpixels + '.jpg'),
       config.GAIA_DIR);
   }
