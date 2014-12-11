@@ -62,12 +62,26 @@ section {
   margin-top: -4vh;
 }
 
+#app-deck-list-frame {
+  width: 100%;
+  height: 24.26vh;
+  overflow: hidden;
+}
+
+#app-deck-list {
+  position: relative;
+  transition: transform 0.2s ease;
+  transform-origin: 0 50%;
+}
+
 .app-banner {
   display: inline-block;
   background-color: #999;
   width: 35.55vh;
   height: 20.18vh;
-  margin: 2.03vh 0.64vh;
+  margin: 2.03vh 0;
+  left: 0;
+  position: absolute;
 }
 
 #app-deck-grid-view-container {

@@ -38,10 +38,12 @@
         that._appDeckListScrollable = new XScrollable({
           frameElem: 'app-deck-list-frame',
           listElem: 'app-deck-list',
-          itemClassName: 'app-banner'
+          itemClassName: 'app-banner',
+          margin: 1.4
         });
         that._navigableElements =
-          SharedUtils.nodeListToArray(document.querySelectorAll('.navigable'))
+          SharedUtils.nodeListToArray(
+            document.querySelectorAll('.navigable:not(.app-banner)'))
             .concat(appGridElements);
         that._navigableElements.unshift(that._appDeckListScrollable);
         that._spatialNavigator = new SpatialNavigator(that._navigableElements);

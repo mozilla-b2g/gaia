@@ -51,16 +51,31 @@ section {
 
 #card-list {
   position: relative;
-/* XXX: set width to 1000% for now to verify whether user
-        interface is what we expected */
-  width: 1000%;
+  width: 100%;
   height: 100%;
   transition: transform 0.2s ease;
+  transform-origin: 0 50%;
 }
 
 .card {
   top: 32.41%;
   margin: 0 1.6rem 0 1.6rem;
+  left: 0;
+  position: absolute;
+  transition: transform 0.3s ease;
+}
+
+.card-panel {
+  position: absolute;
+  top: -12rem;
+  width: 100%;
+  height: 8rem;
+  display: none;
+}
+
+.card-panel smart-button {
+  position: relative;
+  margin-left: calc(50% - 12rem);
 }
 
 .card.focused {
@@ -105,4 +120,37 @@ section {
   right: 0;
   bottom: 0;
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
+}
+
+#edit-menu {
+  position: absolute;
+  top: 4rem;
+  right: 6rem;
+}
+
+/**
+ * nav bars
+ */
+nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  transition: transform 0.4s cubic-bezier(0.165, 0.840, 0.440, 1.000);
+}
+
+nav header {
+  padding-left: 13rem;
+  padding-top: 9.2rem;
+
+  font-size: 5.4rem;
+  font-style: italic;
+  color: white;
+}
+
+#main-section[data-mode="edit"] #nav-regular,
+#main-section[data-mode="arrange"] #nav-regular,
+#main-section:not([data-mode="edit"]) #nav-edit-title,
+#main-section:not([data-mode="edit"]) #nav-edit {
+  transform: translateY(-16rem);
 }
