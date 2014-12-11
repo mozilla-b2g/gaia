@@ -1,4 +1,4 @@
-/*global Promise, Template,
+/*global Promise, Template, Utils,
          ImageUtils
 */
 
@@ -148,27 +148,6 @@
     }
   };
 
-  /**
-   * Gets localization details for attachment size label.
-   * @param size Attachment blob size in bytes.
-   * @returns {{l10nId: string, l10nArgs: {n: string}}}
-   */
-  function getSizeForL10n(size) {
-    // blob size with unit (KB or MB)
-    var sizeKB = size / 1024;
-    var sizeMB = sizeKB / 1024;
-    if (sizeKB < 1000) {
-      return {
-        l10nId: 'attachmentSize',
-        l10nArgs: { n: sizeKB.toFixed(1) }
-      };
-    }
-    return {
-      l10nId: 'attachmentSizeMB',
-      l10nArgs: { n: sizeMB.toFixed(1) }
-    };
-  }
-
   var AttachmentRenderer = function(attachment) {
     this._attachment = attachment;
     this._renderer = attachment.isDraft ? RENDERERS.draft : RENDERERS.base;
@@ -238,7 +217,7 @@
           throw new Error('updateFileSize should be called after a render().');
         }
 
-        var sizeL10n = getSizeForL10n(this._attachment.size);
+        var sizeL10n = Utils.getSizeForL10n(this._attachment.size);
         this._renderer.setL10nAttributes(
           sizeIndicator, sizeL10n.l10nId, sizeL10n.l10nArgs
         );
@@ -292,7 +271,7 @@
    */
   AttachmentRenderer.prototype._getBaseMarkup = function(templateId, hasError) {
     // interpolate the #attachment-[no]preview-tmpl template
-    var sizeL10n = getSizeForL10n(this._attachment.size);
+    var sizeL10n = Utils.getSizeForL10n(this._attachment.size);
     return Template(templateId).interpolate({
       type: this._attachment.type,
       errorClass: hasError ? 'corrupted' : '',
