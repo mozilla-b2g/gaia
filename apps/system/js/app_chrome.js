@@ -484,19 +484,43 @@
   AppChrome.prototype.handleMetaChange =
     function ac__handleMetaChange(evt) {
       var detail = evt.detail;
-      if (detail.name !== 'theme-color' || !detail.type) {
+
+      var handledMetaEvents = [
+        'theme-color',
+        'urlbar-control'
+      ];
+
+      if (handledMetaEvents.indexOf(detail.name) === -1 || !detail.type) {
         return;
       }
 
-      // If the theme-color meta is removed, let's reset the color.
-      var color = '';
+      if (detail.name === 'theme-color') {
+        // If the theme-color meta is removed, let's reset the color.
+        var color = '';
 
-      // Otherwise, set it to the color that has been asked.
-      if (detail.type !== 'removed') {
-        color = detail.content;
+        // Otherwise, set it to the color that has been asked.
+        if (detail.type !== 'removed') {
+          color = detail.content;
+        }
+
+        this.setThemeColor(color);
+      } else if (detail.name === 'urlbar-control') {
+        if (detail.content === 'default' || detail.type === 'removed') {
+          var chrome = this.app.config.chrome;
+          if (chrome.scrollable) {
+            this.app.element.classList.add('collapsible');
+          }
+          if (this.scrollable.scrollTop < 1) {
+            this.element.classList.add('maximized');
+          }
+          this.handleScrollAreaChanged();
+        } else if (detail.content === 'minimized') {
+          this.element.classList.add('maximized');
+          this.containerElement.classList.remove('collapsible');
+          this.containerElement.classList.remove('scrollable');
+          this.collapse();
+        }
       }
-
-      this.setThemeColor(color);
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {

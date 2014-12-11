@@ -96,7 +96,10 @@
   display: none;
 }
 
-.appWindow.home-app .chrome .controls .urlbar {
+/* No chrome controls are shown on the home screen.
+ To avoid being rendered at a small size, this needs to be more specific
+ than the non-collapsible case. */
+#homescreen.appWindow.home-app .chrome .controls .urlbar {
   width: calc(100% - 1rem);
 }
 
@@ -467,7 +470,7 @@ gaia-overflow-menu button#share {
   width: calc(100% - 8rem);
 }
 
-.appWindow:not(.collapsible) > .chrome .controls .urlbar .title {
+.appWindow.maximized:not(.collapsible) > .chrome .controls .urlbar .title {
   width: calc(100%);
 }
 
