@@ -40,11 +40,11 @@ class TestRedialLastNumber(GaiaTestCase):
         # Wait for call screen to be dialing
         call_screen.wait_for_outgoing_call()
 
-        if len(self.test_phone_number) <= 12:
+        if len(self.test_phone_number) <= call_screen.MAX_NUMBER_OF_DISPLAYED_DIGITS:
             # Check the number displayed is the one we dialed
             self.assertEqual(self.test_phone_number, call_screen.outgoing_calling_contact)
         else:
-            self.assertEqual(self.test_phone_number[:2], call_screen.outgoing_calling_contact[:2])
+            self.assertEqual(self.test_phone_number[2:], call_screen.outgoing_calling_contact[2:])
 
     def tearDown(self):
         # Switch back to main frame before Marionette loses track bug #840931
