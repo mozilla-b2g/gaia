@@ -1,6 +1,7 @@
 ;(function(define){define(function(require,exports,module){
 'use strict';
 
+var textContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
 var removeAttribute = HTMLElement.prototype.removeAttribute;
 var setAttribute = HTMLElement.prototype.setAttribute;
 var noop  = function() {};
@@ -31,18 +32,16 @@ module.exports.register = function(name, props) {
 
   var proto = Object.assign(Object.create(base), props);
   var output = extractLightDomCSS(proto.template, name);
+  var _attrs = Object.assign(props.attrs || {}, attrs);
 
   proto.template = output.template;
   proto.lightCss = output.lightCss;
 
-  if (props.attrs) {
-    Object.defineProperties(proto, props.attrs);
-  }
+  Object.defineProperties(proto, _attrs);
 
   // Register and return the constructor
   // and expose `protoytpe` (bug 1048339)
   var El = document.registerElement(name, { prototype: proto });
-  El.prototype = proto;
   return El;
 };
 
@@ -137,6 +136,27 @@ var base = Object.assign(Object.create(HTMLElement.prototype), {
     el.appendChild(this.lightStyle);
   }
 });
+
+var attrs = {
+  textContent: {
+    set: function(value) {
+      var node = firstChildTextNode(this);
+      if (node) { node.nodeValue = value; }
+    },
+
+    get: function() {
+      var node = firstChildTextNode(this);
+      return node && node.nodeValue;
+    }
+  }
+};
+
+function firstChildTextNode(el) {
+  for (var i = 0; i < el.childNodes.length; i++) {
+    var node = el.childNodes[i];
+    if (node && node.nodeType === 3) { return node; }
+  }
+}
 
 /**
  * Extracts the :host and ::content rules
