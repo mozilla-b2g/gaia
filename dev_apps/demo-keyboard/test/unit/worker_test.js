@@ -281,7 +281,7 @@ suite('Latin en_us worker', function() {
     });
 
     test('Non-Capital input should give non-capital output', function(next) {
-      prediction('city', ['city', 'city\'s', 'fit'], next);
+      prediction('city', ['city', 'city\'s', 'cite'], next);
     });
 
     test('Non existing word should not be matched', function(next) {
@@ -306,7 +306,7 @@ suite('Latin en_us worker', function() {
       });
 
       test('balds', function(next) {
-        prediction('balds', ['balds'], next);
+        prediction('balds', ['balds', 'baldachin', 'baldachins'], next);
       });
 
       test('Balds', function(next) {
@@ -322,21 +322,35 @@ suite('Latin en_us worker', function() {
       });
 
       test('as', function(next) {
-        prediction('as', ['as', 'ask', 'ash'], next);
+        prediction('as', ['as', 'ad', 'ask'], next);
       });
 
       test('As', function(next) {
-        prediction('As', ['As', 'Ask', 'Ash'], next);
+        prediction('As', ['As', 'Ad', 'Ask'], next);
       });
     });
 
     suite('Low frequency dictionary words with better suggestion', function() {
       test('wont', function(next) {
-        prediction('wont', ['won\'t', 'wont', 'winter'], next);
+        prediction('wont', ['won\'t', 'wont', 'went'], next);
       });
 
       test('cant', function(next) {
         prediction('cant', ['can\'t', 'cant', 'canto'], next);
+      });
+    });
+
+    suite('Words not in a nearby leaf', function() {
+      test('ob / on', function(next) {
+        prediction('ob', ['on', null, null], next);
+      });
+
+      test('hllland / Holland', function(next) {
+        prediction('hllland', ['Holland', null, null], next);
+      });
+
+      test('dis / did', function(next) {
+        prediction('dis', ['did', null, null], next);
       });
     });
 

@@ -354,11 +354,11 @@ suite('Latin en_us worker', function() {
       });
 
       test('balds', function(next) {
-        prediction('balds', ['balds'], next);
+        prediction('balds', ['balds', 'Baldwin', 'Baldwins'], next);
       });
 
       test('Balds', function(next) {
-        prediction('Balds', ['Balds'], next);
+        prediction('Balds', ['Balds', 'Baldwin', 'Baldwins'], next);
       });
 
       test('chaot', function(next) {
@@ -370,11 +370,11 @@ suite('Latin en_us worker', function() {
       });
 
       test('as', function(next) {
-        prediction('as', ['as', 'ask', 'ash'], next);
+        prediction('as', ['as', 'ad', 'AD'], next);
       });
 
       test('As', function(next) {
-        prediction('As', ['As', 'Ask', 'Ash'], next);
+        prediction('As', ['As', 'Ad', 'AD'], next);
       });
 
       test('keyboa', function(next) {
@@ -384,7 +384,7 @@ suite('Latin en_us worker', function() {
 
     suite('Low frequency dictionary words with better suggestion', function() {
       test('wont', function(next) {
-        prediction('wont', ['won\'t', 'wont', 'winter'], next);
+        prediction('wont', ['won\'t', 'wont', 'Wong'], next);
       });
 
       test('cant', function(next) {
