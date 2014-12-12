@@ -283,7 +283,7 @@ suite('system/AttentionWindowManager', function() {
         var stubCloseForAtt1 = this.sinon.stub(att1, 'close');
         var stubCloseForAtt2 = this.sinon.stub(att2, 'close');
         attentionWindowManager.handleEvent(
-          new CustomEvent('launchapp', { detail: { stayBackground: true }})
+          new CustomEvent('launchapp', {detail: {stayBackground: true}})
         );
         assert.isFalse(stubCloseForAtt1.called);
         assert.isFalse(stubCloseForAtt2.called);
@@ -405,6 +405,24 @@ suite('system/AttentionWindowManager', function() {
             detail: att1
           }));
           assert.isTrue(stubClose.called);
+        });
+    });
+
+    suite('updateClassState()', function() {
+      test('should add a global class when there are attention windows',
+        function() {
+          attentionWindowManager._openedInstances = new Map([[att1, att1]]);
+          attentionWindowManager.updateClassState();
+          assert.isTrue(attentionWindowManager.screen.classList
+            .contains('attention'));
+        });
+
+      test('should not add a global class when there are no attention windows',
+        function() {
+          attentionWindowManager._openedInstances = new Map();
+          attentionWindowManager.updateClassState();
+          assert.isFalse(attentionWindowManager.screen.classList
+            .contains('attention'));
         });
     });
   });
