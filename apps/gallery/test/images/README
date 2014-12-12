@@ -23,11 +23,11 @@ To test the Gallery app manually with these images, follow these steps:
    - the Gallery app scans for the test photos
    - the app does not crash with an OOM
    - the scanning process stops
-   - after the scan, there should be 65 new images in Gallery.
-     The first 63 display the numbers 1 to 63, and the last two are
-     test patterns. For some images, the image number is not visible
+   - after the scan, there should be 66 new images in Gallery.
+     The first 63 and 66 display the numbers 1 to 63, 66 respectively and the
+     64, 65 are test patterns. For some images, the image number is not visible
      in the thumbnail and you have to tap on the thumbnail to verify.
-   - If any of the 65 images is missing, that is a bug
+   - If any of the 66 images is missing, that is a bug
    - If additional images appear that may also be a bug
 
 4) Hold the phone in portrait orientation. Tap on the first thumbnail,
@@ -130,6 +130,7 @@ the quality of our image downsampling.
 
 64.png: test pattern
 65.jpg: test pattern
+66.jpg: JPEG image with size 90 x 40 smaller than thumbnail container
 
 Finally, there is a set of images that should not display in the
 gallery app. These will be rejected during scanning, and error
