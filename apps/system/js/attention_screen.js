@@ -443,9 +443,7 @@ var AttentionScreen = {
       }
 
       var frameOrigin = frame.dataset.frameOrigin;
-      if (frameOrigin === origin ||
-          (frameOrigin.startsWith('app://callscreen.gaiamobile.org/') &&
-           origin.startsWith('app://communications.gaiamobile.org/dialer/'))) {
+      if (frameOrigin === origin) {
         this.show(frame);
         return;
       }
