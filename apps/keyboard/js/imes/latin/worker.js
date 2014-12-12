@@ -106,19 +106,39 @@ var Commands = {
   },
 
   predict: function predict(prefix) {
+    var CANDIDATES_LOW = 24;
+    var CANDIDATES_HIGH = 50;
+    var TOO_LOW_THRESHOLD = 4;
+
     if (pendingPrediction)  // Make sure we're not still running a previous one
       pendingPrediction.abort();
 
-    // Ask for 4 predictions, considering 24 candidates and considering
+    var noOfCandidates = prefix.length >= 2 && prefix.length <= 4 ?
+      CANDIDATES_HIGH :
+      CANDIDATES_LOW;
+
+    // Ask for 4 predictions, considering 50 candidates and considering
     // only words with an edit distance of 1 (i.e. make only one correction
     // per word)
-    pendingPrediction = Predictions.predict(prefix, 4, 24, 1,
+    pendingPrediction = Predictions.predict(prefix, 4, noOfCandidates, 1,
                                             success, error);
 
     function success(words) {
-      if (words.length) {
-        postMessage({ cmd: 'predictions', input: prefix, suggestions: words });
-        return;
+      if (words.length > 0) {
+        // If the quality of the suggestions is very low, up candidates
+        if (prefix.length > 4 && words[0][1] < TOO_LOW_THRESHOLD) {
+          Predictions.predict(prefix, 4, CANDIDATES_HIGH, 1,
+                    function(words) {
+                      postMessage({ cmd: 'predictions',
+                                    input: prefix,
+                                    suggestions: words });
+                    }, error);
+        }
+        else {
+          postMessage({
+            cmd: 'predictions', input: prefix, suggestions: words
+          });
+        }
       }
       else {
         // If we didn't find anything, try more candidates and a larger
