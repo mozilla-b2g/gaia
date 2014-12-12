@@ -342,12 +342,12 @@ suite('ActivityHandler', function() {
         sendSpy = this.sinon.spy(window, 'Notification');
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
-      
+
       test('null notification', function() {
         sinon.assert.calledWithMatch(sendSpy, 'Pepito O\'Hare', { body: '' });
       });
     });
-    
+
     suite('contact without name (after getSelf)', function() {
       var phoneNumber = '+1111111111';
       var sendSpy;
@@ -770,6 +770,7 @@ suite('ActivityHandler', function() {
     test('new message with user input msg, discard it', function(done) {
       // User typed message in the input field
       Compose.mEmpty = false;
+      this.sinon.stub(ThreadUI, 'discardDraft');
       this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
         assert.equal(MockOptionMenu.calls.length, 1);
         assert.equal(MockOptionMenu.calls[0].type, 'confirm');
@@ -793,6 +794,7 @@ suite('ActivityHandler', function() {
       // should be called after discarding
       sinon.assert.called(ActivityHandler._onNewActivity);
       ActivityHandler._onNewActivity.firstCall.returnValue.then(function() {
+        sinon.assert.called(ThreadUI.discardDraft);
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
           activity: {
             number: '123',
