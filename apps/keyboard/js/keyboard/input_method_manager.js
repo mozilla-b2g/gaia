@@ -141,6 +141,7 @@ InputMethodGlue.prototype.SOURCE_DIR = './js/imes/';
 
 InputMethodGlue.prototype.init = function(app, imEngineName) {
   this.app = app;
+  this.imEngineName = imEngineName;
   this.path = this.SOURCE_DIR + imEngineName;
 };
 
@@ -283,6 +284,10 @@ InputMethodGlue.prototype.replaceSurroundingText = function(text, offset,
 
 InputMethodGlue.prototype.getNumberOfCandidatesPerRow = function() {
   return this.app.getNumberOfCandidatesPerRow();
+};
+
+InputMethodGlue.prototype.getData = function(dataPath) {
+  return this.app.inputMethodDatabaseLoader.load(this.imEngineName, dataPath);
 };
 
 var InputMethodLoader = function(app) {
