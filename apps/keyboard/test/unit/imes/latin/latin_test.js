@@ -63,7 +63,9 @@ suite('latin.js', function() {
         return this.mIsUpperCase;
       }),
 
-      replaceSurroundingText: this.sinon.stub().returns(Promise.resolve())
+      replaceSurroundingText: this.sinon.stub().returns(Promise.resolve()),
+
+      getData: this.sinon.stub().returns(Promise.resolve({}))
     };
 
     // We are not supposed to call init() more than once in the real setup,
@@ -271,11 +273,6 @@ suite('latin.js', function() {
       }
 
       test(testname, function(done) {
-        function queue(q, n) {
-          q.length ? q.shift()(queue.bind(null, q, n)) : n();
-        }
-
-        // activate the IM
         engine.activate('en', {
           type: type,
           inputmode: mode,
@@ -284,38 +281,38 @@ suite('latin.js', function() {
           selectionEnd: state.cursor
         },{ suggest: false, correct: false });
 
-        var inputQueue;
-        if (options && options.continuous) {
-          var lastPromise;
-          input.split('').forEach(function(c) {
-            lastPromise =
-              engine.click(c.charCodeAt(0), c.toUpperCase().charCodeAt(0));
-          });
+        // Wait for getData() to resolve.
+        Promise.resolve().then(function() {
+          if (options && options.continuous) {
+            var lastPromise;
+            input.split('').forEach(function(c) {
+              lastPromise =
+                engine.click(c.charCodeAt(0), c.toUpperCase().charCodeAt(0));
+            });
 
-          lastPromise.then(function() {
-            assert.equal(
-              glue.mOutput, expected,
-              'expected "' + expected + '" for input "' + input + '"');
-          }, function() {
-            assert.ok(false, 'should not reject');
-          }).then(done, done);
-        } else {
-          // Send the input one character at a time, converting
-          // the input to uppercase if the IM has set uppercase
-          inputQueue = input.split('').map(function(c) {
-            return function(n) {
-              engine.click(
-                c.charCodeAt(0), c.toUpperCase().charCodeAt(0)).then(n);
-            };
-          });
+            return lastPromise.then(function() {
+              assert.equal(
+                glue.mOutput, expected,
+                'expected "' + expected + '" for input "' + input + '"');
+            }, function(e) {
+              throw e || 'should not reject';
+            });
+          } else {
+            var promise = Promise.resolve();
+            input.split('').forEach(function(c) {
+              promise = promise.then(function() {
+                return engine.click(
+                  c.charCodeAt(0), c.toUpperCase().charCodeAt(0));
+              });
+            });
 
-          queue(inputQueue, function() {
-            assert.equal(
-              glue.mOutput, expected,
-              'expected "' + expected + '" for input "' + input + '"');
-            done();
-          });
-        }
+            return promise.then(function() {
+              assert.equal(
+                glue.mOutput, expected,
+                'expected "' + expected + '" for input "' + input + '"');
+            });
+          }
+        }).then(done, done);
       });
     };
 
@@ -361,10 +358,6 @@ suite('latin.js', function() {
   });
 
   suite('Suggestions', function() {
-    var queue = function queue(q, n) {
-      q.length ? q.shift()(queue.bind(null, q, n)) : n();
-    };
-
     var activateEngineWithState =
     function activateEngineWithState(value, cursorStart, cursorEnd) {
       engine.activate('en', {
@@ -377,18 +370,21 @@ suite('latin.js', function() {
         suggest: true,
         correct: true
       });
+
+      // Must wait for getData() to resolve in these tests.
+      return Promise.resolve();
     };
 
     var activateAndTestPrediction =
     function activateAndTestPrediction(value, input, suggestions) {
-      activateEngineWithState(value);
-
-      workerStub.onmessage({
-        data: {
-          cmd: 'predictions',
-          input: input, // old input
-          suggestions: suggestions
-        }
+      return activateEngineWithState(value).then(function() {
+        workerStub.onmessage({
+          data: {
+            cmd: 'predictions',
+            input: input, // old input
+            suggestions: suggestions
+          }
+        });
       });
     };
 
@@ -396,92 +392,100 @@ suite('latin.js', function() {
       engine.deactivate();
     });
 
-    test('Suggestion data doesnt match input? Ignore.', function() {
+    test('After activation (and do nothing)', function(done) {
+      activateEngineWithState('').then(function() {
+        // maybe we shouldnt call this at all? don't know...
+        sinon.assert.callCount(glue.sendCandidates, 1);
+        sinon.assert.calledWith(glue.sendCandidates, []);
+
+        // Also, a space should not be inserted
+        sinon.assert.callCount(glue.sendKey, 0);
+      }).then(done, done);
+    });
+
+    test('Suggestion data doesnt match input? Ignore.', function(done) {
       activateAndTestPrediction('janj', 'jan', [
-          ['Jan', 1],
-          ['jan', 1],
-          ['Pietje', 1]
-        ]);
-      sinon.assert.callCount(glue.sendCandidates, 1);
-      // maybe we shouldnt call this at all? don't know...
-      sinon.assert.calledWith(glue.sendCandidates, []);
+        ['Jan', 1],
+        ['jan', 1],
+        ['Pietje', 1]
+      ]).then(function() {
+        // maybe we shouldnt call this at all? don't know...
+        sinon.assert.callCount(glue.sendCandidates, 1);
+        sinon.assert.calledWith(glue.sendCandidates, []);
+      }).then(done, done);
     });
 
     test('One char input "n" should not autocorrect to a multichar word',
-    function() {
+    function(done) {
       activateAndTestPrediction('n', 'n', [
-          ['no', 1], // we want to ensure that this first suggestion is not
-                  // marked (with * prefix) as an autocorrection
-          ['not', 1],
-          ['now', 1]
-        ]);
-
-      sinon.assert.callCount(glue.sendCandidates, 1);
-      // maybe we shouldnt call this at all? don't know...
-      sinon.assert.calledWith(glue.sendCandidates,
-        ['no', 'not', 'now']); // Make sure we do not get "*no"
+        ['no', 1], // we want to ensure that this first suggestion is not
+                // marked (with * prefix) as an autocorrection
+        ['not', 1],
+        ['now', 1]
+      ]).then(function() {
+        sinon.assert.callCount(glue.sendCandidates, 1);
+        // maybe we shouldnt call this at all? don't know...
+        sinon.assert.calledWith(glue.sendCandidates,
+          ['no', 'not', 'now']); // Make sure we do not get "*no"
+      }).then(done, done);
     });
 
     test('One char input "i" should autocorrect to a multichar word',
-    function() {
+    function(done) {
       // But we also want to be sure that single letters like i do get
       // autocorrected to single letter words like I
       activateAndTestPrediction('i', 'i', [
-          ['I', 1], // we want to ensure that this first suggestion is not
-                  // marked (with * prefix) as an autocorrection
-          ['in', 1],
-          ['it', 1]
-        ]);
-
-      sinon.assert.calledWith(
-        glue.sendCandidates, ['*I', 'in', 'it']);
+        ['I', 1], // we want to ensure that this first suggestion is not
+                // marked (with * prefix) as an autocorrection
+        ['in', 1],
+        ['it', 1]
+      ]).then(function() {
+        sinon.assert.calledWith(
+          glue.sendCandidates, ['*I', 'in', 'it']);
+      }).then(done, done);
     });
 
-    test('Space to accept suggestion', function(next) {
+    test('Space to accept suggestion', function(done) {
       activateAndTestPrediction('jan', 'jan', [
         ['Jan'],
         ['han'],
         ['Pietje']
-      ]);
-
-      engine.click(KeyboardEvent.DOM_VK_SPACE).then(function() {
-        sinon.assert.callCount(glue.replaceSurroundingText, 1);
-        sinon.assert.calledWith(glue.replaceSurroundingText, 'Jan', -3, 3);
-        sinon.assert.calledWith(glue.sendKey, KeyboardEvent.DOM_VK_SPACE);
-
-        next();
-      });
+      ]).then(function() {
+        return engine.click(KeyboardEvent.DOM_VK_SPACE).then(function() {
+          sinon.assert.callCount(glue.replaceSurroundingText, 1);
+          sinon.assert.calledWith(glue.replaceSurroundingText, 'Jan', -3, 3);
+          sinon.assert.calledWith(glue.sendKey, KeyboardEvent.DOM_VK_SPACE);
+        });
+      }).then(done, done);
     });
 
-    test('Should communicate updated text to worker', function(next) {
-      activateEngineWithState('');
-
-      function clickAndAssert(key, assertion, callback) {
-        engine.click(key.charCodeAt(0)).then(function() {
+    test('Should communicate updated text to worker', function(done) {
+      function clickAndAssert(key, assertion) {
+        return engine.click(key.charCodeAt(0)).then(function() {
           sinon.assert.calledWith(workerStub.postMessage,
                           { args: [assertion], cmd: 'predict' });
-          callback();
         });
       }
 
-      queue([
-        clickAndAssert.bind(null, 'p', 'p'),
-        clickAndAssert.bind(null, 'a', 'pa'),
-        clickAndAssert.bind(null, 'i', 'pai')
-      ], function() {
+      activateEngineWithState('').then(function() {
+        return clickAndAssert('p', 'p');
+      }).then(function() {
+        return clickAndAssert('a', 'pa');
+      }).then(function() {
+        return clickAndAssert('i', 'pai');
+      }).then(function() {
         sinon.assert.callCount(workerStub.postMessage, 3);
-        next();
-      });
+      }).then(done, done);
     });
 
-    test('Two spaces after suggestion should autopunctuate', function(next) {
+    test('Two spaces after suggestion should autopunctuate', function(done) {
       activateAndTestPrediction('jan', 'jan', [
         ['Jan'],
         ['han'],
         ['Pietje']
-      ]);
-
-      engine.click(KeyboardEvent.DOM_VK_SPACE).then(function() {
+      ]).then(function() {
+        return engine.click(KeyboardEvent.DOM_VK_SPACE);
+      }).then(function() {
         return engine.click(KeyboardEvent.DOM_VK_SPACE);
       }).then(function() {
         sinon.assert.callCount(glue.replaceSurroundingText, 1);
@@ -492,181 +496,181 @@ suite('latin.js', function() {
         assert.equal(glue.sendKey.args[1][0], KeyboardEvent.DOM_VK_BACK_SPACE);
         assert.equal(glue.sendKey.args[2][0], '.'.charCodeAt(0));
         assert.equal(glue.sendKey.args[3][0], ' '.charCodeAt(0));
-        next();
-      });
+      }).then(done, done);
     });
 
-    test('New line then dot should not remove newline', function(next) {
-      activateEngineWithState('Hello');
-
-      engine.click(KeyboardEvent.DOM_VK_RETURN).then(function() {
+    test('New line then dot should not remove newline', function(done) {
+      activateEngineWithState('Hello').then(function() {
+        return engine.click(KeyboardEvent.DOM_VK_RETURN);
+      }).then(function() {
         return engine.click('.'.charCodeAt(0));
       }).then(function() {
         sinon.assert.callCount(glue.replaceSurroundingText, 0);
         sinon.assert.callCount(glue.sendKey, 2);
         assert.equal(glue.sendKey.args[0][0], KeyboardEvent.DOM_VK_RETURN);
         assert.equal(glue.sendKey.args[1][0], '.'.charCodeAt(0));
-
-        next();
-      });
+      }).then(done, done);
     });
 
-    test('dismissSuggestions hides suggestions', function() {
-      engine.dismissSuggestions();
+    test('dismissSuggestions hides suggestions', function(done) {
+      activateEngineWithState('').then(function() {
+        engine.dismissSuggestions();
 
-      // Send candidates should be called once with an empty array
-      // to clear the list of word suggestions
-      sinon.assert.callCount(glue.sendCandidates, 1);
-      sinon.assert.calledWith(glue.sendCandidates, []);
+        // Send candidates should be called once with an empty array
+        // to clear the list of word suggestions
+        sinon.assert.callCount(glue.sendCandidates, 2);
+        sinon.assert.calledWith(glue.sendCandidates, []);
 
-      // Also, a space should not be inserted
-      sinon.assert.callCount(glue.sendKey, 0);
+        // Also, a space should not be inserted
+        sinon.assert.callCount(glue.sendKey, 0);
+      }).then(done, done);
     });
 
-    suite('Uppercase suggestions', function() {
+    suite('Uppercase suggestions', function(done) {
       test('All uppercase input yields uppercase suggestions', function() {
         activateAndTestPrediction('HOLO', 'HOLO', [
-            ['yolo', 10],
-            ['Yelp', 5],
-            ['whuuu', 4]
-          ]);
-
-        sinon.assert.callCount(glue.sendCandidates, 1);
-        // Verify that we show 3 suggestions that do not include the input
-        // and that we do not mark the first as an autocorrection.
-        sinon.assert.calledWith(glue.sendCandidates,
-                                ['*YOLO', 'YELP', 'WHUUU']);
+          ['yolo', 10],
+          ['Yelp', 5],
+          ['whuuu', 4]
+        ]).then(function() {
+          sinon.assert.callCount(glue.sendCandidates, 1);
+          // Verify that we show 3 suggestions that do not include the input
+          // and that we do not mark the first as an autocorrection.
+          sinon.assert.calledWith(
+            glue.sendCandidates, ['*YOLO', 'YELP', 'WHUUU']);
+        }).then(done, done);
       });
 
-      test('One char uppercase not yields uppercase suggestions', function() {
+      test('One char uppercase not yields uppercase suggestions',
+      function(done) {
         activateAndTestPrediction('F', 'F', [
-            ['yolo', 10],
-            ['Yelp', 5],
-            ['whuuu', 4]
-          ]);
-
-        sinon.assert.callCount(glue.sendCandidates, 1);
-        // Verify that we show 3 suggestions that do not include the input
-        // and that we do not mark the first as an autocorrection.
-        sinon.assert.calledWith(glue.sendCandidates,
-                                ['yolo', 'Yelp', 'whuuu']);
+          ['yolo', 10],
+          ['Yelp', 5],
+          ['whuuu', 4]
+        ]).then(function() {
+          sinon.assert.callCount(glue.sendCandidates, 1);
+          // Verify that we show 3 suggestions that do not include the input
+          // and that we do not mark the first as an autocorrection.
+          sinon.assert.calledWith(
+            glue.sendCandidates, ['yolo', 'Yelp', 'whuuu']);
+        }).then(done, done);
       });
     });
 
     suite('handleSuggestions', function() {
-      test('input is not a word', function() {
+      test('input is not a word', function(done) {
         activateAndTestPrediction('jan', 'jan', [
-            ['Jan', 1],
-            ['han', 1],
-            ['Pietje', 1],
-            ['extra', 1]
-          ]);
-
-        sinon.assert.callCount(glue.sendCandidates, 1);
-        // Show 3 suggestions and mark the first as an autocorrect
-        sinon.assert.calledWith(glue.sendCandidates,
-                                ['*Jan', 'han', 'Pietje']);
+          ['Jan', 1],
+          ['han', 1],
+          ['Pietje', 1],
+          ['extra', 1]
+        ]).then(function() {
+          sinon.assert.callCount(glue.sendCandidates, 1);
+          // Show 3 suggestions and mark the first as an autocorrect
+          sinon.assert.calledWith(glue.sendCandidates,
+                                  ['*Jan', 'han', 'Pietje']);
+        }).then(done, done);
       });
 
-      test('input is a common word', function() {
+      test('input is a common word', function(done) {
         activateAndTestPrediction('the', 'the', [
-            ['the', 10],
-            ['they', 5],
-            ['then', 4],
-            ['there', 3]
-          ]);
-
-        sinon.assert.callCount(glue.sendCandidates, 1);
-        // Verify that we show 3 suggestions that do not include the input
-        // and that we do not mark the first as an autocorrection.
-        sinon.assert.calledWith(glue.sendCandidates,
-                                ['they', 'then', 'there']);
+          ['the', 10],
+          ['they', 5],
+          ['then', 4],
+          ['there', 3]
+        ]).then(function() {
+          sinon.assert.callCount(glue.sendCandidates, 1);
+          // Verify that we show 3 suggestions that do not include the input
+          // and that we do not mark the first as an autocorrection.
+          sinon.assert.calledWith(glue.sendCandidates,
+                                  ['they', 'then', 'there']);
+        }).then(done, done);
       });
 
-      test('input is an uncommon word', function() {
+      test('input is an uncommon word', function(done) {
         activateAndTestPrediction('wont', 'wont', [
-            ['won\'t', 11],
-            ['wont', 8],
-            ['won', 7],
-            ['went', 6]
-          ]);
-
-        sinon.assert.callCount(glue.sendCandidates, 1);
-        // Verify that we show 3 suggestions that do not include the input
-        // and that we do mark the first as an autocorrection because it is
-        // more common than the valid word input.
-        sinon.assert.calledWith(glue.sendCandidates,
-                                ['*won\'t', 'won', 'went']);
+          ['won\'t', 11],
+          ['wont', 8],
+          ['won', 7],
+          ['went', 6]
+        ]).then(function() {
+          sinon.assert.callCount(glue.sendCandidates, 1);
+          // Verify that we show 3 suggestions that do not include the input
+          // and that we do mark the first as an autocorrection because it is
+          // more common than the valid word input.
+          sinon.assert.calledWith(glue.sendCandidates,
+                                  ['*won\'t', 'won', 'went']);
+        }).then(done, done);
       });
 
-      test('Foe', function() {
+      test('Foe', function(done) {
         activateAndTestPrediction('foe', 'foe', [
           ['for', 16.878906249999996],
           ['foe', 15],
           ['Doe', 7.566406249999998],
           ['doe', 6.984374999999998]
-        ]);
-
-        sinon.assert.callCount(glue.sendCandidates, 1);
-        sinon.assert.calledWith(glue.sendCandidates,
-                                ['for', 'Doe', 'doe']);
+        ]).then(function() {
+          sinon.assert.callCount(glue.sendCandidates, 1);
+          sinon.assert.calledWith(glue.sendCandidates,
+                                  ['for', 'Doe', 'doe']);
+        }).then(done, done);
       });
 
-      test('Hid', function() {
+      test('Hid', function(done) {
         activateAndTestPrediction('hid', 'hid', [
           ['his', 16.296874999999996],
           ['hid', 16],
           ['HUD', 7.415834765624998],
           ['hide', 7.2]
-        ]);
-
-        sinon.assert.callCount(glue.sendCandidates, 1);
-        sinon.assert.calledWith(glue.sendCandidates,
-                                ['his', 'HUD', 'hide']);
+        ]).then(function() {
+          sinon.assert.callCount(glue.sendCandidates, 1);
+          sinon.assert.calledWith(
+            glue.sendCandidates, ['his', 'HUD', 'hide']);
+        }).then(done, done);
       });
 
-      suite('Suggestion length mismatch', function() {
-        test('Length mismatch, low freq', function() {
+      suite('Suggestion length mismatch', function(done) {
+        test('Length mismatch, low freq', function(done) {
           activateAndTestPrediction('zoolgy', 'zoolgy', [
             ['zoology', 4.2],
             ['Zoology\'s', 0.09504000000000001]
-          ]);
-
-          sinon.assert.callCount(glue.sendCandidates, 1);
-          sinon.assert.calledWith(glue.sendCandidates,
-                                  ['zoology', 'Zoology\'s']);
+          ]).then(function() {
+            sinon.assert.callCount(glue.sendCandidates, 1);
+            sinon.assert.calledWith(
+              glue.sendCandidates, ['zoology', 'Zoology\'s']);
+          }).then(done, done);
         });
 
-        test('Length mismatch, medium freq', function() {
+        test('Length mismatch, medium freq', function(done) {
           activateAndTestPrediction('Folow', 'Folow', [
             ['Follow', 6.237],
             ['Follows', 2.4948],
             ['Followed', 1.0454400000000001],
             ['Follower', 0.7603200000000001]
-          ]);
-
-          sinon.assert.callCount(glue.sendCandidates, 1);
-          sinon.assert.calledWith(glue.sendCandidates,
-                                  ['*Follow', 'Follows', 'Followed']);
+          ]).then(function() {
+            sinon.assert.callCount(glue.sendCandidates, 1);
+            sinon.assert.calledWith(
+              glue.sendCandidates, ['*Follow', 'Follows', 'Followed']);
+          }).then(done, done);
         });
 
-        test('Length mismatch, high freq', function() {
+        test('Length mismatch, high freq', function(done) {
           activateAndTestPrediction('awesomeo', 'awesomeo', [
-              ['awesome', 31],
-              ['trahlah', 8],
-              ['moarstu', 7]
-            ]);
-
-          sinon.assert.callCount(glue.sendCandidates, 1);
-          sinon.assert.calledWith(glue.sendCandidates,
-                                  ['*awesome', 'trahlah', 'moarstu']);
+            ['awesome', 31],
+            ['trahlah', 8],
+            ['moarstu', 7]
+          ]).then(function() {
+            sinon.assert.callCount(glue.sendCandidates, 1);
+            sinon.assert.calledWith(
+              glue.sendCandidates, ['*awesome', 'trahlah', 'moarstu']);
+          }).then(done, done);
         });
       });
     });
   });
 
   suite('Reject one of the keys', function() {
-    setup(function() {
+    setup(function(done) {
       engine.activate('en', {
         type: 'text',
         inputmode: '',
@@ -674,6 +678,9 @@ suite('latin.js', function() {
         selectionStart: 0,
         selectionEnd: 0
       },{ suggest: false, correct: false });
+
+      // Wait for getData() to resolve.
+      Promise.resolve().then(done);
     });
 
     teardown(function() {
@@ -701,7 +708,7 @@ suite('latin.js', function() {
   });
 
   suite('selectionchange', function() {
-    setup(function() {
+    setup(function(done) {
       engine.activate('en', {
         type: 'text',
         inputmode: '',
@@ -709,6 +716,9 @@ suite('latin.js', function() {
         selectionStart: 5,
         selectionEnd: 5
       }, { suggest: true, correct: true });
+
+      // Wait for getData() to resolve.
+      Promise.resolve().then(done);
     });
 
     teardown(function() {
