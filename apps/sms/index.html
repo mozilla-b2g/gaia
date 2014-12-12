@@ -120,7 +120,11 @@
   <body role="application" class="skin-comms theme-communications">
     <article id="main-wrapper" class="wrapper" data-position='right'>
       <section id="thread-list" class="panel" role="region">
-        <gaia-header class="view-header regular-header">
+        <!-- title-start and title-end indicates the button widths respectively
+          at the start and end of the line -->
+        <!-- see https://github.com/gaia-components/gaia-header/ for more information -->
+        <!-- WARNING: the actual value depends on the actual CSS being used in gaia-header -->
+        <gaia-header class="view-header regular-header" title-start="0" title-end="100">
           <h1 data-l10n-id="messages"></h1>
           <a href="#composer" id="threads-composer-link" data-icon="compose"></a>
           <a id="threads-options-button" data-icon="more"></a>
@@ -137,7 +141,7 @@
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
           <section role="region" class="theme-settings">
-            <gaia-header id="threads-edit-header" action="close">
+            <gaia-header id="threads-edit-header" action="close" no-font-fit>
               <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title"></h1>
               <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
@@ -162,7 +166,7 @@
       </section>
 
       <section id="thread-messages" class="panel editable-select-mode" role="region" aria-hidden="true">
-        <gaia-header id="messages-header" class="view-header regular-header" action="back">
+        <gaia-header id="messages-header" class="view-header regular-header" action="back" no-font-fit>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide"></button>
           <button id="messages-options-button" data-icon="more"></button>
@@ -272,7 +276,7 @@
         </article>
         <form role="dialog" id="messages-edit-form" data-type="edit" >
           <section role="region" class="theme-settings">
-            <gaia-header id="messages-edit-header" action="close">
+            <gaia-header id="messages-edit-header" action="close" no-font-fit>
               <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title"></h1>
               <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
@@ -291,7 +295,7 @@
       </section>
 
       <section id="information-participants" class="panel hide" role="region">
-        <gaia-header id="information-group-header" class="header" action="back">
+        <gaia-header id="information-group-header" class="header" action="back" no-font-fit>
           <h1 data-l10n-id="participant" class="header-text"></h1>
         </gaia-header>
         <article class="view-body article-list" data-type="list">
@@ -300,7 +304,7 @@
       </section>
 
       <section id="information-report" class="panel hide" role="region">
-        <gaia-header id="information-report-header" class="header" action="close">
+        <gaia-header id="information-report-header" class="header" action="close" no-font-fit>
           <h1 data-l10n-id="message-report"></h1>
         </gaia-header>
         <article class="view-body article-list report-view container" data-type="list">
