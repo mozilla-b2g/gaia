@@ -46,6 +46,7 @@ apps/findmydevice/js/lib/*
 apps/findmydevice/js/config.js
 apps/system/js/uuid.js
 apps/camera/bower_components/**
+apps/bluetooth/js/vendor/alameda.js
 apps/bluetooth/js/settings.js
 tests/atoms/remote_date.js
 tests/atoms/screenshot.js

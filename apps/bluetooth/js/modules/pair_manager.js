@@ -1,10 +1,11 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global BluetoothHelper, PairManager, PairExpiredDialog, Notification */
 
-'use strict';
+define(function(require) {
+  'use strict';
 
-(function(exports) {
+  var PairExpiredDialog = require('views/pair_expired_dialog');
+  var BluetoothHelper = require('shared/bluetooth_helper');
 
   var _ = window.navigator.mozL10n.get;
   var _debug = false;
@@ -15,7 +16,7 @@
    *      incoming/outgoing pairing request.
    *   2. handling system message 'bluetooth-cancel' while some remote devices
    *      request for canceling an overdue pairing request. The reason could be
-   *      cancel from remote devices, timeout, or other..w
+   *      cancel from remote devices, timeout, or other..
    */
   var PairManager = {
     init: function() {
@@ -269,8 +270,5 @@
     }
   };
 
-  exports.PairManager = PairManager;
-
-})(window);
-
-navigator.mozL10n.once(PairManager.init.bind(PairManager));
+  return PairManager;
+});

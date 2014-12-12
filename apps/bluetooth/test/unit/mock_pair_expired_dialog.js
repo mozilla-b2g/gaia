@@ -1,9 +1,12 @@
-/* exported MockPairExpiredDialog */
-'use strict';
+define(function() {
+  'use strict';
 
-var MockPairExpiredDialog = {
-  init: function mped_init() {},
-  showConfirm: function mped_showConfirm() {},
-  get isVisible() {},
-  close: function mped_close() {}
-};
+  var MockPairExpiredDialog = {
+    init: function mped_init() {},
+    showConfirm: function mped_showConfirm() {},
+    get isVisible() {},
+    close: function mped_close() {}
+  };
+
+  return MockPairExpiredDialog;
+});
