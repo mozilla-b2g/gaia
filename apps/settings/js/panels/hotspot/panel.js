@@ -3,7 +3,7 @@
 define(function(require) {
   'use strict';
 
-  var SettingsService = require('modules/settings_service');
+  var DialogService = require('modules/dialog_service');
   var SettingsPanel = require('modules/settings_panel');
   var Hotspot = require('panels/hotspot/hotspot');
   var HotspotSettings =
@@ -131,11 +131,9 @@ define(function(require) {
       },
 
       _onHotspotSettingsClick: function() {
-        SettingsService.navigate('hotspot-wifiSettings',
-          {
-            settings: hotspotSettings
-          }
-        );
+        DialogService.show('hotspot-wifiSettings', {
+          settings: hotspotSettings
+        });
       },
 
       _openIncompatibleSettingsDialog:
