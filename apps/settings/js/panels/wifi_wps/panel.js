@@ -1,15 +1,14 @@
 define(function(require) {
   'use strict';
 
-  var SettingsPanel = require('modules/settings_panel');
-  var WifiContext = require('modules/wifi_context');
+  var DialogPanel = require('modules/dialog_panel');
   var WifiWps = require('panels/wifi_wps/wifi_wps');
 
   return function ctor_wpsWifi() {
     var wifiWps = WifiWps();
     var elements = {};
 
-    return SettingsPanel({
+    return DialogPanel({
       onInit: function(panel) {
         elements.panel = panel;
         elements.submitWpsButton = panel.querySelector('button[type=submit]');
@@ -37,16 +36,18 @@ define(function(require) {
           this._updateApList(networks);
         });
       },
-      onBeforeHide: function() {
-        // Store information on the context to make them accessible from
-        // other panels.
-        WifiContext.wpsOptions.selectedAp = elements.apSelect.options[
+      onSubmit: function() {
+        var selectedAp = elements.apSelect.options[
           elements.apSelect.selectedIndex].value;
-
-        WifiContext.wpsOptions.selectedMethod = elements.panel.querySelector(
+        var selectedMethod = elements.panel.querySelector(
           'input[type=\'radio\']:checked').value;
+        var pin = elements.pinInput.value;
 
-        WifiContext.wpsOptions.pin = elements.pinInput.value;
+        return Promise.resolve({
+          selectedAp: selectedAp,
+          selectedMethod: selectedMethod,
+          pin: pin
+        });
       },
       _cleanupApList: function() {
         var apSelect = elements.apSelect;
