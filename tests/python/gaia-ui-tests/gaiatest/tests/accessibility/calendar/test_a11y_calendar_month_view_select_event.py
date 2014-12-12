@@ -7,6 +7,7 @@ from datetime import datetime
 from gaiatest import GaiaTestCase
 from gaiatest.apps.calendar.app import Calendar
 from marionette.by import By
+from marionette.wait import Wait
 
 
 class TestCalendarMonthViewSelectEventAccessibility(GaiaTestCase):
@@ -40,5 +41,6 @@ class TestCalendarMonthViewSelectEventAccessibility(GaiaTestCase):
         event_detail = event.a11y_click()
 
         # Make sure that the title and the location correspond to the selected event.
-        self.assertEquals(event_detail.title, self.event_title)
-        self.assertEquals(event_detail.location, self.event_location)
+        # Note: title and location are populated asynchronously
+        Wait(self.marionette).until(lambda m: self.event_title == event_detail.title)
+        Wait(self.marionette).until(lambda m: self.event_location == event_detail.location)
