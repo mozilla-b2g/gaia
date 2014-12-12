@@ -15,6 +15,7 @@
 
 /* Allow inputs to be selectable, and to allow cut/copy operations */
 input[type="email"],
+input[type="password"],
 input[type="search"],
 input[type="text"],
 input[type="url"] {
