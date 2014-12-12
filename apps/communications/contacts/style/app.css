@@ -10,6 +10,7 @@ html {
   overflow: hidden;
   position: relative;
   background-color: white;
+  -moz-user-select: none;
 }
 
 body {
@@ -629,3 +630,8 @@ html[dir="rtl"] ::-moz-placeholder {
 #contacts-form-notes textarea {
   height: 9rem;
 }
+
+#search-list li.contact-item {
+  -moz-user-select: none;
+}
+
