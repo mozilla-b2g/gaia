@@ -251,31 +251,4 @@ suite('BluetoothItem', function() {
       });
     });
   });
-
-  suite('_navigatePanelWithVersionCheck > ', function() {
-    suite('API version 1 > ', function() {
-      setup(function() {
-        this.sinon.stub(this.subject, '_APIVersion').returns(1);
-        this.sinon.stub(this.MockSettingsService, 'navigate');
-      });
-
-      test('should navigate old bluetooth panel..', function() {
-        this.subject._navigatePanelWithVersionCheck();
-        sinon.assert.calledWith(this.MockSettingsService.navigate, 'bluetooth');
-      });
-    });
-
-    suite('API version 2 > ', function() {
-      setup(function() {
-        this.sinon.stub(this.subject, '_APIVersion').returns(2);
-        this.sinon.stub(this.MockSettingsService, 'navigate');
-      });
-
-      test('should navigate new bluetooth panel..', function() {
-        this.subject._navigatePanelWithVersionCheck();
-        sinon.assert.calledWith(this.MockSettingsService.navigate,
-          'bluetooth_v2');
-      });
-    });
-  });
 });

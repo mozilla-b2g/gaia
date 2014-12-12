@@ -18,8 +18,6 @@ define(function(require) {
    */
   function NFCItem(elements) {
     if (!navigator.mozNfc) {
-      // do not show NFC section if mozNfc API is not available
-      elements.nfcMenuItem.hidden = true;
       return;
     }
     elements.nfcMenuItem.hidden = false;
