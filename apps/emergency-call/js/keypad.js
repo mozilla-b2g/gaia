@@ -1,10 +1,9 @@
+/* globals TonePlayer */
+
 'use strict';
 
 var kFontStep = 4;
 var minFontSize = 12;
-
-const kMasterVolume = 0.5;
-const kShortPressDuration = 0.25;
 
 // Frequencies coming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
@@ -18,56 +17,6 @@ var keypadSoundIsEnabled = true;
 window.SettingsListener.observe('phone.ring.keypad', true, function(value) {
   keypadSoundIsEnabled = !!value;
 });
-
-var TonePlayer = {
-  _audioContext: null,
-  _gainNode: null,
-
-  init: function tp_init() {
-    document.addEventListener('visibilitychange',
-                              this.visibilityChange.bind(this));
-    this.ensureAudio();
-  },
-
-  ensureAudio: function tp_ensureAudio() {
-    if (this._audioContext) {
-      return;
-    }
-
-    this._audioContext = new window.AudioContext();
-    this._gainNode = this._audioContext.createGain();
-    this._gainNode.gain.value = kMasterVolume;
-    this._gainNode.connect(this._audioContext.destination);
-  },
-
-  play: function tp_play(frequencies) {
-    var now = this._audioContext.currentTime;
-
-    for (var i = 0; i < frequencies.length; ++i) {
-      var oscNode = this._audioContext.createOscillator();
-      oscNode.type = 'sine';
-      oscNode.frequency.value = frequencies[i];
-      oscNode.start(now);
-      oscNode.stop(now + kShortPressDuration);
-      oscNode.connect(this._gainNode);
-    }
-  },
-
-  // If the app loses focus, close the audio stream.
-  visibilityChange: function tp_visibilityChange(e) {
-    if (!document.hidden) {
-      this.ensureAudio();
-    } else {
-      // Reset the audio stream. This ensures that the stream is shutdown
-      // *immediately*.
-      if (this._gainNode) {
-        this._gainNode.disconnect();
-      }
-      this._gainNode = null;
-      this._audioContext = null;
-    }
-  }
-};
 
 var KeypadManager = {
   _phoneNumber: '',
@@ -205,7 +154,7 @@ var KeypadManager = {
                                                 this.hangUpCallFromKeypad);
     }
 
-    TonePlayer.init();
+    TonePlayer.init('notification');
 
     this.render();
   },
@@ -387,7 +336,7 @@ var KeypadManager = {
 
       if (key != 'delete') {
         if (keypadSoundIsEnabled) {
-          TonePlayer.play(gTonesFrequencies[key]);
+          TonePlayer.start(gTonesFrequencies[key], /* shortPress */ true);
         }
 
         // Sending the DTMF tone if on a call

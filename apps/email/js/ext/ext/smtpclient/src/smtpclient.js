@@ -21,16 +21,26 @@
 (function(root, factory) {
     'use strict';
 
+    var encoding;
+
     if (typeof define === 'function' && define.amd) {
+        // AMD in browser environment
         define(['tcp-socket', 'stringencoding', 'axe', './smtpclient-response-parser'], function(TCPSocket, encoding, axe, SmtpClientResponseParser) {
             return factory(TCPSocket, encoding.TextEncoder, encoding.TextDecoder, axe, SmtpClientResponseParser, window.btoa);
         });
+    } else if (typeof exports === 'object' && typeof navigator !== 'undefined') {
+        // common.js in browser environment
+        encoding = require('wo-stringencoding');
+        module.exports = factory(require('tcp-socket'), encoding.TextEncoder, encoding.TextDecoder, require('axe-logger'), require('./smtpclient-response-parser'), btoa);
     } else if (typeof exports === 'object') {
-        var encoding = require('stringencoding');
-        module.exports = factory(require('tcp-socket'), encoding.TextEncoder, encoding.TextDecoder, require('axe'), require('./smtpclient-response-parser'), function(str) {
-            return new Buffer(str).toString("base64");
+        // node.js
+        encoding = require('wo-stringencoding');
+        module.exports = factory(require('tcp-socket'), encoding.TextEncoder, encoding.TextDecoder, require('axe-logger'), require('./smtpclient-response-parser'), function(str) {
+            var NodeBuffer = require('buffer').Buffer;
+            return new NodeBuffer(str, 'binary').toString("base64");
         });
     } else {
+        // browser global
         navigator.TCPSocket = navigator.TCPSocket || navigator.mozTCPSocket;
         root.SmtpClient = factory(navigator.TCPSocket, root.TextEncoder, root.TextDecoder, root.axe, root.SmtpClientResponseParser, window.btoa);
     }
@@ -80,7 +90,7 @@
         /**
          * Hostname of the client, this will be used for introducing to the server
          */
-        this.options.name = this.options.name || 'localhost';
+        this.options.name = this.options.name || false;
 
         /**
          * Downstream TCP socket to the SMTP server, created with mozTCPSocket
@@ -148,8 +158,7 @@
         this._currentAction = null;
 
         /**
-         * If STARTTLS support lands in TCPSocket, _secureMode can be set to
-         * true, once the connection is upgraded
+         * Indicates if the connection is secured or plaintext
          */
         this._secureMode = !!this.options.useSecureTransport;
     }
@@ -210,18 +219,28 @@
      * Initiate a connection to the server
      */
     SmtpClient.prototype.connect = function() {
+        if (!this.options.name && 'getHostname' in this._TCPSocket && typeof this._TCPSocket.getHostname === 'function') {
+            this._TCPSocket.getHostname(function(err, hostname) {
+                this.options.name = hostname || 'localhost';
+                this.connect();
+            }.bind(this));
+            return;
+        } else if (!this.options.name) {
+            this.options.name = 'localhost';
+        }
+
         this.socket = this._TCPSocket.open(this.host, this.port, {
-            /*
-                I wanted to use "string" at first but realized that if a
-                STARTTLS would have to be implemented not in the socket level
-                in the future, then the stream must be binary
-            */
             binaryType: 'arraybuffer',
             useSecureTransport: this._secureMode,
-            ca: this.options.ca
+            ca: this.options.ca,
+            tlsWorkerPath: this.options.tlsWorkerPath
         });
 
-        this.socket.oncert = this.oncert;
+        // allows certificate handling for platform w/o native tls support
+        // oncert is non standard so setting it might throw if the socket object is immutable
+        try {
+            this.socket.oncert = this.oncert;
+        } catch (E) {}
         this.socket.onerror = this._onError.bind(this);
         this.socket.onopen = this._onOpen.bind(this);
     };
@@ -294,6 +313,7 @@
         // clone the recipients array for latter manipulation
         this._envelope.rcptQueue = [].concat(this._envelope.to);
         this._envelope.rcptFailed = [];
+        this._envelope.responseQueue = [];
 
         this._currentAction = this._actionMAIL;
         axe.debug(DEBUG_TAG, 'Sending MAIL FROM...');
@@ -571,10 +591,33 @@
             return;
         }
 
-        axe.debug(DEBUG_TAG, 'Sending EHLO ' + this.options.name);
+        if (this.options.lmtp) {
+            axe.debug(DEBUG_TAG, 'Sending LHLO ' + this.options.name);
 
-        this._currentAction = this._actionEHLO;
-        this._sendCommand('EHLO ' + this.options.name);
+            this._currentAction = this._actionLHLO;
+            this._sendCommand('LHLO ' + this.options.name);
+        } else {
+            axe.debug(DEBUG_TAG, 'Sending EHLO ' + this.options.name);
+
+            this._currentAction = this._actionEHLO;
+            this._sendCommand('EHLO ' + this.options.name);
+        }
+    };
+
+    /**
+     * Response to LHLO
+     *
+     * @param {Object} command Parsed command from the server {statusCode, data, line}
+     */
+    SmtpClient.prototype._actionLHLO = function(command) {
+        if (!command.success) {
+            axe.error(DEBUG_TAG, 'LHLO not successful');
+            this._onError(new Error(command.data));
+            return;
+        }
+
+        // Process as EHLO response
+        this._actionEHLO(command);
     };
 
     /**
@@ -586,6 +629,13 @@
         var match;
 
         if (!command.success) {
+            if (!this._secureMode && this.options.requireTLS) {
+                var errMsg = 'STARTTLS not supported without EHLO';
+                axe.error(DEBUG_TAG, errMsg);
+                this._onError(new Error(errMsg));
+                return;
+            }
+
             // Try HELO instead
             axe.warn(DEBUG_TAG, 'EHLO not successful, trying HELO ' + this.options.name);
             this._currentAction = this._actionHELO;
@@ -617,7 +667,38 @@
             axe.debug(DEBUG_TAG, 'Maximum allowd message size: ' + this._maxAllowedSize);
         }
 
+        // Detect if the server supports STARTTLS
+        if (!this._secureMode) {
+            if (command.line.match(/[ \-]STARTTLS\s?$/mi) && !this.options.ignoreTLS || !!this.options.requireTLS) {
+                this._currentAction = this._actionSTARTTLS;
+                this._sendCommand('STARTTLS');
+                return;
+            }
+        }
+
         this._authenticateUser.call(this);
+    };
+
+    /**
+     * Handles server response for STARTTLS command. If there's an error
+     * try HELO instead, otherwise initiate TLS upgrade. If the upgrade
+     * succeedes restart the EHLO
+     *
+     * @param {String} str Message from the server
+     */
+    SmtpClient.prototype._actionSTARTTLS = function(command) {
+        if (!command.success) {
+            axe.error(DEBUG_TAG, 'STARTTLS not successful');
+            this._onError(new Error(command.data));
+            return;
+        }
+
+        this._secureMode = true;
+        this.socket.upgradeToSecure();
+
+        // restart protocol flow
+        this._currentAction = this._actionEHLO;
+        this._sendCommand('EHLO ' + this.options.name);
     };
 
     /**
@@ -751,6 +832,8 @@
             axe.warn(DEBUG_TAG, 'RCPT TO failed for: ' + this._envelope.curRecipient);
             // this is a soft error
             this._envelope.rcptFailed.push(this._envelope.curRecipient);
+        } else {
+            this._envelope.responseQueue.push(this._envelope.curRecipient);
         }
 
         if (!this._envelope.rcptQueue.length) {
@@ -785,7 +868,6 @@
         }
 
         this._authenticatedAs = null;
-
         this._authenticateUser.call(this);
     };
 
@@ -815,16 +897,39 @@
      * @param {Object} command Parsed command from the server {statusCode, data, line}
      */
     SmtpClient.prototype._actionStream = function(command) {
-        this._currentAction = this._actionIdle;
+        var rcpt;
 
-        if (!command.success) {
-            // Message failed
-            axe.error(DEBUG_TAG, 'Message sending failed.');
-            this.ondone(false);
-        } else {
-            axe.debug(DEBUG_TAG, 'Message sent successfully.');
-            // Message sent succesfully
+        if (this.options.lmtp) {
+            // LMTP returns a response code for *every* successfully set recipient
+            // For every recipient the message might succeed or fail individually
+
+            rcpt = this._envelope.responseQueue.shift();
+            if (!command.success) {
+                axe.error(DEBUG_TAG, 'Local delivery to ' + rcpt + ' failed.');
+                this._envelope.rcptFailed.push(rcpt);
+            } else {
+                axe.error(DEBUG_TAG, 'Local delivery to ' + rcpt + ' succeeded.');
+            }
+
+            if (this._envelope.responseQueue.length) {
+                this._currentAction = this._actionStream;
+                return;
+            }
+
+            this._currentAction = this._actionIdle;
             this.ondone(true);
+        } else {
+            // For SMTP the message either fails or succeeds, there is no information
+            // about individual recipients
+
+            if (!command.success) {
+                axe.error(DEBUG_TAG, 'Message sending failed.');
+            } else {
+                axe.debug(DEBUG_TAG, 'Message sent successfully.');
+            }
+
+            this._currentAction = this._actionIdle;
+            this.ondone(!!command.success);
         }
 
         // If the client wanted to do something else (eg. to quit), do not force idle

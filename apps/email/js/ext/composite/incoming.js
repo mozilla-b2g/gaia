@@ -141,6 +141,15 @@ CompositeIncomingAccount.prototype = {
 
   /**
    * Make a given folder known to us, creating state tracking instances, etc.
+   *
+   * @param {Boolean} suppressNotification
+   *   Don't report this folder to subscribed slices.  This is used in cases
+   *   where the account has not been made visible to the front-end yet and/or
+   *   syncFolderList hasn't yet run, but something subscribed to the "all
+   *   accounts" unified folder slice could end up seeing something before it
+   *   should.  This is a ret-con'ed comment, so maybe do some auditing before
+   *   adding new call-sites that use this, especially if it's not used for
+   *   offline-only folders at account creation/app startup.
    */
   _learnAboutFolder: function(name, path, parentId, type, delim, depth,
                               suppressNotification) {
@@ -408,7 +417,7 @@ exports.LOGFAB_DEFINITION = {
     },
     asyncJobs: {
       checkAccount: { err: null },
-      runOp: { mode: true, type: true, error: false, op: false },
+      runOp: { mode: true, type: true, error: true, op: false },
       saveAccountState: { reason: true, folderSaveCount: true },
     },
     TEST_ONLY_asyncJobs: {

@@ -704,6 +704,8 @@ suite('system/AppWindowManager', function() {
       injectRunningApps(home, app1);
       AppWindowManager._activeApp = home;
 
+
+      this.sinon.stub(app1, 'reviveBrowser');
       var stubReady = this.sinon.stub(app1, 'ready');
       var stubAppNextOpen = this.sinon.stub(app1, 'open');
       var stubAppCurrentClose = this.sinon.stub(home, 'close');
@@ -711,6 +713,7 @@ suite('system/AppWindowManager', function() {
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.called);
       assert.isTrue(stubAppCurrentClose.called);
+      assert.isTrue(app1.reviveBrowser.called);
     });
 
     test('home to an app killed while opening', function() {

@@ -14,40 +14,85 @@ const kReleaseDuration = 0.05;
 var TonePlayer = {
   _audioElement: null,
   _audioContext: null,
+  _channel: null,
   _gainNode: null,
   _playingNodes: [],
-  _tonesSamples: {
-    '/shared/resources/media/tones/tone_1.opus': [697, 1209],
-    '/shared/resources/media/tones/tone_2.opus': [697, 1336],
-    '/shared/resources/media/tones/tone_3.opus': [697, 1477],
-    '/shared/resources/media/tones/tone_4.opus': [770, 1209],
-    '/shared/resources/media/tones/tone_5.opus': [770, 1336],
-    '/shared/resources/media/tones/tone_6.opus': [770, 1477],
-    '/shared/resources/media/tones/tone_7.opus': [852, 1209],
-    '/shared/resources/media/tones/tone_8.opus': [852, 1336],
-    '/shared/resources/media/tones/tone_9.opus': [852, 1477],
-    '/shared/resources/media/tones/tone_star.opus': [941, 1209],
-    '/shared/resources/media/tones/tone_0.opus': [941, 1336],
-    '/shared/resources/media/tones/tone_hash.opus': [941, 1477]
-  },
+  _maybeTrashAudio: null,
+  _initialized: false,
 
+  /**
+   * Initializes the tone player by specifying which channel will be used to
+   * play sounds. The TonePlayer will lazily create an AudioContext to play
+   * sounds when needed and automatically dispose of it when the application is
+   * hidden. However if the 'telephony' channel is used then we'll keep the
+   * AudioContext around as long as there's an active call.
+   *
+   * @param channel {String} The default channel used to play sounds.
+   */
   init: function tp_init(channel) {
+    var telephony = navigator.mozTelephony;
+
+    this._reset();
     this._channel = channel;
+    this._maybeTrashAudio = (function tp_maybeTrashAudio() {
+      var callIsActive = telephony && (telephony.calls.length ||
+                                       telephony.conferenceGroup.calls.length);
+
+      /* If the application is hidden dispose of the audio context unless we're
+       * in a call and we're using the 'telephony' channel. */
+      if (document.hidden &&
+          !((this._channel === 'telephony') && callIsActive)) {
+        this._trashAudio();
+      }
+    }).bind(this);
+
+    window.addEventListener('visibilitychange', this._maybeTrashAudio);
+    telephony && telephony.addEventListener('callschanged',
+                                            this._maybeTrashAudio);
+
+    this._initialized = true;
   },
 
-  ensureAudio: function tp_ensureAudio() {
-    if (this._audioContext || !this._channel) {
+  /**
+   * Tears down the tone player and removes the registered event listeners,
+   * mostly used for unit-testing.
+   */
+  teardown: function tp_teardown() {
+    var telephony = navigator.mozTelephony;
+
+    telephony && telephony.removeEventListener('callschanged',
+                                               this._maybeTrashAudio);
+    window.removeEventListener('visibilitychange', this._maybeTrashAudio);
+    this._reset();
+    this._initialized = false;
+  },
+
+  /**
+   * Reset all internal state to its default value.
+   */
+  _reset: function tp_reset() {
+    this._audioContext = null;
+    this._channel = null;
+    this._gainNode = null;
+    this._playingNodes = [];
+    this._maybeTrashAudio = null;
+  },
+
+  _ensureAudio: function tp_ensureAudio() {
+    if (this._audioContext || !this._initialized) {
       return;
     }
 
-    this._audioContext = new AudioContext(this._channel);
+    if (this._channel) {
+      this._audioContext = new AudioContext(this._channel);
+    } else {
+      // If no channel was specified stick with the default one.
+      this._audioContext = new AudioContext();
+    }
   },
 
-  trashAudio: function tp_trashAudio() {
+  _trashAudio: function tp_trashAudio() {
     this.stop();
-    if (this._channel === 'telephony' && this._audioContext) {
-      this._audioContext.mozAudioChannelType = 'normal';
-    }
     this._audioContext = null;
   },
 
@@ -169,15 +214,8 @@ var TonePlayer = {
   },
 
   start: function tp_start(frequencies, shortPress) {
-    this.ensureAudio();
-    if (shortPress) {
-      this._playSample(frequencies);
-    } else {
-      this.dummySound((function() {
-        this._startAt(frequencies, this._audioContext.currentTime + 0.050,
-                      shortPress ? kShortPressDuration : 0);
-      }).bind(this));
-    }
+    this._ensureAudio();
+    this._startAt(frequencies, 0, shortPress ? kShortPressDuration : 0);
   },
 
   stop: function tp_stop() {
@@ -217,35 +255,22 @@ var TonePlayer = {
   // - frequency for channel 2
   // - duration
   playSequence: function tp_playSequence(sequence) {
-    this.ensureAudio();
-    this.dummySound((function() {
-      // AudioContext.currentTime is the last time received on the main thread
-      // from the audio graph.  Trying to start a tone at currentTime will not
-      // start playing until this main thread returns to the event loop and
-      // sends a message to the audio graph thread.  Allow a little time for
-      // this.  The way Gecko processes audio in chunks of 30ms means this
-      // should be at least 60 ms.  Experiments on Buri indicate that in
-      // practice this delay is 165 to 190 ms, much of which is the code that
-      // runs before returning to the event loop.
-      var when = this._audioContext.currentTime + 0.2;
-      for (var index = 0; index < sequence.length; ++index) {
-        var step = sequence[index];
-        var frequencies = step.slice(0, 2);
-        var duration = step[2] / 1000;
-        this._startAt(frequencies, when, duration);
-        when += duration;
-      }
-    }).bind(this));
-  },
-
-  _channel: null,
-  setChannel: function tp_setChannel(channel) {
-    var ctx = this._audioContext;
-    if (!channel || (ctx && ctx.mozAudioChannelType === channel)) {
-      return;
+    this._ensureAudio();
+    // AudioContext.currentTime is the last time received on the main thread
+    // from the audio graph.  Trying to start a tone at currentTime will not
+    // start playing until this main thread returns to the event loop and
+    // sends a message to the audio graph thread.  Allow a little time for
+    // this.  The way Gecko processes audio in chunks of 30ms means this
+    // should be at least 60 ms.  Experiments on Buri indicate that in
+    // practice this delay is 165 to 190 ms, much of which is the code that
+    // runs before returning to the event loop.
+    var when = this._audioContext.currentTime + 0.2;
+    for (var index = 0; index < sequence.length; ++index) {
+      var step = sequence[index];
+      var frequencies = step.slice(0, 2);
+      var duration = step[2] / 1000;
+      this._startAt(frequencies, when, duration);
+      when += duration;
     }
-
-    this.trashAudio();
-    this._channel = channel;
   }
 };

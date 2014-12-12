@@ -2160,48 +2160,31 @@ MailUniverse.prototype = {
 
   /**
    * Create a folder that is the child/descendant of the given parent folder.
-   * If no parent folder id is provided, we attempt to create a root folder.
+   * If no parent folder id is provided, we attempt to create a root folder,
+   * but honoring the server's configured personal namespace if applicable.
    *
-   * This is not implemented as a job 'operation' because our UX spec does not
-   * call for this to be an undoable operation, nor do we particularly want the
-   * potential permutations of having offline folders that the server does not
-   * know about.
-   *
-   * @args[
-   *   @param[accountId]
-   *   @param[parentFolderId @oneof[null String]]{
-   *     If null, place the folder at the top-level, otherwise place it under
-   *     the given folder.
-   *   }
-   *   @param[folderName]
-   *   @param[containOnlyOtherFolders Boolean]{
-   *     Should this folder only contain other folders (and no messages)?
-   *     On some servers/backends, mail-bearing folders may not be able to
-   *     create sub-folders, in which case one would have to pass this.
-   *   }
-   *   @param[callback @func[
-   *     @args[
-   *       @param[error @oneof[
-   *         @case[null]{
-   *           No error, the folder got created and everything is awesome.
-   *         }
-   *         @case['moot']{
-   *           The folder appears to already exist.
-   *         }
-   *         @case['unknown']{
-   *           It didn't work and we don't have a better reason.
-   *         }
-   *       ]]
-   *       @param[folderMeta ImapFolderMeta]{
-   *         The meta-information for the folder.
-   *       }
-   *     ]
-   *   ]]{
-   *   }
+   * @param [AccountId] accountId
+   * @param {String} [parentFolderId]
+   *   If null, place the folder at the top-level, otherwise place it under
+   *   the given folder.
+   * @param {String} folderName
+   *   The (unencoded) name of the folder to be created.
+   * @param {String} folderType
+   *   The gelam folder type we should think of this folder as.  On servers
+   *   supporting SPECIAL-USE we will attempt to set the metadata server-side
+   *   as well.
+   * @param {Boolean} containOtherFolders
+   *   Should this folder only contain other folders (and no messages)?
+   *   On some servers/backends, mail-bearing folders may not be able to
+   *   create sub-folders, in which case one would have to pass this.
+   * @param {Function(err, folderMeta)} callback
+   *   A callback that gets called with the folderMeta of the successfully
+   *   created folder or null if there was an error.  (The error code is also
+   *   provided as the first argument.)
    * ]
    */
-  createFolder: function(accountId, parentFolderId, folderName,
-                         containOnlyOtherFolders, callback) {
+  createFolder: function(accountId, parentFolderId, folderName, folderType,
+                         containOtherFolders, callback) {
     var account = this.getAccountForAccountId(accountId);
     var longtermId = this._queueAccountOp(
       account,
@@ -2215,7 +2198,8 @@ MailUniverse.prototype = {
         humanOp: 'createFolder',
         parentFolderId: parentFolderId,
         folderName: folderName,
-        containOnlyOtherFolders: containOnlyOtherFolders
+        folderType: folderType,
+        containOtherFolders: containOtherFolders
       },
       callback);
     return [longtermId];

@@ -236,6 +236,7 @@
    */
   AppWindow.prototype._showFrame = function aw__showFrame() {
     this.debug('before showing frame');
+    this.reviveBrowser();
 
     // If we're already showing, do nothing!
     if (!this.browser.element.classList.contains('hidden')) {
@@ -265,7 +266,7 @@
     this.debug('before hiding frame');
 
     // If we're already hidden, we have nothing to do!
-    if (this.browser.element.classList.contains('hidden')) {
+    if (!this.browser || this.browser.element.classList.contains('hidden')) {
       return;
     }
 
@@ -290,6 +291,10 @@
 
     if (this.element.classList.contains('will-become-active')) {
       return true;
+    }
+
+    if (this.element.classList.contains('will-become-inactive')) {
+      return false;
     }
 
     if (this.transitionController) {
@@ -798,8 +803,10 @@
     var width = layoutManager.width;
     var height = layoutManager.getHeightFor(this);
 
-    this.iframe.style.width = this.width + 'px';
-    this.iframe.style.height = this.height + 'px';
+    if (this.browser) {
+      this.iframe.style.width = this.width + 'px';
+      this.iframe.style.height = this.height + 'px';
+    }
 
     this.element.style.width = width + 'px';
     this.element.style.height = height + 'px';
@@ -1155,7 +1162,7 @@
       }
 
       if (this.identificationOverlay) {
-        this.identificationOverlay.classList.add('visible');
+        this.element.classList.add('overlay');
       }
 
       this.screenshotOverlay.classList.add('visible');
@@ -1181,11 +1188,11 @@
       this.screenshotOverlay.style.backgroundImage = '';
 
       if (this.identificationOverlay) {
-        var overlay = this.identificationOverlay;
+        var element = this.element;
         // A white flash can occur when removing the screenshot
         // so we trigger this transition after a tick to hide it.
         setTimeout(function nextTick() {
-          overlay.classList.remove('visible');
+          element.classList.remove('overlay');
         });
       }
     };
@@ -1390,6 +1397,7 @@
     this.element.style.width = this.width + 'px';
     this.element.style.height = this.height + 'px';
 
+    this.reviveBrowser();
     this.iframe.style.width = '';
     this.iframe.style.height = '';
 

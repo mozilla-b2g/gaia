@@ -1,3 +1,5 @@
+/* exported MockDialerIndexHtml */
+
 'use strict';
 
 var MockDialerIndexHtml = (function MockLinkHtml() {

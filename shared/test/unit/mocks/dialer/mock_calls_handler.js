@@ -32,6 +32,7 @@ var MockCallsHandler = {
   answer: function() {},
   updateAllPhoneNumberDisplays: function() {},
   updatePlaceNewCall: function() {},
+  setup: function () {},
 
   mTeardown: function() {
     this.mActiveCall = null;

@@ -1,6 +1,7 @@
 /* global AppWindow, MocksHelper, TaskCard */
 'use strict';
 
+require('/shared/js/tagged.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
 

@@ -1,6 +1,6 @@
 /* global SimLock, MockL10n, MocksHelper, SimPinDialog, System */
 /* global MockSIMSlotManager, MockVersionHelper, FtuLauncher */
-/* global preInit, VersionHelper:true */
+/* global preInit, VersionHelper:true, MockApplications */
 
 'use strict';
 
@@ -8,6 +8,7 @@ requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_simcard_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_system.js');
+requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_version_helper.js');
 requireApp('system/js/ftu_launcher.js');
 
@@ -53,6 +54,8 @@ suite('SimLock', function() {
   setup(function() {
     // inject one instance
     addSimSlot();
+    window.applications = MockApplications;
+    window.applications.ready = true;
     this.sinon.stub(SimPinDialog, 'show', function() {
       SimPinDialog.visible = true;
     });
@@ -197,6 +200,14 @@ suite('SimLock', function() {
       SimLock.showIfLocked();
       assert.isTrue(SimPinDialog.show.called);
       assert.isTrue(SimLock._alreadyShown);
+    });
+
+
+    test('should do nothing if !applications.ready', function() {
+      window.applications.ready = false;
+      SimLock.showIfLocked();
+      assert.isFalse(SimPinDialog.show.called);
+      window.applications.ready = true;
     });
 
     test('should not show if locked', function() {

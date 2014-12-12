@@ -239,6 +239,7 @@
   pointer-events: all;
 }
 
+.appWindow.overlay .touch-blocker,
 .appWindow.transition-closing .touch-blocker,
 .appWindow.transition-opening .touch-blocker {
   /* The animation takes .3 seconds so users cannot touch the app while the
@@ -331,15 +332,15 @@
 }
 
 .appWindow.suspended > .identification-overlay,
-.appWindow:not(.active) > .identification-overlay.visible {
+.appWindow:not(.active).overlay > .identification-overlay {
   visibility: visible;
   opacity: 1;
 }
 
 /* we don't want to show the overlay at all during the opening
    transition (from the homescreen and from the cardview) */
-.appWindow.enlarge > .identification-overlay.visible,
-.appWindow.from-cardview > .identification-overlay.visible {
+.appWindow.enlarge.overlay > .identification-overlay,
+.appWindow.from-cardview.overlay > .identification-overlay {
   opacity: 0 !important;
   transition: none !important;
 }

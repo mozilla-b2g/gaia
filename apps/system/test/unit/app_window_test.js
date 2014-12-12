@@ -177,9 +177,11 @@ suite('system/AppWindow', function() {
 
     test('Resize in foreground', function() {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
+      this.sinon.stub(app1, 'reviveBrowser');
       stubIsActive.returns(true);
       app1.resize();
       assert.isTrue(app1.resized);
+      assert.isTrue(app1.reviveBrowser.called);
     });
 
     test('Resize in background', function() {
@@ -630,24 +632,24 @@ suite('system/AppWindow', function() {
 
     test('hideScreenshotOverlay', function() {
       app1.screenshotOverlay.classList.add('visible');
-      app1.identificationOverlay.classList.add('visible');
+      app1.element.classList.add('overlay');
       app1._hideScreenshotOverlay();
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
 
-      assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
+      assert.isTrue(app1.element.classList.contains('overlay'));
       this.sinon.clock.tick(); // We wait for the next tick
-      assert.isFalse(app1.identificationOverlay.classList.contains('visible'));
+      assert.isFalse(app1.element.classList.contains('overlay'));
     });
 
     test('hideScreenshotOverlay noop when the screenshot is not displayed',
     function() {
       app1._screenshotOverlayState = 'none';
       app1.screenshotOverlay.classList.remove('visible');
-      app1.identificationOverlay.classList.add('visible');
+      app1.element.classList.add('overlay');
       app1._hideScreenshotOverlay();
 
       this.sinon.clock.tick(); // We wait for the next tick
-      assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
+      assert.isTrue(app1.element.classList.contains('overlay'));
     });
 
     test('Request screenshotURL', function() {
@@ -667,7 +669,7 @@ suite('system/AppWindow', function() {
 
     test('Show identification overlay when showing screenshot', function() {
       app1._showScreenshotOverlay();
-      assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
+      assert.isTrue(app1.element.classList.contains('overlay'));
     });
   });
 
@@ -1036,6 +1038,15 @@ suite('system/AppWindow', function() {
   });
 
   suite('setVisible', function() {
+    test('setVisible: true should revive browser', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+      this.sinon.stub(app1, 'reviveBrowser');
+
+      app1.setVisible(true);
+      assert.isTrue(app1.reviveBrowser.called);
+    });
+
     test('setVisible: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
@@ -1927,6 +1938,14 @@ suite('system/AppWindow', function() {
     test('app is in queue to show', function() {
       testApp.element.classList.add('will-become-active');
       assert.isTrue(testApp.isActive());
+    });
+
+    test('app is in queue to hide', function() {
+      testApp.transitionController = {
+        '_transitionState': 'opened'
+      };
+      testApp.element.classList.add('will-become-inactive');
+      assert.isFalse(testApp.isActive());
     });
 
     test('app doesnot have transitionController', function() {

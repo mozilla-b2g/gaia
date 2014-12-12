@@ -259,6 +259,7 @@
         return;
       }
 
+      this.app.reviveBrowser();
       this.resetTransition();
       this.app.element.removeAttribute('aria-hidden');
       this.app.show();
