@@ -313,7 +313,7 @@ var MmiManager = {
       self._pendingRequest = null;
       self._session = session;
       // Do not notify the UI if no message to show.
-      if (message === null && session) {
+      if (!message && session) {
         return;
       }
 

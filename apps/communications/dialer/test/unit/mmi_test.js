@@ -249,12 +249,28 @@ suite('dialer/mmi', function() {
   });
 
   suite('Mmi received with no message and session ended', function() {
-    setup(function(done) {
-      MmiManager.handleMMIReceived(null, null, 0).then(done, done);
+    test('nothing is shown when message is empty', function(done) {
+      MmiManager.handleMMIReceived('', true, 0).then(function() {
+        done(function checks() {
+          sinon.assert.notCalled(MockMmiUI.received);
+        });
+      }, function() {
+        done(function() {
+          assert.isTrue(false, 'Should not reject the promise');
+        });
+      });
     });
 
-    test('a generic message is shown and session is null', function() {
-      sinon.assert.calledWith(MockMmiUI.received, null, null);
+    test('nothing is shown when message is null', function(done) {
+      MmiManager.handleMMIReceived(null, true, 0).then(function() {
+        done(function checks() {
+          sinon.assert.notCalled(MockMmiUI.received);
+        });
+      }, function() {
+        done(function() {
+          assert.isTrue(false, 'Should not reject the promise');
+        });
+      });
     });
   });
 
