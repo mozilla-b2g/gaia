@@ -299,22 +299,26 @@ suite('Tutorial >', function() {
       navigator.mozSettings.createLock().set(obj);
     }
 
-    test('will send message', function() {
+    test('will send message', function(done) {
       var url = 'app://verticalhome.gaiamobile.org/manifest.webapp';
       setHomescreenManifest(url);
       Tutorial.init(null, function() {
+        navigator.mozApps.getSelf(); // init this.mLastRequest for
+                                    // mTriggerLastRequestSuccess
         navigator.mozApps.mTriggerLastRequestSuccess();
-        assert.equal(MockNavigatormozApps.mLastConnectionKeyword,
+        done(function() {
+          assert.equal(MockNavigatormozApps.mLastConnectionKeyword,
                      'migrate');
+        });
       });
     });
 
-    test('will not send message', function() {
+    test('will not send message', function(done) {
       var url = 'app://homescreen.gaiamobile.org/manifest.webapp';
       setHomescreenManifest(url);
-      Tutorial.init(null, function() {
+      Tutorial.init(null, done(function() {
         assert.isNull(MockNavigatormozApps.mLastRequest);
-      });
+      }));
     });
   });
 });
