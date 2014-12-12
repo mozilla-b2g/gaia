@@ -5,13 +5,18 @@
 
 (function(exports) {
 
+  // The delay of the collections frame animating in or out.
+  // We need to wait this many ms before making fullscreen requests
+  // or we will receive a frame not focused error.
+  const collectionFocusDelay = 300;
+
   const APPEARANCE = {
     OPAQUE: 'opaque',
     SEMI_TRANSPARENT: 'semi-transparent'
   };
 
   function StatusBar() {
-    this.threshold = document.getElementById('search').clientHeight;
+    this.threshold = 0;
 
     if (!appManager.app) {
       window.addEventListener('appmanager-ready', function onReady() {
@@ -29,6 +34,20 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'bookmark-edit':
+        case 'collection-edit':
+          // Exit fullscreen when launching an activity from edit mode.
+          setTimeout(() => {
+            document.mozCancelFullScreen();
+          }, collectionFocusDelay);
+          break;
+        case 'bookmark-edit-end':
+        case 'collection-edit-end':
+          // Re-enter fullscreen when launching an activity from edit mode.
+          setTimeout(() => {
+            document.documentElement.mozRequestFullScreen();
+          }, collectionFocusDelay);
+          break;
         case 'collection-launch':
         case 'collections-create-begin':
           this.setAppearance(APPEARANCE.OPAQUE);
@@ -38,6 +57,10 @@
           window.removeEventListener('context-menu-close', this);
           window.removeEventListener('gaia-confirm-open', this);
           window.removeEventListener('gaia-confirm-close', this);
+          app.grid.addEventListener('bookmark-edit', this);
+          app.grid.addEventListener('bookmark-edit-end', this);
+          app.grid.addEventListener('collection-edit', this);
+          app.grid.addEventListener('collection-edit-end', this);
           /* falls through */
         case 'context-menu-open':
         case 'gaia-confirm-open':
@@ -49,6 +72,10 @@
           window.addEventListener('context-menu-close', this);
           window.addEventListener('gaia-confirm-open', this);
           window.addEventListener('gaia-confirm-close', this);
+          app.grid.removeEventListener('bookmark-edit', this);
+          app.grid.removeEventListener('bookmark-edit-end', this);
+          app.grid.removeEventListener('collection-edit', this);
+          app.grid.removeEventListener('collection-edit-end', this);
           /* falls through */
         case 'context-menu-close':
         case 'gaia-confirm-close':
@@ -109,7 +136,7 @@
       if (value == APPEARANCE.OPAQUE) {
         meta.content = 'black';
       } else {
-        meta.content = 'transparent';
+        meta.content = 'rgba(0,0,0,0.1)';
       }
     }
   };

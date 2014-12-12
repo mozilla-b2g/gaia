@@ -119,10 +119,16 @@
      * Opens a web activity to edit the collection.
      */
     edit: function() {
-      new MozActivity({
+      this.grid.element.dispatchEvent(new CustomEvent('collection-edit'));
+      var activity = new MozActivity({
         name: 'update-collection',
         data: this.detail
       });
+
+      activity.onsuccess = activity.onerror = () => {
+        this.grid.element.dispatchEvent(
+          new CustomEvent('collection-edit-end'));
+      };
     }
   };
 

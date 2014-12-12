@@ -112,13 +112,19 @@
      * Opens a web activity to edit the bookmark.
      */
     edit: function() {
-      new MozActivity({
+      this.grid.element.dispatchEvent(new CustomEvent('bookmark-edit'));
+      var activity = new MozActivity({
         name: 'save-bookmark',
         data: {
           type: 'url',
           url: this.detail.id
         }
       });
+
+      activity.onsuccess = activity.onerror = () => {
+        this.grid.element.dispatchEvent(
+          new CustomEvent('bookmark-edit-end'));
+      };
     }
   };
 

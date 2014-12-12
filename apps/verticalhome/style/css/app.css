@@ -24,6 +24,10 @@ gaia-grid {
   width: 100%;
 }
 
+.edit-mode gaia-grid {
+  padding-top: 5rem;
+}
+
 #curtain {
   background: #000;
   opacity: 0;
@@ -54,10 +58,6 @@ gaia-grid {
   visibility: visible;
   opacity: 1;
   transition: opacity 0.5s ease-in;
-}
-
-.edit-mode #search {
-  visibility: hidden;
 }
 
 #confirmation-message {

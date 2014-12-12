@@ -556,6 +556,7 @@
         new CustomEvent('editmode-start'));
       document.addEventListener('visibilitychange', this);
       this.gridView.render();
+      document.documentElement.mozRequestFullScreen();
     },
 
     exitEditMode: function() {
@@ -572,6 +573,7 @@
       document.removeEventListener('visibilitychange', this);
       this.removeDragHandlers();
       this.gridView.render();
+      document.mozCancelFullScreen();
     },
 
     removeDragHandlers: function() {
