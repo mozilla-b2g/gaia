@@ -731,6 +731,7 @@ suite('ActivityHandler', function() {
     test('new message with user input msg, discard it', function() {
       // User typed message in the input field
       Compose.mEmpty = false;
+      this.sinon.stub(ThreadUI, 'discardDraft');
       this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
         assert.equal(MockOptionMenu.calls.length, 1);
         assert.equal(MockOptionMenu.calls[0].type, 'confirm');
@@ -751,6 +752,7 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
 
       // should be called after discarding
+      sinon.assert.called(ThreadUI.discardDraft);
       sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
         activity: {
           number: '123',
