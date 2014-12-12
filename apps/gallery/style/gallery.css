@@ -475,6 +475,7 @@ footer {
   right: 0;
   font-size: 0;
   visibility: visible;
+  direction: ltr; /* buttons in toolbar are not directional and stays LTR */
 
   /**
     Bug 991367 - This is a temporary workaround for an issue where
@@ -486,6 +487,7 @@ footer {
    */
   transition: visibility 0.2s linear 0.1s, transform 0.2s linear 0.1s;
 }
+
 /* only for large screen */
 #fullscreen-toolbar-header {
   display: none;
@@ -723,6 +725,7 @@ a.filter-faded {
   right: 0;
   font-size: 0;
   transition: transform 0.2s linear;
+  direction: ltr; /* buttons in toolbar are not directional and stays LTR */
 }
 
 /* all buttons in the toolbar share these styles */
