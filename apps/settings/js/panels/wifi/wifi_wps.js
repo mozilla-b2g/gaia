@@ -6,7 +6,6 @@
 define(function(require) {
   'use strict';
 
-  var WifiContext = require('modules/wifi_context');
   var WifiHelper = require('shared/wifi_helper');
   var wifiManager = WifiHelper.getWifiManager();
   var _ = navigator.mozL10n.get;
@@ -49,9 +48,10 @@ define(function(require) {
 
         var onSuccess = options.onSuccess || function() {};
         var onError = options.onError || function() {};
-        var bssid = WifiContext.wpsOptions.selectedAp;
-        var method = WifiContext.wpsOptions.selectedMethod;
-        var pin = WifiContext.wpsOptions.pin;
+
+        var bssid = options.selectedAp;
+        var method = options.selectedMethod;
+        var pin = options.pin;
 
         if (method === 'pbc') {
           req = wifiManager.wps({

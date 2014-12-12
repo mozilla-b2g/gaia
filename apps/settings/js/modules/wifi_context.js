@@ -17,12 +17,6 @@ define(function(require) {
   var _currentNetwork =
     wifiManager && wifiManager.connection && wifiManager.connection.network;
 
-  var _wpsOptions = {
-    selectedAp: '',
-    selectedMethod: '',
-    pin: ''
-  };
-
   var _authOptions = {};
 
   var WifiContext = {
@@ -439,7 +433,6 @@ define(function(require) {
     },
     forgetNetwork: WifiContext.forgetNetwork,
     associateNetwork: WifiContext.associateNetwork,
-    wpsOptions: _wpsOptions,
     set authOptions(object) {
       _authOptions = {};
       var keys = ['password', 'identity', 'eap', 'authPhase2', 'certificate'];

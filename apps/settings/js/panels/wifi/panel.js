@@ -1,6 +1,7 @@
 define(function(require) {
   'use strict';
 
+  var DialogService = require('modules/dialog_service');
   var SettingsUtils = require('modules/settings_utils');
   var SettingsPanel = require('modules/settings_panel');
   var SettingsListener = require('shared/settings_listener');
@@ -57,10 +58,10 @@ define(function(require) {
         this._wps = WifiWps();
         this._wps.addEventListener('statusreset', function() {
           elements.wps.wpsPbcLabelBlock.setAttribute('data-l10n-id',
-                                                     'wpsMessage');
+            'wpsMessage');
           setTimeout(function resetWpsInfoBlock() {
             elements.wps.wpsPbcLabelBlock.setAttribute('data-l10n-id',
-                                                       'wpsDescription2');
+              'wpsDescription2');
           }, 1500);
         });
 
@@ -149,18 +150,30 @@ define(function(require) {
           this._wps.cancel({
             onSuccess: function() {
               elements.wpsInfoBlock.setAttribute('data-l10n-id',
-                                                 'fullStatus-wps-canceled');
+                'fullStatus-wps-canceled');
             },
             onError: function(error) {
               navigator.mozL10n.setAttributes(elements.wpsInfoBlock,
-                                              'wpsCancelFailedMessageError',
-                                              { error: error.name });
+                'wpsCancelFailedMessageError', { error: error.name });
             }
           });
         } else {
-          SettingsUtils.openDialog('wifi-wps', {
-            onSubmit: function() {
+          DialogService.show('wifi-wps', {
+            // wifi-wps needs these wps related networks
+            wpsAvailableNetworks: function() {
+              return self._networkList().then((networkList) => {
+                return networkList.getWpsAvailableNetworks();
+              });
+            }
+          }).then(function(result) {
+            var type = result.type;
+            var value = result.value;
+
+            if (type === 'submit') {
               self._wps.connect({
+                pin: value.pin,
+                selectedAp: value.selectedAp,
+                selectedMethod: value.selectedMethod,
                 onSuccess: function() {
                   elements.wps.wpsPbcLabelBlock.setAttribute('data-l10n-id',
                     'wpsCancelMessage');
@@ -171,11 +184,6 @@ define(function(require) {
                   navigator.mozL10n.setAttributes(elements.wpsInfoBlock,
                     'fullStatus-wps-failed-error', { error: error.name });
                 }
-              });
-            },
-            wpsAvailableNetworks: function() {
-              return self._networkList().then((networkList) => {
-                return networkList.getWpsAvailableNetworks();
               });
             }
           });
@@ -277,8 +285,10 @@ define(function(require) {
 
         var enableDialog = function enableDialog(enabled) {
           if (enabled) {
-            navigator.mozL10n.setAttributes(dialogElement.querySelector('p'),
-              'wifi-bad-credentials-confirm', {ssid : network.ssid});
+            navigator.mozL10n.setAttributes(
+              dialogElement.querySelector('p'),
+              'wifi-bad-credentials-confirm',
+              { ssid : network.ssid });
             elements.okBtn.addEventListener('click', onConfirm);
             elements.cancelBtn.addEventListener('click', onCancel);
             dialogElement.hidden = false;
