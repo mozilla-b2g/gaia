@@ -49,6 +49,7 @@ var Startup = {
   ],
 
   _lazyLoadInit: function() {
+    this._initHeaders();
     LazyLoader.load(this._lazyLoadScripts, function() {
       LocalizationHelper.init();
 
@@ -76,12 +77,19 @@ var Startup = {
     });
   },
 
+  _initHeaders: function() {
+    var headers = document.querySelectorAll('gaia-header[skip-init]');
+    for (var i = 0, l = headers.length; i < l; i++) {
+      headers[i].removeAttribute('skip-init');
+    }
+  },
+
   /**
-   * We wait for the DOMContentLoaded event in the event sequence. After we
-   * loaded the first panel of threads, we lazy load all non-critical JS files.
-   * As a result, if the 'load' event was not sent yet, this will delay it even
-   * more until all these non-critical JS files are loaded. This is fine.
-   */
+  * We wait for the DOMContentLoaded event in the event sequence. After we
+  * loaded the first panel of threads, we lazy load all non-critical JS files.
+  * As a result, if the 'load' event was not sent yet, this will delay it even
+  * more until all these non-critical JS files are loaded. This is fine.
+  */
   init: function() {
     var loaded = function() {
       window.removeEventListener('DOMContentLoaded', loaded);
