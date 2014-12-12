@@ -190,9 +190,9 @@ ModifyAccount.prototype = {
     window.history.back();
   },
 
-  cancelDelete: function() {
+  cancelDelete: function(event) {
     this.element.classList.remove(this.removeDialogClass);
-    this.cancel();
+    this.cancel(event);
   },
 
   save: function(options, e) {
