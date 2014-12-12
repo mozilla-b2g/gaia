@@ -114,16 +114,16 @@ gaia-buttons.forward-only .icon-previous {
 
 #sim-info-screen .sim-info {
   margin: 0 1.6rem;
-  height: 7rem;
+  display: flex;
+  flex-direction: row;
   border-bottom: 0.1rem solid #dddddd;
 }
 
 #sim-info-screen .sim-image {
-  height: 100%;
   width: 5rem;
   background-position: center center;
   background-repeat: no-repeat;
-  float: left;
+  flex: 0 0 5rem;
   -moz-margin-end: 0.5rem;
 }
 #sim-info-1 .sim-image {
@@ -139,8 +139,14 @@ gaia-buttons.forward-only .icon-previous {
   background-image: url(images/simlock02.png);
 }
 
+#sim-info-screen .sim-details {
+  flex: 1 1 auto;
+}
+
 .sim-info .sim-title {
-  margin: 0 0 0.5rem;
+  margin: 0;
+  -moz-margin-start: 0.5rem;
+  margin-bottom: 0.5rem;
   padding-top: 1rem;
   font-size: 1.6rem;
   color: #333333;
@@ -1128,10 +1134,6 @@ i.hack-first-child {
 html[dir="rtl"] gaia-buttons.nav {
   direction: ltr;
   unicode-bidi:embed;
-}
-
-html[dir="rtl"] #sim-info-screen .sim-image {
-  float: right;
 }
 
 html[dir="rtl"] #wifi [data-type="list"] li > aside {
