@@ -37,4 +37,19 @@ marionette('First Time Use > Pseudo Localization', function() {
     quickly.findElement('input[value="en-US"]');
     quickly.findElement('input[value="qps-ploc"]');
   });
+
+  test('Can select accented-english', function() {
+    quickly.settings.set('devtools.qps.enabled', true);
+    quickly.apps.switchToApp(Ftu.URL);
+    quickly.helper.waitForElement('#languages');
+    var header = quickly.helper.waitForElement(Ftu.Selectors.header);
+    ftu.selectLanguage('qps-ploc');
+    ftu.waitForL10nReady();
+
+    var translatedHeader = quickly.executeScript('' +
+      'var qps = window.wrappedJSObject.navigator.mozL10n.qps;' +
+      'return qps["qps-ploc"].translate("Language");'
+    );
+    assert.equal(translatedHeader, header.text());
+  });
 });
