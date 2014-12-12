@@ -481,17 +481,17 @@
         return null;
       }
 
-      var index = mime.indexOf('/');
-      if (index === -1) {
-        return null;
-      }
-
       // XXX: This is for handling carrier special case, some carrier could
       // change mime type of ogg file to application/ogg instead of video/ogg
       // or audio/ogg. We treat it as video attachment once get application/ogg
       // and let video app to take care of it.
       if (mime === 'application/ogg') {
         mime = 'video/ogg';
+      }
+
+      var index = mime.indexOf('/');
+      if (index === -1) {
+        return null;
       }
 
       var mainPart = mime.slice(0, index);
