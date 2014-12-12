@@ -1,14 +1,11 @@
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global PairExpiredDialog */
-
-'use strict';
-
-(function(exports) {
-  /*
-   * PairExpiredDialog is responsible for:
-   *   Notify a user that the earlier pairing request which fired in
-   *   notification center is expired. There is a prompt handling via here.
-   */
+/*
+ * PairExpiredDialog is responsible for:
+ *   Notify a user that the earlier pairing request which fired in
+ *   notification center is expired. There is a prompt handling via here.
+ */
+define(function(require) {
+  'use strict';
+  
   var PairExpiredDialog = {
     init: function() {
       this.dialog = document.getElementById('pairing-request-timeout');
@@ -36,8 +33,7 @@
     }
   };
 
-  exports.PairExpiredDialog = PairExpiredDialog;
+  PairExpiredDialog.init();
+  return PairExpiredDialog;
+});
 
-})(window);
-
-navigator.mozL10n.once(PairExpiredDialog.init.bind(PairExpiredDialog));

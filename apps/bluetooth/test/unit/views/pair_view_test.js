@@ -13,22 +13,22 @@ function switchReadOnlyProperty(originObject, propName, targetObj) {
   });
 }
 
-var mocksForTransferHelper = new MocksHelper([
+var mocksForPairviewHelper = new MocksHelper([
   'PairManager'
 ]).init();
 
 suite('Bluetooth app > Pairview ', function() {
   var realL10n;
 
-  mocksForTransferHelper.attachTestHelpers();
-
+  mocksForPairviewHelper.attachTestHelpers();
+  
   suiteSetup(function(done) {
     realL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = MockL10n;
 
     loadBodyHTML('./_onpair.html');
 
-    requireApp('bluetooth/js/pair_view.js', done);
+    requireApp('bluetooth/js/views/pair_view.js', done);
   });
 
   suiteTeardown(function() {
@@ -269,7 +269,7 @@ suite('Bluetooth app > Pairview ', function() {
     };
     suiteSetup(function() {
       var MockOpener = {
-        PairManager: PairManager
+        require: function(path, callback) {callback(PairManager);}
       };
       switchReadOnlyProperty(window, 'opener', MockOpener);
       stubWindowClose = sinon.stub(window, 'close');

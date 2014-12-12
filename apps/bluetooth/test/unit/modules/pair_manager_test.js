@@ -1,14 +1,11 @@
-/* global MocksHelper, MockL10n, MockNavigatormozSetMessageHandler,
-   MockNavigatorSettings, MockBluetoothHelperInstance, MockNavigatormozApps,
-   MockMozBluetooth, PairManager, Pairview, PairExpiredDialog */
+/* global MockL10n, MockNavigatormozSetMessageHandler, MockNavigatorSettings,
+   MockBluetoothHelperInstance, MockNavigatormozApps, MockMozBluetooth */
+
 'use strict';
 
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('bluetooth/test/unit/mock_pair_view.js');
-requireApp('bluetooth/test/unit/mock_pair_expired_dialog.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_bluetooth_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth.js');
@@ -20,20 +17,16 @@ function switchReadOnlyProperty(originObject, propName, targetObj) {
   });
 }
 
-var mocksForPairManagerHelper = new MocksHelper([
-  'BluetoothHelper',
-  'Pairview',
-  'PairExpiredDialog'
-]).init();
-
 suite('Bluetooth app > PairManager ', function() {
   var realL10n;
   var realSetMessageHandler;
   var realMozSettings;
   var realMozApps;
   var realMozBluetooth;
-
-  mocksForPairManagerHelper.attachTestHelpers();
+  var PairManager;
+  var PairExpiredDialog;
+  var Pairview;
+  var BluetoothHelper;
 
   suiteSetup(function(done) {
     realL10n = window.navigator.mozL10n;
@@ -53,7 +46,29 @@ suite('Bluetooth app > PairManager ', function() {
 
     MockNavigatormozSetMessageHandler.mSetup();
 
-    requireApp('bluetooth/js/pair_manager.js', done);
+    var modules = [
+      'unit/mock_pair_expired_dialog',
+      'unit/mock_pair_view',
+      'shared_mocks/mock_bluetooth_helper',
+      'modules/pair_manager'
+    ];
+
+    var maps = {
+      'modules/pair_manager': {
+        'views/pair_expired_dialog': 'unit/mock_pair_expired_dialog',
+        'shared/bluetooth_helper': 'shared_mocks/mock_bluetooth_helper'
+      }
+    };
+
+    var requireCtx = testRequire([], maps, function() {});
+    requireCtx(modules, function(pairExpiredDialog, pairview, 
+                                 BluetoothHelperModule, pairManager) {
+      PairExpiredDialog = pairExpiredDialog;
+      Pairview = pairview;
+      BluetoothHelper = BluetoothHelperModule();
+      PairManager = pairManager;
+      done();
+    }.bind(this));
   });
 
   suiteTeardown(function() {
@@ -71,7 +86,6 @@ suite('Bluetooth app > PairManager ', function() {
     setup(function() {
       this.sinon.stub(PairManager, 'onRequestPairing');
       this.sinon.stub(PairManager, 'onBluetoothCancel');
-      this.sinon.stub(PairManager, 'bluetoothHelper');
       this.sinon.stub(PairManager, 'showPendingPairing');
       this.sinon.stub(PairManager, 'onBluetoothDisabled');
       PairManager.init();
