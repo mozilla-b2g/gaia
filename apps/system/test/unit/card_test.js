@@ -61,6 +61,19 @@ suite('system/Card', function() {
       this.card.render();
     });
 
+    test('card instance properties', function() {
+      // sanity check properties expected to be exposed on the instance
+      assert.isDefined(this.card.app);
+      assert.isDefined(this.card.instanceID);
+      assert.isDefined(this.card.title);
+      assert.isDefined(this.card.subTitle);
+      assert.isDefined(this.card.iconValue);
+      assert.isDefined(this.card.viewClassList);
+      assert.isDefined(this.card.titleId);
+      assert.isDefined(this.card.closeButtonVisibility);
+      assert.isDefined(this.card.favoriteButtonVisibility);
+    });
+
     test('exposes expected element properties', function(){
       var card = this.card;
       assert.ok(card.element, 'element node');
