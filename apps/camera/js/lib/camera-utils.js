@@ -60,6 +60,7 @@ define(function(require) {
    *
    * @param  {Array} previewSizes
    * @param  {Object=} viewportSize
+   * @param  {Object=} resolution
    * @return {Object}
    */
   CameraUtils.getOptimalPreviewSize = function(previewSizes, viewportSize, resolution) {
