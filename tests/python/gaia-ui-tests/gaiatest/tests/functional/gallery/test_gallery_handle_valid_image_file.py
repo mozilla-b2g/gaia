@@ -45,7 +45,7 @@ class TestGalleryHandleValidPhoto(GaiaTestCase):
         # from the initial view; it does not render the entire image fully
         if width <= (2 * initial_width) and height <= (2 * initial_height):
             Wait(self.marionette).until(lambda m: image.current_image_size_width == width)
-            self.assertTrue(image.current_image_size_height == height)
+            Wait(self.marionette).until(lambda m: image.current_image_size_height == height)
         else:
             Wait(self.marionette).until(lambda m: image.current_image_size_width == 2 * initial_width)
-            self.assertTrue(image.current_image_size_height == 2 * initial_height)
+            Wait(self.marionette).until(lambda m: image.current_image_size_height == 2 * initial_height)
