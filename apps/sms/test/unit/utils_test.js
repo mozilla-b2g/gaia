@@ -1010,8 +1010,8 @@ suite('Utils', function() {
       'audio/ogg': 'audio',
       'not-a-mime': null,
       'text': null,
-      'appplication/video': null,
-      'appplication/ogg': 'video'
+      'application/video': null,
+      'application/ogg': 'video'
     };
 
     Object.keys(tests).forEach(function(testIndex) {
