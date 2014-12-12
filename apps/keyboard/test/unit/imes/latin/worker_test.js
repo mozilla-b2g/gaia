@@ -1,13 +1,28 @@
-/*global suite suiteSetup setup test sinon assert requireApp */
-requireApp('keyboard/test/unit/setup_engine.js');
-requireApp('keyboard/js/imes/latin/latin.js');
+'use strict';
+
+/*global InputMethodDatabaseLoader */
+
+require('/test/unit/setup_engine.js');
+require('/js/imes/latin/latin.js');
+
+require('/js/keyboard/input_method_database_loader.js');
 
 suite('Latin en_us worker', function() {
   var worker;
   suiteSetup(function(next) {
     worker = new Worker('../../../../js/imes/latin/worker.js');
 
-    worker.postMessage({ cmd: 'setLanguage', args: ['en_us'] });
+    var loader = new InputMethodDatabaseLoader();
+    loader.start();
+    loader.SOURCE_DIR = '/js/imes/';
+    loader.load('latin', 'dictionaries/en_us.dict').then(function(dictData) {
+      worker.postMessage({
+        cmd: 'setLanguage',
+        args: ['en_us', dictData]
+      }, [dictData]);
+    })['catch'](function(e) { // workaround gjlsint error
+      console.error(e.toString());
+    });
 
     var keymap = InputMethods.latin.generateNearbyKeyMap({
         'keyboardWidth': 320,
