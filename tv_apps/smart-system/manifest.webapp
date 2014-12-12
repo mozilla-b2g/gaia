@@ -99,6 +99,12 @@
       "rules": {
         "minimumAccessLevel": "certified"
       }
+    },
+    "interactivenotifications": {
+      "description": "allow certified applications to show notifications.",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   },
   "datastores-owned": {

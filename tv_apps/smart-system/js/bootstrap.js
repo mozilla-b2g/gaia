@@ -8,7 +8,7 @@
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory,
          applications, LayoutManager, PermissionManager, Accessibility,
-         TextSelectionDialog, SleepMenu,
+         TextSelectionDialog, SleepMenu, InteractiveNotifications
          ExternalStorageMonitor, SelectionBorder */
 'use strict';
 
@@ -146,7 +146,8 @@ window.addEventListener('load', function startup() {
       window.mediaRecording.start();
     });
   }
-
+  window.interactiveNotifications = new InteractiveNotifications();
+  window.interactiveNotifications.start();
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
   // Apparently it works because no other window has the focus at this point.
