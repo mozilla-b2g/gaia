@@ -255,7 +255,10 @@ var ActivityHandler = {
       },
       {
         l10nId: 'unsent-message-option-discard',
-        method: this.launchComposer.bind(this),
+        method: (activity) => {
+          ThreadUI.discardDraft();
+          this.launchComposer(activity);
+        },
         params: [activity]
       }]
     });
