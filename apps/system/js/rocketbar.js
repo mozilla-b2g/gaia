@@ -286,7 +286,7 @@
             this.hideResults();
             this.deactivate();
           } else if (e.target == this.topPanel && this._inputClicked(e)) {
-            this._handleSearchRequest();
+            window.dispatchEvent(new CustomEvent('global-search-request'));
           }
           break;
         case 'searchterminated':
