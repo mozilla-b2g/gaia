@@ -2,7 +2,6 @@
   "name": "Privacy Panel",
   "description": "Web app Privacy Panel",
   "type": "certified",
-  "role": "system",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
