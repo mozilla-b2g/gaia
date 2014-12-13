@@ -36,7 +36,31 @@
     timer: null,
     timeout: 0
   };
+  var _visibilityChangeHandler = null;
   init();
+
+  function sendVisibilityChangeEvent() {
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      app.connect('settingsstk').then(function onConnAccepted(ports) {
+        DUMP('STK_Settings IAC: ' + ports);
+        ports.forEach(function(port) {
+          DUMP('STK_Settings IAC: ' + port);
+          port.postMessage('StkMenuHidden');
+        });
+      }, function onConnRejected(reason) {
+        DUMP('STK_Settings IAC is rejected');
+        DUMP(reason);
+      });
+    };
+  }
+
+  function visibilityChangeHandler() {
+    if (document.hidden && Settings && Settings.currentPanel == '#icc') {
+      DUMP('STK_Settings visibilityChangeHandler');
+      sendVisibilityChangeEvent();
+    }
+  }
 
   /**
    * Init STK UI
@@ -51,16 +75,24 @@
       function do_handleAsyncSTKCmd(event) {
         updateMenu(event.detail.menu);
       });
+
+    document.addEventListener('visibilitychange',
+      visibilityChangeHandler, false);
   }
 
   function addCloseNotificationsEvents(message) {
     function onVisibilityChange() {
       if (document.hidden && Settings && Settings.currentPanel == '#icc') {
+        document.removeEventListener('visibilitychange',
+          _visibilityChangeHandler, false);
         stkResTerminate(message);
       }
     }
-    document.removeEventListener('visibilitychange', onVisibilityChange, false);
-    document.addEventListener('visibilitychange', onVisibilityChange, false);
+    document.removeEventListener('visibilitychange',
+      _visibilityChangeHandler, false);
+    _visibilityChangeHandler = onVisibilityChange;
+    document.addEventListener('visibilitychange',
+      _visibilityChangeHandler, false);
     window.onbeforeunload = function() {
       responseSTKCommand(message, {
         resultCode: iccManager.STK_RESULT_NO_RESPONSE_FROM_USER
@@ -309,6 +341,8 @@
         text: menuItem.text,
         nai: _(menuItem.nai),
         onclick: function onSelectOptionClick(event) {
+          document.removeEventListener('visibilitychange',
+            _visibilityChangeHandler, false);
           onSelectOption(message, event);
         },
         attributes: [['stk-select-option-identifier', menuItem.identifier]]
