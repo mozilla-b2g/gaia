@@ -3,15 +3,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from marionette import By
+
 from marionette import Wait
-from marionette.marionette import Actions
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
-from gaiatest.apps.system.regions.activities import Activities
+from gaiatest.apps.system.regions.cards_view import CardsView
 
-class TestBrowserPrivateWindow(GaiaTestCase):
+class TestBrowserShowWindows(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -20,7 +19,7 @@ class TestBrowserPrivateWindow(GaiaTestCase):
 
         self.test_url = self.marionette.absolute_url('mozilla.html')
 
-    def test_browser_private_window(self):
+    def test_browser_show_windows(self):
         search = Search(self.marionette)
         search.launch()
         browser = search.go_to_url(self.test_url)
@@ -28,16 +27,9 @@ class TestBrowserPrivateWindow(GaiaTestCase):
         browser.switch_to_content()
         Wait(self.marionette).until(lambda m: m.title == 'Mozilla')
 
-        link = self.marionette.find_element(By.CSS_SELECTOR, '#community a')
-        Actions(self.marionette).\
-            press(link).\
-            wait(3).\
-            release().\
-            wait(1).\
-            perform()
-
-
         browser.switch_to_chrome()
-        browser.tap_open_in_new_private_window()
+        browser.tap_menu_button()
+        browser.tap_show_windows()
 
-        Wait(self.marionette).until(lambda m: "mozilla_community.html" in browser.apps.displayed_app.src)
+        self.cards_view = CardsView(self.marionette)
+        self.wait_for_condition(lambda m: self.cards_view.is_cards_view_displayed)
