@@ -20,6 +20,7 @@ class Activities(Base):
     _cancel_button_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button[data-action="cancel"]')
 
     _save_image_locator = (By.CSS_SELECTOR, 'button[data-id="save-image"]')
+    _open_in_new_private_window_locator = (By.CSS_SELECTOR, 'button[data-id="open-in-new-private-window"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -64,6 +65,11 @@ class Activities(Base):
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(*self._save_image_locator))))
         self.marionette.find_element(*self._save_image_locator).tap()
+
+    def tap_open_in_new_private_window(self):
+         Wait(self.marionette).until(expected.element_displayed(
+             Wait(self.marionette).until(expected.element_present(*self._open_in_new_private_window_locator))))
+         self.marionette.find_element(*self._open_in_new_private_window_locator).tap()
 
     @property
     def options_count(self):

@@ -72,3 +72,4 @@ mozilla-b2g-gaia-node-modules-*
 
 venv/
 
+/tests/python/gaia-ui-tests/gaiatest/testvars.json
