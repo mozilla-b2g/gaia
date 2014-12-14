@@ -576,7 +576,7 @@ var ThreadListUI = {
 
     var firstViewDone = function firstViewDone() {
       this.initStickyHeader();
-      firstViewDoneCb();
+      firstViewDoneCb && firstViewDoneCb();
     }.bind(this);
 
     function onRenderThread(thread) {

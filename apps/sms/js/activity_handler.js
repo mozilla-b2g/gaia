@@ -38,8 +38,9 @@ var ActivityHandler = {
       })
     );
 
-    // We want to register the handler only when we're on the launch path
-    if (!window.location.hash.length) {
+    // We don't want to register these system handlers when app is run as
+    // inline activity
+    if (!Navigation.getPanelName().startsWith('activity')) {
       window.navigator.mozSetMessageHandler('sms-received',
         this.onSmsReceived.bind(this));
 
