@@ -84,14 +84,26 @@ var Startup = {
    */
   init: function() {
     var loaded = function() {
+      var firstViewCallback;
+
       window.removeEventListener('DOMContentLoaded', loaded);
       window.performance.mark('navigationLoaded');
       window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
+      // If target panel is different from the default one, let's load remaining
+      // scripts as soon as possible, otherwise we can wait until first page of
+      // threads is loaded and rendered.
+      if (Navigation.getPanelName() &&
+        Navigation.getPanelName() !== 'thread-list') {
+        this._lazyLoadInit();
+      } else {
+        firstViewCallback = this._lazyLoadInit.bind(this);
+      }
+
       MessageManager.init();
       Navigation.init();
       ThreadListUI.init();
-      ThreadListUI.renderThreads(this._lazyLoadInit.bind(this), function() {
+      ThreadListUI.renderThreads(firstViewCallback, function() {
         window.performance.mark('fullyLoaded');
         window.dispatchEvent(new CustomEvent('moz-app-loaded'));
         App.setReady();
