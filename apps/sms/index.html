@@ -21,11 +21,6 @@
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
-    <link rel="stylesheet" type="text/css" href="style/message.css">
-    <link rel="stylesheet" type="text/css" href="style/notification.css">
-    <link rel="stylesheet" type="text/css" href="style/report_view.css">
-    <link rel="stylesheet" type="text/css" href="style/attachment.css">
-    <link rel="stylesheet" type="text/css" href="style/composer.css">
     <!-- Localization -->
     <link rel="manifest" href="manifest.webapp">
     <link rel="localization" href="locales/sms.{locale}.properties">
@@ -152,6 +147,11 @@
       </section>
 
       <section id="thread-messages" class="panel" role="region" aria-hidden="true">
+        <style scoped>
+          @import url(style/message.css);
+          @import url(style/attachment.css);
+          @import url(style/composer.css);
+        </style>
         <gaia-header id="messages-header" class="view-header regular-header" action="back">
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide"></button>
@@ -185,6 +185,9 @@
           Compose field. These notifications should be hidden automatically so
           they do not prevent the user from inputting text. -->
           <div class="overlay">
+            <style scoped>
+              @import url(style/notification.css);
+            </style>
             <section id="messages-subject-max-length-notice"
                      role="notification"
                      class="hide">
@@ -227,6 +230,9 @@
           <ul class="contact-list"></ul>
         </article>
         <article id="information-report" class="view-body article-list report-view hide" data-type="list">
+          <style scoped>
+            @import url(style/report_view.css)
+          </style>
           <div class="description">
             <p class="type"></p>
             <p class="subject">
