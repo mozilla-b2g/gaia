@@ -32,7 +32,7 @@
 
   TextSelectionDialog.prototype.TEXTDIALOG_HEIGHT = 52;
 
-  TextSelectionDialog.prototype.TEXTDIALOG_WIDTH = 52;
+  TextSelectionDialog.prototype.TEXTDIALOG_WIDTH = 54;
 
   // Based on UX spec, there would be a temporary shortcut and only appears
   // after the action 'copy/cut'. In this use case, the utility bubble will be
