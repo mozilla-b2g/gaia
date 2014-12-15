@@ -73,8 +73,8 @@
     //     <node>
     //       <item> (choosed by selector)
     //       <other elements>
-    // The corresponding name of frame, list, node, and item is used accordingly
-    // around function and variable names inside XScrollable.
+    // User can also omit <item> element, and specify <node>s as focus target.
+    // In this case, <node> and <item> refer to the same dom structure.
     getNodeFromItem: function(itemElem) {
       var nodeElem = itemElem;
       while (nodeElem.parentElement !== this.listElem) {
@@ -84,20 +84,25 @@
     },
 
     getNextItem: function(itemElem) {
-      var nodeElem = this.getNodeFromItem(itemElem);
-
-      return nodeElem.nextElementSibling ?
-        nodeElem.nextElementSibling.getElementsByClassName(
-                                                        this.itemClassName)[0] :
-        null;
+      var next = this.getNodeFromItem(itemElem).nextElementSibling;
+      if (!next) {
+        return null;
+      } else if (next.classList.contains(this.itemClassName)) {
+        return next;
+      } else {
+        return next.getElementsByClassName(this.itemClassName)[0];
+      }
     },
 
     getPrevItem: function(itemElem) {
-      var nodeElem = this.getNodeFromItem(itemElem);
-      return nodeElem.previousElementSibling ?
-        nodeElem.previousElementSibling.getElementsByClassName(
-                                                        this.itemClassName)[0] :
-        null;
+      var prev = this.getNodeFromItem(itemElem).previousElementSibling;
+      if (!prev) {
+        return null;
+      } else if (prev.classList.contains(this.itemClassName)) {
+        return prev;
+      } else {
+        return prev.getElementsByClassName(this.itemClassName)[0];
+      }
     },
 
     handleSelection: function(itemElem) {
@@ -106,19 +111,19 @@
     },
 
     addNode: function(nodeElem) {
-      var itemElems = nodeElem.getElementsByClassName(this.itemClassName);
-      return (this.items.length === 1) &&
-             this.spatialNavigator.add(itemElems[0]) &&
-             !!this.listElem.appendChild(nodeElem);
+      if (nodeElem.classList.contains(this.itemClassName)) {
+        return this.spatialNavigator.add(nodeElem) &&
+               !!this.listElem.appendChild(nodeElem);
+      } else {
+        var itemElems = nodeElem.getElementsByClassName(this.itemClassName);
+        return (this.items.length === 1) &&
+               this.spatialNavigator.add(itemElems[0]) &&
+               !!this.listElem.appendChild(nodeElem);
+      }
     },
 
-    /* Override if needed */
-    getItemView: function() {
-      var card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = '<div class="' + this.itemClassName + '"></div>' +
-                       '<div class="card-description">This is a card</div>';
-      return card;
+    getNode: function(index) {
+      return this.listElem.children[index];
     },
 
     removeNode: function(node) {
@@ -126,11 +131,16 @@
         node = this.listElem.children[node];
       }
 
-      var itemElems = node.getElementsByClassName(this.itemClassName);
-      if (itemElems.length != 1) {
-        return false;
+      var selection;
+      if (node.classList.contains(this.itemClassName)) {
+        selection = node;
+      } else {
+        var itemElems = node.getElementsByClassName(this.itemClassName);
+        if (itemElems.length != 1) {
+          return false;
+        }
+        selection = itemElems[0];
       }
-      var selection = itemElems[0];
 
       var focus = this.spatialNavigator.getFocusedElement();
 
@@ -151,8 +161,15 @@
       }
 
       this.listElem.insertBefore(newNode, startNode);
-      this.spatialNavigator.add(
-                newNode.getElementsByClassName(this.itemClassName)[0]);
+      if (newNode.classList.contains(this.itemClassName)) {
+        this.spatialNavigator.add(newNode);
+      } else {
+        var item = newNode.getElementsByClassName(this.itemClassName)[0];
+        // If we have focusable class, make it focusable in our spatial nav.
+        if (item) {
+          this.spatialNavigator.add(item);
+        }
+      }
 
       // We need to trigger focus again to confirm relocating selection border.
       this.spatialNavigator.focus(this.spatialNavigator.getFocusedElement());
