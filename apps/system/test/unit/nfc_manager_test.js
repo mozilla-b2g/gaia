@@ -330,6 +330,15 @@ suite('Nfc Manager Functions', function() {
       stub.restore();
     };
 
+    // checkP2PRegistration helper.
+    var execCheckP2PRegistrationTest = function(msg) {
+      var stub = this.sinon.stub(nfcManager, 'checkP2PRegistration');
+      nfcManager._handleTechDiscovered(msg);
+      assert.isTrue(stub.calledOnce);
+
+      stub.restore();
+    };
+
     // _fireTagDiscovered test helper
     var execTagDiscoveredTest = function(msg, tech) {
       var stub = this.sinon.stub(nfcManager, '_fireTagDiscovered');
@@ -375,14 +384,20 @@ suite('Nfc Manager Functions', function() {
     });
 
     // empty NDEF records array, _fireTagDiscovered should be called
+    test('message with NfcPeer, but no NDEF records', function() {
+      execCheckP2PRegistrationTest.call(this, sampleMsg);
+    });
+
+    // empty NDEF records array, _fireTagDiscovered should be called
     test('message tech [NFC_A], no NDEF records', function() {
       sampleMsg.techList.push('NFC_A');
-
+      sampleMsg.peer = null;
       execTagDiscoveredTest.call(this, sampleMsg, 'NFC_A');
     });
 
     test('message tech unsupported', function() {
       sampleMsg.techList.push('FAKE_TECH');
+      sampleMsg.peer = null;
 
       execTagDiscoveredTest.call(this, sampleMsg, 'FAKE_TECH');
     });
@@ -439,6 +454,7 @@ suite('Nfc Manager Functions', function() {
         }
       },'mime record');
 
+      sampleMsg.peer = null;
       sampleMsg.records.shift();
       sampleMsg.techList.shift();
       nfcManager._handleTechDiscovered(sampleMsg);
