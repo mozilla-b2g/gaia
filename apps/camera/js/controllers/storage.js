@@ -184,9 +184,12 @@ StorageController.prototype.storeVideo = function(video) {
  */
 StorageController.prototype.updateMaxFileSize = function() {
   var pictureSize = this.settings.pictureSizes.selected('data');
-  var bytes = (pictureSize.width * pictureSize.height / 2) + 25000;
-  this.storage.setMaxFileSize(bytes);
-  debug('maxFileSize updated %s', bytes);
+  /* Depending on when we get loaded, we may not have a picture size yet. */
+  if (pictureSize) {
+    var bytes = (pictureSize.width * pictureSize.height / 2) + 25000;
+    this.storage.setMaxFileSize(bytes);
+    debug('maxFileSize updated %s', bytes);
+  }
 };
 
 });
