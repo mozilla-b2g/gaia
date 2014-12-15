@@ -82,6 +82,7 @@ define(function(require) {
 
       // create list item
       var li = document.createElement('li');
+      li.dataset.ssid = network.ssid;
       li.appendChild(icon);
       li.appendChild(a);
 
@@ -233,6 +234,22 @@ define(function(require) {
       certRequest.onerror = function() {
         console.warn('getImportedCerts failed');
       };
+    },
+
+    /**
+     * Updates the icon of the given network
+     *
+     * @memberOf WifiUtils
+     * @param {Object} network
+     * @param {Integer} networkSignal
+     */
+    updateNetworkSignal: function(network, networkSignal) {
+      var li = document.querySelector('li[data-ssid="' + network.ssid + '"]');
+      var icon = li.querySelector('aside');
+      // Clean previous state
+      icon.className = icon.className.replace(/level-\w*/, '');
+      var level = Math.min(Math.floor(networkSignal / 20), 4);
+      icon.classList.add('level-' + level);
     }
   };
 
