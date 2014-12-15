@@ -35,8 +35,11 @@
      *    manifestURL: the keyboard's manifestURL
      *    path: the keyboard's launch path
      * }
-     * Additionally, each array has an |activeLayout|, which is the index, in
-     * that array, of the the currently-activated layout of the group.
+     * Additionally, each array has an |_activeLayoutIdx|, which is the index,
+     * in that array, of the the currently-activated layout of the group.
+     * Outside world (i.e. KeyboardManager) is not supposed to directly write
+     * |_activeLayoutIdx| (KM should use the layout index as |setKeyboardToShow|
+     * parameter; and IL.saveGroupsCurrentActiveLayout is called by setKBToShow.
      */
     this.layouts = {};
 
@@ -182,7 +185,7 @@
 
     // some initialization
     for (var group in this.layouts) {
-      this.layouts[group].activeLayout = undefined;
+      this.layouts[group]._activeLayoutIdx = undefined;
     }
 
     this._emitLayoutsCount();
@@ -247,7 +250,7 @@
 
     this._layoutToGroupMapping[layout.manifestURL + '/' + layout.id].forEach(
       groupInfo => {
-        this.layouts[groupInfo.group].activeLayout = groupInfo.index;
+        this.layouts[groupInfo.group]._activeLayoutIdx = groupInfo.index;
 
         supportedGroups.push(groupInfo.group);
       });
