@@ -492,9 +492,6 @@
           if (this.shrinkingUI && this.shrinkingUI.isActive()) {
             return;
           }
-          if (this._activeApp.isTransitioning()) {
-            return;
-          }
           var bottomMost = this._activeApp.getBottomMostWindow();
           this.shrinkingUI = new ShrinkingUI(bottomMost.element,
             bottomMost.element.parentNode);
