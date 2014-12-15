@@ -48,6 +48,20 @@
   Card.prototype.element = null;
 
   /**
+   * CSS visibility value to show/hide close button for this app
+   * @type {String}
+   * @memberof Card.prototype
+   */
+  Card.prototype.closeButtonVisibility = 'hidden';
+
+  /**
+   * CSS visibility value to show/hide favorite button for this app
+   * @type {String}
+   * @memberof Card.prototype
+   */
+  Card.prototype.favoriteButtonVisibility = 'hidden';
+
+  /**
    * Debugging helper to output a useful string representation of an instance.
    * @memberOf Card.prototype
   */
@@ -64,6 +78,7 @@
   Card.prototype.getScreenshotPreviewsSetting = function() {
     return this.manager.useAppScreenshotPreviews;
   };
+
 
   /**
    * Template string representing the innerHTML of the instance's element
