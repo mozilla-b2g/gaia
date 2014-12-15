@@ -421,7 +421,7 @@
       var app = Service.currentApp;
       var afterActivate;
 
-      if (app && !app.isActive()) {
+      if (app && !app.isActive() || app.isFullScreen()) {
         return;
       }
 
