@@ -85,8 +85,16 @@
 
   function sortUnclassifiedApps(dstEntries, orgEntries) {
     function compareApps(appA, appB) {
-      var svAppA = configurator.getSingleVariantApp(appA.detail.manifestURL);
-      var svAppB = configurator.getSingleVariantApp(appB.detail.manifestURL);
+      var svAppA = null;
+      var svAppB = null;
+
+      if (appA) {
+        svAppA = configurator.getSingleVariantApp(appA.detail.manifestURL);
+      }
+      if (appB) {
+        svAppB = configurator.getSingleVariantApp(appB.detail.manifestURL);
+      }
+
       var locA = svAppA && svAppA.location !== undefined && svAppA.location ||
                  Number.MAX_VALUE;
       var locB = svAppB && svAppB.location !== undefined && svAppB.location ||
