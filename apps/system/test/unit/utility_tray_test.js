@@ -159,6 +159,23 @@ suite('system/UtilityTray', function() {
 
 
   suite('onTouch', function() {
+    suite('taping the left corner', function() {
+      test('should send a global search request', function(done) {
+        window.addEventListener('global-search-request', function gotIt() {
+          window.removeEventListener('global-search-request', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+        fakeTouches(0, 2);
+      });
+
+      test('should hide the Utility tray', function() {
+        UtilityTray.show();
+        fakeTouches(0, 2);
+        assert.equal(UtilityTray.shown, false);
+      });
+    });
+
     suite('showing', function() {
       test('should not be shown by a tap', function() {
         fakeTouches(0, 5);
