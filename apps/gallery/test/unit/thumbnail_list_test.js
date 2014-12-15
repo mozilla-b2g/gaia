@@ -3,6 +3,7 @@
  */
 'use strict';
 
+require('/shared/js/l10n.js');
 requireApp('/gallery/js/gallery.js');
 requireApp('/gallery/test/unit/mock_thumbnail_group.js');
 requireApp('/gallery/js/thumbnail_list.js');
