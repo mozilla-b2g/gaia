@@ -13,6 +13,7 @@
  *        to focused state.
 **/
 smart-button {
+  font-family: "Fira Sans";
   display: inline-block;
   width: 8rem;
   height: 8rem;
@@ -84,6 +85,9 @@ smart-button[data-icon].disabled:before {
   opacity: 0.3;
 }
 
+/**
+ * Simple Text Button
+**/
 smart-button[type="simple-text"] {
   color: #dddddd;
   background: none;
@@ -113,3 +117,84 @@ smart-button[type="simple-text"].pressed {
   color: #00caf2;
   background: none;
 }
+
+/**
+ * End of Simple Text Button
+**/
+
+
+/**
+ * App Icons
+**/
+
+smart-button[type="app-button"] {
+  width: 33.6rem;
+  height: 33.6rem;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-color: transparent;
+}
+
+smart-button[type="app-button"].focused {
+  transform: scale(1.4);
+  border: 0.8rem solid #ffffff;
+}
+
+smart-button[type="app-button"].pressed {
+  transform: scale(1.2);
+  border: 1.0rem solid #ffffff;
+}
+
+smart-button[type="app-button"].fullsized {
+  background-size: 33.6rem auto;
+}
+
+smart-button[type="app-button"].fitted {
+  background-size: 22rem auto;
+}
+
+/** we use :after as label */
+smart-button[type="app-button"]:after {
+  content: attr(label);
+
+  position: absolute;
+  bottom: 0;
+  left: auto;
+  right: auto;
+
+  width: 33.6rem;
+  height: 8rem;
+
+  padding-top: 1rem;
+
+  line-height: 3rem;
+  text-align: center;
+
+  font-size: 2.8rem;
+  font-style: italic;
+  color: #ffffff;
+}
+
+/**
+ * text backgorund color
+**/
+smart-button[type="app-button"][app-type="deck"]:after {
+  background-color: transparent;
+}
+
+smart-button[type="app-button"][app-type="tv"]:after {
+  background-color: #d90c83;
+}
+
+smart-button[type="app-button"][app-type="app"]:after {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+smart-button[type="app-button"][app-type="device"]:after {
+  background-color: #4a82ea;
+}
+
+/**
+ * End of App Icons
+**/

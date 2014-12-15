@@ -1,3 +1,6 @@
+/*
+ * global asyncStorage
+ */
 (function(exports) {
   'use strict';
   exports.SharedUtils = {
@@ -45,6 +48,59 @@
 
         self.style.visibility = '';
       });
+    },
+
+
+    /**
+     * Read color code from the specified image blob. Please note that the blob
+     * should be downloaded from System XHR or within the same domain.
+     * Otherwise, this function returns SecurityError
+     *
+     * @param {Blob} blob the image blob.
+     * @param {float} x read color from position x (0~1). If the value is 0.5,
+                        it reads the center.
+     * @param {float} y read color from position y (0~1). If the value is 0.5,
+                        it reads the center.
+     * @param {Function} callback the callback function whose signature is:
+     *   void callback(color in rgba array, error);
+     * @memberof SharedUtils
+    **/
+    readColorCode: function su_readColorCode(blob, x, y, callback) {
+      if (!callback) {
+        // Callback is not optional. We don't have use case without callback.
+        return;
+      }
+      var offscreenUrl = URL.createObjectURL(blob);
+      var offscreenImg = new Image();
+      offscreenImg.onload = function() {
+        URL.revokeObjectURL(offscreenUrl);
+        var canvas = document.createElement('canvas');
+        // We only need one pixel.
+        canvas.width = 1;
+        canvas.height = 1;
+        var ctx = canvas.getContext('2d');
+        try {
+          // Let's draw image x, y with 1x1 at canvas position(0, 0).
+          ctx.drawImage(offscreenImg, offscreenImg.naturalWidth * x,
+                        offscreenImg.naturalHeight * y, 1, 1, 0, 0, 1, 1);
+          var data = ctx.getImageData(0, 0, 1, 1).data;
+          // Note the data is in Uint8ClampedArray. We need to convert it to
+          // array.
+          callback([data[0], data[1], data[2], data[3]]);
+        } catch(ex) {
+          // drawImage may throw decoding error
+          // getImageData may throw security error.
+          callback(null, ex);
+        }
+      };
+
+      offscreenImg.onerror = function() {
+        URL.revokeObjectURL(offscreenUrl);
+        console.error('read color code from ' + blob);
+        callback(null, new Error('read color code from ' + blob));
+      };
+      // Let's load the image
+      offscreenImg.src = offscreenUrl;
     }
   };
 

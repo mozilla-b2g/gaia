@@ -1,8 +1,13 @@
 'use strict';
-/* global SpatialNavigator, KeyEvent, SelectionBorder, XScrollable */
-/* global CardManager, URL, Application, Clock, CardFilter */
+/* global SpatialNavigator, KeyEvent, XScrollable */
+/* global CardManager, URL, Application, Clock */
 
 (function(exports) {
+
+  const FULLSIZED_ICON = 336;
+  const DEFAULT_ICON = 'url("/style/images/appic_developer.png")';
+  const DEFAULT_BGCOLOR = 'rgba(0, 0, 0, 0.5)';
+  const DEFAULT_BGCOLOR_ARRAY = [0, 0, 0, 0.5];
 
   function Home() {}
 
@@ -35,12 +40,8 @@
         that.cardScrollable = new XScrollable({
                 frameElem: 'card-list-frame',
                 listElem: 'card-list',
-                itemClassName: 'card-thumbnail'}),
-        that.folderScrollable = new XScrollable({
-                frameElem: 'folder-list-frame',
-                listElem: 'folder-list',
-                itemClassName: 'folder-card-thumbnail'}),
-        that.navigableScrollable = [that.cardScrollable, that.folderScrollable];
+                itemClassName: 'card'}),
+        that.navigableScrollable = [that.cardScrollable];
         var collection = that.getNavigateElements();
 
         that.spatialNavigator = new SpatialNavigator(collection);
@@ -48,11 +49,6 @@
         that.keyNavigatorAdapter.init();
         that.keyNavigatorAdapter.on('move', that.onMove.bind(that));
         that.keyNavigatorAdapter.on('enter', that.onEnter.bind(that));
-
-        that.selectionBorder = new SelectionBorder({
-            multiple: false,
-            container: document.getElementById('main-section'),
-            forground: true });
 
         that.cardManager.on('card-inserted', that.onCardInserted.bind(that));
         that.cardManager.on('card-removed', that.onCardRemoved.bind(that));
@@ -92,8 +88,94 @@
       this.cardScrollable.insertNodeBefore(this._createCardNode(card), idx + 1);
     },
 
-    onCardRemoved: function(card) {
-      this.cardScrollable.removeNode(card);
+    onCardRemoved: function(idx) {
+      var elm = this.cardScrollable.getNode(idx);
+      if (elm.dataset.revokableURL) {
+        URL.revokeObjectURL(elm.dataset.revokableURL);
+      }
+      this.cardScrollable.removeNode(idx);
+    },
+
+    _setCardIcon: function (cardButton, card, blob, bgColor) {
+       try {
+        var bgUrl = URL.createObjectURL(blob);
+        if (bgColor) {
+          cardButton.style.backgroundColor = bgColor;
+          cardButton.classList.add('fitted');
+          card.backgroundType = 'fitted';
+        } else {
+          cardButton.classList.add('fullsized');
+          card.backgroundType = 'fullsized';
+        }
+        cardButton.dataset.revokableURL = bgUrl
+        cardButton.style.backgroundImage = 'url("' + bgUrl + '")';
+      } catch (e) {
+        // If the blob is broken, we may get an exception while creating object
+        // URL.
+        cardButton.style.backgroundImage = DEFAULT_ICON;
+        cardButton.style.backgroundColor = DEFAULT_BGCOLOR;
+      }
+    },
+
+    _fillCardIcon: function(cardButton, card) {
+      var manifestURL = card.nativeApp && card.nativeApp.manifestURL;
+      var that = this;
+      // We have thumbnail which is created by pin
+      if (card.thumbnail) {
+        this._setCardIcon(cardButton, card, card.thumbnail,
+                          card.backgroundColor);
+        // TODO add backgroundColor??? How to do it???
+      } else if (!card.cachedIconBlob && !card.cachedIconURL) {
+        // We don't have cachedIconBlob, just get icon from app
+        this.cardManager.getIconBlob({
+          manifestURL: manifestURL,
+          entryPoint: card.entryPoint,
+          // XXX: preferredSize should be determined by
+          // real offsetWidth of cardThumbnailElem instead of hard-coded value
+          preferredSize: FULLSIZED_ICON
+        }).then(function(iconData) {
+          var blob = iconData[0];
+          var size = iconData[1];
+          if (size >= FULLSIZED_ICON) {
+            that._setCardIcon(cardButton, blob, null);
+          } else {
+            that._getIconColor(blob, function(color, err) {
+              if (err) {
+                that._setCardIcon(cardButton, card, blob, DEFAULT_BGCOLOR);
+              } else {
+                that._setCardIcon(cardButton, card, blob, 'rgba(' + color[0] +
+                  ', ' + color[1] + ', ' + color[2] + ', ' + color[3] + ')');
+              }
+            });
+          }
+          card.cachedIconBlob = blob;
+        });
+      } else if (card.cachedIconBlob) {
+        // We already have cacedIconBlob which is created by previous step.
+        this._setCardIcon(cardButton, card, card.cachedIconBlob,
+                          card.backgroundColor);
+      } else if (card.cachedIconURL) {
+        // the pre-set icon.
+        cardButton.classList.add('fullsized');
+        cardButton.style.backgroundImage =
+          'url("' + card.cachedIconURL + '")';
+      }
+    },
+
+    _getIconColor: function(blob, callback) {
+      var dy = 0;
+      function checkColor(color, err) {
+        if (err) {
+          callback(null, err);
+        } else if (color[3] < 255 && dy < 0.5) {
+          dy += 0.25;
+          SharedUtils.readColorCode(blob, 0.5, dy, checkColor);
+        } else {
+          callback(color[3] < 255 ? DEFAULT_BGCOLOR_ARRAY : color, err);
+        }
+      }
+
+      SharedUtils.readColorCode(blob, 0.5, 0, checkColor);
     },
 
     onFilterChanged: function(name) {
@@ -101,56 +183,24 @@
     },
 
     _createCardNode: function(card) {
-      // we will create card element like this:
-      // <div class="card">
-      //   <div class="card-thumbnail"></div>
-      //   <div class="card-description">This is a card</div>
-      // </div>
-      // and return DOM element
-      var cardContainer = document.createElement('div');
-      var cardThumbnailElem = document.createElement('div');
-      var cardDescriptionElem = document.createElement('div');
-      cardContainer.classList.add('card');
-      cardThumbnailElem.classList.add('card-thumbnail');
-      cardDescriptionElem.classList.add('card-description');
+
+      var cardButton = document.createElement('smart-button');
+      cardButton.setAttribute('type', 'app-button');
+      cardButton.setAttribute('label', card.name);
+      cardButton.dataset.cardId = card.cardId;
+      cardButton.classList.add('card');
 
       // XXX: will support Folder and other type of Card in the future
       // for now, we only create card element for Application and Deck
-      if (card instanceof Application || card instanceof Deck) {
-        var manifestURL = card.nativeApp && card.nativeApp.manifestURL;
-        if (card.thumbnail) {
-          try {
-            cardThumbnailElem.style.backgroundImage =
-            'url("' + URL.createObjectURL(card.thumbnail) + '")';
-          } catch (e) {
-            cardThumbnailElem.style.background = 'white';
-          }
-        } else if (!card.cachedIconBlob && !card.cachedIconURL) {
-          this.cardManager.getIconBlob({
-            manifestURL: manifestURL,
-            entryPoint: card.entryPoint,
-            // XXX: preferredSize should be determined by
-            // real offsetWidth of cardThumbnailElem instead of hard-coded value
-            preferredSize: 200
-          }).then(function(blob) {
-            cardThumbnailElem.style.backgroundImage =
-              'url("' + URL.createObjectURL(blob) + '")';
-            card.cachedIconBlob = blob;
-          });
-        } else if (card.cachedIconBlob) {
-          cardThumbnailElem.style.backgroundImage =
-            'url("' + URL.createObjectURL(card.cachedIconBlob) + '")';
-        } else if (card.cachedIconURL) {
-          cardThumbnailElem.style.backgroundImage =
-            'url("' + card.cachedIconURL + '")';
-        }
+      if (card instanceof Application) {
+        cardButton.setAttribute('app-type', 'app');
+        this._fillCardIcon(cardButton, card);
+      } else if (card instanceof Deck) {
+        cardButton.setAttribute('app-type', 'deck');
+        this._fillCardIcon(cardButton, card);
       }
 
-      cardThumbnailElem.dataset.cardId = card.cardId;
-      cardDescriptionElem.textContent = card.name;
-      cardContainer.appendChild(cardThumbnailElem);
-      cardContainer.appendChild(cardDescriptionElem);
-      return cardContainer;
+      return cardButton;
     },
 
     _createCardList: function(cardList) {
@@ -215,7 +265,6 @@
             this.handleFocusMenuGroup(elem);
             break;
           default:
-            this.selectionBorder.select(elem);
             elem.focus();
             this._focus = elem;
             this._focusScrollable = undefined;
@@ -223,7 +272,6 @@
             break;
         }
       } else {
-        this.selectionBorder.selectRect(elem);
         this._focusScrollable = undefined;
       }
     },
@@ -280,7 +328,7 @@
     },
 
     handleScrollableItemFocus: function(scrollable, elem) {
-      this.selectionBorder.select(elem, scrollable.getItemRect(elem));
+      elem.focus();
       this._focus = elem;
     },
 
