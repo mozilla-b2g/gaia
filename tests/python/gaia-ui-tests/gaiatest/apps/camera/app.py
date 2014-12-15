@@ -185,8 +185,13 @@ class ImagePreview(Base):
     _video_progress_bar_locator = (By.CLASS_NAME, 'videoPlayerProgress')
     _options_button_locator = (By.CLASS_NAME, 'preview-option-icon')
     _delete_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="delete"]')
+    _gallery_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="open-gallery"]')
     _confirm_delete_button = (By.ID, 'dialog-yes')
     _option_menu_locator = (By.CLASS_NAME, 'js-menu')
+
+    # for Gallery app switch
+    _progress_bar_locator = (By.ID, 'progress')
+    _thumbnail_list_view_locator = (By.ID, 'thumbnail-list-view')
 
     @property
     def is_image_preview_visible(self):
@@ -224,6 +229,20 @@ class ImagePreview(Base):
         element = Wait(self.marionette).until(expected.element_present(*self._confirm_delete_button))
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
+
+    def tap_switch_to_gallery(self):
+        self.tap_options()
+        self.marionette.find_element(*self._gallery_button_locator).tap()
+        from gaiatest.apps.gallery.app import Gallery
+        gallery_app = Gallery(self.marionette)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == gallery_app.name)
+        self.apps.switch_to_displayed_app()
+        self.wait_for_element_not_displayed(*self._progress_bar_locator)
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(
+                *self._thumbnail_list_view_locator))))
+
+        return gallery_app
 
     def tap_camera(self):
         self.marionette.find_element(*self._camera_button_locator).tap()
