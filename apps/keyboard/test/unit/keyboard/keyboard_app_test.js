@@ -1,13 +1,15 @@
 'use strict';
 
-/* global KeyboardApp, KeyboardConsole, InputMethodManager, LayoutManager,
-          SettingsPromiseManager, L10nLoader, TargetHandlersManager,
-          FeedbackManager, VisualHighlightManager, CandidatePanelManager,
-          UpperCaseStateManager, LayoutRenderingManager, StateManager,
+/* global KeyboardApp, KeyboardConsole, InputMethodManager,
+          InputMethodDatabaseLoader, LayoutManager, SettingsPromiseManager,
+          L10nLoader, TargetHandlersManager, FeedbackManager,
+          VisualHighlightManager, CandidatePanelManager, UpperCaseStateManager,
+          LayoutRenderingManager, StateManager,
           MockInputMethodManager, HandwritingPadsManager */
 
 require('/js/keyboard/console.js');
 require('/js/keyboard/input_method_manager.js');
+require('/js/keyboard/input_method_database_loader.js');
 require('/js/keyboard/layout_manager.js');
 require('/js/keyboard/settings.js');
 require('/js/keyboard/l10n_loader.js');
@@ -28,6 +30,7 @@ require('/js/keyboard/keyboard_app.js');
 suite('KeyboardApp', function() {
   var consoleStub;
   var inputMethodManagerStub;
+  var inputMethodDatabaseLoaderStub;
   var layoutManagerStub;
   var settingsPromiseManagerStub;
   var l10nLoaderStub;
@@ -51,6 +54,11 @@ suite('KeyboardApp', function() {
 
     consoleStub = this.sinon.stub(KeyboardConsole.prototype);
     this.sinon.stub(window, 'KeyboardConsole').returns(consoleStub);
+
+    inputMethodDatabaseLoaderStub =
+      this.sinon.stub(InputMethodDatabaseLoader.prototype);
+    this.sinon.stub(window, 'InputMethodDatabaseLoader')
+      .returns(inputMethodDatabaseLoaderStub);
 
     inputMethodManagerStub = this.sinon.stub(InputMethodManager.prototype);
     this.sinon.stub(window, 'InputMethodManager')
@@ -117,6 +125,7 @@ suite('KeyboardApp', function() {
 
     assert.isTrue(window.KeyboardConsole.calledWithNew());
     assert.isTrue(window.InputMethodManager.calledWithNew());
+    assert.isTrue(window.InputMethodDatabaseLoader.calledWithNew());
     assert.isTrue(window.LayoutManager.calledWithNew());
     assert.isTrue(window.SettingsPromiseManager.calledWithNew());
     assert.isTrue(window.L10nLoader.calledWithNew());
@@ -129,6 +138,7 @@ suite('KeyboardApp', function() {
     assert.isTrue(window.StateManager.calledWithNew());
 
     assert.isTrue(window.InputMethodManager.calledWith(app));
+    assert.isTrue(window.InputMethodDatabaseLoader.calledWith(app));
     assert.isTrue(window.LayoutManager.calledWith(app));
     assert.isTrue(window.TargetHandlersManager.calledWith(app));
     assert.isTrue(window.FeedbackManager.calledWith(app));
@@ -137,6 +147,7 @@ suite('KeyboardApp', function() {
 
     assert.isTrue(consoleStub.start.calledOnce);
     assert.isTrue(inputMethodManagerStub.start.calledOnce);
+    assert.isTrue(inputMethodDatabaseLoaderStub.start.calledOnce);
     assert.isTrue(layoutManagerStub.start.calledOnce);
     assert.isTrue(targetHandlersManagerStub.start.calledOnce);
     assert.isTrue(handwritingPadsManagerStub.start.calledOnce);
@@ -151,6 +162,7 @@ suite('KeyboardApp', function() {
   teardown(function() {
     app.stop();
 
+    assert.isTrue(inputMethodDatabaseLoaderStub.stop.calledOnce);
     assert.isTrue(targetHandlersManagerStub.stop.calledOnce);
     assert.isTrue(handwritingPadsManagerStub.stop.calledOnce);
     assert.isTrue(feedbackManagerStub.stop.calledOnce);
