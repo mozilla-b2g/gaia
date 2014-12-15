@@ -61,11 +61,9 @@ define(function(require) {
       _initSecurityOptions: function() {
         var types = ['open', 'wpa-psk', 'wpa2-psk'];
         types.forEach((type) => {
-          var prefix = (type === 'open') ? '\u202b' : '\u202a' ;
-          var suffix = '\u202c';
           var option = document.createElement('option');
           option.value = type;
-          option.innerHTML = prefix + _('hotspot-'+ type) + suffix;
+          option.setAttribute('data-l10n-id', 'hotspot-' + type);
           elements.securityTypeSelector.appendChild(option);
         });
       },
