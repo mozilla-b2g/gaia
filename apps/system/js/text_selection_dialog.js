@@ -17,9 +17,7 @@
     this._isCommandSendable = false;
     this._transitionState = 'closed';
     this._scrolling = false;
-
-    this._previousOffsetX = 0;
-    this._previousOffsetY = 0;
+    this._isSelectionVisible = true;
 
     window.addEventListener('activeappchanged', this);
     window.addEventListener('home', this);
@@ -90,19 +88,14 @@
             this.debug(JSON.stringify(evt.detail.detail));
             if (evt.detail.detail.state === 'started' &&
                 this._transitionState === 'opened') {
-              this._previousOffsetX = evt.detail.detail.scrollX;
-              this._previousOffsetY = evt.detail.detail.scrollY;
               this._changeTransitionState('closed');
               this._scrolling = true;
             } else if (evt.detail.detail.state === 'stopped' &&
                        this._scrolling === true) {
               this._scrolling = false;
-              this.updateDialogPosition(
-                evt.detail.detail.scrollX - this._previousOffsetX,
-                evt.detail.detail.scrollY - this._previousOffsetY
-              );
-              this._previousOffsetX = 0;
-              this._previousOffsetY = 0;
+              if (this._isSelectionVisible) {
+                this.updateDialogPosition();
+              }
             }
             break;
           case 'touchcarettap':
@@ -136,6 +129,7 @@
       var rectHeight = rect.top - rect.bottom;
       var rectWidth = rect.right - rect.left;
 
+      this._isSelectionVisible = detail.visible;
       // In collapsed mode, only paste option will be displaed if we have copied
       // or cut before.
       if (isCollapsed && states.indexOf('mouseup') !== -1) {
@@ -177,8 +171,10 @@
       }
 
       if (states.indexOf('selectall') !== -1 ||
-          states.indexOf('mouseup') !== -1) {
-        if (!isTempShortcut && isCollapsed) {
+          states.indexOf('mouseup') !== -1 ||
+          states.indexOf('updateposition') !== -1) {
+        if (!isTempShortcut && isCollapsed ||
+            !this._isSelectionVisible) {
           this.close();
           return;
         }
@@ -373,12 +369,12 @@
     // Add last-option class to the last item of options array;
     lastVisibleOption.classList.add('last-option');
 
-    this.updateDialogPosition(0, 0);
+    this.updateDialogPosition();
   };
 
   TextSelectionDialog.prototype.updateDialogPosition =
-    function tsd_updateDialogPosition(scrollOffsetW, scrollOffsetH) {
-      var pos = this.calculateDialogPostion(scrollOffsetW, scrollOffsetH);
+    function tsd_updateDialogPosition() {
+      var pos = this.calculateDialogPostion();
       this.debug(pos);
       this.element.style.top = pos.top + 'px';
       this.element.style.left = pos.left + 'px';
@@ -386,20 +382,13 @@
     };
 
   TextSelectionDialog.prototype.calculateDialogPostion =
-    function tsd_calculateDialogPostion(scrollOffsetW, scrollOffsetH) {
+    function tsd_calculateDialogPostion() {
       var numOfSelectOptions = this.numOfSelectOptions;
       var detail = this.textualmenuDetail;
       var frameHeight = layoutManager.height;
       var frameWidth = layoutManager.width;
       var selectOptionWidth = this.TEXTDIALOG_WIDTH;
       var selectOptionHeight = this.TEXTDIALOG_HEIGHT;
-
-      this.debug('scrollOffsetW  ' + scrollOffsetW + '; scrollOffsetH ' +
-        scrollOffsetH);
-      detail.rect.top -= scrollOffsetH;
-      detail.rect.bottom -= scrollOffsetH;
-      detail.rect.left -= scrollOffsetW;
-      detail.rect.right -= scrollOffsetW;
 
       var selectDialogTop = (detail.rect.top) *
         detail.zoomFactor;
