@@ -104,8 +104,9 @@ navigator.mozL10n.ready(function showBody() {
       AppManager.init(versionInfo);
     } else {
       UIManager.initTZ();
-      UIManager.mainTitle.setAttribute('data-l10n-id', 'language');
+      if (!UIManager.mainTitle.hasAttribute('data-l10n-id')) {
+        UIManager.mainTitle.setAttribute('data-l10n-id', 'language');
+      }
     }
-
   });
 });
