@@ -42,6 +42,7 @@
    "debug.paint-flashing.enabled": false,
    "debug.peformancedata.shared": false,
    "debug.gaia.enabled": false,
+   "developer.mode": false,
    "deviceinfo.build_number": "",
    "deviceinfo.firmware_revision": "",
    "deviceinfo.hardware": "",

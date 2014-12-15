@@ -3,8 +3,15 @@
 'use strict';
 
 var Developer = {
+
+  developerModeInput: null,
+
   init: function about_init() {
     document.getElementById('ftuLauncher').onclick = this.launchFTU;
+
+    this.developerModeInput = document.getElementById('developer-mode');
+    this.developerModeInput.addEventListener(
+      'click', this.toggleDeveloperMode.bind(this));
 
     // hide software home button
     // whenever the device has no hardware home button
@@ -27,6 +34,22 @@ var Developer = {
     } else {
       // disable button if mozPower is undefined or can't be used
       this._elements.resetButton.disabled = true;
+    }
+  },
+
+  toggleDeveloperMode: function about_toggleDeveloperMode(e) {
+    if (!this.developerModeInput.checked) {
+      return;
+    }
+
+    // Warn about enabling.
+    var ANNOY_TAPS = 20;
+    var _ = window.navigator.mozL10n.get;
+    for (var i = 0; i < ANNOY_TAPS; i++) {
+      if (!confirm(_('developer-mode-enable', { n: (20 - i) }))) {
+        e.preventDefault();
+        return;
+      }
     }
   },
 
