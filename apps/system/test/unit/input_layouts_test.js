@@ -245,9 +245,9 @@ suite('InputLayouts', function() {
     });
   });
 
-  // we're not testing layouts[group].activeLayout here as it's being tested (in
-  // an integrated sense) in KeyboardManager's "Try using the same layout when
-  // switching input types" test
+  // we're not testing layouts[group]._activeLayoutIdx here as it's being tested
+  // (in an integrated sense) in KeyboardManager's "Try using the same layout
+  // when switching input types" test
   test('saveGroupsCurrentActiveLayout', function() {
     inputLayouts._layoutToGroupMapping = {
       'app://k.gaiamobile.org/manifest.webapp/en': [
@@ -276,9 +276,9 @@ suite('InputLayouts', function() {
       id: 'en'
     });
 
-    assert.equal(inputLayouts.layouts.text.activeLayout, 12,
+    assert.equal(inputLayouts.layouts.text._activeLayoutIdx, 12,
                  '"text" activeLayout was not changed');
-    assert.equal(inputLayouts.layouts.number.activeLayout, 34,
+    assert.equal(inputLayouts.layouts.number._activeLayoutIdx, 34,
                  '"number" activeLayout was not changed');
 
     assert.isTrue(stubMockNavigatorMozSettingsLock.set.calledWith(
@@ -321,7 +321,7 @@ suite('InputLayouts', function() {
 
     assert.isTrue(
       Object.keys(inputLayouts.layouts).every(
-        group => inputLayouts.layouts[group].activeLayout === undefined
+        group => inputLayouts.layouts[group]._activeLayoutIdx === undefined
       )
     );
 

@@ -261,15 +261,23 @@
     this.isOutOfProcessEnabled = value;
   };
 
+  // returns true if the currentWindow is being removed
+  // we can't use Array.prototype.every() or some() because we'll anyway have
+  // to loop through the whole array
   InputWindowManager.prototype._onInputLayoutsRemoved =
   function iwm_onInputLayoutsRemoved(manifestURLs) {
+    var currentWindowRemoved = false;
+
     manifestURLs.forEach(manifestURL => {
       if (this._currentWindow &&
           this._currentWindow.manifestURL === manifestURL) {
         this.hideInputWindow();
+        currentWindowRemoved = true;
       }
       this._removeInputApp(manifestURL);
     });
+
+    return currentWindowRemoved;
   };
 
   InputWindowManager.prototype._removeInputApp =

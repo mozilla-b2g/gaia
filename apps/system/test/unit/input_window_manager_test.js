@@ -445,8 +445,10 @@ suite('InputWindowManager', function() {
     var stubRemoveInputApp = this.sinon.stub(manager, '_removeInputApp');
 
     // removed apps do not include current window
-    manager._onInputLayoutsRemoved(manifestURLs1);
+    var ret = manager._onInputLayoutsRemoved(manifestURLs1);
     assert.isFalse(stubHideInputWindow.called);
+
+    assert.isFalse(ret, 'should return false as no currentWindow hid');
 
     manifestURLs1.forEach(manifestURL => {
       assert.isTrue(stubRemoveInputApp.calledWith(manifestURL),
@@ -454,8 +456,10 @@ suite('InputWindowManager', function() {
     });
 
     // removed apps include current window
-    manager._onInputLayoutsRemoved(manifestURLs2);
+    ret = manager._onInputLayoutsRemoved(manifestURLs2);
     assert.isTrue(stubHideInputWindow.calledOnce);
+
+    assert.isTrue(ret, 'should return true as some currentWindow hid');
 
     manifestURLs1.forEach(manifestURL => {
       assert.isTrue(stubRemoveInputApp.calledWith(manifestURL),
