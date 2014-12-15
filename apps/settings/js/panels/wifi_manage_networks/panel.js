@@ -1,9 +1,9 @@
 define(function(require) {
   'use strict';
 
+  var DialogService = require('modules/dialog_service');
   var SettingsListener = require('shared/settings_listener');
   var SettingsPanel = require('modules/settings_panel');
-  var SettingsUtils = require('modules/settings_utils');
   var WifiContext = require('modules/wifi_context');
   var WifiUtils = require('modules/wifi_utils');
   var WifiHelper = require('shared/wifi_helper');
@@ -26,28 +26,28 @@ define(function(require) {
         elements.joinHiddenBtn =
           panel.querySelector('.joinHidden');
         elements.joinHiddenBtn.addEventListener('click', function() {
-          var network = {};
-          SettingsUtils.openDialog('wifi-joinHidden', {
-            network: network,
-            onSubmit: function(network) {
+          DialogService.show('wifi-joinHidden').then(function(result) {
+            var network;
+            var type = result.type;
+            var value = result.value;
+
+            if (type === 'submit') {
               if (window.MozWifiNetwork !== undefined) {
-                network = new window.MozWifiNetwork(network);
+                network = new window.MozWifiNetwork(value.network);
               }
-              var authOptions = WifiContext.authOptions;
               WifiHelper.setPassword(
                 network,
-                authOptions.password,
-                authOptions.identity,
-                authOptions.eap
+                value.password,
+                value.identity,
+                value.eap
               );
               WifiContext.associateNetwork(network, function() {
                 self._cleanup();
                 self._scan();
               });
-            }.bind({}, network)
+            }
           });
         });
-
         // we would update this value all the time
         SettingsListener.observe('deviceinfo.mac', '', function(macAddress) {
           elements.macAddress.textContent = macAddress;

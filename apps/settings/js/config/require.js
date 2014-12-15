@@ -234,7 +234,7 @@ require.config({
       name: 'panels/wifi_manage_networks/panel',
       exclude: [
         'main',
-        'modules/settings_utils'
+        'modules/dialog_service'
       ]
     },
     {
