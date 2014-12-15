@@ -395,6 +395,14 @@ suite('system/UtilityTray', function() {
       window.Service.runningFTU = false;
     });
 
+    test('onTouchStart is not called if searching', function() {
+      UtilityTray.isSearching = true;
+      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
+      assert.ok(stub.notCalled);
+      UtilityTray.isSearching = false;
+    });
+
     test('onTouchStart is not called if LockScreen is locked', function() {
       window.Service.locked = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');

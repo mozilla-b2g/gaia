@@ -65,6 +65,8 @@ window.UtilityTray = {
     window.addEventListener('cardviewbeforeshow', this);
     window.addEventListener('sheets-gesture-begin', this);
     window.addEventListener('sheets-gesture-end', this);
+    window.addEventListener('global-search-request', this);
+    window.addEventListener('rocketbar-deactivated', this);
 
     // Listen for screen reader edge gestures
     window.addEventListener('mozChromeEvent', this);
@@ -176,6 +178,14 @@ window.UtilityTray = {
         }
         break;
 
+      case 'global-search-request':
+        this.isSearching = true;
+        break;
+
+      case 'rocketbar-deactivated':
+        this.isSearching = false;
+        break;
+
       case 'imemenushow':
         this.hide();
         break;
@@ -218,6 +228,11 @@ window.UtilityTray = {
 
         if (target === this.statusbarIcons || target === this.grippy) {
           evt.preventDefault();
+        }
+
+        // Prevent swipe down when the rocketbar is being opened
+        if (this.isSearching) {
+          return;
         }
 
         this.onTouchStart(evt.touches[0]);
