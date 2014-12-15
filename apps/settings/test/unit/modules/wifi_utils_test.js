@@ -291,6 +291,38 @@ suite('WifiUtils', function() {
     });
   });
 
+  suite('updateNetworkSignal', function() {
+    var testNetwork;
+    var availableNetworks;
+    var listItem;
+    var networkIcon;
+
+    setup(function() {
+      loadBodyHTML('./_wifi_utils.html');
+      testNetwork = {
+        ssid: 'Dummy network',
+        security: ['WPA-PSK'],
+        relSignalStrength: 40,
+        known: false,
+      };
+      listItem = wifiUtils.newListItem(testNetwork, null);
+      networkIcon = listItem.querySelector('aside');
+
+      availableNetworks = document.querySelector('ul.wifi-availableNetworks');
+      availableNetworks.appendChild(listItem);
+    });
+
+    teardown(function() {
+      document.body.innerHTML = '';
+    });
+
+    test('Signal Strength changes', function() {
+      assert.isTrue(networkIcon.classList.contains('level-2'));
+      wifiUtils.updateNetworkSignal(testNetwork, 100);
+      assert.isTrue(networkIcon.classList.contains('level-4'));
+    });
+  });
+
   function createOption(value) {
     var dom = document.createElement('option');
     dom.text = value;

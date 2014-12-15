@@ -254,6 +254,9 @@ define(function(require) {
       wifiNetworkList.display.bind(wifiNetworkList));
     WifiContext.addEventListener('wifiStatusChange',
       wifiNetworkList.display.bind(wifiNetworkList));
+    WifiContext.addEventListener('wifiConnectionInfoUpdate', function(event) {
+      WifiUtils.updateNetworkSignal(event.network, event.relSignalStrength);
+    });
 
     return wifiNetworkList;
   };

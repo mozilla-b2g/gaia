@@ -55,6 +55,15 @@ define(function(require) {
     _wifiStatusTextChangeListeners: [],
 
     /**
+     * These listeners would be called when the current wifi
+     * information is updated
+     *
+     * @memberOf WifiContext
+     * @type {Array}
+     */
+    _wifiConnectionInfoUpdateListeners: [],
+
+    /**
      * These listeners would be called when
      *   1. wifi connection failed
      *
@@ -132,6 +141,9 @@ define(function(require) {
           self._wifiStatusChange.call(self, event);
           self._wifiStatusTextChange();
         };
+
+        wifiManager.onconnectioninfoupdate =
+          self._wifiConnectionInfoUpdate.bind(self);
       }
     },
 
@@ -298,6 +310,17 @@ define(function(require) {
     },
 
     /**
+     * When wifi's connection is updated, we will call all registered listeners.
+     *
+     * @memberOf WifiContext
+     */
+    _wifiConnectionInfoUpdate: function(event) {
+      this._wifiConnectionInfoUpdateListeners.forEach(function(listener) {
+        listener(event);
+      });
+    },
+
+    /**
      * Keep mac address in mozSettings
      *
      * @memberOf WifiContext
@@ -403,6 +426,8 @@ define(function(require) {
         WifiContext._wifiStatusTextChangeListeners.push(callback);
       } else if (eventName === 'wifiWrongPassword') {
         WifiContext._wifiWrongPasswordListeners.push(callback);
+      } else if (eventName === 'wifiConnectionInfoUpdate') {
+        WifiContext._wifiConnectionInfoUpdateListeners.push(callback);
       }
     },
     removeEventListener: function(eventName, callback) {
@@ -421,6 +446,9 @@ define(function(require) {
       } else if (eventName === 'wifiWrongPassword') {
         WifiContext._removeEventListener(
           WifiContext._wifiWrongPasswordListeners, callback);
+      } else if (eventName === 'wifiConnectionInfoUpdate') {
+        WifiContext._removeEventListener(
+          WifiContext._wifiConnectionInfoUpdateListeners, callback);
       }
     },
     get wifiStatusText() {
