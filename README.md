@@ -220,6 +220,26 @@ See [Gaia functional tests README](https://github.com/mozilla-b2g/gaia/blob/mast
 
 See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Automated_testing/endurance_tests/how_to_run_gaiaui_endurance_tests)
 
+### Build System Tests
+
+Build system has its own unit test and integration test. Both are running on [Node.js](http://nodejs.org)
+
+#### Build System Unit Tests
+
+To run unit test locally, using following command:
+
+```
+$ make build-test-unit
+```
+
+#### Build System Integration Tests
+
+To run integration test locally, using following command:
+
+```
+$ make build-test-integration
+```
+
 ## Generate jsdoc
 
 To generate API reference locally, you have to install grunt with following command:
