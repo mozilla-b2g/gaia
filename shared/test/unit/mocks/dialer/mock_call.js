@@ -4,9 +4,10 @@
 
 function MockCall(aNumber, aState, aServiceId) {
   this._eventListeners = {
-    'statechange': [],
+    'connected': [],
     'disconnected': [],
-    'error': []
+    'error': [],
+    'statechange': []
   };
 
   this.id = { number: aNumber };
