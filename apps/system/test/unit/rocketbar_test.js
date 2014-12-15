@@ -51,6 +51,9 @@ suite('system/Rocketbar', function() {
 
   function mockCurrentApp() {
     MockService.currentApp = {
+      isFullScreen: function() {
+        return false;
+      },
       appChrome: {
         title: {
           getBoundingClientRect: function() {}
@@ -381,6 +384,19 @@ suite('system/Rocketbar', function() {
     assert.ok(searchRequestStub.notCalled);
   });
 
+  test('handleEvent() - click topPanel input - fullscreen app', function() {
+    mockCurrentApp();
+    MockService.currentApp.isFullScreen = function() {
+      return true;
+    };
+    var searchRequestStub = this.sinon.stub(subject, '_handleSearchRequest');
+    var activateStub = this.sinon.stub(subject, 'activate');
+    var event = {type: 'click', target: subject.topPanel, screenX: 20};
+    subject.handleEvent(event);
+    assert.ok(searchRequestStub.calledOnce);
+    assert.ok(activateStub.notCalled);
+  });
+
   test('handleEvent() - launchactivity', function() {
     var handleActivityStub = this.sinon.stub(subject, '_handle_launchactivity');
     var event = {type: 'launchactivity'};
@@ -467,7 +483,8 @@ suite('system/Rocketbar', function() {
     var activeApp = {
       config: {url: 'app.url'},
       isBrowser: function() {},
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      isFullScreen: function() { return false; }
     };
     MockService.currentApp = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
@@ -483,7 +500,8 @@ suite('system/Rocketbar', function() {
     var activeApp = {
       config: {url: 'app.url'},
       isBrowser: function() {},
-      isActive: function() { return false; }
+      isActive: function() { return false; },
+      isFullScreen: function() { return false; }
     };
     MockService.currentApp = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
@@ -506,7 +524,8 @@ suite('system/Rocketbar', function() {
         maximize: function() {},
         isMaximized: function() {}
       },
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      isFullScreen: function() { return false; }
     };
     MockService.currentApp = activeApp;
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
@@ -544,7 +563,8 @@ suite('system/Rocketbar', function() {
         maximize: function() {},
         isMaximized: function() {}
       },
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      isFullScreen: function() { return false; }
     };
     MockService.currentApp = activeApp;
 
@@ -572,7 +592,8 @@ suite('system/Rocketbar', function() {
       isPrivateBrowser: function() {
         return true;
       },
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      isFullScreen: function() { return false; }
     };
     MockService.currentApp = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
