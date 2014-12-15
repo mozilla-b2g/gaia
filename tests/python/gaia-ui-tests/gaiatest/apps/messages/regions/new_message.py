@@ -141,3 +141,7 @@ class NewMessage(Messages):
     @property
     def recipients(self):
         return self.marionette.find_elements(*self._recipients_locator)
+
+    @property
+    def has_attachment(self):
+        return self.is_element_displayed(*self._image_attachment_locator)
