@@ -29,6 +29,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 .view-contacts-list .view-body-inner {
   padding-left: 0;
+  padding-right: 1rem;
 }
 
 /* Contact detail main section */
@@ -670,6 +671,7 @@ section[role="region"] > header .icon.icon-settings {
  */
 #groups-container-background {
   background-color: #fff;
+  padding-right: 0.5rem;
 }
 
 .group-section {
