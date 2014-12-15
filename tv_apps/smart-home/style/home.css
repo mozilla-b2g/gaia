@@ -37,17 +37,16 @@ section {
 #card-viewer {
   position: absolute;
   width: 100%;
-  top: 30%;
-  height: 40%;
-  background: RGBA(0, 0, 0, 0.7);
+  height: 100%;
+  top: 0;
+  left: 0;
 }
 
 #card-list-frame {
   position: absolute;
-  top: calc(50% - 12rem);
-  overflow: hidden;
   width: 100%;
-  height: 24rem;
+  height: 100%;
+  overflow: hidden;
 }
 
 #card-list {
@@ -56,87 +55,16 @@ section {
         interface is what we expected */
   width: 1000%;
   height: 100%;
-  overflow: hidden;
   transition: transform 0.2s ease;
 }
-
 
 .card {
-  float: left;
-  height: 24rem;
-  width: 24rem;
-  margin: 0rem 2rem 0 2rem;
+  top: 32.41%;
+  margin: 0 1.6rem 0 1.6rem;
 }
 
-.card-thumbnail {
-  position: absolute;
-  background-position: 50% 50%;
-  background-size: 100%;
-  border-radius: 10rem;
-  width: 20rem;
-  height: 20rem;
-}
-
-.card-description {
-  position: absolute;
-  width: 18rem;
-  bottom: 0;
-  height: 4rem;
-  line-height: 4rem;
-  color: white;
-  text-align: center;
-}
-
-/* Folder tab */
-#folder-viewer {
-  position: absolute;
-  width: 100%;
-  top: 70%;
-  height: 20%;
-  background: RGBA(0, 0, 0, 0.7);
-}
-
-#folder-list-frame {
-  position: absolute;
-  top: calc(50% - 6rem);
-  left: calc(50% - 6rem);
-  overflow: hidden;
-  width: calc(50% + 6rem);
-  height: 12rem;
-}
-
-#folder-list {
-  position: relative;
-  width: 1000%;
-  height: 100%;
-  overflow: hidden;
-  transition: transform 0.2s ease;
-}
-
-
-.folder-card {
-  float: left;
-  height: 12rem;
-  width: 12rem;
-  margin: 0rem 2rem 0 2rem;
-}
-
-.folder-card-thumbnail {
-  position: absolute;
-  background: white;
-  border-radius: 5rem;
-  width: 10rem;
-  height: 10rem;
-}
-
-.folder-card-description {
-  position: absolute;
-  width: 9rem;
-  bottom: 0;
-  height: 3rem;
-  line-height: 3rem;
-  color: white;
-  text-align: center;
+.card.focused {
+  z-index: 100;
 }
 
 /**
