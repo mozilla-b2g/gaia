@@ -210,7 +210,7 @@ suite('webapp-zip.js', function() {
 
       isHidden = false;
       isExcludedFromZip = true;
-      assert.equal(webappZip.addToZip(testFile), undefined,
+      assert.equal(webappZip.addToZip(testFile), {},
         'file is not hidden, but from excluded list');
     });
 
