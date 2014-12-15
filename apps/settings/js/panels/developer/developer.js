@@ -32,6 +32,9 @@ define(function(require) {
 
       this._elements.ftuLauncher.addEventListener('click', this._launchFTU);
 
+      this._elements.developerMode.addEventListener('click',
+        this.toggleDeveloperMode);
+
       // hide software home button whenever the device has no hardware
       // home button
       if (!ScreenLayout.getCurrentLayout('hardwareHomeButton')) {
@@ -49,6 +52,24 @@ define(function(require) {
       } else {
         // disable button if mozPower is undefined or can't be used
         this._elements.resetButton.disabled = true;
+      }
+    },
+
+    toggleDeveloperMode: function about_toggleDeveloperMode(e) {
+      if (!e.target.checked) {
+        return;
+      }
+
+      // Warn about enabling.
+      var ANNOY_TAPS = 20;
+      var _ = window.navigator.mozL10n.get;
+      for (var i = 0; i < ANNOY_TAPS; i++) {
+        if (!confirm(_('developer-mode-enable', {
+            n: (20 - i)
+          }))) {
+          e.preventDefault();
+          return;
+        }
       }
     },
 
@@ -84,7 +105,9 @@ define(function(require) {
           if (ftuApp) {
             ftuApp.launch();
           } else {
-            DialogService.alert('no-ftu', {title: 'no-ftu'});
+            DialogService.alert('no-ftu', {
+              title: 'no-ftu'
+            });
           }
         });
       };
