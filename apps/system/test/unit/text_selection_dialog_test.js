@@ -69,6 +69,7 @@ suite('system/TextSelectionDialog', function() {
     }
 
     mockDetail.detail.states = ['mouseup'];
+    mockDetail.detail.visible = true;
 
     fakeTextSelectInAppEvent.detail = mockDetail;
     td.handleEvent(fakeTextSelectInAppEvent);
@@ -184,7 +185,7 @@ suite('system/TextSelectionDialog', function() {
       '_changeTransitionState');
     this.sinon.stub(td, 'calculateDialogPostion').returns(
       {top: 123, left: 321});
-    td.updateDialogPosition(123, 321);
+    td.updateDialogPosition();
     assert.equal(td.element.style.top, '123px');
     assert.equal(td.element.style.left, '321px');
     assert.isTrue(stubChangeTransitionState.calledWith('opened'));
@@ -219,6 +220,7 @@ suite('system/TextSelectionDialog', function() {
       stubRender = this.sinon.stub(td, 'render');
       stubEvent = this.sinon.stub(fakeTextSelectInAppEvent, 'preventDefault');
       testDetail = {
+        visible: true,
         isCollapsed: true,
         states: ['selectAll', 'mouseup'],
         rect: {
@@ -344,6 +346,23 @@ suite('system/TextSelectionDialog', function() {
         assert.isTrue(stubClose.calledOnce);
       });
 
+    test('should call close when selection is not visible', function() {
+        testDetail.isCollapsed = false;
+        td._hasCutOrCopied = false;
+        testDetail.visible = false;
+        td._onSelectionStateChanged(fakeTextSelectInAppEvent);
+        assert.isTrue(stubClose.calledOnce);
+      });
+
+    test('should show bubble if states has updateposition', function() {
+        testDetail.isCollapsed = false;
+        td._hasCutOrCopied = false;
+        testDetail.visible = true;
+        testDetail.states = ['updateposition'];
+        td._onSelectionStateChanged(fakeTextSelectInAppEvent);
+        assert.isTrue(stubShow.calledWith(testDetail));
+      });
+
     test('should show bubble when states has selectall', function() {
       // When user click selectAll button, gecko will send a selectchange event
       // with no mouseup reason.
@@ -373,14 +392,10 @@ suite('system/TextSelectionDialog', function() {
       fakeTextSelectInAppEvent.detail = {
         type: 'scrollviewchange',
         detail: {
-          state: 'started',
-          scrollX: 123,
-          scrollY: 321
+          state: 'started'
         }
       };
       td.handleEvent(fakeTextSelectInAppEvent);
-      assert.equal(td._previousOffsetX, 123);
-      assert.equal(td._previousOffsetY, 321);
       assert.equal(td._scrolling, true);
       assert.isTrue(stubShangeTransitionState.calledWith('closed'));
     });
@@ -388,24 +403,16 @@ suite('system/TextSelectionDialog', function() {
     test('scroll stop', function() {
       var stubUpdateDialogPosition = this.sinon.stub(td,
         'updateDialogPosition');
-      td._previousOffsetX = 23;
-      td._previousOffsetY = 21;
       td._scrolling = true;
       fakeTextSelectInAppEvent.detail = {
         type: 'scrollviewchange',
         detail: {
-          state: 'stopped',
-          scrollX: 123,
-          scrollY: 321
+          state: 'stopped'
         }
       };
       td.handleEvent(fakeTextSelectInAppEvent);
       assert.isFalse(td._scrolling);
-      assert.equal(stubUpdateDialogPosition.getCall(0).args[0], 100);
-      assert.equal(stubUpdateDialogPosition.getCall(0).args[1], 300);
-
-      assert.equal(td._previousOffsetX, 0);
-      assert.equal(td._previousOffsetY, 0);
+      assert.isTrue(stubUpdateDialogPosition.calledOnce);
     });
   });
 
