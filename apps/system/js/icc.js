@@ -86,6 +86,21 @@ var icc = {
         window.dispatchEvent(new CustomEvent('stkMenuHidden'));
       }
     });
+
+    // Wait desktop-notification-resend event
+    // for loading all notifications before last power off.
+    window.addEventListener('desktop-notification-resend',
+      self.clearIdleTextNotification);
+  },
+
+  clearIdleTextNotification: function icc_clearIdleTextNotification() {
+    Notification.get().then(function(notifications) {
+      for (var i = 0; i < notifications.length; i++) {
+        if (notifications[i].tag.indexOf('stkNotification_') === 0) {
+          notifications[i].close();
+        }
+      }
+    });
   },
 
   getIccInfo: function icc_getIccInfo() {
