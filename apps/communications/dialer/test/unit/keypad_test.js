@@ -488,6 +488,33 @@ suite('dialer/keypad', function() {
       });
     });
 
+    suite('<<pause>> hotkey when long pressing *', function() {
+      var testNumberAfterLongPress = function(initialNumber, pressTime,
+        expectedNumber) {
+      subject._phoneNumber = initialNumber;
+      subject._touchStart('*', false);
+      this.sinon.clock.tick(pressTime);
+      subject._touchEnd('*');
+        assert.equal(KeypadManager.phoneNumber(), expectedNumber);
+      };
+
+      setup(function() {
+        testNumberAfterLongPress = testNumberAfterLongPress.bind(this);
+      });
+
+      test('it should output "," and remove "*"', function() {
+        testNumberAfterLongPress('12345', 1000, '12345,');
+      });
+
+      test('if it is the first symbol, it should not be added', function() {
+        testNumberAfterLongPress('', 1000, '');
+      });
+
+      test('if it is not long enough it should output "*"', function() {
+        testNumberAfterLongPress('123', 200, '123*');
+      });
+    });
+
     suite('voiceMail hotkey', function() {
       var fakeVoicemail;
 
