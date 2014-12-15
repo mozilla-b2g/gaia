@@ -420,6 +420,12 @@ class GaiaData(object):
         result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message), special_powers=True)
         assert result, 'Unable to send SMS to recipient %s with text %s' % (number, message)
 
+    def add_notification(self, title, options=None):
+        self.marionette.execute_script('new Notification("%s", %s);' % (title, json.dumps(options)))
+
+    def clear_notifications(self):
+        self.marionette.execute_script('window.wrappedJSObject.NotificationScreen.clearAll();')
+
     @property
     def current_audio_channel(self):
         self.marionette.switch_to_frame()
