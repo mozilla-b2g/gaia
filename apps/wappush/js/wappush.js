@@ -202,7 +202,6 @@
     var notification = new Notification(title, options);
     notification.addEventListener('click',
       function wpm_onNotificationClick(event) {
-        app.launch();
         wpm_displayWapPushMessage(event.target.tag);
       }
     );
@@ -241,9 +240,16 @@
       }
 
       DUMP('The message was successfully saved to the DB');
-      wpm_sendNotification(message);
-      wpm_finish();
-      return Promise.resolve();
+
+      if (message.action === 'signal-high' ||
+          message.action === 'execute-high')
+      {
+        return wpm_displayWapPushMessage(message.timestamp);
+      } else {
+        wpm_sendNotification(message);
+        wpm_finish();
+        return Promise.resolve();
+      }
     }).catch(function wpm_saveRejected(error) {
       console.log('Could not add a message to the database: ' + error + '\n');
       wpm_finish();
@@ -261,12 +267,6 @@
       return;
     }
 
-    /* Clear the close timer when a notification is tapped as the app will soon
-     * become visible */
-    window.clearTimeout(closeTimeout);
-    closeTimeout = null;
-
-    app.launch();
     wpm_displayWapPushMessage(message.tag);
   }
 
@@ -279,6 +279,11 @@
    */
   function wpm_displayWapPushMessage(timestamp) {
     DUMP('Displaying message ' + timestamp);
+
+    // Clear the close timer as the application will soon become visible
+    app.launch();
+    window.clearTimeout(closeTimeout);
+    closeTimeout = null;
 
     return ParsedMessage.load(timestamp).then(
       function wpm_loadResolved(message) {
