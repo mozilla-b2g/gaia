@@ -143,6 +143,8 @@ var StatusBar = {
 
   _minimizedStatusBarWidth: window.innerWidth,
 
+  _pausedForGesture: false,
+
   /**
    * Object used for handling the clock UI element, wraps all related timers
    */
@@ -360,7 +362,10 @@ var StatusBar = {
 
       case 'sheets-gesture-begin':
         this.element.classList.add('hidden');
-        this.pauseUpdate();
+        if (!this._pausedForGesture) {
+          this.pauseUpdate();
+          this._pausedForGesture = true;
+        }
         break;
 
       case 'utilitytraywillshow':
@@ -539,6 +544,7 @@ var StatusBar = {
 
       case 'sheets-gesture-end':
         this.element.classList.remove('hidden');
+        this._pausedForGesture = false;
         this.resumeUpdate();
         break;
 
@@ -561,8 +567,21 @@ var StatusBar = {
         this._updateMinimizedStatusBarWidth();
         /* falls through */
       case 'apptitlestatechanged':
-      case 'homescreenopened':
         this.setAppearance(evt.detail);
+        if (!this.isPaused()) {
+          this.element.classList.remove('hidden');
+        }
+        break;
+      case 'homescreenopened':
+        // In some cases, if the user has been switching apps so fast and
+        // quickly he press the home button, we might miss the
+        // |sheets-gesture-end| event so we must resume the statusbar
+        // if needed
+        this.setAppearance(evt.detail);
+        if (this._pausedForGesture) {
+          this.resumeUpdate();
+          this._pausedForGesture = false;
+        }
         this.element.classList.remove('hidden');
         break;
       case 'activityterminated':
