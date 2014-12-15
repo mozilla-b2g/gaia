@@ -56,6 +56,17 @@ class HTML5Player(PageRegion):
         self.root_element.tap()
         Wait(self.marionette).until(lambda m: self.controls_visible)
 
+    def show_controls(self):
+        Wait(self.marionette).until(lambda m: self.controls_visible is False)
+        self.marionette.execute_script("""
+           var a = SpecialPowers.Cc["@mozilla.org/inspector/dom-utils;1"]
+               .getService(SpecialPowers.Ci.inIDOMUtils)
+               .getChildrenForNode(document.getElementsByTagName('video')[0], true);
+           var x = a[1].ownerDocument.getAnonymousElementByAttribute(a[1],'class', 'controlBar');
+           x.removeAttribute('hidden');
+         """)
+        Wait(self.marionette).until(lambda m: self.controls_visible)
+
     def get_location(self, class_name):
         return self.marionette.execute_script("""
            var a = SpecialPowers.Cc["@mozilla.org/inspector/dom-utils;1"]
