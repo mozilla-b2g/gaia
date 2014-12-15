@@ -374,27 +374,29 @@ var icc_worker = {
 
   // STK_CMD_PROVIDE_LOCAL_INFO
   '0x26': function STK_CMD_PROVIDE_LOCAL_INFO(message) {
-
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
+    var conn = icc.getConnection(message.iccId);
 
     DUMP('STK_CMD_PROVIDE_LOCAL_INFO:', message.command.options);
     switch (message.command.options.localInfoType) {
       case icc._iccManager.STK_LOCAL_INFO_LOCATION_INFO:
-        icc.responseSTKCommand(message, {
-          localInfo: {
-            locationInfo: {
-              mcc: IccHelper.iccInfo.mcc,
-              mnc: IccHelper.iccInfo.mnc,
-              gsmLocationAreaCode: conn.voice.cell.gsmLocationAreaCode,
-              gsmCellId: conn.voice.cell.gsmCellId
-            }
-          },
-          resultCode: icc._iccManager.STK_RESULT_OK
-        });
+        DUMP('cell of connection - ' + conn.voice.cell);
+        if (conn.voice.cell) {
+          icc.responseSTKCommand(message, {
+            localInfo: {
+              locationInfo: {
+                mcc: IccHelper.iccInfo.mcc,
+                mnc: IccHelper.iccInfo.mnc,
+                gsmLocationAreaCode: conn.voice.cell.gsmLocationAreaCode,
+                gsmCellId: conn.voice.cell.gsmCellId
+              }
+            },
+            resultCode: icc._iccManager.STK_RESULT_OK
+          });
+        } else {
+          icc.responseSTKCommand(message, {
+            resultCode: icc._iccManager.STK_RESULT_PRFRMD_LIMITED_SERVICE
+          });
+        }
         break;
 
       case icc._iccManager.STK_LOCAL_INFO_IMEI:
