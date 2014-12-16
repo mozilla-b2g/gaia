@@ -109,6 +109,26 @@ suite('SimLockManager', function() {
         assert.isFalse(subject.showIfLocked.called,
           'should not show the dialog');
       });
+
+    test('Settings app is opened', function() {
+      subject.simLockSystemDialog.visible = true;
+      subject.handleEvent({
+        type: 'appopened',
+        detail: {
+          url: 'app://settings.gaiamobile.org/index.html',
+          manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
+          manifest: {
+            permissions: {
+              telephony: {access: 'readwrite'}
+            }
+          },
+          origin: 'app://settings.gaiamobile.org'
+        }
+      });
+      assert.isTrue(subject.simLockSystemDialog.close.called);
+      assert.isFalse(subject.simLockSystemDialog.visible);
+    });
+
   });
 
   suite('showIfLocked', function() {
