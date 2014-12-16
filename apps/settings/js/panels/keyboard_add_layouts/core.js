@@ -78,13 +78,19 @@ define(function(require) {
     _showEnabledDefaultDialog: function kal_showDialog(layout, missingType) {
       require(['modules/dialog_service'], function(DialogService) {
         var type = _('keyboardType-' + missingType);
-        var title = _('mustHaveOneKeyboard', {type: type});
-        var msg = _('defaultKeyboardEnabled', {
-          layoutName: layout.inputManifest.name,
-          appName: layout.manifest.name
-        });
-        DialogService.alert(msg, {
-          title: title
+        DialogService.alert({
+          id: 'defaultKeyboardEnabled',
+          args: {
+            layoutName: layout.inputManifest.name,
+            appName: layout.manifest.name
+          }
+        }, {
+          title: {
+            id: 'mustHaveOneKeyboard',
+            args: {
+              type: type
+            }
+          }
         });
       });
     },

@@ -71,17 +71,16 @@ var Developer = {
 
   _wipeClick: function about_wipeClick() {
     require(['modules/dialog_service'], (DialogService) => {
-      DialogService.confirm(navigator.mozL10n.get('root-warning-body'), {
-        title: navigator.mozL10n.get('root-warning-title'),
-        submitButtonText: navigator.mozL10n.get('reset'),
-        cancelButtonText: navigator.mozL10n.get('cancel')
-      })
-      .then(function(result) {
+      DialogService.confirm('root-warning-body', {
+        title: 'root-warning-title',
+        submitButtonText: 'reset',
+        cancelButtonText: 'cancel'
+      }).then((result) => {
         var type = result.type;
-        if (type == 'submit') {
+        if (type === 'submit') {
           this._wipe();
         }
-      }.bind(this));
+      });
     });
   },
 
