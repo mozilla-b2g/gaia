@@ -268,7 +268,7 @@ suite('system/UtilityTray', function() {
     });
 
     test('should hide the ambientIndicator', function() {
-      assert.isTrue(UtilityTray.overlay.classList.contains('on-edge-gesture'));
+      assert.isTrue(UtilityTray.overlay.classList.contains('hidden'));
     });
   });
 
@@ -281,7 +281,7 @@ suite('system/UtilityTray', function() {
     });
 
     test('should unhide the ambientIndicator', function() {
-      assert.isFalse(UtilityTray.overlay.classList.contains('on-edge-gesture'));
+      assert.isFalse(UtilityTray.overlay.classList.contains('hidden'));
     });
   });
 
