@@ -2009,4 +2009,23 @@ suite('compose_test.js', function() {
       assert.equal(onInteractStub.callCount, 6);
     });
   });
+
+  suite('attach button management',function() {
+    var attachButton;
+
+    setup(function() {
+      attachButton = document.getElementById('messages-attach-button');
+      Compose.clear();
+    });
+
+    test('enabled in the beginning',function() {
+      assert.isFalse(attachButton.disabled);
+    });
+
+    test('disabled when the attachment memory exceeds 300K',function() {
+      Settings.mmsSizeLimitation = 300000;
+      Compose.append(mockAttachment(301000));
+      assert.isTrue(attachButton.disabled);
+    });
+  });
 });
