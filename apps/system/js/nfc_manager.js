@@ -388,6 +388,9 @@
       var promise = nfcdom.checkP2PRegistration(manifestURL);
       promise.then(result => {
         if (result) {
+          if (activeApp.isTransitioning() || activeApp.isSheetTransitioning()) {
+            return;
+          }
           // Top visible application's manifest Url is registered;
           // Start Shrink / P2P UI and wait for user to accept P2P event
           window.dispatchEvent(new CustomEvent('shrinking-start'));

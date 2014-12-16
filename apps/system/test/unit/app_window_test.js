@@ -2087,15 +2087,16 @@ suite('system/AppWindow', function() {
     });
   });
 
+  test('isSheetTransitioning', function() {
+    var testApp = new AppWindow(fakeAppConfig1);
+    testApp.element.classList.add('inside-edges');
+    assert.isTrue(testApp.isSheetTransitioning());
+  });
+
   suite('isTransitioning', function() {
     var testApp;
     setup(function() {
       testApp = new AppWindow(fakeAppConfig1);
-    });
-
-    test('app is inside-edges', function() {
-      testApp.element.classList.add('inside-edges');
-      assert.isTrue(testApp.isTransitioning());
     });
 
     test('app is opening', function() {
