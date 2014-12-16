@@ -79,46 +79,9 @@ FakeTextSelectionApp.prototype = {
    * @param {String} ele query string of dom element.
    */
   press: function(target) {
-    var boxInfo = this.client.executeScript(
-      function(ele) {
-        var activeDom = document.querySelector(ele);
-        activeDom.click();
-        var defaultPosition = activeDom.getBoundingClientRect();
-        return {
-          top: defaultPosition.top,
-          left: defaultPosition.left,
-          right: defaultPosition.right,
-          bottom: defaultPosition.bottom
-        };
-      }, [FakeTextSelectionApp.Selector[target]]);
-    // TextSelection dialog exists in system app scope.
-    this.client.switchToFrame();
-    this.client.executeScript(function(boxInfoTop, boxInfoBottom,
-                                       boxInfoLeft, boxInfoRight) {
-      window.dispatchEvent(new CustomEvent('mozChromeEvent', {
-        detail: {
-          type: 'selectionstatechanged',
-          detail: {
-            visible: true,
-            commands: {
-              canPaste: true,
-              canCut: true,
-              canCopy: true,
-              canSelectAll: true
-            },
-            offsetY: 0,
-            offsetX: 0,
-            zoomFactor: 1,
-            rect: {
-              top: boxInfoTop,
-              bottom: boxInfoBottom,
-              left: boxInfoLeft,
-              right: boxInfoRight
-            },
-            states: ['mouseup']
-          }
-        }
-      }));
-    }, [boxInfo.top, boxInfo.bottom, boxInfo.left, boxInfo.right]);
+    var dom = this.client.helper.waitForElement(
+      FakeTextSelectionApp.Selector[target]);
+    // wait for keyboard showing up first
+    this.actions.tap(dom, 10, 10).wait(2).longPress(dom, 2).perform();
   }
 };
