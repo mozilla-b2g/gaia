@@ -12,6 +12,14 @@ from marionette.marionette_test import parameterized
 
 class TestDsdsIncomingCallLogRecordedSim(GaiaTestCase):
 
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+
+        # We having some race conditions when the dialer is not correctly initialized
+        self.phone = Phone(self.marionette)
+        self.phone.launch()
+        self.apps.kill_all()
+
     @parameterized('1', 0)
     @parameterized('2', 1)
     def test_dsds_incoming_call_log_recorded_sim(self, sim_value):
