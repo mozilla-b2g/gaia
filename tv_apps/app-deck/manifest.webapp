@@ -22,5 +22,11 @@
   "permissions": {
     "webapps-manage": {},
     "systemXHR": {}
+  },
+  "datastores-access": {
+    "home_cards": {
+      "access": "readonly",
+      "description": "Read card list"
+    }
   }
 }

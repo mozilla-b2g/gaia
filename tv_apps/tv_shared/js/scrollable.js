@@ -239,7 +239,8 @@
         return false;
       }
 
-      var newIdx = parseInt(startNode.dataset.idx, 10);
+      var newIdx = startNode ?
+                       parseInt(startNode.dataset.idx, 10) : this.nodes.length;
       this.nodes.splice(newIdx, 0, newNode);
       this.listElem.appendChild(newNode);
       this._setNodesPosition();
