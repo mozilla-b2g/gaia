@@ -7,14 +7,47 @@
   var CardManager = function() {
   };
 
+  CardManager.STATES = Object.freeze({
+    'READY': 'READY',
+    'SYNCING': 'SYNCING'
+  });
+
   CardManager.prototype = evt({
     HIDDEN_ROLES: ['system', 'homescreen', 'addon'],
+
+    // Only two modes available: readonly and readwrite (default)
+    // 'readwrite' mode is for Smart-Home app only
+    // This '_mode' variable only affects CardStore.
+    _mode: 'readwrite',
+
+    _manifestURLOfCardStore: undefined,
 
     _cardStore: undefined,
 
     _cardList: [],
 
     installedApps: {},
+
+    // We have two states: READY and SYNCING. When we are in SYNCING mode, it
+    // means either _cardList is out-dated or cardStore is out-dated. We need to
+    // block anyone who try to access _cardList until cardManager turns back to
+    // READY state.
+    _state: CardManager.STATES.SYNCING,
+
+    get state() {
+      return this._state;
+    },
+
+    set state(to) {
+      if (CardManager.STATES[to] && CardManager.STATES[to] !== this._state) {
+        this._state = CardManager.STATES[to];
+        this.fire('state-changed', this._state);
+      }
+    },
+
+    isReady: function cr_isReady() {
+      return this.state === CardManager.STATES.READY;
+    },
 
     _isHiddenApp: function cm_isHiddenApp(role) {
       if (!role) {
@@ -27,85 +60,24 @@
       return this._cardList && this._cardList.length > 0;
     },
 
-    // When we store Application or Deck into data store,
-    // we serialize them into the form like this:
-    // {
-    //   manifestURL: 'app://gallery.gaiamobile.org/manifest.webapp',
-    //   name: 'Gallery',
-    //   type: 'Application'
-    // }
-    // this method do the job of serializing
     _serializeCard: function cm_serializeCard(card) {
-      var cardEntry;
-      if (card instanceof AppBookmark) {
-        cardEntry = {
-          manifestURL: card.nativeApp.manifestURL,
-          name: card.name,
-          thumbnail: card.thumbnail,
-          launchURL: card.launchURL,
-          type: 'AppBookmark'
-        };
-      }
-      else if (card instanceof Application) {
-        cardEntry = {
-          manifestURL: card.nativeApp.manifestURL,
-          name: card.name,
-          type: 'Application'
-        };
-      } else if (card instanceof Deck) {
-        // A deck doesn't need background color because it is always full-sized
-        // icon. If not, it is an issue from visual's image.
-        cardEntry = {
-          name: card.name,
-          cachedIconURL: card.cachedIconURL,
-          manifestURL: card.nativeApp && card.nativeApp.manifestURL,
-          type: 'Deck'
-        };
-      } else if (card instanceof Folder) {
-        cardEntry = {
-          name: card.name,
-          folderId: card.folderId,
-          type: 'Folder'
-        }
-      }
-      return cardEntry;
+      return card && card.serialize();
     },
 
     _deserializeCardEntry: function cm_deserializeCardEntry(cardEntry) {
       var cardInstance;
       switch (cardEntry.type) {
         case 'Application':
-          cardInstance = new Application({
-            nativeApp: this.installedApps[cardEntry.manifestURL],
-            name: cardEntry.name
-          });
+          cardInstance = Application.deserialize(cardEntry, this.installedApps);
           break;
         case 'Deck':
-          cardInstance = new Deck({
-            name: cardEntry.name,
-            nativeApp: cardEntry.manifestURL &&
-                       this.installedApps[cardEntry.manifestURL],
-            cachedIconURL: cardEntry.cachedIconURL
-          });
+          cardInstance = Deck.deserialize(cardEntry, this.installedApps);
           break;
         case 'AppBookmark':
-          cardInstance = new AppBookmark({
-            nativeApp: this.installedApps[cardEntry.manifestURL],
-            name: cardEntry.name,
-            thumbnail: cardEntry.thumbnail,
-            launchURL: cardEntry.launchURL
-          });
+          cardInstance = AppBookmark.deserialize(cardEntry, this.installedApps);
           break;
         case 'Folder':
-          cardInstance = new Folder({
-            name: cardEntry.name,
-            folderId: cardEntry.folderId,
-            // The content of folder is saved in datastore under key of folderId
-            // thus we are not complete deserialize it yet, mark its state
-            // as 'DESERIALIZING'. Caller needs to put content of the folder
-            // back to its structure. Please refer to _reloadCardList().
-            state: Folder.STATES.DESERIALIZING
-          });
+          cardInstance = Folder.deserialize(cardEntry);
           // Save the folder into card store whenever we receives
           // folder-changed event
           cardInstance.on('folder-changed', this._onFolderChange.bind(this));
@@ -118,12 +90,16 @@
       var that = this;
       return new Promise(function(resolve, reject) {
         if (folder instanceof Folder && folder.cardsInFolder.length > 0) {
+          that.state = CardManager.STATES.SYNCING;
           var cardEntriesInFolder =
             folder.cardsInFolder.map(that._serializeCard.bind(that));
           that._cardStore.saveData(folder.folderId,
             cardEntriesInFolder).then(function() {
               folder.state = Folder.STATES.NORMAL;
-            }).then(resolve, reject);
+            }).then(function() {
+              that.state = CardManager.STATES.READY;
+              resolve();
+            }, reject);
         } else {
           reject();
         }
@@ -138,6 +114,7 @@
     writeCardlistInCardStore: function cm_writeCardlistInCardStore() {
       var that = this;
       return new Promise(function(resolve, reject) {
+        that.state = CardManager.STATES.SYNCING;
         var cardEntries =
           that._cardList.map(that._serializeCard.bind(that));
         that._cardStore.saveData('cardList', cardEntries).then(function() {
@@ -156,7 +133,10 @@
             }
           });
           // resolve current promise only when all saveData is finished
-          Promise.all(saveDataPromises).then(resolve);
+          Promise.all(saveDataPromises).then(function() {
+            that.state = CardManager.STATES.READY;
+            resolve();
+          });
         }, reject);
       });
     },
@@ -193,8 +173,19 @@
     },
 
     _onCardStoreChange: function cm_onCardStoreChange(evt) {
+      var that = this;
       if (evt.id === 'cardList' && evt.operation === 'updated') {
-        this.fire('card-changed');
+        this.state = CardManager.STATES.SYNCING;
+        // When we receives 'cardlist-changed' in readonly mode, it means
+        // Smart-Home app has change cardList. We'd better re-fetch cardList
+        // as a whole.
+        if (this._mode === 'readonly') {
+          this._cardList = [];
+        }
+        this._reloadCardList().then(function() {
+          that.state = CardManager.STATES.READY;
+          that.fire('cardlist-changed');
+        });
       }
     },
 
@@ -210,37 +201,46 @@
       var that = this;
       return this._getPipedPromise('_reloadCardList',
         function(resolve, reject) {
-          // load card from datastore
+          // initialize card store if needed
           if (!that._cardStore) {
-            that._cardStore = new CardStore();
+            that._cardStore =
+              new CardStore(that._mode, that._manifestURLOfCardStore);
             that._cardStore.on('change', that._onCardStoreChange.bind(that));
           }
+          that.state = CardManager.STATES.SYNCING;
           that._cardStore.getData('cardList').then(function(cardList) {
             if (cardList) {
               cardList.forEach(function(cardEntry) {
-                var card = that._deserializeCardEntry(cardEntry);
-                // The cards inside of folder are not saved nested in
-                // datastore 'cardList'. But we explicit save them under key
-                // of folderId. So we need to retrieve them by their folderId
-                // and put them back to folders where they belong.
-                if (card instanceof Folder &&
-                    card.state === Folder.STATES.DESERIALIZING) {
-                  // to load content of folder
-                  that._cardStore.getData(card.folderId).then(
-                    function(innerCardList) {
-                      innerCardList.forEach(function(innerCardEntry) {
-                        card.cardsInFolder.push(
-                          that._deserializeCardEntry(innerCardEntry));
+                var found = that.findCardFromCardList({cardEntry: cardEntry});
+                if (!found) {
+                  var card = that._deserializeCardEntry(cardEntry);
+                  // The cards inside of folder are not saved nested in
+                  // datastore 'cardList'. But we explicit save them under key
+                  // of folderId. So we need to retrieve them by their folderId
+                  // and put them back to folders where they belong.
+                  if (card instanceof Folder &&
+                      card.state === Folder.STATES.DESERIALIZING) {
+                    // to load content of folder
+                    that._cardStore.getData(card.folderId).then(
+                      function(innerCardList) {
+                        innerCardList.forEach(function(innerCardEntry) {
+                          card.cardsInFolder.push(
+                            that._deserializeCardEntry(innerCardEntry));
+                        });
                       });
-                    });
+                  }
+                  that._cardList.push(card);
                 }
-                that._cardList.push(card);
               });
               resolve();
             } else {
               // no cardList in datastore, load default from config file
-              that._loadDefaultCardList().then(resolve, reject);
+              that._loadDefaultCardList().then(function() {
+                resolve();
+              }, reject);
             }
+          }).then(function() {
+            that.state = CardManager.STATES.READY;
           });
         });
     },
@@ -404,9 +404,17 @@
                         this._cardList[idx1], this._cardList[idx2], idx1, idx2);
     },
 
-    init: function cm_init() {
+    init: function cm_init(mode) {
       var that = this;
       var appMgmt = navigator.mozApps.mgmt;
+      this._mode = mode || 'readwrite';
+      // If we are running in readonly mode, we need to tell card store what
+      // manifestURL of the datastore we are going to use, because we are not
+      // using card store of current app.
+      if (this._mode === 'readonly') {
+        this._manifestURLOfCardStore =
+         'app://smart-home.gaiamobile.org/manifest.webapp';
+      }
       return this._getPipedPromise('init', function(resolve, reject) {
         appMgmt.getAll().onsuccess = function onsuccess(event) {
           event.target.result.forEach(function eachApp(app) {
@@ -433,6 +441,7 @@
       appMgmt.oninstall = null;
       appMgmt.onuninstall = null;
 
+      this.state = CardManager.STATES.SYNCING;
       this._cardList = [];
       this._cardStore.off('change');
       this._cardStore = undefined;
@@ -516,6 +525,7 @@
       });
     },
 
+    // TODO: need to be protected by state and _reloadCardList
     getCardList: function cm_getCardList() {
       var that = this;
       return this._getPipedPromise('getCardList', function(resolve, reject) {
@@ -529,17 +539,36 @@
       });
     },
 
+    // TODO: need to be protected by state and _reloadCardList
+    // There are three types of query:
+    // 1. query by cardId
+    // 2. query by manifestURL
+    // 3. query by cardEntry (i.e. serialized card)
     findCardFromCardList: function cm_findCardFromCardList(query) {
       var found;
       this._cardList.some(function(card) {
         if (card.cardId === query.cardId) {
           found = card;
           return true;
+        } else if (query.manifestURL && card.nativeApp &&
+            card.nativeApp.manifestURL === query.manifestURL) {
+
+          found = card;
+          return true;
+        } else if (query.cardEntry) {
+          // XXX: this could be bad at performance because we serialize card
+          // in every loop. We might need improvement on this query.
+          if (JSON.stringify(card.serialize()) ===
+              JSON.stringify(query.cardEntry)) {
+            found = card;
+            return true;
+          }
         }
       })
       return found;
     },
 
+    // TODO: need to be protected by state and _reloadCardList
     findFolderFromCardList: function cm_findFolderFromCardList(query) {
       var found;
       this._cardList.some(function(card) {
@@ -549,6 +578,23 @@
         }
       })
       return found;
+    },
+
+    isPinned: function cm_isPinned(options) {
+      var that = this;
+      return this._getPipedPromise('isPinned', function(resolve, reject) {
+        // we only answered isPinned when card manager is in READY state
+        if (that.isReady()) {
+          resolve(!!that.findCardFromCardList(options));
+        } else {
+          // card manager is not ready, so we append query at the end of
+          // promise of _reloadCardList (which would guarantee card manager will
+          // be READY eventually)
+          that._reloadCardList().then(function() {
+            resolve(!!that.findCardFromCardList(options));
+          })
+        }
+      });
     }
   });
 

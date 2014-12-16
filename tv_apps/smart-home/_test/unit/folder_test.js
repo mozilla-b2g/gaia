@@ -4,11 +4,11 @@
 
 require('/tv_shared/js/vendor/evt.js');
 require('/shared/js/uuid.js');
-require('/js/card.js');
-require('/js/deck.js');
-require('/js/folder.js');
+require('/tv_shared/js/cards/card.js');
+require('/tv_shared/js/cards/deck.js');
+require('/tv_shared/js/cards/folder.js');
 
-suite('smart-home/CardManager', function() {
+suite('tv_shared/Folder', function() {
   var folder;
   var stubFolder;
   var deck;

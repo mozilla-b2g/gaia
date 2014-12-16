@@ -11,6 +11,17 @@
     Card.prototype.constructor.call(this);
   };
 
+  Application.deserialize = function app_deserialize(cardEntry, installedApps) {
+    var cardInstance;
+    if (cardEntry && installedApps && cardEntry.type === 'Application') {
+      cardInstance = new Application({
+        nativeApp: installedApps[cardEntry.manifestURL],
+        name: cardEntry.name
+      });
+    }
+    return cardInstance;
+  };
+
   Application.prototype = Object.create(Card.prototype);
 
   Application.prototype.constructor = Application;
@@ -29,6 +40,14 @@
     if (this.nativeApp && this.nativeApp.launch) {
       this.nativeApp.launch(args);
     }
+  };
+
+  Application.prototype.serialize = function app_serialize() {
+    return {
+      manifestURL: this.nativeApp.manifestURL,
+      name: this.name,
+      type: 'Application'
+    };
   };
 
   exports.Application = Application;

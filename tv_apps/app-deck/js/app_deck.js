@@ -1,5 +1,5 @@
 /* global SpatialNavigator, SharedUtils, Applications, URL,
-  KeyNavigationAdapter, ContextMenu */
+  KeyNavigationAdapter, ContextMenu, CardManager */
 
 (function(exports) {
   'use strict';
@@ -24,10 +24,16 @@
 
     _appDeckListScrollable: undefined,
 
+    _cardManager: undefined,
+
     init: function ad_init() {
       var that = this;
       this._keyNavigationAdapter = new KeyNavigationAdapter();
       this._keyNavigationAdapter.init();
+      this._cardManager = new CardManager();
+      this._cardManager.init('readonly').then(function() {
+        that._cardManager.on('cardlist-changed', that.onCardListChanged.bind(that));
+      });
 
       Applications.init(function() {
         var apps = Applications.getAllAppEntries();
@@ -106,6 +112,31 @@
       return container;
     },
 
+    onCardListChanged: function ad_onCardListChanged() {
+      if (this._focusElem) {
+        this.fireFocusEvent(this._focusElem);
+      }
+    },
+
+    fireFocusEvent: function ad_fireFocusEvent(elem) {
+      var that = this;
+      if (elem.dataset && elem.dataset.manifestURL) {
+        this._cardManager.isPinned({
+          manifestURL: elem.dataset.manifestURL,
+          entryPoint: elem.dataset.entryPoint
+        }).then(function(pinned) {
+          that.fire('focus-on-pinable', {
+            pinned: pinned,
+            manifestURL: elem.dataset.manifestURL,
+            entryPoint: elem.dataset.entryPoint,
+            name: elem.dataset.name
+          });
+        });
+      } else {
+        this.fire('focus-on-nonpinable');
+      }
+    },
+
     onFocus: function ad_onFocus(elem) {
       if (elem instanceof XScrollable) {
         elem.spatialNavigator.focus(elem.spatialNavigator.getFocusedElement());
@@ -116,15 +147,7 @@
         this._selectionBorder.selectRect(elem);
       }
 
-      if (elem.dataset && elem.dataset.manifestURL) {
-        this.fire('focus-on-pinable', {
-          manifestURL: elem.dataset.manifestURL,
-          entryPoint: elem.dataset.entryPoint,
-          name: elem.dataset.name
-        });
-      } else {
-        this.fire('focus-on-nonpinable');
-      }
+      this.fireFocusEvent(elem);
     },
 
     onEnter: function ad_onEnter() {

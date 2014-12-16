@@ -8,11 +8,11 @@ require('/tv_shared/js/shared_utils.js');
 require('/test/unit/mock_piped_promise.js');
 require('/test/unit/mock_card_store.js');
 require('/test/unit/mock_xml_http_request.js');
-require('/js/card.js');
-require('/js/deck.js');
-require('/js/folder.js');
-require('/js/application.js');
-require('/js/app_bookmark.js');
+require('/tv_shared/js/cards/card.js');
+require('/tv_shared/js/cards/deck.js');
+require('/tv_shared/js/cards/folder.js');
+require('/tv_shared/js/cards/application.js');
+require('/tv_shared/js/cards/app_bookmark.js');
 
 suite('smart-home/CardManager', function() {
   var realPipedPromise;
@@ -24,7 +24,7 @@ suite('smart-home/CardManager', function() {
     // promise. So we use a MockPipedPromise (which is just a genuine native
     // Promise) instead.
     window.PipedPromise = MockPipedPromise;
-    require('/js/card_manager.js', function() {
+    require('/tv_shared/js/card_manager.js', function() {
       done();
     });
   });
