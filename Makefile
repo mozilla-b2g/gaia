@@ -17,10 +17,6 @@
 #                                                                             #
 # MOZPERFOUT  : File path to output mozperf data. Empty mean stdout.          #
 #                                                                             #
-# MARIONETTE_RUNNER_HOST : The Marionnette runner host.                       #
-#                          Current values can be 'marionette-b2gdesktop-host' #
-#                          and 'marionette-device-host'                       #
-#                                                                             #
 # COVERAGE    : Add blanket testing coverage report to use for test output.   #
 #                                                                             #
 # GAIA_APP_CONFIG : The app.list file representing applications to include in #
@@ -172,10 +168,8 @@ export BUILDAPP
 export npm_config_loglevel=warn
 ifneq ($(BUILDAPP),desktop)
 REPORTER?=mocha-tbpl-reporter
-MARIONETTE_RUNNER_HOST?=marionette-socket-host
 endif
 REPORTER?=spec
-MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 TEST_MANIFEST?=./shared/test/integration/local-manifest.json
 MOZPERFOUT?=""
 
@@ -764,9 +758,8 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
 test-integration-test:
+	TEST_MANIFEST=$(TEST_MANIFEST) \
 	./bin/gaia-marionette \
-		--host $(MARIONETTE_RUNNER_HOST) \
-		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER) \
 		--buildapp $(BUILDAPP)
 
@@ -780,7 +773,6 @@ caldav-server-install:
 .PHONY: test-perf
 test-perf:
 	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" \
-	MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" \
 	REPORTER=$(REPORTER) \
 	./bin/gaia-perf-marionette
 
