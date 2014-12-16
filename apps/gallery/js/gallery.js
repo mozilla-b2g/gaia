@@ -267,8 +267,7 @@ function initDB() {
     if (!picking) {
       setView(LAYOUT_MODE.list);
     } else {
-      setView(LAYOUT_MODE.pick);
-      cleanupCrop();
+      Pick.restart();
     }
 
     // If storage becomes unavailble (e.g. the user starts a USB Mass Storage
