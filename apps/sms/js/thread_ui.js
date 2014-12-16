@@ -451,7 +451,7 @@ var ThreadUI = {
   },
 
   showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey) {
-    Compose.lock = true;
+    Compose.lock();
     this.maxLengthNotice.querySelector('p').setAttribute(
       'data-l10n-id',
       l10nKey
@@ -460,7 +460,7 @@ var ThreadUI = {
   },
 
   hideMaxLengthNotice: function thui_hideMaxLengthNotice() {
-    Compose.lock = false;
+    Compose.unlock();
     this.maxLengthNotice.classList.add('hide');
   },
 
