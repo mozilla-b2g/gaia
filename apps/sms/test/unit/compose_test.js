@@ -2012,9 +2012,14 @@ suite('compose_test.js', function() {
     });
 
     test('disabled when the attachment memory exceeds 300K',function() {
-      Settings.mmsSizeLimitation = 300000;
-      Compose.append(mockAttachment(301000));
+      Compose.lock();
       assert.isTrue(attachButton.disabled);
+      Compose.clear();
+    });
+
+    test('enabled again when the attachment memory is below 300K',function() {
+      Compose.unlock();
+      assert.isFalse(attachButton.disabled);
     });
   });
 });

@@ -665,11 +665,6 @@ suite('thread_ui.js >', function() {
 
       test('The composer has the correct state', function() {
         assert.isFalse(
-         // state.locked,
-          'lock is disabled'
-        );
-
-        assert.isFalse(
           convertBanner.classList.contains('hide'),
           'the conversion notice is displayed'
         );
@@ -705,10 +700,6 @@ suite('thread_ui.js >', function() {
           'messages-max-length-text'
         );
       });
-
-      test('lock is enabled', function() {
-        //assert.isTrue(state.locked);
-      });
     });
 
     suite('over size limit in mms >', function() {
@@ -728,10 +719,6 @@ suite('thread_ui.js >', function() {
           banner.querySelector('p').getAttribute('data-l10n-id'),
           'message-exceeded-max-length'
         );
-      });
-
-      test('lock is enabled', function() {
-        //assert.isTrue(state.locked);
       });
     });
   });
