@@ -21,6 +21,7 @@
     <!-- We need this before we can show the boot animation -->
     <script src="shared/js/async_storage.js"></script>
     <script src="tv_shared/js/settings_cache.js"></script>
+    <script defer src="tv_shared/js/vendor/evt.js"></script>
     <script defer src="shared/js/manifest_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/settings_url.js"></script>
@@ -76,6 +77,9 @@
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia_progress/style/external.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/gaia-theme.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
+    <!-- Include tv shared web components -->
+    <link rel="stylesheet" type="text/css" href="tv_shared/components/smart-button/style.css">
+    <link rel="stylesheet" type="text/css" href="tv_shared/components/smart-banner/style.css">
 
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
 
@@ -88,6 +92,9 @@
     <script defer src="shared/elements/gaia_progress/script.js"></script>
     <script defer src="shared/elements/gaia_subheader/script.js"></script>
     <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <!-- Include tv shared web components -->
+    <script defer src="tv_shared/components/smart-button/script.js"></script>
+    <script defer src="tv_shared/components/smart-banner/script.js"></script>
 
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -195,6 +202,7 @@
     <script defer src="js/app_install_manager.js"></script>
 
     <!-- Notifications -->
+    <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
     <script defer src="js/notifications.js"></script>
     <script defer src="js/interactive_notifications.js"></script>
 
@@ -723,6 +731,17 @@
           </gaia-buttons>
         </div>
       </div>
+      <!-- notification ui -->
+      <smart-banner id="notification-container" class="hidden fading-out closed" data-z-index-level="system-notification-banner">
+        <div class="notification-message">
+          <span id="notification-title" class="notification-title"></span>
+          <span id="notification-body" class="notification-body"></span>
+        </div>
+        <menu id="notification-button-group" class="notification-button-group">
+          <smart-button id="notification-button-0" type="simple-text"></smart-button>
+          <smart-button id="notification-button-1" type="simple-text"></smart-button>
+        </menu>
+      </smart-banner>
 
       <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">
