@@ -138,6 +138,14 @@
   background-color: rgba(204,204,204,0.4);
 }
 
+.appWindow.private.collapsible .controls .urlbar {
+  background-color: #922cb3; /* Adjusted for background + opacity overlay */
+}
+
+.appWindow.private .maximized .controls .urlbar {
+  background-color: rgba(204, 204, 204, 0.2);
+}
+
 .chrome .controls .urlbar .title {
   width: calc(100% - 3.2rem);
   padding-top: 0;
