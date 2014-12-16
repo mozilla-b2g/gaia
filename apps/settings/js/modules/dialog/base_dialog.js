@@ -21,12 +21,12 @@ define(function(require) {
   };
 
   BaseDialog.prototype.initUI = function bd_initUI() {
-    var message = this._options.message || '';
-    var title = this._options.title || '';
-    var submitButtonText = this._options.submitButtonText ||  '';
-    var cancelButtonText = this._options.cancelButtonText || '';
+    var message = this._options.message;
+    var title = this._options.title;
+    var submitButtonText = this._options.submitButtonText;
+    var cancelButtonText = this._options.cancelButtonText;
 
-    this._updateMessages(message);
+    this._updateMessage(message);
     this._updateTitle(title);
     this._updateSubmitButtonText(submitButtonText);
     this._updateCancelButtonText(cancelButtonText);
@@ -44,32 +44,53 @@ define(function(require) {
     };
   };
 
-  BaseDialog.prototype._updateMessages = function bd__updateMessages(message) {
-    var messageDOMs = this.panel.querySelectorAll(this.MESSAGE_SELECTOR);
-    for (var i = 0; i < messageDOMs.length; i++) {
-      messageDOMs[i].textContent = message;
+  BaseDialog.prototype._updateMessage = function bd__updateMessage(message) {
+    var messageDOM = this.panel.querySelector(this.MESSAGE_SELECTOR);
+    if (messageDOM && message) {
+      message = this._getWrapL10nObject(message);
+      navigator.mozL10n.setAttributes(messageDOM, message.id, message.args);
     }
   };
 
   BaseDialog.prototype._updateTitle = function bd__updateTitle(title) {
     var titleDOM = this.panel.querySelector(this.TITLE_SELECTOR);
     if (titleDOM && title) {
-      titleDOM.textContent = title;
+      title = this._getWrapL10nObject(title);
+      navigator.mozL10n.setAttributes(titleDOM, title.id, title.args);
     }
   };
 
   BaseDialog.prototype._updateSubmitButtonText = function bd__updateText(text) {
     var buttonDOM = this.getSubmitButton();
     if (buttonDOM && text) {
-      buttonDOM.textContent = text;
+      text = this._getWrapL10nObject(text);
+      navigator.mozL10n.setAttributes(buttonDOM, text.id, text.args);
     }
   };
 
   BaseDialog.prototype._updateCancelButtonText = function bd__updateText(text) {
     var buttonDOM = this.getCancelButton();
     if (buttonDOM && text) {
-      buttonDOM.textContent = text;
+      text = this._getWrapL10nObject(text);
+      navigator.mozL10n.setAttributes(buttonDOM, text.id, text.args);
     }
+  };
+
+  BaseDialog.prototype._getWrapL10nObject =
+    function bd__getWrapL10nObject(input) {
+      if (typeof input === 'string') {
+        return {id: input, args: null};
+      } else if (typeof input === 'object') {
+        if (typeof input.id === 'undefined') {
+          throw new Error('You forgot to put l10nId - ' +
+            JSON.stringify(input));
+        } else {
+          return {id: input.id, args: input.args || null};
+        }
+      } else {
+        throw new Error('You are using the wrong L10nObject, ' +
+          'please check its format again');
+      }
   };
 
   BaseDialog.prototype.getDOM = function bd_getDOM() {
@@ -85,9 +106,12 @@ define(function(require) {
   };
 
   BaseDialog.prototype.cleanup = function bd_cleanup() {
-    // reset predefined values
-    this._updateTitle('');
-    this._updateMessages('');
+    // We only have to restore system-wise panels instead of custom panels
+    if (this.DIALOG_CLASS !== 'panel-dialog') {
+      this._updateTitle('settings-' + this.DIALOG_CLASS + '-header');
+      this._updateSubmitButtonText('ok');
+      this._updateCancelButtonText('cancel');
+    }
 
     // clear all added classes
     this.panel.classList.remove(this.DIALOG_CLASS);
