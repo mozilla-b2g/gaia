@@ -8,4 +8,3 @@ user_pref('b2g.system_manifest_url',
           'app://smart-system.gaiamobile.org/manifest.webapp');
 user_pref('b2g.neterror.url',
           'app://smart-system.gaiamobile.org/net_error.html');
-user_pref('layout.css.devPixelsPerPx', '0.75');
