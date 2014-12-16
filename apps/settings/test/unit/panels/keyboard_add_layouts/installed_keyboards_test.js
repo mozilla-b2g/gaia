@@ -1,6 +1,7 @@
 'use strict';
 
 suite('KeyboardAddLayoutsCore', function() {
+  var realL10n;
   var map = {
     'panels/keyboard_add_layouts/core': {
       'modules/settings_service': 'unit/mock_settings_service',
@@ -9,6 +10,11 @@ suite('KeyboardAddLayoutsCore', function() {
   };
 
   suiteSetup(function(done) {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = {
+      get: function() {}
+    };
+
     // setup mocks
     this.mockKeybordTemplate = function() {};
     this.mockKeybordTemplate.listViews =
@@ -27,6 +33,10 @@ suite('KeyboardAddLayoutsCore', function() {
         this.KeyboardAddLayoutsCore = KeyboardAddLayoutsCore;
         done();
     }.bind(this));
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
   });
 
   setup(function() {
