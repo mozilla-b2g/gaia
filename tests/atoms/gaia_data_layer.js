@@ -693,6 +693,14 @@ var GaiaDataLayer = {
     });
   },
 
+  addNotification: function(title, options) {
+    new Notification(title, options)
+  },
+
+  clearNotifications: function() {
+    window.wrappedJSObject.NotificationScreen.clearAll()
+  },
+
   base64ToBlob: function(base64, mimeType) {
       var binary = atob(base64);
       var len = binary.length;
