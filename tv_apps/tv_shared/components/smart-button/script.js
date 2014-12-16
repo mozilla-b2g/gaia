@@ -5,10 +5,6 @@ window.SmartButton = (function(win) {
   // Extend from the HTMLButtonElement prototype
   var proto = Object.create(HTMLButtonElement.prototype);
 
-  // Allow baseurl to be overridden (used for demo page)
-  var baseurl = window.SmartButtonBaseurl ||
-    '/components/smart-button/';
-
   proto.createdCallback = function() {
     this.addEventListener('mousedown', this);
     this.addEventListener('mouseup', this);
