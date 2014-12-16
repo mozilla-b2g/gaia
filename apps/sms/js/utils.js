@@ -132,14 +132,6 @@
       return details;
     },
 
-    extend: function ut_extend(target, source) {
-      for (var key in source) {
-        if (source.hasOwnProperty(key)) {
-          target[key] = source[key];
-        }
-      }
-    },
-
     /**
      * Based on input number tries to extract more phone details like phone
      * type, full phone number and phone carrier.
