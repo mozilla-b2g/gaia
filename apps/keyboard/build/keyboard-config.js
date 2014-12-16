@@ -27,12 +27,17 @@ function copyLayoutsAndResources(appDir, distDir, layoutNames) {
     layout.file.copyTo(layoutDest, layout.file.leafName);
 
     try {
-      if (layout.imEngineDir)
-        layout.imEngineDir.copyTo(imeDest, layout.imEngineDir.leafName);
+      if (layout.imEngineDir) {
+        var  imEngineDirDest = imeDest.clone();
+        imEngineDirDest.append(layout.imEngineDir.leafName);
+        if (!imEngineDirDest.exists()) {
+          layout.imEngineDir.copyTo(imeDest, layout.imEngineDir.leafName);
+        }
+      }
     }
     catch(e) {
       throw new Error('Unknown ime directory ' + layout.imEngineDir.path +
-                      ' for keyboard layout ' + layout.name);
+                      ' for keyboard layout ' + layout.name + ' error: ' + e);
 
     }
 
