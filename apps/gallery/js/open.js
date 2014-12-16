@@ -187,7 +187,23 @@ navigator.mozL10n.once(function() {
       // function gets called.
       //
       if (blob.size < MAX_FILE_SIZE) {
-        frame.displayImage(blob);
+        var offscreenImage = new Image();
+        var url = URL.createObjectURL(blob);
+        offscreenImage.src = url;
+
+        offscreenImage.onerror = function() {
+          URL.revokeObjectURL(url);
+          offscreenImage.src = '';
+          error('createThumbnailAndPreview: Image failed to load');
+        };
+
+        offscreenImage.onload = function() {
+          URL.revokeObjectURL(url);
+
+          var iw = offscreenImage.width;
+          var ih = offscreenImage.height;
+          frame.displayImage(blob, iw, ih, null, 0, false);
+        };
       }
       else {
         displayError('imagetoobig');
