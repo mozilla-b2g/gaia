@@ -453,7 +453,7 @@
 
     // If there are no cards left, then dismiss the task switcher.
     if (!cardsLength) {
-      this.hide(removeImmediately);
+      this.hide(removeImmediately, -1);
     }
     else {
       this.alignCurrentCard();

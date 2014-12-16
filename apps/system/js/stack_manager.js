@@ -205,7 +205,7 @@ var StackManager = {
         this._remove(instanceID);
         break;
       case 'cardviewclosed':
-        if (e.detail && e.detail.newStackPosition) {
+        if (e.detail && e.detail.newStackPosition !== undefined) {
           this.position = e.detail.newStackPosition;
         }
         break;
