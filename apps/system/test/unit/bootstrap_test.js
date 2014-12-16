@@ -200,18 +200,9 @@ suite('system/Bootstrap', function() {
     var setting = 'gaia.system.checkForUpdates';
     suite('after First Time User setup has been done', function() {
       setup(function() {
-        // mock
-        window.SettingsMigrator = function() {
-          this.start = function() {};
-        };
-        // this.sinon.stub(SettingsMigrator, 'start');
         MockNavigatorSettings.mSettings[setting] = false;
         window.dispatchEvent(new CustomEvent('load'));
         window.dispatchEvent(new CustomEvent('ftudone'));
-      });
-
-      teardown(function() {
-        window.SettingsMigrator = null;
       });
 
       test('should be enabled', function() {
@@ -221,18 +212,10 @@ suite('system/Bootstrap', function() {
 
     suite('at boot, if NOFTU is defined (i.e in DEBUG mode)', function() {
       setup(function() {
-        // mock
-        window.SettingsMigrator = function() {
-          this.start = function() {};
-        };
         Applications.ready = true;
         MockNavigatorSettings.mSettings[setting] = false;
         window.dispatchEvent(new CustomEvent('load'));
         window.dispatchEvent(new CustomEvent('ftuskip'));
-      });
-
-      teardown(function() {
-        window.SettingsMigrator = null;
       });
 
       test('should be enabled', function() {

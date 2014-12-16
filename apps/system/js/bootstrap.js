@@ -13,7 +13,7 @@
          TextSelectionDialog, SleepMenu, AppUsageMetrics,
          LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor,
-         BrowserSettings, AppMigrator, SettingsMigrator,
+         BrowserSettings, AppMigrator,
          CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
          BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager,
          TrustedUIManager */
@@ -117,9 +117,6 @@ window.addEventListener('load', function startup() {
     lock.set({
       'gaia.system.checkForUpdates': true
     });
-    // make sure new key is available in system
-    window.settingsMigrator = new SettingsMigrator();
-    window.settingsMigrator.start();
   }
 
   window.addEventListener('ftudone', doneWithFTU);
