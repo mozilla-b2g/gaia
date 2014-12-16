@@ -166,6 +166,7 @@ var icc = {
       cmdId = '0x' + message.command.typeOfCommand.toString(16);
     }
     if (icc_worker[cmdId]) {
+      this.resize();
       return icc_worker[cmdId](message);
     }
 
@@ -307,6 +308,11 @@ var icc = {
       form[0].style.height = formHeight + 'px';
       input.scrollIntoView();
     }
+  },
+
+  resize: function() {
+    var height = window.layoutManager.height - StatusBar.height;
+    this.icc_view.style.height = height + 'px';
   },
 
   alert: function icc_alert(stkMessage, message) {
