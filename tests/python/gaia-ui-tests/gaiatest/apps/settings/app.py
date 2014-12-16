@@ -43,6 +43,7 @@ class Settings(Base):
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
     _homescreen_menu_item_locator = (By.ID, 'menuItem-homescreen')
     _browsing_privacy_item_locator = (By.ID, 'menuItem-browsingPrivacy')
+    _findmydevice_locator = (By.ID, 'menuItem-findmydevice')
 
     def launch(self):
         Base.launch(self)
@@ -175,6 +176,11 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.wifi import Wifi
         self._tap_menu_item(self._wifi_menu_item_locator)
         return Wifi(self.marionette)
+
+    def open_findmydevice(self):
+        from gaiatest.apps.settings.regions.findmydevice import FindMyDevice
+        self._tap_menu_item(self._findmydevice_locator)
+        return FindMyDevice(self.marionette)
 
     def open_device_info_settings(self):
         from gaiatest.apps.settings.regions.device_info import DeviceInfo
