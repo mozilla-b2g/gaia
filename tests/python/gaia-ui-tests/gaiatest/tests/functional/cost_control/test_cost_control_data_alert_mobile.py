@@ -59,7 +59,10 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         self.marionette.switch_to_frame(usage_iframe)
 
         # make sure the color changed
+        # The timeout is increased, because for some reason, it takes some time
+        # before the limit view is shown (the browser has to finish loading?)
+        usage_view = self.marionette.find_element(
+                *self._data_usage_view_locator)
         self.wait_for_condition(
-            lambda m: 'reached-limit' in self.marionette.find_element(
-                *self._data_usage_view_locator).get_attribute('class'),
-            message='Data usage bar did not breach limit')
+            lambda m: 'reached-limit' in usage_view.get_attribute('class'),
+            message='Data usage bar did not breach limit', timeout=40)
