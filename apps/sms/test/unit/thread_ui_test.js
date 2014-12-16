@@ -498,7 +498,7 @@ suite('thread_ui.js >', function() {
       banner.classList.remove('hide');
 
       // add a lock to check that it is correctly removed
-      Compose.lock = true;
+      Compose.lock();
 
       Compose.on.withArgs('input').yield();
     }
@@ -665,7 +665,7 @@ suite('thread_ui.js >', function() {
 
       test('The composer has the correct state', function() {
         assert.isFalse(
-          Compose.lock,
+          state.locked,
           'lock is disabled'
         );
 
@@ -707,7 +707,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('lock is enabled', function() {
-        assert.isTrue(Compose.lock);
+        assert.isTrue(state.locked);
       });
     });
 
@@ -731,7 +731,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('lock is enabled', function() {
-        assert.isTrue(Compose.lock);
+        assert.isTrue(state.locked);
       });
     });
   });

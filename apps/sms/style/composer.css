@@ -338,3 +338,8 @@ html[dir=rtl] .sim-indication:before {
   right: unset;
   left: .8rem;
 }
+
+#messages-attach-button[disabled] {
+  background-blend-mode: luminosity;
+  opacity: 0.3;
+}
