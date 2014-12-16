@@ -67,4 +67,6 @@ class TestDsdsIncomingCallLogRecordedSim(GaiaTestCase):
         if self.call_uuid:
             self.plivo.hangup_call(self.call_uuid)
 
+        self.data_layer.delete_all_call_log_entries()
+
         GaiaTestCase.tearDown(self)
