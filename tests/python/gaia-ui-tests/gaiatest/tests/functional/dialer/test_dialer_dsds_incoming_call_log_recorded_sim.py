@@ -56,6 +56,8 @@ class TestDsdsIncomingCallLogRecordedSim(GaiaTestCase):
         self.assertTrue(call_log.call_list[0].is_sim_recorded(sim_value))
 
     def tearDown(self):
+        self.data_layer.delete_all_call_log_entries()
+
         # Switch back to main frame before Marionette loses track bug #840931
         self.marionette.switch_to_frame()
 
@@ -66,7 +68,5 @@ class TestDsdsIncomingCallLogRecordedSim(GaiaTestCase):
         # Also ask Plivo to kill the call if needed
         if self.call_uuid:
             self.plivo.hangup_call(self.call_uuid)
-
-        self.data_layer.delete_all_call_log_entries()
 
         GaiaTestCase.tearDown(self)

@@ -396,7 +396,7 @@ class GaiaData(object):
 
     def delete_all_call_log_entries(self):
         """The call log needs to be open and focused in order for this to work."""
-        self.marionette.execute_script('window.wrappedJSObject.RecentsDBManager.deleteAll();')
+        self.marionette.execute_script('window.wrappedJSObject.CallLogDBManager.deleteDb();')
 
     def insert_call_entry(self, call):
         """The call log needs to be open and focused in order for this to work."""

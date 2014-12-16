@@ -36,10 +36,10 @@ class TestDsdsOutgoingCallLogRecordedSim(GaiaTestCase):
         self.assertTrue(call_log.call_list[0].is_sim_recorded(default_sim_value))
 
     def tearDown(self):
+        self.data_layer.delete_all_call_log_entries()
+
         # In case the assertion fails this will still kill the call
         # An open call creates problems for future tests
         self.data_layer.kill_active_call()
-
-        self.data_layer.delete_all_call_log_entries()
 
         GaiaTestCase.tearDown(self)
