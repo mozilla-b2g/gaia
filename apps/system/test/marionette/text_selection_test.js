@@ -11,7 +11,9 @@ marionette('Text selection >', function() {
   var client = marionette.client({
     apps: apps,
     prefs: {
-      'dom.w3c_touch_events.enabled': 1
+      'dom.w3c_touch_events.enabled': 1,
+      'docshell.device_size_is_page_size': true,
+      'dom.mozInputMethod.enabled': false
     },
     settings: {
       'ftu.manifestURL': null,
