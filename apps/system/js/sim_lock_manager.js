@@ -147,6 +147,9 @@
       var settingsManifestURL =
         'app://settings.gaiamobile.org/manifest.webapp';
       if (app.manifestURL == settingsManifestURL) {
+        if (this.simLockSystemDialog.visible) {
+          this.simLockSystemDialog.close();
+        }
         return;
       }
 
