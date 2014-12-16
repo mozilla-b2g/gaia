@@ -87,6 +87,12 @@ class Settings(Base):
         Wait(self.marionette).until(expected.element_displayed(reset_mobile_usage))
         reset_dialog = self.marionette.find_element(*self._reset_dialog_locator)
         reset_mobile_usage.tap()
+
+        confirm_reset_button = Wait(self.marionette).until(
+            expected.element_present(*self._confirm_reset_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(confirm_reset_button))
+        confirm_reset_button.tap()
+
         Wait(self.marionette).until(expected.element_not_displayed(reset_dialog))
 
     def tap_done(self):
