@@ -30,5 +30,8 @@ var MockUtils = {
   getDisplayObject: Utils.getDisplayObject,
   basicContact: Utils.basicContact,
   asyncLoadRevokeURL: Utils.asyncLoadRevokeURL,
-  closeNotificationsForThread: Utils.closeNotificationsForThread
+  closeNotificationsForThread: Utils.closeNotificationsForThread,
+  alert: Utils.alert,
+  confirm: Utils.confirm,
+  Promise: Utils.Promise
 };

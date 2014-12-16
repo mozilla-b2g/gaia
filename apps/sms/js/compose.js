@@ -652,7 +652,7 @@ var Compose = (function() {
 
     _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
       if (err === 'file too large') {
-        alert(navigator.mozL10n.get('files-too-large', { n: 1 }));
+        Utils.alert({ l10nId: 'files-too-large', l10nArgs: { n: 1 }});
       } else {
         console.warn('Unhandled error spawning activity:', err);
       }
