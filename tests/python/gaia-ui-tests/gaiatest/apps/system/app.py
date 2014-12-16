@@ -10,7 +10,7 @@ from gaiatest.apps.base import Base
 class System(Base):
 
     # status bar
-    _status_bar_locator = (By.CSS_SELECTOR, '.appWindow.active .titlebar')
+    _status_bar_locator = (By.ID, 'statusbar')
     _geoloc_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-geolocation')
     _airplane_mode_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-flight-mode')
     _utility_tray_locator = (By.ID, 'utility-tray')

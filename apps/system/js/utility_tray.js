@@ -153,10 +153,10 @@ window.UtilityTray = {
         break;
 
       case 'sheets-gesture-begin':
-        this.overlay.classList.add('on-edge-gesture');
+        this.overlay.classList.add('hidden');
         break;
       case 'sheets-gesture-end':
-        this.overlay.classList.remove('on-edge-gesture');
+        this.overlay.classList.remove('hidden');
         break;
 
       case 'launchapp':
@@ -258,7 +258,7 @@ window.UtilityTray = {
 
       case 'transitionend':
         if (!this.shown) {
-          this.overlay.classList.remove('visible');
+          this.screen.classList.remove('utility-tray');
         }
         break;
 
@@ -344,7 +344,6 @@ window.UtilityTray = {
     }
 
     this.validateCachedSizes();
-    this.overlay.classList.add('visible');
     var screenHeight = this.screenHeight;
 
     var y = touch.pageY;
@@ -357,18 +356,14 @@ window.UtilityTray = {
       this.isTap = false;
     }
 
+    this.screen.classList.add('utility-tray');
+
     if (this.shown) {
       dy += screenHeight;
     }
 
     dy = Math.max(0, dy);
     dy = Math.min(screenHeight, dy);
-
-    if (dy >= this.grippyHeight) {
-      this.screen.classList.add('utility-tray');
-    } else {
-      this.screen.classList.remove('utility-tray');
-    }
 
     var style = this.overlay.style;
     style.MozTransition = '';
@@ -419,18 +414,15 @@ window.UtilityTray = {
 
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     this.notifications.style.transition = style.MozTransition;
-    this.screen.classList.remove('utility-tray');
 
     // If the transition has not started yet there won't be any transitionend
     // event so let's not wait in order to remove the utility-tray class.
     if (instant || style.MozTransform === '') {
-      this.overlay.classList.remove('visible');
+      this.screen.classList.remove('utility-tray');
     }
 
     style.MozTransform = '';
-    var offset = this.grippyHeight - this.ambientHeight;
-    var notifTransform = 'calc(100% + ' + offset + 'px)';
-    this.notifications.style.transform = 'translateY(' + notifTransform + ')';
+    this.notifications.style.transform = 'translateY(100%)';
     this.shown = false;
     window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
 

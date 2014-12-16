@@ -106,12 +106,7 @@ marionette('Statusbar colors', function() {
     waitVisible();
     waitForDarkColor();
     launchSettingsActivity();
-    client.waitFor(function() {
-      var filter = system.statusbarShadowActivity.scriptWith(function(element) {
-        return window.getComputedStyle(element).filter;
-      });
-      return filter.indexOf('none') === -1;
-    });
+    waitForLightColor();
   });
 
   test('statusbar icons are dark when utility tray is open', function() {
@@ -120,18 +115,10 @@ marionette('Statusbar colors', function() {
     client.apps.launch(SETTINGS_APP);
     waitForLightColor();
     utilityTray.open();
-    client.waitFor(function() {
-      var filter = system.statusbarShadowTray.scriptWith(function(element) {
-        return window.getComputedStyle(element).filter;
-      });
-      return filter.indexOf('none') > -1;
-    });
+    waitForDarkColor();
   });
 
   function launchSettingsActivity() {
-    var SMS_APP = 'app://sms.gaiamobile.org';
-    client.apps.launch(SMS_APP);
-    client.switchToFrame();
     client.executeScript(function() {
       var activity = new window.wrappedJSObject.MozActivity({
         name: 'configure',
@@ -172,7 +159,7 @@ marionette('Statusbar colors', function() {
 
   function waitForColor(light) {
     client.waitFor(function() {
-      var filter = system.statusbarShadow.scriptWith(function(element) {
+      var filter = system.statusbar.scriptWith(function(element) {
         return window.getComputedStyle(element).filter;
       });
       var index = filter.indexOf('none');
