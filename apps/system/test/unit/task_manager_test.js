@@ -1044,6 +1044,28 @@ suite('system/TaskManager >', function() {
       taskManager.hide();
     });
 
+    test('locking the screen should trigger an exit', function() {
+      this.sinon.spy(taskManager, 'exitToApp');
+      this.sinon.spy(taskManager, 'hide');
+      showTaskManager(this.sinon.clock);
+
+      window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
+      waitForEvent(window, 'cardviewclosed').then(function() {
+        sinon.assert.calledOrder([taskManager.exitToApp, taskManager.hide]);
+      }, failOnReject);
+    });
+
+    test('opening an attention screen should trigger an exit', function() {
+      this.sinon.spy(taskManager, 'exitToApp');
+      this.sinon.spy(taskManager, 'hide');
+      showTaskManager(this.sinon.clock);
+
+      window.dispatchEvent(new CustomEvent('attentionopened'));
+      waitForEvent(window, 'cardviewclosed').then(function() {
+        sinon.assert.calledOrder([taskManager.exitToApp, taskManager.hide]);
+      }, failOnReject);
+    });
+
     suite('when opening from the homescreen', function() {
       setup(function() {
         MockService.currentApp  = home;

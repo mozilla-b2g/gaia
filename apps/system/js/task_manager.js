@@ -615,7 +615,6 @@
 
       case 'lockscreen-appopened':
       case 'attentionopened':
-        this.hide();
         this.exitToApp();
         break;
 
