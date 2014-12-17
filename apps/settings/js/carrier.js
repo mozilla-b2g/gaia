@@ -70,8 +70,7 @@ var CarrierSettings = (function(window, document, undefined) {
     }
 
     cs_addVoiceTypeChangeListeners();
-    cs_updateNetworkTypeLimitedItemsVisibility(
-      _mobileConnection.voice && _mobileConnection.voice.type);
+    cs_updateNetworkTypeLimitedItemsVisibility(_mobileConnection);
 
     // Show carrier name.
     cs_showCarrierName();
@@ -100,8 +99,7 @@ var CarrierSettings = (function(window, document, undefined) {
 
       var currentHash = e.detail.current;
       if (currentHash === '#carrier') {
-        cs_updateNetworkTypeLimitedItemsVisibility(
-          _mobileConnection.voice && _mobileConnection.voice.type);
+        cs_updateNetworkTypeLimitedItemsVisibility(_mobileConnection);
         // Show carrier name.
         cs_showCarrierName();
         return;
@@ -263,14 +261,13 @@ var CarrierSettings = (function(window, document, undefined) {
     Array.prototype.forEach.call(_mobileConnections, function(conn, index) {
       _voiceTypes[index] = conn.voice.type;
       conn.addEventListener('voicechange', function() {
-        var newType = conn.voice.type;
-        if (index !== DsdsSettings.getIccCardIndexForCellAndDataSettings() ||
-            _voiceTypes[index] === newType) {
-          return;
-        }
-        _voiceTypes[index] = newType;
-        if (newType) {
-          cs_updateNetworkTypeLimitedItemsVisibility(newType);
+        var voiceType = conn.voice && conn.voice.type;
+        var voiceTypeChange = voiceType !== _voiceTypes[index];
+
+        _voiceTypes[index] = voiceType;
+        if (index === DsdsSettings.getIccCardIndexForCellAndDataSettings() &&
+          voiceTypeChange) {
+            cs_updateNetworkTypeLimitedItemsVisibility(conn);
         }
       });
     });
@@ -279,7 +276,7 @@ var CarrierSettings = (function(window, document, undefined) {
   /**
    * Update the network type limited items' visibility based on the voice type.
    */
-  function cs_updateNetworkTypeLimitedItemsVisibility(voiceType) {
+  function cs_updateNetworkTypeLimitedItemsVisibility(conn) {
     // The following features are limited to GSM types.
     var autoSelectOperatorItem = document.getElementById('operator-autoSelect');
     var availableOperatorsHeader =
@@ -289,11 +286,25 @@ var CarrierSettings = (function(window, document, undefined) {
     var roamingPreferenceItem =
       document.getElementById('operator-roaming-preference');
 
-    autoSelectOperatorItem.hidden = availableOperatorsHeader.hidden =
-      availableOperators.hidden = (_networkTypeCategory[voiceType] !== 'gsm');
+    var voiceType = conn.voice && conn.voice.type;
 
-    roamingPreferenceItem.hidden =
-      (_networkTypeCategory[voiceType] !== 'cdma');
+    function doUpdate(mode) {
+      autoSelectOperatorItem.hidden = availableOperatorsHeader.hidden =
+      availableOperators.hidden = (mode !== 'gsm');
+      roamingPreferenceItem.hidden = (mode !== 'cdma');
+    }
+
+    if (!voiceType) {
+      getSupportedNetworkInfo(conn, function(result) {
+        if (result.gsm || result.wcdma || result.lte) {
+          doUpdate('gsm');
+        } else {
+          doUpdate('cdma');
+        }
+      });
+    } else {
+      doUpdate(_networkTypeCategory[voiceType]);
+    }
   }
 
   /**
