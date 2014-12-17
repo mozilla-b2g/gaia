@@ -26,6 +26,7 @@ function dispatch(eventType) {
  * exists in the DOM and is marked as ready to be displayed.
  */
 exports.domLoaded = function() {
+  window.performance.mark('navigationLoaded');
   // PERFORMANCE EVENT (1): moz-chrome-dom-loaded
   dispatch('moz-chrome-dom-loaded');
 };
@@ -35,6 +36,7 @@ exports.domLoaded = function() {
  * has its events bound and is ready for user interaction.
  */
 exports.chromeInteractive = function() {
+  window.performance.mark('navigationInteractive');
   // PERFORMANCE EVENT (2): moz-chrome-interactive
   dispatch('moz-chrome-interactive');
 };
@@ -83,12 +85,14 @@ function dispatchVisuallyCompleteAndInteractive() {
   // Designates that the app is visually loaded (e.g.: all of the
   // "above-the-fold" content exists in the DOM and is marked as
   // ready to be displayed).
+  window.performance.mark('visuallyLoaded');
   dispatch('moz-app-visually-complete');
 
   // PERFORMANCE EVENT (4): moz-content-interactive
   // Designates that the app has its events bound for the minimum
   // set of functionality to allow the user to interact with the
   // "above-the-fold" content.
+  window.performance.mark('contentInteractive');
   dispatch('moz-content-interactive');
 
   dispatchAppLoad();
@@ -124,6 +128,7 @@ function dispatchAppLoad() {
   // "below-the-fold" content exists in the DOM, is marked visible,
   // has its events bound and is ready for user interaction. All
   // required startup background processing should be complete.
+  window.performance.mark('fullyLoaded');
   dispatch('moz-app-loaded');
 }
 
