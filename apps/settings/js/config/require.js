@@ -9,6 +9,12 @@ require.config({
     'settings': {
       exports: 'Settings'
     },
+    'simcard_lock': {
+      exports: 'SimPinLock'
+    },
+    'simcard_dialog': {
+      exports: 'SimPinDialog'
+    },
     'shared/apn_helper': {
       exports: 'ApnHelper'
     },
