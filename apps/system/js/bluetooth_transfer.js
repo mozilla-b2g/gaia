@@ -14,9 +14,6 @@
 /* exported BluetoothTransfer */
 
 var BluetoothTransfer = {
-  pairList: {
-    index: []
-  },
   // The first-in-first-out queue maintain each scheduled sending task.
   // Each element is a object for scheduled sending tasks.
   _sendingFilesQueue: [],
@@ -58,42 +55,43 @@ var BluetoothTransfer = {
   },
 
   getDeviceName: function bt_getDeviceName(address) {
-    var _ = navigator.mozL10n.get;
-    var length = this.pairList.index.length;
-    for (var i = 0; i < length; i++) {
-      if (this.pairList.index[i].address == address) {
-        return this.pairList.index[i].name;
+    return new Promise(function(resolve) {
+      var _ = navigator.mozL10n.get;
+      var adapter = Bluetooth.getAdapter();
+      if (adapter == null) {
+        var msg = 'Since cannot get Bluetooth adapter, ' +
+                  'resolve with an unknown device.';
+        this.debug(msg);
+        resolve(_('unknown-device'));
       }
-    }
-    return _('unknown-device');
-  },
-
-  getPairedDevice: function bt_getPairedDevice(callback) {
-    var adapter = Bluetooth.getAdapter();
-    if (adapter == null) {
-      var msg = 'Cannot get Bluetooth adapter.';
-      this.debug(msg);
-      return;
-    }
-    var self = this;
-    var req = adapter.getPairedDevices();
-    req.onsuccess = function bt_getPairedSuccess() {
-      self.pairList.index = req.result;
-      var length = self.pairList.index.length;
-      if (length === 0) {
-        var msg =
-          'There is no paired device! Please pair your bluetooth device first.';
+      var self = this;
+      // Service Class Name: OBEXObjectPush, UUID: 0x1105
+      // Specification: Object Push Profile (OPP)
+      //                NOTE: Used as both Service Class Identifier and Profile.
+      // Allowed Usage: Service Class/Profile
+      // https://www.bluetooth.org/en-us/specification/assigned-numbers/
+      // service-discovery
+      var serviceUuid = '0x1105';
+      var req = adapter.getConnectedDevices(serviceUuid);
+      req.onsuccess = function bt_gotConnectedDevices() {
+        if (req.result) {
+          var connectedList = req.result;
+          var length = connectedList.length;
+          for (var i = 0; i < length; i++) {
+            if (connectedList[i].address == address) {
+              resolve(connectedList[i].name);
+            }
+          }
+        } else {
+          resolve(_('unknown-device'));
+        }
+      };
+      req.onerror = function() {
+        var msg = 'Can not check is device connected from adapter.';
         self.debug(msg);
-        return;
-      }
-      if (callback) {
-        callback();
-      }
-    };
-    req.onerror = function() {
-      var msg = 'Can not get paired devices from adapter.';
-      self.debug(msg);
-    };
+        resolve(_('unknown-device'));
+      };
+    }.bind(this));
   },
 
   debug: function bt_debug(msg) {
@@ -151,13 +149,11 @@ var BluetoothTransfer = {
     }
 
     // Prompt appears when a transfer request from a paired device is received.
-
     var address = evt.address;
     var self = this;
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
 
-    this.getPairedDevice(function getPairedDeviceComplete() {
-      var deviceName = self.getDeviceName(address);
+    this.getDeviceName(address).then(function(deviceName) {
       var title = {
         id: 'transfer-confirmation-title',
         args: { deviceName: deviceName }
@@ -177,7 +173,6 @@ var BluetoothTransfer = {
   },
 
   showReceivePrompt: function bt_showReceivePrompt(evt) {
-
     var address = evt.address;
     var fileName = evt.fileName;
     var fileSize = this.humanizeSize(evt.fileLength);
@@ -192,10 +187,8 @@ var BluetoothTransfer = {
       recommend: true
     };
 
-    var deviceName = '';
     var screen = document.getElementById('screen');
-    this.getPairedDevice(function getPairedDeviceComplete() {
-      deviceName = this.getDeviceName(address);
+    this.getDeviceName(address).then(function(deviceName) {
       CustomDialog.show(
         'acceptFileTransfer',
         {
@@ -211,7 +204,7 @@ var BluetoothTransfer = {
         screen
       )
       .setAttribute('data-z-index-level', 'system-dialog');
-    }.bind(this));
+    });
   },
 
   declineReceive: function bt_declineReceive(address) {
