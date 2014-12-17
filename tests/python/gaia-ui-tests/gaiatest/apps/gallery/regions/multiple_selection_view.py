@@ -13,6 +13,9 @@ class MultipleSelectionView(Base):
     _select_picture_header_locator = (By.ID, 'thumbnails-number-selected')
     _thumbnail_list_view_locator = (By.CSS_SELECTOR, '.thumbnail')
     _share_thumbnail_locator = (By.ID, 'thumbnails-share-button')
+    _delete_thumbnail_locator = (By.ID, 'thumbnails-delete-button')
+    _delete_confirm_locator = (By.ID, 'confirm-ok')
+    _delete_cancel_locator = (By.ID, 'confirm-cancel')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -22,6 +25,10 @@ class MultipleSelectionView(Base):
 
     def select_first_picture(self):
         self.thumbnails[0].tap()
+
+    def select_nth_picture(self, n):
+        assert len(self.thumbnails) > n
+        self.thumbnails[n].tap()
 
     @property
     def thumbnails(self):
@@ -34,3 +41,19 @@ class MultipleSelectionView(Base):
         share_button.tap()
         from gaiatest.apps.system.regions.activities import Activities
         return Activities(self.marionette)
+
+    # one can choose to cancel deletion by entering optional parameter
+    def tap_delete_button(self, confirm=True):
+        delete_button = Wait(self.marionette).until(
+            expected.element_present(*self._delete_thumbnail_locator))
+        Wait(self.marionette).until(expected.element_displayed(delete_button))
+        delete_button.tap()
+
+        if confirm:
+            confirm_decision_button = Wait(self.marionette).until(
+                expected.element_present(*self._delete_confirm_locator))
+        else:
+            confirm_decision_button = Wait(self.marionette).until(
+                expected.element_present(*self._delete_cancel_locator))
+        Wait(self.marionette).until(expected.element_displayed(confirm_decision_button))
+        confirm_decision_button.tap()
